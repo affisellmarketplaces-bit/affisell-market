@@ -126,11 +126,11 @@
       "eyebrow": "Univers premium",
       "title": "Au-delà du catalogue standard",
       "trustTitle": "Achat protégé",
-      "trustBody": "Paiement Stripe · escrow vendeur · retours 14 jours UE.",
+      "trustBody": "Paiement sécurisé · protection acheteur · retours 14 jours UE.",
       "trustReturns": "Retours",
       "trustShipping": "Livraison",
       "trustSupport": "Support",
-      "trustFootnote": "Pan-UE · TVA Stripe Tax · médiation ODR"
+      "trustFootnote": "Pan-UE · TVA conforme · médiation ODR"
     },
     "buyerServices": {
       "sectionBuyer": "Acheter malin sur Affisell",
@@ -185,7 +185,7 @@
       },
       "paid": {
         "title": "Encaissez",
-        "description": "Virements hebdomadaires. Marge 15–30 %"
+        "description": "Reversements réguliers. Vous fixez votre positionnement."
       }
     },
     "social": {
@@ -204,11 +204,11 @@
   "partners": {
     "meta": {
       "title": "Partenaires Affisell — Distribution fournisseur",
-      "description": "Distribuez via les boutiques créateurs avec automatisation API."
+      "description": "Distribuez via les boutiques partenaires créateurs."
     },
     "hero": {
       "title": "Distribuez via 10 000+ créateurs",
-      "sub": "Intégration API. Commandes automatiques. Paiements sécurisés.",
+      "sub": "Réseau de partenaires. Commandes automatisées. Paiements sécurisés.",
       "cta": "Devenir partenaire"
     },
     "features": {
@@ -218,7 +218,7 @@
       },
       "automation": {
         "title": "Automatisation",
-        "description": "Commandes envoyées à votre entrepôt ou via API"
+        "description": "Commandes transmises directement à votre entrepôt"
       },
       "control": {
         "title": "Contrôle",
@@ -227,7 +227,7 @@
     },
     "steps": {
       "title": "Comment ça marche",
-      "step1": "Connecter l'API",
+      "step1": "Créer votre compte fournisseur",
       "step2": "Les créateurs listent vos produits",
       "step3": "Nous vous envoyons les commandes"
     },
@@ -2163,7 +2163,7 @@
     "confirmQ": "Je n'ai pas reçu l'e-mail de confirmation",
     "confirmA": "Vérifiez les spams et l'e-mail saisi au checkout. Si le paiement Stripe est validé, la commande apparaît dans Mes commandes sous 2 minutes. Sinon, contactez-nous avec la date et le montant du débit.",
     "cancelQ": "Puis-je annuler ma commande ?",
-    "cancelA": "Tant que le colis n'est pas expédié, une annulation peut être possible via le support ou automatiquement si le délai d'expédition du vendeur est dépassé (Ship Pulse). Une fois expédié, seul un retour après réception est possible.",
+    "cancelA": "Tant que le colis n'est pas expédié, une annulation peut être possible via le support ou automatiquement si le délai d'expédition du vendeur est dépassé. Une fois expédié, seul un retour après réception est possible.",
     "delayQ": "Quels sont les délais de livraison ?",
     "delayA": "En France et UE : généralement 3 à 7 jours ouvrés après expédition. Le délai indicatif est affiché sur la fiche produit. International : 7 à 14 jours ouvrés selon destination.",
     "lateQ": "Mon colis est en retard",
@@ -2204,7 +2204,7 @@
     "trackCta": "Suivre ma commande",
     "ordersCta": "Mes commandes",
     "issueTitle": "Retard ou colis manquant ?",
-    "issueBody": "Si le délai affiché est dépassé sans tracking, notre système Ship Pulse peut annuler et rembourser automatiquement. Sinon, consultez l'assistant support ou la FAQ.",
+    "issueBody": "Si le délai affiché est dépassé sans tracking, notre système peut annuler et rembourser automatiquement. Sinon, consultez l'assistant support ou la FAQ.",
     "supportCta": "Assistant support",
     "faqCta": "FAQ",
     "carriersTitle": "Transporteurs par pays",
@@ -2416,15 +2416,15 @@
       "contact": "Contact",
       "trackOrder": "Suivre ma commande",
       "trustBeaconTitle": "Achat protégé Affisell",
-      "trustBeaconHint": "Paiement Stripe · escrow vendeur · retours 14 jours UE",
+      "trustBeaconHint": "Paiement sécurisé · protection acheteur · retours 14 jours UE",
       "trustBeaconCta": "Voir la politique",
       "panEuBadge": "Pan-UE · 27 marchés",
       "localeLabel": "Langue & région",
       "mobileTagline": "Marketplace créateurs · paiement sécurisé · support 24/7",
-      "desktopTagline": "L'infrastructure marketplace où affiliés et fournisseurs scalent en Europe — paiement Stripe, conformité UE, zéro friction.",
-      "stripeNoticeShort": "Carte bancaire · 3D Secure · TVA conforme UE",
+      "desktopTagline": "La marketplace où partenaires créateurs et fournisseurs grandissent en Europe — conformité UE, expérience fluide.",
+      "stripeNoticeShort": "Carte bancaire · authentification forte · TVA conforme UE",
       "vatNotice": "TVA collectée et reversée conformément à la réglementation applicable.",
-      "stripeNotice": "Paiements sécurisés par Stripe (carte bancaire, 3D Secure lorsque requis).",
+      "stripeNotice": "Paiements sécurisés par carte bancaire (authentification forte lorsque requis).",
       "copyright": "© {year} Affisell — {name} — SIRET {siret} —",
       "odrLink": "Règlement des litiges en ligne (UE)",
       "social": {
@@ -2510,59 +2510,59 @@
       "stores": "Boutiques créateurs",
       "listings": "Fiches en direct",
       "catalog": "SKU catalogue",
-      "commission": "Commission ambassadeur moy."
+      "commission": "Partenaires actifs"
     },
     "about": {
       "metaTitle": "À propos d'Affisell — Marketplace créateur-first",
-      "metaDescription": "Affisell connecte fournisseurs vérifiés, vitrines ambassadeur et acheteurs avec commissions transparentes et conformité UE.",
+      "metaDescription": "Affisell connecte fournisseurs vérifiés, vitrines partenaires et acheteurs avec une expérience d'achat protégée en UE.",
       "eyebrow": "Entreprise",
       "title": "L'infrastructure commerce des créateurs",
-      "description": "Affisell est une marketplace pensée pour les créateurs : les fournisseurs listent leur catalogue grossiste, les ambassadeurs lancent une vitrine en minutes, les acheteurs achètent avec une transparence totale des frais.",
+      "description": "Affisell est une marketplace pensée pour les créateurs : les fournisseurs exposent leur catalogue, les partenaires lancent une vitrine en minutes, les acheteurs achètent en confiance.",
       "mission": {
         "title": "Notre mission",
-        "body": "Les créateurs doivent pouvoir monétiser leur audience sans stock, entrepôt ni marges opaques. Affisell orchestre la boucle complète — synchronisation catalogue, paiement, expédition fournisseur, virements Stripe Connect et signaux de confiance conformes RGPD.",
-        "body2": "Basés à Marseille, nous privilégions l'Europe avec un paiement multi-devises, des commissions variables par catégorie, et des outils comme Swipe Feed, Agent sourcing et Pulse discovery."
+        "body": "Les créateurs doivent pouvoir monétiser leur audience sans stock ni logistique. Affisell orchestre la boucle complète — catalogue, paiement sécurisé, expédition fournisseur et signaux de confiance conformes RGPD.",
+        "body2": "Basés à Marseille, nous privilégions l'Europe avec un checkout multi-devises et des outils pensés pour la découverte produit et la croissance des vitrines."
       },
       "values": {
         "0": {
           "title": "Vitrines créateurs",
-          "body": "Chaque ambassadeur obtient une boutique brandée, des fiches custom, des rewards acheteur et du merchandising drag-and-drop — en ligne en moins de 2 minutes."
+          "body": "Chaque partenaire obtient une boutique brandée, des fiches personnalisées et du merchandising intuitif — en ligne en quelques minutes."
         },
         "1": {
           "title": "Portée fournisseurs",
-          "body": "Les marques uploadent une fois, distribuent via des milliers de vitrines avec routage commande automatisé et sync stock temps réel."
+          "body": "Les marques publient une fois et touchent des audiences engagées via des milliers de vitrines partenaires."
         },
         "2": {
-          "title": "Économie transparente",
-          "body": "Chaque commande affiche le grossiste, la marge ambassadeur, les frais plateforme et le prix acheteur — sans déductions cachées."
+          "title": "Clarté pour tous",
+          "body": "Acheteurs, partenaires et fournisseurs disposent d'informations lisibles sur chaque commande — sans surprise."
         },
         "3": {
           "title": "Confiance native",
-          "body": "Hub légal, export/suppression RGPD, bandeau cookies, factures PDF et explainers commission intégrés au produit."
+          "body": "Hub légal, export et suppression RGPD, bandeau cookies et factures intégrés au produit."
         }
       },
       "timeline": {
-        "title": "Construire en public",
+        "title": "Notre parcours",
         "items": {
           "2024": {
             "year": "2024",
             "title": "Fondation Affisell",
-            "body": "MVP marketplace : catalogue fournisseur, vitrines ambassadeur et split payouts Stripe Connect."
+            "body": "Lancement de la marketplace : catalogue fournisseur et vitrines partenaires créateurs."
           },
           "2026": {
             "year": "2026",
-            "title": "Swipe Feed & pile RGPD",
-            "body": "Publication en un geste pour ambassadeurs, hub documents légaux, tableaux de bord RGPD et génération de factures."
+            "title": "Confiance & conformité",
+            "body": "Hub documents légaux, tableaux de bord RGPD et facturation intégrée."
           },
           "2025a": {
             "year": "2025",
-            "title": "Agent & Pulse",
-            "body": "Agent IA sourcing ambassadeur, feed discovery vertical et intégrations API fournisseurs."
+            "title": "Découverte & sourcing",
+            "body": "Outils de découverte produit et d'aide au choix pour les partenaires créateurs."
           },
           "2025b": {
             "year": "2025",
-            "title": "Moteur de settlement",
-            "body": "Split tripartite avec commissions par catégorie, frais plateforme HT et UI transparence fournisseur."
+            "title": "Expérience acheteur",
+            "body": "Suivi commande, retours simplifiés et transparence renforcée sur chaque vente."
           }
         }
       },
@@ -2584,90 +2584,90 @@
       "backToBlog": "Tous les articles",
       "posts": {
         "swipe-feed-affiliate-hub": {
-          "title": "Swipe Feed : lister un produit en un geste",
-          "excerpt": "Les ambassadeurs découvrent le catalogue façon Tinder, listent à +30% en swipant à droite, et ne revoient jamais les SKU passés.",
+          "title": "Découvrir et publier plus vite",
+          "excerpt": "Les partenaires créateurs parcourent le catalogue en flux mobile et publient leurs sélections en quelques gestes.",
           "date": "2026-05-19",
           "category": "Produit",
           "readMin": "4 min",
           "sections": {
-            "intro": "Le sourcing ambassadeur, c'était le défilement infini dans une grille. Swipe Feed transforme la découverte en flux mobile natif — avec annulation, filtres commission et pile de 3 cartes préchargées.",
+            "intro": "La découverte produit ne devrait pas ressembler à un tableur infini. Affisell propose un parcours mobile fluide pour explorer, filtrer et publier.",
             "s1": {
               "title": "Comment ça marche",
-              "body": "Swipe droite pour publier une fiche à votre markup par défaut (+30% sur le prix fournisseur). Swipe gauche pour masquer définitivement un SKU. Chaque décision est enregistrée pour un feed toujours pertinent."
+              "body": "Parcourez le catalogue, validez les produits qui correspondent à votre audience et publiez sur votre vitrine — sans revenir sur les références déjà passées."
             },
             "s2": {
               "title": "Conçu pour la vitesse",
-              "body": "Parallax framer-motion, commit basé sur la vélocité et UX animation-first : la carte s'envole avant l'appel API — l'interface reste instantanée même sur réseau lent."
+              "body": "Interface réactive et gestes intuitifs : la sélection reste agréable même sur mobile ou réseau lent."
             },
             "s3": {
               "title": "Essayer",
-              "body": "Ouvrez le Hub Ambassadeur depuis la navigation tableau de bord ou allez sur /dashboard/affiliate/hub?mode=swipe. Combinez avec l'Agent sourcing pour analyser les marges des sélections à forte intention."
+              "body": "Ouvrez le hub partenaire depuis votre tableau de bord et commencez à constituer votre vitrine en quelques minutes."
             }
           }
         },
         "commission-transparency": {
-          "title": "Transparence commission sur chaque commande",
-          "excerpt": "Fournisseurs, ambassadeurs et acheteurs voient exactement comment se répartissent grossiste, markup, frais plateforme et TVA.",
+          "title": "Clarté sur chaque commande",
+          "excerpt": "Fournisseurs, partenaires et acheteurs disposent d'informations lisibles sur chaque vente.",
           "date": "2026-05-12",
           "category": "Confiance",
           "readMin": "5 min",
           "sections": {
-            "intro": "Les marketplaces opaques cachent qui gagne quoi. Affisell expose le settlement complet sur les pages commande marchands, reçus acheteur et factures PDF.",
+            "intro": "Les marketplaces opaques créent de la méfiance. Affisell affiche des récapitulatifs clairs sur les pages commande, reçus et factures.",
             "s1": {
-              "title": "Taux variables",
-              "body": "La commission cascade des defaults catégorie vers les profils fournisseur jusqu'aux SKU — des catégories à forte marge peuvent offrir de meilleures economics ambassadeur sans tableurs manuels."
+              "title": "Pour chaque partie",
+              "body": "Chaque acteur voit ce qui le concerne dans un langage simple — sans jargon comptable inutile."
             },
             "s2": {
               "title": "Clarté fournisseur",
-              "body": "Les dashboards fournisseur nomment les déductions commission partenaire et frais plateforme — pas de vague « ajustement ». Les previews payout correspondent au virement Stripe Connect."
+              "body": "Les tableaux de bord fournisseur détaillent les montants et retenues de façon explicite, sans libellés vagues."
             },
             "s3": {
-              "title": "CommissionExplainer",
-              "body": "UI embarquée sur le détail commande explique le calcul en langage clair, avec liens vers les CGU ambassadeur et fournisseur."
+              "title": "Aide intégrée",
+              "body": "Des explications contextuelles sur le détail commande renvoient vers les conditions légales applicables."
             }
           }
         },
         "gdpr-marketplace-trust": {
           "title": "Hub RGPD pour marchands et acheteurs",
-          "excerpt": "Export, suppression, préférences cookies et versioning consentement — natifs aux comptes Affisell.",
+          "excerpt": "Export, suppression et préférences cookies — intégrés aux comptes Affisell.",
           "date": "2026-05-05",
           "category": "Conformité",
           "readMin": "4 min",
           "sections": {
-            "intro": "La confiance est une feature produit. Affisell shippe un stack RGPD complet : consentement signup, bandeau cookies avec analytics gated, export JSON et flux suppression compte.",
+            "intro": "La confiance est une feature produit. Affisell intègre consentement, cookies et droits des personnes directement dans l'expérience compte.",
             "s1": {
               "title": "Hub documents légaux",
-              "body": "CGU acheteur, fournisseur et ambassadeur, politique confidentialité, remboursements et mentions légales — versionnés et liés depuis signup et footer."
+              "body": "CGU, politique confidentialité, remboursements et mentions légales — versionnés et accessibles depuis l'inscription et le pied de page."
             },
             "s2": {
               "title": "Droits self-service",
-              "body": "Marchands et acheteurs accèdent à /dashboard/account/gdpr ou /marketplace/account/gdpr pour exporter leurs données ou demander suppression, sous réserve de conservation comptable."
+              "body": "Marchands et acheteurs peuvent exporter leurs données ou demander une suppression depuis leur espace compte."
             },
             "s3": {
               "title": "Pourquoi c'est clé",
-              "body": "Les business créateurs opèrent dans toute l'UE. Une conformité intégrée réduit le risque juridique et rassure les marques partenaires qui évaluent votre vitrine."
+              "body": "Les créateurs opèrent dans toute l'UE. Une conformité intégrée rassure les marques partenaires et les acheteurs."
             }
           }
         },
         "creator-storefront-60s": {
-          "title": "Lancer une vitrine créateur en 60 secondes",
-          "excerpt": "Choisissez un SKU, fixez votre marge, publiez — Affisell gère le paiement, les notifications d'expédition et les versements hebdo.",
+          "title": "Lancer une vitrine créateur en quelques minutes",
+          "excerpt": "Choisissez un produit, personnalisez votre vitrine, publiez — Affisell gère le reste.",
           "date": "2026-04-20",
           "category": "Créateurs",
           "readMin": "3 min",
           "sections": {
-            "intro": "Affisell retire la charge ops du commerce créateur : pas d'entrepôt, pas de MAJ stock manuelle, pas de setup gateway from scratch.",
+            "intro": "Affisell retire la charge ops du commerce créateur : pas d'entrepôt, pas de configuration paiement from scratch.",
             "s1": {
               "title": "Catalogue → vitrine",
-              "body": "Parcourez le catalogue discovery filtré par niche, commission ou marge. Le Listing Builder custom titre, images, slug SEO et cashback acheteur."
+              "body": "Parcourez le catalogue par niche ou thème, personnalisez titre, visuels et présentation avant publication."
             },
             "s2": {
-              "title": "Votre marque, nos rails",
-              "body": "Domaines personnalisés, studio de marque, collections mises en avant et aperçu en direct — pendant que Stripe Connect route le grossiste et votre marge automatiquement."
+              "title": "Votre marque, notre infrastructure",
+              "body": "Domaine personnalisé, studio de marque, collections mises en avant et aperçu en direct — pendant qu'Affisell assure paiement et suivi."
             },
             "s3": {
               "title": "Commencer",
-              "body": "Créez un compte ambassadeur gratuit, connectez les payouts, publiez votre première fiche. La plupart des créateurs voient leur première vente dans la semaine."
+              "body": "Créez un compte partenaire gratuit et publiez votre première fiche. La plupart des créateurs voient leur première vente rapidement."
             }
           }
         }
@@ -2685,7 +2685,7 @@
         "perks": {
           "remote": "Remote-friendly fuseaux EU",
           "impact": "Fort ownership — pas de ticket factory",
-          "stack": "Next.js 16, Prisma, Stripe Connect, Vercel",
+          "stack": "Produit moderne, impact visible en prod",
           "equity": "Equity meaningful early-team"
         }
       },
@@ -2695,40 +2695,40 @@
       "roles": {
         "fullstack-engineer": {
           "title": "Ingénieur Full-stack",
-          "summary": "Posséder des fonctionnalités marketplace du schéma Prisma jusqu'au polissage UI — splits de paiement, outils affilié et tableaux de bord fournisseur.",
+          "summary": "Posséder des fonctionnalités marketplace de bout en bout — vitrines partenaires, checkout et tableaux de bord fournisseur.",
           "location": "Marseille / Remote EU",
           "type": "CDI",
           "team": "Engineering",
           "applySubject": "Candidature — Full-stack Engineer",
           "requirements": {
-            "r1": "TypeScript, React et SQL (PostgreSQL) solides",
-            "r2": "Expérience paiements ou marketplaces un plus",
-            "r3": "À l'aise Next.js App Router et server components"
+            "r1": "TypeScript, React et bases SQL solides",
+            "r2": "Expérience e-commerce ou marketplaces un plus",
+            "r3": "Goût pour le produit et l'itération rapide"
           }
         },
         "creator-success": {
           "title": "Creator Success Manager",
-          "summary": "Onboarder les affiliés, améliorer la qualité des fiches, remonter les insights produit.",
+          "summary": "Onboarder les partenaires créateurs, améliorer la qualité des vitrines, remonter les insights produit.",
           "location": "Remote EU",
           "type": "CDI",
           "team": "Growth",
           "applySubject": "Candidature — Creator Success",
           "requirements": {
             "r1": "FR/EN courant ; expérience communautés créateurs ou e-commerce",
-            "r2": "Analytique — à l'aise avec data commission et conversion",
-            "r3": "Empathie pour les créateurs entre audience et marge"
+            "r2": "À l'aise avec les métriques conversion et rétention",
+            "r3": "Empathie pour les créateurs entre audience et croissance"
           }
         },
         "supplier-partnerships": {
           "title": "Partenariats Fournisseurs (B2B)",
-          "summary": "Sourcer des marques, onboarder le catalogue via API ou import bulk, co-construire les grilles commission.",
+          "summary": "Sourcer des marques, onboarder le catalogue et développer le réseau fournisseurs.",
           "location": "Remote EU",
           "type": "CDI / Freelance",
           "team": "Partnerships",
           "applySubject": "Candidature — Supplier Partnerships",
           "requirements": {
-            "r1": "Track record marketplace, wholesale ou partenariats marques D2C",
-            "r2": "Comprendre l'unit economics : grossiste, markup, retours",
+            "r1": "Track record marketplace ou partenariats marques D2C",
+            "r2": "Compréhension des enjeux retail et logistique",
             "r3": "Mobilité occasionnelle pour rencontres fournisseurs EU"
           }
         }
@@ -2739,11 +2739,11 @@
       "metaDescription": "Ressources médias, faits société et contact presse Affisell — marketplace créateur-first.",
       "eyebrow": "Presse",
       "title": "Press Kit",
-      "description": "Faits, boilerplate et assets pour journalistes couvrant creator commerce, infra marketplace et retail tech EU.",
+      "description": "Faits, boilerplate et assets pour journalistes couvrant creator commerce et retail tech EU.",
       "boilerplate": {
         "title": "Boilerplate",
-        "short": "Affisell est une marketplace créateur-first reliant fournisseurs vérifiés, vitrines affiliées et acheteurs — commissions transparentes et conformité UE intégrée.",
-        "long": "Fondée à Marseille, Affisell permet aux créateurs de lancer une boutique brandée en minutes sans stock. Les fournisseurs distribuent via le réseau affilié avec fulfillment automatisé et payouts Stripe Connect. La plateforme inclut Agent IA, Swipe Feed, Pulse, self-service RGPD et détail commission sur chaque commande."
+        "short": "Affisell est une marketplace créateur-first reliant fournisseurs vérifiés, vitrines partenaires et acheteurs — avec conformité UE intégrée.",
+        "long": "Fondée à Marseille, Affisell permet aux créateurs de lancer une boutique brandée en minutes sans stock. Les fournisseurs distribuent via un réseau de partenaires avec fulfillment automatisé. La plateforme inclut outils de découverte, self-service RGPD et suivi commande transparent."
       },
       "facts": {
         "title": "Faits clés",
@@ -2757,11 +2757,11 @@
         },
         "model": {
           "label": "Modèle",
-          "value": "Marketplace B2B2C (fournisseur · affilié · acheteur)"
+          "value": "Marketplace B2B2C (fournisseur · partenaire · acheteur)"
         },
         "stack": {
-          "label": "Stack",
-          "value": "Next.js, PostgreSQL, Stripe Connect, Vercel"
+          "label": "Plateforme",
+          "value": "Cloud-native · conformité UE"
         },
         "compliance": {
           "label": "Conformité",
@@ -2791,12 +2791,12 @@
         "read": "Lire →",
         "items": {
           "n1": {
-            "title": "Lancement Swipe Feed affiliés",
+            "title": "Découverte produit mobile pour partenaires",
             "date": "Mai 2026",
             "href": "/blog/swipe-feed-affiliate-hub"
           },
           "n2": {
-            "title": "Transparence commission sur toutes les commandes",
+            "title": "Clarté renforcée sur les commandes",
             "date": "Mai 2026",
             "href": "/blog/commission-transparency"
           },

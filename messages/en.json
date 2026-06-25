@@ -126,11 +126,11 @@
       "eyebrow": "Premium verticals",
       "title": "Beyond the standard catalog",
       "trustTitle": "Protected checkout",
-      "trustBody": "Stripe payments · seller escrow · 14-day EU returns.",
+      "trustBody": "Secure payments · buyer protection · 14-day EU returns.",
       "trustReturns": "Returns",
       "trustShipping": "Shipping",
       "trustSupport": "Support",
-      "trustFootnote": "Pan-EU · Stripe Tax · EU ODR mediation"
+      "trustFootnote": "Pan-EU · compliant VAT · EU ODR mediation"
     },
     "buyerServices": {
       "sectionBuyer": "Shop smarter on Affisell",
@@ -185,7 +185,7 @@
       },
       "paid": {
         "title": "Get paid",
-        "description": "Weekly payouts. Keep 15–30% margin"
+        "description": "Regular payouts. You set your positioning."
       }
     },
     "social": {
@@ -204,11 +204,11 @@
   "partners": {
     "meta": {
       "title": "Affisell Partners — Supplier distribution",
-      "description": "Distribute through creator storefronts with API automation."
+      "description": "Distribute through creator partner storefronts."
     },
     "hero": {
       "title": "Distribute through 10,000+ creators",
-      "sub": "API integration. Automated orders. Secure payments.",
+      "sub": "Partner network. Automated orders. Secure payments.",
       "cta": "Become a partner"
     },
     "features": {
@@ -218,7 +218,7 @@
       },
       "automation": {
         "title": "Automation",
-        "description": "Orders sent directly to your warehouse or via API"
+        "description": "Orders sent directly to your warehouse"
       },
       "control": {
         "title": "Control",
@@ -227,7 +227,7 @@
     },
     "steps": {
       "title": "How it works",
-      "step1": "Connect API",
+      "step1": "Create your supplier account",
       "step2": "Creators list your products",
       "step3": "We send you orders"
     },
@@ -2139,7 +2139,7 @@
     "confirmQ": "I didn't receive a confirmation email",
     "confirmA": "Check spam and the email entered at checkout. If Stripe payment succeeded, the order appears in My orders within 2 minutes. Otherwise contact us with the charge date and amount.",
     "cancelQ": "Can I cancel my order?",
-    "cancelA": "Before shipment, cancellation may be possible via support or automatically if the seller misses the ship deadline (Ship Pulse). Once shipped, only a return after delivery is available.",
+    "cancelA": "Before shipment, cancellation may be possible via support or automatically if the seller misses the ship deadline. Once shipped, only a return after delivery is available.",
     "delayQ": "What are delivery times?",
     "delayA": "France & EU: typically 3–7 business days after shipment. The estimate is shown on the product page. International: 7–14 business days depending on destination.",
     "lateQ": "My package is late",
@@ -2180,7 +2180,7 @@
     "trackCta": "Track my order",
     "ordersCta": "My orders",
     "issueTitle": "Late or missing package?",
-    "issueBody": "If the stated deadline passes with no tracking, Ship Pulse may auto-cancel and refund. Otherwise use the support assistant or FAQ.",
+    "issueBody": "If the stated deadline passes with no tracking, our system may auto-cancel and refund. Otherwise use the support assistant or FAQ.",
     "supportCta": "Support assistant",
     "faqCta": "FAQ",
     "carriersTitle": "Carriers by country",
@@ -2392,15 +2392,15 @@
       "contact": "Contact",
       "trackOrder": "Track my order",
       "trustBeaconTitle": "Affisell protected checkout",
-      "trustBeaconHint": "Stripe payments · seller escrow · 14-day EU returns",
+      "trustBeaconHint": "Secure payments · buyer protection · 14-day EU returns",
       "trustBeaconCta": "Read the policy",
       "panEuBadge": "Pan-EU · 27 markets",
       "localeLabel": "Language & region",
       "mobileTagline": "Creator marketplace · secure checkout · 24/7 support",
-      "desktopTagline": "The marketplace infrastructure where affiliates and suppliers scale in Europe — Stripe payments, EU compliance, zero friction.",
-      "stripeNoticeShort": "Card · 3D Secure · EU VAT compliant",
+      "desktopTagline": "The marketplace where creator partners and suppliers grow in Europe — EU compliance, seamless experience.",
+      "stripeNoticeShort": "Card · strong authentication · EU VAT compliant",
       "vatNotice": "VAT collected and remitted in line with applicable regulations.",
-      "stripeNotice": "Payments secured by Stripe (card, 3D Secure when required).",
+      "stripeNotice": "Payments secured by card (strong authentication when required).",
       "copyright": "© {year} Affisell — {name} — SIRET {siret} —",
       "odrLink": "EU online dispute resolution",
       "social": {
@@ -2486,59 +2486,59 @@
       "stores": "Creator stores",
       "listings": "Live listings",
       "catalog": "Catalog SKUs",
-      "commission": "Avg. affiliate commission"
+      "commission": "Active partners"
     },
     "about": {
       "metaTitle": "About Affisell — Creator-first marketplace",
-      "metaDescription": "Affisell connects verified suppliers, creator storefronts and buyers with transparent commissions and EU-grade compliance.",
+      "metaDescription": "Affisell connects verified suppliers, partner storefronts and buyers with a protected shopping experience across the EU.",
       "eyebrow": "Company",
       "title": "Commerce infrastructure for creators",
-      "description": "Affisell is a creator-first marketplace: suppliers list wholesale catalog, affiliates launch branded storefronts in minutes, and buyers shop with full fee transparency.",
+      "description": "Affisell is a creator-first marketplace: suppliers list their catalog, partners launch a storefront in minutes, and buyers shop with confidence.",
       "mission": {
         "title": "Our mission",
-        "body": "We believe creators should monetize their audience without holding inventory, managing warehouses, or guessing margins. Affisell orchestrates the full loop — catalog sync, checkout, supplier fulfillment, Stripe Connect payouts and GDPR-compliant trust signals.",
-        "body2": "Headquartered in Marseille, we ship EU-first with multi-currency checkout, variable commissions by category, and tooling like Swipe Feed, Agent sourcing and Pulse discovery."
+        "body": "Creators should monetize their audience without inventory or logistics. Affisell orchestrates the full loop — catalog, secure checkout, supplier fulfillment and GDPR-compliant trust signals.",
+        "body2": "Headquartered in Marseille, we ship EU-first with multi-currency checkout and tools built for product discovery and storefront growth."
       },
       "values": {
         "0": {
           "title": "Creator storefronts",
-          "body": "Each affiliate gets a branded shop, custom listings, buyer rewards and drag-and-drop merchandising — live in under 2 minutes."
+          "body": "Each partner gets a branded shop, custom listings and intuitive merchandising — live in minutes."
         },
         "1": {
           "title": "Supplier reach",
-          "body": "Brands upload once, distribute through thousands of creator stores with automated order routing and real-time stock sync."
+          "body": "Brands publish once and reach engaged audiences through thousands of partner storefronts."
         },
         "2": {
-          "title": "Transparent economics",
-          "body": "Every order shows supplier wholesale, affiliate markup, platform fee and buyer price — no hidden deductions."
+          "title": "Clarity for everyone",
+          "body": "Buyers, partners and suppliers see readable information on every order — no surprises."
         },
         "3": {
           "title": "Trust by design",
-          "body": "Legal hub, GDPR export/delete, cookie consent, invoice PDFs and commission explainers built into the product."
+          "body": "Legal hub, GDPR export and deletion, cookie consent and invoices built into the product."
         }
       },
       "timeline": {
-        "title": "Building in public",
+        "title": "Our journey",
         "items": {
           "2024": {
             "year": "2024",
             "title": "Affisell founded",
-            "body": "Marketplace MVP: supplier catalog, affiliate storefronts and Stripe Connect split payouts."
+            "body": "Marketplace launch: supplier catalog and creator partner storefronts."
           },
           "2026": {
             "year": "2026",
-            "title": "Swipe Feed & GDPR stack",
-            "body": "One-gesture listing for affiliates, legal document hub, buyer/merchant GDPR dashboards and invoice generation."
+            "title": "Trust & compliance",
+            "body": "Legal document hub, GDPR dashboards and integrated invoicing."
           },
           "2025a": {
             "year": "2025",
-            "title": "Agent & Pulse",
-            "body": "AI sourcing agent for affiliates, vertical discovery feed and supplier API integrations."
+            "title": "Discovery & sourcing",
+            "body": "Product discovery and selection tools for creator partners."
           },
           "2025b": {
             "year": "2025",
-            "title": "Settlement engine",
-            "body": "Three-way split with category-level commission rates, HT-based platform fees and supplier transparency UI."
+            "title": "Buyer experience",
+            "body": "Order tracking, simplified returns and clearer sale summaries."
           }
         }
       },
@@ -2560,90 +2560,90 @@
       "backToBlog": "All articles",
       "posts": {
         "swipe-feed-affiliate-hub": {
-          "title": "Swipe Feed: list products in one gesture",
-          "excerpt": "Affiliates can now discover catalog SKUs Tinder-style, list at +30% markup on swipe right, and never see skipped products again.",
+          "title": "Discover and publish faster",
+          "excerpt": "Creator partners browse the catalog in a mobile flow and publish selections in a few gestures.",
           "date": "2026-05-19",
           "category": "Product",
           "readMin": "4 min",
           "sections": {
-            "intro": "Creator discovery used to mean endless grid scrolling. Swipe Feed turns affiliate sourcing into a focused, mobile-native flow — with undo, commission filters and a three-card preload stack.",
+            "intro": "Product discovery shouldn't feel like an endless spreadsheet. Affisell offers a smooth mobile path to explore, filter and publish.",
             "s1": {
               "title": "How it works",
-              "body": "Swipe right to publish a listing at your default markup (30% above supplier price). Swipe left to permanently hide a SKU from your feed. Every decision is stored so your feed stays fresh and relevant."
+              "body": "Browse the catalog, pick products that fit your audience and publish to your storefront — without revisiting items you've already passed on."
             },
             "s2": {
               "title": "Built for speed",
-              "body": "Framer Motion parallax, velocity-based commits and animation-first UX mean the card flies off-screen before the API call — so the interface feels instant even on slower networks."
+              "body": "A responsive interface and intuitive gestures keep selection pleasant even on mobile or slower networks."
             },
             "s3": {
               "title": "Try it",
-              "body": "Open the Affiliate Hub from your dashboard nav or go directly to /dashboard/affiliate/hub?mode=swipe. Combine with Agent sourcing for margin analysis on high-intent picks."
+              "body": "Open the partner hub from your dashboard and start building your storefront in minutes."
             }
           }
         },
         "commission-transparency": {
-          "title": "Commission transparency on every order",
-          "excerpt": "Suppliers, affiliates and buyers now see exactly how wholesale, markup, platform fees and VAT split on each line.",
+          "title": "Clarity on every order",
+          "excerpt": "Suppliers, partners and buyers get readable information on every sale.",
           "date": "2026-05-12",
           "category": "Trust",
           "readMin": "5 min",
           "sections": {
-            "intro": "Opaque marketplaces hide who earns what. Affisell exposes the full settlement breakdown on merchant order pages, buyer receipts and PDF invoices.",
+            "intro": "Opaque marketplaces breed mistrust. Affisell shows clear summaries on order pages, receipts and invoices.",
             "s1": {
-              "title": "Variable rates",
-              "body": "Commission cascades from category defaults to supplier profiles to individual SKUs — so high-margin categories can offer better affiliate economics without manual spreadsheets."
+              "title": "For every party",
+              "body": "Each actor sees what matters to them in plain language — without unnecessary accounting jargon."
             },
             "s2": {
               "title": "Supplier clarity",
-              "body": "Supplier dashboards label deductions as partner commission and platform fee — not vague “adjustments”. Payout previews match what lands in Stripe Connect."
+              "body": "Supplier dashboards spell out amounts and deductions explicitly — no vague “adjustments”."
             },
             "s3": {
-              "title": "CommissionExplainer",
-              "body": "Embedded UI on order detail pages walks each party through the math in plain language, with links to legal terms for affiliates and suppliers."
+              "title": "Built-in guidance",
+              "body": "Contextual explanations on order detail link to the applicable legal terms."
             }
           }
         },
         "gdpr-marketplace-trust": {
           "title": "GDPR hub for merchants and buyers",
-          "excerpt": "Export, delete, cookie preferences and legal consent versioning — native to Affisell accounts, not bolted-on PDFs.",
+          "excerpt": "Export, deletion and cookie preferences — built into Affisell accounts.",
           "date": "2026-05-05",
           "category": "Compliance",
           "readMin": "4 min",
           "sections": {
-            "intro": "Trust is a product feature. Affisell ships a full GDPR stack: signup consent capture, cookie banner with analytics gating, data export JSON and account deletion flows.",
+            "intro": "Trust is a product feature. Affisell embeds consent, cookies and data rights directly in the account experience.",
             "s1": {
               "title": "Legal document hub",
-              "body": "Terms for buyers, suppliers and affiliates, privacy policy, refund rules and legal notices — all versioned and linked from signup and footer."
+              "body": "Terms, privacy policy, refunds and legal notices — versioned and accessible from signup and footer."
             },
             "s2": {
               "title": "Self-service rights",
-              "body": "Merchants and marketplace buyers access /dashboard/account/gdpr or /marketplace/account/gdpr to export their data or request deletion, subject to financial record retention."
+              "body": "Merchants and buyers can export their data or request deletion from their account area."
             },
             "s3": {
               "title": "Why it matters",
-              "body": "Creator businesses operate across EU markets. Built-in compliance reduces legal risk and signals professionalism to brand partners evaluating your storefront."
+              "body": "Creators operate across the EU. Built-in compliance reassures brand partners and buyers alike."
             }
           }
         },
         "creator-storefront-60s": {
-          "title": "Launch a creator storefront in 60 seconds",
-          "excerpt": "Pick a supplier SKU, set your margin, publish — Affisell handles checkout, fulfillment notifications and weekly payouts.",
+          "title": "Launch a creator storefront in minutes",
+          "excerpt": "Pick a product, personalize your storefront, publish — Affisell handles the rest.",
           "date": "2026-04-20",
           "category": "Creators",
           "readMin": "3 min",
           "sections": {
-            "intro": "Affisell removes the ops burden from creator commerce: no warehouse, no manual stock updates, no payment gateway setup from scratch.",
+            "intro": "Affisell removes the ops burden from creator commerce: no warehouse, no payment setup from scratch.",
             "s1": {
               "title": "Catalog → storefront",
-              "body": "Browse the affiliate discovery catalog filtered by niche, commission or margin. Listing Builder lets you customize title, images, SEO slug and buyer cashback rewards."
+              "body": "Browse the catalog by niche or theme, customize title, visuals and presentation before publishing."
             },
             "s2": {
-              "title": "Your brand, our rails",
-              "body": "Custom domains, theme studio, featured collections and live store preview — while Stripe Connect routes supplier wholesale and your markup automatically."
+              "title": "Your brand, our infrastructure",
+              "body": "Custom domain, brand studio, featured collections and live preview — while Affisell handles checkout and tracking."
             },
             "s3": {
               "title": "Start today",
-              "body": "Create a free affiliate account, connect payouts, and publish your first listing. Most creators see their first sale within the first week."
+              "body": "Create a free partner account and publish your first listing. Most creators see their first sale quickly."
             }
           }
         }
@@ -2661,7 +2661,7 @@
         "perks": {
           "remote": "Remote-friendly across EU time zones",
           "impact": "High ownership — no ticket factory",
-          "stack": "Next.js 16, Prisma, Stripe Connect, Vercel",
+          "stack": "Modern product engineering with visible prod impact",
           "equity": "Meaningful early-team equity"
         }
       },
@@ -2671,40 +2671,40 @@
       "roles": {
         "fullstack-engineer": {
           "title": "Full-stack Engineer",
-          "summary": "Own marketplace features from Prisma schema to polished UI — checkout splits, affiliate tooling, supplier dashboards.",
+          "summary": "Own marketplace features end-to-end — partner storefronts, checkout and supplier dashboards.",
           "location": "Marseille / Remote EU",
           "type": "Full-time",
           "team": "Engineering",
           "applySubject": "Application — Full-stack Engineer",
           "requirements": {
-            "r1": "Strong TypeScript, React and SQL (PostgreSQL)",
-            "r2": "Experience with payments or marketplaces is a plus",
-            "r3": "Comfortable with Next.js App Router and server components"
+            "r1": "Strong TypeScript, React and SQL fundamentals",
+            "r2": "E-commerce or marketplace experience is a plus",
+            "r3": "Product mindset and fast iteration"
           }
         },
         "creator-success": {
           "title": "Creator Success Manager",
-          "summary": "Onboard affiliates, improve listing quality, and feed product insights back to engineering.",
+          "summary": "Onboard creator partners, improve storefront quality and feed product insights back to engineering.",
           "location": "Remote EU",
           "type": "Full-time",
           "team": "Growth",
           "applySubject": "Application — Creator Success",
           "requirements": {
             "r1": "Fluent FR/EN; experience with creator or e-commerce communities",
-            "r2": "Analytical — comfortable reading commission and conversion data",
-            "r3": "Empathy for creators balancing audience trust and margins"
+            "r2": "Comfortable with conversion and retention metrics",
+            "r3": "Empathy for creators balancing audience trust and growth"
           }
         },
         "supplier-partnerships": {
           "title": "Supplier Partnerships (B2B)",
-          "summary": "Source brands, onboard catalog via API or bulk import, and co-design commission structures.",
+          "summary": "Source brands, onboard catalog and grow the supplier network.",
           "location": "Remote EU",
           "type": "Full-time / Contract",
           "team": "Partnerships",
           "applySubject": "Application — Supplier Partnerships",
           "requirements": {
-            "r1": "Track record in marketplace, wholesale or D2C brand partnerships",
-            "r2": "Understand unit economics: wholesale, markup, returns",
+            "r1": "Track record in marketplace or D2C brand partnerships",
+            "r2": "Understanding of retail and logistics challenges",
             "r3": "Willing to travel occasionally for supplier meetings in EU"
           }
         }
@@ -2715,11 +2715,11 @@
       "metaDescription": "Media resources, company facts and press contact for Affisell — the creator-first marketplace.",
       "eyebrow": "Press",
       "title": "Press Kit",
-      "description": "Facts, boilerplate and assets for journalists covering creator commerce, marketplace infrastructure and EU retail tech.",
+      "description": "Facts, boilerplate and assets for journalists covering creator commerce and EU retail tech.",
       "boilerplate": {
         "title": "Boilerplate",
-        "short": "Affisell is a creator-first marketplace connecting verified suppliers, affiliate storefronts and buyers — with transparent commissions and built-in EU compliance.",
-        "long": "Founded in Marseille, Affisell lets creators launch branded shops in minutes without inventory. Suppliers distribute catalog through affiliate networks with automated fulfillment and Stripe Connect payouts. The platform includes AI sourcing tools, Swipe Feed discovery, Pulse vertical shopping, GDPR self-service and itemized commission breakdowns on every order."
+        "short": "Affisell is a creator-first marketplace connecting verified suppliers, partner storefronts and buyers — with built-in EU compliance.",
+        "long": "Founded in Marseille, Affisell lets creators launch branded shops in minutes without inventory. Suppliers distribute through a partner network with automated fulfillment. The platform includes discovery tools, GDPR self-service and transparent order tracking."
       },
       "facts": {
         "title": "Company facts",
@@ -2733,11 +2733,11 @@
         },
         "model": {
           "label": "Model",
-          "value": "B2B2C marketplace (supplier · affiliate · buyer)"
+          "value": "B2B2C marketplace (supplier · partner · buyer)"
         },
         "stack": {
-          "label": "Stack",
-          "value": "Next.js, PostgreSQL, Stripe Connect, Vercel"
+          "label": "Platform",
+          "value": "Cloud-native · EU compliance"
         },
         "compliance": {
           "label": "Compliance",
@@ -2767,12 +2767,12 @@
         "read": "Read →",
         "items": {
           "n1": {
-            "title": "Swipe Feed launches for affiliates",
+            "title": "Mobile product discovery for partners",
             "date": "May 2026",
             "href": "/blog/swipe-feed-affiliate-hub"
           },
           "n2": {
-            "title": "Commission transparency on all orders",
+            "title": "Clearer order summaries",
             "date": "May 2026",
             "href": "/blog/commission-transparency"
           },

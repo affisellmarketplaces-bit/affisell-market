@@ -8,15 +8,15 @@ export default async function SignupChooser() {
   const usMarket = isUsMarket()
   const checkoutCount = await resolveLiveCheckoutCountryCount()
   const currencyLabel = STOREFRONT_CURRENCY === "USD" ? "USD · Tax" : "EUR · VAT"
-  const taxHint = usMarket ? "Stripe Tax at checkout" : "Stripe Tax at checkout"
+  const taxHint = usMarket ? "Tax calculated at checkout" : "VAT calculated at checkout"
 
   const affiliateBenefits = usMarket
-    ? ["Up to 100% commission", "No inventory", "Stripe Connect payouts (US+)", "Marketing tools"]
-    : ["Up to 100% commission", "No inventory", "Stripe Connect payouts (EU+)", "Marketing tools"]
+    ? ["Earn on every sale", "No inventory", "Regular payouts", "Marketing tools"]
+    : ["Earn on every sale", "No inventory", "Regular payouts", "Marketing tools"]
 
   const supplierBenefits = usMarket
-    ? ["Access to affiliates", "Zero upfront cost", "US & international shipping zones", "Analytics dashboard"]
-    : ["Access to affiliates", "Zero upfront cost", "EU & international shipping zones", "Analytics dashboard"]
+    ? ["Creator distribution", "Zero upfront cost", "US & international shipping", "Analytics dashboard"]
+    : ["Creator distribution", "Zero upfront cost", "EU & international shipping", "Analytics dashboard"]
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-100 via-slate-50 to-violet-50/40 px-3 py-6 sm:px-6 sm:py-10 md:px-10 md:py-12">
@@ -32,13 +32,13 @@ export default async function SignupChooser() {
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base text-zinc-600 sm:text-lg">
             {usMarket
-              ? `The creator-first marketplace — checkout in the US & Canada, prices in ${STOREFRONT_CURRENCY}, sales tax calculated at payment via Stripe.`
-              : `The creator-first marketplace — one checkout in ${checkoutCount} countries, prices in EUR, VAT calculated at payment via Stripe.`}
+              ? `The creator-first marketplace — checkout in the US & Canada, prices in ${STOREFRONT_CURRENCY}, tax handled at payment.`
+              : `The creator-first marketplace — one checkout in ${checkoutCount} countries, prices in EUR, VAT handled at payment.`}
           </p>
           <p className="mt-3 text-sm font-medium text-zinc-500">
             {usMarket
-              ? "US & Canada checkout · Stripe Connect payouts where supported"
-              : "27 EU markets · Stripe Connect payouts where supported"}
+              ? "US & Canada checkout · secure payouts where supported"
+              : "27 EU markets · secure payouts where supported"}
           </p>
         </div>
 
@@ -134,21 +134,18 @@ export default async function SignupChooser() {
             <div className="flex items-center gap-2 text-zinc-700">
               <ShieldCheck className="h-5 w-5 text-violet-600" />
               <p className="text-sm font-medium">
-                {usMarket ? "Built for North American commerce · Stripe secured" : "Built for European commerce · Stripe secured"}
+                {usMarket ? "Built for North American commerce · secure payments" : "Built for European commerce · secure payments"}
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-              <span className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-zinc-400 sm:rounded-2xl">
-                Shopify
+              <span className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-zinc-600 sm:rounded-2xl">
+                PCI compliant
               </span>
-              <span className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-zinc-400 sm:rounded-2xl">
-                Stripe
+              <span className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-zinc-600 sm:rounded-2xl">
+                EU GDPR
               </span>
-              <span className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-zinc-400 sm:rounded-2xl">
-                PayPal
-              </span>
-              <span className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-zinc-400 sm:rounded-2xl">
-                Wise
+              <span className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-zinc-600 sm:rounded-2xl">
+                3D Secure
               </span>
             </div>
           </div>

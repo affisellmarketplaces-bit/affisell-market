@@ -24,22 +24,21 @@ export default function HowItWorksPage() {
           <BentoCard className="p-5">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">1. Acheteur</h2>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              Explorez le catalogue, payez en toute sécurité via Stripe et suivez votre commande depuis
-              votre espace.
+              Explorez le catalogue, payez en toute sécurité et suivez votre commande depuis votre espace.
             </p>
           </BentoCard>
           <BentoCard className="p-5">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">2. Partenaire créateur</h2>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              Sélectionnez des produits, fixez votre marge, partagez votre vitrine — Affisell gère les
-              paiements et la répartition des commissions.
+              Sélectionnez des produits, personnalisez votre vitrine et partagez-la — Affisell gère l&apos;expérience
+              d&apos;achat de bout en bout.
             </p>
           </BentoCard>
           <BentoCard className="p-5">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">3. Fournisseur</h2>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              Publiez votre catalogue, expédiez rapidement et en toute sécurité, encaissez une fois la
-              livraison confirmée.
+              Publiez votre catalogue, livrez rapidement et en toute sécurité, encaissez une fois la livraison
+              confirmée.
             </p>
           </BentoCard>
         </div>
