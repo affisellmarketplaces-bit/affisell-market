@@ -4,7 +4,7 @@ function asRec(v: unknown): Record<string, unknown> | null {
 
 /** Unwrap `runParams.data`, nested `pageModule`, etc. */
 export function normalizeAerRoot(payload: unknown): Record<string, unknown> | null {
-  let aer = asRec(payload)
+  const aer = asRec(payload)
   if (!aer) return null
 
   const data = asRec(aer.data)

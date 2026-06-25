@@ -9,6 +9,11 @@ const eslintConfig = defineConfig([
     rules: {
       // Data fetching / hydration in useEffect legitimately calls setState; the rule flags most loaders.
       "react-hooks/set-state-in-effect": "off",
+      // React Compiler — warn on legacy memo/ref patterns until refactored file-by-file.
+      "react-hooks/preserve-manual-memoization": "warn",
+      "react-hooks/refs": "warn",
+      // Legal bodies + API export/download links need plain <a>, not client <Link>.
+      "@next/next/no-html-link-for-pages": "warn",
     },
   },
   // Override default ignores of eslint-config-next.
@@ -18,6 +23,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    /** Medusa sub-app — own lint/tsconfig; generated .medusa/types must not block Affisell CI */
+    "medusa-backend/**",
   ]),
 ]);
 

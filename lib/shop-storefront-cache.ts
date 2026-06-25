@@ -11,6 +11,8 @@ import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
 
 const SHOP_REVALIDATE_SEC = 60
 
+/** Use literal `export const revalidate = 60` in app routes — Next.js rejects imported segment config. */
+
 function shopTag(slug: string): string {
   return `shop-${slug.trim().toLowerCase()}`
 }
