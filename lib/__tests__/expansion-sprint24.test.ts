@@ -41,6 +41,7 @@ describe("buildExpansionDeliveredCsv", () => {
       {
         countryIso2: "jp",
         emailKind: "checkout-launch",
+        buyerEmailHash: null,
         deliveredAt: new Date("2026-06-10T12:00:00.000Z"),
       },
     ])

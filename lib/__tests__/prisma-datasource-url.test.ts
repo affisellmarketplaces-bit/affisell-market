@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   augmentPrismaDatasourceUrl,
@@ -7,15 +7,13 @@ import {
 } from "@/lib/prisma-datasource-url"
 
 describe("augmentPrismaDatasourceUrl", () => {
-  const prevEnv = process.env.NODE_ENV
-
   afterEach(() => {
-    process.env.NODE_ENV = prevEnv
+    vi.unstubAllEnvs()
     delete process.env.PRISMA_CONNECTION_LIMIT
   })
 
   it("adds pool params for Neon pooler host", () => {
-    process.env.NODE_ENV = "development"
+    vi.stubEnv("NODE_ENV", "development")
     const raw =
       "postgresql://user:pass@ep-foo-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require"
     const out = augmentPrismaDatasourceUrl(raw)
@@ -27,7 +25,7 @@ describe("augmentPrismaDatasourceUrl", () => {
   })
 
   it("bumps low dev connection_limit on pooler URLs", () => {
-    process.env.NODE_ENV = "development"
+    vi.stubEnv("NODE_ENV", "development")
     const raw =
       "postgresql://user:pass@ep-foo-pooler.us-east-2.aws.neon.tech/neondb?connection_limit=5&pool_timeout=10"
     const out = augmentPrismaDatasourceUrl(raw)
@@ -37,7 +35,7 @@ describe("augmentPrismaDatasourceUrl", () => {
   })
 
   it("adds connection limits for local Postgres in development without pgbouncer", () => {
-    process.env.NODE_ENV = "development"
+    vi.stubEnv("NODE_ENV", "development")
     const raw = "postgresql://user:pass@localhost:5432/mydb"
     const out = augmentPrismaDatasourceUrl(raw)
     const url = new URL(out)
@@ -47,7 +45,7 @@ describe("augmentPrismaDatasourceUrl", () => {
   })
 
   it("does not add pgbouncer on direct Neon host in development", () => {
-    process.env.NODE_ENV = "development"
+    vi.stubEnv("NODE_ENV", "development")
     const raw =
       "postgresql://user:pass@ep-foo.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
     const out = augmentPrismaDatasourceUrl(raw)
@@ -57,25 +55,20 @@ describe("augmentPrismaDatasourceUrl", () => {
   })
 
   it("leaves non-pooler URLs unchanged in production", () => {
-    process.env.NODE_ENV = "production"
+    vi.stubEnv("NODE_ENV", "production")
     const raw = "postgresql://user:pass@localhost:5432/mydb"
     expect(augmentPrismaDatasourceUrl(raw)).toBe(raw)
   })
 })
 
 describe("normalizePrismaRawUrl", () => {
-  const prevEnv = process.env.NODE_ENV
-  const prevDirect = process.env.PRISMA_USE_DIRECT_DEV
-
   afterEach(() => {
-    process.env.NODE_ENV = prevEnv
-    if (prevDirect === undefined) delete process.env.PRISMA_USE_DIRECT_DEV
-    else process.env.PRISMA_USE_DIRECT_DEV = prevDirect
+    vi.unstubAllEnvs()
   })
 
   it("rewrites direct Neon host to pooler in development", () => {
-    process.env.NODE_ENV = "development"
-    delete process.env.PRISMA_USE_DIRECT_DEV
+    vi.stubEnv("NODE_ENV", "development")
+    vi.stubEnv("PRISMA_USE_DIRECT_DEV", "")
     const raw =
       "postgresql://user:pass@ep-misty-sea-al1ne07p.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
     const out = normalizePrismaRawUrl(raw)
@@ -85,8 +78,8 @@ describe("normalizePrismaRawUrl", () => {
   })
 
   it("keeps direct host when PRISMA_USE_DIRECT_DEV=1", () => {
-    process.env.NODE_ENV = "development"
-    process.env.PRISMA_USE_DIRECT_DEV = "1"
+    vi.stubEnv("NODE_ENV", "development")
+    vi.stubEnv("PRISMA_USE_DIRECT_DEV", "1")
     const raw =
       "postgresql://user:pass@ep-misty-sea-al1ne07p.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
     expect(normalizePrismaRawUrl(raw)).toBe(raw)

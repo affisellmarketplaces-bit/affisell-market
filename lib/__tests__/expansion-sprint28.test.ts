@@ -65,12 +65,14 @@ describe("buildExpansionEmailEventsCsv", () => {
         eventType: "delivered",
         countryIso2: "jp",
         emailKind: "checkout-launch",
+        buyerEmailHash: null,
         occurredAt: new Date("2026-06-10T12:00:00.000Z"),
       },
       {
         eventType: "complaint",
         countryIso2: "jp",
         emailKind: "checkout-launch-followup",
+        buyerEmailHash: null,
         occurredAt: new Date("2026-06-11T12:00:00.000Z"),
       },
     ])

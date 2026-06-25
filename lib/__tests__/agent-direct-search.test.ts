@@ -55,7 +55,15 @@ describe("agent-message-compact", () => {
       {
         id: "a1",
         role: "assistant",
-        parts: [{ type: "tool-searchProducts", toolCallId: "t1", state: "output-available", output: [heavy] }],
+        parts: [
+          {
+            type: "tool-searchProducts",
+            toolCallId: "t1",
+            state: "output-available",
+            input: { query: "télé" },
+            output: [heavy],
+          },
+        ],
       },
       { id: "u2", role: "user", parts: [{ type: "text", text: "commode" }] },
     ]
