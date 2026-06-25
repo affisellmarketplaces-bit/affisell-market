@@ -395,12 +395,13 @@
       "fieldRna": "N° RNA (association)",
       "fieldSocial": "Pseudo TikTok / Instagram",
       "fieldPassword": "Mot de passe",
-      "vatNotice": "Le vendeur est seul responsable de la TVA. Affisell prélève sa commission sur le HT.",
+      "vatNotice": "Le fournisseur est seul responsable de la TVA sur les ventes. Affisell prélève sa commission sur le HT.",
+      "vatNoticeAffiliate": "Votre rémunération partenaire (commission + marge) est à déclarer selon les règles de votre pays. La TVA sur les achats clients est collectée au checkout (Stripe Tax) par le fournisseur vendeur.",
       "hasAccountSupplier": "Déjà partenaire ?",
       "hasAccountAffiliate": "Déjà créateur ?",
       "signIn": "Se connecter",
       "statusParticulierTitle": "Particulier",
-      "statusParticulierSub": "Créateur ou vendeur sans structure enregistrée",
+      "statusParticulierSub": "Créateur sans structure enregistrée — partenaire curateur, pas vendeur des produits",
       "statusAutoEntrepreneurTitle": "Auto-entrepreneur",
       "statusAutoEntrepreneurSub": "Micro-entreprise · attestation URSSAF / INSEE",
       "statusEiTitle": "Professionnel (EI / EIRL)",
@@ -434,8 +435,8 @@
         "eyebrow": "Dossier en cours",
         "title": "Vérification de votre compte",
         "subtitle": "Nos systèmes analysent vos documents. Vous serez notifié par e-mail dès validation.",
-        "setupTitle": "Complétez votre dossier KYC",
-        "setupSubtitle": "Statut juridique + pièces justificatives — validation sous 24–48 h pour publier sur Affisell.",
+        "setupTitle": "Complétez votre dossier partenaire",
+        "setupSubtitle": "Identité + pays de résidence — validation sous 24–48 h pour publier votre vitrine.",
         "legalStatus": "Statut déclaré",
         "body": "Vous pouvez consulter votre tableau de bord en lecture seule. La publication catalogue s'ouvrira après approbation.",
         "dashboardLink": "Ouvrir le tableau de bord",
@@ -902,6 +903,15 @@
       "feedLoadFailed": "Impossible de charger le feed",
       "serviceUnavailable": "Service temporairement indisponible — réessayez dans un instant.",
       "genericError": "Une erreur est survenue"
+    },
+    "earnings": {
+      "taxCompliance": {
+        "title": "Fiscalité partenaire",
+        "body": "Vous percevez une rémunération partenaire (commission fournisseur + marge nette). Déclarez ces revenus selon les règles de votre pays de résidence fiscale.",
+        "buyerVat": "La TVA sur les achats clients est calculée au checkout selon le pays de l'acheteur (Stripe Tax) et relève du fournisseur vendeur — pas de votre vitrine curateur.",
+        "records": "Les relevés Affisell et Stripe Connect servent de base comptable. Conservez-les pour vos déclarations.",
+        "dac7": "Affisell peut être tenue de transmettre vos revenus plateforme aux autorités (DAC7 / équivalent) selon la réglementation applicable."
+      }
     },
     "liveStore": {
       "openAria": "Ouvrir les visiteurs en direct",
@@ -1862,7 +1872,7 @@
     "trust": {
       "poweredBy": "Propulsé par Affisell",
       "verifiedBy": "Vérifié par Affisell",
-      "merchantVerified": "Marchand vérifié",
+      "merchantVerified": "Partenaire vérifié",
       "verifiedShort": "Vérifié",
       "platformSecured": "Paiement sécurisé Affisell",
       "secureCheckout": "Paiement sécurisé",
@@ -1873,8 +1883,8 @@
       "shopHomeCta": "Boutique",
       "cartCta": "Panier",
       "footerTitle": "Confiance & conformité légale",
-      "footerBody": "Cette boutique s'appuie sur l'infrastructure Affisell : vérification d'identité, paiements sécurisés et politiques de protection acheteur.",
-      "verificationPending": "Vérification marchand en cours",
+      "footerBody": "Sélection par ce partenaire créateur · vente et expédition par le fournisseur · paiements et protection acheteur via Affisell.",
+      "verificationPending": "Vérification partenaire en cours",
       "legalNavAria": "Informations légales",
       "legalLinksTitle": "Documents légaux",
       "legalLinks": {
@@ -1884,15 +1894,23 @@
         "returns": "Retours & remboursements",
         "support": "Support client"
       },
-      "merchantIdentity": "Marchand",
-      "legalName": "Raison sociale : {name}",
+      "merchantIdentity": "Partenaire créateur",
+      "legalName": "Nom déclaré : {name}",
       "partnerListing": "ID listing partenaire",
       "partnerListingHint": "Référence de traçabilité pour commandes et support.",
       "platformOperator": "Opérateur marketplace",
       "platformOperatorHint": "Hébergement, paiements et couche conformité.",
       "verifiedOn": "Vérification Affisell : {date}",
-      "customDomainDisclaimer": "Boutique sur domaine dédié — transactions via le checkout sécurisé Affisell.",
-      "platformDisclaimer": "Boutique affilié Affisell — fiches sélectionnées par ce créateur.",
+      "customDomainDisclaimer": "Boutique sur domaine dédié — vente par le fournisseur, checkout sécurisé Affisell.",
+      "platformDisclaimer": "Vitrine partenaire Affisell — produits sélectionnés par ce créateur, vendus et expédiés par le fournisseur.",
+      "partnerLegalStatus": {
+        "PARTICULIER": "Partenaire créateur (particulier)",
+        "AUTO_ENTREPRENEUR": "Partenaire auto-entrepreneur",
+        "EI_PROFESSIONAL": "Partenaire professionnel (EI)",
+        "COMPANY": "Partenaire société",
+        "ASSOCIATION": "Partenaire association",
+        "FOREIGN": "Partenaire international"
+      },
       "legalStatus": {
         "PARTICULIER": "Vendeur particulier",
         "AUTO_ENTREPRENEUR": "Auto-entrepreneur",

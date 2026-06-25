@@ -1,7 +1,7 @@
 ---
 title: Affiliate General Terms (AGT)
 description: Terms applicable to Affisell creators and partners.
-lastUpdated: 2026-05-26
+lastUpdated: 2026-06-25
 order: 3
 ---
 
@@ -9,21 +9,25 @@ order: 3
 
 **Last updated: {{LAST_UPDATED}}**
 
-These Affiliate General Terms ("**AGT**") supplement the [GTU](/legal/terms-of-service) and govern the relationship between **Affisell SAS** and any partner registered as an **Affiliate** (creator, influencer, reseller).
+These Affiliate General Terms ("**AGT**") supplement the [GTU](/legal/terms-of-service) and govern the relationship between **Affisell SAS** and any partner registered as an **Affiliate** (creator, influencer, storefront curator).
 
-## Article 1 — Status
+## Article 1 — Curator partner status (not seller)
 
-1.1. The Affiliate acts as a **professional or non-professional** according to their declaration. They are solely responsible for their tax and social obligations (URSSAF, VAT, income tax declaration).
+1.1. The Affiliate is an **independent commercial partner** who selects, presents, and promotes Supplier products via an Affisell storefront. **They are not the seller** of the goods: the sales contract is between the Buyer and the **Supplier** (see GTU and GTC).
 
-### Article 1.2 — "Ambassador" terminology
+1.2. The Affiliate does not ship products, hold stock, or bear primary responsibility for conformity, delivery, or legal warranties attached to the sale — subject to honest communication duties (Article 5).
 
-The term "Ambassador", used for marketing purposes, designates exclusively an independent Affisell Affiliate Partner as defined in Article 1.1.
+1.3. The Affiliate acts as a **professional or non-professional** according to their declaration. They are solely responsible for declaring **their partner remuneration** (Supplier commission and net markup) under the tax and social rules of **their country of residence**.
 
-Use of this term does not create any subordination relationship, representation mandate, or employment contract between the Ambassador and Affisell or its Suppliers.
+1.4. **VAT on customer purchases** is collected at payment according to the Buyer's country (Stripe Tax or equivalent) and is the **selling Supplier's** obligation, not the Affiliate's as curator.
 
-The Ambassador acts in their own name, on their own account, and remains solely responsible for their tax, social, and legal obligations.
+### Article 1.5 — "Ambassador" terminology
 
-1.3. Affisell is not the employer of the Affiliate.
+The term "Ambassador", used for marketing, designates exclusively an independent Affisell Affiliate Partner as defined in Article 1.
+
+It does not create subordination, a sales mandate on behalf of the Supplier, or an employment relationship with Affisell or its Suppliers.
+
+1.6. Affisell is not the Affiliate's employer. Affisell may report platform earnings to competent authorities (DAC7 or equivalent).
 
 ## Article 2 — Listings and markup
 

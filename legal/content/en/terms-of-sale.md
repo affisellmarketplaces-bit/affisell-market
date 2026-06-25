@@ -1,7 +1,7 @@
 ---
 title: General Terms of Sale (GTS)
 description: Applicable to purchases made on the Affisell marketplace by consumers located in the European Union.
-lastUpdated: 2026-06-01
+lastUpdated: 2026-06-25
 order: 0
 ---
 
@@ -9,13 +9,21 @@ order: 0
 
 **Last updated: {{LAST_UPDATED}}**
 
-## 1. Seller identity and Affisell's role
+## 1. Seller, curator partner and Affisell's role
 
-**{{COMPANY_NAME}}** ({{ADRESSE}}, SIRET {{SIRET}}) operates the Affisell platform. For each order, the product sales contract is concluded between you (the customer) and the **Supplier** identified on the product page. Affisell acts as **agent and technical intermediary** (payment, invoicing, mediation): **Affisell is not the seller** of the goods, unless explicitly stated otherwise.
+**{{COMPANY_NAME}}** ({{ADRESSE}}, SIRET {{SIRET}}) operates the Affisell platform.
+
+For each order:
+
+- the **product sales contract** is between you (the customer) and the **Supplier** identified on the product page;
+- any **Affiliate / creator partner** acts as a **commercial curator** (product selection and presentation via their storefront) and **is not the seller** of the goods;
+- **Affisell** acts as **agent and technical intermediary** (payment, invoicing, mediation).
+
+**Affisell is not the seller** of the goods unless explicitly stated otherwise.
 
 ## 2. Prices, VAT and invoicing
 
-Prices displayed include applicable VAT at the time of order when the "VAT included" notice appears on the product page. The invoice is issued in the name of {{COMPANY_NAME}} as billing intermediary or according to the tax rules applicable to the Supplier. Delivery charges, where applicable, are indicated before payment validation.
+Prices displayed include applicable VAT at the time of order when the "VAT included" notice appears on the product page. VAT is calculated according to the buyer's country (Stripe Tax or equivalent). The **selling Supplier** remains responsible for tax obligations. The invoice is issued in the name of {{COMPANY_NAME}} as billing intermediary or according to the tax rules applicable to the Supplier. Delivery charges, where applicable, are indicated before payment validation.
 
 ## 3. Payment
 

@@ -280,7 +280,7 @@ function StorefrontFooterDesktop({
               ) : null}
               {trust.legalStatus ? (
                 <p className="text-xs text-violet-100/65">
-                  {tTrust(`legalStatus.${trust.legalStatus}` as "legalStatus.COMPANY")}
+                  {tTrust(`partnerLegalStatus.${trust.legalStatus}` as "partnerLegalStatus.COMPANY")}
                   {trust.countryCode ? ` · ${trust.countryCode}` : ""}
                 </p>
               ) : null}

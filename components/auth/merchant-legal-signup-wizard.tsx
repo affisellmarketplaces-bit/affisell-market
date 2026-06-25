@@ -25,7 +25,8 @@ import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages
 import {
   MERCHANT_LEGAL_STATUSES,
   MERCHANT_LEGAL_STATUS_CATALOG,
-  allDocumentsForStatus,
+  documentsForSignup,
+  signupFieldsForStatus,
   type MerchantDocumentType,
   type MerchantLegalStatus,
 } from "@/lib/merchant-legal/merchant-legal-status-shared"
@@ -97,7 +98,8 @@ export function MerchantLegalSignupWizard({
   const [error, setError] = useState<string | null>(null)
 
   const meta = legalStatus ? MERCHANT_LEGAL_STATUS_CATALOG[legalStatus] : null
-  const docList = legalStatus ? allDocumentsForStatus(legalStatus) : []
+  const signupFields = legalStatus ? signupFieldsForStatus(legalStatus, role) : []
+  const docList = legalStatus ? documentsForSignup(legalStatus, role) : []
   const stepIndex = STEPS.indexOf(step)
 
   const shellGradient =
@@ -115,9 +117,9 @@ export function MerchantLegalSignupWizard({
 
   function canAdvanceFromIdentity(): boolean {
     if (!meta) return false
-    if (meta.fields.includes("legalEntityName") && !legalEntityName.trim()) return false
-    if (meta.fields.includes("siret") && siret.replace(/\D/g, "").length !== 14) return false
-    if (meta.fields.includes("rnaNumber") && rnaNumber.trim().length < 8) return false
+    if (signupFields.includes("legalEntityName") && !legalEntityName.trim()) return false
+    if (signupFields.includes("siret") && siret.replace(/\D/g, "").length !== 14) return false
+    if (signupFields.includes("rnaNumber") && rnaNumber.trim().length < 8) return false
     return true
   }
 
@@ -125,9 +127,6 @@ export function MerchantLegalSignupWizard({
     if (!legalStatus) return false
     for (const d of docList) {
       if (!d.required) continue
-      if (role === "AFFILIATE" && legalStatus === "PARTICULIER" && d.type === "PROOF_OF_ADDRESS") {
-        continue
-      }
       if (!uploads[d.type]) return false
     }
     return true
@@ -281,7 +280,7 @@ export function MerchantLegalSignupWizard({
                 className="space-y-4"
               >
                 <h2 className="text-lg font-semibold text-white">{tLegal("stepIdentity")}</h2>
-                {meta.fields.includes("legalEntityName") ? (
+                {signupFields.includes("legalEntityName") ? (
                   <Field
                     id="legal-entity"
                     label={tLegal("fieldLegalName")}
@@ -290,7 +289,7 @@ export function MerchantLegalSignupWizard({
                     required
                   />
                 ) : null}
-                {meta.fields.includes("tradeName") ? (
+                {signupFields.includes("tradeName") ? (
                   <Field
                     id="trade-name"
                     label={tLegal("fieldTradeName")}
@@ -298,7 +297,7 @@ export function MerchantLegalSignupWizard({
                     onChange={setTradeName}
                   />
                 ) : null}
-                {meta.fields.includes("siret") ? (
+                {signupFields.includes("siret") ? (
                   <Field
                     id="siret"
                     label="SIRET"
@@ -308,10 +307,10 @@ export function MerchantLegalSignupWizard({
                     required
                   />
                 ) : null}
-                {meta.fields.includes("vatNumber") ? (
+                {signupFields.includes("vatNumber") ? (
                   <Field id="vat" label={tLegal("fieldVat")} value={vatNumber} onChange={setVatNumber} />
                 ) : null}
-                {meta.fields.includes("rnaNumber") ? (
+                {signupFields.includes("rnaNumber") ? (
                   <Field id="rna" label={tLegal("fieldRna")} value={rnaNumber} onChange={setRnaNumber} required />
                 ) : null}
                 <NavRow
@@ -335,26 +334,21 @@ export function MerchantLegalSignupWizard({
                 <h2 className="text-lg font-semibold text-white">{tLegal("stepDocuments")}</h2>
                 <p className="text-xs text-violet-100/70">{tLegal("documentsHint")}</p>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {docList.map((d) => {
-                    const skip =
-                      role === "AFFILIATE" && legalStatus === "PARTICULIER" && d.type === "PROOF_OF_ADDRESS"
-                    if (skip) return null
-                    return (
-                      <MerchantLegalDocumentSlot
-                        key={d.type}
-                        draftId={draftId}
-                        documentType={d.type}
-                        label={tLegal(d.hintKey)}
-                        hint={d.required ? tLegal("required") : tLegal("optional")}
-                        required={d.required}
-                        uploadedUrl={uploads[d.type] ?? null}
-                        onUploaded={(url) =>
-                          setUploads((prev) => ({ ...prev, [d.type]: url }))
-                        }
-                        onError={(msg) => setUploadError(resolveError(msg))}
-                      />
-                    )
-                  })}
+                  {docList.map((d) => (
+                    <MerchantLegalDocumentSlot
+                      key={d.type}
+                      draftId={draftId}
+                      documentType={d.type}
+                      label={tLegal(d.hintKey)}
+                      hint={d.required ? tLegal("required") : tLegal("optional")}
+                      required={d.required}
+                      uploadedUrl={uploads[d.type] ?? null}
+                      onUploaded={(url) =>
+                        setUploads((prev) => ({ ...prev, [d.type]: url }))
+                      }
+                      onError={(msg) => setUploadError(resolveError(msg))}
+                    />
+                  ))}
                 </div>
                 {uploadError ? <p className="text-sm text-rose-300">{uploadError}</p> : null}
                 <NavRow
@@ -415,7 +409,7 @@ export function MerchantLegalSignupWizard({
                 />
                 {role === "SUPPLIER" ? (
                   <p className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
-                    {tLegal("vatNotice")}
+                    {role === "AFFILIATE" ? tLegal("vatNoticeAffiliate") : tLegal("vatNotice")}
                   </p>
                 ) : null}
                 <button

@@ -1,7 +1,7 @@
 ---
 title: Conditions générales affilié (CGA)
 description: Conditions applicables aux créateurs et partenaires Affisell.
-lastUpdated: 2026-05-26
+lastUpdated: 2026-06-25
 order: 3
 ---
 
@@ -9,21 +9,25 @@ order: 3
 
 **Dernière mise à jour : {{LAST_UPDATED}}**
 
-Les présentes Conditions générales affilié (« **CGA** ») complètent les [CGU](/legal/terms-of-service) et régissent la relation entre **Affisell SAS** et tout partenaire inscrit en qualité d'**Affilié** (créateur, influenceur, revendeur).
+Les présentes Conditions générales affilié (« **CGA** ») complètent les [CGU](/legal/terms-of-service) et régissent la relation entre **Affisell SAS** et tout partenaire inscrit en qualité d'**Affilié** (créateur, influenceur, curateur de vitrine).
 
-## Article 1 — Statut
+## Article 1 — Statut de partenaire curateur (non vendeur)
 
-1.1. L'Affilié agit en **professionnel ou non-professionnel** selon sa déclaration. Il est seul responsable de ses obligations fiscales et sociales (URSSAF, TVA, déclaration de revenus).
+1.1. L'Affilié est un **partenaire commercial indépendant** qui sélectionne, présente et commercialise des produits de Fournisseurs via une vitrine Affisell. **Il n'est pas le vendeur** des marchandises : le contrat de vente est conclu entre l'Acheteur et le **Fournisseur** (voir CGU et CGV).
 
-### Article 1.2 - Terminologie "Ambassadeur"
+1.2. L'Affilié n'expédie pas les produits, ne détient pas le stock et n'est pas responsable de la conformité, de la livraison ni des garanties légales attachées à la vente — sous réserve de ses obligations de communication loyale (article 5).
 
-Le terme "Ambassadeur", utilisé à des fins marketing, désigne exclusivement un Partenaire Affilié indépendant tel que défini à l'article 1.1.
+1.3. L'Affilié agit en **professionnel ou non-professionnel** selon sa déclaration. Il est seul responsable de la déclaration de **sa rémunération partenaire** (commission fournisseur et marge nette) selon les règles fiscales et sociales de **son pays de résidence** (URSSAF, impôt sur le revenu, TVA sur ses propres prestations le cas échéant).
 
-L'utilisation de ce terme ne crée aucun lien de subordination, mandat de représentation, ni contrat de travail entre l'Ambassadeur et Affisell ou ses Fournisseurs.
+1.4. La **TVA sur les achats clients** est collectée au moment du paiement selon le pays de l'Acheteur (mécanisme Stripe Tax ou équivalent) et relève du **Fournisseur vendeur**, non de l'Affilié en qualité de curateur.
 
-L'Ambassadeur agit en son nom propre, pour son compte, et demeure seul responsable de ses obligations fiscales, sociales et légales.
+### Article 1.5 — Terminologie « Ambassadeur »
 
-1.3. Affisell n'est pas employeur de l'Affilié.
+Le terme « Ambassadeur », utilisé à des fins marketing, désigne exclusivement un Partenaire Affilié indépendant tel que défini à l'article 1.
+
+L'utilisation de ce terme ne crée aucun lien de subordination, mandat de représentation commerciale pour le compte du Fournisseur, ni contrat de travail entre l'Ambassadeur et Affisell ou ses Fournisseurs.
+
+1.6. Affisell n'est pas employeur de l'Affilié. Affisell peut être tenue de transmettre les revenus plateforme aux autorités compétentes (DAC7 ou équivalent).
 
 ## Article 2 — Listings et markup
 

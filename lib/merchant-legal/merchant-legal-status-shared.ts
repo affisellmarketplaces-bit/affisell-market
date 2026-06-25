@@ -148,18 +148,43 @@ export function isMerchantDocumentType(value: string): value is MerchantDocument
   return (MERCHANT_DOCUMENT_TYPES as readonly string[]).includes(value)
 }
 
+/** Identity-only KYC for affiliates (curator role — not seller of record). */
+const AFFILIATE_BASE_ID: MerchantDocumentRequirement[] = [
+  { type: "IDENTITY_FRONT", required: true, hintKey: "docIdentityFront" },
+  { type: "IDENTITY_BACK", required: true, hintKey: "docIdentityBack" },
+]
+
+export function signupFieldsForStatus(
+  status: MerchantLegalStatus,
+  role: "SUPPLIER" | "AFFILIATE"
+): MerchantLegalStatusMeta["fields"] {
+  const meta = MERCHANT_LEGAL_STATUS_CATALOG[status]
+  if (role === "SUPPLIER") return meta.fields
+  return meta.fields.filter((f) => f === "legalEntityName" || f === "tradeName")
+}
+
 export function requiredDocumentsForStatus(
   status: MerchantLegalStatus,
   role: "SUPPLIER" | "AFFILIATE"
 ): MerchantDocumentRequirement[] {
-  const meta = MERCHANT_LEGAL_STATUS_CATALOG[status]
-  const docs = meta.documents.filter((d) => d.required)
-  if (role === "AFFILIATE" && status === "PARTICULIER") {
-    return docs.filter((d) => d.type !== "PROOF_OF_ADDRESS")
+  if (role === "AFFILIATE") {
+    return AFFILIATE_BASE_ID
   }
-  return docs
+  const meta = MERCHANT_LEGAL_STATUS_CATALOG[status]
+  return meta.documents.filter((d) => d.required)
 }
 
 export function allDocumentsForStatus(status: MerchantLegalStatus): MerchantDocumentRequirement[] {
   return MERCHANT_LEGAL_STATUS_CATALOG[status].documents
+}
+
+/** Documents shown and validated at signup — lighter matrix for affiliates. */
+export function documentsForSignup(
+  status: MerchantLegalStatus,
+  role: "SUPPLIER" | "AFFILIATE"
+): MerchantDocumentRequirement[] {
+  if (role === "AFFILIATE") {
+    return AFFILIATE_BASE_ID
+  }
+  return allDocumentsForStatus(status)
 }

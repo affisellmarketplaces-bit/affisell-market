@@ -22,7 +22,8 @@ import { buttonVariants } from "@/components/ui/button"
 import {
   MERCHANT_LEGAL_STATUSES,
   MERCHANT_LEGAL_STATUS_CATALOG,
-  allDocumentsForStatus,
+  documentsForSignup,
+  signupFieldsForStatus,
   type MerchantDocumentType,
   type MerchantLegalStatus,
 } from "@/lib/merchant-legal/merchant-legal-status-shared"
@@ -72,7 +73,8 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   const meta = legalStatus ? MERCHANT_LEGAL_STATUS_CATALOG[legalStatus] : null
-  const docList = legalStatus ? allDocumentsForStatus(legalStatus) : []
+  const signupFields = legalStatus ? signupFieldsForStatus(legalStatus, role) : []
+  const docList = legalStatus ? documentsForSignup(legalStatus, role) : []
   const stepIndex = STEPS.indexOf(step)
 
   function resolveError(code: string): string {
@@ -85,9 +87,9 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
 
   function canAdvanceFromIdentity(): boolean {
     if (!meta) return false
-    if (meta.fields.includes("legalEntityName") && !legalEntityName.trim()) return false
-    if (meta.fields.includes("siret") && siret.replace(/\D/g, "").length !== 14) return false
-    if (meta.fields.includes("rnaNumber") && rnaNumber.trim().length < 8) return false
+    if (signupFields.includes("legalEntityName") && !legalEntityName.trim()) return false
+    if (signupFields.includes("siret") && siret.replace(/\D/g, "").length !== 14) return false
+    if (signupFields.includes("rnaNumber") && rnaNumber.trim().length < 8) return false
     return true
   }
 
@@ -95,9 +97,6 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
     if (!legalStatus) return false
     for (const d of docList) {
       if (!d.required) continue
-      if (role === "AFFILIATE" && legalStatus === "PARTICULIER" && d.type === "PROOF_OF_ADDRESS") {
-        continue
-      }
       if (!uploads[d.type]) return false
     }
     return true
@@ -203,7 +202,7 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
         {step === "identity" && meta ? (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{tLegal("stepIdentity")}</h2>
-            {meta.fields.includes("legalEntityName") ? (
+            {signupFields.includes("legalEntityName") ? (
               <Field
                 id="legal-entity"
                 label={tLegal("fieldLegalName")}
@@ -212,10 +211,10 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
                 required
               />
             ) : null}
-            {meta.fields.includes("tradeName") ? (
+            {signupFields.includes("tradeName") ? (
               <Field id="trade-name" label={tLegal("fieldTradeName")} value={tradeName} onChange={setTradeName} />
             ) : null}
-            {meta.fields.includes("siret") ? (
+            {signupFields.includes("siret") ? (
               <Field
                 id="siret"
                 label="SIRET"
@@ -225,10 +224,10 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
                 required
               />
             ) : null}
-            {meta.fields.includes("vatNumber") ? (
+            {signupFields.includes("vatNumber") ? (
               <Field id="vat" label={tLegal("fieldVat")} value={vatNumber} onChange={setVatNumber} />
             ) : null}
-            {meta.fields.includes("rnaNumber") ? (
+            {signupFields.includes("rnaNumber") ? (
               <Field id="rna" label={tLegal("fieldRna")} value={rnaNumber} onChange={setRnaNumber} required />
             ) : null}
             <div className="flex gap-2">
@@ -259,11 +258,7 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
             <p className="text-xs text-zinc-600 dark:text-zinc-400">{tLegal("documentsHint")}</p>
             <div className="rounded-xl bg-gradient-to-br from-violet-950 via-zinc-950 to-fuchsia-950 p-4">
               <div className="grid gap-3 sm:grid-cols-2">
-                {docList.map((d) => {
-                  const skip =
-                    role === "AFFILIATE" && legalStatus === "PARTICULIER" && d.type === "PROOF_OF_ADDRESS"
-                  if (skip) return null
-                  return (
+                {docList.map((d) => (
                     <MerchantLegalDocumentSlot
                       key={d.type}
                       draftId={draftId}
@@ -275,15 +270,14 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
                       onUploaded={(url) => setUploads((prev) => ({ ...prev, [d.type]: url }))}
                       onError={(msg) => setUploadError(resolveError(msg))}
                     />
-                  )
-                })}
+                ))}
               </div>
             </div>
             {uploadError ? <p className="text-sm text-rose-600 dark:text-rose-400">{uploadError}</p> : null}
             {error ? <p className="text-sm text-rose-600 dark:text-rose-400">{error}</p> : null}
             {role === "SUPPLIER" ? (
               <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
-                {tLegal("vatNotice")}
+                {role === "AFFILIATE" ? tLegal("vatNoticeAffiliate") : tLegal("vatNotice")}
               </p>
             ) : null}
             <div className="flex gap-2">

@@ -1,8 +1,8 @@
 import {
   isMerchantDocumentType,
   isMerchantLegalStatus,
-  MERCHANT_LEGAL_STATUS_CATALOG,
   requiredDocumentsForStatus,
+  signupFieldsForStatus,
   type MerchantDocumentType,
   type MerchantLegalStatus,
 } from "@/lib/merchant-legal/merchant-legal-status-shared"
@@ -55,7 +55,7 @@ export function validateMerchantSignupPayload(
     return { ok: false, error: "invalid_legal_status" }
   }
   const legalStatus = statusRaw
-  const meta = MERCHANT_LEGAL_STATUS_CATALOG[legalStatus]
+  const signupFields = signupFieldsForStatus(legalStatus, role)
 
   const legalEntityName = fields.legalEntityName?.trim().slice(0, 160) || null
   const tradeName = fields.tradeName?.trim().slice(0, 160) || null
@@ -64,13 +64,13 @@ export function validateMerchantSignupPayload(
   const rnaNumber = normalizeRna(fields.rnaNumber)
   const countryCode = (fields.countryCode?.trim().toUpperCase().slice(0, 2) || "FR") as string
 
-  if (meta.fields.includes("legalEntityName") && !legalEntityName) {
+  if (signupFields.includes("legalEntityName") && !legalEntityName) {
     return { ok: false, error: "legal_entity_name_required" }
   }
-  if (meta.fields.includes("siret") && !siret) {
+  if (signupFields.includes("siret") && !siret) {
     return { ok: false, error: "siret_required" }
   }
-  if (meta.fields.includes("rnaNumber") && !rnaNumber) {
+  if (signupFields.includes("rnaNumber") && !rnaNumber) {
     return { ok: false, error: "rna_required" }
   }
 

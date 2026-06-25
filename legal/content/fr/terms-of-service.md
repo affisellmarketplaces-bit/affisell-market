@@ -37,7 +37,7 @@ Les présentes Conditions générales d'utilisation (« **CGU** ») régissent l
 
 ## Article 4 — Rôle d'Affisell et relation tripartite
 
-4.1. Le contrat de vente du produit est conclu **directement entre l'Acheteur et le Fournisseur**. L'Affilié perçoit une rémunération (commission et/ou marge) selon les paramètres du listing et du catalogue.
+4.1. Le contrat de vente du produit est conclu **directement entre l'Acheteur et le Fournisseur**. L'Affilié agit en qualité de **partenaire curateur** (vitrine, sélection, markup) et **n'est pas le vendeur** des marchandises. Il perçoit une rémunération (commission et/ou marge) selon les paramètres du listing et du catalogue.
 
 4.2. Affisell perçoit une **commission de plateforme** calculée sur le **montant HT** de la ligne commande (hors TVA), selon le barème en vigueur (taux par défaut **10 %**, variable par catégorie ou produit).
 

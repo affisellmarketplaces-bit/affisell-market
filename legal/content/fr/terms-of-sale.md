@@ -1,7 +1,7 @@
 ---
 title: Conditions générales de vente (CGV)
 description: Applicables aux achats réalisés sur la marketplace Affisell par des consommateurs situés dans l'Union européenne.
-lastUpdated: 2026-06-01
+lastUpdated: 2026-06-25
 order: 0
 ---
 
@@ -9,13 +9,21 @@ order: 0
 
 **Dernière mise à jour : {{LAST_UPDATED}}**
 
-## 1. Identité du vendeur et rôle d'Affisell
+## 1. Identité du vendeur, du partenaire curateur et rôle d'Affisell
 
-**{{COMPANY_NAME}}** ({{ADRESSE}}, SIRET {{SIRET}}) exploite la plateforme Affisell. Pour chaque commande, le contrat de vente du produit est conclu entre vous (le client) et le **fournisseur (Supplier)** identifié sur la fiche produit. Affisell agit en qualité de **mandataire et intermédiaire technique** (paiement, facturation, médiation) : **Affisell n'est pas le vendeur** des marchandises, sauf mention contraire explicite.
+**{{COMPANY_NAME}}** ({{ADRESSE}}, SIRET {{SIRET}}) exploite la plateforme Affisell.
+
+Pour chaque commande :
+
+- le **contrat de vente du produit** est conclu entre vous (le client) et le **fournisseur (Supplier)** identifié sur la fiche produit ;
+- l'**affilié / partenaire créateur** éventuel agit en qualité de **curateur commercial** (sélection et présentation des produits via sa vitrine) et **n'est pas le vendeur** des marchandises ;
+- **Affisell** agit en qualité de **mandataire et intermédiaire technique** (paiement, facturation, médiation).
+
+**Affisell n'est pas le vendeur** des marchandises, sauf mention contraire explicite.
 
 ## 2. Prix, TVA et facturation
 
-Les prix affichés incluent la TVA applicable au moment de la commande lorsque la mention « TVA incluse » figure sur la page produit. La facture est émise au nom de {{COMPANY_NAME}} en tant qu'intermédiaire de facturation ou selon les règles fiscales applicables au fournisseur. Les frais de livraison, le cas échéant, sont indiqués avant validation du paiement.
+Les prix affichés incluent la TVA applicable au moment de la commande lorsque la mention « TVA incluse » figure sur la page produit. La TVA est calculée selon le pays de l'acheteur (Stripe Tax ou mécanisme équivalent). Le **fournisseur vendeur** demeure responsable de ses obligations fiscales. La facture est émise au nom de {{COMPANY_NAME}} en tant qu'intermédiaire de facturation ou selon les règles fiscales applicables au fournisseur. Les frais de livraison, le cas échéant, sont indiqués avant validation du paiement.
 
 ## 3. Paiement
 

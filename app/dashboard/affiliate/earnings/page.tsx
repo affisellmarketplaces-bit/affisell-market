@@ -1,6 +1,7 @@
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { Suspense } from "react"
 
+import { PartnerTaxCompliancePanel } from "@/components/affiliate/partner-tax-compliance-panel"
 import { MerchantPulseHub } from "@/components/merchant/merchant-pulse-hub"
 import { MerchantStripeConnectPanel } from "@/components/merchant/merchant-stripe-connect-panel"
 import {
@@ -32,14 +33,17 @@ export default async function AffiliateEarningsPage() {
   ])
 
   const connectSlot = (
-    <Suspense fallback={null}>
-      <MerchantStripeConnectPanel
-        role="AFFILIATE"
-        connectOnboarded={Boolean(merchantUser?.stripeOnboardedAt)}
-        stripeAccountId={merchantUser?.stripeAccountId ?? null}
-        verificationApproved={kycProfile?.verificationStatus === "APPROVED"}
-      />
-    </Suspense>
+    <div className="space-y-4">
+      <Suspense fallback={null}>
+        <MerchantStripeConnectPanel
+          role="AFFILIATE"
+          connectOnboarded={Boolean(merchantUser?.stripeOnboardedAt)}
+          stripeAccountId={merchantUser?.stripeAccountId ?? null}
+          verificationApproved={kycProfile?.verificationStatus === "APPROVED"}
+        />
+      </Suspense>
+      <PartnerTaxCompliancePanel />
+    </div>
   )
 
   return (

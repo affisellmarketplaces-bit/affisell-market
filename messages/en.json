@@ -395,12 +395,13 @@
       "fieldRna": "RNA number (association)",
       "fieldSocial": "TikTok / Instagram handle",
       "fieldPassword": "Password",
-      "vatNotice": "Sellers remain liable for VAT. Affisell fees apply to net amounts excl. VAT.",
+      "vatNotice": "Suppliers remain liable for VAT on sales. Affisell fees apply to net amounts excl. VAT.",
+      "vatNoticeAffiliate": "Declare your partner earnings (commission + net markup) under your country of tax residence. Buyer VAT is collected at checkout (Stripe Tax) by the selling supplier.",
       "hasAccountSupplier": "Already a partner?",
       "hasAccountAffiliate": "Already a creator?",
       "signIn": "Sign in",
       "statusParticulierTitle": "Individual",
-      "statusParticulierSub": "Creator or seller without registered business",
+      "statusParticulierSub": "Creator without registered business — curator partner, not product seller",
       "statusAutoEntrepreneurTitle": "Sole trader / micro-business",
       "statusAutoEntrepreneurSub": "Auto-entrepreneur · URSSAF / INSEE proof",
       "statusEiTitle": "Professional (sole proprietorship)",
@@ -902,6 +903,15 @@
       "feedLoadFailed": "Could not load the feed",
       "serviceUnavailable": "Service temporarily unavailable — try again in a moment.",
       "genericError": "Something went wrong"
+    },
+    "earnings": {
+      "taxCompliance": {
+        "title": "Partner tax compliance",
+        "body": "You receive partner remuneration (supplier commission + net markup). Declare this income under your country of tax residence.",
+        "buyerVat": "VAT on customer purchases is calculated at checkout based on the buyer's country (Stripe Tax) and is the selling supplier's obligation — not your curator storefront.",
+        "records": "Affisell and Stripe Connect statements are your accounting baseline. Keep them for filings.",
+        "dac7": "Affisell may report your platform earnings to authorities (DAC7 / equivalent) where required by law."
+      }
     },
     "liveStore": {
       "openAria": "Open live visitors",
@@ -1838,7 +1848,7 @@
     "trust": {
       "poweredBy": "Powered by Affisell",
       "verifiedBy": "Verified by Affisell",
-      "merchantVerified": "Verified merchant",
+      "merchantVerified": "Verified partner",
       "verifiedShort": "Verified",
       "platformSecured": "Affisell secure checkout",
       "secureCheckout": "Secure checkout",
@@ -1849,8 +1859,8 @@
       "shopHomeCta": "Shop",
       "cartCta": "Cart",
       "footerTitle": "Trust & legal compliance",
-      "footerBody": "This store runs on Affisell infrastructure: identity checks, secure payments, and buyer protection policies apply.",
-      "verificationPending": "Merchant verification in progress",
+      "footerBody": "Curated by this creator partner · sold and shipped by the supplier · payments and buyer protection via Affisell.",
+      "verificationPending": "Partner verification in progress",
       "legalNavAria": "Legal information",
       "legalLinksTitle": "Legal documents",
       "legalLinks": {
@@ -1860,15 +1870,23 @@
         "returns": "Returns & refunds",
         "support": "Customer support"
       },
-      "merchantIdentity": "Merchant",
-      "legalName": "Legal name: {name}",
+      "merchantIdentity": "Creator partner",
+      "legalName": "Declared name: {name}",
       "partnerListing": "Partner listing ID",
       "partnerListingHint": "Traceability reference for orders and support.",
       "platformOperator": "Marketplace operator",
       "platformOperatorHint": "Hosting, payments, and compliance layer.",
       "verifiedOn": "Affisell verification: {date}",
-      "customDomainDisclaimer": "Custom domain storefront — transactions processed via Affisell secure checkout.",
-      "platformDisclaimer": "Affisell affiliate storefront — curated listings from this creator.",
+      "customDomainDisclaimer": "Custom domain storefront — sold by supplier, Affisell secure checkout.",
+      "platformDisclaimer": "Affisell partner storefront — products curated by this creator, sold and shipped by the supplier.",
+      "partnerLegalStatus": {
+        "PARTICULIER": "Creator partner (individual)",
+        "AUTO_ENTREPRENEUR": "Sole-trader partner",
+        "EI_PROFESSIONAL": "Professional partner (sole prop.)",
+        "COMPANY": "Company partner",
+        "ASSOCIATION": "Association partner",
+        "FOREIGN": "International partner"
+      },
       "legalStatus": {
         "PARTICULIER": "Individual seller",
         "AUTO_ENTREPRENEUR": "Sole trader (micro-entrepreneur)",

@@ -37,7 +37,7 @@ These General Terms of Use ("**GTU**") govern access to and use of the **Affisel
 
 ## Article 4 — Affisell's role and tripartite relationship
 
-4.1. The product sales contract is concluded **directly between the Buyer and the Supplier**. The Affiliate receives remuneration (commission and/or margin) according to listing and catalogue parameters.
+4.1. The product sales contract is concluded **directly between the Buyer and the Supplier**. The Affiliate acts as a **curator partner** (storefront, selection, markup) and **is not the seller** of the goods. They receive remuneration (commission and/or margin) according to listing and catalogue parameters.
 
 4.2. Affisell receives a **platform commission** calculated on the **net amount excluding VAT** of the order line (excluding VAT), according to the applicable scale (default rate **10%**, variable by category or product).
 
