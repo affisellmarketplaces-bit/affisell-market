@@ -2,36 +2,8 @@ import { describe, expect, it } from "vitest"
 
 import {
   fixZeroPaidLinesCents,
-  isStripeCheckoutPaidTotalValid,
   proportionalLinePaidsCents,
-  STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS,
-  sumPaidLinesCents,
 } from "@/lib/marketplace-checkout-discount"
-
-describe("STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS", () => {
-  it("is a positive integer (cents)", () => {
-    expect(STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS).toBeGreaterThan(0)
-    expect(Number.isInteger(STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS)).toBe(true)
-  })
-})
-
-describe("isStripeCheckoutPaidTotalValid", () => {
-  it("rejects totals below Stripe EUR minimum", () => {
-    expect(isStripeCheckoutPaidTotalValid(10)).toBe(false)
-    expect(isStripeCheckoutPaidTotalValid(49)).toBe(false)
-  })
-
-  it("accepts totals at or above minimum", () => {
-    expect(isStripeCheckoutPaidTotalValid(50)).toBe(true)
-    expect(isStripeCheckoutPaidTotalValid(100)).toBe(true)
-  })
-})
-
-describe("sumPaidLinesCents", () => {
-  it("sums line paid amounts", () => {
-    expect(sumPaidLinesCents([10, 40])).toBe(50)
-  })
-})
 
 describe("proportionalLinePaidsCents", () => {
   it("returns empty array for empty subs", () => {

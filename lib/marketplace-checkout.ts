@@ -16,12 +16,14 @@ import { resolveSupplierCommissionRateBpsForProductId } from "@/lib/supplier-com
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import {
   fixZeroPaidLinesCents,
-  isStripeCheckoutPaidTotalValid,
   proportionalLinePaidsCents,
-  STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS,
-  stripeCheckoutMinimumNotMetResponse,
-  sumPaidLinesCents,
 } from "@/lib/marketplace-checkout-discount"
+import {
+  isStripeCheckoutPaidTotalValid,
+  STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS,
+  sumPaidLinesCents,
+} from "@/lib/stripe-minimum"
+import { stripeCheckoutMinimumNotMetResponse } from "@/lib/stripe-minimum.server"
 import { prisma } from "@/lib/prisma"
 import {
   marketplaceSellingPriceCentsForOption,

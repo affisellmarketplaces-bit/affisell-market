@@ -28,7 +28,7 @@ import { CartCheckoutIdentitySheet } from "@/components/cart/cart-checkout-ident
 import { dispatchCartUpdated } from "@/lib/buyer-cart-count-client"
 import { mergeGuestBuyerSessionToServer } from "@/lib/merge-guest-cart-client"
 import { formatStoreCurrency } from "@/lib/market-config"
-import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
+import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/stripe-minimum"
 
 type CartLine = {
   id: string

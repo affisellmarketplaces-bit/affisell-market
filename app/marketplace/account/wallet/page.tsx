@@ -6,7 +6,7 @@ import { BentoCard, BentoContainer, BentoPageHeading } from "@/components/affise
 import { auth } from "@/auth"
 import { buttonVariants } from "@/components/ui/button"
 import { prisma } from "@/lib/prisma"
-import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
+import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/stripe-minimum"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 

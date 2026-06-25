@@ -63,7 +63,7 @@ import {
 } from "@/lib/booking/types"
 import { BookingSlotPicker } from "@/components/booking/booking-slot-picker"
 import { BookingNamedSeatPicker } from "@/components/booking/booking-named-seat-picker"
-import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/marketplace-checkout-discount"
+import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/stripe-minimum"
 import {
   clampPurchaseQuantity,
   resolveListingAvailableStock,
