@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
   title: "Comment ça marche | Affisell",
-  description: "Découvrez le parcours client, affilié et fournisseur sur la marketplace Affisell.",
+  description:
+    "Découvrez le parcours acheteur, partenaire créateur et fournisseur sur la marketplace Affisell.",
 }
 
 export default function HowItWorksPage() {
@@ -17,25 +18,28 @@ export default function HowItWorksPage() {
         <BentoPageHeading
           eyebrow="Marketplace UE"
           title="Comment ça marche"
-          description="Affisell connecte créateurs, fournisseurs et acheteurs — sans stock côté affilié, avec expédition gérée par le Supplier."
+          description="Affisell réunit partenaires créateurs, fournisseurs et acheteurs — sans stock côté partenaire, avec livraison rapide et sécurisée assurée par le fournisseur."
         />
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
           <BentoCard className="p-5">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">1. Acheteur</h2>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              Parcourez le catalogue, payez en sécurité via Stripe, suivez la commande depuis votre compte.
+              Explorez le catalogue, payez en toute sécurité via Stripe et suivez votre commande depuis
+              votre espace.
             </p>
           </BentoCard>
           <BentoCard className="p-5">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">2. Affilié</h2>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">2. Partenaire créateur</h2>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              Choisissez des produits, fixez votre marge, partagez votre boutique — Affisell gère paiement et split.
+              Sélectionnez des produits, fixez votre marge, partagez votre vitrine — Affisell gère les
+              paiements et la répartition des commissions.
             </p>
           </BentoCard>
           <BentoCard className="p-5">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">3. Fournisseur</h2>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              Publiez le catalogue, expédiez sous 10 jours, encaissez après livraison confirmée.
+              Publiez votre catalogue, expédiez rapidement et en toute sécurité, encaissez une fois la
+              livraison confirmée.
             </p>
           </BentoCard>
         </div>
@@ -44,7 +48,7 @@ export default function HowItWorksPage() {
             Explorer le catalogue
           </Link>
           <Link href="/affiliate" className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }))}>
-            Devenir affilié
+            Devenir partenaire créateur
           </Link>
         </div>
       </BentoContainer>
