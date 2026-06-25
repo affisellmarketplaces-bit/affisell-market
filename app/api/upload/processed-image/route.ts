@@ -1,36 +1,21 @@
-import { createClient } from "@supabase/supabase-js"
-
 import { auth } from "@/auth"
-import {
-  processSupplierGalleryImageBytes,
-  SupplierGalleryMinDimensionError,
-} from "@/lib/supplier-gallery-process.server"
+import { SupplierGalleryMinDimensionError } from "@/lib/supplier-gallery-process.server"
+import { uploadSupplierGalleryImage } from "@/lib/supplier-gallery-upload.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-const BUCKET = "product-images"
-
-function requireEnv(name: string): string {
-  const value = process.env[name]?.trim()
-  if (!value) throw new Error(`Missing ${name}`)
-  return value
-}
-
-function parseDataUrl(input: string): { mime: string; bytes: Uint8Array } {
+function parseDataUrl(input: string): Buffer {
   const match = input.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/)
   if (!match) throw new Error("Invalid imageData format")
-  const mime = match[1]
-  const base64 = match[2]
-  const bytes = Uint8Array.from(Buffer.from(base64, "base64"))
-  return { mime, bytes }
+  return Buffer.from(match[2], "base64")
 }
 
 function normalizeFilename(input: string): string {
   return input.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9-_]/g, "-").slice(0, 64) || "processed-image"
 }
 
-async function readImagePayload(req: Request): Promise<{ mime: string; bytes: Uint8Array; filename: string }> {
+async function readImageBytes(req: Request): Promise<{ bytes: Buffer; filename: string }> {
   const contentType = req.headers.get("content-type") || ""
   if (contentType.includes("multipart/form-data")) {
     const form = await req.formData()
@@ -40,8 +25,7 @@ async function readImagePayload(req: Request): Promise<{ mime: string; bytes: Ui
     }
     const buffer = await file.arrayBuffer()
     return {
-      mime: file.type || "image/jpeg",
-      bytes: new Uint8Array(buffer),
+      bytes: Buffer.from(buffer),
       filename: normalizeFilename(file.name || "processed-image"),
     }
   }
@@ -49,10 +33,8 @@ async function readImagePayload(req: Request): Promise<{ mime: string; bytes: Ui
   const body = (await req.json()) as { imageData?: string; filename?: string }
   const imageData = typeof body.imageData === "string" ? body.imageData : ""
   if (!imageData) throw new Error("Missing imageData")
-  const { mime, bytes } = parseDataUrl(imageData)
   return {
-    mime,
-    bytes,
+    bytes: parseDataUrl(imageData),
     filename: normalizeFilename(typeof body.filename === "string" ? body.filename : "processed-image"),
   }
 }
@@ -92,58 +74,13 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { mime: _mime, bytes, filename } = await readImagePayload(req)
-    const processed = await processSupplierGalleryImageBytes(Buffer.from(bytes))
-
-    const supabase = createClient(
-      requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
-      requireEnv("SUPABASE_SERVICE_ROLE_KEY")
-    )
-
-    // Ensure bucket exists and stays public for direct CDN reads.
-    const bucketResult = await supabase.storage.getBucket(BUCKET)
-    if (bucketResult.error) {
-      const createResult = await supabase.storage.createBucket(BUCKET, {
-        public: true,
-        fileSizeLimit: 20 * 1024 * 1024,
-      })
-      if (createResult.error) {
-        console.error("[upload/processed-image] createBucket error", createResult.error)
-        return Response.json(
-          { error: "Supabase createBucket failed", detail: createResult.error.message },
-          { status: 500 }
-        )
-      }
-    } else if (bucketResult.data && !bucketResult.data.public) {
-      const updateResult = await supabase.storage.updateBucket(BUCKET, {
-        public: true,
-        fileSizeLimit: 20 * 1024 * 1024,
-      })
-      if (updateResult.error) {
-        console.error("[upload/processed-image] updateBucket error", updateResult.error)
-        return Response.json(
-          { error: "Supabase updateBucket failed", detail: updateResult.error.message },
-          { status: 500 }
-        )
-      }
-    }
-
-    const ext = "jpg"
-    const date = new Date().toISOString().slice(0, 10)
-    const path = `${effectiveUserId}/${date}/${Date.now()}-${filename}.${ext}`
-
-    const uploaded = await supabase.storage.from(BUCKET).upload(path, processed, {
-      contentType: "image/jpeg",
-      upsert: false,
-      cacheControl: "3600",
+    const { bytes, filename } = await readImageBytes(req)
+    const { url, storage } = await uploadSupplierGalleryImage({
+      userId: effectiveUserId,
+      bytes,
+      filename,
     })
-    if (uploaded.error) {
-      console.error("[upload/processed-image] upload error", uploaded.error)
-      return Response.json({ error: "Supabase upload failed", detail: uploaded.error.message }, { status: 500 })
-    }
-
-    const publicUrl = supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
-    return Response.json({ url: publicUrl, path })
+    return Response.json({ url, storage })
   } catch (e) {
     if (e instanceof SupplierGalleryMinDimensionError) {
       console.log("[upload/processed-image] min dimension", {

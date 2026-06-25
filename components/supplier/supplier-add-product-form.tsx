@@ -1592,8 +1592,21 @@ export function SupplierAddProductForm({
   )
 
   const syncDraftToServer = useCallback(
-    async (opts?: { silent?: boolean; force?: boolean; stepOverride?: WizardStep }) => {
-      if (!listingAutosaveEnabled || loadingProduct || saving || galleryBusy) return false
+    async (opts?: {
+      silent?: boolean
+      force?: boolean
+      stepOverride?: WizardStep
+      /** Flush right after gallery CDN upload (galleryBusy may still be true). */
+      afterGallery?: boolean
+    }) => {
+      if (
+        !listingAutosaveEnabled ||
+        loadingProduct ||
+        saving ||
+        (galleryBusy && !opts?.afterGallery)
+      ) {
+        return false
+      }
 
       const syncStep = opts?.stepOverride ?? step
       const body = buildDraftSyncBody(syncStep)
@@ -1688,6 +1701,23 @@ export function SupplierAddProductForm({
       searchParams,
       step,
     ]
+  )
+
+  const handleGalleryImagesChange = useCallback(
+    (urls: string[]) => {
+      setImages(urls)
+      if (urls.length > 0) clearPublishFieldError("images")
+    },
+    [clearPublishFieldError]
+  )
+
+  const handleGalleryPersisted = useCallback(
+    (urls: string[]) => {
+      setImages(urls)
+      if (urls.length > 0) clearPublishFieldError("images")
+      void syncDraftToServer({ silent: true, force: true, afterGallery: true })
+    },
+    [clearPublishFieldError, syncDraftToServer]
   )
 
   const autosaveFingerprint = useMemo(
@@ -2590,10 +2620,8 @@ export function SupplierAddProductForm({
                           <SupplierProductImageUpload
                             initialUrls={images}
                             onBusyChange={setGalleryBusy}
-                            onImagesChange={(urls) => {
-                              setImages(urls)
-                              if (urls.length > 0) clearPublishFieldError("images")
-                            }}
+                            onImagesChange={handleGalleryImagesChange}
+                            onPersisted={handleGalleryPersisted}
                           />
                         </div>
                       </div>

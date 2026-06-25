@@ -20,6 +20,8 @@ type Props = {
   initialUrls?: string[]
   /** True while files are processing or uploading to CDN. */
   onBusyChange?: (busy: boolean) => void
+  /** Called after CDN URLs are ready — use to flush draft to server. */
+  onPersisted?: (urls: string[]) => void
 }
 
 function slotsToOrderedUrls(slots: (string | null)[]): string[] {
@@ -150,7 +152,7 @@ function RemoveImageButton({
   )
 }
 
-export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusyChange }: Props) {
+export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusyChange, onPersisted }: Props) {
   const t = useTranslations("supplier.images")
   const inputId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -171,13 +173,22 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
 
   const busy = isBatchUploading || processingSlots.size > 0
 
+  /** Parent → child: hydrate from server/import only — never wipe local slots when parent is still []. */
   useEffect(() => {
     if (busy) return
+    const parentUrls = (initialUrls ?? []).filter(Boolean)
+    if (parentUrls.length === 0) return
+
     const next = Array.from({ length: SLOT_COUNT }, (_, i) => initialUrls?.[i] ?? null)
     setSlots((prev) => {
-      const prevKey = slotsToOrderedUrls(prev).join("\0")
-      const nextKey = slotsToOrderedUrls(next).join("\0")
-      return prevKey === nextKey ? prev : next
+      const prevUrls = slotsToOrderedUrls(prev)
+      const nextUrls = slotsToOrderedUrls(next)
+      const prevKey = prevUrls.join("\0")
+      const nextKey = nextUrls.join("\0")
+      if (prevKey === nextKey) return prev
+      // Keep in-flight local uploads if parent has not caught up yet.
+      if (prevUrls.length > parentUrls.length) return prev
+      return next
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialUrls?.join("\0"), busy])
@@ -233,10 +244,11 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
         return s
       })
 
+      let added = 0
+      let urlsToPublish: string[] = []
       try {
         const persistedUrls = await persistSupplierGalleryFiles(batch)
 
-        let added = 0
         setSlots((prev) => {
           const next = [...prev]
           for (let i = 0; i < batch.length; i++) {
@@ -253,18 +265,22 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
               toast.error(t("errProcess", { name: file.name }))
             }
           }
-          queueMicrotask(() => onImagesChange(slotsToOrderedUrls(next)))
+          urlsToPublish = slotsToOrderedUrls(next)
           return next
         })
-        if (added > 0) {
-          toast.success(added === 1 ? t("addedOne") : t("addedMany", { count: added }))
-        }
       } finally {
         setProcessingSlots(new Set())
         setIsBatchUploading(false)
       }
+      if (urlsToPublish.length > 0) {
+        onImagesChange(urlsToPublish)
+        onPersisted?.(urlsToPublish)
+      }
+      if (added > 0) {
+        toast.success(added === 1 ? t("addedOne") : t("addedMany", { count: added }))
+      }
     },
-    [emptySlotIndices, onImagesChange, t]
+    [emptySlotIndices, onImagesChange, onPersisted, t]
   )
 
   const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
