@@ -9,7 +9,7 @@ order: 3
 
 **Dernière mise à jour : {{LAST_UPDATED}}**
 
-Les présentes Conditions générales affilié (« **CGA** ») complètent les [CGU](/legal/terms-of-service) et régissent la relation entre **Affisell SAS** et tout partenaire inscrit en qualité d'**Affilié** (créateur, influenceur, revendeur).
+Les présentes Conditions générales affilié (« **CGA** ») complètent les [CGU](/legal/terms-of-service) et régissent la relation entre **Affisell SAS** et tout partenaire inscrit en qualité d'**Affilié** (créateur, influenceur, curateur de vitrine).
 
 ## Article 1 — Statut
 

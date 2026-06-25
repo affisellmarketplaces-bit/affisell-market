@@ -490,8 +490,10 @@
     "guestAddedBody": "Keep shopping or checkout whenever you're ready.",
     "colorLabel": "Color",
     "sizeLabel": "Size",
-    "verifiedSeller": "Verified Seller",
-    "bySeller": "by {seller}",
+    "verifiedSeller": "Verified partner",
+    "verifiedPartner": "Verified partner",
+    "bySeller": "Curated by {seller}",
+    "byPartnerStore": "Curated by {store}",
     "view": "View",
     "yourSelection": "Your selection",
     "noColorSize": "No color or size recorded for this line — pick options on the product page when you add to cart.",
@@ -987,7 +989,7 @@
     "title": "Marketplace",
     "subtitle": "Active storefront listings",
     "empty": "Nothing listed yet.",
-    "sellerLabel": "Sold by affiliate",
+    "sellerLabel": "Curated by creator partner",
     "sidebar": {
       "title": "Categories",
       "subtitle": "Browse by department",
@@ -1789,9 +1791,9 @@
     },
     "homeSections": {
       "storyEyebrow": "Our story",
-      "trustTitle": "Affisell verified storefront",
-      "trustBody": "Partner code {code} — secure checkout and buyer protection.",
-      "verified": "Verified merchant",
+      "trustTitle": "Affisell verified partner storefront",
+      "trustBody": "Partner code {code} — curated by this creator, sold by the supplier, Affisell secure checkout.",
+      "verified": "Verified partner",
       "ctaEyebrow": "Explore Affisell",
       "ctaTitle": "Discover more creators",
       "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
@@ -1888,12 +1890,12 @@
         "FOREIGN": "International partner"
       },
       "legalStatus": {
-        "PARTICULIER": "Individual seller",
-        "AUTO_ENTREPRENEUR": "Sole trader (micro-entrepreneur)",
-        "EI_PROFESSIONAL": "Registered sole proprietorship",
-        "COMPANY": "Registered company",
-        "ASSOCIATION": "Non-profit association",
-        "FOREIGN": "Foreign registered merchant"
+        "PARTICULIER": "Creator partner (individual)",
+        "AUTO_ENTREPRENEUR": "Sole-trader partner",
+        "EI_PROFESSIONAL": "Professional partner (sole prop.)",
+        "COMPANY": "Company partner",
+        "ASSOCIATION": "Association partner",
+        "FOREIGN": "International partner"
       }
     }
   },
@@ -2034,6 +2036,9 @@
     "aiSummary": "AI Summary",
     "reviews": "{count} reviews",
     "byStore": "by {store}",
+    "curatedByPartner": "Creator partner",
+    "verifiedPartnerStorefront": "Verified partner storefront",
+    "fulfilledBySupplier": "Sold and shipped by supplier",
     "viewInAR": "View in AR",
     "buyNowShort": "Buy now",
     "priceLabel": "Price",

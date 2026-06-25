@@ -396,7 +396,8 @@
       "hasAccountAffiliate": "Bereits Creator?",
       "signIn": "Anmelden",
       "statusParticulierTitle": "Privatperson",
-      "statusParticulierSub": "Ersteller oder Verkäufer ohne eingetragenes Unternehmen",
+      "statusParticulierSub": "Ersteller ohne eingetragenes Unternehmen — Kurator-Partner, kein Produktverkäufer",
+      "vatNoticeAffiliate": "Partnervergütung im Land Ihres steuerlichen Wohnsitzes deklarieren. Käufer-MwSt. wird beim Checkout (Stripe Tax) vom liefernden Verkäufer erhoben.",
       "statusAutoEntrepreneurTitle": "Einzelunternehmer / Kleinstunternehmen",
       "statusAutoEntrepreneurSub": "Einzelunternehmer · URSSAF / INSEE-Nachweis",
       "statusEiTitle": "Professionell (Einzelunternehmen)",
@@ -947,7 +948,7 @@
     "title": "Marktplatz",
     "subtitle": "Aktive Storefront-Listings",
     "empty": "Noch keine Listings.",
-    "sellerLabel": "Verkauft von Affiliate",
+    "sellerLabel": "Kurator-Partner-Auswahl",
     "sidebar": {
       "title": "Kategorien",
       "subtitle": "Durchsuchen nach Abteilung",
@@ -1461,9 +1462,9 @@
     }
   },
   "boutique": {
-    "tagline": "Affiliate-Verkaufsstelle",
+    "tagline": "Partner-Storefront",
     "customDomainTagline": "Offizieller Shop",
-    "subtitle": "Ausgewählte Produkte von diesem Promoter.",
+    "subtitle": "Vom Creator kuratiert — verkauft und versendet vom Lieferanten.",
     "empty": "Dieser Shop hat derzeit keine aktiven Produkte.",
     "buy": "Jetzt kaufen",
     "allStores": "Alle Shops",

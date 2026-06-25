@@ -396,7 +396,8 @@
       "hasAccountAffiliate": "Sei già un creatore?",
       "signIn": "Accedi",
       "statusParticulierTitle": "Individuale",
-      "statusParticulierSub": "Creatore o venditore senza attività commerciale registrata",
+      "statusParticulierSub": "Creatore senza attività registrata — partner curatore, non venditore",
+      "vatNoticeAffiliate": "Dichiarate i compensi partner nel vostro paese fiscale. L'IVA acquirente è riscossa al checkout (Stripe Tax) dal fornitore venditore.",
       "statusAutoEntrepreneurTitle": "Socio unico / micro-impresa",
       "statusAutoEntrepreneurSub": "Auto-impresa · prova URSSAF / INSEE",
       "statusEiTitle": "Professionista (società unipersonale)",
@@ -947,7 +948,7 @@
     "title": "Mercato",
     "subtitle": "Elenco attivi di negozi",
     "empty": "Niente elencato ancora.",
-    "sellerLabel": "Venduto da affiliato",
+    "sellerLabel": "Selezione partner creatore",
     "sidebar": {
       "title": "Categorie",
       "subtitle": "Naviga per dipartimento",

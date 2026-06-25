@@ -9,7 +9,7 @@ export function publicPartnerSellerLabel(opts: {
   if (store) return store
   const name = opts.affiliateDisplayName?.trim()
   if (name) return name
-  return "Partner seller"
+  return "Creator partner"
 }
 
 /** Public API / cards: derive a short store label without using email. */

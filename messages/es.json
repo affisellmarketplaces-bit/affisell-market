@@ -396,7 +396,8 @@
       "hasAccountAffiliate": "¿Ya eres un creador?",
       "signIn": "Iniciar sesión",
       "statusParticulierTitle": "Individual",
-      "statusParticulierSub": "Creador o vendedor sin negocio registrado",
+      "statusParticulierSub": "Creador sin negocio registrado — socio curador, no vendedor del producto",
+      "vatNoticeAffiliate": "Declare sus ingresos de socio según su país fiscal. El IVA del comprador se cobra en el checkout (Stripe Tax) por el proveedor vendedor.",
       "statusAutoEntrepreneurTitle": "Autónomo / pequeña empresa",
       "statusAutoEntrepreneurSub": "Autónomo · prueba de URSSAF / INSEE",
       "statusEiTitle": "Profesional (sociedad de un solo propietario)",
@@ -947,7 +948,7 @@
     "title": "Mercado",
     "subtitle": "Listados de tiendas activas",
     "empty": "Nada listado aún.",
-    "sellerLabel": "Vendido por afiliado",
+    "sellerLabel": "Selección del socio creador",
     "sidebar": {
       "title": "Categorías",
       "subtitle": "Navegar por departamento",

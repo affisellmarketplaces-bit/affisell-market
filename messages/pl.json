@@ -396,7 +396,8 @@
       "hasAccountAffiliate": "Już jesteś twórcą?",
       "signIn": "Zaloguj się",
       "statusParticulierTitle": "Osoba fizyczna",
-      "statusParticulierSub": "Twórca lub sprzedawca bez zarejestrowanej firmy",
+      "statusParticulierSub": "Twórca bez zarejestrowanej firmy — partner kurator, nie sprzedawca produktu",
+      "vatNoticeAffiliate": "Deklaruj wynagrodzenie partnera według kraju rezydencji podatkowej. VAT kupującego pobierany jest przy checkout (Stripe Tax) przez dostawcę-sprzedawcę.",
       "statusAutoEntrepreneurTitle": "Osoba fizyczna prowadząca działalność gospodarczą",
       "statusAutoEntrepreneurSub": "Samozatrudniony · dowód z Urzędu Skarbowego / INSEE",
       "statusEiTitle": "Osoba fizyczna prowadząca działalność gospodarczą",
@@ -947,7 +948,7 @@
     "title": "Rynek",
     "subtitle": "Aktywne listy sklepow",
     "empty": "Nic jeszcze nie jest dostępne.",
-    "sellerLabel": "Sprzedawany przez partnera",
+    "sellerLabel": "Wybór partnera twórcy",
     "sidebar": {
       "title": "Kategorie",
       "subtitle": "Przeglądaj według działu",

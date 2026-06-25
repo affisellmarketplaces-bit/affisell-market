@@ -396,7 +396,8 @@
       "hasAccountAffiliate": "Al een maker?",
       "signIn": "Aanmelden",
       "statusParticulierTitle": "Particulier",
-      "statusParticulierSub": "Maker of verkoper zonder geregistreerd bedrijf",
+      "statusParticulierSub": "Maker zonder geregistreerd bedrijf — curator-partner, geen productverkoper",
+      "vatNoticeAffiliate": "Declareer partnerinkomsten volgens uw fiscale woonland. Koper-BTW wordt bij checkout (Stripe Tax) geïnd door de leverende verkoper.",
       "statusAutoEntrepreneurTitle": "Eénmanszaak / micro-onderneming",
       "statusAutoEntrepreneurSub": "Autonome ondernemer · URSSAF / INSEE bewijs",
       "statusEiTitle": " Professioneel (eenmanszaak)",
@@ -947,7 +948,7 @@
     "title": "Marktplaats",
     "subtitle": "Actieve winkelvermeldingen",
     "empty": "Nog geen vermeldingen.",
-    "sellerLabel": "Verkocht door affiliate",
+    "sellerLabel": "Selectie creator-partner",
     "sidebar": {
       "title": "Categorieën",
       "subtitle": "Door afdeling browsen",

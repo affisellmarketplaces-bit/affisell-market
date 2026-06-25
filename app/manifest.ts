@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Affisell — Creator marketplace",
     short_name: "Affisell",
-    description: "Shop trusted creator stores. Fast checkout, verified sellers.",
+    description: "Shop creator partner storefronts. Fast checkout, supplier fulfillment.",
     start_url: "/",
     display: "standalone",
     orientation: "portrait-primary",

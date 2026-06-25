@@ -1628,11 +1628,11 @@ export function MarketplaceListingDetail({
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                    Sold by
+                    {productT.curatedByPartner}
                   </p>
                   <p className="truncate font-semibold text-zinc-900 dark:text-zinc-50">{storefront.name}</p>
                   {storefront.showTrustedSoldBy ? (
-                    <p className="text-xs text-emerald-700 dark:text-emerald-400">Verified storefront</p>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-400">{productT.verifiedPartnerStorefront}</p>
                   ) : null}
                 </div>
                 <ChevronRight className="h-5 w-5 shrink-0 text-zinc-400" aria-hidden />

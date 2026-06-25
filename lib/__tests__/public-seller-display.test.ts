@@ -18,7 +18,7 @@ describe("publicPartnerSellerLabel", () => {
 
   it("uses generic label when nothing usable", () => {
     expect(publicPartnerSellerLabel({ storeName: "   ", affiliateDisplayName: null })).toBe(
-      "Partner seller"
+      "Creator partner"
     )
   })
 })

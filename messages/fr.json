@@ -490,8 +490,10 @@
     "guestAddedBody": "Continuez vos achats ou passez au paiement quand vous voulez.",
     "colorLabel": "Couleur",
     "sizeLabel": "Taille",
-    "verifiedSeller": "Vendeur vérifié",
-    "bySeller": "par {seller}",
+    "verifiedSeller": "Partenaire vérifié",
+    "verifiedPartner": "Partenaire vérifié",
+    "bySeller": "Sélection {seller}",
+    "byPartnerStore": "Sélection {store}",
     "view": "Voir",
     "yourSelection": "Votre sélection",
     "noColorSize": "Aucune couleur ni taille enregistrée pour cette ligne — choisissez les options sur la fiche produit avant l'ajout au panier.",
@@ -995,7 +997,7 @@
     "title": "Marketplace",
     "subtitle": "Fiches vitrine actives",
     "empty": "Aucune fiche pour le moment.",
-    "sellerLabel": "Vendu par un ambassadeur",
+    "sellerLabel": "Sélection partenaire créateur",
     "sidebar": {
       "title": "Catégories",
       "subtitle": "Parcourir par rayon",
@@ -1813,9 +1815,9 @@
     },
     "homeSections": {
       "storyEyebrow": "Notre histoire",
-      "trustTitle": "Boutique vérifiée Affisell",
-      "trustBody": "Code partenaire {code} — paiement sécurisé et protection acheteur.",
-      "verified": "Marchand vérifié",
+      "trustTitle": "Vitrine partenaire vérifiée Affisell",
+      "trustBody": "Code partenaire {code} — sélection par ce créateur, vente par le fournisseur, paiement sécurisé Affisell.",
+      "verified": "Partenaire vérifié",
       "ctaEyebrow": "Explorer Affisell",
       "ctaTitle": "Découvrez d'autres créateurs",
       "ctaBody": "Parcourez le marketplace Affisell pour plus de produits et de boutiques de confiance.",
@@ -1912,12 +1914,12 @@
         "FOREIGN": "Partenaire international"
       },
       "legalStatus": {
-        "PARTICULIER": "Vendeur particulier",
-        "AUTO_ENTREPRENEUR": "Auto-entrepreneur",
-        "EI_PROFESSIONAL": "Entreprise individuelle",
-        "COMPANY": "Société immatriculée",
-        "ASSOCIATION": "Association",
-        "FOREIGN": "Marchand étranger enregistré"
+        "PARTICULIER": "Partenaire créateur (particulier)",
+        "AUTO_ENTREPRENEUR": "Partenaire auto-entrepreneur",
+        "EI_PROFESSIONAL": "Partenaire professionnel (EI)",
+        "COMPANY": "Partenaire société",
+        "ASSOCIATION": "Partenaire association",
+        "FOREIGN": "Partenaire international"
       }
     }
   },
@@ -2058,6 +2060,9 @@
     "aiSummary": "Résumé IA",
     "reviews": "{count} avis",
     "byStore": "par {store}",
+    "curatedByPartner": "Sélection partenaire",
+    "verifiedPartnerStorefront": "Vitrine partenaire vérifiée",
+    "fulfilledBySupplier": "Vendu et expédié par le fournisseur",
     "viewInAR": "Voir en RA",
     "buyNowShort": "Acheter",
     "priceLabel": "Prix",

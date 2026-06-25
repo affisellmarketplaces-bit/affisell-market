@@ -396,7 +396,8 @@
       "hasAccountAffiliate": "已经是创作者吗?",
       "signIn": "Sign in",
       "statusParticulierTitle": "个人",
-      "statusParticulierSub": "个人创作者或卖家",
+      "statusParticulierSub": "无注册主体的创作者 — 策展合作伙伴，非商品卖方",
+      "vatNoticeAffiliate": "请按税务居住国申报合作伙伴报酬。买家增值税在结账时（Stripe Tax）由供货供应商收取。",
       "statusAutoEntrepreneurTitle": "个体工商户",
       "statusAutoEntrepreneurSub": "个体工商户 · URSSAF / INSEE 证明",
       "statusEiTitle": "个人企业",
@@ -947,7 +948,7 @@
     "title": "市场",
     "subtitle": "活跃商店列表",
     "empty": "还没有列表。",
-    "sellerLabel": "由代理商出售",
+    "sellerLabel": "创作者合作伙伴精选",
     "sidebar": {
       "title": "分类",
       "subtitle": "按部门浏览",

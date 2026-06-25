@@ -528,7 +528,7 @@ export default function CartPage() {
                           {row.product.title}
                         </h3>
                         <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                          {t("bySeller", { seller: row.sellerName || t("verifiedSeller") })}
+                          {t("byPartnerStore", { store: row.sellerName || t("verifiedPartner") })}
                         </p>
                       </div>
                       <Link

@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { addToBuyerCart } from "@/lib/cart-add-client"
@@ -42,6 +43,7 @@ export function MarketplaceListingCard({
   buyerRewardBadge,
   soldCount = 0,
 }: Props) {
+  const tCart = useTranslations("cart")
   const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
   const listing = {
     id: product.id,
@@ -118,7 +120,9 @@ export function MarketplaceListingCard({
             </p>
           ) : null}
           {soldByAffiliate ? (
-            <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">Sold by {soldByAffiliate}</p>
+            <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+              {tCart("byPartnerStore", { store: soldByAffiliate })}
+            </p>
           ) : null}
           <p
             className={`mt-2 text-lg font-medium ${soldByAffiliate ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-900 dark:text-zinc-100"}`}
