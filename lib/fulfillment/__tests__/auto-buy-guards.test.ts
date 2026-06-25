@@ -7,9 +7,10 @@ describe("auto-buy guards", () => {
 
   it("isAutoBuyDisabled when DISABLE_AUTO_BUY=true", async () => {
     vi.stubEnv("DISABLE_AUTO_BUY", "true")
+    vi.resetModules()
     const { isAutoBuyDisabled } = await import("@/lib/fulfillment/auto-buy")
     expect(isAutoBuyDisabled()).toBe(true)
-  })
+  }, 15_000)
 
   it("isAeDryRun when AE_DRY_RUN=true", async () => {
     vi.stubEnv("AE_DRY_RUN", "true")
