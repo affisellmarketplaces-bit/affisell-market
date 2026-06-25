@@ -64,7 +64,9 @@
     "test:vat": "tsx scripts/test-vat-flow.ts",
     "test:vat:math": "tsx scripts/test-vat-flow.ts --math-only",
     "test:vat:check": "tsx scripts/check-order-vat.ts",
-    "test:vat:settle": "tsx scripts/resettle-order-vat.ts"
+    "test:vat:settle": "tsx scripts/resettle-order-vat.ts",
+    "heal:medusa-orders": "tsx scripts/heal-medusa-order-sync.ts",
+    "verify:medusa-admin": "tsx scripts/verify-medusa-admin-token.ts"
   },
   "dependencies": {
     "@ai-sdk/groq": "^3.0.38",
