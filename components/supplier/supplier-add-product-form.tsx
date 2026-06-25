@@ -1703,23 +1703,6 @@ export function SupplierAddProductForm({
     ]
   )
 
-  const handleGalleryImagesChange = useCallback(
-    (urls: string[]) => {
-      setImages(urls)
-      if (urls.length > 0) clearPublishFieldError("images")
-    },
-    [clearPublishFieldError]
-  )
-
-  const handleGalleryPersisted = useCallback(
-    (urls: string[]) => {
-      setImages(urls)
-      if (urls.length > 0) clearPublishFieldError("images")
-      void syncDraftToServer({ silent: true, force: true, afterGallery: true })
-    },
-    [clearPublishFieldError, syncDraftToServer]
-  )
-
   const autosaveFingerprint = useMemo(
     () => JSON.stringify(buildDraftSyncBody(step)) + String(step),
     [buildDraftSyncBody, step]
@@ -2125,6 +2108,23 @@ export function SupplierAddProductForm({
   const clearPublishFieldError = useCallback((field: PublishFieldKey) => {
     setPublishBlockers((prev) => prev.filter((b) => b.field !== field))
   }, [])
+
+  const handleGalleryImagesChange = useCallback(
+    (urls: string[]) => {
+      setImages(urls)
+      if (urls.length > 0) clearPublishFieldError("images")
+    },
+    [clearPublishFieldError]
+  )
+
+  const handleGalleryPersisted = useCallback(
+    (urls: string[]) => {
+      setImages(urls)
+      if (urls.length > 0) clearPublishFieldError("images")
+      void syncDraftToServer({ silent: true, force: true, afterGallery: true })
+    },
+    [clearPublishFieldError, syncDraftToServer]
+  )
 
   const handleOptimizeSimpleVariants = useCallback(async () => {
     if (simpleColorRows.every((row) => !row.name.trim())) {
