@@ -1,19 +1,62 @@
-/** Server-style square canvas for marketplace product shots (used by supplier upload UI). */
+/** Client gallery pipeline for supplier product photos (square canvas, multi-upload). */
 
 export const PRODUCT_IMAGE_CANVAS = 1200
 export const PRODUCT_IMAGE_PAD = 120
 
-export async function measureImageFile(file: File): Promise<{ width: number; height: number }> {
-  const url = URL.createObjectURL(file)
+/** Reject only unusably tiny sources; larger images are upscaled on the canvas. */
+export const PRODUCT_GALLERY_MIN_SOURCE_PX = 320
+
+const IMAGE_EXTENSIONS = /\.(jpe?g|png|webp|gif|bmp|avif|heic|heif)$/i
+
+export function isLikelyImageFile(file: File): boolean {
+  if (file.type.startsWith("image/")) return true
+  return IMAGE_EXTENSIONS.test(file.name)
+}
+
+type DecodedImage = {
+  width: number
+  height: number
+  draw: (ctx: CanvasRenderingContext2D, dw: number, dh: number, dx: number, dy: number) => void
+  cleanup: () => void
+}
+
+async function decodeImageFile(file: File): Promise<DecodedImage> {
   try {
-    return await new Promise((resolve, reject) => {
-      const el = new window.Image()
-      el.onload = () => resolve({ width: el.width, height: el.height })
-      el.onerror = () => reject(new Error("dim"))
-      el.src = url
-    })
+    const bmp = await createImageBitmap(file)
+    return {
+      width: bmp.width,
+      height: bmp.height,
+      draw: (ctx, dw, dh, dx, dy) => ctx.drawImage(bmp, dx, dy, dw, dh),
+      cleanup: () => bmp.close?.(),
+    }
+  } catch {
+    const url = URL.createObjectURL(file)
+    try {
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const el = new Image()
+        el.onload = () => resolve(el)
+        el.onerror = () => reject(new Error("decode"))
+        el.src = url
+      })
+      return {
+        width: img.naturalWidth || img.width,
+        height: img.naturalHeight || img.height,
+        draw: (ctx, dw, dh, dx, dy) => ctx.drawImage(img, dx, dy, dw, dh),
+        cleanup: () => URL.revokeObjectURL(url),
+      }
+    } catch {
+      URL.revokeObjectURL(url)
+      throw new Error("decode")
+    }
+  }
+}
+
+export async function measureImageFile(file: File): Promise<{ width: number; height: number }> {
+  const decoded = await decodeImageFile(file)
+  try {
+    return { width: decoded.width, height: decoded.height }
   } finally {
-    URL.revokeObjectURL(url)
+    decoded.cleanup()
   }
 }
 
@@ -34,12 +77,12 @@ export async function processProductGalleryImageFile(
   file: File,
   options?: { minWidth?: number; minHeight?: number }
 ): Promise<string> {
-  const minW = options?.minWidth ?? 800
-  const minH = options?.minHeight ?? 800
-  const bmp = await createImageBitmap(file)
+  const minW = options?.minWidth ?? PRODUCT_GALLERY_MIN_SOURCE_PX
+  const minH = options?.minHeight ?? PRODUCT_GALLERY_MIN_SOURCE_PX
+  const decoded = await decodeImageFile(file)
   try {
-    if (bmp.width < minW || bmp.height < minH) {
-      throw new ProductImageMinDimensionError(bmp.width, bmp.height)
+    if (decoded.width < minW || decoded.height < minH) {
+      throw new ProductImageMinDimensionError(decoded.width, decoded.height)
     }
     const canvas = document.createElement("canvas")
     canvas.width = PRODUCT_IMAGE_CANVAS
@@ -51,15 +94,15 @@ export async function processProductGalleryImageFile(
     ctx.fillRect(0, 0, PRODUCT_IMAGE_CANVAS, PRODUCT_IMAGE_CANVAS)
 
     const maxSize = PRODUCT_IMAGE_CANVAS - PRODUCT_IMAGE_PAD * 2
-    const scale = Math.min(maxSize / bmp.width, maxSize / bmp.height)
-    const width = bmp.width * scale
-    const height = bmp.height * scale
+    const scale = Math.min(maxSize / decoded.width, maxSize / decoded.height)
+    const width = decoded.width * scale
+    const height = decoded.height * scale
     const x = (PRODUCT_IMAGE_CANVAS - width) / 2
     const y = (PRODUCT_IMAGE_CANVAS - height) / 2
-    ctx.drawImage(bmp, x, y, width, height)
+    decoded.draw(ctx, width, height, x, y)
     return canvas.toDataURL("image/jpeg", 0.88)
   } finally {
-    bmp.close?.()
+    decoded.cleanup()
   }
 }
 

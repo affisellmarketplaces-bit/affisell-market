@@ -850,10 +850,20 @@
     "images": {
       "addPhotos": "Add photos",
       "photosLeft": "({count} left)",
-      "selectDropHint": "Select or drop multiple images — processed in parallel (min. 800×800 px).",
+      "selectDropHint": "Select or drop multiple images — JPG, PNG, WebP, HEIC (min. 320×320 px, auto-optimized).",
       "coverPhoto": "Cover photo",
       "dropToUpload": "Drop to upload",
-      "removeCover": "Remove cover image"
+      "removeCover": "Remove cover image",
+      "errNoImages": "Choose image files (JPG, PNG, WebP, HEIC…).",
+      "errSlotsFull": "All slots are full. Remove an image to add more.",
+      "errSlotsPartial": "Only {count} slot(s) left — added the first images.",
+      "errMinDimension": "{name}: minimum 320×320 px (got {width}×{height}).",
+      "errProcess": "Could not process {name} — try JPG or PNG.",
+      "addedOne": "Photo added",
+      "addedMany": "{count} photos added",
+      "errInvalidUrl": "Enter a valid http(s) image link.",
+      "errUrlSlotsFull": "All slots are full.",
+      "addedFromUrl": "Image added from link."
     },
     "myProducts": "My Products",
     "addProduct": "Add Product",

@@ -9,7 +9,8 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { processProductGalleryImageFiles } from "@/lib/product-image-upload"
+import { isLikelyImageFile, processProductGalleryImageFiles } from "@/lib/product-image-upload"
+import { persistSupplierGalleryImages } from "@/lib/supplier-gallery-image-persist"
 import { cn } from "@/lib/utils"
 
 const SLOT_COUNT = 9 /** cover + 8 thumbnails */
@@ -185,21 +186,21 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
 
   const ingestFiles = useCallback(
     async (fileList: FileList | File[]) => {
-      const files = Array.from(fileList).filter((f) => f.type.startsWith("image/"))
+      const files = Array.from(fileList).filter(isLikelyImageFile)
       if (files.length === 0) {
-        toast.error("Choose image files (JPG, PNG, WebP…).")
+        toast.error(t("errNoImages"))
         return
       }
 
       const targets = emptySlotIndices()
       if (targets.length === 0) {
-        toast.error("All slots are full. Remove an image to add more.")
+        toast.error(t("errSlotsFull"))
         return
       }
 
       const batch = files.slice(0, targets.length)
       if (files.length > batch.length) {
-        toast.info(`Only ${batch.length} slot${batch.length === 1 ? "" : "s"} left — added the first ${batch.length} images.`)
+        toast.info(t("errSlotsPartial", { count: batch.length }))
       }
 
       setIsBatchUploading(true)
@@ -225,7 +226,19 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
 
       try {
         const results = await processProductGalleryImageFiles(batch)
+        const okResults = results.filter(
+          (r): r is { ok: true; file: File; dataUrl: string } => r.ok
+        )
+
+        const persistedUrls =
+          okResults.length > 0
+            ? await persistSupplierGalleryImages(
+                okResults.map((r) => ({ dataUrl: r.dataUrl, filename: r.file.name }))
+              )
+            : []
+
         let added = 0
+        let persistIdx = 0
         setSlots((prev) => {
           const next = [...prev]
           for (const r of results) {
@@ -233,16 +246,21 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
             if (slotIndex === undefined) continue
             revokeIfBlob(next[slotIndex])
             if (r.ok) {
-              next[slotIndex] = r.dataUrl
+              next[slotIndex] = persistedUrls[persistIdx] ?? r.dataUrl
+              persistIdx += 1
               added += 1
             } else {
               next[slotIndex] = null
               if (r.reason === "min_dimension") {
                 toast.error(
-                  `${r.file.name}: minimum 800×800 px (got ${r.width ?? "?"}×${r.height ?? "?"}).`
+                  t("errMinDimension", {
+                    name: r.file.name,
+                    width: r.width ?? "?",
+                    height: r.height ?? "?",
+                  })
                 )
               } else {
-                toast.error(`Could not process ${r.file.name}.`)
+                toast.error(t("errProcess", { name: r.file.name }))
               }
             }
           }
@@ -250,14 +268,14 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
           return next
         })
         if (added > 0) {
-          toast.success(added === 1 ? "Photo added" : `${added} photos added`)
+          toast.success(added === 1 ? t("addedOne") : t("addedMany", { count: added }))
         }
       } finally {
         setProcessingSlots(new Set())
         setIsBatchUploading(false)
       }
     },
-    [emptySlotIndices, emit]
+    [emptySlotIndices, emit, t]
   )
 
   const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
@@ -289,13 +307,13 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
   const applyImageUrl = () => {
     const resolved = resolveImageLinkUrl(imageUrlDraft)
     if (!resolved) {
-      toast.error("Enter a valid http(s) image link.")
+      toast.error(t("errInvalidUrl"))
       return
     }
     setSlots((prev) => {
       const emptyIdx = prev.findIndex((s, i) => !s && !processingSlots.has(i))
       if (emptyIdx < 0) {
-        queueMicrotask(() => toast.error("All slots are full. Remove an image first."))
+        queueMicrotask(() => toast.error(t("errUrlSlotsFull")))
         return prev
       }
       const next = [...prev]
@@ -304,7 +322,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
       queueMicrotask(() => {
         onImagesChange(urls)
         setImageUrlDraft("")
-        toast.success("Image added from link.")
+        toast.success(t("addedFromUrl"))
       })
       return next
     })
@@ -346,7 +364,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls }: Prop
           ref={fileInputRef}
           id={inputId}
           type="file"
-          accept="image/*"
+          accept="image/*,.heic,.heif"
           multiple
           className="sr-only"
           disabled={busy || remaining === 0}

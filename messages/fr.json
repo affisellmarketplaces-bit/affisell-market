@@ -850,10 +850,20 @@
     "images": {
       "addPhotos": "Ajouter des photos",
       "photosLeft": "({count} restante(s))",
-      "selectDropHint": "Sélectionnez ou déposez plusieurs images — traitement en parallèle (min. 800×800 px).",
+      "selectDropHint": "Sélectionnez ou déposez plusieurs images — JPG, PNG, WebP, HEIC (min. 320×320 px, optimisées auto).",
       "coverPhoto": "Photo de couverture",
       "dropToUpload": "Déposer pour importer",
-      "removeCover": "Supprimer la photo de couverture"
+      "removeCover": "Supprimer la photo de couverture",
+      "errNoImages": "Choisissez des fichiers image (JPG, PNG, WebP, HEIC…).",
+      "errSlotsFull": "Tous les emplacements sont occupés. Supprimez une image pour en ajouter.",
+      "errSlotsPartial": "Seulement {count} emplacement(s) libre(s) — les premières images ont été ajoutées.",
+      "errMinDimension": "{name} : minimum 320×320 px (reçu {width}×{height}).",
+      "errProcess": "Impossible de traiter {name} — essayez JPG ou PNG.",
+      "addedOne": "Photo ajoutée",
+      "addedMany": "{count} photos ajoutées",
+      "errInvalidUrl": "Lien image http(s) invalide.",
+      "errUrlSlotsFull": "Tous les emplacements sont occupés.",
+      "addedFromUrl": "Image ajoutée depuis le lien."
     },
     "myProducts": "Mes produits",
     "addProduct": "Ajouter un produit",
