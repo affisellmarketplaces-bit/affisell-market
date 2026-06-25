@@ -1,6 +1,10 @@
 import { createClient } from "@supabase/supabase-js"
 
 import { auth } from "@/auth"
+import {
+  processSupplierGalleryImageBytes,
+  SupplierGalleryMinDimensionError,
+} from "@/lib/supplier-gallery-process.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -88,7 +92,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { mime, bytes, filename } = await readImagePayload(req)
+    const { mime: _mime, bytes, filename } = await readImagePayload(req)
+    const processed = await processSupplierGalleryImageBytes(Buffer.from(bytes))
 
     const supabase = createClient(
       requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
@@ -123,13 +128,12 @@ export async function POST(req: Request) {
       }
     }
 
-    const ext =
-      mime === "image/png" ? "png" : mime === "image/webp" ? "webp" : mime === "image/gif" ? "gif" : "jpg"
+    const ext = "jpg"
     const date = new Date().toISOString().slice(0, 10)
     const path = `${effectiveUserId}/${date}/${Date.now()}-${filename}.${ext}`
 
-    const uploaded = await supabase.storage.from(BUCKET).upload(path, bytes, {
-      contentType: mime,
+    const uploaded = await supabase.storage.from(BUCKET).upload(path, processed, {
+      contentType: "image/jpeg",
       upsert: false,
       cacheControl: "3600",
     })
@@ -141,6 +145,19 @@ export async function POST(req: Request) {
     const publicUrl = supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
     return Response.json({ url: publicUrl, path })
   } catch (e) {
+    if (e instanceof SupplierGalleryMinDimensionError) {
+      console.log("[upload/processed-image] min dimension", {
+        width: e.width,
+        height: e.height,
+      })
+      return Response.json(
+        {
+          error: "Image too small",
+          detail: `Minimum ${320}×${320} px (got ${e.width}×${e.height})`,
+        },
+        { status: 400 }
+      )
+    }
     console.error("[upload/processed-image] unexpected error", e)
     const detail = e instanceof Error ? e.message : "Upload failed"
     const status = detail.startsWith("Missing") || detail.startsWith("Invalid") ? 400 : 500

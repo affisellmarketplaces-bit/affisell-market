@@ -387,6 +387,8 @@ export function SupplierAddProductForm({
 
   const lastAutosaveJson = useRef("")
   const hydratedFromCache = useRef(false)
+  const hydratedListingIdRef = useRef<string | null>(null)
+  const skipServerHydrationForIdRef = useRef<string | null>(null)
 
   const replaceProductQuery = useCallback(
     (mutate: (qs: URLSearchParams) => void) => {
@@ -899,7 +901,8 @@ export function SupplierAddProductForm({
 
   const loadProduct = useCallback(async (id: string) => {
     if (deadServerDraftIds.includes(id)) return
-    setLoadingProduct(true)
+    const isInitialHydration = hydratedListingIdRef.current !== id
+    if (isInitialHydration) setLoadingProduct(true)
     try {
       const res = await fetch(`/api/supplier/products/${id}`, { credentials: "include" })
       const data = await readJsonResponse<Record<string, unknown>>(res)
@@ -1153,6 +1156,7 @@ export function SupplierAddProductForm({
       }
       setProductIsDraft(Boolean(data.isDraft))
       setCategoryAiTag(false)
+      hydratedListingIdRef.current = id
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to load product")
       replaceProductQuery((qs) => {
@@ -1170,6 +1174,12 @@ export function SupplierAddProductForm({
       if (!pendingDraftListingId) setProductIsDraft(false)
       return
     }
+    if (skipServerHydrationForIdRef.current === urlListingId) {
+      skipServerHydrationForIdRef.current = null
+      hydratedListingIdRef.current = urlListingId
+      return
+    }
+    if (hydratedListingIdRef.current === urlListingId) return
     void loadProduct(urlListingId)
   }, [urlListingId, loadProduct, pendingDraftListingId])
 
@@ -1607,6 +1617,7 @@ export function SupplierAddProductForm({
             throw new Error(typeof json.error === "string" ? json.error : "Échec de l'enregistrement")
           }
           if (json.id) {
+            skipServerHydrationForIdRef.current = json.id
             setPendingDraftListingId(json.id)
             setProductIsDraft(true)
             replaceProductQuery((qs) => {

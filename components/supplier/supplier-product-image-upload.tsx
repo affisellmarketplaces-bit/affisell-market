@@ -9,8 +9,8 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { isLikelyImageFile, processProductGalleryImageFiles } from "@/lib/product-image-upload"
-import { persistSupplierGalleryImages } from "@/lib/supplier-gallery-image-persist"
+import { isLikelyImageFile } from "@/lib/product-image-upload"
+import { persistSupplierGalleryFiles } from "@/lib/supplier-gallery-image-persist"
 import { cn } from "@/lib/utils"
 
 const SLOT_COUNT = 9 /** cover + 8 thumbnails */
@@ -170,6 +170,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
   )
 
   useEffect(() => {
+    if (busy) return
     const next = Array.from({ length: SLOT_COUNT }, (_, i) => initialUrls?.[i] ?? null)
     setSlots((prev) => {
       const prevKey = slotsToOrderedUrls(prev).join("\0")
@@ -177,7 +178,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
       return prevKey === nextKey ? prev : next
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialUrls?.join("\0")])
+  }, [initialUrls?.join("\0"), busy])
 
   const busy = isBatchUploading || processingSlots.size > 0
 
@@ -233,46 +234,26 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
       })
 
       try {
-        const results = await processProductGalleryImageFiles(batch)
-        const okResults = results.filter(
-          (r): r is { ok: true; file: File; dataUrl: string } => r.ok
-        )
-
-        const persistedUrls =
-          okResults.length > 0
-            ? await persistSupplierGalleryImages(
-                okResults.map((r) => ({ dataUrl: r.dataUrl, filename: r.file.name }))
-              )
-            : []
+        const persistedUrls = await persistSupplierGalleryFiles(batch)
 
         let added = 0
-        let persistIdx = 0
         setSlots((prev) => {
           const next = [...prev]
-          for (const r of results) {
-            const slotIndex = slotByFile.get(r.file)
+          for (let i = 0; i < batch.length; i++) {
+            const file = batch[i]!
+            const slotIndex = slotByFile.get(file)
             if (slotIndex === undefined) continue
             revokeIfBlob(next[slotIndex])
-            if (r.ok) {
-              next[slotIndex] = persistedUrls[persistIdx] ?? r.dataUrl
-              persistIdx += 1
+            const url = persistedUrls[i]
+            if (url) {
+              next[slotIndex] = url
               added += 1
             } else {
               next[slotIndex] = null
-              if (r.reason === "min_dimension") {
-                toast.error(
-                  t("errMinDimension", {
-                    name: r.file.name,
-                    width: r.width ?? "?",
-                    height: r.height ?? "?",
-                  })
-                )
-              } else {
-                toast.error(t("errProcess", { name: r.file.name }))
-              }
+              toast.error(t("errProcess", { name: file.name }))
             }
           }
-          emit(next)
+          queueMicrotask(() => onImagesChange(slotsToOrderedUrls(next)))
           return next
         })
         if (added > 0) {
@@ -283,7 +264,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
         setIsBatchUploading(false)
       }
     },
-    [emptySlotIndices, emit, t]
+    [emptySlotIndices, onImagesChange, t]
   )
 
   const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
