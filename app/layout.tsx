@@ -1,3 +1,6 @@
+import type { Metadata } from "next"
+import { headers } from "next/headers"
+
 import { Footer } from "@/components/Footer"
 import { AppHeader } from "@/components/nav/app-header"
 import { CookieConsentHeadScripts } from "@/components/cookie-consent/cookie-consent-head"
@@ -9,14 +12,29 @@ import { getCachedSession } from "@/lib/get-cached-session"
 import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { cn } from "@/lib/utils"
-import { headers } from "next/headers"
 
 import "./globals.css"
+
+export const metadata: Metadata = {
+  applicationName: "Affisell",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Affisell",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+}
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover" as const,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafc" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

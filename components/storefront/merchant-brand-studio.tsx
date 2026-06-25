@@ -559,7 +559,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                 primary={primaryHex}
               />
 
-              <div className="sticky bottom-0 z-10 -mx-2 border-t border-gray-200/80 bg-white/90 px-2 py-4 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90 sm:-mx-4 sm:px-4">
+              <div className="sticky bottom-0 z-10 -mx-2 hidden border-t border-gray-200/80 bg-white/90 px-2 py-4 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90 sm:-mx-4 sm:px-4 lg:block">
                 {saveButton}
               </div>
             </form>

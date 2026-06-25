@@ -52,7 +52,7 @@ function ChromeIconButton({
   className?: string
 }) {
   const shellClass = cn(
-    "relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
+    "relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full touch-manipulation",
     "bg-white/5 text-zinc-100 shadow-lg backdrop-blur-md",
     "transition duration-200 hover:scale-105 hover:bg-white/10 active:scale-95",
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400/80",
@@ -153,8 +153,16 @@ export function StorefrontBuyerHeader({
     <header
       className={cn(
         "affisell-storefront-chrome relative isolate overflow-hidden",
-        "sticky top-0 z-50 border-b border-white/10 bg-zinc-950/90 text-zinc-100 backdrop-blur-xl shadow-[0_1px_0_0_rgba(255,255,255,0.05)]"
+        "sticky top-0 z-50 border-b border-white/10 bg-zinc-950/90 text-zinc-100 backdrop-blur-xl shadow-[0_1px_0_0_rgba(255,255,255,0.05)]",
+        "pt-[env(safe-area-inset-top)]"
       )}
+      style={
+        {
+          "--site-header-offset": trust
+            ? `calc(${compact ? "6.75rem" : "7.5rem"} + env(safe-area-inset-top))`
+            : `calc(${compact ? "3.25rem" : "3.75rem"} + env(safe-area-inset-top))`,
+        } as CSSProperties
+      }
     >
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_-30%,rgba(124,58,237,0.14),transparent_58%)]"

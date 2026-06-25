@@ -1,18 +1,21 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import {
   fetchServerCartCount,
   readLocalCartCount,
 } from "@/lib/buyer-cart-count-client"
 
+const BACKGROUND_SYNC_DEBOUNCE_MS = 400
+
 /** Live cart unit count — guest localStorage or signed-in `/api/cart`. */
 export function useBuyerCartCount(): number {
   const { data: session } = useSession()
   const userId = session?.user?.id
   const [count, setCount] = useState(0)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const sync = useCallback(async () => {
     if (!userId) {
@@ -26,25 +29,39 @@ export function useBuyerCartCount(): number {
     }
   }, [userId])
 
+  const syncDebounced = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      debounceRef.current = null
+      void sync()
+    }, BACKGROUND_SYNC_DEBOUNCE_MS)
+  }, [sync])
+
   useEffect(() => {
     void sync()
 
-    const onChange = () => {
+    const onCartChange = () => {
       void sync()
     }
 
-    window.addEventListener("affisell:cart-updated", onChange)
-    window.addEventListener("affisell:cart-added", onChange)
-    window.addEventListener("focus", onChange)
-    document.addEventListener("visibilitychange", onChange)
+    const onBackground = () => {
+      if (document.visibilityState === "hidden") return
+      syncDebounced()
+    }
+
+    window.addEventListener("affisell:cart-updated", onCartChange)
+    window.addEventListener("affisell:cart-added", onCartChange)
+    window.addEventListener("focus", onBackground)
+    document.addEventListener("visibilitychange", onBackground)
 
     return () => {
-      window.removeEventListener("affisell:cart-updated", onChange)
-      window.removeEventListener("affisell:cart-added", onChange)
-      window.removeEventListener("focus", onChange)
-      document.removeEventListener("visibilitychange", onChange)
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      window.removeEventListener("affisell:cart-updated", onCartChange)
+      window.removeEventListener("affisell:cart-added", onCartChange)
+      window.removeEventListener("focus", onBackground)
+      document.removeEventListener("visibilitychange", onBackground)
     }
-  }, [sync])
+  }, [sync, syncDebounced])
 
   return count
 }

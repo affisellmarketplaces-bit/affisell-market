@@ -232,6 +232,31 @@ body.affisell-demo-lab .affisell-header-shell {
     -webkit-tap-highlight-color: transparent;
   }
 
+  @keyframes affisell-cart-badge-pop {
+    from {
+      transform: scale(0.55);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .affisell-cart-count-badge {
+    animation: affisell-cart-badge-pop 220ms cubic-bezier(0.34, 1.35, 0.64, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .affisell-cart-count-badge {
+      animation: none;
+    }
+  }
+
+  .affisell-storefront-chrome {
+    --site-header-offset: calc(3.75rem + env(safe-area-inset-top));
+  }
+
   @media (max-width: 1023px) {
     .affisell-mobile-shell {
       padding-bottom: var(--affisell-mobile-dock-offset);

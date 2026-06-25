@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl"
 import type { CSSProperties } from "react"
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 
+import { MobileCartCheckoutBar } from "@/components/cart/mobile-cart-checkout-bar"
 import { FlexiblePaymentBadge } from "@/components/checkout/flexible-payment-badge"
 import { CartCheckoutShippingNote } from "@/components/cart/cart-checkout-shipping-note"
 import { CheckoutRegionComingSoonBanner } from "@/components/marketplace/checkout-region-coming-soon-banner"
@@ -448,7 +449,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="affisell-cart-page min-h-screen bg-gradient-to-b from-zinc-50 via-white to-violet-50/30 py-8 pb-[var(--affisell-mobile-dock-offset)] dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/15 md:pb-8">
+    <div className="affisell-cart-page min-h-screen bg-gradient-to-b from-zinc-50 via-white to-violet-50/30 py-8 pb-[calc(var(--affisell-mobile-dock-offset)+5.25rem)] dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/15 md:pb-8">
       <Suspense fallback={null}>
         <CartCheckoutAutoOpen
           enabled={!loading && !isCustomerBuyer && lines.length > 0}
@@ -692,7 +693,7 @@ export default function CartPage() {
             type="button"
             disabled={checkoutBusy || checkoutBlocked || checkoutBelowMinimum}
             onClick={() => void checkout()}
-            className="mb-3 w-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 text-sm font-semibold text-white shadow-md transition hover:opacity-95 disabled:opacity-60"
+            className="mb-3 hidden w-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 text-sm font-semibold text-white shadow-md transition hover:opacity-95 active:scale-[0.98] disabled:opacity-60 md:block"
           >
             {checkoutBusy ? t("redirecting") : checkoutBlocked ? t("checkoutRegionBlocked") : t("validatePurchase")}
           </button>
@@ -709,6 +710,15 @@ export default function CartPage() {
           onIdentified={afterIdentity}
         />
       </div>
+      <MobileCartCheckoutBar
+        totalLabel={t("subtotal", { count: itemCount })}
+        totalFormatted={formatStoreCurrency(subtotal)}
+        ctaLabel={checkoutBlocked ? t("checkoutRegionBlocked") : t("validatePurchase")}
+        busyLabel={t("redirecting")}
+        disabled={checkoutBlocked || checkoutBelowMinimum || lines.length === 0}
+        busy={checkoutBusy}
+        onCheckout={() => void checkout()}
+      />
     </div>
   )
 }
