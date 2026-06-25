@@ -3,11 +3,12 @@ import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
-import { ProductGrid } from "@/components/shop/ProductGrid"
+import { StorefrontHomeSections } from "@/components/storefront/storefront-home-sections"
 import {
   filterShopProductsByCategory,
   groupShopProductsByCategory,
 } from "@/lib/shop-storefront-categories"
+import { loadAffiliateStorefrontTrust } from "@/lib/load-affiliate-storefront-trust"
 import { loadAffiliateShopProducts, loadAffiliateShopStore } from "@/lib/shop-storefront-data"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { prisma } from "@/lib/prisma"
@@ -45,14 +46,15 @@ export default async function ShopSlugPage({
   const hdrs = await headers()
   const isDedicatedHost = isCustomDomainHeaders(hdrs)
 
-  const [storeMeta, storeFront] = await Promise.all([
+  const [storeMeta, storeFront, trust] = await Promise.all([
     prisma.store.findUnique({
       where: { slug },
       select: { userId: true, user: { select: { role: true } } },
     }),
     loadAffiliateShopStore(slug),
+    loadAffiliateStorefrontTrust(slug),
   ])
-  if (!storeMeta || storeMeta.user.role !== "AFFILIATE") notFound()
+  if (!storeMeta || storeMeta.user.role !== "AFFILIATE" || !storeFront) notFound()
 
   const products = await loadAffiliateShopProducts(storeMeta.userId)
 
@@ -64,15 +66,13 @@ export default async function ShopSlugPage({
   const visibleProducts = filterShopProductsByCategory(products, activeCategory?.id ?? null)
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <ProductGrid
-        storeSlug={slug}
-        products={visibleProducts}
-        mode="customer"
-        gridDensity={storeFront?.theme.gridDensity}
-        dedicatedHost={isDedicatedHost}
-        activeCategoryLabel={activeCategory?.name ?? null}
-      />
-    </div>
+    <StorefrontHomeSections
+      store={storeFront}
+      trust={trust}
+      slug={slug}
+      products={visibleProducts}
+      activeCategoryLabel={activeCategory?.name ?? null}
+      isDedicatedHost={isDedicatedHost}
+    />
   )
 }

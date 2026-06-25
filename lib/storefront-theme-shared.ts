@@ -5,6 +5,7 @@ import {
   parseStoreNameBadgeStyle,
   type StoreNameBadgeStyle,
 } from "@/lib/store-name-badge-styles"
+import { parseHomepageSections, type HomepageSection } from "@/lib/storefront-sections-shared"
 
 export type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 
@@ -34,6 +35,8 @@ export type StorefrontTheme = {
   headerBrandAlign?: StorefrontHeaderBrandAlign
   /** Optional preset id for Brand Studio UI only. */
   presetId?: string
+  /** Ordered homepage blocks for `/shops/{slug}`. */
+  homepageSections?: HomepageSection[]
 }
 
 const HEX_RE = /^#[0-9a-f]{6}$/i
@@ -89,6 +92,7 @@ export function parseStorefrontTheme(raw: unknown): StorefrontTheme {
       DEFAULT_STOREFRONT_THEME.headerBrandAlign!
     ),
     presetId: typeof o.presetId === "string" ? o.presetId.slice(0, 40) : undefined,
+    homepageSections: parseHomepageSections(o.homepageSections),
   }
 }
 
@@ -132,6 +136,7 @@ export type BrandStudioThemeInput = {
   surface?: unknown
   headerBrandAlign?: unknown
   presetId?: unknown
+  homepageSections?: unknown
 }
 
 export function themeFromBrandStudioFields(
@@ -181,6 +186,10 @@ export function themeFromBrandStudioFields(
           ? input.presetId.slice(0, 40)
           : undefined
         : existing.presetId,
+    homepageSections:
+      input.homepageSections !== undefined && input.homepageSections !== null
+        ? parseHomepageSections(input.homepageSections)
+        : existing.homepageSections,
   }
 }
 

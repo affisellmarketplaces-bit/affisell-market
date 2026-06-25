@@ -86,6 +86,7 @@ export async function POST(req: Request) {
   const themeSurface = fd.get("themeSurface")
   const themeHeaderBrandAlign = fd.get("themeHeaderBrandAlign")
   const themePresetId = fd.get("themePresetId")
+  const themeHomepageSections = fd.get("themeHomepageSections")
   const hasThemeFields =
     themePrimary !== null ||
     themeAccent !== null ||
@@ -95,8 +96,17 @@ export async function POST(req: Request) {
     themeGridDensity !== null ||
     themeSurface !== null ||
     themeHeaderBrandAlign !== null ||
-    themePresetId !== null
+    themePresetId !== null ||
+    themeHomepageSections !== null
   const existingTheme = parseStorefrontTheme(store.storefrontTheme)
+  let homepageSectionsInput: unknown = undefined
+  if (typeof themeHomepageSections === "string" && themeHomepageSections.trim()) {
+    try {
+      homepageSectionsInput = JSON.parse(themeHomepageSections)
+    } catch {
+      return Response.json({ error: "Invalid homepage sections JSON" }, { status: 400 })
+    }
+  }
   const storefrontTheme = hasThemeFields
     ? themeFromBrandStudioFields(existingTheme, {
         primary: themePrimary,
@@ -108,6 +118,7 @@ export async function POST(req: Request) {
         surface: themeSurface,
         headerBrandAlign: themeHeaderBrandAlign,
         presetId: themePresetId,
+        homepageSections: homepageSectionsInput,
       })
     : undefined
 

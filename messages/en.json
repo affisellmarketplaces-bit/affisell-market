@@ -1716,6 +1716,37 @@
           "glass": "Glass"
         }
       },
+      "sections": {
+        "title": "Homepage sections",
+        "hint": "Toggle and reorder blocks on your public storefront — publish-ready sections, no free-form builder.",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "enable": "Enable {section}",
+        "disable": "Disable {section}",
+        "orderHint": "{count} section types — order controls what buyers see first.",
+        "types": {
+          "hero": {
+            "label": "Hero",
+            "desc": "Banner or gradient above the catalog."
+          },
+          "story": {
+            "label": "Story",
+            "desc": "Your tagline and brand pitch."
+          },
+          "products": {
+            "label": "Products",
+            "desc": "Your live product grid."
+          },
+          "trust": {
+            "label": "Trust",
+            "desc": "Affisell verification strip."
+          },
+          "cta": {
+            "label": "Discover CTA",
+            "desc": "Invite buyers to explore Affisell."
+          }
+        }
+      },
       "logo": {
         "title": "Store logo",
         "upload": "Upload image",
@@ -1745,6 +1776,16 @@
         "classic": "Classic",
         "classicDesc": "Plain text, no band."
       }
+    },
+    "homeSections": {
+      "storyEyebrow": "Our story",
+      "trustTitle": "Affisell verified storefront",
+      "trustBody": "Partner code {code} — secure checkout and buyer protection.",
+      "verified": "Verified merchant",
+      "ctaEyebrow": "Explore Affisell",
+      "ctaTitle": "Discover more creators",
+      "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
+      "ctaButton": "Browse marketplace"
     },
     "buyerChrome": {
       "openCategories": "Browse categories",

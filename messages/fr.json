@@ -1740,6 +1740,37 @@
           "glass": "Verre"
         }
       },
+      "sections": {
+        "title": "Sections page d'accueil",
+        "hint": "Activez et réordonnez les blocs de votre vitrine — sections prêtes à publier, sans builder libre.",
+        "moveUp": "Monter",
+        "moveDown": "Descendre",
+        "enable": "Activer {section}",
+        "disable": "Désactiver {section}",
+        "orderHint": "{count} types de sections — l'ordre définit ce que voient les acheteurs en premier.",
+        "types": {
+          "hero": {
+            "label": "Hero",
+            "desc": "Bannière ou dégradé au-dessus du catalogue."
+          },
+          "story": {
+            "label": "Histoire",
+            "desc": "Votre accroche et pitch de marque."
+          },
+          "products": {
+            "label": "Produits",
+            "desc": "Votre grille produits en ligne."
+          },
+          "trust": {
+            "label": "Confiance",
+            "desc": "Bandeau de vérification Affisell."
+          },
+          "cta": {
+            "label": "CTA Découverte",
+            "desc": "Invite les acheteurs à explorer Affisell."
+          }
+        }
+      },
       "logo": {
         "title": "Logo boutique",
         "upload": "Importer une image",
@@ -1769,6 +1800,16 @@
         "classic": "Classique",
         "classicDesc": "Texte simple sans bande."
       }
+    },
+    "homeSections": {
+      "storyEyebrow": "Notre histoire",
+      "trustTitle": "Boutique vérifiée Affisell",
+      "trustBody": "Code partenaire {code} — paiement sécurisé et protection acheteur.",
+      "verified": "Marchand vérifié",
+      "ctaEyebrow": "Explorer Affisell",
+      "ctaTitle": "Découvrez d'autres créateurs",
+      "ctaBody": "Parcourez le marketplace Affisell pour plus de produits et de boutiques de confiance.",
+      "ctaButton": "Voir le marketplace"
     },
     "buyerChrome": {
       "openCategories": "Parcourir les catégories",

@@ -5,10 +5,14 @@ import { useTranslations } from "next-intl"
 import { useState } from "react"
 
 import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
-import { StorefrontBuyerHeader } from "@/components/storefront/storefront-buyer-header"
 import { StorefrontDedicatedHero } from "@/components/storefront/storefront-dedicated-hero"
+import { StorefrontTaglineBand } from "@/components/storefront/storefront-tagline-band"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
 import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
+import {
+  getEnabledHomepageSections,
+  type HomepageSection,
+} from "@/lib/storefront-sections-shared"
 import {
   storefrontGridClass,
   storefrontSurfaceClass,
@@ -34,6 +38,7 @@ export type StorefrontDraft = {
   gridDensity: StorefrontGridDensity
   surface: StorefrontSurface
   headerBrandAlign: StorefrontHeaderBrandAlign
+  homepageSections: HomepageSection[]
 }
 
 type Props = {
@@ -72,6 +77,8 @@ export function StorefrontLivePreview({ draft, className }: Props) {
     draft.heroStyle === "banner" && draft.bannerUrl.trim().length > 0
       ? draft.bannerUrl.trim()
       : null
+  const enabledSections = getEnabledHomepageSections(draft.homepageSections)
+  const sampleTagline = draft.description.trim() || t("sampleTagline")
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -136,40 +143,82 @@ export function StorefrontLivePreview({ draft, className }: Props) {
               verifiedAt: null,
             }}
           />
-          {draft.layout === "minimal" ? (
-            draft.description.trim() ? (
-              <div className="border-b border-zinc-200/80 px-4 py-3 dark:border-zinc-800">
-                <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                  {draft.description.trim() || t("sampleTagline")}
-                </p>
-              </div>
-            ) : null
-          ) : (
-            <StorefrontDedicatedHero
-              description={draft.description.trim() || t("sampleTagline")}
-              bannerUrl={bannerForHero}
-              theme={theme}
-            />
-          )}
-
-          <div className="px-3 py-4">
-            <ul className={storefrontGridClass(draft.gridDensity)}>
-              {MOCK_TILES.map((tile) => (
-                <li
-                  key={tile.id}
-                  className={cn(
-                    "aspect-[4/5] overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br shadow-sm",
-                    tile.tone
-                  )}
-                >
-                  <div className="flex h-full flex-col justify-end p-2">
-                    <span className="h-2 w-2/3 rounded bg-white/30" />
-                    <span className="mt-1 h-2 w-1/3 rounded bg-white/20" />
+          {enabledSections.map((section) => {
+            switch (section.type) {
+              case "hero":
+                if (draft.layout === "minimal") {
+                  return sampleTagline ? (
+                    <StorefrontTaglineBand
+                      key="hero"
+                      description={sampleTagline}
+                      accent={draft.accent}
+                      align={draft.headerBrandAlign}
+                    />
+                  ) : null
+                }
+                return (
+                  <StorefrontDedicatedHero
+                    key="hero"
+                    description={sampleTagline}
+                    bannerUrl={bannerForHero}
+                    theme={theme}
+                  />
+                )
+              case "story":
+                return sampleTagline ? (
+                  <div
+                    key="story"
+                    className="border-b border-zinc-200/80 px-4 py-3 dark:border-zinc-800"
+                  >
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                      Story
+                    </p>
+                    <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{sampleTagline}</p>
                   </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+                ) : null
+              case "products":
+                return (
+                  <div key="products" className="px-3 py-4">
+                    <ul className={storefrontGridClass(draft.gridDensity)}>
+                      {MOCK_TILES.map((tile) => (
+                        <li
+                          key={tile.id}
+                          className={cn(
+                            "aspect-[4/5] overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br shadow-sm",
+                            tile.tone
+                          )}
+                        >
+                          <div className="flex h-full flex-col justify-end p-2">
+                            <span className="h-2 w-2/3 rounded bg-white/30" />
+                            <span className="mt-1 h-2 w-1/3 rounded bg-white/20" />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )
+              case "trust":
+                return (
+                  <div
+                    key="trust"
+                    className="border-y border-emerald-200/50 bg-emerald-50/40 px-3 py-2 text-[10px] font-medium text-emerald-900 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-100"
+                  >
+                    Affisell verified · AFS-PREVIEW
+                  </div>
+                )
+              case "cta":
+                return (
+                  <div
+                    key="cta"
+                    className="mx-3 mb-3 rounded-xl border border-violet-200/80 bg-violet-50/60 px-3 py-2 text-[10px] text-violet-900 dark:border-violet-900/50 dark:bg-violet-950/30 dark:text-violet-100"
+                  >
+                    Discover more on Affisell →
+                  </div>
+                )
+              default:
+                return null
+            }
+          })}
         </div>
       </div>
       <p className="text-center text-[11px] text-gray-500 dark:text-zinc-400">{t("hint")}</p>

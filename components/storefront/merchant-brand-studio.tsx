@@ -11,6 +11,7 @@ import { StoreCustomDomainCard } from "@/components/storefront/store-custom-doma
 import { StorefrontLayoutControls } from "@/components/storefront/storefront-layout-controls"
 import { StorefrontLivePreview } from "@/components/storefront/storefront-live-preview"
 import { StorefrontLogoField } from "@/components/storefront/storefront-logo-field"
+import { StorefrontSectionsEditor } from "@/components/storefront/storefront-sections-editor"
 import { StorefrontThemePresetPicker } from "@/components/storefront/storefront-theme-preset-picker"
 import { StoreLiveUrlCard } from "@/components/storefront/store-live-url-card"
 import { StoreNameBadgePicker } from "@/components/storefront/store-name-badge-picker"
@@ -30,6 +31,12 @@ import {
   type StorefrontSurface,
   type StorefrontTheme,
 } from "@/lib/storefront-theme-shared"
+import {
+  DEFAULT_HOMEPAGE_SECTIONS,
+  homepageSectionsEqual,
+  serializeHomepageSections,
+  type HomepageSection,
+} from "@/lib/storefront-sections-shared"
 import { cn } from "@/lib/utils"
 
 type MerchantRole = "AFFILIATE" | "SUPPLIER"
@@ -57,6 +64,7 @@ type BrandStudioSnapshot = {
   surface: StorefrontSurface
   headerBrandAlign: StorefrontHeaderBrandAlign
   presetId: string | null
+  homepageSections: HomepageSection[]
 }
 
 const BRAND_STUDIO_FORM_ID = "brand-studio-form"
@@ -77,6 +85,7 @@ function snapshotFromStore(st: StoreRow): BrandStudioSnapshot {
     surface: theme.surface ?? DEFAULT_STOREFRONT_THEME.surface!,
     headerBrandAlign: theme.headerBrandAlign ?? DEFAULT_STOREFRONT_THEME.headerBrandAlign!,
     presetId: theme.presetId ?? null,
+    homepageSections: theme.homepageSections ?? DEFAULT_HOMEPAGE_SECTIONS,
   }
 }
 
@@ -94,6 +103,7 @@ function snapshotFromDraft(input: {
   surface: StorefrontSurface
   headerBrandAlign: StorefrontHeaderBrandAlign
   presetId: string | null
+  homepageSections: HomepageSection[]
 }): BrandStudioSnapshot {
   return {
     name: input.name.trim().slice(0, 40),
@@ -109,6 +119,7 @@ function snapshotFromDraft(input: {
     surface: input.surface,
     headerBrandAlign: input.headerBrandAlign,
     presetId: input.presetId,
+    homepageSections: input.homepageSections,
   }
 }
 
@@ -126,7 +137,8 @@ function snapshotsEqual(a: BrandStudioSnapshot, b: BrandStudioSnapshot): boolean
     a.gridDensity === b.gridDensity &&
     a.surface === b.surface &&
     a.headerBrandAlign === b.headerBrandAlign &&
-    a.presetId === b.presetId
+    a.presetId === b.presetId &&
+    homepageSectionsEqual(a.homepageSections, b.homepageSections)
   )
 }
 
@@ -170,6 +182,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
     DEFAULT_STOREFRONT_THEME.headerBrandAlign!
   )
   const [presetId, setPresetId] = useState<string | null>(null)
+  const [homepageSections, setHomepageSections] = useState<HomepageSection[]>(DEFAULT_HOMEPAGE_SECTIONS)
   const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
 
   const hydrate = useCallback(async () => {
@@ -211,6 +224,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         setSurface(snap.surface)
         setHeaderBrandAlign(snap.headerBrandAlign)
         setPresetId(snap.presetId)
+        setHomepageSections(snap.homepageSections)
         setSavedSnapshot(snap)
       }
     } catch (e) {
@@ -250,6 +264,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       gridDensity,
       surface,
       headerBrandAlign,
+      homepageSections,
     }),
     [
       name,
@@ -266,6 +281,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       gridDensity,
       surface,
       headerBrandAlign,
+      homepageSections,
     ]
   )
 
@@ -285,6 +301,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         surface,
         headerBrandAlign,
         presetId,
+        homepageSections,
       }),
     [
       name,
@@ -300,6 +317,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       surface,
       headerBrandAlign,
       presetId,
+      homepageSections,
     ]
   )
 
@@ -324,6 +342,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       fd.set("themeSurface", surface)
       fd.set("themeHeaderBrandAlign", headerBrandAlign)
       if (presetId) fd.set("themePresetId", presetId)
+      fd.set("themeHomepageSections", serializeHomepageSections(homepageSections))
       if (logoFile) {
         fd.set("logo", logoFile)
       } else {
@@ -529,6 +548,8 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                 onSurface={setSurface}
                 onHeaderBrandAlign={setHeaderBrandAlign}
               />
+
+              <StorefrontSectionsEditor sections={homepageSections} onChange={setHomepageSections} />
 
               <StoreNameBadgePicker
                 value={nameBadge}

@@ -2,9 +2,7 @@ import { headers } from "next/headers"
 
 import { AffiliateStorePreviewBannerGate } from "@/components/shop/AffiliateStorePreviewBannerGate"
 import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
-import { StorefrontDedicatedHero } from "@/components/storefront/storefront-dedicated-hero"
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
-import { StorefrontTaglineBand } from "@/components/storefront/storefront-tagline-band"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
 import { auth } from "@/auth"
 import { isAffiliateStoreOwner } from "@/lib/affiliate-store-preview-access"
@@ -55,24 +53,6 @@ export default async function ShopPublicLayout({
         />
       ) : null}
       <AffiliateStorePreviewBannerGate storeSlug={slug} isStoreOwner={isStoreOwner} />
-      {store ? (
-        store.theme.layout === "minimal" ? (
-          store.description ? (
-            <StorefrontTaglineBand
-              description={store.description}
-              accent={store.theme.accent}
-              align={store.theme.headerBrandAlign}
-            />
-          ) : null
-        ) : (
-          <StorefrontDedicatedHero
-            description={store.description}
-            bannerUrl={store.bannerUrl}
-            theme={store.theme}
-            brandAlign={store.theme.headerBrandAlign}
-          />
-        )
-      ) : null}
       <main className="min-w-0 overflow-x-clip">{children}</main>
     </div>
   )
