@@ -79,6 +79,18 @@ export async function syncMarketplaceOrderToMedusa(
     return
   }
 
+  // Serialize concurrent webhook/heal retries for the same Affisell order.
+  await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${input.orderId}))`
+
+  const fresh = await tx.order.findUnique({
+    where: { id: input.orderId },
+    select: { medusaOrderId: true },
+  })
+  if (fresh?.medusaOrderId) {
+    console.log(`[medusa] Order ${input.orderId} already synced: ${fresh.medusaOrderId}`)
+    return
+  }
+
   const product = await tx.product.findUnique({
     where: { id: input.productId },
     select: { medusaHandle: true, medusaVariantId: true },
@@ -118,6 +130,7 @@ export async function syncMarketplaceOrderToMedusa(
   let medusaOrder = null
   try {
     medusaOrder = await createMedusaOrder({
+      affisellOrderId: input.orderId,
       email: input.customerEmail,
       currency: input.currency,
       items: [

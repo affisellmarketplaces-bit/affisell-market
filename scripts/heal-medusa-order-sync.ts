@@ -1,15 +1,17 @@
 #!/usr/bin/env npx tsx
 /**
- * Backfill Medusa Admin orders for paid Affisell orders that have a mapped product.
- * Loads medusa-backend/.env (same as Medusa CLI) so MEDUSA_ADMIN_TOKEN is available.
+ * Backfill Medusa Admin orders for paid Affisell orders (mapped products only).
+ * Processes one order at a time with rate limiting to avoid Medusa API races.
  *
- * Usage:
- *   npx tsx scripts/heal-medusa-order-sync.ts
- *   npx tsx scripts/heal-medusa-order-sync.ts cmqt67gj60001ju04ancvvt1y
+ * Usage (from repo root):
+ *   npm run heal:medusa-orders
+ *   npm run heal:medusa-orders -- cmqt67gj60001ju04ancvvt1y
  */
 import { existsSync } from "node:fs"
 import { resolve } from "node:path"
 import { config as loadEnv } from "dotenv"
+
+const HEAL_MEDUSA_RATE_LIMIT_MS = 100
 
 const root = resolve(import.meta.dirname, "..")
 const medusaEnv = resolve(root, "medusa-backend", ".env")
@@ -20,11 +22,18 @@ if (existsSync(medusaEnv)) {
 loadEnv({ path: resolve(root, ".env.local"), override: false })
 loadEnv({ path: resolve(root, ".env"), override: false })
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolveSleep) => {
+    setTimeout(resolveSleep, ms)
+  })
+}
+
 async function main() {
   const { prisma } = await import("../lib/prisma")
   const { syncMarketplaceOrderToMedusaIfNeeded } = await import(
     "../lib/medusa/sync-marketplace-order.impl"
   )
+  const { captureMedusaOrderExternalPayment } = await import("../lib/medusa-admin.impl")
 
   const rawArg = process.argv[2]?.trim()
   const orderIdArg =
@@ -34,7 +43,7 @@ async function main() {
 
   if (!token) {
     console.error(
-      "[heal-medusa] MEDUSA_ADMIN_TOKEN missing — add Secret API Key to medusa-backend/.env AND root .env.local for Next.js webhooks"
+      "[heal-medusa] MEDUSA_ADMIN_TOKEN missing — add Secret API Key to medusa-backend/.env AND root .env.local"
     )
     process.exit(1)
   }
@@ -43,86 +52,77 @@ async function main() {
     process.exit(1)
   }
 
-  const orderIds = orderIdArg
-    ? [orderIdArg]
-    : (
-        await prisma.order.findMany({
-          where: {
-            status: "paid",
-            medusaOrderId: null,
-            product: {
-              OR: [{ medusaHandle: { not: null } }, { medusaVariantId: { not: null } }],
-            },
-          },
-          select: { id: true },
-          orderBy: { createdAt: "desc" },
-          take: 50,
-        })
-      ).map((o) => o.id)
-
-  if (orderIds.length === 0) {
-    console.log("[heal-medusa] No new orders to sync (all mapped products already linked)")
-  } else {
-    console.log("[heal-medusa] Syncing", { count: orderIds.length })
-
-    let synced = 0
-    for (const orderId of orderIds) {
-      const before = await prisma.order.findUnique({
-        where: { id: orderId },
-        select: { medusaOrderId: true },
-      })
-      await syncMarketplaceOrderToMedusaIfNeeded(orderId)
-      const after = await prisma.order.findUnique({
-        where: { id: orderId },
-        select: { medusaOrderId: true },
-      })
-      if (after?.medusaOrderId && after.medusaOrderId !== before?.medusaOrderId) {
-        synced += 1
-        console.log("[heal-medusa] Linked", { orderId, medusaOrderId: after.medusaOrderId })
-      } else {
-        console.warn("[heal-medusa] Skipped or failed", {
-          orderId,
-          medusaOrderId: after?.medusaOrderId,
-        })
-      }
-    }
-
-    console.log("[heal-medusa] Done", { synced, total: orderIds.length })
-  }
-
-  const { captureMedusaOrderExternalPayment } = await import("../lib/medusa-admin.impl")
-  const linked = await prisma.order.findMany({
+  const orders = await prisma.order.findMany({
     where: {
       status: "paid",
-      medusaOrderId: { not: null },
       product: {
         OR: [{ medusaHandle: { not: null } }, { medusaVariantId: { not: null } }],
       },
       ...(orderIdArg ? { id: orderIdArg } : {}),
     },
     select: { id: true, medusaOrderId: true },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: "asc" },
     take: orderIdArg ? 1 : 50,
   })
 
+  if (orders.length === 0) {
+    console.log("[heal-medusa] No paid orders with Medusa-mapped products")
+    await prisma.$disconnect()
+    return
+  }
+
+  console.log("[heal-medusa] Processing sequentially", {
+    count: orders.length,
+    rateLimitMs: HEAL_MEDUSA_RATE_LIMIT_MS,
+  })
+
+  let synced = 0
   let captured = 0
-  for (const row of linked) {
-    const medusaOrderId = row.medusaOrderId?.trim()
-    if (!medusaOrderId) continue
+  let failed = 0
+
+  for (const row of orders) {
+    const hadMedusa = Boolean(row.medusaOrderId?.trim())
     try {
+      if (!hadMedusa) {
+        await syncMarketplaceOrderToMedusaIfNeeded(row.id)
+      }
+
+      const fresh = await prisma.order.findUnique({
+        where: { id: row.id },
+        select: { medusaOrderId: true },
+      })
+      const medusaOrderId = fresh?.medusaOrderId?.trim()
+      if (!medusaOrderId) {
+        console.warn("[heal-medusa] Skipped — no Medusa link", { orderId: row.id })
+        failed += 1
+        continue
+      }
+
+      if (!hadMedusa) {
+        synced += 1
+        console.log("[heal-medusa] Linked", { orderId: row.id, medusaOrderId })
+      }
+
       await captureMedusaOrderExternalPayment(medusaOrderId, 0)
       captured += 1
-      console.log("[heal-medusa] Payment captured", { orderId: row.id, medusaOrderId })
+      console.log("[heal-medusa] Paid", { orderId: row.id, medusaOrderId })
     } catch (err) {
-      console.warn("[heal-medusa] Payment capture failed", {
+      failed += 1
+      console.error("[heal-medusa] Failed", {
         orderId: row.id,
-        medusaOrderId,
         error: err instanceof Error ? err.message : String(err),
       })
     }
+
+    await sleep(HEAL_MEDUSA_RATE_LIMIT_MS)
   }
 
-  console.log("[heal-medusa] Payments", { captured, linked: linked.length })
+  console.log("[heal-medusa] Done", {
+    total: orders.length,
+    synced,
+    captured,
+    failed,
+  })
   await prisma.$disconnect()
 }
 

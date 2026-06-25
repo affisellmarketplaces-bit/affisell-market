@@ -35,6 +35,7 @@ export type MedusaOrderShippingAddress = {
 }
 
 export type CreateMedusaOrderInput = {
+  affisellOrderId?: string
   email: string
   currency: string
   items: { variant_id: string; quantity: number; unit_price: number; title?: string }[]
@@ -75,6 +76,7 @@ export async function createMedusaOrder(
     shipping_address: data.shipping_address,
     billing_address: data.shipping_address,
     metadata: {
+      ...(data.affisellOrderId ? { affisell_order_id: data.affisellOrderId } : {}),
       stripe_session_id: data.stripeSessionId,
       payment_status: "captured",
       fulfillment_status: "not_fulfilled",
