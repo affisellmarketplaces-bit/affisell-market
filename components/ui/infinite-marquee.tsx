@@ -13,10 +13,17 @@ type Props = {
   className?: string
   /** Only auto-scroll when content is wider than the viewport. */
   autoOnlyWhenOverflow?: boolean
+  /** When false, content is manually scrollable only (no CSS marquee). */
+  autoAnimate?: boolean
 }
 
 /** Seamless horizontal marquee — pauses on hover/focus/touch; manual scroll if reduced motion. */
-export function InfiniteMarquee({ children, className, autoOnlyWhenOverflow = true }: Props) {
+export function InfiniteMarquee({
+  children,
+  className,
+  autoOnlyWhenOverflow = true,
+  autoAnimate = true,
+}: Props) {
   const viewportRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(false)
@@ -32,7 +39,7 @@ export function InfiniteMarquee({ children, className, autoOnlyWhenOverflow = tr
       const contentWidth = row?.scrollWidth ?? track.scrollWidth
       const viewportWidth = viewport.clientWidth
       const overflow = contentWidth > viewportWidth + 12
-      const shouldAnimate = !autoOnlyWhenOverflow || overflow
+      const shouldAnimate = autoAnimate && (!autoOnlyWhenOverflow || overflow)
 
       setActive(shouldAnimate)
       if (shouldAnimate) {
@@ -46,7 +53,7 @@ export function InfiniteMarquee({ children, className, autoOnlyWhenOverflow = tr
     ro.observe(viewport)
     if (track.firstElementChild) ro.observe(track.firstElementChild)
     return () => ro.disconnect()
-  }, [autoOnlyWhenOverflow, children])
+  }, [autoAnimate, autoOnlyWhenOverflow, children])
 
   return (
     <div

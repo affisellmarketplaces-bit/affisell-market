@@ -150,11 +150,8 @@ export function MarketplaceDepartmentRail({
         <p className="hidden text-xs font-medium text-violet-950/80 sm:block dark:text-violet-100/85">
           {t("hint")}
         </p>
-        <p className="ml-auto hidden text-[10px] font-medium uppercase tracking-wider text-violet-600/70 lg:block dark:text-violet-300/70">
-          {t("marqueeHint")}
-        </p>
       </div>
-      <InfiniteMarquee className="affisell-department-marquee__track -mx-1 px-1">
+      <InfiniteMarquee autoAnimate={false} className="affisell-department-marquee__track -mx-1 px-1">
         <DepartmentRailItems {...itemsProps} />
       </InfiniteMarquee>
     </section>
