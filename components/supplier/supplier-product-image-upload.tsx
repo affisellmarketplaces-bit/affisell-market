@@ -20,8 +20,8 @@ type Props = {
   initialUrls?: string[]
   /** True while files are processing or uploading to CDN. */
   onBusyChange?: (busy: boolean) => void
-  /** Called after CDN URLs are ready — use to flush draft to server. */
-  onPersisted?: (urls: string[]) => void
+  /** Called after CDN URLs are ready — use to flush draft to server. May be async. */
+  onPersisted?: (urls: string[]) => void | Promise<void>
 }
 
 function slotsToOrderedUrls(slots: (string | null)[]): string[] {
@@ -225,22 +225,21 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
       }
 
       setIsBatchUploading(true)
-      const slotByFile = new Map<File, number>()
-      batch.forEach((file, i) => slotByFile.set(file, targets[i]!))
+      const slotByIndex = targets.slice(0, batch.length)
 
       setSlots((prev) => {
         const next = [...prev]
-        for (const file of batch) {
-          const idx = slotByFile.get(file)!
+        for (let i = 0; i < batch.length; i++) {
+          const idx = slotByIndex[i]!
           revokeIfBlob(next[idx])
-          next[idx] = URL.createObjectURL(file)
+          next[idx] = URL.createObjectURL(batch[i]!)
         }
         return next
       })
 
       setProcessingSlots((prev) => {
         const s = new Set(prev)
-        for (const idx of targets.slice(0, batch.length)) s.add(idx)
+        for (const idx of slotByIndex) s.add(idx)
         return s
       })
 
@@ -252,8 +251,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
         setSlots((prev) => {
           const next = [...prev]
           for (let i = 0; i < batch.length; i++) {
-            const file = batch[i]!
-            const slotIndex = slotByFile.get(file)
+            const slotIndex = slotByIndex[i]
             if (slotIndex === undefined) continue
             revokeIfBlob(next[slotIndex])
             const row = persisted[i]
@@ -265,23 +263,28 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
               next[slotIndex] = null
               const detail = row?.error?.trim()
               toast.error(
-                detail ? `${file.name} — ${detail}` : t("errProcess", { name: file.name })
+                detail ? `${batch[i]!.name} — ${detail}` : t("errProcess", { name: batch[i]!.name })
               )
             }
           }
           urlsToPublish = slotsToOrderedUrls(next)
           return next
         })
+
+        if (urlsToPublish.length > 0) {
+          onImagesChange(urlsToPublish)
+          await Promise.resolve(onPersisted?.(urlsToPublish))
+        }
+        if (added > 0) {
+          toast.success(added === 1 ? t("addedOne") : t("addedMany", { count: added }))
+        }
       } finally {
-        setProcessingSlots(new Set())
+        setProcessingSlots((prev) => {
+          const s = new Set(prev)
+          for (const idx of slotByIndex) s.delete(idx)
+          return s
+        })
         setIsBatchUploading(false)
-      }
-      if (urlsToPublish.length > 0) {
-        onImagesChange(urlsToPublish)
-        onPersisted?.(urlsToPublish)
-      }
-      if (added > 0) {
-        toast.success(added === 1 ? t("addedOne") : t("addedMany", { count: added }))
       }
     },
     [emptySlotIndices, onImagesChange, onPersisted, t]

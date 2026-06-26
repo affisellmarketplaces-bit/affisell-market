@@ -4,6 +4,7 @@ import { uploadSupplierGalleryImage } from "@/lib/supplier-gallery-upload.server
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+export const maxDuration = 60
 
 function parseDataUrl(input: string): Buffer {
   const match = input.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/)

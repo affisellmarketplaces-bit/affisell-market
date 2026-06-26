@@ -1,41 +1,90 @@
-/** Upload gallery images to Supabase via API — CDN URL required for product autosave. */
+/**
+ * Upload gallery images via API — multipart raw file or client-processed JPEG fallback.
+ */
 
-const UPLOAD_CONCURRENCY = 3
+import {
+  processProductGalleryImageFile,
+  ProductImageMinDimensionError,
+} from "@/lib/product-image-upload"
+
+const UPLOAD_CONCURRENCY = 2
+const UPLOAD_RETRIES = 2
+const UPLOAD_TIMEOUT_MS = 90_000
+/** Vercel serverless body ~4.5 MB — large iPhone photos must use client-processed JPEG. */
+const MULTIPART_MAX_BYTES = 3_500_000
 
 type PersistResult = { ok: true; url: string } | { ok: false; status?: number; detail?: string }
 
-async function uploadGalleryFile(file: File): Promise<PersistResult> {
+function uploadSignal(): AbortSignal | undefined {
+  if (typeof AbortSignal !== "undefined" && "timeout" in AbortSignal) {
+    return AbortSignal.timeout(UPLOAD_TIMEOUT_MS)
+  }
+  return undefined
+}
+
+function isMinDimensionDetail(detail: string | undefined): boolean {
+  if (!detail) return false
+  return /minimum\s+320|too small|MIN_DIMENSION/i.test(detail)
+}
+
+export function shouldSkipClientFallback(result: PersistResult & { ok: false }): boolean {
+  if (result.status === 401 || result.status === 403) return true
+  return isMinDimensionDetail(result.detail)
+}
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+async function uploadGalleryMultipart(file: File): Promise<PersistResult> {
   const form = new FormData()
   form.append("file", file, file.name)
-  try {
-    const res = await fetch("/api/upload/processed-image", {
-      method: "POST",
-      credentials: "same-origin",
-      body: form,
-    })
-    if (!res.ok) {
-      const json = (await res.json().catch(() => ({}))) as { detail?: string; error?: string }
+
+  let last: PersistResult = { ok: false, detail: "upload_failed" }
+
+  for (let attempt = 0; attempt <= UPLOAD_RETRIES; attempt++) {
+    try {
+      const res = await fetch("/api/upload/processed-image", {
+        method: "POST",
+        credentials: "same-origin",
+        body: form,
+        signal: uploadSignal(),
+      })
+      if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { detail?: string; error?: string }
+        last = { ok: false, status: res.status, detail: json.detail ?? json.error }
+        console.log("[supplier-gallery-image]", {
+          filename: file.name,
+          status: res.status,
+          persisted: false,
+          attempt,
+          detail: last.detail,
+        })
+        if (res.status < 500 || attempt >= UPLOAD_RETRIES) return last
+      } else {
+        const json = (await res.json()) as { url?: string }
+        const url = json.url?.trim()
+        if (!url) return { ok: false, detail: "missing_url" }
+        console.log("[supplier-gallery-image]", { filename: file.name, persisted: true, via: "multipart" })
+        return { ok: true, url }
+      }
+    } catch (error) {
+      const timedOut = error instanceof DOMException && error.name === "TimeoutError"
+      last = {
+        ok: false,
+        detail: timedOut ? "upload_timeout" : error instanceof Error ? error.message : "upload_failed",
+      }
       console.log("[supplier-gallery-image]", {
         filename: file.name,
-        status: res.status,
         persisted: false,
-        detail: json.detail ?? json.error,
+        attempt,
+        error: last.detail,
       })
-      return { ok: false, status: res.status, detail: json.detail ?? json.error }
     }
-    const json = (await res.json()) as { url?: string }
-    const url = json.url?.trim()
-    if (!url) return { ok: false, detail: "missing_url" }
-    console.log("[supplier-gallery-image]", { filename: file.name, persisted: true })
-    return { ok: true, url }
-  } catch (error) {
-    console.log("[supplier-gallery-image]", {
-      filename: file.name,
-      persisted: false,
-      error: error instanceof Error ? error.message : "upload_failed",
-    })
-    return { ok: false, detail: "upload_failed" }
+    if (attempt < UPLOAD_RETRIES) await sleep(400 * (attempt + 1))
   }
+
+  return last
 }
 
 async function uploadGalleryDataUrl(dataUrl: string, filename: string): Promise<PersistResult> {
@@ -44,30 +93,77 @@ async function uploadGalleryDataUrl(dataUrl: string, filename: string): Promise<
     return trimmed ? { ok: true, url: trimmed } : { ok: false, detail: "empty_url" }
   }
 
-  try {
-    const res = await fetch("/api/upload/processed-image", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify({
-        imageData: dataUrl,
-        filename: filename.replace(/\.[^/.]+$/, "") || "gallery",
-      }),
-    })
-    if (!res.ok) {
-      const json = (await res.json().catch(() => ({}))) as { detail?: string; error?: string }
-      return { ok: false, status: res.status, detail: json.detail ?? json.error }
+  let last: PersistResult = { ok: false, detail: "upload_failed" }
+
+  for (let attempt = 0; attempt <= UPLOAD_RETRIES; attempt++) {
+    try {
+      const res = await fetch("/api/upload/processed-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        signal: uploadSignal(),
+        body: JSON.stringify({
+          imageData: dataUrl,
+          filename: filename.replace(/\.[^/.]+$/, "") || "gallery",
+        }),
+      })
+      if (!res.ok) {
+        const json = (await res.json().catch(() => ({}))) as { detail?: string; error?: string }
+        last = { ok: false, status: res.status, detail: json.detail ?? json.error }
+        if (res.status < 500 || attempt >= UPLOAD_RETRIES) return last
+      } else {
+        const json = (await res.json()) as { url?: string }
+        const url = json.url?.trim()
+        if (!url) return { ok: false, detail: "missing_url" }
+        console.log("[supplier-gallery-image]", { filename, persisted: true, via: "json" })
+        return { ok: true, url }
+      }
+    } catch (error) {
+      const timedOut = error instanceof DOMException && error.name === "TimeoutError"
+      last = {
+        ok: false,
+        detail: timedOut ? "upload_timeout" : error instanceof Error ? error.message : "upload_failed",
+      }
     }
-    const json = (await res.json()) as { url?: string }
-    const url = json.url?.trim()
-    if (!url) return { ok: false, detail: "missing_url" }
-    return { ok: true, url }
+    if (attempt < UPLOAD_RETRIES) await sleep(400 * (attempt + 1))
+  }
+
+  return last
+}
+
+async function uploadGalleryFileViaClientProcess(file: File): Promise<PersistResult> {
+  try {
+    const dataUrl = await processProductGalleryImageFile(file)
+    return uploadGalleryDataUrl(dataUrl, file.name)
   } catch (error) {
+    if (error instanceof ProductImageMinDimensionError) {
+      return {
+        ok: false,
+        status: 400,
+        detail: `Minimum 320×320 px (got ${error.width}×${error.height})`,
+      }
+    }
     return {
       ok: false,
-      detail: error instanceof Error ? error.message : "upload_failed",
+      detail: error instanceof Error ? error.message : "client_process_failed",
     }
   }
+}
+
+/** Multipart when small enough; otherwise client JPEG pipeline (under Vercel body limit). */
+export async function uploadGalleryFile(file: File): Promise<PersistResult> {
+  if (file.size > MULTIPART_MAX_BYTES) {
+    return uploadGalleryFileViaClientProcess(file)
+  }
+
+  const direct = await uploadGalleryMultipart(file)
+  if (direct.ok) return direct
+  if (shouldSkipClientFallback(direct)) return direct
+
+  const fallback = await uploadGalleryFileViaClientProcess(file)
+  if (fallback.ok) return fallback
+
+  return direct.detail ? direct : fallback
 }
 
 /** Prefer raw file upload (HEIC-safe server pipeline). */
@@ -123,7 +219,8 @@ export async function persistSupplierGalleryImages(
       cursor += 1
       if (i >= items.length) return
       const item = items[i]!
-      out[i] = await persistSupplierGalleryImage(item.dataUrl, item.filename)
+      const result = await uploadGalleryDataUrl(item.dataUrl, item.filename)
+      out[i] = result.ok ? result.url : item.dataUrl
     }
   }
 
