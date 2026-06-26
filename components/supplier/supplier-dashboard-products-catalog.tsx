@@ -2,6 +2,8 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useCallback, useMemo, useState } from "react"
 import {
   ArrowUpRight,
   Eye,
@@ -15,11 +17,16 @@ import {
   Users,
   Video,
 } from "lucide-react"
+import { toast } from "sonner"
 
 import { BentoCard, BentoPageHeading, BentoStat } from "@/components/affisell/bento-ui"
 import { SupplierDeleteDraftButton } from "@/components/supplier/supplier-delete-draft-button"
+import { SupplierDraftBulkToolbar } from "@/components/supplier/supplier-draft-bulk-toolbar"
+import { useSupplierDraftSelection } from "@/components/supplier/use-supplier-draft-selection"
 import { buttonVariants } from "@/components/ui/button"
 import { affisellBrand } from "@/lib/affisell-brand"
+import { clearSupplierAddProductDraftCache } from "@/lib/supplier-add-product-draft-cache"
+import { bulkDeleteSupplierDraftsClient } from "@/lib/supplier-delete-drafts-client"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { primaryProductImage } from "@/lib/product-images"
 import {
@@ -75,6 +82,60 @@ export function SupplierDashboardProductsCatalog({
   storefrontName: string | null
   partnerListingCountByProductId?: Record<string, number>
 }) {
+  const router = useRouter()
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const draftProducts = useMemo(() => products.filter((p) => p.isDraft), [products])
+  const draftIds = useMemo(() => draftProducts.map((p) => p.id), [draftProducts])
+  const {
+    selectedIds,
+    visibleSelectedCount,
+    allSelected,
+    toggle,
+    selectAll,
+    clearSelection,
+    removeFromSelection,
+  } = useSupplierDraftSelection(draftIds)
+
+  const handleBulkDelete = useCallback(async () => {
+    const ids = draftIds.filter((id) => selectedIds.has(id))
+    if (ids.length === 0) return
+
+    const label =
+      ids.length === 1
+        ? "Supprimer ce brouillon ? Cette action est irréversible."
+        : `Supprimer ${ids.length} brouillons ? Cette action est irréversible.`
+    if (!window.confirm(label)) return
+
+    setBulkDeleting(true)
+    try {
+      const result = await bulkDeleteSupplierDraftsClient(ids)
+      if (result.error && result.deleted.length === 0) {
+        toast.error(result.error)
+        return
+      }
+
+      if (result.deleted.length > 0) {
+        clearSupplierAddProductDraftCache(ownerUserId)
+        removeFromSelection(result.deleted)
+        toast.success(
+          result.deleted.length === 1
+            ? "1 brouillon supprimé."
+            : `${result.deleted.length} brouillons supprimés.`
+        )
+      }
+
+      if (result.skipped.length > 0) {
+        toast.message(
+          `${result.skipped.length} brouillon${result.skipped.length > 1 ? "s" : ""} ignoré${result.skipped.length > 1 ? "s" : ""}.`
+        )
+      }
+
+      router.refresh()
+    } finally {
+      setBulkDeleting(false)
+    }
+  }, [draftIds, ownerUserId, removeFromSelection, router, selectedIds])
+
   const liveCount = products.filter((p) => !p.isDraft && p.active).length
   const draftCount = products.filter((p) => p.isDraft).length
   const partnerListedTotal = Object.values(partnerListingCountByProductId).reduce((a, b) => a + b, 0)
@@ -202,7 +263,19 @@ export function SupplierDashboardProductsCatalog({
           </Link>
         </BentoCard>
       ) : (
-        <ul className="grid list-none grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <>
+          {draftsOnly ? (
+            <SupplierDraftBulkToolbar
+              totalCount={products.length}
+              selectedCount={visibleSelectedCount}
+              allSelected={allSelected}
+              onSelectAll={selectAll}
+              onClearSelection={clearSelection}
+              onBulkDelete={() => void handleBulkDelete()}
+              deleting={bulkDeleting}
+            />
+          ) : null}
+          <ul className="grid list-none grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {products.map((p) => {
             const partnersListed = partnerListingCountByProductId[p.id] ?? 0
             const img = primaryProductImage(p.images) || "/placeholder-product.jpg"
@@ -221,18 +294,34 @@ export function SupplierDashboardProductsCatalog({
               ? `/dashboard/supplier/products/new?compose=1&draft=${p.id}`
               : `/dashboard/supplier/products/new?edit=${p.id}`
             const previewHref = `/dashboard/supplier/products/affiliate-preview/${p.id}`
+            const isSelected = p.isDraft && selectedIds.has(p.id)
 
             return (
               <li key={p.id}>
                 <article
                   className={cn(
-                    "group flex h-full flex-col overflow-hidden rounded-3xl border bg-white/90 shadow-sm ring-1 ring-black/[0.03] backdrop-blur-sm transition duration-300",
+                    "group relative flex h-full flex-col overflow-hidden rounded-3xl border bg-white/90 shadow-sm ring-1 ring-black/[0.03] backdrop-blur-sm transition duration-300",
                     "hover:-translate-y-0.5 hover:shadow-xl hover:shadow-violet-500/8 dark:bg-zinc-950/90 dark:ring-white/[0.04]",
                     p.isDraft
                       ? "border-amber-200/80 dark:border-amber-900/50"
-                      : "border-zinc-200/90 dark:border-zinc-800/90"
+                      : "border-zinc-200/90 dark:border-zinc-800/90",
+                    isSelected && "ring-2 ring-violet-500 ring-offset-2 ring-offset-amber-50/50 dark:ring-offset-zinc-950"
                   )}
                 >
+                  {draftsOnly && p.isDraft ? (
+                    <label
+                      className="absolute right-3 top-3 z-20 flex size-9 cursor-pointer items-center justify-center rounded-xl border border-white/90 bg-white/95 shadow-sm backdrop-blur dark:border-zinc-700 dark:bg-zinc-900/95"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggle(p.id)}
+                        className="size-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500/40 dark:border-zinc-600"
+                        aria-label={`Sélectionner ${p.name}`}
+                      />
+                    </label>
+                  ) : null}
                   <Link
                     href={previewHref}
                     className="relative block aspect-[5/4] w-full overflow-hidden bg-gradient-to-br from-zinc-50 via-white to-indigo-50/30 dark:from-zinc-900 dark:via-zinc-950 dark:to-indigo-950/20"
@@ -362,7 +451,8 @@ export function SupplierDashboardProductsCatalog({
               </li>
             )
           })}
-        </ul>
+          </ul>
+        </>
       )}
     </div>
   )
