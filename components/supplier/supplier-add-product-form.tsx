@@ -927,7 +927,11 @@ export function SupplierAddProductForm({
       setName(String(data.name ?? ""))
       setDescription(String(data.description ?? ""))
       setCategoryId(typeof data.categoryId === "string" ? data.categoryId : "")
-      setImages(Array.isArray(data.images) ? (data.images as string[]) : [])
+      setImages(
+        durableSupplierProductImageUrls(
+          Array.isArray(data.images) ? (data.images as string[]) : []
+        )
+      )
       const cents = Number(data.basePriceCents)
       setPrice(Number.isFinite(cents) ? (cents / 100).toFixed(2) : "")
       const cmp = data.compareAt
@@ -1598,6 +1602,8 @@ export function SupplierAddProductForm({
       stepOverride?: WizardStep
       /** Flush right after gallery CDN upload (galleryBusy may still be true). */
       afterGallery?: boolean
+      /** Bypass stale React state — use fresh CDN URLs from upload callback. */
+      imagesOverride?: string[]
     }) => {
       if (
         !listingAutosaveEnabled ||
@@ -1610,6 +1616,9 @@ export function SupplierAddProductForm({
 
       const syncStep = opts?.stepOverride ?? step
       const body = buildDraftSyncBody(syncStep)
+      if (opts?.imagesOverride && opts.imagesOverride.length > 0) {
+        body.images = durableSupplierProductImageUrls(opts.imagesOverride)
+      }
       const fp = JSON.stringify(body) + `|step:${syncStep}`
       if (!opts?.force && fp === lastAutosaveJson.current) {
         if (!opts?.silent) toast.success("Brouillon déjà à jour")
@@ -1672,6 +1681,8 @@ export function SupplierAddProductForm({
           productId: autosaveListingId ?? "new",
           step: syncStep,
           result: "ok",
+          imageCount: Array.isArray(body.images) ? body.images.length : 0,
+          galleryFlush: Boolean(opts?.afterGallery),
         })
         if (!productIsDraft && !editId) setProductIsDraft(true)
         if (!opts?.silent) toast.success(editId && !productIsDraft ? "Modifications enregistrées" : "Brouillon sauvegardé")
@@ -2119,9 +2130,15 @@ export function SupplierAddProductForm({
 
   const handleGalleryPersisted = useCallback(
     (urls: string[]) => {
-      setImages(urls)
-      if (urls.length > 0) clearPublishFieldError("images")
-      void syncDraftToServer({ silent: true, force: true, afterGallery: true })
+      const durable = durableSupplierProductImageUrls(urls)
+      setImages(durable)
+      if (durable.length > 0) clearPublishFieldError("images")
+      void syncDraftToServer({
+        silent: true,
+        force: true,
+        afterGallery: true,
+        imagesOverride: durable,
+      })
     },
     [clearPublishFieldError, syncDraftToServer]
   )

@@ -87,8 +87,10 @@ export async function persistSupplierGalleryImage(
 }
 
 /** Persist several gallery files with bounded parallelism. */
-export async function persistSupplierGalleryFiles(files: File[]): Promise<Array<string | null>> {
-  const out: Array<string | null> = new Array(files.length)
+export type GalleryPersistResult = { url: string | null; error?: string }
+
+export async function persistSupplierGalleryFiles(files: File[]): Promise<GalleryPersistResult[]> {
+  const out: GalleryPersistResult[] = new Array(files.length)
   let cursor = 0
 
   async function worker() {
@@ -96,7 +98,9 @@ export async function persistSupplierGalleryFiles(files: File[]): Promise<Array<
       const i = cursor
       cursor += 1
       if (i >= files.length) return
-      out[i] = await persistSupplierGalleryFile(files[i]!)
+      const file = files[i]!
+      const result = await uploadGalleryFile(file)
+      out[i] = result.ok ? { url: result.url } : { url: null, error: result.detail }
     }
   }
 

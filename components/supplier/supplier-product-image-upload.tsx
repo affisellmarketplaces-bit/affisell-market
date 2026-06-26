@@ -247,7 +247,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
       let added = 0
       let urlsToPublish: string[] = []
       try {
-        const persistedUrls = await persistSupplierGalleryFiles(batch)
+        const persisted = await persistSupplierGalleryFiles(batch)
 
         setSlots((prev) => {
           const next = [...prev]
@@ -256,13 +256,17 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
             const slotIndex = slotByFile.get(file)
             if (slotIndex === undefined) continue
             revokeIfBlob(next[slotIndex])
-            const url = persistedUrls[i]
+            const row = persisted[i]
+            const url = row?.url ?? null
             if (url) {
               next[slotIndex] = url
               added += 1
             } else {
               next[slotIndex] = null
-              toast.error(t("errProcess", { name: file.name }))
+              const detail = row?.error?.trim()
+              toast.error(
+                detail ? `${file.name} — ${detail}` : t("errProcess", { name: file.name })
+              )
             }
           }
           urlsToPublish = slotsToOrderedUrls(next)

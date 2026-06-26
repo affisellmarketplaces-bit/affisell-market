@@ -108,6 +108,27 @@ async function uploadToSupabase(
   if (!url || !key) return null
 
   const supabase = createClient(url, key)
+
+  const bucketResult = await supabase.storage.getBucket(SUPABASE_IMAGES_BUCKET)
+  if (bucketResult.error) {
+    const created = await supabase.storage.createBucket(SUPABASE_IMAGES_BUCKET, {
+      public: true,
+      fileSizeLimit: 20 * 1024 * 1024,
+    })
+    if (created.error) {
+      videoLog.warn("supplier-media.supabase", {
+        error: created.error.message,
+        action: "createBucket",
+      })
+      return null
+    }
+  } else if (bucketResult.data && !bucketResult.data.public) {
+    await supabase.storage.updateBucket(SUPABASE_IMAGES_BUCKET, {
+      public: true,
+      fileSizeLimit: 20 * 1024 * 1024,
+    })
+  }
+
   const uploaded = await supabase.storage.from(SUPABASE_IMAGES_BUCKET).upload(path, bytes, {
     contentType,
     upsert: false,
