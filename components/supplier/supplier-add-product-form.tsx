@@ -355,6 +355,7 @@ export function SupplierAddProductForm({
   const tForm = useTranslations("supplier.form")
   const tQuality = useTranslations("supplier.quality")
   const tWizard = useTranslations("supplier.wizard")
+  const tImages = useTranslations("supplier.images")
 
   /** Server draft ids that 404 (deleted or never synced) — never retry PUT on these. */
   const [deadServerDraftIds, setDeadServerDraftIds] = useState<readonly string[]>([])
@@ -1626,12 +1627,17 @@ export function SupplierAddProductForm({
       }
 
       setDraftSync("saving")
+      const saveSignal =
+        typeof AbortSignal !== "undefined" && "timeout" in AbortSignal
+          ? AbortSignal.timeout(45_000)
+          : undefined
       try {
         const saveViaPost = async () => {
           const res = await fetch("/api/supplier/products", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
+            signal: saveSignal,
             body: JSON.stringify({ ...body, saveAsDraft: true }),
           })
           const json = await readJsonResponse<{ id?: string; error?: string }>(res)
@@ -1654,6 +1660,7 @@ export function SupplierAddProductForm({
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
+            signal: saveSignal,
             body: JSON.stringify(body),
           })
           const json = await readJsonResponse<{ error?: string }>(res)
@@ -1689,9 +1696,23 @@ export function SupplierAddProductForm({
         return true
       } catch (e) {
         setDraftSync("error")
+        const timedOut = e instanceof DOMException && e.name === "TimeoutError"
+        const msg = timedOut
+          ? tImages("errDraftSaveTimeout")
+          : e instanceof Error
+            ? e.message
+            : "Impossible d'enregistrer le brouillon"
         if (!opts?.silent) {
-          toast.error(e instanceof Error ? e.message : "Impossible d'enregistrer le brouillon")
+          toast.error(msg)
         }
+        console.log("[supplier-product-autosave]", {
+          productId: autosaveListingId ?? "new",
+          step: syncStep,
+          result: "error",
+          timedOut,
+          galleryFlush: Boolean(opts?.afterGallery),
+          detail: msg,
+        })
         return false
       }
     },
@@ -1711,6 +1732,7 @@ export function SupplierAddProductForm({
       saving,
       searchParams,
       step,
+      tImages,
     ]
   )
 
@@ -2129,18 +2151,27 @@ export function SupplierAddProductForm({
   )
 
   const handleGalleryPersisted = useCallback(
-    (urls: string[]) => {
+    async (urls: string[]) => {
       const durable = durableSupplierProductImageUrls(urls)
       setImages(durable)
       if (durable.length > 0) clearPublishFieldError("images")
-      void syncDraftToServer({
-        silent: true,
-        force: true,
-        afterGallery: true,
-        imagesOverride: durable,
-      })
+
+      const maxAttempts = 3
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const ok = await syncDraftToServer({
+          silent: true,
+          force: true,
+          afterGallery: true,
+          imagesOverride: durable,
+        })
+        if (ok) return
+        if (attempt < maxAttempts - 1) {
+          await new Promise((r) => setTimeout(r, 700 * (attempt + 1)))
+        }
+      }
+      toast.error(tImages("errDraftSaveFailed"))
     },
-    [clearPublishFieldError, syncDraftToServer]
+    [clearPublishFieldError, syncDraftToServer, tImages]
   )
 
   const handleOptimizeSimpleVariants = useCallback(async () => {

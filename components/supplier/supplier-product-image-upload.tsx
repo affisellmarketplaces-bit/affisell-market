@@ -330,6 +330,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
       const urls = slotsToOrderedUrls(next)
       queueMicrotask(() => {
         onImagesChange(urls)
+        onPersisted?.(urls)
         setImageUrlDraft("")
         toast.success(t("addedFromUrl"))
       })

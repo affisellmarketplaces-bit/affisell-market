@@ -863,7 +863,9 @@
       "addedMany": "{count} photos added",
       "errInvalidUrl": "Enter a valid http(s) image link.",
       "errUrlSlotsFull": "All slots are full.",
-      "addedFromUrl": "Image added from link."
+      "addedFromUrl": "Image added from link.",
+      "errDraftSaveFailed": "Photos uploaded but the draft was not saved — try again (Ctrl+S).",
+      "errDraftSaveTimeout": "Save timed out (slow database) — try again in a few seconds."
     },
     "myProducts": "My Products",
     "addProduct": "Add Product",

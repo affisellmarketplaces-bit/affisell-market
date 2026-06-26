@@ -863,7 +863,9 @@
       "addedMany": "{count} photos ajoutées",
       "errInvalidUrl": "Lien image http(s) invalide.",
       "errUrlSlotsFull": "Tous les emplacements sont occupés.",
-      "addedFromUrl": "Image ajoutée depuis le lien."
+      "addedFromUrl": "Image ajoutée depuis le lien.",
+      "errDraftSaveFailed": "Photos importées mais le brouillon n’a pas été sauvegardé — réessayez (Ctrl+S).",
+      "errDraftSaveTimeout": "Sauvegarde expirée (base de données lente) — réessayez dans quelques secondes."
     },
     "myProducts": "Mes produits",
     "addProduct": "Ajouter un produit",

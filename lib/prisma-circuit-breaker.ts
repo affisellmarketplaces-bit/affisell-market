@@ -7,8 +7,10 @@ let lastWarnAt = 0
 
 function isUnreachableError(error: unknown): boolean {
   const code = prismaErrorCode(error)
-  if (code === "P1001" || code === "P1002") return true
-  return /can't reach database server|connection timed out/i.test(prismaErrorMessage(error))
+  if (code === "P1001" || code === "P1002" || code === "P1017") return true
+  return /can't reach database server|connection timed out|server has closed the connection/i.test(
+    prismaErrorMessage(error)
+  )
 }
 
 /** Fail fast while Neon is waking up — avoids hundreds of parallel retries in dev. */
