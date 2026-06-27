@@ -38,7 +38,7 @@ Cabas`
   })
 
   it("builds title-first prompt with specs and category as tone only", () => {
-    const { system, user } = buildDescriptionGenerationPrompt({
+    const { system, user, blueprint } = buildDescriptionGenerationPrompt({
       title: "Téléphone portable 17 Pro Max 5G, 7.3 pouces",
       productName: "telephone portable pro max",
       categoryPath: "Appareils électroniques > Communications > Téléphones mobiles",
@@ -46,12 +46,16 @@ Cabas`
       bullets: ["Double SIM", "7800 mAh"],
       draftNotes: "",
       galleryCount: 2,
+      variationNonce: 1,
     })
     expect(system).toContain("TITRE")
+    expect(system).toContain("Varie le vocabulaire")
     expect(user).toContain("17 Pro Max")
     expect(user).toContain("Brand name")
     expect(user).toContain("Contexte rayon")
-    expect(user).toContain("ACCROCHE")
+    expect(user).toContain("Plan éditorial")
+    expect(blueprint.family).toBe("tech")
+    expect(blueprint.sections.length).toBeGreaterThanOrEqual(5)
   })
 
   it("recognizes structured SEO sections", () => {

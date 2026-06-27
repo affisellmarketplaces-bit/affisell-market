@@ -662,6 +662,14 @@
       "warehouseZoneRegional": "Regional (EU / nearby)",
       "warehouseZoneInternational": "International (worldwide shipping)"
     },
+    "descriptionField": {
+      "label": "Description",
+      "hint": "Unlimited text and photos: write, paste, or drag images between paragraphs. Studio copy generates a structured SEO listing.",
+      "optimizeCta": "Optimize",
+      "optimizing": "Optimizing…",
+      "generateCta": "Generate description",
+      "generating": "Generating…"
+    },
     "titleOptimizer": {
       "titleLabel": "Title",
       "optimizeCta": "Optimize title & key points",

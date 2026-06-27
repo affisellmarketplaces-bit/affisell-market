@@ -662,6 +662,14 @@
       "warehouseZoneRegional": "Régional (UE / proche)",
       "warehouseZoneInternational": "International (expédition monde)"
     },
+    "descriptionField": {
+      "label": "Description",
+      "hint": "Texte + photos illimités : rédigez, collez ou glissez des images entre les paragraphes. Studio copy pour générer une fiche SEO structurée.",
+      "optimizeCta": "Optimise",
+      "optimizing": "Optimisation…",
+      "generateCta": "Générer la description",
+      "generating": "Génération…"
+    },
     "titleOptimizer": {
       "titleLabel": "Titre",
       "optimizeCta": "Optimiser titre & points clés",

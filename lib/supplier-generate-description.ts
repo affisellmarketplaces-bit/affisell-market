@@ -1,8 +1,8 @@
 import {
-  DESCRIPTION_SECTION_ORDER,
   normalizeImagePlacements,
   parseDescriptionSections,
 } from "@/lib/description-structure"
+import { pickDescriptionBlueprint, type DescriptionBlueprint } from "@/lib/description-blueprints"
 import { groqChatText, GROQ_TEXT_MODEL, GROQ_VISION_MODEL, isGroqRateLimitError } from "@/lib/ai/groq-client"
 import { GROQ_VISION_MAX_IMAGES } from "@/lib/ai/groq-vision"
 import { generateImageWithHf } from "@/lib/ai/hf-image"
@@ -236,7 +236,15 @@ export function buildDescriptionGenerationPrompt(input: {
   bullets: string[]
   draftNotes: string
   galleryCount: number
-}): { system: string; user: string } {
+  variationNonce?: number
+}): { system: string; user: string; blueprint: DescriptionBlueprint } {
+  const blueprint = pickDescriptionBlueprint({
+    title: input.title,
+    categoryPath: input.categoryPath,
+    variationNonce: input.variationNonce,
+  })
+  const sectionList = blueprint.sections.join("\n")
+
   const specBlock =
     input.specs.length > 0
       ? `Spécifications techniques (faits à intégrer):\n${input.specs.map((s) => `- ${s.label}: ${s.value}`).join("\n")}`
@@ -247,14 +255,14 @@ export function buildDescriptionGenerationPrompt(input: {
       ? `Points clés fournisseur:\n${input.bullets.map((b) => `- ${b}`).join("\n")}`
       : ""
 
-  const sectionList = DESCRIPTION_SECTION_ORDER.join("\n")
-
-  const system = `Tu es le rédacteur premium Affisell. Tu produis des fiches produit e-commerce en français:
+  const system = `Tu es le rédacteur premium Affisell (Studio copy). Tu produis des fiches produit e-commerce en français:
 - Professionnelles, détaillées, optimisées SEO, orientées conversion.
 - Basées sur le TITRE et les SPECS — jamais sur une liste brute de mots-clés.
 - La catégorie indique le ton du rayon UNIQUEMENT — ne change pas le type de produit, n'invente pas d'autres rayons.
 - N'invente pas de certifications, avis, garanties ou chiffres absents des sources.
-- Chaque section = 2 à 4 phrases fluides (pas de listes à virgules dans le corps).`
+- Chaque section = 2 à 4 phrases fluides (pas de listes à virgules dans le corps).
+- Varie le vocabulaire, les accroches et la longueur des paragraphes à chaque génération — jamais de copier-coller générique entre produits.
+- Adapte le ton et les sous-titres implicites au type de produit (tech, mode, maison, beauté…).`
 
   const user = [
     "═══ PRIORITÉ 1 — PRODUIT (TITRE) ═══",
@@ -271,6 +279,8 @@ export function buildDescriptionGenerationPrompt(input: {
       ? `Photos galerie disponibles: ${input.galleryCount} (indices 0..${input.galleryCount - 1})`
       : "",
     "",
+    `Plan éditorial (${blueprint.id}) — angle: ${blueprint.angle}`,
+    "",
     "Réponds en JSON uniquement:",
     `{`,
     `  "description": string,`,
@@ -284,16 +294,16 @@ export function buildDescriptionGenerationPrompt(input: {
     "",
     "Exigences:",
     "- 900 à 2200 caractères au total, français commercial premium.",
-    "- ACCROCHE = bénéfice principal en 1-2 phrases percutantes.",
-    "- POINTS FORTS = specs traduites en avantages client.",
-    "- INNOVATION = différenciation réelle (pas de buzzwords vides).",
+    "- Respecte l'angle du plan éditorial — ne force pas une structure générique si le plan propose autre chose.",
+    "- Première section = bénéfice principal percutant (titre exact ci-dessus, pas « ACCROCHE » si absent du plan).",
+    "- Sections techniques = specs traduites en avantages client concrets.",
     "- Pas de HTML. Double saut de ligne entre sections.",
-    "- bulletPoints: 4 à 6 puces courtes factuelles (max 120 car. chacune).",
+    "- bulletPoints: 4 à 6 puces courtes factuelles (max 120 car. chacune), formulées différemment des titres de sections.",
   ]
     .filter(Boolean)
     .join("\n")
 
-  return { system, user }
+  return { system, user, blueprint }
 }
 
 /** Vision burns scout TPD — skip when title/specs/notes already describe the product. */
@@ -342,7 +352,7 @@ async function callDescriptionModel(
     (await groqChatText({
       model: useVision ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL,
       vision: useVision,
-      temperature: 0.32,
+      temperature: 0.44,
       max_tokens: 2800,
       response_format: { type: "json_object" },
       messages: [
@@ -377,8 +387,12 @@ async function repairUnstructuredDescription(input: {
   specs: ProductSpecRow[]
   bullets: string[]
   badOutput: string
+  blueprint?: DescriptionBlueprint
 }): Promise<string | null> {
-  const sectionList = DESCRIPTION_SECTION_ORDER.join("\n")
+  const blueprint =
+    input.blueprint ??
+    pickDescriptionBlueprint({ title: input.title, categoryPath: "" })
+  const sectionList = blueprint.sections.join("\n")
   const raw = await groqChatText({
     model: GROQ_TEXT_MODEL,
     temperature: 0.2,
@@ -503,7 +517,9 @@ export async function generateSupplierProductDescription(
     galleryUrls: productImageUrls,
   })
 
-  const { system, user: baseUser } = buildDescriptionGenerationPrompt({
+  const variationNonce = Date.now()
+
+  const { system, user: baseUser, blueprint } = buildDescriptionGenerationPrompt({
     title,
     productName: productName || title,
     categoryPath,
@@ -511,6 +527,14 @@ export async function generateSupplierProductDescription(
     bullets,
     draftNotes,
     galleryCount: galleryPool.length,
+    variationNonce,
+  })
+
+  console.log("[supplier-generate-description]", {
+    event: "blueprint_picked",
+    blueprintId: blueprint.id,
+    family: blueprint.family,
+    sectionCount: blueprint.sections.length,
   })
 
   const preferVision = shouldUseVisionForDescription({
@@ -614,6 +638,7 @@ export async function generateSupplierProductDescription(
       specs,
       bullets,
       badOutput: description,
+      blueprint,
     })
     if (repaired && hasStructuredDescriptionSections(repaired)) {
       description = repaired.slice(0, 8000)

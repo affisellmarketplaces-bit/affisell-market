@@ -1,13 +1,9 @@
 /** Parse supplier SEO description sections (plain text, no HTML). */
 
-export const DESCRIPTION_SECTION_ORDER = [
-  "ACCROCHE",
-  "POUR QUI ?",
-  "POINTS FORTS",
-  "UTILISATION & ENTRETIEN",
-  "POURQUOI CE PRODUIT ?",
-  "INNOVATION",
-] as const
+import { allDescriptionSectionTitles, DESCRIPTION_BLUEPRINTS } from "@/lib/description-blueprints"
+
+/** Legacy default — first classic blueprint */
+export const DESCRIPTION_SECTION_ORDER = DESCRIPTION_BLUEPRINTS[0]!.sections
 
 export type DescriptionSectionKey = (typeof DESCRIPTION_SECTION_ORDER)[number]
 
@@ -17,10 +13,19 @@ export type DescriptionSection = {
   body: string
 }
 
-const SECTION_RE = new RegExp(
-  `^(${DESCRIPTION_SECTION_ORDER.map((s) => s.replace(/[?&]/g, "\\$&")).join("|")})\\s*$`,
-  "im"
-)
+function escapeSectionForRegex(section: string): string {
+  return section.replace(/[?&'’]/g, "\\$&")
+}
+
+/** Longest titles first so multi-word headers match correctly */
+function buildSectionRegex(): RegExp {
+  const titles = allDescriptionSectionTitles()
+    .slice()
+    .sort((a, b) => b.length - a.length)
+  return new RegExp(`^(${titles.map(escapeSectionForRegex).join("|")})\\s*$`, "im")
+}
+
+const SECTION_RE = buildSectionRegex()
 
 export function parseDescriptionSections(text: string): DescriptionSection[] {
   const raw = text.replace(/\r\n/g, "\n").trim()

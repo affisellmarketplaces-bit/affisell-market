@@ -3,6 +3,7 @@
 import { useCallback, useId, useMemo, useRef, useState } from "react"
 import type { ChangeEvent } from "react"
 import { ImagePlus, Layers, Loader2, Sparkles, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { SupplierDescriptionIllustrationFields } from "@/components/supplier/supplier-description-illustration-fields"
@@ -176,6 +177,7 @@ export function SupplierProductDescriptionField({
   productSpecs = [],
   disabled = false,
 }: Props) {
+  const t = useTranslations("supplier.descriptionField")
   const [aiLoading, setAiLoading] = useState(false)
   const [optimizeLoading, setOptimizeLoading] = useState(false)
   const [imageBusy, setImageBusy] = useState(false)
@@ -483,7 +485,7 @@ export function SupplierProductDescriptionField({
       <div>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Label htmlFor="p-desc" className="mb-0 text-zinc-800 dark:text-zinc-100">
-            Description
+            {t("label")}
           </Label>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <Button
@@ -499,7 +501,7 @@ export function SupplierProductDescriptionField({
             ) : (
               <Sparkles className="h-4 w-4" aria-hidden />
             )}
-            {optimizeLoading ? "Optimisation…" : "Optimise"}
+            {optimizeLoading ? t("optimizing") : t("optimizeCta")}
           </Button>
           <Button
             type="button"
@@ -513,13 +515,12 @@ export function SupplierProductDescriptionField({
             ) : (
               <Sparkles className="h-4 w-4" aria-hidden />
             )}
-            {aiLoading ? "Génération…" : "Générer la description"}
+            {aiLoading ? t("generating") : t("generateCta")}
           </Button>
         </div>
         </div>
         <p className="mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-          Texte + photos illimités (style AliExpress / Amazon) : rédigez, collez ou glissez des images entre les
-          paragraphes. Studio copy pour générer une fiche SEO structurée.
+          {t("hint")}
         </p>
 
         <div
