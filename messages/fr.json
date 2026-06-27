@@ -662,6 +662,23 @@
       "warehouseZoneRegional": "Régional (UE / proche)",
       "warehouseZoneInternational": "International (expédition monde)"
     },
+    "titleOptimizer": {
+      "titleLabel": "Titre",
+      "optimizeCta": "Optimiser titre & points clés",
+      "optimizing": "Optimisation…",
+      "copyEngine": "Affisell Copy Engine",
+      "charsSuffix": "car.",
+      "subtitlePrefix": "Sous-titre :",
+      "abVariantsTitle": "Variantes A/B",
+      "abVariantsHint": "Modifiez, appliquez au titre principal ou ajoutez vos propres variantes.",
+      "variantPlaceholder": "Titre alternatif pour test A/B…",
+      "useAsTitle": "Utiliser comme titre",
+      "removeVariant": "Supprimer la variante",
+      "addVariant": "Ajouter une variante",
+      "maxVariants": "Maximum {count} variantes",
+      "variantApplied": "Titre mis à jour",
+      "optimizeSuccess": "Titre & accroches optimisés"
+    },
     "wizard": {
       "backToMethods": "← Autres méthodes de création",
       "save": "Enregistrer",
