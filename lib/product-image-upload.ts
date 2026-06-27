@@ -13,6 +13,31 @@ export function isLikelyImageFile(file: File): boolean {
   return IMAGE_EXTENSIONS.test(file.name)
 }
 
+/**
+ * Safari/macOS: clearing `<input type="file">` invalidates the live FileList.
+ * Clone bytes into fresh File objects before resetting the input.
+ */
+export async function snapshotGalleryFilesFromInput(
+  fileList: FileList | File[]
+): Promise<File[]> {
+  const candidates = Array.from(fileList).filter(isLikelyImageFile)
+  const out: File[] = []
+  for (const file of candidates) {
+    try {
+      const bytes = await file.arrayBuffer()
+      out.push(
+        new File([bytes], file.name || "photo.jpg", {
+          type: file.type || "application/octet-stream",
+          lastModified: file.lastModified,
+        })
+      )
+    } catch {
+      /* skip unreadable entries */
+    }
+  }
+  return out
+}
+
 type DecodedImage = {
   width: number
   height: number

@@ -9,7 +9,10 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { isLikelyImageFile } from "@/lib/product-image-upload"
+import {
+  isLikelyImageFile,
+  snapshotGalleryFilesFromInput,
+} from "@/lib/product-image-upload"
 import { persistSupplierGalleryFiles } from "@/lib/supplier-gallery-image-persist"
 import { cn } from "@/lib/utils"
 
@@ -33,6 +36,15 @@ function slotsToOrderedUrls(slots: (string | null)[]): string[] {
 
 function revokeIfBlob(url: string | null) {
   if (url?.startsWith("blob:")) URL.revokeObjectURL(url)
+}
+
+function pickEmptySlotIndices(
+  slots: (string | null)[],
+  processingSlots: Set<number>
+): number[] {
+  return slots
+    .map((s, i) => (s || processingSlots.has(i) ? null : i))
+    .filter((i): i is number => i !== null)
 }
 
 const MAX_HTTP_IMAGE_URL_LEN = 8000
@@ -156,13 +168,27 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
   const t = useTranslations("supplier.images")
   const inputId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [slots, setSlots] = useState<(string | null)[]>(() =>
+  const slotsRef = useRef<(string | null)[]>(
     Array.from({ length: SLOT_COUNT }, (_, i) => initialUrls?.[i] ?? null)
   )
+  const processingRef = useRef<Set<number>>(new Set())
+  const ingestQueueRef = useRef<Promise<void>>(Promise.resolve())
+
+  const [slots, setSlots] = useState<(string | null)[]>(() => slotsRef.current)
   const [processingSlots, setProcessingSlots] = useState<Set<number>>(() => new Set())
   const [isBatchUploading, setIsBatchUploading] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [imageUrlDraft, setImageUrlDraft] = useState("")
+
+  const syncSlots = useCallback((next: (string | null)[]) => {
+    slotsRef.current = next
+    setSlots(next)
+  }, [])
+
+  const syncProcessing = useCallback((next: Set<number>) => {
+    processingRef.current = next
+    setProcessingSlots(next)
+  }, [])
 
   const emit = useCallback(
     (next: (string | null)[]) => {
@@ -173,7 +199,7 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
 
   const busy = isBatchUploading || processingSlots.size > 0
 
-  /** Parent → child: hydrate from server/import only — never wipe local slots when parent is still []. */
+  /** Parent → child: hydrate from server — never clobber local blob previews or in-flight uploads. */
   useEffect(() => {
     if (busy) return
     const parentUrls = (initialUrls ?? []).filter(Boolean)
@@ -183,11 +209,11 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
     setSlots((prev) => {
       const prevUrls = slotsToOrderedUrls(prev)
       const nextUrls = slotsToOrderedUrls(next)
-      const prevKey = prevUrls.join("\0")
-      const nextKey = nextUrls.join("\0")
-      if (prevKey === nextKey) return prev
-      // Keep in-flight local uploads if parent has not caught up yet.
+      if (prevUrls.join("\0") === nextUrls.join("\0")) return prev
+      if (prevUrls.some((u) => u.startsWith("blob:"))) return prev
+      if (processingRef.current.size > 0) return prev
       if (prevUrls.length > parentUrls.length) return prev
+      slotsRef.current = next
       return next
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -197,103 +223,103 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
     onBusyChange?.(busy)
   }, [busy, onBusyChange])
 
-  const emptySlotIndices = useCallback(
-    () =>
-      slots
-        .map((s, i) => (s || processingSlots.has(i) ? null : i))
-        .filter((i): i is number => i !== null),
-    [slots, processingSlots]
-  )
-
   const ingestFiles = useCallback(
-    async (fileList: FileList | File[]) => {
-      const files = Array.from(fileList).filter(isLikelyImageFile)
-      if (files.length === 0) {
-        toast.error(t("errNoImages"))
-        return
-      }
+    (rawFiles: File[]) => {
+      ingestQueueRef.current = ingestQueueRef.current.then(async () => {
+        const files = rawFiles.filter(isLikelyImageFile)
 
-      const targets = emptySlotIndices()
-      if (targets.length === 0) {
-        toast.error(t("errSlotsFull"))
-        return
-      }
+        if (files.length === 0) {
+          toast.error(t("errNoImages"))
+          return
+        }
 
-      const batch = files.slice(0, targets.length)
-      if (files.length > batch.length) {
-        toast.info(t("errSlotsPartial", { count: batch.length }))
-      }
+        const targets = pickEmptySlotIndices(slotsRef.current, processingRef.current)
+        if (targets.length === 0) {
+          toast.error(t("errSlotsFull"))
+          return
+        }
 
-      setIsBatchUploading(true)
-      const slotByIndex = targets.slice(0, batch.length)
+        const batch = files.slice(0, targets.length)
+        if (files.length > batch.length) {
+          toast.info(t("errSlotsPartial", { count: batch.length }))
+        }
 
-      setSlots((prev) => {
-        const next = [...prev]
+        const slotByIndex = targets.slice(0, batch.length)
+        const blobBySlot = new Map<number, string>()
+
+        setIsBatchUploading(true)
+
+        const previewSlots = [...slotsRef.current]
         for (let i = 0; i < batch.length; i++) {
           const idx = slotByIndex[i]!
-          revokeIfBlob(next[idx])
-          next[idx] = URL.createObjectURL(batch[i]!)
+          revokeIfBlob(previewSlots[idx])
+          const blob = URL.createObjectURL(batch[i]!)
+          blobBySlot.set(idx, blob)
+          previewSlots[idx] = blob
         }
-        return next
-      })
+        syncSlots(previewSlots)
+        emit(previewSlots)
 
-      setProcessingSlots((prev) => {
-        const s = new Set(prev)
-        for (const idx of slotByIndex) s.add(idx)
-        return s
-      })
+        const nextProcessing = new Set(processingRef.current)
+        for (const idx of slotByIndex) nextProcessing.add(idx)
+        syncProcessing(nextProcessing)
 
-      let added = 0
-      let urlsToPublish: string[] = []
-      try {
-        const persisted = await persistSupplierGalleryFiles(batch)
+        let added = 0
+        let durableUrls: string[] = []
+        try {
+          const persisted = await persistSupplierGalleryFiles(batch)
 
-        setSlots((prev) => {
-          const next = [...prev]
+          const nextSlots = [...slotsRef.current]
           for (let i = 0; i < batch.length; i++) {
             const slotIndex = slotByIndex[i]
             if (slotIndex === undefined) continue
-            revokeIfBlob(next[slotIndex])
             const row = persisted[i]
             const url = row?.url ?? null
             if (url) {
-              next[slotIndex] = url
+              revokeIfBlob(nextSlots[slotIndex])
+              nextSlots[slotIndex] = url
               added += 1
             } else {
-              next[slotIndex] = null
               const detail = row?.error?.trim()
               toast.error(
                 detail ? `${batch[i]!.name} — ${detail}` : t("errProcess", { name: batch[i]!.name })
               )
+              // Keep blob preview so the user still sees the pick
+              if (!nextSlots[slotIndex]?.startsWith("blob:")) {
+                const fallback = blobBySlot.get(slotIndex)
+                if (fallback) nextSlots[slotIndex] = fallback
+              }
             }
           }
-          urlsToPublish = slotsToOrderedUrls(next)
-          return next
-        })
+          durableUrls = slotsToOrderedUrls(nextSlots).filter((u) => !u.startsWith("blob:"))
+          syncSlots(nextSlots)
+          emit(nextSlots)
 
-        if (urlsToPublish.length > 0) {
-          onImagesChange(urlsToPublish)
-          await Promise.resolve(onPersisted?.(urlsToPublish))
+          if (durableUrls.length > 0) {
+            await Promise.resolve(onPersisted?.(durableUrls))
+          }
+          if (added > 0) {
+            toast.success(added === 1 ? t("addedOne") : t("addedMany", { count: added }))
+          }
+        } finally {
+          const cleared = new Set(processingRef.current)
+          for (const idx of slotByIndex) cleared.delete(idx)
+          syncProcessing(cleared)
+          setIsBatchUploading(false)
         }
-        if (added > 0) {
-          toast.success(added === 1 ? t("addedOne") : t("addedMany", { count: added }))
-        }
-      } finally {
-        setProcessingSlots((prev) => {
-          const s = new Set(prev)
-          for (const idx of slotByIndex) s.delete(idx)
-          return s
-        })
-        setIsBatchUploading(false)
-      }
+      })
     },
-    [emptySlotIndices, onImagesChange, onPersisted, t]
+    [emit, onPersisted, syncProcessing, syncSlots, t]
   )
 
   const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
-    const list = e.target.files
-    e.target.value = ""
-    if (list?.length) void ingestFiles(list)
+    const input = e.target
+    const list = input.files
+    // Clone before reset — Safari invalidates FileList when value is cleared.
+    void snapshotGalleryFilesFromInput(list ?? []).then((files) => {
+      input.value = ""
+      if (files.length > 0) ingestFiles(files)
+    })
   }
 
   const openFilePicker = () => {
@@ -302,18 +328,14 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
   }
 
   const removeAt = (slotIndex: number) => {
-    setSlots((prev) => {
-      const next = [...prev]
-      revokeIfBlob(next[slotIndex])
-      next[slotIndex] = null
-      emit(next)
-      return next
-    })
-    setProcessingSlots((prev) => {
-      const s = new Set(prev)
-      s.delete(slotIndex)
-      return s
-    })
+    const next = [...slotsRef.current]
+    revokeIfBlob(next[slotIndex])
+    next[slotIndex] = null
+    syncSlots(next)
+    emit(next)
+    const s = new Set(processingRef.current)
+    s.delete(slotIndex)
+    syncProcessing(s)
   }
 
   const applyImageUrl = () => {
@@ -322,23 +344,19 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
       toast.error(t("errInvalidUrl"))
       return
     }
-    setSlots((prev) => {
-      const emptyIdx = prev.findIndex((s, i) => !s && !processingSlots.has(i))
-      if (emptyIdx < 0) {
-        queueMicrotask(() => toast.error(t("errUrlSlotsFull")))
-        return prev
-      }
-      const next = [...prev]
-      next[emptyIdx] = resolved
-      const urls = slotsToOrderedUrls(next)
-      queueMicrotask(() => {
-        onImagesChange(urls)
-        onPersisted?.(urls)
-        setImageUrlDraft("")
-        toast.success(t("addedFromUrl"))
-      })
-      return next
-    })
+    const emptyIdx = slotsRef.current.findIndex((s, i) => !s && !processingRef.current.has(i))
+    if (emptyIdx < 0) {
+      toast.error(t("errUrlSlotsFull"))
+      return
+    }
+    const next = [...slotsRef.current]
+    next[emptyIdx] = resolved
+    syncSlots(next)
+    const urls = slotsToOrderedUrls(next)
+    onImagesChange(urls)
+    void Promise.resolve(onPersisted?.(urls))
+    setImageUrlDraft("")
+    toast.success(t("addedFromUrl"))
   }
 
   const onDragOver = (e: DragEvent) => {
@@ -358,10 +376,10 @@ export function SupplierProductImageUpload({ onImagesChange, initialUrls, onBusy
     setDragActive(false)
     if (isBatchUploading) return
     const files = e.dataTransfer.files
-    if (files?.length) void ingestFiles(files)
+    if (files?.length) void snapshotGalleryFilesFromInput(files).then((snap) => ingestFiles(snap))
   }
 
-  const remaining = emptySlotIndices().length
+  const remaining = pickEmptySlotIndices(slots, processingSlots).length
 
   const cellVars: CSSProperties = {
     ["--cell" as string]: "min(5.25rem, 22vw)",
