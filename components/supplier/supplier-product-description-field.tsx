@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useId, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import type { ChangeEvent } from "react"
 import { ImagePlus, Layers, Loader2, Sparkles, X } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -18,8 +18,9 @@ import {
   processDescriptionIllustrationFile,
 } from "@/lib/description-illustration-image"
 import {
-  insertImageMarkerAt,
+  descriptionHasImageMarkers,
   reindexDescriptionAfterImageRemoval,
+  stripStandaloneImageMarkerLines,
 } from "@/lib/description-rich-content"
 import {
   type DescriptionImagePlacement,
@@ -188,25 +189,16 @@ export function SupplierProductDescriptionField({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const fileInputId = useId()
 
-  const insertImagesIntoDescription = useCallback(
-    (startIndex: number, count: number) => {
-      const ta = textareaRef.current
-      const cursor = ta?.selectionStart ?? description.length
-      let next = description
-      let cursorAfter = cursor
-      for (let i = 0; i < count; i++) {
-        next = insertImageMarkerAt(next, startIndex + i, cursorAfter)
-        cursorAfter += `[[img:${startIndex + i}]]\n`.length
-      }
-      onDescriptionChange(next)
-      requestAnimationFrame(() => {
-        if (!ta) return
-        ta.focus()
-        ta.selectionStart = cursorAfter
-        ta.selectionEnd = cursorAfter
-      })
-    },
-    [description, onDescriptionChange]
+  /** Legacy uploads inserted [[img:N]] lines — strip once images are in the gallery strip. */
+  useEffect(() => {
+    if (!descriptionHasImageMarkers(description)) return
+    const cleaned = stripStandaloneImageMarkerLines(description)
+    if (cleaned !== description) onDescriptionChange(cleaned)
+  }, [description, onDescriptionChange])
+
+  const descriptionForPreview = useMemo(
+    () => stripStandaloneImageMarkerLines(description),
+    [description]
   )
 
   const ingestImageFiles = useCallback(
@@ -237,10 +229,8 @@ export function SupplierProductDescriptionField({
           }
         }
         if (added.length > 0) {
-          const startIndex = illustrationImages.length
           const nextImages = [...illustrationImages, ...added]
           onIllustrationImagesChange(nextImages)
-          insertImagesIntoDescription(startIndex, added.length)
           toast.success(
             added.length === 1 ? "Image ajoutée à la description" : `${added.length} images ajoutées`
           )
@@ -254,7 +244,6 @@ export function SupplierProductDescriptionField({
       disabled,
       illustrationImages,
       imageBusy,
-      insertImagesIntoDescription,
       onIllustrationImagesChange,
       optimizeLoading,
     ]
@@ -595,7 +584,7 @@ export function SupplierProductDescriptionField({
               onPaste={handlePaste}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
-              placeholder={`ACCROCHE\n…\n\n[[img:0]]\n\nPOINTS FORTS\n…\n\n(Ctrl+V ou glissez une image — insérée à la position du curseur)`}
+              placeholder={`ACCROCHE\n…\n\nPOINTS FORTS\n…\n\n(Ctrl+V ou glissez une image — affichée au-dessus, sans marqueur dans le texte)`}
               disabled={composerDisabled}
             />
 
@@ -626,9 +615,9 @@ export function SupplierProductDescriptionField({
             </p>
           </div>
 
-          {description.trim().length > 40 ? (
+          {descriptionForPreview.trim().length > 40 ? (
             <div className="relative border-t border-violet-200/30 px-3 py-3 dark:border-violet-900/30">
-              <DescriptionStructurePreview text={description} />
+              <DescriptionStructurePreview text={descriptionForPreview} />
             </div>
           ) : null}
         </div>

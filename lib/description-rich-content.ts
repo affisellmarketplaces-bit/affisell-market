@@ -10,6 +10,13 @@ export function descriptionHasImageMarkers(text: string): boolean {
   return /\[\[img:\d+\]\]/.test(text)
 }
 
+/** Remove lines that contain only `[[img:N]]` — editor hygiene (images live in the gallery strip). */
+export function stripStandaloneImageMarkerLines(text: string): string {
+  const lines = text.replace(/\r\n/g, "\n").split("\n")
+  const filtered = lines.filter((line) => !/^\s*\[\[img:\d+\]\]\s*$/.test(line))
+  return filtered.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd()
+}
+
 export function parseDescriptionRichContent(text: string, images: string[]): DescriptionContentPart[] {
   const raw = text.replace(/\r\n/g, "\n")
   if (!raw.trim()) return []

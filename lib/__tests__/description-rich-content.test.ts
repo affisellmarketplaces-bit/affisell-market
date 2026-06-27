@@ -4,6 +4,7 @@ import {
   insertImageMarkerAt,
   parseDescriptionRichContent,
   reindexDescriptionAfterImageRemoval,
+  stripStandaloneImageMarkerLines,
   unreferencedIllustrationImages,
 } from "@/lib/description-rich-content"
 
@@ -30,5 +31,22 @@ describe("description-rich-content", () => {
   it("lists unreferenced images when markers present", () => {
     const images = ["a", "b", "c"]
     expect(unreferencedIllustrationImages("[[img:0]]\n", images)).toEqual(["b", "c"])
+  })
+
+  it("strips standalone marker lines from editor text", () => {
+    const raw = `ACCROCHE
+Accroche produit.
+
+[[img:2]]
+[[img:3]]
+[[img:4]]
+
+POINTS FORTS
+Détail.`
+    expect(stripStandaloneImageMarkerLines(raw)).toBe(`ACCROCHE
+Accroche produit.
+
+POINTS FORTS
+Détail.`)
   })
 })
