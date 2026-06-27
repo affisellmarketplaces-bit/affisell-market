@@ -93,7 +93,7 @@ import {
   type EditableVariantRow,
 } from "@/components/supplier/supplier-variant-table"
 import { ProductWizard } from "@/components/supplier/ProductWizard"
-import { SupplierWizardSaveFooter } from "@/components/supplier/supplier-wizard-save-footer"
+import { SupplierWizardSaveFooter, type WizardAutosaveStatus } from "@/components/supplier/supplier-wizard-save-footer"
 import { SupplierSimulationCard } from "@/components/supplier/supplier-simulation-card"
 import { SupplierSkuErrorsAlert } from "@/components/supplier/supplier-sku-errors-alert"
 import {
@@ -370,6 +370,7 @@ export function SupplierAddProductForm({
     () => Boolean(editId || draftIdFromUrl)
   )
   const [saving, setSaving] = useState(false)
+  const [wizardNavBusy, setWizardNavBusy] = useState(false)
   const [draftSync, setDraftSync] = useState<"idle" | "saving" | "saved" | "error">("idle")
   const [draftSyncAt, setDraftSyncAt] = useState<number | null>(null)
   const [savedListingFingerprint, setSavedListingFingerprint] = useState<string | null>(null)
@@ -1768,6 +1769,41 @@ export function SupplierAddProductForm({
     })
   }, [hasUnsavedChanges, draftSync, draftSyncAt, tWizard])
 
+  const autosaveStatus = useMemo((): WizardAutosaveStatus => {
+    if (draftSync === "error") return "error"
+    if (savingChanges || wizardNavBusy) return "saving"
+    if (hasUnsavedChanges) return "dirty"
+    if (draftSync === "saved" && draftSyncAt) return "saved"
+    return "idle"
+  }, [draftSync, savingChanges, wizardNavBusy, hasUnsavedChanges, draftSyncAt])
+
+  const advanceWizardStep = useCallback(
+    async (advance: () => void) => {
+      if (wizardNavBusy) return
+      setWizardNavBusy(true)
+      try {
+        if (listingAutosaveEnabled) {
+          const ok = await syncDraftToServer({ force: true, stepOverride: step, silent: true })
+          if (!ok && hasUnsavedChanges) {
+            toast.error(tWizard("autosaveError"))
+            return
+          }
+        }
+        advance()
+      } finally {
+        setWizardNavBusy(false)
+      }
+    },
+    [
+      wizardNavBusy,
+      listingAutosaveEnabled,
+      syncDraftToServer,
+      step,
+      hasUnsavedChanges,
+      tWizard,
+    ]
+  )
+
   const variantLiveSyncLabels = useMemo(
     () => ({
       live: tWizard("variantLiveSyncLive"),
@@ -2875,19 +2911,22 @@ export function SupplierAddProductForm({
                 </div>
 
                 <SupplierWizardSaveFooter
-                  onSaveChanges={handleSaveChangesClick}
-                  hasUnsavedChanges={hasUnsavedChanges}
-                  savingChanges={savingChanges}
-                  saveEnabled={listingAutosaveEnabled}
-                  saveLabel={tWizard("saveChanges")}
-                  saveSavingLabel={tWizard("saveChangesSaving")}
-                  unsavedHint={tWizard("unsavedChangesHint")}
+                  autosaveEnabled={listingAutosaveEnabled}
+                  autosaveStatus={autosaveStatus}
                   savedHint={savedChangesHint}
+                  autosaveSavingLabel={tWizard("autosaveSaving")}
+                  autosaveDirtyLabel={tWizard("autosaveDirty")}
+                  autosaveSavedLabel={tWizard("autosaveSaved")}
+                  autosaveErrorLabel={tWizard("autosaveError")}
+                  syncNowLabel={tWizard("syncNow")}
+                  onSyncNow={handleSaveChangesClick}
+                  syncing={savingChanges}
                   continueButton={
                     <Button
                       type="button"
                       size="lg"
-                      className="w-full shrink-0 bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 sm:w-auto"
+                      disabled={wizardNavBusy}
+                      className="w-full shrink-0 gap-2 border-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600 text-white shadow-lg shadow-violet-500/25 hover:opacity-95 disabled:opacity-50 sm:w-auto"
                       onClick={() => {
                         const step1Blockers = collectClientPublishBlockers({
                           ...publishValidationContext,
@@ -2901,10 +2940,15 @@ export function SupplierAddProductForm({
                         }
                         setPublishBlockers([])
                         setSpecFormErrors([])
-                        nextWizardStep()
+                        void advanceWizardStep(() => nextWizardStep())
                       }}
                     >
-                      Continuer — variantes & prix
+                      {wizardNavBusy ? (
+                        <Loader2 className="size-4 animate-spin" aria-hidden />
+                      ) : (
+                        <ChevronRight className="size-4" aria-hidden />
+                      )}
+                      {wizardNavBusy ? tWizard("continuing") : tWizard("continueToStep2")}
                     </Button>
                   }
                 />
@@ -3298,29 +3342,32 @@ export function SupplierAddProductForm({
                 </div>
 
                 <SupplierWizardSaveFooter
+                  autosaveEnabled={listingAutosaveEnabled}
+                  autosaveStatus={autosaveStatus}
+                  savedHint={savedChangesHint}
+                  autosaveSavingLabel={tWizard("autosaveSaving")}
+                  autosaveDirtyLabel={tWizard("autosaveDirty")}
+                  autosaveSavedLabel={tWizard("autosaveSaved")}
+                  autosaveErrorLabel={tWizard("autosaveError")}
+                  syncNowLabel={tWizard("syncNow")}
+                  onSyncNow={handleSaveChangesClick}
+                  syncing={savingChanges}
                   back={
                     <Button type="button" variant="outline" size="lg" onClick={prevWizardStep}>
                       Retour à la fiche
                     </Button>
                   }
-                  onSaveChanges={handleSaveChangesClick}
-                  hasUnsavedChanges={hasUnsavedChanges}
-                  savingChanges={savingChanges}
-                  saveEnabled={false}
-                  saveLabel={tWizard("saveChanges")}
-                  saveSavingLabel={tWizard("saveChangesSaving")}
-                  unsavedHint={tWizard("unsavedChangesHint")}
-                  savedHint={savedChangesHint}
                   continueButton={
                     <Button
                       type="button"
                       size="lg"
-                      className="w-full bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 sm:w-auto"
                       disabled={
+                        wizardNavBusy ||
                         skuErrors.length > 0 ||
                         (variantFormMode === "simple" && simpleColorIssues.length > 0) ||
                         !step2Complete
                       }
+                      className="w-full gap-2 border-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600 text-white shadow-lg shadow-violet-500/25 hover:opacity-95 disabled:opacity-50 sm:w-auto"
                       onClick={() => {
                         const blockers = collectClientPublishBlockers(publishValidationContext)
                         const step2Only = blockers.filter((b) =>
@@ -3333,10 +3380,15 @@ export function SupplierAddProductForm({
                         setPublishBlockers((prev) =>
                           prev.filter((b) => !["price", "compareAt", "variants"].includes(b.field))
                         )
-                        nextWizardStep()
+                        void advanceWizardStep(() => nextWizardStep())
                       }}
                     >
-                      Continuer — logistique
+                      {wizardNavBusy ? (
+                        <Loader2 className="size-4 animate-spin" aria-hidden />
+                      ) : (
+                        <ChevronRight className="size-4" aria-hidden />
+                      )}
+                      {wizardNavBusy ? tWizard("continuing") : tWizard("continueToStep3")}
                     </Button>
                   }
                 />
@@ -3676,33 +3728,41 @@ export function SupplierAddProductForm({
                 </div>
 
                 <SupplierWizardSaveFooter
+                  autosaveEnabled={listingAutosaveEnabled}
+                  autosaveStatus={autosaveStatus}
+                  savedHint={savedChangesHint}
+                  autosaveSavingLabel={tWizard("autosaveSaving")}
+                  autosaveDirtyLabel={tWizard("autosaveDirty")}
+                  autosaveSavedLabel={tWizard("autosaveSaved")}
+                  autosaveErrorLabel={tWizard("autosaveError")}
+                  syncNowLabel={tWizard("syncNow")}
+                  onSyncNow={handleSaveChangesClick}
+                  syncing={savingChanges || saving}
                   back={
                     <Button type="button" variant="outline" size="lg" onClick={prevWizardStep}>
                       Retour — variantes & prix
                     </Button>
                   }
-                  onSaveChanges={handleSaveChangesClick}
-                  hasUnsavedChanges={hasUnsavedChanges}
-                  savingChanges={savingChanges}
-                  saveEnabled={listingAutosaveEnabled}
-                  saveLabel={tWizard("saveChanges")}
-                  saveSavingLabel={tWizard("saveChangesSaving")}
-                  unsavedHint={tWizard("unsavedChangesHint")}
-                  savedHint={savedChangesHint}
                   continueButton={
                     <Button
                       type="button"
                       size="lg"
                       disabled={
                         saving ||
+                        wizardNavBusy ||
                         (variantFormMode === "simple" && simpleColorIssues.length > 0) ||
                         (variantFormMode === "advanced" && skuValidationIssues.length > 0)
                       }
-                      className="w-full bg-violet-600 hover:bg-violet-700 dark:bg-violet-600 sm:w-auto"
+                      className="w-full gap-2 border-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600 text-white shadow-lg shadow-violet-500/25 hover:opacity-95 disabled:opacity-50 sm:w-auto"
                       onClick={() => void handleSubmit()}
                     >
+                      {saving ? (
+                        <Loader2 className="size-4 animate-spin" aria-hidden />
+                      ) : (
+                        <ChevronRight className="size-4" aria-hidden />
+                      )}
                       {saving
-                        ? "Enregistrement…"
+                        ? tWizard("saveChangesSaving")
                         : editId && !productIsDraft
                           ? "Enregistrer et fermer"
                           : "Publier le produit"}
