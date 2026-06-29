@@ -216,6 +216,12 @@ function OrderMetaChips({ o }: { o: OrderRow }) {
   const t = useTranslations("supplierOrders.payout")
   return (
     <div className="mt-3 flex flex-wrap gap-1.5">
+      <span
+        className="rounded-md bg-violet-50 px-2 py-0.5 font-mono text-[11px] font-semibold text-violet-800 dark:bg-violet-950/40 dark:text-violet-200"
+        title={o.id}
+      >
+        #{o.id.slice(-8).toUpperCase()}
+      </span>
       <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
         {o.customerEmail}
       </span>
