@@ -4,6 +4,10 @@ import { z } from "zod"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { triggerLightningPayout } from "@/lib/stripe-lightning"
+import {
+  extractShippingCountryIso2FromAddress,
+  isTrustedCarrierLabelForCountry,
+} from "@/lib/trusted-carriers-shared"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -47,6 +51,7 @@ export async function POST(req: Request, { params }: RouteParams) {
     select: {
       id: true,
       supplierId: true,
+      shippingAddress: true,
       supplier: { select: { id: true } },
     },
   })
@@ -61,6 +66,13 @@ export async function POST(req: Request, { params }: RouteParams) {
 
   const trackingNumber = parsed.data.trackingNumber.trim()
   const trackingCarrier = parsed.data.trackingCarrier.trim()
+  const countryIso2 = extractShippingCountryIso2FromAddress(order.shippingAddress)
+  if (!isTrustedCarrierLabelForCountry(countryIso2, trackingCarrier)) {
+    return NextResponse.json(
+      { error: "Invalid carrier for destination country" },
+      { status: 400 }
+    )
+  }
 
   await prisma.order.update({
     where: { id: orderId },

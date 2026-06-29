@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2, Truck } from "lucide-react"
 import { useSession } from "next-auth/react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -19,27 +19,27 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
+import {
+  defaultTrustedCarrierLabel,
+  trustedCarrierLabelsForCountry,
+} from "@/lib/trusted-carriers-shared"
 import { cn } from "@/lib/utils"
 
-export const LIGHTNING_CARRIERS = [
-  "Colissimo",
-  "Chronopost",
-  "Mondial Relay",
-  "DHL",
-  "Autre",
-] as const
+function markShippedFormSchema(countryIso2: string) {
+  const allowed = trustedCarrierLabelsForCountry(countryIso2)
+  return z.object({
+    trackingNumber: z.string().trim().min(1, "Numéro de suivi requis").max(120),
+    trackingCarrier: z.string().refine((v) => allowed.includes(v), "Transporteur invalide"),
+  })
+}
 
-const markShippedFormSchema = z.object({
-  trackingNumber: z.string().trim().min(1, "Numéro de suivi requis").max(120),
-  trackingCarrier: z.enum(LIGHTNING_CARRIERS),
-})
-
-type MarkShippedFormValues = z.infer<typeof markShippedFormSchema>
+type MarkShippedFormValues = z.infer<ReturnType<typeof markShippedFormSchema>>
 
 export type SupplierOrderActionsOrder = {
   id: string
   fulfillmentStatus: string
   payoutStatus: string
+  shippingCountryIso2?: string
   supplier: { userId: string }
 }
 
@@ -58,12 +58,18 @@ type MarkShippedApiResponse = {
 export function OrderActions({ order, className, onShipped }: Props) {
   const { data: session, status } = useSession()
   const [open, setOpen] = useState(false)
+  const countryIso2 = order.shippingCountryIso2 ?? "FR"
+  const carriers = useMemo(
+    () => trustedCarrierLabelsForCountry(countryIso2),
+    [countryIso2]
+  )
+  const schema = useMemo(() => markShippedFormSchema(countryIso2), [countryIso2])
 
   const form = useForm<MarkShippedFormValues>({
-    resolver: zodResolver(markShippedFormSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       trackingNumber: "",
-      trackingCarrier: "Colissimo",
+      trackingCarrier: defaultTrustedCarrierLabel(countryIso2),
     },
   })
 
@@ -101,7 +107,10 @@ export function OrderActions({ order, className, onShipped }: Props) {
           : "Expédié. Payout à J+2"
       )
       setOpen(false)
-      reset()
+      reset({
+        trackingNumber: "",
+        trackingCarrier: defaultTrustedCarrierLabel(countryIso2),
+      })
       onShipped?.()
     } catch {
       toast.error("Erreur réseau")
@@ -130,7 +139,7 @@ export function OrderActions({ order, className, onShipped }: Props) {
 
           <form className="mt-5 space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-2">
-              <Label htmlFor={`tracking-carrier-${order.id}`}>Transporteur</Label>
+              <Label htmlFor={`tracking-carrier-${order.id}`}>Transporteur ({countryIso2})</Label>
               <Controller
                 control={control}
                 name="trackingCarrier"
@@ -140,7 +149,7 @@ export function OrderActions({ order, className, onShipped }: Props) {
                       <SelectValue placeholder="Choisir un transporteur" />
                     </SelectTrigger>
                     <SelectContent>
-                      {LIGHTNING_CARRIERS.map((carrier) => (
+                      {carriers.map((carrier) => (
                         <SelectItem key={carrier} value={carrier}>
                           {carrier}
                         </SelectItem>

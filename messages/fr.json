@@ -1692,6 +1692,7 @@
     "loading": "Chargement…",
     "loadError": "Impossible de charger les commandes",
     "trackingRequired": "Saisissez un numéro de suivi avant de marquer comme expédiée.",
+    "carrierRequired": "Choisissez un transporteur approuvé pour le pays de livraison.",
     "updateFailed": "Mise à jour impossible",
     "page": {
       "eyebrow": "Expédition",
@@ -1710,6 +1711,7 @@
       "markShipped": "Marquer expédiée",
       "shipTo": "Expédier à",
       "carrier": "Transporteur",
+      "carrierCountryHint": "Transporteurs approuvés pour {country}",
       "trackingNumber": "N° de suivi *",
       "splitDetail": "Voir le détail du split →"
     },

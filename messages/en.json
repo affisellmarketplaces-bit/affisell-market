@@ -1668,6 +1668,7 @@
     "loading": "Loading…",
     "loadError": "Could not load orders",
     "trackingRequired": "Enter a tracking number before marking as shipped.",
+    "carrierRequired": "Choose an approved carrier for the delivery country.",
     "updateFailed": "Update failed",
     "page": {
       "eyebrow": "Fulfillment",
@@ -1686,6 +1687,7 @@
       "markShipped": "Mark shipped",
       "shipTo": "Ship to",
       "carrier": "Carrier",
+      "carrierCountryHint": "Approved carriers for {country}",
       "trackingNumber": "Tracking number *",
       "splitDetail": "View payout split →"
     },

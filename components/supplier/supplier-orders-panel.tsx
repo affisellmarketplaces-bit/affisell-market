@@ -18,11 +18,22 @@ import { ShipPulseBadge } from "@/components/supplier/ship-pulse-badge"
 import { SupplierOrderFulfillmentPanel } from "@/components/supplier/supplier-order-fulfillment-panel"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import {
   isShipDeadlineBreached,
   isShipDeadlineCritical,
 } from "@/lib/supplier-ship-sla-shared"
+import {
+  defaultTrustedCarrierLabel,
+  trustedCarriersForCountry,
+} from "@/lib/trusted-carriers-shared"
 import { cn } from "@/lib/utils"
 
 type OrderRow = {
@@ -47,6 +58,7 @@ type OrderRow = {
   trackingCarrier: string | null
   trackingNumber: string | null
   shippingAddressFormatted: string
+  shippingCountryIso2: string
   product: {
     id: string
     name: string
@@ -273,6 +285,23 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
     void load()
   }, [load])
 
+  useEffect(() => {
+    if (!rows) return
+    setTrackingByOrder((prev) => {
+      const next = { ...prev }
+      for (const o of rows) {
+        if (!o.canMarkShipped) continue
+        const existing = next[o.id]
+        const defaultCarrier = defaultTrustedCarrierLabel(o.shippingCountryIso2)
+        next[o.id] = {
+          carrier: existing?.carrier || defaultCarrier,
+          number: existing?.number ?? "",
+        }
+      }
+      return next
+    })
+  }, [rows])
+
   async function patchOrder(
     orderId: string,
     body: Record<string, string | undefined>
@@ -308,6 +337,11 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
   async function markShipped(orderId: string) {
     const t = trackingByOrder[orderId]
     const trackingNumber = t?.number?.trim() ?? ""
+    const carrier = t?.carrier?.trim() ?? ""
+    if (!carrier) {
+      setError(msg("carrierRequired"))
+      return
+    }
     if (!trackingNumber) {
       setError(msg("trackingRequired"))
       return
@@ -315,7 +349,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
     const result = await patchOrder(orderId, {
       action: "mark_shipped",
       trackingNumber,
-      ...(t?.carrier?.trim() ? { trackingCarrier: t.carrier.trim() } : {}),
+      trackingCarrier: carrier,
     })
     if (result) {
       toast.success(
@@ -567,14 +601,31 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
 
                   {o.canMarkShipped ? (
                     <div className="mt-auto space-y-2 pt-4">
-                      <input
-                        id={`carrier-${o.id}`}
-                        className="h-9 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-violet-400 dark:border-zinc-600 dark:bg-zinc-950"
-                        placeholder={msg("actions.carrier")}
-                        aria-label={msg("actions.carrier")}
-                        value={trackingByOrder[o.id]?.carrier ?? ""}
-                        onChange={(e) => setTracking(o.id, "carrier", e.target.value)}
-                      />
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                        {msg("actions.carrierCountryHint", { country: o.shippingCountryIso2 })}
+                      </p>
+                      <Select
+                        value={trackingByOrder[o.id]?.carrier ?? defaultTrustedCarrierLabel(o.shippingCountryIso2)}
+                        onValueChange={(value) => {
+                          if (value) setTracking(o.id, "carrier", value)
+                        }}
+                        disabled={busy === o.id}
+                      >
+                        <SelectTrigger
+                          id={`carrier-${o.id}`}
+                          className="h-9 w-full border-zinc-200 bg-white dark:border-zinc-600 dark:bg-zinc-950"
+                          aria-label={msg("actions.carrier")}
+                        >
+                          <SelectValue placeholder={msg("actions.carrier")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {trustedCarriersForCountry(o.shippingCountryIso2).map((row) => (
+                            <SelectItem key={row.label} value={row.label}>
+                              {row.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <input
                         id={`tracking-${o.id}`}
                         className="h-9 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-violet-400 dark:border-zinc-600 dark:bg-zinc-950"

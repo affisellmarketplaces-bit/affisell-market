@@ -1,20 +1,15 @@
 const AFTERSHIP_API_BASE = "https://api.aftership.com/tracking/2024-07"
 
-const CARRIER_TO_AFTERSHIP_SLUG: Record<string, string> = {
-  Colissimo: "colissimo",
-  Chronopost: "chronopost",
-  "Mondial Relay": "mondialrelay",
-  DHL: "dhl",
+import { afterShipSlugForTrustedCarrier } from "@/lib/trusted-carriers-shared"
+
+function resolveAfterShipSlug(carrier: string | null | undefined): string | undefined {
+  if (!carrier?.trim()) return undefined
+  return afterShipSlugForTrustedCarrier(carrier) ?? undefined
 }
 
 function afterShipApiKey(): string | null {
   const key = process.env.AFTERSHIP_API_KEY?.trim()
   return key || null
-}
-
-function resolveAfterShipSlug(carrier: string | null | undefined): string | undefined {
-  if (!carrier?.trim()) return undefined
-  return CARRIER_TO_AFTERSHIP_SLUG[carrier.trim()] ?? undefined
 }
 
 type AfterShipDetectResponse = {

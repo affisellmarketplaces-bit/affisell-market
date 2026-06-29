@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client"
 import { aggregateBlindLinesForSupplier } from "@/lib/blind-dropship-settlement"
 import { resolveMarketplaceOrderLineImageUrl } from "@/lib/cart-line-image"
 import { formatOrderShippingAddress } from "@/lib/order-shipping-address"
+import { extractShippingCountryIso2FromAddress } from "@/lib/trusted-carriers-shared"
 import { resolveSupplierPayoutCentsFromOrder } from "@/lib/marketplace-order-settlement"
 import { orderPayoutTiming, payoutStatusLabel } from "@/lib/order-payout-policy"
 import { prisma } from "@/lib/prisma"
@@ -59,6 +60,7 @@ export type SupplierFulfillmentOrder = {
   trackingCarrier: string | null
   trackingNumber: string | null
   shippingAddressFormatted: string
+  shippingCountryIso2: string
   canMarkShipped: boolean
   product: {
     id: string
@@ -124,6 +126,7 @@ export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrd
     trackingCarrier: o.trackingCarrier,
     trackingNumber: o.trackingNumber,
     shippingAddressFormatted: formatOrderShippingAddress(o.shippingAddress),
+    shippingCountryIso2: extractShippingCountryIso2FromAddress(o.shippingAddress),
     canMarkPreparing: o.status === "paid",
     canMarkShipped: o.status === "paid" || o.status === "preparing",
     supplierPreparingAt: o.supplierPreparingAt?.toISOString() ?? null,
@@ -247,6 +250,7 @@ function mapBlindOrder(
     trackingCarrier: order.trackingCarrier,
     trackingNumber: order.trackingNumber,
     shippingAddressFormatted: formatOrderShippingAddress(order.shippingAddress),
+    shippingCountryIso2: extractShippingCountryIso2FromAddress(order.shippingAddress),
     canMarkShipped: false,
     canMarkPreparing: false,
     supplierPreparingAt: null,

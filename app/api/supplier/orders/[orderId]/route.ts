@@ -11,6 +11,10 @@ import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped
 import { triggerOrderTransferRelease } from "@/lib/trigger-order-transfer-release"
 import { triggerLightningPayout } from "@/lib/stripe-lightning"
 import { prisma } from "@/lib/prisma"
+import {
+  extractShippingCountryIso2FromAddress,
+  isTrustedCarrierLabelForCountry,
+} from "@/lib/trusted-carriers-shared"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -20,7 +24,7 @@ const markPreparingSchema = z.object({ action: z.literal("mark_preparing") }).st
 const markShippedSchema = z
   .object({
     action: z.literal("mark_shipped"),
-    trackingCarrier: z.string().max(80).optional(),
+    trackingCarrier: z.string().min(1).max(80),
     trackingNumber: z.string().min(1).max(120),
   })
   .strict()
@@ -123,7 +127,14 @@ export async function PATCH(
     return Response.json({ error: "Order is not awaiting shipment" }, { status: 409 })
   }
 
-  const carrier = parsed.data.trackingCarrier?.trim() || "Carrier"
+  const countryIso2 = extractShippingCountryIso2FromAddress(existing.shippingAddress)
+  const carrier = parsed.data.trackingCarrier.trim()
+  if (!isTrustedCarrierLabelForCountry(countryIso2, carrier)) {
+    return Response.json(
+      { error: "Invalid carrier for destination country" },
+      { status: 400 }
+    )
+  }
   const tracking = parsed.data.trackingNumber.trim()
 
   const updated = await prisma.$transaction(async (tx) => {
