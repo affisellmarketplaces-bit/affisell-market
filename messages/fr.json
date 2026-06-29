@@ -963,6 +963,12 @@
         "advice": "Affisell ne fournit pas de conseil fiscal. Consultez un expert-comptable ou conseil fiscal dans votre pays si nécessaire."
       }
     },
+    "dac7Export": {
+      "cta": "Télécharger récap DAC7 (CSV)",
+      "downloading": "Export…",
+      "hint": "Récap annuel CA plateforme et nombre de ventes — pour votre comptable.",
+      "error": "Export impossible"
+    },
     "liveStore": {
       "openAria": "Ouvrir les visiteurs en direct",
       "liveBadge": "LIVE • {count, plural, one {# visiteur} other {# visiteurs}}",
@@ -3208,6 +3214,58 @@
       "accepted": "Vous avez accepté le délai.",
       "rejected": "Vous avez refusé le délai."
     }
+  },
+  "sellAffiliateProgram": {
+    "meta": {
+      "title": "Programme partenaire — statut & fiscalité",
+      "description": "Page B2B : indépendance, commissions HT, versements, interdits et DAC7. Anti-URSSAF."
+    },
+    "eyebrow": "Programme partenaire · B2B",
+    "title": "Partenaire curateur Affisell",
+    "hero": {
+      "subtitle": "Rémunération sur le prix catalogue HT — pas de salaire. Cookie d'attribution {days} jours. Commission typique {min} à {max} % selon fiche.",
+      "commission": "{min} à {max} % du prix HT catalogue",
+      "cookie": "Cookie d'attribution {days} jours (dernier clic)"
+    },
+    "ctaSignup": "Créer un compte partenaire",
+    "ctaCgs": "Lire les CGS partenaire",
+    "ctaLogin": "Connexion partenaire",
+    "status": {
+      "title": "Statut juridique",
+      "warning": "Vous êtes indépendant. Pas de salaire fixe. Déclarez vos revenus. Affisell n'est pas votre employeur.",
+      "legalRef": "Cadre anti-salariat déguisé — art. L8221-6 du Code du travail (France). Aucune subordination, horaire imposé ni rémunération garantie."
+    },
+    "catalog": {
+      "title": "Catalogue par univers",
+      "body": "Vous parcourez des fiches par catégorie — sans accès aux identités fournisseur (protection commerciale et RGPD).",
+      "noSuppliers": "Les noms d'entrepôts et marques fournisseur ne sont jamais affichés aux partenaires curateurs."
+    },
+    "tax": {
+      "title": "Fiscalité par pays de résidence",
+      "body": "Vous déclarez votre rémunération partenaire (commission + marge nette) dans votre pays. Affisell n'est pas retenue à la source sauf obligation légale.",
+      "tableCaption": "Régimes indicatifs par pays",
+      "colCountry": "Pays",
+      "colRegime": "Régime indicatif",
+      "dac7Dashboard": "Export CSV annuel disponible dans votre cockpit gains (DAC7).",
+      "dac7Cta": "Ouvrir le cockpit gains"
+    },
+    "payout": {
+      "title": "Versements",
+      "body": "Seuil minimum {min}. Versement J+{days} après clôture du mois civil (batch Stripe Connect).",
+      "clawback": "Si le client exerce son droit de retour, la commission est annulée — y compris si déjà versée : clawback sur vos prochains gains."
+    },
+    "prohibited": {
+      "title": "Pratiques interdites",
+      "body": "Toute violation entraîne une procédure de conformité.",
+      "items": {
+        "spam": "Spam, messages non sollicités ou listes achetées",
+        "brandMisuse": "Usage non autorisé de marques tierces ou logos fournisseurs",
+        "fakeReviews": "Faux avis, astroturfing ou incitation trompeuse",
+        "googleAdsOnAffisellName": "Google Ads / SEA sur le nom « Affisell » ou marques déposées Affisell"
+      },
+      "sanction": "Sanction : exclusion du programme + perte des gains des {days} derniers jours en cours de règlement."
+    },
+    "footerLegal": "Document informatif B2B — les CGS partenaire et votre statut juridique local priment. Aucune promesse de revenu."
   },
   "sellBecomeSupplier": {
     "meta": {

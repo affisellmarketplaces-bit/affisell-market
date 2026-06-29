@@ -1,6 +1,8 @@
 import { Scale } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
+import { AffiliateDac7ExportButton } from "@/components/affiliate/affiliate-dac7-export-button"
+
 export async function PartnerTaxCompliancePanel() {
   const t = await getTranslations("affiliate.earnings.taxCompliance")
 
@@ -28,6 +30,7 @@ export async function PartnerTaxCompliancePanel() {
             <li>{t("dac7")}</li>
             <li>{t("advice")}</li>
           </ul>
+          <AffiliateDac7ExportButton />
         </div>
       </div>
     </section>

@@ -963,6 +963,12 @@
         "advice": "Affisell does not provide tax advice. Consult an accountant or tax adviser in your country if needed."
       }
     },
+    "dac7Export": {
+      "cta": "Download DAC7 recap (CSV)",
+      "downloading": "Exporting…",
+      "hint": "Annual platform revenue and sale count — for your accountant.",
+      "error": "Could not export"
+    },
     "liveStore": {
       "openAria": "Open live visitors",
       "liveBadge": "LIVE • {count, plural, one {# visitor} other {# visitors}}",
@@ -3184,6 +3190,58 @@
       "accepted": "You accepted the extension.",
       "rejected": "You refused the extension."
     }
+  },
+  "sellAffiliateProgram": {
+    "meta": {
+      "title": "Partner program — status & tax",
+      "description": "B2B page: independence, net commissions, payouts, prohibited conduct and DAC7."
+    },
+    "eyebrow": "Partner program · B2B",
+    "title": "Affisell curator partner",
+    "hero": {
+      "subtitle": "Earnings on catalogue net price — no salary. {days}-day attribution cookie. Typical {min}–{max}% per listing.",
+      "commission": "{min}–{max}% of catalogue net price",
+      "cookie": "{days}-day attribution cookie (last click)"
+    },
+    "ctaSignup": "Create partner account",
+    "ctaCgs": "Read partner terms (CGS)",
+    "ctaLogin": "Partner login",
+    "status": {
+      "title": "Legal status",
+      "warning": "You are self-employed. No fixed salary. Declare your earnings. Affisell is not your employer.",
+      "legalRef": "Anti-disguised employment framework — French Labour Code art. L8221-6. No subordination, fixed hours or guaranteed pay."
+    },
+    "catalog": {
+      "title": "Catalogue by vertical",
+      "body": "Browse listings by category — supplier identities are never exposed (trade secrecy & GDPR).",
+      "noSuppliers": "Warehouse and supplier brand names are never shown to curator partners."
+    },
+    "tax": {
+      "title": "Tax by country of residence",
+      "body": "Declare partner earnings (commission + net markup) in your country. Affisell does not withhold unless legally required.",
+      "tableCaption": "Indicative regimes by country",
+      "colCountry": "Country",
+      "colRegime": "Indicative regime",
+      "dac7Dashboard": "Annual CSV export available in your earnings cockpit (DAC7).",
+      "dac7Cta": "Open earnings cockpit"
+    },
+    "payout": {
+      "title": "Payouts",
+      "body": "Minimum threshold {min}. Payout J+{days} after calendar month-end (Stripe Connect batch).",
+      "clawback": "If the buyer returns the order, commission is cancelled — even if already paid: clawback on your next earnings."
+    },
+    "prohibited": {
+      "title": "Prohibited practices",
+      "body": "Any breach triggers a compliance review.",
+      "items": {
+        "spam": "Spam, unsolicited messages or purchased lists",
+        "brandMisuse": "Unauthorized use of third-party brands or supplier logos",
+        "fakeReviews": "Fake reviews, astroturfing or misleading incentives",
+        "googleAdsOnAffisellName": "Google Ads / SEA on the name “Affisell” or Affisell trademarks"
+      },
+      "sanction": "Sanction: program ban + forfeiture of earnings from the last {days} days pending settlement."
+    },
+    "footerLegal": "B2B information only — partner terms (CGS) and your local legal status prevail. No income promises."
   },
   "sellBecomeSupplier": {
     "meta": {
