@@ -1,5 +1,10 @@
 import type { Order } from "@prisma/client"
 
+import {
+  euWithdrawalEndsAt,
+  isWithinEuWithdrawalWindow,
+  withdrawalAnchorAt,
+} from "@/lib/buyer-withdrawal-window"
 import { isTerminalReturnStatus } from "@/lib/order-return-types"
 
 /** Return window from order date (proxy for “delivered + X days” until we track delivery). */
@@ -20,6 +25,21 @@ export function orderReturnWindowEndsAt(order: Pick<Order, "createdAt">): Date {
 
 export function isWithinReturnWindow(order: Pick<Order, "createdAt">, now = new Date()): boolean {
   return now <= orderReturnWindowEndsAt(order)
+}
+
+/** EU 14-day withdrawal — starts at delivery (not order date). */
+export function buyerReturnWindowEndsAt(
+  order: Pick<Order, "deliveredAt" | "deliveryConfirmedAt">
+): Date | null {
+  return euWithdrawalEndsAt(order)
+}
+
+export function isWithinBuyerReturnWindow(
+  order: Pick<Order, "deliveredAt" | "deliveryConfirmedAt">,
+  now = new Date()
+): boolean {
+  if (!withdrawalAnchorAt(order)) return false
+  return isWithinEuWithdrawalWindow(order, now)
 }
 
 export function buyerOwnsOrder(

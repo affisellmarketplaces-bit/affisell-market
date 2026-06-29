@@ -1,11 +1,9 @@
 import { notFound, redirect } from "next/navigation"
 
+import { BuyerOrderDetailView } from "@/components/account/buyer-order-detail-view"
 import { BentoContainer } from "@/components/affisell/bento-ui"
-import { OrderDetailPanel } from "@/components/legal/order-detail-panel"
 import { auth } from "@/auth"
-import { orderDetailBackHref, resolveOrderAccessRole } from "@/lib/order-access"
-import { isBuyerVisibleOrder } from "@/lib/buyer-order-visibility"
-import { prisma } from "@/lib/prisma"
+import { loadBuyerOrderDetail } from "@/lib/buyer-order-detail-load"
 
 export const dynamic = "force-dynamic"
 
@@ -13,41 +11,17 @@ type Props = { params: Promise<{ id: string }> }
 
 export default async function MarketplaceBuyerOrderDetailPage({ params }: Props) {
   const session = await auth()
-  if (!session?.user?.id) {
+  if (!session?.user?.email) {
     redirect("/login/customer?callbackUrl=/marketplace/account/orders")
   }
 
   const { id } = await params
-  const order = await prisma.order.findUnique({
-    where: { id },
-    include: {
-      product: { select: { id: true, name: true } },
-      supplier: { select: { store: { select: { showRevenueToAffiliate: true } } } },
-    },
-  })
+  const order = await loadBuyerOrderDetail(id, session.user.email)
   if (!order) notFound()
-
-  const role = resolveOrderAccessRole(order, session.user)
-  if (role !== "CUSTOMER") notFound()
-  if (
-    !isBuyerVisibleOrder({
-      status: order.status,
-      productId: order.product.id,
-      productName: order.product.name,
-    })
-  ) {
-    notFound()
-  }
 
   return (
     <BentoContainer maxWidth="4xl">
-      <OrderDetailPanel
-        order={order}
-        role={role}
-        backHref={orderDetailBackHref(role)}
-        backLabel="← Retour à mes commandes"
-        showRevenueToAffiliate={order.supplier.store?.showRevenueToAffiliate ?? false}
-      />
+      <BuyerOrderDetailView order={order} backHref="/marketplace/account/orders" />
     </BentoContainer>
   )
 }

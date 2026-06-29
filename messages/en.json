@@ -3185,6 +3185,49 @@
       "rejected": "You refused the extension."
     }
   },
+  "buyerOrderDetail": {
+    "back": "← Back to my orders",
+    "orderRef": "Order {id}…",
+    "verifiedPartner": "Sold by a verified Affisell partner",
+    "priceTtc": "incl. VAT",
+    "tracking": "Parcel tracking",
+    "carrierDefault": "Carrier",
+    "trackPackage": "Track my parcel",
+    "deliveredOn": "Delivered on",
+    "estimatedDelivery": "Estimated delivery",
+    "etaPending": "Updating — we'll email you when ready",
+    "withdrawalUntil": "Withdrawal available until {date}",
+    "withdrawalTitle": "14-day withdrawal right",
+    "withdrawalBody": "You may return this item without giving a reason during the legal period.",
+    "returnCta": "14-day return",
+    "withdrawalEnded": "Withdrawal period ended on {date}.",
+    "refundInitiated": "Refund initiated. Allow 5–10 business days depending on your bank.",
+    "returnApproved": "Request approved — ship the item to the address below.",
+    "invoice": "VAT invoice {amount}",
+    "buyerProtection": "Buyer protection",
+    "gdpr": "Personal data",
+    "status": {
+      "paid": "Confirmed",
+      "preparing": "Preparing",
+      "shipped": "Shipped",
+      "refunded": "Refunded",
+      "cancelled": "Cancelled",
+      "unknown": "In progress"
+    },
+    "returnModal": {
+      "title": "Return request",
+      "subtitle": "Reason for withdrawal and return shipping address.",
+      "reasonLabel": "Reason",
+      "detailsLabel": "Details (optional)",
+      "detailsPlaceholder": "Brief description if needed…",
+      "addressLabel": "Return address",
+      "addressPending": "Return address will be confirmed by email after approval.",
+      "cancel": "Cancel",
+      "submit": "Submit request",
+      "submitting": "Sending…",
+      "error": "Request failed"
+    }
+  },
   "orderReturns": {
     "reasons": {
       "NOT_AS_DESCRIBED": "Item not as described",

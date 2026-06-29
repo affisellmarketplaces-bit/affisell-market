@@ -20,7 +20,7 @@ export async function ProtectedCheckoutPage() {
 
   return (
     <BentoShell>
-      <BentoContainer maxWidth="3xl" className="space-y-8 py-12">
+      <BentoContainer maxWidth="4xl" className="space-y-8 py-12">
         <BentoPageHeading eyebrow={t("eyebrow")} title={t("title")} description={t("description")} />
 
         <div className="flex flex-wrap gap-2">

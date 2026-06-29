@@ -3209,6 +3209,49 @@
       "rejected": "Vous avez refusé le délai."
     }
   },
+  "buyerOrderDetail": {
+    "back": "← Retour à mes commandes",
+    "orderRef": "Commande {id}…",
+    "verifiedPartner": "Vendu par un partenaire Affisell vérifié",
+    "priceTtc": "TTC",
+    "tracking": "Suivi colis",
+    "carrierDefault": "Transporteur",
+    "trackPackage": "Suivre mon colis",
+    "deliveredOn": "Livré le",
+    "estimatedDelivery": "Livraison estimée",
+    "etaPending": "Calcul en cours — vous serez notifié par e-mail",
+    "withdrawalUntil": "Rétractation possible jusqu'au {date}",
+    "withdrawalTitle": "Droit de rétractation (14 jours)",
+    "withdrawalBody": "Vous pouvez retourner cet article sans justification pendant le délai légal.",
+    "returnCta": "Retour 14 jours",
+    "withdrawalEnded": "Délai de rétractation terminé le {date}.",
+    "refundInitiated": "Remboursement initié. 5 à 10 jours ouvrés selon votre banque.",
+    "returnApproved": "Demande approuvée — renvoyez l'article à l'adresse ci-dessous.",
+    "invoice": "Facture TTC {amount}",
+    "buyerProtection": "Protection acheteur",
+    "gdpr": "Données personnelles",
+    "status": {
+      "paid": "Confirmée",
+      "preparing": "Préparation en cours",
+      "shipped": "Expédiée",
+      "refunded": "Remboursée",
+      "cancelled": "Annulée",
+      "unknown": "En cours"
+    },
+    "returnModal": {
+      "title": "Demande de retour",
+      "subtitle": "Motif de rétractation et adresse d'expédition pour le renvoi.",
+      "reasonLabel": "Motif",
+      "detailsLabel": "Précisions (optionnel)",
+      "detailsPlaceholder": "Décrivez brièvement si besoin…",
+      "addressLabel": "Adresse de retour",
+      "addressPending": "L'adresse de retour vous sera confirmée par e-mail après validation.",
+      "cancel": "Annuler",
+      "submit": "Envoyer la demande",
+      "submitting": "Envoi…",
+      "error": "Demande impossible"
+    }
+  },
   "orderReturns": {
     "reasons": {
       "NOT_AS_DESCRIBED": "Article non conforme à la description",

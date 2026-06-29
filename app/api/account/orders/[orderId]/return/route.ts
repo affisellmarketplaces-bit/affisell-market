@@ -4,7 +4,7 @@ import {
   buyerOwnsOrder,
   getActiveReturn,
   hasBlockingReturnHistory,
-  isWithinReturnWindow,
+  isWithinBuyerReturnWindow,
   parseEvidenceUrls,
   sellerRespondByFromNow,
 } from "@/lib/order-return-policy"
@@ -61,7 +61,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ orderId: strin
     return Response.json({ error: "Returns are not available for this order state." }, { status: 400 })
   }
 
-  if (!isWithinReturnWindow(order)) {
+  if (!isWithinBuyerReturnWindow(order)) {
     return Response.json({ error: "Return window has expired" }, { status: 400 })
   }
 

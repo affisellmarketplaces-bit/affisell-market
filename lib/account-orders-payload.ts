@@ -3,6 +3,8 @@ import { buyerVisibleMarketplaceOrderWhere } from "@/lib/buyer-order-visibility"
 import {
   getActiveReturn,
   hasBlockingReturnHistory,
+  buyerReturnWindowEndsAt,
+  isWithinBuyerReturnWindow,
   orderReturnWindowEndsAt,
 } from "@/lib/order-return-policy"
 import { isTerminalReturnStatus } from "@/lib/order-return-types"
@@ -159,12 +161,13 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
         name: o.product.name,
         imageUrl: o.product.images[0] ?? null,
       },
-      returnWindowEndsAt: orderReturnWindowEndsAt(o).toISOString(),
+      returnWindowEndsAt: buyerReturnWindowEndsAt(o)?.toISOString() ?? orderReturnWindowEndsAt(o).toISOString(),
       returnEligible:
-        (o.status === "paid" || o.status === "shipped") &&
-        now <= orderReturnWindowEndsAt(o) &&
+        (o.status === "paid" || o.status === "preparing" || o.status === "shipped") &&
+        isWithinBuyerReturnWindow(o) &&
+        !active &&
         !hasBlockingReturnHistory(o.returns),
-      deliveredAt: (o.deliveredAt ?? o.shippedAt)?.toISOString() ?? null,
+      deliveredAt: (o.deliveredAt ?? o.deliveryConfirmedAt)?.toISOString() ?? null,
       deliveryConfirmedAt: o.deliveryConfirmedAt?.toISOString() ?? null,
       canConfirmDelivery:
         o.status === "shipped" &&
