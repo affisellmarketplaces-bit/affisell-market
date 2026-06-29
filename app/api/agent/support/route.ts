@@ -4,7 +4,7 @@ import { convertToModelMessages, streamText, type UIMessage } from "ai"
 import { validateAgentMessages } from "@/lib/agent-message-bounds"
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { logBusiness } from "@/lib/business-log"
-import { resolveAppUrl } from "@/lib/emails/send-order-confirmation"
+import { resolveCheckoutBaseUrl } from "@/lib/checkout-base-url"
 import {
   SUPPORT_AGENT_SYSTEM_PROMPT,
 } from "@/lib/support/support-knowledge"
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     return Response.json(
       {
         error: "support_agent_unavailable",
-        hint: "Consultez /faq ou /contact",
+        hint: "Consultez /help/faq ou /contact",
       },
       { status: 503 }
     )
@@ -61,8 +61,8 @@ export async function POST(req: Request) {
 
   logBusiness("support-agent", { result: "request", queryPreview })
 
-  const baseUrl = resolveAppUrl()
-  const system = `${SUPPORT_AGENT_SYSTEM_PROMPT}\n\nBASE=${baseUrl}`
+  const baseUrl = resolveCheckoutBaseUrl(req)
+  const system = `${SUPPORT_AGENT_SYSTEM_PROMPT}\n\nOrigine publique du site (référence interne uniquement — ne jamais l'afficher si un chemin relatif suffit): ${baseUrl}`
 
   const result = streamText({
     model: groq("llama-3.3-70b-versatile"),

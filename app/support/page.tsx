@@ -27,7 +27,7 @@ export default function SupportPage() {
           <BentoCard className="p-4">
             <p className="text-sm font-semibold text-zinc-900 dark:text-white">FAQ</p>
             <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">10+ réponses sur commandes, livraison, cashback.</p>
-            <Link href="/faq" className={cn(buttonVariants({ variant: "link", size: "sm" }), "mt-2 px-0")}>
+            <Link href="/help/faq" className={cn(buttonVariants({ variant: "link", size: "sm" }), "mt-2 px-0")}>
               Ouvrir →
             </Link>
           </BentoCard>

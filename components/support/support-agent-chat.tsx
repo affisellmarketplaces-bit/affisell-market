@@ -3,19 +3,50 @@
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { Loader2, MessageCircle, Sparkles } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import Link from "next/link"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { Button } from "@/components/ui/button"
 import { SUPPORT_STARTER_PROMPTS } from "@/lib/support/support-knowledge"
+import { sanitizeSupportAgentText } from "@/lib/support/sanitize-agent-links"
 import { cn } from "@/lib/utils"
 
-function messageText(parts: { type: string; text?: string }[]): string {
+function rawMessageText(parts: { type: string; text?: string }[]): string {
   return parts
     .filter((p): p is { type: "text"; text: string } => p.type === "text" && typeof p.text === "string")
     .map((p) => p.text)
     .join("")
+}
+
+const SUPPORT_PATH_LINK_RE = /(\/[a-zA-Z0-9][^\s,.)]*)/g
+
+function SupportMessageBody({ text }: { text: string }) {
+  const safe = sanitizeSupportAgentText(text)
+  const nodes: ReactNode[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+  const re = new RegExp(SUPPORT_PATH_LINK_RE.source, "g")
+
+  while ((match = re.exec(safe)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(safe.slice(lastIndex, match.index))
+    }
+    const href = match[1] ?? ""
+    nodes.push(
+      <Link
+        key={`${match.index}-${href}`}
+        href={href}
+        className="font-semibold underline underline-offset-2 hover:text-violet-700 dark:hover:text-violet-300"
+      >
+        {href}
+      </Link>
+    )
+    lastIndex = match.index + match[0].length
+  }
+
+  if (lastIndex < safe.length) nodes.push(safe.slice(lastIndex))
+  return <>{nodes}</>
 }
 
 export function SupportAgentChat({ className }: { className?: string }) {
@@ -88,7 +119,11 @@ export function SupportAgentChat({ className }: { className?: string }) {
                 : "mr-auto border border-zinc-200 bg-white text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
             )}
           >
-            {messageText(m.parts)}
+            {m.role === "assistant" ? (
+              <SupportMessageBody text={rawMessageText(m.parts)} />
+            ) : (
+              rawMessageText(m.parts)
+            )}
           </div>
         ))}
 
@@ -102,7 +137,7 @@ export function SupportAgentChat({ className }: { className?: string }) {
         {error ? (
           <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
             Assistant indisponible — consultez la{" "}
-            <Link href="/faq" className="font-semibold underline">
+            <Link href="/help/faq" className="font-semibold underline">
               FAQ
             </Link>{" "}
             ou{" "}
