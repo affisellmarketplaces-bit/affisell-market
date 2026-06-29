@@ -24,7 +24,7 @@ export default function ContactPage() {
             Une question sur une commande, un retour ou un compte fournisseur / affilié ? Écrivez-nous.
           </p>
         </header>
-        <BentoCard className="p-6 sm:p-8">
+        <BentoCard className="overflow-visible p-6 sm:p-8">
           <ContactForm supportEmail={supportEmail} />
         </BentoCard>
       </BentoContainer>

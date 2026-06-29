@@ -52,18 +52,20 @@ export function ContactForm({ supportEmail, className }: Props) {
   }
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn("relative space-y-6", className)}>
       <div className="flex items-start gap-3 rounded-xl border border-violet-200/80 bg-violet-50/60 p-4 dark:border-violet-900/50 dark:bg-violet-950/30">
         <Mail className="mt-0.5 size-5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
-        <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          Email direct :{" "}
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">
+            Email direct
+          </p>
           <a
             href={`mailto:${supportEmail}`}
-            className="font-semibold text-violet-700 underline-offset-4 hover:underline dark:text-violet-300"
+            className="mt-1 inline-block break-all text-base font-semibold text-violet-800 underline-offset-4 hover:underline dark:text-violet-200"
           >
             {supportEmail}
           </a>
-        </p>
+        </div>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-4">
@@ -139,7 +141,7 @@ export function ContactForm({ supportEmail, className }: Props) {
           <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
             Message envoyé{ticketRef ? ` — réf. #${ticketRef}` : ""}. Un accusé de réception vous a été envoyé par
             e-mail. Réponse sous 48 h ouvrées en général. Consultez aussi la{" "}
-            <a href="/faq" className="font-semibold underline">
+            <a href="/help/faq" className="font-semibold underline">
               FAQ
             </a>{" "}
             ou l&apos;{" "}

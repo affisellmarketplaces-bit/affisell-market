@@ -30,6 +30,19 @@ function envFirst(keys: readonly string[]): string | undefined {
   return undefined
 }
 
+const SUPPORT_EMAIL_FALLBACK = "support@affisell.com"
+
+/** Reject truncated env values like `support@` (missing domain). */
+export function resolveSupportEmail(): string {
+  const raw = envFirst(["SUPPORT_EMAIL", "NEXT_PUBLIC_SUPPORT_EMAIL"])
+  if (!raw) return SUPPORT_EMAIL_FALLBACK
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(raw)) {
+    console.warn("[company-env] Invalid SUPPORT_EMAIL, using fallback", { raw })
+    return SUPPORT_EMAIL_FALLBACK
+  }
+  return raw
+}
+
 /** SIREN = 9 premiers chiffres du SIRET (France). */
 export function deriveSirenFromSiret(siret: string): string {
   const digits = siret.replace(/\D/g, "")
@@ -83,7 +96,7 @@ export function readCompanyLegal(): CompanyLegal {
     address,
     capital,
     publisher,
-    supportEmail: envFirst(["SUPPORT_EMAIL"]) ?? "support@affisell.com",
+    supportEmail: resolveSupportEmail(),
     dpoEmail: envFirst(["DPO_EMAIL"]) ?? "dpo@affisell.com",
     contactEmail: envFirst(["COMPANY_CONTACT_EMAIL"]) ?? "contact@affisell.com",
     tva,
