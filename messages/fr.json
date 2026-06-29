@@ -3209,6 +3209,59 @@
       "rejected": "Vous avez refusé le délai."
     }
   },
+  "sellBecomeSupplier": {
+    "meta": {
+      "title": "Devenir fournisseur — fiscalité & versements",
+      "description": "Page B2B : OSS, versements Stripe Connect, clawback retours et DAC7. Réservée aux professionnels."
+    },
+    "eyebrow": "Espace fournisseur · B2B",
+    "title": "Cadre fiscal et financier fournisseur",
+    "description": "Synthèse pour votre comptable : TVA OSS, schéma de versement, retours et déclarations DAC7. Aucune promesse de revenu — uniquement le fonctionnement contractuel.",
+    "ctaSignup": "Ouvrir un compte fournisseur",
+    "ctaCga": "Lire les CGA fournisseur",
+    "ctaLogin": "Connexion fournisseur",
+    "b2bNotice": "Document réservé aux professionnels (B2B). Ne constitue pas un conseil fiscal ou juridique. En cas de doute, consultez votre expert-comptable.",
+    "tax": {
+      "title": "Fiscalité & guichet OSS",
+      "body": "Vous facturez vos ventes catalogue en hors taxes (HT). Affisell collecte la TVA au taux du pays de livraison de l'acheteur via le guichet unique OSS (One Stop Shop) et la reverse aux administrations concernées.",
+      "ossExampleTitle": "Exemple : livraison en Allemagne",
+      "ossExampleBody": "Si l'acheteur est livré en Allemagne, Affisell applique le taux allemand (19 %) sur la base HT de la ligne au checkout. Vous émettez votre facture fournisseur en HT ; la TVA collectée au nom de l'État de consommation ne figure pas dans votre encaissement wholesale.",
+      "bulletHt": "Votre prix catalogue = HT (wholesale).",
+      "bulletVat": "TVA pays livraison = collectée par Affisell (Stripe Tax + déclaration OSS).",
+      "bulletInvoice": "Facture TTC acheteur : émise par Affisell au nom du contrat de vente facilité.",
+      "tableCaption": "Taux de TVA standard par pays de livraison UE",
+      "colCountry": "Pays",
+      "colCode": "ISO",
+      "colRate": "TVA standard",
+      "tableFootnote": "Taux standards B2C au {date} — {count} États membres. Taux réduits / spéciaux non listés ; vérifier avant clôture."
+    },
+    "payout": {
+      "title": "Versements (Stripe Connect)",
+      "body": "Versement fournisseur sur compte Stripe Connect après confirmation de livraison + {days} jours ouvrés (auto-confirmation possible si l'acheteur reste silencieux). Commission catalogue contractuelle : {fee} du wholesale HT (hors TVA).",
+      "stepClient": "1 · Client paie",
+      "stepClientHint": "Montant TTC (TVA incluse selon pays livraison)",
+      "stepAffisell": "2 · Affisell retient",
+      "stepAffisellHint": "Exemple pédagogique — barème contractuel {fee} sur HT",
+      "stepStripe": "3 · Frais Stripe",
+      "stepStripeHint": "Carte UE ~1,5 % + fixe (variable selon moyen de paiement)",
+      "stepYou": "4 · Vous recevez",
+      "stepYouHint": "Wholesale HT net · sous J+{days} après livraison confirmée",
+      "disclaimer": "Exemple indicatif arrondi (100 € TTC). Les montants réels dépendent du prix catalogue HT, de la commission partenaire créateur et des frais de paiement. La TVA collectée n'est pas versée sur votre Connect."
+    },
+    "clawback": {
+      "title": "Retours & clawback",
+      "body": "L'acheteur dispose d'un droit de rétractation de {days} jours à compter de la livraison (distance selling UE). Si le retour est accepté et remboursé, les sommes déjà versées ou provisionnées sont récupérées.",
+      "debit": "En cas de retour validé dans le délai légal : débit de votre solde Stripe Connect à hauteur du wholesale HT + part de TVA remboursée selon le barème de la commande.",
+      "provision": "Si votre taux de retour glissant dépasse {threshold} % sur 90 jours, une provision de {reserve} % peut être retenue sur les versements à venir jusqu'à normalisation du taux.",
+      "policyLink": "Politique de remboursement Affisell"
+    },
+    "dac7": {
+      "title": "DAC7 & reporting",
+      "body": "Si vous dépassez {eur} € de chiffre d'affaires annuel sur la plateforme ou {tx} ventes par an, Affisell transmet vos données de revenus plateforme à l'administration fiscale française (DGFiP) conformément à la directive DAC7.",
+      "csv": "Un export CSV récapitulatif (identité, CA plateforme, pays) est disponible dans votre tableau de bord avant chaque déclaration."
+    },
+    "footerLegal": "Affisell agit comme intermédiaire technique et hébergeur. Vous restez vendeur des produits et responsable de vos obligations comptables, sociales et fiscales. Les montants ci-dessus peuvent évoluer ; les CGA font foi."
+  },
   "buyerOrderDetail": {
     "back": "← Retour à mes commandes",
     "orderRef": "Commande {id}…",

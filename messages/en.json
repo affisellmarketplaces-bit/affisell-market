@@ -3185,6 +3185,59 @@
       "rejected": "You refused the extension."
     }
   },
+  "sellBecomeSupplier": {
+    "meta": {
+      "title": "Become a supplier — tax & payouts",
+      "description": "B2B page: OSS VAT, Stripe Connect payouts, return clawback and DAC7. Professionals only."
+    },
+    "eyebrow": "Supplier space · B2B",
+    "title": "Supplier tax & payout framework",
+    "description": "Accountant-ready summary: OSS VAT, payout flow, returns and DAC7 reporting. No income promises — contractual mechanics only.",
+    "ctaSignup": "Open supplier account",
+    "ctaCga": "Read supplier terms (CGA)",
+    "ctaLogin": "Supplier login",
+    "b2bNotice": "For business users only (B2B). Not tax or legal advice. Consult your accountant for filing decisions.",
+    "tax": {
+      "title": "Tax & OSS scheme",
+      "body": "You invoice catalogue sales ex-VAT (net wholesale). Affisell collects VAT at the buyer's delivery-country rate via the EU OSS scheme and remits to the relevant authorities.",
+      "ossExampleTitle": "Example: delivery to Germany",
+      "ossExampleBody": "If the buyer is delivered in Germany, Affisell applies the German rate (19%) on the line net amount at checkout. You issue your supplier invoice ex-VAT; VAT collected for the consumption country is not part of your wholesale payout.",
+      "bulletHt": "Your catalogue price = ex-VAT (wholesale).",
+      "bulletVat": "Delivery-country VAT = collected by Affisell (Stripe Tax + OSS reporting).",
+      "bulletInvoice": "Buyer VAT invoice: issued through Affisell under the facilitated sale.",
+      "tableCaption": "Standard VAT rates by EU delivery country",
+      "colCountry": "Country",
+      "colCode": "ISO",
+      "colRate": "Standard VAT",
+      "tableFootnote": "Standard B2C rates as of {date} — {count} member states. Reduced/special rates not listed; verify before filing."
+    },
+    "payout": {
+      "title": "Payouts (Stripe Connect)",
+      "body": "Supplier transfer to Stripe Connect after delivery confirmation + {days} business days (auto-confirmation if the buyer stays silent). Contract catalogue fee: {fee} of ex-VAT wholesale.",
+      "stepClient": "1 · Buyer pays",
+      "stepClientHint": "Gross amount (VAT per delivery country)",
+      "stepAffisell": "2 · Affisell retains",
+      "stepAffisellHint": "Illustrative example — contractual {fee} on net wholesale",
+      "stepStripe": "3 · Stripe fees",
+      "stepStripeHint": "EU card ~1.5% + fixed (varies by payment method)",
+      "stepYou": "4 · You receive",
+      "stepYouHint": "Net ex-VAT wholesale · within J+{days} after confirmed delivery",
+      "disclaimer": "Rounded illustrative example (€100 gross). Actual amounts depend on catalogue net price, creator partner commission and payment fees. Collected VAT is not paid out to your Connect account."
+    },
+    "clawback": {
+      "title": "Returns & clawback",
+      "body": "Buyers have a {days}-day withdrawal right from delivery (EU distance selling). If a return is accepted and refunded, amounts already paid or provisioned are recovered.",
+      "debit": "On an approved statutory return: debit of your Stripe Connect balance for ex-VAT wholesale + refunded VAT share per order settlement.",
+      "provision": "If your rolling return rate exceeds {threshold}% over 90 days, a {reserve}% reserve may be held on upcoming payouts until the rate normalises.",
+      "policyLink": "Affisell refund policy"
+    },
+    "dac7": {
+      "title": "DAC7 & reporting",
+      "body": "If you exceed €{eur} platform revenue per year or {tx} sales per year, Affisell reports your platform earnings to the French tax authority (DGFiP) under DAC7.",
+      "csv": "A CSV summary (identity, platform revenue, countries) is available in your dashboard before each filing."
+    },
+    "footerLegal": "Affisell is a technical intermediary and host. You remain the seller and are responsible for your accounting, social and tax obligations. Figures may change; supplier terms (CGA) prevail."
+  },
   "buyerOrderDetail": {
     "back": "← Back to my orders",
     "orderRef": "Order {id}…",
