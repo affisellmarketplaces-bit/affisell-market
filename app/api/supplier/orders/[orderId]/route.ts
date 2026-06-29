@@ -9,6 +9,7 @@ import {
 import { toSupplierFulfillmentOrderPublic } from "@/lib/supplier-orders-public-api"
 import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
 import { triggerOrderTransferRelease } from "@/lib/trigger-order-transfer-release"
+import { triggerLightningPayout } from "@/lib/stripe-lightning"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -133,7 +134,6 @@ export async function PATCH(
         trackingCarrier: carrier,
         trackingNumber: tracking,
         shippedAt: new Date(),
-        deliveredAt: new Date(),
       },
       include: supplierOrderInclude,
     })
@@ -162,7 +162,29 @@ export async function PATCH(
     carrier,
   })
 
-  triggerOrderTransferRelease(updated.id)
+  const supplierProfile = await prisma.supplierProfile.findUnique({
+    where: { userId: session.user.id },
+    select: { lightningEnabled: true },
+  })
 
-  return Response.json({ order: toSupplierFulfillmentOrderPublic(mapMarketplaceOrder(updated)) })
+  let payoutTriggered = false
+  if (supplierProfile?.lightningEnabled === true) {
+    const payout = await triggerLightningPayout(updated.id)
+    payoutTriggered = payout.success
+  }
+
+  if (!payoutTriggered) {
+    triggerOrderTransferRelease(updated.id)
+  }
+
+  console.log("[mark-shipped]", {
+    orderId: updated.id,
+    supplierId: session.user.id,
+    payoutTriggered,
+  })
+
+  return Response.json({
+    order: toSupplierFulfillmentOrderPublic(mapMarketplaceOrder(updated)),
+    payoutTriggered,
+  })
 }

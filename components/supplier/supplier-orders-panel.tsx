@@ -11,11 +11,10 @@ import {
   Truck,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useSession } from "next-auth/react"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import { ShipPulseBadge } from "@/components/supplier/ship-pulse-badge"
-import { OrderActions } from "@/components/supplier/order-actions"
 import { SupplierOrderFulfillmentPanel } from "@/components/supplier/supplier-order-fulfillment-panel"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -251,7 +250,6 @@ function OrderMetaChips({ o }: { o: OrderRow }) {
 
 export function SupplierOrdersPanel({ className }: { className?: string }) {
   const msg = useTranslations("supplierOrders")
-  const { data: session } = useSession()
   const [tab, setTab] = useState<Tab>("to_ship")
   const [rows, setRows] = useState<OrderRow[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -275,7 +273,10 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
     void load()
   }, [load])
 
-  async function patchOrder(orderId: string, body: Record<string, string | undefined>) {
+  async function patchOrder(
+    orderId: string,
+    body: Record<string, string | undefined>
+  ): Promise<{ payoutTriggered?: boolean } | null> {
     setBusy(orderId)
     setError(null)
     try {
@@ -284,13 +285,17 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       })
+      const j = (await res.json().catch(() => ({}))) as {
+        error?: string
+        payoutTriggered?: boolean
+      }
       if (!res.ok) {
-        const j = (await res.json().catch(() => ({}))) as { error?: string }
         setError(j.error ?? msg("updateFailed"))
-        return
+        return null
       }
       await load()
       window.dispatchEvent(new CustomEvent("affisell:supplier-notifications-changed"))
+      return j
     } finally {
       setBusy(null)
     }
@@ -307,11 +312,18 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
       setError(msg("trackingRequired"))
       return
     }
-    await patchOrder(orderId, {
+    const result = await patchOrder(orderId, {
       action: "mark_shipped",
       trackingNumber,
       ...(t?.carrier?.trim() ? { trackingCarrier: t.carrier.trim() } : {}),
     })
+    if (result) {
+      toast.success(
+        result.payoutTriggered
+          ? "Expédié. Lightning Payout déclenché"
+          : "Expédié. Payout à J+2"
+      )
+    }
   }
 
   function setTracking(orderId: string, field: "carrier" | "number", value: string) {
@@ -586,19 +598,6 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                         {msg("actions.markShipped")}
                       </Button>
                     </div>
-                  ) : null}
-
-                  {o.fulfillmentSource === "marketplace" && session?.user?.id ? (
-                    <OrderActions
-                      className={o.canMarkShipped ? "mt-2" : "mt-auto pt-4"}
-                      order={{
-                        id: o.id,
-                        fulfillmentStatus: o.fulfillmentStatus,
-                        payoutStatus: o.payoutStatusDb,
-                        supplier: { userId: session.user.id },
-                      }}
-                      onShipped={() => void load()}
-                    />
                   ) : null}
                 </div>
               </div>
