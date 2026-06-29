@@ -11,71 +11,103 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  emailVerified DateTime?
-  name          String?
-  image         String?
-  password      String?
-  role          String    @default("CUSTOMER")
-  createdAt     DateTime  @default(now())
-  videoQuota    Int       @default(3)
-  videoCount    Int       @default(0) @map("videoUsed")
-  isPro         Boolean   @default(false)
-  /** Affisell+ supplier trust badge eligibility (role SUPPLIER only). */
-  isVerifiedSupplier Boolean @default(false)
-  verifiedAt         DateTime?
-  /** Rolling 90-day quality metrics snapshot { rating, disputeRate, shippingSLA48h }. */
-  supplierMetrics    Json?
-  /** Trust ladder: NONE | SPARK | FORGE | ORBITAL (1M+ orders = ORBITAL blue badge). */
-  supplierTrustTier       String   @default("NONE")
-  supplierTrustTierAt     DateTime?
-  /** Cached successful paid orders count (recomputed by verify-suppliers cron). */
-  supplierSuccessfulOrders Int     @default(0)
-  stripeCustomerId     String?   @unique
-  stripeSubscriptionId String?   @unique
-  /** Stripe Connect Express/Standard account for marketplace seller payouts. */
-  stripeAccountId      String?   @unique
-  /** Set when Connect transfers capability is active (refresh-onboarding / successful split). */
-  stripeOnboardedAt    DateTime?
-  /** Last known Stripe Connect capabilities snapshot (onboarding errors / refresh). */
-  stripeCapabilities   Json?
-  /** Seller VAT number (invoicing; seller remains liable for VAT). */
-  vatNumber            String?
+  id                               String    @id @default(cuid())
+  email                            String    @unique
+  emailVerified                    DateTime?
+  name                             String?
+  image                            String?
+  password                         String?
+  role                             String    @default("CUSTOMER")
+  createdAt                        DateTime  @default(now())
+  videoQuota                       Int       @default(3)
+  videoCount                       Int       @default(0) @map("videoUsed")
+  isPro                            Boolean   @default(false)
+  /**
+   * Affisell+ supplier trust badge eligibility (role SUPPLIER only).
+   */
+  isVerifiedSupplier               Boolean   @default(false)
+  verifiedAt                       DateTime?
+  /**
+   * Rolling 90-day quality metrics snapshot { rating, disputeRate, shippingSLA48h }.
+   */
+  supplierMetrics                  Json?
+  /**
+   * Trust ladder: NONE | SPARK | FORGE | ORBITAL (1M+ orders = ORBITAL blue badge).
+   */
+  supplierTrustTier                String    @default("NONE")
+  supplierTrustTierAt              DateTime?
+  /**
+   * Cached successful paid orders count (recomputed by verify-suppliers cron).
+   */
+  supplierSuccessfulOrders         Int       @default(0)
+  stripeCustomerId                 String?   @unique
+  stripeSubscriptionId             String?   @unique
+  /**
+   * Stripe Connect Express/Standard account for marketplace seller payouts.
+   */
+  stripeAccountId                  String?   @unique
+  /**
+   * Set when Connect transfers capability is active (refresh-onboarding / successful split).
+   */
+  stripeOnboardedAt                DateTime?
+  /**
+   * Last known Stripe Connect capabilities snapshot (onboarding errors / refresh).
+   */
+  stripeCapabilities               Json?
+  /**
+   * Seller VAT number (invoicing; seller remains liable for VAT).
+   */
+  vatNumber                        String?
   /**
    * Default supplier → affiliate commission (bps) for new catalog rows when product rate unset.
    * 1100 = 11% of supplier wholesale offered to affiliates.
    */
   defaultSupplierCommissionRateBps Int?
-  /** Phase 1 legacy: overrides both catalog + auto-buy fee bps when set. */
-  supplierFeeBps            Int?
-  /** Phase 1: fee on supplier wholesale — catalogue natif (défaut 10 %). */
-  supplierFeeBpsCatalog     Int?
-  /** Phase 1: fee on supplier wholesale — ligne auto-buy AE (défaut 17 %). */
-  supplierFeeBpsAutoBuy     Int?
-  /** Phase 1: Affisell fee on affiliate earnings (bps), default 20 %. */
-  affiliatePlatformFeeBps   Int?
-  /** CGU acceptance (`/cgu`). */
-  cguAcceptedAt          DateTime?
-  cguVersion             String?
-  /** CGS / CGA (role-specific) acceptance timestamp. */
-  termsAcceptedAt        DateTime?
-  termsAcceptedVersion   String?
-  /** Privacy policy acceptance. */
-  privacyAcceptedAt      DateTime?
-  privacyAcceptedVersion String?
+  /**
+   * Phase 1 legacy: overrides both catalog + auto-buy fee bps when set.
+   */
+  supplierFeeBps                   Int?
+  /**
+   * Phase 1: fee on supplier wholesale — catalogue natif (défaut 10 %).
+   */
+  supplierFeeBpsCatalog            Int?
+  /**
+   * Phase 1: fee on supplier wholesale — ligne auto-buy AE (défaut 17 %).
+   */
+  supplierFeeBpsAutoBuy            Int?
+  /**
+   * Phase 1: Affisell fee on affiliate earnings (bps), default 20 %.
+   */
+  affiliatePlatformFeeBps          Int?
+  /**
+   * CGU acceptance (`/cgu`).
+   */
+  cguAcceptedAt                    DateTime?
+  cguVersion                       String?
+  /**
+   * CGS / CGA (role-specific) acceptance timestamp.
+   */
+  termsAcceptedAt                  DateTime?
+  termsAcceptedVersion             String?
+  /**
+   * Privacy policy acceptance.
+   */
+  privacyAcceptedAt                DateTime?
+  privacyAcceptedVersion           String?
   /**
    * Cookie preferences: `{ essential: true, analytics: boolean, marketing: boolean, updatedAt: ISO }`.
    */
-  cookieConsent          Json?
-  proActivatedAt       DateTime?
+  cookieConsent                    Json?
+  proActivatedAt                   DateTime?
 
-  accounts              Account[]
-  sessions              Session[]
-  passwordResetTokens   PasswordResetToken[]
+  accounts            Account[]
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
 
-  /** Agent Network — lien 1:1 quand candidature validée (role AGENT). */
-  sourcingAgent        SourcingAgent?
+  /**
+   * Agent Network — lien 1:1 quand candidature validée (role AGENT).
+   */
+  sourcingAgent SourcingAgent?
 
   products             Product[]          @relation("SupplierProducts")
   affiliateProducts    AffiliateProduct[]
@@ -97,7 +129,9 @@ model User {
 
   supplierIntegrations SupplierIntegration[]
 
-  /** Chrome / Firefox extension import tokens (hashed secret). */
+  /**
+   * Chrome / Firefox extension import tokens (hashed secret).
+   */
   supplierExtensionTokens SupplierExtensionToken[]
 
   /**
@@ -113,41 +147,63 @@ model User {
   /**
    * Store credit / cashback balance (EUR cents) from partner listings; spendable at checkout.
    */
-  buyerRewardBalanceCents Int                 @default(0)
+  buyerRewardBalanceCents Int                    @default(0)
   buyerRewardLedger       BuyerRewardLedger[]
   /**
    * Marketplace orders where this user was the logged-in buyer (optional).
    */
-  buyerMarketplaceOrders  Order[]             @relation("BuyerMarketplaceOrders")
+  buyerMarketplaceOrders  Order[]                @relation("BuyerMarketplaceOrders")
   merchantPayoutLedger    MerchantPayoutLedger[]
 
   blindDropshipAffiliateOrders BlindDropshipOrder[] @relation("BlindDropshipAffiliateOrders")
   blindDropshipBuyerOrders     BlindDropshipOrder[] @relation("BlindDropshipBuyerOrders")
 
-  buyerReviews      Review[]      @relation("BuyerReviews")
-  reviewVotes       ReviewVote[]
-  reviewReplies     ReviewReply[] @relation("CreatorReviewReplies")
+  buyerReviews  Review[]      @relation("BuyerReviews")
+  reviewVotes   ReviewVote[]
+  reviewReplies ReviewReply[] @relation("CreatorReviewReplies")
 
   tryOns    TryOn[]
   tryOnJobs TryOnJob[]
 
-  /** Invitations sent to onboard suppliers (affiliate → supplier collaboration). */
+  /**
+   * Invitations sent to onboard suppliers (affiliate → supplier collaboration).
+   */
   affiliateSupplierInvitations AffiliateSupplierInvitation[] @relation("AffiliateSupplierInvites")
-  /** Set when this supplier registered via an affiliate invite link. */
+  /**
+   * Set when this supplier registered via an affiliate invite link.
+   */
   supplierInvitationFrom       AffiliateSupplierInvitation?  @relation("SupplierFromInvite")
 
-  /** Invitations sent to onboard affiliates (supplier → affiliate collaboration). */
+  /**
+   * Invitations sent to onboard affiliates (supplier → affiliate collaboration).
+   */
   supplierAffiliateInvitations SupplierAffiliateInvitation[] @relation("SupplierAffiliateInvites")
-  /** Set when this affiliate registered via a supplier invite link. */
+  /**
+   * Set when this affiliate registered via a supplier invite link.
+   */
   affiliateInvitationFrom      SupplierAffiliateInvitation?  @relation("AffiliateFromSupplierInvite")
 
-  /** Swipe Feed — like / skip decisions on catalog products. */
+  /**
+   * Swipe Feed — like / skip decisions on catalog products.
+   */
   affiliateSwipes AffiliateSwipe[]
 
   sponsorCampaigns SponsorCampaign[] @relation("SponsorCampaignPayer")
 
-  /** KYC / legal onboarding for SUPPLIER & AFFILIATE (status + documents). */
+  /**
+   * KYC / legal onboarding for SUPPLIER & AFFILIATE (status + documents).
+   */
   merchantLegalProfile MerchantLegalProfile?
+
+  /**
+   * Lightning Payout — supplier trust + Connect settlement profile.
+   */
+  supplierProfile SupplierProfile?
+
+  /**
+   * Lightning Payout — affiliate Connect settlement profile.
+   */
+  affiliateProfile AffiliateProfile?
 
   termsAcceptanceLogs TermsAcceptanceLog[]
 
@@ -157,7 +213,9 @@ model User {
   buyerAccountType String?
 }
 
-/** Preuve horodatée d'acceptation CGU / conditions (art. 1366 C. civ.). */
+/**
+ * Preuve horodatée d'acceptation CGU / conditions (art. 1366 C. civ.).
+ */
 model TermsAcceptanceLog {
   id        String   @id @default(cuid())
   userId    String
@@ -178,30 +236,32 @@ model TermsAcceptanceLog {
  * Merchant legal status + verification (supplier / affiliate signup).
  */
 model MerchantLegalProfile {
-  id                 String   @id @default(cuid())
-  userId             String   @unique
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                       String    @id @default(cuid())
+  userId                   String    @unique
+  user                     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   /**
    * PARTICULIER | AUTO_ENTREPRENEUR | EI_PROFESSIONAL | COMPANY | ASSOCIATION | FOREIGN
    */
-  legalStatus        String
+  legalStatus              String
   /**
    * PENDING_REVIEW | APPROVED | REJECTED | NEEDS_MORE_INFO
    */
-  verificationStatus String   @default("PENDING_REVIEW")
-  legalEntityName    String?
-  tradeName          String?
-  siret              String?
-  vatNumber          String?
-  rnaNumber          String?
-  countryCode        String   @default("FR")
-  submittedAt        DateTime @default(now())
-  reviewedAt         DateTime?
-  rejectionReason    String?
-  /** Idempotent merchant KYC publish reminder (cron). */
+  verificationStatus       String    @default("PENDING_REVIEW")
+  legalEntityName          String?
+  tradeName                String?
+  siret                    String?
+  vatNumber                String?
+  rnaNumber                String?
+  countryCode              String    @default("FR")
+  submittedAt              DateTime  @default(now())
+  reviewedAt               DateTime?
+  rejectionReason          String?
+  /**
+   * Idempotent merchant KYC publish reminder (cron).
+   */
   kycPublishReminderSentAt DateTime?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
 
   documents MerchantLegalDocument[]
 
@@ -210,7 +270,7 @@ model MerchantLegalProfile {
 }
 
 model MerchantLegalDocument {
-  id            String   @id @default(cuid())
+  id            String               @id @default(cuid())
   profileId     String
   profile       MerchantLegalProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   /**
@@ -222,10 +282,36 @@ model MerchantLegalDocument {
   fileName      String?
   mimeType      String?
   fileSizeBytes Int?
-  uploadedAt    DateTime @default(now())
+  uploadedAt    DateTime             @default(now())
 
   @@unique([profileId, documentType])
   @@index([profileId])
+}
+
+/**
+ * Supplier Lightning Payout — trust scoring and instant settlement eligibility.
+ */
+model SupplierProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trustScore       Int      @default(50) // 0-100
+  lightningEnabled Boolean  @default(false)
+  stripeAccountId  String?  @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+/**
+ * Affiliate Lightning Payout — dedicated Connect account for commission transfers.
+ */
+model AffiliateProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeAccountId String?  @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 /**
@@ -330,34 +416,36 @@ model SupplierExtensionToken {
 }
 
 model Store {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name           String
-  slug           String   @unique
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                 String
+  slug                 String    @unique
   /**
    * Opaque ref (e.g. AFS-…) for supplier/support; never substitute for public store branding.
    */
-  partnerListingCode String @unique
-  logoUrl        String?
+  partnerListingCode   String    @unique
+  logoUrl              String?
   /**
    * Optional Affisell AI–generated square profile image (shown in addition to or instead of logo where supported).
    */
-  aiAvatarUrl    String?
-  bannerUrl      String?
-  description    String?
-  customDomain   String?  @unique
-  domainVerified Boolean  @default(false)
-  /** Vercel project domain registration: registered | pending | active | failed | skipped */
+  aiAvatarUrl          String?
+  bannerUrl            String?
+  description          String?
+  customDomain         String?   @unique
+  domainVerified       Boolean   @default(false)
+  /**
+   * Vercel project domain registration: registered | pending | active | failed | skipped
+   */
   vercelDomainStatus   String?
   vercelDomainError    String?
   vercelDomainSyncedAt DateTime?
   /**
    * Public storefront branding: `{ "primary"?: "#hex", "accent"?: "#hex" }`.
    */
-  storefrontTheme Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  storefrontTheme      Json?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   instagram              String?
   tiktok                 String?
@@ -406,18 +494,18 @@ enum CategoryTemplateType {
 }
 
 model Category {
-  id    String @id @default(cuid())
+  id       String @id @default(cuid())
   /**
    * Google Product Taxonomy numeric id (fr-FR file); null for legacy rows.
    */
-  googleId Int? @unique
+  googleId Int?   @unique
   /**
    * Not unique: leaf rows can share labels (e.g. "Clothing") under different parents.
    */
-  name  String
-  slug  String @unique
-  icon  String @default("📦")
-  order Int    @default(0)
+  name     String
+  slug     String @unique
+  icon     String @default("📦")
+  order    Int    @default(0)
 
   parentId String?
   parent   Category?  @relation("CategoryToCategory", fields: [parentId], references: [id])
@@ -438,7 +526,9 @@ model Category {
    */
   pathIds String?
 
-  /** SEO — optional browse meta. */
+  /**
+   * SEO — optional browse meta.
+   */
   metaTitle String?
   metaDesc  String? @db.Text
 
@@ -475,7 +565,9 @@ model Category {
   @@index([pathIds])
 }
 
-/** Global reusable attribute definition (Couleur, Stockage, RAM…). */
+/**
+ * Global reusable attribute definition (Couleur, Stockage, RAM…).
+ */
 model Attribute {
   id             String             @id @default(cuid())
   name           String
@@ -493,7 +585,9 @@ model Attribute {
   @@index([type])
 }
 
-/** Select / multi-select option rows for a global `Attribute`. */
+/**
+ * Select / multi-select option rows for a global `Attribute`.
+ */
 model AttributeOption {
   id          String    @id @default(cuid())
   attributeId String
@@ -521,31 +615,37 @@ model CategoryAttribute {
   attributeId String?
   attribute   Attribute? @relation(fields: [attributeId], references: [id], onDelete: SetNull)
 
-  key          String
-  label        String
-  type         String
-  unit         String?
-  /** @deprecated Prefer `AttributeOption` when `attributeId` is set. Kept for legacy rows. */
-  options      String[] @default([])
-  required     Boolean  @default(false)
-  order        Int      @default(0)
-  aiSuggest    Boolean  @default(true)
-  showInFilter Boolean  @default(true)
-  /** Drives SKU / variant matrix dimensions (Amazon-style). */
-  isVariant             Boolean @default(false)
-  /** null = inherit from `showInFilter`. */
-  isFilterable          Boolean?
-  appliesToDescendants  Boolean @default(false)
+  key                  String
+  label                String
+  type                 String
+  unit                 String?
+  /**
+   * @deprecated Prefer `AttributeOption` when `attributeId` is set. Kept for legacy rows.
+   */
+  options              String[] @default([])
+  required             Boolean  @default(false)
+  order                Int      @default(0)
+  aiSuggest            Boolean  @default(true)
+  showInFilter         Boolean  @default(true)
+  /**
+   * Drives SKU / variant matrix dimensions (Amazon-style).
+   */
+  isVariant            Boolean  @default(false)
+  /**
+   * null = inherit from `showInFilter`.
+   */
+  isFilterable         Boolean?
+  appliesToDescendants Boolean  @default(false)
   /**
    * Optional constraints, e.g. `{"min": 64, "max": 1024}` or `{"pattern": "^[0-9]{13}$"}`.
    */
-  validationRule Json?
+  validationRule       Json?
   /**
    * Show this field only when `dependsOnKey` equals `dependsOnValue` in the form state.
    */
-  dependsOnKey   String?
-  dependsOnValue String?
-  helpText       String?
+  dependsOnKey         String?
+  dependsOnValue       String?
+  helpText             String?
 
   @@unique([categoryId, key])
   @@index([categoryId])
@@ -553,7 +653,9 @@ model CategoryAttribute {
   @@index([dependsOnKey])
 }
 
-/** Title / description templates per category (Amazon-style prefill). */
+/**
+ * Title / description templates per category (Amazon-style prefill).
+ */
 model CategoryTemplate {
   id             String               @id @default(cuid())
   categoryId     String
@@ -577,48 +679,50 @@ model Subcategory {
 }
 
 model Product {
-  id                            String   @id @default(cuid())
-  /** Internal Affisell SKU (AFF-00001). */
-  affisellSku                   String?  @unique
+  id                            String             @id @default(cuid())
+  /**
+   * Internal Affisell SKU (AFF-00001).
+   */
+  affisellSku                   String?            @unique
   supplierId                    String
   name                          String
   description                   String
   /**
    * Marketplace “About this item” bullets (distinct from prose description).
    */
-  descriptionBullets            String[] @default([])
+  descriptionBullets            String[]           @default([])
   /**
    * Extra lifestyle / detail images shown under the long description (not gallery heroes).
    */
-  descriptionIllustrationImages String[] @default([])
+  descriptionIllustrationImages String[]           @default([])
   /**
    * HTTPS links: YouTube, Vimeo, or direct `.mp4` — shown under the description.
    */
-  descriptionIllustrationVideos String[] @default([])
-  createdAt                     DateTime @default(now())
-  updatedAt                     DateTime @default(now()) @updatedAt
-  images                        String[] @default([])
+  descriptionIllustrationVideos String[]           @default([])
+  createdAt                     DateTime           @default(now())
+  updatedAt                     DateTime           @default(now()) @updatedAt
+  images                        String[]           @default([])
   colorImages                   Json?
   /**
    * @deprecated Legacy department labels — use `categoryId` + `category.fullPath`.
    */
-  categories                    String[] @default([])
-  colors                        String[] @default([])
+  categories                    String[]           @default([])
+  colors                        String[]           @default([])
   variants                      Json?
   /**
    * Amazon-style parent listing: sellable SKUs live in `ProductVariant` children.
    */
-  isVariantParent               Boolean  @default(false)
+  isVariantParent               Boolean            @default(false)
   /**
    * When true, SKU lines live in `ProductVariant` (supplier/public price per row).
    */
-  hasVariants                   Boolean  @default(false)
+  hasVariants                   Boolean            @default(false)
   /**
    * Supplier-defined SKU columns: [{ key, label, type, required, options? }]
    */
   customColumns                 Json?
   productVariants               ProductVariant[]
-  tags                          String[] @default([])
+  tags                          String[]           @default([])
   basePriceCents                Int
   compareAt                     Decimal?
   commissionRate                Int
@@ -629,35 +733,47 @@ model Product {
   /**
    * PHYSICAL: affiliate commission % max 99; SOFTWARE | SUBSCRIPTION | SERVICE | EXPERIENCE allow up to 100.
    */
-  listingKind                   String   @default("PHYSICAL")
+  listingKind                   String             @default("PHYSICAL")
   /**
    * Instant digital delivery (formations, software): HTTPS access URL for buyers.
    * Supports {{orderId}}, {{token}}, {{email}} placeholders at fulfillment.
    */
   digitalAccessUrl              String?
-  digitalAccessInstructions     String?  @db.Text
-  /** When true (default), buyers receive access automatically after payment. */
-  digitalInstantDelivery        Boolean  @default(true)
-  /** Default session length for SERVICE / EXPERIENCE listings (minutes). */
+  digitalAccessInstructions     String?            @db.Text
+  /**
+   * When true (default), buyers receive access automatically after payment.
+   */
+  digitalInstantDelivery        Boolean            @default(true)
+  /**
+   * Default session length for SERVICE / EXPERIENCE listings (minutes).
+   */
   bookingDurationMinutes        Int?
-  /** Buyer may cancel free until this many hours before slot start. */
-  bookingCancellationHours      Int      @default(24)
-  /** Venue label shown on booking pass (salon, cinema, museum…). */
+  /**
+   * Buyer may cancel free until this many hours before slot start.
+   */
+  bookingCancellationHours      Int                @default(24)
+  /**
+   * Venue label shown on booking pass (salon, cinema, museum…).
+   */
   bookingVenueLabel             String?
-  /** When true, booking is confirmed instantly after payment (Phase 1+). */
-  bookingInstantConfirm         Boolean  @default(true)
-  /** Cinema seat map preset — see lib/booking/seat-layout.ts (EXPERIENCE only). */
+  /**
+   * When true, booking is confirmed instantly after payment (Phase 1+).
+   */
+  bookingInstantConfirm         Boolean            @default(true)
+  /**
+   * Cinema seat map preset — see lib/booking/seat-layout.ts (EXPERIENCE only).
+   */
   bookingSeatLayout             Json?
   bookingSlots                  BookingSlot[]
   bookingWaitlist               BookingWaitlist[]
   agentMissions                 AgentMission[]
   chinaBuyRouteLogs             ChinaBuyRouteLog[]
-  stock                         Int      @default(0)
-  active                        Boolean  @default(true)
+  stock                         Int                @default(0)
+  active                        Boolean            @default(true)
   /**
    * In-progress listing; always kept inactive until published.
    */
-  isDraft                       Boolean  @default(false)
+  isDraft                       Boolean            @default(false)
 
   /**
    * Normalized taxonomy (optional — legacy rows still match via `categories[]` in counts).
@@ -689,18 +805,20 @@ model Product {
    */
   handlingDays Int @default(1)
 
-  isOnSale      Boolean @default(false)
-  isNewArrival  Boolean @default(false)
-  isBestSeller  Boolean @default(false)
-  isRefurbished Boolean @default(false)
-  hasCoupon     Boolean @default(false)
-  isEcoFriendly Boolean @default(false)
+  isOnSale         Boolean @default(false)
+  isNewArrival     Boolean @default(false)
+  isBestSeller     Boolean @default(false)
+  isRefurbished    Boolean @default(false)
+  hasCoupon        Boolean @default(false)
+  isEcoFriendly    Boolean @default(false)
   /**
    * STANDARD | REFURBISHED | SECOND_HAND | WHOLESALE_ONLY | DONATION
    */
-  offerMode         String @default("STANDARD")
-  /** Minimum units per order (MOQ) — enforced for WHOLESALE_ONLY. */
-  minOrderQuantity  Int    @default(1)
+  offerMode        String  @default("STANDARD")
+  /**
+   * Minimum units per order (MOQ) — enforced for WHOLESALE_ONLY.
+   */
+  minOrderQuantity Int     @default(1)
 
   shippingCountry       String?
   warehouseType         String?
@@ -717,18 +835,22 @@ model Product {
    */
   shipsFrom              String?
   deliveryDays           Int?
-  freeShipping           Boolean @default(false)
+  freeShipping           Boolean              @default(false)
   /**
    * Supplier opt-in: product may appear on `/luxe` when listed by an affiliate.
    */
-  isLuxury               Boolean @default(false)
+  isLuxury               Boolean              @default(false)
   /**
    * Display source label (e.g. "seed"); API may expose as `supplier` string.
    */
   supplierTag            String?
-  /** AliExpress Open API product id (dropshipping import). */
+  /**
+   * AliExpress Open API product id (dropshipping import).
+   */
   aliexpressProductId    String?
-  /** Import channel, e.g. `aliexpress`. */
+  /**
+   * Import channel, e.g. `aliexpress`.
+   */
   importSource           String?
   /**
    * Auto-Order Engine: route paid lines to external suppliers without buyer treasury advance.
@@ -738,18 +860,26 @@ model Product {
   sourceProductId        String?
   sourceSkuId            String?
   sourceUrl              String?
-  /** China buying agent (Superbuy, Anovabuy, …) chosen at import. */
+  /**
+   * China buying agent (Superbuy, Anovabuy, …) chosen at import.
+   */
   chinaBuyingAgentId     String?
-  /** Source marketplace (1688, Taobao, …). */
+  /**
+   * Source marketplace (1688, Taobao, …).
+   */
   chinaPlatform          String?
   /**
    * Manual AE variant picker map for browser auto-buy, e.g. { "Color": "Black", "Size": "M" }.
    */
   variantMapping         Json?
-  /** Phase 1 AE auto-buy enabled (admin); synced with SupplierLink when present. */
+  /**
+   * Phase 1 AE auto-buy enabled (admin); synced with SupplierLink when present.
+   */
   autoBuyEnabled         Boolean              @default(false)
   fulfillmentDelayHours  Int                  @default(0)
-  /** Minimum margin in basis points (1500 = 15%). */
+  /**
+   * Minimum margin in basis points (1500 = 15%).
+   */
   minMarginBps           Int                  @default(1500)
   /**
    * Blind dropship: partner SKU + wholesale cost (cents) sent to supplier APIs only — never shopper/affiliate price.
@@ -757,23 +887,31 @@ model Product {
    */
   supplierSku            String?
   supplierWholesaleCents Int?
-  videoAdUrl            String?
-  videoAdPrompt         String?  @db.Text
-  videoAdStatus         String?  @default("none") // none | generating | ready | failed
-  videoGenerationJobs   VideoGenerationJob[]
-  videos                ProductVideo[]
-  reviewCount            Int     @default(0)
-  averageRating          Float   @default(0)
-  reviewSentiment        String  @default("neutral")
-  /** Published buyer UGC rows with at least one image or video in `media`. */
-  ugcCount               Int     @default(0)
+  videoAdUrl             String?
+  videoAdPrompt          String?              @db.Text
+  videoAdStatus          String?              @default("none") // none | generating | ready | failed
+  videoGenerationJobs    VideoGenerationJob[]
+  videos                 ProductVideo[]
+  reviewCount            Int                  @default(0)
+  averageRating          Float                @default(0)
+  reviewSentiment        String               @default("neutral")
+  /**
+   * Published buyer UGC rows with at least one image or video in `media`.
+   */
+  ugcCount               Int                  @default(0)
 
-  /** AI virtual try-on (apparel): supplier enables + uploads transparent PNG flat-lay. */
+  /**
+   * AI virtual try-on (apparel): supplier enables + uploads transparent PNG flat-lay.
+   */
   tryOnEnabled    Boolean @default(false)
   tryOnGarmentUrl String?
-  /** Medusa v2 product handle — sync target for admin try-on toggles. */
+  /**
+   * Medusa v2 product handle — sync target for admin try-on toggles.
+   */
   medusaHandle    String? @unique
-  /** Medusa v2 variant id — cached for order sync (backfill:variants). */
+  /**
+   * Medusa v2 variant id — cached for order sync (backfill:variants).
+   */
   medusaVariantId String?
 
   supplier                User                     @relation("SupplierProducts", fields: [supplierId], references: [id])
@@ -781,7 +919,7 @@ model Product {
   tryOnJobs               TryOnJob[]
   affiliateProducts       AffiliateProduct[]
   affiliateSwipes         AffiliateSwipe[]
-  sponsorCampaigns      SponsorCampaign[]
+  sponsorCampaigns        SponsorCampaign[]
   attributes              ProductAttribute[]
   orders                  Order[]
   blindDropshipOrderItems BlindDropshipOrderItem[]
@@ -794,7 +932,9 @@ model Product {
    * AI category suggestions pending manual review (see `ProductReview` model).
    */
   productReviews          ProductReview[]
-  /** AliExpress auto-buy source (1:1). */
+  /**
+   * AliExpress auto-buy source (1:1).
+   */
   supplierLink            SupplierLink?
 
   @@index([categoryId])
@@ -810,23 +950,29 @@ model Product {
   @@index([listingKind])
 }
 
-/** Time-bound inventory for SERVICE / EXPERIENCE listings (cinéma, coiffeur, musée…). */
+/**
+ * Time-bound inventory for SERVICE / EXPERIENCE listings (cinéma, coiffeur, musée…).
+ */
 model BookingSlot {
-  id                 String   @id @default(cuid())
+  id                 String            @id @default(cuid())
   productId          String
-  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product            Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
   startsAt           DateTime
   endsAt             DateTime
   capacity           Int
-  bookedCount        Int      @default(0)
-  /** Seats reserved during Stripe checkout (released on pay, expiry, or cancel). */
-  heldCount          Int      @default(0)
+  bookedCount        Int               @default(0)
+  /**
+   * Seats reserved during Stripe checkout (released on pay, expiry, or cancel).
+   */
+  heldCount          Int               @default(0)
   priceCentsOverride Int?
   label              String?
-  /** OPEN | SOLD_OUT | CANCELLED */
-  status             String   @default("OPEN")
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  /**
+   * OPEN | SOLD_OUT | CANCELLED
+   */
+  status             String            @default("OPEN")
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
   orders             Order[]
   seats              BookingSeat[]
   waitlist           BookingWaitlist[]
@@ -835,16 +981,18 @@ model BookingSlot {
   @@index([status, startsAt])
 }
 
-/** Buyer waitlist when a slot is full — notified when seats free up. */
+/**
+ * Buyer waitlist when a slot is full — notified when seats free up.
+ */
 model BookingWaitlist {
-  id         String      @id @default(cuid())
-  slotId     String
-  slot       BookingSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
-  productId  String
-  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
-  email      String
-  userId     String?
-  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id            String      @id @default(cuid())
+  slotId        String
+  slot          BookingSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  email         String
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   qty           Int         @default(1)
   phone         String?
   notifiedAt    DateTime?
@@ -856,7 +1004,9 @@ model BookingWaitlist {
   @@index([productId])
 }
 
-/** Nominative cinema seats (A12, B4…) — EXPERIENCE slots with capacity > 1. */
+/**
+ * Nominative cinema seats (A12, B4…) — EXPERIENCE slots with capacity > 1.
+ */
 model BookingSeat {
   id            String      @id @default(cuid())
   slotId        String
@@ -864,7 +1014,9 @@ model BookingSeat {
   label         String
   rowIndex      Int
   colIndex      Int
-  /** OPEN | HELD | BOOKED */
+  /**
+   * OPEN | HELD | BOOKED
+   */
   status        String      @default("OPEN")
   orderId       String?
   order         Order?      @relation(fields: [orderId], references: [id], onDelete: SetNull)
@@ -878,35 +1030,47 @@ model BookingSeat {
 }
 
 model ProductVariant {
-  id            String   @id @default(cuid())
-  productId     String
-  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  sku           String?
-  /** AE attribute map for this row, e.g. { "Color": "Black", "Size": "M" }. */
-  attributes    Json?
-  /** AliExpress SKU id when known (manual). */
-  supplierSku   String?
-  color         String?
-  size          String?
-  /** Wholesale HT cents (preferred for AE auto-buy when set). */
+  id                  String   @id @default(cuid())
+  productId           String
+  product             Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku                 String?
+  /**
+   * AE attribute map for this row, e.g. { "Color": "Black", "Size": "M" }.
+   */
+  attributes          Json?
+  /**
+   * AliExpress SKU id when known (manual).
+   */
+  supplierSku         String?
+  color               String?
+  size                String?
+  /**
+   * Wholesale HT cents (preferred for AE auto-buy when set).
+   */
   wholesalePriceCents Int?
-  /** Prix payé au fournisseur (wholesale). */
-  supplierPrice Decimal  @db.Decimal(10, 2)
-  /** Prix affiché client (selling). */
-  publicPrice   Decimal  @db.Decimal(10, 2)
-  stock         Int      @default(0)
-  weightGrams   Int?
-  processingDays Int?    @default(2)
-  ean           String?  @unique
-  originCountry String?  @default("CN")
-  warehouseCode String?
-  purchasePriceHT Decimal? @db.Decimal(10, 2)
-  moq           Int?     @default(1)
-  videoUrl      String?
-  /** Per-SKU values for `Product.customColumns` keys */
-  customData    Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  /**
+   * Prix payé au fournisseur (wholesale).
+   */
+  supplierPrice       Decimal  @db.Decimal(10, 2)
+  /**
+   * Prix affiché client (selling).
+   */
+  publicPrice         Decimal  @db.Decimal(10, 2)
+  stock               Int      @default(0)
+  weightGrams         Int?
+  processingDays      Int?     @default(2)
+  ean                 String?  @unique
+  originCountry       String?  @default("CN")
+  warehouseCode       String?
+  purchasePriceHT     Decimal? @db.Decimal(10, 2)
+  moq                 Int?     @default(1)
+  videoUrl            String?
+  /**
+   * Per-SKU values for `Product.customColumns` keys
+   */
+  customData          Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   supplierLinkVariants SupplierLinkVariant[]
   attributeValues      VariantAttributeValue[]
@@ -915,18 +1079,20 @@ model ProductVariant {
   @@index([productId])
 }
 
-/** Typed EAV values per sellable variant (colour, storage, RAM…). */
+/**
+ * Typed EAV values per sellable variant (colour, storage, RAM…).
+ */
 model VariantAttributeValue {
-  id          String           @id @default(cuid())
-  variantId   String
-  variant     ProductVariant   @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  attributeId String
-  attribute   Attribute        @relation(fields: [attributeId], references: [id], onDelete: Cascade)
-  valueText     String?
-  valueNumber   Decimal?         @db.Decimal(18, 4)
-  valueBoolean  Boolean?
-  optionId      String?
-  option        AttributeOption? @relation(fields: [optionId], references: [id], onDelete: SetNull)
+  id           String           @id @default(cuid())
+  variantId    String
+  variant      ProductVariant   @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  attributeId  String
+  attribute    Attribute        @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  valueText    String?
+  valueNumber  Decimal?         @db.Decimal(18, 4)
+  valueBoolean Boolean?
+  optionId     String?
+  option       AttributeOption? @relation(fields: [optionId], references: [id], onDelete: SetNull)
 
   @@unique([variantId, attributeId])
   @@index([attributeId])
@@ -1005,12 +1171,14 @@ model Review {
   title  String? @db.VarChar(120)
   body   String  @map("text") @db.Text
 
-  /** Legacy supplier import display name when `userId` is null. */
+  /**
+   * Legacy supplier import display name when `userId` is null.
+   */
   author  String?
   country String?
   date    DateTime?
   variant String?
-  images  String[] @default([])
+  images  String[]  @default([])
 
   /**
    * UGC payloads: [{ type: "image"|"video", url, blurhash?, width?, height?, duration?, muxPlaybackId? }]
@@ -1040,26 +1208,28 @@ model Review {
 }
 
 model ReviewVote {
-  id       String   @id @default(cuid())
-  reviewId String
-  review   Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  userId   String
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type     VoteType
+  id        String   @id @default(cuid())
+  reviewId  String
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      VoteType
   createdAt DateTime @default(now())
 
   @@unique([reviewId, userId])
   @@index([reviewId])
 }
 
-/** Public creator / affiliate reply on a published review. */
+/**
+ * Public creator / affiliate reply on a published review.
+ */
 model ReviewReply {
-  id       String   @id @default(cuid())
-  reviewId String   @unique
-  review   Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  userId   String
-  user     User     @relation("CreatorReviewReplies", fields: [userId], references: [id], onDelete: Cascade)
-  body     String   @db.Text
+  id        String   @id @default(cuid())
+  reviewId  String   @unique
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("CreatorReviewReplies", fields: [userId], references: [id], onDelete: Cascade)
+  body      String   @db.Text
   createdAt DateTime @default(now())
 }
 
@@ -1086,7 +1256,9 @@ model Wishlist {
   @@index([productId, updatedAt])
 }
 
-/** Anonymous buyer saves (likes) before account creation; merged into Wishlist on sign-in. */
+/**
+ * Anonymous buyer saves (likes) before account creation; merged into Wishlist on sign-in.
+ */
 model GuestWishlist {
   id        String   @id @default(cuid())
   guestId   String
@@ -1108,7 +1280,9 @@ enum AuctionStatus {
   CANCELLED
 }
 
-/** Time-boxed product auction on the Affisell Arena. */
+/**
+ * Time-boxed product auction on the Affisell Arena.
+ */
 model Auction {
   id                String        @id @default(cuid())
   productId         String
@@ -1185,7 +1359,9 @@ model CommunityPost {
   store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   content   String
   images    String[] @default([])
-  /** Short-form clip URL (mp4/webm) for Affisell Pulse feed. */
+  /**
+   * Short-form clip URL (mp4/webm) for Affisell Pulse feed.
+   */
   videoUrl  String?
   productId String?
   product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
@@ -1235,15 +1411,17 @@ model AffiliateProduct {
   /**
    * Affisell Luxe window: only `LUXE` or `COLLECTION` (+ active `LuxuryCollection`) appear on `/luxe`.
    */
-  luxuryTier           String            @default("NONE")
-  luxuryCollectionId   String?
-  luxuryCollection     LuxuryCollection? @relation(fields: [luxuryCollectionId], references: [id], onDelete: SetNull)
+  luxuryTier         String            @default("NONE")
+  luxuryCollectionId String?
+  luxuryCollection   LuxuryCollection? @relation(fields: [luxuryCollectionId], references: [id], onDelete: SetNull)
 
-  isListed   Boolean @default(true)
-  isFeatured Boolean @default(false)
-  /** Affiliate opt-in — only eligible listings are seeded into `/auctions`. */
+  isListed        Boolean @default(true)
+  isFeatured      Boolean @default(false)
+  /**
+   * Affiliate opt-in — only eligible listings are seeded into `/auctions`.
+   */
   auctionEligible Boolean @default(false)
-  position   Int     @default(0)
+  position        Int     @default(0)
 
   clicks      Int @default(0)
   conversions Int @default(0)
@@ -1261,11 +1439,11 @@ model AffiliateProduct {
   /**
    * Optional PDP default: must match `Product.colors[]` when set.
    */
-  promotedColor String?
+  promotedColor       String?
   /**
    * Optional PDP default: must match `Product.variants.size[]` when set.
    */
-  promotedSize  String?
+  promotedSize        String?
   /**
    * Subset of supplier variant keys shown on this affiliate storefront (empty = all).
    * Keys match `ProductVariantLine.name` or color-only labels from the supplier catalog.
@@ -1293,25 +1471,25 @@ model AffiliateProduct {
  * Paid product placement — supplier or affiliate funds visibility via % of catalog HT (`basePriceCents`).
  */
 model SponsorCampaign {
-  id                 String    @id @default(cuid())
-  payerUserId        String
-  payerRole          String
-  productId          String
-  affiliateProductId String?
-  sponsorRateBps     Int
-  htCentsSnapshot    Int
-  feeCents           Int
-  durationDays       Int
-  placement          String
-  status             String    @default("PENDING_PAYMENT")
-  boostScore         Int       @default(0)
-  setsListingFeatured Boolean  @default(false)
-  startsAt           DateTime?
-  endsAt             DateTime?
-  stripeCheckoutSessionId String? @unique
-  stripePaymentIntentId   String? @unique
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  id                      String    @id @default(cuid())
+  payerUserId             String
+  payerRole               String
+  productId               String
+  affiliateProductId      String?
+  sponsorRateBps          Int
+  htCentsSnapshot         Int
+  feeCents                Int
+  durationDays            Int
+  placement               String
+  status                  String    @default("PENDING_PAYMENT")
+  boostScore              Int       @default(0)
+  setsListingFeatured     Boolean   @default(false)
+  startsAt                DateTime?
+  endsAt                  DateTime?
+  stripeCheckoutSessionId String?   @unique
+  stripePaymentIntentId   String?   @unique
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 
   payer            User              @relation("SponsorCampaignPayer", fields: [payerUserId], references: [id], onDelete: Cascade)
   product          Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -1322,7 +1500,9 @@ model SponsorCampaign {
   @@index([productId, status, payerRole])
 }
 
-/** Curated luxury collection — listings must have `luxuryTier = COLLECTION` + this id. */
+/**
+ * Curated luxury collection — listings must have `luxuryTier = COLLECTION` + this id.
+ */
 model LuxuryCollection {
   id            String   @id @default(cuid())
   slug          String   @unique
@@ -1349,7 +1529,9 @@ model AffiliateSwipe {
   affiliate   User     @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
   productId   String
   product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  /** `like` | `skip` */
+  /**
+   * `like` | `skip`
+   */
   action      String
   createdAt   DateTime @default(now())
 
@@ -1408,7 +1590,9 @@ model BuyerRewardLedger {
 enum OrderPaymentSettlementStatus {
   PENDING
   PAID
-  /** Connect transfer completed (seller paid out). */
+  /**
+   * Connect transfer completed (seller paid out).
+   */
   SETTLED
   PARTIALLY_REFUNDED
   REFUNDED
@@ -1435,205 +1619,295 @@ enum SplitStatus {
 }
 
 model Order {
-  id                       String              @id @default(cuid())
-  productId                String
-  affiliateProductId       String
-  supplierId               String
-  affiliateId              String
+  id                               String                       @id @default(cuid())
+  productId                        String
+  affiliateProductId               String
+  supplierId                       String
+  affiliateId                      String
   /**
    * Logged-in buyer when checkout carried `buyerUserId` metadata (optional).
    */
-  buyerUserId              String?
-  /** Checkout UI locale snapshot for transactional emails (en, fr, de, …). */
-  buyerLocale              String?             @db.VarChar(8)
-  /** Snapshot of product.listingKind at checkout (PHYSICAL | SOFTWARE | SUBSCRIPTION | SERVICE | EXPERIENCE). */
-  listingKindSnapshot      String?
-  /** Resolved buyer access URL after instant digital fulfillment. */
-  digitalAccessUrl         String?
-  digitalAccessInstructions String?            @db.Text
-  digitalAccessToken       String?             @unique
-  digitalDeliveredAt       DateTime?
-  /** Reserved booking slot (Phase 1 checkout). */
-  bookingSlotId            String?
-  bookingSlot              BookingSlot?        @relation(fields: [bookingSlotId], references: [id], onDelete: SetNull)
-  /** Frozen slot + policy at confirmation — see lib/booking/snapshot.ts */
-  bookingSnapshot          Json?
-  bookingToken             String?             @unique
-  bookingConfirmedAt       DateTime?
-  /** PENDING checkout hold expiry — see lib/booking/slot-hold.ts */
-  bookingHoldExpiresAt     DateTime?
-  bookingCancelledAt       DateTime?
-  /** Supplier QR / manual check-in at venue (Phase 4). */
-  bookingCheckedInAt       DateTime?
-  /** Idempotent J-1 (~24h) booking reminder email. */
-  bookingReminderDaySentAt  DateTime?
-  /** Idempotent H-2 (~2h) booking reminder email. */
-  bookingReminderHourSentAt DateTime?
-  /** Idempotent H-2 (~2h) booking reminder SMS (Twilio). */
-  bookingReminderHourSmsSentAt DateTime?
-  /** Idempotent supplier instant alert email on pass confirmation. */
-  bookingSupplierAlertSentAt   DateTime?
-  /** Idempotent supplier J-0 digest email inclusion. */
-  bookingSupplierDigestSentAt  DateTime?
-  /** Idempotent supplier in-app alert on marketplace checkout paid. */
+  buyerUserId                      String?
+  /**
+   * Checkout UI locale snapshot for transactional emails (en, fr, de, …).
+   */
+  buyerLocale                      String?                      @db.VarChar(8)
+  /**
+   * Snapshot of product.listingKind at checkout (PHYSICAL | SOFTWARE | SUBSCRIPTION | SERVICE | EXPERIENCE).
+   */
+  listingKindSnapshot              String?
+  /**
+   * Resolved buyer access URL after instant digital fulfillment.
+   */
+  digitalAccessUrl                 String?
+  digitalAccessInstructions        String?                      @db.Text
+  digitalAccessToken               String?                      @unique
+  digitalDeliveredAt               DateTime?
+  /**
+   * Reserved booking slot (Phase 1 checkout).
+   */
+  bookingSlotId                    String?
+  bookingSlot                      BookingSlot?                 @relation(fields: [bookingSlotId], references: [id], onDelete: SetNull)
+  /**
+   * Frozen slot + policy at confirmation — see lib/booking/snapshot.ts
+   */
+  bookingSnapshot                  Json?
+  bookingToken                     String?                      @unique
+  bookingConfirmedAt               DateTime?
+  /**
+   * PENDING checkout hold expiry — see lib/booking/slot-hold.ts
+   */
+  bookingHoldExpiresAt             DateTime?
+  bookingCancelledAt               DateTime?
+  /**
+   * Supplier QR / manual check-in at venue (Phase 4).
+   */
+  bookingCheckedInAt               DateTime?
+  /**
+   * Idempotent J-1 (~24h) booking reminder email.
+   */
+  bookingReminderDaySentAt         DateTime?
+  /**
+   * Idempotent H-2 (~2h) booking reminder email.
+   */
+  bookingReminderHourSentAt        DateTime?
+  /**
+   * Idempotent H-2 (~2h) booking reminder SMS (Twilio).
+   */
+  bookingReminderHourSmsSentAt     DateTime?
+  /**
+   * Idempotent supplier instant alert email on pass confirmation.
+   */
+  bookingSupplierAlertSentAt       DateTime?
+  /**
+   * Idempotent supplier J-0 digest email inclusion.
+   */
+  bookingSupplierDigestSentAt      DateTime?
+  /**
+   * Idempotent supplier in-app alert on marketplace checkout paid.
+   */
   merchantSupplierInboxNotifiedAt  DateTime?
-  /** Idempotent affiliate in-app alert on marketplace checkout paid. */
+  /**
+   * Idempotent affiliate in-app alert on marketplace checkout paid.
+   */
   merchantAffiliateInboxNotifiedAt DateTime?
-  /** Idempotent supplier email alert on marketplace checkout paid. */
+  /**
+   * Idempotent supplier email alert on marketplace checkout paid.
+   */
   merchantSupplierEmailSentAt      DateTime?
-  /** Idempotent affiliate email alert on marketplace checkout paid. */
+  /**
+   * Idempotent affiliate email alert on marketplace checkout paid.
+   */
   merchantAffiliateEmailSentAt     DateTime?
-  bookingSeats             BookingSeat[]
-  buyer                    User?               @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
-  customerEmail            String
-  /** E.164 from Stripe Checkout phone collection — booking SMS H-2. */
-  customerPhone            String?
-  shippingAddress          Json
+  bookingSeats                     BookingSeat[]
+  buyer                            User?                        @relation("BuyerMarketplaceOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
+  customerEmail                    String
+  /**
+   * E.164 from Stripe Checkout phone collection — booking SMS H-2.
+   */
+  customerPhone                    String?
+  shippingAddress                  Json
   /**
    * Line quantity for this order row (multi-item checkout uses one row per SKU).
    */
-  quantity                 Int                 @default(1)
+  quantity                         Int                          @default(1)
   /**
    * Shoppers’ variant choice at checkout, e.g. "Purple · M" — optional.
    */
-  variantLabel             String?
+  variantLabel                     String?
   /**
    * Hero image for the chosen color at checkout (snapshot for fulfillment & alerts).
    */
-  variantImageUrl          String?
-  basePriceCents           Int
-  sellingPriceCents        Int
-  commissionCents          Int
-  marginCents              Int
-  affiliatePayoutCents     Int
+  variantImageUrl                  String?
+  basePriceCents                   Int
+  sellingPriceCents                Int
+  commissionCents                  Int
+  marginCents                      Int
+  affiliatePayoutCents             Int
   /**
    * Affisell marketplace fee (default 10% of line total paid).
    */
-  affisellFeeCents         Int                 @default(0)
-  /** Phase 1: platform fee on supplier wholesale (AE/catalog HT). */
-  supplierFeeCents         Int                 @default(0)
-  /** Phase 1: platform fee on affiliate earnings (commission + markup). */
-  affiliateFeeCents        Int                 @default(0)
-  /** Snapshot AE purchase price HT (centimes) at checkout when SupplierLink exists. */
-  aeWholesaleCents         Int?
+  affisellFeeCents                 Int                          @default(0)
+  /**
+   * Phase 1: platform fee on supplier wholesale (AE/catalog HT).
+   */
+  supplierFeeCents                 Int                          @default(0)
+  /**
+   * Phase 1: platform fee on affiliate earnings (commission + markup).
+   */
+  affiliateFeeCents                Int                          @default(0)
+  /**
+   * Snapshot AE purchase price HT (centimes) at checkout when SupplierLink exists.
+   */
+  aeWholesaleCents                 Int?
   /**
    * Auto-buy escrow: HT reserved on platform to pay supplier upstream (AE/CJ/…).
    * Null for native catalogue shipment.
    */
-  upstreamCogsCents        Int?
+  upstreamCogsCents                Int?
   /**
    * Supplier Connect transfer snapshot (= supplierPayoutCents at checkout).
    */
-  supplierMarginCents      Int?
+  supplierMarginCents              Int?
   /**
    * Frozen at payment: true = Affisell AE auto-buy (17 % fee base on AE wholesale when set).
    * false = native supplier catalogue shipment (10 % on catalog wholesale).
    */
-  usesAffisellAutoBuy      Boolean             @default(false)
+  usesAffisellAutoBuy              Boolean                      @default(false)
   /**
    * Affiliate markup kept above supplier commission offer (`margin − affiliate payout`).
    */
-  affiliateMarginRetainedCents Int             @default(0)
+  affiliateMarginRetainedCents     Int                          @default(0)
   /**
    * Marketplace line: paid → preparing (seller packing + buyer notified) → shipped · refunded …
    */
-  status                   String              @default("paid")
+  status                           String                       @default("paid")
   /**
    * Set when seller confirms they received / are packing; triggers buyer-visible “preparing” state.
    */
-  supplierPreparingAt      DateTime?
-  trackingCarrier          String?
-  trackingNumber           String?
-  shippedAt                DateTime?
-  /** Carrier / supplier marked shipped — start of delivery & payout timers. */
-  deliveredAt              DateTime?
-  /** Buyer confirmed receipt, or auto after 10d silence. */
-  deliveryConfirmedAt      DateTime?
-  deliveryConfirmedBy      String?
-  /** When supplier + affiliate payouts may run (confirm+7d or auto at delivered+10d). */
-  payoutEligibleAt         DateTime?
-  supplierPayoutAt         DateTime?
-  affiliatePayoutAt        DateTime?
-  stripeSessionId          String              @unique
-  /** Medusa v2 order id (admin sync from Affisell Stripe checkout). */
-  medusaOrderId            String?             @unique
-  stripePaymentIntentId    String?             @unique
-  stripeInvoiceId          String?             @unique
-  stripeChargeId           String?             @unique
-  stripeTransferId         String?             @unique
-  stripeCustomerId         String?
-  /** Line HT (products) — commission 12% base, excludes tax. */
-  subtotalCents            Int?
-  /** Shipping HT (excl. tax). */
-  shippingCents            Int                 @default(0)
-  /** VAT collected on checkout (Stripe Tax; seller liable). */
-  taxCents                 Int                 @default(0)
-  taxCountry               String?
-  taxRate                  Decimal?            @db.Decimal(5, 4)
-  /** Total paid by buyer (line TTC). */
-  totalCents               Int?
-  platformCommissionRate   Decimal             @default(0.12) @db.Decimal(5, 4)
-  /** Affisell platform fee (12% of subtotalCents). Distinct from affiliate `commissionCents`. */
-  platformCommissionCents  Int                 @default(0)
-  stripeFeesCents          Int                 @default(0)
-  /** Net transferred to supplier via Stripe Connect. */
-  sellerPayoutCents        Int                 @default(0)
-  /** Three-way split — supplier wholesale (HT). */
-  supplierPriceCents       Int                 @default(0)
-  supplierCommissionRateBps Int                @default(1000)
-  /** Affiliate markup above supplier price (HT). */
-  affiliateMarginCents     Int                 @default(0)
-  affisellCommissionRateBps Int                @default(1200)
-  /** Connect payout to supplier (three-way split). */
-  supplierPayoutCents      Int                 @default(0)
-  /** Snapshot of affiliate Connect account at settlement. */
-  affiliateStripeAccountId String?
-  currency                 String              @default("EUR")
-  paymentSettlementStatus  OrderPaymentSettlementStatus @default(PENDING)
-  /** Connect three-way split aggregate (TransferAttempt rows). */
-  splitStatus              SplitStatus         @default(PENDING)
-  createdAt                DateTime            @default(now())
-  updatedAt                DateTime            @updatedAt
-  product                  Product             @relation(fields: [productId], references: [id])
-  affiliateProduct           AffiliateProduct    @relation(fields: [affiliateProductId], references: [id])
-  supplier                 User                @relation("SupplierOrders", fields: [supplierId], references: [id])
-  affiliate                User                @relation("AffiliateOrders", fields: [affiliateId], references: [id])
-  returns                  OrderReturn[]
-  buyerRewardLedgerEntries BuyerRewardLedger[]
-  merchantPayoutLedger     MerchantPayoutLedger[]
-  buyerReview              Review?
-  reviewReminderSentAt     DateTime?
-  /** Idempotent guard for cancelled/refunded buyer email (Resend). */
-  cancelledEmailSentAt     DateTime?
-  /** Idempotent guard for payment-failed / update-card email (Stripe Billing Portal). */
-  paymentFailedEmailSentAt DateTime?
+  supplierPreparingAt              DateTime?
+  trackingCarrier                  String?
+  trackingNumber                   String?
+  shippedAt                        DateTime?
+  /**
+   * Carrier / supplier marked shipped — start of delivery & payout timers.
+   */
+  deliveredAt                      DateTime?
+  /**
+   * Buyer confirmed receipt, or auto after 10d silence.
+   */
+  deliveryConfirmedAt              DateTime?
+  deliveryConfirmedBy              String?
+  /**
+   * When supplier + affiliate payouts may run (confirm+7d or auto at delivered+10d).
+   */
+  payoutEligibleAt                 DateTime?
+  supplierPayoutAt                 DateTime?
+  affiliatePayoutAt                DateTime?
+  /**
+   * Lightning Payout — Stripe transfer ids [supplierTransferId, affiliateTransferId].
+   */
+  payoutTransferIds                Json?
+  /**
+   * PENDING | PROCESSING | PAID | FAILED
+   */
+  payoutStatus                     String                       @default("PENDING")
+  stripeSessionId                  String                       @unique
+  /**
+   * Medusa v2 order id (admin sync from Affisell Stripe checkout).
+   */
+  medusaOrderId                    String?                      @unique
+  stripePaymentIntentId            String?                      @unique
+  stripeInvoiceId                  String?                      @unique
+  stripeChargeId                   String?                      @unique
+  stripeTransferId                 String?                      @unique
+  stripeCustomerId                 String?
+  /**
+   * Line HT (products) — commission 12% base, excludes tax.
+   */
+  subtotalCents                    Int?
+  /**
+   * Shipping HT (excl. tax).
+   */
+  shippingCents                    Int                          @default(0)
+  /**
+   * VAT collected on checkout (Stripe Tax; seller liable).
+   */
+  taxCents                         Int                          @default(0)
+  taxCountry                       String?
+  taxRate                          Decimal?                     @db.Decimal(5, 4)
+  /**
+   * Total paid by buyer (line TTC).
+   */
+  totalCents                       Int?
+  platformCommissionRate           Decimal                      @default(0.12) @db.Decimal(5, 4)
+  /**
+   * Affisell platform fee (12% of subtotalCents). Distinct from affiliate `commissionCents`.
+   */
+  platformCommissionCents          Int                          @default(0)
+  stripeFeesCents                  Int                          @default(0)
+  /**
+   * Net transferred to supplier via Stripe Connect.
+   */
+  sellerPayoutCents                Int                          @default(0)
+  /**
+   * Three-way split — supplier wholesale (HT).
+   */
+  supplierPriceCents               Int                          @default(0)
+  supplierCommissionRateBps        Int                          @default(1000)
+  /**
+   * Affiliate markup above supplier price (HT).
+   */
+  affiliateMarginCents             Int                          @default(0)
+  affisellCommissionRateBps        Int                          @default(1200)
+  /**
+   * Connect payout to supplier (three-way split).
+   */
+  supplierPayoutCents              Int                          @default(0)
+  /**
+   * Snapshot of affiliate Connect account at settlement.
+   */
+  affiliateStripeAccountId         String?
+  currency                         String                       @default("EUR")
+  paymentSettlementStatus          OrderPaymentSettlementStatus @default(PENDING)
+  /**
+   * Connect three-way split aggregate (TransferAttempt rows).
+   */
+  splitStatus                      SplitStatus                  @default(PENDING)
+  createdAt                        DateTime                     @default(now())
+  updatedAt                        DateTime                     @updatedAt
+  product                          Product                      @relation(fields: [productId], references: [id])
+  affiliateProduct                 AffiliateProduct             @relation(fields: [affiliateProductId], references: [id])
+  supplier                         User                         @relation("SupplierOrders", fields: [supplierId], references: [id])
+  affiliate                        User                         @relation("AffiliateOrders", fields: [affiliateId], references: [id])
+  returns                          OrderReturn[]
+  buyerRewardLedgerEntries         BuyerRewardLedger[]
+  merchantPayoutLedger             MerchantPayoutLedger[]
+  buyerReview                      Review?
+  reviewReminderSentAt             DateTime?
+  /**
+   * Idempotent guard for cancelled/refunded buyer email (Resend).
+   */
+  cancelledEmailSentAt             DateTime?
+  /**
+   * Idempotent guard for payment-failed / update-card email (Stripe Billing Portal).
+   */
+  paymentFailedEmailSentAt         DateTime?
   /**
    * Universal Auto-Order Engine — aggregate fulfillment across supplier channels.
    */
-  fulfillmentStatus      FulfillmentStatus @default(PENDING)
-  fulfillmentErrors      Json?
-  paidAt                 DateTime?
+  fulfillmentStatus                FulfillmentStatus            @default(PENDING)
+  fulfillmentErrors                Json?
+  paidAt                           DateTime?
   /**
    * Ship Pulse deadline (paidAt + 10d, or extended after buyer accepts a delay request).
    */
-  shipDeadlineAt         DateTime?
-  /** Set when Ship Pulse auto-cancel runs (idempotent with buyer email). */
-  autoCancelledAt        DateTime?
-  fulfillmentMessages    OrderFulfillmentMessage[]
-  shipExtensions         OrderShipExtension[]
-  fulfilledAt            DateTime?
-  /** AutoDS dropship — external order id (idempotent create via API). */
-  autodsOrderId            String?             @unique
-  /** PENDING | PROCESSING | SHIPPED | DELIVERED | FAILED */
-  autodsStatus             String?
-  autodsTracking           String?
-  autodsTrackingUrl        String?
-  autodsCarrier            String?
-  /** Idempotent buyer shipped email after AutoDS webhook/cron. */
-  autodsShippedEmailSentAt DateTime?
-  autodsFulfillmentLogs    AutodsFulfillmentLog[]
-  autoFulfillmentBatchId String?
-  autoFulfillmentBatch   AutoFulfillmentBatch? @relation(fields: [autoFulfillmentBatchId], references: [id], onDelete: SetNull)
+  shipDeadlineAt                   DateTime?
+  /**
+   * Set when Ship Pulse auto-cancel runs (idempotent with buyer email).
+   */
+  autoCancelledAt                  DateTime?
+  fulfillmentMessages              OrderFulfillmentMessage[]
+  shipExtensions                   OrderShipExtension[]
+  fulfilledAt                      DateTime?
+  /**
+   * AutoDS dropship — external order id (idempotent create via API).
+   */
+  autodsOrderId                    String?                      @unique
+  /**
+   * PENDING | PROCESSING | SHIPPED | DELIVERED | FAILED
+   */
+  autodsStatus                     String?
+  autodsTracking                   String?
+  autodsTrackingUrl                String?
+  autodsCarrier                    String?
+  /**
+   * Idempotent buyer shipped email after AutoDS webhook/cron.
+   */
+  autodsShippedEmailSentAt         DateTime?
+  autodsFulfillmentLogs            AutodsFulfillmentLog[]
+  autoFulfillmentBatchId           String?
+  autoFulfillmentBatch             AutoFulfillmentBatch?        @relation(fields: [autoFulfillmentBatchId], references: [id], onDelete: SetNull)
 
   supplierFulfillmentLinks SupplierFulfillmentOrderLine[]
   stripeRefunds            OrderStripeRefund[]
@@ -1665,7 +1939,9 @@ model TransferAttempt {
   @@index([status, attempts])
 }
 
-/** Stripe refund rows + commission clawback (Connect settlement). */
+/**
+ * Stripe refund rows + commission clawback (Connect settlement).
+ */
 model OrderStripeRefund {
   id                      String   @id @default(cuid())
   orderId                 String
@@ -1673,7 +1949,7 @@ model OrderStripeRefund {
   stripeRefundId          String   @unique
   amountCents             Int
   commissionReturnedCents Int
-  taxReturnedCents          Int      @default(0)
+  taxReturnedCents        Int      @default(0)
   reason                  String?
   createdAt               DateTime @default(now())
 
@@ -1710,7 +1986,9 @@ enum OrderShipExtensionStatus {
   EXPIRED
 }
 
-/** Buyer ↔ supplier thread on an open marketplace order (delay explanations). */
+/**
+ * Buyer ↔ supplier thread on an open marketplace order (delay explanations).
+ */
 model OrderFulfillmentMessage {
   id           String   @id @default(cuid())
   orderId      String
@@ -1723,7 +2001,9 @@ model OrderFulfillmentMessage {
   @@index([orderId, createdAt])
 }
 
-/** Supplier asks buyer for extra ship time after the initial 10-day window. */
+/**
+ * Supplier asks buyer for extra ship time after the initial 10-day window.
+ */
 model OrderShipExtension {
   id               String                   @id @default(cuid())
   orderId          String
@@ -1812,16 +2092,22 @@ model Notification {
  */
 model AffiliateSupplierInvitation {
   id                   String    @id @default(cuid())
-  /** Public slug, e.g. INV-XXXXXXXXXXXX */
+  /**
+   * Public slug, e.g. INV-XXXXXXXXXXXX
+   */
   token                String    @unique
   affiliateId          String
   affiliate            User      @relation("AffiliateSupplierInvites", fields: [affiliateId], references: [id], onDelete: Cascade)
   headline             String    @default("")
   personalMessage      String    @default("") @db.Text
-  /** Optional commission pitch shown on the invite (catalog default may differ). */
+  /**
+   * Optional commission pitch shown on the invite (catalog default may differ).
+   */
   offeredCommissionPct Float?
   categoryHint         String?
-  /** OPEN → REGISTERED (signup) → CATALOG_LIVE (first published SKU). */
+  /**
+   * OPEN → REGISTERED (signup) → CATALOG_LIVE (first published SKU).
+   */
   status               String    @default("OPEN")
   viewCount            Int       @default(0)
   supplierId           String?   @unique
@@ -1843,7 +2129,9 @@ model AffiliateSupplierInvitation {
  */
 model SupplierAffiliateInvitation {
   id                   String    @id @default(cuid())
-  /** Public slug, e.g. IAF-XXXXXXXXXXXX */
+  /**
+   * Public slug, e.g. IAF-XXXXXXXXXXXX
+   */
   token                String    @unique
   supplierId           String
   supplier             User      @relation("SupplierAffiliateInvites", fields: [supplierId], references: [id], onDelete: Cascade)
@@ -1851,7 +2139,9 @@ model SupplierAffiliateInvitation {
   personalMessage      String    @default("") @db.Text
   offeredCommissionPct Float?
   categoryHint         String?
-  /** OPEN → REGISTERED (signup) → LISTING_LIVE (first public listing of inviter SKU). */
+  /**
+   * OPEN → REGISTERED (signup) → LISTING_LIVE (first public listing of inviter SKU).
+   */
   status               String    @default("OPEN")
   viewCount            Int       @default(0)
   affiliateId          String?   @unique
@@ -1902,7 +2192,9 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-/** One-time password reset (hashed token, 1h TTL). */
+/**
+ * One-time password reset (hashed token, 1h TTL).
+ */
 model PasswordResetToken {
   id        String   @id @default(cuid())
   userId    String
@@ -1948,72 +2240,72 @@ model BlindDropshipSupplier {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  orderItems            BlindDropshipOrderItem[]
+  orderItems          BlindDropshipOrderItem[]
   fulfillmentProvider FulfillmentProvider?
 }
 
 model BlindDropshipOrder {
-  id                    String   @id @default(cuid())
-  affiliateId           String
-  affiliate             User     @relation("BlindDropshipAffiliateOrders", fields: [affiliateId], references: [id], onDelete: Restrict)
-  buyerUserId           String?
-  buyer                 User?    @relation("BlindDropshipBuyerOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
-  customerEmail         String
-  shippingAddress       Json
-  totalPaidCents        Int
-  totalCostCents        Int      @default(0)
-  marginCents           Int      @default(0)
-  affisellFeeCents      Int      @default(0)
-  affiliateCommissionCents Int   @default(0)
-  affiliateMarginRetainedCents Int @default(0)
+  id                           String    @id @default(cuid())
+  affiliateId                  String
+  affiliate                    User      @relation("BlindDropshipAffiliateOrders", fields: [affiliateId], references: [id], onDelete: Restrict)
+  buyerUserId                  String?
+  buyer                        User?     @relation("BlindDropshipBuyerOrders", fields: [buyerUserId], references: [id], onDelete: SetNull)
+  customerEmail                String
+  shippingAddress              Json
+  totalPaidCents               Int
+  totalCostCents               Int       @default(0)
+  marginCents                  Int       @default(0)
+  affisellFeeCents             Int       @default(0)
+  affiliateCommissionCents     Int       @default(0)
+  affiliateMarginRetainedCents Int       @default(0)
   /**
    * pending_payment | paid | fulfilling | shipped | failed | refunded | awaiting_manual_payment
    */
-  status                String   @default("pending_payment")
-  stripePaymentIntentId String?  @unique
-  trackingCarrier       String?
-  trackingNumber        String?
-  deliveredAt           DateTime?
-  deliveryConfirmedAt   DateTime?
-  deliveryConfirmedBy   String?
-  payoutEligibleAt      DateTime?
-  supplierPayoutAt      DateTime?
-  affiliatePayoutAt     DateTime?
-  lastFulfillError      String?  @db.Text
-  inngestRunId          String?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  status                       String    @default("pending_payment")
+  stripePaymentIntentId        String?   @unique
+  trackingCarrier              String?
+  trackingNumber               String?
+  deliveredAt                  DateTime?
+  deliveryConfirmedAt          DateTime?
+  deliveryConfirmedBy          String?
+  payoutEligibleAt             DateTime?
+  supplierPayoutAt             DateTime?
+  affiliatePayoutAt            DateTime?
+  lastFulfillError             String?   @db.Text
+  inngestRunId                 String?
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
 
-  items                  BlindDropshipOrderItem[]
-  merchantPayoutLedger   MerchantPayoutLedger[]
+  items                BlindDropshipOrderItem[]
+  merchantPayoutLedger MerchantPayoutLedger[]
 
   @@index([affiliateId, status])
   @@index([status, createdAt])
 }
 
 model BlindDropshipOrderItem {
-  id                        String                @id @default(cuid())
-  blindDropshipOrderId      String
-  order                     BlindDropshipOrder    @relation(fields: [blindDropshipOrderId], references: [id], onDelete: Cascade)
-  affiliateProductId        String
-  affiliateProduct          AffiliateProduct      @relation(fields: [affiliateProductId], references: [id], onDelete: Restrict)
-  productId                 String
-  product                   Product               @relation(fields: [productId], references: [id], onDelete: Restrict)
-  blindDropshipSupplierId   String
-  blindDropshipSupplier     BlindDropshipSupplier @relation(fields: [blindDropshipSupplierId], references: [id], onDelete: Restrict)
-  quantity                  Int                   @default(1)
-  supplierPriceAtOrderCents Int
-  supplierSkuAtOrder        String
-  linePaidCents             Int      @default(0)
-  marginCents               Int      @default(0)
-  affisellFeeCents          Int      @default(0)
-  affiliateCommissionCents  Int      @default(0)
-  affiliateMarginRetainedCents Int     @default(0)
+  id                           String                @id @default(cuid())
+  blindDropshipOrderId         String
+  order                        BlindDropshipOrder    @relation(fields: [blindDropshipOrderId], references: [id], onDelete: Cascade)
+  affiliateProductId           String
+  affiliateProduct             AffiliateProduct      @relation(fields: [affiliateProductId], references: [id], onDelete: Restrict)
+  productId                    String
+  product                      Product               @relation(fields: [productId], references: [id], onDelete: Restrict)
+  blindDropshipSupplierId      String
+  blindDropshipSupplier        BlindDropshipSupplier @relation(fields: [blindDropshipSupplierId], references: [id], onDelete: Restrict)
+  quantity                     Int                   @default(1)
+  supplierPriceAtOrderCents    Int
+  supplierSkuAtOrder           String
+  linePaidCents                Int                   @default(0)
+  marginCents                  Int                   @default(0)
+  affisellFeeCents             Int                   @default(0)
+  affiliateCommissionCents     Int                   @default(0)
+  affiliateMarginRetainedCents Int                   @default(0)
   /**
    * Partner reference after createOrder succeeds.
    */
-  supplierOrderId           String?
-  createdAt                 DateTime              @default(now())
+  supplierOrderId              String?
+  createdAt                    DateTime              @default(now())
 
   @@index([blindDropshipOrderId])
   @@index([supplierOrderId])
@@ -2086,9 +2378,13 @@ model FulfillmentProvider {
   name                    String
   channelType             SupplierChannelType
   status                  FulfillmentProviderStatus @default(ACTIVE)
-  /** Non-secret config: endpoints, timeouts, version. */
+  /**
+   * Non-secret config: endpoints, timeouts, version.
+   */
   apiConfig               Json                      @default("{}")
-  /** AES-encrypted credentials blob — never expose to client. */
+  /**
+   * AES-encrypted credentials blob — never expose to client.
+   */
   credentialsEncrypted    String?                   @db.Text
   paymentMethod           FulfillmentPaymentMethod  @default(NONE)
   stripeConnectAccountId  String?
@@ -2096,7 +2392,9 @@ model FulfillmentProvider {
   walletBalanceCents      Int                       @default(0)
   slaHours                Int                       @default(24)
   metadata                Json?
-  /** Native Affisell supplier user (role SUPPLIER). */
+  /**
+   * Native Affisell supplier user (role SUPPLIER).
+   */
   supplierUserId          String?
   blindDropshipSupplierId String?                   @unique
   blindDropshipSupplier   BlindDropshipSupplier?    @relation(fields: [blindDropshipSupplierId], references: [id], onDelete: SetNull)
@@ -2109,7 +2407,9 @@ model FulfillmentProvider {
   @@index([supplierUserId])
 }
 
-/** One checkout session → N supplier purchase jobs (event-driven batch). */
+/**
+ * One checkout session → N supplier purchase jobs (event-driven batch).
+ */
 model AutoFulfillmentBatch {
   id                String                     @id @default(cuid())
   stripeSessionId   String                     @unique
@@ -2125,7 +2425,7 @@ model AutoFulfillmentBatch {
   updatedAt         DateTime                   @updatedAt
 
   marketplaceOrders Order[]
-  supplierJobs    SupplierFulfillmentOrder[]
+  supplierJobs      SupplierFulfillmentOrder[]
 
   @@index([status, createdAt])
 }
@@ -2159,18 +2459,18 @@ model SupplierFulfillmentOrder {
 }
 
 model SupplierFulfillmentOrderLine {
-  id                       String                   @id @default(cuid())
+  id                         String                   @id @default(cuid())
   supplierFulfillmentOrderId String
-  supplierFulfillmentOrder SupplierFulfillmentOrder @relation(fields: [supplierFulfillmentOrderId], references: [id], onDelete: Cascade)
-  orderId                  String
-  order                    Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId                String
-  quantity                 Int
-  unitCostCents            Int
-  supplierSku              String?
-  trackingNumber           String?
-  trackingUrl              String?
-  fulfilledAt              DateTime?
+  supplierFulfillmentOrder   SupplierFulfillmentOrder @relation(fields: [supplierFulfillmentOrderId], references: [id], onDelete: Cascade)
+  orderId                    String
+  order                      Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId                  String
+  quantity                   Int
+  unitCostCents              Int
+  supplierSku                String?
+  trackingNumber             String?
+  trackingUrl                String?
+  fulfilledAt                DateTime?
 
   @@unique([supplierFulfillmentOrderId, orderId])
   @@index([orderId])
@@ -2181,7 +2481,9 @@ model VideoGenerationJob {
   id           String   @id @default(cuid())
   productId    String
   product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  /** External Meta AI job id returned by POST /v1/video */
+  /**
+   * External Meta AI job id returned by POST /v1/video
+   */
   jobId        String?  @unique
   prompt       String   @db.Text
   format       String   @default("9:16") // 9:16 | 1:1 | 16:9
@@ -2195,22 +2497,24 @@ model VideoGenerationJob {
   @@index([status])
 }
 
-/** AliExpress sourcing + auto-buy config (1:1 Product). */
+/**
+ * AliExpress sourcing + auto-buy config (1:1 Product).
+ */
 model SupplierLink {
-  id        String   @id @default(cuid())
-  productId String   @unique
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  productId String  @unique
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   aeProductId     String
   aeSkuId         String?
-  aeShopId        String   @default("")
+  aeShopId        String  @default("")
   aePriceCents    Int
-  aeShippingCents Int      @default(0)
+  aeShippingCents Int     @default(0)
   aeUrl           String
 
-  autoBuyEnabled Boolean  @default(true)
+  autoBuyEnabled Boolean   @default(true)
   lastSyncAt     DateTime?
-  isActive       Boolean  @default(true)
+  isActive       Boolean   @default(true)
 
   variantMappings SupplierLinkVariant[]
 
@@ -2220,29 +2524,35 @@ model SupplierLink {
   @@index([aeProductId])
 }
 
-/** Per Affisell variant (color/size) → AliExpress SKU + purchase price for auto-buy. */
+/**
+ * Per Affisell variant (color/size) → AliExpress SKU + purchase price for auto-buy.
+ */
 model SupplierLinkVariant {
-  id              String        @id @default(cuid())
-  supplierLinkId  String
-  supplierLink    SupplierLink  @relation(fields: [supplierLinkId], references: [id], onDelete: Cascade)
+  id               String          @id @default(cuid())
+  supplierLinkId   String
+  supplierLink     SupplierLink    @relation(fields: [supplierLinkId], references: [id], onDelete: Cascade)
   productVariantId String?
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: SetNull)
-  /** Normalized color key for order.variantLabel matching when no ProductVariant row. */
-  matchColor      String?
-  matchSize       String?
-  aeSkuId         String
-  aePriceCents    Int
-  aeShippingCents Int           @default(0)
-  aeLabel         String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  /**
+   * Normalized color key for order.variantLabel matching when no ProductVariant row.
+   */
+  matchColor       String?
+  matchSize        String?
+  aeSkuId          String
+  aePriceCents     Int
+  aeShippingCents  Int             @default(0)
+  aeLabel          String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   @@unique([supplierLinkId, productVariantId])
   @@index([supplierLinkId])
   @@index([supplierLinkId, matchColor])
 }
 
-/** AutoDS webhook/cron audit trail (provider events). */
+/**
+ * AutoDS webhook/cron audit trail (provider events).
+ */
 model AutodsFulfillmentLog {
   id        String   @id @default(cuid())
   orderId   String
@@ -2255,7 +2565,9 @@ model AutodsFulfillmentLog {
   @@index([orderId, createdAt])
 }
 
-/** WooCommerce REST keys issued to third-party apps (e.g. AutoDS onboarding). */
+/**
+ * WooCommerce REST keys issued to third-party apps (e.g. AutoDS onboarding).
+ */
 model WooCommerceApiCredential {
   id              String    @id @default(cuid())
   appName         String
@@ -2272,12 +2584,16 @@ model WooCommerceApiCredential {
   @@index([revokedAt])
 }
 
-/** Per marketplace order — AliExpress auto-buy lifecycle (distinct from Order.fulfillmentStatus). */
+/**
+ * Per marketplace order — AliExpress auto-buy lifecycle (distinct from Order.fulfillmentStatus).
+ */
 model FulfillmentLog {
   id            String        @id @default(cuid())
   orderId       String        @unique
   order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  /** Affisell 1 order = 1 product — mirrors orderId for API compatibility. */
+  /**
+   * Affisell 1 order = 1 product — mirrors orderId for API compatibility.
+   */
   orderItemId   String
   status        AutoBuyStatus @default(PENDING)
   aeOrderId     String?
@@ -2305,7 +2621,9 @@ enum DemoPersona {
   BUYER
 }
 
-/** In-app demo lab — structured UX feedback (suppliers, affiliates, buyers). */
+/**
+ * In-app demo lab — structured UX feedback (suppliers, affiliates, buyers).
+ */
 model DemoFeedback {
   id        String      @id @default(cuid())
   persona   DemoPersona
@@ -2319,19 +2637,21 @@ model DemoFeedback {
   @@index([persona, createdAt])
 }
 
-/** ROW buyer interest — notify when checkout opens in their country (idempotent per email+country+region). */
+/**
+ * ROW buyer interest — notify when checkout opens in their country (idempotent per email+country+region).
+ */
 model CheckoutLaunchWaitlist {
-  id                String    @id @default(cuid())
-  email             String
-  countryIso2       String
-  marketRegion      String
-  locale            String?
-  launchNotifiedAt  DateTime?
-  launchFollowUpSentAt DateTime?
-  launchEmailBouncedAt DateTime?
+  id                      String    @id @default(cuid())
+  email                   String
+  countryIso2             String
+  marketRegion            String
+  locale                  String?
+  launchNotifiedAt        DateTime?
+  launchFollowUpSentAt    DateTime?
+  launchEmailBouncedAt    DateTime?
   launchEmailSuppressedAt DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 
   @@unique([email, countryIso2, marketRegion])
   @@index([countryIso2, marketRegion])
@@ -2341,20 +2661,22 @@ model CheckoutLaunchWaitlist {
   @@index([marketRegion, launchEmailSuppressedAt])
 }
 
-/** Founder-enabled checkout countries beyond the static EU/US base list. */
+/**
+ * Founder-enabled checkout countries beyond the static EU/US base list.
+ */
 model CheckoutCountryRollout {
-  id                String    @id @default(cuid())
-  countryIso2       String
-  marketRegion      String
-  enabled           Boolean   @default(true)
-  openedAt          DateTime  @default(now())
-  launchEmailSentAt DateTime?
-  firstOrderAt      DateTime?
-  firstOrderId      String?
-  graduatedAt       DateTime?
+  id                    String    @id @default(cuid())
+  countryIso2           String
+  marketRegion          String
+  enabled               Boolean   @default(true)
+  openedAt              DateTime  @default(now())
+  launchEmailSentAt     DateTime?
+  firstOrderAt          DateTime?
+  firstOrderId          String?
+  graduatedAt           DateTime?
   graduationEmailSentAt DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@unique([countryIso2, marketRegion])
   @@index([marketRegion, enabled])
@@ -2362,7 +2684,9 @@ model CheckoutCountryRollout {
   @@index([marketRegion, graduatedAt])
 }
 
-/** Short-lived buffer: bookmarklet POST → admin poll (serverless-safe). */
+/**
+ * Short-lived buffer: bookmarklet POST → admin poll (serverless-safe).
+ */
 model AdminAeCaptureSession {
   id        String   @id @default(cuid())
   productId String
@@ -2373,7 +2697,9 @@ model AdminAeCaptureSession {
   @@index([productId, expiresAt])
 }
 
-/** Admin Sentinel — auto-detected ops issues (id = stable hash, idempotent upsert). */
+/**
+ * Admin Sentinel — auto-detected ops issues (id = stable hash, idempotent upsert).
+ */
 model OpsSignal {
   id         String    @id
   severity   String
@@ -2393,7 +2719,9 @@ model OpsSignal {
   @@index([domain, code])
 }
 
-/** Sentinel scan history — health score trend (one row per cron/manual scan). */
+/**
+ * Sentinel scan history — health score trend (one row per cron/manual scan).
+ */
 model OpsScanSnapshot {
   id        String   @id @default(cuid())
   scannedAt DateTime @default(now())
@@ -2408,7 +2736,9 @@ model OpsScanSnapshot {
   @@index([scannedAt])
 }
 
-/** Stripe webhook idempotence (event.id = evt_…). */
+/**
+ * Stripe webhook idempotence (event.id = evt_…).
+ */
 model ProcessedWebhook {
   id        String   @id
   orderId   String?
@@ -2461,69 +2791,97 @@ enum AgentLedgerEntryType {
   DEBIT
 }
 
-/** Affisell Agent Network — vetted local agents (QC, compliance, photo proof, express relay). */
+/**
+ * Affisell Agent Network — vetted local agents (QC, compliance, photo proof, express relay).
+ */
 model SourcingAgent {
-  id            String            @id @default(cuid())
-  displayName   String
-  /** ISO-3166 alpha-2 (CN, TR, VN, …). */
-  country       String
-  city          String
-  capabilities  AgentCapability[]
-  languages     String[]          @default([])
-  /** Rating ×10 (47 = 4.7★). */
-  ratingX10     Int               @default(45)
-  missionsDone  Int               @default(0)
-  /** Avg turnaround from assignment to report. */
-  leadTimeHours Int               @default(48)
-  /** Available balance (mission fees credited on PASSED). */
-  balanceCents            Int     @default(0)
-  lifetimeEarningsCents   Int     @default(0)
-  status        AgentStatus       @default(PENDING)
-  contactEmail  String            @unique
-  /** Motivation / expérience (candidature publique). */
-  applicationNote String?         @db.Text
-  contactPhone  String?
-  /** Compte User (role AGENT) créé à l'activation admin. */
-  userId        String?           @unique
-  user          User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @default(now()) @updatedAt
+  id                    String            @id @default(cuid())
+  displayName           String
+  /**
+   * ISO-3166 alpha-2 (CN, TR, VN, …).
+   */
+  country               String
+  city                  String
+  capabilities          AgentCapability[]
+  languages             String[]          @default([])
+  /**
+   * Rating ×10 (47 = 4.7★).
+   */
+  ratingX10             Int               @default(45)
+  missionsDone          Int               @default(0)
+  /**
+   * Avg turnaround from assignment to report.
+   */
+  leadTimeHours         Int               @default(48)
+  /**
+   * Available balance (mission fees credited on PASSED).
+   */
+  balanceCents          Int               @default(0)
+  lifetimeEarningsCents Int               @default(0)
+  status                AgentStatus       @default(PENDING)
+  contactEmail          String            @unique
+  /**
+   * Motivation / expérience (candidature publique).
+   */
+  applicationNote       String?           @db.Text
+  contactPhone          String?
+  /**
+   * Compte User (role AGENT) créé à l'activation admin.
+   */
+  userId                String?           @unique
+  user                  User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @default(now()) @updatedAt
 
-  missions     AgentMission[]
+  missions      AgentMission[]
   ledgerEntries AgentLedgerEntry[]
 
   @@index([status, country])
 }
 
-/** Inspection / express-relay mission requested by a supplier on one SKU. */
+/**
+ * Inspection / express-relay mission requested by a supplier on one SKU.
+ */
 model AgentMission {
-  id             String             @id @default(cuid())
-  supplierId     String
-  productId      String?
-  product        Product?           @relation(fields: [productId], references: [id], onDelete: SetNull)
-  agentId        String?
-  agent          SourcingAgent?     @relation(fields: [agentId], references: [id], onDelete: SetNull)
-  type           AgentMissionType
-  status         AgentMissionStatus @default(REQUESTED)
-  /** Supplier brief (what to check, lot size, …). */
-  instructions   String?            @db.Text
-  /** Structured findings (checklist, defects, measurements). */
-  report         Json?
-  reportSummary  String?            @db.Text
-  photoUrls      String[]           @default([])
-  feeCents       Int                @default(0)
-  /** Supplier-flagged priority (display + matching boost later). */
-  urgent         Boolean            @default(false)
-  /** Supplier deadline — SLA target for the agent. */
-  deadlineAt     DateTime?
-  /** Quality Gate: FAILED mission paused this SKU's auto-buy. */
-  autoBuyPaused  Boolean            @default(false)
-  requestedAt    DateTime           @default(now())
-  assignedAt     DateTime?
-  completedAt    DateTime?
-  /** SMS J+1 reminder sent when mission stays ASSIGNED > 24h. */
-  smsReminderAt  DateTime?
-  updatedAt      DateTime           @default(now()) @updatedAt
+  id            String             @id @default(cuid())
+  supplierId    String
+  productId     String?
+  product       Product?           @relation(fields: [productId], references: [id], onDelete: SetNull)
+  agentId       String?
+  agent         SourcingAgent?     @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  type          AgentMissionType
+  status        AgentMissionStatus @default(REQUESTED)
+  /**
+   * Supplier brief (what to check, lot size, …).
+   */
+  instructions  String?            @db.Text
+  /**
+   * Structured findings (checklist, defects, measurements).
+   */
+  report        Json?
+  reportSummary String?            @db.Text
+  photoUrls     String[]           @default([])
+  feeCents      Int                @default(0)
+  /**
+   * Supplier-flagged priority (display + matching boost later).
+   */
+  urgent        Boolean            @default(false)
+  /**
+   * Supplier deadline — SLA target for the agent.
+   */
+  deadlineAt    DateTime?
+  /**
+   * Quality Gate: FAILED mission paused this SKU's auto-buy.
+   */
+  autoBuyPaused Boolean            @default(false)
+  requestedAt   DateTime           @default(now())
+  assignedAt    DateTime?
+  completedAt   DateTime?
+  /**
+   * SMS J+1 reminder sent when mission stays ASSIGNED > 24h.
+   */
+  smsReminderAt DateTime?
+  updatedAt     DateTime           @default(now()) @updatedAt
 
   ledgerEntry AgentLedgerEntry?
 
@@ -2533,23 +2891,27 @@ model AgentMission {
   @@index([status, assignedAt, smsReminderAt])
 }
 
-/** Audit trail for China buying agent routing (Superbuy, Anovabuy, …). */
+/**
+ * Audit trail for China buying agent routing (Superbuy, Anovabuy, …).
+ */
 model ChinaBuyRouteLog {
-  id              String              @id @default(cuid())
-  supplierId      String
-  productId       String?
-  product         Product?            @relation(fields: [productId], references: [id], onDelete: SetNull)
-  agentId         String
-  platform        String?
-  sourceUrl       String
-  status          ChinaBuyRouteStatus @default(STUB)
-  externalRef     String?
-  errorMessage    String?             @db.Text
-  orderId         String?
-  /** Idempotent replay key: supplier + url + agent. */
-  idempotencyKey  String              @unique
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
+  id             String              @id @default(cuid())
+  supplierId     String
+  productId      String?
+  product        Product?            @relation(fields: [productId], references: [id], onDelete: SetNull)
+  agentId        String
+  platform       String?
+  sourceUrl      String
+  status         ChinaBuyRouteStatus @default(STUB)
+  externalRef    String?
+  errorMessage   String?             @db.Text
+  orderId        String?
+  /**
+   * Idempotent replay key: supplier + url + agent.
+   */
+  idempotencyKey String              @unique
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 
   @@index([supplierId, createdAt])
   @@index([productId])
@@ -2557,21 +2919,25 @@ model ChinaBuyRouteLog {
   @@index([agentId, externalRef])
 }
 
-/** Agent mission fee credits — one row per mission (idempotent on PASSED). */
+/**
+ * Agent mission fee credits — one row per mission (idempotent on PASSED).
+ */
 model AgentLedgerEntry {
-  id               String               @id @default(cuid())
-  agentId          String
-  agent            SourcingAgent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  missionId        String?              @unique
-  mission          AgentMission?        @relation(fields: [missionId], references: [id], onDelete: SetNull)
-  type             AgentLedgerEntryType
-  amountCents      Int
+  id                String               @id @default(cuid())
+  agentId           String
+  agent             SourcingAgent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  missionId         String?              @unique
+  mission           AgentMission?        @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  type              AgentLedgerEntryType
+  amountCents       Int
   balanceAfterCents Int
-  note             String?              @db.Text
-  stripeTransferId String?              @unique
-  /** Idempotent withdraw key — `withdraw:{agentId}:{uuid}`. */
-  idempotencyKey   String?              @unique
-  createdAt        DateTime             @default(now())
+  note              String?              @db.Text
+  stripeTransferId  String?              @unique
+  /**
+   * Idempotent withdraw key — `withdraw:{agentId}:{uuid}`.
+   */
+  idempotencyKey    String?              @unique
+  createdAt         DateTime             @default(now())
 
   @@index([agentId, createdAt])
 }
@@ -2583,7 +2949,9 @@ enum TryOnJobStatus {
   FAILED
 }
 
-/** Async Replicate prediction lifecycle (Vercel 10s timeout → webhook completion). */
+/**
+ * Async Replicate prediction lifecycle (Vercel 10s timeout → webhook completion).
+ */
 model TryOnJob {
   id                    String         @id @default(cuid())
   status                TryOnJobStatus @default(PENDING)
@@ -2613,26 +2981,28 @@ model TryOnJob {
   @@index([ipHash])
 }
 
-/** Cached try-on result for analytics + 24h dedupe by resultHash. */
+/**
+ * Cached try-on result for analytics + 24h dedupe by resultHash.
+ */
 model TryOn {
-  id                 String   @id @default(cuid())
-  jobId              String   @unique
-  job                TryOnJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  id                 String    @id @default(cuid())
+  jobId              String    @unique
+  job                TryOnJob  @relation(fields: [jobId], references: [id], onDelete: Cascade)
   userId             String?
-  user               User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user               User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   anonId             String?
   productId          String
-  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product            Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
   affiliateProductId String?
   inputUrl           String
   outputUrl          String
   modelVersion       String
   latencyMs          Int?
-  angle              String   @default("front")
-  resultHash         String   @unique
+  angle              String    @default("front")
+  resultHash         String    @unique
   inputDeletedAt     DateTime?
   outputExpiresAt    DateTime
-  createdAt          DateTime @default(now())
+  createdAt          DateTime  @default(now())
 
   @@index([userId, createdAt])
   @@index([productId])
