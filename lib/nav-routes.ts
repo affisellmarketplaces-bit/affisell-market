@@ -14,6 +14,7 @@ export const BUYER_WARM_ROUTES = [
   "/discover",
   "/creators",
   "/returns",
+  "/protected-checkout",
   "/login",
   "/cart",
   "/wishlist",

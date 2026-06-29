@@ -2347,6 +2347,49 @@
       "feedbackBody": "Un blocage d'accessibilité ? Écrivez à {email} avec la page et votre appareil — nous priorisons les correctifs.",
       "contactCta": "Signaler un problème",
       "faqCta": "Consulter la FAQ"
+    },
+    "protectedCheckout": {
+      "metaTitle": "Achat protégé — Affisell",
+      "metaDescription": "Paiement sécurisé, retours 14 jours UE et garanties légales — tout ce qu'un acheteur doit savoir en 30 secondes.",
+      "eyebrow": "Achat protégé",
+      "title": "Achetez en toute confiance",
+      "description": "Paiement sécurisé, droit de rétractation européen et garanties légales — sans jargon.",
+      "badgeReturns": "Retours 14 jours UE",
+      "badge3ds": "3D Secure",
+      "paymentTitle": "Paiement",
+      "paymentBody": "Paiement sécurisé par Stripe. Vos données bancaires ne transitent jamais par Affisell.",
+      "paymentHint": "L'authentification forte (3D Secure) peut être demandée par votre banque pour valider le paiement.",
+      "returnsTitle": "Retours & remboursements",
+      "returnsIntro": "Vous changez d'avis ou le produit est défectueux ? Voici qui paie quoi et quand vous êtes remboursé.",
+      "returnsTable": {
+        "situation": "Situation",
+        "returnCost": "Qui paie le retour",
+        "refundDelay": "Délai remboursement"
+      },
+      "returnsRows": {
+        "changeMind": {
+          "situation": "Je change d'avis (14 jours)",
+          "returnCost": "Vous",
+          "refundDelay": "14 jours après réception du retour"
+        },
+        "defective": {
+          "situation": "Produit défectueux ou non conforme",
+          "returnCost": "Fournisseur",
+          "refundDelay": "14 jours après réception du retour"
+        }
+      },
+      "returnsHowTitle": "Comment demander un retour ?",
+      "returnsHowBody": "Depuis votre espace commande ou via notre support — indiquez le motif et suivez les instructions d'expédition.",
+      "returnsExceptions": "Certains produits sont exclus du droit de rétractation (sur mesure, scellés d'hygiène, denrées périssables…).",
+      "warrantyTitle": "Garanties légales",
+      "warrantyBody": "Vos achats bénéficient de la garantie légale de conformité (2 ans) et de la garantie contre les vices cachés. Un problème ? Contactez-nous, on vous aide à trouver la solution avec le vendeur.",
+      "mediationTitle": "Médiation consommation",
+      "mediationBody": "En cas de litige non résolu avec notre support, vous pouvez saisir gratuitement un médiateur de la consommation :",
+      "mediationLinkLabel": "CM2C — Centre de médiation de la consommation",
+      "contactCta": "Nous contacter",
+      "trackCta": "Suivre ma commande",
+      "legalCta": "Conditions générales de vente",
+      "footerHost": "Hébergeur : Vercel Inc."
     }
   },
   "contact": {

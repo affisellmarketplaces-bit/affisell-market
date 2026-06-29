@@ -25,7 +25,7 @@ export function buildPremiumBuyerTiles(
       accent: BUYER_TILE_ACCENTS.luxe.glow,
     },
     {
-      href: "/returns",
+      href: "/protected-checkout",
       label: t("trustTitle"),
       hint: t("trustBody"),
       Icon: ShieldCheck,

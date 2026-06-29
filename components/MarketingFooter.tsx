@@ -58,7 +58,7 @@ export async function MarketingFooter() {
               </AppLink>
             </li>
             <li>
-              <AppLink href="/returns" className="hover:text-[#6366F1]">
+              <AppLink href="/protected-checkout" className="hover:text-[#6366F1]">
                 {t("returns")}
               </AppLink>
             </li>

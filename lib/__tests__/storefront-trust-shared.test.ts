@@ -8,6 +8,6 @@ describe("storefront trust shared", () => {
     expect(hrefs).toContain("/legal/terms-of-sale")
     expect(hrefs).toContain("/legal/privacy-policy")
     expect(hrefs).toContain("/legal/legal-notice")
-    expect(hrefs).toContain("/legal/returns")
+    expect(hrefs).toContain("/protected-checkout")
   })
 })

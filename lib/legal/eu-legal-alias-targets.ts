@@ -4,7 +4,8 @@ export const EU_LEGAL_ALIAS_TARGETS = {
   "terms-of-sale": "/cgv",
   "cookie-policy": "/cookies",
   "legal-notice": "/mentions-legales",
-  returns: "/returns",
+  returns: "/protected-checkout",
+  "protected-checkout": "/protected-checkout",
 } as const
 
 export type EuLegalAliasSlug = keyof typeof EU_LEGAL_ALIAS_TARGETS

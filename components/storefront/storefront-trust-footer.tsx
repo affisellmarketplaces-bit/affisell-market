@@ -479,7 +479,7 @@ export function StorefrontTrustFooter({
 
   const trustBeacon = useMemo(
     () => ({
-      href: "/returns",
+      href: "/protected-checkout",
       title: tFooter("trustBeaconTitle"),
       hint: tFooter("trustBeaconHint"),
       cta: tFooter("trustBeaconCta"),

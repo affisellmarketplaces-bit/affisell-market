@@ -6,5 +6,4 @@ export const LEGAL_MARKDOWN_CANONICAL_REDIRECTS: Record<string, string> = {
   "privacy-policy": "/privacy",
   "cookies-policy": "/cookies",
   mentions: "/mentions-legales",
-  "refund-policy": "/returns",
 }

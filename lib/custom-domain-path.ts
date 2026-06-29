@@ -31,6 +31,7 @@ const MERCHANT_PUBLIC_PLATFORM_PREFIXES = [
   "/privacy",
   "/cgu",
   "/returns",
+  "/protected-checkout",
   "/mentions-legales",
   "/accessibilite",
   "/contact",

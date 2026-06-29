@@ -129,7 +129,7 @@ export function CguDocumentBody() {
       </p>
       <p>
         6.3. En cas de remboursement Acheteur, les commissions peuvent faire l&apos;objet d&apos;un{" "}
-        <strong>clawback</strong> proportionnel (voir <a href="/returns">Politique de remboursement</a>).
+        <strong>clawback</strong> proportionnel (voir <a href="/legal/refund-policy">Politique de remboursement</a>).
       </p>
 
       <h2>Article 7 — Livraison et SLA expédition</h2>
@@ -148,7 +148,7 @@ export function CguDocumentBody() {
       </p>
       <p>
         8.2. Les modalités pratiques sont détaillées dans la{" "}
-        <a href="/returns">Politique de remboursement</a>.
+        <a href="/legal/refund-policy">Politique de remboursement</a>.
       </p>
 
       <h2>Article 9 — Propriété intellectuelle</h2>

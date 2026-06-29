@@ -24,7 +24,7 @@ export function buildFooterGlobalContent(
           { href: "/auctions", label: t("auctions") },
           { href: "/luxe", label: t("luxe") },
           { href: "/how-it-works", label: t("howItWorks") },
-          { href: "/returns", label: t("buyerProtection") },
+          { href: "/protected-checkout", label: t("buyerProtection") },
           { href: "/track-order", label: t("trackOrder") },
           { href: "/wishlist", label: t("wishlist") },
         ],
@@ -62,13 +62,13 @@ export function buildFooterGlobalContent(
       },
     ],
     quickLinks: [
-      { href: "/returns", label: t("buyerProtectionShort") },
+      { href: "/protected-checkout", label: t("buyerProtectionShort") },
       { href: "/faq", label: t("faq") },
       { href: "/support", label: t("supportAssistant") },
       { href: "/track-order", label: t("trackOrder") },
     ],
     trustBeacon: {
-      href: "/returns",
+      href: "/protected-checkout",
       title: t("trustBeaconTitle"),
       hint: t("trustBeaconHint"),
       cta: t("trustBeaconCta"),
@@ -80,7 +80,7 @@ export function buildFooterGlobalContent(
       { href: "/privacy", label: t("privacyPolicy") },
       { href: "/cookies", label: t("cookieSettings") },
       { href: "/mentions-legales", label: t("legalNotice") },
-      { href: "/returns", label: t("returns") },
+      { href: "/protected-checkout", label: t("returns") },
     ],
     socialLinks: FOOTER_SOCIAL_LINKS.map(({ id, href }) => ({
       id,

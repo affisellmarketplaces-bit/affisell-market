@@ -13,7 +13,7 @@ const LEGAL_NAV = [
   { href: "/mentions-legales", key: "legalNotice" },
   { href: "/privacy", key: "privacy" },
   { href: "/cookies", key: "cookies" },
-  { href: "/returns", key: "returns" },
+  { href: "/protected-checkout", key: "returns" },
   { href: "/contact", key: "contact" },
 ] as const
 

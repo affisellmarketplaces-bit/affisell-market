@@ -2323,6 +2323,49 @@
       "feedbackBody": "Hit an accessibility blocker? Email {email} with the page and device — we prioritize fixes.",
       "contactCta": "Report an issue",
       "faqCta": "Browse FAQ"
+    },
+    "protectedCheckout": {
+      "metaTitle": "Protected checkout — Affisell",
+      "metaDescription": "Secure payment, 14-day EU returns and legal warranties — what every buyer needs to know in 30 seconds.",
+      "eyebrow": "Protected checkout",
+      "title": "Shop with confidence",
+      "description": "Secure payment, European right of withdrawal and legal warranties — zero jargon.",
+      "badgeReturns": "14-day EU returns",
+      "badge3ds": "3D Secure",
+      "paymentTitle": "Payment",
+      "paymentBody": "Secure payment powered by Stripe. Your card details never pass through Affisell.",
+      "paymentHint": "Strong Customer Authentication (3D Secure) may be required by your bank to approve the payment.",
+      "returnsTitle": "Returns & refunds",
+      "returnsIntro": "Changed your mind or received a faulty item? Here is who pays for what and when you get refunded.",
+      "returnsTable": {
+        "situation": "Situation",
+        "returnCost": "Who pays return shipping",
+        "refundDelay": "Refund timeline"
+      },
+      "returnsRows": {
+        "changeMind": {
+          "situation": "I changed my mind (14 days)",
+          "returnCost": "You",
+          "refundDelay": "14 days after we receive the return"
+        },
+        "defective": {
+          "situation": "Faulty or non-conforming product",
+          "returnCost": "Supplier",
+          "refundDelay": "14 days after we receive the return"
+        }
+      },
+      "returnsHowTitle": "How do I request a return?",
+      "returnsHowBody": "From your order account or via our support team — state the reason and follow the return shipping instructions.",
+      "returnsExceptions": "Some products are excluded from the right of withdrawal (custom-made, sealed hygiene goods, perishables…).",
+      "warrantyTitle": "Legal warranties",
+      "warrantyBody": "Your purchases are covered by the legal conformity warranty (2 years) and the hidden-defect warranty. An issue? Contact us — we will help you resolve it with the seller.",
+      "mediationTitle": "Consumer mediation",
+      "mediationBody": "If a dispute is not resolved with our support, you can contact a consumer mediator free of charge:",
+      "mediationLinkLabel": "CM2C — French consumer mediation centre",
+      "contactCta": "Contact us",
+      "trackCta": "Track my order",
+      "legalCta": "Terms of sale",
+      "footerHost": "Hosting: Vercel Inc."
     }
   },
   "contact": {

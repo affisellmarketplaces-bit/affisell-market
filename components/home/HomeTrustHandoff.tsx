@@ -33,7 +33,7 @@ export async function HomeTrustHandoff() {
   ] as const
 
   const trustLinks = [
-    { href: "/returns", label: t("trustReturns") },
+    { href: "/protected-checkout", label: t("trustReturns") },
     { href: "/shipping", label: t("trustShipping") },
     { href: "/support", label: t("trustSupport") },
   ] as const

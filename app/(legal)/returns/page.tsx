@@ -1,14 +1,6 @@
-import type { Metadata } from "next"
+import { redirect } from "next/navigation"
 
-import {
-  generateLocalizedLegalMetadata,
-  LocalizedLegalPage,
-} from "@/components/legal/localized-legal-page"
-
-export async function generateMetadata(): Promise<Metadata> {
-  return generateLocalizedLegalMetadata("refund-policy")
-}
-
-export default function ReturnsPage() {
-  return <LocalizedLegalPage slug="refund-policy" />
+/** Page acheteur B2C — politique simplifiée (ex-refund-policy markdown). */
+export default function ReturnsBuyerPage() {
+  redirect("/protected-checkout")
 }
