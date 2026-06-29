@@ -30,15 +30,38 @@ function createBasePrismaClient(): PrismaClient {
   const url = getPrismaDatasourceUrl()
   globalForPrisma.__affisellPrismaUrl = url
 
-  return new PrismaClient({
+  const useEventLogs =
+    process.env.PRISMA_LOG !== "1" && process.env.NODE_ENV === "development"
+
+  const client = new PrismaClient({
     datasources: { db: { url } },
-    log:
-      process.env.PRISMA_LOG === "1"
+    log: useEventLogs
+      ? [
+          { emit: "event", level: "error" },
+          { emit: "event", level: "warn" },
+        ]
+      : process.env.PRISMA_LOG === "1"
         ? ["error", "warn", "query"]
         : process.env.NODE_ENV === "development"
           ? ["error", "warn"]
           : [],
   })
+
+  if (useEventLogs) {
+    client.$on("error", (event) => {
+      if (isRetryablePrismaConnectionError(event)) {
+        console.warn("[prisma] transient DB disconnect — will reconnect on next query")
+        void resetPrismaClient()
+        return
+      }
+      console.error("prisma:error", event.message)
+    })
+    client.$on("warn", (event) => {
+      console.warn("prisma:warn", event.message)
+    })
+  }
+
+  return client
 }
 
 function modelDelegateKey(model: string): string {

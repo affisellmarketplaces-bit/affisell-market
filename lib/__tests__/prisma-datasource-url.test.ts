@@ -66,9 +66,17 @@ describe("normalizePrismaRawUrl", () => {
     vi.unstubAllEnvs()
   })
 
-  it("rewrites direct Neon host to pooler in development", () => {
+  it("keeps direct host in development by default (fewer E57P01)", () => {
     vi.stubEnv("NODE_ENV", "development")
-    vi.stubEnv("PRISMA_USE_DIRECT_DEV", "")
+    vi.stubEnv("PRISMA_USE_POOLER_DEV", "")
+    const raw =
+      "postgresql://user:pass@ep-misty-sea-al1ne07p.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+    expect(normalizePrismaRawUrl(raw)).toBe(raw)
+  })
+
+  it("rewrites direct Neon host to pooler when PRISMA_USE_POOLER_DEV=1", () => {
+    vi.stubEnv("NODE_ENV", "development")
+    vi.stubEnv("PRISMA_USE_POOLER_DEV", "1")
     const raw =
       "postgresql://user:pass@ep-misty-sea-al1ne07p.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
     const out = normalizePrismaRawUrl(raw)

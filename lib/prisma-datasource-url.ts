@@ -85,7 +85,7 @@ export function augmentPrismaDatasourceUrl(rawUrl: string): string {
   return url.toString()
 }
 
-/** Prefer Neon pooler in dev unless PRISMA_USE_DIRECT_DEV=1. */
+/** Prefer Neon pooler in production; dev defaults to direct host (fewer E57P01 idle drops). */
 export function normalizePrismaRawUrl(rawUrl: string): string {
   const trimmed = rawUrl.trim()
   if (!trimmed) return trimmed
@@ -98,8 +98,11 @@ export function normalizePrismaRawUrl(rawUrl: string): string {
   }
 
   const isDev = process.env.NODE_ENV === "development"
+  const forcePoolerInDev = isDev && process.env.PRISMA_USE_POOLER_DEV === "1"
   const useDirectInDev = isDev && process.env.PRISMA_USE_DIRECT_DEV === "1"
-  if (useDirectInDev || isNeonPoolerUrl(url)) return trimmed
+  if (useDirectInDev || isNeonPoolerUrl(url) || (isDev && !forcePoolerInDev)) {
+    return trimmed
+  }
 
   const poolerHost = neonDirectHostToPooler(url.hostname)
   if (!poolerHost) return trimmed
@@ -113,11 +116,19 @@ export function normalizePrismaRawUrl(rawUrl: string): string {
 
 export function getPrismaDatasourceUrl(): string {
   const isDev = process.env.NODE_ENV === "development"
-  const useDirectInDev =
-    isDev && process.env.PRISMA_USE_DIRECT_DEV === "1" && process.env.DIRECT_URL?.trim()
-  const raw = (useDirectInDev ? process.env.DIRECT_URL : process.env.DATABASE_URL)?.trim()
+  const poolerForced = isDev && process.env.PRISMA_USE_POOLER_DEV === "1"
+  const directExplicit = isDev && process.env.PRISMA_USE_DIRECT_DEV === "1"
+  const unpooled =
+    process.env.DATABASE_URL_UNPOOLED?.trim() || process.env.DIRECT_URL?.trim()
+
+  let raw = process.env.DATABASE_URL?.trim()
   if (!raw) {
     throw new Error("DATABASE_URL is not set")
   }
+
+  if (isDev && !poolerForced && (directExplicit || unpooled)) {
+    raw = unpooled ?? raw
+  }
+
   return augmentPrismaDatasourceUrl(normalizePrismaRawUrl(raw))
 }
