@@ -1,12 +1,12 @@
 "use client"
 
 import { ChevronDown } from "lucide-react"
+import type { ReactNode } from "react"
 import { useState } from "react"
-
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { cn } from "@/lib/utils"
 
-type Item = { id: string; question: string; answer: string }
+type Item = { id: string; question: string; answer: ReactNode }
 
 type Section = { id: string; title: string; items: Item[] }
 
@@ -38,9 +38,9 @@ export function FaqAccordion({ sections }: { sections: Section[] }) {
                     />
                   </button>
                   {open ? (
-                    <p className="border-t border-zinc-100 px-5 pb-5 pt-3 text-sm leading-relaxed text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
+                    <div className="border-t border-zinc-100 px-5 pb-5 pt-3 text-sm leading-relaxed text-zinc-600 dark:border-zinc-800 dark:text-zinc-400">
                       {item.answer}
-                    </p>
+                    </div>
                   ) : null}
                 </BentoCard>
               )

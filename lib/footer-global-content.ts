@@ -54,7 +54,7 @@ export function buildFooterGlobalContent(
         id: "help",
         title: t("helpTitle"),
         links: [
-          { href: "/faq", label: t("faq") },
+          { href: "/help/faq", label: t("faq") },
           { href: "/support", label: t("supportAssistant") },
           { href: "/shipping", label: t("shipping") },
           { href: "/contact", label: t("contact") },
@@ -63,7 +63,7 @@ export function buildFooterGlobalContent(
     ],
     quickLinks: [
       { href: "/protected-checkout", label: t("buyerProtectionShort") },
-      { href: "/faq", label: t("faq") },
+      { href: "/help/faq", label: t("faq") },
       { href: "/support", label: t("supportAssistant") },
       { href: "/track-order", label: t("trackOrder") },
     ],
