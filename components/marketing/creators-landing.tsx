@@ -75,7 +75,9 @@ export function CreatorsLanding() {
                 {t(`social.quote${i}` as "social.quote1")}
               </p>
               <p className="mt-3 text-xs font-semibold text-violet-600">
-                {t("social.revenueTag", { amount: "$2.4k" })}
+                {t("social.revenueTag", {
+                  amount: t(`social.revenueAmount${i}` as "social.revenueAmount1"),
+                })}
               </p>
             </blockquote>
           ))}

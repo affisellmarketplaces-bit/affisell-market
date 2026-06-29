@@ -191,7 +191,9 @@
       "title": "Creators groeien met Affisell",
       "quote1": "Ik lanceerde in één avond en haalde mijn eerste verkoop dezelfde week.",
       "quote2": "Geen magazijn, geen ondersteuningsmeldingen voor verzending — Affisell regelt het.",
-      "revenueTag": "{amount}/mo"
+      "revenueAmount1": "€2,4k",
+      "revenueAmount2": "€1,8k",
+      "revenueTag": "{amount}/maand"
     },
     "preview": {
       "title": "Uw creator-dashboard",

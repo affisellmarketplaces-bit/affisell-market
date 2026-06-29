@@ -191,7 +191,9 @@
       "title": "Creadores creciendo con Affisell",
       "quote1": "Lancé en una noche y obtuve mi primera venta la misma semana.",
       "quote2": "No almacén, no tickets de soporte para envíos — Affisell se encarga de ello.",
-      "revenueTag": "{amount}/mo"
+      "revenueAmount1": "2,4 k€",
+      "revenueAmount2": "1,8 k€",
+      "revenueTag": "{amount}/mes"
     },
     "preview": {
       "title": "Tu panel de creadores",

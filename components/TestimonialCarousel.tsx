@@ -4,11 +4,11 @@ import useEmblaCarousel from "embla-carousel-react"
 import { Star } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-type Item = { id: string; quoteKey: string; amount: string }
+type Item = { id: string; quoteKey: string; amountKey: string }
 
 const ITEMS: Item[] = [
-  { id: "1", quoteKey: "social.quote1", amount: "$2.4k" },
-  { id: "2", quoteKey: "social.quote2", amount: "$1.8k" },
+  { id: "1", quoteKey: "social.quote1", amountKey: "social.revenueAmount1" },
+  { id: "2", quoteKey: "social.quote2", amountKey: "social.revenueAmount2" },
 ]
 
 export function TestimonialCarousel() {
@@ -30,7 +30,7 @@ export function TestimonialCarousel() {
                 {t(item.quoteKey as "social.quote1")}
               </p>
               <p className="mt-3 text-xs font-semibold text-[#6366F1]">
-                {t("social.revenueTag", { amount: item.amount })}
+                {t("social.revenueTag", { amount: t(item.amountKey as "social.revenueAmount1") })}
               </p>
             </blockquote>
           </li>

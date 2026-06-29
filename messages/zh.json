@@ -191,7 +191,9 @@
       "title": "与 Affisell 成长的创作者",
       "quote1": "我在一晚上启动并在同一周内实现了首笔销售。",
       "quote2": "无仓库，无运输支持票据 — Affisell 负责处理。",
-      "revenueTag": "{amount}/mo"
+      "revenueAmount1": "€2.4k",
+      "revenueAmount2": "€1.8k",
+      "revenueTag": "{amount}/月"
     },
     "preview": {
       "title": "您的创作者控制台",
