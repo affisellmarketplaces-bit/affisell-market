@@ -16,6 +16,8 @@ describe("isStaticAppPathname", () => {
     expect(isStaticAppPathname("/about")).toBe(true)
     expect(isStaticAppPathname("/blog")).toBe(true)
     expect(isStaticAppPathname("/press")).toBe(true)
+    expect(isStaticAppPathname("/protected-checkout")).toBe(true)
+    expect(isStaticAppPathname("/help/faq")).toBe(true)
     expect(isStaticAppPathname("/legal/terms-of-service")).toBe(true)
     expect(isStaticAppPathname("/dashboard/supplier")).toBe(true)
     expect(isStaticAppPathname("/invite/supplier/INV-ABC")).toBe(true)
