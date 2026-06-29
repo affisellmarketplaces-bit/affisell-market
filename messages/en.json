@@ -591,6 +591,8 @@
     "filterAria": "Filter by niche",
     "featuredEmpty": "Creators are opening their stores. Check back soon.",
     "visitStore": "Visit store",
+    "startingPrice": "From {price}",
+    "priceInEur": "Prices in euros · VAT included",
     "ordersCount": "{count, plural, one {# order} other {# orders}}",
     "browseCta": "All stores"
   },

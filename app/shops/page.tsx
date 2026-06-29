@@ -37,6 +37,7 @@ export default async function ShopsDirectoryPage() {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{t("title")}</h1>
           <p className="max-w-xl text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
+          <p className="text-xs font-medium text-emerald-700 dark:text-emerald-300">{t("priceInEur")}</p>
         </div>
         <AllStoresTriangleBadge href="/shops/browse" accent="#7c3aed">
           {t("browseCta")}

@@ -2,10 +2,11 @@
 
 import type { CSSProperties } from "react"
 import Link from "next/link"
-import { ArrowRight, ShoppingBag, Star } from "lucide-react"
+import { ArrowRight, Euro, ShoppingBag, Star } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { StoreNameBadge } from "@/components/storefront/store-name-badge"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-shared"
 import { cn } from "@/lib/utils"
 
@@ -52,6 +53,10 @@ export function ShopDirectoryCard({ shop }: { shop: PublicShopDirectoryEntry }) 
   const accent = shop.themeAccent ?? DEFAULT_ACCENT
   const rating = shop.averageRating > 0 ? shop.averageRating.toFixed(1) : null
   const ordersLabel = tShops("ordersCount", { count: shop.orderCount })
+  const startingPrice =
+    shop.startingPriceCents != null && shop.startingPriceCents > 0
+      ? formatStoreCurrencyFromCents(shop.startingPriceCents, { maximumFractionDigits: 0 })
+      : null
   const href = `/shops/${shop.slug}`
 
   return (
@@ -98,6 +103,17 @@ export function ShopDirectoryCard({ shop }: { shop: PublicShopDirectoryEntry }) 
         </span>
 
         <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-600 dark:text-zinc-400">
+          {startingPrice ? (
+            <>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">
+                <Euro className="size-3.5" aria-hidden />
+                {tShops("startingPrice", { price: startingPrice })}
+              </span>
+              <span className="text-zinc-300 dark:text-zinc-600" aria-hidden>
+                ·
+              </span>
+            </>
+          ) : null}
           <span className="inline-flex items-center gap-1 font-medium">
             <Star className="size-3.5 fill-amber-400 text-amber-400" aria-hidden />
             {rating ?? "—"}

@@ -50,6 +50,8 @@ export type PublicShopDirectoryEntry = {
   nicheLabel: NicheKey
   averageRating: number
   orderCount: number
+  /** Lowest listed retail price (buyer TTC cents, EUR). */
+  startingPriceCents: number | null
   nameBadge?: StoreNameBadgeStyle
   themeAccent?: string
   themePrimary?: string

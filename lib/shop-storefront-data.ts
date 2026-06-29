@@ -201,6 +201,35 @@ async function loadAffiliateListedRatingAverages(userIds: string[]): Promise<Map
   return map
 }
 
+async function loadAffiliateMinListedPriceCents(userIds: string[]): Promise<Map<string, number>> {
+  const map = new Map<string, number>()
+  if (userIds.length === 0) return map
+
+  const rows = await prisma.$queryRaw<{ affiliate_id: string; min_cents: number | null }[]>`
+    SELECT ap."affiliateId" AS affiliate_id,
+           MIN(ap."sellingPriceCents")::int AS min_cents
+    FROM "AffiliateProduct" ap
+    INNER JOIN "Product" p ON p.id = ap."productId"
+    WHERE ap."isListed" = true
+      AND p.active = true
+      AND p."isDraft" = false
+      AND ap."sellingPriceCents" > 0
+      AND ap."affiliateId" IN (${Prisma.join(userIds)})
+      AND p.id NOT IN ('test_product_3way', 'cmpiddd890003thlps6tp')
+      AND p.id NOT LIKE 'test_%'
+      AND p.name NOT ILIKE 'Test %'
+      AND p.name NOT ILIKE '%test tva%'
+    GROUP BY ap."affiliateId"
+  `
+
+  for (const row of rows) {
+    if (row.min_cents != null && row.min_cents > 0) {
+      map.set(row.affiliate_id, row.min_cents)
+    }
+  }
+  return map
+}
+
 /** Public directory — no wholesale / margin fields. */
 export async function loadPublicAffiliateShops(limit = 500): Promise<PublicShopDirectoryEntry[]> {
   const stores = await prisma.store.findMany({
@@ -224,7 +253,7 @@ export async function loadPublicAffiliateShops(limit = 500): Promise<PublicShopD
   })
 
   const userIds = stores.map((s) => s.userId)
-  const [orderGroups, ratingMap] = await Promise.all([
+  const [orderGroups, ratingMap, minPriceMap] = await Promise.all([
     userIds.length === 0
       ? ([] as { affiliateId: string; _count: { _all: number } }[])
       : prisma.order.groupBy({
@@ -233,6 +262,7 @@ export async function loadPublicAffiliateShops(limit = 500): Promise<PublicShopD
           _count: { _all: true },
         }),
     loadAffiliateListedRatingAverages(userIds),
+    loadAffiliateMinListedPriceCents(userIds),
   ])
 
   const orderCountByAffiliate = new Map(orderGroups.map((g) => [g.affiliateId, g._count._all]))
@@ -246,6 +276,7 @@ export async function loadPublicAffiliateShops(limit = 500): Promise<PublicShopD
       nicheLabel: inferNicheLabel(s.description, s.name),
       averageRating: ratingMap.get(s.userId) ?? 0,
       orderCount: orderCountByAffiliate.get(s.userId) ?? 0,
+      startingPriceCents: minPriceMap.get(s.userId) ?? null,
       nameBadge: theme.nameBadge,
       themeAccent: theme.accent,
       themePrimary: theme.primary,

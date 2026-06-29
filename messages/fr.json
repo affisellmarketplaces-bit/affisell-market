@@ -591,6 +591,8 @@
     "filterAria": "Filtrer par univers",
     "featuredEmpty": "Les créateurs ouvrent leurs boutiques. Revenez demain.",
     "visitStore": "Voir la boutique",
+    "startingPrice": "Dès {price}",
+    "priceInEur": "Prix en euros · TVA incluse",
     "ordersCount": "{count, plural, one {# commande} other {# commandes}}",
     "browseCta": "Toutes les boutiques"
   },
