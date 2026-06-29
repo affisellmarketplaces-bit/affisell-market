@@ -62,7 +62,8 @@ jobs:
             "/api/cron/wishlist-price-alerts" \
             "/api/cron/stripe-health" \
             "/api/cron/booking-supplier-digest" \
-            "/api/cron/expansion-digest"
+            "/api/cron/expansion-digest" \
+            "/api/cron/refresh-supplier-trust-scores"
           do
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"
