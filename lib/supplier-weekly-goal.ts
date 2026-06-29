@@ -37,10 +37,13 @@ export async function loadSupplierWeeklyGoal(
       status: { in: [...MARKETPLACE_COUNTABLE] },
       createdAt: { gte: weekStart, lt: now },
     },
-    select: { sellingPriceCents: true },
+    select: { supplierPriceCents: true, basePriceCents: true },
   })
 
-  const weekGmvCents = rows.reduce((sum, o) => sum + o.sellingPriceCents, 0)
+  const weekGmvCents = rows.reduce(
+    (sum, o) => sum + Math.max(0, o.supplierPriceCents ?? o.basePriceCents),
+    0
+  )
   const progressPct = weeklyGoalProgressPct(weekGmvCents, SUPPLIER_WEEKLY_GOAL_CENTS)
 
   return {

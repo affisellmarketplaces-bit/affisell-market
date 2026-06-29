@@ -1,9 +1,10 @@
 import Link from "next/link"
 import { requireMerchantSession } from "@/lib/dashboard-session"
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 
 import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { OrderDetailPanel } from "@/components/legal/order-detail-panel"
+import { buildOrderCommissionView } from "@/lib/order-commission-breakdown"
 import { orderDetailBackHref, resolveOrderAccessRole } from "@/lib/order-access"
 import { prisma } from "@/lib/prisma"
 
@@ -20,7 +21,15 @@ export default async function DashboardOrderDetailPage({ params }: Props) {
     where: { id },
     include: {
       product: { select: { name: true } },
-      supplier: { select: { id: true, store: { select: { showRevenueToAffiliate: true } } } },
+      supplier: {
+        select: {
+          id: true,
+          supplierFeeBps: true,
+          supplierFeeBpsCatalog: true,
+          supplierFeeBpsAutoBuy: true,
+          store: { select: { showRevenueToAffiliate: true } },
+        },
+      },
     },
   })
   if (!order) notFound()
@@ -28,14 +37,48 @@ export default async function DashboardOrderDetailPage({ params }: Props) {
   const role = resolveOrderAccessRole(order, session.user)
   if (!role || role === "CUSTOMER") notFound()
 
+  const showRevenueToAffiliate = order.supplier.store?.showRevenueToAffiliate ?? false
+  const commissionView = buildOrderCommissionView(
+    role,
+    {
+      basePriceCents: order.basePriceCents,
+      supplierPriceCents: order.supplierPriceCents,
+      sellingPriceCents: order.sellingPriceCents,
+      subtotalCents: order.subtotalCents,
+      taxCents: order.taxCents,
+      totalCents: order.totalCents,
+      affiliatePayoutCents: order.affiliatePayoutCents,
+      affiliateMarginRetainedCents: order.affiliateMarginRetainedCents,
+      affiliateFeeCents: order.affiliateFeeCents,
+      supplierFeeCents: order.supplierFeeCents,
+      usesAffisellAutoBuy: order.usesAffisellAutoBuy,
+      aeWholesaleCents: order.aeWholesaleCents,
+      supplierCommissionRateBps: order.supplierCommissionRateBps,
+      affisellFeeCents: order.affisellFeeCents,
+      supplierPayoutCents: order.supplierPayoutCents,
+      marginCents: order.marginCents,
+      supplier: {
+        supplierFeeBps: order.supplier.supplierFeeBps,
+        supplierFeeBpsCatalog: order.supplier.supplierFeeBpsCatalog,
+        supplierFeeBpsAutoBuy: order.supplier.supplierFeeBpsAutoBuy,
+      },
+    },
+    showRevenueToAffiliate
+  )
+
   return (
     <BentoShell>
       <BentoContainer maxWidth="4xl" className="py-10">
         <OrderDetailPanel
-          order={order}
+          order={{
+            id: order.id,
+            status: order.status,
+            createdAt: order.createdAt,
+            productName: order.product.name,
+          }}
           role={role}
+          commissionView={commissionView}
           backHref={orderDetailBackHref(role)}
-          showRevenueToAffiliate={order.supplier.store?.showRevenueToAffiliate ?? false}
         />
       </BentoContainer>
     </BentoShell>

@@ -121,7 +121,7 @@ function aggregateOrders(rows: OrderAggRow[]) {
 
   for (const o of rows) {
     orderCount += 1
-    gmvCents += o.sellingPriceCents
+    gmvCents += Math.max(0, o.supplierPriceCents ?? o.basePriceCents)
     commissionCents += o.affiliatePayoutCents
     supplierNetCents += resolveSupplierPayoutCentsFromOrder(o)
   }

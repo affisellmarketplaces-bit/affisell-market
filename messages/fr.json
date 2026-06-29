@@ -1726,7 +1726,7 @@
       "yourPayout": "Votre versement",
       "netWholesaleHint": "Prix catalogue HT, commission partenaire déjà déduite",
       "platformFee": "Frais plateforme −{amount}",
-      "platformFeeTitle": "Frais Affisell (HT) sur le prix client — payés sur le paiement acheteur, pas sur votre versement fournisseur",
+      "platformFeeTitle": "Frais Affisell (HT) sur le wholesale catalogue — déduits avant votre versement",
       "partnerCommission": "Commission partenaire −{amount}",
       "partnerCommissionTitle": "Commission affilié sur votre prix catalogue — déjà déduite du montant « Votre versement »",
       "partnerStoreTitle": "Vente via la vitrine affilié {code}",

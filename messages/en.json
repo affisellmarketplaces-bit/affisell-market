@@ -1702,7 +1702,7 @@
       "yourPayout": "Your payout",
       "netWholesaleHint": "Catalog wholesale (partner commission already deducted)",
       "platformFee": "Platform fee −{amount}",
-      "platformFeeTitle": "Affisell fee on the client line (ex-VAT) — taken from the buyer payment, not from your supplier payout",
+      "platformFeeTitle": "Affisell fee (ex-VAT) on wholesale catalog — deducted before your supplier payout",
       "partnerCommission": "Partner commission −{amount}",
       "partnerCommissionTitle": "Affiliate commission on your catalog price — already deducted from “Your payout”",
       "partnerStoreTitle": "Sold via partner storefront {code}",
