@@ -121,14 +121,14 @@ export const NORMATIVE_SOURCES = {
     urlFr: "https://www.cnil.fr/",
     urlEn: "https://www.cnil.fr/en",
   },
-} as const satisfies Record<string, NormativeSource>
+} satisfies Record<string, NormativeSource>
 
-export type NormativeId = keyof typeof NORMATIVE_SOURCES
+export type NormativeId = keyof typeof NORMATIVE_SOURCES & string
 
-export const L221_28_LEGIFRANCE_URL = NORMATIVE_SOURCES.L221_28.urlFr!
+export const L221_28_LEGIFRANCE_URL = NORMATIVE_SOURCES.L221_28.urlFr ?? "#"
 
 export function normativeUrl(id: NormativeId, locale: string): string {
-  const src = NORMATIVE_SOURCES[id]
+  const src: NormativeSource = NORMATIVE_SOURCES[id]
   const fr = locale.startsWith("fr")
   if (fr) return src.urlFr ?? src.urlEu ?? src.urlEn ?? "#"
   return src.urlEu ?? src.urlEn ?? src.urlFr ?? "#"
