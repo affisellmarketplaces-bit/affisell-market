@@ -10,7 +10,7 @@ const LEGAL_NAV = [
   { href: "/cgu", key: "cgu" },
   { href: "/conditions-fournisseur", key: "supplier" },
   { href: "/conditions-affilie", key: "affiliate" },
-  { href: "/mentions-legales", key: "legalNotice" },
+  { href: "/legal/mentions", key: "legalNotice" },
   { href: "/privacy", key: "privacy" },
   { href: "/cookies", key: "cookies" },
   { href: "/protected-checkout", key: "returns" },

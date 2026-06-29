@@ -79,7 +79,7 @@ export function buildFooterGlobalContent(
       { href: "/cgu", label: t("cgu") },
       { href: "/privacy", label: t("privacyPolicy") },
       { href: "/cookies", label: t("cookieSettings") },
-      { href: "/mentions-legales", label: t("legalNotice") },
+      { href: "/legal/mentions", label: t("legalNotice") },
       { href: "/protected-checkout", label: t("returns") },
     ],
     socialLinks: FOOTER_SOCIAL_LINKS.map(({ id, href }) => ({

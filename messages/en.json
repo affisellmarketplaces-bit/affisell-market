@@ -2372,6 +2372,61 @@
       "trackCta": "Track my order",
       "legalCta": "Terms of sale",
       "footerHost": "Hosting: Vercel Inc."
+    },
+    "mentions": {
+      "metaTitle": "Legal notice — Affisell",
+      "metaDescription": "Publisher, registered office, host, DPO and mediation — LCEN information.",
+      "eyebrow": "Legal information",
+      "title": "Legal notice",
+      "description": "Structured document under French LCEN article 6 III.",
+      "lastUpdated": "Last updated:",
+      "editor": {
+        "title": "1. Site publisher",
+        "denomination": "Company name",
+        "form": "Legal form",
+        "capital": "Share capital",
+        "siren": "SIREN",
+        "rcs": "Trade register (RCS)",
+        "vat": "EU VAT number",
+        "seat": "Registered office (domiciliation)",
+        "domiciliationNote": "Commercial domiciliation address filed with the trade register — not the director's home address."
+      },
+      "publisher": {
+        "title": "2. Publication director",
+        "director": "Publication director",
+        "email": "Editorial contact (email)",
+        "noPhone": "Affisell does not offer phone support — please contact us by email."
+      },
+      "dpo": {
+        "title": "3. Data protection officer (DPO)",
+        "label": "DPO email"
+      },
+      "host": {
+        "title": "4. Hosting provider",
+        "name": "Company name",
+        "address": "Address",
+        "website": "Website"
+      },
+      "mediation": {
+        "title": "5. Mediation & disputes",
+        "mediator": "Consumer mediator",
+        "site": "Mediator website",
+        "odr": "EU ODR platform",
+        "body": "Under French Consumer Code articles L612-1 et seq., consumers may use a free mediator. EU consumers may also use the online dispute resolution platform."
+      },
+      "ip": {
+        "title": "6. Intellectual property",
+        "body": "The entire Affisell site (structure, text, graphics, logo, databases) is protected. Unauthorized reproduction constitutes infringement under applicable IP law."
+      },
+      "docs": {
+        "title": "7. Contractual documents",
+        "cgu": "Platform terms",
+        "supplier": "Supplier terms",
+        "affiliate": "Partner terms",
+        "privacy": "Privacy policy",
+        "returns": "Protected checkout & returns",
+        "cookies": "Cookies policy"
+      }
     }
   },
   "contact": {

@@ -22,7 +22,6 @@ const nextConfig: NextConfig = {
       { source: "/terms", destination: "/cgu", permanent: true },
       { source: "/legal/cookies-policy", destination: "/cookies", permanent: true },
       { source: "/legal/privacy-policy", destination: "/privacy", permanent: true },
-      { source: "/legal/mentions", destination: "/mentions-legales", permanent: true },
       { source: "/legal/terms-of-service", destination: "/cgu", permanent: true },
       { source: "/cga", destination: "/conditions-fournisseur", permanent: true },
       { source: "/cgs", destination: "/conditions-affilie", permanent: true },

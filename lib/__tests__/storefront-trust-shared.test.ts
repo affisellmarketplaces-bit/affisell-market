@@ -7,7 +7,7 @@ describe("storefront trust shared", () => {
     const hrefs = STOREFRONT_TRUST_LEGAL_LINKS.map((l) => l.href)
     expect(hrefs).toContain("/legal/terms-of-sale")
     expect(hrefs).toContain("/legal/privacy-policy")
-    expect(hrefs).toContain("/legal/legal-notice")
+    expect(hrefs).toContain("/legal/mentions")
     expect(hrefs).toContain("/protected-checkout")
   })
 })

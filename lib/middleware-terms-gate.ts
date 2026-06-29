@@ -25,7 +25,7 @@ const MERCHANT_TERMS_EXEMPT = new Set([
   "/cgu",
   "/conditions-fournisseur",
   "/conditions-affilie",
-  "/mentions-legales",
+  "/legal/mentions",
   "/privacy",
   "/contact",
 ])

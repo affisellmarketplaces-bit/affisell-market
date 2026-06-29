@@ -5,5 +5,5 @@ export const LEGAL_MARKDOWN_CANONICAL_REDIRECTS: Record<string, string> = {
   "terms-affiliate": "/conditions-affilie",
   "privacy-policy": "/privacy",
   "cookies-policy": "/cookies",
-  mentions: "/mentions-legales",
+  mentions: "/legal/mentions",
 }

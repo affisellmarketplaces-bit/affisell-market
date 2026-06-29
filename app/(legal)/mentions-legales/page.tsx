@@ -1,14 +1,6 @@
-import type { Metadata } from "next"
+import { redirect } from "next/navigation"
 
-import {
-  generateLocalizedLegalMetadata,
-  LocalizedLegalPage,
-} from "@/components/legal/localized-legal-page"
-
-export async function generateMetadata(): Promise<Metadata> {
-  return generateLocalizedLegalMetadata("mentions")
-}
-
-export default function MentionsLegalesPage() {
-  return <LocalizedLegalPage slug="mentions" />
+/** Alias historique → page canonique `/legal/mentions`. */
+export default function MentionsLegalesAliasPage() {
+  redirect("/legal/mentions")
 }

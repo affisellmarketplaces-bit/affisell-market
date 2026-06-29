@@ -5,6 +5,8 @@ export type CompanyLegal = {
   siret: string
   siren: string
   address: string
+  domiciliationAddress: string
+  legalForm: string
   capital: string
   publisher: string
   supportEmail: string
@@ -13,13 +15,12 @@ export type CompanyLegal = {
   tva: string
   rcs: string
   mediatorUrl: string
+  mediatorName: string
   host: string
 }
 
 const DEFAULT_HOST =
   "Vercel Inc. — 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis — vercel.com"
-
-const DEFAULT_MEDIATOR = "https://www.cm2c.net"
 
 function envFirst(keys: readonly string[]): string | undefined {
   for (const key of keys) {
@@ -65,6 +66,15 @@ export function readCompanyLegal(): CompanyLegal {
   const rcs =
     envFirst(["AFFISELL_RCS"]) ??
     (siren.includes("PLACEHOLDER") ? "RCS Aix-en-Provence {{SIREN}}" : `RCS Aix-en-Provence ${siren}`)
+  const domiciliationAddress =
+    envFirst(["COMPANY_DOMICILIATION_ADDRESS", "AFFISELL_DOMICILIATION_ADDRESS"]) ?? address
+  const legalForm =
+    envFirst(["COMPANY_LEGAL_FORM", "AFFISELL_LEGAL_FORM"]) ??
+    "Société par actions simplifiée (SAS)"
+  const mediatorName =
+    envFirst(["MEDIATOR_NAME", "AFFISELL_MEDIATOR_NAME"]) ?? "TODO_MEDIATEUR_NOM"
+  const mediatorUrl =
+    envFirst(["NEXT_PUBLIC_MEDIATOR_URL", "MEDIATOR_URL"]) ?? "TODO_SITE"
 
   return {
     name,
@@ -78,7 +88,10 @@ export function readCompanyLegal(): CompanyLegal {
     contactEmail: envFirst(["COMPANY_CONTACT_EMAIL"]) ?? "contact@affisell.com",
     tva,
     rcs,
-    mediatorUrl: envFirst(["NEXT_PUBLIC_MEDIATOR_URL", "MEDIATOR_URL"]) ?? DEFAULT_MEDIATOR,
+    mediatorUrl,
+    mediatorName,
+    domiciliationAddress,
+    legalForm,
     host: DEFAULT_HOST,
   }
 }

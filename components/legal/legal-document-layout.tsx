@@ -32,7 +32,7 @@ export async function LegalDocumentLayout({ meta, content, headings, allDocs }: 
             <p className="mt-2 text-xs text-zinc-500">{t("lastUpdated", { date: meta.lastUpdated })}</p>
           </div>
           <Link
-            href="/mentions-legales"
+            href="/legal/mentions"
             className="text-sm font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-300"
           >
             {t("legalNoticeLink")}

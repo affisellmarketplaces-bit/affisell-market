@@ -108,7 +108,7 @@ export default async function PressPage() {
 
         <p className="text-center text-xs text-zinc-500">
           {legal.companyName} · SIREN {legal.siren} · {t("legalNote")}{" "}
-          <Link href="/mentions-legales" className="underline underline-offset-2">
+          <Link href="/legal/mentions" className="underline underline-offset-2">
             {t("legalLink")}
           </Link>
         </p>

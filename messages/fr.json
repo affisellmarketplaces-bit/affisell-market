@@ -2396,6 +2396,61 @@
       "trackCta": "Suivre ma commande",
       "legalCta": "Conditions générales de vente",
       "footerHost": "Hébergeur : Vercel Inc."
+    },
+    "mentions": {
+      "metaTitle": "Mentions légales — Affisell",
+      "metaDescription": "Éditeur, siège social, hébergeur, DPO et médiation — informations LCEN.",
+      "eyebrow": "Informations légales",
+      "title": "Mentions légales",
+      "description": "Document structuré conforme à l'article 6 III de la loi n° 2004-575 (LCEN).",
+      "lastUpdated": "Dernière mise à jour :",
+      "editor": {
+        "title": "1. Éditeur du site",
+        "denomination": "Dénomination sociale",
+        "form": "Forme juridique",
+        "capital": "Capital social",
+        "siren": "SIREN",
+        "rcs": "RCS",
+        "vat": "N° TVA intracommunautaire",
+        "seat": "Siège social (domiciliation)",
+        "domiciliationNote": "Adresse de domiciliation commerciale déclarée au RCS — non adresse personnelle du dirigeant."
+      },
+      "publisher": {
+        "title": "2. Directeur de la publication",
+        "director": "Directeur de la publication",
+        "email": "Contact éditorial (e-mail)",
+        "noPhone": "Affisell ne propose pas de support vocal : merci de nous écrire par e-mail."
+      },
+      "dpo": {
+        "title": "3. Délégué à la protection des données (DPO)",
+        "label": "E-mail DPO"
+      },
+      "host": {
+        "title": "4. Hébergeur",
+        "name": "Raison sociale",
+        "address": "Adresse",
+        "website": "Site web"
+      },
+      "mediation": {
+        "title": "5. Médiation & litiges",
+        "mediator": "Médiateur de la consommation",
+        "site": "Site du médiateur",
+        "odr": "Plateforme ODR (litiges UE)",
+        "body": "Conformément aux articles L612-1 et suivants du Code de la consommation, le consommateur peut recourir gratuitement à un médiateur. Les consommateurs de l'Union européenne peuvent également utiliser la plateforme de règlement en ligne des litiges."
+      },
+      "ip": {
+        "title": "6. Propriété intellectuelle",
+        "body": "L'ensemble du site Affisell (structure, textes, graphismes, logo, bases de données) est protégé. Toute reproduction ou représentation non autorisée constitue une contrefaçon sanctionnée par le Code de la propriété intellectuelle."
+      },
+      "docs": {
+        "title": "7. Documents contractuels",
+        "cgu": "CGU plateforme",
+        "supplier": "CGA fournisseur",
+        "affiliate": "CGS partenaire",
+        "privacy": "Politique de confidentialité",
+        "returns": "Achat protégé & retours",
+        "cookies": "Politique cookies"
+      }
     }
   },
   "contact": {
