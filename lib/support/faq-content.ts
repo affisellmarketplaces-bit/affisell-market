@@ -28,8 +28,8 @@ export const FAQ_SECTIONS: FaqSection[] = [
     items: [
       { id: "return", qKey: "returnQ", aKey: "returnA", richAnswer: true },
       { id: "return-refused", qKey: "returnRefusedQ", aKey: "returnRefusedA", richAnswer: true },
-      { id: "refund", qKey: "refundQ", aKey: "refundA" },
-      { id: "defect", qKey: "defectQ", aKey: "defectA" },
+      { id: "refund", qKey: "refundQ", aKey: "refundA", richAnswer: true },
+      { id: "defect", qKey: "defectQ", aKey: "defectA", richAnswer: true },
     ],
   },
   {
@@ -50,5 +50,4 @@ export const FAQ_SECTIONS: FaqSection[] = [
   },
 ]
 
-export const L221_28_LEGIFRANCE_URL =
-  "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006296033/"
+export { L221_28_LEGIFRANCE_URL } from "@/lib/legal/normative-sources"

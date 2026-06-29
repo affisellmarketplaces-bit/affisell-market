@@ -2,6 +2,7 @@ import Link from "next/link"
 import { getLocale, getTranslations } from "next-intl/server"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
+import { buildNormativeRichTags } from "@/components/legal/normative-rich-tags"
 import { ShippingCarrierDirectory } from "@/components/shipping/shipping-carrier-directory"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -14,6 +15,7 @@ export async function generateMetadata() {
 export default async function ShippingPage() {
   const t = await getTranslations("shipping")
   const locale = (await getLocale()) === "en" ? "en" : "fr"
+  const norms = buildNormativeRichTags(locale)
 
   const carrierLabels = {
     title: t("carriersTitle"),
@@ -53,6 +55,7 @@ export default async function ShippingPage() {
             <li>{t("delayIntl")}</li>
             <li>{t("delayProduct")}</li>
           </ul>
+          <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">{t.rich("legalNote", norms)}</p>
         </BentoCard>
 
         <BentoCard className="space-y-4 p-6">

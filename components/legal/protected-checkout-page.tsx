@@ -1,9 +1,11 @@
 import Link from "next/link"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 import { Lock, RotateCcw, ShieldCheck } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
+import { buildNormativeRichTags } from "@/components/legal/normative-rich-tags"
 import { buttonVariants } from "@/components/ui/button"
+import { normativeUrl } from "@/lib/legal/normative-sources"
 import { readCompanyLegal } from "@/lib/legal/company-env"
 import { cn } from "@/lib/utils"
 
@@ -15,13 +17,19 @@ export async function generateProtectedCheckoutMetadata() {
 const RETURN_ROWS = ["changeMind", "defective"] as const
 
 export async function ProtectedCheckoutPage() {
+  const locale = await getLocale()
   const t = await getTranslations("legalPages.protectedCheckout")
   const company = readCompanyLegal()
+  const norms = buildNormativeRichTags(locale)
 
   return (
     <BentoShell>
       <BentoContainer maxWidth="4xl" className="space-y-8 py-12">
-        <BentoPageHeading eyebrow={t("eyebrow")} title={t("title")} description={t("description")} />
+        <BentoPageHeading
+          eyebrow={t("eyebrow")}
+          title={t("title")}
+          description={t.rich("description", norms)}
+        />
 
         <div className="flex flex-wrap gap-2">
           <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200/80 bg-emerald-50/90 px-3 py-1.5 text-xs font-semibold text-emerald-900 dark:border-emerald-800/50 dark:bg-emerald-950/40 dark:text-emerald-200">
@@ -40,13 +48,15 @@ export async function ProtectedCheckoutPage() {
             {t("paymentTitle")}
           </h2>
           <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{t("paymentBody")}</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("paymentHint")}</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">{t.rich("paymentHint", norms)}</p>
         </BentoCard>
 
         <BentoCard className="space-y-4">
           <div>
             <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">{t("returnsTitle")}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{t("returnsIntro")}</p>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+              {t.rich("returnsIntro", norms)}
+            </p>
           </div>
           <div className="overflow-x-auto rounded-xl border border-zinc-200/80 dark:border-zinc-800">
             <table className="w-full min-w-[28rem] text-left text-sm">
@@ -88,18 +98,18 @@ export async function ProtectedCheckoutPage() {
               <span className="font-semibold text-zinc-900 dark:text-zinc-100">{t("returnsHowTitle")}</span>{" "}
               {t("returnsHowBody")}
             </p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("returnsExceptions")}</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t.rich("returnsExceptions", norms)}</p>
           </div>
         </BentoCard>
 
         <BentoCard className="space-y-3 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
           <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">{t("warrantyTitle")}</h2>
-          <p>{t("warrantyBody")}</p>
+          <p>{t.rich("warrantyBody", norms)}</p>
         </BentoCard>
 
         <BentoCard className="space-y-3 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
           <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">{t("mediationTitle")}</h2>
-          <p>{t("mediationBody")}</p>
+          <p>{t.rich("mediationBody", norms)}</p>
           <a
             href={company.mediatorUrl}
             target="_blank"
@@ -108,6 +118,16 @@ export async function ProtectedCheckoutPage() {
           >
             {t("mediationLinkLabel")}
           </a>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <a
+              href={normativeUrl("EU_ODR_524_2013", locale)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
+            >
+              {t("odrPlatformLabel")}
+            </a>
+          </p>
         </BentoCard>
 
         <div className="flex flex-wrap gap-3">

@@ -1,7 +1,8 @@
 import Link from "next/link"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
+import { buildNormativeRichTags, NormativeExternalLink } from "@/components/legal/normative-rich-tags"
 import { readCompanyLegal } from "@/lib/legal/company-env"
 import {
   EU_CONSUMER_ODR_URL,
@@ -18,13 +19,26 @@ function Field({ label, value }: { label: string; value: string }) {
   )
 }
 
+function LinkField({ label, href, value }: { label: string; href: string; value: string }) {
+  return (
+    <div className="grid gap-0.5 border-b border-zinc-100 py-3 last:border-0 dark:border-zinc-800 sm:grid-cols-[minmax(0,220px)_1fr] sm:gap-4">
+      <dt className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{label}</dt>
+      <dd className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <NormativeExternalLink href={href}>{value}</NormativeExternalLink>
+      </dd>
+    </div>
+  )
+}
+
 export async function generateLegalMentionsMetadata() {
   const t = await getTranslations("legalPages.mentions")
   return { title: t("metaTitle"), description: t("metaDescription") }
 }
 
 export async function LegalMentionsPage() {
+  const locale = await getLocale()
   const t = await getTranslations("legalPages.mentions")
+  const norms = buildNormativeRichTags(locale)
   const c = readCompanyLegal()
   const vat = formatVatIntracommunautaire(c.tva)
   const host = VERCEL_HOST_LEGAL
@@ -32,7 +46,11 @@ export async function LegalMentionsPage() {
   return (
     <BentoShell>
       <BentoContainer maxWidth="4xl" className="space-y-8 py-12">
-        <BentoPageHeading eyebrow={t("eyebrow")} title={t("title")} description={t("description")} />
+        <BentoPageHeading
+          eyebrow={t("eyebrow")}
+          title={t("title")}
+          description={t.rich("description", norms)}
+        />
 
         <BentoCard className="p-0 sm:p-0">
           <article className="select-text px-5 py-6 sm:px-8 sm:py-8">
@@ -89,7 +107,7 @@ export async function LegalMentionsPage() {
                   label={t("host.address")}
                   value={`${host.street}, ${host.city}, ${host.state} ${host.postalCode}, ${host.countryFr}`}
                 />
-                <Field label={t("host.website")} value={host.website.replace(/^https?:\/\//, "")} />
+                <LinkField label={t("host.website")} href={host.website} value={host.website.replace(/^https?:\/\//, "")} />
               </dl>
             </section>
 
@@ -102,11 +120,11 @@ export async function LegalMentionsPage() {
               </h2>
               <dl>
                 <Field label={t("mediation.mediator")} value={c.mediatorName} />
-                <Field label={t("mediation.site")} value={c.mediatorUrl} />
-                <Field label={t("mediation.odr")} value={EU_CONSUMER_ODR_URL} />
+                <LinkField label={t("mediation.site")} href={c.mediatorUrl} value={c.mediatorUrl} />
+                <LinkField label={t("mediation.odr")} href={EU_CONSUMER_ODR_URL} value={EU_CONSUMER_ODR_URL} />
               </dl>
               <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                {t("mediation.body")}
+                {t.rich("mediation.body", norms)}
               </p>
             </section>
 
@@ -114,7 +132,7 @@ export async function LegalMentionsPage() {
               <h2 id="mentions-ip" className="mb-4 text-lg font-bold text-zinc-900 dark:text-white">
                 {t("ip.title")}
               </h2>
-              <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{t("ip.body")}</p>
+              <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{t.rich("ip.body", norms)}</p>
             </section>
 
             <section aria-labelledby="mentions-docs">

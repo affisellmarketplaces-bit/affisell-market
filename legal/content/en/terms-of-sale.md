@@ -35,21 +35,21 @@ Products offered on Affisell frequently originate from warehouses located in Asi
 
 ## 5. Right of withdrawal (14 days — EU)
 
-In accordance with Articles L221-18 et seq. of the French Consumer Code, you have a period of **14 calendar days** from receipt of the product to exercise your right of withdrawal, without having to provide reasons. The product must be returned in its original condition, unused, with packaging intact. **Return shipping costs are borne by you**, unless the product is defective, non-compliant, or applicable law requires otherwise.
+In accordance with [Articles L221-18 et seq. of the French Consumer Code](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006296027/) and [EU Directive 2011/83](https://eur-lex.europa.eu/eli/dir/2011/83/oj), you have a period of **14 calendar days** from receipt of the product to exercise your right of withdrawal, without having to provide reasons. The product must be returned in its original condition, unused, with packaging intact. **Return shipping costs are borne by you**, unless the product is defective, non-compliant, or applicable law requires otherwise.
 
 To exercise this right: contact us at [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}}) or via the [Returns & Refunds](/returns) page.
 
 ## 6. Refund
 
-After receipt and inspection of the return (or agreement on proof of defect), the refund is processed to the original payment method, **within 14 days**, in accordance with Article L221-24 of the French Consumer Code. Initial delivery charges may be refunded according to cases provided by law.
+After receipt and inspection of the return (or agreement on proof of defect), the refund is processed to the original payment method, **within 14 days**, in accordance with [Article L221-24 of the French Consumer Code](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006296029/). Initial delivery charges may be refunded according to cases provided by law.
 
 ## 7. Legal warranties
 
-You benefit from the legal warranty of conformity and, where applicable, the warranty against hidden defects. In the event of a proven defect, contact support with photos; a solution (exchange, refund without return for small amounts) may be offered according to our returns policy.
+You benefit from the [legal warranty of conformity](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006296007/) ([EU Directive 2011/83](https://eur-lex.europa.eu/eli/dir/2011/83/oj)) and, where applicable, the warranty against hidden defects. In the event of a proven defect, contact support with photos; a solution (exchange, refund without return for small amounts) may be offered according to our returns policy.
 
 ## 8. Disputes and mediation
 
-In the event of a complaint, first contact [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}}). Failing amicable resolution, you may use consumer mediation or the [European Online Dispute Resolution platform](https://ec.europa.eu/consumers/odr). The competent court remains that provided for by applicable law rules, subject to mandatory protective provisions for consumers in your country of residence.
+In the event of a complaint, first contact [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}}). Failing amicable resolution, you may use consumer mediation ([art. L612-1](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006296291/) et seq.) or the [European Online Dispute Resolution platform](https://ec.europa.eu/consumers/odr) ([EU Regulation 524/2013](https://eur-lex.europa.eu/eli/reg/2013/524/oj)). The competent court remains that provided for by applicable law rules, subject to mandatory protective provisions for consumers in your country of residence.
 
 ## 9. Personal data
 

@@ -27,7 +27,7 @@ Contact : {{EMAIL}} — Délégué à la protection des données (DPO) : **{{DPO
 
 ## Article 3 — Bases légales
 
-- **Exécution du contrat** (art. 6.1.b RGPD) : compte, commandes, paiements, support.
+- **Exécution du contrat** ([art. 6.1.b RGPD](https://eur-lex.europa.eu/eli/reg/2016/679/oj)) : compte, commandes, paiements, support.
 - **Obligation légale** (art. 6.1.c) : conservation comptable, lutte contre la fraude.
 - **Intérêt légitime** (art. 6.1.f) : sécurité, analytics agrégés, amélioration produit.
 - **Consentement** (art. 6.1.a) : cookies non essentiels, marketing si activé.
@@ -52,7 +52,7 @@ Vous disposez des droits d'**accès**, de **rectification**, d'**effacement**, d
 
 Exercice : **{{DPO}}** ou espace [RGPD](/dashboard/account/gdpr) (export JSON/CSV, suppression de compte, gestion des consentements).
 
-Réclamation : CNIL — www.cnil.fr
+Réclamation : [CNIL](https://www.cnil.fr/) — autorité de contrôle française au sens du [règlement UE 2016/679 (RGPD)](https://eur-lex.europa.eu/eli/reg/2016/679/oj).
 
 ## Article 7 — Sécurité
 

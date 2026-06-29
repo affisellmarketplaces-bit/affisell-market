@@ -15,7 +15,7 @@ Un cookie est un fichier texte déposé sur votre terminal lors de la visite de 
 
 ## Article 2 — Bandeau de consentement
 
-À votre première visite, un bandeau (style **Axeptio**) vous permet d'accepter, refuser ou personnaliser les catégories non essentielles. Vous pouvez modifier votre choix à tout moment depuis [Gérer les cookies](/dashboard/account/gdpr) ou le lien « Cookies » en pied de page.
+Conformément à la [directive 2002/58/CE (ePrivacy)](https://eur-lex.europa.eu/eli/dir/2002/58/oj) et au [RGPD](https://eur-lex.europa.eu/eli/reg/2016/679/oj), à votre première visite, un bandeau (style **Axeptio**) vous permet d'accepter, refuser ou personnaliser les catégories non essentielles. Vous pouvez modifier votre choix à tout moment depuis [Gérer les cookies](/dashboard/account/gdpr) ou le lien « Cookies » en pied de page.
 
 ## Article 3 — Catégories
 

@@ -35,21 +35,21 @@ Les produits proposés sur Affisell proviennent fréquemment d'entrepôts situé
 
 ## 5. Droit de rétractation (14 jours — UE)
 
-Conformément aux articles L221-18 et suivants du Code de la consommation, vous disposez d'un délai de **14 jours calendaires** à compter de la réception du produit pour exercer votre droit de rétractation, sans avoir à justifier de motifs. Le produit doit être retourné dans son état d'origine, non utilisé, avec emballage intact. Les **frais de retour sont à votre charge**, sauf si le produit est défectueux, non conforme ou si la loi applicable impose le contraire.
+Conformément aux [articles L221-18 et suivants du Code de la consommation](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006296027/) et à la [directive 2011/83/UE](https://eur-lex.europa.eu/eli/dir/2011/83/oj), vous disposez d'un délai de **14 jours calendaires** à compter de la réception du produit pour exercer votre droit de rétractation, sans avoir à justifier de motifs. Le produit doit être retourné dans son état d'origine, non utilisé, avec emballage intact. Les **frais de retour sont à votre charge**, sauf si le produit est défectueux, non conforme ou si la loi applicable impose le contraire.
 
 Pour exercer ce droit : contactez-nous à [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}}) ou via la page [Retours & remboursements](/returns).
 
 ## 6. Remboursement
 
-Après réception et contrôle du retour (ou accord sur preuve de défaut), le remboursement est effectué sur le moyen de paiement initial, **sous 14 jours**, conformément à l'article L221-24 du Code de la consommation. Les frais de livraison initiaux peuvent être remboursés selon les cas prévus par la loi.
+Après réception et contrôle du retour (ou accord sur preuve de défaut), le remboursement est effectué sur le moyen de paiement initial, **sous 14 jours**, conformément à l'[article L221-24 du Code de la consommation](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006296029/). Les frais de livraison initiaux peuvent être remboursés selon les cas prévus par la loi.
 
 ## 7. Garanties légales
 
-Vous bénéficiez de la garantie légale de conformité et, le cas échéant, de la garantie contre les vices cachés. En cas de défaut avéré, contactez le support avec photos ; une solution (échange, remboursement sans retour pour petits montants) pourra être proposée selon notre politique retours.
+Vous bénéficiez de la [garantie légale de conformité](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006296007/) (directive [2011/83/UE](https://eur-lex.europa.eu/eli/dir/2011/83/oj)) et, le cas échéant, de la garantie contre les vices cachés. En cas de défaut avéré, contactez le support avec photos ; une solution (échange, remboursement sans retour pour petits montants) pourra être proposée selon notre politique retours.
 
 ## 8. Litiges et médiation
 
-En cas de réclamation, contactez d'abord [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}}). À défaut de résolution amiable, vous pouvez recourir à une médiation de la consommation ou à la [plateforme européenne de règlement des litiges en ligne](https://ec.europa.eu/consumers/odr). Le tribunal compétent reste celui prévu par les règles de droit applicable, sous réserve des dispositions impératives protectrices du consommateur de votre pays de résidence.
+En cas de réclamation, contactez d'abord [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}}). À défaut de résolution amiable, vous pouvez recourir à une médiation de la consommation ([art. L612-1](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006296291/) et s.) ou à la [plateforme européenne de règlement des litiges en ligne](https://ec.europa.eu/consumers/odr) ([règlement UE n° 524/2013](https://eur-lex.europa.eu/eli/reg/2013/524/oj)). Le tribunal compétent reste celui prévu par les règles de droit applicable, sous réserve des dispositions impératives protectrices du consommateur de votre pays de résidence.
 
 ## 9. Données personnelles
 

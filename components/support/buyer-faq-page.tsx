@@ -1,11 +1,12 @@
 import Link from "next/link"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { FaqAccordion } from "@/components/support/faq-accordion"
 import { SupportAgentChat } from "@/components/support/support-agent-chat"
 import { buttonVariants } from "@/components/ui/button"
-import { FAQ_SECTIONS, L221_28_LEGIFRANCE_URL } from "@/lib/support/faq-content"
+import { buildNormativeRichTags } from "@/components/legal/normative-rich-tags"
+import { FAQ_SECTIONS } from "@/lib/support/faq-content"
 import { cn } from "@/lib/utils"
 
 export async function generateBuyerFaqMetadata() {
@@ -14,7 +15,9 @@ export async function generateBuyerFaqMetadata() {
 }
 
 export async function BuyerFaqPage() {
+  const locale = await getLocale()
   const t = await getTranslations("faq")
+  const norms = buildNormativeRichTags(locale)
 
   const sections = FAQ_SECTIONS.map((section) => ({
     id: section.id,
@@ -24,16 +27,7 @@ export async function BuyerFaqPage() {
       question: t(item.qKey),
       answer: item.richAnswer
         ? t.rich(item.aKey, {
-            l22128: (chunks) => (
-              <a
-                href={L221_28_LEGIFRANCE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
-              >
-                {chunks}
-              </a>
-            ),
+            ...norms,
             protectedCheckout: (chunks) => (
               <Link
                 href="/protected-checkout"
