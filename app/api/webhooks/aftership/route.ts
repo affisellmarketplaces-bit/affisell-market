@@ -1,0 +1,129 @@
+import { createHmac, timingSafeEqual } from "node:crypto"
+
+import { type NextRequest, NextResponse } from "next/server"
+import { z } from "zod"
+
+import { webhookSecretGate } from "@/lib/require-production-secret"
+import { triggerLightningPayout } from "@/lib/stripe-lightning"
+import { prisma } from "@/lib/prisma"
+
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+const afterShipWebhookSchema = z
+  .object({
+    event: z.string().optional(),
+    msg: z
+      .object({
+        tag: z.string().optional(),
+        tracking_number: z.string().optional(),
+        slug: z.string().optional(),
+      })
+      .passthrough()
+      .optional(),
+  })
+  .passthrough()
+
+function afterShipWebhookSecret(): string | null {
+  return (
+    process.env.AFTERSHIP_WEBHOOK_SECRET?.trim() ||
+    process.env.AFTIRSHIP_WEBHOOK_SECRET?.trim() ||
+    null
+  )
+}
+
+function verifyAfterShipSignature(
+  rawBody: string,
+  signature: string | null
+): boolean | "missing_prod" {
+  const secret = afterShipWebhookSecret()
+  const gate = webhookSecretGate(secret)
+  if (gate === "missing_prod") return "missing_prod"
+  if (gate === "missing_sig") return true
+  if (!secret || !signature) return false
+
+  const expected = createHmac("sha256", secret).update(rawBody, "utf8").digest("base64")
+  try {
+    return timingSafeEqual(Buffer.from(expected), Buffer.from(signature))
+  } catch {
+    return false
+  }
+}
+
+function isDeliveredTag(tag: string | undefined): boolean {
+  return tag?.trim().toLowerCase() === "delivered"
+}
+
+export async function POST(req: NextRequest) {
+  const rawBody = await req.text()
+  const signature =
+    req.headers.get("aftership-hmac-sha256") ??
+    req.headers.get("x-aftership-hmac-sha256") ??
+    req.headers.get("as-signature")
+
+  const sigCheck = verifyAfterShipSignature(rawBody, signature)
+  if (sigCheck === "missing_prod") {
+    return NextResponse.json({ error: "webhook_secret_not_configured" }, { status: 503 })
+  }
+  if (!sigCheck) {
+    return NextResponse.json({ error: "invalid_signature" }, { status: 401 })
+  }
+
+  let json: unknown
+  try {
+    json = JSON.parse(rawBody)
+  } catch {
+    return NextResponse.json({ error: "invalid_json" }, { status: 400 })
+  }
+
+  const parsed = afterShipWebhookSchema.safeParse(json)
+  if (!parsed.success) {
+    return NextResponse.json({ error: "validation", details: parsed.error.flatten() }, { status: 400 })
+  }
+
+  const tag = parsed.data.msg?.tag
+  const trackingNumber = parsed.data.msg?.tracking_number?.trim()
+
+  if (!isDeliveredTag(tag)) {
+    return NextResponse.json({ ok: true, skipped: "not_delivered" })
+  }
+  if (!trackingNumber) {
+    return NextResponse.json({ error: "missing_tracking_number" }, { status: 400 })
+  }
+
+  const order = await prisma.order.findFirst({
+    where: { trackingNumber },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, payoutStatus: true },
+  })
+
+  if (!order) {
+    console.log("[aftership-webhook]", { trackingNumber, result: "order_not_found" })
+    return NextResponse.json({ ok: true, skipped: "order_not_found" })
+  }
+
+  if (order.payoutStatus !== "PENDING") {
+    console.log("[aftership-webhook]", {
+      orderId: order.id,
+      payoutStatus: order.payoutStatus,
+      result: "payout_not_pending",
+    })
+    return NextResponse.json({ ok: true, skipped: "payout_not_pending" })
+  }
+
+  const payout = await triggerLightningPayout(order.id)
+
+  console.log("[aftership-webhook]", {
+    orderId: order.id,
+    trackingNumber,
+    payoutSuccess: payout.success,
+    reason: payout.success ? undefined : payout.reason,
+  })
+
+  return NextResponse.json({
+    ok: true,
+    orderId: order.id,
+    payoutTriggered: payout.success,
+    ...(payout.success ? {} : { reason: payout.reason }),
+  })
+}

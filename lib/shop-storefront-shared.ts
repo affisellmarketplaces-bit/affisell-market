@@ -23,6 +23,11 @@ export type ShopProductCategory = {
   icon: string
 }
 
+export type ShopProductSupplier = {
+  lightningEnabled: boolean
+  trustScore: number
+}
+
 export type ShopProductCard = {
   listingId: string
   productId: string
@@ -39,6 +44,7 @@ export type ShopProductCard = {
   marginCents?: number
   commissionPct?: number
   soldCount?: number
+  supplier?: ShopProductSupplier | null
 }
 
 export type NicheKey = "beauty" | "fitness" | "tech" | "home" | "lifestyle"
@@ -92,6 +98,7 @@ export function shopProductToCardProps(
     ...(item.marginCents != null ? { marginCents: item.marginCents } : {}),
     ...(item.commissionPct != null ? { commissionPct: item.commissionPct } : {}),
     ...(item.soldCount != null ? { soldCount: item.soldCount } : {}),
+    ...(item.supplier ? { supplier: item.supplier } : {}),
     href,
   }
 }

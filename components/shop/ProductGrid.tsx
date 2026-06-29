@@ -2,8 +2,9 @@
 
 import { useTranslations } from "next-intl"
 
-import { ProductCard, type ProductCardDisplayMode } from "@/components/product/ProductCard"
-import { shopProductToCardProps, type ShopProductCard } from "@/lib/shop-storefront-shared"
+import type { ProductCardDisplayMode } from "@/components/product/ProductCard"
+import { StorefrontProductCard } from "@/components/storefront/product-card"
+import type { ShopProductCard } from "@/lib/shop-storefront-shared"
 import {
   storefrontGridClass,
   type StorefrontGridDensity,
@@ -48,9 +49,11 @@ export function ProductGrid({
       <ul className={storefrontGridClass(gridDensity)}>
         {products.map((item) => (
           <li key={item.listingId}>
-            <ProductCard
-              product={shopProductToCardProps(item, storeSlug, { dedicatedHost })}
+            <StorefrontProductCard
+              product={item}
+              storeSlug={storeSlug}
               mode={mode}
+              dedicatedHost={dedicatedHost}
             />
           </li>
         ))}

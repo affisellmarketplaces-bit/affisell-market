@@ -108,6 +108,13 @@ export async function loadAffiliateShopProducts(
           category: {
             select: { id: true, name: true, slug: true, icon: true },
           },
+          supplier: {
+            select: {
+              supplierProfile: {
+                select: { lightningEnabled: true, trustScore: true },
+              },
+            },
+          },
           ...(includeBusiness
             ? { basePriceCents: true, commissionRate: true }
             : {}),
@@ -169,6 +176,12 @@ export async function loadAffiliateShopProducts(
           : null,
         warrantyLabel: listingWarrantyBadgeLabel(l.showWarranty, warrantyMonths),
         soldCount: l.conversions,
+        supplier: p.supplier.supplierProfile
+          ? {
+              lightningEnabled: p.supplier.supplierProfile.lightningEnabled,
+              trustScore: p.supplier.supplierProfile.trustScore,
+            }
+          : null,
         ...(includeBusiness
           ? {
               marginCents: Math.max(0, l.sellingPriceCents - p.basePriceCents),
