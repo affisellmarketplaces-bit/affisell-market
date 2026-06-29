@@ -36,8 +36,8 @@ CREATE INDEX "OrderShipExtension_status_buyerExpiresAt_idx" ON "OrderShipExtensi
 ALTER TABLE "OrderFulfillmentMessage" ADD CONSTRAINT "OrderFulfillmentMessage_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "OrderShipExtension" ADD CONSTRAINT "OrderShipExtension_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- Re-anchor deadlines to 10 days from payment (was 48h)
+-- Re-anchor deadlines to 10 days from payment (paidAt added in 20260521140000; use createdAt here)
 UPDATE "Order"
-SET "shipDeadlineAt" = COALESCE("paidAt", "createdAt") + INTERVAL '10 days'
+SET "shipDeadlineAt" = "createdAt" + INTERVAL '10 days'
 WHERE "status" IN ('paid', 'preparing')
   AND "autoCancelledAt" IS NULL;

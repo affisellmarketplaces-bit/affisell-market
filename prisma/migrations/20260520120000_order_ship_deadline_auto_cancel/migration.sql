@@ -7,12 +7,6 @@ CREATE INDEX IF NOT EXISTS "Order_supplierId_status_shipDeadlineAt_idx"
   ON "Order"("supplierId", "status", "shipDeadlineAt");
 
 UPDATE "Order"
-SET "shipDeadlineAt" = "paidAt" + INTERVAL '48 hours'
-WHERE "shipDeadlineAt" IS NULL
-  AND "paidAt" IS NOT NULL
-  AND "status" IN ('paid', 'preparing');
-
-UPDATE "Order"
 SET "shipDeadlineAt" = "createdAt" + INTERVAL '48 hours'
 WHERE "shipDeadlineAt" IS NULL
   AND "status" IN ('paid', 'preparing');

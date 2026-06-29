@@ -1,6 +1,3 @@
--- AlterTable
-ALTER TABLE "ProcessedWebhook" ALTER COLUMN "status" DROP DEFAULT;
-
 -- CreateTable
 CREATE TABLE "SupplierExtensionToken" (
     "id" TEXT NOT NULL,
