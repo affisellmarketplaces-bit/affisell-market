@@ -86,6 +86,7 @@ export async function PATCH(req: Request) {
     update: {
       trustScore: breakdown.score,
       lightningEnabled: parsed.data.lightningEnabled,
+      lightningAdminOverride: false,
     },
     select: { lightningEnabled: true, trustScore: true },
   })

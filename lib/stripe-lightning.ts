@@ -64,7 +64,7 @@ export async function triggerLightningPayout(orderId: string): Promise<Lightning
       return { success: false, reason: "affiliate_profile_not_found" }
     }
 
-    if (supplierProfile.trustScore < 50) {
+    if (supplierProfile.trustScore < 50 && !supplierProfile.lightningAdminOverride) {
       return { success: false, reason: "supplier_trust_score_too_low" }
     }
     if (!supplierProfile.lightningEnabled) {

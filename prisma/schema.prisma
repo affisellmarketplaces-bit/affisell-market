@@ -295,9 +295,11 @@ model SupplierProfile {
   id               String   @id @default(cuid())
   userId           String   @unique
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  trustScore       Int      @default(50) // 0-100
-  lightningEnabled Boolean  @default(false)
-  stripeAccountId  String?  @unique
+  trustScore              Int      @default(50) // 0-100
+  lightningEnabled        Boolean  @default(false)
+  /** Admin bypass of trust-score gate for Lightning Payout (founder override). */
+  lightningAdminOverride  Boolean  @default(false)
+  stripeAccountId         String?  @unique
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }

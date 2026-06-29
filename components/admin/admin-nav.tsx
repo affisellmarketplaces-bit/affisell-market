@@ -20,6 +20,7 @@ const LINKS = [
   { href: "/admin/supply-lab", label: "Supply Lab" },
   { href: "/admin/agents", label: "Agents" },
   { href: "/admin/stripe-health", label: "Stripe" },
+  { href: "/admin/suppliers/lightning", label: "Lightning" },
   { href: "/admin/queues", label: "Queues" },
   { href: "/admin/splits", label: "Splits" },
   { href: "/admin/reviews", label: "Avis" },
