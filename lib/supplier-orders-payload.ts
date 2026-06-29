@@ -42,6 +42,8 @@ export type SupplierFulfillmentOrder = {
   fulfillmentSource: "marketplace" | "blind_dropship"
   status: string
   displayStatus: string
+  fulfillmentStatus: string
+  payoutStatusDb: string
   quantity: number
   variantLabel: string | null
   customerEmail: string
@@ -100,6 +102,8 @@ export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrd
     id: o.id,
     fulfillmentSource: "marketplace",
     status: o.status,
+    fulfillmentStatus: o.fulfillmentStatus,
+    payoutStatusDb: o.payoutStatus,
     displayStatus:
       o.status === "paid"
         ? "Awaiting packing"
@@ -228,6 +232,8 @@ function mapBlindOrder(
     id: order.id,
     fulfillmentSource: "blind_dropship",
     status: order.status,
+    fulfillmentStatus: order.status === "shipped" ? "SHIPPED" : "PENDING",
+    payoutStatusDb: order.supplierPayoutAt ? "PAID" : "PENDING",
     displayStatus: blindDisplayStatus(order.status),
     quantity: qty,
     variantLabel: null,

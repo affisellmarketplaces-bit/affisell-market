@@ -11,9 +11,11 @@ import {
   Truck,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { useSession } from "next-auth/react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { ShipPulseBadge } from "@/components/supplier/ship-pulse-badge"
+import { OrderActions } from "@/components/supplier/order-actions"
 import { SupplierOrderFulfillmentPanel } from "@/components/supplier/supplier-order-fulfillment-panel"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -29,6 +31,8 @@ type OrderRow = {
   fulfillmentSource: "marketplace" | "blind_dropship"
   status: string
   displayStatus: string
+  fulfillmentStatus: string
+  payoutStatusDb: string
   canMarkPreparing: boolean
   canMarkShipped: boolean
   supplierPreparingAt: string | null
@@ -241,6 +245,7 @@ function OrderMetaChips({ o }: { o: OrderRow }) {
 
 export function SupplierOrdersPanel({ className }: { className?: string }) {
   const msg = useTranslations("supplierOrders")
+  const { data: session } = useSession()
   const [tab, setTab] = useState<Tab>("to_ship")
   const [rows, setRows] = useState<OrderRow[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -575,6 +580,19 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                         {msg("actions.markShipped")}
                       </Button>
                     </div>
+                  ) : null}
+
+                  {o.fulfillmentSource === "marketplace" && session?.user?.id ? (
+                    <OrderActions
+                      className={o.canMarkShipped ? "mt-2" : "mt-auto pt-4"}
+                      order={{
+                        id: o.id,
+                        fulfillmentStatus: o.fulfillmentStatus,
+                        payoutStatus: o.payoutStatusDb,
+                        supplier: { userId: session.user.id },
+                      }}
+                      onShipped={() => void load()}
+                    />
                   ) : null}
                 </div>
               </div>
