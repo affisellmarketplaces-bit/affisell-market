@@ -255,7 +255,7 @@ async function createNewCheckout() {
       affiliateMarginRetainedCents: settlement.affiliateMarginRetainedCents,
       affisellFeeCents: settlement.affisellFeeCents,
       supplierPriceCents: affiliateProduct.product.basePriceCents,
-      supplierCommissionRateBps: affiliateProduct.product.supplierCommissionRateBps,
+      supplierCommissionRateBps: affiliateProduct.product.supplierCommissionRateBps ?? 1000,
       affiliateMarginCents: affiliateProduct.marginCents,
       affisellCommissionRateBps: 1200,
       totalCents: Math.round(affiliateProduct.sellingPriceCents * 1.2),
