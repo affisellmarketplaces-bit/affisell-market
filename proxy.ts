@@ -15,7 +15,9 @@ import {
   loginSupplierPath,
   resolvePostLoginRedirect,
 } from "@/lib/login-redirect"
+import { requestHost } from "@/lib/custom-domain-host"
 import { tryCustomDomainMiddleware } from "@/lib/middleware-custom-domain"
+import { canonicalPlatformRedirectUrl } from "@/lib/platform-canonical-url"
 import {
   isMerchantTermsExemptPath,
   isMerchantTermsGatedPath,
@@ -190,6 +192,15 @@ function rewriteStaticAppPath(req: NextRequest): NextResponse | null {
 /** Next.js 16+ proxy (ex-middleware). */
 export async function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname
+
+  const canonicalRedirect = canonicalPlatformRedirectUrl(
+    requestHost(req),
+    pathname,
+    req.nextUrl.search
+  )
+  if (canonicalRedirect) {
+    return NextResponse.redirect(canonicalRedirect, 308)
+  }
 
   const customDomainResponse = await tryCustomDomainMiddleware(req)
   if (customDomainResponse) return customDomainResponse
