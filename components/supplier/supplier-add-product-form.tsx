@@ -139,6 +139,7 @@ import {
   resolveSupplierProductCompareAtEur,
   usesVariantSkuPricing,
 } from "@/lib/supplier-catalog-price"
+import { registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
 import { suggestDeliveryCountriesFromWarehouse } from "@/lib/supplier-delivery-countries"
 import { parseSupplierDecimalInput } from "@/lib/supplier-decimal-input"
 import { readJsonResponse } from "@/lib/read-json-response"
