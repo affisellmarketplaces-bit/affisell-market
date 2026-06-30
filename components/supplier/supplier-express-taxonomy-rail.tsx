@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 
 import type { PendingCategoryConfirmation } from "@/components/supplier/supplier-category-confirm-types"
 import type { CategoryPathSegment } from "@/lib/category-browse"
-import { hasListingClassificationSignal } from "@/lib/supplier-auto-category-policy"
+import { hasListingClassificationSignal, isDurableListingImageUrl } from "@/lib/supplier-auto-category-policy"
 import type { ListingProductInsight } from "@/lib/listing-product-signal"
 import type { ListingCategorySuggestion } from "@/lib/supplier-suggest-listing"
 import type { SupplierCategorySuggestMeta } from "@/components/supplier/use-supplier-category-suggestions"
@@ -67,7 +67,9 @@ export function SupplierExpressTaxonomyRail({
   const awaitingConfirm =
     pendingConfirm != null && categoryId !== pendingConfirm.leafId
   const confirmed = Boolean(categoryId && pathLabel && !awaitingConfirm)
-  const readyToScan = hasListingClassificationSignal(name, imageUrl)
+  const durableImage = isDurableListingImageUrl(imageUrl) ? imageUrl!.trim() : null
+  const photoUploadPending = Boolean(imageUrl?.trim() && !durableImage)
+  const readyToScan = hasListingClassificationSignal(name, durableImage)
   const scanning = loading && readyToScan
   const recommendedLeafId = pendingConfirm?.leafId ?? topSuggestion?.leafId ?? null
   const visibleSuggestions = suggestions.slice(0, MAX_SUGGESTIONS)
@@ -143,14 +145,16 @@ export function SupplierExpressTaxonomyRail({
           <div className="flex items-start gap-2 text-sm text-zinc-600 dark:text-zinc-400">
             <ScanLine className="mt-0.5 h-4 w-4 shrink-0 text-violet-500" aria-hidden />
             <p>
-              {name.trim().length < 3 && !imageUrl
-                ? t("emptyBoth", {
-                    title: t("titleWord"),
-                    photo: t("photoWord"),
-                  })
-                : name.trim().length < 3
-                  ? t("emptyTitle", { title: t("titleWord") })
-                  : t("emptyPhoto", { mainPhoto: t("mainPhotoWord") })}
+              {photoUploadPending && name.trim().length >= 3
+                ? t("photoUploadPending")
+                : name.trim().length < 3 && !durableImage
+                  ? t("emptyBoth", {
+                      title: t("titleWord"),
+                      photo: t("photoWord"),
+                    })
+                  : name.trim().length < 3
+                    ? t("emptyTitle", { title: t("titleWord") })
+                    : t("emptyPhoto", { mainPhoto: t("mainPhotoWord") })}
             </p>
           </div>
         ) : visibleSuggestions.length > 0 ? (
@@ -219,7 +223,10 @@ export function SupplierExpressTaxonomyRail({
             })}
           </ul>
         ) : (
-          <p className="text-xs text-zinc-500">{t("preparingAnalysis")}</p>
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">{t("noSuggestions")}</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("noSuggestionsHint")}</p>
+          </div>
         )}
       </div>
 

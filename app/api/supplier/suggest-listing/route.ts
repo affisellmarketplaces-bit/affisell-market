@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { suggestListingCategories } from "@/lib/supplier-suggest-listing"
+import { isDurableListingImageUrl } from "@/lib/supplier-auto-category-policy"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -29,7 +30,9 @@ export async function POST(req: Request) {
     ? body.bullets.filter((b): b is string => typeof b === "string" && b.trim().length > 0)
     : undefined
   const imageUrl =
-    typeof body.imageUrl === "string" && body.imageUrl.trim().length > 0 ? body.imageUrl.trim() : undefined
+    typeof body.imageUrl === "string" && isDurableListingImageUrl(body.imageUrl.trim())
+      ? body.imageUrl.trim()
+      : undefined
 
   const result = await suggestListingCategories(title, description, prisma, {
     imageUrl,

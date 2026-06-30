@@ -26,11 +26,19 @@ export function shouldSuggestCategoryConfirmation(opts: {
 export const shouldAutoApplyCategorySuggestion = shouldSuggestCategoryConfirmation
 
 export const LISTING_CLASSIFY_MIN_TITLE_LEN = 3
+export const LISTING_CLASSIFY_MIN_TITLE_ONLY_LEN = 8
 export const LISTING_CLASSIFY_MIN_IMAGE_URL_LEN = 8
 
-/** Trigger listing suggest API only when title and main photo are both present. */
+/** Durable CDN/https image — not an in-browser blob preview. */
+export function isDurableListingImageUrl(imageUrl?: string | null): boolean {
+  const img = imageUrl?.trim() ?? ""
+  return img.length > LISTING_CLASSIFY_MIN_IMAGE_URL_LEN && !img.startsWith("blob:")
+}
+
+/** Trigger listing suggest API when title + durable photo, or descriptive title-only (keyword path). */
 export function hasListingClassificationSignal(title: string, imageUrl?: string | null): boolean {
   const t = title.trim()
-  const img = imageUrl?.trim() ?? ""
-  return t.length >= LISTING_CLASSIFY_MIN_TITLE_LEN && img.length > LISTING_CLASSIFY_MIN_IMAGE_URL_LEN
+  if (t.length < LISTING_CLASSIFY_MIN_TITLE_LEN) return false
+  if (isDurableListingImageUrl(imageUrl)) return true
+  return t.length >= LISTING_CLASSIFY_MIN_TITLE_ONLY_LEN
 }

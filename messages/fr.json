@@ -884,6 +884,9 @@
       "browseManual": "Parcourir le catalogue manuellement",
       "editCategory": "Modifier la catégorie dans le catalogue",
       "browseManualAlt": "Aucune ne convient — chercher la catégorie moi-même",
+      "photoUploadPending": "Import de la photo en cours — l'analyse vision démarre dès que l'image est en ligne.",
+      "noSuggestions": "Aucune catégorie automatique trouvée pour ce produit.",
+      "noSuggestionsHint": "Parcourez le catalogue ci-dessous, ou précisez le titre (marque + type de produit).",
       "preparingAnalysis": "Analyse titre + photo en cours de préparation…"
     },
     "images": {

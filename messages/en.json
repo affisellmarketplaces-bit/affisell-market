@@ -884,6 +884,9 @@
       "browseManual": "Browse catalog manually",
       "editCategory": "Change category in catalog",
       "browseManualAlt": "None fit — find category myself",
+      "photoUploadPending": "Uploading photo — vision analysis starts once the image is online.",
+      "noSuggestions": "No automatic category match for this product.",
+      "noSuggestionsHint": "Browse the catalog below, or refine the title (brand + product type).",
       "preparingAnalysis": "Preparing title + photo analysis…"
     },
     "images": {

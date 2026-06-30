@@ -152,6 +152,26 @@ const PRODUCT_INTENTS: ProductIntent[] = [
     ],
   },
   {
+    id: "gaming_console",
+    match:
+      /\b(playstation|ps5|ps4|ps3|xbox\s*(?:series|one)?|nintendo\s*switch|switch\s*oled|gamepad|manettes?\s+(?:de\s+)?jeu|playstation\s+portal|portal\s+remote|lecteur\s+(?:a|à)\s+distance\s+(?:pour\s+)?ps|console\s+de\s+jeu|gaming\s+console|dualsense|steam\s*deck|meta\s*quest|oculus)\b/i,
+    boost: [
+      /accessoires\s+pour\s+consoles?\s+de\s+jeu/i,
+      /consoles?\s+de\s+jeu\s+de\s+salon/i,
+      /consoles?\s+de\s+jeu\s+portables?/i,
+      /accessoires\s+pour\s+manettes?/i,
+      /batteries?\s+pour\s+consoles?\s+de\s+jeu/i,
+    ],
+    penalize: [
+      /logiciels\s*>\s*jeux\s+video/i,
+      /livres?/i,
+      /lecteurs?\s+mp3/i,
+      /telephones?\s+mobiles?/i,
+      /moniteurs?\s+d['']activit/i,
+      /moustiquaire/i,
+    ],
+  },
+  {
     id: "hair_steamer_cap",
     match:
       /\b(bonnet\s+(?:de\s+)?(?:nuit|cheveux|satin)|bonnets?\s+chauffants?|casque\s+(?:a\s+)?vapeur|hair\s+steamer|steam\s+cap|satin\s+cap|cheveux\s+boucles|soin\s+des\s+cheveux)\b/i,
@@ -323,7 +343,23 @@ const PRODUCT_INTENTS: ProductIntent[] = [
 ]
 
 const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number }> = [
-  { phrase: /montre\s+connect/i, breadcrumb: /moniteurs?\s+d['']activit/i, points: 18 },
+  {
+    phrase: /playstation|ps5|ps4|playstation\s+portal|lecteur\s+(?:a|à)\s+distance\s+ps/i,
+    breadcrumb: /accessoires\s+pour\s+consoles?\s+de\s+jeu\s+de\s+salon/i,
+    points: 42,
+  },
+  {
+    phrase: /nintendo\s*switch|steam\s*deck|xbox/i,
+    breadcrumb: /consoles?\s+de\s+jeu\s+portables?|accessoires\s+pour\s+consoles?\s+de\s+jeu/i,
+    points: 36,
+  },
+  {
+    phrase: /manette|gamepad|dualsense/i,
+    breadcrumb: /accessoires\s+pour\s+manettes?/i,
+    points: 34,
+  },
+  {
+    phrase: /montre\s+connect/i, breadcrumb: /moniteurs?\s+d['']activit/i, points: 18 },
   {
     phrase: /trottinette\s+electrique|scooter\s*electrique|e-?scooter/i,
     breadcrumb: /trottinettes?/i,
@@ -440,6 +476,9 @@ const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number 
 const COMPOUND_TERMS: Array<{ pattern: RegExp; token: string }> = [
   { pattern: /\bcar\s*play\b|\bcarplay\b/i, token: "carplay" },
   { pattern: /\bandroid\s*auto\b/i, token: "androidauto" },
+  { pattern: /\bplaystation\s+portal\b/i, token: "playstationportal" },
+  { pattern: /\bps5\b/i, token: "ps5" },
+  { pattern: /\bps4\b/i, token: "ps4" },
   { pattern: /\bmoustiquaire\s+porte\b|\bporte\s+moustiquaire\b/i, token: "moustiquaire" },
   { pattern: /\bmoustiquaire\s+(?:magnetique|fenetre|fenêtre)\b/i, token: "moustiquaire" },
 ]
@@ -664,6 +703,9 @@ export function scoreProductTextAgainstBreadcrumb(text: string, breadcrumb: stri
         continue
       }
       if (intent?.id === "car_infotainment" && (w === "car" || w === "auto" || w === "play")) {
+        continue
+      }
+      if (intent?.id === "gaming_console" && (w === "play" || w === "portal")) {
         continue
       }
       /** Fan titles often mention lumière / power bank as accessories — do not drive security categories. */

@@ -121,6 +121,17 @@ const FIXTURE_LEAVES: LeafPath[] = [
     path: [],
   },
   {
+    leafId: "console-salon",
+    breadcrumb:
+      "Appareils électroniques > Accessoires pour consoles de jeu vidéo > Accessoires pour consoles de jeu de salon",
+    path: [],
+  },
+  {
+    leafId: "jeux-video-soft",
+    breadcrumb: "Logiciels > Jeux vidéo",
+    path: [],
+  },
+  {
     leafId: "phone-jammer",
     breadcrumb:
       "Appareils électroniques > Accessoires électroniques > Brouilleurs de signal > Brouilleurs de téléphone mobile",
@@ -311,5 +322,12 @@ describe("category-title-match", () => {
     const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
     expect(picks[0]?.leafId).toBe("scooter-leaf")
     expect(picks.some((p) => p.leafId === "stop-trottoir")).toBe(false)
+  })
+
+  it("suggests console salon accessories for PlayStation Portal", () => {
+    const title = "Sony Playstation Portal - Lecteur à distance pour PS5 Blanc"
+    const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
+    expect(picks[0]?.leafId).toBe("console-salon")
+    expect(picks.some((p) => p.leafId === "jeux-video-soft")).toBe(false)
   })
 })

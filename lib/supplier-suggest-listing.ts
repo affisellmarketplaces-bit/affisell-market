@@ -24,6 +24,7 @@ import type { PrismaClient } from "@prisma/client"
 
 import {
   hasListingClassificationSignal,
+  isDurableListingImageUrl,
   shouldAutoApplyCategorySuggestion,
 } from "@/lib/supplier-auto-category-policy"
 
@@ -109,7 +110,8 @@ export async function suggestListingCategories(
   }
 ): Promise<SuggestListingCategoriesResult> {
   const t = title.trim()
-  const imageUrl = options?.imageUrl?.trim() || null
+  const rawImage = options?.imageUrl?.trim() || null
+  const imageUrl = isDurableListingImageUrl(rawImage) ? rawImage : null
   const visionUsed = Boolean(imageUrl)
 
   if (!hasListingClassificationSignal(t, imageUrl)) {

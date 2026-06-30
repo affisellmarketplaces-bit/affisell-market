@@ -29,6 +29,11 @@ const CASES = [
       "Scooter-Trottinette électrique tout-terrain pour adultes, trottinette électrique, 1000W",
     description: "",
   },
+  {
+    label: "PlayStation Portal",
+    title: "Sony Playstation Portal - Lecteur à distance pour PS5 Blanc",
+    description: "",
+  },
 ] as const
 
 async function main() {

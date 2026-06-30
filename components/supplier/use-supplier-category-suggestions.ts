@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useDebounce } from "use-debounce"
 
-import { hasListingClassificationSignal } from "@/lib/supplier-auto-category-policy"
+import { hasListingClassificationSignal, isDurableListingImageUrl } from "@/lib/supplier-auto-category-policy"
 import type { CategoryAlternativeSuggestion } from "@/lib/category-title-match"
 import type { ListingProductInsight } from "@/lib/listing-product-signal"
 import type { ListingCategorySuggestion } from "@/lib/supplier-suggest-listing"
@@ -43,15 +43,16 @@ export function useSupplierCategorySuggestions(
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const image = debouncedImageUrl.trim().length > 0 ? debouncedImageUrl.trim() : undefined
-    if (!browse || !hasListingClassificationSignal(debouncedTitle, image)) {
+    const rawImage = debouncedImageUrl.trim()
+    const durableImage = isDurableListingImageUrl(rawImage) ? rawImage : undefined
+    if (!browse || !hasListingClassificationSignal(debouncedTitle, durableImage)) {
       setSuggestions([])
       setAlternatives([])
       setProductInsight(null)
       setMeta({
         recommendedLeafId: null,
         autoApplyRecommended: false,
-        visionUsed: Boolean(image),
+        visionUsed: Boolean(durableImage),
         suggestedProductName: null,
         source: "none",
       })
@@ -71,7 +72,7 @@ export function useSupplierCategorySuggestions(
             title: debouncedTitle.trim(),
             description: debouncedDescription.trim(),
             bullets: debouncedBullets.filter((b) => b.trim().length > 0),
-            imageUrl: image,
+            imageUrl: durableImage,
           }),
           signal: ac.signal,
         })
@@ -82,7 +83,7 @@ export function useSupplierCategorySuggestions(
           setMeta({
             recommendedLeafId: null,
             autoApplyRecommended: false,
-            visionUsed: Boolean(image),
+            visionUsed: Boolean(durableImage),
             suggestedProductName: null,
             source: "none",
           })
