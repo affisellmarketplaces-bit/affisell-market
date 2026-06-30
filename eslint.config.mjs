@@ -14,6 +14,14 @@ const eslintConfig = defineConfig([
       "react-hooks/refs": "warn",
       // Legal bodies + API export/download links need plain <a>, not client <Link>.
       "@next/next/no-html-link-for-pages": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
     },
   },
   // Override default ignores of eslint-config-next.

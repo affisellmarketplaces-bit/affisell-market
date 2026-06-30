@@ -3,7 +3,6 @@ import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-lis
 import {
   type BuyerCategoryChip,
   type BuyerListingCard,
-  buyerListingToCardProps,
 } from "@/lib/buyer-discovery-types"
 import { loadHomeBestSellers7d, loadHomeNewArrivals } from "@/lib/home-marketplace-data"
 import { prisma } from "@/lib/prisma"

@@ -84,8 +84,8 @@ export function applyImportedAeCatalogToVariantRows(
       ? suggestions
       : suggestVariantMappings(productVariants, aeSkus)
 
-  const { rows: afterSuggest, filled: f1 } = applyAeVariantSuggestions(rows, sug, aeSkus)
-  const { rows: afterCatalog, filled: f2 } = applyAeCatalogToVariantRows(
+  const { rows: afterSuggest, filled: _f1 } = applyAeVariantSuggestions(rows, sug, aeSkus)
+  const { rows: afterCatalog, filled: _f2 } = applyAeCatalogToVariantRows(
     afterSuggest,
     productVariants,
     aeSkus

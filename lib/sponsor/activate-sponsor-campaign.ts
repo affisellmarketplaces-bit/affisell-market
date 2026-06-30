@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
-import { prisma } from "@/lib/prisma"
 import { SPONSOR_FLOW_METADATA, SPONSOR_STATUS } from "@/lib/sponsor/sponsor-constants"
 
 function paymentIntentId(session: Stripe.Checkout.Session): string | null {

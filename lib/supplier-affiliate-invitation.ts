@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client"
-
 import { requireMerchantUserId } from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
 import {

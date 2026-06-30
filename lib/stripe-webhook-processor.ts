@@ -55,43 +55,6 @@ async function syncUserCapabilitiesFromStripe(
   })
 }
 
-async function handleSplitErrors(
-  splitErrors: { role: string; message: string; accountId?: string; code?: string }[],
-  orderId: string,
-  tx: Prisma.TransactionClient
-) {
-  for (const err of splitErrors) {
-    const accountId = err.accountId?.trim()
-    if (!accountId) continue
-
-    if (
-      err.code === "affiliate_onboarding_required" ||
-      err.message.startsWith("AFFILIATE_ONBOARDING_REQUIRED:")
-    ) {
-      await syncUserCapabilitiesFromStripe(tx, accountId)
-      logStripeWebhookError({
-        level: "error",
-        metric: "affiliate_onboarding_required",
-        orderId,
-        accountId,
-        errorCode: err.code ?? null,
-      })
-      continue
-    }
-
-    if (err.code === "insufficient_capabilities_for_transfer") {
-      await syncUserCapabilitiesFromStripe(tx, accountId)
-      logStripeWebhookError({
-        level: "error",
-        metric: "insufficient_capabilities_for_transfer",
-        orderId,
-        accountId,
-        errorCode: err.code,
-      })
-    }
-  }
-}
-
 async function handleStripeTransferError(
   error: unknown,
   orderId: string | null,

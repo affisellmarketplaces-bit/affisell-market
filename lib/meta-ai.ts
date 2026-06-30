@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma"
 import { signMetaWebhookPayload } from "@/lib/meta-ai-webhook"
-import { videoLog } from "@/lib/video-logger"
 
 export type MetaVideoFormat = "9:16" | "1:1" | "16:9"
 

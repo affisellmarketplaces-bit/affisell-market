@@ -194,25 +194,6 @@ function rawSkuVariantRows(body: Record<string, unknown>): unknown[] {
   return []
 }
 
-function formatZodVariantIssue(issue: z.ZodIssue, rowIndex: number): string {
-  const path = issue.path.join(".")
-  const label = buildVariantOptionLabel(
-    typeof issue.path[0] === "number" ? undefined : undefined,
-    undefined
-  )
-  void label
-  if (path.includes("color")) {
-    return `Ligne ${rowIndex + 1} — couleur : ${issue.message}`
-  }
-  if (path.includes("supplierPrice")) {
-    return `Ligne ${rowIndex + 1} — coût : ${issue.message}`
-  }
-  if (path.includes("publicPrice")) {
-    return `Ligne ${rowIndex + 1} — prix public : ${issue.message}`
-  }
-  return `Ligne ${rowIndex + 1} : ${issue.message}`
-}
-
 export function formatVariantValidationErrors(
   issues: z.ZodIssue[],
   rows: unknown[]

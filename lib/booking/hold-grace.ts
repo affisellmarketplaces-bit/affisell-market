@@ -1,5 +1,3 @@
-const HOUR_MS = 60 * 60 * 1000
-
 /** Extra minutes after hold expiry before cron releases inventory (slow Stripe webhook). */
 export function bookingHoldConfirmGraceMinutes(): number {
   const raw = Number(process.env.BOOKING_HOLD_CONFIRM_GRACE_MINUTES)

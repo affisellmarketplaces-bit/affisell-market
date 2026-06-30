@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
-import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 import { enqueueProcessTransfersJob } from "@/lib/transfers/enqueue-job"
 import { runProcessTransfersJob } from "@/lib/transfers/process-transfers"
 import { resetOrderTransferAttempts } from "@/lib/transfers/reset-order-transfers"

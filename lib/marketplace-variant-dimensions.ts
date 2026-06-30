@@ -1,5 +1,4 @@
 import { normalizeVariantCustomData, parseCustomColumnsFromDb } from "@/lib/product-custom-columns"
-import { normalizeColorKey } from "@/lib/color-name-hex"
 import { variantColorsMatch } from "@/lib/fulfillment/variant-color-match"
 import { buildVariantOptionLabel } from "@/lib/marketplace-purchase-quantity"
 import type { CustomColumn } from "@/types/product"

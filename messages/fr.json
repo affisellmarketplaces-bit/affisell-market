@@ -1775,12 +1775,30 @@
         "title": "Presets futuristes",
         "hint": "Un clic pour appliquer palette, layout et ambiance — personnalisez ensuite.",
         "items": {
-          "violet-pulse": { "name": "Violet Pulse", "desc": "Immersif sombre, dégradé néon violet." },
-          "emerald-luxe": { "name": "Emerald Luxe", "desc": "Verre premium, grille aérée, vert émeraude." },
-          "midnight-orbit": { "name": "Midnight Orbit", "desc": "Cyber cyan sur fond minuit, grille compacte." },
-          "rose-editorial": { "name": "Rose Editorial", "desc": "Éditorial chaleureux, bannière classique." },
-          "clean-minimal": { "name": "Clean Minimal", "desc": "Minimaliste, sans hero, focus produits." },
-          "quantum-glow": { "name": "Quantum Glow", "desc": "Verre violet quantique, dégradé lumineux." }
+          "violet-pulse": {
+            "name": "Violet Pulse",
+            "desc": "Immersif sombre, dégradé néon violet."
+          },
+          "emerald-luxe": {
+            "name": "Emerald Luxe",
+            "desc": "Verre premium, grille aérée, vert émeraude."
+          },
+          "midnight-orbit": {
+            "name": "Midnight Orbit",
+            "desc": "Cyber cyan sur fond minuit, grille compacte."
+          },
+          "rose-editorial": {
+            "name": "Rose Editorial",
+            "desc": "Éditorial chaleureux, bannière classique."
+          },
+          "clean-minimal": {
+            "name": "Clean Minimal",
+            "desc": "Minimaliste, sans hero, focus produits."
+          },
+          "quantum-glow": {
+            "name": "Quantum Glow",
+            "desc": "Verre violet quantique, dégradé lumineux."
+          }
         }
       },
       "layoutControls": {

@@ -34,10 +34,10 @@
       "badge": "Levertijd",
       "dashboard": "Dashboard",
       "orders": "Bestellingen",
+      "bookings": "Reserveringen",
       "products": "Producten",
       "inviteAffiliate": "Investeringspartner uitnodigen",
-      "inviteAffiliateShort": "Uitnodigen",
-      "bookings": "Reserveringen"
+      "inviteAffiliateShort": "Uitnodigen"
     },
     "accountMenu": {
       "aria": "Accountmenu",
@@ -69,6 +69,7 @@
       "title": "Winkels geselecteerd door je favoriete",
       "titleHighlight": "makers",
       "sub": "Snel verzenden · Veilige betaling · 14-dagen retourrecht",
+      "subUs": "US & Canada checkout · {count} countries · USD · Secure payment · 14-day returns",
       "searchPlaceholder": "Zoek producten, merken, niches…",
       "searchLabel": "Zoek producten",
       "searchSubmit": "Zoeken",
@@ -311,7 +312,10 @@
       "signUpLink": "Een klantaccount aanmaken",
       "alreadyClient": "Reeds klant?",
       "signupFail": "Kon niet aanmelden",
-      "backTrackOrder": "← Mijn order volgen"
+      "backTrackOrder": "← Mijn order volgen",
+      "wrongPortalTitle": "You're signed in with a merchant account",
+      "wrongPortalBody": "Your current session is a {role} account. Sign out to open your buyer account with the email used at checkout.",
+      "wrongPortalSignOut": "Sign out and use buyer login"
     },
     "customerSignup": {
       "heroTitle": "Winkel & Verwacht tot 20% Terugbetaling",
@@ -394,12 +398,13 @@
       "fieldSocial": "TikTok / Instagram-handelaar",
       "fieldPassword": "Wachtwoord",
       "vatNotice": "Verkopers blijven aansprakelijk voor BTW. Affisell-kosten worden toegepast op netto bedragen excl. BTW.",
+      "vatNoticeAffiliate": "Declareer partnerinkomsten volgens uw fiscale woonland. Koper-BTW wordt bij checkout (Stripe Tax) geïnd door de leverende verkoper.",
+      "affiliateStatusCardSub": "Curator partner — identity only; tax filings under your country of residence",
       "hasAccountSupplier": "Al een partner?",
       "hasAccountAffiliate": "Al een maker?",
       "signIn": "Aanmelden",
       "statusParticulierTitle": "Particulier",
       "statusParticulierSub": "Maker zonder geregistreerd bedrijf — curator-partner, geen productverkoper",
-      "vatNoticeAffiliate": "Declareer partnerinkomsten volgens uw fiscale woonland. Koper-BTW wordt bij checkout (Stripe Tax) geïnd door de leverende verkoper.",
       "statusAutoEntrepreneurTitle": "Eénmanszaak / micro-onderneming",
       "statusAutoEntrepreneurSub": "Autonome ondernemer · URSSAF / INSEE bewijs",
       "statusEiTitle": " Professioneel (eenmanszaak)",
@@ -428,10 +433,13 @@
       "errUpload": "Upload is mislukt — probeer het opnieuw.",
       "errFileSize": "Bestand is te groot (8 MB max).",
       "errFileType": "Ondersteunde formaten zijn PDF, JPG, PNG, WebP.",
+      "errProfileExists": "A profile already exists — check your dashboard.",
       "verification": {
         "eyebrow": "Toetsing in gang",
         "title": "Accountverificatie",
         "subtitle": "We controleren uw documenten. U wordt per e-mail op de hoogte gesteld zodra uw account is goedgekeurd.",
+        "setupTitle": "Complete your KYC application",
+        "setupSubtitle": "Legal status + supporting documents — approval within 24–48h to publish on Affisell.",
         "legalStatus": "Gegadigde status",
         "body": "U kunt uw dashboard in lees-only-modus bekijken. Uw catalogus wordt vrijgegeven nadat uw account is goedgekeurd.",
         "dashboardLink": "Dashboard openen",
@@ -458,11 +466,13 @@
         "affiliate_on_supplier_portal": "Toegang geweigerd: dit is een affiliate-account. Gebruik de affiliate-inlog, niet de leverancier.",
         "non_affiliate_on_affiliate_portal": "Toegang geweigerd: alleen affiliate-accounts zijn hier toegestaan.",
         "non_supplier_on_supplier_portal": "Toegang geweigerd: alleen leverancier-accounts zijn hier toegestaan.",
+        "non_agent_on_agent_portal": "Sign-in denied: only Affisell agent accounts are allowed here.",
         "email_required_not_id": "Toegang geweigerd: voer uw e-mailadres in (niet een interne ID)."
       }
     }
   },
   "checkout": {
+    "checkoutError": "Payment error",
     "flexiblePayment": {
       "aria": "Betaal in {count} interest-vrije afbetalingen van {amount} — Klarna of kaart",
       "zeroApr": "0%",
@@ -484,7 +494,9 @@
     "colorLabel": "Kleur",
     "sizeLabel": "Maat",
     "verifiedSeller": "Geverifieerde verkoper",
+    "verifiedPartner": "Verified partner",
     "bySeller": "door {seller}",
+    "byPartnerStore": "Curated by {store}",
     "view": "Bekijk",
     "yourSelection": "Uw selectie",
     "noColorSize": "Geen kleur of maat opgenomen voor deze regel — selecteer opties op de productpagina wanneer u toevoegt aan winkelwagen.",
@@ -497,6 +509,17 @@
     "emailOrPhoneBeforePayment": "E-mail of mobiele nummer vereist voor betaling · klantaccount en cashback zijn automatisch",
     "redirecting": "Doorverwijzing…",
     "validatePurchase": "Aankoop afronden",
+    "checkoutRegionBlocked": "Checkout not available in your country yet",
+    "checkoutMinimumNotMet": "Minimum card payment is €{min} (Stripe). Add items or increase quantity.",
+    "checkoutFailed": "Could not start checkout. Please try again.",
+    "checkoutShippingNote": {
+      "title": "Shipping to {count} EU countries",
+      "body": "Each item ships from its supplier's warehouse zone. Delivery times and fees are shown at checkout."
+    },
+    "checkoutShippingNoteUs": {
+      "title": "Shipping to the US & Canada",
+      "body": "Each item ships from its supplier's warehouse zone. Delivery times and fees are shown at checkout."
+    },
     "continueShopping": "Doorgaan met winkelen",
     "identity": {
       "beforePay": "Voor betaling",
@@ -570,6 +593,8 @@
     "filterAria": "Filter op niche",
     "featuredEmpty": "Creators openen hun winkels. Controleer later opnieuw.",
     "visitStore": "Bezoek winkel",
+    "startingPrice": "From {price}",
+    "priceInEur": "Prices in euros · VAT included",
     "ordersCount": "{count, plural, one {# bestelling} other {# bestellingen}}",
     "browseCta": "Alle winkels"
   },
@@ -631,41 +656,64 @@
       "sectionClassifyTitle": "Category & specs",
       "sectionClassifyDescription": "Pick the leaf category via suggestions, search, or the Affisell catalog tree.",
       "categoryLabel": "Category",
-      "categorySuggestedBadge": "Suggested"
+      "categorySuggestedBadge": "Suggested",
+      "offerModeTitle": "Product condition",
+      "offerModeDescription": "Required when publishing — shown on the marketplace listing and buyer filters.",
+      "warehouseZoneTitle": "Logistics zone",
+      "warehouseZoneDescription": "Required when publishing — powers EU / international marketplace filters.",
+      "warehouseZonePlaceholder": "Choose a zone",
+      "warehouseZoneLocal": "Local (same country warehouse)",
+      "warehouseZoneRegional": "Regional (EU / nearby)",
+      "warehouseZoneInternational": "International (worldwide shipping)",
+      "deliveryCountriesTitle": "Delivery countries",
+      "deliveryCountriesDescription": "Required when publishing — buyers outside this list cannot checkout."
     },
-    "myProducts": "My Products",
-    "addProduct": "Add Product",
-    "ordersToShip": "Orders to Ship",
-    "dashboardTagline": "Supplier tools",
-    "hello": "Hello,",
-    "guestName": "there",
-    "newProductTitle": "New product",
-    "newProductHint": "Affiliates set a retail price at or above base price; their margin is split by your commission rate for payouts.",
-    "productNamePlaceholder": "Product name",
-    "basePricePlaceholder": "Base price (EUR)",
-    "commissionRatePlaceholder": "Commission % of margin",
-    "imagePlaceholder": "Image URL",
-    "descriptionPlaceholder": "Description",
-    "saving": "Saving…",
-    "createFailed": "Could not create product.",
-    "updateFailed": "Could not update product.",
-    "errorUnknown": "Something went wrong.",
-    "emptyProducts": "No products yet.",
-    "noImage": "No image",
-    "statusActive": "Active",
-    "statusInactive": "Inactive",
-    "toggleActive": "Deactivate listing",
-    "toggleInactive": "Activate listing",
-    "basePriceLabel": "Base price",
-    "commissionLabel": "Commission (margin share)",
-    "ordersEmpty": "No orders yet.",
-    "customerEmail": "Customer email",
-    "shipTo": "Ship to",
-    "orderTotal": "Order total",
-    "productCol": "Product",
+    "descriptionField": {
+      "label": "Description",
+      "hint": "Unlimited text and photos: write, paste, or drag images between paragraphs. Studio copy generates a structured SEO listing.",
+      "optimizeCta": "Optimize",
+      "optimizing": "Optimizing…",
+      "generateCta": "Generate description",
+      "generating": "Generating…"
+    },
+    "titleOptimizer": {
+      "titleLabel": "Title",
+      "optimizeCta": "Optimize title & key points",
+      "optimizing": "Optimizing…",
+      "copyEngine": "Affisell Copy Engine",
+      "charsSuffix": "chars",
+      "subtitlePrefix": "Subtitle:",
+      "abVariantsTitle": "A/B variants",
+      "abVariantsHint": "Edit, apply to the main title, or add your own variants.",
+      "variantPlaceholder": "Alternative title for A/B testing…",
+      "useAsTitle": "Use as title",
+      "removeVariant": "Remove variant",
+      "addVariant": "Add variant",
+      "maxVariants": "Maximum {count} variants",
+      "variantApplied": "Title updated",
+      "optimizeSuccess": "Title & hooks optimized"
+    },
     "wizard": {
       "backToMethods": "← Other creation methods",
       "save": "Save",
+      "saveChanges": "Save changes",
+      "saveChangesSaving": "Saving…",
+      "unsavedChangesHint": "Unsaved changes",
+      "savedAtHint": "Saved at {time}",
+      "autosaveSaving": "Auto-saving…",
+      "autosaveDirty": "Syncing changes…",
+      "autosaveSaved": "All changes saved",
+      "autosaveError": "Sync interrupted",
+      "syncNow": "Sync now",
+      "continueToStep2": "Next — Variants & pricing",
+      "continueToStep3": "Next — Logistics",
+      "continuing": "Saving…",
+      "variantLiveSyncLive": "Cloud sync — cells save automatically in the background",
+      "variantLiveSyncSaving": "Syncing to cloud…",
+      "variantLiveSyncSaved": "Synced to cloud at __TIME__",
+      "variantLiveSyncError": "Sync interrupted — tap Sync now",
+      "variantLiveSyncDirty": "Changes syncing to cloud",
+      "variantLiveSyncFlush": "Sync now",
       "breadcrumbAria": "Breadcrumb",
       "stepsAria": "Steps",
       "step1Title": "Product sheet",
@@ -674,6 +722,133 @@
       "step2Hint": "SKU, stock, margins",
       "step3Title": "Logistics & publish",
       "step3Hint": "Shipping, commission"
+    },
+    "digitalDelivery": {
+      "badge": "Digital Pass Hub",
+      "title": "Instant course delivery",
+      "description": "Buyers receive a secure access pass right after payment — no warehouse, no waiting.",
+      "instantLabel": "Instant delivery after payment (recommended)",
+      "urlLabel": "Access URL",
+      "urlHint": "Use {{orderId}}, {{token}}, or {{email}} for personalized enrollment links.",
+      "instructionsLabel": "Buyer instructions (optional)",
+      "instructionsPlaceholder": "E.g. Check your inbox for the platform invite, then log in with the same email as checkout."
+    },
+    "booking": {
+      "badge": "Booking Hub",
+      "title": "Slots & reservations",
+      "titleService": "Salon appointments",
+      "titleExperience": "Cinema & events",
+      "titleRestaurant": "Restaurant reservations",
+      "titleMuseum": "Museum timed entry",
+      "description": "Cinema, museum, restaurant — buyers pick a time and receive a QR pass.",
+      "descriptionService": "Add appointment slots — buyers book a coiffeur session and receive an instant QR pass.",
+      "descriptionExperience": "Add screening slots with seat capacity — buyers pick a showtime and ticket quantity.",
+      "descriptionRestaurant": "Add service slots with table covers — buyers pick a time and party size.",
+      "descriptionMuseum": "Add entry slots with capacity — buyers pick a visit window and ticket quantity.",
+      "comingSoonBadge": "Coming soon",
+      "comingSoonHint": "More vertical presets (restaurant, museum…) ship next.",
+      "liveBadge": "Live",
+      "instantLabel": "Instant confirmation after payment",
+      "durationLabel": "Default duration (minutes)",
+      "cancellationLabel": "Free cancellation until (hours before)",
+      "venueLabel": "Venue name",
+      "venuePlaceholder": "E.g. Salon Éclat · 12 rue de la Paix, Paris",
+      "venuePlaceholderExperience": "E.g. Gaumont Lyon Part-Dieu · Screen 3",
+      "venuePlaceholderRestaurant": "E.g. Le Comptoir · 8 rue des Fossés, Lyon",
+      "venuePlaceholderMuseum": "E.g. Musée des Confluences · Lyon",
+      "saveDraftForSlots": "Save the draft first to manage appointment slots.",
+      "slotsTitle": "Appointment slots",
+      "slotsHint": "One client per slot (capacity 1). Add at least one future slot before publishing.",
+      "slotsHintExperience": "Set seat capacity per screening. Add at least one future showtime before publishing.",
+      "slotsHintRestaurant": "Set covers per service slot. Add at least one future reservation window before publishing.",
+      "slotsHintMuseum": "Set visitor capacity per entry slot. Add at least one future visit window before publishing.",
+      "slotDateLabel": "Date",
+      "slotTimeLabel": "Time",
+      "slotLabelOptional": "Label (optional)",
+      "slotLabelPlaceholder": "E.g. Coupe + brushing avec Marie",
+      "slotLabelPlaceholderExperience": "E.g. VOST · Dune Part Two",
+      "slotLabelPlaceholderRestaurant": "E.g. Lunch service · Terrace",
+      "slotLabelPlaceholderMuseum": "E.g. Permanent collection · FR guided",
+      "slotCapacityLabel": "Seats per screening",
+      "slotCapacityLabelRestaurant": "Covers per slot",
+      "slotCapacityLabelMuseum": "Visitors per slot",
+      "addSlot": "Add slot",
+      "loadingSlots": "Loading slots…",
+      "noSlotsYet": "No slots yet — add your first appointment.",
+      "slotCreated": "Slot added",
+      "slotCreateFailed": "Could not add slot",
+      "slotDeleted": "Slot removed",
+      "slotDeleteFailed": "Could not remove slot",
+      "slotHasBookings": "Cannot delete — slot already booked",
+      "deleteSlot": "Delete slot",
+      "slotDateTimeRequired": "Pick a date and time",
+      "slotInvalidDateTime": "Invalid date or time",
+      "slotMeta": "{booked}/{capacity} booked · {status}",
+      "seatLayout": {
+        "title": "Cinema seat map",
+        "description": "VIP front rows, center aisles, and blocked wheelchair spots apply to new showtimes only.",
+        "presetGrid": "Simple grid",
+        "presetCinemaVip": "Cinema VIP",
+        "colsLabel": "Seats per row",
+        "blockedLabel": "Blocked seats (comma-separated)",
+        "blockedPlaceholder": "E.g. A1, A2",
+        "vipSurchargeLabel": "VIP surcharge (€ per seat)",
+        "vipSurchargePlaceholder": "E.g. 3.00",
+        "previewTitle": "Layout preview",
+        "previewHint": "Green = standard · violet = VIP · ♿ = not bookable.",
+        "screenLabel": "Screen",
+        "legendStandard": "Standard",
+        "legendVip": "VIP",
+        "legendBlocked": "Blocked"
+      },
+      "roster": {
+        "pageTitle": "Guest roster & check-in",
+        "pageDescription": "Scan or paste a buyer pass to validate entry. See who booked each slot and mark arrivals.",
+        "backToDashboard": "Back to dashboard",
+        "awaitingCheckIn": "{count} awaiting check-in",
+        "checkInTitle": "Check-in scanner",
+        "checkInHint": "Scan the buyer's QR pass with your camera, or paste the URL below.",
+        "cameraScanCta": "Scan QR",
+        "cameraStopCta": "Stop camera",
+        "cameraScanningHint": "Point at the buyer's pass QR code",
+        "orCameraManual": "Or paste the pass URL manually",
+        "cameraPermissionDenied": "Camera access denied — allow camera in browser settings.",
+        "cameraUnavailable": "Camera unavailable on this device",
+        "tokenPlaceholder": "Pass URL or token…",
+        "checkInCta": "Validate entry",
+        "checkInSuccess": "Guest checked in",
+        "alreadyCheckedIn": "Already checked in",
+        "checkInFailed": "Check-in failed",
+        "invalidToken": "Invalid pass URL or token",
+        "loadError": "Could not load roster",
+        "empty": "No bookings in this window — confirmed reservations appear here after payment.",
+        "tabPending": "Awaiting check-in",
+        "tabCheckedIn": "Checked in",
+        "tabAll": "All",
+        "allSlots": "All slots",
+        "slotFilterLabel": "Filter by slot",
+        "checkedInBadge": "Checked in",
+        "checkInRow": "Mark present",
+        "statsTotalGuests": "Guests",
+        "statsCheckedIn": "Checked in",
+        "statsPending": "Awaiting",
+        "statsNoShow": "No-show",
+        "statsCheckInRate": "Check-in rate",
+        "exportCsv": "Export CSV",
+        "exportIcal": "Export iCal",
+        "exportSuccess": "Roster exported",
+        "exportIcalSuccess": "Calendar file downloaded",
+        "exportFailed": "Export failed",
+        "exportIcalFailed": "iCal export failed",
+        "errors": {
+          "invalid_token": "Invalid pass URL or token",
+          "not_found": "Pass not found",
+          "forbidden": "This pass belongs to another merchant",
+          "not_confirmed": "Booking not confirmed yet",
+          "cancelled": "Booking was cancelled",
+          "checkInFailed": "Check-in failed"
+        }
+      }
     },
     "quality": {
       "title": "Listing quality",
@@ -709,6 +884,9 @@
       "browseManual": "Browse catalog manually",
       "editCategory": "Change category in catalog",
       "browseManualAlt": "None fit — find category myself",
+      "photoUploadPending": "Uploading photo — vision analysis starts once the image is online.",
+      "noSuggestions": "No automatic category match for this product.",
+      "noSuggestionsHint": "Browse the catalog below, or refine the title (brand + product type).",
       "preparingAnalysis": "Preparing title + photo analysis…"
     },
     "images": {
@@ -717,135 +895,50 @@
       "selectDropHint": "Select or drop multiple images — processed in parallel (min. 800×800 px).",
       "coverPhoto": "Cover photo",
       "dropToUpload": "Drop to upload",
-      "removeCover": "Remove cover image"
+      "removeCover": "Remove cover image",
+      "errNoImages": "Choose image files (JPG, PNG, WebP, HEIC…).",
+      "errSlotsFull": "All slots are full. Remove an image to add more.",
+      "errSlotsPartial": "Only {count} slot(s) left — added the first images.",
+      "errMinDimension": "{name}: minimum 320×320 px (got {width}×{height}).",
+      "errProcess": "Could not process {name} — try JPG or PNG.",
+      "addedOne": "Photo added",
+      "addedMany": "{count} photos added",
+      "errInvalidUrl": "Enter a valid http(s) image link.",
+      "errUrlSlotsFull": "All slots are full.",
+      "addedFromUrl": "Image added from link.",
+      "errDraftSaveFailed": "Photos uploaded but the draft was not saved — try again (Ctrl+S).",
+      "errDraftSaveTimeout": "Save timed out (slow database) — try again in a few seconds."
     },
-    "booking": {
-      "badge": "Booking Hub",
-      "title": "Slots & reservations",
-      "titleService": "Salon appointments",
-      "titleExperience": "Cinema & events",
-      "description": "Cinema, museum, restaurant — buyers pick a time and receive a QR pass.",
-      "descriptionService": "Add appointment slots — buyers book a coiffeur session and receive an instant QR pass.",
-      "descriptionExperience": "Add screening slots with seat capacity — buyers pick a showtime and ticket quantity.",
-      "comingSoonBadge": "Coming soon",
-      "comingSoonHint": "More vertical presets (restaurant, museum…) ship next.",
-      "liveBadge": "Live",
-      "instantLabel": "Instant confirmation after payment",
-      "durationLabel": "Default duration (minutes)",
-      "cancellationLabel": "Free cancellation until (hours before)",
-      "venueLabel": "Venue name",
-      "venuePlaceholder": "E.g. Salon Éclat · 12 rue de la Paix, Paris",
-      "venuePlaceholderExperience": "E.g. Gaumont Lyon Part-Dieu · Screen 3",
-      "saveDraftForSlots": "Save the draft first to manage appointment slots.",
-      "slotsTitle": "Appointment slots",
-      "slotsHint": "One client per slot (capacity 1). Add at least one future slot before publishing.",
-      "slotsHintExperience": "Set seat capacity per screening. Add at least one future showtime before publishing.",
-      "slotDateLabel": "Date",
-      "slotTimeLabel": "Time",
-      "slotLabelOptional": "Label (optional)",
-      "slotLabelPlaceholder": "E.g. Coupe + brushing avec Marie",
-      "slotLabelPlaceholderExperience": "E.g. VOST · Dune Part Two",
-      "slotCapacityLabel": "Seats per screening",
-      "addSlot": "Add slot",
-      "loadingSlots": "Loading slots…",
-      "noSlotsYet": "No slots yet — add your first appointment.",
-      "slotCreated": "Slot added",
-      "slotCreateFailed": "Could not add slot",
-      "slotDeleted": "Slot removed",
-      "slotDeleteFailed": "Could not remove slot",
-      "slotHasBookings": "Cannot delete — slot already booked",
-      "deleteSlot": "Delete slot",
-      "slotDateTimeRequired": "Pick a date and time",
-      "slotInvalidDateTime": "Invalid date or time",
-      "slotMeta": "{booked}/{capacity} booked · {status}",
-      "roster": {
-        "pageTitle": "Guest roster & check-in",
-        "pageDescription": "Scan or paste a buyer pass to validate entry. See who booked each slot and mark arrivals.",
-        "backToDashboard": "Back to dashboard",
-        "awaitingCheckIn": "{count} awaiting check-in",
-        "checkInTitle": "Check-in scanner",
-        "checkInHint": "Scan the buyer's QR pass with your camera, or paste the URL below.",
-        "cameraScanCta": "Scan QR",
-        "cameraStopCta": "Stop camera",
-        "cameraScanningHint": "Point at the buyer's pass QR code",
-        "orCameraManual": "Or paste the pass URL manually",
-        "cameraPermissionDenied": "Camera access denied — allow camera in browser settings.",
-        "cameraUnavailable": "Camera unavailable on this device",
-        "tokenPlaceholder": "Pass URL or token…",
-        "checkInCta": "Validate entry",
-        "checkInSuccess": "Guest checked in",
-        "alreadyCheckedIn": "Already checked in",
-        "checkInFailed": "Check-in failed",
-        "invalidToken": "Invalid pass URL or token",
-        "loadError": "Could not load roster",
-        "empty": "No bookings in this window — confirmed reservations appear here after payment.",
-        "tabPending": "Awaiting check-in",
-        "tabCheckedIn": "Checked in",
-        "tabAll": "All",
-        "allSlots": "All slots",
-        "slotFilterLabel": "Filter by slot",
-        "checkedInBadge": "Checked in",
-        "checkInRow": "Mark present",
-        "statsTotalGuests": "Guests",
-        "statsCheckedIn": "Checked in",
-        "statsPending": "Awaiting",
-        "statsNoShow": "No-show",
-        "statsCheckInRate": "Check-in rate",
-        "exportCsv": "Export CSV",
-        "exportSuccess": "Roster exported",
-        "exportFailed": "Export failed",
-        "errors": {
-          "invalid_token": "Invalid pass URL or token",
-          "not_found": "Pass not found",
-          "forbidden": "This pass belongs to another merchant",
-          "not_confirmed": "Booking not confirmed yet",
-          "cancelled": "Booking was cancelled",
-          "checkInFailed": "Check-in failed"
-        },
-        "exportIcal": "Export iCal",
-        "exportIcalSuccess": "Calendar file downloaded",
-        "exportIcalFailed": "iCal export failed"
-      },
-      "seatLayout": {
-        "title": "Cinema seat map",
-        "description": "VIP front rows, center aisles, and blocked wheelchair spots apply to new showtimes only.",
-        "presetGrid": "Simple grid",
-        "presetCinemaVip": "Cinema VIP",
-        "colsLabel": "Seats per row",
-        "blockedLabel": "Blocked seats (comma-separated)",
-        "blockedPlaceholder": "E.g. A1, A2",
-        "previewTitle": "Layout preview",
-        "previewHint": "Green = standard · violet = VIP · ♿ = not bookable.",
-        "screenLabel": "Screen",
-        "legendStandard": "Standard",
-        "legendVip": "VIP",
-        "legendBlocked": "Blocked",
-        "vipSurchargeLabel": "VIP surcharge (€ per seat)",
-        "vipSurchargePlaceholder": "E.g. 3.00"
-      },
-      "titleRestaurant": "Restaurant reservations",
-      "titleMuseum": "Museum timed entry",
-      "descriptionRestaurant": "Add service slots with table covers — buyers pick a time and party size.",
-      "descriptionMuseum": "Add entry slots with capacity — buyers pick a visit window and ticket quantity.",
-      "venuePlaceholderRestaurant": "E.g. Le Comptoir · 8 rue des Fossés, Lyon",
-      "venuePlaceholderMuseum": "E.g. Musée des Confluences · Lyon",
-      "slotsHintRestaurant": "Set covers per service slot. Add at least one future reservation window before publishing.",
-      "slotsHintMuseum": "Set visitor capacity per entry slot. Add at least one future visit window before publishing.",
-      "slotLabelPlaceholderRestaurant": "E.g. Lunch service · Terrace",
-      "slotLabelPlaceholderMuseum": "E.g. Permanent collection · FR guided",
-      "slotCapacityLabelRestaurant": "Covers per slot",
-      "slotCapacityLabelMuseum": "Visitors per slot"
-    },
-    "digitalDelivery": {
-      "badge": "Digital Pass Hub",
-      "title": "Instant course delivery",
-      "description": "Buyers receive a secure access pass right after payment — no warehouse, no waiting.",
-      "instantLabel": "Instant delivery after payment (recommended)",
-      "urlLabel": "Access URL",
-      "urlHint": "Use {{orderId}}, {{token}}, or {{email}} for personalized enrollment links.",
-      "instructionsLabel": "Buyer instructions (optional)",
-      "instructionsPlaceholder": "E.g. Check your inbox for the platform invite, then log in with the same email as checkout."
-    }
+    "myProducts": "My Products",
+    "addProduct": "Add Product",
+    "ordersToShip": "Orders to Ship",
+    "dashboardTagline": "Supplier tools",
+    "hello": "Hello,",
+    "guestName": "there",
+    "newProductTitle": "New product",
+    "newProductHint": "Affiliates set a retail price at or above base price; their margin is split by your commission rate for payouts.",
+    "productNamePlaceholder": "Product name",
+    "basePricePlaceholder": "Base price (EUR)",
+    "commissionRatePlaceholder": "Commission % of margin",
+    "imagePlaceholder": "Image URL",
+    "descriptionPlaceholder": "Description",
+    "saving": "Saving…",
+    "createFailed": "Could not create product.",
+    "updateFailed": "Could not update product.",
+    "errorUnknown": "Something went wrong.",
+    "emptyProducts": "No products yet.",
+    "noImage": "No image",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "toggleActive": "Deactivate listing",
+    "toggleInactive": "Activate listing",
+    "basePriceLabel": "Base price",
+    "commissionLabel": "Commission (margin share)",
+    "ordersEmpty": "No orders yet.",
+    "customerEmail": "Customer email",
+    "shipTo": "Ship to",
+    "orderTotal": "Order total",
+    "productCol": "Product"
   },
   "affiliate": {
     "myStore": "Mijn winkel",
@@ -867,6 +960,23 @@
       "feedLoadFailed": "Kon de feed niet laden",
       "serviceUnavailable": "Dienst tijdelijk niet beschikbaar — probeer het opnieuw in een moment.",
       "genericError": "Er ging iets mis"
+    },
+    "earnings": {
+      "taxCompliance": {
+        "title": "Curator partner tax framework",
+        "body": "You are not the product seller. You receive partner remuneration (supplier commission + net markup) for curation and promotion — declare it under the tax and social rules of your country of residence.",
+        "nonSeller": "Professional seller obligations (retail VAT, legal warranties, withdrawal rights against the seller) rest with the supplier, not your curator storefront.",
+        "buyerVat": "VAT on customer purchases is calculated at checkout based on the buyer's delivery or consumption country and is exclusively the selling supplier's obligation.",
+        "records": "Keep your Affisell statements and payment notifications as an accounting baseline for your filings.",
+        "dac7": "Affisell may report your platform earnings to competent authorities (DAC7 / digital platform reporting) as required by law.",
+        "advice": "Affisell does not provide tax advice. Consult an accountant or tax adviser in your country if needed."
+      }
+    },
+    "dac7Export": {
+      "cta": "Download DAC7 recap (CSV)",
+      "downloading": "Exporting…",
+      "hint": "Annual platform revenue and sale count — for your accountant.",
+      "error": "Could not export"
     },
     "liveStore": {
       "openAria": "Open live bezoekers",
@@ -983,11 +1093,25 @@
       "stripeTax": "BTW",
       "footnote": "Verzending hangt af van de leverancierszone. Filter « Europese Unie » in de zijbalk."
     },
+    "usCoverage": {
+      "aria": "North American marketplace",
+      "badge": "US",
+      "title": "North America · one checkout",
+      "metricCountries": "countries",
+      "metricStates": "states",
+      "stripeTax": "Tax",
+      "footnote": "Shipping depends on supplier zone. Filter « US & Canada » in the sidebar."
+    },
     "rolloutShipping": {
       "aria": "Verzending naar uw land",
       "title": "Verzending naar {country} bevestigd",
       "body": "Checkout naar {country} is live — betaal met Stripe en lever op uw lokale adres.",
       "cartNote": "Checkout naar {country} open — uw bestelling wordt naar uw lokale adres verzonden."
+    },
+    "graduatedPermanent": {
+      "aria": "Permanent checkout in your country",
+      "title": "{country} — permanent checkout country",
+      "body": "Affisell now ships permanently to {country}. The catalog below is filtered to products that deliver to you."
     },
     "checkoutRegion": {
       "aria": "Checkout availability in your region",
@@ -996,7 +1120,20 @@
       "body": "Browse the catalog today — checkout to {country} opens soon. Create a free account to get notified at launch.",
       "browseHint": "Browse freely · Save favorites · Launch alerts",
       "cta": "Notify me",
-      "footnote": "Live checkout in {currentCount} countries today — we’re expanding step by step."
+      "footnote": "Live checkout in {currentCount} countries today — we’re expanding step by step.",
+      "waitlist": {
+        "emailLabel": "Email for launch alert",
+        "emailPlaceholder": "you@example.com",
+        "submit": "Notify me at launch",
+        "submitting": "Saving…",
+        "success": "You're on the list — we'll email you when checkout opens.",
+        "error": {
+          "invalid_email": "Enter a valid email address.",
+          "invalid_country": "Country not recognized.",
+          "already_available": "Checkout is already available in your country.",
+          "generic": "Could not save. Try again."
+        }
+      }
     },
     "browse": {
       "ariaEmbedded": "Ontdek en koop",
@@ -1018,6 +1155,19 @@
       "filtersHint": "Op basis van productkenmerken",
       "euShipsLabel": "Europese Unie (27 landen)",
       "freeShippingFacet": "Gratis verzending",
+      "facetShipsFromFrance": "Frankrijk",
+      "facetShipsWorldwide": "Wereldwijd",
+      "facetShipsFromUs": "Verenigde Staten",
+      "facetShipsNorthAmerica": "VS & Canada",
+      "facetPrice": {
+        "under25": "Onder €25",
+        "25-100": "€25 – €100",
+        "over100": "Boven €100"
+      },
+      "facetDelivery": {
+        "under3": "≤ 3 dagen",
+        "under7": "≤ 7 dagen"
+      },
       "offerRail": {
         "eyebrow": "Productconditie",
         "hint": "Door elke leverancier bij publicatie aangegeven — filter op aanbodtype.",
@@ -1039,6 +1189,7 @@
       "resultsFor": "Resultaten voor",
       "dbUnavailableTitle": "Marktplaats tijdelijk niet beschikbaar",
       "emptyListingTitle": "Geen lijsten nog",
+      "emptyFilteredTitle": "No matches for these filters",
       "emptyFilteredBody": "Probeer een andere zoekopdracht of afdeling, of reset uw filters.",
       "emptyDefaultBody": "Creatoren publiceren lijsten over tijd — controleer het later.",
       "emptyCatalogTitle": "Catalogus is leeg voor nu",
@@ -1053,24 +1204,21 @@
       "activeFilterCategory": "Afdeling · {name}",
       "activeFilterSubcategory": "{sub} · {parent}",
       "showAll": "Toon alles",
+      "tryRegionalShipping": "Show EU shipping",
+      "tryRegionalShippingUs": "Show US & Canada shipping",
+      "shipsToChip": "Ships to {country}",
+      "shipsToActive": "Shipping to {country}",
+      "clearShipsToFilter": "Clear country filter",
+      "graduatedCountriesTitle": "New checkout countries",
+      "graduatedCountriesHint": "Validated markets — filter listings that ship to your country.",
+      "graduatedCountryShipsTo": "Ships to {country}",
+      "graduatedShipsToToast": "Catalog filtered for {country}",
+      "graduatedShipsToToastBody": "Showing products that ship to you — change anytime in filters.",
       "viewStores": "Winkelmand",
       "listingCount": "{count, plural, one {# artikel} other {# artikelen}}",
       "listingCountForQuery": " voor « {query} »",
       "dbEmptyTitle": "Database tijdelijk niet beschikbaar",
-      "dbDevHint": "Locaal dev: run npm run db:local:setup en zet DATABASE_URL in .env.local op postgresql://affisell:affisell@localhost:5433/affisell",
-      "facetShipsFromFrance": "Frankrijk",
-      "facetShipsWorldwide": "Wereldwijd",
-      "facetShipsFromUs": "Verenigde Staten",
-      "facetShipsNorthAmerica": "VS & Canada",
-      "facetPrice": {
-        "under25": "Onder €25",
-        "25-100": "€25 – €100",
-        "over100": "Boven €100"
-      },
-      "facetDelivery": {
-        "under3": "≤ 3 dagen",
-        "under7": "≤ 7 dagen"
-      }
+      "dbDevHint": "Locaal dev: run npm run db:local:setup en zet DATABASE_URL in .env.local op postgresql://affisell:affisell@localhost:5433/affisell"
     },
     "mobileHub": {
       "title": "Affisell Hub",
@@ -1174,6 +1322,34 @@
       "myCatalogOpen": "Openen",
       "newProduct": "Nieuw product"
     },
+    "kycPublish": {
+      "badge": "Publish blocked",
+      "title": "Merchant verification required",
+      "body": {
+        "noProfile": "Complete your KYC dossier before your listings can go live on Affisell.",
+        "pending": "Your dossier is under review — you can prepare drafts meanwhile.",
+        "rejected": "Your dossier was rejected — update your documents to publish.",
+        "needsInfo": "We need additional documents — complete your dossier to publish."
+      },
+      "draftWaiting": "{count, plural, one {# draft waiting for approval} other {# drafts waiting for approval}}",
+      "cta": "Complete verification"
+    },
+    "publishReadiness": {
+      "eyebrow": "Publish pipeline",
+      "title": "Ready to go live?",
+      "subtitle": "KYC approval + logistics zone unlock marketplace publication.",
+      "metricLive": "Live",
+      "metricDrafts": "Drafts",
+      "metricKyc": "KYC",
+      "stateKycBlocked": "{count, plural, one {# draft blocked until KYC is approved.} other {# drafts blocked until KYC is approved.}}",
+      "stateReady": "{count, plural, one {# draft ready — finish logistics & publish.} other {# drafts ready — finish logistics & publish.}}",
+      "stateApprovedNoDraft": "KYC approved — add a product to start selling.",
+      "stateVerifyFirst": "Complete verification to unlock publication.",
+      "ctaVerify": "Open KYC dossier",
+      "ctaPublishDrafts": "Review drafts",
+      "ctaNewProduct": "New product",
+      "footnote": "Stripe Connect payouts require an approved merchant profile."
+    },
     "urgent": {
       "title": "Urgente acties",
       "allClearTitle": "Je bent alles bij",
@@ -1275,6 +1451,141 @@
       "integrations": "Integraties",
       "supply": "Levertijd"
     },
+    "autoBuyPilot": {
+      "title": "Auto-buy Pilot",
+      "subtitle": "Profit-driven automatic supplier purchases — switch on/off in one click.",
+      "masterSwitch": "Global auto-buy",
+      "skusOn": "{on}/{total} SKUs on",
+      "toggleSaved": "Auto-buy updated.",
+      "toggleError": "Could not update auto-buy — try again.",
+      "empty": "No SKU linked to an automatic purchase source yet. Link your listings (AliExpress / 1688) from the import tools to enable auto-buy.",
+      "kpi": {
+        "health": "Portfolio health",
+        "orders": "Sales {days}d",
+        "margin": "Realized margin {days}d",
+        "atRisk": "Loss-making SKUs"
+      },
+      "bands": {
+        "excellent": "Excellent",
+        "good": "Healthy",
+        "warning": "Fragile",
+        "loss": "Losing",
+        "unknown": "Unknown"
+      },
+      "row": {
+        "price": "Price",
+        "cogs": "Source cost",
+        "net": "Net/sale",
+        "sold": "{count} sold",
+        "toggle": "Auto-buy for this SKU",
+        "suggestion": "Suggested catalog price {suggested} (break-even {breakEven}) — margin floor when no peer data.",
+        "suggestionPeers": "Suggested catalog price {suggested} (Affisell median {median} · {count} peer suppliers · break-even {breakEven})."
+      },
+      "radar": {
+        "title": "Demand radar — last {days} days",
+        "subtitle": "Live category momentum on Affisell. Pulse index and network share — no affiliate storefront pricing exposed.",
+        "liveFeed": "Live feed",
+        "orders": "{count} sales",
+        "networkShare": "{pct}% network flow",
+        "pulseIndex": "Pulse index",
+        "basketSignal": "Band",
+        "sourceHint": "Source here",
+        "tier": {
+          "scan": "Scan",
+          "warm": "Warm",
+          "hot": "Hot",
+          "surge": "Surge"
+        },
+        "basketBand": {
+          "entry": "Entry band signal",
+          "core": "Core market signal",
+          "premium": "Premium band signal",
+          "luxury": "Luxury band signal"
+        },
+        "covered": "You're in",
+        "opportunity": "Opportunity"
+      }
+    },
+    "agentNetwork": {
+      "title": "Agent Network",
+      "betaFree": "Beta: free",
+      "subtitle": "Vetted agents worldwide: quality control, compliance, photo proof and 24h express relay. The agent closest to your source is assigned automatically.",
+      "statAgents": "Agents",
+      "statCountries": "Countries",
+      "statActive": "Active missions",
+      "statPassed": "Passed",
+      "networkTitle": "Agent network",
+      "requestTitle": "Request a mission",
+      "noSkus": "Publish an active product first to request an inspection.",
+      "skuLabel": "Product to verify",
+      "typeLabel": "Mission type",
+      "typeQc": "Quality control",
+      "typeCompliance": "Compliance (CE, standards)",
+      "typePhoto": "Photo proof",
+      "typeExpress": "24h express relay",
+      "slaHours": "within {hours}h",
+      "free": "free",
+      "instructionsLabel": "Brief (optional)",
+      "instructionsPlaceholder": "What to check, lot size, references…",
+      "submit": "Launch mission",
+      "submitting": "Assigning agent…",
+      "qualityGateHint": "Quality Gate: if the inspection fails, auto-buy for this SKU is paused automatically to protect your customers.",
+      "missionsTitle": "Your missions",
+      "missionsEmpty": "No missions yet — launch your first inspection on the left.",
+      "applyAgent": "On the ground and ready to join the network?",
+      "applyAgentLink": "Apply as an agent",
+      "filterAll": "All",
+      "filterActive": "Active",
+      "filterDone": "Done",
+      "missionsFilterEmpty": "No missions in this filter.",
+      "missionsEmptyHint": "Once launched, each mission shows an Actions bar: edit, cancel, end, or delete.",
+      "status_REQUESTED": "Pending",
+      "status_ASSIGNED": "Agent assigned",
+      "status_IN_PROGRESS": "In progress",
+      "status_PASSED": "Passed ✓",
+      "status_FAILED": "Failed",
+      "status_CANCELLED": "Cancelled",
+      "autoBuyPaused": "Auto-buy paused",
+      "photosCount": "{count} QC photo(s)",
+      "created": "Mission created — an agent will be assigned shortly.",
+      "createdWithAgent": "Mission created — agent {agent} assigned automatically.",
+      "deduped": "A mission of this type is already open on this product.",
+      "error": "Could not create the mission — please retry.",
+      "missionParams": "Mission parameters",
+      "missionParamsHint": "Fee credited to agent when passed · SLA deadline · urgent priority.",
+      "actionsTitle": "Actions",
+      "closeEdit": "Close",
+      "feeInput": "Mission fee (€)",
+      "feeHint": "Beta: often €0 — amount credited to the agent when passed.",
+      "feeLabel": "Fee",
+      "deadlineLabel": "Deadline",
+      "urgentLabel": "Urgent mission",
+      "urgentHint": "Shown as priority to the agent — faster handling.",
+      "urgentBadge": "Urgent",
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "end": "End mission",
+      "delete": "Delete",
+      "editPanel": "Edit mission",
+      "saveChanges": "Save",
+      "viewReport": "View report",
+      "cancelConfirm": "Cancel this mission? The agent will be notified.",
+      "endConfirm": "End this mission now?",
+      "deleteConfirm": "Permanently remove this mission from history?",
+      "cancelled": "Mission cancelled.",
+      "ended": "Mission ended.",
+      "updated": "Mission updated.",
+      "deleted": "Mission removed.",
+      "actionError": "Could not complete action — please retry."
+    },
+    "chinaBuy": {
+      "title": "China routes",
+      "subtitle": "Auto-routed buys to Superbuy, Anovabuy and other agents after customer payment — live tracking.",
+      "statsProducts": "SKUs with agent",
+      "statsRoutes": "Total routes",
+      "statsApiOk": "API confirmed",
+      "empty": "No routes yet — assign a buying agent on a product page or import from 1688 / Taobao."
+    },
     "supplyHub": {
       "eyebrow": "Affisell Supply Bridge",
       "title": "Levertijdhub",
@@ -1315,7 +1626,9 @@
       "hints": {
         "aliexpressPlatform": "Open Platform keys moeten worden geconfigureerd op de platform (API import).",
         "aliexpressAutoBuy": "Verbind lijsten en activeer automatisch kopen per SKU.",
-        "factoryRest": "Verbind een fabriek / wholesaler REST API (integraties of blinde partner)."
+        "factoryRest": "Verbind een fabriek / wholesaler REST API (integraties of blinde partner).",
+        "alibaba1688Import": "Paste a detail.1688.com URL in “New product → Import from URL” — 1-click prefilled listing (OneBound API).",
+        "alibaba1688Key": "Add ONEBOUND_KEY (env) to enable 1-click 1688 import."
       },
       "channels": {
         "native": {
@@ -1323,6 +1636,9 @@
         },
         "aliexpress": {
           "name": "AliExpress"
+        },
+        "alibaba1688": {
+          "name": "1688 (Alibaba)"
         },
         "factory": {
           "name": "Fabriek / REST"
@@ -1381,7 +1697,36 @@
     "loading": "Wordt geladen…",
     "loadError": "Kon orders niet laden",
     "trackingRequired": "Voer een trackingsnummer in voordat je als verzonden markeert.",
+    "carrierRequired": "Choose an approved carrier for the delivery country.",
     "updateFailed": "Update mislukt",
+    "page": {
+      "eyebrow": "Fulfillment",
+      "title": "Orders to ship",
+      "description": "Paid orders queue here — confirm prep, then add tracking when the parcel leaves.",
+      "back": "Back to dashboard",
+      "awaitingShipment": "{count} awaiting shipment"
+    },
+    "status": {
+      "paid": "Awaiting packing",
+      "preparing": "Preparing",
+      "shipped": "Shipped"
+    },
+    "actions": {
+      "markPreparing": "Mark preparing",
+      "markShipped": "Mark shipped",
+      "shipTo": "Ship to",
+      "carrier": "Carrier",
+      "carrierCountryHint": "Approved carriers for {country}",
+      "trackingNumber": "Tracking number *",
+      "splitDetail": "View payout split →"
+    },
+    "fulfillmentRail": {
+      "ariaLabel": "Fulfillment progress",
+      "paid": "Paid",
+      "preparing": "Prep",
+      "shipped": "Shipped",
+      "preparingConfirmed": "Preparing confirmed {date}"
+    },
     "payout": {
       "yourPayout": "Jouw uitkering",
       "netWholesaleHint": "Katalognetto (partnercommissie al afgetrokken)",
@@ -1404,6 +1749,14 @@
       "supplierDescription": "Hoe kopers uw leverancierswinkel zien: banner, merkkleuren en een custom domein.",
       "liveUrl": "Live URL",
       "previewAffisell": "Voorbeeld op Affisell",
+      "liveStore": {
+        "title": "Your store is live",
+        "subtitle": "Your branded address on {suffix} — same catalog as your listings, Ads-ready and Affisell-verified.",
+        "subdomainLabel": "Dedicated storefront URL",
+        "customDomainLabel": "Custom domain",
+        "platformLabel": "Affisell path (backup)",
+        "openPrimary": "Open storefront"
+      },
       "storeName": "Winkelnaam",
       "heroBanner": "Hero banner (HTTPS URL)",
       "tagline": "Tagline / beschrijving",
@@ -1412,10 +1765,118 @@
       "saveBrand": "Merken opslaan",
       "saving": "Bewaar…",
       "saved": "Merken opgeslagen — uw openbare storefront is bijgewerkt.",
+      "unsavedChanges": "Unsaved changes",
+      "saveHint": "Save to publish on your live storefront.",
       "loadFailed": "Het laden van de winkel is mislukt",
       "saveFailed": "Kan niet worden opgeslagen",
       "logoLogisticsTitle": "Logo & logistiek",
       "logoLogisticsBody": "Upload logo, AI-avatar, verzendadres en slug in {profileLink}.",
+      "presets": {
+        "title": "Futuristic presets",
+        "hint": "One click to apply palette, layout, and mood — then fine-tune.",
+        "items": {
+          "violet-pulse": {
+            "name": "Violet Pulse",
+            "desc": "Dark immersive, neon violet gradient."
+          },
+          "emerald-luxe": {
+            "name": "Emerald Luxe",
+            "desc": "Premium glass, airy grid, emerald accent."
+          },
+          "midnight-orbit": {
+            "name": "Midnight Orbit",
+            "desc": "Cyber cyan on midnight, compact grid."
+          },
+          "rose-editorial": {
+            "name": "Rose Editorial",
+            "desc": "Warm editorial, classic banner hero."
+          },
+          "clean-minimal": {
+            "name": "Clean Minimal",
+            "desc": "Minimal, no hero, product-first."
+          },
+          "quantum-glow": {
+            "name": "Quantum Glow",
+            "desc": "Quantum glass violet, luminous gradient."
+          }
+        }
+      },
+      "layoutControls": {
+        "title": "Structure & mood",
+        "headerBrand": "Store name in header",
+        "headerBrandHint": "Dedicated storefront bar — menu stays left, cart stays right.",
+        "headerBrandOptions": {
+          "left": "Left",
+          "center": "Center",
+          "right": "Right"
+        },
+        "layout": "Layout",
+        "layoutOptions": {
+          "classic": "Classic",
+          "immersive": "Immersive",
+          "minimal": "Minimal"
+        },
+        "hero": "Hero",
+        "heroOptions": {
+          "banner": "Banner",
+          "gradient": "Gradient",
+          "none": "None"
+        },
+        "grid": "Product grid",
+        "gridOptions": {
+          "cozy": "Cozy",
+          "compact": "Compact",
+          "spacious": "Spacious"
+        },
+        "surface": "Surface",
+        "surfaceOptions": {
+          "light": "Light",
+          "dark": "Dark",
+          "glass": "Glass"
+        }
+      },
+      "sections": {
+        "title": "Homepage sections",
+        "hint": "Toggle and reorder blocks on your public storefront — publish-ready sections, no free-form builder.",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "enable": "Enable {section}",
+        "disable": "Disable {section}",
+        "orderHint": "{count} section types — order controls what buyers see first.",
+        "types": {
+          "hero": {
+            "label": "Hero",
+            "desc": "Banner or gradient above the catalog."
+          },
+          "story": {
+            "label": "Story",
+            "desc": "Your tagline and brand pitch."
+          },
+          "products": {
+            "label": "Products",
+            "desc": "Your live product grid."
+          },
+          "trust": {
+            "label": "Trust",
+            "desc": "Affisell verification strip."
+          },
+          "cta": {
+            "label": "Discover CTA",
+            "desc": "Invite buyers to explore Affisell."
+          }
+        }
+      },
+      "logo": {
+        "title": "Store logo",
+        "upload": "Upload image",
+        "hint": "PNG or JPEG — 512×512 recommended. Shown on your public storefront."
+      },
+      "preview": {
+        "title": "Live preview",
+        "hint": "Updates instantly — save to publish on your live URL.",
+        "sampleName": "My Store",
+        "sampleTagline": "Premium picks from your favorite creator."
+      },
       "nameBadges": {
         "sectionTitle": "Winkelnaam weergeven",
         "sectionHint": "Futuristisch bandje op uw openbare storefront (parallelogram, neon, holografisch, en meer).",
@@ -1434,6 +1895,26 @@
         "classic": "Klassiek",
         "classicDesc": "Gewoon tekst, geen band."
       }
+    },
+    "homeSections": {
+      "storyEyebrow": "Our story",
+      "trustTitle": "Affisell verified partner storefront",
+      "trustBody": "Partner code {code} — curated by this creator, sold by the supplier, Affisell secure checkout.",
+      "verified": "Verified partner",
+      "ctaEyebrow": "Explore Affisell",
+      "ctaTitle": "Discover more creators",
+      "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
+      "ctaButton": "Browse marketplace"
+    },
+    "buyerChrome": {
+      "openCategories": "Browse categories",
+      "closeCategories": "Close menu",
+      "categoriesAria": "Store categories",
+      "drawerEyebrow": "Catalog",
+      "allProducts": "All products",
+      "otherCategory": "Other",
+      "cart": "Cart",
+      "showingCategory": "{category} · {count, plural, one {# product} other {# products}}"
     },
     "domain": {
       "title": "Eigen domein",
@@ -1472,7 +1953,58 @@
     "allStores": "Alle winkels",
     "allStoresShort": "Winkels",
     "navAria": "Navigatie Affisell marktplaats",
-    "noProducts": "Nog geen producten beschikbaar."
+    "noProducts": "Nog geen producten beschikbaar.",
+    "trust": {
+      "poweredBy": "Powered by Affisell",
+      "verifiedBy": "Verified by Affisell",
+      "merchantVerified": "Verified partner",
+      "verifiedShort": "Verified",
+      "platformSecured": "Affisell secure checkout",
+      "secureCheckout": "Secure checkout",
+      "securedShort": "Secure",
+      "headerTrustAria": "Store trust signals",
+      "partnerRef": "Ref. {code}",
+      "officialStorefront": "Official branded store",
+      "shopHomeCta": "Shop",
+      "cartCta": "Cart",
+      "footerTitle": "Trust & legal compliance",
+      "footerBody": "Curated by this creator partner · sold and shipped by the supplier · payments and buyer protection via Affisell.",
+      "verificationPending": "Partner verification in progress",
+      "legalNavAria": "Legal information",
+      "legalLinksTitle": "Legal documents",
+      "legalLinks": {
+        "termsOfSale": "Terms of sale",
+        "privacy": "Privacy policy",
+        "legalNotice": "Legal notice",
+        "returns": "Returns & refunds",
+        "support": "Customer support"
+      },
+      "merchantIdentity": "Creator partner",
+      "legalName": "Declared name: {name}",
+      "partnerListing": "Partner listing ID",
+      "partnerListingHint": "Traceability reference for orders and support.",
+      "platformOperator": "Marketplace operator",
+      "platformOperatorHint": "Hosting, payments, and compliance layer.",
+      "verifiedOn": "Affisell verification: {date}",
+      "customDomainDisclaimer": "Custom domain storefront — sold by supplier, Affisell secure checkout.",
+      "platformDisclaimer": "Affisell partner storefront — products curated by this creator, sold and shipped by the supplier.",
+      "partnerLegalStatus": {
+        "PARTICULIER": "Creator partner (individual)",
+        "AUTO_ENTREPRENEUR": "Sole-trader partner",
+        "EI_PROFESSIONAL": "Professional partner (sole prop.)",
+        "COMPANY": "Company partner",
+        "ASSOCIATION": "Association partner",
+        "FOREIGN": "International partner"
+      },
+      "legalStatus": {
+        "PARTICULIER": "Creator partner (individual)",
+        "AUTO_ENTREPRENEUR": "Sole-trader partner",
+        "EI_PROFESSIONAL": "Professional partner (sole prop.)",
+        "COMPANY": "Company partner",
+        "ASSOCIATION": "Association partner",
+        "FOREIGN": "International partner"
+      }
+    }
   },
   "success": {
     "title": "Bedankt!",
@@ -1482,14 +2014,94 @@
     "continueShopping": "Doorgaan met winkelen",
     "purchaseTitle": "Dank voor uw aankoop",
     "purchaseBody": "Uw betaling wordt bevestigd. U ontvangt een trackingsysteem per e-mail zodra de bestelling is goedgekeurd.",
-    "myCart": "Mijn winkelwagen"
+    "myCart": "Mijn winkelwagen",
+    "paymentSuccessful": "Payment Successful",
+    "confirmedBadge": "Payment confirmed",
+    "verifyingPayment": "Confirming your payment…",
+    "fulfilledSingle": "Your order is registered. A confirmation email is on its way.",
+    "fulfilledMulti": "{count} orders registered. Confirmation emails are on their way.",
+    "pendingFulfillment": "Payment confirmed. Your order will appear in your account within moments.",
+    "instantConfirmBody": "Payment secured. Your order is being registered — confirmation email follows automatically.",
+    "viewOrders": "View my orders",
+    "signIn": "Sign in",
+    "errorTitle": "Payment received",
+    "errorBadge": "Confirmation pending",
+    "errorBody": "We couldn't load the details right now. Check your confirmation email or sign in to view your orders.",
+    "orderRef": "Order #{id}",
+    "amountPaid": "Amount paid",
+    "itemsPaid": "{count} items purchased",
+    "timelineLabel": "Order progress",
+    "stepPayment": "Payment secured",
+    "stepOrder": "Order registered",
+    "stepEmail": "Confirmation email sent"
   },
   "cancel": {
     "title": "Afgekeurd",
     "body": "Er is geen betaling gedaan. U kunt terugkeren naar de marktplaats om te bladeren.",
     "backMarketplace": "Marktplaats"
   },
+  "BookingPass": {
+    "badge": "Affisell Booking Pass",
+    "title": "Reservering bevestigd",
+    "titleService": "Afspraak bevestigd",
+    "titleExperience": "Tickets bevestigd",
+    "titleRestaurant": "Reservation confirmed",
+    "titleMuseum": "Visit confirmed",
+    "subtitle": "Toon deze pas bij check-in — persoonlijke QR, niet openbaar delen.",
+    "orderRef": "Bestelling {id}… · ×{qty}",
+    "seatsLabel": "Stoelen",
+    "confirmedAt": "Bevestigd · {date}",
+    "myOrders": "Mijn bestellingen",
+    "qrAlt": "QR-code reserveringspas",
+    "addToCalendar": "Add to calendar"
+  },
   "Product": {
+    "booking": {
+      "comingSoonBadge": "Coming soon",
+      "comingSoonTitle": "Reservations launching soon",
+      "comingSoonBody": "This experience will soon offer time slots and an instant QR pass.",
+      "pickerTitle": "Choose your appointment",
+      "pickerTitleExperience": "Choose your screening",
+      "pickerTitleRestaurant": "Choose your reservation",
+      "pickerTitleMuseum": "Choose your visit slot",
+      "pickerHint": "Select an available slot — your Affisell pass is generated right after payment.",
+      "pickerHintExperience": "Pick a showtime, then choose ticket quantity — one QR pass covers your order.",
+      "pickerHintRestaurant": "Pick a service time, then set party size — one QR pass covers your table.",
+      "pickerHintMuseum": "Pick an entry window, then choose ticket quantity — one QR pass covers your visit.",
+      "loadingSlots": "Loading available slots…",
+      "loadError": "Could not load slots. Refresh the page.",
+      "noSlots": "No slots available right now — check back soon.",
+      "seatsLeft": "{count, plural, one {# spot left} other {# spots left}}",
+      "capacityTotal": "{count} seats total",
+      "selectSlotRequired": "Please choose an appointment slot first.",
+      "seatMapTitle": "Seat map",
+      "seatMapHint": "Green = available · amber = your tickets · grey = taken or held.",
+      "seatMapFree": "Available",
+      "seatMapYours": "Your selection",
+      "seatMapTaken": "Taken / held",
+      "seatMapTruncated": "Showing first {total} seats — quantity stepper sets your tickets.",
+      "seatMapAria": "{free} seats free of {total}",
+      "seatMapNamedHint": "Tap seats to select — labels like A12 are on your pass.",
+      "seatMapCinemaHint": "Pick your seats — VIP rows in violet, aisles in the center.",
+      "seatMapScreen": "Screen",
+      "seatMapVip": "VIP",
+      "loadingSeatMap": "Loading seat map…",
+      "selectSeatsRequired": "Pick at least one seat on the map.",
+      "selectedSeats": "{count} seat(s): {labels}",
+      "seatLabelAria": "Seat {label} — {status}",
+      "waitlistTitle": "Waitlist — full slots",
+      "waitlistHint": "Get an email when a spot opens up. We'll send a direct link to book.",
+      "waitlistEmailPlaceholder": "your@email.com",
+      "waitlistCta": "Notify me",
+      "waitlistJoined": "On the list",
+      "waitlistJoinSuccess": "You're on the waitlist — we'll email you when a spot opens.",
+      "waitlistJoinFailed": "Could not join waitlist. Try again.",
+      "waitlistEmailRequired": "Enter your email to join the waitlist.",
+      "waitlistSlotAvailable": "This slot has spots again — book it directly above.",
+      "waitlistPhonePlaceholder": "Mobile (optional, for SMS alert)",
+      "waitlistPhoneHint": "Optional — get an SMS in addition to email when a spot opens.",
+      "waitlistPhoneInvalid": "Enter a valid mobile number (e.g. +33 6 12 34 56 78)."
+    },
     "view360": "360° View",
     "premium": "Premium",
     "addToCart": "Toevoegen aan winkelwagen",
@@ -1515,9 +2127,31 @@
     "return30d": "30 dagen retour",
     "securePayment": "Veilige betaling",
     "deliveryTo": "Verzending naar {city}: {date}",
+    "logistics": {
+      "shipsFrom": "Ships from",
+      "deliversTo": "Delivers to",
+      "zoneLabel": "Zone",
+      "delivery": "Delivery",
+      "supplierNote": "Declared by supplier — times are estimates.",
+      "zone": {
+        "local": "Local",
+        "regional": "Regional · EU",
+        "regionalUs": "Regional · US & CA",
+        "international": "International",
+        "unknown": "See product page"
+      },
+      "deliveryCountries": {
+        "worldwide": "Worldwide",
+        "notSpecified": "Not specified",
+        "countryCount": "{count} countries"
+      }
+    },
     "aiSummary": "AI Samenvatting",
     "reviews": "{count} reviews",
     "byStore": "van {store}",
+    "curatedByPartner": "Creator partner",
+    "verifiedPartnerStorefront": "Verified partner storefront",
+    "fulfilledBySupplier": "Sold and shipped by supplier",
     "viewInAR": "Bekijk in AR",
     "buyNowShort": "Nu kopen",
     "priceLabel": "Prijs",
@@ -1538,58 +2172,13 @@
       "zoomHint": "Dubbelklik of pin om in te zoomen",
       "resetZoom": "Zoom resetten",
       "desktopHint": "Selecteer een thumbnail · hover de hoofdafbeelding om in te zoomen",
+      "colorPreviewHint": "Tap a color to update the preview above",
       "hoverZoomHint": "Hover de afbeelding om in te zoomen",
       "zoomDetailLevel": "{level}% · detail weergave",
       "lightbox": "Volledig scherm galerij",
       "close": "Sluiten",
       "prev": "Vorige afbeelding",
       "next": "Volgende afbeelding"
-    },
-    "booking": {
-      "comingSoonBadge": "Coming soon",
-      "comingSoonTitle": "Reservations launching soon",
-      "comingSoonBody": "This experience will soon offer time slots and an instant QR pass.",
-      "pickerTitle": "Choose your appointment",
-      "pickerTitleExperience": "Choose your screening",
-      "pickerHint": "Select an available slot — your Affisell pass is generated right after payment.",
-      "pickerHintExperience": "Pick a showtime, then choose ticket quantity — one QR pass covers your order.",
-      "loadingSlots": "Loading available slots…",
-      "loadError": "Could not load slots. Refresh the page.",
-      "noSlots": "No slots available right now — check back soon.",
-      "seatsLeft": "{count, plural, one {# spot left} other {# spots left}}",
-      "capacityTotal": "{count} seats total",
-      "selectSlotRequired": "Please choose an appointment slot first.",
-      "seatMapTitle": "Seat map",
-      "seatMapHint": "Green = available · amber = your tickets · grey = taken or held.",
-      "seatMapFree": "Available",
-      "seatMapYours": "Your selection",
-      "seatMapTaken": "Taken / held",
-      "seatMapTruncated": "Showing first {total} seats — quantity stepper sets your tickets.",
-      "seatMapAria": "{free} seats free of {total}",
-      "seatMapNamedHint": "Tap seats to select — labels like A12 are on your pass.",
-      "loadingSeatMap": "Loading seat map…",
-      "selectSeatsRequired": "Pick at least one seat on the map.",
-      "selectedSeats": "{count} seat(s): {labels}",
-      "seatLabelAria": "Seat {label} — {status}",
-      "seatMapCinemaHint": "Pick your seats — VIP rows in violet, aisles in the center.",
-      "seatMapScreen": "Screen",
-      "seatMapVip": "VIP",
-      "waitlistTitle": "Waitlist — full slots",
-      "waitlistHint": "Get an email when a spot opens up. We'll send a direct link to book.",
-      "waitlistEmailPlaceholder": "your@email.com",
-      "waitlistCta": "Notify me",
-      "waitlistJoined": "On the list",
-      "waitlistJoinSuccess": "You're on the waitlist — we'll email you when a spot opens.",
-      "waitlistJoinFailed": "Could not join waitlist. Try again.",
-      "waitlistEmailRequired": "Enter your email to join the waitlist.",
-      "waitlistSlotAvailable": "This slot has spots again — book it directly above.",
-      "waitlistPhonePlaceholder": "Mobile (optional, for SMS alert)",
-      "waitlistPhoneHint": "Optional — get an SMS in addition to email when a spot opens.",
-      "waitlistPhoneInvalid": "Enter a valid mobile number (e.g. +33 6 12 34 56 78).",
-      "pickerTitleRestaurant": "Choose your reservation",
-      "pickerTitleMuseum": "Choose your visit slot",
-      "pickerHintRestaurant": "Pick a service time, then set party size — one QR pass covers your table.",
-      "pickerHintMuseum": "Pick an entry window, then choose ticket quantity — one QR pass covers your visit."
     }
   },
   "Filters": {
@@ -1654,10 +2243,11 @@
     "title": "Veelgestelde vragen",
     "description": "Bestellingen, verzending, retourneren en betalen — instant antwoorden voordat u contact opneemt met de support.",
     "sectionOrders": "Bestellingen",
-    "sectionShipping": "Verzending",
     "sectionReturns": "Retourneren & restitutie",
     "sectionPayment": "Betaling",
-    "sectionPerks": "Voordelen",
+    "sectionAccount": "Account",
+    "sellerQ": "Who is the seller?",
+    "sellerA": "The product is sold by a verified professional partner. Affisell secures payment and customer support. We do not disclose the seller's name — your legal rights and warranties are unchanged.",
     "trackQ": "Waar is mijn bestelling?",
     "trackA": "Meld u aan met het e-mailadres dat u bij de aankoop hebt gebruikt, en open vervolgens Mijn bestellingen. U ziet de status, tracking en retouropties. Automatische e-mails worden gestuurd bij elke stap (bevestiging, verzending, levering).",
     "confirmQ": "Ik heb geen bevestigingsmail ontvangen",
@@ -1670,6 +2260,8 @@
     "lateA": "Controleer eerst de verzendvolg bij Mijn bestellingen. Als geen tracking verschijnt na de gestelde deadline, kan onze systeem automatisch annuleren en een restitutie uitvoeren. Anders gebruik de ondersteuning-assistent of de contactformulier.",
     "returnQ": "Hoe retourneer ik een product?",
     "returnA": "Je hebt 14 dagen na aflevering (EU). Open een verzoek vanuit Mijn bestellingen of lees onze retourbeleid. Het artikel moet ongebruikt zijn, in originele verpakking.",
+    "returnRefusedQ": "Why can't I return some products?",
+    "returnRefusedA": "Law excludes certain products from the 14-day withdrawal right: custom-made items, sealed hygiene products once opened, perishables, etc. (see <l22128>French Consumer Code article L221-28</l22128>). This isn't someone \"refusing\" your return — those categories simply aren't eligible for no-reason returns.",
     "refundQ": "Wanneer word ik gerestitueerd?",
     "refundA": "Na ontvangst en inspectie van de retour: 5–10 werkdagen naar je oorspronkelijke betaalmethode. Automatische annulering (geen verzending) activeert een Stripe-restitutie binnen 48 uur.",
     "defectQ": "Defect product of verkeerd artikel",
@@ -1678,8 +2270,10 @@
     "methodsA": "Sekurere Stripe checkout: kaart (3D Secure), en Klarna (interest-vrije afbetalingen) wanneer in aanmerking komt. Affisell opslaat nooit kaartgegevens.",
     "failedQ": "Mijn betaling is afgewezen",
     "failedA": "Probeer een andere kaart of neem contact op met uw bank. Zorg ervoor dat de factuuradres overeenkomt met de kaart. Er wordt geen kosten gemaakt als de betaling faalt.",
-    "cashbackTitle": "Hoe verdien ik cashback?",
-    "cashbackBody": "Op partnerproductpagina's wordt een deel van de prijs na bevestiging van de betaling aan uw portemonnee toegevoegd. Meld u aan voordat u afrekt: de saldo wordt automatisch toegepast op uw volgende in aanmerking komende aankoop.",
+    "cashbackQ": "What is wallet / cashback?",
+    "cashbackA": "On some products, part of the price may be credited to your Affisell wallet after purchase. Sign in before checkout — balance applies on your next eligible order.",
+    "loginQ": "How do I access my account?",
+    "loginA": "Use the same email as at checkout on the customer sign-in page. You'll find orders, returns and your wallet there.",
     "stillNeedHelp": "Hebt u nog steeds hulp nodig?",
     "stillNeedHelpBody": "De ondersteuningsassistent antwoordt 24/7. Voor complexe geschillen antwoordt onze team binnen 2 werkdagen.",
     "supportAgentCta": "Ondersteuningsassistent",
@@ -1697,6 +2291,7 @@
     "delayEu": "Frankrijk & EU: 3–7 werkdagen na verzending (product- en opslagplaatsafhankelijk).",
     "delayIntl": "Internationaal: 7–14 werkdagen — douanerechten kunnen van toepassing zijn op de koper.",
     "delayProduct": "Exacte schatting wordt weergegeven op de productpagina voordat de bestelling wordt afgerond.",
+    "legalNote": "Under <dir201183>EU Directive 2011/83 (art. 6)</dir201183>, delivery times and shipping costs are shown before you pay.",
     "trackingTitle": "Automatische spoorvolg",
     "tracking1": "Bevestigingsmail na succesvolle Stripe-betaling.",
     "tracking2": "Verzendingsmail met verzendnummer van de vervoerder.",
@@ -1799,6 +2394,105 @@
       "feedbackBody": "Kom je een toegankelijkheidsblokker tegen? Email {email} met de pagina en apparaat — we prioriteren verbeteringen.",
       "contactCta": "Meld een probleem",
       "faqCta": "Blader door FAQ"
+    },
+    "protectedCheckout": {
+      "metaTitle": "Protected checkout — Affisell",
+      "metaDescription": "Secure payment, 14-day EU returns and legal warranties — what every buyer needs to know in 30 seconds.",
+      "eyebrow": "Protected checkout",
+      "title": "Shop with confidence",
+      "description": "Secure payment, European right of withdrawal (<dir201183>EU Directive 2011/83</dir201183>) and legal warranties — zero jargon.",
+      "badgeReturns": "14-day EU returns",
+      "badge3ds": "3D Secure",
+      "paymentTitle": "Payment",
+      "paymentBody": "Secure payment powered by Stripe. Your card details never pass through Affisell.",
+      "paymentHint": "Strong Customer Authentication (3D Secure) may be required by your bank under the <psd2>EU Directive 2015/2366 (PSD2)</psd2>.",
+      "returnsTitle": "Returns & refunds",
+      "returnsIntro": "Changed your mind or received a faulty item? Here is who pays for what and when you get refunded, under the <l22118>French Consumer Code</l22118> and <dir201183>EU Directive 2011/83</dir201183>.",
+      "returnsTable": {
+        "situation": "Situation",
+        "returnCost": "Who pays return shipping",
+        "refundDelay": "Refund timeline"
+      },
+      "returnsRows": {
+        "changeMind": {
+          "situation": "I changed my mind (14 days)",
+          "returnCost": "You",
+          "refundDelay": "14 days after we receive the return"
+        },
+        "defective": {
+          "situation": "Faulty or non-conforming product",
+          "returnCost": "Supplier",
+          "refundDelay": "14 days after we receive the return"
+        }
+      },
+      "returnsHowTitle": "How do I request a return?",
+      "returnsHowBody": "From your order account or via our support team — state the reason and follow the return shipping instructions.",
+      "returnsExceptions": "Some products are excluded from the right of withdrawal (<l22128>art. L221-28</l22128>; <dir201183>Directive 2011/83/EU, art. 16</dir201183>): custom-made, sealed hygiene goods, perishables…",
+      "warrantyTitle": "Legal warranties",
+      "warrantyBody": "Your purchases are covered by the legal conformity warranty — 2 years (<l2174>art. L217-4</l2174>; <dir201183>EU Directive 2011/83</dir201183>) — and the hidden-defect warranty (French Civil Code). An issue? Contact us.",
+      "mediationTitle": "Consumer mediation",
+      "mediationBody": "If a dispute is not resolved with our support, you can contact a consumer mediator free of charge (<l6121>art. L612-1</l6121> et seq.) or the <odr>EU ODR platform (Reg. 524/2013)</odr>:",
+      "mediationLinkLabel": "CM2C — French consumer mediation centre",
+      "odrPlatformLabel": "EU online dispute resolution platform",
+      "contactCta": "Contact us",
+      "trackCta": "Track my order",
+      "legalCta": "Terms of sale",
+      "footerHost": "Hosting: Vercel Inc."
+    },
+    "mentions": {
+      "metaTitle": "Legal notice — Affisell",
+      "metaDescription": "Publisher, registered office, host, DPO and mediation — LCEN information.",
+      "eyebrow": "Legal information",
+      "title": "Legal notice",
+      "description": "Structured document under the <lcen>LCEN Act 2004-575, art. 6 III</lcen>.",
+      "lastUpdated": "Last updated:",
+      "editor": {
+        "title": "1. Site publisher",
+        "denomination": "Company name",
+        "form": "Legal form",
+        "capital": "Share capital",
+        "siren": "SIREN",
+        "rcs": "Trade register (RCS)",
+        "vat": "EU VAT number",
+        "seat": "Registered office (domiciliation)",
+        "domiciliationNote": "Commercial domiciliation address filed with the trade register — not the director's home address."
+      },
+      "publisher": {
+        "title": "2. Publication director",
+        "director": "Publication director",
+        "email": "Editorial contact (email)",
+        "noPhone": "Affisell does not offer phone support — please contact us by email."
+      },
+      "dpo": {
+        "title": "3. Data protection officer (DPO)",
+        "label": "DPO email"
+      },
+      "host": {
+        "title": "4. Hosting provider",
+        "name": "Company name",
+        "address": "Address",
+        "website": "Website"
+      },
+      "mediation": {
+        "title": "5. Mediation & disputes",
+        "mediator": "Consumer mediator",
+        "site": "Mediator website",
+        "odr": "EU ODR platform",
+        "body": "Under <l6121>French Consumer Code articles L612-1 et seq.</l6121> and <odr>EU Regulation 524/2013</odr>, consumers may use a free mediator. EU consumers may also use the online dispute resolution platform."
+      },
+      "ip": {
+        "title": "6. Intellectual property",
+        "body": "The entire Affisell site (structure, text, graphics, logo, databases) is protected under the <cpi>French Intellectual Property Code</cpi>. Unauthorized reproduction constitutes infringement."
+      },
+      "docs": {
+        "title": "7. Contractual documents",
+        "cgu": "Platform terms",
+        "supplier": "Supplier terms",
+        "affiliate": "Partner terms",
+        "privacy": "Privacy policy",
+        "returns": "Protected checkout & returns",
+        "cookies": "Cookies policy"
+      }
     }
   },
   "contact": {
@@ -2551,18 +3245,219 @@
       "error": "Kon niet verzenden. Probeer het opnieuw binnen korte tijd."
     }
   },
-  "errors": {
-    "notFound": {
-      "title": "Pagina niet gevonden",
-      "body": "Deze pagina bestaat niet of is verhuisd.",
-      "home": "Terug naar huis"
+  "accountOrders": {
+    "empty": "Nog geen bestellingen voor dit account.",
+    "fulfillmentTag": {
+      "preparing": " · Uw bestelling wordt voorbereid",
+      "shipped": " · Verzonden",
+      "paid": " · Bevestigd"
     },
-    "page": {
-      "label": "Er ging iets mis",
-      "title": "We hebben een probleem",
-      "body": "Er is een probleem opgetreden bij het laden van deze pagina. U kunt opnieuw proberen of terug naar de homepagina gaan.",
-      "retry": "Opnieuw proberen",
-      "home": "Home"
+    "viewDetails": "Details & factuur bekijken →",
+    "preparing": {
+      "title": "Uw verkoper bereidt de verzending voor",
+      "body": "De verkoper heeft bevestigd dat uw bestelling wordt ingepakt. Tracking verschijnt zodra de vervoerder het pakket scant.",
+      "since": "Sinds"
+    },
+    "trackingLine": "Tracking: {carrier} {number}",
+    "carrierDefault": "Vervoerder",
+    "blindBadge": "Blind",
+    "confirmDelivery": {
+      "body": "Ontvangen en tevreden? Bevestig de levering — uitbetalingen aan de verkoper volgen na {confirmDays} dagen. Zonder bevestiging kunnen uitbetalingen nog steeds na {autoDays} dagen na verzending worden vrijgegeven. Uw wettelijk herroepingsrecht blijft gelden tijdens het retourvenster.",
+      "cta": "Ontvangst & tevredenheid bevestigen",
+      "error": "Kon niet bevestigen"
+    },
+    "deliveryConfirmed": "Levering bevestigd · {date}",
+    "return": {
+      "label": "Retour: ",
+      "status": {
+        "REQUESTED": "Wacht op verkoper",
+        "AWAITING_SHIPMENT": "Artikel terugsturen",
+        "IN_TRANSIT": "Retour onderweg",
+        "RECEIVED": "Ontvangen — terugbetaling in behandeling",
+        "REFUNDED": "Terugbetaald",
+        "REJECTED": "Afgewezen",
+        "CANCELLED": "Geannuleerd"
+      },
+      "cancelRequest": "Verzoek annuleren",
+      "cancelError": "Kon niet annuleren",
+      "lastReturn": "Laatste retour: {status} · {date}",
+      "windowEnded": "Retourvenster eindigde op {date}.",
+      "form": {
+        "reasonLabel": "Reden",
+        "detailsPlaceholder": "Details (optioneel)",
+        "submit": "Retour aanvragen",
+        "error": "Verzoek mislukt"
+      },
+      "trackingForm": {
+        "hint": "Stuur het artikel naar het adres uit uw orderbevestiging en voeg hier tracking toe.",
+        "carrierPlaceholder": "Vervoerder (bijv. PostNL, DHL)",
+        "numberPlaceholder": "Trackingnummer",
+        "submit": "Tracking indienen",
+        "error": "Kon tracking niet opslaan"
+      }
+    },
+    "fulfillmentPanel": {
+      "loading": "Laden…",
+      "title": "Verzendupdate",
+      "seller": "Verkoper",
+      "buyer": "U",
+      "extensionAsk": "De verkoper vraagt {days} extra dagen om te verzenden:",
+      "accept": "Extra tijd accepteren",
+      "reject": "Weigeren (bestelling kan worden geannuleerd)",
+      "notePlaceholder": "Optionele notitie aan verkoper",
+      "reply": "Antwoord aan verkoper",
+      "send": "Verzenden",
+      "messagePlaceholder": "Uw bericht…",
+      "accepted": "U heeft de verlenging geaccepteerd.",
+      "rejected": "U heeft de verlenging geweigerd."
+    }
+  },
+  "sellAffiliateProgram": {
+    "meta": {
+      "title": "Partner program — status & tax",
+      "description": "B2B page: independence, net commissions, payouts, prohibited conduct and DAC7."
+    },
+    "eyebrow": "Partner program · B2B",
+    "title": "Affisell curator partner",
+    "hero": {
+      "subtitle": "Earnings on catalogue net price — no salary. {days}-day attribution cookie. Typical {min}–{max}% per listing.",
+      "commission": "{min}–{max}% of catalogue net price",
+      "cookie": "{days}-day attribution cookie (last click)"
+    },
+    "ctaSignup": "Create partner account",
+    "ctaCgs": "Read partner terms (CGS)",
+    "ctaLogin": "Partner login",
+    "status": {
+      "title": "Legal status",
+      "warning": "You are self-employed. No fixed salary. Declare your earnings. Affisell is not your employer.",
+      "legalRef": "Anti-disguised employment framework — French Labour Code art. L8221-6. No subordination, fixed hours or guaranteed pay."
+    },
+    "catalog": {
+      "title": "Catalogue by vertical",
+      "body": "Browse listings by category — supplier identities are never exposed (trade secrecy & GDPR).",
+      "noSuppliers": "Warehouse and supplier brand names are never shown to curator partners."
+    },
+    "tax": {
+      "title": "Tax by country of residence",
+      "body": "Declare partner earnings (commission + net markup) in your country. Affisell does not withhold unless legally required.",
+      "tableCaption": "Indicative regimes by country",
+      "colCountry": "Country",
+      "colRegime": "Indicative regime",
+      "dac7Dashboard": "Annual CSV export available in your earnings cockpit (DAC7).",
+      "dac7Cta": "Open earnings cockpit"
+    },
+    "payout": {
+      "title": "Payouts",
+      "body": "Minimum threshold {min}. Payout J+{days} after calendar month-end (Stripe Connect batch).",
+      "clawback": "If the buyer returns the order, commission is cancelled — even if already paid: clawback on your next earnings."
+    },
+    "prohibited": {
+      "title": "Prohibited practices",
+      "body": "Any breach triggers a compliance review.",
+      "items": {
+        "spam": "Spam, unsolicited messages or purchased lists",
+        "brandMisuse": "Unauthorized use of third-party brands or supplier logos",
+        "fakeReviews": "Fake reviews, astroturfing or misleading incentives",
+        "googleAdsOnAffisellName": "Google Ads / SEA on the name “Affisell” or Affisell trademarks"
+      },
+      "sanction": "Sanction: program ban + forfeiture of earnings from the last {days} days pending settlement."
+    },
+    "footerLegal": "B2B information only — partner terms (CGS) and your local legal status prevail. No income promises."
+  },
+  "sellBecomeSupplier": {
+    "meta": {
+      "title": "Become a supplier — tax & payouts",
+      "description": "B2B page: OSS VAT, Stripe Connect payouts, return clawback and DAC7. Professionals only."
+    },
+    "eyebrow": "Supplier space · B2B",
+    "title": "Supplier tax & payout framework",
+    "description": "Accountant-ready summary: OSS VAT, payout flow, returns and DAC7 reporting. No income promises — contractual mechanics only.",
+    "ctaSignup": "Open supplier account",
+    "ctaCga": "Read supplier terms (CGA)",
+    "ctaLogin": "Supplier login",
+    "b2bNotice": "For business users only (B2B). Not tax or legal advice. Consult your accountant for filing decisions.",
+    "tax": {
+      "title": "Tax & OSS scheme",
+      "body": "You invoice catalogue sales ex-VAT (net wholesale). Affisell collects VAT at the buyer's delivery-country rate via the EU OSS scheme and remits to the relevant authorities.",
+      "ossExampleTitle": "Example: delivery to Germany",
+      "ossExampleBody": "If the buyer is delivered in Germany, Affisell applies the German rate (19%) on the line net amount at checkout. You issue your supplier invoice ex-VAT; VAT collected for the consumption country is not part of your wholesale payout.",
+      "bulletHt": "Your catalogue price = ex-VAT (wholesale).",
+      "bulletVat": "Delivery-country VAT = collected by Affisell (Stripe Tax + OSS reporting).",
+      "bulletInvoice": "Buyer VAT invoice: issued through Affisell under the facilitated sale.",
+      "tableCaption": "Standard VAT rates by EU delivery country",
+      "colCountry": "Country",
+      "colCode": "ISO",
+      "colRate": "Standard VAT",
+      "tableFootnote": "Standard B2C rates as of {date} — {count} member states. Reduced/special rates not listed; verify before filing."
+    },
+    "payout": {
+      "title": "Payouts (Stripe Connect)",
+      "body": "Supplier transfer to Stripe Connect after delivery confirmation + {days} business days (auto-confirmation if the buyer stays silent). Contract catalogue fee: {fee} of ex-VAT wholesale.",
+      "stepClient": "1 · Buyer pays",
+      "stepClientHint": "Gross amount (VAT per delivery country)",
+      "stepAffisell": "2 · Affisell retains",
+      "stepAffisellHint": "Illustrative example — contractual {fee} on net wholesale",
+      "stepStripe": "3 · Stripe fees",
+      "stepStripeHint": "EU card ~1.5% + fixed (varies by payment method)",
+      "stepYou": "4 · You receive",
+      "stepYouHint": "Net ex-VAT wholesale · within J+{days} after confirmed delivery",
+      "disclaimer": "Rounded illustrative example (€100 gross). Actual amounts depend on catalogue net price, creator partner commission and payment fees. Collected VAT is not paid out to your Connect account."
+    },
+    "clawback": {
+      "title": "Returns & clawback",
+      "body": "Buyers have a {days}-day withdrawal right from delivery (EU distance selling). If a return is accepted and refunded, amounts already paid or provisioned are recovered.",
+      "debit": "On an approved statutory return: debit of your Stripe Connect balance for ex-VAT wholesale + refunded VAT share per order settlement.",
+      "provision": "If your rolling return rate exceeds {threshold}% over 90 days, a {reserve}% reserve may be held on upcoming payouts until the rate normalises.",
+      "policyLink": "Affisell refund policy"
+    },
+    "dac7": {
+      "title": "DAC7 & reporting",
+      "body": "If you exceed €{eur} platform revenue per year or {tx} sales per year, Affisell reports your platform earnings to the French tax authority (DGFiP) under DAC7.",
+      "csv": "A CSV summary (identity, platform revenue, countries) is available in your dashboard before each filing."
+    },
+    "footerLegal": "Affisell is a technical intermediary and host. You remain the seller and are responsible for your accounting, social and tax obligations. Figures may change; supplier terms (CGA) prevail."
+  },
+  "buyerOrderDetail": {
+    "back": "← Back to my orders",
+    "orderRef": "Order {id}…",
+    "verifiedPartner": "Sold by a verified Affisell partner",
+    "priceTtc": "incl. VAT",
+    "tracking": "Parcel tracking",
+    "carrierDefault": "Carrier",
+    "trackPackage": "Track my parcel",
+    "deliveredOn": "Delivered on",
+    "estimatedDelivery": "Estimated delivery",
+    "etaPending": "Updating — we'll email you when ready",
+    "withdrawalUntil": "Withdrawal available until {date}",
+    "withdrawalTitle": "14-day withdrawal right",
+    "withdrawalBody": "You may return this item without giving a reason during the legal period.",
+    "returnCta": "14-day return",
+    "withdrawalEnded": "Withdrawal period ended on {date}.",
+    "refundInitiated": "Refund initiated. Allow 5–10 business days depending on your bank.",
+    "returnApproved": "Request approved — ship the item to the address below.",
+    "invoice": "VAT invoice {amount}",
+    "buyerProtection": "Buyer protection",
+    "gdpr": "Personal data",
+    "status": {
+      "paid": "Confirmed",
+      "preparing": "Preparing",
+      "shipped": "Shipped",
+      "refunded": "Refunded",
+      "cancelled": "Cancelled",
+      "unknown": "In progress"
+    },
+    "returnModal": {
+      "title": "Return request",
+      "subtitle": "Reason for withdrawal and return shipping address.",
+      "reasonLabel": "Reason",
+      "detailsLabel": "Details (optional)",
+      "detailsPlaceholder": "Brief description if needed…",
+      "addressLabel": "Return address",
+      "addressPending": "Return address will be confirmed by email after approval.",
+      "cancel": "Cancel",
+      "submit": "Submit request",
+      "submitting": "Sending…",
+      "error": "Request failed"
     }
   },
   "orderReturns": {
@@ -2660,6 +3555,7 @@
       "accountLabel": "Account",
       "portalAffiliate": "Creator-ruimte",
       "portalSupplier": "Leveranciersruimte",
+      "portalAgent": "Agent space",
       "portalDefault": "Affisell-account",
       "cta": "Reset mijn wachtwoord",
       "fallbackLabel": "Als de knop niet opent, kopieer deze link:",
@@ -2687,87 +3583,18 @@
       "footer": "Vragen? Bekijk de FAQ of de ondersteuningsassistent op Affisell."
     }
   },
-  "accountOrders": {
-    "empty": "Nog geen bestellingen voor dit account.",
-    "fulfillmentTag": {
-      "preparing": " · Uw bestelling wordt voorbereid",
-      "shipped": " · Verzonden",
-      "paid": " · Bevestigd"
+  "errors": {
+    "notFound": {
+      "title": "Pagina niet gevonden",
+      "body": "Deze pagina bestaat niet of is verhuisd.",
+      "home": "Terug naar huis"
     },
-    "viewDetails": "Details & factuur bekijken →",
-    "preparing": {
-      "title": "Uw verkoper bereidt de verzending voor",
-      "body": "De verkoper heeft bevestigd dat uw bestelling wordt ingepakt. Tracking verschijnt zodra de vervoerder het pakket scant.",
-      "since": "Sinds"
-    },
-    "trackingLine": "Tracking: {carrier} {number}",
-    "carrierDefault": "Vervoerder",
-    "blindBadge": "Blind",
-    "confirmDelivery": {
-      "body": "Ontvangen en tevreden? Bevestig de levering — uitbetalingen aan de verkoper volgen na {confirmDays} dagen. Zonder bevestiging kunnen uitbetalingen nog steeds na {autoDays} dagen na verzending worden vrijgegeven. Uw wettelijk herroepingsrecht blijft gelden tijdens het retourvenster.",
-      "cta": "Ontvangst & tevredenheid bevestigen",
-      "error": "Kon niet bevestigen"
-    },
-    "deliveryConfirmed": "Levering bevestigd · {date}",
-    "payoutFrom": " · uitbetalingen aan verkoper vanaf {date}",
-    "return": {
-      "label": "Retour: ",
-      "status": {
-        "REQUESTED": "Wacht op verkoper",
-        "AWAITING_SHIPMENT": "Artikel terugsturen",
-        "IN_TRANSIT": "Retour onderweg",
-        "RECEIVED": "Ontvangen — terugbetaling in behandeling",
-        "REFUNDED": "Terugbetaald",
-        "REJECTED": "Afgewezen",
-        "CANCELLED": "Geannuleerd"
-      },
-      "cancelRequest": "Verzoek annuleren",
-      "cancelError": "Kon niet annuleren",
-      "lastReturn": "Laatste retour: {status} · {date}",
-      "windowEnded": "Retourvenster eindigde op {date}.",
-      "form": {
-        "reasonLabel": "Reden",
-        "detailsPlaceholder": "Details (optioneel)",
-        "submit": "Retour aanvragen",
-        "error": "Verzoek mislukt"
-      },
-      "trackingForm": {
-        "hint": "Stuur het artikel naar het adres uit uw orderbevestiging en voeg hier tracking toe.",
-        "carrierPlaceholder": "Vervoerder (bijv. PostNL, DHL)",
-        "numberPlaceholder": "Trackingnummer",
-        "submit": "Tracking indienen",
-        "error": "Kon tracking niet opslaan"
-      }
-    },
-    "fulfillmentPanel": {
-      "loading": "Laden…",
-      "title": "Verzendupdate",
-      "seller": "Verkoper",
-      "buyer": "U",
-      "extensionAsk": "De verkoper vraagt {days} extra dagen om te verzenden:",
-      "accept": "Extra tijd accepteren",
-      "reject": "Weigeren (bestelling kan worden geannuleerd)",
-      "notePlaceholder": "Optionele notitie aan verkoper",
-      "reply": "Antwoord aan verkoper",
-      "send": "Verzenden",
-      "messagePlaceholder": "Uw bericht…",
-      "accepted": "U heeft de verlenging geaccepteerd.",
-      "rejected": "U heeft de verlenging geweigerd."
+    "page": {
+      "label": "Er ging iets mis",
+      "title": "We hebben een probleem",
+      "body": "Er is een probleem opgetreden bij het laden van deze pagina. U kunt opnieuw proberen of terug naar de homepagina gaan.",
+      "retry": "Opnieuw proberen",
+      "home": "Home"
     }
-  },
-  "BookingPass": {
-    "badge": "Affisell Booking Pass",
-    "title": "Reservering bevestigd",
-    "titleService": "Afspraak bevestigd",
-    "titleExperience": "Tickets bevestigd",
-    "subtitle": "Toon deze pas bij check-in — persoonlijke QR, niet openbaar delen.",
-    "orderRef": "Bestelling {id}… · ×{qty}",
-    "seatsLabel": "Stoelen",
-    "confirmedAt": "Bevestigd · {date}",
-    "myOrders": "Mijn bestellingen",
-    "qrAlt": "QR-code reserveringspas",
-    "addToCalendar": "Add to calendar",
-    "titleRestaurant": "Reservation confirmed",
-    "titleMuseum": "Visit confirmed"
   }
 }

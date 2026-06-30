@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 
-import type { MerchantRole } from "@/lib/legal/consent"
 import { roleTermsHrefForRole, roleTermsLabelForRole } from "@/lib/legal/role-terms"
 import { cn } from "@/lib/utils"
 

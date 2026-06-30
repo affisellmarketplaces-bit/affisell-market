@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 
 import {
   bookingHoldConfirmGraceMinutes,
-  bookingHoldStaleBefore,
   isHoldExpiredBeyondGrace,
 } from "@/lib/booking/hold-grace"
 

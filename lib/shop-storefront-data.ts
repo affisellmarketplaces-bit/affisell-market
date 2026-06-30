@@ -5,7 +5,6 @@ import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-lis
 import { listingWarrantyBadgeLabel, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import {
   inferNicheLabel,
-  type NicheKey,
   type PublicShopDirectoryEntry,
   type ShopProductCard,
   type ShopStoreSummary,

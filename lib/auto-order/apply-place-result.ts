@@ -19,7 +19,7 @@ export async function applySupplierPlaceOrderResult(args: {
   placed: PlaceSupplierOrderResult
   paymentReference?: string | null
 }): Promise<ApplyPlaceResultOutcome> {
-  const { supplierFulfillmentOrderId, batchId, providerId, group, placed, paymentReference } = args
+  const { supplierFulfillmentOrderId, batchId: _batchId, providerId, group, placed, paymentReference } = args
   const circuitKey = `provider:${providerId}`
 
   await prisma.supplierFulfillmentOrder.update({

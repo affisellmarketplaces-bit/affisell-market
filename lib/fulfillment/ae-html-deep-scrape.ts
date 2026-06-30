@@ -6,12 +6,6 @@ function asRec(v: unknown): Record<string, unknown> | null {
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null
 }
 
-function txt(v: unknown): string {
-  if (typeof v === "string") return v.trim()
-  if (typeof v === "number" && Number.isFinite(v)) return String(v)
-  return ""
-}
-
 /** Decode common encodings in saved AE pages (Safari/Chrome, AE unicode escapes). */
 export function normalizeHtmlForJsonScan(html: string): string {
   return html

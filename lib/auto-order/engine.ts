@@ -170,7 +170,6 @@ export async function runAutoFulfillmentBatch(stripeSessionId: string): Promise<
   }
 
   const jobResults: BatchRunResult["jobs"] = []
-  let successCount = 0
   let asyncPlacePending = 0
   const errors: Array<{ providerId: string; message: string }> = []
 
@@ -261,8 +260,7 @@ export async function runAutoFulfillmentBatch(stripeSessionId: string): Promise<
         paymentReference: payment.reference ?? null,
       })
 
-      if (outcome.success) successCount += 1
-      else if (placed.errorMessage) {
+      if (!outcome.success && placed.errorMessage) {
         recordCircuitFailure(circuitKey)
         errors.push({ providerId: group.providerId, message: placed.errorMessage })
       }

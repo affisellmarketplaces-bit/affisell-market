@@ -1,7 +1,6 @@
 /** Storefront theme — safe for `"use client"` (no Prisma). */
 
 import {
-  DEFAULT_STORE_NAME_BADGE,
   parseStoreNameBadgeStyle,
   type StoreNameBadgeStyle,
 } from "@/lib/store-name-badge-styles"

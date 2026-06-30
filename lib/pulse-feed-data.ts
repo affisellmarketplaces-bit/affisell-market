@@ -2,7 +2,7 @@ import { listingDisplayTitle, listingGalleryUrls, listingPrimaryImageUrl } from 
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
-import type { PulseFeedItem, PulseFeedSource } from "@/lib/pulse-feed-types"
+import type { PulseFeedItem } from "@/lib/pulse-feed-types"
 import {
   buildPulseMediaGallery,
   pickPulsePrimaryMedia,

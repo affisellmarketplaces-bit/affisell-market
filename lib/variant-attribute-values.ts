@@ -1,7 +1,5 @@
 import type { AttributeValueType, Prisma } from "@prisma/client"
 
-import { prisma } from "@/lib/prisma"
-
 export type VariantAttributeInput = {
   attributeId: string
   valueText?: string | null

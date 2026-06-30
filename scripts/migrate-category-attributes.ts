@@ -119,7 +119,7 @@ async function backfillCategoryPathIds(dryRun: boolean): Promise<string[]> {
 
 async function migrateAttributesFromCategoryAttributes(
   dryRun: boolean,
-  batchId: string
+  _batchId: string
 ): Promise<{
   attributeIds: string[]
   attributeOptionIds: string[]

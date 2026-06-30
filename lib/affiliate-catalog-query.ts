@@ -12,7 +12,6 @@ import {
 import { buildCategoryScopeProductFilter } from "@/lib/marketplace-category-product-filter"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
-import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
 
 export {
   AFFILIATE_CATALOG_NICHES,

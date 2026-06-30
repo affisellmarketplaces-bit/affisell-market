@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client"
-
 import { prisma } from "@/lib/prisma"
 
 const SESSION_TTL_MS = 15 * 60 * 1000

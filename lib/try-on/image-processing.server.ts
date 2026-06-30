@@ -5,7 +5,7 @@ import { put } from "@vercel/blob"
 
 const MAX_EDGE = 1024
 
-export async function processTryOnUserImage(bytes: Buffer, mimeType: string): Promise<{
+export async function processTryOnUserImage(bytes: Buffer, _mimeType: string): Promise<{
   bytes: Buffer
   contentType: string
   width: number

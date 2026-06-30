@@ -1,5 +1,5 @@
 import { bcp47ForAppLocale } from "@/lib/app-locale-format"
-import { isAppLocale, type AppLocale } from "@/lib/i18n-locale"
+import { isAppLocale } from "@/lib/i18n-locale"
 
 /** Listing sales counts for buyer-facing social proof (no Prisma). */
 

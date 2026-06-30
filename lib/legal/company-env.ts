@@ -1,3 +1,5 @@
+import { EU_CONSUMER_ODR_URL } from "@/lib/legal/mentions-constants"
+
 /** Société Affisell — source unique (pages légales, markdown, factures, footer). */
 
 export type CompanyLegal = {
@@ -85,9 +87,9 @@ export function readCompanyLegal(): CompanyLegal {
     envFirst(["COMPANY_LEGAL_FORM", "AFFISELL_LEGAL_FORM"]) ??
     "Société par actions simplifiée (SAS)"
   const mediatorName =
-    envFirst(["MEDIATOR_NAME", "AFFISELL_MEDIATOR_NAME"]) ?? "TODO_MEDIATEUR_NOM"
-  const mediatorUrl =
-    envFirst(["NEXT_PUBLIC_MEDIATOR_URL", "MEDIATOR_URL"]) ?? "TODO_SITE"
+    envFirst(["MEDIATOR_NAME", "AFFISELL_MEDIATOR_NAME"]) ??
+    "Plateforme européenne de règlement en ligne des litiges"
+  const mediatorUrl = envFirst(["NEXT_PUBLIC_MEDIATOR_URL", "MEDIATOR_URL"]) ?? EU_CONSUMER_ODR_URL
 
   return {
     name,

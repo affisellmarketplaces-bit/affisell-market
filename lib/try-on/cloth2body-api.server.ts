@@ -10,7 +10,7 @@ import {
   mirrorExternalImageToTryOnBlob,
   processTryOnUserImage,
 } from "@/lib/try-on/image-processing.server"
-import { inferIdmVtonCategory, type IdmVtonCategory } from "@/lib/try-on/infer-idm-vton-category"
+import { type IdmVtonCategory } from "@/lib/try-on/infer-idm-vton-category"
 import { getTryOnProvider } from "@/lib/try-on/provider-types"
 import { prisma } from "@/lib/prisma"
 

@@ -1,6 +1,6 @@
 import type { Prisma, ReviewStatus } from "@prisma/client"
 
-import { legacyImagesToMedia, parseReviewMedia, reviewHasUgc } from "@/lib/reviews/media"
+import { parseReviewMedia, reviewHasUgc } from "@/lib/reviews/media"
 import { prisma } from "@/lib/prisma"
 
 const PUBLISHED: ReviewStatus = "PUBLISHED"

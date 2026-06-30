@@ -7,7 +7,6 @@ import {
   sendPaymentFailedEmail,
   type PaymentFailedOrderPayload,
 } from "@/lib/emails/send-payment-failed"
-import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 
 const PAYMENT_FAILURE_CANCEL_ATTEMPTS = 3

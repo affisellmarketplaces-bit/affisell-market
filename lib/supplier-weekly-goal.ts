@@ -5,7 +5,6 @@ import {
   SUPPLIER_WEEKLY_GOAL_CENTS,
   weeklyGoalFilledSegments,
   weeklyGoalProgressPct,
-  WEEKLY_GOAL_BAR_SEGMENTS,
   type SupplierWeeklyGoalSnapshot,
 } from "@/lib/supplier-weekly-goal-shared"
 

@@ -10,7 +10,6 @@ import {
   MARKETPLACE_OFFER_FACET_KEY,
   MARKETPLACE_PRICE_FACET_KEY,
   MARKETPLACE_SHIPS_FACET_KEY,
-  parseDeptFacetValue,
 } from "@/lib/marketplace-discovery-facets-shared"
 import { offerFacetSlug, offerModeFilterLabel } from "@/lib/product-offer-mode"
 import type { ProductOfferMode } from "@/lib/product-offer-mode"

@@ -12,7 +12,6 @@ import { LOCALE_COOKIE, localeCookieMaxAgeSec, resolveAppLocale } from "@/lib/i1
 import { localeFromPathname, pathnameWithoutLocale } from "@/lib/locale-path"
 import {
   loginAffiliatePath,
-  loginAgentPath,
   loginSupplierPath,
   resolvePostLoginRedirect,
 } from "@/lib/login-redirect"

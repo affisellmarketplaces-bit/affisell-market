@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { resolveTryOnFeatureEnabled, isTryOnGloballyEnabled } from "@/lib/flags/try-on"
+import { isTryOnGloballyEnabled } from "@/lib/flags/try-on"
 import { inferIdmVtonCategory } from "@/lib/try-on/infer-idm-vton-category"
 import { isApparelProduct } from "@/lib/try-on/is-apparel-product"
 import { buildTryOnResultHash } from "@/lib/try-on/result-hash"

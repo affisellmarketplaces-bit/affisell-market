@@ -48,8 +48,6 @@ export const EU_COUNTRIES = new Set<string>(EU_MEMBER_ISO2)
 
 export const EU_MEMBER_SET = EU_COUNTRIES
 
-const EU_MEMBER_LIST: readonly string[] = EU_MEMBER_ISO2
-
 export function isEuMemberCountry(code: string | null | undefined): boolean {
   if (!code) return false
   return EU_MEMBER_SET.has(code.trim().toUpperCase().slice(0, 2))

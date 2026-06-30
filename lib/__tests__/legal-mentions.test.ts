@@ -13,10 +13,10 @@ describe("legal-mentions", () => {
     expect(c.dpoEmail).toBe("dpo@affisell.com")
   })
 
-  it("uses mediation TODO placeholders until configured", () => {
+  it("uses EU ODR mediation defaults until configured", () => {
     const c = readCompanyLegal()
-    expect(c.mediatorName).toBe("TODO_MEDIATEUR_NOM")
-    expect(c.mediatorUrl).toBe("TODO_SITE")
+    expect(c.mediatorName).toContain("européenne")
+    expect(c.mediatorUrl).toBe("https://ec.europa.eu/consumers/odr")
   })
 
   it("uses domiciliation address for registered office display", () => {
