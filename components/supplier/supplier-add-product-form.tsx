@@ -33,6 +33,7 @@ import { signOut } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
+import { BentoShell } from "@/components/affisell/bento-ui"
 import { SupplierCategoryCommissionInsight } from "@/components/supplier/supplier-category-commission-insight"
 import { isDonationOfferMode } from "@/lib/supplier-explicit-commission"
 import { AttachProductVideoActions } from "@/components/attach-product-video-actions"

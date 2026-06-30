@@ -388,16 +388,21 @@ export async function PUT(
       rate = commissionResolved.rate
     }
   } else if (isPublishing && !draftUpdateOnly) {
-    const persistedVariantRates = await prisma.productVariant.findMany({
-      where: { productId: id },
-      select: { commissionRate: true },
-    })
+    let persistedVariantRates = variantCommissionRates
+    if (!persistedVariantRates?.length) {
+      const variantJson = await prisma.product.findUnique({
+        where: { id },
+        select: { variants: true },
+      })
+      const parsed = parseVariantsPayload(variantJson?.variants ?? null)
+      const rows = parsed?.variantRows ?? []
+      if (rows.length > 0) {
+        persistedVariantRates = rows.map((row) => row.commission)
+      }
+    }
     const explicit = validateExplicitSupplierCommissionForPublish({
       resolvedRate: rate,
-      variantCommissionRates:
-        persistedVariantRates.length > 0
-          ? persistedVariantRates.map((row) => row.commissionRate)
-          : undefined,
+      variantCommissionRates: persistedVariantRates,
       offerMode: offer.offerMode,
     })
     if (!explicit.ok) {

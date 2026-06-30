@@ -29,6 +29,9 @@ function pad(s: string, n: number): string {
 
 type RateCount = { bps: number; count: number }
 
+type GroupByAffisellRow = { affisellCommissionRateBps: number | null; _count: number }
+type GroupBySupplierRow = { supplierCommissionRateBps: number | null; _count: number }
+
 function breakdownFromGroupBy(
   rows: Array<{ _count: number }>,
   readBps: (row: { _count: number }) => number | null | undefined
@@ -170,13 +173,11 @@ async function main() {
       _count: true,
     })
 
-    const affisellBreakdown = breakdownFromGroupBy(
-      affisellDb,
-      (row) => (row as { affisellCommissionRateBps: number | null }).affisellCommissionRateBps
+    const affisellBreakdown = breakdownFromGroupBy(affisellDb, (row) =>
+      (row as GroupByAffisellRow).affisellCommissionRateBps
     )
-    const supplierBreakdown = breakdownFromGroupBy(
-      supplierDb,
-      (row) => (row as { supplierCommissionRateBps: number | null }).supplierCommissionRateBps
+    const supplierBreakdown = breakdownFromGroupBy(supplierDb, (row) =>
+      (row as GroupBySupplierRow).supplierCommissionRateBps
     )
 
     const affisellDbLabel = formatDbRateCell(affisellBreakdown, colDbAff)
