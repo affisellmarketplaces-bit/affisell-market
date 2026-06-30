@@ -1,13 +1,14 @@
 import {
   isShipDeadlineBreached,
   isShipDeadlineCritical,
+  type ShipPulseSnapshot,
 } from "@/lib/supplier-ship-sla-shared"
 
 export type SupplierOrdersSort = "urgency" | "date_desc" | "date_asc"
 
 export type SupplierOrdersSortRow = {
   createdAt: string
-  shipPulse: { msRemaining: number } | null
+  shipPulse: Pick<ShipPulseSnapshot, "phase" | "msRemaining"> | null
 }
 
 function compareCreatedAt(a: SupplierOrdersSortRow, b: SupplierOrdersSortRow, dir: "asc" | "desc"): number {
