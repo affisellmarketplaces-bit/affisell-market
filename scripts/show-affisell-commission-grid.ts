@@ -27,6 +27,40 @@ function pad(s: string, n: number): string {
   return s.length >= n ? s.slice(0, n - 1) + "…" : s.padEnd(n)
 }
 
+type RateCount = { bps: number; count: number }
+
+function breakdownFromGroupBy(
+  rows: Array<{ _count: number }>,
+  readBps: (row: { _count: number }) => number | null | undefined
+): RateCount[] {
+  return rows
+    .map((row) => ({
+      bps: readBps(row) ?? 0,
+      count: row._count,
+    }))
+    .sort((a, b) => b.count - a.count || a.bps - b.bps)
+}
+
+function formatDbRateCell(breakdown: RateCount[], columnWidth: number): string {
+  if (breakdown.length === 0) return "—"
+  if (breakdown.length === 1) return formatBpsPercent(breakdown[0]!.bps)
+
+  const compact = breakdown
+    .map((row) => `${(row.bps / 100).toFixed(0)}%×${row.count}`)
+    .join(" ")
+  if (compact.length <= columnWidth) return compact
+  return `${breakdown.length} taux`
+}
+
+function formatDbRateDetail(breakdown: RateCount[]): string {
+  return breakdown.map((row) => `${formatBpsPercent(row.bps)} (${row.count})`).join(" · ")
+}
+
+function gridTargetInBreakdown(targetBps: number, breakdown: RateCount[]): boolean {
+  if (breakdown.length === 0) return true
+  return breakdown.some((row) => row.bps === targetBps)
+}
+
 async function main() {
   const taxonomy = loadTaxonomyEnRows()
 
@@ -62,17 +96,19 @@ async function main() {
   }
 
   console.log("\n[commission-grid] Grille métier — Affisell + Fournisseur\n")
+  const colDbAff = 24
+  const colDbFourn = 24
   console.log(
     "|",
     pad("Catégorie métier", 28),
     "|",
     pad("Aff.", 7),
     "|",
-    pad("DB Aff", 7),
+    pad("DB Aff", colDbAff),
     "|",
     pad("Fourn.", 7),
     "|",
-    pad("DB Fourn", 8),
+    pad("DB Fourn", colDbFourn),
     "|",
     pad("Nœuds", 12),
     "|"
@@ -83,11 +119,11 @@ async function main() {
     "|",
     "-".repeat(7),
     "|",
-    "-".repeat(7),
+    "-".repeat(colDbAff),
     "|",
     "-".repeat(7),
     "|",
-    "-".repeat(8),
+    "-".repeat(colDbFourn),
     "|",
     "-".repeat(12),
     "|"
@@ -134,18 +170,17 @@ async function main() {
       _count: true,
     })
 
-    const affisellDbLabel =
-      affisellDb.length === 0
-        ? "—"
-        : affisellDb.length === 1
-          ? formatBpsPercent(affisellDb[0]!.affisellCommissionRateBps ?? 0)
-          : "mixte"
-    const supplierDbLabel =
-      supplierDb.length === 0
-        ? "—"
-        : supplierDb.length === 1
-          ? formatBpsPercent(supplierDb[0]!.supplierCommissionRateBps ?? 0)
-          : "mixte"
+    const affisellBreakdown = breakdownFromGroupBy(
+      affisellDb,
+      (row) => (row as { affisellCommissionRateBps: number | null }).affisellCommissionRateBps
+    )
+    const supplierBreakdown = breakdownFromGroupBy(
+      supplierDb,
+      (row) => (row as { supplierCommissionRateBps: number | null }).supplierCommissionRateBps
+    )
+
+    const affisellDbLabel = formatDbRateCell(affisellBreakdown, colDbAff)
+    const supplierDbLabel = formatDbRateCell(supplierBreakdown, colDbFourn)
 
     console.log(
       "|",
@@ -153,15 +188,32 @@ async function main() {
       "|",
       pad(formatBpsPercent(entry.affisellBps), 7),
       "|",
-      pad(affisellDbLabel, 7),
+      pad(affisellDbLabel, colDbAff),
       "|",
       pad(formatBpsPercent(entry.supplierBps), 7),
       "|",
-      pad(supplierDbLabel, 8),
+      pad(supplierDbLabel, colDbFourn),
       "|",
       pad(nodeLabel, 12),
       "|"
     )
+
+    const detailLines: string[] = []
+    if (affisellBreakdown.length > 1) {
+      const overlapNote = gridTargetInBreakdown(entry.affisellBps, affisellBreakdown)
+        ? ""
+        : ` — cible grille ${formatBpsPercent(entry.affisellBps)} absente`
+      detailLines.push(`Aff: ${formatDbRateDetail(affisellBreakdown)}${overlapNote}`)
+    }
+    if (supplierBreakdown.length > 1) {
+      const overlapNote = gridTargetInBreakdown(entry.supplierBps, supplierBreakdown)
+        ? ""
+        : ` — cible grille ${formatBpsPercent(entry.supplierBps)} absente`
+      detailLines.push(`Fourn: ${formatDbRateDetail(supplierBreakdown)}${overlapNote}`)
+    }
+    for (const line of detailLines) {
+      console.log(`  ↳ ${line}`)
+    }
 
     if (match.googleIdCount === 0 && match.googleIds.length > 0) {
       console.log(`  ⚠ ${key}: ${match.googleIds.length} googleIds taxonomy, 0 en DB — vérifier import`)
