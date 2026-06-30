@@ -1692,6 +1692,12 @@
       "shipped": "Expédiées",
       "all": "Toutes"
     },
+    "sort": {
+      "label": "Trier",
+      "urgency": "Priorité Pulse expédition",
+      "dateDesc": "Plus récentes",
+      "dateAsc": "Plus anciennes"
+    },
     "emptyToShip": "Aucune commande en attente — les ventes apparaissent ici après paiement.",
     "emptyTab": "Aucune commande dans cette vue.",
     "loading": "Chargement…",

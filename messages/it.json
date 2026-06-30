@@ -1692,6 +1692,12 @@
       "shipped": "Spedito",
       "all": "Tutti"
     },
+    "sort": {
+      "label": "Sort",
+      "urgency": "Ship Pulse priority",
+      "dateDesc": "Newest first",
+      "dateAsc": "Oldest first"
+    },
     "emptyToShip": "Nessun ordine in attesa — nuovi pagamenti appaiono qui dopo il checkout.",
     "emptyTab": "Nessun ordine in questa vista.",
     "loading": "Caricamento…",

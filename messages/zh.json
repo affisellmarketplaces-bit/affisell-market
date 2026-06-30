@@ -1692,6 +1692,12 @@
       "shipped": "已发货",
       "all": "全部"
     },
+    "sort": {
+      "label": "Sort",
+      "urgency": "Ship Pulse priority",
+      "dateDesc": "Newest first",
+      "dateAsc": "Oldest first"
+    },
     "emptyToShip": "无待发货订单 — 购买后付款将出现在此处。",
     "emptyTab": "此视图中无订单。",
     "loading": "加载中…",

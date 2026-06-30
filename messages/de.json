@@ -1692,6 +1692,12 @@
       "shipped": "Versandt",
       "all": "Alle"
     },
+    "sort": {
+      "label": "Sort",
+      "urgency": "Ship Pulse priority",
+      "dateDesc": "Newest first",
+      "dateAsc": "Oldest first"
+    },
     "emptyToShip": "Keine Aufträge zum Versand — neue Auszahlungen erscheinen hier nach dem Checkout.",
     "emptyTab": "Keine Aufträge in dieser Ansicht.",
     "loading": "Lade…",

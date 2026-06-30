@@ -1668,6 +1668,12 @@
       "shipped": "Shipped",
       "all": "All"
     },
+    "sort": {
+      "label": "Sort",
+      "urgency": "Ship Pulse priority",
+      "dateDesc": "Newest first",
+      "dateAsc": "Oldest first"
+    },
     "emptyToShip": "No orders waiting — new payouts appear here after checkout.",
     "emptyTab": "No orders in this view.",
     "loading": "Loading…",

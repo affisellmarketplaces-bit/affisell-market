@@ -1692,6 +1692,12 @@
       "shipped": "Verzonden",
       "all": "Alles"
     },
+    "sort": {
+      "label": "Sort",
+      "urgency": "Ship Pulse priority",
+      "dateDesc": "Newest first",
+      "dateAsc": "Oldest first"
+    },
     "emptyToShip": "Geen orders in afwachting — nieuwe uitkeringen verschijnen hier na het afronden van de bestelling.",
     "emptyTab": "Geen orders in deze weergave.",
     "loading": "Wordt geladen…",

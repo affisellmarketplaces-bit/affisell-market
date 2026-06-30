@@ -1692,6 +1692,12 @@
       "shipped": "Dostarczone",
       "all": "Wszystkie"
     },
+    "sort": {
+      "label": "Sort",
+      "urgency": "Ship Pulse priority",
+      "dateDesc": "Newest first",
+      "dateAsc": "Oldest first"
+    },
     "emptyToShip": "Brak zamówień do wysłania — nowe wpłaty pojawiają się tutaj po zakończeniu sprzedaży.",
     "emptyTab": "Brak zamówień w tej widoczności.",
     "loading": "Ładowanie…",

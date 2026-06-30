@@ -31,6 +31,11 @@ import {
   isShipDeadlineCritical,
 } from "@/lib/supplier-ship-sla-shared"
 import {
+  defaultSupplierOrdersSort,
+  sortSupplierOrderRows,
+  type SupplierOrdersSort,
+} from "@/lib/supplier-orders-sort"
+import {
   defaultTrustedCarrierLabel,
   trustedCarriersForCountry,
 } from "@/lib/trusted-carriers-shared"
@@ -263,6 +268,7 @@ function OrderMetaChips({ o }: { o: OrderRow }) {
 export function SupplierOrdersPanel({ className }: { className?: string }) {
   const msg = useTranslations("supplierOrders")
   const [tab, setTab] = useState<Tab>("to_ship")
+  const [sortBy, setSortBy] = useState<SupplierOrdersSort>(() => defaultSupplierOrdersSort("to_ship"))
   const [rows, setRows] = useState<OrderRow[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -284,6 +290,11 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
   useEffect(() => {
     void load()
   }, [load])
+
+  function handleTabChange(next: Tab) {
+    setTab(next)
+    setSortBy((prev) => (next !== "to_ship" && prev === "urgency" ? "date_desc" : prev))
+  }
 
   useEffect(() => {
     if (!rows) return
@@ -388,19 +399,8 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
 
   const displayRows = useMemo(() => {
     if (!rows) return null
-    if (tab !== "to_ship") return rows
-    return [...rows].sort((a, b) => {
-      const aLate = isShipDeadlineBreached(a.shipPulse)
-      const bLate = isShipDeadlineBreached(b.shipPulse)
-      if (aLate !== bLate) return aLate ? -1 : 1
-      const aCritical = isShipDeadlineCritical(a.shipPulse)
-      const bCritical = isShipDeadlineCritical(b.shipPulse)
-      if (aCritical !== bCritical) return aCritical ? -1 : 1
-      const aMs = a.shipPulse?.msRemaining ?? Number.POSITIVE_INFINITY
-      const bMs = b.shipPulse?.msRemaining ?? Number.POSITIVE_INFINITY
-      return aMs - bMs
-    })
-  }, [rows, tab])
+    return sortSupplierOrderRows(rows, { tab, sort: sortBy })
+  }, [rows, tab, sortBy])
 
   if (rows === null) {
     return <p className={cn("text-sm text-zinc-500", className)}>{msg("loading")}</p>
@@ -414,22 +414,40 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
 
   return (
     <div className={cn("space-y-5", className)}>
-      <div className="flex flex-wrap gap-2">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTab(t.id)}
-            className={cn(
-              "rounded-full px-4 py-1.5 text-sm font-medium transition",
-              tab === t.id
-                ? "bg-violet-600 text-white shadow-md shadow-violet-600/25"
-                : "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-2">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => handleTabChange(t.id)}
+              className={cn(
+                "rounded-full px-4 py-1.5 text-sm font-medium transition",
+                tab === t.id
+                  ? "bg-violet-600 text-white shadow-md shadow-violet-600/25"
+                  : "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{msg("sort.label")}</span>
+          <Select value={sortBy} onValueChange={(value) => setSortBy(value as SupplierOrdersSort)}>
+            <SelectTrigger className="h-9 w-[min(100%,220px)] rounded-full border-zinc-200 bg-white text-sm dark:border-zinc-700 dark:bg-zinc-900">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {tab === "to_ship" ? (
+                <SelectItem value="urgency">{msg("sort.urgency")}</SelectItem>
+              ) : null}
+              <SelectItem value="date_desc">{msg("sort.dateDesc")}</SelectItem>
+              <SelectItem value="date_asc">{msg("sort.dateAsc")}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {error ? (
