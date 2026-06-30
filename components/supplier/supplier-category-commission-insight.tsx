@@ -89,7 +89,7 @@ export function SupplierCategoryCommissionInsight({ categoryId, className }: Pro
       ) : categoryPct != null ? (
         <div className="mt-2 space-y-1.5">
           <p className="text-sm text-zinc-800 dark:text-zinc-200">
-            Commission affilié suggérée par catégorie :{" "}
+            Suggestion grille catégorie (indicative) :{" "}
             <span className="font-semibold tabular-nums">{categoryPct.toFixed(1)} %</span>
             {bonusPct > 0 && effectivePct != null ? (
               <>
@@ -106,10 +106,15 @@ export function SupplierCategoryCommissionInsight({ categoryId, className }: Pro
           </p>
           {data?.dynamicsEnabled ? (
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              GMV 30 j : {formatEur(trailingGmv)} — bonus volume appliqué si commission produit = 0
-              %.
+              GMV 30 j : {formatEur(trailingGmv)} — bonus volume si vous laissez la commission produit
+              à 0 % (non recommandé : définissez toujours votre offre affilié).
             </p>
-          ) : null}
+          ) : (
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Saisissez votre commission dans le champ ci-dessous — elle prime sur la grille au
+              checkout.
+            </p>
+          )}
         </div>
       ) : (
         <p className="mt-1 text-xs text-zinc-500">Grille indisponible pour cette catégorie.</p>

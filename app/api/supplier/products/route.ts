@@ -293,6 +293,8 @@ export async function POST(req: Request) {
     topLevelRaw: commRaw,
     variantCommissionRates,
     listingKind,
+    requireExplicit: !saveAsDraft,
+    offerMode: offer.offerMode,
   })
   let rate = 0
   if (commissionResolved.ok) {

@@ -8,6 +8,10 @@ import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/bu
 import { ensureBuyerUserIdFromStripeCheckout } from "@/lib/ensure-buyer-from-stripe-checkout"
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
 import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission.server"
+import {
+  AFFILIATE_COMMISSION_REQUIRED_ERROR,
+  productHasExplicitSupplierCommission,
+} from "@/lib/supplier-explicit-commission"
 import { resolveSupplierCommissionRateBpsForProductId } from "@/lib/supplier-commission-rate.server"
 import {
   phase1AffiliateMarginRetainedCents,
@@ -195,6 +199,20 @@ async function createPaidMarketplaceOrder(
   const variants = variantsFromDb(listing.product.variants)
   const parsed = parseCartVariantSignature(args.variantSignature ?? "")
   const optionName = parsed.color || args.variantLabel.split("·")[0]?.trim() || null
+  if (
+    !productHasExplicitSupplierCommission({
+      commissionRate: listing.product.commissionRate,
+      variants: listing.product.variants,
+      offerMode: listing.product.offerMode,
+      optionName,
+    })
+  ) {
+    console.log("[stripe-marketplace-fulfill]", {
+      error: AFFILIATE_COMMISSION_REQUIRED_ERROR,
+      productId: listing.productId,
+    })
+    return null
+  }
   const variantImageUrl =
     resolveMarketplaceOrderLineImageUrl(listing, args.variantLabel, args.variantSignature) || null
   const basePriceCents =

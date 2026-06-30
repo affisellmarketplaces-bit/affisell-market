@@ -13,10 +13,11 @@ describe("productCommissionRateForSave", () => {
     expect(r).toEqual({ ok: true, rate: 28 })
   })
 
-  it("allows empty top-level for single product (0%)", () => {
+  it("allows empty top-level for draft single product (0%)", () => {
     const r = productCommissionRateForSave({
       topLevelRaw: undefined,
       listingKind: "PHYSICAL",
+      requireExplicit: false,
     })
     expect(r).toEqual({ ok: true, rate: 0 })
   })

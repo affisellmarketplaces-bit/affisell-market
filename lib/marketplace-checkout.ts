@@ -11,6 +11,10 @@ import {
   normalizeCartVariantSignature,
   parseCartVariantSignature,
 } from "@/lib/cart-variant"
+import {
+  AFFILIATE_COMMISSION_REQUIRED_ERROR,
+  productHasExplicitSupplierCommission,
+} from "@/lib/supplier-explicit-commission"
 import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission.server"
 import { resolveSupplierCommissionRateBpsForProductId } from "@/lib/supplier-commission-rate.server"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
@@ -159,6 +163,32 @@ async function loadListing(id: string) {
   })
 }
 
+function guardExplicitSupplierCommission(args: {
+  product: {
+    id: string
+    commissionRate: number
+    variants: unknown
+    offerMode: string | null
+  }
+  optionName?: string | null
+}): NextResponse | null {
+  if (
+    !productHasExplicitSupplierCommission({
+      commissionRate: args.product.commissionRate,
+      variants: args.product.variants,
+      offerMode: args.product.offerMode,
+      optionName: args.optionName,
+    })
+  ) {
+    console.log("[marketplace-checkout]", {
+      error: AFFILIATE_COMMISSION_REQUIRED_ERROR,
+      productId: args.product.id,
+    })
+    return NextResponse.json({ error: AFFILIATE_COMMISSION_REQUIRED_ERROR }, { status: 409 })
+  }
+  return null
+}
+
 type LoadedLine = {
   affiliateProductId: string
   qty: number
@@ -256,6 +286,16 @@ async function checkoutFromItems(
     const lineSubtotal = unit * row.qty
     const offerGate = validateOfferCheckoutLine(listing, row.qty, lineSubtotal)
     if (offerGate) return offerGate
+
+    const parsedVariant = parseCartVariantSignature(row.variantSignature)
+    const commissionGate = guardExplicitSupplierCommission({
+      product: listing.product,
+      optionName: checkoutOptionName({
+        selectedColor: parsedVariant.color,
+        selectedSize: parsedVariant.size,
+      }),
+    })
+    if (commissionGate) return commissionGate
 
     loaded.push({
       affiliateProductId: row.affiliateProductId,
@@ -425,6 +465,15 @@ export async function marketplaceCheckoutPOST(request: Request) {
   const checkoutSeatLabels = bookingGate?.seatLabels ?? []
 
   const product = listing.product
+  const commissionGate = guardExplicitSupplierCommission({
+    product,
+    optionName: checkoutOptionName({
+      selectedColor: body.selectedColor,
+      selectedSize: body.selectedSize,
+    }),
+  })
+  if (commissionGate) return commissionGate
+
   const affiliateProduct = listing
   const affiliate = listing.affiliate
 

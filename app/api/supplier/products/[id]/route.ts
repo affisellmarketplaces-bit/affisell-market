@@ -37,6 +37,10 @@ import {
   isBookingCheckoutLiveForKind,
 } from "@/lib/booking/types"
 import { parseAffisellCommissionOverrideFromBody } from "@/lib/supplier-product-affisell-commission-override"
+import {
+  AFFILIATE_COMMISSION_REQUIRED_ERROR,
+  validateExplicitSupplierCommissionForPublish,
+} from "@/lib/supplier-explicit-commission"
 import { productCommissionRateForSave } from "@/lib/supplier-product-commission-save"
 import { normalizeLeafCategoryId } from "@/lib/category-leaf-guard"
 import {
@@ -374,12 +378,30 @@ export async function PUT(
       variantCommissionRates,
       listingKind,
       fallbackRate: existingRow.commissionRate,
+      requireExplicit: isPublishing && !draftUpdateOnly,
+      offerMode: offer.offerMode,
     })
     if (!commissionResolved.ok && !draftUpdateOnly) {
       return Response.json({ error: commissionResolved.error }, { status: 400 })
     }
     if (commissionResolved.ok) {
       rate = commissionResolved.rate
+    }
+  } else if (isPublishing && !draftUpdateOnly) {
+    const persistedVariantRates = await prisma.productVariant.findMany({
+      where: { productId: id },
+      select: { commissionRate: true },
+    })
+    const explicit = validateExplicitSupplierCommissionForPublish({
+      resolvedRate: rate,
+      variantCommissionRates:
+        persistedVariantRates.length > 0
+          ? persistedVariantRates.map((row) => row.commissionRate)
+          : undefined,
+      offerMode: offer.offerMode,
+    })
+    if (!explicit.ok) {
+      return Response.json({ error: AFFILIATE_COMMISSION_REQUIRED_ERROR }, { status: 400 })
     }
   }
 

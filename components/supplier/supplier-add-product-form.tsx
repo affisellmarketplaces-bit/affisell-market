@@ -34,6 +34,7 @@ import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { SupplierCategoryCommissionInsight } from "@/components/supplier/supplier-category-commission-insight"
+import { isDonationOfferMode } from "@/lib/supplier-explicit-commission"
 import { AttachProductVideoActions } from "@/components/attach-product-video-actions"
 import { SupplierProductDescriptionField } from "@/components/supplier/supplier-product-description-field"
 import { SupplierTitleOptimizer } from "@/components/supplier/supplier-title-optimizer"
@@ -605,20 +606,41 @@ export function SupplierAddProductForm({
   }, [catalogPriceEur, price, specValues.item_volume_ml])
 
   const commissionError = useMemo(() => {
+    if (isDonationOfferMode(offerMode)) return null
+
     const hasSkuLines =
       variantFormMode === "advanced" && advancedSkuRows.some((r) => r.color.trim())
     if (commission.trim() === "" && (variantFormMode === "none" || hasSkuLines)) {
-      return null
+      if (variantFormMode === "advanced" && hasSkuLines) {
+        const missing = advancedSkuRows
+          .filter((r) => r.color.trim())
+          .filter((r) => !(Number(r.commissionRate) > 0))
+        if (missing.length > 0) {
+          return "Chaque ligne SKU doit avoir une commission affilié > 0 %."
+        }
+      }
+      return "Indiquez la commission offerte aux affiliés sur chaque vente (> 0 %)."
     }
     const n = Number(commission)
     if (!Number.isFinite(n)) return "Saisissez un pourcentage valide."
-    if (n < 0 || n > commissionMax) {
+    if (n <= 0) {
+      return "La commission affilié doit être supérieure à 0 % sur chaque vente."
+    }
+    if (n > commissionMax) {
       return listingKind === "PHYSICAL"
-        ? `Produit physique : commission entre 0 % et ${commissionMax} %.`
-        : `La commission doit être entre 0 % et ${commissionMax} %.`
+        ? `Produit physique : commission entre 1 % et ${commissionMax} %.`
+        : `La commission doit être entre 1 % et ${commissionMax} %.`
+    }
+    if (variantFormMode === "advanced" && hasSkuLines) {
+      const missing = advancedSkuRows
+        .filter((r) => r.color.trim())
+        .filter((r) => !(Number(r.commissionRate) > 0))
+      if (missing.length > 0) {
+        return "Chaque ligne SKU doit avoir une commission affilié > 0 %."
+      }
     }
     return null
-  }, [commission, commissionMax, listingKind, variantFormMode, advancedSkuRows])
+  }, [commission, commissionMax, listingKind, variantFormMode, advancedSkuRows, offerMode])
 
   useEffect(() => {
     if (variantFormMode !== "simple") {
@@ -3585,12 +3607,12 @@ export function SupplierAddProductForm({
                         Commission proposée (%)
                         {variantFormMode === "advanced" && advancedSkuRows.some((r) => r.color.trim())
                           ? " — défaut nouvelles lignes"
-                          : " — facultatif"}
+                          : " — obligatoire"}
                       </Label>
                       <Input
                         id="p-comm"
                         type="number"
-                        min={0}
+                        min={1}
                         max={commissionMax}
                         step="1"
                         className={cn(

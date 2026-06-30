@@ -117,7 +117,7 @@ export function collectClientPublishBlockers(ctx: CollectPublishContext): Publis
           "Ajoutez au moins une variante SKU (mode rapide ou ligne du tableau), ou repassez en produit simple.",
       })
     } else {
-      const issues = validateSupplierSkuTableRows(filled)
+      const issues = validateSupplierSkuTableRows(filled, [], { requirePositiveCommission: true })
       const uniqueMessages = [...new Set(issues.map((i) => i.message))].slice(0, 3)
       for (const message of uniqueMessages) {
         out.push({ field: "variants", message })
@@ -214,6 +214,8 @@ export function mapServerPublishBlockers(json: {
             ? "Vérification marchand requise — complétez votre dossier KYC sur /dashboard/verification avant de publier."
             : json.error === "warehouse_type_required"
               ? "Indiquez la zone logistique (local, régional ou international) — obligatoire pour la publication."
+              : json.error === "affiliate_commission_required"
+                ? "Définissez la commission offerte aux affiliés sur chaque vente (> 0 %). La grille catégorie est indicative uniquement."
               : json.error
     const mapped = blockerFromMessage(normalizedError)
     if (mapped) {

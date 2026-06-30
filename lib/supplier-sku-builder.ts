@@ -446,7 +446,8 @@ export function mergeSkuTableRowFromListingMirror(
 
 export function validateSupplierSkuTableRows(
   rows: SupplierSkuTableRow[],
-  customColumns: SkuCustomColumnDef[] = []
+  customColumns: SkuCustomColumnDef[] = [],
+  options?: { requirePositiveCommission?: boolean }
 ): VariantRowValidationIssue[] {
   const issues: VariantRowValidationIssue[] = []
   const seenKeys = new Map<string, number>()
@@ -473,6 +474,17 @@ export function validateSupplierSkuTableRows(
 
     if (!Number.isFinite(row.supplierPrice) || row.supplierPrice <= 0) {
       issues.push({ index, field: "supplierPrice", message: "Votre prix EUR requis (> 0)" })
+    }
+
+    if (
+      options?.requirePositiveCommission &&
+      (!Number.isFinite(row.commissionRate) || row.commissionRate <= 0)
+    ) {
+      issues.push({
+        index,
+        field: "commissionRate",
+        message: "Commission affilié requise (> 0 %)",
+      })
     }
 
     const compare = row.compareAtEur
