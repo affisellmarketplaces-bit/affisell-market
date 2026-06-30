@@ -23,9 +23,13 @@ export function NormativeExternalLink({
 }
 
 export function normativeRichTag(id: NormativeId, locale: string) {
-  return (chunks: ReactNode) => (
-    <NormativeExternalLink href={normativeUrl(id, locale)}>{chunks}</NormativeExternalLink>
-  )
+  function NormativeRichTag(chunks: ReactNode) {
+    return (
+      <NormativeExternalLink href={normativeUrl(id, locale)}>{chunks}</NormativeExternalLink>
+    )
+  }
+  NormativeRichTag.displayName = `NormativeRichTag(${id})`
+  return NormativeRichTag
 }
 
 /** Tags for `t.rich` — national (FR), EU and international sources. */
