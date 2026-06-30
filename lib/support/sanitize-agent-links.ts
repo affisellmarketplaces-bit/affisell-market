@@ -1,6 +1,8 @@
 /** Strip dev origins from assistant output — buyers must never see localhost. */
 
-import { publicAbsoluteUrl, rewriteLocalhostToPublic } from "@/lib/public-app-url"
+import { publicAbsoluteUrl } from "@/lib/public-app-url"
+
+export { sanitizePublicLink } from "@/lib/public-app-url"
 
 const LOCAL_ORIGIN_RE = /https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(?::\d+)?(\/[^\s)>"']*)?/gi
 
@@ -10,8 +12,4 @@ export function sanitizeSupportAgentText(text: string): string {
     .replace(/\bBASE\//g, "/")
     .replace(/  +/g, " ")
     .trim()
-}
-
-export function sanitizePublicLink(url: string): string {
-  return rewriteLocalhostToPublic(url.trim())
 }

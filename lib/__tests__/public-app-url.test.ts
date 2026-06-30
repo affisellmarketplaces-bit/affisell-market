@@ -5,6 +5,7 @@ import {
   publicAbsoluteUrl,
   resolvePublicAppUrl,
   rewriteLocalhostToPublic,
+  sanitizePublicLink,
 } from "@/lib/public-app-url"
 
 describe("resolvePublicAppUrl", () => {
@@ -56,6 +57,23 @@ describe("rewriteLocalhostToPublic", () => {
     vi.stubEnv("VERCEL_ENV", "production")
     expect(rewriteLocalhostToPublic("http://localhost:3001/track-order")).toBe(
       "https://affisell.com/track-order"
+    )
+  })
+})
+
+describe("sanitizePublicLink", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it("rewrites localhost and relative paths to public HTTPS URLs", () => {
+    vi.stubEnv("VERCEL_ENV", "production")
+    vi.stubEnv("AFFISELL_PLATFORM_ORIGIN", "https://affisell.com")
+    expect(sanitizePublicLink("http://localhost:3001/track-order")).toBe(
+      "https://affisell.com/track-order"
+    )
+    expect(sanitizePublicLink("/marketplace/account/orders")).toBe(
+      "https://affisell.com/marketplace/account/orders"
     )
   })
 })

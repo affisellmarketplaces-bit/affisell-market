@@ -69,3 +69,11 @@ export function rewriteLocalhostToPublic(raw: string): string {
     return resolvePublicAppUrl()
   }
 }
+
+/** Sanitize a single buyer-facing link (emails, webhooks). */
+export function sanitizePublicLink(url: string): string {
+  const trimmed = url.trim()
+  if (!trimmed) return resolvePublicAppUrl()
+  if (/^https?:\/\//i.test(trimmed)) return rewriteLocalhostToPublic(trimmed)
+  return publicAbsoluteUrl(trimmed)
+}
