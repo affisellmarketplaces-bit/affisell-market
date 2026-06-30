@@ -8,10 +8,15 @@
 import fs from "node:fs"
 import path from "node:path"
 
+import { config } from "dotenv"
 import { PrismaClient } from "@prisma/client"
+
+config({ path: ".env.local" })
+config({ path: ".env" })
 
 const prisma = new PrismaClient()
 const dryRun = process.argv.includes("--dry-run")
+const ROOT_PARENT = "__ROOT__"
 
 function slugify(name, suffix) {
   return (
@@ -35,10 +40,14 @@ function parseExtensions(filePath) {
       console.warn("[taxonomy-upsert-extensions] skip invalid line:", trimmed)
       continue
     }
+
+    const isRoot = parts[0] === ROOT_PARENT
     const name = parts[parts.length - 1]
-    const parentPath = parts.slice(0, -1).join(" > ")
-    const fullPath = trimmed
-    rows.push({ name, parentPath, fullPath, level: parts.length })
+    const parentPath = isRoot ? ROOT_PARENT : parts.slice(0, -1).join(" > ")
+    const fullPath = isRoot ? parts.slice(1).join(" > ") : trimmed
+    const level = isRoot ? parts.length - 1 : parts.length
+
+    rows.push({ name, parentPath, fullPath, level, isRoot })
   }
   return rows
 }
@@ -54,28 +63,41 @@ async function main() {
 
   let created = 0
   let skipped = 0
+  let failed = 0
 
   for (const row of rows) {
     const existing = await prisma.category.findFirst({
       where: { fullPath: row.fullPath },
-      select: { id: true },
+      select: { id: true, googleId: true },
     })
     if (existing) {
       skipped++
+      console.log("[taxonomy-upsert-extensions]", {
+        fullPath: row.fullPath,
+        result: "exists",
+        googleId: existing.googleId,
+      })
       continue
     }
 
-    const parent = await prisma.category.findFirst({
-      where: { fullPath: row.parentPath },
-      select: { id: true },
-    })
-    if (!parent) {
-      console.error("[taxonomy-upsert-extensions] parent missing", { parentPath: row.parentPath })
-      process.exitCode = 1
-      continue
+    let parentId = null
+    if (!row.isRoot) {
+      const parent = await prisma.category.findFirst({
+        where: { fullPath: row.parentPath },
+        select: { id: true },
+      })
+      if (!parent) {
+        failed++
+        console.error("[taxonomy-upsert-extensions] parent missing", {
+          fullPath: row.fullPath,
+          parentPath: row.parentPath,
+        })
+        continue
+      }
+      parentId = parent.id
     }
 
-    const slugBase = slugify(row.name, "ext")
+    const slugBase = slugify(row.name, row.isRoot ? "affisell" : "ext")
     let slug = slugBase
     let n = 0
     while (await prisma.category.findUnique({ where: { slug }, select: { id: true } })) {
@@ -84,17 +106,22 @@ async function main() {
     }
 
     if (dryRun) {
-      console.log("[taxonomy-upsert-extensions] would create", { fullPath: row.fullPath, slug })
+      console.log("[taxonomy-upsert-extensions] would create", {
+        fullPath: row.fullPath,
+        slug,
+        level: row.level,
+        parentId,
+      })
       created++
       continue
     }
 
-    await prisma.category.create({
+    const category = await prisma.category.create({
       data: {
         googleId: null,
         name: row.name,
         slug,
-        parentId: parent.id,
+        parentId,
         level: row.level,
         fullPath: row.fullPath,
         isLeaf: true,
@@ -102,16 +129,23 @@ async function main() {
       },
     })
 
-    await prisma.category.update({
-      where: { id: parent.id },
-      data: { isLeaf: false },
-    })
+    if (parentId) {
+      await prisma.category.update({
+        where: { id: parentId },
+        data: { isLeaf: false },
+      })
+    }
 
     created++
-    console.log("[taxonomy-upsert-extensions]", { fullPath: row.fullPath, result: "created" })
+    console.log("[taxonomy-upsert-extensions]", {
+      fullPath: row.fullPath,
+      categoryId: category.id,
+      result: "created",
+    })
   }
 
-  console.log("[taxonomy-upsert-extensions]", { created, skipped, dryRun })
+  console.log("[taxonomy-upsert-extensions]", { created, skipped, failed, dryRun })
+  if (failed > 0) process.exitCode = 1
 }
 
 main()

@@ -6,5 +6,8 @@ export type CategoryCommissionRow = {
   affisellCommissionRateBps: number | null
   effectiveBps: number
   effectivePercent: number
+  supplierCommissionRateBps: number | null
+  supplierEffectiveBps: number
+  supplierEffectivePercent: number
   productCount: number
 }

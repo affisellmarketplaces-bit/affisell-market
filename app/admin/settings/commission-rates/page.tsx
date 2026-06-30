@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { CategoryCommissionRatesClient } from "@/app/admin/settings/commission-rates/commission-rates-client"
 import { loadCategoryCommissionRates } from "@/lib/admin/commission-rates/load-category-commission-rates"
 import { DEFAULT_AFFISELL_COMMISSION_BPS } from "@/lib/affisell-platform-commission"
+import { DEFAULT_SUPPLIER_COMMISSION_BPS } from "@/lib/supplier-commission-rate"
 import { auth } from "@/auth"
 
 export const dynamic = "force-dynamic"
@@ -38,12 +39,15 @@ export default async function AdminCommissionRatesPage({
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-violet-600">Admin</p>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-            Commission Affisell par catégorie
+            Grilles commission par catégorie
           </h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Taux plateforme sur chaque vente marketplace (basis points, défaut{" "}
-            {DEFAULT_AFFISELL_COMMISSION_BPS / 100}%). Distinct de la commission fournisseur → affilié
-            sur le produit.
+          <p className="mt-1 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
+            <span className="font-medium text-violet-700 dark:text-violet-400">Affisell</span> — fee
+            plateforme (défaut {DEFAULT_AFFISELL_COMMISSION_BPS / 100}%).{" "}
+            <span className="font-medium text-emerald-700 dark:text-emerald-400">Fournisseur → affilié</span>{" "}
+            — commission catalogue quand le produit est à 0 % (défaut{" "}
+            {DEFAULT_SUPPLIER_COMMISSION_BPS / 100}%). Les overrides produit restent prioritaires au
+            checkout.
           </p>
         </div>
         <Link

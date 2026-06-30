@@ -15,6 +15,10 @@ export function supplierCommissionPercentToBps(percent: number): number {
   return clampSupplierCommissionRateBps(Math.round(percent * 100))
 }
 
+export function supplierCommissionRateBpsToPercent(bps: number): number {
+  return clampSupplierCommissionRateBps(bps) / 100
+}
+
 export type ProductSupplierCommissionSource = {
   supplierCommissionRateBps: number | null
   /** Legacy Int % (11 = 11%). */

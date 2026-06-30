@@ -33,7 +33,7 @@ import { signOut } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
-import { BentoShell } from "@/components/affisell/bento-ui"
+import { SupplierCategoryCommissionInsight } from "@/components/supplier/supplier-category-commission-insight"
 import { AttachProductVideoActions } from "@/components/attach-product-video-actions"
 import { SupplierProductDescriptionField } from "@/components/supplier/supplier-product-description-field"
 import { SupplierTitleOptimizer } from "@/components/supplier/supplier-title-optimizer"
@@ -2726,6 +2726,9 @@ export function SupplierAddProductForm({
                         onSelectSuggestion={selectExpressCategory}
                         onBrowseCatalogManually={browseCatalogManually}
                       />
+                      {categoryId.trim() ? (
+                        <SupplierCategoryCommissionInsight categoryId={categoryId} />
+                      ) : null}
                     </div>
                   </div>
                 </SectionCard>

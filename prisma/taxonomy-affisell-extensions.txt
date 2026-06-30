@@ -1,7 +1,11 @@
-# Affisell taxonomy extensions (optional, idempotent upsert)
+# Affisell taxonomy extensions (idempotent upsert via scripts/taxonomy-upsert-extensions.mjs)
 #
-# Format: one line per custom node (googleId null). Parent MUST already exist in Google FR taxonomy.
-#   Parent Full Path > New Node Name
+# Formats:
+#   Parent Full Path > New Node Name     (parent must exist in Google FR taxonomy)
+#   __ROOT__ > L1 Affisell-only name     (no googleId — catch-all / transversal)
 #
-# Example (uncomment only when a genuine gap is confirmed):
-# Arts et loisirs > Loisirs et arts créatifs > Articles de collection > Automobilia
+# Used by the 26-branch commission grid where Google has no equivalent leaf.
+
+Vêtements et accessoires > Bijoux > Joaillerie fine
+__ROOT__ > Occasion et reconditionné
+__ROOT__ > Autre / Non classé

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react"
 
 import type { CategoryCommissionRow } from "@/lib/admin/commission-rates/types"
 import { affisellCommissionRateBpsToPercent } from "@/lib/affisell-platform-commission"
+import { supplierCommissionRateBpsToPercent } from "@/lib/supplier-commission-rate"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -23,12 +24,22 @@ export function CategoryCommissionRatesClient({
   const [search, setSearch] = useState(initialSearch)
   const [leafOnly, setLeafOnly] = useState(initialLeafOnly)
   const [savingId, setSavingId] = useState<string | null>(null)
-  const [draftPercents, setDraftPercents] = useState<Record<string, string>>(() =>
+  const [affisellDrafts, setAffisellDrafts] = useState<Record<string, string>>(() =>
     Object.fromEntries(
       initialRows.map((r) => [
         r.id,
         r.affisellCommissionRateBps != null
           ? String(affisellCommissionRateBpsToPercent(r.affisellCommissionRateBps))
+          : "",
+      ])
+    )
+  )
+  const [supplierDrafts, setSupplierDrafts] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      initialRows.map((r) => [
+        r.id,
+        r.supplierCommissionRateBps != null
+          ? String(supplierCommissionRateBpsToPercent(r.supplierCommissionRateBps))
           : "",
       ])
     )
@@ -48,16 +59,31 @@ export function CategoryCommissionRatesClient({
     [rows]
   )
 
-  async function saveRow(categoryId: string, inherit: boolean) {
+  async function saveRow(
+    categoryId: string,
+    mode: "affisell" | "supplier" | "both",
+    inherit: boolean
+  ) {
     setSavingId(categoryId)
     try {
-      const percentRaw = draftPercents[categoryId]?.trim()
-      const body = inherit
-        ? { inherit: true }
-        : { commissionPercent: Number(percentRaw) }
+      const body: Record<string, unknown> = {}
 
-      if (!inherit && (!percentRaw || Number.isNaN(Number(percentRaw)))) {
-        return
+      if (mode === "affisell" || mode === "both") {
+        if (inherit) body.inherit = true
+        else {
+          const percentRaw = affisellDrafts[categoryId]?.trim()
+          if (!percentRaw || Number.isNaN(Number(percentRaw))) return
+          body.commissionPercent = Number(percentRaw)
+        }
+      }
+
+      if (mode === "supplier" || mode === "both") {
+        if (inherit) body.inheritSupplier = true
+        else {
+          const percentRaw = supplierDrafts[categoryId]?.trim()
+          if (!percentRaw || Number.isNaN(Number(percentRaw))) return
+          body.supplierCommissionPercent = Number(percentRaw)
+        }
       }
 
       const res = await fetch(`/api/admin/category-commission-rates/${categoryId}`, {
@@ -70,26 +96,38 @@ export function CategoryCommissionRatesClient({
         alert(j.error ?? "Save failed")
         return
       }
+
       const j = (await res.json()) as {
-        category: { affisellCommissionRateBps: number | null }
+        category: {
+          affisellCommissionRateBps: number | null
+          supplierCommissionRateBps: number | null
+        }
       }
+
       setRows((prev) =>
-        prev.map((r) =>
-          r.id === categoryId
-            ? {
-                ...r,
-                affisellCommissionRateBps: j.category.affisellCommissionRateBps,
-                effectiveBps:
-                  j.category.affisellCommissionRateBps ?? r.effectiveBps,
-                effectivePercent: affisellCommissionRateBpsToPercent(
-                  j.category.affisellCommissionRateBps ?? r.effectiveBps
-                ),
-              }
-            : r
-        )
+        prev.map((r) => {
+          if (r.id !== categoryId) return r
+          const affisellBps = j.category.affisellCommissionRateBps ?? r.effectiveBps
+          const supplierBps = j.category.supplierCommissionRateBps ?? r.supplierEffectiveBps
+          return {
+            ...r,
+            affisellCommissionRateBps: j.category.affisellCommissionRateBps,
+            effectiveBps: affisellBps,
+            effectivePercent: affisellCommissionRateBpsToPercent(affisellBps),
+            supplierCommissionRateBps: j.category.supplierCommissionRateBps,
+            supplierEffectiveBps: supplierBps,
+            supplierEffectivePercent: supplierCommissionRateBpsToPercent(supplierBps),
+          }
+        })
       )
+
       if (inherit) {
-        setDraftPercents((d) => ({ ...d, [categoryId]: "" }))
+        if (mode === "affisell" || mode === "both") {
+          setAffisellDrafts((d) => ({ ...d, [categoryId]: "" }))
+        }
+        if (mode === "supplier" || mode === "both") {
+          setSupplierDrafts((d) => ({ ...d, [categoryId]: "" }))
+        }
       }
       router.refresh()
     } finally {
@@ -133,14 +171,16 @@ export function CategoryCommissionRatesClient({
         </button>
       </form>
 
-      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
-        <table className="w-full text-left text-sm">
+      <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+        <table className="min-w-[56rem] w-full text-left text-sm">
           <thead className="border-b border-zinc-200 bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/80">
             <tr>
               <th className="px-3 py-2.5">Catégorie</th>
               <th className="px-3 py-2.5">Produits</th>
-              <th className="px-3 py-2.5">Taux Affisell (%)</th>
-              <th className="px-3 py-2.5">Effectif</th>
+              <th className="px-3 py-2.5 text-violet-700 dark:text-violet-400">Affisell %</th>
+              <th className="px-3 py-2.5">Eff.</th>
+              <th className="px-3 py-2.5 text-emerald-700 dark:text-emerald-400">Fourn.→Aff. %</th>
+              <th className="px-3 py-2.5">Eff.</th>
               <th className="px-3 py-2.5" />
             </tr>
           </thead>
@@ -162,25 +202,39 @@ export function CategoryCommissionRatesClient({
                     max={50}
                     step={0.1}
                     placeholder="Hériter"
-                    value={draftPercents[row.id] ?? ""}
+                    value={affisellDrafts[row.id] ?? ""}
                     onChange={(e) =>
-                      setDraftPercents((d) => ({ ...d, [row.id]: e.target.value }))
+                      setAffisellDrafts((d) => ({ ...d, [row.id]: e.target.value }))
                     }
                     className="w-20 rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-600 dark:bg-zinc-900"
                   />
                 </td>
                 <td className="px-3 py-2.5 tabular-nums text-zinc-600 dark:text-zinc-400">
                   {row.effectivePercent.toFixed(1)}%
-                  {row.affisellCommissionRateBps == null ? (
-                    <span className="ml-1 text-[10px] text-zinc-400">(hérité)</span>
-                  ) : null}
                 </td>
                 <td className="px-3 py-2.5">
-                  <div className="flex gap-1">
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={0.1}
+                    placeholder="Hériter"
+                    value={supplierDrafts[row.id] ?? ""}
+                    onChange={(e) =>
+                      setSupplierDrafts((d) => ({ ...d, [row.id]: e.target.value }))
+                    }
+                    className="w-20 rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+                  />
+                </td>
+                <td className="px-3 py-2.5 tabular-nums text-zinc-600 dark:text-zinc-400">
+                  {row.supplierEffectivePercent.toFixed(1)}%
+                </td>
+                <td className="px-3 py-2.5">
+                  <div className="flex flex-wrap gap-1">
                     <button
                       type="button"
                       disabled={savingId === row.id}
-                      onClick={() => void saveRow(row.id, false)}
+                      onClick={() => void saveRow(row.id, "both", false)}
                       className={cn(
                         "rounded-lg px-2.5 py-1 text-xs font-semibold text-white",
                         savingId === row.id ? "bg-zinc-400" : "bg-violet-600 hover:bg-violet-500"
@@ -191,7 +245,7 @@ export function CategoryCommissionRatesClient({
                     <button
                       type="button"
                       disabled={savingId === row.id}
-                      onClick={() => void saveRow(row.id, true)}
+                      onClick={() => void saveRow(row.id, "both", true)}
                       className="rounded-lg border border-zinc-300 px-2.5 py-1 text-xs font-medium dark:border-zinc-600"
                     >
                       Hériter

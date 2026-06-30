@@ -7,16 +7,23 @@ import {
   clampAffisellCommissionRateBps,
 } from "@/lib/affisell-platform-commission"
 import { prisma } from "@/lib/prisma"
+import {
+  clampSupplierCommissionRateBps,
+  supplierCommissionPercentToBps,
+} from "@/lib/supplier-commission-rate"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 const bodySchema = z.object({
-  /** Platform fee percent (e.g. 10 = 10%). */
+  /** Affisell platform fee percent (e.g. 10 = 10%). */
   commissionPercent: z.number().min(0).max(50).optional(),
   commissionRateBps: z.number().int().min(0).max(5000).optional(),
-  /** When true, clears category rate so parent/default applies. */
   inherit: z.boolean().optional(),
+  /** Supplier → affiliate commission percent (e.g. 15 = 15%). */
+  supplierCommissionPercent: z.number().min(0).max(100).optional(),
+  supplierCommissionRateBps: z.number().int().min(0).max(10_000).optional(),
+  inheritSupplier: z.boolean().optional(),
 })
 
 type Ctx = { params: Promise<{ categoryId: string }> }
@@ -42,25 +49,50 @@ export async function PATCH(req: Request, ctx: Ctx) {
     return NextResponse.json({ error: "Category not found" }, { status: 404 })
   }
 
-  let affisellCommissionRateBps: number | null
+  const data: {
+    affisellCommissionRateBps?: number | null
+    supplierCommissionRateBps?: number | null
+  } = {}
+
   if (parsed.data.inherit) {
-    affisellCommissionRateBps = null
+    data.affisellCommissionRateBps = null
   } else if (parsed.data.commissionRateBps != null) {
-    affisellCommissionRateBps = clampAffisellCommissionRateBps(parsed.data.commissionRateBps)
+    data.affisellCommissionRateBps = clampAffisellCommissionRateBps(parsed.data.commissionRateBps)
   } else if (parsed.data.commissionPercent != null) {
-    affisellCommissionRateBps = affisellCommissionPercentToBps(parsed.data.commissionPercent)
-  } else {
-    return NextResponse.json({ error: "Provide commissionPercent, commissionRateBps, or inherit" }, { status: 400 })
+    data.affisellCommissionRateBps = affisellCommissionPercentToBps(parsed.data.commissionPercent)
+  }
+
+  if (parsed.data.inheritSupplier) {
+    data.supplierCommissionRateBps = null
+  } else if (parsed.data.supplierCommissionRateBps != null) {
+    data.supplierCommissionRateBps = clampSupplierCommissionRateBps(
+      parsed.data.supplierCommissionRateBps
+    )
+  } else if (parsed.data.supplierCommissionPercent != null) {
+    data.supplierCommissionRateBps = supplierCommissionPercentToBps(
+      parsed.data.supplierCommissionPercent
+    )
+  }
+
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json(
+      {
+        error:
+          "Provide commissionPercent/commissionRateBps/inherit and/or supplierCommissionPercent/supplierCommissionRateBps/inheritSupplier",
+      },
+      { status: 400 }
+    )
   }
 
   const updated = await prisma.category.update({
     where: { id: categoryId },
-    data: { affisellCommissionRateBps },
+    data,
     select: {
       id: true,
       name: true,
       fullPath: true,
       affisellCommissionRateBps: true,
+      supplierCommissionRateBps: true,
     },
   })
 

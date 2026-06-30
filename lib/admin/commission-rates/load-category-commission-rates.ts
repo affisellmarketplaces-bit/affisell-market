@@ -1,6 +1,11 @@
 import { affisellCommissionRateBpsToPercent } from "@/lib/affisell-platform-commission"
 import { resolveCategoryAffisellCommissionBps } from "@/lib/affisell-platform-commission.server"
 import { prisma } from "@/lib/prisma"
+import {
+  DEFAULT_SUPPLIER_COMMISSION_BPS,
+  supplierCommissionRateBpsToPercent,
+} from "@/lib/supplier-commission-rate"
+import { resolveCategorySupplierCommissionBps } from "@/lib/supplier-commission-rate.server"
 
 import type { CategoryCommissionRow } from "@/lib/admin/commission-rates/types"
 
@@ -35,24 +40,37 @@ export async function loadCategoryCommissionRates(options?: {
       fullPath: true,
       isLeaf: true,
       affisellCommissionRateBps: true,
+      supplierCommissionRateBps: true,
       _count: { select: { products: true } },
     },
   })
 
-  const effectiveBpsList = await Promise.all(
-    categories.map((c) => resolveCategoryAffisellCommissionBps(c.id))
+  const effectiveLists = await Promise.all(
+    categories.map(async (c) => {
+      const [affisellBps, supplierBps] = await Promise.all([
+        resolveCategoryAffisellCommissionBps(c.id),
+        resolveCategorySupplierCommissionBps(c.id),
+      ])
+      return {
+        affisellBps,
+        supplierBps: supplierBps ?? DEFAULT_SUPPLIER_COMMISSION_BPS,
+      }
+    })
   )
 
   return categories.map((c, i) => {
-    const effectiveBps = effectiveBpsList[i]!
+    const effective = effectiveLists[i]!
     return {
       id: c.id,
       name: c.name,
       fullPath: c.fullPath || c.name,
       isLeaf: c.isLeaf,
       affisellCommissionRateBps: c.affisellCommissionRateBps,
-      effectiveBps,
-      effectivePercent: affisellCommissionRateBpsToPercent(effectiveBps),
+      effectiveBps: effective.affisellBps,
+      effectivePercent: affisellCommissionRateBpsToPercent(effective.affisellBps),
+      supplierCommissionRateBps: c.supplierCommissionRateBps,
+      supplierEffectiveBps: effective.supplierBps,
+      supplierEffectivePercent: supplierCommissionRateBpsToPercent(effective.supplierBps),
       productCount: c._count.products,
     }
   })
