@@ -1,4 +1,5 @@
 import { appBaseUrl } from "@/lib/app-base-url"
+import { isLocalhostUrl } from "@/lib/localhost-host"
 
 function normalizeBaseUrl(raw: string): string {
   return raw.trim().replace(/\/$/, "")
@@ -33,6 +34,8 @@ export function resolveCheckoutBaseUrl(request?: Request): string {
     process.env.APP_URL?.trim() ||
     process.env.AUTH_URL?.trim()
 
-  if (fromEnv) return normalizeBaseUrl(fromEnv)
+  if (fromEnv && !(process.env.NODE_ENV === "production" && isLocalhostUrl(fromEnv))) {
+    return normalizeBaseUrl(fromEnv)
+  }
   return normalizeBaseUrl(appBaseUrl())
 }

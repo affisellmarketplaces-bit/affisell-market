@@ -1,12 +1,8 @@
 import { listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
-import { appBaseUrl } from "@/lib/app-base-url"
+import { resolvePublicAppUrl, rewriteLocalhostToPublic } from "@/lib/public-app-url"
 
 function resolveAppUrl(): string {
-  const raw =
-    process.env.APP_URL?.trim() ||
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    appBaseUrl()
-  return raw.replace(/\/$/, "")
+  return resolvePublicAppUrl()
 }
 
 /** Hosted fallback — email clients often block via.placeholder.com. */
@@ -30,7 +26,7 @@ export function toAbsoluteHttpsEmailImageUrl(raw: string | null | undefined): st
   if (!/^https:\/\//i.test(url)) return null
 
   try {
-    return new URL(url).href
+    return rewriteLocalhostToPublic(new URL(url).href)
   } catch {
     return null
   }

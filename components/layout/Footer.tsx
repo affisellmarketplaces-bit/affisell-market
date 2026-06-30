@@ -6,16 +6,11 @@ import type { ReactNode } from "react"
 
 import { FooterNewsletter } from "@/components/layout/footer-newsletter"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
+import { resolvePublicAppUrl } from "@/lib/public-app-url"
 import { cn } from "@/lib/utils"
 
 function siteOrigin(): string {
-  const raw =
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    process.env.VERCEL_URL?.trim()
-  if (!raw) return "https://affisell.com"
-  if (raw.startsWith("http")) return raw.replace(/\/$/, "")
-  return `https://${raw.replace(/\/$/, "")}`
+  return resolvePublicAppUrl()
 }
 
 function FooterCtaCard({

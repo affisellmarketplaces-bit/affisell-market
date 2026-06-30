@@ -15,6 +15,7 @@ import {
   resolveAppUrl,
   resolveOrderConfirmationImageUrl,
 } from "@/lib/emails/send-order-confirmation"
+import { sanitizePublicLink } from "@/lib/public-app-url"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { tMessage } from "@/lib/i18n-pick-message"
 
@@ -46,10 +47,10 @@ export async function sendShippingNotificationEmail(
   }
   const resend = new Resend(config.apiKey)
   const { to } = resolveResendDeliveryRecipient("shipping-notification", order.customerEmail, config)
-  const orderUrl = `${resolveAppUrl()}/orders/${order.id}`
-  const trackingUrl =
-    order.trackingUrl?.trim() ||
-    `${resolveAppUrl()}/marketplace/account/orders`
+  const orderUrl = sanitizePublicLink(`${resolveAppUrl()}/marketplace/account/orders/${order.id}`)
+  const trackingUrl = sanitizePublicLink(
+    order.trackingUrl?.trim() || `${resolveAppUrl()}/track-order`
+  )
   const carrier =
     order.trackingCarrier?.trim() ||
     tMessage(locale, "emails.shippingNotification.defaultCarrier", "Carrier")

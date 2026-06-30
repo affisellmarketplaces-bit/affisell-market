@@ -12,17 +12,13 @@ import {
   sendResendEmail,
 } from "@/lib/emails/resend-delivery"
 import { resolveOrderConfirmationImageUrl } from "@/lib/emails/resolve-order-confirmation-image"
-import { appBaseUrl } from "@/lib/app-base-url"
-
-export { resolveOrderConfirmationImageUrl } from "@/lib/emails/resolve-order-confirmation-image"
+import { resolvePublicAppUrl, sanitizePublicLink } from "@/lib/public-app-url"
 
 export function resolveAppUrl(): string {
-  const raw =
-    process.env.APP_URL?.trim() ||
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    appBaseUrl()
-  return raw.replace(/\/$/, "")
+  return resolvePublicAppUrl()
 }
+
+export { resolveOrderConfirmationImageUrl } from "@/lib/emails/resolve-order-confirmation-image"
 
 function resolveCustomerName(
   customerName: string | undefined,
@@ -64,8 +60,12 @@ export async function sendOrderConfirmationEmail({
     console.error("[Resend] Order confirmation skipped: missing RESEND_API_KEY")
     return
   }
-  const resolvedOrderUrl =
+  const resolvedOrderUrl = sanitizePublicLink(
     orderUrl ?? `${resolveAppUrl()}/marketplace/account/orders`
+  )
+  const resolvedTrackingUrl = sanitizePublicLink(
+    trackingUrl?.trim() || `${resolveAppUrl()}/track-order`
+  )
   const emailCopy = loadOrderConfirmationEmailCopy(resolvedLocale, {
     orderId,
     quantity,
@@ -87,7 +87,7 @@ export async function sendOrderConfirmationEmail({
       currency: currency.toUpperCase(),
       customerName: resolveCustomerName(customerName, customerEmail),
       orderUrl: resolvedOrderUrl,
-      trackingUrl: trackingUrl || undefined,
+      trackingUrl: resolvedTrackingUrl,
       copy: emailCopy,
     })
   )

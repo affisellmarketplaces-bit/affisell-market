@@ -1,4 +1,5 @@
 import { normalizeRequestHost } from "@/lib/custom-domain-host"
+import { isLocalhostUrl } from "@/lib/localhost-host"
 
 /** True for `*.vercel.app` deployment hosts (not merchant storefronts). */
 export function isVercelAppHost(hostRaw: string | null | undefined): boolean {
@@ -15,7 +16,10 @@ export function canonicalPlatformOrigin(): string {
     process.env.APP_URL?.trim()
   if (fromEnv) {
     const normalized = fromEnv.startsWith("http") ? fromEnv : `https://${fromEnv}`
-    return normalized.replace(/\/$/, "")
+    const origin = normalized.replace(/\/$/, "")
+    if (!(process.env.VERCEL_ENV === "production" && isLocalhostUrl(origin))) {
+      return origin
+    }
   }
   if (process.env.VERCEL_ENV === "production") {
     return "https://affisell.com"
