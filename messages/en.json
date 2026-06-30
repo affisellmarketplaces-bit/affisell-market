@@ -2094,6 +2094,11 @@
         "regionalUs": "Regional · US & CA",
         "international": "International",
         "unknown": "See product page"
+      },
+      "deliveryCountries": {
+        "worldwide": "Worldwide",
+        "notSpecified": "Not specified",
+        "countryCount": "{count} countries"
       }
     },
     "aiSummary": "AI Summary",

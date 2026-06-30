@@ -2,6 +2,10 @@ import {
   EU_MEMBER_ISO2,
   stripeCheckoutAllowedCountries,
 } from "@/lib/eu-market-countries"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { intlLocaleTag } from "@/lib/i18n-ui-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
+import { visitorCountryDisplayName } from "@/lib/visitor-country"
 
 /** Sentinel stored in `deliveryCountryCodes` — delivers to all platform checkout countries. */
 export const DELIVERY_WORLDWIDE = "WORLDWIDE"
@@ -108,28 +112,26 @@ export function intersectProductDeliveryCountries(
 
 export function formatDeliveryCountriesSummary(
   codes: string[],
-  locale: "fr" | "en" = "fr"
+  locale: AppLocale = "fr"
 ): string {
   if (codes.includes(DELIVERY_WORLDWIDE)) {
-    return locale === "en" ? "Worldwide" : "Monde entier"
+    return tMessage(locale, "Product.logistics.deliveryCountries.worldwide", "Worldwide")
   }
   if (codes.length === 0) {
-    return locale === "en" ? "Not specified" : "Non renseigné"
+    return tMessage(locale, "Product.logistics.deliveryCountries.notSpecified", "Not specified")
   }
+  const intlTag = intlLocaleTag(locale)
   if (codes.length <= 3) {
     return codes
-      .map((code) => {
-        try {
-          return new Intl.DisplayNames([locale], { type: "region" }).of(code) ?? code
-        } catch {
-          return code
-        }
-      })
-      .join(locale === "en" ? ", " : ", ")
+      .map((code) => visitorCountryDisplayName(code, intlTag))
+      .join(locale === "fr" ? ", " : ", ")
   }
-  return locale === "en"
-    ? `${codes.length} countries`
-    : `${codes.length} pays`
+  const template = tMessage(
+    locale,
+    "Product.logistics.deliveryCountries.countryCount",
+    "{count} countries"
+  )
+  return template.replace("{count}", String(codes.length))
 }
 
 export function suggestDeliveryCountriesFromWarehouse(args: {

@@ -2118,6 +2118,11 @@
         "regionalUs": "Régional · US & CA",
         "international": "International",
         "unknown": "Voir la fiche produit"
+      },
+      "deliveryCountries": {
+        "worldwide": "Monde entier",
+        "notSpecified": "Non renseigné",
+        "countryCount": "{count} pays"
       }
     },
     "aiSummary": "Résumé IA",
