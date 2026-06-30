@@ -278,6 +278,8 @@ export default async function MarketplaceListingPage({
       shipsFrom: p.shipsFrom,
       deliveryMin: p.deliveryMin,
       deliveryMax: p.deliveryMax,
+      deliveryCountryCodes: p.deliveryCountryCodes,
+      locale: locale as AppLocale,
     }),
     processingTime: p.processingTime ?? 1,
     freeShippingThresholdEUR: freeThresh,

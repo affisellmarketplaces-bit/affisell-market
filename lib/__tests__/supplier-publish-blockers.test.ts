@@ -79,4 +79,23 @@ describe("supplier-publish-blockers", () => {
     expect(blockers.some((b) => b.field === "warehouseType")).toBe(true)
     expect(publishBlockerStep("warehouseType")).toBe(3)
   })
+
+  it("requires delivery countries on publish", () => {
+    const blockers = collectClientPublishBlockers({
+      name: "Test",
+      imagesCount: 1,
+      categoryId: "cat",
+      missingSpecs: [],
+      priceError: null,
+      compareError: null,
+      commissionError: null,
+      variantFormMode: "none",
+      variantRows: [],
+      simpleColorRows: [],
+      offerModeAcknowledged: true,
+      warehouseType: "local",
+      deliveryCountryCodes: [],
+    })
+    expect(blockers.some((b) => b.field === "deliveryCountries")).toBe(true)
+  })
 })

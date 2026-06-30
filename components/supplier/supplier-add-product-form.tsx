@@ -30,7 +30,7 @@ import {
   Zap,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { toast } from "sonner"
 
 import { BentoShell } from "@/components/affisell/bento-ui"
@@ -87,7 +87,7 @@ import {
   type BrowsePayload,
   type CategoryPickOrigin,
 } from "@/components/supplier/supplier-category-picker"
-import { SupplierDeleteDraftButton } from "@/components/supplier/supplier-delete-draft-button"
+import { SupplierDeliveryCountriesPicker } from "@/components/supplier/supplier-delivery-countries-picker"
 import { SupplierOfferModePicker } from "@/components/supplier/supplier-offer-mode-picker"
 import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
 import {
@@ -139,7 +139,7 @@ import {
   resolveSupplierProductCompareAtEur,
   usesVariantSkuPricing,
 } from "@/lib/supplier-catalog-price"
-import { registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
+import { suggestDeliveryCountriesFromWarehouse } from "@/lib/supplier-delivery-countries"
 import { parseSupplierDecimalInput } from "@/lib/supplier-decimal-input"
 import { readJsonResponse } from "@/lib/read-json-response"
 import {
@@ -355,6 +355,7 @@ export function SupplierAddProductForm({
 
   const cacheMode: SupplierAddProductCacheMode = assistShortcuts ? "assist" : composeQs ? "compose" : "plain"
   const tForm = useTranslations("supplier.form")
+  const locale = useLocale() as "fr" | "en"
   const tQuality = useTranslations("supplier.quality")
   const tWizard = useTranslations("supplier.wizard")
   const tImages = useTranslations("supplier.images")
@@ -465,6 +466,7 @@ export function SupplierAddProductForm({
   const lastTitleParserKeyRef = useRef<string | null>(null)
   const [shippingCountry, setShippingCountry] = useState("")
   const [warehouseType, setWarehouseType] = useState<"" | "local" | "regional" | "international">("")
+  const [deliveryCountryCodes, setDeliveryCountryCodes] = useState<string[]>([])
   const [processingTime, setProcessingTime] = useState("1")
   const [deliveryMin, setDeliveryMin] = useState("2")
   const [deliveryMax, setDeliveryMax] = useState("5")
@@ -510,6 +512,17 @@ export function SupplierAddProductForm({
       })
       .catch(() => undefined)
   }, [])
+
+  useEffect(() => {
+    if (!warehouseType) return
+    setDeliveryCountryCodes((prev) => {
+      if (prev.length > 0) return prev
+      return suggestDeliveryCountriesFromWarehouse({
+        warehouseType,
+        shippingCountry: shippingCountry.trim() || null,
+      })
+    })
+  }, [warehouseType, shippingCountry])
 
   useEffect(() => {
     if (variantFormMode !== "simple") return
@@ -1004,6 +1017,11 @@ export function SupplierAddProductForm({
       setChinaPlatform(typeof data.chinaPlatform === "string" ? data.chinaPlatform : "")
       const wt = String(data.warehouseType ?? "")
       setWarehouseType(wt === "local" || wt === "regional" || wt === "international" ? wt : "")
+      setDeliveryCountryCodes(
+        Array.isArray(data.deliveryCountryCodes)
+          ? (data.deliveryCountryCodes as unknown[]).filter((x): x is string => typeof x === "string")
+          : []
+      )
       setProcessingTime(String(data.processingTime ?? 1))
       setDeliveryMin(String(data.deliveryMin ?? 2))
       setDeliveryMax(String(data.deliveryMax ?? 5))
@@ -1363,6 +1381,7 @@ export function SupplierAddProductForm({
         categoryId: categoryId.trim(),
         shippingCountry: shippingCountry.trim().toUpperCase().slice(0, 2) || undefined,
         warehouseType: warehouseType || undefined,
+        deliveryCountryCodes,
         processingTime: Math.round(Number(processingTime) || 1),
         deliveryMin: Math.round(Number(deliveryMin) || 2),
         deliveryMax: Math.round(Number(deliveryMax) || 5),
@@ -1439,6 +1458,7 @@ export function SupplierAddProductForm({
       categoryId,
       shippingCountry,
       warehouseType,
+      deliveryCountryCodes,
       processingTime,
       deliveryMin,
       deliveryMax,
@@ -1488,6 +1508,7 @@ export function SupplierAddProductForm({
         ? c.warehouseType
         : ""
     )
+    setDeliveryCountryCodes(Array.isArray(c.deliveryCountryCodes) ? c.deliveryCountryCodes : [])
     setProcessingTime(c.processingTime)
     setDeliveryMin(c.deliveryMin)
     setDeliveryMax(c.deliveryMax)
@@ -1936,6 +1957,7 @@ export function SupplierAddProductForm({
         commission,
         shippingCountry,
         warehouseType,
+        deliveryCountryCodes,
         processingTime,
         deliveryMin,
         deliveryMax,
@@ -1994,6 +2016,7 @@ export function SupplierAddProductForm({
     stock,
     supplierTag,
     warehouseType,
+    deliveryCountryCodes,
     variantFormMode,
     variantSizesText,
     variantColorsText,
@@ -2524,6 +2547,7 @@ export function SupplierAddProductForm({
     simpleColorRows,
     offerModeAcknowledged,
     warehouseType,
+    deliveryCountryCodes,
   }
 
   const jumpBtnClass =
@@ -3468,6 +3492,27 @@ export function SupplierAddProductForm({
                   {publishBlockers.find((b) => b.field === "warehouseType")?.message ? (
                     <p className="mt-2 text-xs font-medium text-red-600 dark:text-red-400">
                       {publishBlockers.find((b) => b.field === "warehouseType")?.message}
+                    </p>
+                  ) : null}
+                </SectionCard>
+
+                <SectionCard
+                  id="add-product-delivery-countries"
+                  icon={Globe2}
+                  title={tForm("deliveryCountriesTitle")}
+                  description={tForm("deliveryCountriesDescription")}
+                  hasError={publishErrorFields.includes("deliveryCountries")}
+                >
+                  <SupplierDeliveryCountriesPicker
+                    value={deliveryCountryCodes}
+                    onChange={setDeliveryCountryCodes}
+                    shippingCountry={shippingCountry.trim() || undefined}
+                    locale={locale}
+                    hasError={hasPublishFieldError("deliveryCountries")}
+                  />
+                  {publishBlockers.find((b) => b.field === "deliveryCountries")?.message ? (
+                    <p className="mt-2 text-xs font-medium text-red-600 dark:text-red-400">
+                      {publishBlockers.find((b) => b.field === "deliveryCountries")?.message}
                     </p>
                   ) : null}
                 </SectionCard>

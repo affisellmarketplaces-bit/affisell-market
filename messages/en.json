@@ -664,7 +664,9 @@
       "warehouseZonePlaceholder": "Choose a zone",
       "warehouseZoneLocal": "Local (same country warehouse)",
       "warehouseZoneRegional": "Regional (EU / nearby)",
-      "warehouseZoneInternational": "International (worldwide shipping)"
+      "warehouseZoneInternational": "International (worldwide shipping)",
+      "deliveryCountriesTitle": "Delivery countries",
+      "deliveryCountriesDescription": "Required when publishing — buyers outside this list cannot checkout."
     },
     "descriptionField": {
       "label": "Description",
@@ -2082,6 +2084,7 @@
     "deliveryTo": "Delivery to {city}: {date}",
     "logistics": {
       "shipsFrom": "Ships from",
+      "deliversTo": "Delivers to",
       "zoneLabel": "Zone",
       "delivery": "Delivery",
       "supplierNote": "Declared by supplier — times are estimates.",

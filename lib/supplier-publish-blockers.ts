@@ -17,6 +17,7 @@ export type PublishFieldKey =
   | "variants"
   | "offerMode"
   | "warehouseType"
+  | "deliveryCountries"
 
 export type PublishBlocker = {
   field: PublishFieldKey
@@ -34,6 +35,7 @@ export const PUBLISH_FIELD_SCROLL_ID: Record<PublishFieldKey, string> = {
   variants: "add-product-variants",
   offerMode: "add-product-offer-mode",
   warehouseType: "add-product-shipping-zone",
+  deliveryCountries: "add-product-delivery-countries",
 }
 
 export function publishBlockerStep(field: PublishFieldKey): 1 | 2 | 3 {
@@ -66,6 +68,7 @@ export type CollectPublishContext = {
   simpleColorRows: { name: string }[]
   offerModeAcknowledged?: boolean
   warehouseType?: "" | "local" | "regional" | "international"
+  deliveryCountryCodes?: string[]
 }
 
 export function collectClientPublishBlockers(ctx: CollectPublishContext): PublishBlocker[] {
@@ -105,6 +108,13 @@ export function collectClientPublishBlockers(ctx: CollectPublishContext): Publis
       field: "warehouseType",
       message:
         "Indiquez la zone logistique (local, régional ou international) — obligatoire pour la publication.",
+    })
+  }
+  if (!ctx.deliveryCountryCodes?.length) {
+    out.push({
+      field: "deliveryCountries",
+      message:
+        "Sélectionnez au moins un pays de livraison (ou « Monde entier ») — obligatoire pour la publication.",
     })
   }
   if (ctx.variantFormMode === "advanced") {
@@ -170,6 +180,9 @@ function blockerFromMessage(message: string): PublishBlocker | null {
   if (m.includes("warehouse_type") || m.includes("zone logistique")) {
     return { field: "warehouseType", message }
   }
+  if (m.includes("delivery_countries") || m.includes("pays de livraison")) {
+    return { field: "deliveryCountries", message }
+  }
   if (m.includes("variant") || m.includes("sku") || m.includes("déclinaison")) {
     return { field: "variants", message }
   }
@@ -214,6 +227,8 @@ export function mapServerPublishBlockers(json: {
             ? "Vérification marchand requise — complétez votre dossier KYC sur /dashboard/verification avant de publier."
             : json.error === "warehouse_type_required"
               ? "Indiquez la zone logistique (local, régional ou international) — obligatoire pour la publication."
+              : json.error === "delivery_countries_required"
+                ? "Sélectionnez au moins un pays de livraison (ou « Monde entier ») — obligatoire pour la publication."
               : json.error === "affiliate_commission_required"
                 ? "Définissez la commission offerte aux affiliés sur chaque vente (> 0 %). La grille catégorie est indicative uniquement."
               : json.error

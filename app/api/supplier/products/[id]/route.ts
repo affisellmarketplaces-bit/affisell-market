@@ -23,7 +23,7 @@ import {
   resolveSupplierCatalogPriceCents,
 } from "@/lib/supplier-product-offer-mode"
 import { validateOfferModePublish } from "@/lib/product-offer-mode"
-import { parseSupplierProductShippingBody, validateWarehouseTypePublish } from "@/lib/supplier-product-shipping"
+import { parseSupplierProductShippingBody, validateDeliveryCountriesPublish, validateWarehouseTypePublish } from "@/lib/supplier-product-shipping"
 import { resolveSupplierProductImagesForSave } from "@/lib/supplier-product-images"
 import { parseListingKind } from "@/lib/supplier-commission"
 import {
@@ -280,6 +280,19 @@ export async function PUT(
     if (warehouseErr) {
       return Response.json({ error: warehouseErr }, { status: 400 })
     }
+    const deliveryCodesForPublish =
+      "deliveryCountryCodes" in rawBody
+        ? ship.deliveryCountryCodes
+        : (
+            await prisma.product.findUnique({
+              where: { id },
+              select: { deliveryCountryCodes: true },
+            })
+          )?.deliveryCountryCodes ?? []
+    const deliveryErr = validateDeliveryCountriesPublish(deliveryCodesForPublish)
+    if (deliveryErr) {
+      return Response.json({ error: deliveryErr }, { status: 400 })
+    }
   }
   const meta = parseProductMarketplaceMeta(body as unknown as Record<string, unknown>)
   const chinaImport =
@@ -480,6 +493,9 @@ export async function PUT(
         shippingCountry: ship.shippingCountry,
         warehouseType: ship.warehouseType,
         warehouseCity: ship.warehouseCity,
+        ...("deliveryCountryCodes" in rawBody
+          ? { deliveryCountryCodes: ship.deliveryCountryCodes }
+          : {}),
         processingTime: ship.processingTime,
         deliveryMin: ship.deliveryMin,
         deliveryMax: ship.deliveryMax,

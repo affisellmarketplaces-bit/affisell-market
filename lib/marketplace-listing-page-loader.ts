@@ -65,6 +65,7 @@ export const listingDetailSelect = {
       warehouseType: true,
       warehouseCity: true,
       shippingCountry: true,
+      deliveryCountryCodes: true,
       shipsFrom: true,
       freeShippingThreshold: true,
       videoAdUrl: true,

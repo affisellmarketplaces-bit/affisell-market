@@ -1,5 +1,6 @@
 import type { AppLocale } from "@/lib/i18n-locale"
 import { shippingCountryLabel } from "@/lib/product-shipping-display"
+import { formatDeliveryCountriesSummary } from "@/lib/supplier-delivery-countries"
 
 export type ListingLogisticsInput = {
   shippingCountryCode: string | null
@@ -9,6 +10,7 @@ export type ListingLogisticsInput = {
   shipsFromDisplay: string | null
   deliveryMin: number
   deliveryMax: number
+  deliveryCountriesSummary: string
 }
 
 export type WarehouseZoneKey = "local" | "regional" | "international"
@@ -51,11 +53,15 @@ export function buildListingLogisticsInput(input: {
   shipsFrom: string | null | undefined
   deliveryMin: number | null | undefined
   deliveryMax: number | null | undefined
+  deliveryCountryCodes?: string[] | null
+  locale?: AppLocale
 }): ListingLogisticsInput {
   const code =
     typeof input.shippingCountry === "string" && input.shippingCountry.trim()
       ? input.shippingCountry.trim().toUpperCase().slice(0, 2)
       : null
+  const locale = input.locale ?? "fr"
+  const deliveryCodes = Array.isArray(input.deliveryCountryCodes) ? input.deliveryCountryCodes : []
 
   return {
     shippingCountryCode: code,
@@ -65,5 +71,6 @@ export function buildListingLogisticsInput(input: {
     shipsFromDisplay: input.shipsFrom ?? null,
     deliveryMin: input.deliveryMin ?? 2,
     deliveryMax: input.deliveryMax ?? 5,
+    deliveryCountriesSummary: formatDeliveryCountriesSummary(deliveryCodes, locale),
   }
 }

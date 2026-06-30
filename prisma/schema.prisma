@@ -825,6 +825,11 @@ model Product {
   shippingCountry       String?
   warehouseType         String?
   warehouseCity         String?
+  /**
+   * ISO-2 destination countries the supplier delivers to.
+   * Empty = legacy heuristic (warehouse zone). `WORLDWIDE` = all checkout countries.
+   */
+  deliveryCountryCodes  String[] @default([])
   processingTime        Int      @default(1)
   deliveryMin           Int      @default(2)
   deliveryMax           Int      @default(5)

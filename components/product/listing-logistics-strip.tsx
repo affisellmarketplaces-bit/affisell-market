@@ -1,6 +1,6 @@
 "use client"
 
-import { Globe2, MapPin, Truck } from "lucide-react"
+import { Globe2, MapPin, PackageCheck, Truck } from "lucide-react"
 import { isUsMarket } from "@/lib/market-config"
 import { useLocale, useTranslations } from "next-intl"
 
@@ -42,13 +42,22 @@ export function ListingLogisticsStrip({ logistics, className, compact = false }:
         className
       )}
     >
-      <div className={cn("grid gap-2", compact ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3")}>
+      <div className={cn("grid gap-2", compact ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4")}>
         <div className="flex min-w-0 flex-col gap-1">
           <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             <MapPin className="size-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
             {t("shipsFrom")}
           </span>
           <span className="text-xs font-medium leading-snug text-zinc-900 dark:text-zinc-100">{shipsFrom}</span>
+        </div>
+        <div className="flex min-w-0 flex-col gap-1 border-l border-zinc-200/80 pl-2 dark:border-zinc-700">
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <PackageCheck className="size-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+            {t("deliversTo")}
+          </span>
+          <span className="text-xs font-medium leading-snug text-zinc-900 dark:text-zinc-100">
+            {logistics.deliveryCountriesSummary}
+          </span>
         </div>
         <div className="flex min-w-0 flex-col gap-1 border-l border-zinc-200/80 pl-2 dark:border-zinc-700">
           <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
@@ -60,7 +69,9 @@ export function ListingLogisticsStrip({ logistics, className, compact = false }:
         <div
           className={cn(
             "flex min-w-0 flex-col gap-1",
-            compact ? "col-span-2 border-t border-zinc-200/80 pt-2 dark:border-zinc-700" : "border-l border-zinc-200/80 pl-2 dark:border-zinc-700 max-sm:col-span-2 max-sm:border-l-0 max-sm:border-t max-sm:pt-2 max-sm:pl-0"
+            compact
+              ? "col-span-2 border-t border-zinc-200/80 pt-2 dark:border-zinc-700"
+              : "border-l border-zinc-200/80 pl-2 dark:border-zinc-700 max-sm:col-span-2 max-sm:border-l-0 max-sm:border-t max-sm:pt-2 max-sm:pl-0"
           )}
         >
           <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">

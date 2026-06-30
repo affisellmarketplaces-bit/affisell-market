@@ -1,6 +1,10 @@
 import type { Prisma } from "@prisma/client"
 
 import {
+  DELIVERY_WORLDWIDE,
+  productDeliversToCountry,
+} from "@/lib/supplier-delivery-countries"
+import {
   isEuMemberCountry,
   prismaProductShipsFromEuWhere,
   prismaProductShipsWorldwideWhere,
@@ -18,8 +22,16 @@ function flattenOr(where: Prisma.ProductWhereInput): Prisma.ProductWhereInput[] 
   return Array.isArray(or) ? or : [where]
 }
 
-/** Products that can realistically ship to a buyer country (ROW rollout filter). */
-export function prismaProductShipsToCountryWhere(
+/** Explicit supplier deliver-to list (phase 2). */
+export function prismaProductExplicitShipsToCountryWhere(countryIso2: string): Prisma.ProductWhereInput {
+  const code = countryIso2.toUpperCase()
+  return {
+    OR: [{ deliveryCountryCodes: { has: code } }, { deliveryCountryCodes: { has: DELIVERY_WORLDWIDE } }],
+  }
+}
+
+/** Legacy heuristic when `deliveryCountryCodes` is empty. */
+export function prismaProductLegacyShipsToCountryWhere(
   countryIso2: string,
   region: MarketRegion = MARKET_REGION
 ): Prisma.ProductWhereInput {
@@ -42,6 +54,25 @@ export function prismaProductShipsToCountryWhere(
   return { OR: parts }
 }
 
+/** Products that can ship to a buyer country (explicit list + legacy fallback). */
+export function prismaProductShipsToCountryWhere(
+  countryIso2: string,
+  region: MarketRegion = MARKET_REGION
+): Prisma.ProductWhereInput {
+  const code = countryIso2.toUpperCase()
+  return {
+    OR: [
+      prismaProductExplicitShipsToCountryWhere(code),
+      {
+        AND: [
+          { deliveryCountryCodes: { isEmpty: true } },
+          prismaProductLegacyShipsToCountryWhere(code, region),
+        ],
+      },
+    ],
+  }
+}
+
 export function marketplaceShipsToFilterWhere(
   shipsTo: string,
   region: MarketRegion = MARKET_REGION
@@ -50,3 +81,5 @@ export function marketplaceShipsToFilterWhere(
   if (!code) return null
   return prismaProductShipsToCountryWhere(code, region)
 }
+
+export { productDeliversToCountry }

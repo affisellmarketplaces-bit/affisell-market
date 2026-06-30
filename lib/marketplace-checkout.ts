@@ -37,6 +37,7 @@ import {
 import { stripeProductImages } from "@/lib/product-images"
 import { resolveCheckoutBaseUrl } from "@/lib/checkout-base-url"
 import { resolveStripeCheckoutAllowedCountries } from "@/lib/checkout-country-rollout"
+import { intersectProductDeliveryCountries } from "@/lib/supplier-delivery-countries"
 import {
   isDonationListing,
   parseProductOfferMode,
@@ -83,6 +84,14 @@ function checkoutBaseUrls(
       : defaultSuccess
 
   return { baseUrl, cancelPath, successPath }
+}
+
+async function resolveCheckoutShippingCountries(
+  products: ReadonlyArray<{ deliveryCountryCodes: string[] }>
+): Promise<string[]> {
+  const platform = await resolveStripeCheckoutAllowedCountries()
+  if (products.length === 0) return platform
+  return intersectProductDeliveryCountries(products, platform)
 }
 
 type CartLineInput = {
@@ -370,7 +379,13 @@ async function checkoutFromItems(
 
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(opts, request)
 
-  const allowedCountries = await resolveStripeCheckoutAllowedCountries()
+  const allowedCountries = await resolveCheckoutShippingCountries(
+    loaded.map((l) => ({ deliveryCountryCodes: l.listing.product.deliveryCountryCodes ?? [] }))
+  )
+  if (allowedCountries.length === 0) {
+    console.log("[checkout]", { flow: "cart", result: "delivery_destination_unavailable" })
+    return NextResponse.json({ error: "delivery_destination_unavailable" }, { status: 409 })
+  }
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
     ...marketplaceCheckoutPaymentSessionOptions(),
@@ -643,7 +658,17 @@ export async function marketplaceCheckoutPOST(request: Request) {
 
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(body, request)
 
-  const allowedCountries = await resolveStripeCheckoutAllowedCountries()
+  const allowedCountries = await resolveCheckoutShippingCountries([
+    { deliveryCountryCodes: product.deliveryCountryCodes ?? [] },
+  ])
+  if (allowedCountries.length === 0) {
+    console.log("[checkout]", {
+      flow: "single",
+      result: "delivery_destination_unavailable",
+      productId: product.id,
+    })
+    return NextResponse.json({ error: "delivery_destination_unavailable" }, { status: 409 })
+  }
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
     ...marketplaceCheckoutPaymentSessionOptions(),

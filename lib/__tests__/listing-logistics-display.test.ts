@@ -54,11 +54,13 @@ describe("listing-logistics-display", () => {
       shipsFrom: "EU",
       deliveryMin: null,
       deliveryMax: 7,
+      deliveryCountryCodes: ["FR"],
     })
     expect(input.shippingCountryCode).toBe("FR")
     expect(input.shippingCountryLabel).toBe("France")
     expect(input.deliveryMin).toBe(2)
     expect(input.deliveryMax).toBe(7)
+    expect(input.deliveryCountriesSummary).toBe("France")
     expect(input.shipsFromDisplay).toBe("EU")
   })
 })

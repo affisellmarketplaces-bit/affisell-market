@@ -1,6 +1,11 @@
 import { Prisma } from "@prisma/client"
 
 import { EU_MEMBER_SET as EU_COUNTRIES } from "@/lib/eu-market-countries"
+import {
+  DELIVERY_COUNTRIES_REQUIRED_ERROR,
+  parseDeliveryCountryCodes,
+  validateDeliveryCountriesForPublish,
+} from "@/lib/supplier-delivery-countries"
 
 const WAREHOUSE_TYPES = new Set(["local", "regional", "international"])
 const METHOD_KEYS = new Set(["standard", "express", "pickup"])
@@ -9,6 +14,7 @@ export type ParsedProductShipping = {
   shippingCountry: string | null
   warehouseType: string | null
   warehouseCity: string | null
+  deliveryCountryCodes: string[]
   processingTime: number
   deliveryMin: number
   deliveryMax: number
@@ -71,6 +77,7 @@ export function parseSupplierProductShippingBody(body: Record<string, unknown>):
     shippingCountry,
     warehouseType,
     warehouseCity,
+    deliveryCountryCodes: parseDeliveryCountryCodes(body.deliveryCountryCodes),
     processingTime,
     deliveryMin: dMin,
     deliveryMax: dMax,
@@ -86,4 +93,11 @@ export function validateWarehouseTypePublish(warehouseType: string | null): "war
   return null
 }
 
-export { EU_COUNTRIES }
+/** Publish gate — at least one deliver-to country (or worldwide). */
+export function validateDeliveryCountriesPublish(
+  deliveryCountryCodes: string[]
+): typeof DELIVERY_COUNTRIES_REQUIRED_ERROR | null {
+  return validateDeliveryCountriesForPublish(deliveryCountryCodes)
+}
+
+export { DELIVERY_COUNTRIES_REQUIRED_ERROR, EU_COUNTRIES }

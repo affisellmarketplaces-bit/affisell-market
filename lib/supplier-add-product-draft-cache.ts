@@ -40,6 +40,7 @@ export type SupplierAddProductCachePayload = {
   commission: string
   shippingCountry: string
   warehouseType: "" | "local" | "regional" | "international"
+  deliveryCountryCodes: string[]
   processingTime: string
   deliveryMin: string
   deliveryMax: string
