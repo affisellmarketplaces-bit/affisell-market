@@ -158,7 +158,11 @@
       "auctions": "Veiling Arena",
       "auctionsHint": "Live biedingen · futuristische drops",
       "luxe": "Affisell Luxe",
-      "luxeHint": "Gecurateerde luxe & collecties"
+      "luxeHint": "Gecurateerde luxe & collecties",
+      "bestSellers": "Best sellers",
+      "bestSellersHint": "Top 7 dagen · live kaartendeck",
+      "bestSellersBadge": "7d",
+      "bestSellersSold": "{count} verkocht"
     }
   },
   "creators": {

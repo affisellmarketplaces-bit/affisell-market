@@ -158,7 +158,11 @@
       "auctions": "拍卖场",
       "auctionsHint": "实时竞价 · 未来降落",
       "luxe": "Affisell Luxe",
-      "luxeHint": "精选奢侈品与收藏"
+      "luxeHint": "精选奢侈品与收藏",
+      "bestSellers": "热销榜",
+      "bestSellersHint": "7 日热卖 · 动态卡牌",
+      "bestSellersBadge": "7天",
+      "bestSellersSold": "已售 {count}"
     }
   },
   "creators": {

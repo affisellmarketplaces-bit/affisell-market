@@ -158,7 +158,11 @@
       "auctions": "Auction Arena",
       "auctionsHint": "Live bids · futuristic drops",
       "luxe": "Affisell Luxe",
-      "luxeHint": "Curated luxury & collections"
+      "luxeHint": "Curated luxury & collections",
+      "bestSellers": "Più venduti",
+      "bestSellersHint": "Top 7 giorni · mazzo live",
+      "bestSellersBadge": "7g",
+      "bestSellersSold": "{count} venduti"
     }
   },
   "creators": {

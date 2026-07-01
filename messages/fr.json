@@ -158,7 +158,11 @@
       "auctions": "Arène enchères",
       "auctionsHint": "Enchères en direct · lancements futuristes",
       "luxe": "Affisell Luxe",
-      "luxeHint": "Sélection luxe & collections"
+      "luxeHint": "Sélection luxe & collections",
+      "bestSellers": "Meilleures ventes",
+      "bestSellersHint": "Top 7 jours · jeu de cartes live",
+      "bestSellersBadge": "7j",
+      "bestSellersSold": "{count} vendus"
     }
   },
   "creators": {

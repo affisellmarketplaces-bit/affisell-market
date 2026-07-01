@@ -158,7 +158,11 @@
       "auctions": "Auction Arena",
       "auctionsHint": "Live bids · futuristic drops",
       "luxe": "Affisell Luxe",
-      "luxeHint": "Curated luxury & collections"
+      "luxeHint": "Curated luxury & collections",
+      "bestSellers": "Top sellers",
+      "bestSellersHint": "7-day hottest · live card deck",
+      "bestSellersBadge": "7d",
+      "bestSellersSold": "{count} sold"
     }
   },
   "creators": {

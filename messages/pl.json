@@ -158,7 +158,11 @@
       "auctions": "Arena Licytacji",
       "auctionsHint": "Liczne oferty · futurystyczne aukcje",
       "luxe": "Affisell Luxe",
-      "luxeHint": "Kuratorskie luksusy & kolekcje"
+      "luxeHint": "Kuratorskie luksusy & kolekcje",
+      "bestSellers": "Bestsellery",
+      "bestSellersHint": "Top 7 dni · talia kart na żywo",
+      "bestSellersBadge": "7d",
+      "bestSellersSold": "{count} sprzedanych"
     }
   },
   "creators": {

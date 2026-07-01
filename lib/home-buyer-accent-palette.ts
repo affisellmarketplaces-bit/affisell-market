@@ -50,4 +50,9 @@ export const BUYER_TILE_ACCENTS = {
     icon: "from-fuchsia-500 to-violet-600",
     card: "from-fuchsia-600 via-violet-700 to-indigo-950",
   },
+  bestSellers: {
+    glow: "from-amber-400/70 to-fuchsia-500/75",
+    icon: "from-amber-500 via-fuchsia-500 to-violet-600",
+    card: "from-amber-600 via-fuchsia-700 to-indigo-950",
+  },
 } as const satisfies Record<string, BuyerTileAccent>

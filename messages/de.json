@@ -158,7 +158,11 @@
       "auctions": "Auktionsarena",
       "auctionsHint": "Live-Bieten · futuristische Drops",
       "luxe": "Affisell Luxe",
-      "luxeHint": "Kuratierte Luxus- & Sammlungsstücke"
+      "luxeHint": "Kuratierte Luxus- & Sammlungsstücke",
+      "bestSellers": "Bestseller",
+      "bestSellersHint": "Top 7 Tage · Live-Kartendeck",
+      "bestSellersBadge": "7T",
+      "bestSellersSold": "{count} verkauft"
     }
   },
   "creators": {

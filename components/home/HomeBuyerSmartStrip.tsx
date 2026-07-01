@@ -1,10 +1,13 @@
 import { getTranslations } from "next-intl/server"
 
+import { HomeBuyerBestSellersDeck } from "@/components/home/home-buyer-best-sellers-deck"
 import { HomeBuyerFeaturedShopsTile } from "@/components/home/HomeBuyerFeaturedShopsTile"
 import { HomeBuyerPremiumRow } from "@/components/home/HomeBuyerPremiumRow"
 import { BuyerGlassTile } from "@/components/home/home-buyer-glass-tile"
 import { BUYER_SMART_SERVICES } from "@/lib/buyer-smart-services"
+import { buildBestSellerDeckCards } from "@/lib/home-best-seller-deck-shared"
 import { buildPremiumBuyerTiles } from "@/lib/home-buyer-premium-tiles"
+import { loadHomeBestSellers7dCached } from "@/lib/public-home-cache"
 import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-shared"
 
 type Props = {
@@ -16,6 +19,18 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
   const t = await getTranslations("home.buyerServices")
   const tPulse = await getTranslations("pulse")
   const tTrust = await getTranslations("home.trustHandoff")
+
+  const bestSellers = await loadHomeBestSellers7dCached(5)
+  const deckCards = buildBestSellerDeckCards(bestSellers, (count) =>
+    t("bestSellersSold", { count })
+  )
+  const bestSellersTile = {
+    cards: deckCards,
+    label: t("bestSellers"),
+    hint: t("bestSellersHint"),
+    badgeLabel: t("bestSellersBadge"),
+    fallbackHref: "/#explorer",
+  }
 
   const [agent, pulse, catalogue] = BUYER_SMART_SERVICES
   const agentTile = agent ? { ...agent, label: t("agent"), hint: t("agentHint") } : null
@@ -62,6 +77,7 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
             badgeLabel={t("featuredBadge")}
           />
           {catalogueTile ? <BuyerGlassTile {...catalogueTile} /> : null}
+          <HomeBuyerBestSellersDeck {...bestSellersTile} />
           {premiumTiles.map((tile) => (
             <BuyerGlassTile key={`m-${tile.href}`} {...tile} />
           ))}
@@ -86,7 +102,7 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
         />
         {catalogueTile ? <BuyerGlassTile {...catalogueTile} /> : null}
       </ul>
-      <HomeBuyerPremiumRow className="hidden md:grid" />
+      <HomeBuyerPremiumRow className="hidden md:grid" bestSellers={bestSellersTile} />
     </div>
   )
 }
