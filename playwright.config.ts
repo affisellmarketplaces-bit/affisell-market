@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test"
 
 const devPort = process.env.PORT ?? "3001"
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://127.0.0.1:${devPort}`
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${devPort}`
 const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER === "1"
 
 export default defineConfig({
@@ -32,6 +32,7 @@ export default defineConfig({
           ...process.env,
           /** Dev script skips port scan so `url` matches `baseURL` (default 3001). */
           PLAYWRIGHT_WEB_SERVER: "1",
+          E2E_PULSE_FIXTURES: "1",
           PORT: devPort,
         },
       },

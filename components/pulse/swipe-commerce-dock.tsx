@@ -62,6 +62,7 @@ function DockButton({
       disabled={disabled}
       onClick={onClick}
       aria-label={ariaLabel}
+      data-testid={direction ? `pulse-swipe-dock-${direction}` : "pulse-swipe-dock-undo"}
       className={cn(
         shell,
         "touch-manipulation",
@@ -118,6 +119,7 @@ export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }:
 
   return (
     <div
+      data-testid="pulse-swipe-dock"
       className={cn(
         affisellBrand.epoxyPanel,
         "affisell-swipe-dock affisell-swipe-dock-panel relative z-50 mx-auto w-full max-w-[380px] shrink-0 px-2 py-2 sm:px-4 sm:py-3",

@@ -268,7 +268,7 @@ export function BuyerSwipeCommerce({
   const commitSwipe = useCallback(
     async (direction: BuyerSwipeDirection) => {
       const item = deckRef.current[0]
-      if (!item || busy) return
+      if (!item) return
 
       pulseSwipeHaptic(direction === "right" ? "commit" : "tap")
       setBusy(true)
@@ -295,15 +295,7 @@ export function BuyerSwipeCommerce({
       advanceDeck(item.id)
       setBusy(false)
     },
-    [addToCart, advanceDeck, busy, buyNow, saveDrop, showToast]
-  )
-
-  const requestSwipe = useCallback(
-    (direction: BuyerSwipeDirection) => {
-      if (busy || deckRef.current.length === 0) return
-      topCardRef.current?.swipe(direction)
-    },
-    [busy]
+    [addToCart, advanceDeck, buyNow, saveDrop, showToast, t]
   )
 
   const handleUndo = useCallback(() => {
@@ -318,14 +310,15 @@ export function BuyerSwipeCommerce({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
-      if (e.key === "ArrowUp") requestSwipe("up")
-      if (e.key === "ArrowDown") requestSwipe("down")
-      if (e.key === "ArrowRight") requestSwipe("right")
-      if (e.key === "ArrowLeft") requestSwipe("left")
+      if (busy || deckRef.current.length === 0) return
+      if (e.key === "ArrowUp") void commitSwipe("up")
+      if (e.key === "ArrowDown") void commitSwipe("down")
+      if (e.key === "ArrowRight") void commitSwipe("right")
+      if (e.key === "ArrowLeft") void commitSwipe("left")
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [requestSwipe])
+  }, [busy, commitSwipe])
 
   const exitHref = categoryId
     ? `/?category=${encodeURIComponent(categoryId)}#explorer`
@@ -549,7 +542,9 @@ export function BuyerSwipeCommerce({
           busy={busy}
           deckEmpty={deck.length === 0}
           canUndo={skippedPool.length > 0}
-          onSwipe={requestSwipe}
+          onSwipe={(direction) => {
+            void commitSwipe(direction)
+          }}
           onUndo={handleUndo}
         />
       </main>

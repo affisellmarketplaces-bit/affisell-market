@@ -109,7 +109,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
   const skipOpacity = useTransform(x, [-90, -20], [1, 0])
 
   const flyOut = useCallback(
-    async (direction: BuyerSwipeDirection) => {
+    async (direction: BuyerSwipeDirection, opts?: { programmatic?: boolean }) => {
       if (exitingRef.current || !isTop) return
       exitingRef.current = true
 
@@ -123,6 +123,14 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
               : { x: 0, y: EXIT }
 
       onDragProgress?.({ x: 0, y: 0 })
+
+      if (opts?.programmatic) {
+        x.set(target.x)
+        y.set(target.y)
+        onSwipeComplete(direction)
+        return
+      }
+
       await Promise.all([
         animate(x, target.x, { type: "spring", stiffness: 460, damping: 34 }),
         animate(y, target.y, { type: "spring", stiffness: 460, damping: 34 }),
@@ -135,7 +143,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
 
   useImperativeHandle(ref, () => ({
     swipe: (direction) => {
-      void flyOut(direction)
+      void flyOut(direction, { programmatic: true })
     },
     reset: () => {
       exitingRef.current = false
@@ -193,6 +201,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
       animate={{ scale: stackScale, opacity: stackIndex === 0 ? 1 : 0.92 - stackIndex * 0.06 }}
     >
       <motion.div
+        data-testid={isTop ? "pulse-swipe-drag-surface" : undefined}
         className={cn("h-full touch-none select-none", isTop && "cursor-grab active:cursor-grabbing")}
         style={{ x: isTop ? x : 0, y: isTop ? y : 0, rotate: isTop ? rotate : 0 }}
         drag={isTop}
@@ -202,6 +211,9 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
         onDragEnd={handleDragEnd}
       >
         <article
+          data-testid="pulse-swipe-card"
+          data-listing-id={item.listingId ?? undefined}
+          data-product-id={item.productId}
           className={cn(
             affisellBrand.epoxySurface,
             "relative flex h-full flex-col overflow-hidden rounded-[1.35rem] sm:rounded-[1.75rem]"

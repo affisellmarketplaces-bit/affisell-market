@@ -3,6 +3,7 @@ import type { Session } from "next-auth"
 import { AffisellPulseExperience } from "@/components/pulse/affisell-pulse-experience"
 import { BuyerSwipeCommerce } from "@/components/pulse/buyer-swipe-commerce"
 import { loadBuyerSwipeFeedItems } from "@/lib/buyer-swipe-feed.server"
+import { e2ePulseSwipeFixtureItems, shouldUseE2ePulseFixtures } from "@/lib/e2e-pulse-swipe-fixtures"
 import { loadPulseFeedItems } from "@/lib/pulse-feed-data"
 import { prisma } from "@/lib/prisma"
 
@@ -18,6 +19,7 @@ type PageProps = {
     category?: string
     subcategory?: string
     layout?: string
+    e2eFixtures?: string
   }>
 }
 
@@ -39,6 +41,8 @@ export default async function DiscoverPage({ searchParams }: PageProps) {
   const feedParams = new URLSearchParams()
   if (categoryId) feedParams.set("category", categoryId)
   if (subcategoryId) feedParams.set("subcategory", subcategoryId)
+
+  const useE2eFixtures = shouldUseE2ePulseFixtures({ e2eFixtures: sp.e2eFixtures })
 
   let categoryLabel: string | null = null
   const scopeId = subcategoryId ?? categoryId
@@ -79,13 +83,17 @@ export default async function DiscoverPage({ searchParams }: PageProps) {
   }
 
   let items: Awaited<ReturnType<typeof loadBuyerSwipeFeedItems>> = []
-  try {
-    items = await loadBuyerSwipeFeedItems(feedParams, { limit: 24 })
-  } catch (e) {
-    console.error("[discover]", {
-      layout: "swipe",
-      error: e instanceof Error ? e.message : String(e),
-    })
+  if (useE2eFixtures) {
+    items = e2ePulseSwipeFixtureItems()
+  } else {
+    try {
+      items = await loadBuyerSwipeFeedItems(feedParams, { limit: 24 })
+    } catch (e) {
+      console.error("[discover]", {
+        layout: "swipe",
+        error: e instanceof Error ? e.message : String(e),
+      })
+    }
   }
 
   return (
