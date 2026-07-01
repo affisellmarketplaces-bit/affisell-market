@@ -2585,6 +2585,8 @@
       "legalTitle": "法律",
       "supportTitle": "支持",
       "paymentTitle": "安全支付",
+      "paymentMethodsAriaLabel": "Accepted payment methods",
+      "paymentProcessorHint": "Stripe · 3D Secure",
       "about": "关于",
       "howItWorks": "如何工作",
       "howSellingWorks": "如何卖东西",
