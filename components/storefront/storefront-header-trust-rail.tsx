@@ -5,11 +5,16 @@ import { useTranslations } from "next-intl"
 import type { CSSProperties, ReactNode } from "react"
 
 import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
+import {
+  isLightStorefrontHeader,
+  storefrontHeaderTrustRailStyle,
+} from "@/lib/storefront-header-chrome-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
   trust: StorefrontTrustSnapshot
   accent?: string
+  primary?: string
   isCustomDomain?: boolean
   variant?: "integrated" | "standalone"
   visual?: "default" | "futuristic"
@@ -24,18 +29,21 @@ function TrustChip({
   children,
   tone = "neutral",
   futuristic = false,
+  lightHeader = false,
   className,
 }: {
   children: ReactNode
   tone?: "neutral" | "accent" | "verified" | "secure"
   futuristic?: boolean
+  lightHeader?: boolean
   className?: string
 }) {
   if (futuristic) {
     return (
       <span
         className={cn(
-          "inline-flex shrink-0 items-center gap-1.5 text-xs uppercase tracking-widest text-zinc-500",
+          "inline-flex shrink-0 items-center gap-1.5 text-xs uppercase tracking-widest",
+          lightHeader ? "text-zinc-600" : "text-zinc-500",
           className
         )}
       >
@@ -67,6 +75,7 @@ function TrustChip({
 export function StorefrontHeaderTrustRail({
   trust,
   accent = "#7c3aed",
+  primary = "#18181b",
   isCustomDomain = false,
   variant = "integrated",
   visual = "default",
@@ -76,22 +85,25 @@ export function StorefrontHeaderTrustRail({
 
   const integrated = variant === "integrated"
   const futuristic = visual === "futuristic" && integrated
+  const lightHeader = futuristic && isLightStorefrontHeader(primary)
 
   return (
     <div
       className={cn(
         "affisell-storefront-trust-rail relative overflow-hidden",
         futuristic
-          ? "h-7 border-b border-white/5 bg-zinc-950/80 backdrop-blur-md text-zinc-500"
+          ? cn("h-7 border-b backdrop-blur-md", lightHeader ? "text-zinc-600" : "text-zinc-500")
           : integrated
             ? "border-t border-zinc-200/60 bg-gradient-to-r from-zinc-50/95 via-white/90 to-violet-50/50 dark:border-zinc-800/70 dark:from-zinc-950/95 dark:via-zinc-950/90 dark:to-violet-950/25"
             : "border-b border-zinc-200/80 bg-gradient-to-r from-violet-50/90 via-white to-emerald-50/70 dark:border-zinc-800 dark:from-violet-950/30 dark:via-zinc-950 dark:to-emerald-950/20",
         className
       )}
       style={
-        integrated && !futuristic
-          ? ({ "--store-trust-accent": accent } as CSSProperties)
-          : undefined
+        futuristic
+          ? storefrontHeaderTrustRailStyle(primary)
+          : integrated && !futuristic
+            ? ({ "--store-trust-accent": accent } as CSSProperties)
+            : undefined
       }
     >
       {!futuristic ? (
@@ -104,7 +116,10 @@ export function StorefrontHeaderTrustRail({
         </>
       ) : (
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent",
+            lightHeader ? "via-black/10" : "via-white/10"
+          )}
           aria-hidden
         />
       )}
@@ -119,10 +134,13 @@ export function StorefrontHeaderTrustRail({
         aria-label={t("headerTrustAria")}
       >
         {!isCustomDomain ? (
-          <TrustChip tone="accent" futuristic={futuristic}>
+          <TrustChip tone="accent" futuristic={futuristic} lightHeader={lightHeader}>
             {futuristic ? (
               <>
-                <Sparkles className="size-3 shrink-0 text-zinc-500" aria-hidden />
+                <Sparkles
+                  className={cn("size-3 shrink-0", lightHeader ? "text-zinc-500" : "text-zinc-500")}
+                  aria-hidden
+                />
                 <span>{t("poweredBy")}</span>
               </>
             ) : (
@@ -141,16 +159,22 @@ export function StorefrontHeaderTrustRail({
         {futuristic && !isCustomDomain ? <TrustSeparator /> : null}
 
         {trust.merchantVerified ? (
-          <TrustChip tone="verified" futuristic={futuristic}>
-            <BadgeCheck className={cn("size-3 shrink-0", futuristic ? "text-zinc-500" : "")} aria-hidden />
+          <TrustChip tone="verified" futuristic={futuristic} lightHeader={lightHeader}>
+            <BadgeCheck
+              className={cn("size-3 shrink-0", futuristic && (lightHeader ? "text-zinc-500" : "text-zinc-500"))}
+              aria-hidden
+            />
             <span className="hidden sm:inline">
               {isCustomDomain ? t("merchantVerified") : t("verifiedBy")}
             </span>
             <span className="sm:hidden">{t("verifiedShort")}</span>
           </TrustChip>
         ) : (
-          <TrustChip tone="secure" futuristic={futuristic}>
-            <ShieldCheck className={cn("size-3 shrink-0", futuristic ? "text-zinc-500" : "")} aria-hidden />
+          <TrustChip tone="secure" futuristic={futuristic} lightHeader={lightHeader}>
+            <ShieldCheck
+              className={cn("size-3 shrink-0", futuristic && (lightHeader ? "text-zinc-500" : "text-zinc-500"))}
+              aria-hidden
+            />
             <span className="hidden sm:inline">
               {isCustomDomain ? t("secureCheckout") : t("platformSecured")}
             </span>
