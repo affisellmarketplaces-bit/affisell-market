@@ -125,9 +125,9 @@ export function FooterMobileShell({ content }: Props) {
           <p className={footerHeroTitle}>{content.paymentTitle}</p>
           <PaymentMethodsStrip
             variant="footer"
+            showStripeLead
             ariaLabel={content.paymentMethodsAriaLabel}
-            processorHint={content.paymentProcessorHint}
-            showProcessorHint
+            processorSecureLabel={content.paymentProcessorSecure}
           />
           <p className="text-[11px] leading-snug text-violet-100/85">{content.stripeNoticeShort}</p>
         </div>

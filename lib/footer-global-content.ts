@@ -90,6 +90,7 @@ export function buildFooterGlobalContent(
     paymentTitle: t("paymentTitle"),
     paymentMethodsAriaLabel: t("paymentMethodsAriaLabel"),
     paymentProcessorHint: t("paymentProcessorHint"),
+    paymentProcessorSecure: t("paymentProcessorSecure"),
     vatNotice: t("vatNotice"),
     stripeNotice: t("stripeNotice"),
     stripeNoticeShort: t("stripeNoticeShort"),

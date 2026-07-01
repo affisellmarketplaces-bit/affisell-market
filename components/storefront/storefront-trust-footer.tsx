@@ -319,9 +319,9 @@ function StorefrontFooterDesktop({
               <p className={footerHeroTitle}>{tFooter("paymentTitle")}</p>
               <PaymentMethodsStrip
                 variant="footer"
-                showProcessorHint
+                showStripeLead
                 ariaLabel={tFooter("paymentMethodsAriaLabel")}
-                processorHint={tFooter("paymentProcessorHint")}
+                processorSecureLabel={tFooter("paymentProcessorSecure")}
               />
               <p className={footerHeroTagline}>{tFooter("stripeNotice")}</p>
               <p className="text-xs text-violet-100/70">{tFooter("vatNotice")}</p>
@@ -438,9 +438,9 @@ function StorefrontFooterMobile({
           <p className={footerHeroTitle}>{tFooter("paymentTitle")}</p>
           <PaymentMethodsStrip
             variant="footer"
-            showProcessorHint
+            showStripeLead
             ariaLabel={tFooter("paymentMethodsAriaLabel")}
-            processorHint={tFooter("paymentProcessorHint")}
+            processorSecureLabel={tFooter("paymentProcessorSecure")}
           />
           <p className="text-[11px] leading-snug text-violet-100/85">{tFooter("stripeNoticeShort")}</p>
         </div>

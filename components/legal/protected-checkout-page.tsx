@@ -51,9 +51,9 @@ export async function ProtectedCheckoutPage() {
           </h2>
           <PaymentMethodsStrip
             variant="light"
+            showStripeLead
             ariaLabel={tFooter("paymentMethodsAriaLabel")}
-            processorHint={tFooter("paymentProcessorHint")}
-            showProcessorHint
+            processorSecureLabel={tFooter("paymentProcessorSecure")}
           />
           <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{t("paymentBody")}</p>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">{t.rich("paymentHint", norms)}</p>
