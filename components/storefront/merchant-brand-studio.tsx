@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
+import { StorefrontHeaderColorPicker } from "@/components/storefront/storefront-header-color-picker"
 import { StorefrontLayoutControls } from "@/components/storefront/storefront-layout-controls"
 import { StorefrontLivePreview } from "@/components/storefront/storefront-live-preview"
 import { StorefrontLogoField } from "@/components/storefront/storefront-logo-field"
@@ -501,35 +502,23 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                 />
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label htmlFor="bs-primary" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    {t("primary")}
-                  </label>
-                  <input
-                    id="bs-primary"
-                    type="color"
-                    value={primaryHex}
-                    onChange={(e) => setPrimaryHex(e.target.value)}
-                    className="h-11 w-full cursor-pointer rounded-xl border border-gray-200"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="bs-accent" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    {t("accent")}
-                  </label>
-                  <input
-                    id="bs-accent"
-                    type="color"
-                    value={accent}
-                    onChange={(e) => setAccent(e.target.value)}
-                    className="h-11 w-full cursor-pointer rounded-xl border border-gray-200"
-                  />
-                </div>
+              <StorefrontHeaderColorPicker value={primaryHex} accent={accent} onChange={setPrimaryHex} />
+
+              <div className="space-y-2">
+                <label htmlFor="bs-accent" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  {t("accent")}
+                </label>
+                <input
+                  id="bs-accent"
+                  type="color"
+                  value={accent}
+                  onChange={(e) => setAccent(e.target.value)}
+                  className="h-11 w-full cursor-pointer rounded-xl border border-gray-200"
+                />
               </div>
 
               <div
-                className="h-20 rounded-2xl shadow-inner"
+                className="h-16 rounded-2xl shadow-inner"
                 style={{
                   background: `linear-gradient(120deg, ${primaryHex}, ${accent})`,
                 }}

@@ -6,6 +6,10 @@ import type { CSSProperties, ReactNode } from "react"
 
 import { CartCountBadge } from "@/components/cart/cart-count-badge"
 import { StorefrontHeaderTrustRail } from "@/components/storefront/storefront-header-trust-rail"
+import {
+  isLightStorefrontHeader,
+  storefrontHeaderShellStyle,
+} from "@/lib/storefront-header-chrome-shared"
 import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
 import type { StorefrontHeaderBrandAlign } from "@/lib/storefront-theme-shared"
@@ -41,6 +45,7 @@ function ChromeIconButton({
   expanded,
   controls,
   className,
+  lightHeader = false,
 }: {
   children: ReactNode
   label: string
@@ -50,11 +55,14 @@ function ChromeIconButton({
   expanded?: boolean
   controls?: string
   className?: string
+  lightHeader?: boolean
 }) {
   const shellClass = cn(
     "relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full touch-manipulation",
-    "bg-white/5 text-zinc-100 shadow-lg backdrop-blur-md",
-    "transition duration-200 hover:scale-105 hover:bg-white/10 active:scale-95",
+    lightHeader
+      ? "bg-black/[0.06] text-zinc-900 shadow-md backdrop-blur-md hover:bg-black/10"
+      : "bg-white/5 text-zinc-100 shadow-lg backdrop-blur-md hover:bg-white/10",
+    "transition duration-200 hover:scale-105 active:scale-95",
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-400/80",
     className
   )
@@ -128,6 +136,7 @@ export function StorefrontBuyerHeader({
   const displayName = storeName.trim() || "Store"
   const hasLogo = Boolean(logoUrl?.trim())
   const useBadgeStyle = nameBadge !== "classic"
+  const lightHeader = isLightStorefrontHeader(primary)
   void headerBrandAlign
   void useBadgeStyle
 
@@ -153,11 +162,15 @@ export function StorefrontBuyerHeader({
     <header
       className={cn(
         "affisell-storefront-chrome relative isolate overflow-hidden",
-        "sticky top-0 z-50 border-b border-white/10 bg-zinc-950/90 text-zinc-100 backdrop-blur-xl shadow-[0_1px_0_0_rgba(255,255,255,0.05)]",
+        "sticky top-0 z-50 border-b backdrop-blur-xl",
+        lightHeader
+          ? "text-zinc-900 shadow-[0_1px_0_0_rgba(0,0,0,0.06)]"
+          : "text-zinc-100 shadow-[0_1px_0_0_rgba(255,255,255,0.05)]",
         "pt-[env(safe-area-inset-top)]"
       )}
       style={
         {
+          ...storefrontHeaderShellStyle(primary, accent),
           "--site-header-offset": trust
             ? `calc(${compact ? "6.75rem" : "7.5rem"} + env(safe-area-inset-top))`
             : `calc(${compact ? "3.25rem" : "3.75rem"} + env(safe-area-inset-top))`,
@@ -165,11 +178,14 @@ export function StorefrontBuyerHeader({
       }
     >
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_-30%,rgba(124,58,237,0.14),transparent_58%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_-30%,var(--store-header-accent-glow),transparent_58%)]"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent"
+        className={cn(
+          "pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent",
+          lightHeader ? "via-black/10" : "via-white/15"
+        )}
         aria-hidden
       />
 
@@ -187,6 +203,7 @@ export function StorefrontBuyerHeader({
           expanded={menuExpanded}
           controls={menuControlsId}
           className="relative z-30"
+          lightHeader={lightHeader}
         >
           <Menu className="size-5" aria-hidden />
         </ChromeIconButton>
@@ -205,12 +222,23 @@ export function StorefrontBuyerHeader({
           href={shopHomePath}
           className="pointer-events-none absolute inset-y-0 left-12 right-12 z-20 flex items-center justify-center sm:left-14 sm:right-14"
         >
-          <span className="pointer-events-auto max-w-[min(72vw,16rem)] truncate text-sm font-medium uppercase tracking-[0.2em] text-zinc-100">
+          <span
+            className={cn(
+              "pointer-events-auto max-w-[min(72vw,16rem)] truncate text-sm font-medium uppercase tracking-[0.2em]",
+              lightHeader ? "text-zinc-900" : "text-zinc-100"
+            )}
+          >
             {displayName}
           </span>
         </Link>
 
-        <ChromeIconButton label={cartLabel} href="/cart" accent={accent} className="relative z-30">
+        <ChromeIconButton
+          label={cartLabel}
+          href="/cart"
+          accent={accent}
+          className="relative z-30"
+          lightHeader={lightHeader}
+        >
           <ShoppingBag className="size-5" aria-hidden />
           <CartCountBadge count={cartCount} size="sm" />
         </ChromeIconButton>
@@ -221,6 +249,7 @@ export function StorefrontBuyerHeader({
         <StorefrontHeaderTrustRail
           trust={trust}
           accent={accent}
+          primary={primary}
           isCustomDomain={isCustomDomain}
           variant="integrated"
           visual="futuristic"
