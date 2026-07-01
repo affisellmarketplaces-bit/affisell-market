@@ -1,11 +1,13 @@
 import { getTranslations } from "next-intl/server"
 
 import { HomeBuyerBestSellersDeck } from "@/components/home/home-buyer-best-sellers-deck"
-import { HomeBuyerFeaturedShopsTile } from "@/components/home/HomeBuyerFeaturedShopsTile"
+import { HomeBuyerFeaturedShopsDeck } from "@/components/home/home-buyer-featured-shops-deck"
 import { HomeBuyerPremiumRow } from "@/components/home/HomeBuyerPremiumRow"
 import { BuyerGlassTile } from "@/components/home/home-buyer-glass-tile"
+import { PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
 import { BUYER_SMART_SERVICES } from "@/lib/buyer-smart-services"
 import { buildBestSellerDeckCards } from "@/lib/home-best-seller-deck-shared"
+import { buildFeaturedShopDeckCards } from "@/lib/home-featured-shops-deck-shared"
 import { buildPremiumBuyerTiles } from "@/lib/home-buyer-premium-tiles"
 import { loadHomeBestSellers7dCached } from "@/lib/public-home-cache"
 import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-shared"
@@ -30,6 +32,19 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
     hint: t("bestSellersHint"),
     badgeLabel: t("bestSellersBadge"),
     fallbackHref: "/#explorer",
+  }
+
+  const featuredShopCards = buildFeaturedShopDeckCards(featuredShops.slice(0, 5), {
+    rating: (rating) => t("featuredShopRating", { rating }),
+    orders: (count) => t("featuredShopOrders", { count }),
+    fromPrice: (price) => t("featuredShopFromPrice", { price }),
+  })
+  const featuredShopsTile = {
+    cards: featuredShopCards,
+    label: t("featured"),
+    hint: t("featuredHint"),
+    badgeLabel: t("featuredBadge"),
+    fallbackHref: PUBLIC_SHOPS_PATH,
   }
 
   const [agent, pulse, catalogue] = BUYER_SMART_SERVICES
@@ -70,12 +85,7 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
               liveLabel={pulseTile.liveLabel}
             />
           ) : null}
-          <HomeBuyerFeaturedShopsTile
-            shops={featuredShops}
-            label={t("featured")}
-            hint={t("featuredHint")}
-            badgeLabel={t("featuredBadge")}
-          />
+          <HomeBuyerFeaturedShopsDeck {...featuredShopsTile} />
           {catalogueTile ? <BuyerGlassTile {...catalogueTile} /> : null}
           <HomeBuyerBestSellersDeck {...bestSellersTile} />
           {premiumTiles.map((tile) => (
@@ -94,12 +104,7 @@ export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
             liveLabel={pulseTile.liveLabel}
           />
         ) : null}
-        <HomeBuyerFeaturedShopsTile
-          shops={featuredShops}
-          label={t("featured")}
-          hint={t("featuredHint")}
-          badgeLabel={t("featuredBadge")}
-        />
+        <HomeBuyerFeaturedShopsDeck {...featuredShopsTile} />
         {catalogueTile ? <BuyerGlassTile {...catalogueTile} /> : null}
       </ul>
       <HomeBuyerPremiumRow className="hidden md:grid" bestSellers={bestSellersTile} />
