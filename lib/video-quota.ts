@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 
 import { prisma } from "@/lib/prisma"
-import { FREE_VIDEO_LIMIT, isVideoPaywallDisabled } from "@/lib/video-quota-constants"
+import { FREE_VIDEO_LIMIT, isVideoPaywallDisabled, isVideoPaywallFounderPaused } from "@/lib/video-quota-constants"
 
-export { FREE_VIDEO_LIMIT, isVideoPaywallDisabled } from "@/lib/video-quota-constants"
+export { FREE_VIDEO_LIMIT, isVideoPaywallDisabled, isVideoPaywallFounderPaused } from "@/lib/video-quota-constants"
 
 export type VideoQuotaSnapshot = {
   videoCount: number
@@ -12,10 +12,13 @@ export type VideoQuotaSnapshot = {
   remaining: number
   /** True when VIDEO_PAYWALL_DISABLED bypasses the free tier (not a paid Pro subscription). */
   paywallBypass: boolean
+  /** True when founder pause keeps unlimited free tier (VIDEO_PAYWALL_PAUSED default). */
+  paywallPaused: boolean
 }
 
 export function quotaSnapshot(user: { videoCount: number; isPro: boolean }): VideoQuotaSnapshot {
   const bypass = isVideoPaywallDisabled()
+  const paywallPaused = isVideoPaywallFounderPaused()
   if (user.isPro || bypass) {
     return {
       videoCount: user.videoCount,
@@ -23,6 +26,7 @@ export function quotaSnapshot(user: { videoCount: number; isPro: boolean }): Vid
       isPro: user.isPro,
       remaining: Number.MAX_SAFE_INTEGER,
       paywallBypass: bypass && !user.isPro,
+      paywallPaused,
     }
   }
   return {
@@ -31,6 +35,7 @@ export function quotaSnapshot(user: { videoCount: number; isPro: boolean }): Vid
     isPro: false,
     remaining: Math.max(0, FREE_VIDEO_LIMIT - user.videoCount),
     paywallBypass: false,
+    paywallPaused,
   }
 }
 

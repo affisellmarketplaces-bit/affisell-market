@@ -38,6 +38,7 @@ import { ListingLogisticsStrip } from "@/components/product/listing-logistics-st
 import type { ListingLogisticsInput } from "@/lib/listing-logistics-display"
 import type { OfferModeBadge } from "@/lib/product-offer-mode"
 import { ProductVideoPlayer } from "@/components/product/product-video-player"
+import { requestPriceAlertPushSubscription } from "@/components/push/request-price-alert-push"
 import { ProductVideoWishlistOverlay } from "@/components/product/product-video-wishlist-overlay"
 import { DescriptionRichContent } from "@/components/product/description-rich-content"
 import { descriptionHasImageMarkers } from "@/lib/description-rich-content"
@@ -855,7 +856,15 @@ export function MarketplaceListingDetail({
       body: JSON.stringify({ productId, targetPrice: target }),
       credentials: "include",
     })
-    if (res.ok) setAlertSaved(true)
+    if (!res.ok) return
+    setAlertSaved(true)
+    const push = await requestPriceAlertPushSubscription()
+    if (push === "granted") {
+      const { toast } = await import("sonner")
+      toast.success(productT.priceAlertSavedSub, {
+        description: locale === "fr" ? "Notifications push activées" : "Push notifications enabled",
+      })
+    }
   }
 
   return (

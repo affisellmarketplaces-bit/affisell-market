@@ -57,6 +57,8 @@ export function UpgradeToast({ upgrade, sessionId }: Props) {
           const res = await fetch("/api/stripe/create-checkout", {
             method: "POST",
             credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ returnPath: pathname }),
           })
           const data = (await res.json()) as { url?: string; error?: string }
           if (!res.ok || !data.url) {

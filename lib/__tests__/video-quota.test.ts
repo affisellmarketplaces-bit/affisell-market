@@ -38,6 +38,7 @@ describe("video quota", () => {
     expect(snap.remaining).toBe(1)
     expect(snap.videoLimit).toBe(FREE_VIDEO_LIMIT)
     expect(snap.paywallBypass).toBe(false)
+    expect(snap.paywallPaused).toBe(false)
   })
 
   it("bypasses paywall when founder pause is default (no env)", () => {
@@ -45,6 +46,7 @@ describe("video quota", () => {
     expect(isQuotaExceeded({ videoCount: 99, isPro: false })).toBe(false)
     const snap = quotaSnapshot({ videoCount: 99, isPro: false })
     expect(snap.paywallBypass).toBe(true)
+    expect(snap.paywallPaused).toBe(true)
     expect(snap.remaining).toBe(Number.MAX_SAFE_INTEGER)
   })
 

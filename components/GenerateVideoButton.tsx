@@ -39,6 +39,7 @@ export type VideoQuotaInfo = {
   remaining: number
   isPro: boolean
   paywallBypass?: boolean
+  paywallPaused?: boolean
   /** @deprecated use videoCount */
   videoQuota?: number
   /** @deprecated use videoCount */
@@ -128,6 +129,8 @@ export function GenerateVideoButton({
       const res = await fetch("/api/stripe/create-checkout", {
         method: "POST",
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ returnPath: pathname }),
       })
       const data = (await res.json()) as { url?: string; error?: string }
       if (!res.ok || !data.url) {
@@ -146,6 +149,7 @@ export function GenerateVideoButton({
     remaining?: number
     isPro?: boolean
     paywallBypass?: boolean
+    paywallPaused?: boolean
     videoUsed?: number
     videoQuota?: number
   }) {
@@ -159,6 +163,7 @@ export function GenerateVideoButton({
       remaining,
       isPro: Boolean(data.isPro),
       paywallBypass: Boolean(data.paywallBypass),
+      paywallPaused: Boolean(data.paywallPaused),
     })
     setPaywall(!data.paywallBypass && !data.isPro && remaining <= 0)
   }
@@ -264,17 +269,21 @@ export function GenerateVideoButton({
     <div className={cn("space-y-4", className)}>
       <p className="text-sm text-muted-foreground">
         {quota.paywallBypass ? (
-          <span className="font-medium text-amber-800 dark:text-amber-300">
-            Mode test — générations illimitées
-          </span>
+          quota.paywallPaused ? (
+            <span className="font-medium text-amber-800 dark:text-amber-300">
+              Mode test — générations illimitées
+            </span>
+          ) : (
+            <span className="font-medium text-amber-800 dark:text-amber-300">
+              Bypass interne — générations illimitées
+            </span>
+          )
         ) : quota.isPro ? (
           <span className="font-medium text-violet-700 dark:text-violet-300">Pro — vidéos illimitées</span>
         ) : (
           <>
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              {Math.max(0, FREE_VIDEO_LIMIT - quota.videoCount)}
-            </span>
-            /{FREE_VIDEO_LIMIT} vidéos restantes
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">{quota.remaining}</span>
+            /{FREE_VIDEO_LIMIT} vidéos restantes · Pro débloque l&apos;illimité
           </>
         )}
       </p>

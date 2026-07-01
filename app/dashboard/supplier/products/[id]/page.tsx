@@ -71,7 +71,9 @@ export default async function SupplierProductVideoPage({
           </p>
         ) : snapshot.paywallBypass ? (
           <p className="mt-2 text-sm font-medium text-amber-800 dark:text-amber-300">
-            Mode test — générations vidéo illimitées (paywall désactivé)
+            {snapshot.paywallPaused
+              ? "Mode test — générations vidéo illimitées (paywall en pause)"
+              : "Bypass interne — générations vidéo illimitées"}
           </p>
         ) : null}
 
@@ -112,6 +114,7 @@ export default async function SupplierProductVideoPage({
             remaining: snapshot.remaining,
             isPro: snapshot.isPro,
             paywallBypass: snapshot.paywallBypass,
+            paywallPaused: snapshot.paywallPaused,
           }}
           initialVideoUrl={productVideo?.videoUrl ?? null}
           initialStyle={productVideo?.style ?? null}

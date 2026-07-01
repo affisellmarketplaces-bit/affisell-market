@@ -3,15 +3,24 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { appBaseUrl } from "@/lib/app-base-url"
 import { getStripeClient } from "@/lib/stripe"
+import { sanitizeVideoProReturnPath } from "@/lib/video-paywall-return-path"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-export async function POST() {
+export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+  }
+
+  let returnPath: string | null = null
+  try {
+    const body = (await req.json()) as { returnPath?: unknown }
+    returnPath = sanitizeVideoProReturnPath(body.returnPath)
+  } catch {
+    /* empty body — legacy clients */
   }
 
   const priceId = process.env.STRIPE_PRO_PRICE_ID?.trim()
@@ -40,6 +49,7 @@ export async function POST() {
 
   const stripe = getStripeClient()
   const base = appBaseUrl()
+  const returnTo = returnPath ?? "/dashboard/supplier"
 
   let customerId = user.stripeCustomerId
   if (!customerId) {
@@ -60,8 +70,8 @@ export async function POST() {
       mode: "subscription",
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${base}/supplier/dashboard?upgrade=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${base}/supplier/products?upgrade=cancelled`,
+      success_url: `${base}${returnTo}?upgrade=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${base}${returnTo}?upgrade=cancelled`,
       metadata: { userId: user.id, plan: "pro" },
       subscription_data: {
         metadata: { userId: user.id, plan: "pro" },

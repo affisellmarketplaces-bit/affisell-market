@@ -119,6 +119,7 @@ model User {
   storeFollowRelations Follow[]           @relation("UserFollowsStore")
   searchHistory        SearchHistory[]
   wishlists            Wishlist[]
+  pushSubscriptions    PushSubscription[]
   auctionBids          AuctionBid[]
   bookingWaitlist      BookingWaitlist[]
 
@@ -1261,6 +1262,21 @@ model Wishlist {
   @@unique([userId, productId])
   @@index([userId, updatedAt])
   @@index([productId, updatedAt])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  /** Web Push endpoint URL (unique per browser install). */
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 /**

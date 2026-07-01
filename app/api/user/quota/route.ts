@@ -23,5 +23,6 @@ export async function GET() {
     remaining: snapshot.remaining,
     isPro: snapshot.isPro,
     paywallBypass: snapshot.paywallBypass,
+    paywallPaused: snapshot.paywallPaused,
   })
 }

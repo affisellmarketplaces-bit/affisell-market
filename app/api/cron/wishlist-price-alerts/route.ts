@@ -1,21 +1,18 @@
-import { Resend } from "resend"
+import { NextResponse } from "next/server"
 
 import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
-import {
-  readResendDeliveryConfig,
-  resolveResendDeliveryRecipient,
-} from "@/lib/emails/resend-delivery"
+import { sendWishlistPriceAlertEmail } from "@/lib/emails/send-wishlist-price-alert"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
+import { sendPriceDropPushToUser } from "@/lib/web-push-send"
+import {
+  evaluateWishlistPriceAlert,
+  formatWishlistPriceEur,
+  wishlistListingUrl,
+} from "@/lib/wishlist-price-alert"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
-
-
-function dropPercent(current: number, previous: number | null): number {
-  if (!previous || previous <= 0 || current >= previous) return 0
-  return Math.max(1, Math.round(((previous - current) / previous) * 100))
-}
 
 export async function GET(req: Request) {
   const denied = authorizeCronRequest(req)
@@ -24,7 +21,7 @@ export async function GET(req: Request) {
   const rows = await prisma.wishlist.findMany({
     take: 500,
     include: {
-      user: { select: { email: true, name: true } },
+      user: { select: { id: true, email: true, name: true } },
       product: {
         select: {
           id: true,
@@ -40,37 +37,46 @@ export async function GET(req: Request) {
     },
   })
 
-  const resendConfig = readResendDeliveryConfig()
-  const resend = resendConfig ? new Resend(resendConfig.apiKey) : null
   let emailsSent = 0
+  let pushesSent = 0
   let updates = 0
 
   for (const w of rows) {
     const listing = w.product.affiliateProducts[0]
     if (!listing) continue
-    const current = listing.sellingPriceCents
-    const sinceYesterday = dropPercent(current, w.previousPriceCents)
-    const reachedTarget = w.targetPriceCents != null && current <= w.targetPriceCents
-    const shouldAlert = sinceYesterday > 0 || reachedTarget
 
-    if (shouldAlert && resend && resendConfig && w.user.email) {
-      const pct = sinceYesterday > 0 ? ` (-${sinceYesterday}% depuis hier)` : ""
-      const targetLine =
-        w.targetPriceCents != null
-          ? `<p>Votre prix cible: <strong>${(w.targetPriceCents / 100).toFixed(2)} EUR</strong></p>`
-          : ""
-      const { to } = resolveResendDeliveryRecipient("wishlist-price-alert", w.user.email, resendConfig)
-      await resend.emails.send({
-        from: resendConfig.from,
-        to,
-        subject: `Baisse de prix: ${w.product.name}`,
-        html: `<p>Bonjour ${w.user.name?.trim() || ""},</p>
-<p>Le produit <strong>${w.product.name}</strong> a baissé${pct}.</p>
-<p>Prix actuel: <strong>${(current / 100).toFixed(2)} EUR</strong></p>
-${targetLine}
-<p><a href="${process.env.NEXT_PUBLIC_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001"}/marketplace/${listing.id}">Voir le produit</a></p>`,
+    const current = listing.sellingPriceCents
+    const evaluation = evaluateWishlistPriceAlert({
+      currentPriceCents: current,
+      previousPriceCents: w.previousPriceCents,
+      targetPriceCents: w.targetPriceCents,
+    })
+
+    if (evaluation.shouldAlert) {
+      const listingUrl = wishlistListingUrl(listing.id)
+      const currentPriceLabel = formatWishlistPriceEur(current)
+
+      if (w.user.email) {
+        const emailed = await sendWishlistPriceAlertEmail({
+          toEmail: w.user.email,
+          customerName: w.user.name?.trim() || "",
+          productName: w.product.name,
+          listingUrl,
+          currentPriceCents: current,
+          targetPriceCents: w.targetPriceCents,
+          evaluation,
+        })
+        if (emailed) emailsSent++
+      }
+
+      const pushCount = await sendPriceDropPushToUser({
+        userId: w.user.id,
+        productName: w.product.name,
+        listingUrl,
+        currentPriceLabel,
+        dropPercent: evaluation.dropPercent,
       })
-      emailsSent++
+      pushesSent += pushCount
     }
 
     await prisma.wishlist.update({
@@ -80,5 +86,6 @@ ${targetLine}
     updates++
   }
 
-  return Response.json({ ok: true, updates, emailsSent })
+  console.log("[wishlist-price-alerts]", { updates, emailsSent, pushesSent })
+  return NextResponse.json({ ok: true, updates, emailsSent, pushesSent })
 }
