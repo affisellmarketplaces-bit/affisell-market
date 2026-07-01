@@ -1908,6 +1908,48 @@
           "cta": {
             "label": "Discover CTA",
             "desc": "Invite buyers to explore Affisell."
+          },
+          "bestsellers": {
+            "label": "畅销榜",
+            "desc": "横向展示店铺热销商品。"
+          },
+          "social-proof": {
+            "label": "社会证明",
+            "desc": "买家评价与信任数据。"
+          },
+          "newsletter": {
+            "label": "邮件订阅",
+            "desc": "收集邮箱以便通知补货与上新。"
+          }
+        },
+        "phase3Hint": "点击铅笔图标可自定义每个已启用区块的文案。",
+        "editContent": "编辑{section}内容",
+        "content": {
+          "title": "区块文案",
+          "resetHint": "留空则使用店铺默认文案。",
+          "fields": {
+            "eyebrow": "Eyebrow",
+            "title": "Title",
+            "body": "Body",
+            "buttonLabel": "Button label",
+            "buttonHref": "Button link",
+            "placeholder": "Email placeholder",
+            "quote": "Quote",
+            "author": "Author",
+            "stat": "Stat line",
+            "productLimit": "Product count (4–8)"
+          },
+          "placeholders": {
+            "eyebrow": "Optional label above title",
+            "title": "Headline",
+            "body": "Paragraph text",
+            "buttonLabel": "Shop now",
+            "buttonHref": "/discover",
+            "placeholder": "you@example.com",
+            "quote": "What buyers say about this store",
+            "author": "Happy customer",
+            "stat": "500+ orders",
+            "productLimit": "4"
           }
         }
       },
@@ -1949,7 +1991,19 @@
       "ctaEyebrow": "Explore Affisell",
       "ctaTitle": "Discover more creators",
       "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
-      "ctaButton": "Browse marketplace"
+      "ctaButton": "Browse marketplace",
+      "bestsellersEyebrow": "畅销榜",
+      "bestsellersTitle": "顾客最爱",
+      "bestsellersHint": "本店最受欢迎的商品。",
+      "socialProofQuote": "品质好、发货快——正是我对这位创作者店铺的期待。",
+      "socialProofAuthor": "已验证买家",
+      "socialProofStat": "500+ 满意顾客",
+      "newsletterTitle": "抢先获知上新",
+      "newsletterBody": "留下邮箱，获取补货与专属优惠通知。",
+      "newsletterPlaceholder": "you@example.com",
+      "newsletterButton": "订阅",
+      "newsletterSuccess": "订阅成功——请留意收件箱。",
+      "newsletterDisclaimer": "无垃圾邮件——随时可退订。"
     },
     "buyerChrome": {
       "openCategories": "Browse categories",

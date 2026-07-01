@@ -1908,6 +1908,48 @@
           "cta": {
             "label": "Discover CTA",
             "desc": "Invite buyers to explore Affisell."
+          },
+          "bestsellers": {
+            "label": "Bestsellers",
+            "desc": "Horizontale rail van topproducten."
+          },
+          "social-proof": {
+            "label": "Social proof",
+            "desc": "Getuigenis en vertrouwensstat."
+          },
+          "newsletter": {
+            "label": "Nieuwsbrief",
+            "desc": "E-mail capture voor drops."
+          }
+        },
+        "phase3Hint": "Tik op het potlood om tekst per actieve sectie aan te passen.",
+        "editContent": "Inhoud {section} bewerken",
+        "content": {
+          "title": "Sectietekst",
+          "resetHint": "Leeg laten voor standaardteksten.",
+          "fields": {
+            "eyebrow": "Eyebrow",
+            "title": "Title",
+            "body": "Body",
+            "buttonLabel": "Button label",
+            "buttonHref": "Button link",
+            "placeholder": "Email placeholder",
+            "quote": "Quote",
+            "author": "Author",
+            "stat": "Stat line",
+            "productLimit": "Product count (4–8)"
+          },
+          "placeholders": {
+            "eyebrow": "Optional label above title",
+            "title": "Headline",
+            "body": "Paragraph text",
+            "buttonLabel": "Shop now",
+            "buttonHref": "/discover",
+            "placeholder": "you@example.com",
+            "quote": "What buyers say about this store",
+            "author": "Happy customer",
+            "stat": "500+ orders",
+            "productLimit": "4"
           }
         }
       },
@@ -1949,7 +1991,19 @@
       "ctaEyebrow": "Explore Affisell",
       "ctaTitle": "Discover more creators",
       "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
-      "ctaButton": "Browse marketplace"
+      "ctaButton": "Browse marketplace",
+      "bestsellersEyebrow": "Bestsellers",
+      "bestsellersTitle": "Klantfavorieten",
+      "bestsellersHint": "Populairste producten van deze winkel.",
+      "socialProofQuote": "Kwaliteitsproducten en snelle levering — precies wat ik verwachtte.",
+      "socialProofAuthor": "Geverifieerde koper",
+      "socialProofStat": "500+ tevreden klanten",
+      "newsletterTitle": "Drops als eerste",
+      "newsletterBody": "Laat je e-mail voor restocks en exclusieve aanbiedingen.",
+      "newsletterPlaceholder": "jij@voorbeeld.nl",
+      "newsletterButton": "Inschrijven",
+      "newsletterSuccess": "Je staat op de lijst.",
+      "newsletterDisclaimer": "Geen spam — altijd uitschrijven."
     },
     "buyerChrome": {
       "openCategories": "Browse categories",

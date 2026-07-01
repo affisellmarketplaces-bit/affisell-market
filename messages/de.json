@@ -1908,6 +1908,48 @@
           "cta": {
             "label": "Discover CTA",
             "desc": "Invite buyers to explore Affisell."
+          },
+          "bestsellers": {
+            "label": "Bestseller",
+            "desc": "Horizontales Rail deiner Top-Produkte."
+          },
+          "social-proof": {
+            "label": "Social Proof",
+            "desc": "Testimonial und Vertrauensstat."
+          },
+          "newsletter": {
+            "label": "Newsletter",
+            "desc": "E-Mail-Erfassung für Drops."
+          }
+        },
+        "phase3Hint": "Stift-Symbol tippen, um Text pro aktivierter Sektion anzupassen.",
+        "editContent": "{section} Inhalt bearbeiten",
+        "content": {
+          "title": "Sektionstext",
+          "resetHint": "Leer lassen für Standardtexte.",
+          "fields": {
+            "eyebrow": "Eyebrow",
+            "title": "Title",
+            "body": "Body",
+            "buttonLabel": "Button label",
+            "buttonHref": "Button link",
+            "placeholder": "Email placeholder",
+            "quote": "Quote",
+            "author": "Author",
+            "stat": "Stat line",
+            "productLimit": "Product count (4–8)"
+          },
+          "placeholders": {
+            "eyebrow": "Optional label above title",
+            "title": "Headline",
+            "body": "Paragraph text",
+            "buttonLabel": "Shop now",
+            "buttonHref": "/discover",
+            "placeholder": "you@example.com",
+            "quote": "What buyers say about this store",
+            "author": "Happy customer",
+            "stat": "500+ orders",
+            "productLimit": "4"
           }
         }
       },
@@ -1949,7 +1991,19 @@
       "ctaEyebrow": "Explore Affisell",
       "ctaTitle": "Discover more creators",
       "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
-      "ctaButton": "Browse marketplace"
+      "ctaButton": "Browse marketplace",
+      "bestsellersEyebrow": "Bestseller",
+      "bestsellersTitle": "Kundenfavoriten",
+      "bestsellersHint": "Top-Produkte dieser Vitrine.",
+      "socialProofQuote": "Qualitätsprodukte und schnelle Lieferung — genau wie erwartet.",
+      "socialProofAuthor": "Verifizierter Käufer",
+      "socialProofStat": "500+ zufriedene Kunden",
+      "newsletterTitle": "Drops zuerst erhalten",
+      "newsletterBody": "E-Mail für Restocks und exklusive Angebote.",
+      "newsletterPlaceholder": "du@beispiel.de",
+      "newsletterButton": "Abonnieren",
+      "newsletterSuccess": "Du bist auf der Liste.",
+      "newsletterDisclaimer": "Kein Spam — jederzeit abmelden."
     },
     "buyerChrome": {
       "openCategories": "Browse categories",
