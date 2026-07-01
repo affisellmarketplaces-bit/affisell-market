@@ -1,3 +1,4 @@
+import { resolveOrderPushTarget } from "@/lib/order-status-push-shared"
 import { prisma } from "@/lib/prisma"
 import { sendOrderStatusPushToUser } from "@/lib/web-push-send"
 
@@ -11,13 +12,24 @@ async function resolveBuyerUserIdByEmail(email: string): Promise<string | null> 
   return user?.id ?? null
 }
 
+async function resolveBuyerUserId(args: {
+  buyerUserId?: string | null
+  customerEmail?: string | null
+}): Promise<string | null> {
+  const target = resolveOrderPushTarget(args)
+  if (target.kind === "user_id") return target.userId
+  if (target.kind === "email") return resolveBuyerUserIdByEmail(target.email)
+  return null
+}
+
 export async function notifyOrderShippedPush(args: {
+  buyerUserId?: string | null
   customerEmail: string
   orderId: string
   productName: string
   trackingNumber?: string | null
 }): Promise<void> {
-  const userId = await resolveBuyerUserIdByEmail(args.customerEmail)
+  const userId = await resolveBuyerUserId(args)
   if (!userId) return
 
   const count = await sendOrderStatusPushToUser({
@@ -31,11 +43,12 @@ export async function notifyOrderShippedPush(args: {
 }
 
 export async function notifyOrderDeliveredPush(args: {
+  buyerUserId?: string | null
   customerEmail: string
   orderId: string
   productName: string
 }): Promise<void> {
-  const userId = await resolveBuyerUserIdByEmail(args.customerEmail)
+  const userId = await resolveBuyerUserId(args)
   if (!userId) return
 
   const count = await sendOrderStatusPushToUser({

@@ -15,6 +15,7 @@ export async function notifyMarketplaceOrderShipped(
     where: { id: orderId },
     select: {
       id: true,
+      buyerUserId: true,
       customerEmail: true,
       quantity: true,
       trackingNumber: true,
@@ -46,6 +47,7 @@ export async function notifyMarketplaceOrderShipped(
   )
 
   void notifyOrderShippedPush({
+    buyerUserId: order.buyerUserId,
     customerEmail: order.customerEmail,
     orderId: order.id,
     productName: order.product.name,

@@ -8,6 +8,7 @@ export async function notifyOrderDelivered(orderId: string): Promise<void> {
     where: { id: orderId },
     select: {
       id: true,
+      buyerUserId: true,
       customerEmail: true,
       quantity: true,
       affiliateProductId: true,
@@ -36,6 +37,7 @@ export async function notifyOrderDelivered(orderId: string): Promise<void> {
   )
 
   void notifyOrderDeliveredPush({
+    buyerUserId: order.buyerUserId,
     customerEmail: order.customerEmail,
     orderId: order.id,
     productName: order.product.name,

@@ -38,6 +38,13 @@ async function sendPushToUser(
   })
   if (subs.length === 0) return 0
 
+  const message = JSON.stringify({
+    title: payload.title,
+    body: payload.body,
+    url: payload.url,
+    tag: payload.tag,
+  })
+
   let sent = 0
   for (const sub of subs) {
     try {
@@ -46,11 +53,7 @@ async function sendPushToUser(
           endpoint: sub.endpoint,
           keys: { p256dh: sub.p256dh, auth: sub.auth },
         },
-        JSON.stringify({
-          title: payload.title,
-          body: payload.body,
-          url: payload.url,
-        })
+        message
       )
       sent++
     } catch (e) {
