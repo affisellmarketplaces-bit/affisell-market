@@ -33,6 +33,8 @@ export type FooterGlobalContent = {
   legalBar: FooterNavItem[]
   socialLinks: FooterSocialLink[]
   paymentTitle: string
+  paymentMethodsAriaLabel: string
+  paymentProcessorHint: string
   vatNotice: string
   stripeNotice: string
   stripeNoticeShort: string

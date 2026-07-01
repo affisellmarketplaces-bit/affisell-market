@@ -2585,6 +2585,8 @@
       "legalTitle": "Légal",
       "supportTitle": "Support",
       "paymentTitle": "Paiement sécurisé",
+      "paymentMethodsAriaLabel": "Moyens de paiement acceptés",
+      "paymentProcessorHint": "Stripe · 3D Secure",
       "about": "À propos",
       "howItWorks": "Comment ça marche",
       "howSellingWorks": "Comment vendre",

@@ -16,6 +16,7 @@ import { useLocale, useTranslations } from "next-intl"
 import { useMemo, useState } from "react"
 
 import { FooterTrustBeacon, FooterTrustBeaconCompact } from "@/components/footer/footer-trust-beacon"
+import { PaymentMethodsStrip } from "@/components/checkout/payment-methods-strip"
 import {
   footerHeroCard,
   footerHeroCardTile,
@@ -27,7 +28,6 @@ import {
   footerHeroTagline,
   footerHeroTitle,
   footerLiveBadge,
-  footerStripeBadge,
 } from "@/components/footer/footer-hero-tokens"
 import {
   STOREFRONT_TRUST_LEGAL_LINKS,
@@ -315,14 +315,17 @@ function StorefrontFooterDesktop({
             <div className="flex size-12 items-center justify-center rounded-xl border border-[#8B5CF6]/40 bg-[#8B5CF6]/20">
               <Lock className="size-5 text-[#C4B5FD]" aria-hidden />
             </div>
-            <div className="min-w-0 flex-1 space-y-2">
+            <div className="min-w-0 flex-1 space-y-3">
               <p className={footerHeroTitle}>{tFooter("paymentTitle")}</p>
+              <PaymentMethodsStrip
+                variant="footer"
+                showProcessorHint
+                ariaLabel={tFooter("paymentMethodsAriaLabel")}
+                processorHint={tFooter("paymentProcessorHint")}
+              />
               <p className={footerHeroTagline}>{tFooter("stripeNotice")}</p>
               <p className="text-xs text-violet-100/70">{tFooter("vatNotice")}</p>
             </div>
-            <span className={footerStripeBadge} role="img" aria-label="Stripe">
-              Stripe
-            </span>
           </div>
         </div>
 
@@ -431,12 +434,15 @@ function StorefrontFooterMobile({
           </MobileAccordion>
         </div>
 
-        <div className={cn(footerHeroCard, "mt-4 flex items-start gap-3 p-3")}>
-          <span className={footerStripeBadge}>Stripe</span>
-          <div className="min-w-0 space-y-1">
-            <p className={footerHeroTitle}>{tFooter("paymentTitle")}</p>
-            <p className="text-[11px] leading-snug text-violet-100/85">{tFooter("stripeNoticeShort")}</p>
-          </div>
+        <div className={cn(footerHeroCard, "mt-4 space-y-3 p-3")}>
+          <p className={footerHeroTitle}>{tFooter("paymentTitle")}</p>
+          <PaymentMethodsStrip
+            variant="footer"
+            showProcessorHint
+            ariaLabel={tFooter("paymentMethodsAriaLabel")}
+            processorHint={tFooter("paymentProcessorHint")}
+          />
+          <p className="text-[11px] leading-snug text-violet-100/85">{tFooter("stripeNoticeShort")}</p>
         </div>
 
         <StorefrontFooterLegalBar

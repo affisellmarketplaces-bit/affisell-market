@@ -88,6 +88,8 @@ export function buildFooterGlobalContent(
       label: t(`social.${id}`),
     })),
     paymentTitle: t("paymentTitle"),
+    paymentMethodsAriaLabel: t("paymentMethodsAriaLabel"),
+    paymentProcessorHint: t("paymentProcessorHint"),
     vatNotice: t("vatNotice"),
     stripeNotice: t("stripeNotice"),
     stripeNoticeShort: t("stripeNoticeShort"),

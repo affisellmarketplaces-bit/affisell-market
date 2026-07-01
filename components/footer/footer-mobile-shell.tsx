@@ -7,6 +7,7 @@ import { ChevronDown, Globe2, ShieldCheck, Sparkles } from "lucide-react"
 import { FooterLegalBar } from "@/components/footer/footer-legal-bar"
 import { FooterSocialOrbit } from "@/components/footer/footer-social-orbit"
 import { FooterTrustBeaconCompact } from "@/components/footer/footer-trust-beacon"
+import { PaymentMethodsStrip } from "@/components/checkout/payment-methods-strip"
 import {
   footerHeroCard,
   footerHeroLink,
@@ -14,7 +15,6 @@ import {
   footerHeroTagline,
   footerHeroTitle,
   footerLiveBadge,
-  footerStripeBadge,
 } from "@/components/footer/footer-hero-tokens"
 import type { FooterGlobalContent } from "@/lib/footer-global-sections"
 import { cn } from "@/lib/utils"
@@ -121,12 +121,15 @@ export function FooterMobileShell({ content }: Props) {
           ))}
         </div>
 
-        <div className={cn(footerHeroCard, "mt-4 flex items-start gap-3 p-3")}>
-          <span className={footerStripeBadge}>Stripe</span>
-          <div className="min-w-0 space-y-1">
-            <p className={footerHeroTitle}>{content.paymentTitle}</p>
-            <p className="text-[11px] leading-snug text-violet-100/85">{content.stripeNoticeShort}</p>
-          </div>
+        <div className={cn(footerHeroCard, "mt-4 space-y-3 p-3")}>
+          <p className={footerHeroTitle}>{content.paymentTitle}</p>
+          <PaymentMethodsStrip
+            variant="footer"
+            ariaLabel={content.paymentMethodsAriaLabel}
+            processorHint={content.paymentProcessorHint}
+            showProcessorHint
+          />
+          <p className="text-[11px] leading-snug text-violet-100/85">{content.stripeNoticeShort}</p>
         </div>
 
         <FooterLegalBar content={content} className="affisell-site-footer__pad mt-5 pb-0" />

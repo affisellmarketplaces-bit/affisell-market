@@ -7,6 +7,7 @@ import { ArrowUpRight, Globe2, Lock, ShieldCheck, Sparkles, Zap } from "lucide-r
 import { FooterLegalBar } from "@/components/footer/footer-legal-bar"
 import { FooterSocialOrbit } from "@/components/footer/footer-social-orbit"
 import { FooterTrustBeacon } from "@/components/footer/footer-trust-beacon"
+import { PaymentMethodsStrip } from "@/components/checkout/payment-methods-strip"
 import {
   footerHeroCardTile,
   footerHeroGlow,
@@ -15,7 +16,6 @@ import {
   footerHeroTagline,
   footerHeroTitle,
   footerLiveBadge,
-  footerStripeBadge,
 } from "@/components/footer/footer-hero-tokens"
 import type { FooterGlobalContent } from "@/lib/footer-global-sections"
 import { footerSectionAccent } from "@/lib/footer-section-accents"
@@ -133,14 +133,17 @@ export function FooterDesktopFuture({ content }: Props) {
             <div className="flex size-12 items-center justify-center rounded-xl border border-[#8B5CF6]/40 bg-[#8B5CF6]/20">
               <Lock className="size-5 text-[#C4B5FD]" aria-hidden />
             </div>
-            <div className="min-w-0 flex-1 space-y-2">
+            <div className="min-w-0 flex-1 space-y-3">
               <p className={footerHeroTitle}>{content.paymentTitle}</p>
+              <PaymentMethodsStrip
+                variant="footer"
+                showProcessorHint
+                ariaLabel={content.paymentMethodsAriaLabel}
+                processorHint={content.paymentProcessorHint}
+              />
               <p className={footerHeroTagline}>{content.stripeNotice}</p>
               <p className="text-xs text-violet-100/70">{content.vatNotice}</p>
             </div>
-            <span className={footerStripeBadge} role="img" aria-label="Stripe">
-              Stripe
-            </span>
           </div>
         </div>
 

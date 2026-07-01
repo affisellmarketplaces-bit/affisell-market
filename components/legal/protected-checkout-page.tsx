@@ -3,6 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server"
 import { Lock, RotateCcw, ShieldCheck } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
+import { PaymentMethodsStrip } from "@/components/checkout/payment-methods-strip"
 import { buildNormativeRichTags } from "@/components/legal/normative-rich-tags"
 import { buttonVariants } from "@/components/ui/button"
 import { normativeUrl } from "@/lib/legal/normative-sources"
@@ -19,6 +20,7 @@ const RETURN_ROWS = ["changeMind", "defective"] as const
 export async function ProtectedCheckoutPage() {
   const locale = await getLocale()
   const t = await getTranslations("legalPages.protectedCheckout")
+  const tFooter = await getTranslations("footer.global")
   const company = readCompanyLegal()
   const norms = buildNormativeRichTags(locale)
 
@@ -42,11 +44,17 @@ export async function ProtectedCheckoutPage() {
           </span>
         </div>
 
-        <BentoCard className="space-y-3">
+        <BentoCard className="space-y-4">
           <h2 className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-50">
             <ShieldCheck className="size-5 text-violet-600 dark:text-violet-400" aria-hidden />
             {t("paymentTitle")}
           </h2>
+          <PaymentMethodsStrip
+            variant="light"
+            ariaLabel={tFooter("paymentMethodsAriaLabel")}
+            processorHint={tFooter("paymentProcessorHint")}
+            showProcessorHint
+          />
           <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{t("paymentBody")}</p>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">{t.rich("paymentHint", norms)}</p>
         </BentoCard>
