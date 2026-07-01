@@ -11,7 +11,7 @@ import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-
 import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 import {
   getEnabledHomepageSections,
-  type HomepageSection,
+  sectionCopyString,
 } from "@/lib/storefront-sections-shared"
 import {
   storefrontGridClass,
@@ -61,6 +61,7 @@ const PREVIEW_CATEGORIES = [
 
 export function StorefrontLivePreview({ draft, className }: Props) {
   const t = useTranslations("storefront.brandStudio.preview")
+  const tSections = useTranslations("storefront.homeSections")
   const [viewport, setViewport] = useState<"mobile" | "desktop">("mobile")
 
   const theme: StorefrontTheme = {
@@ -147,6 +148,7 @@ export function StorefrontLivePreview({ draft, className }: Props) {
             }}
           />
           {enabledSections.map((section) => {
+            const content = section.content
             switch (section.type) {
               case "hero":
                 if (draft.layout === "minimal") {
@@ -174,11 +176,35 @@ export function StorefrontLivePreview({ draft, className }: Props) {
                     className="border-b border-zinc-200/80 px-4 py-3 dark:border-zinc-800"
                   >
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-                      Story
+                      {sectionCopyString(content, "eyebrow", tSections("storyEyebrow"))}
                     </p>
-                    <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{sampleTagline}</p>
+                    <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+                      {sectionCopyString(content, "body", sampleTagline)}
+                    </p>
                   </div>
                 ) : null
+              case "bestsellers":
+                return (
+                  <div key="bestsellers" className="border-b border-zinc-200/80 px-3 py-3 dark:border-zinc-800">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-700">
+                      {sectionCopyString(content, "eyebrow", tSections("bestsellersEyebrow"))}
+                    </p>
+                    <p className="text-xs font-bold text-zinc-800 dark:text-zinc-100">
+                      {sectionCopyString(content, "title", tSections("bestsellersTitle"))}
+                    </p>
+                    <ul className="mt-2 flex gap-2 overflow-hidden">
+                      {MOCK_TILES.slice(0, 3).map((tile) => (
+                        <li
+                          key={tile.id}
+                          className={cn(
+                            "h-16 w-14 shrink-0 rounded-lg bg-gradient-to-br",
+                            tile.tone
+                          )}
+                        />
+                      ))}
+                    </ul>
+                  </div>
+                )
               case "products":
                 return (
                   <div key="products" className="px-3 py-4">
@@ -200,13 +226,39 @@ export function StorefrontLivePreview({ draft, className }: Props) {
                     </ul>
                   </div>
                 )
+              case "social-proof":
+                return (
+                  <div
+                    key="social-proof"
+                    className="border-b border-zinc-200/80 bg-zinc-50/80 px-3 py-3 text-center dark:border-zinc-800 dark:bg-zinc-900/40"
+                  >
+                    <p className="text-[10px] italic text-zinc-700 dark:text-zinc-300">
+                      &ldquo;{sectionCopyString(content, "quote", tSections("socialProofQuote"))}&rdquo;
+                    </p>
+                    <p className="mt-1 text-[9px] font-semibold text-zinc-900 dark:text-zinc-100">
+                      {sectionCopyString(content, "author", tSections("socialProofAuthor"))}
+                    </p>
+                  </div>
+                )
               case "trust":
                 return (
                   <div
                     key="trust"
                     className="border-y border-emerald-200/50 bg-emerald-50/40 px-3 py-2 text-[10px] font-medium text-emerald-900 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-100"
                   >
-                    Affisell verified · AFS-PREVIEW
+                    {sectionCopyString(content, "title", tSections("trustTitle"))} · AFS-PREVIEW
+                  </div>
+                )
+              case "newsletter":
+                return (
+                  <div
+                    key="newsletter"
+                    className="border-y border-violet-200/60 bg-violet-50/50 px-3 py-3 text-center dark:border-violet-900/40 dark:bg-violet-950/20"
+                  >
+                    <p className="text-[10px] font-bold text-zinc-900 dark:text-zinc-100">
+                      {sectionCopyString(content, "title", tSections("newsletterTitle"))}
+                    </p>
+                    <div className="mx-auto mt-2 h-6 max-w-[180px] rounded-md border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900" />
                   </div>
                 )
               case "cta":
@@ -215,7 +267,7 @@ export function StorefrontLivePreview({ draft, className }: Props) {
                     key="cta"
                     className="mx-3 mb-3 rounded-xl border border-violet-200/80 bg-violet-50/60 px-3 py-2 text-[10px] text-violet-900 dark:border-violet-900/50 dark:bg-violet-950/30 dark:text-violet-100"
                   >
-                    Discover more on Affisell →
+                    {sectionCopyString(content, "title", tSections("ctaTitle"))} →
                   </div>
                 )
               default:

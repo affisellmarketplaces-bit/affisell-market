@@ -68,6 +68,7 @@ export default async function ShopSlugPage({
       trust={trust}
       slug={slug}
       products={visibleProducts}
+      catalogProducts={products}
       activeCategoryLabel={activeCategory?.name ?? null}
       isDedicatedHost={isDedicatedHost}
     />

@@ -1853,11 +1853,41 @@
       "sections": {
         "title": "Homepage sections",
         "hint": "Toggle and reorder blocks on your public storefront — publish-ready sections, no free-form builder.",
+        "phase3Hint": "Tap the pencil icon to customize copy for each enabled section.",
+        "editContent": "Edit {section} content",
         "moveUp": "Move up",
         "moveDown": "Move down",
         "enable": "Enable {section}",
         "disable": "Disable {section}",
         "orderHint": "{count} section types — order controls what buyers see first.",
+        "content": {
+          "title": "Section copy",
+          "resetHint": "Leave blank to use storefront defaults.",
+          "fields": {
+            "eyebrow": "Eyebrow",
+            "title": "Title",
+            "body": "Body",
+            "buttonLabel": "Button label",
+            "buttonHref": "Button link",
+            "placeholder": "Email placeholder",
+            "quote": "Quote",
+            "author": "Author",
+            "stat": "Stat line",
+            "productLimit": "Product count (4–8)"
+          },
+          "placeholders": {
+            "eyebrow": "Optional label above title",
+            "title": "Headline",
+            "body": "Paragraph text",
+            "buttonLabel": "Shop now",
+            "buttonHref": "/discover",
+            "placeholder": "you@example.com",
+            "quote": "What buyers say about this store",
+            "author": "Happy customer",
+            "stat": "500+ orders",
+            "productLimit": "4"
+          }
+        },
         "types": {
           "hero": {
             "label": "Hero",
@@ -1867,13 +1897,25 @@
             "label": "Story",
             "desc": "Your tagline and brand pitch."
           },
+          "bestsellers": {
+            "label": "Best sellers",
+            "desc": "Horizontal rail of your top-selling products."
+          },
           "products": {
             "label": "Products",
             "desc": "Your live product grid."
           },
+          "social-proof": {
+            "label": "Social proof",
+            "desc": "Testimonial quote and trust stat."
+          },
           "trust": {
             "label": "Trust",
             "desc": "Affisell verification strip."
+          },
+          "newsletter": {
+            "label": "Newsletter",
+            "desc": "Email capture for launch drops and restocks."
           },
           "cta": {
             "label": "Discover CTA",
@@ -1913,6 +1955,18 @@
     },
     "homeSections": {
       "storyEyebrow": "Our story",
+      "bestsellersEyebrow": "Best sellers",
+      "bestsellersTitle": "Customer favorites",
+      "bestsellersHint": "Top picks from this storefront.",
+      "socialProofQuote": "Quality products and fast delivery — exactly what I expected from this creator.",
+      "socialProofAuthor": "Verified buyer",
+      "socialProofStat": "500+ happy customers",
+      "newsletterTitle": "Get drops first",
+      "newsletterBody": "Leave your email for restocks and exclusive offers from this store.",
+      "newsletterPlaceholder": "you@example.com",
+      "newsletterButton": "Subscribe",
+      "newsletterSuccess": "You're on the list — watch your inbox.",
+      "newsletterDisclaimer": "No spam — unsubscribe anytime.",
       "trustTitle": "Affisell verified partner storefront",
       "trustBody": "Partner code {code} — curated by this creator, sold by the supplier, Affisell secure checkout.",
       "verified": "Verified partner",

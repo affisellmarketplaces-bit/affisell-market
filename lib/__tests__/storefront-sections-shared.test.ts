@@ -27,12 +27,34 @@ describe("parseHomepageSections", () => {
     expect(parsed.find((s) => s.type === "products")?.enabled).toBe(false)
     expect(parsed.find((s) => s.type === "hero")?.enabled).toBe(false)
     expect(parsed.filter((s) => s.type === "products")).toHaveLength(1)
-    expect(parsed.map((s) => s.type)).toEqual(["products", "hero", "story", "trust", "cta"])
+    expect(parsed.map((s) => s.type)).toEqual([
+      "products",
+      "hero",
+      "story",
+      "bestsellers",
+      "social-proof",
+      "trust",
+      "newsletter",
+      "cta",
+    ])
   })
 
   it("defaults enabled to true when omitted", () => {
     const parsed = parseHomepageSections([{ type: "cta" }])
     expect(parsed.find((s) => s.type === "cta")?.enabled).toBe(true)
+  })
+
+  it("parses section content", () => {
+    const parsed = parseHomepageSections([
+      {
+        type: "cta",
+        enabled: true,
+        content: { title: "Join us", buttonHref: "/discover" },
+      },
+    ])
+    const cta = parsed.find((s) => s.type === "cta")
+    expect(cta?.content?.title).toBe("Join us")
+    expect(cta?.content?.buttonHref).toBe("/discover")
   })
 })
 
@@ -58,9 +80,27 @@ describe("homepage section helpers", () => {
 
   it("moves sections up and down", () => {
     const up = moveHomepageSection(sample, 1, "up")
-    expect(up.map((s) => s.type)).toEqual(["hero", "story", "products", "trust", "cta"])
+    expect(up.map((s) => s.type)).toEqual([
+      "hero",
+      "story",
+      "products",
+      "bestsellers",
+      "social-proof",
+      "trust",
+      "newsletter",
+      "cta",
+    ])
     const down = moveHomepageSection(up, 0, "down")
-    expect(down.map((s) => s.type)).toEqual(["story", "hero", "products", "trust", "cta"])
+    expect(down.map((s) => s.type)).toEqual([
+      "story",
+      "hero",
+      "products",
+      "bestsellers",
+      "social-proof",
+      "trust",
+      "newsletter",
+      "cta",
+    ])
   })
 
   it("compares section arrays", () => {

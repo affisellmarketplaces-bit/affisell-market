@@ -1,8 +1,10 @@
 "use client"
 
-import { ChevronDown, ChevronUp, LayoutList } from "lucide-react"
+import { ChevronDown, ChevronUp, LayoutList, Pencil } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { useState } from "react"
 
+import { StorefrontSectionContentPanel } from "@/components/storefront/storefront-section-content-panel"
 import {
   HOMEPAGE_SECTION_TYPES,
   moveHomepageSection,
@@ -19,6 +21,7 @@ type Props = {
 
 export function StorefrontSectionsEditor({ sections, onChange }: Props) {
   const t = useTranslations("storefront.brandStudio.sections")
+  const [expanded, setExpanded] = useState<HomepageSectionType | null>(null)
 
   return (
     <div className="space-y-3">
@@ -28,6 +31,7 @@ export function StorefrontSectionsEditor({ sections, onChange }: Props) {
           {t("title")}
         </p>
         <p className="mt-1 text-xs text-gray-500 dark:text-zinc-400">{t("hint")}</p>
+        <p className="mt-1 text-[11px] text-violet-700 dark:text-violet-300">{t("phase3Hint")}</p>
       </div>
 
       <ul className="space-y-2">
@@ -35,12 +39,13 @@ export function StorefrontSectionsEditor({ sections, onChange }: Props) {
           <li
             key={section.type}
             className={cn(
-              "flex items-center gap-2 rounded-xl border px-3 py-2.5",
+              "rounded-xl border px-3 py-2.5",
               section.enabled
                 ? "border-violet-200/80 bg-violet-50/40 dark:border-violet-900/50 dark:bg-violet-950/20"
                 : "border-gray-200 bg-white/50 dark:border-zinc-800 dark:bg-zinc-950/30"
             )}
           >
+            <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-gray-900 dark:text-zinc-100">
                 {t(`types.${section.type}.label`)}
@@ -51,6 +56,24 @@ export function StorefrontSectionsEditor({ sections, onChange }: Props) {
             </div>
 
             <div className="flex shrink-0 items-center gap-1">
+              {section.enabled ? (
+                <button
+                  type="button"
+                  aria-expanded={expanded === section.type}
+                  aria-label={t("editContent", { section: t(`types.${section.type}.label`) })}
+                  onClick={() =>
+                    setExpanded((prev) => (prev === section.type ? null : section.type))
+                  }
+                  className={cn(
+                    "rounded-lg p-1.5 transition",
+                    expanded === section.type
+                      ? "bg-violet-600 text-white"
+                      : "text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                  )}
+                >
+                  <Pencil className="size-4" aria-hidden />
+                </button>
+              ) : null}
               <button
                 type="button"
                 aria-label={t("moveUp")}
@@ -93,6 +116,14 @@ export function StorefrontSectionsEditor({ sections, onChange }: Props) {
                 />
               </button>
             </div>
+            </div>
+            {section.enabled && expanded === section.type ? (
+              <StorefrontSectionContentPanel
+                section={section}
+                sections={sections}
+                onChange={onChange}
+              />
+            ) : null}
           </li>
         ))}
       </ul>

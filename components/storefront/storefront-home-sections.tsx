@@ -3,10 +3,16 @@ import { BadgeCheck, ShieldCheck, Sparkles } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { ProductGrid } from "@/components/shop/ProductGrid"
+import { StorefrontBestsellersSection } from "@/components/storefront/storefront-bestsellers-section"
 import { StorefrontDedicatedHero } from "@/components/storefront/storefront-dedicated-hero"
+import { StorefrontNewsletterSection } from "@/components/storefront/storefront-newsletter-section"
+import { StorefrontSocialProofSection } from "@/components/storefront/storefront-social-proof-section"
 import { StorefrontTaglineBand } from "@/components/storefront/storefront-tagline-band"
 import type { ShopProductCard, ShopStoreSummary } from "@/lib/shop-storefront-shared"
-import { getEnabledHomepageSections } from "@/lib/storefront-sections-shared"
+import {
+  getEnabledHomepageSections,
+  sectionCopyString,
+} from "@/lib/storefront-sections-shared"
 import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
 import { cn } from "@/lib/utils"
 
@@ -15,6 +21,7 @@ type Props = {
   trust: StorefrontTrustSnapshot | null
   slug: string
   products: ShopProductCard[]
+  catalogProducts: ShopProductCard[]
   activeCategoryLabel?: string | null
   isDedicatedHost: boolean
 }
@@ -24,6 +31,7 @@ export async function StorefrontHomeSections({
   trust,
   slug,
   products,
+  catalogProducts,
   activeCategoryLabel,
   isDedicatedHost,
 }: Props) {
@@ -35,27 +43,46 @@ export async function StorefrontHomeSections({
   return (
     <>
       {sections.map((section) => {
+        const content = section.content
+
         switch (section.type) {
           case "hero":
+            return <StorefrontHeroBlock key="hero" store={store} />
+          case "story": {
+            const body =
+              sectionCopyString(content, "body", "") || store.description?.trim() || ""
+            if (!body) return null
             return (
-              <StorefrontHeroBlock key="hero" store={store} />
-            )
-          case "story":
-            return store.description?.trim() ? (
               <section
                 key="story"
                 className="border-b border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-950"
               >
                 <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
                   <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                    {t("storyEyebrow")}
+                    {sectionCopyString(content, "eyebrow", t("storyEyebrow"))}
                   </p>
                   <p className="mt-3 text-base leading-relaxed text-zinc-700 dark:text-zinc-300">
-                    {store.description.trim()}
+                    {body}
                   </p>
                 </div>
               </section>
-            ) : null
+            )
+          }
+          case "bestsellers":
+            return (
+              <StorefrontBestsellersSection
+                key="bestsellers"
+                storeSlug={slug}
+                products={catalogProducts}
+                content={content}
+                dedicatedHost={isDedicatedHost}
+                labels={{
+                  eyebrow: t("bestsellersEyebrow"),
+                  title: t("bestsellersTitle"),
+                  hint: t("bestsellersHint"),
+                }}
+              />
+            )
           case "products":
             return (
               <div key="products" className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -68,6 +95,18 @@ export async function StorefrontHomeSections({
                   activeCategoryLabel={activeCategoryLabel ?? null}
                 />
               </div>
+            )
+          case "social-proof":
+            return (
+              <StorefrontSocialProofSection
+                key="social-proof"
+                content={content}
+                labels={{
+                  quote: t("socialProofQuote"),
+                  author: t("socialProofAuthor"),
+                  stat: t("socialProofStat"),
+                }}
+              />
             )
           case "trust":
             return trust ? (
@@ -83,10 +122,14 @@ export async function StorefrontHomeSections({
                     />
                     <div>
                       <p className="text-sm font-semibold text-emerald-950 dark:text-emerald-100">
-                        {t("trustTitle")}
+                        {sectionCopyString(content, "title", t("trustTitle"))}
                       </p>
                       <p className="mt-0.5 text-xs text-emerald-900/80 dark:text-emerald-100/80">
-                        {t("trustBody", { code: trust.partnerListingCode })}
+                        {sectionCopyString(
+                          content,
+                          "body",
+                          t("trustBody", { code: trust.partnerListingCode })
+                        )}
                       </p>
                     </div>
                   </div>
@@ -99,7 +142,16 @@ export async function StorefrontHomeSections({
                 </div>
               </section>
             ) : null
-          case "cta":
+          case "newsletter":
+            return (
+              <StorefrontNewsletterSection
+                key="newsletter"
+                content={content}
+                accent={store.theme.accent}
+              />
+            )
+          case "cta": {
+            const href = sectionCopyString(content, "buttonHref", "/discover")
             return (
               <section key="cta" className="border-t border-zinc-200/80 dark:border-zinc-800">
                 <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -112,26 +164,27 @@ export async function StorefrontHomeSections({
                       <div>
                         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-violet-700 dark:text-violet-300">
                           <Sparkles className="size-4" aria-hidden />
-                          {t("ctaEyebrow")}
+                          {sectionCopyString(content, "eyebrow", t("ctaEyebrow"))}
                         </p>
                         <p className="mt-2 text-lg font-bold text-zinc-900 dark:text-zinc-50">
-                          {t("ctaTitle")}
+                          {sectionCopyString(content, "title", t("ctaTitle"))}
                         </p>
                         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                          {t("ctaBody")}
+                          {sectionCopyString(content, "body", t("ctaBody"))}
                         </p>
                       </div>
                       <Link
-                        href="/discover"
+                        href={href.startsWith("/") || href.startsWith("http") ? href : "/discover"}
                         className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-violet-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-violet-700"
                       >
-                        {t("ctaButton")}
+                        {sectionCopyString(content, "buttonLabel", t("ctaButton"))}
                       </Link>
                     </div>
                   </div>
                 </div>
               </section>
             )
+          }
           default:
             return null
         }

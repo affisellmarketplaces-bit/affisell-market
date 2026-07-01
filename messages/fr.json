@@ -1895,11 +1895,41 @@
       "sections": {
         "title": "Sections page d'accueil",
         "hint": "Activez et réordonnez les blocs de votre vitrine — sections prêtes à publier, sans builder libre.",
+        "phase3Hint": "Cliquez sur le crayon pour personnaliser le texte de chaque section activée.",
+        "editContent": "Modifier le contenu — {section}",
         "moveUp": "Monter",
         "moveDown": "Descendre",
         "enable": "Activer {section}",
         "disable": "Désactiver {section}",
         "orderHint": "{count} types de sections — l'ordre définit ce que voient les acheteurs en premier.",
+        "content": {
+          "title": "Texte de la section",
+          "resetHint": "Laissez vide pour les textes par défaut de la vitrine.",
+          "fields": {
+            "eyebrow": "Accroche",
+            "title": "Titre",
+            "body": "Corps de texte",
+            "buttonLabel": "Libellé du bouton",
+            "buttonHref": "Lien du bouton",
+            "placeholder": "Placeholder e-mail",
+            "quote": "Citation",
+            "author": "Auteur",
+            "stat": "Statistique",
+            "productLimit": "Nombre de produits (4–8)"
+          },
+          "placeholders": {
+            "eyebrow": "Label au-dessus du titre",
+            "title": "Titre principal",
+            "body": "Paragraphe",
+            "buttonLabel": "Découvrir",
+            "buttonHref": "/discover",
+            "placeholder": "vous@exemple.fr",
+            "quote": "Ce que disent vos acheteurs",
+            "author": "Client vérifié",
+            "stat": "500+ commandes",
+            "productLimit": "4"
+          }
+        },
         "types": {
           "hero": {
             "label": "Hero",
@@ -1909,13 +1939,25 @@
             "label": "Histoire",
             "desc": "Votre accroche et pitch de marque."
           },
+          "bestsellers": {
+            "label": "Meilleures ventes",
+            "desc": "Rail horizontal de vos produits les plus vendus."
+          },
           "products": {
             "label": "Produits",
             "desc": "Votre grille produits en ligne."
           },
+          "social-proof": {
+            "label": "Preuve sociale",
+            "desc": "Témoignage et stat de confiance."
+          },
           "trust": {
             "label": "Confiance",
             "desc": "Bandeau de vérification Affisell."
+          },
+          "newsletter": {
+            "label": "Newsletter",
+            "desc": "Capture e-mail pour drops et réassorts."
           },
           "cta": {
             "label": "CTA Découverte",
@@ -1955,6 +1997,18 @@
     },
     "homeSections": {
       "storyEyebrow": "Notre histoire",
+      "bestsellersEyebrow": "Meilleures ventes",
+      "bestsellersTitle": "Coups de cœur clients",
+      "bestsellersHint": "Les produits les plus populaires de cette vitrine.",
+      "socialProofQuote": "Produits de qualité et livraison rapide — exactement ce que j'attendais de ce créateur.",
+      "socialProofAuthor": "Acheteur vérifié",
+      "socialProofStat": "500+ clients satisfaits",
+      "newsletterTitle": "Recevez les drops en premier",
+      "newsletterBody": "Laissez votre e-mail pour les réassorts et offres exclusives de cette boutique.",
+      "newsletterPlaceholder": "vous@exemple.fr",
+      "newsletterButton": "S'inscrire",
+      "newsletterSuccess": "Vous êtes inscrit — surveillez votre boîte mail.",
+      "newsletterDisclaimer": "Pas de spam — désinscription à tout moment.",
       "trustTitle": "Vitrine partenaire vérifiée Affisell",
       "trustBody": "Code partenaire {code} — sélection par ce créateur, vente par le fournisseur, paiement sécurisé Affisell.",
       "verified": "Partenaire vérifié",
