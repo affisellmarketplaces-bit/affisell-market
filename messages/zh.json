@@ -1310,6 +1310,18 @@
     "deleting": "正在删除…",
     "deleteConfirm": "您确定要永久删除您的账户吗? 这不能被撤销。如果您曾经作为商家在市场上有过订单，删除可能会被阻止。"
   },
+  "affiliateDashboard": {
+    "onboarding": {
+      "title": "启动您的联盟商店",
+      "subtitle": "从注册到第一笔佣金的四个步骤。",
+      "kycHint": "在 marketplace 上发布之前，请完成身份验证 (KYC)。",
+      "stepKyc": "验证您的企业 (KYC)",
+      "stepCreate": "创建您的第一个产品列表",
+      "stepPublish": "在 marketplace 上发布",
+      "stepShare": "分享您的店铺链接",
+      "start": "继续"
+    }
+  },
   "supplierDashboard": {
     "header": {
       "eyebrow": "任务控制台",
@@ -1414,12 +1426,14 @@
     },
     "onboarding": {
       "title": "启动您的商店",
-      "subtitle": "从零到第一笔推广销售的三个步骤。",
+      "subtitle": "从注册到第一笔推广销售的四个步骤。",
+      "kycHint": "在 marketplace 上发布之前，请完成身份验证 (KYC)。",
       "vatNotice": "您完全负责收集、申报和缴纳增值税。Affisell 将 12% 的费用收取于净额（产品和运费）上，而不是增值税。",
+      "stepKyc": "验证您的企业 (KYC)",
       "stepCreate": "创建您的第一个产品列表",
       "stepPublish": "在市场上发布",
       "stepShare": "分享您的供应商目录",
-      "start": "开始"
+      "start": "继续"
     },
     "growth": {
       "opportunities": "机会",

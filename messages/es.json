@@ -1310,6 +1310,18 @@
     "deleting": "Eliminando…",
     "deleteConfirm": "¿Desea eliminar su cuenta permanentemente? Esto no puede ser deshecho. Si tiene pedidos pasados en el mercado como vendedor, la eliminación puede estar bloqueada."
   },
+  "affiliateDashboard": {
+    "onboarding": {
+      "title": "Lanza tu tienda de afiliado",
+      "subtitle": "Cuatro pasos desde el registro hasta tu primera comisión.",
+      "kycHint": "Completa la verificación de identidad (KYC) antes de publicar en el marketplace.",
+      "stepKyc": "Verifica tu empresa (KYC)",
+      "stepCreate": "Crea tu primera ficha de producto",
+      "stepPublish": "Publica en el marketplace",
+      "stepShare": "Comparte el enlace de tu tienda",
+      "start": "Continuar"
+    }
+  },
   "supplierDashboard": {
     "header": {
       "eyebrow": "Centro de control",
@@ -1414,12 +1426,14 @@
     },
     "onboarding": {
       "title": "Lanzar tu tienda",
-      "subtitle": "Tres pasos desde cero hasta tu primera venta de afiliado.",
+      "subtitle": "Cuatro pasos desde el registro hasta tu primera venta de afiliado.",
+      "kycHint": "Completa la verificación de identidad (KYC) antes de publicar en el marketplace.",
       "vatNotice": "Tú eres responsable de recopilar, declarar y remitir IVA. Affisell cobra un 12% sobre la cantidad bruta (productos y envío), nunca sobre IVA.",
+      "stepKyc": "Verifica tu empresa (KYC)",
       "stepCreate": "Crear tu primera lista de productos",
       "stepPublish": "Publicar en el mercado",
       "stepShare": "Compartir tu catálogo de proveedores",
-      "start": "Empezar"
+      "start": "Continuar"
     },
     "growth": {
       "opportunities": "Oportunidades",

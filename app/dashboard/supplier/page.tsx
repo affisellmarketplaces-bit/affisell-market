@@ -20,6 +20,7 @@ import { SupplierUrgentActions } from "@/components/supplier/mission-control/sup
 import { loadSupplierTrustSnapshot } from "@/lib/supplier/compute-supplier-trust-tier"
 import { coerceSupplierTrustTier } from "@/lib/supplier/supplier-trust-tier-shared"
 import { loadSupplierPublishReadiness } from "@/lib/supplier-publish-readiness"
+import { loadSupplierFirstSaleProgress } from "@/lib/merchant-first-sale-progress"
 import { loadSupplierMissionControl } from "@/lib/supplier-mission-control"
 import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
 import { SupplierPublishReadinessCard } from "@/components/supplier/mission-control/supplier-publish-readiness-card"
@@ -52,7 +53,7 @@ export default async function DashboardSupplierPage() {
   const locale = resolveAppLocale(await getLocale())
   const copyLocale = resolveBinaryCopyLocale(locale)
 
-  const [feeUser, trustSnapshot, publishReadiness] = await Promise.all([
+  const [feeUser, trustSnapshot, publishReadiness, firstSaleProgress] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
@@ -64,6 +65,7 @@ export default async function DashboardSupplierPage() {
     }),
     loadSupplierTrustSnapshot(session.user.id),
     loadSupplierPublishReadiness(session.user.id),
+    loadSupplierFirstSaleProgress(session.user.id, data.storeSlug),
   ])
 
   const trustTier = coerceSupplierTrustTier(feeUser?.supplierTrustTier, false)
@@ -112,8 +114,8 @@ export default async function DashboardSupplierPage() {
             <SupplierWeeklyGoalCard goal={data.weeklyGoal} locale={locale} />
           ) : null}
 
-          {data.productCount === 0 ? (
-            <SupplierOnboardingChecklist storeSlug={data.storeSlug} />
+          {firstSaleProgress.showChecklist ? (
+            <SupplierOnboardingChecklist progress={firstSaleProgress} />
           ) : (
             <>
               <SupplierUrgentActions urgent={data.urgent} />

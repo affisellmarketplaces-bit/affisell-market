@@ -1310,6 +1310,18 @@
     "deleting": "Löschen…",
     "deleteConfirm": "Konto dauerhaft löschen? Dies kann nicht rückgängig gemacht werden. Wenn Sie als Händler in der Vergangenheit Marktplatzbestellungen hatten, kann die Löschung blockiert werden."
   },
+  "affiliateDashboard": {
+    "onboarding": {
+      "title": "Starten Sie Ihren Affiliate-Shop",
+      "subtitle": "Vier Schritte von der Anmeldung bis zur ersten Provision.",
+      "kycHint": "Schließen Sie die Identitätsprüfung (KYC) ab, bevor Sie auf dem Marktplatz veröffentlichen.",
+      "stepKyc": "Unternehmen verifizieren (KYC)",
+      "stepCreate": "Erstellen Sie Ihre erste Produktliste",
+      "stepPublish": "Auf dem Marktplatz veröffentlichen",
+      "stepShare": "Teilen Sie Ihren Shop-Link",
+      "start": "Weiter"
+    }
+  },
   "supplierDashboard": {
     "header": {
       "eyebrow": "Kontrollzentrale",
@@ -1414,12 +1426,14 @@
     },
     "onboarding": {
       "title": "Ihren Shop starten",
-      "subtitle": "Drei Schritte von Null zum ersten Affiliate-Verkauf.",
+      "subtitle": "Vier Schritte von der Anmeldung bis zum ersten Affiliate-Verkauf.",
+      "kycHint": "Schließen Sie die Identitätsprüfung (KYC) ab, bevor Sie auf dem Marktplatz veröffentlichen.",
       "vatNotice": "Sie sind allein verantwortlich für die Erhebung, Deklaration und Abführung der Umsatzsteuer. Affisell berechnet 12% auf den Nettobetrag (Produkte und Versand), nie auf die Umsatzsteuer.",
+      "stepKyc": "Unternehmen verifizieren (KYC)",
       "stepCreate": "Erstellen Sie Ihre erste Produktliste",
       "stepPublish": "Veröffentlichen auf dem Marktplatz",
       "stepShare": "Teilen Sie Ihren Lieferantenkatalog",
-      "start": "Loslegen"
+      "start": "Weiter"
     },
     "growth": {
       "opportunities": "Chancen",

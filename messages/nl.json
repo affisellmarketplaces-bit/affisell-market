@@ -1310,6 +1310,18 @@
     "deleting": "Verwijderen…",
     "deleteConfirm": "Verwijder je account permanent? Dit kan niet ongedaan worden gemaakt. Als je in het verleden als verkoper bestellingen hebt geplaatst op de marktplaats, kan verwijdering geblokkeerd worden."
   },
+  "affiliateDashboard": {
+    "onboarding": {
+      "title": "Start je affiliate-winkel",
+      "subtitle": "Vier stappen van registratie tot je eerste commissie.",
+      "kycHint": "Rond de identiteitsverificatie (KYC) af voordat je op de marktplaats publiceert.",
+      "stepKyc": "Verifieer je bedrijf (KYC)",
+      "stepCreate": "Maak je eerste productlijst",
+      "stepPublish": "Publiceer op de marktplaats",
+      "stepShare": "Deel je shoplink",
+      "start": "Doorgaan"
+    }
+  },
   "supplierDashboard": {
     "header": {
       "eyebrow": "Mishon Controle",
@@ -1414,12 +1426,14 @@
     },
     "onboarding": {
       "title": "Start je winkel",
-      "subtitle": "Drie stappen van nul naar je eerste affiliateverkoop.",
+      "subtitle": "Vier stappen van registratie tot je eerste affiliateverkoop.",
+      "kycHint": "Rond de identiteitsverificatie (KYC) af voordat je op de marktplaats publiceert.",
       "vatNotice": "Je bent volledig verantwoordelijk voor het innen, declareren en afdragen van BTW. Affisell berekent 12% over de netto omzet (producten en verzending), nooit over BTW.",
+      "stepKyc": "Verifieer je bedrijf (KYC)",
       "stepCreate": "Maak je eerste productlijst",
       "stepPublish": "Publiceer op de marktplaats",
       "stepShare": "Deel je leverancierscatalogus",
-      "start": "Beginnen"
+      "start": "Doorgaan"
     },
     "growth": {
       "opportunities": "Mogelijkheden",

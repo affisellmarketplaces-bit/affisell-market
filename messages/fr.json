@@ -1322,6 +1322,18 @@
     "deleting": "Suppression…",
     "deleteConfirm": "Supprimer définitivement votre compte ? Cette action est irréversible. Si vous avez des commandes marketplace, la suppression peut être refusée."
   },
+  "affiliateDashboard": {
+    "onboarding": {
+      "title": "Lancez votre boutique affiliée",
+      "subtitle": "Quatre étapes de l'inscription à votre première commission.",
+      "kycHint": "Finalisez la vérification d'identité (KYC) avant de publier sur le marketplace.",
+      "stepKyc": "Vérifier votre entreprise (KYC)",
+      "stepCreate": "Créer votre première fiche produit",
+      "stepPublish": "Publier sur le marketplace",
+      "stepShare": "Partager le lien de votre shop",
+      "start": "Continuer"
+    }
+  },
   "supplierDashboard": {
     "header": {
       "eyebrow": "Centre de pilotage",
@@ -1426,12 +1438,14 @@
     },
     "onboarding": {
       "title": "Démarrez votre boutique",
-      "subtitle": "Trois étapes pour passer de zéro à votre première vente affiliée.",
+      "subtitle": "Quatre étapes de l'inscription à votre première vente affiliée.",
+      "kycHint": "Finalisez la vérification d'identité (KYC) avant de publier sur le marketplace.",
       "vatNotice": "Le Vendeur est seul responsable de la collecte, déclaration et reversement de la TVA. Affisell prélève 12 % sur le montant HT (produits et livraison), jamais sur la TVA.",
+      "stepKyc": "Vérifier votre entreprise (KYC)",
       "stepCreate": "Créer votre première fiche produit",
       "stepPublish": "Publier sur le marketplace",
       "stepShare": "Partager votre catalogue fournisseur",
-      "start": "Commencer"
+      "start": "Continuer"
     },
     "growth": {
       "opportunities": "Opportunités",

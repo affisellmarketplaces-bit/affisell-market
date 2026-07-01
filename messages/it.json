@@ -1310,6 +1310,18 @@
     "deleting": "Eliminazione in corso…",
     "deleteConfirm": "Sei sicuro di voler eliminare il tuo account definitivamente? Questa operazione non può essere annullata. Se hai ordini del mercato passati come venditore, la cancellazione potrebbe essere bloccata."
   },
+  "affiliateDashboard": {
+    "onboarding": {
+      "title": "Lancia il tuo negozio affiliato",
+      "subtitle": "Quattro passaggi dall'iscrizione alla tua prima commissione.",
+      "kycHint": "Completa la verifica dell'identità (KYC) prima di pubblicare sul marketplace.",
+      "stepKyc": "Verifica la tua azienda (KYC)",
+      "stepCreate": "Crea la tua prima scheda prodotto",
+      "stepPublish": "Pubblica sul marketplace",
+      "stepShare": "Condividi il link del tuo shop",
+      "start": "Continua"
+    }
+  },
   "supplierDashboard": {
     "header": {
       "eyebrow": "Centro di controllo",
@@ -1414,12 +1426,14 @@
     },
     "onboarding": {
       "title": "Lancia il tuo negozio",
-      "subtitle": "Tre passaggi da zero alla tua prima vendita affiliate.",
+      "subtitle": "Quattro passaggi dall'iscrizione alla tua prima vendita affiliata.",
+      "kycHint": "Completa la verifica dell'identità (KYC) prima di pubblicare sul marketplace.",
       "vatNotice": "Sei responsabile unicamente per la riscossione, la dichiarazione e la riscossione dell'IVA. Affisell applica il 12% sul totale netto (prodotti e spedizione), mai sull'IVA.",
+      "stepKyc": "Verifica la tua azienda (KYC)",
       "stepCreate": "Crea la tua prima lista di prodotti",
       "stepPublish": "Pubblica sul mercato",
       "stepShare": "Condividi il tuo catalogo di fornitori",
-      "start": "Inizia"
+      "start": "Continua"
     },
     "growth": {
       "opportunities": "Opportunità",

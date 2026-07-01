@@ -6,6 +6,10 @@ import { Clock, ShieldCheck } from "lucide-react"
 import { auth } from "@/auth"
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { MerchantLegalProfileSubmitForm } from "@/components/merchant/merchant-legal-profile-submit-form"
+import {
+  loadAffiliateFirstSaleProgress,
+  loadSupplierFirstSaleProgress,
+} from "@/lib/merchant-first-sale-progress"
 import { prisma } from "@/lib/prisma"
 import { cn } from "@/lib/utils"
 
@@ -56,7 +60,16 @@ export default async function MerchantVerificationPage() {
   }
 
   if (profile.verificationStatus === "APPROVED") {
-    redirect(role === "SUPPLIER" ? "/dashboard/supplier" : "/dashboard/affiliate")
+    if (role === "SUPPLIER") {
+      const store = await prisma.store.findUnique({
+        where: { userId: session.user.id },
+        select: { slug: true },
+      })
+      const progress = await loadSupplierFirstSaleProgress(session.user.id, store?.slug ?? null)
+      redirect(progress.postKycHref)
+    }
+    const progress = await loadAffiliateFirstSaleProgress(session.user.id)
+    redirect(progress.postKycHref)
   }
 
   const statusTone =

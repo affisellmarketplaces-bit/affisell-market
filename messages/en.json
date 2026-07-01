@@ -1314,6 +1314,18 @@
     "deleting": "Deleting…",
     "deleteConfirm": "Delete your account permanently? This cannot be undone. If you have past marketplace orders as a merchant, deletion may be blocked."
   },
+  "affiliateDashboard": {
+    "onboarding": {
+      "title": "Launch your affiliate store",
+      "subtitle": "Four steps from signup to your first commission.",
+      "kycHint": "Complete identity verification (KYC) before publishing on the marketplace.",
+      "stepKyc": "Verify your business (KYC)",
+      "stepCreate": "Create your first product listing",
+      "stepPublish": "Publish on the marketplace",
+      "stepShare": "Share your shop link",
+      "start": "Continue"
+    }
+  },
   "supplierDashboard": {
     "header": {
       "eyebrow": "Mission Control",
@@ -1418,12 +1430,14 @@
     },
     "onboarding": {
       "title": "Launch your store",
-      "subtitle": "Three steps from zero to your first affiliate sale.",
+      "subtitle": "Four steps from signup to your first affiliate sale.",
+      "kycHint": "Complete identity verification (KYC) before publishing on the marketplace.",
       "vatNotice": "You are solely responsible for collecting, declaring, and remitting VAT. Affisell charges 12% on the net amount (products and shipping), never on VAT.",
+      "stepKyc": "Verify your business (KYC)",
       "stepCreate": "Create your first product listing",
       "stepPublish": "Publish on the marketplace",
       "stepShare": "Share your supplier catalog",
-      "start": "Get started"
+      "start": "Continue"
     },
     "growth": {
       "opportunities": "Opportunities",

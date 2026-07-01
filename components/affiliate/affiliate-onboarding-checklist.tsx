@@ -1,13 +1,8 @@
 import Link from "next/link"
-import { CheckCircle2, Circle, Package, Share2, ShieldCheck, Store } from "lucide-react"
+import { CheckCircle2, Circle, Compass, Share2, ShieldCheck, Store } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
-import {
-  missionControlAffisellMuted,
-  missionControlAffisellSubtext,
-  missionControlHeading,
-  missionControlPanel,
-} from "@/components/supplier/mission-control/mission-control-affisell-shell"
+import { BentoCard } from "@/components/affisell/bento-ui"
 import { buttonVariants } from "@/components/ui/button"
 import type { MerchantFirstSaleProgress, MerchantOnboardingStepId } from "@/lib/merchant-first-sale-progress"
 import { cn } from "@/lib/utils"
@@ -16,9 +11,9 @@ type Props = {
   progress: MerchantFirstSaleProgress
 }
 
-const stepIcons: Record<MerchantOnboardingStepId, typeof Package> = {
+const stepIcons: Record<MerchantOnboardingStepId, typeof Compass> = {
   kyc: ShieldCheck,
-  create: Package,
+  create: Compass,
   publish: Store,
   share: Share2,
 }
@@ -30,30 +25,24 @@ const stepLabelKeys: Record<MerchantOnboardingStepId, string> = {
   share: "stepShare",
 }
 
-export async function SupplierOnboardingChecklist({ progress }: Props) {
-  const t = await getTranslations("supplierDashboard.onboarding")
+export async function AffiliateOnboardingChecklist({ progress }: Props) {
+  const t = await getTranslations("affiliateDashboard.onboarding")
 
   if (!progress.showChecklist) return null
 
   return (
-    <section aria-labelledby="onboarding-heading" className={cn(missionControlPanel, "p-6")}>
-      <h2 id="onboarding-heading" className={cn("text-lg", missionControlHeading)}>
-        {t("title")}
-      </h2>
-      <p className={cn("mt-1 text-sm", missionControlAffisellSubtext)}>{t("subtitle")}</p>
+    <BentoCard className="border-violet-200/70 p-6 dark:border-violet-900/40">
+      <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{t("title")}</h2>
+      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
       {!progress.kycApproved ? (
         <p className="mt-3 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs leading-relaxed text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
           {t("kycHint")}
         </p>
       ) : null}
-      <p className="mt-3 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs leading-relaxed text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
-        {t("vatNotice")}
-      </p>
       <ol className="mt-5 space-y-3">
         {progress.steps.map((step, index) => {
           const Icon = stepIcons[step.id]
           const isNext = progress.nextStepId === step.id
-          const labelKey = stepLabelKeys[step.id]
           return (
             <li key={step.id} className="flex items-start gap-3">
               {step.done ? (
@@ -71,20 +60,16 @@ export async function SupplierOnboardingChecklist({ progress }: Props) {
                 <p
                   className={cn(
                     "text-sm font-medium",
-                    step.done ? "text-emerald-800 dark:text-emerald-200" : missionControlAffisellSubtext
+                    step.done ? "text-emerald-800 dark:text-emerald-200" : "text-zinc-700 dark:text-zinc-300"
                   )}
                 >
-                  <span className={missionControlAffisellMuted}>{index + 1}. </span>
-                  {t(labelKey)}
+                  <span className="text-zinc-400">{index + 1}. </span>
+                  {t(stepLabelKeys[step.id])}
                 </p>
                 {!step.done && isNext ? (
                   <Link
                     href={step.href}
-                    className={cn(
-                      buttonVariants({ variant: isNext ? "default" : "outline", size: "sm" }),
-                      "mt-2 gap-1.5",
-                      isNext && "bg-violet-600 hover:bg-violet-700"
-                    )}
+                    className={cn(buttonVariants({ size: "sm" }), "mt-2 gap-1.5 bg-violet-600 hover:bg-violet-700")}
                   >
                     <Icon className="h-3.5 w-3.5" aria-hidden />
                     {t("start")}
@@ -95,6 +80,6 @@ export async function SupplierOnboardingChecklist({ progress }: Props) {
           )
         })}
       </ol>
-    </section>
+    </BentoCard>
   )
 }

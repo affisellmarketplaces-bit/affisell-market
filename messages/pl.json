@@ -1310,6 +1310,18 @@
     "deleting": "Usuwanie…",
     "deleteConfirm": "Czy na pewno chcesz usunąć swoje konto na zawsze? Nie można tego cofnąć. Jeśli masz wcześniejsze zamówienia w sklepie jako sprzedawca, usunięcie może być zablokowane."
   },
+  "affiliateDashboard": {
+    "onboarding": {
+      "title": "Uruchom swój sklep partnerski",
+      "subtitle": "Cztery kroki od rejestracji do pierwszej prowizji.",
+      "kycHint": "Ukończ weryfikację tożsamości (KYC) przed publikacją na marketplace.",
+      "stepKyc": "Zweryfikuj firmę (KYC)",
+      "stepCreate": "Utwórz pierwszą ofertę produktową",
+      "stepPublish": "Opublikuj na marketplace",
+      "stepShare": "Udostępnij link do sklepu",
+      "start": "Kontynuuj"
+    }
+  },
   "supplierDashboard": {
     "header": {
       "eyebrow": "Centrum Misji",
@@ -1414,12 +1426,14 @@
     },
     "onboarding": {
       "title": "Uruchom swój sklep",
-      "subtitle": "Trzy kroki od zera do pierwszej sprzedaży na zlecenie.",
+      "subtitle": "Cztery kroki od rejestracji do pierwszej sprzedaży partnerskiej.",
+      "kycHint": "Ukończ weryfikację tożsamości (KYC) przed publikacją na marketplace.",
       "vatNotice": "Jesteś wyłącznie odpowiedzialny za gromadzenie, deklarowanie i odprowadzanie VAT. Affisell pobiera 12% od kwoty brutto (produkty i koszty transportu), nigdy od VAT.",
+      "stepKyc": "Zweryfikuj firmę (KYC)",
       "stepCreate": "Utwórz swoją pierwszą ofertę produktową",
       "stepPublish": "Opublikuj na rynku",
       "stepShare": "Udostępnij swoją katalog produktów",
-      "start": "Rozpocznij"
+      "start": "Kontynuuj"
     },
     "growth": {
       "opportunities": "Możliwości",
