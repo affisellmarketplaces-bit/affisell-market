@@ -127,6 +127,7 @@ export function StorefrontLivePreview({ draft, className }: Props) {
             logoUrl={draft.logoUrl}
             accent={draft.accent}
             primary={draft.primary}
+            trustRailText={theme.trustRailText}
             nameBadge={draft.nameBadge}
             headerBrandAlign={draft.headerBrandAlign}
             categories={PREVIEW_CATEGORIES}

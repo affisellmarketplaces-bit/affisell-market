@@ -18,6 +18,7 @@ type Props = {
   logoUrl: string | null
   accent?: string
   primary?: string
+  trustRailText?: string
   nameBadge?: StoreNameBadgeStyle
   headerBrandAlign?: StorefrontHeaderBrandAlign
   categories?: StorefrontCategoryGroup[]
@@ -36,6 +37,7 @@ export function StorefrontBuyerChrome({
   logoUrl,
   accent = "#7c3aed",
   primary = "#18181b",
+  trustRailText,
   nameBadge = "parallelogram",
   headerBrandAlign = "left",
   categories,
@@ -124,6 +126,7 @@ export function StorefrontBuyerChrome({
           logoUrl={logoUrl}
           accent={accent}
           primary={primary}
+          trustRailText={trustRailText}
           nameBadge={nameBadge}
           headerBrandAlign={headerBrandAlign}
           cartCount={cartCount}

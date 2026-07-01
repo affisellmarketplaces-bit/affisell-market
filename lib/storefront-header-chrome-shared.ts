@@ -54,9 +54,14 @@ export function storefrontHeaderShellStyle(primary: string, accent: string): CSS
 export function storefrontHeaderTrustRailStyle(primary: string): CSSProperties {
   const p = normalizeHexColor(primary) ?? "#18181b"
   return {
-    background: `linear-gradient(180deg, color-mix(in srgb, ${p} 86%, black 12%) 0%, color-mix(in srgb, ${p} 92%, black 6%) 100%)`,
-    borderBottomColor: `color-mix(in srgb, ${p} 50%, white 8%)`,
+    background: `linear-gradient(180deg, color-mix(in srgb, ${p} 8%, white 92%) 0%, color-mix(in srgb, ${p} 14%, white 86%) 100%)`,
+    borderBottomColor: `color-mix(in srgb, ${p} 20%, white 80%)`,
   }
+}
+
+/** Default black — merchants can override via `storefrontTheme.trustRailText`. */
+export function storefrontTrustRailTextColor(trustRailText?: string): string {
+  return normalizeHexColor(trustRailText) ?? "#18181b"
 }
 
 export function storefrontHeaderTextTone(isLight: boolean): "light" | "dark" {

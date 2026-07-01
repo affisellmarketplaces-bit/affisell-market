@@ -26,6 +26,8 @@ export type StorefrontHeaderBrandAlign = (typeof STOREFRONT_HEADER_BRAND_ALIGNS)
 export type StorefrontTheme = {
   primary?: string
   accent?: string
+  /** Trust rail label color (Powered by / Secure checkout). Default black for readability. */
+  trustRailText?: string
   nameBadge?: StoreNameBadgeStyle
   layout?: StorefrontLayoutMode
   heroStyle?: StorefrontHeroStyle
@@ -43,6 +45,7 @@ const HEX_RE = /^#[0-9a-f]{6}$/i
 export const DEFAULT_STOREFRONT_THEME: StorefrontTheme = {
   primary: "#18181b",
   accent: "#7c3aed",
+  trustRailText: "#18181b",
   layout: "classic",
   heroStyle: "banner",
   gridDensity: "cozy",
@@ -72,10 +75,13 @@ export function parseStorefrontTheme(raw: unknown): StorefrontTheme {
   const o = raw as Record<string, unknown>
   const primary = normalizeHexColor(o.primary) ?? DEFAULT_STOREFRONT_THEME.primary
   const accent = normalizeHexColor(o.accent) ?? DEFAULT_STOREFRONT_THEME.accent
+  const trustRailText =
+    normalizeHexColor(o.trustRailText) ?? DEFAULT_STOREFRONT_THEME.trustRailText
   const nameBadge = parseStoreNameBadgeStyle(o.nameBadge)
   return {
     primary,
     accent,
+    trustRailText,
     nameBadge,
     layout: parseEnum(o.layout, STOREFRONT_LAYOUT_MODES, DEFAULT_STOREFRONT_THEME.layout!),
     heroStyle: parseEnum(o.heroStyle, STOREFRONT_HERO_STYLES, DEFAULT_STOREFRONT_THEME.heroStyle!),
@@ -100,6 +106,7 @@ export function themeToCssVars(theme: StorefrontTheme): Record<string, string> {
   return {
     "--store-primary": t.primary ?? DEFAULT_STOREFRONT_THEME.primary!,
     "--store-accent": t.accent ?? DEFAULT_STOREFRONT_THEME.accent!,
+    "--store-trust-rail-text": t.trustRailText ?? DEFAULT_STOREFRONT_THEME.trustRailText!,
   }
 }
 
@@ -128,6 +135,7 @@ export function storefrontSurfaceClass(surface: StorefrontSurface | undefined): 
 export type BrandStudioThemeInput = {
   primary?: unknown
   accent?: unknown
+  trustRailText?: unknown
   nameBadge?: unknown
   layout?: unknown
   heroStyle?: unknown
@@ -151,6 +159,10 @@ export function themeFromBrandStudioFields(
       input.accent !== undefined && input.accent !== null
         ? normalizeHexColor(input.accent) ?? existing.accent
         : existing.accent,
+    trustRailText:
+      input.trustRailText !== undefined && input.trustRailText !== null
+        ? normalizeHexColor(input.trustRailText) ?? existing.trustRailText
+        : existing.trustRailText,
     nameBadge:
       input.nameBadge !== undefined && input.nameBadge !== null
         ? parseStoreNameBadgeStyle(input.nameBadge)

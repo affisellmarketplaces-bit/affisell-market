@@ -11,6 +11,7 @@ type Props = {
   logoUrl: string | null
   accent?: string
   primary?: string
+  trustRailText?: string
   nameBadge?: StoreNameBadgeStyle
   headerBrandAlign?: StorefrontHeaderBrandAlign
   categories?: StorefrontCategoryGroup[]

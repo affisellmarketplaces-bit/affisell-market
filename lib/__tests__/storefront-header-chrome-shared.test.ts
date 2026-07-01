@@ -4,6 +4,8 @@ import {
   isLightStorefrontHeader,
   storefrontHeaderLuminance,
   storefrontHeaderShellStyle,
+  storefrontHeaderTrustRailStyle,
+  storefrontTrustRailTextColor,
 } from "@/lib/storefront-header-chrome-shared"
 
 describe("storefront-header-chrome-shared", () => {
@@ -17,5 +19,12 @@ describe("storefront-header-chrome-shared", () => {
     const style = storefrontHeaderShellStyle("#4c1d95", "#a78bfa")
     expect(style.background).toContain("#4c1d95")
     expect(style["--store-header-accent-glow"]).toContain("#a78bfa")
+  })
+
+  it("uses light trust rail background and black label default", () => {
+    const style = storefrontHeaderTrustRailStyle("#2563eb")
+    expect(style.background).toContain("white")
+    expect(storefrontTrustRailTextColor()).toBe("#18181b")
+    expect(storefrontTrustRailTextColor("#ffffff")).toBe("#ffffff")
   })
 })

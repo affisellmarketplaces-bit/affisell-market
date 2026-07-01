@@ -53,7 +53,7 @@ export function PaymentMethodsStrip({
   )
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-3", className)} data-testid="payment-methods-strip">
       <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
         {showStripeLead ? (
           <PaymentStripeProcessorBadge

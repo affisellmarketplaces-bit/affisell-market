@@ -67,7 +67,13 @@ describe("themeToCssVars", () => {
     expect(themeToCssVars({ primary: "#111111", accent: "#222222" })).toEqual({
       "--store-primary": "#111111",
       "--store-accent": "#222222",
+      "--store-trust-rail-text": "#18181b",
     })
+  })
+
+  it("parses trustRailText override", () => {
+    const t = parseStorefrontTheme({ trustRailText: "#000000" })
+    expect(t.trustRailText).toBe("#000000")
   })
 })
 

@@ -43,6 +43,7 @@ export default async function ShopPublicLayout({
           logoUrl={store.logoUrl ?? store.aiAvatarUrl}
           accent={store.theme.accent}
           primary={store.theme.primary}
+          trustRailText={store.theme.trustRailText}
           nameBadge={store.theme.nameBadge}
           headerBrandAlign={store.theme.headerBrandAlign}
           categoriesSlug={slug}
