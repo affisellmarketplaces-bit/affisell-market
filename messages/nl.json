@@ -2593,6 +2593,7 @@
       "paymentMethodsAriaLabel": "Accepted payment methods",
       "paymentProcessorHint": "Stripe · 3D Secure",
       "paymentProcessorSecure": "3D Secure",
+      "paymentMethodsComplianceNote": "Wallets & Klarna shown when eligible on your device and order total. Powered by Stripe.",
       "about": "Over ons",
       "howItWorks": "Hoe het werkt",
       "howSellingWorks": "Hoe verkoop werkt",
