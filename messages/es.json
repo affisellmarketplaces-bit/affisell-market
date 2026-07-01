@@ -3262,6 +3262,14 @@
   },
   "accountOrders": {
     "empty": "No hay pedidos aún para esta cuenta.",
+    "sort": {
+      "label": "Sort",
+      "actionNeeded": "Needs your action",
+      "dateDesc": "Newest first",
+      "dateAsc": "Oldest first",
+      "amountDesc": "Highest amount",
+      "amountAsc": "Lowest amount"
+    },
     "fulfillmentTag": {
       "preparing": " · Preparando tu pedido",
       "shipped": " · Enviado",

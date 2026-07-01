@@ -3262,6 +3262,14 @@
   },
   "accountOrders": {
     "empty": "Nog geen bestellingen voor dit account.",
+    "sort": {
+      "label": "Sort",
+      "actionNeeded": "Needs your action",
+      "dateDesc": "Newest first",
+      "dateAsc": "Oldest first",
+      "amountDesc": "Highest amount",
+      "amountAsc": "Lowest amount"
+    },
     "fulfillmentTag": {
       "preparing": " · Uw bestelling wordt voorbereid",
       "shipped": " · Verzonden",

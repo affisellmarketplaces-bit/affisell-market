@@ -3262,6 +3262,14 @@
   },
   "accountOrders": {
     "empty": "此账户暂无订单。",
+    "sort": {
+      "label": "Sort",
+      "actionNeeded": "Needs your action",
+      "dateDesc": "Newest first",
+      "dateAsc": "Oldest first",
+      "amountDesc": "Highest amount",
+      "amountAsc": "Lowest amount"
+    },
     "fulfillmentTag": {
       "preparing": " · 正在准备您的订单",
       "shipped": " · 已发货",
