@@ -1282,6 +1282,7 @@
       "skip": "Next product",
       "skipShort": "Next",
       "saveDrop": "Save Drop — wishlist + price alert",
+      "saveDropPushEnabled": "Push alerts enabled for price drops",
       "saveDropShort": "Save",
       "undo": "Product back in stack",
       "undoShort": "Undo",

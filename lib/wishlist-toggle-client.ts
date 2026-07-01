@@ -5,14 +5,26 @@ export type WishlistToggleResult =
   | { ok: false; error: string }
 
 /** Like / unlike a product — works for guests (cookie) and signed-in buyers. */
-export async function toggleProductWishlist(productId: string): Promise<WishlistToggleResult> {
+export async function toggleProductWishlist(
+  productId: string,
+  options?: { targetPriceEur?: number }
+): Promise<WishlistToggleResult> {
   const id = productId.trim()
   if (!id) return { ok: false, error: "Missing product" }
+
+  const body: { productId: string; targetPrice?: number } = { productId: id }
+  if (
+    typeof options?.targetPriceEur === "number" &&
+    Number.isFinite(options.targetPriceEur) &&
+    options.targetPriceEur > 0
+  ) {
+    body.targetPrice = options.targetPriceEur
+  }
 
   const res = await fetch("/api/wishlist/toggle", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ productId: id }),
+    body: JSON.stringify(body),
     credentials: "include",
   })
 

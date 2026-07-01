@@ -1290,6 +1290,7 @@
       "skip": "Następny produkt",
       "skipShort": "Następny",
       "saveDrop": "Zapisz produkt — lista życzeń + powiadomienie o cenie",
+      "saveDropPushEnabled": "Powiadomienia push włączone przy spadkach cen",
       "saveDropShort": "Zapisz",
       "undo": "Produkt wrócił na stos",
       "undoShort": "Cofnij",

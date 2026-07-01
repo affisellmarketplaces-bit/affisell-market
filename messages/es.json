@@ -1290,6 +1290,7 @@
       "skip": "Siguiente producto",
       "skipShort": "Siguiente",
       "saveDrop": "Guardar Drop — lista de deseos + alerta de precio",
+      "saveDropPushEnabled": "Alertas push activadas para bajadas de precio",
       "saveDropShort": "Guardar",
       "undo": "Producto de nuevo en la pila",
       "undoShort": "Deshacer",

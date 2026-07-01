@@ -1290,6 +1290,7 @@
       "skip": "Nächstes Produkt",
       "skipShort": "Nächster",
       "saveDrop": "Speichern — Wunschliste + Preisalarm",
+      "saveDropPushEnabled": "Push-Benachrichtigungen für Preissenkungen aktiviert",
       "saveDropShort": "Speichern",
       "undo": "Produkt zurück in den Stapel",
       "undoShort": "Rückgängig",

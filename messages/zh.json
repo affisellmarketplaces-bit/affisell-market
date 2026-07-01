@@ -1290,6 +1290,7 @@
       "skip": "下一件商品",
       "skipShort": "Next",
       "saveDrop": "Save Drop — wishlist + price alert",
+      "saveDropPushEnabled": "已开启降价推送提醒",
       "saveDropShort": "Save",
       "undo": "Product back in stack",
       "undoShort": "Undo",

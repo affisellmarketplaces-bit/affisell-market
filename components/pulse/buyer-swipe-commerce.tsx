@@ -21,6 +21,7 @@ import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 import { toggleProductWishlist } from "@/lib/wishlist-toggle-client"
+import { requestPriceAlertPushSubscription } from "@/components/push/request-price-alert-push"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
 import { pulseSwipeHaptic } from "@/lib/pulse-swipe-haptics"
@@ -227,7 +228,8 @@ export function BuyerSwipeCommerce({
   const saveDrop = useCallback(
     async (item: PulseFeedItem) => {
       if (!item.productId) return
-      const result = await toggleProductWishlist(item.productId)
+      const targetPriceEur = Math.max(0.01, Math.round(item.priceCents * 0.95) / 100)
+      const result = await toggleProductWishlist(item.productId, { targetPriceEur })
       if (result.ok) {
         console.log("[buyer-swipe-commerce]", {
           productId: item.productId,
@@ -235,6 +237,12 @@ export function BuyerSwipeCommerce({
           wished: result.wished,
         })
         showToast(t("saveDrop"))
+        if (result.wished) {
+          const push = await requestPriceAlertPushSubscription()
+          if (push === "granted") {
+            showToast(t("saveDropPushEnabled"))
+          }
+        }
       }
     },
     [showToast, t]
