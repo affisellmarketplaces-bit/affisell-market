@@ -129,6 +129,75 @@ export async function loadBuyerListedProducts(limit = 48): Promise<BuyerListingC
   return cards
 }
 
+export async function loadBuyerListingsByListingIds(
+  listingIds: string[],
+  excludeProductIds: string[],
+  limit = 8
+): Promise<BuyerListingCard[]> {
+  const ids = [...new Set(listingIds.map((id) => id.trim()).filter(Boolean))]
+  const exclude = new Set(excludeProductIds.map((id) => id.trim()).filter(Boolean))
+  if (ids.length === 0) return []
+
+  const listings = await prisma.affiliateProduct.findMany({
+    where: {
+      id: { in: ids },
+      ...buyerListedAffiliateProductWhere,
+      affiliate: { store: { isNot: null } },
+      product: exclude.size > 0 ? { id: { notIn: [...exclude] } } : undefined,
+    },
+    select: listingSelect,
+  })
+
+  const byId = new Map(listings.map((row) => [row.id, row]))
+  const cards: BuyerListingCard[] = []
+  for (const id of ids) {
+    const row = byId.get(id)
+    if (!row || exclude.has(row.productId)) continue
+    const card = mapRow(row, normalizeListingSalesCount(row.conversions))
+    if (card) cards.push(card)
+    if (cards.length >= limit) break
+  }
+  return cards
+}
+
+/** Personalized catalog — same categories as wishlist / orders / browse signals. */
+export async function loadBuyerListingsByCategoryHints(
+  categoryHints: string[],
+  excludeProductIds: string[],
+  limit = 8
+): Promise<BuyerListingCard[]> {
+  const hints = [...new Set(categoryHints.map((c) => c.trim()).filter(Boolean))].slice(0, 8)
+  if (hints.length === 0) return []
+
+  const exclude = [...new Set(excludeProductIds.map((id) => id.trim()).filter(Boolean))]
+
+  const listings = await prisma.affiliateProduct.findMany({
+    where: {
+      ...buyerListedAffiliateProductWhere,
+      affiliate: { store: { isNot: null } },
+      product: {
+        id: exclude.length > 0 ? { notIn: exclude } : undefined,
+        categories: { hasSome: hints },
+      },
+    },
+    select: listingSelect,
+    orderBy: [{ conversions: "desc" }, { updatedAt: "desc" }],
+    take: Math.min(limit * 3, 48),
+  })
+
+  const seen = new Set<string>()
+  const cards: BuyerListingCard[] = []
+  for (const row of listings) {
+    if (seen.has(row.productId)) continue
+    seen.add(row.productId)
+    const card = mapRow(row, normalizeListingSalesCount(row.conversions))
+    if (card) cards.push(card)
+    if (cards.length >= limit) break
+  }
+
+  return cards
+}
+
 export async function loadBuyerListedProductsSafe(limit = 48): Promise<BuyerListingCard[]> {
   try {
     return await loadBuyerListedProducts(limit)

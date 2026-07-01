@@ -1201,6 +1201,15 @@
         "eyebrow": "Univers populaires",
         "hint": "Libellés familiers — chaque bouton ouvre le rayon Google correspondant."
       },
+      "personalized": {
+        "eyebrowForYou": "Pour vous",
+        "eyebrowTrending": "Tendances",
+        "titleForYou": "Recommandé pour vous",
+        "titleTrending": "Populaires cette semaine",
+        "hintForYou": "Basé sur votre liste d'envies, vos commandes et votre navigation.",
+        "hintTrending": "Meilleures ventes — connectez-vous pour personnaliser.",
+        "pulseCta": "Découvrir plus"
+      },
       "embeddedEyebrow": "Shopping · Live",
       "embeddedTitle": "Découvrir & acheter",
       "embeddedTitleMobile": "Catalogue produits",

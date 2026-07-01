@@ -1189,6 +1189,15 @@
         "eyebrow": "Populaire afdelingen",
         "hint": "Familiar labels — elk opent de corresponderende Google-taxonomiegang."
       },
+      "personalized": {
+        "eyebrowForYou": "Voor jou",
+        "eyebrowTrending": "Trending",
+        "titleForYou": "Aanbevolen voor jou",
+        "titleTrending": "Populair deze week",
+        "hintForYou": "Op basis van je verlanglijst, bestellingen en browsegedrag.",
+        "hintTrending": "Bestsellers — log in voor persoonlijke tips.",
+        "pulseCta": "Meer ontdekken"
+      },
       "embeddedEyebrow": "Winkelen · Live",
       "embeddedTitle": "Ontdek & winkelen",
       "embeddedTitleMobile": "Productcatalogus",

@@ -25,6 +25,8 @@ import { MarketplaceBrowseDepartmentsRail } from "@/components/marketplace/marke
 import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
 import { MobileCatalogChrome } from "@/components/marketplace/mobile-catalog-chrome"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
+import { BuyerBrowseSignalsRecorder } from "@/components/home/buyer-browse-signals-recorder"
+import { HomePersonalizedPicksRail } from "@/components/home/home-personalized-picks-rail"
 import { CategoryTreeExplorer } from "@/components/marketplace/CategoryTreeExplorer"
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox"
 import { MARKETPLACE_QUERY_RESERVED } from "@/lib/marketplace-query-params"
@@ -279,6 +281,23 @@ export function MarketplaceView({
     return t("activeFilterCatalog")
   }, [activeScope, offerFilter, locale, t])
 
+  const browseSignalCategoryName = useMemo(() => {
+    if (activeScope.kind === "path") {
+      const leaf = activeScope.path[activeScope.path.length - 1]
+      return leaf?.name ?? null
+    }
+    if (activeScope.kind === "sub") return activeScope.sub.name
+    if (activeScope.kind === "root") return activeScope.root.name
+    return null
+  }, [activeScope])
+
+  const showPersonalizedRail = Boolean(
+    embedded &&
+      isCustomerBrowse &&
+      !hasFilters &&
+      (initialBrowse?.personalizedPicks?.items.length ?? 0) >= 4
+  )
+
   function clearFilters() {
     skipGraduatedShipsToAutoFilter()
     navigateMarketplaceCatalog(router, catalogFilterHref(basePath))
@@ -433,6 +452,12 @@ export function MarketplaceView({
             catalogBasePath={basePath}
             className={embedded ? "mt-3 hidden md:block" : "mt-3 sm:mt-4"}
           />
+        ) : null}
+        {embedded && isCustomerBrowse ? (
+          <BuyerBrowseSignalsRecorder categoryName={browseSignalCategoryName} />
+        ) : null}
+        {showPersonalizedRail && initialBrowse?.personalizedPicks ? (
+          <HomePersonalizedPicksRail picks={initialBrowse.personalizedPicks} className="mt-3 sm:mt-4" />
         ) : null}
         {!embedded ? (
           <div>

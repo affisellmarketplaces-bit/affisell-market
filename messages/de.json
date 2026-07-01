@@ -1189,6 +1189,15 @@
         "eyebrow": "Beliebte Abteilungen",
         "hint": "Vertraute Labels — jede öffnet den entsprechenden Google-Taxonomie-Gang."
       },
+      "personalized": {
+        "eyebrowForYou": "Für dich",
+        "eyebrowTrending": "Trends",
+        "titleForYou": "Empfohlen für dich",
+        "titleTrending": "Beliebt diese Woche",
+        "hintForYou": "Basierend auf Wunschliste, Bestellungen und deinem Browsing.",
+        "hintTrending": "Bestseller — melde dich an für personalisierte Tipps.",
+        "pulseCta": "Mehr entdecken"
+      },
       "embeddedEyebrow": "Einkaufen · Live",
       "embeddedTitle": "Entdecken & einkaufen",
       "embeddedTitleMobile": "Produktkatalog",

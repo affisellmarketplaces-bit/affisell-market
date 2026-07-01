@@ -1189,6 +1189,15 @@
         "eyebrow": "Popularne kategorie",
         "hint": "Znajomościowe etykiety — każda otwiera odpowiadającą taksonomię Google."
       },
+      "personalized": {
+        "eyebrowForYou": "Dla Ciebie",
+        "eyebrowTrending": "Na czasie",
+        "titleForYou": "Polecane dla Ciebie",
+        "titleTrending": "Popularne w tym tygodniu",
+        "hintForYou": "Na podstawie listy życzeń, zamówień i przeglądania.",
+        "hintTrending": "Bestsellery — zaloguj się, aby spersonalizować.",
+        "pulseCta": "Odkryj więcej"
+      },
       "embeddedEyebrow": "Handel · Na żywo",
       "embeddedTitle": "Odkrywaj & kupuj",
       "embeddedTitleMobile": "Katalog produktów",

@@ -1193,6 +1193,15 @@
         "eyebrow": "Popular departments",
         "hint": "Familiar labels — each opens the matching Google taxonomy aisle."
       },
+      "personalized": {
+        "eyebrowForYou": "For you",
+        "eyebrowTrending": "Trending",
+        "titleForYou": "Recommended for you",
+        "titleTrending": "Popular this week",
+        "hintForYou": "Based on your wishlist, orders, and browsing.",
+        "hintTrending": "Top sellers — sign in to personalize picks.",
+        "pulseCta": "Discover more"
+      },
       "embeddedEyebrow": "Shopping · Live",
       "embeddedTitle": "Discover & shop",
       "embeddedTitleMobile": "Product catalog",

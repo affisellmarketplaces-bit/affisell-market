@@ -1189,6 +1189,15 @@
         "eyebrow": "热门部门",
         "hint": "熟悉的标签 — 每个标签都打开匹配的Google分类 aisle。"
       },
+      "personalized": {
+        "eyebrowForYou": "为你推荐",
+        "eyebrowTrending": "热门趋势",
+        "titleForYou": "为你推荐",
+        "titleTrending": "本周热门",
+        "hintForYou": "基于你的收藏、订单和浏览记录。",
+        "hintTrending": "畅销商品 — 登录后可个性化推荐。",
+        "pulseCta": "发现更多"
+      },
       "embeddedEyebrow": "购物 · 直播",
       "embeddedTitle": "发现 & 购物",
       "embeddedTitleMobile": "产品目录",

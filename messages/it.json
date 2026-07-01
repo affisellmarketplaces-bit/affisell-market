@@ -1189,6 +1189,15 @@
         "eyebrow": "Dipartimenti popolari",
         "hint": "Etichette familiari — ogni apre l'asse di taxonomy di Google."
       },
+      "personalized": {
+        "eyebrowForYou": "Per te",
+        "eyebrowTrending": "Di tendenza",
+        "titleForYou": "Consigliato per te",
+        "titleTrending": "Popolari questa settimana",
+        "hintForYou": "Basato su wishlist, ordini e navigazione.",
+        "hintTrending": "Più venduti — accedi per personalizzare.",
+        "pulseCta": "Scopri di più"
+      },
       "embeddedEyebrow": "Shopping · Live",
       "embeddedTitle": "Scopri & acquista",
       "embeddedTitleMobile": "Catalogo dei prodotti",
