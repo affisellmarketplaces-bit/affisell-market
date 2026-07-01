@@ -18,7 +18,7 @@ describe("storefront-header-chrome-shared", () => {
   it("builds gradient shell style from merchant primary", () => {
     const style = storefrontHeaderShellStyle("#4c1d95", "#a78bfa")
     expect(style.background).toContain("#4c1d95")
-    expect(style["--store-header-accent-glow"]).toContain("#a78bfa")
+    expect((style as Record<string, string>)["--store-header-accent-glow"]).toContain("#a78bfa")
   })
 
   it("uses light trust rail background and black label default", () => {

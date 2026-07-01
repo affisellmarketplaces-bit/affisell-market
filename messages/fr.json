@@ -450,6 +450,7 @@
         "legalStatus": "Statut déclaré",
         "body": "Vous pouvez consulter votre tableau de bord en lecture seule. La publication catalogue s'ouvrira après approbation.",
         "dashboardLink": "Ouvrir le tableau de bord",
+        "affiliatePrepareListing": "Préparer ma première fiche",
         "status_PENDING_REVIEW": "En cours d'examen",
         "status_REJECTED": "Dossier refusé — contactez le support",
         "status_NEEDS_MORE_INFO": "Pièces complémentaires demandées"
@@ -1341,13 +1342,39 @@
   "affiliateDashboard": {
     "onboarding": {
       "title": "Lancez votre boutique affiliée",
-      "subtitle": "Quatre étapes de l'inscription à votre première commission.",
-      "kycHint": "Finalisez la vérification d'identité (KYC) avant de publier sur le marketplace.",
+      "subtitle": "Swipe un produit, fixez votre prix, publiez — première fiche en ~5 minutes.",
+      "kycHint": "Le KYC est requis pour publier — vous pouvez enregistrer des brouillons pendant la revue.",
       "stepKyc": "Vérifier votre entreprise (KYC)",
       "stepCreate": "Créer votre première fiche produit",
       "stepPublish": "Publier sur le marketplace",
       "stepShare": "Partager le lien de votre shop",
-      "start": "Continuer"
+      "start": "Continuer",
+      "draftReadyHint": "Vous avez déjà {count, plural, one {# brouillon prêt} other {# brouillons prêts}} à publier après validation."
+    },
+    "kycPublish": {
+      "badge": "Publication bloquée",
+      "title": "Vérification d'identité requise",
+      "body": {
+        "noProfile": "Complétez votre dossier KYC avant de mettre vos fiches en ligne.",
+        "pending": "Dossier en revue — enregistrez des brouillons et publiez après validation.",
+        "rejected": "Dossier refusé — mettez à jour vos documents pour publier.",
+        "needsInfo": "Documents complémentaires demandés — finalisez votre dossier."
+      },
+      "draftWaiting": "{count, plural, one {# brouillon en attente de validation} other {# brouillons en attente de validation}}",
+      "cta": "Compléter la vérification"
+    },
+    "firstListing": {
+      "eyebrow": "Lancement 5 min",
+      "title": "Votre première fiche commence ici",
+      "body": "Swipez à droite sur un produit, confirmez votre marge, enregistrez — publication live après validation KYC.",
+      "stepSwipe": "Swipe droite pour choisir un produit",
+      "stepPrice": "Confirmez le prix (+30 % de marge suggérée)",
+      "stepPublish": "Publiez en live ou brouillon pendant le KYC",
+      "modalEyebrow": "Première fiche",
+      "stepCustomize": "1 Prix & titre",
+      "publishCta": "Publier la fiche",
+      "publishHint": "Live après KYC — brouillon si en attente",
+      "kycDraftSaved": "KYC en cours — brouillon enregistré. Publiez depuis le dashboard une fois validé."
     }
   },
   "supplierDashboard": {

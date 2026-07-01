@@ -3,6 +3,7 @@
 import type { FormEvent, MouseEvent } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Loader2, Rocket, Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { flushAllMerchantDrafts, registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
 
@@ -88,7 +89,7 @@ type Props = {
   suggestedMarkupRate?: number
   /** Disable silent draft autosave (swipe cancel must not create drafts). */
   enableAutosave?: boolean
-  context?: "catalog" | "swipe"
+  context?: "catalog" | "swipe" | "onboarding"
 }
 
 const COLLECTIONS = ["Featured", "Black Friday", "Tech Deals"] as const
@@ -183,7 +184,7 @@ type BodyProps = {
   onSaved: (result?: { listingId?: string; published?: boolean }) => void
   suggestedMarkupRate?: number
   enableAutosave: boolean
-  context: "catalog" | "swipe"
+  context: "catalog" | "swipe" | "onboarding"
 }
 
 function ListingBuilderModalBody({
@@ -196,6 +197,8 @@ function ListingBuilderModalBody({
   enableAutosave,
   context,
 }: BodyProps) {
+  const tFirstListing = useTranslations("affiliateDashboard.firstListing")
+  const onboardingFlow = context === "onboarding"
   const supplierUrls = useMemo(() => product.images?.filter(Boolean) ?? [], [product.images])
   const variantOptions = useMemo(
     () =>
@@ -410,7 +413,22 @@ function ListingBuilderModalBody({
           body: JSON.stringify(bodyObj),
         })
         const j = (await res.json()) as { error?: string }
-        if (!res.ok) throw new Error(j.error ?? "Save failed")
+        if (!res.ok) {
+          if (
+            !saveDraft &&
+            res.status === 403 &&
+            j.error === "merchant_verification_pending"
+          ) {
+            await submit(true, { silent: true })
+            if (!opts?.silent) {
+              setError(tFirstListing("kycDraftSaved"))
+              onSaved({ published: false })
+              onClose()
+            }
+            return
+          }
+          throw new Error(j.error ?? "Save failed")
+        }
         if (!opts?.silent) {
           onSaved({ listingId: listing.id, published: !saveDraft })
           onClose()
@@ -456,7 +474,22 @@ function ListingBuilderModalBody({
           body: JSON.stringify(bodyObj),
         })
         const j = (await res.json()) as { error?: string; id?: string }
-        if (!res.ok) throw new Error(j.error ?? "Could not create listing")
+        if (!res.ok) {
+          if (
+            !saveDraft &&
+            res.status === 403 &&
+            j.error === "merchant_verification_pending"
+          ) {
+            await submit(true, { silent: true })
+            if (!opts?.silent) {
+              setError(tFirstListing("kycDraftSaved"))
+              onSaved({ published: false })
+              onClose()
+            }
+            return
+          }
+          throw new Error(j.error ?? "Could not create listing")
+        }
         if (!opts?.silent) {
           onSaved({ listingId: j.id, published: !saveDraft })
           onClose()
@@ -517,7 +550,11 @@ function ListingBuilderModalBody({
       <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-4 sm:px-6">
         <div>
           <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-            {context === "swipe" ? "Swipe → Studio vitrine" : "Add to My Store"}
+            {onboardingFlow
+              ? tFirstListing("modalEyebrow")
+              : context === "swipe"
+                ? "Swipe → Studio vitrine"
+                : "Add to My Store"}
           </p>
           <h2 className="text-lg font-semibold text-gray-900">{product.name}</h2>
           {context === "swipe" ? (
@@ -545,17 +582,19 @@ function ListingBuilderModalBody({
               form.step === 1 ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"
             }`}
           >
-            {context === "swipe" ? "1 Personnaliser" : "1 Customize"}
+            {onboardingFlow ? tFirstListing("stepCustomize") : context === "swipe" ? "1 Personnaliser" : "1 Customize"}
           </button>
-          <button
-            type="button"
-            onClick={() => setForm((f) => ({ ...f, step: 2 }))}
-            className={`rounded-full px-3 py-1 text-sm font-medium ${
-              form.step === 2 ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            {context === "swipe" ? "2 SEO & visibilité" : "2 SEO & Visibility"}
-          </button>
+          {!onboardingFlow ? (
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, step: 2 }))}
+              className={`rounded-full px-3 py-1 text-sm font-medium ${
+                form.step === 2 ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              {context === "swipe" ? "2 SEO & visibilité" : "2 SEO & Visibility"}
+            </button>
+          ) : null}
         </div>
 
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
@@ -1162,9 +1201,15 @@ function ListingBuilderModalBody({
                     ) : (
                       <Rocket className="size-5 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden />
                     )}
-                    {context === "swipe" ? "Publier en vitrine" : "Push to Store"}
+                    {onboardingFlow
+                      ? tFirstListing("publishCta")
+                      : context === "swipe"
+                        ? "Publier en vitrine"
+                        : "Push to Store"}
                   </span>
-                  {context === "swipe" ? (
+                  {onboardingFlow ? (
+                    <span className="text-xs font-medium text-white/85">{tFirstListing("publishHint")}</span>
+                  ) : context === "swipe" ? (
                     <span className="text-xs font-medium text-white/85">Publier sur votre vitrine</span>
                   ) : marginEUR != null && Number.isFinite(marginEUR) && marginEUR > 0 ? (
                     <span className="text-xs font-medium text-white/85">

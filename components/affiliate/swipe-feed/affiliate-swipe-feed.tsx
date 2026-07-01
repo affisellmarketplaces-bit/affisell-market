@@ -58,9 +58,10 @@ function buildFeedQuery(filters: SwipeFeedFilters, take: number): string {
 
 type Props = {
   initialMode?: "hub" | "swipe"
+  listingContext?: "swipe" | "onboarding"
 }
 
-export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
+export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swipe" }: Props) {
   const tSwipe = useTranslations("affiliate.swipeFeed")
   const [mode, setMode] = useState<"hub" | "swipe">(initialMode)
   const [deck, setDeck] = useState<SwipeFeedProduct[]>([])
@@ -572,6 +573,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub" }: Props) {
         product={studioProduct}
         open={studioOpen}
         suggestedMarkupRate={DEFAULT_MARKUP}
+        listingContext={listingContext}
         onClose={closeStudio}
         onPublished={(result) => void handleStudioPublished(result)}
       />

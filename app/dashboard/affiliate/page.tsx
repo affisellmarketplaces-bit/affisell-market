@@ -2,8 +2,10 @@ import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { Suspense } from "react"
 
 import { AffiliateOnboardingChecklist } from "@/components/affiliate/affiliate-onboarding-checklist"
+import { AffiliateKycPublishBanner } from "@/components/affiliate/affiliate-kyc-publish-banner"
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { loadAffiliateFirstSaleProgress } from "@/lib/merchant-first-sale-progress"
+import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 
 import { AffiliateDashboard } from "./affiliate-dashboard"
 
@@ -12,7 +14,10 @@ export const dynamic = "force-dynamic"
 /** No Prisma on SSR — hosted DB may block queries when transfer quota is exceeded. */
 export default async function AffiliateDashboardPage() {
   const session = await requireAffiliateSession("/dashboard/affiliate")
-  const firstSaleProgress = await loadAffiliateFirstSaleProgress(session.user.id)
+  const [firstSaleProgress, kycGate] = await Promise.all([
+    loadAffiliateFirstSaleProgress(session.user.id),
+    merchantVerificationGate(session.user.id),
+  ])
 
   return (
     <Suspense
@@ -27,7 +32,13 @@ export default async function AffiliateDashboardPage() {
       }
     >
       <div className="space-y-6">
-        <BentoContainer maxWidth="6xl" className="pt-8">
+        <BentoContainer maxWidth="6xl" className="space-y-4 pt-8">
+          <AffiliateKycPublishBanner
+            allowed={kycGate.allowed}
+            reason={kycGate.reason ?? null}
+            status={kycGate.status}
+            draftCount={firstSaleProgress.draftListingCount}
+          />
           <AffiliateOnboardingChecklist progress={firstSaleProgress} />
         </BentoContainer>
         <AffiliateDashboard storeId={session.user.id} />

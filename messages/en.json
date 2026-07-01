@@ -450,6 +450,7 @@
         "legalStatus": "Declared status",
         "body": "You can browse your dashboard in read-only mode. Catalog publishing unlocks after approval.",
         "dashboardLink": "Open dashboard",
+        "affiliatePrepareListing": "Prepare my first listing",
         "status_PENDING_REVIEW": "Under review",
         "status_REJECTED": "Application rejected — contact support",
         "status_NEEDS_MORE_INFO": "Additional documents requested"
@@ -1333,13 +1334,39 @@
   "affiliateDashboard": {
     "onboarding": {
       "title": "Launch your affiliate store",
-      "subtitle": "Four steps from signup to your first commission.",
-      "kycHint": "Complete identity verification (KYC) before publishing on the marketplace.",
+      "subtitle": "Swipe a product, set your price, publish — first listing in about 5 minutes.",
+      "kycHint": "KYC is required to go live — you can save drafts while your dossier is reviewed.",
       "stepKyc": "Verify your business (KYC)",
       "stepCreate": "Create your first product listing",
       "stepPublish": "Publish on the marketplace",
       "stepShare": "Share your shop link",
-      "start": "Continue"
+      "start": "Continue",
+      "draftReadyHint": "You already have {count, plural, one {# draft ready} other {# drafts ready}} to publish after approval."
+    },
+    "kycPublish": {
+      "badge": "Publish blocked",
+      "title": "Identity verification required",
+      "body": {
+        "noProfile": "Complete your KYC dossier before listings go live on Affisell.",
+        "pending": "Your dossier is under review — save drafts and publish once approved.",
+        "rejected": "Your dossier was rejected — update your documents to publish.",
+        "needsInfo": "We need additional documents — complete your dossier to publish."
+      },
+      "draftWaiting": "{count, plural, one {# draft waiting for approval} other {# drafts waiting for approval}}",
+      "cta": "Complete verification"
+    },
+    "firstListing": {
+      "eyebrow": "5-minute launch",
+      "title": "Your first listing starts here",
+      "body": "Swipe right on a product you love, confirm your margin, and save — publish goes live after KYC approval.",
+      "stepSwipe": "Swipe right to pick a product",
+      "stepPrice": "Confirm price (+30% margin suggested)",
+      "stepPublish": "Publish live or save as draft while KYC is pending",
+      "modalEyebrow": "First listing",
+      "stepCustomize": "1 Price & title",
+      "publishCta": "Publish listing",
+      "publishHint": "Goes live after KYC — draft saved if pending",
+      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved."
     }
   },
   "supplierDashboard": {

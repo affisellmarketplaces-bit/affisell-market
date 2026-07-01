@@ -5,7 +5,9 @@ import { Clock, ShieldCheck } from "lucide-react"
 
 import { auth } from "@/auth"
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
+import { buttonVariants } from "@/components/ui/button"
 import { MerchantLegalProfileSubmitForm } from "@/components/merchant/merchant-legal-profile-submit-form"
+import { AFFILIATE_FIRST_LISTING_HUB_HREF } from "@/lib/affiliate-onboarding-shared"
 import {
   loadAffiliateFirstSaleProgress,
   loadSupplierFirstSaleProgress,
@@ -111,12 +113,22 @@ export default async function MerchantVerificationPage() {
                 </p>
               ) : null}
               <p className="mt-4 text-sm text-zinc-700 dark:text-zinc-300">{t("body")}</p>
-              <Link
-                href={dashHref}
-                className="mt-4 inline-block text-sm font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
-              >
-                {t("dashboardLink")}
-              </Link>
+              <div className="mt-4 flex flex-wrap gap-3">
+                {role === "AFFILIATE" && profile.verificationStatus === "PENDING_REVIEW" ? (
+                  <Link
+                    href={AFFILIATE_FIRST_LISTING_HUB_HREF}
+                    className={buttonVariants({ size: "sm", className: "bg-violet-600 hover:bg-violet-700" })}
+                  >
+                    {t("affiliatePrepareListing")}
+                  </Link>
+                ) : null}
+                <Link
+                  href={dashHref}
+                  className="text-sm font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
+                >
+                  {t("dashboardLink")}
+                </Link>
+              </div>
             </div>
           </div>
         </BentoCard>

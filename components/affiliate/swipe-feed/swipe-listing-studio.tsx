@@ -33,6 +33,7 @@ type Props = {
   product: SwipeFeedProduct | null
   open: boolean
   suggestedMarkupRate: number
+  listingContext?: "swipe" | "onboarding"
   onClose: () => void
   onPublished: (result: { listingId?: string; product: SwipeFeedProduct }) => void
 }
@@ -41,6 +42,7 @@ export function SwipeListingStudio({
   product,
   open,
   suggestedMarkupRate,
+  listingContext = "swipe",
   onClose,
   onPublished,
 }: Props) {
@@ -157,7 +159,7 @@ export function SwipeListingStudio({
         onSaved={handleSaved}
         suggestedMarkupRate={suggestedMarkupRate}
         enableAutosave={false}
-        context="swipe"
+        context={listingContext}
       />
     </>
   )

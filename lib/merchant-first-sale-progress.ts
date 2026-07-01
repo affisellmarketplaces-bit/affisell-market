@@ -1,3 +1,4 @@
+import { AFFILIATE_FIRST_LISTING_HUB_HREF } from "@/lib/affiliate-onboarding-shared"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { affiliateListingsWhere, supplierDraftProductsWhere, supplierPublishedProductsWhere } from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
@@ -19,6 +20,7 @@ export type MerchantFirstSaleProgress = {
   /** Redirect target right after KYC approval. */
   postKycHref: string
   showChecklist: boolean
+  draftListingCount: number
 }
 
 function supplierShareHref(storeSlug: string | null): string {
@@ -81,6 +83,7 @@ export function buildSupplierFirstSaleProgress(args: {
     allComplete: steps.every((s) => s.done),
     postKycHref,
     showChecklist: !publishDone,
+    draftListingCount: args.draftCount,
   }
 }
 
@@ -89,11 +92,13 @@ export function buildAffiliateFirstSaleProgress(args: {
   kycReason?: string | null
   listingCount: number
   liveListingCount: number
+  draftListingCount: number
   storeSlug: string | null
 }): MerchantFirstSaleProgress {
   const createDone = args.listingCount > 0
   const publishDone = args.liveListingCount > 0
   const shareDone = publishDone && Boolean(args.storeSlug)
+  const hubHref = AFFILIATE_FIRST_LISTING_HUB_HREF
 
   const steps: MerchantOnboardingStep[] = [
     {
@@ -104,12 +109,16 @@ export function buildAffiliateFirstSaleProgress(args: {
     {
       id: "create",
       done: createDone,
-      href: "/dashboard/affiliate/catalog",
+      href: hubHref,
     },
     {
       id: "publish",
       done: publishDone,
-      href: args.kycApproved ? "/dashboard/affiliate" : "/dashboard/verification",
+      href: args.kycApproved
+        ? "/dashboard/affiliate"
+        : args.draftListingCount > 0
+          ? "/dashboard/verification"
+          : hubHref,
     },
     {
       id: "share",
@@ -122,7 +131,7 @@ export function buildAffiliateFirstSaleProgress(args: {
 
   let postKycHref = "/dashboard/affiliate"
   if (!createDone) {
-    postKycHref = "/dashboard/affiliate/catalog"
+    postKycHref = hubHref
   } else if (!publishDone) {
     postKycHref = "/dashboard/affiliate"
   }
@@ -135,6 +144,7 @@ export function buildAffiliateFirstSaleProgress(args: {
     allComplete: steps.every((s) => s.done),
     postKycHref,
     showChecklist: !publishDone,
+    draftListingCount: args.draftListingCount,
   }
 }
 
@@ -174,6 +184,7 @@ export async function loadAffiliateFirstSaleProgress(
     kycReason: gate.reason ?? null,
     listingCount,
     liveListingCount,
+    draftListingCount: listingCount - liveListingCount,
     storeSlug: store?.slug ?? null,
   })
 }

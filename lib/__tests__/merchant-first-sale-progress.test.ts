@@ -40,14 +40,30 @@ describe("merchant first sale progress", () => {
     expect(progress.allComplete).toBe(true)
   })
 
-  it("affiliate routes new merchants to catalog", () => {
+  it("affiliate routes new merchants to swipe hub", () => {
     const progress = buildAffiliateFirstSaleProgress({
-      kycApproved: true,
+      kycApproved: false,
       listingCount: 0,
       liveListingCount: 0,
+      draftListingCount: 0,
       storeSlug: "creator",
     })
-    expect(progress.nextStepId).toBe("create")
-    expect(progress.steps.find((s) => s.id === "create")?.href).toBe("/dashboard/affiliate/catalog")
+    expect(progress.nextStepId).toBe("kyc")
+    expect(progress.steps.find((s) => s.id === "create")?.href).toBe(
+      "/dashboard/affiliate/hub?mode=swipe&onboarding=1"
+    )
+    expect(progress.postKycHref).toBe("/dashboard/affiliate/hub?mode=swipe&onboarding=1")
+  })
+
+  it("affiliate post-KYC sends to dashboard when draft exists", () => {
+    const progress = buildAffiliateFirstSaleProgress({
+      kycApproved: true,
+      listingCount: 1,
+      liveListingCount: 0,
+      draftListingCount: 1,
+      storeSlug: "creator",
+    })
+    expect(progress.nextStepId).toBe("publish")
+    expect(progress.postKycHref).toBe("/dashboard/affiliate")
   })
 })

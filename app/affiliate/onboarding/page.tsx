@@ -5,6 +5,7 @@ import { AffiliateCguOnboardingForm } from "@/components/legal/affiliate-cgu-onb
 import { MerchantRoleTermsOnboardingForm } from "@/components/legal/merchant-role-terms-onboarding-form"
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { auth } from "@/auth"
+import { AFFILIATE_FIRST_LISTING_HUB_HREF } from "@/lib/affiliate-onboarding-shared"
 import { prisma } from "@/lib/prisma"
 import { hasRoleTermsAccepted } from "@/lib/legal/role-terms"
 
@@ -24,7 +25,7 @@ export default async function AffiliateOnboardingPage() {
     select: { cguAcceptedAt: true, termsAcceptedAt: true, termsAcceptedVersion: true },
   })
 
-  const nextHref = "/dashboard/verification"
+  const nextHref = AFFILIATE_FIRST_LISTING_HUB_HREF
 
   if (!user?.cguAcceptedAt) {
     return (

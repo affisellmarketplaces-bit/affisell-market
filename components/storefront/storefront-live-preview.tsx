@@ -12,6 +12,7 @@ import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 import {
   getEnabledHomepageSections,
   sectionCopyString,
+  type HomepageSection,
 } from "@/lib/storefront-sections-shared"
 import {
   storefrontGridClass,
