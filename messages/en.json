@@ -3220,6 +3220,14 @@
   },
   "accountOrders": {
     "empty": "No orders yet for this account.",
+    "sort": {
+      "label": "Sort",
+      "actionNeeded": "Needs your action",
+      "dateDesc": "Newest first",
+      "dateAsc": "Oldest first",
+      "amountDesc": "Highest amount",
+      "amountAsc": "Lowest amount"
+    },
     "fulfillmentTag": {
       "preparing": " · Preparing your order",
       "shipped": " · Shipped",

@@ -3262,6 +3262,14 @@
   },
   "accountOrders": {
     "empty": "Aucune commande pour ce compte.",
+    "sort": {
+      "label": "Trier",
+      "actionNeeded": "Action requise",
+      "dateDesc": "Plus récentes",
+      "dateAsc": "Plus anciennes",
+      "amountDesc": "Montant décroissant",
+      "amountAsc": "Montant croissant"
+    },
     "fulfillmentTag": {
       "preparing": " · Préparation en cours",
       "shipped": " · Expédiée",

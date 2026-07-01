@@ -7,7 +7,19 @@ import { CalendarPlus, Package, Sparkles, CalendarClock, Zap } from "lucide-reac
 import { AccountOrderFulfillmentPanel } from "@/components/account/account-order-fulfillment-panel"
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { buyerBookingOrderCardCopy } from "@/lib/booking/vertical-copy"
+import {
+  defaultBuyerOrdersSort,
+  sortBuyerOrderRows,
+  type BuyerOrdersSort,
+} from "@/lib/buyer-orders-sort"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import {
   getReturnReasonLabel,
@@ -99,6 +111,7 @@ export function AccountOrdersClient({
 }) {
   const [orders, setOrders] = useState(initialOrders)
   const [lang, setLang] = useState<"en" | "fr">("fr")
+  const [sortBy, setSortBy] = useState<BuyerOrdersSort>(() => defaultBuyerOrdersSort())
   const [busyId, setBusyId] = useState<string | null>(null)
   const [bookingCancelBusyId, setBookingCancelBusyId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -111,6 +124,13 @@ export function AccountOrdersClient({
       })),
     [lang]
   )
+
+  const sortedOrders = useMemo(
+    () => sortBuyerOrderRows(orders, sortBy),
+    [orders, sortBy]
+  )
+
+  const sortLabel = (key: string) => tMessage(lang as AppLocale, `accountOrders.sort.${key}`)
 
   async function refresh() {
     const res = await fetch("/api/account/orders", { cache: "no-store" })
@@ -148,22 +168,39 @@ export function AccountOrdersClient({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <div className="flex justify-end gap-2 rounded-3xl border border-gray-100 bg-white/80 px-4 py-2 text-xs shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/70">
-        <button
-          type="button"
-          className={cn(lang === "fr" ? "font-semibold text-[#7C3AED]" : "text-gray-500")}
-          onClick={() => setLang("fr")}
-        >
-          FR
-        </button>
-        <span className="text-zinc-300">|</span>
-        <button
-          type="button"
-          className={cn(lang === "en" ? "font-semibold text-[#7C3AED]" : "text-gray-500")}
-          onClick={() => setLang("en")}
-        >
-          EN
-        </button>
+      <div className="flex flex-col gap-3 rounded-3xl border border-gray-100 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/70 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-gray-500 dark:text-zinc-400">{sortLabel("label")}</span>
+          <Select value={sortBy} onValueChange={(value) => setSortBy(value as BuyerOrdersSort)}>
+            <SelectTrigger className="h-9 w-[min(100%,240px)] rounded-full border-zinc-200 bg-white text-sm dark:border-zinc-700 dark:bg-zinc-900">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="action_needed">{sortLabel("actionNeeded")}</SelectItem>
+              <SelectItem value="date_desc">{sortLabel("dateDesc")}</SelectItem>
+              <SelectItem value="date_asc">{sortLabel("dateAsc")}</SelectItem>
+              <SelectItem value="amount_desc">{sortLabel("amountDesc")}</SelectItem>
+              <SelectItem value="amount_asc">{sortLabel("amountAsc")}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex justify-end gap-2 text-xs">
+          <button
+            type="button"
+            className={cn(lang === "fr" ? "font-semibold text-[#7C3AED]" : "text-gray-500")}
+            onClick={() => setLang("fr")}
+          >
+            FR
+          </button>
+          <span className="text-zinc-300">|</span>
+          <button
+            type="button"
+            className={cn(lang === "en" ? "font-semibold text-[#7C3AED]" : "text-gray-500")}
+            onClick={() => setLang("en")}
+          >
+            EN
+          </button>
+        </div>
       </div>
 
       {error ? (
@@ -172,7 +209,7 @@ export function AccountOrdersClient({
         </p>
       ) : null}
 
-      {orders.map((o) => {
+      {sortedOrders.map((o) => {
         const bookingCopy = buyerBookingOrderCardCopy(o.bookingListingKind, lang)
         return (
         <BentoCard key={o.id} className="py-5 md:py-6">
