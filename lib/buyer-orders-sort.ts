@@ -9,7 +9,7 @@ export type BuyerOrdersSortRow = {
   createdAt: string
   sellingPriceCents: number
   canConfirmDelivery: boolean
-  canCancelBooking: boolean
+  canCancelBooking?: boolean
   activeReturn: { status: string } | null
   status: string
 }
