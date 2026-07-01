@@ -1,25 +1,18 @@
 "use client"
 
 import Link from "next/link"
-import {
-  ArrowLeft,
-  Bookmark,
-  ChevronLeft,
-  RotateCcw,
-  ShoppingBag,
-  Sparkles,
-  Zap,
-} from "lucide-react"
+import { ArrowLeft, Sparkles } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import {
   BuyerSwipeCard,
   type BuyerSwipeCardHandle,
   type BuyerSwipeDirection,
 } from "@/components/pulse/buyer-swipe-card"
+import { SwipeCommerceDock } from "@/components/pulse/swipe-commerce-dock"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { PulseHeaderCartLink } from "@/components/pulse/pulse-header-cart-link"
 import { PulseLayoutModeLink } from "@/components/pulse/pulse-layout-mode-link"
@@ -30,47 +23,12 @@ import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 import { toggleProductWishlist } from "@/lib/wishlist-toggle-client"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
+import { pulseSwipeHaptic } from "@/lib/pulse-swipe-haptics"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
 import { cn } from "@/lib/utils"
 
 const STACK_VISIBLE = 3
 const PREFETCH_WHEN_LEFT = 4
-
-type SwipeDockDirection = "up" | "left" | "right" | "down"
-
-const SWIPE_DOCK_DIRECTION_GLYPH: Record<SwipeDockDirection, string> = {
-  up: "↑",
-  left: "←",
-  right: "→",
-  down: "↓",
-}
-
-function SwipeDockActionLabel({
-  direction,
-  children,
-}: {
-  direction?: SwipeDockDirection
-  children: ReactNode
-}) {
-  return (
-    <span className="flex flex-col items-center gap-0.5 leading-none">
-      {direction ? (
-        <span
-          className="text-[11px] font-black leading-none opacity-95 sm:hidden"
-          aria-hidden
-        >
-          {SWIPE_DOCK_DIRECTION_GLYPH[direction]}
-        </span>
-      ) : null}
-      <span className="text-[8px] font-semibold uppercase tracking-[0.08em] sm:text-[10px]">
-        {children}
-      </span>
-    </span>
-  )
-}
-
-const SWIPE_DOCK_BTN_MOBILE =
-  "max-sm:min-h-[3.35rem] max-sm:justify-center max-sm:gap-1 max-sm:py-1.5 max-sm:px-0.5"
 
 function shuffleItems(items: PulseFeedItem[]): PulseFeedItem[] {
   const next = [...items]
@@ -312,6 +270,7 @@ export function BuyerSwipeCommerce({
       const item = deckRef.current[0]
       if (!item || busy) return
 
+      pulseSwipeHaptic(direction === "right" ? "commit" : "tap")
       setBusy(true)
       setDragGlow({ x: 0, y: 0 })
 
@@ -350,6 +309,7 @@ export function BuyerSwipeCommerce({
   const handleUndo = useCallback(() => {
     const last = skippedPool[skippedPool.length - 1]
     if (!last || busy) return
+    pulseSwipeHaptic("undo")
     setSkippedPool((pool) => pool.slice(0, -1))
     setDeck((d) => [last, ...d.filter((p) => p.id !== last.id)])
     showToast(t("undo"))
@@ -492,7 +452,7 @@ export function BuyerSwipeCommerce({
               ) : null}
             </span>
             {categoryLabel ? (
-              <p className="mt-0.5 hidden max-w-[12rem] truncate text-[10px] text-zinc-400 sm:block">
+              <p className="mt-0.5 max-w-[9rem] truncate text-[9px] text-zinc-400 sm:max-w-[12rem] sm:text-[10px]">
                 {categoryLabel}
               </p>
             ) : null}
@@ -547,7 +507,7 @@ export function BuyerSwipeCommerce({
 
           {activeItem ? (
             <div className="affisell-swipe-commerce-ribbon pointer-events-none absolute inset-x-0 bottom-0 z-40">
-              <div className="pointer-events-auto px-2.5 pb-2 pt-10 sm:px-3 sm:pb-2.5 sm:pt-12">
+              <div className="pointer-events-auto px-2.5 pb-1.5 pt-8 sm:px-3 sm:pb-2.5 sm:pt-12">
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   {activeItem.boosted ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/25 px-1.5 py-px text-[9px] font-bold uppercase text-cyan-100 ring-1 ring-cyan-400/35 backdrop-blur-sm sm:px-2 sm:py-0.5 sm:text-[10px]">
@@ -585,68 +545,13 @@ export function BuyerSwipeCommerce({
           ) : null}
         </div>
 
-        <div
-          className={cn(
-            affisellBrand.epoxyPanel,
-            "affisell-swipe-dock affisell-swipe-dock-panel relative z-50 mx-auto w-full max-w-[380px] shrink-0 px-2 py-2 sm:px-4 sm:py-3"
-          )}
-        >
-          <p className="mb-1.5 text-center text-[9px] font-semibold uppercase tracking-[0.14em] text-zinc-500 sm:mb-2 sm:text-[10px] sm:tracking-wider">
-            {t("hint")}
-          </p>
-          <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
-            <button
-              type="button"
-              disabled={busy || deck.length === 0}
-              onClick={() => requestSwipe("left")}
-              className={cn(affisellBrand.epoxyActionBtn, SWIPE_DOCK_BTN_MOBILE)}
-              aria-label={t("skip")}
-            >
-              <ChevronLeft className="size-[18px] sm:size-5" aria-hidden />
-              <SwipeDockActionLabel direction="left">{t("skipShort")}</SwipeDockActionLabel>
-            </button>
-            <button
-              type="button"
-              disabled={busy || deck.length === 0}
-              onClick={() => requestSwipe("up")}
-              className={cn(affisellBrand.epoxyActionCart, SWIPE_DOCK_BTN_MOBILE)}
-              aria-label={t("cart")}
-            >
-              <ShoppingBag className="size-[18px] sm:size-5" aria-hidden />
-              <SwipeDockActionLabel direction="up">{t("cartShort")}</SwipeDockActionLabel>
-            </button>
-            <button
-              type="button"
-              disabled={skippedPool.length === 0 || busy}
-              onClick={handleUndo}
-              className={cn(affisellBrand.epoxyActionBtn, SWIPE_DOCK_BTN_MOBILE)}
-              aria-label={t("undo")}
-            >
-              <RotateCcw className="size-[18px] sm:size-5" aria-hidden />
-              <SwipeDockActionLabel>{t("undoShort")}</SwipeDockActionLabel>
-            </button>
-            <button
-              type="button"
-              disabled={busy || deck.length === 0}
-              onClick={() => requestSwipe("right")}
-              className={cn(affisellBrand.epoxyActionBuy, SWIPE_DOCK_BTN_MOBILE)}
-              aria-label={t("buy")}
-            >
-              <Zap className="size-[18px] sm:size-5" aria-hidden />
-              <SwipeDockActionLabel direction="right">{t("buyShort")}</SwipeDockActionLabel>
-            </button>
-            <button
-              type="button"
-              disabled={busy || deck.length === 0}
-              onClick={() => requestSwipe("down")}
-              className={cn(affisellBrand.epoxyActionDrop, SWIPE_DOCK_BTN_MOBILE)}
-              aria-label={t("saveDrop")}
-            >
-              <Bookmark className="size-[18px] sm:size-5" aria-hidden />
-              <SwipeDockActionLabel direction="down">{t("saveDropShort")}</SwipeDockActionLabel>
-            </button>
-          </div>
-        </div>
+        <SwipeCommerceDock
+          busy={busy}
+          deckEmpty={deck.length === 0}
+          canUndo={skippedPool.length > 0}
+          onSwipe={requestSwipe}
+          onUndo={handleUndo}
+        />
       </main>
 
       <AnimatePresence>

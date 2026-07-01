@@ -671,8 +671,12 @@ body.affisell-demo-lab .affisell-header-shell {
   }
 
   .affisell-swipe-commerce {
-    --affisell-swipe-dock-h: 6.5rem;
+    --affisell-swipe-dock-h: 12.75rem;
     --affisell-swipe-header-h: 3rem;
+  }
+
+  .affisell-swipe-dock-compass {
+    position: relative;
   }
 
   @media (min-width: 640px) {

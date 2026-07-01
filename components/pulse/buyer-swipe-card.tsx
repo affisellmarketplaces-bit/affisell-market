@@ -11,6 +11,7 @@ import {
   motion,
   useMotionValue,
   useTransform,
+  type MotionValue,
   type PanInfo,
 } from "framer-motion"
 import { useTranslations } from "next-intl"
@@ -32,6 +33,49 @@ const VELOCITY_COMMIT = 380
 const EXIT = 520
 
 export type BuyerSwipeDirection = "up" | "down" | "left" | "right"
+
+const SWIPE_GLYPH: Record<BuyerSwipeDirection, string> = {
+  up: "↑",
+  left: "←",
+  right: "→",
+  down: "↓",
+}
+
+function SwipeGestureHint({
+  direction,
+  icon: Icon,
+  label,
+  iconClassName,
+  badgeClassName,
+  style,
+  className,
+}: {
+  direction: BuyerSwipeDirection
+  icon: typeof ShoppingBag
+  label: string
+  iconClassName?: string
+  badgeClassName?: string
+  style?: { opacity: MotionValue<number> }
+  className?: string
+}) {
+  return (
+    <motion.div style={style} className={className}>
+      <div
+        className={cn(
+          affisellBrand.epoxyGestureBadge,
+          "flex items-center gap-1.5 px-3 py-2 sm:gap-2",
+          badgeClassName
+        )}
+      >
+        <span className="text-sm font-black leading-none sm:hidden" aria-hidden>
+          {SWIPE_GLYPH[direction]}
+        </span>
+        <Icon className={cn("size-5 shrink-0", iconClassName)} aria-hidden />
+        <span className="text-[11px] font-black uppercase tracking-wider sm:text-xs">{label}</span>
+      </div>
+    </motion.div>
+  )
+}
 
 export type BuyerSwipeCardHandle = {
   swipe: (direction: BuyerSwipeDirection) => void
@@ -170,57 +214,44 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             className="relative min-h-0 flex-1"
           />
 
-          <motion.div
+          <SwipeGestureHint
+            direction="up"
+            icon={ShoppingBag}
+            label={t("cartShort")}
+            iconClassName="text-emerald-300"
+            badgeClassName="border-emerald-300/50 text-emerald-100"
             style={{ opacity: cartOpacity }}
             className="pointer-events-none absolute left-1/2 top-8 z-20 -translate-x-1/2"
-          >
-            <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 border-emerald-300/50 text-emerald-100")}>
-              <ShoppingBag className="size-5 text-emerald-300" aria-hidden />
-              <span className="text-[10px] font-black uppercase tracking-wider sm:hidden" aria-hidden>
-                ↑
-              </span>
-              <span className="text-xs font-black uppercase tracking-wider">{t("cartShort")}</span>
-            </div>
-          </motion.div>
+          />
 
-          <motion.div
+          <SwipeGestureHint
+            direction="down"
+            icon={Bookmark}
+            label={t("saveDropShort")}
+            iconClassName="text-amber-200"
+            badgeClassName="border-amber-300/50 text-amber-100"
             style={{ opacity: saveOpacity }}
             className="pointer-events-none absolute bottom-[38%] left-1/2 z-20 -translate-x-1/2"
-          >
-            <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 border-amber-300/50 text-amber-100")}>
-              <Bookmark className="size-5 text-amber-200" aria-hidden />
-              <span className="text-[10px] font-black uppercase tracking-wider sm:hidden" aria-hidden>
-                ↓
-              </span>
-              <span className="text-xs font-black uppercase tracking-wider">{t("saveDropShort")}</span>
-            </div>
-          </motion.div>
+          />
 
-          <motion.div
+          <SwipeGestureHint
+            direction="right"
+            icon={Zap}
+            label={t("buyShort")}
+            iconClassName="text-violet-200"
+            badgeClassName="border-violet-300/50 text-violet-100"
             style={{ opacity: buyOpacity }}
-            className="pointer-events-none absolute right-4 top-1/2 z-20 -translate-y-1/2"
-          >
-            <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 border-violet-300/50 text-violet-100")}>
-              <Zap className="size-5 text-violet-200" aria-hidden />
-              <span className="text-[10px] font-black uppercase tracking-wider sm:hidden" aria-hidden>
-                →
-              </span>
-              <span className="text-xs font-black uppercase tracking-wider">{t("buyShort")}</span>
-            </div>
-          </motion.div>
+            className="pointer-events-none absolute right-3 top-1/2 z-20 -translate-y-1/2 sm:right-4"
+          />
 
-          <motion.div
+          <SwipeGestureHint
+            direction="left"
+            icon={ChevronLeft}
+            label={t("skipShort")}
+            badgeClassName="text-white"
             style={{ opacity: skipOpacity }}
-            className="pointer-events-none absolute left-4 top-1/2 z-20 -translate-y-1/2"
-          >
-            <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 text-white")}>
-              <ChevronLeft className="size-5" aria-hidden />
-              <span className="text-[10px] font-black uppercase tracking-wider sm:hidden" aria-hidden>
-                ←
-              </span>
-              <span className="text-xs font-black uppercase tracking-wider">{t("skipShort")}</span>
-            </div>
-          </motion.div>
+            className="pointer-events-none absolute left-3 top-1/2 z-20 -translate-y-1/2 sm:left-4"
+          />
         </article>
       </motion.div>
     </motion.div>
