@@ -1,4 +1,5 @@
 import { sendShippingNotificationEmail } from "@/lib/emails/send-shipping-notification"
+import { notifyOrderShippedPush } from "@/lib/order-status-push"
 import { prisma } from "@/lib/prisma"
 
 /** Sends React Email shipping notification when marketplace order first ships. */
@@ -43,4 +44,11 @@ export async function notifyMarketplaceOrderShipped(
     },
     { locale: order.buyerLocale }
   )
+
+  void notifyOrderShippedPush({
+    customerEmail: order.customerEmail,
+    orderId: order.id,
+    productName: order.product.name,
+    trackingNumber,
+  })
 }

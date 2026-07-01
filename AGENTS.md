@@ -5,12 +5,12 @@
 
 ## Merchant custom domains & storefront theme
 
-- **DNS**: merchants set `CNAME` → `STORE_CNAME_TARGET` (default `cname.affisell.com`), then **Verify** in Store profile (`/dashboard/*/settings/store`).
+- **DNS**: merchants set `CNAME` → `STORE_CNAME_TARGET` (default `cname.affisell.com`), then **Activate domain + SSL** in Store profile (`/dashboard/*/settings/store`) — or wait for cron auto-activation.
 - **Auto subdomain**: on signup, `{slug}.{AFFISELL_STORE_HOST_SUFFIX}` (default `shops.affisell.com`) — same catalog as `/shops/{slug}`; wildcard DNS on Vercel required in prod.
 - **Routing**: `middleware` calls `/api/store/resolve-host` and rewrites verified hosts to `/shops/:slug` (affiliate) or `/store/supplier/:slug` (supplier). Dashboard/checkout paths redirect to the platform origin.
-- **Vercel**: each verified hostname must be added under Project → Domains (or automated later) for TLS.
+- **Vercel SSL (1-click)**: `VERCEL_API_TOKEN` + `VERCEL_PROJECT_ID` → `POST /api/store/verify-domain` registers hostname + www redirect on the Affisell Vercel project. Cron `GET /api/cron/sync-store-vercel-domains` (every 30 min via GitHub Actions) auto-verifies DNS + retries pending SSL. Preflight: `npm run verify:store-domains`.
 - **Theme**: `Store.storefrontTheme` JSON (`primary`, `accent` hex) — **Brand Studio** (`/dashboard/affiliate/brand-studio`, `/dashboard/supplier/storefront`); applied via `StorefrontThemeStyles` on public shops.
-- **Vercel SSL**: after DNS verify, `POST /api/store/verify-domain` calls Vercel Projects API when `VERCEL_API_TOKEN` + `VERCEL_PROJECT_ID` are set; status in `Store.vercelDomainStatus`, polled via `GET /api/store/domain-status`.
+- **Status**: `Store.vercelDomainStatus` (`active` | `pending` | `failed` | `skipped`); polled in UI via `GET /api/store/domain-status`.
 
 ## i18n (FR / EN)
 
@@ -30,7 +30,8 @@
 ## Git push
 
 - Never put real API keys in `.env.example` — use empty placeholders only (`GROQ_API_KEY=""`).
-- **Video Pro paywall (founder pause)**: default **paused** — suppliers can generate unlimited Veo videos without Stripe Pro. UI shows « Mode test — générations illimitées ». To **reactivate** the 3-video limit + « Passer Pro »: set Vercel env `VIDEO_PAYWALL_PAUSED=0` (see `lib/video-quota-constants.ts`).
+- **Video Pro paywall (founder pause)**: default **paused** — suppliers can generate unlimited Veo videos without Stripe Pro. UI shows « Mode test — générations illimitées ». To **reactivate** the 3-video limit + « Passer Pro »: set Vercel env `VIDEO_PAYWALL_PAUSED=0` + `STRIPE_PRO_PRICE_ID`, then run `npm run verify:video-paywall` before deploy.
+- **Web Push**: price alerts + order shipped/delivered when buyer has opted in (`PushSubscription`). Preflight: `npm run verify:web-push` (VAPID keys + `npx prisma migrate deploy`).
 - Before pushing: `npm run push:safe` → `node scripts/git-push-safe.mjs` (secret scan, `git fetch` / `pull --rebase` / `push` with **timeouts**, no interactive Git prompts).
 - Optional hook (once per clone): `git config core.hooksPath .githooks` then `chmod +x .githooks/pre-push`.
 

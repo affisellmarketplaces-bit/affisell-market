@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma"
 import { shopTag } from "@/lib/shop-storefront-cache"
 import { parseStorefrontTheme, themeFromBrandStudioFields } from "@/lib/storefront-theme-shared"
 import { normalizeCustomDomain } from "@/lib/verify-store-domain"
+import { activateStoreCustomDomainIfReady } from "@/lib/store-custom-domain-activation"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -166,10 +167,16 @@ export async function POST(req: Request) {
   const prevDom = store.customDomain ?? null
   let customDomain = store.customDomain
   let domainVerified = store.domainVerified
+  let vercelDomainStatus = store.vercelDomainStatus
+  let vercelDomainError = store.vercelDomainError
+  let vercelDomainSyncedAt = store.vercelDomainSyncedAt
   if (customDomainNormalized !== undefined) {
     customDomain = customDomainNormalized
     if ((prevDom ?? "") !== (customDomain ?? "")) {
       domainVerified = false
+      vercelDomainStatus = null
+      vercelDomainError = null
+      vercelDomainSyncedAt = null
     }
   }
 
@@ -184,6 +191,9 @@ export async function POST(req: Request) {
         description,
         customDomain,
         domainVerified,
+        vercelDomainStatus,
+        vercelDomainError,
+        vercelDomainSyncedAt,
         ...(storefrontTheme !== undefined ? { storefrontTheme } : {}),
       },
     })
@@ -206,7 +216,17 @@ export async function POST(req: Request) {
       themeSaved: storefrontTheme !== undefined,
     })
 
-    return Response.json({ ok: true, store: updated })
+    let domainActivation: Awaited<ReturnType<typeof activateStoreCustomDomainIfReady>> | null =
+      null
+    if (
+      customDomainNormalized !== undefined &&
+      updated.customDomain &&
+      (prevDom ?? "") !== (updated.customDomain ?? "")
+    ) {
+      domainActivation = await activateStoreCustomDomainIfReady(updated.id)
+    }
+
+    return Response.json({ ok: true, store: updated, domainActivation })
   } catch (e: unknown) {
     const code = typeof e === "object" && e && "code" in e ? (e as { code: string }).code : ""
     if (code === "P2002") {

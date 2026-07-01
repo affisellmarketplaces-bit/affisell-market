@@ -10,7 +10,32 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "portrait-primary",
     background_color: "#09090b",
     theme_color: "#7c3aed",
+    id: "/",
+    scope: "/",
+    lang: "en",
+    dir: "ltr",
+    display_override: ["standalone", "minimal-ui"],
     categories: ["shopping", "lifestyle"],
+    shortcuts: [
+      {
+        name: "Discover",
+        short_name: "Pulse",
+        url: "/discover",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+      {
+        name: "Marketplace",
+        short_name: "Shop",
+        url: "/marketplace",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+      {
+        name: "Orders",
+        short_name: "Orders",
+        url: "/marketplace/account/orders",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+    ],
     icons: [
       {
         src: "/icons/icon-192.png",

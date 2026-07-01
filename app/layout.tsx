@@ -9,6 +9,7 @@ import { RootSessionShell } from "@/app/root-intl-session"
 import { AuthSessionProvider } from "@/components/providers/auth-session-provider"
 import { IntlAppProvider } from "@/components/providers/intl-app-provider"
 import { getCachedSession } from "@/lib/get-cached-session"
+import { PWA_SPLASH_IMAGES } from "@/lib/pwa-splash-images"
 import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { cn } from "@/lib/utils"
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Affisell",
+    startupImage: [...PWA_SPLASH_IMAGES],
   },
   formatDetection: {
     telephone: false,

@@ -1,16 +1,9 @@
 import { auth } from "@/auth"
-import { prisma } from "@/lib/prisma"
-import { provisionStoreCustomDomainOnVercel } from "@/lib/store-domain-provisioning"
+import { activateStoreCustomDomainIfReady } from "@/lib/store-custom-domain-activation"
 import { isVercelDomainAutoProvisionEnabled } from "@/lib/vercel-project-domains"
-import { customDomainPointsToAffisell } from "@/lib/verify-store-domain"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
-
-const TARGET =
-  typeof process.env.STORE_CNAME_TARGET === "string" && process.env.STORE_CNAME_TARGET.trim()
-    ? process.env.STORE_CNAME_TARGET.trim()
-    : "cname.affisell.com"
 
 export async function POST() {
   const session = await auth()
@@ -23,61 +16,38 @@ export async function POST() {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
+  const { prisma } = await import("@/lib/prisma")
   const store = await prisma.store.findUnique({ where: { userId } })
   if (!store?.customDomain) {
     return Response.json({ error: "Save a custom domain first" }, { status: 400 })
   }
 
-  const ok = await customDomainPointsToAffisell(store.customDomain, TARGET)
-  if (!ok) {
+  const result = await activateStoreCustomDomainIfReady(store.id)
+
+  if (!result.dnsReady) {
     return Response.json({
       verified: false,
-      message: `We could not find a CNAME for ${store.customDomain} pointing to ${TARGET}. DNS changes may take up to 48 hours.`,
+      message: result.message,
     })
   }
 
-  await prisma.store.update({
-    where: { id: store.id },
-    data: { domainVerified: true },
-  })
-
-  let vercel: {
-    status: string
-    message?: string
-    autoProvisionEnabled: boolean
-  } | null = null
-
-  if (isVercelDomainAutoProvisionEnabled()) {
-    const result = await provisionStoreCustomDomainOnVercel(store.id, store.customDomain)
-    vercel = {
-      status: result.status,
-      message: result.message,
-      autoProvisionEnabled: true,
-    }
-  } else {
-    await prisma.store.update({
-      where: { id: store.id },
-      data: {
-        vercelDomainStatus: "skipped",
-        vercelDomainError: null,
-        vercelDomainSyncedAt: new Date(),
-      },
-    })
-    vercel = {
-      status: "skipped",
-      message: "Add this hostname manually in Vercel → Project → Domains for SSL.",
-      autoProvisionEnabled: false,
-    }
+  const verified = result.domainVerified
+  let message = result.message ?? "Domain verified."
+  if (result.vercelStatus === "active") {
+    message = "Domain verified. SSL is active on Vercel."
+  } else if (result.vercelStatus === "pending") {
+    message = "Domain verified. SSL on Vercel is pending (usually within 30 min)."
+  } else if (result.vercelStatus === "skipped") {
+    message = "Domain verified. Platform auto-SSL is not configured — contact support if HTTPS fails."
   }
 
   return Response.json({
-    verified: true,
-    message:
-      vercel?.status === "active"
-        ? "Domain verified. SSL is active on Vercel."
-        : vercel?.status === "pending"
-          ? "Domain verified. SSL on Vercel is pending (DNS can take up to 48h)."
-          : "Domain verified. Configure Vercel Domains if HTTPS is not live yet.",
-    vercel,
+    verified,
+    message,
+    vercel: {
+      status: result.vercelStatus,
+      message: result.message,
+      autoProvisionEnabled: isVercelDomainAutoProvisionEnabled(),
+    },
   })
 }

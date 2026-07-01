@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { ensureMerchantStore } from "@/lib/ensure-store"
+import { getStoreCnameTarget } from "@/lib/store-cname-target"
 import { prisma } from "@/lib/prisma"
 import { storePublicUrl, resolveStorePublicUrls, storeHostSuffixForUi } from "@/lib/store-public-url"
 
@@ -24,10 +25,7 @@ export async function GET() {
     store = await ensureMerchantStore({ userId, email: u.email, displayName: u.name })
   }
 
-  const dnsTarget =
-    typeof process.env.STORE_CNAME_TARGET === "string" && process.env.STORE_CNAME_TARGET.trim()
-      ? process.env.STORE_CNAME_TARGET.trim()
-      : "cname.affisell.com"
+  const dnsTarget = getStoreCnameTarget()
 
   const merchantRole = role === "SUPPLIER" ? "SUPPLIER" : "AFFILIATE"
   const urlInput = {

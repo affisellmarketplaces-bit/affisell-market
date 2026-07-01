@@ -35,7 +35,8 @@ jobs:
             "/api/cron/agent-mission-reminders" \
             "/api/cron/expansion-ops" \
             "/api/cron/reconcile-checkout-orders" \
-            "/api/cron/sync-autods"
+            "/api/cron/sync-autods" \
+            "/api/cron/sync-store-vercel-domains"
           do
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"

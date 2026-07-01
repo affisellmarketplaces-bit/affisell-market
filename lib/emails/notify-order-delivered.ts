@@ -1,4 +1,5 @@
 import { sendDeliveredNotificationEmail } from "@/lib/emails/send-delivered-notification"
+import { notifyOrderDeliveredPush } from "@/lib/order-status-push"
 import { prisma } from "@/lib/prisma"
 
 /** Sends React Email delivered notification once per marketplace order. */
@@ -33,4 +34,10 @@ export async function notifyOrderDelivered(orderId: string): Promise<void> {
     },
     { locale: order.buyerLocale }
   )
+
+  void notifyOrderDeliveredPush({
+    customerEmail: order.customerEmail,
+    orderId: order.id,
+    productName: order.product.name,
+  })
 }

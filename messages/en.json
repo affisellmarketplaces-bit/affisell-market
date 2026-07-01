@@ -1895,10 +1895,10 @@
       "saveDomain": "Save domain",
       "saving": "Saving…",
       "dnsTitle": "DNS — add this CNAME at your registrar",
-      "verifySsl": "Verify & enable SSL",
-      "checkingDns": "Checking DNS & SSL…",
-      "dnsVerified": "DNS verified",
-      "domainSaved": "Domain saved.",
+      "verifySsl": "Activate domain + SSL",
+      "checkingDns": "Activating domain & SSL…",
+      "dnsVerified": "DNS verified — HTTPS provisioning",
+      "domainSaved": "Domain saved. SSL auto-completes within ~30 min once CNAME is live.",
       "domainVerified": "Domain verified",
       "notVerifiedYet": "Not verified yet",
       "verificationFailed": "Verification failed",
@@ -1910,8 +1910,9 @@
       "vercelFailed": "Hosting registration failed",
       "vercelSkipped": "Add hostname in project Domains for HTTPS",
       "vercelUnknown": "Hosting not registered yet",
-      "vercelAuto": " · Auto-registered on hosting",
-      "vercelManual": " · Add hostname in Domains if HTTPS is not live"
+      "vercelAuto": " · Auto-registered on Affisell hosting (no manual Vercel step)",
+      "vercelManual": " · Set VERCEL_API_TOKEN on the platform for automatic HTTPS",
+      "cronHint": "Tip: once CNAME is set, activation runs automatically every 30 minutes — or click Activate above."
     }
   },
   "boutique": {

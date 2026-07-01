@@ -238,6 +238,9 @@ export function StoreCustomDomainCard({ className, variant = "default" }: Props)
           {vercelError ? (
             <p className="text-xs text-rose-700 dark:text-rose-300">{vercelError}</p>
           ) : null}
+          {vercelStatus !== "active" && vercelStatus !== "skipped" ? (
+            <p className="text-xs text-emerald-800/80 dark:text-emerald-200/70">{t("cronHint")}</p>
+          ) : null}
         </div>
       ) : null}
 

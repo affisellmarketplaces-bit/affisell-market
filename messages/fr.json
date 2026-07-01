@@ -1937,10 +1937,10 @@
       "saveDomain": "Enregistrer",
       "saving": "Enregistrement…",
       "dnsTitle": "DNS — ajoutez cet enregistrement CNAME chez votre registrar",
-      "verifySsl": "Vérifier et activer le HTTPS",
-      "checkingDns": "Vérification DNS et SSL…",
-      "dnsVerified": "DNS vérifié",
-      "domainSaved": "Domaine enregistré.",
+      "verifySsl": "Activer domaine + HTTPS",
+      "checkingDns": "Activation domaine et HTTPS…",
+      "dnsVerified": "DNS vérifié — provisionnement HTTPS",
+      "domainSaved": "Domaine enregistré. Le HTTPS se finalise sous ~30 min une fois le CNAME actif.",
       "domainVerified": "Domaine vérifié",
       "notVerifiedYet": "Pas encore vérifié",
       "verificationFailed": "Échec de la vérification",
@@ -1952,8 +1952,9 @@
       "vercelFailed": "Échec de l’enregistrement hébergement",
       "vercelSkipped": "Ajoutez le domaine dans Domains du projet pour le HTTPS",
       "vercelUnknown": "Hébergement pas encore enregistré",
-      "vercelAuto": " · Enregistrement automatique",
-      "vercelManual": " · Ajoutez le domaine dans Domains si le HTTPS ne répond pas"
+      "vercelAuto": " · Enregistré automatiquement sur l’hébergement Affisell (sans action Vercel manuelle)",
+      "vercelManual": " · Configurez VERCEL_API_TOKEN sur la plateforme pour le HTTPS automatique",
+      "cronHint": "Astuce : une fois le CNAME actif, l’activation tourne toutes les 30 min — ou cliquez Activer ci-dessus."
     }
   },
   "boutique": {

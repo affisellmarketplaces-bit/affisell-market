@@ -13,6 +13,8 @@ const REQUIRED_BRAND_ASSETS = [
   "app/icon.png",
   "app/icon.svg",
   "app/apple-icon.png",
+  "public/splash/apple-splash-1170-2532.png",
+  "public/splash/apple-splash-1284-2778.png",
 ]
 
 describe("brand icons", () => {
