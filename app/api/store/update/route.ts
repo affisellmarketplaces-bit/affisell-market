@@ -81,6 +81,7 @@ export async function POST(req: Request) {
 
   const themePrimary = fd.get("themePrimary")
   const themeAccent = fd.get("themeAccent")
+  const themeTrustRailText = fd.get("themeTrustRailText")
   const themeNameBadge = fd.get("themeNameBadge")
   const themeLayout = fd.get("themeLayout")
   const themeHeroStyle = fd.get("themeHeroStyle")
@@ -92,6 +93,7 @@ export async function POST(req: Request) {
   const hasThemeFields =
     themePrimary !== null ||
     themeAccent !== null ||
+    themeTrustRailText !== null ||
     themeNameBadge !== null ||
     themeLayout !== null ||
     themeHeroStyle !== null ||
@@ -113,6 +115,7 @@ export async function POST(req: Request) {
     ? themeFromBrandStudioFields(existingTheme, {
         primary: themePrimary,
         accent: themeAccent,
+        trustRailText: themeTrustRailText,
         nameBadge: themeNameBadge,
         layout: themeLayout,
         heroStyle: themeHeroStyle,

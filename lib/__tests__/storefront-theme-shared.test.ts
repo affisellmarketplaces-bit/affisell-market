@@ -60,6 +60,13 @@ describe("themeFromBrandStudioFields", () => {
     expect(merged.surface).toBe("dark")
     expect(merged.heroStyle).toBe("banner")
   })
+
+  it("merges trustRailText from brand studio", () => {
+    const merged = themeFromBrandStudioFields(parseStorefrontTheme({}), {
+      trustRailText: "#ffffff",
+    })
+    expect(merged.trustRailText).toBe("#ffffff")
+  })
 })
 
 describe("themeToCssVars", () => {

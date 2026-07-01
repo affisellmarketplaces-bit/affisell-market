@@ -58,6 +58,7 @@ type BrandStudioSnapshot = {
   logoUrl: string
   primaryHex: string
   accent: string
+  trustRailText: string
   nameBadge: StoreNameBadgeStyle
   layout: StorefrontLayoutMode
   heroStyle: StorefrontHeroStyle
@@ -79,6 +80,7 @@ function snapshotFromStore(st: StoreRow): BrandStudioSnapshot {
     logoUrl: st.logoUrl ?? "",
     primaryHex: theme.primary ?? DEFAULT_STOREFRONT_THEME.primary!,
     accent: theme.accent ?? DEFAULT_STOREFRONT_THEME.accent!,
+    trustRailText: theme.trustRailText ?? DEFAULT_STOREFRONT_THEME.trustRailText!,
     nameBadge: theme.nameBadge ?? DEFAULT_STORE_NAME_BADGE,
     layout: theme.layout ?? DEFAULT_STOREFRONT_THEME.layout!,
     heroStyle: theme.heroStyle ?? DEFAULT_STOREFRONT_THEME.heroStyle!,
@@ -97,6 +99,7 @@ function snapshotFromDraft(input: {
   logoUrl: string
   primaryHex: string
   accent: string
+  trustRailText: string
   nameBadge: StoreNameBadgeStyle
   layout: StorefrontLayoutMode
   heroStyle: StorefrontHeroStyle
@@ -113,6 +116,7 @@ function snapshotFromDraft(input: {
     logoUrl: input.logoUrl.trim(),
     primaryHex: input.primaryHex,
     accent: input.accent,
+    trustRailText: input.trustRailText,
     nameBadge: input.nameBadge,
     layout: input.layout,
     heroStyle: input.heroStyle,
@@ -132,6 +136,7 @@ function snapshotsEqual(a: BrandStudioSnapshot, b: BrandStudioSnapshot): boolean
     a.logoUrl === b.logoUrl &&
     a.primaryHex === b.primaryHex &&
     a.accent === b.accent &&
+    a.trustRailText === b.trustRailText &&
     a.nameBadge === b.nameBadge &&
     a.layout === b.layout &&
     a.heroStyle === b.heroStyle &&
@@ -172,6 +177,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [accent, setAccent] = useState(DEFAULT_STOREFRONT_THEME.accent!)
   const [primaryHex, setPrimaryHex] = useState(DEFAULT_STOREFRONT_THEME.primary!)
+  const [trustRailText, setTrustRailText] = useState(DEFAULT_STOREFRONT_THEME.trustRailText!)
   const [nameBadge, setNameBadge] = useState<StoreNameBadgeStyle>(DEFAULT_STORE_NAME_BADGE)
   const [layout, setLayout] = useState<StorefrontLayoutMode>(DEFAULT_STOREFRONT_THEME.layout!)
   const [heroStyle, setHeroStyle] = useState<StorefrontHeroStyle>(DEFAULT_STOREFRONT_THEME.heroStyle!)
@@ -218,6 +224,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         setLogoFile(null)
         setAccent(snap.accent)
         setPrimaryHex(snap.primaryHex)
+        setTrustRailText(snap.trustRailText)
         setNameBadge(snap.nameBadge)
         setLayout(snap.layout)
         setHeroStyle(snap.heroStyle)
@@ -259,6 +266,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       logoUrl: logoFile ? logoPreview : logoUrl.trim() || logoPreview,
       primary: primaryHex,
       accent,
+      trustRailText,
       nameBadge,
       layout,
       heroStyle,
@@ -276,6 +284,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       logoFile,
       primaryHex,
       accent,
+      trustRailText,
       nameBadge,
       layout,
       heroStyle,
@@ -295,6 +304,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         logoUrl,
         primaryHex,
         accent,
+        trustRailText,
         nameBadge,
         layout,
         heroStyle,
@@ -311,6 +321,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       logoUrl,
       primaryHex,
       accent,
+      trustRailText,
       nameBadge,
       layout,
       heroStyle,
@@ -336,6 +347,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       fd.set("bannerUrl", bannerUrl.trim())
       fd.set("themePrimary", primaryHex)
       fd.set("themeAccent", accent)
+      fd.set("themeTrustRailText", trustRailText)
       fd.set("themeNameBadge", nameBadge)
       fd.set("themeLayout", layout)
       fd.set("themeHeroStyle", heroStyle)
@@ -515,6 +527,31 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                   onChange={(e) => setAccent(e.target.value)}
                   className="h-11 w-full cursor-pointer rounded-xl border border-gray-200"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="bs-trust-rail" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  {t("trustRailText")}
+                </label>
+                <p className="text-xs text-gray-500 dark:text-zinc-400">{t("trustRailTextHint")}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    id="bs-trust-rail"
+                    type="color"
+                    value={trustRailText}
+                    onChange={(e) => setTrustRailText(e.target.value)}
+                    className="h-11 min-w-[4.5rem] flex-1 cursor-pointer rounded-xl border border-gray-200"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0"
+                    onClick={() => setTrustRailText(DEFAULT_STOREFRONT_THEME.trustRailText!)}
+                  >
+                    {t("trustRailTextReset")}
+                  </Button>
+                </div>
               </div>
 
               <div

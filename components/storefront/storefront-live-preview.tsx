@@ -32,6 +32,7 @@ export type StorefrontDraft = {
   logoUrl: string | null
   primary: string
   accent: string
+  trustRailText: string
   nameBadge: StoreNameBadgeStyle
   layout: StorefrontLayoutMode
   heroStyle: StorefrontHeroStyle
@@ -65,6 +66,7 @@ export function StorefrontLivePreview({ draft, className }: Props) {
   const theme: StorefrontTheme = {
     primary: draft.primary,
     accent: draft.accent,
+    trustRailText: draft.trustRailText,
     nameBadge: draft.nameBadge,
     layout: draft.layout,
     heroStyle: draft.heroStyle,
@@ -127,7 +129,7 @@ export function StorefrontLivePreview({ draft, className }: Props) {
             logoUrl={draft.logoUrl}
             accent={draft.accent}
             primary={draft.primary}
-            trustRailText={theme.trustRailText}
+            trustRailText={draft.trustRailText}
             nameBadge={draft.nameBadge}
             headerBrandAlign={draft.headerBrandAlign}
             categories={PREVIEW_CATEGORIES}
