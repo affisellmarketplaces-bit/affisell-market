@@ -175,7 +175,10 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             className="pointer-events-none absolute left-1/2 top-8 z-20 -translate-x-1/2"
           >
             <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 border-emerald-300/50 text-emerald-100")}>
-              <ShoppingBag className="size-5 text-emerald-300" />
+              <ShoppingBag className="size-5 text-emerald-300" aria-hidden />
+              <span className="text-[10px] font-black uppercase tracking-wider sm:hidden" aria-hidden>
+                ↑
+              </span>
               <span className="text-xs font-black uppercase tracking-wider">{t("cartShort")}</span>
             </div>
           </motion.div>
@@ -185,7 +188,10 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             className="pointer-events-none absolute bottom-[38%] left-1/2 z-20 -translate-x-1/2"
           >
             <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 border-amber-300/50 text-amber-100")}>
-              <Bookmark className="size-5 text-amber-200" />
+              <Bookmark className="size-5 text-amber-200" aria-hidden />
+              <span className="text-[10px] font-black uppercase tracking-wider sm:hidden" aria-hidden>
+                ↓
+              </span>
               <span className="text-xs font-black uppercase tracking-wider">{t("saveDropShort")}</span>
             </div>
           </motion.div>
@@ -195,7 +201,10 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             className="pointer-events-none absolute right-4 top-1/2 z-20 -translate-y-1/2"
           >
             <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 border-violet-300/50 text-violet-100")}>
-              <Zap className="size-5 text-violet-200" />
+              <Zap className="size-5 text-violet-200" aria-hidden />
+              <span className="text-[10px] font-black uppercase tracking-wider sm:hidden" aria-hidden>
+                →
+              </span>
               <span className="text-xs font-black uppercase tracking-wider">{t("buyShort")}</span>
             </div>
           </motion.div>
@@ -205,7 +214,10 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             className="pointer-events-none absolute left-4 top-1/2 z-20 -translate-y-1/2"
           >
             <div className={cn(affisellBrand.epoxyGestureBadge, "flex items-center gap-2 text-white")}>
-              <ChevronLeft className="size-5" />
+              <ChevronLeft className="size-5" aria-hidden />
+              <span className="text-[10px] font-black uppercase tracking-wider sm:hidden" aria-hidden>
+                ←
+              </span>
               <span className="text-xs font-black uppercase tracking-wider">{t("skipShort")}</span>
             </div>
           </motion.div>
