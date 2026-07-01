@@ -1,8 +1,8 @@
 "use client"
 
-import { urlBase64ToUint8Array } from "@/lib/push-subscribe-shared"
+import { PUSH_SW_PATH, urlBase64ToUint8Array } from "@/lib/push-subscribe-shared"
 
-const SW_PATH = "/sw.js"
+const SW_PATH = PUSH_SW_PATH
 
 async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return null
@@ -52,4 +52,23 @@ export async function requestPriceAlertPushSubscription(): Promise<"granted" | "
   })
 
   return res.ok ? "granted" : "denied"
+}
+
+/** Unsubscribe browser push + remove server-side endpoints for this device. */
+export async function disablePushNotifications(): Promise<boolean> {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) return false
+
+  const registration = await navigator.serviceWorker.getRegistration(SW_PATH)
+  const subscription = await registration?.pushManager.getSubscription()
+  if (!subscription) return true
+
+  const endpoint = subscription.endpoint
+  await fetch("/api/push/subscribe", {
+    method: "DELETE",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ endpoint }),
+  }).catch(() => undefined)
+
+  return subscription.unsubscribe()
 }

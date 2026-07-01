@@ -579,7 +579,19 @@
     "startShopping": "Commencer mes achats",
     "cartTitle": "Votre panier",
     "cartPending": "{count, plural, one {# article en attente} other {# articles en attente}}",
-    "backMarketplace": "← Retour au marketplace"
+    "backMarketplace": "← Retour au marketplace",
+    "push": {
+      "title": "Notifications push",
+      "body": "Baisses de prix, expédition et livraison de vos commandes.",
+      "enable": "Activer les notifications",
+      "disable": "Désactiver les notifications",
+      "loading": "Chargement…",
+      "enabledToast": "Notifications activées sur cet appareil",
+      "disabledToast": "Notifications désactivées",
+      "deniedToast": "Permission refusée — activez-les dans les réglages du navigateur",
+      "unsupportedToast": "Push non disponible sur ce navigateur",
+      "disableFailed": "Impossible de désactiver les notifications"
+    }
   },
   "shops": {
     "metaTitle": "Boutiques créateurs - Affisell",
@@ -1955,6 +1967,15 @@
       "vercelAuto": " · Enregistré automatiquement sur l’hébergement Affisell (sans action Vercel manuelle)",
       "vercelManual": " · Configurez VERCEL_API_TOKEN sur la plateforme pour le HTTPS automatique",
       "cronHint": "Astuce : une fois le CNAME actif, l’activation tourne toutes les 30 min — ou cliquez Activer ci-dessus."
+    }
+  },
+  "pwa": {
+    "install": {
+      "title": "Installer Affisell",
+      "body": "Checkout rapide, alertes prix et commandes — comme une app native.",
+      "cta": "Installer",
+      "later": "Plus tard",
+      "dismiss": "Fermer la bannière d'installation"
     }
   },
   "boutique": {

@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server"
 import { ArrowRight, CreditCard, Package, ShoppingCart } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading } from "@/components/affisell/bento-ui"
+import { BuyerPushNotificationsCard } from "@/components/buyer/buyer-push-notifications-card"
 import { auth } from "@/auth"
 import { buttonVariants } from "@/components/ui/button"
 import { loadBuyerAccountOverview } from "@/lib/buyer-account-overview"
@@ -111,6 +112,8 @@ export default async function MarketplaceBuyerAccountHomePage() {
           </div>
         </BentoCard>
       </div>
+
+      <BuyerPushNotificationsCard />
 
       {overview.cartItemCount === 0 ? (
         <BentoCard className="flex flex-col gap-4 border-dashed border-violet-200/80 bg-violet-50/40 p-6 dark:border-violet-800/50 dark:bg-violet-950/20 sm:flex-row sm:items-center sm:justify-between">

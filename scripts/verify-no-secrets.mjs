@@ -58,7 +58,9 @@ function scanFile(path) {
   return hits
 }
 
-const files = trackedFiles()
+const files = trackedFiles().filter(
+  (file) => !file.includes("node_modules/") && !file.includes("/.next/")
+)
 const violations = files.flatMap(scanFile)
 
 if (violations.length > 0) {
