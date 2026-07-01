@@ -23,6 +23,7 @@ import { handleStripeInvoicePaymentFailed } from "@/lib/stripe-invoice-payment-f
 import {
   activateProFromCheckoutSession,
   deactivateProFromSubscription,
+  syncProFromSubscriptionUpdate,
 } from "@/lib/stripe-pro"
 import {
   activateSponsorCampaignFromCheckout,
@@ -124,7 +125,12 @@ async function processCheckoutSessionCompleted(
   })
 
   if (session.mode === "subscription" && session.payment_status === "paid") {
-    await activateProFromCheckoutSession(session)
+    const proResult = await activateProFromCheckoutSession(session)
+    console.log("[video-paywall]", {
+      sessionId: session.id,
+      activated: proResult.activated,
+      reason: proResult.activated ? null : proResult.reason,
+    })
     return { orderId: session.metadata?.orderId ?? null, status: "success", error: null }
   }
 
@@ -207,6 +213,10 @@ async function dispatchStripeEvent(
   switch (event.type) {
     case "checkout.session.completed":
       return processCheckoutSessionCompleted(event, tx)
+    case "customer.subscription.updated": {
+      await syncProFromSubscriptionUpdate(event.data.object as Stripe.Subscription)
+      return { orderId: null, status: "success", error: null }
+    }
     case "customer.subscription.deleted": {
       await deactivateProFromSubscription(event.data.object as Stripe.Subscription)
       return { orderId: null, status: "success", error: null }

@@ -1,4 +1,5 @@
 import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
+import { syncAffisellShipmentToMedusaIfNeeded } from "@/lib/medusa/sync-order-fulfillment"
 import { logAutoDsFulfillmentEvent, type AutoDsLogSource } from "@/lib/autods/fulfillment-log"
 import { prisma } from "@/lib/prisma"
 
@@ -44,6 +45,7 @@ export async function applyAutoDsTrackingUpdate(args: {
       autodsShippedEmailSentAt: true,
       trackingNumber: true,
       shippedAt: true,
+      medusaOrderId: true,
     },
   })
 
@@ -141,6 +143,15 @@ export async function applyAutoDsTrackingUpdate(args: {
       trackingUrl: nextTrackingUrl,
       carrier: nextCarrier,
     })
+
+    if (order.medusaOrderId) {
+      void syncAffisellShipmentToMedusaIfNeeded({
+        affisellOrderId: order.id,
+        medusaOrderId: order.medusaOrderId,
+        trackingNumber: nextTracking,
+        trackingCarrier: nextCarrier,
+      })
+    }
   }
 
   return {

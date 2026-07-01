@@ -49,6 +49,7 @@
     "email:dev": "email dev --dir emails",
     "verify:no-secrets": "node scripts/verify-no-secrets.mjs",
     "verify:video-paywall": "node scripts/verify-video-paywall-ready.mjs",
+    "verify:video-paywall:prod": "VIDEO_PAYWALL_PAUSED=0 node scripts/verify-video-paywall-ready.mjs",
     "verify:web-push": "node scripts/verify-web-push-ready.mjs",
     "verify:store-domains": "node scripts/verify-store-domains-ready.mjs",
     "check:client-prisma": "node scripts/check-client-prisma-imports.mjs",
@@ -72,6 +73,7 @@
     "test:vat:check": "tsx scripts/check-order-vat.ts",
     "test:vat:settle": "tsx scripts/resettle-order-vat.ts",
     "heal:medusa-orders": "tsx scripts/heal-medusa-order-sync.ts",
+    "heal:medusa-fulfillments": "tsx scripts/heal-medusa-fulfillment-sync.ts",
     "verify:medusa-admin": "tsx scripts/verify-medusa-admin-token.ts"
   },
   "dependencies": {

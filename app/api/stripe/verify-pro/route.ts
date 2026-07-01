@@ -5,6 +5,7 @@ import {
   activateProFromCheckoutSession,
   PRO_VIDEO_QUOTA,
   resolveUserIdForProCheckout,
+  subscriptionHasProPrice,
 } from "@/lib/stripe-pro"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
@@ -65,9 +66,9 @@ export async function POST(req: Request) {
     const subs = await stripe.subscriptions.list({
       customer: user.stripeCustomerId,
       status: "active",
-      limit: 1,
+      limit: 10,
     })
-    const sub = subs.data[0]
+    const sub = subs.data.find((row) => subscriptionHasProPrice(row))
     if (!sub) {
       return NextResponse.json({ error: "No active Pro subscription found" }, { status: 404 })
     }

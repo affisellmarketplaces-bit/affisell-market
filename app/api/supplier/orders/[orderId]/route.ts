@@ -8,6 +8,7 @@ import {
 } from "@/lib/supplier-orders-payload"
 import { toSupplierFulfillmentOrderPublic } from "@/lib/supplier-orders-public-api"
 import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
+import { syncAffisellShipmentToMedusaIfNeeded } from "@/lib/medusa/sync-order-fulfillment"
 import { triggerOrderTransferRelease } from "@/lib/trigger-order-transfer-release"
 import { triggerLightningPayout } from "@/lib/stripe-lightning"
 import { prisma } from "@/lib/prisma"
@@ -172,6 +173,15 @@ export async function PATCH(
     trackingNumber: tracking,
     carrier,
   })
+
+  if (updated.medusaOrderId) {
+    void syncAffisellShipmentToMedusaIfNeeded({
+      affisellOrderId: updated.id,
+      medusaOrderId: updated.medusaOrderId,
+      trackingNumber: tracking,
+      trackingCarrier: carrier,
+    })
+  }
 
   const supplierProfile = await prisma.supplierProfile.findUnique({
     where: { userId: session.user.id },
