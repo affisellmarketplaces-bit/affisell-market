@@ -322,6 +322,7 @@ function StorefrontFooterDesktop({
                 showStripeLead
                 ariaLabel={tFooter("paymentMethodsAriaLabel")}
                 processorSecureLabel={tFooter("paymentProcessorSecure")}
+                complianceNote={tFooter("paymentMethodsComplianceNote")}
               />
               <p className={footerHeroTagline}>{tFooter("stripeNotice")}</p>
               <p className="text-xs text-violet-100/70">{tFooter("vatNotice")}</p>
@@ -441,6 +442,7 @@ function StorefrontFooterMobile({
             showStripeLead
             ariaLabel={tFooter("paymentMethodsAriaLabel")}
             processorSecureLabel={tFooter("paymentProcessorSecure")}
+            complianceNote={tFooter("paymentMethodsComplianceNote")}
           />
           <p className="text-[11px] leading-snug text-violet-100/85">{tFooter("stripeNoticeShort")}</p>
         </div>

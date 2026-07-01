@@ -128,6 +128,7 @@ export function FooterMobileShell({ content }: Props) {
             showStripeLead
             ariaLabel={content.paymentMethodsAriaLabel}
             processorSecureLabel={content.paymentProcessorSecure}
+            complianceNote={content.paymentMethodsComplianceNote}
           />
           <p className="text-[11px] leading-snug text-violet-100/85">{content.stripeNoticeShort}</p>
         </div>

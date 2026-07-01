@@ -2593,6 +2593,7 @@
       "paymentMethodsAriaLabel": "Moyens de paiement acceptés",
       "paymentProcessorHint": "Paiements traités par Stripe",
       "paymentProcessorSecure": "3D Secure",
+      "paymentMethodsComplianceNote": "Portefeuilles & Klarna affichés si éligibles sur votre appareil et le montant. Paiement via Stripe.",
       "about": "À propos",
       "howItWorks": "Comment ça marche",
       "howSellingWorks": "Comment vendre",

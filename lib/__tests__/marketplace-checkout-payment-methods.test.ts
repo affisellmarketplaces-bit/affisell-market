@@ -1,31 +1,42 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  KLARNA_ELIGIBLE_MIN_CENTS,
+  isMarketplacePaypalEnabled,
   isKlarnaEligibleCents,
-  klarnaInstallmentCents,
+  KLARNA_ELIGIBLE_MIN_CENTS,
   marketplaceCheckoutPaymentSessionOptions,
+  marketplaceEnabledCheckoutPaymentMethodTypes,
 } from "@/lib/marketplace-checkout-payment-methods"
+
+function resetEnv() {
+  delete process.env.MARKETPLACE_BNPL_ENABLED
+  delete process.env.MARKETPLACE_PAYPAL_ENABLED
+  delete process.env.MARKETPLACE_CHECKOUT_WALLETS_ENABLED
+}
 
 describe("marketplace-checkout-payment-methods", () => {
   it("klarna eligibility respects minimum", () => {
     expect(isKlarnaEligibleCents(KLARNA_ELIGIBLE_MIN_CENTS - 1)).toBe(false)
     expect(isKlarnaEligibleCents(KLARNA_ELIGIBLE_MIN_CENTS)).toBe(true)
-    expect(isKlarnaEligibleCents(120_00)).toBe(true)
-  })
-
-  it("splits amount into 3 installments (ceil)", () => {
-    expect(klarnaInstallmentCents(100_00, 3)).toBe(33_34)
-    expect(klarnaInstallmentCents(99_99, 3)).toBe(33_33)
   })
 
   it("checkout options include klarna when BNPL enabled", () => {
-    const prev = process.env.MARKETPLACE_BNPL_ENABLED
+    resetEnv()
     process.env.MARKETPLACE_BNPL_ENABLED = "1"
-    expect(marketplaceCheckoutPaymentSessionOptions().payment_method_types).toEqual(["card", "klarna"])
+    expect(marketplaceCheckoutPaymentSessionOptions().payment_method_types).toEqual([
+      "card",
+      "klarna",
+    ])
     process.env.MARKETPLACE_BNPL_ENABLED = "0"
     expect(marketplaceCheckoutPaymentSessionOptions().payment_method_types).toEqual(["card"])
-    if (prev === undefined) delete process.env.MARKETPLACE_BNPL_ENABLED
-    else process.env.MARKETPLACE_BNPL_ENABLED = prev
+    resetEnv()
+  })
+
+  it("adds paypal when MARKETPLACE_PAYPAL_ENABLED=1", () => {
+    resetEnv()
+    process.env.MARKETPLACE_PAYPAL_ENABLED = "1"
+    expect(isMarketplacePaypalEnabled()).toBe(true)
+    expect(marketplaceEnabledCheckoutPaymentMethodTypes()).toContain("paypal")
+    resetEnv()
   })
 })

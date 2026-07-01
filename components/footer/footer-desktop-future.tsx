@@ -140,6 +140,7 @@ export function FooterDesktopFuture({ content }: Props) {
                 showStripeLead
                 ariaLabel={content.paymentMethodsAriaLabel}
                 processorSecureLabel={content.paymentProcessorSecure}
+                complianceNote={content.paymentMethodsComplianceNote}
               />
               <p className={footerHeroTagline}>{content.stripeNotice}</p>
               <p className="text-xs text-violet-100/70">{content.vatNotice}</p>

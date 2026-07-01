@@ -36,6 +36,7 @@ export type FooterGlobalContent = {
   paymentMethodsAriaLabel: string
   paymentProcessorHint: string
   paymentProcessorSecure: string
+  paymentMethodsComplianceNote: string
   vatNotice: string
   stripeNotice: string
   stripeNoticeShort: string

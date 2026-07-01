@@ -88,25 +88,6 @@ function AmexIcon({ className }: IconProps) {
   )
 }
 
-function OneyIcon({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 48 32" className={className} aria-hidden>
-      <rect width="48" height="32" rx="4" fill="#fff" />
-      <text
-        x="24"
-        y="21"
-        textAnchor="middle"
-        fill="#81BC00"
-        fontSize="14"
-        fontWeight="700"
-        fontFamily="system-ui, sans-serif"
-      >
-        oney
-      </text>
-    </svg>
-  )
-}
-
 function PaypalIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 48 32" className={className} aria-hidden>
@@ -175,7 +156,6 @@ const ICONS: Record<PaymentMethodBrandId, (props: IconProps) => React.JSX.Elemen
   visa: VisaIcon,
   mastercard: MastercardIcon,
   amex: AmexIcon,
-  oney: OneyIcon,
   paypal: PaypalIcon,
   apple_pay: ApplePayIcon,
   google_pay: GooglePayIcon,

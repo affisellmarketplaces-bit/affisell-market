@@ -17,6 +17,8 @@ type Props = {
   /** Lead with prominent Stripe badge (recommended on trust surfaces). */
   showStripeLead?: boolean
   processorSecureLabel?: string
+  /** Eligibility disclaimer — keeps footer honest vs Stripe Checkout. */
+  complianceNote?: string
 }
 
 const tileByVariant: Record<Variant, string> = {
@@ -41,6 +43,7 @@ export function PaymentMethodsStrip({
   ariaLabel = "Accepted payment methods",
   showStripeLead = true,
   processorSecureLabel = "3D Secure",
+  complianceNote,
 }: Props) {
   if (brands.length === 0 && !showStripeLead) return null
 
@@ -83,6 +86,16 @@ export function PaymentMethodsStrip({
           </ul>
         ) : null}
       </div>
+      {complianceNote ? (
+        <p
+          className={cn(
+            "text-[10px] leading-snug",
+            variant === "footer" ? "text-violet-200/65" : "text-zinc-500 dark:text-zinc-400"
+          )}
+        >
+          {complianceNote}
+        </p>
+      ) : null}
     </div>
   )
 }

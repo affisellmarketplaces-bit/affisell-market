@@ -1,32 +1,42 @@
-import { isMarketplaceBnplEnabled } from "@/lib/marketplace-checkout-payment-methods"
+import {
+  isMarketplaceBnplEnabled,
+  isMarketplaceCheckoutWalletsEnabled,
+  isMarketplacePaypalEnabled,
+} from "@/lib/marketplace-checkout-payment-methods"
 
 export type PaymentMethodBrandId =
   | "cb"
   | "visa"
   | "mastercard"
   | "amex"
-  | "oney"
   | "paypal"
   | "apple_pay"
   | "google_pay"
   | "klarna"
 
 const CARD_BRANDS: PaymentMethodBrandId[] = ["cb", "visa", "mastercard", "amex"]
-const WALLET_BRANDS: PaymentMethodBrandId[] = ["paypal", "apple_pay", "google_pay"]
-const BNPL_BRANDS: PaymentMethodBrandId[] = ["oney", "klarna"]
+const WALLET_BRANDS: PaymentMethodBrandId[] = ["apple_pay", "google_pay"]
 
-const ALL_DISPLAY_BRANDS: PaymentMethodBrandId[] = [
-  ...CARD_BRANDS,
-  ...BNPL_BRANDS,
-  ...WALLET_BRANDS,
-]
-
-/** Brands shown in footer / trust surfaces (Stripe-powered checkout). */
+/**
+ * Brands shown in footer / trust surfaces — mirrors Stripe Checkout capabilities.
+ * Oney is intentionally omitted (not enabled in Affisell Stripe Checkout).
+ */
 export function paymentMethodBrandsForDisplay(): PaymentMethodBrandId[] {
-  if (!isMarketplaceBnplEnabled()) {
-    return [...CARD_BRANDS, ...WALLET_BRANDS]
+  const brands: PaymentMethodBrandId[] = [...CARD_BRANDS]
+
+  if (isMarketplaceBnplEnabled()) {
+    brands.push("klarna")
   }
-  return [...ALL_DISPLAY_BRANDS]
+
+  if (isMarketplacePaypalEnabled()) {
+    brands.push("paypal")
+  }
+
+  if (isMarketplaceCheckoutWalletsEnabled()) {
+    brands.push(...WALLET_BRANDS)
+  }
+
+  return brands
 }
 
 export function paymentMethodBrandLabel(id: PaymentMethodBrandId): string {
@@ -35,7 +45,6 @@ export function paymentMethodBrandLabel(id: PaymentMethodBrandId): string {
     visa: "Visa",
     mastercard: "Mastercard",
     amex: "American Express",
-    oney: "Oney",
     paypal: "PayPal",
     apple_pay: "Apple Pay",
     google_pay: "Google Pay",
