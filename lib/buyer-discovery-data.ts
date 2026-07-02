@@ -4,6 +4,7 @@ import {
   type BuyerCategoryChip,
   type BuyerListingCard,
 } from "@/lib/buyer-discovery-types"
+import { sortListingRowsByDeliveryCountryBoost } from "@/lib/buyer-listing-country-boost"
 import { loadHomeBestSellers7d, loadHomeNewArrivals } from "@/lib/home-marketplace-data"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
@@ -27,6 +28,7 @@ const listingSelect = {
       images: true,
       basePriceCents: true,
       categories: true,
+      deliveryCountryCodes: true,
       deliveryMin: true,
       deliveryMax: true,
       deliveryDays: true,
@@ -132,7 +134,8 @@ export async function loadBuyerListedProducts(limit = 48): Promise<BuyerListingC
 export async function loadBuyerListingsByListingIds(
   listingIds: string[],
   excludeProductIds: string[],
-  limit = 8
+  limit = 8,
+  visitorCountry: string | null = null
 ): Promise<BuyerListingCard[]> {
   const ids = [...new Set(listingIds.map((id) => id.trim()).filter(Boolean))]
   const exclude = new Set(excludeProductIds.map((id) => id.trim()).filter(Boolean))
@@ -149,10 +152,19 @@ export async function loadBuyerListingsByListingIds(
   })
 
   const byId = new Map(listings.map((row) => [row.id, row]))
+  const orderedRows = ids
+    .map((id) => byId.get(id))
+    .filter((row): row is NonNullable<typeof row> => {
+      if (!row) return false
+      return !exclude.has(row.productId)
+    })
+
+  const rankedRows = visitorCountry
+    ? sortListingRowsByDeliveryCountryBoost(orderedRows, visitorCountry)
+    : orderedRows
+
   const cards: BuyerListingCard[] = []
-  for (const id of ids) {
-    const row = byId.get(id)
-    if (!row || exclude.has(row.productId)) continue
+  for (const row of rankedRows) {
     const card = mapRow(row, normalizeListingSalesCount(row.conversions))
     if (card) cards.push(card)
     if (cards.length >= limit) break
@@ -164,7 +176,8 @@ export async function loadBuyerListingsByListingIds(
 export async function loadBuyerListingsByCategoryHints(
   categoryHints: string[],
   excludeProductIds: string[],
-  limit = 8
+  limit = 8,
+  visitorCountry: string | null = null
 ): Promise<BuyerListingCard[]> {
   const hints = [...new Set(categoryHints.map((c) => c.trim()).filter(Boolean))].slice(0, 8)
   if (hints.length === 0) return []
@@ -182,12 +195,16 @@ export async function loadBuyerListingsByCategoryHints(
     },
     select: listingSelect,
     orderBy: [{ conversions: "desc" }, { updatedAt: "desc" }],
-    take: Math.min(limit * 3, 48),
+    take: Math.min(limit * (visitorCountry ? 4 : 3), 48),
   })
+
+  const rankedRows = visitorCountry
+    ? sortListingRowsByDeliveryCountryBoost(listings, visitorCountry)
+    : listings
 
   const seen = new Set<string>()
   const cards: BuyerListingCard[] = []
-  for (const row of listings) {
+  for (const row of rankedRows) {
     if (seen.has(row.productId)) continue
     seen.add(row.productId)
     const card = mapRow(row, normalizeListingSalesCount(row.conversions))

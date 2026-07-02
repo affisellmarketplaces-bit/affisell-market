@@ -1,6 +1,6 @@
 import "server-only"
 
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 
 import {
   loadBuyerListingsByCategoryHints,
@@ -12,9 +12,11 @@ import {
   collectCategoryHints,
   parseBrowseSignalsCookie,
 } from "@/lib/buyer-browse-signals-shared"
+import { sortBuyerListingCardsByDeliveryCountryBoost } from "@/lib/buyer-listing-country-boost"
 import type { BuyerPersonalizedPicksPayload } from "@/lib/buyer-personalization-shared"
 import { loadHomeBestSellers7d } from "@/lib/home-marketplace-data"
 import { prisma } from "@/lib/prisma"
+import { resolveVisitorCountryIso2 } from "@/lib/visitor-country"
 
 const MIN_RAIL_ITEMS = 4
 const TARGET_ITEMS = 8
@@ -32,6 +34,29 @@ async function readBrowseCategoryNames(): Promise<string[]> {
   } catch {
     return []
   }
+}
+
+async function readVisitorCountry(): Promise<string | null> {
+  try {
+    const requestHeaders = await headers()
+    return resolveVisitorCountryIso2(requestHeaders)
+  } catch {
+    return null
+  }
+}
+
+async function loadDeliveryCodesByProductId(
+  productIds: string[]
+): Promise<Map<string, string[]>> {
+  const ids = [...new Set(productIds.map((id) => id.trim()).filter(Boolean))]
+  if (ids.length === 0) return new Map()
+
+  const rows = await prisma.product.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, deliveryCountryCodes: true },
+  })
+
+  return new Map(rows.map((row) => [row.id, row.deliveryCountryCodes ?? []]))
 }
 
 async function loadSignalSeed(args: {
@@ -110,8 +135,11 @@ export async function loadBuyerPersonalizedPicks(args: {
   userId: string | null
   guestId: string | null
 }): Promise<BuyerPersonalizedPicksPayload> {
-  const seed = await loadSignalSeed(args)
-  const browseNames = await readBrowseCategoryNames()
+  const [seed, browseNames, visitorCountry] = await Promise.all([
+    loadSignalSeed(args),
+    readBrowseCategoryNames(),
+    readVisitorCountry(),
+  ])
   const categoryHints = collectCategoryHints({
     productCategoryLists: seed.categoryLists,
     browseCategoryNames: browseNames,
@@ -121,7 +149,12 @@ export async function loadBuyerPersonalizedPicks(args: {
   let items: BuyerListingCard[] = []
 
   if (categoryHints.length > 0) {
-    items = await loadBuyerListingsByCategoryHints(categoryHints, exclude, TARGET_ITEMS)
+    items = await loadBuyerListingsByCategoryHints(
+      categoryHints,
+      exclude,
+      TARGET_ITEMS,
+      visitorCountry
+    )
   }
 
   if (items.length < MIN_RAIL_ITEMS) {
@@ -129,9 +162,21 @@ export async function loadBuyerPersonalizedPicks(args: {
     const filler = await loadBuyerListingsByListingIds(
       ranked.map((row) => row.listingId),
       [...exclude, ...items.map((item) => item.productId)],
-      TARGET_ITEMS - items.length
+      TARGET_ITEMS - items.length,
+      visitorCountry
     )
     items = [...items, ...filler].slice(0, TARGET_ITEMS)
+  }
+
+  if (visitorCountry && items.length > 1) {
+    const deliveryCodesByProductId = await loadDeliveryCodesByProductId(
+      items.map((item) => item.productId)
+    )
+    items = sortBuyerListingCardsByDeliveryCountryBoost(
+      items,
+      deliveryCodesByProductId,
+      visitorCountry
+    ).slice(0, TARGET_ITEMS)
   }
 
   const personalized = seed.hasPersonalSignals && items.length >= MIN_RAIL_ITEMS
@@ -139,6 +184,7 @@ export async function loadBuyerPersonalizedPicks(args: {
   console.log("[buyer-personalized-picks]", {
     userId: args.userId ?? null,
     guestId: args.guestId ? "set" : null,
+    visitorCountry,
     categoryHints: categoryHints.length,
     personalized,
     count: items.length,
