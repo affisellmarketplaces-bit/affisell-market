@@ -4,8 +4,7 @@ import { useEffect } from "react"
 import useSWR from "swr"
 
 import { HomePersonalizedPicksRail } from "@/components/home/home-personalized-picks-rail"
-import { BUYER_BROWSE_SIGNALS_UPDATED_EVENT } from "@/lib/buyer-browse-signals.client"
-import { BUYER_WISHLIST_UPDATED_EVENT } from "@/lib/buyer-wishlist-signals.client"
+import { BUYER_PERSONALIZATION_REFRESH_EVENT } from "@/lib/buyer-personalization-refresh.client"
 import type { BuyerPersonalizedPicksPayload } from "@/lib/buyer-personalization-shared"
 
 type Props = {
@@ -40,11 +39,9 @@ export function HomePersonalizedPicksRailLive({
     const refreshPicks = () => {
       void mutate()
     }
-    window.addEventListener(BUYER_BROWSE_SIGNALS_UPDATED_EVENT, refreshPicks)
-    window.addEventListener(BUYER_WISHLIST_UPDATED_EVENT, refreshPicks)
+    window.addEventListener(BUYER_PERSONALIZATION_REFRESH_EVENT, refreshPicks)
     return () => {
-      window.removeEventListener(BUYER_BROWSE_SIGNALS_UPDATED_EVENT, refreshPicks)
-      window.removeEventListener(BUYER_WISHLIST_UPDATED_EVENT, refreshPicks)
+      window.removeEventListener(BUYER_PERSONALIZATION_REFRESH_EVENT, refreshPicks)
     }
   }, [mutate])
 

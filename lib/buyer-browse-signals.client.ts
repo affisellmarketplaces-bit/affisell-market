@@ -6,6 +6,7 @@ import {
   mergeBrowseSignalCategories,
   parseBrowseSignalsCookie,
 } from "@/lib/buyer-browse-signals-shared"
+import { notifyBuyerPersonalizationRefresh } from "@/lib/buyer-personalization-refresh.client"
 
 const MAX_AGE_SEC = 60 * 60 * 24 * 90
 
@@ -18,6 +19,7 @@ function writeBrowseSignalsCookie(categories: string[]): void {
 
 function notifyBrowseSignalsUpdated(): void {
   window.dispatchEvent(new CustomEvent(BUYER_BROWSE_SIGNALS_UPDATED_EVENT))
+  notifyBuyerPersonalizationRefresh("browse_updated")
 }
 
 function readBrowseSignalsFromDocument(): string[] {

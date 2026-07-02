@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ArrowLeft, Sparkles } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTranslations } from "next-intl"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { HomePersonalizedPicksRailLive } from "@/components/home/home-personalized-picks-rail-live"
@@ -24,6 +24,7 @@ import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 import { toggleProductWishlist } from "@/lib/wishlist-toggle-client"
 import { requestPriceAlertPushSubscription } from "@/components/push/request-price-alert-push"
 import { affisellBrand } from "@/lib/affisell-brand"
+import { notifyBuyerPersonalizationRefresh } from "@/lib/buyer-personalization-refresh.client"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
 import { pulseSwipeHaptic } from "@/lib/pulse-swipe-haptics"
 import type { BuyerPersonalizedPicksPayload } from "@/lib/buyer-personalization-shared"
@@ -73,7 +74,9 @@ export function BuyerSwipeCommerce({
 }: Props) {
   const t = useTranslations("pulse.commerce")
   const tPulse = useTranslations("pulse")
+  const pathname = usePathname()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
 
   const [deck, setDeck] = useState<PulseFeedItem[]>(() =>
@@ -174,6 +177,15 @@ export function BuyerSwipeCommerce({
       setFeedExhausted(false)
     }
   }, [initialItems, deck.length])
+
+  useEffect(() => {
+    if (searchParams.get("success") !== "true") return
+    notifyBuyerPersonalizationRefresh("checkout_success")
+    const next = new URLSearchParams(searchParams.toString())
+    next.delete("success")
+    const href = next.toString() ? `${pathname}?${next.toString()}` : pathname
+    router.replace(href, { scroll: false })
+  }, [pathname, router, searchParams])
 
   useEffect(() => {
     if (feedExhausted || loading || deck.length > PREFETCH_WHEN_LEFT) return
