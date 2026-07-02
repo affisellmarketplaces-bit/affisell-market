@@ -155,6 +155,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (magicRaw) {
           const payload = verifyBuyerCheckoutMagicToken(magicRaw)
           if (!payload) return null
+          if (payload.email) {
+            return {
+              id: payload.userId,
+              email: payload.email,
+              name: payload.name ?? undefined,
+              role: "CUSTOMER",
+            }
+          }
           const userRow = await prisma.user.findUnique({ where: { id: payload.userId } })
           if (!userRow || userRow.role !== "CUSTOMER") return null
           return {

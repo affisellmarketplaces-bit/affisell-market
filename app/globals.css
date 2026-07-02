@@ -1323,6 +1323,15 @@ body.affisell-demo-lab .affisell-header-shell {
   }
 }
 
+@keyframes checkout-handoff {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
 @keyframes affisell-page-in {
   from {
     opacity: 0.92;

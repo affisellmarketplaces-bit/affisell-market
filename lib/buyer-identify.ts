@@ -1,6 +1,3 @@
-import bcrypt from "bcryptjs"
-import { randomBytes } from "crypto"
-
 import { buyerEmailFromPhone, formatBuyerPhoneDisplay, normalizeBuyerPhone } from "@/lib/buyer-phone"
 import { prisma } from "@/lib/prisma"
 
@@ -57,11 +54,10 @@ export async function identifyBuyerForCheckout(input: BuyerIdentifyInput): Promi
     }
   }
 
-  const passwordHash = await bcrypt.hash(randomBytes(32).toString("hex"), 10)
   const created = await prisma.user.create({
     data: {
       email,
-      password: passwordHash,
+      password: null,
       role: "CUSTOMER",
       name: input.channel === "phone" ? displayLabel.slice(0, 120) : null,
     },

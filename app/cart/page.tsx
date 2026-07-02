@@ -23,11 +23,11 @@ import {
   readGuestCart,
   removeGuestCartItem,
   setGuestCartQuantity,
+  writeGuestCart,
   type GuestCartItem,
 } from "@/lib/guest-cart"
 import { CartCheckoutIdentitySheet } from "@/components/cart/cart-checkout-identity-sheet"
 import { dispatchCartUpdated } from "@/lib/buyer-cart-count-client"
-import { mergeGuestBuyerSessionToServer } from "@/lib/merge-guest-cart-client"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/stripe-minimum"
 
@@ -267,6 +267,27 @@ export default function CartPage() {
   )
   const checkoutBelowMinimum = subtotalCents > 0 && cardChargeCents < minCardCents
 
+  const checkoutIdentityPayload = useMemo(
+    () => ({
+      items: lines.map((l) => ({
+        productId: l.product.id,
+        qty: l.qty,
+        variantSignature: l.variantSignature || undefined,
+        selectedColor: l.selectedColor,
+        selectedSize: l.selectedSize,
+      })),
+      cancelPath: "/cart",
+      successPath: "/success?session_id={CHECKOUT_SESSION_ID}&welcome=1",
+      useRewardCents: Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward),
+    }),
+    [lines, useRewardCents, maxApplicableReward]
+  )
+
+  const guestCartItemsForIdentity = useMemo(
+    () => (!isAuthed ? readGuestCart() : []),
+    [isAuthed, lines]
+  )
+
   const itemCount = useMemo(() => lines.reduce((n, row) => n + row.qty, 0), [lines])
 
   const guestImageFetchKey = useMemo(
@@ -412,9 +433,10 @@ export default function CartPage() {
 
   async function afterIdentity() {
     setIdentityOpen(false)
-    await mergeGuestBuyerSessionToServer()
+    setIsCustomerBuyer(true)
+    writeGuestCart([])
+    dispatchCartUpdated()
     await refreshCart()
-    await proceedToStripe()
   }
 
   if (loading) {
@@ -708,6 +730,8 @@ export default function CartPage() {
           open={identityOpen}
           onClose={() => setIdentityOpen(false)}
           onIdentified={afterIdentity}
+          checkoutPayload={checkoutIdentityPayload}
+          guestCartItems={guestCartItemsForIdentity}
         />
       </div>
       <MobileCartCheckoutBar

@@ -252,11 +252,12 @@ async function checkoutFromItems(
   lines: CartLineInput[],
   opts: { cancelPath?: string; successPath?: string; useRewardCents?: number },
   checkoutLocale: string,
-  request: Request
+  request: Request,
+  buyerUserIdOverride?: string
 ) {
   const stripe = getStripeClient()
-  const session = await auth()
-  const buyerUserId = session?.user?.id?.trim() || ""
+  const session = buyerUserIdOverride ? null : await auth()
+  const buyerUserId = buyerUserIdOverride?.trim() || session?.user?.id?.trim() || ""
 
   const normalized: {
     affiliateProductId: string
@@ -436,7 +437,10 @@ async function checkoutFromItems(
 }
 
 /** Stripe Checkout for an AffiliateProduct listing (EUR). */
-export async function marketplaceCheckoutPOST(request: Request) {
+export async function marketplaceCheckoutPOST(
+  request: Request,
+  options?: { buyerUserId?: string }
+) {
   const stripe = getStripeClient()
   const checkoutLocale = resolveAppLocale(await resolveRequestLocale(undefined))
   const body = (await request.json().catch(() => ({}))) as {
@@ -454,7 +458,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
   }
 
   if (Array.isArray(body.items) && body.items.length > 0) {
-    return checkoutFromItems(body.items, body, checkoutLocale, request)
+    return checkoutFromItems(body.items, body, checkoutLocale, request, options?.buyerUserId)
   }
 
   const affiliateProductId =
@@ -495,8 +499,8 @@ export async function marketplaceCheckoutPOST(request: Request) {
   const affiliateProduct = listing
   const affiliate = listing.affiliate
 
-  const session = await auth()
-  const buyerUserId = session?.user?.id?.trim() || ""
+  const session = options?.buyerUserId ? null : await auth()
+  const buyerUserId = options?.buyerUserId?.trim() || session?.user?.id?.trim() || ""
 
   let balanceCents = 0
   if (buyerUserId) {

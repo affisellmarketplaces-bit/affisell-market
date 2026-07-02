@@ -46,7 +46,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: identified.error, code: "identify_failed" }, { status: identified.status })
     }
 
-    const checkoutMagic = createBuyerCheckoutMagicToken(identified.userId)
+    const checkoutMagic = createBuyerCheckoutMagicToken(identified.userId, {
+      email: identified.email,
+      name: identified.displayLabel,
+    })
     console.log("[post-checkout-buyer]", {
       sessionId,
       userId: identified.userId,

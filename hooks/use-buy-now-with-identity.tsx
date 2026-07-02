@@ -2,7 +2,10 @@
 
 import { useCallback, useRef, useState } from "react"
 
-import { CheckoutIdentitySheet } from "@/components/checkout/checkout-identity-sheet"
+import {
+  CartCheckoutIdentitySheet,
+  type CheckoutIdentityPayload,
+} from "@/components/cart/cart-checkout-identity-sheet"
 import { fetchBuyerSessionSnapshot } from "@/lib/buyer-session-client"
 import {
   buyNowWithoutLogin,
@@ -17,6 +20,7 @@ type PendingBuyNow = {
 
 export function useBuyNowWithIdentity() {
   const [identityOpen, setIdentityOpen] = useState(false)
+  const [checkoutPayload, setCheckoutPayload] = useState<CheckoutIdentityPayload | null>(null)
   const pendingRef = useRef<PendingBuyNow | null>(null)
 
   const runBuyNow = useCallback(async (body: FastCheckoutBody, meta: BuyNowWithoutLoginMeta) => {
@@ -28,6 +32,7 @@ export function useBuyNowWithIdentity() {
       const session = await fetchBuyerSessionSnapshot()
       if (!session.isCustomerBuyer) {
         pendingRef.current = { body, meta }
+        setCheckoutPayload(body as CheckoutIdentityPayload)
         setIdentityOpen(true)
         return "needs_identity" as const
       }
@@ -38,6 +43,7 @@ export function useBuyNowWithIdentity() {
 
   const onIdentified = useCallback(async () => {
     setIdentityOpen(false)
+    setCheckoutPayload(null)
     const pending = pendingRef.current
     pendingRef.current = null
     if (!pending) return
@@ -46,11 +52,17 @@ export function useBuyNowWithIdentity() {
 
   const closeIdentity = useCallback(() => {
     setIdentityOpen(false)
+    setCheckoutPayload(null)
     pendingRef.current = null
   }, [])
 
   const identitySheet = (
-    <CheckoutIdentitySheet open={identityOpen} onClose={closeIdentity} onIdentified={onIdentified} />
+    <CartCheckoutIdentitySheet
+      open={identityOpen}
+      onClose={closeIdentity}
+      onIdentified={onIdentified}
+      checkoutPayload={checkoutPayload}
+    />
   )
 
   return { buyNow, identitySheet, identityOpen }

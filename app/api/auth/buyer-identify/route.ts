@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { identifyBuyerForCheckout } from "@/lib/buyer-identify"
-import { createBuyerCheckoutMagicToken } from "@/lib/buyer-checkout-magic"
+import { identifyAndEstablishBuyerSession } from "@/lib/buyer-identify-session"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -20,19 +19,23 @@ export async function POST(req: Request) {
 
   const result =
     channel === "email"
-      ? await identifyBuyerForCheckout({ channel: "email", email: typeof body.email === "string" ? body.email : "" })
-      : await identifyBuyerForCheckout({ channel: "phone", phone: typeof body.phone === "string" ? body.phone : "" })
+      ? await identifyAndEstablishBuyerSession({
+          channel: "email",
+          email: typeof body.email === "string" ? body.email : "",
+        })
+      : await identifyAndEstablishBuyerSession({
+          channel: "phone",
+          phone: typeof body.phone === "string" ? body.phone : "",
+        })
 
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: result.status })
   }
 
-  const checkoutMagic = createBuyerCheckoutMagicToken(result.userId)
-
   return NextResponse.json({
     ok: true,
     isNew: result.isNew,
     displayLabel: result.displayLabel,
-    checkoutMagic,
+    sessionEstablished: true,
   })
 }
