@@ -20,6 +20,7 @@ export function CheckoutPaymentHandoff({ open, phase = "redirecting" }: Props) {
       role="status"
       aria-live="polite"
       aria-busy="true"
+      data-testid="checkout-payment-handoff"
     >
       <div className="relative mx-4 w-full max-w-sm overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-950 p-8 text-center shadow-2xl">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.35),transparent_55%)]" />

@@ -48,6 +48,7 @@ export function MobileCartCheckoutBar({
           type="button"
           disabled={disabled || busy}
           onClick={onCheckout}
+          data-testid="cart-checkout-cta"
           className={cn(
             "inline-flex h-12 min-w-[9.5rem] shrink-0 touch-manipulation items-center justify-center gap-2 rounded-2xl px-5",
             "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-sm font-semibold text-white shadow-lg",

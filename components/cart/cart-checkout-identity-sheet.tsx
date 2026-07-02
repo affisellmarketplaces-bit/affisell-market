@@ -121,6 +121,7 @@ export function CartCheckoutIdentitySheet({
           className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center"
           role="dialog"
           aria-modal="true"
+          data-testid="checkout-identity-sheet"
         >
           <button
             type="button"
@@ -148,9 +149,10 @@ export function CartCheckoutIdentitySheet({
             </div>
 
             <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl bg-zinc-100 p-1 dark:bg-zinc-800">
-              <button
-                type="button"
-                onClick={() => setChannel("email")}
+          <button
+            type="button"
+            onClick={() => setChannel("email")}
+            data-testid="checkout-identity-email-tab"
                 className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition ${
                   channel === "email"
                     ? "bg-white text-violet-700 shadow dark:bg-zinc-900 dark:text-violet-300"
@@ -160,9 +162,10 @@ export function CartCheckoutIdentitySheet({
                 <Mail className="h-4 w-4" aria-hidden />
                 {t("emailTab")}
               </button>
-              <button
-                type="button"
-                onClick={() => setChannel("phone")}
+          <button
+            type="button"
+            onClick={() => setChannel("phone")}
+            data-testid="checkout-identity-phone-tab"
                 className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition ${
                   channel === "phone"
                     ? "bg-white text-violet-700 shadow dark:bg-zinc-900 dark:text-violet-300"
@@ -183,11 +186,12 @@ export function CartCheckoutIdentitySheet({
                   >
                     {t("emailLabel")}
                   </label>
-                  <input
-                    id="checkout-email"
-                    type="email"
-                    required
-                    autoComplete="email"
+              <input
+                id="checkout-email"
+                type="email"
+                required
+                autoComplete="email"
+                data-testid="checkout-identity-email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={t("emailPlaceholder")}
@@ -202,11 +206,12 @@ export function CartCheckoutIdentitySheet({
                   >
                     {t("phoneLabel")}
                   </label>
-                  <input
-                    id="checkout-phone"
-                    type="tel"
-                    required
-                    autoComplete="tel"
+              <input
+                id="checkout-phone"
+                type="tel"
+                required
+                autoComplete="tel"
+                data-testid="checkout-identity-phone"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder={t("phonePlaceholder")}
@@ -221,9 +226,10 @@ export function CartCheckoutIdentitySheet({
                 </p>
               ) : null}
 
-              <button
-                type="submit"
-                disabled={loading}
+          <button
+            type="submit"
+            disabled={loading}
+            data-testid="checkout-identity-submit"
                 className="w-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 text-sm font-semibold text-white shadow-md disabled:opacity-60"
               >
                 {loading ? t("preparing") : t("continueCheckout")}
