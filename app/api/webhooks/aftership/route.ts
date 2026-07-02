@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto"
 import { type NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
+import { notifyOrderDelivered } from "@/lib/emails/notify-order-delivered"
 import { webhookSecretGate } from "@/lib/require-production-secret"
 import { triggerLightningPayout } from "@/lib/stripe-lightning"
 import { prisma } from "@/lib/prisma"
@@ -50,8 +51,23 @@ function verifyAfterShipSignature(
   }
 }
 
-function isDeliveredTag(tag: string | undefined): boolean {
-  return tag?.trim().toLowerCase() === "delivered"
+function normalizeTag(tag: string | undefined): string {
+  return tag?.trim().toLowerCase().replace(/[\s-]+/g, "_") ?? ""
+}
+
+function isDeliveredTag(tag: string): boolean {
+  return tag === "delivered"
+}
+
+function isInTransitTag(tag: string): boolean {
+  return (
+    tag === "intransit" ||
+    tag === "in_transit" ||
+    tag === "outfordelivery" ||
+    tag === "out_for_delivery" ||
+    tag === "availableforpickup" ||
+    tag === "available_for_pickup"
+  )
 }
 
 export async function POST(req: NextRequest) {
@@ -81,49 +97,74 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "validation", details: parsed.error.flatten() }, { status: 400 })
   }
 
-  const tag = parsed.data.msg?.tag
+  const tag = normalizeTag(parsed.data.msg?.tag)
   const trackingNumber = parsed.data.msg?.tracking_number?.trim()
 
-  if (!isDeliveredTag(tag)) {
-    return NextResponse.json({ ok: true, skipped: "not_delivered" })
-  }
   if (!trackingNumber) {
     return NextResponse.json({ error: "missing_tracking_number" }, { status: 400 })
+  }
+
+  if (!isDeliveredTag(tag) && !isInTransitTag(tag)) {
+    return NextResponse.json({ ok: true, skipped: "tag_ignored", tag })
   }
 
   const order = await prisma.order.findFirst({
     where: { trackingNumber },
     orderBy: { createdAt: "desc" },
-    select: { id: true, payoutStatus: true },
+    select: {
+      id: true,
+      payoutStatus: true,
+      fulfillmentStatus: true,
+      deliveredAt: true,
+    },
   })
 
   if (!order) {
-    console.log("[aftership-webhook]", { trackingNumber, result: "order_not_found" })
+    console.log("[aftership-webhook]", { trackingNumber, tag, result: "order_not_found" })
     return NextResponse.json({ ok: true, skipped: "order_not_found" })
   }
 
-  if (order.payoutStatus !== "PENDING") {
-    console.log("[aftership-webhook]", {
-      orderId: order.id,
-      payoutStatus: order.payoutStatus,
-      result: "payout_not_pending",
+  if (isInTransitTag(tag) && order.fulfillmentStatus !== "DELIVERED") {
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { fulfillmentStatus: "SHIPPED" },
     })
-    return NextResponse.json({ ok: true, skipped: "payout_not_pending" })
+    console.log("[aftership-webhook]", { orderId: order.id, trackingNumber, tag, result: "in_transit" })
+    return NextResponse.json({ ok: true, orderId: order.id, fulfillmentStatus: "SHIPPED" })
   }
 
-  const payout = await triggerLightningPayout(order.id)
+  if (!isDeliveredTag(tag)) {
+    return NextResponse.json({ ok: true, skipped: "not_delivered" })
+  }
 
-  console.log("[aftership-webhook]", {
-    orderId: order.id,
-    trackingNumber,
-    payoutSuccess: payout.success,
-    reason: payout.success ? undefined : payout.reason,
-  })
+  if (order.fulfillmentStatus !== "DELIVERED" || !order.deliveredAt) {
+    await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        fulfillmentStatus: "DELIVERED",
+        deliveredAt: new Date(),
+      },
+    })
+    void notifyOrderDelivered(order.id)
+    console.log("[aftership-webhook]", { orderId: order.id, trackingNumber, result: "delivered" })
+  }
+
+  let payoutTriggered = false
+  if (order.payoutStatus === "PENDING") {
+    const payout = await triggerLightningPayout(order.id)
+    payoutTriggered = payout.success
+    console.log("[aftership-webhook]", {
+      orderId: order.id,
+      trackingNumber,
+      payoutSuccess: payout.success,
+      reason: payout.success ? undefined : payout.reason,
+    })
+  }
 
   return NextResponse.json({
     ok: true,
     orderId: order.id,
-    payoutTriggered: payout.success,
-    ...(payout.success ? {} : { reason: payout.reason }),
+    fulfillmentStatus: "DELIVERED",
+    payoutTriggered,
   })
 }

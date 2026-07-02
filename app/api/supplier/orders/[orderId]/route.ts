@@ -16,6 +16,7 @@ import {
   extractShippingCountryIso2FromAddress,
   isTrustedCarrierLabelForCountry,
 } from "@/lib/trusted-carriers-shared"
+import { validateShipTrackingForShip } from "@/lib/ship-tracking-validate"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -138,14 +139,27 @@ export async function PATCH(
   }
   const tracking = parsed.data.trackingNumber.trim()
 
+  const trackingCheck = await validateShipTrackingForShip({
+    trackingCarrier: carrier,
+    trackingNumber: tracking,
+    orderId,
+    customerEmail: existing.customerEmail,
+    register: true,
+  })
+  if (!trackingCheck.ok) {
+    return Response.json({ error: trackingCheck.message, code: trackingCheck.code }, { status: 400 })
+  }
+  const normalizedTracking = trackingCheck.normalized
+
   const updated = await prisma.$transaction(async (tx) => {
     const order = await tx.order.update({
       where: { id: orderId },
       data: {
         status: "shipped",
         trackingCarrier: carrier,
-        trackingNumber: tracking,
+        trackingNumber: normalizedTracking,
         shippedAt: new Date(),
+        fulfillmentStatus: "SHIPPED",
       },
       include: supplierOrderInclude,
     })
@@ -160,7 +174,7 @@ export async function PATCH(
         data: {
           userId: order.buyerUserId,
           type: "ORDER_SHIPPED",
-          message: `Your order has shipped · ${order.product.name} · ${carrier} ${tracking}. Confirm receipt in My orders when satisfied (payouts release 7 days later). Your right of withdrawal remains available during the return window.`,
+          message: `Your order has shipped · ${order.product.name} · ${carrier} ${normalizedTracking}. Confirm receipt in My orders when satisfied (payouts release 7 days later). Your right of withdrawal remains available during the return window.`,
           orderId: order.id,
         },
       })
@@ -170,7 +184,7 @@ export async function PATCH(
   })
 
   void notifyMarketplaceOrderShipped(updated.id, {
-    trackingNumber: tracking,
+    trackingNumber: normalizedTracking,
     carrier,
   })
 
@@ -178,7 +192,7 @@ export async function PATCH(
     void syncAffisellShipmentToMedusaIfNeeded({
       affisellOrderId: updated.id,
       medusaOrderId: updated.medusaOrderId,
-      trackingNumber: tracking,
+      trackingNumber: normalizedTracking,
       trackingCarrier: carrier,
     })
   }

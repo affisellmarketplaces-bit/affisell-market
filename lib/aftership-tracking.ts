@@ -24,6 +24,11 @@ type AfterShipTrackingsResponse = {
   }
 }
 
+type AfterShipCreateTrackingResponse = {
+  meta?: { code?: number; message?: string }
+  data?: { tracking?: { id?: string; tracking_number?: string } }
+}
+
 /** Returns true when AfterShip recognizes the tracking number (detect or known tracking). */
 export async function isAfterShipTrackingValid(
   trackingNumber: string,
@@ -73,6 +78,66 @@ export async function isAfterShipTrackingValid(
     return true
   } catch (error) {
     console.log("[aftership]", {
+      trackingNumber: normalized,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    return false
+  }
+}
+
+export type RegisterAfterShipTrackingInput = {
+  trackingNumber: string
+  carrier?: string | null
+  orderId: string
+  customerEmail?: string | null
+}
+
+/** Register tracking for real-time webhook updates (idempotent). */
+export async function registerAfterShipTracking(
+  input: RegisterAfterShipTrackingInput
+): Promise<boolean> {
+  const apiKey = afterShipApiKey()
+  const normalized = input.trackingNumber.trim()
+  if (!apiKey || normalized.length < 4) return false
+
+  const slug = resolveAfterShipSlug(input.carrier)
+
+  try {
+    const res = await fetch(`${AFTERSHIP_API_BASE}/trackings`, {
+      method: "POST",
+      headers: {
+        "aftership-api-key": apiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tracking_number: normalized,
+        ...(slug ? { slug } : {}),
+        order_id: input.orderId,
+        ...(input.customerEmail?.trim()
+          ? { emails: [input.customerEmail.trim().toLowerCase()] }
+          : {}),
+      }),
+      signal: AbortSignal.timeout(12_000),
+    })
+
+    if (res.ok) return true
+
+    const json = (await res.json().catch(() => null)) as AfterShipCreateTrackingResponse | null
+    const code = json?.meta?.code
+    // 4003 = tracking already exists
+    if (code === 4003) return true
+
+    console.log("[aftership-register]", {
+      orderId: input.orderId,
+      trackingNumber: normalized,
+      status: res.status,
+      code,
+      message: json?.meta?.message,
+    })
+    return false
+  } catch (error) {
+    console.log("[aftership-register]", {
+      orderId: input.orderId,
       trackingNumber: normalized,
       error: error instanceof Error ? error.message : String(error),
     })

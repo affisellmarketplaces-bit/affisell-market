@@ -8,6 +8,7 @@ import {
   extractShippingCountryIso2FromAddress,
   isTrustedCarrierLabelForCountry,
 } from "@/lib/trusted-carriers-shared"
+import { validateShipTrackingForShip } from "@/lib/ship-tracking-validate"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -74,12 +75,24 @@ export async function POST(req: Request, { params }: RouteParams) {
     )
   }
 
+  const trackingCheck = await validateShipTrackingForShip({
+    trackingCarrier,
+    trackingNumber,
+    orderId,
+    register: true,
+  })
+  if (!trackingCheck.ok) {
+    return NextResponse.json({ error: trackingCheck.message, code: trackingCheck.code }, { status: 400 })
+  }
+
   await prisma.order.update({
     where: { id: orderId },
     data: {
+      status: "shipped",
       shippedAt: new Date(),
-      trackingNumber,
+      trackingNumber: trackingCheck.normalized,
       trackingCarrier,
+      fulfillmentStatus: "SHIPPED",
     },
   })
 

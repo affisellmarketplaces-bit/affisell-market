@@ -11,7 +11,7 @@ import {
   Truck,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { ShipPulseBadge } from "@/components/supplier/ship-pulse-badge"
@@ -39,7 +39,14 @@ import {
   defaultTrustedCarrierLabel,
   trustedCarriersForCountry,
 } from "@/lib/trusted-carriers-shared"
+import { validateShipTrackingFormat } from "@/lib/ship-tracking-validate.shared"
 import { cn } from "@/lib/utils"
+
+type TrackingValidationState =
+  | { status: "idle" }
+  | { status: "checking" }
+  | { status: "valid"; verifiedBy?: string }
+  | { status: "invalid"; message: string }
 
 type OrderRow = {
   id: string
@@ -273,6 +280,82 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [trackingByOrder, setTrackingByOrder] = useState<Record<string, { carrier: string; number: string }>>({})
+  const [trackingValidation, setTrackingValidation] = useState<Record<string, TrackingValidationState>>({})
+  const trackingValidateTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+
+  const scheduleTrackingValidation = useCallback(
+    (orderId: string, carrier: string, number: string, countryIso2: string) => {
+      if (trackingValidateTimers.current[orderId]) {
+        clearTimeout(trackingValidateTimers.current[orderId])
+      }
+
+      const trimmed = number.trim()
+      if (!carrier.trim() || !trimmed) {
+        setTrackingValidation((prev) => ({ ...prev, [orderId]: { status: "idle" } }))
+        return
+      }
+
+      const local = validateShipTrackingFormat({ trackingCarrier: carrier, trackingNumber: trimmed })
+      if (!local.ok) {
+        setTrackingValidation((prev) => ({
+          ...prev,
+          [orderId]: { status: "invalid", message: local.message },
+        }))
+        return
+      }
+
+      setTrackingValidation((prev) => ({ ...prev, [orderId]: { status: "checking" } }))
+      trackingValidateTimers.current[orderId] = setTimeout(() => {
+        void (async () => {
+          try {
+            const res = await fetch("/api/supplier/orders/validate-tracking", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                orderId,
+                trackingCarrier: carrier.trim(),
+                trackingNumber: trimmed,
+                countryIso2: countryIso2,
+              }),
+            })
+            const json = (await res.json()) as {
+              valid?: boolean
+              message?: string
+              verifiedBy?: string
+            }
+            if (json.valid) {
+              setTrackingValidation((prev) => ({
+                ...prev,
+                [orderId]: { status: "valid", verifiedBy: json.verifiedBy },
+              }))
+            } else {
+              setTrackingValidation((prev) => ({
+                ...prev,
+                [orderId]: {
+                  status: "invalid",
+                  message: json.message ?? msg("trackingInvalid"),
+                },
+              }))
+            }
+          } catch {
+            setTrackingValidation((prev) => ({
+              ...prev,
+              [orderId]: { status: "valid", verifiedBy: "format" },
+            }))
+          }
+        })()
+      }, 480)
+    },
+    [msg]
+  )
+
+  useEffect(() => {
+    return () => {
+      for (const timer of Object.values(trackingValidateTimers.current)) {
+        clearTimeout(timer)
+      }
+    }
+  }, [])
 
   const load = useCallback(async () => {
     setError(null)
@@ -357,6 +440,20 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
       setError(msg("trackingRequired"))
       return
     }
+    const validation = trackingValidation[orderId]
+    if (validation?.status === "invalid") {
+      setError(validation.message)
+      return
+    }
+    if (validation?.status === "checking") {
+      setError(msg("trackingValidating"))
+      return
+    }
+    const local = validateShipTrackingFormat({ trackingCarrier: carrier, trackingNumber })
+    if (!local.ok) {
+      setError(local.message)
+      return
+    }
     const result = await patchOrder(orderId, {
       action: "mark_shipped",
       trackingNumber,
@@ -371,14 +468,22 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
     }
   }
 
-  function setTracking(orderId: string, field: "carrier" | "number", value: string) {
-    setTrackingByOrder((prev) => ({
-      ...prev,
-      [orderId]: {
+  function setTracking(
+    orderId: string,
+    field: "carrier" | "number",
+    value: string,
+    countryIso2?: string
+  ) {
+    setTrackingByOrder((prev) => {
+      const next = {
         carrier: field === "carrier" ? value : (prev[orderId]?.carrier ?? ""),
         number: field === "number" ? value : (prev[orderId]?.number ?? ""),
-      },
-    }))
+      }
+      if (countryIso2) {
+        scheduleTrackingValidation(orderId, next.carrier, next.number, countryIso2)
+      }
+      return { ...prev, [orderId]: next }
+    })
   }
 
   function orderStatusLabel(status: OrderRow["status"]) {
@@ -625,7 +730,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                       <Select
                         value={trackingByOrder[o.id]?.carrier ?? defaultTrustedCarrierLabel(o.shippingCountryIso2)}
                         onValueChange={(value) => {
-                          if (value) setTracking(o.id, "carrier", value)
+                          if (value) setTracking(o.id, "carrier", value, o.shippingCountryIso2)
                         }}
                         disabled={busy === o.id}
                       >
@@ -644,19 +749,80 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                           ))}
                         </SelectContent>
                       </Select>
-                      <input
-                        id={`tracking-${o.id}`}
-                        className="h-9 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm outline-none focus:border-violet-400 dark:border-zinc-600 dark:bg-zinc-950"
-                        placeholder={msg("actions.trackingNumber")}
-                        aria-label={msg("actions.trackingNumber")}
-                        value={trackingByOrder[o.id]?.number ?? ""}
-                        onChange={(e) => setTracking(o.id, "number", e.target.value)}
-                      />
+                      <div className="relative">
+                        <input
+                          id={`tracking-${o.id}`}
+                          className={cn(
+                            "h-9 w-full rounded-lg border bg-white px-3 pr-9 text-sm outline-none focus:border-violet-400 dark:bg-zinc-950",
+                            trackingValidation[o.id]?.status === "invalid"
+                              ? "border-red-300 dark:border-red-800"
+                              : trackingValidation[o.id]?.status === "valid"
+                                ? "border-emerald-300 dark:border-emerald-800"
+                                : "border-zinc-200 dark:border-zinc-600"
+                          )}
+                          placeholder={msg("actions.trackingNumber")}
+                          aria-label={msg("actions.trackingNumber")}
+                          aria-invalid={trackingValidation[o.id]?.status === "invalid"}
+                          value={trackingByOrder[o.id]?.number ?? ""}
+                          onChange={(e) =>
+                            setTracking(o.id, "number", e.target.value, o.shippingCountryIso2)
+                          }
+                          onBlur={() => {
+                            const t = trackingByOrder[o.id]
+                            scheduleTrackingValidation(
+                              o.id,
+                              t?.carrier ?? defaultTrustedCarrierLabel(o.shippingCountryIso2),
+                              t?.number ?? "",
+                              o.shippingCountryIso2
+                            )
+                          }}
+                        />
+                        {trackingValidation[o.id]?.status === "checking" ? (
+                          <Loader2
+                            className="pointer-events-none absolute right-2.5 top-2 size-4 animate-spin text-violet-500"
+                            aria-hidden
+                          />
+                        ) : trackingValidation[o.id]?.status === "valid" ? (
+                          <Check
+                            className="pointer-events-none absolute right-2.5 top-2 size-4 text-emerald-600"
+                            aria-hidden
+                          />
+                        ) : null}
+                      </div>
+                      {(() => {
+                        const v = trackingValidation[o.id]
+                        if (v?.status === "invalid") {
+                          return (
+                            <p
+                              className="text-[11px] leading-snug text-red-600 dark:text-red-400"
+                              role="alert"
+                            >
+                              {v.message}
+                            </p>
+                          )
+                        }
+                        if (v?.status === "valid") {
+                          return (
+                            <p className="text-[11px] leading-snug text-emerald-700 dark:text-emerald-300">
+                              {msg("trackingVerified")}
+                            </p>
+                          )
+                        }
+                        return (
+                          <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+                            {msg("trackingHint")}
+                          </p>
+                        )
+                      })()}
                       <Button
                         type="button"
                         size="sm"
                         className="w-full gap-2"
-                        disabled={busy === o.id}
+                        disabled={
+                          busy === o.id ||
+                          trackingValidation[o.id]?.status === "checking" ||
+                          trackingValidation[o.id]?.status === "invalid"
+                        }
                         onClick={() => void markShipped(o.id)}
                       >
                         {busy === o.id ? (

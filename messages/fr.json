@@ -1778,6 +1778,10 @@
     "loading": "Chargement…",
     "loadError": "Impossible de charger les commandes",
     "trackingRequired": "Saisissez un numéro de suivi avant de marquer comme expédiée.",
+    "trackingInvalid": "Ce numéro de suivi n'est pas reconnu par le transporteur.",
+    "trackingValidating": "Vérification du numéro auprès du transporteur…",
+    "trackingVerified": "Suivi vérifié — mises à jour en temps réel activées pour l'acheteur.",
+    "trackingHint": "Collez le numéro exact de l'étiquette. Les valeurs au hasard sont refusées.",
     "carrierRequired": "Choisissez un transporteur approuvé pour le pays de livraison.",
     "updateFailed": "Mise à jour impossible",
     "page": {
