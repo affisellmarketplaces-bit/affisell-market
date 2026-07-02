@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { Suspense } from "react"
 import { Home, Menu, Search, ShoppingCart, Store, User, Zap } from "lucide-react"
 import { useSession } from "next-auth/react"
@@ -12,6 +11,7 @@ import { COMMAND_K_OPEN_EVENT } from "@/components/CommandK"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { ThemeToggle } from "@/components/marketing/theme-toggle"
 import { NavHeaderSearch } from "@/components/nav/nav-header-search"
+import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
 import { Link as LocaleLink, usePathname } from "@/i18n/navigation"
 import { buttonVariants } from "@/components/ui/button"
@@ -67,7 +67,7 @@ export function PublicNav() {
       <div className="relative z-20 col-start-3 row-start-1 flex min-w-0 shrink items-center justify-end gap-1 sm:gap-2 lg:col-start-4">
         <LanguageSwitcher />
         <ThemeToggle className="shrink-0" />
-        <Link
+        <FastLink
           href="/cart"
           className={cn(
             buttonVariants({ variant: "outline", size: "sm" }),
@@ -80,26 +80,34 @@ export function PublicNav() {
             <span className="hidden md:inline">{t("cart")}</span>
             <CartCountBadge count={cartCount} size="md" />
           </>
-        </Link>
+        </FastLink>
         {status !== "loading" && isCustomer ? (
-          <Link href="/marketplace/account" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}>
+          <FastLink
+            href="/marketplace/account"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}
+          >
             <User className="size-4 shrink-0" aria-hidden />
             <span className="hidden md:inline">{t("myAccount")}</span>
-          </Link>
+          </FastLink>
         ) : (
-          <Link
+          <FastLink
             href={signInHref}
             className={cn(buttonVariants({ size: "sm" }), "h-9 shrink-0 px-2.5 text-xs sm:px-4 sm:text-sm")}
           >
             <User className="size-4 sm:hidden" aria-hidden />
             <span className="hidden sm:inline">{t("signIn")}</span>
-          </Link>
+          </FastLink>
         )}
       </div>
 
       <div className="col-span-3 col-start-1 row-start-2 hidden min-w-0 shrink-0 items-center gap-0.5 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:flex">
         <NavPill href="/" label={t("home")} icon={Home} active={onHome} localeAware />
-        <NavPill href="/marketplace" label={t("marketplace")} icon={Search} active={onMarketplace} />
+        <NavPill
+          href="/#explorer"
+          label={t("marketplace")}
+          icon={Search}
+          active={onHome || onMarketplace}
+        />
         <NavPill
           href="/shops"
           label={t("creatorStores")}

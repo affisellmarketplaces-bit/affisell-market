@@ -4,6 +4,7 @@ import NextLink from "next/link"
 import { useCallback, type ComponentProps } from "react"
 
 import { Link as LocaleLink, useRouter as useLocaleRouter } from "@/i18n/navigation"
+import { normalizePrefetchHref } from "@/lib/prefetch-href.client"
 import { cn } from "@/lib/utils"
 
 type NextLinkProps = ComponentProps<typeof NextLink>
@@ -44,9 +45,11 @@ export function FastLink(props: Props) {
   const target = hrefString(href)
 
   const warm = useCallback(() => {
-    if (!prefetchOnHover || target.startsWith("/#")) return
+    if (!prefetchOnHover) return
+    const path = normalizePrefetchHref(target)
+    if (!path) return
     try {
-      localeRouter.prefetch(target)
+      localeRouter.prefetch(path)
     } catch {
       /* ignore */
     }

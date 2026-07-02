@@ -2,8 +2,10 @@
 
 import NextLink from "next/link"
 import type { LucideIcon } from "lucide-react"
+import { useCallback } from "react"
 
-import { Link as LocaleLink } from "@/i18n/navigation"
+import { Link as LocaleLink, useRouter as useLocaleRouter } from "@/i18n/navigation"
+import { normalizePrefetchHref } from "@/lib/prefetch-href.client"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -30,8 +32,19 @@ export function NavPill({
   localeAware = false,
   badgeCount = 0,
 }: Props) {
+  const localeRouter = useLocaleRouter()
+  const warm = useCallback(() => {
+    const path = normalizePrefetchHref(href)
+    if (!path) return
+    try {
+      localeRouter.prefetch(path)
+    } catch {
+      /* ignore */
+    }
+  }, [href, localeRouter])
+
   const classNames = cn(
-    "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition-all duration-200 lg:px-3.5",
+    "affisell-fast-link inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition-all duration-200 lg:px-3.5",
     active
       ? "bg-zinc-900 text-white shadow-md dark:bg-white dark:text-zinc-900"
       : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800",
@@ -58,16 +71,33 @@ export function NavPill({
     </>
   )
 
+  const prefetchHandlers = {
+    prefetch: true as const,
+    onMouseEnter: warm,
+    onFocus: warm,
+    onTouchStart: warm,
+  }
+
   if (localeAware) {
     return (
-      <LocaleLink href={href} className={classNames} aria-current={active ? "page" : undefined}>
+      <LocaleLink
+        href={href}
+        className={classNames}
+        aria-current={active ? "page" : undefined}
+        {...prefetchHandlers}
+      >
         {content}
       </LocaleLink>
     )
   }
 
   return (
-    <NextLink href={href} className={classNames} aria-current={active ? "page" : undefined}>
+    <NextLink
+      href={href}
+      className={classNames}
+      aria-current={active ? "page" : undefined}
+      {...prefetchHandlers}
+    >
       {content}
     </NextLink>
   )

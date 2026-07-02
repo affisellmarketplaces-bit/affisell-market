@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import { FastLink } from "@/components/navigation/fast-link"
 import { useEffect, useState } from "react"
 import {
   Bot,
@@ -140,7 +140,7 @@ export function MobileBuyerHub() {
           <ul className="grid grid-cols-2 gap-2">
             {tiles.map(({ href, label, hint, Icon, cardClass, liveLabel }) => (
               <li key={href + label}>
-                <Link
+                <FastLink
                   href={href}
                   onClick={() => setOpen(false)}
                   className={cn(
@@ -160,7 +160,7 @@ export function MobileBuyerHub() {
                     <span className="block text-xs font-bold leading-tight text-white">{label}</span>
                     <span className="mt-0.5 block text-[10px] leading-snug text-white/80">{hint}</span>
                   </span>
-                </Link>
+                </FastLink>
               </li>
             ))}
           </ul>

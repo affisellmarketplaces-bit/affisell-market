@@ -1,7 +1,6 @@
 import {
   AFFILIATE_AGENT_PATH,
   AFFILIATE_CATALOG_PATH,
-  PUBLIC_MARKETPLACE_BROWSE_PATH,
   PUBLIC_SHOPS_PATH,
 } from "@/lib/affiliate-routes"
 
@@ -9,7 +8,7 @@ import {
 export const BUYER_WARM_ROUTES = [
   "/",
   PUBLIC_SHOPS_PATH,
-  PUBLIC_MARKETPLACE_BROWSE_PATH,
+  "/marketplace/account",
   "/agent",
   "/discover",
   "/creators",

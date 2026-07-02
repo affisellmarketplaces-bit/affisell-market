@@ -1,6 +1,7 @@
 "use client"
 
 import { addToBuyerCart, type AddToBuyerCartInput } from "@/lib/cart-add-client"
+import { clientNavigateOrAssign } from "@/lib/client-navigate.client"
 import {
   fastCheckoutRedirected,
   startFastCheckout,
@@ -31,7 +32,7 @@ export async function buyNowWithoutLogin(
       qty: body.qty ?? 1,
     })
     if (add.ok) {
-      window.location.assign("/cart?checkout=1")
+      clientNavigateOrAssign("/cart?checkout=1")
       return "cart"
     }
     return "error"

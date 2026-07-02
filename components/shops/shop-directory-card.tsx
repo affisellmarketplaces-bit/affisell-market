@@ -1,7 +1,7 @@
 "use client"
 
 import type { CSSProperties } from "react"
-import Link from "next/link"
+import { FastLink } from "@/components/navigation/fast-link"
 import { ArrowRight, Euro, ShoppingBag, Star } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -127,7 +127,7 @@ export function ShopDirectoryCard({ shop }: { shop: PublicShopDirectoryEntry }) 
           </span>
         </div>
 
-        <Link
+        <FastLink
           href={href}
           className={cn(
             "mt-auto inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm transition",
@@ -137,7 +137,7 @@ export function ShopDirectoryCard({ shop }: { shop: PublicShopDirectoryEntry }) 
         >
           {tShops("visitStore")}
           <ArrowRight className="size-4 transition group-hover:translate-x-0.5" aria-hidden />
-        </Link>
+        </FastLink>
       </div>
     </article>
   )

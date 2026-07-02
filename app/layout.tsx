@@ -63,13 +63,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <header className="affisell-global-site-header relative z-[200] w-full max-w-full shrink-0 overflow-x-clip px-3 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-4 md:pt-3">
                   <div className="affisell-header-shell relative mx-auto max-w-7xl min-w-0 overflow-hidden md:overflow-visible">
                     <div className="affisell-header-mesh pointer-events-none absolute inset-0" aria-hidden />
-                    <div className="relative z-[2]">
-                      <AppHeader />
-                    </div>
+              <div className="relative z-[2]">
+                    <AppHeader />
                   </div>
-                </header>
+                </div>
+              </header>
               ) : null}
-              <div className="affisell-page-shell">{children}</div>
+              {children}
               <Footer />
             </RootSessionShell>
             <CookieBanner />

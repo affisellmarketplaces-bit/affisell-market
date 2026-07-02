@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import { FastLink } from "@/components/navigation/fast-link"
 
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
@@ -37,7 +37,7 @@ export function PremiumMarketplaceCard({
   const hasDiscount = discountOffer != null
 
   return (
-    <Link
+    <FastLink
       href={detailHref}
       className="group flex h-full w-full flex-col rounded-3xl border border-gray-100/90 bg-white/85 p-2 shadow-sm backdrop-blur-sm transition-shadow hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 dark:border-zinc-800 dark:bg-zinc-950/60 dark:hover:border-violet-800/50"
     >
@@ -97,6 +97,6 @@ export function PremiumMarketplaceCard({
         </div>
         <p className="mt-1 line-clamp-2 h-10 text-sm leading-5 text-zinc-500 dark:text-zinc-400">by {sellerDisplay}</p>
       </div>
-    </Link>
+    </FastLink>
   )
 }

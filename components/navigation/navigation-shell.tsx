@@ -2,6 +2,8 @@
 
 import { Suspense } from "react"
 
+import { ClientNavigateBridge } from "@/components/navigation/client-navigate-bridge"
+import { InstantNavigationListener } from "@/components/navigation/instant-navigation-listener"
 import { MobileDock } from "@/components/navigation/mobile-dock"
 import { MobileBuyerHub } from "@/components/marketplace/mobile-buyer-hub"
 import { NavigationProgress } from "@/components/navigation/navigation-progress"
@@ -12,6 +14,8 @@ import { CommandKDeferred } from "@/components/navigation/command-k-deferred"
 export function NavigationShell() {
   return (
     <>
+      <ClientNavigateBridge />
+      <InstantNavigationListener />
       <Suspense fallback={null}>
         <NavigationProgress />
       </Suspense>

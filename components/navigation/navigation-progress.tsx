@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 
+import { INSTANT_NAV_START } from "@/lib/instant-navigation-events.client"
 import { cn } from "@/lib/utils"
 
 /** Fine gradient bar — instant feedback on every route change. */
@@ -12,7 +13,7 @@ export function NavigationProgress() {
   const [phase, setPhase] = useState<"idle" | "run" | "done">("idle")
   const [width, setWidth] = useState(0)
 
-  useEffect(() => {
+  const runProgress = useCallback(() => {
     setPhase("run")
     setWidth(12)
     const t1 = window.setTimeout(() => setWidth(55), 40)
@@ -29,7 +30,20 @@ export function NavigationProgress() {
       window.clearTimeout(t3)
       window.clearTimeout(t4)
     }
-  }, [pathname, searchParams])
+  }, [])
+
+  useEffect(() => {
+    const cleanup = runProgress()
+    return cleanup
+  }, [pathname, searchParams, runProgress])
+
+  useEffect(() => {
+    const onInstantStart = () => {
+      runProgress()
+    }
+    window.addEventListener(INSTANT_NAV_START, onInstantStart)
+    return () => window.removeEventListener(INSTANT_NAV_START, onInstantStart)
+  }, [runProgress])
 
   if (phase === "idle") return null
 

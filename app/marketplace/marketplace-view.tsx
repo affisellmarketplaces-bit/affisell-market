@@ -12,6 +12,7 @@ import { ProductCard, type ProductCardDisplayMode } from "@/components/ProductCa
 import { ProductCardPreviewToggle } from "@/components/product/ProductCardPreviewToggle"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { usePreviewAsCustomer } from "@/hooks/usePreviewAsCustomer"
+import { useViewportRoutePrefetch } from "@/hooks/use-viewport-route-prefetch"
 import { useUserRole } from "@/hooks/useUserRole"
 import { canShowBusinessProductData } from "@/lib/user-role"
 import { MarketplaceFilters } from "@/components/marketplace/filters"
@@ -176,6 +177,11 @@ export function MarketplaceView({
     () => normalizeProducts(catalogData?.products ?? (useInitialFallback ? initialBrowse?.products : [])),
     [catalogData?.products, useInitialFallback, initialBrowse?.products]
   )
+
+  const productGridRef = useViewportRoutePrefetch<HTMLUListElement>({
+    enabled: isCustomerBrowse,
+    deps: [products.length],
+  })
 
   const loading = isLoading && products.length === 0
   const refreshing = isValidating && products.length > 0
@@ -701,6 +707,7 @@ export function MarketplaceView({
             )}
             {products.length > 0 ? (
               <ul
+                ref={productGridRef}
                 className={cn(
                   "affisell-product-grid grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4",
                   refreshing && "opacity-75 transition-opacity duration-150"

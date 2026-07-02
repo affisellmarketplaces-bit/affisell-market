@@ -1283,6 +1283,18 @@ body.affisell-demo-lab .affisell-header-shell {
 /* —— Navigation rapide (prefetch + transitions) —— */
 .affisell-fast-link {
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.affisell-fast-link:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+button,
+[role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 @supports (view-transition-name: none) {

@@ -5,9 +5,8 @@ import { Building2, Cpu, Sparkles, type LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { FooterNewsletter } from "@/components/layout/footer-newsletter"
-import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
+import { FooterNavLink as FooterNavFastLink } from "@/components/navigation/footer-nav-link"
 import { resolvePublicAppUrl } from "@/lib/public-app-url"
-import { cn } from "@/lib/utils"
 
 function siteOrigin(): string {
   return resolvePublicAppUrl()
@@ -46,9 +45,9 @@ function FooterCtaCard({
 function FooterNavLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <li>
-      <Link href={href} className="footer-gradient-link text-sm">
+      <FooterNavFastLink href={href} className="footer-gradient-link text-sm">
         {children}
-      </Link>
+      </FooterNavFastLink>
     </li>
   )
 }
@@ -171,7 +170,7 @@ export async function Footer() {
               {t("product.title")}
             </h2>
             <ul className="mt-5 space-y-3">
-              <FooterNavLink href={PUBLIC_MARKETPLACE_BROWSE_PATH}>{t("product.exploreCatalog")}</FooterNavLink>
+              <FooterNavLink href="/#explorer">{t("product.exploreCatalog")}</FooterNavLink>
               <FooterNavLink href="/creators">{t("product.topCreators")}</FooterNavLink>
               <FooterNavLink href="/discover">{t("product.liveShopping")}</FooterNavLink>
               <FooterNavLink href="/affiliate">{t("product.affiliateProgram")}</FooterNavLink>
