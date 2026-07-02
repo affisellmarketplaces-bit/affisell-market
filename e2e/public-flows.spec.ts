@@ -6,6 +6,7 @@ const PUBLIC_PAGE_PATHS = [
   "/agent",
   "/creators",
   "/partners",
+  "/enterprise",
   "/contact",
   "/faq",
   "/discover",

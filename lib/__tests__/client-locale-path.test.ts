@@ -15,6 +15,8 @@ describe("hrefForLocaleSwitch", () => {
     expect(hrefForLocaleSwitch("/fr/agent", "", "", "en")).toBe("/agent")
     expect(hrefForLocaleSwitch("/creators", "", "#cta", "fr")).toBe("/fr/creators#cta")
     expect(hrefForLocaleSwitch("/fr/partners", "", "", "en")).toBe("/partners")
+    expect(hrefForLocaleSwitch("/enterprise", "", "", "fr")).toBe("/fr/enterprise")
+    expect(hrefForLocaleSwitch("/fr/enterprise", "", "", "en")).toBe("/enterprise")
     expect(hrefForLocaleSwitch("/", "", "", "de")).toBe("/de")
     expect(hrefForLocaleSwitch("/de", "", "", "en")).toBe("/")
     expect(hrefForLocaleSwitch("/creators", "", "", "es")).toBe("/es/creators")

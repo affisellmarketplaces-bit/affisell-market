@@ -444,6 +444,7 @@ export const config = {
     "/agents/:path*",
     "/creators",
     "/partners",
+    "/enterprise",
     "/demo",
     "/demo/:path*",
   ],

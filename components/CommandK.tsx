@@ -122,7 +122,7 @@ export function CommandK({ showTrigger = true }: CommandKProps) {
       return href
     }
     if (href === "/" || href === "/home") return `/${locale}`
-    if (href.startsWith("/creators") || href.startsWith("/partners")) {
+    if (href.startsWith("/creators") || href.startsWith("/partners") || href.startsWith("/enterprise")) {
       return `/${locale}${href}`
     }
     return href

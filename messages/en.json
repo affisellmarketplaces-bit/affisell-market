@@ -241,7 +241,97 @@
       "step3": "We send you orders"
     },
     "ctaFinal": "Apply to become a partner",
-    "backCreators": "← Creators"
+    "backCreators": "← Creators",
+    "enterpriseLink": "Enterprise brand? Dedicated onboarding →"
+  },
+  "enterprise": {
+    "meta": {
+      "title": "Enterprise brands — Affisell",
+      "description": "Dedicated onboarding, large-catalog import, custom domains, and creator network for established brands."
+    },
+    "hero": {
+      "eyebrow": "Affisell Enterprise",
+      "title": "Your brand. Your domain. 10,000+ creators.",
+      "sub": "Catalog import, Brand Studio, fast-track KYC, and a dedicated account manager — without rebuilding your commerce stack.",
+      "cta": "Request onboarding",
+      "badge1": "1k–10k+ SKU catalog",
+      "badge2": "shop.brand.com",
+      "badge3": "Fast-track KYC"
+    },
+    "features": {
+      "catalog": {
+        "title": "Catalog at scale",
+        "description": "Shopify, CSV, webhooks — dedicated support for high-volume catalogs."
+      },
+      "brand": {
+        "title": "Brand Studio",
+        "description": "Branded storefront, homepage sections, custom SSL domain in one click."
+      },
+      "trust": {
+        "title": "Verified Brand",
+        "description": "Verified brand program, negotiated fees, accelerated payouts."
+      },
+      "global": {
+        "title": "EU · one checkout",
+        "description": "PAN-EU, VAT, multi-country shipping — one unified buyer experience."
+      }
+    },
+    "program": {
+      "eyebrow": "Brand program",
+      "title": "White-glove onboarding in 3 steps",
+      "body": "Our team configures your account, prioritizes KYC, and connects your catalog before opening the creator network.",
+      "step1": "Application + discovery call (30 min)",
+      "step2": "Catalog import + Brand Studio + custom domain",
+      "step3": "Affiliate network launch + tracking in founder CRM",
+      "smbHint": "SMB or first-time distribution?",
+      "smbLink": "Standard partner path"
+    },
+    "form": {
+      "eyebrow": "Application",
+      "title": "Talk to the Enterprise team",
+      "subtitle": "Reply within 2 business days. Your lead is created automatically in our CRM pipeline.",
+      "brandName": "Brand name",
+      "brandNamePlaceholder": "e.g. Maison Dupont",
+      "website": "Website",
+      "contactName": "Contact name",
+      "contactEmail": "Work email",
+      "catalogSize": "Catalog size",
+      "category": "Category",
+      "commerceStack": "Commerce stack",
+      "message": "Context (optional)",
+      "messagePlaceholder": "Target countries, launch timeline, ERP/PIM integrations…",
+      "selectPlaceholder": "Select…",
+      "catalogSizeOptions": {
+        "under_100": "< 100 SKUs",
+        "100_1000": "100 – 1,000 SKUs",
+        "1000_10000": "1,000 – 10,000 SKUs",
+        "over_10000": "10,000+ SKUs"
+      },
+      "categoryOptions": {
+        "fashion": "Fashion",
+        "beauty": "Beauty",
+        "tech": "Tech",
+        "home": "Home",
+        "luxury": "Luxury",
+        "other": "Other"
+      },
+      "commerceStackOptions": {
+        "shopify": "Shopify",
+        "magento": "Magento / Adobe",
+        "sap": "SAP / ERP",
+        "pim": "PIM (Akeneo, Salsify…)",
+        "csv": "CSV / Excel",
+        "other": "Other"
+      },
+      "submit": "Submit application",
+      "privacyNote": "Data used only for your Affisell onboarding — never resold.",
+      "requiredFields": "Please complete all required fields.",
+      "sendError": "Could not submit. Try again shortly.",
+      "networkError": "Network error.",
+      "crmError": "CRM temporarily unavailable — email partners@affisell.com.",
+      "successTitle": "Application received",
+      "successBody": "Our Enterprise team will reach out within 2 business days to plan onboarding."
+    }
   },
   "auth": {
     "signin": "Sign in",
@@ -2788,6 +2878,7 @@
       "becomeCreator": "Become a creator",
       "affiliateProgram": "Affiliate program",
       "becomeSupplier": "Become a supplier",
+      "enterpriseBrands": "Enterprise brands",
       "demoLab": "Demo Lab",
       "blog": "Blog",
       "careers": "Careers",

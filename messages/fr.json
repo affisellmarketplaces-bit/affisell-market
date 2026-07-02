@@ -241,7 +241,97 @@
       "step3": "Nous vous envoyons les commandes"
     },
     "ctaFinal": "Postuler comme partenaire",
-    "backCreators": "← Créateurs"
+    "backCreators": "← Créateurs",
+    "enterpriseLink": "Grande marque ? Parcours enterprise →"
+  },
+  "enterprise": {
+    "meta": {
+      "title": "Grandes marques — Affisell Enterprise",
+      "description": "Onboarding dédié, catalogue à grande échelle, domaine custom et réseau créateurs pour les marques établies."
+    },
+    "hero": {
+      "eyebrow": "Affisell Enterprise",
+      "title": "Votre marque. Votre domaine. 10 000+ créateurs.",
+      "sub": "Import catalogue, Brand Studio, KYC accéléré et account manager dédié — sans refaire votre stack e-commerce.",
+      "cta": "Demander un onboarding",
+      "badge1": "Catalogue 1k–10k+ SKU",
+      "badge2": "boutique.marque.com",
+      "badge3": "Fast-track KYC"
+    },
+    "features": {
+      "catalog": {
+        "title": "Catalogue à l'échelle",
+        "description": "Shopify, CSV, webhook — pipeline adapté aux gros volumes (accompagnement dédié)."
+      },
+      "brand": {
+        "title": "Brand Studio",
+        "description": "Vitrine brandée, sections homepage, domaine custom SSL en 1 clic."
+      },
+      "trust": {
+        "title": "Verified Brand",
+        "description": "Programme marque vérifiée, commission négociée, payouts accélérés."
+      },
+      "global": {
+        "title": "EU · one checkout",
+        "description": "PAN-EU, TVA, livraison multi-pays — une expérience acheteur unifiée."
+      }
+    },
+    "program": {
+      "eyebrow": "Programme marque",
+      "title": "Onboarding white-glove en 3 étapes",
+      "body": "Notre équipe configure votre compte, valide votre KYC en priorité et connecte votre catalogue avant l'ouverture du réseau créateurs.",
+      "step1": "Candidature + call découverte (30 min)",
+      "step2": "Import catalogue + Brand Studio + domaine custom",
+      "step3": "Activation réseau affiliés + suivi dans votre CRM fondateur",
+      "smbHint": "PME ou première distribution ?",
+      "smbLink": "Parcours partenaire standard"
+    },
+    "form": {
+      "eyebrow": "Candidature",
+      "title": "Parler à l'équipe Enterprise",
+      "subtitle": "Réponse sous 2 jours ouvrés. Votre dossier est créé automatiquement dans notre pipeline CRM.",
+      "brandName": "Nom de la marque",
+      "brandNamePlaceholder": "ex. Maison Dupont",
+      "website": "Site web",
+      "contactName": "Contact (nom)",
+      "contactEmail": "E-mail professionnel",
+      "catalogSize": "Taille catalogue",
+      "category": "Univers",
+      "commerceStack": "Stack e-commerce",
+      "message": "Contexte (optionnel)",
+      "messagePlaceholder": "Pays cibles, délais de lancement, intégrations ERP/PIM…",
+      "selectPlaceholder": "Choisir…",
+      "catalogSizeOptions": {
+        "under_100": "< 100 SKU",
+        "100_1000": "100 – 1 000 SKU",
+        "1000_10000": "1 000 – 10 000 SKU",
+        "over_10000": "10 000+ SKU"
+      },
+      "categoryOptions": {
+        "fashion": "Mode",
+        "beauty": "Beauté",
+        "tech": "Tech",
+        "home": "Maison",
+        "luxury": "Luxe",
+        "other": "Autre"
+      },
+      "commerceStackOptions": {
+        "shopify": "Shopify",
+        "magento": "Magento / Adobe",
+        "sap": "SAP / ERP",
+        "pim": "PIM (Akeneo, Salsify…)",
+        "csv": "CSV / Excel",
+        "other": "Autre"
+      },
+      "submit": "Envoyer la candidature",
+      "privacyNote": "Données utilisées uniquement pour votre onboarding Affisell — pas de revente.",
+      "requiredFields": "Complétez tous les champs obligatoires.",
+      "sendError": "Envoi impossible. Réessayez dans un instant.",
+      "networkError": "Erreur réseau.",
+      "crmError": "CRM temporairement indisponible — écrivez à partners@affisell.com.",
+      "successTitle": "Candidature reçue",
+      "successBody": "Notre équipe Enterprise vous recontacte sous 2 jours ouvrés pour planifier l'onboarding."
+    }
   },
   "auth": {
     "signin": "Connexion",
@@ -2830,6 +2920,7 @@
       "becomeCreator": "Devenir créateur",
       "affiliateProgram": "Programme affilié",
       "becomeSupplier": "Devenir fournisseur",
+      "enterpriseBrands": "Grandes marques",
       "demoLab": "Demo Lab",
       "blog": "Blog",
       "careers": "Carrières",

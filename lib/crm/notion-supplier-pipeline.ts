@@ -153,3 +153,99 @@ function readDate(prop: unknown): string | null {
   if (p.type !== "date") return null
   return p.date?.start ?? null
 }
+
+const NOTION_KNOWN_CATEGORIES = new Set(["Mode", "Tech", "Maison"])
+
+const ENTERPRISE_CATEGORY_TO_NOTION: Partial<Record<string, string>> = {
+  fashion: "Mode",
+  luxury: "Mode",
+  tech: "Tech",
+  home: "Maison",
+}
+
+export type CreateSupplierPipelineLeadInput = {
+  name: string
+  siteUrl?: string | null
+  status?: "Lead"
+  categorie?: string | null
+  notes: string
+  dernierContactIso?: string
+}
+
+/** Idempotent-safe create — duplicate brand names become separate rows (founder merges in Notion). */
+export async function createSupplierPipelineLeadInNotion(
+  input: CreateSupplierPipelineLeadInput
+): Promise<{ ok: true; notionPageId: string; notionUrl: string | null } | { ok: false; error: string }> {
+  const token = process.env.NOTION_API_KEY?.trim()
+  const databaseId = process.env.NOTION_CRM_DATABASE_ID?.trim()
+  if (!token || !databaseId) {
+    return { ok: false, error: "not_configured" }
+  }
+
+  const properties: Record<string, unknown> = {
+    [NOTION_CRM_PROPERTY_NAMES.name]: {
+      title: [{ text: { content: input.name.trim().slice(0, 200) } }],
+    },
+    [NOTION_CRM_PROPERTY_NAMES.status]: {
+      select: { name: input.status ?? "Lead" },
+    },
+    [NOTION_CRM_PROPERTY_NAMES.notes]: {
+      rich_text: [{ text: { content: input.notes.trim().slice(0, 1900) } }],
+    },
+    [NOTION_CRM_PROPERTY_NAMES.dernierContact]: {
+      date: { start: input.dernierContactIso ?? new Date().toISOString().slice(0, 10) },
+    },
+  }
+
+  const siteUrl = input.siteUrl?.trim()
+  if (siteUrl) {
+    properties[NOTION_CRM_PROPERTY_NAMES.siteUrl] = { url: siteUrl }
+  }
+
+  const categorie = input.categorie?.trim()
+  if (categorie && NOTION_KNOWN_CATEGORIES.has(categorie)) {
+    properties[NOTION_CRM_PROPERTY_NAMES.categorie] = { select: { name: categorie } }
+  }
+
+  try {
+    const res = await fetch("https://api.notion.com/v1/pages", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Notion-Version": NOTION_VERSION,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        parent: { database_id: databaseId },
+        properties,
+      }),
+      cache: "no-store",
+    })
+
+    if (!res.ok) {
+      const body = await res.text()
+      console.error("[crm/notion-create]", { status: res.status, body: body.slice(0, 500) })
+      return { ok: false, error: `notion_http_${res.status}` }
+    }
+
+    const page = (await res.json()) as { id?: string; url?: string }
+    console.log("[crm/notion-create]", { name: input.name, pageId: page.id, result: "ok" })
+    return {
+      ok: true,
+      notionPageId: page.id ?? "",
+      notionUrl: page.url ?? null,
+    }
+  } catch (e) {
+    console.error("[crm/notion-create]", {
+      error: e instanceof Error ? e.message : String(e),
+      result: "create_failed",
+    })
+    return { ok: false, error: "create_failed" }
+  }
+}
+
+export function notionCategoryForEnterprise(category: string): string | null {
+  const mapped = ENTERPRISE_CATEGORY_TO_NOTION[category]
+  if (mapped && NOTION_KNOWN_CATEGORIES.has(mapped)) return mapped
+  return null
+}

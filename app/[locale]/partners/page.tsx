@@ -60,6 +60,11 @@ export default async function PartnersPage({ params }: Props) {
       </section>
       <div className="text-center">
         <GlowCtaLink href="/signup/supplier?role=supplier">{t("ctaFinal")}</GlowCtaLink>
+        <p className="mt-4">
+          <Link href="/enterprise" className="text-sm font-medium text-violet-600 hover:underline dark:text-violet-400">
+            {t("enterpriseLink")}
+          </Link>
+        </p>
         <p className="mt-6">
           <Link href="/creators" className="text-sm text-zinc-500 hover:text-[#6366F1]">
             {t("backCreators")}

@@ -35,6 +35,7 @@ export function buildFooterGlobalContent(
         links: [
           { href: "/creators", label: t("becomeCreator") },
           { href: "/supplier", label: t("becomeSupplier") },
+          { href: "/enterprise", label: t("enterpriseBrands") },
           { href: "/affiliate", label: t("affiliateProgram") },
           { href: "/how-it-works", label: t("howSellingWorks") },
           { href: "/demo", label: t("demoLab") },
