@@ -7,6 +7,7 @@ import type { ReactNode } from "react"
 import { FooterNewsletter } from "@/components/layout/footer-newsletter"
 import { FooterNavLink as FooterNavFastLink } from "@/components/navigation/footer-nav-link"
 import { resolvePublicAppUrl } from "@/lib/public-app-url"
+import { cn } from "@/lib/utils"
 
 function siteOrigin(): string {
   return resolvePublicAppUrl()
