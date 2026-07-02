@@ -1,9 +1,10 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { CreditCard, ShoppingBag } from "lucide-react"
+import { CreditCard } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading } from "@/components/affisell/bento-ui"
 import { auth } from "@/auth"
+import { AccountOrdersContinueShoppingLink } from "@/components/account/account-orders-continue-shopping-link"
 import { AccountOrdersClient } from "@/components/account/account-orders-client"
 import { buttonVariants } from "@/components/ui/button"
 import { buildBuyerOrdersPayloadForEmail } from "@/lib/account-orders-payload"
@@ -44,13 +45,7 @@ export default async function MarketplaceBuyerOrdersPage() {
             <CreditCard className="size-5" aria-hidden />
             Store credit
           </Link>
-          <Link
-            href="/shops/browse"
-            className={cn(buttonVariants({ variant: "bentoSolid", size: "bento" }), "inline-flex justify-center")}
-          >
-            <ShoppingBag className="size-5" aria-hidden />
-            Continue shopping
-          </Link>
+          <AccountOrdersContinueShoppingLink />
         </div>
       </BentoCard>
 

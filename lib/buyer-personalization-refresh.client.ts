@@ -34,6 +34,16 @@ export function consumeBuyerPersonalizationRefreshPending(): BuyerPersonalizatio
   }
 }
 
+export function readBuyerPersonalizationRefreshPending(): BuyerPersonalizationRefreshReason | null {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = sessionStorage.getItem(BUYER_PERSONALIZATION_REFRESH_PENDING_KEY)
+    return isRefreshReason(raw) ? raw : null
+  } catch {
+    return null
+  }
+}
+
 /** Cross-surface refresh event for recommendation rails after buyer signals change. */
 export function notifyBuyerPersonalizationRefresh(
   reason: BuyerPersonalizationRefreshReason

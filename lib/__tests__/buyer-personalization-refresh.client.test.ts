@@ -4,6 +4,7 @@ import {
   BUYER_PERSONALIZATION_REFRESH_PENDING_KEY,
   consumeBuyerPersonalizationRefreshPending,
   markBuyerPersonalizationRefreshPending,
+  readBuyerPersonalizationRefreshPending,
 } from "@/lib/buyer-personalization-refresh.client"
 
 describe("buyer personalization refresh client", () => {
@@ -42,6 +43,7 @@ describe("buyer personalization refresh client", () => {
   it("consumes the pending reason only once", () => {
     storage.set(BUYER_PERSONALIZATION_REFRESH_PENDING_KEY, "wishlist_updated")
 
+    expect(readBuyerPersonalizationRefreshPending()).toBe("wishlist_updated")
     expect(consumeBuyerPersonalizationRefreshPending()).toBe("wishlist_updated")
     expect(consumeBuyerPersonalizationRefreshPending()).toBeNull()
   })
