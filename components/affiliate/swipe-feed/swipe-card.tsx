@@ -135,6 +135,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
       transition={{ type: "spring", stiffness: 400, damping: 30 }}
     >
       <motion.div
+        data-testid={isTop ? "affiliate-swipe-drag-surface" : undefined}
         className={cn(
           "touch-none select-none",
           isTop && "cursor-grab active:cursor-grabbing"

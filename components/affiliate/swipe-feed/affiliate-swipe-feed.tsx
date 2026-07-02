@@ -386,7 +386,10 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
   }
 
   return (
-    <div className="relative flex min-h-[calc(100dvh-3.75rem)] flex-col overflow-hidden bg-gradient-to-b from-zinc-50 via-violet-50/40 to-zinc-100 text-zinc-900 dark:from-zinc-950 dark:via-violet-950/30 dark:to-zinc-950 dark:text-zinc-50 dark:[&_.epoxy-chip]:text-zinc-100">
+    <div
+      data-testid="affiliate-swipe-feed"
+      className="relative flex min-h-[calc(100dvh-3.75rem)] flex-col overflow-hidden bg-gradient-to-b from-zinc-50 via-violet-50/40 to-zinc-100 text-zinc-900 dark:from-zinc-950 dark:via-violet-950/30 dark:to-zinc-950 dark:text-zinc-50 dark:[&_.epoxy-chip]:text-zinc-100"
+    >
       <div className="pointer-events-none absolute inset-0">
         <motion.div
           className="absolute -left-24 top-0 h-96 w-96 rounded-full bg-violet-400/20 blur-[100px] dark:bg-violet-600/25"
@@ -527,6 +530,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
         <div className="mx-auto flex max-w-[340px] items-center justify-center gap-4">
           <button
             type="button"
+            data-testid="affiliate-swipe-dock-left"
             disabled={busy || studioOpen || deck.length === 0}
             onClick={() => requestSwipe("left")}
             className="group flex size-14 items-center justify-center rounded-full border-2 border-rose-300 bg-white text-rose-600 shadow-md transition-all hover:scale-110 hover:border-rose-400 hover:shadow-rose-200/80 active:scale-95 disabled:opacity-40 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/25"
@@ -547,6 +551,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
 
           <button
             type="button"
+            data-testid="affiliate-swipe-dock-right"
             disabled={busy || studioOpen || deck.length === 0}
             onClick={() => requestSwipe("right")}
             className="group flex size-14 items-center justify-center rounded-full border-2 border-emerald-300 bg-white text-emerald-600 shadow-md transition-all hover:scale-110 hover:border-emerald-400 hover:shadow-emerald-200/80 active:scale-95 disabled:opacity-40 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/25"

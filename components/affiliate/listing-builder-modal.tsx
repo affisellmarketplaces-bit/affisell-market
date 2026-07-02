@@ -544,6 +544,7 @@ function ListingBuilderModalBody({
 
   return (
     <div
+      data-testid="affiliate-listing-builder-modal"
       className="flex max-h-[92dvh] w-full max-w-xl flex-col overflow-hidden rounded-t-[1.75rem] border border-violet-100/80 bg-white shadow-[0_-12px_48px_rgba(88,28,135,0.18)] sm:max-h-[90vh] sm:rounded-2xl sm:shadow-xl"
       onMouseDown={(e) => e.stopPropagation()}
     >

@@ -33,6 +33,7 @@ export default defineConfig({
           /** Dev script skips port scan so `url` matches `baseURL` (default 3001). */
           PLAYWRIGHT_WEB_SERVER: "1",
           E2E_PULSE_FIXTURES: "1",
+          /** Affiliate onboarding e2e: inherit DEMO_LAB_PASSWORD from shell / .env.local */
           PORT: devPort,
         },
       },

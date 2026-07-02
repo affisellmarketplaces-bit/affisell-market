@@ -15,6 +15,7 @@ export function AffiliateFirstListingCoachBanner({ className }: Props) {
 
   return (
     <section
+      data-testid="affiliate-first-listing-coach"
       className={cn(
         "relative overflow-hidden rounded-2xl border border-violet-200/80 bg-gradient-to-br from-violet-600/10 via-white to-fuchsia-50/60 p-4 shadow-sm dark:border-violet-900/50 dark:from-violet-950/40 dark:via-zinc-950 dark:to-fuchsia-950/20 sm:p-5",
         className
