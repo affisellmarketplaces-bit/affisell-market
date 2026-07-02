@@ -81,12 +81,13 @@ export function SuccessClient({ sessionId, initialPayload }: Props) {
   }, [sessionId, payload?.fulfilled, session?.user?.role, sessionStatus])
 
   useEffect(() => {
-    if (!payload?.paid || !payload?.fulfilled) return
+    if (!payload?.paid) return
     if (personalizationNotified.current) return
     personalizationNotified.current = true
     notifyBuyerPersonalizationRefresh("checkout_success")
     console.log("[checkout-success]", {
       sessionId: sessionId || null,
+      fulfilled: Boolean(payload?.fulfilled),
       result: "personalization_refresh",
     })
   }, [payload?.paid, payload?.fulfilled, sessionId])
