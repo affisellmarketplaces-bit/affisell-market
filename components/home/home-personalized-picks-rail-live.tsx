@@ -5,6 +5,7 @@ import useSWR from "swr"
 
 import { HomePersonalizedPicksRail } from "@/components/home/home-personalized-picks-rail"
 import { BUYER_BROWSE_SIGNALS_UPDATED_EVENT } from "@/lib/buyer-browse-signals.client"
+import { BUYER_WISHLIST_UPDATED_EVENT } from "@/lib/buyer-wishlist-signals.client"
 import type { BuyerPersonalizedPicksPayload } from "@/lib/buyer-personalization-shared"
 
 type Props = {
@@ -36,11 +37,15 @@ export function HomePersonalizedPicksRailLive({
   )
 
   useEffect(() => {
-    const onSignalsUpdated = () => {
+    const refreshPicks = () => {
       void mutate()
     }
-    window.addEventListener(BUYER_BROWSE_SIGNALS_UPDATED_EVENT, onSignalsUpdated)
-    return () => window.removeEventListener(BUYER_BROWSE_SIGNALS_UPDATED_EVENT, onSignalsUpdated)
+    window.addEventListener(BUYER_BROWSE_SIGNALS_UPDATED_EVENT, refreshPicks)
+    window.addEventListener(BUYER_WISHLIST_UPDATED_EVENT, refreshPicks)
+    return () => {
+      window.removeEventListener(BUYER_BROWSE_SIGNALS_UPDATED_EVENT, refreshPicks)
+      window.removeEventListener(BUYER_WISHLIST_UPDATED_EVENT, refreshPicks)
+    }
   }, [mutate])
 
   const picks = data ?? initialPicks

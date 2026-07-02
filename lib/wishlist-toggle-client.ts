@@ -1,5 +1,9 @@
 "use client"
 
+import {
+  notifyBuyerWishlistUpdated,
+} from "@/lib/buyer-wishlist-signals.client"
+
 export type WishlistToggleResult =
   | { ok: true; wished: boolean; likeCount: number }
   | { ok: false; error: string }
@@ -38,9 +42,12 @@ export async function toggleProductWishlist(
     return { ok: false, error: data.error ?? "Could not update wishlist" }
   }
 
+  const wished = Boolean(data.wished)
+  notifyBuyerWishlistUpdated({ productId: id, wished })
+
   return {
     ok: true,
-    wished: Boolean(data.wished),
+    wished,
     likeCount: Math.max(0, Number(data.likeCount ?? 0)),
   }
 }
