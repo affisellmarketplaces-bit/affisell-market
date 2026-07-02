@@ -6,6 +6,7 @@ import { CalendarPlus, Package, Sparkles, CalendarClock, Zap } from "lucide-reac
 
 import { AccountOrderFulfillmentPanel } from "@/components/account/account-order-fulfillment-panel"
 import { AccountOrdersEmptyState } from "@/components/account/account-orders-empty-state"
+import { AccountOrdersRecommendedRail } from "@/components/account/account-orders-recommended-rail"
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { Button } from "@/components/ui/button"
 import {
@@ -165,6 +166,8 @@ export function AccountOrdersClient({
 
   return (
     <div className={cn("space-y-4", className)}>
+      <AccountOrdersRecommendedRail />
+
       <div className="flex flex-col gap-3 rounded-3xl border border-gray-100 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-950/70 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-gray-500 dark:text-zinc-400">{sortLabel("label")}</span>
