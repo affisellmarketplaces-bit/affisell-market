@@ -5,6 +5,8 @@ import {
   affiliateE2EConfigured,
   loginAsDemoAffiliate,
   openAffiliateOnboardingHub,
+  dismissCookieBannerIfVisible,
+  seedCookieConsent,
   stubAffiliateOnboardingApis,
 } from "./helpers/affiliate-onboarding"
 
@@ -28,11 +30,12 @@ test.describe("Affiliate first listing onboarding", () => {
   })
 
   test.describe("authenticated Demo Lab affiliate", () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page, context }) => {
       test.skip(
         !affiliateE2EConfigured(),
         "Set DEMO_LAB_PASSWORD (or DEMO_AFFILIATE_PASSWORD) in env — npm run demo:ensure"
       )
+      await seedCookieConsent(context)
       await stubAffiliateOnboardingApis(page, { kycBlockedOnPublish: true })
       await loginAsDemoAffiliate(page)
     })
@@ -57,8 +60,14 @@ test.describe("Affiliate first listing onboarding", () => {
       await expect(page.getByTestId("affiliate-listing-builder-modal")).toBeVisible({
         timeout: 15_000,
       })
-      await expect(page.getByText(/First listing|Première fiche/i)).toBeVisible()
-      await expect(page.getByRole("heading", { name: "E2E Affiliate Alpha" })).toBeVisible()
+      await expect(
+        page.getByTestId("affiliate-listing-builder-modal").getByText(/First listing|Première fiche/i)
+      ).toBeVisible()
+      await expect(
+        page.getByTestId("affiliate-listing-builder-modal").getByRole("heading", {
+          name: "E2E Affiliate Alpha",
+        })
+      ).toBeVisible()
       await expect(page.getByText(/1 Price & title|1 Prix & titre/i)).toBeVisible()
     })
 
@@ -88,9 +97,11 @@ test.describe("Affiliate first listing onboarding", () => {
         timeout: 15_000,
       })
 
+      await dismissCookieBannerIfVisible(page)
       await page
+        .getByTestId("affiliate-listing-builder-modal")
         .getByRole("button", { name: /Publish listing|Publier la fiche/i })
-        .click()
+        .click({ force: true })
 
       await expect(page.getByTestId("affiliate-listing-builder-modal")).toBeHidden({
         timeout: 15_000,

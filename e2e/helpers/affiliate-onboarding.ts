@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test"
+import { expect, type BrowserContext, type Page } from "@playwright/test"
 
 import {
   e2eAffiliateCatalogProductFixture,
@@ -14,9 +14,29 @@ export function affiliateE2EConfigured(): boolean {
   )
 }
 
+/** Pre-set consent so the cookie banner does not block modal CTAs on mobile. */
+export async function seedCookieConsent(context: BrowserContext): Promise<void> {
+  await context.addCookies([
+    {
+      name: "affisell_cookie_consent",
+      value: "true",
+      domain: "localhost",
+      path: "/",
+    },
+  ])
+}
+
+export async function dismissCookieBannerIfVisible(page: Page): Promise<void> {
+  const accept = page.getByRole("button", { name: /^Accepter$/i })
+  if (await accept.isVisible().catch(() => false)) {
+    await accept.click()
+  }
+}
+
 /** 1-click Demo Lab login as affiliate (needs DEMO_LAB_PASSWORD in webServer env). */
 export async function loginAsDemoAffiliate(page: Page): Promise<void> {
   await page.goto("/demo/affiliate")
+  await dismissCookieBannerIfVisible(page)
   const enter = page.getByRole("button", { name: /enter demo|entrer.*d[ée]mo/i })
   await expect(enter).toBeVisible({ timeout: 20_000 })
   await enter.click()
@@ -102,6 +122,7 @@ export async function stubAffiliateOnboardingApis(
 
 export async function openAffiliateOnboardingHub(page: Page): Promise<void> {
   await page.goto(AFFILIATE_ONBOARDING_HUB_PATH)
+  await dismissCookieBannerIfVisible(page)
   await expect(page.getByTestId("affiliate-first-listing-coach")).toBeVisible({ timeout: 30_000 })
   await expect(page.getByTestId("affiliate-swipe-feed")).toBeVisible()
   await expect(page.getByRole("heading", { name: "E2E Affiliate Alpha" })).toBeVisible({
