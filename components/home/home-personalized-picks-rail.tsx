@@ -12,20 +12,23 @@ import { cn } from "@/lib/utils"
 type Props = {
   picks: BuyerPersonalizedPicksPayload
   className?: string
+  variant?: "default" | "compact"
 }
 
-export function HomePersonalizedPicksRail({ picks, className }: Props) {
+export function HomePersonalizedPicksRail({ picks, className, variant = "default" }: Props) {
   const t = useTranslations("marketplace.browse.personalized")
 
   if (picks.items.length < 4) return null
 
   const personalized = picks.personalized
+  const compact = variant === "compact"
 
   return (
     <section
       aria-labelledby="personalized-picks-heading"
       className={cn(
-        "relative mb-4 overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-50/90 via-white to-fuchsia-50/50 p-3 shadow-sm sm:mb-5 sm:rounded-3xl sm:p-4 dark:border-violet-900/50 dark:from-violet-950/40 dark:via-zinc-950 dark:to-fuchsia-950/20",
+        "relative overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-50/90 via-white to-fuchsia-50/50 shadow-sm dark:border-violet-900/50 dark:from-violet-950/40 dark:via-zinc-950 dark:to-fuchsia-950/20",
+        compact ? "mb-3 p-2.5 sm:p-3" : "mb-4 p-3 sm:mb-5 sm:rounded-3xl sm:p-4",
         className
       )}
     >
@@ -35,18 +38,28 @@ export function HomePersonalizedPicksRail({ picks, className }: Props) {
       />
       <div className="relative mb-3 flex flex-wrap items-end justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-violet-600 dark:text-violet-300">
+          <p
+            className={cn(
+              "font-semibold uppercase tracking-[0.18em] text-violet-600 dark:text-violet-300",
+              compact ? "text-[9px]" : "text-[10px]"
+            )}
+          >
             {personalized ? t("eyebrowForYou") : t("eyebrowTrending")}
           </p>
           <h2
             id="personalized-picks-heading"
-            className="mt-0.5 text-base font-bold tracking-tight text-zinc-900 dark:text-white sm:text-lg"
+            className={cn(
+              "mt-0.5 font-bold tracking-tight text-zinc-900 dark:text-white",
+              compact ? "text-sm" : "text-base sm:text-lg"
+            )}
           >
             {personalized ? t("titleForYou") : t("titleTrending")}
           </h2>
-          <p className="mt-1 max-w-xl text-[11px] leading-snug text-zinc-600 dark:text-zinc-400 sm:text-xs">
-            {personalized ? t("hintForYou") : t("hintTrending")}
-          </p>
+          {!compact ? (
+            <p className="mt-1 max-w-xl text-[11px] leading-snug text-zinc-600 dark:text-zinc-400 sm:text-xs">
+              {personalized ? t("hintForYou") : t("hintTrending")}
+            </p>
+          ) : null}
         </div>
         <Link
           href="/discover"
@@ -57,11 +70,19 @@ export function HomePersonalizedPicksRail({ picks, className }: Props) {
         </Link>
       </div>
 
-      <ul className="relative flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <ul
+        className={cn(
+          "relative flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          compact && "gap-2.5"
+        )}
+      >
         {picks.items.map((item) => (
           <li
             key={item.listingId}
-            className="w-[11.5rem] shrink-0 snap-start sm:w-[12.75rem]"
+            className={cn(
+              "shrink-0 snap-start",
+              compact ? "w-[10.25rem] sm:w-[11rem]" : "w-[11.5rem] sm:w-[12.75rem]"
+            )}
           >
             <ProductCard product={buyerListingToCardProps(item)} mode="customer" />
           </li>

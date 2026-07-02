@@ -45,6 +45,14 @@ describe("mergeBrowseSignalCategories", () => {
   it("ignores blank names", () => {
     expect(mergeBrowseSignalCategories(["Fashion"], "   ")).toEqual(["Fashion"])
   })
+
+  it("merges multiple PDP categories in order", () => {
+    let merged: string[] = []
+    for (const name of ["Fashion", "Shoes", "Fashion"]) {
+      merged = mergeBrowseSignalCategories(merged, name)
+    }
+    expect(merged).toEqual(["Fashion", "Shoes"])
+  })
 })
 
 describe("collectCategoryHints", () => {

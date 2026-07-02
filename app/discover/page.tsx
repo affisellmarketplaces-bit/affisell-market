@@ -2,7 +2,9 @@ import { auth } from "@/auth"
 import type { Session } from "next-auth"
 import { AffisellPulseExperience } from "@/components/pulse/affisell-pulse-experience"
 import { BuyerSwipeCommerce } from "@/components/pulse/buyer-swipe-commerce"
+import { loadBuyerPersonalizedPicksSafe } from "@/lib/buyer-personalized-picks"
 import { loadBuyerSwipeFeedItems } from "@/lib/buyer-swipe-feed.server"
+import { readGuestWishlistId } from "@/lib/guest-wishlist-id"
 import { e2ePulseSwipeFixtureItems, shouldUseE2ePulseFixtures } from "@/lib/e2e-pulse-swipe-fixtures"
 import { loadPulseFeedItems } from "@/lib/pulse-feed-data"
 import { prisma } from "@/lib/prisma"
@@ -83,11 +85,24 @@ export default async function DiscoverPage({ searchParams }: PageProps) {
   }
 
   let items: Awaited<ReturnType<typeof loadBuyerSwipeFeedItems>> = []
+  let personalizedPicks: Awaited<ReturnType<typeof loadBuyerPersonalizedPicksSafe>> = {
+    items: [],
+    personalized: false,
+  }
   if (useE2eFixtures) {
     items = e2ePulseSwipeFixtureItems()
   } else {
     try {
-      items = await loadBuyerSwipeFeedItems(feedParams, { limit: 24 })
+      const guestId = await readGuestWishlistId()
+      const [feedItems, picks] = await Promise.all([
+        loadBuyerSwipeFeedItems(feedParams, { limit: 24 }),
+        loadBuyerPersonalizedPicksSafe({
+          userId: session?.user?.id ?? null,
+          guestId,
+        }),
+      ])
+      items = feedItems
+      personalizedPicks = picks
     } catch (e) {
       console.error("[discover]", {
         layout: "swipe",
@@ -102,6 +117,7 @@ export default async function DiscoverPage({ searchParams }: PageProps) {
       categoryId={categoryId}
       subcategoryId={subcategoryId}
       categoryLabel={categoryLabel}
+      initialPersonalizedPicks={personalizedPicks}
     />
   )
 }

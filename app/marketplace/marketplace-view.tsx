@@ -26,7 +26,7 @@ import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAf
 import { MobileCatalogChrome } from "@/components/marketplace/mobile-catalog-chrome"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
 import { BuyerBrowseSignalsRecorder } from "@/components/home/buyer-browse-signals-recorder"
-import { HomePersonalizedPicksRail } from "@/components/home/home-personalized-picks-rail"
+import { HomePersonalizedPicksRailLive } from "@/components/home/home-personalized-picks-rail-live"
 import { CategoryTreeExplorer } from "@/components/marketplace/CategoryTreeExplorer"
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox"
 import { MARKETPLACE_QUERY_RESERVED } from "@/lib/marketplace-query-params"
@@ -457,7 +457,10 @@ export function MarketplaceView({
           <BuyerBrowseSignalsRecorder categoryName={browseSignalCategoryName} />
         ) : null}
         {showPersonalizedRail && initialBrowse?.personalizedPicks ? (
-          <HomePersonalizedPicksRail picks={initialBrowse.personalizedPicks} className="mt-3 sm:mt-4" />
+          <HomePersonalizedPicksRailLive
+            initialPicks={initialBrowse.personalizedPicks}
+            className="mt-3 sm:mt-4"
+          />
         ) : null}
         {!embedded ? (
           <div>

@@ -26,6 +26,7 @@ import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState, 
 import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
 import { BookingComingSoonRail } from "@/components/booking/booking-coming-soon-rail"
 
+import { ListingBrowseSignalsRecorder } from "@/components/marketplace/listing-browse-signals-recorder"
 import { ListingPriceActionCard } from "@/components/marketplace/listing-price-action-card"
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
 import { SupplierTrustBadge } from "@/components/suppliers/supplier-trust-badge"
@@ -869,6 +870,9 @@ export function MarketplaceListingDetail({
 
   return (
     <>
+      {audience === "customer" && categories.length > 0 ? (
+        <ListingBrowseSignalsRecorder categories={categories} />
+      ) : null}
       <div className="relative mb-10 max-w-full max-lg:overflow-x-clip lg:mb-14 lg:overflow-visible">
         <motion.div
           className={brand.cardGlowOrb}

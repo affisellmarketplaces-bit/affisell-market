@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
+import { HomePersonalizedPicksRailLive } from "@/components/home/home-personalized-picks-rail-live"
 import {
   BuyerSwipeCard,
   type BuyerSwipeCardHandle,
@@ -25,6 +26,7 @@ import { requestPriceAlertPushSubscription } from "@/components/push/request-pri
 import { affisellBrand } from "@/lib/affisell-brand"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
 import { pulseSwipeHaptic } from "@/lib/pulse-swipe-haptics"
+import type { BuyerPersonalizedPicksPayload } from "@/lib/buyer-personalization-shared"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
 import { cn } from "@/lib/utils"
 
@@ -59,6 +61,7 @@ type Props = {
   categoryId?: string | null
   subcategoryId?: string | null
   categoryLabel?: string | null
+  initialPersonalizedPicks?: BuyerPersonalizedPicksPayload
 }
 
 export function BuyerSwipeCommerce({
@@ -66,6 +69,7 @@ export function BuyerSwipeCommerce({
   categoryId = null,
   subcategoryId = null,
   categoryLabel = null,
+  initialPersonalizedPicks,
 }: Props) {
   const t = useTranslations("pulse.commerce")
   const tPulse = useTranslations("pulse")
@@ -478,6 +482,15 @@ export function BuyerSwipeCommerce({
           </div>
         </div>
       </header>
+
+      {!categoryId && !subcategoryId && initialPersonalizedPicks ? (
+        <div className="relative z-30 mx-auto w-full max-w-[420px] shrink-0 px-2 sm:px-3">
+          <HomePersonalizedPicksRailLive
+            initialPicks={initialPersonalizedPicks}
+            variant="compact"
+          />
+        </div>
+      ) : null}
 
       <main className="affisell-swipe-stage relative z-10 flex min-h-0 flex-1 flex-col px-2 pb-1 sm:px-3 sm:pb-2">
         <div className="relative mx-auto min-h-0 w-full max-w-[380px] flex-1">

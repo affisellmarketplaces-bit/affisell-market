@@ -9,6 +9,17 @@ import {
 
 const MAX_AGE_SEC = 60 * 60 * 24 * 90
 
+export const BUYER_BROWSE_SIGNALS_UPDATED_EVENT = "affisell:browse-signals-updated"
+
+function writeBrowseSignalsCookie(categories: string[]): void {
+  const value = encodeURIComponent(JSON.stringify(categories))
+  document.cookie = `${BUYER_BROWSE_SIGNALS_COOKIE}=${value}; Path=/; Max-Age=${MAX_AGE_SEC}; SameSite=Lax`
+}
+
+function notifyBrowseSignalsUpdated(): void {
+  window.dispatchEvent(new CustomEvent(BUYER_BROWSE_SIGNALS_UPDATED_EVENT))
+}
+
 function readBrowseSignalsFromDocument(): string[] {
   if (typeof document === "undefined") return []
   const match = document.cookie
@@ -27,8 +38,25 @@ export function recordBrowseSignalCategory(categoryName: string): void {
   if (!name) return
 
   const merged = mergeBrowseSignalCategories(readBrowseSignalsFromDocument(), name)
-  const value = encodeURIComponent(JSON.stringify(merged))
-  document.cookie = `${BUYER_BROWSE_SIGNALS_COOKIE}=${value}; Path=/; Max-Age=${MAX_AGE_SEC}; SameSite=Lax`
+  writeBrowseSignalsCookie(merged)
+  notifyBrowseSignalsUpdated()
+}
+
+/** Record multiple product categories (e.g. PDP view) in one cookie write. */
+export function recordBrowseSignalCategories(categoryNames: readonly string[]): void {
+  if (typeof document === "undefined") return
+  let merged = readBrowseSignalsFromDocument()
+  let changed = false
+  for (const raw of categoryNames) {
+    const name = raw.trim()
+    if (!name) continue
+    const next = mergeBrowseSignalCategories(merged, name)
+    if (next.join("|") !== merged.join("|")) changed = true
+    merged = next
+  }
+  if (!changed) return
+  writeBrowseSignalsCookie(merged)
+  notifyBrowseSignalsUpdated()
 }
 
 export function clearBrowseSignalCategories(): void {
