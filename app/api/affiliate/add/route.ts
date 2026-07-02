@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
+import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -95,6 +96,8 @@ export async function POST(request: Request) {
     basePriceCents: product.basePriceCents,
     images: product.images as string[],
   }).catch((e) => console.error("[affiliate-invite] listing hook failed", e))
+
+  await revalidateAffiliateShopfront(session.user.id)
 
   return NextResponse.json(row, { status: 201 })
 }

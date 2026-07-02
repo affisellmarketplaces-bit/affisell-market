@@ -14,6 +14,7 @@ import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-r
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
+import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -286,6 +287,7 @@ export async function PATCH(
     if (!nextListed || !nextAuctionEligible) {
       await cancelAuctionsForListings([id])
     }
+    await revalidateAffiliateShopfront(session.user.id)
     return NextResponse.json(updated)
   } catch (e: unknown) {
     const code = typeof e === "object" && e && "code" in e ? (e as { code: string }).code : ""

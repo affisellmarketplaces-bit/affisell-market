@@ -10,6 +10,7 @@ import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/produ
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
+import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -292,6 +293,8 @@ export async function POST(request: Request) {
         images: product.images as string[],
       }).catch((e) => console.error("[affiliate-invite] listing hook failed", e))
     }
+
+    await revalidateAffiliateShopfront(session.user.id)
 
     return NextResponse.json(row, { status: 201 })
   } catch (e: unknown) {

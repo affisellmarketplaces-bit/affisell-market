@@ -5,6 +5,7 @@ import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-r
 import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
 import { affiliateListingsWhere } from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
+import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -81,6 +82,8 @@ export async function PATCH(request: Request) {
       await cancelAuctionsForListings(ids)
     }
   }
+
+  await revalidateAffiliateShopfront(session.user.id)
 
   return NextResponse.json({ ok: true })
 }

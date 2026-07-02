@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
+import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -81,6 +82,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   if (!nextListed || !nextAuctionEligible) {
     await cancelAuctionsForListings([id])
   }
+
+  await revalidateAffiliateShopfront(session.user.id)
 
   return NextResponse.json(updated)
 }

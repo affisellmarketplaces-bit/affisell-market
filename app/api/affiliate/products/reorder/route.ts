@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -31,6 +32,8 @@ export async function PATCH(request: Request) {
       })
     )
   )
+
+  await revalidateAffiliateShopfront(session.user.id)
 
   return NextResponse.json({ ok: true })
 }

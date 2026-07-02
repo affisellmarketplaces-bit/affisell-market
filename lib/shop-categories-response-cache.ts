@@ -48,3 +48,7 @@ export async function loadShopCategoriesResponse(slug: string): Promise<{
 export function clearShopCategoriesResponseCacheForTests() {
   memory.clear()
 }
+
+export function bustShopCategoriesResponseCache(slug: string) {
+  memory.delete(slug.trim().toLowerCase())
+}
