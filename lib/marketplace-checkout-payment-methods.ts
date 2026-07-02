@@ -49,11 +49,37 @@ export function marketplaceEnabledCheckoutPaymentMethodTypes(): MarketplaceCheck
   return types
 }
 
+/**
+ * Checkout session methods for a cart total — Klarna only when amount meets EU minimum.
+ * PayPal stays available whenever `MARKETPLACE_PAYPAL_ENABLED=1` (Stripe Dashboard must enable PayPal).
+ */
+export function marketplaceEnabledCheckoutPaymentMethodTypesForAmount(
+  amountCents: number
+): MarketplaceCheckoutPaymentMethodType[] {
+  const types: MarketplaceCheckoutPaymentMethodType[] = ["card"]
+  if (isMarketplaceBnplEnabled() && isKlarnaEligibleCents(amountCents)) {
+    types.push(...BNPL_TYPES)
+  }
+  if (isMarketplacePaypalEnabled()) {
+    types.push("paypal")
+  }
+  return types
+}
+
 /** Stripe Checkout session payment methods for marketplace buyer flows. */
 export function marketplaceCheckoutPaymentSessionOptions(): {
   payment_method_types: MarketplaceCheckoutPaymentMethodType[]
 } {
   return {
     payment_method_types: marketplaceEnabledCheckoutPaymentMethodTypes(),
+  }
+}
+
+/** Amount-aware checkout options — prefer at session create time. */
+export function marketplaceCheckoutPaymentSessionOptionsForAmount(amountCents: number): {
+  payment_method_types: MarketplaceCheckoutPaymentMethodType[]
+} {
+  return {
+    payment_method_types: marketplaceEnabledCheckoutPaymentMethodTypesForAmount(amountCents),
   }
 }

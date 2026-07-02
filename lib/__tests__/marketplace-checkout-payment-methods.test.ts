@@ -6,6 +6,7 @@ import {
   KLARNA_ELIGIBLE_MIN_CENTS,
   marketplaceCheckoutPaymentSessionOptions,
   marketplaceEnabledCheckoutPaymentMethodTypes,
+  marketplaceEnabledCheckoutPaymentMethodTypesForAmount,
 } from "@/lib/marketplace-checkout-payment-methods"
 
 function resetEnv() {
@@ -37,6 +38,19 @@ describe("marketplace-checkout-payment-methods", () => {
     process.env.MARKETPLACE_PAYPAL_ENABLED = "1"
     expect(isMarketplacePaypalEnabled()).toBe(true)
     expect(marketplaceEnabledCheckoutPaymentMethodTypes()).toContain("paypal")
+    resetEnv()
+  })
+
+  it("omits klarna below minimum but keeps paypal when enabled", () => {
+    resetEnv()
+    process.env.MARKETPLACE_BNPL_ENABLED = "1"
+    process.env.MARKETPLACE_PAYPAL_ENABLED = "1"
+    expect(
+      marketplaceEnabledCheckoutPaymentMethodTypesForAmount(KLARNA_ELIGIBLE_MIN_CENTS - 1)
+    ).toEqual(["card", "paypal"])
+    expect(
+      marketplaceEnabledCheckoutPaymentMethodTypesForAmount(KLARNA_ELIGIBLE_MIN_CENTS)
+    ).toEqual(["card", "klarna", "paypal"])
     resetEnv()
   })
 })

@@ -51,7 +51,7 @@ import {
 import { resolveSeatLayoutConfig } from "@/lib/booking/seat-layout"
 import { computeBookingLineSubtotalCents } from "@/lib/booking/seat-pricing"
 import { reserveBookingSlotHoldInTransaction } from "@/lib/booking/slot-hold"
-import { marketplaceCheckoutPaymentSessionOptions } from "@/lib/marketplace-checkout-payment-methods"
+import { marketplaceCheckoutPaymentSessionOptionsForAmount } from "@/lib/marketplace-checkout-payment-methods"
 import {
   buildHtLineItem,
   marketplaceCheckoutTaxOptions,
@@ -386,9 +386,11 @@ async function checkoutFromItems(
     console.log("[checkout]", { flow: "cart", result: "delivery_destination_unavailable" })
     return NextResponse.json({ error: "delivery_destination_unavailable" }, { status: 409 })
   }
+  const paymentMethodTypes =
+    marketplaceCheckoutPaymentSessionOptionsForAmount(paidTotalCents).payment_method_types
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
-    ...marketplaceCheckoutPaymentSessionOptions(),
+    payment_method_types: paymentMethodTypes,
     line_items: stripeLineItems,
     ...marketplaceCheckoutTaxOptions(),
     success_url: `${baseUrl}${successPath}`,
@@ -423,6 +425,7 @@ async function checkoutFromItems(
     baseUrl,
     allowedCountries: allowedCountries.length,
     appliedRewardCents: appliedCents,
+    paymentMethodTypes,
   })
 
   if (!checkoutSession.url) {
@@ -669,9 +672,11 @@ export async function marketplaceCheckoutPOST(request: Request) {
     })
     return NextResponse.json({ error: "delivery_destination_unavailable" }, { status: 409 })
   }
+  const paymentMethodTypes =
+    marketplaceCheckoutPaymentSessionOptionsForAmount(paidTotalCents).payment_method_types
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "payment",
-    ...marketplaceCheckoutPaymentSessionOptions(),
+    payment_method_types: paymentMethodTypes,
     line_items: stripeLineItems,
     ...marketplaceCheckoutTaxOptions(),
     success_url: `${baseUrl}${successPath}`,
@@ -718,6 +723,7 @@ export async function marketplaceCheckoutPOST(request: Request) {
     baseUrl,
     allowedCountries: allowedCountries.length,
     qty: checkoutQty,
+    paymentMethodTypes,
   })
 
   if (!checkoutSession.url) {
