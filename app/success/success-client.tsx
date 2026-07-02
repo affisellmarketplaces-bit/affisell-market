@@ -7,6 +7,7 @@ import {
   PaymentSuccessScreen,
   type PaymentSuccessPayload,
 } from "@/components/checkout/payment-success-screen"
+import { notifyBuyerPersonalizationRefresh } from "@/lib/buyer-personalization-refresh.client"
 
 const VERIFY_POLL_MS = 1200
 const VERIFY_MAX_ATTEMPTS = 10
@@ -61,6 +62,7 @@ type Props = {
 export function SuccessClient({ sessionId, initialPayload }: Props) {
   const { data: session, status: sessionStatus } = useSession()
   const buyerSessionAttempted = useRef(false)
+  const personalizationNotified = useRef(false)
   const [payload, setPayload] = useState<PaymentSuccessPayload | null>(() => {
     if (!sessionId) return { error: "missing_session" }
     if (initialPayload) return initialPayload
@@ -77,6 +79,17 @@ export function SuccessClient({ sessionId, initialPayload }: Props) {
     buyerSessionAttempted.current = true
     void ensureBuyerSessionAfterCheckout(sessionId)
   }, [sessionId, payload?.fulfilled, session?.user?.role, sessionStatus])
+
+  useEffect(() => {
+    if (!payload?.paid || !payload?.fulfilled) return
+    if (personalizationNotified.current) return
+    personalizationNotified.current = true
+    notifyBuyerPersonalizationRefresh("checkout_success")
+    console.log("[checkout-success]", {
+      sessionId: sessionId || null,
+      result: "personalization_refresh",
+    })
+  }, [payload?.paid, payload?.fulfilled, sessionId])
 
   useEffect(() => {
     if (!sessionId) return
