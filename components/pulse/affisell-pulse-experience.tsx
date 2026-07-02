@@ -14,7 +14,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
@@ -29,6 +29,7 @@ import { addToBuyerCart } from "@/lib/cart-add-client"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 import { formatStoreCount, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { affisellBrand } from "@/lib/affisell-brand"
+import { notifyBuyerPersonalizationRefresh } from "@/lib/buyer-personalization-refresh.client"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
 import { cn } from "@/lib/utils"
@@ -423,11 +424,23 @@ function PulseCard({
 
 export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props) {
   const t = useTranslations("pulse")
+  const pathname = usePathname()
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [activeIndex, setActiveIndex] = useState(0)
   const [muted, setMuted] = useState(true)
   const refs = useRef<Array<HTMLElement | null>>([])
 
   const safeItems = useMemo(() => items.filter((i) => i.mediaUrl), [items])
+
+  useEffect(() => {
+    if (searchParams.get("success") !== "true") return
+    notifyBuyerPersonalizationRefresh("checkout_success")
+    const next = new URLSearchParams(searchParams.toString())
+    next.delete("success")
+    const href = next.toString() ? `${pathname}?${next.toString()}` : pathname
+    router.replace(href, { scroll: false })
+  }, [pathname, router, searchParams])
 
   useEffect(() => {
     const nodes = refs.current.filter(Boolean) as HTMLElement[]
