@@ -5,6 +5,7 @@ import { useMemo, useState } from "react"
 import { CalendarPlus, Package, Sparkles, CalendarClock, Zap } from "lucide-react"
 
 import { AccountOrderFulfillmentPanel } from "@/components/account/account-order-fulfillment-panel"
+import { AccountOrdersEmptyState } from "@/components/account/account-orders-empty-state"
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { Button } from "@/components/ui/button"
 import {
@@ -159,11 +160,7 @@ export function AccountOrdersClient({
   }
 
   if (orders.length === 0) {
-    return (
-      <BentoCard className={cn("py-12 text-center dark:border-zinc-800", className)}>
-        <p className="text-sm text-gray-600 dark:text-zinc-400">No orders yet for this account.</p>
-      </BentoCard>
-    )
+    return <AccountOrdersEmptyState className={className} />
   }
 
   return (

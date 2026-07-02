@@ -2,22 +2,20 @@
 
 import Link from "next/link"
 import { ShoppingBag, Sparkles } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 
+import { usePostCheckoutRecommendedPicks } from "@/components/account/account-orders-shopping-cta.client"
 import { buttonVariants } from "@/components/ui/button"
-import { readBuyerPersonalizationRefreshPending } from "@/lib/buyer-personalization-refresh.client"
 import { cn } from "@/lib/utils"
 
 /** After checkout, steer the buyer back to the personalized explorer instead of generic browse. */
 export function AccountOrdersContinueShoppingLink() {
-  const [postCheckout, setPostCheckout] = useState(false)
-
-  useEffect(() => {
-    setPostCheckout(readBuyerPersonalizationRefreshPending() === "checkout_success")
-  }, [])
+  const t = useTranslations("accountOrders")
+  const tPersonalized = useTranslations("marketplace.browse.personalized")
+  const postCheckout = usePostCheckoutRecommendedPicks()
 
   const href = postCheckout ? "/#explorer" : "/shops/browse"
-  const label = postCheckout ? "Recommended for you" : "Continue shopping"
+  const label = postCheckout ? tPersonalized("titleForYou") : t("continueShopping")
   const Icon = postCheckout ? Sparkles : ShoppingBag
   const variant = postCheckout ? "bentoAccent" : "bentoSolid"
 

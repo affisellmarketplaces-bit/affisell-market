@@ -3440,6 +3440,11 @@
   },
   "accountOrders": {
     "empty": "No orders yet for this account.",
+    "emptyHint": "Explore personalized picks on the home catalog or swipe products in Pulse.",
+    "emptyPostCheckoutHint": "Your order is being confirmed. While you wait, discover more picks tailored to you.",
+    "emptyCtaDiscover": "Discover products",
+    "emptyCtaPulse": "Open Pulse",
+    "continueShopping": "Continue shopping",
     "sort": {
       "label": "Sort",
       "actionNeeded": "Needs your action",

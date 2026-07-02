@@ -3482,6 +3482,11 @@
   },
   "accountOrders": {
     "empty": "Aucune commande pour ce compte.",
+    "emptyHint": "Découvrez des sélections personnalisées sur l'accueil ou swipez des produits dans Pulse.",
+    "emptyPostCheckoutHint": "Votre commande est en cours de confirmation. En attendant, explorez d'autres picks pour vous.",
+    "emptyCtaDiscover": "Découvrir des produits",
+    "emptyCtaPulse": "Ouvrir Pulse",
+    "continueShopping": "Continuer mes achats",
     "sort": {
       "label": "Trier",
       "actionNeeded": "Action requise",
