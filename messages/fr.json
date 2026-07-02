@@ -2649,7 +2649,85 @@
     "title": "Contactez Affisell",
     "description": "Une question sur une commande, un retour ou votre portefeuille cashback ? Écrivez-nous, nous répondons sous 48 h ouvrées.",
     "emailLabel": "E-mail :",
-    "backAccount": "← Retour à mon espace client"
+    "backAccount": "← Retour à mon espace client",
+    "form": {
+      "directEmail": "E-mail direct",
+      "name": "Nom",
+      "email": "E-mail",
+      "subject": "Sujet",
+      "message": "Message",
+      "submit": "Envoyer",
+      "sendError": "Envoi impossible",
+      "networkError": "Erreur réseau",
+      "successBeforeRef": "Message envoyé",
+      "successAfterRef": ". Un accusé de réception vous a été envoyé par e-mail. Réponse sous 48 h ouvrées en général. Consultez aussi la",
+      "successOr": "ou l'",
+      "successFaq": "FAQ",
+      "successSupport": "assistant support"
+    }
+  },
+  "howItWorks": {
+    "metaTitle": "Comment ça marche | Affisell",
+    "metaDescription": "Parcours acheteur, partenaire créateur et fournisseur sur la marketplace Affisell.",
+    "eyebrow": "Marketplace UE",
+    "title": "Comment ça marche",
+    "description": "Affisell réunit partenaires créateurs, fournisseurs et acheteurs — sans stock côté partenaire, avec livraison rapide et sécurisée assurée par le fournisseur.",
+    "buyer": {
+      "title": "1. Acheteur",
+      "body": "Explorez le catalogue, payez en toute sécurité et suivez votre commande depuis votre espace."
+    },
+    "creator": {
+      "title": "2. Partenaire créateur",
+      "body": "Sélectionnez des produits, personnalisez votre vitrine et partagez-la — Affisell gère l'expérience d'achat de bout en bout."
+    },
+    "supplier": {
+      "title": "3. Fournisseur",
+      "body": "Publiez votre catalogue, livrez rapidement et en toute sécurité, encaissez une fois la livraison confirmée."
+    },
+    "ctaBrowse": "Explorer le catalogue",
+    "ctaPartner": "Devenir partenaire créateur"
+  },
+  "supportPage": {
+    "metaTitle": "Assistant support | Affisell",
+    "metaDescription": "Assistant support Affisell — commandes, livraison, retours et remboursements.",
+    "eyebrow": "Support",
+    "title": "Assistant Support Affisell",
+    "description": "Réponses instantanées sur vos commandes, livraisons et retours — avant d'écrire au support humain.",
+    "chatTitle": "Assistant Support Affisell",
+    "chatSubtitle": "Commandes · livraison · retours · 24/7",
+    "emptyHint": "Posez une question — je vous oriente vers la FAQ, vos commandes ou le bon contact.",
+    "thinking": "Réflexion…",
+    "errorBeforeFaq": "Assistant indisponible — consultez la",
+    "errorFaq": "FAQ",
+    "errorBeforeContact": "ou",
+    "errorContact": "contactez-nous",
+    "inputPlaceholder": "Ex. Où est ma commande ?",
+    "inputAria": "Votre question support",
+    "send": "Envoyer",
+    "stop": "Stop",
+    "cards": {
+      "faq": {
+        "title": "FAQ",
+        "body": "10+ réponses sur commandes, livraison, cashback.",
+        "link": "Ouvrir →"
+      },
+      "orders": {
+        "title": "Mes commandes",
+        "body": "Suivi, retours et confirmation de livraison.",
+        "link": "Accéder →"
+      },
+      "contact": {
+        "title": "Contact humain",
+        "body": "Réponse sous 48 h ouvrées si l'assistant ne suffit pas.",
+        "link": "Écrire →"
+      }
+    },
+    "starterPrompts": {
+      "order": "Où est ma commande ?",
+      "return": "Comment retourner un produit ?",
+      "refund": "Délai de remboursement ?",
+      "payment": "Paiement refusé au checkout"
+    }
   },
   "agent": {
     "metaTitle": "Agent shopping — Affisell",

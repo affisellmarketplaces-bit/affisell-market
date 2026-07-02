@@ -5,10 +5,14 @@ import { DefaultChatTransport } from "ai"
 import { Loader2, MessageCircle, Sparkles } from "lucide-react"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { Button } from "@/components/ui/button"
-import { SUPPORT_STARTER_PROMPTS } from "@/lib/support/support-knowledge"
+import {
+  SUPPORT_STARTER_PROMPT_KEYS,
+  type SupportStarterPromptKey,
+} from "@/lib/support/support-knowledge"
 import { sanitizeSupportAgentText } from "@/lib/support/sanitize-agent-links"
 import { cn } from "@/lib/utils"
 
@@ -50,6 +54,7 @@ function SupportMessageBody({ text }: { text: string }) {
 }
 
 export function SupportAgentChat({ className }: { className?: string }) {
+  const t = useTranslations("supportPage")
   const scrollRef = useRef<HTMLDivElement>(null)
   const [input, setInput] = useState("")
 
@@ -71,6 +76,10 @@ export function SupportAgentChat({ className }: { className?: string }) {
     await sendMessage({ text: trimmed })
   }
 
+  function starterPrompt(key: SupportStarterPromptKey): string {
+    return t(`starterPrompts.${key}`)
+  }
+
   return (
     <BentoCard
       className={cn(
@@ -83,26 +92,24 @@ export function SupportAgentChat({ className }: { className?: string }) {
           <Sparkles className="size-4" aria-hidden />
         </div>
         <div>
-          <p className="text-sm font-semibold text-zinc-900 dark:text-white">Assistant Support Affisell</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">Commandes · livraison · retours · 24/7</p>
+          <p className="text-sm font-semibold text-zinc-900 dark:text-white">{t("chatTitle")}</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">{t("chatSubtitle")}</p>
         </div>
       </div>
 
       <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
         {messages.length === 0 ? (
           <div className="space-y-3">
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Posez une question — je vous oriente vers la FAQ, vos commandes ou le bon contact.
-            </p>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">{t("emptyHint")}</p>
             <div className="flex flex-wrap gap-2">
-              {SUPPORT_STARTER_PROMPTS.map((prompt) => (
+              {SUPPORT_STARTER_PROMPT_KEYS.map((key) => (
                 <button
-                  key={prompt}
+                  key={key}
                   type="button"
-                  onClick={() => void sendText(prompt)}
+                  onClick={() => void sendText(starterPrompt(key))}
                   className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-xs font-medium text-violet-800 transition hover:border-violet-400 dark:border-violet-800 dark:bg-zinc-900 dark:text-violet-200"
                 >
-                  {prompt}
+                  {starterPrompt(key)}
                 </button>
               ))}
             </div>
@@ -130,19 +137,19 @@ export function SupportAgentChat({ className }: { className?: string }) {
         {busy ? (
           <div className="flex items-center gap-2 text-xs text-zinc-500">
             <Loader2 className="size-3.5 animate-spin" aria-hidden />
-            Réflexion…
+            {t("thinking")}
           </div>
         ) : null}
 
         {error ? (
           <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-            Assistant indisponible — consultez la{" "}
+            {t("errorBeforeFaq")}{" "}
             <Link href="/help/faq" className="font-semibold underline">
-              FAQ
+              {t("errorFaq")}
             </Link>{" "}
-            ou{" "}
+            {t("errorBeforeContact")}{" "}
             <Link href="/contact" className="font-semibold underline">
-              contactez-nous
+              {t("errorContact")}
             </Link>
             .
           </p>
@@ -159,19 +166,19 @@ export function SupportAgentChat({ className }: { className?: string }) {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ex. Où est ma commande ?"
+          placeholder={t("inputPlaceholder")}
           disabled={busy}
           className="min-w-0 flex-1 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none ring-violet-500 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950"
-          aria-label="Votre question support"
+          aria-label={t("inputAria")}
         />
         {busy ? (
           <Button type="button" variant="outline" size="sm" onClick={() => stop()}>
-            Stop
+            {t("stop")}
           </Button>
         ) : (
           <Button type="submit" size="sm" disabled={!input.trim()} className="gap-1.5">
             <MessageCircle className="size-4" aria-hidden />
-            Envoyer
+            {t("send")}
           </Button>
         )}
       </form>

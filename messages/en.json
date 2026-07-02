@@ -2607,7 +2607,85 @@
     "title": "Contact Affisell",
     "description": "Questions about an order, a return, or your cashback wallet? Email us — we reply within 2 business days.",
     "emailLabel": "Email:",
-    "backAccount": "← Back to my account"
+    "backAccount": "← Back to my account",
+    "form": {
+      "directEmail": "Direct email",
+      "name": "Name",
+      "email": "Email",
+      "subject": "Subject",
+      "message": "Message",
+      "submit": "Send",
+      "sendError": "Could not send message",
+      "networkError": "Network error",
+      "successBeforeRef": "Message sent",
+      "successAfterRef": ". A confirmation email is on its way. We usually reply within 2 business days. See also the",
+      "successOr": "or the",
+      "successFaq": "FAQ",
+      "successSupport": "support assistant"
+    }
+  },
+  "howItWorks": {
+    "metaTitle": "How it works | Affisell",
+    "metaDescription": "Buyer, creator partner, and supplier journeys on the Affisell marketplace.",
+    "eyebrow": "EU marketplace",
+    "title": "How it works",
+    "description": "Affisell connects creator partners, suppliers, and buyers — no inventory for partners, with fast secure shipping handled by suppliers.",
+    "buyer": {
+      "title": "1. Buyer",
+      "body": "Browse the catalog, pay securely, and track your order from your account."
+    },
+    "creator": {
+      "title": "2. Creator partner",
+      "body": "Pick products, customize your storefront, and share it — Affisell handles checkout end to end."
+    },
+    "supplier": {
+      "title": "3. Supplier",
+      "body": "Publish your catalog, ship fast and safely, and get paid once delivery is confirmed."
+    },
+    "ctaBrowse": "Explore catalog",
+    "ctaPartner": "Become a creator partner"
+  },
+  "supportPage": {
+    "metaTitle": "Support assistant | Affisell",
+    "metaDescription": "Affisell support assistant — orders, shipping, returns, and refunds.",
+    "eyebrow": "Support",
+    "title": "Affisell Support Assistant",
+    "description": "Instant answers about orders, shipping, and returns — before contacting human support.",
+    "chatTitle": "Affisell Support Assistant",
+    "chatSubtitle": "Orders · shipping · returns · 24/7",
+    "emptyHint": "Ask a question — I'll point you to the FAQ, your orders, or the right contact.",
+    "thinking": "Thinking…",
+    "errorBeforeFaq": "Assistant unavailable — see the",
+    "errorFaq": "FAQ",
+    "errorBeforeContact": "or",
+    "errorContact": "contact us",
+    "inputPlaceholder": "e.g. Where is my order?",
+    "inputAria": "Your support question",
+    "send": "Send",
+    "stop": "Stop",
+    "cards": {
+      "faq": {
+        "title": "FAQ",
+        "body": "10+ answers on orders, shipping, and cashback.",
+        "link": "Open →"
+      },
+      "orders": {
+        "title": "My orders",
+        "body": "Tracking, returns, and delivery confirmation.",
+        "link": "Go →"
+      },
+      "contact": {
+        "title": "Human contact",
+        "body": "Reply within 2 business days if the assistant is not enough.",
+        "link": "Write →"
+      }
+    },
+    "starterPrompts": {
+      "order": "Where is my order?",
+      "return": "How do I return a product?",
+      "refund": "Refund timeline?",
+      "payment": "Payment declined at checkout"
+    }
   },
   "agent": {
     "metaTitle": "Shopping agent — Affisell",

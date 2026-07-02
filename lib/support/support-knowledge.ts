@@ -28,9 +28,7 @@ Politiques clés:
 
 Ton: moderne, clair, sans jargon. Max 120 mots sauf si l'utilisateur demande le détail.`
 
-export const SUPPORT_STARTER_PROMPTS = [
-  "Où est ma commande ?",
-  "Comment retourner un produit ?",
-  "Délai de remboursement ?",
-  "Paiement refusé au checkout",
-] as const
+/** Keys for translated starter prompts in `SupportAgentChat`. */
+export const SUPPORT_STARTER_PROMPT_KEYS = ["order", "return", "refund", "payment"] as const
+
+export type SupportStarterPromptKey = (typeof SUPPORT_STARTER_PROMPT_KEYS)[number]

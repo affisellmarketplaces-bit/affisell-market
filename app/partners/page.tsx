@@ -1,8 +1,15 @@
-import PartnersLocalePage, { generateMetadata as generatePartnersMetadata } from "@/app/[locale]/partners/page"
+import { getLocale, getTranslations } from "next-intl/server"
 
-export const generateMetadata = generatePartnersMetadata
+import PartnersLocalePage from "@/app/[locale]/partners/page"
 
-/** English partners landing at `/partners`. */
-export default function PartnersPage() {
-  return <PartnersLocalePage params={Promise.resolve({ locale: "en" })} />
+export async function generateMetadata() {
+  const locale = await getLocale()
+  const t = await getTranslations({ locale, namespace: "partners.meta" })
+  return { title: t("title"), description: t("description") }
+}
+
+/** Partners landing at `/partners` — locale from cookie when URL has no prefix. */
+export default async function PartnersPage() {
+  const locale = await getLocale()
+  return <PartnersLocalePage params={Promise.resolve({ locale })} />
 }

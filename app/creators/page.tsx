@@ -1,8 +1,15 @@
-import CreatorsLocalePage, { generateMetadata as generateCreatorsMetadata } from "@/app/[locale]/creators/page"
+import { getLocale, getTranslations } from "next-intl/server"
 
-export const generateMetadata = generateCreatorsMetadata
+import CreatorsLocalePage from "@/app/[locale]/creators/page"
 
-/** English creators landing at `/creators` (not under `[locale]`). */
-export default function CreatorsPage() {
-  return <CreatorsLocalePage params={Promise.resolve({ locale: "en" })} />
+export async function generateMetadata() {
+  const locale = await getLocale()
+  const t = await getTranslations({ locale, namespace: "creators.meta" })
+  return { title: t("title"), description: t("description") }
+}
+
+/** Creators landing at `/creators` — locale from cookie when URL has no prefix. */
+export default async function CreatorsPage() {
+  const locale = await getLocale()
+  return <CreatorsLocalePage params={Promise.resolve({ locale })} />
 }

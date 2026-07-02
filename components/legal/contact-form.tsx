@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from "react"
 import { Loader2, Mail, Send } from "lucide-react"
+import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,6 +16,7 @@ type Props = {
 }
 
 export function ContactForm({ supportEmail, className }: Props) {
+  const t = useTranslations("contact.form")
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [subject, setSubject] = useState("")
@@ -36,7 +39,7 @@ export function ContactForm({ supportEmail, className }: Props) {
       })
       const data = (await res.json()) as { ok?: boolean; error?: string; ticketRef?: string }
       if (!res.ok || !data.ok) {
-        throw new Error(data.error ?? "Envoi impossible")
+        throw new Error(data.error ?? t("sendError"))
       }
       setSuccess(true)
       setTicketRef(data.ticketRef ?? null)
@@ -45,7 +48,7 @@ export function ContactForm({ supportEmail, className }: Props) {
       setSubject("")
       setMessage("")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur réseau")
+      setError(err instanceof Error ? err.message : t("networkError"))
     } finally {
       setBusy(false)
     }
@@ -57,7 +60,7 @@ export function ContactForm({ supportEmail, className }: Props) {
         <Mail className="mt-0.5 size-5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">
-            Email direct
+            {t("directEmail")}
           </p>
           <a
             href={`mailto:${supportEmail}`}
@@ -79,7 +82,7 @@ export function ContactForm({ supportEmail, className }: Props) {
         />
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="contact-name">Nom</Label>
+            <Label htmlFor="contact-name">{t("name")}</Label>
             <Input
               id="contact-name"
               name="name"
@@ -92,7 +95,7 @@ export function ContactForm({ supportEmail, className }: Props) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="contact-email">Email</Label>
+            <Label htmlFor="contact-email">{t("email")}</Label>
             <Input
               id="contact-email"
               name="email"
@@ -106,7 +109,7 @@ export function ContactForm({ supportEmail, className }: Props) {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="contact-subject">Sujet</Label>
+          <Label htmlFor="contact-subject">{t("subject")}</Label>
           <Input
             id="contact-subject"
             name="subject"
@@ -118,7 +121,7 @@ export function ContactForm({ supportEmail, className }: Props) {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="contact-message">Message</Label>
+          <Label htmlFor="contact-message">{t("message")}</Label>
           <textarea
             id="contact-message"
             name="message"
@@ -139,22 +142,23 @@ export function ContactForm({ supportEmail, className }: Props) {
         ) : null}
         {success ? (
           <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
-            Message envoyé{ticketRef ? ` — réf. #${ticketRef}` : ""}. Un accusé de réception vous a été envoyé par
-            e-mail. Réponse sous 48 h ouvrées en général. Consultez aussi la{" "}
-            <a href="/help/faq" className="font-semibold underline">
-              FAQ
-            </a>{" "}
-            ou l&apos;{" "}
-            <a href="/support" className="font-semibold underline">
-              assistant support
-            </a>
+            {t("successBeforeRef")}
+            {ticketRef ? ` — #${ticketRef}` : ""}
+            {t("successAfterRef")}{" "}
+            <Link href="/help/faq" className="font-semibold underline">
+              {t("successFaq")}
+            </Link>{" "}
+            {t("successOr")}
+            <Link href="/support" className="font-semibold underline">
+              {t("successSupport")}
+            </Link>
             .
           </p>
         ) : null}
 
         <Button type="submit" disabled={busy} className="gap-2">
           {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Send className="size-4" aria-hidden />}
-          Envoyer
+          {t("submit")}
         </Button>
       </form>
     </div>
