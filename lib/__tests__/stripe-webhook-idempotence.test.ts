@@ -7,6 +7,7 @@ const findUniqueInTx = vi.fn()
 const scheduleMarketplaceTransferAttempts = vi.fn()
 const runProcessTransfersJob = vi.fn()
 const ensureMarketplaceCheckoutFulfilled = vi.fn()
+const marketplaceCheckoutNeedsFulfillment = vi.fn()
 const findOrderIdsForCheckoutSession = vi.fn()
 
 vi.mock("@/lib/prisma", () => ({
@@ -27,6 +28,7 @@ vi.mock("@/lib/prisma", () => ({
 
 vi.mock("@/lib/marketplace-checkout-fulfill", () => ({
   ensureMarketplaceCheckoutFulfilled,
+  marketplaceCheckoutNeedsFulfillment,
 }))
 
 vi.mock("@/lib/stripe-marketplace-commission-split", async (importOriginal) => {
@@ -73,6 +75,7 @@ describe("processStripeWebhookEvent idempotence", () => {
       scheduled: true,
     })
     ensureMarketplaceCheckoutFulfilled.mockResolvedValue(undefined)
+    marketplaceCheckoutNeedsFulfillment.mockResolvedValue(true)
     findOrderIdsForCheckoutSession.mockResolvedValue(["order_test_1"])
   })
 
@@ -106,6 +109,28 @@ describe("processStripeWebhookEvent idempotence", () => {
     const r2 = await processStripeWebhookEvent(event)
     expect(r2.duplicate).toBe(true)
     expect(scheduleMarketplaceTransferAttempts).toHaveBeenCalledTimes(1)
+  }, 15_000)
+
+  it("skips ensureMarketplaceCheckoutFulfilled when checkout is already paid", async () => {
+    const { processStripeWebhookEvent } = await import("@/lib/stripe-webhook-processor")
+
+    marketplaceCheckoutNeedsFulfillment.mockResolvedValue(false)
+
+    const event = {
+      id: "evt_fulfill_skip",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_already_paid",
+          mode: "payment",
+          payment_status: "paid",
+        },
+      },
+    } as unknown as Stripe.Event
+
+    await processStripeWebhookEvent(event)
+    expect(marketplaceCheckoutNeedsFulfillment).toHaveBeenCalledWith("cs_already_paid")
+    expect(ensureMarketplaceCheckoutFulfilled).not.toHaveBeenCalled()
   }, 15_000)
 
   it("does not create orders on payment_intent.succeeded (checkout.session.completed owns fulfill)", async () => {

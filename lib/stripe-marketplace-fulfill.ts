@@ -309,6 +309,27 @@ async function createPaidMarketplaceOrder(
       : Math.max(0, unitSupplierCents > 0 ? Math.round(affiliateMarginRetainedCents / qty) : 0)
 
   let order
+  const existingBeforeCreate = await tx.order.findUnique({
+    where: { stripeSessionId: args.stripeSessionId },
+    select: { id: true, status: true },
+  })
+  if (existingBeforeCreate?.status === "paid") {
+    console.log("[marketplace-fulfill]", {
+      stripeSessionId: args.stripeSessionId,
+      orderId: existingBeforeCreate.id,
+      result: "idempotent_read_paid",
+    })
+    return existingBeforeCreate.id
+  }
+  if (existingBeforeCreate?.status === "PENDING") {
+    console.log("[marketplace-fulfill]", {
+      stripeSessionId: args.stripeSessionId,
+      orderId: existingBeforeCreate.id,
+      result: "idempotent_pending_exists",
+    })
+    return null
+  }
+
   try {
     order = await tx.order.create({
       data: {
@@ -368,6 +389,14 @@ async function createPaidMarketplaceOrder(
           result: "idempotent_duplicate_stripe_session",
         })
         return existing.id
+      }
+      if (existing?.status === "PENDING") {
+        console.log("[marketplace-fulfill]", {
+          stripeSessionId: args.stripeSessionId,
+          orderId: existing.id,
+          result: "idempotent_pending_stripe_session",
+        })
+        return null
       }
     }
     throw err
@@ -762,10 +791,28 @@ export async function fulfillMarketplaceStripeSession(
       dup = await tx.order.findUnique({ where: { id: metaOrderId } })
     }
     if (dup && dup.stripeSessionId !== sessionId) {
-      dup = await tx.order.update({
-        where: { id: dup.id },
-        data: { stripeSessionId: sessionId },
-      })
+      try {
+        dup = await tx.order.update({
+          where: { id: dup.id },
+          data: { stripeSessionId: sessionId },
+        })
+      } catch (err) {
+        if (isPrismaUniqueOnField(err, "stripeSessionId")) {
+          const bySession = await tx.order.findUnique({ where: { stripeSessionId: sessionId } })
+          if (bySession) {
+            console.log("[marketplace-fulfill]", {
+              sessionId,
+              orderId: bySession.id,
+              result: "idempotent_stripe_session_reassign",
+            })
+            dup = bySession
+          } else {
+            throw err
+          }
+        } else {
+          throw err
+        }
+      }
     }
     if (dup?.status === "paid") {
       fulfilledOrderIds.push(dup.id)

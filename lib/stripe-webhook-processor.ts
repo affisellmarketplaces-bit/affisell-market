@@ -3,7 +3,10 @@ import type Stripe from "stripe"
 import StripeSdk from "stripe"
 
 import { prisma } from "@/lib/prisma"
-import { ensureMarketplaceCheckoutFulfilled } from "@/lib/marketplace-checkout-fulfill"
+import {
+  ensureMarketplaceCheckoutFulfilled,
+  marketplaceCheckoutNeedsFulfillment,
+} from "@/lib/marketplace-checkout-fulfill"
 import {
   findOrderIdsForCheckoutSession,
   processMarketplaceCommissionForPaymentIntent,
@@ -293,7 +296,14 @@ export async function processStripeWebhookEvent(event: Stripe.Event): Promise<We
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
     if (session.mode === "payment" && session.payment_status === "paid") {
-      await ensureMarketplaceCheckoutFulfilled(session)
+      if (await marketplaceCheckoutNeedsFulfillment(session.id)) {
+        await ensureMarketplaceCheckoutFulfilled(session)
+      } else {
+        logStripeWebhookInfo({
+          metric: "checkout_fulfill_skipped_already_paid",
+          sessionId: session.id,
+        })
+      }
     }
   }
 
