@@ -3,6 +3,7 @@
  * Starts Next dev:
  * - Normal: first free TCP port in [PORT..PORT+19] (default PORT=3001) to avoid EADDRINUSE.
  * - Playwright (`PLAYWRIGHT_WEB_SERVER=1`): fixed `PORT` only (no scan) so `playwright.config` `url` matches.
+ * - If a live dev server lock exists, prints its URL and exits 0 (no duplicate next dev).
  */
 import { spawn } from "node:child_process"
 import { createRequire } from "node:module"
@@ -12,37 +13,54 @@ import { join } from "node:path"
 
 const require = createRequire(import.meta.url)
 const nextBin = require.resolve("next/dist/bin/next")
+const lockPath = join(process.cwd(), ".next/dev/lock")
 
-/** Remove dead Next dev lock left after crash / force-quit (avoids "Another next dev server is already running"). */
-function clearStaleDevLock() {
-  const lockPath = join(process.cwd(), ".next/dev/lock")
-  if (!existsSync(lockPath)) return
+function readDevLock() {
+  if (!existsSync(lockPath)) return null
   try {
     const lock = JSON.parse(readFileSync(lockPath, "utf8"))
-    if (typeof lock.pid === "number") {
-      try {
-        process.kill(lock.pid, 0)
-        return
-      } catch {
-        /* stale pid */
-      }
-    }
-    unlinkSync(lockPath)
-    console.warn("[affisell dev] Removed stale .next/dev/lock\n")
+    if (typeof lock.pid !== "number") return null
+    return lock
   } catch {
-    try {
-      unlinkSync(lockPath)
-      console.warn("[affisell dev] Removed unreadable .next/dev/lock\n")
-    } catch {
-      /* ignore */
-    }
+    return null
   }
 }
 
-clearStaleDevLock()
+function pidAlive(pid) {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (e) {
+    if (e && typeof e === "object" && "code" in e && e.code === "ESRCH") {
+      return false
+    }
+    /* EPERM / sandbox — do not treat as stale. */
+    return true
+  }
+}
 
-const preferred = Math.max(1024, Math.min(65535, Number(process.env.PORT) || 3001))
-const scanPorts = process.env.PLAYWRIGHT_WEB_SERVER !== "1"
+function removeDevLock(reason) {
+  if (!existsSync(lockPath)) return
+  try {
+    unlinkSync(lockPath)
+    console.warn(`[affisell dev] Removed ${reason} .next/dev/lock\n`)
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Remove dead Next dev lock left after crash / force-quit. Returns live lock if server still running. */
+function reconcileDevLock() {
+  const lock = readDevLock()
+  if (!lock) return null
+
+  if (pidAlive(lock.pid)) {
+    return lock
+  }
+
+  removeDevLock("stale")
+  return null
+}
 
 /** Match Next.js dev bind (`::` / dual-stack) — 127.0.0.1-only checks miss EADDRINUSE. */
 function portFree(port) {
@@ -59,6 +77,44 @@ function portFree(port) {
     s.once("listening", () => finish(true))
     s.listen({ port, host: "::", ipv6Only: false })
   })
+}
+
+async function probeNextDev(port) {
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/`, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(1500),
+    })
+    const powered = res.headers.get("x-powered-by") ?? ""
+    return powered.toLowerCase().includes("next") || res.ok
+  } catch {
+    return false
+  }
+}
+
+const liveLock = reconcileDevLock()
+if (liveLock && process.env.PLAYWRIGHT_WEB_SERVER !== "1") {
+  const url =
+    typeof liveLock.appUrl === "string"
+      ? liveLock.appUrl
+      : `http://localhost:${liveLock.port ?? process.env.PORT ?? 3001}`
+  console.log(
+    `\n[affisell dev] Already running → ${url}\n` +
+      `  PID ${liveLock.pid} · stop with: kill ${liveLock.pid}\n` +
+      `  Or restart: npm run dev:restart\n`
+  )
+  process.exit(0)
+}
+
+const preferred = Math.max(1024, Math.min(65535, Number(process.env.PORT) || 3001))
+const scanPorts = process.env.PLAYWRIGHT_WEB_SERVER !== "1"
+
+if (scanPorts && !(await portFree(preferred)) && (await probeNextDev(preferred))) {
+  console.log(
+    `\n[affisell dev] Already running → http://localhost:${preferred}\n` +
+      `  Restart: npm run dev:restart\n`
+  )
+  process.exit(0)
 }
 
 async function pickPort() {
