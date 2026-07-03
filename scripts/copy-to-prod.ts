@@ -62,6 +62,16 @@ function productPayload(row: Awaited<ReturnType<PrismaClient["product"]["findMan
   } satisfies Prisma.ProductUncheckedCreateInput
 }
 
+function affiliateProductPayload(
+  row: Awaited<ReturnType<PrismaClient["affiliateProduct"]["findMany"]>>[number]
+) {
+  const { variantPricing, ...rest } = row
+  return {
+    ...rest,
+    variantPricing: jsonOrNull(variantPricing),
+  } satisfies Prisma.AffiliateProductUncheckedCreateInput
+}
+
 function orderPayload(row: Awaited<ReturnType<PrismaClient["order"]["findMany"]>>[number]) {
   const { fulfillmentErrors, bookingSnapshot, payoutTransferIds, ...rest } = row
   return {
@@ -220,10 +230,11 @@ async function main() {
     const affiliateProducts = await localDb.affiliateProduct.findMany()
     for (const row of affiliateProducts) {
       try {
+        const data = affiliateProductPayload(row)
         await prodDb.affiliateProduct.upsert({
           where: { id: row.id },
-          create: row,
-          update: row,
+          create: data,
+          update: data,
         })
         counts.affiliateProducts++
       } catch (e) {
