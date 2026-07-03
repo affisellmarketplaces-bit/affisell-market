@@ -9,6 +9,7 @@ import {
   Package,
   Search,
   ShoppingCart,
+  Sparkles,
   Store,
   Truck,
   User,
@@ -171,8 +172,18 @@ export function PublicNav() {
     </div>
   )
 
-  const desktopUtilities = (
+  const desktopUtilities = (options?: { showAgent?: boolean }) => (
     <div className="relative z-20 hidden min-w-0 items-center justify-end gap-1 sm:gap-2 lg:col-start-4 lg:row-start-1 lg:flex">
+      {options?.showAgent ? (
+        <FastLink
+          href="/agent"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-violet-200/90 bg-gradient-to-r from-violet-50 via-fuchsia-50/90 to-violet-50 px-2.5 text-xs font-semibold text-violet-800 shadow-sm transition hover:border-violet-300 hover:from-violet-100 hover:to-fuchsia-100 dark:border-violet-500/35 dark:from-violet-950/70 dark:via-fuchsia-950/50 dark:to-violet-950/70 dark:text-violet-100 dark:hover:border-violet-400/50"
+          aria-label={t("agentEntry")}
+        >
+          <Sparkles className="size-3.5 shrink-0 text-violet-600 dark:text-violet-300" aria-hidden />
+          <span className="hidden xl:inline">{t("agentEntry")}</span>
+        </FastLink>
+      ) : null}
       <LanguageSwitcher />
       <ThemeToggle className="shrink-0" />
       <FastLink
@@ -294,7 +305,7 @@ export function PublicNav() {
             {mobileMenu}
             {mobileUtilities}
           </div>
-          {desktopUtilities}
+          {desktopUtilities()}
         </nav>
       ) : mode === "account" ? (
         <nav
@@ -308,7 +319,7 @@ export function PublicNav() {
           </div>
           {accountPills}
           {searchBlock({ suggestions: false, maxWidth: "lg:max-w-xl" })}
-          {desktopUtilities}
+          {desktopUtilities()}
         </nav>
       ) : (
         <nav
@@ -322,7 +333,7 @@ export function PublicNav() {
           </div>
           {browsePills}
           {searchBlock({ suggestions: true })}
-          {desktopUtilities}
+          {desktopUtilities({ showAgent: true })}
         </nav>
       )}
       <PublicNavTrustStrip visible={mode === "browse"} />

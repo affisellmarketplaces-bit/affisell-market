@@ -27,4 +27,10 @@ describe("shouldHideMobileDock", () => {
     expect(shouldHideMobileDock("/login")).toBe(true)
     expect(shouldHideMobileDock("/signup/supplier")).toBe(true)
   })
+
+  it("hides on checkout and success (transaction focus)", () => {
+    expect(shouldHideMobileDock("/checkout/blind")).toBe(true)
+    expect(shouldHideMobileDock("/success")).toBe(true)
+    expect(shouldHideMobileDock("/cart")).toBe(false)
+  })
 })

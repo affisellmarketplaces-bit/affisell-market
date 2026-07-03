@@ -33,6 +33,16 @@ export function isAffiliateShopStorefrontPath(pathname: string | null | undefine
   return true
 }
 
+export function isCheckoutFocusRoute(pathname: string): boolean {
+  const bare = barePathname(pathname)
+  return (
+    bare === "/checkout" ||
+    bare.startsWith("/checkout/") ||
+    bare === "/success" ||
+    bare.startsWith("/success/")
+  )
+}
+
 export function shouldHideMobileDock(pathname: string): boolean {
   if (!pathname) return false
   const bare = barePathname(pathname)
@@ -47,5 +57,6 @@ export function shouldHideMobileDock(pathname: string): boolean {
   if (bare.startsWith("/demo")) return true
   if (isAffiliateShopStorefrontPath(pathname)) return true
   if (isImmersiveBuyerRoute(pathname)) return true
+  if (isCheckoutFocusRoute(pathname)) return true
   return false
 }

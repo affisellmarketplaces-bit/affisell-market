@@ -78,7 +78,8 @@
     "accountTrack": "Suivi colis",
     "trustStripText": "Achat protégé · Paiement sécurisé · Retours 14j UE",
     "trustStripCta": "En savoir plus",
-    "trustStripDismiss": "Masquer"
+    "trustStripDismiss": "Masquer",
+    "agentEntry": "Agent"
   },
   "home": {
     "meta": {
