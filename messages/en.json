@@ -815,6 +815,31 @@
       "generateCta": "Generate description",
       "generating": "Generating…"
     },
+    "variantComposer": {
+      "title": "AI variant studio",
+      "badge": "Smart compose",
+      "description": "Describe colors, sizes, SKUs and specs in plain language — the assistant builds your variant matrix and category attributes in one click.",
+      "promptLabel": "Your instructions",
+      "promptPlaceholder": "E.g. Create variants: colors Black, Navy, Sand — sizes S, M, L, XL. Material: organic cotton. Brand: EcoWear.",
+      "examplesLabel": "Quick examples",
+      "examples": {
+        "colorsSizes": "Create colors Black, White, Red and sizes S, M, L, XL",
+        "fullMatrix": "Advanced SKU matrix: colors Graphite and Silver, sizes 128GB and 256GB, stock 20 each, supplier price €499",
+        "specsOnly": "Fill specs only: material stainless steel, origin France, waterproof yes",
+        "fashion": "Fashion variants: colors Indigo, Ecru, Olive — sizes 38, 40, 42, 44 — cotton linen blend"
+      },
+      "generateCta": "Generate preview",
+      "generating": "Composing…",
+      "applyCta": "Apply to form",
+      "previewReady": "Preview ready — review then apply",
+      "previewDefault": "Variant draft ready",
+      "applied": "Variants and specs applied",
+      "modeSimple": "Colors & sizes",
+      "modeAdvanced": "SKU table",
+      "rowsLabel": "rows",
+      "errorPromptShort": "Describe your request in at least 8 characters.",
+      "errorGeneric": "Generation unavailable — try again"
+    },
     "titleOptimizer": {
       "titleLabel": "Title",
       "optimizeCta": "Optimize title & key points",

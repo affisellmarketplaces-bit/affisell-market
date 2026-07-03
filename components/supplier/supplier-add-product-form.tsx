@@ -125,6 +125,10 @@ import {
 } from "@/components/supplier/supplier-url-import-panel"
 import { SupplierAiImportAgent } from "@/components/supplier/supplier-ai-import-agent"
 import {
+  SupplierVariantComposerPanel,
+  type VariantComposerFormPatch,
+} from "@/components/supplier/supplier-variant-composer-panel"
+import {
   clearSupplierAddProductDraftCache,
   readSupplierAddProductDraftCache,
   writeSupplierAddProductDraftCache,
@@ -2225,6 +2229,54 @@ export function SupplierAddProductForm({
     setPublishBlockers((prev) => prev.filter((b) => b.field !== field))
   }, [])
 
+  const handleVariantComposerApply = useCallback(
+    (patch: VariantComposerFormPatch) => {
+      if (Object.keys(patch.specValuesPatch).length > 0) {
+        setSpecValues((prev) => ({ ...prev, ...patch.specValuesPatch }))
+      }
+
+      if (patch.variantMode === "none") return
+
+      setVariantFormMode(patch.variantMode)
+      clearPublishFieldError("variants")
+
+      if (patch.variantMode === "advanced") {
+        setAdvancedSkuRows(
+          patch.advancedSkuRows.length > 0
+            ? patch.advancedSkuRows
+            : [
+                {
+                  id: newVariantRowId(),
+                  color: "",
+                  size: null,
+                  sku: null,
+                  supplierPrice: Number(price) > 0 ? Number(price) : 10,
+                  stock: 0,
+                  commissionRate: Math.round(Number(commission) || 15),
+                  compareAtEur: compareAt.trim() ? Number(compareAt) : null,
+                  customFields: {},
+                },
+              ]
+        )
+        setVariantRows([])
+        setVariantSizesText(patch.sizesText)
+        setSimpleColorRows([])
+        setVariantColorsText("")
+      } else if (patch.variantMode === "simple") {
+        setVariantSizesText(patch.sizesText)
+        setSimpleColorRows(
+          patch.simpleColors.length > 0
+            ? patch.simpleColors
+            : [{ id: newVariantRowId(), name: "", image: "" }]
+        )
+        setVariantRows([])
+        setAdvancedSkuRows([])
+        setVariantColorsText("")
+      }
+    },
+    [clearPublishFieldError, commission, compareAt, price]
+  )
+
   const handleGalleryImagesChange = useCallback(
     (urls: string[]) => {
       setImages(urls)
@@ -3123,6 +3175,17 @@ export function SupplierAddProductForm({
                       {publishBlockers.find((b) => b.field === "variants")?.message}
                     </p>
                   ) : null}
+                  <SupplierVariantComposerPanel
+                    title={name}
+                    description={description}
+                    categoryPathLabel={categoryPathLabel}
+                    bullets={categoryMatchBullets}
+                    basePriceEur={Number(price) > 0 ? Number(price) : 10}
+                    defaultCommission={Math.round(Number(commission) || 15)}
+                    categoryAttrs={mergedCategoryAttrs}
+                    disabled={saving || loadingProduct}
+                    onApply={handleVariantComposerApply}
+                  />
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
