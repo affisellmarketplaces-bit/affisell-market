@@ -62,11 +62,11 @@ export function NavPill({
       {Icon ? <Icon className="h-4 w-4 shrink-0 opacity-90" aria-hidden /> : null}
       {shortLabel ? (
         <>
-          <span className="xl:hidden">{shortLabel}</span>
-          <span className="hidden xl:inline">{label}</span>
+          <span className="affisell-nav-pill-label xl:hidden">{shortLabel}</span>
+          <span className="affisell-nav-pill-label hidden xl:inline">{label}</span>
         </>
       ) : (
-        label
+        <span className="affisell-nav-pill-label">{label}</span>
       )}
       {badgeCount > 0 ? (
         <span className="ml-0.5 rounded-full bg-cyan-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
@@ -88,6 +88,7 @@ export function NavPill({
       <LocaleLink
         href={href}
         className={classNames}
+        aria-label={label}
         aria-current={active ? "page" : undefined}
         {...prefetchHandlers}
       >
@@ -100,6 +101,7 @@ export function NavPill({
     <NextLink
       href={href}
       className={classNames}
+      aria-label={label}
       aria-current={active ? "page" : undefined}
       {...prefetchHandlers}
     >

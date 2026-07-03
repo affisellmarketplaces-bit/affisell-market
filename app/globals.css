@@ -912,6 +912,84 @@ body.affisell-demo-lab .affisell-header-shell {
     opacity: 0.28;
   }
 
+  /** Full-width accent band under the glass header shell. */
+  .affisell-header-band {
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--brand) 0%,
+      #6366f1 32%,
+      #06b6d4 68%,
+      var(--brand-light) 100%
+    );
+    opacity: 0.72;
+    box-shadow: 0 0 18px rgb(109 40 217 / 0.35);
+  }
+
+  .affisell-global-site-header--compact {
+    padding-bottom: 0.35rem;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, white 88%, transparent) 0%,
+      color-mix(in srgb, white 72%, transparent) 100%
+    );
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .dark .affisell-global-site-header--compact {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, #0c0f1a 92%, transparent) 0%,
+      color-mix(in srgb, #0c0f1a 75%, transparent) 100%
+    );
+  }
+
+  .affisell-header-shell--compact {
+    border-radius: 1.15rem;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.38),
+      0 10px 28px rgb(5 8 22 / 0.14);
+  }
+
+  .affisell-header-shell--compact .affisell-header-band {
+    height: 2px;
+    opacity: 1;
+  }
+
+  .affisell-header-shell--compact .affisell-public-nav {
+    gap: 0.35rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .affisell-header-shell--compact .affisell-brand-wordmark {
+    font-size: 1rem;
+    line-height: 1.25rem;
+  }
+
+  @media (min-width: 1024px) {
+    .affisell-header-shell--compact .affisell-public-nav-pills .affisell-nav-pill-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .affisell-header-shell--compact .affisell-public-nav-pills .affisell-fast-link {
+      padding-inline: 0.65rem;
+    }
+  }
+
+  .affisell-header-shell--compact .affisell-public-nav input[type="search"] {
+    height: 2.25rem;
+  }
+
   /** Public nav — active pill with violet→cyan band (buyer header). */
   .affisell-nav-pill-band {
     background: linear-gradient(

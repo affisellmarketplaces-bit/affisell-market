@@ -3,6 +3,7 @@ import { headers } from "next/headers"
 
 import { Footer } from "@/components/Footer"
 import { AppHeader } from "@/components/nav/app-header"
+import { SiteHeaderChrome } from "@/components/nav/site-header-chrome"
 import { CookieConsentHeadScripts } from "@/components/cookie-consent/cookie-consent-head"
 import CookieBanner from "@/components/CookieBanner"
 import { RootSessionShell } from "@/app/root-intl-session"
@@ -60,14 +61,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <IntlAppProvider locale={locale} messages={messages} now={now}>
             <RootSessionShell>
               {!isDedicatedStorefront ? (
-                <header className="affisell-global-site-header relative z-[200] w-full max-w-full shrink-0 overflow-x-clip px-3 pt-[max(0.5rem,env(safe-area-inset-top))] md:px-4 md:pt-3">
-                  <div className="affisell-header-shell relative mx-auto max-w-7xl min-w-0 overflow-hidden md:overflow-visible">
-                    <div className="affisell-header-mesh pointer-events-none absolute inset-0" aria-hidden />
-              <div className="relative z-[2]">
-                    <AppHeader />
-                  </div>
-                </div>
-              </header>
+                <SiteHeaderChrome>
+                  <AppHeader />
+                </SiteHeaderChrome>
               ) : null}
               {children}
               <Footer />
