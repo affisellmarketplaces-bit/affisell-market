@@ -1,21 +1,33 @@
 import { describe, expect, it, vi, beforeEach } from "vitest"
 
-const { deleteMany, updateMany, findMany, groupBy, cancelAuctionsForListings } = vi.hoisted(() => ({
-  deleteMany: vi.fn(),
-  updateMany: vi.fn(),
-  findMany: vi.fn(),
-  groupBy: vi.fn(),
-  cancelAuctionsForListings: vi.fn(),
-}))
+const { deleteMany, updateMany, findMany, groupBy, cancelAuctionsForListings, storeFindUnique } =
+  vi.hoisted(() => ({
+    deleteMany: vi.fn(),
+    updateMany: vi.fn(),
+    findMany: vi.fn(),
+    groupBy: vi.fn(),
+    cancelAuctionsForListings: vi.fn(),
+    storeFindUnique: vi.fn(),
+  }))
 
 vi.mock("@/lib/auction-listing-lifecycle", () => ({
   cancelAuctionsForListings,
+}))
+
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
+}))
+
+vi.mock("@/lib/shop-categories-response-cache", () => ({
+  bustShopCategoriesResponseCache: vi.fn(),
 }))
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     affiliateProduct: { findMany, deleteMany, updateMany },
     order: { groupBy },
+    store: { findUnique: storeFindUnique },
   },
 }))
 
@@ -24,6 +36,7 @@ import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-r
 describe("removeAffiliateListingsFromStorefront", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    storeFindUnique.mockResolvedValue(null)
   })
 
   it("deletes listings with no orders", async () => {
