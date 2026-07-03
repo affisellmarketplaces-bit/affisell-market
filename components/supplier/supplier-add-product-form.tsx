@@ -126,6 +126,7 @@ import {
 import { SupplierAiImportAgent } from "@/components/supplier/supplier-ai-import-agent"
 import {
   SupplierVariantComposerPanel,
+  type VariantComposerApplyMeta,
   type VariantComposerFormPatch,
 } from "@/components/supplier/supplier-variant-composer-panel"
 import {
@@ -360,6 +361,7 @@ export function SupplierAddProductForm({
 
   const cacheMode: SupplierAddProductCacheMode = assistShortcuts ? "assist" : composeQs ? "compose" : "plain"
   const tForm = useTranslations("supplier.form")
+  const tVariantComposer = useTranslations("supplier.variantComposer")
   const locale = useLocale() as "fr" | "en"
   const tQuality = useTranslations("supplier.quality")
   const tWizard = useTranslations("supplier.wizard")
@@ -430,6 +432,7 @@ export function SupplierAddProductForm({
   const [advancedSkuRows, setAdvancedSkuRows] = useState<EditableVariantRow[]>([])
   const [skuCustomColumns, setSkuCustomColumns] = useState<SkuCustomColumnDef[]>([])
   const [skuHiddenColumns, setSkuHiddenColumns] = useState<SkuOptionalColumnKey[]>([])
+  const [variantTableHighlightToken, setVariantTableHighlightToken] = useState(0)
   const [skuValidationIssues, setSkuValidationIssues] = useState<VariantRowValidationIssue[]>([])
   const [simpleColorIssues, setSimpleColorIssues] = useState<SimpleColorValidationIssue[]>([])
   const [simpleVariantsOptimizing, setSimpleVariantsOptimizing] = useState(false)
@@ -2230,7 +2233,7 @@ export function SupplierAddProductForm({
   }, [])
 
   const handleVariantComposerApply = useCallback(
-    (patch: VariantComposerFormPatch) => {
+    (patch: VariantComposerFormPatch, meta: VariantComposerApplyMeta) => {
       if (Object.keys(patch.specValuesPatch).length > 0) {
         setSpecValues((prev) => ({ ...prev, ...patch.specValuesPatch }))
       }
@@ -2279,8 +2282,15 @@ export function SupplierAddProductForm({
         setAdvancedSkuRows([])
         setVariantColorsText("")
       }
+
+      setVariantTableHighlightToken((n) => n + 1)
+      if (step !== 2) {
+        toast.message(tVariantComposer("savedForStep2"))
+      } else {
+        scrollToSection("add-product-variants")
+      }
     },
-    [clearPublishFieldError, commission, compareAt, price]
+    [clearPublishFieldError, commission, compareAt, price, scrollToSection, step, tVariantComposer]
   )
 
   const handleGalleryImagesChange = useCallback(
@@ -2759,6 +2769,18 @@ export function SupplierAddProductForm({
                         categoryAttrs={mergedCategoryAttrs}
                         categoryPathLabel={categoryPathLabel}
                         onGenerated={handleAiGenerated}
+                      />
+                      <SupplierVariantComposerPanel
+                        compact
+                        title={name}
+                        description={description}
+                        categoryPathLabel={categoryPathLabel}
+                        bullets={categoryMatchBullets}
+                        basePriceEur={Number(price) > 0 ? Number(price) : 10}
+                        defaultCommission={Math.round(Number(commission) || 15)}
+                        categoryAttrs={mergedCategoryAttrs}
+                        disabled={saving || loadingProduct}
+                        onApply={handleVariantComposerApply}
                       />
                     </div>
                   </SectionCard>
@@ -3430,6 +3452,12 @@ export function SupplierAddProductForm({
                       onCustomColumnsChange={setSkuCustomColumns}
                       hiddenColumns={skuHiddenColumns}
                       onHiddenColumnsChange={setSkuHiddenColumns}
+                      primaryAxisLabel={
+                        skuCustomColumns.length > 0
+                          ? tVariantComposer("configurationAxis")
+                          : tVariantComposer("colorAxis")
+                      }
+                      highlightToken={variantTableHighlightToken}
                       skuPrefix="PRD"
                       catalogShipsFrom={shipsFrom.trim() || "EU"}
                       catalogDeliveryDays={

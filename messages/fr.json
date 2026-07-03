@@ -839,7 +839,16 @@
       "modeAdvanced": "Tableau SKU",
       "rowsLabel": "lignes",
       "errorPromptShort": "Décrivez votre demande (min. 8 caractères).",
-      "errorGeneric": "Génération indisponible — réessayez"
+      "errorGeneric": "Génération indisponible — réessayez",
+      "generateAndApplyCta": "Générer & appliquer",
+      "keyboardHint": "⌘↵ exécution rapide",
+      "descriptionCompact": "Décrivez vos variantes en langage naturel — appliquées à l'étape 2.",
+      "matrixPreviewAxis": "Configuration",
+      "editableAfterApply": "Modifiable dans le tableau SKU",
+      "configurationAxis": "Configuration",
+      "colorAxis": "Couleur",
+      "appliedMatrix": "{rows} lignes créées · colonnes {cols} — modifiez chaque cellule ci-dessous",
+      "savedForStep2": "Variantes enregistrées — ouvrez l'étape 2 pour ajuster la matrice"
     },
     "titleOptimizer": {
       "titleLabel": "Titre",

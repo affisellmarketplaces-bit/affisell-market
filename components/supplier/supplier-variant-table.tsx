@@ -125,6 +125,10 @@ type Props = {
   disabled?: boolean
   className?: string
   tableId?: string
+  /** "Couleur" by default; use "Configuration" for RAM/SSD-style matrices. */
+  primaryAxisLabel?: string
+  /** Brief highlight ring after AI compose apply. */
+  highlightToken?: number
   /** Hide stock total + inline error count in header (wizard shows alert below). */
   hideHeaderStats?: boolean
   optimizeContext?: VariantOptimizeContext
@@ -151,6 +155,8 @@ export function SupplierVariantTable({
   hideHeaderStats = false,
   optimizeContext,
   liveSync,
+  primaryAxisLabel = "Couleur",
+  highlightToken = 0,
 }: Props) {
   const [mode, setMode] = useState<"fast" | "table">(rows.length === 0 ? "fast" : "table")
   const [customColumnModalOpen, setCustomColumnModalOpen] = useState(false)
@@ -457,6 +463,18 @@ export function SupplierVariantTable({
     }
   }, [validationIssues.length])
 
+  useEffect(() => {
+    if (customColumns.length > 0 && rows.length > 0) {
+      setMode("table")
+    }
+  }, [customColumns.length, rows.length])
+
+  useEffect(() => {
+    if (highlightToken <= 0) return
+    const el = document.getElementById(tableId)
+    el?.scrollIntoView({ behavior: "smooth", block: "center" })
+  }, [highlightToken, tableId])
+
   const rowErrorClass = (index: number, field: string) =>
     issueByIndex.get(index)?.has(field)
       ? "border-red-500 ring-2 ring-red-500/25 focus-visible:ring-red-500/30"
@@ -486,7 +504,14 @@ export function SupplierVariantTable({
     customColumns.length
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div
+      className={cn(
+        "space-y-4",
+        highlightToken > 0 &&
+          "rounded-2xl ring-2 ring-violet-500/40 ring-offset-2 ring-offset-white transition-shadow duration-700 dark:ring-offset-zinc-950",
+        className
+      )}
+    >
       {liveSync ? (
         <SupplierVariantLiveSyncBar
           enabled={liveSync.enabled}
@@ -692,7 +717,7 @@ export function SupplierVariantTable({
               <thead className="sticky top-0 z-10 bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500 shadow-sm dark:bg-zinc-900/95 dark:text-zinc-400">
                 <tr>
                   {showPhotoCol ? <th className="w-[140px] px-2 py-2.5">Photo</th> : null}
-                  <th className="px-3 py-2.5">Couleur</th>
+                  <th className="px-3 py-2.5">{primaryAxisLabel}</th>
                   {showSizeCol ? <th className="px-3 py-2.5">Taille</th> : null}
                   {showSkuCol ? <th className="px-3 py-2.5">SKU</th> : null}
                   {showSupplierPriceCol ? (
