@@ -1,4 +1,12 @@
 import {
+  buildNotionLeadCreateProperties,
+  detectNotionCrmSchema,
+  mapCrmAffisellStatus,
+  normalizeNotionDatabaseId,
+  type NotionCrmSchemaKind,
+  type NotionLeadCreateInput,
+} from "@/lib/crm/notion-crm-schema"
+import {
   isSupplierPipelineStatus,
   type SupplierPipelineStatus,
 } from "@/lib/crm/supplier-pipeline-status"
@@ -6,7 +14,7 @@ import type { SupplierPipelineNotionConfig, SupplierPipelineRow } from "@/lib/cr
 
 const NOTION_VERSION = "2022-06-28"
 
-/** Noms de propriétés Notion — doivent correspondre au template. */
+/** Noms de propriétés Notion — template « Suppliers Pipeline » (legacy doc). */
 export const NOTION_CRM_PROPERTY_NAMES = {
   name: "Name",
   siteUrl: "URL site",
@@ -18,15 +26,6 @@ export const NOTION_CRM_PROPERTY_NAMES = {
   notes: "Notes",
 } as const
 
-export function getSupplierPipelineNotionConfig(): SupplierPipelineNotionConfig {
-  const token = process.env.NOTION_API_KEY?.trim()
-  const databaseId = process.env.NOTION_CRM_DATABASE_ID?.trim()
-  return {
-    configured: Boolean(token && databaseId),
-    databaseId: databaseId ?? null,
-  }
-}
-
 type NotionRichText = { plain_text?: string }
 type NotionPage = {
   id: string
@@ -34,32 +33,119 @@ type NotionPage = {
   properties: Record<string, unknown>
 }
 
+type NotionCredentials = {
+  token: string
+  databaseId: string
+}
+
+type SchemaCacheEntry = {
+  schema: NotionCrmSchemaKind
+  titleProperty: string
+  fetchedAt: number
+}
+
+const SCHEMA_CACHE_TTL_MS = 5 * 60 * 1000
+let schemaCache: { databaseId: string; entry: SchemaCacheEntry } | null = null
+
+function resolveNotionCredentials(): NotionCredentials | null {
+  const token = process.env.NOTION_API_KEY?.trim()
+  const databaseId = normalizeNotionDatabaseId(process.env.NOTION_CRM_DATABASE_ID)
+  if (!token || !databaseId) return null
+  return { token, databaseId }
+}
+
+export function getSupplierPipelineNotionConfig(): SupplierPipelineNotionConfig {
+  const creds = resolveNotionCredentials()
+  return {
+    configured: Boolean(creds),
+    databaseId: creds?.databaseId ?? null,
+  }
+}
+
+async function fetchNotionDatabaseSchema(creds: NotionCredentials): Promise<
+  | { ok: true; schema: NotionCrmSchemaKind; titleProperty: string }
+  | { ok: false; error: string }
+> {
+  const cached = schemaCache
+  if (
+    cached &&
+    cached.databaseId === creds.databaseId &&
+    Date.now() - cached.entry.fetchedAt < SCHEMA_CACHE_TTL_MS
+  ) {
+    return {
+      ok: true,
+      schema: cached.entry.schema,
+      titleProperty: cached.entry.titleProperty,
+    }
+  }
+
+  try {
+    const res = await fetch(`https://api.notion.com/v1/databases/${creds.databaseId}`, {
+      headers: {
+        Authorization: `Bearer ${creds.token}`,
+        "Notion-Version": NOTION_VERSION,
+      },
+      cache: "no-store",
+    })
+
+    if (!res.ok) {
+      const body = await res.text()
+      console.error("[crm/notion-schema]", { status: res.status, body: body.slice(0, 500) })
+      return { ok: false, error: `notion_http_${res.status}` }
+    }
+
+    const data = (await res.json()) as { properties?: Record<string, { type?: string }> }
+    const properties = data.properties ?? {}
+    const schema = detectNotionCrmSchema(properties)
+    const titleProperty = schema === "crm_affisell" ? "Nom" : NOTION_CRM_PROPERTY_NAMES.name
+
+    schemaCache = {
+      databaseId: creds.databaseId,
+      entry: { schema, titleProperty, fetchedAt: Date.now() },
+    }
+
+    console.log("[crm/notion-schema]", { schema, titleProperty, result: "ok" })
+    return { ok: true, schema, titleProperty }
+  } catch (e) {
+    console.error("[crm/notion-schema]", {
+      error: e instanceof Error ? e.message : String(e),
+      result: "schema_fetch_failed",
+    })
+    return { ok: false, error: "schema_fetch_failed" }
+  }
+}
+
 export async function fetchSupplierPipelineFromNotion(): Promise<{
   rows: SupplierPipelineRow[]
   error: string | null
 }> {
-  const token = process.env.NOTION_API_KEY?.trim()
-  const databaseId = process.env.NOTION_CRM_DATABASE_ID?.trim()
-  if (!token || !databaseId) {
+  const creds = resolveNotionCredentials()
+  if (!creds) {
     return { rows: [], error: "not_configured" }
   }
 
+  const schemaResult = await fetchNotionDatabaseSchema(creds)
+  if (!schemaResult.ok) {
+    return { rows: [], error: schemaResult.error }
+  }
+
+  const { schema, titleProperty } = schemaResult
   const rows: SupplierPipelineRow[] = []
   let cursor: string | undefined
 
   try {
     do {
-      const res = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
+      const res = await fetch(`https://api.notion.com/v1/databases/${creds.databaseId}/query`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${creds.token}`,
           "Notion-Version": NOTION_VERSION,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           page_size: 100,
           start_cursor: cursor,
-          sorts: [{ property: NOTION_CRM_PROPERTY_NAMES.name, direction: "ascending" }],
+          sorts: [{ property: titleProperty, direction: "ascending" }],
         }),
         cache: "no-store",
       })
@@ -77,14 +163,14 @@ export async function fetchSupplierPipelineFromNotion(): Promise<{
       }
 
       for (const page of data.results) {
-        const row = parseNotionPage(page)
+        const row = parseNotionPage(page, schema)
         if (row) rows.push(row)
       }
 
       cursor = data.has_more && data.next_cursor ? data.next_cursor : undefined
     } while (cursor)
 
-    console.log("[crm/notion]", { rows: rows.length, result: "ok" })
+    console.log("[crm/notion]", { rows: rows.length, schema, result: "ok" })
     return { rows, error: null }
   } catch (e) {
     console.error("[crm/notion]", {
@@ -95,12 +181,37 @@ export async function fetchSupplierPipelineFromNotion(): Promise<{
   }
 }
 
-function parseNotionPage(page: NotionPage): SupplierPipelineRow | null {
+function parseNotionPage(page: NotionPage, schema: NotionCrmSchemaKind): SupplierPipelineRow | null {
   const props = page.properties
+
+  if (schema === "crm_affisell") {
+    const name = readTitle(props.Nom)
+    if (!name) return null
+
+    const supplierId = readRichText(props.SupplierId)
+    const email = readEmail(props["E-mail"])
+    const statusRaw = readStatusOrSelect(props.Status)
+    const status = mapCrmAffisellStatus(statusRaw, supplierId)
+    const noteParts = [supplierId, email ? `E-mail: ${email}` : null].filter(Boolean)
+
+    return {
+      id: page.id,
+      name,
+      siteUrl: null,
+      siret: null,
+      categorie: null,
+      telegram: null,
+      status,
+      dernierContact: readDate(props.Date),
+      notes: noteParts.length > 0 ? noteParts.join("\n") : null,
+      notionUrl: page.url ?? null,
+    }
+  }
+
   const name = readTitle(props[NOTION_CRM_PROPERTY_NAMES.name])
   if (!name) return null
 
-  const statusRaw = readSelect(props[NOTION_CRM_PROPERTY_NAMES.status])
+  const statusRaw = readStatusOrSelect(props[NOTION_CRM_PROPERTY_NAMES.status])
   const status: SupplierPipelineStatus =
     statusRaw && isSupplierPipelineStatus(statusRaw) ? statusRaw : "Lead"
 
@@ -133,6 +244,13 @@ function readRichText(prop: unknown): string | null {
   return v || null
 }
 
+function readEmail(prop: unknown): string | null {
+  if (!prop || typeof prop !== "object") return null
+  const p = prop as { type?: string; email?: string | null }
+  if (p.type !== "email") return null
+  return p.email?.trim().toLowerCase() || null
+}
+
 function readUrl(prop: unknown): string | null {
   if (!prop || typeof prop !== "object") return null
   const p = prop as { type?: string; url?: string | null }
@@ -145,6 +263,18 @@ function readSelect(prop: unknown): string | null {
   const p = prop as { type?: string; select?: { name?: string } | null }
   if (p.type !== "select") return null
   return p.select?.name?.trim() || null
+}
+
+function readStatusOrSelect(prop: unknown): string | null {
+  if (!prop || typeof prop !== "object") return null
+  const p = prop as {
+    type?: string
+    select?: { name?: string } | null
+    status?: { name?: string } | null
+  }
+  if (p.type === "select") return p.select?.name?.trim() || null
+  if (p.type === "status") return p.status?.name?.trim() || null
+  return null
 }
 
 function readDate(prop: unknown): string | null {
@@ -163,60 +293,34 @@ const ENTERPRISE_CATEGORY_TO_NOTION: Partial<Record<string, string>> = {
   home: "Maison",
 }
 
-export type CreateSupplierPipelineLeadInput = {
-  name: string
-  siteUrl?: string | null
-  status?: "Lead"
-  categorie?: string | null
-  notes: string
-  dernierContactIso?: string
-}
+export type CreateSupplierPipelineLeadInput = NotionLeadCreateInput
 
 /** Idempotent-safe create — duplicate brand names become separate rows (founder merges in Notion). */
 export async function createSupplierPipelineLeadInNotion(
   input: CreateSupplierPipelineLeadInput
 ): Promise<{ ok: true; notionPageId: string; notionUrl: string | null } | { ok: false; error: string }> {
-  const token = process.env.NOTION_API_KEY?.trim()
-  const databaseId = process.env.NOTION_CRM_DATABASE_ID?.trim()
-  if (!token || !databaseId) {
+  const creds = resolveNotionCredentials()
+  if (!creds) {
     return { ok: false, error: "not_configured" }
   }
 
-  const properties: Record<string, unknown> = {
-    [NOTION_CRM_PROPERTY_NAMES.name]: {
-      title: [{ text: { content: input.name.trim().slice(0, 200) } }],
-    },
-    [NOTION_CRM_PROPERTY_NAMES.status]: {
-      select: { name: input.status ?? "Lead" },
-    },
-    [NOTION_CRM_PROPERTY_NAMES.notes]: {
-      rich_text: [{ text: { content: input.notes.trim().slice(0, 1900) } }],
-    },
-    [NOTION_CRM_PROPERTY_NAMES.dernierContact]: {
-      date: { start: input.dernierContactIso ?? new Date().toISOString().slice(0, 10) },
-    },
+  const schemaResult = await fetchNotionDatabaseSchema(creds)
+  if (!schemaResult.ok) {
+    return { ok: false, error: schemaResult.error }
   }
 
-  const siteUrl = input.siteUrl?.trim()
-  if (siteUrl) {
-    properties[NOTION_CRM_PROPERTY_NAMES.siteUrl] = { url: siteUrl }
-  }
-
-  const categorie = input.categorie?.trim()
-  if (categorie && NOTION_KNOWN_CATEGORIES.has(categorie)) {
-    properties[NOTION_CRM_PROPERTY_NAMES.categorie] = { select: { name: categorie } }
-  }
+  const properties = buildNotionLeadCreateProperties(schemaResult.schema, input)
 
   try {
     const res = await fetch("https://api.notion.com/v1/pages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${creds.token}`,
         "Notion-Version": NOTION_VERSION,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        parent: { database_id: databaseId },
+        parent: { database_id: creds.databaseId },
         properties,
       }),
       cache: "no-store",
@@ -224,12 +328,21 @@ export async function createSupplierPipelineLeadInNotion(
 
     if (!res.ok) {
       const body = await res.text()
-      console.error("[crm/notion-create]", { status: res.status, body: body.slice(0, 500) })
+      console.error("[crm/notion-create]", {
+        status: res.status,
+        schema: schemaResult.schema,
+        body: body.slice(0, 500),
+      })
       return { ok: false, error: `notion_http_${res.status}` }
     }
 
     const page = (await res.json()) as { id?: string; url?: string }
-    console.log("[crm/notion-create]", { name: input.name, pageId: page.id, result: "ok" })
+    console.log("[crm/notion-create]", {
+      name: input.name,
+      pageId: page.id,
+      schema: schemaResult.schema,
+      result: "ok",
+    })
     return {
       ok: true,
       notionPageId: page.id ?? "",

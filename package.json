@@ -56,6 +56,7 @@
     "verify:paypal:prod": "MARKETPLACE_PAYPAL_ENABLED=1 node scripts/verify-paypal-checkout-ready.mjs",
     "verify:store-domains": "node scripts/verify-store-domains-ready.mjs",
     "verify:ops": "node scripts/verify-ops-ready.mjs",
+    "verify:notion-crm": "node scripts/verify-notion-crm-ready.mjs",
     "check:client-prisma": "node scripts/check-client-prisma-imports.mjs",
     "brand:icons": "node scripts/generate-brand-icons.mjs",
     "i18n:parity": "node scripts/i18n-parity-check.mjs",

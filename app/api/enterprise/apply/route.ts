@@ -78,6 +78,8 @@ export async function POST(req: Request) {
   const notion = await createSupplierPipelineLeadInNotion({
     name: payload.brandName,
     siteUrl: payload.website,
+    contactEmail: payload.contactEmail,
+    contactName: payload.contactName,
     categorie: notionCategoryForEnterprise(payload.category),
     notes,
   })
