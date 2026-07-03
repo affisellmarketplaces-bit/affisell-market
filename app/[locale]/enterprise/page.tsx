@@ -23,7 +23,7 @@ export default async function EnterprisePage({ params }: Props) {
   const t = await getTranslations("enterprise")
 
   const badges = [t("hero.badge1"), t("hero.badge2"), t("hero.badge3")]
-  const steps = [t("steps.step1"), t("steps.step2"), t("steps.step3")]
+  const steps = [t("program.step1"), t("program.step2"), t("program.step3")]
 
   return (
     <main className="mx-auto max-w-6xl space-y-12 px-4 py-8 sm:px-6 sm:py-10">
