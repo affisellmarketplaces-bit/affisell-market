@@ -839,7 +839,16 @@
       "modeAdvanced": "SKU table",
       "rowsLabel": "rows",
       "errorPromptShort": "Describe your request in at least 8 characters.",
-      "errorGeneric": "Generation unavailable — try again"
+      "errorGeneric": "Generation unavailable — try again",
+      "generateAndApplyCta": "Generate & apply",
+      "keyboardHint": "⌘↵ quick run",
+      "descriptionCompact": "Describe variants in plain language — applied when you reach step 2.",
+      "matrixPreviewAxis": "Configuration",
+      "editableAfterApply": "Editable in SKU table",
+      "configurationAxis": "Configuration",
+      "colorAxis": "Color",
+      "appliedMatrix": "{rows} rows created · columns {cols} — edit each cell below",
+      "savedForStep2": "Variants saved — open step 2 to review the editable matrix"
     },
     "titleOptimizer": {
       "titleLabel": "Title",
