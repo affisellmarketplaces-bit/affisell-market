@@ -826,7 +826,8 @@
         "colorsSizes": "Create colors Black, White, Red and sizes S, M, L, XL",
         "fullMatrix": "Advanced SKU matrix: colors Graphite and Silver, sizes 128GB and 256GB, stock 20 each, supplier price €499",
         "specsOnly": "Fill specs only: material stainless steel, origin France, waterproof yes",
-        "fashion": "Fashion variants: colors Indigo, Ecru, Olive — sizes 38, 40, 42, 44 — cotton linen blend"
+        "fashion": "Fashion variants: colors Indigo, Ecru, Olive — sizes 38, 40, 42, 44 — cotton linen blend",
+        "pcConfigs": "Create 4 PC configs:\n12 Go RAM, 256 Go SSD\n12 Go RAM, 1 To SSD\n12 Go RAM, 512 Go SSD\n12 Go RAM, 2 To SSD"
       },
       "generateCta": "Generate preview",
       "generating": "Composing…",
