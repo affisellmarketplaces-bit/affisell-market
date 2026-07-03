@@ -1,4 +1,5 @@
 import { buildVariantOptionLabel } from "@/lib/marketplace-purchase-quantity"
+import { wholesaleCentsForAffiliateOption } from "@/lib/affiliate-variant-pricing"
 import { parseVariantsPayload, type ProductVariantsJson } from "@/lib/product-variants"
 import { splitVariantLineName } from "@/lib/supplier-sku-builder"
 
@@ -9,58 +10,83 @@ export type AffiliateVariantOption = {
   color: string | null
   size: string | null
   stock: number
+  /** Supplier wholesale HT cents for this SKU line */
+  wholesaleCents: number
 }
 
 export function normalizeVariantPromotionKey(key: string): string {
   return key.trim()
 }
 
-function optionFromName(name: string, stock: number): AffiliateVariantOption | null {
-  const label = name.trim()
-  if (!label) return null
-  const { color, size } = splitVariantLineName(label)
-  return {
-    key: label,
-    label,
-    color: color || null,
-    size,
-    stock: Math.max(0, Math.round(stock) || 0),
-  }
-}
-
 /** Build selectable variant rows for the affiliate listing builder. */
 export function buildAffiliateVariantOptions(product: {
   colors: string[]
   variants: unknown
+  basePriceCents?: number
   hasVariants?: boolean
   productVariants?: Array<{
     color: string | null
     size: string | null
     stock: number
+    supplierPrice?: unknown
+    wholesalePriceCents?: number | null
   }>
 }): AffiliateVariantOption[] {
+  const basePriceCents = Math.max(0, Math.round(product.basePriceCents ?? 0))
   const parsed = parseVariantsPayload(product.variants)
   const rows = parsed?.variantRows ?? []
   const seen = new Set<string>()
   const out: AffiliateVariantOption[] = []
 
-  const push = (opt: AffiliateVariantOption | null) => {
-    if (!opt) return
+  const wholesaleFor = (key: string, color: string | null, size: string | null) =>
+    wholesaleCentsForAffiliateOption({
+      optionKey: key,
+      optionColor: color,
+      optionSize: size,
+      productBasePriceCents: basePriceCents,
+      variants: product.variants,
+      productVariants: product.productVariants,
+    })
+
+  const push = (opt: Omit<AffiliateVariantOption, "wholesaleCents"> & { wholesaleCents?: number }) => {
     const k = normalizeVariantPromotionKey(opt.key).toLowerCase()
     if (!k || seen.has(k)) return
     seen.add(k)
-    out.push({ ...opt, key: normalizeVariantPromotionKey(opt.key) })
+    out.push({
+      ...opt,
+      key: normalizeVariantPromotionKey(opt.key),
+      wholesaleCents:
+        opt.wholesaleCents ??
+        wholesaleFor(normalizeVariantPromotionKey(opt.key), opt.color, opt.size),
+    })
   }
 
   for (const row of rows) {
-    push(optionFromName(row.name, row.stock))
+    const name = row.name.trim()
+    if (!name) continue
+    const { color, size } = splitVariantLineName(name)
+    push({
+      key: name,
+      label: name,
+      color: color || null,
+      size,
+      stock: Math.max(0, Math.round(row.stock) || 0),
+      wholesaleCents: row.priceCents > 0 ? row.priceCents : undefined,
+    })
   }
 
   if (out.length === 0 && product.productVariants?.length) {
     for (const v of product.productVariants) {
       const label = buildVariantOptionLabel(v.color, v.size)
       if (!label) continue
-      push(optionFromName(label, v.stock))
+      const { color, size } = splitVariantLineName(label)
+      push({
+        key: label,
+        label,
+        color: color || null,
+        size,
+        stock: Math.max(0, Math.round(v.stock) || 0),
+      })
     }
   }
 
@@ -71,7 +97,13 @@ export function buildAffiliateVariantOptions(product: {
       for (const color of colors) {
         for (const size of sizes) {
           const label = buildVariantOptionLabel(color, size)
-          push(optionFromName(label, 0))
+          push({
+            key: label,
+            label,
+            color,
+            size,
+            stock: 0,
+          })
         }
       }
     } else if (colors.length > 0) {

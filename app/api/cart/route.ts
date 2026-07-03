@@ -3,6 +3,10 @@ import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-lis
 import { resolveCartLineImageUrl } from "@/lib/cart-line-image"
 import { prisma } from "@/lib/prisma"
 import { marketplaceSellingPriceCentsForOption, variantsFromDb } from "@/lib/product-variants"
+import {
+  parseAffiliateVariantPricingJson,
+  resolveAffiliateSellingPriceCentsForOption,
+} from "@/lib/affiliate-variant-pricing"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -67,11 +71,13 @@ export async function GET() {
     })
 
     const variants = variantsFromDb(p.variants)
-    const unitCents = marketplaceSellingPriceCentsForOption({
+    const variantPricing = parseAffiliateVariantPricingJson(listing.variantPricing)
+    const unitCents = resolveAffiliateSellingPriceCentsForOption({
       listingSellingPriceCents: listing.sellingPriceCents,
       productBasePriceCents: p.basePriceCents,
       variants,
       optionName: row.selectedColor,
+      variantPricing,
     })
 
     return {

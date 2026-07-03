@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
 import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
@@ -8,6 +9,7 @@ import { resolveLuxuryListingCreateFields } from "@/lib/luxury-listing-patch"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
+import { resolveVariantPricingBodyForProduct } from "@/lib/affiliate-variant-pricing-request"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
@@ -171,17 +173,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: rewardRes.error }, { status: 400 })
   }
 
+  const productVariantRows = await prisma.productVariant.findMany({
+    where: { productId: product.id },
+    select: {
+      color: true,
+      size: true,
+      stock: true,
+      supplierPrice: true,
+      wholesalePriceCents: true,
+      customData: true,
+    },
+    orderBy: { createdAt: "asc" },
+  })
+
   const productForPromo = {
     colors: Array.isArray(product.colors)
       ? product.colors.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
       : [],
     variants: product.variants,
     hasVariants: product.hasVariants,
-    productVariants: await prisma.productVariant.findMany({
-      where: { productId: product.id },
-      select: { color: true, size: true, stock: true },
-      orderBy: { createdAt: "asc" },
-    }),
+    basePriceCents: product.basePriceCents,
+    productVariants: productVariantRows.map(({ customData: _c, ...v }) => v),
   }
 
   const promo = parsePromotedVariantPatch(productForPromo, body)
@@ -214,10 +226,7 @@ export async function POST(request: Request) {
     const warrantyMonths = resolveProductWarrantyMonths({
       variants: product.variants,
       hasVariants: product.hasVariants,
-      productVariants: await prisma.productVariant.findMany({
-        where: { productId: product.id },
-        select: { customData: true },
-      }),
+      productVariants: productVariantRows.map(({ customData }) => ({ customData })),
     })
     if ((warrantyMonths == null || warrantyMonths <= 0) && !saveDraft) {
       return NextResponse.json(
@@ -226,6 +235,23 @@ export async function POST(request: Request) {
       )
     }
     showWarranty = warrantyMonths != null && warrantyMonths > 0
+  }
+
+  let variantPricingPatch: Prisma.InputJsonValue | typeof Prisma.DbNull | undefined
+  if ("variantPricing" in body) {
+    const pricingRes = resolveVariantPricingBodyForProduct({
+      raw: body.variantPricing,
+      product: productForPromo,
+    })
+    if ("error" in pricingRes && !saveDraft) {
+      return NextResponse.json({ error: pricingRes.error }, { status: 400 })
+    }
+    if (!("error" in pricingRes)) {
+      variantPricingPatch =
+        pricingRes.variantPricing === null
+          ? Prisma.DbNull
+          : (pricingRes.variantPricing as Prisma.InputJsonValue)
+    }
   }
 
   try {
@@ -255,6 +281,7 @@ export async function POST(request: Request) {
         showWarranty,
         ...promoPatch,
         ...keysPatch,
+        ...(variantPricingPatch !== undefined ? { variantPricing: variantPricingPatch } : {}),
       },
       update: {
         sellingPriceCents,
@@ -275,6 +302,7 @@ export async function POST(request: Request) {
         showWarranty,
         ...promoPatch,
         ...keysPatch,
+        ...(variantPricingPatch !== undefined ? { variantPricing: variantPricingPatch } : {}),
       },
     })
 

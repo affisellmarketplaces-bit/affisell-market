@@ -40,7 +40,14 @@ export function affiliateCatalogProductDetailSelect(affiliateId: string): Prisma
     variants: true,
     hasVariants: true,
     productVariants: {
-      select: { color: true, size: true, stock: true, customData: true },
+      select: {
+        color: true,
+        size: true,
+        stock: true,
+        customData: true,
+        supplierPrice: true,
+        wholesalePriceCents: true,
+      },
       orderBy: { createdAt: "asc" },
     },
   }
@@ -83,6 +90,7 @@ const affiliateListingRowSelect = {
   promotedColor: true,
   promotedSize: true,
   promotedVariantKeys: true,
+  variantPricing: true,
   showWarranty: true,
 } satisfies Prisma.AffiliateProductSelect
 

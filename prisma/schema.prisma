@@ -1474,6 +1474,12 @@ model AffiliateProduct {
   promotedVariantKeys String[] @default([])
 
   /**
+   * Per-variant affiliate prices keyed by variant label (same keys as promotedVariantKeys).
+   * Example: { "12 Go de RAM / 256 Go de SSD": { "sellingPriceCents": 40250, "marginCents": 11151 } }
+   */
+  variantPricing Json?
+
+  /**
    * When true, show supplier warranty badge on storefront cards (requires warranty on SKUs).
    */
   showWarranty Boolean @default(false)

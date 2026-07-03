@@ -34,6 +34,10 @@ import {
   marketplaceWholesaleCentsForOption,
   variantsFromDb,
 } from "@/lib/product-variants"
+import {
+  parseAffiliateVariantPricingJson,
+  resolveAffiliateSellingPriceCentsForOption,
+} from "@/lib/affiliate-variant-pricing"
 import { stripeProductImages } from "@/lib/product-images"
 import { resolveCheckoutBaseUrl } from "@/lib/checkout-base-url"
 import { resolveStripeCheckoutAllowedCountries } from "@/lib/checkout-country-rollout"
@@ -124,11 +128,13 @@ function lineSellingPriceCents(
   row: CartLineInput
 ): number {
   const variants = variantsFromDb(listing.product.variants)
-  return marketplaceSellingPriceCentsForOption({
+  const variantPricing = parseAffiliateVariantPricingJson(listing.variantPricing)
+  return resolveAffiliateSellingPriceCentsForOption({
     listingSellingPriceCents: listing.sellingPriceCents,
     productBasePriceCents: listing.product.basePriceCents,
     variants,
     optionName: checkoutOptionName(row),
+    variantPricing,
   })
 }
 

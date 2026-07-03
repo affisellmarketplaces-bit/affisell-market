@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import type { Prisma } from "@prisma/client"
+import { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
 import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
@@ -12,6 +12,7 @@ import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-remove"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
+import { resolveVariantPricingBodyForProduct } from "@/lib/affiliate-variant-pricing-request"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
@@ -209,17 +210,27 @@ export async function PATCH(
   data.buyerRewardKind = rewardRes.buyerRewardKind
   data.buyerRewardPercent = rewardRes.buyerRewardPercent
 
+  const productVariantRows = await prisma.productVariant.findMany({
+    where: { productId: listing.productId },
+    select: {
+      color: true,
+      size: true,
+      stock: true,
+      supplierPrice: true,
+      wholesalePriceCents: true,
+      customData: true,
+    },
+    orderBy: { createdAt: "asc" },
+  })
+
   const productForPromo = {
     colors: Array.isArray(listing.product.colors)
       ? listing.product.colors.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
       : [],
     variants: listing.product.variants,
     hasVariants: listing.product.hasVariants,
-    productVariants: await prisma.productVariant.findMany({
-      where: { productId: listing.productId },
-      select: { color: true, size: true, stock: true },
-      orderBy: { createdAt: "asc" },
-    }),
+    basePriceCents: listing.product.basePriceCents,
+    productVariants: productVariantRows.map(({ customData: _c, ...v }) => v),
   }
 
   const promo = parsePromotedVariantPatch(productForPromo, body)
@@ -242,10 +253,7 @@ export async function PATCH(
       const warrantyMonths = resolveProductWarrantyMonths({
         variants: listing.product.variants,
         hasVariants: listing.product.hasVariants,
-        productVariants: await prisma.productVariant.findMany({
-          where: { productId: listing.productId },
-          select: { customData: true },
-        }),
+        productVariants: productVariantRows.map(({ customData }) => ({ customData })),
       })
       if (warrantyMonths == null || warrantyMonths <= 0) {
         return NextResponse.json(
@@ -255,6 +263,20 @@ export async function PATCH(
       }
     }
     data.showWarranty = showWarrantyFlag
+  }
+
+  if ("variantPricing" in body) {
+    const pricingRes = resolveVariantPricingBodyForProduct({
+      raw: body.variantPricing,
+      product: productForPromo,
+    })
+    if ("error" in pricingRes) {
+      return NextResponse.json({ error: pricingRes.error }, { status: 400 })
+    }
+    data.variantPricing =
+      pricingRes.variantPricing === null
+        ? Prisma.DbNull
+        : (pricingRes.variantPricing as Prisma.InputJsonValue)
   }
 
   const nextListed =

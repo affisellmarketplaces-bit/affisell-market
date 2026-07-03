@@ -32,6 +32,7 @@ import {
   variantsWithProductVariantRows,
 } from "@/lib/marketplace-variant-dimensions"
 import { variantsFromDb } from "@/lib/product-variants"
+import { parseAffiliateVariantPricingJson } from "@/lib/affiliate-variant-pricing"
 import { primaryProductImage } from "@/lib/product-images"
 import { buildAggregateRatingJsonLd } from "@/lib/reviews/json-ld"
 import {
@@ -432,6 +433,7 @@ export default async function MarketplaceListingPage({
           colorImages={colorImages}
           shipping={shipping}
           listingPriceCents={listing.sellingPriceCents}
+          variantPricing={parseAffiliateVariantPricingJson(listing.variantPricing)}
           basePriceCents={p.basePriceCents}
           stock={listing.product.stock}
           retailPriceEur={retailPriceEur}

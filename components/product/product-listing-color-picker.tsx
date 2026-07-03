@@ -9,9 +9,10 @@ import {
 } from "@/lib/marketplace-variant-dimensions"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import {
-  marketplaceSellingPriceCentsForOption,
-  type ProductVariantsJson,
-} from "@/lib/product-variants"
+  resolveAffiliateSellingPriceCentsForOption,
+  type AffiliateVariantPricingMap,
+} from "@/lib/affiliate-variant-pricing"
+import { type ProductVariantsJson } from "@/lib/product-variants"
 import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
 import type { CustomColumn } from "@/types/product"
 import { cn } from "@/lib/utils"
@@ -26,6 +27,7 @@ type Props = {
   customColumns: CustomColumn[]
   selection: ShopperVariantSelection
   listingPriceCents: number
+  variantPricing?: AffiliateVariantPricingMap | null
   basePriceCents: number
   sizeOptions: string[]
   brandedStorefront?: boolean
@@ -42,6 +44,7 @@ export function ProductListingColorPicker({
   customColumns,
   selection,
   listingPriceCents,
+  variantPricing = null,
   basePriceCents,
   sizeOptions,
   brandedStorefront = false,
@@ -97,18 +100,13 @@ export function ProductListingColorPicker({
               },
             })
             const out = matchedRow != null && matchedRow.stock <= 0
-            const optionCents =
-              matchedRow && matchedRow.priceCents > 0
-                ? Math.max(
-                    0,
-                    listingPriceCents + (matchedRow.priceCents - Math.max(0, basePriceCents))
-                  )
-                : marketplaceSellingPriceCentsForOption({
-                    listingSellingPriceCents: listingPriceCents,
-                    productBasePriceCents: basePriceCents,
-                    variants: variants ?? null,
-                    optionName: colorName,
-                  })
+            const optionCents = resolveAffiliateSellingPriceCentsForOption({
+              listingSellingPriceCents: listingPriceCents,
+              productBasePriceCents: basePriceCents,
+              variants: variants ?? null,
+              optionName: matchedRow?.name?.trim() || colorName,
+              variantPricing,
+            })
             return (
               <button
                 key={colorName}

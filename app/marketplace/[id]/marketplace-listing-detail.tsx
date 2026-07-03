@@ -91,9 +91,13 @@ import {
 import type { CustomColumn } from "@/types/product"
 import {
   marketplaceRetailPriceEurForOption,
-  marketplaceSellingPriceCentsForOption,
   type ProductVariantsJson,
 } from "@/lib/product-variants"
+import {
+  parseAffiliateVariantPricingJson,
+  resolveAffiliateSellingPriceCentsForOption,
+  type AffiliateVariantPricingMap,
+} from "@/lib/affiliate-variant-pricing"
 import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
 import { cn } from "@/lib/utils"
 
@@ -174,6 +178,7 @@ type Props = {
   colorImages: ProductColorImageRow[]
   shipping: ListingShippingBlock
   listingPriceCents: number
+  variantPricing?: AffiliateVariantPricingMap | null
   basePriceCents: number
   stock: number
   retailPriceEur?: number
@@ -355,6 +360,7 @@ export function MarketplaceListingDetail({
   colorImages,
   shipping,
   listingPriceCents,
+  variantPricing = null,
   basePriceCents,
   stock,
   retailPriceEur,
@@ -605,19 +611,22 @@ export function MarketplaceListingDetail({
     return colorVariantIndex
   }, [galleryHeroLock, colorHeroUrl, images, safeImageIndex, colorVariantIndex])
   const activeListingPriceCents = useMemo(() => {
-    if (activeVariantRow && activeVariantRow.priceCents > 0) {
-      const sell = Math.max(0, Math.round(listingPriceCents))
-      const base = Math.max(0, Math.round(basePriceCents))
-      const wholesale = activeVariantRow.priceCents
-      return Math.max(0, sell + (wholesale - base))
-    }
-    return marketplaceSellingPriceCentsForOption({
+    const optionName = activeVariantRow?.name?.trim() || selectedColor
+    return resolveAffiliateSellingPriceCentsForOption({
       listingSellingPriceCents: listingPriceCents,
       productBasePriceCents: basePriceCents,
       variants,
-      optionName: selectedColor,
+      optionName,
+      variantPricing,
     })
-  }, [activeVariantRow, listingPriceCents, basePriceCents, variants, selectedColor])
+  }, [
+    activeVariantRow?.name,
+    basePriceCents,
+    listingPriceCents,
+    selectedColor,
+    variantPricing,
+    variants,
+  ])
 
   const activeRetailPriceEur = useMemo(() => {
     if (activeVariantRow && activeVariantRow.priceCents > 0 && retailPriceEur != null) {
@@ -968,6 +977,7 @@ export function MarketplaceListingDetail({
                 customColumns={customColumns}
                 selection={shopperSelection}
                 listingPriceCents={listingPriceCents}
+                variantPricing={variantPricing}
                 basePriceCents={basePriceCents}
                 sizeOptions={sizeOptions}
                 brandedStorefront={brandedStorefront}

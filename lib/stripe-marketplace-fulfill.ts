@@ -43,7 +43,10 @@ import { healMarketplaceOrderNotifications } from "@/lib/marketplace-order-notif
 import { syncMarketplaceOrderToMedusa, syncMarketplaceOrderToMedusaIfNeeded } from "@/lib/medusa/sync-marketplace-order"
 import { prisma } from "@/lib/prisma"
 import {
-  marketplaceSellingPriceCentsForOption,
+  parseAffiliateVariantPricingJson,
+  resolveAffiliateSellingPriceCentsForOption,
+} from "@/lib/affiliate-variant-pricing"
+import {
   marketplaceWholesaleCentsForOption,
   variantsFromDb,
 } from "@/lib/product-variants"
@@ -637,13 +640,15 @@ export async function fulfillMarketplaceStripeSession(
         const sigStr = typeof line.variantSignature === "string" ? line.variantSignature : ""
         const parsed = parseCartVariantSignature(sigStr)
         const variants = variantsFromDb(listing.product.variants)
+        const variantPricing = parseAffiliateVariantPricingJson(listing.variantPricing)
         const optionName = parsed.color || null
         const listLineCents =
-          marketplaceSellingPriceCentsForOption({
+          resolveAffiliateSellingPriceCentsForOption({
             listingSellingPriceCents: listing.sellingPriceCents,
             productBasePriceCents: listing.product.basePriceCents,
             variants,
             optionName,
+            variantPricing,
           }) * qty
         const paidLineCents =
           linePaids && linePaids.length === lines.length && linePaids[i] != null
@@ -765,14 +770,16 @@ export async function fulfillMarketplaceStripeSession(
     meta.checkoutVariantLabel?.trim() || existing?.variantLabel?.trim() || ""
   const checkoutVariantSignature = meta.checkoutVariantSignature?.trim() || ""
   const variants = variantsFromDb(listing.product.variants)
+  const variantPricing = parseAffiliateVariantPricingJson(listing.variantPricing)
   const checkoutParsed = parseCartVariantSignature(checkoutVariantSignature)
   const optionName = checkoutParsed.color || checkoutVariantLabel.split("·")[0]?.trim() || null
   const listLineCents =
-    marketplaceSellingPriceCentsForOption({
+    resolveAffiliateSellingPriceCentsForOption({
       listingSellingPriceCents: listing.sellingPriceCents,
       productBasePriceCents: listing.product.basePriceCents,
       variants,
       optionName,
+      variantPricing,
     }) * qty
   const paids = linePaids
   const paidLineCents =

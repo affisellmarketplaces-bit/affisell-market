@@ -35,6 +35,7 @@ export const listingDetailSelect = {
   promotedColor: true,
   promotedSize: true,
   promotedVariantKeys: true,
+  variantPricing: true,
   buyerRewardKind: true,
   buyerRewardPercent: true,
   showWarranty: true,

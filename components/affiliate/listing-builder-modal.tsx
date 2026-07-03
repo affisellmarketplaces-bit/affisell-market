@@ -9,6 +9,15 @@ import { flushAllMerchantDrafts, registerMerchantDraftFlush } from "@/lib/mercha
 
 import { AiPricingOptimizer } from "@/components/affiliate/ai-pricing-optimizer"
 import {
+  AffiliateVariantMarginEditor,
+  initialVariantMarginEuroByKey,
+} from "@/components/affiliate/affiliate-variant-margin-editor"
+import {
+  buildVariantPricingFromMargins,
+  parseAffiliateVariantPricingJson,
+  serializeVariantPricingForDb,
+} from "@/lib/affiliate-variant-pricing"
+import {
   clampBuyerRewardPercent,
   maxAffordableBuyerRewardPercent,
   normalizeBuyerRewardKind,
@@ -75,6 +84,7 @@ export type SerializedListing = {
   promotedColor?: string | null
   promotedSize?: string | null
   promotedVariantKeys?: string[]
+  variantPricing?: unknown
   showWarranty?: boolean
 }
 
@@ -116,6 +126,7 @@ type FormFields = {
   promotedColor: string
   promotedSize: string
   promotedVariantPick: Record<string, boolean>
+  variantMarginEUR: Record<string, string>
   showWarranty: boolean
   luxuryTier: LuxuryTier
   luxuryCollectionId: string
@@ -167,6 +178,16 @@ function getListingFormDefaults(
       variantOptions,
       L?.promotedVariantKeys
     ),
+    variantMarginEUR: initialVariantMarginEuroByKey({
+      options: variantOptions,
+      variantPricing: parseAffiliateVariantPricingJson(L?.variantPricing),
+      globalMarginEuro:
+        L?.sellingPriceCents != null
+          ? (L.sellingPriceCents - product.basePriceCents) / 100
+          : suggestedCents != null
+            ? (suggestedCents - product.basePriceCents) / 100
+            : null,
+    }),
     showWarranty: Boolean(L?.showWarranty),
     luxuryTier:
       L?.luxuryTier === LUXURY_TIER_LUXE || L?.luxuryTier === LUXURY_TIER_COLLECTION
@@ -205,6 +226,7 @@ function ListingBuilderModalBody({
       buildAffiliateVariantOptions({
         colors: product.colors ?? [],
         variants: product.variants,
+        basePriceCents: product.basePriceCents,
         hasVariants: product.hasVariants,
         productVariants: product.productVariants,
       }),
@@ -359,6 +381,28 @@ function ListingBuilderModalBody({
           ? promotedVariantKeysFromPick(variantOptions, form.promotedVariantPick)
           : []
 
+      const variantPricingMap =
+        variantOptions.length > 1
+          ? buildVariantPricingFromMargins({
+              options: variantOptions.map((o) => ({
+                key: o.key,
+                wholesaleCents: o.wholesaleCents,
+              })),
+              pick: form.promotedVariantPick,
+              marginEuroByKey: form.variantMarginEUR,
+            })
+          : {}
+      const variantPricingPayload = serializeVariantPricingForDb(variantPricingMap)
+
+      if (
+        !saveDraft &&
+        variantOptions.length > 1 &&
+        promotedVariantKeys.length > 0 &&
+        Object.keys(variantPricingMap).length === 0
+      ) {
+        throw new Error("Définissez une marge pour chaque variante sélectionnée.")
+      }
+
       if (
         !saveDraft &&
         variantOptions.length > 0 &&
@@ -401,6 +445,7 @@ function ListingBuilderModalBody({
           promotedColor: form.promotedColor.trim() || null,
           promotedSize: form.promotedSize.trim() || null,
           promotedVariantKeys,
+          ...(variantPricingPayload ? { variantPricing: variantPricingPayload } : {}),
           showWarranty: form.showWarranty,
           luxuryTier: form.luxuryTier,
           luxuryCollectionId:
@@ -461,6 +506,7 @@ function ListingBuilderModalBody({
           promotedColor: form.promotedColor.trim() || null,
           promotedSize: form.promotedSize.trim() || null,
           promotedVariantKeys,
+          ...(variantPricingPayload ? { variantPricing: variantPricingPayload } : {}),
           showWarranty: form.showWarranty,
           luxuryTier: form.luxuryTier,
           luxuryCollectionId:
@@ -626,73 +672,51 @@ function ListingBuilderModalBody({
               </div>
 
               {variantOptions.length > 1 ? (
-                <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
-                  <p className="text-sm font-semibold text-gray-900">
-                    Variantes sur votre boutique
-                  </p>
-                  <p className="mt-1 text-xs text-gray-600">
-                    Cochez les déclinaisons que vous souhaitez proposer. Les autres ne seront pas
-                    proposées aux visiteurs de votre vitrine.
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className="text-xs font-medium text-emerald-800 underline decoration-dotted"
-                      onClick={() =>
-                        setForm((f) => ({
-                          ...f,
-                          promotedVariantPick: Object.fromEntries(
-                            variantOptions.map((o) => [o.key, true])
-                          ),
-                        }))
-                      }
-                    >
-                      Tout sélectionner
-                    </button>
-                    <button
-                      type="button"
-                      className="text-xs font-medium text-gray-600 underline decoration-dotted"
-                      onClick={() =>
-                        setForm((f) => ({
-                          ...f,
-                          promotedVariantPick: Object.fromEntries(
-                            variantOptions.map((o) => [o.key, false])
-                          ),
-                        }))
-                      }
-                    >
-                      Tout désélectionner
-                    </button>
-                  </div>
-                  <ul className="mt-3 max-h-48 space-y-2 overflow-y-auto">
-                    {variantOptions.map((opt) => (
-                      <li key={opt.key}>
-                        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm hover:border-emerald-200">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(form.promotedVariantPick[opt.key])}
-                            onChange={() =>
-                              setForm((f) => ({
-                                ...f,
-                                promotedVariantPick: {
-                                  ...f.promotedVariantPick,
-                                  [opt.key]: !f.promotedVariantPick[opt.key],
-                                },
-                              }))
-                            }
-                            className="rounded border-gray-300"
-                          />
-                          <span className="font-medium text-gray-900">{opt.label}</span>
-                          {opt.stock > 0 ? (
-                            <span className="ml-auto text-xs text-gray-500">
-                              stock {opt.stock}
-                            </span>
-                          ) : null}
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                <AffiliateVariantMarginEditor
+                  options={variantOptions}
+                  pick={form.promotedVariantPick}
+                  marginEuroByKey={form.variantMarginEUR}
+                  globalMarginEuro={marginEUR}
+                  disabled={busy || uploadBusy}
+                  onPickChange={(key, checked) =>
+                    setForm((f) => ({
+                      ...f,
+                      promotedVariantPick: { ...f.promotedVariantPick, [key]: checked },
+                    }))
+                  }
+                  onMarginChange={(key, value) =>
+                    setForm((f) => ({
+                      ...f,
+                      variantMarginEUR: { ...f.variantMarginEUR, [key]: value },
+                    }))
+                  }
+                  onSelectAll={() =>
+                    setForm((f) => ({
+                      ...f,
+                      promotedVariantPick: Object.fromEntries(
+                        variantOptions.map((o) => [o.key, true])
+                      ),
+                    }))
+                  }
+                  onSelectNone={() =>
+                    setForm((f) => ({
+                      ...f,
+                      promotedVariantPick: Object.fromEntries(
+                        variantOptions.map((o) => [o.key, false])
+                      ),
+                    }))
+                  }
+                  onApplyGlobalMargin={(marginEuro) =>
+                    setForm((f) => ({
+                      ...f,
+                      variantMarginEUR: Object.fromEntries(
+                        variantOptions
+                          .filter((o) => f.promotedVariantPick[o.key])
+                          .map((o) => [o.key, marginEuro.toFixed(2)])
+                      ),
+                    }))
+                  }
+                />
               ) : null}
 
               {highlightColorOptions.length > 0 || highlightSizeOptions.length > 0 ? (
