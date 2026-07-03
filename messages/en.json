@@ -69,7 +69,16 @@
     "searchQuickDiscover": "Discover",
     "searchQuickAuctions": "Auctions",
     "searchLoading": "Searching…",
-    "searchNoResults": "No products found"
+    "searchNoResults": "No products found",
+    "modeBackShopping": "Continue shopping",
+    "modeBackOrders": "View my orders",
+    "accountOrders": "Orders",
+    "accountWishlist": "Wishlist",
+    "accountHub": "Account",
+    "accountTrack": "Track order",
+    "trustStripText": "Protected purchase · Secure payment · 14-day EU returns",
+    "trustStripCta": "Learn more",
+    "trustStripDismiss": "Dismiss"
   },
   "home": {
     "meta": {

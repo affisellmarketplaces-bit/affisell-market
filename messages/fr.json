@@ -69,7 +69,16 @@
     "searchQuickDiscover": "Discover",
     "searchQuickAuctions": "Enchères",
     "searchLoading": "Recherche…",
-    "searchNoResults": "Aucun produit trouvé"
+    "searchNoResults": "Aucun produit trouvé",
+    "modeBackShopping": "Continuer mes achats",
+    "modeBackOrders": "Voir mes commandes",
+    "accountOrders": "Commandes",
+    "accountWishlist": "Favoris",
+    "accountHub": "Compte",
+    "accountTrack": "Suivi colis",
+    "trustStripText": "Achat protégé · Paiement sécurisé · Retours 14j UE",
+    "trustStripCta": "En savoir plus",
+    "trustStripDismiss": "Masquer"
   },
   "home": {
     "meta": {

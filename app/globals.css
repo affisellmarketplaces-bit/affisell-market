@@ -990,6 +990,18 @@ body.affisell-demo-lab .affisell-header-shell {
     height: 2.25rem;
   }
 
+  .affisell-public-nav--transaction {
+    min-height: 3rem;
+  }
+
+  .affisell-public-nav--account .affisell-public-nav-pills {
+    scrollbar-width: none;
+  }
+
+  .affisell-public-nav--account .affisell-public-nav-pills::-webkit-scrollbar {
+    display: none;
+  }
+
   /** Public nav — active pill with violet→cyan band (buyer header). */
   .affisell-nav-pill-band {
     background: linear-gradient(
