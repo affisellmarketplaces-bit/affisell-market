@@ -20,6 +20,7 @@ import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { openMobileBuyerHub } from "@/lib/buyer-hub-events"
 import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-redirect"
 import { resolvePublicNavActive } from "@/lib/public-nav-active"
+import { resolvePublicNavSearchContext } from "@/lib/public-nav-search-context"
 import { cn } from "@/lib/utils"
 
 function CommandKTrigger({ className }: { className?: string }) {
@@ -63,6 +64,7 @@ export function PublicNav() {
   }, [pathname])
 
   const { onHome, onMarketplace, onShops } = resolvePublicNavActive(pathname, explorerHash)
+  const searchContext = resolvePublicNavSearchContext(pathname, explorerHash)
 
   const isBuyerContext =
     pathname === "/track-order" || pathname.startsWith("/marketplace/account")
@@ -171,6 +173,8 @@ export function PublicNav() {
               id="public-header-search-q"
               placeholder={t("searchPlaceholder")}
               searchTarget="marketplace"
+              enableSuggestions
+              searchContext={searchContext}
             />
           </div>
           <CommandKTrigger />

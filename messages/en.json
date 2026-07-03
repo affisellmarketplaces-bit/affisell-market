@@ -58,7 +58,18 @@
     "myAccount": "My account",
     "cart": "Cart",
     "cartAria": "Shopping cart",
-    "themeToggle": "Toggle theme"
+    "themeToggle": "Toggle theme",
+    "contextHome": "Home",
+    "contextMarketplace": "Marketplace",
+    "contextCreatorStores": "Stores",
+    "searchQuickTitle": "Explore",
+    "searchProductsTitle": "Products",
+    "searchQuickBrowse": "Catalog",
+    "searchQuickStores": "Stores",
+    "searchQuickDiscover": "Discover",
+    "searchQuickAuctions": "Auctions",
+    "searchLoading": "Searching…",
+    "searchNoResults": "No products found"
   },
   "home": {
     "meta": {

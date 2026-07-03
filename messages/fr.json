@@ -58,7 +58,18 @@
     "myAccount": "Mon compte",
     "cart": "Panier",
     "cartAria": "Panier",
-    "themeToggle": "Changer le thème"
+    "themeToggle": "Changer le thème",
+    "contextHome": "Accueil",
+    "contextMarketplace": "Marketplace",
+    "contextCreatorStores": "Boutiques",
+    "searchQuickTitle": "Explorer",
+    "searchProductsTitle": "Produits",
+    "searchQuickBrowse": "Catalogue",
+    "searchQuickStores": "Boutiques",
+    "searchQuickDiscover": "Discover",
+    "searchQuickAuctions": "Enchères",
+    "searchLoading": "Recherche…",
+    "searchNoResults": "Aucun produit trouvé"
   },
   "home": {
     "meta": {
