@@ -14,6 +14,8 @@ type Props = {
   /** Shorter label below `xl` when the bar is tight. */
   shortLabel?: string
   active?: boolean
+  /** Visual treatment when `active` — `brand` is softer (public buyer nav). */
+  activeVariant?: "solid" | "brand"
   icon?: LucideIcon
   className?: string
   /** Prefix with /en or /fr (marketing routes only). */
@@ -27,6 +29,7 @@ export function NavPill({
   label,
   shortLabel,
   active = false,
+  activeVariant = "solid",
   icon: Icon,
   className,
   localeAware = false,
@@ -44,10 +47,12 @@ export function NavPill({
   }, [href, localeRouter])
 
   const classNames = cn(
-    "affisell-fast-link inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition-all duration-200 lg:px-3.5",
-    active
+    "affisell-fast-link relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition-all duration-200 lg:px-3.5",
+    active && activeVariant === "solid"
       ? "bg-zinc-900 text-white shadow-md dark:bg-white dark:text-zinc-900"
-      : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800",
+      : active && activeVariant === "brand"
+        ? "bg-violet-100 text-violet-900 shadow-sm ring-1 ring-violet-200/70 dark:bg-violet-950/45 dark:text-violet-100 dark:ring-violet-500/35"
+        : "text-zinc-600 hover:bg-zinc-100/90 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800/90",
     localeAware && !active && "hover:underline decoration-[#6366F1] decoration-2 underline-offset-4",
     className
   )
