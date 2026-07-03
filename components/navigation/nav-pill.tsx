@@ -51,7 +51,7 @@ export function NavPill({
     active && activeVariant === "solid"
       ? "bg-zinc-900 text-white shadow-md dark:bg-white dark:text-zinc-900"
       : active && activeVariant === "brand"
-        ? "bg-violet-100 text-violet-900 shadow-sm ring-1 ring-violet-200/70 dark:bg-violet-950/45 dark:text-violet-100 dark:ring-violet-500/35"
+        ? "affisell-nav-pill-band pb-2 text-violet-950 dark:text-violet-50"
         : "text-zinc-600 hover:bg-zinc-100/90 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800/90",
     localeAware && !active && "hover:underline decoration-[#6366F1] decoration-2 underline-offset-4",
     className
