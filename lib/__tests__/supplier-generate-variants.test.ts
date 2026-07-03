@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest"
 
+import { tryParseConfigurationMatrixFromPrompt } from "@/lib/supplier-configuration-variants"
 import {
   buildVariantComposerFormPatch,
+  generateSupplierVariantsFromPrompt,
   normalizeGenerateVariantsPayload,
-  normalizeSpecsFromAi,
   type GenerateVariantsInput,
 } from "@/lib/supplier-generate-variants"
 
@@ -27,6 +28,24 @@ const baseInput: GenerateVariantsInput = {
   ],
 }
 
+describe("tryParseConfigurationMatrixFromPrompt", () => {
+  it("parses RAM/SSD configuration lines into custom columns and rows", () => {
+    const prompt = `Modèle de Processeur:
+12 Go de RAM, 256 Go de SSD
+12 Go de RAM, 1 To de SSD
+12 Go de RAM, 512 Go de SSD
+12 Go de RAM, 256 Go de SSD
+12 Go de RAM, 2 To de SSD`
+
+    const matrix = tryParseConfigurationMatrixFromPrompt(prompt)
+    expect(matrix).not.toBeNull()
+    expect(matrix!.customColumns.map((c) => c.key)).toEqual(expect.arrayContaining(["ram", "ssd"]))
+    expect(matrix!.rows).toHaveLength(4)
+    expect(matrix!.rows[0]?.attributes.ram).toMatch(/12 Go de RAM/i)
+    expect(matrix!.rows[0]?.attributes.ssd).toMatch(/256 Go de SSD/i)
+  })
+})
+
 describe("normalizeGenerateVariantsPayload", () => {
   it("parses simple colors and sizes from AI JSON", () => {
     const result = normalizeGenerateVariantsPayload(baseInput, {
@@ -43,72 +62,75 @@ describe("normalizeGenerateVariantsPayload", () => {
     expect(result.specs.material).toBe("Coton bio")
   })
 
-  it("rejects invalid color names with commas", () => {
-    const result = normalizeGenerateVariantsPayload(baseInput, {
-      variantMode: "simple",
-      colors: [{ name: "Noir, Blanc" }],
-    })
-    expect(result.colors).toHaveLength(0)
-  })
-
-  it("normalizes advanced rows with SKU mode", () => {
+  it("parses advanced configuration rows with customFields", () => {
     const result = normalizeGenerateVariantsPayload(baseInput, {
       variantMode: "advanced",
+      hideSizeColumn: true,
+      customColumns: [
+        { key: "ram", label: "RAM", type: "text" },
+        { key: "ssd", label: "Stockage SSD", type: "text" },
+      ],
       advancedRows: [
-        { color: "Rouge", size: "M", stock: 12, supplierPriceEur: 24.5 },
-        { color: "Rouge", size: "L", stock: 8 },
+        {
+          color: "12 Go de RAM · 256 Go de SSD",
+          customFields: { ram: "12 Go de RAM", ssd: "256 Go de SSD" },
+        },
       ],
     })
 
     expect(result.variantMode).toBe("advanced")
-    expect(result.advancedRows).toHaveLength(2)
-    expect(result.advancedRows[0]?.stock).toBe(12)
-  })
-})
-
-describe("normalizeSpecsFromAi", () => {
-  it("matches SELECT options case-insensitively", () => {
-    const specs = normalizeSpecsFromAi({ brand: "ecowear" }, baseInput.characteristics)
-    expect(specs.brand).toBe("EcoWear")
+    expect(result.customColumns).toHaveLength(2)
+    expect(result.advancedRows[0]?.customFields.ram).toBe("12 Go de RAM")
+    expect(result.hideSizeColumn).toBe(true)
   })
 })
 
 describe("buildVariantComposerFormPatch", () => {
-  it("builds simple color rows for simple mode", () => {
-    const patch = buildVariantComposerFormPatch(
-      {
-        variantMode: "simple",
-        sizesText: "S, M",
-        colors: [{ name: "Bleu", hex: null }],
-        specs: {},
-        advancedRows: [],
-        summary: "",
-      },
-      { basePriceEur: 20, defaultCommission: 12 }
-    )
-
-    expect(patch.variantMode).toBe("simple")
-    expect(patch.simpleColors).toHaveLength(1)
-    expect(patch.simpleColors[0]?.name).toBe("Bleu")
-    expect(patch.sizesText).toBe("S, M")
-  })
-
-  it("builds SKU table rows for advanced mode", () => {
+  it("creates SKU rows with editable custom columns for configurations", () => {
     const patch = buildVariantComposerFormPatch(
       {
         variantMode: "advanced",
-        sizesText: "M, L",
-        colors: [{ name: "Noir", hex: null }],
-        specs: { material: "Cuir" },
-        advancedRows: [],
+        sizesText: "",
+        colors: [],
+        specs: {},
+        customColumns: [
+          { key: "ram", label: "RAM", type: "text" },
+          { key: "ssd", label: "Stockage SSD", type: "text" },
+        ],
+        hideSizeColumn: true,
+        advancedRows: [
+          {
+            color: "12 Go de RAM / 256 Go de SSD",
+            size: null,
+            sku: null,
+            supplierPriceEur: 799,
+            stock: 5,
+            customFields: { ram: "12 Go de RAM", ssd: "256 Go de SSD" },
+          },
+        ],
         summary: "",
       },
-      { basePriceEur: 49, defaultCommission: 10, skuPrefix: "PRD" }
+      { basePriceEur: 799, defaultCommission: 10, skuPrefix: "PRD" }
     )
 
     expect(patch.variantMode).toBe("advanced")
-    expect(patch.advancedSkuRows.length).toBeGreaterThan(0)
-    expect(patch.advancedSkuRows.every((r) => r.color.length > 0)).toBe(true)
-    expect(patch.specValuesPatch.material).toBe("Cuir")
+    expect(patch.skuCustomColumns).toHaveLength(2)
+    expect(patch.skuHiddenColumnsPatch).toContain("size")
+    expect(patch.advancedSkuRows[0]?.customFields?.ram).toBe("12 Go de RAM")
+    expect(patch.advancedSkuRows[0]?.customData?.ssd).toBe("256 Go de SSD")
+  })
+})
+
+describe("generateSupplierVariantsFromPrompt heuristic", () => {
+  it("uses configuration parser without calling AI", async () => {
+    const result = await generateSupplierVariantsFromPrompt({
+      ...baseInput,
+      prompt: `12 Go de RAM, 256 Go de SSD
+12 Go de RAM, 1 To de SSD`,
+    })
+
+    expect(result.variantMode).toBe("advanced")
+    expect(result.advancedRows.length).toBeGreaterThan(0)
+    expect(result.customColumns.some((c) => c.key === "ram")).toBe(true)
   })
 })

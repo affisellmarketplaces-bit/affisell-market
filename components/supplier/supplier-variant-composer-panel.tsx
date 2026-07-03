@@ -31,7 +31,7 @@ type Props = {
   onApply: (patch: VariantComposerFormPatch) => void
 }
 
-const EXAMPLE_KEYS = ["colorsSizes", "fullMatrix", "specsOnly", "fashion"] as const
+const EXAMPLE_KEYS = ["colorsSizes", "pcConfigs", "fullMatrix", "specsOnly", "fashion"] as const
 
 export function SupplierVariantComposerPanel({
   title,
@@ -242,6 +242,31 @@ export function SupplierVariantComposerPanel({
                       <Tags className="h-3.5 w-3.5 text-violet-600" aria-hidden />
                       {specEntries.map(([k, v]) => `${k}: ${v}`).join(" · ")}
                     </span>
+                  ) : null}
+                  {preview.customColumns.length > 0 ? (
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-white/80 px-2 py-1 text-xs dark:bg-zinc-900/60">
+                      <Tags className="h-3.5 w-3.5 text-violet-600" aria-hidden />
+                      {preview.customColumns.map((c) => c.label).join(" · ")}
+                    </span>
+                  ) : null}
+                  {preview.advancedRows.length > 0 && preview.customColumns.length > 0 ? (
+                    <div className="w-full space-y-1.5 pt-1">
+                      {preview.advancedRows.slice(0, 6).map((row, i) => (
+                        <p key={`${row.color}-${i}`} className="text-xs text-emerald-900/90 dark:text-emerald-100/90">
+                          {row.color}
+                          {Object.keys(row.customFields).length > 0
+                            ? ` — ${Object.entries(row.customFields)
+                                .map(([k, v]) => `${k}: ${v}`)
+                                .join(" · ")}`
+                            : ""}
+                        </p>
+                      ))}
+                      {preview.advancedRows.length > 6 ? (
+                        <p className="text-[10px] text-emerald-800/70 dark:text-emerald-200/70">
+                          +{preview.advancedRows.length - 6} {t("rowsLabel")}
+                        </p>
+                      ) : null}
+                    </div>
                   ) : null}
                   {preview.variantMode === "advanced" ? (
                     <Badge variant="outline" className="text-[10px]">

@@ -2258,6 +2258,12 @@ export function SupplierAddProductForm({
                 },
               ]
         )
+        if (patch.skuCustomColumns.length > 0) {
+          setSkuCustomColumns(patch.skuCustomColumns)
+        }
+        if (patch.skuHiddenColumnsPatch.length > 0) {
+          setSkuHiddenColumns(patch.skuHiddenColumnsPatch)
+        }
         setVariantRows([])
         setVariantSizesText(patch.sizesText)
         setSimpleColorRows([])

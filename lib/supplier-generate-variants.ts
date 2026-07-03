@@ -1,11 +1,20 @@
 import { groqChatText } from "@/lib/ai/groq-client"
 import { newVariantRowId } from "@/lib/product-variants"
+import type { SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
+import {
+  configurationRowLabel,
+  normalizeCustomColumnsFromAi,
+  sanitizeConfigurationVariantLabel,
+  tryParseConfigurationMatrixFromPrompt,
+  type ParsedConfigurationMatrix,
+} from "@/lib/supplier-configuration-variants"
 import {
   fillMissingVariantSkus,
   generateSkuTableRowsFromSetup,
   parseCommaList,
   suggestVariantSkuFromRow,
   VARIANT_COLOR_REGEX,
+  type SkuCustomColumnDef,
   type SupplierSkuTableRow,
 } from "@/lib/supplier-sku-builder"
 import {
@@ -44,6 +53,13 @@ export type GeneratedAdvancedRow = {
   sku: string | null
   supplierPriceEur: number | null
   stock: number | null
+  customFields: Record<string, string>
+}
+
+export type GeneratedCustomColumn = {
+  key: string
+  label: string
+  type: "text"
 }
 
 export type GenerateVariantsResult = {
@@ -52,6 +68,8 @@ export type GenerateVariantsResult = {
   colors: GeneratedColorRow[]
   specs: Record<string, string>
   advancedRows: GeneratedAdvancedRow[]
+  customColumns: GeneratedCustomColumn[]
+  hideSizeColumn: boolean
   summary: string
 }
 
@@ -61,6 +79,8 @@ export type VariantComposerFormPatch = {
   simpleColors: Array<{ id: string; name: string; image: string }>
   advancedSkuRows: SupplierSkuTableRow[]
   specValuesPatch: Record<string, string>
+  skuCustomColumns: SkuCustomColumnDef[]
+  skuHiddenColumnsPatch: SkuOptionalColumnKey[]
 }
 
 type AiGeneratePayload = {
@@ -75,7 +95,10 @@ type AiGeneratePayload = {
     sku?: string | null
     supplierPriceEur?: number | null
     stock?: number | null
+    customFields?: Record<string, unknown>
   }>
+  customColumns?: Array<{ key?: string; label?: string; type?: string }>
+  hideSizeColumn?: boolean
   summary?: string
 }
 
@@ -144,12 +167,30 @@ function normalizeColors(payload: AiGeneratePayload): GeneratedColorRow[] {
   return out
 }
 
+function normalizeCustomFields(raw: unknown): Record<string, string> {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {}
+  const out: Record<string, string> = {}
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    const key = k.trim().slice(0, 32)
+    const str = typeof v === "string" ? v.trim() : String(v ?? "").trim()
+    if (key && str) out[key] = str.slice(0, 80)
+  }
+  return out
+}
+
 function normalizeAdvancedRows(payload: AiGeneratePayload): GeneratedAdvancedRow[] {
   if (!Array.isArray(payload.advancedRows)) return []
   const out: GeneratedAdvancedRow[] = []
   for (const row of payload.advancedRows) {
     if (!row || typeof row !== "object") continue
-    const color = sanitizeColorName(typeof row.color === "string" ? row.color : "")
+    const customFields = normalizeCustomFields(row.customFields)
+    let color =
+      typeof row.color === "string"
+        ? sanitizeConfigurationVariantLabel(row.color)
+        : ""
+    if (!color && Object.keys(customFields).length > 0) {
+      color = configurationRowLabel(customFields)
+    }
     if (!color || validateSimpleColorName(color) || !VARIANT_COLOR_REGEX.test(color)) continue
     const sizeRaw =
       row.size == null || row.size === ""
@@ -169,10 +210,34 @@ function normalizeAdvancedRows(payload: AiGeneratePayload): GeneratedAdvancedRow
       sku: sanitizeSku(row.sku),
       supplierPriceEur,
       stock,
+      customFields,
     })
     if (out.length >= 120) break
   }
   return out
+}
+
+function buildGenerateResultFromConfigurationMatrix(
+  matrix: ParsedConfigurationMatrix,
+  input: GenerateVariantsInput
+): GenerateVariantsResult {
+  return {
+    variantMode: "advanced",
+    sizesText: "",
+    colors: [],
+    specs: {},
+    customColumns: matrix.customColumns,
+    hideSizeColumn: true,
+    advancedRows: matrix.rows.map((row) => ({
+      color: row.label,
+      size: null,
+      sku: null,
+      supplierPriceEur: input.basePriceEur > 0 ? input.basePriceEur : null,
+      stock: 0,
+      customFields: row.attributes,
+    })),
+    summary: `${matrix.rows.length} configuration(s) · colonnes ${matrix.customColumns.map((c) => c.label).join(", ")}`,
+  }
 }
 
 export function normalizeSpecsFromAi(
@@ -208,26 +273,28 @@ export function normalizeGenerateVariantsPayload(
   const payload = (raw && typeof raw === "object" ? raw : {}) as AiGeneratePayload
   const colors = normalizeColors(payload)
   const advancedRows = normalizeAdvancedRows(payload)
+  const customColumns = normalizeCustomColumnsFromAi(payload.customColumns)
+  const hideSizeColumn = payload.hideSizeColumn === true || customColumns.length > 0
   const sizesText = normalizeSizesText(payload)
   const specs = normalizeSpecsFromAi(payload.specs, input.characteristics)
 
   let variantMode: GenerateVariantsResult["variantMode"] = "none"
   const modeHint = typeof payload.variantMode === "string" ? payload.variantMode.trim().toLowerCase() : ""
 
-  if (modeHint === "advanced" || advancedRows.length > 0) {
-    variantMode = advancedRows.length > 0 || colors.length > 0 ? "advanced" : "none"
+  if (modeHint === "advanced" || advancedRows.length > 0 || customColumns.length > 0) {
+    variantMode = advancedRows.length > 0 || colors.length > 0 || customColumns.length > 0 ? "advanced" : "none"
   } else if (modeHint === "simple" || colors.length > 0 || sizesText.length > 0) {
     variantMode = colors.length > 0 || sizesText.length > 0 ? "simple" : "none"
   }
 
   if (variantMode === "advanced" && advancedRows.length === 0 && colors.length > 0) {
-    variantMode = sizesText.length > 0 || colors.length > 1 ? "advanced" : "simple"
+    variantMode = sizesText.length > 0 || colors.length > 1 || customColumns.length > 0 ? "advanced" : "simple"
   }
 
   const summary =
     typeof payload.summary === "string" && payload.summary.trim()
       ? payload.summary.trim().slice(0, 400)
-      : buildDefaultSummary({ variantMode, colors, sizesText, specs, advancedRows })
+      : buildDefaultSummary({ variantMode, colors, sizesText, specs, advancedRows, customColumns })
 
   return {
     variantMode,
@@ -235,6 +302,8 @@ export function normalizeGenerateVariantsPayload(
     colors,
     specs,
     advancedRows,
+    customColumns,
+    hideSizeColumn,
     summary,
   }
 }
@@ -245,10 +314,14 @@ function buildDefaultSummary(args: {
   sizesText: string
   specs: Record<string, string>
   advancedRows: GeneratedAdvancedRow[]
+  customColumns: GeneratedCustomColumn[]
 }): string {
   const parts: string[] = []
   if (args.variantMode === "advanced") {
     parts.push(`${args.advancedRows.length || args.colors.length} ligne(s) SKU`)
+    if (args.customColumns.length) {
+      parts.push(`colonnes ${args.customColumns.map((c) => c.label).join(", ")}`)
+    }
   } else if (args.variantMode === "simple") {
     if (args.colors.length) parts.push(`${args.colors.length} couleur(s)`)
     if (args.sizesText) parts.push(`tailles ${args.sizesText}`)
@@ -256,6 +329,16 @@ function buildDefaultSummary(args: {
   const specCount = Object.keys(args.specs).length
   if (specCount) parts.push(`${specCount} caractéristique(s)`)
   return parts.join(" · ") || "Aucune modification détectée"
+}
+
+function toSkuCustomColumnDefs(columns: GeneratedCustomColumn[]): SkuCustomColumnDef[] {
+  return columns.map((col) => ({
+    id: newVariantRowId(),
+    key: col.key,
+    label: col.label,
+    type: col.type,
+    required: false,
+  }))
 }
 
 export function buildVariantComposerFormPatch(
@@ -277,26 +360,35 @@ export function buildVariantComposerFormPatch(
       simpleColors: [],
       advancedSkuRows: [],
       specValuesPatch: result.specs,
+      skuCustomColumns: [],
+      skuHiddenColumnsPatch: [],
     }
   }
+
+  const skuCustomColumns = toSkuCustomColumnDefs(result.customColumns)
+  const skuHiddenColumnsPatch: SkuOptionalColumnKey[] = result.hideSizeColumn
+    ? ["size", "photo"]
+    : []
 
   if (result.variantMode === "advanced") {
     let rows: SupplierSkuTableRow[] = []
 
     if (result.advancedRows.length > 0) {
-      rows = result.advancedRows.map((row) => ({
-        id: newVariantRowId(),
-        color: row.color,
-        size: row.size,
-        sku:
-          row.sku ??
-          suggestVariantSkuFromRow(skuPrefix, row.color, row.size),
-        supplierPrice: row.supplierPriceEur ?? basePrice,
-        compareAtEur: null,
-        stock: row.stock ?? 0,
-        commissionRate: commission,
-        customFields: {},
-      }))
+      rows = result.advancedRows.map((row) => {
+        const customFields = { ...row.customFields }
+        return {
+          id: newVariantRowId(),
+          color: row.color,
+          size: row.size,
+          sku: row.sku ?? suggestVariantSkuFromRow(skuPrefix, row.color, row.size),
+          supplierPrice: row.supplierPriceEur ?? basePrice,
+          compareAtEur: null,
+          stock: row.stock ?? 0,
+          commissionRate: commission,
+          customFields,
+          customData: { ...customFields },
+        }
+      })
       rows = fillMissingVariantSkus(rows, skuPrefix).rows
     } else if (result.colors.length > 0) {
       rows = generateSkuTableRowsFromSetup({
@@ -314,7 +406,7 @@ export function buildVariantComposerFormPatch(
           commissionRate: commission,
           customFieldValues: {},
         },
-        customColumns: [],
+        customColumns: skuCustomColumns,
       })
     }
 
@@ -324,6 +416,8 @@ export function buildVariantComposerFormPatch(
       simpleColors: [],
       advancedSkuRows: rows,
       specValuesPatch: result.specs,
+      skuCustomColumns,
+      skuHiddenColumnsPatch,
     }
   }
 
@@ -342,6 +436,8 @@ export function buildVariantComposerFormPatch(
     simpleColors,
     advancedSkuRows: [],
     specValuesPatch: result.specs,
+    skuCustomColumns: [],
+    skuHiddenColumnsPatch: [],
   }
 }
 
@@ -373,9 +469,11 @@ Réponds UNIQUEMENT en JSON valide, sans markdown.
 Règles couleurs: une entrée = une couleur, max 48 car., caractères autorisés lettres/chiffres/espaces - / & ' ( ) . — pas de virgule ni + dans un nom.
 Tailles: liste séparée par virgules (ex. "S, M, L, XL" ou "38, 40, 42").
 variantMode:
-- "simple" si seulement couleurs/tailles sans SKU/stock/prix par ligne
-- "advanced" si l'utilisateur demande SKU, stock par variante, prix par variante, ou matrice détaillée
+- "simple" si seulement couleurs/tailles (mode fashion, pas de virgule dans un nom)
+- "advanced" si configurations techniques (RAM/SSD/CPU), SKU, stock/prix par ligne, ou plusieurs attributs séparés par virgule
 - "none" si la demande ne concerne que les caractéristiques (specs) sans variantes
+Pour RAM/SSD/processeur: variantMode=advanced, customColumns=[{key,label,type:"text"}], advancedRows avec customFields par attribut (jamais de virgule dans color — utiliser " / ").
+Exemple: "12 Go de RAM, 256 Go de SSD" → color="12 Go de RAM / 256 Go de SSD", customFields={ram:"12 Go de RAM", ssd:"256 Go de SSD"}.
 Ne invente pas de certifications, marques ou specs absentes du prompt ou du contexte produit.`,
     user: `Demande fournisseur:
 """
@@ -392,8 +490,17 @@ JSON attendu:
   "variantMode": "simple" | "advanced" | "none",
   "sizesText": "S, M, L",
   "colors": [{ "name": "Noir", "hex": "#000000" }],
+  "customColumns": [{ "key": "ram", "label": "RAM", "type": "text" }],
+  "hideSizeColumn": true,
   "specs": { "material": "Coton" },
-  "advancedRows": [{ "color": "Noir", "size": "M", "sku": null, "supplierPriceEur": 29.9, "stock": 50 }],
+  "advancedRows": [{
+    "color": "12 Go de RAM / 256 Go de SSD",
+    "customFields": { "ram": "12 Go de RAM", "ssd": "256 Go de SSD" },
+    "size": null,
+    "sku": null,
+    "supplierPriceEur": 29.9,
+    "stock": 50
+  }],
   "summary": "Phrase courte en français décrivant ce qui a été créé"
 }`,
   }
@@ -405,6 +512,16 @@ export async function generateSupplierVariantsFromPrompt(
   const prompt = input.prompt.trim()
   if (prompt.length < 8) {
     throw new Error("Décrivez votre demande en au moins 8 caractères.")
+  }
+
+  const heuristic = tryParseConfigurationMatrixFromPrompt(prompt)
+  if (heuristic && heuristic.rows.length >= 1) {
+    console.log("[supplier-generate-variants]", {
+      source: "configuration_heuristic",
+      rowCount: heuristic.rows.length,
+      columnCount: heuristic.customColumns.length,
+    })
+    return buildGenerateResultFromConfigurationMatrix(heuristic, input)
   }
 
   const { system, user } = buildPrompt(input)
@@ -433,7 +550,10 @@ export async function generateSupplierVariantsFromPrompt(
 
   const hasVariants =
     result.variantMode !== "none" &&
-    (result.colors.length > 0 || result.advancedRows.length > 0 || result.sizesText.length > 0)
+    (result.colors.length > 0 ||
+      result.advancedRows.length > 0 ||
+      result.sizesText.length > 0 ||
+      result.customColumns.length > 0)
   const hasSpecs = Object.keys(result.specs).length > 0
 
   if (!hasVariants && !hasSpecs) {

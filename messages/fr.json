@@ -826,7 +826,8 @@
         "colorsSizes": "Crée les couleurs Noir, Blanc, Rouge et les tailles S, M, L, XL",
         "fullMatrix": "Matrice SKU avancée : couleurs Graphite et Argent, stockages 128 Go et 256 Go, stock 20 chacun, prix fournisseur 499 €",
         "specsOnly": "Remplis uniquement les caractéristiques : matière acier inox, origine France, étanchéité oui",
-        "fashion": "Variantes mode : couleurs Indigo, Écru, Olive — tailles 38, 40, 42, 44 — mélange coton lin"
+        "fashion": "Variantes mode : couleurs Indigo, Écru, Olive — tailles 38, 40, 42, 44 — mélange coton lin",
+        "pcConfigs": "Crée 4 configs PC :\n12 Go de RAM, 256 Go de SSD\n12 Go de RAM, 1 To de SSD\n12 Go de RAM, 512 Go de SSD\n12 Go de RAM, 2 To de SSD"
       },
       "generateCta": "Générer l'aperçu",
       "generating": "Composition…",
