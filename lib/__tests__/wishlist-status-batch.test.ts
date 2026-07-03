@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
+  invalidateWishlistStatus,
   resetWishlistStatusBatchForTests,
   subscribeWishlistStatus,
 } from "@/lib/wishlist-status-batch"
@@ -47,5 +48,27 @@ describe("wishlist-status-batch", () => {
     expect(url).toContain("p2")
     expect(results).toContain(true)
     expect(results).toContain(true)
+  })
+
+  it("invalidateWishlistStatus refetches subscribed products", async () => {
+    subscribeWishlistStatus("p1", () => {})
+    const fetchMock = fetch as ReturnType<typeof vi.fn>
+    fetchMock.mockClear()
+
+    invalidateWishlistStatus("p1")
+
+    await new Promise((r) => setTimeout(r, 20))
+
+    expect(fetchMock).toHaveBeenCalled()
+    const url = String(fetchMock.mock.calls.at(-1)?.[0])
+    expect(url).toContain("ids=p1")
+  })
+
+  it("invalidateWishlistStatus skips unknown product ids", async () => {
+    const fetchMock = fetch as ReturnType<typeof vi.fn>
+    fetchMock.mockClear()
+    invalidateWishlistStatus("unknown")
+    await new Promise((r) => setTimeout(r, 10))
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 })

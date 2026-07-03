@@ -1,4 +1,5 @@
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
+import type { BuyerPersonalizedPicksPayload } from "@/lib/buyer-personalization-shared"
 
 /** Playwright-only — injects a stable swipe deck when `E2E_PULSE_FIXTURES=1`. */
 export function isE2ePulseFixturesEnabled(): boolean {
@@ -61,4 +62,36 @@ export function e2ePulseSwipeFixtureItems(): PulseFeedItem[] {
       href: "/marketplace/e2e-listing-beta",
     },
   ]
+}
+
+export function e2ePulsePersonalizedPicksFixture(): BuyerPersonalizedPicksPayload {
+  const base = {
+    imageUrl: FIXTURE_MEDIA,
+    compareAtCents: null as number | null,
+    soldCount: 8,
+    marginCents: 0,
+    deliveryMin: 2,
+    deliveryMax: 5,
+    stock: 12,
+    freeShipping: true,
+    commissionPct: 0,
+    averageRating: 4.7,
+    reviewCount: 9,
+    storeName: "E2E Store",
+    storeSlug: "e2e-store",
+    nicheLabel: "lifestyle" as const,
+    categories: ["Fashion"],
+    isBestSeller: false,
+  }
+
+  return {
+    personalized: true,
+    items: [1, 2, 3, 4].map((n) => ({
+      ...base,
+      listingId: `e2e-listing-pick-${n}`,
+      productId: `e2e-product-pick-${n}`,
+      name: `E2E Recommended Pick ${n}`,
+      priceCents: 3_900 + n * 100,
+    })),
+  }
 }

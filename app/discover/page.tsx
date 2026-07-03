@@ -5,7 +5,7 @@ import { BuyerSwipeCommerce } from "@/components/pulse/buyer-swipe-commerce"
 import { loadBuyerPersonalizedPicksSafe } from "@/lib/buyer-personalized-picks"
 import { loadBuyerSwipeFeedItems } from "@/lib/buyer-swipe-feed.server"
 import { readGuestWishlistId } from "@/lib/guest-wishlist-id"
-import { e2ePulseSwipeFixtureItems, shouldUseE2ePulseFixtures } from "@/lib/e2e-pulse-swipe-fixtures"
+import { e2ePulsePersonalizedPicksFixture, e2ePulseSwipeFixtureItems, shouldUseE2ePulseFixtures } from "@/lib/e2e-pulse-swipe-fixtures"
 import { loadPulseFeedItems } from "@/lib/pulse-feed-data"
 import { prisma } from "@/lib/prisma"
 
@@ -91,6 +91,7 @@ export default async function DiscoverPage({ searchParams }: PageProps) {
   }
   if (useE2eFixtures) {
     items = e2ePulseSwipeFixtureItems()
+    personalizedPicks = e2ePulsePersonalizedPicksFixture()
   } else {
     try {
       const guestId = await readGuestWishlistId()

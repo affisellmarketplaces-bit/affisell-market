@@ -1,4 +1,11 @@
+"use client"
+
 /** Coalesce per-card wishlist polls into one API call (marketplace grid). */
+
+import {
+  BUYER_WISHLIST_UPDATED_EVENT,
+  type BuyerWishlistUpdatedDetail,
+} from "@/lib/buyer-wishlist-signals.client"
 
 export type WishlistCardStatus = {
   wished: boolean
@@ -11,6 +18,25 @@ type Listener = (status: WishlistCardStatus) => void
 const pendingIds = new Set<string>()
 const listeners = new Map<string, Set<Listener>>()
 let inflight: Promise<void> | null = null
+let eventBridgeReady = false
+
+/** Re-fetch wishlist status for subscribers (e.g. after Pulse save-drop). */
+export function invalidateWishlistStatus(productId: string): void {
+  const id = productId.trim()
+  if (!id || !listeners.has(id)) return
+  pendingIds.add(id)
+  scheduleFlush()
+}
+
+function ensureWishlistEventBridge(): void {
+  if (eventBridgeReady || typeof window === "undefined") return
+  eventBridgeReady = true
+  window.addEventListener(BUYER_WISHLIST_UPDATED_EVENT, (event) => {
+    const detail = (event as CustomEvent<BuyerWishlistUpdatedDetail>).detail
+    if (!detail?.productId) return
+    invalidateWishlistStatus(detail.productId)
+  })
+}
 
 function emit(productId: string, status: WishlistCardStatus) {
   for (const fn of listeners.get(productId) ?? []) {
@@ -62,6 +88,7 @@ export function subscribeWishlistStatus(
   productId: string,
   listener: Listener
 ): () => void {
+  ensureWishlistEventBridge()
   const id = productId.trim()
   if (!id) return () => {}
 
@@ -86,4 +113,5 @@ export function resetWishlistStatusBatchForTests(): void {
   pendingIds.clear()
   listeners.clear()
   inflight = null
+  eventBridgeReady = false
 }

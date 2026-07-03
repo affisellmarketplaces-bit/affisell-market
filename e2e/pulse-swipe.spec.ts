@@ -107,6 +107,52 @@ test.describe("Pulse swipe commerce", () => {
     await expect(page.getByRole("heading", { name: "E2E Pulse Beta" })).toBeVisible({ timeout: 10_000 })
   })
 
+  test("save drop refreshes recommended picks rail", async ({ page }) => {
+    let picksCalls = 0
+    await page.route("**/api/buyer/personalized-picks", async (route) => {
+      picksCalls += 1
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          personalized: true,
+          items: [
+            {
+              listingId: "e2e-listing-pick-1",
+              productId: "e2e-product-pick-1",
+              name: "E2E Recommended Pick",
+              imageUrl: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=640&q=80",
+              priceCents: 3900,
+              compareAtCents: null,
+              soldCount: 8,
+              marginCents: 0,
+              deliveryMin: 2,
+              deliveryMax: 5,
+              stock: 12,
+              freeShipping: true,
+              commissionPct: 0,
+              averageRating: 4.7,
+              reviewCount: 9,
+              storeName: "E2E Store",
+              storeSlug: "e2e-store",
+              nicheLabel: "lifestyle",
+              categories: ["Fashion"],
+              isBestSeller: false,
+            },
+          ],
+        }),
+      })
+    })
+
+    await openPulseSwipe(page)
+    await expect(page.getByText("E2E Recommended Pick 1")).toBeVisible({ timeout: 15_000 })
+
+    const before = picksCalls
+    await visibleDock(page, "pulse-swipe-dock-down").click()
+    await expectSwipeToast(page, /Save Drop|wishlist/i)
+    await expect.poll(() => picksCalls, { timeout: 10_000 }).toBeGreaterThan(before)
+  })
+
   test("dock skip advances deck without toast", async ({ page }) => {
     await openPulseSwipe(page)
 
