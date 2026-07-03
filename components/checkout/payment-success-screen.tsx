@@ -327,6 +327,7 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
             {!isError ? (
               <Link
                 href="/marketplace/account/orders"
+                data-testid="success-view-orders"
                 className={cn(
                   buttonVariants({ size: "lg" }),
                   "inline-flex items-center justify-center gap-2 bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"

@@ -120,6 +120,31 @@ export async function stubBuyerCheckoutApis(
       body: JSON.stringify({ url: successPath }),
     })
   })
+
+  await page.route("**/api/stripe/verify-session**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        paid: true,
+        fulfilled: true,
+        orderId: "e2e-order-checkout",
+        orderIds: ["e2e-order-checkout"],
+        amountTotal: 2999,
+        currency: "eur",
+        productName: "E2E Checkout Product",
+        productImageUrl: "/placeholder.png",
+      }),
+    })
+  })
+
+  await page.route("**/api/auth/post-checkout-buyer", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ checkoutMagic: "e2e-checkout-magic" }),
+    })
+  })
 }
 
 export async function openGuestCartCheckout(page: Page): Promise<void> {
