@@ -31,8 +31,8 @@ export function resolvePublicNavBackHref(pathname: string): string {
 }
 
 export const PUBLIC_NAV_ACCOUNT_LINKS = [
-  { id: "orders", href: "/marketplace/account/orders", labelKey: "accountOrders" as const },
-  { id: "wishlist", href: "/wishlist", labelKey: "accountWishlist" as const },
+  { id: "orders", href: "/marketplace/account/orders", labelKey: "accountOrders" as const, exact: false },
+  { id: "wishlist", href: "/wishlist", labelKey: "accountWishlist" as const, exact: false },
   { id: "hub", href: "/marketplace/account", labelKey: "accountHub" as const, exact: true },
-  { id: "track", href: "/track-order", labelKey: "accountTrack" as const },
+  { id: "track", href: "/track-order", labelKey: "accountTrack" as const, exact: false },
 ] as const
