@@ -15,7 +15,10 @@
       "stores": "Shops",
       "explore": "Entdecken",
       "pulse": "Puls",
-      "cart": "Warenkorb"
+      "cart": "Warenkorb",
+      "orders": "Orders",
+      "account": "Account",
+      "wishlist": "Wishlist"
     },
     "affiliate": {
       "agent": "Sourcing-Agent",
@@ -58,7 +61,28 @@
     "myAccount": "Mein Konto",
     "cart": "Warenkorb",
     "cartAria": "Einkaufswagen",
-    "themeToggle": "Design umschalten"
+    "themeToggle": "Design umschalten",
+    "contextHome": "Home",
+    "contextMarketplace": "Marketplace",
+    "contextCreatorStores": "Stores",
+    "searchQuickTitle": "Explore",
+    "searchProductsTitle": "Products",
+    "searchQuickBrowse": "Catalog",
+    "searchQuickStores": "Stores",
+    "searchQuickDiscover": "Discover",
+    "searchQuickAuctions": "Auctions",
+    "searchLoading": "Searching…",
+    "searchNoResults": "No products found",
+    "modeBackShopping": "Continue shopping",
+    "modeBackOrders": "View my orders",
+    "accountOrders": "Orders",
+    "accountWishlist": "Wishlist",
+    "accountHub": "Account",
+    "accountTrack": "Track order",
+    "trustStripText": "Protected purchase · Secure payment · 14-day EU returns",
+    "trustStripCta": "Learn more",
+    "trustStripDismiss": "Dismiss",
+    "agentEntry": "Agent"
   },
   "home": {
     "meta": {
@@ -241,7 +265,97 @@
       "step3": "Wir senden Ihnen Bestellungen"
     },
     "ctaFinal": "Bewerben Sie sich als Partner",
-    "backCreators": "← Kreative"
+    "backCreators": "← Kreative",
+    "enterpriseLink": "Enterprise brand? Dedicated onboarding →"
+  },
+  "enterprise": {
+    "meta": {
+      "title": "Enterprise brands — Affisell",
+      "description": "Dedicated onboarding, large-catalog import, custom domains, and creator network for established brands."
+    },
+    "hero": {
+      "eyebrow": "Affisell Enterprise",
+      "title": "Your brand. Your domain. 10,000+ creators.",
+      "sub": "Catalog import, Brand Studio, fast-track KYC, and a dedicated account manager — without rebuilding your commerce stack.",
+      "cta": "Request onboarding",
+      "badge1": "1k–10k+ SKU catalog",
+      "badge2": "shop.brand.com",
+      "badge3": "Fast-track KYC"
+    },
+    "features": {
+      "catalog": {
+        "title": "Catalog at scale",
+        "description": "Shopify, CSV, webhooks — dedicated support for high-volume catalogs."
+      },
+      "brand": {
+        "title": "Brand Studio",
+        "description": "Branded storefront, homepage sections, custom SSL domain in one click."
+      },
+      "trust": {
+        "title": "Verified Brand",
+        "description": "Verified brand program, negotiated fees, accelerated payouts."
+      },
+      "global": {
+        "title": "EU · one checkout",
+        "description": "PAN-EU, VAT, multi-country shipping — one unified buyer experience."
+      }
+    },
+    "program": {
+      "eyebrow": "Brand program",
+      "title": "White-glove onboarding in 3 steps",
+      "body": "Our team configures your account, prioritizes KYC, and connects your catalog before opening the creator network.",
+      "step1": "Application + discovery call (30 min)",
+      "step2": "Catalog import + Brand Studio + custom domain",
+      "step3": "Affiliate network launch + tracking in founder CRM",
+      "smbHint": "SMB or first-time distribution?",
+      "smbLink": "Standard partner path"
+    },
+    "form": {
+      "eyebrow": "Application",
+      "title": "Talk to the Enterprise team",
+      "subtitle": "Reply within 2 business days. Your lead is created automatically in our CRM pipeline.",
+      "brandName": "Brand name",
+      "brandNamePlaceholder": "e.g. Maison Dupont",
+      "website": "Website",
+      "contactName": "Contact name",
+      "contactEmail": "Work email",
+      "catalogSize": "Catalog size",
+      "category": "Category",
+      "commerceStack": "Commerce stack",
+      "message": "Context (optional)",
+      "messagePlaceholder": "Target countries, launch timeline, ERP/PIM integrations…",
+      "selectPlaceholder": "Select…",
+      "catalogSizeOptions": {
+        "under_100": "< 100 SKUs",
+        "100_1000": "100 – 1,000 SKUs",
+        "1000_10000": "1,000 – 10,000 SKUs",
+        "over_10000": "10,000+ SKUs"
+      },
+      "categoryOptions": {
+        "fashion": "Fashion",
+        "beauty": "Beauty",
+        "tech": "Tech",
+        "home": "Home",
+        "luxury": "Luxury",
+        "other": "Other"
+      },
+      "commerceStackOptions": {
+        "shopify": "Shopify",
+        "magento": "Magento / Adobe",
+        "sap": "SAP / ERP",
+        "pim": "PIM (Akeneo, Salsify…)",
+        "csv": "CSV / Excel",
+        "other": "Other"
+      },
+      "submit": "Submit application",
+      "privacyNote": "Data used only for your Affisell onboarding — never resold.",
+      "requiredFields": "Please complete all required fields.",
+      "sendError": "Could not submit. Try again shortly.",
+      "networkError": "Network error.",
+      "crmError": "CRM temporarily unavailable — email partners@affisell.com.",
+      "successTitle": "Application received",
+      "successBody": "Our Enterprise team will reach out within 2 business days to plan onboarding."
+    }
   },
   "auth": {
     "signin": "Anmelden",
@@ -450,6 +564,7 @@
         "legalStatus": "Erklärter Status",
         "body": "Sie können Ihr Dashboard im Nur-Lese-Modus durchsuchen. Die Veröffentlichung von Katalogen wird nach der Genehmigung freigeschaltet.",
         "dashboardLink": "Dashboard öffnen",
+        "affiliatePrepareListing": "Prepare my first listing",
         "status_PENDING_REVIEW": "In Überprüfung",
         "status_REJECTED": "Antrag abgelehnt — Kontaktieren Sie den Support",
         "status_NEEDS_MORE_INFO": "Weitere Dokumente angefordert"
@@ -541,6 +656,11 @@
       "phonePlaceholder": "+1 555 000 0000",
       "preparing": "Vorbereitung…",
       "continueCheckout": "Zur Zahlung fortfahren",
+      "handoffSecure": "Secure checkout",
+      "handoffTitle": "Opening payment",
+      "handoffIdentifying": "Verifying your identity…",
+      "handoffRedirecting": "Redirecting to Stripe secure payment…",
+      "handoffPowered": "Affisell encrypted handoff",
       "legalNote": "Durch Fortfahren stimmen Sie der Erstellung eines Affisell-Käuferkontos für Bargeld-Rückvergütungen zu.",
       "identifyFailed": "Konnte nicht fortfahren. Versuchen Sie es erneut.",
       "signInFailed": "Anmeldung nach Identifizierung fehlgeschlagen.",
@@ -586,7 +706,19 @@
     "startShopping": "Einkaufen beginnen",
     "cartTitle": "Ihr Warenkorb",
     "cartPending": "{count, plural, one {# Artikel wartet} other {# Artikel warten}}",
-    "backMarketplace": "← Zurück zum Marktplatz"
+    "backMarketplace": "← Zurück zum Marktplatz",
+    "push": {
+      "title": "Push notifications",
+      "body": "Price drops on saved products, shipping updates, and delivery alerts.",
+      "enable": "Enable notifications",
+      "disable": "Turn off notifications",
+      "loading": "Loading…",
+      "enabledToast": "Notifications enabled on this device",
+      "disabledToast": "Notifications turned off",
+      "deniedToast": "Permission denied — enable in browser settings",
+      "unsupportedToast": "Push not available on this browser",
+      "disableFailed": "Could not disable notifications"
+    }
   },
   "shops": {
     "metaTitle": "Creator-Shops — Affisell",
@@ -1335,7 +1467,33 @@
       "stepCreate": "Erstellen Sie Ihre erste Produktliste",
       "stepPublish": "Auf dem Marktplatz veröffentlichen",
       "stepShare": "Teilen Sie Ihren Shop-Link",
-      "start": "Weiter"
+      "start": "Weiter",
+      "draftReadyHint": "You already have {count, plural, one {# draft ready} other {# drafts ready}} to publish after approval."
+    },
+    "kycPublish": {
+      "badge": "Publish blocked",
+      "title": "Identity verification required",
+      "body": {
+        "noProfile": "Complete your KYC dossier before listings go live on Affisell.",
+        "pending": "Your dossier is under review — save drafts and publish once approved.",
+        "rejected": "Your dossier was rejected — update your documents to publish.",
+        "needsInfo": "We need additional documents — complete your dossier to publish."
+      },
+      "draftWaiting": "{count, plural, one {# draft waiting for approval} other {# drafts waiting for approval}}",
+      "cta": "Complete verification"
+    },
+    "firstListing": {
+      "eyebrow": "5-minute launch",
+      "title": "Your first listing starts here",
+      "body": "Swipe right on a product you love, confirm your margin, and save — publish goes live after KYC approval.",
+      "stepSwipe": "Swipe right to pick a product",
+      "stepPrice": "Confirm price (+30% margin suggested)",
+      "stepPublish": "Publish live or save as draft while KYC is pending",
+      "modalEyebrow": "First listing",
+      "stepCustomize": "1 Price & title",
+      "publishCta": "Publish listing",
+      "publishHint": "Goes live after KYC — draft saved if pending",
+      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved."
     }
   },
   "supplierDashboard": {
@@ -1734,6 +1892,10 @@
     "loading": "Lade…",
     "loadError": "Konnte Aufträge nicht laden",
     "trackingRequired": "Geben Sie eine Sendungsverfolgungsnummer ein, bevor Sie als versandt markieren.",
+    "trackingInvalid": "This tracking number is not recognized by the carrier.",
+    "trackingValidating": "Verifying tracking number with the carrier…",
+    "trackingVerified": "Tracking verified — real-time updates enabled for the buyer.",
+    "trackingHint": "Paste the exact label number. Random values are rejected.",
     "carrierRequired": "Choose an approved carrier for the delivery country.",
     "updateFailed": "Aktualisierung fehlgeschlagen",
     "page": {
@@ -1883,47 +2045,13 @@
       "sections": {
         "title": "Homepage sections",
         "hint": "Toggle and reorder blocks on your public storefront — publish-ready sections, no free-form builder.",
+        "phase3Hint": "Stift-Symbol tippen, um Text pro aktivierter Sektion anzupassen.",
+        "editContent": "{section} Inhalt bearbeiten",
         "moveUp": "Move up",
         "moveDown": "Move down",
         "enable": "Enable {section}",
         "disable": "Disable {section}",
         "orderHint": "{count} section types — order controls what buyers see first.",
-        "types": {
-          "hero": {
-            "label": "Hero",
-            "desc": "Banner or gradient above the catalog."
-          },
-          "story": {
-            "label": "Story",
-            "desc": "Your tagline and brand pitch."
-          },
-          "products": {
-            "label": "Products",
-            "desc": "Your live product grid."
-          },
-          "trust": {
-            "label": "Trust",
-            "desc": "Affisell verification strip."
-          },
-          "cta": {
-            "label": "Discover CTA",
-            "desc": "Invite buyers to explore Affisell."
-          },
-          "bestsellers": {
-            "label": "Bestseller",
-            "desc": "Horizontales Rail deiner Top-Produkte."
-          },
-          "social-proof": {
-            "label": "Social Proof",
-            "desc": "Testimonial und Vertrauensstat."
-          },
-          "newsletter": {
-            "label": "Newsletter",
-            "desc": "E-Mail-Erfassung für Drops."
-          }
-        },
-        "phase3Hint": "Stift-Symbol tippen, um Text pro aktivierter Sektion anzupassen.",
-        "editContent": "{section} Inhalt bearbeiten",
         "content": {
           "title": "Sektionstext",
           "resetHint": "Leer lassen für Standardtexte.",
@@ -1950,6 +2078,40 @@
             "author": "Happy customer",
             "stat": "500+ orders",
             "productLimit": "4"
+          }
+        },
+        "types": {
+          "hero": {
+            "label": "Hero",
+            "desc": "Banner or gradient above the catalog."
+          },
+          "story": {
+            "label": "Story",
+            "desc": "Your tagline and brand pitch."
+          },
+          "bestsellers": {
+            "label": "Bestseller",
+            "desc": "Horizontales Rail deiner Top-Produkte."
+          },
+          "products": {
+            "label": "Products",
+            "desc": "Your live product grid."
+          },
+          "social-proof": {
+            "label": "Social Proof",
+            "desc": "Testimonial und Vertrauensstat."
+          },
+          "trust": {
+            "label": "Trust",
+            "desc": "Affisell verification strip."
+          },
+          "newsletter": {
+            "label": "Newsletter",
+            "desc": "E-Mail-Erfassung für Drops."
+          },
+          "cta": {
+            "label": "Discover CTA",
+            "desc": "Invite buyers to explore Affisell."
           }
         }
       },
@@ -1985,13 +2147,6 @@
     },
     "homeSections": {
       "storyEyebrow": "Our story",
-      "trustTitle": "Affisell verified partner storefront",
-      "trustBody": "Partner code {code} — curated by this creator, sold by the supplier, Affisell secure checkout.",
-      "verified": "Verified partner",
-      "ctaEyebrow": "Explore Affisell",
-      "ctaTitle": "Discover more creators",
-      "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
-      "ctaButton": "Browse marketplace",
       "bestsellersEyebrow": "Bestseller",
       "bestsellersTitle": "Kundenfavoriten",
       "bestsellersHint": "Top-Produkte dieser Vitrine.",
@@ -2003,7 +2158,14 @@
       "newsletterPlaceholder": "du@beispiel.de",
       "newsletterButton": "Abonnieren",
       "newsletterSuccess": "Du bist auf der Liste.",
-      "newsletterDisclaimer": "Kein Spam — jederzeit abmelden."
+      "newsletterDisclaimer": "Kein Spam — jederzeit abmelden.",
+      "trustTitle": "Affisell verified partner storefront",
+      "trustBody": "Partner code {code} — curated by this creator, sold by the supplier, Affisell secure checkout.",
+      "verified": "Verified partner",
+      "ctaEyebrow": "Explore Affisell",
+      "ctaTitle": "Discover more creators",
+      "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
+      "ctaButton": "Browse marketplace"
     },
     "buyerChrome": {
       "openCategories": "Browse categories",
@@ -2040,7 +2202,17 @@
       "vercelSkipped": "Füge Hostname in Projekt-Domains für HTTPS hinzu",
       "vercelUnknown": "Hosting noch nicht registriert",
       "vercelAuto": " · Automatisch auf Hosting registriert",
-      "vercelManual": " · Füge Hostname in Domains hinzu, wenn HTTPS nicht aktiv ist"
+      "vercelManual": " · Füge Hostname in Domains hinzu, wenn HTTPS nicht aktiv ist",
+      "cronHint": "Tip: once CNAME is set, activation runs automatically every 30 minutes — or click Activate above."
+    }
+  },
+  "pwa": {
+    "install": {
+      "title": "Install Affisell",
+      "body": "Faster checkout, price alerts, and orders — like a native app.",
+      "cta": "Install",
+      "later": "Not now",
+      "dismiss": "Dismiss install banner"
     }
   },
   "boutique": {
@@ -2600,7 +2772,85 @@
     "title": "Kontaktiere Affisell",
     "description": "Fragen zu einer Bestellung, einer Rücksendung oder deinem Cashback-Wallet? Schreibe uns eine E-Mail — wir antworten innerhalb von 2 Werktagen.",
     "emailLabel": "E-Mail:",
-    "backAccount": "← Zurück zu meinem Konto"
+    "backAccount": "← Zurück zu meinem Konto",
+    "form": {
+      "directEmail": "Direct email",
+      "name": "Name",
+      "email": "Email",
+      "subject": "Subject",
+      "message": "Message",
+      "submit": "Send",
+      "sendError": "Could not send message",
+      "networkError": "Network error",
+      "successBeforeRef": "Message sent",
+      "successAfterRef": ". A confirmation email is on its way. We usually reply within 2 business days. See also the",
+      "successOr": "or the",
+      "successFaq": "FAQ",
+      "successSupport": "support assistant"
+    }
+  },
+  "howItWorks": {
+    "metaTitle": "How it works | Affisell",
+    "metaDescription": "Buyer, creator partner, and supplier journeys on the Affisell marketplace.",
+    "eyebrow": "EU marketplace",
+    "title": "How it works",
+    "description": "Affisell connects creator partners, suppliers, and buyers — no inventory for partners, with fast secure shipping handled by suppliers.",
+    "buyer": {
+      "title": "1. Buyer",
+      "body": "Browse the catalog, pay securely, and track your order from your account."
+    },
+    "creator": {
+      "title": "2. Creator partner",
+      "body": "Pick products, customize your storefront, and share it — Affisell handles checkout end to end."
+    },
+    "supplier": {
+      "title": "3. Supplier",
+      "body": "Publish your catalog, ship fast and safely, and get paid once delivery is confirmed."
+    },
+    "ctaBrowse": "Explore catalog",
+    "ctaPartner": "Become a creator partner"
+  },
+  "supportPage": {
+    "metaTitle": "Support assistant | Affisell",
+    "metaDescription": "Affisell support assistant — orders, shipping, returns, and refunds.",
+    "eyebrow": "Support",
+    "title": "Affisell Support Assistant",
+    "description": "Instant answers about orders, shipping, and returns — before contacting human support.",
+    "chatTitle": "Affisell Support Assistant",
+    "chatSubtitle": "Orders · shipping · returns · 24/7",
+    "emptyHint": "Ask a question — I'll point you to the FAQ, your orders, or the right contact.",
+    "thinking": "Thinking…",
+    "errorBeforeFaq": "Assistant unavailable — see the",
+    "errorFaq": "FAQ",
+    "errorBeforeContact": "or",
+    "errorContact": "contact us",
+    "inputPlaceholder": "e.g. Where is my order?",
+    "inputAria": "Your support question",
+    "send": "Send",
+    "stop": "Stop",
+    "cards": {
+      "faq": {
+        "title": "FAQ",
+        "body": "10+ answers on orders, shipping, and cashback.",
+        "link": "Open →"
+      },
+      "orders": {
+        "title": "My orders",
+        "body": "Tracking, returns, and delivery confirmation.",
+        "link": "Go →"
+      },
+      "contact": {
+        "title": "Human contact",
+        "body": "Reply within 2 business days if the assistant is not enough.",
+        "link": "Write →"
+      }
+    },
+    "starterPrompts": {
+      "order": "Where is my order?",
+      "return": "How do I return a product?",
+      "refund": "Refund timeline?",
+      "payment": "Payment declined at checkout"
+    }
   },
   "agent": {
     "metaTitle": "Einkaufsagent — Affisell",
@@ -2694,6 +2944,7 @@
       "becomeCreator": "Werde Kreativ",
       "affiliateProgram": "Partnerprogramm",
       "becomeSupplier": "Werde Lieferant",
+      "enterpriseBrands": "Enterprise brands",
       "demoLab": "Demo Lab",
       "blog": "Blog",
       "careers": "Karriere",
@@ -3350,6 +3601,11 @@
   },
   "accountOrders": {
     "empty": "Noch keine Bestellungen für dieses Konto.",
+    "emptyHint": "Explore personalized picks on the home catalog or swipe products in Pulse.",
+    "emptyPostCheckoutHint": "Your order is being confirmed. While you wait, discover more picks tailored to you.",
+    "emptyCtaDiscover": "Discover products",
+    "emptyCtaPulse": "Open Pulse",
+    "continueShopping": "Continue shopping",
     "sort": {
       "label": "Sort",
       "actionNeeded": "Needs your action",

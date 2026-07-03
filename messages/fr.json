@@ -15,7 +15,10 @@
       "stores": "Boutiques",
       "explore": "Explorer",
       "pulse": "Pulse",
-      "cart": "Panier"
+      "cart": "Panier",
+      "orders": "Commandes",
+      "account": "Compte",
+      "wishlist": "Favoris"
     },
     "affiliate": {
       "agent": "Agent sourcing",

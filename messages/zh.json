@@ -15,7 +15,10 @@
       "stores": "商店",
       "explore": "探索",
       "pulse": "脉冲",
-      "cart": "购物车"
+      "cart": "购物车",
+      "orders": "Orders",
+      "account": "Account",
+      "wishlist": "Wishlist"
     },
     "affiliate": {
       "agent": "采购代理",
@@ -58,7 +61,28 @@
     "myAccount": "我的账户",
     "cart": "购物车",
     "cartAria": "购物车",
-    "themeToggle": "切换主题"
+    "themeToggle": "切换主题",
+    "contextHome": "Home",
+    "contextMarketplace": "Marketplace",
+    "contextCreatorStores": "Stores",
+    "searchQuickTitle": "Explore",
+    "searchProductsTitle": "Products",
+    "searchQuickBrowse": "Catalog",
+    "searchQuickStores": "Stores",
+    "searchQuickDiscover": "Discover",
+    "searchQuickAuctions": "Auctions",
+    "searchLoading": "Searching…",
+    "searchNoResults": "No products found",
+    "modeBackShopping": "Continue shopping",
+    "modeBackOrders": "View my orders",
+    "accountOrders": "Orders",
+    "accountWishlist": "Wishlist",
+    "accountHub": "Account",
+    "accountTrack": "Track order",
+    "trustStripText": "Protected purchase · Secure payment · 14-day EU returns",
+    "trustStripCta": "Learn more",
+    "trustStripDismiss": "Dismiss",
+    "agentEntry": "Agent"
   },
   "home": {
     "meta": {
@@ -241,7 +265,97 @@
       "step3": "我们会将订单发送给你"
     },
     "ctaFinal": "申请成为我们的合作伙伴",
-    "backCreators": "← 创作者"
+    "backCreators": "← 创作者",
+    "enterpriseLink": "Enterprise brand? Dedicated onboarding →"
+  },
+  "enterprise": {
+    "meta": {
+      "title": "Enterprise brands — Affisell",
+      "description": "Dedicated onboarding, large-catalog import, custom domains, and creator network for established brands."
+    },
+    "hero": {
+      "eyebrow": "Affisell Enterprise",
+      "title": "Your brand. Your domain. 10,000+ creators.",
+      "sub": "Catalog import, Brand Studio, fast-track KYC, and a dedicated account manager — without rebuilding your commerce stack.",
+      "cta": "Request onboarding",
+      "badge1": "1k–10k+ SKU catalog",
+      "badge2": "shop.brand.com",
+      "badge3": "Fast-track KYC"
+    },
+    "features": {
+      "catalog": {
+        "title": "Catalog at scale",
+        "description": "Shopify, CSV, webhooks — dedicated support for high-volume catalogs."
+      },
+      "brand": {
+        "title": "Brand Studio",
+        "description": "Branded storefront, homepage sections, custom SSL domain in one click."
+      },
+      "trust": {
+        "title": "Verified Brand",
+        "description": "Verified brand program, negotiated fees, accelerated payouts."
+      },
+      "global": {
+        "title": "EU · one checkout",
+        "description": "PAN-EU, VAT, multi-country shipping — one unified buyer experience."
+      }
+    },
+    "program": {
+      "eyebrow": "Brand program",
+      "title": "White-glove onboarding in 3 steps",
+      "body": "Our team configures your account, prioritizes KYC, and connects your catalog before opening the creator network.",
+      "step1": "Application + discovery call (30 min)",
+      "step2": "Catalog import + Brand Studio + custom domain",
+      "step3": "Affiliate network launch + tracking in founder CRM",
+      "smbHint": "SMB or first-time distribution?",
+      "smbLink": "Standard partner path"
+    },
+    "form": {
+      "eyebrow": "Application",
+      "title": "Talk to the Enterprise team",
+      "subtitle": "Reply within 2 business days. Your lead is created automatically in our CRM pipeline.",
+      "brandName": "Brand name",
+      "brandNamePlaceholder": "e.g. Maison Dupont",
+      "website": "Website",
+      "contactName": "Contact name",
+      "contactEmail": "Work email",
+      "catalogSize": "Catalog size",
+      "category": "Category",
+      "commerceStack": "Commerce stack",
+      "message": "Context (optional)",
+      "messagePlaceholder": "Target countries, launch timeline, ERP/PIM integrations…",
+      "selectPlaceholder": "Select…",
+      "catalogSizeOptions": {
+        "under_100": "< 100 SKUs",
+        "100_1000": "100 – 1,000 SKUs",
+        "1000_10000": "1,000 – 10,000 SKUs",
+        "over_10000": "10,000+ SKUs"
+      },
+      "categoryOptions": {
+        "fashion": "Fashion",
+        "beauty": "Beauty",
+        "tech": "Tech",
+        "home": "Home",
+        "luxury": "Luxury",
+        "other": "Other"
+      },
+      "commerceStackOptions": {
+        "shopify": "Shopify",
+        "magento": "Magento / Adobe",
+        "sap": "SAP / ERP",
+        "pim": "PIM (Akeneo, Salsify…)",
+        "csv": "CSV / Excel",
+        "other": "Other"
+      },
+      "submit": "Submit application",
+      "privacyNote": "Data used only for your Affisell onboarding — never resold.",
+      "requiredFields": "Please complete all required fields.",
+      "sendError": "Could not submit. Try again shortly.",
+      "networkError": "Network error.",
+      "crmError": "CRM temporarily unavailable — email partners@affisell.com.",
+      "successTitle": "Application received",
+      "successBody": "Our Enterprise team will reach out within 2 business days to plan onboarding."
+    }
   },
   "auth": {
     "signin": "登录",
@@ -450,6 +564,7 @@
         "legalStatus": "申报状态",
         "body": "您可以在只读模式下浏览您的仪表板。批准后才可发布目录。",
         "dashboardLink": "打开控制台",
+        "affiliatePrepareListing": "Prepare my first listing",
         "status_PENDING_REVIEW": "待审核",
         "status_REJECTED": "申请被拒绝 — 联系支持",
         "status_NEEDS_MORE_INFO": "需要更多信息"
@@ -541,6 +656,11 @@
       "phonePlaceholder": "+1 555 000 0000",
       "preparing": "正在准备中…",
       "continueCheckout": "继续支付",
+      "handoffSecure": "Secure checkout",
+      "handoffTitle": "Opening payment",
+      "handoffIdentifying": "Verifying your identity…",
+      "handoffRedirecting": "Redirecting to Stripe secure payment…",
+      "handoffPowered": "Affisell encrypted handoff",
       "legalNote": "继续后，您同意为现金返利创建Affisell买家账户。",
       "identifyFailed": "无法继续。请再试一次。",
       "signInFailed": "身份识别后登录失败。",
@@ -586,7 +706,19 @@
     "startShopping": "开始购物",
     "cartTitle": "您的购物车",
     "cartPending": "{count, plural, one {# item waiting} other {# items waiting}}",
-    "backMarketplace": "← 回到市场"
+    "backMarketplace": "← 回到市场",
+    "push": {
+      "title": "Push notifications",
+      "body": "Price drops on saved products, shipping updates, and delivery alerts.",
+      "enable": "Enable notifications",
+      "disable": "Turn off notifications",
+      "loading": "Loading…",
+      "enabledToast": "Notifications enabled on this device",
+      "disabledToast": "Notifications turned off",
+      "deniedToast": "Permission denied — enable in browser settings",
+      "unsupportedToast": "Push not available on this browser",
+      "disableFailed": "Could not disable notifications"
+    }
   },
   "shops": {
     "metaTitle": "创作者商店 — Affisell",
@@ -1335,7 +1467,33 @@
       "stepCreate": "创建您的第一个产品列表",
       "stepPublish": "在 marketplace 上发布",
       "stepShare": "分享您的店铺链接",
-      "start": "继续"
+      "start": "继续",
+      "draftReadyHint": "You already have {count, plural, one {# draft ready} other {# drafts ready}} to publish after approval."
+    },
+    "kycPublish": {
+      "badge": "Publish blocked",
+      "title": "Identity verification required",
+      "body": {
+        "noProfile": "Complete your KYC dossier before listings go live on Affisell.",
+        "pending": "Your dossier is under review — save drafts and publish once approved.",
+        "rejected": "Your dossier was rejected — update your documents to publish.",
+        "needsInfo": "We need additional documents — complete your dossier to publish."
+      },
+      "draftWaiting": "{count, plural, one {# draft waiting for approval} other {# drafts waiting for approval}}",
+      "cta": "Complete verification"
+    },
+    "firstListing": {
+      "eyebrow": "5-minute launch",
+      "title": "Your first listing starts here",
+      "body": "Swipe right on a product you love, confirm your margin, and save — publish goes live after KYC approval.",
+      "stepSwipe": "Swipe right to pick a product",
+      "stepPrice": "Confirm price (+30% margin suggested)",
+      "stepPublish": "Publish live or save as draft while KYC is pending",
+      "modalEyebrow": "First listing",
+      "stepCustomize": "1 Price & title",
+      "publishCta": "Publish listing",
+      "publishHint": "Goes live after KYC — draft saved if pending",
+      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved."
     }
   },
   "supplierDashboard": {
@@ -1734,6 +1892,10 @@
     "loading": "加载中…",
     "loadError": "无法加载订单",
     "trackingRequired": "在标记为已发货之前，请输入跟踪号。",
+    "trackingInvalid": "This tracking number is not recognized by the carrier.",
+    "trackingValidating": "Verifying tracking number with the carrier…",
+    "trackingVerified": "Tracking verified — real-time updates enabled for the buyer.",
+    "trackingHint": "Paste the exact label number. Random values are rejected.",
     "carrierRequired": "Choose an approved carrier for the delivery country.",
     "updateFailed": "更新失败",
     "page": {
@@ -1883,47 +2045,13 @@
       "sections": {
         "title": "Homepage sections",
         "hint": "Toggle and reorder blocks on your public storefront — publish-ready sections, no free-form builder.",
+        "phase3Hint": "点击铅笔图标可自定义每个已启用区块的文案。",
+        "editContent": "编辑{section}内容",
         "moveUp": "Move up",
         "moveDown": "Move down",
         "enable": "Enable {section}",
         "disable": "Disable {section}",
         "orderHint": "{count} section types — order controls what buyers see first.",
-        "types": {
-          "hero": {
-            "label": "Hero",
-            "desc": "Banner or gradient above the catalog."
-          },
-          "story": {
-            "label": "Story",
-            "desc": "Your tagline and brand pitch."
-          },
-          "products": {
-            "label": "Products",
-            "desc": "Your live product grid."
-          },
-          "trust": {
-            "label": "Trust",
-            "desc": "Affisell verification strip."
-          },
-          "cta": {
-            "label": "Discover CTA",
-            "desc": "Invite buyers to explore Affisell."
-          },
-          "bestsellers": {
-            "label": "畅销榜",
-            "desc": "横向展示店铺热销商品。"
-          },
-          "social-proof": {
-            "label": "社会证明",
-            "desc": "买家评价与信任数据。"
-          },
-          "newsletter": {
-            "label": "邮件订阅",
-            "desc": "收集邮箱以便通知补货与上新。"
-          }
-        },
-        "phase3Hint": "点击铅笔图标可自定义每个已启用区块的文案。",
-        "editContent": "编辑{section}内容",
         "content": {
           "title": "区块文案",
           "resetHint": "留空则使用店铺默认文案。",
@@ -1950,6 +2078,40 @@
             "author": "Happy customer",
             "stat": "500+ orders",
             "productLimit": "4"
+          }
+        },
+        "types": {
+          "hero": {
+            "label": "Hero",
+            "desc": "Banner or gradient above the catalog."
+          },
+          "story": {
+            "label": "Story",
+            "desc": "Your tagline and brand pitch."
+          },
+          "bestsellers": {
+            "label": "畅销榜",
+            "desc": "横向展示店铺热销商品。"
+          },
+          "products": {
+            "label": "Products",
+            "desc": "Your live product grid."
+          },
+          "social-proof": {
+            "label": "社会证明",
+            "desc": "买家评价与信任数据。"
+          },
+          "trust": {
+            "label": "Trust",
+            "desc": "Affisell verification strip."
+          },
+          "newsletter": {
+            "label": "邮件订阅",
+            "desc": "收集邮箱以便通知补货与上新。"
+          },
+          "cta": {
+            "label": "Discover CTA",
+            "desc": "Invite buyers to explore Affisell."
           }
         }
       },
@@ -1985,13 +2147,6 @@
     },
     "homeSections": {
       "storyEyebrow": "Our story",
-      "trustTitle": "Affisell verified partner storefront",
-      "trustBody": "Partner code {code} — curated by this creator, sold by the supplier, Affisell secure checkout.",
-      "verified": "Verified partner",
-      "ctaEyebrow": "Explore Affisell",
-      "ctaTitle": "Discover more creators",
-      "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
-      "ctaButton": "Browse marketplace",
       "bestsellersEyebrow": "畅销榜",
       "bestsellersTitle": "顾客最爱",
       "bestsellersHint": "本店最受欢迎的商品。",
@@ -2003,7 +2158,14 @@
       "newsletterPlaceholder": "you@example.com",
       "newsletterButton": "订阅",
       "newsletterSuccess": "订阅成功——请留意收件箱。",
-      "newsletterDisclaimer": "无垃圾邮件——随时可退订。"
+      "newsletterDisclaimer": "无垃圾邮件——随时可退订。",
+      "trustTitle": "Affisell verified partner storefront",
+      "trustBody": "Partner code {code} — curated by this creator, sold by the supplier, Affisell secure checkout.",
+      "verified": "Verified partner",
+      "ctaEyebrow": "Explore Affisell",
+      "ctaTitle": "Discover more creators",
+      "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
+      "ctaButton": "Browse marketplace"
     },
     "buyerChrome": {
       "openCategories": "Browse categories",
@@ -2040,7 +2202,17 @@
       "vercelSkipped": "请在项目域名中添加主机名以启用HTTPS",
       "vercelUnknown": "主机尚未注册",
       "vercelAuto": " · 在 Vercel 自动注册",
-      "vercelManual": " · 在域名中添加主机名，如果 HTTPS 未启用，请在域名中添加"
+      "vercelManual": " · 在域名中添加主机名，如果 HTTPS 未启用，请在域名中添加",
+      "cronHint": "Tip: once CNAME is set, activation runs automatically every 30 minutes — or click Activate above."
+    }
+  },
+  "pwa": {
+    "install": {
+      "title": "Install Affisell",
+      "body": "Faster checkout, price alerts, and orders — like a native app.",
+      "cta": "Install",
+      "later": "Not now",
+      "dismiss": "Dismiss install banner"
     }
   },
   "boutique": {
@@ -2600,7 +2772,85 @@
     "title": "联系 Affisell",
     "description": "关于订单、退货或返现钱包的问题？邮件我们 — 我们在 2 个工作日内回复。",
     "emailLabel": "电子邮件：",
-    "backAccount": "← 返回我的账户"
+    "backAccount": "← 返回我的账户",
+    "form": {
+      "directEmail": "Direct email",
+      "name": "Name",
+      "email": "Email",
+      "subject": "Subject",
+      "message": "Message",
+      "submit": "Send",
+      "sendError": "Could not send message",
+      "networkError": "Network error",
+      "successBeforeRef": "Message sent",
+      "successAfterRef": ". A confirmation email is on its way. We usually reply within 2 business days. See also the",
+      "successOr": "or the",
+      "successFaq": "FAQ",
+      "successSupport": "support assistant"
+    }
+  },
+  "howItWorks": {
+    "metaTitle": "How it works | Affisell",
+    "metaDescription": "Buyer, creator partner, and supplier journeys on the Affisell marketplace.",
+    "eyebrow": "EU marketplace",
+    "title": "How it works",
+    "description": "Affisell connects creator partners, suppliers, and buyers — no inventory for partners, with fast secure shipping handled by suppliers.",
+    "buyer": {
+      "title": "1. Buyer",
+      "body": "Browse the catalog, pay securely, and track your order from your account."
+    },
+    "creator": {
+      "title": "2. Creator partner",
+      "body": "Pick products, customize your storefront, and share it — Affisell handles checkout end to end."
+    },
+    "supplier": {
+      "title": "3. Supplier",
+      "body": "Publish your catalog, ship fast and safely, and get paid once delivery is confirmed."
+    },
+    "ctaBrowse": "Explore catalog",
+    "ctaPartner": "Become a creator partner"
+  },
+  "supportPage": {
+    "metaTitle": "Support assistant | Affisell",
+    "metaDescription": "Affisell support assistant — orders, shipping, returns, and refunds.",
+    "eyebrow": "Support",
+    "title": "Affisell Support Assistant",
+    "description": "Instant answers about orders, shipping, and returns — before contacting human support.",
+    "chatTitle": "Affisell Support Assistant",
+    "chatSubtitle": "Orders · shipping · returns · 24/7",
+    "emptyHint": "Ask a question — I'll point you to the FAQ, your orders, or the right contact.",
+    "thinking": "Thinking…",
+    "errorBeforeFaq": "Assistant unavailable — see the",
+    "errorFaq": "FAQ",
+    "errorBeforeContact": "or",
+    "errorContact": "contact us",
+    "inputPlaceholder": "e.g. Where is my order?",
+    "inputAria": "Your support question",
+    "send": "Send",
+    "stop": "Stop",
+    "cards": {
+      "faq": {
+        "title": "FAQ",
+        "body": "10+ answers on orders, shipping, and cashback.",
+        "link": "Open →"
+      },
+      "orders": {
+        "title": "My orders",
+        "body": "Tracking, returns, and delivery confirmation.",
+        "link": "Go →"
+      },
+      "contact": {
+        "title": "Human contact",
+        "body": "Reply within 2 business days if the assistant is not enough.",
+        "link": "Write →"
+      }
+    },
+    "starterPrompts": {
+      "order": "Where is my order?",
+      "return": "How do I return a product?",
+      "refund": "Refund timeline?",
+      "payment": "Payment declined at checkout"
+    }
   },
   "agent": {
     "metaTitle": "购物代理人 — Affisell",
@@ -2694,6 +2944,7 @@
       "becomeCreator": "成为创作者",
       "affiliateProgram": "推广计划",
       "becomeSupplier": "成为供应商",
+      "enterpriseBrands": "Enterprise brands",
       "demoLab": "演示实验室",
       "blog": "博客",
       "careers": "职业发展",
@@ -3350,6 +3601,11 @@
   },
   "accountOrders": {
     "empty": "此账户暂无订单。",
+    "emptyHint": "Explore personalized picks on the home catalog or swipe products in Pulse.",
+    "emptyPostCheckoutHint": "Your order is being confirmed. While you wait, discover more picks tailored to you.",
+    "emptyCtaDiscover": "Discover products",
+    "emptyCtaPulse": "Open Pulse",
+    "continueShopping": "Continue shopping",
     "sort": {
       "label": "Sort",
       "actionNeeded": "Needs your action",

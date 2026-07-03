@@ -15,7 +15,10 @@
       "stores": "Stores",
       "explore": "Explore",
       "pulse": "Pulse",
-      "cart": "Cart"
+      "cart": "Cart",
+      "orders": "Orders",
+      "account": "Account",
+      "wishlist": "Wishlist"
     },
     "affiliate": {
       "agent": "Sourcing agent",
