@@ -1526,6 +1526,8 @@
       "referencePriceLabel": "Reference price (base SKU)",
       "referencePriceHint": "Used as the default margin template. Per-variant client prices are set in the block above.",
       "topVariantSettlement": "Premium variant « {variant} » at {price}",
+      "marginReviewTitle": "Supplier price increased — review your margins",
+      "marginReviewBody": "Highlighted variants may sell at a loss or with reduced margin. Use « Apply AI to variants » or adjust manually.",
       "aiPricing": {
         "title": "AI Pricing Optimizer",
         "beta": "BETA",
@@ -1555,7 +1557,8 @@
         "stock": "stock {count}",
         "supplier": "Supplier",
         "marginLabel": "Your margin (€)",
-        "clientPrice": "Client price"
+        "clientPrice": "Client price",
+        "reviewBadge": "To review"
       }
     }
   },

@@ -155,6 +155,11 @@ function SortableStoreCard(props: {
             Featured
           </span>
         ) : null}
+        {listing.marginReviewNeeded ? (
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-950 dark:bg-amber-950/70 dark:text-amber-200">
+            Marge à revoir
+          </span>
+        ) : null}
         {listing.auctionEligible ? (
           <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-900 dark:bg-violet-950/70 dark:text-violet-200">
             Auction Arena
@@ -241,6 +246,7 @@ export function AffiliateDashboard({ storeId }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const productDeepLinkConsumed = useRef(false)
+  const editListingDeepLinkConsumed = useRef(false)
   const [storeSlug, setStoreSlug] = useState<string | null>(null)
   const [storeName, setStoreName] = useState<string | null>(null)
   const [bootstrapLoading, setBootstrapLoading] = useState(true)
@@ -573,6 +579,26 @@ export function AffiliateDashboard({ storeId }: Props) {
   const storefrontListings = listingsWithProduct.filter((l) => l.isListed)
   const listedLiveCount = storefrontListings.length
   const ids = storefrontListings.map((l) => l.id)
+
+  useEffect(() => {
+    if (editListingDeepLinkConsumed.current || bootstrapLoading) return
+    const listingId = searchParams.get("editListing")?.trim()
+    if (!listingId) return
+    editListingDeepLinkConsumed.current = true
+
+    const listingRow = listingsWithProduct.find((l) => l.id === listingId)
+    if (!listingRow?.product) {
+      setToast("Fiche introuvable — ouvrez votre storefront.")
+      router.replace("/dashboard/affiliate", { scroll: false })
+      return
+    }
+
+    setTab("store")
+    void openEditByListingId(listingRow.productId, listingRow.id)
+    router.replace("/dashboard/affiliate", { scroll: false })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot editListing deep link
+  }, [bootstrapLoading, listingsWithProduct, router, searchParams])
+
   const discoverSkuCount = catalog.length
   const addableSkuCount = catalog.filter((p) => !(p.affiliateProducts?.length ?? 0)).length
 

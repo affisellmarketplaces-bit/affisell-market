@@ -57,6 +57,10 @@ import {
 } from "@/lib/product-variant-sku"
 import { parseVariantsPayload } from "@/lib/product-variants"
 import type { CustomColumn } from "@/types/product"
+import {
+  captureWholesaleSnapshotFromProductRow,
+  notifyAffiliatesAfterSupplierProductSave,
+} from "@/lib/affiliate-wholesale-change-notify"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -144,6 +148,29 @@ export async function PUT(
   if (!existingRow) {
     return Response.json({ error: "Not found" }, { status: 404 })
   }
+
+  const wholesaleBeforeRow = await prisma.product.findUnique({
+    where: { id },
+    select: {
+      basePriceCents: true,
+      variants: true,
+      colors: true,
+      hasVariants: true,
+      productVariants: {
+        select: {
+          color: true,
+          size: true,
+          stock: true,
+          supplierPrice: true,
+          wholesalePriceCents: true,
+        },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  })
+  const wholesaleBeforeSnapshot = wholesaleBeforeRow
+    ? captureWholesaleSnapshotFromProductRow(wholesaleBeforeRow)
+    : null
 
   const existingOfferRow = await prisma.product.findUnique({
     where: { id },
@@ -622,6 +649,20 @@ export async function PUT(
     })
   }
 
+  const isLiveAfterSave = !updated.isDraft && updated.active
+  if (isLiveAfterSave && wholesaleBeforeSnapshot) {
+    void notifyAffiliatesAfterSupplierProductSave({
+      productId: id,
+      before: wholesaleBeforeSnapshot,
+    }).catch((e) => {
+      console.error("[wholesale-change-guard]", {
+        productId: id,
+        result: "notify_failed",
+        error: e instanceof Error ? e.message : String(e),
+      })
+    })
+  }
+
   const isLive = !updated.isDraft && updated.active
   const savedCategoryId = categoryId ?? updated.categoryId
   if (isLive && !savedCategoryId) {
@@ -676,11 +717,32 @@ export async function PATCH(
 
   const existingRow = await prisma.product.findFirst({
     where: { id, supplierId: session.user.id },
-    select: { basePriceCents: true, variants: true, listingKind: true, commissionRate: true },
+    select: {
+      basePriceCents: true,
+      variants: true,
+      listingKind: true,
+      commissionRate: true,
+      colors: true,
+      hasVariants: true,
+      isDraft: true,
+      active: true,
+      productVariants: {
+        select: {
+          color: true,
+          size: true,
+          stock: true,
+          supplierPrice: true,
+          wholesalePriceCents: true,
+        },
+        orderBy: { createdAt: "asc" },
+      },
+    },
   })
   if (!existingRow) {
     return Response.json({ error: "Not found" }, { status: 404 })
   }
+
+  const wholesaleBeforeSnapshot = captureWholesaleSnapshotFromProductRow(existingRow)
 
   const commRaw = rawBody.commission ?? rawBody.commissionRate
   const listingKind = parseListingKind(rawBody.listingKind ?? existingRow.listingKind)
@@ -766,6 +828,20 @@ export async function PATCH(
   })
   if (!fresh) {
     return Response.json({ error: "Not found" }, { status: 404 })
+  }
+
+  const isLiveAfterPatch = !fresh.isDraft && fresh.active
+  if (isLiveAfterPatch) {
+    void notifyAffiliatesAfterSupplierProductSave({
+      productId: id,
+      before: wholesaleBeforeSnapshot,
+    }).catch((e) => {
+      console.error("[wholesale-change-guard]", {
+        productId: id,
+        result: "notify_failed",
+        error: e instanceof Error ? e.message : String(e),
+      })
+    })
   }
 
   return Response.json({

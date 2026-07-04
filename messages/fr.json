@@ -1534,6 +1534,8 @@
       "referencePriceLabel": "Prix de référence (SKU de base)",
       "referencePriceHint": "Sert de modèle de marge par défaut. Les prix client par variante se règlent dans le bloc ci-dessus.",
       "topVariantSettlement": "Variante premium « {variant} » à {price}",
+      "marginReviewTitle": "Prix fournisseur en hausse — revoyez vos marges",
+      "marginReviewBody": "Les variantes surlignées peuvent être vendues à perte ou avec une marge réduite. Utilisez « Appliquer l'IA aux variantes » ou ajustez manuellement.",
       "aiPricing": {
         "title": "AI Pricing Optimizer",
         "beta": "BETA",
@@ -1563,7 +1565,8 @@
         "stock": "stock {count}",
         "supplier": "Fournisseur",
         "marginLabel": "Votre marge (€)",
-        "clientPrice": "Prix client"
+        "clientPrice": "Prix client",
+        "reviewBadge": "À revoir"
       }
     }
   },

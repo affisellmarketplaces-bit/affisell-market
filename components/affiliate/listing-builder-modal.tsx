@@ -87,6 +87,8 @@ export type SerializedListing = {
   promotedVariantKeys?: string[]
   variantPricing?: unknown
   pricingAutoAdjust?: boolean
+  marginReviewNeeded?: boolean
+  marginReviewVariantKeys?: string[]
   showWarranty?: boolean
 }
 
@@ -716,12 +718,22 @@ function ListingBuilderModalBody({
                 />
               </div>
 
+              {listing?.marginReviewNeeded ? (
+                <div className="rounded-xl border border-amber-300/80 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-800/60 dark:bg-amber-950/30 dark:text-amber-100">
+                  <p className="font-semibold">{tListingBuilder("marginReviewTitle")}</p>
+                  <p className="mt-1 text-xs leading-relaxed opacity-90">
+                    {tListingBuilder("marginReviewBody")}
+                  </p>
+                </div>
+              ) : null}
+
               {variantOptions.length > 1 ? (
                 <AffiliateVariantMarginEditor
                   options={variantOptions}
                   pick={form.promotedVariantPick}
                   marginEuroByKey={form.variantMarginEUR}
                   globalMarginEuro={marginEUR}
+                  highlightVariantKeys={listing?.marginReviewVariantKeys ?? []}
                   disabled={busy || uploadBusy}
                   onPickChange={(key, checked) =>
                     setForm((f) => ({

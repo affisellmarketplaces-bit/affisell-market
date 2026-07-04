@@ -10,6 +10,11 @@ import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { resolveVariantPricingBodyForProduct } from "@/lib/affiliate-variant-pricing-request"
+import {
+  buildWholesaleSnapshot,
+  listingMarginReviewIsResolved,
+  parseListingVariantPricing,
+} from "@/lib/affiliate-wholesale-change-guard"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
@@ -257,6 +262,34 @@ export async function POST(request: Request) {
   const pricingAutoAdjustPatch =
     typeof body.pricingAutoAdjust === "boolean" ? body.pricingAutoAdjust : undefined
 
+  const existingListingRow = await prisma.affiliateProduct.findUnique({
+    where: { affiliateId_productId: { affiliateId: session.user.id, productId } },
+    select: { sellingPriceCents: true, variantPricing: true },
+  })
+
+  const wholesaleAfter = buildWholesaleSnapshot(productForPromo)
+  const nextSellCents =
+    sellingPriceCents ?? existingListingRow?.sellingPriceCents ?? product.basePriceCents
+  const nextVariantPricingForReview =
+    variantPricingPatch !== undefined
+      ? parseListingVariantPricing(
+          variantPricingPatch === Prisma.DbNull ? null : variantPricingPatch
+        )
+      : parseListingVariantPricing(existingListingRow?.variantPricing ?? null)
+  const marginReviewClearPatch =
+    existingListingRow &&
+    listingMarginReviewIsResolved({
+      sellingPriceCents: nextSellCents,
+      variantPricing: nextVariantPricingForReview,
+      wholesaleAfter,
+    })
+      ? {
+          marginReviewNeeded: false,
+          marginReviewVariantKeys: [] as string[],
+          marginReviewAt: null,
+        }
+      : {}
+
   try {
     const row = await prisma.affiliateProduct.upsert({
       where: {
@@ -308,6 +341,7 @@ export async function POST(request: Request) {
         ...keysPatch,
         ...(variantPricingPatch !== undefined ? { variantPricing: variantPricingPatch } : {}),
         ...(pricingAutoAdjustPatch !== undefined ? { pricingAutoAdjust: pricingAutoAdjustPatch } : {}),
+        ...marginReviewClearPatch,
       },
     })
 

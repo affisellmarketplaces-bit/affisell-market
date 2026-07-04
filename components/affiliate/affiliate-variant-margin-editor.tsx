@@ -21,6 +21,7 @@ type Props = {
   onSelectNone: () => void
   onApplyGlobalMargin: (marginEuro: number) => void
   globalMarginEuro: number | null
+  highlightVariantKeys?: string[]
   disabled?: boolean
 }
 
@@ -39,9 +40,11 @@ export function AffiliateVariantMarginEditor({
   onSelectNone,
   onApplyGlobalMargin,
   globalMarginEuro,
+  highlightVariantKeys = [],
   disabled = false,
 }: Props) {
   const t = useTranslations("affiliateDashboard.listingBuilder.variantMargins")
+  const highlightSet = new Set(highlightVariantKeys.map((k) => k.toLowerCase()))
   const selectedCount = options.filter((o) => pick[o.key]).length
 
   return (
@@ -99,13 +102,16 @@ export function AffiliateVariantMarginEditor({
             marginEuro != null && opt.wholesaleCents > 0
               ? (marginEuro / (opt.wholesaleCents / 100)) * 100
               : null
+          const isHighlighted = highlightSet.has(opt.key.toLowerCase())
 
           return (
             <li
               key={opt.key}
               className={cn(
                 "rounded-xl border transition",
-                checked
+                isHighlighted
+                  ? "border-amber-400/90 bg-amber-50/80 ring-1 ring-amber-300/60 dark:border-amber-700/60 dark:bg-amber-950/20"
+                  : checked
                   ? "border-emerald-300/80 bg-white shadow-sm dark:border-emerald-800/60 dark:bg-zinc-950/80"
                   : "border-gray-200/80 bg-gray-50/50 opacity-75 dark:border-zinc-800 dark:bg-zinc-900/40"
               )}
@@ -126,6 +132,11 @@ export function AffiliateVariantMarginEditor({
                     {opt.stock > 0 ? (
                       <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-zinc-800 dark:text-zinc-400">
                         {t("stock", { count: opt.stock })}
+                      </span>
+                    ) : null}
+                    {isHighlighted ? (
+                      <span className="rounded-full bg-amber-200/90 px-2 py-0.5 text-[10px] font-semibold text-amber-950 dark:bg-amber-900/60 dark:text-amber-100">
+                        {t("reviewBadge")}
                       </span>
                     ) : null}
                   </div>

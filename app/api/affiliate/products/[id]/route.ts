@@ -13,6 +13,11 @@ import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/produ
 import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-remove"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { resolveVariantPricingBodyForProduct } from "@/lib/affiliate-variant-pricing-request"
+import {
+  buildWholesaleSnapshot,
+  listingMarginReviewIsResolved,
+  parseListingVariantPricing,
+} from "@/lib/affiliate-wholesale-change-guard"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
@@ -306,6 +311,27 @@ export async function PATCH(
   if (nextListed && !listing.isListed) {
     const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
     if (kycBlocked) return kycBlocked
+  }
+
+  const nextSellingCents =
+    typeof data.sellingPriceCents === "number" ? data.sellingPriceCents : listing.sellingPriceCents
+  const nextVariantPricing =
+    "variantPricing" in body
+      ? parseListingVariantPricing(
+          data.variantPricing === Prisma.DbNull ? null : data.variantPricing
+        )
+      : parseListingVariantPricing(listing.variantPricing)
+  const wholesaleAfter = buildWholesaleSnapshot(productForPromo)
+  if (
+    listingMarginReviewIsResolved({
+      sellingPriceCents: nextSellingCents,
+      variantPricing: nextVariantPricing,
+      wholesaleAfter,
+    })
+  ) {
+    data.marginReviewNeeded = false
+    data.marginReviewVariantKeys = []
+    data.marginReviewAt = null
   }
 
   try {

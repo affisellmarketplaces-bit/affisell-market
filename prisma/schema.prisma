@@ -1486,6 +1486,15 @@ model AffiliateProduct {
   pricingAutoAdjustLastRun DateTime?
 
   /**
+   * Set when supplier wholesale rises or affiliate price falls below cost — review margins in listing builder.
+   */
+  marginReviewNeeded       Boolean   @default(false)
+  marginReviewAt           DateTime?
+  marginReviewVariantKeys  String[]  @default([])
+  /** Last wholesale snapshot hash we notified for (idempotent alerts). */
+  marginReviewAlertHash    String?
+
+  /**
    * When true, show supplier warranty badge on storefront cards (requires warranty on SKUs).
    */
   showWarranty Boolean @default(false)
