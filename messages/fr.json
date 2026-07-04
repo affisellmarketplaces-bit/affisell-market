@@ -1162,6 +1162,18 @@
         "defaultVariant": "SKU par défaut",
         "editMargins": "Modifier",
         "footnote": "Conversion au niveau fiche (ventes ÷ clics PDP). Mix = part des unités de cette variante sur la fiche."
+      },
+      "push": {
+        "title": "Alertes push marges",
+        "body": "Recevez une alerte mobile instantanée quand un fournisseur augmente ses prix wholesale sur vos fiches — ouvrez l'éditeur de marges en un clic.",
+        "enable": "Activer les alertes push",
+        "disable": "Désactiver le push",
+        "loading": "Chargement…",
+        "enabledToast": "Alertes push activées — vous serez prévenu en cas de hausse wholesale.",
+        "disabledToast": "Alertes push désactivées sur cet appareil.",
+        "deniedToast": "Notifications bloquées — autorisez-les dans les réglages du navigateur.",
+        "unsupportedToast": "Le push n'est pas disponible sur ce navigateur.",
+        "disableFailed": "Impossible de désactiver le push sur cet appareil."
       }
     },
     "dac7Export": {

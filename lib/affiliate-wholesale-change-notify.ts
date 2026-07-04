@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 import { sendAffiliateWholesaleChangeEmail } from "@/lib/emails/send-affiliate-wholesale-change"
+import { notifyAffiliateWholesaleChangePush } from "@/lib/affiliate-wholesale-change-push"
 import {
   SUPPLIER_PRICE_CHANGE_NOTIF,
 } from "@/lib/affiliate-wholesale-change-notif-constants"
@@ -103,6 +104,20 @@ export async function notifyAffiliatesOfWholesaleChange(args: {
       },
     })
     notificationsSent++
+
+    void notifyAffiliateWholesaleChangePush({
+      affiliateId: listing.affiliateId,
+      listingId: listing.id,
+      productName: args.productName,
+      atLoss: review.atLoss,
+      variantCount: review.variantKeys.length,
+    }).catch((e) => {
+      console.error("[wholesale-change-guard]", {
+        listingId: listing.id,
+        result: "push_failed",
+        error: e instanceof Error ? e.message : String(e),
+      })
+    })
 
     const email = listing.affiliate.email?.trim()
     if (email) {

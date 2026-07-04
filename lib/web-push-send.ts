@@ -19,6 +19,14 @@ export type OrderStatusPushPayload = {
   detail?: string | null
 }
 
+export type WholesaleChangePushPayload = {
+  userId: string
+  listingId: string
+  productName: string
+  atLoss: boolean
+  variantCount: number
+}
+
 function configureWebPush(): boolean {
   const config = readWebPushVapidConfig()
   if (!config) return false
@@ -110,5 +118,35 @@ export async function sendOrderStatusPushToUser(payload: OrderStatusPushPayload)
     body: payload.detail?.trim() || "Merci pour votre achat — laissez un avis si vous le souhaitez.",
     url: ordersUrl,
     tag: `affisell-order-delivered-${payload.orderId}`,
+  })
+}
+
+export function wholesaleChangePushUrl(listingId: string): string {
+  return `/dashboard/affiliate?editListing=${encodeURIComponent(listingId)}`
+}
+
+export function wholesaleChangePushCopy(args: {
+  productName: string
+  atLoss: boolean
+  variantCount: number
+}): { title: string; body: string } {
+  const variantNote =
+    args.variantCount > 0 ? `${args.variantCount} variante(s) à revoir` : "revoyez votre marge"
+  const lossNote = args.atLoss ? " · risque de perte" : ""
+  return {
+    title: "Prix fournisseur en hausse",
+    body: `« ${args.productName} » — ${variantNote}${lossNote}`,
+  }
+}
+
+export async function sendWholesaleChangePushToUser(
+  payload: WholesaleChangePushPayload
+): Promise<number> {
+  const copy = wholesaleChangePushCopy(payload)
+  return sendPushToUser(payload.userId, {
+    title: copy.title,
+    body: copy.body,
+    url: wholesaleChangePushUrl(payload.listingId),
+    tag: `affisell-wholesale-${payload.listingId}`,
   })
 }

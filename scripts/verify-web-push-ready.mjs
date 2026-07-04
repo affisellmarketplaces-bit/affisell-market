@@ -74,7 +74,9 @@ const requiredFiles = [
   "lib/emails/notify-order-shipped.ts",
   "lib/emails/notify-order-delivered.ts",
   "app/api/cron/wishlist-price-alerts/route.ts",
-  "components/buyer/buyer-push-notifications-card.tsx",
+  "lib/affiliate-wholesale-change-push.ts",
+  "lib/affiliate-wholesale-change-notify.ts",
+  "components/affiliate/affiliate-push-notifications-card.tsx",
   "components/push/request-price-alert-push.ts",
   "prisma/migrations/20260630140000_push_subscription/migration.sql",
 ]
@@ -100,6 +102,8 @@ if (existsSync(pushSendPath)) {
   else fail("lib/web-push-send.ts", "Include tag in push JSON for service worker")
   if (src.includes("affisell-order-shipped")) ok("order shipped push tag wired")
   else fail("order shipped push", "Missing shipped notification tag in web-push-send.ts")
+  if (src.includes("affisell-wholesale-")) ok("wholesale margin push tag wired")
+  else fail("wholesale push", "Missing affisell-wholesale tag in web-push-send.ts")
 }
 
 const shippedPath = resolve(process.cwd(), "lib/emails/notify-order-shipped.ts")
@@ -129,5 +133,6 @@ console.log("  npx prisma migrate deploy   # PushSubscription table")
 console.log("\nCron (already on Vercel):")
 console.log("  GET /api/cron/wishlist-price-alerts  (Bearer CRON_SECRET)")
 console.log("\nSmoke test after deploy:")
-console.log("  1. /marketplace/account → Activer les notifications")
-console.log("  2. Wishlist price alert OR supplier marks order shipped → push on device")
+console.log("  1. /marketplace/account → Activer les notifications (buyer)")
+console.log("  2. /dashboard/affiliate/earnings → Activer alertes push marges (affilié)")
+console.log("  3. Supplier wholesale increase OR order shipped → push on device")

@@ -2,6 +2,7 @@ import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { Suspense } from "react"
 
 import { PartnerTaxCompliancePanel } from "@/components/affiliate/partner-tax-compliance-panel"
+import { AffiliatePushNotificationsCard } from "@/components/affiliate/affiliate-push-notifications-card"
 import { AffiliateVariantMarginAnalyticsPanel } from "@/components/affiliate/affiliate-variant-margin-analytics-panel"
 import { MerchantPulseHub } from "@/components/merchant/merchant-pulse-hub"
 import { MerchantStripeConnectPanel } from "@/components/merchant/merchant-stripe-connect-panel"
@@ -51,6 +52,9 @@ export default async function AffiliateEarningsPage() {
           stripeAccountId={merchantUser?.stripeAccountId ?? null}
           verificationApproved={kycProfile?.verificationStatus === "APPROVED"}
         />
+      </Suspense>
+      <Suspense fallback={null}>
+        <AffiliatePushNotificationsCard />
       </Suspense>
       <PartnerTaxCompliancePanel />
     </div>

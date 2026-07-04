@@ -1162,6 +1162,18 @@
         "defaultVariant": "Default SKU",
         "editMargins": "Edit",
         "footnote": "Conversion is at listing level (sales ÷ PDP clicks). Mix = share of units for this variant on the listing."
+      },
+      "push": {
+        "title": "Margin alert push",
+        "body": "Get an instant mobile alert when a supplier raises wholesale prices on your listings — open the margin editor in one tap.",
+        "enable": "Enable push alerts",
+        "disable": "Disable push",
+        "loading": "Loading…",
+        "enabledToast": "Push alerts enabled — you'll be notified on wholesale price increases.",
+        "disabledToast": "Push alerts disabled on this device.",
+        "deniedToast": "Notifications blocked — enable them in your browser settings.",
+        "unsupportedToast": "Push is not available on this browser.",
+        "disableFailed": "Could not disable push on this device."
       }
     },
     "dac7Export": {
