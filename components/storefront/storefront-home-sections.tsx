@@ -91,6 +91,7 @@ export async function StorefrontHomeSections({
                   products={products}
                   mode="customer"
                   gridDensity={store.theme.gridDensity}
+                  layout={store.theme.layout}
                   dedicatedHost={isDedicatedHost}
                   activeCategoryLabel={activeCategoryLabel ?? null}
                 />

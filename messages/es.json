@@ -2153,6 +2153,7 @@
         "cta": "Lanzar mi tienda",
         "launching": "Lanzando…",
         "saved": "Tienda lanzada — preset, secciones y eslogan en vivo.",
+        "veoSaved": "Veo hero video generated — your cinematic loop is live.",
         "defaultStoreName": "Mi tienda",
         "niches": {
           "fashion": {
@@ -2192,6 +2193,7 @@
           "immersive": "Immersive",
           "minimal": "Minimal"
         },
+        "layoutImmersiveHint": "Cinematic hero, glass product cards, and AI try-on styled with your brand colors.",
         "hero": "Hero",
         "heroOptions": {
           "banner": "Banner",
@@ -2349,6 +2351,9 @@
       "preview": {
         "title": "Live preview",
         "hint": "Updates instantly — save to publish on your live URL.",
+        "draftHint": "Draft mode — save to refresh the live storefront iframe.",
+        "liveHint": "Pixel-perfect preview of your published storefront.",
+        "iframeTitle": "Storefront live preview",
         "sampleName": "My Store",
         "sampleTagline": "Premium picks from your favorite creator."
       },
@@ -2481,6 +2486,9 @@
     "allStoresShort": "Tiendas",
     "navAria": "Navegación del mercado de Affisell",
     "noProducts": "No hay productos disponibles aún.",
+    "tryOn": {
+      "cta": "Try on virtually"
+    },
     "trust": {
       "poweredBy": "Powered by Affisell",
       "verifiedBy": "Verified by Affisell",

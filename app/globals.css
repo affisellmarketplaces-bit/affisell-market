@@ -1468,6 +1468,120 @@ body.affisell-demo-lab .affisell-header-shell {
   color: color-mix(in srgb, var(--store-accent, #7c3aed) 62%, white);
 }
 
+/* —— Brand OS Phase 6B: immersive storefront —— */
+.affisell-storefront-immersive {
+  position: relative;
+}
+
+.affisell-storefront-immersive-hero {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--store-accent, #7c3aed) 25%, #e4e4e7);
+}
+
+.affisell-immersive-orb {
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+  border-radius: 9999px;
+  filter: blur(64px);
+  opacity: 0.45;
+}
+
+.affisell-immersive-orb--left {
+  top: -2rem;
+  left: -3rem;
+  width: 14rem;
+  height: 14rem;
+  background: color-mix(in srgb, var(--store-accent, #7c3aed) 35%, transparent);
+}
+
+.affisell-immersive-orb--right {
+  top: 1rem;
+  right: -2rem;
+  width: 11rem;
+  height: 11rem;
+  background: color-mix(in srgb, var(--store-primary, #18181b) 28%, #6366f1);
+}
+
+@keyframes affisell-immersive-ken-burns {
+  0% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1.08);
+  }
+}
+
+.affisell-immersive-ken-burns {
+  animation: affisell-immersive-ken-burns 18s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.affisell-storefront-immersive-card {
+  border-radius: 1rem;
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease;
+}
+
+.affisell-storefront-immersive-card:hover {
+  transform: translateY(-3px);
+}
+
+.affisell-storefront-immersive-card :is(a, article, [data-product-card]) {
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--store-accent, #7c3aed) 18%, #e4e4e7);
+  background: color-mix(in srgb, white 88%, var(--store-accent, #7c3aed) 4%);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 80%, transparent),
+    0 12px 32px -18px color-mix(in srgb, var(--store-accent, #7c3aed) 35%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.dark .affisell-storefront-immersive-card :is(a, article, [data-product-card]) {
+  border-color: color-mix(in srgb, var(--store-accent, #7c3aed) 28%, #27272a);
+  background: color-mix(in srgb, #09090b 82%, var(--store-accent, #7c3aed) 8%);
+}
+
+.affisell-storefront-pdp-immersive .affisell-storefront-pdp-page-glow {
+  opacity: 1.15;
+}
+
+.affisell-storefront-pdp-immersive .affisell-storefront-pdp-orb {
+  opacity: 0.85;
+}
+
+.store-tryon-immersive {
+  border-color: color-mix(in srgb, var(--store-accent, #7c3aed) 45%, #e4e4e7);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--store-accent, #7c3aed) 10%, white),
+    color-mix(in srgb, var(--store-accent, #7c3aed) 4%, white)
+  );
+  font-weight: 600;
+  box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--store-accent, #7c3aed) 40%, transparent);
+}
+
+.dark .store-tryon-immersive {
+  border-color: color-mix(in srgb, var(--store-accent, #7c3aed) 40%, #27272a);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--store-accent, #7c3aed) 16%, #09090b),
+    color-mix(in srgb, var(--store-accent, #7c3aed) 8%, #09090b)
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .affisell-immersive-ken-burns {
+    animation: none;
+  }
+
+  .affisell-storefront-immersive-card:hover {
+    transform: none;
+  }
+}
+
 /* —— Navigation rapide (prefetch + transitions) —— */
 .affisell-fast-link {
   touch-action: manipulation;

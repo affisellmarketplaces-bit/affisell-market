@@ -1,6 +1,8 @@
 import { headers } from "next/headers"
 
 import { AffiliateStorePreviewBannerGate } from "@/components/shop/AffiliateStorePreviewBannerGate"
+import { StorefrontImmersiveSync } from "@/components/storefront/storefront-immersive-sync"
+import { StorefrontImmersiveViewTracker } from "@/components/storefront/storefront-immersive-view-tracker"
 import { StorefrontPresetViewTracker } from "@/components/storefront/storefront-preset-view-tracker"
 import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
@@ -10,6 +12,10 @@ import {
   loadAffiliateShopStoreCached,
   loadAffiliateStorefrontTrustCached,
 } from "@/lib/shop-storefront-cache"
+import {
+  isStorefrontImmersiveLayout,
+  STOREFRONT_IMMERSIVE_ROOT_CLASS,
+} from "@/lib/storefront-immersive-shared"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { storefrontSurfaceClass } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
@@ -34,10 +40,19 @@ export default async function ShopPublicLayout({
   ])
 
   const surfaceClass = storefrontSurfaceClass(store?.theme.surface)
+  const immersive = isStorefrontImmersiveLayout(store?.theme.layout)
 
   return (
-    <div className={cn("flex min-h-0 flex-1 flex-col", surfaceClass)}>
+    <div className={cn("flex min-h-0 flex-1 flex-col", surfaceClass, immersive && STOREFRONT_IMMERSIVE_ROOT_CLASS)}>
       <StorefrontHostChromeSync active={isCustomDomain} />
+      <StorefrontImmersiveSync active={immersive} />
+      {store && immersive ? (
+        <StorefrontImmersiveViewTracker
+          storeSlug={slug}
+          presetId={store.theme.presetId}
+          heroStyle={store.theme.heroStyle}
+        />
+      ) : null}
       {store ? (
         <StorefrontPresetViewTracker storeSlug={slug} presetId={store.theme.presetId} />
       ) : null}

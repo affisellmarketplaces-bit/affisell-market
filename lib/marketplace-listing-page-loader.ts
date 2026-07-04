@@ -112,6 +112,7 @@ export const listingDetailSelect = {
           aiAvatarUrl: true,
           customDomain: true,
           domainVerified: true,
+          storefrontTheme: true,
         },
       },
     },

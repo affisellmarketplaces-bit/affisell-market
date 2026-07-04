@@ -94,6 +94,11 @@ export function StorefrontLayoutControls({
             />
           ))}
         </div>
+        {layout === "immersive" ? (
+          <p className="text-[11px] leading-relaxed text-violet-700/90 dark:text-violet-300/90">
+            {t("layoutImmersiveHint")}
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-2">

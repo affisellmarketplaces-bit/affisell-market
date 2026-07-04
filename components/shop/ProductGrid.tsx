@@ -8,7 +8,9 @@ import type { ShopProductCard } from "@/lib/shop-storefront-shared"
 import {
   storefrontGridClass,
   type StorefrontGridDensity,
+  type StorefrontLayoutMode,
 } from "@/lib/storefront-theme-shared"
+import { isStorefrontImmersiveLayout } from "@/lib/storefront-immersive-shared"
 
 type Props = {
   storeSlug: string
@@ -16,6 +18,7 @@ type Props = {
   /** Set by the server — never derive business fields on the client for buyer pages. */
   mode: ProductCardDisplayMode
   gridDensity?: StorefrontGridDensity
+  layout?: StorefrontLayoutMode
   dedicatedHost?: boolean
   activeCategoryLabel?: string | null
 }
@@ -25,11 +28,13 @@ export function ProductGrid({
   products,
   mode,
   gridDensity,
+  layout = "classic",
   dedicatedHost = false,
   activeCategoryLabel,
 }: Props) {
   const t = useTranslations("boutique")
   const tChrome = useTranslations("storefront.buyerChrome")
+  const immersive = isStorefrontImmersiveLayout(layout)
 
   if (products.length === 0) {
     return (
@@ -54,6 +59,7 @@ export function ProductGrid({
               storeSlug={storeSlug}
               mode={mode}
               dedicatedHost={dedicatedHost}
+              immersive={immersive}
             />
           </li>
         ))}

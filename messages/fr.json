@@ -2193,6 +2193,7 @@
           "immersive": "Immersif",
           "minimal": "Minimal"
         },
+        "layoutImmersiveHint": "Hero cinématique, cartes produits glass et essayage IA aux couleurs de votre marque.",
         "hero": "Hero",
         "heroOptions": {
           "banner": "Bannière",
@@ -2485,6 +2486,9 @@
     "allStoresShort": "Boutiques",
     "navAria": "Navigation marketplace Affisell",
     "noProducts": "Aucun produit disponible pour le moment.",
+    "tryOn": {
+      "cta": "Essayer virtuellement"
+    },
     "trust": {
       "poweredBy": "Propulsé par Affisell",
       "verifiedBy": "Vérifié par Affisell",

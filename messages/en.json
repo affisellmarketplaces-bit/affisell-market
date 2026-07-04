@@ -2151,6 +2151,7 @@
           "immersive": "Immersive",
           "minimal": "Minimal"
         },
+        "layoutImmersiveHint": "Cinematic hero, glass product cards, and AI try-on styled with your brand colors.",
         "hero": "Hero",
         "heroOptions": {
           "banner": "Banner",
@@ -2443,6 +2444,9 @@
     "allStoresShort": "Stores",
     "navAria": "Affisell marketplace navigation",
     "noProducts": "No products available yet.",
+    "tryOn": {
+      "cta": "Try on virtually"
+    },
     "trust": {
       "poweredBy": "Powered by Affisell",
       "verifiedBy": "Verified by Affisell",

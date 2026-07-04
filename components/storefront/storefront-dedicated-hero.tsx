@@ -3,10 +3,12 @@
 import { StorefrontTaglineBand } from "@/components/storefront/storefront-tagline-band"
 import type {
   StorefrontHeaderBrandAlign,
-  StorefrontHeroStyle,
-  StorefrontLayoutMode,
   StorefrontTheme,
 } from "@/lib/storefront-theme-shared"
+import {
+  isStorefrontImmersiveLayout,
+  STOREFRONT_IMMERSIVE_HERO_CLASS,
+} from "@/lib/storefront-immersive-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -23,7 +25,7 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
   const heroStyle = theme?.heroStyle ?? "banner"
   const layout = theme?.layout ?? "classic"
   const headerAlign = brandAlign ?? theme?.headerBrandAlign ?? "center"
-  const immersive = layout === "immersive"
+  const immersive = isStorefrontImmersiveLayout(layout)
   const heroVideoUrl = theme?.heroVideoUrl?.trim() ?? ""
 
   const showImageBanner = heroStyle === "banner" && Boolean(bannerUrl)
@@ -34,26 +36,55 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
   if (!showHero && !description?.trim()) return null
 
   return (
-    <section className="border-b border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+    <section
+      className={cn(
+        "border-b border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-950",
+        immersive && STOREFRONT_IMMERSIVE_HERO_CLASS
+      )}
+    >
+      {immersive ? (
+        <>
+          <div className="affisell-immersive-orb affisell-immersive-orb--left" aria-hidden />
+          <div className="affisell-immersive-orb affisell-immersive-orb--right" aria-hidden />
+        </>
+      ) : null}
       {showImageBanner && bannerUrl ? (
         <div
           className={cn(
             "relative w-full overflow-hidden",
-            immersive ? "h-36 sm:h-44 md:h-52" : "h-28 sm:h-36 md:h-40"
+            immersive ? "h-44 sm:h-56 md:h-72" : "h-28 sm:h-36 md:h-40"
           )}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={bannerUrl} alt="" className="h-full w-full object-cover" loading="eager" />
+          <img
+            src={bannerUrl}
+            alt=""
+            className={cn(
+              "h-full w-full object-cover",
+              immersive && "affisell-immersive-ken-burns"
+            )}
+            loading="eager"
+          />
           <div
-            className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"
+            className={cn(
+              "absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent",
+              immersive && "from-black/65 via-black/20"
+            )}
             aria-hidden
           />
+          {immersive && description?.trim() ? (
+            <div className="absolute inset-x-0 bottom-0 px-4 pb-4 sm:px-6 sm:pb-6">
+              <p className="max-w-2xl text-base font-medium leading-relaxed text-white/95 drop-shadow-md sm:text-lg">
+                {description}
+              </p>
+            </div>
+          ) : null}
         </div>
       ) : showVideoHero ? (
         <div
           className={cn(
             "relative w-full overflow-hidden bg-zinc-950",
-            immersive ? "h-40 sm:h-48 md:h-56" : "h-32 sm:h-40 md:h-48"
+            immersive ? "h-48 sm:h-56 md:h-64" : "h-32 sm:h-40 md:h-48"
           )}
         >
           <video
@@ -73,7 +104,7 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
           />
           {description?.trim() ? (
             <div className="absolute inset-x-0 bottom-0 px-4 pb-3 sm:px-6 sm:pb-4">
-              <p className="max-w-2xl text-sm font-medium leading-relaxed text-white/90 drop-shadow-sm">
+              <p className="max-w-2xl text-sm font-medium leading-relaxed text-white/90 drop-shadow-sm sm:text-base">
                 {description}
               </p>
             </div>
@@ -85,10 +116,10 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
             "relative w-full overflow-hidden",
             description?.trim()
               ? immersive
-                ? "h-24 sm:h-28"
+                ? "h-32 sm:h-40"
                 : "h-20 sm:h-24"
               : immersive
-                ? "h-10 sm:h-12"
+                ? "h-16 sm:h-20"
                 : "h-8 sm:h-10"
           )}
           style={{
@@ -99,7 +130,7 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
           <div className="absolute inset-x-0 bottom-0 h-px bg-white/15" />
           {description?.trim() ? (
             <div className="relative flex h-full items-end px-4 pb-3 sm:px-6 sm:pb-4">
-              <p className="max-w-2xl text-sm font-medium leading-relaxed text-white/90 drop-shadow-sm">
+              <p className="max-w-2xl text-sm font-medium leading-relaxed text-white/90 drop-shadow-sm sm:text-base">
                 {description}
               </p>
             </div>
@@ -107,7 +138,7 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
         </div>
       ) : null}
 
-      {description?.trim() && !showGradientHero && !showVideoHero ? (
+      {description?.trim() && !showGradientHero && !showVideoHero && !(immersive && showImageBanner) ? (
         <StorefrontTaglineBand
           description={description}
           accent={accent}

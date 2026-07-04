@@ -211,6 +211,8 @@ type Props = {
   tryOnEnabled?: boolean
   tryOnGarmentUrl?: string | null
   tryOnFeatureEnabled?: boolean
+  /** Shop PDP with Brand Studio layout `immersive`. */
+  storeLayoutImmersive?: boolean
 }
 
 function fmtMoney(value: number) {
@@ -381,9 +383,12 @@ export function MarketplaceListingDetail({
   tryOnEnabled = false,
   tryOnGarmentUrl = null,
   tryOnFeatureEnabled = false,
+  storeLayoutImmersive = false,
 }: Props) {
   const locale = useLocale() as AppLocale
   const brand = storefrontPdpBrandClasses(brandedStorefront)
+  const tryOnVariant =
+    brandedStorefront && storeLayoutImmersive ? ("immersive" as const) : ("default" as const)
   const messages = CLIENT_MESSAGES[locale] as typeof import("@/messages/en.json")
   const productT = messages.Product
   const breadcrumbT = messages.Breadcrumb
@@ -1066,7 +1071,11 @@ export function MarketplaceListingDetail({
             />
             <div className="px-4 pb-3 lg:hidden">
               {tryOnReady ? (
-                <TryOnTrigger className="mb-3 w-full" onOpen={() => setTryOnOpen(true)} />
+                <TryOnTrigger
+                  className="mb-3 w-full"
+                  variant={tryOnVariant}
+                  onOpen={() => setTryOnOpen(true)}
+                />
               ) : null}
               <ListingLogisticsStrip logistics={shipping} compact />
             </div>
@@ -1220,7 +1229,11 @@ export function MarketplaceListingDetail({
               reduceMotion={reduceMotion ?? false}
             />
             {tryOnReady ? (
-              <TryOnTrigger className="max-lg:hidden w-full" onOpen={() => setTryOnOpen(true)} />
+              <TryOnTrigger
+                className="max-lg:hidden w-full"
+                variant={tryOnVariant}
+                onOpen={() => setTryOnOpen(true)}
+              />
             ) : null}
             </>
             )}

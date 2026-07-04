@@ -44,6 +44,11 @@ import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-fi
 import { resolveGalleryListingVideoUrl } from "@/lib/product-playable-video"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { offerModeBadge, parseProductOfferMode } from "@/lib/product-offer-mode"
+import {
+  isStorefrontImmersiveLayout,
+  STOREFRONT_PDP_IMMERSIVE_CLASS,
+} from "@/lib/storefront-immersive-shared"
+import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
 import { cn } from "@/lib/utils"
 import {
@@ -194,6 +199,8 @@ export default async function MarketplaceListingPage({
   const { listing, oftenRaw, fallbackRaw, viewsLast24h, writeReviewOrderId } = loaded
 
   const st = listing.affiliate.store
+  const storeTheme = st?.storefrontTheme ? parseStorefrontTheme(st.storefrontTheme) : null
+  const storeLayoutImmersive = isStorefrontImmersiveLayout(storeTheme?.layout)
   const storefront = st
     ? {
         name: st.name,
@@ -396,6 +403,7 @@ export default async function MarketplaceListingPage({
   return (
     <MarketplaceListingPageShell
       storeSlug={storeSlug}
+      storeLayoutImmersive={storeSlug ? storeLayoutImmersive : false}
       checkoutAvailable={checkoutAvailable}
       visitorCountry={visitorCountry}
       graduatedCheckout={graduatedCheckout}
@@ -461,6 +469,7 @@ export default async function MarketplaceListingPage({
           tryOnEnabled={Boolean(p.tryOnEnabled)}
           tryOnGarmentUrl={p.tryOnGarmentUrl ?? null}
           tryOnFeatureEnabled={tryOnFeatureEnabled}
+          storeLayoutImmersive={storeSlug ? storeLayoutImmersive : false}
         />
     </MarketplaceListingPageShell>
   )
@@ -468,6 +477,7 @@ export default async function MarketplaceListingPage({
 
 function MarketplaceListingPageShell({
   storeSlug,
+  storeLayoutImmersive = false,
   checkoutAvailable,
   visitorCountry,
   graduatedCheckout,
@@ -476,6 +486,7 @@ function MarketplaceListingPageShell({
   children,
 }: {
   storeSlug?: string
+  storeLayoutImmersive?: boolean
   checkoutAvailable: boolean
   visitorCountry: string | null
   graduatedCheckout: boolean
@@ -488,7 +499,8 @@ function MarketplaceListingPageShell({
     <main
       className={cn(
         "affisell-pdp-viewport relative min-h-screen w-full max-w-[100vw] overflow-x-clip",
-        brand.pageShell
+        brand.pageShell,
+        storeLayoutImmersive && STOREFRONT_PDP_IMMERSIVE_CLASS
       )}
     >
       <script
