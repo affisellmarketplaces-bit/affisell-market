@@ -35,6 +35,39 @@ describe("storefront-brand-launch", () => {
     expect(enabled).toContain("bestsellers")
   })
 
+  it("applies immersive smart launch for fashion and beauty", () => {
+    for (const niche of ["fashion", "beauty"] as const) {
+      const config = buildBrandLaunchConfig({
+        niche,
+        description: "Test",
+        storeName: "Test",
+      })
+      expect(config.layout).toBe("immersive")
+    }
+    const fashion = buildBrandLaunchConfig({
+      niche: "fashion",
+      description: "Test",
+      storeName: "Test",
+    })
+    expect(fashion.surface).toBe("glass")
+    const tech = buildBrandLaunchConfig({
+      niche: "tech",
+      description: "Test",
+      storeName: "Test",
+    })
+    expect(tech.layout).toBe("immersive")
+  })
+
+  it("sets bestsellers product limit for fashion", () => {
+    const config = buildBrandLaunchConfig({
+      niche: "fashion",
+      description: "Test",
+      storeName: "Test",
+    })
+    const bestsellers = config.homepageSections.find((s) => s.type === "bestsellers")
+    expect(bestsellers?.content?.productLimit).toBe(8)
+  })
+
   it("validates niche ids", () => {
     expect(isBrandLaunchNiche("tech")).toBe(true)
     expect(isBrandLaunchNiche("invalid")).toBe(false)

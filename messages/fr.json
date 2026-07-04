@@ -2149,7 +2149,7 @@
       },
       "launch": {
         "title": "Boutique prête en 60 secondes",
-        "subtitle": "Choisissez votre niche — preset, sections et textes appliqués. Un clic pour publier.",
+        "subtitle": "Choisissez votre niche — preset, layout immersif, sections et textes. Un clic pour publier.",
         "cta": "Lancer ma boutique",
         "launching": "Lancement…",
         "saved": "Boutique lancée — preset, sections et accroche sont en ligne.",
@@ -2158,12 +2158,12 @@
         "niches": {
           "fashion": {
             "label": "Mode & lifestyle",
-            "hint": "Preset rose éditorial, story + bestsellers + CTA",
+            "hint": "Preset glass immersif, story + bestsellers + CTA",
             "description": "{name} — sélection mode soignée pour votre audience."
           },
           "tech": {
             "label": "Tech & gadgets",
-            "hint": "Preset midnight cyber, preuve sociale + grille compacte",
+            "hint": "Preset midnight immersif, preuve sociale + grille compacte",
             "description": "{name} — tech premium et accessoires testés pour votre communauté."
           },
           "fitness": {
@@ -2173,10 +2173,20 @@
           },
           "beauty": {
             "label": "Beauté & skincare",
-            "hint": "Preset violet, bestsellers + CTA discover",
+            "hint": "Preset violet immersif, bestsellers + CTA discover",
             "description": "{name} — beauté clean et soins favoris pour celles et ceux qui cherchent l'éclat."
           }
         }
+      },
+      "shareGrow": {
+        "title": "Partager & développer",
+        "subtitle": "Envoyez du trafic vers votre boutique live — lien ou partage en un tap.",
+        "primaryLink": "Lien boutique live",
+        "copyLink": "Copier le lien",
+        "copied": "Copié",
+        "nativeShare": "Partager…",
+        "shareMessage": "Découvrez {name} — sélection produits sur Affisell",
+        "enableEmbedHint": "Activer le widget embed pour afficher votre shop sur votre site →"
       },
       "layoutControls": {
         "title": "Structure & ambiance",

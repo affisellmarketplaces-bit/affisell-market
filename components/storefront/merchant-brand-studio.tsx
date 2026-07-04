@@ -18,6 +18,7 @@ import { StorefrontLogoField } from "@/components/storefront/storefront-logo-fie
 import { StorefrontSectionsEditor } from "@/components/storefront/storefront-sections-editor"
 import { StorefrontStaticPagesEditor } from "@/components/storefront/storefront-static-pages-editor"
 import { StorefrontThemePresetPicker } from "@/components/storefront/storefront-theme-preset-picker"
+import { StorefrontShareGrowPanel } from "@/components/storefront/storefront-share-grow-panel"
 import { StoreLiveUrlCard } from "@/components/storefront/store-live-url-card"
 import { StoreNameBadgePicker } from "@/components/storefront/store-name-badge-picker"
 import { Button } from "@/components/ui/button"
@@ -807,6 +808,15 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
               </BentoCard>
             </div>
             <StoreLiveUrlCard urls={storeUrls} storeHostSuffix={storeHostSuffix} loading={loading} />
+            {storeSlug && storeUrls?.primaryUrl ? (
+              <StorefrontShareGrowPanel
+                slug={storeSlug}
+                storeName={name}
+                shopUrl={storeUrls.primaryUrl}
+                embedEnabled={embedWidget.enabled}
+                onEnableEmbed={() => setEmbedWidget((prev) => ({ ...prev, enabled: true }))}
+              />
+            ) : null}
             <StoreCustomDomainCard variant="studio" />
             <BentoCard className="text-sm text-gray-600 dark:text-zinc-400">
               <p className="flex items-center gap-2 font-medium text-gray-900 dark:text-zinc-100">

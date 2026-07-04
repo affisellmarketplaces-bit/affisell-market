@@ -112,6 +112,7 @@ export function buildBrandLaunchConfig(args: {
       ])
       sections = withSectionCopy(sections, {
         story: { eyebrow: "Curated edit", body: args.description },
+        bestsellers: { productLimit: 8 },
         cta: {
           eyebrow: "New drops",
           title: "Shop the collection",
@@ -131,6 +132,7 @@ export function buildBrandLaunchConfig(args: {
       ])
       sections = withSectionCopy(sections, {
         story: { body: args.description },
+        bestsellers: { productLimit: 6 },
         "social-proof": {
           quote: "Fast delivery and exactly as described — premium feel.",
           author: "Verified buyer",
@@ -167,6 +169,7 @@ export function buildBrandLaunchConfig(args: {
       ])
       sections = withSectionCopy(sections, {
         story: { eyebrow: "Clean beauty", body: args.description },
+        bestsellers: { productLimit: 8 },
         cta: {
           eyebrow: "Glow routine",
           title: "Discover bestsellers",
@@ -178,7 +181,7 @@ export function buildBrandLaunchConfig(args: {
       break
   }
 
-  return {
+  return applySmartLaunchLayout({
     niche: args.niche,
     presetId,
     primary: theme.primary ?? "#18181b",
@@ -196,6 +199,24 @@ export function buildBrandLaunchConfig(args: {
       storeName: args.storeName,
       description: args.description,
     }),
+  })
+}
+
+/** Phase 7 — niche-aware immersive defaults (pairs with Brand OS 6B). */
+function applySmartLaunchLayout(config: BrandLaunchConfig): BrandLaunchConfig {
+  switch (config.niche) {
+    case "fashion":
+    case "beauty":
+      return {
+        ...config,
+        layout: "immersive",
+        heroStyle: config.heroStyle === "banner" ? "gradient" : config.heroStyle,
+        surface: config.surface === "light" ? "glass" : config.surface,
+      }
+    case "tech":
+      return { ...config, layout: "immersive" }
+    default:
+      return config
   }
 }
 

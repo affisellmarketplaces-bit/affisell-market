@@ -2178,6 +2178,16 @@
           }
         }
       },
+      "shareGrow": {
+        "title": "Share & grow",
+        "subtitle": "Send traffic to your live storefront — copy link or share in one tap.",
+        "primaryLink": "Live shop link",
+        "copyLink": "Copy link",
+        "copied": "Copied",
+        "nativeShare": "Share…",
+        "shareMessage": "Discover {name} — curated products on Affisell",
+        "enableEmbedHint": "Enable embed widget to show your shop on your blog or site →"
+      },
       "layoutControls": {
         "title": "Structure & mood",
         "headerBrand": "Store name in header",
