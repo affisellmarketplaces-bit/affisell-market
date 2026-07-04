@@ -2,6 +2,7 @@ import {
   DEFAULT_HOMEPAGE_SECTIONS,
   updateHomepageSectionContent,
   type HomepageSection,
+  type HomepageSectionContent,
 } from "@/lib/storefront-sections-shared"
 import { findStorefrontThemePreset } from "@/lib/storefront-theme-presets"
 import type { StorefrontTheme } from "@/lib/storefront-theme-shared"
@@ -55,22 +56,7 @@ function enableSections(
 
 function withSectionCopy(
   sections: HomepageSection[],
-  copy: Partial<
-    Record<
-      HomepageSection["type"],
-      {
-        eyebrow?: string
-        title?: string
-        body?: string
-        buttonLabel?: string
-        buttonHref?: string
-        placeholder?: string
-        quote?: string
-        author?: string
-        stat?: string
-      }
-    >
-  >
+  copy: Partial<Record<HomepageSection["type"], HomepageSectionContent>>
 ): HomepageSection[] {
   let out = sections
   for (const [type, patch] of Object.entries(copy) as Array<

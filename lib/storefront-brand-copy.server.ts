@@ -49,9 +49,8 @@ export async function generateStoreBrandCopy(args: {
   if (!process.env.GROQ_API_KEY?.trim()) return null
 
   const storeName = args.storeName.trim().slice(0, 80) || "My Store"
-  const niche: BrandLaunchNiche = isBrandLaunchNiche(args.niche ?? "")
-    ? args.niche
-    : "fashion"
+  const niche: BrandLaunchNiche =
+    args.niche && isBrandLaunchNiche(args.niche) ? args.niche : "fashion"
   const locale = args.locale === "fr" ? "fr" : "en"
 
   const raw = await groqChatText({
