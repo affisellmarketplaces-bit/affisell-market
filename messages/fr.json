@@ -2153,6 +2153,7 @@
         "cta": "Lancer ma boutique",
         "launching": "Lancement…",
         "saved": "Boutique lancée — preset, sections et accroche sont en ligne.",
+        "veoSaved": "Hero vidéo Veo généré — la boucle cinématique est en ligne.",
         "defaultStoreName": "Ma boutique",
         "niches": {
           "fashion": {
@@ -2349,6 +2350,9 @@
       "preview": {
         "title": "Aperçu live",
         "hint": "Mise à jour instantanée — enregistrez pour publier sur votre URL.",
+        "draftHint": "Mode brouillon — enregistrez pour rafraîchir l’iframe live.",
+        "liveHint": "Aperçu pixel-perfect de votre vitrine publiée.",
+        "iframeTitle": "Aperçu live de la boutique",
         "sampleName": "Ma Boutique",
         "sampleTagline": "Sélection premium par votre créateur préféré."
       },

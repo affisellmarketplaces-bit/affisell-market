@@ -1,6 +1,7 @@
 import { headers } from "next/headers"
 
 import { AffiliateStorePreviewBannerGate } from "@/components/shop/AffiliateStorePreviewBannerGate"
+import { StorefrontPresetViewTracker } from "@/components/storefront/storefront-preset-view-tracker"
 import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
 import { StorefrontStaticPagesStrip } from "@/components/storefront/storefront-static-pages-strip"
@@ -37,6 +38,9 @@ export default async function ShopPublicLayout({
   return (
     <div className={cn("flex min-h-0 flex-1 flex-col", surfaceClass)}>
       <StorefrontHostChromeSync active={isCustomDomain} />
+      {store ? (
+        <StorefrontPresetViewTracker storeSlug={slug} presetId={store.theme.presetId} />
+      ) : null}
       {store ? <StorefrontThemeStyles theme={store.theme} /> : null}
       {store ? (
         <StorefrontBuyerChromeBar

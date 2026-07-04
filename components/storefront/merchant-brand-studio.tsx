@@ -9,11 +9,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
 import { StorefrontBrandLaunchPanel } from "@/components/storefront/storefront-brand-launch-panel"
+import { StorefrontBrandPreviewPanel } from "@/components/storefront/storefront-brand-preview-panel"
 import { StorefrontEmbedWidgetPanel } from "@/components/storefront/storefront-embed-widget-panel"
 import { StorefrontHeroVideoField } from "@/components/storefront/storefront-hero-video-field"
 import { StorefrontHeaderColorPicker } from "@/components/storefront/storefront-header-color-picker"
 import { StorefrontLayoutControls } from "@/components/storefront/storefront-layout-controls"
-import { StorefrontLivePreview } from "@/components/storefront/storefront-live-preview"
 import { StorefrontLogoField } from "@/components/storefront/storefront-logo-field"
 import { StorefrontSectionsEditor } from "@/components/storefront/storefront-sections-editor"
 import { StorefrontStaticPagesEditor } from "@/components/storefront/storefront-static-pages-editor"
@@ -55,6 +55,7 @@ import {
   type StorefrontEmbedWidget,
 } from "@/lib/storefront-embed-shared"
 import type { BrandLaunchConfig } from "@/lib/storefront-brand-launch"
+import { capturePosthogClient } from "@/lib/analytics/posthog"
 import { cn } from "@/lib/utils"
 
 type MerchantRole = "AFFILIATE" | "SUPPLIER"
@@ -226,6 +227,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const [heroVideoUrl, setHeroVideoUrl] = useState("")
   const [embedWidget, setEmbedWidget] = useState<StorefrontEmbedWidget>(DEFAULT_EMBED_WIDGET)
   const [storeSlug, setStoreSlug] = useState("")
+  const [previewRefreshKey, setPreviewRefreshKey] = useState(0)
   const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
   const mountedRef = useRef(false)
 
@@ -356,6 +358,14 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         setMessage(successMessage)
         setSavedSnapshot(snapshot)
         setLogoFile(null)
+        setPreviewRefreshKey((k) => k + 1)
+        capturePosthogClient("brand_studio_saved", {
+          role,
+          presetId: snapshot.presetId ?? "none",
+          heroStyle: snapshot.heroStyle,
+          layout: snapshot.layout,
+        })
+        console.log("[brand-studio]", { role, presetId: snapshot.presetId, result: "saved" })
         return true
       } catch (err) {
         if (mountedRef.current) {
@@ -366,7 +376,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         if (mountedRef.current) setSaving(false)
       }
     },
-    [logoFile, t]
+    [logoFile, role, t]
   )
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -397,12 +407,61 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         heroVideoUrl,
         embedWidget,
       })
-      await persistSnapshot(launchSnapshot, t("launch.saved"))
+      const saved = await persistSnapshot(launchSnapshot, t("launch.saved"))
+      if (!saved) return
+
+      try {
+        const res = await fetch("/api/store/generate-hero-video", {
+          method: "POST",
+          credentials: "include",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({}),
+        })
+        const json = (await res.json()) as { videoUrl?: string; error?: string }
+        if (res.ok && json.videoUrl) {
+          setHeroVideoUrl(json.videoUrl)
+          setHeroStyle("video")
+          const withVideo = snapshotFromDraft({
+            name,
+            description: config.description,
+            bannerUrl,
+            logoUrl,
+            primaryHex: config.primary,
+            accent: config.accent,
+            trustRailText: config.trustRailText,
+            nameBadge: config.nameBadge,
+            layout: config.layout,
+            heroStyle: "video",
+            gridDensity: config.gridDensity,
+            surface: config.surface,
+            headerBrandAlign: config.headerBrandAlign,
+            presetId: config.presetId,
+            homepageSections: config.homepageSections,
+            staticPages: config.staticPages,
+            heroVideoUrl: json.videoUrl,
+            embedWidget,
+          })
+          await persistSnapshot(withVideo, t("launch.veoSaved"))
+          capturePosthogClient("brand_launch_veo_hero", {
+            niche: config.niche,
+            role,
+            presetId: config.presetId,
+          })
+          console.log("[brand-launch]", { niche: config.niche, result: "veo_hero" })
+        }
+      } catch (err) {
+        console.log("[brand-launch]", {
+          niche: config.niche,
+          result: "veo_skipped",
+          error: err instanceof Error ? err.message : String(err),
+        })
+      }
     },
-    [applyLaunchConfig, bannerUrl, embedWidget, heroVideoUrl, logoUrl, name, persistSnapshot, t]
+    [applyLaunchConfig, bannerUrl, embedWidget, heroVideoUrl, logoUrl, name, persistSnapshot, role, t]
   )
 
   function applyPreset(theme: StorefrontTheme, id: string) {
+    capturePosthogClient("brand_preset_selected", { presetId: id, role })
     setPresetId(id)
     setPrimaryHex(theme.primary ?? DEFAULT_STOREFRONT_THEME.primary!)
     setAccent(theme.accent ?? DEFAULT_STOREFRONT_THEME.accent!)
@@ -739,7 +798,12 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
           <div className="space-y-4">
             <div className="xl:sticky xl:top-4">
               <BentoCard className="overflow-hidden bg-gradient-to-b from-violet-50/80 to-white dark:from-violet-950/20 dark:to-zinc-950">
-                <StorefrontLivePreview draft={previewDraft} />
+                <StorefrontBrandPreviewPanel
+                  previewHref={previewHref}
+                  isDirty={isDirty}
+                  draft={previewDraft}
+                  refreshKey={previewRefreshKey}
+                />
               </BentoCard>
             </div>
             <StoreLiveUrlCard urls={storeUrls} storeHostSuffix={storeHostSuffix} loading={loading} />
