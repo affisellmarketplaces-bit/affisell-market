@@ -5,6 +5,7 @@ on:
   schedule:
     - cron: "*/30 * * * *"
     - cron: "0 9 * * *"
+    - cron: "0 9 * * 1"
   workflow_dispatch:
 
 jobs:
@@ -67,6 +68,29 @@ jobs:
             "/api/cron/expansion-digest" \
             "/api/cron/refresh-supplier-trust-scores" \
             "/api/cron/brand-pulse-nudge"
+
+  weekly:
+    if: github.event.schedule == '0 9 * * 1' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger weekly Brand OS cron routes
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ] || [ -z "$VERCEL_APP_URL" ]; then
+            echo "Set GitHub secrets CRON_SECRET and VERCEL_APP_URL"
+            exit 1
+          fi
+          BASE="${VERCEL_APP_URL%/}"
+          AUTH="Authorization: Bearer ${CRON_SECRET}"
+          for path in \
+            "/api/cron/brand-pulse-weekly-digest" \
+            "/api/cron/brand-preset-ab-winner"
+          do
+            echo "→ GET ${path}"
+            curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"
+          done
           do
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"

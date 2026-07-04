@@ -2192,6 +2192,22 @@
           "midnight-orbit": "Midnight Orbit"
         }
       },
+      "presetAb": {
+        "title": "Preset A/B test",
+        "subtitle": "50/50 traffic split — auto-applies the winner after 7 days in PostHog funnel.",
+        "challenger": "Challenger preset",
+        "start": "Start experiment",
+        "stop": "Stop experiment",
+        "stats": "Live views — control: {control} · challenger: {challenger}",
+        "needPreset": "Select a control preset first.",
+        "failed": "Could not update A/B experiment."
+      },
+      "aiFaqOrders": {
+        "cta": "Generate FAQ from my orders",
+        "generating": "Analyzing orders…",
+        "hint": "Uses your last 30 days of orders to write shipping & returns FAQ.",
+        "failed": "AI FAQ unavailable — check GROQ_API_KEY or try again."
+      },
       "analytics": {
         "title": "Growth analytics",
         "subtitle": "Preset → launch → share funnel tracked in PostHog for Metabase.",

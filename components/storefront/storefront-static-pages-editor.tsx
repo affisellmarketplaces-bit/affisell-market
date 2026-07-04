@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { StorefrontAiFaqOrdersButton } from "@/components/storefront/storefront-ai-faq-orders-button"
 import { StorefrontAiStaticPagesButton } from "@/components/storefront/storefront-ai-static-pages-button"
 import {
   STOREFRONT_STATIC_PAGE_KINDS,
@@ -34,9 +35,15 @@ export function StorefrontStaticPagesEditor({ pages, onChange, role, disabled = 
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{t("title")}</p>
         <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">{t("hint")}</p>
-        <div className="mt-3">
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
           <StorefrontAiStaticPagesButton
             role={role}
+            disabled={disabled}
+            onApply={(nextPages) => onChange(nextPages)}
+          />
+          <StorefrontAiFaqOrdersButton
+            role={role}
+            pages={pages}
             disabled={disabled}
             onApply={(nextPages) => onChange(nextPages)}
           />

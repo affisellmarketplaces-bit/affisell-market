@@ -22,6 +22,7 @@ import { StorefrontLogoField } from "@/components/storefront/storefront-logo-fie
 import { StorefrontSectionsEditor } from "@/components/storefront/storefront-sections-editor"
 import { StorefrontStaticPagesEditor } from "@/components/storefront/storefront-static-pages-editor"
 import { StorefrontThemePresetPicker } from "@/components/storefront/storefront-theme-preset-picker"
+import { StorefrontPresetAbPanel } from "@/components/storefront/storefront-preset-ab-panel"
 import { StorefrontPresetOptimizerPanel } from "@/components/storefront/storefront-preset-optimizer-panel"
 import { StorefrontShareGrowPanel } from "@/components/storefront/storefront-share-grow-panel"
 import { StoreLiveUrlCard } from "@/components/storefront/store-live-url-card"
@@ -61,6 +62,7 @@ import {
   type StorefrontEmbedWidget,
 } from "@/lib/storefront-embed-shared"
 import type { BrandLaunchConfig } from "@/lib/storefront-brand-launch"
+import type { StorefrontPresetAb } from "@/lib/storefront-preset-ab-shared"
 import { computeBrandPulse } from "@/lib/storefront-brand-pulse-shared"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
 import { cn } from "@/lib/utils"
@@ -238,6 +240,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
     liveCatalogCount: 0,
     customDomainVerified: false,
   })
+  const [presetAb, setPresetAb] = useState<StorefrontPresetAb | null>(null)
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0)
   const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
   const mountedRef = useRef(false)
@@ -317,6 +320,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         setHeroVideoUrl(snap.heroVideoUrl)
         setEmbedWidget(snap.embedWidget)
         setStoreSlug(st.slug)
+        setPresetAb(parseStorefrontTheme(st.storefrontTheme).brandOps?.presetAb ?? null)
         setSavedSnapshot(snap)
       }
     } catch (e) {
@@ -888,6 +892,12 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
               presetId={presetId}
               role={role}
               onApplyPreset={applyPreset}
+            />
+            <StorefrontPresetAbPanel
+              role={role}
+              controlPresetId={presetId}
+              presetAb={presetAb}
+              onUpdated={() => void hydrate()}
             />
             <StorefrontBrandAnalyticsPanel role={role} presetId={presetId} />
             <StoreLiveUrlCard urls={storeUrls} storeHostSuffix={storeHostSuffix} loading={loading} />

@@ -3,6 +3,7 @@ import { headers } from "next/headers"
 import { AffiliateStorePreviewBannerGate } from "@/components/shop/AffiliateStorePreviewBannerGate"
 import { StorefrontImmersiveSync } from "@/components/storefront/storefront-immersive-sync"
 import { StorefrontImmersiveViewTracker } from "@/components/storefront/storefront-immersive-view-tracker"
+import { StorefrontPresetAbSync } from "@/components/storefront/storefront-preset-ab-sync"
 import { StorefrontPresetViewTracker } from "@/components/storefront/storefront-preset-view-tracker"
 import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
@@ -54,7 +55,15 @@ export default async function ShopPublicLayout({
         />
       ) : null}
       {store ? (
-        <StorefrontPresetViewTracker storeSlug={slug} presetId={store.theme.presetId} />
+        <>
+          <StorefrontPresetAbSync
+            storeSlug={slug}
+            controlPresetId={store.theme.presetId}
+            controlTheme={store.theme}
+            presetAb={store.theme.brandOps?.presetAb}
+          />
+          <StorefrontPresetViewTracker storeSlug={slug} presetId={store.theme.presetId} />
+        </>
       ) : null}
       {store ? <StorefrontThemeStyles theme={store.theme} /> : null}
       {store ? (
