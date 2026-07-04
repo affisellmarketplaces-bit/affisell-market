@@ -2284,6 +2284,40 @@
           }
         }
       },
+      "staticPages": {
+        "title": "Pages boutique",
+        "hint": "À propos, FAQ et Retours — liées dans le pied de page quand elles sont activées.",
+        "enable": "Publiée",
+        "addFaq": "Ajouter une question",
+        "removeFaq": "Supprimer",
+        "fields": {
+          "title": "Titre de la page",
+          "body": "Contenu",
+          "faq": "Questions / réponses",
+          "question": "Question",
+          "answer": "Réponse"
+        },
+        "kinds": {
+          "about": {
+            "label": "À propos",
+            "hint": "Votre histoire de marque et qui vous êtes.",
+            "titlePlaceholder": "À propos de Ma Boutique",
+            "bodyPlaceholder": "Expliquez pourquoi les acheteurs peuvent vous faire confiance."
+          },
+          "faq": {
+            "label": "FAQ",
+            "hint": "Livraison, paiement et questions fréquentes.",
+            "titlePlaceholder": "FAQ",
+            "bodyPlaceholder": "Texte de secours si aucune Q&R n'est renseignée."
+          },
+          "returns": {
+            "label": "Retours",
+            "hint": "Délai de retour et politique de remboursement.",
+            "titlePlaceholder": "Retours et remboursements",
+            "bodyPlaceholder": "Délai de 14 jours, contactez le support avec votre n° de commande…"
+          }
+        }
+      },
       "logo": {
         "title": "Logo boutique",
         "upload": "Importer une image",
@@ -2312,6 +2346,30 @@
         "chromeBeamDesc": "Métal brossé incliné, contraste premium.",
         "classic": "Classique",
         "classicDesc": "Texte simple sans bande."
+      }
+    },
+    "staticPages": {
+      "stripAria": "{name} — pages info",
+      "backToStore": "Retour à {name}",
+      "siblingNavAria": "Autres pages info",
+      "nav": {
+        "about": "À propos",
+        "faq": "FAQ",
+        "returns": "Retours"
+      },
+      "defaults": {
+        "about": {
+          "title": "À propos de {name}",
+          "body": "{name} — produits sélectionnés par votre créateur préféré."
+        },
+        "faq": {
+          "title": "FAQ",
+          "body": "Questions fréquentes sur les commandes, la livraison et les retours chez {name}."
+        },
+        "returns": {
+          "title": "Retours et remboursements",
+          "body": "Vous disposez de 14 jours après livraison pour demander un retour sur les articles éligibles. Contactez le support avec votre n° de commande."
+        }
       }
     },
     "homeSections": {

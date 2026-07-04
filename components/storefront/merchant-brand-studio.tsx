@@ -14,6 +14,7 @@ import { StorefrontLayoutControls } from "@/components/storefront/storefront-lay
 import { StorefrontLivePreview } from "@/components/storefront/storefront-live-preview"
 import { StorefrontLogoField } from "@/components/storefront/storefront-logo-field"
 import { StorefrontSectionsEditor } from "@/components/storefront/storefront-sections-editor"
+import { StorefrontStaticPagesEditor } from "@/components/storefront/storefront-static-pages-editor"
 import { StorefrontThemePresetPicker } from "@/components/storefront/storefront-theme-preset-picker"
 import { StoreLiveUrlCard } from "@/components/storefront/store-live-url-card"
 import { StoreNameBadgePicker } from "@/components/storefront/store-name-badge-picker"
@@ -39,6 +40,12 @@ import {
   serializeHomepageSections,
   type HomepageSection,
 } from "@/lib/storefront-sections-shared"
+import {
+  DEFAULT_STATIC_PAGES,
+  serializeStaticPages,
+  staticPagesEqual,
+  type StorefrontStaticPages,
+} from "@/lib/storefront-static-pages-shared"
 import type { BrandLaunchConfig } from "@/lib/storefront-brand-launch"
 import { cn } from "@/lib/utils"
 
@@ -69,6 +76,7 @@ type BrandStudioSnapshot = {
   headerBrandAlign: StorefrontHeaderBrandAlign
   presetId: string | null
   homepageSections: HomepageSection[]
+  staticPages: StorefrontStaticPages
 }
 
 const BRAND_STUDIO_FORM_ID = "brand-studio-form"
@@ -91,6 +99,7 @@ function snapshotFromStore(st: StoreRow): BrandStudioSnapshot {
     headerBrandAlign: theme.headerBrandAlign ?? DEFAULT_STOREFRONT_THEME.headerBrandAlign!,
     presetId: theme.presetId ?? null,
     homepageSections: theme.homepageSections ?? DEFAULT_HOMEPAGE_SECTIONS,
+    staticPages: theme.staticPages ?? DEFAULT_STATIC_PAGES,
   }
 }
 
@@ -110,6 +119,7 @@ function snapshotFromDraft(input: {
   headerBrandAlign: StorefrontHeaderBrandAlign
   presetId: string | null
   homepageSections: HomepageSection[]
+  staticPages: StorefrontStaticPages
 }): BrandStudioSnapshot {
   return {
     name: input.name.trim().slice(0, 40),
@@ -127,6 +137,7 @@ function snapshotFromDraft(input: {
     headerBrandAlign: input.headerBrandAlign,
     presetId: input.presetId,
     homepageSections: input.homepageSections,
+    staticPages: input.staticPages,
   }
 }
 
@@ -146,7 +157,8 @@ function snapshotsEqual(a: BrandStudioSnapshot, b: BrandStudioSnapshot): boolean
     a.surface === b.surface &&
     a.headerBrandAlign === b.headerBrandAlign &&
     a.presetId === b.presetId &&
-    homepageSectionsEqual(a.homepageSections, b.homepageSections)
+    homepageSectionsEqual(a.homepageSections, b.homepageSections) &&
+    staticPagesEqual(a.staticPages, b.staticPages)
   )
 }
 
@@ -192,6 +204,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   )
   const [presetId, setPresetId] = useState<string | null>(null)
   const [homepageSections, setHomepageSections] = useState<HomepageSection[]>(DEFAULT_HOMEPAGE_SECTIONS)
+  const [staticPages, setStaticPages] = useState<StorefrontStaticPages>(DEFAULT_STATIC_PAGES)
   const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
   const mountedRef = useRef(false)
 
@@ -215,6 +228,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
     setHeaderBrandAlign(config.headerBrandAlign)
     setDescription(config.description)
     setHomepageSections(config.homepageSections)
+    setStaticPages(config.staticPages)
   }, [])
 
   const hydrate = useCallback(async () => {
@@ -260,6 +274,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         setHeaderBrandAlign(snap.headerBrandAlign)
         setPresetId(snap.presetId)
         setHomepageSections(snap.homepageSections)
+        setStaticPages(snap.staticPages)
         setSavedSnapshot(snap)
       }
     } catch (e) {
@@ -297,6 +312,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         fd.set("themeHeaderBrandAlign", snapshot.headerBrandAlign)
         if (snapshot.presetId) fd.set("themePresetId", snapshot.presetId)
         fd.set("themeHomepageSections", serializeHomepageSections(snapshot.homepageSections))
+      fd.set("themeStaticPages", serializeStaticPages(snapshot.staticPages))
         if (logoFile) {
           fd.set("logo", logoFile)
         } else {
@@ -351,6 +367,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         headerBrandAlign: config.headerBrandAlign,
         presetId: config.presetId,
         homepageSections: config.homepageSections,
+        staticPages: config.staticPages,
       })
       await persistSnapshot(launchSnapshot, t("launch.saved"))
     },
@@ -424,6 +441,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         headerBrandAlign,
         presetId,
         homepageSections,
+        staticPages,
       }),
     [
       name,
@@ -441,6 +459,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       headerBrandAlign,
       presetId,
       homepageSections,
+      staticPages,
     ]
   )
 
@@ -649,6 +668,8 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
               />
 
               <StorefrontSectionsEditor sections={homepageSections} onChange={setHomepageSections} />
+
+              <StorefrontStaticPagesEditor pages={staticPages} onChange={setStaticPages} />
 
               <StoreNameBadgePicker
                 value={nameBadge}

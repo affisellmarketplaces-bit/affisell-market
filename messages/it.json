@@ -2284,6 +2284,40 @@
           }
         }
       },
+      "staticPages": {
+        "title": "Store pages",
+        "hint": "About, FAQ, and Returns — linked in your storefront footer when enabled.",
+        "enable": "Published",
+        "addFaq": "Add question",
+        "removeFaq": "Remove",
+        "fields": {
+          "title": "Page title",
+          "body": "Content",
+          "faq": "Questions & answers",
+          "question": "Question",
+          "answer": "Answer"
+        },
+        "kinds": {
+          "about": {
+            "label": "About",
+            "hint": "Your brand story and who you are.",
+            "titlePlaceholder": "About My Store",
+            "bodyPlaceholder": "Tell buyers why they should trust your catalog."
+          },
+          "faq": {
+            "label": "FAQ",
+            "hint": "Shipping, payment, and common questions.",
+            "titlePlaceholder": "FAQ",
+            "bodyPlaceholder": "Fallback text if no Q&A items are filled in."
+          },
+          "returns": {
+            "label": "Returns",
+            "hint": "Return window and refund policy.",
+            "titlePlaceholder": "Returns & refunds",
+            "bodyPlaceholder": "14-day return window, contact support with your order number…"
+          }
+        }
+      },
       "logo": {
         "title": "Store logo",
         "upload": "Upload image",
@@ -2312,6 +2346,30 @@
         "chromeBeamDesc": "Schiacciamento metallico, contrasto premium.",
         "classic": "Classico",
         "classicDesc": "Testo semplice, senza banda."
+      }
+    },
+    "staticPages": {
+      "stripAria": "{name} — info pages",
+      "backToStore": "Back to {name}",
+      "siblingNavAria": "Other info pages",
+      "nav": {
+        "about": "About",
+        "faq": "FAQ",
+        "returns": "Returns"
+      },
+      "defaults": {
+        "about": {
+          "title": "About {name}",
+          "body": "{name} — curated products from your favorite creator."
+        },
+        "faq": {
+          "title": "FAQ",
+          "body": "Common questions about orders, shipping, and returns at {name}."
+        },
+        "returns": {
+          "title": "Returns & refunds",
+          "body": "You have 14 days after delivery to request a return on eligible items. Contact support with your order number."
+        }
       }
     },
     "homeSections": {

@@ -5,6 +5,10 @@ import {
   type StoreNameBadgeStyle,
 } from "@/lib/store-name-badge-styles"
 import { parseHomepageSections, type HomepageSection } from "@/lib/storefront-sections-shared"
+import {
+  parseStaticPages,
+  type StorefrontStaticPages,
+} from "@/lib/storefront-static-pages-shared"
 
 export type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 
@@ -38,6 +42,8 @@ export type StorefrontTheme = {
   presetId?: string
   /** Ordered homepage blocks for `/shops/{slug}`. */
   homepageSections?: HomepageSection[]
+  /** Optional About / FAQ / Returns pages on the public storefront. */
+  staticPages?: StorefrontStaticPages
 }
 
 const HEX_RE = /^#[0-9a-f]{6}$/i
@@ -98,6 +104,7 @@ export function parseStorefrontTheme(raw: unknown): StorefrontTheme {
     ),
     presetId: typeof o.presetId === "string" ? o.presetId.slice(0, 40) : undefined,
     homepageSections: parseHomepageSections(o.homepageSections),
+    staticPages: parseStaticPages(o.staticPages),
   }
 }
 
@@ -144,6 +151,7 @@ export type BrandStudioThemeInput = {
   headerBrandAlign?: unknown
   presetId?: unknown
   homepageSections?: unknown
+  staticPages?: unknown
 }
 
 export function themeFromBrandStudioFields(
@@ -201,6 +209,10 @@ export function themeFromBrandStudioFields(
       input.homepageSections !== undefined && input.homepageSections !== null
         ? parseHomepageSections(input.homepageSections)
         : existing.homepageSections,
+    staticPages:
+      input.staticPages !== undefined && input.staticPages !== null
+        ? parseStaticPages(input.staticPages)
+        : existing.staticPages,
   }
 }
 

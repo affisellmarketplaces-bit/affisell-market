@@ -23,6 +23,14 @@ export function isBlockedOnCustomDomain(barePath: string): boolean {
   return BLOCKED_PREFIXES.some((p) => bare === p || bare.startsWith(`${p}/`))
 }
 
+/** Store static pages (Brand Studio) — /about, /faq, /returns on custom domains. */
+export const STORE_STATIC_PAGE_PATHS = ["/about", "/faq", "/returns"] as const
+
+export function isStoreStaticPagePath(barePath: string): boolean {
+  const bare = barePath || "/"
+  return STORE_STATIC_PAGE_PATHS.some((p) => bare === p || bare.startsWith(`${p}/`))
+}
+
 /** Buyer-safe platform pages served on merchant hosts (legal, support). */
 const MERCHANT_PUBLIC_PLATFORM_PREFIXES = [
   "/legal",
@@ -30,12 +38,10 @@ const MERCHANT_PUBLIC_PLATFORM_PREFIXES = [
   "/cookies",
   "/privacy",
   "/cgu",
-  "/returns",
   "/protected-checkout",
   "/legal/mentions",
   "/accessibilite",
   "/contact",
-  "/faq",
 ] as const
 
 export function isMerchantPublicPlatformPath(barePath: string): boolean {
@@ -62,6 +68,10 @@ export function mapCustomDomainPath(
   if (bare === prefix || bare.startsWith(`${prefix}/`)) return bare
 
   if (bare === "/" || bare === "") return prefix
+
+  if (role === "AFFILIATE" && isStoreStaticPagePath(bare)) {
+    return `${prefix}${bare}`
+  }
 
   if (role === "AFFILIATE") {
     if (bare === "/cart" || bare.startsWith("/cart/")) {

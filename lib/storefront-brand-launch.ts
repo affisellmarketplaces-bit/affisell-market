@@ -6,6 +6,10 @@ import {
 import { findStorefrontThemePreset } from "@/lib/storefront-theme-presets"
 import type { StorefrontTheme } from "@/lib/storefront-theme-shared"
 import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
+import {
+  buildDefaultStaticPages,
+  type StorefrontStaticPages,
+} from "@/lib/storefront-static-pages-shared"
 import type {
   StorefrontGridDensity,
   StorefrontHeaderBrandAlign,
@@ -38,6 +42,7 @@ export type BrandLaunchConfig = {
   headerBrandAlign: StorefrontHeaderBrandAlign
   description: string
   homepageSections: HomepageSection[]
+  staticPages: StorefrontStaticPages
 }
 
 function enableSections(
@@ -87,6 +92,7 @@ function themeFieldsFromPreset(presetId: string): StorefrontTheme {
 export function buildBrandLaunchConfig(args: {
   niche: BrandLaunchNiche
   description: string
+  storeName: string
 }): BrandLaunchConfig {
   const presetId = NICHE_PRESET[args.niche]
   const theme = themeFieldsFromPreset(presetId)
@@ -185,6 +191,10 @@ export function buildBrandLaunchConfig(args: {
     headerBrandAlign: theme.headerBrandAlign ?? "left",
     description: args.description,
     homepageSections: sections,
+    staticPages: buildDefaultStaticPages({
+      storeName: args.storeName,
+      description: args.description,
+    }),
   }
 }
 

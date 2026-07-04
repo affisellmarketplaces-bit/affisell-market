@@ -41,6 +41,7 @@ export function StorefrontBrandLaunchPanel({ storeName, role, busy = false, onLa
       const config = buildBrandLaunchConfig({
         niche: selected,
         description: t(`niches.${selected}.description`, { name: trimmedName }),
+        storeName: trimmedName,
       })
       capturePosthogClient("brand_launch_applied", {
         niche: selected,

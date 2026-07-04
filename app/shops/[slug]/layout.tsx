@@ -3,6 +3,7 @@ import { headers } from "next/headers"
 import { AffiliateStorePreviewBannerGate } from "@/components/shop/AffiliateStorePreviewBannerGate"
 import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
+import { StorefrontStaticPagesStrip } from "@/components/storefront/storefront-static-pages-strip"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
 import {
   loadAffiliateShopStoreCached,
@@ -54,6 +55,13 @@ export default async function ShopPublicLayout({
       ) : null}
       <AffiliateStorePreviewBannerGate storeSlug={slug} storeUserId={store?.userId ?? ""} />
       <main className="min-w-0 overflow-x-clip">{children}</main>
+      {store ? (
+        <StorefrontStaticPagesStrip
+          storeName={store.name}
+          shopHomePath={shopHomePath}
+          staticPages={store.theme.staticPages}
+        />
+      ) : null}
     </div>
   )
 }

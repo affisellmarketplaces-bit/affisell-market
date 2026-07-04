@@ -90,6 +90,7 @@ export async function POST(req: Request) {
   const themeHeaderBrandAlign = fd.get("themeHeaderBrandAlign")
   const themePresetId = fd.get("themePresetId")
   const themeHomepageSections = fd.get("themeHomepageSections")
+  const themeStaticPages = fd.get("themeStaticPages")
   const hasThemeFields =
     themePrimary !== null ||
     themeAccent !== null ||
@@ -101,7 +102,8 @@ export async function POST(req: Request) {
     themeSurface !== null ||
     themeHeaderBrandAlign !== null ||
     themePresetId !== null ||
-    themeHomepageSections !== null
+    themeHomepageSections !== null ||
+    themeStaticPages !== null
   const existingTheme = parseStorefrontTheme(store.storefrontTheme)
   let homepageSectionsInput: unknown = undefined
   if (typeof themeHomepageSections === "string" && themeHomepageSections.trim()) {
@@ -109,6 +111,14 @@ export async function POST(req: Request) {
       homepageSectionsInput = JSON.parse(themeHomepageSections)
     } catch {
       return Response.json({ error: "Invalid homepage sections JSON" }, { status: 400 })
+    }
+  }
+  let staticPagesInput: unknown = undefined
+  if (typeof themeStaticPages === "string" && themeStaticPages.trim()) {
+    try {
+      staticPagesInput = JSON.parse(themeStaticPages)
+    } catch {
+      return Response.json({ error: "Invalid static pages JSON" }, { status: 400 })
     }
   }
   const storefrontTheme = hasThemeFields
@@ -124,6 +134,7 @@ export async function POST(req: Request) {
         headerBrandAlign: themeHeaderBrandAlign,
         presetId: themePresetId,
         homepageSections: homepageSectionsInput,
+        staticPages: staticPagesInput,
       })
     : undefined
 
