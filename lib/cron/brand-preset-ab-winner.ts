@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client"
+
 import { findStorefrontThemePreset } from "@/lib/storefront-theme-presets"
 import { buildPresetAbWinnerThemeUpdate } from "@/lib/storefront-preset-ab-apply.server"
 import { evaluatePresetAbWinner } from "@/lib/storefront-preset-ab-shared"
@@ -66,7 +68,7 @@ export async function runBrandPresetAbWinnerCron(
 
       await prisma.store.update({
         where: { id: store.id },
-        data: { storefrontTheme: built.nextStorefrontTheme },
+        data: { storefrontTheme: built.nextStorefrontTheme as Prisma.InputJsonValue },
       })
 
       console.log("[brand-preset-ab-winner]", {
@@ -114,7 +116,7 @@ export async function runBrandPresetAbWinnerCron(
                     winnerNotifiedAt: new Date().toISOString(),
                   },
                 }),
-              },
+              } as Prisma.InputJsonValue,
             },
           })
         }

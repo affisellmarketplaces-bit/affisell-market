@@ -86,11 +86,8 @@ jobs:
           AUTH="Authorization: Bearer ${CRON_SECRET}"
           for path in \
             "/api/cron/brand-pulse-weekly-digest" \
-            "/api/cron/brand-preset-ab-winner"
-          do
-            echo "→ GET ${path}"
-            curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"
-          done
+            "/api/cron/brand-preset-ab-winner" \
+            "/api/cron/brand-pulse-stagnation-ab"
           do
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"

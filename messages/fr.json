@@ -2223,6 +2223,11 @@
         "title": "Optimiseur de preset",
         "cta": "Appliquer le preset recommandé",
         "suggestedPreset": "Suggestion : {preset}",
+        "stagnationHint": "Brand Pulse stable à {score}/100 (contre {lastScore}/100) — testez un preset challenger sans deviner.",
+        "stagnationAbPreset": "Challenger A/B : {preset}",
+        "stagnationAbCta": "Lancer le test A/B (50/50)",
+        "abStarting": "Lancement de l'expérience…",
+        "abStartFailed": "Impossible de lancer le test A/B.",
         "reasons": {
           "missing_preset": "Choisissez un preset premium pour monter votre Brand Pulse.",
           "missing_hero": "Passez à un preset bannière hero pour une meilleure 1ère impression.",

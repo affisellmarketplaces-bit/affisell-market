@@ -83,6 +83,14 @@ export async function runBrandPulseWeeklyDigestCron(
       theme.brandOps?.brandPulseLastScore
     )
 
+    const brandOpsPatch: Parameters<typeof mergeStorefrontBrandOps>[1] = {
+      brandPulseWeeklyDigestSentAt: new Date().toISOString(),
+      brandPulseLastScore: snapshot.pulse.score,
+    }
+    if (scoreDelta != null && scoreDelta > 0) {
+      brandOpsPatch.brandPulseStagnationAbAt = undefined
+    }
+
     const result = await sendBrandPulseWeeklyDigestEmail({
       email: store.user.email,
       name: store.user.name,
@@ -105,10 +113,7 @@ export async function runBrandPulseWeeklyDigestCron(
       ...(typeof store.storefrontTheme === "object" && store.storefrontTheme !== null
         ? (store.storefrontTheme as Record<string, unknown>)
         : {}),
-      brandOps: mergeStorefrontBrandOps(theme.brandOps, {
-        brandPulseWeeklyDigestSentAt: new Date().toISOString(),
-        brandPulseLastScore: snapshot.pulse.score,
-      }),
+      brandOps: mergeStorefrontBrandOps(theme.brandOps, brandOpsPatch),
     }
 
     await prisma.store.update({

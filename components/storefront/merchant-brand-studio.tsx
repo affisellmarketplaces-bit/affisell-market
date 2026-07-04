@@ -901,8 +901,11 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
             <StorefrontPresetOptimizerPanel
               pulse={brandPulse}
               presetId={presetId}
+              lastScore={brandPulseMetrics.brandPulseLastScore}
+              presetAb={presetAb}
               role={role}
               onApplyPreset={applyPreset}
+              onAbStarted={() => void hydrate()}
             />
             <StorefrontPresetAbPanel
               role={role}

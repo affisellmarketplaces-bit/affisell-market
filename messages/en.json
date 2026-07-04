@@ -2181,6 +2181,11 @@
         "title": "Preset optimizer",
         "cta": "Apply recommended preset",
         "suggestedPreset": "Suggested: {preset}",
+        "stagnationHint": "Brand Pulse is flat at {score}/100 (was {lastScore}/100) — test a challenger preset without guessing.",
+        "stagnationAbPreset": "A/B challenger: {preset}",
+        "stagnationAbCta": "Start A/B test (50/50)",
+        "abStarting": "Starting experiment…",
+        "abStartFailed": "Could not start A/B experiment.",
         "reasons": {
           "missing_preset": "Pick a premium preset to unlock Brand Pulse points.",
           "missing_hero": "Switch to a banner-hero preset for a stronger first impression.",
