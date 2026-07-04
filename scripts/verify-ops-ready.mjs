@@ -70,6 +70,7 @@ if (existsSync(ghWorkflow)) {
 
 console.log("\n[verify-ops] Tier 4 Ops — production activation\n")
 
+const pricingOk = runScript("Pricing pipeline preflight", "scripts/verify-pricing-ops-ready.mjs")
 const webPushOk = runScript("Web Push preflight", "scripts/verify-web-push-ready.mjs")
 const domainsOk = runScript("Store domains preflight", "scripts/verify-store-domains-ready.mjs")
 const expansionOk = runScript("ROW expansion preflight (optional)", "scripts/verify-expansion-ready.mjs")
@@ -94,13 +95,14 @@ const warnings = checks.filter((c) => c.warn)
 
 console.log("\nVercel Production checklist:")
 console.log("  1. npm run verify:ops")
-console.log("  2. npm run expansion:c-suite   # active pilots → graduation")
-console.log("  3. Vercel → env: VAPID_*, VERCEL_API_TOKEN, VERCEL_PROJECT_ID, CRON_SECRET")
-console.log("  4. GitHub → Settings → Secrets → CRON_SECRET (same value)")
-console.log("  5. Redeploy → test push subscribe + merchant domain verify")
+console.log("  2. npm run pricing:ops-playbook   # affiliate pricing smoke tests")
+console.log("  3. npm run expansion:c-suite      # active pilots → graduation")
+console.log("  4. Vercel → env: VAPID_*, VERCEL_API_TOKEN, VERCEL_PROJECT_ID, CRON_SECRET, RESEND_*")
+console.log("  5. GitHub → Settings → Secrets → CRON_SECRET (same value)")
+console.log("  6. Redeploy → curl /api/cron/migrate → test push + wholesale guard")
 
-if (failed.length > 0 || !webPushOk || !domainsOk) {
-  console.log(`\n[verify-ops] Fix Web Push and/or store domains before prod activation.\n`)
+if (failed.length > 0 || !pricingOk || !webPushOk || !domainsOk) {
+  console.log(`\n[verify-ops] Fix pricing pipeline, Web Push and/or store domains before prod activation.\n`)
   process.exit(1)
 }
 
