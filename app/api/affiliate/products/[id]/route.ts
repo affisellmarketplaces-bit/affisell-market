@@ -313,8 +313,6 @@ export async function PATCH(
     if (kycBlocked) return kycBlocked
   }
 
-  const nextSellingCents =
-    typeof data.sellingPriceCents === "number" ? data.sellingPriceCents : listing.sellingPriceCents
   const nextVariantPricing =
     "variantPricing" in body
       ? parseListingVariantPricing(

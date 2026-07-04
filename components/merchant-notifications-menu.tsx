@@ -10,6 +10,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import { SUPPLIER_INVITE_NOTIF } from "@/lib/supplier-invite-notif-constants"
+import { SUPPLIER_AFFILIATE_INVITE_NOTIF } from "@/lib/supplier-affiliate-invite-notif-constants"
 import { SUPPLIER_PRICE_CHANGE_NOTIF } from "@/lib/affiliate-wholesale-change-notif-constants"
 import { cn } from "@/lib/utils"
 
