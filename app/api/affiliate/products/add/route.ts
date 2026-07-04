@@ -254,6 +254,9 @@ export async function POST(request: Request) {
     }
   }
 
+  const pricingAutoAdjustPatch =
+    typeof body.pricingAutoAdjust === "boolean" ? body.pricingAutoAdjust : undefined
+
   try {
     const row = await prisma.affiliateProduct.upsert({
       where: {
@@ -282,6 +285,7 @@ export async function POST(request: Request) {
         ...promoPatch,
         ...keysPatch,
         ...(variantPricingPatch !== undefined ? { variantPricing: variantPricingPatch } : {}),
+        ...(pricingAutoAdjustPatch !== undefined ? { pricingAutoAdjust: pricingAutoAdjustPatch } : {}),
       },
       update: {
         sellingPriceCents,
@@ -303,6 +307,7 @@ export async function POST(request: Request) {
         ...promoPatch,
         ...keysPatch,
         ...(variantPricingPatch !== undefined ? { variantPricing: variantPricingPatch } : {}),
+        ...(pricingAutoAdjustPatch !== undefined ? { pricingAutoAdjust: pricingAutoAdjustPatch } : {}),
       },
     })
 

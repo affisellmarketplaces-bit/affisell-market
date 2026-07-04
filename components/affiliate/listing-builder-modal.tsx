@@ -15,6 +15,7 @@ import {
 import {
   buildVariantPricingFromMargins,
   parseAffiliateVariantPricingJson,
+  sellingPriceCentsFromMargin,
   serializeVariantPricingForDb,
 } from "@/lib/affiliate-variant-pricing"
 import {
@@ -85,6 +86,7 @@ export type SerializedListing = {
   promotedSize?: string | null
   promotedVariantKeys?: string[]
   variantPricing?: unknown
+  pricingAutoAdjust?: boolean
   showWarranty?: boolean
 }
 
@@ -127,6 +129,7 @@ type FormFields = {
   promotedSize: string
   promotedVariantPick: Record<string, boolean>
   variantMarginEUR: Record<string, string>
+  pricingAutoAdjust: boolean
   showWarranty: boolean
   luxuryTier: LuxuryTier
   luxuryCollectionId: string
@@ -188,6 +191,7 @@ function getListingFormDefaults(
             ? (suggestedCents - product.basePriceCents) / 100
             : null,
     }),
+    pricingAutoAdjust: Boolean(L?.pricingAutoAdjust),
     showWarranty: Boolean(L?.showWarranty),
     luxuryTier:
       L?.luxuryTier === LUXURY_TIER_LUXE || L?.luxuryTier === LUXURY_TIER_COLLECTION
@@ -285,6 +289,39 @@ function ListingBuilderModalBody({
     })
   }, [form.priceEUR, product])
 
+  const topVariantSettlement = useMemo(() => {
+    if (variantOptions.length <= 1) return null
+    const supplierCommissionRateBps =
+      product.supplierCommissionRateBps ??
+      Math.round((Number(product.commissionRate) || 11) * 100)
+
+    let best: { label: string; sellCents: number } | null = null
+    for (const opt of variantOptions) {
+      if (!form.promotedVariantPick[opt.key]) continue
+      const marginRaw = form.variantMarginEUR[opt.key]
+      const marginEuro = Number(String(marginRaw ?? "").replace(",", "."))
+      if (!Number.isFinite(marginEuro) || marginEuro < 0) continue
+      const sellCents = sellingPriceCentsFromMargin({
+        wholesaleCents: opt.wholesaleCents,
+        marginEuro,
+      })
+      if (!best || sellCents > best.sellCents) {
+        best = { label: opt.label, sellCents }
+      }
+    }
+    if (!best) return null
+    return {
+      ...best,
+      settlement: computeMarketplaceOrderSettlement({
+        sellingPriceCents: best.sellCents,
+        supplierPriceCents: product.basePriceCents,
+        supplierCommissionRateBps,
+        affisellFeeBaseCents: best.sellCents,
+        affisellCommissionRateBps: DEFAULT_AFFISELL_COMMISSION_BPS,
+      }),
+    }
+  }, [form.promotedVariantPick, form.variantMarginEUR, product, variantOptions])
+
   const sellingPriceCentsPreview = useMemo(() => {
     const euro = Number(String(form.priceEUR).replace(",", "."))
     if (!Number.isFinite(euro)) return product.basePriceCents
@@ -294,6 +331,12 @@ function ListingBuilderModalBody({
   const maxBuyerRewardPct = useMemo(
     () => maxAffordableBuyerRewardPercent(sellingPriceCentsPreview, product.basePriceCents),
     [sellingPriceCentsPreview, product.basePriceCents]
+  )
+
+  const tListingBuilder = useTranslations("affiliateDashboard.listingBuilder")
+  const multiVariantSelectedKeys = useMemo(
+    () => promotedVariantKeysFromPick(variantOptions, form.promotedVariantPick),
+    [form.promotedVariantPick, variantOptions]
   )
 
   const highlightColorOptions = useMemo(
@@ -446,6 +489,7 @@ function ListingBuilderModalBody({
           promotedSize: form.promotedSize.trim() || null,
           promotedVariantKeys,
           ...(variantPricingPayload ? { variantPricing: variantPricingPayload } : {}),
+          pricingAutoAdjust: form.pricingAutoAdjust,
           showWarranty: form.showWarranty,
           luxuryTier: form.luxuryTier,
           luxuryCollectionId:
@@ -507,6 +551,7 @@ function ListingBuilderModalBody({
           promotedSize: form.promotedSize.trim() || null,
           promotedVariantKeys,
           ...(variantPricingPayload ? { variantPricing: variantPricingPayload } : {}),
+          pricingAutoAdjust: form.pricingAutoAdjust,
           showWarranty: form.showWarranty,
           luxuryTier: form.luxuryTier,
           luxuryCollectionId:
@@ -835,16 +880,48 @@ function ListingBuilderModalBody({
                   }
                   onNotify={(msg) => {
                     setPricingAiToast(msg)
-                    if (msg.startsWith("AI price applied")) setPricingGreenToast(msg)
+                    setPricingGreenToast(msg)
                   }}
                   onApplyComplete={() => {
                     setPricePulse(true)
                     window.setTimeout(() => setPricePulse(false), 1000)
                   }}
+                  multiVariant={
+                    variantOptions.length > 1
+                      ? {
+                          selectedCount: multiVariantSelectedKeys.length,
+                          baseWholesaleCents: product.basePriceCents,
+                          options: variantOptions.map((o) => ({
+                            key: o.key,
+                            wholesaleCents: o.wholesaleCents,
+                          })),
+                          selectedKeys: multiVariantSelectedKeys,
+                          onApplyVariantMargins: (marginsByKey) =>
+                            setForm((f) => ({
+                              ...f,
+                              variantMarginEUR: { ...f.variantMarginEUR, ...marginsByKey },
+                            })),
+                        }
+                      : undefined
+                  }
+                  autoAdjust={form.pricingAutoAdjust}
+                  onAutoAdjustChange={(enabled) =>
+                    setForm((f) => ({ ...f, pricingAutoAdjust: enabled }))
+                  }
+                  persistAutoAdjust
                 />
 
-                <label className="block text-sm font-medium text-gray-800">Custom Price (EUR)</label>
+                <label className="block text-sm font-medium text-gray-800">
+                  {variantOptions.length > 1
+                    ? tListingBuilder("referencePriceLabel")
+                    : "Custom Price (EUR)"}
+                </label>
                 <div className="space-y-3 rounded-xl border border-gray-200 p-4">
+                  {variantOptions.length > 1 ? (
+                    <p className="text-xs leading-relaxed text-gray-500">
+                      {tListingBuilder("referencePriceHint")}
+                    </p>
+                  ) : null}
                   <p className="flex flex-wrap items-center gap-x-1 gap-y-2 text-sm text-gray-600">
                     <span>Supplier: €{baseEUR.toFixed(2)}</span>
                     <span className="text-gray-400">|</span>
@@ -892,6 +969,27 @@ function ListingBuilderModalBody({
                           settlementPreview.affiliateMarginRetainedCents
                       )}
                       )
+                    </p>
+                  ) : null}
+
+                  {topVariantSettlement ? (
+                    <p className="rounded-lg border border-emerald-100 bg-emerald-50/80 px-3 py-2 text-xs leading-relaxed text-emerald-950">
+                      <span className="font-semibold">
+                        {tListingBuilder("topVariantSettlement", {
+                          variant: topVariantSettlement.label,
+                          price: formatStoreCurrencyFromCents(topVariantSettlement.sellCents),
+                        })}
+                      </span>{" "}
+                      · net markup{" "}
+                      {formatStoreCurrencyFromCents(
+                        topVariantSettlement.settlement.affiliateMarginRetainedCents
+                      )}{" "}
+                      (
+                      {formatStoreCurrencyFromCents(
+                        topVariantSettlement.settlement.affiliateCommissionCents +
+                          topVariantSettlement.settlement.affiliateMarginRetainedCents
+                      )}{" "}
+                      total)
                     </p>
                   ) : null}
 

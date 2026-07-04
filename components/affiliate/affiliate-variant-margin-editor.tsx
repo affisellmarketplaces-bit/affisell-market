@@ -1,6 +1,8 @@
 "use client"
 
 import { Percent, Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
+
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import type { AffiliateVariantOption } from "@/lib/affiliate-storefront-variants"
 import {
@@ -39,19 +41,15 @@ export function AffiliateVariantMarginEditor({
   globalMarginEuro,
   disabled = false,
 }: Props) {
+  const t = useTranslations("affiliateDashboard.listingBuilder.variantMargins")
   const selectedCount = options.filter((o) => pick[o.key]).length
 
   return (
     <div className="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/90 via-white to-teal-50/50 p-4 shadow-sm dark:border-emerald-900/40 dark:from-emerald-950/30 dark:via-zinc-950 dark:to-teal-950/20">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-gray-900 dark:text-zinc-100">
-            Variantes & marges
-          </p>
-          <p className="mt-1 text-xs leading-relaxed text-gray-600 dark:text-zinc-400">
-            Choisissez les déclinaisons visibles sur votre boutique et fixez une marge par
-            variante. Prix client = prix fournisseur + votre marge.
-          </p>
+          <p className="text-sm font-semibold text-gray-900 dark:text-zinc-100">{t("title")}</p>
+          <p className="mt-1 text-xs leading-relaxed text-gray-600 dark:text-zinc-400">{t("subtitle")}</p>
         </div>
         {selectedCount > 0 && globalMarginEuro != null && Number.isFinite(globalMarginEuro) ? (
           <button
@@ -61,7 +59,7 @@ export function AffiliateVariantMarginEditor({
             className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-white px-3 py-1.5 text-xs font-medium text-violet-800 shadow-sm transition hover:border-violet-400 hover:bg-violet-50 dark:border-violet-800 dark:bg-zinc-900 dark:text-violet-200"
           >
             <Sparkles className="h-3.5 w-3.5" aria-hidden />
-            Marge globale → toutes ({globalMarginEuro.toFixed(2)} €)
+            {t("applyGlobalMargin", { amount: globalMarginEuro.toFixed(2) })}
           </button>
         ) : null}
       </div>
@@ -73,7 +71,7 @@ export function AffiliateVariantMarginEditor({
           onClick={onSelectAll}
           disabled={disabled}
         >
-          Tout sélectionner
+          {t("selectAll")}
         </button>
         <button
           type="button"
@@ -81,7 +79,7 @@ export function AffiliateVariantMarginEditor({
           onClick={onSelectNone}
           disabled={disabled}
         >
-          Tout désélectionner
+          {t("selectNone")}
         </button>
       </div>
 
@@ -127,12 +125,12 @@ export function AffiliateVariantMarginEditor({
                     </span>
                     {opt.stock > 0 ? (
                       <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-zinc-800 dark:text-zinc-400">
-                        stock {opt.stock}
+                        {t("stock", { count: opt.stock })}
                       </span>
                     ) : null}
                   </div>
                   <p className="mt-0.5 text-xs text-gray-500 dark:text-zinc-500">
-                    Fournisseur{" "}
+                    {t("supplier")}{" "}
                     <span className="font-medium tabular-nums text-gray-700 dark:text-zinc-300">
                       {formatStoreCurrencyFromCents(opt.wholesaleCents)}
                     </span>
@@ -144,7 +142,7 @@ export function AffiliateVariantMarginEditor({
                 <div className="grid gap-3 border-t border-emerald-100/80 px-3 py-3 sm:grid-cols-[1fr_1fr_auto] dark:border-emerald-900/40">
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                      Votre marge (€)
+                      {t("marginLabel")}
                     </label>
                     <input
                       type="text"
@@ -158,7 +156,7 @@ export function AffiliateVariantMarginEditor({
                   </div>
                   <div>
                     <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                      Prix client
+                      {t("clientPrice")}
                     </label>
                     <p className="mt-2 text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">
                       {sellingCents != null

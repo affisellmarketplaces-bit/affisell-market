@@ -1529,6 +1529,42 @@
       "publishCta": "Publish listing",
       "publishHint": "Goes live after KYC — draft saved if pending",
       "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved."
+    },
+    "listingBuilder": {
+      "referencePriceLabel": "Reference price (base SKU)",
+      "referencePriceHint": "Used as the default margin template. Per-variant client prices are set in the block above.",
+      "topVariantSettlement": "Premium variant « {variant} » at {price}",
+      "aiPricing": {
+        "title": "AI Pricing Optimizer",
+        "beta": "BETA",
+        "multiHint": "Apply AI will set margins on {count} selected variant(s), scaled by wholesale.",
+        "yourPrice": "Your price",
+        "aiSuggests": "AI Suggests",
+        "marketAvg": "Market avg",
+        "competitors": "Competitors",
+        "salesPerMonth": "{count} sales/mo",
+        "whyPrice": "Why {price}?",
+        "whyBody": "Peak demand detected, 2 competitors out of stock, your niche converts 23% better at this price.",
+        "applySingle": "Apply AI Price",
+        "applyMulti": "Apply AI to variants",
+        "refreshed": "AI suggestion refreshed",
+        "refreshAria": "Refresh AI suggestion",
+        "appliedSingle": "AI price applied: €{price}",
+        "appliedMulti": "AI margins applied on {count} variant(s) · ref. €{price}",
+        "autoAdjustTitle": "Auto-adjust daily",
+        "autoAdjustHint": "Cron nudges per-variant prices ±5% once per UTC day"
+      },
+      "variantMargins": {
+        "title": "Variants & margins",
+        "subtitle": "Choose storefront variants and set a margin per SKU. Client price = supplier + your margin.",
+        "applyGlobalMargin": "Global margin → all ({amount} €)",
+        "selectAll": "Select all",
+        "selectNone": "Select none",
+        "stock": "stock {count}",
+        "supplier": "Supplier",
+        "marginLabel": "Your margin (€)",
+        "clientPrice": "Client price"
+      }
     }
   },
   "supplierDashboard": {

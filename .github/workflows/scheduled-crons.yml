@@ -61,6 +61,7 @@ jobs:
             "/api/cron/migrate" \
             "/api/cron/review-reminder" \
             "/api/cron/wishlist-price-alerts" \
+            "/api/cron/adjust-variant-pricing" \
             "/api/cron/stripe-health" \
             "/api/cron/booking-supplier-digest" \
             "/api/cron/expansion-digest" \

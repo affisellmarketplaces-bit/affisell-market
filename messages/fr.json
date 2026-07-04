@@ -1529,6 +1529,42 @@
       "publishCta": "Publier la fiche",
       "publishHint": "Live après KYC — brouillon si en attente",
       "kycDraftSaved": "KYC en cours — brouillon enregistré. Publiez depuis le dashboard une fois validé."
+    },
+    "listingBuilder": {
+      "referencePriceLabel": "Prix de référence (SKU de base)",
+      "referencePriceHint": "Sert de modèle de marge par défaut. Les prix client par variante se règlent dans le bloc ci-dessus.",
+      "topVariantSettlement": "Variante premium « {variant} » à {price}",
+      "aiPricing": {
+        "title": "AI Pricing Optimizer",
+        "beta": "BETA",
+        "multiHint": "Appliquer l'IA fixe les marges sur {count} variante(s) sélectionnée(s), adaptées au prix fournisseur.",
+        "yourPrice": "Votre prix",
+        "aiSuggests": "IA suggère",
+        "marketAvg": "Moy. marché",
+        "competitors": "Concurrents",
+        "salesPerMonth": "{count} ventes/mois",
+        "whyPrice": "Pourquoi {price} ?",
+        "whyBody": "Pic de demande, 2 concurrents en rupture, votre niche convertit 23 % mieux à ce prix.",
+        "applySingle": "Appliquer le prix IA",
+        "applyMulti": "Appliquer l'IA aux variantes",
+        "refreshed": "Suggestion IA actualisée",
+        "refreshAria": "Actualiser la suggestion IA",
+        "appliedSingle": "Prix IA appliqué : {price} €",
+        "appliedMulti": "Marges IA sur {count} variante(s) · réf. {price} €",
+        "autoAdjustTitle": "Ajustement auto quotidien",
+        "autoAdjustHint": "Le cron ajuste les prix par variante ±5 % une fois par jour (UTC)"
+      },
+      "variantMargins": {
+        "title": "Variantes & marges",
+        "subtitle": "Choisissez les déclinaisons visibles et fixez une marge par variante. Prix client = fournisseur + marge.",
+        "applyGlobalMargin": "Marge globale → toutes ({amount} €)",
+        "selectAll": "Tout sélectionner",
+        "selectNone": "Tout désélectionner",
+        "stock": "stock {count}",
+        "supplier": "Fournisseur",
+        "marginLabel": "Votre marge (€)",
+        "clientPrice": "Prix client"
+      }
     }
   },
   "supplierDashboard": {

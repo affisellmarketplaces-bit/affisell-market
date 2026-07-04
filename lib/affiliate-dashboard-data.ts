@@ -91,6 +91,7 @@ const affiliateListingRowSelect = {
   promotedSize: true,
   promotedVariantKeys: true,
   variantPricing: true,
+  pricingAutoAdjust: true,
   showWarranty: true,
 } satisfies Prisma.AffiliateProductSelect
 

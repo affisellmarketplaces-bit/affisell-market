@@ -279,6 +279,13 @@ export async function PATCH(
         : (pricingRes.variantPricing as Prisma.InputJsonValue)
   }
 
+  if (typeof body.pricingAutoAdjust === "boolean") {
+    data.pricingAutoAdjust = body.pricingAutoAdjust
+    if (!body.pricingAutoAdjust) {
+      data.pricingAutoAdjustLastRun = null
+    }
+  }
+
   const nextListed =
     typeof body.listInStore === "boolean"
       ? body.listInStore
