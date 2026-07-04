@@ -28,6 +28,8 @@ type Props = {
   backHref: string
   /** Contenu inséré après le hero (ex. grille frais fournisseur) */
   leadingSlot?: ReactNode
+  /** Contenu inséré avant le ledger (ex. analytics marges affilié) */
+  trailingSlot?: ReactNode
 }
 
 function SparkRibbon({ data }: { data: DailySpark[] }) {
@@ -91,6 +93,7 @@ export function MerchantPulseHub({
   recentLedger,
   backHref,
   leadingSlot,
+  trailingSlot,
 }: Props) {
   return (
     <BentoShell>
@@ -206,6 +209,8 @@ export function MerchantPulseHub({
         <BentoCard className="p-6 md:p-8">
           <SparkRibbon data={sparkline} />
         </BentoCard>
+
+        {trailingSlot}
 
         <div className="space-y-4">
           <div className="flex items-center gap-2">

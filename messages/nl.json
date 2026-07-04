@@ -1144,6 +1144,24 @@
         "records": "Keep your Affisell statements and payment notifications as an accounting baseline for your filings.",
         "dac7": "Affisell may report your platform earnings to competent authorities (DAC7 / digital platform reporting) as required by law.",
         "advice": "Affisell does not provide tax advice. Consult an accountant or tax adviser in your country if needed."
+      },
+      "variantAnalytics": {
+        "title": "Margin analytics by variant",
+        "subtitle": "Last {days} days · net partner earnings per SKU sold on your storefront.",
+        "periodTotal": "Period net",
+        "periodUnits": "{count, plural, one {# unit sold} other {# units sold}}",
+        "empty": "No variant sales in this window yet — publish multi-SKU listings from Discover.",
+        "colProduct": "Product",
+        "colVariant": "Variant",
+        "colUnits": "Units",
+        "colMarkup": "Net earnings",
+        "colAvgMargin": "Avg markup / unit",
+        "colConfigured": "Configured margin",
+        "colConversion": "Listing conv.",
+        "colShare": "Mix",
+        "defaultVariant": "Default SKU",
+        "editMargins": "Edit",
+        "footnote": "Conversion is at listing level (sales ÷ PDP clicks). Mix = share of units for this variant on the listing."
       }
     },
     "dac7Export": {

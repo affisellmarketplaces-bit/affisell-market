@@ -2,12 +2,17 @@ import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { Suspense } from "react"
 
 import { PartnerTaxCompliancePanel } from "@/components/affiliate/partner-tax-compliance-panel"
+import { AffiliateVariantMarginAnalyticsPanel } from "@/components/affiliate/affiliate-variant-margin-analytics-panel"
 import { MerchantPulseHub } from "@/components/merchant/merchant-pulse-hub"
 import { MerchantStripeConnectPanel } from "@/components/merchant/merchant-stripe-connect-panel"
 import {
   emptyAffiliateEarningsPulse,
   loadAffiliateEarningsPulse,
 } from "@/lib/merchant-earnings-pulse"
+import {
+  emptyAffiliateVariantMarginAnalytics,
+  loadAffiliateVariantMarginAnalytics,
+} from "@/lib/load-affiliate-variant-margin-analytics"
 import { prisma } from "@/lib/prisma"
 import { loadOrFallback } from "@/lib/safe-server-data"
 
@@ -16,11 +21,16 @@ export const dynamic = "force-dynamic"
 export default async function AffiliateEarningsPage() {
   const session = await requireAffiliateSession("/dashboard/affiliate/earnings")
 
-  const [data, merchantUser, kycProfile] = await Promise.all([
+  const [data, marginAnalytics, merchantUser, kycProfile] = await Promise.all([
     loadOrFallback(
       "affiliate/earnings",
       () => loadAffiliateEarningsPulse(session.user.id),
       emptyAffiliateEarningsPulse()
+    ),
+    loadOrFallback(
+      "affiliate/earnings/variant-analytics",
+      () => loadAffiliateVariantMarginAnalytics(session.user.id),
+      emptyAffiliateVariantMarginAnalytics()
     ),
     prisma.user.findUnique({
       where: { id: session.user.id },
@@ -59,6 +69,7 @@ export default async function AffiliateEarningsPage() {
       recentLedger={data.recentLedger}
       backHref="/dashboard/affiliate"
       leadingSlot={connectSlot}
+      trailingSlot={<AffiliateVariantMarginAnalyticsPanel data={marginAnalytics} />}
     />
   )
 }

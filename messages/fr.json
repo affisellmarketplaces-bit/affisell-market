@@ -1144,6 +1144,24 @@
         "records": "Conservez vos relevés Affisell et notifications de paiement comme base comptable pour vos déclarations.",
         "dac7": "Affisell peut transmettre vos revenus plateforme aux autorités compétentes (DAC7 / reporting plateformes numériques) selon la réglementation applicable.",
         "advice": "Affisell ne fournit pas de conseil fiscal. Consultez un expert-comptable ou conseil fiscal dans votre pays si nécessaire."
+      },
+      "variantAnalytics": {
+        "title": "Analytics marges par variante",
+        "subtitle": "{days} derniers jours · gains nets partenaire par SKU vendu sur votre vitrine.",
+        "periodTotal": "Net période",
+        "periodUnits": "{count, plural, one {# unité vendue} other {# unités vendues}}",
+        "empty": "Aucune vente par variante sur cette période — publiez des fiches multi-SKU depuis Découvrir.",
+        "colProduct": "Produit",
+        "colVariant": "Variante",
+        "colUnits": "Unités",
+        "colMarkup": "Gains nets",
+        "colAvgMargin": "Marge moy. / unité",
+        "colConfigured": "Marge configurée",
+        "colConversion": "Conv. fiche",
+        "colShare": "Mix",
+        "defaultVariant": "SKU par défaut",
+        "editMargins": "Modifier",
+        "footnote": "Conversion au niveau fiche (ventes ÷ clics PDP). Mix = part des unités de cette variante sur la fiche."
       }
     },
     "dac7Export": {
