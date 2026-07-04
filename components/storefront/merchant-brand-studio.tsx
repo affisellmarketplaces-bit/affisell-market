@@ -9,6 +9,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
 import { StorefrontBrandLaunchPanel } from "@/components/storefront/storefront-brand-launch-panel"
+import { StorefrontEmbedWidgetPanel } from "@/components/storefront/storefront-embed-widget-panel"
+import { StorefrontHeroVideoField } from "@/components/storefront/storefront-hero-video-field"
 import { StorefrontHeaderColorPicker } from "@/components/storefront/storefront-header-color-picker"
 import { StorefrontLayoutControls } from "@/components/storefront/storefront-layout-controls"
 import { StorefrontLivePreview } from "@/components/storefront/storefront-live-preview"
@@ -46,6 +48,12 @@ import {
   staticPagesEqual,
   type StorefrontStaticPages,
 } from "@/lib/storefront-static-pages-shared"
+import {
+  DEFAULT_EMBED_WIDGET,
+  embedWidgetsEqual,
+  serializeEmbedWidget,
+  type StorefrontEmbedWidget,
+} from "@/lib/storefront-embed-shared"
 import type { BrandLaunchConfig } from "@/lib/storefront-brand-launch"
 import { cn } from "@/lib/utils"
 
@@ -77,6 +85,8 @@ type BrandStudioSnapshot = {
   presetId: string | null
   homepageSections: HomepageSection[]
   staticPages: StorefrontStaticPages
+  heroVideoUrl: string
+  embedWidget: StorefrontEmbedWidget
 }
 
 const BRAND_STUDIO_FORM_ID = "brand-studio-form"
@@ -100,6 +110,8 @@ function snapshotFromStore(st: StoreRow): BrandStudioSnapshot {
     presetId: theme.presetId ?? null,
     homepageSections: theme.homepageSections ?? DEFAULT_HOMEPAGE_SECTIONS,
     staticPages: theme.staticPages ?? DEFAULT_STATIC_PAGES,
+    heroVideoUrl: theme.heroVideoUrl ?? "",
+    embedWidget: theme.embedWidget ?? DEFAULT_EMBED_WIDGET,
   }
 }
 
@@ -120,6 +132,8 @@ function snapshotFromDraft(input: {
   presetId: string | null
   homepageSections: HomepageSection[]
   staticPages: StorefrontStaticPages
+  heroVideoUrl: string
+  embedWidget: StorefrontEmbedWidget
 }): BrandStudioSnapshot {
   return {
     name: input.name.trim().slice(0, 40),
@@ -138,6 +152,8 @@ function snapshotFromDraft(input: {
     presetId: input.presetId,
     homepageSections: input.homepageSections,
     staticPages: input.staticPages,
+    heroVideoUrl: input.heroVideoUrl.trim(),
+    embedWidget: input.embedWidget,
   }
 }
 
@@ -158,7 +174,9 @@ function snapshotsEqual(a: BrandStudioSnapshot, b: BrandStudioSnapshot): boolean
     a.headerBrandAlign === b.headerBrandAlign &&
     a.presetId === b.presetId &&
     homepageSectionsEqual(a.homepageSections, b.homepageSections) &&
-    staticPagesEqual(a.staticPages, b.staticPages)
+    staticPagesEqual(a.staticPages, b.staticPages) &&
+    a.heroVideoUrl === b.heroVideoUrl &&
+    embedWidgetsEqual(a.embedWidget, b.embedWidget)
   )
 }
 
@@ -205,6 +223,9 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const [presetId, setPresetId] = useState<string | null>(null)
   const [homepageSections, setHomepageSections] = useState<HomepageSection[]>(DEFAULT_HOMEPAGE_SECTIONS)
   const [staticPages, setStaticPages] = useState<StorefrontStaticPages>(DEFAULT_STATIC_PAGES)
+  const [heroVideoUrl, setHeroVideoUrl] = useState("")
+  const [embedWidget, setEmbedWidget] = useState<StorefrontEmbedWidget>(DEFAULT_EMBED_WIDGET)
+  const [storeSlug, setStoreSlug] = useState("")
   const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
   const mountedRef = useRef(false)
 
@@ -275,6 +296,9 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         setPresetId(snap.presetId)
         setHomepageSections(snap.homepageSections)
         setStaticPages(snap.staticPages)
+        setHeroVideoUrl(snap.heroVideoUrl)
+        setEmbedWidget(snap.embedWidget)
+        setStoreSlug(st.slug)
         setSavedSnapshot(snap)
       }
     } catch (e) {
@@ -312,7 +336,9 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         fd.set("themeHeaderBrandAlign", snapshot.headerBrandAlign)
         if (snapshot.presetId) fd.set("themePresetId", snapshot.presetId)
         fd.set("themeHomepageSections", serializeHomepageSections(snapshot.homepageSections))
-      fd.set("themeStaticPages", serializeStaticPages(snapshot.staticPages))
+        fd.set("themeStaticPages", serializeStaticPages(snapshot.staticPages))
+        fd.set("themeHeroVideoUrl", snapshot.heroVideoUrl)
+        fd.set("themeEmbedWidget", serializeEmbedWidget(snapshot.embedWidget))
         if (logoFile) {
           fd.set("logo", logoFile)
         } else {
@@ -368,10 +394,12 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         presetId: config.presetId,
         homepageSections: config.homepageSections,
         staticPages: config.staticPages,
+        heroVideoUrl,
+        embedWidget,
       })
       await persistSnapshot(launchSnapshot, t("launch.saved"))
     },
-    [applyLaunchConfig, bannerUrl, logoUrl, name, persistSnapshot, t]
+    [applyLaunchConfig, bannerUrl, embedWidget, heroVideoUrl, logoUrl, name, persistSnapshot, t]
   )
 
   function applyPreset(theme: StorefrontTheme, id: string) {
@@ -402,6 +430,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       surface,
       headerBrandAlign,
       homepageSections,
+      heroVideoUrl,
     }),
     [
       name,
@@ -420,6 +449,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       surface,
       headerBrandAlign,
       homepageSections,
+      heroVideoUrl,
     ]
   )
 
@@ -442,6 +472,8 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         presetId,
         homepageSections,
         staticPages,
+        heroVideoUrl,
+        embedWidget,
       }),
     [
       name,
@@ -460,6 +492,8 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       presetId,
       homepageSections,
       staticPages,
+      heroVideoUrl,
+      embedWidget,
     ]
   )
 
@@ -666,6 +700,23 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                 onSurface={setSurface}
                 onHeaderBrandAlign={setHeaderBrandAlign}
               />
+
+              <StorefrontHeroVideoField
+                heroStyle={heroStyle}
+                heroVideoUrl={heroVideoUrl}
+                storeName={name.trim() || t("launch.defaultStoreName")}
+                onHeroStyle={setHeroStyle}
+                onHeroVideoUrl={setHeroVideoUrl}
+              />
+
+              {role === "AFFILIATE" && storeSlug ? (
+                <StorefrontEmbedWidgetPanel
+                  slug={storeSlug}
+                  storeName={name.trim() || t("launch.defaultStoreName")}
+                  widget={embedWidget}
+                  onChange={setEmbedWidget}
+                />
+              ) : null}
 
               <StorefrontSectionsEditor sections={homepageSections} onChange={setHomepageSections} />
 

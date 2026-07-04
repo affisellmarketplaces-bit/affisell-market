@@ -99,7 +99,7 @@ export function StorefrontLayoutControls({
       <div className="space-y-2">
         <p className="text-[11px] font-medium text-gray-600 dark:text-zinc-400">{t("hero")}</p>
         <div className="flex flex-wrap gap-2">
-          {(["banner", "gradient", "none"] as const).map((id) => (
+          {(["banner", "gradient", "video", "none"] as const).map((id) => (
             <OptionChip
               key={id}
               label={t(`heroOptions.${id}`)}

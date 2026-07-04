@@ -2196,6 +2196,7 @@
         "heroOptions": {
           "banner": "Bannière",
           "gradient": "Dégradé",
+          "video": "Vidéo Veo",
           "none": "Aucun"
         },
         "grid": "Grille produits",
@@ -2318,6 +2319,28 @@
           }
         }
       },
+      "heroVideo": {
+        "title": "Hero vidéo Veo",
+        "hint": "Vidéo cinématique en boucle sur votre vitrine — générez avec Veo ou collez une URL HTTPS.",
+        "urlLabel": "URL vidéo (HTTPS)",
+        "generate": "Générer avec Veo",
+        "generating": "Génération…",
+        "generateFailed": "Impossible de générer la vidéo hero",
+        "useAsHero": "Utiliser comme hero"
+      },
+      "embedWidget": {
+        "title": "Widget embed",
+        "hint": "Collez cet iframe sur votre blog, link-in-bio ou site — les acheteurs achètent sans quitter votre page.",
+        "enable": "Publié",
+        "headline": "Titre du widget",
+        "headlinePlaceholder": "Achetez la sélection de {name}",
+        "productCount": "Produits affichés",
+        "preview": "Aperçu live",
+        "previewTitle": "{name} — embed Affisell",
+        "snippet": "Code embed",
+        "copy": "Copier le code iframe",
+        "copied": "Copié"
+      },
       "logo": {
         "title": "Logo boutique",
         "upload": "Importer une image",
@@ -2347,6 +2370,12 @@
         "classic": "Classique",
         "classicDesc": "Texte simple sans bande."
       }
+    },
+    "embedWidget": {
+      "defaultTitle": "Achetez la sélection de {name}",
+      "emptyCatalog": "Produits bientôt disponibles.",
+      "shopCta": "Voir {name}",
+      "poweredBy": "Paiement sécurisé · Propulsé par Affisell"
     },
     "staticPages": {
       "stripAria": "{name} — pages info",

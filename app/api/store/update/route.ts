@@ -91,6 +91,8 @@ export async function POST(req: Request) {
   const themePresetId = fd.get("themePresetId")
   const themeHomepageSections = fd.get("themeHomepageSections")
   const themeStaticPages = fd.get("themeStaticPages")
+  const themeHeroVideoUrl = fd.get("themeHeroVideoUrl")
+  const themeEmbedWidget = fd.get("themeEmbedWidget")
   const hasThemeFields =
     themePrimary !== null ||
     themeAccent !== null ||
@@ -103,7 +105,9 @@ export async function POST(req: Request) {
     themeHeaderBrandAlign !== null ||
     themePresetId !== null ||
     themeHomepageSections !== null ||
-    themeStaticPages !== null
+    themeStaticPages !== null ||
+    themeHeroVideoUrl !== null ||
+    themeEmbedWidget !== null
   const existingTheme = parseStorefrontTheme(store.storefrontTheme)
   let homepageSectionsInput: unknown = undefined
   if (typeof themeHomepageSections === "string" && themeHomepageSections.trim()) {
@@ -121,6 +125,14 @@ export async function POST(req: Request) {
       return Response.json({ error: "Invalid static pages JSON" }, { status: 400 })
     }
   }
+  let embedWidgetInput: unknown = undefined
+  if (typeof themeEmbedWidget === "string" && themeEmbedWidget.trim()) {
+    try {
+      embedWidgetInput = JSON.parse(themeEmbedWidget)
+    } catch {
+      return Response.json({ error: "Invalid embed widget JSON" }, { status: 400 })
+    }
+  }
   const storefrontTheme = hasThemeFields
     ? themeFromBrandStudioFields(existingTheme, {
         primary: themePrimary,
@@ -135,6 +147,8 @@ export async function POST(req: Request) {
         presetId: themePresetId,
         homepageSections: homepageSectionsInput,
         staticPages: staticPagesInput,
+        heroVideoUrl: themeHeroVideoUrl,
+        embedWidget: embedWidgetInput,
       })
     : undefined
 

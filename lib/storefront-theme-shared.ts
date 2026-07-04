@@ -6,16 +6,18 @@ import {
 } from "@/lib/store-name-badge-styles"
 import { parseHomepageSections, type HomepageSection } from "@/lib/storefront-sections-shared"
 import {
-  parseStaticPages,
-  type StorefrontStaticPages,
-} from "@/lib/storefront-static-pages-shared"
+  parseEmbedWidget,
+  type StorefrontEmbedWidget,
+} from "@/lib/storefront-embed-shared"
+import { normalizeHeroVideoUrl } from "@/lib/storefront-hero-video-shared"
 
 export type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
+export type { StorefrontEmbedWidget } from "@/lib/storefront-embed-shared"
 
 export const STOREFRONT_LAYOUT_MODES = ["classic", "immersive", "minimal"] as const
 export type StorefrontLayoutMode = (typeof STOREFRONT_LAYOUT_MODES)[number]
 
-export const STOREFRONT_HERO_STYLES = ["banner", "gradient", "none"] as const
+export const STOREFRONT_HERO_STYLES = ["banner", "gradient", "video", "none"] as const
 export type StorefrontHeroStyle = (typeof STOREFRONT_HERO_STYLES)[number]
 
 export const STOREFRONT_GRID_DENSITIES = ["cozy", "compact", "spacious"] as const
@@ -40,6 +42,10 @@ export type StorefrontTheme = {
   headerBrandAlign?: StorefrontHeaderBrandAlign
   /** Optional preset id for Brand Studio UI only. */
   presetId?: string
+  /** Optional Veo / HTTPS loop for hero when heroStyle is `video`. */
+  heroVideoUrl?: string
+  /** Embeddable shop widget (iframe snippet in Brand Studio). */
+  embedWidget?: StorefrontEmbedWidget
   /** Ordered homepage blocks for `/shops/{slug}`. */
   homepageSections?: HomepageSection[]
   /** Optional About / FAQ / Returns pages on the public storefront. */
@@ -91,6 +97,8 @@ export function parseStorefrontTheme(raw: unknown): StorefrontTheme {
     nameBadge,
     layout: parseEnum(o.layout, STOREFRONT_LAYOUT_MODES, DEFAULT_STOREFRONT_THEME.layout!),
     heroStyle: parseEnum(o.heroStyle, STOREFRONT_HERO_STYLES, DEFAULT_STOREFRONT_THEME.heroStyle!),
+    heroVideoUrl: normalizeHeroVideoUrl(o.heroVideoUrl),
+    embedWidget: parseEmbedWidget(o.embedWidget),
     gridDensity: parseEnum(
       o.gridDensity,
       STOREFRONT_GRID_DENSITIES,
@@ -152,6 +160,8 @@ export type BrandStudioThemeInput = {
   presetId?: unknown
   homepageSections?: unknown
   staticPages?: unknown
+  heroVideoUrl?: unknown
+  embedWidget?: unknown
 }
 
 export function themeFromBrandStudioFields(
@@ -213,6 +223,16 @@ export function themeFromBrandStudioFields(
       input.staticPages !== undefined && input.staticPages !== null
         ? parseStaticPages(input.staticPages)
         : existing.staticPages,
+    heroVideoUrl:
+      input.heroVideoUrl !== undefined && input.heroVideoUrl !== null
+        ? typeof input.heroVideoUrl === "string" && !input.heroVideoUrl.trim()
+          ? undefined
+          : normalizeHeroVideoUrl(input.heroVideoUrl) ?? existing.heroVideoUrl
+        : existing.heroVideoUrl,
+    embedWidget:
+      input.embedWidget !== undefined && input.embedWidget !== null
+        ? parseEmbedWidget(input.embedWidget)
+        : existing.embedWidget,
   }
 }
 

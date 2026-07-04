@@ -2196,6 +2196,7 @@
         "heroOptions": {
           "banner": "Banner",
           "gradient": "Gradient",
+          "video": "Veo video",
           "none": "None"
         },
         "grid": "Product grid",
@@ -2318,6 +2319,28 @@
           }
         }
       },
+      "heroVideo": {
+        "title": "Veo hero loop",
+        "hint": "Cinematic autoplay video on your storefront — generate with Veo or paste an HTTPS URL.",
+        "urlLabel": "Video URL (HTTPS)",
+        "generate": "Generate with Veo",
+        "generating": "Generating…",
+        "generateFailed": "Could not generate hero video",
+        "useAsHero": "Use as hero"
+      },
+      "embedWidget": {
+        "title": "Embed widget",
+        "hint": "Paste this iframe on your blog, link-in-bio, or site — buyers shop without leaving your page.",
+        "enable": "Published",
+        "headline": "Widget headline",
+        "headlinePlaceholder": "Shop curated picks from {name}",
+        "productCount": "Products shown",
+        "preview": "Live preview",
+        "previewTitle": "{name} — Affisell embed",
+        "snippet": "Embed code",
+        "copy": "Copy iframe code",
+        "copied": "Copied"
+      },
       "logo": {
         "title": "Store logo",
         "upload": "Upload image",
@@ -2347,6 +2370,12 @@
         "classic": "Klassiek",
         "classicDesc": "Gewoon tekst, geen band."
       }
+    },
+    "embedWidget": {
+      "defaultTitle": "Shop curated picks from {name}",
+      "emptyCatalog": "Products coming soon — check back shortly.",
+      "shopCta": "Shop {name}",
+      "poweredBy": "Secure checkout · Powered by Affisell"
     },
     "staticPages": {
       "stripAria": "{name} — info pages",

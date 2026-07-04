@@ -2,7 +2,7 @@ import { withSentryConfig } from "@sentry/nextjs"
 import type { NextConfig } from "next"
 import createNextIntlPlugin from "next-intl/plugin"
 
-import { buildSecurityHeaders } from "@/lib/security-headers"
+import { buildEmbedSecurityHeaders, buildSecurityHeaders } from "@/lib/security-headers"
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
 
@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["*.shops.localhost", "127.0.0.1", "localhost"],
   async headers() {
     return [
+      {
+        source: "/embed/:path*",
+        headers: [...buildEmbedSecurityHeaders()],
+      },
       {
         source: "/:path*",
         headers: [...buildSecurityHeaders()],

@@ -24,10 +24,12 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
   const layout = theme?.layout ?? "classic"
   const headerAlign = brandAlign ?? theme?.headerBrandAlign ?? "center"
   const immersive = layout === "immersive"
+  const heroVideoUrl = theme?.heroVideoUrl?.trim() ?? ""
 
   const showImageBanner = heroStyle === "banner" && Boolean(bannerUrl)
   const showGradientHero = heroStyle === "gradient"
-  const showHero = heroStyle !== "none" && (showImageBanner || showGradientHero)
+  const showVideoHero = heroStyle === "video" && heroVideoUrl.length > 0
+  const showHero = heroStyle !== "none" && (showImageBanner || showGradientHero || showVideoHero)
 
   if (!showHero && !description?.trim()) return null
 
@@ -46,6 +48,36 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
             className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"
             aria-hidden
           />
+        </div>
+      ) : showVideoHero ? (
+        <div
+          className={cn(
+            "relative w-full overflow-hidden bg-zinc-950",
+            immersive ? "h-40 sm:h-48 md:h-56" : "h-32 sm:h-40 md:h-48"
+          )}
+        >
+          <video
+            src={heroVideoUrl}
+            className="h-full w-full object-cover"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            poster={bannerUrl ?? undefined}
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10"
+            aria-hidden
+          />
+          {description?.trim() ? (
+            <div className="absolute inset-x-0 bottom-0 px-4 pb-3 sm:px-6 sm:pb-4">
+              <p className="max-w-2xl text-sm font-medium leading-relaxed text-white/90 drop-shadow-sm">
+                {description}
+              </p>
+            </div>
+          ) : null}
         </div>
       ) : showGradientHero ? (
         <div
@@ -75,7 +107,7 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
         </div>
       ) : null}
 
-      {description?.trim() && !showGradientHero ? (
+      {description?.trim() && !showGradientHero && !showVideoHero ? (
         <StorefrontTaglineBand
           description={description}
           accent={accent}

@@ -30,6 +30,7 @@ export const RESERVED_LOCALE_SEGMENTS = new Set([
   "demo",
   "digital",
   "discover",
+  "embed",
   "faq",
   "home",
   "how-it-works",
