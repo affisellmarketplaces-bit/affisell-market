@@ -1565,7 +1565,11 @@
       "referencePriceHint": "Used as the default margin template. Per-variant client prices are set in the block above.",
       "topVariantSettlement": "Premium variant « {variant} » at {price}",
       "marginReviewTitle": "Supplier price increased — review your margins",
-      "marginReviewBody": "Highlighted variants may sell at a loss or with reduced margin. Use « Apply AI to variants » or adjust manually.",
+      "marginReviewBody": "Highlighted variants may sell at a loss or with reduced margin. Fix in one tap or adjust manually.",
+      "marginAutoFix": "Fix margins with AI",
+      "marginAutoFixSaving": "Saving safe margins…",
+      "marginAutoFixApplied": "Safe margins applied on {count} variant(s) — listing updated.",
+      "marginAutoFixFailed": "Could not apply safe margins. Try again or adjust manually.",
       "aiPricing": {
         "title": "AI Pricing Optimizer",
         "beta": "BETA",

@@ -2,6 +2,7 @@
 
 import type { FormEvent, MouseEvent } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { flushSync } from "react-dom"
 import { Loader2, Rocket, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -18,6 +19,7 @@ import {
   sellingPriceCentsFromMargin,
   serializeVariantPricingForDb,
 } from "@/lib/affiliate-variant-pricing"
+import { suggestSafeMarginsAfterWholesaleIncrease } from "@/lib/affiliate-margin-auto-fix"
 import {
   clampBuyerRewardPercent,
   maxAffordableBuyerRewardPercent,
@@ -417,6 +419,32 @@ function ListingBuilderModalBody({
     return merged.filter((u) => (seen.has(u) ? false : (seen.add(u), true))).slice(0, 20)
   }
 
+  async function handleMarginAutoFix() {
+    if (!listing?.id || busy) return
+    const fix = suggestSafeMarginsAfterWholesaleIncrease({
+      baseWholesaleCents: product.basePriceCents,
+      sellingPriceCents: listing.sellingPriceCents,
+      variantPricing: listing.variantPricing,
+      reviewVariantKeys: listing.marginReviewVariantKeys ?? [],
+      options: variantOptions.map((o) => ({ key: o.key, wholesaleCents: o.wholesaleCents })),
+      currentMarginEuroByKey: form.variantMarginEUR,
+    })
+    const nextForm: FormFields = {
+      ...form,
+      ...(fix.referencePriceEUR ? { priceEUR: fix.referencePriceEUR } : {}),
+      variantMarginEUR: { ...form.variantMarginEUR, ...fix.marginEuroByKey },
+    }
+    flushSync(() => {
+      setForm(nextForm)
+      setPricingGreenToast(
+        tListingBuilder("marginAutoFixApplied", {
+          count: fix.keysFixed.length > 0 ? fix.keysFixed.length : 1,
+        })
+      )
+    })
+    await submit(false)
+  }
+
   async function submit(saveDraft: boolean, opts?: { silent?: boolean }) {
     setBusy(true)
     if (!opts?.silent) setError(null)
@@ -724,6 +752,24 @@ function ListingBuilderModalBody({
                   <p className="mt-1 text-xs leading-relaxed opacity-90">
                     {tListingBuilder("marginReviewBody")}
                   </p>
+                  <button
+                    type="button"
+                    disabled={busy || uploadBusy}
+                    onClick={() => void handleMarginAutoFix()}
+                    className="mt-3 inline-flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {busy ? (
+                      <>
+                        <Loader2 className="size-3.5 animate-spin" aria-hidden />
+                        {tListingBuilder("marginAutoFixSaving")}
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="size-3.5" aria-hidden />
+                        {tListingBuilder("marginAutoFix")}
+                      </>
+                    )}
+                  </button>
                 </div>
               ) : null}
 

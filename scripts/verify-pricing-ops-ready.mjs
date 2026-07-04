@@ -69,6 +69,8 @@ const REQUIRED_FILES = [
   "lib/__tests__/supplier-wholesale-change-preview.test.ts",
   "app/api/supplier/products/[id]/wholesale-preview/route.ts",
   "components/supplier/supplier-wholesale-pre-save-modal.tsx",
+  "lib/affiliate-margin-auto-fix.ts",
+  "lib/__tests__/affiliate-margin-auto-fix.test.ts",
 ]
 
 console.log("\n[verify-pricing-ops] Affiliate pricing pipeline\n")

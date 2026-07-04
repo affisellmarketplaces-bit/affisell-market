@@ -327,6 +327,13 @@ export async function PATCH(
       wholesaleAfter,
     })
   ) {
+    if (listing.marginReviewNeeded) {
+      console.log("[margin-auto-fix]", {
+        listingId: id,
+        affiliateId: session.user.id,
+        result: "cleared",
+      })
+    }
     data.marginReviewNeeded = false
     data.marginReviewVariantKeys = []
     data.marginReviewAt = null
