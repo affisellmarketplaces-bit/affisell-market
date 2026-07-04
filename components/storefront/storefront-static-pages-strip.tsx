@@ -2,7 +2,6 @@ import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 
 import {
-  DEFAULT_STATIC_PAGES,
   getEnabledStaticPages,
   type StorefrontStaticPages,
 } from "@/lib/storefront-static-pages-shared"
@@ -20,7 +19,7 @@ export async function StorefrontStaticPagesStrip({
   shopHomePath,
   staticPages,
 }: Props) {
-  const enabled = getEnabledStaticPages(staticPages ?? DEFAULT_STATIC_PAGES)
+  const enabled = getEnabledStaticPages(staticPages)
   if (enabled.length === 0) return null
 
   const t = await getTranslations("storefront.staticPages")

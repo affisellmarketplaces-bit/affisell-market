@@ -87,8 +87,11 @@ export function parseStaticPagesFromTheme(raw: unknown): StorefrontStaticPages {
   return parseStaticPages(o.staticPages)
 }
 
-export function getEnabledStaticPages(pages: StorefrontStaticPages): StorefrontStaticPageKind[] {
-  return STOREFRONT_STATIC_PAGE_KINDS.filter((kind) => pages[kind]?.enabled)
+export function getEnabledStaticPages(
+  pages: StorefrontStaticPages | undefined | null
+): StorefrontStaticPageKind[] {
+  const resolved = pages ?? DEFAULT_STATIC_PAGES
+  return STOREFRONT_STATIC_PAGE_KINDS.filter((kind) => resolved[kind]?.enabled)
 }
 
 export function serializeStaticPages(pages: StorefrontStaticPages): string {

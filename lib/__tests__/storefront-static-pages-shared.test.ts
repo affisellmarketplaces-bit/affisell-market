@@ -20,6 +20,8 @@ describe("storefront-static-pages-shared", () => {
     expect(pages.about.title).toBe("About us")
     expect(pages.faq.faqItems).toHaveLength(1)
     expect(getEnabledStaticPages(pages)).toEqual(["about", "faq"])
+    expect(getEnabledStaticPages(undefined)).toEqual([])
+    expect(getEnabledStaticPages(null)).toEqual([])
   })
 
   it("updates a page immutably", () => {
