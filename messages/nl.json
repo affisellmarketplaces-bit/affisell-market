@@ -2188,6 +2188,30 @@
         "shareMessage": "Discover {name} — curated products on Affisell",
         "enableEmbedHint": "Enable embed widget to show your shop on your blog or site →"
       },
+      "pulse": {
+        "title": "Brand Pulse",
+        "subtitle": "Complete the checklist to maximize trust and conversion on your storefront.",
+        "readySubtitle": "Your storefront is launch-ready — share your link and drive traffic.",
+        "checks": {
+          "identity": "Store name set",
+          "description": "Tagline describes your niche (24+ chars)",
+          "logo": "Logo uploaded",
+          "heroVisual": "Banner, gradient, or Veo video hero",
+          "preset": "Theme preset selected",
+          "premiumLayout": "Immersive, glass, or dark surface",
+          "sections": "3+ homepage sections enabled",
+          "staticPages": "At least one static page (About, FAQ, Returns)",
+          "embed": "Embed widget enabled for your site",
+          "liveProducts": "At least one product live on storefront",
+          "customDomain": "Custom domain verified"
+        }
+      },
+      "aiCopy": {
+        "cta": "Generate copy with AI",
+        "generating": "Writing…",
+        "hint": "Fills tagline + Story + CTA sections. Review before publishing.",
+        "failed": "AI copy unavailable — check GROQ_API_KEY or try again."
+      },
       "layoutControls": {
         "title": "Structure & mood",
         "headerBrand": "Store name in header",

@@ -37,11 +37,22 @@ export async function GET() {
   const urls = resolveStorePublicUrls(urlInput)
   const publicStoreUrl = storePublicUrl(urlInput)
 
+  let liveListingCount = 0
+  if (merchantRole === "AFFILIATE") {
+    liveListingCount = await prisma.affiliateProduct.count({
+      where: { affiliateId: userId, isListed: true },
+    })
+  }
+
   return Response.json({
     store,
     dnsTarget,
     publicStoreUrl,
     storeUrls: urls,
     storeHostSuffix: storeHostSuffixForUi(),
+    brandPulseMetrics: {
+      liveListingCount,
+      customDomainVerified: Boolean(store.customDomain && store.domainVerified),
+    },
   })
 }

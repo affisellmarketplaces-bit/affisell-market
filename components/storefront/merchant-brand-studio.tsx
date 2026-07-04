@@ -8,8 +8,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
+import { StorefrontAiCopyButton } from "@/components/storefront/storefront-ai-copy-button"
 import { StorefrontBrandLaunchPanel } from "@/components/storefront/storefront-brand-launch-panel"
 import { StorefrontBrandPreviewPanel } from "@/components/storefront/storefront-brand-preview-panel"
+import { StorefrontBrandPulsePanel } from "@/components/storefront/storefront-brand-pulse-panel"
 import { StorefrontEmbedWidgetPanel } from "@/components/storefront/storefront-embed-widget-panel"
 import { StorefrontHeroVideoField } from "@/components/storefront/storefront-hero-video-field"
 import { StorefrontHeaderColorPicker } from "@/components/storefront/storefront-header-color-picker"
@@ -56,6 +58,7 @@ import {
   type StorefrontEmbedWidget,
 } from "@/lib/storefront-embed-shared"
 import type { BrandLaunchConfig } from "@/lib/storefront-brand-launch"
+import { computeBrandPulse } from "@/lib/storefront-brand-pulse-shared"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
 import { cn } from "@/lib/utils"
 
@@ -228,6 +231,10 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const [heroVideoUrl, setHeroVideoUrl] = useState("")
   const [embedWidget, setEmbedWidget] = useState<StorefrontEmbedWidget>(DEFAULT_EMBED_WIDGET)
   const [storeSlug, setStoreSlug] = useState("")
+  const [brandPulseMetrics, setBrandPulseMetrics] = useState({
+    liveListingCount: 0,
+    customDomainVerified: false,
+  })
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0)
   const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
   const mountedRef = useRef(false)
@@ -271,6 +278,10 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
           customDomainUrl: string | null
         }
         storeHostSuffix?: string | null
+        brandPulseMetrics?: {
+          liveListingCount: number
+          customDomainVerified: boolean
+        }
         error?: string
       }
       if (!res.ok) throw new Error(json.error ?? t("loadFailed"))
@@ -278,6 +289,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       if (json.publicStoreUrl) setPublicStoreUrl(json.publicStoreUrl)
       if (json.storeUrls) setStoreUrls(json.storeUrls)
       setStoreHostSuffix(json.storeHostSuffix ?? null)
+      if (json.brandPulseMetrics) setBrandPulseMetrics(json.brandPulseMetrics)
       const st = json.store
       if (st) {
         const snap = snapshotFromStore(st)
@@ -473,6 +485,43 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
     setSurface(theme.surface ?? DEFAULT_STOREFRONT_THEME.surface!)
     setHeaderBrandAlign(theme.headerBrandAlign ?? DEFAULT_STOREFRONT_THEME.headerBrandAlign!)
   }
+
+  const brandPulse = useMemo(
+    () =>
+      computeBrandPulse({
+        name,
+        description,
+        logoUrl,
+        bannerUrl,
+        presetId,
+        layout,
+        heroStyle,
+        heroVideoUrl,
+        surface,
+        embedEnabled: embedWidget.enabled,
+        homepageSections,
+        staticPages,
+        liveListingCount: brandPulseMetrics.liveListingCount,
+        customDomainVerified: brandPulseMetrics.customDomainVerified,
+        role,
+      }),
+    [
+      name,
+      description,
+      logoUrl,
+      bannerUrl,
+      presetId,
+      layout,
+      heroStyle,
+      heroVideoUrl,
+      surface,
+      embedWidget.enabled,
+      homepageSections,
+      staticPages,
+      brandPulseMetrics,
+      role,
+    ]
+  )
 
   const previewDraft = useMemo(
     () => ({
@@ -698,6 +747,16 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                   onChange={(e) => setDescription(e.target.value)}
                   className="flex min-h-[100px] w-full rounded-xl border border-gray-200 bg-white/50 px-4 py-3 text-sm dark:border-zinc-700 dark:bg-zinc-950/50 dark:text-white"
                 />
+                <StorefrontAiCopyButton
+                  storeName={name}
+                  role={role}
+                  disabled={saving}
+                  homepageSections={homepageSections}
+                  onApply={({ description: nextDescription, homepageSections: nextSections }) => {
+                    setDescription(nextDescription)
+                    setHomepageSections(nextSections)
+                  }}
+                />
               </div>
 
               <StorefrontHeaderColorPicker value={primaryHex} accent={accent} onChange={setPrimaryHex} />
@@ -807,6 +866,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                 />
               </BentoCard>
             </div>
+            <StorefrontBrandPulsePanel pulse={brandPulse} />
             <StoreLiveUrlCard urls={storeUrls} storeHostSuffix={storeHostSuffix} loading={loading} />
             {storeSlug && storeUrls?.primaryUrl ? (
               <StorefrontShareGrowPanel

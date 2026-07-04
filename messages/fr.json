@@ -2188,6 +2188,30 @@
         "shareMessage": "Découvrez {name} — sélection produits sur Affisell",
         "enableEmbedHint": "Activer le widget embed pour afficher votre shop sur votre site →"
       },
+      "pulse": {
+        "title": "Brand Pulse",
+        "subtitle": "Complétez la checklist pour maximiser confiance et conversion sur votre vitrine.",
+        "readySubtitle": "Votre vitrine est prête — partagez votre lien et générez du trafic.",
+        "checks": {
+          "identity": "Nom de boutique défini",
+          "description": "Accroche décrit votre niche (24+ caractères)",
+          "logo": "Logo téléversé",
+          "heroVisual": "Bannière, dégradé ou hero vidéo Veo",
+          "preset": "Preset thème sélectionné",
+          "premiumLayout": "Layout immersif, glass ou surface sombre",
+          "sections": "3+ sections homepage activées",
+          "staticPages": "Au moins une page statique (À propos, FAQ, Retours)",
+          "embed": "Widget embed activé pour votre site",
+          "liveProducts": "Au moins un produit live sur la vitrine",
+          "customDomain": "Domaine custom vérifié"
+        }
+      },
+      "aiCopy": {
+        "cta": "Générer les textes avec l'IA",
+        "generating": "Rédaction…",
+        "hint": "Remplit l'accroche + sections Story et CTA. Relisez avant publication.",
+        "failed": "IA indisponible — vérifiez GROQ_API_KEY ou réessayez."
+      },
       "layoutControls": {
         "title": "Structure & ambiance",
         "headerBrand": "Nom dans l'entête",
