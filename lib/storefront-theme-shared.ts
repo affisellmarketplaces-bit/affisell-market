@@ -14,10 +14,15 @@ import {
   parseStaticPages,
   type StorefrontStaticPages,
 } from "@/lib/storefront-static-pages-shared"
+import {
+  parseStorefrontBrandOps,
+  type StorefrontBrandOps,
+} from "@/lib/storefront-theme-ops-shared"
 
 export type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 export type { StorefrontEmbedWidget } from "@/lib/storefront-embed-shared"
 export type { StorefrontStaticPages } from "@/lib/storefront-static-pages-shared"
+export type { StorefrontBrandOps } from "@/lib/storefront-theme-ops-shared"
 
 export const STOREFRONT_LAYOUT_MODES = ["classic", "immersive", "minimal"] as const
 export type StorefrontLayoutMode = (typeof STOREFRONT_LAYOUT_MODES)[number]
@@ -55,6 +60,8 @@ export type StorefrontTheme = {
   homepageSections?: HomepageSection[]
   /** Optional About / FAQ / Returns pages on the public storefront. */
   staticPages?: StorefrontStaticPages
+  /** Cron / ops metadata — preserved across Brand Studio saves. */
+  brandOps?: StorefrontBrandOps
 }
 
 const HEX_RE = /^#[0-9a-f]{6}$/i
@@ -118,6 +125,7 @@ export function parseStorefrontTheme(raw: unknown): StorefrontTheme {
     presetId: typeof o.presetId === "string" ? o.presetId.slice(0, 40) : undefined,
     homepageSections: parseHomepageSections(o.homepageSections),
     staticPages: parseStaticPages(o.staticPages),
+    brandOps: parseStorefrontBrandOps(o.brandOps),
   }
 }
 
@@ -238,6 +246,7 @@ export function themeFromBrandStudioFields(
       input.embedWidget !== undefined && input.embedWidget !== null
         ? parseEmbedWidget(input.embedWidget)
         : existing.embedWidget,
+    brandOps: existing.brandOps,
   }
 }
 

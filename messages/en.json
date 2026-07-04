@@ -2171,6 +2171,27 @@
         "hint": "Wide hero image from your colors + niche. Sets hero to banner mode — save to publish.",
         "failed": "AI banner unavailable — check HF_TOKEN or try again."
       },
+      "aiStaticPages": {
+        "cta": "Generate About, FAQ & Returns with AI",
+        "generating": "Writing pages…",
+        "hint": "Fills all three static pages (EU-friendly). Review before publishing.",
+        "failed": "AI pages unavailable — check GROQ_API_KEY or try again."
+      },
+      "presetOptimizer": {
+        "title": "Preset optimizer",
+        "cta": "Apply recommended preset",
+        "suggestedPreset": "Suggested: {preset}",
+        "reasons": {
+          "missing_preset": "Pick a premium preset to unlock Brand Pulse points.",
+          "missing_hero": "Switch to a banner-hero preset for a stronger first impression.",
+          "missing_premium_layout": "Try an immersive preset to boost trust and conversion."
+        },
+        "presets": {
+          "violet-pulse": "Violet Pulse",
+          "rose-editorial": "Rose Editorial",
+          "midnight-orbit": "Midnight Orbit"
+        }
+      },
       "analytics": {
         "title": "Growth analytics",
         "subtitle": "Preset → launch → share funnel tracked in PostHog for Metabase.",

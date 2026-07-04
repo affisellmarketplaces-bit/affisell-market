@@ -2213,6 +2213,27 @@
         "hint": "Hero large depuis vos couleurs + niche. Active le mode bannière — enregistrez pour publier.",
         "failed": "Bannière IA indisponible — vérifiez HF_TOKEN ou réessayez."
       },
+      "aiStaticPages": {
+        "cta": "Générer À propos, FAQ & Retours avec l'IA",
+        "generating": "Rédaction des pages…",
+        "hint": "Remplit les 3 pages statiques (conforme UE). Relisez avant publication.",
+        "failed": "Pages IA indisponibles — vérifiez GROQ_API_KEY ou réessayez."
+      },
+      "presetOptimizer": {
+        "title": "Optimiseur de preset",
+        "cta": "Appliquer le preset recommandé",
+        "suggestedPreset": "Suggestion : {preset}",
+        "reasons": {
+          "missing_preset": "Choisissez un preset premium pour monter votre Brand Pulse.",
+          "missing_hero": "Passez à un preset bannière hero pour une meilleure 1ère impression.",
+          "missing_premium_layout": "Essayez un preset immersif pour plus de confiance et conversion."
+        },
+        "presets": {
+          "violet-pulse": "Violet Pulse",
+          "rose-editorial": "Rose Editorial",
+          "midnight-orbit": "Midnight Orbit"
+        }
+      },
       "analytics": {
         "title": "Analytics croissance",
         "subtitle": "Entonnoir preset → launch → partage suivi dans PostHog pour Metabase.",

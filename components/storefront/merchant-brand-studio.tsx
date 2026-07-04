@@ -22,6 +22,7 @@ import { StorefrontLogoField } from "@/components/storefront/storefront-logo-fie
 import { StorefrontSectionsEditor } from "@/components/storefront/storefront-sections-editor"
 import { StorefrontStaticPagesEditor } from "@/components/storefront/storefront-static-pages-editor"
 import { StorefrontThemePresetPicker } from "@/components/storefront/storefront-theme-preset-picker"
+import { StorefrontPresetOptimizerPanel } from "@/components/storefront/storefront-preset-optimizer-panel"
 import { StorefrontShareGrowPanel } from "@/components/storefront/storefront-share-grow-panel"
 import { StoreLiveUrlCard } from "@/components/storefront/store-live-url-card"
 import { StoreNameBadgePicker } from "@/components/storefront/store-name-badge-picker"
@@ -849,7 +850,12 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
 
               <StorefrontSectionsEditor sections={homepageSections} onChange={setHomepageSections} />
 
-              <StorefrontStaticPagesEditor pages={staticPages} onChange={setStaticPages} />
+              <StorefrontStaticPagesEditor
+                pages={staticPages}
+                onChange={setStaticPages}
+                role={role}
+                disabled={saving}
+              />
 
               <StoreNameBadgePicker
                 value={nameBadge}
@@ -877,6 +883,12 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
               </BentoCard>
             </div>
             <StorefrontBrandPulsePanel pulse={brandPulse} />
+            <StorefrontPresetOptimizerPanel
+              pulse={brandPulse}
+              presetId={presetId}
+              role={role}
+              onApplyPreset={applyPreset}
+            />
             <StorefrontBrandAnalyticsPanel role={role} presetId={presetId} />
             <StoreLiveUrlCard urls={storeUrls} storeHostSuffix={storeHostSuffix} loading={loading} />
             {storeSlug && storeUrls?.primaryUrl ? (

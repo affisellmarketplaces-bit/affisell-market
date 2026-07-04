@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { StorefrontAiStaticPagesButton } from "@/components/storefront/storefront-ai-static-pages-button"
 import {
   STOREFRONT_STATIC_PAGE_KINDS,
   updateStaticPage,
@@ -17,9 +18,11 @@ import { cn } from "@/lib/utils"
 type Props = {
   pages: StorefrontStaticPages
   onChange: (pages: StorefrontStaticPages) => void
+  role: "AFFILIATE" | "SUPPLIER"
+  disabled?: boolean
 }
 
-export function StorefrontStaticPagesEditor({ pages, onChange }: Props) {
+export function StorefrontStaticPagesEditor({ pages, onChange, role, disabled = false }: Props) {
   const t = useTranslations("storefront.brandStudio.staticPages")
 
   function patchPage(kind: StorefrontStaticPageKind, patch: Parameters<typeof updateStaticPage>[2]) {
@@ -31,6 +34,13 @@ export function StorefrontStaticPagesEditor({ pages, onChange }: Props) {
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{t("title")}</p>
         <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">{t("hint")}</p>
+        <div className="mt-3">
+          <StorefrontAiStaticPagesButton
+            role={role}
+            disabled={disabled}
+            onApply={(nextPages) => onChange(nextPages)}
+          />
+        </div>
       </div>
 
       {STOREFRONT_STATIC_PAGE_KINDS.map((kind) => {
