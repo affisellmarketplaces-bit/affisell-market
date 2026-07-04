@@ -48,3 +48,24 @@ export function formatPresetAbSummary(args: {
   }
   return `A/B preset cette semaine : contrôle ${args.viewsControl} vues vs challenger ${args.viewsChallenger} vues.`
 }
+
+export function computePulseScoreDelta(
+  currentScore: number,
+  previousScore: number | null | undefined
+): number | null {
+  if (previousScore == null || !Number.isFinite(previousScore)) return null
+  const delta = currentScore - Math.round(previousScore)
+  if (delta === 0) return null
+  return delta
+}
+
+export function formatPulseScoreDelta(args: {
+  delta: number
+  locale: "fr" | "en"
+}): string {
+  const sign = args.delta > 0 ? "+" : ""
+  if (args.locale === "en") {
+    return `${sign}${args.delta} Brand Pulse points vs last week.`
+  }
+  return `${sign}${args.delta} points Brand Pulse vs la semaine dernière.`
+}

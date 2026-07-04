@@ -1,25 +1,33 @@
 "use client"
 
-import { FlaskConical, Loader2 } from "lucide-react"
+import { FlaskConical, ExternalLink, Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useState } from "react"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
+import { buildPosthogPresetAbExperimentUrl } from "@/lib/storefront-brand-analytics-shared"
 import type { StorefrontPresetAb } from "@/lib/storefront-preset-ab-shared"
 import { STOREFRONT_THEME_PRESETS } from "@/lib/storefront-theme-presets"
 import { cn } from "@/lib/utils"
 
 type Props = {
   role: "AFFILIATE" | "SUPPLIER"
+  storeSlug: string
   controlPresetId: string | null
   presetAb: StorefrontPresetAb | null | undefined
   onUpdated: () => void
   className?: string
 }
 
+function readPosthogProjectId(): string | null {
+  const id = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID?.trim()
+  return id || null
+}
+
 export function StorefrontPresetAbPanel({
   role,
+  storeSlug,
   controlPresetId,
   presetAb,
   onUpdated,
@@ -61,6 +69,21 @@ export function StorefrontPresetAbPanel({
   )
 
   const running = presetAb?.enabled === true
+  const projectId = readPosthogProjectId()
+  const abExperimentUrl =
+    running && projectId && storeSlug.trim()
+      ? buildPosthogPresetAbExperimentUrl({
+          projectId,
+          storeSlug: storeSlug.trim(),
+          captureHost: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+        })
+      : null
+
+  function openAbExperiment() {
+    if (!abExperimentUrl) return
+    capturePosthogClient("brand_preset_ab_insight_opened", { role, storeSlug })
+    window.open(abExperimentUrl, "_blank", "noopener,noreferrer")
+  }
 
   return (
     <BentoCard
@@ -112,14 +135,26 @@ export function StorefrontPresetAbPanel({
             {t("start")}
           </button>
         ) : (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void save(false)}
-            className="inline-flex items-center gap-2 rounded-xl border border-cyan-300 px-4 py-2 text-sm font-semibold text-cyan-900 dark:border-cyan-800 dark:text-cyan-100"
-          >
-            {t("stop")}
-          </button>
+          <>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void save(false)}
+              className="inline-flex items-center gap-2 rounded-xl border border-cyan-300 px-4 py-2 text-sm font-semibold text-cyan-900 dark:border-cyan-800 dark:text-cyan-100"
+            >
+              {t("stop")}
+            </button>
+            {abExperimentUrl ? (
+              <button
+                type="button"
+                onClick={openAbExperiment}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-cyan-200 bg-white px-4 py-2 text-sm font-semibold text-cyan-900 dark:border-cyan-800 dark:bg-zinc-950 dark:text-cyan-100"
+              >
+                {t("openPosthog")}
+                <ExternalLink className="size-3.5" aria-hidden />
+              </button>
+            ) : null}
+          </>
         )}
       </div>
       {!controlPresetId ? (

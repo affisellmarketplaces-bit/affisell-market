@@ -3,6 +3,7 @@ import { ensureMerchantStore } from "@/lib/ensure-store"
 import { getStoreCnameTarget } from "@/lib/store-cname-target"
 import { prisma } from "@/lib/prisma"
 import { storePublicUrl, resolveStorePublicUrls, storeHostSuffixForUi } from "@/lib/store-public-url"
+import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -57,6 +58,7 @@ export async function GET() {
     brandPulseMetrics: {
       liveCatalogCount,
       customDomainVerified: Boolean(store.customDomain && store.domainVerified),
+      brandPulseLastScore: parseStorefrontTheme(store.storefrontTheme).brandOps?.brandPulseLastScore ?? null,
     },
   })
 }

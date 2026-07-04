@@ -12,6 +12,8 @@ export type StorefrontBrandOps = {
   brandPulseReminderSentAt?: string
   /** ISO timestamp — weekly digest cooldown */
   brandPulseWeeklyDigestSentAt?: string
+  /** Last recorded Brand Pulse score (weekly digest snapshot) */
+  brandPulseLastScore?: number
   /** Preset A/B experiment stats + config */
   presetAb?: StorefrontPresetAb
 }
@@ -26,6 +28,9 @@ export function parseStorefrontBrandOps(raw: unknown): StorefrontBrandOps | unde
   }
   if (typeof o.brandPulseWeeklyDigestSentAt === "string" && o.brandPulseWeeklyDigestSentAt.trim()) {
     ops.brandPulseWeeklyDigestSentAt = o.brandPulseWeeklyDigestSentAt.trim().slice(0, 40)
+  }
+  if (typeof o.brandPulseLastScore === "number" && o.brandPulseLastScore >= 0 && o.brandPulseLastScore <= 100) {
+    ops.brandPulseLastScore = Math.round(o.brandPulseLastScore)
   }
   const presetAb = parseStorefrontPresetAb(o.presetAb)
   if (presetAb) ops.presetAb = presetAb

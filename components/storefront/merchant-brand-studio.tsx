@@ -239,6 +239,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const [brandPulseMetrics, setBrandPulseMetrics] = useState({
     liveCatalogCount: 0,
     customDomainVerified: false,
+    brandPulseLastScore: null as number | null,
   })
   const [presetAb, setPresetAb] = useState<StorefrontPresetAb | null>(null)
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0)
@@ -287,6 +288,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         brandPulseMetrics?: {
           liveCatalogCount: number
           customDomainVerified: boolean
+          brandPulseLastScore?: number | null
         }
         error?: string
       }
@@ -295,7 +297,13 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       if (json.publicStoreUrl) setPublicStoreUrl(json.publicStoreUrl)
       if (json.storeUrls) setStoreUrls(json.storeUrls)
       setStoreHostSuffix(json.storeHostSuffix ?? null)
-      if (json.brandPulseMetrics) setBrandPulseMetrics(json.brandPulseMetrics)
+      if (json.brandPulseMetrics) {
+        setBrandPulseMetrics({
+          liveCatalogCount: json.brandPulseMetrics.liveCatalogCount,
+          customDomainVerified: json.brandPulseMetrics.customDomainVerified,
+          brandPulseLastScore: json.brandPulseMetrics.brandPulseLastScore ?? null,
+        })
+      }
       const st = json.store
       if (st) {
         const snap = snapshotFromStore(st)
@@ -886,7 +894,10 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                 />
               </BentoCard>
             </div>
-            <StorefrontBrandPulsePanel pulse={brandPulse} />
+            <StorefrontBrandPulsePanel
+              pulse={brandPulse}
+              lastScore={brandPulseMetrics.brandPulseLastScore}
+            />
             <StorefrontPresetOptimizerPanel
               pulse={brandPulse}
               presetId={presetId}
@@ -895,6 +906,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
             />
             <StorefrontPresetAbPanel
               role={role}
+              storeSlug={storeSlug}
               controlPresetId={presetId}
               presetAb={presetAb}
               onUpdated={() => void hydrate()}

@@ -13,6 +13,7 @@ export async function sendBrandPulseWeeklyDigestEmail(args: {
   name?: string | null
   storeName: string
   score: number
+  scoreDelta?: number | null
   readyToShare: boolean
   openChecks: string[]
   abSummary?: string | null
@@ -34,6 +35,7 @@ export async function sendBrandPulseWeeklyDigestEmail(args: {
       name: args.name?.trim() || (locale === "en" ? "there" : "bonjour"),
       storeName: args.storeName,
       score: args.score,
+      scoreDelta: args.scoreDelta,
       readyToShare: args.readyToShare,
       openChecks: args.openChecks,
       abSummary: args.abSummary,

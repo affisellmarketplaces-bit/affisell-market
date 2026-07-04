@@ -1,19 +1,28 @@
 "use client"
 
 import { CheckCircle2, Circle, Sparkles } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
 import type { BrandPulseResult } from "@/lib/storefront-brand-pulse-shared"
+import {
+  computePulseScoreDelta,
+  formatPulseScoreDelta,
+} from "@/lib/storefront-brand-pulse-digest-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
   pulse: BrandPulseResult
+  lastScore?: number | null
   className?: string
 }
 
-export function StorefrontBrandPulsePanel({ pulse, className }: Props) {
+export function StorefrontBrandPulsePanel({ pulse, lastScore = null, className }: Props) {
   const t = useTranslations("storefront.brandStudio.pulse")
+  const locale = useLocale() as "fr" | "en"
+  const scoreDelta = computePulseScoreDelta(pulse.score, lastScore)
+  const deltaLabel =
+    scoreDelta != null ? formatPulseScoreDelta({ delta: scoreDelta, locale }) : null
 
   return (
     <BentoCard
@@ -59,6 +68,18 @@ export function StorefrontBrandPulsePanel({ pulse, className }: Props) {
           <p className="mt-1 text-xs leading-relaxed text-violet-900/80 dark:text-violet-200/80">
             {pulse.readyToShare ? t("readySubtitle") : t("subtitle")}
           </p>
+          {deltaLabel ? (
+            <p
+              className={cn(
+                "mt-1.5 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                scoreDelta != null && scoreDelta > 0
+                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200"
+                  : "bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-200"
+              )}
+            >
+              {deltaLabel}
+            </p>
+          ) : null}
         </div>
       </div>
 

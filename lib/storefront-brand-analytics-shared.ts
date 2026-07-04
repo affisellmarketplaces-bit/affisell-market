@@ -63,3 +63,19 @@ export function buildPosthogPresetInsightUrl(args: {
   })
   return `${appHost}/project/${encodeURIComponent(args.projectId.trim())}/activity/explore?${params.toString()}`
 }
+
+/** Deep link to preset A/B experiment events in PostHog. */
+export function buildPosthogPresetAbExperimentUrl(args: {
+  projectId: string
+  storeSlug: string
+  captureHost?: string
+}): string {
+  const appHost = posthogAppHostFromCaptureHost(
+    args.captureHost ?? "https://us.i.posthog.com"
+  )
+  const params = new URLSearchParams({
+    event: "storefront_preset_ab_viewed",
+    properties: JSON.stringify([{ key: "storeSlug", value: args.storeSlug.trim() }]),
+  })
+  return `${appHost}/project/${encodeURIComponent(args.projectId.trim())}/activity/explore?${params.toString()}`
+}

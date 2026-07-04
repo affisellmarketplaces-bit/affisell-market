@@ -13,6 +13,7 @@ export type BrandPulseWeeklyDigestEmailProps = {
   name: string
   storeName: string
   score: number
+  scoreDelta?: number | null
   readyToShare: boolean
   openChecks: string[]
   abSummary?: string | null
@@ -24,6 +25,7 @@ export function BrandPulseWeeklyDigestEmail({
   name,
   storeName,
   score,
+  scoreDelta = null,
   readyToShare,
   openChecks,
   abSummary,
@@ -31,6 +33,12 @@ export function BrandPulseWeeklyDigestEmail({
   locale = "fr",
 }: BrandPulseWeeklyDigestEmailProps) {
   const isEn = locale === "en"
+  const deltaLine =
+    scoreDelta != null && scoreDelta !== 0
+      ? isEn
+        ? `${scoreDelta > 0 ? "+" : ""}${scoreDelta} pts vs last week.`
+        : `${scoreDelta > 0 ? "+" : ""}${scoreDelta} pts vs semaine dernière.`
+      : null
   return (
     <Html>
       <Head />
@@ -48,6 +56,7 @@ export function BrandPulseWeeklyDigestEmail({
               ? `"${storeName}" scores ${score}/100${readyToShare ? " — launch-ready!" : "."}`
               : `« ${storeName} » : ${score}/100${readyToShare ? " — prêt à partager !" : "."}`}
           </Text>
+          {deltaLine ? <Text style={text}>{deltaLine}</Text> : null}
           {openChecks.length > 0 ? (
             <>
               <Text style={text}>{isEn ? "Top actions:" : "Actions prioritaires :"}</Text>

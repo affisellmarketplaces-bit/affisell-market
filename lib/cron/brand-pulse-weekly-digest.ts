@@ -4,6 +4,7 @@ import {
   countLiveCatalogForMerchant,
 } from "@/lib/storefront-brand-pulse.server"
 import {
+  computePulseScoreDelta,
   formatOpenPulseChecks,
   formatPresetAbSummary,
 } from "@/lib/storefront-brand-pulse-digest-shared"
@@ -77,11 +78,17 @@ export async function runBrandPulseWeeklyDigestCron(
           })
         : null
 
+    const scoreDelta = computePulseScoreDelta(
+      snapshot.pulse.score,
+      theme.brandOps?.brandPulseLastScore
+    )
+
     const result = await sendBrandPulseWeeklyDigestEmail({
       email: store.user.email,
       name: store.user.name,
       storeName: store.name,
       score: snapshot.pulse.score,
+      scoreDelta,
       readyToShare: snapshot.pulse.readyToShare,
       openChecks: formatOpenPulseChecks(openChecks, "fr"),
       abSummary,
@@ -100,6 +107,7 @@ export async function runBrandPulseWeeklyDigestCron(
         : {}),
       brandOps: mergeStorefrontBrandOps(theme.brandOps, {
         brandPulseWeeklyDigestSentAt: new Date().toISOString(),
+        brandPulseLastScore: snapshot.pulse.score,
       }),
     }
 

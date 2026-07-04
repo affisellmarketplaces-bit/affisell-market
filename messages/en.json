@@ -2199,6 +2199,7 @@
         "start": "Start experiment",
         "stop": "Stop experiment",
         "stats": "Live views — control: {control} · challenger: {challenger}",
+        "openPosthog": "View A/B in PostHog",
         "needPreset": "Select a control preset first.",
         "failed": "Could not update A/B experiment."
       },
