@@ -64,6 +64,7 @@ function withSectionCopy(
         body?: string
         buttonLabel?: string
         buttonHref?: string
+        placeholder?: string
         quote?: string
         author?: string
         stat?: string

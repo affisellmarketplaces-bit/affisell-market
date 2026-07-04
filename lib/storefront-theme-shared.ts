@@ -10,9 +10,14 @@ import {
   type StorefrontEmbedWidget,
 } from "@/lib/storefront-embed-shared"
 import { normalizeHeroVideoUrl } from "@/lib/storefront-hero-video-shared"
+import {
+  parseStaticPages,
+  type StorefrontStaticPages,
+} from "@/lib/storefront-static-pages-shared"
 
 export type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 export type { StorefrontEmbedWidget } from "@/lib/storefront-embed-shared"
+export type { StorefrontStaticPages } from "@/lib/storefront-static-pages-shared"
 
 export const STOREFRONT_LAYOUT_MODES = ["classic", "immersive", "minimal"] as const
 export type StorefrontLayoutMode = (typeof STOREFRONT_LAYOUT_MODES)[number]
