@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { SupplierVariantTable, type EditableVariantRow } from "@/components/supplier/supplier-variant-table"
+import { SupplierWholesalePreSaveModal } from "@/components/supplier/supplier-wholesale-pre-save-modal"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,6 +19,11 @@ import {
   skuTableRowsToProductVariantLines,
 } from "@/lib/supplier-sku-builder"
 import { parseSkuHiddenColumns, type SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
+import {
+  fetchSupplierWholesalePreview,
+  wholesalePreSaveNeedsConfirm,
+  type SupplierWholesalePreview,
+} from "@/lib/supplier-wholesale-pre-save-client"
 
 type ProductPricingPayload = {
   id: string
@@ -57,6 +63,9 @@ export function SupplierProductPricingPanel({ productId }: Props) {
   const [commissionRate, setCommissionRate] = useState("15")
   const [variantRows, setVariantRows] = useState<EditableVariantRow[]>([])
   const [skuHiddenColumns, setSkuHiddenColumns] = useState<SkuOptionalColumnKey[]>([])
+  const [preSaveOpen, setPreSaveOpen] = useState(false)
+  const [preSavePreview, setPreSavePreview] = useState<SupplierWholesalePreview | null>(null)
+  const [pendingBody, setPendingBody] = useState<Record<string, unknown> | null>(null)
 
   const catalogCompareAtEur = useMemo(() => {
     const c = Number(compareAt)
@@ -93,59 +102,41 @@ export function SupplierProductPricingPanel({ productId }: Props) {
     void load()
   }, [load])
 
-  const save = useCallback(async () => {
-    setSaving(true)
-    try {
-      const priceN = Number(price)
-      const comm = Math.round(Number(commissionRate) || 15)
-      const body: Record<string, unknown> = {
-        name,
-        commission: comm,
-        hasVariants,
-        compareAt: compareAt.trim() ? Number(compareAt) : null,
-      }
-      if (hasVariants) {
-        const filled = variantRows.filter((r) => r.color.trim())
-        body.variants = apiRowsFromSkuTable(filled, {
-          baseSupplierPrice: priceN > 0 ? priceN : 10,
-          defaultCommission: comm,
-        })
-        if (filled.length > 0) {
-          const minSupplier = Math.min(...filled.map((r) => r.supplierPrice).filter((p) => p > 0))
-          const baseCents = Math.max(
-            100,
-            Math.round(
-              (Number.isFinite(minSupplier) && minSupplier > 0 ? minSupplier : priceN > 0 ? priceN : 10) *
-                100
-            )
-          )
-          body.listingVariants = {
-            variantRows: skuTableRowsToProductVariantLines(filled, baseCents),
-            ...(skuHiddenColumns.length > 0 ? { skuHiddenColumns } : {}),
-          }
-        }
-      } else {
-        body.price = priceN
-        body.stock = Number(stock)
-      }
-
-      const res = await fetch(`/api/supplier/products/${productId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(body),
-      })
-      const data = (await res.json()) as { error?: string }
-      if (!res.ok) throw new Error(data.error ?? "Enregistrement impossible")
-      toast.success("Tarification enregistrée")
-      await load()
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erreur")
-    } finally {
-      setSaving(false)
+  const buildSaveBody = useCallback((): Record<string, unknown> => {
+    const priceN = Number(price)
+    const comm = Math.round(Number(commissionRate) || 15)
+    const body: Record<string, unknown> = {
+      name,
+      commission: comm,
+      hasVariants,
+      compareAt: compareAt.trim() ? Number(compareAt) : null,
     }
+    if (hasVariants) {
+      const filled = variantRows.filter((r) => r.color.trim())
+      body.variants = apiRowsFromSkuTable(filled, {
+        baseSupplierPrice: priceN > 0 ? priceN : 10,
+        defaultCommission: comm,
+      })
+      if (filled.length > 0) {
+        const minSupplier = Math.min(...filled.map((r) => r.supplierPrice).filter((p) => p > 0))
+        const baseCents = Math.max(
+          100,
+          Math.round(
+            (Number.isFinite(minSupplier) && minSupplier > 0 ? minSupplier : priceN > 0 ? priceN : 10) *
+              100
+          )
+        )
+        body.listingVariants = {
+          variantRows: skuTableRowsToProductVariantLines(filled, baseCents),
+          ...(skuHiddenColumns.length > 0 ? { skuHiddenColumns } : {}),
+        }
+      }
+    } else {
+      body.price = priceN
+      body.stock = Number(stock)
+    }
+    return body
   }, [
-    productId,
     name,
     commissionRate,
     hasVariants,
@@ -154,8 +145,45 @@ export function SupplierProductPricingPanel({ productId }: Props) {
     stock,
     compareAt,
     skuHiddenColumns,
-    load,
   ])
+
+  const performSave = useCallback(
+    async (body: Record<string, unknown>) => {
+      setSaving(true)
+      try {
+        const res = await fetch(`/api/supplier/products/${productId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(body),
+        })
+        const data = (await res.json()) as { error?: string }
+        if (!res.ok) throw new Error(data.error ?? "Enregistrement impossible")
+        toast.success("Tarification enregistrée")
+        await load()
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Erreur")
+      } finally {
+        setSaving(false)
+        setPreSaveOpen(false)
+        setPendingBody(null)
+        setPreSavePreview(null)
+      }
+    },
+    [productId, load]
+  )
+
+  const save = useCallback(async () => {
+    const body = buildSaveBody()
+    const preview = await fetchSupplierWholesalePreview(productId, body)
+    if (wholesalePreSaveNeedsConfirm(preview)) {
+      setPendingBody(body)
+      setPreSavePreview(preview)
+      setPreSaveOpen(true)
+      return
+    }
+    await performSave(body)
+  }, [buildSaveBody, performSave, productId])
 
   if (loading) {
     return (
@@ -284,6 +312,20 @@ export function SupplierProductPricingPanel({ productId }: Props) {
           )}
         </Button>
       </div>
+
+      <SupplierWholesalePreSaveModal
+        open={preSaveOpen}
+        preview={preSavePreview}
+        busy={saving}
+        onCancel={() => {
+          setPreSaveOpen(false)
+          setPendingBody(null)
+          setPreSavePreview(null)
+        }}
+        onConfirm={() => {
+          if (pendingBody) void performSave(pendingBody)
+        }}
+      />
     </section>
   )
 }

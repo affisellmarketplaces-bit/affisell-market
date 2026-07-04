@@ -90,6 +90,7 @@ import {
 import { SupplierDeliveryCountriesPicker } from "@/components/supplier/supplier-delivery-countries-picker"
 import { SupplierOfferModePicker } from "@/components/supplier/supplier-offer-mode-picker"
 import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
+import { SupplierWholesalePreSaveModal } from "@/components/supplier/supplier-wholesale-pre-save-modal"
 import {
   SupplierVariantTable,
   type EditableVariantRow,
@@ -159,6 +160,11 @@ import {
   type PublishFieldKey,
   uniqueBlockerFields,
 } from "@/lib/supplier-publish-blockers"
+import {
+  fetchSupplierWholesalePreview,
+  wholesalePreSaveNeedsConfirm,
+  type SupplierWholesalePreview,
+} from "@/lib/supplier-wholesale-pre-save-client"
 import {
   applySimpleColorsToVariantRowsIfChanged,
   extractOrderedColorNames,
@@ -494,6 +500,11 @@ export function SupplierAddProductForm({
   const [specValues, setSpecValues] = useState<Record<string, string>>({})
   const [specFormErrors, setSpecFormErrors] = useState<string[]>([])
   const [publishBlockers, setPublishBlockers] = useState<PublishBlocker[]>([])
+  const [wholesalePreSaveOpen, setWholesalePreSaveOpen] = useState(false)
+  const [wholesalePreSavePreview, setWholesalePreSavePreview] = useState<SupplierWholesalePreview | null>(
+    null
+  )
+  const [pendingSubmitPayload, setPendingSubmitPayload] = useState<Record<string, unknown> | null>(null)
   const [merchantGate, setMerchantGate] = useState<{
     allowed: boolean
     reason?: string | null
@@ -2070,63 +2081,7 @@ export function SupplierAddProductForm({
     productIsDraft,
   ])
 
-  async function handleSubmit() {
-    if (variantFormMode === "simple" && simpleColorIssues.length > 0) {
-      applyPublishBlockers([
-        {
-          field: "variants",
-          message: `${simpleColorIssues.length} erreur${simpleColorIssues.length > 1 ? "s" : ""} sur les noms de couleur.`,
-        },
-      ])
-      toast.error(
-        `${simpleColorIssues.length} erreur${simpleColorIssues.length > 1 ? "s" : ""} sur les couleurs — corrigez les lignes encadrées.`
-      )
-      return
-    }
-
-    if (variantFormMode === "advanced" && skuValidationIssues.length > 0) {
-      applyPublishBlockers([
-        {
-          field: "variants",
-          message: `${skuValidationIssues.length} erreur${skuValidationIssues.length > 1 ? "s" : ""} à corriger dans le tableau SKU.`,
-        },
-      ])
-      toast.error(
-        `${skuValidationIssues.length} erreur${skuValidationIssues.length > 1 ? "s" : ""} à corriger dans le tableau SKU.`
-      )
-      return
-    }
-
-    const digitalErr = validateDigitalDeliveryForPublish(
-      listingKind,
-      {
-        digitalAccessUrl: digitalAccessUrl.trim() || null,
-        digitalInstantDelivery,
-      },
-      false
-    )
-    if (digitalErr) {
-      applyPublishBlockers([
-        {
-          field: "specs",
-          message: digitalDeliveryPublishErrorMessage(digitalErr),
-        },
-      ])
-      toast.error(digitalDeliveryPublishErrorMessage(digitalErr))
-      return
-    }
-
-    const clientBlockers = collectClientPublishBlockers(publishValidationContext)
-    if (clientBlockers.length > 0) {
-      applyPublishBlockers(clientBlockers)
-      return
-    }
-    setPublishBlockers([])
-    setSpecFormErrors([])
-
-    const payload = assembleListingPayload(false)
-    const serverId = autosaveListingId
-
+  async function executeListingSubmit(payload: Record<string, unknown>, serverId: string | null) {
     setSaving(true)
     try {
       let res: Response
@@ -2193,7 +2148,80 @@ export function SupplierAddProductForm({
       applyPublishBlockers([{ field: "specs", message: msg }])
     } finally {
       setSaving(false)
+      setWholesalePreSaveOpen(false)
+      setWholesalePreSavePreview(null)
+      setPendingSubmitPayload(null)
     }
+  }
+
+  async function handleSubmit() {
+    if (variantFormMode === "simple" && simpleColorIssues.length > 0) {
+      applyPublishBlockers([
+        {
+          field: "variants",
+          message: `${simpleColorIssues.length} erreur${simpleColorIssues.length > 1 ? "s" : ""} sur les noms de couleur.`,
+        },
+      ])
+      toast.error(
+        `${simpleColorIssues.length} erreur${simpleColorIssues.length > 1 ? "s" : ""} sur les couleurs — corrigez les lignes encadrées.`
+      )
+      return
+    }
+
+    if (variantFormMode === "advanced" && skuValidationIssues.length > 0) {
+      applyPublishBlockers([
+        {
+          field: "variants",
+          message: `${skuValidationIssues.length} erreur${skuValidationIssues.length > 1 ? "s" : ""} à corriger dans le tableau SKU.`,
+        },
+      ])
+      toast.error(
+        `${skuValidationIssues.length} erreur${skuValidationIssues.length > 1 ? "s" : ""} à corriger dans le tableau SKU.`
+      )
+      return
+    }
+
+    const digitalErr = validateDigitalDeliveryForPublish(
+      listingKind,
+      {
+        digitalAccessUrl: digitalAccessUrl.trim() || null,
+        digitalInstantDelivery,
+      },
+      false
+    )
+    if (digitalErr) {
+      applyPublishBlockers([
+        {
+          field: "specs",
+          message: digitalDeliveryPublishErrorMessage(digitalErr),
+        },
+      ])
+      toast.error(digitalDeliveryPublishErrorMessage(digitalErr))
+      return
+    }
+
+    const clientBlockers = collectClientPublishBlockers(publishValidationContext)
+    if (clientBlockers.length > 0) {
+      applyPublishBlockers(clientBlockers)
+      return
+    }
+    setPublishBlockers([])
+    setSpecFormErrors([])
+
+    const payload = assembleListingPayload(false) as Record<string, unknown>
+    const serverId = autosaveListingId
+
+    if (serverId && !productIsDraft) {
+      const preview = await fetchSupplierWholesalePreview(serverId, payload)
+      if (wholesalePreSaveNeedsConfirm(preview)) {
+        setWholesalePreSavePreview(preview)
+        setPendingSubmitPayload(payload)
+        setWholesalePreSaveOpen(true)
+        return
+      }
+    }
+
+    await executeListingSubmit(payload, serverId)
   }
 
   const specMissing = useMemo(
@@ -3943,6 +3971,21 @@ export function SupplierAddProductForm({
           </div>
         </ProductWizard>
       </BentoShell>
+      <SupplierWholesalePreSaveModal
+        open={wholesalePreSaveOpen}
+        preview={wholesalePreSavePreview}
+        busy={saving}
+        onCancel={() => {
+          setWholesalePreSaveOpen(false)
+          setWholesalePreSavePreview(null)
+          setPendingSubmitPayload(null)
+        }}
+        onConfirm={() => {
+          if (pendingSubmitPayload) {
+            void executeListingSubmit(pendingSubmitPayload, autosaveListingId)
+          }
+        }}
+      />
     </>
   )
 }

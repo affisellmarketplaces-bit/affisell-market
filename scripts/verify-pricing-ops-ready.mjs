@@ -64,6 +64,11 @@ const REQUIRED_FILES = [
   "lib/load-supplier-wholesale-impact.ts",
   "components/supplier/supplier-wholesale-impact-panel.tsx",
   "lib/__tests__/supplier-wholesale-impact.test.ts",
+  "lib/supplier-wholesale-change-preview.ts",
+  "lib/supplier-wholesale-pre-save-client.ts",
+  "lib/__tests__/supplier-wholesale-change-preview.test.ts",
+  "app/api/supplier/products/[id]/wholesale-preview/route.ts",
+  "components/supplier/supplier-wholesale-pre-save-modal.tsx",
 ]
 
 console.log("\n[verify-pricing-ops] Affiliate pricing pipeline\n")

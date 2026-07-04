@@ -1631,6 +1631,14 @@
       "colUnits": "Units (30d)",
       "footnote": "Rolling {days}-day window · margin reviews clear when partners save new prices."
     },
+    "wholesalePreSave": {
+      "title": "Wholesale price increase",
+      "body": "This change affects {partners} live partner listing(s). {atRisk} may need to review their margins (alert + email + push).",
+      "atLoss": "{count} listing(s) could sell at a loss until partners adjust.",
+      "confirm": "Save anyway",
+      "confirming": "Saving…",
+      "cancel": "Review prices"
+    },
     "publishReadiness": {
       "eyebrow": "Publish pipeline",
       "title": "Ready to go live?",

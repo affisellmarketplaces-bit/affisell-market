@@ -1639,6 +1639,14 @@
       "colUnits": "Unités (30j)",
       "footnote": "Fenêtre glissante {days} jours · les revues se ferment quand le partenaire resauvegarde ses prix."
     },
+    "wholesalePreSave": {
+      "title": "Hausse de prix wholesale",
+      "body": "Ce changement touche {partners} fiche(s) partenaire live. {atRisk} devront peut-être revoir leurs marges (alerte + email + push).",
+      "atLoss": "{count} fiche(s) pourraient vendre à perte tant que les partenaires n'ajustent pas.",
+      "confirm": "Enregistrer quand même",
+      "confirming": "Enregistrement…",
+      "cancel": "Revoir les prix"
+    },
     "publishReadiness": {
       "eyebrow": "Pipeline publication",
       "title": "Prêt à publier ?",
