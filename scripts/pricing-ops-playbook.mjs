@@ -88,6 +88,7 @@ console.log("  npm test -- lib/__tests__/affiliate-wholesale-change-guard.test.t
 console.log("  npm test -- lib/__tests__/affiliate-variant-margin-analytics.test.ts")
 console.log("  npm test -- lib/__tests__/affiliate-wholesale-change-push.test.ts")
 console.log("  npm test -- lib/__tests__/affiliate-margin-auto-fix.test.ts")
+console.log("  npm test -- lib/__tests__/supplier-product-wholesale-snapshot.test.ts")
 
 console.log("\n── Preflight bundle ──")
 console.log("  npm run verify:pricing-ops && npm run verify:web-push && npm run verify:ops")

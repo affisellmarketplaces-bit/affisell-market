@@ -1163,6 +1163,15 @@
         "editMargins": "Modifier",
         "footnote": "Conversion au niveau fiche (ventes ÷ clics PDP). Mix = part des unités de cette variante sur la fiche."
       },
+      "marginBulkFix": {
+        "title": "Revues de marge en attente",
+        "body": "{count, plural, one {# fiche nécessite une mise à jour de marge après hausse fournisseur.} other {# fiches nécessitent une mise à jour de marge après hausse fournisseur.}}",
+        "cta": "Tout corriger avec l'IA",
+        "fixing": "Application des marges sécurisées…",
+        "success": "Marges sécurisées appliquées sur {count} fiche(s).",
+        "nothingFixed": "Aucune fiche n'a pu être corrigée automatiquement — ouvrez chaque fiche pour ajuster.",
+        "failed": "Correction groupée impossible"
+      },
       "push": {
         "title": "Alertes push marges",
         "body": "Recevez une alerte mobile instantanée quand un fournisseur augmente ses prix wholesale sur vos fiches — ouvrez l'éditeur de marges en un clic.",

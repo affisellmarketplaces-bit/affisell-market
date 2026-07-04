@@ -2,6 +2,7 @@ import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { Suspense } from "react"
 
 import { PartnerTaxCompliancePanel } from "@/components/affiliate/partner-tax-compliance-panel"
+import { AffiliateMarginBulkFixCard } from "@/components/affiliate/affiliate-margin-bulk-fix-card"
 import { AffiliatePushNotificationsCard } from "@/components/affiliate/affiliate-push-notifications-card"
 import { AffiliateVariantMarginAnalyticsPanel } from "@/components/affiliate/affiliate-variant-margin-analytics-panel"
 import { MerchantPulseHub } from "@/components/merchant/merchant-pulse-hub"
@@ -22,7 +23,7 @@ export const dynamic = "force-dynamic"
 export default async function AffiliateEarningsPage() {
   const session = await requireAffiliateSession("/dashboard/affiliate/earnings")
 
-  const [data, marginAnalytics, merchantUser, kycProfile] = await Promise.all([
+  const [data, marginAnalytics, marginReviewOpenCount, merchantUser, kycProfile] = await Promise.all([
     loadOrFallback(
       "affiliate/earnings",
       () => loadAffiliateEarningsPulse(session.user.id),
@@ -33,6 +34,13 @@ export default async function AffiliateEarningsPage() {
       () => loadAffiliateVariantMarginAnalytics(session.user.id),
       emptyAffiliateVariantMarginAnalytics()
     ),
+    prisma.affiliateProduct.count({
+      where: {
+        affiliateId: session.user.id,
+        marginReviewNeeded: true,
+        isListed: true,
+      },
+    }),
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: { stripeAccountId: true, stripeOnboardedAt: true },
@@ -73,7 +81,12 @@ export default async function AffiliateEarningsPage() {
       recentLedger={data.recentLedger}
       backHref="/dashboard/affiliate"
       leadingSlot={connectSlot}
-      trailingSlot={<AffiliateVariantMarginAnalyticsPanel data={marginAnalytics} />}
+      trailingSlot={
+        <div className="space-y-4">
+          <AffiliateMarginBulkFixCard openReviewCount={marginReviewOpenCount} />
+          <AffiliateVariantMarginAnalyticsPanel data={marginAnalytics} />
+        </div>
+      }
     />
   )
 }

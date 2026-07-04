@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client"
 
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
+import { notifyAffiliatesAfterSupplierProductSave } from "@/lib/affiliate-wholesale-change-notify"
 import { scheduleProductAutoCategorization } from "@/lib/product-auto-categorize"
 import { catalogHexForColorName } from "@/lib/color-name-hex"
 import type { ProductColorImageRow } from "@/lib/product-color-images"
@@ -14,6 +15,11 @@ import {
 } from "@/lib/supplier-commission"
 import { parseSupplierProductImages } from "@/lib/supplier-product-images"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
+import {
+  isSupplierProductLiveForWholesaleGuard,
+  loadSupplierProductWholesaleRow,
+  wholesaleSnapshotFromSupplierProductRow,
+} from "@/lib/supplier-product-wholesale-snapshot"
 
 export const SUPPLIER_IMPORT_MAX_BATCH = 30
 
@@ -387,6 +393,8 @@ export async function executeSupplierProductsImport(args: {
       variantsPayload.variantRows = variantRowsFiltered.slice(0, 500)
     if (sizesStr.length > 0) variantsPayload.size = sizesStr
 
+    const hasVariantRows = variantRowsFiltered.length > 0
+
     const tagsForAttr = mergeImportTags(p.tags)
 
     const attrBody: Record<string, unknown> = {
@@ -425,6 +433,7 @@ export async function executeSupplierProductsImport(args: {
         attr.variants === null
           ? Prisma.DbNull
           : (attr.variants as unknown as Prisma.InputJsonValue),
+      hasVariants: hasVariantRows,
       basePriceCents,
       commissionRate,
       listingKind,
@@ -458,10 +467,18 @@ export async function executeSupplierProductsImport(args: {
             ...(src ? [{ sourceUrl: src }] : []),
           ],
         },
-        select: { id: true, name: true, active: true, categoryId: true },
+        select: { id: true, name: true, active: true, isDraft: true, categoryId: true },
       })
 
       if (existing) {
+        let wholesaleBefore = null
+        if (isSupplierProductLiveForWholesaleGuard(existing)) {
+          const wholesaleRow = await loadSupplierProductWholesaleRow(existing.id)
+          if (wholesaleRow) {
+            wholesaleBefore = wholesaleSnapshotFromSupplierProductRow(wholesaleRow)
+          }
+        }
+
         const updated = await prisma.product.update({
           where: { id: existing.id },
           data: productData,
@@ -471,6 +488,25 @@ export async function executeSupplierProductsImport(args: {
         updatedCount++
         if (!existing.categoryId) {
           scheduleProductAutoCategorization(existing.id)
+        }
+
+        if (wholesaleBefore) {
+          const guardSource =
+            importSource === "shopify-sync" || importSource === "shopify"
+              ? "shopify-sync"
+              : "import-upsert"
+          void notifyAffiliatesAfterSupplierProductSave({
+            productId: existing.id,
+            before: wholesaleBefore,
+            source: guardSource,
+          }).catch((e) => {
+            console.error("[wholesale-change-guard]", {
+              productId: existing.id,
+              source: guardSource,
+              result: "notify_failed",
+              error: e instanceof Error ? e.message : String(e),
+            })
+          })
         }
       } else {
         const created = await prisma.product.create({

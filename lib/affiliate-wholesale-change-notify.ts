@@ -154,6 +154,7 @@ export async function notifyAffiliatesOfWholesaleChange(args: {
 export async function notifyAffiliatesAfterSupplierProductSave(args: {
   productId: string
   before: WholesaleSnapshot
+  source?: "supplier-save" | "import-upsert" | "shopify-sync"
 }): Promise<void> {
   const product = await prisma.product.findUnique({
     where: { id: args.productId },
@@ -191,6 +192,7 @@ export async function notifyAffiliatesAfterSupplierProductSave(args: {
   if (result.listingsFlagged > 0 || result.notificationsSent > 0) {
     console.log("[wholesale-change-guard]", {
       productId: product.id,
+      source: args.source ?? "supplier-save",
       listingsFlagged: result.listingsFlagged,
       notificationsSent: result.notificationsSent,
     })

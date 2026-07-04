@@ -71,6 +71,11 @@ const REQUIRED_FILES = [
   "components/supplier/supplier-wholesale-pre-save-modal.tsx",
   "lib/affiliate-margin-auto-fix.ts",
   "lib/__tests__/affiliate-margin-auto-fix.test.ts",
+  "lib/supplier-product-wholesale-snapshot.ts",
+  "lib/__tests__/supplier-product-wholesale-snapshot.test.ts",
+  "lib/affiliate-margin-auto-fix-apply.server.ts",
+  "app/api/affiliate/margin-auto-fix-all/route.ts",
+  "components/affiliate/affiliate-margin-bulk-fix-card.tsx",
 ]
 
 console.log("\n[verify-pricing-ops] Affiliate pricing pipeline\n")
@@ -130,6 +135,16 @@ if (existsSync(supplierRoute)) {
     ok("supplier PUT hooks wholesale change guard")
   } else {
     fail("supplier product route", "Must call notifyAffiliatesAfterSupplierProductSave")
+  }
+}
+
+const importExec = resolve(process.cwd(), "lib/supplier-products-import-exec.ts")
+if (existsSync(importExec)) {
+  const src = readFileSync(importExec, "utf8")
+  if (src.includes("notifyAffiliatesAfterSupplierProductSave")) {
+    ok("import upsert hooks wholesale change guard")
+  } else {
+    fail("supplier-products-import-exec", "Must notify affiliates on live upsert price increases")
   }
 }
 

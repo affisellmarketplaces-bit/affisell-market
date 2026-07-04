@@ -1163,6 +1163,15 @@
         "editMargins": "Edit",
         "footnote": "Conversion is at listing level (sales ÷ PDP clicks). Mix = share of units for this variant on the listing."
       },
+      "marginBulkFix": {
+        "title": "Margin reviews pending",
+        "body": "{count, plural, one {# listing needs a margin update after a supplier price increase.} other {# listings need margin updates after supplier price increases.}}",
+        "cta": "Fix all with AI",
+        "fixing": "Applying safe margins…",
+        "success": "Safe margins applied on {count} listing(s).",
+        "nothingFixed": "No listings could be auto-fixed — open each listing to adjust manually.",
+        "failed": "Bulk margin fix failed"
+      },
       "push": {
         "title": "Margin alert push",
         "body": "Get an instant mobile alert when a supplier raises wholesale prices on your listings — open the margin editor in one tap.",
