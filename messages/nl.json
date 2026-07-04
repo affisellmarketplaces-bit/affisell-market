@@ -2147,6 +2147,36 @@
           }
         }
       },
+      "launch": {
+        "title": "Winkel klaar in 60 seconden",
+        "subtitle": "Kies je niche — preset, secties en teksten worden toegepast. Eén klik om te publiceren.",
+        "cta": "Start mijn winkel",
+        "launching": "Starten…",
+        "saved": "Winkel gelanceerd — preset, secties en tagline staan live.",
+        "defaultStoreName": "Mijn winkel",
+        "niches": {
+          "fashion": {
+            "label": "Mode & lifestyle",
+            "hint": "Rose editorial preset, story + bestsellers + CTA",
+            "description": "{name} — gecureerde mode voor je publiek."
+          },
+          "tech": {
+            "label": "Tech & gadgets",
+            "hint": "Midnight cyber preset, social proof + compact grid",
+            "description": "{name} — premium tech en accessoires voor je community."
+          },
+          "fitness": {
+            "label": "Fitness & wellness",
+            "hint": "Emerald preset, newsletter + story",
+            "description": "{name} — performance gear en wellness essentials, dagelijks gecureerd."
+          },
+          "beauty": {
+            "label": "Beauty & skincare",
+            "hint": "Violet preset, bestsellers + discover CTA",
+            "description": "{name} — clean beauty en skincare favorieten voor een stralende huid."
+          }
+        }
+      },
       "layoutControls": {
         "title": "Structure & mood",
         "headerBrand": "Store name in header",

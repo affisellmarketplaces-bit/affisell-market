@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
+import { StorefrontBrandLaunchPanel } from "@/components/storefront/storefront-brand-launch-panel"
 import { StorefrontHeaderColorPicker } from "@/components/storefront/storefront-header-color-picker"
 import { StorefrontLayoutControls } from "@/components/storefront/storefront-layout-controls"
 import { StorefrontLivePreview } from "@/components/storefront/storefront-live-preview"
@@ -38,6 +39,7 @@ import {
   serializeHomepageSections,
   type HomepageSection,
 } from "@/lib/storefront-sections-shared"
+import type { BrandLaunchConfig } from "@/lib/storefront-brand-launch"
 import { cn } from "@/lib/utils"
 
 type MerchantRole = "AFFILIATE" | "SUPPLIER"
@@ -335,31 +337,33 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
 
   const isDirty = Boolean(logoFile) || (savedSnapshot ? !snapshotsEqual(currentSnapshot, savedSnapshot) : false)
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  async function persistSnapshot(
+    snapshot: BrandStudioSnapshot,
+    successMessage: string
+  ): Promise<boolean> {
     setSaving(true)
     setError(null)
     setMessage(null)
     try {
       const fd = new FormData()
-      fd.set("name", name.trim().slice(0, 40))
-      fd.set("description", description)
-      fd.set("bannerUrl", bannerUrl.trim())
-      fd.set("themePrimary", primaryHex)
-      fd.set("themeAccent", accent)
-      fd.set("themeTrustRailText", trustRailText)
-      fd.set("themeNameBadge", nameBadge)
-      fd.set("themeLayout", layout)
-      fd.set("themeHeroStyle", heroStyle)
-      fd.set("themeGridDensity", gridDensity)
-      fd.set("themeSurface", surface)
-      fd.set("themeHeaderBrandAlign", headerBrandAlign)
-      if (presetId) fd.set("themePresetId", presetId)
-      fd.set("themeHomepageSections", serializeHomepageSections(homepageSections))
+      fd.set("name", snapshot.name)
+      fd.set("description", snapshot.description)
+      fd.set("bannerUrl", snapshot.bannerUrl)
+      fd.set("themePrimary", snapshot.primaryHex)
+      fd.set("themeAccent", snapshot.accent)
+      fd.set("themeTrustRailText", snapshot.trustRailText)
+      fd.set("themeNameBadge", snapshot.nameBadge)
+      fd.set("themeLayout", snapshot.layout)
+      fd.set("themeHeroStyle", snapshot.heroStyle)
+      fd.set("themeGridDensity", snapshot.gridDensity)
+      fd.set("themeSurface", snapshot.surface)
+      fd.set("themeHeaderBrandAlign", snapshot.headerBrandAlign)
+      if (snapshot.presetId) fd.set("themePresetId", snapshot.presetId)
+      fd.set("themeHomepageSections", serializeHomepageSections(snapshot.homepageSections))
       if (logoFile) {
         fd.set("logo", logoFile)
       } else {
-        fd.set("logoUrl", logoUrl.trim())
+        fd.set("logoUrl", snapshot.logoUrl)
       }
 
       const res = await fetch("/api/store/update", {
@@ -369,15 +373,56 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       })
       const json = (await res.json()) as { error?: string }
       if (!res.ok) throw new Error(json.error ?? t("saveFailed"))
-      setMessage(t("saved"))
-      setSavedSnapshot(currentSnapshot)
+      setMessage(successMessage)
+      setSavedSnapshot(snapshot)
       setLogoFile(null)
       await hydrate()
+      return true
     } catch (err) {
       setError(err instanceof Error ? err.message : t("saveFailed"))
+      return false
     } finally {
       setSaving(false)
     }
+  }
+
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    await persistSnapshot(currentSnapshot, t("saved"))
+  }
+
+  async function handleBrandLaunch(config: BrandLaunchConfig) {
+    setPresetId(config.presetId)
+    setPrimaryHex(config.primary)
+    setAccent(config.accent)
+    setTrustRailText(config.trustRailText)
+    setNameBadge(config.nameBadge)
+    setLayout(config.layout)
+    setHeroStyle(config.heroStyle)
+    setGridDensity(config.gridDensity)
+    setSurface(config.surface)
+    setHeaderBrandAlign(config.headerBrandAlign)
+    setDescription(config.description)
+    setHomepageSections(config.homepageSections)
+
+    const launchSnapshot = snapshotFromDraft({
+      name,
+      description: config.description,
+      bannerUrl,
+      logoUrl,
+      primaryHex: config.primary,
+      accent: config.accent,
+      trustRailText: config.trustRailText,
+      nameBadge: config.nameBadge,
+      layout: config.layout,
+      heroStyle: config.heroStyle,
+      gridDensity: config.gridDensity,
+      surface: config.surface,
+      headerBrandAlign: config.headerBrandAlign,
+      presetId: config.presetId,
+      homepageSections: config.homepageSections,
+    })
+    await persistSnapshot(launchSnapshot, t("launch.saved"))
   }
 
   const eyebrow = role === "AFFILIATE" ? t("affiliateEyebrow") : t("supplierEyebrow")
@@ -467,6 +512,13 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
             {message}
           </BentoCard>
         ) : null}
+
+        <StorefrontBrandLaunchPanel
+          storeName={name}
+          role={role}
+          busy={saving}
+          onLaunch={handleBrandLaunch}
+        />
 
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(280px,22rem)]">
           <BentoCard>

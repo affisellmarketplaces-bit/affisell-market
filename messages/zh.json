@@ -2147,6 +2147,36 @@
           }
         }
       },
+      "launch": {
+        "title": "60 秒开店",
+        "subtitle": "选择细分赛道 — 自动应用预设、板块与文案，一键发布。",
+        "cta": "启动我的店铺",
+        "launching": "启动中…",
+        "saved": "店铺已上线 — 预设、板块与标语已发布。",
+        "defaultStoreName": "我的店铺",
+        "niches": {
+          "fashion": {
+            "label": "时尚与生活",
+            "hint": "Rose 编辑风预设，故事 + 畅销榜 + CTA",
+            "description": "{name} — 为受众精选的时尚好物。"
+          },
+          "tech": {
+            "label": "科技与数码",
+            "hint": "Midnight 赛博预设，社会证明 + 紧凑网格",
+            "description": "{name} — 为社区严选的高端数码与配件。"
+          },
+          "fitness": {
+            "label": "健身与健康",
+            "hint": "Emerald 预设，邮件订阅 + 品牌故事",
+            "description": "{name} — 每日精选的运动装备与健康好物。"
+          },
+          "beauty": {
+            "label": "美妆与护肤",
+            "hint": "Violet 预设，畅销榜 + 发现 CTA",
+            "description": "{name} — 为追求光泽肌精选的 clean beauty 与护肤明星单品。"
+          }
+        }
+      },
       "layoutControls": {
         "title": "Structure & mood",
         "headerBrand": "Store name in header",

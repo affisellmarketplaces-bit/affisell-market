@@ -2105,6 +2105,36 @@
           "quantum-glow": { "name": "Quantum Glow", "desc": "Quantum glass violet, luminous gradient." }
         }
       },
+      "launch": {
+        "title": "Store ready in 60 seconds",
+        "subtitle": "Pick your niche — we apply preset, sections, and copy. One click to publish.",
+        "cta": "Launch my storefront",
+        "launching": "Launching…",
+        "saved": "Storefront launched — preset, sections, and tagline are live.",
+        "defaultStoreName": "My Store",
+        "niches": {
+          "fashion": {
+            "label": "Fashion & lifestyle",
+            "hint": "Editorial rose preset, story + bestsellers + CTA",
+            "description": "{name} — curated fashion picks your audience will love."
+          },
+          "tech": {
+            "label": "Tech & gadgets",
+            "hint": "Midnight cyber preset, social proof + compact grid",
+            "description": "{name} — premium tech and accessories, tested for your community."
+          },
+          "fitness": {
+            "label": "Fitness & wellness",
+            "hint": "Emerald preset, newsletter capture + story",
+            "description": "{name} — performance gear and wellness essentials, curated daily."
+          },
+          "beauty": {
+            "label": "Beauty & skincare",
+            "hint": "Violet preset, bestsellers + discover CTA",
+            "description": "{name} — clean beauty and skincare favorites for glow seekers."
+          }
+        }
+      },
       "layoutControls": {
         "title": "Structure & mood",
         "headerBrand": "Store name in header",

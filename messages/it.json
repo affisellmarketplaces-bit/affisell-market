@@ -2147,6 +2147,36 @@
           }
         }
       },
+      "launch": {
+        "title": "Negozio pronto in 60 secondi",
+        "subtitle": "Scegli la nicchia — preset, sezioni e testi applicati. Un clic per pubblicare.",
+        "cta": "Lancia il mio negozio",
+        "launching": "Avvio…",
+        "saved": "Negozio lanciato — preset, sezioni e tagline sono online.",
+        "defaultStoreName": "Il mio negozio",
+        "niches": {
+          "fashion": {
+            "label": "Moda e lifestyle",
+            "hint": "Preset rose editorial, story + bestseller + CTA",
+            "description": "{name} — selezione moda curata per il tuo pubblico."
+          },
+          "tech": {
+            "label": "Tech e gadget",
+            "hint": "Preset midnight cyber, social proof + griglia compatta",
+            "description": "{name} — tech premium e accessori testati per la tua community."
+          },
+          "fitness": {
+            "label": "Fitness e benessere",
+            "hint": "Preset emerald, newsletter + story",
+            "description": "{name} — attrezzatura performance e essenziali wellness, curati ogni giorno."
+          },
+          "beauty": {
+            "label": "Beauty e skincare",
+            "hint": "Preset viola, bestseller + CTA discover",
+            "description": "{name} — beauty clean e preferiti skincare per chi cerca luminosità."
+          }
+        }
+      },
       "layoutControls": {
         "title": "Structure & mood",
         "headerBrand": "Store name in header",
