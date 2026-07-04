@@ -1,10 +1,12 @@
+import type { Prisma } from "@prisma/client"
+
 import { findStorefrontThemePreset } from "@/lib/storefront-theme-presets"
 import type { PresetAbVariant, PresetAbWinnerResult, StorefrontPresetAb } from "@/lib/storefront-preset-ab-shared"
 import { mergeStorefrontBrandOps } from "@/lib/storefront-theme-ops-shared"
 import { parseStorefrontTheme, themeFromBrandStudioFields } from "@/lib/storefront-theme-shared"
 
 export type ApplyPresetAbWinnerResult =
-  | { ok: true; nextStorefrontTheme: Record<string, unknown>; winner: PresetAbVariant }
+  | { ok: true; nextStorefrontTheme: Prisma.InputJsonValue; winner: PresetAbVariant }
   | { ok: false; error: string }
 
 /** Apply preset A/B winner to storefront theme — idempotent if winnerAppliedAt set. */
@@ -55,5 +57,5 @@ export function buildPresetAbWinnerThemeUpdate(args: {
     }),
   }
 
-  return { ok: true, nextStorefrontTheme: nextTheme, winner: args.winner }
+  return { ok: true, nextStorefrontTheme: nextTheme as Prisma.InputJsonValue, winner: args.winner }
 }

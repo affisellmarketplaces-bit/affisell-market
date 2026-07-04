@@ -8,6 +8,7 @@ import {
   canAutoRelaunchStagnationAb,
   recommendStagnationAbChallenger,
 } from "@/lib/storefront-brand-pulse-stagnation-shared"
+import { asStorefrontThemeJson } from "@/lib/storefront-theme-json.server"
 import { mergeStorefrontBrandOps } from "@/lib/storefront-theme-ops-shared"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 import { prisma } from "@/lib/prisma"
@@ -92,7 +93,7 @@ export async function runBrandPulseStagnationAbCron(
 
       await prisma.store.update({
         where: { id: store.id },
-        data: { storefrontTheme: nextTheme },
+        data: { storefrontTheme: asStorefrontThemeJson(nextTheme) },
       })
 
       const emailResult = await sendBrandPulseStagnationAbEmail({

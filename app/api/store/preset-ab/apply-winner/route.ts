@@ -1,10 +1,10 @@
-import { Prisma } from "@prisma/client"
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { buildPresetAbWinnerThemeUpdate } from "@/lib/storefront-preset-ab-apply.server"
 import { evaluatePresetAbWinner } from "@/lib/storefront-preset-ab-shared"
 import { sendBrandPresetAbWinnerEmail } from "@/lib/emails/send-brand-preset-ab-winner"
+import { mergeStorefrontThemeJson } from "@/lib/storefront-theme-json.server"
 import { mergeStorefrontBrandOps } from "@/lib/storefront-theme-ops-shared"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 import { prisma } from "@/lib/prisma"
@@ -62,7 +62,7 @@ export async function POST() {
 
   await prisma.store.update({
     where: { id: store.id },
-    data: { storefrontTheme: built.nextStorefrontTheme as Prisma.InputJsonValue },
+    data: { storefrontTheme: built.nextStorefrontTheme },
   })
 
   const merchantRole = store.user.role === "SUPPLIER" ? "SUPPLIER" : "AFFILIATE"
@@ -84,18 +84,17 @@ export async function POST() {
     const appliedTheme = parseStorefrontTheme(built.nextStorefrontTheme)
     const appliedPresetAb = appliedTheme.brandOps?.presetAb
     if (appliedPresetAb) {
-      const notifiedTheme = {
-        ...built.nextStorefrontTheme,
+      const notifiedTheme = mergeStorefrontThemeJson(built.nextStorefrontTheme, {
         brandOps: mergeStorefrontBrandOps(appliedTheme.brandOps, {
           presetAb: {
             ...appliedPresetAb,
             winnerNotifiedAt: new Date().toISOString(),
           },
         }),
-      }
+      })
       await prisma.store.update({
         where: { id: store.id },
-        data: { storefrontTheme: notifiedTheme as Prisma.InputJsonValue },
+        data: { storefrontTheme: notifiedTheme },
       })
     }
   }
