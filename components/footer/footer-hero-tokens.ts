@@ -1,10 +1,13 @@
 /** Footer — aligné sur BuyerHeroBlock + HomeBuyerSmartStrip (glass tiles). */
 
-export const footerHeroShell =
-  "relative mt-auto shrink-0 overflow-hidden border-t border-white/20 bg-gradient-to-br from-[#1E1B4B] via-[#312E81] to-[#1E3A8A] text-zinc-300 backdrop-blur-xl"
+import {
+  brandOrbitFooterShell,
+  brandOrbitGridOverlay,
+} from "@/lib/affisell-brand-orbit-shared"
 
-export const footerHeroGrid =
-  "pointer-events-none absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-[0.02]"
+export const footerHeroShell = brandOrbitFooterShell
+
+export const footerHeroGrid = brandOrbitGridOverlay
 
 export const footerHeroCard =
   "relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-lg transition duration-300 hover:border-white/25 hover:bg-white/10 hover:shadow-lg hover:shadow-violet-950/25"

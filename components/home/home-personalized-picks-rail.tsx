@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { ProductCard } from "@/components/ProductCard"
 import { buyerListingToCardProps } from "@/lib/buyer-discovery-types"
 import type { BuyerPersonalizedPicksPayload } from "@/lib/buyer-personalization-shared"
+import { brandOrbitRailEyebrow, brandOrbitRailGlow, brandOrbitRailShell } from "@/lib/affisell-brand-orbit-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -27,15 +28,12 @@ export function HomePersonalizedPicksRail({ picks, className, variant = "default
     <section
       aria-labelledby="personalized-picks-heading"
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-violet-200/70 bg-gradient-to-br from-violet-50/90 via-white to-fuchsia-50/50 shadow-sm dark:border-violet-900/50 dark:from-violet-950/40 dark:via-zinc-950 dark:to-fuchsia-950/20",
+        brandOrbitRailShell,
         compact ? "mb-3 p-2.5 sm:p-3" : "mb-4 p-3 sm:mb-5 sm:rounded-3xl sm:p-4",
         className
       )}
     >
-      <div
-        className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-fuchsia-400/20 blur-3xl"
-        aria-hidden
-      />
+      <div className={brandOrbitRailGlow} aria-hidden />
       <div className="relative mb-3 flex flex-wrap items-end justify-between gap-2">
         <div className="min-w-0">
           <p

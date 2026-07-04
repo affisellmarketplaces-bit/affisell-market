@@ -7,6 +7,7 @@ import { GraduatedCheckoutPermanentBanner } from "@/components/marketplace/gradu
 import { RolloutShippingConfirmedBanner } from "@/components/marketplace/rollout-shipping-confirmed-banner"
 import { GlowCtaLink } from "@/components/GlowCtaLink"
 import { HomeBuyerSmartStrip } from "@/components/home/HomeBuyerSmartStrip"
+import { homeHeroShell } from "@/components/home/home-hero-tokens"
 import { HeroGradientBg } from "@/components/marketing/hero-gradient-bg"
 import { FastLink } from "@/components/navigation/fast-link"
 import { loadFeaturedShopsCached } from "@/lib/public-home-cache"
@@ -44,7 +45,7 @@ export async function BuyerHeroBlock() {
       : "/#explorer"
 
   return (
-    <section className="relative w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-700 via-indigo-800 to-sky-900 px-3 py-5 text-white shadow-xl sm:rounded-3xl sm:px-6 sm:py-7 md:px-10 md:py-16">
+    <section className={`${homeHeroShell} w-full min-w-0 max-w-full px-3 py-5 sm:px-6 sm:py-7 md:px-10 md:py-16`}>
       <HeroGradientBg />
       <div className="relative mx-auto w-full min-w-0 max-w-4xl text-center">
         <h1 className="text-balance text-[1.35rem] font-bold leading-tight tracking-tight sm:text-2xl md:text-5xl lg:text-6xl">

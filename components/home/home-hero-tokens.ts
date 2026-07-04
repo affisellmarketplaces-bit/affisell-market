@@ -1,7 +1,8 @@
 /** Tokens visuels home buyer — alignés footer futuriste + BuyerHeroBlock. */
 
-export const homeHeroShell =
-  "relative overflow-hidden rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-700 via-indigo-800 to-sky-900 text-white shadow-xl"
+import { brandOrbitHeroShell } from "@/lib/affisell-brand-orbit-shared"
+
+export const homeHeroShell = `${brandOrbitHeroShell} rounded-3xl`
 
 export const homeHeroGrid =
   "pointer-events-none absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-[0.035]"

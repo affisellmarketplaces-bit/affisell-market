@@ -4,6 +4,7 @@ import { BadgeCheck, ShieldCheck, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { CSSProperties, ReactNode } from "react"
 
+import { brandOrbitStorefrontTrustRail } from "@/lib/affisell-brand-orbit-shared"
 import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
 import {
   storefrontHeaderTrustRailStyle,
@@ -99,7 +100,7 @@ export function StorefrontHeaderTrustRail({
         futuristic
           ? "h-7 border-b backdrop-blur-md"
           : integrated
-            ? "border-t border-zinc-200/60 bg-gradient-to-r from-zinc-50/95 via-white/90 to-violet-50/50 dark:border-zinc-800/70 dark:from-zinc-950/95 dark:via-zinc-950/90 dark:to-violet-950/25"
+            ? brandOrbitStorefrontTrustRail
             : "border-b border-zinc-200/80 bg-gradient-to-r from-violet-50/90 via-white to-emerald-50/70 dark:border-zinc-800 dark:from-violet-950/30 dark:via-zinc-950 dark:to-emerald-950/20",
         className
       )}

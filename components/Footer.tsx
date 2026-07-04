@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server"
 
 import { FooterDesktopFuture } from "@/components/footer/footer-desktop-future"
 import { FooterMobileShell } from "@/components/footer/footer-mobile-shell"
+import { FooterOrbitTrustRibbon } from "@/components/footer/footer-orbit-trust-ribbon"
 import { footerHeroGrid, footerHeroShell } from "@/components/footer/footer-hero-tokens"
 import { buildFooterGlobalContent } from "@/lib/footer-global-content"
 import { readCompanyLegal } from "@/lib/legal/company-env"
@@ -26,6 +27,7 @@ export async function Footer() {
         className="pointer-events-none absolute -right-1/4 bottom-0 h-1/2 w-1/2 rounded-full bg-sky-500/15 blur-[70px]"
         aria-hidden
       />
+      <FooterOrbitTrustRibbon />
       <div className="relative z-10">
         <FooterMobileShell
           content={{
