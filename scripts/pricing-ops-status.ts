@@ -2,6 +2,8 @@
  * Pricing ops status — live DB counters for founder / Metabase sanity check.
  * Run: npm run pricing:ops-status
  */
+import { Prisma } from "@prisma/client"
+
 import { prisma } from "@/lib/prisma"
 
 async function main() {
@@ -12,7 +14,7 @@ async function main() {
     pushSubscriptionsAffiliate,
   ] = await Promise.all([
     prisma.affiliateProduct.count({
-      where: { variantPricing: { not: null } },
+      where: { NOT: { variantPricing: { equals: Prisma.DbNull } } },
     }),
     prisma.affiliateProduct.count({
       where: { pricingAutoAdjust: true },
