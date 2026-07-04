@@ -45,18 +45,21 @@ export async function POST(req: NextRequest) {
   }
 
   const existingAb = theme.brandOps?.presetAb
+  const isFreshExperiment =
+    !existingAb?.enabled ||
+    existingAb.challengerPresetId !== challengerPresetId ||
+    Boolean(existingAb.winnerAppliedAt)
+
   const presetAb = enabled
     ? {
         enabled: true,
         challengerPresetId,
         startedAt:
-          existingAb?.challengerPresetId === challengerPresetId && existingAb.enabled
+          !isFreshExperiment && existingAb?.startedAt
             ? existingAb.startedAt
             : new Date().toISOString(),
-        viewsControl:
-          existingAb?.challengerPresetId === challengerPresetId ? existingAb.viewsControl : 0,
-        viewsChallenger:
-          existingAb?.challengerPresetId === challengerPresetId ? existingAb.viewsChallenger : 0,
+        viewsControl: !isFreshExperiment && existingAb ? existingAb.viewsControl : 0,
+        viewsChallenger: !isFreshExperiment && existingAb ? existingAb.viewsChallenger : 0,
       }
     : existingAb
       ? { ...existingAb, enabled: false }

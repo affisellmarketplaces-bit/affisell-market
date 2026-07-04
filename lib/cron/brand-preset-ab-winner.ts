@@ -1,28 +1,37 @@
 import { findStorefrontThemePreset } from "@/lib/storefront-theme-presets"
+import { buildPresetAbWinnerThemeUpdate } from "@/lib/storefront-preset-ab-apply.server"
 import { evaluatePresetAbWinner } from "@/lib/storefront-preset-ab-shared"
+import { sendBrandPresetAbWinnerEmail } from "@/lib/emails/send-brand-preset-ab-winner"
 import { mergeStorefrontBrandOps } from "@/lib/storefront-theme-ops-shared"
-import { parseStorefrontTheme, themeFromBrandStudioFields } from "@/lib/storefront-theme-shared"
+import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 import { prisma } from "@/lib/prisma"
 
 export type RunBrandPresetAbWinnerCronResult = {
   processed: number
   applied: number
+  notified: number
   skipped: number
   errors: string[]
 }
 
-/** Auto-apply preset A/B winner after 7d + min views — idempotent. */
+/** Auto-apply preset A/B winner after 7d + min views — idempotent + winner email. */
 export async function runBrandPresetAbWinnerCron(
-  limit = 30
+  limit = 80
 ): Promise<RunBrandPresetAbWinnerCronResult> {
   const stores = await prisma.store.findMany({
     where: { user: { role: { in: ["AFFILIATE", "SUPPLIER"] } } },
     take: limit,
     orderBy: { updatedAt: "desc" },
-    select: { id: true, storefrontTheme: true },
+    select: {
+      id: true,
+      name: true,
+      storefrontTheme: true,
+      user: { select: { email: true, name: true, role: true } },
+    },
   })
 
   let applied = 0
+  let notified = 0
   let skipped = 0
   const errors: string[] = []
 
@@ -41,44 +50,23 @@ export async function runBrandPresetAbWinnerCron(
     }
 
     try {
-      let nextThemeFields = theme
-      if (evaluation.winner === "challenger") {
-        const challenger = findStorefrontThemePreset(presetAb.challengerPresetId)
-        if (!challenger) {
+      const built = buildPresetAbWinnerThemeUpdate({
+        storefrontTheme: store.storefrontTheme,
+        presetAb,
+        winner: evaluation.winner,
+        reason: evaluation.reason,
+      })
+      if (!built.ok) {
+        if (built.error === "missing_challenger_preset") {
           errors.push(`${store.id}:missing_challenger_preset`)
-          skipped += 1
-          continue
         }
-        nextThemeFields = themeFromBrandStudioFields(theme, {
-          presetId: challenger.id,
-          primary: challenger.theme.primary,
-          accent: challenger.theme.accent,
-          nameBadge: challenger.theme.nameBadge,
-          layout: challenger.theme.layout,
-          heroStyle: challenger.theme.heroStyle,
-          gridDensity: challenger.theme.gridDensity,
-          surface: challenger.theme.surface,
-          headerBrandAlign: challenger.theme.headerBrandAlign,
-        })
-      }
-
-      const nextTheme = {
-        ...(typeof store.storefrontTheme === "object" && store.storefrontTheme !== null
-          ? (store.storefrontTheme as Record<string, unknown>)
-          : {}),
-        ...nextThemeFields,
-        brandOps: mergeStorefrontBrandOps(theme.brandOps, {
-          presetAb: {
-            ...presetAb,
-            enabled: false,
-            winnerAppliedAt: new Date().toISOString(),
-          },
-        }),
+        skipped += 1
+        continue
       }
 
       await prisma.store.update({
         where: { id: store.id },
-        data: { storefrontTheme: nextTheme },
+        data: { storefrontTheme: built.nextStorefrontTheme },
       })
 
       console.log("[brand-preset-ab-winner]", {
@@ -88,6 +76,53 @@ export async function runBrandPresetAbWinnerCron(
         result: "applied",
       })
       applied += 1
+
+      if (presetAb.winnerNotifiedAt) {
+        skipped += 1
+        continue
+      }
+
+      const merchantRole = store.user.role === "SUPPLIER" ? "SUPPLIER" : "AFFILIATE"
+      const brandStudioPath =
+        merchantRole === "SUPPLIER"
+          ? "/dashboard/supplier/storefront"
+          : "/dashboard/affiliate/brand-studio"
+
+      const emailResult = await sendBrandPresetAbWinnerEmail({
+        email: store.user.email,
+        name: store.user.name,
+        storeName: store.name,
+        winner: evaluation.winner,
+        winnerReason: evaluation.reason,
+        viewsControl: presetAb.viewsControl,
+        viewsChallenger: presetAb.viewsChallenger,
+        brandStudioPath,
+      })
+
+      if (emailResult.ok) {
+        const appliedTheme = parseStorefrontTheme(built.nextStorefrontTheme)
+        const appliedPresetAb = appliedTheme.brandOps?.presetAb
+        if (appliedPresetAb) {
+          await prisma.store.update({
+            where: { id: store.id },
+            data: {
+              storefrontTheme: {
+                ...built.nextStorefrontTheme,
+                brandOps: mergeStorefrontBrandOps(appliedTheme.brandOps, {
+                  presetAb: {
+                    ...appliedPresetAb,
+                    winnerNotifiedAt: new Date().toISOString(),
+                  },
+                }),
+              },
+            },
+          })
+        }
+        notified += 1
+        console.log("[brand-preset-ab-winner]", { storeId: store.id, result: "notified" })
+      } else {
+        errors.push(`${store.id}:${emailResult.error ?? "email_failed"}`)
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "apply_failed"
       errors.push(`${store.id}:${msg}`)
@@ -95,5 +130,5 @@ export async function runBrandPresetAbWinnerCron(
     }
   }
 
-  return { processed: stores.length, applied, skipped, errors }
+  return { processed: stores.length, applied, notified, skipped, errors }
 }

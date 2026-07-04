@@ -2242,6 +2242,9 @@
         "stop": "Arrêter l'expérience",
         "stats": "Vues live — contrôle : {control} · challenger : {challenger}",
         "openPosthog": "Voir l'A/B dans PostHog",
+        "applyWinner": "Appliquer le gagnant",
+        "applyWinnerFailed": "Impossible d'appliquer le gagnant A/B.",
+        "winnerApplied": "Gagnant appliqué — {winner}",
         "needPreset": "Sélectionnez d'abord un preset contrôle.",
         "failed": "Impossible de mettre à jour le test A/B."
       },

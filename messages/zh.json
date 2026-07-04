@@ -2242,6 +2242,9 @@
         "stop": "Stop experiment",
         "stats": "Live views — control: {control} · challenger: {challenger}",
         "openPosthog": "View A/B in PostHog",
+        "applyWinner": "Apply winner now",
+        "applyWinnerFailed": "Could not apply A/B winner.",
+        "winnerApplied": "Winner applied — {winner}",
         "needPreset": "Select a control preset first.",
         "failed": "Could not update A/B experiment."
       },

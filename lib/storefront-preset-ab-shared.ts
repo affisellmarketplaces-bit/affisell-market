@@ -12,6 +12,9 @@ export type StorefrontPresetAb = {
   viewsControl: number
   viewsChallenger: number
   winnerAppliedAt?: string
+  winnerVariant?: PresetAbVariant
+  winnerReason?: PresetAbWinnerResult["reason"]
+  winnerNotifiedAt?: string
 }
 
 const MIN_VIEWS_FOR_WINNER = 20
@@ -34,6 +37,18 @@ export function parseStorefrontPresetAb(raw: unknown): StorefrontPresetAb | unde
       typeof o.viewsChallenger === "number" && o.viewsChallenger >= 0 ? o.viewsChallenger : 0,
     winnerAppliedAt:
       typeof o.winnerAppliedAt === "string" ? o.winnerAppliedAt.trim().slice(0, 40) : undefined,
+    winnerVariant:
+      o.winnerVariant === "control" || o.winnerVariant === "challenger" ? o.winnerVariant : undefined,
+    winnerReason:
+      o.winnerReason === "insufficient_views" ||
+      o.winnerReason === "too_early" ||
+      o.winnerReason === "challenger_wins" ||
+      o.winnerReason === "control_wins" ||
+      o.winnerReason === "tie_control"
+        ? o.winnerReason
+        : undefined,
+    winnerNotifiedAt:
+      typeof o.winnerNotifiedAt === "string" ? o.winnerNotifiedAt.trim().slice(0, 40) : undefined,
   }
 }
 
