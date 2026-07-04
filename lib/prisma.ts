@@ -54,6 +54,11 @@ function createBasePrismaClient(): PrismaClient {
         void resetPrismaClient()
         return
       }
+      if (/connection.*closed|kind:\s*Closed/i.test(event.message)) {
+        console.warn("[prisma] transient DB disconnect — will reconnect on next query")
+        void resetPrismaClient()
+        return
+      }
       console.error("prisma:error", event.message)
     })
     client.$on("warn", (event) => {

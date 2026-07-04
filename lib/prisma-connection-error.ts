@@ -2,7 +2,7 @@
 export const PRISMA_RETRYABLE_CODES = new Set(["P1001", "P1002", "P1017", "P2024", "P2037"])
 
 const RETRYABLE_MESSAGE_RE =
-  /terminating connection due to administrator command|E57P01|server has closed the connection|connection terminated|connection reset by peer|client has encountered a connection error|can't reach database server|connection timed out/i
+  /terminating connection due to administrator command|E57P01|server has closed the connection|connection terminated|connection reset by peer|client has encountered a connection error|can't reach database server|connection timed out|postgresql connection.*closed|kind:\s*Closed/i
 
 export function prismaErrorCode(error: unknown): string {
   if (typeof error === "object" && error !== null && "code" in error) {

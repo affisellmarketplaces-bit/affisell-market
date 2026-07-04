@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ExternalLink, Palette, Save, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { FormEvent } from "react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
@@ -193,8 +193,32 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const [presetId, setPresetId] = useState<string | null>(null)
   const [homepageSections, setHomepageSections] = useState<HomepageSection[]>(DEFAULT_HOMEPAGE_SECTIONS)
   const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
+  const mountedRef = useRef(false)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  const applyLaunchConfig = useCallback((config: BrandLaunchConfig) => {
+    setPresetId(config.presetId)
+    setPrimaryHex(config.primary)
+    setAccent(config.accent)
+    setTrustRailText(config.trustRailText)
+    setNameBadge(config.nameBadge)
+    setLayout(config.layout)
+    setHeroStyle(config.heroStyle)
+    setGridDensity(config.gridDensity)
+    setSurface(config.surface)
+    setHeaderBrandAlign(config.headerBrandAlign)
+    setDescription(config.description)
+    setHomepageSections(config.homepageSections)
+  }, [])
 
   const hydrate = useCallback(async () => {
+    if (!mountedRef.current) return
     setLoading(true)
     setError(null)
     try {
@@ -212,6 +236,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         error?: string
       }
       if (!res.ok) throw new Error(json.error ?? t("loadFailed"))
+      if (!mountedRef.current) return
       if (json.publicStoreUrl) setPublicStoreUrl(json.publicStoreUrl)
       if (json.storeUrls) setStoreUrls(json.storeUrls)
       setStoreHostSuffix(json.storeHostSuffix ?? null)
@@ -238,15 +263,99 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         setSavedSnapshot(snap)
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("loadFailed"))
+      if (mountedRef.current) {
+        setError(e instanceof Error ? e.message : t("loadFailed"))
+      }
     } finally {
-      setLoading(false)
+      if (mountedRef.current) setLoading(false)
     }
   }, [t])
 
   useEffect(() => {
     void hydrate()
   }, [hydrate])
+
+  const persistSnapshot = useCallback(
+    async (snapshot: BrandStudioSnapshot, successMessage: string): Promise<boolean> => {
+      if (!mountedRef.current) return false
+      setSaving(true)
+      setError(null)
+      setMessage(null)
+      try {
+        const fd = new FormData()
+        fd.set("name", snapshot.name)
+        fd.set("description", snapshot.description)
+        fd.set("bannerUrl", snapshot.bannerUrl)
+        fd.set("themePrimary", snapshot.primaryHex)
+        fd.set("themeAccent", snapshot.accent)
+        fd.set("themeTrustRailText", snapshot.trustRailText)
+        fd.set("themeNameBadge", snapshot.nameBadge)
+        fd.set("themeLayout", snapshot.layout)
+        fd.set("themeHeroStyle", snapshot.heroStyle)
+        fd.set("themeGridDensity", snapshot.gridDensity)
+        fd.set("themeSurface", snapshot.surface)
+        fd.set("themeHeaderBrandAlign", snapshot.headerBrandAlign)
+        if (snapshot.presetId) fd.set("themePresetId", snapshot.presetId)
+        fd.set("themeHomepageSections", serializeHomepageSections(snapshot.homepageSections))
+        if (logoFile) {
+          fd.set("logo", logoFile)
+        } else {
+          fd.set("logoUrl", snapshot.logoUrl)
+        }
+
+        const res = await fetch("/api/store/update", {
+          method: "POST",
+          body: fd,
+          credentials: "include",
+        })
+        const json = (await res.json()) as { error?: string }
+        if (!res.ok) throw new Error(json.error ?? t("saveFailed"))
+        if (!mountedRef.current) return false
+        setMessage(successMessage)
+        setSavedSnapshot(snapshot)
+        setLogoFile(null)
+        return true
+      } catch (err) {
+        if (mountedRef.current) {
+          setError(err instanceof Error ? err.message : t("saveFailed"))
+        }
+        return false
+      } finally {
+        if (mountedRef.current) setSaving(false)
+      }
+    },
+    [logoFile, t]
+  )
+
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    await persistSnapshot(currentSnapshot, t("saved"))
+  }
+
+  const handleBrandLaunch = useCallback(
+    async (config: BrandLaunchConfig) => {
+      applyLaunchConfig(config)
+      const launchSnapshot = snapshotFromDraft({
+        name,
+        description: config.description,
+        bannerUrl,
+        logoUrl,
+        primaryHex: config.primary,
+        accent: config.accent,
+        trustRailText: config.trustRailText,
+        nameBadge: config.nameBadge,
+        layout: config.layout,
+        heroStyle: config.heroStyle,
+        gridDensity: config.gridDensity,
+        surface: config.surface,
+        headerBrandAlign: config.headerBrandAlign,
+        presetId: config.presetId,
+        homepageSections: config.homepageSections,
+      })
+      await persistSnapshot(launchSnapshot, t("launch.saved"))
+    },
+    [applyLaunchConfig, bannerUrl, logoUrl, name, persistSnapshot, t]
+  )
 
   function applyPreset(theme: StorefrontTheme, id: string) {
     setPresetId(id)
@@ -336,94 +445,6 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   )
 
   const isDirty = Boolean(logoFile) || (savedSnapshot ? !snapshotsEqual(currentSnapshot, savedSnapshot) : false)
-
-  async function persistSnapshot(
-    snapshot: BrandStudioSnapshot,
-    successMessage: string
-  ): Promise<boolean> {
-    setSaving(true)
-    setError(null)
-    setMessage(null)
-    try {
-      const fd = new FormData()
-      fd.set("name", snapshot.name)
-      fd.set("description", snapshot.description)
-      fd.set("bannerUrl", snapshot.bannerUrl)
-      fd.set("themePrimary", snapshot.primaryHex)
-      fd.set("themeAccent", snapshot.accent)
-      fd.set("themeTrustRailText", snapshot.trustRailText)
-      fd.set("themeNameBadge", snapshot.nameBadge)
-      fd.set("themeLayout", snapshot.layout)
-      fd.set("themeHeroStyle", snapshot.heroStyle)
-      fd.set("themeGridDensity", snapshot.gridDensity)
-      fd.set("themeSurface", snapshot.surface)
-      fd.set("themeHeaderBrandAlign", snapshot.headerBrandAlign)
-      if (snapshot.presetId) fd.set("themePresetId", snapshot.presetId)
-      fd.set("themeHomepageSections", serializeHomepageSections(snapshot.homepageSections))
-      if (logoFile) {
-        fd.set("logo", logoFile)
-      } else {
-        fd.set("logoUrl", snapshot.logoUrl)
-      }
-
-      const res = await fetch("/api/store/update", {
-        method: "POST",
-        body: fd,
-        credentials: "include",
-      })
-      const json = (await res.json()) as { error?: string }
-      if (!res.ok) throw new Error(json.error ?? t("saveFailed"))
-      setMessage(successMessage)
-      setSavedSnapshot(snapshot)
-      setLogoFile(null)
-      await hydrate()
-      return true
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("saveFailed"))
-      return false
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    await persistSnapshot(currentSnapshot, t("saved"))
-  }
-
-  async function handleBrandLaunch(config: BrandLaunchConfig) {
-    setPresetId(config.presetId)
-    setPrimaryHex(config.primary)
-    setAccent(config.accent)
-    setTrustRailText(config.trustRailText)
-    setNameBadge(config.nameBadge)
-    setLayout(config.layout)
-    setHeroStyle(config.heroStyle)
-    setGridDensity(config.gridDensity)
-    setSurface(config.surface)
-    setHeaderBrandAlign(config.headerBrandAlign)
-    setDescription(config.description)
-    setHomepageSections(config.homepageSections)
-
-    const launchSnapshot = snapshotFromDraft({
-      name,
-      description: config.description,
-      bannerUrl,
-      logoUrl,
-      primaryHex: config.primary,
-      accent: config.accent,
-      trustRailText: config.trustRailText,
-      nameBadge: config.nameBadge,
-      layout: config.layout,
-      heroStyle: config.heroStyle,
-      gridDensity: config.gridDensity,
-      surface: config.surface,
-      headerBrandAlign: config.headerBrandAlign,
-      presetId: config.presetId,
-      homepageSections: config.homepageSections,
-    })
-    await persistSnapshot(launchSnapshot, t("launch.saved"))
-  }
 
   const eyebrow = role === "AFFILIATE" ? t("affiliateEyebrow") : t("supplierEyebrow")
   const title = role === "AFFILIATE" ? t("affiliateTitle") : t("supplierTitle")

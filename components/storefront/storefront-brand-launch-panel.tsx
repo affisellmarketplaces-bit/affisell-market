@@ -2,7 +2,7 @@
 
 import { Loader2, Rocket, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
@@ -25,6 +25,14 @@ export function StorefrontBrandLaunchPanel({ storeName, role, busy = false, onLa
   const t = useTranslations("storefront.brandStudio.launch")
   const [selected, setSelected] = useState<BrandLaunchNiche>("fashion")
   const [launching, setLaunching] = useState(false)
+  const mountedRef = useRef(false)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   async function handleLaunch() {
     setLaunching(true)
@@ -47,7 +55,7 @@ export function StorefrontBrandLaunchPanel({ storeName, role, busy = false, onLa
       })
       await onLaunch(config)
     } finally {
-      setLaunching(false)
+      if (mountedRef.current) setLaunching(false)
     }
   }
 

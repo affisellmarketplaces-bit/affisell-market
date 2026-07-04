@@ -45,8 +45,10 @@ export function MarketplaceGraduatedShipsToBootstrap({ basePath, enabled }: Prop
       toastShownRef.current = true
       sessionStorage.setItem(TOAST_KEY, "1")
       const countryName = visitorCountryDisplayName(country, locale)
-      toast.message(t("graduatedShipsToToast", { country: countryName }), {
-        description: t("graduatedShipsToToastBody"),
+      const toastTitle = t("graduatedShipsToToast", { country: countryName })
+      const toastBody = t("graduatedShipsToToastBody")
+      window.requestAnimationFrame(() => {
+        toast.message(toastTitle, { description: toastBody })
       })
       console.log("[offer-rail]", {
         action: "graduated_shipsTo_auto",

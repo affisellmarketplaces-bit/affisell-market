@@ -40,7 +40,9 @@ function ensureWishlistEventBridge(): void {
 
 function emit(productId: string, status: WishlistCardStatus) {
   for (const fn of listeners.get(productId) ?? []) {
-    fn(status)
+    queueMicrotask(() => {
+      fn(status)
+    })
   }
 }
 

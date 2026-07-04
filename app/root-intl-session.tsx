@@ -11,10 +11,10 @@ export function RootSessionShell({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
       <ImmersiveChromeSync />
+      <MobileAwareToaster />
       <NavigationShell />
       {children}
       <PwaInstallBanner />
-      <MobileAwareToaster />
       <AnalyticsGated />
     </ThemeProvider>
   )
