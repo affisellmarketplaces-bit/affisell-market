@@ -3,7 +3,14 @@ import { requireSupplierSession } from "@/lib/dashboard-session"
 
 import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { SupplierDashboardProductsCatalog } from "@/components/supplier/supplier-dashboard-products-catalog"
+import { SupplierWholesaleImpactPanel } from "@/components/supplier/supplier-wholesale-impact-panel"
 import { findSupplierProductsForDashboardCatalog } from "@/lib/supplier-product-is-draft-fallback"
+import {
+  emptySupplierWholesaleImpact,
+  loadSupplierWholesaleImpact,
+} from "@/lib/load-supplier-wholesale-impact"
+import { supplierWholesaleImpactByProductId } from "@/lib/supplier-wholesale-impact"
+import { loadOrFallback } from "@/lib/safe-server-data"
 import { prisma } from "@/lib/prisma"
 import { cn } from "@/lib/utils"
 
@@ -20,7 +27,7 @@ export default async function SupplierProductsPage({
   const { drafts: draftsQs } = await searchParams
   const draftsOnly = draftsQs === "1"
 
-  const [products, store, partnerListingGroups] = await Promise.all([
+  const [products, store, partnerListingGroups, wholesaleImpact] = await Promise.all([
     findSupplierProductsForDashboardCatalog(session.user.id),
     prisma.store.findUnique({
       where: { userId: session.user.id },
@@ -31,6 +38,11 @@ export default async function SupplierProductsPage({
       where: { product: { supplierId: session.user.id }, isListed: true },
       _count: { _all: true },
     }),
+    loadOrFallback(
+      "supplier/products/wholesale-impact",
+      () => loadSupplierWholesaleImpact(session.user.id),
+      emptySupplierWholesaleImpact()
+    ),
   ])
 
   const partnerListingCountByProductId = Object.fromEntries(
@@ -45,6 +57,9 @@ export default async function SupplierProductsPage({
   const catalogProducts = draftsOnly
     ? products.filter((p) => p.isDraft)
     : products.filter((p) => !p.isDraft)
+
+  const productNameById = Object.fromEntries(catalogProducts.map((p) => [p.id, p.name]))
+  const wholesaleImpactByProductId = supplierWholesaleImpactByProductId(wholesaleImpact)
 
   return (
     <BentoShell className="bg-zinc-50/50 dark:bg-zinc-950">
@@ -80,6 +95,13 @@ export default async function SupplierProductsPage({
           ) : null}
         </nav>
 
+        {!draftsOnly ? (
+          <SupplierWholesaleImpactPanel
+            data={wholesaleImpact}
+            productNameById={productNameById}
+          />
+        ) : null}
+
         <SupplierDashboardProductsCatalog
           ownerUserId={session.user.id}
           products={catalogProducts}
@@ -87,6 +109,7 @@ export default async function SupplierProductsPage({
           storefrontHref={storefrontHref}
           storefrontName={store?.name ?? null}
           partnerListingCountByProductId={partnerListingCountByProductId}
+          wholesaleImpactByProductId={wholesaleImpactByProductId}
         />
       </BentoContainer>
     </BentoShell>

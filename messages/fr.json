@@ -1625,6 +1625,20 @@
       "draftWaiting": "{count, plural, one {# brouillon en attente de validation} other {# brouillons en attente de validation}}",
       "cta": "Compléter la vérification"
     },
+    "wholesaleImpact": {
+      "title": "Impact wholesale partenaires",
+      "subtitleAlert": "Des hausses wholesale récentes ont déclenché des revues de marge sur les vitrines partenaires — ajustez avec précaution ou communiquez avec les créateurs.",
+      "subtitleHealthy": "Fiches partenaires live et volume wholesale sur la période.",
+      "statPartners": "Fiches live",
+      "statReviews": "Revues marge",
+      "statUnits": "Unités vendues",
+      "statGmv": "GMV wholesale",
+      "colProduct": "Produit",
+      "colPartners": "Partenaires",
+      "colReviews": "Revues ouvertes",
+      "colUnits": "Unités (30j)",
+      "footnote": "Fenêtre glissante {days} jours · les revues se ferment quand le partenaire resauvegarde ses prix."
+    },
     "publishReadiness": {
       "eyebrow": "Pipeline publication",
       "title": "Prêt à publier ?",

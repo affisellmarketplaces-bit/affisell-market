@@ -1625,6 +1625,20 @@
       "draftWaiting": "{count, plural, one {# draft waiting for approval} other {# drafts waiting for approval}}",
       "cta": "Complete verification"
     },
+    "wholesaleImpact": {
+      "title": "Partner wholesale impact",
+      "subtitleAlert": "Recent wholesale increases triggered margin reviews on partner storefronts — adjust carefully or communicate with creators.",
+      "subtitleHealthy": "Live partner listings and wholesale volume over the last period.",
+      "statPartners": "Live listings",
+      "statReviews": "Margin reviews",
+      "statUnits": "Units sold",
+      "statGmv": "Wholesale GMV",
+      "colProduct": "Product",
+      "colPartners": "Partners",
+      "colReviews": "Reviews open",
+      "colUnits": "Units (30d)",
+      "footnote": "Rolling {days}-day window · margin reviews clear when partners save new prices."
+    },
     "publishReadiness": {
       "eyebrow": "Publish pipeline",
       "title": "Ready to go live?",

@@ -61,7 +61,9 @@ const REQUIRED_FILES = [
   "lib/__tests__/affiliate-variant-pricing.test.ts",
   "lib/__tests__/affiliate-wholesale-change-guard.test.ts",
   "lib/__tests__/affiliate-variant-margin-analytics.test.ts",
-  "lib/__tests__/affiliate-wholesale-change-push.test.ts",
+  "lib/load-supplier-wholesale-impact.ts",
+  "components/supplier/supplier-wholesale-impact-panel.tsx",
+  "lib/__tests__/supplier-wholesale-impact.test.ts",
 ]
 
 console.log("\n[verify-pricing-ops] Affiliate pricing pipeline\n")

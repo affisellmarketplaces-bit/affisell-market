@@ -74,6 +74,7 @@ export function SupplierDashboardProductsCatalog({
   storefrontHref,
   storefrontName,
   partnerListingCountByProductId = {},
+  wholesaleImpactByProductId = {},
 }: {
   ownerUserId: string
   products: CatalogProduct[]
@@ -81,6 +82,10 @@ export function SupplierDashboardProductsCatalog({
   storefrontHref: string
   storefrontName: string | null
   partnerListingCountByProductId?: Record<string, number>
+  wholesaleImpactByProductId?: Record<
+    string,
+    { marginReviewOpen: number; affiliateListingsLive: number }
+  >
 }) {
   const router = useRouter()
   const [bulkDeleting, setBulkDeleting] = useState(false)
@@ -278,6 +283,8 @@ export function SupplierDashboardProductsCatalog({
           <ul className="grid list-none grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {products.map((p) => {
             const partnersListed = partnerListingCountByProductId[p.id] ?? 0
+            const impact = wholesaleImpactByProductId[p.id]
+            const marginReviewsOpen = impact?.marginReviewOpen ?? 0
             const img = primaryProductImage(p.images) || "/placeholder-product.jpg"
             const compareNum = resolveSupplierListingCompareAtEur({
               basePriceCents: p.basePriceCents,
@@ -396,10 +403,17 @@ export function SupplierDashboardProductsCatalog({
                     </div>
 
                     {!p.isDraft && p.active && partnersListed > 0 ? (
-                      <p className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">
-                        <Users className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                        {partnersListed} créateur{partnersListed === 1 ? "" : "s"} en boutique live
-                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <p className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">
+                          <Users className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                          {partnersListed} créateur{partnersListed === 1 ? "" : "s"} en boutique live
+                        </p>
+                        {marginReviewsOpen > 0 ? (
+                          <p className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
+                            {marginReviewsOpen} marge{marginReviewsOpen === 1 ? "" : "s"} à revoir
+                          </p>
+                        ) : null}
+                      </div>
                     ) : null}
 
                     <div className="mt-auto space-y-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
