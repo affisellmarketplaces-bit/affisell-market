@@ -17,7 +17,7 @@ const baseInput = {
   embedEnabled: true,
   homepageSections: DEFAULT_HOMEPAGE_SECTIONS,
   staticPages: { ...DEFAULT_STATIC_PAGES, about: { enabled: true } },
-  liveListingCount: 3,
+  liveCatalogCount: 3,
   customDomainVerified: false,
   role: "AFFILIATE" as const,
 }
@@ -34,7 +34,7 @@ describe("storefront-brand-pulse-shared", () => {
       ...baseInput,
       description: "",
       logoUrl: "",
-      liveListingCount: 0,
+      liveCatalogCount: 0,
     })
     expect(result.score).toBeLessThan(72)
     expect(result.readyToShare).toBe(false)

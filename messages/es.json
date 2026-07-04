@@ -2202,8 +2202,41 @@
           "sections": "3+ homepage sections enabled",
           "staticPages": "At least one static page (About, FAQ, Returns)",
           "embed": "Embed widget enabled for your site",
-          "liveProducts": "At least one product live on storefront",
+          "liveListings": "At least one product live on storefront",
+          "liveCatalog": "At least one published product in catalog",
           "customDomain": "Custom domain verified"
+        }
+      },
+      "aiBanner": {
+        "cta": "Generate banner with AI",
+        "generating": "Creating…",
+        "hint": "Wide hero image from your colors + niche. Sets hero to banner mode — save to publish.",
+        "failed": "AI banner unavailable — check HF_TOKEN or try again."
+      },
+      "analytics": {
+        "title": "Growth analytics",
+        "subtitle": "Preset → launch → share funnel tracked in PostHog for Metabase.",
+        "activePreset": "Active preset: {preset}",
+        "openPosthog": "Open funnel in PostHog",
+        "openPresetInsight": "Preset views",
+        "posthogUnset": "Set NEXT_PUBLIC_POSTHOG_PROJECT_ID to open live insights.",
+        "funnel": {
+          "preset": {
+            "title": "Preset selected",
+            "hint": "Merchant picks a theme — buyers see storefront_preset_viewed."
+          },
+          "launch": {
+            "title": "Smart Launch",
+            "hint": "One-click niche launch applies immersive layout + sections."
+          },
+          "share": {
+            "title": "Share & grow",
+            "hint": "Copy link, native share, WhatsApp, or X — organic traffic."
+          },
+          "immersive": {
+            "title": "Immersive viewed",
+            "hint": "Buyer lands on premium layout — conversion signal."
+          }
         }
       },
       "aiCopy": {

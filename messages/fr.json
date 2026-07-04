@@ -2202,8 +2202,41 @@
           "sections": "3+ sections homepage activées",
           "staticPages": "Au moins une page statique (À propos, FAQ, Retours)",
           "embed": "Widget embed activé pour votre site",
-          "liveProducts": "Au moins un produit live sur la vitrine",
+          "liveListings": "Au moins un produit live sur la vitrine",
+          "liveCatalog": "Au moins un produit publié au catalogue",
           "customDomain": "Domaine custom vérifié"
+        }
+      },
+      "aiBanner": {
+        "cta": "Générer la bannière avec l'IA",
+        "generating": "Création…",
+        "hint": "Hero large depuis vos couleurs + niche. Active le mode bannière — enregistrez pour publier.",
+        "failed": "Bannière IA indisponible — vérifiez HF_TOKEN ou réessayez."
+      },
+      "analytics": {
+        "title": "Analytics croissance",
+        "subtitle": "Entonnoir preset → launch → partage suivi dans PostHog pour Metabase.",
+        "activePreset": "Preset actif : {preset}",
+        "openPosthog": "Ouvrir l'entonnoir PostHog",
+        "openPresetInsight": "Vues preset",
+        "posthogUnset": "Définissez NEXT_PUBLIC_POSTHOG_PROJECT_ID pour ouvrir les insights.",
+        "funnel": {
+          "preset": {
+            "title": "Preset sélectionné",
+            "hint": "Le marchand choisit un thème — les acheteurs déclenchent storefront_preset_viewed."
+          },
+          "launch": {
+            "title": "Smart Launch",
+            "hint": "Launch niche en 1 clic : layout immersif + sections."
+          },
+          "share": {
+            "title": "Partager & développer",
+            "hint": "Copier le lien, partage natif, WhatsApp ou X — trafic organique."
+          },
+          "immersive": {
+            "title": "Immersive consulté",
+            "hint": "L'acheteur voit le layout premium — signal de conversion."
+          }
         }
       },
       "aiCopy": {

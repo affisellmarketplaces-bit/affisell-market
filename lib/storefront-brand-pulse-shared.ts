@@ -19,7 +19,8 @@ export type BrandPulseCheckId =
   | "sections"
   | "staticPages"
   | "embed"
-  | "liveProducts"
+  | "liveListings"
+  | "liveCatalog"
   | "customDomain"
 
 export type BrandPulseCheck = {
@@ -47,7 +48,7 @@ export type BrandPulseInput = {
   embedEnabled: boolean
   homepageSections: HomepageSection[]
   staticPages: StorefrontStaticPages
-  liveListingCount: number
+  liveCatalogCount: number
   customDomainVerified: boolean
   role: "AFFILIATE" | "SUPPLIER"
 }
@@ -91,8 +92,14 @@ export function computeBrandPulse(input: BrandPulseInput): BrandPulseResult {
 
   if (input.role === "AFFILIATE") {
     checks.push({
-      id: "liveProducts",
-      done: input.liveListingCount >= 1,
+      id: "liveListings",
+      done: input.liveCatalogCount >= 1,
+      weight: 14,
+    })
+  } else {
+    checks.push({
+      id: "liveCatalog",
+      done: input.liveCatalogCount >= 1,
       weight: 14,
     })
   }
@@ -112,7 +119,9 @@ export function computeBrandPulse(input: BrandPulseInput): BrandPulseResult {
     checks.find((c) => c.id === "description")?.done === true &&
     checks.find((c) => c.id === "heroVisual")?.done === true &&
     (input.role !== "AFFILIATE" ||
-      checks.find((c) => c.id === "liveProducts")?.done === true)
+      checks.find((c) => c.id === "liveListings")?.done === true) &&
+    (input.role !== "SUPPLIER" ||
+      checks.find((c) => c.id === "liveCatalog")?.done === true)
 
   return { score, checks, readyToShare }
 }

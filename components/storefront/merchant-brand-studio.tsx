@@ -8,7 +8,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
+import { StorefrontAiBannerButton } from "@/components/storefront/storefront-ai-banner-button"
 import { StorefrontAiCopyButton } from "@/components/storefront/storefront-ai-copy-button"
+import { StorefrontBrandAnalyticsPanel } from "@/components/storefront/storefront-brand-analytics-panel"
 import { StorefrontBrandLaunchPanel } from "@/components/storefront/storefront-brand-launch-panel"
 import { StorefrontBrandPreviewPanel } from "@/components/storefront/storefront-brand-preview-panel"
 import { StorefrontBrandPulsePanel } from "@/components/storefront/storefront-brand-pulse-panel"
@@ -232,7 +234,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const [embedWidget, setEmbedWidget] = useState<StorefrontEmbedWidget>(DEFAULT_EMBED_WIDGET)
   const [storeSlug, setStoreSlug] = useState("")
   const [brandPulseMetrics, setBrandPulseMetrics] = useState({
-    liveListingCount: 0,
+    liveCatalogCount: 0,
     customDomainVerified: false,
   })
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0)
@@ -279,7 +281,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         }
         storeHostSuffix?: string | null
         brandPulseMetrics?: {
-          liveListingCount: number
+          liveCatalogCount: number
           customDomainVerified: boolean
         }
         error?: string
@@ -501,7 +503,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
         embedEnabled: embedWidget.enabled,
         homepageSections,
         staticPages,
-        liveListingCount: brandPulseMetrics.liveListingCount,
+        liveCatalogCount: brandPulseMetrics.liveCatalogCount,
         customDomainVerified: brandPulseMetrics.customDomainVerified,
         role,
       }),
@@ -734,6 +736,14 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                   onChange={(e) => setBannerUrl(e.target.value)}
                   placeholder="https://…"
                 />
+                <StorefrontAiBannerButton
+                  role={role}
+                  disabled={saving}
+                  onApply={(nextBannerUrl) => {
+                    setBannerUrl(nextBannerUrl)
+                    setHeroStyle("banner")
+                  }}
+                />
               </div>
 
               <div className="space-y-2">
@@ -867,6 +877,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
               </BentoCard>
             </div>
             <StorefrontBrandPulsePanel pulse={brandPulse} />
+            <StorefrontBrandAnalyticsPanel role={role} presetId={presetId} />
             <StoreLiveUrlCard urls={storeUrls} storeHostSuffix={storeHostSuffix} loading={loading} />
             {storeSlug && storeUrls?.primaryUrl ? (
               <StorefrontShareGrowPanel
