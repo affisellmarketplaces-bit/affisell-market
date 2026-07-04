@@ -2226,8 +2226,10 @@
       },
       "sections": {
         "title": "Sections page d'accueil",
-        "hint": "Activez et réordonnez les blocs de votre vitrine — sections prêtes à publier, sans builder libre.",
+        "hint": "Activez et réordonnez les blocs de votre vitrine — glissez pour définir l'ordre, comme un theme editor.",
         "phase3Hint": "Cliquez sur le crayon pour personnaliser le texte de chaque section activée.",
+        "dragHint": "Glissez la poignée pour réordonner — les sections activées s'affichent de haut en bas.",
+        "dragHandle": "Glisser {section} — position {position}",
         "editContent": "Modifier le contenu — {section}",
         "moveUp": "Monter",
         "moveDown": "Descendre",

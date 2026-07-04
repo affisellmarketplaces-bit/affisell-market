@@ -7,6 +7,7 @@ import {
   moveHomepageSection,
   parseHomepageSections,
   parseHomepageSectionsFromJson,
+  reorderHomepageSections,
   toggleHomepageSection,
 } from "@/lib/storefront-sections-shared"
 
@@ -101,6 +102,17 @@ describe("homepage section helpers", () => {
       "newsletter",
       "cta",
     ])
+  })
+
+  it("reorders sections by drag indices", () => {
+    const base = parseHomepageSections([
+      { type: "hero", enabled: true },
+      { type: "products", enabled: true },
+      { type: "trust", enabled: true },
+    ])
+    const reordered = reorderHomepageSections(base, 2, 0)
+    expect(reordered.map((s) => s.type).slice(0, 3)).toEqual(["trust", "hero", "products"])
+    expect(reorderHomepageSections(base, 0, 0)).toBe(base)
   })
 
   it("compares section arrays", () => {

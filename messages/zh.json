@@ -2228,6 +2228,8 @@
         "title": "Homepage sections",
         "hint": "Toggle and reorder blocks on your public storefront — publish-ready sections, no free-form builder.",
         "phase3Hint": "点击铅笔图标可自定义每个已启用区块的文案。",
+        "dragHint": "Drag the handle to reorder sections — buyers see enabled blocks top to bottom.",
+        "dragHandle": "Drag {section} — position {position}",
         "editContent": "编辑{section}内容",
         "moveUp": "Move up",
         "moveDown": "Move down",

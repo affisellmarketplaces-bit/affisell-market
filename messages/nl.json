@@ -2228,6 +2228,8 @@
         "title": "Homepage sections",
         "hint": "Toggle and reorder blocks on your public storefront — publish-ready sections, no free-form builder.",
         "phase3Hint": "Tik op het potlood om tekst per actieve sectie aan te passen.",
+        "dragHint": "Drag the handle to reorder sections — buyers see enabled blocks top to bottom.",
+        "dragHandle": "Drag {section} — position {position}",
         "editContent": "Inhoud {section} bewerken",
         "moveUp": "Move up",
         "moveDown": "Move down",

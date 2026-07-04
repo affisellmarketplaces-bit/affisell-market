@@ -178,6 +178,28 @@ export function moveHomepageSection(
   return next
 }
 
+/** Drag-and-drop reorder — idempotent when from === to. */
+export function reorderHomepageSections(
+  sections: HomepageSection[],
+  fromIndex: number,
+  toIndex: number
+): HomepageSection[] {
+  if (fromIndex === toIndex) return sections
+  if (
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= sections.length ||
+    toIndex >= sections.length
+  ) {
+    return sections
+  }
+  const next = [...sections]
+  const [removed] = next.splice(fromIndex, 1)
+  if (!removed) return sections
+  next.splice(toIndex, 0, removed)
+  return next
+}
+
 export function toggleHomepageSection(
   sections: HomepageSection[],
   type: HomepageSectionType,

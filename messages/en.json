@@ -2184,8 +2184,10 @@
       },
       "sections": {
         "title": "Homepage sections",
-        "hint": "Toggle and reorder blocks on your public storefront — publish-ready sections, no free-form builder.",
+        "hint": "Toggle and reorder blocks on your public storefront — drag to set order, like a theme editor.",
         "phase3Hint": "Tap the pencil icon to customize copy for each enabled section.",
+        "dragHint": "Drag the handle to reorder sections — buyers see enabled blocks top to bottom.",
+        "dragHandle": "Drag {section} — position {position}",
         "editContent": "Edit {section} content",
         "moveUp": "Move up",
         "moveDown": "Move down",
