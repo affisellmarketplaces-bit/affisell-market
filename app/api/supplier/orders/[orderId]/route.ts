@@ -18,6 +18,10 @@ import {
 } from "@/lib/trusted-carriers-shared"
 import { validateShipTrackingForShip } from "@/lib/ship-tracking-validate"
 import { recordOrderTrackingEvent } from "@/lib/order-tracking-event"
+import {
+  assertSupplierMayRegisterTracking,
+  trackingLockWriteFields,
+} from "@/lib/order-tracking-lock.shared"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -130,6 +134,12 @@ export async function PATCH(
     return Response.json({ error: "Order is not awaiting shipment" }, { status: 409 })
   }
 
+  const tracking = parsed.data.trackingNumber.trim()
+  const lockGate = assertSupplierMayRegisterTracking(existing, tracking)
+  if (!lockGate.ok) {
+    return Response.json({ error: lockGate.message, code: lockGate.code }, { status: 409 })
+  }
+
   const countryIso2 = extractShippingCountryIso2FromAddress(existing.shippingAddress)
   const carrier = parsed.data.trackingCarrier.trim()
   if (!isTrustedCarrierLabelForCountry(countryIso2, carrier)) {
@@ -138,7 +148,6 @@ export async function PATCH(
       { status: 400 }
     )
   }
-  const tracking = parsed.data.trackingNumber.trim()
 
   const trackingCheck = await validateShipTrackingForShip({
     trackingCarrier: carrier,
@@ -161,6 +170,7 @@ export async function PATCH(
         trackingNumber: normalizedTracking,
         shippedAt: new Date(),
         fulfillmentStatus: "SHIPPED",
+        ...trackingLockWriteFields(trackingCheck.verifiedBy),
       },
       include: supplierOrderInclude,
     })

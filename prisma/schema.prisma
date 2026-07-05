@@ -1812,6 +1812,11 @@ model Order {
   supplierPreparingAt              DateTime?
   trackingCarrier                  String?
   trackingNumber                   String?
+  /**
+   * Set when tracking is validated — supplier cannot replace carrier/number after this.
+   */
+  trackingLockedAt                 DateTime?
+  trackingVerifiedBy               String?
   shippedAt                        DateTime?
   /**
    * Carrier / supplier marked shipped — start of delivery & payout timers.

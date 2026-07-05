@@ -2,6 +2,7 @@ import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped
 import { syncAffisellShipmentToMedusaIfNeeded } from "@/lib/medusa/sync-order-fulfillment"
 import { logAutoDsFulfillmentEvent, type AutoDsLogSource } from "@/lib/autods/fulfillment-log"
 import { recordOrderTrackingEvent } from "@/lib/order-tracking-event"
+import { trackingLockWriteFields } from "@/lib/order-tracking-lock.shared"
 import { prisma } from "@/lib/prisma"
 
 export type AutoDsTrackingPayload = {
@@ -46,6 +47,7 @@ export async function applyAutoDsTrackingUpdate(args: {
       autodsShippedEmailSentAt: true,
       trackingNumber: true,
       shippedAt: true,
+      trackingLockedAt: true,
       fulfillmentStatus: true,
       medusaOrderId: true,
     },
@@ -119,6 +121,7 @@ export async function applyAutoDsTrackingUpdate(args: {
             trackingCarrier: nextCarrier ?? undefined,
           }
         : {}),
+      ...(nextTracking && !order.trackingLockedAt ? trackingLockWriteFields("partner") : {}),
       ...(shippedNow ? { autodsShippedEmailSentAt: new Date() } : {}),
     },
   })

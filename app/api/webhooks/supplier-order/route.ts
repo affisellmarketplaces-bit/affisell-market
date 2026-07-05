@@ -15,6 +15,7 @@ import {
 } from "@/lib/suppliers/order-status"
 import { prisma } from "@/lib/prisma"
 import { recordOrderTrackingEvent } from "@/lib/order-tracking-event"
+import { trackingLockWriteFields } from "@/lib/order-tracking-lock.shared"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -117,6 +118,7 @@ export async function POST(req: NextRequest) {
         id: true,
         shippedAt: true,
         trackingNumber: true,
+        trackingLockedAt: true,
         deliveredAt: true,
         fulfillmentStatus: true,
         customerEmail: true,
@@ -159,6 +161,9 @@ export async function POST(req: NextRequest) {
           : {}),
         ...(statusValue === "DELIVERED"
           ? { deliveredAt: marketplaceOrder?.deliveredAt ?? new Date() }
+          : {}),
+        ...(trackingNumber && !marketplaceOrder?.trackingLockedAt
+          ? trackingLockWriteFields("partner")
           : {}),
       },
     })

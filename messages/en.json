@@ -2010,6 +2010,8 @@
     "trackingInvalid": "This tracking number is not recognized by the carrier.",
     "trackingValidating": "Verifying tracking number with the carrier…",
     "trackingVerified": "Tracking verified — real-time updates enabled for the buyer.",
+    "trackingLocked": "Locked",
+    "trackingLockedHint": "Carrier-validated tracking — cannot be changed. Contact support if incorrect.",
     "trackingHint": "Paste the exact label number. Random values are rejected.",
     "carrierRequired": "Choose an approved carrier for the delivery country.",
     "updateFailed": "Update failed",

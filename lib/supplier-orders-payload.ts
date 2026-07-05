@@ -4,6 +4,7 @@ import { aggregateBlindLinesForSupplier } from "@/lib/blind-dropship-settlement"
 import { resolveMarketplaceOrderLineImageUrl } from "@/lib/cart-line-image"
 import { formatOrderShippingAddress } from "@/lib/order-shipping-address"
 import { extractShippingCountryIso2FromAddress } from "@/lib/trusted-carriers-shared"
+import { isSupplierTrackingLocked } from "@/lib/order-tracking-lock.shared"
 import { resolveSupplierPayoutCentsFromOrder } from "@/lib/marketplace-order-settlement"
 import { orderPayoutTiming, payoutStatusLabel } from "@/lib/order-payout-policy"
 import { prisma } from "@/lib/prisma"
@@ -59,6 +60,8 @@ export type SupplierFulfillmentOrder = {
   shippedAt: string | null
   trackingCarrier: string | null
   trackingNumber: string | null
+  trackingLocked: boolean
+  trackingVerifiedBy: string | null
   shippingAddressFormatted: string
   shippingCountryIso2: string
   canMarkShipped: boolean
@@ -125,10 +128,22 @@ export function mapMarketplaceOrder(o: SupplierOrderRow): SupplierFulfillmentOrd
     shippedAt: o.shippedAt?.toISOString() ?? null,
     trackingCarrier: o.trackingCarrier,
     trackingNumber: o.trackingNumber,
+    trackingLocked: isSupplierTrackingLocked({
+      trackingLockedAt: o.trackingLockedAt,
+      trackingNumber: o.trackingNumber,
+      status: o.status,
+    }),
+    trackingVerifiedBy: o.trackingVerifiedBy,
     shippingAddressFormatted: formatOrderShippingAddress(o.shippingAddress),
     shippingCountryIso2: extractShippingCountryIso2FromAddress(o.shippingAddress),
     canMarkPreparing: o.status === "paid",
-    canMarkShipped: o.status === "paid" || o.status === "preparing",
+    canMarkShipped:
+      (o.status === "paid" || o.status === "preparing") &&
+      !isSupplierTrackingLocked({
+        trackingLockedAt: o.trackingLockedAt,
+        trackingNumber: o.trackingNumber,
+        status: o.status,
+      }),
     supplierPreparingAt: o.supplierPreparingAt?.toISOString() ?? null,
     product: {
       id: o.product.id,
@@ -249,6 +264,8 @@ function mapBlindOrder(
     shippedAt: order.status === "shipped" ? order.updatedAt.toISOString() : null,
     trackingCarrier: order.trackingCarrier,
     trackingNumber: order.trackingNumber,
+    trackingLocked: Boolean(order.trackingNumber),
+    trackingVerifiedBy: order.trackingNumber ? "partner" : null,
     shippingAddressFormatted: formatOrderShippingAddress(order.shippingAddress),
     shippingCountryIso2: extractShippingCountryIso2FromAddress(order.shippingAddress),
     canMarkShipped: false,

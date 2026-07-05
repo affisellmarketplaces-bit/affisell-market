@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { z } from "zod"
 
 import { validateShipTrackingForShip } from "@/lib/ship-tracking-validate"
+import { assertSupplierMayRegisterTracking } from "@/lib/order-tracking-lock.shared"
 import { extractShippingCountryIso2FromAddress, isTrustedCarrierLabelForCountry } from "@/lib/trusted-carriers-shared"
 import { prisma } from "@/lib/prisma"
 
@@ -45,10 +46,23 @@ export async function POST(req: Request) {
   if (parsed.data.orderId) {
     const order = await prisma.order.findFirst({
       where: { id: parsed.data.orderId, supplierId: session.user.id },
-      select: { shippingAddress: true, customerEmail: true },
+      select: {
+        shippingAddress: true,
+        customerEmail: true,
+        trackingNumber: true,
+        trackingLockedAt: true,
+        status: true,
+      },
     })
     if (!order) {
       return Response.json({ error: "Order not found" }, { status: 404 })
+    }
+    const lockGate = assertSupplierMayRegisterTracking(order, parsed.data.trackingNumber)
+    if (!lockGate.ok) {
+      return Response.json(
+        { valid: false, code: lockGate.code, message: lockGate.message },
+        { status: 200 }
+      )
     }
     countryIso2 = extractShippingCountryIso2FromAddress(order.shippingAddress)
   }

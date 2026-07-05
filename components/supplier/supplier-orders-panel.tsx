@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   Coins,
   Loader2,
+  Lock,
   MapPin,
   Package,
   Truck,
@@ -69,6 +70,8 @@ type OrderRow = {
   shippedAt: string | null
   trackingCarrier: string | null
   trackingNumber: string | null
+  trackingLocked: boolean
+  trackingVerifiedBy: string | null
   shippingAddressFormatted: string
   shippingCountryIso2: string
   product: {
@@ -685,9 +688,18 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                       {o.status === "shipped" && o.trackingNumber ? (
                         <div className="mt-3 flex items-center gap-2 rounded-lg border border-emerald-200/80 bg-emerald-50/90 px-3 py-2 text-sm text-emerald-950 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-100">
                           <Truck className="size-4 shrink-0" aria-hidden />
-                          <span className="min-w-0 truncate font-medium">
+                          <span className="min-w-0 flex-1 truncate font-medium">
                             {o.trackingCarrier ?? "Carrier"} · {o.trackingNumber}
                           </span>
+                          {o.trackingLocked ? (
+                            <span
+                              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-900/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-900 dark:bg-emerald-100/10 dark:text-emerald-100"
+                              title={msg("trackingLockedHint")}
+                            >
+                              <Lock className="size-3" aria-hidden />
+                              {msg("trackingLocked")}
+                            </span>
+                          ) : null}
                         </div>
                       ) : null}
                     </div>

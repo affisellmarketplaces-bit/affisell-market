@@ -10,6 +10,7 @@ import {
 import { resolveSupplierAdapterForGroup } from "@/lib/suppliers/place-order-bridge"
 import { prisma } from "@/lib/prisma"
 import { recordOrderTrackingEvent } from "@/lib/order-tracking-event"
+import { trackingLockWriteFields } from "@/lib/order-tracking-lock.shared"
 
 const POLL_STATUSES = ["PENDING", "PROCESSING", "CONFIRMED", "SHIPPED"] as const
 
@@ -34,6 +35,7 @@ export async function syncSupplierFulfillmentOrderStatus(
               id: true,
               customerEmail: true,
               trackingNumber: true,
+              trackingLockedAt: true,
               shippedAt: true,
               deliveredAt: true,
               fulfillmentStatus: true,
@@ -104,6 +106,9 @@ export async function syncSupplierFulfillmentOrderStatus(
       }
       if (remote.status === "DELIVERED") {
         orderData.deliveredAt = marketplaceOrder.deliveredAt ?? new Date()
+      }
+      if (trackingNumber && !marketplaceOrder.trackingLockedAt) {
+        Object.assign(orderData, trackingLockWriteFields("partner"))
       }
       await prisma.order.update({ where: { id: line.orderId }, data: orderData })
 
