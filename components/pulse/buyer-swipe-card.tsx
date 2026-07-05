@@ -24,15 +24,19 @@ import {
 
 import { affisellBrand } from "@/lib/affisell-brand"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
+import {
+  resolveLockedSwipeAxis,
+  resolveSwipeDirection,
+  type PulseSwipeAxis,
+  type PulseSwipeDirection,
+} from "@/lib/pulse-swipe-gesture"
 import { cn } from "@/lib/utils"
 
 import { PulseProductMediaStage } from "@/components/pulse/pulse-product-media-stage"
 
-const SWIPE_THRESHOLD = 64
-const VELOCITY_COMMIT = 380
 const EXIT = 520
 
-export type BuyerSwipeDirection = "up" | "down" | "left" | "right"
+export type BuyerSwipeDirection = PulseSwipeDirection
 
 const SWIPE_GLYPH: Record<BuyerSwipeDirection, string> = {
   up: "↑",
@@ -49,6 +53,7 @@ function SwipeGestureHint({
   badgeClassName,
   style,
   className,
+  mobileHidden = false,
 }: {
   direction: BuyerSwipeDirection
   icon: typeof ShoppingBag
@@ -57,9 +62,11 @@ function SwipeGestureHint({
   badgeClassName?: string
   style?: { opacity: MotionValue<number> }
   className?: string
+  /** Hide on mobile — dock shows the same actions. */
+  mobileHidden?: boolean
 }) {
   return (
-    <motion.div style={style} className={className}>
+    <motion.div style={style} className={cn(mobileHidden && "max-sm:hidden", className)}>
       <div
         className={cn(
           affisellBrand.epoxyGestureBadge,
@@ -98,10 +105,11 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
   const x = useMotionValue(0)
   const y = useMotionValue(0)
   const exitingRef = useRef(false)
+  const lockedAxisRef = useRef<PulseSwipeAxis | null>(null)
 
   const rotate = useTransform(x, [-220, 0, 220], [-8, 0, 8])
-  const stackScale = 1 - stackIndex * 0.04
-  const stackY = stackIndex * 12
+  const stackScale = 1 - stackIndex * (stackIndex === 0 ? 0 : 0.035)
+  const stackY = stackIndex * (stackIndex === 0 ? 0 : 8)
 
   const cartOpacity = useTransform(y, [-20, -90], [0, 1])
   const saveOpacity = useTransform(y, [20, 90], [0, 1])
@@ -155,31 +163,31 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
     },
   }))
 
-  const resolveDirection = (offset: { x: number; y: number }, velocity: { x: number; y: number }) => {
-    const absX = Math.abs(offset.x)
-    const absY = Math.abs(offset.y)
-    if (absX < SWIPE_THRESHOLD && absY < SWIPE_THRESHOLD) return null
+  const resolveDirection = (offset: { x: number; y: number }, velocity: { x: number; y: number }) =>
+    resolveSwipeDirection(offset, velocity, lockedAxisRef.current)
 
-    if (absX >= absY) {
-      if (offset.x > SWIPE_THRESHOLD || velocity.x > VELOCITY_COMMIT) return "right" as const
-      if (offset.x < -SWIPE_THRESHOLD || velocity.x < -VELOCITY_COMMIT) return "left" as const
-      return null
-    }
-    if (offset.y < -SWIPE_THRESHOLD || velocity.y < -VELOCITY_COMMIT) return "up" as const
-    if (offset.y > SWIPE_THRESHOLD || velocity.y > VELOCITY_COMMIT) return "down" as const
-    return null
+  const handleDragStart = () => {
+    if (!isTop) return
+    lockedAxisRef.current = null
   }
 
   const handleDrag = (_: unknown, info: PanInfo) => {
     if (!isTop) return
-    const px = Math.max(-1, Math.min(1, info.offset.x / 110))
-    const py = Math.max(-1, Math.min(1, info.offset.y / 110))
+    lockedAxisRef.current = resolveLockedSwipeAxis(info.offset, lockedAxisRef.current)
+    if (lockedAxisRef.current === "x") {
+      y.set(0)
+    } else if (lockedAxisRef.current === "y") {
+      x.set(0)
+    }
+    const px = Math.max(-1, Math.min(1, x.get() / 110))
+    const py = Math.max(-1, Math.min(1, y.get() / 110))
     onDragProgress?.({ x: px, y: py })
   }
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     if (!isTop || exitingRef.current) return
     const direction = resolveDirection(info.offset, info.velocity)
+    lockedAxisRef.current = null
     if (direction) {
       void flyOut(direction)
       return
@@ -205,8 +213,9 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
         className={cn("h-full touch-none select-none", isTop && "cursor-grab active:cursor-grabbing")}
         style={{ x: isTop ? x : 0, y: isTop ? y : 0, rotate: isTop ? rotate : 0 }}
         drag={isTop}
-        dragElastic={0.45}
-        dragMomentum
+        dragElastic={0.38}
+        dragMomentum={false}
+        onDragStart={handleDragStart}
         onDrag={handleDrag}
         onDragEnd={handleDragEnd}
       >
@@ -234,6 +243,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             badgeClassName="border-emerald-300/50 text-emerald-100"
             style={{ opacity: cartOpacity }}
             className="pointer-events-none absolute left-1/2 top-8 z-20 -translate-x-1/2"
+            mobileHidden
           />
 
           <SwipeGestureHint
@@ -244,6 +254,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             badgeClassName="border-amber-300/50 text-amber-100"
             style={{ opacity: saveOpacity }}
             className="pointer-events-none absolute bottom-[38%] left-1/2 z-20 -translate-x-1/2"
+            mobileHidden
           />
 
           <SwipeGestureHint
@@ -254,6 +265,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             badgeClassName="border-violet-300/50 text-violet-100"
             style={{ opacity: buyOpacity }}
             className="pointer-events-none absolute right-3 top-1/2 z-20 -translate-y-1/2 sm:right-4"
+            mobileHidden
           />
 
           <SwipeGestureHint
@@ -263,6 +275,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             badgeClassName="text-white"
             style={{ opacity: skipOpacity }}
             className="pointer-events-none absolute left-3 top-1/2 z-20 -translate-y-1/2 sm:left-4"
+            mobileHidden
           />
         </article>
       </motion.div>

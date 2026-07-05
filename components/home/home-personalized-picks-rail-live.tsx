@@ -14,7 +14,7 @@ import type { BuyerPersonalizedPicksPayload } from "@/lib/buyer-personalization-
 type Props = {
   initialPicks: BuyerPersonalizedPicksPayload
   className?: string
-  variant?: "default" | "compact"
+  variant?: "default" | "compact" | "pulse"
 }
 
 const fetcher = (url: string) =>

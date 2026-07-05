@@ -31,7 +31,7 @@ import type { BuyerPersonalizedPicksPayload } from "@/lib/buyer-personalization-
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
 import { cn } from "@/lib/utils"
 
-const STACK_VISIBLE = 3
+const STACK_VISIBLE = 2
 const PREFETCH_WHEN_LEFT = 4
 
 function shuffleItems(items: PulseFeedItem[]): PulseFeedItem[] {
@@ -397,7 +397,7 @@ export function BuyerSwipeCommerce({
       data-testid="affisell-pulse"
       className={cn(
         affisellBrand.epoxyPage,
-        "affisell-swipe-commerce fixed inset-0 z-[140] flex flex-col"
+        "affisell-swipe-commerce fixed inset-0 z-[140] flex h-[100dvh] flex-col overflow-hidden"
       )}
     >
       <div className={affisellBrand.epoxyCanvas} aria-hidden />
@@ -496,16 +496,17 @@ export function BuyerSwipeCommerce({
       </header>
 
       {!categoryId && !subcategoryId && initialPersonalizedPicks ? (
-        <div className="relative z-30 mx-auto w-full max-w-[420px] shrink-0 px-2 sm:px-3">
+        <div className="affisell-swipe-picks relative z-30 mx-auto w-full max-w-[420px] shrink-0 px-2 sm:px-3">
           <HomePersonalizedPicksRailLive
             initialPicks={initialPersonalizedPicks}
-            variant="compact"
+            variant="pulse"
           />
         </div>
       ) : null}
 
-      <main className="affisell-swipe-stage relative z-10 flex min-h-0 flex-1 flex-col px-2 pb-1 sm:px-3 sm:pb-2">
-        <div className="relative mx-auto min-h-0 w-full max-w-[380px] flex-1">
+      <div className="affisell-swipe-body flex min-h-0 flex-1 flex-col">
+      <main className="affisell-swipe-stage relative z-10 flex min-h-0 flex-1 flex-col px-2 pb-0 sm:px-3 sm:pb-2">
+        <div className="affisell-swipe-card-well relative mx-auto min-h-0 w-full max-w-[380px] flex-1">
           <AnimatePresence mode="popLayout">
             {visibleStack.length === 0 && loading ? (
               <motion.div
@@ -532,8 +533,8 @@ export function BuyerSwipeCommerce({
           </AnimatePresence>
 
           {activeItem ? (
-            <div className="affisell-swipe-commerce-ribbon pointer-events-none absolute inset-x-0 bottom-0 z-40">
-              <div className="pointer-events-auto px-2.5 pb-1.5 pt-8 sm:px-3 sm:pb-2.5 sm:pt-12">
+            <div className="affisell-swipe-commerce-ribbon pointer-events-none absolute inset-x-0 bottom-0 z-40 max-sm:pb-0">
+              <div className="pointer-events-auto px-2.5 pb-2 pt-10 sm:px-3 sm:pb-2.5 sm:pt-12">
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   {activeItem.boosted ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/25 px-1.5 py-px text-[9px] font-bold uppercase text-cyan-100 ring-1 ring-cyan-400/35 backdrop-blur-sm sm:px-2 sm:py-0.5 sm:text-[10px]">
@@ -576,11 +577,13 @@ export function BuyerSwipeCommerce({
           deckEmpty={deck.length === 0}
           canUndo={skippedPool.length > 0}
           onSwipe={(direction) => {
-            void commitSwipe(direction)
+            if (busy || deck.length === 0) return
+            topCardRef.current?.swipe(direction)
           }}
           onUndo={handleUndo}
         />
       </main>
+      </div>
 
       <AnimatePresence>
         {toast ? (

@@ -33,7 +33,7 @@ type DockButtonProps = {
   onClick: () => void
   variant?: "default" | "cart" | "buy" | "drop"
   className?: string
-  compact?: boolean
+  layout?: "mobile" | "desktop"
 }
 
 function DockButton({
@@ -45,7 +45,7 @@ function DockButton({
   onClick,
   variant = "default",
   className,
-  compact = false,
+  layout = "desktop",
 }: DockButtonProps) {
   const shell =
     variant === "buy"
@@ -56,6 +56,8 @@ function DockButton({
           ? affisellBrand.epoxyActionDrop
           : affisellBrand.epoxyActionBtn
 
+  const mobile = layout === "mobile"
+
   return (
     <button
       type="button"
@@ -65,32 +67,50 @@ function DockButton({
       data-testid={direction ? `pulse-swipe-dock-${direction}` : "pulse-swipe-dock-undo"}
       className={cn(
         shell,
-        "touch-manipulation",
-        "min-h-[2.75rem] w-full gap-1 px-1 py-2 sm:min-h-0 sm:gap-0.5 sm:py-2",
-        variant === "buy" && "sm:shadow-lg",
+        "touch-manipulation transition-transform active:scale-[0.97]",
+        mobile
+          ? cn(
+              "flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-1.5",
+              variant === "buy" && "min-h-[3.55rem] shadow-[0_0_28px_-6px_rgba(124,58,237,0.85)]"
+            )
+          : "min-h-[2.75rem] w-full gap-1 px-1 py-2 sm:min-h-0 sm:gap-0.5 sm:py-2",
+        variant === "buy" && !mobile && "sm:shadow-lg",
         className
       )}
     >
-      <Icon className="size-[18px] shrink-0 sm:size-5" aria-hidden />
-      {compact && direction ? (
-        <span className="flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-[0.1em] leading-none">
-          <span aria-hidden>{DIRECTION_GLYPH[direction]}</span>
-          <span>{label}</span>
+      {direction && mobile ? (
+        <span className="text-[10px] font-black leading-none opacity-90" aria-hidden>
+          {DIRECTION_GLYPH[direction]}
         </span>
-      ) : (
-        <DockActionLabel direction={direction}>{label}</DockActionLabel>
-      )}
+      ) : null}
+      <Icon
+        className={cn("shrink-0", mobile ? "size-5" : "size-[18px] sm:size-5")}
+        aria-hidden
+      />
+      <DockActionLabel direction={direction} layout={layout}>
+        {label}
+      </DockActionLabel>
     </button>
   )
 }
 
 function DockActionLabel({
   direction,
+  layout,
   children,
 }: {
   direction?: SwipeDockDirection
+  layout: "mobile" | "desktop"
   children: ReactNode
 }) {
+  if (layout === "mobile") {
+    return (
+      <span className="max-w-full truncate text-[8px] font-bold uppercase tracking-[0.12em] leading-none">
+        {children}
+      </span>
+    )
+  }
+
   return (
     <span className="flex flex-col items-center gap-0.5 leading-none">
       {direction ? (
@@ -123,27 +143,36 @@ export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }:
       className={cn(
         affisellBrand.epoxyPanel,
         "affisell-swipe-dock affisell-swipe-dock-panel relative z-50 mx-auto w-full max-w-[380px] shrink-0 px-2 py-2 sm:px-4 sm:py-3",
-        "pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+        "pb-[max(0.35rem,env(safe-area-inset-bottom))]"
       )}
     >
-      <div className="relative mx-auto max-w-[19rem] space-y-1.5 sm:hidden">
+      <div className="relative mx-auto sm:hidden">
         <div
-          className="pointer-events-none absolute inset-[12%_6%_22%] flex items-center justify-center"
+          className="pointer-events-none absolute inset-x-[8%] top-[18%] h-px bg-gradient-to-r from-transparent via-violet-300/35 to-transparent"
           aria-hidden
-        >
-          <div className="absolute h-full w-px bg-gradient-to-b from-emerald-400/0 via-violet-300/35 to-amber-300/0" />
-          <div className="absolute h-px w-full bg-gradient-to-r from-white/0 via-violet-300/30 to-white/0" />
-          <span className="relative size-1.5 rounded-full bg-violet-300/50 shadow-[0_0_10px_rgba(196,181,253,0.65)]" />
-        </div>
-
-        <p className="text-center text-[8px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
-          {t("hint")}
-        </p>
-
-        <div className="grid grid-cols-3 gap-1.5">
-          <div aria-hidden />
+        />
+        <div className="grid grid-cols-[1fr_1.15fr_1fr_1fr_auto] items-stretch gap-1.5">
           <DockButton
-            compact
+            layout="mobile"
+            direction="left"
+            label={t("skipShort")}
+            ariaLabel={t("skip")}
+            icon={ChevronLeft}
+            disabled={disabled}
+            onClick={() => onSwipe("left")}
+          />
+          <DockButton
+            layout="mobile"
+            direction="right"
+            label={t("buyShort")}
+            ariaLabel={t("buy")}
+            icon={Zap}
+            variant="buy"
+            disabled={disabled}
+            onClick={() => onSwipe("right")}
+          />
+          <DockButton
+            layout="mobile"
             direction="up"
             label={t("cartShort")}
             ariaLabel={t("cart")}
@@ -152,39 +181,8 @@ export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }:
             disabled={disabled}
             onClick={() => onSwipe("up")}
           />
-          <div aria-hidden />
-        </div>
-
-        <div className="grid grid-cols-3 gap-1.5">
           <DockButton
-            compact
-            direction="left"
-            label={t("skipShort")}
-            ariaLabel={t("skip")}
-            icon={ChevronLeft}
-            disabled={disabled}
-            onClick={() => onSwipe("left")}
-          />
-          <div className="flex min-h-[2.75rem] items-center justify-center" aria-hidden>
-            <span className="size-1 rounded-full bg-white/20" />
-          </div>
-          <DockButton
-            compact
-            direction="right"
-            label={t("buyShort")}
-            ariaLabel={t("buy")}
-            icon={Zap}
-            variant="buy"
-            disabled={disabled}
-            onClick={() => onSwipe("right")}
-            className="min-h-[3.1rem] shadow-[0_0_22px_-4px_rgba(124,58,237,0.75)]"
-          />
-        </div>
-
-        <div className="grid grid-cols-3 gap-1.5">
-          <div aria-hidden />
-          <DockButton
-            compact
+            layout="mobile"
             direction="down"
             label={t("saveDropShort")}
             ariaLabel={t("saveDrop")}
@@ -193,17 +191,16 @@ export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }:
             disabled={disabled}
             onClick={() => onSwipe("down")}
           />
-          <div aria-hidden />
+          <DockButton
+            layout="mobile"
+            label={t("undoShort")}
+            ariaLabel={t("undo")}
+            icon={RotateCcw}
+            disabled={!canUndo || busy}
+            onClick={onUndo}
+            className="!min-w-[2.65rem] !rounded-2xl !px-0"
+          />
         </div>
-
-        <DockButton
-          label={t("undoShort")}
-          ariaLabel={t("undo")}
-          icon={RotateCcw}
-          disabled={!canUndo || busy}
-          onClick={onUndo}
-          className="!min-h-[2.35rem] !w-full !flex-row !gap-2 !rounded-full !py-1.5 opacity-90"
-        />
       </div>
 
       <p className="mb-1.5 hidden text-center text-[10px] font-semibold uppercase tracking-wider text-zinc-500 sm:mb-2 sm:block">
