@@ -10,6 +10,8 @@ export type { StorefrontPresetAb } from "@/lib/storefront-preset-ab-shared"
 export type StorefrontBrandOps = {
   /** ISO timestamp — idempotent Brand Pulse nudge email */
   brandPulseReminderSentAt?: string
+  /** ISO timestamp — custom domain activation nudge (once per store) */
+  customDomainNudgeSentAt?: string
   /** ISO timestamp — weekly digest cooldown */
   brandPulseWeeklyDigestSentAt?: string
   /** Last recorded Brand Pulse score (weekly digest snapshot) */
@@ -27,6 +29,9 @@ export function parseStorefrontBrandOps(raw: unknown): StorefrontBrandOps | unde
 
   if (typeof o.brandPulseReminderSentAt === "string" && o.brandPulseReminderSentAt.trim()) {
     ops.brandPulseReminderSentAt = o.brandPulseReminderSentAt.trim().slice(0, 40)
+  }
+  if (typeof o.customDomainNudgeSentAt === "string" && o.customDomainNudgeSentAt.trim()) {
+    ops.customDomainNudgeSentAt = o.customDomainNudgeSentAt.trim().slice(0, 40)
   }
   if (typeof o.brandPulseWeeklyDigestSentAt === "string" && o.brandPulseWeeklyDigestSentAt.trim()) {
     ops.brandPulseWeeklyDigestSentAt = o.brandPulseWeeklyDigestSentAt.trim().slice(0, 40)

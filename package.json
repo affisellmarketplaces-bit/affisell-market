@@ -21,6 +21,7 @@
     "cron:retry-pending-clawback": "node scripts/cron-call.mjs /api/cron/retry-pending-clawback",
     "cron:repurchase-reminder": "node scripts/cron-call.mjs /api/cron/repurchase-reminder",
     "cron:abandoned-cart": "node scripts/cron-call.mjs /api/cron/abandoned-cart",
+    "cron:custom-domain-nudge": "node scripts/cron-call.mjs /api/cron/custom-domain-nudge",
     "cron:call": "node scripts/cron-call.mjs",
     "diagnose:pending-orders": "tsx scripts/diagnose-pending-orders.ts",
     "cleanup:stale-pending": "tsx scripts/cleanup-stale-pending-orders.ts",

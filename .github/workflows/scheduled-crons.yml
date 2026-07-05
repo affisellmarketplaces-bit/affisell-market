@@ -65,6 +65,7 @@ jobs:
             "/api/cron/migrate" \
             "/api/cron/review-reminder" \
             "/api/cron/repurchase-reminder" \
+            "/api/cron/custom-domain-nudge" \
             "/api/cron/wishlist-price-alerts" \
             "/api/cron/adjust-variant-pricing" \
             "/api/cron/stripe-health" \
