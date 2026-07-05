@@ -131,4 +131,9 @@ describe("payout-refund-pipeline critical paths", () => {
     expect(payoutReconcileExceedsTolerance(1000, 1001)).toBe(false)
     expect(payoutReconcileExceedsTolerance(1000, 1002)).toBe(true)
   })
+
+  it("partial refund clawback allows PARTIAL reversal batch", () => {
+    const verdict = assessRefundReversalBatch([{ status: "PARTIAL" }], 1, false)
+    expect(verdict.allowed).toBe(true)
+  })
 })

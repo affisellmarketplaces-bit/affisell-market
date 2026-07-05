@@ -6,8 +6,9 @@ import {
   beneficiaryUserIdForRole,
   clawbackLedgerIdempotencyKey,
   isLedgerPayoutRealized,
-  ledgerIdempotencyKeyForStripeTransfer,
   legacyLedgerIdempotencyKey,
+  ledgerIdempotencyKeyForStripeTransfer,
+  netClawbackCentsForRole,
   payoutTimestampFieldForRole,
   type PayoutRail,
 } from "@/lib/payout-settlement.shared"
@@ -168,6 +169,22 @@ export type ClawbackStripePayoutArgs = {
   userId: string
   amountCents: number
   productName: string
+  idempotencyKey?: string
+  note?: string
+}
+
+/** Sum CLAWBACK ledger entries for a beneficiary role (excludes phantom_legacy). */
+export function netClawbackCentsForRole(
+  rows: Array<{ beneficiaryRole: string; entryType: string; amountCents: number; payoutRail?: string | null }>,
+  role: "SUPPLIER" | "AFFILIATE"
+): number {
+  let net = 0
+  for (const row of rows) {
+    if (row.beneficiaryRole !== role) continue
+    if (row.payoutRail === "phantom_legacy") continue
+    if (row.entryType === "CLAWBACK") net += row.amountCents
+  }
+  return net
 }
 
 /** Clawback only when money actually moved (ledger with stripeTransferId or legacy paid timestamp). */
@@ -178,7 +195,13 @@ export async function recordClawbackIfPaidOut(
   const amountCents = Math.round(args.amountCents)
   if (amountCents < 1) return false
 
-  const key = clawbackLedgerIdempotencyKey(args.beneficiaryRole, args.orderId)
+  const key =
+    args.idempotencyKey?.trim() ||
+    clawbackLedgerIdempotencyKey(args.beneficiaryRole, args.orderId)
+  const note =
+    args.note?.trim() ||
+    `Mandatory refund clawback · ${args.productName}`
+
   try {
     await recordMerchantPayoutEntry(tx, {
       orderId: args.orderId,
@@ -187,7 +210,7 @@ export async function recordClawbackIfPaidOut(
       amountCents,
       payoutRail: "ledger_only",
       idempotencyKey: key,
-      note: `Mandatory refund clawback · ${args.productName}`,
+      note,
       entryType: "CLAWBACK",
     })
   } catch (e) {
@@ -213,6 +236,7 @@ export async function recordClawbackIfPaidOut(
     orderId: args.orderId,
     role: args.beneficiaryRole,
     amountCents,
+    idempotencyKey: key,
     result: "clawback",
   })
 
@@ -245,10 +269,10 @@ export async function loadOrderClawbackContext(orderId: string) {
         select: { role: true, amountCents: true, stripeTransferId: true },
       },
       merchantPayoutLedger: {
-        where: { entryType: "PAYOUT" },
         select: {
           beneficiaryRole: true,
           amountCents: true,
+          entryType: true,
           stripeTransferId: true,
           idempotencyKey: true,
           payoutRail: true,

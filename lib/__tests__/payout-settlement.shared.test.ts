@@ -5,6 +5,7 @@ import {
   isPayoutRail,
   ledgerIdempotencyKeyForStripeTransfer,
   legacyLedgerIdempotencyKey,
+  partialClawbackLedgerIdempotencyKey,
   payoutTimestampFieldForRole,
 } from "@/lib/payout-settlement.shared"
 
@@ -21,6 +22,12 @@ describe("payout-settlement.shared", () => {
   it("clawback keys are distinct per role", () => {
     expect(clawbackLedgerIdempotencyKey("SUPPLIER", "ord_1")).toBe("clawback:supplier:ord_1")
     expect(clawbackLedgerIdempotencyKey("AFFILIATE", "ord_1")).toBe("clawback:affiliate:ord_1")
+  })
+
+  it("partial clawback keys include stripe refund id", () => {
+    expect(partialClawbackLedgerIdempotencyKey("SUPPLIER", "ord_1", "re_abc")).toBe(
+      "clawback:partial:supplier:ord_1:re_abc"
+    )
   })
 
   it("payoutTimestampFieldForRole maps roles", () => {

@@ -9,16 +9,19 @@ import {
 } from "@/lib/order-payout-policy"
 import { confirmBlindDropshipDeliveryByBuyer } from "@/lib/blind-dropship-payout"
 import {
-  loadOrderClawbackContext,
-  recordClawbackIfPaidOut,
-  resolvedClawbackAmountCents,
-  roleWasPaidOut,
-} from "@/lib/payout-settlement"
-import {
   alertClawbackBlocked,
   evaluateClawbackSafety,
   markRefundPendingClawback,
 } from "@/lib/payout-reversal-safety"
+import {
+  loadOrderClawbackContext,
+  netClawbackCentsForRole,
+  recordClawbackIfPaidOut,
+  resolvedClawbackAmountCents,
+  roleWasPaidOut,
+} from "@/lib/payout-settlement"
+import { partialClawbackLedgerIdempotencyKey } from "@/lib/payout-settlement.shared"
+import { proportionalRefundShareCents } from "@/lib/transfer-reversal-amounts"
 import { prisma } from "@/lib/prisma"
 
 type Tx = Prisma.TransactionClient
@@ -175,18 +178,24 @@ export async function clawbackOrderPayoutsOnRefund(
 
   await prisma.$transaction(async (tx) => {
     if (roleWasPaidOut("SUPPLIER", order)) {
-      const amount = resolvedClawbackAmountCents("SUPPLIER", order)
-      await recordClawbackIfPaidOut(tx, {
-        orderId: order.id,
-        beneficiaryRole: "SUPPLIER",
-        userId: order.supplierId,
-        amountCents: amount,
-        productName,
-      })
+      const fullAmount = resolvedClawbackAmountCents("SUPPLIER", order)
+      const alreadyClawed = netClawbackCentsForRole(order.merchantPayoutLedger, "SUPPLIER")
+      const amount = Math.max(0, fullAmount - alreadyClawed)
+      if (amount > 0) {
+        await recordClawbackIfPaidOut(tx, {
+          orderId: order.id,
+          beneficiaryRole: "SUPPLIER",
+          userId: order.supplierId,
+          amountCents: amount,
+          productName,
+        })
+      }
     }
 
     if (roleWasPaidOut("AFFILIATE", order)) {
-      const amount = resolvedClawbackAmountCents("AFFILIATE", order)
+      const fullAmount = resolvedClawbackAmountCents("AFFILIATE", order)
+      const alreadyClawed = netClawbackCentsForRole(order.merchantPayoutLedger, "AFFILIATE")
+      const amount = Math.max(0, fullAmount - alreadyClawed)
       if (amount > 0) {
         await recordClawbackIfPaidOut(tx, {
           orderId: order.id,
@@ -200,6 +209,65 @@ export async function clawbackOrderPayoutsOnRefund(
   })
 
   console.log("[order-payout]", { orderId, result: "clawback_executed" })
+  return { executed: true }
+}
+
+export async function clawbackOrderPayoutsOnPartialRefund(
+  orderId: string,
+  args: { stripeRefundId: string; refundAmountCents: number; orderTotalCents: number },
+  options?: { skipSafetyCheck?: boolean }
+): Promise<ClawbackOnRefundResult> {
+  if (!options?.skipSafetyCheck) {
+    const safety = await evaluateClawbackSafety(orderId, {
+      stripeRefundId: args.stripeRefundId,
+      requireFullRecovery: false,
+    })
+    if (!safety.allowed) {
+      alertClawbackBlocked(orderId, safety.reason)
+      return { executed: false, skippedReason: safety.reason }
+    }
+  }
+
+  const order = await loadOrderClawbackContext(orderId)
+  if (!order) return { executed: false, skippedReason: "order_not_found" }
+
+  const productName = order.product.name
+  let anyRecorded = false
+
+  await prisma.$transaction(async (tx) => {
+    for (const role of ["SUPPLIER", "AFFILIATE"] as const) {
+      if (!roleWasPaidOut(role, order)) continue
+
+      const baseCents = resolvedClawbackAmountCents(role, order)
+      const amountCents = proportionalRefundShareCents(
+        baseCents,
+        args.refundAmountCents,
+        args.orderTotalCents
+      )
+      if (amountCents < 1) continue
+
+      const userId = role === "SUPPLIER" ? order.supplierId : order.affiliateId
+      if (!userId) continue
+
+      const recorded = await recordClawbackIfPaidOut(tx, {
+        orderId: order.id,
+        beneficiaryRole: role,
+        userId,
+        amountCents,
+        productName,
+        idempotencyKey: partialClawbackLedgerIdempotencyKey(role, order.id, args.stripeRefundId),
+        note: `Partial refund clawback · ${productName}`,
+      })
+      if (recorded) anyRecorded = true
+    }
+  })
+
+  console.log("[order-payout]", {
+    orderId,
+    stripeRefundId: args.stripeRefundId,
+    result: anyRecorded ? "partial_clawback_executed" : "partial_clawback_noop",
+  })
+
   return { executed: true }
 }
 

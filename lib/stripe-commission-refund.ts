@@ -2,7 +2,10 @@ import type Stripe from "stripe"
 
 import { calculateRefundSplit, orderToCommissionRefundSlice } from "@/lib/commission"
 import { notifyOrderCancelled } from "@/lib/emails/notify-order-cancelled"
-import { clawbackOrderPayoutsOnRefund } from "@/lib/order-payout"
+import {
+  clawbackOrderPayoutsOnPartialRefund,
+  clawbackOrderPayoutsOnRefund,
+} from "@/lib/order-payout"
 import {
   alertClawbackBlocked,
   assessRefundReversalBatch,
@@ -117,6 +120,22 @@ export async function handleStripeChargeRefundedWithCommission(
         commissionReturnedCents,
         taxReturnedCents,
       })
+
+      if (!isFullRefund) {
+        const partialSafety = await evaluateClawbackSafety(order.id, {
+          stripeRefundId: refund.id,
+          requireFullRecovery: false,
+        })
+        if (partialSafety.allowed) {
+          await clawbackOrderPayoutsOnPartialRefund(order.id, {
+            stripeRefundId: refund.id,
+            refundAmountCents: amountCents,
+            orderTotalCents: totalCents,
+          })
+        } else {
+          alertClawbackBlocked(order.id, partialSafety.reason)
+        }
+      }
     }
 
     const chargeRefunded = fullCharge.amount_refunded ?? refundedSum

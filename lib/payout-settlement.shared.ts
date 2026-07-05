@@ -44,6 +44,14 @@ export function clawbackLedgerIdempotencyKey(
   return `clawback:${role.toLowerCase()}:${orderId}`
 }
 
+export function partialClawbackLedgerIdempotencyKey(
+  role: "SUPPLIER" | "AFFILIATE",
+  orderId: string,
+  stripeRefundId: string
+): string {
+  return `clawback:partial:${role.toLowerCase()}:${orderId}:${stripeRefundId}`
+}
+
 export function beneficiaryUserIdForRole(
   order: { supplierId: string; affiliateId: string },
   role: "SUPPLIER" | "AFFILIATE"
