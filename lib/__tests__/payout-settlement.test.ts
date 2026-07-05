@@ -51,6 +51,7 @@ describe("payout-settlement clawback helpers", () => {
         {
           beneficiaryRole: "SUPPLIER",
           amountCents: 4500,
+          entryType: "PAYOUT",
           stripeTransferId: null,
           idempotencyKey: "payout:supplier:ord_1",
           payoutRail: "ledger_only",
@@ -67,6 +68,7 @@ describe("payout-settlement clawback helpers", () => {
         {
           beneficiaryRole: "AFFILIATE",
           amountCents: 1800,
+          entryType: "PAYOUT",
           stripeTransferId: "tr_aff",
           idempotencyKey: "stripe:tr:tr_aff",
           payoutRail: "connect",
@@ -93,6 +95,7 @@ describe("payout-settlement clawback helpers", () => {
         {
           beneficiaryRole: "AFFILIATE",
           amountCents: 1750,
+          entryType: "PAYOUT",
           stripeTransferId: "tr_aff",
           idempotencyKey: "stripe:tr:tr_aff",
           payoutRail: "connect",
