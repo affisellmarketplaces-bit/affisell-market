@@ -57,10 +57,10 @@ export function mapOutcomeToReversalStatus(args: {
   return "FAILED"
 }
 
-/** Idempotent persistence — safe on webhook replay. */
+/** Idempotent persistence — safe on webhook replay. Upgrades FAILED rows on cron retry. */
 export async function persistTransferReversal(
   input: PersistReversalInput
-): Promise<{ status: TransferReversalStatus; created: boolean }> {
+): Promise<{ status: TransferReversalStatus; created: boolean; upgraded: boolean }> {
   try {
     const row = await prisma.transferReversal.create({
       data: {
@@ -84,7 +84,7 @@ export async function persistTransferReversal(
       status: row.status,
       result: "persisted",
     })
-    return { status: row.status, created: true }
+    return { status: row.status, created: true, upgraded: false }
   } catch (error) {
     const code = (error as { code?: string })?.code
     if (code === "P2002") {
@@ -92,7 +92,34 @@ export async function persistTransferReversal(
         where: { idempotencyKey: input.idempotencyKey },
         select: { status: true },
       })
-      return { status: existing?.status ?? input.status, created: false }
+      const priorStatus = existing?.status ?? input.status
+      const canUpgrade =
+        priorStatus === "FAILED" &&
+        input.status !== "FAILED" &&
+        (input.status === "SUCCESS" || input.status === "PARTIAL")
+
+      if (canUpgrade) {
+        const row = await prisma.transferReversal.update({
+          where: { idempotencyKey: input.idempotencyKey },
+          data: {
+            status: input.status,
+            stripeReversalId: input.stripeReversalId?.trim() || null,
+            amountCents: input.amountCents,
+            errorMessage: null,
+          },
+          select: { status: true },
+        })
+        console.log("[payout-reversal-safety]", {
+          orderId: input.orderId,
+          stripeRefundId: input.stripeRefundId,
+          stripeTransferId: input.stripeTransferId,
+          status: row.status,
+          result: "upgraded_from_failed",
+        })
+        return { status: row.status, created: false, upgraded: true }
+      }
+
+      return { status: priorStatus, created: false, upgraded: false }
     }
     throw error
   }

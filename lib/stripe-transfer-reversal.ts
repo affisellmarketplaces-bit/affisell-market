@@ -128,7 +128,7 @@ async function persistOutcome(args: {
     args.stripeRefundId
   )
 
-  const { status, created } = await persistTransferReversal({
+  const { status, created, upgraded } = await persistTransferReversal({
     orderId: args.orderId,
     stripeRefundId: args.stripeRefundId,
     stripeTransferId: args.transferId,
@@ -142,7 +142,7 @@ async function persistOutcome(args: {
   })
 
   if (
-    created &&
+    (created || upgraded) &&
     args.attemptId &&
     args.outcome.status === "reversed" &&
     args.reverseCents > 0

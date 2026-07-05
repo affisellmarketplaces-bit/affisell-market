@@ -7,7 +7,7 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 /**
- * Retry ledger clawback for orders stuck in REFUND_PENDING_CLAWBACK.
+ * REFUND_PENDING_CLAWBACK worker: retry Stripe reversals → clawback ledger → REFUNDED.
  * `Authorization: Bearer ${CRON_SECRET}`
  */
 export async function GET(req: NextRequest) {
