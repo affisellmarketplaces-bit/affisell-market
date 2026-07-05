@@ -1,4 +1,5 @@
 import { normalizeCartVariantSignature } from "@/lib/cart-variant"
+import { resetCartAbandonmentOnActivity } from "@/lib/cart-abandonment-touch"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
 
@@ -74,6 +75,10 @@ export async function mergeGuestCartLinesForUser(
       },
     })
     merged += 1
+  }
+
+  if (merged > 0) {
+    await resetCartAbandonmentOnActivity(cart.id)
   }
 
   return { merged, skipped }

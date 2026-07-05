@@ -39,7 +39,8 @@ jobs:
             "/api/cron/reconcile-checkout-orders" \
             "/api/cron/sync-autods" \
             "/api/cron/sync-store-vercel-domains" \
-            "/api/cron/retry-pending-clawback"
+            "/api/cron/retry-pending-clawback" \
+            "/api/cron/abandoned-cart"
           do
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"

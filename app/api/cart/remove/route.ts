@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { resetCartAbandonmentOnActivity } from "@/lib/cart-abandonment-touch"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -18,16 +19,20 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Missing itemId" }, { status: 400 })
   }
 
-  const result = await prisma.cartItem.deleteMany({
+  const item = await prisma.cartItem.findFirst({
     where: {
       id: itemId,
       cart: { userId: session.user.id },
     },
+    select: { cartId: true },
   })
 
-  if (result.count === 0) {
+  if (!item) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
+
+  await prisma.cartItem.delete({ where: { id: itemId } })
+  await resetCartAbandonmentOnActivity(item.cartId)
 
   return NextResponse.json({ success: true })
 }

@@ -1604,11 +1604,15 @@ model AffiliateSwipe {
 }
 
 model Cart {
-  id        String     @id @default(cuid())
-  userId    String     @unique
-  updatedAt DateTime   @updatedAt
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]
+  id                         String     @id @default(cuid())
+  userId                     String     @unique
+  updatedAt                  DateTime   @updatedAt
+  /**
+   * Idempotent guard for proactive cart abandonment email (cron).
+   */
+  cartAbandonmentEmailSentAt DateTime?
+  user                       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items                      CartItem[]
 }
 
 model CartItem {

@@ -1,4 +1,5 @@
 import { auth } from "@/auth"
+import { resetCartAbandonmentOnActivity } from "@/lib/cart-abandonment-touch"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -31,6 +32,7 @@ export async function PATCH(
 
   if (!Number.isFinite(quantity) || quantity < 1) {
     await prisma.cartItem.delete({ where: { id } })
+    await resetCartAbandonmentOnActivity(cart.id)
     return Response.json({ ok: true, deleted: true })
   }
 
@@ -39,6 +41,7 @@ export async function PATCH(
     where: { id },
     data: { quantity: capped },
   })
+  await resetCartAbandonmentOnActivity(cart.id)
 
   return Response.json({ ok: true })
 }

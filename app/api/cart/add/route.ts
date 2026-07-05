@@ -1,4 +1,5 @@
 import { auth } from "@/auth"
+import { resetCartAbandonmentOnActivity } from "@/lib/cart-abandonment-touch"
 import { normalizeCartVariantSignature } from "@/lib/cart-variant"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
@@ -70,6 +71,8 @@ export async function POST(req: Request) {
       quantity: { increment: qty },
     },
   })
+
+  await resetCartAbandonmentOnActivity(cart.id)
 
   return Response.json({ ok: true })
 }
