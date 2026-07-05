@@ -1988,6 +1988,10 @@ model TransferAttempt {
   orderId          String
   role             TransferRole
   amountCents      Int
+  /**
+   * Cumulative Stripe reversal applied to this transfer (partial refunds increment).
+   */
+  reversedAmountCents Int            @default(0)
   destination      String
   status           TransferStatus @default(PENDING)
   stripeTransferId String?

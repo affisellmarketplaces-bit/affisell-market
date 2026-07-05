@@ -7,22 +7,24 @@ import {
 
 describe("payout-reversal-safety", () => {
   describe("mapOutcomeToReversalStatus", () => {
-    it("maps full reversal to SUCCESS", () => {
+    it("maps full depletion to SUCCESS", () => {
       expect(
         mapOutcomeToReversalStatus({
           runtimeStatus: "reversed",
-          requestedCents: 4500,
-          transferCents: 4500,
+          reverseCents: 250,
+          originalCents: 1000,
+          reversedSoFar: 750,
         })
       ).toBe("SUCCESS")
     })
 
-    it("maps proportional reversal to PARTIAL", () => {
+    it("maps incremental partial to PARTIAL", () => {
       expect(
         mapOutcomeToReversalStatus({
           runtimeStatus: "reversed",
-          requestedCents: 2250,
-          transferCents: 4500,
+          reverseCents: 250,
+          originalCents: 1000,
+          reversedSoFar: 0,
         })
       ).toBe("PARTIAL")
     })
@@ -31,8 +33,9 @@ describe("payout-reversal-safety", () => {
       expect(
         mapOutcomeToReversalStatus({
           runtimeStatus: "warning",
-          requestedCents: 4500,
-          transferCents: 4500,
+          reverseCents: 4500,
+          originalCents: 4500,
+          reversedSoFar: 0,
           reason: "insufficient funds",
         })
       ).toBe("FAILED")
@@ -42,8 +45,9 @@ describe("payout-reversal-safety", () => {
       expect(
         mapOutcomeToReversalStatus({
           runtimeStatus: "warning",
-          requestedCents: 4500,
-          transferCents: 4500,
+          reverseCents: 4500,
+          originalCents: 4500,
+          reversedSoFar: 0,
           reason: "already_reversed",
         })
       ).toBe("SUCCESS")
@@ -53,9 +57,22 @@ describe("payout-reversal-safety", () => {
       expect(
         mapOutcomeToReversalStatus({
           runtimeStatus: "skipped",
-          requestedCents: 0,
-          transferCents: 4500,
+          reverseCents: 0,
+          originalCents: 4500,
+          reversedSoFar: 0,
           reason: "partial_below_cent",
+        })
+      ).toBeNull()
+    })
+
+    it("skips persistence when transfer fully reversed", () => {
+      expect(
+        mapOutcomeToReversalStatus({
+          runtimeStatus: "skipped",
+          reverseCents: 0,
+          originalCents: 4500,
+          reversedSoFar: 4500,
+          reason: "fully_reversed",
         })
       ).toBeNull()
     })

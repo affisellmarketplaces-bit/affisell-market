@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/nextjs"
 
 import { prisma } from "@/lib/prisma"
 import { resolveReversibleTransfers } from "@/lib/stripe-transfer-reversal"
+import { transferFullyReversed } from "@/lib/transfer-reversal-amounts"
 
 export type ClawbackSafetyVerdict = {
   allowed: boolean
@@ -34,20 +35,22 @@ export function reversalIdempotencyKey(
 /** Map runtime outcome → persisted TransferReversalStatus. */
 export function mapOutcomeToReversalStatus(args: {
   runtimeStatus: "reversed" | "skipped" | "warning"
-  requestedCents: number
-  transferCents: number
+  reverseCents: number
+  originalCents: number
+  reversedSoFar: number
   reason?: string
 }): TransferReversalStatus | null {
-  const { runtimeStatus, requestedCents, transferCents, reason } = args
+  const { runtimeStatus, reverseCents, originalCents, reversedSoFar, reason } = args
 
   if (runtimeStatus === "skipped") {
-    if (reason === "partial_below_cent") return null
+    if (reason === "partial_below_cent" || reason === "fully_reversed") return null
     return "FAILED"
   }
 
   if (runtimeStatus === "reversed") {
-    if (requestedCents > 0 && requestedCents < transferCents) return "PARTIAL"
-    return "SUCCESS"
+    const after = reversedSoFar + reverseCents
+    if (after >= originalCents) return "SUCCESS"
+    return "PARTIAL"
   }
 
   if (reason === "already_reversed") return "SUCCESS"
@@ -57,7 +60,7 @@ export function mapOutcomeToReversalStatus(args: {
 /** Idempotent persistence — safe on webhook replay. */
 export async function persistTransferReversal(
   input: PersistReversalInput
-): Promise<TransferReversalStatus> {
+): Promise<{ status: TransferReversalStatus; created: boolean }> {
   try {
     const row = await prisma.transferReversal.create({
       data: {
@@ -81,7 +84,7 @@ export async function persistTransferReversal(
       status: row.status,
       result: "persisted",
     })
-    return row.status
+    return { status: row.status, created: true }
   } catch (error) {
     const code = (error as { code?: string })?.code
     if (code === "P2002") {
@@ -89,10 +92,42 @@ export async function persistTransferReversal(
         where: { idempotencyKey: input.idempotencyKey },
         select: { status: true },
       })
-      return existing?.status ?? input.status
+      return { status: existing?.status ?? input.status, created: false }
     }
     throw error
   }
+}
+
+/** Increment cumulative reversal on TransferAttempt — capped at amountCents. */
+export async function incrementTransferAttemptReversedCents(args: {
+  attemptId: string
+  reverseCents: number
+}): Promise<number> {
+  const reverseCents = Math.max(0, Math.round(args.reverseCents))
+  if (reverseCents < 1) return 0
+
+  const attempt = await prisma.transferAttempt.findUnique({
+    where: { id: args.attemptId },
+    select: { amountCents: true, reversedAmountCents: true },
+  })
+  if (!attempt) return 0
+
+  const next = Math.min(attempt.amountCents, attempt.reversedAmountCents + reverseCents)
+  if (next === attempt.reversedAmountCents) return next
+
+  await prisma.transferAttempt.update({
+    where: { id: args.attemptId },
+    data: { reversedAmountCents: next },
+  })
+
+  console.log("[payout-reversal-safety]", {
+    attemptId: args.attemptId,
+    reversedAmountCents: next,
+    amountCents: attempt.amountCents,
+    result: "reversed_incremented",
+  })
+
+  return next
 }
 
 export function assessRefundReversalBatch(
@@ -135,7 +170,13 @@ export async function evaluateClawbackSafety(
     select: {
       transferAttempts: {
         where: { status: "SUCCESS" },
-        select: { role: true, status: true, stripeTransferId: true, amountCents: true },
+        select: {
+          role: true,
+          status: true,
+          stripeTransferId: true,
+          amountCents: true,
+          reversedAmountCents: true,
+        },
       },
       payoutTransferIds: true,
     },
@@ -151,6 +192,23 @@ export async function evaluateClawbackSafety(
 
   if (reversible.length === 0) {
     return { allowed: true, reason: "no_stripe_transfers", pendingClawback: false }
+  }
+
+  const settledAttempts = order.transferAttempts.filter(
+    (attempt) => attempt.stripeTransferId?.trim() && attempt.amountCents > 0
+  )
+
+  if (
+    requireFullRecovery &&
+    settledAttempts.some(
+      (attempt) => !transferFullyReversed(attempt.amountCents, attempt.reversedAmountCents)
+    )
+  ) {
+    return {
+      allowed: false,
+      reason: "transfer_not_fully_reversed",
+      pendingClawback: true,
+    }
   }
 
   const reversalWhere = options?.stripeRefundId
