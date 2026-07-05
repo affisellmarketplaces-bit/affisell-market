@@ -27,6 +27,8 @@ const orderPayoutSelect = {
   deliveryConfirmedBy: true,
   payoutEligibleAt: true,
   payoutStatus: true,
+  supplierPayoutAt: true,
+  affiliatePayoutAt: true,
 } as const
 
 export async function confirmOrderDeliveryByBuyer(orderId: string, buyerUserId: string | null, buyerEmail: string) {
