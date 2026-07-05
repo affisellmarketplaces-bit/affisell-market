@@ -14,6 +14,11 @@ import {
   resolvedClawbackAmountCents,
   roleWasPaidOut,
 } from "@/lib/payout-settlement"
+import {
+  alertClawbackBlocked,
+  evaluateClawbackSafety,
+  markRefundPendingClawback,
+} from "@/lib/payout-reversal-safety"
 import { prisma } from "@/lib/prisma"
 
 type Tx = Prisma.TransactionClient
@@ -143,9 +148,28 @@ export async function executeOrderMerchantPayout(orderId: string): Promise<{ ok:
   return { ok: r.ok, reason: r.reason }
 }
 
-export async function clawbackOrderPayoutsOnRefund(orderId: string): Promise<void> {
+export type ClawbackOnRefundResult = {
+  executed: boolean
+  skippedReason?: string
+}
+
+export async function clawbackOrderPayoutsOnRefund(
+  orderId: string,
+  options?: { skipSafetyCheck?: boolean }
+): Promise<ClawbackOnRefundResult> {
+  if (!options?.skipSafetyCheck) {
+    const safety = await evaluateClawbackSafety(orderId, { requireFullRecovery: true })
+    if (!safety.allowed) {
+      if (safety.pendingClawback) {
+        await markRefundPendingClawback(orderId)
+      }
+      alertClawbackBlocked(orderId, safety.reason)
+      return { executed: false, skippedReason: safety.reason }
+    }
+  }
+
   const order = await loadOrderClawbackContext(orderId)
-  if (!order) return
+  if (!order) return { executed: false, skippedReason: "order_not_found" }
 
   const productName = order.product.name
 
@@ -174,6 +198,9 @@ export async function clawbackOrderPayoutsOnRefund(orderId: string): Promise<voi
       }
     }
   })
+
+  console.log("[order-payout]", { orderId, result: "clawback_executed" })
+  return { executed: true }
 }
 
 /**

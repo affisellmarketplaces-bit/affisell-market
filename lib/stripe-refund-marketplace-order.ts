@@ -51,7 +51,10 @@ export async function initiateMarketplaceOrderRefund(
     },
   })
   if (!order) return { ok: false, error: "order_not_found" }
-  if (order.paymentSettlementStatus === "REFUNDED") {
+  if (
+    order.paymentSettlementStatus === "REFUNDED" ||
+    order.paymentSettlementStatus === "REFUND_PENDING_CLAWBACK"
+  ) {
     return { ok: false, skipped: "already_refunded" }
   }
 

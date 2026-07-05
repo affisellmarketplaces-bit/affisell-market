@@ -1638,8 +1638,18 @@ enum OrderPaymentSettlementStatus {
   SETTLED
   PARTIALLY_REFUNDED
   REFUNDED
+  /**
+   * Buyer refunded but Connect transfer reversal failed or unverified — ledger clawback blocked.
+   */
+  REFUND_PENDING_CLAWBACK
   FAILED
   CANCELLED
+}
+
+enum TransferReversalStatus {
+  SUCCESS
+  FAILED
+  PARTIAL
 }
 
 enum TransferRole {
@@ -1963,6 +1973,7 @@ model Order {
 
   supplierFulfillmentLinks SupplierFulfillmentOrderLine[]
   stripeRefunds            OrderStripeRefund[]
+  transferReversals        TransferReversal[]
   transferAttempts         TransferAttempt[]
   autoBuyLog               FulfillmentLog?
 
@@ -2006,6 +2017,30 @@ model OrderStripeRefund {
   createdAt               DateTime @default(now())
 
   @@index([orderId])
+}
+
+/**
+ * Stripe Connect transfer reversal audit — one row per transfer × refund attempt.
+ */
+model TransferReversal {
+  id               String                 @id @default(cuid())
+  orderId          String
+  order            Order                  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  stripeRefundId   String
+  stripeTransferId String
+  stripeReversalId String?
+  role             String
+  requestedCents   Int
+  amountCents      Int                    @default(0)
+  status           TransferReversalStatus
+  errorMessage     String?
+  idempotencyKey   String                 @unique
+  createdAt        DateTime               @default(now())
+
+  @@index([orderId])
+  @@index([stripeRefundId])
+  @@index([stripeTransferId])
+  @@index([orderId, status])
 }
 
 /**

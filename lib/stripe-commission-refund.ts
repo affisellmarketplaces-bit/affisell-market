@@ -3,6 +3,12 @@ import type Stripe from "stripe"
 import { calculateRefundSplit, orderToCommissionRefundSlice } from "@/lib/commission"
 import { notifyOrderCancelled } from "@/lib/emails/notify-order-cancelled"
 import { clawbackOrderPayoutsOnRefund } from "@/lib/order-payout"
+import {
+  alertClawbackBlocked,
+  assessRefundReversalBatch,
+  evaluateClawbackSafety,
+  markRefundPendingClawback,
+} from "@/lib/payout-reversal-safety"
 import { reverseConnectTransfersForRefund } from "@/lib/stripe-transfer-reversal"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
@@ -64,6 +70,7 @@ export async function handleStripeChargeRefundedWithCommission(
     const slice = orderToCommissionRefundSlice(order)
     const totalCents = slice.totalCents ?? order.sellingPriceCents
     let refundedSum = 0
+    let lastStripeRefundId: string | null = null
 
     for (const refund of fullCharge.refunds?.data ?? []) {
       const existing = await prisma.orderStripeRefund.findUnique({
@@ -75,11 +82,13 @@ export async function handleStripeChargeRefundedWithCommission(
       }
 
       const amountCents = refund.amount ?? 0
-      const chargeRefundedAfter = (fullCharge.amount_refunded ?? refundedSum + amountCents)
+      const chargeRefundedAfter = fullCharge.amount_refunded ?? refundedSum + amountCents
       const isFullRefund = chargeRefundedAfter >= totalCents - 1
+      lastStripeRefundId = refund.id
 
       await reverseConnectTransfersForRefund({
         orderId: order.id,
+        stripeRefundId: refund.id,
         refundAmountCents: amountCents,
         orderTotalCents: totalCents,
         isFullRefund,
@@ -113,19 +122,39 @@ export async function handleStripeChargeRefundedWithCommission(
     const chargeRefunded = fullCharge.amount_refunded ?? refundedSum
     const isFullRefund = chargeRefunded >= totalCents - 1
 
+    let settlementStatus: "REFUNDED" | "PARTIALLY_REFUNDED" | "REFUND_PENDING_CLAWBACK" =
+      isFullRefund ? "REFUNDED" : "PARTIALLY_REFUNDED"
+
     if (isFullRefund) {
-      await clawbackOrderPayoutsOnRefund(order.id)
+      const safety = lastStripeRefundId
+        ? await evaluateClawbackSafety(order.id, {
+            stripeRefundId: lastStripeRefundId,
+            requireFullRecovery: true,
+          })
+        : await evaluateClawbackSafety(order.id, { requireFullRecovery: true })
+
+      if (safety.allowed) {
+        const clawback = await clawbackOrderPayoutsOnRefund(order.id, { skipSafetyCheck: true })
+        if (!clawback.executed) {
+          settlementStatus = "REFUND_PENDING_CLAWBACK"
+          alertClawbackBlocked(order.id, clawback.skippedReason ?? "clawback_not_executed")
+        }
+      } else {
+        await markRefundPendingClawback(order.id)
+        settlementStatus = "REFUND_PENDING_CLAWBACK"
+        alertClawbackBlocked(order.id, safety.reason)
+      }
     }
 
     await prisma.order.update({
       where: { id: order.id },
       data: {
-        paymentSettlementStatus: isFullRefund ? "REFUNDED" : "PARTIALLY_REFUNDED",
-        ...(isFullRefund ? { status: "refunded" } : {}),
+        paymentSettlementStatus: settlementStatus,
+        ...(isFullRefund && settlementStatus === "REFUNDED" ? { status: "refunded" } : {}),
       },
     })
 
-    if (isFullRefund) {
+    if (isFullRefund && settlementStatus === "REFUNDED") {
       await notifyOrderCancelled(orderId, {
         cancelReason: "Remboursement Stripe",
         refundAmountCents: chargeRefunded,

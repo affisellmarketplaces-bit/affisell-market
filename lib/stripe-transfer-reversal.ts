@@ -1,6 +1,11 @@
 import type { TransferRole } from "@prisma/client"
 import type Stripe from "stripe"
 
+import {
+  mapOutcomeToReversalStatus,
+  persistTransferReversal,
+  reversalIdempotencyKey,
+} from "@/lib/payout-reversal-safety"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 
@@ -9,13 +14,16 @@ export type TransferReversalOutcome = {
   role: TransferRole | "LIGHTNING"
   transferId: string
   amountCents: number
+  transferCents: number
   status: "reversed" | "skipped" | "warning"
   reason?: string
   reversalId?: string
+  persistedStatus?: "SUCCESS" | "FAILED" | "PARTIAL"
 }
 
-function reversalIdempotencyKey(orderId: string, transferId: string, refundKey: string): string {
-  return `reversal_${orderId}_${transferId}_${refundKey}`
+export type ReverseConnectTransfersResult = {
+  outcomes: TransferReversalOutcome[]
+  attemptedReversalCount: number
 }
 
 function proportionalCents(transferCents: number, refundCents: number, orderTotalCents: number): number {
@@ -69,13 +77,55 @@ export function resolveReversibleTransfers(input: ResolveTransferRowsInput): Arr
   return out
 }
 
+async function persistOutcome(args: {
+  orderId: string
+  stripeRefundId: string
+  role: TransferRole | "LIGHTNING"
+  transferId: string
+  transferCents: number
+  requestedCents: number
+  amountCents: number
+  outcome: TransferReversalOutcome
+}): Promise<TransferReversalOutcome> {
+  const persistedStatus = mapOutcomeToReversalStatus({
+    runtimeStatus: args.outcome.status,
+    requestedCents: args.requestedCents,
+    transferCents: args.transferCents,
+    reason: args.outcome.reason,
+  })
+
+  if (!persistedStatus) return args.outcome
+
+  const idempotencyKey = reversalIdempotencyKey(
+    args.orderId,
+    args.transferId,
+    args.stripeRefundId
+  )
+
+  const status = await persistTransferReversal({
+    orderId: args.orderId,
+    stripeRefundId: args.stripeRefundId,
+    stripeTransferId: args.transferId,
+    stripeReversalId: args.outcome.reversalId ?? null,
+    role: args.role,
+    requestedCents: args.requestedCents,
+    amountCents: args.amountCents,
+    status: persistedStatus,
+    errorMessage: args.outcome.reason ?? null,
+    idempotencyKey,
+  })
+
+  return { ...args.outcome, persistedStatus: status }
+}
+
 export async function reverseConnectTransfersForRefund(args: {
   orderId: string
+  stripeRefundId: string
   refundAmountCents: number
   orderTotalCents: number
   isFullRefund: boolean
   refundKey: string
-}): Promise<TransferReversalOutcome[]> {
+}): Promise<ReverseConnectTransfersResult> {
   const order = await prisma.order.findUnique({
     where: { id: args.orderId },
     select: {
@@ -89,7 +139,7 @@ export async function reverseConnectTransfersForRefund(args: {
       },
     },
   })
-  if (!order) return []
+  if (!order) return { outcomes: [], attemptedReversalCount: 0 }
 
   const transfers = resolveReversibleTransfers({
     transferAttempts: order.transferAttempts,
@@ -97,38 +147,53 @@ export async function reverseConnectTransfersForRefund(args: {
   })
   if (transfers.length === 0) {
     console.log("[stripe-reversal]", { orderId: args.orderId, result: "no_transfers" })
-    return []
+    return { outcomes: [], attemptedReversalCount: 0 }
   }
 
   const stripe = getStripeClient()
   const outcomes: TransferReversalOutcome[] = []
   const orderTotal = Math.max(1, Math.round(args.orderTotalCents))
+  let attemptedReversalCount = 0
 
   for (const row of transfers) {
-    let amountCents = row.amountCents
-    if (amountCents < 1) {
-      amountCents =
+    let transferCents = row.amountCents
+    if (transferCents < 1) {
+      transferCents =
         row.role === "SUPPLIER"
           ? order.supplierPayoutCents
           : row.role === "AFFILIATE"
             ? order.affiliatePayoutCents
             : 0
     }
-    if (amountCents < 1) {
-      outcomes.push({
+    if (transferCents < 1) {
+      const outcome: TransferReversalOutcome = {
         orderId: args.orderId,
         role: row.role,
         transferId: row.transferId,
         amountCents: 0,
+        transferCents: 0,
         status: "skipped",
         reason: "unknown_transfer_amount",
-      })
+      }
+      attemptedReversalCount += 1
+      outcomes.push(
+        await persistOutcome({
+          orderId: args.orderId,
+          stripeRefundId: args.stripeRefundId,
+          role: row.role,
+          transferId: row.transferId,
+          transferCents: 0,
+          requestedCents: 0,
+          amountCents: 0,
+          outcome,
+        })
+      )
       continue
     }
 
     const reverseCents = args.isFullRefund
-      ? amountCents
-      : proportionalCents(amountCents, args.refundAmountCents, orderTotal)
+      ? transferCents
+      : proportionalCents(transferCents, args.refundAmountCents, orderTotal)
 
     if (reverseCents < 1) {
       outcomes.push({
@@ -136,11 +201,14 @@ export async function reverseConnectTransfersForRefund(args: {
         role: row.role,
         transferId: row.transferId,
         amountCents: 0,
+        transferCents,
         status: "skipped",
         reason: "partial_below_cent",
       })
       continue
     }
+
+    attemptedReversalCount += 1
 
     try {
       const reversal = await stripe.transfers.createReversal(
@@ -148,14 +216,15 @@ export async function reverseConnectTransfersForRefund(args: {
         { amount: reverseCents },
         { idempotencyKey: reversalIdempotencyKey(args.orderId, row.transferId, args.refundKey) }
       )
-      outcomes.push({
+      const outcome: TransferReversalOutcome = {
         orderId: args.orderId,
         role: row.role,
         transferId: row.transferId,
         amountCents: reverseCents,
+        transferCents,
         status: "reversed",
         reversalId: reversal.id,
-      })
+      }
       console.log("[stripe-reversal]", {
         orderId: args.orderId,
         role: row.role,
@@ -164,42 +233,55 @@ export async function reverseConnectTransfersForRefund(args: {
         reversalId: reversal.id,
         result: "reversed",
       })
-    } catch (error) {
-      if (isAlreadyReversedError(error)) {
-        outcomes.push({
+      outcomes.push(
+        await persistOutcome({
           orderId: args.orderId,
+          stripeRefundId: args.stripeRefundId,
           role: row.role,
           transferId: row.transferId,
+          transferCents,
+          requestedCents: reverseCents,
           amountCents: reverseCents,
-          status: "warning",
-          reason: "already_reversed",
+          outcome,
         })
-        console.log("[stripe-reversal]", {
-          orderId: args.orderId,
-          transferId: row.transferId,
-          result: "already_reversed",
-        })
-        continue
-      }
-      const reason = error instanceof Error ? error.message : String(error)
-      outcomes.push({
+      )
+    } catch (error) {
+      const reason = isAlreadyReversedError(error)
+        ? "already_reversed"
+        : error instanceof Error
+          ? error.message
+          : String(error)
+      const outcome: TransferReversalOutcome = {
         orderId: args.orderId,
         role: row.role,
         transferId: row.transferId,
         amountCents: reverseCents,
+        transferCents,
         status: "warning",
         reason,
-      })
+      }
       console.log("[stripe-reversal]", {
         orderId: args.orderId,
         transferId: row.transferId,
-        result: "error",
+        result: isAlreadyReversedError(error) ? "already_reversed" : "error",
         reason,
       })
+      outcomes.push(
+        await persistOutcome({
+          orderId: args.orderId,
+          stripeRefundId: args.stripeRefundId,
+          role: row.role,
+          transferId: row.transferId,
+          transferCents,
+          requestedCents: reverseCents,
+          amountCents: reverseCents,
+          outcome,
+        })
+      )
     }
   }
 
-  return outcomes
+  return { outcomes, attemptedReversalCount }
 }
 
-export { proportionalCents, isAlreadyReversedError }
+export { proportionalCents, isAlreadyReversedError, reversalIdempotencyKey }

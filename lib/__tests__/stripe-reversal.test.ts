@@ -8,6 +8,14 @@ vi.mock("@/lib/stripe", () => ({
   }),
 }))
 
+vi.mock("@/lib/payout-reversal-safety", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/payout-reversal-safety")>()
+  return {
+    ...actual,
+    persistTransferReversal: vi.fn(async (input) => input.status),
+  }
+})
+
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     order: {
@@ -56,7 +64,7 @@ describe("stripe-transfer-reversal", () => {
     expect(rows[0]?.transferId).toBe("tr_sup")
   })
 
-  it("reverseConnectTransfersForRefund calls createReversal", async () => {
+  it("reverseConnectTransfersForRefund calls createReversal and persists", async () => {
     vi.mocked(prisma.order.findUnique).mockResolvedValue({
       id: "ord_1",
       supplierPayoutCents: 4500,
@@ -80,8 +88,9 @@ describe("stripe-transfer-reversal", () => {
 
     createReversal.mockResolvedValue({ id: "trr_1" })
 
-    const outcomes = await reverseConnectTransfersForRefund({
+    const result = await reverseConnectTransfersForRefund({
       orderId: "ord_1",
+      stripeRefundId: "re_1",
       refundAmountCents: 10000,
       orderTotalCents: 10000,
       isFullRefund: true,
@@ -89,7 +98,9 @@ describe("stripe-transfer-reversal", () => {
     })
 
     expect(createReversal).toHaveBeenCalledTimes(2)
-    expect(outcomes.filter((o) => o.status === "reversed")).toHaveLength(2)
+    expect(result.attemptedReversalCount).toBe(2)
+    expect(result.outcomes.filter((o) => o.status === "reversed")).toHaveLength(2)
+    expect(result.outcomes.every((o) => o.persistedStatus === "SUCCESS")).toBe(true)
   })
 
   it("isAlreadyReversedError detects duplicate reversal", () => {
@@ -97,7 +108,7 @@ describe("stripe-transfer-reversal", () => {
     expect(isAlreadyReversedError(new Error("network"))).toBe(false)
   })
 
-  it("continues with warning when transfer already reversed", async () => {
+  it("persists SUCCESS when transfer already reversed", async () => {
     vi.mocked(prisma.order.findUnique).mockResolvedValue({
       id: "ord_2",
       supplierPayoutCents: 4500,
@@ -115,15 +126,45 @@ describe("stripe-transfer-reversal", () => {
 
     createReversal.mockRejectedValue(new Error("already been reversed"))
 
-    const outcomes = await reverseConnectTransfersForRefund({
+    const result = await reverseConnectTransfersForRefund({
       orderId: "ord_2",
+      stripeRefundId: "re_2",
       refundAmountCents: 5000,
       orderTotalCents: 5000,
       isFullRefund: true,
       refundKey: "re_2",
     })
 
-    expect(outcomes[0]?.status).toBe("warning")
-    expect(outcomes[0]?.reason).toBe("already_reversed")
+    expect(result.outcomes[0]?.persistedStatus).toBe("SUCCESS")
+  })
+
+  it("persists FAILED on hard Stripe error", async () => {
+    vi.mocked(prisma.order.findUnique).mockResolvedValue({
+      id: "ord_3",
+      supplierPayoutCents: 4500,
+      affiliatePayoutCents: 0,
+      payoutTransferIds: null,
+      transferAttempts: [
+        {
+          role: "SUPPLIER",
+          status: "SUCCESS",
+          stripeTransferId: "tr_sup",
+          amountCents: 4500,
+        },
+      ],
+    } as never)
+
+    createReversal.mockRejectedValue(new Error("insufficient funds in account"))
+
+    const result = await reverseConnectTransfersForRefund({
+      orderId: "ord_3",
+      stripeRefundId: "re_3",
+      refundAmountCents: 5000,
+      orderTotalCents: 5000,
+      isFullRefund: true,
+      refundKey: "re_3",
+    })
+
+    expect(result.outcomes[0]?.persistedStatus).toBe("FAILED")
   })
 })
