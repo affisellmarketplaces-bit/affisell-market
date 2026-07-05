@@ -25,6 +25,7 @@ import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState, 
 
 import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
 import { BookingComingSoonRail } from "@/components/booking/booking-coming-soon-rail"
+import { BookingCheckoutPanel } from "@/components/booking/booking-checkout-panel"
 
 import { ListingBrowseSignalsRecorder } from "@/components/marketplace/listing-browse-signals-recorder"
 import { ListingPriceActionCard } from "@/components/marketplace/listing-price-action-card"
@@ -63,8 +64,6 @@ import {
   isExperienceListingKind,
   isServiceListingKind,
 } from "@/lib/booking/types"
-import { BookingSlotPicker } from "@/components/booking/booking-slot-picker"
-import { BookingNamedSeatPicker } from "@/components/booking/booking-named-seat-picker"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/stripe-minimum"
 import {
   clampPurchaseQuantity,
@@ -558,6 +557,16 @@ export function MarketplaceListingDetail({
   const bookingSlotRequired = bookingCheckoutLive && !selectedBookingSlotId
   const bookingSeatsRequired =
     experienceBookingLive && slotUsesNamedSeats && selectedSeatLabels.length === 0
+
+  const bookingCheckoutLabels = {
+    priceLabel: productT.priceLabel,
+    buyNowShort: productT.buyNowShort,
+    priceFluidityNote: productT.priceFluidityNote,
+    inStock: productT.inStock,
+    outOfStock: productT.outOfStock,
+    quantityOption: (count: number) => t(productT.quantityOption, { count }),
+    quantityAria: productT.quantityAria,
+  }
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
   const [useRewardCents, setUseRewardCents] = useState(0)
 
@@ -854,8 +863,8 @@ export function MarketplaceListingDetail({
         toast.error(messages.checkout.checkoutError, {
           description:
             locale === "fr"
-              ? "Réessayez ou ajoutez au panier."
-              : "Try again or add to cart.",
+              ? "Choisissez un créneau (et vos places si besoin), puis réessayez."
+              : "Pick a time slot (and seats if needed), then try again.",
         })
       }
     } finally {
@@ -1009,6 +1018,7 @@ export function MarketplaceListingDetail({
             <MobilePdpBuyPanel
               ref={mobilePurchaseRef}
               className="relative z-30 lg:hidden"
+              hidePurchaseControls={bookingCheckoutLive}
               titleHeadline={titleHeadline}
               titleSubline={titleSubline}
               categoryEyebrow={categoryEyebrow}
@@ -1069,6 +1079,37 @@ export function MarketplaceListingDetail({
                 reviews: (count) => t(productT.reviews, { count }),
               }}
             />
+            {bookingCheckoutLive ? (
+              <BookingCheckoutPanel
+                className="relative z-30 px-4 pb-3 lg:hidden"
+                productId={productId}
+                listingKind={listingKind}
+                selectedSlotId={selectedBookingSlotId}
+                onSelectSlot={handleSelectBookingSlot}
+                selectedSeatLabels={selectedSeatLabels}
+                onChangeSeatLabels={setSelectedSeatLabels}
+                onMapReady={setSlotUsesNamedSeats}
+                experienceBookingLive={experienceBookingLive}
+                serviceBookingLive={serviceBookingLive}
+                multiGuestBookingLive={multiGuestBookingLive}
+                slotUsesNamedSeats={slotUsesNamedSeats}
+                bookingSlotRequired={bookingSlotRequired}
+                bookingSeatsRequired={bookingSeatsRequired}
+                purchaseQty={purchaseQty}
+                onQuantityChange={setPurchaseQty}
+                bookingTicketStock={bookingTicketStock}
+                listingPriceEur={listingPriceEur}
+                activeRetailPriceEur={hasRetailCompare ? activeRetailPriceEur : null}
+                hasRetailCompare={hasRetailCompare}
+                buyNowLineSubtotalCents={buyNowLineSubtotalCents}
+                buyBusy={buyBusy}
+                onBuyNow={() => void buyNow()}
+                brandedStorefront={brandedStorefront}
+                reduceMotion={reduceMotion ?? false}
+                buyerRewardBadge={buyerRewardBadge}
+                labels={bookingCheckoutLabels}
+              />
+            ) : null}
             <div className="px-4 pb-3 lg:hidden">
               {tryOnReady ? (
                 <TryOnTrigger
@@ -1190,27 +1231,7 @@ export function MarketplaceListingDetail({
 
             {bookingCheckoutBlocked ? (
               <BookingComingSoonRail listingKind={listingKind} className="max-lg:hidden" />
-              ) : bookingCheckoutLive ? (
-                <>
-                  <BookingSlotPicker
-                    productId={productId}
-                    listingKind={listingKind}
-                    selectedSlotId={selectedBookingSlotId}
-                    onSelectSlot={handleSelectBookingSlot}
-                    className="max-lg:hidden"
-                  />
-                  {experienceBookingLive && selectedBookingSlotId ? (
-                    <BookingNamedSeatPicker
-                      className="max-lg:hidden"
-                      productId={productId}
-                      slotId={selectedBookingSlotId}
-                      selectedLabels={selectedSeatLabels}
-                      onChangeLabels={setSelectedSeatLabels}
-                      onMapReady={setSlotUsesNamedSeats}
-                    />
-                  ) : null}
-                </>
-              ) : (
+            ) : !bookingCheckoutLive ? (
             <>
             <ListingPriceActionCard
               className="max-lg:hidden"
@@ -1384,23 +1405,34 @@ export function MarketplaceListingDetail({
               {bookingCheckoutBlocked ? (
                 <BookingComingSoonRail listingKind={listingKind} />
               ) : bookingCheckoutLive ? (
-                <>
-                  <BookingSlotPicker
-                    productId={productId}
-                    listingKind={listingKind}
-                    selectedSlotId={selectedBookingSlotId}
-                    onSelectSlot={handleSelectBookingSlot}
-                  />
-                  {experienceBookingLive && selectedBookingSlotId ? (
-                    <BookingNamedSeatPicker
-                      productId={productId}
-                      slotId={selectedBookingSlotId}
-                      selectedLabels={selectedSeatLabels}
-                      onChangeLabels={setSelectedSeatLabels}
-                      onMapReady={setSlotUsesNamedSeats}
-                    />
-                  ) : null}
-                </>
+                <BookingCheckoutPanel
+                  productId={productId}
+                  listingKind={listingKind}
+                  selectedSlotId={selectedBookingSlotId}
+                  onSelectSlot={handleSelectBookingSlot}
+                  selectedSeatLabels={selectedSeatLabels}
+                  onChangeSeatLabels={setSelectedSeatLabels}
+                  onMapReady={setSlotUsesNamedSeats}
+                  experienceBookingLive={experienceBookingLive}
+                  serviceBookingLive={serviceBookingLive}
+                  multiGuestBookingLive={multiGuestBookingLive}
+                  slotUsesNamedSeats={slotUsesNamedSeats}
+                  bookingSlotRequired={bookingSlotRequired}
+                  bookingSeatsRequired={bookingSeatsRequired}
+                  purchaseQty={purchaseQty}
+                  onQuantityChange={setPurchaseQty}
+                  bookingTicketStock={bookingTicketStock}
+                  listingPriceEur={listingPriceEur}
+                  activeRetailPriceEur={hasRetailCompare ? activeRetailPriceEur : null}
+                  hasRetailCompare={hasRetailCompare}
+                  buyNowLineSubtotalCents={buyNowLineSubtotalCents}
+                  buyBusy={buyBusy}
+                  onBuyNow={() => void buyNow()}
+                  brandedStorefront={brandedStorefront}
+                  reduceMotion={reduceMotion ?? false}
+                  buyerRewardBadge={buyerRewardBadge}
+                  labels={bookingCheckoutLabels}
+                />
               ) : (
               <>
               <div className="mb-3 hidden items-start gap-2.5 lg:flex">
@@ -1903,7 +1935,7 @@ export function MarketplaceListingDetail({
           </div>
           <Button
             type="button"
-            disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingSlotRequired}
+            disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingSlotRequired || bookingSeatsRequired}
             onClick={() => void buyNow()}
             className={brand.stickySecondaryBtn}
           >

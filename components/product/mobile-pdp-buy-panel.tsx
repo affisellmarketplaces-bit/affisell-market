@@ -72,6 +72,8 @@ export type MobilePdpBuyPanelProps = {
   brandedStorefront?: boolean
   /** Color swatches render next to gallery on PDP — hide duplicate here. */
   hideColorPicker?: boolean
+  /** Booking listings use BookingCheckoutPanel for purchase — hide cart/qty here. */
+  hidePurchaseControls?: boolean
 }
 
 export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>(
@@ -115,6 +117,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
       className,
       brandedStorefront = false,
       hideColorPicker = false,
+      hidePurchaseControls = false,
     },
     ref
   ) {
@@ -177,6 +180,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
           </div>
         </header>
 
+        {!hidePurchaseControls ? (
         <ListingPriceActionCard
           priceLabel={labels.priceLabel}
           listingPriceEur={listingPriceEur}
@@ -192,6 +196,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
           reduceMotion={reduceMotion}
           brandedStorefront={brandedStorefront}
         />
+        ) : null}
 
         {colorMeta.length > 0 && !hideColorPicker ? (
           <div>
@@ -291,6 +296,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
           </div>
         ) : null}
 
+        {!hidePurchaseControls ? (
         <div className="grid grid-cols-[minmax(0,7.5rem)_1fr] gap-2">
           <MarketplacePurchaseQuantity
             variant="inline"
@@ -314,6 +320,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
             {cartBusy ? "…" : labels.addToCart}
           </motion.button>
         </div>
+        ) : null}
       </section>
     )
   }
