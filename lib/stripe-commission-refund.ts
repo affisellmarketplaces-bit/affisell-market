@@ -2,6 +2,8 @@ import type Stripe from "stripe"
 
 import { calculateRefundSplit, orderToCommissionRefundSlice } from "@/lib/commission"
 import { notifyOrderCancelled } from "@/lib/emails/notify-order-cancelled"
+import { clawbackOrderPayoutsOnRefund } from "@/lib/order-payout"
+import { reverseConnectTransfersForRefund } from "@/lib/stripe-transfer-reversal"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 
@@ -73,6 +75,17 @@ export async function handleStripeChargeRefundedWithCommission(
       }
 
       const amountCents = refund.amount ?? 0
+      const chargeRefundedAfter = (fullCharge.amount_refunded ?? refundedSum + amountCents)
+      const isFullRefund = chargeRefundedAfter >= totalCents - 1
+
+      await reverseConnectTransfersForRefund({
+        orderId: order.id,
+        refundAmountCents: amountCents,
+        orderTotalCents: totalCents,
+        isFullRefund,
+        refundKey: refund.id,
+      })
+
       const { commissionReturnedCents, taxReturnedCents } = calculateRefundSplit(slice, amountCents)
 
       await prisma.orderStripeRefund.create({
@@ -99,6 +112,10 @@ export async function handleStripeChargeRefundedWithCommission(
 
     const chargeRefunded = fullCharge.amount_refunded ?? refundedSum
     const isFullRefund = chargeRefunded >= totalCents - 1
+
+    if (isFullRefund) {
+      await clawbackOrderPayoutsOnRefund(order.id)
+    }
 
     await prisma.order.update({
       where: { id: order.id },
