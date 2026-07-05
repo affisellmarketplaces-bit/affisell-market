@@ -9,6 +9,7 @@ import {
 } from "@/lib/suppliers/order-status"
 import { resolveSupplierAdapterForGroup } from "@/lib/suppliers/place-order-bridge"
 import { prisma } from "@/lib/prisma"
+import { recordOrderTrackingEvent } from "@/lib/order-tracking-event"
 
 const POLL_STATUSES = ["PENDING", "PROCESSING", "CONFIRMED", "SHIPPED"] as const
 
@@ -105,6 +106,51 @@ export async function syncSupplierFulfillmentOrderStatus(
         orderData.deliveredAt = marketplaceOrder.deliveredAt ?? new Date()
       }
       await prisma.order.update({ where: { id: line.orderId }, data: orderData })
+
+      if (shippedNow && trackingNumber) {
+        await recordOrderTrackingEvent({
+          orderId: line.orderId,
+          eventType: "TRACKING_REGISTERED",
+          source: "supplier_sync",
+          trackingCarrier: remote.carrier,
+          trackingNumber,
+          fulfillmentStatus: "SHIPPED",
+          verificationMethod: "partner",
+          payload: { supplierFulfillmentOrderId: job.id, status: remote.status },
+        })
+      } else if (
+        trackingNumber &&
+        marketplaceOrder.trackingNumber &&
+        marketplaceOrder.trackingNumber !== trackingNumber
+      ) {
+        await recordOrderTrackingEvent({
+          orderId: line.orderId,
+          eventType: "TRACKING_UPDATED",
+          source: "supplier_sync",
+          trackingCarrier: remote.carrier,
+          trackingNumber,
+          fulfillmentStatus: lineFulfillment,
+          verificationMethod: "partner",
+          payload: {
+            previousTrackingNumber: marketplaceOrder.trackingNumber,
+            supplierFulfillmentOrderId: job.id,
+          },
+        })
+      }
+
+      if (deliveredNow) {
+        await recordOrderTrackingEvent({
+          orderId: line.orderId,
+          eventType: "DELIVERED",
+          source: "supplier_sync",
+          trackingCarrier: remote.carrier,
+          trackingNumber: trackingNumber ?? marketplaceOrder.trackingNumber,
+          fulfillmentStatus: "DELIVERED",
+          verificationMethod: "partner",
+          dedupe: "delivered",
+          payload: { supplierFulfillmentOrderId: job.id },
+        })
+      }
 
       if (shippedNow && marketplaceOrder.customerEmail && trackingNumber) {
         void notifyMarketplaceOrderShipped(marketplaceOrder.id, {

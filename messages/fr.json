@@ -4171,6 +4171,15 @@
     "tracking": "Suivi colis",
     "carrierDefault": "Transporteur",
     "trackPackage": "Suivre mon colis",
+    "trackingTimeline": {
+      "title": "Historique de suivi",
+      "events": {
+        "TRACKING_REGISTERED": "Colis expédié",
+        "IN_TRANSIT": "En transit",
+        "DELIVERED": "Livré",
+        "TRACKING_UPDATED": "Suivi mis à jour"
+      }
+    },
     "deliveredOn": "Livré le",
     "estimatedDelivery": "Livraison estimée",
     "etaPending": "Calcul en cours — vous serez notifié par e-mail",

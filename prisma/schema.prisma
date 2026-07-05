@@ -1950,6 +1950,7 @@ model Order {
    */
   autodsShippedEmailSentAt         DateTime?
   autodsFulfillmentLogs            AutodsFulfillmentLog[]
+  trackingEvents                   OrderTrackingEvent[]
   autoFulfillmentBatchId           String?
   autoFulfillmentBatch             AutoFulfillmentBatch?        @relation(fields: [autoFulfillmentBatchId], references: [id], onDelete: SetNull)
 
@@ -2028,6 +2029,27 @@ enum OrderShipExtensionStatus {
   ACCEPTED
   REJECTED
   EXPIRED
+}
+
+/**
+ * Immutable tracking audit trail per marketplace order (litiges, conformité UE).
+ */
+model OrderTrackingEvent {
+  id                 String   @id @default(cuid())
+  orderId            String
+  order              Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  eventType          String
+  source             String
+  trackingCarrier    String?
+  trackingNumber     String?
+  fulfillmentStatus  String?
+  verificationMethod String?
+  idempotencyKey     String   @unique
+  payload            Json?
+  createdAt          DateTime @default(now())
+
+  @@index([orderId, createdAt])
+  @@index([trackingNumber])
 }
 
 /**

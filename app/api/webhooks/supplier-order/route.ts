@@ -14,6 +14,7 @@ import {
   parsePartnerOrderStatusPayload,
 } from "@/lib/suppliers/order-status"
 import { prisma } from "@/lib/prisma"
+import { recordOrderTrackingEvent } from "@/lib/order-tracking-event"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -161,6 +162,51 @@ export async function POST(req: NextRequest) {
           : {}),
       },
     })
+
+    if (shippedNow && trackingNumber) {
+      await recordOrderTrackingEvent({
+        orderId: line.orderId,
+        eventType: "TRACKING_REGISTERED",
+        source: "supplier_fulfillment_webhook",
+        trackingCarrier: tracking.carrier,
+        trackingNumber,
+        fulfillmentStatus: "SHIPPED",
+        verificationMethod: "partner",
+        payload: { supplierOrderId: data.supplierOrderId, status: statusValue },
+      })
+    } else if (
+      trackingNumber &&
+      marketplaceOrder?.trackingNumber &&
+      marketplaceOrder.trackingNumber !== trackingNumber
+    ) {
+      await recordOrderTrackingEvent({
+        orderId: line.orderId,
+        eventType: "TRACKING_UPDATED",
+        source: "supplier_fulfillment_webhook",
+        trackingCarrier: tracking.carrier,
+        trackingNumber,
+        fulfillmentStatus: lineFulfillment,
+        verificationMethod: "partner",
+        payload: {
+          previousTrackingNumber: marketplaceOrder.trackingNumber,
+          supplierOrderId: data.supplierOrderId,
+        },
+      })
+    }
+
+    if (deliveredNow) {
+      await recordOrderTrackingEvent({
+        orderId: line.orderId,
+        eventType: "DELIVERED",
+        source: "supplier_fulfillment_webhook",
+        trackingCarrier: tracking.carrier,
+        trackingNumber: trackingNumber ?? marketplaceOrder?.trackingNumber,
+        fulfillmentStatus: "DELIVERED",
+        verificationMethod: "partner",
+        dedupe: "delivered",
+        payload: { supplierOrderId: data.supplierOrderId },
+      })
+    }
 
     if (shippedNow && trackingNumber) {
       void notifyMarketplaceOrderShipped(line.orderId, {

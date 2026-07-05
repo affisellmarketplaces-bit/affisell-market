@@ -4129,6 +4129,15 @@
     "tracking": "Parcel tracking",
     "carrierDefault": "Carrier",
     "trackPackage": "Track my parcel",
+    "trackingTimeline": {
+      "title": "Tracking history",
+      "events": {
+        "TRACKING_REGISTERED": "Package shipped",
+        "IN_TRANSIT": "In transit",
+        "DELIVERED": "Delivered",
+        "TRACKING_UPDATED": "Tracking updated"
+      }
+    },
     "deliveredOn": "Delivered on",
     "estimatedDelivery": "Estimated delivery",
     "etaPending": "Updating — we'll email you when ready",

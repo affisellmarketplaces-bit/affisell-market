@@ -210,6 +210,42 @@ export function BuyerOrderDetailView({ order, backHref }: Props) {
                 ) : null}
               </div>
             </dl>
+
+            {localOrder.trackingTimeline.length > 0 ? (
+              <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                  {t("trackingTimeline.title")}
+                </p>
+                <ol className="mt-3 space-y-3">
+                  {localOrder.trackingTimeline.map((event) => (
+                    <li key={event.id} className="flex gap-3 text-sm">
+                      <span
+                        className={cn(
+                          "mt-1.5 size-2 shrink-0 rounded-full",
+                          event.eventType === "DELIVERED"
+                            ? "bg-emerald-500"
+                            : event.eventType === "IN_TRANSIT"
+                              ? "bg-amber-500"
+                              : "bg-violet-500"
+                        )}
+                        aria-hidden
+                      />
+                      <div>
+                        <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {t(`trackingTimeline.events.${event.eventType}` as "trackingTimeline.events.TRACKING_REGISTERED")}
+                        </p>
+                        <p className="text-xs text-zinc-500">
+                          {formatDate(event.createdAt, locale)}
+                          {event.trackingNumber
+                            ? ` · ${event.trackingCarrier ?? t("carrierDefault")} ${event.trackingNumber}`
+                            : null}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ) : null}
           </div>
         </div>
       </BentoCard>

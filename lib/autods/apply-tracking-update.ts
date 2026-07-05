@@ -1,6 +1,7 @@
 import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
 import { syncAffisellShipmentToMedusaIfNeeded } from "@/lib/medusa/sync-order-fulfillment"
 import { logAutoDsFulfillmentEvent, type AutoDsLogSource } from "@/lib/autods/fulfillment-log"
+import { recordOrderTrackingEvent } from "@/lib/order-tracking-event"
 import { prisma } from "@/lib/prisma"
 
 export type AutoDsTrackingPayload = {
@@ -45,6 +46,7 @@ export async function applyAutoDsTrackingUpdate(args: {
       autodsShippedEmailSentAt: true,
       trackingNumber: true,
       shippedAt: true,
+      fulfillmentStatus: true,
       medusaOrderId: true,
     },
   })
@@ -120,6 +122,48 @@ export async function applyAutoDsTrackingUpdate(args: {
       ...(shippedNow ? { autodsShippedEmailSentAt: new Date() } : {}),
     },
   })
+
+  if (shippedNow && nextTracking) {
+    await recordOrderTrackingEvent({
+      orderId: order.id,
+      eventType: "TRACKING_REGISTERED",
+      source: "autods",
+      trackingCarrier: nextCarrier,
+      trackingNumber: nextTracking,
+      fulfillmentStatus: "SHIPPED",
+      verificationMethod: "partner",
+      payload: { autodsOrderId, event: args.event, source: args.source },
+    })
+  } else if (
+    nextTracking &&
+    order.trackingNumber &&
+    order.trackingNumber !== nextTracking
+  ) {
+    await recordOrderTrackingEvent({
+      orderId: order.id,
+      eventType: "TRACKING_UPDATED",
+      source: "autods",
+      trackingCarrier: nextCarrier,
+      trackingNumber: nextTracking,
+      fulfillmentStatus: nextStatus === "DELIVERED" ? "DELIVERED" : "SHIPPED",
+      verificationMethod: "partner",
+      payload: { previousTrackingNumber: order.trackingNumber, autodsOrderId },
+    })
+  }
+
+  if (nextStatus === "DELIVERED" && order.fulfillmentStatus !== "DELIVERED") {
+    await recordOrderTrackingEvent({
+      orderId: order.id,
+      eventType: "DELIVERED",
+      source: "autods",
+      trackingCarrier: nextCarrier,
+      trackingNumber: nextTracking ?? order.trackingNumber,
+      fulfillmentStatus: "DELIVERED",
+      verificationMethod: "partner",
+      dedupe: "delivered",
+      payload: { autodsOrderId, event: args.event },
+    })
+  }
 
   await logAutoDsFulfillmentEvent({
     orderId: order.id,

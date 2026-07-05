@@ -7,6 +7,7 @@ import { notifyOrderDelivered } from "@/lib/emails/notify-order-delivered"
 import { webhookSecretGate } from "@/lib/require-production-secret"
 import { triggerLightningPayout } from "@/lib/stripe-lightning"
 import { prisma } from "@/lib/prisma"
+import { recordOrderTrackingEvent } from "@/lib/order-tracking-event"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -129,6 +130,16 @@ export async function POST(req: NextRequest) {
       where: { id: order.id },
       data: { fulfillmentStatus: "SHIPPED" },
     })
+    await recordOrderTrackingEvent({
+      orderId: order.id,
+      eventType: "IN_TRANSIT",
+      source: "aftership_webhook",
+      trackingNumber,
+      fulfillmentStatus: "SHIPPED",
+      verificationMethod: "aftership",
+      payload: { tag },
+      dedupe: tag || "in_transit",
+    })
     console.log("[aftership-webhook]", { orderId: order.id, trackingNumber, tag, result: "in_transit" })
     return NextResponse.json({ ok: true, orderId: order.id, fulfillmentStatus: "SHIPPED" })
   }
@@ -144,6 +155,16 @@ export async function POST(req: NextRequest) {
         fulfillmentStatus: "DELIVERED",
         deliveredAt: new Date(),
       },
+    })
+    await recordOrderTrackingEvent({
+      orderId: order.id,
+      eventType: "DELIVERED",
+      source: "aftership_webhook",
+      trackingNumber,
+      fulfillmentStatus: "DELIVERED",
+      verificationMethod: "aftership",
+      payload: { tag },
+      dedupe: "delivered",
     })
     void notifyOrderDelivered(order.id)
     console.log("[aftership-webhook]", { orderId: order.id, trackingNumber, result: "delivered" })

@@ -14,6 +14,7 @@ import {
   normalizeOrderEmail,
 } from "@/lib/order-return-policy"
 import { isTerminalReturnStatus } from "@/lib/order-return-types"
+import { loadOrderTrackingTimeline, type OrderTrackingTimelineItem } from "@/lib/order-tracking-event"
 import { prisma } from "@/lib/prisma"
 
 export type BuyerOrderDetailDto = {
@@ -42,6 +43,7 @@ export type BuyerOrderDetailDto = {
     buyerTrackingNumber: string | null
   } | null
   lastReturn: { id: string; status: string; createdAt: string; terminal: boolean } | null
+  trackingTimeline: OrderTrackingTimelineItem[]
 }
 
 export async function loadBuyerOrderDetail(
@@ -85,6 +87,8 @@ export async function loadBuyerOrderDetail(
     !active &&
     !hasBlockingReturnHistory(order.returns)
 
+  const trackingTimeline = await loadOrderTrackingTimeline(order.id)
+
   return {
     id: order.id,
     status: order.status,
@@ -123,5 +127,6 @@ export async function loadBuyerOrderDetail(
           terminal: isTerminalReturnStatus(latest.status),
         }
       : null,
+    trackingTimeline,
   }
 }

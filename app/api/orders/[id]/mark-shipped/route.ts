@@ -9,6 +9,7 @@ import {
   isTrustedCarrierLabelForCountry,
 } from "@/lib/trusted-carriers-shared"
 import { validateShipTrackingForShip } from "@/lib/ship-tracking-validate"
+import { recordOrderTrackingEvent } from "@/lib/order-tracking-event"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -94,6 +95,16 @@ export async function POST(req: Request, { params }: RouteParams) {
       trackingCarrier,
       fulfillmentStatus: "SHIPPED",
     },
+  })
+
+  await recordOrderTrackingEvent({
+    orderId,
+    eventType: "TRACKING_REGISTERED",
+    source: "supplier_mark_shipped",
+    trackingCarrier,
+    trackingNumber: trackingCheck.normalized,
+    fulfillmentStatus: "SHIPPED",
+    verificationMethod: trackingCheck.verifiedBy,
   })
 
   const supplierProfile = await prisma.supplierProfile.findUnique({
