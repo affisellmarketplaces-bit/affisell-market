@@ -95,16 +95,23 @@ export async function triggerLightningPayout(orderId: string): Promise<Lightning
       return { success: false, reason: `payout_status_${order.payoutStatus.toLowerCase()}` }
     }
 
-    const [supplierProfile, affiliateProfile] = await Promise.all([
+    const [supplierProfile, supplierUser, affiliateUser] = await Promise.all([
       prisma.supplierProfile.findUnique({ where: { userId: order.supplierId } }),
-      prisma.affiliateProfile.findUnique({ where: { userId: order.affiliateId } }),
+      prisma.user.findUnique({
+        where: { id: order.supplierId },
+        select: { stripeAccountId: true },
+      }),
+      prisma.user.findUnique({
+        where: { id: order.affiliateId },
+        select: { stripeAccountId: true },
+      }),
     ])
 
     if (!supplierProfile) {
       return { success: false, reason: "supplier_profile_not_found" }
     }
-    if (!affiliateProfile) {
-      return { success: false, reason: "affiliate_profile_not_found" }
+    if (!affiliateUser) {
+      return { success: false, reason: "affiliate_not_found" }
     }
 
     if (supplierProfile.trustScore < 50 && !supplierProfile.lightningAdminOverride) {
@@ -114,8 +121,8 @@ export async function triggerLightningPayout(orderId: string): Promise<Lightning
       return { success: false, reason: "lightning_not_enabled" }
     }
 
-    const supplierDestination = supplierProfile.stripeAccountId?.trim() ?? ""
-    const affiliateDestination = affiliateProfile.stripeAccountId?.trim() ?? ""
+    const supplierDestination = supplierUser?.stripeAccountId?.trim() ?? ""
+    const affiliateDestination = affiliateUser.stripeAccountId?.trim() ?? ""
     if (!supplierDestination) {
       return { success: false, reason: "supplier_stripe_account_missing" }
     }

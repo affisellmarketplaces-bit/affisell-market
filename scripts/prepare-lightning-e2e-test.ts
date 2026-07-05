@@ -125,14 +125,6 @@ async function healOrderForLightning(orderId: string) {
     where: { stripeAccountId: affiliateStripe, NOT: { id: order.affiliateId } },
     data: { stripeAccountId: null },
   })
-  await prisma.supplierProfile.updateMany({
-    where: { stripeAccountId: supplierStripe, NOT: { userId: order.supplierId } },
-    data: { stripeAccountId: null },
-  })
-  await prisma.affiliateProfile.updateMany({
-    where: { stripeAccountId: affiliateStripe, NOT: { userId: order.affiliateId } },
-    data: { stripeAccountId: null },
-  })
 
   await prisma.user.update({
     where: { id: order.supplierId },
@@ -150,23 +142,12 @@ async function healOrderForLightning(orderId: string) {
       trustScore: 50,
       lightningEnabled: true,
       lightningAdminOverride: true,
-      stripeAccountId: supplierStripe,
     },
     update: {
       trustScore: 50,
       lightningEnabled: true,
       lightningAdminOverride: true,
-      stripeAccountId: supplierStripe,
     },
-  })
-
-  await prisma.affiliateProfile.upsert({
-    where: { userId: order.affiliateId },
-    create: {
-      userId: order.affiliateId,
-      stripeAccountId: affiliateStripe,
-    },
-    update: { stripeAccountId: affiliateStripe },
   })
 
   const healed = await prisma.order.update({

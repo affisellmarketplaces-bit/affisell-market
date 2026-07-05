@@ -71,8 +71,9 @@ async function checkPrismaSchemas() {
   const affiliateBlock = extractModelBlock(schema, "AffiliateProfile")
   const orderBlock = extractModelBlock(schema, "Order")
 
-  const supplierFields = ["trustScore", "lightningEnabled", "stripeAccountId"] as const
-  const affiliateFields = ["stripeAccountId"] as const
+  const userBlock = extractModelBlock(schema, "User")
+  const supplierFields = ["trustScore", "lightningEnabled"] as const
+  const affiliateFields = ["userId"] as const
   const orderFields = [
     "shippedAt",
     "trackingNumber",
@@ -82,9 +83,11 @@ async function checkPrismaSchemas() {
 
   const supplierSchemaOk = supplierFields.every((f) => schemaHasField(supplierBlock, f))
   const affiliateSchemaOk = affiliateFields.every((f) => schemaHasField(affiliateBlock, f))
+  const userStripeSchemaOk = schemaHasField(userBlock, "stripeAccountId")
 
   let supplierDbOk = true
   let affiliateDbOk = true
+  let userStripeDbOk = true
   let orderDbOk = true
   const dbErrors: string[] = []
 
@@ -104,6 +107,10 @@ async function checkPrismaSchemas() {
         dbErrors.push(`AffiliateProfile.${field}`)
       }
     }
+    if (!(await dbColumnExists("User", "stripeAccountId"))) {
+      userStripeDbOk = false
+      dbErrors.push("User.stripeAccountId")
+    }
     for (const field of orderFields) {
       const ok = await dbColumnExists("Order", field)
       if (!ok) {
@@ -118,15 +125,21 @@ async function checkPrismaSchemas() {
     dbErrors.push(error instanceof Error ? error.message : String(error))
   }
 
-  const supplierOk = supplierSchemaOk && affiliateSchemaOk && supplierDbOk && affiliateDbOk
+  const supplierOk =
+    supplierSchemaOk &&
+    affiliateSchemaOk &&
+    userStripeSchemaOk &&
+    supplierDbOk &&
+    affiliateDbOk &&
+    userStripeDbOk
   push(
     "DB Schema SupplierProfile",
     supplierOk,
     supplierOk
-      ? "trustScore, lightningEnabled, stripeAccountId + AffiliateProfile.stripeAccountId"
-      : `schema=${supplierSchemaOk && affiliateSchemaOk}, db=${supplierDbOk && affiliateDbOk}${
-          dbErrors.length ? ` — ${dbErrors.join(", ")}` : ""
-        }`
+      ? "SupplierProfile trust/lightning + User.stripeAccountId (unified Connect)"
+      : `schema=${supplierSchemaOk && affiliateSchemaOk && userStripeSchemaOk}, db=${
+          supplierDbOk && affiliateDbOk && userStripeDbOk
+        }${dbErrors.length ? ` — ${dbErrors.join(", ")}` : ""}`
   )
 
   const orderSchemaOk = orderFields.every((f) => schemaHasField(orderBlock, f))

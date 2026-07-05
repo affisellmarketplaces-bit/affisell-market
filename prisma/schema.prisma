@@ -300,7 +300,6 @@ model SupplierProfile {
   lightningEnabled        Boolean  @default(false)
   /** Admin bypass of trust-score gate for Lightning Payout (founder override). */
   lightningAdminOverride  Boolean  @default(false)
-  stripeAccountId         String?  @unique
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
@@ -312,7 +311,6 @@ model AffiliateProfile {
   id              String   @id @default(cuid())
   userId          String   @unique
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  stripeAccountId String?  @unique
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

@@ -11,6 +11,7 @@ export async function loadAdminLightningSuppliers(): Promise<AdminLightningSuppl
       id: true,
       email: true,
       name: true,
+      stripeAccountId: true,
       store: {
         select: { name: true, slug: true, partnerListingCode: true },
       },
@@ -19,7 +20,6 @@ export async function loadAdminLightningSuppliers(): Promise<AdminLightningSuppl
           trustScore: true,
           lightningEnabled: true,
           lightningAdminOverride: true,
-          stripeAccountId: true,
         },
       },
     },
@@ -36,7 +36,7 @@ export async function loadAdminLightningSuppliers(): Promise<AdminLightningSuppl
     trustScore: supplier.supplierProfile?.trustScore ?? 50,
     lightningEnabled: supplier.supplierProfile?.lightningEnabled ?? false,
     lightningAdminOverride: supplier.supplierProfile?.lightningAdminOverride ?? false,
-    stripeAccountId: supplier.supplierProfile?.stripeAccountId ?? null,
+    stripeAccountId: supplier.stripeAccountId ?? null,
   }))
 
   return {

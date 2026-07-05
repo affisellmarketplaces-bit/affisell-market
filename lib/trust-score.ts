@@ -23,17 +23,11 @@ function clampTrustScore(value: number): number {
 }
 
 async function resolveStripeAccountId(supplierId: string): Promise<string | null> {
-  const [user, profile] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: supplierId },
-      select: { stripeAccountId: true },
-    }),
-    prisma.supplierProfile.findUnique({
-      where: { userId: supplierId },
-      select: { stripeAccountId: true },
-    }),
-  ])
-  return profile?.stripeAccountId?.trim() || user?.stripeAccountId?.trim() || null
+  const user = await prisma.user.findUnique({
+    where: { id: supplierId },
+    select: { stripeAccountId: true },
+  })
+  return user?.stripeAccountId?.trim() || null
 }
 
 async function isStripeChargesEnabled(stripeAccountId: string | null): Promise<boolean> {
