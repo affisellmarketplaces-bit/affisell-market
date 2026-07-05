@@ -1257,7 +1257,7 @@ export function MarketplaceListingDetail({
               />
             ) : null}
             </>
-            )}
+            ) : null}
             </div>
 
             <div className="hidden space-y-2 px-4 py-2.5 lg:block lg:space-y-4 lg:px-0 lg:py-0">
