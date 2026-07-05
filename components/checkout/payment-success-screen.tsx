@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from "lucide-react"
 
+import { SuccessConversionHub } from "@/components/checkout/success-conversion-hub"
 import { buttonVariants } from "@/components/ui/button"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
@@ -37,6 +38,7 @@ export type PaymentSuccessPayload = {
   verifying?: boolean
   orderId?: string | null
   orderIds?: string[]
+  affiliateProductId?: string | null
   amountTotal?: number | null
   currency?: string | null
   productName?: string | null
@@ -196,11 +198,12 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
       />
 
       <motion.div
-        className="relative mx-auto max-w-xl"
+        className="relative mx-auto max-w-4xl"
         initial={reducedMotion ? false : { opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       >
+        <div className="mx-auto max-w-xl">
         <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-8 shadow-[0_24px_80px_-24px_rgba(16,185,129,0.35)] ring-1 ring-emerald-500/10 backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/70 dark:shadow-[0_24px_80px_-24px_rgba(0,0,0,0.65)] sm:p-10">
           <div className="text-center">
             {isError ? (
@@ -353,6 +356,8 @@ export function PaymentSuccessScreen({ payload, signedInAsBuyer = false }: Props
             </Link>
           </motion.div>
         </div>
+        </div>
+        <SuccessConversionHub payload={payload} />
       </motion.div>
     </div>
   )

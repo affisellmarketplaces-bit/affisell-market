@@ -130,6 +130,7 @@ export async function stubBuyerCheckoutApis(
         fulfilled: true,
         orderId: "e2e-order-checkout",
         orderIds: ["e2e-order-checkout"],
+        affiliateProductId: process.env.PLAYWRIGHT_PUBLIC_LISTING_ID?.trim() || "e2e-listing-checkout",
         amountTotal: 2999,
         currency: "eur",
         productName: "E2E Checkout Product",

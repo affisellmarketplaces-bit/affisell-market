@@ -16,6 +16,7 @@ export type PaidCheckoutSessionResult = {
   fulfilled: boolean
   orderId: string | null
   orderIds: string[]
+  affiliateProductId: string | null
   amountTotal: number | null
   currency: string
   productName: string | null
@@ -71,6 +72,7 @@ export async function fulfillPaidCheckoutSession(
             variantLabel: true,
             variantImageUrl: true,
             currency: true,
+            affiliateProductId: true,
             affiliateProduct: { select: { customTitle: true } },
             product: { select: { name: true } },
           },
@@ -100,6 +102,7 @@ export async function fulfillPaidCheckoutSession(
     fulfilled,
     orderId: orderIds[0] ?? session.metadata?.orderId ?? null,
     orderIds,
+    affiliateProductId: orderRows[0]?.affiliateProductId ?? null,
     amountTotal: display.amountTotal,
     currency: display.currency,
     productName: display.productName,

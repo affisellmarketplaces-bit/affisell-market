@@ -2646,7 +2646,17 @@
     "timelineLabel": "Order progress",
     "stepPayment": "Payment secured",
     "stepOrder": "Order registered",
-    "stepEmail": "Confirmation email sent"
+    "stepEmail": "Confirmation email sent",
+    "hub": {
+      "reviewEyebrow": "Your review matters",
+      "reviewTitle": "Share your experience",
+      "reviewHint": "Help the community — 30 seconds to rate your purchase.",
+      "reviewCta": "Leave a review",
+      "pushTitle": "Live delivery updates",
+      "pushBody": "Shipping and delivery alerts on this device — no spam.",
+      "pushEnable": "Enable alerts",
+      "pushLoading": "Notifications…"
+    }
   },
   "cancel": {
     "title": "Checkout cancelled",

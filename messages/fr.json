@@ -2688,7 +2688,17 @@
     "timelineLabel": "Progression de la commande",
     "stepPayment": "Paiement sécurisé",
     "stepOrder": "Commande enregistrée",
-    "stepEmail": "E-mail de confirmation envoyé"
+    "stepEmail": "E-mail de confirmation envoyé",
+    "hub": {
+      "reviewEyebrow": "Votre avis compte",
+      "reviewTitle": "Partagez votre expérience",
+      "reviewHint": "Aidez la communauté — 30 secondes pour noter votre achat.",
+      "reviewCta": "Laisser un avis",
+      "pushTitle": "Suivi livraison en direct",
+      "pushBody": "Alertes expédition et livraison sur cet appareil — sans spam.",
+      "pushEnable": "Activer les alertes",
+      "pushLoading": "Notifications…"
+    }
   },
   "cancel": {
     "title": "Paiement annulé",
