@@ -86,7 +86,11 @@
     "test:vat:settle": "tsx scripts/resettle-order-vat.ts",
     "heal:medusa-orders": "tsx scripts/heal-medusa-order-sync.ts",
     "heal:medusa-fulfillments": "tsx scripts/heal-medusa-fulfillment-sync.ts",
-    "verify:medusa-admin": "tsx scripts/verify-medusa-admin-token.ts"
+    "verify:medusa-admin": "tsx scripts/verify-medusa-admin-token.ts",
+    "payout:legacy:scan": "tsx scripts/payout-legacy-backfill.ts",
+    "payout:legacy:backfill": "tsx scripts/payout-legacy-backfill.ts --dry-run",
+    "payout:legacy:execute": "tsx scripts/payout-legacy-backfill.ts --execute",
+    "verify:payout-unification": "node scripts/verify-payout-unification-ready.mjs"
   },
   "dependencies": {
     "@ai-sdk/groq": "^3.0.38",

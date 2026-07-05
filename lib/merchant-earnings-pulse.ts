@@ -1,4 +1,5 @@
 import { netAffiliateTransferCents } from "@/lib/marketplace-phase1-fees"
+import { isLedgerPayoutRealized } from "@/lib/payout-settlement.shared"
 import { prisma } from "@/lib/prisma"
 
 const MARKETPLACE_DONE = ["paid", "preparing", "shipped"] as const
@@ -34,15 +35,27 @@ export type PulseBandRow = {
 export type DailySpark = { day: string; units: number; cents: number }
 
 async function ledgerNetCents(userId: string, role: "AFFILIATE" | "SUPPLIER"): Promise<number> {
-  const rows = await prisma.merchantPayoutLedger.groupBy({
-    by: ["entryType"],
+  const rows = await prisma.merchantPayoutLedger.findMany({
     where: { userId, beneficiaryRole: role },
-    _sum: { amountCents: true },
+    select: {
+      entryType: true,
+      amountCents: true,
+      stripeTransferId: true,
+      payoutRail: true,
+      blindDropshipOrderId: true,
+    },
   })
-  const payout =
-    rows.find((r) => r.entryType === "PAYOUT")?._sum.amountCents ?? 0
-  const claw =
-    rows.find((r) => r.entryType === "CLAWBACK")?._sum.amountCents ?? 0
+  let payout = 0
+  let claw = 0
+  for (const row of rows) {
+    if (row.entryType === "CLAWBACK") {
+      claw += row.amountCents
+      continue
+    }
+    if (row.entryType !== "PAYOUT") continue
+    if (!isLedgerPayoutRealized(row)) continue
+    payout += row.amountCents
+  }
   return Math.max(0, payout - claw)
 }
 

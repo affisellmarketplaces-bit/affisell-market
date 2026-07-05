@@ -5,6 +5,7 @@ import { netAffiliateTransferCents } from "@/lib/marketplace-phase1-fees"
 import {
   beneficiaryUserIdForRole,
   clawbackLedgerIdempotencyKey,
+  isLedgerPayoutRealized,
   ledgerIdempotencyKeyForStripeTransfer,
   legacyLedgerIdempotencyKey,
   payoutTimestampFieldForRole,
@@ -87,7 +88,7 @@ export async function recordStripePayoutSettlement(
   return true
 }
 
-/** True when a role was already settled via Stripe transfer or legacy ledger-only cron. */
+/** True when Stripe money actually moved for this role (not phantom ledger / payoutAt alone). */
 export async function marketplaceRoleAlreadySettled(
   orderId: string,
   role: "SUPPLIER" | "AFFILIATE"
@@ -95,12 +96,21 @@ export async function marketplaceRoleAlreadySettled(
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     select: {
-      supplierPayoutAt: true,
-      affiliatePayoutAt: true,
       payoutStatus: true,
       transferAttempts: {
         where: { role },
         select: { status: true, stripeTransferId: true },
+      },
+      merchantPayoutLedger: {
+        where: {
+          beneficiaryRole: role,
+          entryType: "PAYOUT",
+        },
+        select: {
+          stripeTransferId: true,
+          payoutRail: true,
+          blindDropshipOrderId: true,
+        },
       },
     },
   })
@@ -108,23 +118,15 @@ export async function marketplaceRoleAlreadySettled(
 
   if (order.payoutStatus === "PAID") return true
 
-  const tsField = payoutTimestampFieldForRole(role)
-  if (order[tsField] != null) return true
+  const attempt = order.transferAttempts.find((a) => a.status === "SUCCESS")
+  if (attempt?.stripeTransferId?.trim()) return true
 
-  const attempt = order.transferAttempts[0]
-  if (attempt?.status === "SUCCESS" && attempt.stripeTransferId) return true
-
-  const legacyKey = legacyLedgerIdempotencyKey(role, orderId)
-  const legacy = await prisma.merchantPayoutLedger.findUnique({
-    where: { idempotencyKey: legacyKey },
-    select: { id: true },
-  })
-  return legacy != null
+  return order.merchantPayoutLedger.some((e) => isLedgerPayoutRealized(e))
 }
 
 /**
- * Block Connect transfer when pre-unification cron already wrote a ledger obligation
- * without a matching Stripe transfer (prevents double payout on legacy rows).
+ * @deprecated Phantom ledger no longer blocks Connect after marketplaceRoleAlreadySettled fix.
+ * Kept for observability logging only.
  */
 export async function resolveLegacyLedgerBlockReason(
   orderId: string,
@@ -134,11 +136,12 @@ export async function resolveLegacyLedgerBlockReason(
   const legacyKey = legacyLedgerIdempotencyKey(beneficiaryRole, orderId)
   const legacy = await prisma.merchantPayoutLedger.findUnique({
     where: { idempotencyKey: legacyKey },
-    select: { stripeTransferId: true },
+    select: { stripeTransferId: true, payoutRail: true },
   })
   if (!legacy) return null
-  if (legacy.stripeTransferId) return null
-  return "LEGACY_LEDGER_WITHOUT_STRIPE"
+  if (legacy.stripeTransferId?.trim()) return null
+  if (legacy.payoutRail === "phantom_legacy") return null
+  return "LEGACY_LEDGER_UNMARKED"
 }
 
 /** Mark pending attempts superseded when Lightning or legacy ledger already paid. */
@@ -248,6 +251,8 @@ export async function loadOrderClawbackContext(orderId: string) {
           amountCents: true,
           stripeTransferId: true,
           idempotencyKey: true,
+          payoutRail: true,
+          blindDropshipOrderId: true,
         },
       },
       product: { select: { name: true } },
@@ -269,7 +274,7 @@ export function resolvedClawbackAmountCents(
 
   const legacyKey = legacyLedgerIdempotencyKey(role, order.id)
   const legacy = order.merchantPayoutLedger.find((e) => e.idempotencyKey === legacyKey)
-  if (legacy) return legacy.amountCents
+  if (legacy && isLedgerPayoutRealized(legacy)) return legacy.amountCents
 
   if (role === "SUPPLIER") {
     return order.supplierPayoutCents > 0 ? order.supplierPayoutCents : 0
@@ -288,11 +293,15 @@ export function roleWasPaidOut(
   order: NonNullable<Awaited<ReturnType<typeof loadOrderClawbackContext>>>
 ): boolean {
   if (order.payoutStatus === "PAID") return true
-  const tsField = payoutTimestampFieldForRole(role)
-  if (order[tsField] != null) return true
-  if (order.transferAttempts.some((a) => a.role === role)) return true
-  const legacyKey = legacyLedgerIdempotencyKey(role, order.id)
-  return order.merchantPayoutLedger.some((e) => e.idempotencyKey === legacyKey)
+
+  const attempt = order.transferAttempts.find(
+    (a) => a.role === role && a.stripeTransferId?.trim()
+  )
+  if (attempt) return true
+
+  return order.merchantPayoutLedger.some(
+    (e) => e.beneficiaryRole === role && isLedgerPayoutRealized(e)
+  )
 }
 
 export { beneficiaryUserIdForRole }

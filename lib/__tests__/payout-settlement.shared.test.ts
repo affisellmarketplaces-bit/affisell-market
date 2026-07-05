@@ -32,6 +32,7 @@ describe("payout-settlement.shared", () => {
     expect(isPayoutRail("connect")).toBe(true)
     expect(isPayoutRail("lightning")).toBe(true)
     expect(isPayoutRail("ledger_only")).toBe(true)
+    expect(isPayoutRail("phantom_legacy")).toBe(true)
     expect(isPayoutRail("paypal")).toBe(false)
   })
 })

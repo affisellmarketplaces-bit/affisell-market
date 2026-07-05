@@ -1,6 +1,24 @@
 /** Payout rail — money movement channel. */
-export const PAYOUT_RAILS = ["connect", "lightning", "ledger_only"] as const
+export const PAYOUT_RAILS = [
+  "connect",
+  "lightning",
+  "ledger_only",
+  /** Pre-unification cron ledger without Stripe — not real money. */
+  "phantom_legacy",
+] as const
 export type PayoutRail = (typeof PAYOUT_RAILS)[number]
+
+/** Ledger rows that represent confirmed money movement for reporting. */
+export function isLedgerPayoutRealized(row: {
+  stripeTransferId?: string | null
+  payoutRail?: string | null
+  blindDropshipOrderId?: string | null
+}): boolean {
+  if (row.payoutRail === "phantom_legacy") return false
+  if (row.stripeTransferId?.trim()) return true
+  if (row.payoutRail === "ledger_only" && row.blindDropshipOrderId) return true
+  return false
+}
 
 export function isPayoutRail(value: string): value is PayoutRail {
   return (PAYOUT_RAILS as readonly string[]).includes(value)

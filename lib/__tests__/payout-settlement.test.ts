@@ -44,14 +44,33 @@ describe("payout-settlement clawback helpers", () => {
     expect(roleWasPaidOut("AFFILIATE", order)).toBe(false)
   })
 
-  it("roleWasPaidOut is true for legacy ledger without stripe", () => {
+  it("roleWasPaidOut is false for unmarked phantom legacy ledger", () => {
+    const order = mockOrder({
+      supplierPayoutAt: new Date(),
+      merchantPayoutLedger: [
+        {
+          beneficiaryRole: "SUPPLIER",
+          amountCents: 4500,
+          stripeTransferId: null,
+          idempotencyKey: "payout:supplier:ord_1",
+          payoutRail: "ledger_only",
+          blindDropshipOrderId: null,
+        },
+      ],
+    })
+    expect(roleWasPaidOut("SUPPLIER", order)).toBe(false)
+  })
+
+  it("roleWasPaidOut is true for stripe-linked ledger", () => {
     const order = mockOrder({
       merchantPayoutLedger: [
         {
           beneficiaryRole: "AFFILIATE",
           amountCents: 1800,
-          stripeTransferId: null,
-          idempotencyKey: "payout:affiliate:ord_1",
+          stripeTransferId: "tr_aff",
+          idempotencyKey: "stripe:tr:tr_aff",
+          payoutRail: "connect",
+          blindDropshipOrderId: null,
         },
       ],
     })
@@ -76,6 +95,8 @@ describe("payout-settlement clawback helpers", () => {
           amountCents: 1750,
           stripeTransferId: "tr_aff",
           idempotencyKey: "stripe:tr:tr_aff",
+          payoutRail: "connect",
+          blindDropshipOrderId: null,
         },
       ],
     })

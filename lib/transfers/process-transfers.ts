@@ -5,7 +5,6 @@ import { evaluateTransferReleaseForRole } from "@/lib/order-transfer-gating"
 import {
   marketplaceRoleAlreadySettled,
   recordStripePayoutSettlement,
-  resolveLegacyLedgerBlockReason,
   supersedePendingTransferAttempt,
 } from "@/lib/payout-settlement"
 import { computeSplitStatusFromAttempts } from "@/lib/transfers/compute-split-status"
@@ -151,20 +150,6 @@ async function processOneAttempt(
   if (await marketplaceRoleAlreadySettled(attempt.orderId, beneficiaryRole)) {
     await prisma.$transaction(async (tx) => {
       await supersedePendingTransferAttempt(tx, attempt.orderId, attempt.role, "ALREADY_SETTLED")
-    })
-    await applyOrderSettlement(attempt.orderId)
-    return "skipped"
-  }
-
-  const legacyBlock = await resolveLegacyLedgerBlockReason(attempt.orderId, attempt.role)
-  if (legacyBlock) {
-    await prisma.$transaction(async (tx) => {
-      await supersedePendingTransferAttempt(tx, attempt.orderId, attempt.role, legacyBlock)
-    })
-    console.log("[payout-settlement]", {
-      orderId: attempt.orderId,
-      role: attempt.role,
-      result: "blocked_legacy_ledger",
     })
     await applyOrderSettlement(attempt.orderId)
     return "skipped"
