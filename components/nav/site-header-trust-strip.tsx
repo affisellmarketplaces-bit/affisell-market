@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation"
 import { PublicNavTrustStrip } from "@/components/nav/public-nav-trust-strip"
 import { shouldShowPublicTrustStrip } from "@/lib/public-nav-mode"
 
-/** Trust band above the glass nav shell — avoids mobile overflow clipping. */
+/** Trust band below the header accent line — browse pages only. */
 export function SiteHeaderTrustStrip() {
   const pathname = usePathname()
   const visible = useMemo(() => shouldShowPublicTrustStrip(pathname), [pathname])
@@ -14,7 +14,7 @@ export function SiteHeaderTrustStrip() {
   return (
     <PublicNavTrustStrip
       visible={visible}
-      className="affisell-site-header-trust-strip rounded-t-2xl border-t-0"
+      className="affisell-site-header-trust-strip rounded-b-2xl border-t-0"
     />
   )
 }

@@ -34,7 +34,6 @@ export function SiteHeaderChrome({ children }: Props) {
       )}
     >
       <div className="mx-auto max-w-7xl min-w-0">
-        <SiteHeaderTrustStrip />
         <div
           className={cn(
             "affisell-header-shell relative min-w-0 overflow-hidden md:overflow-visible",
@@ -46,6 +45,7 @@ export function SiteHeaderChrome({ children }: Props) {
           <div className="affisell-header-band pointer-events-none absolute inset-x-0 bottom-0 z-[1]" aria-hidden />
           <div className="relative z-[2]">{children}</div>
         </div>
+        <SiteHeaderTrustStrip />
       </div>
     </header>
   )

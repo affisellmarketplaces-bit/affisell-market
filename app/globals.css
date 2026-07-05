@@ -875,9 +875,13 @@ body.affisell-demo-lab .affisell-header-shell {
     }
   }
 
-  .affisell-site-header-trust-strip + .affisell-header-shell {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
+  .affisell-header-shell:has(+ .affisell-site-header-trust-strip) {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .affisell-site-header-trust-strip {
+    margin-top: -1px;
   }
 
   .affisell-header-shell {
