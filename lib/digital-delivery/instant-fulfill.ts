@@ -82,6 +82,7 @@ export async function applyInstantDigitalDeliveryInTransaction(
       status: "shipped",
       shippedAt: now,
       deliveredAt: now,
+      deliveredAtSource: "digital_instant",
       deliveryConfirmedAt: now,
       deliveryConfirmedBy: DIGITAL_DELIVERY_CONFIRMED_BY,
       payoutEligibleAt,

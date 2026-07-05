@@ -161,6 +161,7 @@ export async function confirmBookingPassInTransaction(
       status: "shipped",
       shippedAt: now,
       deliveredAt: now,
+      deliveredAtSource: "booking_confirmed",
       deliveryConfirmedAt: now,
       deliveryConfirmedBy: BOOKING_DELIVERY_CONFIRMED_BY,
       payoutEligibleAt,

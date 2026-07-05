@@ -76,14 +76,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Order line not found for supplier_order_id" }, { status: 404 })
   }
 
-  const now = new Date()
   await prisma.blindDropshipOrder.update({
     where: { id: item.blindDropshipOrderId },
     data: {
       trackingNumber: tracking_number,
       trackingCarrier: tracking_carrier ?? "Carrier",
       status: "shipped",
-      deliveredAt: now,
     },
   })
 

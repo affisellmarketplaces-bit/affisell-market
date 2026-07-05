@@ -4,6 +4,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
 import { notifyOrderDelivered } from "@/lib/emails/notify-order-delivered"
+import { applyCarrierDeliveredAt } from "@/lib/order-carrier-delivery"
 import { webhookSecretGate } from "@/lib/require-production-secret"
 import { triggerLightningPayout } from "@/lib/stripe-lightning"
 import { prisma } from "@/lib/prisma"
@@ -148,24 +149,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, skipped: "not_delivered" })
   }
 
-  if (order.fulfillmentStatus !== "DELIVERED" || !order.deliveredAt) {
-    await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        fulfillmentStatus: "DELIVERED",
-        deliveredAt: new Date(),
-      },
-    })
-    await recordOrderTrackingEvent({
-      orderId: order.id,
-      eventType: "DELIVERED",
-      source: "aftership_webhook",
-      trackingNumber,
-      fulfillmentStatus: "DELIVERED",
-      verificationMethod: "aftership",
-      payload: { tag },
-      dedupe: "delivered",
-    })
+  const delivery = await applyCarrierDeliveredAt({
+    orderId: order.id,
+    source: "aftership_webhook",
+    trackingNumber,
+    payload: { tag },
+  })
+
+  if (delivery.applied) {
     void notifyOrderDelivered(order.id)
     console.log("[aftership-webhook]", { orderId: order.id, trackingNumber, result: "delivered" })
   }

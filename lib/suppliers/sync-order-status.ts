@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client"
 
-import { notifyOrderDelivered } from "@/lib/emails/notify-order-delivered"
 import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
+import { registerPartnerTrackingForCarrierDelivery } from "@/lib/order-carrier-delivery"
 import {
   applyOrderStatusToJob,
   mapOrderStatusToFulfillment,
@@ -58,7 +58,6 @@ export async function syncSupplierFulfillmentOrderStatus(
     const adapter = await resolveSupplierAdapterForGroup(job.fulfillmentProviderId)
     const remote = await adapter.getOrderStatus(job.supplierOrderId)
     const { prismaStatus, lineFulfillment } = applyOrderStatusToJob(remote)
-    const previousJobStatus = job.status
 
     await prisma.supplierFulfillmentOrder.update({
       where: { id: job.id },
@@ -94,23 +93,25 @@ export async function syncSupplierFulfillmentOrderStatus(
       }
       if (trackingNumber) orderData.trackingNumber = trackingNumber
       if (remote.carrier) orderData.trackingCarrier = remote.carrier
-      const deliveredNow =
-        remote.status === "DELIVERED" &&
-        previousJobStatus !== "DELIVERED" &&
-        marketplaceOrder.fulfillmentStatus !== "DELIVERED"
 
       if (remote.status === "SHIPPED" || remote.status === "DELIVERED") {
         orderData.status = "shipped"
         orderData.shippedAt = marketplaceOrder.shippedAt ?? new Date()
         orderData.fulfilledAt = new Date()
       }
-      if (remote.status === "DELIVERED") {
-        orderData.deliveredAt = marketplaceOrder.deliveredAt ?? new Date()
-      }
       if (trackingNumber && !marketplaceOrder.trackingLockedAt) {
         Object.assign(orderData, trackingLockWriteFields("partner"))
       }
       await prisma.order.update({ where: { id: line.orderId }, data: orderData })
+
+      if (trackingNumber && (shippedNow || !marketplaceOrder.trackingNumber)) {
+        void registerPartnerTrackingForCarrierDelivery({
+          orderId: line.orderId,
+          trackingNumber,
+          carrier: remote.carrier,
+          customerEmail: marketplaceOrder.customerEmail,
+        })
+      }
 
       if (shippedNow && trackingNumber) {
         await recordOrderTrackingEvent({
@@ -143,30 +144,12 @@ export async function syncSupplierFulfillmentOrderStatus(
         })
       }
 
-      if (deliveredNow) {
-        await recordOrderTrackingEvent({
-          orderId: line.orderId,
-          eventType: "DELIVERED",
-          source: "supplier_sync",
-          trackingCarrier: remote.carrier,
-          trackingNumber: trackingNumber ?? marketplaceOrder.trackingNumber,
-          fulfillmentStatus: "DELIVERED",
-          verificationMethod: "partner",
-          dedupe: "delivered",
-          payload: { supplierFulfillmentOrderId: job.id },
-        })
-      }
-
       if (shippedNow && marketplaceOrder.customerEmail && trackingNumber) {
         void notifyMarketplaceOrderShipped(marketplaceOrder.id, {
           trackingNumber,
           trackingUrl: remote.trackingUrl ?? line.trackingUrl,
           carrier: remote.carrier,
         })
-      }
-
-      if (deliveredNow && marketplaceOrder.customerEmail) {
-        void notifyOrderDelivered(marketplaceOrder.id)
       }
     }
 

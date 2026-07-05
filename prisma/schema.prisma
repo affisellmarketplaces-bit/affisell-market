@@ -1823,6 +1823,10 @@ model Order {
    */
   deliveredAt                      DateTime?
   /**
+   * Attestation source for deliveredAt (aftership_webhook | digital_instant | booking_confirmed | legacy).
+   */
+  deliveredAtSource                String?
+  /**
    * Buyer confirmed receipt, or auto after 10d silence.
    */
   deliveryConfirmedAt              DateTime?

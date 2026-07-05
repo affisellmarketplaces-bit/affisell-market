@@ -5,8 +5,10 @@ import { type NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
 import { webhookSecretGate } from "@/lib/require-production-secret"
-import { notifyOrderDelivered } from "@/lib/emails/notify-order-delivered"
 import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
+import {
+  registerPartnerTrackingForCarrierDelivery,
+} from "@/lib/order-carrier-delivery"
 import {
   extractTrackingFromPartnerPayload,
   mapOrderStatusToFulfillment,
@@ -100,7 +102,6 @@ export async function POST(req: NextRequest) {
 
   const prismaStatus = mapOrderStatusToFulfillment(statusValue)
   const lineFulfillment = mapOrderStatusToMarketplaceFulfillment(statusValue)
-  const previousJobStatus = job.status
 
   await prisma.supplierFulfillmentOrder.update({
     where: { id: job.id },
@@ -130,10 +131,6 @@ export async function POST(req: NextRequest) {
       Boolean(trackingNumber) &&
       !marketplaceOrder?.shippedAt &&
       !marketplaceOrder?.trackingNumber
-    const deliveredNow =
-      statusValue === "DELIVERED" &&
-      previousJobStatus !== "DELIVERED" &&
-      marketplaceOrder?.fulfillmentStatus !== "DELIVERED"
 
     await prisma.supplierFulfillmentOrderLine.update({
       where: { id: line.id },
@@ -159,14 +156,20 @@ export async function POST(req: NextRequest) {
               fulfilledAt: new Date(),
             }
           : {}),
-        ...(statusValue === "DELIVERED"
-          ? { deliveredAt: marketplaceOrder?.deliveredAt ?? new Date() }
-          : {}),
         ...(trackingNumber && !marketplaceOrder?.trackingLockedAt
           ? trackingLockWriteFields("partner")
           : {}),
       },
     })
+
+    if (trackingNumber && (shippedNow || !marketplaceOrder?.trackingNumber)) {
+      void registerPartnerTrackingForCarrierDelivery({
+        orderId: line.orderId,
+        trackingNumber,
+        carrier: tracking.carrier,
+        customerEmail: marketplaceOrder?.customerEmail,
+      })
+    }
 
     if (shippedNow && trackingNumber) {
       await recordOrderTrackingEvent({
@@ -199,30 +202,12 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    if (deliveredNow) {
-      await recordOrderTrackingEvent({
-        orderId: line.orderId,
-        eventType: "DELIVERED",
-        source: "supplier_fulfillment_webhook",
-        trackingCarrier: tracking.carrier,
-        trackingNumber: trackingNumber ?? marketplaceOrder?.trackingNumber,
-        fulfillmentStatus: "DELIVERED",
-        verificationMethod: "partner",
-        dedupe: "delivered",
-        payload: { supplierOrderId: data.supplierOrderId },
-      })
-    }
-
     if (shippedNow && trackingNumber) {
       void notifyMarketplaceOrderShipped(line.orderId, {
         trackingNumber,
         trackingUrl: tracking.trackingUrl ?? line.trackingUrl,
         carrier: tracking.carrier,
       })
-    }
-
-    if (deliveredNow && marketplaceOrder?.customerEmail) {
-      void notifyOrderDelivered(line.orderId)
     }
   }
 

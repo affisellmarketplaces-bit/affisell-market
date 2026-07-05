@@ -2,6 +2,7 @@ import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped
 import { syncAffisellShipmentToMedusaIfNeeded } from "@/lib/medusa/sync-order-fulfillment"
 import { logAutoDsFulfillmentEvent, type AutoDsLogSource } from "@/lib/autods/fulfillment-log"
 import { recordOrderTrackingEvent } from "@/lib/order-tracking-event"
+import { registerPartnerTrackingForCarrierDelivery } from "@/lib/order-carrier-delivery"
 import { trackingLockWriteFields } from "@/lib/order-tracking-lock.shared"
 import { prisma } from "@/lib/prisma"
 
@@ -127,6 +128,11 @@ export async function applyAutoDsTrackingUpdate(args: {
   })
 
   if (shippedNow && nextTracking) {
+    void registerPartnerTrackingForCarrierDelivery({
+      orderId: order.id,
+      trackingNumber: nextTracking,
+      carrier: nextCarrier,
+    })
     await recordOrderTrackingEvent({
       orderId: order.id,
       eventType: "TRACKING_REGISTERED",
@@ -155,16 +161,11 @@ export async function applyAutoDsTrackingUpdate(args: {
   }
 
   if (nextStatus === "DELIVERED" && order.fulfillmentStatus !== "DELIVERED") {
-    await recordOrderTrackingEvent({
+    console.log("[autods]", {
       orderId: order.id,
-      eventType: "DELIVERED",
-      source: "autods",
-      trackingCarrier: nextCarrier,
-      trackingNumber: nextTracking ?? order.trackingNumber,
-      fulfillmentStatus: "DELIVERED",
-      verificationMethod: "partner",
-      dedupe: "delivered",
-      payload: { autodsOrderId, event: args.event },
+      autodsOrderId,
+      result: "partner_delivered_status_only",
+      note: "deliveredAt awaits carrier webhook",
     })
   }
 

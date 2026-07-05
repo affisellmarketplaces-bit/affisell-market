@@ -35,23 +35,32 @@ export function payoutEligibleAfterBuyerConfirm(confirmedAt: Date): Date {
 export function orderPayoutTiming(
   order: Pick<Order, "shippedAt" | "deliveredAt" | "deliveryConfirmedAt" | "deliveryConfirmedBy" | "payoutEligibleAt">
 ): OrderPayoutTiming | null {
-  const deliveredAt = order.deliveredAt ?? order.shippedAt
-  if (!deliveredAt) return null
-
-  const autoAt = autoConfirmAt(deliveredAt)
-  let payoutEligibleAt = order.payoutEligibleAt
-
   if (order.deliveryConfirmedAt) {
+    const anchor = order.deliveredAt ?? order.deliveryConfirmedAt
+    const autoAt = order.deliveredAt ? autoConfirmAt(order.deliveredAt) : anchor
+    let payoutEligibleAt = order.payoutEligibleAt
     if (!payoutEligibleAt) {
       payoutEligibleAt = payoutEligibleAfterBuyerConfirm(order.deliveryConfirmedAt)
     }
+    return {
+      deliveredAt: anchor,
+      deliveryConfirmedAt: order.deliveryConfirmedAt,
+      deliveryConfirmedBy: (order.deliveryConfirmedBy as DeliveryConfirmedBy | null) ?? null,
+      payoutEligibleAt,
+      autoConfirmAt: autoAt,
+    }
   }
+
+  const deliveredAt = order.deliveredAt
+  if (!deliveredAt) return null
+
+  const autoAt = autoConfirmAt(deliveredAt)
 
   return {
     deliveredAt,
     deliveryConfirmedAt: order.deliveryConfirmedAt,
     deliveryConfirmedBy: (order.deliveryConfirmedBy as DeliveryConfirmedBy | null) ?? null,
-    payoutEligibleAt,
+    payoutEligibleAt: order.payoutEligibleAt,
     autoConfirmAt: autoAt,
   }
 }
@@ -67,9 +76,8 @@ export function shouldAutoConfirmDelivery(
   now = new Date()
 ): boolean {
   if (order.deliveryConfirmedAt) return false
-  const deliveredAt = order.deliveredAt ?? order.shippedAt
-  if (!deliveredAt) return false
-  return now >= autoConfirmAt(deliveredAt)
+  if (!order.deliveredAt) return false
+  return now >= autoConfirmAt(order.deliveredAt)
 }
 
 export function isReadyForMerchantPayout(
