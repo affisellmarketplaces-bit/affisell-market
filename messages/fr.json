@@ -4296,6 +4296,15 @@
       "ctaReview": "Laisser un avis",
       "footerNote": "Vous recevez ce mail une seule fois. Merci de faire grandir Affisell."
     },
+    "repurchaseReminder": {
+      "preview": "Prêt à recommander {productName} ?",
+      "subject": "C'est le moment de recommander · {productName}",
+      "heading": "Besoin d'un réassort ?",
+      "body": "Cela fait un moment depuis la commande #{orderId}. {productName} est toujours disponible — recommandez en un clic.",
+      "ctaTitle": "Racheter avant rupture de stock",
+      "ctaRepurchase": "Racheter",
+      "footerNote": "Un e-mail par commande. Désinscription marketing dans les paramètres du compte."
+    },
     "paymentFailed": {
       "preview": "Action requise : échec paiement #{orderId}",
       "subject": "Action requise : paiement refusé pour #{orderId}",

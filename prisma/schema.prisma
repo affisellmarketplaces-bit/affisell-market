@@ -1948,6 +1948,10 @@ model Order {
   buyerReview                      Review?
   reviewReminderSentAt             DateTime?
   /**
+   * Idempotent guard for J+30 repurchase win-back email.
+   */
+  repurchaseReminderSentAt         DateTime?
+  /**
    * Idempotent guard for cancelled/refunded buyer email (Resend).
    */
   cancelledEmailSentAt             DateTime?

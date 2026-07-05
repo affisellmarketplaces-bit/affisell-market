@@ -4254,6 +4254,15 @@
       "ctaReview": "Leave a review",
       "footerNote": "You receive this email once. Thanks for helping Affisell grow."
     },
+    "repurchaseReminder": {
+      "preview": "Ready to reorder {productName}?",
+      "subject": "Time to restock · {productName}",
+      "heading": "Need a refill?",
+      "body": "It's been a while since order #{orderId}. {productName} is still available — reorder in one click.",
+      "ctaTitle": "Buy again before it sells out",
+      "ctaRepurchase": "Buy again",
+      "footerNote": "One email per order. Unsubscribe from marketing in your account settings."
+    },
     "paymentFailed": {
       "preview": "Action required: payment failed #{orderId}",
       "subject": "Action required: payment declined for #{orderId}",

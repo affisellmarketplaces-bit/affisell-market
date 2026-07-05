@@ -63,6 +63,7 @@ jobs:
           for path in \
             "/api/cron/migrate" \
             "/api/cron/review-reminder" \
+            "/api/cron/repurchase-reminder" \
             "/api/cron/wishlist-price-alerts" \
             "/api/cron/adjust-variant-pricing" \
             "/api/cron/stripe-health" \

@@ -61,6 +61,17 @@ export type ReviewReminderEmailCopy = {
   footer: string
 }
 
+export type RepurchaseReminderEmailCopy = {
+  preview: string
+  heading: string
+  greeting: string
+  body: string
+  ctaTitle: string
+  ctaRepurchase: string
+  footerNote: string
+  footer: string
+}
+
 export type PaymentFailedEmailCopy = {
   preview: string
   heading: string
@@ -265,6 +276,36 @@ export function reviewReminderEmailSubject(locale: AppLocale, orderId: string): 
   return emailSubject(locale, "emails.reviewReminder.subject", {
     orderId: orderId.slice(-6).toUpperCase(),
   })
+}
+
+export function loadRepurchaseReminderEmailCopy(
+  locale: AppLocale,
+  vars: { orderId: string; customerName: string; productName: string }
+): RepurchaseReminderEmailCopy {
+  const shortOrderId = vars.orderId.slice(-6).toUpperCase()
+
+  return {
+    preview: interpolate(t(locale, "emails.repurchaseReminder.preview"), {
+      productName: vars.productName,
+    }),
+    heading: t(locale, "emails.repurchaseReminder.heading"),
+    greeting: interpolate(t(locale, "emails.shared.greeting"), { customerName: vars.customerName }),
+    body: interpolate(t(locale, "emails.repurchaseReminder.body"), {
+      productName: vars.productName,
+      orderId: shortOrderId,
+    }),
+    ctaTitle: t(locale, "emails.repurchaseReminder.ctaTitle"),
+    ctaRepurchase: t(locale, "emails.repurchaseReminder.ctaRepurchase"),
+    footerNote: t(locale, "emails.repurchaseReminder.footerNote"),
+    footer: t(locale, "emails.shared.footerBrand"),
+  }
+}
+
+export function repurchaseReminderEmailSubject(
+  locale: AppLocale,
+  productName: string
+): string {
+  return emailSubject(locale, "emails.repurchaseReminder.subject", { productName })
 }
 
 export function loadPaymentFailedEmailCopy(
