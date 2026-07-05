@@ -5,8 +5,10 @@ import { AutodsFulfillmentPanel } from "@/components/admin/autods-fulfillment-pa
 import { CancelOrderDialog } from "@/components/admin/cancel-order-dialog"
 import { OrderHeader } from "@/components/admin/order-header"
 import { SupplierTimeline } from "@/components/admin/supplier-timeline"
+import { TrackingAuditPanel } from "@/components/admin/tracking-audit-panel"
 import { auth } from "@/auth"
 import { loadAdminOrderDetail } from "@/lib/admin/orders/load-order"
+import { loadAdminOrderTrackingAudit } from "@/lib/admin/orders/load-tracking-audit"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -20,8 +22,11 @@ export default async function AdminOrderPage({ params }: Props) {
   if ((session.user as { role?: string }).role !== "ADMIN") redirect("/")
 
   const { id } = await params
-  const order = await loadAdminOrderDetail(id)
-  if (!order) notFound()
+  const [order, trackingAudit] = await Promise.all([
+    loadAdminOrderDetail(id),
+    loadAdminOrderTrackingAudit(id),
+  ])
+  if (!order || !trackingAudit) notFound()
 
   return (
     <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -44,6 +49,7 @@ export default async function AdminOrderPage({ params }: Props) {
           }
         />
         <AutodsFulfillmentPanel order={order} />
+        <TrackingAuditPanel audit={trackingAudit} />
         <SupplierTimeline orderId={order.id} supplierOrders={order.supplierFulfillmentOrders} />
       </div>
     </main>
