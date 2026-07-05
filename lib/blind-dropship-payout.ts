@@ -192,6 +192,7 @@ export async function executeBlindDropshipMerchantPayout(
         beneficiaryRole: "SUPPLIER",
         amountCents: g.amount,
         idempotencyKey: `payout:blind:supplier:${order.id}:${sid}`,
+        payoutRail: "ledger_only",
         note: `Blind dropship wholesale · ${g.label}`,
       })
       if (paid) {
@@ -220,6 +221,7 @@ export async function executeBlindDropshipMerchantPayout(
         beneficiaryRole: "AFFILIATE",
         amountCents: affiliateAmount,
         idempotencyKey: `payout:blind:affiliate:${order.id}`,
+        payoutRail: "ledger_only",
         note: `Blind dropship affiliate earnings`,
       })
       if (paid) {

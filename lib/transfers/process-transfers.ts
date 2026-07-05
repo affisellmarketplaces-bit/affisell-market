@@ -2,6 +2,12 @@ import type { Prisma, TransferRole } from "@prisma/client"
 import Stripe from "stripe"
 
 import { evaluateTransferReleaseForRole } from "@/lib/order-transfer-gating"
+import {
+  marketplaceRoleAlreadySettled,
+  recordStripePayoutSettlement,
+  resolveLegacyLedgerBlockReason,
+  supersedePendingTransferAttempt,
+} from "@/lib/payout-settlement"
 import { computeSplitStatusFromAttempts } from "@/lib/transfers/compute-split-status"
 import { alertSplitTransferFailed } from "@/lib/transfers/split-slack-alert"
 import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
@@ -38,7 +44,10 @@ async function syncOnboardingFailure(accountId: string) {
 async function applyOrderSettlement(orderId: string) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { transferAttempts: true },
+    include: {
+      transferAttempts: true,
+      product: { select: { name: true } },
+    },
   })
   if (!order) return
 
@@ -51,12 +60,21 @@ async function applyOrderSettlement(orderId: string) {
   if (supplierAttempt?.status === "SUCCESS") {
     data.supplierPayoutCents = supplierAttempt.amountCents
     data.stripeTransferId = supplierAttempt.stripeTransferId
+    if (!order.supplierPayoutAt && supplierAttempt.lastAttemptAt) {
+      data.supplierPayoutAt = supplierAttempt.lastAttemptAt
+    }
   }
   if (affiliateAttempt?.status === "SUCCESS") {
     data.affiliatePayoutCents = affiliateAttempt.amountCents
+    if (!order.affiliatePayoutAt && affiliateAttempt.lastAttemptAt) {
+      data.affiliatePayoutAt = affiliateAttempt.lastAttemptAt
+    }
   }
   if (splitStatus === "SUCCESS") {
     data.paymentSettlementStatus = "SETTLED"
+    if (order.payoutStatus === "PENDING") {
+      data.payoutStatus = "PAID"
+    }
     const destinations = order.transferAttempts
       .map((a) => a.destination)
       .filter(Boolean)
@@ -104,6 +122,7 @@ async function processOneAttempt(
     include: {
       order: {
         include: {
+          product: { select: { name: true } },
           returns: { select: { status: true } },
           autoBuyLog: { select: { status: true } },
           supplierFulfillmentLinks: {
@@ -116,6 +135,38 @@ async function processOneAttempt(
     },
   })
   if (!attempt || attempt.status !== "PENDING" || attempt.attempts >= MAX_ATTEMPTS) {
+    return "skipped"
+  }
+
+  if (attempt.order.payoutStatus === "PAID") {
+    console.log("[transfer-gating]", {
+      orderId: attempt.orderId,
+      role: attempt.role,
+      reason: "already_paid_via_lightning",
+    })
+    return "skipped"
+  }
+
+  const beneficiaryRole = attempt.role as "SUPPLIER" | "AFFILIATE"
+  if (await marketplaceRoleAlreadySettled(attempt.orderId, beneficiaryRole)) {
+    await prisma.$transaction(async (tx) => {
+      await supersedePendingTransferAttempt(tx, attempt.orderId, attempt.role, "ALREADY_SETTLED")
+    })
+    await applyOrderSettlement(attempt.orderId)
+    return "skipped"
+  }
+
+  const legacyBlock = await resolveLegacyLedgerBlockReason(attempt.orderId, attempt.role)
+  if (legacyBlock) {
+    await prisma.$transaction(async (tx) => {
+      await supersedePendingTransferAttempt(tx, attempt.orderId, attempt.role, legacyBlock)
+    })
+    console.log("[payout-settlement]", {
+      orderId: attempt.orderId,
+      role: attempt.role,
+      result: "blocked_legacy_ledger",
+    })
+    await applyOrderSettlement(attempt.orderId)
     return "skipped"
   }
 
@@ -191,16 +242,34 @@ async function processOneAttempt(
       { idempotencyKey: idempotencyKey(attempt.orderId, attempt.role) }
     )
 
-    await prisma.transferAttempt.update({
-      where: { id: attempt.id },
-      data: {
-        status: "SUCCESS",
+    const paidAt = new Date()
+    const beneficiaryRole = attempt.role as "SUPPLIER" | "AFFILIATE"
+    const userId =
+      beneficiaryRole === "SUPPLIER" ? attempt.order.supplierId : attempt.order.affiliateId
+
+    await prisma.$transaction(async (tx) => {
+      await tx.transferAttempt.update({
+        where: { id: attempt.id },
+        data: {
+          status: "SUCCESS",
+          stripeTransferId: transfer.id,
+          errorCode: null,
+          errorMessage: null,
+          attempts: nextAttempts,
+          lastAttemptAt: paidAt,
+        },
+      })
+
+      await recordStripePayoutSettlement(tx, {
+        orderId: attempt.orderId,
+        beneficiaryRole,
+        userId,
+        amountCents: attempt.amountCents,
         stripeTransferId: transfer.id,
-        errorCode: null,
-        errorMessage: null,
-        attempts: nextAttempts,
-        lastAttemptAt: now,
-      },
+        payoutRail: "connect",
+        productName: attempt.order.product?.name ?? null,
+        paidAt,
+      })
     })
 
     logStripeWebhookInfo({

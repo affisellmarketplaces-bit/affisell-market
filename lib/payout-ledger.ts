@@ -1,5 +1,7 @@
 import type { Prisma } from "@prisma/client"
 
+import type { PayoutRail } from "@/lib/payout-settlement.shared"
+
 type Tx = Prisma.TransactionClient
 
 export async function recordMerchantPayoutEntry(
@@ -13,6 +15,8 @@ export async function recordMerchantPayoutEntry(
     idempotencyKey: string
     note: string
     entryType?: "PAYOUT" | "CLAWBACK"
+    stripeTransferId?: string | null
+    payoutRail?: PayoutRail
   }
 ): Promise<boolean> {
   if (args.amountCents < 1) return false
@@ -27,6 +31,8 @@ export async function recordMerchantPayoutEntry(
         entryType: args.entryType ?? "PAYOUT",
         amountCents: args.amountCents,
         idempotencyKey: args.idempotencyKey,
+        stripeTransferId: args.stripeTransferId?.trim() || null,
+        payoutRail: args.payoutRail ?? (args.stripeTransferId ? "connect" : "ledger_only"),
         note: args.note,
       },
     })

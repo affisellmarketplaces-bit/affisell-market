@@ -2025,12 +2025,21 @@ model MerchantPayoutLedger {
   entryType            String
   amountCents          Int
   idempotencyKey       String              @unique
+  /**
+   * Stripe Connect transfer id — set when money actually moved (connect | lightning rails).
+   */
+  stripeTransferId     String?             @unique
+  /**
+   * connect | lightning | ledger_only (blind dropship internal obligation).
+   */
+  payoutRail           String              @default("ledger_only")
   note                 String?             @db.Text
   createdAt            DateTime            @default(now())
 
   @@index([orderId])
   @@index([blindDropshipOrderId])
   @@index([userId, createdAt])
+  @@index([payoutRail, createdAt])
 }
 
 enum OrderShipExtensionStatus {

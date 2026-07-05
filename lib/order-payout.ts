@@ -1,8 +1,5 @@
 import type { Prisma } from "@prisma/client"
 
-import { formatStoreCurrencyFromCents } from "@/lib/market-config"
-import { netAffiliateTransferCents } from "@/lib/marketplace-phase1-fees"
-import { resolveSupplierPayoutCentsFromOrder } from "@/lib/marketplace-order-settlement"
 import {
   isPayoutBlockedByReturn,
   isReadyForMerchantPayout,
@@ -11,7 +8,12 @@ import {
   type DeliveryConfirmedBy,
 } from "@/lib/order-payout-policy"
 import { confirmBlindDropshipDeliveryByBuyer } from "@/lib/blind-dropship-payout"
-import { recordMerchantPayoutEntry } from "@/lib/payout-ledger"
+import {
+  loadOrderClawbackContext,
+  recordClawbackIfPaidOut,
+  resolvedClawbackAmountCents,
+  roleWasPaidOut,
+} from "@/lib/payout-settlement"
 import { prisma } from "@/lib/prisma"
 
 type Tx = Prisma.TransactionClient
@@ -19,27 +21,12 @@ type Tx = Prisma.TransactionClient
 const orderPayoutSelect = {
   id: true,
   status: true,
-  supplierId: true,
-  affiliateId: true,
-  productId: true,
-  basePriceCents: true,
-  affiliatePayoutCents: true,
-  affiliateMarginRetainedCents: true,
-  affiliateFeeCents: true,
-  affiliateMarginCents: true,
-  supplierFeeCents: true,
-  supplierPayoutCents: true,
-  usesAffisellAutoBuy: true,
-  aeWholesaleCents: true,
   deliveredAt: true,
   shippedAt: true,
   deliveryConfirmedAt: true,
   deliveryConfirmedBy: true,
   payoutEligibleAt: true,
-  supplierPayoutAt: true,
-  affiliatePayoutAt: true,
-  supplierPriceCents: true,
-  supplierCommissionRateBps: true,
+  payoutStatus: true,
 } as const
 
 export async function confirmOrderDeliveryByBuyer(orderId: string, buyerUserId: string | null, buyerEmail: string) {
@@ -111,200 +98,88 @@ async function applyAutoConfirmIfNeeded(
   })
 }
 
-export async function executeOrderMerchantPayout(orderId: string): Promise<{ ok: boolean; reason?: string }> {
+/**
+ * Advance delivery confirmation timers only — no money movement.
+ * Stripe Connect transfers are the sole payout rail for marketplace orders.
+ */
+export async function advanceMarketplacePayoutEligibility(
+  orderId: string
+): Promise<{ ok: boolean; reason?: string; autoConfirmed?: boolean }> {
   return prisma.$transaction(async (tx) => {
     let order = await tx.order.findUnique({
       where: { id: orderId },
       select: orderPayoutSelect,
     })
     if (!order) return { ok: false, reason: "not_found" }
+    if (order.payoutStatus === "PAID") return { ok: false, reason: "already_paid" }
 
     const returns = await tx.orderReturn.findMany({ where: { orderId } })
     if (isPayoutBlockedByReturn(returns)) return { ok: false, reason: "return_open" }
 
+    const hadConfirm = order.deliveryConfirmedAt != null
     order = await applyAutoConfirmIfNeeded(tx, order)
+    const autoConfirmed = !hadConfirm && order.deliveryConfirmedAt != null
+
     if (!isReadyForMerchantPayout(order, returns)) {
-      return { ok: false, reason: "not_eligible" }
+      return { ok: false, reason: "not_eligible", autoConfirmed }
     }
 
-    const supplierAmount = resolveSupplierPayoutCentsFromOrder({
-      basePriceCents: order.basePriceCents,
-      supplierPriceCents: order.supplierPriceCents,
-      supplierCommissionRateBps: order.supplierCommissionRateBps,
-      affiliatePayoutCents: order.affiliatePayoutCents,
-      supplierFeeCents: order.supplierFeeCents,
-      usesAffisellAutoBuy: order.usesAffisellAutoBuy,
-      aeWholesaleCents: order.aeWholesaleCents,
-      supplierPayoutCents: order.supplierPayoutCents,
-    })
-    const affiliateAmount = netAffiliateTransferCents({
-      affiliatePayoutCents: order.affiliatePayoutCents,
-      affiliateMarginRetainedCents: order.affiliateMarginRetainedCents,
-      affiliateFeeCents: order.affiliateFeeCents,
-      affiliateMarginCents: order.affiliateMarginCents,
-    })
-    const now = new Date()
-    let supplierPayoutAt = order.supplierPayoutAt
-    let affiliatePayoutAt = order.affiliatePayoutAt
-
-    const product = await tx.product.findUnique({ where: { id: order.productId }, select: { name: true } })
-
-    if (!supplierPayoutAt) {
-      const paid = await recordMerchantPayoutEntry(tx, {
-        orderId: order.id,
-        userId: order.supplierId,
-        beneficiaryRole: "SUPPLIER",
-        amountCents: supplierAmount,
-        idempotencyKey: `payout:supplier:${order.id}`,
-        note: `Supplier wholesale payout · ${product?.name ?? "order"}`,
-      })
-      if (paid) {
-        supplierPayoutAt = now
-        await tx.notification.create({
-          data: {
-            userId: order.supplierId,
-            type: "PAYOUT_SENT",
-            message: `Payout released · ${product?.name ?? "Order"} · ${formatStoreCurrencyFromCents(supplierAmount)} (wholesale). Buyers may still return within the legal window — refunds remain mandatory if approved.`,
-            orderId: order.id,
-          },
-        })
-      }
-    }
-
-    if (!affiliatePayoutAt) {
-      const paid = await recordMerchantPayoutEntry(tx, {
-        orderId: order.id,
-        userId: order.affiliateId,
-        beneficiaryRole: "AFFILIATE",
-        amountCents: affiliateAmount,
-        idempotencyKey: `payout:affiliate:${order.id}`,
-        note: `Affiliate earnings payout · ${product?.name ?? "order"}`,
-      })
-      if (paid) {
-        affiliatePayoutAt = now
-        await tx.notification.create({
-          data: {
-            userId: order.affiliateId,
-            type: "PAYOUT_SENT",
-            message: `Payout released · ${product?.name ?? "Order"} · ${formatStoreCurrencyFromCents(affiliateAmount)}. If the buyer returns and is refunded later, you must reimburse your share.`,
-            orderId: order.id,
-          },
-        })
-      }
-    }
-
-    await tx.order.update({
-      where: { id: order.id },
-      data: {
-        supplierPayoutAt,
-        affiliatePayoutAt,
-      },
-    })
-
-    return { ok: true }
+    return { ok: true, autoConfirmed }
   })
 }
 
+/**
+ * @deprecated Marketplace payouts flow through Stripe Connect (`process-transfers`).
+ * Kept as alias for eligibility advance — does not write ledger entries.
+ */
+export async function executeOrderMerchantPayout(orderId: string): Promise<{ ok: boolean; reason?: string }> {
+  const r = await advanceMarketplacePayoutEligibility(orderId)
+  if (r.ok || r.autoConfirmed) {
+    const { triggerOrderTransferRelease } = await import("@/lib/trigger-order-transfer-release")
+    triggerOrderTransferRelease(orderId)
+  }
+  return { ok: r.ok, reason: r.reason }
+}
+
 export async function clawbackOrderPayoutsOnRefund(orderId: string): Promise<void> {
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    select: {
-      id: true,
-      supplierId: true,
-      affiliateId: true,
-      basePriceCents: true,
-      affiliatePayoutCents: true,
-      affiliateMarginRetainedCents: true,
-      affiliateFeeCents: true,
-      affiliateMarginCents: true,
-      supplierPayoutCents: true,
-      supplierPriceCents: true,
-      supplierCommissionRateBps: true,
-      supplierFeeCents: true,
-      usesAffisellAutoBuy: true,
-      aeWholesaleCents: true,
-      supplierPayoutAt: true,
-      affiliatePayoutAt: true,
-      product: { select: { name: true } },
-    },
-  })
+  const order = await loadOrderClawbackContext(orderId)
   if (!order) return
 
   const productName = order.product.name
 
   await prisma.$transaction(async (tx) => {
-    if (order.supplierPayoutAt) {
-      const amount =
-        order.supplierPayoutCents > 0
-          ? order.supplierPayoutCents
-          : resolveSupplierPayoutCentsFromOrder({
-              basePriceCents: order.basePriceCents,
-              supplierPriceCents: order.supplierPriceCents,
-              supplierCommissionRateBps: order.supplierCommissionRateBps,
-              affiliatePayoutCents: order.affiliatePayoutCents,
-              supplierFeeCents: order.supplierFeeCents,
-              usesAffisellAutoBuy: order.usesAffisellAutoBuy,
-              aeWholesaleCents: order.aeWholesaleCents,
-            })
-      try {
-        await recordMerchantPayoutEntry(tx, {
-          orderId: order.id,
-          userId: order.supplierId,
-          beneficiaryRole: "SUPPLIER",
-          amountCents: amount,
-          idempotencyKey: `clawback:supplier:${order.id}`,
-          note: `Mandatory refund clawback · ${productName}`,
-          entryType: "CLAWBACK",
-        })
-        await tx.notification.create({
-          data: {
-            userId: order.supplierId,
-            type: "PAYOUT_CLAWBACK",
-            message: `Refund obligation · ${productName} · reimburse ${formatStoreCurrencyFromCents(amount)} (payout was already released; buyer refund is mandatory).`,
-            orderId: order.id,
-          },
-        })
-      } catch (e) {
-        if ((e as { code?: string })?.code !== "P2002") throw e
-      }
+    if (roleWasPaidOut("SUPPLIER", order)) {
+      const amount = resolvedClawbackAmountCents("SUPPLIER", order)
+      await recordClawbackIfPaidOut(tx, {
+        orderId: order.id,
+        beneficiaryRole: "SUPPLIER",
+        userId: order.supplierId,
+        amountCents: amount,
+        productName,
+      })
     }
 
-    if (order.affiliatePayoutAt) {
-      const amount = netAffiliateTransferCents({
-        affiliatePayoutCents: order.affiliatePayoutCents,
-        affiliateMarginRetainedCents: order.affiliateMarginRetainedCents,
-        affiliateFeeCents: order.affiliateFeeCents,
-        affiliateMarginCents: order.affiliateMarginCents,
-      })
+    if (roleWasPaidOut("AFFILIATE", order)) {
+      const amount = resolvedClawbackAmountCents("AFFILIATE", order)
       if (amount > 0) {
-        try {
-          await recordMerchantPayoutEntry(tx, {
-            orderId: order.id,
-            userId: order.affiliateId,
-            beneficiaryRole: "AFFILIATE",
-            amountCents: amount,
-            idempotencyKey: `clawback:affiliate:${order.id}`,
-            note: `Mandatory refund clawback · ${productName}`,
-            entryType: "CLAWBACK",
-          })
-          await tx.notification.create({
-            data: {
-              userId: order.affiliateId,
-              type: "PAYOUT_CLAWBACK",
-              message: `Refund obligation · ${productName} · reimburse ${formatStoreCurrencyFromCents(amount)} (earnings were paid out; buyer refund must be honored).`,
-              orderId: order.id,
-            },
-          })
-        } catch (e) {
-          if ((e as { code?: string })?.code !== "P2002") throw e
-        }
+        await recordClawbackIfPaidOut(tx, {
+          orderId: order.id,
+          beneficiaryRole: "AFFILIATE",
+          userId: order.affiliateId,
+          amountCents: amount,
+          productName,
+        })
       }
     }
   })
 }
 
+/**
+ * Marketplace: auto-confirm delivery windows + enqueue Connect transfers.
+ * Blind dropship: internal ledger rail unchanged.
+ */
 export async function processDueOrderPayouts(limit = 100): Promise<{
-  marketplace: { processed: number; paid: number; skipped: number }
+  marketplace: { processed: number; advanced: number; skipped: number }
   blind: { processed: number; paid: number; skipped: number }
 }> {
   const { processDueBlindDropshipPayouts } = await import("@/lib/blind-dropship-payout")
@@ -312,31 +187,41 @@ export async function processDueOrderPayouts(limit = 100): Promise<{
   const candidates = await prisma.order.findMany({
     where: {
       status: "shipped",
-      OR: [{ supplierPayoutAt: null }, { affiliatePayoutAt: null }],
       shippedAt: { not: null },
+      payoutStatus: { notIn: ["PAID", "PROCESSING"] },
+      OR: [
+        { deliveryConfirmedAt: null, deliveredAt: { not: null } },
+        {
+          AND: [
+            { deliveryConfirmedAt: { not: null } },
+            { OR: [{ supplierPayoutAt: null }, { affiliatePayoutAt: null }] },
+          ],
+        },
+      ],
     },
     orderBy: { shippedAt: "asc" },
     take: limit,
     select: { id: true },
   })
 
-  let paid = 0
+  let advanced = 0
   let skipped = 0
+  const { triggerOrderTransferRelease } = await import("@/lib/trigger-order-transfer-release")
+
   for (const { id } of candidates) {
-    const r = await executeOrderMerchantPayout(id)
-    if (r.ok) paid++
-    else skipped++
+    const r = await advanceMarketplacePayoutEligibility(id)
+    if (r.ok || r.autoConfirmed) {
+      advanced++
+      triggerOrderTransferRelease(id)
+    } else {
+      skipped++
+    }
   }
 
   const blind = await processDueBlindDropshipPayouts(limit)
 
-  const { triggerOrderTransferRelease } = await import("@/lib/trigger-order-transfer-release")
-  for (const { id } of candidates) {
-    triggerOrderTransferRelease(id)
-  }
-
   return {
-    marketplace: { processed: candidates.length, paid, skipped },
+    marketplace: { processed: candidates.length, advanced, skipped },
     blind,
   }
 }
