@@ -8,15 +8,18 @@ import { sectionCopyString, type HomepageSectionContent } from "@/lib/storefront
 import { cn } from "@/lib/utils"
 
 type Props = {
+  storeSlug: string
   content?: HomepageSectionContent
   accent?: string
   className?: string
 }
 
-export function StorefrontNewsletterSection({ content, accent, className }: Props) {
+export function StorefrontNewsletterSection({ storeSlug, content, accent, className }: Props) {
   const t = useTranslations("storefront.homeSections")
   const [email, setEmail] = useState("")
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [errorKey, setErrorKey] = useState<string | null>(null)
 
   const title = sectionCopyString(content, "title", t("newsletterTitle"))
   const body = sectionCopyString(content, "body", t("newsletterBody"))
@@ -26,24 +29,48 @@ export function StorefrontNewsletterSection({ content, accent, className }: Prop
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     const trimmed = email.trim()
-    if (!trimmed) return
+    if (!trimmed || submitting) return
 
-    console.log("[storefront-newsletter]", { email: trimmed, result: "subscribed" })
+    setSubmitting(true)
+    setErrorKey(null)
 
     try {
-      const { default: confetti } = await import("canvas-confetti")
-      confetti({
-        particleCount: 60,
-        spread: 55,
-        origin: { y: 0.75 },
-        colors: ["#a78bfa", "#818cf8", "#7c3aed"],
+      const res = await fetch("/api/store/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          storeSlug,
+          email: trimmed,
+          locale: document.documentElement.lang?.slice(0, 2) || undefined,
+          website: "",
+        }),
       })
-    } catch {
-      // confetti optional
-    }
 
-    setSubmitted(true)
-    setEmail("")
+      const data = (await res.json()) as { ok?: boolean; error?: string }
+      if (!res.ok || !data.ok) {
+        setErrorKey(data.error === "invalid_email" ? "invalidEmail" : "generic")
+        return
+      }
+
+      try {
+        const { default: confetti } = await import("canvas-confetti")
+        confetti({
+          particleCount: 60,
+          spread: 55,
+          origin: { y: 0.75 },
+          colors: ["#a78bfa", "#818cf8", "#7c3aed"],
+        })
+      } catch {
+        // confetti optional
+      }
+
+      setSubmitted(true)
+      setEmail("")
+    } catch {
+      setErrorKey("generic")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -75,13 +102,18 @@ export function StorefrontNewsletterSection({ content, accent, className }: Prop
           />
           <button
             type="submit"
-            className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-violet-600 px-5 text-sm font-semibold text-white hover:bg-violet-700"
+            disabled={submitting}
+            className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-violet-600 px-5 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-60"
           >
-            {buttonLabel}
+            {submitting ? t("newsletterSubmitting") : buttonLabel}
           </button>
         </form>
         <p className="mt-3 text-[11px] text-zinc-500 dark:text-zinc-500">
-          {submitted ? t("newsletterSuccess") : t("newsletterDisclaimer")}
+          {submitted
+            ? t("newsletterSuccess")
+            : errorKey
+              ? t(errorKey === "invalidEmail" ? "newsletterInvalidEmail" : "newsletterError")
+              : t("newsletterDisclaimer")}
         </p>
       </div>
     </section>

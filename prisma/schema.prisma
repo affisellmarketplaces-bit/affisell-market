@@ -477,6 +477,27 @@ model Store {
 
   communityPosts    CommunityPost[]
   followerRelations Follow[]        @relation("StoreFollowers")
+  newsletterSubscribers StoreNewsletterSubscriber[]
+}
+
+/**
+ * Buyer email captured on affiliate storefront newsletter section.
+ * Idempotent on (storeId, email) — safe on double-submit / replay.
+ */
+model StoreNewsletterSubscriber {
+  id                 String    @id @default(cuid())
+  storeId            String
+  store              Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  email              String
+  locale             String?
+  source             String    @default("storefront_newsletter")
+  welcomeEmailSentAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@unique([storeId, email])
+  @@index([storeId])
+  @@index([email])
 }
 
 enum AttributeValueType {

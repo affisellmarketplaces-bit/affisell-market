@@ -147,6 +147,7 @@ export async function StorefrontHomeSections({
             return (
               <StorefrontNewsletterSection
                 key="newsletter"
+                storeSlug={slug}
                 content={content}
                 accent={store.theme.accent}
               />
