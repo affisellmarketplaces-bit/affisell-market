@@ -30,6 +30,28 @@ export function resolvePublicNavBackHref(pathname: string): string {
   return PUBLIC_MARKETPLACE_BROWSE_PATH
 }
 
+function isPublicAuthRoute(pathname: string): boolean {
+  if (pathname.startsWith("/auth/")) return true
+  if (pathname === "/login" || pathname.startsWith("/login/")) return true
+  if (pathname.startsWith("/signup")) return true
+  if (pathname.startsWith("/onboarding/")) return true
+  return false
+}
+
+function isCreatorStorefrontPath(pathname: string): boolean {
+  return pathname.startsWith("/shops/") && !pathname.startsWith("/shops/browse")
+}
+
+/** Buyer trust strip — public browse pages only (not auth, storefront, or dashboard). */
+export function shouldShowPublicTrustStrip(pathname: string | null): boolean {
+  if (!pathname) return false
+  const path = pathname.split("?")[0] ?? pathname
+  if (isPublicAuthRoute(path)) return false
+  if (isCreatorStorefrontPath(path)) return false
+  if (path.startsWith("/dashboard")) return false
+  return resolvePublicNavMode(path) === "browse"
+}
+
 export const PUBLIC_NAV_ACCOUNT_LINKS = [
   { id: "orders", href: "/marketplace/account/orders", labelKey: "accountOrders" as const, exact: false },
   { id: "wishlist", href: "/wishlist", labelKey: "accountWishlist" as const, exact: false },

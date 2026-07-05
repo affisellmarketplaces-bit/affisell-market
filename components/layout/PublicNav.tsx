@@ -24,7 +24,6 @@ import { COMMAND_K_OPEN_EVENT } from "@/components/CommandK"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { ThemeToggle } from "@/components/marketing/theme-toggle"
 import { NavHeaderSearch } from "@/components/nav/nav-header-search"
-import { PublicNavTrustStrip } from "@/components/nav/public-nav-trust-strip"
 import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
 import { Link as LocaleLink, usePathname } from "@/i18n/navigation"
@@ -336,7 +335,6 @@ export function PublicNav() {
           {desktopUtilities({ showAgent: true })}
         </nav>
       )}
-      <PublicNavTrustStrip visible={mode === "browse"} />
     </>
   )
 }

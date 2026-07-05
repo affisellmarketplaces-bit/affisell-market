@@ -5,6 +5,7 @@ import { ShieldCheck, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { FastLink } from "@/components/navigation/fast-link"
+import { cn } from "@/lib/utils"
 import {
   brandOrbitTrustStripDismiss,
   brandOrbitTrustStripLink,
@@ -13,19 +14,21 @@ import {
   brandOrbitTrustStripText,
 } from "@/lib/affisell-brand-orbit-shared"
 
-const DISMISS_KEY = "affisell_trust_strip_dismissed"
+/** Session-only dismiss — avoids permanent hide from legacy localStorage key. */
+const DISMISS_KEY = "affisell_trust_strip_session_v2"
 
 type Props = {
   visible: boolean
+  className?: string
 }
 
-export function PublicNavTrustStrip({ visible }: Props) {
+export function PublicNavTrustStrip({ visible, className }: Props) {
   const t = useTranslations("PublicNav")
-  const [dismissed, setDismissed] = useState(true)
+  const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
     try {
-      setDismissed(window.localStorage.getItem(DISMISS_KEY) === "1")
+      setDismissed(window.sessionStorage.getItem(DISMISS_KEY) === "1")
     } catch {
       setDismissed(false)
     }
@@ -35,7 +38,7 @@ export function PublicNavTrustStrip({ visible }: Props) {
 
   function dismiss() {
     try {
-      window.localStorage.setItem(DISMISS_KEY, "1")
+      window.sessionStorage.setItem(DISMISS_KEY, "1")
     } catch {
       /* ignore */
     }
@@ -43,7 +46,11 @@ export function PublicNavTrustStrip({ visible }: Props) {
   }
 
   return (
-    <div className={brandOrbitTrustStripShell} role="region" aria-label={t("trustStripText")}>
+    <div
+      className={cn(brandOrbitTrustStripShell, className)}
+      role="region"
+      aria-label={t("trustStripText")}
+    >
       <div className={brandOrbitTrustStripShimmer} aria-hidden />
       <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-2 px-2 py-2 sm:px-3">
         <p className={brandOrbitTrustStripText}>

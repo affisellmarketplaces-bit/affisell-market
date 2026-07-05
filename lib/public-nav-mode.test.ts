@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   resolvePublicNavBackHref,
   resolvePublicNavMode,
+  shouldShowPublicTrustStrip,
 } from "@/lib/public-nav-mode"
 
 describe("resolvePublicNavMode", () => {
@@ -24,6 +25,21 @@ describe("resolvePublicNavMode", () => {
 
   it("returns account on wishlist", () => {
     expect(resolvePublicNavMode("/wishlist")).toBe("account")
+  })
+})
+
+describe("shouldShowPublicTrustStrip", () => {
+  it("shows on home and marketplace browse", () => {
+    expect(shouldShowPublicTrustStrip("/")).toBe(true)
+    expect(shouldShowPublicTrustStrip("/marketplace")).toBe(true)
+    expect(shouldShowPublicTrustStrip("/shops/browse")).toBe(true)
+  })
+
+  it("hides on auth, dashboard, cart, and creator storefront", () => {
+    expect(shouldShowPublicTrustStrip("/login")).toBe(false)
+    expect(shouldShowPublicTrustStrip("/dashboard/affiliate")).toBe(false)
+    expect(shouldShowPublicTrustStrip("/cart")).toBe(false)
+    expect(shouldShowPublicTrustStrip("/shops/creator-slug")).toBe(false)
   })
 })
 

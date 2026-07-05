@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react"
 
+import { SiteHeaderTrustStrip } from "@/components/nav/site-header-trust-strip"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -32,16 +33,19 @@ export function SiteHeaderChrome({ children }: Props) {
         scrolled && "affisell-global-site-header--scrolled"
       )}
     >
-      <div
-        className={cn(
-          "affisell-header-shell relative mx-auto max-w-7xl min-w-0 overflow-hidden md:overflow-visible",
-          compact && "affisell-header-shell--compact",
-          scrolled && "affisell-header-shell--scrolled"
-        )}
-      >
-        <div className="affisell-header-mesh pointer-events-none absolute inset-0" aria-hidden />
-        <div className="affisell-header-band pointer-events-none absolute inset-x-0 bottom-0 z-[1]" aria-hidden />
-        <div className="relative z-[2]">{children}</div>
+      <div className="mx-auto max-w-7xl min-w-0">
+        <SiteHeaderTrustStrip />
+        <div
+          className={cn(
+            "affisell-header-shell relative min-w-0 overflow-hidden md:overflow-visible",
+            compact && "affisell-header-shell--compact",
+            scrolled && "affisell-header-shell--scrolled"
+          )}
+        >
+          <div className="affisell-header-mesh pointer-events-none absolute inset-0" aria-hidden />
+          <div className="affisell-header-band pointer-events-none absolute inset-x-0 bottom-0 z-[1]" aria-hidden />
+          <div className="relative z-[2]">{children}</div>
+        </div>
       </div>
     </header>
   )

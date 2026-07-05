@@ -875,6 +875,11 @@ body.affisell-demo-lab .affisell-header-shell {
     }
   }
 
+  .affisell-site-header-trust-strip + .affisell-header-shell {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
   .affisell-header-shell {
     position: relative;
     /* Visible so locale / account dropdowns are not clipped below the bar */
