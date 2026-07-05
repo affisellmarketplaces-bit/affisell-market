@@ -4,7 +4,7 @@ import { cancelSupplierFulfillmentJob } from "@/lib/admin/orders/cancel-supplier
 import { notifyOrderCancelled } from "@/lib/emails/notify-order-cancelled"
 import { evaluateShipPulseAutoCancel } from "@/lib/orders/ship-pulse-policy"
 import { prisma } from "@/lib/prisma"
-import { initiateMarketplaceOrderRefund } from "@/lib/stripe-refund-marketplace-order"
+import { initiateMarketplaceRefundPipeline } from "@/lib/marketplace-refund-pipeline"
 import { resolveShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
 
 const BUYER_CANCEL_REASON =
@@ -103,7 +103,10 @@ export async function autoCancelMarketplaceOrderShipSlaBreach(
     }
   }
 
-  const refund = await initiateMarketplaceOrderRefund(orderId)
+  const refund = await initiateMarketplaceRefundPipeline({
+    orderId,
+    source: "ship_sla_auto_cancel",
+  })
 
   await prisma.order.update({
     where: { id: orderId },

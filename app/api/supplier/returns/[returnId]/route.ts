@@ -1,6 +1,6 @@
 import { auth } from "@/auth"
 import { reverseBuyerRewardEarnOnRefund } from "@/lib/buyer-reward-ledger"
-import { clawbackOrderPayoutsOnRefund } from "@/lib/order-payout"
+import { initiateMarketplaceRefundPipeline } from "@/lib/marketplace-refund-pipeline"
 import { prisma } from "@/lib/prisma"
 import { supplierActionToNextStatus } from "@/lib/order-return-state"
 
@@ -137,11 +137,21 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ returnId: str
       orderId: ret.orderId,
       refundFraction: frac,
     })
-    await clawbackOrderPayoutsOnRefund(ret.orderId)
-    await prisma.order.update({
-      where: { id: ret.orderId },
-      data: { status: "refunded" },
+
+    const refund = await initiateMarketplaceRefundPipeline({
+      orderId: ret.orderId,
+      source: "supplier_mark_refunded",
+      amountCents: approved,
+      reason: "requested_by_customer",
+      metadata: { returnId },
     })
+
+    if (!refund.ok && refund.skipped !== "already_refunded") {
+      return Response.json(
+        { error: refund.error ?? "stripe_refund_failed", returnId: updated.id },
+        { status: 502 }
+      )
+    }
   }
 
   return Response.json({ id: updated.id, status: updated.status, refundedAt: updated.refundedAt })

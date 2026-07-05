@@ -17,7 +17,7 @@ import { parseShipping } from "@/lib/fulfillment/shipping-address"
 import { mergeAeVariantMappingForOrder } from "@/lib/fulfillment/merge-ae-variant-mapping"
 import { resolveManualSupplierSku } from "@/lib/fulfillment/resolve-manual-supplier-sku"
 import { resolveSupplierSkuForOrder } from "@/lib/fulfillment/resolve-supplier-sku"
-import { initiateMarketplaceOrderRefund } from "@/lib/stripe-refund-marketplace-order"
+import { initiateMarketplaceRefundPipeline } from "@/lib/marketplace-refund-pipeline"
 import { notifyOrderCancelled } from "@/lib/emails/notify-order-cancelled"
 import { prisma } from "@/lib/prisma"
 export const MAX_ATTEMPTS = 3
@@ -515,7 +515,9 @@ async function failAutoBuy(
     return
   }
 
-  const refund = await initiateMarketplaceOrderRefund(orderId, {
+  const refund = await initiateMarketplaceRefundPipeline({
+    orderId,
+    source: "auto_buy_failure",
     reason: "requested_by_customer",
     metadata: { auto_buy: "stockout_after_retries" },
   })

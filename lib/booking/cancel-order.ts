@@ -79,10 +79,11 @@ export async function cancelBookingOrderForBuyer(args: {
     })
   })
 
-  const { initiateMarketplaceOrderRefund } = await import("@/lib/stripe-refund-marketplace-order")
-  const refund = await initiateMarketplaceOrderRefund(order.id, {
+  const { initiateMarketplaceRefundPipeline } = await import("@/lib/marketplace-refund-pipeline")
+  const refund = await initiateMarketplaceRefundPipeline({
+    orderId: order.id,
+    source: "booking_buyer_cancel",
     reason: "requested_by_customer",
-    metadata: { source: "booking_buyer_cancel" },
   })
 
   console.log("[booking]", {

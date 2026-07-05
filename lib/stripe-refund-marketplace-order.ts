@@ -36,7 +36,11 @@ export type InitiateMarketplaceRefundResult = {
  */
 export async function initiateMarketplaceOrderRefund(
   orderId: string,
-  options?: { reason?: Stripe.RefundCreateParams.Reason; metadata?: Record<string, string> }
+  options?: {
+    reason?: Stripe.RefundCreateParams.Reason
+    metadata?: Record<string, string>
+    amountCents?: number
+  }
 ): Promise<InitiateMarketplaceRefundResult> {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -62,22 +66,34 @@ export async function initiateMarketplaceOrderRefund(
   if (!chargeId) return { ok: false, error: "no_stripe_charge" }
 
   const stripe = getStripeClient()
-  const amountCents = order.totalCents ?? order.sellingPriceCents
+  const orderTotalCents = order.totalCents ?? order.sellingPriceCents
+  const requestedCents =
+    options?.amountCents != null && options.amountCents > 0
+      ? Math.min(Math.round(options.amountCents), orderTotalCents)
+      : orderTotalCents
 
   try {
     const refund = await stripe.refunds.create({
       charge: chargeId,
-      amount: amountCents > 0 ? amountCents : undefined,
+      amount: requestedCents > 0 ? requestedCents : undefined,
       reason: options?.reason ?? "requested_by_customer",
       metadata: {
         orderId,
-        source: "ship_sla_auto_cancel",
+        source: options?.metadata?.source ?? "marketplace_refund",
         ...options?.metadata,
       },
+    })
+    console.log("[stripe-refund]", {
+      orderId,
+      stripeRefundId: refund.id,
+      amountCents: requestedCents,
+      source: options?.metadata?.source ?? "marketplace_refund",
+      result: "created",
     })
     return { ok: true, stripeRefundId: refund.id }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
+    console.log("[stripe-refund]", { orderId, result: "error", reason: msg })
     return { ok: false, error: msg }
   }
 }
