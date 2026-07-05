@@ -3,6 +3,11 @@
  * Client-safe — no Prisma / server-only imports.
  */
 
+import {
+  resolveShipTrackingPolicy,
+  type ShipTrackingPolicy,
+} from "@/lib/ship-tracking-policy.shared"
+
 export type TrustedCarrier = {
   label: string
   afterShipSlug: string
@@ -160,24 +165,31 @@ export function extractShippingCountryIso2FromAddress(shippingAddress: unknown):
 }
 
 export function trustedCarriersForCountry(
-  countryIso2: string | null | undefined
+  countryIso2: string | null | undefined,
+  policy?: ShipTrackingPolicy
 ): readonly TrustedCarrier[] {
+  const resolved = policy ?? resolveShipTrackingPolicy()
   const code = normalizeShippingCountryIso2(countryIso2)
   const base = TRUSTED_CARRIERS_BY_COUNTRY[code] ?? EU_DEFAULT
+  if (!resolved.otherCarrierAllowed) return base
   return [...base, C(OTHER_TRUSTED_CARRIER_LABEL, "")]
 }
 
-export function trustedCarrierLabelsForCountry(countryIso2: string | null | undefined): string[] {
-  return trustedCarriersForCountry(countryIso2).map((row) => row.label)
+export function trustedCarrierLabelsForCountry(
+  countryIso2: string | null | undefined,
+  policy?: ShipTrackingPolicy
+): string[] {
+  return trustedCarriersForCountry(countryIso2, policy).map((row) => row.label)
 }
 
 export function isTrustedCarrierLabelForCountry(
   countryIso2: string | null | undefined,
-  carrierLabel: string
+  carrierLabel: string,
+  policy?: ShipTrackingPolicy
 ): boolean {
   const label = carrierLabel.trim()
   if (!label) return false
-  return trustedCarriersForCountry(countryIso2).some((row) => row.label === label)
+  return trustedCarriersForCountry(countryIso2, policy).some((row) => row.label === label)
 }
 
 export function afterShipSlugForTrustedCarrier(label: string): string | undefined {

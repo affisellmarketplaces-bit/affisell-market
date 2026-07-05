@@ -1,7 +1,10 @@
 import { isAfterShipTrackingValid, registerAfterShipTracking } from "@/lib/aftership-tracking"
 import {
+  assertOtherCarrierAllowed,
+  resolveShipTrackingPolicy,
+} from "@/lib/ship-tracking-policy.shared"
+import {
   validateShipTrackingFormat,
-  isOtherTrustedCarrierLabel,
   type ShipTrackingFormatResult,
 } from "@/lib/ship-tracking-validate.shared"
 
@@ -11,16 +14,11 @@ export {
   normalizeTrackingNumber,
   validateShipTrackingFormat,
 } from "@/lib/ship-tracking-validate.shared"
+export { resolveShipTrackingPolicy, type ShipTrackingPolicy } from "@/lib/ship-tracking-policy.shared"
 
 export type ShipTrackingValidationResult =
   | { ok: true; normalized: string; verifiedBy: "format" | "aftership" }
   | { ok: false; code: string; message: string }
-
-function afterShipRequired(): boolean {
-  if (process.env.SHIP_TRACKING_STRICT === "0") return false
-  if (process.env.AFTERSHIP_API_KEY?.trim()) return true
-  return process.env.NODE_ENV === "production"
-}
 
 /**
  * Full ship gate: format + optional AfterShip detect/register.
@@ -33,22 +31,21 @@ export async function validateShipTrackingForShip(args: {
   customerEmail?: string | null
   register?: boolean
 }): Promise<ShipTrackingValidationResult> {
+  const policy = resolveShipTrackingPolicy()
+
+  const otherGate = assertOtherCarrierAllowed(args.trackingCarrier, policy)
+  if (!otherGate.ok) {
+    return { ok: false, code: otherGate.code, message: otherGate.message }
+  }
+
   const format = validateShipTrackingFormat({
     trackingCarrier: args.trackingCarrier,
     trackingNumber: args.trackingNumber,
+    policy,
   })
   if (!format.ok) return format
 
-  const requireAfterShip = afterShipRequired()
-  const isOther = isOtherTrustedCarrierLabel(args.trackingCarrier)
-
-  if (isOther && !requireAfterShip) {
-    return {
-      ok: false,
-      code: "aftership_required",
-      message: "La vérification transporteur n'est pas disponible — choisissez un transporteur de la liste.",
-    }
-  }
+  const requireAfterShip = policy.strictEnforced
 
   if (!requireAfterShip) {
     return { ok: true, normalized: format.normalized, verifiedBy: "format" }

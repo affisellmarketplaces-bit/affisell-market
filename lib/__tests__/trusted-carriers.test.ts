@@ -6,6 +6,7 @@ import {
   isTrustedCarrierLabelForCountry,
   trustedCarrierLabelsForCountry,
 } from "@/lib/trusted-carriers-shared"
+import { resolveShipTrackingPolicy } from "@/lib/ship-tracking-policy.shared"
 
 describe("trusted-carriers-shared", () => {
   it("returns France carriers for FR", () => {
@@ -31,6 +32,12 @@ describe("trusted-carriers-shared", () => {
     expect(isTrustedCarrierLabelForCountry("FR", "Colissimo")).toBe(true)
     expect(isTrustedCarrierLabelForCountry("FR", "USPS")).toBe(false)
     expect(isTrustedCarrierLabelForCountry("FR", "Autre")).toBe(true)
+  })
+
+  it("rejects Autre when strict ship tracking is enforced", () => {
+    const strict = resolveShipTrackingPolicy({ nodeEnv: "production", afterShipApiKey: "" })
+    expect(isTrustedCarrierLabelForCountry("FR", "Autre", strict)).toBe(false)
+    expect(trustedCarrierLabelsForCountry("FR", strict)).not.toContain("Autre")
   })
 
   it("defaults to first trusted carrier per country", () => {

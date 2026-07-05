@@ -41,6 +41,8 @@ import {
   trustedCarriersForCountry,
 } from "@/lib/trusted-carriers-shared"
 import { validateShipTrackingFormat } from "@/lib/ship-tracking-validate.shared"
+import type { ShipTrackingPolicy } from "@/lib/ship-tracking-policy.shared"
+import { resolveShipTrackingPolicy } from "@/lib/ship-tracking-policy.shared"
 import { cn } from "@/lib/utils"
 
 type TrackingValidationState =
@@ -284,6 +286,9 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
   const [busy, setBusy] = useState<string | null>(null)
   const [trackingByOrder, setTrackingByOrder] = useState<Record<string, { carrier: string; number: string }>>({})
   const [trackingValidation, setTrackingValidation] = useState<Record<string, TrackingValidationState>>({})
+  const [shipTrackingPolicy, setShipTrackingPolicy] = useState<ShipTrackingPolicy>(() =>
+    resolveShipTrackingPolicy()
+  )
   const trackingValidateTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
   const scheduleTrackingValidation = useCallback(
@@ -298,7 +303,11 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
         return
       }
 
-      const local = validateShipTrackingFormat({ trackingCarrier: carrier, trackingNumber: trimmed })
+      const local = validateShipTrackingFormat({
+        trackingCarrier: carrier,
+        trackingNumber: trimmed,
+        policy: shipTrackingPolicy,
+      })
       if (!local.ok) {
         setTrackingValidation((prev) => ({
           ...prev,
@@ -349,7 +358,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
         })()
       }, 480)
     },
-    [msg]
+    [msg, shipTrackingPolicy]
   )
 
   useEffect(() => {
@@ -368,8 +377,14 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
       setRows([])
       return
     }
-    const j = (await res.json()) as { orders: OrderRow[] }
+    const j = (await res.json()) as {
+      orders: OrderRow[]
+      shipTrackingPolicy?: ShipTrackingPolicy
+    }
     setRows(j.orders)
+    if (j.shipTrackingPolicy) {
+      setShipTrackingPolicy(j.shipTrackingPolicy)
+    }
     window.dispatchEvent(new CustomEvent("affisell:supplier-notifications-changed"))
   }, [tab, msg])
 
@@ -390,14 +405,20 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
         if (!o.canMarkShipped) continue
         const existing = next[o.id]
         const defaultCarrier = defaultTrustedCarrierLabel(o.shippingCountryIso2)
+        const carrier =
+          existing?.carrier && trustedCarriersForCountry(o.shippingCountryIso2, shipTrackingPolicy).some(
+            (row) => row.label === existing.carrier
+          )
+            ? existing.carrier
+            : defaultCarrier
         next[o.id] = {
-          carrier: existing?.carrier || defaultCarrier,
+          carrier,
           number: existing?.number ?? "",
         }
       }
       return next
     })
-  }, [rows])
+  }, [rows, shipTrackingPolicy])
 
   async function patchOrder(
     orderId: string,
@@ -452,7 +473,11 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
       setError(msg("trackingValidating"))
       return
     }
-    const local = validateShipTrackingFormat({ trackingCarrier: carrier, trackingNumber })
+    const local = validateShipTrackingFormat({
+      trackingCarrier: carrier,
+      trackingNumber,
+      policy: shipTrackingPolicy,
+    })
     if (!local.ok) {
       setError(local.message)
       return
@@ -754,7 +779,7 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                           <SelectValue placeholder={msg("actions.carrier")} />
                         </SelectTrigger>
                         <SelectContent>
-                          {trustedCarriersForCountry(o.shippingCountryIso2).map((row) => (
+                          {trustedCarriersForCountry(o.shippingCountryIso2, shipTrackingPolicy).map((row) => (
                             <SelectItem key={row.label} value={row.label}>
                               {row.label}
                             </SelectItem>

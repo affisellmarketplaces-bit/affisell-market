@@ -1,4 +1,9 @@
 import {
+  assertOtherCarrierAllowed,
+  resolveShipTrackingPolicy,
+  type ShipTrackingPolicy,
+} from "@/lib/ship-tracking-policy.shared"
+import {
   OTHER_TRUSTED_CARRIER_LABEL,
   afterShipSlugForTrustedCarrier,
 } from "@/lib/trusted-carriers-shared"
@@ -69,12 +74,18 @@ export function isOtherTrustedCarrierLabel(carrierLabel: string): boolean {
 export function validateShipTrackingFormat(args: {
   trackingCarrier: string
   trackingNumber: string
+  policy?: ShipTrackingPolicy
 }): ShipTrackingFormatResult {
   const carrier = args.trackingCarrier.trim()
   const normalized = normalizeTrackingNumber(args.trackingNumber)
 
   if (!carrier) {
     return { ok: false, code: "carrier_required", message: "Choisissez un transporteur." }
+  }
+
+  const otherGate = assertOtherCarrierAllowed(carrier, args.policy ?? resolveShipTrackingPolicy())
+  if (!otherGate.ok) {
+    return { ok: false, code: otherGate.code, message: otherGate.message }
   }
 
   if (isOtherTrustedCarrierLabel(carrier)) {

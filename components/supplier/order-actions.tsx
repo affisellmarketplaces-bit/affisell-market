@@ -23,10 +23,11 @@ import {
   defaultTrustedCarrierLabel,
   trustedCarrierLabelsForCountry,
 } from "@/lib/trusted-carriers-shared"
+import { resolveShipTrackingPolicy } from "@/lib/ship-tracking-policy.shared"
 import { cn } from "@/lib/utils"
 
 function markShippedFormSchema(countryIso2: string) {
-  const allowed = trustedCarrierLabelsForCountry(countryIso2)
+  const allowed = trustedCarrierLabelsForCountry(countryIso2, resolveShipTrackingPolicy())
   return z.object({
     trackingNumber: z.string().trim().min(1, "Numéro de suivi requis").max(120),
     trackingCarrier: z.string().refine((v) => allowed.includes(v), "Transporteur invalide"),
@@ -60,7 +61,7 @@ export function OrderActions({ order, className, onShipped }: Props) {
   const [open, setOpen] = useState(false)
   const countryIso2 = order.shippingCountryIso2 ?? "FR"
   const carriers = useMemo(
-    () => trustedCarrierLabelsForCountry(countryIso2),
+    () => trustedCarrierLabelsForCountry(countryIso2, resolveShipTrackingPolicy()),
     [countryIso2]
   )
   const schema = useMemo(() => markShippedFormSchema(countryIso2), [countryIso2])

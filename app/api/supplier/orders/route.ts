@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { syncPartnerMarketplaceAlertsBeforeInbox } from "@/lib/marketplace-order-notification-sync"
 import { fetchSupplierOrders } from "@/lib/supplier-orders-payload"
 import { toSupplierFulfillmentOrdersPublic } from "@/lib/supplier-orders-public-api"
+import { resolveShipTrackingPolicy } from "@/lib/ship-tracking-policy.shared"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -36,5 +37,9 @@ export async function GET(req: Request) {
   }
 
   const orders = await fetchSupplierOrders(session.user.id, tab)
-  return Response.json({ orders: toSupplierFulfillmentOrdersPublic(orders), tab })
+  return Response.json({
+    orders: toSupplierFulfillmentOrdersPublic(orders),
+    tab,
+    shipTrackingPolicy: resolveShipTrackingPolicy(),
+  })
 }

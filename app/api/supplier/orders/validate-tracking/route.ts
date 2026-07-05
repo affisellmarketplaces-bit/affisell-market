@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { validateShipTrackingForShip } from "@/lib/ship-tracking-validate"
 import { assertSupplierMayRegisterTracking } from "@/lib/order-tracking-lock.shared"
+import { assertOtherCarrierAllowed } from "@/lib/ship-tracking-policy.shared"
 import { extractShippingCountryIso2FromAddress, isTrustedCarrierLabelForCountry } from "@/lib/trusted-carriers-shared"
 import { prisma } from "@/lib/prisma"
 
@@ -41,6 +42,15 @@ export async function POST(req: Request) {
   }
 
   const carrier = parsed.data.trackingCarrier.trim()
+
+  const otherGate = assertOtherCarrierAllowed(carrier)
+  if (!otherGate.ok) {
+    return Response.json(
+      { valid: false, code: otherGate.code, message: otherGate.message },
+      { status: 200 }
+    )
+  }
+
   let countryIso2 = parsed.data.countryIso2?.toUpperCase()
 
   if (parsed.data.orderId) {

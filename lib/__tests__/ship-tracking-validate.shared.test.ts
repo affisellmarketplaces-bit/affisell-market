@@ -4,6 +4,7 @@ import {
   normalizeTrackingNumber,
   validateShipTrackingFormat,
 } from "@/lib/ship-tracking-validate.shared"
+import { resolveShipTrackingPolicy } from "@/lib/ship-tracking-policy.shared"
 
 describe("validateShipTrackingFormat", () => {
   it("rejects garbage tracking numbers", () => {
@@ -39,5 +40,18 @@ describe("validateShipTrackingFormat", () => {
 
   it("normalizes spaces", () => {
     expect(normalizeTrackingNumber(" 1z 999 aa 10 1234 5678 4 ")).toBe("1Z999AA10123456784")
+  })
+
+  it("rejects Autre carrier when strict policy is enforced", () => {
+    const strict = resolveShipTrackingPolicy({ nodeEnv: "production", afterShipApiKey: "" })
+    const res = validateShipTrackingFormat({
+      trackingCarrier: "Autre",
+      trackingNumber: "AB12345678",
+      policy: strict,
+    })
+    expect(res.ok).toBe(false)
+    if (!res.ok) {
+      expect(res.code).toBe("other_carrier_blocked")
+    }
   })
 })
