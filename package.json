@@ -16,6 +16,7 @@
     "migrate:deploy": "node scripts/prisma-with-env.mjs migrate deploy",
     "db:unlock": "tsx scripts/unlock-migrations.ts",
     "reconcile:checkout": "tsx scripts/reconcile-checkout-orders.ts",
+    "reconcile:payouts": "tsx scripts/reconcile.ts",
     "diagnose:pending-orders": "tsx scripts/diagnose-pending-orders.ts",
     "cleanup:stale-pending": "tsx scripts/cleanup-stale-pending-orders.ts",
     "db:migrate:status": "node scripts/prisma-with-env.mjs migrate status",
