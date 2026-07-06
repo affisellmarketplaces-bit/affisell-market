@@ -36,6 +36,13 @@ export type WholesaleChangePushPayload = {
   variantCount: number
 }
 
+export type AbandonedCartPushPayload = {
+  userId: string
+  productName: string
+  recoveryUrl: string
+  priceLabel?: string
+}
+
 function configureWebPush(): boolean {
   const config = readWebPushVapidConfig()
   if (!config) return false
@@ -167,5 +174,29 @@ export async function sendWholesaleChangePushToUser(
     body: copy.body,
     url: wholesaleChangePushUrl(payload.listingId),
     tag: `affisell-wholesale-${payload.listingId}`,
+  })
+}
+
+export function abandonedCartPushCopy(args: {
+  productName: string
+  priceLabel?: string
+}): { title: string; body: string } {
+  return {
+    title: `Panier en attente · ${args.productName}`,
+    body: args.priceLabel
+      ? `Votre article vous attend — ${args.priceLabel}`
+      : "Finalisez votre commande en un clic.",
+  }
+}
+
+export async function sendAbandonedCartPushToUser(
+  payload: AbandonedCartPushPayload
+): Promise<number> {
+  const copy = abandonedCartPushCopy(payload)
+  return sendPushToUser(payload.userId, {
+    title: copy.title,
+    body: copy.body,
+    url: payload.recoveryUrl,
+    tag: "affisell-abandoned-cart",
   })
 }

@@ -1,6 +1,8 @@
 import { sendAbandonedCartReminderEmail } from "@/lib/emails/send-abandoned-cart-reminder"
 import { resolveAppUrl } from "@/lib/emails/send-order-confirmation"
 import { prisma } from "@/lib/prisma"
+import { sendAbandonedCartPushToUser } from "@/lib/web-push-send"
+import { formatWishlistPriceEur } from "@/lib/wishlist-price-alert"
 
 export type RunAbandonedCartReminderOptions = {
   /** Hours of cart inactivity before first recovery email (default 1). */
@@ -11,6 +13,7 @@ export type RunAbandonedCartReminderOptions = {
 export type RunAbandonedCartReminderResult = {
   processed: number
   sent: number
+  pushesSent: number
   skipped: number
   skippedAlreadyPurchased: number
   errors: string[]
@@ -94,6 +97,7 @@ export async function runAbandonedCartReminderCron(
   })
 
   let sent = 0
+  let pushesSent = 0
   let skipped = 0
   let skippedAlreadyPurchased = 0
   const errors: string[] = []
@@ -124,10 +128,12 @@ export async function runAbandonedCartReminderCron(
       continue
     }
 
-    const recoveryUrl =
+    const recoveryPath =
       cart.items.length === 1
-        ? `${baseUrl}/marketplace/${affiliateProductId}?ref=abandoned_cart`
-        : `${baseUrl}/cart?ref=abandoned_cart`
+        ? `/marketplace/${affiliateProductId}?ref=abandoned_cart`
+        : `/cart?ref=abandoned_cart`
+    const recoveryUrl = `${baseUrl}${recoveryPath}`
+    const priceLabel = formatWishlistPriceEur(primary.affiliateProduct.sellingPriceCents)
 
     const result = await sendAbandonedCartReminderEmail(
       {
@@ -142,7 +148,14 @@ export async function runAbandonedCartReminderCron(
       { locale: null }
     )
 
-    if (!result.ok) {
+    const pushCount = await sendAbandonedCartPushToUser({
+      userId: cart.user.id,
+      productName: primary.affiliateProduct.product.name,
+      recoveryUrl: recoveryPath,
+      priceLabel,
+    })
+
+    if (!result.ok && pushCount === 0) {
       errors.push(`${cart.id}:${result.error ?? "send_failed"}`)
       skipped += 1
       continue
@@ -152,18 +165,22 @@ export async function runAbandonedCartReminderCron(
       where: { id: cart.id },
       data: { cartAbandonmentEmailSentAt: new Date() },
     })
-    sent += 1
+    if (result.ok) sent += 1
+    pushesSent += pushCount
     console.log("[abandoned-cart]", {
       cartId: cart.id,
       userId: cart.user.id,
       affiliateProductId,
-      result: "reminder_sent",
+      result: "recovery_sent",
+      email: result.ok,
+      pushes: pushCount,
     })
   }
 
   console.log("[abandoned-cart]", {
     processed: carts.length,
     sent,
+    pushesSent,
     skipped,
     skippedAlreadyPurchased,
     hoursAfterInactivity: hours,
@@ -173,6 +190,7 @@ export async function runAbandonedCartReminderCron(
   return {
     processed: carts.length,
     sent,
+    pushesSent,
     skipped,
     skippedAlreadyPurchased,
     errors,

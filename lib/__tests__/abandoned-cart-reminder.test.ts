@@ -37,6 +37,9 @@ describe("runAbandonedCartReminderCron", () => {
     vi.doMock("@/lib/emails/send-abandoned-cart-reminder", () => ({
       sendAbandonedCartReminderEmail: vi.fn().mockResolvedValue({ ok: true }),
     }))
+    vi.doMock("@/lib/web-push-send", () => ({
+      sendAbandonedCartPushToUser: vi.fn().mockResolvedValue(1),
+    }))
     vi.doMock("@/lib/emails/send-order-confirmation", () => ({
       resolveAppUrl: () => "https://affisell.com",
     }))
@@ -45,6 +48,7 @@ describe("runAbandonedCartReminderCron", () => {
     const result = await runAbandonedCartReminderCron({ hoursAfterInactivity: 1, limit: 10 })
 
     expect(result.sent).toBe(1)
+    expect(result.pushesSent).toBe(1)
     expect(result.skippedAlreadyPurchased).toBe(0)
     expect(update).toHaveBeenCalledWith({
       where: { id: "cart_1" },
@@ -86,6 +90,9 @@ describe("runAbandonedCartReminderCron", () => {
     }))
     vi.doMock("@/lib/emails/send-abandoned-cart-reminder", () => ({
       sendAbandonedCartReminderEmail: send,
+    }))
+    vi.doMock("@/lib/web-push-send", () => ({
+      sendAbandonedCartPushToUser: vi.fn().mockResolvedValue(0),
     }))
     vi.doMock("@/lib/emails/send-order-confirmation", () => ({
       resolveAppUrl: () => "https://affisell.com",
