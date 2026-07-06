@@ -41,5 +41,6 @@ export async function notifyOrderDelivered(orderId: string): Promise<void> {
     customerEmail: order.customerEmail,
     orderId: order.id,
     productName: order.product.name,
+    affiliateProductId: order.affiliateProductId,
   })
 }

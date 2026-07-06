@@ -47,15 +47,22 @@ export async function notifyOrderDeliveredPush(args: {
   customerEmail: string
   orderId: string
   productName: string
+  affiliateProductId?: string | null
 }): Promise<void> {
   const userId = await resolveBuyerUserId(args)
   if (!userId) return
+
+  const reviewUrl =
+    args.affiliateProductId?.trim()
+      ? `/marketplace/${encodeURIComponent(args.affiliateProductId.trim())}?writeReview=true&orderId=${encodeURIComponent(args.orderId)}`
+      : null
 
   const count = await sendOrderStatusPushToUser({
     userId,
     orderId: args.orderId,
     productName: args.productName,
     kind: "delivered",
+    reviewUrl,
   })
   console.log("[order-push]", { orderId: args.orderId, kind: "delivered", sent: count })
 }

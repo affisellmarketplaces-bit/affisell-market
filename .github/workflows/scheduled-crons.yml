@@ -63,6 +63,7 @@ jobs:
           AUTH="Authorization: Bearer ${CRON_SECRET}"
           for path in \
             "/api/cron/migrate" \
+            "/api/cron/review-early-nudge" \
             "/api/cron/review-reminder" \
             "/api/cron/repurchase-reminder" \
             "/api/cron/custom-domain-nudge" \

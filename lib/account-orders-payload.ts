@@ -65,6 +65,8 @@ export type BuyerOrderRow = {
   bookingListingKind: string | null
   canCancelBooking: boolean
   bookingCancelDeadlineAt: string | null
+  affiliateProductId: string | null
+  canWriteReview: boolean
 }
 
 function autoBuyBuyerLabels(status: string): { labelFr: string; labelEn: string } {
@@ -121,6 +123,7 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
       include: {
         product: { select: { id: true, name: true, images: true } },
         returns: { orderBy: { createdAt: "desc" } },
+        buyerReview: { select: { id: true } },
       },
     }),
     prisma.blindDropshipOrder.findMany({
@@ -235,6 +238,14 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
         if (!Number.isFinite(startsAt.getTime())) return null
         return bookingCancellationDeadlineAt(startsAt, snap.cancellationPolicyHours).toISOString()
       })(),
+      affiliateProductId: o.affiliateProductId,
+      canWriteReview:
+        Boolean(o.deliveredAt ?? o.deliveryConfirmedAt) &&
+        !o.buyerReview &&
+        o.status !== "refunded" &&
+        o.status !== "cancelled" &&
+        !o.isDigital &&
+        !isBookableListingKind(o.listingKindSnapshot),
     }
   })
 
@@ -291,6 +302,8 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
       bookingListingKind: null,
       canCancelBooking: false,
       bookingCancelDeadlineAt: null,
+      affiliateProductId: null,
+      canWriteReview: false,
     })
   }
 

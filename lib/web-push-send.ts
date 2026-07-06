@@ -17,6 +17,15 @@ export type OrderStatusPushPayload = {
   productName: string
   kind: "shipped" | "delivered"
   detail?: string | null
+  /** When set, delivered push deep-links to the review form. */
+  reviewUrl?: string | null
+}
+
+export type ReviewNudgePushPayload = {
+  userId: string
+  orderId: string
+  productName: string
+  reviewUrl: string
 }
 
 export type WholesaleChangePushPayload = {
@@ -113,11 +122,21 @@ export async function sendOrderStatusPushToUser(payload: OrderStatusPushPayload)
       tag: `affisell-order-shipped-${payload.orderId}`,
     })
   }
+  const deliveredUrl = payload.reviewUrl?.trim() || ordersUrl
   return sendPushToUser(payload.userId, {
     title: `Commande livrée · ${payload.productName}`,
     body: payload.detail?.trim() || "Merci pour votre achat — laissez un avis si vous le souhaitez.",
-    url: ordersUrl,
+    url: deliveredUrl,
     tag: `affisell-order-delivered-${payload.orderId}`,
+  })
+}
+
+export async function sendReviewNudgePushToUser(payload: ReviewNudgePushPayload): Promise<number> {
+  return sendPushToUser(payload.userId, {
+    title: `Votre avis compte · ${payload.productName}`,
+    body: "30 secondes pour noter votre achat — merci !",
+    url: payload.reviewUrl,
+    tag: `affisell-review-nudge-${payload.orderId}`,
   })
 }
 

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react"
 import { CalendarPlus, Package, Sparkles, CalendarClock, Zap } from "lucide-react"
 
 import { AccountOrderFulfillmentPanel } from "@/components/account/account-order-fulfillment-panel"
+import { AccountOrderReviewNudge } from "@/components/account/account-order-review-nudge"
 import { AccountOrdersEmptyState } from "@/components/account/account-orders-empty-state"
 import { AccountOrdersRecommendedRail } from "@/components/account/account-orders-recommended-rail"
 import { BentoCard } from "@/components/affisell/bento-ui"
@@ -76,6 +77,8 @@ type OrderRow = {
   bookingListingKind?: string | null
   canCancelBooking?: boolean
   bookingCancelDeadlineAt?: string | null
+  affiliateProductId?: string | null
+  canWriteReview?: boolean
 }
 
 function statusLabel(status: string) {
@@ -395,6 +398,14 @@ export function AccountOrdersClient({
                   {lang === "fr" ? "Livraison confirmée · " : "Delivery confirmed · "}
                   {new Date(o.deliveryConfirmedAt).toLocaleDateString()}
                 </p>
+              ) : null}
+              {o.canWriteReview && o.affiliateProductId ? (
+                <AccountOrderReviewNudge
+                  orderId={o.id}
+                  affiliateProductId={o.affiliateProductId}
+                  productName={o.product.name}
+                  lang={lang}
+                />
               ) : null}
               {o.activeReturn ? (
                 <div className="mt-2 space-y-1 text-sm">
