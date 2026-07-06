@@ -1266,6 +1266,14 @@
     "subtitle": "Active storefront listings",
     "empty": "Nothing listed yet.",
     "sellerLabel": "Curated by creator partner",
+    "pdp": {
+      "crossSell": {
+        "eyebrowBoughtTogether": "Frequently bought together",
+        "titleBoughtTogether": "Complete your pick",
+        "eyebrowAlsoViewed": "Discovery",
+        "titleAlsoViewed": "Customers also viewed"
+      }
+    },
     "sidebar": {
       "title": "Categories",
       "subtitle": "Browse by department",

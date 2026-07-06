@@ -26,6 +26,7 @@ import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState, 
 import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
 import { BookingComingSoonRail } from "@/components/booking/booking-coming-soon-rail"
 import { BookingCheckoutPanel } from "@/components/booking/booking-checkout-panel"
+import { PdpCrossSellRail } from "@/components/marketplace/pdp-cross-sell-rail"
 
 import { ListingBrowseSignalsRecorder } from "@/components/marketplace/listing-browse-signals-recorder"
 import { ListingPriceActionCard } from "@/components/marketplace/listing-price-action-card"
@@ -115,37 +116,7 @@ export type ListingShippingBlock = ListingLogisticsInput & {
   freeShippingThresholdEUR: number | null
 }
 
-type RelatedCard = {
-  id: string
-  href: string
-  title: string
-  image: string
-  priceEur: number
-  soldCount?: number
-}
-
-function BuyerRelatedListingTile({ p }: { p: RelatedCard }) {
-  return (
-    <Link
-      href={p.href}
-      className="group rounded-xl border border-zinc-200 p-3 transition-all duration-300 hover:-translate-y-1 hover:border-violet-200/80 hover:bg-zinc-50 hover:shadow-lg hover:shadow-violet-500/5 dark:border-zinc-700 dark:hover:border-violet-800/50 dark:hover:bg-zinc-900"
-    >
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
-        {p.soldCount ? <ProductSalesBadge count={p.soldCount} variant="overlay" /> : null}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={p.image}
-          alt=""
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-        />
-      </div>
-      <p className="mt-2 line-clamp-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{p.title}</p>
-      <p className="mt-1 text-sm font-semibold tabular-nums text-zinc-700 dark:text-zinc-300">{fmtMoney(p.priceEur)}</p>
-    </Link>
-  )
-}
-
-type SpecRow = { label: string; value: string }
+import type { PdpCrossSellCard } from "@/lib/marketplace-pdp-cross-sell-shared"
 
 type Props = {
   /** Buyer-facing pages hide wholesale / partner seller attribution. */
@@ -183,8 +154,8 @@ type Props = {
   retailPriceEur?: number
   has3D?: boolean
   arModel?: string | null
-  oftenBoughtTogether?: RelatedCard[]
-  alsoViewed?: RelatedCard[]
+  oftenBoughtTogether?: PdpCrossSellCard[]
+  alsoViewed?: PdpCrossSellCard[]
   reviewSummary: {
     count: number
     average: number
@@ -1556,6 +1527,14 @@ export function MarketplaceListingDetail({
                   </span>
                 </button>
               </div>
+
+              {oftenBoughtTogether.length > 0 ? (
+                <PdpCrossSellRail
+                  items={oftenBoughtTogether}
+                  kind="boughtTogether"
+                  variant="compact"
+                />
+              ) : null}
               </>
               )}
             </motion.div>
@@ -1851,25 +1830,11 @@ export function MarketplaceListingDetail({
       </section>
 
       {oftenBoughtTogether.length > 0 ? (
-      <section className="mt-10">
-        <h2 className="text-xl font-bold">Frequently bought together</h2>
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {oftenBoughtTogether.slice(0, 3).map((p) => (
-            <BuyerRelatedListingTile key={p.id} p={p} />
-          ))}
-        </div>
-      </section>
+        <PdpCrossSellRail items={oftenBoughtTogether} kind="boughtTogether" />
       ) : null}
 
       {alsoViewed.length > 0 ? (
-      <section className="mt-10">
-        <h2 className="text-xl font-bold">Customers also viewed</h2>
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {alsoViewed.slice(0, 3).map((p) => (
-            <BuyerRelatedListingTile key={p.id} p={p} />
-          ))}
-        </div>
-      </section>
+        <PdpCrossSellRail items={alsoViewed} kind="alsoViewed" />
       ) : null}
 
       {showAr ? (

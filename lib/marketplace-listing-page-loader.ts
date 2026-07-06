@@ -2,31 +2,14 @@ import {
   buyerListedAffiliateProductWhere,
   buyerMarketplaceProductWhere,
 } from "@/lib/marketplace-buyer-product-filter"
+import { loadPdpCrossSellBundle } from "@/lib/load-marketplace-pdp-cross-sell"
 import { isPrismaMissingColumnError } from "@/lib/prisma-missing-column"
 import { prisma } from "@/lib/prisma"
-
-const RELATED_SELECT = {
-  id: true,
-  sellingPriceCents: true,
-  conversions: true,
-  customTitle: true,
-  customImages: true,
-  product: {
-    select: {
-      name: true,
-      images: true,
-    },
-  },
-  affiliate: {
-    select: {
-      store: { select: { slug: true } },
-    },
-  },
-} as const
 
 /** PDP select — omits `supplierTrustTier` so DBs without migration still load. */
 export const listingDetailSelect = {
   id: true,
+  affiliateId: true,
   sellingPriceCents: true,
   conversions: true,
   customTitle: true,
@@ -302,7 +285,6 @@ export async function loadMarketplaceListingPageData(args: {
     : []
 
   const storeSlugForRelated = args.storeSlug?.trim() || listing.affiliate.store?.slug?.trim() || null
-  const shouldLoadRelated = Boolean(storeSlugForRelated) || categories.length > 0
 
   const orderPromise =
     args.buyerUserId && args.orderId?.trim()
@@ -318,51 +300,24 @@ export async function loadMarketplaceListingPageData(args: {
         })
       : Promise.resolve(null)
 
-  const [oftenRaw, viewsLast24h, orderRow] = await Promise.all([
-    shouldLoadRelated
-      ? prisma.affiliateProduct.findMany({
-          where: {
-            ...buyerListedAffiliateProductWhere,
-            id: { not: listing.id },
-            ...(storeSlugForRelated
-              ? { affiliate: { store: { slug: storeSlugForRelated } } }
-              : {}),
-            product: {
-              ...buyerMarketplaceProductWhere,
-              ...(categories.length > 0 ? { categories: { hasSome: categories.slice(0, 3) } } : {}),
-            },
-          },
-          select: RELATED_SELECT,
-          take: 3,
-        })
-      : Promise.resolve([]),
+  const [crossSell, viewsLast24h, orderRow] = await Promise.all([
+    loadPdpCrossSellBundle({
+      listingId: listing.id,
+      productId: listing.product.id,
+      affiliateId: listing.affiliateId,
+      storeSlug: storeSlugForRelated,
+      categories,
+    }),
     countViewsLast24h(listing.product.id),
     orderPromise,
   ])
-
-  const fallbackRaw =
-    !shouldLoadRelated || oftenRaw.length >= 3
-      ? []
-      : await prisma.affiliateProduct.findMany({
-          where: {
-            ...buyerListedAffiliateProductWhere,
-            id: { notIn: [listing.id, ...oftenRaw.map((r) => r.id)] },
-            ...(storeSlugForRelated
-              ? { affiliate: { store: { slug: storeSlugForRelated } } }
-              : {}),
-          },
-          orderBy: { createdAt: "desc" },
-          select: RELATED_SELECT,
-          take: 3,
-        })
 
   return {
     listing,
     canonicalRedirect,
     listingIdRedirect,
     ownerPreviewUnlisted,
-    oftenRaw,
-    fallbackRaw,
+    crossSell,
     viewsLast24h,
     writeReviewOrderId: orderRow?.id ?? null,
   }

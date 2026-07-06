@@ -1274,6 +1274,14 @@
     "subtitle": "Fiches vitrine actives",
     "empty": "Aucune fiche pour le moment.",
     "sellerLabel": "Sélection partenaire créateur",
+    "pdp": {
+      "crossSell": {
+        "eyebrowBoughtTogether": "Souvent achetés ensemble",
+        "titleBoughtTogether": "Complétez votre sélection",
+        "eyebrowAlsoViewed": "Découverte",
+        "titleAlsoViewed": "Les clients ont aussi regardé"
+      }
+    },
     "sidebar": {
       "title": "Catégories",
       "subtitle": "Parcourir par rayon",

@@ -15,10 +15,11 @@ import {
   listingDisplayTitle,
   listingGalleryUrls,
 } from "@/lib/affiliate-listing-display"
-import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
+import { listingDisplayTitle } from "@/lib/affiliate-listing-display"
 import { shopListingPath } from "@/lib/affiliate-routes"
 import { isAffiliateOwnerPreviewUrl } from "@/lib/affiliate-store-preview-access"
 import { loadMarketplaceListingPageData } from "@/lib/marketplace-listing-page-loader"
+import { mapPdpCrossSellListings } from "@/lib/marketplace-pdp-cross-sell-shared"
 import { buildListingLogisticsInput } from "@/lib/listing-logistics-display"
 import { mergeColorImagesForProduct, parseProductColorImagesFromDb, enrichGalleryWithColorHeroImages } from "@/lib/product-color-images"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
@@ -196,7 +197,7 @@ export default async function MarketplaceListingPage({
     redirect(`/marketplace/${canonicalId}${previewQs}`)
   }
 
-  const { listing, oftenRaw, fallbackRaw, viewsLast24h, writeReviewOrderId } = loaded
+  const { listing, crossSell, viewsLast24h, writeReviewOrderId } = loaded
 
   const st = listing.affiliate.store
   const storeTheme = st?.storefrontTheme ? parseStorefrontTheme(st.storefrontTheme) : null
@@ -293,36 +294,14 @@ export default async function MarketplaceListingPage({
     freeShippingThresholdEUR: freeThresh,
   }
 
-  const mapRelated = (
-    rows: Array<{
-      id: string
-      sellingPriceCents: number
-      conversions: number
-      customTitle: string | null
-      customImages: string[]
-      product: { name: string; images: string[] }
-      affiliate?: { store: { slug: string } | null } | null
-    }>
-  ) =>
-    rows.map((r) => {
-      const rowStoreSlug = r.affiliate?.store?.slug?.trim()
-      const href = rowStoreSlug
-        ? shopListingPath(rowStoreSlug, r.id)
-        : storeSlug
-          ? shopListingPath(storeSlug, r.id)
-          : `/marketplace/${r.id}`
-      return {
-        id: r.id,
-        href,
-        title: listingDisplayTitle(r.customTitle, r.product.name),
-        image: listingGalleryUrls(r.customImages, r.product.images ?? [])[0] ?? "/placeholder.png",
-        priceEur: r.sellingPriceCents / 100,
-        soldCount: normalizeListingSalesCount(r.conversions),
-      }
-    })
-
-  const oftenBoughtTogether = mapRelated(oftenRaw).slice(0, 3)
-  const alsoViewed = mapRelated([...fallbackRaw, ...oftenRaw]).slice(0, 3)
+  const oftenBoughtTogether = mapPdpCrossSellListings(crossSell.boughtTogether, {
+    storeSlug,
+    limit: 4,
+  })
+  const alsoViewed = mapPdpCrossSellListings(crossSell.alsoViewed, {
+    storeSlug,
+    limit: 4,
+  })
 
   const descriptionBullets =
     Array.isArray(p.descriptionBullets) && p.descriptionBullets.length > 0
