@@ -196,7 +196,7 @@ export default async function MarketplaceListingPage({
     redirect(`/marketplace/${canonicalId}${previewQs}`)
   }
 
-  const { listing, crossSell, viewsLast24h, writeReviewOrderId } = loaded
+  const { listing, crossSell, viewsLast24h, affiliateCreatorsWatching, writeReviewOrderId } = loaded
 
   const st = listing.affiliate.store
   const storeTheme = st?.storefrontTheme ? parseStorefrontTheme(st.storefrontTheme) : null
@@ -438,6 +438,7 @@ export default async function MarketplaceListingPage({
           writeReviewOrderId={writeReviewOrderId}
           openWriteReview={sp.writeReview === "true" && Boolean(writeReviewOrderId)}
           viewsLast24h={viewsLast24h}
+          affiliateCreatorsWatching={affiliateCreatorsWatching}
           salesCount={listing.conversions}
           galleryListingVideoUrl={resolveGalleryListingVideoUrl({
             videoAdUrl: p.videoAdUrl,

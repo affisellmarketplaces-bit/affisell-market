@@ -16,6 +16,7 @@ import {
   ShoppingBag,
   Star,
   TrendingUp,
+  Eye,
   Truck,
   Zap,
 } from "lucide-react"
@@ -48,6 +49,7 @@ import { descriptionHasImageMarkers } from "@/lib/description-rich-content"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { CLIENT_MESSAGES } from "@/lib/i18n-load-messages"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH, shopListingPath } from "@/lib/affiliate-routes"
+import { shouldShowAffiliateCreatorsWatchingBadge } from "@/lib/affiliate-product-opportunity-pulse-shared"
 import { buildMarketplaceColorMeta, shouldShowMarketplaceColorSwatches, shopperColorLabelsMatch } from "@/lib/marketplace-color-meta"
 import { shopperCategoryEyebrow, shopperVisibleTags } from "@/lib/product-shopper-tags"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
@@ -174,6 +176,7 @@ type Props = {
   ratingBreakdown?: Record<number, number>
   /** PDP views in the last 24h (analytics) — powers a “trending” signal when high enough. */
   viewsLast24h?: number
+  affiliateCreatorsWatching?: number
   /** Paid units on this listing (AffiliateProduct.conversions). */
   salesCount?: number
   /** Supplier listing clip shown under the photo gallery (9:16). */
@@ -349,6 +352,7 @@ export function MarketplaceListingDetail({
   writeReviewOrderId = null,
   openWriteReview = false,
   viewsLast24h = 0,
+  affiliateCreatorsWatching = 0,
   salesCount = 0,
   galleryListingVideoUrl = null,
   brandedStorefront = false,
@@ -1193,6 +1197,22 @@ export function MarketplaceListingDetail({
                 <span className="hidden rounded-full border border-orange-200/90 bg-gradient-to-r from-orange-50 to-amber-50 px-2 py-0.5 text-[10px] font-semibold text-orange-900 sm:inline-flex dark:border-orange-900/50 dark:from-orange-950/50 dark:to-amber-950/40 dark:text-orange-100">
                   <TrendingUp className="mr-0.5 h-3 w-3 shrink-0" aria-hidden />
                   {t(productT.trendingViews24h, { count: formatStoreCount(viewsLast24h) })}
+                </span>
+              ) : null}
+              {audience === "customer" &&
+              shouldShowAffiliateCreatorsWatchingBadge(affiliateCreatorsWatching) ? (
+                <span
+                  className="hidden rounded-full border border-violet-200/90 bg-gradient-to-r from-violet-50 to-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-violet-900 sm:inline-flex dark:border-violet-900/50 dark:from-violet-950/50 dark:to-indigo-950/40 dark:text-violet-100"
+                  data-testid="affiliate-creators-watching-badge"
+                >
+                  <Eye className="mr-0.5 h-3 w-3 shrink-0" aria-hidden />
+                  {affiliateCreatorsWatching === 1
+                    ? t(productT.affiliateCreatorsWatchingOne, {
+                        count: formatStoreCount(affiliateCreatorsWatching),
+                      })
+                    : t(productT.affiliateCreatorsWatchingMany, {
+                        count: formatStoreCount(affiliateCreatorsWatching),
+                      })}
                 </span>
               ) : null}
               {reviewSummary.count > 0 && reviewSummary.average >= 4.2 ? (

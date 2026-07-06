@@ -3,6 +3,7 @@ import {
   buyerMarketplaceProductWhere,
 } from "@/lib/marketplace-buyer-product-filter"
 import { loadPdpCrossSellBundle } from "@/lib/load-marketplace-pdp-cross-sell"
+import { countAffiliateCreatorsWatchingProduct } from "@/lib/affiliate-product-opportunity-pulse"
 import { isPrismaMissingColumnError } from "@/lib/prisma-missing-column"
 import { prisma } from "@/lib/prisma"
 
@@ -300,7 +301,7 @@ export async function loadMarketplaceListingPageData(args: {
         })
       : Promise.resolve(null)
 
-  const [crossSell, viewsLast24h, orderRow] = await Promise.all([
+  const [crossSell, viewsLast24h, affiliateCreatorsWatching, orderRow] = await Promise.all([
     loadPdpCrossSellBundle({
       listingId: listing.id,
       productId: listing.product.id,
@@ -309,6 +310,7 @@ export async function loadMarketplaceListingPageData(args: {
       categories,
     }),
     countViewsLast24h(listing.product.id),
+    countAffiliateCreatorsWatchingProduct(listing.product.id),
     orderPromise,
   ])
 
@@ -319,6 +321,7 @@ export async function loadMarketplaceListingPageData(args: {
     ownerPreviewUnlisted,
     crossSell,
     viewsLast24h,
+    affiliateCreatorsWatching,
     writeReviewOrderId: orderRow?.id ?? null,
   }
 }

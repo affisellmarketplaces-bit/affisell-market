@@ -73,6 +73,7 @@ console.log("\n[verify-ops] Tier 4 Ops — production activation\n")
 const pricingOk = runScript("Pricing pipeline preflight", "scripts/verify-pricing-ops-ready.mjs")
 const webPushOk = runScript("Web Push preflight", "scripts/verify-web-push-ready.mjs")
 const domainsOk = runScript("Store domains preflight", "scripts/verify-store-domains-ready.mjs")
+const ltvOpsOk = runScript("LTV ops preflight", "scripts/verify-ltv-ops-ready.mjs")
 const expansionOk = runScript("ROW expansion preflight (optional)", "scripts/verify-expansion-ready.mjs")
 if (!expansionOk) {
   warn("ROW expansion", "Optional for Ops — run npm run verify:expansion before country pilots")
@@ -101,7 +102,7 @@ console.log("  4. Vercel → env: VAPID_*, VERCEL_API_TOKEN, VERCEL_PROJECT_ID, 
 console.log("  5. GitHub → Settings → Secrets → CRON_SECRET (same value)")
 console.log("  6. Redeploy → curl /api/cron/migrate → test push + wholesale guard")
 
-if (failed.length > 0 || !pricingOk || !webPushOk || !domainsOk) {
+if (failed.length > 0 || !pricingOk || !webPushOk || !domainsOk || !ltvOpsOk) {
   console.log(`\n[verify-ops] Fix pricing pipeline, Web Push and/or store domains before prod activation.\n`)
   process.exit(1)
 }

@@ -21,8 +21,13 @@ import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
+import { fetchBuyerSessionSnapshot } from "@/lib/buyer-session-client"
 import { toggleProductWishlist } from "@/lib/wishlist-toggle-client"
 import { requestPriceAlertPushSubscription } from "@/components/push/request-price-alert-push"
+import {
+  consumePendingPricePushAfterLogin,
+  markPendingPricePushAfterLogin,
+} from "@/lib/wishlist-push-nudge.client"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { notifyBuyerPersonalizationRefresh } from "@/lib/buyer-personalization-refresh.client"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
@@ -241,6 +246,12 @@ export function BuyerSwipeCommerce({
     [showToast, t]
   )
 
+  useEffect(() => {
+    void consumePendingPricePushAfterLogin().then((result) => {
+      if (result === "granted") showToast(t("saveDropPushEnabled"), { force: true })
+    })
+  }, [showToast, t])
+
   const saveDrop = useCallback(
     async (item: PulseFeedItem) => {
       if (!item.productId) return
@@ -254,6 +265,15 @@ export function BuyerSwipeCommerce({
         })
         showToast(t("saveDrop"))
         if (result.wished) {
+          const session = await fetchBuyerSessionSnapshot()
+          if (!session.userId) {
+            markPendingPricePushAfterLogin()
+            showToast(t("saveDropLoginForPush"), { force: true })
+            const qs = searchParams.toString()
+            const callbackUrl = `${pathname}${qs ? `?${qs}` : ""}`
+            router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
+            return
+          }
           const push = await requestPriceAlertPushSubscription()
           if (push === "granted") {
             showToast(t("saveDropPushEnabled"))
@@ -261,7 +281,7 @@ export function BuyerSwipeCommerce({
         }
       }
     },
-    [showToast, t]
+    [pathname, router, searchParams, showToast, t]
   )
 
   const buyNow = useCallback(
