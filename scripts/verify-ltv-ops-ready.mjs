@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * LTV loop pre-flight — review nudges, wishlist push crons, Prisma migration wiring.
- * Run: node scripts/verify-ltv-ops-ready.mjs
+ * LTV loop pre-flight — migrations, crons, push/email wiring (LTV 1–7).
+ * Run: npm run verify:ltv-ops
  */
 import { existsSync, readFileSync } from "node:fs"
 import { resolve } from "node:path"
@@ -17,43 +17,96 @@ function read(rel) {
   return readFileSync(path, "utf8")
 }
 
-const schema = read("prisma/schema.prisma")
-if (schema?.includes("reviewEarlyNudgeSentAt")) {
-  ok("Prisma schema: Order.reviewEarlyNudgeSentAt")
-} else {
-  fail("Prisma schema", "Missing reviewEarlyNudgeSentAt on Order")
+function fileExists(rel) {
+  return existsSync(resolve(root, rel))
 }
 
-const migration = read(
-  "prisma/migrations/20260706203000_order_review_early_nudge_sent_at/migration.sql"
-)
-if (migration?.includes("reviewEarlyNudgeSentAt")) {
-  ok("Migration reviewEarlyNudgeSentAt present")
-} else {
-  fail("Migration", "Missing 20260706203000_order_review_early_nudge_sent_at")
+const schema = read("prisma/schema.prisma") ?? ""
+
+const schemaFields = [
+  ["Order.reviewEarlyNudgeSentAt", "reviewEarlyNudgeSentAt"],
+  ["Order.repurchaseReminderSentAt", "repurchaseReminderSentAt"],
+  ["Cart.cartAbandonmentEmailSentAt", "cartAbandonmentEmailSentAt"],
+  ["StoreNewsletterSubscriber", "model StoreNewsletterSubscriber"],
+  ["StoreNewsletterSubscriber.lastFlashSaleAlertKey", "lastFlashSaleAlertKey"],
+]
+for (const [label, needle] of schemaFields) {
+  if (schema.includes(needle)) ok(`Prisma schema: ${label}`)
+  else fail(`Prisma schema: ${label}`, `Missing ${needle}`)
 }
 
-for (const route of [
+const migrations = [
+  ["20260706203000 review early nudge", "prisma/migrations/20260706203000_order_review_early_nudge_sent_at/migration.sql", "reviewEarlyNudgeSentAt"],
+  ["20260705203000 repurchase reminder", "prisma/migrations/20260705203000_order_repurchase_reminder_sent_at/migration.sql", "repurchaseReminderSentAt"],
+  ["20260705213000 cart abandonment", "prisma/migrations/20260705213000_cart_abandonment_email_sent_at/migration.sql", "cartAbandonmentEmailSentAt"],
+  ["20260705193000 store newsletter", "prisma/migrations/20260705193000_store_newsletter_subscriber/migration.sql", "StoreNewsletterSubscriber"],
+  ["20260706210000 flash sale alert key", "prisma/migrations/20260706210000_store_newsletter_flash_sale_alert_key/migration.sql", "lastFlashSaleAlertKey"],
+]
+for (const [label, path, needle] of migrations) {
+  const sql = read(path)
+  if (sql?.includes(needle)) ok(`Migration ${label}`)
+  else fail(`Migration ${label}`, `Missing or invalid ${path}`)
+}
+
+const cronRoutes = [
+  "app/api/cron/migrate/route.ts",
   "app/api/cron/review-early-nudge/route.ts",
   "app/api/cron/review-reminder/route.ts",
+  "app/api/cron/repurchase-reminder/route.ts",
   "app/api/cron/wishlist-price-alerts/route.ts",
-  "lib/cron/review-early-nudge.ts",
-  "lib/order-review-push.ts",
-]) {
-  if (existsSync(resolve(root, route))) ok(`File ${route}`)
-  else fail(`File ${route}`, "Missing LTV cron/lib module")
+  "app/api/cron/abandoned-cart/route.ts",
+]
+for (const route of cronRoutes) {
+  if (fileExists(route)) ok(`Cron route ${route}`)
+  else fail(`Cron route ${route}`, "Missing LTV cron route")
 }
 
-const workflow = read(".github/workflows/scheduled-crons.yml")
-const requiredCronPaths = [
+const libModules = [
+  "lib/cron/review-early-nudge.ts",
+  "lib/cron/review-reminder.ts",
+  "lib/cron/repurchase-reminder.ts",
+  "lib/cron/abandoned-cart-reminder.ts",
+  "lib/order-review-push.ts",
+  "lib/web-push-send.ts",
+  "lib/store-newsletter-subscribe.ts",
+  "lib/store-flash-sale-newsletter.ts",
+  "lib/affiliate-catalog-opportunity-pulse.ts",
+  "app/api/affiliate/opportunity-pulse/route.ts",
+  "app/api/store/newsletter/subscribe/route.ts",
+]
+for (const mod of libModules) {
+  if (fileExists(mod)) ok(`Module ${mod}`)
+  else fail(`Module ${mod}`, "Missing LTV lib/API module")
+}
+
+const webPush = read("lib/web-push-send.ts") ?? ""
+if (webPush.includes("sendAbandonedCartPushToUser")) {
+  ok("Web Push: sendAbandonedCartPushToUser")
+} else {
+  fail("Web Push", "Missing sendAbandonedCartPushToUser in lib/web-push-send.ts")
+}
+if (webPush.includes("sendPriceDropPushToUser")) {
+  ok("Web Push: sendPriceDropPushToUser")
+} else {
+  fail("Web Push", "Missing sendPriceDropPushToUser")
+}
+
+const workflow = read(".github/workflows/scheduled-crons.yml") ?? ""
+const frequentCrons = ["/api/cron/abandoned-cart"]
+const dailyCrons = [
   "/api/cron/migrate",
   "/api/cron/review-early-nudge",
   "/api/cron/review-reminder",
+  "/api/cron/repurchase-reminder",
   "/api/cron/wishlist-price-alerts",
 ]
 if (workflow) {
-  for (const path of requiredCronPaths) {
-    if (workflow.includes(path)) ok(`scheduled-crons.yml includes ${path}`)
+  for (const path of frequentCrons) {
+    if (workflow.includes(path)) ok(`scheduled-crons frequent includes ${path}`)
+    else fail("scheduled-crons.yml", `Missing ${path} in frequent job`)
+  }
+  for (const path of dailyCrons) {
+    if (workflow.includes(path)) ok(`scheduled-crons daily includes ${path}`)
     else fail("scheduled-crons.yml", `Missing ${path} in daily job`)
   }
 } else {
@@ -61,7 +114,7 @@ if (workflow) {
 }
 
 const failed = checks.filter((c) => !c.pass)
-console.log("\n[verify-ltv-ops] LTV crons + migration wiring\n")
+console.log("\n[verify-ltv-ops] LTV loop — migrations, crons, modules (LTV 1–7)\n")
 for (const c of checks) {
   const icon = c.pass ? "✓" : "✗"
   console.log(`  ${icon} ${c.label}${c.hint ? ` — ${c.hint}` : ""}`)
@@ -72,8 +125,9 @@ if (failed.length > 0) {
   process.exit(1)
 }
 
-console.log("\n[verify-ltv-ops] Ready — run daily migrate + review crons on prod after deploy.\n")
-console.log("  curl -H \"Authorization: Bearer $CRON_SECRET\" \"$VERCEL_APP_URL/api/cron/migrate\"")
-console.log(
-  "  curl -H \"Authorization: Bearer $CRON_SECRET\" \"$VERCEL_APP_URL/api/cron/review-early-nudge\""
-)
+console.log("\n[verify-ltv-ops] Ready — prod activation:\n")
+console.log("  npm run ltv:ops-playbook")
+console.log("  npm run verify:web-push    # VAPID keys for cart + wishlist push")
+console.log("\n  curl -H \"Authorization: Bearer $CRON_SECRET\" \"$VERCEL_APP_URL/api/cron/migrate\"")
+console.log("  curl -H \"Authorization: Bearer $CRON_SECRET\" \"$VERCEL_APP_URL/api/cron/abandoned-cart\"")
+console.log("  curl -H \"Authorization: Bearer $CRON_SECRET\" \"$VERCEL_APP_URL/api/cron/wishlist-price-alerts\"\n")
