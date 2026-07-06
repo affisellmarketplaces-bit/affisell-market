@@ -48,7 +48,7 @@ export function StorefrontFlashSaleSection({
     <section
       id="flash-sale"
       className={cn(
-        "border-b border-rose-200/80 bg-gradient-to-r from-rose-600 via-red-600 to-orange-500 dark:border-rose-900/50",
+        "scroll-mt-24 border-b border-rose-200/80 bg-gradient-to-r from-rose-600 via-red-600 to-orange-500 dark:border-rose-900/50",
         className
       )}
       data-testid="flash-sale-section"

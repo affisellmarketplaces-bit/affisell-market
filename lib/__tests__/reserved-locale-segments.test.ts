@@ -26,6 +26,7 @@ describe("isStaticAppPathname", () => {
     expect(isStaticAppPathname("/invite/affiliate/IAF-ABC")).toBe(true)
     expect(isStaticAppPathname("/demo")).toBe(true)
     expect(isStaticAppPathname("/demo/supplier")).toBe(true)
+    expect(isStaticAppPathname("/e2e/ltv/badge")).toBe(true)
     expect(isStaticAppPathname("/fr/demo")).toBe(true)
     expect(isStaticAppPathname("/en/demo/affiliate")).toBe(true)
   })

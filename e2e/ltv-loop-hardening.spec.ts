@@ -52,11 +52,14 @@ test.describe("LTV loop hardening", () => {
       await expect(section).toBeVisible({ timeout: 20_000 })
       await expect(section.getByTestId("flash-sale-countdown")).toBeVisible()
 
-      const inView = await section.evaluate((el) => {
-        const rect = el.getBoundingClientRect()
-        return rect.top >= 0 && rect.top < window.innerHeight
-      })
-      expect(inView).toBe(true)
+      await expect
+        .poll(async () =>
+          section.evaluate((el) => {
+            const rect = el.getBoundingClientRect()
+            return rect.top >= 0 && rect.top < window.innerHeight
+          })
+        )
+        .toBe(true)
     })
   })
 

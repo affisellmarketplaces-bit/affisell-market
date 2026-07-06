@@ -10,7 +10,7 @@ export function StorefrontHashScroll() {
       if (!id) return
       const el = document.getElementById(id)
       if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" })
+        el.scrollIntoView({ behavior: "auto", block: "start" })
       }
     }
 

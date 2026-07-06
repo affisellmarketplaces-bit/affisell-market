@@ -1,6 +1,7 @@
 import { Eye } from "lucide-react"
 import { notFound } from "next/navigation"
 
+import { isE2ePulseFixturesEnabled } from "@/lib/e2e-pulse-swipe-fixtures"
 import { shouldShowAffiliateCreatorsWatchingBadge } from "@/lib/affiliate-product-opportunity-pulse-shared"
 
 export const dynamic = "force-dynamic"
@@ -9,9 +10,14 @@ type PageProps = {
   searchParams: Promise<{ count?: string }>
 }
 
+function isE2eLtvRouteEnabled(): boolean {
+  if (process.env.NODE_ENV !== "production") return true
+  return isE2ePulseFixturesEnabled()
+}
+
 /** Playwright-only — Opportunity Pulse badge threshold (non-production). */
 export default async function E2eLtvBadgePage({ searchParams }: PageProps) {
-  if (process.env.NODE_ENV === "production") notFound()
+  if (!isE2eLtvRouteEnabled()) notFound()
 
   const sp = await searchParams
   const count = Number.parseInt(sp.count ?? "3", 10)
