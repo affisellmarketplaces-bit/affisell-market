@@ -28,10 +28,12 @@ import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { primaryProductImage } from "@/lib/product-images"
 import { formatVariantCommissionRange, variantSkuPricingSummary, variantsFromDb } from "@/lib/product-variants"
-import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
-import { prisma } from "@/lib/prisma"
+import {
+  loadSupplierShopCatalogCached,
+  loadSupplierShopStoreCached,
+} from "@/lib/supplier-storefront-cache"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 function appBaseUrl() {
   return (
@@ -76,13 +78,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id: rawId } = await params
   const id = decodeURIComponent(rawId)
-  const store = await prisma.store.findFirst({
-    where: {
-      slug: id,
-      user: { role: "SUPPLIER" },
-    },
-    select: { name: true, description: true },
-  })
+  const store = await loadSupplierShopStoreCached(id)
   if (!store) return { title: "Boutique · Affisell" }
   const desc =
     store.description?.trim().slice(0, 155) ??
@@ -102,14 +98,7 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
   const { id: rawId } = await params
   const id = decodeURIComponent(rawId)
 
-  const store = await prisma.store.findFirst({
-    where: {
-      slug: id,
-      user: { role: "SUPPLIER" },
-    },
-    include: { user: { select: { role: true } } },
-  })
-
+  const store = await loadSupplierShopStoreCached(id)
   if (!store || store.user.role !== "SUPPLIER") notFound()
 
   const hdrs = await headers()
@@ -121,34 +110,9 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
   const supplierId = store.userId
   const base = appBaseUrl()
 
-  const products = await prisma.product.findMany({
-    where: { supplierId, ...buyerMarketplaceProductWhere },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      name: true,
-      basePriceCents: true,
-      commissionRate: true,
-      listingKind: true,
-      stock: true,
-      images: true,
-      compareAt: true,
-      isOnSale: true,
-      createdAt: true,
-      tags: true,
-      deliveryMax: true,
-      variants: true,
-    },
-  })
-
-  const partnerListingGroups = await prisma.affiliateProduct.groupBy({
-    by: ["productId"],
-    where: { product: { supplierId }, isListed: true },
-    _count: { _all: true },
-  })
-
-  const partnerListingCountByProductId = Object.fromEntries(
-    partnerListingGroups.map((row) => [row.productId, row._count._all])
+  const { products, partnerListingCountByProductId } = await loadSupplierShopCatalogCached(
+    supplierId,
+    id
   )
 
   const fastShipCount = products.filter((p) => p.deliveryMax <= 3).length

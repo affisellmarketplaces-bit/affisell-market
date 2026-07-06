@@ -16,6 +16,7 @@ import {
 } from "@/lib/supplier-product-description-illustrations"
 import { parseChinaImportFields } from "@/lib/china-buying/china-buying-shared"
 import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
+import { revalidateSupplierShopfront } from "@/lib/revalidate-supplier-shopfront"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
 import {
@@ -676,6 +677,8 @@ export async function PUT(
     scheduleProductAutoCategorization(updated.id, { allowDraft: true })
   }
 
+  void revalidateSupplierShopfront(session.user.id)
+
   return Response.json({
     ...(fresh ?? updated),
     variants: (fresh?.productVariants ?? []).map((v) =>
@@ -844,6 +847,8 @@ export async function PATCH(
     })
   }
 
+  void revalidateSupplierShopfront(session.user.id)
+
   return Response.json({
     ...fresh,
     compareAt: fresh.compareAt != null ? Number(fresh.compareAt) : null,
@@ -882,6 +887,8 @@ export async function DELETE(
     prisma.affiliateProduct.deleteMany({ where: { productId: id } }),
     prisma.product.delete({ where: { id, supplierId } }),
   ])
+
+  void revalidateSupplierShopfront(supplierId)
 
   return new Response(null, { status: 204 })
 }

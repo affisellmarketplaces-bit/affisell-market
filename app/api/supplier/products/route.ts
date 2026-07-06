@@ -55,6 +55,7 @@ import {
 } from "@/lib/product-variant-sku"
 import { parseChinaImportFields } from "@/lib/china-buying/china-buying-shared"
 import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
+import { revalidateSupplierShopfront } from "@/lib/revalidate-supplier-shopfront"
 import type { CustomColumn } from "@/types/product"
 
 export const runtime = "nodejs"
@@ -448,6 +449,8 @@ export async function POST(req: Request) {
       images: product.images,
     }).catch((e) => console.error("[supplier-invite] publish hook", e))
   }
+
+  void revalidateSupplierShopfront(supplierId)
 
   return Response.json(product, { status: 201 })
 }

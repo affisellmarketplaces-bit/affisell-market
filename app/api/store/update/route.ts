@@ -7,6 +7,7 @@ import { auth } from "@/auth"
 import { allocateUniqueSlug, ensureMerchantStore } from "@/lib/ensure-store"
 import { prisma } from "@/lib/prisma"
 import { shopTag } from "@/lib/shop-storefront-cache"
+import { supplierTag } from "@/lib/supplier-storefront-cache"
 import { parseStorefrontTheme, themeFromBrandStudioFields } from "@/lib/storefront-theme-shared"
 import { normalizeCustomDomain } from "@/lib/verify-store-domain"
 import { activateStoreCustomDomainIfReady } from "@/lib/store-custom-domain-activation"
@@ -234,6 +235,16 @@ export async function POST(req: Request) {
       revalidatePath(`/shops/${slug}`)
       revalidatePath(`/shops/${slug}`, "layout")
       revalidateTag(shopTag(slug), "max")
+    }
+    if (role === "SUPPLIER") {
+      revalidatePath(`/store/supplier/${store.slug}`)
+      revalidatePath(`/store/supplier/${store.slug}`, "layout")
+      revalidateTag(supplierTag(store.slug), "max")
+      if (slug !== store.slug) {
+        revalidatePath(`/store/supplier/${slug}`)
+        revalidatePath(`/store/supplier/${slug}`, "layout")
+        revalidateTag(supplierTag(slug), "max")
+      }
     }
     revalidatePath("/dashboard/affiliate/brand-studio")
     revalidatePath("/dashboard/supplier/storefront")

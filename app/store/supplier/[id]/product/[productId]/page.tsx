@@ -2,9 +2,9 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { SupplierAffiliateEvalPreview } from "@/components/supplier/supplier-affiliate-eval-preview"
-import { loadSupplierStorefrontCatalogProduct } from "@/lib/supplier-storefront-product-preview"
+import { loadSupplierStorefrontCatalogProductCached } from "@/lib/supplier-storefront-cache"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 export async function generateMetadata({
   params,
@@ -12,10 +12,10 @@ export async function generateMetadata({
   params: Promise<{ id: string; productId: string }>
 }): Promise<Metadata> {
   const { id: rawSlug, productId: rawProductId } = await params
-  const loaded = await loadSupplierStorefrontCatalogProduct({
-    storeSlug: decodeURIComponent(rawSlug),
-    productId: decodeURIComponent(rawProductId),
-  })
+  const loaded = await loadSupplierStorefrontCatalogProductCached(
+    decodeURIComponent(rawSlug),
+    decodeURIComponent(rawProductId)
+  )
   if (!loaded) return { title: "Produit · Affisell" }
   return {
     title: `${loaded.product.name.slice(0, 72)} · ${loaded.store.name}`,
@@ -34,7 +34,7 @@ export default async function SupplierStorefrontProductCatalogPage({
   const storeSlug = decodeURIComponent(rawSlug)
   const productId = decodeURIComponent(rawProductId)
 
-  const loaded = await loadSupplierStorefrontCatalogProduct({ storeSlug, productId })
+  const loaded = await loadSupplierStorefrontCatalogProductCached(storeSlug, productId)
   if (!loaded) notFound()
 
   const catalogHref = `/store/supplier/${encodeURIComponent(loaded.store.slug)}`

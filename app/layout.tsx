@@ -12,6 +12,7 @@ import { IntlAppProvider } from "@/components/providers/intl-app-provider"
 import { getCachedSession } from "@/lib/get-cached-session"
 import { PWA_SPLASH_IMAGES } from "@/lib/pwa-splash-images"
 import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
+import { slimClientMessagesForDedicatedStorefront } from "@/lib/i18n-slim-client-messages"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { cn } from "@/lib/utils"
 
@@ -47,6 +48,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   ])
   const hdrs = await headers()
   const isDedicatedStorefront = isCustomDomainHeaders(hdrs)
+  const pathname = hdrs.get("x-affisell-pathname") ?? ""
+  const clientMessages = isDedicatedStorefront
+    ? slimClientMessagesForDedicatedStorefront(messages, pathname)
+    : messages
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -58,7 +63,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       >
         <CookieConsentHeadScripts />
         <AuthSessionProvider session={session}>
-          <IntlAppProvider locale={locale} messages={messages} now={now}>
+          <IntlAppProvider locale={locale} messages={clientMessages} now={now}>
             <RootSessionShell leanShell={isDedicatedStorefront}>
               {!isDedicatedStorefront ? (
                 <SiteHeaderChrome>
