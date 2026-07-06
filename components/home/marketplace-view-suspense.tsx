@@ -12,8 +12,9 @@ type Props = {
 
 /** Required Suspense parent for `useSearchParams` inside embedded home catalog. */
 export function MarketplaceViewSuspense({ shell }: Props) {
+  const hasProducts = shell.products.length > 0
   return (
-    <Suspense fallback={<HomeCatalogSkeleton />}>
+    <Suspense fallback={hasProducts ? null : <HomeCatalogSkeleton />}>
       <MarketplaceView basePath="/" audience="customer" embedded initialBrowse={shell} />
     </Suspense>
   )

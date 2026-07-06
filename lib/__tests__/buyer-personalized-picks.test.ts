@@ -25,8 +25,8 @@ vi.mock("@/lib/buyer-discovery-data", () => ({
   loadBuyerListingsByListingIds: loadBuyerListingsByListingIdsMock,
 }))
 
-vi.mock("@/lib/home-marketplace-data", () => ({
-  loadHomeBestSellers7d: loadHomeBestSellers7dMock,
+vi.mock("@/lib/public-home-cache", () => ({
+  loadHomeBestSellers7dCached: loadHomeBestSellers7dMock,
 }))
 
 vi.mock("@/lib/buyer-listing-country-boost", () => ({
@@ -87,6 +87,19 @@ describe("loadBuyerPersonalizedPicks", () => {
     loadHomeBestSellers7dMock.mockResolvedValue([{ listingId: "listing-p-filler", soldCount: 9 }])
     loadBuyerListingsByListingIdsMock.mockResolvedValue([makeCard("p-filler")])
     sortBuyerListingCardsByDeliveryCountryBoostMock.mockImplementation((items) => items)
+  })
+
+  it("skips DB for cold anonymous visitors", async () => {
+    cookiesMock.mockResolvedValue({
+      get: vi.fn().mockReturnValue(undefined),
+    })
+
+    const { loadBuyerPersonalizedPicksFast } = await import("@/lib/buyer-personalized-picks")
+    const result = await loadBuyerPersonalizedPicksFast({ userId: null, guestId: null })
+
+    expect(result).toEqual({ items: [], personalized: false })
+    expect(loadBuyerListingsByCategoryHintsMock).not.toHaveBeenCalled()
+    expect(loadHomeBestSellers7dMock).not.toHaveBeenCalled()
   })
 
   it("passes visitor country to personalized and filler loaders", async () => {

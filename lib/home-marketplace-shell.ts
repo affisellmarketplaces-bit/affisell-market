@@ -1,7 +1,7 @@
+import { cache } from "react"
 import { unstable_cache } from "next/cache"
 
 import type { AppLocale } from "@/lib/i18n-locale"
-import type { BuyerPersonalizedPicksPayload } from "@/lib/buyer-personalization-shared"
 import { loadMarketplaceCategoryTreeCached } from "@/lib/marketplace-category-tree"
 import { loadOfferModeRailCounts } from "@/lib/marketplace-discovery-facets"
 import { fetchMarketplaceListingsForHome } from "@/lib/marketplace-listings-query"
@@ -11,17 +11,25 @@ export type HomeMarketplaceShell = {
   catalogTotal: number
   products: Awaited<ReturnType<typeof fetchMarketplaceListingsForHome>>
   offerRailCounts: Record<string, number>
-  personalizedPicks: BuyerPersonalizedPicksPayload
+  personalizedPicks?: import("@/lib/buyer-personalization-shared").BuyerPersonalizedPicksPayload
 }
 
 const HOME_SHELL_REVALIDATE_SEC = 60
 
-const EMPTY_HOME_SHELL: HomeMarketplaceShell = {
+const EMPTY_HOME_SHELL: Omit<HomeMarketplaceShell, "personalizedPicks"> = {
   categories: [],
   catalogTotal: 0,
   products: [],
   offerRailCounts: {},
-  personalizedPicks: { items: [], personalized: false },
+}
+
+/** Default home grid — cached separately (lite payload fits under Next 2MB limit). */
+function loadHomeMarketplaceListingsCached() {
+  return unstable_cache(
+    () => fetchMarketplaceListingsForHome(new URLSearchParams()),
+    ["home-marketplace-listings-default"],
+    { revalidate: HOME_SHELL_REVALIDATE_SEC, tags: ["home-marketplace"] }
+  )()
 }
 
 /** Small facet counts — safe under Next.js 2MB `unstable_cache` limit. */
@@ -35,16 +43,12 @@ function loadOfferModeRailCountsCached() {
 
 /**
  * Home `#explorer` SSR payload.
- * Do not wrap the full shell in `unstable_cache` — lite listings + category tree exceed 2MB.
- * Categories and offer counts are cached separately; page `revalidate = 60` covers the rest.
+ * Listings + category tree are cached separately; page `revalidate = 60` covers the rest.
  */
-export async function loadHomeMarketplaceShell(
-  locale: AppLocale,
-  personalizedPicks: BuyerPersonalizedPicksPayload
-): Promise<HomeMarketplaceShell> {
+async function loadHomeMarketplaceShellUncached(locale: AppLocale): Promise<Omit<HomeMarketplaceShell, "personalizedPicks">> {
   const [tree, products, offerRailCounts] = await Promise.all([
     loadMarketplaceCategoryTreeCached(locale),
-    fetchMarketplaceListingsForHome(new URLSearchParams()),
+    loadHomeMarketplaceListingsCached(),
     loadOfferModeRailCountsCached(),
   ])
   return {
@@ -52,19 +56,22 @@ export async function loadHomeMarketplaceShell(
     catalogTotal: tree.catalogTotal,
     products,
     offerRailCounts,
-    personalizedPicks,
   }
 }
 
-/** Never crash the home page when DB/cache fails (common on mobile preview). */
-export async function loadHomeMarketplaceShellSafe(
-  locale: AppLocale,
-  personalizedPicks: BuyerPersonalizedPicksPayload
-): Promise<HomeMarketplaceShell> {
+/** Dedupe within a single RSC request (page preload + Suspense child). */
+export const loadHomeMarketplaceShellSafe = cache(async (locale: AppLocale) => {
   try {
-    return await loadHomeMarketplaceShell(locale, personalizedPicks)
+    return await loadHomeMarketplaceShellUncached(locale)
   } catch (error) {
     console.error("[home-marketplace-shell]", { locale, error })
-    return { ...EMPTY_HOME_SHELL, personalizedPicks }
+    return EMPTY_HOME_SHELL
   }
+})
+
+/** Fire-and-forget from `app/page.tsx` so catalog fetch starts before Suspense children. */
+export function preloadHomeMarketplaceShell(locale: AppLocale): void {
+  void loadHomeMarketplaceShellSafe(locale)
 }
+
+export { HOME_SHELL_REVALIDATE_SEC }

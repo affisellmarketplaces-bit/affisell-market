@@ -16,6 +16,7 @@ export async function revalidateAffiliateShopfront(
 
   const slug = store.slug.trim().toLowerCase()
   revalidateTag(shopTag(slug), "max")
+  revalidateTag("home-marketplace", "max")
   revalidatePath(`/shops/${slug}`)
   revalidatePath(`/shops/${slug}`, "layout")
   bustShopCategoriesResponseCache(slug)

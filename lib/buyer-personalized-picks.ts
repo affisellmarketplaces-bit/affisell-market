@@ -14,7 +14,7 @@ import {
 } from "@/lib/buyer-browse-signals-shared"
 import { sortBuyerListingCardsByDeliveryCountryBoost } from "@/lib/buyer-listing-country-boost"
 import type { BuyerPersonalizedPicksPayload } from "@/lib/buyer-personalization-shared"
-import { loadHomeBestSellers7d } from "@/lib/home-marketplace-data"
+import { loadHomeBestSellers7dCached } from "@/lib/public-home-cache"
 import { prisma } from "@/lib/prisma"
 import { resolveVisitorCountryIso2 } from "@/lib/visitor-country"
 
@@ -131,6 +131,28 @@ async function loadSignalSeed(args: {
   }
 }
 
+const EMPTY_PICKS: BuyerPersonalizedPicksPayload = { items: [], personalized: false }
+
+async function hasPersonalizationSignals(args: {
+  userId: string | null
+  guestId: string | null
+}): Promise<boolean> {
+  if (args.userId || args.guestId) return true
+  const browseNames = await readBrowseCategoryNames()
+  return browseNames.length > 0
+}
+
+/** Skip heavy DB for cold anonymous visitors — catalog paints first. */
+export async function loadBuyerPersonalizedPicksFast(args: {
+  userId: string | null
+  guestId: string | null
+}): Promise<BuyerPersonalizedPicksPayload> {
+  if (!(await hasPersonalizationSignals(args))) {
+    return EMPTY_PICKS
+  }
+  return loadBuyerPersonalizedPicks(args)
+}
+
 export async function loadBuyerPersonalizedPicks(args: {
   userId: string | null
   guestId: string | null
@@ -158,7 +180,7 @@ export async function loadBuyerPersonalizedPicks(args: {
   }
 
   if (items.length < MIN_RAIL_ITEMS) {
-    const ranked = await loadHomeBestSellers7d(TARGET_ITEMS * 2)
+    const ranked = await loadHomeBestSellers7dCached(TARGET_ITEMS * 2)
     const filler = await loadBuyerListingsByListingIds(
       ranked.map((row) => row.listingId),
       [...exclude, ...items.map((item) => item.productId)],
