@@ -58,6 +58,10 @@ import {
 } from "@/lib/checkout-country-rollout"
 import { resolveVisitorCountryIso2 } from "@/lib/visitor-country"
 import { prisma } from "@/lib/prisma"
+import {
+  parseE2eCreatorsWatchingOverride,
+  shouldUseE2eLtvLoopFixtures,
+} from "@/lib/e2e-ltv-loop-fixtures"
 
 import { MarketplaceListingDetail } from "./marketplace-listing-detail"
 
@@ -149,7 +153,13 @@ export default async function MarketplaceListingPage({
   storeSlug,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ writeReview?: string; orderId?: string; preview?: string }>
+  searchParams: Promise<{
+    writeReview?: string
+    orderId?: string
+    preview?: string
+    e2eFixtures?: string
+    e2eCreatorsWatching?: string
+  }>
   /** When set (shop PDP), listing must belong to this store — single DB round-trip. */
   storeSlug?: string
 }) {
@@ -197,6 +207,13 @@ export default async function MarketplaceListingPage({
   }
 
   const { listing, crossSell, viewsLast24h, affiliateCreatorsWatching, writeReviewOrderId } = loaded
+  const useE2eLtv = shouldUseE2eLtvLoopFixtures({ e2eFixtures: sp.e2eFixtures })
+  const creatorsWatchingOverride = parseE2eCreatorsWatchingOverride(
+    sp.e2eCreatorsWatching,
+    useE2eLtv
+  )
+  const displayAffiliateCreatorsWatching =
+    creatorsWatchingOverride ?? affiliateCreatorsWatching
 
   const st = listing.affiliate.store
   const storeTheme = st?.storefrontTheme ? parseStorefrontTheme(st.storefrontTheme) : null
@@ -438,7 +455,7 @@ export default async function MarketplaceListingPage({
           writeReviewOrderId={writeReviewOrderId}
           openWriteReview={sp.writeReview === "true" && Boolean(writeReviewOrderId)}
           viewsLast24h={viewsLast24h}
-          affiliateCreatorsWatching={affiliateCreatorsWatching}
+          affiliateCreatorsWatching={displayAffiliateCreatorsWatching}
           salesCount={listing.conversions}
           galleryListingVideoUrl={resolveGalleryListingVideoUrl({
             videoAdUrl: p.videoAdUrl,

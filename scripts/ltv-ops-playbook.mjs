@@ -88,6 +88,9 @@ console.log("  • Brand Studio save + flash sale active → newsletter blast (S
 console.log("  • POST /api/store/newsletter/subscribe — storefront opt-in + welcome email")
 console.log("  • GET /api/affiliate/opportunity-pulse — hot SKU rail (affiliate catalog)")
 
+console.log("\n── E2E hardening ──")
+console.log("  npm run test:e2e:ltv   # flash sale hash, pulse guest→login, opportunity badge")
+
 console.log("\n── Manual smoke (founder) ──")
 console.log("  1. Buyer: add to cart → wait 1h (or lower hours in cron dev) → recovery email/push")
 console.log("  2. Buyer: wishlist + target price → cron wishlist-price-alerts")

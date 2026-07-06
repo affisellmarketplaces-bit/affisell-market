@@ -6,6 +6,7 @@ import { ProductGrid } from "@/components/shop/ProductGrid"
 import { StorefrontBestsellersSection } from "@/components/storefront/storefront-bestsellers-section"
 import { StorefrontDedicatedHero } from "@/components/storefront/storefront-dedicated-hero"
 import { StorefrontFlashSaleSection } from "@/components/storefront/storefront-flash-sale-section"
+import { StorefrontHashScroll } from "@/components/storefront/storefront-hash-scroll"
 import { StorefrontNewsletterSection } from "@/components/storefront/storefront-newsletter-section"
 import { StorefrontSocialProofSection } from "@/components/storefront/storefront-social-proof-section"
 import { StorefrontTaglineBand } from "@/components/storefront/storefront-tagline-band"
@@ -43,6 +44,7 @@ export async function StorefrontHomeSections({
 
   return (
     <>
+      <StorefrontHashScroll />
       {sections.map((section) => {
         const content = section.content
 

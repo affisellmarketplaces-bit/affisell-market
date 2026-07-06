@@ -568,7 +568,10 @@ export function AffiliateCatalogExperience({
                         {!isLive &&
                         !isHidden &&
                         shouldShowAffiliateCreatorsWatchingBadge(p.affiliateCreatorsWatching ?? 0) ? (
-                          <div className="absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] items-center gap-1 rounded-full bg-violet-600 px-2 py-1 text-[10px] font-bold text-white shadow">
+                          <div
+                            className="absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] items-center gap-1 rounded-full bg-violet-600 px-2 py-1 text-[10px] font-bold text-white shadow"
+                            data-testid="affiliate-creators-watching-badge"
+                          >
                             <Eye className="size-3 shrink-0" aria-hidden />
                             <span className="truncate">
                               {p.affiliateCreatorsWatching === 1

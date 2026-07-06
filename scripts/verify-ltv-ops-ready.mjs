@@ -79,6 +79,16 @@ for (const mod of libModules) {
   else fail(`Module ${mod}`, "Missing LTV lib/API module")
 }
 
+for (const e2e of [
+  "e2e/ltv-loop-hardening.spec.ts",
+  "components/storefront/storefront-hash-scroll.tsx",
+  "lib/e2e-storefront-flash-sale-fixtures.ts",
+  "app/e2e/ltv/badge/page.tsx",
+]) {
+  if (fileExists(e2e)) ok(`E2E hardening ${e2e}`)
+  else fail(`E2E hardening ${e2e}`, "Missing LTV E2E artifact")
+}
+
 const webPush = read("lib/web-push-send.ts") ?? ""
 if (webPush.includes("sendAbandonedCartPushToUser")) {
   ok("Web Push: sendAbandonedCartPushToUser")

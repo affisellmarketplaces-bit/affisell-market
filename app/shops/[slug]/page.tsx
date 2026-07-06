@@ -14,6 +14,10 @@ import {
   loadAffiliateStorefrontTrustCached,
 } from "@/lib/shop-storefront-cache"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
+import {
+  e2eFlashSaleShopFixture,
+  shouldUseE2eStorefrontFlashSaleFixtures,
+} from "@/lib/e2e-storefront-flash-sale-fixtures"
 
 export const revalidate = 60
 
@@ -41,18 +45,25 @@ export default async function ShopSlugPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ cat?: string }>
+  searchParams: Promise<{ cat?: string; e2eFlashSale?: string }>
 }) {
   const { slug } = await params
-  const { cat } = await searchParams
+  const { cat, e2eFlashSale } = await searchParams
   const hdrs = await headers()
   const isDedicatedHost = isCustomDomainHeaders(hdrs)
 
-  const [storeFront, trust, products] = await Promise.all([
-    loadAffiliateShopStoreCached(slug),
-    loadAffiliateStorefrontTrustCached(slug),
-    loadAffiliateShopProductsCached(slug),
-  ])
+  const useE2eFlashSale = shouldUseE2eStorefrontFlashSaleFixtures({ e2eFlashSale })
+
+  const [storeFront, trust, products] = useE2eFlashSale
+    ? (() => {
+        const fixture = e2eFlashSaleShopFixture()
+        return [fixture.store, null, fixture.products] as const
+      })()
+    : await Promise.all([
+        loadAffiliateShopStoreCached(slug),
+        loadAffiliateStorefrontTrustCached(slug),
+        loadAffiliateShopProductsCached(slug),
+      ])
   if (!storeFront) notFound()
 
   const categories = groupShopProductsByCategory(products)
