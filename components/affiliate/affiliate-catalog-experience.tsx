@@ -7,6 +7,7 @@ import {
   Check,
   Compass,
   ExternalLink,
+  Eye,
   Filter,
   Search,
   Sparkles,
@@ -15,8 +16,10 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 import { AffiliateCatalogHighlights } from "@/components/affiliate/affiliate-catalog-highlights"
+import { AffiliateOpportunityPulseRail } from "@/components/affiliate/affiliate-opportunity-pulse-rail"
 import { DiscoverListingActions } from "@/components/affiliate/discover-listing-actions"
 import {
   ListingBuilderModal,
@@ -27,6 +30,8 @@ import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceD
 import { Sidebar } from "@/components/marketplace/Sidebar"
 import { Button } from "@/components/ui/button"
 import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH, AFFILIATE_HUB_PATH } from "@/lib/affiliate-routes"
+import { shouldShowAffiliateCreatorsWatchingBadge } from "@/lib/affiliate-product-opportunity-pulse-shared"
+import type { AffiliateOpportunityPulseCard } from "@/lib/affiliate-catalog-opportunity-pulse"
 import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
 import {
   AFFILIATE_CATALOG_NICHES,
@@ -96,6 +101,7 @@ const PULSE_LINKS = [
 type Props = {
   stats: HomeMarketplaceStats
   initialHighlights: HighlightsData
+  initialOpportunityPicks?: AffiliateOpportunityPulseCard[]
 }
 
 function supplierLabel(p: AffiliateCatalogProduct) {
@@ -104,7 +110,12 @@ function supplierLabel(p: AffiliateCatalogProduct) {
   return p.supplier.email
 }
 
-export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) {
+export function AffiliateCatalogExperience({
+  stats,
+  initialHighlights,
+  initialOpportunityPicks = [],
+}: Props) {
+  const tOpportunity = useTranslations("affiliate.opportunityPulse")
   const router = useRouter()
   const searchParams = useSearchParams()
   const categoryId = searchParams.get("category")
@@ -337,6 +348,8 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
       <div className="mx-auto max-w-7xl space-y-10 px-4 py-8 md:px-8">
         <AffiliateHero stats={stats} />
 
+        <AffiliateOpportunityPulseRail picks={initialOpportunityPicks} onListNow={onPickProduct} />
+
         <AffiliateCatalogHighlights initial={initialHighlights} onPickProduct={onPickProduct} />
 
         <section aria-label="Catalogue fournisseur" className="space-y-6">
@@ -550,6 +563,18 @@ export function AffiliateCatalogExperience({ stats, initialHighlights }: Props) 
                         {isHidden ? (
                           <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-amber-500 px-2 py-1 text-xs font-medium text-white shadow">
                             Hors vitrine
+                          </div>
+                        ) : null}
+                        {!isLive &&
+                        !isHidden &&
+                        shouldShowAffiliateCreatorsWatchingBadge(p.affiliateCreatorsWatching ?? 0) ? (
+                          <div className="absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] items-center gap-1 rounded-full bg-violet-600 px-2 py-1 text-[10px] font-bold text-white shadow">
+                            <Eye className="size-3 shrink-0" aria-hidden />
+                            <span className="truncate">
+                              {p.affiliateCreatorsWatching === 1
+                                ? tOpportunity("watchingOne", { count: p.affiliateCreatorsWatching ?? 0 })
+                                : tOpportunity("watchingMany", { count: p.affiliateCreatorsWatching ?? 0 })}
+                            </span>
                           </div>
                         ) : null}
                         <button

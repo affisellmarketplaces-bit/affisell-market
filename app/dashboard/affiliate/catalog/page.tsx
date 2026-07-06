@@ -3,6 +3,7 @@ import { Suspense } from "react"
 
 import { AffiliateCatalogExperience } from "@/components/affiliate/affiliate-catalog-experience"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
+import { loadAffiliateOpportunityPulsePicks } from "@/lib/affiliate-catalog-opportunity-pulse"
 import { loadAffiliateCatalogHighlights } from "@/lib/affiliate-catalog-query"
 import type { AffiliateCatalogHighlights } from "@/lib/affiliate-catalog-types"
 import { loadHomeMarketplaceStatsSafe } from "@/lib/public-home-data"
@@ -39,7 +40,7 @@ export default async function AffiliateCatalogPage({ searchParams }: PageProps) 
     highMargin: [],
   }
 
-  const [stats, highlights] = await Promise.all([
+  const [stats, highlights, opportunityPicks] = await Promise.all([
     loadHomeMarketplaceStatsSafe().catch((err) => {
       console.error("[affiliate/catalog] stats failed:", err)
       return {
@@ -53,6 +54,10 @@ export default async function AffiliateCatalogPage({ searchParams }: PageProps) 
       console.error("[affiliate/catalog] highlights failed:", err)
       return emptyHighlights
     }),
+    loadAffiliateOpportunityPulsePicks(session.user.id, 3).catch((err) => {
+      console.error("[affiliate/catalog] opportunity pulse failed:", err)
+      return []
+    }),
   ])
 
   return (
@@ -64,7 +69,11 @@ export default async function AffiliateCatalogPage({ searchParams }: PageProps) 
           </div>
         }
       >
-        <AffiliateCatalogExperience stats={stats} initialHighlights={highlights} />
+        <AffiliateCatalogExperience
+          stats={stats}
+          initialHighlights={highlights}
+          initialOpportunityPicks={opportunityPicks}
+        />
       </Suspense>
     </main>
   )

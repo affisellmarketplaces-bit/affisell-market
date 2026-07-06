@@ -1135,6 +1135,16 @@
       "serviceUnavailable": "Service temporarily unavailable — try again in a moment.",
       "genericError": "Something went wrong"
     },
+    "opportunityPulse": {
+      "eyebrow": "Opportunity Pulse",
+      "title": "Hot SKUs to list",
+      "hint": "Other creators are viewing these products — list before they do.",
+      "watchingOne": "{count} creator is viewing this SKU",
+      "watchingMany": "{count} creators are viewing this SKU",
+      "listNow": "List now",
+      "editListing": "Edit listing",
+      "viewCatalog": "Browse full catalog"
+    },
     "earnings": {
       "taxCompliance": {
         "title": "Curator partner tax framework",

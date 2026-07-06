@@ -1135,6 +1135,16 @@
       "serviceUnavailable": "Service temporairement indisponible — réessayez dans un instant.",
       "genericError": "Une erreur est survenue"
     },
+    "opportunityPulse": {
+      "eyebrow": "Opportunity Pulse",
+      "title": "SKU chauds à lister",
+      "hint": "D'autres créateurs regardent ces produits — listez avant eux.",
+      "watchingOne": "{count} créateur regarde ce SKU",
+      "watchingMany": "{count} créateurs regardent ce SKU",
+      "listNow": "Lister maintenant",
+      "editListing": "Modifier la fiche",
+      "viewCatalog": "Voir tout le catalogue"
+    },
     "earnings": {
       "taxCompliance": {
         "title": "Cadre fiscal partenaire curateur",

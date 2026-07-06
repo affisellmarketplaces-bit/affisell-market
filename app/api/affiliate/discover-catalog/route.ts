@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { enrichCatalogProductsWithOpportunityPulse } from "@/lib/affiliate-catalog-opportunity-pulse"
 import { loadAffiliateCatalogProducts } from "@/lib/affiliate-catalog-query"
 import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 
@@ -25,7 +26,8 @@ export async function GET(request: NextRequest) {
       request.nextUrl.searchParams,
       take
     )
-    return NextResponse.json({ products })
+    const enriched = await enrichCatalogProductsWithOpportunityPulse(products, session.user.id)
+    return NextResponse.json({ products: enriched })
   } catch (e) {
     console.error("[affiliate/discover-catalog]", e)
     return NextResponse.json({ products: [], ...dbUnavailablePayload(e) }, { status: 503 })
