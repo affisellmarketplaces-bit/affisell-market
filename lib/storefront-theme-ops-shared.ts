@@ -20,6 +20,8 @@ export type StorefrontBrandOps = {
   brandPulseStagnationAbAt?: string
   /** Preset A/B experiment stats + config */
   presetAb?: StorefrontPresetAb
+  /** Campaign key (endsAt|listingIds) — idempotent flash sale newsletter blast */
+  flashSaleNewsletterCampaignKey?: string
 }
 
 export function parseStorefrontBrandOps(raw: unknown): StorefrontBrandOps | undefined {
@@ -47,6 +49,12 @@ export function parseStorefrontBrandOps(raw: unknown): StorefrontBrandOps | unde
   }
   const presetAb = parseStorefrontPresetAb(o.presetAb)
   if (presetAb) ops.presetAb = presetAb
+  if (
+    typeof o.flashSaleNewsletterCampaignKey === "string" &&
+    o.flashSaleNewsletterCampaignKey.trim()
+  ) {
+    ops.flashSaleNewsletterCampaignKey = o.flashSaleNewsletterCampaignKey.trim().slice(0, 120)
+  }
 
   return Object.keys(ops).length > 0 ? ops : undefined
 }

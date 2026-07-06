@@ -10,6 +10,7 @@ import { shopTag } from "@/lib/shop-storefront-cache"
 import { parseStorefrontTheme, themeFromBrandStudioFields } from "@/lib/storefront-theme-shared"
 import { normalizeCustomDomain } from "@/lib/verify-store-domain"
 import { activateStoreCustomDomainIfReady } from "@/lib/store-custom-domain-activation"
+import { maybeNotifyFlashSaleNewsletter } from "@/lib/store-flash-sale-newsletter"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -243,6 +244,18 @@ export async function POST(req: Request) {
       slug: updated.slug,
       themeSaved: storefrontTheme !== undefined,
     })
+
+    if (storefrontTheme !== undefined) {
+      maybeNotifyFlashSaleNewsletter({
+        storeId: updated.id,
+        storeName: updated.name,
+        slug: updated.slug,
+        customDomain: updated.customDomain,
+        domainVerified: updated.domainVerified,
+        previousTheme: existingTheme,
+        nextTheme: parseStorefrontTheme(updated.storefrontTheme),
+      })
+    }
 
     let domainActivation: Awaited<ReturnType<typeof activateStoreCustomDomainIfReady>> | null =
       null

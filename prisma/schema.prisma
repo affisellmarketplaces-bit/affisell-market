@@ -492,6 +492,8 @@ model StoreNewsletterSubscriber {
   locale             String?
   source             String    @default("storefront_newsletter")
   welcomeEmailSentAt DateTime?
+  /** Campaign key (endsAt|listingIds) — idempotent flash sale alert per subscriber */
+  lastFlashSaleAlertKey String?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
