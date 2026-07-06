@@ -181,6 +181,32 @@ export function StorefrontLivePreview({ draft, className }: Props) {
                     brandAlign={draft.headerBrandAlign}
                   />
                 )
+              case "flash-sale":
+                return (
+                  <div
+                    key="flash-sale"
+                    className="border-b border-rose-300/60 bg-gradient-to-r from-rose-600 to-orange-500 px-3 py-3 text-white"
+                  >
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-white/90">
+                      {sectionCopyString(content, "eyebrow", tSections("flashSaleEyebrow"))} ·{" "}
+                      {tSections("flashSaleLive")}
+                    </p>
+                    <p className="text-xs font-bold">
+                      {sectionCopyString(content, "title", tSections("flashSaleTitle"))}
+                    </p>
+                    <p className="mt-1 font-mono text-[10px]">23:59:42</p>
+                    <ul className="mt-2 flex gap-2">
+                      {MOCK_TILES.slice(0, 2).map((tile) => (
+                        <li
+                          key={tile.id}
+                          className={cn(
+                            "h-14 w-12 shrink-0 rounded-lg bg-white/20 ring-1 ring-white/30"
+                          )}
+                        />
+                      ))}
+                    </ul>
+                  </div>
+                )
               case "story":
                 return sampleTagline ? (
                   <div

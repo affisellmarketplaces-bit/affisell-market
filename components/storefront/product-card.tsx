@@ -11,6 +11,8 @@ type Props = {
   mode?: ProductCardDisplayMode
   dedicatedHost?: boolean
   immersive?: boolean
+  flashSale?: boolean
+  flashAccent?: string
   className?: string
 }
 
@@ -26,13 +28,22 @@ export function StorefrontProductCard({
   mode = "customer",
   dedicatedHost = false,
   immersive = false,
+  flashSale = false,
+  flashAccent,
   className,
 }: Props) {
   const lightningBadge = showLightningSupplierBadge(product)
 
   return (
     <div className={cn("relative h-full", immersive && STOREFRONT_IMMERSIVE_CARD_CLASS, className)}>
-      {lightningBadge ? (
+      {flashSale ? (
+        <span
+          className="pointer-events-none absolute left-2 top-2 z-30 rounded-full border border-rose-300/90 bg-rose-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm sm:text-[11px]"
+          style={flashAccent ? { backgroundColor: flashAccent, borderColor: flashAccent } : undefined}
+        >
+          ⚡ Flash
+        </span>
+      ) : lightningBadge ? (
         <span
           className="pointer-events-none absolute left-2 top-2 z-30 max-w-[calc(100%-3rem)] rounded-full border border-amber-300/80 bg-amber-50/95 px-2 py-0.5 text-[10px] font-semibold leading-tight text-amber-950 shadow-sm backdrop-blur-sm dark:border-amber-700/60 dark:bg-amber-950/90 dark:text-amber-100 sm:text-[11px]"
           title="Paiement fournisseur accéléré"

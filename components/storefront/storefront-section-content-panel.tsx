@@ -20,6 +20,7 @@ type FieldKey = keyof HomepageSectionContent
 
 const FIELDS_BY_TYPE: Record<HomepageSectionType, FieldKey[]> = {
   hero: [],
+  "flash-sale": [],
   story: ["eyebrow", "body"],
   bestsellers: ["eyebrow", "title", "body", "productLimit"],
   products: [],

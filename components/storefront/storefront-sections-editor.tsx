@@ -21,6 +21,7 @@ import { useTranslations } from "next-intl"
 import { useMemo, useState } from "react"
 
 import { StorefrontSectionContentPanel } from "@/components/storefront/storefront-section-content-panel"
+import { StorefrontFlashSalePanel } from "@/components/storefront/storefront-flash-sale-panel"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
 import {
   HOMEPAGE_SECTION_TYPES,
@@ -136,7 +137,11 @@ function SortableSectionRow({
         </div>
       </div>
       {section.enabled && expanded === section.type ? (
-        <StorefrontSectionContentPanel section={section} sections={sections} onChange={onChange} />
+        section.type === "flash-sale" ? (
+          <StorefrontFlashSalePanel sections={sections} onChange={onChange} />
+        ) : (
+          <StorefrontSectionContentPanel section={section} sections={sections} onChange={onChange} />
+        )
       ) : null}
     </li>
   )

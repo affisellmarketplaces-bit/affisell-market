@@ -2063,6 +2063,10 @@
     }
   },
   "storefront": {
+    "flashSale": {
+      "countdownAria": "Time remaining until the sale ends",
+      "days": "d"
+    },
     "brandStudio": {
       "loading": "Loading…",
       "affiliateEyebrow": "Creator brand",
@@ -2367,8 +2371,26 @@
           "cta": {
             "label": "Discover CTA",
             "desc": "Invite buyers to explore Affisell."
+          },
+          "flash-sale": {
+            "label": "Flash sale",
+            "desc": "Countdown timer + limited-time product rail."
           }
         }
+      },
+      "flashSale": {
+        "title": "Flash sale setup",
+        "hint": "Pick products and end time — the section hides automatically when the timer hits zero.",
+        "eyebrow": "Eyebrow",
+        "eyebrowPlaceholder": "Limited offer",
+        "headline": "Promo headline",
+        "headlinePlaceholder": "Up to 30% off — ends soon",
+        "duration": "Sale ends",
+        "presetHours": "{hours}h",
+        "products": "Products ({count}/{max})",
+        "loadingCatalog": "Loading catalog…",
+        "emptyCatalog": "List at least one product to run a flash sale.",
+        "loadFailed": "Could not load your catalog."
       },
       "staticPages": {
         "title": "Store pages",
@@ -2512,7 +2534,10 @@
       "ctaEyebrow": "Explore Affisell",
       "ctaTitle": "Discover more creators",
       "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
-      "ctaButton": "Browse marketplace"
+      "ctaButton": "Browse marketplace",
+      "flashSaleEyebrow": "Limited offer",
+      "flashSaleTitle": "Flash sale — ending soon",
+      "flashSaleLive": "LIVE"
     },
     "buyerChrome": {
       "openCategories": "Browse categories",

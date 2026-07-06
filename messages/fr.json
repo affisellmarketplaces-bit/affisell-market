@@ -2087,6 +2087,10 @@
     }
   },
   "storefront": {
+    "flashSale": {
+      "countdownAria": "Temps restant avant la fin de la promo",
+      "days": "j"
+    },
     "brandStudio": {
       "loading": "Chargement…",
       "affiliateEyebrow": "Marque créateur",
@@ -2409,8 +2413,26 @@
           "cta": {
             "label": "CTA Découverte",
             "desc": "Invite les acheteurs à explorer Affisell."
+          },
+          "flash-sale": {
+            "label": "Flash sale",
+            "desc": "Compte à rebours + rail produits en promo limitée."
           }
         }
+      },
+      "flashSale": {
+        "title": "Configurer la flash sale",
+        "hint": "Choisissez les produits et la date de fin — la section disparaît automatiquement à expiration.",
+        "eyebrow": "Accroche",
+        "eyebrowPlaceholder": "Offre limitée",
+        "headline": "Titre promo",
+        "headlinePlaceholder": "Jusqu'à -30 % — plus que quelques heures",
+        "duration": "Fin de promo",
+        "presetHours": "{hours}h",
+        "products": "Produits ({count}/{max})",
+        "loadingCatalog": "Chargement du catalogue…",
+        "emptyCatalog": "Publiez au moins un produit pour lancer une flash sale.",
+        "loadFailed": "Impossible de charger votre catalogue."
       },
       "staticPages": {
         "title": "Pages boutique",
@@ -2554,7 +2576,10 @@
       "ctaEyebrow": "Explorer Affisell",
       "ctaTitle": "Découvrez d'autres créateurs",
       "ctaBody": "Parcourez le marketplace Affisell pour plus de produits et de boutiques de confiance.",
-      "ctaButton": "Voir le marketplace"
+      "ctaButton": "Voir le marketplace",
+      "flashSaleEyebrow": "Offre limitée",
+      "flashSaleTitle": "Flash sale — fin imminente",
+      "flashSaleLive": "LIVE"
     },
     "buyerChrome": {
       "openCategories": "Parcourir les catégories",

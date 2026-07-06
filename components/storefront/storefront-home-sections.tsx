@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server"
 import { ProductGrid } from "@/components/shop/ProductGrid"
 import { StorefrontBestsellersSection } from "@/components/storefront/storefront-bestsellers-section"
 import { StorefrontDedicatedHero } from "@/components/storefront/storefront-dedicated-hero"
+import { StorefrontFlashSaleSection } from "@/components/storefront/storefront-flash-sale-section"
 import { StorefrontNewsletterSection } from "@/components/storefront/storefront-newsletter-section"
 import { StorefrontSocialProofSection } from "@/components/storefront/storefront-social-proof-section"
 import { StorefrontTaglineBand } from "@/components/storefront/storefront-tagline-band"
@@ -48,6 +49,22 @@ export async function StorefrontHomeSections({
         switch (section.type) {
           case "hero":
             return <StorefrontHeroBlock key="hero" store={store} />
+          case "flash-sale":
+            return (
+              <StorefrontFlashSaleSection
+                key="flash-sale"
+                storeSlug={slug}
+                products={catalogProducts}
+                content={content}
+                accent={store.theme.accent}
+                dedicatedHost={isDedicatedHost}
+                labels={{
+                  eyebrow: t("flashSaleEyebrow"),
+                  title: t("flashSaleTitle"),
+                  liveBadge: t("flashSaleLive"),
+                }}
+              />
+            )
           case "story": {
             const body =
               sectionCopyString(content, "body", "") || store.description?.trim() || ""

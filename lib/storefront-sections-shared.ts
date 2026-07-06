@@ -1,7 +1,13 @@
 /** Homepage section config — safe for `"use client"` (no Prisma). */
 
+import {
+  parseFlashSaleEndsAt,
+  parseFlashSaleListingIds,
+} from "@/lib/storefront-flash-sale-shared"
+
 export const HOMEPAGE_SECTION_TYPES = [
   "hero",
+  "flash-sale",
   "story",
   "bestsellers",
   "products",
@@ -23,6 +29,10 @@ export type HomepageSectionContent = {
   author?: string
   stat?: string
   productLimit?: number
+  /** ISO end time for `flash-sale` section */
+  endsAt?: string
+  /** Affiliate listing ids for `flash-sale` rail */
+  listingIds?: string[]
 }
 
 export type HomepageSection = {
@@ -33,6 +43,7 @@ export type HomepageSection = {
 
 export const DEFAULT_HOMEPAGE_SECTIONS: HomepageSection[] = [
   { type: "hero", enabled: true },
+  { type: "flash-sale", enabled: false },
   { type: "story", enabled: true },
   { type: "bestsellers", enabled: false },
   { type: "products", enabled: true },
@@ -79,6 +90,12 @@ export function parseHomepageSectionContent(raw: unknown): HomepageSectionConten
   if (typeof o.productLimit === "number" && Number.isFinite(o.productLimit)) {
     content.productLimit = Math.min(8, Math.max(4, Math.round(o.productLimit)))
   }
+
+  const endsAt = parseFlashSaleEndsAt(o.endsAt)
+  if (endsAt) content.endsAt = endsAt
+
+  const listingIds = parseFlashSaleListingIds(o.listingIds)
+  if (listingIds.length > 0) content.listingIds = listingIds
 
   return Object.keys(content).length > 0 ? content : undefined
 }
