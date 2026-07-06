@@ -59,14 +59,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <CookieConsentHeadScripts />
         <AuthSessionProvider session={session}>
           <IntlAppProvider locale={locale} messages={messages} now={now}>
-            <RootSessionShell>
+            <RootSessionShell leanShell={isDedicatedStorefront}>
               {!isDedicatedStorefront ? (
                 <SiteHeaderChrome>
                   <AppHeader />
                 </SiteHeaderChrome>
               ) : null}
               {children}
-              <Footer />
+              {!isDedicatedStorefront ? <Footer /> : null}
             </RootSessionShell>
             <CookieBanner />
           </IntlAppProvider>

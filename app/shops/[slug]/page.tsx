@@ -9,7 +9,7 @@ import {
   groupShopProductsByCategory,
 } from "@/lib/shop-storefront-categories"
 import {
-  loadAffiliateShopProductsCached,
+  loadAffiliateShopProductsForUserCached,
   loadAffiliateShopStoreCached,
   loadAffiliateStorefrontTrustCached,
 } from "@/lib/shop-storefront-cache"
@@ -59,11 +59,15 @@ export default async function ShopSlugPage({
         const fixture = e2eFlashSaleShopFixture()
         return [fixture.store, null, fixture.products] as const
       })()
-    : await Promise.all([
-        loadAffiliateShopStoreCached(slug),
-        loadAffiliateStorefrontTrustCached(slug),
-        loadAffiliateShopProductsCached(slug),
-      ])
+    : await (async () => {
+        const store = await loadAffiliateShopStoreCached(slug)
+        if (!store) return [null, null, []] as const
+        const [trustRow, productRows] = await Promise.all([
+          loadAffiliateStorefrontTrustCached(slug),
+          loadAffiliateShopProductsForUserCached(store.userId, slug),
+        ])
+        return [store, trustRow, productRows] as const
+      })()
   if (!storeFront) notFound()
 
   const categories = groupShopProductsByCategory(products)

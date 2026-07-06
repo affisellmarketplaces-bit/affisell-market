@@ -25,6 +25,19 @@ export function loadAffiliateShopStoreCached(slug: string): Promise<ShopStoreSum
   })()
 }
 
+export function loadAffiliateShopProductsForUserCached(
+  affiliateUserId: string,
+  slug: string
+): Promise<ShopProductCard[]> {
+  const key = slug.trim().toLowerCase()
+  const userId = affiliateUserId.trim()
+  return unstable_cache(
+    () => loadAffiliateShopProducts(userId),
+    ["affiliate-shop-products", key, userId],
+    { revalidate: SHOP_REVALIDATE_SEC, tags: [shopTag(key)] }
+  )()
+}
+
 export function loadAffiliateShopProductsCached(slug: string): Promise<ShopProductCard[]> {
   const key = slug.trim().toLowerCase()
   return unstable_cache(

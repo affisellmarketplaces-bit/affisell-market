@@ -10,13 +10,10 @@ export const BUYER_WARM_ROUTES = [
   PUBLIC_SHOPS_PATH,
   "/marketplace/account",
   "/agent",
-  "/discover",
   "/creators",
   "/returns",
   "/protected-checkout",
   "/login",
-  "/cart",
-  "/wishlist",
   "/auctions",
   "/luxe",
 ] as const

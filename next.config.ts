@@ -55,8 +55,8 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@imgly/background-removal", "onnxruntime-web"],
   experimental: {
     staleTimes: {
-      dynamic: 30,
-      static: 180,
+      dynamic: 60,
+      static: 300,
     },
     optimizePackageImports: [
       "lucide-react",

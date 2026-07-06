@@ -1,5 +1,7 @@
 import "server-only"
 
+import { unstable_cache } from "next/cache"
+
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
 import { buildMarketplaceAffiliateWhereFromUrl } from "@/lib/marketplace-listings-query"
@@ -10,6 +12,8 @@ import {
 } from "@/lib/pulse-media-gallery"
 import { primaryProductImage } from "@/lib/product-images"
 import { prisma } from "@/lib/prisma"
+
+const ANON_SWIPE_FEED_TAG = "buyer-swipe-feed-anon"
 
 function compareAtCents(
   priceCents: number,
@@ -24,7 +28,15 @@ function compareAtCents(
   return null
 }
 
-export async function loadBuyerSwipeFeedItems(
+function isDefaultSwipeFeedQuery(searchParams: URLSearchParams): boolean {
+  return (
+    !searchParams.get("category")?.trim() &&
+    !searchParams.get("subcategory")?.trim() &&
+    !searchParams.get("q")?.trim()
+  )
+}
+
+async function loadBuyerSwipeFeedItemsUncached(
   searchParams: URLSearchParams,
   opts?: { limit?: number }
 ): Promise<PulseFeedItem[]> {
@@ -117,4 +129,21 @@ export async function loadBuyerSwipeFeedItems(
   }
 
   return items
+}
+
+const loadAnonymousSwipeFeedCached = unstable_cache(
+  async (limit: number) => loadBuyerSwipeFeedItemsUncached(new URLSearchParams(), { limit }),
+  ["buyer-swipe-feed-anon"],
+  { revalidate: 60, tags: [ANON_SWIPE_FEED_TAG] }
+)
+
+export async function loadBuyerSwipeFeedItems(
+  searchParams: URLSearchParams,
+  opts?: { limit?: number }
+): Promise<PulseFeedItem[]> {
+  const limit = Math.min(48, Math.max(6, opts?.limit ?? 24))
+  if (isDefaultSwipeFeedQuery(searchParams) && limit === 24) {
+    return loadAnonymousSwipeFeedCached(limit)
+  }
+  return loadBuyerSwipeFeedItemsUncached(searchParams, opts)
 }

@@ -50,6 +50,7 @@ async function fetchStoreResolveRemote(
     const res = await fetch(u.toString(), {
       headers: { accept: "application/json" },
       signal: AbortSignal.timeout(2500),
+      next: { revalidate: 120 },
     })
     if (!res.ok) return null
     const data = (await res.json()) as {

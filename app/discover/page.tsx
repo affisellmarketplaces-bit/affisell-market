@@ -1,13 +1,33 @@
+import nextDynamic from "next/dynamic"
 import { auth } from "@/auth"
 import type { Session } from "next-auth"
-import { AffisellPulseExperience } from "@/components/pulse/affisell-pulse-experience"
-import { BuyerSwipeCommerce } from "@/components/pulse/buyer-swipe-commerce"
+import { DiscoverPulseLoading } from "@/components/discover/discover-pulse-loading"
 import { loadBuyerPersonalizedPicksSafe } from "@/lib/buyer-personalized-picks"
 import { loadBuyerSwipeFeedItems } from "@/lib/buyer-swipe-feed.server"
 import { readGuestWishlistId } from "@/lib/guest-wishlist-id"
-import { e2ePulsePersonalizedPicksFixture, e2ePulseSwipeFixtureItems, shouldUseE2ePulseFixtures } from "@/lib/e2e-pulse-swipe-fixtures"
+import {
+  e2ePulsePersonalizedPicksFixture,
+  e2ePulseSwipeFixtureItems,
+  shouldUseE2ePulseFixtures,
+} from "@/lib/e2e-pulse-swipe-fixtures"
 import { loadPulseFeedItems } from "@/lib/pulse-feed-data"
 import { prisma } from "@/lib/prisma"
+
+const BuyerSwipeCommerce = nextDynamic(
+  () =>
+    import("@/components/pulse/buyer-swipe-commerce").then((m) => ({
+      default: m.BuyerSwipeCommerce,
+    })),
+  { loading: () => <DiscoverPulseLoading /> }
+)
+
+const AffisellPulseExperience = nextDynamic(
+  () =>
+    import("@/components/pulse/affisell-pulse-experience").then((m) => ({
+      default: m.AffisellPulseExperience,
+    })),
+  { loading: () => <DiscoverPulseLoading /> }
+)
 
 export const dynamic = "force-dynamic"
 

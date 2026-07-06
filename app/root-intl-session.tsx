@@ -7,15 +7,25 @@ import { MobileAwareToaster } from "@/components/providers/mobile-aware-toaster"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { PwaInstallBanner } from "@/components/pwa/pwa-install-banner"
 
-export function RootSessionShell({ children }: { children: React.ReactNode }) {
+export function RootSessionShell({
+  children,
+  leanShell = false,
+}: {
+  children: React.ReactNode
+  leanShell?: boolean
+}) {
   return (
     <ThemeProvider>
       <ImmersiveChromeSync />
       <MobileAwareToaster />
-      <NavigationShell />
+      {!leanShell ? (
+        <>
+          <NavigationShell />
+          <PwaInstallBanner />
+          <AnalyticsGated />
+        </>
+      ) : null}
       {children}
-      <PwaInstallBanner />
-      <AnalyticsGated />
     </ThemeProvider>
   )
 }

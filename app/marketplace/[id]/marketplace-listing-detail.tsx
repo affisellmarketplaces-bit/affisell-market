@@ -23,11 +23,33 @@ import {
 import { useRouter } from "next/navigation"
 import { useLocale } from "next-intl"
 import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
+import nextDynamic from "next/dynamic"
 
-import { ReviewsEngine } from "@/components/reviews/ReviewsEngine"
-import { BookingComingSoonRail } from "@/components/booking/booking-coming-soon-rail"
-import { BookingCheckoutPanel } from "@/components/booking/booking-checkout-panel"
-import { PdpCrossSellRail } from "@/components/marketplace/pdp-cross-sell-rail"
+const ReviewsEngine = nextDynamic(
+  () => import("@/components/reviews/ReviewsEngine").then((m) => ({ default: m.ReviewsEngine })),
+  { loading: () => null }
+)
+const BookingComingSoonRail = nextDynamic(
+  () =>
+    import("@/components/booking/booking-coming-soon-rail").then((m) => ({
+      default: m.BookingComingSoonRail,
+    })),
+  { loading: () => null }
+)
+const BookingCheckoutPanel = nextDynamic(
+  () =>
+    import("@/components/booking/booking-checkout-panel").then((m) => ({
+      default: m.BookingCheckoutPanel,
+    })),
+  { loading: () => null }
+)
+const PdpCrossSellRail = nextDynamic(
+  () =>
+    import("@/components/marketplace/pdp-cross-sell-rail").then((m) => ({
+      default: m.PdpCrossSellRail,
+    })),
+  { loading: () => null }
+)
 
 import { ListingBrowseSignalsRecorder } from "@/components/marketplace/listing-browse-signals-recorder"
 import { ListingPriceActionCard } from "@/components/marketplace/listing-price-action-card"

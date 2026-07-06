@@ -28,10 +28,38 @@ function pulseScore(opts: {
   )
 }
 
-async function resolveBestListing(productId: string) {
-  return prisma.affiliateProduct.findFirst({
+type ResolvedListing = {
+  id: string
+  sellingPriceCents: number
+  conversions: number
+  customTitle: string | null
+  customImages: string[] | null
+  affiliate: {
+    store: {
+      slug: string
+      name: string
+      logoUrl: string | null
+      aiAvatarUrl: string | null
+    } | null
+  }
+  product: {
+    id: string
+    name: string
+    images: string[] | null
+    basePriceCents: number
+    compareAt: unknown
+    videoAdUrl: string | null
+  }
+}
+
+async function resolveBestListingsMap(productIds: string[]): Promise<Map<string, ResolvedListing>> {
+  const unique = [...new Set(productIds.filter(Boolean))]
+  const map = new Map<string, ResolvedListing>()
+  if (unique.length === 0) return map
+
+  const rows = await prisma.affiliateProduct.findMany({
     where: {
-      productId,
+      productId: { in: unique },
       ...buyerListedAffiliateProductWhere,
       product: buyerMarketplaceProductWhere,
     },
@@ -61,6 +89,12 @@ async function resolveBestListing(productId: string) {
       },
     },
   })
+
+  for (const row of rows) {
+    const pid = row.product.id
+    if (!map.has(pid)) map.set(pid, row)
+  }
+  return map
 }
 
 export async function loadPulseFeedItems(opts?: {
@@ -139,6 +173,12 @@ export async function loadPulseFeedItems(opts?: {
 
   const byKey = new Map<string, PulseFeedItem & { score: number }>()
 
+  const listingProductIds = [
+    ...communityRows.map((row) => row.productId).filter((id): id is string => Boolean(id)),
+    ...videoProducts.map((prod) => prod.id),
+  ]
+  const listingByProductId = await resolveBestListingsMap(listingProductIds)
+
   function upsert(item: PulseFeedItem, score: number) {
     const key = `${item.source}:${item.id}`
     const prev = byKey.get(key)
@@ -164,9 +204,7 @@ export async function loadPulseFeedItems(opts?: {
     const primary = pickPulsePrimaryMedia(urls)
     if (!primary) continue
 
-    const listing = row.productId
-      ? await resolveBestListing(row.productId)
-      : null
+    const listing = row.productId ? listingByProductId.get(row.productId) ?? null : null
     const p = listing?.product
     const store = row.store
     const boosted =
@@ -229,7 +267,7 @@ export async function loadPulseFeedItems(opts?: {
   }
 
   for (const prod of videoProducts) {
-    const listing = await resolveBestListing(prod.id)
+    const listing = listingByProductId.get(prod.id) ?? null
     if (!listing?.product) continue
     const p = listing.product
     const store = listing.affiliate.store
