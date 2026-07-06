@@ -9,7 +9,7 @@ export type PdpCrossSellListingRow = {
   customTitle: string | null
   customImages: string[]
   product: { name: string; images: string[] }
-  affiliate?: { store: { slug: string } | null } | null
+  affiliate: { store: { slug: string } | null }
 }
 
 export type PdpCrossSellCard = {

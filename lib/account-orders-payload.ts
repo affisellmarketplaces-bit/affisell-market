@@ -244,7 +244,7 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
         !o.buyerReview &&
         o.status !== "refunded" &&
         o.status !== "cancelled" &&
-        !o.isDigital &&
+        !isDigitalListingKind(o.listingKindSnapshot) &&
         !isBookableListingKind(o.listingKindSnapshot),
     }
   })

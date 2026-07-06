@@ -94,7 +94,12 @@ async function loadListingsByIds(ids: string[]): Promise<PdpCrossSellListingRow[
     select: CROSS_SELL_SELECT,
   })
   const byId = new Map(rows.map((row) => [row.id, row]))
-  return ids.map((id) => byId.get(id)).filter((row): row is PdpCrossSellListingRow => Boolean(row))
+  const out: PdpCrossSellListingRow[] = []
+  for (const id of ids) {
+    const row = byId.get(id)
+    if (row) out.push(row)
+  }
+  return out
 }
 
 async function loadCategoryListings(args: {

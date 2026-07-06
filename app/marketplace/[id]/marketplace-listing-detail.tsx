@@ -118,6 +118,8 @@ export type ListingShippingBlock = ListingLogisticsInput & {
 
 import type { PdpCrossSellCard } from "@/lib/marketplace-pdp-cross-sell-shared"
 
+type SpecRow = { label: string; value: string }
+
 type Props = {
   /** Buyer-facing pages hide wholesale / partner seller attribution. */
   audience?: "customer" | "merchant"

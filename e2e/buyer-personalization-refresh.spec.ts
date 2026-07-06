@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test"
+import { expect, test, type Page, type Route } from "@playwright/test"
 
 type PicksApiState = {
   calls: number
@@ -29,8 +29,8 @@ function personalizedPick(index: number) {
   }
 }
 
-async function stubRecommendationRefreshApis(page: Parameters<typeof test>[0]["page"], state: PicksApiState) {
-  await page.route("**/api/pulse/view", async (route) => {
+async function stubRecommendationRefreshApis(page: Page, state: PicksApiState) {
+  await page.route("**/api/pulse/view", async (route: Route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -38,7 +38,7 @@ async function stubRecommendationRefreshApis(page: Parameters<typeof test>[0]["p
     })
   })
 
-  await page.route("**/api/buyer/personalized-picks", async (route) => {
+  await page.route("**/api/buyer/personalized-picks", async (route: Route) => {
     state.calls += 1
     await route.fulfill({
       status: 200,
