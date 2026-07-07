@@ -1,4 +1,16 @@
 /** @type {import('lighthouse').Config} */
+const budgets = require("./lighthouse-budgets.cjs")
+
+function toAssertions(level) {
+  const source = budgets[level]
+  const assertions = {}
+  for (const [id, rule] of Object.entries(source)) {
+    if ("minScore" in rule) assertions[id] = [level, { minScore: rule.minScore }]
+    if ("maxNumericValue" in rule) assertions[id] = [level, { maxNumericValue: rule.maxNumericValue }]
+  }
+  return assertions
+}
+
 module.exports = {
   ci: {
     collect: {
@@ -8,7 +20,7 @@ module.exports = {
       url: ["http://localhost:3000/"],
       numberOfRuns: 1,
       settings: {
-        preset: "perf",
+        onlyCategories: ["performance"],
         formFactor: "mobile",
         throttling: {
           rttMs: 150,
@@ -26,13 +38,8 @@ module.exports = {
     },
     assert: {
       assertions: {
-        "categories:performance": ["warn", { minScore: 0.6 }],
-        "categories:accessibility": ["warn", { minScore: 0.88 }],
-        "first-contentful-paint": ["warn", { maxNumericValue: 3200 }],
-        "largest-contentful-paint": ["warn", { maxNumericValue: 4500 }],
-        "total-blocking-time": ["warn", { maxNumericValue: 500 }],
-        "cumulative-layout-shift": ["warn", { maxNumericValue: 0.14 }],
-        interactive: ["warn", { maxNumericValue: 5500 }],
+        ...toAssertions("warn"),
+        ...toAssertions("error"),
       },
     },
     upload: {

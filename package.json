@@ -63,6 +63,7 @@
     "verify:web-push": "node scripts/verify-web-push-ready.mjs",
     "verify:pwa-shell": "node scripts/verify-pwa-shell-ready.mjs",
     "lighthouse:mobile": "lhci autorun",
+    "lighthouse:mobile:summary": "node scripts/lighthouse-ci-summary.mjs",
     "verify:pricing-ops": "node scripts/verify-pricing-ops-ready.mjs",
     "pricing:ops-playbook": "node scripts/pricing-ops-playbook.mjs",
     "pricing:ops-status": "tsx scripts/pricing-ops-status.ts",

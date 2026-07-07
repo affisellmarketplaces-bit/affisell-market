@@ -17,6 +17,8 @@ apps/affisell-supplier-extension/dist
 /coverage
 /playwright-report/
 /test-results/
+/.lighthouseci/
+/lighthouse-summary.md
 
 # next.js
 /.next/
