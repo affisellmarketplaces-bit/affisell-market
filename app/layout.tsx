@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer"
 import { AppHeader } from "@/components/nav/app-header"
 import { SiteHeaderChrome } from "@/components/nav/site-header-chrome"
 import { CookieConsentHeadScripts } from "@/components/cookie-consent/cookie-consent-head"
-import CookieBanner from "@/components/CookieBanner"
+import { CookieBannerDeferred } from "@/components/CookieBanner-deferred"
 import { RootSessionShell } from "@/app/root-intl-session"
 import { AuthSessionProvider } from "@/components/providers/auth-session-provider"
 import { IntlAppProvider } from "@/components/providers/intl-app-provider"
@@ -73,7 +73,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {children}
               {!isDedicatedStorefront ? <Footer /> : null}
             </RootSessionShell>
-            <CookieBanner />
+            <CookieBannerDeferred />
           </IntlAppProvider>
         </AuthSessionProvider>
       </body>

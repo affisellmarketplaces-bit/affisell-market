@@ -1,14 +1,15 @@
 import { getLocale } from "next-intl/server"
 
-import { BuyerMarketplaceExplorerClient } from "@/components/home/buyer-marketplace-explorer-client"
+import { HomeCatalogDeferredExplorer } from "@/components/home/home-catalog-deferred-explorer"
 import { HomeCatalogLcpPreload } from "@/components/home/home-catalog-lcp-preload"
+import { HomeCatalogStaticGrid } from "@/components/home/home-catalog-static-grid"
 import { getCachedSession } from "@/lib/get-cached-session"
 import { readGuestWishlistId } from "@/lib/guest-wishlist-id"
 import { resolveAppLocale } from "@/lib/i18n-locale"
 import { loadHomeMarketplaceShellSafe } from "@/lib/home-marketplace-shell"
 import { loadBuyerPersonalizedPicksFast } from "@/lib/buyer-personalized-picks"
 
-/** Buyer catalog on home — parallel shell + picks; cached default grid for instant paint. */
+/** Buyer catalog on home — static SSR grid, interactive explorer after idle. */
 export async function BuyerMarketplaceExplorer() {
   const locale = resolveAppLocale(await getLocale())
   const [session, guestId, shell] = await Promise.all([
@@ -20,10 +21,15 @@ export async function BuyerMarketplaceExplorer() {
     userId: session?.user?.id ?? null,
     guestId,
   })
+  const fullShell = { ...shell, personalizedPicks }
+
   return (
     <>
       <HomeCatalogLcpPreload products={shell.products} />
-      <BuyerMarketplaceExplorerClient shell={{ ...shell, personalizedPicks }} />
+      <HomeCatalogDeferredExplorer
+        shell={fullShell}
+        staticCatalog={<HomeCatalogStaticGrid shell={shell} />}
+      />
     </>
   )
 }
