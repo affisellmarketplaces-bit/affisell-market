@@ -12,6 +12,10 @@ import {
   AffiliateAgentToolSearchPart,
   type AffiliateSearchSupplierToolPart,
 } from "@/components/affiliate/affiliate-agent-tool-search"
+import {
+  AffiliateAgentToolHighlightsPart,
+  type AffiliateCatalogHighlightsToolPart,
+} from "@/components/affiliate/affiliate-agent-tool-highlights"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { cn } from "@/lib/utils"
 
@@ -25,7 +29,9 @@ function messageText(m: UIMessage): string {
 function assistantHasRenderableContent(m: UIMessage): boolean {
   if (m.role !== "assistant") return false
   if (messageText(m).trim().length > 0) return true
-  return m.parts.some((p) => p.type === "tool-searchSupplierCatalog")
+  return m.parts.some(
+    (p) => p.type === "tool-searchSupplierCatalog" || p.type === "tool-getCatalogHighlights"
+  )
 }
 
 const STARTER_PROMPT_KEYS = ["starter1", "starter2", "starter3", "starter4"] as const
@@ -186,6 +192,15 @@ export function AffiliateAgentChat() {
                       const toolPart = part as unknown as AffiliateSearchSupplierToolPart
                       return (
                         <AffiliateAgentToolSearchPart
+                          key={`${m.id}-${toolPart.toolCallId ?? idx}`}
+                          part={toolPart}
+                        />
+                      )
+                    }
+                    if (part.type === "tool-getCatalogHighlights") {
+                      const toolPart = part as unknown as AffiliateCatalogHighlightsToolPart
+                      return (
+                        <AffiliateAgentToolHighlightsPart
                           key={`${m.id}-${toolPart.toolCallId ?? idx}`}
                           part={toolPart}
                         />

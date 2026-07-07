@@ -1141,7 +1141,16 @@
       "starter1": "SKU TikTok marge élevée < 50 €",
       "starter2": "Best sellers 7j revenu revendeur max",
       "starter3": "Comparer leggings femme fournisseurs",
-      "starter4": "Montres connectées rentables à lister"
+      "starter4": "Montres connectées rentables à lister",
+      "highlightsBestSellers": "Best sellers · 7 jours",
+      "highlightsBestSellersHint": "SKU les plus vendus sur le réseau — revenu revendeur estimé",
+      "highlightsHighMargin": "Marge revendeur max",
+      "highlightsHighMarginHint": "Commission + marge au prix client suggéré (+30 %)",
+      "highlightsNewArrivals": "Nouveautés catalogue",
+      "highlightsNewArrivalsHint": "Arrivées récentes à sourcer avant les autres revendeurs",
+      "highlightsEmpty": "Aucun signal catalogue pour l'instant — affinez une recherche par niche.",
+      "highlightsLoading": "Chargement des tendances catalogue…",
+      "highlightsError": "Tendances catalogue indisponibles."
     },
     "swipeFeed": {
       "feedLoadFailed": "Impossible de charger le feed",

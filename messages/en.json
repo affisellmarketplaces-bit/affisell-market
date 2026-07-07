@@ -1141,7 +1141,16 @@
       "starter1": "High-margin TikTok SKUs under €50",
       "starter2": "7-day best sellers · max reseller earnings",
       "starter3": "Compare women's leggings suppliers",
-      "starter4": "Profitable smartwatches to list"
+      "starter4": "Profitable smartwatches to list",
+      "highlightsBestSellers": "Best sellers · 7 days",
+      "highlightsBestSellersHint": "Top network SKUs — estimated reseller earnings",
+      "highlightsHighMargin": "Highest reseller margin",
+      "highlightsHighMarginHint": "Commission + markup at suggested customer price (+30%)",
+      "highlightsNewArrivals": "New catalog arrivals",
+      "highlightsNewArrivalsHint": "Recent SKUs to list before other resellers",
+      "highlightsEmpty": "No catalog signals yet — try a niche search.",
+      "highlightsLoading": "Loading catalog trends…",
+      "highlightsError": "Catalog trends unavailable."
     },
     "swipeFeed": {
       "feedLoadFailed": "Could not load the feed",

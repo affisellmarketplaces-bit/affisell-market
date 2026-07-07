@@ -142,20 +142,28 @@ export async function POST(req: Request) {
         card: {
           productId: string
           name: string
+          imageUrl: string | null
+          supplierLabel: string
           basePriceCents: number
           commissionRate: number
           marginCents: number
           soldCount: number
+          isInStore: boolean
+          listingId: string | null
         }
       ) =>
         JSON.stringify({
           h,
           id: card.productId,
           name: card.name,
+          imageUrl: card.imageUrl,
+          supplierLabel: card.supplierLabel,
           basePriceCents: card.basePriceCents,
           commissionRate: card.commissionRate,
           marginCents: card.marginCents,
           sold7d: card.soldCount,
+          isInStore: card.isInStore,
+          listingId: card.listingId,
         })
 
       for (const card of highlights.bestSellers7d) lines.push(encodeHighlight(0, card))
