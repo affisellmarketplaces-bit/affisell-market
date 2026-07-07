@@ -13,6 +13,7 @@ type Props = {
 /** Server-rendered catalog grid — zero client JS until interactive explorer hydrates. */
 export async function HomeCatalogStaticGrid({ shell, limit = 24 }: Props) {
   const t = await getTranslations("marketplace.browse")
+  const tHub = await getTranslations("marketplace.mobileHub")
   const items = shell.products
     .map((product) => normalizeHomeCatalogProduct(product))
     .filter((row): row is NonNullable<typeof row> => row != null)
@@ -33,7 +34,7 @@ export async function HomeCatalogStaticGrid({ shell, limit = 24 }: Props) {
         </div>
       </div>
       <p className="mb-2 text-[11px] text-zinc-500 dark:text-zinc-400 md:hidden">
-        {t("listingShort", { count: shell.catalogTotal || items.length })}
+        {tHub("listingShort", { count: shell.catalogTotal || items.length })}
       </p>
       <ul className="affisell-product-grid grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
         {items.map((item, index) => (

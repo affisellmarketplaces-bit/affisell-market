@@ -23,13 +23,21 @@ const EMPTY_HOME_SHELL: Omit<HomeMarketplaceShell, "personalizedPicks"> = {
   offerRailCounts: {},
 }
 
+/** Per-request dedupe when `unstable_cache` write fails (>2MB). */
+const loadHomeMarketplaceListingsFresh = cache(() =>
+  fetchMarketplaceListingsForHome(new URLSearchParams())
+)
+
 /** Default home grid — cached separately (lite payload fits under Next 2MB limit). */
 function loadHomeMarketplaceListingsCached() {
   return unstable_cache(
-    () => fetchMarketplaceListingsForHome(new URLSearchParams()),
+    () => loadHomeMarketplaceListingsFresh(),
     ["home-marketplace-listings-default"],
     { revalidate: HOME_SHELL_REVALIDATE_SEC, tags: ["home-marketplace"] }
-  )()
+  )().catch((error: unknown) => {
+    console.error("[home-marketplace-listings-cache]", { error })
+    return loadHomeMarketplaceListingsFresh()
+  })
 }
 
 /** Small facet counts — safe under Next.js 2MB `unstable_cache` limit. */
@@ -38,7 +46,10 @@ function loadOfferModeRailCountsCached() {
     () => loadOfferModeRailCounts(),
     ["home-offer-rail-counts"],
     { revalidate: HOME_SHELL_REVALIDATE_SEC, tags: ["home-marketplace"] }
-  )()
+  )().catch((error: unknown) => {
+    console.error("[home-offer-rail-counts-cache]", { error })
+    return loadOfferModeRailCounts()
+  })
 }
 
 /**

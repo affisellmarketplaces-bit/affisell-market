@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache"
+import { cache } from "react"
 
 import { localizeCategoryTree } from "@/lib/google-taxonomy-locale"
 import type { AppLocale } from "@/lib/i18n-locale"
@@ -118,11 +118,12 @@ export async function loadMarketplaceCategoryTree(
 
 const CATEGORY_TREE_REVALIDATE_SEC = 120
 
-/** Shared by home SSR and `/api/categories` — avoids recomputing counts on every navigation. */
-export function loadMarketplaceCategoryTreeCached(locale: AppLocale) {
-  return unstable_cache(
-    () => loadMarketplaceCategoryTree(locale),
-    ["marketplace-category-tree", locale],
-    { revalidate: CATEGORY_TREE_REVALIDATE_SEC, tags: ["marketplace-categories"] }
-  )()
-}
+/**
+ * Shared by home SSR and `/api/categories` — per-request dedupe via React `cache`.
+ * (Full taxonomy tree exceeds Next.js `unstable_cache` 2MB limit.)
+ */
+export const loadMarketplaceCategoryTreeCached = cache((locale: AppLocale) =>
+  loadMarketplaceCategoryTree(locale)
+)
+
+export { CATEGORY_TREE_REVALIDATE_SEC }
