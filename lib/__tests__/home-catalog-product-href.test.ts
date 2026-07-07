@@ -34,4 +34,15 @@ describe("home-catalog-product-href", () => {
     })
     expect(row?.image).toBe("https://cdn.example/fallback.jpg")
   })
+
+  it("uses thumbnail proxy when only inline images exist", () => {
+    const row = normalizeHomeCatalogProduct({
+      id: "abc",
+      title: "Earbuds",
+      price: 29.9,
+      customImages: ["data:image/png;base64,abc"],
+      images: ["data:image/png;base64,def"],
+    })
+    expect(row?.image).toBe("/api/listing-card-image/abc")
+  })
 })

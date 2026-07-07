@@ -5,8 +5,8 @@ import {
   listingDisplayTitle,
   listingGalleryUrls,
   pickListingCardImageUrl,
-  PRODUCT_CARD_IMAGE_FALLBACK,
 } from "@/lib/affiliate-listing-display"
+import { resolveListingCardImageHref } from "@/lib/listing-card-image-shared"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { parseMarketplaceAttributeFilters } from "@/lib/marketplace-attribute-filters"
 import { buildMarketplaceScopedProductWhere } from "@/lib/marketplace-attribute-filters.server"
@@ -164,9 +164,10 @@ export function serializeMarketplaceListing(
     minOrderQuantity,
     offerBadge,
     compareAt: compareNum != null && Number.isFinite(compareNum) ? compareNum : null,
-    image:
-      pickListingCardImageUrl(row.customImages ?? [], p.images ?? []) ??
-      PRODUCT_CARD_IMAGE_FALLBACK,
+    image: resolveListingCardImageHref(
+      pickListingCardImageUrl(row.customImages ?? [], p.images ?? []),
+      row.id
+    ),
     stock: p.stock,
     store: publicStoreLabelFromAffiliateRow(row.affiliate),
     isBestSeller: row.isFeatured,

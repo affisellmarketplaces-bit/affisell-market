@@ -2,8 +2,8 @@
 import {
   isDisplayableListingImageUrl,
   pickListingCardImageUrl,
-  PRODUCT_CARD_IMAGE_FALLBACK,
 } from "@/lib/affiliate-listing-display"
+import { resolveListingCardImageHref } from "@/lib/listing-card-image-shared"
 
 export function homeCatalogProductHref(product: Record<string, unknown>): string {
   const listingRaw = product.listingId ?? product.id
@@ -56,12 +56,13 @@ export function normalizeHomeCatalogProduct(raw: unknown): {
   const productImages = Array.isArray(o.images)
     ? o.images.filter((u): u is string => typeof u === "string")
     : []
-  const image =
+  const image = resolveListingCardImageHref(
     pickListingCardImageUrl(customImages, productImages) ??
-    (typeof o.image === "string" && isDisplayableListingImageUrl(o.image)
-      ? o.image.trim()
-      : null) ??
-    PRODUCT_CARD_IMAGE_FALLBACK
+      (typeof o.image === "string" && isDisplayableListingImageUrl(o.image)
+        ? o.image.trim()
+        : null),
+    id
+  )
 
   const priceLabel = new Intl.NumberFormat(undefined, {
     style: "currency",

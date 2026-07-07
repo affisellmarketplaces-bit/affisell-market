@@ -9,6 +9,7 @@ import {
   PRODUCT_CARD_IMAGE_FALLBACK,
   pickListingCardImageUrl,
 } from "@/lib/affiliate-listing-display"
+import { isListingCardImageProxyUrl } from "@/lib/listing-card-image-shared"
 
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { ProductOfferBadge } from "@/components/product/product-offer-badge"
@@ -319,9 +320,10 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
           loading={imagePriority ? "eager" : "lazy"}
           fetchPriority={imagePriority ? "high" : "auto"}
           decoding="async"
-          referrerPolicy="no-referrer"
           onError={(e) => {
-            if (e.currentTarget.src.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
+            const failed = e.currentTarget.src
+            if (failed.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
+            if (isListingCardImageProxyUrl(failed)) return
             e.currentTarget.src = PRODUCT_CARD_IMAGE_FALLBACK
           }}
         />

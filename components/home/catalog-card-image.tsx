@@ -19,9 +19,10 @@ export function CatalogCardImage({ src, alt, priority = false }: Props) {
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "auto"}
       decoding="async"
-      referrerPolicy="no-referrer"
       onError={(e) => {
-        if (e.currentTarget.src.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
+        const failed = e.currentTarget.src
+        if (failed.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
+        if (failed.includes("/api/listing-card-image/")) return
         e.currentTarget.src = PRODUCT_CARD_IMAGE_FALLBACK
       }}
     />
