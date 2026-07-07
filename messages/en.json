@@ -574,9 +574,9 @@
       "accessDenied": "Sign-in denied: this account does not match the requested space.",
       "oauthFailed": "Sign-in failed. Try again or use email and password.",
       "affiliate": {
-        "title": "Creator space",
-        "subtitle": "Access your creator dashboard and affiliate catalog",
-        "signup": "Create my creator space"
+        "title": "Affisell reseller space",
+        "subtitle": "Access your reseller hub and supplier catalog",
+        "signup": "Create my reseller account"
       },
       "supplier": {
         "title": "Supplier space",
@@ -1284,7 +1284,9 @@
       "skus": "SKUs",
       "storefrontUnavailable": "Storefront data unavailable",
       "welcomeTitle": "Welcome to your reseller hub",
-      "welcomeBody": "Set up your storefront below, then explore the <catalog>reseller catalog</catalog> to add your first products."
+      "welcomeBody": "Set up your storefront below, then explore the <catalog>reseller catalog</catalog> to add your first products.",
+      "metaTitle": "Reseller hub — Swipe | Affisell",
+      "metaDescription": "Discover supplier SKUs, estimate margins, and list in swipe mode."
     },
     "mySelection": "My storefront listings",
     "selectionHint": "Pick products from the catalog and set your retail price.",
@@ -3222,13 +3224,17 @@
   },
   "howItWorks": {
     "metaTitle": "How it works | Affisell",
-    "metaDescription": "Buyer, creator partner, and supplier journeys on the Affisell marketplace.",
+    "metaDescription": "Buyer, Affisell reseller, and supplier journeys on the Affisell marketplace.",
     "eyebrow": "EU marketplace",
     "title": "How it works",
-    "description": "Affisell connects creator partners, suppliers, and buyers — no inventory for partners, with fast secure shipping handled by suppliers.",
+    "description": "Affisell connects resellers (no inventory), suppliers, and buyers — legal sale and fulfilment stay with suppliers.",
     "buyer": {
       "title": "1. Buyer",
       "body": "Browse the catalog, pay securely, and track your order from your account."
+    },
+    "reseller": {
+      "title": "2. Affisell reseller",
+      "body": "Pick supplier SKUs, set your customer price, and publish on your storefront — no stock or shipping."
     },
     "creator": {
       "title": "2. Creator partner",
@@ -3239,6 +3245,8 @@
       "body": "Publish your catalog, ship fast and safely, and get paid once delivery is confirmed."
     },
     "ctaBrowse": "Explore catalog",
+    "ctaSell": "Sell on Affisell",
+    "ctaProgram": "Reseller B2B program",
     "ctaPartner": "Become a creator partner"
   },
   "supportPage": {
@@ -3339,7 +3347,8 @@
       "sellerDashboard": "Seller dashboard",
       "listProduct": "List a product",
       "mySales": "My sales",
-      "becomeSeller": "Become a creator",
+      "becomeSeller": "Become an Affisell reseller",
+      "sellOnAffisell": "Sell on Affisell",
       "becomePartner": "Become a partner",
       "analytics": "Analytics",
       "payouts": "Payouts",
@@ -3373,6 +3382,8 @@
       "buyerProtectionShort": "Protected checkout",
       "wishlist": "Wishlist",
       "becomeCreator": "Become a creator",
+      "becomeReseller": "Create reseller account",
+      "sellOnAffisell": "Sell on Affisell",
       "affiliateProgram": "Affiliate program",
       "becomeSupplier": "Become a supplier",
       "enterpriseBrands": "Enterprise brands",
@@ -3420,6 +3431,8 @@
     "cookies": "Cookies",
     "sellTitle": "Sell",
     "becomeCreator": "Become a creator",
+    "becomeReseller": "Create reseller account",
+    "sellOnAffisell": "Sell on Affisell",
     "becomePartner": "Become a partner",
     "helpTitle": "Help",
     "faq": "FAQ",
@@ -3427,9 +3440,9 @@
     "returns": "Returns",
     "cta": {
       "creator": {
-        "title": "Become a Creator",
-        "text": "Launch your store in 60s",
-        "cta": "Start selling →"
+        "title": "Affisell reseller",
+        "text": "No inventory — supplier catalog and margins in one click",
+        "cta": "See the paths →"
       },
       "supplier": {
         "title": "For Suppliers",
@@ -3449,8 +3462,9 @@
       "title": "Product",
       "exploreCatalog": "Explore catalog",
       "topCreators": "Top Creators",
+      "sellOnAffisell": "Sell on Affisell",
       "liveShopping": "Live Shopping",
-      "affiliateProgram": "Affiliate Program"
+      "affiliateProgram": "Reseller B2B program"
     },
     "company": {
       "title": "Company",

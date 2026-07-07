@@ -109,12 +109,20 @@ const CATALOG: CatalogEntry[] = [
     hideForPersona: ["seller"],
   },
   {
+    id: "sell-on-affisell",
+    segment: "sell",
+    labelKey: "items.sellOnAffisell",
+    action: "navigate",
+    href: "/sell",
+    keywords: ["sell", "vendre", "reseller", "revendeur", "affiliate", "b2b"],
+  },
+  {
     id: "become-seller",
     segment: "sell",
     labelKey: "items.becomeSeller",
     action: "navigate",
-    href: "/signup/affiliate?role=creator",
-    keywords: ["sell", "seller", "affiliate", "creator", "vendre"],
+    href: "/sell",
+    keywords: ["sell", "seller", "affiliate", "reseller", "revendeur", "vendre", "signup"],
     hideForPersona: ["seller", "affiliate"],
   },
   {
@@ -283,7 +291,8 @@ export function buildCommandKCatalog(
 
   return CATALOG.filter((entry) => {
     if (entry.hideForPersona?.includes(persona)) return false
-    if (persona === "buyer" && entry.segment === "sell" && entry.id !== "become-seller") return false
+    if (persona === "buyer" && entry.segment === "sell" && entry.id !== "become-seller" && entry.id !== "sell-on-affisell")
+      return false
     if (entry.showOnlyWhenLoggedIn && !loggedIn) return false
     if (entry.showOnlyWhenLoggedOut && loggedIn) return false
     return true

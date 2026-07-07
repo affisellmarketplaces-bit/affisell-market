@@ -33,8 +33,13 @@ export async function MarketingFooter() {
           <p className="text-xs font-bold uppercase tracking-wider text-zinc-500">{t("sellTitle")}</p>
           <ul className="mt-4 space-y-2 text-sm">
             <li>
-              <AppLink href="/creators" className="hover:text-[#6366F1]">
-                {t("becomeCreator")}
+              <AppLink href="/sell" className="hover:text-[#6366F1]">
+                {t("sellOnAffisell")}
+              </AppLink>
+            </li>
+            <li>
+              <AppLink href="/signup/affiliate" className="hover:text-[#6366F1]">
+                {t("becomeReseller")}
               </AppLink>
             </li>
             <li>

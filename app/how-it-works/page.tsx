@@ -26,8 +26,8 @@ export default async function HowItWorksPage() {
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{t("buyer.body")}</p>
           </BentoCard>
           <BentoCard className="p-5">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{t("creator.title")}</h2>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{t("creator.body")}</p>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{t("reseller.title")}</h2>
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{t("reseller.body")}</p>
           </BentoCard>
           <BentoCard className="p-5">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{t("supplier.title")}</h2>
@@ -38,8 +38,14 @@ export default async function HowItWorksPage() {
           <Link href="/marketplace" className={cn(buttonVariants({ variant: "bentoSolid", size: "bento" }))}>
             {t("ctaBrowse")}
           </Link>
-          <Link href="/affiliate" className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }))}>
-            {t("ctaPartner")}
+          <Link href="/sell" className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }))}>
+            {t("ctaSell")}
+          </Link>
+          <Link
+            href="/sell/affiliate-program"
+            className={cn(buttonVariants({ variant: "ghost", size: "bento" }), "text-violet-700 dark:text-violet-300")}
+          >
+            {t("ctaProgram")}
           </Link>
         </div>
       </BentoContainer>

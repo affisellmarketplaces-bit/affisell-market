@@ -33,10 +33,11 @@ export function buildFooterGlobalContent(
         id: "sell",
         title: t("sellTitle"),
         links: [
-          { href: "/creators", label: t("becomeCreator") },
+          { href: "/sell", label: t("sellOnAffisell") },
+          { href: "/signup/affiliate", label: t("becomeReseller") },
           { href: "/supplier", label: t("becomeSupplier") },
           { href: "/enterprise", label: t("enterpriseBrands") },
-          { href: "/affiliate", label: t("affiliateProgram") },
+          { href: "/sell/affiliate-program", label: t("affiliateProgram") },
           { href: "/how-it-works", label: t("howSellingWorks") },
           { href: "/demo", label: t("demoLab") },
         ],

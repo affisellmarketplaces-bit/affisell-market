@@ -120,7 +120,7 @@ export async function Footer() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <section aria-label="Get started" className="grid gap-4 md:grid-cols-3">
           <FooterCtaCard
-            href="/creators"
+            href="/sell"
             icon={Sparkles}
             title={t("cta.creator.title")}
             text={t("cta.creator.text")}
@@ -172,9 +172,9 @@ export async function Footer() {
             </h2>
             <ul className="mt-5 space-y-3">
               <FooterNavLink href="/#explorer">{t("product.exploreCatalog")}</FooterNavLink>
-              <FooterNavLink href="/creators">{t("product.topCreators")}</FooterNavLink>
+              <FooterNavLink href="/sell">{t("product.sellOnAffisell")}</FooterNavLink>
               <FooterNavLink href="/discover">{t("product.liveShopping")}</FooterNavLink>
-              <FooterNavLink href="/affiliate">{t("product.affiliateProgram")}</FooterNavLink>
+              <FooterNavLink href="/sell/affiliate-program">{t("product.affiliateProgram")}</FooterNavLink>
             </ul>
           </nav>
 

@@ -574,9 +574,9 @@
       "accessDenied": "Connexion refusée : ce compte ne correspond pas à l’espace demandé.",
       "oauthFailed": "La connexion a échoué. Réessayez ou utilisez l’e-mail et le mot de passe.",
       "affiliate": {
-        "title": "Espace Créateur",
-        "subtitle": "Accède à ton tableau de bord créateur et à ton catalogue ambassadeur",
-        "signup": "Créer mon espace créateur"
+        "title": "Espace revendeur Affisell",
+        "subtitle": "Accédez à votre hub revendeur et au catalogue fournisseur",
+        "signup": "Créer mon compte revendeur"
       },
       "supplier": {
         "title": "Espace Fournisseur",
@@ -1292,7 +1292,9 @@
       "skus": "SKU",
       "storefrontUnavailable": "Données vitrine indisponibles",
       "welcomeTitle": "Bienvenue dans votre hub revendeur",
-      "welcomeBody": "Configurez votre boutique ci-dessous, puis explorez le <catalog>catalogue revendeur</catalog> pour ajouter vos premiers produits."
+      "welcomeBody": "Configurez votre boutique ci-dessous, puis explorez le <catalog>catalogue revendeur</catalog> pour ajouter vos premiers produits.",
+      "metaTitle": "Hub revendeur — Swipe | Affisell",
+      "metaDescription": "Découvrez des SKU fournisseur, estimez vos marges et listez en mode swipe."
     },
     "mySelection": "Mes fiches en vitrine",
     "selectionHint": "Choisissez des produits dans le catalogue et fixez votre prix public.",
@@ -3264,13 +3266,17 @@
   },
   "howItWorks": {
     "metaTitle": "Comment ça marche | Affisell",
-    "metaDescription": "Parcours acheteur, partenaire créateur et fournisseur sur la marketplace Affisell.",
+    "metaDescription": "Parcours acheteur, revendeur Affisell et fournisseur sur la marketplace Affisell.",
     "eyebrow": "Marketplace UE",
     "title": "Comment ça marche",
-    "description": "Affisell réunit partenaires créateurs, fournisseurs et acheteurs — sans stock côté partenaire, avec livraison rapide et sécurisée assurée par le fournisseur.",
+    "description": "Affisell réunit revendeurs (sans stock), fournisseurs et acheteurs — logistique et vente légale côté fournisseur.",
     "buyer": {
       "title": "1. Acheteur",
       "body": "Explorez le catalogue, payez en toute sécurité et suivez votre commande depuis votre espace."
+    },
+    "reseller": {
+      "title": "2. Revendeur Affisell",
+      "body": "Sélectionnez des SKU fournisseur, fixez votre prix client et publiez sur votre vitrine — sans stock ni expédition."
     },
     "creator": {
       "title": "2. Partenaire créateur",
@@ -3281,6 +3287,8 @@
       "body": "Publiez votre catalogue, livrez rapidement et en toute sécurité, encaissez une fois la livraison confirmée."
     },
     "ctaBrowse": "Explorer le catalogue",
+    "ctaSell": "Vendre sur Affisell",
+    "ctaProgram": "Programme B2B revendeur",
     "ctaPartner": "Devenir partenaire créateur"
   },
   "supportPage": {
@@ -3381,7 +3389,8 @@
       "sellerDashboard": "Tableau de bord vendeur",
       "listProduct": "Mettre en vente",
       "mySales": "Mes ventes",
-      "becomeSeller": "Devenir créateur",
+      "becomeSeller": "Devenir revendeur Affisell",
+      "sellOnAffisell": "Vendre sur Affisell",
       "becomePartner": "Devenir partenaire",
       "analytics": "Statistiques",
       "payouts": "Paiements",
@@ -3415,6 +3424,8 @@
       "buyerProtectionShort": "Achat protégé",
       "wishlist": "Wishlist",
       "becomeCreator": "Devenir créateur",
+      "becomeReseller": "Créer un compte revendeur",
+      "sellOnAffisell": "Vendre sur Affisell",
       "affiliateProgram": "Programme affilié",
       "becomeSupplier": "Devenir fournisseur",
       "enterpriseBrands": "Grandes marques",
@@ -3462,6 +3473,8 @@
     "cookies": "Cookies",
     "sellTitle": "Vendre",
     "becomeCreator": "Devenir créateur",
+    "becomeReseller": "Créer un compte revendeur",
+    "sellOnAffisell": "Vendre sur Affisell",
     "becomePartner": "Devenir partenaire",
     "helpTitle": "Aide",
     "faq": "FAQ",
@@ -3469,9 +3482,9 @@
     "returns": "Retours",
     "cta": {
       "creator": {
-        "title": "Devenir créateur",
-        "text": "Lancez votre boutique en 60 s",
-        "cta": "Commencer à vendre →"
+        "title": "Revendeur Affisell",
+        "text": "Sans stock — catalogue fournisseur et marges en un clic",
+        "cta": "Voir les parcours →"
       },
       "supplier": {
         "title": "Pour les fournisseurs",
@@ -3491,8 +3504,9 @@
       "title": "Produit",
       "exploreCatalog": "Explorer le catalogue",
       "topCreators": "Top créateurs",
+      "sellOnAffisell": "Vendre sur Affisell",
       "liveShopping": "Live Shopping",
-      "affiliateProgram": "Programme Ambassadeur"
+      "affiliateProgram": "Programme revendeur B2B"
     },
     "company": {
       "title": "Entreprise",
