@@ -4192,6 +4192,15 @@
       "ledgerTitle": "Payout ledger"
     }
   },
+  "browseCategory": {
+    "metaTitle": "{category} — Shop on Affisell",
+    "metaDescription": "Discover {count, plural, one {# product} other {# products}} in {category} on Affisell.",
+    "breadcrumbHome": "Home",
+    "subcategories": "Subcategories",
+    "listingCount": "{count, plural, one {# product} other {# products}}",
+    "seeAll": "Browse full catalog",
+    "empty": "No products yet."
+  },
   "sellPage": {
     "meta": {
       "title": "Sell on Affisell — Reseller or supplier",

@@ -1,8 +1,8 @@
 import { expect, test } from "@playwright/test"
 
 test.describe("customer vs affiliate product surfaces", () => {
-  test("public browse is indexable", async ({ page }) => {
-    await page.goto("/shops/browse")
+  test("shops directory is indexable", async ({ page }) => {
+    await page.goto("/shops")
     const robots = page.locator('meta[name="robots"]').first()
     await expect(robots).toHaveAttribute("content", /index/i)
   })
@@ -19,7 +19,7 @@ test.describe("customer vs affiliate product surfaces", () => {
     await expect(page.getByText(/Marge\b/i)).toHaveCount(0)
   })
 
-  test("guest browse product cards: customer mode, no Marge", async ({ page }) => {
+  test("guest catalog explorer: customer mode, no Marge", async ({ page }) => {
     await page.goto("/shops/browse")
     await page.waitForSelector('[data-product-card-mode="customer"]', { timeout: 45_000 })
     await expect(page.getByText(/\bMarge\b/i)).toHaveCount(0)

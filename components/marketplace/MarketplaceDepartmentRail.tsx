@@ -7,7 +7,8 @@ import { Sparkles, Zap } from "lucide-react"
 
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
-import { catalogFilterHref, catalogFilterHrefFromParams } from "@/lib/marketplace-catalog-nav.client"
+import { catalogFilterHref } from "@/lib/marketplace-catalog-nav.client"
+import { categoryBrowsePath } from "@/lib/seo-category-pages-shared"
 import { CategoryGlyph } from "@/components/marketplace/CategoryGlyph"
 import { InfiniteMarquee } from "@/components/ui/infinite-marquee"
 import { affisellBrand } from "@/lib/affisell-brand"
@@ -65,10 +66,7 @@ function DepartmentRailItems({
         return (
           <div key={c.id} className="flex shrink-0 items-center gap-1">
             <Link
-              href={catalogFilterHrefFromParams(
-                catalogBasePath,
-                new URLSearchParams({ category: c.id })
-              )}
+              href={categoryBrowsePath(c.slug)}
               scroll={false}
               className={cn(
                 affisellBrand.quickLink,

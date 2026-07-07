@@ -86,6 +86,8 @@ export async function buildListingMetadataForId(
       customTitle: true,
       customImages: true,
       customDescription: true,
+      seoTitle: true,
+      seoDescription: true,
       product: {
         select: {
           name: true,
@@ -111,6 +113,8 @@ export async function buildListingMetadataForId(
             customTitle: true,
             customImages: true,
             customDescription: true,
+            seoTitle: true,
+            seoDescription: true,
             product: {
               select: {
                 name: true,
@@ -123,14 +127,16 @@ export async function buildListingMetadataForId(
         })
       : null)
   if (!resolved?.product) return { title: "Produit" }
-  const name = listingDisplayTitle(resolved.customTitle, resolved.product.name)
+  const name = resolved.seoTitle?.trim() || listingDisplayTitle(resolved.customTitle, resolved.product.name)
   const imageUrl =
     primaryProductImage(resolved.customImages) ||
     primaryProductImage(resolved.product.images) ||
     null
   return buildProductListingMetadata({
     name,
-    description: listingDisplayDescription(resolved.customDescription, resolved.product.description),
+    description:
+      resolved.seoDescription?.trim() ||
+      listingDisplayDescription(resolved.customDescription, resolved.product.description),
     imageUrl,
     priceCents: resolved.sellingPriceCents,
     inStock: resolved.product.stock > 0,

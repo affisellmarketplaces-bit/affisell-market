@@ -4234,6 +4234,15 @@
       "ledgerTitle": "Journal des versements"
     }
   },
+  "browseCategory": {
+    "metaTitle": "{category} — Acheter sur Affisell",
+    "metaDescription": "Découvrez {count, plural, one {# produit} other {# produits}} en {category} sur Affisell.",
+    "breadcrumbHome": "Accueil",
+    "subcategories": "Sous-catégories",
+    "listingCount": "{count, plural, one {# produit} other {# produits}}",
+    "seeAll": "Voir tout le catalogue",
+    "empty": "Aucun produit pour le moment."
+  },
   "sellPage": {
     "meta": {
       "title": "Vendre sur Affisell — Revendeur ou fournisseur",
