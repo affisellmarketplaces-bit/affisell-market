@@ -1145,6 +1145,15 @@
       "editListing": "Modifier la fiche",
       "viewCatalog": "Voir tout le catalogue"
     },
+    "catalogEconomics": {
+      "supplierPrice": "Prix fournisseur",
+      "suggestedRetail": "Prix conseillé",
+      "markupMargin": "Marge markup",
+      "commission": "Commission affilié",
+      "totalGain": "Gain partenaire estimé",
+      "totalGainHint": "Marge + commission à {markupPct}% markup suggéré",
+      "supplierSheetAria": "Fiche fournisseur"
+    },
     "earnings": {
       "taxCompliance": {
         "title": "Cadre fiscal partenaire curateur",

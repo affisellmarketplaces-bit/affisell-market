@@ -3,8 +3,8 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import {
   recordAffiliateSwipe,
-  sellingPriceFromMarkup,
 } from "@/lib/affiliate-swipe-feed.server"
+import { suggestedSellingPriceCents } from "@/lib/affiliate-catalog-margin-display"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)
   if (kycBlocked) return kycBlocked
 
-  const sellingPriceCents = sellingPriceFromMarkup(product.basePriceCents, markupRate)
+  const sellingPriceCents = suggestedSellingPriceCents(product.basePriceCents, markupRate)
   const marginCents = Math.max(0, sellingPriceCents - product.basePriceCents)
   const customImages = [...(product.images as string[])].filter(Boolean).slice(0, 20)
 

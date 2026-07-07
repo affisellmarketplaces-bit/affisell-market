@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client"
 
+import { estimateTotalPartnerGainCents } from "@/lib/affiliate-catalog-margin-display"
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
 import {
@@ -67,11 +68,6 @@ function supplierLabel(p: AffiliateCatalogProduct): string {
   return p.supplier.email
 }
 
-function estimateMarginCents(basePriceCents: number, commissionRate: number): number {
-  const pct = Number(commissionRate) || 0
-  return Math.max(0, Math.round((basePriceCents * pct) / 100))
-}
-
 function mapProductToHighlight(
   p: AffiliateCatalogProduct,
   soldCount: number
@@ -83,7 +79,7 @@ function mapProductToHighlight(
     imageUrl: primaryProductImage(p.images) || null,
     basePriceCents: p.basePriceCents,
     commissionRate: Math.round(Number(p.commissionRate) || 0),
-    marginCents: estimateMarginCents(p.basePriceCents, p.commissionRate),
+    marginCents: estimateTotalPartnerGainCents(p.basePriceCents, p.commissionRate),
     soldCount,
     isInStore: Boolean(listing),
     listingId: listing?.id ?? null,
@@ -242,8 +238,8 @@ export async function loadAffiliateCatalogHighlights(
 
   const marginSorted = [...marginRows].sort(
     (a, b) =>
-      estimateMarginCents(b.basePriceCents, b.commissionRate) -
-      estimateMarginCents(a.basePriceCents, a.commissionRate)
+      estimateTotalPartnerGainCents(b.basePriceCents, b.commissionRate) -
+      estimateTotalPartnerGainCents(a.basePriceCents, a.commissionRate)
   )
 
   return {

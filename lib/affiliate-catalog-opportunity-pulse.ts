@@ -1,3 +1,4 @@
+import { estimateTotalPartnerGainCents } from "@/lib/affiliate-catalog-margin-display"
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
 import {
@@ -26,11 +27,6 @@ export type AffiliateOpportunityPulseCard = {
 export type AffiliateViewerAggregate = {
   productId: string
   affiliateViewerCount: number
-}
-
-function estimateMarginCents(basePriceCents: number, commissionRate: number): number {
-  const pct = Number(commissionRate) || 0
-  return Math.max(0, Math.round((basePriceCents * pct) / 100))
 }
 
 /** Rank product ids by distinct affiliate viewers (7d), highest first. */
@@ -169,7 +165,7 @@ export async function loadAffiliateOpportunityPulsePicks(
       imageUrl: primaryProductImage(row.images ?? []) || null,
       basePriceCents: row.basePriceCents,
       commissionRate: Math.round(commissionRate),
-      marginCents: estimateMarginCents(row.basePriceCents, commissionRate),
+      marginCents: estimateTotalPartnerGainCents(row.basePriceCents, commissionRate),
       affiliateCreatorsWatching: countById.get(productId) ?? 0,
       listingId: listing?.id ?? null,
       isInStore: Boolean(listing),

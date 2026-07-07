@@ -1145,6 +1145,15 @@
       "editListing": "Edit listing",
       "viewCatalog": "Browse full catalog"
     },
+    "catalogEconomics": {
+      "supplierPrice": "Supplier price",
+      "suggestedRetail": "Suggested retail",
+      "markupMargin": "Markup margin",
+      "commission": "Affiliate commission",
+      "totalGain": "Estimated partner gain",
+      "totalGainHint": "Markup + commission at {markupPct}% suggested markup",
+      "supplierSheetAria": "Supplier product page"
+    },
     "earnings": {
       "taxCompliance": {
         "title": "Curator partner tax framework",

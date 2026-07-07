@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 
+import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import { AffiliateCatalogHighlights } from "@/components/affiliate/affiliate-catalog-highlights"
 import { AffiliateOpportunityPulseRail } from "@/components/affiliate/affiliate-opportunity-pulse-rail"
 import { DiscoverListingActions } from "@/components/affiliate/discover-listing-actions"
@@ -31,6 +32,7 @@ import { Sidebar } from "@/components/marketplace/Sidebar"
 import { Button } from "@/components/ui/button"
 import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH, AFFILIATE_HUB_PATH } from "@/lib/affiliate-routes"
 import { shouldShowAffiliateCreatorsWatchingBadge } from "@/lib/affiliate-product-opportunity-pulse-shared"
+import { buildAffiliateCatalogCardEconomics } from "@/lib/affiliate-catalog-margin-display"
 import type { AffiliateOpportunityPulseCard } from "@/lib/affiliate-catalog-opportunity-pulse"
 import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
 import {
@@ -39,7 +41,6 @@ import {
   type AffiliateCatalogProduct,
 } from "@/lib/affiliate-catalog-types"
 import type { HomeMarketplaceStats } from "@/lib/home-marketplace-cards"
-import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { primaryProductImage } from "@/lib/product-images"
 import { cn } from "@/lib/utils"
 
@@ -116,6 +117,7 @@ export function AffiliateCatalogExperience({
   initialOpportunityPicks = [],
 }: Props) {
   const tOpportunity = useTranslations("affiliate.opportunityPulse")
+  const tCatalog = useTranslations("affiliate.catalogEconomics")
   const router = useRouter()
   const searchParams = useSearchParams()
   const categoryId = searchParams.get("category")
@@ -540,7 +542,10 @@ export function AffiliateCatalogExperience({
                     const isHidden = listingState.kind === "hidden"
                     const listingId = listingState.kind !== "none" ? listingState.listingId : undefined
                     const thumb = primaryProductImage(p.images) || "/placeholder-product.jpg"
-                    const margin = Math.round((p.basePriceCents * (Number(p.commissionRate) || 0)) / 100)
+                    const economics = buildAffiliateCatalogCardEconomics(
+                      p.basePriceCents,
+                      Number(p.commissionRate) || 0
+                    )
                     const supplierHref = p.supplier.store?.slug
                       ? `/store/supplier/${encodeURIComponent(p.supplier.store.slug)}`
                       : null
@@ -609,7 +614,7 @@ export function AffiliateCatalogExperience({
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-zinc-200 text-teal-700 hover:bg-teal-50 dark:border-zinc-700 dark:text-teal-400"
-                                aria-label="Fiche fournisseur"
+                                aria-label={tCatalog("supplierSheetAria")}
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <ExternalLink className="h-4 w-4" aria-hidden />
@@ -621,23 +626,7 @@ export function AffiliateCatalogExperience({
                               {p.categories.slice(0, 2).join(" · ")}
                             </p>
                           ) : null}
-                          <div className="mt-auto grid grid-cols-2 gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                            <div>
-                              <p className="text-[10px] font-medium uppercase text-zinc-500">Prix fournisseur</p>
-                              <p className="text-base font-bold tabular-nums">
-                                {formatStoreCurrencyFromCents(p.basePriceCents)}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-[10px] font-medium uppercase text-violet-600">Commission</p>
-                              <p className="text-base font-bold tabular-nums text-violet-700 dark:text-violet-300">
-                                {p.commissionRate}%
-                              </p>
-                            </div>
-                          </div>
-                          <p className="text-xs text-emerald-700 dark:text-emerald-400">
-                            Marge estimée {formatStoreCurrencyFromCents(margin)}
-                          </p>
+                          <AffiliateCatalogEconomicsPanel economics={economics} className="mt-auto" />
                           {supplierHref ? (
                             <Link href={supplierHref} className="flex items-center gap-1 truncate text-xs text-violet-700">
                               <Store className="h-3.5 w-3.5" aria-hidden />

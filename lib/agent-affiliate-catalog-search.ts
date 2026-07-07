@@ -4,16 +4,13 @@ import type {
   AffiliateAgentProductCard,
   AffiliateAgentSearchToolResult,
 } from "@/lib/agent-affiliate-product-card-types"
+import { estimateTotalPartnerGainCents } from "@/lib/affiliate-catalog-margin-display"
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
 import { primaryProductImage } from "@/lib/product-images"
 
 function trimDescription(s: string, max = 320): string {
   return s.length > max ? `${s.slice(0, max - 1)}…` : s
-}
-
-function estimateMarginCents(basePriceCents: number, commissionRate: number): number {
-  return Math.max(0, Math.round((basePriceCents * (Number(commissionRate) || 0)) / 100))
 }
 
 function mapRow(
@@ -46,7 +43,7 @@ function mapRow(
     supplierLabel,
     basePriceCents: row.basePriceCents,
     commissionRate: displayCommission,
-    marginCents: estimateMarginCents(row.basePriceCents, displayCommission),
+    marginCents: estimateTotalPartnerGainCents(row.basePriceCents, displayCommission),
     isInStore: Boolean(listing),
     listingId: listing?.id ?? null,
   }
