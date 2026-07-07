@@ -8,7 +8,6 @@ describe("resolvePublicNavActive", () => {
       onHome: true,
       onMarketplace: false,
       onShops: false,
-      onSell: false,
     })
   })
 
@@ -17,7 +16,6 @@ describe("resolvePublicNavActive", () => {
       onHome: false,
       onMarketplace: true,
       onShops: false,
-      onSell: false,
     })
   })
 
@@ -26,7 +24,6 @@ describe("resolvePublicNavActive", () => {
       onHome: false,
       onMarketplace: true,
       onShops: false,
-      onSell: false,
     })
   })
 
@@ -35,16 +32,6 @@ describe("resolvePublicNavActive", () => {
       onHome: false,
       onMarketplace: false,
       onShops: true,
-      onSell: false,
-    })
-  })
-
-  it("marks sell pill on seller landing", () => {
-    expect(resolvePublicNavActive("/sellers", false)).toEqual({
-      onHome: false,
-      onMarketplace: false,
-      onShops: false,
-      onSell: true,
     })
   })
 })

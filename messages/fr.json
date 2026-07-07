@@ -82,47 +82,24 @@
     "trustStripText": "Achat protégé · Paiement sécurisé · Retours 14j UE",
     "trustStripCta": "En savoir plus",
     "trustStripDismiss": "Masquer",
-    "agentEntry": "Agent",
-    "sell": "Vendre",
-    "sellShort": "Vendre"
+    "agentEntry": "Agent"
   },
   "home": {
     "meta": {
-      "title": "Affisell — Infrastructure commerce mondiale fournisseurs, vendeurs & affiliés",
-      "description": "Créez une boutique sans stock. Fixez votre marge, importez des produits, encaissez automatiquement — plus une marketplace acheteur sécurisée."
+      "title": "Affisell — Marketplace boutiques créateurs",
+      "description": "Achetez les produits sélectionnés par vos créateurs préférés. Livraison rapide, paiement sécurisé."
     },
     "hero": {
-      "eyebrow": "Infrastructure commerce mondiale",
-      "title": "L'écosystème où fournisseurs, vendeurs & affiliés",
-      "titleHighlight": "construisent sans stock",
-      "sub": "Import produits · marge libre · reversements auto · Checkout Pan-UE · {count} pays · Paiement sécurisé · Retours 14j",
-      "subUs": "Import produits · marge libre · reversements auto · Checkout US & Canada · {count} pays · Paiement sécurisé · Retours 14j",
+      "title": "Les boutiques de vos",
+      "titleHighlight": "créateurs préférés",
+      "sub": "Checkout Pan-UE · {count} pays · EUR · Paiement sécurisé · Retours 14j",
+      "subUs": "Checkout US & Canada · {count} pays · USD · Paiement sécurisé · Retours 14j",
       "searchPlaceholder": "Produit, marque, niche…",
       "searchLabel": "Rechercher un produit",
       "searchSubmit": "Rechercher",
       "cmdKHint": "Navigation rapide",
       "ctaPrimary": "Explorer le catalogue",
-      "sellerLink": "Je veux vendre sans stock →",
-      "creatorLink": "Je suis créateur — monétiser mon audience →"
-    },
-    "ecosystemPaths": {
-      "eyebrow": "Construire sur Affisell",
-      "title": "Une infrastructure, trois parcours business",
-      "supplier": {
-        "title": "Fournisseur",
-        "hint": "Distribuez votre catalogue mondialement",
-        "cta": "Je suis fournisseur →"
-      },
-      "seller": {
-        "title": "Vendeur",
-        "hint": "Vendez sans stock · fixez votre marge",
-        "cta": "Je veux vendre →"
-      },
-      "creator": {
-        "title": "Créateur",
-        "hint": "Monétisez votre audience avec une boutique",
-        "cta": "Je suis créateur →"
-      }
+      "creatorLink": "Vous êtes créateur ? Vendez sur Affisell →"
     },
     "bento": {
       "agentShopping": {
@@ -214,67 +191,6 @@
       "bestSellersBadge": "7j",
       "bestSellersSold": "{count} vendus"
     }
-  },
-  "sellers": {
-    "meta": {
-      "title": "Vendre sur Affisell — Boutique revendeur sans stock",
-      "description": "Choisissez des produits, fixez votre marge, lancez votre boutique. Répartition automatique — le fournisseur expédie, vous encaissez."
-    },
-    "hero": {
-      "title": "Créez un commerce sans stock",
-      "sub": "Importez des produits · fixez votre prix · possédez votre boutique · encaissez automatiquement.",
-      "cta": "Créer ma boutique vendeur",
-      "badgeNoStock": "0 stock",
-      "badgeMargin": "Vous fixez la marge",
-      "badgePayout": "Reversements auto"
-    },
-    "marginExample": {
-      "title": "Intelligence marge sur chaque SKU",
-      "subtitle": "Prix fournisseur, prix conseillé et votre marge avant publication.",
-      "supplierLabel": "Prix fournisseur",
-      "suggestedLabel": "Prix conseillé",
-      "marginLabel": "Votre marge",
-      "commissionLabel": "Commission affilié",
-      "potentialLabel": "Potentiel",
-      "supplierValue": "30 €",
-      "suggestedValue": "59 €",
-      "marginValue": "+29 €",
-      "commissionValue": "5 €",
-      "potentialStars": "★★★★★"
-    },
-    "steps": {
-      "title": "Lancez-vous en 5 étapes",
-      "step1": "Créez votre compte vendeur",
-      "step2": "Importez des produits du catalogue fournisseur",
-      "step3": "Fixez votre prix de vente et votre marge",
-      "step4": "Publiez votre boutique et partagez votre lien",
-      "step5": "Recevez vos reversements — le fournisseur expédie"
-    },
-    "payout": {
-      "title": "Répartition automatique à chaque vente",
-      "subtitle": "Exemple sur une commande de 100 € — transparent pour vous et vos partenaires.",
-      "saleLabel": "Vente",
-      "supplier": "Fournisseur",
-      "platform": "Affisell",
-      "seller": "Vous (vendeur)",
-      "affiliate": "Affilié"
-    },
-    "features": {
-      "products": {
-        "title": "Hub produits",
-        "description": "Import SKU, prix, variantes, disponibilité — un tableau de bord vendeur."
-      },
-      "finance": {
-        "title": "Finance",
-        "description": "Ventes, marges, reversements et exports fiscaux au même endroit."
-      },
-      "analytics": {
-        "title": "Analytics",
-        "description": "Conversion, visiteurs, SKU tendance — développez ce qui marche."
-      }
-    },
-    "footerLink": "Je suis créateur — monétiser mon audience →",
-    "ctaFinal": "Créer ma boutique vendeur"
   },
   "creators": {
     "meta": {
@@ -3315,34 +3231,23 @@
   },
   "howItWorks": {
     "metaTitle": "Comment ça marche | Affisell",
-    "metaDescription": "Parcours acheteur, vendeur, créateur et fournisseur sur Affisell — commerce mondial sans stock.",
-    "eyebrow": "Commerce mondial",
+    "metaDescription": "Parcours acheteur, partenaire créateur et fournisseur sur la marketplace Affisell.",
+    "eyebrow": "Marketplace UE",
     "title": "Comment ça marche",
-    "description": "Affisell relie fournisseurs, vendeurs, créateurs et acheteurs — marges automatisées, checkout sécurisé, expédition fournisseur.",
+    "description": "Affisell réunit partenaires créateurs, fournisseurs et acheteurs — sans stock côté partenaire, avec livraison rapide et sécurisée assurée par le fournisseur.",
     "buyer": {
       "title": "1. Acheteur",
-      "body": "Explorez le catalogue et les boutiques, payez en sécurité, suivez commandes et retours depuis votre espace."
-    },
-    "seller": {
-      "title": "2. Vendeur",
-      "body": "Choisissez des produits fournisseur, fixez prix et marge, lancez votre boutique — zéro stock, reversements automatiques."
+      "body": "Explorez le catalogue, payez en toute sécurité et suivez votre commande depuis votre espace."
     },
     "creator": {
-      "title": "3. Créateur",
-      "body": "Monétisez votre audience : sélectionnez, personnalisez votre shop, partagez votre lien — nous gérons le checkout."
+      "title": "2. Partenaire créateur",
+      "body": "Sélectionnez des produits, personnalisez votre vitrine et partagez-la — Affisell gère l'expérience d'achat de bout en bout."
     },
     "supplier": {
-      "title": "4. Fournisseur",
-      "body": "Publiez votre catalogue mondialement, expédiez vite, encaissez à la livraison — les vendeurs apportent la demande."
+      "title": "3. Fournisseur",
+      "body": "Publiez votre catalogue, livrez rapidement et en toute sécurité, encaissez une fois la livraison confirmée."
     },
-    "flowTitle": "Répartition sur une vente à 100 €",
-    "flowSupplier": "Fournisseur · coût produit & expédition",
-    "flowPlatform": "Affisell · paiement & infrastructure",
-    "flowSeller": "Vendeur · votre marge",
-    "flowAffiliate": "Affilié · commission parrainage",
     "ctaBrowse": "Explorer le catalogue",
-    "ctaSeller": "Vendre sans stock",
-    "ctaSupplier": "Devenir fournisseur",
     "ctaPartner": "Devenir partenaire créateur"
   },
   "supportPage": {
@@ -3443,7 +3348,7 @@
       "sellerDashboard": "Tableau de bord vendeur",
       "listProduct": "Mettre en vente",
       "mySales": "Mes ventes",
-      "becomeSeller": "Devenir vendeur",
+      "becomeSeller": "Devenir créateur",
       "becomePartner": "Devenir partenaire",
       "analytics": "Statistiques",
       "payouts": "Paiements",
@@ -3476,7 +3381,6 @@
       "buyerProtection": "Achat protégé · retours",
       "buyerProtectionShort": "Achat protégé",
       "wishlist": "Wishlist",
-      "becomeSeller": "Devenir vendeur",
       "becomeCreator": "Devenir créateur",
       "affiliateProgram": "Programme affilié",
       "becomeSupplier": "Devenir fournisseur",
@@ -3504,8 +3408,8 @@
       "trustBeaconCta": "Voir la politique",
       "panEuBadge": "Pan-UE · 27 marchés",
       "localeLabel": "Langue & région",
-      "mobileTagline": "Commerce mondial · paiement sécurisé · dashboards vendeur",
-      "desktopTagline": "Infrastructure commerce mondiale — fournisseurs, vendeurs et affiliés construisent sans stock en Europe.",
+      "mobileTagline": "Marketplace créateurs · paiement sécurisé · support 24/7",
+      "desktopTagline": "La marketplace où partenaires créateurs et fournisseurs grandissent en Europe — conformité UE, expérience fluide.",
       "stripeNoticeShort": "Carte bancaire · authentification forte · TVA conforme UE",
       "vatNotice": "TVA collectée et reversée conformément à la réglementation applicable.",
       "stripeNotice": "Paiements sécurisés par carte bancaire (authentification forte lorsque requis).",

@@ -113,7 +113,7 @@ const CATALOG: CatalogEntry[] = [
     segment: "sell",
     labelKey: "items.becomeSeller",
     action: "navigate",
-    href: "/sellers",
+    href: "/signup/affiliate?role=creator",
     keywords: ["sell", "seller", "affiliate", "creator", "vendre"],
     hideForPersona: ["seller", "affiliate"],
   },
