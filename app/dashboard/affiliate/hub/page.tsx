@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server"
 
 import { AffiliateFirstListingCoachBanner } from "@/components/affiliate/affiliate-first-listing-coach-banner"
 import { AffiliateKycPublishBanner } from "@/components/affiliate/affiliate-kyc-publish-banner"
+import { AffiliateOnboardingChecklist } from "@/components/affiliate/affiliate-onboarding-checklist"
 import { AffiliateOpportunityPulseRail } from "@/components/affiliate/affiliate-opportunity-pulse-rail"
 import { AffiliateSwipeFeed } from "@/components/affiliate/swipe-feed/affiliate-swipe-feed"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
@@ -45,20 +46,29 @@ export default async function AffiliateHubPage({ searchParams }: PageProps) {
     }),
   ])
 
+  const showTopRail = showFirstListingCoach || !progress.kycApproved
+
+  const tHub = await getTranslations("affiliate.hub")
+
   return (
     <div className="space-y-4">
-      {(showFirstListingCoach || !progress.kycApproved) && (
+      {showTopRail ? (
         <div className="mx-auto max-w-3xl space-y-3 px-4 pt-4 sm:px-6">
+          {showFirstListingCoach && progress.showChecklist ? (
+            <AffiliateOnboardingChecklist progress={progress} />
+          ) : null}
           {showFirstListingCoach ? <AffiliateFirstListingCoachBanner /> : null}
-          <AffiliateKycPublishBanner
-            allowed={gate.allowed}
-            reason={gate.reason ?? null}
-            status={gate.status}
-            draftCount={progress.draftListingCount}
-            compact
-          />
+          {!progress.kycApproved ? (
+            <AffiliateKycPublishBanner
+              allowed={gate.allowed}
+              reason={gate.reason ?? null}
+              status={gate.status}
+              draftCount={progress.draftListingCount}
+              compact
+            />
+          ) : null}
         </div>
-      )}
+      ) : null}
       {opportunityPicks.length > 0 ? (
         <div className="mx-auto max-w-3xl px-4 pt-2 sm:px-6">
           <AffiliateOpportunityPulseRail picks={opportunityPicks} compact />
@@ -67,7 +77,7 @@ export default async function AffiliateHubPage({ searchParams }: PageProps) {
       <Suspense
         fallback={
           <div className="flex min-h-[calc(100dvh-3.75rem)] items-center justify-center bg-zinc-950 text-zinc-500">
-            Chargement du hub…
+            {tHub("hubLoading")}
           </div>
         }
       >

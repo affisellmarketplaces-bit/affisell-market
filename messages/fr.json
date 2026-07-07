@@ -1303,7 +1303,8 @@
       "welcomeTitle": "Bienvenue dans votre hub revendeur",
       "welcomeBody": "Configurez votre boutique ci-dessous, puis explorez le <catalog>catalogue revendeur</catalog> pour ajouter vos premiers produits.",
       "metaTitle": "Hub revendeur — Swipe | Affisell",
-      "metaDescription": "Découvrez des SKU fournisseur, estimez vos marges et listez en mode swipe."
+      "metaDescription": "Découvrez des SKU fournisseur, estimez vos marges et listez en mode swipe.",
+      "hubLoading": "Chargement du hub…"
     },
     "mySelection": "Mes fiches en vitrine",
     "selectionHint": "Choisissez des produits dans le catalogue et fixez votre prix public.",
@@ -1605,7 +1606,15 @@
       "stepPublish": "Publier sur le marketplace",
       "stepShare": "Partager le lien de votre shop",
       "start": "Continuer",
-      "draftReadyHint": "Vous avez déjà {count, plural, one {# brouillon prêt} other {# brouillons prêts}} à publier après validation."
+      "progress": "{done}/{total} étapes",
+      "draftReadyHint": "Vous avez déjà {count, plural, one {# brouillon prêt} other {# brouillons prêts}} à publier après validation.",
+      "pageEyebrow": "Onboarding revendeur",
+      "cguTitle": "Acceptation des CGU",
+      "cguBody": "Une étape obligatoire avant d'accéder à votre espace revendeur.",
+      "cgsTitle": "Acceptation des CGS",
+      "cgsBody": "Commission 20 %, Loi Influenceurs, publicité loyale et seuil 5 000 €/an — validation obligatoire.",
+      "backSignup": "Retour à l'inscription",
+      "readCgs": "Lire les CGS"
     },
     "kycPublish": {
       "badge": "Publication bloquée",
@@ -4218,6 +4227,8 @@
     "resellerTitle": "Revendeur Affisell",
     "resellerBody": "Sélectionnez des SKU fournisseur, fixez votre prix client, encaissez marge + commission — logistique côté fournisseur.",
     "resellerCta": "Ouvrir le catalogue revendeur",
+    "resellerStartCta": "Lancer ma boutique revendeur",
+    "resellerCatalogCta": "Parcourir le catalogue",
     "supplierTitle": "Fournisseur",
     "supplierBody": "Publiez votre catalogue wholesale, expédiez les commandes, reversements Stripe Connect après expédition.",
     "supplierCta": "Devenir fournisseur",

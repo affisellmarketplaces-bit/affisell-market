@@ -30,9 +30,16 @@ export async function AffiliateOnboardingChecklist({ progress }: Props) {
 
   if (!progress.showChecklist) return null
 
+  const doneCount = progress.steps.filter((s) => s.done).length
+
   return (
     <BentoCard className="border-violet-200/70 p-6 dark:border-violet-900/40">
-      <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{t("title")}</h2>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{t("title")}</h2>
+        <p className="text-xs font-medium tabular-nums text-violet-700 dark:text-violet-300">
+          {t("progress", { done: doneCount, total: progress.steps.length })}
+        </p>
+      </div>
       <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
       {!progress.kycApproved ? (
         <p className="mt-3 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs leading-relaxed text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">

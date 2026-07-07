@@ -1295,7 +1295,8 @@
       "welcomeTitle": "Welcome to your reseller hub",
       "welcomeBody": "Set up your storefront below, then explore the <catalog>reseller catalog</catalog> to add your first products.",
       "metaTitle": "Reseller hub — Swipe | Affisell",
-      "metaDescription": "Discover supplier SKUs, estimate margins, and list in swipe mode."
+      "metaDescription": "Discover supplier SKUs, estimate margins, and list in swipe mode.",
+      "hubLoading": "Loading hub…"
     },
     "mySelection": "My storefront listings",
     "selectionHint": "Pick products from the catalog and set your retail price.",
@@ -1597,7 +1598,15 @@
       "stepPublish": "Publish on the marketplace",
       "stepShare": "Share your shop link",
       "start": "Continue",
-      "draftReadyHint": "You already have {count, plural, one {# draft ready} other {# drafts ready}} to publish after approval."
+      "progress": "{done}/{total} steps",
+      "draftReadyHint": "You already have {count, plural, one {# draft ready} other {# drafts ready}} to publish after approval.",
+      "pageEyebrow": "Reseller onboarding",
+      "cguTitle": "Terms of use",
+      "cguBody": "Required before accessing your reseller workspace.",
+      "cgsTitle": "Partner terms (CGS)",
+      "cgsBody": "20% commission, influencer law, fair advertising and €5,000/year threshold — required acceptance.",
+      "backSignup": "Back to signup",
+      "readCgs": "Read partner terms"
     },
     "kycPublish": {
       "badge": "Publish blocked",
@@ -4176,6 +4185,8 @@
     "resellerTitle": "Affisell reseller",
     "resellerBody": "Pick supplier SKUs, set your customer price, earn margin + commission — supplier handles fulfillment.",
     "resellerCta": "Open reseller catalog",
+    "resellerStartCta": "Launch my reseller store",
+    "resellerCatalogCta": "Browse catalog",
     "supplierTitle": "Supplier",
     "supplierBody": "Publish your wholesale catalogue, ship orders, Stripe Connect payouts after shipment.",
     "supplierCta": "Become a supplier",

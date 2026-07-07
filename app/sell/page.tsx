@@ -5,7 +5,9 @@ import { ArrowRight, Package, Store } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { buttonVariants } from "@/components/ui/button"
+import { auth } from "@/auth"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
+import { affiliateResellerOnboardingEntryHref } from "@/lib/affiliate-onboarding-shared"
 import { cn } from "@/lib/utils"
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,6 +21,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SellHubPage() {
   const t = await getTranslations("sellPage")
+  const session = await auth()
+  const isAffiliate = String(session?.user?.role ?? "").toUpperCase() === "AFFILIATE"
+  const onboardingHref = affiliateResellerOnboardingEntryHref(isAffiliate)
 
   return (
     <BentoShell>
@@ -34,11 +39,17 @@ export default async function SellHubPage() {
             <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{t("resellerBody")}</p>
             <div className="mt-auto flex flex-wrap gap-3">
               <Link
-                href={AFFILIATE_CATALOG_PATH}
+                href={onboardingHref}
                 className={cn(buttonVariants({ variant: "bentoSolid", size: "bento" }), "inline-flex gap-2")}
               >
-                {t("resellerCta")}
+                {t("resellerStartCta")}
                 <ArrowRight className="size-4" aria-hidden />
+              </Link>
+              <Link
+                href={AFFILIATE_CATALOG_PATH}
+                className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }))}
+              >
+                {t("resellerCatalogCta")}
               </Link>
               <Link href="/sell/affiliate-program" className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }))}>
                 {t("resellerProgramCta")}
