@@ -5,10 +5,11 @@ import Link from "next/link"
 import { Eye, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import { Button } from "@/components/ui/button"
 import type { AffiliateOpportunityPulseCard } from "@/lib/affiliate-catalog-opportunity-pulse"
+import { buildAffiliateCatalogCardEconomics } from "@/lib/affiliate-catalog-margin-display"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
-import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -96,9 +97,14 @@ export function AffiliateOpportunityPulseRail({
                     <Eye className="size-3" aria-hidden />
                     {watchingLabel}
                   </p>
-                  <p className="mt-1 text-xs text-zinc-500">
-                    {formatStoreCurrencyFromCents(item.basePriceCents)} · {item.commissionRate}%
-                  </p>
+                  <AffiliateCatalogEconomicsPanel
+                    economics={buildAffiliateCatalogCardEconomics(
+                      item.basePriceCents,
+                      item.commissionRate
+                    )}
+                    variant="compact"
+                    className="mt-2"
+                  />
                 </div>
               </div>
               {onListNow ? (

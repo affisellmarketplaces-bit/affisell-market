@@ -41,6 +41,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 
 import AffiliateLiveStore from "@/components/affiliate/affiliate-live-store"
+import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import { DiscoverListingActions } from "@/components/affiliate/discover-listing-actions"
 import { BentoStat } from "@/components/affisell/bento-ui"
 import { MerchantMyCatalogCue } from "@/components/dashboard/merchant-my-catalog-cue"
@@ -49,6 +50,10 @@ import {
   type SerializedListing,
 } from "@/components/affiliate/listing-builder-modal"
 import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
+import {
+  buildAffiliateCatalogCardEconomics,
+  estimateTotalPartnerGainCents,
+} from "@/lib/affiliate-catalog-margin-display"
 import { affiliateListingPreviewHref } from "@/lib/affiliate-store-preview-access"
 import { ProductColorSwatchDots } from "@/components/product/product-color-swatch-dots"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
@@ -242,6 +247,7 @@ type Props = {
 
 export function AffiliateDashboard({ storeId }: Props) {
   const tHub = useTranslations("affiliate.hub")
+  const tCatalogEconomics = useTranslations("affiliate.catalogEconomics")
   const tAffiliate = useTranslations("affiliate")
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -635,7 +641,10 @@ export function AffiliateDashboard({ storeId }: Props) {
     rows.sort((a, b) => {
       switch (discoverSort) {
         case "commission-desc":
-          return b.commissionRate - a.commissionRate
+          return (
+            estimateTotalPartnerGainCents(b.basePriceCents, b.commissionRate) -
+            estimateTotalPartnerGainCents(a.basePriceCents, a.commissionRate)
+          )
         case "price-asc":
           return a.basePriceCents - b.basePriceCents
         case "price-desc":
@@ -902,7 +911,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                       className="w-full appearance-none rounded-xl border border-zinc-200 bg-white py-2.5 pl-10 pr-8 text-sm text-zinc-900 outline-none ring-violet-500/25 focus:border-violet-400 focus:ring-2 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:focus:border-violet-500"
                     >
                       <option value="new">Newest in feed</option>
-                      <option value="commission-desc">Partner margin · high → low</option>
+                      <option value="commission-desc">{tCatalogEconomics("sortRevenueDesc")}</option>
                       <option value="price-asc">Supplier price · low → high</option>
                       <option value="price-desc">Supplier price · high → low</option>
                       <option value="name">Title A–Z</option>
@@ -1047,29 +1056,13 @@ export function AffiliateDashboard({ storeId }: Props) {
                   {(p.colors?.length ?? 0) > 0 ? (
                     <ProductColorSwatchDots colors={p.colors ?? []} />
                   ) : null}
-                  <div className="mt-auto grid grid-cols-2 gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                    <div>
-                      <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-300">
-                        Supplier price
-                      </p>
-                      <p className="mt-0.5 text-base font-bold tabular-nums text-zinc-900 dark:text-white">
-                        {formatStoreCurrencyFromCents(p.basePriceCents)}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p
-                        className="text-[10px] font-medium uppercase tracking-wide text-violet-600 dark:text-violet-400"
-                        title="% of resale margin vs supplier price above"
-                      >
-                        Commission
-                      </p>
-                      <p className="mt-0.5 text-base font-bold tabular-nums text-violet-700 dark:text-violet-300">
-                        {Number.isFinite(p.commissionRate) && p.commissionRate > 0
-                          ? `${p.commissionRate}%`
-                          : "—"}
-                      </p>
-                    </div>
-                  </div>
+                  <AffiliateCatalogEconomicsPanel
+                    economics={buildAffiliateCatalogCardEconomics(
+                      p.basePriceCents,
+                      Number(p.commissionRate) || 0
+                    )}
+                    className="mt-auto border-t border-zinc-100 pt-3 dark:border-zinc-800"
+                  />
                   {supplierHref ? (
                     <Link
                       href={supplierHref}

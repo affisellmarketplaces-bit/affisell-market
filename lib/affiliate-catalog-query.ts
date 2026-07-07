@@ -142,24 +142,31 @@ export async function loadAffiliateCatalogProducts(
   const sort = searchParams.get("sort")?.trim() ?? "new"
 
   const orderBy: Prisma.ProductOrderByWithRelationInput[] =
-    sort === "commission-desc"
-      ? [{ commissionRate: "desc" }, { createdAt: "desc" }]
-      : sort === "price-asc"
-        ? [{ basePriceCents: "asc" }]
-        : sort === "price-desc"
-          ? [{ basePriceCents: "desc" }]
-          : sort === "name"
-            ? [{ name: "asc" }]
-            : [{ createdAt: "desc" }]
+    sort === "price-asc"
+      ? [{ basePriceCents: "asc" }]
+      : sort === "price-desc"
+        ? [{ basePriceCents: "desc" }]
+        : sort === "name"
+          ? [{ name: "asc" }]
+          : [{ createdAt: "desc" }]
 
   const rows = await prisma.product.findMany({
     where,
     select: affiliateDiscoverCardSelect(affiliateId),
-    orderBy,
-    take,
+    orderBy: sort === "commission-desc" ? [{ createdAt: "desc" }] : orderBy,
+    take: sort === "commission-desc" ? Math.min(take * 2, 200) : take,
   })
 
-  return rows.map(normalizeCatalogRow)
+  const products = rows.map(normalizeCatalogRow)
+  if (sort === "commission-desc") {
+    products.sort(
+      (a, b) =>
+        estimateTotalPartnerGainCents(b.basePriceCents, b.commissionRate) -
+        estimateTotalPartnerGainCents(a.basePriceCents, a.commissionRate)
+    )
+    return products.slice(0, take)
+  }
+  return products
 }
 
 async function soldCountsSince(since: Date, productIds: string[]): Promise<Map<string, number>> {

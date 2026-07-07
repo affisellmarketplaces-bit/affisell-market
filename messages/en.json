@@ -1147,11 +1147,13 @@
     },
     "catalogEconomics": {
       "supplierPrice": "Supplier price",
-      "suggestedRetail": "Suggested retail",
-      "markupMargin": "Markup margin",
-      "commission": "Affiliate commission",
-      "totalGain": "Estimated partner gain",
-      "totalGainHint": "Markup + commission at {markupPct}% suggested markup",
+      "customerPrice": "Suggested customer price",
+      "customerPriceShort": "Customer",
+      "resellerMargin": "Your reseller margin",
+      "supplierCommission": "Supplier commission",
+      "estimatedRevenue": "Estimated reseller earnings",
+      "estimatedRevenueHint": "Commission + margin at {markupPct}% suggested markup",
+      "sortRevenueDesc": "Reseller earnings · high → low",
       "supplierSheetAria": "Supplier product page"
     },
     "earnings": {

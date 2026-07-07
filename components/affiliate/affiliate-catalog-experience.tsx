@@ -388,7 +388,7 @@ export function AffiliateCatalogExperience({
                   aria-label="Trier le catalogue"
                 >
                   <option value="new">Nouveautés</option>
-                  <option value="commission-desc">Commission ↓</option>
+                  <option value="commission-desc">{tCatalog("sortRevenueDesc")}</option>
                   <option value="price-asc">Prix fournisseur ↑</option>
                   <option value="price-desc">Prix fournisseur ↓</option>
                   <option value="name">Titre A–Z</option>

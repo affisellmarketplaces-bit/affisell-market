@@ -4,9 +4,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { Check, Sparkles } from "lucide-react"
 
+import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import type { AffiliateAgentProductCard } from "@/lib/agent-affiliate-product-card-types"
+import { buildAffiliateCatalogCardEconomics } from "@/lib/affiliate-catalog-margin-display"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
-import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -17,6 +18,7 @@ type Props = {
 
 function Card({ p }: { p: AffiliateAgentProductCard }) {
   const href = `${AFFILIATE_CATALOG_PATH}?productId=${encodeURIComponent(p.id)}`
+  const economics = buildAffiliateCatalogCardEconomics(p.basePriceCents, p.commissionRate)
 
   return (
     <Link
@@ -54,18 +56,7 @@ function Card({ p }: { p: AffiliateAgentProductCard }) {
       <div className="flex flex-1 flex-col gap-2 p-3">
         <p className="line-clamp-2 text-sm font-semibold text-white">{p.name}</p>
         <p className="truncate text-xs text-zinc-400">{p.supplierLabel}</p>
-        <div className="flex flex-wrap gap-1">
-          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
-            Marge {formatStoreCurrencyFromCents(p.marginCents, { maximumFractionDigits: 0 })}
-          </span>
-          <span className="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-semibold text-violet-200">
-            {p.commissionRate}% comm.
-          </span>
-        </div>
-        <p className="text-lg font-bold tabular-nums text-white">
-          {formatStoreCurrencyFromCents(p.basePriceCents)}
-          <span className="ml-1 text-[10px] font-normal text-zinc-500">fournisseur</span>
-        </p>
+        <AffiliateCatalogEconomicsPanel economics={economics} variant="compact" tone="dark" />
         <div className="mt-auto rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-2.5 text-center text-xs font-semibold text-white group-hover:from-violet-500 group-hover:to-fuchsia-500">
           {p.isInStore ? "Modifier ma fiche →" : "Ajouter à ma vitrine →"}
         </div>

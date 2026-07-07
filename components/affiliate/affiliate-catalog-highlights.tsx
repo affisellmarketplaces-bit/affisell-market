@@ -5,8 +5,9 @@ import { Check, Sparkles, Store, TrendingUp, Zap } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
+import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import type { AffiliateCatalogHighlightCard, AffiliateCatalogHighlights } from "@/lib/affiliate-catalog-types"
-import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { buildAffiliateCatalogCardEconomics } from "@/lib/affiliate-catalog-margin-display"
 import { cn } from "@/lib/utils"
 
 type TabId = "bestsellers" | "new" | "margin"
@@ -159,9 +160,14 @@ export function AffiliateCatalogHighlights({ initial, onPickProduct }: Props) {
                   <p className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold text-zinc-900 dark:text-zinc-50">
                     {item.name}
                   </p>
-                  <p className="mt-1 text-lg font-black tabular-nums text-zinc-900 dark:text-white">
-                    {formatStoreCurrencyFromCents(item.basePriceCents)}
-                  </p>
+                  <AffiliateCatalogEconomicsPanel
+                    economics={buildAffiliateCatalogCardEconomics(
+                      item.basePriceCents,
+                      item.commissionRate
+                    )}
+                    variant="compact"
+                    className="mt-2"
+                  />
                   <ul className="mt-2 flex flex-wrap gap-1">
                     {item.soldCount > 0 ? (
                       <li>
@@ -170,16 +176,6 @@ export function AffiliateCatalogHighlights({ initial, onPickProduct }: Props) {
                         </span>
                       </li>
                     ) : null}
-                    <li>
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900">
-                        Marge {formatStoreCurrencyFromCents(item.marginCents, { maximumFractionDigits: 0 })}
-                      </span>
-                    </li>
-                    <li>
-                      <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-900">
-                        {item.commissionRate}%
-                      </span>
-                    </li>
                   </ul>
                   <p className="mt-2 flex items-center gap-1 truncate text-[10px] text-zinc-500">
                     <Store className="h-3 w-3 shrink-0" aria-hidden />

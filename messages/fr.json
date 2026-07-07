@@ -1147,11 +1147,13 @@
     },
     "catalogEconomics": {
       "supplierPrice": "Prix fournisseur",
-      "suggestedRetail": "Prix conseillé",
-      "markupMargin": "Marge markup",
-      "commission": "Commission affilié",
-      "totalGain": "Gain partenaire estimé",
-      "totalGainHint": "Marge + commission à {markupPct}% markup suggéré",
+      "customerPrice": "Prix client suggéré",
+      "customerPriceShort": "Client",
+      "resellerMargin": "Votre marge revendeur",
+      "supplierCommission": "Commission fournisseur",
+      "estimatedRevenue": "Revenu revendeur estimé",
+      "estimatedRevenueHint": "Commission + marge à {markupPct}% markup suggéré",
+      "sortRevenueDesc": "Revenu revendeur · haut → bas",
       "supplierSheetAria": "Fiche fournisseur"
     },
     "earnings": {
