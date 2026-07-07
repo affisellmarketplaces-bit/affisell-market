@@ -24,7 +24,7 @@ function pickFirstUsableListingImage(
 }
 
 function parseDataUrlToBuffer(dataUrl: string): Buffer {
-  const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/s)
+  const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]+)$/)
   if (!match) throw new Error("Invalid data image URL")
   return Buffer.from(match[2]!, "base64")
 }
