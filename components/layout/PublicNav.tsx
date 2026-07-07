@@ -79,7 +79,7 @@ export function PublicNav() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const isCustomer = session?.user?.role === "CUSTOMER"
-  const cartCount = useBuyerCartCount()
+  const cartCount = useBuyerCartCount({ deferSync: true })
   const [explorerHash, setExplorerHash] = useState(false)
 
   useEffect(() => {

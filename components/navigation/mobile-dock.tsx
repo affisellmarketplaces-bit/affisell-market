@@ -43,7 +43,7 @@ export function MobileDock() {
   const bare = barePathname(pathname)
   const { data: session } = useSession()
   const role = session?.user?.role
-  const cartCount = useBuyerCartCount()
+  const cartCount = useBuyerCartCount({ deferSync: true })
   const mode = resolvePublicNavMode(bare)
   const dockItems = resolveMobileDockItems(mode)
   const [compact, setCompact] = useState(false)

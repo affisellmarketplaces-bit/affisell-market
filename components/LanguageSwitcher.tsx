@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { usePathname } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
-import { AnimatePresence, motion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 
 import { hrefForLocaleSwitch } from "@/lib/client-locale-path"
@@ -117,43 +116,35 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   }
 
   const menuPortal =
-    mounted && menuPos ? (
-      <AnimatePresence>
-        {open ? (
-          <motion.ul
-            ref={menuRef}
-            initial={{ opacity: 0, y: menuPos.openUpward ? -4 : 4, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: menuPos.openUpward ? -4 : 4, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="affisell-locale-menu fixed z-[9999] max-h-[min(70dvh,20rem)] overflow-y-auto rounded-xl border border-zinc-200 bg-white py-1 shadow-xl dark:border-zinc-700 dark:bg-zinc-950"
-            style={{
-              top: menuPos.openUpward ? undefined : menuPos.top,
-              bottom: menuPos.openUpward ? menuPos.bottom : undefined,
-              left: menuPos.left,
-              minWidth: menuPos.minWidth,
-              transform: "translateX(-100%)",
-            }}
-            role="listbox"
-          >
-            {LOCALE_SWITCHER_OPTIONS.map((code) => (
-              <li key={code} role="option" aria-selected={locale === code}>
-                <button
-                  type="button"
-                  onClick={() => select(code)}
-                  className={cn(
-                    "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition hover:bg-zinc-50 dark:hover:bg-zinc-900",
-                    locale === code && "bg-violet-50 text-violet-700 dark:bg-violet-950/50"
-                  )}
-                >
-                  <span>{LOCALE_FLAGS[code]}</span>
-                  {LOCALE_LABELS[code]}
-                </button>
-              </li>
-            ))}
-          </motion.ul>
-        ) : null}
-      </AnimatePresence>
+    mounted && menuPos && open ? (
+      <ul
+        ref={menuRef}
+        className="affisell-locale-menu affisell-locale-menu-enter fixed z-[9999] max-h-[min(70dvh,20rem)] overflow-y-auto rounded-xl border border-zinc-200 bg-white py-1 shadow-xl dark:border-zinc-700 dark:bg-zinc-950"
+        style={{
+          top: menuPos.openUpward ? undefined : menuPos.top,
+          bottom: menuPos.openUpward ? menuPos.bottom : undefined,
+          left: menuPos.left,
+          minWidth: menuPos.minWidth,
+          transform: "translateX(-100%)",
+        }}
+        role="listbox"
+      >
+        {LOCALE_SWITCHER_OPTIONS.map((code) => (
+          <li key={code} role="option" aria-selected={locale === code}>
+            <button
+              type="button"
+              onClick={() => select(code)}
+              className={cn(
+                "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition hover:bg-zinc-50 dark:hover:bg-zinc-900",
+                locale === code && "bg-violet-50 text-violet-700 dark:bg-violet-950/50"
+              )}
+            >
+              <span>{LOCALE_FLAGS[code]}</span>
+              {LOCALE_LABELS[code]}
+            </button>
+          </li>
+        ))}
+      </ul>
     ) : null
 
   return (

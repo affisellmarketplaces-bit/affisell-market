@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { motion, useReducedMotion } from "framer-motion"
 import { ArrowUpRight, TrendingUp } from "lucide-react"
+
+import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion"
 
 import {
   buyerServiceTileClass,
@@ -43,22 +44,17 @@ function PlayingCard({
   const isFront = depth === total - 1
 
   return (
-    <motion.div
-      layout
-      initial={false}
-      animate={{
-        rotate: pose.rotate,
-        x: pose.x,
-        y: pose.y,
-        scale: pose.scale,
+    <div
+      className={cn(
+        "pointer-events-none absolute bottom-0 left-1/2 h-[4.35rem] w-[3.05rem] origin-bottom sm:h-[4.75rem] sm:w-[3.25rem]",
+        "transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.34,1.2,0.64,1)] motion-reduce:transition-none",
+        isFront && "shadow-[0_16px_36px_rgba(251,191,36,0.35)]"
+      )}
+      style={{
+        transform: `translateX(calc(-50% + ${pose.x}px)) translateY(${pose.y}px) rotate(${pose.rotate}deg) scale(${pose.scale})`,
         opacity: pose.opacity,
         zIndex: depth + 1,
       }}
-      transition={{ type: "spring", stiffness: 280, damping: 24, mass: 0.85 }}
-      className={cn(
-        "pointer-events-none absolute bottom-0 left-1/2 h-[4.35rem] w-[3.05rem] -translate-x-1/2 origin-bottom sm:h-[4.75rem] sm:w-[3.25rem]",
-        isFront && "shadow-[0_16px_36px_rgba(251,191,36,0.35)]"
-      )}
       aria-hidden
     >
       <div
@@ -100,7 +96,7 @@ function PlayingCard({
           #{card.rank}
         </span>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -111,7 +107,7 @@ export function HomeBuyerBestSellersDeck({
   badgeLabel,
   fallbackHref,
 }: Props) {
-  const reduceMotion = useReducedMotion()
+  const reduceMotion = usePrefersReducedMotion()
   const accent = BUYER_TILE_ACCENTS.bestSellers.glow
   const iconAccent = BUYER_TILE_ACCENTS.bestSellers.icon
   const [cursor, setCursor] = useState(0)

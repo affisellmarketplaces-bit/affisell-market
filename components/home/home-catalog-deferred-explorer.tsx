@@ -32,11 +32,13 @@ export function HomeCatalogDeferredExplorer({ shell, staticCatalog }: Props) {
 
   return (
     <HomeCatalogErrorBoundary>
-      <HomeCatalogImageWarmup imageUrls={lcpImages} />
       {interactive ? (
-        <div className="affisell-home-explorer min-w-0">
-          <MarketplaceViewSuspense shell={shell} />
-        </div>
+        <>
+          <HomeCatalogImageWarmup imageUrls={lcpImages} />
+          <div className="affisell-home-explorer min-w-0">
+            <MarketplaceViewSuspense shell={shell} />
+          </div>
+        </>
       ) : (
         staticCatalog
       )}

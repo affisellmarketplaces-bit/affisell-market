@@ -1377,6 +1377,27 @@ body.affisell-demo-lab .affisell-header-shell {
     z-index: 9999;
   }
 
+  @keyframes affisell-locale-menu-in {
+    from {
+      opacity: 0;
+      transform: translateX(-100%) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-100%) scale(1);
+    }
+  }
+
+  .affisell-locale-menu-enter {
+    animation: affisell-locale-menu-in 0.15s ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .affisell-locale-menu-enter {
+      animation: none;
+    }
+  }
+
   .affisell-badge {
     @apply inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em];
   }

@@ -18,7 +18,7 @@ module.exports = {
       startServerReadyPattern: "Ready|started server on|Local:",
       startServerReadyTimeout: 120000,
       url: ["http://localhost:3000/"],
-      numberOfRuns: 1,
+      numberOfRuns: 3,
       settings: {
         onlyCategories: ["performance"],
         formFactor: "mobile",
