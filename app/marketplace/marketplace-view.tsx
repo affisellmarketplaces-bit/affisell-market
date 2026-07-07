@@ -529,13 +529,13 @@ export function MarketplaceView({
           <div className="min-w-0 flex-1">
             {embedded && isCustomerBrowse ? (
               <>
-                <BuyerRegionBanner className="mb-3 sm:mb-4" variant="compact" />
-                <div className="mb-3 sm:mb-4">
+                <BuyerRegionBanner className="mb-2 sm:mb-4" variant="compact" />
+                <div className="mb-2 hidden sm:block sm:mb-4">
                   <MarketplaceShipsToChip basePath={basePath} />
                 </div>
                 <OfferModeQuickRail
                   basePath={basePath}
-                  className="mb-3 sm:mb-4"
+                  className="mb-2 sm:mb-4"
                   initialCounts={initialBrowse?.offerRailCounts}
                 />
               </>
@@ -595,7 +595,7 @@ export function MarketplaceView({
             ) : null}
             {loading ? (
               <ul className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
-                {Array.from({ length: 8 }).map((_, i) => (
+                {Array.from({ length: 6 }).map((_, i) => (
                   <li key={i} className="animate-pulse">
                     <div className="aspect-square rounded-3xl border border-zinc-100 bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-800/50" />
                     <div className="mt-3 h-4 w-3/4 rounded-lg bg-zinc-100 dark:bg-zinc-800/50" />

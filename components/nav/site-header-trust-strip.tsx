@@ -7,14 +7,14 @@ import { PublicNavTrustStrip } from "@/components/nav/public-nav-trust-strip"
 import { shouldShowPublicTrustStrip } from "@/lib/public-nav-mode"
 
 /** Trust band below the header accent line — browse pages only. */
-export function SiteHeaderTrustStrip() {
+export function SiteHeaderTrustStrip({ compact = false }: { compact?: boolean }) {
   const pathname = usePathname()
   const visible = useMemo(() => shouldShowPublicTrustStrip(pathname), [pathname])
 
   return (
     <PublicNavTrustStrip
       visible={visible}
-      className="affisell-site-header-trust-strip rounded-b-2xl border-t-0"
+      className={compact ? "affisell-site-header-trust-strip rounded-b-2xl border-t-0" : "affisell-site-header-trust-strip rounded-b-2xl border-t-0"}
     />
   )
 }

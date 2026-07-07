@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import {
   ArrowLeft,
   Heart,
@@ -17,8 +17,6 @@ import {
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
-import { motion } from "framer-motion"
-
 import { CartCountBadge } from "@/components/cart/cart-count-badge"
 import { COMMAND_K_OPEN_EVENT } from "@/components/CommandK"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
@@ -113,15 +111,15 @@ export function PublicNav() {
   const searchShellClass =
     "flex w-full min-w-0 items-center rounded-full border border-zinc-200/90 bg-zinc-50/95 shadow-sm ring-violet-500/10 transition-[box-shadow,border-color] focus-within:border-violet-300/80 focus-within:ring-2 focus-within:ring-violet-500/25 dark:border-zinc-700/90 dark:bg-zinc-900/90 dark:focus-within:border-violet-500/50"
 
+  const showCompactMobileUtilities = mode !== "account"
+  const searchMaxWidthClass = useMemo(
+    () => (mode === "account" ? "lg:max-w-xl" : "lg:max-w-2xl"),
+    [mode]
+  )
+
   const logo = (
     <LocaleLink href="/" className="shrink-0 lg:col-start-1 lg:row-start-1">
-      <motion.span
-        className={cn("text-lg font-bold affisell-logo-text", "affisell-brand-wordmark")}
-        whileHover={{ scale: 1.03 }}
-        transition={{ duration: 0.2 }}
-      >
-        Affisell
-      </motion.span>
+      <span className={cn("text-lg font-bold affisell-logo-text", "affisell-brand-wordmark")}>Affisell</span>
     </LocaleLink>
   )
 
@@ -137,14 +135,13 @@ export function PublicNav() {
   )
 
   const mobileUtilities = (
-    <div className="flex shrink-0 items-center gap-1 sm:gap-1.5 lg:hidden">
-      <LanguageSwitcher />
-      <ThemeToggle className="shrink-0" />
+    <div className="flex shrink-0 items-center gap-1 lg:hidden">
+      {showCompactMobileUtilities ? <ThemeToggle className="shrink-0" /> : <LanguageSwitcher />}
       <FastLink
         href="/cart"
         className={cn(
           buttonVariants({ size: "sm" }),
-          "relative h-9 gap-1 border-0 bg-violet-600 px-2.5 text-white shadow-md shadow-violet-500/25 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500"
+          "relative h-9 min-w-9 gap-1 border-0 bg-violet-600 px-2.5 text-white shadow-md shadow-violet-500/25 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500"
         )}
         aria-label={cartAria}
       >
@@ -260,14 +257,14 @@ export function PublicNav() {
     </div>
   )
 
-  const searchBlock = (options: { suggestions: boolean; maxWidth?: string }) => (
+  const searchBlock = (options: { suggestions: boolean }) => (
     <Suspense
       fallback={
         <div className="h-10 min-w-0 lg:col-start-3 lg:row-start-1" aria-hidden />
       }
     >
       <div className="flex min-w-0 items-center gap-2 lg:col-start-3 lg:row-start-1 lg:justify-center">
-        <div className={cn(searchShellClass, options.maxWidth ?? "lg:max-w-2xl")}>
+        <div className={cn(searchShellClass, searchMaxWidthClass)}>
           <NavHeaderSearch
             id="public-header-search-q"
             placeholder={t("searchPlaceholder")}
@@ -276,7 +273,7 @@ export function PublicNav() {
             searchContext={searchContext}
           />
         </div>
-        {options.suggestions ? <CommandKTrigger /> : null}
+        {options.suggestions ? <CommandKTrigger className="hidden lg:inline-flex" /> : null}
       </div>
     </Suspense>
   )
@@ -296,7 +293,7 @@ export function PublicNav() {
       {mode === "transaction" ? (
         <nav
           aria-label="Main"
-          className="affisell-public-nav affisell-public-nav--transaction mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-2 px-1.5 py-2 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3"
+          className="affisell-public-nav affisell-public-nav--transaction mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1.5 px-1 py-1.5 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:py-2"
         >
           <div className="flex min-w-0 items-center gap-2 lg:contents">
             {logo}
@@ -309,7 +306,7 @@ export function PublicNav() {
       ) : mode === "account" ? (
         <nav
           aria-label="Main"
-          className="affisell-public-nav affisell-public-nav--account mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-2 px-1.5 py-2 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0"
+          className="affisell-public-nav affisell-public-nav--account mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1.5 px-1 py-1.5 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
         >
           <div className="flex min-w-0 items-center justify-between gap-2 lg:contents">
             {logo}
@@ -317,13 +314,13 @@ export function PublicNav() {
             {mobileUtilities}
           </div>
           {accountPills}
-          {searchBlock({ suggestions: false, maxWidth: "lg:max-w-xl" })}
+          {searchBlock({ suggestions: false })}
           {desktopUtilities()}
         </nav>
       ) : (
         <nav
           aria-label="Main"
-          className="affisell-public-nav mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-2 px-1.5 py-2 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0"
+          className="affisell-public-nav mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1.5 px-1 py-1.5 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
         >
           <div className="flex min-w-0 items-center justify-between gap-2 lg:contents">
             {logo}

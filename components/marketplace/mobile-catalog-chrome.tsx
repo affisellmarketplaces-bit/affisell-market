@@ -76,27 +76,28 @@ export function MobileCatalogChrome({
     setFiltersOpen(false)
     onClearFilters()
   }
+  const summaryLabel = loading ? t("loading") : t("listingShort", { count: productCount })
 
   return (
     <>
-      <div className="sticky top-[calc(3.25rem+env(safe-area-inset-top,0px))] z-30 -mx-3 mb-3 border-b border-white/10 bg-zinc-950/85 px-3 py-2 backdrop-blur-xl supports-[backdrop-filter]:bg-zinc-950/75 md:hidden dark:bg-zinc-950/90">
-        <div className="flex items-center gap-2">
+      <div className="sticky top-[calc(2.85rem+env(safe-area-inset-top,0px))] z-30 -mx-3 mb-2 border-b border-white/10 bg-zinc-950/82 px-3 py-1.5 backdrop-blur-xl supports-[backdrop-filter]:bg-zinc-950/70 md:hidden dark:bg-zinc-950/88">
+        <div className="flex items-center gap-1.5">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={openMobileBuyerHub}
-            className="h-11 min-h-11 shrink-0 gap-1.5 border-white/15 bg-white/5 px-2.5 text-xs text-zinc-100"
+            className="h-10 min-h-10 shrink-0 gap-1.5 border-white/15 bg-white/5 px-2.5 text-xs text-zinc-100"
+            aria-label={t("menu")}
           >
             <Menu className="size-3.5" aria-hidden />
-            {t("menu")}
           </Button>
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => setCategoriesOpen(true)}
-            className="h-11 min-h-11 flex-1 gap-1.5 border-violet-500/30 bg-violet-500/10 text-xs text-violet-100"
+            className="h-10 min-h-10 flex-1 gap-1.5 border-violet-500/30 bg-violet-500/10 px-2.5 text-xs text-violet-100"
           >
             <LayoutGrid className="size-3.5 shrink-0" aria-hidden />
             {t("categories")}
@@ -106,32 +107,26 @@ export function MobileCatalogChrome({
             variant="outline"
             size="sm"
             onClick={() => setFiltersOpen(true)}
-            className="h-11 min-h-11 flex-1 gap-1.5 border-white/15 bg-white/5 text-xs text-zinc-100"
+            className="h-10 min-h-10 flex-1 gap-1.5 border-white/15 bg-white/5 px-2.5 text-xs text-zinc-100"
           >
             <Filter className="size-3.5 shrink-0" aria-hidden />
             {t("filters")}
           </Button>
         </div>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-zinc-400">
-          {loading ? (
-            <span>{t("loading")}</span>
-          ) : (
-            <span className="font-medium text-zinc-200">
-              {t("listingShort", { count: productCount })}
-            </span>
-          )}
+        <div className="mt-1.5 flex min-h-8 items-center justify-between gap-2 text-[11px] text-zinc-400">
+          <span className="truncate font-medium text-zinc-200">{summaryLabel}</span>
           {hasFilters ? (
             <button
               type="button"
               onClick={handleClearFilters}
               className={cn(
-                "inline-flex max-w-full min-h-9 items-center gap-1 truncate rounded-full border border-violet-500/30 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold text-violet-100"
+                "inline-flex max-w-[60%] min-h-8 items-center gap-1 truncate rounded-full border border-violet-500/30 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold text-violet-100"
               )}
             >
-              {activeFilterLabel}
+              <span className="truncate">{activeFilterLabel}</span>
               <X className="size-3 shrink-0" aria-hidden />
             </button>
-          ) : null}
+          ) : <span className="text-[10px] uppercase tracking-[0.12em] text-zinc-500">{t("filters")}</span>}
         </div>
       </div>
 

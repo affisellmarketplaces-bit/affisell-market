@@ -59,6 +59,18 @@ export function NavHeaderSearch({
   const [open, setOpen] = useState(false)
   const [products, setProducts] = useState<ProductHit[]>([])
   const [loading, setLoading] = useState(false)
+  const [desktopSuggestions, setDesktopSuggestions] = useState(false)
+
+  useEffect(() => {
+    if (!enableSuggestions) return
+    const media = window.matchMedia("(min-width: 1024px)")
+    const sync = () => setDesktopSuggestions(media.matches)
+    sync()
+    media.addEventListener("change", sync)
+    return () => media.removeEventListener("change", sync)
+  }, [enableSuggestions])
+
+  const suggestionsActive = enableSuggestions && desktopSuggestions
 
   const resolvedPlaceholder =
     placeholder ?? (searchTarget === "catalog" ? tNav("searchCatalog") : tNav("searchProducts"))
@@ -72,13 +84,13 @@ export function NavHeaderSearch({
         : ""
 
   useEffect(() => {
-    if (enableSuggestions) {
+    if (suggestionsActive) {
       setQ(defaultQ)
     }
-  }, [defaultQ, enableSuggestions])
+  }, [defaultQ, suggestionsActive])
 
   const fetchProducts = useDebouncedCallback(async (needle: string) => {
-    if (!enableSuggestions) return
+    if (!suggestionsActive) return
     setLoading(true)
     try {
       const url =
@@ -96,12 +108,12 @@ export function NavHeaderSearch({
   }, 260)
 
   useEffect(() => {
-    if (!open || !enableSuggestions) return
+    if (!open || !suggestionsActive) return
     void fetchProducts(q.trim())
-  }, [open, q, enableSuggestions, fetchProducts])
+  }, [open, q, suggestionsActive, fetchProducts])
 
   useEffect(() => {
-    if (!enableSuggestions) return
+    if (!suggestionsActive) return
     const onPointerDown = (event: MouseEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) {
         setOpen(false)
@@ -109,7 +121,7 @@ export function NavHeaderSearch({
     }
     document.addEventListener("pointerdown", onPointerDown)
     return () => document.removeEventListener("pointerdown", onPointerDown)
-  }, [enableSuggestions])
+  }, [suggestionsActive])
 
   const submitQuery = useCallback(
     (raw: string) => {
@@ -140,7 +152,7 @@ export function NavHeaderSearch({
 
   function onSubmit(ev: FormEvent<HTMLFormElement>) {
     ev.preventDefault()
-    if (enableSuggestions) {
+    if (suggestionsActive) {
       submitQuery(q)
       setOpen(false)
       return
@@ -163,10 +175,10 @@ export function NavHeaderSearch({
   )
 
   const contextLabel =
-    enableSuggestions && searchContext ? tPublic(CONTEXT_LABEL_KEYS[searchContext]) : null
-  const showPanel = enableSuggestions && open
+    suggestionsActive && searchContext ? tPublic(CONTEXT_LABEL_KEYS[searchContext]) : null
+  const showPanel = suggestionsActive && open
 
-  if (!enableSuggestions) {
+  if (!suggestionsActive) {
     return (
       <form className="flex min-w-0 flex-1 items-center gap-2" onSubmit={onSubmit} role="search">
         <div className="relative flex min-w-0 flex-1 items-center">

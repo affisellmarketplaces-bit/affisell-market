@@ -106,7 +106,7 @@ body.affisell-demo-lab .affisell-header-shell {
 }
 
 :root {
-  --affisell-mobile-dock-offset: calc(5rem + env(safe-area-inset-bottom));
+  --affisell-mobile-dock-offset: calc(4.45rem + env(safe-area-inset-bottom));
   --affisell-swipe-dock-h: 4.25rem;
   --affisell-swipe-product-strip-h: 0px;
   --affisell-swipe-header-h: 3rem;
@@ -331,7 +331,7 @@ body.affisell-demo-lab .affisell-header-shell {
     }
 
     .affisell-site-footer__pad {
-      padding-bottom: max(5.25rem, calc(4.75rem + env(safe-area-inset-bottom)));
+      padding-bottom: max(4.75rem, calc(4.25rem + env(safe-area-inset-bottom)));
     }
 
     body.affisell-mobile-dock-off .affisell-site-footer__pad {
@@ -802,8 +802,8 @@ body.affisell-demo-lab .affisell-header-shell {
     -webkit-backdrop-filter: blur(20px) saturate(155%);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.72),
-      0 12px 40px rgb(109 40 217 / 0.14),
-      0 8px 24px rgb(15 23 42 / 0.1);
+      0 10px 28px rgb(109 40 217 / 0.12),
+      0 6px 18px rgb(15 23 42 / 0.08);
   }
 
   .dark .affisell-mobile-dock-epoxy {
@@ -1061,6 +1061,43 @@ body.affisell-demo-lab .affisell-header-shell {
     gap: 0.35rem;
     padding-top: 0.35rem;
     padding-bottom: 0.35rem;
+  }
+
+  @media (max-width: 767px) {
+    .affisell-global-site-header {
+      padding-bottom: 0.25rem;
+    }
+
+    .affisell-header-shell {
+      border-radius: 1.15rem;
+      box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.34),
+        0 10px 24px rgb(5 8 22 / 0.1);
+    }
+
+    .affisell-header-band {
+      height: 2px;
+      opacity: 0.88;
+    }
+
+    .affisell-site-header-trust-strip .relative.mx-auto {
+      padding-top: 0.35rem;
+      padding-bottom: 0.35rem;
+    }
+
+    .affisell-global-site-header--compact .affisell-site-header-trust-strip,
+    .affisell-global-site-header--scrolled .affisell-site-header-trust-strip {
+      display: none;
+    }
+
+    .affisell-public-nav {
+      gap: 0.35rem;
+    }
+
+    .affisell-public-nav .affisell-brand-wordmark {
+      font-size: 1rem;
+      line-height: 1.2rem;
+    }
   }
 
   .affisell-header-shell--compact .affisell-brand-wordmark {

@@ -28,7 +28,7 @@ export function SiteHeaderChrome({ children }: Props) {
   return (
     <header
       className={cn(
-        "affisell-global-site-header sticky top-0 z-[200] w-full max-w-full shrink-0 overflow-x-clip px-3 pt-[max(0.5rem,env(safe-area-inset-top))] transition-[padding,background,backdrop-filter] duration-300 md:px-4 md:pt-3",
+        "affisell-global-site-header sticky top-0 z-[200] w-full max-w-full shrink-0 overflow-x-clip px-2 pt-[max(0.35rem,env(safe-area-inset-top))] transition-[padding,background,backdrop-filter] duration-300 md:px-4 md:pt-3",
         compact && "affisell-global-site-header--compact md:pt-2",
         scrolled && "affisell-global-site-header--scrolled"
       )}
@@ -45,7 +45,7 @@ export function SiteHeaderChrome({ children }: Props) {
           <div className="affisell-header-band pointer-events-none absolute inset-x-0 bottom-0 z-[1]" aria-hidden />
           <div className="relative z-[2]">{children}</div>
         </div>
-        <SiteHeaderTrustStrip />
+        <SiteHeaderTrustStrip compact={compact} />
       </div>
     </header>
   )
