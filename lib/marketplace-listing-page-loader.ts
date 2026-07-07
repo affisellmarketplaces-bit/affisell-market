@@ -2,6 +2,7 @@ import {
   buyerListedAffiliateProductWhere,
   buyerMarketplaceProductWhere,
 } from "@/lib/marketplace-buyer-product-filter"
+import { looksLikeAffiliateListingId } from "@/lib/listing-public-url-shared"
 import { loadPdpCrossSellBundle } from "@/lib/load-marketplace-pdp-cross-sell"
 import { countAffiliateCreatorsWatchingProduct } from "@/lib/affiliate-product-opportunity-pulse"
 import { isPrismaMissingColumnError } from "@/lib/prisma-missing-column"
@@ -23,6 +24,7 @@ export const listingDetailSelect = {
   buyerRewardKind: true,
   buyerRewardPercent: true,
   showWarranty: true,
+  customSlug: true,
   product: {
     select: {
       id: true,
@@ -106,6 +108,7 @@ export const listingDetailSelect = {
 type ListingWhere = {
   id?: string
   productId?: string
+  customSlug?: string
   isListed?: boolean
   product: typeof buyerMarketplaceProductWhere
   affiliate: {
@@ -151,6 +154,7 @@ async function findListingDetailRow(where: ListingWhere): Promise<ListingDetailR
     where: {
       ...(where.id ? { id: where.id } : {}),
       ...(where.productId ? { productId: where.productId } : {}),
+      ...(where.customSlug ? { customSlug: where.customSlug } : {}),
       ...(where.isListed !== undefined ? { isListed: where.isListed } : {}),
       product: where.product,
       affiliate: where.affiliate,
@@ -198,7 +202,7 @@ export async function loadMarketplaceListingPageData(args: {
   allowOwnerPreview?: boolean
   ownerAffiliateUserId?: string | null
 }) {
-  const listingId = args.listingId.trim()
+  const segment = args.listingId.trim()
 
   const baseAffiliateWhere = { role: "AFFILIATE" as const }
   const scopedAffiliateWhere = {
@@ -206,24 +210,50 @@ export async function loadMarketplaceListingPageData(args: {
     ...(args.storeSlug ? { store: { slug: args.storeSlug } } : {}),
   }
 
-  let listing = await findListingDetailRow({
-    id: listingId,
-    isListed: true,
-    product: buyerMarketplaceProductWhere,
-    affiliate: scopedAffiliateWhere,
-  })
+  let listing = looksLikeAffiliateListingId(segment)
+    ? await findListingDetailRow({
+        id: segment,
+        isListed: true,
+        product: buyerMarketplaceProductWhere,
+        affiliate: scopedAffiliateWhere,
+      })
+    : null
 
-  let listingIdRedirect: string | null = null
-  if (!listing) {
+  if (!listing && args.storeSlug) {
     listing = await findListingDetailRow({
-      productId: listingId,
+      customSlug: segment,
       isListed: true,
       product: buyerMarketplaceProductWhere,
       affiliate: scopedAffiliateWhere,
     })
-    if (listing && listing.id !== listingId) {
+  }
+
+  let listingIdRedirect: string | null = null
+  let listingSlugRedirect: string | null = null
+
+  if (!listing) {
+    listing = await findListingDetailRow({
+      id: segment,
+      isListed: true,
+      product: buyerMarketplaceProductWhere,
+      affiliate: scopedAffiliateWhere,
+    })
+  }
+
+  if (!listing) {
+    listing = await findListingDetailRow({
+      productId: segment,
+      isListed: true,
+      product: buyerMarketplaceProductWhere,
+      affiliate: scopedAffiliateWhere,
+    })
+    if (listing && listing.id !== segment) {
       listingIdRedirect = listing.id
     }
+  }
+
+  if (listing?.customSlug?.trim() && segment === listing.id) {
+    listingSlugRedirect = listing.customSlug.trim()
   }
 
   let ownerPreviewUnlisted = false
@@ -235,20 +265,26 @@ export async function loadMarketplaceListingPageData(args: {
     }
     listing =
       (await findListingDetailRow({
-        id: listingId,
+        id: segment,
         isListed: false,
         product: buyerMarketplaceProductWhere,
         affiliate: ownerAffiliateWhere,
       })) ??
       (await findListingDetailRow({
-        productId: listingId,
+        customSlug: segment,
+        isListed: false,
+        product: buyerMarketplaceProductWhere,
+        affiliate: ownerAffiliateWhere,
+      })) ??
+      (await findListingDetailRow({
+        productId: segment,
         isListed: false,
         product: buyerMarketplaceProductWhere,
         affiliate: ownerAffiliateWhere,
       }))
     if (listing) {
       ownerPreviewUnlisted = true
-      if (listing.id !== listingId) {
+      if (listing.id !== segment) {
         listingIdRedirect = listing.id
       }
     }
@@ -256,20 +292,27 @@ export async function loadMarketplaceListingPageData(args: {
 
   let canonicalRedirect: string | null = null
   if (!listing && args.storeSlug) {
-    listing = await findListingDetailRow({
-      id: listingId,
-      isListed: true,
-      product: buyerMarketplaceProductWhere,
-      affiliate: baseAffiliateWhere,
-    })
+    listing = looksLikeAffiliateListingId(segment)
+      ? await findListingDetailRow({
+          id: segment,
+          isListed: true,
+          product: buyerMarketplaceProductWhere,
+          affiliate: baseAffiliateWhere,
+        })
+      : await findListingDetailRow({
+          customSlug: segment,
+          isListed: true,
+          product: buyerMarketplaceProductWhere,
+          affiliate: baseAffiliateWhere,
+        })
     if (!listing) {
       listing = await findListingDetailRow({
-        productId: listingId,
+        productId: segment,
         isListed: true,
         product: buyerMarketplaceProductWhere,
         affiliate: baseAffiliateWhere,
       })
-      if (listing && listing.id !== listingId) {
+      if (listing && listing.id !== segment) {
         listingIdRedirect = listing.id
       }
     }
@@ -280,6 +323,10 @@ export async function loadMarketplaceListingPageData(args: {
   }
 
   if (!listing?.product) return null
+
+  if (!listingSlugRedirect && listing.customSlug?.trim() && segment === listing.id) {
+    listingSlugRedirect = listing.customSlug.trim()
+  }
 
   const categories = Array.isArray(listing.product.categories)
     ? listing.product.categories.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
@@ -318,6 +365,7 @@ export async function loadMarketplaceListingPageData(args: {
     listing,
     canonicalRedirect,
     listingIdRedirect,
+    listingSlugRedirect,
     ownerPreviewUnlisted,
     crossSell,
     viewsLast24h,

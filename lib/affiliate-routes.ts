@@ -1,4 +1,5 @@
 /** Affiliate product discovery (margins, commissions) — not the public buyer marketplace. */
+import { listingPublicSegment } from "@/lib/listing-public-url-shared"
 export const AFFILIATE_CATALOG_PATH = "/dashboard/affiliate/catalog"
 
 /** Swipe Feed hub — Tinder-style product discovery & one-tap listing. */
@@ -17,8 +18,13 @@ export function shopStorefrontPath(slug: string): string {
   return `${PUBLIC_SHOPS_PATH}/${encodeURIComponent(slug)}`
 }
 
-export function shopListingPath(storeSlug: string, listingId: string): string {
-  return `${shopStorefrontPath(storeSlug)}/product/${encodeURIComponent(listingId)}`
+export function shopListingPath(
+  storeSlug: string,
+  listingId: string,
+  customSlug?: string | null
+): string {
+  const segment = listingPublicSegment(listingId, customSlug)
+  return `${shopStorefrontPath(storeSlug)}/product/${encodeURIComponent(segment)}`
 }
 
 export { isAffiliateShopStorefrontPath } from "@/lib/mobile-chrome"

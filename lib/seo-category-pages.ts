@@ -1,6 +1,7 @@
 import { cache } from "react"
 
 import { listingDisplayTitle } from "@/lib/affiliate-listing-display"
+import { shopListingPath } from "@/lib/affiliate-routes"
 import {
   computeMarketplaceCategoryTreeCounts,
   countMarketplaceListingsForScope,
@@ -117,12 +118,13 @@ export async function loadBrowseCategoryListings(
         : typeof row.price === "number"
           ? Math.round(row.price * 100)
           : 0
+    const customSlug = typeof row.customSlug === "string" ? row.customSlug : null
     items.push({
       listingId,
       name,
       image: typeof row.image === "string" ? row.image : null,
       priceCents,
-      href: `/shops/${encodeURIComponent(storeSlug)}/product/${encodeURIComponent(listingId)}`,
+      href: shopListingPath(storeSlug, listingId, customSlug),
       storeName: typeof row.store === "string" ? row.store : null,
     })
   }

@@ -3,6 +3,8 @@ import type { NicheKey } from "@/lib/shop-storefront-shared"
 
 /** Client-safe discovery types (no Prisma). */
 
+import { shopListingPath } from "@/lib/affiliate-routes"
+
 export type BuyerCategoryChip = {
   id: string
   name: string
@@ -14,6 +16,7 @@ export type BuyerListingCard = HomeProductCard & {
   storeSlug: string
   nicheLabel: NicheKey
   categories: string[]
+  customSlug?: string | null
 }
 
 export function buyerListingToCardProps(item: BuyerListingCard) {
@@ -31,6 +34,7 @@ export function buyerListingToCardProps(item: BuyerListingCard) {
     reviewCount: item.reviewCount,
     soldCount: item.soldCount,
     store: item.storeName,
-    href: `/shops/${encodeURIComponent(item.storeSlug)}/product/${encodeURIComponent(item.listingId)}`,
+    href: shopListingPath(item.storeSlug, item.listingId, item.customSlug),
+    customSlug: item.customSlug ?? null,
   }
 }

@@ -21,6 +21,7 @@ const listingSelect = {
   productId: true,
   customTitle: true,
   customImages: true,
+  customSlug: true,
   product: {
     select: {
       id: true,
@@ -53,6 +54,7 @@ function mapRow(
     productId: string
     customTitle: string | null
     customImages: string[]
+    customSlug: string | null
     product: {
       id: string
       name: string
@@ -101,6 +103,7 @@ function mapRow(
     reviewCount: p.reviewCount,
     storeName: store.name,
     storeSlug: store.slug,
+    customSlug: row.customSlug,
     nicheLabel: inferNicheLabel(store.description, store.name),
     categories: p.categories ?? [],
     isBestSeller: p.isBestSeller,

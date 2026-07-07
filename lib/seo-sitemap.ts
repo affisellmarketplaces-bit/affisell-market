@@ -1,11 +1,21 @@
 import type { MetadataRoute } from "next"
 
+import { shopListingPath, shopStorefrontPath } from "@/lib/affiliate-routes"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
 import { loadIndexableCategoryBrowseSlugs } from "@/lib/seo-category-pages"
 import { categoryBrowsePath } from "@/lib/seo-category-pages-shared"
 import { loadPublicAffiliateShopSlugs } from "@/lib/shop-storefront-data"
 import { resolveSiteBaseUrl } from "@/lib/seo-site-url"
+
+/** Google allows 50k URLs/sitemap — keep headroom for growth. */
+export const SITEMAP_URLS_PER_CHUNK = 10_000
+
+export const SITEMAP_CHUNK = {
+  core: 0,
+  shops: 1,
+  listingsOffset: 2,
+} as const
 
 export type SitemapBuildOptions = {
   baseUrl?: string
@@ -14,6 +24,14 @@ export type SitemapBuildOptions = {
   listingLimit?: number
   supplierLimit?: number
 }
+
+export type ListingSitemapRow = {
+  id: string
+  customSlug: string | null
+  storeSlug: string
+}
+
+const SHOP_TRUST_SUFFIXES = ["about", "faq", "returns"] as const
 
 export async function loadPublicSupplierStoreSlugs(limit = 500): Promise<string[]> {
   const rows = await withPrismaReconnect(() =>
@@ -27,7 +45,23 @@ export async function loadPublicSupplierStoreSlugs(limit = 500): Promise<string[
   return rows.map((row) => row.slug)
 }
 
-export async function loadPublicListingSitemapPaths(limit = 5000): Promise<string[]> {
+export async function countPublicListingSitemapRows(): Promise<number> {
+  return withPrismaReconnect(() =>
+    prisma.affiliateProduct.count({
+      where: {
+        ...buyerListedAffiliateProductWhere,
+        affiliate: { store: { isNot: null } },
+      },
+    })
+  )
+}
+
+export async function loadPublicListingSitemapRows(
+  args: { offset?: number; limit?: number } = {}
+): Promise<ListingSitemapRow[]> {
+  const offset = Math.max(0, args.offset ?? 0)
+  const limit = Math.max(1, args.limit ?? 5000)
+
   const rows = await withPrismaReconnect(() =>
     prisma.affiliateProduct.findMany({
       where: {
@@ -36,9 +70,11 @@ export async function loadPublicListingSitemapPaths(limit = 5000): Promise<strin
       },
       select: {
         id: true,
+        customSlug: true,
         affiliate: { select: { store: { select: { slug: true } } } },
       },
       orderBy: [{ conversions: "desc" }, { updatedAt: "desc" }],
+      skip: offset,
       take: limit,
     })
   )
@@ -47,67 +83,112 @@ export async function loadPublicListingSitemapPaths(limit = 5000): Promise<strin
     .map((row) => {
       const storeSlug = row.affiliate.store?.slug?.trim()
       if (!storeSlug) return null
-      return `/shops/${encodeURIComponent(storeSlug)}/product/${encodeURIComponent(row.id)}`
+      return {
+        id: row.id,
+        customSlug: row.customSlug,
+        storeSlug,
+      }
     })
-    .filter((path): path is string => Boolean(path))
+    .filter((row): row is ListingSitemapRow => Boolean(row))
 }
 
-export async function buildAffisellSitemap(
+export function listingSitemapPath(row: ListingSitemapRow): string {
+  return shopListingPath(row.storeSlug, row.id, row.customSlug)
+}
+
+export async function planAffisellSitemapChunks(
+  listingChunkSize = SITEMAP_URLS_PER_CHUNK
+): Promise<number[]> {
+  const listingCount = await countPublicListingSitemapRows()
+  const listingChunks = Math.max(1, Math.ceil(listingCount / listingChunkSize))
+  return [
+    SITEMAP_CHUNK.core,
+    SITEMAP_CHUNK.shops,
+    ...Array.from({ length: listingChunks }, (_, index) => SITEMAP_CHUNK.listingsOffset + index),
+  ]
+}
+
+function withBaseUrl(baseUrl: string, path: string, now: Date, priority: number, changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"]) {
+  return {
+    url: `${baseUrl}${path}`,
+    lastModified: now,
+    changeFrequency,
+    priority,
+  }
+}
+
+export async function buildAffisellSitemapChunk(
+  chunkId: number,
   options: SitemapBuildOptions = {}
 ): Promise<MetadataRoute.Sitemap> {
   const baseUrl = (options.baseUrl ?? resolveSiteBaseUrl()).replace(/\/$/, "")
   const now = new Date()
 
-  const staticEntries: MetadataRoute.Sitemap = [
-    { url: `${baseUrl}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
-    { url: `${baseUrl}/shops`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
-    { url: `${baseUrl}/sell`, lastModified: now, changeFrequency: "weekly", priority: 0.85 },
-    { url: `${baseUrl}/how-it-works`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-  ]
+  if (chunkId === SITEMAP_CHUNK.core) {
+    let categorySlugs: string[] = []
+    let supplierSlugs: string[] = []
+    try {
+      ;[categorySlugs, supplierSlugs] = await Promise.all([
+        loadIndexableCategoryBrowseSlugs(options.categoryLimit ?? 500),
+        loadPublicSupplierStoreSlugs(options.supplierLimit ?? 500),
+      ])
+    } catch (err) {
+      console.error("[seo-sitemap] core chunk failed:", err)
+    }
 
-  let shopSlugs: string[] = []
-  let categorySlugs: string[] = []
-  let supplierSlugs: string[] = []
-  let listingPaths: string[] = []
-
-  try {
-    ;[shopSlugs, categorySlugs, supplierSlugs, listingPaths] = await Promise.all([
-      loadPublicAffiliateShopSlugs(options.shopLimit ?? 2000),
-      loadIndexableCategoryBrowseSlugs(options.categoryLimit ?? 500),
-      loadPublicSupplierStoreSlugs(options.supplierLimit ?? 500),
-      loadPublicListingSitemapPaths(options.listingLimit ?? 5000),
-    ])
-  } catch (err) {
-    console.error("[seo-sitemap] build failed:", err)
+    return [
+      withBaseUrl(baseUrl, "/", now, 1, "weekly"),
+      withBaseUrl(baseUrl, "/shops", now, 0.9, "daily"),
+      withBaseUrl(baseUrl, "/sell", now, 0.85, "weekly"),
+      withBaseUrl(baseUrl, "/how-it-works", now, 0.7, "monthly"),
+      ...categorySlugs.map((slug) =>
+        withBaseUrl(baseUrl, categoryBrowsePath(slug), now, 0.75, "daily")
+      ),
+      ...supplierSlugs.map((slug) =>
+        withBaseUrl(baseUrl, `/store/supplier/${encodeURIComponent(slug)}`, now, 0.65, "weekly")
+      ),
+    ]
   }
 
-  const shopUrls: MetadataRoute.Sitemap = shopSlugs.map((slug) => ({
-    url: `${baseUrl}/shops/${encodeURIComponent(slug)}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.8,
-  }))
+  if (chunkId === SITEMAP_CHUNK.shops) {
+    let shopSlugs: string[] = []
+    try {
+      shopSlugs = await loadPublicAffiliateShopSlugs(options.shopLimit ?? 2000)
+    } catch (err) {
+      console.error("[seo-sitemap] shops chunk failed:", err)
+    }
 
-  const categoryUrls: MetadataRoute.Sitemap = categorySlugs.map((slug) => ({
-    url: `${baseUrl}${categoryBrowsePath(slug)}`,
-    lastModified: now,
-    changeFrequency: "daily",
-    priority: 0.75,
-  }))
+    const entries: MetadataRoute.Sitemap = []
+    for (const slug of shopSlugs) {
+      const storefront = shopStorefrontPath(slug)
+      entries.push(withBaseUrl(baseUrl, storefront, now, 0.8, "weekly"))
+      for (const suffix of SHOP_TRUST_SUFFIXES) {
+        entries.push(withBaseUrl(baseUrl, `${storefront}/${suffix}`, now, 0.55, "monthly"))
+      }
+    }
+    return entries
+  }
 
-  const supplierUrls: MetadataRoute.Sitemap = supplierSlugs.map((slug) => ({
-    url: `${baseUrl}/store/supplier/${encodeURIComponent(slug)}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.65,
-  }))
+  const listingChunkIndex = chunkId - SITEMAP_CHUNK.listingsOffset
+  if (listingChunkIndex < 0) return []
 
-  const listingUrls: MetadataRoute.Sitemap = listingPaths.map((path) => ({
-    url: `${baseUrl}${path}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.6,
-  }))
+  const offset = listingChunkIndex * SITEMAP_URLS_PER_CHUNK
+  const limit = options.listingLimit ?? SITEMAP_URLS_PER_CHUNK
+  let rows: ListingSitemapRow[] = []
+  try {
+    rows = await loadPublicListingSitemapRows({ offset, limit })
+  } catch (err) {
+    console.error("[seo-sitemap] listings chunk failed:", { chunkId, err })
+  }
 
-  return [...staticEntries, ...categoryUrls, ...shopUrls, ...supplierUrls, ...listingUrls]
+  return rows.map((row) => withBaseUrl(baseUrl, listingSitemapPath(row), now, 0.6, "weekly"))
+}
+
+/** Monolithic sitemap — tests & legacy callers. */
+export async function buildAffisellSitemap(
+  options: SitemapBuildOptions = {}
+): Promise<MetadataRoute.Sitemap> {
+  const chunkIds = await planAffisellSitemapChunks()
+  const parts = await Promise.all(chunkIds.map((id) => buildAffisellSitemapChunk(id, options)))
+  return parts.flat()
 }

@@ -1,7 +1,19 @@
 import type { MetadataRoute } from "next"
 
-import { buildAffisellSitemap } from "@/lib/seo-sitemap"
+import {
+  buildAffisellSitemapChunk,
+  planAffisellSitemapChunks,
+} from "@/lib/seo-sitemap"
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  return buildAffisellSitemap()
+export async function generateSitemaps() {
+  const chunkIds = await planAffisellSitemapChunks()
+  return chunkIds.map((id) => ({ id }))
+}
+
+export default async function sitemap(props: {
+  id: Promise<string>
+}): Promise<MetadataRoute.Sitemap> {
+  const id = Number(await props.id)
+  if (!Number.isFinite(id) || id < 0) return []
+  return buildAffisellSitemapChunk(id)
 }

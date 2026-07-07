@@ -75,6 +75,7 @@ export const listingMarketplaceSelectLite = {
   showWarranty: true,
   customImages: true,
   customTitle: true,
+  customSlug: true,
   product: {
     select: {
       id: true,
@@ -172,6 +173,7 @@ export function serializeMarketplaceListing(
     store: publicStoreLabelFromAffiliateRow(row.affiliate),
     isBestSeller: row.isFeatured,
     storeSlug: row.affiliate.store?.slug ?? null,
+    customSlug: row.customSlug ?? null,
     buyerRewardBadge: buyerRewardBadgeText(
       normalizeBuyerRewardKind(row.buyerRewardKind),
       row.buyerRewardPercent ?? 0

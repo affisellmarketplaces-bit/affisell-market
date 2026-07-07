@@ -3,6 +3,7 @@ import {
   isDisplayableListingImageUrl,
   pickListingCardImageUrl,
 } from "@/lib/affiliate-listing-display"
+import { shopListingPath } from "@/lib/affiliate-routes"
 import { resolveListingCardImageHref } from "@/lib/listing-card-image-shared"
 
 export function homeCatalogProductHref(product: Record<string, unknown>): string {
@@ -16,9 +17,12 @@ export function homeCatalogProductHref(product: Record<string, unknown>): string
   const storeSlugRaw = product.storeSlug
   const storeSlug =
     typeof storeSlugRaw === "string" && storeSlugRaw.trim() ? storeSlugRaw.trim() : null
+  const customSlugRaw = product.customSlug
+  const customSlug =
+    typeof customSlugRaw === "string" && customSlugRaw.trim() ? customSlugRaw.trim() : null
 
   if (listingId && storeSlug) {
-    return `/shops/${encodeURIComponent(storeSlug)}/product/${encodeURIComponent(listingId)}`
+    return shopListingPath(storeSlug, listingId, customSlug)
   }
   if (listingId) return `/marketplace/${encodeURIComponent(listingId)}`
   return "/#explorer"

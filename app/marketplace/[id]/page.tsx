@@ -16,6 +16,7 @@ import {
   listingGalleryUrls,
 } from "@/lib/affiliate-listing-display"
 import { shopListingPath } from "@/lib/affiliate-routes"
+import { resolveSiteBaseUrl } from "@/lib/seo-site-url"
 import { isAffiliateOwnerPreviewUrl } from "@/lib/affiliate-store-preview-access"
 import { loadMarketplaceListingPageData } from "@/lib/marketplace-listing-page-loader"
 import { mapPdpCrossSellListings } from "@/lib/marketplace-pdp-cross-sell-shared"
@@ -88,6 +89,7 @@ export async function buildListingMetadataForId(
       customDescription: true,
       seoTitle: true,
       seoDescription: true,
+      customSlug: true,
       product: {
         select: {
           name: true,
@@ -132,7 +134,7 @@ export async function buildListingMetadataForId(
     primaryProductImage(resolved.customImages) ||
     primaryProductImage(resolved.product.images) ||
     null
-  return buildProductListingMetadata({
+  const metadata = buildProductListingMetadata({
     name,
     description:
       resolved.seoDescription?.trim() ||
@@ -142,6 +144,24 @@ export async function buildListingMetadataForId(
     inStock: resolved.product.stock > 0,
     customerFacing: true,
   })
+
+  if (storeSlug) {
+    const canonical = `${resolveSiteBaseUrl()}${shopListingPath(
+      storeSlug,
+      listingId,
+      resolved.customSlug
+    )}`
+    return {
+      ...metadata,
+      alternates: { canonical },
+      openGraph: {
+        ...metadata.openGraph,
+        url: canonical,
+      },
+    }
+  }
+
+  return metadata
 }
 
 export async function generateMetadata({
@@ -200,16 +220,29 @@ export default async function MarketplaceListingPage({
     ownerAffiliateUserId: session?.user?.id ?? null,
   })
   if (!loaded) notFound()
+  const previewQs = sp.preview === "affiliate" ? "?preview=affiliate" : ""
+  const resolvedListingId = loaded.listing.id
+  const resolvedCustomSlug = loaded.listing.customSlug
+
   if (storeSlug && loaded.canonicalRedirect) {
-    redirect(shopListingPath(loaded.canonicalRedirect, id))
+    redirect(
+      `${shopListingPath(loaded.canonicalRedirect, resolvedListingId, resolvedCustomSlug)}${previewQs}`
+    )
   }
   if (loaded.listingIdRedirect) {
     const canonicalId = loaded.listingIdRedirect
-    const previewQs = sp.preview === "affiliate" ? "?preview=affiliate" : ""
     if (storeSlug) {
-      redirect(`${shopListingPath(storeSlug, canonicalId)}${previewQs}`)
+      redirect(`${shopListingPath(storeSlug, canonicalId, resolvedCustomSlug)}${previewQs}`)
     }
     redirect(`/marketplace/${canonicalId}${previewQs}`)
+  }
+  if (loaded.listingSlugRedirect) {
+    const canonicalStore = storeSlug ?? loaded.listing.affiliate.store?.slug?.trim()
+    if (canonicalStore) {
+      redirect(
+        `${shopListingPath(canonicalStore, resolvedListingId, loaded.listingSlugRedirect)}${previewQs}`
+      )
+    }
   }
 
   const { listing, crossSell, viewsLast24h, affiliateCreatorsWatching, writeReviewOrderId } = loaded
