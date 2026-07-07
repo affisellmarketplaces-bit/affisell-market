@@ -30,12 +30,13 @@ export function PortalSignInForm({
   subtitle,
   defaultCallback,
   signupHref,
-  signupLabel = "Create an account",
+  signupLabel,
   signInHref,
   signInLabel,
   showSocialSignIn = false,
 }: Props) {
   const t = useTranslations("auth")
+  const resolvedSignupLabel = signupLabel ?? t("signup")
   const search = useSearchParams()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -140,7 +141,7 @@ export function PortalSignInForm({
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder={t("emailPlaceholder")}
               className="w-full rounded-xl border border-gray-300 px-4 py-2.5 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
             />
           </div>
@@ -164,7 +165,7 @@ export function PortalSignInForm({
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder={t("passwordPlaceholder")}
               className="w-full rounded-xl border border-gray-300 px-4 py-2.5 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
             />
           </div>
@@ -179,7 +180,7 @@ export function PortalSignInForm({
 
         <p className="mt-6 text-center text-sm text-gray-600 dark:text-zinc-400">
           <Link href={signupHref} className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
-            {signupLabel}
+            {resolvedSignupLabel}
           </Link>
           {signInHref && signInLabel ? (
             <>

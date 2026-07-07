@@ -402,22 +402,28 @@
     "continueGoogle": "Continue with Google",
     "orPassword": "Or use password",
     "loading": "Loading…",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "••••••••",
     "adminLogin": {
       "title": "Affisell Admin sign in",
       "subtitle": "Platform access: auto-fulfill, orders, supplier API.",
-      "back": "Back"
+      "back": "Back",
+      "brand": "Affisell Admin",
+      "signOut": "Sign out",
+      "signIn": "Sign in",
+      "fallbackName": "Admin"
     },
     "loginSelector": {
       "title": "Affisell professional sign-in",
-      "subtitle": "Creators and suppliers: access your dashboard.",
-      "creatorTitle": "I'm a Creator",
-      "creatorHint": "Affiliate catalog & storefront",
+      "subtitle": "Resellers and suppliers: access your dashboard.",
+      "creatorTitle": "I'm a reseller",
+      "creatorHint": "Supplier catalog & storefront",
       "supplierTitle": "I'm a Supplier",
       "supplierHint": "Products & B2B orders",
       "buyerPrompt": "Shopped on Affisell?",
       "trackOrderLink": "Track my order →",
-      "noAccount": "No creator account yet?",
-      "createSpace": "Create my space"
+      "noAccount": "No reseller account yet?",
+      "createSpace": "Create my reseller space"
     },
     "non_customer_on_customer_portal": "This account is not a buyer account. Use creator or supplier login instead.",
     "marketplaceBuyer": {
@@ -436,7 +442,8 @@
       "backTrackOrder": "← Track my order",
       "wrongPortalTitle": "You're signed in with a merchant account",
       "wrongPortalBody": "Your current session is a {role} account. Sign out to open your buyer account with the email used at checkout.",
-      "wrongPortalSignOut": "Sign out and use buyer login"
+      "wrongPortalSignOut": "Sign out and use buyer login",
+      "acceptTermsError": "Please accept the terms and privacy policy."
     },
     "customerSignup": {
       "heroTitle": "Shop & Get Up to 20% Back",
@@ -495,7 +502,8 @@
       "subtitle": "Thousands of creators can sell your products",
       "createButton": "Create my account",
       "hasAccount": "Already a partner?",
-      "signIn": "Sign in"
+      "signIn": "Sign in",
+      "inviteBanner": "Signup linked to an Affisell partner invitation."
     },
     "merchantLegal": {
       "badge": "Affisell verification · Trust Layer",
@@ -590,6 +598,11 @@
         "non_supplier_on_supplier_portal": "Sign-in denied: only supplier accounts are allowed here.",
         "non_agent_on_agent_portal": "Sign-in denied: only Affisell agent accounts are allowed here.",
         "email_required_not_id": "Sign-in denied: enter your email address (not an internal ID)."
+      },
+      "agent": {
+        "title": "Affisell agent space",
+        "subtitle": "Quality checks, compliance and express relay — network-assigned missions.",
+        "signup": "Apply as an agent"
       }
     }
   },
@@ -3076,6 +3089,11 @@
       "cookies": "Cookies",
       "returns": "Returns",
       "contact": "Contact"
+    },
+    "signupConsent": {
+      "acceptCgu": "I accept the <cgu>Terms of use</cgu>",
+      "acceptRoleTerms": "I accept the <terms>{roleTerms}</terms>",
+      "acceptPrivacy": "I accept the <privacy>Privacy policy</privacy>"
     }
   },
   "legalPages": {

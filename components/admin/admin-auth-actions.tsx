@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { LogIn, LogOut } from "lucide-react"
 
 import { buttonVariants } from "@/components/ui/button"
@@ -11,9 +12,10 @@ import { cn } from "@/lib/utils"
 export function AdminAuthActions() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
+  const t = useTranslations("auth.adminLogin")
   const connected = status === "authenticated"
   const displayName =
-    session?.user?.name?.trim() || session?.user?.email?.trim() || "Admin"
+    session?.user?.name?.trim() || session?.user?.email?.trim() || t("fallbackName")
   const userEmail = session?.user?.email ?? null
 
   const callbackUrl = encodeURIComponent(pathname || "/admin/auto-fulfill")
@@ -41,7 +43,7 @@ export function AdminAuthActions() {
           }}
         >
           <LogOut className="size-3.5 shrink-0" aria-hidden />
-          Déconnecter
+          {t("signOut")}
         </button>
       </div>
     )
@@ -55,7 +57,7 @@ export function AdminAuthActions() {
       className={cn(buttonVariants({ variant: "bentoAccent", size: "sm" }), "gap-1.5 shrink-0")}
     >
       <LogIn className="size-3.5 shrink-0" aria-hidden />
-      Connecter
+      {t("signIn")}
     </Link>
   )
 }

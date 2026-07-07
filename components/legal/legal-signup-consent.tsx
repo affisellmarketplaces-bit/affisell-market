@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 import type { MerchantRole } from "@/lib/legal/consent"
 import { roleTermsHrefForRole, roleTermsLabelForRole } from "@/lib/legal/role-terms"
@@ -18,6 +19,9 @@ type Props = {
   className?: string
 }
 
+const linkClass =
+  "font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
+
 export function LegalSignupConsent({
   role,
   cguChecked,
@@ -28,6 +32,7 @@ export function LegalSignupConsent({
   onRoleTermsChange,
   className,
 }: Props) {
+  const t = useTranslations("legal.signupConsent")
   const roleTermsHref = roleTermsHrefForRole(role)
   const roleTermsLabel = roleTermsLabelForRole(role)
   const isMerchant = role === "SUPPLIER" || role === "AFFILIATE"
@@ -43,15 +48,13 @@ export function LegalSignupConsent({
           className="mt-0.5 size-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500"
         />
         <span>
-          J&apos;accepte les{" "}
-          <Link
-            href="/cgu"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
-          >
-            CGU
-          </Link>{" "}
+          {t.rich("acceptCgu", {
+            cgu: (chunks) => (
+              <Link href="/cgu" target="_blank" rel="noopener noreferrer" className={linkClass}>
+                {chunks}
+              </Link>
+            ),
+          })}{" "}
           <span className="text-red-600 dark:text-red-400">*</span>
         </span>
       </label>
@@ -66,15 +69,14 @@ export function LegalSignupConsent({
             className="mt-0.5 size-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500"
           />
           <span>
-            J&apos;accepte les{" "}
-            <Link
-              href={roleTermsHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
-            >
-              {roleTermsLabel}
-            </Link>{" "}
+            {t.rich("acceptRoleTerms", {
+              roleTerms: roleTermsLabel,
+              terms: (chunks) => (
+                <Link href={roleTermsHref} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                  {chunks}
+                </Link>
+              ),
+            })}{" "}
             <span className="text-red-600 dark:text-red-400">*</span>
           </span>
         </label>
@@ -89,15 +91,13 @@ export function LegalSignupConsent({
           className="mt-0.5 size-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500"
         />
         <span>
-          J&apos;accepte la{" "}
-          <Link
-            href="/privacy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
-          >
-            Politique de confidentialité
-          </Link>{" "}
+          {t.rich("acceptPrivacy", {
+            privacy: (chunks) => (
+              <Link href="/privacy" target="_blank" rel="noopener noreferrer" className={linkClass}>
+                {chunks}
+              </Link>
+            ),
+          })}{" "}
           <span className="text-red-600 dark:text-red-400">*</span>
         </span>
       </label>

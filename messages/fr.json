@@ -402,22 +402,28 @@
     "continueGoogle": "Continuer avec Google",
     "orPassword": "Ou avec mot de passe",
     "loading": "Chargement…",
+    "emailPlaceholder": "vous@exemple.com",
+    "passwordPlaceholder": "••••••••",
     "adminLogin": {
       "title": "Connexion Affisell Admin",
       "subtitle": "Accès plateforme : auto-fulfill, commandes, fournisseurs API.",
-      "back": "Retour"
+      "back": "Retour",
+      "brand": "Affisell Admin",
+      "signOut": "Déconnecter",
+      "signIn": "Connecter",
+      "fallbackName": "Admin"
     },
     "loginSelector": {
       "title": "Espace professionnel Affisell",
-      "subtitle": "Créateurs et fournisseurs : accédez à votre tableau de bord.",
-      "creatorTitle": "Je suis Créateur",
-      "creatorHint": "Catalogue ambassadeur & boutique",
+      "subtitle": "Revendeurs et fournisseurs : accédez à votre tableau de bord.",
+      "creatorTitle": "Je suis revendeur",
+      "creatorHint": "Catalogue fournisseur & boutique",
       "supplierTitle": "Je suis Fournisseur",
       "supplierHint": "Produits & commandes B2B",
       "buyerPrompt": "Vous avez commandé ?",
       "trackOrderLink": "Suivre ma commande →",
-      "noAccount": "Pas encore de compte créateur ?",
-      "createSpace": "Créer mon espace"
+      "noAccount": "Pas encore de compte revendeur ?",
+      "createSpace": "Créer mon espace revendeur"
     },
     "non_customer_on_customer_portal": "Ce compte n'est pas un compte client. Utilisez la connexion créateur ou fournisseur.",
     "marketplaceBuyer": {
@@ -436,7 +442,8 @@
       "backTrackOrder": "← Suivre ma commande",
       "wrongPortalTitle": "Vous êtes connecté avec un compte marchand",
       "wrongPortalBody": "Votre session actuelle est un compte {role}. Déconnectez-vous pour accéder à votre espace client avec l'e-mail utilisé lors de l'achat.",
-      "wrongPortalSignOut": "Se déconnecter et se connecter en tant qu'acheteur"
+      "wrongPortalSignOut": "Se déconnecter et se connecter en tant qu'acheteur",
+      "acceptTermsError": "Veuillez accepter les conditions et la politique de confidentialité."
     },
     "customerSignup": {
       "heroTitle": "Achetez et récupérez jusqu'à 20 %",
@@ -495,7 +502,8 @@
       "subtitle": "Des milliers de créateurs peuvent vendre vos produits",
       "createButton": "Créer mon compte",
       "hasAccount": "Déjà partenaire ?",
-      "signIn": "Se connecter"
+      "signIn": "Se connecter",
+      "inviteBanner": "Inscription liée à une invitation partenaire Affisell."
     },
     "merchantLegal": {
       "badge": "Vérification Affisell · Trust Layer",
@@ -590,6 +598,11 @@
         "non_supplier_on_supplier_portal": "Connexion refusée : seuls les comptes fournisseur sont autorisés pour cette destination.",
         "non_agent_on_agent_portal": "Connexion refusée : seuls les comptes agent Affisell sont autorisés pour cette destination.",
         "email_required_not_id": "Connexion refusée : saisissez votre adresse e-mail (pas un identifiant interne / ID)."
+      },
+      "agent": {
+        "title": "Espace agent Affisell",
+        "subtitle": "Contrôles qualité, conformité et relais express — missions assignées par le réseau.",
+        "signup": "Candidater comme agent"
       }
     }
   },
@@ -3118,6 +3131,11 @@
       "cookies": "Cookies",
       "returns": "Retours",
       "contact": "Contact"
+    },
+    "signupConsent": {
+      "acceptCgu": "J'accepte les <cgu>CGU</cgu>",
+      "acceptRoleTerms": "J'accepte les <terms>{roleTerms}</terms>",
+      "acceptPrivacy": "J'accepte la <privacy>Politique de confidentialité</privacy>"
     }
   },
   "legalPages": {

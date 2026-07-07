@@ -40,7 +40,7 @@ test.describe("public flows", () => {
         name: /Affisell professional sign-in|Espace professionnel Affisell|Connexion Affisell/i,
       })
     ).toBeVisible()
-    await expect(page.getByRole("link", { name: /I'm a Creator|Je suis Créateur/i })).toBeVisible()
+    await expect(page.getByRole("link", { name: /I'm a reseller|Je suis revendeur/i })).toBeVisible()
     await expect(page.getByRole("link", { name: /I'm a Supplier|Je suis Fournisseur/i })).toBeVisible()
     await expect(
       page.getByRole("link", { name: /Track my order|Suivre ma commande/i })

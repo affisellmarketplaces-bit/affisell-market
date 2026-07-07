@@ -36,6 +36,7 @@ const inputClass =
 
 export function ResetPasswordForm({ token }: Props) {
   const t = useTranslations("auth.passwordReset")
+  const tAuth = useTranslations("auth")
   const router = useRouter()
   const search = useSearchParams()
   const portal = parsePortal(search.get("portal"))
@@ -126,7 +127,7 @@ export function ResetPasswordForm({ token }: Props) {
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
+            placeholder={tAuth("passwordPlaceholder")}
             className={inputClass}
           />
         </div>
@@ -142,7 +143,7 @@ export function ResetPasswordForm({ token }: Props) {
             autoComplete="new-password"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            placeholder="••••••••"
+            placeholder={tAuth("passwordPlaceholder")}
             className={inputClass}
           />
         </div>

@@ -27,16 +27,17 @@ export default async function AgentLoginPage({ searchParams }: Props) {
   }
 
   const t = await getTranslations("auth")
+  const tAgent = await getTranslations("auth.portal.agent")
 
   return (
     <Suspense fallback={<div className="flex min-h-screen items-center justify-center">{t("loading")}</div>}>
       <PortalSignInForm
         portal="AGENT"
-        title="Espace agent Affisell"
-        subtitle="Contrôles qualité, conformité et relais express — missions assignées par le réseau."
+        title={tAgent("title")}
+        subtitle={tAgent("subtitle")}
         defaultCallback="/dashboard/agent"
         signupHref="/agents/apply"
-        signupLabel="Candidater comme agent"
+        signupLabel={tAgent("signup")}
         showSocialSignIn={false}
       />
     </Suspense>
