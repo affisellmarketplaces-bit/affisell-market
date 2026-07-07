@@ -75,7 +75,7 @@ export function ProductPriceOffer({
           align === "end" && "justify-end"
         )}
       >
-        <span className={cn("tabular-nums text-zinc-900 dark:text-white", priceClass)}>
+        <span className={cn("tabular-nums text-zinc-950 transition-transform duration-200 dark:text-white", priceClass)}>
           {formatStoreCurrency(offer.price)}
         </span>
         <span

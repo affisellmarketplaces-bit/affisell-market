@@ -59,7 +59,7 @@ export function FooterSocialOrbit({ links, className }: Props) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={label}
-            className="group relative flex size-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-violet-100/80 backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/10 hover:text-white hover:shadow-lg hover:shadow-violet-950/30"
+            className="affisell-premium-legal-chip group relative flex size-9 items-center justify-center rounded-xl text-violet-100/80 transition duration-300 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/10 hover:text-white hover:shadow-lg hover:shadow-violet-950/30"
           >
             <span
               className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-violet-500/0 to-sky-500/0 opacity-0 transition group-hover:from-violet-500/20 group-hover:to-sky-500/20 group-hover:opacity-100"

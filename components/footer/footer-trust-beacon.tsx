@@ -33,8 +33,8 @@ export function FooterTrustBeacon({ beacon, className }: Props) {
         </span>
         <div className="min-w-0 flex-1">
           <p className={footerHeroTitle}>{beacon.title}</p>
-          <p className={cn("mt-1.5 text-sm leading-snug", footerHeroTagline)}>{beacon.hint}</p>
-          <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-emerald-200 transition group-hover:gap-1.5 group-hover:text-white">
+          <p className={cn("mt-1.5 text-[13px] leading-snug sm:text-sm", footerHeroTagline)}>{beacon.hint}</p>
+          <span className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-200 transition group-hover:gap-1.5 group-hover:text-white sm:text-xs">
             {beacon.cta}
             <ArrowRight className="size-3.5" aria-hidden />
           </span>

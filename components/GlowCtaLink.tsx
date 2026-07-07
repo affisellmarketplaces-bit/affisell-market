@@ -15,7 +15,7 @@ type Props = {
 }
 
 const btnClass =
-  "group relative inline-flex rounded-2xl bg-[#6366F1] px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-200 hover:bg-[#5558E3] hover:shadow-xl"
+  "affisell-premium-cta group relative inline-flex rounded-[1.35rem] px-8 py-3.5 text-base font-semibold text-white transition-all duration-200"
 
 export function GlowCtaLink({ href, children, className, localeAware = false }: Props) {
   const router = useRouter()

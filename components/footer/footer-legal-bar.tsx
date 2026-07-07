@@ -23,7 +23,7 @@ export function FooterLegalBar({ content, className }: Props) {
           <Link
             key={link.href + link.label}
             href={link.href}
-            className="inline-flex shrink-0 items-center rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-medium text-violet-100/90 backdrop-blur-md transition hover:border-white/30 hover:bg-white/10 hover:text-white"
+            className="affisell-premium-legal-chip inline-flex shrink-0 items-center rounded-full px-3 py-1.5 text-[11px] font-medium text-violet-100/90 transition hover:border-white/30 hover:bg-white/10 hover:text-white"
           >
             {link.label}
           </Link>
@@ -31,7 +31,7 @@ export function FooterLegalBar({ content, className }: Props) {
       </nav>
 
       <div className="flex flex-col gap-4 border-t border-white/15 pt-4 sm:flex-row sm:items-end sm:justify-between">
-        <p className="max-w-2xl text-[11px] leading-relaxed text-violet-100/70">
+        <p className="max-w-2xl text-[10px] leading-relaxed text-violet-100/68 sm:text-[11px]">
           {content.copyrightLine}{" "}
           <a
             href={content.odrHref}
