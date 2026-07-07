@@ -13,6 +13,7 @@ import {
 } from "recharts"
 
 import type { HomeBarometerData } from "@/lib/home-marketplace-cards"
+import { categoryBrowsePath } from "@/lib/seo-category-pages-shared"
 import { formatStoreCurrency } from "@/lib/market-config"
 
 type Cat = HomeBarometerData["categories"][number]
@@ -141,7 +142,7 @@ export function SalesBarometer({ initialData = null }: Props) {
                   />
                 </div>
                 <Link
-                  href={`/shops/browse?category=${encodeURIComponent(c.categorySlug)}`}
+                  href={categoryBrowsePath(c.categorySlug)}
                   className="mt-2 inline-flex text-xs font-semibold text-violet-700 hover:underline dark:text-violet-300"
                 >
                   Vendre en {c.category} →

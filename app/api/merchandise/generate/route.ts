@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 
   const root = await prisma.category.findFirst({
     where: { name: resolved.dbRootName, parentId: null },
-    select: { id: true, name: true },
+    select: { id: true, name: true, slug: true },
   })
   if (!root) {
     return NextResponse.json({ error: "Category not seeded in database" }, { status: 404 })
@@ -174,6 +174,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     title,
     categoryId: root.id,
+    browseSlug: root.slug,
     items,
   })
   } catch (e) {

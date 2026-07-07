@@ -18,8 +18,12 @@ describe("auth public i18n (Lot H)", () => {
     expect(en.auth.marketplaceBuyer.acceptTermsError).toBeTruthy()
   })
 
-  it("exposes shared auth placeholders", () => {
-    expect(fr.auth.emailPlaceholder).toBeTruthy()
-    expect(en.auth.passwordPlaceholder).toBe("••••••••")
+  it("exposes reseller signup chooser and merchant auth copy in FR/EN", () => {
+    expect(fr.auth.signupChooser.affiliateTitle).toMatch(/revendeur/i)
+    expect(en.auth.signupChooser.affiliateTitle).toMatch(/reseller/i)
+    expect(fr.auth.signupAffiliate.title).toMatch(/revendeur/i)
+    expect(en.auth.signupAffiliate.hasAccount).toMatch(/reseller/i)
+    expect(fr.auth.signupSupplier.subtitle).toMatch(/revendeurs/i)
+    expect(en.auth.merchantLegal.titleAffiliate).toMatch(/reseller/i)
   })
 })

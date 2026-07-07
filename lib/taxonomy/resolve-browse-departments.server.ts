@@ -20,23 +20,25 @@ async function resolveTarget(
   target: BrowseDepartmentTarget
 ): Promise<{
   categoryId: string | null
+  categorySlug: string | null
   searchQuery: string | null
   googleId: number | null
   name: string | null
 }> {
   if (target.kind === "search") {
-    return { categoryId: null, searchQuery: target.queryFr, googleId: null, name: null }
+    return { categoryId: null, categorySlug: null, searchQuery: target.queryFr, googleId: null, name: null }
   }
 
   if (target.kind === "googleRoot") {
     const row = await withPrismaReconnect(() =>
       prisma.category.findFirst({
         where: { parentId: null, name: target.rootNameFr },
-        select: { id: true, googleId: true, name: true },
+        select: { id: true, slug: true, googleId: true, name: true },
       })
     )
     return {
       categoryId: row?.id ?? null,
+      categorySlug: row?.slug ?? null,
       searchQuery: null,
       googleId: row?.googleId ?? null,
       name: row?.name ?? null,
@@ -46,11 +48,12 @@ async function resolveTarget(
   const row = await withPrismaReconnect(() =>
     prisma.category.findFirst({
       where: { fullPath: target.fullPathFr },
-      select: { id: true, googleId: true, name: true },
+      select: { id: true, slug: true, googleId: true, name: true },
     })
   )
   return {
     categoryId: row?.id ?? null,
+    categorySlug: row?.slug ?? null,
     searchQuery: null,
     googleId: row?.googleId ?? null,
     name: row?.name ?? null,
@@ -83,6 +86,7 @@ async function loadBrowseDepartmentsUncached(locale: AppLocale): Promise<BrowseD
       icon: def.icon,
       label: departmentLabel(def, locale, resolved),
       categoryId: resolved.categoryId,
+      categorySlug: resolved.categorySlug,
       searchQuery: resolved.searchQuery,
       resolved: Boolean(resolved.categoryId || resolved.searchQuery),
     })

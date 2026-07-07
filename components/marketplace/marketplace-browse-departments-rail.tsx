@@ -14,6 +14,7 @@ import {
   brandOrbitRailShell,
 } from "@/lib/affisell-brand-orbit-shared"
 import { catalogFilterHref, catalogFilterHrefFromParams } from "@/lib/marketplace-catalog-nav.client"
+import { categoryBrowsePath } from "@/lib/seo-category-pages-shared"
 import type { ResolvedBrowseDepartment } from "@/lib/taxonomy/browse-departments-shared"
 import { cn } from "@/lib/utils"
 
@@ -56,7 +57,9 @@ export function MarketplaceBrowseDepartmentsRail({
       </div>
       <div className="relative flex gap-2 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {departments.map((dept) => {
-          const href = dept.categoryId
+          const href = dept.categorySlug
+            ? categoryBrowsePath(dept.categorySlug)
+            : dept.categoryId
             ? catalogFilterHrefFromParams(
                 basePath,
                 new URLSearchParams({ category: dept.categoryId })

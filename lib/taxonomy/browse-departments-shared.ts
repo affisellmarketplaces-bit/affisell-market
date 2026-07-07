@@ -181,6 +181,7 @@ export type ResolvedBrowseDepartment = {
   icon: string
   label: string
   categoryId: string | null
+  categorySlug: string | null
   searchQuery: string | null
   resolved: boolean
 }
