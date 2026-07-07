@@ -52,8 +52,8 @@
   "PublicNav": {
     "home": "Accueil",
     "marketplace": "Marketplace",
-    "creatorStores": "Boutiques créateurs",
-    "creatorStoresShort": "Créateurs",
+    "creatorStores": "Boutiques revendeur",
+    "creatorStoresShort": "Revendeurs",
     "searchPlaceholder": "Rechercher un produit…",
     "searchLabel": "Rechercher",
     "cmdKBadge": "⌘K",
@@ -86,8 +86,8 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Marketplace boutiques créateurs",
-      "description": "Achetez les produits sélectionnés par vos créateurs préférés. Livraison rapide, paiement sécurisé."
+      "title": "Affisell — Marketplace boutiques revendeur",
+      "description": "Achetez les produits sélectionnés par vos revendeurs préférés. Livraison rapide, paiement sécurisé."
     },
     "hero": {
       "title": "Les boutiques de vos",
@@ -108,7 +108,7 @@
       },
       "featuredStores": {
         "title": "Boutiques à la une",
-        "description": "Vitrines créateurs sélectionnées"
+        "description": "Vitrines revendeur sélectionnées"
       },
       "liveCatalog": {
         "title": "Catalogue en direct",
@@ -131,13 +131,13 @@
     },
     "buyerBanner": {
       "title": "Vous achetez ?",
-      "body": "Parcourez les boutiques créateurs.",
+      "body": "Parcourez les boutiques revendeur.",
       "cta": "Voir les boutiques →"
     },
-    "footerCreator": "Tu es créateur ?",
+    "footerCreator": "Tu es revendeur ?",
     "footerSupplier": "Tu es fournisseur ?",
     "footerSupplierCta": "Ouvrir un compte fournisseur",
-    "footerCreatorCta": "Devenir ambassadeur",
+    "footerCreatorCta": "Devenir revendeur",
     "footerNavAria": "Espace partenaires",
     "pickedEmpty": "Aucune suggestion pour cette niche pour le moment.",
     "featuredProductsEmpty": "Aucun produit mis en avant pour le moment.",
@@ -166,9 +166,9 @@
       "catalog": "Catalogue en direct",
       "catalogHint": "Rayons, filtres & fiches produit",
       "stores": "Boutiques",
-      "storesHint": "Toutes les vitrines créateurs",
+      "storesHint": "Toutes les vitrines revendeur",
       "featured": "Boutiques à la une",
-      "featuredHint": "Sélection créateurs · deck live",
+      "featuredHint": "Sélection revendeurs · deck live",
       "featuredShopRating": "{rating} ★",
       "featuredShopOrders": "{count} commandes",
       "featuredShopFromPrice": "Dès {price}",
@@ -511,7 +511,7 @@
       "submitLoading": "Création du compte…",
       "benefitCashback": "Jusqu'à 20 % de cashback crédité instantanément",
       "benefitReviews": "Bonus pour avis et parrainages",
-      "benefitCreators": "Soutenez vos créateurs préférés",
+      "benefitCreators": "Soutenez vos revendeurs préférés",
       "alreadyAccount": "Vous avez déjà un compte ?",
       "signIn": "Se connecter",
       "acceptTermsError": "Veuillez accepter les conditions et la politique de confidentialité.",
@@ -786,16 +786,16 @@
     }
   },
   "shops": {
-    "metaTitle": "Boutiques créateurs - Affisell",
-    "metaDescription": "Parcourez les boutiques Affisell des créateurs ambassadeurs.",
-    "title": "Boutiques créateurs",
-    "subtitle": "Achetez directement auprès de vos créateurs préférés",
+    "metaTitle": "Boutiques revendeur - Affisell",
+    "metaDescription": "Parcourez les boutiques Affisell des revendeurs partenaires.",
+    "title": "Boutiques revendeur",
+    "subtitle": "Achetez directement auprès de vos revendeurs préférés",
     "filterAll": "Toutes",
     "emptyCategory": "Aucune boutique dans cette catégorie pour le moment.",
     "storeMetaTitle": "{name} — boutique {niche}",
     "storeMetaDescription": "Découvrez la sélection {niche} de {name}.",
     "filterAria": "Filtrer par univers",
-    "featuredEmpty": "Les créateurs ouvrent leurs boutiques. Revenez demain.",
+    "featuredEmpty": "Les revendeurs ouvrent leurs boutiques. Revenez demain.",
     "visitStore": "Voir la boutique",
     "startingPrice": "Dès {price}",
     "priceInEur": "Prix en euros · TVA incluse",
@@ -804,25 +804,25 @@
   },
   "discovery": {
     "eyebrow": "Explorer",
-    "title": "Trouvez votre créateur, puis votre produit",
-    "subtitle": "Chaque article est vendu par une boutique ambassadeur vérifiée — filtrez par univers, rayon ou créateur préféré.",
+    "title": "Trouvez votre revendeur, puis votre produit",
+    "subtitle": "Chaque article est vendu par une boutique revendeur vérifiée — filtrez par univers, rayon ou revendeur préféré.",
     "fullMarketplace": "Marketplace complète",
     "searchLabel": "Rechercher un produit ou une boutique",
     "searchPlaceholder": "Rechercher un produit, une boutique, un rayon…",
-    "creators": "Créateurs",
+    "creators": "Revendeurs",
     "allCreators": "Tous",
     "nichesLabel": "Univers",
     "categoriesLabel": "Rayons",
     "allCatalog": "Tout le catalogue",
     "productCount": "{count, plural, one {# produit} other {# produits}}",
     "atStore": " chez ",
-    "thisCreator": "ce créateur",
+    "thisCreator": "ce revendeur",
     "viewStore": "Voir la boutique",
     "emptyTitle": "Aucun produit pour ces filtres",
     "emptyBody": "Élargissez la recherche ou parcourez toute la marketplace.",
     "viewAllProducts": "Voir tous les produits",
     "storesSection": "Boutiques",
-    "storesTitle": "Vos créateurs sur Affisell",
+    "storesTitle": "Vos revendeurs sur Affisell",
     "allStores": "Toutes les boutiques →",
     "niches": {
       "all": "Toutes",
@@ -1225,9 +1225,9 @@
     "opportunityPulse": {
       "eyebrow": "Opportunity Pulse",
       "title": "SKU chauds à lister",
-      "hint": "D'autres créateurs regardent ces produits — listez avant eux.",
-      "watchingOne": "{count} créateur regarde ce SKU",
-      "watchingMany": "{count} créateurs regardent ce SKU",
+      "hint": "D'autres revendeurs regardent ces produits — listez avant eux.",
+      "watchingOne": "{count} revendeur regarde ce SKU",
+      "watchingMany": "{count} revendeurs regardent ce SKU",
       "listNow": "Lister maintenant",
       "editListing": "Modifier la fiche",
       "viewCatalog": "Voir tout le catalogue"
@@ -1393,7 +1393,7 @@
     "title": "Marketplace",
     "subtitle": "Fiches vitrine actives",
     "empty": "Aucune fiche pour le moment.",
-    "sellerLabel": "Sélection partenaire créateur",
+    "sellerLabel": "Sélection partenaire revendeur",
     "pdp": {
       "crossSell": {
         "eyebrowBoughtTogether": "Souvent achetés ensemble",
@@ -1482,13 +1482,13 @@
       "eyebrowCatalog": "Catalogue · Revendre",
       "titleBuyer": "Marketplace",
       "titleCatalog": "Catalogue produits",
-      "subtitleBuyer": "Annonces en direct des boutiques créateurs — recherchez, filtrez par rayon et ouvrez une fiche produit.",
+      "subtitleBuyer": "Annonces en direct des boutiques revendeur — recherchez, filtrez par rayon et ouvrez une fiche produit.",
       "subtitleCatalog": "Parcourez les fiches fournisseur, comparez marges et délais, puis ajoutez les SKU à votre boutique.",
       "resetFilters": "Réinitialiser",
       "searchCatalog": "Rechercher dans le catalogue",
       "searchProduct": "Rechercher un produit",
       "placeholderCatalog": "Rechercher un produit, une marque…",
-      "placeholderBuyer": "Rechercher un produit, une marque, un créateur…",
+      "placeholderBuyer": "Rechercher un produit, une marque, un revendeur…",
       "pickCategory": "Choisissez une catégorie pour afficher les filtres produit.",
       "loadingFacets": "Chargement des filtres…",
       "noFacets": "Aucun filtre pour cette catégorie.",
@@ -1541,7 +1541,7 @@
       "emptyListingTitle": "Aucune annonce",
       "emptyFilteredTitle": "Aucun résultat pour ces filtres",
       "emptyFilteredBody": "Essayez une autre recherche ou un autre rayon, ou réinitialisez les filtres.",
-      "emptyDefaultBody": "Les créateurs publient leurs fiches progressivement — revenez bientôt.",
+      "emptyDefaultBody": "Les revendeurs publient leurs fiches progressivement — revenez bientôt.",
       "emptyCatalogTitle": "Catalogue vide pour le moment",
       "emptyCatalogBody": "Aucun article n’est disponible à l’achat pour l’instant. Revenez bientôt ou parcourez les boutiques partenaires.",
       "emptyCategoryTitle": "Aucun article dans ce rayon",
@@ -1627,7 +1627,7 @@
     "unmute": "Son",
     "hint": "Swipe · Double-tap pour aimer · Achat en un tap",
     "emptyTitle": "Pulse se prépare",
-    "emptyBody": "Les créateurs publient leurs clips. Explorez le catalogue en attendant.",
+    "emptyBody": "Les revendeurs publient leurs clips. Explorez le catalogue en attendant.",
     "browseCatalog": "Voir le marketplace",
     "commerce": {
       "hint": "↑ Panier · ← Suivant · → Acheter · ↓ Sauvegarder",
@@ -1777,7 +1777,7 @@
     },
     "wholesaleImpact": {
       "title": "Impact wholesale partenaires",
-      "subtitleAlert": "Des hausses wholesale récentes ont déclenché des revues de marge sur les vitrines partenaires — ajustez avec précaution ou communiquez avec les créateurs.",
+      "subtitleAlert": "Des hausses wholesale récentes ont déclenché des revues de marge sur les vitrines partenaires — ajustez avec précaution ou communiquez avec les revendeurs.",
       "subtitleHealthy": "Fiches partenaires live et volume wholesale sur la période.",
       "statPartners": "Fiches live",
       "statReviews": "Revues marge",
@@ -2222,7 +2222,7 @@
     },
     "brandStudio": {
       "loading": "Chargement…",
-      "affiliateEyebrow": "Marque créateur",
+      "affiliateEyebrow": "Marque revendeur",
       "supplierEyebrow": "Marque fournisseur",
       "affiliateTitle": "Brand Studio",
       "supplierTitle": "Studio vitrine",
@@ -2631,7 +2631,7 @@
         "liveHint": "Aperçu pixel-perfect de votre vitrine publiée.",
         "iframeTitle": "Aperçu live de la boutique",
         "sampleName": "Ma Boutique",
-        "sampleTagline": "Sélection premium par votre créateur préféré."
+        "sampleTagline": "Sélection premium par votre revendeur préféré."
       },
       "nameBadges": {
         "sectionTitle": "Style du nom de boutique",
@@ -2670,7 +2670,7 @@
       "defaults": {
         "about": {
           "title": "À propos de {name}",
-          "body": "{name} — produits sélectionnés par votre créateur préféré."
+          "body": "{name} — produits sélectionnés par votre revendeur préféré."
         },
         "faq": {
           "title": "FAQ",
@@ -2687,7 +2687,7 @@
       "bestsellersEyebrow": "Meilleures ventes",
       "bestsellersTitle": "Coups de cœur clients",
       "bestsellersHint": "Les produits les plus populaires de cette vitrine.",
-      "socialProofQuote": "Produits de qualité et livraison rapide — exactement ce que j'attendais de ce créateur.",
+      "socialProofQuote": "Produits de qualité et livraison rapide — exactement ce que j'attendais de ce revendeur.",
       "socialProofAuthor": "Acheteur vérifié",
       "socialProofStat": "500+ clients satisfaits",
       "newsletterTitle": "Recevez les drops en premier",
@@ -2700,10 +2700,10 @@
       "newsletterError": "Inscription impossible. Réessayez dans un instant.",
       "newsletterDisclaimer": "Pas de spam — désinscription à tout moment.",
       "trustTitle": "Vitrine partenaire vérifiée Affisell",
-      "trustBody": "Code partenaire {code} — sélection par ce créateur, vente par le fournisseur, paiement sécurisé Affisell.",
+      "trustBody": "Code partenaire {code} — sélection par ce revendeur, vente par le fournisseur, paiement sécurisé Affisell.",
       "verified": "Partenaire vérifié",
       "ctaEyebrow": "Explorer Affisell",
-      "ctaTitle": "Découvrez d'autres créateurs",
+      "ctaTitle": "Découvrez d'autres revendeurs",
       "ctaBody": "Parcourez le marketplace Affisell pour plus de produits et de boutiques de confiance.",
       "ctaButton": "Voir le marketplace",
       "flashSaleEyebrow": "Offre limitée",
@@ -2785,7 +2785,7 @@
       "shopHomeCta": "Boutique",
       "cartCta": "Panier",
       "footerTitle": "Confiance & conformité légale",
-      "footerBody": "Sélection par ce partenaire créateur · vente et expédition par le fournisseur · paiements et protection acheteur via Affisell.",
+      "footerBody": "Sélection par ce partenaire revendeur · vente et expédition par le fournisseur · paiements et protection acheteur via Affisell.",
       "verificationPending": "Vérification partenaire en cours",
       "legalNavAria": "Informations légales",
       "legalLinksTitle": "Documents légaux",
@@ -2796,7 +2796,7 @@
         "returns": "Retours & remboursements",
         "support": "Support client"
       },
-      "merchantIdentity": "Partenaire créateur",
+      "merchantIdentity": "Partenaire revendeur",
       "legalName": "Nom déclaré : {name}",
       "partnerListing": "ID listing partenaire",
       "partnerListingHint": "Référence de traçabilité pour commandes et support.",
@@ -2804,9 +2804,9 @@
       "platformOperatorHint": "Hébergement, paiements et couche conformité.",
       "verifiedOn": "Vérification Affisell : {date}",
       "customDomainDisclaimer": "Boutique sur domaine dédié — vente par le fournisseur, checkout sécurisé Affisell.",
-      "platformDisclaimer": "Vitrine partenaire Affisell — produits sélectionnés par ce créateur, vendus et expédiés par le fournisseur.",
+      "platformDisclaimer": "Vitrine partenaire Affisell — produits sélectionnés par ce revendeur, vendus et expédiés par le fournisseur.",
       "partnerLegalStatus": {
-        "PARTICULIER": "Partenaire créateur (particulier)",
+        "PARTICULIER": "Partenaire revendeur (particulier)",
         "AUTO_ENTREPRENEUR": "Partenaire auto-entrepreneur",
         "EI_PROFESSIONAL": "Partenaire professionnel (EI)",
         "COMPANY": "Partenaire société",
@@ -2814,7 +2814,7 @@
         "FOREIGN": "Partenaire international"
       },
       "legalStatus": {
-        "PARTICULIER": "Partenaire créateur (particulier)",
+        "PARTICULIER": "Partenaire revendeur (particulier)",
         "AUTO_ENTREPRENEUR": "Partenaire auto-entrepreneur",
         "EI_PROFESSIONAL": "Partenaire professionnel (EI)",
         "COMPANY": "Partenaire société",
@@ -2948,8 +2948,8 @@
     "topVentes": "Mieux notés",
     "liveViewers": "{count} personnes consultent cette fiche",
     "trendingViews24h": "Tendance · {count} vues en 24 h",
-    "affiliateCreatorsWatchingOne": "{count} créateur regarde ce SKU",
-    "affiliateCreatorsWatchingMany": "{count} créateurs regardent ce SKU",
+    "affiliateCreatorsWatchingOne": "{count} revendeur regarde ce SKU",
+    "affiliateCreatorsWatchingMany": "{count} revendeurs regardent ce SKU",
     "stickyBuyHint": "Achat rapide pendant la lecture",
     "onlyLeft": "Plus que {count} en stock",
     "delivery48h": "Livraison sous 2 jours",
@@ -3165,7 +3165,7 @@
       "createAccount": "Créer un compte client",
       "myOrders": "Mes commandes",
       "contactSupport": "Contacter le support",
-      "proNote": "Vous êtes créateur ou fournisseur ?",
+      "proNote": "Vous êtes revendeur ou fournisseur ?",
       "proLogin": "Connexion professionnelle"
     }
   },
@@ -3468,7 +3468,7 @@
     "items": {
       "home": "Accueil",
       "marketplace": "Marketplace",
-      "creatorStores": "Boutiques créateurs",
+      "creatorStores": "Boutiques revendeur",
       "cart": "Panier",
       "wishlist": "Favoris",
       "auctions": "Arène enchères",
@@ -3511,7 +3511,7 @@
       "buyerProtection": "Achat protégé · retours",
       "buyerProtectionShort": "Achat protégé",
       "wishlist": "Wishlist",
-      "becomeCreator": "Devenir créateur",
+      "becomeCreator": "Devenir revendeur",
       "becomeReseller": "Créer un compte revendeur",
       "sellOnAffisell": "Vendre sur Affisell",
       "affiliateProgram": "Programme affilié",
@@ -3540,8 +3540,8 @@
       "trustBeaconCta": "Voir la politique",
       "panEuBadge": "Pan-UE · 27 marchés",
       "localeLabel": "Langue & région",
-      "mobileTagline": "Marketplace créateurs · paiement sécurisé · support 24/7",
-      "desktopTagline": "La marketplace où partenaires créateurs et fournisseurs grandissent en Europe — conformité UE, expérience fluide.",
+      "mobileTagline": "Marketplace revendeurs · paiement sécurisé · support 24/7",
+      "desktopTagline": "La marketplace où revendeurs partenaires et fournisseurs grandissent en Europe — conformité UE, expérience fluide.",
       "stripeNoticeShort": "Carte bancaire · authentification forte · TVA conforme UE",
       "vatNotice": "TVA collectée et reversée conformément à la réglementation applicable.",
       "stripeNotice": "Paiements sécurisés par carte bancaire (authentification forte lorsque requis).",
@@ -3560,7 +3560,7 @@
     "privacy": "Confidentialité",
     "cookies": "Cookies",
     "sellTitle": "Vendre",
-    "becomeCreator": "Devenir créateur",
+    "becomeCreator": "Devenir revendeur",
     "becomeReseller": "Créer un compte revendeur",
     "sellOnAffisell": "Vendre sur Affisell",
     "becomePartner": "Devenir partenaire",
@@ -3586,12 +3586,12 @@
       }
     },
     "brand": {
-      "tagline": "La marketplace pensée pour les créateurs"
+      "tagline": "La marketplace pensée pour les revendeurs"
     },
     "product": {
       "title": "Produit",
       "exploreCatalog": "Explorer le catalogue",
-      "topCreators": "Top créateurs",
+      "topCreators": "Top revendeurs",
       "sellOnAffisell": "Vendre sur Affisell",
       "liveShopping": "Live Shopping",
       "affiliateProgram": "Programme revendeur B2B"
@@ -3605,8 +3605,8 @@
     },
     "newsletter": {
       "title": "Restez informé",
-      "subtext": "Drops produits + conseils créateurs. 1×/mois.",
-      "placeholder": "vous@createur.com",
+      "subtext": "Drops produits + conseils revendeurs. 1×/mois.",
+      "placeholder": "vous@revendeur.com",
       "submit": "S'abonner",
       "disclaimer": "Pas de spam. Désabonnement en un clic.",
       "success": "C'est bon — bienvenue dans la boucle."

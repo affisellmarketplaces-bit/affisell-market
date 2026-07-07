@@ -52,8 +52,8 @@
   "PublicNav": {
     "home": "Home",
     "marketplace": "Marketplace",
-    "creatorStores": "Creator stores",
-    "creatorStoresShort": "Creators",
+    "creatorStores": "Reseller stores",
+    "creatorStoresShort": "Resellers",
     "searchPlaceholder": "Search products…",
     "searchLabel": "Search",
     "cmdKBadge": "⌘K",
@@ -86,8 +86,8 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Creator storefront marketplace",
-      "description": "Shop curated products from your favorite creators. Fast shipping, secure checkout."
+      "title": "Affisell — Reseller storefront marketplace",
+      "description": "Shop curated products from your favorite resellers. Fast shipping, secure checkout."
     },
     "hero": {
       "title": "Stores curated by your favorite",
@@ -108,7 +108,7 @@
       },
       "featuredStores": {
         "title": "Featured Stores",
-        "description": "Curated creator storefronts"
+        "description": "Curated reseller storefronts"
       },
       "liveCatalog": {
         "title": "Live Catalog",
@@ -131,13 +131,13 @@
     },
     "buyerBanner": {
       "title": "Shopping as a buyer?",
-      "body": "Browse creator storefronts.",
+      "body": "Browse reseller storefronts.",
       "cta": "Browse stores →"
     },
-    "footerCreator": "Are you a creator?",
+    "footerCreator": "Are you a reseller?",
     "footerSupplier": "Are you a supplier?",
     "footerSupplierCta": "Open a supplier account",
-    "footerCreatorCta": "Become an affiliate",
+    "footerCreatorCta": "Become a reseller",
     "footerNavAria": "Partner spaces",
     "pickedEmpty": "No suggestions for this niche yet.",
     "featuredProductsEmpty": "No featured products yet.",
@@ -166,9 +166,9 @@
       "catalog": "Live catalog",
       "catalogHint": "Departments, filters & product pages",
       "stores": "Stores",
-      "storesHint": "All creator storefronts",
+      "storesHint": "All reseller storefronts",
       "featured": "Featured stores",
-      "featuredHint": "Curated creators · live deck",
+      "featuredHint": "Curated resellers · live deck",
       "featuredShopRating": "{rating} ★",
       "featuredShopOrders": "{count} orders",
       "featuredShopFromPrice": "From {price}",
@@ -511,7 +511,7 @@
       "submitLoading": "Creating account…",
       "benefitCashback": "Up to 20% cashback credited instantly",
       "benefitReviews": "Bonus credits for reviews & referrals",
-      "benefitCreators": "Support creators you love",
+      "benefitCreators": "Support resellers you trust",
       "alreadyAccount": "Already have an account?",
       "signIn": "Sign in",
       "acceptTermsError": "Please accept the terms and privacy policy.",
@@ -786,16 +786,16 @@
     }
   },
   "shops": {
-    "metaTitle": "Creator stores — Affisell",
-    "metaDescription": "Browse Affisell storefronts from affiliate creators.",
-    "title": "Creator stores",
-    "subtitle": "Shop directly from your favorite creators",
+    "metaTitle": "Reseller stores — Affisell",
+    "metaDescription": "Browse Affisell storefronts from partner resellers.",
+    "title": "Reseller stores",
+    "subtitle": "Shop directly from your favorite resellers",
     "filterAll": "All",
     "emptyCategory": "No stores in this category yet.",
     "storeMetaTitle": "{name} — {niche} store",
     "storeMetaDescription": "Discover {name}'s {niche} selection.",
     "filterAria": "Filter by niche",
-    "featuredEmpty": "Creators are opening their stores. Check back soon.",
+    "featuredEmpty": "Resellers are opening their stores. Check back soon.",
     "visitStore": "Visit store",
     "startingPrice": "From {price}",
     "priceInEur": "Prices in euros · VAT included",
@@ -804,25 +804,25 @@
   },
   "discovery": {
     "eyebrow": "Explore",
-    "title": "Find your creator, then your product",
-    "subtitle": "Every item is sold by a verified affiliate store — filter by niche, category, or favorite creator.",
+    "title": "Find your reseller, then your product",
+    "subtitle": "Every item is sold by a verified reseller store — filter by niche, category, or favorite reseller.",
     "fullMarketplace": "Full marketplace",
     "searchLabel": "Search for a product or store",
     "searchPlaceholder": "Search products, stores, categories…",
-    "creators": "Creators",
+    "creators": "Resellers",
     "allCreators": "All",
     "nichesLabel": "Niches",
     "categoriesLabel": "Categories",
     "allCatalog": "Entire catalog",
     "productCount": "{count, plural, one {# product} other {# products}}",
     "atStore": " at ",
-    "thisCreator": "this creator",
+    "thisCreator": "this reseller",
     "viewStore": "View store",
     "emptyTitle": "No products for these filters",
     "emptyBody": "Broaden your search or browse the full marketplace.",
     "viewAllProducts": "View all products",
     "storesSection": "Stores",
-    "storesTitle": "Your creators on Affisell",
+    "storesTitle": "Your resellers on Affisell",
     "allStores": "All stores →",
     "niches": {
       "all": "All",
@@ -1225,9 +1225,9 @@
     "opportunityPulse": {
       "eyebrow": "Opportunity Pulse",
       "title": "Hot SKUs to list",
-      "hint": "Other creators are viewing these products — list before they do.",
-      "watchingOne": "{count} creator is viewing this SKU",
-      "watchingMany": "{count} creators are viewing this SKU",
+      "hint": "Other resellers are viewing these products — list before they do.",
+      "watchingOne": "{count} reseller is viewing this SKU",
+      "watchingMany": "{count} resellers are viewing this SKU",
       "listNow": "List now",
       "editListing": "Edit listing",
       "viewCatalog": "Browse full catalog"
@@ -1385,7 +1385,7 @@
     "title": "Marketplace",
     "subtitle": "Active storefront listings",
     "empty": "Nothing listed yet.",
-    "sellerLabel": "Curated by creator partner",
+    "sellerLabel": "Curated by reseller partner",
     "pdp": {
       "crossSell": {
         "eyebrowBoughtTogether": "Frequently bought together",
@@ -1474,13 +1474,13 @@
       "eyebrowCatalog": "Catalog · Resell",
       "titleBuyer": "Marketplace",
       "titleCatalog": "Product catalog",
-      "subtitleBuyer": "Live listings from creator stores — search, filter by department, and open a product page.",
+      "subtitleBuyer": "Live listings from reseller stores — search, filter by department, and open a product page.",
       "subtitleCatalog": "Browse supplier listings, compare margins and lead times, then add SKUs to your store.",
       "resetFilters": "Reset",
       "searchCatalog": "Search catalog",
       "searchProduct": "Search for a product",
       "placeholderCatalog": "Search products, brands…",
-      "placeholderBuyer": "Search products, brands, creators…",
+      "placeholderBuyer": "Search products, brands, resellers…",
       "pickCategory": "Choose a category to show product filters.",
       "loadingFacets": "Loading filters…",
       "noFacets": "No filters for this category.",
@@ -1533,7 +1533,7 @@
       "emptyListingTitle": "No listings yet",
       "emptyFilteredTitle": "No matches for these filters",
       "emptyFilteredBody": "Try another search or department, or reset your filters.",
-      "emptyDefaultBody": "Creators publish listings over time — check back soon.",
+      "emptyDefaultBody": "Resellers publish listings over time — check back soon.",
       "emptyCatalogTitle": "Catalog is empty for now",
       "emptyCatalogBody": "No items are available to buy yet. Check back soon or browse partner stores.",
       "emptyCategoryTitle": "No items in this department",
@@ -1619,7 +1619,7 @@
     "unmute": "Sound on",
     "hint": "Swipe · Double-tap to like · Shop in one tap",
     "emptyTitle": "Pulse is warming up",
-    "emptyBody": "Creators are uploading clips. Explore the catalog while the feed fills.",
+    "emptyBody": "Resellers are uploading clips. Explore the catalog while the feed fills.",
     "browseCatalog": "Browse marketplace",
     "commerce": {
       "hint": "↑ Cart · ← Next · → Buy · ↓ Save Drop",
@@ -1769,7 +1769,7 @@
     },
     "wholesaleImpact": {
       "title": "Partner wholesale impact",
-      "subtitleAlert": "Recent wholesale increases triggered margin reviews on partner storefronts — adjust carefully or communicate with creators.",
+      "subtitleAlert": "Recent wholesale increases triggered margin reviews on partner storefronts — adjust carefully or communicate with resellers.",
       "subtitleHealthy": "Live partner listings and wholesale volume over the last period.",
       "statPartners": "Live listings",
       "statReviews": "Margin reviews",
@@ -2198,7 +2198,7 @@
     },
     "brandStudio": {
       "loading": "Loading…",
-      "affiliateEyebrow": "Creator brand",
+      "affiliateEyebrow": "Reseller brand",
       "supplierEyebrow": "Supplier brand",
       "affiliateTitle": "Brand Studio",
       "supplierTitle": "Storefront studio",
@@ -2589,7 +2589,7 @@
         "liveHint": "Pixel-perfect preview of your published storefront.",
         "iframeTitle": "Storefront live preview",
         "sampleName": "My Store",
-        "sampleTagline": "Premium picks from your favorite creator."
+        "sampleTagline": "Premium picks from your favorite reseller."
       },
       "nameBadges": {
         "sectionTitle": "Store name display",
@@ -2628,7 +2628,7 @@
       "defaults": {
         "about": {
           "title": "About {name}",
-          "body": "{name} — curated products from your favorite creator."
+          "body": "{name} — curated products from your favorite reseller."
         },
         "faq": {
           "title": "FAQ",
@@ -2645,7 +2645,7 @@
       "bestsellersEyebrow": "Best sellers",
       "bestsellersTitle": "Customer favorites",
       "bestsellersHint": "Top picks from this storefront.",
-      "socialProofQuote": "Quality products and fast delivery — exactly what I expected from this creator.",
+      "socialProofQuote": "Quality products and fast delivery — exactly what I expected from this reseller.",
       "socialProofAuthor": "Verified buyer",
       "socialProofStat": "500+ happy customers",
       "newsletterTitle": "Get drops first",
@@ -2658,10 +2658,10 @@
       "newsletterError": "Could not subscribe. Try again in a moment.",
       "newsletterDisclaimer": "No spam — unsubscribe anytime.",
       "trustTitle": "Affisell verified partner storefront",
-      "trustBody": "Partner code {code} — curated by this creator, sold by the supplier, Affisell secure checkout.",
+      "trustBody": "Partner code {code} — curated by this reseller, sold by the supplier, Affisell secure checkout.",
       "verified": "Verified partner",
       "ctaEyebrow": "Explore Affisell",
-      "ctaTitle": "Discover more creators",
+      "ctaTitle": "Discover more resellers",
       "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
       "ctaButton": "Browse marketplace",
       "flashSaleEyebrow": "Limited offer",
@@ -2743,7 +2743,7 @@
       "shopHomeCta": "Shop",
       "cartCta": "Cart",
       "footerTitle": "Trust & legal compliance",
-      "footerBody": "Curated by this creator partner · sold and shipped by the supplier · payments and buyer protection via Affisell.",
+      "footerBody": "Curated by this reseller partner · sold and shipped by the supplier · payments and buyer protection via Affisell.",
       "verificationPending": "Partner verification in progress",
       "legalNavAria": "Legal information",
       "legalLinksTitle": "Legal documents",
@@ -2754,7 +2754,7 @@
         "returns": "Returns & refunds",
         "support": "Customer support"
       },
-      "merchantIdentity": "Creator partner",
+      "merchantIdentity": "Reseller partner",
       "legalName": "Declared name: {name}",
       "partnerListing": "Partner listing ID",
       "partnerListingHint": "Traceability reference for orders and support.",
@@ -2762,9 +2762,9 @@
       "platformOperatorHint": "Hosting, payments, and compliance layer.",
       "verifiedOn": "Affisell verification: {date}",
       "customDomainDisclaimer": "Custom domain storefront — sold by supplier, Affisell secure checkout.",
-      "platformDisclaimer": "Affisell partner storefront — products curated by this creator, sold and shipped by the supplier.",
+      "platformDisclaimer": "Affisell partner storefront — products curated by this reseller, sold and shipped by the supplier.",
       "partnerLegalStatus": {
-        "PARTICULIER": "Creator partner (individual)",
+        "PARTICULIER": "Reseller partner (individual)",
         "AUTO_ENTREPRENEUR": "Sole-trader partner",
         "EI_PROFESSIONAL": "Professional partner (sole prop.)",
         "COMPANY": "Company partner",
@@ -2772,7 +2772,7 @@
         "FOREIGN": "International partner"
       },
       "legalStatus": {
-        "PARTICULIER": "Creator partner (individual)",
+        "PARTICULIER": "Reseller partner (individual)",
         "AUTO_ENTREPRENEUR": "Sole-trader partner",
         "EI_PROFESSIONAL": "Professional partner (sole prop.)",
         "COMPANY": "Company partner",
@@ -2906,8 +2906,8 @@
     "topVentes": "Top rated",
     "liveViewers": "{count} people are viewing this",
     "trendingViews24h": "Trending · {count} views in 24h",
-    "affiliateCreatorsWatchingOne": "{count} creator is viewing this SKU",
-    "affiliateCreatorsWatchingMany": "{count} creators are viewing this SKU",
+    "affiliateCreatorsWatchingOne": "{count} reseller is viewing this SKU",
+    "affiliateCreatorsWatchingMany": "{count} resellers are viewing this SKU",
     "stickyBuyHint": "Quick buy while you browse",
     "onlyLeft": "Only {count} left in stock",
     "delivery48h": "2-day delivery",
@@ -3123,7 +3123,7 @@
       "createAccount": "Create customer account",
       "myOrders": "My orders",
       "contactSupport": "Contact support",
-      "proNote": "Creator or supplier?",
+      "proNote": "Reseller or supplier?",
       "proLogin": "Professional sign in"
     }
   },
@@ -3426,7 +3426,7 @@
     "items": {
       "home": "Home",
       "marketplace": "Marketplace",
-      "creatorStores": "Creator stores",
+      "creatorStores": "Reseller stores",
       "cart": "Cart",
       "wishlist": "Wishlist",
       "auctions": "Auction Arena",
@@ -3469,7 +3469,7 @@
       "buyerProtection": "Protected checkout · returns",
       "buyerProtectionShort": "Protected checkout",
       "wishlist": "Wishlist",
-      "becomeCreator": "Become a creator",
+      "becomeCreator": "Become a reseller",
       "becomeReseller": "Create reseller account",
       "sellOnAffisell": "Sell on Affisell",
       "affiliateProgram": "Affiliate program",
@@ -3498,8 +3498,8 @@
       "trustBeaconCta": "Read the policy",
       "panEuBadge": "Pan-EU · 27 markets",
       "localeLabel": "Language & region",
-      "mobileTagline": "Creator marketplace · secure checkout · 24/7 support",
-      "desktopTagline": "The marketplace where creator partners and suppliers grow in Europe — EU compliance, seamless experience.",
+      "mobileTagline": "Reseller marketplace · secure checkout · 24/7 support",
+      "desktopTagline": "The marketplace where reseller partners and suppliers grow in Europe — EU compliance, seamless experience.",
       "stripeNoticeShort": "Card · strong authentication · EU VAT compliant",
       "vatNotice": "VAT collected and remitted in line with applicable regulations.",
       "stripeNotice": "Payments secured by card (strong authentication when required).",
@@ -3518,7 +3518,7 @@
     "privacy": "Privacy",
     "cookies": "Cookies",
     "sellTitle": "Sell",
-    "becomeCreator": "Become a creator",
+    "becomeCreator": "Become a reseller",
     "becomeReseller": "Create reseller account",
     "sellOnAffisell": "Sell on Affisell",
     "becomePartner": "Become a partner",
@@ -3544,12 +3544,12 @@
       }
     },
     "brand": {
-      "tagline": "The creator-first marketplace"
+      "tagline": "The reseller-first marketplace"
     },
     "product": {
       "title": "Product",
       "exploreCatalog": "Explore catalog",
-      "topCreators": "Top Creators",
+      "topCreators": "Top resellers",
       "sellOnAffisell": "Sell on Affisell",
       "liveShopping": "Live Shopping",
       "affiliateProgram": "Reseller B2B program"
@@ -3563,8 +3563,8 @@
     },
     "newsletter": {
       "title": "Stay in the loop",
-      "subtext": "Product drops + creator tips. 1x/month.",
-      "placeholder": "you@creator.com",
+      "subtext": "Product drops + reseller tips. 1x/month.",
+      "placeholder": "you@reseller.com",
       "submit": "Subscribe",
       "disclaimer": "No spam. Unsubscribe anytime.",
       "success": "You're in — welcome to the loop."
