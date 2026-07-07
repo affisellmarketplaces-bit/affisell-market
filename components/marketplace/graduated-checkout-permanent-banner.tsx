@@ -56,7 +56,7 @@ export function GraduatedCheckoutPermanentBanner({
     <section
       aria-label={t("aria")}
       className={cn(
-        "rounded-2xl border border-violet-300/35 bg-gradient-to-r from-violet-950/90 via-indigo-900/85 to-fuchsia-950/75 shadow-lg shadow-violet-950/25",
+        "affisell-trust-surface rounded-2xl shadow-lg shadow-violet-950/25",
         compact ? "rounded-xl" : "rounded-2xl",
         className
       )}
@@ -64,7 +64,7 @@ export function GraduatedCheckoutPermanentBanner({
       <div className={cn("flex items-start gap-3 sm:items-center", compact ? "p-3" : "p-4 sm:p-5")}>
         <div
           className={cn(
-            "flex shrink-0 items-center justify-center rounded-2xl border border-violet-200/25 bg-violet-500/15",
+            "affisell-trust-kicker flex shrink-0 items-center justify-center rounded-2xl border-violet-200/20 bg-violet-500/10",
             compact ? "size-10" : "size-12"
           )}
         >

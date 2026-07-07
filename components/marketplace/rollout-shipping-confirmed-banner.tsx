@@ -56,7 +56,7 @@ export function RolloutShippingConfirmedBanner({
     <section
       aria-label={t("aria")}
       className={cn(
-        "rounded-2xl border border-emerald-400/30 bg-gradient-to-r from-emerald-950/90 via-emerald-900/80 to-violet-950/70 shadow-lg shadow-emerald-950/20",
+        "affisell-trust-surface rounded-2xl shadow-lg shadow-emerald-950/20",
         compact ? "rounded-xl" : "rounded-2xl",
         className
       )}
@@ -64,7 +64,7 @@ export function RolloutShippingConfirmedBanner({
       <div className={cn("flex items-start gap-3 sm:items-center", compact ? "p-3" : "p-4 sm:p-5")}>
         <div
           className={cn(
-            "flex shrink-0 items-center justify-center rounded-2xl border border-emerald-300/25 bg-emerald-500/15",
+            "affisell-trust-kicker flex shrink-0 items-center justify-center rounded-2xl border-emerald-200/20 bg-emerald-500/10",
             compact ? "size-10" : "size-12"
           )}
         >

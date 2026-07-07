@@ -18,7 +18,7 @@ export function FooterTrustBeacon({ beacon, className }: Props) {
     <Link
       href={beacon.href}
       className={cn(
-        "affisell-footer-trust-beacon group relative block overflow-hidden rounded-2xl border border-emerald-400/25 bg-gradient-to-br from-emerald-500/10 via-white/5 to-violet-500/10 p-4 shadow-lg shadow-emerald-950/20 backdrop-blur-lg transition duration-300 hover:-translate-y-0.5 hover:border-emerald-300/40 hover:shadow-xl hover:shadow-emerald-950/30",
+        "affisell-footer-trust-beacon affisell-trust-surface group relative block rounded-2xl p-4 transition duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-950/30",
         className
       )}
     >
@@ -26,12 +26,9 @@ export function FooterTrustBeacon({ beacon, className }: Props) {
         className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.08)_50%,transparent_75%)] bg-[length:200%_100%] opacity-0 transition group-hover:opacity-100 group-hover:animate-[footer-shimmer_2.5s_ease-in-out_infinite]"
         aria-hidden
       />
-      <span
-        className={cn(footerHeroGlow, "from-emerald-400/80 to-teal-500/80 opacity-50 group-hover:opacity-70")}
-        aria-hidden
-      />
+      <span className={cn(footerHeroGlow, "from-emerald-400/80 to-teal-500/80 opacity-50 group-hover:opacity-70")} aria-hidden />
       <div className="relative flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-inner shadow-emerald-950/40">
+        <span className="affisell-trust-kicker flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/85 to-teal-600/85 shadow-inner shadow-emerald-950/40">
           <ShieldCheck className="size-5 text-white" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
@@ -54,7 +51,7 @@ export function FooterTrustBeaconCompact({ beacon, className }: Props) {
       className={cn(footerHeroCardTile, "group flex-row items-center gap-3 p-3.5", className)}
     >
       <span className={cn(footerHeroGlow, "from-emerald-400/80 to-teal-500/80")} aria-hidden />
-      <span className="relative flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
+      <span className="affisell-trust-kicker relative flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/85 to-teal-600/85">
         <ShieldCheck className="size-4 text-white" aria-hidden />
       </span>
       <div className="relative min-w-0 flex-1">

@@ -15,7 +15,8 @@ export function ProductOfferBadge({ badge, variant = "overlay", className }: Pro
       className={cn(
         "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-tight",
         badge.tone,
-        variant === "overlay" && "absolute left-2 top-2 z-10 shadow-sm backdrop-blur-sm",
+        variant === "overlay" &&
+          "affisell-premium-overlay-badge absolute left-2 top-2 z-10 border-white/25 px-2.5 py-1 text-[9px] sm:text-[10px]",
         className
       )}
     >
