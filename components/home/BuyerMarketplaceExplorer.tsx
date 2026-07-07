@@ -1,6 +1,7 @@
 import { getLocale } from "next-intl/server"
 
 import { BuyerMarketplaceExplorerClient } from "@/components/home/buyer-marketplace-explorer-client"
+import { HomeCatalogLcpPreload } from "@/components/home/home-catalog-lcp-preload"
 import { getCachedSession } from "@/lib/get-cached-session"
 import { readGuestWishlistId } from "@/lib/guest-wishlist-id"
 import { resolveAppLocale } from "@/lib/i18n-locale"
@@ -19,5 +20,10 @@ export async function BuyerMarketplaceExplorer() {
     userId: session?.user?.id ?? null,
     guestId,
   })
-  return <BuyerMarketplaceExplorerClient shell={{ ...shell, personalizedPicks }} />
+  return (
+    <>
+      <HomeCatalogLcpPreload products={shell.products} />
+      <BuyerMarketplaceExplorerClient shell={{ ...shell, personalizedPicks }} />
+    </>
+  )
 }

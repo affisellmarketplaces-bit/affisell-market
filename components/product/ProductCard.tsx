@@ -49,6 +49,8 @@ type ProductCardProps = {
   /** Parent decides buyer vs merchant context. Defaults to customer (RGPD-safe). */
   mode?: ProductCardDisplayMode
   href?: string
+  /** First visible grid cards — eager load + high fetch priority for LCP. */
+  imagePriority?: boolean
 }
 
 function coerceProduct(p: ProductCardProps["product"]) {
@@ -219,7 +221,7 @@ function CustomerConversionBadges({
   )
 }
 
-export function ProductCard({ product, mode = "customer", href: hrefProp }: ProductCardProps) {
+export function ProductCard({ product, mode = "customer", href: hrefProp, imagePriority = false }: ProductCardProps) {
   const o = product as Record<string, unknown>
   const p = coerceProduct(product)
   const listingRaw = o.listingId ?? o.id
@@ -299,7 +301,9 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
           src={src}
           alt={p.title}
           className="absolute inset-0 h-full w-full object-contain p-1 transition-transform duration-300 group-hover:scale-[1.02] sm:p-4"
-          loading="lazy"
+          loading={imagePriority ? "eager" : "lazy"}
+          fetchPriority={imagePriority ? "high" : "auto"}
+          decoding="async"
           onError={(e) => {
             e.currentTarget.src = "/placeholder-product.jpg"
           }}

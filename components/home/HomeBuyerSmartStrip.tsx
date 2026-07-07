@@ -9,20 +9,17 @@ import { BUYER_SMART_SERVICES } from "@/lib/buyer-smart-services"
 import { buildBestSellerDeckCards } from "@/lib/home-best-seller-deck-shared"
 import { buildFeaturedShopDeckCards } from "@/lib/home-featured-shops-deck-shared"
 import { buildPremiumBuyerTiles } from "@/lib/home-buyer-premium-tiles"
-import { loadHomeBestSellers7dCached } from "@/lib/public-home-cache"
-import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-shared"
-
-type Props = {
-  featuredShops: PublicShopDirectoryEntry[]
-}
+import { loadFeaturedShopsCached, loadHomeBestSellers7dCached } from "@/lib/public-home-cache"
 
 /** Buyer shortcuts — rail swipe mobile · grille desktop. */
-export async function HomeBuyerSmartStrip({ featuredShops }: Props) {
-  const t = await getTranslations("home.buyerServices")
-  const tPulse = await getTranslations("pulse")
-  const tTrust = await getTranslations("home.trustHandoff")
-
-  const bestSellers = await loadHomeBestSellers7dCached(5)
+export async function HomeBuyerSmartStrip() {
+  const [t, tPulse, tTrust, featuredShops, bestSellers] = await Promise.all([
+    getTranslations("home.buyerServices"),
+    getTranslations("pulse"),
+    getTranslations("home.trustHandoff"),
+    loadFeaturedShopsCached(6),
+    loadHomeBestSellers7dCached(5),
+  ])
   const deckCards = buildBestSellerDeckCards(bestSellers, (count) =>
     t("bestSellersSold", { count })
   )

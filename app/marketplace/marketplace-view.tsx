@@ -721,9 +721,13 @@ export function MarketplaceView({
                   refreshing && "opacity-75 transition-opacity duration-150"
                 )}
               >
-                {products.map((product) => (
+                {products.map((product, index) => (
                   <li key={String(product.listingId ?? product.id)} className="flex h-full">
-                    <ProductCard product={product} mode={productCardMode} />
+                    <ProductCard
+                      product={product}
+                      mode={productCardMode}
+                      imagePriority={embedded && isCustomerBrowse && index < 4}
+                    />
                   </li>
                 ))}
               </ul>

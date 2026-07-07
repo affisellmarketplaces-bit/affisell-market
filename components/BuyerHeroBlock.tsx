@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 import { headers } from "next/headers"
 
@@ -7,10 +8,10 @@ import { GraduatedCheckoutPermanentBanner } from "@/components/marketplace/gradu
 import { RolloutShippingConfirmedBanner } from "@/components/marketplace/rollout-shipping-confirmed-banner"
 import { GlowCtaLink } from "@/components/GlowCtaLink"
 import { HomeBuyerSmartStrip } from "@/components/home/HomeBuyerSmartStrip"
+import { HomeBuyerSmartStripFallback } from "@/components/home/home-buyer-smart-strip-fallback"
 import { homeHeroShell } from "@/components/home/home-hero-tokens"
 import { HeroGradientBg } from "@/components/marketing/hero-gradient-bg"
 import { FastLink } from "@/components/navigation/fast-link"
-import { loadFeaturedShopsCached } from "@/lib/public-home-cache"
 import {
   isGraduatedCheckoutCountryResolved,
   isRolloutOnlyCheckoutCountryResolved,
@@ -22,9 +23,8 @@ import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
 import { resolveVisitorCountryIso2 } from "@/lib/visitor-country"
 
 export async function BuyerHeroBlock() {
-  const [t, featuredShops, requestHeaders, checkoutCountryCount] = await Promise.all([
+  const [t, requestHeaders, checkoutCountryCount] = await Promise.all([
     getTranslations("home.hero"),
-    loadFeaturedShopsCached(6),
     headers(),
     resolveLiveCheckoutCountryCount(),
   ])
@@ -95,7 +95,9 @@ export async function BuyerHeroBlock() {
             {t("creatorLink")}
           </FastLink>
         </div>
-        <HomeBuyerSmartStrip featuredShops={featuredShops} />
+        <Suspense fallback={<HomeBuyerSmartStripFallback />}>
+          <HomeBuyerSmartStrip />
+        </Suspense>
       </div>
     </section>
   )

@@ -2369,6 +2369,61 @@ button,
     }
   }
 
+  @media (max-width: 767px) {
+    .home-buyer-tiles-scroll {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 12rem;
+    }
+  }
+
+  @keyframes affisell-hero-orb-drift-a {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(24px, 12px);
+    }
+  }
+
+  @keyframes affisell-hero-orb-drift-b {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(-20px, 18px);
+    }
+  }
+
+  .affisell-hero-orb {
+    filter: blur(60px);
+    will-change: transform;
+  }
+
+  .affisell-hero-orb--violet {
+    background: rgb(167 139 250 / 0.3);
+    animation: affisell-hero-orb-drift-a 12s ease-in-out infinite;
+  }
+
+  .affisell-hero-orb--sky {
+    background: rgb(56 189 248 / 0.25);
+    animation: affisell-hero-orb-drift-b 14s ease-in-out infinite;
+  }
+
+  @media (max-width: 767px) {
+    .affisell-hero-orb {
+      filter: blur(50px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .affisell-hero-orb--violet,
+    .affisell-hero-orb--sky {
+      animation: none;
+    }
+  }
+
   .affisell-mobile-dock-epoxy a {
     touch-action: manipulation;
   }
