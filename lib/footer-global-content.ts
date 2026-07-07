@@ -33,6 +33,7 @@ export function buildFooterGlobalContent(
         id: "sell",
         title: t("sellTitle"),
         links: [
+          { href: "/sellers", label: t("becomeSeller") },
           { href: "/creators", label: t("becomeCreator") },
           { href: "/supplier", label: t("becomeSupplier") },
           { href: "/enterprise", label: t("enterpriseBrands") },

@@ -4,7 +4,7 @@ import { GlowCtaLink } from "@/components/GlowCtaLink"
 import { HeroGradientBg } from "@/components/marketing/hero-gradient-bg"
 import { Link } from "@/i18n/navigation"
 
-type Persona = "creators" | "partners"
+type Persona = "creators" | "partners" | "sellers"
 
 type Props = {
   persona: Persona
@@ -39,6 +39,12 @@ export async function PersonaLandingHero({ persona, ctaHref, footerHref, footerK
             <li className="rounded-full bg-white/10 px-4 py-2">{t("badgeCreators")}</li>
             <li className="rounded-full bg-white/10 px-4 py-2">{t("badgeRevenue")}</li>
             <li className="rounded-full bg-white/10 px-4 py-2">{t("badgeSetup")}</li>
+          </ul>
+        ) : persona === "sellers" ? (
+          <ul className="mt-10 flex flex-wrap justify-center gap-3 text-sm font-semibold">
+            <li className="rounded-full bg-white/10 px-4 py-2">{t("badgeNoStock")}</li>
+            <li className="rounded-full bg-white/10 px-4 py-2">{t("badgeMargin")}</li>
+            <li className="rounded-full bg-white/10 px-4 py-2">{t("badgePayout")}</li>
           </ul>
         ) : null}
       </div>

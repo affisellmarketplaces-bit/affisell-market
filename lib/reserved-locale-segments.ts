@@ -26,6 +26,7 @@ export const RESERVED_LOCALE_SEGMENTS = new Set([
   "checkout",
   "contact",
   "creators",
+  "sellers",
   "dashboard",
   "demo",
   "digital",

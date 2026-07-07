@@ -7,6 +7,7 @@ import { CheckoutRegionComingSoonBanner } from "@/components/marketplace/checkou
 import { GraduatedCheckoutPermanentBanner } from "@/components/marketplace/graduated-checkout-permanent-banner"
 import { RolloutShippingConfirmedBanner } from "@/components/marketplace/rollout-shipping-confirmed-banner"
 import { GlowCtaLink } from "@/components/GlowCtaLink"
+import { HomeEcosystemPathsStrip } from "@/components/home/home-ecosystem-paths-strip"
 import { HomeBuyerSmartStrip } from "@/components/home/HomeBuyerSmartStrip"
 import { HomeBuyerSmartStripFallback } from "@/components/home/home-buyer-smart-strip-fallback"
 import { homeHeroShell } from "@/components/home/home-hero-tokens"
@@ -48,7 +49,10 @@ export async function BuyerHeroBlock() {
     <section className={`${homeHeroShell} w-full min-w-0 max-w-full px-3 py-3 sm:px-6 sm:py-7 md:px-10 md:py-16`}>
       <HeroGradientBg />
       <div className="relative mx-auto w-full min-w-0 max-w-4xl text-center">
-        <h1 className="text-balance text-[1.18rem] font-bold leading-tight tracking-tight sm:text-2xl md:text-5xl lg:text-6xl">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-violet-200/90 sm:text-xs">
+          {t("eyebrow")}
+        </p>
+        <h1 className="mt-2 text-balance text-[1.18rem] font-bold leading-tight tracking-tight sm:text-2xl md:text-5xl lg:text-6xl">
           {t("title")}{" "}
           <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
             {t("titleHighlight")}
@@ -85,16 +89,25 @@ export async function BuyerHeroBlock() {
         <div className="mx-auto mt-3 max-w-xl sm:mt-8">
           <BuyerHeroSearch />
         </div>
-        <div className="mt-3 flex flex-col items-center gap-2 sm:mt-8 sm:gap-4">
+        <div className="mt-3 flex flex-col items-center gap-2 sm:mt-8 sm:gap-3">
           <GlowCtaLink href={explorerHref}>{t("ctaPrimary")}</GlowCtaLink>
-          <FastLink
-            href="/creators"
-            localeAware
-            className="text-xs font-medium text-violet-100/90 underline-offset-4 transition hover:text-white hover:underline sm:text-sm"
-          >
-            {t("creatorLink")}
-          </FastLink>
+          <div className="flex flex-col items-center gap-1 sm:flex-row sm:gap-4">
+            <FastLink
+              href="/sellers"
+              className="text-xs font-semibold text-white underline-offset-4 transition hover:text-violet-100 hover:underline sm:text-sm"
+            >
+              {t("sellerLink")}
+            </FastLink>
+            <FastLink
+              href="/creators"
+              localeAware
+              className="text-xs font-medium text-violet-100/90 underline-offset-4 transition hover:text-white hover:underline sm:text-sm"
+            >
+              {t("creatorLink")}
+            </FastLink>
+          </div>
         </div>
+        <HomeEcosystemPathsStrip />
         <Suspense fallback={<HomeBuyerSmartStripFallback />}>
           <HomeBuyerSmartStrip />
         </Suspense>

@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react"
 import {
   ArrowLeft,
+  BadgeDollarSign,
   Heart,
   Home,
   Menu,
@@ -69,7 +70,7 @@ export function PublicNav() {
   }, [pathname])
 
   const mode = resolvePublicNavMode(pathname)
-  const { onHome, onMarketplace, onShops } = resolvePublicNavActive(pathname, explorerHash)
+  const { onHome, onMarketplace, onShops, onSell } = resolvePublicNavActive(pathname, explorerHash)
   const searchContext = resolvePublicNavSearchContext(pathname, explorerHash)
 
   const isBuyerContext =
@@ -215,6 +216,14 @@ export function PublicNav() {
         shortLabel={t("creatorStoresShort")}
         icon={Store}
         active={onShops}
+        activeVariant="brand"
+      />
+      <NavPill
+        href="/sellers"
+        label={t("sell")}
+        shortLabel={t("sellShort")}
+        icon={BadgeDollarSign}
+        active={onSell}
         activeVariant="brand"
       />
     </div>

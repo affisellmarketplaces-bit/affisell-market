@@ -82,24 +82,47 @@
     "trustStripText": "Protected purchase · Secure payment · 14-day EU returns",
     "trustStripCta": "Learn more",
     "trustStripDismiss": "Dismiss",
-    "agentEntry": "Agent"
+    "agentEntry": "Agent",
+    "sell": "Sell",
+    "sellShort": "Sell"
   },
   "home": {
     "meta": {
-      "title": "Affisell — Creator storefront marketplace",
-      "description": "Shop curated products from your favorite creators. Fast shipping, secure checkout."
+      "title": "Affisell — Global commerce for suppliers, sellers & affiliates",
+      "description": "Build a store without inventory. Set your margin, import products, get paid automatically — plus a buyer marketplace with secure checkout."
     },
     "hero": {
-      "title": "Stores curated by your favorite",
-      "titleHighlight": "creators",
-      "sub": "Pan-EU checkout · {count} countries · EUR · Secure payment · 14-day returns",
-      "subUs": "US & Canada checkout · {count} countries · USD · Secure payment · 14-day returns",
+      "eyebrow": "Global commerce infrastructure",
+      "title": "Where suppliers, sellers & affiliates",
+      "titleHighlight": "build commerce without stock",
+      "sub": "Import products · set your margin · automated payouts · Pan-EU checkout · {count} countries · Secure payment · 14-day returns",
+      "subUs": "Import products · set your margin · automated payouts · US & Canada checkout · {count} countries · Secure payment · 14-day returns",
       "searchPlaceholder": "Search products, brands, niches…",
       "searchLabel": "Search products",
       "searchSubmit": "Search",
       "cmdKHint": "Quick nav",
       "ctaPrimary": "Explore catalog",
-      "creatorLink": "Are you a creator? Sell on Affisell →"
+      "sellerLink": "I want to sell without stock →",
+      "creatorLink": "I'm a creator — monetize my audience →"
+    },
+    "ecosystemPaths": {
+      "eyebrow": "Build on Affisell",
+      "title": "One infrastructure, three business paths",
+      "supplier": {
+        "title": "Supplier",
+        "hint": "Distribute your catalog worldwide",
+        "cta": "I'm a supplier →"
+      },
+      "seller": {
+        "title": "Seller",
+        "hint": "Sell without stock · set your margin",
+        "cta": "I want to sell →"
+      },
+      "creator": {
+        "title": "Creator",
+        "hint": "Monetize your audience with a storefront",
+        "cta": "I'm a creator →"
+      }
     },
     "bento": {
       "agentShopping": {
@@ -191,6 +214,67 @@
       "bestSellersBadge": "7d",
       "bestSellersSold": "{count} sold"
     }
+  },
+  "sellers": {
+    "meta": {
+      "title": "Sell on Affisell — Reseller storefront without inventory",
+      "description": "Pick products, set your margin, launch your store. Automated splits — supplier ships, you earn."
+    },
+    "hero": {
+      "title": "Build a commerce business without stock",
+      "sub": "Import products · set your price · own your storefront · get paid automatically.",
+      "cta": "Create my seller store",
+      "badgeNoStock": "0 inventory",
+      "badgeMargin": "You set the margin",
+      "badgePayout": "Automated payouts"
+    },
+    "marginExample": {
+      "title": "Margin intelligence on every SKU",
+      "subtitle": "See supplier cost, recommended price and your margin before you list.",
+      "supplierLabel": "Supplier price",
+      "suggestedLabel": "Suggested retail",
+      "marginLabel": "Your margin",
+      "commissionLabel": "Affiliate commission",
+      "potentialLabel": "Opportunity",
+      "supplierValue": "€30",
+      "suggestedValue": "€59",
+      "marginValue": "+€29",
+      "commissionValue": "€5",
+      "potentialStars": "★★★★★"
+    },
+    "steps": {
+      "title": "Launch in 5 steps",
+      "step1": "Create your seller account",
+      "step2": "Import products from the supplier catalog",
+      "step3": "Set your retail price and margin",
+      "step4": "Publish your storefront & share your link",
+      "step5": "Receive payouts — supplier ships every order"
+    },
+    "payout": {
+      "title": "Automatic split on every sale",
+      "subtitle": "Example on a €100 order — transparent for you and your partners.",
+      "saleLabel": "Sale",
+      "supplier": "Supplier",
+      "platform": "Affisell",
+      "seller": "You (seller)",
+      "affiliate": "Affiliate"
+    },
+    "features": {
+      "products": {
+        "title": "Product hub",
+        "description": "Import SKUs, edit prices, variants, availability — one seller dashboard."
+      },
+      "finance": {
+        "title": "Finance",
+        "description": "Sales, margins, payouts and tax exports in one place."
+      },
+      "analytics": {
+        "title": "Analytics",
+        "description": "Conversion, visitors, trending SKUs — grow what works."
+      }
+    },
+    "footerLink": "I'm a creator — monetize my audience →",
+    "ctaFinal": "Create my seller store"
   },
   "creators": {
     "meta": {
@@ -3189,23 +3273,34 @@
   },
   "howItWorks": {
     "metaTitle": "How it works | Affisell",
-    "metaDescription": "Buyer, creator partner, and supplier journeys on the Affisell marketplace.",
-    "eyebrow": "EU marketplace",
+    "metaDescription": "Buyer, seller, creator and supplier journeys on Affisell — global commerce without inventory for sellers.",
+    "eyebrow": "Global commerce",
     "title": "How it works",
-    "description": "Affisell connects creator partners, suppliers, and buyers — no inventory for partners, with fast secure shipping handled by suppliers.",
+    "description": "Affisell connects suppliers, sellers, creators and buyers — automated margins, secure checkout, supplier fulfillment.",
     "buyer": {
       "title": "1. Buyer",
-      "body": "Browse the catalog, pay securely, and track your order from your account."
+      "body": "Browse catalog and creator stores, pay securely, track orders and returns from your account."
+    },
+    "seller": {
+      "title": "2. Seller",
+      "body": "Pick supplier products, set your retail price and margin, launch your storefront — zero inventory, automated payouts."
     },
     "creator": {
-      "title": "2. Creator partner",
-      "body": "Pick products, customize your storefront, and share it — Affisell handles checkout end to end."
+      "title": "3. Creator",
+      "body": "Monetize your audience: curate products, customize your shop, share your link — we handle checkout end to end."
     },
     "supplier": {
-      "title": "3. Supplier",
-      "body": "Publish your catalog, ship fast and safely, and get paid once delivery is confirmed."
+      "title": "4. Supplier",
+      "body": "Publish your catalog globally, ship fast, get paid when delivery is confirmed — sellers bring the demand."
     },
+    "flowTitle": "How money flows on a €100 sale",
+    "flowSupplier": "Supplier · product cost & shipping",
+    "flowPlatform": "Affisell · payment & infrastructure",
+    "flowSeller": "Seller · your margin",
+    "flowAffiliate": "Affiliate · referral commission",
     "ctaBrowse": "Explore catalog",
+    "ctaSeller": "Start selling without stock",
+    "ctaSupplier": "Become a supplier",
     "ctaPartner": "Become a creator partner"
   },
   "supportPage": {
@@ -3306,7 +3401,7 @@
       "sellerDashboard": "Seller dashboard",
       "listProduct": "List a product",
       "mySales": "My sales",
-      "becomeSeller": "Become a creator",
+      "becomeSeller": "Become a seller",
       "becomePartner": "Become a partner",
       "analytics": "Analytics",
       "payouts": "Payouts",
@@ -3339,6 +3434,7 @@
       "buyerProtection": "Protected checkout · returns",
       "buyerProtectionShort": "Protected checkout",
       "wishlist": "Wishlist",
+      "becomeSeller": "Become a seller",
       "becomeCreator": "Become a creator",
       "affiliateProgram": "Affiliate program",
       "becomeSupplier": "Become a supplier",
@@ -3366,8 +3462,8 @@
       "trustBeaconCta": "Read the policy",
       "panEuBadge": "Pan-EU · 27 markets",
       "localeLabel": "Language & region",
-      "mobileTagline": "Creator marketplace · secure checkout · 24/7 support",
-      "desktopTagline": "The marketplace where creator partners and suppliers grow in Europe — EU compliance, seamless experience.",
+      "mobileTagline": "Global commerce · secure checkout · seller dashboards",
+      "desktopTagline": "Global commerce infrastructure — suppliers, sellers and affiliates build stores without stock across Europe.",
       "stripeNoticeShort": "Card · strong authentication · EU VAT compliant",
       "vatNotice": "VAT collected and remitted in line with applicable regulations.",
       "stripeNotice": "Payments secured by card (strong authentication when required).",
