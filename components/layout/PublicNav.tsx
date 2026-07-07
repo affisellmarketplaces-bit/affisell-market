@@ -136,7 +136,8 @@ export function PublicNav() {
 
   const mobileUtilities = (
     <div className="flex shrink-0 items-center gap-1 lg:hidden">
-      {showCompactMobileUtilities ? <ThemeToggle className="shrink-0" /> : <LanguageSwitcher />}
+      {mode === "account" ? <LanguageSwitcher /> : null}
+      {showCompactMobileUtilities ? <ThemeToggle className="shrink-0" /> : null}
       <FastLink
         href="/cart"
         className={cn(
@@ -259,9 +260,7 @@ export function PublicNav() {
 
   const searchBlock = (options: { suggestions: boolean }) => (
     <Suspense
-      fallback={
-        <div className="h-10 min-w-0 lg:col-start-3 lg:row-start-1" aria-hidden />
-      }
+      fallback={<div className="h-9 min-w-0 lg:col-start-3 lg:row-start-1" aria-hidden />}
     >
       <div className="flex min-w-0 items-center gap-2 lg:col-start-3 lg:row-start-1 lg:justify-center">
         <div className={cn(searchShellClass, searchMaxWidthClass)}>
@@ -293,7 +292,7 @@ export function PublicNav() {
       {mode === "transaction" ? (
         <nav
           aria-label="Main"
-          className="affisell-public-nav affisell-public-nav--transaction mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1.5 px-1 py-1.5 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:py-2"
+          className="affisell-public-nav affisell-public-nav--transaction mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:py-2"
         >
           <div className="flex min-w-0 items-center gap-2 lg:contents">
             {logo}
@@ -306,7 +305,7 @@ export function PublicNav() {
       ) : mode === "account" ? (
         <nav
           aria-label="Main"
-          className="affisell-public-nav affisell-public-nav--account mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1.5 px-1 py-1.5 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
+          className="affisell-public-nav affisell-public-nav--account mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
         >
           <div className="flex min-w-0 items-center justify-between gap-2 lg:contents">
             {logo}
@@ -320,7 +319,7 @@ export function PublicNav() {
       ) : (
         <nav
           aria-label="Main"
-          className="affisell-public-nav mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1.5 px-1 py-1.5 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
+          className="affisell-public-nav mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
         >
           <div className="flex min-w-0 items-center justify-between gap-2 lg:contents">
             {logo}

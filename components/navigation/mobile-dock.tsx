@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import {
   Heart,
   Home,
@@ -45,15 +46,48 @@ export function MobileDock() {
   const cartCount = useBuyerCartCount()
   const mode = resolvePublicNavMode(bare)
   const dockItems = resolveMobileDockItems(mode)
+  const [compact, setCompact] = useState(false)
+  const [footerVisible, setFooterVisible] = useState(false)
 
   if (role === "AFFILIATE" || role === "SUPPLIER") return null
   if (shouldHideMobileDock(pathname)) return null
+
+  useEffect(() => {
+    let lastY = window.scrollY
+
+    const syncCompact = () => {
+      const nextY = window.scrollY
+      const goingDown = nextY > lastY + 8
+      const nearTop = nextY < 96
+      setCompact(goingDown && !nearTop)
+      lastY = nextY
+    }
+
+    syncCompact()
+    window.addEventListener("scroll", syncCompact, { passive: true })
+    return () => window.removeEventListener("scroll", syncCompact)
+  }, [])
+
+  useEffect(() => {
+    const footer = document.querySelector(".affisell-site-footer")
+    if (!footer) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setFooterVisible(entry.isIntersecting),
+      { rootMargin: "0px 0px 96px 0px", threshold: 0.02 }
+    )
+
+    observer.observe(footer)
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <nav
       aria-label={t("aria")}
       className={cn(
         "affisell-mobile-buyer-dock pointer-events-none fixed inset-x-0 bottom-0 z-[90] w-full max-w-[100vw] overflow-x-clip px-2 pb-[max(0.3rem,env(safe-area-inset-bottom))] md:hidden",
+        compact && "affisell-mobile-buyer-dock--compact",
+        footerVisible && "affisell-mobile-buyer-dock--footer-hide",
         mode === "account" && "affisell-mobile-dock--account"
       )}
     >

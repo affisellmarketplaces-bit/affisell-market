@@ -535,7 +535,7 @@ export function MarketplaceView({
                 </div>
                 <OfferModeQuickRail
                   basePath={basePath}
-                  className="mb-2 sm:mb-4"
+                  className="mb-1.5 sm:mb-4"
                   initialCounts={initialBrowse?.offerRailCounts}
                 />
               </>
@@ -577,6 +577,14 @@ export function MarketplaceView({
                   />
                 }
               />
+            ) : null}
+            {embedded && isCustomerBrowse ? (
+              <div className="mb-3 flex sm:hidden">
+                <MarketplaceShipsToChip
+                  basePath={basePath}
+                  className="min-h-9 px-2.5 py-1 text-[11px]"
+                />
+              </div>
             ) : null}
             {hasFilters ? (
               <div className="mb-4 hidden flex-wrap items-center gap-2 md:flex">

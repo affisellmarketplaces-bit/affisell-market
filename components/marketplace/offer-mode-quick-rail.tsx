@@ -104,13 +104,13 @@ export function OfferModeQuickRail({ basePath, className, initialCounts }: Props
 
   return (
     <section className={cn("affisell-offer-mode-rail", className)} aria-label={t("eyebrow")}>
-      <div className="mb-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:mb-3">
+      <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 sm:mb-3">
         <div className="inline-flex items-center gap-2">
           <span className="relative flex size-2 shrink-0 motion-reduce:hidden" aria-hidden>
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand/40 opacity-50" />
             <span className="relative inline-flex size-2 rounded-full bg-brand shadow-[0_0_10px_color-mix(in_srgb,var(--brand)_55%,transparent)]" />
           </span>
-          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-brand dark:text-brand-light">
+          <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-brand dark:text-brand-light sm:text-[10px]">
             {t("eyebrow")}
           </p>
         </div>
@@ -118,13 +118,13 @@ export function OfferModeQuickRail({ basePath, className, initialCounts }: Props
           <button
             type="button"
             onClick={clear}
-            className="ml-auto inline-flex min-h-11 items-center gap-1 rounded-lg border border-brand/20 bg-brand-muted/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand backdrop-blur-sm transition hover:border-brand/35 hover:bg-brand-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 dark:border-brand/35 dark:bg-brand-muted/30 dark:text-brand-light"
+            className="ml-auto inline-flex min-h-9 items-center gap-1 rounded-lg border border-brand/20 bg-brand-muted/50 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-brand backdrop-blur-sm transition hover:border-brand/35 hover:bg-brand-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 dark:border-brand/35 dark:bg-brand-muted/30 dark:text-brand-light"
           >
             <X className="size-3 shrink-0 opacity-70" aria-hidden />
             {t("clear")}
           </button>
         ) : (
-          <span className="ml-auto inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500 sm:tracking-[0.16em] dark:text-zinc-400">
+          <span className="ml-auto hidden items-center gap-1 text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500 sm:inline-flex dark:text-zinc-400">
             <Sparkles className="size-3 shrink-0 text-brand dark:text-brand-light" aria-hidden />
             <span className="sr-only sm:not-sr-only">{t("tapHint")}</span>
           </span>
@@ -132,7 +132,7 @@ export function OfferModeQuickRail({ basePath, className, initialCounts }: Props
       </div>
 
       <div
-        className="affisell-offer-mode-rail-scroll flex flex-nowrap gap-2 overflow-x-auto overscroll-x-contain pb-1 sm:gap-2.5 sm:overflow-visible sm:pb-0.5"
+        className="affisell-offer-mode-rail-scroll flex flex-nowrap gap-1.5 overflow-x-auto overscroll-x-contain pb-1 sm:gap-2.5 sm:overflow-visible sm:pb-0.5"
         role="tablist"
         aria-label={t("eyebrow")}
       >
@@ -163,7 +163,7 @@ export function OfferModeQuickRail({ basePath, className, initialCounts }: Props
               title={disabled ? t("noListingsForMode") : badge.label}
               onClick={() => toggle(slug, count)}
               className={cn(
-                "affisell-offer-mode-card group relative flex min-h-11 min-w-[5.75rem] max-w-[8.5rem] flex-1 shrink-0 snap-center items-center gap-2 overflow-hidden rounded-2xl px-2.5 py-2 text-left transition duration-300 sm:min-h-[3.5rem] sm:min-w-0 sm:max-w-none sm:flex-1 sm:px-3",
+                "affisell-offer-mode-card group relative flex min-h-10 min-w-[5.25rem] max-w-[7.5rem] flex-1 shrink-0 snap-center items-center gap-1.5 overflow-hidden rounded-2xl px-2 py-1.5 text-left transition duration-300 sm:min-h-[3.5rem] sm:min-w-0 sm:max-w-none sm:flex-1 sm:px-3",
                 disabled
                   ? "pointer-events-none cursor-not-allowed opacity-45 grayscale-[0.35]"
                   : "hover:-translate-y-0.5 active:scale-[0.98]"
@@ -171,7 +171,7 @@ export function OfferModeQuickRail({ basePath, className, initialCounts }: Props
             >
               {countsReady && count !== null && count > 0 ? (
                 <span
-                  className="absolute right-1 top-1 z-10 rounded-full bg-brand px-1.5 py-0.5 text-[9px] font-bold tabular-nums leading-none text-white shadow-sm sm:hidden"
+                  className="absolute right-1 top-1 z-10 rounded-full bg-brand px-1.5 py-0.5 text-[8px] font-bold tabular-nums leading-none text-white shadow-sm sm:hidden"
                   aria-hidden
                 >
                   {count > 99 ? "99+" : count}
@@ -186,14 +186,14 @@ export function OfferModeQuickRail({ basePath, className, initialCounts }: Props
               />
               <span
                 className={cn(
-                  "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br shadow-inner sm:h-8 sm:w-8 sm:rounded-xl",
+                  "relative flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br shadow-inner sm:h-8 sm:w-8 sm:rounded-xl",
                   ICON_ACCENT
                 )}
               >
-                <Icon className="size-3.5 text-white" aria-hidden />
+                <Icon className="size-3 text-white sm:size-3.5" aria-hidden />
               </span>
               <span className="relative min-w-0 flex-1">
-                <span className="block truncate text-[11px] font-bold leading-snug text-zinc-900 sm:text-xs dark:text-white">
+                <span className="block truncate text-[10px] font-bold leading-snug text-zinc-900 sm:text-xs dark:text-white">
                   {badge.shortLabel}
                 </span>
                 <span className="mt-0.5 hidden truncate text-[10px] leading-snug text-zinc-600 sm:block dark:text-violet-100/80">
