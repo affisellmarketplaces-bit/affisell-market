@@ -1,11 +1,37 @@
+/** Lightweight buyer placeholder — never use 1MB placeholder-product.jpg on grids. */
+export const PRODUCT_CARD_IMAGE_FALLBACK = "/placeholder.png"
+
+/** URLs safe to render on buyer catalog cards (skip inline/blob previews). */
+export function isDisplayableListingImageUrl(url: string | null | undefined): boolean {
+  if (typeof url !== "string") return false
+  const trimmed = url.trim()
+  if (!trimmed || trimmed.length > 4096) return false
+  if (trimmed.startsWith("blob:") || trimmed.startsWith("data:")) return false
+  return (
+    trimmed.startsWith("https://") ||
+    trimmed.startsWith("http://") ||
+    trimmed.startsWith("/")
+  )
+}
+
 /** Drop inline base64 blobs from shell payloads (Next cache + RSC limit). */
 export function shellSafeImageUrl(url: string | null | undefined): string | null {
-  if (typeof url !== "string") return null
-  const trimmed = url.trim()
-  if (!trimmed) return null
-  if (trimmed.startsWith("data:") && trimmed.length > 256) return null
-  if (trimmed.length > 4096) return null
-  return trimmed
+  if (!isDisplayableListingImageUrl(url)) return null
+  return url!.trim()
+}
+
+/** First gallery URL suitable for product cards — skips data:/blob: previews. */
+export function pickListingCardImageUrl(
+  customImages: string[] | null | undefined,
+  productImages: string[] | null | undefined
+): string | null {
+  for (const raw of customImages ?? []) {
+    if (isDisplayableListingImageUrl(raw)) return raw.trim()
+  }
+  for (const raw of productImages ?? []) {
+    if (isDisplayableListingImageUrl(raw)) return raw.trim()
+  }
+  return null
 }
 
 /** Primary image URL string for a listing (prefers custom overlay). */

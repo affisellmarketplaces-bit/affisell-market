@@ -1,4 +1,10 @@
 /** Resolve buyer catalog card href — shared by static grid + ProductCard. */
+import {
+  isDisplayableListingImageUrl,
+  pickListingCardImageUrl,
+  PRODUCT_CARD_IMAGE_FALLBACK,
+} from "@/lib/affiliate-listing-display"
+
 export function homeCatalogProductHref(product: Record<string, unknown>): string {
   const listingRaw = product.listingId ?? product.id
   const listingId =
@@ -44,9 +50,18 @@ export function normalizeHomeCatalogProduct(raw: unknown): {
   }
   if (!Number.isFinite(price)) price = 0
 
-  const images = o.images
-  const imageFromArr = Array.isArray(images) && typeof images[0] === "string" ? images[0] : ""
-  const image = String(o.image ?? imageFromArr ?? "").trim() || "/placeholder.png"
+  const customImages = Array.isArray(o.customImages)
+    ? o.customImages.filter((u): u is string => typeof u === "string")
+    : []
+  const productImages = Array.isArray(o.images)
+    ? o.images.filter((u): u is string => typeof u === "string")
+    : []
+  const image =
+    pickListingCardImageUrl(customImages, productImages) ??
+    (typeof o.image === "string" && isDisplayableListingImageUrl(o.image)
+      ? o.image.trim()
+      : null) ??
+    PRODUCT_CARD_IMAGE_FALLBACK
 
   const priceLabel = new Intl.NumberFormat(undefined, {
     style: "currency",

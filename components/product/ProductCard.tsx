@@ -4,6 +4,11 @@ import Link from "next/link"
 import { Heart, Sparkles } from "lucide-react"
 
 import { FastLink } from "@/components/navigation/fast-link"
+import {
+  isDisplayableListingImageUrl,
+  PRODUCT_CARD_IMAGE_FALLBACK,
+  pickListingCardImageUrl,
+} from "@/lib/affiliate-listing-display"
 
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { ProductOfferBadge } from "@/components/product/product-offer-badge"
@@ -57,8 +62,18 @@ function coerceProduct(p: ProductCardProps["product"]) {
   const o = p as Record<string, unknown>
   const title = String(o.title ?? o.name ?? "")
   const images = o.images
-  const imageFromArr = Array.isArray(images) && typeof images[0] === "string" ? images[0] : ""
-  const image = String(o.image ?? imageFromArr ?? "").trim()
+  const customImages = Array.isArray(o.customImages)
+    ? o.customImages.filter((u): u is string => typeof u === "string")
+    : []
+  const productImages = Array.isArray(images)
+    ? images.filter((u): u is string => typeof u === "string")
+    : []
+  const picked =
+    pickListingCardImageUrl(customImages, productImages) ??
+    (typeof o.image === "string" && isDisplayableListingImageUrl(o.image)
+      ? o.image.trim()
+      : null)
+  const image = picked ?? ""
   const priceRaw = o.price
   let price = Number(priceRaw)
   if (!Number.isFinite(price) && typeof o.sellingPriceCents === "number") {
@@ -254,7 +269,7 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
   const compareN = p.compareAt
   const discountOffer = resolveProductDiscount(priceN, compareN)
   const hasDiscount = discountOffer != null
-  const src = p.image || "/placeholder-product.jpg"
+  const src = p.image || PRODUCT_CARD_IMAGE_FALLBACK
   const reward = p.buyerRewardBadge
 
   const showBusiness = mode === "affiliate" || mode === "supplier"
@@ -267,7 +282,7 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
       prefetch={mode === "customer" ? undefined : false}
       className={cn(
         "group flex h-full w-full touch-manipulation flex-col rounded-[1.35rem] border p-1.5 outline-none ring-offset-2 backdrop-blur-sm transition-[transform,box-shadow,border-color] duration-200 active:scale-[0.99] sm:rounded-3xl sm:p-2",
-        "border-[color:var(--affisell-premium-border)] bg-[var(--affisell-premium-glass)] shadow-[var(--affisell-premium-shadow-soft)]",
+        "affisell-inp-tap border-[color:var(--affisell-premium-border)] bg-[var(--affisell-premium-glass)] shadow-[var(--affisell-premium-shadow-soft)]",
         "hover:border-violet-200/80 hover:shadow-[var(--affisell-premium-shadow-float)] focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:border-violet-800/60"
       )}
       data-product-card-mode={mode}
@@ -304,8 +319,10 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
           loading={imagePriority ? "eager" : "lazy"}
           fetchPriority={imagePriority ? "high" : "auto"}
           decoding="async"
+          referrerPolicy="no-referrer"
           onError={(e) => {
-            e.currentTarget.src = "/placeholder-product.jpg"
+            if (e.currentTarget.src.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
+            e.currentTarget.src = PRODUCT_CARD_IMAGE_FALLBACK
           }}
         />
       </div>

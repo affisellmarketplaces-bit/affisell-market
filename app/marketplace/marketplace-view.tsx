@@ -180,6 +180,7 @@ export function MarketplaceView({
 
   const productGridRef = useViewportRoutePrefetch<HTMLUListElement>({
     enabled: isCustomerBrowse,
+    max: 24,
     deps: [products.length],
   })
 

@@ -1,7 +1,12 @@
 import type { Prisma } from "@prisma/client"
 
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
-import { listingDisplayTitle, listingGalleryUrls, shellSafeImageUrl } from "@/lib/affiliate-listing-display"
+import {
+  listingDisplayTitle,
+  listingGalleryUrls,
+  pickListingCardImageUrl,
+  PRODUCT_CARD_IMAGE_FALLBACK,
+} from "@/lib/affiliate-listing-display"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { parseMarketplaceAttributeFilters } from "@/lib/marketplace-attribute-filters"
 import { buildMarketplaceScopedProductWhere } from "@/lib/marketplace-attribute-filters.server"
@@ -159,7 +164,9 @@ export function serializeMarketplaceListing(
     minOrderQuantity,
     offerBadge,
     compareAt: compareNum != null && Number.isFinite(compareNum) ? compareNum : null,
-    image: shellSafeImageUrl(gallery[0] ?? null),
+    image:
+      pickListingCardImageUrl(row.customImages ?? [], p.images ?? []) ??
+      PRODUCT_CARD_IMAGE_FALLBACK,
     stock: p.stock,
     store: publicStoreLabelFromAffiliateRow(row.affiliate),
     isBestSeller: row.isFeatured,

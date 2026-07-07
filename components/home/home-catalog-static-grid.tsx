@@ -1,5 +1,7 @@
+import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 
+import { CatalogCardImage } from "@/components/home/catalog-card-image"
 import {
   normalizeHomeCatalogProduct,
 } from "@/lib/home-catalog-product-href"
@@ -39,19 +41,16 @@ export async function HomeCatalogStaticGrid({ shell, limit = 24 }: Props) {
       <ul className="affisell-product-grid grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
         {items.map((item, index) => (
           <li key={item.id} className="flex h-full">
-            <a
+            <Link
               href={item.href}
-              className="affisell-home-static-card group flex h-full w-full touch-manipulation flex-col rounded-[1.35rem] border border-[color:var(--affisell-premium-border)] bg-[var(--affisell-premium-glass)] p-1.5 shadow-[var(--affisell-premium-shadow-soft)] transition-transform duration-200 active:scale-[0.99] sm:rounded-3xl sm:p-2"
+              prefetch
+              className="affisell-inp-tap affisell-home-static-card group flex h-full w-full touch-manipulation flex-col rounded-[1.35rem] border border-[color:var(--affisell-premium-border)] bg-[var(--affisell-premium-glass)] p-1.5 shadow-[var(--affisell-premium-shadow-soft)] transition-transform duration-200 active:scale-[0.99] sm:rounded-3xl sm:p-2"
             >
               <div className="relative aspect-square w-full overflow-hidden rounded-[1.1rem] border border-white/50 bg-gradient-to-br from-violet-50/50 via-white to-sky-50/35 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:via-zinc-950/80 dark:to-teal-950/15">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <CatalogCardImage
                   src={item.image}
                   alt={item.title}
-                  className="absolute inset-0 h-full w-full object-contain p-1 sm:p-4"
-                  loading={index < 4 ? "eager" : "lazy"}
-                  fetchPriority={index < 4 ? "high" : "auto"}
-                  decoding="async"
+                  priority={index < 4}
                 />
               </div>
               <div className="mt-1.5 px-0.5 pb-0.5 sm:mt-3 sm:px-1 sm:pb-1">
@@ -62,7 +61,7 @@ export async function HomeCatalogStaticGrid({ shell, limit = 24 }: Props) {
                   {item.priceLabel}
                 </p>
               </div>
-            </a>
+            </Link>
           </li>
         ))}
       </ul>
