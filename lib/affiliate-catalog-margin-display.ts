@@ -1,6 +1,20 @@
 /** Default markup when affiliate has not set a selling price yet (swipe feed + quick list). */
 export const DEFAULT_AFFILIATE_CATALOG_MARKUP_RATE = 0.3
 
+export type AffiliateCatalogEconomicsOptions = {
+  markupRate?: number
+  /** When the affiliate already has a listing, use their configured selling price. */
+  listedSellingPriceCents?: number | null
+}
+
+export function listedSellingPriceFromAffiliateProducts(
+  affiliateProducts?: Array<{ sellingPriceCents?: number | null }>
+): number | null {
+  const cents = affiliateProducts?.[0]?.sellingPriceCents
+  if (typeof cents !== "number" || !Number.isFinite(cents) || cents <= 0) return null
+  return Math.round(cents)
+}
+
 export function suggestedSellingPriceCents(
   basePriceCents: number,
   markupRate: number = DEFAULT_AFFILIATE_CATALOG_MARKUP_RATE
@@ -21,51 +35,78 @@ export function estimateSupplierCommissionCents(
   return Math.max(0, Math.round((basePriceCents * pct) / 100))
 }
 
-/** Retail markup margin at suggested selling price. */
+/** Retail markup margin at client selling price. */
 export function estimateMarkupMarginCents(
   basePriceCents: number,
-  markupRate: number = DEFAULT_AFFILIATE_CATALOG_MARKUP_RATE
+  clientPriceCents: number
 ): number {
-  return Math.max(0, suggestedSellingPriceCents(basePriceCents, markupRate) - basePriceCents)
+  return Math.max(0, Math.round(clientPriceCents) - Math.round(basePriceCents))
 }
 
-/** Commission + markup — headline "partner gain" for catalog cards and high-margin sort. */
+/** Commission + markup — headline reseller earnings for catalog cards and high-margin sort. */
 export function estimateTotalPartnerGainCents(
   basePriceCents: number,
   commissionRate: number,
-  markupRate: number = DEFAULT_AFFILIATE_CATALOG_MARKUP_RATE
+  options?: AffiliateCatalogEconomicsOptions
 ): number {
-  return (
-    estimateSupplierCommissionCents(basePriceCents, commissionRate) +
-    estimateMarkupMarginCents(basePriceCents, markupRate)
-  )
+  const economics = buildAffiliateCatalogCardEconomics(basePriceCents, commissionRate, options)
+  return economics.totalPartnerGainCents
 }
 
 export type AffiliateCatalogCardEconomics = {
   supplierPriceCents: number
-  suggestedSellingPriceCents: number
+  clientPriceCents: number
+  usesListedPrice: boolean
   markupMarginCents: number
   commissionRatePct: number
   commissionCents: number
   totalPartnerGainCents: number
   suggestedMarkupRate: number
+  /** @deprecated use clientPriceCents */
+  suggestedSellingPriceCents: number
 }
 
 export function buildAffiliateCatalogCardEconomics(
   basePriceCents: number,
   commissionRate: number,
-  markupRate: number = DEFAULT_AFFILIATE_CATALOG_MARKUP_RATE
+  options?: AffiliateCatalogEconomicsOptions
 ): AffiliateCatalogCardEconomics {
-  const suggestedSellingPrice = suggestedSellingPriceCents(basePriceCents, markupRate)
+  const markupRate = options?.markupRate ?? DEFAULT_AFFILIATE_CATALOG_MARKUP_RATE
+  const listedRaw = options?.listedSellingPriceCents
+  const listed =
+    typeof listedRaw === "number" && Number.isFinite(listedRaw) && listedRaw > 0
+      ? Math.round(listedRaw)
+      : null
+  const usesListedPrice = listed != null
+  const clientPrice = listed ?? suggestedSellingPriceCents(basePriceCents, markupRate)
   const commissionCents = estimateSupplierCommissionCents(basePriceCents, commissionRate)
-  const markupMarginCents = Math.max(0, suggestedSellingPrice - basePriceCents)
+  const markupMarginCents = estimateMarkupMarginCents(basePriceCents, clientPrice)
+  const effectiveMarkupRate = usesListedPrice
+    ? basePriceCents > 0
+      ? (clientPrice - basePriceCents) / basePriceCents
+      : 0
+    : markupRate
+
   return {
     supplierPriceCents: basePriceCents,
-    suggestedSellingPriceCents: suggestedSellingPrice,
+    clientPriceCents: clientPrice,
+    usesListedPrice,
     markupMarginCents,
     commissionRatePct: Math.round(Number(commissionRate) || 0),
     commissionCents,
     totalPartnerGainCents: commissionCents + markupMarginCents,
-    suggestedMarkupRate: markupRate,
+    suggestedMarkupRate: effectiveMarkupRate,
+    suggestedSellingPriceCents: clientPrice,
   }
+}
+
+/** Build economics from a discover catalog row. */
+export function buildAffiliateCatalogCardEconomicsFromProduct(product: {
+  basePriceCents: number
+  commissionRate: number
+  affiliateProducts?: Array<{ sellingPriceCents?: number | null }>
+}): AffiliateCatalogCardEconomics {
+  return buildAffiliateCatalogCardEconomics(product.basePriceCents, product.commissionRate, {
+    listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(product.affiliateProducts),
+  })
 }

@@ -51,8 +51,9 @@ import {
 } from "@/components/affiliate/listing-builder-modal"
 import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
 import {
-  buildAffiliateCatalogCardEconomics,
+  buildAffiliateCatalogCardEconomicsFromProduct,
   estimateTotalPartnerGainCents,
+  listedSellingPriceFromAffiliateProducts,
 } from "@/lib/affiliate-catalog-margin-display"
 import { affiliateListingPreviewHref } from "@/lib/affiliate-store-preview-access"
 import { ProductColorSwatchDots } from "@/components/product/product-color-swatch-dots"
@@ -78,7 +79,7 @@ type CatalogProduct = {
   deliveryMax?: number | null
   createdAt?: string | null
   /** Present on Supplier Catalog query; may be absent on nested `listing.product`. */
-  affiliateProducts?: { id: string; isListed: boolean }[]
+  affiliateProducts?: { id: string; isListed: boolean; sellingPriceCents?: number }[]
   supplier: { email: string; store?: { name: string; slug: string } | null }
 }
 
@@ -642,8 +643,12 @@ export function AffiliateDashboard({ storeId }: Props) {
       switch (discoverSort) {
         case "commission-desc":
           return (
-            estimateTotalPartnerGainCents(b.basePriceCents, b.commissionRate) -
-            estimateTotalPartnerGainCents(a.basePriceCents, a.commissionRate)
+            estimateTotalPartnerGainCents(b.basePriceCents, b.commissionRate, {
+              listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(b.affiliateProducts),
+            }) -
+            estimateTotalPartnerGainCents(a.basePriceCents, a.commissionRate, {
+              listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(a.affiliateProducts),
+            })
           )
         case "price-asc":
           return a.basePriceCents - b.basePriceCents
@@ -1057,10 +1062,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                     <ProductColorSwatchDots colors={p.colors ?? []} />
                   ) : null}
                   <AffiliateCatalogEconomicsPanel
-                    economics={buildAffiliateCatalogCardEconomics(
-                      p.basePriceCents,
-                      Number(p.commissionRate) || 0
-                    )}
+                    economics={buildAffiliateCatalogCardEconomicsFromProduct(p)}
                     className="mt-auto border-t border-zinc-100 pt-3 dark:border-zinc-800"
                   />
                   {supplierHref ? (

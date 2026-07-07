@@ -34,7 +34,7 @@ export function AffiliateCatalogEconomicsPanel({
         data-testid="affiliate-catalog-economics-compact"
       >
         <EconomicsChip tone={tone} accent="client">
-          {t("customerPriceShort")} {money(economics.suggestedSellingPriceCents, { maximumFractionDigits: 0 })}
+          {t("customerPriceShort")} {money(economics.clientPriceCents, { maximumFractionDigits: 0 })}
         </EconomicsChip>
         <EconomicsChip tone={tone} accent="margin">
           +{money(economics.markupMarginCents, { maximumFractionDigits: 0 })}
@@ -65,7 +65,7 @@ export function AffiliateCatalogEconomicsPanel({
             isDark ? "text-violet-200/80" : "text-violet-700 dark:text-violet-300"
           )}
         >
-          {t("customerPrice")}
+          {t(economics.usesListedPrice ? "listedCustomerPrice" : "customerPrice")}
         </p>
         <p
           className={cn(
@@ -73,7 +73,7 @@ export function AffiliateCatalogEconomicsPanel({
             isDark ? "text-white" : "text-zinc-900 dark:text-zinc-50"
           )}
         >
-          {money(economics.suggestedSellingPriceCents)}
+          {money(economics.clientPriceCents)}
         </p>
       </div>
 

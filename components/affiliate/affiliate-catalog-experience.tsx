@@ -32,7 +32,7 @@ import { Sidebar } from "@/components/marketplace/Sidebar"
 import { Button } from "@/components/ui/button"
 import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH, AFFILIATE_HUB_PATH } from "@/lib/affiliate-routes"
 import { shouldShowAffiliateCreatorsWatchingBadge } from "@/lib/affiliate-product-opportunity-pulse-shared"
-import { buildAffiliateCatalogCardEconomics } from "@/lib/affiliate-catalog-margin-display"
+import { buildAffiliateCatalogCardEconomicsFromProduct } from "@/lib/affiliate-catalog-margin-display"
 import type { AffiliateOpportunityPulseCard } from "@/lib/affiliate-catalog-opportunity-pulse"
 import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
 import {
@@ -542,10 +542,7 @@ export function AffiliateCatalogExperience({
                     const isHidden = listingState.kind === "hidden"
                     const listingId = listingState.kind !== "none" ? listingState.listingId : undefined
                     const thumb = primaryProductImage(p.images) || "/placeholder-product.jpg"
-                    const economics = buildAffiliateCatalogCardEconomics(
-                      p.basePriceCents,
-                      Number(p.commissionRate) || 0
-                    )
+                    const economics = buildAffiliateCatalogCardEconomicsFromProduct(p)
                     const supplierHref = p.supplier.store?.slug
                       ? `/store/supplier/${encodeURIComponent(p.supplier.store.slug)}`
                       : null

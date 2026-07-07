@@ -1148,6 +1148,7 @@
     "catalogEconomics": {
       "supplierPrice": "Prix fournisseur",
       "customerPrice": "Prix client suggéré",
+      "listedCustomerPrice": "Prix client (votre fiche)",
       "customerPriceShort": "Client",
       "resellerMargin": "Votre marge revendeur",
       "supplierCommission": "Commission fournisseur",

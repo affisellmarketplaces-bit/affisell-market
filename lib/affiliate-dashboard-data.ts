@@ -26,7 +26,7 @@ export function affiliateDiscoverCardSelect(affiliateId: string): Prisma.Product
     createdAt: true,
     affiliateProducts: {
       where: { affiliateId },
-      select: { id: true, isListed: true },
+      select: { id: true, isListed: true, sellingPriceCents: true },
     },
     supplier: supplierPick,
   }

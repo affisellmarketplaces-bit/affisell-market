@@ -1148,6 +1148,7 @@
     "catalogEconomics": {
       "supplierPrice": "Supplier price",
       "customerPrice": "Suggested customer price",
+      "listedCustomerPrice": "Customer price (your listing)",
       "customerPriceShort": "Customer",
       "resellerMargin": "Your reseller margin",
       "supplierCommission": "Supplier commission",

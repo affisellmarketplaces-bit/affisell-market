@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 
 import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import type { AffiliateCatalogHighlightCard, AffiliateCatalogHighlights } from "@/lib/affiliate-catalog-types"
-import { buildAffiliateCatalogCardEconomics } from "@/lib/affiliate-catalog-margin-display"
+import { buildAffiliateCatalogCardEconomicsFromProduct } from "@/lib/affiliate-catalog-margin-display"
 import { cn } from "@/lib/utils"
 
 type TabId = "bestsellers" | "new" | "margin"
@@ -161,10 +161,10 @@ export function AffiliateCatalogHighlights({ initial, onPickProduct }: Props) {
                     {item.name}
                   </p>
                   <AffiliateCatalogEconomicsPanel
-                    economics={buildAffiliateCatalogCardEconomics(
-                      item.basePriceCents,
-                      item.commissionRate
-                    )}
+                    economics={buildAffiliateCatalogCardEconomicsFromProduct({
+                      basePriceCents: item.basePriceCents,
+                      commissionRate: item.commissionRate,
+                    })}
                     variant="compact"
                     className="mt-2"
                   />

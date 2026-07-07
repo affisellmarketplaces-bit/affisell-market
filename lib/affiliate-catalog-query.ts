@@ -1,6 +1,9 @@
 import type { Prisma } from "@prisma/client"
 
-import { estimateTotalPartnerGainCents } from "@/lib/affiliate-catalog-margin-display"
+import {
+  estimateTotalPartnerGainCents,
+  listedSellingPriceFromAffiliateProducts,
+} from "@/lib/affiliate-catalog-margin-display"
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
 import {
@@ -54,6 +57,7 @@ function normalizeCatalogRow(row: DiscoverRow): AffiliateCatalogProduct {
     affiliateProducts: (row.affiliateProducts ?? []).map((a) => ({
       id: a.id,
       isListed: a.isListed,
+      sellingPriceCents: a.sellingPriceCents,
     })),
     supplier: {
       email: supplier.email,
@@ -79,7 +83,9 @@ function mapProductToHighlight(
     imageUrl: primaryProductImage(p.images) || null,
     basePriceCents: p.basePriceCents,
     commissionRate: Math.round(Number(p.commissionRate) || 0),
-    marginCents: estimateTotalPartnerGainCents(p.basePriceCents, p.commissionRate),
+    marginCents: estimateTotalPartnerGainCents(p.basePriceCents, p.commissionRate, {
+      listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(p.affiliateProducts),
+    }),
     soldCount,
     isInStore: Boolean(listing),
     listingId: listing?.id ?? null,
@@ -161,8 +167,12 @@ export async function loadAffiliateCatalogProducts(
   if (sort === "commission-desc") {
     products.sort(
       (a, b) =>
-        estimateTotalPartnerGainCents(b.basePriceCents, b.commissionRate) -
-        estimateTotalPartnerGainCents(a.basePriceCents, a.commissionRate)
+        estimateTotalPartnerGainCents(b.basePriceCents, b.commissionRate, {
+          listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(b.affiliateProducts),
+        }) -
+        estimateTotalPartnerGainCents(a.basePriceCents, a.commissionRate, {
+          listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(a.affiliateProducts),
+        })
     )
     return products.slice(0, take)
   }
@@ -245,8 +255,12 @@ export async function loadAffiliateCatalogHighlights(
 
   const marginSorted = [...marginRows].sort(
     (a, b) =>
-      estimateTotalPartnerGainCents(b.basePriceCents, b.commissionRate) -
-      estimateTotalPartnerGainCents(a.basePriceCents, a.commissionRate)
+      estimateTotalPartnerGainCents(b.basePriceCents, b.commissionRate, {
+        listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(b.affiliateProducts),
+      }) -
+      estimateTotalPartnerGainCents(a.basePriceCents, a.commissionRate, {
+        listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(a.affiliateProducts),
+      })
   )
 
   return {

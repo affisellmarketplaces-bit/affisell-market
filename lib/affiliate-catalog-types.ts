@@ -22,7 +22,7 @@ export type AffiliateCatalogProduct = {
   commissionRate: number
   deliveryMax: number | null
   createdAt: string
-  affiliateProducts: { id: string; isListed: boolean }[]
+  affiliateProducts: { id: string; isListed: boolean; sellingPriceCents?: number }[]
   affiliateCreatorsWatching?: number
   supplier: {
     email: string
