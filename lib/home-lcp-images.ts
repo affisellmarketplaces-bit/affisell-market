@@ -13,7 +13,7 @@ export function pickHomeLcpImageUrls(products: unknown[], limit = 4): string[] {
         ? row.images[0].trim()
         : ""
     const href = fromField || fromList
-    if (!href.startsWith("http") || urls.includes(href)) continue
+    if ((!href.startsWith("http") && !href.startsWith("/")) || urls.includes(href)) continue
     urls.push(href)
   }
   return urls

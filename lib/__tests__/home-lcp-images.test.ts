@@ -20,7 +20,9 @@ describe("pickHomeLcpImageUrls", () => {
     ])
   })
 
-  it("ignores empty and non-http values", () => {
-    expect(pickHomeLcpImageUrls([{ image: "" }, { image: "/local.jpg" }, null], 4)).toEqual([])
+  it("ignores empty values but keeps same-origin paths", () => {
+    expect(pickHomeLcpImageUrls([{ image: "" }, { image: "/placeholder.png" }, null], 4)).toEqual([
+      "/placeholder.png",
+    ])
   })
 })

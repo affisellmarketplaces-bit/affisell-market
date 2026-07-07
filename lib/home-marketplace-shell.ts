@@ -1,6 +1,7 @@
 import { cache } from "react"
 
 import type { AppLocale } from "@/lib/i18n-locale"
+import { withHomeCatalogFallback } from "@/lib/home-catalog-fallback"
 import { loadMarketplaceCategoryTreeCached } from "@/lib/marketplace-category-tree"
 import { loadOfferModeRailCounts } from "@/lib/marketplace-discovery-facets"
 import { fetchMarketplaceListingsForHome } from "@/lib/marketplace-listings-query"
@@ -41,12 +42,12 @@ async function loadHomeMarketplaceShellUncached(
     loadHomeMarketplaceListings(),
     loadHomeOfferRailCounts(),
   ])
-  return {
+  return withHomeCatalogFallback({
     categories: tree.categories,
     catalogTotal: tree.catalogTotal,
     products,
     offerRailCounts,
-  }
+  })
 }
 
 /** Dedupe within a single RSC request (page preload + Suspense child). */

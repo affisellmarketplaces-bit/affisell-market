@@ -46,7 +46,7 @@ export function normalizeHomeCatalogProduct(raw: unknown): {
 
   const images = o.images
   const imageFromArr = Array.isArray(images) && typeof images[0] === "string" ? images[0] : ""
-  const image = String(o.image ?? imageFromArr ?? "").trim() || "/placeholder-product.jpg"
+  const image = String(o.image ?? imageFromArr ?? "").trim() || "/placeholder.png"
 
   const priceLabel = new Intl.NumberFormat(undefined, {
     style: "currency",

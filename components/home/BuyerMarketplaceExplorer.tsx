@@ -1,7 +1,6 @@
 import { getLocale } from "next-intl/server"
 
 import { HomeCatalogDeferredExplorer } from "@/components/home/home-catalog-deferred-explorer"
-import { HomeCatalogLcpPreload } from "@/components/home/home-catalog-lcp-preload"
 import { HomeCatalogStaticGrid } from "@/components/home/home-catalog-static-grid"
 import { getCachedSession } from "@/lib/get-cached-session"
 import { readGuestWishlistId } from "@/lib/guest-wishlist-id"
@@ -24,12 +23,9 @@ export async function BuyerMarketplaceExplorer() {
   const fullShell = { ...shell, personalizedPicks }
 
   return (
-    <>
-      <HomeCatalogLcpPreload products={shell.products} />
-      <HomeCatalogDeferredExplorer
-        shell={fullShell}
-        staticCatalog={<HomeCatalogStaticGrid shell={shell} />}
-      />
-    </>
+    <HomeCatalogDeferredExplorer
+      shell={fullShell}
+      staticCatalog={<HomeCatalogStaticGrid shell={shell} />}
+    />
   )
 }

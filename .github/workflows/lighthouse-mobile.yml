@@ -29,6 +29,8 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
+          LIGHTHOUSE_CI: "1"
+          CI: "true"
 
       - name: Verify PWA shell wiring
         run: npm run verify:pwa-shell
@@ -38,6 +40,8 @@ jobs:
         continue-on-error: true
         run: npm run lighthouse:mobile
         env:
+          LIGHTHOUSE_CI: "1"
+          CI: "true"
           # Optional — enables LHCI GitHub status checks when configured in repo secrets.
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
 
