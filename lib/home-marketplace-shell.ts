@@ -1,5 +1,4 @@
 import { cache } from "react"
-import { unstable_cache } from "next/cache"
 
 import type { AppLocale } from "@/lib/i18n-locale"
 import { loadMarketplaceCategoryTreeCached } from "@/lib/marketplace-category-tree"
@@ -23,44 +22,24 @@ const EMPTY_HOME_SHELL: Omit<HomeMarketplaceShell, "personalizedPicks"> = {
   offerRailCounts: {},
 }
 
-/** Per-request dedupe when `unstable_cache` write fails (>2MB). */
-const loadHomeMarketplaceListingsFresh = cache(() =>
+/** Per-request dedupe — Next `unstable_cache` rejects payloads >2MB (taxonomy / fat image URLs). */
+const loadHomeMarketplaceListings = cache(() =>
   fetchMarketplaceListingsForHome(new URLSearchParams())
 )
 
-/** Default home grid — cached separately (lite payload fits under Next 2MB limit). */
-function loadHomeMarketplaceListingsCached() {
-  return unstable_cache(
-    () => loadHomeMarketplaceListingsFresh(),
-    ["home-marketplace-listings-default"],
-    { revalidate: HOME_SHELL_REVALIDATE_SEC, tags: ["home-marketplace"] }
-  )().catch((error: unknown) => {
-    console.error("[home-marketplace-listings-cache]", { error })
-    return loadHomeMarketplaceListingsFresh()
-  })
-}
-
-/** Small facet counts — safe under Next.js 2MB `unstable_cache` limit. */
-function loadOfferModeRailCountsCached() {
-  return unstable_cache(
-    () => loadOfferModeRailCounts(),
-    ["home-offer-rail-counts"],
-    { revalidate: HOME_SHELL_REVALIDATE_SEC, tags: ["home-marketplace"] }
-  )().catch((error: unknown) => {
-    console.error("[home-offer-rail-counts-cache]", { error })
-    return loadOfferModeRailCounts()
-  })
-}
+const loadHomeOfferRailCounts = cache(() => loadOfferModeRailCounts())
 
 /**
  * Home `#explorer` SSR payload.
- * Listings + category tree are cached separately; page `revalidate = 60` covers the rest.
+ * Uses React `cache()` only; page `revalidate = 60` covers cross-request freshness.
  */
-async function loadHomeMarketplaceShellUncached(locale: AppLocale): Promise<Omit<HomeMarketplaceShell, "personalizedPicks">> {
+async function loadHomeMarketplaceShellUncached(
+  locale: AppLocale
+): Promise<Omit<HomeMarketplaceShell, "personalizedPicks">> {
   const [tree, products, offerRailCounts] = await Promise.all([
     loadMarketplaceCategoryTreeCached(locale),
-    loadHomeMarketplaceListingsCached(),
-    loadOfferModeRailCountsCached(),
+    loadHomeMarketplaceListings(),
+    loadHomeOfferRailCounts(),
   ])
   return {
     categories: tree.categories,
@@ -82,7 +61,9 @@ export const loadHomeMarketplaceShellSafe = cache(async (locale: AppLocale) => {
 
 /** Fire-and-forget from `app/page.tsx` so catalog fetch starts before Suspense children. */
 export function preloadHomeMarketplaceShell(locale: AppLocale): void {
-  void loadHomeMarketplaceShellSafe(locale)
+  void loadHomeMarketplaceShellSafe(locale).catch((error: unknown) => {
+    console.error("[home-marketplace-shell] preload failed", { locale, error })
+  })
 }
 
 export { HOME_SHELL_REVALIDATE_SEC }

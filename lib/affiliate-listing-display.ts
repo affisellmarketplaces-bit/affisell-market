@@ -1,3 +1,13 @@
+/** Drop inline base64 blobs from shell payloads (Next cache + RSC limit). */
+export function shellSafeImageUrl(url: string | null | undefined): string | null {
+  if (typeof url !== "string") return null
+  const trimmed = url.trim()
+  if (!trimmed) return null
+  if (trimmed.startsWith("data:") && trimmed.length > 256) return null
+  if (trimmed.length > 4096) return null
+  return trimmed
+}
+
 /** Primary image URL string for a listing (prefers custom overlay). */
 export function listingPrimaryImageUrl(
   customImages: string[] | null | undefined,

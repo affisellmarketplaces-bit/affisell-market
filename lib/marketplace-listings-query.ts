@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client"
 
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
-import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
+import { listingDisplayTitle, listingGalleryUrls, shellSafeImageUrl } from "@/lib/affiliate-listing-display"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { parseMarketplaceAttributeFilters } from "@/lib/marketplace-attribute-filters"
 import { buildMarketplaceScopedProductWhere } from "@/lib/marketplace-attribute-filters.server"
@@ -60,6 +60,38 @@ export type MarketplaceListingRow = Prisma.AffiliateProductGetPayload<{
 /** Home `#explorer` — smaller payload for mobile RSC/hydration. */
 export const HOME_MARKETPLACE_LISTINGS_TAKE = 24
 
+export const listingMarketplaceSelectLite = {
+  id: true,
+  sellingPriceCents: true,
+  conversions: true,
+  isFeatured: true,
+  buyerRewardKind: true,
+  buyerRewardPercent: true,
+  showWarranty: true,
+  customImages: true,
+  customTitle: true,
+  product: {
+    select: {
+      id: true,
+      name: true,
+      images: true,
+      compareAt: true,
+      stock: true,
+      categoryId: true,
+      hasVariants: true,
+      offerMode: true,
+      minOrderQuantity: true,
+    },
+  },
+  affiliate: {
+    select: {
+      name: true,
+      store: { select: { name: true, slug: true } },
+    },
+  },
+} satisfies Prisma.AffiliateProductSelect
+
+/** @deprecated Prefer `listingMarketplaceSelectLite` — `include` pulls unused listing columns. */
 export const listingMarketplaceIncludeLite = {
   product: {
     select: {
@@ -83,7 +115,7 @@ export const listingMarketplaceIncludeLite = {
 } satisfies Prisma.AffiliateProductInclude
 
 export type MarketplaceListingRowLite = Prisma.AffiliateProductGetPayload<{
-  include: typeof listingMarketplaceIncludeLite
+  select: typeof listingMarketplaceSelectLite
 }>
 
 export function serializeMarketplaceListing(
@@ -127,7 +159,7 @@ export function serializeMarketplaceListing(
     minOrderQuantity,
     offerBadge,
     compareAt: compareNum != null && Number.isFinite(compareNum) ? compareNum : null,
-    image: gallery[0] ?? null,
+    image: shellSafeImageUrl(gallery[0] ?? null),
     stock: p.stock,
     store: publicStoreLabelFromAffiliateRow(row.affiliate),
     isBestSeller: row.isFeatured,
@@ -263,7 +295,7 @@ export async function fetchMarketplaceListings(
       const rows = lite
         ? await prisma.affiliateProduct.findMany({
             where: { ...where, id: { in: chunk } },
-            include: listingMarketplaceIncludeLite,
+            select: listingMarketplaceSelectLite,
           })
         : await prisma.affiliateProduct.findMany({
             where: { ...where, id: { in: chunk } },
@@ -279,7 +311,7 @@ export async function fetchMarketplaceListings(
     return lite
       ? prisma.affiliateProduct.findMany({
           where,
-          include: listingMarketplaceIncludeLite,
+          select: listingMarketplaceSelectLite,
           orderBy: defaultOrder,
           take,
         })
