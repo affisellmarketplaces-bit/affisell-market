@@ -1,12 +1,15 @@
 "use client"
 
-import { useState, type ReactNode } from "react"
+import { startTransition, useCallback, useState, type ReactNode } from "react"
 import { Filter, LayoutGrid, Menu, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { MobileSheetBodySkeleton } from "@/components/marketplace/mobile-sheet-body-skeleton"
 import { openMobileBuyerHub } from "@/lib/buyer-hub-events"
+import { buyerHaptic } from "@/lib/buyer-haptics"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
+import { useDeferredMount } from "@/hooks/use-deferred-mount"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -23,14 +26,16 @@ function MobileSheet({
   open,
   onOpenChange,
   title,
-  children,
+  renderBody,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string
-  children: ReactNode
+  renderBody: () => ReactNode
 }) {
   const t = useTranslations("marketplace.mobileHub")
+  const bodyReady = useDeferredMount(open)
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -43,14 +48,14 @@ function MobileSheet({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-full p-2 text-zinc-400 hover:bg-white/5 hover:text-white"
+            className="affisell-inp-tap flex min-h-11 min-w-11 items-center justify-center rounded-full p-2 text-zinc-400 hover:bg-white/5 hover:text-white"
             aria-label={t("close")}
           >
             <X className="size-4" aria-hidden />
           </button>
         </div>
         <div className="max-h-[calc(min(88dvh,720px)-3.5rem)] overflow-y-auto overscroll-y-contain px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]">
-          {children}
+          {bodyReady ? renderBody() : <MobileSheetBodySkeleton />}
         </div>
       </SheetContent>
     </Sheet>
@@ -71,11 +76,28 @@ export function MobileCatalogChrome({
   const [categoriesOpen, setCategoriesOpen] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
 
-  const handleClearFilters = () => {
+  const openCategories = useCallback(() => {
+    buyerHaptic("tap")
+    startTransition(() => setCategoriesOpen(true))
+  }, [])
+
+  const openFilters = useCallback(() => {
+    buyerHaptic("tap")
+    startTransition(() => setFiltersOpen(true))
+  }, [])
+
+  const openHub = useCallback(() => {
+    buyerHaptic("tap")
+    openMobileBuyerHub()
+  }, [])
+
+  const handleClearFilters = useCallback(() => {
+    buyerHaptic("tap")
     setCategoriesOpen(false)
     setFiltersOpen(false)
-    onClearFilters()
-  }
+    startTransition(() => onClearFilters())
+  }, [onClearFilters])
+
   const summaryLabel = loading ? t("loading") : t("listingShort", { count: productCount })
 
   return (
@@ -90,8 +112,8 @@ export function MobileCatalogChrome({
             type="button"
             variant="outline"
             size="sm"
-            onClick={openMobileBuyerHub}
-            className="affisell-premium-chip h-10 min-h-10 shrink-0 gap-1.5 rounded-2xl border-0 bg-transparent px-2.5 text-xs text-zinc-700 shadow-none dark:text-zinc-100"
+            onClick={openHub}
+            className="affisell-inp-tap affisell-premium-chip h-10 min-h-10 shrink-0 gap-1.5 rounded-2xl border-0 bg-transparent px-2.5 text-xs text-zinc-700 shadow-none dark:text-zinc-100"
             aria-label={t("menu")}
           >
             <Menu className="size-3.5" aria-hidden />
@@ -100,8 +122,8 @@ export function MobileCatalogChrome({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setCategoriesOpen(true)}
-            className="h-10 min-h-10 flex-1 gap-1.5 rounded-2xl border border-violet-400/30 bg-gradient-to-r from-violet-600 to-fuchsia-500 px-2.5 text-xs font-semibold text-white shadow-[0_12px_24px_-12px_rgba(139,92,246,0.75)]"
+            onClick={openCategories}
+            className="affisell-inp-tap h-10 min-h-10 flex-1 gap-1.5 rounded-2xl border border-violet-400/30 bg-gradient-to-r from-violet-600 to-fuchsia-500 px-2.5 text-xs font-semibold text-white shadow-[0_12px_24px_-12px_rgba(139,92,246,0.75)]"
           >
             <LayoutGrid className="size-3.5 shrink-0" aria-hidden />
             {t("categories")}
@@ -110,8 +132,8 @@ export function MobileCatalogChrome({
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setFiltersOpen(true)}
-            className="affisell-premium-chip h-10 min-h-10 flex-1 gap-1.5 rounded-2xl border-0 bg-transparent px-2.5 text-xs text-zinc-700 shadow-none dark:text-zinc-100"
+            onClick={openFilters}
+            className="affisell-inp-tap affisell-premium-chip h-10 min-h-10 flex-1 gap-1.5 rounded-2xl border-0 bg-transparent px-2.5 text-xs text-zinc-700 shadow-none dark:text-zinc-100"
           >
             <Filter className="size-3.5 shrink-0" aria-hidden />
             {t("filters")}
@@ -126,7 +148,7 @@ export function MobileCatalogChrome({
               type="button"
               onClick={handleClearFilters}
               className={cn(
-                "inline-flex max-w-[60%] min-h-8 items-center gap-1 truncate rounded-full border border-violet-300/45 bg-white/75 px-2.5 py-1 text-[10px] font-semibold text-violet-700 shadow-sm backdrop-blur-sm dark:border-violet-500/30 dark:bg-violet-500/12 dark:text-violet-100"
+                "affisell-inp-tap inline-flex max-w-[60%] min-h-8 items-center gap-1 truncate rounded-full border border-violet-300/45 bg-white/75 px-2.5 py-1 text-[10px] font-semibold text-violet-700 shadow-sm backdrop-blur-sm dark:border-violet-500/30 dark:bg-violet-500/12 dark:text-violet-100"
               )}
             >
               <span className="truncate">{activeFilterLabel}</span>
@@ -137,13 +159,25 @@ export function MobileCatalogChrome({
         </div>
       </div>
 
-      <MobileSheet open={categoriesOpen} onOpenChange={setCategoriesOpen} title={t("categoriesTitle")}>
-        {categoriesPanel(() => setCategoriesOpen(false))}
-      </MobileSheet>
+      {categoriesOpen ? (
+        <MobileSheet
+          open={categoriesOpen}
+          onOpenChange={setCategoriesOpen}
+          title={t("categoriesTitle")}
+          renderBody={() => categoriesPanel(() => setCategoriesOpen(false))}
+        />
+      ) : null}
 
-      <MobileSheet open={filtersOpen} onOpenChange={setFiltersOpen} title={t("filtersTitle")}>
-        <div className="pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]">{filtersPanel}</div>
-      </MobileSheet>
+      {filtersOpen ? (
+        <MobileSheet
+          open={filtersOpen}
+          onOpenChange={setFiltersOpen}
+          title={t("filtersTitle")}
+          renderBody={() => (
+            <div className="pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]">{filtersPanel}</div>
+          )}
+        />
+      ) : null}
     </>
   )
 }

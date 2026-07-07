@@ -1866,6 +1866,50 @@ body.affisell-demo-lab .affisell-header-shell {
   transform: scale(0.985);
 }
 
+.affisell-inp-tap {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 100ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.affisell-inp-tap:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.affisell-sheet-overlay {
+  animation: affisell-sheet-fade-in 160ms ease-out;
+}
+
+.affisell-sheet-panel--bottom {
+  animation: affisell-sheet-slide-up 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+@keyframes affisell-sheet-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes affisell-sheet-slide-up {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .affisell-sheet-overlay,
+  .affisell-sheet-panel--bottom {
+    animation: none;
+  }
+}
+
 button,
 [role="button"] {
   touch-action: manipulation;

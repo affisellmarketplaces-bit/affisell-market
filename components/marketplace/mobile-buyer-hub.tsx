@@ -1,7 +1,7 @@
 "use client"
 
 import { FastLink } from "@/components/navigation/fast-link"
-import { useEffect, useState } from "react"
+import { startTransition, useCallback, useEffect, useMemo, useState } from "react"
 import {
   Bot,
   Brain,
@@ -18,8 +18,11 @@ import { useTranslations } from "next-intl"
 
 import { MOBILE_BUYER_HUB_OPEN_EVENT } from "@/lib/buyer-hub-events"
 import { PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
+import { buyerHaptic } from "@/lib/buyer-haptics"
 import { BUYER_TILE_ACCENTS } from "@/lib/home-buyer-accent-palette"
+import { MobileSheetBodySkeleton } from "@/components/marketplace/mobile-sheet-body-skeleton"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { useDeferredMount } from "@/hooks/use-deferred-mount"
 import { cn } from "@/lib/utils"
 
 type HubTile = {
@@ -37,14 +40,19 @@ export function MobileBuyerHub() {
   const tPulse = useTranslations("pulse")
   const tHub = useTranslations("marketplace.mobileHub")
   const [open, setOpen] = useState(false)
+  const bodyReady = useDeferredMount(open)
 
   useEffect(() => {
-    const onOpen = () => setOpen(true)
+    const onOpen = () => {
+      buyerHaptic("tap")
+      startTransition(() => setOpen(true))
+    }
     window.addEventListener(MOBILE_BUYER_HUB_OPEN_EVENT, onOpen)
     return () => window.removeEventListener(MOBILE_BUYER_HUB_OPEN_EVENT, onOpen)
   }, [])
 
-  const tiles: HubTile[] = [
+  const tiles: HubTile[] = useMemo(
+    () => [
     {
       href: "/agent",
       label: t("agent"),
@@ -102,7 +110,11 @@ export function MobileBuyerHub() {
       Icon: Bot,
       cardClass: BUYER_TILE_ACCENTS.support.card,
     },
-  ]
+  ],
+    [t, tPulse]
+  )
+
+  const closeHub = useCallback(() => setOpen(false), [])
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -124,8 +136,8 @@ export function MobileBuyerHub() {
             </div>
             <button
               type="button"
-              onClick={() => setOpen(false)}
-              className="rounded-full border border-white/10 p-2 text-zinc-400 hover:bg-white/5 hover:text-white"
+              onClick={closeHub}
+              className="affisell-inp-tap rounded-full border border-white/10 p-2 text-zinc-400 hover:bg-white/5 hover:text-white"
               aria-label={tHub("close")}
             >
               <X className="size-4" aria-hidden />
@@ -134,6 +146,8 @@ export function MobileBuyerHub() {
         </div>
 
         <div className="max-h-[calc(100dvh-8rem)] overflow-y-auto overscroll-contain px-3 py-4">
+          {bodyReady ? (
+            <>
           <p className="mb-3 px-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
             {t("sectionBuyer")}
           </p>
@@ -142,7 +156,7 @@ export function MobileBuyerHub() {
               <li key={href + label}>
                 <FastLink
                   href={href}
-                  onClick={() => setOpen(false)}
+                  onClick={closeHub}
                   className={cn(
                     "flex min-h-[5.5rem] flex-col justify-between rounded-2xl border border-white/10 bg-gradient-to-br p-3 shadow-lg shadow-black/30 transition active:scale-[0.98]",
                     cardClass
@@ -169,6 +183,10 @@ export function MobileBuyerHub() {
             <p className="text-xs font-semibold text-violet-200">{tHub("desktopHintTitle")}</p>
             <p className="mt-1 text-[11px] leading-relaxed text-zinc-400">{tHub("desktopHintBody")}</p>
           </div>
+            </>
+          ) : (
+            <MobileSheetBodySkeleton />
+          )}
         </div>
       </SheetContent>
     </Sheet>

@@ -48,11 +48,12 @@ export function MobileDock() {
   const dockItems = resolveMobileDockItems(mode)
   const [compact, setCompact] = useState(false)
   const [footerVisible, setFooterVisible] = useState(false)
-
-  if (role === "AFFILIATE" || role === "SUPPLIER") return null
-  if (shouldHideMobileDock(pathname)) return null
+  const hidden =
+    role === "AFFILIATE" || role === "SUPPLIER" || shouldHideMobileDock(pathname)
 
   useEffect(() => {
+    if (hidden) return
+
     let lastY = window.scrollY
     let ticking = false
 
@@ -74,20 +75,32 @@ export function MobileDock() {
     syncCompact()
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
-  }, [])
+  }, [hidden])
 
   useEffect(() => {
+    if (hidden) return
+
     const footer = document.querySelector(".affisell-site-footer")
     if (!footer) return
 
+    let ticking = false
     const observer = new IntersectionObserver(
-      ([entry]) => setFooterVisible(entry.isIntersecting),
+      ([entry]) => {
+        if (ticking) return
+        ticking = true
+        requestAnimationFrame(() => {
+          setFooterVisible(entry.isIntersecting)
+          ticking = false
+        })
+      },
       { rootMargin: "0px 0px 96px 0px", threshold: 0.02 }
     )
 
     observer.observe(footer)
     return () => observer.disconnect()
-  }, [])
+  }, [hidden])
+
+  if (hidden) return null
 
   return (
     <nav

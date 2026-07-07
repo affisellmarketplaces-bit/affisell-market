@@ -1,6 +1,7 @@
 "use client"
 
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
+import { startTransition } from "react"
 
 import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
 
@@ -32,11 +33,13 @@ export function navigateMarketplaceCatalog(
   options?: { method?: "push" | "replace" }
 ): void {
   const method = options?.method ?? "push"
-  if (method === "replace") {
-    router.replace(href, NO_SCROLL)
-  } else {
-    router.push(href, NO_SCROLL)
-  }
+  startTransition(() => {
+    if (method === "replace") {
+      router.replace(href, NO_SCROLL)
+    } else {
+      router.push(href, NO_SCROLL)
+    }
+  })
 }
 
 /** Buyer home catalog from hero/search — scrolls to #explorer once. */
