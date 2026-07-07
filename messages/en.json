@@ -1118,7 +1118,7 @@
     "myStore": "My Store",
     "supplierCatalog": "Supplier Catalog",
     "sales": "Sales",
-    "dashboardTagline": "Affiliate hub",
+    "dashboardTagline": "Affiliate Seller hub",
     "hello": "Hello,",
     "guestName": "there",
     "publicStoreLead": "Your public storefront:",
@@ -1130,6 +1130,19 @@
     "redirecting": "Redirecting…",
     "catalogNoDescription": "No description",
     "supplierPrefix": "Supplier",
+    "sourcingAgent": {
+      "eyebrow": "Sourcing agent",
+      "openCatalog": "Open catalog →",
+      "heroTitle": "Which SKUs should you resell this week?",
+      "heroSub": "I compare estimated reseller earnings (margin + commission), supplier fit, and niche — to fill your storefront with the right products.",
+      "chipBestMargin": "Best sellers & margin",
+      "chipNiche": "Niche analysis",
+      "thinking": "Sourcing analysis…",
+      "starter1": "High-margin TikTok SKUs under €50",
+      "starter2": "7-day best sellers · max reseller earnings",
+      "starter3": "Compare women's leggings suppliers",
+      "starter4": "Profitable smartwatches to list"
+    },
     "swipeFeed": {
       "feedLoadFailed": "Could not load the feed",
       "serviceUnavailable": "Service temporarily unavailable — try again in a moment.",
@@ -1158,6 +1171,12 @@
       "supplierSheetAria": "Supplier product page"
     },
     "earnings": {
+      "cockpit": {
+        "eyebrow": "Partner commerce",
+        "title": "Earnings cockpit",
+        "description": "Reseller remuneration: supplier commission + net markup on each sale, minus Affisell platform fee. You are a curator reseller, not the product seller — declare under your country of residence.",
+        "paidOutLabel": "Paid out (ledger)"
+      },
       "taxCompliance": {
         "title": "Curator partner tax framework",
         "body": "You are not the product seller. You receive partner remuneration (supplier commission + net markup) for curation and promotion — declare it under the tax and social rules of your country of residence.",
@@ -1250,7 +1269,7 @@
       "myCatalogListingCount": "{count, plural, one {# listing} other {# listings}}",
       "myCatalogLiveCount": "{count, plural, one {# live} other {# live on storefront}}",
       "myCatalogOpen": "Open",
-      "storefrontSubtitle": "Discover products to sell, set your prices and margins, and manage what shoppers see in your public store—all from here.",
+      "storefrontSubtitle": "Discover products to resell without inventory, set your margins, and manage what shoppers see in your storefront.",
       "inviteSupplier": "Invite supplier",
       "browseMarketplace": "Browse marketplace",
       "earningsCockpit": "Earnings cockpit",
@@ -1263,7 +1282,9 @@
       "yourListings": "Your listings",
       "liveOnStorefront": "Live on storefront",
       "skus": "SKUs",
-      "storefrontUnavailable": "Storefront data unavailable"
+      "storefrontUnavailable": "Storefront data unavailable",
+      "welcomeTitle": "Welcome to your reseller hub",
+      "welcomeBody": "Set up your storefront below, then explore the <catalog>reseller catalog</catalog> to add your first products."
     },
     "mySelection": "My storefront listings",
     "selectionHint": "Pick products from the catalog and set your retail price.",
@@ -1557,8 +1578,8 @@
   },
   "affiliateDashboard": {
     "onboarding": {
-      "title": "Launch your affiliate store",
-      "subtitle": "Swipe a product, set your price, publish — first listing in about 5 minutes.",
+      "title": "Launch your reseller storefront",
+      "subtitle": "Discover a SKU, set your customer price, publish — first listing in about 5 minutes.",
       "kycHint": "KYC is required to go live — you can save drafts while your dossier is reviewed.",
       "stepKyc": "Verify your business (KYC)",
       "stepCreate": "Create your first product listing",
@@ -3274,9 +3295,9 @@
   },
   "supplierStore": {
     "metaDescription": "{name} — supplier store on Affisell. Browse the catalog and shop with confidence.",
-    "creatorCtaTitle": "Are you a creator or supplier?",
-    "creatorCtaBody": "Buyers order through Affisell product pages. Creators manage listings from their dashboard.",
-    "becomeCreator": "Become a creator"
+    "creatorCtaTitle": "Affisell reseller or supplier?",
+    "creatorCtaBody": "Buyers order through Affisell product pages. Resellers manage listings from the affiliate hub — not from this storefront.",
+    "becomeCreator": "Become an Affisell reseller"
   },
   "AI": {
     "pickedForYou": "Picked for you by Affisell AI",
@@ -4119,6 +4140,38 @@
       "supplierBandHint": "Wholesale value of units sold in this window (before platform payout timing).",
       "emptyLedger": "No payout entries yet — they appear when orders pass shipment / delivery steps.",
       "ledgerTitle": "Payout ledger"
+    }
+  },
+  "sellPage": {
+    "meta": {
+      "title": "Sell on Affisell — Reseller or supplier",
+      "description": "Resell without inventory or supply the catalogue: two Affisell B2B paths."
+    },
+    "eyebrow": "Sell on Affisell",
+    "title": "Choose your model",
+    "description": "Affisell connects suppliers, Affisell resellers (no inventory) and buyers — no extra technical role.",
+    "resellerTitle": "Affisell reseller",
+    "resellerBody": "Pick supplier SKUs, set your customer price, earn margin + commission — supplier handles fulfillment.",
+    "resellerCta": "Open reseller catalog",
+    "supplierTitle": "Supplier",
+    "supplierBody": "Publish your wholesale catalogue, ship orders, Stripe Connect payouts after shipment.",
+    "supplierCta": "Become a supplier",
+    "resellerProgramCta": "Reseller B2B program",
+    "supplierFrameworkCta": "Supplier B2B framework",
+    "howItWorks": "How it works"
+  },
+  "supplierStorefront": {
+    "browse": {
+      "partnerListingsOne": "{count} active reseller",
+      "partnerListingsMany": "{count} active resellers"
+    },
+    "trust": {
+      "subtitle": "Affisell trust signals for this supplier",
+      "ordersFulfilled": "Orders fulfilled",
+      "ordersCount": "{count, plural, one {# order} other {# orders}}",
+      "avgRating": "Average rating",
+      "fastShip": "Ships within 48h",
+      "disputeRate": "Dispute rate"
     }
   },
   "sellAffiliateProgram": {

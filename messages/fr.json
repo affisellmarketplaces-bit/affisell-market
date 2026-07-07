@@ -1118,7 +1118,7 @@
     "myStore": "Ma boutique",
     "supplierCatalog": "Catalogue fournisseurs",
     "sales": "Ventes",
-    "dashboardTagline": "Hub Ambassadeur",
+    "dashboardTagline": "Hub Revendeur Affisell",
     "hello": "Bonjour,",
     "guestName": "vous",
     "publicStoreLead": "Votre vitrine publique :",
@@ -1130,6 +1130,19 @@
     "redirecting": "Redirection…",
     "catalogNoDescription": "Pas de description",
     "supplierPrefix": "Fournisseur",
+    "sourcingAgent": {
+      "eyebrow": "Agent sourcing",
+      "openCatalog": "Ouvrir le catalogue →",
+      "heroTitle": "Quels SKU revendre cette semaine ?",
+      "heroSub": "Je compare revenu revendeur estimé (marge + commission), fournisseur et fit niche — pour remplir votre vitrine avec les bons produits.",
+      "chipBestMargin": "Best sellers & marge",
+      "chipNiche": "Analyse par niche",
+      "thinking": "Analyse sourcing…",
+      "starter1": "SKU TikTok marge élevée < 50 €",
+      "starter2": "Best sellers 7j revenu revendeur max",
+      "starter3": "Comparer leggings femme fournisseurs",
+      "starter4": "Montres connectées rentables à lister"
+    },
     "swipeFeed": {
       "feedLoadFailed": "Impossible de charger le feed",
       "serviceUnavailable": "Service temporairement indisponible — réessayez dans un instant.",
@@ -1158,6 +1171,12 @@
       "supplierSheetAria": "Fiche fournisseur"
     },
     "earnings": {
+      "cockpit": {
+        "eyebrow": "Commerce partenaire",
+        "title": "Cockpit revenus",
+        "description": "Rémunération revendeur : commission fournisseur + marge nette sur chaque vente, moins les frais plateforme Affisell. Vous êtes curateur revendeur, pas le vendeur produit — déclarez selon votre pays de résidence.",
+        "paidOutLabel": "Versé (journal)"
+      },
       "taxCompliance": {
         "title": "Cadre fiscal partenaire curateur",
         "body": "Vous n'êtes pas le vendeur des produits. Vous percevez une rémunération partenaire (commission fournisseur + marge nette) pour vos activités de curation et de mise en avant — à déclarer selon le droit fiscal et social de votre pays de résidence.",
@@ -1258,7 +1277,7 @@
       "myCatalogListingCount": "{count, plural, one {# fiche} other {# fiches}}",
       "myCatalogLiveCount": "{count, plural, one {# en ligne} other {# en ligne sur la vitrine}}",
       "myCatalogOpen": "Ouvrir",
-      "storefrontSubtitle": "Découvrez des produits à vendre, fixez vos prix et marges, et gérez ce que les acheteurs voient sur votre boutique publique.",
+      "storefrontSubtitle": "Découvrez des produits à revendre sans stock, fixez vos marges et gérez ce que les acheteurs voient sur votre boutique.",
       "inviteSupplier": "Inviter un fournisseur",
       "browseMarketplace": "Parcourir le marketplace",
       "earningsCockpit": "Cockpit revenus",
@@ -1271,7 +1290,9 @@
       "yourListings": "Vos fiches",
       "liveOnStorefront": "En ligne sur la vitrine",
       "skus": "SKU",
-      "storefrontUnavailable": "Données vitrine indisponibles"
+      "storefrontUnavailable": "Données vitrine indisponibles",
+      "welcomeTitle": "Bienvenue dans votre hub revendeur",
+      "welcomeBody": "Configurez votre boutique ci-dessous, puis explorez le <catalog>catalogue revendeur</catalog> pour ajouter vos premiers produits."
     },
     "mySelection": "Mes fiches en vitrine",
     "selectionHint": "Choisissez des produits dans le catalogue et fixez votre prix public.",
@@ -1565,8 +1586,8 @@
   },
   "affiliateDashboard": {
     "onboarding": {
-      "title": "Lancez votre boutique affiliée",
-      "subtitle": "Swipe un produit, fixez votre prix, publiez — première fiche en ~5 minutes.",
+      "title": "Lancez votre boutique revendeur",
+      "subtitle": "Découvrez un SKU, fixez votre prix client, publiez — première fiche en ~5 minutes.",
       "kycHint": "Le KYC est requis pour publier — vous pouvez enregistrer des brouillons pendant la revue.",
       "stepKyc": "Vérifier votre entreprise (KYC)",
       "stepCreate": "Créer votre première fiche produit",
@@ -3316,9 +3337,9 @@
   },
   "supplierStore": {
     "metaDescription": "{name} — boutique fournisseur sur Affisell. Parcourez le catalogue et achetez en toute confiance.",
-    "creatorCtaTitle": "Vous êtes créateur ou fournisseur ?",
-    "creatorCtaBody": "Les acheteurs passent commande via les fiches produit Affisell. Les créateurs gèrent leurs listings depuis leur tableau de bord.",
-    "becomeCreator": "Devenir créateur"
+    "creatorCtaTitle": "Revendeur Affisell ou fournisseur ?",
+    "creatorCtaBody": "Les acheteurs passent commande via les fiches produit Affisell. Les revendeurs gèrent leurs listings depuis le hub affilié — pas depuis cette vitrine.",
+    "becomeCreator": "Devenir revendeur Affisell"
   },
   "AI": {
     "pickedForYou": "Sélectionné pour vous par l'IA Affisell",
@@ -4161,6 +4182,38 @@
       "supplierBandHint": "Valeur wholesale des unités vendues sur la période (avant timing plateforme).",
       "emptyLedger": "Aucune ligne de versement pour l'instant — elles apparaissent quand les commandes passent les étapes expédition / livraison.",
       "ledgerTitle": "Journal des versements"
+    }
+  },
+  "sellPage": {
+    "meta": {
+      "title": "Vendre sur Affisell — Revendeur ou fournisseur",
+      "description": "Revendez sans stock ou fournissez le catalogue : deux parcours B2B Affisell."
+    },
+    "eyebrow": "Vendre sur Affisell",
+    "title": "Choisissez votre modèle",
+    "description": "Affisell connecte fournisseurs, revendeurs Affisell (sans stock) et acheteurs — sans créer de nouveau compte technique.",
+    "resellerTitle": "Revendeur Affisell",
+    "resellerBody": "Sélectionnez des SKU fournisseur, fixez votre prix client, encaissez marge + commission — logistique côté fournisseur.",
+    "resellerCta": "Ouvrir le catalogue revendeur",
+    "supplierTitle": "Fournisseur",
+    "supplierBody": "Publiez votre catalogue wholesale, expédiez les commandes, reversements Stripe Connect après expédition.",
+    "supplierCta": "Devenir fournisseur",
+    "resellerProgramCta": "Programme B2B revendeur",
+    "supplierFrameworkCta": "Cadre B2B fournisseur",
+    "howItWorks": "Comment ça marche"
+  },
+  "supplierStorefront": {
+    "browse": {
+      "partnerListingsOne": "{count} revendeur actif",
+      "partnerListingsMany": "{count} revendeurs actifs"
+    },
+    "trust": {
+      "subtitle": "Signaux de confiance Affisell sur ce fournisseur",
+      "ordersFulfilled": "Commandes honorées",
+      "ordersCount": "{count, plural, one {# commande} other {# commandes}}",
+      "avgRating": "Note moyenne",
+      "fastShip": "Expédition < 48 h",
+      "disputeRate": "Taux de litiges"
     }
   },
   "sellAffiliateProgram": {

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import {
   ArrowDownWideNarrow,
   ArrowRight,
@@ -56,6 +57,7 @@ export function SupplierStorefrontBrowse({
   listings: SupplierStorefrontListingSerializable[]
   storeSlug: string
 }) {
+  const tBrowse = useTranslations("supplierStorefront.browse")
   const [q, setQ] = useState("")
   const [kind, setKind] = useState<string>("ALL")
   const [sort, setSort] = useState<SortKey>("new")
@@ -297,6 +299,13 @@ export function SupplierStorefrontBrowse({
                       ) : (
                         <span className="text-amber-700 dark:text-amber-400">Rupture</span>
                       )}
+                      {p.partnerListingCount > 0 ? (
+                        <span className="rounded-md bg-violet-100 px-2 py-0.5 text-violet-800 dark:bg-violet-950/60 dark:text-violet-200">
+                          {p.partnerListingCount === 1
+                            ? tBrowse("partnerListingsOne", { count: p.partnerListingCount })
+                            : tBrowse("partnerListingsMany", { count: p.partnerListingCount })}
+                        </span>
+                      ) : null}
                     </p>
 
                     <Link

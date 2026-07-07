@@ -18,7 +18,9 @@ type Props = {
 
 function Card({ p }: { p: AffiliateAgentProductCard }) {
   const href = `${AFFILIATE_CATALOG_PATH}?productId=${encodeURIComponent(p.id)}`
-  const economics = buildAffiliateCatalogCardEconomics(p.basePriceCents, p.commissionRate)
+  const economics = buildAffiliateCatalogCardEconomics(p.basePriceCents, p.commissionRate, {
+    listedSellingPriceCents: p.usesListedPrice ? p.clientPriceCents : undefined,
+  })
 
   return (
     <Link

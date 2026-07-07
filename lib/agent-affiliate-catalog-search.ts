@@ -4,7 +4,11 @@ import type {
   AffiliateAgentProductCard,
   AffiliateAgentSearchToolResult,
 } from "@/lib/agent-affiliate-product-card-types"
-import { estimateTotalPartnerGainCents } from "@/lib/affiliate-catalog-margin-display"
+import {
+  buildAffiliateCatalogCardEconomics,
+  estimateTotalPartnerGainCents,
+  listedSellingPriceFromAffiliateProducts,
+} from "@/lib/affiliate-catalog-margin-display"
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
 import { primaryProductImage } from "@/lib/product-images"
@@ -13,27 +17,54 @@ function trimDescription(s: string, max = 320): string {
   return s.length > max ? `${s.slice(0, max - 1)}…` : s
 }
 
-function mapRow(
-  row: {
-    id: string
-    name: string
-    description: string
-    images: string[]
-    basePriceCents: number
-    commissionRate: number
-    variants?: unknown
-    categories: string[]
-    affiliateProducts: { id: string; isListed: boolean }[]
-    supplier: { email: string; store: { name: string; slug: string } | null }
-  }
-): AffiliateAgentProductCard {
+type DiscoverRow = {
+  id: string
+  name: string
+  description: string
+  images: string[]
+  basePriceCents: number
+  commissionRate: number
+  variants?: unknown
+  categories: string[]
+  affiliateProducts: { id: string; isListed: boolean; sellingPriceCents?: number | null }[]
+  supplier: { email: string; store: { name: string; slug: string } | null }
+}
+
+type ProductFindRow = DiscoverRow & { variants?: unknown }
+
+function resellerGainCents(row: DiscoverRow, displayCommission: number): number {
+  return estimateTotalPartnerGainCents(row.basePriceCents, displayCommission, {
+    listedSellingPriceCents: listedSellingPriceFromAffiliateProducts(row.affiliateProducts),
+  })
+}
+
+function sortByResellerGain(rows: DiscoverRow[]): DiscoverRow[] {
+  return [...rows].sort((a, b) => {
+    const commA = affiliateCommissionDisplayPct({
+      commissionRate: Number(a.commissionRate) || 0,
+      variants: a.variants,
+      basePriceCents: a.basePriceCents,
+    })
+    const commB = affiliateCommissionDisplayPct({
+      commissionRate: Number(b.commissionRate) || 0,
+      variants: b.variants,
+      basePriceCents: b.basePriceCents,
+    })
+    return resellerGainCents(b, commB) - resellerGainCents(a, commA)
+  })
+}
+
+function mapRow(row: DiscoverRow): AffiliateAgentProductCard {
   const listing = row.affiliateProducts[0]
-  const supplierLabel =
-    row.supplier.store?.name?.trim() || row.supplier.email
+  const supplierLabel = row.supplier.store?.name?.trim() || row.supplier.email
   const displayCommission = affiliateCommissionDisplayPct({
     commissionRate: Number(row.commissionRate) || 0,
     variants: row.variants,
     basePriceCents: row.basePriceCents,
+  })
+  const listedPrice = listedSellingPriceFromAffiliateProducts(row.affiliateProducts)
+  const economics = buildAffiliateCatalogCardEconomics(row.basePriceCents, displayCommission, {
+    listedSellingPriceCents: listedPrice,
   })
   return {
     id: row.id,
@@ -43,9 +74,26 @@ function mapRow(
     supplierLabel,
     basePriceCents: row.basePriceCents,
     commissionRate: displayCommission,
-    marginCents: estimateTotalPartnerGainCents(row.basePriceCents, displayCommission),
+    marginCents: economics.totalPartnerGainCents,
+    clientPriceCents: economics.clientPriceCents,
+    usesListedPrice: economics.usesListedPrice,
     isInStore: Boolean(listing),
     listingId: listing?.id ?? null,
+  }
+}
+
+function toDiscoverRow(row: ProductFindRow): DiscoverRow {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description ?? "",
+    images: row.images ?? [],
+    basePriceCents: row.basePriceCents,
+    commissionRate: Number(row.commissionRate) || 0,
+    variants: row.variants,
+    categories: row.categories ?? [],
+    affiliateProducts: row.affiliateProducts ?? [],
+    supplier: row.supplier,
   }
 }
 
@@ -81,31 +129,27 @@ async function findSimilarSupplierProducts(
       OR: or,
     },
     select: affiliateDiscoverCardSelect(affiliateId),
-    take: 8,
-    orderBy: [{ commissionRate: "desc" }, { createdAt: "desc" }],
+    take: 12,
+    orderBy: [{ createdAt: "desc" }],
   })
 
-  const out: AffiliateAgentProductCard[] = []
-  for (const row of rows) {
-    out.push(
-      mapRow({
+  const sorted = sortByResellerGain(
+    rows.map((row) =>
+      toDiscoverRow({
         id: row.id,
         name: row.name,
         description: "",
         images: row.images ?? [],
         basePriceCents: row.basePriceCents,
         commissionRate: Number(row.commissionRate) || 0,
+        variants: row.variants,
         categories: row.categories ?? [],
         affiliateProducts: row.affiliateProducts ?? [],
-        supplier: row.supplier as unknown as {
-          email: string
-          store: { name: string; slug: string } | null
-        },
+        supplier: row.supplier as unknown as DiscoverRow["supplier"],
       })
     )
-    if (out.length >= 3) break
-  }
-  return out
+  )
+  return sorted.slice(0, 3).map(mapRow)
 }
 
 /** Recherche le catalogue fournisseur pour aider l'affilié à choisir des SKU à promouvoir. */
@@ -134,35 +178,31 @@ export async function searchSupplierCatalogForAffiliateAgent(
       ...affiliateDiscoverCardSelect(affiliateId),
       description: true,
     },
-    take: 16,
-    orderBy: [{ commissionRate: "desc" }, { createdAt: "desc" }],
+    take: 24,
+    orderBy: [{ createdAt: "desc" }],
   })
 
-  const products: AffiliateAgentProductCard[] = []
-  for (const row of rows) {
-    products.push(
-      mapRow({
+  const sorted = sortByResellerGain(
+    rows.map((row) =>
+      toDiscoverRow({
         id: row.id,
         name: row.name,
         description: row.description ?? "",
         images: row.images ?? [],
         basePriceCents: row.basePriceCents,
         commissionRate: Number(row.commissionRate) || 0,
+        variants: row.variants,
         categories: row.categories ?? [],
         affiliateProducts: row.affiliateProducts ?? [],
-        supplier: row.supplier as unknown as {
-          email: string
-          store: { name: string; slug: string } | null
-        },
+        supplier: row.supplier as unknown as DiscoverRow["supplier"],
       })
     )
-    if (products.length >= 3) break
-  }
+  )
+  const products = sorted.slice(0, 3).map(mapRow)
 
   if (products.length > 0) {
-    const main = products.slice(0, 3)
-    const similarProducts = await findSimilarSupplierProducts(db, affiliateId, main, q)
-    return { products: main, similarProducts, suggestedCategories: [] }
+    const similarProducts = await findSimilarSupplierProducts(db, affiliateId, products, q)
+    return { products, similarProducts, suggestedCategories: [] }
   }
 
   const sample = await db.product.findMany({

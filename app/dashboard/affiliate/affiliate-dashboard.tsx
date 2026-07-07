@@ -675,13 +675,15 @@ export function AffiliateDashboard({ storeId }: Props) {
             role="status"
             className="mb-6 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-4 text-sm text-violet-950 dark:border-violet-800/60 dark:bg-violet-950/50 dark:text-violet-100"
           >
-            <p className="font-semibold">Bienvenue dans votre espace créateur</p>
+            <p className="font-semibold">{tHub("welcomeTitle")}</p>
             <p className="mt-1 text-violet-900/90 dark:text-violet-200/90">
-              Configurez votre boutique ci-dessous, puis explorez le{" "}
-              <Link href={AFFILIATE_CATALOG_PATH} className="font-medium underline underline-offset-2">
-                catalogue ambassadeur
-              </Link>{" "}
-              pour ajouter vos premiers produits.
+              {tHub.rich("welcomeBody", {
+                catalog: (chunks) => (
+                  <Link href={AFFILIATE_CATALOG_PATH} className="font-medium underline underline-offset-2">
+                    {chunks}
+                  </Link>
+                ),
+              })}
             </p>
           </div>
         ) : null}

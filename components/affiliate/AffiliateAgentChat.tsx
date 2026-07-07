@@ -5,7 +5,8 @@ import { DefaultChatTransport } from "ai"
 import type { UIMessage } from "ai"
 import { BarChart3, LineChart, Sparkles, TrendingUp } from "lucide-react"
 import Link from "next/link"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 
 import {
   AffiliateAgentToolSearchPart,
@@ -27,14 +28,14 @@ function assistantHasRenderableContent(m: UIMessage): boolean {
   return m.parts.some((p) => p.type === "tool-searchSupplierCatalog")
 }
 
-const STARTER_PROMPTS = [
-  "SKU marge élevée fitness < 50€",
-  "Nouveautés tech commission > 20%",
-  "Comparer leggings femme fournisseurs",
-  "Tendance montres connectées à sourcer",
-] as const
+const STARTER_PROMPT_KEYS = ["starter1", "starter2", "starter3", "starter4"] as const
 
 export function AffiliateAgentChat() {
+  const t = useTranslations("affiliate.sourcingAgent")
+  const starterPrompts = useMemo(
+    () => STARTER_PROMPT_KEYS.map((key) => t(key)),
+    [t]
+  )
   const scrollRef = useRef<HTMLDivElement>(null)
   const [input, setInput] = useState("")
   const [lastQuery, setLastQuery] = useState<string | null>(null)
@@ -98,13 +99,13 @@ export function AffiliateAgentChat() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 px-4 py-3 md:px-6">
             <div className="flex items-center gap-2 text-xs text-violet-200/90">
               <Sparkles className="h-4 w-4 text-violet-400" aria-hidden />
-              <span className="font-semibold uppercase tracking-wider">Agent sourcing</span>
+              <span className="font-semibold uppercase tracking-wider">{t("eyebrow")}</span>
             </div>
             <Link
               href={AFFILIATE_CATALOG_PATH}
               className="rounded-full border border-violet-500/30 bg-violet-950/50 px-3 py-1 text-xs font-semibold text-violet-100 hover:bg-violet-900/50"
             >
-              Ouvrir le catalogue →
+              {t("openCatalog")}
             </Link>
           </div>
 
@@ -114,24 +115,20 @@ export function AffiliateAgentChat() {
                 <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 shadow-lg shadow-violet-900/40">
                   <BarChart3 className="h-8 w-8 text-white" aria-hidden />
                 </div>
-                <h3 className="text-xl font-bold text-white sm:text-2xl">
-                  Quels produits promouvoir cette semaine ?
-                </h3>
-                <p className="mt-2 max-w-md text-sm text-zinc-400">
-                  Je compare commissions, marges estimées et fit niche — pour remplir votre vitrine avec les bons SKU.
-                </p>
+                <h3 className="text-xl font-bold text-white sm:text-2xl">{t("heroTitle")}</h3>
+                <p className="mt-2 max-w-md text-sm text-zinc-400">{t("heroSub")}</p>
                 <ul className="mt-6 grid w-full max-w-lg grid-cols-2 gap-2 text-left text-xs text-zinc-500">
                   <li className="flex items-center gap-2 rounded-xl border border-white/5 bg-white/5 px-3 py-2">
                     <TrendingUp className="h-4 w-4 shrink-0 text-emerald-400" aria-hidden />
-                    Best sellers &amp; marge
+                    {t("chipBestMargin")}
                   </li>
                   <li className="flex items-center gap-2 rounded-xl border border-white/5 bg-white/5 px-3 py-2">
                     <LineChart className="h-4 w-4 shrink-0 text-violet-400" aria-hidden />
-                    Analyse par niche
+                    {t("chipNiche")}
                   </li>
                 </ul>
                 <div className="mt-6 grid w-full max-w-lg grid-cols-1 gap-2 sm:grid-cols-2">
-                  {STARTER_PROMPTS.map((q) => (
+                  {starterPrompts.map((q) => (
                     <button
                       key={q}
                       type="button"
@@ -150,7 +147,7 @@ export function AffiliateAgentChat() {
                 <div className="rounded-2xl rounded-bl-sm bg-violet-950/60 px-4 py-3 text-sm text-violet-100">
                   <span className="inline-flex items-center gap-2">
                     <span className="h-2 w-2 animate-pulse rounded-full bg-fuchsia-400" />
-                    Analyse sourcing…
+                    {t("thinking")}
                   </span>
                 </div>
               </div>

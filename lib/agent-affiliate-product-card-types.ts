@@ -8,6 +8,8 @@ export type AffiliateAgentProductCard = {
   basePriceCents: number
   commissionRate: number
   marginCents: number
+  clientPriceCents: number
+  usesListedPrice: boolean
   isInStore: boolean
   listingId: string | null
 }

@@ -22,7 +22,15 @@ const supplierStoreSelect = {
   isLive: true,
   liveUrl: true,
   livePlatform: true,
-  user: { select: { role: true } },
+  user: {
+    select: {
+      role: true,
+      isVerifiedSupplier: true,
+      supplierTrustTier: true,
+      supplierSuccessfulOrders: true,
+      supplierMetrics: true,
+    },
+  },
 } satisfies Prisma.StoreSelect
 
 export type SupplierShopStore = Prisma.StoreGetPayload<{ select: typeof supplierStoreSelect }>

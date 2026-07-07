@@ -24,6 +24,10 @@ function cardFromParsed(o: Record<string, unknown>): AffiliateAgentProductCard |
     typeof o.marginCents === "number"
       ? o.marginCents
       : Math.max(0, Math.round((basePriceCents * commissionRate) / 100))
+  const clientPriceCents =
+    typeof o.clientPriceCents === "number" && o.clientPriceCents > 0
+      ? o.clientPriceCents
+      : Math.round(basePriceCents * 1.3)
   return {
     id: o.id,
     name: o.name,
@@ -33,6 +37,8 @@ function cardFromParsed(o: Record<string, unknown>): AffiliateAgentProductCard |
     basePriceCents,
     commissionRate,
     marginCents,
+    clientPriceCents,
+    usesListedPrice: Boolean(o.usesListedPrice),
     isInStore: Boolean(o.isInStore),
     listingId: typeof o.listingId === "string" ? o.listingId : null,
   }

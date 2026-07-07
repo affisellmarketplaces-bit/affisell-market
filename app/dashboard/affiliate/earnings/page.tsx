@@ -1,5 +1,6 @@
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { Suspense } from "react"
+import { getTranslations } from "next-intl/server"
 
 import { PartnerTaxCompliancePanel } from "@/components/affiliate/partner-tax-compliance-panel"
 import { PayoutPolicyDisclaimer } from "@/components/merchant/payout-policy-disclaimer"
@@ -23,6 +24,7 @@ export const dynamic = "force-dynamic"
 
 export default async function AffiliateEarningsPage() {
   const session = await requireAffiliateSession("/dashboard/affiliate/earnings")
+  const t = await getTranslations("affiliate.earnings.cockpit")
 
   const [data, marginAnalytics, marginReviewOpenCount, merchantUser, kycProfile] = await Promise.all([
     loadOrFallback(
@@ -73,10 +75,10 @@ export default async function AffiliateEarningsPage() {
   return (
     <MerchantPulseHub
       role="AFFILIATE"
-      eyebrow="Partner commerce"
-      title="Earnings cockpit"
-      description="Partner remuneration from supplier commission and your net markup on each sale, minus Affisell platform fee. You are a curator partner, not the product seller — declare earnings under your country of residence."
-      paidOutLabel="Paid out via ledger"
+      eyebrow={t("eyebrow")}
+      title={t("title")}
+      description={t("description")}
+      paidOutLabel={t("paidOutLabel")}
       paidOutCents={data.paidOutCents}
       bands={data.bands}
       sparkline={data.sparkline}

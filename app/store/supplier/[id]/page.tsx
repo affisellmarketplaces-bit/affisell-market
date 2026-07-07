@@ -2,10 +2,10 @@ import type { ComponentType } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { getLocale, getTranslations } from "next-intl/server"
 import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import {
-  BadgeCheck,
   ChevronRight,
   Link2,
   Music2,
@@ -15,16 +15,20 @@ import {
   Truck,
 } from "lucide-react"
 
+import { SupplierTrustBadge } from "@/components/suppliers/supplier-trust-badge"
+
 import {
   SupplierStorefrontBrowse,
   type SupplierStorefrontListingSerializable,
 } from "@/components/supplier/supplier-storefront-browse"
+import { SupplierStorefrontTrustRail } from "@/components/supplier/supplier-storefront-trust-rail"
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
 import { StorefrontPresetAbSync } from "@/components/storefront/storefront-preset-ab-sync"
 import { StorefrontPresetViewTracker } from "@/components/storefront/storefront-preset-view-tracker"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
+import { parseSupplierStorefrontTrustMetrics } from "@/lib/supplier-storefront-trust-shared"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { primaryProductImage } from "@/lib/product-images"
 import { formatVariantCommissionRange, variantSkuPricingSummary, variantsFromDb } from "@/lib/product-variants"
@@ -103,6 +107,8 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
 
   const hdrs = await headers()
   const isCustomDomain = isCustomDomainHeaders(hdrs)
+  const locale = (await getLocale()) === "fr" ? "fr" : "en"
+  const tStore = await getTranslations("supplierStore")
   const theme = parseStorefrontTheme(store.storefrontTheme)
   const accent = theme.accent ?? "#7c3aed"
   const primary = theme.primary ?? "#18181b"
@@ -117,6 +123,8 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
 
   const fastShipCount = products.filter((p) => p.deliveryMax <= 3).length
   const minDelivery = products.reduce((m, p) => Math.min(m, p.deliveryMax), products[0]?.deliveryMax ?? 7)
+
+  const trustMetrics = parseSupplierStorefrontTrustMetrics(store.user.supplierMetrics)
 
   const listings: SupplierStorefrontListingSerializable[] = products.map((p) => {
     const compareNum = p.compareAt != null ? Number(p.compareAt) : null
@@ -266,10 +274,14 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="inline-flex items-center gap-1.5 rounded-full border border-violet-200/80 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-800 dark:border-violet-800/60 dark:bg-violet-950/50 dark:text-violet-200">
-                    <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
-                    Fournisseur vérifié Affisell
-                  </p>
+                  <div className="mt-3">
+                    <SupplierTrustBadge
+                      tier={store.user.supplierTrustTier}
+                      isVerifiedSupplier={store.user.isVerifiedSupplier}
+                      locale={locale}
+                      size="md"
+                    />
+                  </div>
                   <h1 className="mt-3 text-balance text-3xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-4xl">
                     {store.name}
                   </h1>
@@ -324,6 +336,13 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
         </header>
 
         <main className="mx-auto max-w-6xl px-4 pb-20 pt-10 sm:px-6 lg:pb-24">
+          <SupplierStorefrontTrustRail
+            className="mb-8"
+            isVerifiedSupplier={store.user.isVerifiedSupplier}
+            supplierTrustTier={store.user.supplierTrustTier}
+            supplierSuccessfulOrders={store.user.supplierSuccessfulOrders}
+            metrics={trustMetrics}
+          />
           {products.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-zinc-300 bg-white px-6 py-16 text-center shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
               <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Catalogue bientôt disponible</p>
@@ -343,17 +362,14 @@ export default async function SupplierStorePreviewPage({ params }: { params: Pro
 
           <aside className="mt-16 overflow-hidden rounded-3xl border border-zinc-200/90 bg-gradient-to-br from-zinc-900 via-violet-950 to-zinc-900 p-6 text-white shadow-xl dark:border-zinc-800 md:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-violet-300">Affisell</p>
-            <p className="mt-2 text-lg font-semibold">Vous êtes créateur ou fournisseur ?</p>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-300">
-              Les acheteurs passent commande via les fiches produit Affisell. Les créateurs gèrent leurs listings depuis
-              le hub affilié — pas depuis cette vitrine.
-            </p>
+            <p className="mt-2 text-lg font-semibold">{tStore("creatorCtaTitle")}</p>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-300">{tStore("creatorCtaBody")}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/signup/affiliate"
                 className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-violet-950 shadow hover:bg-violet-50"
               >
-                Devenir créateur
+                {tStore("becomeCreator")}
               </Link>
               <Link
                 href={PUBLIC_MARKETPLACE_BROWSE_PATH}

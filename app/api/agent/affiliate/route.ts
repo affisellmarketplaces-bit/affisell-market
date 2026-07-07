@@ -14,6 +14,7 @@ import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { searchSupplierCatalogForAffiliateAgent } from "@/lib/agent-affiliate-catalog-search"
 import type { AffiliateAgentProductCard } from "@/lib/agent-affiliate-product-card-types"
 import { recordAgentSearch, type AgentHistoryContext } from "@/lib/agent-history"
+import { loadAffiliateCatalogHighlights } from "@/lib/affiliate-catalog-query"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -32,22 +33,26 @@ function encodeAffiliateRow(p: AffiliateAgentProductCard, group: 0 | 1): string 
     basePriceCents: p.basePriceCents,
     commissionRate: p.commissionRate,
     marginCents: p.marginCents,
+    clientPriceCents: p.clientPriceCents,
+    usesListedPrice: p.usesListedPrice,
     isInStore: p.isInStore,
     listingId: p.listingId,
   })
 }
 
-const SYSTEM_PROMPT = `You are Affisell's Affiliate Sourcing Agent — you help creators (affiliates) analyze and pick supplier SKUs to promote in their vitrine store.
+const SYSTEM_PROMPT = `You are Affisell's Reseller Sourcing Agent — you help Affisell resellers (affiliate sellers, no inventory) pick profitable supplier SKUs for their storefront.
 
 You do NOT help end shoppers buy products. Never suggest checkout or "je prends".
 
 Tools:
 - **searchSupplierCatalog** — { "query": "<text>" }. Returns JSON strings: parse each. g=0 main picks (up to 3), g=1 similar SKUs, or { "t":"cat", "c":"..." } when empty.
+- **getCatalogHighlights** — no input. Returns best sellers (7d), new arrivals, and high-margin SKUs as JSON strings (h=0|1|2).
 - **getUserHistory** — recent sourcing searches (strings only).
 
 When presenting results:
-- Compare commission %, estimated margin (EUR), supplier, and whether already in their vitrine (isInStore).
-- Recommend 1–2 clear picks with short rationale (niche fit, margin, trend).
+- Prioritize estimated reseller earnings (marginCents = commission + markup at clientPriceCents; usesListedPrice=true means their live listing price).
+- Compare commission %, client price, supplier, and whether already in their vitrine (isInStore).
+- Recommend 1–2 clear picks with short rationale (niche fit, earnings, trend).
 - Suggest next step: add to vitrine via the card CTA or refine search.
 
 Stay concise, professional, in French unless the user writes in English.`
@@ -125,6 +130,41 @@ export async function POST(req: Request) {
     },
   })
 
+  const getCatalogHighlights = tool({
+    description:
+      "Best sellers (7d), new arrivals, and high-margin SKUs from the reseller catalog. No input.",
+    inputSchema: z.object({}),
+    execute: async (): Promise<string[]> => {
+      const highlights = await loadAffiliateCatalogHighlights(affiliateId, new URLSearchParams(), 5)
+      const lines: string[] = []
+      const encodeHighlight = (
+        h: 0 | 1 | 2,
+        card: {
+          productId: string
+          name: string
+          basePriceCents: number
+          commissionRate: number
+          marginCents: number
+          soldCount: number
+        }
+      ) =>
+        JSON.stringify({
+          h,
+          id: card.productId,
+          name: card.name,
+          basePriceCents: card.basePriceCents,
+          commissionRate: card.commissionRate,
+          marginCents: card.marginCents,
+          sold7d: card.soldCount,
+        })
+
+      for (const card of highlights.bestSellers7d) lines.push(encodeHighlight(0, card))
+      for (const card of highlights.newArrivals) lines.push(encodeHighlight(1, card))
+      for (const card of highlights.highMargin) lines.push(encodeHighlight(2, card))
+      return lines
+    },
+  })
+
   const getUserHistory = tool({
     description: "Recent affiliate sourcing search queries.",
     inputSchema: z.object({ hint: z.string().optional() }),
@@ -146,7 +186,7 @@ export async function POST(req: Request) {
       model: groq("llama-3.3-70b-versatile"),
       system: SYSTEM_PROMPT,
       messages: modelMessages,
-      tools: { searchSupplierCatalog, getUserHistory },
+      tools: { searchSupplierCatalog, getCatalogHighlights, getUserHistory },
       stopWhen: stepCountIs(12),
       onError: ({ error }) => {
         console.error("[agent/affiliate]", error)
