@@ -6,6 +6,7 @@ import { NavigationShell } from "@/components/navigation/navigation-shell"
 import { MobileAwareToaster } from "@/components/providers/mobile-aware-toaster"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { PwaInstallBanner } from "@/components/pwa/pwa-install-banner"
+import { PwaShellRegister } from "@/components/pwa/pwa-shell-register"
 
 export function RootSessionShell({
   children,
@@ -20,6 +21,7 @@ export function RootSessionShell({
       <MobileAwareToaster />
       {!leanShell ? (
         <>
+          <PwaShellRegister />
           <NavigationShell />
           <PwaInstallBanner />
           <AnalyticsGated />

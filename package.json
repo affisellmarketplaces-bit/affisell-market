@@ -61,6 +61,8 @@
     "verify:video-paywall": "node scripts/verify-video-paywall-ready.mjs",
     "verify:video-paywall:prod": "VIDEO_PAYWALL_PAUSED=0 node scripts/verify-video-paywall-ready.mjs",
     "verify:web-push": "node scripts/verify-web-push-ready.mjs",
+    "verify:pwa-shell": "node scripts/verify-pwa-shell-ready.mjs",
+    "lighthouse:mobile": "lhci autorun",
     "verify:pricing-ops": "node scripts/verify-pricing-ops-ready.mjs",
     "pricing:ops-playbook": "node scripts/pricing-ops-playbook.mjs",
     "pricing:ops-status": "tsx scripts/pricing-ops-status.ts",
@@ -203,6 +205,7 @@
     }
   },
   "devDependencies": {
+    "@lhci/cli": "^0.14.0",
     "@playwright/test": "^1.52.0",
     "@react-email/preview-server": "^5.2.11",
     "@react-email/tailwind": "^2.0.7",
