@@ -2,12 +2,17 @@
 
 const LOCALE_PREFIX = /^\/(en|fr)(?=\/|$)/
 
-/** Bottom inset when the floating buyer dock is visible (mobile). */
-export const AFFISELL_MOBILE_DOCK_OFFSET = "calc(4.75rem + env(safe-area-inset-bottom))"
+/** Bottom inset when the floating buyer dock is visible (mobile). Mirrors `--affisell-mobile-dock-offset`. */
+export const AFFISELL_MOBILE_DOCK_OFFSET =
+  "var(--affisell-mobile-dock-offset, calc(4.2rem + env(safe-area-inset-bottom, 0px)))"
 
-/** Sticky CTAs on pages that keep the dock visible. */
+/** Sticky CTAs on pages that keep the dock visible. Mirrors `--affisell-mobile-sticky-above-dock`. */
 export const AFFISELL_MOBILE_STICKY_ABOVE_DOCK =
-  "calc(5.25rem + env(safe-area-inset-bottom))"
+  "calc(var(--affisell-mobile-sticky-above-dock, 4.65rem) + env(safe-area-inset-bottom, 0px))"
+
+/** Sticky catalog chrome below compact header. Mirrors `--affisell-site-header-offset-sticky`. */
+export const AFFISELL_SITE_HEADER_OFFSET_STICKY =
+  "var(--affisell-site-header-offset-sticky, calc(2.85rem + env(safe-area-inset-top, 0px)))"
 
 export function barePathname(pathname: string): string {
   const p = pathname.trim() || "/"

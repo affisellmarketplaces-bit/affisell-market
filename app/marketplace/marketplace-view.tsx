@@ -328,7 +328,7 @@ export function MarketplaceView({
       className={cn(
         "text-zinc-900 dark:text-zinc-50",
         embedded
-          ? "scroll-mt-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:scroll-mt-24"
+          ? "scroll-mt-[var(--affisell-site-header-offset-sticky)] sm:scroll-mt-24"
           : "min-h-[calc(100dvh-3.75rem)]"
       )}
     >

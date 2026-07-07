@@ -106,7 +106,15 @@ body.affisell-demo-lab .affisell-header-shell {
 }
 
 :root {
-  --affisell-mobile-dock-offset: calc(4.45rem + env(safe-area-inset-bottom));
+  --affisell-site-header-h-compact: 2.85rem;
+  --affisell-site-header-h: 3.75rem;
+  --affisell-mobile-dock-h: 4.2rem;
+  --affisell-mobile-sticky-above-dock: 4.65rem;
+  --site-header-offset: calc(var(--affisell-site-header-h) + env(safe-area-inset-top, 0px));
+  --affisell-site-header-offset-sticky: calc(
+    var(--affisell-site-header-h-compact) + env(safe-area-inset-top, 0px)
+  );
+  --affisell-mobile-dock-offset: calc(var(--affisell-mobile-dock-h) + env(safe-area-inset-bottom, 0px));
   --affisell-swipe-dock-h: 4.25rem;
   --affisell-swipe-product-strip-h: 0px;
   --affisell-swipe-header-h: 3rem;
@@ -320,11 +328,22 @@ body.affisell-demo-lab .affisell-header-shell {
   }
 
   @media (max-width: 767px) {
+    html {
+      scroll-padding-top: var(--affisell-site-header-offset-sticky);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
     html,
     body.affisell-mobile-shell {
       overflow-x: hidden;
       width: 100%;
       max-width: 100%;
+    }
+
+    body.affisell-mobile-shell {
+      min-height: 100dvh;
+      min-height: -webkit-fill-available;
     }
 
     .affisell-global-site-header {
@@ -348,7 +367,7 @@ body.affisell-demo-lab .affisell-header-shell {
     }
 
     .affisell-site-footer__pad {
-      padding-bottom: max(4.1rem, calc(3.55rem + env(safe-area-inset-bottom)));
+      padding-bottom: max(4.1rem, var(--affisell-mobile-dock-offset));
     }
 
     body.affisell-mobile-dock-off .affisell-site-footer__pad {
@@ -2344,6 +2363,16 @@ button,
     -webkit-overflow-scrolling: touch;
   }
 
+  @media (max-width: 380px) {
+    .affisell-product-grid {
+      gap: 0.5rem;
+    }
+  }
+
+  .affisell-mobile-dock-epoxy a {
+    touch-action: manipulation;
+  }
+
   .affisell-department-marquee {
     border-radius: 0.85rem;
     padding: 0.5rem;
@@ -2361,8 +2390,23 @@ button,
       filter 180ms ease;
   }
 
+  .affisell-mobile-buyer-dock::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: -1;
+    height: env(safe-area-inset-bottom, 0px);
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--background) 92%, transparent)
+    );
+  }
+
   .affisell-mobile-buyer-dock--compact {
-    transform: translateY(calc(0.65rem + env(safe-area-inset-bottom)));
+    transform: translateY(calc(0.65rem + env(safe-area-inset-bottom, 0px)));
     opacity: 0.76;
     filter: saturate(0.92);
   }
@@ -2375,9 +2419,24 @@ button,
   }
 
   .affisell-mobile-buyer-dock--footer-hide {
-    transform: translateY(calc(5.5rem + env(safe-area-inset-bottom)));
+    transform: translateY(calc(var(--affisell-mobile-dock-h) + env(safe-area-inset-bottom, 0px)));
     opacity: 0;
     pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .affisell-mobile-buyer-dock {
+      transition: opacity 120ms ease;
+    }
+
+    .affisell-mobile-buyer-dock--compact {
+      transform: none;
+      filter: none;
+    }
+
+    .affisell-mobile-buyer-dock--footer-hide {
+      transform: none;
+    }
   }
 }
 

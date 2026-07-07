@@ -49,7 +49,7 @@ function MobileSheet({
             <X className="size-4" aria-hidden />
           </button>
         </div>
-        <div className="max-h-[calc(min(88dvh,720px)-3.5rem)] overflow-y-auto overscroll-contain px-3 py-3">
+        <div className="max-h-[calc(min(88dvh,720px)-3.5rem)] overflow-y-auto overscroll-y-contain px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]">
           {children}
         </div>
       </SheetContent>
@@ -80,7 +80,10 @@ export function MobileCatalogChrome({
 
   return (
     <>
-      <div className="sticky top-[calc(2.85rem+env(safe-area-inset-top,0px))] z-30 -mx-3 mb-2 md:hidden">
+      <div
+        className="sticky z-30 -mx-3 mb-2 md:hidden"
+        style={{ top: "var(--affisell-site-header-offset-sticky)" }}
+      >
         <div className="affisell-premium-panel mx-2 rounded-[var(--affisell-premium-radius-panel)] px-3 py-2.5">
         <div className="flex items-center gap-1.5">
           <Button

@@ -41,7 +41,7 @@ function FooterAccordion({
         aria-expanded={open}
         aria-controls={panelId}
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 py-3.5 text-left"
+        className="flex min-h-11 w-full items-center justify-between gap-3 py-3 text-left"
       >
         <span className={footerHeroTitle}>{section.title}</span>
         <ChevronDown

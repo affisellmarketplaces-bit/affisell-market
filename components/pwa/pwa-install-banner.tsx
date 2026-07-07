@@ -67,7 +67,7 @@ export function PwaInstallBanner() {
   return (
     <div
       className={cn(
-        "fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-[190] px-3 md:hidden",
+        "fixed inset-x-0 bottom-[var(--affisell-mobile-dock-offset)] z-[190] px-3 md:hidden",
         "pointer-events-none"
       )}
       role="region"

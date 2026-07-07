@@ -54,6 +54,7 @@ export function MobileDock() {
 
   useEffect(() => {
     let lastY = window.scrollY
+    let ticking = false
 
     const syncCompact = () => {
       const nextY = window.scrollY
@@ -61,11 +62,18 @@ export function MobileDock() {
       const nearTop = nextY < 96
       setCompact(goingDown && !nearTop)
       lastY = nextY
+      ticking = false
+    }
+
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(syncCompact)
     }
 
     syncCompact()
-    window.addEventListener("scroll", syncCompact, { passive: true })
-    return () => window.removeEventListener("scroll", syncCompact)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
   useEffect(() => {
@@ -85,7 +93,7 @@ export function MobileDock() {
     <nav
       aria-label={t("aria")}
       className={cn(
-        "affisell-mobile-buyer-dock pointer-events-none fixed inset-x-0 bottom-0 z-[90] w-full max-w-[100vw] overflow-x-clip px-2 pb-[max(0.3rem,env(safe-area-inset-bottom))] md:hidden",
+        "affisell-mobile-buyer-dock pointer-events-none fixed inset-x-0 bottom-0 z-[90] w-full max-w-[100vw] overflow-x-clip px-2 pb-[max(0.3rem,env(safe-area-inset-bottom,0px))] md:hidden",
         compact && "affisell-mobile-buyer-dock--compact",
         footerVisible && "affisell-mobile-buyer-dock--footer-hide",
         mode === "account" && "affisell-mobile-dock--account"
