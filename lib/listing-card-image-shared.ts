@@ -5,6 +5,12 @@ import {
 
 export const LISTING_CARD_IMAGE_API_PREFIX = "/api/listing-card-image/"
 
+/** `unstable_cache` tag — must match `revalidateListingCardImage`. */
+export function listingCardImageCacheTag(listingId: string): string {
+  const id = listingId.trim()
+  return `listing-card-image:${id}`
+}
+
 /** Same-origin thumbnail route — keeps base64 blobs out of catalog JSON. */
 export function listingCardImageProxyUrl(listingId: string): string {
   const id = listingId.trim()

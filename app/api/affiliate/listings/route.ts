@@ -8,6 +8,7 @@ import {
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
+import { revalidateListingCardImage } from "@/lib/revalidate-listing-card-image"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -96,6 +97,7 @@ export async function POST(request: Request) {
     }).catch((e) => console.error("[affiliate-invite] swipe listing hook failed", e))
 
     await revalidateAffiliateShopfront(session.user.id)
+    revalidateListingCardImage(row.id)
 
     return NextResponse.json(
       {

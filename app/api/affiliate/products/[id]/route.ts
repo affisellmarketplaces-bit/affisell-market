@@ -21,6 +21,7 @@ import {
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
+import { revalidateListingCardImage } from "@/lib/revalidate-listing-card-image"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -348,6 +349,7 @@ export async function PATCH(
       await cancelAuctionsForListings([id])
     }
     await revalidateAffiliateShopfront(session.user.id)
+    revalidateListingCardImage(id)
     return NextResponse.json(updated)
   } catch (e: unknown) {
     const code = typeof e === "object" && e && "code" in e ? (e as { code: string }).code : ""

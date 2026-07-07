@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache"
 import sharp from "sharp"
 
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
+import { listingCardImageCacheTag } from "@/lib/listing-card-image-shared"
 import { isUsableProductImageUrl } from "@/lib/product-image-url"
 import { prisma } from "@/lib/prisma"
 
@@ -75,7 +76,7 @@ const loadListingCardWebpCached = (listingId: string) =>
   unstable_cache(
     () => loadListingCardWebpUncached(listingId),
     ["listing-card-image-v1", listingId],
-    { revalidate: 86_400, tags: [`listing-card-image:${listingId}`] }
+    { revalidate: 86_400, tags: [listingCardImageCacheTag(listingId)] }
   )()
 
 export async function getListingCardImageWebp(listingId: string): Promise<Buffer | null> {

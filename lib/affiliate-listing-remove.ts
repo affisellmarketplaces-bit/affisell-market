@@ -57,7 +57,9 @@ export async function removeAffiliateListingsFromStorefront(
 
   if (ownedIds.length > 0) {
     const { revalidateAffiliateShopfront } = await import("@/lib/revalidate-affiliate-shopfront")
+    const { revalidateListingCardImages } = await import("@/lib/revalidate-listing-card-image")
     await revalidateAffiliateShopfront(tenantId)
+    await revalidateListingCardImages(ownedIds)
   }
 
   return { deletedIds: deletable, hiddenIds: hiddenOnly }

@@ -17,6 +17,7 @@ import {
 import { parseChinaImportFields } from "@/lib/china-buying/china-buying-shared"
 import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
 import { revalidateSupplierShopfront } from "@/lib/revalidate-supplier-shopfront"
+import { revalidateListingCardImagesForProduct } from "@/lib/revalidate-listing-card-image"
 import { requireMerchantVerifiedForPublish } from "@/lib/merchant-legal/require-merchant-verified"
 import { parseProductMarketplaceMeta } from "@/lib/supplier-product-marketplace-meta"
 import {
@@ -678,6 +679,9 @@ export async function PUT(
   }
 
   void revalidateSupplierShopfront(session.user.id)
+  if ("images" in rawBody || "image" in rawBody || "colorImages" in rawBody) {
+    void revalidateListingCardImagesForProduct(id)
+  }
 
   return Response.json({
     ...(fresh ?? updated),
@@ -848,6 +852,9 @@ export async function PATCH(
   }
 
   void revalidateSupplierShopfront(session.user.id)
+  if ("images" in rawBody || "image" in rawBody || "colorImages" in rawBody) {
+    void revalidateListingCardImagesForProduct(id)
+  }
 
   return Response.json({
     ...fresh,

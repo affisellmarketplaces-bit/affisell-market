@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import { PRODUCT_CARD_IMAGE_FALLBACK } from "@/lib/affiliate-listing-display"
 import {
   isListingCardImageProxyUrl,
+  listingCardImageCacheTag,
   listingCardImageProxyUrl,
   resolveListingCardImageHref,
 } from "@/lib/listing-card-image-shared"
@@ -30,5 +31,9 @@ describe("listing card image proxy", () => {
 
   it("uses placeholder when listing id missing", () => {
     expect(resolveListingCardImageHref(null, "")).toBe(PRODUCT_CARD_IMAGE_FALLBACK)
+  })
+
+  it("exposes unstable_cache tag helper", () => {
+    expect(listingCardImageCacheTag("x")).toBe("listing-card-image:x")
   })
 })
