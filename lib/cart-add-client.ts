@@ -1,5 +1,6 @@
 "use client"
 
+import { buyerHaptic } from "@/lib/buyer-haptics"
 import { addGuestCartItem, type CartAddedEventDetail, type GuestCartItem } from "@/lib/guest-cart"
 import { dispatchCartUpdated } from "@/lib/buyer-cart-count-client"
 
@@ -56,6 +57,7 @@ export async function addToBuyerCart(input: AddToBuyerCartInput): Promise<AddToB
       qtyAdded: qty,
       variantSignature,
     })
+    buyerHaptic("cartAdd")
     console.log("[cart-add-client]", { productId, result: "server" })
     return { ok: true, mode: "server" }
   }
@@ -72,6 +74,14 @@ export async function addToBuyerCart(input: AddToBuyerCartInput): Promise<AddToB
       selectedSize: input.selectedSize ?? undefined,
     }
     addGuestCartItem(guestItem)
+    notifyCartUpdated()
+    notifyCartAdded({
+      productId,
+      productName: input.title?.trim() || "Product",
+      qtyAdded: qty,
+      variantSignature,
+    })
+    buyerHaptic("cartAdd")
     console.log("[cart-add-client]", { productId, result: "guest" })
     return { ok: true, mode: "guest" }
   }

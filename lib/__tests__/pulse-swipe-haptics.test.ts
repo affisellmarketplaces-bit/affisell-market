@@ -10,6 +10,9 @@ describe("pulse-swipe-haptics", () => {
   it("calls navigator.vibrate when supported", () => {
     const vibrate = vi.fn()
     vi.stubGlobal("navigator", { vibrate })
+    vi.stubGlobal("window", {
+      matchMedia: () => ({ matches: false }),
+    })
     pulseSwipeHaptic("commit")
     expect(vibrate).toHaveBeenCalled()
     vi.unstubAllGlobals()

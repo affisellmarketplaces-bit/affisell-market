@@ -1,5 +1,6 @@
 "use client"
 
+import { buyerHaptic } from "@/lib/buyer-haptics"
 import {
   notifyBuyerWishlistUpdated,
 } from "@/lib/buyer-wishlist-signals.client"
@@ -44,6 +45,7 @@ export async function toggleProductWishlist(
 
   const wished = Boolean(data.wished)
   notifyBuyerWishlistUpdated({ productId: id, wished })
+  buyerHaptic(wished ? "wishlistAdd" : "wishlistRemove")
 
   return {
     ok: true,
