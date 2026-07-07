@@ -10,10 +10,22 @@ import {
   categoryBrowsePath,
   loadBrowseCategoryBySlug,
   loadBrowseCategoryListings,
+  loadIndexableCategoryBrowseSlugs,
 } from "@/lib/seo-category-pages"
+import { BROWSE_STATIC_PARAMS_LIMIT } from "@/lib/seo-category-pages-shared"
 import { resolveSiteBaseUrl } from "@/lib/seo-site-url"
 
 export const revalidate = 3600
+
+export async function generateStaticParams() {
+  try {
+    const slugs = await loadIndexableCategoryBrowseSlugs(BROWSE_STATIC_PARAMS_LIMIT)
+    return slugs.map((categorySlug) => ({ categorySlug }))
+  } catch (err) {
+    console.error("[browse-category] generateStaticParams failed:", err)
+    return []
+  }
+}
 
 type PageProps = {
   params: Promise<{ categorySlug: string }>

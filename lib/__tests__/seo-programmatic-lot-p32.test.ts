@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { shopListingPath } from "@/lib/affiliate-routes"
-import { categoryBrowsePath } from "@/lib/seo-category-pages-shared"
+import { categoryBrowsePath, BROWSE_STATIC_PARAMS_LIMIT } from "@/lib/seo-category-pages-shared"
 import { resolveSiteBaseUrl } from "@/lib/seo-site-url"
 import { homeCatalogProductHref } from "@/lib/home-catalog-product-href"
 import { looksLikeAffiliateListingId, listingPublicSegment } from "@/lib/listing-public-url-shared"
@@ -14,6 +14,11 @@ import {
 describe("seo-category-pages", () => {
   it("builds browse paths from slug", () => {
     expect(categoryBrowsePath("mode-vetements")).toBe("/browse/mode-vetements")
+  })
+
+  it("caps static generation at top-N categories", () => {
+    expect(BROWSE_STATIC_PARAMS_LIMIT).toBeGreaterThan(0)
+    expect(BROWSE_STATIC_PARAMS_LIMIT).toBeLessThanOrEqual(100)
   })
 })
 
