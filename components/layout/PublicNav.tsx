@@ -13,14 +13,13 @@ import {
   Store,
   Truck,
   User,
-  Zap,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { CartCountBadge } from "@/components/cart/cart-count-badge"
-import { COMMAND_K_OPEN_EVENT } from "@/components/CommandK"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
-import { ThemeToggle } from "@/components/marketing/theme-toggle"
+import { ThemeToggleDeferred } from "@/components/marketing/theme-toggle-deferred"
+import { CommandKTriggerDeferred } from "@/components/navigation/command-k-trigger-deferred"
 import { NavHeaderSearch } from "@/components/nav/nav-header-search"
 import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
@@ -45,28 +44,6 @@ const ACCOUNT_ICONS = {
   hub: User,
   track: Truck,
 } as const
-
-function CommandKTrigger({ className }: { className?: string }) {
-  const t = useTranslations("PublicNav")
-  const tCmd = useTranslations("CommandK")
-
-  return (
-    <button
-      type="button"
-      onClick={() => window.dispatchEvent(new Event(COMMAND_K_OPEN_EVENT))}
-      className={cn(
-        "inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border border-zinc-200/90 bg-white/90 px-2.5 text-xs font-semibold text-zinc-600 shadow-sm transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-800 dark:border-zinc-700/90 dark:bg-zinc-900/90 dark:text-zinc-300 dark:hover:border-violet-500/50 dark:hover:bg-violet-950/50 dark:hover:text-violet-200",
-        className
-      )}
-      aria-label={`${tCmd("triggerLabel")} (⌘K)`}
-    >
-      <Zap className="size-3.5 text-violet-600 dark:text-violet-400" aria-hidden />
-      <kbd className="hidden rounded border border-zinc-200/90 bg-zinc-50 px-1.5 py-0.5 font-mono text-[10px] lg:inline dark:border-zinc-600 dark:bg-zinc-950">
-        {t("cmdKBadge")}
-      </kbd>
-    </button>
-  )
-}
 
 function isAccountNavActive(pathname: string, href: string, exact?: boolean): boolean {
   if (exact) return pathname === href
@@ -137,7 +114,7 @@ export function PublicNav() {
   const mobileUtilities = (
     <div className="flex shrink-0 items-center gap-1 lg:hidden">
       {mode === "account" ? <LanguageSwitcher /> : null}
-      {showCompactMobileUtilities ? <ThemeToggle className="shrink-0" /> : null}
+      {showCompactMobileUtilities ? <ThemeToggleDeferred className="shrink-0" /> : null}
       <FastLink
         href="/cart"
         className={cn(
@@ -182,7 +159,7 @@ export function PublicNav() {
         </FastLink>
       ) : null}
       <LanguageSwitcher />
-      <ThemeToggle className="shrink-0" />
+      <ThemeToggleDeferred className="shrink-0" />
       <FastLink
         href="/cart"
         className={cn(
@@ -272,7 +249,7 @@ export function PublicNav() {
             searchContext={searchContext}
           />
         </div>
-        {options.suggestions ? <CommandKTrigger className="hidden lg:inline-flex" /> : null}
+        {options.suggestions ? <CommandKTriggerDeferred className="hidden lg:inline-flex" /> : null}
       </div>
     </Suspense>
   )

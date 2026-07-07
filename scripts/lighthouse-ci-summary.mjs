@@ -96,7 +96,10 @@ function main() {
   console.log("[lighthouse-ci-summary]", {
     url,
     performance: score(perf),
+    fcp: ms(fcp),
     lcp: ms(lcp),
+    tbt: ms(tbt),
+    cls: typeof cls === "number" ? cls.toFixed(3) : "—",
     reportLink,
   })
 }

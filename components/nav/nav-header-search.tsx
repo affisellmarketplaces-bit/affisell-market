@@ -8,6 +8,7 @@ import { type FormEvent, useCallback, useEffect, useId, useRef, useState } from 
 import { useDebouncedCallback } from "use-debounce"
 
 import { FastLink } from "@/components/navigation/fast-link"
+import { useIdleMount } from "@/hooks/use-idle-mount"
 import { AFFILIATE_CATALOG_PATH, shopListingPath } from "@/lib/affiliate-routes"
 import { navigateBuyerHomeCatalog } from "@/lib/marketplace-catalog-nav.client"
 import {
@@ -60,6 +61,7 @@ export function NavHeaderSearch({
   const [products, setProducts] = useState<ProductHit[]>([])
   const [loading, setLoading] = useState(false)
   const [desktopSuggestions, setDesktopSuggestions] = useState(false)
+  const suggestionsIdle = useIdleMount({ idleTimeoutMs: 2400, fallbackDelayMs: 600 })
 
   useEffect(() => {
     if (!enableSuggestions) return
@@ -70,7 +72,7 @@ export function NavHeaderSearch({
     return () => media.removeEventListener("change", sync)
   }, [enableSuggestions])
 
-  const suggestionsActive = enableSuggestions && desktopSuggestions
+  const suggestionsActive = enableSuggestions && desktopSuggestions && suggestionsIdle
 
   const resolvedPlaceholder =
     placeholder ?? (searchTarget === "catalog" ? tNav("searchCatalog") : tNav("searchProducts"))

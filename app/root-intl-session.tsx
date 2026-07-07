@@ -1,11 +1,11 @@
 "use client"
 
-import { AnalyticsGated } from "@/components/legal/analytics-gated"
+import { AnalyticsGatedDeferred } from "@/components/legal/analytics-gated-deferred"
 import { ImmersiveChromeSync } from "@/components/layout/immersive-chrome-sync"
 import { NavigationShell } from "@/components/navigation/navigation-shell"
 import { MobileAwareToaster } from "@/components/providers/mobile-aware-toaster"
 import { ThemeProvider } from "@/components/providers/theme-provider"
-import { PwaInstallBanner } from "@/components/pwa/pwa-install-banner"
+import { PwaInstallBannerDeferred } from "@/components/pwa/pwa-install-banner-deferred"
 import { PwaShellRegister } from "@/components/pwa/pwa-shell-register"
 
 export function RootSessionShell({
@@ -23,8 +23,8 @@ export function RootSessionShell({
         <>
           <PwaShellRegister />
           <NavigationShell />
-          <PwaInstallBanner />
-          <AnalyticsGated />
+          <PwaInstallBannerDeferred />
+          <AnalyticsGatedDeferred />
         </>
       ) : null}
       {children}
