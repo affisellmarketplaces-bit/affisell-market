@@ -80,14 +80,15 @@ export function MobileCatalogChrome({
 
   return (
     <>
-      <div className="sticky top-[calc(2.85rem+env(safe-area-inset-top,0px))] z-30 -mx-3 mb-2 border-b border-white/10 bg-zinc-950/82 px-3 py-1.5 backdrop-blur-xl supports-[backdrop-filter]:bg-zinc-950/70 md:hidden dark:bg-zinc-950/88">
+      <div className="sticky top-[calc(2.85rem+env(safe-area-inset-top,0px))] z-30 -mx-3 mb-2 md:hidden">
+        <div className="affisell-premium-panel mx-2 rounded-[var(--affisell-premium-radius-panel)] px-3 py-2.5">
         <div className="flex items-center gap-1.5">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={openMobileBuyerHub}
-            className="h-10 min-h-10 shrink-0 gap-1.5 border-white/15 bg-white/5 px-2.5 text-xs text-zinc-100"
+            className="affisell-premium-chip h-10 min-h-10 shrink-0 gap-1.5 rounded-2xl border-0 bg-transparent px-2.5 text-xs text-zinc-700 shadow-none dark:text-zinc-100"
             aria-label={t("menu")}
           >
             <Menu className="size-3.5" aria-hidden />
@@ -97,7 +98,7 @@ export function MobileCatalogChrome({
             variant="outline"
             size="sm"
             onClick={() => setCategoriesOpen(true)}
-            className="h-10 min-h-10 flex-1 gap-1.5 border-violet-500/30 bg-violet-500/10 px-2.5 text-xs text-violet-100"
+            className="h-10 min-h-10 flex-1 gap-1.5 rounded-2xl border border-violet-400/30 bg-gradient-to-r from-violet-600 to-fuchsia-500 px-2.5 text-xs font-semibold text-white shadow-[0_12px_24px_-12px_rgba(139,92,246,0.75)]"
           >
             <LayoutGrid className="size-3.5 shrink-0" aria-hidden />
             {t("categories")}
@@ -107,26 +108,29 @@ export function MobileCatalogChrome({
             variant="outline"
             size="sm"
             onClick={() => setFiltersOpen(true)}
-            className="h-10 min-h-10 flex-1 gap-1.5 border-white/15 bg-white/5 px-2.5 text-xs text-zinc-100"
+            className="affisell-premium-chip h-10 min-h-10 flex-1 gap-1.5 rounded-2xl border-0 bg-transparent px-2.5 text-xs text-zinc-700 shadow-none dark:text-zinc-100"
           >
             <Filter className="size-3.5 shrink-0" aria-hidden />
             {t("filters")}
           </Button>
         </div>
         <div className="mt-1.5 flex min-h-8 items-center justify-between gap-2 text-[11px] text-zinc-400">
-          <span className="truncate font-medium text-zinc-200">{summaryLabel}</span>
+          <span className="inline-flex items-center rounded-full bg-zinc-950 px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm dark:bg-white dark:text-zinc-900">
+            {summaryLabel}
+          </span>
           {hasFilters ? (
             <button
               type="button"
               onClick={handleClearFilters}
               className={cn(
-                "inline-flex max-w-[60%] min-h-8 items-center gap-1 truncate rounded-full border border-violet-500/30 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold text-violet-100"
+                "inline-flex max-w-[60%] min-h-8 items-center gap-1 truncate rounded-full border border-violet-300/45 bg-white/75 px-2.5 py-1 text-[10px] font-semibold text-violet-700 shadow-sm backdrop-blur-sm dark:border-violet-500/30 dark:bg-violet-500/12 dark:text-violet-100"
               )}
             >
               <span className="truncate">{activeFilterLabel}</span>
               <X className="size-3 shrink-0" aria-hidden />
             </button>
-          ) : <span className="text-[10px] uppercase tracking-[0.12em] text-zinc-500">{t("filters")}</span>}
+          ) : <span className="text-[10px] uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">{t("filters")}</span>}
+        </div>
         </div>
       </div>
 

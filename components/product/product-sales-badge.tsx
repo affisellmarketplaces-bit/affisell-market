@@ -76,7 +76,7 @@ export function ProductSalesBadge({ count, variant = "overlay", className }: Pro
   return (
     <span
       className={cn(
-        "pointer-events-none absolute left-2.5 top-2.5 z-[15] inline-flex max-w-[calc(100%-1.25rem)] items-center gap-1 rounded-full border border-white/40 bg-zinc-900/75 px-2 py-1 text-[10px] font-semibold text-white shadow-lg shadow-black/20 backdrop-blur-md",
+        "pointer-events-none absolute left-2 top-2 z-[15] inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full border border-white/40 bg-zinc-900/70 px-2 py-1 text-[9px] font-semibold text-white shadow-lg shadow-black/20 backdrop-blur-md sm:left-2.5 sm:top-2.5 sm:max-w-[calc(100%-1.25rem)] sm:text-[10px]",
         popular &&
           "border-amber-200/50 bg-gradient-to-r from-amber-600/90 to-violet-700/90",
         className

@@ -1,5 +1,6 @@
 "use client"
 
+import { TrendingDown } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { formatStoreCurrency } from "@/lib/market-config"
@@ -49,8 +50,8 @@ export function ProductPriceOffer({
     return (
       <span
         className={cn(
-          "font-black tabular-nums tracking-tight text-zinc-900 dark:text-white",
-          layout === "detail" ? "text-3xl" : layout === "compact" ? "text-lg" : "text-xl",
+          "font-black tabular-nums tracking-tight text-zinc-900 transition-transform duration-200 dark:text-white",
+          layout === "detail" ? "text-3xl" : layout === "compact" ? "text-lg" : "text-[1.7rem] leading-none",
           className
         )}
       >
@@ -64,7 +65,7 @@ export function ProductPriceOffer({
       ? "text-3xl font-bold tracking-tight"
       : layout === "compact"
         ? "text-lg font-bold"
-        : "text-xl font-black"
+        : "text-[1.7rem] font-black leading-none tracking-[-0.03em]"
 
   return (
     <div className={cn("space-y-1", align === "end" && "text-right", className)}>
@@ -80,8 +81,8 @@ export function ProductPriceOffer({
         <span
           className={cn(
             "inline-flex items-center rounded-full font-bold tabular-nums tracking-tight",
-            "bg-gradient-to-r from-rose-600 via-rose-500 to-violet-600 text-white shadow-sm shadow-rose-500/20",
-            "ring-1 ring-inset ring-white/25",
+            "bg-gradient-to-r from-rose-500/95 via-fuchsia-500/95 to-violet-500/95 text-white shadow-[0_8px_18px_-8px_rgba(244,63,94,0.65)]",
+            "ring-1 ring-inset ring-white/35",
             layout === "detail" ? "px-3 py-1 text-sm" : "px-2 py-0.5 text-[11px]"
           )}
         >
@@ -104,10 +105,11 @@ export function ProductPriceOffer({
         </span>
         <span
           className={cn(
-            "font-semibold text-emerald-700 dark:text-emerald-400",
+            "inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400",
             layout === "detail" ? "text-sm" : "text-[11px]"
           )}
         >
+          <TrendingDown className="size-3 shrink-0 opacity-80" aria-hidden />
           {t("save", { amount: formatStoreCurrency(offer.savingsAmount) })}
         </span>
       </div>

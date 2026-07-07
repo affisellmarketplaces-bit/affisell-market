@@ -22,10 +22,10 @@ export function ProductDiscountTag({ percent, className }: ProductDiscountTagPro
     >
       <span
         className={cn(
-          "inline-flex items-center justify-center rounded-full px-2.5 py-1",
-          "bg-gradient-to-r from-rose-600 via-rose-500 to-violet-600",
-          "text-[11px] font-bold tabular-nums tracking-tight text-white",
-          "shadow-md shadow-rose-500/25 ring-1 ring-inset ring-white/25"
+          "inline-flex items-center justify-center rounded-full px-2.5 py-1 backdrop-blur-md",
+          "bg-[linear-gradient(135deg,rgba(244,63,94,0.92),rgba(217,70,239,0.9),rgba(124,58,237,0.92))]",
+          "text-[10px] font-bold tabular-nums tracking-tight text-white",
+          "shadow-[0_10px_22px_-10px_rgba(244,63,94,0.75)] ring-1 ring-inset ring-white/35"
         )}
       >
         −{pct}%

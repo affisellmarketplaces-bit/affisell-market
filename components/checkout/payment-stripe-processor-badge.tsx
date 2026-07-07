@@ -66,7 +66,7 @@ export function PaymentStripeProcessorBadge({
     <div className={cn("flex shrink-0 flex-wrap items-center gap-2", className)}>
       <span
         className={cn(
-          "inline-flex h-11 min-w-[6.25rem] items-center justify-center rounded-xl border px-4 sm:h-12 sm:min-w-[6.75rem] sm:px-5",
+          "inline-flex h-11 min-w-[6.25rem] items-center justify-center rounded-2xl border px-4 sm:h-12 sm:min-w-[6.75rem] sm:px-5",
           leadTileByVariant[variant]
         )}
       >
@@ -75,7 +75,7 @@ export function PaymentStripeProcessorBadge({
       {secureLabel ? (
         <span
           className={cn(
-            "inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-[10px] font-bold uppercase tracking-[0.14em] sm:h-10 sm:px-3",
+            "inline-flex h-9 items-center gap-1.5 rounded-xl border px-2.5 text-[10px] font-bold uppercase tracking-[0.14em] sm:h-10 sm:px-3",
             secureChipByVariant[variant]
           )}
         >

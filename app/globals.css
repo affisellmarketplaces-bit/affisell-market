@@ -110,6 +110,17 @@ body.affisell-demo-lab .affisell-header-shell {
   --affisell-swipe-dock-h: 4.25rem;
   --affisell-swipe-product-strip-h: 0px;
   --affisell-swipe-header-h: 3rem;
+  --affisell-premium-radius-card: 1.35rem;
+  --affisell-premium-radius-panel: 1.55rem;
+  --affisell-premium-shadow-soft: 0 10px 30px rgb(15 23 42 / 0.08);
+  --affisell-premium-shadow-float: 0 18px 40px rgb(76 29 149 / 0.14);
+  --affisell-premium-border: color-mix(in srgb, var(--brand) 16%, white 64%);
+  --affisell-premium-glass: linear-gradient(
+    160deg,
+    color-mix(in srgb, white 90%, var(--brand-muted)) 0%,
+    color-mix(in srgb, white 96%, transparent) 55%,
+    color-mix(in srgb, #eef2ff 72%, transparent) 100%
+  );
   --background: #fafafc;
   --foreground: #0f172a;
   --card: #ffffff;
@@ -190,6 +201,12 @@ body.affisell-demo-lab .affisell-header-shell {
   --sidebar-accent: #1e293b;
   --sidebar-accent-foreground: #f1f5f9;
   --sidebar-border: #334155;
+  --affisell-premium-border: color-mix(in srgb, var(--brand-light) 20%, white 8%);
+  --affisell-premium-glass: linear-gradient(
+    160deg,
+    color-mix(in srgb, #111827 84%, var(--brand)) 0%,
+    color-mix(in srgb, #09090b 94%, transparent) 100%
+  );
 }
 
 .dark body {
@@ -804,6 +821,40 @@ body.affisell-demo-lab .affisell-header-shell {
       inset 0 1px 0 rgb(255 255 255 / 0.72),
       0 10px 28px rgb(109 40 217 / 0.12),
       0 6px 18px rgb(15 23 42 / 0.08);
+  }
+
+  .affisell-premium-panel {
+    border: 1px solid var(--affisell-premium-border);
+    background: var(--affisell-premium-glass);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.62),
+      var(--affisell-premium-shadow-soft);
+  }
+
+  .affisell-premium-chip {
+    border: 1px solid color-mix(in srgb, var(--brand) 14%, white 70%);
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, white 96%, var(--brand-muted)),
+      color-mix(in srgb, white 88%, transparent)
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.85),
+      0 6px 18px rgb(109 40 217 / 0.1);
+  }
+
+  .dark .affisell-premium-chip {
+    border-color: color-mix(in srgb, var(--brand-light) 18%, white 10%);
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, white 10%, transparent),
+      color-mix(in srgb, black 8%, transparent)
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.08),
+      0 10px 24px rgb(0 0 0 / 0.28);
   }
 
   .dark .affisell-mobile-dock-epoxy {
@@ -2062,6 +2113,32 @@ button,
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+@keyframes affisell-live-breath {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgb(239 68 68 / 0.16),
+      0 6px 16px -10px rgb(127 29 29 / 0.42);
+    transform: translateZ(0);
+  }
+  50% {
+    box-shadow:
+      0 0 0 5px rgb(239 68 68 / 0),
+      0 10px 22px -10px rgb(127 29 29 / 0.5);
+    transform: translateY(-0.5px);
+  }
+}
+
+.affisell-live-badge {
+  animation: affisell-live-breath 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .affisell-live-badge {
+    animation: none;
   }
 }
 

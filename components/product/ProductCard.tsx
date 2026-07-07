@@ -264,13 +264,14 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
       href={href}
       prefetch={mode === "customer" ? undefined : false}
       className={cn(
-        "group flex h-full w-full touch-manipulation flex-col rounded-2xl border border-gray-100/90 bg-white/85 p-1 shadow-sm outline-none ring-offset-2 backdrop-blur-sm transition-[transform,box-shadow,border-color] active:scale-[0.985] sm:rounded-3xl sm:p-2 dark:border-zinc-800 dark:bg-zinc-950/60",
-        "hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:border-violet-800/60"
+        "group flex h-full w-full touch-manipulation flex-col rounded-[1.35rem] border p-1.5 outline-none ring-offset-2 backdrop-blur-sm transition-[transform,box-shadow,border-color] duration-200 active:scale-[0.99] sm:rounded-3xl sm:p-2",
+        "border-[color:var(--affisell-premium-border)] bg-[var(--affisell-premium-glass)] shadow-[var(--affisell-premium-shadow-soft)]",
+        "hover:border-violet-200/80 hover:shadow-[var(--affisell-premium-shadow-float)] focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:border-violet-800/60"
       )}
       data-product-card-mode={mode}
       data-show-business-data={showBusiness ? "true" : "false"}
     >
-      <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
+      <div className="relative aspect-square w-full overflow-hidden rounded-[1.1rem] border border-white/50 bg-gradient-to-br from-violet-50/50 via-white to-sky-50/35 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:via-zinc-950/80 dark:to-teal-950/15">
         {p.offerBadge ? <ProductOfferBadge badge={p.offerBadge} /> : null}
         {hasDiscount ? <ProductDiscountTag percent={discountOffer.percent} /> : null}
         {!showBusiness && p.soldCount != null ? (
@@ -297,7 +298,7 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
         <img
           src={src}
           alt={p.title}
-          className="absolute inset-0 h-full w-full object-contain p-1.5 transition-transform duration-300 group-hover:scale-105 sm:p-4"
+          className="absolute inset-0 h-full w-full object-contain p-1 transition-transform duration-300 group-hover:scale-[1.02] sm:p-4"
           loading="lazy"
           onError={(e) => {
             e.currentTarget.src = "/placeholder-product.jpg"
