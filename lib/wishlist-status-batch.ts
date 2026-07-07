@@ -6,6 +6,7 @@ import {
   BUYER_WISHLIST_UPDATED_EVENT,
   type BuyerWishlistUpdatedDetail,
 } from "@/lib/buyer-wishlist-signals.client"
+import { scheduleIdleTask } from "@/lib/schedule-idle-task"
 
 export type WishlistCardStatus = {
   wished: boolean
@@ -15,17 +16,23 @@ export type WishlistCardStatus = {
 
 type Listener = (status: WishlistCardStatus) => void
 
+const BATCH_CHUNK = 48
+const IDLE_FLUSH_MS = 2600
+const IDLE_FLUSH_FALLBACK_MS = 700
+
 const pendingIds = new Set<string>()
 const listeners = new Map<string, Set<Listener>>()
 let inflight: Promise<void> | null = null
 let eventBridgeReady = false
+let idleFlushScheduled = false
+let deferInitialFlush = true
 
 /** Re-fetch wishlist status for subscribers (e.g. after Pulse save-drop). */
 export function invalidateWishlistStatus(productId: string): void {
   const id = productId.trim()
   if (!id || !listeners.has(id)) return
   pendingIds.add(id)
-  scheduleFlush()
+  scheduleFlush({ immediate: true })
 }
 
 function ensureWishlistEventBridge(): void {
@@ -46,44 +53,76 @@ function emit(productId: string, status: WishlistCardStatus) {
   }
 }
 
+async function fetchStatuses(ids: string[]): Promise<Record<string, WishlistCardStatus>> {
+  const merged: Record<string, WishlistCardStatus> = {}
+  for (let offset = 0; offset < ids.length; offset += BATCH_CHUNK) {
+    const chunk = ids.slice(offset, offset + BATCH_CHUNK)
+    const res = await fetch("/api/wishlist/status", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: chunk }),
+    })
+    if (!res.ok) continue
+    const data = (await res.json()) as {
+      statuses?: Record<string, { wished?: boolean; dropPercent?: number; likeCount?: number }>
+    }
+    for (const [id, row] of Object.entries(data.statuses ?? {})) {
+      merged[id] = {
+        wished: Boolean(row?.wished),
+        dropPercent: Number(row?.dropPercent ?? 0),
+        likeCount: Math.max(0, Number(row?.likeCount ?? 0)),
+      }
+    }
+  }
+  return merged
+}
+
 async function flush() {
   const ids = [...pendingIds]
   pendingIds.clear()
   if (ids.length === 0) return
 
   try {
-    const res = await fetch(`/api/wishlist?ids=${encodeURIComponent(ids.join(","))}`, {
-      credentials: "include",
-    })
-    if (!res.ok) {
-      for (const id of ids) emit(id, { wished: false, dropPercent: 0, likeCount: 0 })
-      return
-    }
-    const data = (await res.json()) as {
-      statuses?: Record<string, { wished?: boolean; dropPercent?: number; likeCount?: number }>
-    }
-    const statuses = data.statuses ?? {}
+    const statuses = await fetchStatuses(ids)
     for (const id of ids) {
-      const row = statuses[id]
-      emit(id, {
-        wished: Boolean(row?.wished),
-        dropPercent: Number(row?.dropPercent ?? 0),
-        likeCount: Math.max(0, Number(row?.likeCount ?? 0)),
-      })
+      emit(id, statuses[id] ?? { wished: false, dropPercent: 0, likeCount: 0 })
     }
-  } catch {
+  } catch (error) {
+    console.error("[wishlist-status-batch]", { idCount: ids.length, error })
     for (const id of ids) emit(id, { wished: false, dropPercent: 0, likeCount: 0 })
   }
 }
 
-function scheduleFlush() {
+function runFlush() {
   if (inflight) return
-  inflight = new Promise<void>((resolve) => {
-    queueMicrotask(() => {
+  inflight = Promise.resolve()
+    .then(() => flush())
+    .finally(() => {
       inflight = null
-      void flush().finally(resolve)
     })
-  })
+}
+
+function scheduleFlush(options?: { immediate?: boolean }) {
+  if (options?.immediate) {
+    deferInitialFlush = false
+    runFlush()
+    return
+  }
+
+  if (deferInitialFlush) {
+    if (!idleFlushScheduled) {
+      idleFlushScheduled = true
+      scheduleIdleTask(() => {
+        deferInitialFlush = false
+        idleFlushScheduled = false
+        runFlush()
+      }, IDLE_FLUSH_MS, IDLE_FLUSH_FALLBACK_MS)
+    }
+    return
+  }
+
+  runFlush()
 }
 
 export function subscribeWishlistStatus(
@@ -116,4 +155,6 @@ export function resetWishlistStatusBatchForTests(): void {
   listeners.clear()
   inflight = null
   eventBridgeReady = false
+  idleFlushScheduled = false
+  deferInitialFlush = true
 }

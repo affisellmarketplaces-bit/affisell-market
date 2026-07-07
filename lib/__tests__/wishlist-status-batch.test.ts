@@ -6,6 +6,13 @@ import {
   subscribeWishlistStatus,
 } from "@/lib/wishlist-status-batch"
 
+vi.mock("@/lib/schedule-idle-task", () => ({
+  scheduleIdleTask: (run: () => void) => {
+    run()
+    return () => {}
+  },
+}))
+
 describe("wishlist-status-batch", () => {
   beforeEach(() => {
     resetWishlistStatusBatchForTests()
@@ -43,9 +50,12 @@ describe("wishlist-status-batch", () => {
     unsub2()
 
     expect(fetch).toHaveBeenCalledTimes(1)
-    const url = String((fetch as ReturnType<typeof vi.fn>).mock.calls[0]?.[0])
-    expect(url).toContain("ids=p1")
-    expect(url).toContain("p2")
+    const [url, init] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit]
+    expect(url).toBe("/api/wishlist/status")
+    expect(init?.method).toBe("POST")
+    const body = JSON.parse(String(init?.body)) as { ids: string[] }
+    expect(body.ids).toContain("p1")
+    expect(body.ids).toContain("p2")
     expect(results).toContain(true)
     expect(results).toContain(true)
   })
@@ -60,8 +70,10 @@ describe("wishlist-status-batch", () => {
     await new Promise((r) => setTimeout(r, 20))
 
     expect(fetchMock).toHaveBeenCalled()
-    const url = String(fetchMock.mock.calls.at(-1)?.[0])
-    expect(url).toContain("ids=p1")
+    const [url, init] = fetchMock.mock.calls.at(-1) as [string, RequestInit]
+    expect(url).toBe("/api/wishlist/status")
+    const body = JSON.parse(String(init?.body)) as { ids: string[] }
+    expect(body.ids).toContain("p1")
   })
 
   it("invalidateWishlistStatus skips unknown product ids", async () => {

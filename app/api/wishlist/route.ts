@@ -8,6 +8,7 @@ import {
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { countProductLikes, countProductLikesSingle } from "@/lib/product-like-count"
 import { prisma } from "@/lib/prisma"
+import { resolveWishlistCardStatuses } from "@/lib/wishlist-card-status.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -48,32 +49,8 @@ export async function GET(req: Request) {
   const url = new URL(req.url)
   const idsRaw = url.searchParams.get("ids")?.trim()
   if (idsRaw) {
-    const ids = [...new Set(idsRaw.split(",").map((s) => s.trim()).filter(Boolean))].slice(0, 48)
-    if (ids.length === 0) return Response.json({ statuses: {} })
-
-    const [likeCounts, userItems, guestWished, priceMap] = await Promise.all([
-      countProductLikes(ids),
-      userId
-        ? prisma.wishlist.findMany({
-            where: { userId, productId: { in: ids } },
-            select: { productId: true, previousPriceCents: true },
-          })
-        : Promise.resolve([]),
-      guestId ? guestWishlistProductIds(guestId, ids) : Promise.resolve(new Set<string>()),
-      currentPricesForProducts(ids),
-    ])
-    const itemByProduct = new Map(userItems.map((i) => [i.productId, i]))
-    const statuses: Record<string, { wished: boolean; dropPercent: number; likeCount: number }> = {}
-    for (const id of ids) {
-      const item = itemByProduct.get(id)
-      const current = priceMap.get(id) ?? null
-      statuses[id] = {
-        wished: Boolean(item) || guestWished.has(id),
-        dropPercent:
-          item && current != null ? dropPercent(current, item.previousPriceCents) : 0,
-        likeCount: likeCounts.get(id) ?? 0,
-      }
-    }
+    const ids = idsRaw.split(",")
+    const statuses = await resolveWishlistCardStatuses(ids, { userId: userId ?? null, guestId })
     return Response.json(
       { statuses },
       { headers: { "Cache-Control": "private, no-store" } }
