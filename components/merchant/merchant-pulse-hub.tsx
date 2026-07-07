@@ -1,5 +1,8 @@
+"use client"
+
 import Link from "next/link"
 import type { ReactNode } from "react"
+import { useTranslations } from "next-intl"
 import type { DailySpark, PulseBandRow } from "@/lib/merchant-earnings-pulse"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
@@ -95,6 +98,8 @@ export function MerchantPulseHub({
   leadingSlot,
   trailingSlot,
 }: Props) {
+  const tPulse = useTranslations("payoutPolicy.pulseHub")
+
   return (
     <BentoShell>
       <BentoContainer maxWidth="5xl" className="space-y-8 py-8 md:py-10">
@@ -126,7 +131,7 @@ export function MerchantPulseHub({
                 {formatStoreCurrencyFromCents(paidOutCents)}
               </p>
               <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Net of recorded payouts and any clawbacks — see activity below.
+                {tPulse("paidOutFootnote")}
               </p>
               {role === "AFFILIATE" ? (
                 <Link
@@ -199,7 +204,7 @@ export function MerchantPulseHub({
                 </div>
               ) : (
                 <p className="mt-3 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                  Wholesale value of units sold in this window (before platform timing on payouts).
+                  {tPulse("supplierBandHint")}
                 </p>
               )}
             </BentoCard>
@@ -216,12 +221,12 @@ export function MerchantPulseHub({
           <div className="flex items-center gap-2">
             <Landmark className="h-5 w-5 text-brand" aria-hidden />
             <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-900 dark:text-white">
-              Payout ledger
+              {tPulse("ledgerTitle")}
             </h2>
           </div>
           {recentLedger.length === 0 ? (
             <BentoCard className="border-dashed py-12 text-center text-sm text-zinc-500 dark:text-zinc-400">
-              No payout entries yet — they appear once orders clear the delivery confirmation window.
+              {tPulse("emptyLedger")}
             </BentoCard>
           ) : (
             <div className="grid gap-3">

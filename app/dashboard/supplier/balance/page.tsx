@@ -3,6 +3,7 @@ import { requireSupplierSession } from "@/lib/dashboard-session"
 import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
 import { MerchantPulseHub } from "@/components/merchant/merchant-pulse-hub"
 import { MerchantStripeConnectPanel } from "@/components/merchant/merchant-stripe-connect-panel"
+import { PayoutPolicyDisclaimer } from "@/components/merchant/payout-policy-disclaimer"
 import { prisma } from "@/lib/prisma"
 import {
   emptySupplierEarningsPulse,
@@ -65,6 +66,7 @@ export default async function SupplierBalancePage() {
         <>
           {connectSlot}
           <AffisellPlatformFeesExplainer variant="supplier" supplierOverrides={merchantUser} />
+          <PayoutPolicyDisclaimer role="SUPPLIER" />
         </>
       }
     />

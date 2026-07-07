@@ -7,10 +7,10 @@ export const AFFILIATE_COMMISSION_MAX_PCT = 30
 /** Last-click attribution window disclosed to partners. */
 export const AFFILIATE_ATTRIBUTION_COOKIE_DAYS = 30
 
-/** Minimum Connect balance before monthly payout batch. */
+/** Minimum Connect balance before monthly payout batch (disclosure only — not enforced in transfer code). */
 export const AFFILIATE_PAYOUT_MIN_CENTS = 5000
 
-/** Payout cadence: J+30 after month-end (disclosed policy). */
+/** Legacy disclosure constant — runtime uses per-order delivery gating (see payoutPolicy i18n). */
 export const AFFILIATE_PAYOUT_DELAY_DAYS = 30
 
 /** Sanction window — withheld earnings on policy breach. */

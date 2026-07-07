@@ -2,6 +2,7 @@ import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { Suspense } from "react"
 
 import { PartnerTaxCompliancePanel } from "@/components/affiliate/partner-tax-compliance-panel"
+import { PayoutPolicyDisclaimer } from "@/components/merchant/payout-policy-disclaimer"
 import { AffiliateMarginBulkFixCard } from "@/components/affiliate/affiliate-margin-bulk-fix-card"
 import { AffiliatePushNotificationsCard } from "@/components/affiliate/affiliate-push-notifications-card"
 import { AffiliateVariantMarginAnalyticsPanel } from "@/components/affiliate/affiliate-variant-margin-analytics-panel"
@@ -65,6 +66,7 @@ export default async function AffiliateEarningsPage() {
         <AffiliatePushNotificationsCard />
       </Suspense>
       <PartnerTaxCompliancePanel />
+      <PayoutPolicyDisclaimer role="AFFILIATE" />
     </div>
   )
 

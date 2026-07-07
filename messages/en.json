@@ -4088,6 +4088,38 @@
       "rejected": "You refused the extension."
     }
   },
+  "payoutPolicy": {
+    "shared": {
+      "stripePerOrder": "Stripe Connect transfers — per order, not a monthly batch.",
+      "dashboardDisclaimer": "Amounts shown are indicative until the Connect transfer succeeds. Timing depends on shipment, delivery confirmation, returns and KYC.",
+      "returnsBlock": "Transfer blocked while a return is open on the order.",
+      "clawback": "Approved return: cancellation or clawback on amounts already transferred."
+    },
+    "supplier": {
+      "standard": "Supplier (standard): payout after shipment with valid tracking, once upstream purchase is funded when applicable (auto-buy). Typically within 48h of shipment when Connect is active.",
+      "lightning": "Lightning Payout (eligible suppliers): supplier and reseller transfers may run at shipment."
+    },
+    "affiliate": {
+      "standard": "Affisell reseller: payout after buyer confirms delivery, then {days} calendar days.",
+      "autoConfirm": "If the buyer stays silent: auto-confirmation at J+{days} after carrier delivery, then transfer."
+    },
+    "connect": {
+      "supplierTitle": "Stripe Connect payouts",
+      "supplierBody": "Set up your bank account to receive wholesale sales after shipment (valid tracking), per Affisell rules.",
+      "affiliateTitle": "Stripe Connect payouts",
+      "affiliateBody": "Enable Stripe Connect to collect reseller margin and supplier commission after delivery confirmation.",
+      "supplierCta": "Set up payouts",
+      "affiliateCta": "Enable payouts",
+      "supplierKycHint": "Your KYC profile must be approved before catalogue publish.",
+      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront."
+    },
+    "pulseHub": {
+      "paidOutFootnote": "Net of recorded payouts and any clawbacks — see activity below.",
+      "supplierBandHint": "Wholesale value of units sold in this window (before platform payout timing).",
+      "emptyLedger": "No payout entries yet — they appear when orders pass shipment / delivery steps.",
+      "ledgerTitle": "Payout ledger"
+    }
+  },
   "sellAffiliateProgram": {
     "meta": {
       "title": "Partner program — status & tax",
@@ -4124,8 +4156,8 @@
     },
     "payout": {
       "title": "Payouts",
-      "body": "Minimum threshold {min}. Payout J+{days} after calendar month-end (Stripe Connect batch).",
-      "clawback": "If the buyer returns the order, commission is cancelled — even if already paid: clawback on your next earnings."
+      "body": "Stripe Connect transfers per order — after buyer confirms delivery, then {days} calendar days (auto-confirmation at J+{autoDays} if the buyer stays silent).",
+      "clawback": "If the buyer returns the order, commission and margin are cancelled — even if already paid: clawback on your next earnings."
     },
     "prohibited": {
       "title": "Prohibited practices",
@@ -4168,7 +4200,7 @@
     },
     "payout": {
       "title": "Payouts (Stripe Connect)",
-      "body": "Supplier transfer to Stripe Connect after delivery confirmation + {days} business days (auto-confirmation if the buyer stays silent). Contract catalogue fee: {fee} of ex-VAT wholesale.",
+      "body": "Supplier transfer to Stripe Connect after shipment (valid tracking), once upstream purchase is funded when applicable. Contract catalogue fee: {fee} of ex-VAT wholesale.",
       "stepClient": "1 · Buyer pays",
       "stepClientHint": "Gross amount (VAT per delivery country)",
       "stepAffisell": "2 · Affisell retains",
@@ -4176,8 +4208,8 @@
       "stepStripe": "3 · Stripe fees",
       "stepStripeHint": "EU card ~1.5% + fixed (varies by payment method)",
       "stepYou": "4 · You receive",
-      "stepYouHint": "Net ex-VAT wholesale · within J+{days} after confirmed delivery",
-      "disclaimer": "Rounded illustrative example (€100 gross). Actual amounts depend on catalogue net price, creator partner commission and payment fees. Collected VAT is not paid out to your Connect account."
+      "stepYouHint": "Net ex-VAT wholesale · typically within 48h of shipment",
+      "disclaimer": "Rounded illustrative example (€100 gross). Actual amounts depend on catalogue net price, reseller commission and payment fees. Collected VAT is not paid out to your Connect account."
     },
     "clawback": {
       "title": "Returns & clawback",

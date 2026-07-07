@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { CheckCircle2, Landmark } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -17,37 +18,25 @@ type Props = {
   verificationApproved: boolean
 }
 
-const COPY: Record<
-  Role,
-  { title: string; body: string; cta: string; verificationHint: string }
-> = {
-  SUPPLIER: {
-    title: "Reversements Stripe Connect",
-    body: "Configurez votre compte bancaire pour recevoir vos ventes wholesale après livraison confirmée.",
-    cta: "Configurer mes paiements",
-    verificationHint: "Votre dossier KYC doit être approuvé avant la publication catalogue.",
-  },
-  AFFILIATE: {
-    title: "Commissions Stripe Connect",
-    body: "Activez Stripe Connect pour encaisser vos marges et commissions sur votre vitrine.",
-    cta: "Activer mes reversements",
-    verificationHint: "Votre dossier KYC doit être approuvé avant de publier sur votre vitrine.",
-  },
-}
-
 export function MerchantStripeConnectPanel({
   role,
   connectOnboarded,
   stripeAccountId,
   verificationApproved,
 }: Props) {
+  const t = useTranslations("payoutPolicy.connect")
   const router = useRouter()
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [syncing, setSyncing] = useState(false)
 
-  const copy = COPY[role]
+  const title = role === "SUPPLIER" ? t("supplierTitle") : t("affiliateTitle")
+  const body = role === "SUPPLIER" ? t("supplierBody") : t("affiliateBody")
+  const cta = role === "SUPPLIER" ? t("supplierCta") : t("affiliateCta")
+  const verificationHint =
+    role === "SUPPLIER" ? t("supplierKycHint") : t("affiliateKycHint")
+
   const stripeReturn = searchParams.get("stripe") === "return"
 
   useEffect(() => {
@@ -107,8 +96,8 @@ export function MerchantStripeConnectPanel({
           <Landmark className="h-5 w-5" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">{copy.title}</h2>
-          <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">{copy.body}</p>
+          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">{title}</h2>
+          <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">{body}</p>
         </div>
       </div>
 
@@ -132,13 +121,13 @@ export function MerchantStripeConnectPanel({
             onClick={() => void startConnect()}
             className={cn(buttonVariants({ size: "sm" }), "bg-violet-600 text-white hover:bg-violet-700")}
           >
-            {loading ? "Redirection…" : syncing ? "Synchronisation…" : copy.cta}
+            {loading ? "Redirection…" : syncing ? "Synchronisation…" : cta}
           </button>
         )}
       </div>
 
       {!verificationApproved ? (
-        <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{copy.verificationHint}</p>
+        <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{verificationHint}</p>
       ) : null}
       {error ? <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p> : null}
     </section>

@@ -10,6 +10,7 @@ import {
   Wallet,
 } from "lucide-react"
 
+import { PayoutPolicyDisclaimer } from "@/components/merchant/payout-policy-disclaimer"
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { buttonVariants } from "@/components/ui/button"
 import {
@@ -146,10 +147,7 @@ export async function BecomeSupplierPage() {
                 {t("payout.title")}
               </h2>
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                {t("payout.body", {
-                  days: facts.payoutDaysAfterDelivery,
-                  fee: facts.catalogPlatformFeeLabel,
-                })}
+                {t("payout.body", { fee: facts.catalogPlatformFeeLabel })}
               </p>
             </div>
           </div>
@@ -173,10 +171,11 @@ export async function BecomeSupplierPage() {
             <PayoutStep
               label={t("payout.stepYou")}
               value={formatStoreCurrencyFromCents(ex.supplierNetBeforeVatTimingCents)}
-              hint={t("payout.stepYouHint", { days: facts.payoutDaysAfterDelivery })}
+              hint={t("payout.stepYouHint")}
             />
           </div>
           <p className="text-xs text-zinc-500">{t("payout.disclaimer")}</p>
+          <PayoutPolicyDisclaimer role="SUPPLIER" />
         </section>
 
         {/* Clawback */}

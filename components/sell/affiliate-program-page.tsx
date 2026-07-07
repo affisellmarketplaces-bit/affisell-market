@@ -20,7 +20,11 @@ import {
   AFFILIATE_TAX_RESIDENCE_ROWS,
   affiliateProgramFinanceFacts,
 } from "@/lib/affiliate-program-finance"
-import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { PayoutPolicyDisclaimer } from "@/components/merchant/payout-policy-disclaimer"
+import {
+  AUTO_CONFIRM_DAYS_AFTER_DELIVERY,
+  PAYOUT_DAYS_AFTER_DELIVERY_CONFIRM,
+} from "@/lib/payout-policy-copy-shared"
 import { cn } from "@/lib/utils"
 
 export async function AffiliateProgramPage() {
@@ -184,8 +188,8 @@ export async function AffiliateProgramPage() {
               </h2>
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                 {t("payout.body", {
-                  min: formatStoreCurrencyFromCents(facts.payoutMinCents),
-                  days: facts.payoutDelayDays,
+                  days: PAYOUT_DAYS_AFTER_DELIVERY_CONFIRM,
+                  autoDays: AUTO_CONFIRM_DAYS_AFTER_DELIVERY,
                 })}
               </p>
             </div>
@@ -193,6 +197,7 @@ export async function AffiliateProgramPage() {
           <BentoCard className="space-y-2 p-5 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
             <p>{t("payout.clawback")}</p>
           </BentoCard>
+          <PayoutPolicyDisclaimer role="AFFILIATE" />
         </section>
 
         {/* Interdits */}

@@ -4130,6 +4130,38 @@
       "rejected": "Vous avez refusé le délai."
     }
   },
+  "payoutPolicy": {
+    "shared": {
+      "stripePerOrder": "Versements Stripe Connect — par commande, pas de batch mensuel.",
+      "dashboardDisclaimer": "Les montants affichés sont indicatifs jusqu'au virement Connect réussi. Le timing dépend de l'expédition, de la confirmation livraison, des retours et du KYC.",
+      "returnsBlock": "Versement bloqué tant qu'un retour est ouvert sur la commande.",
+      "clawback": "Retour accepté : annulation ou clawback sur les montants déjà virés."
+    },
+    "supplier": {
+      "standard": "Fournisseur (standard) : versement après expédition avec suivi valide, une fois l'achat amont financé le cas échéant (auto-buy). En général sous 48 h après expédition si Connect est actif.",
+      "lightning": "Lightning Payout (fournisseurs éligibles) : versements fournisseur et revendeur possibles dès l'expédition."
+    },
+    "affiliate": {
+      "standard": "Revendeur Affisell : versement après confirmation de livraison par l'acheteur, puis {days} jours calendaires.",
+      "autoConfirm": "Sans confirmation acheteur : auto-confirmation à J+{days} après livraison transporteur, puis versement."
+    },
+    "connect": {
+      "supplierTitle": "Reversements Stripe Connect",
+      "supplierBody": "Configurez votre compte bancaire pour recevoir vos ventes wholesale après expédition (suivi valide), selon les règles Affisell.",
+      "affiliateTitle": "Reversements Stripe Connect",
+      "affiliateBody": "Activez Stripe Connect pour encaisser vos marges revendeur et commissions fournisseur après confirmation de livraison.",
+      "supplierCta": "Configurer mes paiements",
+      "affiliateCta": "Activer mes reversements",
+      "supplierKycHint": "Votre dossier KYC doit être approuvé avant la publication catalogue.",
+      "affiliateKycHint": "Votre dossier KYC doit être approuvé avant de publier sur votre vitrine."
+    },
+    "pulseHub": {
+      "paidOutFootnote": "Net des versements enregistrés et clawbacks éventuels — voir l'activité ci-dessous.",
+      "supplierBandHint": "Valeur wholesale des unités vendues sur la période (avant timing plateforme).",
+      "emptyLedger": "Aucune ligne de versement pour l'instant — elles apparaissent quand les commandes passent les étapes expédition / livraison.",
+      "ledgerTitle": "Journal des versements"
+    }
+  },
   "sellAffiliateProgram": {
     "meta": {
       "title": "Programme partenaire — statut & fiscalité",
@@ -4166,8 +4198,8 @@
     },
     "payout": {
       "title": "Versements",
-      "body": "Seuil minimum {min}. Versement J+{days} après clôture du mois civil (batch Stripe Connect).",
-      "clawback": "Si le client exerce son droit de retour, la commission est annulée — y compris si déjà versée : clawback sur vos prochains gains."
+      "body": "Versements Stripe Connect par commande — après confirmation de livraison par l'acheteur, puis {days} jours calendaires (auto-confirmation à J+{autoDays} si l'acheteur reste silencieux).",
+      "clawback": "Si le client exerce son droit de retour, la commission et la marge sont annulées — y compris si déjà versées : clawback sur vos prochains gains."
     },
     "prohibited": {
       "title": "Pratiques interdites",
@@ -4210,7 +4242,7 @@
     },
     "payout": {
       "title": "Versements (Stripe Connect)",
-      "body": "Versement fournisseur sur compte Stripe Connect après confirmation de livraison + {days} jours ouvrés (auto-confirmation possible si l'acheteur reste silencieux). Commission catalogue contractuelle : {fee} du wholesale HT (hors TVA).",
+      "body": "Versement fournisseur sur compte Stripe Connect après expédition (suivi valide), une fois l'achat amont financé le cas échéant. Commission catalogue contractuelle : {fee} du wholesale HT (hors TVA).",
       "stepClient": "1 · Client paie",
       "stepClientHint": "Montant TTC (TVA incluse selon pays livraison)",
       "stepAffisell": "2 · Affisell retient",
@@ -4218,8 +4250,8 @@
       "stepStripe": "3 · Frais Stripe",
       "stepStripeHint": "Carte UE ~1,5 % + fixe (variable selon moyen de paiement)",
       "stepYou": "4 · Vous recevez",
-      "stepYouHint": "Wholesale HT net · sous J+{days} après livraison confirmée",
-      "disclaimer": "Exemple indicatif arrondi (100 € TTC). Les montants réels dépendent du prix catalogue HT, de la commission partenaire créateur et des frais de paiement. La TVA collectée n'est pas versée sur votre Connect."
+      "stepYouHint": "Wholesale HT net · généralement sous 48 h après expédition",
+      "disclaimer": "Exemple indicatif arrondi (100 € TTC). Les montants réels dépendent du prix catalogue HT, de la commission revendeur et des frais de paiement. La TVA collectée n'est pas versée sur votre Connect."
     },
     "clawback": {
       "title": "Retours & clawback",
