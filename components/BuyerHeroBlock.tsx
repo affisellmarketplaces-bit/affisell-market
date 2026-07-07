@@ -45,21 +45,21 @@ export async function BuyerHeroBlock() {
       : "/#explorer"
 
   return (
-    <section className={`${homeHeroShell} w-full min-w-0 max-w-full px-3 py-5 sm:px-6 sm:py-7 md:px-10 md:py-16`}>
+    <section className={`${homeHeroShell} w-full min-w-0 max-w-full px-3 py-3 sm:px-6 sm:py-7 md:px-10 md:py-16`}>
       <HeroGradientBg />
       <div className="relative mx-auto w-full min-w-0 max-w-4xl text-center">
-        <h1 className="text-balance text-[1.35rem] font-bold leading-tight tracking-tight sm:text-2xl md:text-5xl lg:text-6xl">
+        <h1 className="text-balance text-[1.18rem] font-bold leading-tight tracking-tight sm:text-2xl md:text-5xl lg:text-6xl">
           {t("title")}{" "}
           <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
             {t("titleHighlight")}
           </span>
         </h1>
-        <p className="mx-auto mt-2 max-w-2xl text-pretty text-xs leading-relaxed text-violet-100/95 sm:mt-4 sm:text-base">
+        <p className="mx-auto mt-1.5 max-w-2xl text-pretty text-[11px] leading-relaxed text-violet-100/92 sm:mt-4 sm:text-base">
           {usMarket ? t("subUs", { count: checkoutCountryCount }) : t("sub", { count: checkoutCountryCount })}
         </p>
         {!checkoutAvailable && visitorCountry ? (
           <CheckoutRegionComingSoonBanner
-            className="mx-auto mt-4 max-w-2xl text-left sm:mt-5"
+            className="mx-auto mt-3 max-w-2xl text-left sm:mt-5"
             variant="compact"
             visitorCountry={visitorCountry}
             checkoutAvailable={false}
@@ -67,7 +67,7 @@ export async function BuyerHeroBlock() {
         ) : null}
         {graduatedCheckout && visitorCountry ? (
           <GraduatedCheckoutPermanentBanner
-            className="mx-auto mt-4 max-w-2xl text-left sm:mt-5"
+            className="mx-auto mt-3 max-w-2xl text-left sm:mt-5"
             variant="compact"
             visitorCountry={visitorCountry}
             checkoutAvailable
@@ -75,22 +75,22 @@ export async function BuyerHeroBlock() {
           />
         ) : rolloutOnly && visitorCountry ? (
           <RolloutShippingConfirmedBanner
-            className="mx-auto mt-4 max-w-2xl text-left sm:mt-5"
+            className="mx-auto mt-3 max-w-2xl text-left sm:mt-5"
             variant="compact"
             visitorCountry={visitorCountry}
             checkoutAvailable
             rolloutOnly
           />
         ) : null}
-        <div className="mx-auto mt-4 max-w-xl sm:mt-8">
+        <div className="mx-auto mt-3 max-w-xl sm:mt-8">
           <BuyerHeroSearch />
         </div>
-        <div className="mt-4 flex flex-col items-center gap-2.5 sm:mt-8 sm:gap-4">
+        <div className="mt-3 flex flex-col items-center gap-2 sm:mt-8 sm:gap-4">
           <GlowCtaLink href={explorerHref}>{t("ctaPrimary")}</GlowCtaLink>
           <FastLink
             href="/creators"
             localeAware
-            className="text-sm font-medium text-violet-100/90 underline-offset-4 transition hover:text-white hover:underline"
+            className="text-xs font-medium text-violet-100/90 underline-offset-4 transition hover:text-white hover:underline sm:text-sm"
           >
             {t("creatorLink")}
           </FastLink>

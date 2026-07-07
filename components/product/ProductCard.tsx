@@ -264,7 +264,7 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
       href={href}
       prefetch={mode === "customer" ? undefined : false}
       className={cn(
-        "group flex h-full w-full touch-manipulation flex-col rounded-2xl border border-gray-100/90 bg-white/85 p-1.5 shadow-sm outline-none ring-offset-2 backdrop-blur-sm transition-[transform,box-shadow,border-color] active:scale-[0.985] sm:rounded-3xl sm:p-2 dark:border-zinc-800 dark:bg-zinc-950/60",
+        "group flex h-full w-full touch-manipulation flex-col rounded-2xl border border-gray-100/90 bg-white/85 p-1 shadow-sm outline-none ring-offset-2 backdrop-blur-sm transition-[transform,box-shadow,border-color] active:scale-[0.985] sm:rounded-3xl sm:p-2 dark:border-zinc-800 dark:bg-zinc-950/60",
         "hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:border-violet-800/60"
       )}
       data-product-card-mode={mode}
@@ -277,19 +277,19 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
           <ProductSalesBadge count={p.soldCount} variant="overlay" />
         ) : null}
         {p.isSponsored ? (
-          <Badge className="absolute bottom-2 left-2 z-10 gap-1 rounded-full border-0 bg-gradient-to-r from-violet-600 to-cyan-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-lg shadow-violet-900/40 hover:from-violet-500 hover:to-cyan-400">
+          <Badge className="absolute bottom-1.5 left-1.5 z-10 gap-1 rounded-full border-0 bg-gradient-to-r from-violet-600 to-cyan-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg shadow-violet-900/40 hover:from-violet-500 hover:to-cyan-400 sm:bottom-2 sm:left-2 sm:px-2 sm:text-[10px]">
             <Sparkles className="size-3" aria-hidden />
             Promote
           </Badge>
         ) : p.isBestSeller ? (
-          <Badge className="absolute bottom-2 left-2 z-10 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-amber-500">
+          <Badge className="absolute bottom-1.5 left-1.5 z-10 rounded-full bg-amber-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm hover:bg-amber-500 sm:bottom-2 sm:left-2 sm:px-2 sm:text-[10px]">
             Best Seller
           </Badge>
         ) : null}
         {productIdStr ? (
-          <WishlistHeart productId={productIdStr} className="absolute right-3 top-3 z-20" />
+          <WishlistHeart productId={productIdStr} className="absolute right-2 top-2 z-20 sm:right-3 sm:top-3" />
         ) : (
-          <span className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur">
+          <span className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur sm:right-3 sm:top-3 sm:h-9 sm:w-9">
             <Heart className="h-4 w-4 text-gray-700" aria-hidden />
           </span>
         )}
@@ -297,7 +297,7 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
         <img
           src={src}
           alt={p.title}
-          className="absolute inset-0 h-full w-full object-contain p-2 transition-transform duration-300 group-hover:scale-105 sm:p-4"
+          className="absolute inset-0 h-full w-full object-contain p-1.5 transition-transform duration-300 group-hover:scale-105 sm:p-4"
           loading="lazy"
           onError={(e) => {
             e.currentTarget.src = "/placeholder-product.jpg"
@@ -305,18 +305,18 @@ export function ProductCard({ product, mode = "customer", href: hrefProp }: Prod
         />
       </div>
 
-      <div className="mt-2 px-0.5 pb-0.5 sm:mt-3 sm:px-1 sm:pb-1">
-        <h3 className="line-clamp-2 min-h-[2.25rem] text-[13px] font-semibold leading-snug text-gray-900 sm:min-h-[2.5rem] sm:text-sm dark:text-zinc-100">
+      <div className="mt-1.5 px-0.5 pb-0.5 sm:mt-3 sm:px-1 sm:pb-1">
+        <h3 className="line-clamp-2 min-h-[2.1rem] text-[12px] font-semibold leading-snug text-gray-900 sm:min-h-[2.5rem] sm:text-sm dark:text-zinc-100">
           {p.title}
         </h3>
         {reward ? (
-          <p className="mt-1.5">
-            <span className="inline-flex rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-semibold text-teal-900">
+          <p className="mt-1">
+            <span className="inline-flex rounded-full bg-teal-100 px-1.5 py-0.5 text-[9px] font-semibold text-teal-900 sm:px-2 sm:text-[10px]">
               {reward}
             </span>
           </p>
         ) : null}
-        <div className="mt-2">
+        <div className="mt-1.5">
           <ProductPriceOffer
             price={priceN}
             compareAt={compareN}

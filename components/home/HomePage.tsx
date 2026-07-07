@@ -17,13 +17,13 @@ async function CatalogFallback() {
 }
 
 function HeroFallback() {
-  return <div className="min-h-[7rem] sm:min-h-[10rem]" aria-hidden />
+  return <div className="min-h-[5.5rem] sm:min-h-[10rem]" aria-hidden />
 }
 
 /** Buyer home — hero + catalogue load in parallel Suspense (no serial waterfall). */
 export async function HomePage() {
   return (
-    <main className="mx-auto w-full min-w-0 max-w-7xl space-y-3 overflow-x-clip px-3 py-3 sm:space-y-8 sm:px-6 sm:py-8">
+    <main className="mx-auto w-full min-w-0 max-w-7xl space-y-2.5 overflow-x-clip px-3 py-2.5 sm:space-y-8 sm:px-6 sm:py-8">
       <HomePageWarmup />
       <Suspense fallback={<HeroFallback />}>
         <BuyerHeroBlock />
