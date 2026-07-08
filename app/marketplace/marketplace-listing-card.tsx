@@ -1,12 +1,12 @@
 "use client"
 
-import Image from "next/image"
-
 import { FastLink } from "@/components/navigation/fast-link"
 import { useTranslations } from "next-intl"
 
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { addToBuyerCart } from "@/lib/cart-add-client"
+import { PRODUCT_CARD_IMAGE_FALLBACK } from "@/lib/affiliate-listing-display"
+import { resolveBuyerCardImageHref } from "@/lib/listing-card-image-shared"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 
 type Props = {
@@ -46,9 +46,10 @@ export function MarketplaceListingCard({
 }: Props) {
   const tCart = useTranslations("cart")
   const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
+  const cardImageSrc = resolveBuyerCardImageHref(imageUrl, product.id)
   const listing = {
     id: product.id,
-    image: imageUrl || "/placeholder.png",
+    image: cardImageSrc,
     title: name,
   }
 
@@ -83,15 +84,17 @@ export function MarketplaceListingCard({
     <div className="group flex h-full w-full flex-col overflow-hidden rounded-3xl border border-gray-100/90 bg-white/90 shadow-sm backdrop-blur-sm transition hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 dark:border-zinc-800 dark:bg-zinc-950/70 dark:hover:border-violet-800/50">
       <FastLink href={detailHref} className="block" onPointerDown={() => recordClick()}>
         <div className="relative flex h-72 w-full items-center justify-center overflow-hidden rounded-t-2xl border-b border-gray-100/80 bg-gradient-to-br from-violet-50/35 to-teal-50/20 p-4 dark:border-zinc-800 dark:from-violet-950/20 dark:to-teal-950/10">
-          <Image
+          <img
             src={listing.image}
             alt={listing.title}
-            fill
-            sizes="(max-width: 768px) 100vw, 320px"
-            unoptimized
-            className="object-contain p-4"
+            className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain p-4"
+            loading="lazy"
+            decoding="async"
+            draggable={false}
             onError={(e) => {
-              e.currentTarget.src = "/placeholder.png"
+              const failed = e.currentTarget.src
+              if (failed.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
+              e.currentTarget.src = PRODUCT_CARD_IMAGE_FALLBACK
             }}
           />
           <ProductSalesBadge count={soldCount} variant="overlay" />

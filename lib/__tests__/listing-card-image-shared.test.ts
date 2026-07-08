@@ -5,6 +5,7 @@ import {
   isListingCardImageProxyUrl,
   listingCardImageCacheTag,
   listingCardImageProxyUrl,
+  resolveBuyerCardImageHref,
   resolveListingCardImageHref,
 } from "@/lib/listing-card-image-shared"
 
@@ -31,6 +32,18 @@ describe("listing card image proxy", () => {
 
   it("uses placeholder when listing id missing", () => {
     expect(resolveListingCardImageHref(null, "")).toBe(PRODUCT_CARD_IMAGE_FALLBACK)
+  })
+
+  it("forces proxy on buyer cards when listing id exists", () => {
+    expect(resolveBuyerCardImageHref("https://cdn.example/x.jpg", "listing-1")).toBe(
+      "/api/listing-card-image/listing-1"
+    )
+  })
+
+  it("keeps remote image on buyer cards without listing id", () => {
+    expect(resolveBuyerCardImageHref("https://cdn.example/x.jpg", "")).toBe(
+      "https://cdn.example/x.jpg"
+    )
   })
 
   it("exposes unstable_cache tag helper", () => {

@@ -9,6 +9,7 @@ import {
   PRODUCT_CARD_IMAGE_FALLBACK,
   pickListingCardImageUrl,
 } from "@/lib/affiliate-listing-display"
+import { resolveBuyerCardImageHref } from "@/lib/listing-card-image-shared"
 
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { ProductOfferBadge } from "@/components/product/product-offer-badge"
@@ -269,7 +270,10 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
   const compareN = p.compareAt
   const discountOffer = resolveProductDiscount(priceN, compareN)
   const hasDiscount = discountOffer != null
-  const src = p.image || PRODUCT_CARD_IMAGE_FALLBACK
+  const src =
+    mode === "customer"
+      ? resolveBuyerCardImageHref(p.image || null, listingId)
+      : p.image || PRODUCT_CARD_IMAGE_FALLBACK
   const reward = p.buyerRewardBadge
 
   const showBusiness = mode === "affiliate" || mode === "supplier"
