@@ -23,7 +23,18 @@ const RETRY_DELAYS_MS = [3_000, 5_000, 8_000, 12_000, 15_000, 20_000]
 
 function run(command, options = {}) {
   console.log(`\n> ${command}`)
-  return execSync(command, { stdio: "inherit", env: process.env, ...options })
+  try {
+    return execSync(command, { stdio: "inherit", env: process.env, ...options })
+  } catch (error) {
+    const err = error
+    const stderr = err?.stderr?.toString?.() ?? ""
+    const stdout = err?.stdout?.toString?.() ?? ""
+    console.error(`\n✗ Command failed: ${command}`)
+    if (stdout.trim()) console.error(stdout.trim())
+    if (stderr.trim()) console.error(stderr.trim())
+    if (err instanceof Error && err.message) console.error(err.message)
+    process.exit(err?.status ?? 1)
+  }
 }
 
 function maskUrl(url) {
@@ -217,6 +228,10 @@ async function runMigrations() {
 }
 
 async function main() {
+  if (process.env.VERCEL === "1" && !`${process.env.NODE_OPTIONS ?? ""}`.includes("max-old-space-size")) {
+    process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ""} --max-old-space-size=6144`.trim()
+  }
+
   ensureDirectUrl()
   if (process.env.DATABASE_URL?.trim()) {
     console.log("[vercel-build] DATABASE_URL host:", maskUrl(process.env.DATABASE_URL))

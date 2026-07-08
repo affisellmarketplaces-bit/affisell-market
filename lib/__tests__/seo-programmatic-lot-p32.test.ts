@@ -122,4 +122,19 @@ describe("seo-sitemap without database", () => {
     vi.unstubAllEnvs()
     vi.resetModules()
   })
+
+  it("returns minimal chunks during next production build phase", async () => {
+    vi.stubEnv("DATABASE_URL", "postgresql://user:pass@localhost:5432/db")
+    vi.stubEnv("NEXT_PHASE", "phase-production-build")
+    vi.resetModules()
+    const { planAffisellSitemapChunks } = await import("@/lib/seo-sitemap")
+    const chunks = await planAffisellSitemapChunks()
+    expect(chunks).toEqual([
+      SITEMAP_CHUNK.core,
+      SITEMAP_CHUNK.shops,
+      SITEMAP_CHUNK.listingsOffset,
+    ])
+    vi.unstubAllEnvs()
+    vi.resetModules()
+  })
 })

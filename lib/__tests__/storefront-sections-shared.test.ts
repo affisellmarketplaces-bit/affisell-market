@@ -31,6 +31,7 @@ describe("parseHomepageSections", () => {
     expect(parsed.map((s) => s.type)).toEqual([
       "products",
       "hero",
+      "flash-sale",
       "story",
       "bestsellers",
       "social-proof",
@@ -85,6 +86,7 @@ describe("homepage section helpers", () => {
       "hero",
       "story",
       "products",
+      "flash-sale",
       "bestsellers",
       "social-proof",
       "trust",
@@ -96,6 +98,7 @@ describe("homepage section helpers", () => {
       "story",
       "hero",
       "products",
+      "flash-sale",
       "bestsellers",
       "social-proof",
       "trust",

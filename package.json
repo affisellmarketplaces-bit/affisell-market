@@ -2,6 +2,9 @@
   "name": "affisell-market",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "npx prisma generate && node ./scripts/next-dev-port.mjs",
     "dev:restart": "npx prisma generate && node ./scripts/dev-restart.mjs",

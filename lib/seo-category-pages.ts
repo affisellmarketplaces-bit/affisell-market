@@ -2,6 +2,7 @@ import { cache } from "react"
 
 import { listingDisplayTitle } from "@/lib/affiliate-listing-display"
 import { shopListingPath } from "@/lib/affiliate-routes"
+import { shouldQueryDatabaseDuringBuild } from "@/lib/build-time-database"
 import {
   computeMarketplaceCategoryTreeCounts,
   countMarketplaceListingsForScope,
@@ -132,6 +133,8 @@ export async function loadBrowseCategoryListings(
 }
 
 export async function loadIndexableCategoryBrowseSlugs(limit = 500): Promise<string[]> {
+  if (!shouldQueryDatabaseDuringBuild()) return []
+
   const roots = await withPrismaReconnect(() =>
     prisma.category.findMany({
       where: { parentId: null },

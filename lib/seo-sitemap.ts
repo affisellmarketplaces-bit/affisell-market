@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 
 import { shopListingPath, shopStorefrontPath } from "@/lib/affiliate-routes"
+import { shouldQueryDatabaseDuringBuild } from "@/lib/build-time-database"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
 import { loadIndexableCategoryBrowseSlugs } from "@/lib/seo-category-pages"
@@ -23,9 +24,9 @@ const SITEMAP_FALLBACK_CHUNK_IDS = [
   SITEMAP_CHUNK.listingsOffset,
 ] as const
 
-/** Build-time guard — CI/Lighthouse builds have no DATABASE_URL. */
+/** Build-time guard — CI/Lighthouse + Vercel static generation skip Prisma. */
 export function isSitemapDatabaseAvailable(): boolean {
-  return Boolean(process.env.DATABASE_URL?.trim())
+  return shouldQueryDatabaseDuringBuild()
 }
 
 export type SitemapBuildOptions = {
@@ -113,7 +114,7 @@ export async function planAffisellSitemapChunks(
   listingChunkSize = SITEMAP_URLS_PER_CHUNK
 ): Promise<number[]> {
   if (!isSitemapDatabaseAvailable()) {
-    console.warn("[seo-sitemap] DATABASE_URL unset — minimal static sitemap chunks")
+    console.warn("[seo-sitemap] skipping DB — minimal static sitemap chunks")
     return [...SITEMAP_FALLBACK_CHUNK_IDS]
   }
 
@@ -150,13 +151,15 @@ export async function buildAffisellSitemapChunk(
   if (chunkId === SITEMAP_CHUNK.core) {
     let categorySlugs: string[] = []
     let supplierSlugs: string[] = []
-    try {
-      ;[categorySlugs, supplierSlugs] = await Promise.all([
-        loadIndexableCategoryBrowseSlugs(options.categoryLimit ?? 500),
-        loadPublicSupplierStoreSlugs(options.supplierLimit ?? 500),
-      ])
-    } catch (err) {
-      console.error("[seo-sitemap] core chunk failed:", err)
+    if (isSitemapDatabaseAvailable()) {
+      try {
+        ;[categorySlugs, supplierSlugs] = await Promise.all([
+          loadIndexableCategoryBrowseSlugs(options.categoryLimit ?? 500),
+          loadPublicSupplierStoreSlugs(options.supplierLimit ?? 500),
+        ])
+      } catch (err) {
+        console.error("[seo-sitemap] core chunk failed:", err)
+      }
     }
 
     return [
@@ -200,10 +203,12 @@ export async function buildAffisellSitemapChunk(
   const offset = listingChunkIndex * SITEMAP_URLS_PER_CHUNK
   const limit = options.listingLimit ?? SITEMAP_URLS_PER_CHUNK
   let rows: ListingSitemapRow[] = []
-  try {
-    rows = await loadPublicListingSitemapRows({ offset, limit })
-  } catch (err) {
-    console.error("[seo-sitemap] listings chunk failed:", { chunkId, err })
+  if (isSitemapDatabaseAvailable()) {
+    try {
+      rows = await loadPublicListingSitemapRows({ offset, limit })
+    } catch (err) {
+      console.error("[seo-sitemap] listings chunk failed:", { chunkId, err })
+    }
   }
 
   return rows.map((row) => withBaseUrl(baseUrl, listingSitemapPath(row), now, 0.6, "weekly"))
