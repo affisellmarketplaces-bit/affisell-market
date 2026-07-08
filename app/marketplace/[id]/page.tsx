@@ -14,6 +14,7 @@ import {
   listingDisplayDescription,
   listingDisplayTitle,
   listingGalleryUrls,
+  listingPrimaryImageUrl,
 } from "@/lib/affiliate-listing-display"
 import { shopListingPath } from "@/lib/affiliate-routes"
 import { resolveSiteBaseUrl } from "@/lib/seo-site-url"
@@ -34,7 +35,6 @@ import {
 } from "@/lib/marketplace-variant-dimensions"
 import { variantsFromDb } from "@/lib/product-variants"
 import { parseAffiliateVariantPricingJson } from "@/lib/affiliate-variant-pricing"
-import { primaryProductImage } from "@/lib/product-images"
 import { buildAggregateRatingJsonLd } from "@/lib/reviews/json-ld"
 import {
   buildProductListingMetadata,
@@ -131,10 +131,7 @@ export async function buildListingMetadataForId(
       : null)
   if (!resolved?.product) return { title: "Produit" }
   const name = resolved.seoTitle?.trim() || listingDisplayTitle(resolved.customTitle, resolved.product.name)
-  const imageUrl =
-    primaryProductImage(resolved.customImages) ||
-    primaryProductImage(resolved.product.images) ||
-    null
+  const imageUrl = listingPrimaryImageUrl(resolved.customImages, resolved.product.images) || null
   const metadata = buildProductListingMetadata({
     name,
     description:
@@ -396,10 +393,7 @@ export default async function MarketplaceListingPage({
   ]
 
   const displayName = listingDisplayTitle(listing.customTitle, listing.product.name)
-  const seoImage =
-    primaryProductImage(listing.customImages) ||
-    primaryProductImage(listing.product.images) ||
-    null
+  const seoImage = listingPrimaryImageUrl(listing.customImages, listing.product.images) || null
   const tryOnFeatureEnabled = resolveTryOnFeatureEnabled(
     new URLSearchParams(
       Object.entries(sp)

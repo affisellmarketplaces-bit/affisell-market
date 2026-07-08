@@ -1,3 +1,5 @@
+import { isUsableProductImageUrl } from "@/lib/product-image-url"
+
 /** Lightweight buyer placeholder — never use 1MB placeholder-product.jpg on grids. */
 export const PRODUCT_CARD_IMAGE_FALLBACK = "/placeholder.png"
 
@@ -39,9 +41,10 @@ export function listingPrimaryImageUrl(
   customImages: string[] | null | undefined,
   productImages: string[] | null | undefined
 ): string {
-  const custom = customImages?.filter((u) => typeof u === "string" && u.trim()) ?? []
-  if (custom.length > 0) return custom[0]!.trim()
-  const p = productImages?.find((u) => typeof u === "string" && u.trim())
+  const custom =
+    customImages?.find((u): u is string => typeof u === "string" && isUsableProductImageUrl(u)) ?? null
+  if (custom) return custom.trim()
+  const p = productImages?.find((u): u is string => typeof u === "string" && isUsableProductImageUrl(u))
   return p?.trim() ?? ""
 }
 
@@ -49,9 +52,11 @@ export function listingGalleryUrls(
   customImages: string[] | null | undefined,
   productImages: string[] | null | undefined
 ): string[] {
-  const custom = customImages?.filter((u) => typeof u === "string" && u.trim()) ?? []
+  const custom =
+    customImages?.filter((u): u is string => typeof u === "string" && isUsableProductImageUrl(u)) ?? []
   if (custom.length > 0) return [...new Set(custom.map((u) => u.trim()))]
-  const fromProduct = productImages?.filter((u): u is string => typeof u === "string" && Boolean(u.trim())) ?? []
+  const fromProduct =
+    productImages?.filter((u): u is string => typeof u === "string" && isUsableProductImageUrl(u)) ?? []
   return [...new Set(fromProduct.map((u) => u.trim()))]
 }
 
