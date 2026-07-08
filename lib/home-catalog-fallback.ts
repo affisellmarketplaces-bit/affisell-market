@@ -28,6 +28,7 @@ export function homeCatalogFallbackProducts(count = 8): HomeListing[] {
     store: "Affisell",
     isBestSeller: index === 0,
     storeSlug: null,
+    customSlug: null,
     buyerRewardBadge: null,
     warrantyLabel: null,
     soldCount: 0,

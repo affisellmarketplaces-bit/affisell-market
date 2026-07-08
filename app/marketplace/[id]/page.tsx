@@ -117,6 +117,7 @@ export async function buildListingMetadataForId(
             customDescription: true,
             seoTitle: true,
             seoDescription: true,
+            customSlug: true,
             product: {
               select: {
                 name: true,

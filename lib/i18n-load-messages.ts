@@ -12,14 +12,14 @@ import pl from "@/messages/pl.json"
 import zh from "@/messages/zh.json"
 
 const FULL_BUNDLES: Record<AppLocale, AbstractIntlMessages> = {
-  en: en as AbstractIntlMessages,
-  fr: fr as AbstractIntlMessages,
-  de: de as AbstractIntlMessages,
-  es: es as AbstractIntlMessages,
-  it: it as AbstractIntlMessages,
-  nl: nl as AbstractIntlMessages,
-  pl: pl as AbstractIntlMessages,
-  zh: zh as AbstractIntlMessages,
+  en: en as unknown as AbstractIntlMessages,
+  fr: fr as unknown as AbstractIntlMessages,
+  de: de as unknown as AbstractIntlMessages,
+  es: es as unknown as AbstractIntlMessages,
+  it: it as unknown as AbstractIntlMessages,
+  nl: nl as unknown as AbstractIntlMessages,
+  pl: pl as unknown as AbstractIntlMessages,
+  zh: zh as unknown as AbstractIntlMessages,
 }
 
 function buildLocaleMessages(locale: AppLocale): AbstractIntlMessages {

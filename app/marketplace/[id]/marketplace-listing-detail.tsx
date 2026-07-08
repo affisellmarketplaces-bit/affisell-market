@@ -69,7 +69,7 @@ import { ProductVideoWishlistOverlay } from "@/components/product/product-video-
 import { DescriptionRichContent } from "@/components/product/description-rich-content"
 import { descriptionHasImageMarkers } from "@/lib/description-rich-content"
 import type { AppLocale } from "@/lib/i18n-locale"
-import { CLIENT_MESSAGES } from "@/lib/i18n-load-messages"
+import { appMessagesForLocale } from "@/lib/i18n-app-messages"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH, shopListingPath } from "@/lib/affiliate-routes"
 import { shouldShowAffiliateCreatorsWatchingBadge } from "@/lib/affiliate-product-opportunity-pulse-shared"
 import { buildMarketplaceColorMeta, shouldShowMarketplaceColorSwatches, shopperColorLabelsMatch } from "@/lib/marketplace-color-meta"
@@ -387,7 +387,7 @@ export function MarketplaceListingDetail({
   const brand = storefrontPdpBrandClasses(brandedStorefront)
   const tryOnVariant =
     brandedStorefront && storeLayoutImmersive ? ("immersive" as const) : ("default" as const)
-  const messages = CLIENT_MESSAGES[locale] as typeof import("@/messages/en.json")
+  const messages = appMessagesForLocale(locale)
   const productT = messages.Product
   const breadcrumbT = messages.Breadcrumb
   const router = useRouter()
