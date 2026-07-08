@@ -1,4 +1,9 @@
-import { buyerEmailFromPhone, formatBuyerPhoneDisplay, normalizeBuyerPhone } from "@/lib/buyer-phone"
+import {
+  buyerEmailAliasesFromPhone,
+  buyerEmailFromPhone,
+  formatBuyerPhoneDisplay,
+  normalizeBuyerPhone,
+} from "@/lib/buyer-phone"
 import { prisma } from "@/lib/prisma"
 
 export type BuyerIdentifyInput =
@@ -12,7 +17,7 @@ export type BuyerIdentifyResult =
 function normalizeEmail(raw: string): string | null {
   const t = raw.trim().toLowerCase()
   if (!t.includes("@") || t.length < 5 || t.startsWith("@") || t.endsWith("@")) return null
-  if (t.endsWith("@buyer.affisell.local")) return null
+  if (t.endsWith("@buyer.affisell.local") || t.endsWith("@buyer.affisell.app")) return null
   return t
 }
 
@@ -28,8 +33,36 @@ export async function identifyBuyerForCheckout(input: BuyerIdentifyInput): Promi
   } else {
     const digits = normalizeBuyerPhone(input.phone)
     if (!digits) return { ok: false, error: "Numéro de téléphone invalide.", status: 400 }
-    email = buyerEmailFromPhone(digits)
+    const aliases = buyerEmailAliasesFromPhone(digits)
+    email = aliases[0]!
     displayLabel = formatBuyerPhoneDisplay(digits)
+    const existing = await prisma.user.findFirst({
+      where: { email: { in: aliases } },
+      select: { id: true, role: true, name: true, email: true },
+    })
+
+    if (existing) {
+      if (existing.role !== "CUSTOMER") {
+        return {
+          ok: false,
+          error: "Cet identifiant est lié à un compte professionnel. Utilisez une autre adresse ou connectez-vous sur l’espace adapté.",
+          status: 409,
+        }
+      }
+      if (existing.email !== email) {
+        await prisma.user.update({
+          where: { id: existing.id },
+          data: { email },
+        })
+      }
+      return {
+        ok: true,
+        userId: existing.id,
+        email,
+        isNew: false,
+        displayLabel: existing.name?.trim() || displayLabel,
+      }
+    }
   }
 
   const existing = await prisma.user.findUnique({

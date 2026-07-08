@@ -12,6 +12,14 @@ type Channel = "email" | "phone"
 
 export type CheckoutIdentityPayload = Record<string, unknown>
 
+async function readJsonSafely<T>(res: Response): Promise<T | null> {
+  try {
+    return (await res.json()) as T
+  } catch {
+    return null
+  }
+}
+
 type Props = {
   open: boolean
   onClose: () => void
@@ -64,15 +72,14 @@ export function CartCheckoutIdentitySheet({
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
           credentials: "include",
-          keepalive: true,
           body: JSON.stringify({
             ...identityBody,
             checkout: checkoutPayload,
             guestCartItems: guestCartItems?.length ? guestCartItems : undefined,
           }),
         })
-        const data = (await res.json()) as { url?: string; error?: string }
-        if (data.url) {
+        const data = await readJsonSafely<{ url?: string; error?: string }>(res)
+        if (data?.url) {
           if (guestCartItems?.length) {
             try {
               const { writeGuestCart } = await import("@/lib/guest-cart")
@@ -86,7 +93,7 @@ export function CartCheckoutIdentitySheet({
           return
         }
         setHandoffOpen(false)
-        setError(data.error ?? t("identifyFailed"))
+        setError(data?.error ?? t("identifyFailed"))
         return
       }
 
@@ -96,10 +103,10 @@ export function CartCheckoutIdentitySheet({
         credentials: "include",
         body: JSON.stringify(identityBody),
       })
-      const data = (await res.json()) as { error?: string; sessionEstablished?: boolean }
-      if (!res.ok || !data.sessionEstablished) {
+      const data = await readJsonSafely<{ error?: string; sessionEstablished?: boolean }>(res)
+      if (!res.ok || !data?.sessionEstablished) {
         setHandoffOpen(false)
-        setError(data.error ?? t("identifyFailed"))
+        setError(data?.error ?? t("identifyFailed"))
         return
       }
 

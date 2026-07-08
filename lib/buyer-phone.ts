@@ -8,9 +8,20 @@ export function normalizeBuyerPhone(raw: string): string | null {
   return digits
 }
 
+const BUYER_PHONE_EMAIL_DOMAIN = "buyer.affisell.app"
+const LEGACY_BUYER_PHONE_EMAIL_DOMAIN = "buyer.affisell.local"
+
 /** Stable login email for phone-only buyers (no extra DB column). */
 export function buyerEmailFromPhone(normalizedDigits: string): string {
-  return `phone+${normalizedDigits}@buyer.affisell.local`
+  return `phone+${normalizedDigits}@${BUYER_PHONE_EMAIL_DOMAIN}`
+}
+
+/** Backward-compatible aliases for older phone-only buyer accounts. */
+export function buyerEmailAliasesFromPhone(normalizedDigits: string): string[] {
+  return [
+    buyerEmailFromPhone(normalizedDigits),
+    `phone+${normalizedDigits}@${LEGACY_BUYER_PHONE_EMAIL_DOMAIN}`,
+  ]
 }
 
 export function formatBuyerPhoneDisplay(normalizedDigits: string): string {
