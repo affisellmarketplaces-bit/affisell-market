@@ -22,7 +22,6 @@ export function CatalogCardImage({ src, alt, priority = false }: Props) {
       onError={(e) => {
         const failed = e.currentTarget.src
         if (failed.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
-        if (failed.includes("/api/listing-card-image/")) return
         e.currentTarget.src = PRODUCT_CARD_IMAGE_FALLBACK
       }}
     />

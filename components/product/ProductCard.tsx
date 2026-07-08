@@ -323,7 +323,6 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
           onError={(e) => {
             const failed = e.currentTarget.src
             if (failed.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
-            if (isListingCardImageProxyUrl(failed)) return
             e.currentTarget.src = PRODUCT_CARD_IMAGE_FALLBACK
           }}
         />
