@@ -9,7 +9,8 @@ import {
   PRODUCT_CARD_IMAGE_FALLBACK,
   pickListingCardImageUrl,
 } from "@/lib/affiliate-listing-display"
-import { resolveBuyerCardImageHref } from "@/lib/listing-card-image-shared"
+import { resolveBuyerCardImageHref, isListingCardImageProxyUrl } from "@/lib/listing-card-image-shared"
+import { isUsableProductImageUrl } from "@/lib/product-image-url"
 
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { ProductOfferBadge } from "@/components/product/product-offer-badge"
@@ -270,10 +271,11 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
   const compareN = p.compareAt
   const discountOffer = resolveProductDiscount(priceN, compareN)
   const hasDiscount = discountOffer != null
+  const remoteImage = typeof p.image === "string" ? p.image.trim() : ""
   const src =
     mode === "customer"
-      ? resolveBuyerCardImageHref(p.image || null, listingId)
-      : p.image || PRODUCT_CARD_IMAGE_FALLBACK
+      ? resolveBuyerCardImageHref(remoteImage || null, listingId)
+      : remoteImage || PRODUCT_CARD_IMAGE_FALLBACK
   const reward = p.buyerRewardBadge
 
   const showBusiness = mode === "affiliate" || mode === "supplier"
@@ -327,6 +329,15 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
           onError={(e) => {
             const failed = e.currentTarget.src
             if (failed.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
+            if (
+              remoteImage &&
+              isUsableProductImageUrl(remoteImage) &&
+              failed !== remoteImage &&
+              (isListingCardImageProxyUrl(failed) || failed.endsWith("/placeholder.png"))
+            ) {
+              e.currentTarget.src = remoteImage
+              return
+            }
             e.currentTarget.src = PRODUCT_CARD_IMAGE_FALLBACK
           }}
         />

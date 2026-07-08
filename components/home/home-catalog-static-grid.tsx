@@ -49,6 +49,7 @@ export async function HomeCatalogStaticGrid({ shell, limit = 24 }: Props) {
               <div className="relative aspect-square w-full overflow-hidden rounded-[1.1rem] border border-white/50 bg-gradient-to-br from-violet-50/50 via-white to-sky-50/35 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:via-zinc-950/80 dark:to-teal-950/15">
                 <CatalogCardImage
                   src={item.image}
+                  fallbackSrc={item.fallbackImage}
                   alt={item.title}
                   priority={index < 4}
                 />

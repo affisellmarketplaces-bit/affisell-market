@@ -1,6 +1,7 @@
 /** Resolve buyer catalog card href — shared by static grid + ProductCard. */
 import {
   isDisplayableListingImageUrl,
+  listingPrimaryImageUrl,
   pickListingCardImageUrl,
 } from "@/lib/affiliate-listing-display"
 import { shopListingPath } from "@/lib/affiliate-routes"
@@ -33,6 +34,7 @@ export function normalizeHomeCatalogProduct(raw: unknown): {
   title: string
   priceLabel: string
   image: string
+  fallbackImage: string | null
   href: string
 } | null {
   if (!raw || typeof raw !== "object") return null
@@ -67,6 +69,8 @@ export function normalizeHomeCatalogProduct(raw: unknown): {
         : null),
     id
   )
+  const fallbackImage =
+    listingPrimaryImageUrl(customImages, productImages) || null
 
   const priceLabel = new Intl.NumberFormat(undefined, {
     style: "currency",
@@ -79,6 +83,8 @@ export function normalizeHomeCatalogProduct(raw: unknown): {
     title,
     priceLabel,
     image,
+    fallbackImage:
+      fallbackImage && fallbackImage !== image ? fallbackImage : null,
     href: homeCatalogProductHref(o),
   }
 }

@@ -34,8 +34,14 @@ describe("listing card image proxy", () => {
     expect(resolveListingCardImageHref(null, "")).toBe(PRODUCT_CARD_IMAGE_FALLBACK)
   })
 
-  it("forces proxy on buyer cards when listing id exists", () => {
+  it("prefers remote https on buyer cards when displayable", () => {
     expect(resolveBuyerCardImageHref("https://cdn.example/x.jpg", "listing-1")).toBe(
+      "https://cdn.example/x.jpg"
+    )
+  })
+
+  it("falls back to proxy for base64-only buyer cards", () => {
+    expect(resolveBuyerCardImageHref("data:image/png;base64,x", "listing-1")).toBe(
       "/api/listing-card-image/listing-1"
     )
   })

@@ -33,13 +33,10 @@ export function resolveListingCardImageHref(
   return PRODUCT_CARD_IMAGE_FALLBACK
 }
 
-/** Buyer-facing cards always use the same-origin thumbnail route when a listing id exists. */
+/** Buyer-facing cards — prefer remote CDN when displayable; proxy for base64-only listings. */
 export function resolveBuyerCardImageHref(
   remote: string | null | undefined,
   listingId: string
 ): string {
-  const id = listingId.trim()
-  if (id) return listingCardImageProxyUrl(id)
-  if (remote && isDisplayableListingImageUrl(remote)) return remote.trim()
-  return PRODUCT_CARD_IMAGE_FALLBACK
+  return resolveListingCardImageHref(remote, listingId)
 }

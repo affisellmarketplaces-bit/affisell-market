@@ -508,7 +508,7 @@ export function MarketplaceListingDetail({
   /** Sync main + thumbnail index when opening another listing or affiliate default color changes. */
   /* eslint-disable react-hooks/exhaustive-deps -- only reset hero when listing or promoted color changes; omit gallery/colorImages ref churn */
   useEffect(() => {
-    setGalleryHeroLock(false)
+    setGalleryHeroLock(true)
     setSelectedImage(imageIndexForColor(initialColor, colorNames, colorImages, images))
   }, [listingId, initialColor])
   /* eslint-enable react-hooks/exhaustive-deps */

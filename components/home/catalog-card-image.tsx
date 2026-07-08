@@ -6,10 +6,12 @@ type Props = {
   src: string
   alt: string
   priority?: boolean
+  /** Raw gallery URL (e.g. base64) when card `src` is the listing thumbnail proxy. */
+  fallbackSrc?: string | null
 }
 
 /** Grid card image with CDN-safe referrer + lightweight fallback on load error. */
-export function CatalogCardImage({ src, alt, priority = false }: Props) {
+export function CatalogCardImage({ src, alt, priority = false, fallbackSrc }: Props) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -23,6 +25,11 @@ export function CatalogCardImage({ src, alt, priority = false }: Props) {
       onError={(e) => {
         const failed = e.currentTarget.src
         if (failed.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
+        const fb = fallbackSrc?.trim()
+        if (fb && failed !== fb) {
+          e.currentTarget.src = fb
+          return
+        }
         e.currentTarget.src = PRODUCT_CARD_IMAGE_FALLBACK
       }}
     />
