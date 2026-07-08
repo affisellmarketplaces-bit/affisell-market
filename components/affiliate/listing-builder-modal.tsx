@@ -877,29 +877,74 @@ function ListingBuilderModalBody({
                   <input
                     type="checkbox"
                     checked={form.useAllSupplierImages}
-                    onChange={(e) => setForm((f) => ({ ...f, useAllSupplierImages: e.target.checked }))}
+                    onChange={(e) => {
+                      const useAll = e.target.checked
+                      setForm((f) => ({
+                        ...f,
+                        useAllSupplierImages: useAll,
+                        ...(useAll
+                          ? {
+                              imagePick: Object.fromEntries(
+                                supplierUrls.map((u) => [u, true] as const)
+                              ),
+                            }
+                          : {}),
+                      }))
+                    }}
                   />
-                  Use all supplier images
+                  {tListingBuilder("useAllSupplierImages")}
                 </label>
-                {!form.useAllSupplierImages ? (
-                  <div className="mt-3 grid grid-cols-3 gap-2">
-                    {supplierUrls.map((u) => (
-                      <label key={u} className="relative rounded-lg border border-gray-100 p-1">
-                        <input
-                          type="checkbox"
-                          checked={Boolean(form.imagePick[u])}
-                          onChange={() =>
-                            setForm((f) => ({
-                              ...f,
-                              imagePick: { ...f.imagePick, [u]: !f.imagePick[u] },
-                            }))
-                          }
-                          className="absolute right-2 top-2 rounded"
-                        />
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={u || "/placeholder.png"} alt="" className="aspect-square rounded-md object-contain" />
-                      </label>
-                    ))}
+                {supplierUrls.length > 0 ? (
+                  <div className="mt-3">
+                    {form.useAllSupplierImages ? (
+                      <p className="mb-2 text-xs text-gray-500">
+                        {tListingBuilder("useAllSupplierImagesHint", { count: supplierUrls.length })}
+                      </p>
+                    ) : null}
+                    <div className="grid grid-cols-3 gap-2">
+                      {supplierUrls.map((u) => {
+                        const selected = form.useAllSupplierImages || Boolean(form.imagePick[u])
+                        return form.useAllSupplierImages ? (
+                          <div
+                            key={u}
+                            className="relative rounded-lg border border-violet-200 bg-violet-50/40 p-1 ring-1 ring-violet-300/60"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={u || "/placeholder.png"}
+                              alt=""
+                              className="aspect-square rounded-md object-contain"
+                            />
+                          </div>
+                        ) : (
+                          <label
+                            key={u}
+                            className={cn(
+                              "relative rounded-lg border p-1",
+                              selected ? "border-violet-300 ring-1 ring-violet-300/60" : "border-gray-100"
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              onChange={() =>
+                                setForm((f) => ({
+                                  ...f,
+                                  imagePick: { ...f.imagePick, [u]: !f.imagePick[u] },
+                                }))
+                              }
+                              className="absolute right-2 top-2 rounded"
+                            />
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={u || "/placeholder.png"}
+                              alt=""
+                              className="aspect-square rounded-md object-contain"
+                            />
+                          </label>
+                        )
+                      })}
+                    </div>
                   </div>
                 ) : null}
                 <p className="mt-3 text-sm font-medium text-gray-800">Additional image URLs</p>

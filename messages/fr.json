@@ -1716,6 +1716,8 @@
       "marginAutoFixSaving": "Enregistrement des marges…",
       "marginAutoFixApplied": "Marges sécurisées sur {count} variante(s) — fiche mise à jour.",
       "marginAutoFixFailed": "Impossible d'appliquer les marges. Réessayez ou ajustez manuellement.",
+      "useAllSupplierImages": "Utiliser toutes les images fournisseur",
+      "useAllSupplierImagesHint": "{count, plural, one {# photo incluse dans votre fiche} other {# photos incluses dans votre fiche}}",
       "aiPricing": {
         "title": "AI Pricing Optimizer",
         "beta": "BETA",

@@ -1708,6 +1708,8 @@
       "marginAutoFixSaving": "Saving safe margins…",
       "marginAutoFixApplied": "Safe margins applied on {count} variant(s) — listing updated.",
       "marginAutoFixFailed": "Could not apply safe margins. Try again or adjust manually.",
+      "useAllSupplierImages": "Use all supplier images",
+      "useAllSupplierImagesHint": "{count, plural, one {# photo included in your listing} other {# photos included in your listing}}",
       "aiPricing": {
         "title": "AI Pricing Optimizer",
         "beta": "BETA",
