@@ -9,7 +9,6 @@ import {
   PRODUCT_CARD_IMAGE_FALLBACK,
   pickListingCardImageUrl,
 } from "@/lib/affiliate-listing-display"
-import { isListingCardImageProxyUrl } from "@/lib/listing-card-image-shared"
 
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { ProductOfferBadge } from "@/components/product/product-offer-badge"
@@ -316,10 +315,11 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
         <img
           src={src}
           alt={p.title}
-          className="absolute inset-0 h-full w-full object-contain p-1 transition-transform duration-300 group-hover:scale-[1.02] sm:p-4"
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain p-1 transition-transform duration-300 group-hover:scale-[1.02] sm:p-4"
           loading={imagePriority ? "eager" : "lazy"}
           fetchPriority={imagePriority ? "high" : "auto"}
           decoding="async"
+          draggable={false}
           onError={(e) => {
             const failed = e.currentTarget.src
             if (failed.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return

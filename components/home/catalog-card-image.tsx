@@ -15,10 +15,11 @@ export function CatalogCardImage({ src, alt, priority = false }: Props) {
     <img
       src={src}
       alt={alt}
-      className="absolute inset-0 h-full w-full object-contain p-1 sm:p-4"
+      className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain p-1 sm:p-4"
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "auto"}
       decoding="async"
+      draggable={false}
       onError={(e) => {
         const failed = e.currentTarget.src
         if (failed.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return

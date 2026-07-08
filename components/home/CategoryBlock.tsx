@@ -1,9 +1,12 @@
 "use client"
 
-import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
+import {
+  isDisplayableListingImageUrl,
+  PRODUCT_CARD_IMAGE_FALLBACK,
+} from "@/lib/affiliate-listing-display"
 import { cn } from "@/lib/utils"
 import { categoryBrowsePath } from "@/lib/seo-category-pages-shared"
 
@@ -101,13 +104,22 @@ export function CategoryBlock({ category, className }: Props) {
             className="group block overflow-hidden rounded-xl border border-zinc-100 bg-zinc-50/50 transition hover:border-violet-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-violet-900/50"
           >
             <div className="relative aspect-square overflow-hidden bg-white dark:bg-zinc-950">
-              <Image
-                src={item.image}
+              <img
+                src={
+                  isDisplayableListingImageUrl(item.image)
+                    ? item.image.trim()
+                    : PRODUCT_CARD_IMAGE_FALLBACK
+                }
                 alt=""
-                fill
-                className="object-cover transition group-hover:scale-[1.02]"
-                sizes="(max-width: 768px) 50vw, 25vw"
-                unoptimized
+                className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover transition group-hover:scale-[1.02]"
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+                onError={(e) => {
+                  const failed = e.currentTarget.src
+                  if (failed.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
+                  e.currentTarget.src = PRODUCT_CARD_IMAGE_FALLBACK
+                }}
               />
             </div>
             <p className="line-clamp-2 px-2 py-2 text-center text-xs font-medium text-zinc-800 dark:text-zinc-200">

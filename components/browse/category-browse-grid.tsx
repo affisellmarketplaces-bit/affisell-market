@@ -1,6 +1,9 @@
-import Image from "next/image"
 import Link from "next/link"
 
+import {
+  isDisplayableListingImageUrl,
+  PRODUCT_CARD_IMAGE_FALLBACK,
+} from "@/lib/affiliate-listing-display"
 import type { BrowseCategoryListingItem } from "@/lib/seo-category-pages"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 
@@ -20,17 +23,23 @@ export function CategoryBrowseGrid({ items }: Props) {
             className="group flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm transition hover:border-violet-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
           >
             <div className="relative aspect-square bg-zinc-100 dark:bg-zinc-900">
-              {item.image ? (
-                <Image
-                  src={item.image}
-                  alt={item.name}
-                  fill
-                  sizes="(max-width: 640px) 50vw, 25vw"
-                  className="object-cover transition group-hover:scale-[1.02]"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-xs text-zinc-400">—</div>
-              )}
+              <img
+                src={
+                  typeof item.image === "string" && isDisplayableListingImageUrl(item.image)
+                    ? item.image.trim()
+                    : PRODUCT_CARD_IMAGE_FALLBACK
+                }
+                alt={item.name}
+                className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover transition group-hover:scale-[1.02]"
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+                onError={(e) => {
+                  const failed = e.currentTarget.src
+                  if (failed.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
+                  e.currentTarget.src = PRODUCT_CARD_IMAGE_FALLBACK
+                }}
+              />
             </div>
             <div className="flex flex-1 flex-col gap-1 p-3">
               <p className="line-clamp-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">{item.name}</p>

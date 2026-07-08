@@ -4,6 +4,7 @@ import {
   listingGalleryUrls,
   listingPrimaryImageUrl,
 } from "@/lib/affiliate-listing-display"
+import { primaryProductImage } from "@/lib/product-images"
 
 describe("affiliate-listing-display image fallbacks", () => {
   it("falls back to product image when custom image is unusable", () => {
@@ -31,5 +32,15 @@ describe("affiliate-listing-display image fallbacks", () => {
         ["https://cdn.example/product.jpg"]
       )
     ).toEqual(["https://cdn.example/custom.jpg", "https://cdn.example/custom-2.jpg"])
+  })
+
+  it("skips unusable product gallery URLs in generic product pickers", () => {
+    expect(
+      primaryProductImage([
+        "blob:https://affisell.test/preview",
+        "data:image/png;base64,abc",
+        "https://cdn.example/product.jpg",
+      ])
+    ).toBe("https://cdn.example/product.jpg")
   })
 })

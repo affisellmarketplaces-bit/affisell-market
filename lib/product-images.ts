@@ -1,6 +1,8 @@
-/** First non-empty product image URL (ordered list from supplier). */
+import { isUsableProductImageUrl } from "@/lib/product-image-url"
+
+/** First product image URL safe to render publicly on cards and PDPs. */
 export function primaryProductImage(images: string[] | null | undefined): string {
-  const u = images?.find((s) => typeof s === "string" && s.trim())
+  const u = images?.find((s): s is string => typeof s === "string" && isUsableProductImageUrl(s))
   return u?.trim() ?? ""
 }
 

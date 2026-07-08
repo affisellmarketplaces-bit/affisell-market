@@ -1,7 +1,6 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import {
@@ -15,6 +14,10 @@ import {
 } from "lucide-react"
 
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
+import {
+  isDisplayableListingImageUrl,
+  PRODUCT_CARD_IMAGE_FALLBACK,
+} from "@/lib/affiliate-listing-display"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { cn } from "@/lib/utils"
@@ -232,23 +235,26 @@ export function SupplierStorefrontBrowse({
             const kindShort = KIND_LABEL[kindKey] ?? kindKey.replace(/_/g, " ").toLowerCase()
             const fastShip = p.deliveryMax <= 3
             const img = p.imageUrl
-            const unopt =
-              typeof img === "string" &&
-              (img.startsWith("http://") || img.startsWith("https://") || img.startsWith("/uploads"))
             const productHref = `/store/supplier/${encodeURIComponent(storeSlug)}/product/${encodeURIComponent(p.id)}`
+            const imageSrc = isDisplayableListingImageUrl(img) ? img.trim() : PRODUCT_CARD_IMAGE_FALLBACK
 
             return (
               <li key={p.id}>
                 <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-200/90 bg-white shadow-sm ring-1 ring-black/[0.03] transition duration-300 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-xl hover:shadow-violet-500/10 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-white/[0.04] dark:hover:border-violet-800/60">
                   <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-gradient-to-br from-zinc-100 via-white to-violet-50/40 dark:from-zinc-900 dark:via-zinc-950 dark:to-violet-950/20">
                     <Link href={productHref} className="relative block h-full w-full">
-                      <Image
-                        src={img}
+                      <img
+                        src={imageSrc}
                         alt={p.name}
-                        fill
-                        className="object-contain p-4 transition duration-500 group-hover:scale-[1.03]"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 280px"
-                        unoptimized={unopt}
+                        className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain p-4 transition duration-500 group-hover:scale-[1.03]"
+                        loading="lazy"
+                        decoding="async"
+                        draggable={false}
+                        onError={(e) => {
+                          const failed = e.currentTarget.src
+                          if (failed.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
+                          e.currentTarget.src = PRODUCT_CARD_IMAGE_FALLBACK
+                        }}
                       />
                       <div
                         className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 transition group-hover:opacity-100"
