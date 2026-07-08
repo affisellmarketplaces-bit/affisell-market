@@ -12,6 +12,9 @@ import { logBusiness } from "@/lib/business-log"
 import { prisma } from "@/lib/prisma"
 
 const DEMO_PRODUCT_NAME = "【Demo Lab】 Aurora Wireless Earbuds"
+/** Stable CDN hero — demo SKU must not ship with empty images[] on a live listing. */
+const DEMO_PRODUCT_IMAGE_URL =
+  "https://images.unsplash.com/photo-1590658268037-6bf12f032669?auto=format&fit=crop&w=800&q=80"
 
 function prismaRoleForPersona(persona: DemoPersonaKey): string {
   if (persona === "buyer") return "CUSTOMER"
@@ -57,12 +60,19 @@ async function ensureDemoSupplierCatalog(supplierId: string) {
         commissionRate: 12,
         supplierCommissionRateBps: 1200,
         tags: [DEMO_LAB_TAG],
+        images: [DEMO_PRODUCT_IMAGE_URL],
         active: true,
         isDraft: false,
         stock: 99,
       },
     })
     console.log("[demo-lab-ensure]", { supplierId, productId: product.id, result: "product_created" })
+  } else if (!product.images?.length) {
+    product = await prisma.product.update({
+      where: { id: product.id },
+      data: { images: [DEMO_PRODUCT_IMAGE_URL] },
+    })
+    console.log("[demo-lab-ensure]", { supplierId, productId: product.id, result: "product_images_backfilled" })
   }
 
   return product

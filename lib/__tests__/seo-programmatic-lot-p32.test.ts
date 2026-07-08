@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import { shopListingPath } from "@/lib/affiliate-routes"
 import { categoryBrowsePath, BROWSE_STATIC_PARAMS_LIMIT } from "@/lib/seo-category-pages-shared"
@@ -79,7 +79,7 @@ describe("seo-sitemap phase 2", () => {
     const { buildAffisellSitemapChunk } = await import("@/lib/seo-sitemap")
     const entries = await buildAffisellSitemapChunk(SITEMAP_CHUNK.shops, {
       baseUrl: "https://affisell.com",
-      shopLimit: 1,
+      shopSlugs: ["boutique-mode"],
     })
     const urls = entries.map((entry) => entry.url)
     expect(urls.some((url) => url.endsWith("/about"))).toBe(true)
@@ -105,5 +105,21 @@ describe("seo-sitemap phase 2", () => {
     const urls = entries.map((entry) => entry.url)
     expect(urls).toContain("https://affisell.com/")
     expect(urls).toContain("https://affisell.com/sell")
+  })
+})
+
+describe("seo-sitemap without database", () => {
+  it("returns minimal chunks when DATABASE_URL is unset", async () => {
+    vi.stubEnv("DATABASE_URL", "")
+    vi.resetModules()
+    const { planAffisellSitemapChunks } = await import("@/lib/seo-sitemap")
+    const chunks = await planAffisellSitemapChunks()
+    expect(chunks).toEqual([
+      SITEMAP_CHUNK.core,
+      SITEMAP_CHUNK.shops,
+      SITEMAP_CHUNK.listingsOffset,
+    ])
+    vi.unstubAllEnvs()
+    vi.resetModules()
   })
 })

@@ -17,12 +17,25 @@ export const SITEMAP_CHUNK = {
   listingsOffset: 2,
 } as const
 
+const SITEMAP_FALLBACK_CHUNK_IDS = [
+  SITEMAP_CHUNK.core,
+  SITEMAP_CHUNK.shops,
+  SITEMAP_CHUNK.listingsOffset,
+] as const
+
+/** Build-time guard — CI/Lighthouse builds have no DATABASE_URL. */
+export function isSitemapDatabaseAvailable(): boolean {
+  return Boolean(process.env.DATABASE_URL?.trim())
+}
+
 export type SitemapBuildOptions = {
   baseUrl?: string
   shopLimit?: number
   categoryLimit?: number
   listingLimit?: number
   supplierLimit?: number
+  /** Test/override hook — skip Prisma when building shop trust URLs. */
+  shopSlugs?: string[]
 }
 
 export type ListingSitemapRow = {
@@ -99,13 +112,23 @@ export function listingSitemapPath(row: ListingSitemapRow): string {
 export async function planAffisellSitemapChunks(
   listingChunkSize = SITEMAP_URLS_PER_CHUNK
 ): Promise<number[]> {
-  const listingCount = await countPublicListingSitemapRows()
-  const listingChunks = Math.max(1, Math.ceil(listingCount / listingChunkSize))
-  return [
-    SITEMAP_CHUNK.core,
-    SITEMAP_CHUNK.shops,
-    ...Array.from({ length: listingChunks }, (_, index) => SITEMAP_CHUNK.listingsOffset + index),
-  ]
+  if (!isSitemapDatabaseAvailable()) {
+    console.warn("[seo-sitemap] DATABASE_URL unset — minimal static sitemap chunks")
+    return [...SITEMAP_FALLBACK_CHUNK_IDS]
+  }
+
+  try {
+    const listingCount = await countPublicListingSitemapRows()
+    const listingChunks = Math.max(1, Math.ceil(listingCount / listingChunkSize))
+    return [
+      SITEMAP_CHUNK.core,
+      SITEMAP_CHUNK.shops,
+      ...Array.from({ length: listingChunks }, (_, index) => SITEMAP_CHUNK.listingsOffset + index),
+    ]
+  } catch (err) {
+    console.error("[seo-sitemap] plan chunks failed:", err)
+    return [...SITEMAP_FALLBACK_CHUNK_IDS]
+  }
 }
 
 function withBaseUrl(baseUrl: string, path: string, now: Date, priority: number, changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"]) {
@@ -151,11 +174,13 @@ export async function buildAffisellSitemapChunk(
   }
 
   if (chunkId === SITEMAP_CHUNK.shops) {
-    let shopSlugs: string[] = []
-    try {
-      shopSlugs = await loadPublicAffiliateShopSlugs(options.shopLimit ?? 2000)
-    } catch (err) {
-      console.error("[seo-sitemap] shops chunk failed:", err)
+    let shopSlugs: string[] = options.shopSlugs ?? []
+    if (shopSlugs.length === 0 && isSitemapDatabaseAvailable()) {
+      try {
+        shopSlugs = await loadPublicAffiliateShopSlugs(options.shopLimit ?? 2000)
+      } catch (err) {
+        console.error("[seo-sitemap] shops chunk failed:", err)
+      }
     }
 
     const entries: MetadataRoute.Sitemap = []

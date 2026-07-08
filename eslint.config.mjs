@@ -35,6 +35,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    /** Lighthouse CI config — CommonJS require() by design */
+    "lighthouserc.cjs",
+    "lighthouse-budgets.cjs",
     /** Medusa sub-app — own lint/tsconfig; generated .medusa/types must not block Affisell CI */
     "medusa-backend/**",
   ]),
