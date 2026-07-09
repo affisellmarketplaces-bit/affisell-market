@@ -2189,7 +2189,16 @@
         "copied": "Copied",
         "nativeShare": "Share…",
         "shareMessage": "Discover {name} — curated products on Affisell",
-        "enableEmbedHint": "Enable embed widget to show your shop on your blog or site →"
+        "enableEmbedHint": "Enable embed widget to show your shop on your blog or site →",
+        "amplify": {
+          "title": "Amplify the channel already converting",
+          "subtitle": "Reuse the same message on your bio, blog, or profile so more buyers land on the shop that is already selling.",
+          "creatorBio": "Creator bio block",
+          "blogIntro": "Blog intro block",
+          "copy": "Copy block",
+          "creatorBioSnippet": "Shop my curated picks from {name} on Affisell: {url}",
+          "blogIntroSnippet": "These are the products my audience is clicking and buying right now from {name}. Browse the full selection here: {url}"
+        }
       },
       "pulse": {
         "title": "Brand Pulse",
@@ -2298,6 +2307,12 @@
             "body": "You have proof of conversion. Double down on the share channel that brought the first orders.",
             "next": "Next action: reuse that channel and publish another high-intent listing.",
             "cta": "Open embed widget"
+          },
+          "scale_winning_channel": {
+            "title": "Scale the winning channel",
+            "body": "Your embed is live and orders are coming in. Reuse the same traffic source with ready-to-copy bio and blog blocks.",
+            "next": "Next action: copy one amplification block and post it where your first buyers came from.",
+            "cta": "Open amplification kit"
           }
         },
         "funnel": {

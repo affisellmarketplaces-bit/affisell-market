@@ -218,6 +218,7 @@ export function MerchantBrandStudio({
   const postShareLoop =
     focusSharePanel || searchParams.get("welcome") === "1"
   const focusTarget = searchParams.get("focus")
+  const amplifyShare = searchParams.get("amplify") === "1"
   const autofillTrust = searchParams.get("autofillTrust") === "1"
   const autofillEmbed = searchParams.get("autofillEmbed") === "1"
   const [loading, setLoading] = useState(true)
@@ -1145,6 +1146,7 @@ export function MerchantBrandStudio({
               liveCatalogCount={brandPulseMetrics.liveCatalogCount}
               totalListingClicks={brandPulseMetrics.totalListingClicks}
               totalListingConversions={brandPulseMetrics.totalListingConversions}
+              embedEnabled={embedWidget.enabled}
               studioPath={studioPath}
               createListingHref={createListingHref}
             />
@@ -1163,6 +1165,7 @@ export function MerchantBrandStudio({
                   shopUrl={storeUrls.primaryUrl}
                   embedEnabled={embedWidget.enabled}
                   onEnableEmbed={() => setEmbedWidget((prev) => ({ ...prev, enabled: true }))}
+                  amplifyMode={amplifyShare && role === "AFFILIATE"}
                   postShareLoop={postShareLoop && role === "AFFILIATE"}
                   initialTotalClicks={brandPulseMetrics.totalListingClicks}
                   initialTotalConversions={brandPulseMetrics.totalListingConversions}

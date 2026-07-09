@@ -23,6 +23,7 @@ type Props = {
   liveCatalogCount?: number
   totalListingClicks?: number
   totalListingConversions?: number
+  embedEnabled?: boolean
   studioPath?: string | null
   createListingHref?: string | null
   className?: string
@@ -39,6 +40,7 @@ export function StorefrontBrandAnalyticsPanel({
   liveCatalogCount = 0,
   totalListingClicks = 0,
   totalListingConversions = 0,
+  embedEnabled = false,
   studioPath,
   createListingHref,
   className,
@@ -52,6 +54,7 @@ export function StorefrontBrandAnalyticsPanel({
           liveCatalogCount,
           totalListingClicks,
           totalListingConversions,
+          embedEnabled,
         })
       : null
   const coachTarget = stage ? resolveBrandAnalyticsCoachTarget(stage) : null
@@ -68,9 +71,13 @@ export function StorefrontBrandAnalyticsPanel({
             ? studioPath
               ? `${studioPath}?focus=pages&autofillTrust=1`
               : null
-            : studioPath
-              ? `${studioPath}?focus=embed&autofillEmbed=1`
-              : null
+            : coachTarget === "embed"
+              ? studioPath
+                ? `${studioPath}?focus=embed&autofillEmbed=1`
+                : null
+              : studioPath
+                ? `${studioPath}?share=1&amplify=1`
+                : null
 
   const dashboardUrl = projectId
     ? buildPosthogProjectEventsUrl({

@@ -4,6 +4,7 @@ export type BrandAnalyticsLiveInput = {
   liveCatalogCount: number
   totalListingClicks: number
   totalListingConversions: number
+  embedEnabled?: boolean
 }
 
 export type BrandAnalyticsStage =
@@ -11,14 +12,16 @@ export type BrandAnalyticsStage =
   | "drive_first_visit"
   | "traffic_no_sales"
   | "first_sales"
+  | "scale_winning_channel"
 
-export type BrandAnalyticsCoachTarget = "dashboard" | "share" | "pages" | "embed"
+export type BrandAnalyticsCoachTarget = "dashboard" | "share" | "pages" | "embed" | "amplify"
 
 export function resolveBrandAnalyticsStage(input: BrandAnalyticsLiveInput): BrandAnalyticsStage {
   if (input.liveCatalogCount <= 0) return "publish_first_listing"
   if (input.totalListingClicks <= 0) return "drive_first_visit"
   if (input.totalListingConversions <= 0) return "traffic_no_sales"
-  return "first_sales"
+  if (!input.embedEnabled) return "first_sales"
+  return "scale_winning_channel"
 }
 
 export function resolveBrandAnalyticsCoachTarget(
@@ -33,5 +36,7 @@ export function resolveBrandAnalyticsCoachTarget(
       return "pages"
     case "first_sales":
       return "embed"
+    case "scale_winning_channel":
+      return "amplify"
   }
 }

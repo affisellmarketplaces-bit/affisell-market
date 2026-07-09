@@ -28,6 +28,7 @@ type Props = {
   shopUrl: string | null
   embedEnabled?: boolean
   onEnableEmbed?: () => void
+  amplifyMode?: boolean
   /** Onboarding post-publish — show traffic loop + channel recommendation. */
   postShareLoop?: boolean
   initialTotalClicks?: number
@@ -43,6 +44,7 @@ export function StorefrontShareGrowPanel({
   shopUrl,
   embedEnabled = false,
   onEnableEmbed,
+  amplifyMode = false,
   postShareLoop = false,
   initialTotalClicks = 0,
   initialTotalConversions = 0,
@@ -51,6 +53,7 @@ export function StorefrontShareGrowPanel({
   const t = useTranslations("storefront.brandStudio.shareGrow")
   const locale = useLocale()
   const [copied, setCopied] = useState(false)
+  const [copiedAmplifyId, setCopiedAmplifyId] = useState<"creatorBio" | "blogIntro" | null>(null)
   const [sharing, setSharing] = useState(false)
   const [shareSent, setShareSent] = useState(false)
   const [totalClicks, setTotalClicks] = useState(initialTotalClicks)
@@ -147,6 +150,20 @@ export function StorefrontShareGrowPanel({
   }, [postShareLoop, refreshTraffic])
 
   const shareMessage = t("shareMessage", { name: storeName.trim() || slug })
+  const amplifySnippets = useMemo(
+    () => ({
+      creatorBio: t("amplify.creatorBioSnippet", {
+        name: storeName.trim() || slug,
+        url: shopUrl ?? "",
+      }),
+      blogIntro: t("amplify.blogIntroSnippet", {
+        name: storeName.trim() || slug,
+        url: shopUrl ?? "",
+      }),
+    }),
+    [shopUrl, slug, storeName, t]
+  )
+  const showAmplifyKit = Boolean(shopUrl && embedEnabled && totalConversions > 0)
 
   const copyUrl = useCallback(async () => {
     if (!shopUrl) return
@@ -166,6 +183,28 @@ export function StorefrontShareGrowPanel({
       })
     }
   }, [shopUrl, slug, markShared])
+
+  const copyAmplifySnippet = useCallback(
+    async (snippetId: "creatorBio" | "blogIntro") => {
+      if (!shopUrl) return
+      const snippet = amplifySnippets[snippetId]
+      try {
+        await navigator.clipboard.writeText(snippet)
+        setCopiedAmplifyId(snippetId)
+        capturePosthogClient("brand_share_amplify_copied", { storeSlug: slug, snippetId })
+        console.log("[share-grow]", { storeSlug: slug, snippetId, result: "amplify_copied" })
+        window.setTimeout(() => setCopiedAmplifyId((current) => (current === snippetId ? null : current)), 2000)
+      } catch (err) {
+        console.log("[share-grow]", {
+          storeSlug: slug,
+          snippetId,
+          result: "amplify_copy_error",
+          error: err instanceof Error ? err.message : String(err),
+        })
+      }
+    },
+    [amplifySnippets, shopUrl, slug]
+  )
 
   const nativeShare = useCallback(async () => {
     if (!shopUrl || !nativeShareAvailable) return
@@ -349,6 +388,65 @@ export function StorefrontShareGrowPanel({
             />
           ))}
         </div>
+
+        {showAmplifyKit ? (
+          <div
+            className={cn(
+              "rounded-xl border p-3",
+              amplifyMode
+                ? "border-violet-300/80 bg-violet-50/70 ring-2 ring-violet-300/60 ring-offset-1 dark:border-violet-800 dark:bg-violet-950/25 dark:ring-violet-700/60"
+                : "border-violet-200/70 bg-violet-50/40 dark:border-violet-900/40 dark:bg-violet-950/20"
+            )}
+          >
+            <p className="text-xs font-semibold text-violet-950 dark:text-violet-100">{t("amplify.title")}</p>
+            <p className="mt-1 text-xs leading-relaxed text-violet-900/80 dark:text-violet-100/80">
+              {t("amplify.subtitle")}
+            </p>
+            <div className="mt-3 space-y-3">
+              <div className="rounded-lg border border-violet-200/80 bg-white/80 p-3 dark:border-violet-900/40 dark:bg-zinc-950/60">
+                <p className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300">{t("amplify.creatorBio")}</p>
+                <pre className="mt-2 whitespace-pre-wrap break-words rounded-lg bg-zinc-50 p-3 text-[11px] leading-relaxed text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+                  {amplifySnippets.creatorBio}
+                </pre>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="mt-2"
+                  onClick={() => void copyAmplifySnippet("creatorBio")}
+                >
+                  {copiedAmplifyId === "creatorBio" ? (
+                    <Check className="size-3.5" aria-hidden />
+                  ) : (
+                    <Copy className="size-3.5" aria-hidden />
+                  )}
+                  {copiedAmplifyId === "creatorBio" ? t("copied") : t("amplify.copy")}
+                </Button>
+              </div>
+
+              <div className="rounded-lg border border-violet-200/80 bg-white/80 p-3 dark:border-violet-900/40 dark:bg-zinc-950/60">
+                <p className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300">{t("amplify.blogIntro")}</p>
+                <pre className="mt-2 whitespace-pre-wrap break-words rounded-lg bg-zinc-50 p-3 text-[11px] leading-relaxed text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+                  {amplifySnippets.blogIntro}
+                </pre>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="mt-2"
+                  onClick={() => void copyAmplifySnippet("blogIntro")}
+                >
+                  {copiedAmplifyId === "blogIntro" ? (
+                    <Check className="size-3.5" aria-hidden />
+                  ) : (
+                    <Copy className="size-3.5" aria-hidden />
+                  )}
+                  {copiedAmplifyId === "blogIntro" ? t("copied") : t("amplify.copy")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {!embedEnabled && onEnableEmbed ? (
           <button

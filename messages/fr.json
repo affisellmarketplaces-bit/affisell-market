@@ -2345,7 +2345,16 @@
         "postSharePrompt": "Votre annonce est en ligne — partagez votre lien pour vos premiers visiteurs.",
         "awaitingFirstClick": "Lien partagé — en attente de votre première visite boutique.",
         "firstTraffic": "{count, plural, one {# visite sur vos annonces} other {# visites sur vos annonces}}",
-        "firstSale": "{count, plural, one {# vente — continuez à partager !} other {# ventes — continuez à partager !}}"
+        "firstSale": "{count, plural, one {# vente — continuez à partager !} other {# ventes — continuez à partager !}}",
+        "amplify": {
+          "title": "Amplifier le canal qui convertit deja",
+          "subtitle": "Reprenez le meme message sur votre bio, blog ou profil pour renvoyer plus d'acheteurs vers la boutique qui vend deja.",
+          "creatorBio": "Bloc bio createur",
+          "blogIntro": "Bloc intro blog",
+          "copy": "Copier le bloc",
+          "creatorBioSnippet": "Decouvrez mes selections {name} sur Affisell : {url}",
+          "blogIntroSnippet": "Voici les produits que mon audience clique et achete deja chez {name}. Parcourez toute la selection ici : {url}"
+        }
       },
       "pulse": {
         "title": "Brand Pulse",
@@ -2454,6 +2463,12 @@
             "body": "Vous avez une preuve de conversion. Doublez l'effort sur le canal de partage qui a amené les premières commandes.",
             "next": "Prochaine action : réutilisez ce canal et publiez une autre annonce à forte intention.",
             "cta": "Ouvrir le widget embed"
+          },
+          "scale_winning_channel": {
+            "title": "Amplifiez le canal gagnant",
+            "body": "Votre embed est live et les commandes arrivent. Réutilisez cette source de trafic avec des blocs bio et blog prêts à copier.",
+            "next": "Prochaine action : copiez un bloc d'amplification et publiez-le là où vos premiers acheteurs sont venus.",
+            "cta": "Ouvrir le kit d'amplification"
           }
         },
         "funnel": {

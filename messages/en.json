@@ -2303,7 +2303,16 @@
         "postSharePrompt": "Your listing is live — share your shop link to get your first visitors.",
         "awaitingFirstClick": "Link shared — waiting for your first shop visit.",
         "firstTraffic": "{count, plural, one {# visit on your listings} other {# visits on your listings}}",
-        "firstSale": "{count, plural, one {# sale — keep sharing!} other {# sales — keep sharing!}}"
+        "firstSale": "{count, plural, one {# sale — keep sharing!} other {# sales — keep sharing!}}",
+        "amplify": {
+          "title": "Amplify the channel already converting",
+          "subtitle": "Reuse the same message on your bio, blog, or profile so more buyers land on the shop that is already selling.",
+          "creatorBio": "Creator bio block",
+          "blogIntro": "Blog intro block",
+          "copy": "Copy block",
+          "creatorBioSnippet": "Shop my curated picks from {name} on Affisell: {url}",
+          "blogIntroSnippet": "These are the products my audience is clicking and buying right now from {name}. Browse the full selection here: {url}"
+        }
       },
       "pulse": {
         "title": "Brand Pulse",
@@ -2412,6 +2421,12 @@
             "body": "You have proof of conversion. Double down on the share channel that brought the first orders.",
             "next": "Next action: reuse that channel and publish another high-intent listing.",
             "cta": "Open embed widget"
+          },
+          "scale_winning_channel": {
+            "title": "Scale the winning channel",
+            "body": "Your embed is live and orders are coming in. Reuse the same traffic source with ready-to-copy bio and blog blocks.",
+            "next": "Next action: copy one amplification block and post it where your first buyers came from.",
+            "cta": "Open amplification kit"
           }
         },
         "funnel": {

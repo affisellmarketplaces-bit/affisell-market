@@ -42,8 +42,20 @@ describe("storefront-brand-analytics-live", () => {
         liveCatalogCount: 2,
         totalListingClicks: 12,
         totalListingConversions: 2,
+        embedEnabled: false,
       })
     ).toBe("first_sales")
+  })
+
+  it("pushes amplification once embed is already live", () => {
+    expect(
+      resolveBrandAnalyticsStage({
+        liveCatalogCount: 2,
+        totalListingClicks: 12,
+        totalListingConversions: 2,
+        embedEnabled: true,
+      })
+    ).toBe("scale_winning_channel")
   })
 
   it("maps each stage to an action target", () => {
@@ -51,5 +63,6 @@ describe("storefront-brand-analytics-live", () => {
     expect(resolveBrandAnalyticsCoachTarget("drive_first_visit")).toBe("share")
     expect(resolveBrandAnalyticsCoachTarget("traffic_no_sales")).toBe("pages")
     expect(resolveBrandAnalyticsCoachTarget("first_sales")).toBe("embed")
+    expect(resolveBrandAnalyticsCoachTarget("scale_winning_channel")).toBe("amplify")
   })
 })
