@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { ExternalLink, Palette, Save, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { FormEvent } from "react"
@@ -199,6 +200,8 @@ type Props = {
 
 export function MerchantBrandStudio({ role, previewHref, profileHref, profileLabel }: Props) {
   const t = useTranslations("storefront.brandStudio")
+  const searchParams = useSearchParams()
+  const focusSharePanel = searchParams.get("share") === "1"
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -245,6 +248,7 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0)
   const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
   const mountedRef = useRef(false)
+  const sharePanelRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     mountedRef.current = true
@@ -252,6 +256,14 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
       mountedRef.current = false
     }
   }, [])
+
+  useEffect(() => {
+    if (!focusSharePanel) return
+    const timer = window.setTimeout(() => {
+      sharePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }, 80)
+    return () => window.clearTimeout(timer)
+  }, [focusSharePanel])
 
   const applyLaunchConfig = useCallback((config: BrandLaunchConfig) => {
     setPresetId(config.presetId)
@@ -917,13 +929,21 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
             <StorefrontBrandAnalyticsPanel role={role} presetId={presetId} />
             <StoreLiveUrlCard urls={storeUrls} storeHostSuffix={storeHostSuffix} loading={loading} />
             {storeSlug && storeUrls?.primaryUrl ? (
-              <StorefrontShareGrowPanel
-                slug={storeSlug}
-                storeName={name}
-                shopUrl={storeUrls.primaryUrl}
-                embedEnabled={embedWidget.enabled}
-                onEnableEmbed={() => setEmbedWidget((prev) => ({ ...prev, enabled: true }))}
-              />
+              <div
+                ref={sharePanelRef}
+                className={cn(
+                  focusSharePanel &&
+                    "rounded-3xl ring-2 ring-emerald-400/70 ring-offset-2 ring-offset-white dark:ring-emerald-500/60 dark:ring-offset-zinc-950"
+                )}
+              >
+                <StorefrontShareGrowPanel
+                  slug={storeSlug}
+                  storeName={name}
+                  shopUrl={storeUrls.primaryUrl}
+                  embedEnabled={embedWidget.enabled}
+                  onEnableEmbed={() => setEmbedWidget((prev) => ({ ...prev, enabled: true }))}
+                />
+              </div>
             ) : null}
             <StoreCustomDomainCard variant="studio" />
             <BentoCard className="text-sm text-gray-600 dark:text-zinc-400">

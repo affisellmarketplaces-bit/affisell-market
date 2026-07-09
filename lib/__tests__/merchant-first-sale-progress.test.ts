@@ -70,4 +70,18 @@ describe("merchant first sale progress", () => {
       "/dashboard/affiliate/products/listing-1/edit"
     )
   })
+
+  it("affiliate share step deep-links to brand studio share panel", () => {
+    const progress = buildAffiliateFirstSaleProgress({
+      kycApproved: true,
+      listingCount: 1,
+      liveListingCount: 1,
+      draftListingCount: 0,
+      storeSlug: "creator",
+      latestDraftHref: null,
+    })
+    expect(progress.steps.find((s) => s.id === "share")?.href).toBe(
+      "/dashboard/affiliate/brand-studio?share=1"
+    )
+  })
 })

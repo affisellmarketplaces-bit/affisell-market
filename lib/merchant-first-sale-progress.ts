@@ -126,7 +126,9 @@ export function buildAffiliateFirstSaleProgress(args: {
     {
       id: "share",
       done: shareDone,
-      href: args.storeSlug ? `/shops/${args.storeSlug}` : "/dashboard/affiliate/brand-studio",
+      href: args.storeSlug
+        ? "/dashboard/affiliate/brand-studio?share=1"
+        : "/dashboard/affiliate/brand-studio",
     },
   ]
 

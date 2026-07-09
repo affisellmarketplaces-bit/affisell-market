@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   ArrowLeft,
   Filter,
@@ -63,6 +64,7 @@ type Props = {
 
 export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swipe" }: Props) {
   const tSwipe = useTranslations("affiliate.swipeFeed")
+  const router = useRouter()
   const [mode, setMode] = useState<"hub" | "swipe">(initialMode)
   const [deck, setDeck] = useState<SwipeFeedProduct[]>([])
   const [loading, setLoading] = useState(false)
@@ -235,6 +237,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
 
   const handleStudioPublished = useCallback(
     async ({ listingId, product }: { listingId?: string; product: SwipeFeedProduct }) => {
+      const firstPublishedListing = sessionStats.listed === 0
       try {
         await fetch("/api/affiliate/swipes", {
           method: "POST",
@@ -253,9 +256,12 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
         setSkippedReplayPool((pool) => pool.filter((p) => p.id !== product.id))
         setStudioOpen(false)
         setStudioProduct(null)
+        if (listingContext === "onboarding" && firstPublishedListing) {
+          router.push("/dashboard/affiliate/brand-studio?share=1&welcome=1")
+        }
       }
     },
-    [showToast]
+    [listingContext, router, sessionStats.listed, showToast]
   )
 
   const handleUndo = useCallback(async () => {
