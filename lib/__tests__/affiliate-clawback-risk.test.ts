@@ -6,7 +6,7 @@ const { findManyMock } = vi.hoisted(() => ({
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    orderReturn: {
+    order: {
       findMany: findManyMock,
     },
   },
@@ -18,24 +18,35 @@ import {
 } from "@/lib/affiliate-clawback-risk"
 
 describe("loadAffiliateClawbackRisk", () => {
-  it("sums affiliate payout on pending returns in 30d window", async () => {
+  it("sums affiliate commission on orders with pending returns in 30d window", async () => {
     findManyMock.mockResolvedValue([
-      { order: { affiliatePayoutCents: 3000, commissionCents: 2500 } },
-      { order: { affiliatePayoutCents: 0, commissionCents: 1200 } },
+      { affiliatePayoutCents: 3000, commissionCents: 2500 },
+      { affiliatePayoutCents: 0, commissionCents: 1200 },
     ])
 
     const result = await loadAffiliateClawbackRisk("aff_1")
 
     expect(result.riskCents).toBe(4200)
-    expect(result.pendingReturnCount).toBe(2)
     expect(findManyMock).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          status: { in: ["REQUESTED", "AWAITING_SHIPMENT", "IN_TRANSIT", "RECEIVED"] },
-          order: { affiliateId: "aff_1" },
+          affiliateId: "aff_1",
+          returns: expect.objectContaining({
+            some: expect.objectContaining({
+              status: { in: ["REQUESTED", "AWAITING_SHIPMENT", "IN_TRANSIT", "RECEIVED"] },
+            }),
+          }),
         }),
       })
     )
+  })
+
+  it("returns zero when no orders are at risk", async () => {
+    findManyMock.mockResolvedValue([])
+
+    const result = await loadAffiliateClawbackRisk("aff_2")
+
+    expect(result.riskCents).toBe(0)
   })
 
   it("exposes warning threshold at 500€", () => {

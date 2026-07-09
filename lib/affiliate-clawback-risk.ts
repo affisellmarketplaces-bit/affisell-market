@@ -21,7 +21,13 @@ function subDays(date: Date, days: number): Date {
 
 export type AffiliateClawbackRiskSummary = {
   riskCents: number
-  pendingReturnCount: number
+}
+
+function resolveOrderCommissionAtRiskCents(order: {
+  affiliatePayoutCents: number
+  commissionCents: number
+}): number {
+  return order.affiliatePayoutCents > 0 ? order.affiliatePayoutCents : order.commissionCents
 }
 
 export async function loadAffiliateClawbackRisk(
@@ -29,39 +35,35 @@ export async function loadAffiliateClawbackRisk(
 ): Promise<AffiliateClawbackRiskSummary> {
   const since = subDays(new Date(), CLAWBACK_RISK_WINDOW_DAYS)
 
-  const pendingReturns = await prisma.orderReturn.findMany({
+  const ordersAtRisk = await prisma.order.findMany({
     where: {
-      status: { in: [...CLAWBACK_RISK_RETURN_STATUSES] },
-      createdAt: { gte: since },
-      order: { affiliateId },
-    },
-    select: {
-      order: {
-        select: {
-          affiliatePayoutCents: true,
-          commissionCents: true,
+      affiliateId,
+      returns: {
+        some: {
+          createdAt: { gte: since },
+          status: { in: [...CLAWBACK_RISK_RETURN_STATUSES] },
         },
       },
     },
+    select: {
+      affiliatePayoutCents: true,
+      commissionCents: true,
+    },
   })
 
-  const riskCents = pendingReturns.reduce((sum, row) => {
-    const payout = row.order.affiliatePayoutCents
-    const commission = row.order.commissionCents
-    return sum + (payout > 0 ? payout : commission)
-  }, 0)
+  const riskCents = ordersAtRisk.reduce(
+    (sum, order) => sum + resolveOrderCommissionAtRiskCents(order),
+    0
+  )
 
   console.log("[clawback-risk]", {
     affiliateId,
-    pendingReturnCount: pendingReturns.length,
+    orderCount: ordersAtRisk.length,
     riskCents,
     result: "ok",
   })
 
-  return {
-    riskCents,
-    pendingReturnCount: pendingReturns.length,
-  }
+  return { riskCents }
 }
 
 export type AffiliateRefundHistoryRow = {
@@ -107,9 +109,6 @@ export async function loadAffiliateRefundHistory(
     createdAt: row.createdAt,
     orderId: row.orderId,
     productName: row.order.product.name,
-    commissionAtRiskCents:
-      row.order.affiliatePayoutCents > 0
-        ? row.order.affiliatePayoutCents
-        : row.order.commissionCents,
+    commissionAtRiskCents: resolveOrderCommissionAtRiskCents(row.order),
   }))
 }

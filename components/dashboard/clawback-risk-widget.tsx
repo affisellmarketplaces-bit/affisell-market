@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { AlertTriangle, CircleHelp, History } from "lucide-react"
+import { AlertTriangle, CircleHelp } from "lucide-react"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
 import {
@@ -11,13 +11,13 @@ import { cn } from "@/lib/utils"
 
 type Props = {
   riskCents: number
-  pendingReturnCount: number
 }
 
 const TOOLTIP =
-  "Conformément aux CGA art.5. En cas de retour accepté, la commission est annulée même si déjà versée."
+  "Conformément aux CGA art.5. En cas de retour client accepté, la commission est annulée même si déjà versée."
 
-export function ClawbackRiskWidget({ riskCents, pendingReturnCount }: Props) {
+export function ClawbackRiskWidget({ riskCents }: Props) {
+  const isEmpty = riskCents <= 0
   const showWarning = riskCents > CLAWBACK_RISK_WARNING_CENTS
   const amountLabel = formatStoreCurrencyFromCents(riskCents, "EUR")
 
@@ -42,18 +42,21 @@ export function ClawbackRiskWidget({ riskCents, pendingReturnCount }: Props) {
               </span>
             ) : null}
           </div>
-          <p className="mt-2 text-3xl font-bold tabular-nums tracking-tight text-zinc-900 dark:text-white">
-            {amountLabel}
-          </p>
-          <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Montant débité de votre prochain payout Stripe si tous les remboursements sont confirmés
-            {pendingReturnCount > 0 ? (
-              <>
-                {" "}
-                · {pendingReturnCount} retour{pendingReturnCount > 1 ? "s" : ""} en cours
-              </>
-            ) : null}
-          </p>
+
+          {isEmpty ? (
+            <p className="mt-3 text-base font-medium text-zinc-700 dark:text-zinc-200">
+              Aucun risque détecté 🎉
+            </p>
+          ) : (
+            <>
+              <p className="mt-2 text-3xl font-bold tabular-nums tracking-tight text-zinc-900 dark:text-white">
+                {amountLabel}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                Montant débité de votre prochain payout si tous les remboursements sont confirmés
+              </p>
+            </>
+          )}
         </div>
         <button
           type="button"
@@ -69,8 +72,7 @@ export function ClawbackRiskWidget({ riskCents, pendingReturnCount }: Props) {
         href="/dashboard/refunds"
         className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
       >
-        <History className="size-4" aria-hidden />
-        Historique
+        Voir détails
       </Link>
     </BentoCard>
   )
