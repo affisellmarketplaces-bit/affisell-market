@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { logBusiness } from "@/lib/business-log"
+import { recordLegalAcceptance } from "@/lib/legal/acceptance"
 import { buildRoleTermsPayload } from "@/lib/legal/role-terms"
 import { logTermsAcceptanceFromRequest } from "@/lib/terms-logger"
 import { setTermsOkCookie } from "@/lib/legal/terms-acceptance-cookie"
@@ -47,6 +48,14 @@ export async function POST(req: Request) {
   })
 
   await logTermsAcceptanceFromRequest(req, user.id, termsLogTypeForRole(role))
+
+  await recordLegalAcceptance({
+    userId: user.id,
+    slug: role === "SUPPLIER" ? "supplier" : "affiliate",
+    locale: "fr",
+    context: "REACCEPT_MODAL",
+    req,
+  })
 
   const res = NextResponse.json({
     ok: true,

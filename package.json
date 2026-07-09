@@ -95,6 +95,7 @@
     "expansion:status": "tsx scripts/expansion-status.ts",
     "expansion:c-suite": "tsx scripts/expansion-c-suite.ts",
     "verify:expansion": "node scripts/verify-expansion-ready.mjs",
+    "legal:backfill:acceptances": "tsx scripts/legal-backfill-acceptances.ts",
     "legal:seed": "tsx prisma/seed-legal.ts",
     "agents:seed": "tsx scripts/seed-agent-network.ts",
     "agents:provision-users": "tsx scripts/provision-agent-users.ts",

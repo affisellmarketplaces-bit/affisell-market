@@ -29,6 +29,7 @@ import { computeOrderEscrowAllocation } from "@/lib/order-escrow-allocation"
 import { triggerAutoFulfillmentForStripeSession } from "@/lib/auto-order/enqueue"
 import { triggerAutoDsForStripeSession } from "@/lib/autods/submit-paid-order"
 import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
+import { attachOrderCgvAcceptance } from "@/lib/legal/acceptance"
 import { applyInstantDigitalDeliveryInTransaction } from "@/lib/digital-delivery/instant-fulfill"
 import { sendDigitalAccessPassEmail } from "@/lib/emails/send-digital-access-pass"
 import { runBookingPassAfterPayment } from "@/lib/booking/run-after-payment"
@@ -495,6 +496,13 @@ async function createPaidMarketplaceOrder(
     buyerLocale: args.buyerLocale,
     customerEmail: args.customerEmail,
     product: listing.product,
+  })
+
+  await attachOrderCgvAcceptance(tx, {
+    orderId: order.id,
+    userId: args.buyerUserId,
+    buyerEmail: args.customerEmail,
+    locale: args.buyerLocale,
   })
 
   return order.id
@@ -1026,6 +1034,13 @@ export async function fulfillMarketplaceStripeSession(
         buyerLocale,
         customerEmail,
         product: listing.product,
+      })
+
+      await attachOrderCgvAcceptance(tx, {
+        orderId: pendingOrder.id,
+        userId: earnUserId || null,
+        buyerEmail: customerEmail,
+        locale: buyerLocale,
       })
 
       await syncMarketplaceOrderToMedusa(tx, {
