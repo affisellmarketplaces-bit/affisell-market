@@ -45,7 +45,7 @@ export default async function AffiliateBrandStudioPage() {
       profileHref="/dashboard/affiliate/settings/store"
       profileLabel="Store profile"
       studioPath="/dashboard/affiliate/brand-studio"
-      createListingHref="/dashboard/affiliate"
+      createListingHref="/dashboard/affiliate?openCreate=1"
     />
   )
 }

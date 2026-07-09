@@ -254,6 +254,7 @@ export function AffiliateDashboard({ storeId }: Props) {
   const searchParams = useSearchParams()
   const productDeepLinkConsumed = useRef(false)
   const editListingDeepLinkConsumed = useRef(false)
+  const createListingDeepLinkConsumed = useRef(false)
   const [storeSlug, setStoreSlug] = useState<string | null>(null)
   const [storeName, setStoreName] = useState<string | null>(null)
   const [bootstrapLoading, setBootstrapLoading] = useState(true)
@@ -605,6 +606,39 @@ export function AffiliateDashboard({ storeId }: Props) {
     router.replace("/dashboard/affiliate", { scroll: false })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot editListing deep link
   }, [bootstrapLoading, listingsWithProduct, router, searchParams])
+
+  useEffect(() => {
+    if (createListingDeepLinkConsumed.current || catalogLoading) return
+    const shouldOpenCreate = searchParams.get("openCreate") === "1"
+    if (!shouldOpenCreate) return
+    createListingDeepLinkConsumed.current = true
+
+    const preferredProduct =
+      catalog.find((p) => resolveCatalogListingState(p.affiliateProducts).kind === "none") ?? catalog[0]
+
+    if (!preferredProduct) {
+      setToast("No product available yet — browse the marketplace to add your first listing.")
+      router.replace("/dashboard/affiliate", { scroll: false })
+      return
+    }
+
+    setTab("catalog")
+    requestAnimationFrame(() => {
+      document
+        .getElementById(`catalog-product-${preferredProduct.id}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" })
+    })
+
+    const listingState = resolveCatalogListingState(preferredProduct.affiliateProducts)
+    void (
+      listingState.kind === "none"
+        ? openCreate(preferredProduct)
+        : openEditModal(preferredProduct.id)
+    )
+
+    router.replace("/dashboard/affiliate", { scroll: false })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot openCreate deep link
+  }, [catalog, catalogLoading, router, searchParams])
 
   const discoverSkuCount = catalog.length
   const addableSkuCount = catalog.filter((p) => !(p.affiliateProducts?.length ?? 0)).length
