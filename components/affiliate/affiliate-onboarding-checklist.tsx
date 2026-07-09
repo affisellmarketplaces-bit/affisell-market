@@ -25,6 +25,13 @@ const stepLabelKeys: Record<MerchantOnboardingStepId, string> = {
   share: "stepShare",
 }
 
+const stepCtaKeys: Record<MerchantOnboardingStepId, string> = {
+  kyc: "ctaKyc",
+  create: "ctaCreate",
+  publish: "ctaPublish",
+  share: "ctaShare",
+}
+
 export async function AffiliateOnboardingChecklist({ progress }: Props) {
   const t = await getTranslations("affiliateDashboard.onboarding")
 
@@ -51,6 +58,8 @@ export async function AffiliateOnboardingChecklist({ progress }: Props) {
         {progress.steps.map((step, index) => {
           const Icon = stepIcons[step.id]
           const isNext = progress.nextStepId === step.id
+          const hasDraftToResume =
+            step.id === "publish" && progress.draftListingCount > 0 && Boolean(progress.latestDraftHref)
           return (
             <li key={step.id} className="flex items-start gap-3">
               {step.done ? (
@@ -75,13 +84,20 @@ export async function AffiliateOnboardingChecklist({ progress }: Props) {
                   {t(stepLabelKeys[step.id])}
                 </p>
                 {!step.done && isNext ? (
-                  <Link
-                    href={step.href}
-                    className={cn(buttonVariants({ size: "sm" }), "mt-2 gap-1.5 bg-violet-600 hover:bg-violet-700")}
-                  >
-                    <Icon className="h-3.5 w-3.5" aria-hidden />
-                    {t("start")}
-                  </Link>
+                  <>
+                    <Link
+                      href={step.href}
+                      className={cn(buttonVariants({ size: "sm" }), "mt-2 gap-1.5 bg-violet-600 hover:bg-violet-700")}
+                    >
+                      <Icon className="h-3.5 w-3.5" aria-hidden />
+                      {t(hasDraftToResume ? "ctaResumeDraft" : stepCtaKeys[step.id])}
+                    </Link>
+                    {hasDraftToResume ? (
+                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        {t("resumeDraftHint", { count: progress.draftListingCount })}
+                      </p>
+                    ) : null}
+                  </>
                 ) : null}
               </div>
             </li>

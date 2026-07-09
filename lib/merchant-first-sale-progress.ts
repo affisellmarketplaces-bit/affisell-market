@@ -21,6 +21,7 @@ export type MerchantFirstSaleProgress = {
   postKycHref: string
   showChecklist: boolean
   draftListingCount: number
+  latestDraftHref?: string | null
 }
 
 function supplierShareHref(storeSlug: string | null): string {
@@ -94,11 +95,13 @@ export function buildAffiliateFirstSaleProgress(args: {
   liveListingCount: number
   draftListingCount: number
   storeSlug: string | null
+  latestDraftHref?: string | null
 }): MerchantFirstSaleProgress {
   const createDone = args.listingCount > 0
   const publishDone = args.liveListingCount > 0
   const shareDone = publishDone && Boolean(args.storeSlug)
   const hubHref = AFFILIATE_FIRST_LISTING_HUB_HREF
+  const draftPublishHref = args.latestDraftHref ?? "/dashboard/affiliate"
 
   const steps: MerchantOnboardingStep[] = [
     {
@@ -115,7 +118,7 @@ export function buildAffiliateFirstSaleProgress(args: {
       id: "publish",
       done: publishDone,
       href: args.kycApproved
-        ? "/dashboard/affiliate"
+        ? draftPublishHref
         : args.draftListingCount > 0
           ? "/dashboard/verification"
           : hubHref,
@@ -133,7 +136,7 @@ export function buildAffiliateFirstSaleProgress(args: {
   if (!createDone) {
     postKycHref = hubHref
   } else if (!publishDone) {
-    postKycHref = "/dashboard/affiliate"
+    postKycHref = draftPublishHref
   }
 
   return {
@@ -145,6 +148,7 @@ export function buildAffiliateFirstSaleProgress(args: {
     postKycHref,
     showChecklist: !publishDone,
     draftListingCount: args.draftListingCount,
+    latestDraftHref: args.latestDraftHref ?? null,
   }
 }
 
@@ -170,13 +174,18 @@ export async function loadSupplierFirstSaleProgress(
 export async function loadAffiliateFirstSaleProgress(
   affiliateId: string
 ): Promise<MerchantFirstSaleProgress> {
-  const [gate, listingCount, liveListingCount, store] = await Promise.all([
+  const [gate, listingCount, liveListingCount, store, latestDraft] = await Promise.all([
     merchantVerificationGate(affiliateId),
     prisma.affiliateProduct.count({ where: affiliateListingsWhere(affiliateId) }),
     prisma.affiliateProduct.count({
       where: { ...affiliateListingsWhere(affiliateId), isListed: true },
     }),
     prisma.store.findUnique({ where: { userId: affiliateId }, select: { slug: true } }),
+    prisma.affiliateProduct.findFirst({
+      where: { ...affiliateListingsWhere(affiliateId), isListed: false },
+      select: { id: true },
+      orderBy: { updatedAt: "desc" },
+    }),
   ])
 
   return buildAffiliateFirstSaleProgress({
@@ -186,5 +195,6 @@ export async function loadAffiliateFirstSaleProgress(
     liveListingCount,
     draftListingCount: listingCount - liveListingCount,
     storeSlug: store?.slug ?? null,
+    latestDraftHref: latestDraft ? `/dashboard/affiliate/products/${latestDraft.id}/edit` : null,
   })
 }

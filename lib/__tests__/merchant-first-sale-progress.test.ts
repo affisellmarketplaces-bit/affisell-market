@@ -62,8 +62,12 @@ describe("merchant first sale progress", () => {
       liveListingCount: 0,
       draftListingCount: 1,
       storeSlug: "creator",
+      latestDraftHref: "/dashboard/affiliate/products/listing-1/edit",
     })
     expect(progress.nextStepId).toBe("publish")
-    expect(progress.postKycHref).toBe("/dashboard/affiliate")
+    expect(progress.postKycHref).toBe("/dashboard/affiliate/products/listing-1/edit")
+    expect(progress.steps.find((s) => s.id === "publish")?.href).toBe(
+      "/dashboard/affiliate/products/listing-1/edit"
+    )
   })
 })
