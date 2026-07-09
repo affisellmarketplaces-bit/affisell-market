@@ -91,6 +91,8 @@ export function WelcomeLegalEmail({
             </Link>
           </Text>
 
+          <Text style={text}>Ces documents sont versionnés et horodatés.</Text>
+
           <Text style={footer}>Affisell SAS</Text>
         </Container>
       </Body>
