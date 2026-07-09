@@ -73,7 +73,7 @@ async function main() {
 
   let user = await prisma.user.findUnique({
     where: { email: EMAIL },
-    select: { id: true, email: true, role: true, termsAcceptedVersion: true },
+    select: { id: true, email: true, role: true },
   })
 
   if (!user) {
@@ -87,9 +87,8 @@ async function main() {
         cguAcceptedAt: new Date(),
         privacyAcceptedAt: new Date(),
         termsAcceptedAt: null,
-        termsAcceptedVersion: null,
       },
-      select: { id: true, email: true, role: true, termsAcceptedVersion: true },
+      select: { id: true, email: true, role: true },
     })
     console.log("[affiliate-cga-test]", { created: user.email, password: PASSWORD })
 
@@ -151,10 +150,7 @@ async function main() {
     })
     await prisma.user.update({
       where: { id: user.id },
-      data: {
-        termsAcceptedAt: new Date(),
-        termsAcceptedVersion: `conditions-affilie:${affiliateVersion.version}`,
-      },
+      data: { termsAcceptedAt: new Date() },
     })
     console.log("[affiliate-cga-test]", { accept: "affiliate CGA recorded" })
   }

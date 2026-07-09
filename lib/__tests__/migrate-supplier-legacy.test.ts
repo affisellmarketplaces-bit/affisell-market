@@ -1,25 +1,31 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
-import { mapLegacyTermsToSupplierSlug } from "../../scripts/migrate-supplier-legacy-acceptance"
+import { migrateSupplierLegacyAcceptance } from "../../scripts/migrate-supplier-legacy-acceptance"
 
-describe("mapLegacyTermsToSupplierSlug", () => {
-  it("maps conditions-fournisseur prefix", () => {
-    expect(mapLegacyTermsToSupplierSlug("conditions-fournisseur:2026-06-04", false)).toBe(
-      "supplier"
-    )
-  })
+describe("migrateSupplierLegacyAcceptance", () => {
+  it("migrates supplier missing LMS row", async () => {
+    const db = {
+      legalDocument: {
+        findUnique: vi.fn().mockResolvedValue({ currentVersionId: "ver_supplier" }),
+      },
+      user: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: "user_1",
+            email: "s@test.com",
+            createdAt: new Date("2026-01-01"),
+            termsAcceptedAt: new Date("2026-01-02"),
+          },
+        ]),
+      },
+      legalAcceptance: {
+        count: vi.fn().mockResolvedValue(0),
+        upsert: vi.fn().mockResolvedValue({ id: "acc_1" }),
+      },
+    } as never
 
-  it("maps date-prefix terms-supplier when flag enabled", () => {
-    expect(
-      mapLegacyTermsToSupplierSlug("2026-05-26:terms-supplier", true)
-    ).toBe("supplier")
-  })
-
-  it("ignores date-prefix without flag", () => {
-    expect(mapLegacyTermsToSupplierSlug("2026-05-26:terms-supplier", false)).toBeNull()
-  })
-
-  it("ignores unknown legacy formats", () => {
-    expect(mapLegacyTermsToSupplierSlug("conditions-affilie:2026-06-25", true)).toBeNull()
+    const stats = await migrateSupplierLegacyAcceptance(db, {})
+    expect(stats.migrated).toBe(1)
+    expect(stats.alreadyOnLms).toBe(0)
   })
 })

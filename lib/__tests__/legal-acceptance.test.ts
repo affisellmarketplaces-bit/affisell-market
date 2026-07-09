@@ -21,8 +21,8 @@ vi.mock("@/lib/legal/lms-resolver", () => ({
 vi.mock("@/lib/terms-logger", () => ({
   logTermsAcceptanceFromRequest: vi.fn(),
 }))
-vi.mock("@/lib/legal/terms-acceptance-cookie", () => ({
-  setTermsOkCookie: vi.fn(),
+vi.mock("@/lib/legal/legal-gate-cookie", () => ({
+  setLegalOkCookie: vi.fn(),
 }))
 vi.mock("@/lib/business-log", () => ({ logBusiness: vi.fn() }))
 
@@ -141,7 +141,6 @@ describe("legal acceptance dual-write", () => {
         cguAcceptedAt: new Date("2026-01-01"),
         privacyAcceptedAt: null,
         termsAcceptedAt: null,
-        termsAcceptedVersion: null,
       },
     ])
     prismaMock.legalDocument.findUnique.mockResolvedValue({

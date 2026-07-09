@@ -27,12 +27,13 @@ async function resolveFrCurrentVersionId(db: BackfillDb, slug: string): Promise<
   return doc?.currentVersionId ?? null
 }
 
-function roleSlugFromTermsVersion(
-  termsAcceptedVersion: string | null | undefined
+function roleSlugFromUser(
+  role: string,
+  termsAcceptedAt: Date | null | undefined
 ): "supplier" | "affiliate" | null {
-  if (!termsAcceptedVersion?.trim()) return null
-  if (termsAcceptedVersion.startsWith("conditions-fournisseur:")) return "supplier"
-  if (termsAcceptedVersion.startsWith("conditions-affilie:")) return "affiliate"
+  if (!termsAcceptedAt) return null
+  if (role === "SUPPLIER") return "supplier"
+  if (role === "AFFILIATE") return "affiliate"
   return null
 }
 
@@ -81,10 +82,10 @@ export async function backfillLegalAcceptances(db: BackfillDb = prisma): Promise
     },
     select: {
       id: true,
+      role: true,
       cguAcceptedAt: true,
       privacyAcceptedAt: true,
       termsAcceptedAt: true,
-      termsAcceptedVersion: true,
     },
   })
 
@@ -119,7 +120,7 @@ export async function backfillLegalAcceptances(db: BackfillDb = prisma): Promise
       }
     }
 
-    const roleSlug = roleSlugFromTermsVersion(user.termsAcceptedVersion)
+    const roleSlug = roleSlugFromUser(user.role, user.termsAcceptedAt)
     if (user.termsAcceptedAt && roleSlug) {
       const created = await upsertMigrationAcceptance(db, {
         userId: user.id,

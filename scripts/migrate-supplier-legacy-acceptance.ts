@@ -1,9 +1,8 @@
 /**
- * Migre les fournisseurs legacy vers LegalAcceptance LMS supplier v courante — idempotent.
+ * Ensure SUPPLIER users have LMS supplier acceptance on current version — idempotent.
  *
  *   npx tsx scripts/migrate-supplier-legacy-acceptance.ts
- *   npx tsx scripts/migrate-supplier-legacy-acceptance.ts --include-date-prefix
- *   npx tsx scripts/migrate-supplier-legacy-acceptance.ts --include-date-prefix --email=julishop100k@gmail.com
+ *   npx tsx scripts/migrate-supplier-legacy-acceptance.ts --email=julishop100k@gmail.com
  */
 import { config } from "dotenv"
 
@@ -22,32 +21,10 @@ type MigrationStats = {
   alreadyOnLms: number
   migrated: number
   skippedNoVersion: number
-  skippedNotLegacy: number
 }
 
 export type MigrateSupplierLegacyOptions = {
-  includeDatePrefix?: boolean
   email?: string
-}
-
-/** Legacy termsAcceptedVersion → slug supplier (currentVersion v1.0.0). */
-export function mapLegacyTermsToSupplierSlug(
-  termsAcceptedVersion: string | null | undefined,
-  includeDatePrefix: boolean
-): "supplier" | null {
-  const version = termsAcceptedVersion?.trim()
-  if (!version) return null
-
-  switch (true) {
-    case version.startsWith("conditions-fournisseur:"):
-      return "supplier"
-    case includeDatePrefix && version === "2026-05-26:terms-supplier":
-      return "supplier"
-    case includeDatePrefix && /^\d{4}-\d{2}-\d{2}:terms-supplier$/.test(version):
-      return "supplier"
-    default:
-      return null
-  }
 }
 
 async function hasSupplierLegalAcceptance(userId: string, db: PrismaClient): Promise<boolean> {
@@ -77,10 +54,8 @@ export async function migrateSupplierLegacyAcceptance(
     alreadyOnLms: 0,
     migrated: 0,
     skippedNoVersion: 0,
-    skippedNotLegacy: 0,
   }
 
-  const includeDatePrefix = options.includeDatePrefix ?? false
   const supplierVersionId = await resolveCurrentSupplierVersionId(db)
   if (!supplierVersionId) {
     console.log("[migrate-supplier-legacy]", { result: "no_supplier_version" })
@@ -97,18 +72,11 @@ export async function migrateSupplierLegacyAcceptance(
       email: true,
       createdAt: true,
       termsAcceptedAt: true,
-      termsAcceptedVersion: true,
     },
     orderBy: { createdAt: "asc" },
   })
 
   for (const user of suppliers) {
-    const slug = mapLegacyTermsToSupplierSlug(user.termsAcceptedVersion, includeDatePrefix)
-    if (!slug) {
-      stats.skippedNotLegacy += 1
-      continue
-    }
-
     stats.suppliersScanned += 1
 
     if (await hasSupplierLegalAcceptance(user.id, db)) {
@@ -136,8 +104,6 @@ export async function migrateSupplierLegacyAcceptance(
       console.log("[migrate-supplier-legacy]", {
         userId: user.id,
         email: user.email,
-        termsAcceptedVersion: user.termsAcceptedVersion,
-        mappedSlug: slug,
         documentVersionId: supplierVersionId,
         result: "migrated",
       })
@@ -155,14 +121,13 @@ export async function migrateSupplierLegacyAcceptance(
 }
 
 function parseArgs(argv: string[]) {
-  const includeDatePrefix = argv.includes("--include-date-prefix")
   const emailArg = argv.find((a) => a.startsWith("--email="))
   const email = emailArg?.slice("--email=".length).trim().toLowerCase() || undefined
-  return { includeDatePrefix, email }
+  return { email }
 }
 
 async function main() {
-  const { includeDatePrefix, email } = parseArgs(process.argv)
+  const { email } = parseArgs(process.argv)
   const supplierVersionId = await resolveCurrentSupplierVersionId(prisma)
   const version = supplierVersionId
     ? await prisma.legalVersion.findUnique({
@@ -173,19 +138,17 @@ async function main() {
 
   console.log("[migrate-supplier-legacy]", {
     supplierCurrent: version,
-    includeDatePrefix,
     email: email ?? "all",
     expectedHash: EXPECTED_SUPPLIER_HASH,
   })
 
-  const stats = await migrateSupplierLegacyAcceptance(prisma, { includeDatePrefix, email })
+  const stats = await migrateSupplierLegacyAcceptance(prisma, { email })
 
   console.log("[migrate-supplier-legacy]", {
     suppliersScanned: stats.suppliersScanned,
     alreadyOnLms: stats.alreadyOnLms,
     migrated: stats.migrated,
     skippedNoVersion: stats.skippedNoVersion,
-    skippedNotLegacy: stats.skippedNotLegacy,
     result: "done",
   })
 

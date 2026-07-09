@@ -309,14 +309,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           image: true,
           name: true,
           email: true,
-          termsAcceptedVersion: true,
           cguVersion: true,
         },
       })
 
       token.id = userId
       token.role = row?.role ?? (user as { role?: string }).role ?? (token.role as string) ?? "CUSTOMER"
-      token.termsAcceptedVersion = row?.termsAcceptedVersion ?? null
       token.cguVersion = row?.cguVersion ?? null
       const role = token.role as string
       token.legalGateHash =

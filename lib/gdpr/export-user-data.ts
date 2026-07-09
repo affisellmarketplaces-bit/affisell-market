@@ -12,7 +12,6 @@ export async function exportUserDataForGdpr(userId: string) {
       cguAcceptedAt: true,
       cguVersion: true,
       termsAcceptedAt: true,
-      termsAcceptedVersion: true,
       privacyAcceptedAt: true,
       privacyAcceptedVersion: true,
       cookieConsent: true,

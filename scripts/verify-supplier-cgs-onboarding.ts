@@ -88,7 +88,6 @@ async function main() {
         cguAcceptedAt: new Date(),
         privacyAcceptedAt: new Date(),
         termsAcceptedAt: null,
-        termsAcceptedVersion: null,
       },
       select: { id: true, email: true, role: true, stripeOnboardedAt: true },
     })
@@ -154,10 +153,7 @@ async function main() {
     })
     await prisma.user.update({
       where: { id: user.id },
-      data: {
-        termsAcceptedAt: new Date(),
-        termsAcceptedVersion: `conditions-fournisseur:${supplierVersion.version}`,
-      },
+      data: { termsAcceptedAt: new Date() },
     })
     console.log("[supplier-cgs-test]", { accept: "supplier CGS recorded" })
   }

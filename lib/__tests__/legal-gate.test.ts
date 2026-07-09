@@ -130,9 +130,9 @@ describe("legal gate v2", () => {
     expect(legalGateOk(req, "CUSTOMER", token as never)).toBe(true)
   })
 
-  it("legalGateOk does not use termsAcceptedVersion JWT fallback", () => {
+  it("legalGateOk requires legal cookie hash match", () => {
     const req = makeReq()
-    const token = { termsAcceptedVersion: "conditions-fournisseur:2026-06-04" }
+    const token = { legalGateHash: "abc" }
 
     expect(legalGateOk(req, "SUPPLIER", token as never)).toBe(false)
   })

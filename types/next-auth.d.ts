@@ -17,7 +17,6 @@ declare module "next-auth/jwt" {
     id?: string
     role?: string
     email?: string
-    termsAcceptedVersion?: string | null
     cguVersion?: string | null
     legalGateHash?: string | null
   }

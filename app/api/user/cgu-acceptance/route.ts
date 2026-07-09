@@ -7,7 +7,6 @@ import { buildConsentPayload } from "@/lib/legal/consent"
 import { logTermsAcceptanceFromRequest } from "@/lib/terms-logger"
 import { collectAcceptedCurrentVersionIds } from "@/lib/legal/acceptance"
 import { setLegalOkCookie } from "@/lib/legal/legal-gate-cookie"
-import { setTermsOkCookie } from "@/lib/legal/terms-acceptance-cookie"
 import { termsLogTypeForRole } from "@/lib/legal-versions"
 import { prisma } from "@/lib/prisma"
 
@@ -89,9 +88,6 @@ export async function POST(req: Request) {
   const versionIds = await collectAcceptedCurrentVersionIds(user.id, role)
   if (versionIds.length > 0) {
     setLegalOkCookie(res, versionIds)
-  }
-  if (role === "AFFILIATE" || role === "SUPPLIER") {
-    setTermsOkCookie(res, role)
   }
   return res
 }
