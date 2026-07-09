@@ -3192,6 +3192,7 @@ enum LegalAcceptanceContext {
   ONBOARDING
   ADMIN_OVERRIDE
   MIGRATION_BACKFILL
+  MIGRATION_LEGACY
 }
 
 model LegalDocument {
