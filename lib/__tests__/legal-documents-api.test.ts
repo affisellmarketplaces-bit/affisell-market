@@ -48,5 +48,16 @@ describe("GET /api/legal/documents", () => {
   it("sets short public cache", async () => {
     const res = await GET(new Request("http://localhost:3000/api/legal/documents"))
     expect(res.headers.get("Cache-Control")).toContain("max-age=300")
+    expect(res.headers.get("Content-Type")).toContain("application/json")
+  })
+
+  it("returns JSON on catalog failure", async () => {
+    listPublicLegalDocumentsMock.mockRejectedValueOnce(new Error("db unavailable"))
+
+    const res = await GET(new Request("http://localhost:3000/api/legal/documents"))
+    expect(res.status).toBe(500)
+    expect(res.headers.get("Content-Type")).toContain("application/json")
+    const body = (await res.json()) as { error: string }
+    expect(body.error).toBe("Failed to load legal documents")
   })
 })

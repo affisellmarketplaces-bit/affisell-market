@@ -205,6 +205,19 @@ export async function proxy(req: NextRequest) {
   const customDomainResponse = await tryCustomDomainMiddleware(req)
   if (customDomainResponse) return customDomainResponse
 
+  /** Locale-prefixed API (`/fr/api/...`) — rewrite to bare handler; never intl HTML redirects. */
+  const bareApiPath = pathnameWithoutLocale(pathname)
+  if (bareApiPath.startsWith("/api/")) {
+    if (bareApiPath !== pathname) {
+      const rewriteUrl = req.nextUrl.clone()
+      rewriteUrl.pathname = bareApiPath
+      const requestHeaders = new Headers(req.headers)
+      requestHeaders.set("x-affisell-pathname", pathname)
+      return NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } })
+    }
+    return nextWithPathname(req)
+  }
+
   if (HOME_PATHS.has(pathname)) {
     return handleHomePath(req)
   }
