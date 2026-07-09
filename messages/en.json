@@ -2295,7 +2295,12 @@
         "copied": "Copied",
         "nativeShare": "Share…",
         "shareMessage": "Discover {name} — curated products on Affisell",
-        "enableEmbedHint": "Enable embed widget to show your shop on your blog or site →"
+        "enableEmbedHint": "Enable embed widget to show your shop on your blog or site →",
+        "recommended": "Best for you",
+        "postSharePrompt": "Your listing is live — share your shop link to get your first visitors.",
+        "awaitingFirstClick": "Link shared — waiting for your first shop visit.",
+        "firstTraffic": "{count, plural, one {# visit on your listings} other {# visits on your listings}}",
+        "firstSale": "{count, plural, one {# sale — keep sharing!} other {# sales — keep sharing!}}"
       },
       "pulse": {
         "title": "Brand Pulse",

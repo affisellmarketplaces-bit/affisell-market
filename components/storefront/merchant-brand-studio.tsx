@@ -202,6 +202,8 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const t = useTranslations("storefront.brandStudio")
   const searchParams = useSearchParams()
   const focusSharePanel = searchParams.get("share") === "1"
+  const postShareLoop =
+    focusSharePanel || searchParams.get("welcome") === "1"
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -243,6 +245,8 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
     liveCatalogCount: 0,
     customDomainVerified: false,
     brandPulseLastScore: null as number | null,
+    totalListingClicks: 0,
+    totalListingConversions: 0,
   })
   const [presetAb, setPresetAb] = useState<StorefrontPresetAb | null>(null)
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0)
@@ -301,6 +305,8 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
           liveCatalogCount: number
           customDomainVerified: boolean
           brandPulseLastScore?: number | null
+          totalListingClicks?: number
+          totalListingConversions?: number
         }
         error?: string
       }
@@ -314,6 +320,8 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
           liveCatalogCount: json.brandPulseMetrics.liveCatalogCount,
           customDomainVerified: json.brandPulseMetrics.customDomainVerified,
           brandPulseLastScore: json.brandPulseMetrics.brandPulseLastScore ?? null,
+          totalListingClicks: json.brandPulseMetrics.totalListingClicks ?? 0,
+          totalListingConversions: json.brandPulseMetrics.totalListingConversions ?? 0,
         })
       }
       const st = json.store
@@ -942,6 +950,9 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                   shopUrl={storeUrls.primaryUrl}
                   embedEnabled={embedWidget.enabled}
                   onEnableEmbed={() => setEmbedWidget((prev) => ({ ...prev, enabled: true }))}
+                  postShareLoop={postShareLoop && role === "AFFILIATE"}
+                  initialTotalClicks={brandPulseMetrics.totalListingClicks}
+                  initialTotalConversions={brandPulseMetrics.totalListingConversions}
                 />
               </div>
             ) : null}

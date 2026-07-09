@@ -1,12 +1,20 @@
 "use client"
 
-import { Check, Copy, MessageCircle, Share2, X } from "lucide-react"
-import { useTranslations } from "next-intl"
-import { useCallback, useState } from "react"
+import { Check, Copy, MessageCircle, Share2, Sparkles, X } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { Button } from "@/components/ui/button"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
+import {
+  isLikelyMobileUserAgent,
+  markShareSentFlag,
+  orderSocialShareChannels,
+  readShareSentFlag,
+  recommendShareChannel,
+  type ShareChannelId,
+} from "@/lib/storefront-share-channel-recommendation"
 import {
   buildStorefrontTwitterShareUrl,
   buildStorefrontWhatsAppShareUrl,
@@ -20,8 +28,14 @@ type Props = {
   shopUrl: string | null
   embedEnabled?: boolean
   onEnableEmbed?: () => void
+  /** Onboarding post-publish — show traffic loop + channel recommendation. */
+  postShareLoop?: boolean
+  initialTotalClicks?: number
+  initialTotalConversions?: number
   className?: string
 }
+
+const TRAFFIC_POLL_MS = 15_000
 
 export function StorefrontShareGrowPanel({
   slug,
@@ -29,11 +43,108 @@ export function StorefrontShareGrowPanel({
   shopUrl,
   embedEnabled = false,
   onEnableEmbed,
+  postShareLoop = false,
+  initialTotalClicks = 0,
+  initialTotalConversions = 0,
   className,
 }: Props) {
   const t = useTranslations("storefront.brandStudio.shareGrow")
+  const locale = useLocale()
   const [copied, setCopied] = useState(false)
   const [sharing, setSharing] = useState(false)
+  const [shareSent, setShareSent] = useState(false)
+  const [totalClicks, setTotalClicks] = useState(initialTotalClicks)
+  const [totalConversions, setTotalConversions] = useState(initialTotalConversions)
+  const hadTrafficRef = useRef(initialTotalClicks > 0)
+
+  const nativeShareAvailable = canUseNativeWebShare()
+  const isMobile =
+    typeof navigator !== "undefined" && isLikelyMobileUserAgent(navigator.userAgent)
+
+  const recommendedChannel = useMemo(
+    () =>
+      recommendShareChannel({
+        embedEnabled,
+        nativeShareAvailable,
+        isMobile,
+        locale,
+      }),
+    [embedEnabled, nativeShareAvailable, isMobile, locale]
+  )
+
+  const socialChannelOrder = useMemo(
+    () => orderSocialShareChannels(recommendedChannel),
+    [recommendedChannel]
+  )
+
+  useEffect(() => {
+    setTotalClicks(initialTotalClicks)
+    setTotalConversions(initialTotalConversions)
+    if (initialTotalClicks > 0) hadTrafficRef.current = true
+  }, [initialTotalClicks, initialTotalConversions])
+
+  useEffect(() => {
+    if (!slug) return
+    setShareSent(readShareSentFlag(slug))
+  }, [slug])
+
+  useEffect(() => {
+    capturePosthogClient("brand_share_recommended_channel_shown", {
+      storeSlug: slug,
+      channel: recommendedChannel,
+      postShareLoop,
+    })
+  }, [slug, recommendedChannel, postShareLoop])
+
+  const markShared = useCallback(
+    (channel: ShareChannelId) => {
+      markShareSentFlag(slug)
+      setShareSent(true)
+      capturePosthogClient("brand_share_channel_opened", { storeSlug: slug, channel })
+      console.log("[share-grow]", { storeSlug: slug, channel, result: "opened" })
+    },
+    [slug]
+  )
+
+  const refreshTraffic = useCallback(async () => {
+    if (!postShareLoop) return
+    try {
+      const res = await fetch("/api/store/share-traffic", {
+        credentials: "include",
+        cache: "no-store",
+      })
+      if (!res.ok) return
+      const json = (await res.json()) as {
+        totalClicks?: number
+        totalConversions?: number
+      }
+      const clicks = json.totalClicks ?? 0
+      const conversions = json.totalConversions ?? 0
+      setTotalClicks(clicks)
+      setTotalConversions(conversions)
+      if (clicks > 0 && !hadTrafficRef.current) {
+        hadTrafficRef.current = true
+        capturePosthogClient("brand_share_traffic_first_click", {
+          storeSlug: slug,
+          totalClicks: clicks,
+        })
+        console.log("[share-grow]", { storeSlug: slug, totalClicks: clicks, result: "first_traffic" })
+      }
+    } catch (err) {
+      console.log("[share-grow]", {
+        storeSlug: slug,
+        result: "traffic_poll_error",
+        error: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }, [postShareLoop, slug])
+
+  useEffect(() => {
+    if (!postShareLoop) return
+    void refreshTraffic()
+    const interval = window.setInterval(() => void refreshTraffic(), TRAFFIC_POLL_MS)
+    return () => window.clearInterval(interval)
+  }, [postShareLoop, refreshTraffic])
 
   const shareMessage = t("shareMessage", { name: storeName.trim() || slug })
 
@@ -42,6 +153,7 @@ export function StorefrontShareGrowPanel({
     try {
       await navigator.clipboard.writeText(shopUrl)
       setCopied(true)
+      markShared("clipboard")
       capturePosthogClient("brand_share_link_copied", { storeSlug: slug, channel: "clipboard" })
       console.log("[share-grow]", { storeSlug: slug, channel: "clipboard", result: "ok" })
       window.setTimeout(() => setCopied(false), 2000)
@@ -53,10 +165,10 @@ export function StorefrontShareGrowPanel({
         error: err instanceof Error ? err.message : String(err),
       })
     }
-  }, [shopUrl, slug])
+  }, [shopUrl, slug, markShared])
 
   const nativeShare = useCallback(async () => {
-    if (!shopUrl || !canUseNativeWebShare()) return
+    if (!shopUrl || !nativeShareAvailable) return
     setSharing(true)
     try {
       await navigator.share({
@@ -64,6 +176,7 @@ export function StorefrontShareGrowPanel({
         text: shareMessage,
         url: shopUrl,
       })
+      markShared("native")
       capturePosthogClient("brand_share_native", { storeSlug: slug })
       console.log("[share-grow]", { storeSlug: slug, channel: "native", result: "ok" })
     } catch (err) {
@@ -77,17 +190,70 @@ export function StorefrontShareGrowPanel({
     } finally {
       setSharing(false)
     }
-  }, [shopUrl, slug, storeName, shareMessage])
+  }, [shopUrl, slug, storeName, shareMessage, nativeShareAvailable, markShared])
 
   if (!shopUrl) return null
 
   const whatsAppUrl = buildStorefrontWhatsAppShareUrl(shopUrl, shareMessage)
   const twitterUrl = buildStorefrontTwitterShareUrl(shopUrl, shareMessage)
 
-  function trackChannel(channel: string) {
-    capturePosthogClient("brand_share_channel_opened", { storeSlug: slug, channel })
-    console.log("[share-grow]", { storeSlug: slug, channel, result: "opened" })
+  function RecommendedBadge() {
+    return (
+      <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+        {t("recommended")}
+      </span>
+    )
   }
+
+  function SocialButton({
+    channel,
+    href,
+    recommended,
+  }: {
+    channel: "whatsapp" | "twitter"
+    href: string
+    recommended: boolean
+  }) {
+    const isWhatsApp = channel === "whatsapp"
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => markShared(channel)}
+        className={cn(
+          "relative inline-flex items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-semibold transition",
+          isWhatsApp
+            ? "border-emerald-200/80 bg-white text-emerald-900 hover:border-emerald-400 dark:border-emerald-900/50 dark:bg-zinc-950 dark:text-emerald-100"
+            : "border-zinc-200/80 bg-white text-zinc-800 hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100",
+          recommended && "ring-2 ring-emerald-400/80 ring-offset-1 dark:ring-emerald-500/70"
+        )}
+      >
+        {recommended ? (
+          <span className="absolute -top-2 right-2">
+            <RecommendedBadge />
+          </span>
+        ) : null}
+        {isWhatsApp ? (
+          <MessageCircle className="size-4" aria-hidden />
+        ) : (
+          <X className="size-4" aria-hidden />
+        )}
+        {isWhatsApp ? "WhatsApp" : "X"}
+      </a>
+    )
+  }
+
+  const trafficStatus =
+    totalConversions > 0
+      ? t("firstSale", { count: totalConversions })
+      : totalClicks > 0
+        ? t("firstTraffic", { count: totalClicks })
+        : shareSent
+          ? t("awaitingFirstClick")
+          : postShareLoop
+            ? t("postSharePrompt")
+            : null
 
   return (
     <BentoCard
@@ -107,6 +273,22 @@ export function StorefrontShareGrowPanel({
           </p>
         </div>
 
+        {trafficStatus ? (
+          <div
+            className={cn(
+              "flex items-start gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium",
+              totalClicks > 0 || totalConversions > 0
+                ? "border-emerald-300/80 bg-emerald-100/80 text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100"
+                : "border-amber-200/80 bg-amber-50/80 text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100"
+            )}
+          >
+            {totalClicks > 0 || totalConversions > 0 ? (
+              <Sparkles className="mt-0.5 size-4 shrink-0 text-emerald-600" aria-hidden />
+            ) : null}
+            <p>{trafficStatus}</p>
+          </div>
+        ) : null}
+
         <div className="rounded-xl border border-emerald-200/70 bg-white/80 p-3 dark:border-emerald-900/40 dark:bg-zinc-950/60">
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
             {t("primaryLink")}
@@ -115,46 +297,57 @@ export function StorefrontShareGrowPanel({
             {shopUrl}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button type="button" size="sm" variant="bentoSolid" onClick={() => void copyUrl()}>
+            <Button
+              type="button"
+              size="sm"
+              variant="bentoSolid"
+              className={cn(
+                recommendedChannel === "clipboard" &&
+                  "ring-2 ring-emerald-400/80 ring-offset-1 dark:ring-emerald-500/70"
+              )}
+              onClick={() => void copyUrl()}
+            >
               {copied ? <Check className="size-4" aria-hidden /> : <Copy className="size-4" aria-hidden />}
               {copied ? t("copied") : t("copyLink")}
+              {recommendedChannel === "clipboard" ? (
+                <span className="ml-1">
+                  <RecommendedBadge />
+                </span>
+              ) : null}
             </Button>
-            {canUseNativeWebShare() ? (
+            {nativeShareAvailable ? (
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
                 disabled={sharing}
+                className={cn(
+                  recommendedChannel === "native" &&
+                    "ring-2 ring-emerald-400/80 ring-offset-1 dark:ring-emerald-500/70"
+                )}
                 onClick={() => void nativeShare()}
               >
                 <Share2 className="size-4" aria-hidden />
                 {t("nativeShare")}
+                {recommendedChannel === "native" ? (
+                  <span className="ml-1">
+                    <RecommendedBadge />
+                  </span>
+                ) : null}
               </Button>
             ) : null}
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <a
-            href={whatsAppUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackChannel("whatsapp")}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200/80 bg-white px-3 py-2.5 text-xs font-semibold text-emerald-900 transition hover:border-emerald-400 dark:border-emerald-900/50 dark:bg-zinc-950 dark:text-emerald-100"
-          >
-            <MessageCircle className="size-4" aria-hidden />
-            WhatsApp
-          </a>
-          <a
-            href={twitterUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackChannel("twitter")}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200/80 bg-white px-3 py-2.5 text-xs font-semibold text-zinc-800 transition hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-          >
-            <X className="size-4" aria-hidden />
-            X
-          </a>
+          {socialChannelOrder.map((channel) => (
+            <SocialButton
+              key={channel}
+              channel={channel}
+              href={channel === "whatsapp" ? whatsAppUrl : twitterUrl}
+              recommended={recommendedChannel === channel}
+            />
+          ))}
         </div>
 
         {!embedEnabled && onEnableEmbed ? (
@@ -162,12 +355,23 @@ export function StorefrontShareGrowPanel({
             type="button"
             onClick={() => {
               onEnableEmbed()
+              markShared("embed")
               capturePosthogClient("brand_embed_enabled_from_share", { storeSlug: slug })
               console.log("[share-grow]", { storeSlug: slug, result: "embed_enabled" })
             }}
-            className="w-full rounded-xl border border-dashed border-violet-300/70 bg-violet-50/50 px-3 py-2.5 text-left text-xs font-medium text-violet-900 transition hover:border-violet-400 dark:border-violet-800 dark:bg-violet-950/20 dark:text-violet-100"
+            className={cn(
+              "relative w-full rounded-xl border border-dashed px-3 py-2.5 text-left text-xs font-medium transition",
+              recommendedChannel === "embed"
+                ? "border-emerald-400/80 bg-emerald-50/70 text-emerald-950 ring-2 ring-emerald-400/60 dark:border-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-100"
+                : "border-violet-300/70 bg-violet-50/50 text-violet-900 hover:border-violet-400 dark:border-violet-800 dark:bg-violet-950/20 dark:text-violet-100"
+            )}
           >
-            {t("enableEmbedHint")}
+            {recommendedChannel === "embed" ? (
+              <span className="mb-1 inline-flex">
+                <RecommendedBadge />
+              </span>
+            ) : null}
+            <span className="block">{t("enableEmbedHint")}</span>
           </button>
         ) : null}
       </div>

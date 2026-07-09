@@ -2337,7 +2337,12 @@
         "copied": "Copié",
         "nativeShare": "Partager…",
         "shareMessage": "Découvrez {name} — sélection produits sur Affisell",
-        "enableEmbedHint": "Activer le widget embed pour afficher votre shop sur votre site →"
+        "enableEmbedHint": "Activer le widget embed pour afficher votre shop sur votre site →",
+        "recommended": "Recommandé",
+        "postSharePrompt": "Votre annonce est en ligne — partagez votre lien pour vos premiers visiteurs.",
+        "awaitingFirstClick": "Lien partagé — en attente de votre première visite boutique.",
+        "firstTraffic": "{count, plural, one {# visite sur vos annonces} other {# visites sur vos annonces}}",
+        "firstSale": "{count, plural, one {# vente — continuez à partager !} other {# ventes — continuez à partager !}}"
       },
       "pulse": {
         "title": "Brand Pulse",
