@@ -27,11 +27,6 @@ async function resolveFrCurrentVersionId(db: BackfillDb, slug: string): Promise<
   return doc?.currentVersionId ?? null
 }
 
-type BackfillStats = {
-  usersScanned: number
-  acceptancesCreated: number
-}
-
 function roleSlugFromTermsVersion(
   termsAcceptedVersion: string | null | undefined
 ): "supplier" | "affiliate" | null {
