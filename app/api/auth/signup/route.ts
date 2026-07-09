@@ -275,6 +275,18 @@ export async function POST(req: Request) {
       })
     }
 
+    if (resolvedRole === "SUPPLIER" || resolvedRole === "AFFILIATE") {
+      const { sendWelcomeLegalEmail } = await import("@/lib/emails/send-welcome-legal-email")
+      void sendWelcomeLegalEmail(user.id).catch((err: unknown) => {
+        console.log("[signup]", {
+          userId: user.id,
+          role: resolvedRole,
+          result: "welcome_legal_email_failed",
+          error: err instanceof Error ? err.message : String(err),
+        })
+      })
+    }
+
     await logger.info("Signup success", { route: ROUTE, ip, role: resolvedRole })
     return NextResponse.json({ ok: true }, { status: 201 })
   } catch (e: unknown) {
