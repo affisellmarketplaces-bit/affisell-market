@@ -207,6 +207,7 @@ model User {
   affiliateProfile AffiliateProfile?
 
   termsAcceptanceLogs TermsAcceptanceLog[]
+  legalAcceptances    LegalAcceptance[]
 
   /**
    * CUSTOMER checkout account: INDIVIDUAL (particulier) or PROFESSIONAL (facturation pro).
@@ -2004,6 +2005,11 @@ model Order {
   autoFulfillmentBatchId           String?
   autoFulfillmentBatch             AutoFulfillmentBatch?        @relation(fields: [autoFulfillmentBatchId], references: [id], onDelete: SetNull)
 
+  cgvVersionId     String?
+  cgvVersion       LegalVersion?      @relation("OrderCgvVersion", fields: [cgvVersionId], references: [id])
+  cgvAcceptedAt    DateTime?
+  legalAcceptances LegalAcceptance[]
+
   supplierFulfillmentLinks SupplierFulfillmentOrderLine[]
   stripeRefunds            OrderStripeRefund[]
   transferReversals        TransferReversal[]
@@ -3162,4 +3168,98 @@ model TryOn {
   @@index([productId])
   @@index([resultHash])
   @@index([outputExpiresAt])
+}
+
+enum LegalDocumentType {
+  CGU
+  CGV
+  SUPPLIER_AGREEMENT
+  AFFILIATE_AGREEMENT
+  PRIVACY_POLICY
+  COOKIES_POLICY
+  REFUND_POLICY
+  PAYMENTS_POLICY
+  DAC7_POLICY
+  VAT_POLICY
+  LEGAL_NOTICE
+  AFFISELL_PLUS
+}
+
+enum LegalAcceptanceContext {
+  SIGNUP
+  CHECKOUT
+  REACCEPT_MODAL
+  ONBOARDING
+  ADMIN_OVERRIDE
+  MIGRATION_BACKFILL
+}
+
+model LegalDocument {
+  id               String            @id @default(cuid())
+  type             LegalDocumentType
+  title            String
+  slug             String            @unique
+  category         String // "agreement" | "policy"
+  requiresAccept   Boolean           @default(false)
+  currentVersionId String?           @unique
+  currentVersion   LegalVersion?     @relation("CurrentVersion", fields: [currentVersionId], references: [id])
+  versions         LegalVersion[]    @relation("DocumentVersions")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([type])
+  @@index([category])
+}
+
+model LegalVersion {
+  id              String            @id @default(cuid())
+  documentId      String
+  document        LegalDocument     @relation("DocumentVersions", fields: [documentId], references: [id], onDelete: Cascade)
+  version         String // semver "1.0.0"
+  language        String            @db.VarChar(8)
+  title           String
+  content         String            @db.Text
+  contentHash     String
+  publishedAt     DateTime          @default(now())
+  publishedBy     String // userId admin ou "system:seed"
+  changelog       String?           @db.Text
+  effectiveAt     DateTime          @default(now())
+  deprecatedAt    DateTime?
+  documentCurrent LegalDocument?    @relation("CurrentVersion")
+  acceptances     LegalAcceptance[]
+  ordersCgv       Order[]           @relation("OrderCgvVersion")
+
+  @@unique([documentId, version, language])
+  @@index([documentId, language, publishedAt])
+  @@index([contentHash])
+}
+
+model LegalAcceptance {
+  id                String                 @id @default(cuid())
+  userId            String?
+  user              User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentVersionId String
+  documentVersion   LegalVersion           @relation(fields: [documentVersionId], references: [id])
+  acceptedAt        DateTime               @default(now())
+  ip                String                 @db.VarChar(45)
+  userAgent         String                 @db.Text
+  context           LegalAcceptanceContext
+  orderId           String?
+  order             Order?                 @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  buyerEmail        String?
+  idempotencyKey    String?                @unique
+
+  @@index([userId, documentVersionId])
+  @@index([userId, acceptedAt])
+  @@index([orderId])
+  @@index([documentVersionId])
+}
+
+model LegalPolicy {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  enabled   Boolean  @default(true)
+  value     Json?
+  updatedAt DateTime @updatedAt
+  updatedBy String?
 }
