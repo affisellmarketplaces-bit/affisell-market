@@ -265,6 +265,7 @@ export function MerchantBrandStudio({
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0)
   const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
   const mountedRef = useRef(false)
+  const trustAutofillConsumedRef = useRef(false)
   const logoPanelRef = useRef<HTMLDivElement | null>(null)
   const pagesPanelRef = useRef<HTMLDivElement | null>(null)
   const embedPanelRef = useRef<HTMLDivElement | null>(null)
@@ -303,23 +304,77 @@ export function MerchantBrandStudio({
   }, [focusTarget])
 
   useEffect(() => {
-    if (focusTarget !== "pages" || !autofillTrust || !name.trim()) return
-    setStaticPages((prev) => {
-      if (hasMeaningfulStaticPages(prev)) return prev
-      const next = buildDefaultStaticPages({
-        storeName: name.trim(),
-        description: description.trim(),
-      })
-      setMessage(t("trustPagesAutofilled"))
-      capturePosthogClient("brand_trust_pages_autofilled", { role, storeSlug: storeSlug || "unknown" })
-      console.log("[brand-studio]", {
-        role,
-        storeSlug,
-        result: "trust_pages_autofilled",
-      })
-      return next
+    if (trustAutofillConsumedRef.current) return
+    if (focusTarget !== "pages" || !autofillTrust || !name.trim() || !savedSnapshot) return
+    if (logoFile) return
+    if (hasMeaningfulStaticPages(staticPages)) {
+      trustAutofillConsumedRef.current = true
+      return
+    }
+
+    trustAutofillConsumedRef.current = true
+    const nextStaticPages = buildDefaultStaticPages({
+      storeName: name.trim(),
+      description: description.trim(),
     })
-  }, [autofillTrust, description, focusTarget, name, role, storeSlug, t])
+    const nextSnapshot = snapshotFromDraft({
+      name,
+      description,
+      bannerUrl,
+      logoUrl,
+      primaryHex,
+      accent,
+      trustRailText,
+      nameBadge,
+      layout,
+      heroStyle,
+      gridDensity,
+      surface,
+      headerBrandAlign,
+      presetId,
+      homepageSections,
+      staticPages: nextStaticPages,
+      heroVideoUrl,
+      embedWidget,
+    })
+
+    setStaticPages(nextStaticPages)
+    setMessage(t("trustPagesAutofilled"))
+    capturePosthogClient("brand_trust_pages_autofilled", { role, storeSlug: storeSlug || "unknown" })
+    console.log("[brand-studio]", {
+      role,
+      storeSlug,
+      result: "trust_pages_autofilled",
+    })
+    void persistSnapshot(nextSnapshot, t("trustPagesPublished"))
+  }, [
+    accent,
+    autofillTrust,
+    bannerUrl,
+    description,
+    embedWidget,
+    focusTarget,
+    gridDensity,
+    headerBrandAlign,
+    heroStyle,
+    heroVideoUrl,
+    homepageSections,
+    layout,
+    logoFile,
+    logoUrl,
+    name,
+    nameBadge,
+    persistSnapshot,
+    presetId,
+    primaryHex,
+    role,
+    savedSnapshot,
+    staticPages,
+    storeSlug,
+    surface,
+    t,
+    trustRailText,
+  ])
 
   const applyLaunchConfig = useCallback((config: BrandLaunchConfig) => {
     setPresetId(config.presetId)
