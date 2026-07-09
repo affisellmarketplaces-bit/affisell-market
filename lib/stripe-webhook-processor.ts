@@ -33,6 +33,7 @@ import {
   isSponsorCheckoutSession,
 } from "@/lib/sponsor/activate-sponsor-campaign"
 import { inngest } from "@/inngest/client"
+import { autoAcceptBaseLegalOnStripeKyc } from "@/lib/legal/stripe-kyc-legal-acceptance"
 
 export type WebhookProcessResult = {
   orderId: string | null
@@ -285,6 +286,11 @@ async function dispatchStripeEvent(
           }
         }
       }
+      return { orderId: null, status: "success", error: null }
+    }
+    case "account.updated": {
+      const account = event.data.object as Stripe.Account
+      await autoAcceptBaseLegalOnStripeKyc(account, tx)
       return { orderId: null, status: "success", error: null }
     }
     default:
