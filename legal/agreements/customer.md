@@ -155,15 +155,9 @@ L'Affilié **peut vendre à un prix inférieur** au prix suggéré ou à la conc
 
 Tout listing dont la marge dépasse ce plafond est **bloqué à la publication** et peut faire l'objet d'une revue par Affisell. Ce plafond vise à prévenir les pratiques commerciales déloyales et à protéger la réputation de la Plateforme et des Acheteurs.
 
-### 5.5. Prix abusif ou déloyal — responsabilité
+### 5.5 Prix manifestement abusif
 
-| Acteur | Responsabilité |
-|--------|----------------|
-| **Affilié** | **Responsabilité primaire** — il fixe le prix public affiché à l'Acheteur |
-| **Fournisseur** | Responsabilité secondaire — notamment en cas de prix fournisseur manifestement déraisonnable |
-| **Affisell** | **Due diligence plateforme** — monitoring, signalement, retrait de listing, coopération avec les autorités |
-
-En cas de pratique abusive avérée, Affisell peut procéder au retrait immédiat du listing, à la suspension du compte de l'Affilié concerné, et faciliter le remboursement de l'Acheteur conformément aux [CGV](/legal/terms-of-sale) et à la [Politique de remboursement](/legal/refund-policy).
+La responsabilité de la fixation du prix public incombe en premier lieu à l'Affilié. En cas de signalement par un Acheteur, un Fournisseur ou une autorité de régulation concernant un prix manifestement abusif au regard des pratiques du marché, Affisell peut suspendre le listing concerné, sans préavis, dans un délai de 48 heures ouvrées suivant réception du signalement. L'Affilié sera notifié et pourra soumettre ses observations. La décision de réactivation appartient à Affisell après analyse.
 
 ### 5.6. Promotions et remises
 
@@ -219,15 +213,9 @@ Les reversements et commissions ne sont pas définitivement acquis en cas de :
 
 Affisell peut retenir temporairement des fonds le temps de l'instruction d'un litige.
 
-### 6.5. Remboursements et clawback
+### 6.5 Échec de recouvrement - Clawback
 
-En cas de remboursement dû à l'Acheteur :
-
-1. le ou les marchands bénéficiaires (Fournisseur et/ou Affilié selon le split) sont débités en priorité via leur solde Stripe Connect ;
-2. Affisell peut **avancer le remboursement à l'Acheteur** lorsque la loi l'exige, puis procéder au recouvrement auprès du ou des marchands concernés ;
-3. l'échec d'un Transfer Reversal Stripe n'exonère pas le marchand débiteur : Affisell se réserve le droit de suspendre les reversements futurs et de compenser sur les ventes ultérieures.
-
-L'Acheteur est remboursé lorsque le remboursement est dû au sens des [CGV](/legal/terms-of-sale), du droit de la consommation et de la [Politique de remboursement](/legal/refund-policy) ; le litige économique est internalisé avec le ou les marchands.
+En cas de remboursement à l'Acheteur, Stripe débite en priorité le Fournisseur puis l'Affilié au prorata de leurs gains sur la transaction. Si le Transfer Reversal échoue pour insuffisance de fonds, le Fournisseur demeure débiteur principal envers Affisell. Affisell peut, à sa discrétion, avancer le remboursement à l'Acheteur afin de préserver la confiance de la plateforme. Cette avance ne constitue pas reconnaissance de dette d'Affisell et fera l'objet d'un recouvrement immédiat auprès du Fournisseur, majoré des frais bancaires et de gestion.
 
 ### 6.6. Commission plateforme
 
