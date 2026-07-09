@@ -27,6 +27,14 @@ test.describe("public flows", () => {
     })
   }
 
+  test("GET /affiliate serves marketing landing (no redirect to /sell)", async ({ request }) => {
+    const res = await request.get("/affiliate", { maxRedirects: 0 })
+    expect(res.status()).toBe(200)
+    expect(res.headers().location ?? "").not.toMatch(/\/sell/)
+    const html = await res.text()
+    expect(html).toMatch(/Fixez vos prix/i)
+  })
+
   test("GET /api/categories returns JSON", async ({ request }) => {
     const res = await request.get("/api/categories")
     expect(res.ok()).toBeTruthy()

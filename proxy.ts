@@ -22,6 +22,7 @@ import {
   isLegalGateExemptPath,
   isLegalGatedPath,
   isReacceptTermsPath,
+  isAffiliateAuthenticatedArea,
   legalGateOk,
   reacceptTermsUrl,
 } from "@/lib/middleware-terms-gate"
@@ -297,10 +298,7 @@ export async function proxy(req: NextRequest) {
     }
 
     const isSupplierArea = bare === "/dashboard/supplier" || bare.startsWith("/dashboard/supplier/")
-    const isAffiliateArea =
-      bare === "/dashboard/affiliate" ||
-      bare.startsWith("/dashboard/affiliate/") ||
-      bare.startsWith("/affiliate/")
+    const isAffiliateArea = isAffiliateAuthenticatedArea(bare)
 
     const isLoginPath = bare === "/login" || bare.startsWith("/login/")
 
@@ -450,6 +448,7 @@ export const config = {
     "/dashboard",
     "/dashboard/:path*",
     "/login/agent",
+    "/affiliate",
     "/affiliate/:path*",
     "/agent",
     "/agents",

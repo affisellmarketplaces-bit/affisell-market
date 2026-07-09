@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 
 import { AffiliateMarketingLandingPage } from "@/components/marketing/affiliate-landing-page"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Programme Affilié | Affisell — Marge jusqu'à 300%",
   description:

@@ -10,6 +10,7 @@ const EXEMPT_PATHS = [
   REACCEPT_PATH,
   "/supplier/onboarding",
   "/affiliate/onboarding",
+  "/affiliate",
   "/login",
   "/signup",
   "/sign-up",
@@ -41,6 +42,21 @@ export function isLegalGateExemptPath(bare: string): boolean {
 /** @deprecated Use isLegalGateExemptPath */
 export function isMerchantTermsExemptPath(bare: string): boolean {
   return isLegalGateExemptPath(bare)
+}
+
+/** Public marketing landing — not the authenticated `/affiliate/*` app shell. */
+export function isAffiliatePublicMarketingPath(bare: string): boolean {
+  return bare === "/affiliate"
+}
+
+/** Authenticated affiliate routes (dashboard + in-app tools under `/affiliate/…`). */
+export function isAffiliateAuthenticatedArea(bare: string): boolean {
+  if (isAffiliatePublicMarketingPath(bare)) return false
+  return (
+    bare === "/dashboard/affiliate" ||
+    bare.startsWith("/dashboard/affiliate/") ||
+    bare.startsWith("/affiliate/")
+  )
 }
 
 export function isLegalGatedPath(bare: string): boolean {

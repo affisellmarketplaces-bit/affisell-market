@@ -35,6 +35,9 @@ import {
 } from "@/lib/legal/legal-gate-cookie"
 import {
   getRequiredDocuments,
+  isAffiliateAuthenticatedArea,
+  isAffiliatePublicMarketingPath,
+  isLegalGateExemptPath,
   legalGateCookieOk,
   legalGateOk,
 } from "@/lib/middleware-terms-gate"
@@ -135,5 +138,12 @@ describe("legal gate v2", () => {
     const token = { legalGateHash: "abc" }
 
     expect(legalGateOk(req, "SUPPLIER", token as never)).toBe(false)
+  })
+
+  it("treats /affiliate marketing landing as public", () => {
+    expect(isAffiliatePublicMarketingPath("/affiliate")).toBe(true)
+    expect(isAffiliateAuthenticatedArea("/affiliate")).toBe(false)
+    expect(isLegalGateExemptPath("/affiliate")).toBe(true)
+    expect(isAffiliateAuthenticatedArea("/affiliate/onboarding")).toBe(true)
   })
 })
