@@ -2,6 +2,8 @@ import { redirect } from "next/navigation"
 
 import { auth } from "@/auth"
 import { isRoleLegalDocAccepted } from "@/lib/legal/acceptance"
+
+export default async function SupplierOnboardingRedirectPage() {
   const session = await auth()
   if (!session?.user) {
     redirect("/login/supplier")
