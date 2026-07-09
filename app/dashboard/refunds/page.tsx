@@ -80,7 +80,7 @@ export default async function AffiliateRefundsHistoryPage() {
                           </span>
                         </td>
                         <td className="px-4 py-4 tabular-nums text-zinc-700 dark:text-zinc-300">
-                          {formatStoreCurrencyFromCents(row.commissionAtRiskCents, "EUR")}
+                          {formatStoreCurrencyFromCents(row.commissionAtRiskCents)}
                         </td>
                         <td className="px-4 py-4 tabular-nums text-zinc-600 dark:text-zinc-400">
                           {row.createdAt.toLocaleDateString("fr-FR")}

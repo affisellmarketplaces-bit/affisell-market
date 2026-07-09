@@ -19,7 +19,7 @@ const TOOLTIP =
 export function ClawbackRiskWidget({ riskCents }: Props) {
   const isEmpty = riskCents <= 0
   const showWarning = riskCents > CLAWBACK_RISK_WARNING_CENTS
-  const amountLabel = formatStoreCurrencyFromCents(riskCents, "EUR")
+  const amountLabel = formatStoreCurrencyFromCents(riskCents)
 
   return (
     <BentoCard
