@@ -1,8 +1,9 @@
 /**
- * Migre les fournisseurs legacy (termsAcceptedVersion conditions-fournisseur:*)
- * vers LegalAcceptance LMS supplier v courante — idempotent.
+ * Migre les fournisseurs legacy vers LegalAcceptance LMS supplier v courante — idempotent.
  *
  *   npx tsx scripts/migrate-supplier-legacy-acceptance.ts
+ *   npx tsx scripts/migrate-supplier-legacy-acceptance.ts --include-date-prefix
+ *   npx tsx scripts/migrate-supplier-legacy-acceptance.ts --include-date-prefix --email=julishop100k@gmail.com
  */
 import { config } from "dotenv"
 
@@ -11,6 +12,9 @@ config({ path: ".env" })
 
 import { LegalAcceptanceContext, PrismaClient } from "@prisma/client"
 
+const EXPECTED_SUPPLIER_HASH =
+  "0dab6258c7b17195a0253541f4c5bbdf593d0a3d4a1b9925e5dade6c1d18c150"
+
 const prisma = new PrismaClient()
 
 type MigrationStats = {
@@ -18,10 +22,36 @@ type MigrationStats = {
   alreadyOnLms: number
   migrated: number
   skippedNoVersion: number
+  skippedNotLegacy: number
 }
 
-async function hasSupplierLegalAcceptance(userId: string): Promise<boolean> {
-  const count = await prisma.legalAcceptance.count({
+export type MigrateSupplierLegacyOptions = {
+  includeDatePrefix?: boolean
+  email?: string
+}
+
+/** Legacy termsAcceptedVersion → slug supplier (currentVersion v1.0.0). */
+export function mapLegacyTermsToSupplierSlug(
+  termsAcceptedVersion: string | null | undefined,
+  includeDatePrefix: boolean
+): "supplier" | null {
+  const version = termsAcceptedVersion?.trim()
+  if (!version) return null
+
+  switch (true) {
+    case version.startsWith("conditions-fournisseur:"):
+      return "supplier"
+    case includeDatePrefix && version === "2026-05-26:terms-supplier":
+      return "supplier"
+    case includeDatePrefix && /^\d{4}-\d{2}-\d{2}:terms-supplier$/.test(version):
+      return "supplier"
+    default:
+      return null
+  }
+}
+
+async function hasSupplierLegalAcceptance(userId: string, db: PrismaClient): Promise<boolean> {
+  const count = await db.legalAcceptance.count({
     where: {
       userId,
       documentVersion: { document: { slug: "supplier" } },
@@ -30,8 +60,8 @@ async function hasSupplierLegalAcceptance(userId: string): Promise<boolean> {
   return count > 0
 }
 
-async function resolveCurrentSupplierVersionId(): Promise<string | null> {
-  const doc = await prisma.legalDocument.findUnique({
+async function resolveCurrentSupplierVersionId(db: PrismaClient): Promise<string | null> {
+  const doc = await db.legalDocument.findUnique({
     where: { slug: "supplier" },
     select: { currentVersionId: true },
   })
@@ -39,16 +69,19 @@ async function resolveCurrentSupplierVersionId(): Promise<string | null> {
 }
 
 export async function migrateSupplierLegacyAcceptance(
-  db: PrismaClient = prisma
+  db: PrismaClient = prisma,
+  options: MigrateSupplierLegacyOptions = {}
 ): Promise<MigrationStats> {
   const stats: MigrationStats = {
     suppliersScanned: 0,
     alreadyOnLms: 0,
     migrated: 0,
     skippedNoVersion: 0,
+    skippedNotLegacy: 0,
   }
 
-  const supplierVersionId = await resolveCurrentSupplierVersionId()
+  const includeDatePrefix = options.includeDatePrefix ?? false
+  const supplierVersionId = await resolveCurrentSupplierVersionId(db)
   if (!supplierVersionId) {
     console.log("[migrate-supplier-legacy]", { result: "no_supplier_version" })
     return stats
@@ -57,21 +90,28 @@ export async function migrateSupplierLegacyAcceptance(
   const suppliers = await db.user.findMany({
     where: {
       role: "SUPPLIER",
-      termsAcceptedVersion: { startsWith: "conditions-fournisseur:" },
+      ...(options.email ? { email: options.email.toLowerCase().trim() } : {}),
     },
     select: {
       id: true,
       email: true,
       createdAt: true,
+      termsAcceptedAt: true,
       termsAcceptedVersion: true,
     },
     orderBy: { createdAt: "asc" },
   })
 
-  stats.suppliersScanned = suppliers.length
-
   for (const user of suppliers) {
-    if (await hasSupplierLegalAcceptance(user.id)) {
+    const slug = mapLegacyTermsToSupplierSlug(user.termsAcceptedVersion, includeDatePrefix)
+    if (!slug) {
+      stats.skippedNotLegacy += 1
+      continue
+    }
+
+    stats.suppliersScanned += 1
+
+    if (await hasSupplierLegalAcceptance(user.id, db)) {
       stats.alreadyOnLms += 1
       continue
     }
@@ -86,7 +126,7 @@ export async function migrateSupplierLegacyAcceptance(
           userId: user.id,
           documentVersionId: supplierVersionId,
           context: LegalAcceptanceContext.MIGRATION_LEGACY,
-          acceptedAt: user.createdAt,
+          acceptedAt: user.termsAcceptedAt ?? user.createdAt,
           ip: "0.0.0.0",
           userAgent: "legacy-migration",
           idempotencyKey,
@@ -97,6 +137,7 @@ export async function migrateSupplierLegacyAcceptance(
         userId: user.id,
         email: user.email,
         termsAcceptedVersion: user.termsAcceptedVersion,
+        mappedSlug: slug,
         documentVersionId: supplierVersionId,
         result: "migrated",
       })
@@ -113,23 +154,70 @@ export async function migrateSupplierLegacyAcceptance(
   return stats
 }
 
+function parseArgs(argv: string[]) {
+  const includeDatePrefix = argv.includes("--include-date-prefix")
+  const emailArg = argv.find((a) => a.startsWith("--email="))
+  const email = emailArg?.slice("--email=".length).trim().toLowerCase() || undefined
+  return { includeDatePrefix, email }
+}
+
 async function main() {
-  const version = await prisma.legalVersion.findUnique({
-    where: { id: (await resolveCurrentSupplierVersionId()) ?? "" },
-    select: { version: true, contentHash: true },
+  const { includeDatePrefix, email } = parseArgs(process.argv)
+  const supplierVersionId = await resolveCurrentSupplierVersionId(prisma)
+  const version = supplierVersionId
+    ? await prisma.legalVersion.findUnique({
+        where: { id: supplierVersionId },
+        select: { version: true, contentHash: true },
+      })
+    : null
+
+  console.log("[migrate-supplier-legacy]", {
+    supplierCurrent: version,
+    includeDatePrefix,
+    email: email ?? "all",
+    expectedHash: EXPECTED_SUPPLIER_HASH,
   })
 
-  console.log("[migrate-supplier-legacy]", { supplierCurrent: version })
-
-  const stats = await migrateSupplierLegacyAcceptance()
+  const stats = await migrateSupplierLegacyAcceptance(prisma, { includeDatePrefix, email })
 
   console.log("[migrate-supplier-legacy]", {
     suppliersScanned: stats.suppliersScanned,
     alreadyOnLms: stats.alreadyOnLms,
     migrated: stats.migrated,
     skippedNoVersion: stats.skippedNoVersion,
+    skippedNotLegacy: stats.skippedNotLegacy,
     result: "done",
   })
+
+  if (email) {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, email: true },
+    })
+    if (user) {
+      const rows = await prisma.legalAcceptance.findMany({
+        where: {
+          userId: user.id,
+          documentVersion: { document: { slug: "supplier" } },
+        },
+        include: {
+          documentVersion: { select: { version: true, contentHash: true } },
+        },
+        orderBy: { acceptedAt: "desc" },
+      })
+      console.log("[migrate-supplier-legacy]", {
+        verify: rows.map((r) => ({
+          userId: user.id,
+          slug: "supplier",
+          version: r.documentVersion.version,
+          contentHash: r.documentVersion.contentHash,
+          context: r.context,
+          acceptedAt: r.acceptedAt,
+          hashOk: r.documentVersion.contentHash === EXPECTED_SUPPLIER_HASH,
+        })),
+      })
+    }
+  }
 }
 
 main()
