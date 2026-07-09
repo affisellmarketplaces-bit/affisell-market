@@ -66,7 +66,7 @@ export function StorefrontBrandAnalyticsPanel({
             : null
           : coachTarget === "pages"
             ? studioPath
-              ? `${studioPath}?focus=pages`
+              ? `${studioPath}?focus=pages&autofillTrust=1`
               : null
             : studioPath
               ? `${studioPath}?focus=embed`

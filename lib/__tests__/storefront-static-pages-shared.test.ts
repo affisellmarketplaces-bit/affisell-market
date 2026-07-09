@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   buildDefaultStaticPages,
   getEnabledStaticPages,
+  hasMeaningfulStaticPages,
   parseStaticPages,
   updateStaticPage,
 } from "@/lib/storefront-static-pages-shared"
@@ -29,5 +30,10 @@ describe("storefront-static-pages-shared", () => {
     const next = updateStaticPage(base, "about", { body: "Updated" })
     expect(next.about.body).toBe("Updated")
     expect(base.about.body).not.toBe("Updated")
+  })
+
+  it("detects whether trust pages already contain meaningful content", () => {
+    expect(hasMeaningfulStaticPages(parseStaticPages(undefined))).toBe(false)
+    expect(hasMeaningfulStaticPages(buildDefaultStaticPages({ storeName: "Demo" }))).toBe(true)
   })
 })

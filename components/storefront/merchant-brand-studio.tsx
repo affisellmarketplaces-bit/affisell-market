@@ -51,7 +51,9 @@ import {
   type HomepageSection,
 } from "@/lib/storefront-sections-shared"
 import {
+  buildDefaultStaticPages,
   DEFAULT_STATIC_PAGES,
+  hasMeaningfulStaticPages,
   serializeStaticPages,
   staticPagesEqual,
   type StorefrontStaticPages,
@@ -214,6 +216,7 @@ export function MerchantBrandStudio({
   const postShareLoop =
     focusSharePanel || searchParams.get("welcome") === "1"
   const focusTarget = searchParams.get("focus")
+  const autofillTrust = searchParams.get("autofillTrust") === "1"
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -298,6 +301,25 @@ export function MerchantBrandStudio({
     }, 80)
     return () => window.clearTimeout(timer)
   }, [focusTarget])
+
+  useEffect(() => {
+    if (focusTarget !== "pages" || !autofillTrust || !name.trim()) return
+    setStaticPages((prev) => {
+      if (hasMeaningfulStaticPages(prev)) return prev
+      const next = buildDefaultStaticPages({
+        storeName: name.trim(),
+        description: description.trim(),
+      })
+      setMessage(t("trustPagesAutofilled"))
+      capturePosthogClient("brand_trust_pages_autofilled", { role, storeSlug: storeSlug || "unknown" })
+      console.log("[brand-studio]", {
+        role,
+        storeSlug,
+        result: "trust_pages_autofilled",
+      })
+      return next
+    })
+  }, [autofillTrust, description, focusTarget, name, role, storeSlug, t])
 
   const applyLaunchConfig = useCallback((config: BrandLaunchConfig) => {
     setPresetId(config.presetId)

@@ -153,3 +153,15 @@ export function buildDefaultStaticPages(args: {
     },
   }
 }
+
+export function hasMeaningfulStaticPages(pages: StorefrontStaticPages): boolean {
+  return STOREFRONT_STATIC_PAGE_KINDS.some((kind) => {
+    const page = pages[kind]
+    if (!page?.enabled) return false
+    if ((page.title ?? "").trim()) return true
+    if ((page.body ?? "").trim()) return true
+    return (page.faqItems ?? []).some(
+      (item) => item.question.trim().length > 0 || item.answer.trim().length > 0
+    )
+  })
+}
