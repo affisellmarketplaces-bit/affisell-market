@@ -24,6 +24,40 @@ const SITEMAP_FALLBACK_CHUNK_IDS = [
   SITEMAP_CHUNK.listingsOffset,
 ] as const
 
+/** Public acquisition + legal pages indexed at priority ≥ 0.5. */
+export async function buildMarketingLandingSitemap(
+  baseUrl?: string
+): Promise<MetadataRoute.Sitemap> {
+  const base = (baseUrl ?? resolveSiteBaseUrl()).replace(/\/$/, "")
+  const now = new Date()
+  return [
+    {
+      url: base,
+      lastModified: now,
+      priority: 1,
+      changeFrequency: "weekly",
+    },
+    {
+      url: `${base}/affiliate`,
+      lastModified: now,
+      priority: 0.9,
+      changeFrequency: "weekly",
+    },
+    {
+      url: `${base}/supplier`,
+      lastModified: now,
+      priority: 0.9,
+      changeFrequency: "weekly",
+    },
+    {
+      url: `${base}/legal`,
+      lastModified: now,
+      priority: 0.5,
+      changeFrequency: "monthly",
+    },
+  ]
+}
+
 /** Build-time guard — CI/Lighthouse + Vercel static generation skip Prisma. */
 export function isSitemapDatabaseAvailable(): boolean {
   return shouldQueryDatabaseDuringBuild()
@@ -163,7 +197,7 @@ export async function buildAffisellSitemapChunk(
     }
 
     return [
-      withBaseUrl(baseUrl, "/", now, 1, "weekly"),
+      ...(await buildMarketingLandingSitemap(baseUrl)),
       withBaseUrl(baseUrl, "/shops", now, 0.9, "daily"),
       withBaseUrl(baseUrl, "/sell", now, 0.85, "weekly"),
       withBaseUrl(baseUrl, "/how-it-works", now, 0.7, "monthly"),

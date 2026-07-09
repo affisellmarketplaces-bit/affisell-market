@@ -11,6 +11,7 @@ const EXEMPT_PATHS = [
   "/supplier/onboarding",
   "/affiliate/onboarding",
   "/affiliate",
+  "/supplier",
   "/login",
   "/signup",
   "/sign-up",

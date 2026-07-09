@@ -6,21 +6,11 @@ export default function robots(): MetadataRoute.Robots {
   const baseUrl = resolveSiteBaseUrl()
 
   return {
-    rules: [
-      {
-        userAgent: "*",
-        allow: ["/", "/shops", "/browse", "/browse/", "/sell", "/store/supplier/"],
-        disallow: [
-          "/dashboard/",
-          "/admin/",
-          "/api/",
-          "/embed/",
-          "/login/",
-          "/signup/",
-          "/store/supplier/*/product/",
-        ],
-      },
-    ],
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/dashboard/", "/api/"],
+    },
     sitemap: `${baseUrl}/sitemap.xml`,
   }
 }

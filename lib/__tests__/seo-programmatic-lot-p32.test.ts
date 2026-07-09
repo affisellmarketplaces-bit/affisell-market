@@ -103,7 +103,10 @@ describe("seo-sitemap phase 2", () => {
       supplierLimit: 0,
     })
     const urls = entries.map((entry) => entry.url)
-    expect(urls).toContain("https://affisell.com/")
+    expect(urls).toContain("https://affisell.com")
+    expect(urls).toContain("https://affisell.com/affiliate")
+    expect(urls).toContain("https://affisell.com/supplier")
+    expect(urls).toContain("https://affisell.com/legal")
     expect(urls).toContain("https://affisell.com/sell")
   })
 })
