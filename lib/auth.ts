@@ -26,6 +26,7 @@ import {
 import { inferLoginPortal, isValidEmailIdentifier } from "@/lib/auth-login-portal"
 import { verifyBuyerCheckoutMagicToken } from "@/lib/buyer-checkout-magic"
 import { ensureMerchantStore } from "@/lib/ensure-store"
+import { computeUserLegalGateHash } from "@/lib/legal/acceptance"
 import { OAUTH_SIGNUP_INTENT_COOKIE, OAUTH_WELCOME_COOKIE } from "@/lib/oauth-cookies"
 import { prisma } from "@/lib/prisma"
 
@@ -317,6 +318,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       token.role = row?.role ?? (user as { role?: string }).role ?? (token.role as string) ?? "CUSTOMER"
       token.termsAcceptedVersion = row?.termsAcceptedVersion ?? null
       token.cguVersion = row?.cguVersion ?? null
+      const role = token.role as string
+      token.legalGateHash =
+        (await computeUserLegalGateHash(userId, role)) ?? undefined
       token.email = row?.email ?? user?.email ?? (token.email as string | undefined)
       token.picture =
         typeof row?.image === "string"

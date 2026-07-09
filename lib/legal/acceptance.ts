@@ -3,7 +3,10 @@ import "server-only"
 import type { LegalAcceptance, LegalAcceptanceContext, Prisma } from "@prisma/client"
 
 import { resolveAppLocale } from "@/lib/i18n-locale"
+import { isRoleTermsVersionCurrent } from "@/lib/legal-versions"
+import { computeLegalGateHash } from "@/lib/legal/legal-gate-cookie"
 import { getCurrentVersion, getLegalDocument } from "@/lib/legal/lms-resolver"
+import { getRequiredDocumentSlugs } from "@/lib/legal/required-documents"
 import { prisma } from "@/lib/prisma"
 import { clientIpFromRequest, userAgentFromRequest } from "@/lib/request-client-meta"
 
@@ -137,9 +140,50 @@ export async function attachOrderCgvAcceptance(
   })
 }
 
-export async function isDocumentAccepted(userId: string, slug: string): Promise<boolean> {
+async function userHasAnyLegalAcceptance(userId: string): Promise<boolean> {
+  const count = await prisma.legalAcceptance.count({ where: { userId } })
+  return count > 0
+}
+
+async function legacyIsDocumentAccepted(
+  userId: string,
+  slug: string,
+  role: string
+): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      cguAcceptedAt: true,
+      privacyAcceptedAt: true,
+      termsAcceptedAt: true,
+      termsAcceptedVersion: true,
+    },
+  })
+  if (!user) return false
+
+  if (slug === "customer") return user.cguAcceptedAt != null
+  if (slug === "privacy") return user.privacyAcceptedAt != null
+  if (slug === "supplier" && role === "SUPPLIER") {
+    return isRoleTermsVersionCurrent("SUPPLIER", user.termsAcceptedVersion)
+  }
+  if (slug === "affiliate" && role === "AFFILIATE") {
+    return isRoleTermsVersionCurrent("AFFILIATE", user.termsAcceptedVersion)
+  }
+  return false
+}
+
+export async function isDocumentAccepted(
+  userId: string,
+  slug: string,
+  role?: string
+): Promise<boolean> {
   const doc = await getLegalDocument(slug)
   if (!doc?.currentVersionId) return false
+
+  const hasLmsRows = await userHasAnyLegalAcceptance(userId)
+  if (!hasLmsRows) {
+    return legacyIsDocumentAccepted(userId, slug, role ?? "CUSTOMER")
+  }
 
   const latest = await prisma.legalAcceptance.findFirst({
     where: { userId, documentVersion: { documentId: doc.id } },
@@ -147,4 +191,44 @@ export async function isDocumentAccepted(userId: string, slug: string): Promise<
   })
 
   return latest?.documentVersionId === doc.currentVersionId
+}
+
+export async function findFirstMissingDocumentSlug(
+  userId: string,
+  role: string
+): Promise<string | null> {
+  for (const slug of getRequiredDocumentSlugs(role)) {
+    if (!(await isDocumentAccepted(userId, slug, role))) return slug
+  }
+  return null
+}
+
+export async function computeUserLegalGateHash(
+  userId: string,
+  role: string
+): Promise<string | null> {
+  const versionIds: string[] = []
+
+  for (const slug of getRequiredDocumentSlugs(role)) {
+    if (!(await isDocumentAccepted(userId, slug, role))) return null
+    const doc = await getLegalDocument(slug)
+    if (!doc?.currentVersionId) return null
+    versionIds.push(doc.currentVersionId)
+  }
+
+  return computeLegalGateHash(versionIds)
+}
+
+export async function collectAcceptedCurrentVersionIds(
+  userId: string,
+  role: string
+): Promise<string[]> {
+  const versionIds: string[] = []
+  for (const slug of getRequiredDocumentSlugs(role)) {
+    const doc = await getLegalDocument(slug)
+    if (doc?.currentVersionId && (await isDocumentAccepted(userId, slug, role))) {
+      versionIds.push(doc.currentVersionId)
+    }
+  }
+  return versionIds
 }

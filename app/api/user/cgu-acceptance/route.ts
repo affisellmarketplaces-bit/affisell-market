@@ -5,6 +5,8 @@ import { logBusiness } from "@/lib/business-log"
 import { recordLegalAcceptance } from "@/lib/legal/acceptance"
 import { buildConsentPayload } from "@/lib/legal/consent"
 import { logTermsAcceptanceFromRequest } from "@/lib/terms-logger"
+import { collectAcceptedCurrentVersionIds } from "@/lib/legal/acceptance"
+import { setLegalOkCookie } from "@/lib/legal/legal-gate-cookie"
 import { setTermsOkCookie } from "@/lib/legal/terms-acceptance-cookie"
 import { termsLogTypeForRole } from "@/lib/legal-versions"
 import { prisma } from "@/lib/prisma"
@@ -27,7 +29,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "CGU et confidentialité requises" }, { status: 400 })
   }
 
-  const role = session.user.role
+  const role = session.user.role ?? "CUSTOMER"
   if ((role === "AFFILIATE" || role === "SUPPLIER") && !body.acceptRoleTerms) {
     return NextResponse.json({ error: "Conditions rôle requises" }, { status: 400 })
   }
@@ -84,6 +86,10 @@ export async function POST(req: Request) {
   }
 
   const res = NextResponse.json({ ok: true, cguVersion: user.cguVersion })
+  const versionIds = await collectAcceptedCurrentVersionIds(user.id, role)
+  if (versionIds.length > 0) {
+    setLegalOkCookie(res, versionIds)
+  }
   if (role === "AFFILIATE" || role === "SUPPLIER") {
     setTermsOkCookie(res, role)
   }

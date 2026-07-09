@@ -2,7 +2,8 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { logBusiness } from "@/lib/business-log"
-import { recordLegalAcceptance } from "@/lib/legal/acceptance"
+import { recordLegalAcceptance, collectAcceptedCurrentVersionIds } from "@/lib/legal/acceptance"
+import { setLegalOkCookie } from "@/lib/legal/legal-gate-cookie"
 import { buildRoleTermsPayload } from "@/lib/legal/role-terms"
 import { logTermsAcceptanceFromRequest } from "@/lib/terms-logger"
 import { setTermsOkCookie } from "@/lib/legal/terms-acceptance-cookie"
@@ -61,6 +62,10 @@ export async function POST(req: Request) {
     ok: true,
     termsAcceptedVersion: user.termsAcceptedVersion,
   })
+  const versionIds = await collectAcceptedCurrentVersionIds(user.id, role)
+  if (versionIds.length > 0) {
+    setLegalOkCookie(res, versionIds)
+  }
   setTermsOkCookie(res, role)
   return res
 }

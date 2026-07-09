@@ -19,10 +19,10 @@ import { requestHost } from "@/lib/custom-domain-host"
 import { tryCustomDomainMiddleware } from "@/lib/middleware-custom-domain"
 import { canonicalPlatformRedirectUrl } from "@/lib/platform-canonical-url"
 import {
-  isMerchantTermsExemptPath,
-  isMerchantTermsGatedPath,
+  isLegalGateExemptPath,
+  isLegalGatedPath,
   isReacceptTermsPath,
-  merchantTermsGateOk,
+  legalGateOk,
   reacceptTermsUrl,
 } from "@/lib/middleware-terms-gate"
 import { isStaticAppPathname, staticAppRewriteTarget } from "@/lib/reserved-locale-segments"
@@ -347,11 +347,10 @@ export async function proxy(req: NextRequest) {
 
     if (
       loggedIn &&
-      (role === "SUPPLIER" || role === "AFFILIATE") &&
-      isMerchantTermsGatedPath(bare) &&
-      !isMerchantTermsExemptPath(bare) &&
+      isLegalGatedPath(bare) &&
+      !isLegalGateExemptPath(bare) &&
       !isReacceptTermsPath(bare) &&
-      !merchantTermsGateOk(req, role, token)
+      !legalGateOk(req, role, token)
     ) {
       return NextResponse.redirect(reacceptTermsUrl(req, path))
     }

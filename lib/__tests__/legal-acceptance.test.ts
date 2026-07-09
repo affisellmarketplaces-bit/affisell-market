@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const { prismaMock, getCurrentVersionMock, getLegalDocumentMock, authMock } = vi.hoisted(() => ({
     prismaMock: {
-    user: { update: vi.fn(), findMany: vi.fn() },
-    legalAcceptance: { upsert: vi.fn(), findFirst: vi.fn() },
+    user: { update: vi.fn(), findMany: vi.fn(), findUnique: vi.fn() },
+    legalAcceptance: { upsert: vi.fn(), findFirst: vi.fn(), count: vi.fn() },
     legalDocument: { findUnique: vi.fn() },
     order: { update: vi.fn() },
   },
@@ -114,6 +114,7 @@ describe("legal acceptance dual-write", () => {
       id: "doc_cgu",
       currentVersionId: "ver_current",
     })
+    prismaMock.legalAcceptance.count.mockResolvedValue(1)
 
     prismaMock.legalAcceptance.findFirst
       .mockResolvedValueOnce({ documentVersionId: "ver_old" })

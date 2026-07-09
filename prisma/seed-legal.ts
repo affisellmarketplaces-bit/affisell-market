@@ -241,6 +241,13 @@ async function main() {
   }
 
   console.log(`[legal:seed] Created ${documentCount} documents, ${versionCount} versions`)
+
+  await prisma.legalPolicy.upsert({
+    where: { key: "LEGAL_GATE_V2_ENABLED" },
+    update: {},
+    create: { key: "LEGAL_GATE_V2_ENABLED", enabled: false },
+  })
+  console.log("[legal:seed] LegalPolicy LEGAL_GATE_V2_ENABLED seeded (disabled)")
 }
 
 main()
