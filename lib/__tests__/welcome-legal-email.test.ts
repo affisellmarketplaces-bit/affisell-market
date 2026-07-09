@@ -9,6 +9,12 @@ const { prismaMock, getCurrentVersionMock, sendResendReactEmailMock } = vi.hoist
     user: {
       findUnique: vi.fn(),
     },
+    legalAcceptance: {
+      findFirst: vi.fn(),
+    },
+    termsAcceptanceLog: {
+      findFirst: vi.fn(),
+    },
   },
   getCurrentVersionMock: vi.fn(),
   sendResendReactEmailMock: vi.fn(),
@@ -43,6 +49,11 @@ describe("sendWelcomeLegalEmail", () => {
       role: "AFFILIATE",
       createdAt: new Date("2026-07-10T10:00:00.000Z"),
     })
+    prismaMock.legalAcceptance.findFirst.mockResolvedValue(null)
+    prismaMock.termsAcceptanceLog.findFirst.mockResolvedValue({
+      createdAt: new Date("2026-07-10T10:00:00.000Z"),
+      ip: "203.0.113.42",
+    })
     getCurrentVersionMock.mockImplementation(async (slug: string) => {
       if (slug === "customer") return legalVersion("1.0.0", "hash_cgu")
       if (slug === "affiliate") return legalVersion("1.0.0", "hash_cga")
@@ -52,7 +63,7 @@ describe("sendWelcomeLegalEmail", () => {
     sendResendReactEmailMock.mockResolvedValue({ ok: true, resendId: "re_123" })
   })
 
-  it("sends RGPD welcome email for AFFILIATE", async () => {
+  it("sends RGPD welcome email for AFFILIATE with IP audit trail", async () => {
     const result = await sendWelcomeLegalEmail("user_1")
     expect(result.ok).toBe(true)
     expect(sendResendReactEmailMock).toHaveBeenCalledWith(
@@ -61,10 +72,14 @@ describe("sendWelcomeLegalEmail", () => {
         intendedTo: "affiliate@test.com",
         subject: "Bienvenue chez Affisell - Vos documents légaux",
         props: expect.objectContaining({
+          roleLabel: "Affilié",
           roleDocLabel: "CGA",
           cguHash: "hash_cgu",
           roleDocHash: "hash_cga",
           privacyHash: "hash_privacy",
+          acceptedIp: "203.0.113.42",
+          preheader: expect.stringContaining("Consentements enregistrés le"),
+          gdprUrl: expect.stringContaining("/gdpr"),
         }),
       })
     )
@@ -102,6 +117,10 @@ describe("POST /api/webhooks/user.created", () => {
       name: "Sam",
       role: "SUPPLIER",
       createdAt: new Date("2026-07-10T10:00:00.000Z"),
+    })
+    prismaMock.legalAcceptance.findFirst.mockResolvedValue({
+      acceptedAt: new Date("2026-07-10T10:00:00.000Z"),
+      ip: "198.51.100.10",
     })
     getCurrentVersionMock.mockImplementation(async (slug: string) => {
       if (slug === "customer") return legalVersion("1.0.0", "hash_cgu")

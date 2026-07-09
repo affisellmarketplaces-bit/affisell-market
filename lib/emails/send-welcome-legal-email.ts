@@ -33,6 +33,40 @@ function displayName(name: string | null, email: string): string {
   return email.split("@")[0] ?? "partenaire"
 }
 
+async function resolveSignupAcceptanceAudit(
+  userId: string,
+  fallbackAt: Date
+): Promise<{ acceptedAt: Date; ip: string }> {
+  const [legalRow, termsRow] = await Promise.all([
+    prisma.legalAcceptance.findFirst({
+      where: { userId },
+      orderBy: { acceptedAt: "asc" },
+      select: { acceptedAt: true, ip: true },
+    }),
+    prisma.termsAcceptanceLog.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "asc" },
+      select: { createdAt: true, ip: true },
+    }),
+  ])
+
+  if (legalRow) {
+    return {
+      acceptedAt: legalRow.acceptedAt,
+      ip: legalRow.ip.trim() || "non enregistrée",
+    }
+  }
+
+  if (termsRow) {
+    return {
+      acceptedAt: termsRow.createdAt,
+      ip: termsRow.ip.trim() || "non enregistrée",
+    }
+  }
+
+  return { acceptedAt: fallbackAt, ip: "non enregistrée" }
+}
+
 export type SendWelcomeLegalEmailResult =
   | { ok: true; resendId?: string; duplicate?: boolean }
   | { ok: false; error: string; skipped?: boolean }
@@ -62,6 +96,10 @@ export async function sendWelcomeLegalEmail(userId: string): Promise<SendWelcome
   }
 
   const meta = ROLE_META[role]
+  const audit = await resolveSignupAcceptanceAudit(userId, user.createdAt)
+  const acceptedAtLabel = formatAcceptedAt(audit.acceptedAt)
+  const preheader = `Consentements enregistrés le ${acceptedAtLabel}`
+
   const [cgu, roleDoc, privacy] = await Promise.all([
     getCurrentVersion("customer", "fr"),
     getCurrentVersion(meta.roleSlug, "fr"),
@@ -88,7 +126,9 @@ export async function sendWelcomeLegalEmail(userId: string): Promise<SendWelcome
     props: {
       name: displayName(user.name, user.email),
       roleLabel: meta.roleLabel,
-      acceptedAtLabel: formatAcceptedAt(user.createdAt),
+      preheader,
+      acceptedAt: acceptedAtLabel,
+      acceptedIp: audit.ip,
       cguVersion: cgu.version,
       cguHash: cgu.contentHash,
       roleDocLabel: meta.roleDocLabel,
@@ -97,7 +137,7 @@ export async function sendWelcomeLegalEmail(userId: string): Promise<SendWelcome
       privacyVersion: privacy.version,
       privacyHash: privacy.contentHash,
       legalUrl: publicAbsoluteUrl("/legal"),
-      gdprUrl: publicAbsoluteUrl("/dashboard/account/gdpr"),
+      gdprUrl: publicAbsoluteUrl("/gdpr"),
       dpoEmail: DPO_EMAIL,
     },
   })
@@ -119,6 +159,7 @@ export async function sendWelcomeLegalEmail(userId: string): Promise<SendWelcome
     userId,
     role,
     resendId: sent.resendId,
+    acceptedIp: audit.ip,
     result: "ok",
   })
 

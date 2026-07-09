@@ -32,6 +32,7 @@ const nextConfig: NextConfig = {
       { source: "/legal/terms-supplier", destination: "/conditions-fournisseur", permanent: true },
       { source: "/legal/terms-affiliate", destination: "/conditions-affilie", permanent: true },
       { source: "/accessibility", destination: "/accessibilite", permanent: true },
+      { source: "/gdpr", destination: "/dashboard/account/gdpr", permanent: false },
     ]
   },
   output: "standalone" as const,

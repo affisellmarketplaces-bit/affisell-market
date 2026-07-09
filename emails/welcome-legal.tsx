@@ -13,7 +13,9 @@ import {
 export type WelcomeLegalEmailProps = {
   name: string
   roleLabel: string
-  acceptedAtLabel: string
+  preheader: string
+  acceptedAt: string
+  acceptedIp: string
   cguVersion: string
   cguHash: string
   roleDocLabel: string
@@ -29,7 +31,9 @@ export type WelcomeLegalEmailProps = {
 export function WelcomeLegalEmail({
   name,
   roleLabel,
-  acceptedAtLabel,
+  preheader,
+  acceptedAt,
+  acceptedIp,
   cguVersion,
   cguHash,
   roleDocLabel,
@@ -44,15 +48,17 @@ export function WelcomeLegalEmail({
   return (
     <Html>
       <Head />
-      <Preview>Bienvenue chez Affisell — vos consentements légaux sont enregistrés.</Preview>
+      <Preview>{preheader}</Preview>
       <Body style={main}>
         <Container style={container}>
           <Heading style={h1}>Bienvenue chez Affisell</Heading>
           <Text style={text}>Bonjour {name},</Text>
-          <Text style={text}>Votre compte {roleLabel} est actif.</Text>
+          <Text style={text}>Votre compte {roleLabel} Affisell est actif.</Text>
 
           <Section style={card}>
-            <Text style={cardTitle}>Consentements enregistrés le {acceptedAtLabel}</Text>
+            <Text style={cardTitle}>
+              Conformément au RGPD art.7, vos consentements sont enregistrés :
+            </Text>
             <Text style={mono}>
               • CGU v{cguVersion} : {cguHash}
             </Text>
@@ -62,6 +68,8 @@ export function WelcomeLegalEmail({
             <Text style={mono}>
               • Politique Confidentialité v{privacyVersion} : {privacyHash}
             </Text>
+            <Text style={meta}>Date : {acceptedAt}</Text>
+            <Text style={meta}>IP : {acceptedIp}</Text>
           </Section>
 
           <Text style={text}>
@@ -83,10 +91,7 @@ export function WelcomeLegalEmail({
             </Link>
           </Text>
 
-          <Text style={muted}>
-            Ces documents sont versionnés et horodatés conformément au RGPD art.7.
-          </Text>
-          <Text style={footer}>Affisell</Text>
+          <Text style={footer}>Affisell SAS</Text>
         </Container>
       </Body>
     </Html>
@@ -96,7 +101,9 @@ export function WelcomeLegalEmail({
 WelcomeLegalEmail.PreviewProps = {
   name: "Marie Dupont",
   roleLabel: "Affilié",
-  acceptedAtLabel: "10 juillet 2026 à 14:30",
+  preheader: "Consentements enregistrés le 10 juillet 2026 à 14:30",
+  acceptedAt: "10 juillet 2026 à 14:30",
+  acceptedIp: "203.0.113.42",
   cguVersion: "1.0.0",
   cguHash: "fb236ee2c5db695aa246bc51cf60d4d2cb2bf409f6513e89dfe3c742c6b1bbfb",
   roleDocLabel: "CGA",
@@ -105,7 +112,7 @@ WelcomeLegalEmail.PreviewProps = {
   privacyVersion: "1.0.0",
   privacyHash: "78d004c56b707d210ce3f45b87c26d9c083566aa7f9052dec4ad919ea0b5ff16",
   legalUrl: "https://affisell.com/legal",
-  gdprUrl: "https://affisell.com/dashboard/account/gdpr",
+  gdprUrl: "https://affisell.com/gdpr",
   dpoEmail: "dpo@affisell.com",
 } satisfies WelcomeLegalEmailProps
 
@@ -115,7 +122,6 @@ const main = { backgroundColor: "#f4f4f5", fontFamily: "system-ui, sans-serif" }
 const container = { margin: "0 auto", padding: "32px 16px", maxWidth: "560px" }
 const h1 = { color: "#18181b", fontSize: "22px", fontWeight: "700", margin: "0 0 16px" }
 const text = { color: "#3f3f46", fontSize: "15px", lineHeight: "24px", margin: "0 0 12px" }
-const muted = { color: "#71717a", fontSize: "13px", lineHeight: "20px", margin: "16px 0 0" }
 const card = {
   backgroundColor: "#ffffff",
   borderRadius: "12px",
@@ -132,5 +138,6 @@ const mono = {
   margin: "0 0 8px",
   wordBreak: "break-all" as const,
 }
+const meta = { color: "#52525b", fontSize: "13px", lineHeight: "20px", margin: "8px 0 0" }
 const link = { color: "#7c3aed", textDecoration: "underline" }
 const footer = { color: "#71717a", fontSize: "13px", margin: "24px 0 0" }
