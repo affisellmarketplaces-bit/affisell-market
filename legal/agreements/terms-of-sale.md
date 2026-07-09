@@ -1,185 +1,150 @@
 ---
 title: Conditions générales de vente (CGV)
-description: CGV applicables aux achats réalisés sur la marketplace Affisell par des consommateurs situés dans l'Union européenne. Version 1.0.0.
+description: CGV applicables aux achats réalisés sur la marketplace Affisell. Version 1.0.0 conforme Blueprint.
 version: 1.0.0
 locale: fr
 lastUpdated: 2026-07-09
 order: 0
 ---
 
-# Conditions générales de vente (CGV)
+# Conditions Générales de Vente - Affisell
 
-**Version 1.0.0 — Dernière mise à jour : {{LAST_UPDATED}}**
+**Version 1.0.0 — Effective au 09/07/2026 — Dernière mise à jour : {{LAST_UPDATED}}**
 
-Les présentes Conditions générales de vente (ci-après les « **CGV** ») s'appliquent à tout achat de produit réalisé sur la plateforme **Affisell** (ci-après la « **Plateforme** »), éditée par **Affisell SAS**, société par actions simplifiée au capital de {{CAPITAL}} euros, immatriculée au RCS d'Aix-en-Provence sous le numéro {{SIREN}}, dont le siège social est situé {{ADRESSE}}, numéro de TVA intracommunautaire FR{{TVA}} (ci-après « **Affisell** », « **nous** »).
+Les présentes Conditions générales de vente (ci-après les « **CGV** ») s'appliquent à tout achat réalisé sur la plateforme **Affisell**, éditée par **Affisell SAS**, société par actions simplifiée au capital de {{CAPITAL}} euros, immatriculée au RCS d'Aix-en-Provence sous le numéro {{SIREN}}, dont le siège social est situé {{ADRESSE}}, numéro de TVA intracommunautaire FR{{TVA}} (ci-après « **Affisell** »).
 
-Les CGV complètent les [Conditions générales d'utilisation](/legal/terms-of-service) (CGU) et s'appliquent à chaque **Commande** passée par un **Acheteur** consommateur ou professionnel situé dans l'Union européenne, sauf dispositions impératives contraires du pays de résidence de l'Acheteur.
-
-En validant une Commande, l'Acheteur reconnaît avoir pris connaissance des présentes CGV et les accepter sans réserve.
+Les CGV complètent les [Conditions générales d'utilisation](/legal/terms-of-service) (CGU). En validant une commande, l'Acheteur reconnaît avoir pris connaissance des présentes CGV et les accepter sans réserve. Cette acceptation est enregistrée et associée à la commande.
 
 ---
 
-## Article 1 — Définitions
+## 1. Préambule — Rôle des parties
 
-- **Acheteur** : personne physique ou morale passant une Commande via la Plateforme.
+**1.1** Le **Vendeur** est le **Fournisseur** identifié sur la fiche produit et la confirmation de commande. L'**Acheteur** est le **Client** (consommateur ou professionnel) qui passe commande via la Plateforme.
 
-- **Affilié** : partenaire commercial indépendant qui présente le produit via sa vitrine et fixe le **prix public** affiché à l'Acheteur. **L'Affilié n'est pas le vendeur** du produit.
+**1.2** **Affisell** agit en qualité de **mandataire technique** et **opérateur de place de marché** : hébergement de la vitrine, checkout, encaissement via Stripe, facilitation des retours et remboursements, médiation entre les parties. **Affisell n'est pas vendeur** ni partie au contrat de vente conclu entre l'Acheteur et le Fournisseur, sauf mention expresse contraire sur la fiche produit.
 
-- **Fournisseur** : professionnel vendeur du produit, identifié sur la fiche produit et la confirmation de Commande, responsable de l'expédition, de la conformité et des garanties légales.
-
-- **Commande** : contrat de vente conclu **entre l'Acheteur et le Fournisseur** pour **un seul produit déterminé**. **Une Commande correspond à un seul produit** ; le panier multi-produits n'est pas le modèle contractuel standard de la Plateforme.
-
-- **Prix public** : prix de vente TTC affiché à l'Acheteur au moment du checkout, fixé par l'**Affilié** dans les bornes définies par les [CGU](/legal/terms-of-service).
-
-- **Listing** : fiche produit personnalisée par un Affilié (prix, médias, description, vitrine).
+**1.3** L'**Affilié** (partenaire curateur) sélectionne le produit, le présente via sa vitrine et fixe le prix public. Il **n'est pas le vendeur** des marchandises et n'est pas partie au contrat de vente.
 
 ---
 
-## Article 2 — Objet, conclusion du contrat et rôle d'Affisell
+## 2. Produits et disponibilité
 
-2.1. **Objet.** Les présentes CGV définissent les conditions de vente applicables à chaque Commande passée sur la Plateforme.
+**2.1** **Une commande = un produit unique.** Le modèle contractuel standard de la Plateforme est le **panier mono-produit** : chaque commande porte sur un seul article déterminé.
 
-2.2. **Vendeur.** Le contrat de vente du produit est conclu **directement entre l'Acheteur et le Fournisseur** identifié sur la fiche produit et la confirmation de Commande. L'identité du Fournisseur (raison sociale, coordonnées) est communiquée à l'Acheteur avant ou au moment de la validation de la Commande.
+**2.2** Les descriptions, photographies, caractéristiques techniques et indications de conformité sont fournies par le **Fournisseur** sous sa **responsabilité exclusive**. Affisell n'exerce qu'une obligation de moyens d'hébergement et de modération.
 
-2.3. **Affilié.** L'Affilié intervient en qualité de **partenaire curateur** : il sélectionne le produit, le présente et fixe le prix public. Il **n'est pas partie au contrat de vente** du produit et n'assume pas les obligations de vendeur au sens du Code de la consommation.
-
-2.4. **Affisell — mandataire, non vendeur.** Affisell agit en qualité de **mandataire et intermédiaire technique** de la transaction : hébergement de la vitrine, checkout, encaissement via Stripe, facilitation des retours et remboursements, médiation entre les parties. **Affisell n'est pas le vendeur** des marchandises, sauf mention expresse contraire sur la fiche produit (stock Affisell ou mécanisme auto-buy documenté).
-
-2.5. **Formation du contrat.** La Commande est réputée conclue lorsque le paiement est accepté par l'établissement de paiement et que l'Acheteur reçoit la confirmation de Commande par email. Affisell conserve la preuve électronique de la transaction.
-
-2.6. **Acceptation au checkout.** L'Acheteur accepte les présentes CGV au moment de la validation du paiement. Cette acceptation est enregistrée et associée à la Commande.
+**2.3** La disponibilité affichée dépend des informations transmises par le Fournisseur. En cas de rupture de stock après commande, l'Acheteur est informé et remboursé intégralement si la commande ne peut être honorée.
 
 ---
 
-## Article 3 — Prix, TVA et facturation
+## 3. Prix — clause Blueprint 300 %
 
-3.1. **Prix public Affilié.** Le prix payé par l'Acheteur est le **prix public** fixé par l'**Affilié** pour le Listing concerné. Ce prix est affiché sur la page produit et récapitulé au checkout avant validation du paiement.
+**3.1** Le **prix public** affiché à l'Acheteur est fixé **librement par l'Affilié** pour le listing concerné. Affisell ne fixe pas le prix public de vente.
 
-3.2. **TVA incluse.** Les prix sont indiqués **toutes taxes comprises (TTC)** lorsque la TVA est applicable et collectée au moment de la Commande. La TVA est calculée automatiquement selon le **pays de livraison ou de consommation** de l'Acheteur via **Stripe Tax** ou mécanisme équivalent.
+**3.2** Les prix sont indiqués **toutes taxes comprises (TTC)**. La **TVA** est calculée et collectée via **Stripe Tax** (ou mécanisme équivalent) selon le pays de livraison ou de consommation de l'Acheteur.
 
-3.3. **Frais de livraison.** Les frais de livraison, le cas échéant, sont indiqués de manière claire et détaillée avant validation du paiement et s'ajoutent au prix du produit.
+**3.3** La **marge de l'Affilié** est **plafonnée à 300 % (trois cents pour cent)** du prix **wholesale hors taxes** fixé par le Fournisseur. Tout listing dépassant ce plafond est bloqué à la publication, conformément aux [CGU](/legal/terms-of-service).
 
-3.4. **Responsabilité fiscale.** Le **Fournisseur** demeure responsable de ses obligations fiscales sur la vente du produit (TVA, facturation). Affisell peut émettre ou faciliter l'émission d'une facture au nom du Fournisseur ou en qualité d'intermédiaire de facturation selon les règles fiscales applicables.
+**3.4** Le **prix plancher** (coût revendeur) est égal au **wholesale HT + commission Affisell** (frais de plateforme applicables sur la ligne commande). L'Affilié ne peut fixer un prix public inférieur à ce plancher.
 
-3.5. **Rappel — fixation des prix et marge.** Le prix public est fixé par l'**Affilié**, dans la limite d'un markup maximal de **300 %** sur le prix fournisseur hors taxes, conformément aux [CGU](/legal/terms-of-service). **Affisell ne fixe pas le prix public** affiché à l'Acheteur ; elle applique les règles de la Plateforme (plancher wholesale, plafond de marge, modération des prix manifestement abusifs).
-
----
-
-## Article 4 — Paiement
-
-4.1. Le règlement s'effectue en ligne via **Stripe** (carte bancaire et moyens de paiement compatibles).
-
-4.2. La Commande n'est confirmée qu'après **acceptation définitive du paiement** par l'établissement de paiement.
-
-4.3. Affisell n'est pas établissement de paiement. Les fonds transitent par Stripe Connect jusqu'aux reversements aux marchands selon les délais prévus aux [CGU](/legal/terms-of-service).
-
-4.4. En cas de refus de paiement ou d'annulation avant expédition, la Commande est automatiquement annulée sans frais pour l'Acheteur.
+**3.5** Les frais de livraison, le cas échéant, sont indiqués de manière claire avant validation du paiement.
 
 ---
 
-## Article 5 — Livraison et transfert des risques
+## 4. Commande et paiement
 
-5.1. **Responsabilité d'expédition.** La livraison est assurée par le **Fournisseur** ou par un transporteur mandaté par lui. Les modalités pratiques (transporteur, suivi) sont communiquées à l'Acheteur lors de l'expédition.
+**4.1** Le paiement est exigible **à 100 % à la commande** par carte bancaire (et moyens compatibles) via **Stripe**.
 
-5.2. **Délai de livraison.** Le délai de livraison applicable est celui **indiqué sur la fiche produit** au moment de la Commande, ou, à défaut d'indication spécifique, le délai estimé affiché au checkout. Le Fournisseur s'engage à expédier dans un délai maximal de **48 heures ouvrées** après confirmation du paiement, sauf délai plus long expressément affiché ou cas de force majeure.
+**4.2** Les fonds sont **détenus par Stripe** (custody Stripe Connect) jusqu'à l'**expédition** du produit par le Fournisseur et, le cas échéant, jusqu'à l'éligibilité aux reversements marchands selon les [CGU](/legal/terms-of-service).
 
-5.3. **Suivi.** Un numéro de suivi est communiqué à l'Acheteur dès que le Fournisseur expédie le produit, lorsque le transporteur le permet.
+**4.3** Une **confirmation de commande** est envoyée à l'Acheteur par **email sous 1 heure** suivant l'acceptation du paiement, récapitulant le produit, le prix TTC, le Vendeur (Fournisseur) et les présentes CGV.
 
-5.4. **Transfert des risques.** Le transfert des risques (perte, détérioration) du produit s'opère au moment de la **remise effective** du produit à l'Acheteur ou au transporteur mandaté par l'Acheteur, conformément aux articles L216-4 et L216-5 du Code de la consommation.
-
-5.5. **Retard.** En cas de retard de livraison non imputable à l'Acheteur, celui-ci peut suspendre le paiement du solde restant dû, le cas échéant, ou demander la résolution du contrat et le remboursement conformément aux articles L216-1 et L216-2 du Code de la consommation.
-
-5.6. **Produits numériques.** Pour les contenus numériques non fournis sur support matériel, les modalités de mise à disposition et de livraison sont précisées sur la fiche produit.
+**4.4** La commande n'est définitive qu'après acceptation du paiement par l'établissement bancaire. Affisell conserve la preuve électronique de la transaction.
 
 ---
 
-## Article 6 — Droit de rétractation (14 jours — Union européenne)
+## 5. Livraison — clause Blueprint
 
-6.1. **Délai.** Conformément aux articles L221-18 et suivants du Code de la consommation et à la directive 2011/83/UE, l'Acheteur consommateur dispose d'un délai de **14 jours calendaires** à compter de la **réception du produit** pour exercer son droit de rétractation, sans avoir à justifier de motifs ni à payer de pénalités.
+**5.1** Le **délai de livraison** applicable est celui **indiqué par le Fournisseur sur la fiche produit** au moment de la commande. À défaut d'indication spécifique, le délai maximal est de **30 jours calendaires** à compter de la confirmation de commande, sauf cas de force majeure.
 
-6.2. **Exceptions.** Le droit de rétractation ne s'applique pas aux produits exclus par la loi (articles L221-28 et suivants du Code de la consommation), notamment les biens personnalisés, scellés ne pouvant être renvoyés pour raisons d'hygiène, ou les contenus numériques dont l'exécution a commencé avec l'accord préalable de l'Acheteur.
+**5.2** L'expédition est assurée par le Fournisseur ou un transporteur mandaté par lui. Un numéro de suivi est communiqué lorsque disponible.
 
-6.3. **Formulaire type.** Pour exercer son droit de rétractation, l'Acheteur peut :
+**5.3** Les **risques** (perte, détérioration) sont **transférés à l'Acheteur à la livraison** effective du produit, conformément aux articles L216-4 et L216-5 du Code de la consommation.
 
-- utiliser le **formulaire type de rétractation** disponible sur la Plateforme ([Retours & remboursements](/returns)) ou en annexe des présentes CGV ;
-- ou adresser une déclaration dénuée d'ambiguïté exprimant sa décision de se rétracter à {{SUPPORT_EMAIL}} ou via l'espace client.
-
-6.4. **Retour du produit.** En cas de rétractation, l'Acheteur doit renvoyer le produit **dans un délai de 14 jours** suivant la communication de sa décision. Le produit doit être retourné dans son état d'origine, non utilisé, avec emballage intact et accessoires complets.
-
-6.5. **Frais de retour.** Les **frais de retour sont à la charge de l'Acheteur**, sauf si le produit est **défectueux, non conforme** à la Commande ou si la loi applicable impose le contraire.
-
-6.6. **Effet de la rétractation.** La rétractation emporte résolution du contrat de vente. Le remboursement est effectué conformément à l'article 7 des présentes CGV.
+**5.4** La **confirmation de livraison** par l'Acheteur, ou l'**auto-confirmation à J+10** après livraison si l'Acheteur reste silencieux, déclenche le calendrier d'**acquisition définitive des commissions à J+7** (date `payoutEligibleAt`), conformément aux [CGU](/legal/terms-of-service) et au Blueprint Affisell.
 
 ---
 
-## Article 7 — Remboursement
+## 6. Droit de rétractation — clause Blueprint 14 j
 
-7.1. **Délai.** Après réception et contrôle du retour (ou accord sur preuve de défaut en cas de non-conformité), le remboursement est effectué sur le **moyen de paiement initial**, **au plus tard dans les 14 jours** suivant la réception du produit retourné ou la réception de la preuve d'expédition du retour, conformément à l'article L221-24 du Code de la consommation.
+**6.1** L'Acheteur **consommateur** situé dans l'**Union européenne** dispose d'un délai de **14 jours calendaires** à compter de la **réception du produit** pour se rétracter **sans motif**, conformément aux articles L221-18 et suivants du Code de la consommation et à la directive 2011/83/UE.
 
-7.2. **Montant.** Le remboursement comprend le prix du produit et les frais de livraison initiaux au tarif standard, lorsque la loi l'impose. Les frais de retour restent à la charge de l'Acheteur sauf cas prévus à l'article 6.5.
+**6.2** Un **formulaire type de rétractation** est fourni en **Annexe** des présentes CGV et accessible sur la page [Retours & remboursements](/returns).
 
-7.3. **Réduction du remboursement.** Affisell ou le Fournisseur peut réduire le remboursement en cas de dépréciation du produit résultant de manipulations autres que celles nécessaires pour établir la nature, les caractéristiques et le bon fonctionnement du produit.
+**6.3** Les **frais de retour** sont à la charge de l'**Acheteur**, sauf si le produit est **défectueux** ou **non conforme** à la commande, ou si la loi applicable impose le contraire.
 
-7.4. **Échec de recouvrement — clawback.** En cas de remboursement à l'Acheteur, Stripe débite en priorité le **Fournisseur** puis l'**Affilié** au prorata de leurs gains sur la transaction. Si le **Transfer Reversal** échoue pour insuffisance de fonds, le **Fournisseur demeure débiteur principal** envers Affisell. Affisell peut, à sa discrétion, avancer le remboursement à l'Acheteur afin de préserver la confiance de la plateforme. Cette avance ne constitue pas reconnaissance de dette d'Affisell et fera l'objet d'un recouvrement immédiat auprès du Fournisseur, majoré des frais bancaires et de gestion.
+**6.4** Le **remboursement intégral** (produit et frais de livraison initiaux lorsque la loi l'impose) est effectué **sous 14 jours** suivant la réception du retour ou la preuve d'expédition du retour, via le **moyen de paiement initial** et mécanisme **Stripe Transfer Reversal**.
 
-7.5. **Politique complémentaire.** Les modalités détaillées figurent dans la [Politique de remboursement](/legal/refund-policy).
+**6.5** Si le **Transfer Reversal** échoue pour **insuffisance de fonds** du Fournisseur, le **Fournisseur demeure débiteur principal** envers Affisell. Affisell peut avancer le remboursement à l'Acheteur afin de préserver la confiance de la plateforme, puis procéder au recouvrement auprès du Fournisseur, majoré des frais bancaires et de gestion, conformément aux [CGU](/legal/terms-of-service) art. 6.5.
 
----
-
-## Article 8 — Garanties légales
-
-8.1. **Garantie légale de conformité.** L'Acheteur consommateur bénéficie de la **garantie légale de conformité** prévue aux articles L217-4 et suivants du Code de la consommation, pour une durée de **deux (2) ans** à compter de la délivrance du bien.
-
-8.2. **Garantie des vices cachés.** L'Acheteur bénéficie également de la garantie contre les **vices cachés** prévue aux articles 1641 et suivants du Code civil, lorsque les conditions légales sont réunies.
-
-8.3. **Exercice des garanties.** En cas de défaut de conformité ou de vice caché, l'Acheteur contacte le support à {{SUPPORT_EMAIL}} ou via la page [Retours & remboursements](/returns), en joignant des photos et la description du problème. Le **Fournisseur** est responsable de la mise en œuvre des garanties légales ; Affisell facilite la médiation.
-
-8.4. **Choix du consommateur.** Sous réserve des dispositions légales impératives, le consommateur peut choisir entre la réparation, le remplacement ou le remboursement du produit non conforme, selon les conditions prévues par le Code de la consommation.
+**6.6** Le droit de rétractation ne s'applique pas aux produits exclus par la loi (articles L221-28 et suivants du Code de la consommation).
 
 ---
 
-## Article 9 — Réclamations, litiges et médiation
+## 7. Garanties légales — Blueprint
 
-9.1. Toute réclamation doit être adressée en priorité à {{SUPPORT_EMAIL}} ou via l'espace client, en indiquant le numéro de Commande.
+**7.1** **Garantie légale de conformité** : l'Acheteur consommateur bénéficie de la garantie prévue aux articles L217-4 et suivants du Code de la consommation, pour une durée de **deux (2) ans à compter de la livraison** du bien.
 
-9.2. À défaut de résolution amiable, l'Acheteur consommateur peut recourir gratuitement à un **médiateur de la consommation** (articles L612-1 et suivants du Code de la consommation). Les coordonnées du médiateur compétent sont accessibles depuis le pied de page de la Plateforme.
+**7.2** **Garantie des vices cachés** : l'Acheteur bénéficie de la garantie prévue aux articles 1641 et suivants du Code civil, exercisable dans un délai de **deux (2) ans à compter de la découverte** du vice.
 
-9.3. La [plateforme européenne de règlement des litiges en ligne](https://ec.europa.eu/consumers/odr) (règlement UE n° 524/2013) est également accessible.
-
-9.4. Les présentes CGV sont soumises au **droit français**. Le tribunal compétent est celui du ressort du siège d'Affisell, sous réserve des dispositions impératives protectrices du consommateur de son pays de résidence dans l'Union européenne.
+**7.3** **Mise en œuvre** : l'Acheteur contacte **directement le Fournisseur** (coordonnées sur la confirmation de commande), avec **Affisell en copie** ({{SUPPORT_EMAIL}}) pour traçabilité et médiation. Le Fournisseur assure la réparation, le remplacement ou le remboursement selon les dispositions légales impératives.
 
 ---
 
-## Article 10 — Données personnelles
+## 8. Litiges
 
-Le traitement des données personnelles de l'Acheteur est décrit dans la [Politique de confidentialité](/legal/privacy-policy). L'Acheteur peut exercer ses droits RGPD depuis son espace client ou en contactant le DPO : {{DPO}}.
+**8.1** Toute réclamation doit être adressée en priorité à {{SUPPORT_EMAIL}}. Une **médiation de la consommation** doit être tentée **avant toute action judiciaire**, conformément aux articles L612-1 et suivants du Code de la consommation.
+
+**8.2** L'Acheteur consommateur peut également recourir à la **plateforme de règlement en ligne des litiges (RLL)** de la Commission européenne : [https://ec.europa.eu/consumers/odr](https://ec.europa.eu/consumers/odr) (règlement UE n° 524/2013).
+
+**8.3** **Tribunal compétent** : pour un Acheteur **consommateur** situé dans l'Union européenne, les règles impératives de son pays de résidence s'appliquent ; à défaut de disposition impérative contraire, compétence des **tribunaux du domicile de l'Acheteur**.
+
+**8.4** Les présentes CGV sont soumises au **droit français**.
 
 ---
 
-## Article 11 — Modification des CGV
+## 9. Données personnelles
 
-Affisell peut modifier les présentes CGV. La version applicable à une Commande est celle **acceptée par l'Acheteur au moment du checkout**. Les modifications substantielles ultérieures n'affectent pas les Commandes déjà conclues.
+Le traitement des données personnelles de l'Acheteur est décrit dans la [Politique de confidentialité](/legal/privacy-policy).
 
 ---
 
-## Article 12 — Contact
+## 10. Contact
 
 **Affisell SAS** — {{ADRESSE}}  
-Support Acheteur : {{SUPPORT_EMAIL}}  
-Délégué à la protection des données : {{DPO}}
+Support : {{SUPPORT_EMAIL}}  
+DPO : {{DPO}}
 
 ---
 
-## Annexe — Formulaire type de rétractation
+## Annexe — Formulaire de rétractation type
 
-*(Veuillez compléter et renvoyer ce formulaire uniquement si vous souhaitez vous rétracter du contrat.)*
+*(Conforme à l'annexe I bis de la directive 2011/83/UE — à compléter et renvoyer uniquement si vous souhaitez vous rétracter du contrat)*
 
-- À l'attention de : Affisell SAS — {{ADRESSE}} — {{SUPPORT_EMAIL}}
-- Je/Nous (*) notifie/notifions (*) par la présente ma/notre (*) rétractation du contrat portant sur la vente du bien ci-dessous :
-- Commandé le (*) / reçu le (*) :
-- Nom du/de la consommateur(s) :
-- Adresse du/de la consommateur(s) :
-- Signature du/des consommateur(s) (uniquement en cas de notification sur papier) :
-- Date :
+**À l'attention de :**  
+[Nom et adresse du Fournisseur — voir confirmation de commande]  
+Copie : Affisell SAS — {{ADRESSE}} — {{SUPPORT_EMAIL}}
+
+Je/Nous (*) notifie/notifions (*) par la présente ma/notre (*) rétractation du contrat portant sur la vente du bien ci-dessous :
+
+**Commandé le (*)** / **reçu le (*)** :
+
+**Nom du/des consommateur(s)** :
+
+**Adresse du/des consommateur(s)** :
+
+**Signature du/des consommateur(s)** (uniquement en cas de notification sur papier) :
+
+**Date** :
 
 (*) Rayez la mention inutile.
