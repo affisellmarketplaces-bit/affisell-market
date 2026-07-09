@@ -2,6 +2,7 @@ import "server-only"
 
 import fs from "node:fs"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 import matter from "gray-matter"
 
@@ -28,15 +29,16 @@ export function isLocalizedLegalSlug(slug: string): slug is LocalizedLegalSlug {
 
 const LOCALE_FALLBACK_CHAIN: AppLocale[] = ["en", "fr"]
 
+const LEGAL_CONTENT_DIR = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../legal/content"
+)
+
 function resolveLegalContentDir(): string {
-  const candidates = [
-    path.join(process.cwd(), "legal/content"),
-    path.join(process.cwd(), ".next/standalone/legal/content"),
-  ]
-  for (const dir of candidates) {
-    if (fs.existsSync(dir)) return dir
-  }
-  return candidates[0]!
+  if (fs.existsSync(LEGAL_CONTENT_DIR)) return LEGAL_CONTENT_DIR
+  const standaloneDir = path.resolve(LEGAL_CONTENT_DIR, "../../.next/standalone/legal/content")
+  if (fs.existsSync(standaloneDir)) return standaloneDir
+  return LEGAL_CONTENT_DIR
 }
 
 function localeCandidates(locale: AppLocale): AppLocale[] {

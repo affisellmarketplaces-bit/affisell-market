@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { resolve } from "node:path"
 
 import { videoLog } from "@/lib/video-logger"
@@ -6,7 +6,7 @@ import { videoLog } from "@/lib/video-logger"
 const SCOPES = ["https://www.googleapis.com/auth/cloud-platform"] as const
 const TOKEN_REFRESH_BUFFER_MS = 60_000
 const DEFAULT_TOKEN_TTL_MS = 3_600_000
-const AFFISELL_KEY_PATTERN = /^affisell-.+\.json$/i
+const LOCAL_GCP_CREDENTIAL_FILES = ["affisell-vertex.json", "gcp-service-account.json"] as const
 
 type GoogleAuthModule = typeof import("google-auth-library")
 type GoogleAuthInstance = InstanceType<GoogleAuthModule["GoogleAuth"]>
@@ -27,39 +27,26 @@ function parseCredentialsFile(filePath: string): Record<string, unknown> {
   }
 }
 
-/** Local dev: affisell-*.json, then GOOGLE_APPLICATION_CREDENTIALS path, then gcp-service-account.json */
+/** Local dev: GOOGLE_APPLICATION_CREDENTIALS path, then known key files at repo root. */
 function loadLocalGcpCredentialsFromDisk(): Record<string, unknown> | null {
   if (typeof process === "undefined" || !process.versions?.node) return null
+  if (process.env.VERCEL === "1") return null
 
-  const cwd = process.cwd()
+  const cwd = /*turbopackIgnore: true*/ process.cwd()
 
   const envPath = process.env.GOOGLE_APPLICATION_CREDENTIALS?.trim()
   if (envPath) {
-    const resolved = resolve(cwd, envPath)
+    const resolved = resolve(/*turbopackIgnore: true*/ cwd, /*turbopackIgnore: true*/ envPath)
     if (existsSync(resolved)) {
       return parseCredentialsFile(resolved)
     }
   }
 
-  let affisellFiles: string[] = []
-  try {
-    affisellFiles = readdirSync(cwd)
-      .filter((name) => AFFISELL_KEY_PATTERN.test(name))
-      .sort()
-  } catch {
-    return null
-  }
-
-  if (affisellFiles.length > 0) {
-    if (affisellFiles.length > 1) {
-      videoLog.warn("veo.auth.multiple_affisell_keys", { using: affisellFiles[0], found: affisellFiles.length })
+  for (const fileName of LOCAL_GCP_CREDENTIAL_FILES) {
+    const filePath = resolve(/*turbopackIgnore: true*/ cwd, fileName)
+    if (existsSync(filePath)) {
+      return parseCredentialsFile(filePath)
     }
-    return parseCredentialsFile(resolve(cwd, affisellFiles[0]))
-  }
-
-  const legacy = resolve(cwd, "gcp-service-account.json")
-  if (existsSync(legacy)) {
-    return parseCredentialsFile(legacy)
   }
 
   return null
@@ -67,7 +54,7 @@ function loadLocalGcpCredentialsFromDisk(): Record<string, unknown> | null {
 
 async function createGoogleAuth(): Promise<GoogleAuthInstance> {
   const { GoogleAuth } = await loadGoogleAuth()
-  if (existsSync(resolve(process.cwd(), "affisell-vertex.json"))) {
+  if (existsSync(resolve(/*turbopackIgnore: true*/ process.cwd(), "affisell-vertex.json"))) {
     return new GoogleAuth({
       keyFilename: "./affisell-vertex.json",
       scopes: [...SCOPES],
@@ -169,7 +156,7 @@ export async function veoAuthorizedFetch(
 
 /** For diagnostics (test-veo): which auth source is active. */
 export function getVeoAuthSource(): string {
-  if (existsSync(resolve(process.cwd(), "affisell-vertex.json"))) {
+  if (existsSync(resolve(/*turbopackIgnore: true*/ process.cwd(), "affisell-vertex.json"))) {
     return "affisell-vertex.json (keyFilename)"
   }
   if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON?.trim()) {

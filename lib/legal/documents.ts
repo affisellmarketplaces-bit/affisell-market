@@ -2,6 +2,7 @@ import "server-only"
 
 import fs from "node:fs"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 import matter from "gray-matter"
 
@@ -18,15 +19,13 @@ import type { AppLocale } from "@/lib/i18n-locale"
 export type { LegalDocMeta, LegalSlug }
 export { LEGAL_SLUGS, isLegalSlug, slugifyHeading }
 
+const LEGAL_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../legal")
+
 function resolveLegalDir(): string {
-  const candidates = [
-    path.join(process.cwd(), "legal"),
-    path.join(process.cwd(), ".next/standalone/legal"),
-  ]
-  for (const dir of candidates) {
-    if (fs.existsSync(dir)) return dir
-  }
-  return candidates[0]!
+  if (fs.existsSync(LEGAL_DIR)) return LEGAL_DIR
+  const standaloneDir = path.resolve(LEGAL_DIR, "../.next/standalone/legal")
+  if (fs.existsSync(standaloneDir)) return standaloneDir
+  return LEGAL_DIR
 }
 
 function loadLegacyLegalDocument(slug: LegalSlug): {

@@ -4,7 +4,7 @@ Next.js marketplace for **suppliers** (catalog, API) and **creators/affiliates**
 
 ## Requirements
 
-- Node 20+
+- Node 22+
 - PostgreSQL (`prisma/schema.prisma`)
 - Copy `.env.example` → `.env`
 

@@ -51,6 +51,12 @@ const nextConfig: NextConfig = {
   /** Runtime `fs.readFileSync` for `/legal/[slug]` markdown sources (standalone / Vercel). */
   outputFileTracingIncludes: {
     "/legal/[slug]": ["./legal/**/*.md"],
+    "/cgv": ["./legal/content/**/*.md"],
+    "/conditions-affilie": ["./legal/content/**/*.md"],
+    "/conditions-fournisseur": ["./legal/content/**/*.md"],
+    "/cookies": ["./legal/content/**/*.md"],
+    "/privacy": ["./legal/content/**/*.md"],
+    "/cgu": ["./legal/content/**/*.md"],
   },
   serverExternalPackages: ["@imgly/background-removal", "onnxruntime-web"],
   experimental: {
