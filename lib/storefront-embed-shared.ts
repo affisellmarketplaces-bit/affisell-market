@@ -45,6 +45,19 @@ export function embedWidgetsEqual(a: StorefrontEmbedWidget, b: StorefrontEmbedWi
   return serializeEmbedWidget(a) === serializeEmbedWidget(b)
 }
 
+export function hasMeaningfulEmbedWidget(widget: StorefrontEmbedWidget): boolean {
+  return widget.enabled || Boolean(widget.title?.trim()) || (widget.productLimit ?? 0) !== DEFAULT_EMBED_WIDGET.productLimit
+}
+
+export function buildDefaultEmbedWidget(args: { storeName: string }): StorefrontEmbedWidget {
+  const name = args.storeName.trim() || "My Store"
+  return {
+    enabled: true,
+    title: `Shop curated picks from ${name}`,
+    productLimit: 4,
+  }
+}
+
 export function storeEmbedPagePath(slug: string): string {
   return `/embed/shops/${encodeURIComponent(slug)}`
 }

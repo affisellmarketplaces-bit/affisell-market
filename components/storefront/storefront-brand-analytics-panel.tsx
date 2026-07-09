@@ -69,7 +69,7 @@ export function StorefrontBrandAnalyticsPanel({
               ? `${studioPath}?focus=pages&autofillTrust=1`
               : null
             : studioPath
-              ? `${studioPath}?focus=embed`
+              ? `${studioPath}?focus=embed&autofillEmbed=1`
               : null
 
   const dashboardUrl = projectId

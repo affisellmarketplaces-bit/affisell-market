@@ -59,8 +59,10 @@ import {
   type StorefrontStaticPages,
 } from "@/lib/storefront-static-pages-shared"
 import {
+  buildDefaultEmbedWidget,
   DEFAULT_EMBED_WIDGET,
   embedWidgetsEqual,
+  hasMeaningfulEmbedWidget,
   serializeEmbedWidget,
   type StorefrontEmbedWidget,
 } from "@/lib/storefront-embed-shared"
@@ -217,6 +219,7 @@ export function MerchantBrandStudio({
     focusSharePanel || searchParams.get("welcome") === "1"
   const focusTarget = searchParams.get("focus")
   const autofillTrust = searchParams.get("autofillTrust") === "1"
+  const autofillEmbed = searchParams.get("autofillEmbed") === "1"
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -266,6 +269,7 @@ export function MerchantBrandStudio({
   const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
   const mountedRef = useRef(false)
   const trustAutofillConsumedRef = useRef(false)
+  const embedAutofillConsumedRef = useRef(false)
   const logoPanelRef = useRef<HTMLDivElement | null>(null)
   const pagesPanelRef = useRef<HTMLDivElement | null>(null)
   const embedPanelRef = useRef<HTMLDivElement | null>(null)
@@ -374,6 +378,76 @@ export function MerchantBrandStudio({
     surface,
     t,
     trustRailText,
+  ])
+
+  useEffect(() => {
+    if (embedAutofillConsumedRef.current) return
+    if (focusTarget !== "embed" || !autofillEmbed || !name.trim() || !savedSnapshot) return
+    if (logoFile) return
+    if (hasMeaningfulEmbedWidget(embedWidget)) {
+      embedAutofillConsumedRef.current = true
+      return
+    }
+
+    embedAutofillConsumedRef.current = true
+    const nextEmbedWidget = buildDefaultEmbedWidget({ storeName: name.trim() })
+    const nextSnapshot = snapshotFromDraft({
+      name,
+      description,
+      bannerUrl,
+      logoUrl,
+      primaryHex,
+      accent,
+      trustRailText,
+      nameBadge,
+      layout,
+      heroStyle,
+      gridDensity,
+      surface,
+      headerBrandAlign,
+      presetId,
+      homepageSections,
+      staticPages,
+      heroVideoUrl,
+      embedWidget: nextEmbedWidget,
+    })
+
+    setEmbedWidget(nextEmbedWidget)
+    setMessage(t("embedWidgetPublished"))
+    capturePosthogClient("brand_embed_widget_autofilled", { role, storeSlug: storeSlug || "unknown" })
+    console.log("[brand-studio]", {
+      role,
+      storeSlug,
+      result: "embed_widget_autofilled",
+    })
+    void persistSnapshot(nextSnapshot, t("embedWidgetPublished"))
+  }, [
+    accent,
+    autofillEmbed,
+    bannerUrl,
+    description,
+    embedWidget,
+    gridDensity,
+    headerBrandAlign,
+    heroStyle,
+    heroVideoUrl,
+    homepageSections,
+    layout,
+    logoFile,
+    logoUrl,
+    name,
+    nameBadge,
+    persistSnapshot,
+    presetId,
+    primaryHex,
+    role,
+    savedSnapshot,
+    staticPages,
+    storeSlug,
+    surface,
+    t,
+    trustRailText,
+    focusTarget,
   ])
 
   const applyLaunchConfig = useCallback((config: BrandLaunchConfig) => {
