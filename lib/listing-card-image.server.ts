@@ -11,6 +11,13 @@ import { prisma } from "@/lib/prisma"
 const CARD_MAX_WIDTH = 480
 const CARD_WEBP_QUALITY = 80
 
+class ListingCardImageMiss extends Error {
+  constructor() {
+    super("listing_card_image_miss")
+    this.name = "ListingCardImageMiss"
+  }
+}
+
 function pickFirstUsableListingImage(
   customImages: string[] | null | undefined,
   productImages: string[] | null | undefined
@@ -72,12 +79,23 @@ async function loadListingCardWebpUncached(listingId: string): Promise<Buffer | 
   }
 }
 
-const loadListingCardWebpCached = (listingId: string) =>
-  unstable_cache(
-    () => loadListingCardWebpUncached(listingId),
-    ["listing-card-image-v1", listingId],
+/** Cache only successful WebP renders — misses are not stored (avoids sticky placeholders). */
+function loadListingCardWebpCached(listingId: string): Promise<Buffer | null> {
+  return unstable_cache(
+    async () => {
+      const buf = await loadListingCardWebpUncached(listingId)
+      if (!buf) throw new ListingCardImageMiss()
+      return buf.toString("base64")
+    },
+    ["listing-card-image-v2", listingId],
     { revalidate: 86_400, tags: [listingCardImageCacheTag(listingId)] }
   )()
+    .then((encoded) => Buffer.from(encoded, "base64"))
+    .catch((error: unknown) => {
+      if (error instanceof ListingCardImageMiss) return null
+      throw error
+    })
+}
 
 export async function getListingCardImageWebp(listingId: string): Promise<Buffer | null> {
   const id = listingId.trim()

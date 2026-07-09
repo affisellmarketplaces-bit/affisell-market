@@ -14,7 +14,7 @@ import {
 } from "@/lib/supplier-product-offer-mode"
 import { validateOfferModePublish } from "@/lib/product-offer-mode"
 import { parseSupplierProductShippingBody, validateDeliveryCountriesPublish, validateWarehouseTypePublish } from "@/lib/supplier-product-shipping"
-import { parseSupplierProductImages } from "@/lib/supplier-product-images"
+import { parseSupplierProductImages, validateSupplierProductImagesForPublish } from "@/lib/supplier-product-images"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
 import {
@@ -276,6 +276,10 @@ export async function POST(req: Request) {
   }
 
   if (!saveAsDraft) {
+    const imagesErr = validateSupplierProductImagesForPublish(images)
+    if (imagesErr) {
+      return Response.json({ error: imagesErr }, { status: 400 })
+    }
     const offerErr = validateOfferModePublish(offer.offerMode, offer.minOrderQuantity)
     if (offerErr) {
       return Response.json({ error: offerErr }, { status: 400 })

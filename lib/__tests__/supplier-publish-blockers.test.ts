@@ -80,6 +80,13 @@ describe("supplier-publish-blockers", () => {
     expect(publishBlockerStep("warehouseType")).toBe(3)
   })
 
+  it("maps product_images_required to images step", () => {
+    const blockers = mapServerPublishBlockers({ error: "product_images_required" })
+    expect(blockers).toHaveLength(1)
+    expect(blockers[0]?.field).toBe("images")
+    expect(blockers[0]?.message).toContain("photo")
+  })
+
   it("requires delivery countries on publish", () => {
     const blockers = collectClientPublishBlockers({
       name: "Test",

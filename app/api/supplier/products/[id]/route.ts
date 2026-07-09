@@ -26,7 +26,10 @@ import {
 } from "@/lib/supplier-product-offer-mode"
 import { validateOfferModePublish } from "@/lib/product-offer-mode"
 import { parseSupplierProductShippingBody, validateDeliveryCountriesPublish, validateWarehouseTypePublish } from "@/lib/supplier-product-shipping"
-import { resolveSupplierProductImagesForSave } from "@/lib/supplier-product-images"
+import {
+  resolveSupplierProductImagesForSave,
+  validateSupplierProductImagesForPublish,
+} from "@/lib/supplier-product-images"
 import { parseListingKind } from "@/lib/supplier-commission"
 import {
   parseProductDigitalDeliveryBody,
@@ -305,6 +308,10 @@ export async function PUT(
   const attr = parseProductAttributesBody(body as unknown as Record<string, unknown>)
   const ship = parseSupplierProductShippingBody(body as unknown as Record<string, unknown>)
   if (publish || activatingFromDraft) {
+    const imagesErr = validateSupplierProductImagesForPublish(images)
+    if (imagesErr) {
+      return Response.json({ error: imagesErr }, { status: 400 })
+    }
     const warehouseErr = validateWarehouseTypePublish(ship.warehouseType)
     if (warehouseErr) {
       return Response.json({ error: warehouseErr }, { status: 400 })

@@ -231,6 +231,8 @@ export function mapServerPublishBlockers(json: {
                 ? "Sélectionnez au moins un pays de livraison (ou « Monde entier ») — obligatoire pour la publication."
               : json.error === "affiliate_commission_required"
                 ? "Définissez la commission offerte aux affiliés sur chaque vente (> 0 %). La grille catégorie est indicative uniquement."
+              : json.error === "product_images_required"
+                ? "Ajoutez au moins une photo produit hébergée (upload terminé) avant de publier."
               : json.error
     const mapped = blockerFromMessage(normalizedError)
     if (mapped) {

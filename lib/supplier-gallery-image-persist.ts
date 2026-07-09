@@ -178,8 +178,15 @@ export async function persistSupplierGalleryImage(
 ): Promise<string> {
   const result = await uploadGalleryDataUrl(dataUrl, filename)
   if (result.ok) return result.url
-  if (!dataUrl.startsWith("data:image/")) return dataUrl.trim()
-  return dataUrl
+  const trimmed = dataUrl.trim()
+  if (!trimmed.startsWith("data:image/")) return trimmed
+  console.log("[supplier-gallery-image]", {
+    filename,
+    persisted: false,
+    reason: "cdn_upload_failed_no_data_fallback",
+    detail: result.detail,
+  })
+  return ""
 }
 
 /** Persist several gallery files with bounded parallelism. */
@@ -220,7 +227,13 @@ export async function persistSupplierGalleryImages(
       if (i >= items.length) return
       const item = items[i]!
       const result = await uploadGalleryDataUrl(item.dataUrl, item.filename)
-      out[i] = result.ok ? result.url : item.dataUrl
+      if (result.ok) {
+        out[i] = result.url
+      } else if (!item.dataUrl.startsWith("data:image/")) {
+        out[i] = item.dataUrl.trim()
+      } else {
+        out[i] = ""
+      }
     }
   }
 
