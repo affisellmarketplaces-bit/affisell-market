@@ -3,7 +3,9 @@ import { Suspense } from "react"
 
 import { AffiliateOnboardingChecklist } from "@/components/affiliate/affiliate-onboarding-checklist"
 import { AffiliateKycPublishBanner } from "@/components/affiliate/affiliate-kyc-publish-banner"
+import { ClawbackRiskWidget } from "@/components/dashboard/clawback-risk-widget"
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
+import { loadAffiliateClawbackRisk } from "@/lib/affiliate-clawback-risk"
 import { loadAffiliateFirstSaleProgress } from "@/lib/merchant-first-sale-progress"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 
@@ -14,9 +16,10 @@ export const dynamic = "force-dynamic"
 /** No Prisma on SSR — hosted DB may block queries when transfer quota is exceeded. */
 export default async function AffiliateDashboardPage() {
   const session = await requireAffiliateSession("/dashboard/affiliate")
-  const [firstSaleProgress, kycGate] = await Promise.all([
+  const [firstSaleProgress, kycGate, clawbackRisk] = await Promise.all([
     loadAffiliateFirstSaleProgress(session.user.id),
     merchantVerificationGate(session.user.id),
+    loadAffiliateClawbackRisk(session.user.id),
   ])
 
   return (
@@ -40,6 +43,10 @@ export default async function AffiliateDashboardPage() {
             draftCount={firstSaleProgress.draftListingCount}
           />
           <AffiliateOnboardingChecklist progress={firstSaleProgress} />
+          <ClawbackRiskWidget
+            riskCents={clawbackRisk.riskCents}
+            pendingReturnCount={clawbackRisk.pendingReturnCount}
+          />
         </BentoContainer>
         <AffiliateDashboard storeId={session.user.id} />
       </div>
