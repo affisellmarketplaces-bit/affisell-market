@@ -934,7 +934,13 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
               presetAb={presetAb}
               onUpdated={() => void hydrate()}
             />
-            <StorefrontBrandAnalyticsPanel role={role} presetId={presetId} />
+            <StorefrontBrandAnalyticsPanel
+              role={role}
+              presetId={presetId}
+              liveCatalogCount={brandPulseMetrics.liveCatalogCount}
+              totalListingClicks={brandPulseMetrics.totalListingClicks}
+              totalListingConversions={brandPulseMetrics.totalListingConversions}
+            />
             <StoreLiveUrlCard urls={storeUrls} storeHostSuffix={storeHostSuffix} loading={loading} />
             {storeSlug && storeUrls?.primaryUrl ? (
               <div

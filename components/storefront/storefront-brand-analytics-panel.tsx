@@ -1,6 +1,6 @@
 "use client"
 
-import { BarChart3, ExternalLink } from "lucide-react"
+import { ArrowRight, BarChart3, ExternalLink, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
@@ -10,11 +10,15 @@ import {
   buildPosthogPresetInsightUrl,
   buildPosthogProjectEventsUrl,
 } from "@/lib/storefront-brand-analytics-shared"
+import { resolveBrandAnalyticsStage } from "@/lib/storefront-brand-analytics-live"
 import { cn } from "@/lib/utils"
 
 type Props = {
   role: "AFFILIATE" | "SUPPLIER"
   presetId: string | null
+  liveCatalogCount?: number
+  totalListingClicks?: number
+  totalListingConversions?: number
   className?: string
 }
 
@@ -23,10 +27,25 @@ function readPosthogProjectId(): string | null {
   return id || null
 }
 
-export function StorefrontBrandAnalyticsPanel({ role, presetId, className }: Props) {
+export function StorefrontBrandAnalyticsPanel({
+  role,
+  presetId,
+  liveCatalogCount = 0,
+  totalListingClicks = 0,
+  totalListingConversions = 0,
+  className,
+}: Props) {
   const t = useTranslations("storefront.brandStudio.analytics")
   const projectId = readPosthogProjectId()
   const captureHost = process.env.NEXT_PUBLIC_POSTHOG_HOST
+  const stage =
+    role === "AFFILIATE"
+      ? resolveBrandAnalyticsStage({
+          liveCatalogCount,
+          totalListingClicks,
+          totalListingConversions,
+        })
+      : null
 
   const dashboardUrl = projectId
     ? buildPosthogProjectEventsUrl({
@@ -64,6 +83,47 @@ export function StorefrontBrandAnalyticsPanel({ role, presetId, className }: Pro
       <p className="mt-1 text-xs leading-relaxed text-indigo-900/75 dark:text-indigo-200/75">
         {t("subtitle")}
       </p>
+
+      {role === "AFFILIATE" ? (
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="rounded-lg border border-indigo-100/80 bg-white/70 px-3 py-2 dark:border-indigo-900/40 dark:bg-zinc-950/40">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+              {t("stats.listings")}
+            </p>
+            <p className="mt-1 text-lg font-semibold text-zinc-950 dark:text-zinc-50">{liveCatalogCount}</p>
+          </div>
+          <div className="rounded-lg border border-indigo-100/80 bg-white/70 px-3 py-2 dark:border-indigo-900/40 dark:bg-zinc-950/40">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+              {t("stats.clicks")}
+            </p>
+            <p className="mt-1 text-lg font-semibold text-zinc-950 dark:text-zinc-50">{totalListingClicks}</p>
+          </div>
+          <div className="rounded-lg border border-indigo-100/80 bg-white/70 px-3 py-2 dark:border-indigo-900/40 dark:bg-zinc-950/40">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+              {t("stats.sales")}
+            </p>
+            <p className="mt-1 text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+              {totalListingConversions}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {role === "AFFILIATE" && stage ? (
+        <div className="mt-4 rounded-xl border border-emerald-200/80 bg-emerald-50/80 p-3 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+          <p className="flex items-center gap-2 text-xs font-semibold text-emerald-950 dark:text-emerald-100">
+            <Sparkles className="size-4 text-emerald-600" aria-hidden />
+            {t(`coach.${stage}.title`)}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-emerald-900/80 dark:text-emerald-100/80">
+            {t(`coach.${stage}.body`)}
+          </p>
+          <p className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 dark:text-emerald-200">
+            <ArrowRight className="size-3.5" aria-hidden />
+            {t(`coach.${stage}.next`)}
+          </p>
+        </div>
+      ) : null}
 
       <ol className="mt-4 space-y-2">
         {BRAND_POSTHOG_FUNNEL.map((step, index) => (

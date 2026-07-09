@@ -2422,6 +2422,33 @@
         "openPosthog": "Ouvrir l'entonnoir PostHog",
         "openPresetInsight": "Vues preset",
         "posthogUnset": "Définissez NEXT_PUBLIC_POSTHOG_PROJECT_ID pour ouvrir les insights.",
+        "stats": {
+          "listings": "Annonces live",
+          "clicks": "Clics",
+          "sales": "Ventes"
+        },
+        "coach": {
+          "publish_first_listing": {
+            "title": "Publiez votre première annonce",
+            "body": "Le trafic ne peut pas démarrer tant qu'au moins un produit n'est pas live sur votre storefront.",
+            "next": "Prochaine action : publiez une annonce, puis revenez ici."
+          },
+          "drive_first_visit": {
+            "title": "Obtenez votre première visite",
+            "body": "Votre boutique est en ligne, mais aucun clic n'est encore arrivé. Partagez votre lien sur le canal recommandé dans Partager & développer.",
+            "next": "Prochaine action : copiez ou partagez votre lien storefront maintenant."
+          },
+          "traffic_no_sales": {
+            "title": "Le trafic arrive",
+            "body": "Vous avez déjà des visiteurs. Renforcez logo, accroche et blocs de confiance pour transformer ces clics en commandes.",
+            "next": "Prochaine action : améliorez la storefront et continuez à partager sur le canal gagnant."
+          },
+          "first_sales": {
+            "title": "Premières ventes débloquées",
+            "body": "Vous avez une preuve de conversion. Doublez l'effort sur le canal de partage qui a amené les premières commandes.",
+            "next": "Prochaine action : réutilisez ce canal et publiez une autre annonce à forte intention."
+          }
+        },
         "funnel": {
           "preset": {
             "title": "Preset sélectionné",

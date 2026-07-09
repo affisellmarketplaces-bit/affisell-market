@@ -2266,6 +2266,33 @@
         "openPosthog": "Open funnel in PostHog",
         "openPresetInsight": "Preset views",
         "posthogUnset": "Set NEXT_PUBLIC_POSTHOG_PROJECT_ID to open live insights.",
+        "stats": {
+          "listings": "Live listings",
+          "clicks": "Clicks",
+          "sales": "Sales"
+        },
+        "coach": {
+          "publish_first_listing": {
+            "title": "Publish your first listing",
+            "body": "Traffic cannot start until at least one product is live on your storefront.",
+            "next": "Next action: publish one listing, then come back here."
+          },
+          "drive_first_visit": {
+            "title": "Drive your first visit",
+            "body": "Your store is live, but no one has clicked yet. Share your link on the channel recommended in Share & Grow.",
+            "next": "Next action: copy or share your storefront link now."
+          },
+          "traffic_no_sales": {
+            "title": "Traffic is coming in",
+            "body": "You already have visitors. Tighten your logo, tagline, and trust blocks to turn those clicks into orders.",
+            "next": "Next action: refine the storefront and keep sharing the same winning channel."
+          },
+          "first_sales": {
+            "title": "First sales unlocked",
+            "body": "You have proof of conversion. Double down on the share channel that brought the first orders.",
+            "next": "Next action: reuse that channel and publish another high-intent listing."
+          }
+        },
         "funnel": {
           "preset": {
             "title": "Preset selected",
