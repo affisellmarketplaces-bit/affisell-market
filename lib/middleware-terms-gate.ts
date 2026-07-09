@@ -3,12 +3,6 @@ import type { JWT } from "next-auth/jwt"
 
 import { getRequiredDocumentSlugs } from "@/lib/legal/required-documents"
 import { LEGAL_OK_COOKIE, legalGateCookieMatches } from "@/lib/legal/legal-gate-cookie"
-import { isLegalGateV2EnabledSync } from "@/lib/legal/feature-flags"
-import { TERMS_OK_COOKIE } from "@/lib/legal/terms-acceptance-cookie"
-import {
-  CURRENT_TERMS_VERSION,
-  isRoleTermsVersionCurrent,
-} from "@/lib/legal-versions"
 
 const REACCEPT_PATH = "/reaccept-terms"
 
@@ -76,31 +70,12 @@ export function legalGateCookieOk(req: NextRequest, token: JWT | null): boolean 
   return legalGateCookieMatches(cookie, expected)
 }
 
-export function merchantTermsGateOk(
-  req: NextRequest,
-  role: string | undefined,
-  token: JWT | null
-): boolean {
-  if (role !== "SUPPLIER" && role !== "AFFILIATE") return true
-
-  const expected = CURRENT_TERMS_VERSION[role]
-  const cookie = req.cookies.get(TERMS_OK_COOKIE)?.value
-  if (cookie === expected) return true
-
-  const jwtVersion =
-    typeof token?.termsAcceptedVersion === "string" ? token.termsAcceptedVersion : null
-  return isRoleTermsVersionCurrent(role, jwtVersion)
-}
-
-/** Edge-safe gate — cookie/JWT only when V2; legacy merchant gate when V1. */
+/** Edge-safe gate — legal cookie hash must match JWT (LMS acceptances). */
 export function legalGateOk(
   req: NextRequest,
-  role: string | undefined,
+  _role: string | undefined,
   token: JWT | null
 ): boolean {
-  if (!isLegalGateV2EnabledSync()) {
-    return merchantTermsGateOk(req, role, token)
-  }
   return legalGateCookieOk(req, token)
 }
 

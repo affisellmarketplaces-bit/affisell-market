@@ -1,11 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { auth } from "@/auth"
-import { prisma } from "@/lib/prisma"
-
-import { hasRoleTermsAccepted } from "@/lib/legal/role-terms"
-
-export default async function SupplierOnboardingPage() {
+import { isRoleLegalDocAccepted } from "@/lib/legal/acceptance"
   const session = await auth()
   if (!session?.user) {
     redirect("/login/supplier")
@@ -14,12 +10,7 @@ export default async function SupplierOnboardingPage() {
     redirect("/login")
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { termsAcceptedAt: true, termsAcceptedVersion: true },
-  })
-
-  if (hasRoleTermsAccepted(user?.termsAcceptedVersion, "SUPPLIER")) {
+  if (await isRoleLegalDocAccepted(session.user.id, "SUPPLIER")) {
     redirect("/dashboard/supplier")
   }
 

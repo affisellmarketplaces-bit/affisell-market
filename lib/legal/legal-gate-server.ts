@@ -12,7 +12,6 @@ import {
   isLegalGateExemptPath,
   isLegalGatedPath,
   legalGateCookieOk,
-  merchantTermsGateOk,
 } from "@/lib/middleware-terms-gate"
 
 function buildReacceptPath(returnPath: string, doc?: string): string {
@@ -31,14 +30,7 @@ export async function checkLegalGate(
   const v2Enabled =
     isLegalGateV2EnabledSync() || (await isLegalGateV2Enabled())
 
-  if (!v2Enabled) {
-    if (user.role !== "SUPPLIER" && user.role !== "AFFILIATE") return null
-    if (!isLegalGatedPath(pathname) && !isMerchantLegacyGated(pathname)) return null
-    if (isLegalGateExemptPath(pathname)) return null
-    return merchantTermsGateOk(req, user.role, token)
-      ? null
-      : buildReacceptPath(pathname)
-  }
+  if (!v2Enabled) return null
 
   if (isLegalGateExemptPath(pathname)) return null
   if (!isLegalGatedPath(pathname)) return null
@@ -48,13 +40,4 @@ export async function checkLegalGate(
   if (!missing) return null
 
   return buildReacceptPath(pathname, missing)
-}
-
-function isMerchantLegacyGated(pathname: string): boolean {
-  return (
-    pathname.startsWith("/dashboard/supplier") ||
-    pathname.startsWith("/dashboard/affiliate") ||
-    (pathname.startsWith("/supplier/") && pathname !== "/supplier/onboarding") ||
-    (pathname.startsWith("/affiliate/") && !pathname.startsWith("/affiliate/onboarding"))
-  )
 }

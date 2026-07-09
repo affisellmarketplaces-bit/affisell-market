@@ -19,6 +19,7 @@ vi.mock("@/lib/legal/acceptance", () => ({
   computeUserLegalGateHash: vi.fn(),
   collectAcceptedCurrentVersionIds: vi.fn(),
   recordLegalAcceptance: vi.fn(),
+  isRoleLegalDocAccepted: vi.fn(),
 }))
 
 vi.mock("@/lib/legal/feature-flags", () => ({
@@ -36,7 +37,6 @@ import {
   getRequiredDocuments,
   legalGateCookieOk,
   legalGateOk,
-  merchantTermsGateOk,
 } from "@/lib/middleware-terms-gate"
 import { resetLegalGateV2CacheForTests } from "@/lib/legal/feature-flags"
 
@@ -91,24 +91,32 @@ describe("legal gate v2", () => {
     expect(getRequiredDocuments("AFFILIATE")).toEqual(["customer", "privacy", "affiliate"])
   })
 
-  it("falls back to legacy merchant gate when feature flag is off", async () => {
+  it("redirects legacy user without LMS when gate v2 enabled", async () => {
+    findFirstMissingDocumentSlugMock.mockResolvedValue("customer")
+
+    const redirect = await checkLegalGate(
+      { id: "legacy_user", role: "CUSTOMER" },
+      "/dashboard",
+      makeReq(),
+      null
+    )
+
+    expect(redirect).toBe("/reaccept-terms?returnTo=%2Fdashboard&doc=customer")
+    expect(findFirstMissingDocumentSlugMock).toHaveBeenCalledWith("legacy_user", "CUSTOMER")
+  })
+
+  it("skips gate when feature flag is off", async () => {
     isLegalGateV2EnabledSyncMock.mockReturnValue(false)
     isLegalGateV2EnabledMock.mockResolvedValue(false)
 
-    const req = makeReq()
-    const token = { termsAcceptedVersion: "conditions-fournisseur:2026-06-01" }
-
-    expect(legalGateOk(req, "SUPPLIER", token as never)).toBe(false)
-    expect(merchantTermsGateOk(req, "SUPPLIER", token as never)).toBe(false)
-
     const redirect = await checkLegalGate(
-      { id: "user_1", role: "SUPPLIER" },
-      "/dashboard/supplier",
-      req,
-      token as never
+      { id: "legacy_user", role: "CUSTOMER" },
+      "/dashboard",
+      makeReq(),
+      null
     )
 
-    expect(redirect).toContain("/reaccept-terms")
+    expect(redirect).toBeNull()
     expect(findFirstMissingDocumentSlugMock).not.toHaveBeenCalled()
   })
 
@@ -120,5 +128,12 @@ describe("legal gate v2", () => {
 
     expect(legalGateCookieOk(req, token as never)).toBe(true)
     expect(legalGateOk(req, "CUSTOMER", token as never)).toBe(true)
+  })
+
+  it("legalGateOk does not use termsAcceptedVersion JWT fallback", () => {
+    const req = makeReq()
+    const token = { termsAcceptedVersion: "conditions-fournisseur:2026-06-04" }
+
+    expect(legalGateOk(req, "SUPPLIER", token as never)).toBe(false)
   })
 })

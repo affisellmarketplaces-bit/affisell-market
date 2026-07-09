@@ -114,7 +114,6 @@ describe("legal acceptance dual-write", () => {
       id: "doc_cgu",
       currentVersionId: "ver_current",
     })
-    prismaMock.legalAcceptance.count.mockResolvedValue(1)
 
     prismaMock.legalAcceptance.findFirst
       .mockResolvedValueOnce({ documentVersionId: "ver_old" })
@@ -122,6 +121,17 @@ describe("legal acceptance dual-write", () => {
 
     await expect(isDocumentAccepted("user_1", "customer")).resolves.toBe(false)
     await expect(isDocumentAccepted("user_1", "customer")).resolves.toBe(true)
+  })
+
+  it("isDocumentAccepted ignores legacy User consent fields without LMS row", async () => {
+    getLegalDocumentMock.mockResolvedValue({
+      id: "doc_cgu",
+      currentVersionId: "ver_current",
+    })
+    prismaMock.legalAcceptance.findFirst.mockResolvedValue(null)
+
+    await expect(isDocumentAccepted("legacy_user", "customer")).resolves.toBe(false)
+    expect(prismaMock.user.findUnique).not.toHaveBeenCalled()
   })
 
   it("backfill creates LegalAcceptance with migrate idempotencyKey", async () => {

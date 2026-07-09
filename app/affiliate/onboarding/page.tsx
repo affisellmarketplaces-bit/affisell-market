@@ -7,8 +7,8 @@ import { MerchantRoleTermsOnboardingForm } from "@/components/legal/merchant-rol
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { auth } from "@/auth"
 import { AFFILIATE_FIRST_LISTING_HUB_HREF } from "@/lib/affiliate-onboarding-shared"
+import { isDocumentAccepted, isRoleLegalDocAccepted } from "@/lib/legal/acceptance"
 import { prisma } from "@/lib/prisma"
-import { hasRoleTermsAccepted } from "@/lib/legal/role-terms"
 
 export const dynamic = "force-dynamic"
 
@@ -23,13 +23,17 @@ export default async function AffiliateOnboardingPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { cguAcceptedAt: true, termsAcceptedAt: true, termsAcceptedVersion: true },
+    select: { id: true },
   })
+
+  if (!user) {
+    redirect("/login/affiliate")
+  }
 
   const nextHref = AFFILIATE_FIRST_LISTING_HUB_HREF
   const t = await getTranslations("affiliateDashboard.onboarding")
 
-  if (!user?.cguAcceptedAt) {
+  if (!(await isDocumentAccepted(user.id, "customer"))) {
     return (
       <BentoShell>
         <BentoContainer maxWidth="4xl" className="py-12">
@@ -53,7 +57,7 @@ export default async function AffiliateOnboardingPage() {
     )
   }
 
-  if (!hasRoleTermsAccepted(user.termsAcceptedVersion, "AFFILIATE")) {
+  if (!(await isRoleLegalDocAccepted(user.id, "AFFILIATE"))) {
     return (
       <BentoShell>
         <BentoContainer maxWidth="4xl" className="py-12">

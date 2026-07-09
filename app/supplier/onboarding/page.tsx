@@ -4,8 +4,8 @@ import { redirect } from "next/navigation"
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { MerchantRoleTermsOnboardingForm } from "@/components/legal/merchant-role-terms-onboarding-form"
 import { auth } from "@/auth"
+import { isRoleLegalDocAccepted } from "@/lib/legal/acceptance"
 import { prisma } from "@/lib/prisma"
-import { hasRoleTermsAccepted } from "@/lib/legal/role-terms"
 
 export const dynamic = "force-dynamic"
 
@@ -20,8 +20,12 @@ export default async function SupplierOnboardingPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { termsAcceptedAt: true, termsAcceptedVersion: true },
+    select: { id: true },
   })
+
+  if (!user) {
+    redirect("/login/supplier")
+  }
 
   const invite = await prisma.affiliateSupplierInvitation.findUnique({
     where: { supplierId: session.user.id },
@@ -38,7 +42,7 @@ export default async function SupplierOnboardingPage() {
       ? "/dashboard/supplier/products/new?fromInvite=1&compose=1"
       : "/dashboard/verification"
 
-  if (hasRoleTermsAccepted(user?.termsAcceptedVersion, "SUPPLIER")) {
+  if (await isRoleLegalDocAccepted(user.id, "SUPPLIER")) {
     if (!profile) {
       redirect(
         invite && invite.status !== "CATALOG_LIVE"
