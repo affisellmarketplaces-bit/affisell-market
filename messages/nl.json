@@ -2275,22 +2275,26 @@
           "publish_first_listing": {
             "title": "Publish your first listing",
             "body": "Traffic cannot start until at least one product is live on your storefront.",
-            "next": "Next action: publish one listing, then come back here."
+            "next": "Next action: publish one listing, then come back here.",
+            "cta": "Open listing dashboard"
           },
           "drive_first_visit": {
             "title": "Drive your first visit",
             "body": "Your store is live, but no one has clicked yet. Share your link on the channel recommended in Share & Grow.",
-            "next": "Next action: copy or share your storefront link now."
+            "next": "Next action: copy or share your storefront link now.",
+            "cta": "Open share panel"
           },
           "traffic_no_sales": {
             "title": "Traffic is coming in",
             "body": "You already have visitors. Tighten your logo, tagline, and trust blocks to turn those clicks into orders.",
-            "next": "Next action: refine the storefront and keep sharing the same winning channel."
+            "next": "Next action: refine the storefront and keep sharing the same winning channel.",
+            "cta": "Open trust pages"
           },
           "first_sales": {
             "title": "First sales unlocked",
             "body": "You have proof of conversion. Double down on the share channel that brought the first orders.",
-            "next": "Next action: reuse that channel and publish another high-intent listing."
+            "next": "Next action: reuse that channel and publish another high-intent listing.",
+            "cta": "Open embed widget"
           }
         },
         "funnel": {

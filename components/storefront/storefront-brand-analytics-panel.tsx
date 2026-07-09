@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { ArrowRight, BarChart3, ExternalLink, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -10,7 +11,10 @@ import {
   buildPosthogPresetInsightUrl,
   buildPosthogProjectEventsUrl,
 } from "@/lib/storefront-brand-analytics-shared"
-import { resolveBrandAnalyticsStage } from "@/lib/storefront-brand-analytics-live"
+import {
+  resolveBrandAnalyticsCoachTarget,
+  resolveBrandAnalyticsStage,
+} from "@/lib/storefront-brand-analytics-live"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -19,6 +23,8 @@ type Props = {
   liveCatalogCount?: number
   totalListingClicks?: number
   totalListingConversions?: number
+  studioPath?: string | null
+  createListingHref?: string | null
   className?: string
 }
 
@@ -33,6 +39,8 @@ export function StorefrontBrandAnalyticsPanel({
   liveCatalogCount = 0,
   totalListingClicks = 0,
   totalListingConversions = 0,
+  studioPath,
+  createListingHref,
   className,
 }: Props) {
   const t = useTranslations("storefront.brandStudio.analytics")
@@ -46,6 +54,23 @@ export function StorefrontBrandAnalyticsPanel({
           totalListingConversions,
         })
       : null
+  const coachTarget = stage ? resolveBrandAnalyticsCoachTarget(stage) : null
+  const coachHref =
+    !stage || !coachTarget
+      ? null
+      : coachTarget === "dashboard"
+        ? createListingHref ?? null
+        : coachTarget === "share"
+          ? studioPath
+            ? `${studioPath}?share=1`
+            : null
+          : coachTarget === "pages"
+            ? studioPath
+              ? `${studioPath}?focus=pages`
+              : null
+            : studioPath
+              ? `${studioPath}?focus=embed`
+              : null
 
   const dashboardUrl = projectId
     ? buildPosthogProjectEventsUrl({
@@ -122,6 +147,15 @@ export function StorefrontBrandAnalyticsPanel({
             <ArrowRight className="size-3.5" aria-hidden />
             {t(`coach.${stage}.next`)}
           </p>
+          {coachHref ? (
+            <Link
+              href={coachHref}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-xs font-semibold text-emerald-900 transition hover:border-emerald-500 dark:border-emerald-800 dark:bg-zinc-950 dark:text-emerald-100"
+            >
+              {t(`coach.${stage}.cta`)}
+              <ArrowRight className="size-3.5" aria-hidden />
+            </Link>
+          ) : null}
         </div>
       ) : null}
 

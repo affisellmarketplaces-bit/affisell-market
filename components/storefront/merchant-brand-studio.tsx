@@ -196,14 +196,24 @@ type Props = {
   previewHref: string
   profileHref: string
   profileLabel: string
+  studioPath?: string
+  createListingHref?: string
 }
 
-export function MerchantBrandStudio({ role, previewHref, profileHref, profileLabel }: Props) {
+export function MerchantBrandStudio({
+  role,
+  previewHref,
+  profileHref,
+  profileLabel,
+  studioPath,
+  createListingHref,
+}: Props) {
   const t = useTranslations("storefront.brandStudio")
   const searchParams = useSearchParams()
   const focusSharePanel = searchParams.get("share") === "1"
   const postShareLoop =
     focusSharePanel || searchParams.get("welcome") === "1"
+  const focusTarget = searchParams.get("focus")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -252,6 +262,9 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0)
   const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
   const mountedRef = useRef(false)
+  const logoPanelRef = useRef<HTMLDivElement | null>(null)
+  const pagesPanelRef = useRef<HTMLDivElement | null>(null)
+  const embedPanelRef = useRef<HTMLDivElement | null>(null)
   const sharePanelRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -268,6 +281,23 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
     }, 80)
     return () => window.clearTimeout(timer)
   }, [focusSharePanel])
+
+  useEffect(() => {
+    if (!focusTarget) return
+    const node =
+      focusTarget === "logo"
+        ? logoPanelRef.current
+        : focusTarget === "pages"
+          ? pagesPanelRef.current
+          : focusTarget === "embed"
+            ? embedPanelRef.current
+            : null
+    if (!node) return
+    const timer = window.setTimeout(() => {
+      node.scrollIntoView({ behavior: "smooth", block: "center" })
+    }, 80)
+    return () => window.clearTimeout(timer)
+  }, [focusTarget])
 
   const applyLaunchConfig = useCallback((config: BrandLaunchConfig) => {
     setPresetId(config.presetId)
@@ -750,12 +780,20 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
                 <Input id="bs-name" bento value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
 
-              <StorefrontLogoField
-                logoUrl={logoUrl}
-                logoPreview={logoPreview}
-                onLogoUrlChange={setLogoUrl}
-                onLogoFile={setLogoFile}
-              />
+              <div
+                ref={logoPanelRef}
+                className={cn(
+                  focusTarget === "logo" &&
+                    "rounded-3xl ring-2 ring-emerald-400/70 ring-offset-2 ring-offset-white dark:ring-emerald-500/60 dark:ring-offset-zinc-950"
+                )}
+              >
+                <StorefrontLogoField
+                  logoUrl={logoUrl}
+                  logoPreview={logoPreview}
+                  onLogoUrlChange={setLogoUrl}
+                  onLogoFile={setLogoFile}
+                />
+              </div>
 
               <div className="space-y-2">
                 <label htmlFor="bs-banner" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
@@ -872,22 +910,38 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
               />
 
               {role === "AFFILIATE" && storeSlug ? (
-                <StorefrontEmbedWidgetPanel
-                  slug={storeSlug}
-                  storeName={name.trim() || t("launch.defaultStoreName")}
-                  widget={embedWidget}
-                  onChange={setEmbedWidget}
-                />
+                <div
+                  ref={embedPanelRef}
+                  className={cn(
+                    focusTarget === "embed" &&
+                      "rounded-3xl ring-2 ring-emerald-400/70 ring-offset-2 ring-offset-white dark:ring-emerald-500/60 dark:ring-offset-zinc-950"
+                  )}
+                >
+                  <StorefrontEmbedWidgetPanel
+                    slug={storeSlug}
+                    storeName={name.trim() || t("launch.defaultStoreName")}
+                    widget={embedWidget}
+                    onChange={setEmbedWidget}
+                  />
+                </div>
               ) : null}
 
               <StorefrontSectionsEditor sections={homepageSections} onChange={setHomepageSections} />
 
-              <StorefrontStaticPagesEditor
-                pages={staticPages}
-                onChange={setStaticPages}
-                role={role}
-                disabled={saving}
-              />
+              <div
+                ref={pagesPanelRef}
+                className={cn(
+                  focusTarget === "pages" &&
+                    "rounded-3xl ring-2 ring-emerald-400/70 ring-offset-2 ring-offset-white dark:ring-emerald-500/60 dark:ring-offset-zinc-950"
+                )}
+              >
+                <StorefrontStaticPagesEditor
+                  pages={staticPages}
+                  onChange={setStaticPages}
+                  role={role}
+                  disabled={saving}
+                />
+              </div>
 
               <StoreNameBadgePicker
                 value={nameBadge}
@@ -940,6 +994,8 @@ export function MerchantBrandStudio({ role, previewHref, profileHref, profileLab
               liveCatalogCount={brandPulseMetrics.liveCatalogCount}
               totalListingClicks={brandPulseMetrics.totalListingClicks}
               totalListingConversions={brandPulseMetrics.totalListingConversions}
+              studioPath={studioPath}
+              createListingHref={createListingHref}
             />
             <StoreLiveUrlCard urls={storeUrls} storeHostSuffix={storeHostSuffix} loading={loading} />
             {storeSlug && storeUrls?.primaryUrl ? (

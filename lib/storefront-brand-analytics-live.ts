@@ -12,9 +12,26 @@ export type BrandAnalyticsStage =
   | "traffic_no_sales"
   | "first_sales"
 
+export type BrandAnalyticsCoachTarget = "dashboard" | "share" | "pages" | "embed"
+
 export function resolveBrandAnalyticsStage(input: BrandAnalyticsLiveInput): BrandAnalyticsStage {
   if (input.liveCatalogCount <= 0) return "publish_first_listing"
   if (input.totalListingClicks <= 0) return "drive_first_visit"
   if (input.totalListingConversions <= 0) return "traffic_no_sales"
   return "first_sales"
+}
+
+export function resolveBrandAnalyticsCoachTarget(
+  stage: BrandAnalyticsStage
+): BrandAnalyticsCoachTarget {
+  switch (stage) {
+    case "publish_first_listing":
+      return "dashboard"
+    case "drive_first_visit":
+      return "share"
+    case "traffic_no_sales":
+      return "pages"
+    case "first_sales":
+      return "embed"
+  }
 }

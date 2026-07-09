@@ -38,6 +38,7 @@ export default async function SupplierStorefrontPage() {
       previewHref={previewHref}
       profileHref="/dashboard/supplier/settings/store"
       profileLabel="Store profile"
+      studioPath="/dashboard/supplier/storefront"
     />
   )
 }

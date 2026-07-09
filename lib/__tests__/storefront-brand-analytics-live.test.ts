@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { resolveBrandAnalyticsStage } from "@/lib/storefront-brand-analytics-live"
+import {
+  resolveBrandAnalyticsCoachTarget,
+  resolveBrandAnalyticsStage,
+} from "@/lib/storefront-brand-analytics-live"
 
 describe("storefront-brand-analytics-live", () => {
   it("asks to publish first when catalog is empty", () => {
@@ -41,5 +44,12 @@ describe("storefront-brand-analytics-live", () => {
         totalListingConversions: 2,
       })
     ).toBe("first_sales")
+  })
+
+  it("maps each stage to an action target", () => {
+    expect(resolveBrandAnalyticsCoachTarget("publish_first_listing")).toBe("dashboard")
+    expect(resolveBrandAnalyticsCoachTarget("drive_first_visit")).toBe("share")
+    expect(resolveBrandAnalyticsCoachTarget("traffic_no_sales")).toBe("pages")
+    expect(resolveBrandAnalyticsCoachTarget("first_sales")).toBe("embed")
   })
 })
