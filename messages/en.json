@@ -2427,6 +2427,12 @@
             "body": "Your embed is live and orders are coming in. Reuse the same traffic source with ready-to-copy bio and blog blocks.",
             "next": "Next action: copy one amplification block and post it where your first buyers came from.",
             "cta": "Open amplification kit"
+          },
+          "publish_second_listing": {
+            "title": "Add your second winner",
+            "body": "You amplified your shop — now give buyers another high-intent product to click while the channel is still warm.",
+            "next": "Next action: publish one more listing, then share the same storefront link again.",
+            "cta": "Open listing builder"
           }
         },
         "funnel": {

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
 import {
   isLikelyMobileUserAgent,
+  markAmplifyCopiedFlag,
   markShareSentFlag,
   orderSocialShareChannels,
   readShareSentFlag,
@@ -29,6 +30,7 @@ type Props = {
   embedEnabled?: boolean
   onEnableEmbed?: () => void
   amplifyMode?: boolean
+  onAmplifyCopied?: () => void
   /** Onboarding post-publish — show traffic loop + channel recommendation. */
   postShareLoop?: boolean
   initialTotalClicks?: number
@@ -45,6 +47,7 @@ export function StorefrontShareGrowPanel({
   embedEnabled = false,
   onEnableEmbed,
   amplifyMode = false,
+  onAmplifyCopied,
   postShareLoop = false,
   initialTotalClicks = 0,
   initialTotalConversions = 0,
@@ -191,6 +194,8 @@ export function StorefrontShareGrowPanel({
       try {
         await navigator.clipboard.writeText(snippet)
         setCopiedAmplifyId(snippetId)
+        markAmplifyCopiedFlag(slug)
+        onAmplifyCopied?.()
         capturePosthogClient("brand_share_amplify_copied", { storeSlug: slug, snippetId })
         console.log("[share-grow]", { storeSlug: slug, snippetId, result: "amplify_copied" })
         window.setTimeout(() => setCopiedAmplifyId((current) => (current === snippetId ? null : current)), 2000)
@@ -203,7 +208,7 @@ export function StorefrontShareGrowPanel({
         })
       }
     },
-    [amplifySnippets, shopUrl, slug]
+    [amplifySnippets, onAmplifyCopied, shopUrl, slug]
   )
 
   const nativeShare = useCallback(async () => {

@@ -35,6 +35,25 @@ export function orderSocialShareChannels(
 }
 
 export const AFFISELL_SHARE_SENT_STORAGE_PREFIX = "affisell_share_sent_"
+export const AFFISELL_AMPLIFY_COPIED_STORAGE_PREFIX = "affisell_amplify_copied_"
+
+export function readAmplifyCopiedFlag(slug: string): boolean {
+  if (typeof window === "undefined" || !slug) return false
+  try {
+    return window.localStorage.getItem(`${AFFISELL_AMPLIFY_COPIED_STORAGE_PREFIX}${slug}`) === "1"
+  } catch {
+    return false
+  }
+}
+
+export function markAmplifyCopiedFlag(slug: string): void {
+  if (typeof window === "undefined" || !slug) return
+  try {
+    window.localStorage.setItem(`${AFFISELL_AMPLIFY_COPIED_STORAGE_PREFIX}${slug}`, "1")
+  } catch {
+    // ignore quota / private mode
+  }
+}
 
 export function readShareSentFlag(slug: string): boolean {
   if (typeof window === "undefined" || !slug) return false

@@ -70,6 +70,7 @@ import type { BrandLaunchConfig } from "@/lib/storefront-brand-launch"
 import type { StorefrontPresetAb } from "@/lib/storefront-preset-ab-shared"
 import { computeBrandPulse } from "@/lib/storefront-brand-pulse-shared"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
+import { readAmplifyCopiedFlag } from "@/lib/storefront-share-channel-recommendation"
 import { cn } from "@/lib/utils"
 
 type MerchantRole = "AFFILIATE" | "SUPPLIER"
@@ -266,6 +267,7 @@ export function MerchantBrandStudio({
     totalListingConversions: 0,
   })
   const [presetAb, setPresetAb] = useState<StorefrontPresetAb | null>(null)
+  const [amplifyKitUsed, setAmplifyKitUsed] = useState(false)
   const [previewRefreshKey, setPreviewRefreshKey] = useState(0)
   const [savedSnapshot, setSavedSnapshot] = useState<BrandStudioSnapshot | null>(null)
   const mountedRef = useRef(false)
@@ -402,6 +404,11 @@ export function MerchantBrandStudio({
   useEffect(() => {
     void hydrate()
   }, [hydrate])
+
+  useEffect(() => {
+    if (!storeSlug) return
+    setAmplifyKitUsed(readAmplifyCopiedFlag(storeSlug))
+  }, [storeSlug])
 
   const persistSnapshot = useCallback(
     async (snapshot: BrandStudioSnapshot, successMessage: string): Promise<boolean> => {
@@ -1147,6 +1154,7 @@ export function MerchantBrandStudio({
               totalListingClicks={brandPulseMetrics.totalListingClicks}
               totalListingConversions={brandPulseMetrics.totalListingConversions}
               embedEnabled={embedWidget.enabled}
+              amplifyKitUsed={amplifyKitUsed}
               studioPath={studioPath}
               createListingHref={createListingHref}
             />
@@ -1166,6 +1174,7 @@ export function MerchantBrandStudio({
                   embedEnabled={embedWidget.enabled}
                   onEnableEmbed={() => setEmbedWidget((prev) => ({ ...prev, enabled: true }))}
                   amplifyMode={amplifyShare && role === "AFFILIATE"}
+                  onAmplifyCopied={() => setAmplifyKitUsed(true)}
                   postShareLoop={postShareLoop && role === "AFFILIATE"}
                   initialTotalClicks={brandPulseMetrics.totalListingClicks}
                   initialTotalConversions={brandPulseMetrics.totalListingConversions}

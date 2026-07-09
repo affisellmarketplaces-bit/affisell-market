@@ -24,6 +24,7 @@ type Props = {
   totalListingClicks?: number
   totalListingConversions?: number
   embedEnabled?: boolean
+  amplifyKitUsed?: boolean
   studioPath?: string | null
   createListingHref?: string | null
   className?: string
@@ -41,6 +42,7 @@ export function StorefrontBrandAnalyticsPanel({
   totalListingClicks = 0,
   totalListingConversions = 0,
   embedEnabled = false,
+  amplifyKitUsed = false,
   studioPath,
   createListingHref,
   className,
@@ -55,13 +57,14 @@ export function StorefrontBrandAnalyticsPanel({
           totalListingClicks,
           totalListingConversions,
           embedEnabled,
+          amplifyKitUsed,
         })
       : null
   const coachTarget = stage ? resolveBrandAnalyticsCoachTarget(stage) : null
   const coachHref =
     !stage || !coachTarget
       ? null
-      : coachTarget === "dashboard"
+      : coachTarget === "dashboard" || coachTarget === "second_listing"
         ? createListingHref ?? null
         : coachTarget === "share"
           ? studioPath

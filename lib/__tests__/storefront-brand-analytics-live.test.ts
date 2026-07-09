@@ -58,11 +58,36 @@ describe("storefront-brand-analytics-live", () => {
     ).toBe("scale_winning_channel")
   })
 
+  it("asks for a second listing after amplification with a thin catalog", () => {
+    expect(
+      resolveBrandAnalyticsStage({
+        liveCatalogCount: 1,
+        totalListingClicks: 12,
+        totalListingConversions: 2,
+        embedEnabled: true,
+        amplifyKitUsed: true,
+      })
+    ).toBe("publish_second_listing")
+  })
+
+  it("keeps scaling once amplification is used with multiple live listings", () => {
+    expect(
+      resolveBrandAnalyticsStage({
+        liveCatalogCount: 3,
+        totalListingClicks: 20,
+        totalListingConversions: 5,
+        embedEnabled: true,
+        amplifyKitUsed: true,
+      })
+    ).toBe("scale_winning_channel")
+  })
+
   it("maps each stage to an action target", () => {
     expect(resolveBrandAnalyticsCoachTarget("publish_first_listing")).toBe("dashboard")
     expect(resolveBrandAnalyticsCoachTarget("drive_first_visit")).toBe("share")
     expect(resolveBrandAnalyticsCoachTarget("traffic_no_sales")).toBe("pages")
     expect(resolveBrandAnalyticsCoachTarget("first_sales")).toBe("embed")
     expect(resolveBrandAnalyticsCoachTarget("scale_winning_channel")).toBe("amplify")
+    expect(resolveBrandAnalyticsCoachTarget("publish_second_listing")).toBe("second_listing")
   })
 })

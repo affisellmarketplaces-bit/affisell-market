@@ -2469,6 +2469,12 @@
             "body": "Votre embed est live et les commandes arrivent. Réutilisez cette source de trafic avec des blocs bio et blog prêts à copier.",
             "next": "Prochaine action : copiez un bloc d'amplification et publiez-le là où vos premiers acheteurs sont venus.",
             "cta": "Ouvrir le kit d'amplification"
+          },
+          "publish_second_listing": {
+            "title": "Ajoutez votre deuxième best-seller",
+            "body": "Vous avez amplifié votre boutique — proposez maintenant un second produit à forte intention pendant que le canal est encore chaud.",
+            "next": "Prochaine action : publiez une annonce de plus, puis repartagez le même lien storefront.",
+            "cta": "Ouvrir le créateur d'annonces"
           }
         },
         "funnel": {
