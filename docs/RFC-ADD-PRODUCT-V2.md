@@ -41,6 +41,12 @@ open "http://localhost:3001/dashboard/supplier/products/new?wizard=v2&compose=1"
 
 Set `ENABLE_WIZARD_V2=1` in `.env.local` to default to v2 without query param.
 
+```bash
+npm run verify:wizard-v2:dev   # PORT / URL alignment + quoted entry URL
+npm run test:wizard:v2         # preflight + wizard v2 unit tests
+npm run dev:open:wizard-v2     # browser — no zsh glob
+```
+
 ## Modes
 
 | Mode | UX | Target time |

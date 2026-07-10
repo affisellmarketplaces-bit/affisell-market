@@ -1,3 +1,4 @@
+import { devLocalhostOrigin } from "@/lib/dev-localhost-url"
 import { isLocalhostUrl } from "@/lib/localhost-host"
 import { canonicalPlatformOrigin } from "@/lib/platform-canonical-url"
 
@@ -34,7 +35,7 @@ export function resolvePublicAppUrl(): string {
   if (!isProductionDeploy()) {
     const vercel = process.env.VERCEL_URL?.trim()
     if (vercel && !isLocalhostUrl(vercel)) return normalizeOrigin(vercel)
-    return "http://localhost:3001"
+    return devLocalhostOrigin()
   }
 
   return canonicalPlatformOrigin()

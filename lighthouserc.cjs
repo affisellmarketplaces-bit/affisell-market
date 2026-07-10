@@ -1,8 +1,13 @@
 /** @type {import('lighthouse').Config} */
 const budgets = require("./lighthouse-budgets.cjs")
 
-/** Must match scripts/dev-localhost-url.mjs DEFAULT_DEV_PORT (3001). */
-const DEV_PORT = 3001
+function resolveDevPort() {
+  const n = Number(process.env.PORT)
+  if (Number.isFinite(n) && n > 0 && n <= 65535) return Math.round(n)
+  return 3001
+}
+
+const DEV_PORT = resolveDevPort()
 const DEV_ORIGIN = `http://localhost:${DEV_PORT}`
 
 function toAssertions(level) {

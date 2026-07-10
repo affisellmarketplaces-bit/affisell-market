@@ -3,9 +3,10 @@
 import { execSync, spawnSync } from "node:child_process"
 import { existsSync, readFileSync, unlinkSync } from "node:fs"
 import { join } from "node:path"
+import { resolveDevPort } from "./dev-localhost-url.mjs"
 
 const lockPath = join(process.cwd(), ".next/dev/lock")
-const preferred = Math.max(1024, Math.min(65535, Number(process.env.PORT) || 3001))
+const preferred = resolveDevPort()
 
 function pidAlive(pid) {
   try {

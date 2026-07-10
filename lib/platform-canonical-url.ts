@@ -1,4 +1,5 @@
 import { normalizeRequestHost } from "@/lib/custom-domain-host"
+import { devLocalhostOrigin } from "@/lib/dev-localhost-url"
 import { isLocalhostUrl } from "@/lib/localhost-host"
 
 /** True for `*.vercel.app` deployment hosts (not merchant storefronts). */
@@ -26,7 +27,7 @@ export function canonicalPlatformOrigin(): string {
   }
   const vercel = process.env.VERCEL_URL?.trim()
   if (vercel) return `https://${vercel.replace(/\/$/, "")}`
-  return "http://localhost:3001"
+  return devLocalhostOrigin()
 }
 
 export function canonicalPlatformHost(): string {

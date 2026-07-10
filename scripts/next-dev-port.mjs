@@ -10,6 +10,7 @@ import { createRequire } from "node:module"
 import { createServer } from "node:net"
 import { existsSync, readFileSync, unlinkSync } from "node:fs"
 import { join } from "node:path"
+import { resolveDevPort } from "./dev-localhost-url.mjs"
 
 const require = createRequire(import.meta.url)
 const nextBin = require.resolve("next/dist/bin/next")
@@ -97,7 +98,7 @@ if (liveLock && process.env.PLAYWRIGHT_WEB_SERVER !== "1") {
   const url =
     typeof liveLock.appUrl === "string"
       ? liveLock.appUrl
-      : `http://localhost:${liveLock.port ?? process.env.PORT ?? 3001}`
+      : `http://localhost:${liveLock.port ?? resolveDevPort()}`
   console.log(
     `\n[affisell dev] Already running → ${url}\n` +
       `  PID ${liveLock.pid} · stop with: kill ${liveLock.pid}\n` +
@@ -106,7 +107,7 @@ if (liveLock && process.env.PLAYWRIGHT_WEB_SERVER !== "1") {
   process.exit(0)
 }
 
-const preferred = Math.max(1024, Math.min(65535, Number(process.env.PORT) || 3001))
+const preferred = resolveDevPort()
 const scanPorts = process.env.PLAYWRIGHT_WEB_SERVER !== "1"
 
 if (scanPorts && !(await portFree(preferred)) && (await probeNextDev(preferred))) {

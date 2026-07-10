@@ -2,12 +2,13 @@ import { resolve } from "node:path"
 
 import { defineConfig, devices } from "@playwright/test"
 import { config as loadEnv } from "dotenv"
+import { resolveDevPort } from "./lib/dev-localhost-url"
 
 for (const name of [".env", ".env.local"]) {
   loadEnv({ path: resolve(process.cwd(), name), override: name === ".env.local" })
 }
 
-const devPort = process.env.PORT ?? "3001"
+const devPort = String(resolveDevPort(process.env))
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${devPort}`
 const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER === "1"
 

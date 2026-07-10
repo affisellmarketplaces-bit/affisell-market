@@ -18,3 +18,37 @@ export function devLocalhostUrl(path = "", env: NodeJS.ProcessEnv = process.env)
   if (!path) return origin
   return `${origin}${path.startsWith("/") ? path : `/${path}`}`
 }
+
+/** Build path + query without zsh glob issues (`?wizard=v2` in shell). */
+export function devLocalhostUrlWithQuery(
+  pathname: string,
+  query: Record<string, string> = {},
+  env: NodeJS.ProcessEnv = process.env
+): string {
+  const qs = new URLSearchParams(query).toString()
+  return devLocalhostUrl(qs ? `${pathname}?${qs}` : pathname, env)
+}
+
+/** Parse localhost port from an origin URL; null when not localhost or invalid. */
+export function localhostPortFromOrigin(origin: string): number | null {
+  try {
+    const u = new URL(origin)
+    if (u.hostname !== "localhost" && u.hostname !== "127.0.0.1") return null
+    if (u.port) return Number(u.port)
+    return u.protocol === "https:" ? 443 : 80
+  } catch {
+    return null
+  }
+}
+
+/** True when PORT matches NEXT_PUBLIC_APP_URL / NEXTAUTH_URL localhost ports. */
+export function isDevEnvPortAligned(env: NodeJS.ProcessEnv = process.env): boolean {
+  const port = resolveDevPort(env)
+  for (const key of ["NEXT_PUBLIC_APP_URL", "NEXTAUTH_URL", "APP_URL"] as const) {
+    const raw = env[key]?.trim()
+    if (!raw) continue
+    const parsed = localhostPortFromOrigin(raw.replace(/\/$/, ""))
+    if (parsed != null && parsed !== port && parsed !== 80 && parsed !== 443) return false
+  }
+  return true
+}

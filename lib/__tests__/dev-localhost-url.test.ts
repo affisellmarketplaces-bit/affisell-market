@@ -3,6 +3,7 @@ import {
   DEFAULT_DEV_PORT,
   devLocalhostOrigin,
   devLocalhostUrl,
+  isDevEnvPortAligned,
   resolveDevPort,
 } from "@/lib/dev-localhost-url"
 
@@ -22,5 +23,21 @@ describe("dev-localhost-url", () => {
     expect(devLocalhostUrl("/dashboard/supplier/products/new?wizard=v2&compose=1")).toBe(
       "http://localhost:3001/dashboard/supplier/products/new?wizard=v2&compose=1"
     )
+  })
+
+  it("detects PORT / URL misalignment", () => {
+    expect(
+      isDevEnvPortAligned({
+        PORT: "3001",
+        NEXT_PUBLIC_APP_URL: "http://localhost:3001",
+        NEXTAUTH_URL: "http://localhost:3001",
+      })
+    ).toBe(true)
+    expect(
+      isDevEnvPortAligned({
+        PORT: "3001",
+        NEXT_PUBLIC_APP_URL: "http://localhost:4000",
+      })
+    ).toBe(false)
   })
 })

@@ -9,6 +9,7 @@
 - Copy `.env.local.example` → `.env.local`: align `PORT`, `NEXT_PUBLIC_APP_URL`, `NEXTAUTH_URL`.
 - Helpers: `lib/dev-localhost-url.ts`, `scripts/dev-localhost-url.mjs`; `npm run dev:url` / `dev:open:wizard-v2`.
 - **Zsh:** quote `?query` URLs or use npm open scripts — unquoted `?wizard=v2` triggers glob errors.
+- Wizard v2: `npm run verify:wizard-v2:dev` (env preflight) · `npm run test:wizard:v2` (preflight + unit tests).
 
 ## Merchant custom domains & storefront theme
 

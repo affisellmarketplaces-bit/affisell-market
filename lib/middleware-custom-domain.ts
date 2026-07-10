@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
+import { resolveDevPort } from "@/lib/dev-localhost-url"
 import {
   isBlockedOnCustomDomain,
   mapCustomDomainPath,
@@ -33,7 +34,7 @@ function platformOriginForResolve(req: NextRequest): string {
 
   const host = requestHost(req)
   if (!isPlatformHost(host)) {
-    const port = req.nextUrl.port || process.env.PORT?.trim() || "3001"
+    const port = req.nextUrl.port || String(resolveDevPort())
     return `http://127.0.0.1:${port}`
   }
 
