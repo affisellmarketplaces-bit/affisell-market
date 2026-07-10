@@ -91,7 +91,7 @@ describe("supplier-leads", () => {
     supplierLeadFindUniqueMock.mockResolvedValueOnce(null)
     supplierLeadCreateMock.mockResolvedValueOnce(baseLead)
 
-    const lead = await createLead({
+    const result = await createLead({
       email: "  Founder@Brand.com ",
       domain: "brand.com",
       brand: "Brand Co",
@@ -99,7 +99,8 @@ describe("supplier-leads", () => {
       source: "shopify",
     })
 
-    expect(lead.email).toBe("founder@brand.com")
+    expect(result.lead.email).toBe("founder@brand.com")
+    expect(result.created).toBe(true)
     expect(supplierLeadCreateMock).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ email: "founder@brand.com", source: "shopify" }),
@@ -110,14 +111,15 @@ describe("supplier-leads", () => {
   it("createLead returns existing on duplicate email", async () => {
     supplierLeadFindUniqueMock.mockResolvedValueOnce(baseLead)
 
-    const lead = await createLead({
+    const result = await createLead({
       email: "founder@brand.com",
       domain: "brand.com",
       brand: "Brand Co",
       source: "manual",
     })
 
-    expect(lead.id).toBe("lead_1")
+    expect(result.lead.id).toBe("lead_1")
+    expect(result.created).toBe(false)
     expect(supplierLeadCreateMock).not.toHaveBeenCalled()
   })
 

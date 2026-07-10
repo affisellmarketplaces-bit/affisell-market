@@ -2,7 +2,7 @@ import type { LeadStatus } from "@prisma/client"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 
-import { requireAdminSession } from "@/lib/admin/require-admin-session"
+import { authorizeAdminOrCron } from "@/lib/admin/authorize-admin-or-cron"
 import {
   createLead,
   getLeads,
@@ -23,10 +23,11 @@ const createLeadSchema = z.object({
   linkedinUrl: z.string().url().optional().nullable(),
   source: z.enum(["shopify", "linkedin", "manual", "referral"]).or(z.string().min(1)),
   notes: z.string().optional().nullable(),
+  status: z.enum(["CONTACTED", "REPLIED", "DEMO_BOOKED", "CONVERTED", "LOST"]).optional(),
 })
 
 export async function GET(req: Request) {
-  const gate = await requireAdminSession()
+  const gate = await authorizeAdminOrCron(req)
   if (!gate.ok) {
     return NextResponse.json({ error: gate.error }, { status: gate.status })
   }
@@ -52,7 +53,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const gate = await requireAdminSession()
+  const gate = await authorizeAdminOrCron(req)
   if (!gate.ok) {
     return NextResponse.json({ error: gate.error }, { status: gate.status })
   }
@@ -69,10 +70,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "validation_error", details: parsed.error.flatten() }, { status: 400 })
   }
 
-  const lead = await createLead({
+  const result = await createLead({
     ...parsed.data,
     source: parsed.data.source === "manual" ? "manual" : parsed.data.source,
+    status: parsed.data.status,
   })
 
-  return NextResponse.json({ lead: serializeSupplierLead(lead) }, { status: 201 })
+  return NextResponse.json(
+    { lead: serializeSupplierLead(result.lead), created: result.created },
+    { status: result.created ? 201 : 200 }
+  )
 }

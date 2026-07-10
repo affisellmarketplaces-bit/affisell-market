@@ -70,12 +70,15 @@ function statusTimestampField(
   return null
 }
 
-export async function createLead(data: CreateSupplierLeadInput): Promise<SupplierLeadRow> {
+export async function createLead(data: CreateSupplierLeadInput): Promise<{
+  lead: SupplierLeadRow
+  created: boolean
+}> {
   const email = normalizeEmail(data.email)
   const existing = await prisma.supplierLead.findUnique({ where: { email } })
   if (existing) {
     console.log("[supplier-leads]", { email, result: "duplicate_email" })
-    return existing
+    return { lead: existing, created: false }
   }
 
   const lead = await prisma.supplierLead.create({
@@ -93,7 +96,7 @@ export async function createLead(data: CreateSupplierLeadInput): Promise<Supplie
   })
 
   console.log("[supplier-leads]", { leadId: lead.id, email, source: lead.source, result: "created" })
-  return lead
+  return { lead, created: true }
 }
 
 export async function updateLeadStatus(
