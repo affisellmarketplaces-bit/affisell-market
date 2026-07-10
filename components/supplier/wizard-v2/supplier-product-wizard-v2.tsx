@@ -162,7 +162,11 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       }
       if (!res.ok) {
         if (data.fallback === "manual") {
-          toast.message("IA indisponible — saisie manuelle")
+          toast.message(
+            data.error === "low_confidence"
+              ? "Confiance IA insuffisante — complétez manuellement"
+              : "IA indisponible — saisie manuelle"
+          )
           return
         }
         throw new Error(data.error ?? "analyze_failed")

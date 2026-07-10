@@ -31,7 +31,10 @@ export async function openaiChatText(options: OpenAiChatOptions): Promise<string
   const client = getOpenAIClient()
   if (!client) return null
 
-  const useVision = options.vision || options.model?.includes("llama-4-scout")
+  const useVision =
+    options.vision ||
+    options.model?.includes("llama-4-scout") ||
+    /gpt-4o|gpt-4\.1|^o[34]/i.test(options.model ?? "")
   const messages = useVision
     ? capVisionImagesInMessages(options.messages, GROQ_VISION_MAX_IMAGES)
     : options.messages

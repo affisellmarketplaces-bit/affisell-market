@@ -49,6 +49,9 @@ export async function POST(req: Request) {
     if (message === "ai_unavailable") {
       return NextResponse.json({ error: "ai_unavailable", fallback: "manual" }, { status: 503 })
     }
+    if (message === "low_confidence") {
+      return NextResponse.json({ error: "low_confidence", fallback: "manual" }, { status: 422 })
+    }
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

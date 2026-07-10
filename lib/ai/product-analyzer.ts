@@ -3,6 +3,18 @@ import "server-only"
 import { classifyAffisellProduct } from "@/lib/ai/classify-product"
 import { CATEGORIES_AFFISELL } from "@/lib/ai/categories"
 import { groqChatText } from "@/lib/ai/groq-client"
+import { hasOpenAiFallback, openaiChatText } from "@/lib/ai/openai-chat-fallback"
+import {
+  isAiVisionV2Enabled,
+  PRODUCT_VISION_V2_MODEL,
+  PRODUCT_VISION_V2_SYSTEM_PROMPT,
+  PRODUCT_VISION_V2_TEMPERATURE,
+} from "@/lib/ai/product-vision-v2-config"
+import {
+  auditProductVisionConfidence,
+  parseVisionV2Payload,
+  shouldRequireManualFallback,
+} from "@/lib/ai/product-vision-v2-parse"
 import { buildCategoryBrowse, fetchAllCategoriesForBrowse } from "@/lib/category-browse"
 import { prisma } from "@/lib/prisma"
 
@@ -14,6 +26,10 @@ export type ProductAnalysisResult = {
   attributes: Record<string, string>
   suggestedPrice: number | null
   cached: boolean
+  /** Present when ENABLE_AI_VISION_V2 — model self-reported + audited score. */
+  confidence?: number
+  visionVersion?: "v1" | "v2"
+  detectedModel?: string | null
 }
 
 function stripJsonFence(s: string): string {
@@ -64,6 +80,102 @@ export type AnalyzeProductImageInput = {
   imageDataUrl?: string
 }
 
+async function resolveCategoryMatch(args: {
+  title: string
+  description: string
+  category: string
+  imageUrl: string
+}) {
+  const rows = await fetchAllCategoriesForBrowse(prisma)
+  const { leafPaths } = buildCategoryBrowse(rows)
+  const allowedBreadcrumbs =
+    leafPaths.length > 0 ? leafPaths.map((lp) => lp.breadcrumb) : [...CATEGORIES_AFFISELL]
+
+  const { suggestions } = await classifyAffisellProduct(
+    {
+      title: args.title || "Produit",
+      description: args.description,
+      imageUrl: args.imageUrl,
+    },
+    { allowedBreadcrumbs, leafPaths }
+  )
+
+  const top = suggestions[0]
+  return {
+    categoryLabel: top?.category?.trim() || args.category,
+    categoryId: top?.leafId ?? null,
+  }
+}
+
+async function analyzeProductFromImageV2(
+  imageUrl: string
+): Promise<Omit<ProductAnalysisResult, "cached">> {
+  if (!hasOpenAiFallback()) {
+    console.log("[product-analyzer]", { result: "v2_no_openai_key" })
+    throw new Error("ai_unavailable")
+  }
+
+  const started = Date.now()
+  let raw: string | null = null
+  try {
+    raw = await openaiChatText({
+      model: PRODUCT_VISION_V2_MODEL,
+      vision: true,
+      temperature: PRODUCT_VISION_V2_TEMPERATURE,
+      max_tokens: 700,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: PRODUCT_VISION_V2_SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Analyse cette image produit et remplis le JSON." },
+            { type: "image_url", image_url: { url: imageUrl } },
+          ],
+        },
+      ],
+    })
+    if (!raw) throw new Error("ai_unavailable")
+  } catch (err) {
+    console.log("[product-analyzer]", { result: "vision_v2_failed", error: String(err) })
+    throw new Error("ai_unavailable")
+  }
+
+  const parsed = parseVisionV2Payload(raw)
+  const confidence = auditProductVisionConfidence(parsed)
+
+  console.log("[product-analyzer]", {
+    result: confidence >= 0.8 ? "v2_ok" : "v2_low_confidence",
+    confidence,
+    productType: parsed.productType,
+    detectedModel: parsed.detectedModel,
+    latencyMs: Date.now() - started,
+  })
+
+  if (shouldRequireManualFallback(confidence)) {
+    throw new Error("low_confidence")
+  }
+
+  const { categoryLabel, categoryId } = await resolveCategoryMatch({
+    title: parsed.title,
+    description: parsed.description,
+    category: parsed.category,
+    imageUrl,
+  })
+
+  return {
+    title: parsed.title || "Nouveau produit",
+    description: parsed.description,
+    category: categoryLabel,
+    categoryId,
+    attributes: parsed.attributes,
+    suggestedPrice: parsed.suggestedPrice,
+    confidence,
+    visionVersion: "v2",
+    detectedModel: parsed.detectedModel,
+  }
+}
+
 /**
  * Vision + category leaf match. Caller handles cache read/write.
  */
@@ -73,6 +185,10 @@ export async function analyzeProductFromImage(
   const imageUrl = input.imageDataUrl?.trim() || input.imageUrl?.trim() || ""
   if (!imageUrl) {
     throw new Error("image_required")
+  }
+
+  if (isAiVisionV2Enabled()) {
+    return analyzeProductFromImageV2(imageUrl)
   }
 
   const prompt = `Tu es un expert e-commerce français. Analyse cette image produit.
@@ -109,28 +225,18 @@ Prix suggestedPrice en EUR TTC catalogue fournisseur plausible.`
   }
 
   const parsed = parseVisionPayload(raw)
-  const rows = await fetchAllCategoriesForBrowse(prisma)
-  const { leafPaths } = buildCategoryBrowse(rows)
-  const allowedBreadcrumbs =
-    leafPaths.length > 0 ? leafPaths.map((lp) => lp.breadcrumb) : [...CATEGORIES_AFFISELL]
-
-  const { suggestions } = await classifyAffisellProduct(
-    {
-      title: parsed.title || "Produit",
-      description: parsed.description,
-      imageUrl,
-    },
-    { allowedBreadcrumbs, leafPaths }
-  )
-
-  const top = suggestions[0]
-  const categoryLabel = top?.category?.trim() || parsed.category
-  const categoryId = top?.leafId ?? null
+  const { categoryLabel, categoryId } = await resolveCategoryMatch({
+    title: parsed.title,
+    description: parsed.description,
+    category: parsed.category,
+    imageUrl,
+  })
 
   console.log("[product-analyzer]", {
     result: "ok",
     categoryId,
     hasTitle: Boolean(parsed.title),
+    visionVersion: "v1",
   })
 
   return {
@@ -140,5 +246,6 @@ Prix suggestedPrice en EUR TTC catalogue fournisseur plausible.`
     categoryId,
     attributes: parsed.attributes,
     suggestedPrice: parsed.suggestedPrice,
+    visionVersion: "v1",
   }
 }
