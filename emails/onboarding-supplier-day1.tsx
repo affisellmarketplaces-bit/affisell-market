@@ -13,35 +13,42 @@ export type OnboardingSupplierDay1EmailProps = {
   name: string
   importUrl: string
   templateUrl: string
+  affiliatePreviewUrl?: string
 }
 
 export function OnboardingSupplierDay1Email({
   name,
   importUrl,
   templateUrl,
+  affiliatePreviewUrl,
 }: OnboardingSupplierDay1EmailProps) {
+  const preview = affiliatePreviewUrl ?? templateUrl
   return (
     <Html>
       <Head />
-      <Preview>Template CSV prêt — import catalogue en 10 min</Preview>
+      <Preview>Ton 1er produit est live — visible par 1000+ affiliés</Preview>
       <Body style={main}>
         <Container style={container}>
           <Text style={text}>Salut {name},</Text>
           <Text style={text}>
-            Étape 1 fournisseur : <strong>importe ton catalogue CSV</strong> pour être visible par
-            1000+ affiliés.
+            <strong>Ton 1er produit est live.</strong> Voici comment les affiliés le voient dans le
+            catalogue — ils peuvent le lister sur leur vitrine en 1 clic.
           </Text>
-          <Text style={text}>Checklist :</Text>
-          <Text style={listItem}>1. Télécharge le template (SKU, titre, prix HT, stock)</Text>
-          <Text style={listItem}>2. Remplis tes lignes produits</Text>
-          <Text style={listItem}>3. Importe depuis le dashboard</Text>
-          <Button href={importUrl} style={button}>
-            Importer mon catalogue
+          <Text style={text}>Checklist affilié :</Text>
+          <Text style={listItem}>1. Ils parcourent le catalogue fournisseur</Text>
+          <Text style={listItem}>2. Ils fixent leur marge et publient</Text>
+          <Text style={listItem}>3. Tu expédies — payout J+2 après livraison</Text>
+          <Button href={preview} style={button}>
+            Voir comme un affilié
           </Button>
           <Text style={text}>
-            Template CSV :{" "}
+            Ajouter d&apos;autres SKU :{" "}
+            <Link href={importUrl} style={link}>
+              import CSV
+            </Link>
+            {" · "}
             <Link href={templateUrl} style={link}>
-              {templateUrl}
+              catalogue
             </Link>
           </Text>
           <Text style={muted}>L&apos;équipe Affisell</Text>

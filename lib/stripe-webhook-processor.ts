@@ -291,6 +291,18 @@ async function dispatchStripeEvent(
     case "account.updated": {
       const account = event.data.object as Stripe.Account
       await autoAcceptBaseLegalOnStripeKyc(account, tx)
+      try {
+        const { handleSupplierKycTransfersActive } = await import(
+          "@/lib/emails/supplier-kyc-webhook"
+        )
+        await handleSupplierKycTransfersActive(account)
+      } catch (error) {
+        logStripeWebhookError({
+          metric: "supplier_kyc_day0_email_failed",
+          stripeAccountId: account.id,
+        })
+        captureStripeWebhookException(error, { stripeAccountId: account.id })
+      }
       return { orderId: null, status: "success", error: null }
     }
     default:

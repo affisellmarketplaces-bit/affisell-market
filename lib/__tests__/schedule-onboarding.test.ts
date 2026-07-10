@@ -108,7 +108,7 @@ describe("sendOnboardingEmailForUser", () => {
       name: null,
     })
 
-    expect(result).toEqual({ ok: false, error: "listing_created", skipped: true })
+    expect(result).toEqual({ ok: false, error: "skip_rule", skipped: true })
     expect(sendResendReactEmailMock).not.toHaveBeenCalled()
     expect(prismaMock.processedWebhook.create).toHaveBeenCalledWith(
       expect.objectContaining({

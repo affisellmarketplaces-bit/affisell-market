@@ -33,6 +33,26 @@ export function shouldSkipFollowUpOnboardingDay(day: OnboardingDay): boolean {
   return day === 3 || day === 7
 }
 
+export async function shouldSkipOnboardingDayForUser(args: {
+  userId: string
+  role: OnboardingMerchantRole
+  day: OnboardingDay
+}): Promise<boolean> {
+  if (!shouldSkipFollowUpOnboardingDay(args.day)) return false
+
+  if (args.role === "SUPPLIER" && args.day === 3) {
+    const saleCount = await prisma.order.count({
+      where: {
+        supplierId: args.userId,
+        status: { notIn: [...ORDER_ACTIVE_STATUSES] },
+      },
+    })
+    return saleCount > 0
+  }
+
+  return merchantHasListingCreated(args.userId, args.role)
+}
+
 export function utcSignupDayWindow(daysAgo: OnboardingDay, now = new Date()): { gte: Date; lt: Date } {
   const start = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - daysAgo, 0, 0, 0, 0)
@@ -105,16 +125,16 @@ async function dispatchOnboardingEmail(args: {
   }
 
   if (day === 1) {
-    const importUrl = publicAbsoluteUrl("/dashboard/supplier/bulk-import")
+    const importUrl = publicAbsoluteUrl("/dashboard/supplier/onboarding")
     return sendResendReactEmail({
       context: "onboarding-email",
       intendedTo: email,
-      subject: "Importe ton catalogue CSV",
+      subject: "Importe ton catalogue CSV — visible par 1000+ affiliés",
       template: OnboardingSupplierDay1Email,
       props: {
         name: display,
         importUrl,
-        templateUrl: importUrl,
+        templateUrl: publicAbsoluteUrl("/marketplace"),
       },
     })
   }
@@ -122,11 +142,12 @@ async function dispatchOnboardingEmail(args: {
     return sendResendReactEmail({
       context: "onboarding-email",
       intendedTo: email,
-      subject: "1ère vente = payout J+2",
+      subject: "0 ventes ? Boost : baisse prix 10% ou ajoute vidéo",
       template: OnboardingSupplierDay3Email,
       props: {
         name: display,
         payoutsUrl: publicAbsoluteUrl("/dashboard/supplier/settings/payouts"),
+        productsUrl: publicAbsoluteUrl("/dashboard/supplier/products"),
       },
     })
   }
@@ -201,13 +222,13 @@ export async function sendOnboardingEmailForUser(args: {
   }
 
   if (shouldSkipFollowUpOnboardingDay(day)) {
-    const hasListing = await merchantHasListingCreated(userId, role)
-    if (hasListing) {
+    const skip = await shouldSkipOnboardingDayForUser({ userId, role, day })
+    if (skip) {
       await prisma.processedWebhook.create({
         data: { id: webhookId, status: "skipped_listing" },
       })
-      console.log("[onboarding-email]", { userId, role, day, result: "skipped_listing" })
-      return { ok: false, error: "listing_created", skipped: true }
+      console.log("[onboarding-email]", { userId, role, day, result: "skipped_followup" })
+      return { ok: false, error: "skip_rule", skipped: true }
     }
   }
 
