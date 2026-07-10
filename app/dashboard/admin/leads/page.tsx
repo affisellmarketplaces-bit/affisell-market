@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 import { AdminSupplierLeadsConsole } from "@/components/admin/admin-supplier-leads-console"
-import { getLeadsByStatus, getSupplierLeadStats, serializeSupplierLead } from "@/lib/supplier-leads"
+import { getLeads, getSupplierLeadStats, serializeSupplierLead } from "@/lib/supplier-leads"
 
 export const dynamic = "force-dynamic"
 
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AdminSupplierLeadsPage() {
-  const [leads, stats] = await Promise.all([getLeadsByStatus(), getSupplierLeadStats()])
+  const [leads, stats] = await Promise.all([getLeads(), getSupplierLeadStats()])
 
   return (
     <AdminSupplierLeadsConsole

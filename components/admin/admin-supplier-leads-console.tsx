@@ -32,6 +32,43 @@ type ApiResponse = {
   stats: SupplierLeadStats
 }
 
+const FUNNEL_STAGES: {
+  status: "CONTACTED" | "REPLIED" | "DEMO_BOOKED" | "CONVERTED"
+  label: string
+  accent: string
+  showPct: boolean
+}[] = [
+  {
+    status: "CONTACTED",
+    label: "Contactés",
+    accent: "text-sky-200",
+    showPct: false,
+  },
+  {
+    status: "REPLIED",
+    label: "Répondu",
+    accent: "text-amber-200",
+    showPct: true,
+  },
+  {
+    status: "DEMO_BOOKED",
+    label: "Demo bookée",
+    accent: "text-violet-200",
+    showPct: true,
+  },
+  {
+    status: "CONVERTED",
+    label: "Convertis",
+    accent: "text-emerald-200",
+    showPct: true,
+  },
+]
+
+function funnelPct(count: number, total: number): number {
+  if (total <= 0) return 0
+  return Math.round((count / total) * 1000) / 10
+}
+
 const STATUS_FILTERS: { id: LeadStatus | "all"; label: string }[] = [
   { id: "all", label: "Tous" },
   { id: "CONTACTED", label: "Contactés" },
@@ -200,19 +237,25 @@ export function AdminSupplierLeadsConsole({ initial }: Props) {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-300/80">Total</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-zinc-100">{stats.total}</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-300/80">Répondu</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-amber-200">{stats.repliedPct}%</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-300/80">Converti</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-200">{stats.convertedPct}%</p>
-        </div>
+      <div className="grid grid-cols-4 gap-4">
+        {FUNNEL_STAGES.map((stage) => {
+          const count = stats.byStatus[stage.status]
+          const pct = funnelPct(count, stats.total)
+          return (
+            <div
+              key={stage.status}
+              className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md"
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-300/80">
+                {stage.label}
+              </p>
+              <p className={cn("mt-1 text-2xl font-bold tabular-nums", stage.accent)}>{count}</p>
+              {stage.showPct ? (
+                <p className="mt-0.5 text-sm tabular-nums text-zinc-400">{pct}%</p>
+              ) : null}
+            </div>
+          )
+        })}
       </div>
 
       {showAdd ? (
