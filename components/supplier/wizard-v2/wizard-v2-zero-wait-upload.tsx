@@ -12,6 +12,7 @@ import {
   runZeroWaitUpload,
   type ZeroWaitUploadSlot,
 } from "@/lib/upload/zero-wait-uploader"
+import { scheduleZeroWaitParentSync } from "@/lib/upload/zero-wait-upload-parent-sync"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -41,14 +42,23 @@ export function WizardV2ZeroWaitUpload({ onUrlsChange, onBusyChange, className }
   const slotsRef = useRef(slots)
   slotsRef.current = slots
 
-  const syncUrls = useCallback(
-    (next: ZeroWaitUploadSlot[]) => {
-      const urls = next.map((s) => s.durableUrl).filter((u): u is string => Boolean(u))
-      onUrlsChange(urls)
-      const busy = next.some((s) => s.status === "processing" || s.status === "uploading")
-      onBusyChange?.(busy)
+  const parentCallbacksRef = useRef({ onUrlsChange, onBusyChange })
+  parentCallbacksRef.current = { onUrlsChange, onBusyChange }
+
+  const scheduleParentSync = useCallback(() => {
+    scheduleZeroWaitParentSync(() => slotsRef.current, parentCallbacksRef.current)
+  }, [])
+
+  const applySlotPatch = useCallback(
+    (id: string, patch: Partial<ZeroWaitUploadSlot>) => {
+      setSlots((prev) => {
+        const next = prev.map((s) => (s.id === id ? { ...s, ...patch } : s))
+        slotsRef.current = next
+        return next
+      })
+      scheduleParentSync()
     },
-    [onBusyChange, onUrlsChange]
+    [scheduleParentSync]
   )
 
   const handleFiles = useCallback(
@@ -64,13 +74,7 @@ export function WizardV2ZeroWaitUpload({ onUrlsChange, onBusyChange, className }
         file,
         processFile: processProductGalleryImageFile,
         uploadWhole: uploadProcessedBlob,
-        onUpdate: (patch) => {
-          setSlots((prev) => {
-            const next = prev.map((s) => (s.id === id ? { ...s, ...patch } : s))
-            syncUrls(next)
-            return next
-          })
-        },
+        onUpdate: (patch) => applySlotPatch(id, patch),
       })
 
       if (updated.status === "error") {
@@ -79,7 +83,7 @@ export function WizardV2ZeroWaitUpload({ onUrlsChange, onBusyChange, className }
         toast.success("Photo prête sur le CDN")
       }
     },
-    [syncUrls]
+    [applySlotPatch]
   )
 
   const blocked = publishBlockedUploadMessage(slots)
