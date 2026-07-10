@@ -17,17 +17,16 @@ export function OnboardingAffiliateDay7Email({ name, calendlyUrl }: OnboardingAf
   return (
     <Html>
       <Head />
-      <Preview>15 min pour débloquer ton 1er €</Preview>
+      <Preview>15 min live pour débloquer ton 1er €</Preview>
       <Body style={main}>
         <Container style={container}>
           <Text style={text}>Salut {name},</Text>
           <Text style={text}>
-            Tu bloques ? Réserve <strong>15 min avec moi</strong> — je t&apos;aide à set up ton 1er €
-            (Pulse, lien boutique, 1er post).
+            Bloqué ? Réserve <strong>15 min avec moi</strong> — je t&apos;aide live à lancer ton 1er
+            € (Pulse, boutique, 1er post).
           </Text>
-          <Text style={text}>Créneaux dispos cette semaine :</Text>
           <Button href={calendlyUrl} style={button}>
-            Choisir un créneau 📞
+            Je t&apos;aide live 📞
           </Button>
           <Text style={muted}>Besoin d&apos;aide ? Réponds à cet email.</Text>
           <Text style={muted}>L&apos;équipe Affisell</Text>

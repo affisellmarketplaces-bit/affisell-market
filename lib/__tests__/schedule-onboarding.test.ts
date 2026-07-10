@@ -29,7 +29,7 @@ vi.mock("@/lib/emails/resend-delivery", () => ({
 }))
 
 import {
-  merchantHasOnboardingActivity,
+  merchantHasListingCreated,
   onboardingWebhookId,
   runOnboardingCron,
   sendOnboardingEmailForUser,
@@ -50,13 +50,12 @@ describe("sendOnboardingEmailForUser", () => {
     vi.clearAllMocks()
     prismaMock.processedWebhook.findUnique.mockResolvedValue(null)
     prismaMock.processedWebhook.create.mockResolvedValue({ id: "x" })
-    prismaMock.processedWebhook.upsert.mockResolvedValue({ id: "complete" })
     prismaMock.affiliateProduct.count.mockResolvedValue(0)
     prismaMock.order.count.mockResolvedValue(0)
     sendResendReactEmailMock.mockResolvedValue({ ok: true, resendId: "re_onb_1" })
   })
 
-  it("sends affiliate day1 with Pulse CTA", async () => {
+  it("sends affiliate day1 with updated subject and Pulse CTA", async () => {
     const result = await sendOnboardingEmailForUser({
       userId: "aff_1",
       role: "AFFILIATE",
@@ -69,7 +68,7 @@ describe("sendOnboardingEmailForUser", () => {
     expect(sendResendReactEmailMock).toHaveBeenCalledWith(
       expect.objectContaining({
         context: "onboarding-email",
-        subject: "Ton 1er produit à lister - 5 min ⚡",
+        subject: "Ton 1er € en 5 min ⚡",
         props: expect.objectContaining({
           name: "Alex",
           preheader: "Payout J+7 garanti",
@@ -83,7 +82,22 @@ describe("sendOnboardingEmailForUser", () => {
     )
   })
 
-  it("skips when merchant already has a listing", async () => {
+  it("still sends J+1 when a listing already exists", async () => {
+    prismaMock.affiliateProduct.count.mockResolvedValue(2)
+
+    const result = await sendOnboardingEmailForUser({
+      userId: "aff_1b",
+      role: "AFFILIATE",
+      day: 1,
+      email: "aff@test.com",
+      name: "Alex",
+    })
+
+    expect(result.ok).toBe(true)
+    expect(sendResendReactEmailMock).toHaveBeenCalled()
+  })
+
+  it("skips J+3 when merchant already has a listing", async () => {
     prismaMock.affiliateProduct.count.mockResolvedValue(1)
 
     const result = await sendOnboardingEmailForUser({
@@ -94,23 +108,29 @@ describe("sendOnboardingEmailForUser", () => {
       name: null,
     })
 
-    expect(result).toEqual({ ok: false, error: "merchant_active", skipped: true })
+    expect(result).toEqual({ ok: false, error: "listing_created", skipped: true })
     expect(sendResendReactEmailMock).not.toHaveBeenCalled()
-    expect(prismaMock.processedWebhook.upsert).toHaveBeenCalled()
+    expect(prismaMock.processedWebhook.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          id: onboardingWebhookId("AFFILIATE", 3, "aff_2"),
+          status: "skipped_listing",
+        }),
+      })
+    )
   })
 })
 
-describe("merchantHasOnboardingActivity", () => {
+describe("merchantHasListingCreated", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     prismaMock.affiliateProduct.count.mockResolvedValue(0)
     prismaMock.product.count.mockResolvedValue(0)
-    prismaMock.order.count.mockResolvedValue(0)
   })
 
-  it("detects supplier sales", async () => {
-    prismaMock.order.count.mockResolvedValue(2)
-    const active = await merchantHasOnboardingActivity("sup_1", "SUPPLIER")
+  it("detects supplier catalog products", async () => {
+    prismaMock.product.count.mockResolvedValue(2)
+    const active = await merchantHasListingCreated("sup_1", "SUPPLIER")
     expect(active).toBe(true)
   })
 })

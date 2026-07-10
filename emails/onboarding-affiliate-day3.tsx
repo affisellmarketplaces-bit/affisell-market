@@ -23,21 +23,25 @@ export function OnboardingAffiliateDay3Email({
   return (
     <Html>
       <Head />
-      <Preview>523€/mois avec 12 produits — case study Affisell</Preview>
+      <Preview>523€/mois — sa méthode en 3 étapes</Preview>
       <Body style={main}>
         <Container style={container}>
           <Text style={text}>Salut {name},</Text>
           <Text style={text}>
-            Case study : Lucas M., affilié depuis 4 mois, génère <strong>523€/mois</strong> avec{" "}
-            <strong>12 produits</strong> listés depuis Pulse.
+            Lucas M. génère <strong>523€/mois</strong> avec 12 produits. Sa méthode en 3 étapes :
           </Text>
-          <Text style={text}>
-            Sa recette : 3 niches testées en semaine 1, marge moyenne 180%, partage lien boutique +
-            2 posts TikTok/semaine. Payout Stripe J+7 à chaque cycle.
+          <Text style={listItem}>
+            <strong>1. Tester</strong> — 3 niches via Pulse en semaine 1
+          </Text>
+          <Text style={listItem}>
+            <strong>2. Optimiser</strong> — garder les listings à marge 180%+
+          </Text>
+          <Text style={listItem}>
+            <strong>3. Amplifier</strong> — lien boutique + 2 posts TikTok/semaine
           </Text>
           <Img
             src={dashboardImageUrl}
-            alt="Dashboard affilié Affisell — ventes et commissions"
+            alt="Dashboard affilié Affisell — CA 30j et top produits"
             width="472"
             style={screenshot}
           />
@@ -68,6 +72,7 @@ const container = {
   borderRadius: "12px",
 }
 const text = { fontSize: "15px", lineHeight: "24px", color: "#3f3f46", margin: "0 0 12px" }
+const listItem = { fontSize: "15px", lineHeight: "24px", color: "#3f3f46", margin: "0 0 8px", paddingLeft: "4px" }
 const muted = { fontSize: "13px", lineHeight: "20px", color: "#71717a", margin: "16px 0 0" }
 const button = {
   backgroundColor: "#7c3aed",

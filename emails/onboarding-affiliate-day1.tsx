@@ -3,7 +3,6 @@ import {
   Button,
   Container,
   Head,
-  Heading,
   Html,
   Preview,
   Text,
@@ -27,11 +26,12 @@ export function OnboardingAffiliateDay1Email({
       <Body style={main}>
         <Container style={container}>
           <Text style={text}>Salut {name},</Text>
-          <Text style={text}>Bienvenue chez les 300%.</Text>
-          <Text style={text}>Ton plan 5 min :</Text>
-          <Text style={listItem}>1. Pulse → Choisis 1 produit viral</Text>
-          <Text style={listItem}>2. Clique &apos;Lister sur ma boutique&apos;</Text>
-          <Text style={listItem}>3. Partage ton lien</Text>
+          <Text style={text}>
+            <strong>Pulse → Lister → Partager.</strong> C&apos;est tout pour ton 1er €.
+          </Text>
+          <Text style={listItem}>1. Pulse — choisis 1 produit viral</Text>
+          <Text style={listItem}>2. Lister — publie sur ta boutique</Text>
+          <Text style={listItem}>3. Partager — envoie ton lien</Text>
           <Text style={text}>Dès ta 1ère vente : payout J+7 sur Stripe.</Text>
           <Button href={pulseUrl} style={button}>
             Ouvrir Pulse maintenant

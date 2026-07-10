@@ -29,6 +29,10 @@ export function onboardingCompleteWebhookId(role: OnboardingMerchantRole, userId
   return `onboarding:${role.toLowerCase()}:complete:${userId}`
 }
 
+export function shouldSkipFollowUpOnboardingDay(day: OnboardingDay): boolean {
+  return day === 3 || day === 7
+}
+
 export function utcSignupDayWindow(daysAgo: OnboardingDay, now = new Date()): { gte: Date; lt: Date } {
   const start = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - daysAgo, 0, 0, 0, 0)
@@ -66,7 +70,7 @@ async function dispatchOnboardingEmail(args: {
       return sendResendReactEmail({
         context: "onboarding-email",
         intendedTo: email,
-        subject: "Ton 1er produit à lister - 5 min ⚡",
+        subject: "Ton 1er € en 5 min ⚡",
         template: OnboardingAffiliateDay1Email,
         props: {
           name: display,
@@ -79,7 +83,7 @@ async function dispatchOnboardingEmail(args: {
       return sendResendReactEmail({
         context: "onboarding-email",
         intendedTo: email,
-        subject: "Case study : 523€/mois avec 12 produits",
+        subject: "523€/mois : sa méthode en 3 étapes",
         template: OnboardingAffiliateDay3Email,
         props: {
           name: display,
@@ -91,7 +95,7 @@ async function dispatchOnboardingEmail(args: {
     return sendResendReactEmail({
       context: "onboarding-email",
       intendedTo: email,
-      subject: "Tu bloques ? 15min avec moi 📞",
+      subject: "Bloqué ? 15min avec moi 📞",
       template: OnboardingAffiliateDay7Email,
       props: {
         name: display,
@@ -138,53 +142,43 @@ async function dispatchOnboardingEmail(args: {
   })
 }
 
-export async function merchantHasOnboardingActivity(
+export async function merchantHasListingCreated(
   userId: string,
   role: OnboardingMerchantRole
 ): Promise<boolean> {
   if (role === "AFFILIATE") {
-    const [listingCount, saleCount] = await Promise.all([
-      prisma.affiliateProduct.count({ where: { affiliateId: userId } }),
-      prisma.order.count({
-        where: {
-          affiliateId: userId,
-          status: { notIn: [...ORDER_ACTIVE_STATUSES] },
-        },
-      }),
-    ])
-    return listingCount > 0 || saleCount > 0
+    const listingCount = await prisma.affiliateProduct.count({ where: { affiliateId: userId } })
+    return listingCount > 0
   }
 
-  const [productCount, saleCount] = await Promise.all([
-    prisma.product.count({ where: { supplierId: userId } }),
-    prisma.order.count({
-      where: {
-        supplierId: userId,
-        status: { notIn: [...ORDER_ACTIVE_STATUSES] },
-      },
-    }),
-  ])
-  return productCount > 0 || saleCount > 0
+  const productCount = await prisma.product.count({ where: { supplierId: userId } })
+  return productCount > 0
 }
 
-async function markOnboardingComplete(userId: string, role: OnboardingMerchantRole): Promise<void> {
-  const id = onboardingCompleteWebhookId(role, userId)
-  await prisma.processedWebhook.upsert({
-    where: { id },
-    create: { id, status: "skipped_active" },
-    update: { status: "skipped_active" },
-  })
-}
-
-async function isOnboardingMarkedComplete(
+/** @deprecated Use {@link merchantHasListingCreated} for J+3/J+7 skip rules. */
+export async function merchantHasOnboardingActivity(
   userId: string,
   role: OnboardingMerchantRole
 ): Promise<boolean> {
-  const row = await prisma.processedWebhook.findUnique({
-    where: { id: onboardingCompleteWebhookId(role, userId) },
-    select: { id: true },
+  if (await merchantHasListingCreated(userId, role)) return true
+
+  if (role === "AFFILIATE") {
+    const saleCount = await prisma.order.count({
+      where: {
+        affiliateId: userId,
+        status: { notIn: [...ORDER_ACTIVE_STATUSES] },
+      },
+    })
+    return saleCount > 0
+  }
+
+  const saleCount = await prisma.order.count({
+    where: {
+      supplierId: userId,
+      status: { notIn: [...ORDER_ACTIVE_STATUSES] },
+    },
   })
-  return Boolean(row)
+  return saleCount > 0
 }
 
 export type SendOnboardingEmailResult =
@@ -206,15 +200,15 @@ export async function sendOnboardingEmailForUser(args: {
     return { ok: true, duplicate: true }
   }
 
-  if (await isOnboardingMarkedComplete(userId, role)) {
-    return { ok: false, error: "onboarding_complete", skipped: true }
-  }
-
-  const active = await merchantHasOnboardingActivity(userId, role)
-  if (active) {
-    await markOnboardingComplete(userId, role)
-    console.log("[onboarding-email]", { userId, role, day, result: "skipped_active" })
-    return { ok: false, error: "merchant_active", skipped: true }
+  if (shouldSkipFollowUpOnboardingDay(day)) {
+    const hasListing = await merchantHasListingCreated(userId, role)
+    if (hasListing) {
+      await prisma.processedWebhook.create({
+        data: { id: webhookId, status: "skipped_listing" },
+      })
+      console.log("[onboarding-email]", { userId, role, day, result: "skipped_listing" })
+      return { ok: false, error: "listing_created", skipped: true }
+    }
   }
 
   const display = displayName(name, email)
