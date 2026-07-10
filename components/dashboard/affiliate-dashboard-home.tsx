@@ -3,8 +3,10 @@ import { Suspense } from "react"
 import { AffiliateOnboardingChecklist } from "@/components/affiliate/affiliate-onboarding-checklist"
 import { AffiliateKycPublishBanner } from "@/components/affiliate/affiliate-kyc-publish-banner"
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
+import { AffiliateAnalyticsWidget } from "@/components/dashboard/affiliate-analytics-widget"
 import { ClawbackRiskWidget } from "@/components/dashboard/clawback-risk-widget"
 import { loadAffiliateClawbackRisk } from "@/lib/affiliate-clawback-risk"
+import { loadAffiliateDashboardAnalytics } from "@/lib/affiliate-dashboard-analytics"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { loadAffiliateFirstSaleProgress } from "@/lib/merchant-first-sale-progress"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
@@ -17,10 +19,11 @@ type Props = {
 
 export async function AffiliateDashboardHome({ callbackPath }: Props) {
   const session = await requireAffiliateSession(callbackPath)
-  const [firstSaleProgress, kycGate, clawbackRisk] = await Promise.all([
+  const [firstSaleProgress, kycGate, clawbackRisk, analytics] = await Promise.all([
     loadAffiliateFirstSaleProgress(session.user.id),
     merchantVerificationGate(session.user.id),
     loadAffiliateClawbackRisk(session.user.id),
+    loadAffiliateDashboardAnalytics(session.user.id),
   ])
 
   return (
@@ -44,6 +47,7 @@ export async function AffiliateDashboardHome({ callbackPath }: Props) {
             draftCount={firstSaleProgress.draftListingCount}
           />
           <AffiliateOnboardingChecklist progress={firstSaleProgress} />
+          <AffiliateAnalyticsWidget analytics={analytics} />
           <ClawbackRiskWidget riskCents={clawbackRisk.riskCents} />
         </BentoContainer>
         <AffiliateDashboard storeId={session.user.id} />
