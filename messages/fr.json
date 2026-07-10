@@ -30,6 +30,8 @@
       "earningsShort": "Pay",
       "inviteSupplier": "Inviter fournisseur",
       "inviteSupplierShort": "Inviter",
+      "referral": "Parrainage",
+      "referralShort": "Parrain",
       "brandStudio": "Brand Studio",
       "brandStudioShort": "Marque"
     },
@@ -1221,6 +1223,49 @@
       "feedLoadFailed": "Impossible de charger le feed",
       "serviceUnavailable": "Service temporairement indisponible — réessayez dans un instant.",
       "genericError": "Une erreur est survenue"
+    },
+    "referral": {
+      "metaTitle": "Parrainage — Affisell",
+      "metaDescription": "Partagez votre lien, gagnez 10% des ventes de vos filleuls et débloquez la bounty UGC.",
+      "eyebrow": "Growth",
+      "title": "Parrainage & bounty UGC",
+      "description": "Invitez des créateurs — 10% de leurs gains nets à chaque vente. Bonus bienvenue 5% pour vos filleuls (< 30j).",
+      "stats": {
+        "referrals": "Filleuls",
+        "month": "Gagné ce mois",
+        "balance": "Solde parrainage"
+      },
+      "link": {
+        "title": "Ton lien de parrainage",
+        "body": "Partage ce lien : chaque affilié inscrit génère 10% de ses gains nets sur ton solde.",
+        "hint": "10% parrain · 5% bonus filleul (< 30 jours) · bounty tweet 50€"
+      },
+      "copy": "Copier",
+      "copied": "Copié",
+      "copyFailed": "Copie impossible",
+      "tweet": {
+        "title": "Tweet ton payout",
+        "body": "Partage ton dernier versement avec ton lien — social proof pour recruter.",
+        "cta": "Tweet pré-rempli"
+      },
+      "bounty": {
+        "title": "Bounty UGC — 50€",
+        "body": "Tweet ton payout J+7 avec #Affisell300 + capture d'écran → validation manuelle → +50€ sur ton solde.",
+        "tweetLabel": "URL du tweet",
+        "screenshotLabel": "Capture payout",
+        "upload": "Choisir une image",
+        "submit": "Envoyer la demande",
+        "submitted": "Demande envoyée — validation sous 48h.",
+        "pending": "Demande en cours de validation par l'équipe.",
+        "missingFields": "Tweet + capture requis.",
+        "errors": {
+          "invalid_tweet_url": "URL tweet invalide (x.com / twitter.com).",
+          "screenshot_required": "Ajoute une capture d'écran.",
+          "claim_already_pending": "Une demande est déjà en attente.",
+          "bounty_already_claimed": "Bounty déjà validée.",
+          "unknown": "Envoi impossible — réessayez."
+        }
+      }
     },
     "opportunityPulse": {
       "eyebrow": "Opportunity Pulse",

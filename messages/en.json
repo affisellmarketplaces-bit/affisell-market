@@ -30,6 +30,8 @@
       "earningsShort": "Pay",
       "inviteSupplier": "Invite supplier",
       "inviteSupplierShort": "Invite",
+      "referral": "Referrals",
+      "referralShort": "Refer",
       "brandStudio": "Brand Studio",
       "brandStudioShort": "Brand"
     },
@@ -1221,6 +1223,49 @@
       "feedLoadFailed": "Could not load the feed",
       "serviceUnavailable": "Service temporarily unavailable — try again in a moment.",
       "genericError": "Something went wrong"
+    },
+    "referral": {
+      "metaTitle": "Referrals — Affisell",
+      "metaDescription": "Share your link, earn 10% of referrals' net sales, and unlock the UGC bounty.",
+      "eyebrow": "Growth",
+      "title": "Referrals & UGC bounty",
+      "description": "Invite creators — 10% of their net earnings on every sale. 5% welcome bonus for referrals under 30 days.",
+      "stats": {
+        "referrals": "Referrals",
+        "month": "Earned this month",
+        "balance": "Referral balance"
+      },
+      "link": {
+        "title": "Your referral link",
+        "body": "Share this link: each affiliate signup earns you 10% of their net earnings.",
+        "hint": "10% referrer · 5% welcome bonus (< 30 days) · 50€ tweet bounty"
+      },
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Could not copy",
+      "tweet": {
+        "title": "Tweet your payout",
+        "body": "Share your latest payout with your link — social proof to recruit.",
+        "cta": "Pre-filled tweet"
+      },
+      "bounty": {
+        "title": "UGC bounty — €50",
+        "body": "Tweet your J+7 payout with #Affisell300 + screenshot → manual review → +€50 to your balance.",
+        "tweetLabel": "Tweet URL",
+        "screenshotLabel": "Payout screenshot",
+        "upload": "Choose image",
+        "submit": "Submit claim",
+        "submitted": "Claim submitted — review within 48h.",
+        "pending": "Claim pending team review.",
+        "missingFields": "Tweet + screenshot required.",
+        "errors": {
+          "invalid_tweet_url": "Invalid tweet URL (x.com / twitter.com).",
+          "screenshot_required": "Add a screenshot.",
+          "claim_already_pending": "A claim is already pending.",
+          "bounty_already_claimed": "Bounty already claimed.",
+          "unknown": "Could not submit — try again."
+        }
+      }
     },
     "opportunityPulse": {
       "eyebrow": "Opportunity Pulse",

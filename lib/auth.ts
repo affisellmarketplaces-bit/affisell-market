@@ -393,6 +393,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             console.error("[auth] affiliate invite claim failed", e)
           })
         }
+
+        const { consumeReferralCodeCookie } = await import("@/lib/referral-cookie")
+        const { claimReferralCodeForUser } = await import("@/lib/referral")
+        const referralCode = await consumeReferralCodeCookie()
+        if (referralCode) {
+          await claimReferralCodeForUser(referralCode, u.id).catch((e) => {
+            console.error("[auth] referral claim failed", e)
+          })
+        }
       }
     },
   },

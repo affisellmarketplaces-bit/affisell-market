@@ -58,6 +58,7 @@ export async function POST(req: Request) {
       tiktok?: string
       siret?: string
       inviteToken?: string
+      referralCode?: string
       acceptCgu?: boolean
       acceptTerms?: boolean
       acceptRoleTerms?: boolean
@@ -79,6 +80,7 @@ export async function POST(req: Request) {
       tiktok,
       siret,
       inviteToken,
+      referralCode,
       acceptCgu,
       acceptTerms,
       acceptRoleTerms,
@@ -273,6 +275,19 @@ export async function POST(req: Request) {
       await claimAffiliateInvitationForUser(inviteToken.trim(), user.id).catch((e) => {
         console.error("[signup] affiliate invite claim failed", e)
       })
+    }
+
+    if (resolvedRole === "AFFILIATE") {
+      const { consumeReferralCodeCookie } = await import("@/lib/referral-cookie")
+      const { claimReferralCodeForUser } = await import("@/lib/referral")
+      const cookieRef = await consumeReferralCodeCookie()
+      const code =
+        (typeof referralCode === "string" && referralCode.trim()) || cookieRef || ""
+      if (code) {
+        await claimReferralCodeForUser(code, user.id).catch((e) => {
+          console.error("[signup] referral claim failed", e)
+        })
+      }
     }
 
     if (resolvedRole === "SUPPLIER" || resolvedRole === "AFFILIATE") {

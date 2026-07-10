@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { Suspense } from "react"
 import { useTranslations } from "next-intl"
-import { Handshake, LayoutDashboard, Layers, Palette, Rocket, Store, Wallet } from "lucide-react"
+import { Handshake, Gift, LayoutDashboard, Layers, Palette, Rocket, Store, Wallet } from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -64,6 +64,7 @@ export function NavAffiliate() {
     pathname === AFFILIATE_HUB_PATH || pathname.startsWith(`${AFFILIATE_HUB_PATH}/`)
   const onEarnings = pathname.startsWith("/dashboard/affiliate/earnings")
   const onInviteSupplier = pathname.startsWith("/dashboard/affiliate/invite-supplier")
+  const onReferral = pathname.startsWith("/dashboard/affiliate/referral")
   const onBrandStudio = pathname.startsWith("/dashboard/affiliate/brand-studio")
   const onPromote = pathname.startsWith("/dashboard/affiliate/promote")
   const onDashboard =
@@ -74,6 +75,7 @@ export function NavAffiliate() {
       !onHub &&
       !onAgent &&
       !onInviteSupplier &&
+      !onReferral &&
       !onBrandStudio &&
       !onPromote)
 
@@ -137,6 +139,13 @@ export function NavAffiliate() {
           shortLabel={t("earningsShort")}
           icon={Wallet}
           active={onEarnings}
+        />
+        <NavPill
+          href="/dashboard/affiliate/referral"
+          label={t("referral")}
+          shortLabel={t("referralShort")}
+          icon={Gift}
+          active={onReferral}
         />
         <NavPill
           href="/dashboard/affiliate/brand-studio"

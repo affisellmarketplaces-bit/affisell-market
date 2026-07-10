@@ -212,6 +212,19 @@ model User {
    * CUSTOMER checkout account: INDIVIDUAL (particulier) or PROFESSIONAL (facturation pro).
    */
   buyerAccountType String?
+
+  /**
+   * Affiliate referral program — shareable link `affisell.com/r/{referralCode}`.
+   */
+  referralCode              String   @unique @default(cuid())
+  referredById              String?
+  referredBy                User?    @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals                 User[]   @relation("UserReferrals")
+  referralBonusBalanceCents Int      @default(0)
+  referralBonusLedger       ReferralBonusLedger[]
+  referralUgcClaims         ReferralUgcClaim[]
+
+  @@index([referredById])
 }
 
 /**
@@ -1656,6 +1669,48 @@ model BuyerRewardLedger {
   @@index([orderId])
 }
 
+/**
+ * Affiliate referral bonus credits (parrain 10%, filleul welcome 5%, UGC bounty).
+ */
+model ReferralBonusLedger {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId        String?
+  order          Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  /**
+   * REFERRER_BONUS | FILLEUL_WELCOME | UGC_BOUNTY
+   */
+  entryType      String
+  amountCents    Int
+  idempotencyKey String   @unique
+  note           String?  @db.Text
+  createdAt      DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([orderId])
+}
+
+/**
+ * UGC payout tweet bounty — admin approves → +50€ referral bonus.
+ */
+model ReferralUgcClaim {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tweetUrl       String
+  screenshotUrl  String
+  status         String    @default("pending")
+  reviewedAt     DateTime?
+  reviewedById   String?
+  bonusCents     Int       @default(5000)
+  idempotencyKey String?   @unique
+  createdAt      DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
 enum OrderPaymentSettlementStatus {
   PENDING
   PAID
@@ -1873,6 +1928,10 @@ model Order {
   supplierPayoutAt                 DateTime?
   affiliatePayoutAt                DateTime?
   /**
+   * Filleul welcome bonus (5% net affiliate) credited on this order when affiliate < 30d.
+   */
+  referralBonusCents               Int                          @default(0)
+  /**
    * Lightning Payout — Stripe transfer ids [supplierTransferId, affiliateTransferId].
    */
   payoutTransferIds                Json?
@@ -1950,6 +2009,7 @@ model Order {
   affiliate                        User                         @relation("AffiliateOrders", fields: [affiliateId], references: [id])
   returns                          OrderReturn[]
   buyerRewardLedgerEntries         BuyerRewardLedger[]
+  referralBonusLedger              ReferralBonusLedger[]
   merchantPayoutLedger             MerchantPayoutLedger[]
   buyerReview                      Review?
   reviewReminderSentAt             DateTime?

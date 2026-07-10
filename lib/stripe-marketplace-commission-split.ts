@@ -146,6 +146,17 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
   const errors: string[] = []
 
   for (const orderId of orderIds) {
+    try {
+      const { applyReferralBonus } = await import("@/lib/referral")
+      await applyReferralBonus(orderId)
+    } catch (error) {
+      console.log("[referral]", {
+        orderId,
+        result: "apply_failed",
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
+
     const result = await handleMarketplaceThreeWaySplit(session, orderId, undefined, {
       runJobSync: true,
     })
