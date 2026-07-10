@@ -7,13 +7,21 @@ import { useTranslations } from "next-intl"
 import { SupplierAddProductForm } from "@/components/supplier/supplier-add-product-form"
 import { SupplierInviteContextBanner } from "@/components/supplier/supplier-invite-context-banner"
 import { SupplierProductAddHub } from "@/components/supplier/supplier-product-add-hub"
+import { SupplierProductWizardV2 } from "@/components/supplier/wizard-v2/supplier-product-wizard-v2"
 import { BentoContainer } from "@/components/affisell/bento-ui"
+import type { ProductWizardVersion } from "@/lib/product-wizard-v2/feature-flag"
 
 /**
  * Single product listing flow by default (`?compose=1`).
  * Optional hub for bulk / assist entry points: `?hub=1`.
  */
-export function SupplierProductsNewShell({ ownerUserId }: { ownerUserId: string }) {
+export function SupplierProductsNewShell({
+  ownerUserId,
+  wizardVersion,
+}: {
+  ownerUserId: string
+  wizardVersion: ProductWizardVersion
+}) {
   const tForm = useTranslations("supplier.form")
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -23,7 +31,10 @@ export function SupplierProductsNewShell({ ownerUserId }: { ownerUserId: string 
   const hubQs = searchParams.get("hub") === "1"
   const composeQs = searchParams.get("compose") === "1"
   const fromInvite = searchParams.get("fromInvite") === "1"
+  const wizardQs = searchParams.get("wizard")?.trim().toLowerCase()
   const [inviteCommissionHint, setInviteCommissionHint] = useState<number | null>(null)
+
+  const useV2 = wizardVersion === "v2" || wizardQs === "v2"
 
   useEffect(() => {
     if (hubQs || editId || composeQs) return
@@ -52,12 +63,26 @@ export function SupplierProductsNewShell({ ownerUserId }: { ownerUserId: string 
     router.replace(`/dashboard/supplier/products/new?${qs}${draft}`, { scroll: false })
   }
 
-  if (hubQs && !editId) {
+  if (hubQs && !editId && !useV2) {
     return (
       <SupplierProductAddHub
         onStartManual={() => startListing(false)}
         onStartWithAssist={() => startListing(true)}
       />
+    )
+  }
+
+  if (useV2 && !editId) {
+    return (
+      <Suspense
+        fallback={
+          <div className="mx-auto max-w-7xl px-4 py-12 text-center text-sm text-zinc-500">
+            {tForm("loadingEditor")}
+          </div>
+        }
+      >
+        <SupplierProductWizardV2 ownerUserId={ownerUserId} />
+      </Suspense>
     )
   }
 

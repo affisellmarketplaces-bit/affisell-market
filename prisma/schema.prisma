@@ -225,6 +225,18 @@ model User {
   referralUgcClaims         ReferralUgcClaim[]
   convertedSupplierLeads    SupplierLead[]       @relation("ConvertedSupplierLead")
 
+  /**
+   * Wizard v2 gamification — XP, streak, last publish for streak calc.
+   */
+  xp                      Int       @default(0)
+  productStreak           Int       @default(0)
+  lastProductPublishedAt  DateTime?
+
+  /**
+   * Wizard v2 smart defaults (logistics, commission) per merchant.
+   */
+  merchantDefault MerchantDefault?
+
   @@index([referredById])
 }
 
@@ -282,6 +294,21 @@ model MerchantLegalProfile {
 
   @@index([verificationStatus])
   @@index([legalStatus])
+}
+
+/**
+ * Wizard v2 — persisted merchant defaults for faster repeat listings.
+ */
+model MerchantDefault {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  countryCode          String?
+  warehouseType        String?
+  offerMode            String?
+  defaultCommissionPct Int?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model MerchantLegalDocument {

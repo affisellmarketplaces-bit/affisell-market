@@ -4,6 +4,10 @@ import { Suspense } from "react"
 
 import { BentoShell } from "@/components/affisell/bento-ui"
 import { SupplierProductsNewShell } from "@/components/supplier/supplier-products-new-shell"
+import {
+  isWizardV2EnvEnabled,
+  resolveProductWizardVersion,
+} from "@/lib/product-wizard-v2/feature-flag"
 
 function SupplierNewProductFallback() {
   return (
@@ -36,13 +40,22 @@ function SupplierNewProductFallback() {
   )
 }
 
-export default async function SupplierNewProductPage() {
+export default async function SupplierNewProductPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ wizard?: string; mode?: string }>
+}) {
   const session = await requireSupplierSession("/dashboard/supplier/products/new")
-
+  const sp = await searchParams
+  const wizardVersion = resolveProductWizardVersion({
+    wizardQuery: sp.wizard,
+    modeQuery: sp.mode,
+    envEnabled: isWizardV2EnvEnabled(),
+  })
 
   return (
     <Suspense fallback={<SupplierNewProductFallback />}>
-      <SupplierProductsNewShell ownerUserId={session.user.id} />
+      <SupplierProductsNewShell ownerUserId={session.user.id} wizardVersion={wizardVersion} />
     </Suspense>
   )
 }
