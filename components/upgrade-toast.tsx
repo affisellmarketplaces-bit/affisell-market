@@ -1,8 +1,10 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { toast } from "sonner"
+
+import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 
 type Props = {
   upgrade?: string
@@ -10,12 +12,12 @@ type Props = {
 }
 
 export function UpgradeToast({ upgrade, sessionId }: Props) {
-  const router = useRouter()
+  const { replace, mounted } = useSafeAppRouter()
   const pathname = usePathname()
   const shown = useRef(false)
 
   useEffect(() => {
-    if (shown.current || !upgrade) return
+    if (!mounted || shown.current || !upgrade) return
     shown.current = true
 
     if (upgrade === "success") {
@@ -39,14 +41,14 @@ export function UpgradeToast({ upgrade, sessionId }: Props) {
               : "Paiement reçu — l’activation Pro peut prendre quelques minutes"
           )
         }
-        router.replace(pathname)
+        replace(pathname)
       })()
       return
     }
 
     if (upgrade === "cancelled") {
       toast.message("Upgrade annulé")
-      router.replace(pathname)
+      replace(pathname)
       return
     }
 
@@ -67,11 +69,11 @@ export function UpgradeToast({ upgrade, sessionId }: Props) {
           window.location.href = data.url
         } catch (e) {
           toast.error(e instanceof Error ? e.message : "Échec du checkout Pro")
-          router.replace(pathname)
+          replace(pathname)
         }
       })()
     }
-  }, [upgrade, pathname, router])
+  }, [mounted, upgrade, pathname, replace, sessionId])
 
   return null
 }

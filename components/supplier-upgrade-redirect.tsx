@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+
+import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 
 type Props = {
   upgrade?: string
@@ -11,11 +12,11 @@ type Props = {
 }
 
 export function SupplierUpgradeRedirect({ upgrade, sessionId, redirectTo }: Props) {
-  const router = useRouter()
+  const { replace, mounted } = useSafeAppRouter()
   const done = useRef(false)
 
   useEffect(() => {
-    if (done.current) return
+    if (!mounted || done.current) return
     done.current = true
 
     void (async () => {
@@ -42,9 +43,9 @@ export function SupplierUpgradeRedirect({ upgrade, sessionId, redirectTo }: Prop
       } else if (upgrade === "cancelled") {
         toast.message("Upgrade annulé")
       }
-      router.replace(redirectTo)
+      replace(redirectTo)
     })()
-  }, [upgrade, sessionId, redirectTo, router])
+  }, [mounted, upgrade, sessionId, redirectTo, replace])
 
   return (
     <div className="flex min-h-[40vh] items-center justify-center text-sm text-muted-foreground">

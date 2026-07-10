@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ArrowLeft, Sparkles } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useTranslations } from "next-intl"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { HomePersonalizedPicksRailLive } from "@/components/home/home-personalized-picks-rail-live"
@@ -21,6 +21,7 @@ import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
+import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 import { fetchBuyerSessionSnapshot } from "@/lib/buyer-session-client"
 import { toggleProductWishlist } from "@/lib/wishlist-toggle-client"
 import { requestPriceAlertPushSubscription } from "@/components/push/request-price-alert-push"
@@ -80,7 +81,7 @@ export function BuyerSwipeCommerce({
   const t = useTranslations("pulse.commerce")
   const tPulse = useTranslations("pulse")
   const pathname = usePathname()
-  const router = useRouter()
+  const { push, replace, prefetch, mounted } = useSafeAppRouter()
   const searchParams = useSearchParams()
   const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
 
@@ -184,13 +185,13 @@ export function BuyerSwipeCommerce({
   }, [initialItems, deck.length])
 
   useEffect(() => {
-    if (searchParams.get("success") !== "true") return
+    if (!mounted || searchParams.get("success") !== "true") return
     notifyBuyerPersonalizationRefresh("checkout_success")
     const next = new URLSearchParams(searchParams.toString())
     next.delete("success")
     const href = next.toString() ? `${pathname}?${next.toString()}` : pathname
-    router.replace(href, { scroll: false })
-  }, [pathname, router, searchParams])
+    replace(href, { scroll: false })
+  }, [mounted, pathname, replace, searchParams])
 
   useEffect(() => {
     if (feedExhausted || loading || deck.length > PREFETCH_WHEN_LEFT) return
@@ -271,7 +272,7 @@ export function BuyerSwipeCommerce({
             showToast(t("saveDropLoginForPush"), { force: true })
             const qs = searchParams.toString()
             const callbackUrl = `${pathname}${qs ? `?${qs}` : ""}`
-            router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
+            push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
             return
           }
           const push = await requestPriceAlertPushSubscription()
@@ -375,8 +376,9 @@ export function BuyerSwipeCommerce({
   })
 
   useEffect(() => {
-    router.prefetch(scrollHref)
-  }, [router, scrollHref])
+    if (!mounted) return
+    prefetch(scrollHref)
+  }, [mounted, prefetch, scrollHref])
 
   if (deck.length === 0 && !loading && feedExhausted && skippedPool.length === 0) {
     return (

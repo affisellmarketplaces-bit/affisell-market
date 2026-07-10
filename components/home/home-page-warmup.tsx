@@ -1,19 +1,20 @@
 "use client"
 
 import { useEffect } from "react"
-import { useRouter } from "next/navigation"
 
 import { HOME_WARM_ROUTES } from "@/lib/nav-routes"
 import { scheduleIdleTask } from "@/lib/schedule-idle-task"
 import { prefetchRoutes } from "@/lib/prefetch-routes"
+import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 
 /** Prefetch hero + catalog routes after idle so first clicks feel instant. */
 export function HomePageWarmup() {
-  const router = useRouter()
+  const { prefetch, mounted } = useSafeAppRouter()
 
   useEffect(() => {
+    if (!mounted) return
     const cancelRoutes = scheduleIdleTask(
-      () => prefetchRoutes((href) => router.prefetch(href), HOME_WARM_ROUTES),
+      () => prefetchRoutes((href) => prefetch(href), HOME_WARM_ROUTES),
       2600,
       700
     )
@@ -27,7 +28,7 @@ export function HomePageWarmup() {
       cancelRoutes()
       cancelCatalog()
     }
-  }, [router])
+  }, [mounted, prefetch])
 
   return null
 }

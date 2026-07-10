@@ -1,13 +1,13 @@
 "use client"
 
 import { startTransition, useEffect } from "react"
-import { useRouter } from "next/navigation"
 
 import { signalInstantNavigationStart } from "@/lib/instant-navigation-events.client"
 import {
   isSameOriginNavigableAnchor,
   normalizePrefetchHref,
 } from "@/lib/prefetch-href.client"
+import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 
 const prefetchedOnPress = new Set<string>()
 
@@ -15,9 +15,10 @@ const prefetchedOnPress = new Set<string>()
  * Pointerdown prefetch + instant progress bar — perceived latency drops before route commit.
  */
 export function InstantNavigationListener() {
-  const router = useRouter()
+  const { prefetch, mounted } = useSafeAppRouter()
 
   useEffect(() => {
+    if (!mounted) return
     const onPointerDown = (event: PointerEvent) => {
       if (event.defaultPrevented) return
       if (event.button !== 0) return
@@ -39,7 +40,7 @@ export function InstantNavigationListener() {
       prefetchedOnPress.add(path)
       startTransition(() => {
         try {
-          router.prefetch(path)
+          prefetch(path)
         } catch {
           /* ignore */
         }
@@ -48,7 +49,7 @@ export function InstantNavigationListener() {
 
     document.addEventListener("pointerdown", onPointerDown, { capture: true, passive: true })
     return () => document.removeEventListener("pointerdown", onPointerDown, { capture: true })
-  }, [router])
+  }, [mounted, prefetch])
 
   return null
 }

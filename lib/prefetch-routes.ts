@@ -2,20 +2,24 @@
 
 import { startTransition } from "react"
 
+import { scheduleRouterAction } from "@/lib/safe-app-router"
+
 /** Prefetch a list of app routes — safe to call after the App Router has hydrated. */
 export function prefetchRoutes(
   prefetch: (href: string) => void,
   routes: readonly string[]
 ): void {
-  startTransition(() => {
-    for (const path of routes) {
-      if (!path || path.startsWith("/#")) continue
-      try {
-        prefetch(path)
-      } catch {
-        /* router not ready yet */
+  scheduleRouterAction(() => {
+    startTransition(() => {
+      for (const path of routes) {
+        if (!path || path.startsWith("/#")) continue
+        try {
+          prefetch(path)
+        } catch {
+          /* router not ready yet */
+        }
       }
-    }
+    })
   })
 }
 

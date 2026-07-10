@@ -4,6 +4,7 @@ import NextLink from "next/link"
 import { useCallback } from "react"
 
 import { Link as LocaleLink, useRouter } from "@/i18n/navigation"
+import { runSafeRouterPrefetch } from "@/lib/safe-app-router"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -20,11 +21,7 @@ export function GlowCtaLink({ href, children, className, localeAware = false }: 
   const router = useRouter()
   const warm = useCallback(() => {
     if (href.startsWith("/#")) return
-    try {
-      router.prefetch(href)
-    } catch {
-      /* ignore */
-    }
+    runSafeRouterPrefetch(router, href)
   }, [router, href])
 
   const inner = <span className="relative">{children}</span>

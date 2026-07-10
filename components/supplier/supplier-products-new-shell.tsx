@@ -1,7 +1,7 @@
 "use client"
 
 import { Suspense, useEffect, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 
 import { SupplierAddProductForm } from "@/components/supplier/supplier-add-product-form"
@@ -9,6 +9,7 @@ import { SupplierInviteContextBanner } from "@/components/supplier/supplier-invi
 import { SupplierProductAddHub } from "@/components/supplier/supplier-product-add-hub"
 import { SupplierProductWizardV2 } from "@/components/supplier/wizard-v2/supplier-product-wizard-v2"
 import { BentoContainer } from "@/components/affisell/bento-ui"
+import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 import type { ProductWizardVersion } from "@/lib/product-wizard-v2/feature-flag"
 
 /**
@@ -23,7 +24,7 @@ export function SupplierProductsNewShell({
   wizardVersion: ProductWizardVersion
 }) {
   const tForm = useTranslations("supplier.form")
-  const router = useRouter()
+  const { replace, mounted } = useSafeAppRouter()
   const searchParams = useSearchParams()
   const editId = searchParams.get("edit")?.trim() ?? ""
   const draftQs = searchParams.get("draft")?.trim() ?? ""
@@ -37,11 +38,11 @@ export function SupplierProductsNewShell({
   const useV2 = wizardVersion === "v2" || wizardQs === "v2"
 
   useEffect(() => {
-    if (hubQs || editId || composeQs) return
+    if (!mounted || hubQs || editId || composeQs) return
     const qs = new URLSearchParams(searchParams.toString())
     qs.set("compose", "1")
-    router.replace(`/dashboard/supplier/products/new?${qs.toString()}`, { scroll: false })
-  }, [composeQs, editId, hubQs, router, searchParams])
+    replace(`/dashboard/supplier/products/new?${qs.toString()}`, { scroll: false })
+  }, [composeQs, editId, hubQs, mounted, replace, searchParams])
 
   useEffect(() => {
     void fetch("/api/supplier/invitation-context", { cache: "no-store" })
@@ -54,13 +55,13 @@ export function SupplierProductsNewShell({
   }, [])
 
   function goHub() {
-    router.replace("/dashboard/supplier/products/new?hub=1", { scroll: false })
+    replace("/dashboard/supplier/products/new?hub=1", { scroll: false })
   }
 
   function startListing(assist: boolean) {
     const qs = assist ? "assist=1&compose=1" : "compose=1"
     const draft = draftQs ? `&draft=${encodeURIComponent(draftQs)}` : ""
-    router.replace(`/dashboard/supplier/products/new?${qs}${draft}`, { scroll: false })
+    replace(`/dashboard/supplier/products/new?${qs}${draft}`, { scroll: false })
   }
 
   if (hubQs && !editId && !useV2) {

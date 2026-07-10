@@ -14,7 +14,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
@@ -27,6 +27,7 @@ import { PulseProductMediaStage } from "@/components/pulse/pulse-product-media-s
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
+import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 import { formatStoreCount, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { notifyBuyerPersonalizationRefresh } from "@/lib/buyer-personalization-refresh.client"
@@ -127,7 +128,7 @@ function PulseCard({
   onToggleMute: () => void
 }) {
   const t = useTranslations("pulse")
-  const router = useRouter()
+  const { push } = useSafeAppRouter()
   const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
   const [likes, setLikes] = useState(item.likes)
   const [likeBurst, setLikeBurst] = useState(false)
@@ -178,7 +179,7 @@ function PulseCard({
   async function toggleFollow() {
     if (!item.storeSlug) return
     if (!viewerLoggedIn) {
-      router.push(`/login?callbackUrl=${encodeURIComponent("/discover")}`)
+      push(`/login?callbackUrl=${encodeURIComponent("/discover")}`)
       return
     }
     const res = await fetch("/api/follow", {
@@ -425,7 +426,7 @@ function PulseCard({
 export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props) {
   const t = useTranslations("pulse")
   const pathname = usePathname()
-  const router = useRouter()
+  const { push, replace, mounted } = useSafeAppRouter()
   const searchParams = useSearchParams()
   const [activeIndex, setActiveIndex] = useState(0)
   const [muted, setMuted] = useState(true)
@@ -434,13 +435,13 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
   const safeItems = useMemo(() => items.filter((i) => i.mediaUrl), [items])
 
   useEffect(() => {
-    if (searchParams.get("success") !== "true") return
+    if (!mounted || searchParams.get("success") !== "true") return
     notifyBuyerPersonalizationRefresh("checkout_success")
     const next = new URLSearchParams(searchParams.toString())
     next.delete("success")
     const href = next.toString() ? `${pathname}?${next.toString()}` : pathname
-    router.replace(href, { scroll: false })
-  }, [pathname, router, searchParams])
+    replace(href, { scroll: false })
+  }, [mounted, pathname, replace, searchParams])
 
   useEffect(() => {
     const nodes = refs.current.filter(Boolean) as HTMLElement[]

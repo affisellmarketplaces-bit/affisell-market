@@ -3,11 +3,11 @@
 import Link from "next/link"
 import { Layers, Rows3 } from "lucide-react"
 import { useEffect } from "react"
-import { useRouter } from "next/navigation"
 
 import { affisellBrand } from "@/lib/affisell-brand"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
 import { cn } from "@/lib/utils"
+import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 
 type Props = {
   target: "scroll" | "swipe"
@@ -27,7 +27,7 @@ export function PulseLayoutModeLink({
   className,
   variant = "chip",
 }: Props) {
-  const router = useRouter()
+  const { prefetch, mounted } = useSafeAppRouter()
   const href = discoverSwipeHref({
     category: categoryId,
     subcategory: subcategoryId,
@@ -35,8 +35,9 @@ export function PulseLayoutModeLink({
   })
 
   useEffect(() => {
-    router.prefetch(href)
-  }, [href, router])
+    if (!mounted) return
+    prefetch(href)
+  }, [href, mounted, prefetch])
 
   const Icon = target === "scroll" ? Layers : Rows3
 

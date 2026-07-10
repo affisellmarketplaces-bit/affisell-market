@@ -1,20 +1,22 @@
 "use client"
 
 import { useEffect } from "react"
-import { useRouter } from "next/navigation"
 
 import { registerClientNavigate } from "@/lib/client-navigate.client"
+import { runSafeRouterPush } from "@/lib/safe-app-router"
+import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 
 /** Registers `clientNavigate` for libs outside React (cart fallback, etc.). */
 export function ClientNavigateBridge() {
-  const router = useRouter()
+  const { router, mounted } = useSafeAppRouter()
 
   useEffect(() => {
+    if (!mounted) return
     registerClientNavigate((href) => {
-      router.push(href)
+      runSafeRouterPush(router, href)
     })
     return () => registerClientNavigate(null)
-  }, [router])
+  }, [mounted, router])
 
   return null
 }

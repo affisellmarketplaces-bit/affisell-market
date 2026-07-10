@@ -2,10 +2,11 @@
 
 import { motion } from "framer-motion"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
+import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { notifyBuyerPersonalizationRefresh } from "@/lib/buyer-personalization-refresh.client"
 import { WishlistHeart } from "@/components/wishlist-heart"
@@ -151,19 +152,19 @@ function DiscoverCard({ item }: { item: DiscoverItem }) {
 
 export function DiscoverFeed({ items }: { items: DiscoverItem[] }) {
   const pathname = usePathname()
-  const router = useRouter()
+  const { replace, mounted } = useSafeAppRouter()
   const searchParams = useSearchParams()
   const [activeIndex, setActiveIndex] = useState(0)
   const refs = useRef<Array<HTMLElement | null>>([])
 
   useEffect(() => {
-    if (searchParams.get("success") !== "true") return
+    if (!mounted || searchParams.get("success") !== "true") return
     notifyBuyerPersonalizationRefresh("checkout_success")
     const next = new URLSearchParams(searchParams.toString())
     next.delete("success")
     const href = next.toString() ? `${pathname}?${next.toString()}` : pathname
-    router.replace(href, { scroll: false })
-  }, [pathname, router, searchParams])
+    replace(href, { scroll: false })
+  }, [mounted, pathname, replace, searchParams])
 
   useEffect(() => {
     const nodes = refs.current.filter(Boolean) as HTMLElement[]

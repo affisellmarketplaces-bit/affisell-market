@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Loader2, Sparkles, Zap } from "lucide-react"
 import { toast } from "sonner"
 
@@ -28,6 +28,7 @@ import { resolveWizardV2Mode } from "@/lib/product-wizard-v2/feature-flag"
 import { buildUrlImportFormPatch } from "@/lib/url-import-apply"
 import { publishBlockedUploadMessage } from "@/lib/upload/zero-wait-uploader"
 import { cn } from "@/lib/utils"
+import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 
 type MerchantDefaults = {
   countryCode: string | null
@@ -47,7 +48,7 @@ const MODES: { id: WizardV2Mode; label: string; hint: string }[] = [
 ]
 
 export function SupplierProductWizardV2({ ownerUserId }: Props) {
-  const router = useRouter()
+  const { push, replace, mounted } = useSafeAppRouter()
   const searchParams = useSearchParams()
   const mode = resolveWizardV2Mode(searchParams.get("mode"))
   const startedAt = useRef(Date.now())
@@ -87,10 +88,9 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   }, [mode])
 
   useEffect(() => {
-    if (mode === "pro") {
-      router.replace("/dashboard/supplier/products/new?wizard=v1&compose=1", { scroll: false })
-    }
-  }, [mode, router])
+    if (!mounted || mode !== "pro") return
+    replace("/dashboard/supplier/products/new?wizard=v1&compose=1", { scroll: false })
+  }, [mode, mounted, replace])
 
   useEffect(() => {
     void fetch("/api/supplier/merchant-defaults", { credentials: "include" })
@@ -319,7 +319,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       })
 
       toast.success("🎉 Produit publié — +10 XP")
-      router.push("/dashboard/supplier/products")
+      push("/dashboard/supplier/products")
     } catch (err) {
       const reason = err instanceof Error ? err.message : "publish_failed"
       trackWizardV2PublishBlocked({ mode, reason, field: "api" })
@@ -385,7 +385,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                 const qs = new URLSearchParams(searchParams.toString())
                 qs.set("wizard", "v2")
                 qs.set("mode", m.id)
-                router.replace(`/dashboard/supplier/products/new?${qs.toString()}`, { scroll: false })
+                replace(`/dashboard/supplier/products/new?${qs.toString()}`, { scroll: false })
               }}
             >
               <span className="block">{m.label}</span>

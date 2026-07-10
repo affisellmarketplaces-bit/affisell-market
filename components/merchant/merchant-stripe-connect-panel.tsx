@@ -1,12 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { CheckCircle2, Landmark } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { buttonVariants } from "@/components/ui/button"
+import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 import { cn } from "@/lib/utils"
 
 type Role = "SUPPLIER" | "AFFILIATE"
@@ -25,7 +26,7 @@ export function MerchantStripeConnectPanel({
   verificationApproved,
 }: Props) {
   const t = useTranslations("payoutPolicy.connect")
-  const router = useRouter()
+  const { replace, refresh, mounted } = useSafeAppRouter()
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -40,7 +41,7 @@ export function MerchantStripeConnectPanel({
   const stripeReturn = searchParams.get("stripe") === "return"
 
   useEffect(() => {
-    if (!stripeReturn || !stripeAccountId) return
+    if (!mounted || !stripeReturn || !stripeAccountId) return
     let cancelled = false
     setSyncing(true)
     void fetch("/api/stripe/refresh-onboarding", {
@@ -51,11 +52,11 @@ export function MerchantStripeConnectPanel({
     })
       .then(() => {
         if (cancelled) return
-        router.replace(
+        replace(
           role === "SUPPLIER" ? "/dashboard/supplier/balance" : "/dashboard/affiliate/earnings",
           { scroll: false }
         )
-        router.refresh()
+        refresh()
       })
       .catch(() => {
         if (!cancelled) setError("Impossible de synchroniser Stripe — réessayez.")
@@ -66,7 +67,7 @@ export function MerchantStripeConnectPanel({
     return () => {
       cancelled = true
     }
-  }, [role, router, stripeAccountId, stripeReturn])
+  }, [mounted, refresh, replace, role, stripeAccountId, stripeReturn])
 
   async function startConnect() {
     setLoading(true)
