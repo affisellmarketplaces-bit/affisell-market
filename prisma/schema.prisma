@@ -223,6 +223,7 @@ model User {
   referralBonusBalanceCents Int      @default(0)
   referralBonusLedger       ReferralBonusLedger[]
   referralUgcClaims         ReferralUgcClaim[]
+  convertedSupplierLeads    SupplierLead[]       @relation("ConvertedSupplierLead")
 
   @@index([referredById])
 }
@@ -3322,4 +3323,37 @@ model LegalPolicy {
   value     Json?
   updatedAt DateTime @updatedAt
   updatedBy String?
+}
+
+enum LeadStatus {
+  CONTACTED
+  REPLIED
+  DEMO_BOOKED
+  CONVERTED
+  LOST
+}
+
+/**
+ * B2B supplier outreach CRM — Shopify / LinkedIn / manual / referral.
+ */
+model SupplierLead {
+  id              String     @id @default(cuid())
+  email           String     @unique
+  domain          String
+  brand           String
+  firstName       String?
+  linkedinUrl     String?
+  status          LeadStatus @default(CONTACTED)
+  source          String
+  contactedAt     DateTime   @default(now())
+  repliedAt       DateTime?
+  demoAt          DateTime?
+  convertedAt     DateTime?
+  convertedUserId String?
+  convertedUser   User?      @relation("ConvertedSupplierLead", fields: [convertedUserId], references: [id], onDelete: SetNull)
+  notes           String?    @db.Text
+
+  @@index([status])
+  @@index([source])
+  @@index([contactedAt])
 }

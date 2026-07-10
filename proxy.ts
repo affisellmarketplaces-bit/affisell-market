@@ -366,7 +366,11 @@ export async function proxy(req: NextRequest) {
       return NextResponse.redirect(reacceptTermsUrl(req, path))
     }
 
-    const isAdminArea = bare === "/admin" || bare.startsWith("/admin/")
+    const isAdminArea =
+      bare === "/admin" ||
+      bare.startsWith("/admin/") ||
+      bare === "/dashboard/admin" ||
+      bare.startsWith("/dashboard/admin/")
     if (isAdminArea) {
       if (!loggedIn) return NextResponse.redirect(loginAdminUrl(req, path))
       if (role !== "ADMIN") {
