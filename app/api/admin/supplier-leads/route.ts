@@ -5,7 +5,7 @@ import { z } from "zod"
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import {
   createLead,
-  getLeadsByStatus,
+  getLeads,
   getSupplierLeadStats,
   serializeSupplierLead,
 } from "@/lib/supplier-leads"
@@ -33,12 +33,17 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url)
   const statusParam = url.searchParams.get("status")
+  const sourceParam = url.searchParams.get("source")
   const status =
     statusParam && LEAD_STATUSES.includes(statusParam as LeadStatus)
       ? (statusParam as LeadStatus)
       : undefined
+  const source = sourceParam?.trim() || undefined
 
-  const [leads, stats] = await Promise.all([getLeadsByStatus(status), getSupplierLeadStats()])
+  const [leads, stats] = await Promise.all([
+    getLeads({ status, source }),
+    getSupplierLeadStats(),
+  ])
 
   return NextResponse.json({
     leads: leads.map(serializeSupplierLead),

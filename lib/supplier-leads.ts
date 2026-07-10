@@ -198,12 +198,23 @@ export async function markConverted(
   return result
 }
 
-export async function getLeadsByStatus(status?: LeadStatus): Promise<SupplierLeadRow[]> {
+export async function getLeads(filters?: {
+  status?: LeadStatus
+  source?: string
+}): Promise<SupplierLeadRow[]> {
   return prisma.supplierLead.findMany({
-    where: status ? { status } : undefined,
+    where: {
+      ...(filters?.status ? { status: filters.status } : {}),
+      ...(filters?.source ? { source: filters.source } : {}),
+    },
     orderBy: { contactedAt: "desc" },
     select: LEAD_SELECT,
   })
+}
+
+/** @deprecated Use getLeads({ status }) */
+export async function getLeadsByStatus(status?: LeadStatus): Promise<SupplierLeadRow[]> {
+  return getLeads(status ? { status } : undefined)
 }
 
 export async function getSupplierLeadStats(): Promise<SupplierLeadStats> {
