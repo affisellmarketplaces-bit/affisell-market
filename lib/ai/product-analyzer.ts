@@ -94,7 +94,7 @@ Prix suggestedPrice en EUR TTC catalogue fournisseur plausible.`
     { type: "image_url", image_url: { url: imageUrl } },
   ]
 
-  let raw = ""
+  let raw: string | null = null
   try {
     raw = await groqChatText({
       messages: [{ role: "user", content }],
