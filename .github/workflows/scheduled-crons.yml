@@ -115,7 +115,8 @@ jobs:
           for path in \
             "/api/cron/brand-pulse-weekly-digest" \
             "/api/cron/brand-preset-ab-winner" \
-            "/api/cron/brand-pulse-stagnation-ab"
+            "/api/cron/brand-pulse-stagnation-ab" \
+            "/api/cron/supplier-report"
           do
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"

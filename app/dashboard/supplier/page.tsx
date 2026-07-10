@@ -3,6 +3,7 @@ import { requireSupplierSession } from "@/lib/dashboard-session"
 import { getLocale } from "next-intl/server"
 
 import { BentoContainer } from "@/components/affisell/bento-ui"
+import { SupplierAnalyticsWidget } from "@/components/dashboard/supplier-analytics-widget"
 import { missionControlCanvas } from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
 import { SupplierEscrowPulseCard } from "@/components/supplier/mission-control/supplier-escrow-pulse-card"
@@ -22,6 +23,7 @@ import { coerceSupplierTrustTier } from "@/lib/supplier/supplier-trust-tier-shar
 import { loadSupplierPublishReadiness } from "@/lib/supplier-publish-readiness"
 import { loadSupplierFirstSaleProgress } from "@/lib/merchant-first-sale-progress"
 import { loadSupplierMissionControl } from "@/lib/supplier-mission-control"
+import { getSupplierAnalytics } from "@/lib/supplier-dashboard-analytics"
 import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
 import { SupplierPublishReadinessCard } from "@/components/supplier/mission-control/supplier-publish-readiness-card"
 import { resolveAppLocale } from "@/lib/i18n-locale"
@@ -53,7 +55,7 @@ export default async function DashboardSupplierPage() {
   const locale = resolveAppLocale(await getLocale())
   const copyLocale = resolveBinaryCopyLocale(locale)
 
-  const [feeUser, trustSnapshot, publishReadiness, firstSaleProgress] = await Promise.all([
+  const [feeUser, trustSnapshot, publishReadiness, firstSaleProgress, analytics] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
@@ -66,6 +68,7 @@ export default async function DashboardSupplierPage() {
     loadSupplierTrustSnapshot(session.user.id),
     loadSupplierPublishReadiness(session.user.id),
     loadSupplierFirstSaleProgress(session.user.id, data.storeSlug),
+    getSupplierAnalytics(session.user.id),
   ])
 
   const trustTier = coerceSupplierTrustTier(feeUser?.supplierTrustTier, false)
@@ -98,6 +101,8 @@ export default async function DashboardSupplierPage() {
 
           <div className="space-y-6">
           <SupplierPublishReadinessCard readiness={publishReadiness} />
+
+          <SupplierAnalyticsWidget analytics={analytics} />
 
           <SupplierTrustLadderCard
             tier={displayTier}
