@@ -81,7 +81,7 @@ export function BuyerSwipeCommerce({
   const t = useTranslations("pulse.commerce")
   const tPulse = useTranslations("pulse")
   const pathname = usePathname()
-  const { push, replace, prefetch, mounted } = useSafeAppRouter()
+  const { push: navigate, replace, prefetch, mounted } = useSafeAppRouter()
   const searchParams = useSearchParams()
   const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
 
@@ -272,17 +272,17 @@ export function BuyerSwipeCommerce({
             showToast(t("saveDropLoginForPush"), { force: true })
             const qs = searchParams.toString()
             const callbackUrl = `${pathname}${qs ? `?${qs}` : ""}`
-            push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
+            navigate(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
             return
           }
-          const push = await requestPriceAlertPushSubscription()
-          if (push === "granted") {
+          const pushPermission = await requestPriceAlertPushSubscription()
+          if (pushPermission === "granted") {
             showToast(t("saveDropPushEnabled"))
           }
         }
       }
     },
-    [pathname, router, searchParams, showToast, t]
+    [navigate, pathname, searchParams, showToast, t]
   )
 
   const buyNow = useCallback(

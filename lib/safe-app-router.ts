@@ -17,7 +17,7 @@ export function scheduleRouterAction(run: () => void): () => void {
   if (typeof window === "undefined") return () => {}
 
   let cancelled = false
-  let retryTimer: ReturnType<typeof setTimeout> | null = null
+  let retryTimer: ReturnType<typeof globalThis.setTimeout> | null = null
   let raf2 = 0
 
   const invoke = (retriesLeft: number) => {
@@ -27,7 +27,7 @@ export function scheduleRouterAction(run: () => void): () => void {
         run()
       } catch (err) {
         if (retriesLeft > 0 && isRouterNotReadyError(err)) {
-          retryTimer = window.setTimeout(() => invoke(retriesLeft - 1), 48)
+          retryTimer = globalThis.setTimeout(() => invoke(retriesLeft - 1), 48)
         }
       }
     })
@@ -41,7 +41,7 @@ export function scheduleRouterAction(run: () => void): () => void {
     cancelled = true
     cancelAnimationFrame(raf1)
     if (raf2) cancelAnimationFrame(raf2)
-    if (retryTimer) window.clearTimeout(retryTimer)
+    if (retryTimer) globalThis.clearTimeout(retryTimer)
   }
 }
 

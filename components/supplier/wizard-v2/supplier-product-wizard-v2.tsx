@@ -336,7 +336,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     mode,
     name,
     price,
-    router,
+    push,
     uploadBusy,
   ])
 
