@@ -14,6 +14,7 @@ const { prismaMock } = vi.hoisted(() => ({
 vi.mock("@/lib/prisma", () => ({ prisma: prismaMock }))
 
 import { GET } from "@/app/api/legal/document/[slug]/route"
+import { devLocalhostUrl } from "@/lib/dev-localhost-url"
 
 const CGU_CONTENT = "# Conditions Générales d'Utilisation\n\nContenu CGU test."
 
@@ -45,7 +46,7 @@ const mockFrVersion = {
 }
 
 function makeGetRequest(slug: string, locale: string) {
-  return new Request(`http://localhost:3000/api/legal/document/${slug}?locale=${locale}`)
+  return new Request(devLocalhostUrl(`/api/legal/document/${slug}?locale=${locale}`))
 }
 
 describe("GET /api/legal/document/[slug]", () => {

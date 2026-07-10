@@ -1,6 +1,10 @@
 /** @type {import('lighthouse').Config} */
 const budgets = require("./lighthouse-budgets.cjs")
 
+/** Must match scripts/dev-localhost-url.mjs DEFAULT_DEV_PORT (3001). */
+const DEV_PORT = 3001
+const DEV_ORIGIN = `http://localhost:${DEV_PORT}`
+
 function toAssertions(level) {
   const source = budgets[level]
   const assertions = {}
@@ -14,10 +18,10 @@ function toAssertions(level) {
 module.exports = {
   ci: {
     collect: {
-      startServerCommand: "npm run start -- -p 3000",
+      startServerCommand: `npm run start -- -p ${DEV_PORT}`,
       startServerReadyPattern: "Ready|started server on|Local:",
       startServerReadyTimeout: 120000,
-      url: ["http://localhost:3000/"],
+      url: [`${DEV_ORIGIN}/`],
       numberOfRuns: 3,
       settings: {
         onlyCategories: ["performance"],

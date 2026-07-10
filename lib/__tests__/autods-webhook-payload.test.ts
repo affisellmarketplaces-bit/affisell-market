@@ -68,7 +68,7 @@ describe("autods remote order snapshot", () => {
 
 /**
  * Manual webhook test:
- * curl -sS -X POST http://localhost:3000/api/webhooks/autods \
+ * curl -sS -X POST "http://localhost:3001/api/webhooks/autods" \
  *   -H "Content-Type: application/json" \
  *   -H "X-AutoDS-Signature: $(printf '%s' '{"event":"order.shipped","data":{"autods_order_id":"YOUR_AUTODS_ID","tracking_number":"YT123","tracking_url":"https://track.example/YT123","carrier":"YunExpress","status":"SHIPPED"}}' | openssl dgst -sha256 -hmac "$AUTODS_WEBHOOK_SECRET" -hex | awk '{print $2}')" \
  *   -d '{"event":"order.shipped","data":{"autods_order_id":"YOUR_AUTODS_ID","tracking_number":"YT123","tracking_url":"https://track.example/YT123","carrier":"YunExpress","status":"SHIPPED"}}'

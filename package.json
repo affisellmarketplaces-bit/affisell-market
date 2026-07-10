@@ -8,6 +8,9 @@
   "scripts": {
     "dev": "npx prisma generate && node ./scripts/next-dev-port.mjs",
     "dev:restart": "npx prisma generate && node ./scripts/dev-restart.mjs",
+    "dev:url": "node scripts/print-dev-url.mjs",
+    "dev:open:wizard-v2": "node scripts/open-dev-url.mjs /dashboard/supplier/products/new wizard=v2 compose=1",
+    "dev:open:wizard-v1": "node scripts/open-dev-url.mjs /dashboard/supplier/products/new wizard=v1 compose=1",
     "postinstall": "npx prisma generate",
     "build": "prisma generate && npm run check:client-prisma && next build",
     "db:push": "prisma db push",

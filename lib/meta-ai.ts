@@ -1,3 +1,4 @@
+import { resolvePublicAppUrl } from "@/lib/public-app-url"
 import { prisma } from "@/lib/prisma"
 import { signMetaWebhookPayload } from "@/lib/meta-ai-webhook"
 
@@ -18,16 +19,8 @@ export type MetaVideoCreateResult = {
   videoJobId: string
 }
 
-function appBaseUrl(): string {
-  const explicit = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.APP_URL?.trim()
-  if (explicit) return explicit.replace(/\/$/, "")
-  const vercel = process.env.VERCEL_URL?.trim()
-  if (vercel) return `https://${vercel}`
-  return "http://localhost:3000"
-}
-
 export function metaAiWebhookUrl(): string {
-  return `${appBaseUrl()}/api/webhooks/meta-ai-complete`
+  return `${resolvePublicAppUrl()}/api/webhooks/meta-ai-complete`
 }
 
 /** Call Meta AI video API (or dev mock when `META_AI_API_KEY` is unset). */

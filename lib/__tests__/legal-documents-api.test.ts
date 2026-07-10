@@ -9,6 +9,7 @@ vi.mock("@/lib/legal/public-documents-catalog", () => ({
 }))
 
 import { GET } from "@/app/api/legal/documents/route"
+import { devLocalhostUrl } from "@/lib/dev-localhost-url"
 
 const mockDocuments = [
   {
@@ -36,7 +37,7 @@ describe("GET /api/legal/documents", () => {
   })
 
   it("returns public legal document summaries", async () => {
-    const res = await GET(new Request("http://localhost:3000/api/legal/documents?locale=fr"))
+    const res = await GET(new Request(devLocalhostUrl("/api/legal/documents?locale=fr")))
     expect(res.status).toBe(200)
     const body = (await res.json()) as Array<{ slug: string; hash: string }>
     expect(body).toHaveLength(2)
@@ -46,7 +47,7 @@ describe("GET /api/legal/documents", () => {
   })
 
   it("sets short public cache", async () => {
-    const res = await GET(new Request("http://localhost:3000/api/legal/documents"))
+    const res = await GET(new Request(devLocalhostUrl("/api/legal/documents")))
     expect(res.headers.get("Cache-Control")).toContain("max-age=300")
     expect(res.headers.get("Content-Type")).toContain("application/json")
   })
@@ -54,7 +55,7 @@ describe("GET /api/legal/documents", () => {
   it("returns JSON on catalog failure", async () => {
     listPublicLegalDocumentsMock.mockRejectedValueOnce(new Error("db unavailable"))
 
-    const res = await GET(new Request("http://localhost:3000/api/legal/documents"))
+    const res = await GET(new Request(devLocalhostUrl("/api/legal/documents")))
     expect(res.status).toBe(500)
     expect(res.headers.get("Content-Type")).toContain("application/json")
     const body = (await res.json()) as { error: string }

@@ -30,6 +30,17 @@ Audit `add-product friction report` (Jul 2026): UX **5.5/10**, **8–15 min** co
 Server: `lib/product-wizard-v2/feature-flag.ts`  
 Client shell: `components/supplier/supplier-products-new-shell.tsx`
 
+### Local testing (port 3001)
+
+```bash
+npm run dev
+npm run dev:open:wizard-v2   # opens /dashboard/supplier/products/new?wizard=v2&compose=1
+# or (quote query — zsh glob on unquoted ?wizard=v2):
+open "http://localhost:3001/dashboard/supplier/products/new?wizard=v2&compose=1"
+```
+
+Set `ENABLE_WIZARD_V2=1` in `.env.local` to default to v2 without query param.
+
 ## Modes
 
 | Mode | UX | Target time |

@@ -3,6 +3,13 @@
 - `"use client"` modules must **not** value-import `@/lib/*` files that import `@/lib/prisma` (use `*-types.ts`, `*-shared.ts`, or `import type` only).
 - Run `npm run check:client-prisma` before push when touching dashboard/nav/home client UI.
 
+## Local dev (port 3001)
+
+- `npm run dev` → `scripts/next-dev-port.mjs` (default **3001**, next free port if busy).
+- Copy `.env.local.example` → `.env.local`: align `PORT`, `NEXT_PUBLIC_APP_URL`, `NEXTAUTH_URL`.
+- Helpers: `lib/dev-localhost-url.ts`, `scripts/dev-localhost-url.mjs`; `npm run dev:url` / `dev:open:wizard-v2`.
+- **Zsh:** quote `?query` URLs or use npm open scripts — unquoted `?wizard=v2` triggers glob errors.
+
 ## Merchant custom domains & storefront theme
 
 - **DNS**: merchants set `CNAME` → `STORE_CNAME_TARGET` (default `cname.affisell.com`), then **Activate domain + SSL** in Store profile (`/dashboard/*/settings/store`) — or wait for cron auto-activation.

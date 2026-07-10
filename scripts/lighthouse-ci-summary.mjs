@@ -5,6 +5,7 @@
  */
 import { appendFileSync, existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import { resolve } from "node:path"
+import { devLocalhostUrl } from "./dev-localhost-url.mjs"
 
 const ROOT = process.cwd()
 const LHCI_DIR = resolve(ROOT, ".lighthouseci")
@@ -48,7 +49,7 @@ function main() {
     process.exit(1)
   }
 
-  const url = lhr.finalUrl ?? lhr.requestedUrl ?? "http://localhost:3000/"
+  const url = lhr.finalUrl ?? lhr.requestedUrl ?? devLocalhostUrl("/")
   const perf = lhr.categories?.performance?.score
   const fcp = lhr.audits?.["first-contentful-paint"]?.numericValue
   const lcp = lhr.audits?.["largest-contentful-paint"]?.numericValue

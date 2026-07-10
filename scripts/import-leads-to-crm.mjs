@@ -8,12 +8,13 @@
  *
  * API mode (default): POST /api/admin/supplier-leads
  *   Auth: Authorization: Bearer ${CRON_SECRET}
- *   Base URL: APP_URL | VERCEL_APP_URL | NEXT_PUBLIC_APP_URL | http://localhost:3001
+ *   Base URL: APP_URL | VERCEL_APP_URL | NEXT_PUBLIC_APP_URL | devLocalhostOrigin()
  */
 import fs from "node:fs"
 import { resolve } from "node:path"
 import { config } from "dotenv"
 import { PrismaClient } from "@prisma/client"
+import { devLocalhostOrigin } from "./dev-localhost-url.mjs"
 
 config({ path: resolve(process.cwd(), ".env.local") })
 config({ path: resolve(process.cwd(), ".env") })
@@ -26,7 +27,7 @@ const APP_URL = (
   process.env.APP_URL ||
   process.env.VERCEL_APP_URL ||
   process.env.NEXT_PUBLIC_APP_URL ||
-  "http://localhost:3001"
+  devLocalhostOrigin()
 ).replace(/\/$/, "")
 
 const CRON_SECRET = process.env.CRON_SECRET?.trim()

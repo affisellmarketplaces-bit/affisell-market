@@ -7,6 +7,7 @@ Next.js marketplace for **suppliers** (catalog, API) and **creators/affiliates**
 - Node 24+
 - PostgreSQL (`prisma/schema.prisma`)
 - Copy `.env.example` → `.env`
+- Optional local overrides: `.env.local.example` → `.env.local` (`PORT=3001`, OAuth URLs)
 
 ## Install
 
@@ -14,7 +15,13 @@ Next.js marketplace for **suppliers** (catalog, API) and **creators/affiliates**
 npm install
 npm run db:local:setup   # optional local Docker DB
 npm run dev              # http://localhost:3001 (or next free port)
+npm run dev:url          # print current dev origin (respects PORT)
 ```
+
+### Local dev port & zsh
+
+- Default port **3001** (`scripts/next-dev-port.mjs`, Playwright). Set `PORT`, `NEXT_PUBLIC_APP_URL`, and `NEXTAUTH_URL` together (see `.env.local.example`).
+- **Zsh glob:** quote URLs with query strings — `curl "http://localhost:3001/path?wizard=v2"` — or use `npm run dev:open:wizard-v2` (builds the URL in Node).
 
 ## Persona marketing pages (i18n)
 

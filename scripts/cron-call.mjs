@@ -7,6 +7,7 @@
  */
 import { existsSync, readFileSync } from "node:fs"
 import { resolve } from "node:path"
+import { devLocalhostOrigin } from "./dev-localhost-url.mjs"
 
 function parseCronSecretLine(line) {
   const trimmed = line.trim()
@@ -55,7 +56,7 @@ const base = (
   baseArg ??
   process.env.VERCEL_APP_URL ??
   process.env.NEXT_PUBLIC_APP_URL ??
-  "http://localhost:3001"
+  devLocalhostOrigin()
 )
   .trim()
   .replace(/\/$/, "")
