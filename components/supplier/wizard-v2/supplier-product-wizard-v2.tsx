@@ -49,6 +49,8 @@ type Props = {
 type InstantScanUiState = "idle" | "loading" | "done" | "gate" | "error"
 
 const INSTANTSCAN_FETCH_TIMEOUT_MS = 45_000
+
+const MODES: { id: WizardV2Mode; label: string; hint: string }[] = [
   { id: "express", label: "Express", hint: "URL → preview → publish (~15 s)" },
   { id: "guided", label: "InstantScan", hint: "Photo → InstantScan → prix (~60 s)" },
   { id: "pro", label: "Pro", hint: "Wizard classique v1" },
