@@ -6,6 +6,7 @@ import {
   trackInstantScanResult,
 } from "@/lib/telemetry"
 import { isAiVisionCascadeEnabled, isInstantScanEnabled } from "@/lib/ai/product-vision-v2-config"
+import { isInstantScanServerEnabled } from "@/lib/instantscan/flags"
 
 describe("instantscan telemetry", () => {
   it("maps vision version to InstantScan stage", () => {
@@ -29,13 +30,8 @@ describe("ENABLE_INSTANTSCAN flag", () => {
   })
 
   it("falls back to legacy flags when INSTANTSCAN=0", () => {
-    expect(isInstantScanEnabled({ ENABLE_INSTANTSCAN: "0" })).toBe(false)
-    expect(
-      isAiVisionCascadeEnabled({
-        ENABLE_INSTANTSCAN: "0",
-        ENABLE_AI_VISION_V2: "1",
-        ENABLE_AI_VISION_CASCADE: "1",
-      })
-    ).toBe(true)
+    expect(isInstantScanServerEnabled({ ENABLE_INSTANTSCAN: "0", ENABLE_AI_VISION_V2: "1" })).toBe(
+      true
+    )
   })
 })

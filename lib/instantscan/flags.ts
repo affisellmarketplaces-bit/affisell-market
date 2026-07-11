@@ -1,14 +1,9 @@
-import { isAiVisionV2Enabled, isInstantScanEnabled } from "@/lib/ai/product-vision-v2-config"
-
-/** Server — InstantScan or legacy vision v2 enabled. */
+/** Server — strict env: ENABLE_INSTANTSCAN=1 OR ENABLE_AI_VISION_V2=1 */
 export function isInstantScanServerEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  return isInstantScanEnabled(env) || isAiVisionV2Enabled(env)
+  return env.ENABLE_INSTANTSCAN?.trim() === "1" || env.ENABLE_AI_VISION_V2?.trim() === "1"
 }
 
-/** Client — public override; defaults true (server decides on API). */
-export function isInstantScanClientEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  const pub = env.NEXT_PUBLIC_ENABLE_INSTANTSCAN?.trim().toLowerCase()
-  if (pub === "0" || pub === "false") return false
-  if (pub === "1" || pub === "true") return true
+/** Client always attempts API — server returns 501 when disabled. */
+export function isInstantScanClientEnabled(): boolean {
   return true
 }

@@ -12,7 +12,7 @@
     "dev:open:wizard-v2": "node scripts/open-dev-url.mjs /dashboard/supplier/products/new wizard=v2 compose=1",
     "dev:open:wizard-v1": "node scripts/open-dev-url.mjs /dashboard/supplier/products/new wizard=v1 compose=1",
     "verify:wizard-v2:dev": "node scripts/verify-wizard-v2-dev.mjs",
-    "test:wizard:v2": "npm run verify:wizard-v2:dev && vitest run lib/__tests__/wizard-v2-feature-flag.test.ts lib/__tests__/wizard-v2-publish-payload.test.ts lib/__tests__/wizard-v2-dev-url.test.ts lib/__tests__/zero-wait-uploader.test.ts lib/__tests__/zero-wait-upload-parent-sync.test.ts lib/__tests__/product-analyzer.test.ts lib/__tests__/product-vision-v2.test.ts lib/__tests__/product-embeddings.test.ts lib/__tests__/product-vision-cascade.test.ts lib/__tests__/instantscan-telemetry.test.ts lib/__tests__/instantscan-trigger.test.ts lib/__tests__/gamification-xp.test.ts lib/__tests__/dev-localhost-url.test.ts",
+    "test:wizard:v2": "npm run verify:wizard-v2:dev && vitest run lib/__tests__/wizard-v2-feature-flag.test.ts lib/__tests__/wizard-v2-publish-payload.test.ts lib/__tests__/wizard-v2-dev-url.test.ts lib/__tests__/zero-wait-uploader.test.ts lib/__tests__/zero-wait-upload-parent-sync.test.ts lib/__tests__/product-analyzer.test.ts lib/__tests__/product-vision-v2.test.ts lib/__tests__/product-embeddings.test.ts lib/__tests__/product-vision-cascade.test.ts lib/__tests__/instantscan-telemetry.test.ts lib/__tests__/instantscan-trigger.test.ts lib/__tests__/instantscan-flags.test.ts lib/__tests__/instantscan-client.test.ts lib/__tests__/gamification-xp.test.ts lib/__tests__/dev-localhost-url.test.ts",
     "postinstall": "npx prisma generate",
     "build": "prisma generate && npm run check:client-prisma && next build",
     "db:push": "prisma db push",

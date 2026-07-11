@@ -15,35 +15,23 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
-function hasVisionProviderKey(): boolean {
-  return Boolean(
-    process.env.OPENAI_API_KEY?.trim() || process.env.GROQ_API_KEY?.trim()
-  )
-}
-
 export async function POST(req: Request) {
   const gate = await guardSupplierAiRoute(req, "ai-analyze-product")
   if (!gate.ok) return gate.response
 
-  logInstantScan("API request", {
-    userId: gate.userId,
-    instantScanEnabled: isInstantScanServerEnabled(),
-    keyPrefix: process.env.OPENAI_API_KEY?.slice(0, 7) ?? "missing",
-  })
+  const flagEnabled = isInstantScanServerEnabled()
+  console.log("[InstantScan] Flag check:", flagEnabled)
+  logInstantScan("Flag check", { enabled: flagEnabled })
 
-  if (isInstantScanServerEnabled() && !process.env.OPENAI_API_KEY?.trim()) {
-    logInstantScan("API rejected — missing OpenAI key for InstantScan")
-    return NextResponse.json(
-      { error: "missing_api_key", fallback: "manual" },
-      { status: 503 }
-    )
+  if (!flagEnabled) {
+    return NextResponse.json({ error: "instantscan_disabled" }, { status: 501 })
   }
 
-  if (!hasVisionProviderKey()) {
-    return NextResponse.json(
-      { error: "missing_api_key", fallback: "manual" },
-      { status: 503 }
-    )
+  if (!process.env.OPENAI_API_KEY?.trim()) {
+    logInstantScan("API rejected — missing OpenAI key", {
+      keyPrefix: process.env.OPENAI_API_KEY?.slice(0, 7) ?? "missing",
+    })
+    return NextResponse.json({ error: "missing_api_key", fallback: "manual" }, { status: 503 })
   }
 
   let body: unknown
@@ -64,6 +52,7 @@ export async function POST(req: Request) {
   logInstantScan("Analyzing image", {
     imageUrl: imageUrl.slice(0, 120),
     hasDataUrl: Boolean(imageDataUrl),
+    keyPrefix: process.env.OPENAI_API_KEY?.slice(0, 7),
   })
 
   const fingerprint = fingerprintImageInput({ imageUrl, imageDataUrl })
@@ -79,9 +68,10 @@ export async function POST(req: Request) {
     const result = { ...analyzed, cached: false }
     await setCachedProductAnalysis(cacheKey, result)
     logInstantScan("API success", {
-      title: analyzed.title?.slice(0, 80),
-      visionVersion: analyzed.visionVersion,
-      latencyMs: analyzed.latencyMs,
+      model: analyzed.detectedModel ?? analyzed.title?.slice(0, 80),
+      latency_ms: analyzed.latencyMs,
+      stage: analyzed.instantScanStage ?? analyzed.visionVersion,
+      cost_usd: 0.003,
     })
     return NextResponse.json(result)
   } catch (err) {

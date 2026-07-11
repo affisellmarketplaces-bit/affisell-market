@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest"
 
 import {
-  isInstantScanReadyUrl,
+  isInstantScanHttpsUrl,
+  isInstantScanPendingCdnUrl,
   resolveInstantScanTrigger,
 } from "@/lib/instantscan/trigger"
 
@@ -13,7 +14,7 @@ describe("instantscan trigger", () => {
     analyzeState: "idle" as const,
     attemptedUrl: null,
     mounted: true,
-    clientEnabled: true,
+    analyzed: false,
   }
 
   it("analyzes when CDN url ready on step 1", () => {
@@ -32,11 +33,20 @@ describe("instantscan trigger", () => {
     ).toEqual({ action: "advance_step" })
   })
 
-  it("skips when image not http CDN url", () => {
+  it("waits when blob url pending CDN", () => {
     expect(
       resolveInstantScanTrigger({
         ...base,
         primaryImageUrl: "blob:http://localhost/x",
+      })
+    ).toEqual({ action: "wait_cdn" })
+  })
+
+  it("skips when image not https CDN url", () => {
+    expect(
+      resolveInstantScanTrigger({
+        ...base,
+        primaryImageUrl: "http://insecure.example.com/x.jpg",
       })
     ).toEqual({ action: "skip", reason: "image_not_cdn_ready" })
   })
@@ -50,15 +60,6 @@ describe("instantscan trigger", () => {
     ).toEqual({ action: "skip", reason: "router_not_mounted" })
   })
 
-  it("skips when client flag disabled", () => {
-    expect(
-      resolveInstantScanTrigger({
-        ...base,
-        clientEnabled: false,
-      })
-    ).toEqual({ action: "skip", reason: "disabled_by_flag" })
-  })
-
   it("skips duplicate attempt while loading", () => {
     expect(
       resolveInstantScanTrigger({
@@ -69,10 +70,21 @@ describe("instantscan trigger", () => {
     ).toEqual({ action: "skip", reason: "already_loading" })
   })
 
-  it("isInstantScanReadyUrl accepts https CDN urls", () => {
-    expect(isInstantScanReadyUrl("https://blob.vercel-storage.com/x.jpg")).toBe(true)
-    expect(isInstantScanReadyUrl("blob:abc")).toBe(false)
-    expect(isInstantScanReadyUrl("")).toBe(false)
+  it("skips when already analyzed", () => {
+    expect(
+      resolveInstantScanTrigger({
+        ...base,
+        analyzed: true,
+        analyzeState: "done",
+      })
+    ).toEqual({ action: "skip", reason: "already_attempted" })
+  })
+
+  it("isInstantScanHttpsUrl accepts https CDN urls only", () => {
+    expect(isInstantScanHttpsUrl("https://blob.vercel-storage.com/x.jpg")).toBe(true)
+    expect(isInstantScanHttpsUrl("http://example.com/x.jpg")).toBe(false)
+    expect(isInstantScanPendingCdnUrl("blob:abc")).toBe(true)
+    expect(isInstantScanPendingCdnUrl(undefined)).toBe(true)
   })
 })
 
@@ -92,7 +104,7 @@ describe("instantscan fetch trigger integration", () => {
       analyzeState: "idle",
       attemptedUrl: null,
       mounted: true,
-      clientEnabled: true,
+      analyzed: false,
     })
 
     expect(decision.action).toBe("analyze")
