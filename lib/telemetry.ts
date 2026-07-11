@@ -23,6 +23,28 @@ export function trackInstantScanGateTriggered(props: InstantScanGateProps) {
   capturePosthogClient("instant_scan_gate_triggered", props)
 }
 
+export function trackInstantScanTriggerAttempt(props: {
+  url: string | null
+  guided_step: number
+  reason?: string
+  client_enabled: boolean
+  mounted: boolean
+}) {
+  capturePosthogClient("instantscan_trigger_attempt", props)
+}
+
+export function trackInstantScanApiCalled(props: {
+  url: string
+  status: number
+  latency_ms: number
+}) {
+  capturePosthogClient("instantscan_api_called", props)
+}
+
+export function trackInstantScanError(props: { reason: string; status?: number }) {
+  capturePosthogClient("instantscan_error", props)
+}
+
 /** Server — API analyze-product outcome (no consent gate). */
 export function trackInstantScanResultServer(props: InstantScanResultProps, distinctId?: string) {
   capturePosthog("instant_scan_result", props, distinctId)

@@ -21,8 +21,11 @@ import {
 import { buildWizardV2PublishBody } from "@/lib/product-wizard-v2/build-publish-payload"
 import {
   instantScanStageFromVisionVersion,
+  trackInstantScanApiCalled,
+  trackInstantScanError,
   trackInstantScanGateTriggered,
   trackInstantScanResult,
+  trackInstantScanTriggerAttempt,
 } from "@/lib/telemetry"
 import {
   hasShopifyIntegration,
@@ -34,6 +37,16 @@ import { buildUrlImportFormPatch } from "@/lib/url-import-apply"
 import { publishBlockedUploadMessage } from "@/lib/upload/zero-wait-uploader"
 import { cn } from "@/lib/utils"
 import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
+import {
+  fetchInstantScanAnalyzeWithRetry,
+  INSTANTSCAN_FETCH_TIMEOUT_MS,
+} from "@/lib/instantscan/analyze-fetch"
+import { isInstantScanClientEnabled } from "@/lib/instantscan/flags"
+import { logInstantScan } from "@/lib/instantscan/log"
+import {
+  resolveInstantScanTrigger,
+  type InstantScanUiState,
+} from "@/lib/instantscan/trigger"
 
 type MerchantDefaults = {
   countryCode: string | null
@@ -45,10 +58,6 @@ type MerchantDefaults = {
 type Props = {
   ownerUserId: string
 }
-
-type InstantScanUiState = "idle" | "loading" | "done" | "gate" | "error"
-
-const INSTANTSCAN_FETCH_TIMEOUT_MS = 45_000
 
 const MODES: { id: WizardV2Mode; label: string; hint: string }[] = [
   { id: "express", label: "Express", hint: "URL → preview → publish (~15 s)" },
@@ -75,6 +84,8 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   const [guidedStep, setGuidedStep] = useState(0)
   const [instantScanState, setInstantScanState] = useState<InstantScanUiState>("idle")
   const instantScanImageRef = useRef<string | null>(null)
+  const instantScanPrimaryUrlRef = useRef<string | null>(null)
+  const instantScanClientEnabled = isInstantScanClientEnabled()
   const [aiSuggestion, setAiSuggestion] = useState<{
     title: string
     description: string
@@ -159,37 +170,39 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     const analyzeStarted = Date.now()
     const controller = new AbortController()
     const timeoutId = globalThis.setTimeout(() => controller.abort(), INSTANTSCAN_FETCH_TIMEOUT_MS)
+
+    logInstantScan("Analyzing", { imageUrl: imageUrl.slice(0, 120) })
+
     try {
-      const res = await fetch("/api/ai/analyze-product", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ imageUrl }),
+      const { ok, status, data } = await fetchInstantScanAnalyzeWithRetry(imageUrl, {
         signal: controller.signal,
       })
-      const data = (await res.json()) as {
-        title?: string
-        description?: string
-        categoryId?: string | null
-        suggestedPrice?: number | null
-        confidence?: number
-        detectedModel?: string | null
-        visionVersion?: string
-        instantScanStage?: "embed" | "mini" | "gpt4o" | "groq"
-        latencyMs?: number
-        error?: string
-        fallback?: string
-      }
-      if (!res.ok) {
+
+      trackInstantScanApiCalled({
+        url: imageUrl,
+        status,
+        latency_ms: Date.now() - analyzeStarted,
+      })
+
+      if (!ok) {
         toast.dismiss(toastId)
+        if (data.error === "missing_api_key") {
+          trackInstantScanError({ reason: "missing_api_key", status })
+          setInstantScanState("gate")
+          toast.error("IA indisponible — clé OpenAI manquante")
+          return
+        }
         if (data.fallback === "manual") {
           const reason = data.error === "low_confidence" ? "low_confidence" : "ai_unavailable"
           trackInstantScanGateTriggered({ reason })
+          trackInstantScanError({ reason, status })
           setInstantScanState("gate")
           toast.message(
             data.error === "low_confidence"
               ? "InstantScan incertain - complétez manuellement"
-              : "InstantScan indisponible — saisie manuelle"
+              : data.error === "ai_unavailable"
+                ? "Clé OpenAI invalide — vérifiez la configuration"
+                : "InstantScan indisponible — saisie manuelle"
           )
           return
         }
@@ -203,13 +216,22 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       })
       setInstantScanState("done")
       const modelLabel = data.detectedModel?.trim() || data.title?.trim() || "produit"
+      const confidencePct =
+        typeof data.confidence === "number" ? `${Math.round(data.confidence * 100)}%` : null
+      const latencyMs = data.latencyMs ?? Date.now() - analyzeStarted
       trackInstantScanResult({
         model: data.detectedModel ?? data.title ?? null,
         confidence: data.confidence ?? null,
-        latency_ms: data.latencyMs ?? Date.now() - analyzeStarted,
+        latency_ms: latencyMs,
         stage: instantScanStageFromVisionVersion(data.visionVersion, data.instantScanStage),
       })
-      toast.success(`✓ InstantScan : ${modelLabel} détecté`, { id: toastId })
+      const suffix = [confidencePct, `${latencyMs}ms`].filter(Boolean).join(" • ")
+      toast.success(
+        suffix
+          ? `⚡ InstantScan : ${modelLabel} détecté • ${suffix}`
+          : `⚡ InstantScan : ${modelLabel} détecté`,
+        { id: toastId }
+      )
     } catch (err) {
       toast.dismiss(toastId)
       const reason =
@@ -219,14 +241,17 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
             ? err.message
             : "analyze_failed"
       trackInstantScanGateTriggered({ reason })
+      trackInstantScanError({ reason })
       setInstantScanState("error")
-      toast.error(
-        reason === "timeout"
-          ? "InstantScan expiré — réessayez ou saisissez manuellement"
-          : reason === "analyze_failed"
-            ? "InstantScan impossible"
-            : reason
-      )
+      toast.error("⚡ InstantScan erreur — réessayer", {
+        action: {
+          label: "Retry",
+          onClick: () => {
+            instantScanImageRef.current = null
+            setInstantScanState("idle")
+          },
+        },
+      })
     } finally {
       globalThis.clearTimeout(timeoutId)
     }
@@ -239,20 +264,71 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   }, [])
 
   useEffect(() => {
+    const url = images[0]?.trim() ?? null
+    if (url === instantScanPrimaryUrlRef.current) return
+    instantScanPrimaryUrlRef.current = url
+    instantScanImageRef.current = null
     setInstantScanState("idle")
     setAiSuggestion(null)
-    instantScanImageRef.current = null
+    logInstantScan("Primary image changed", { url: url?.slice(0, 80) ?? null })
   }, [images[0]])
 
   useEffect(() => {
-    const url = images[0]?.trim()
-    if (mode !== "guided" || guidedStep !== 1 || !url?.startsWith("http")) return
-    if (instantScanState !== "idle") return
-    if (instantScanImageRef.current === url) return
+    const decision = resolveInstantScanTrigger({
+      mode,
+      guidedStep,
+      primaryImageUrl: images[0],
+      analyzeState: instantScanState,
+      attemptedUrl: instantScanImageRef.current,
+      mounted,
+      clientEnabled: instantScanClientEnabled,
+    })
 
-    instantScanImageRef.current = url
-    void runAiAnalyze(url)
-  }, [mode, guidedStep, images, instantScanState, runAiAnalyze])
+    logInstantScan("Trigger check", {
+      images: images.length,
+      primaryUrl: images[0]?.slice(0, 80) ?? null,
+      analyzed: instantScanState,
+      mounted,
+      flag: instantScanClientEnabled,
+      guidedStep,
+      decision: decision.action,
+      reason: decision.action === "skip" ? decision.reason : undefined,
+    })
+
+    trackInstantScanTriggerAttempt({
+      url: images[0] ?? null,
+      guided_step: guidedStep,
+      reason: decision.action === "skip" ? decision.reason : undefined,
+      client_enabled: instantScanClientEnabled,
+      mounted,
+    })
+
+    if (decision.action === "skip") {
+      if (decision.reason === "disabled_by_flag") {
+        logInstantScan("Disabled by flag")
+      }
+      return
+    }
+
+    if (decision.action === "advance_step") {
+      logInstantScan("Auto-advance to analyze step")
+      completeStep("photo")
+      setGuidedStep(1)
+      return
+    }
+
+    instantScanImageRef.current = decision.url
+    void runAiAnalyze(decision.url)
+  }, [
+    mode,
+    guidedStep,
+    images,
+    instantScanState,
+    mounted,
+    instantScanClientEnabled,
+    runAiAnalyze,
+    completeStep,
+  ])
 
   const applyAiSuggestion = useCallback(() => {
     if (!aiSuggestion) return

@@ -8,14 +8,43 @@ import {
   setCachedProductAnalysis,
 } from "@/lib/ai/product-analysis-cache"
 import { guardSupplierAiRoute } from "@/lib/ai-route-guards"
+import { isInstantScanServerEnabled } from "@/lib/instantscan/flags"
+import { logInstantScan } from "@/lib/instantscan/log"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
+function hasVisionProviderKey(): boolean {
+  return Boolean(
+    process.env.OPENAI_API_KEY?.trim() || process.env.GROQ_API_KEY?.trim()
+  )
+}
+
 export async function POST(req: Request) {
   const gate = await guardSupplierAiRoute(req, "ai-analyze-product")
   if (!gate.ok) return gate.response
+
+  logInstantScan("API request", {
+    userId: gate.userId,
+    instantScanEnabled: isInstantScanServerEnabled(),
+    keyPrefix: process.env.OPENAI_API_KEY?.slice(0, 7) ?? "missing",
+  })
+
+  if (isInstantScanServerEnabled() && !process.env.OPENAI_API_KEY?.trim()) {
+    logInstantScan("API rejected — missing OpenAI key for InstantScan")
+    return NextResponse.json(
+      { error: "missing_api_key", fallback: "manual" },
+      { status: 503 }
+    )
+  }
+
+  if (!hasVisionProviderKey()) {
+    return NextResponse.json(
+      { error: "missing_api_key", fallback: "manual" },
+      { status: 503 }
+    )
+  }
 
   let body: unknown
   try {
@@ -32,10 +61,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "image_required" }, { status: 400 })
   }
 
+  logInstantScan("Analyzing image", {
+    imageUrl: imageUrl.slice(0, 120),
+    hasDataUrl: Boolean(imageDataUrl),
+  })
+
   const fingerprint = fingerprintImageInput({ imageUrl, imageDataUrl })
   const cacheKey = productAnalysisCacheKey(fingerprint)
   const cached = await getCachedProductAnalysis(cacheKey)
   if (cached) {
+    logInstantScan("Cache hit", { cacheKey })
     return NextResponse.json({ ...cached, cached: true })
   }
 
@@ -43,10 +78,16 @@ export async function POST(req: Request) {
     const analyzed = await analyzeProductFromImage({ imageUrl, imageDataUrl })
     const result = { ...analyzed, cached: false }
     await setCachedProductAnalysis(cacheKey, result)
+    logInstantScan("API success", {
+      title: analyzed.title?.slice(0, 80),
+      visionVersion: analyzed.visionVersion,
+      latencyMs: analyzed.latencyMs,
+    })
     return NextResponse.json(result)
   } catch (err) {
     const message = err instanceof Error ? err.message : "analyze_failed"
-    console.log("[ai/analyze-product]", { result: "error", message })
+    console.error("[InstantScan API] Error:", err)
+    logInstantScan("API error", { message })
     if (message === "ai_unavailable") {
       return NextResponse.json({ error: "ai_unavailable", fallback: "manual" }, { status: 503 })
     }
