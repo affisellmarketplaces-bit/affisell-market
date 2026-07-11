@@ -8,7 +8,6 @@ import {
   cosineSimilarity,
   deterministicTextEmbedding,
   normalizeVector,
-  openaiTextEmbedding,
 } from "@/lib/ai/openai-embeddings"
 import {
   catalogEmbeddingText,
@@ -93,14 +92,12 @@ export async function setCachedImageEmbedding(key: string, embedding: number[]):
 export async function buildCatalogEmbeddingIndex(): Promise<CatalogRow[]> {
   if (catalogIndex) return catalogIndex
 
-  const rows: CatalogRow[] = []
-  for (const product of TOP_PRODUCTS_2026) {
-    const text = catalogEmbeddingText(product)
-    const embedding = await openaiTextEmbedding(text)
-    rows.push({ ...product, embedding })
-  }
-  catalogIndex = rows
-  return rows
+  // Pre-computed deterministic vectors — instant cold start (no 100× OpenAI round-trips).
+  catalogIndex = TOP_PRODUCTS_2026.map((product) => ({
+    ...product,
+    embedding: deterministicTextEmbedding(catalogEmbeddingText(product)),
+  }))
+  return catalogIndex
 }
 
 /** Reset in-memory index (tests). */
@@ -140,7 +137,7 @@ export async function embedVisualCuesForMatch(cues: {
 }): Promise<number[]> {
   const text = visualCuesEmbeddingText(cues)
   if (!text) return deterministicTextEmbedding("unknown product")
-  return openaiTextEmbedding(text)
+  return deterministicTextEmbedding(text)
 }
 
 export async function getOrCreateImageEmbedding(args: {

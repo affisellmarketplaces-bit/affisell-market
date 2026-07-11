@@ -46,7 +46,9 @@ type Props = {
   ownerUserId: string
 }
 
-const MODES: { id: WizardV2Mode; label: string; hint: string }[] = [
+type InstantScanUiState = "idle" | "loading" | "done" | "gate" | "error"
+
+const INSTANTSCAN_FETCH_TIMEOUT_MS = 45_000
   { id: "express", label: "Express", hint: "URL → preview → publish (~15 s)" },
   { id: "guided", label: "InstantScan", hint: "Photo → InstantScan → prix (~60 s)" },
   { id: "pro", label: "Pro", hint: "Wizard classique v1" },
@@ -69,7 +71,8 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   const [price, setPrice] = useState("")
   const [expressUrl, setExpressUrl] = useState("")
   const [guidedStep, setGuidedStep] = useState(0)
-  const [aiLoading, setAiLoading] = useState(false)
+  const [instantScanState, setInstantScanState] = useState<InstantScanUiState>("idle")
+  const instantScanImageRef = useRef<string | null>(null)
   const [aiSuggestion, setAiSuggestion] = useState<{
     title: string
     description: string
@@ -149,15 +152,18 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   )
 
   const runAiAnalyze = useCallback(async (imageUrl: string) => {
-    setAiLoading(true)
+    setInstantScanState("loading")
     const toastId = toast.loading("InstantScan en cours...")
     const analyzeStarted = Date.now()
+    const controller = new AbortController()
+    const timeoutId = globalThis.setTimeout(() => controller.abort(), INSTANTSCAN_FETCH_TIMEOUT_MS)
     try {
       const res = await fetch("/api/ai/analyze-product", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ imageUrl }),
+        signal: controller.signal,
       })
       const data = (await res.json()) as {
         title?: string
@@ -177,6 +183,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         if (data.fallback === "manual") {
           const reason = data.error === "low_confidence" ? "low_confidence" : "ai_unavailable"
           trackInstantScanGateTriggered({ reason })
+          setInstantScanState("gate")
           toast.message(
             data.error === "low_confidence"
               ? "InstantScan incertain - complétez manuellement"
@@ -192,6 +199,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         categoryId: data.categoryId ?? null,
         suggestedPrice: data.suggestedPrice ?? null,
       })
+      setInstantScanState("done")
       const modelLabel = data.detectedModel?.trim() || data.title?.trim() || "produit"
       trackInstantScanResult({
         model: data.detectedModel ?? data.title ?? null,
@@ -202,18 +210,47 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       toast.success(`✓ InstantScan : ${modelLabel} détecté`, { id: toastId })
     } catch (err) {
       toast.dismiss(toastId)
-      trackInstantScanGateTriggered({ reason: err instanceof Error ? err.message : "analyze_failed" })
-      toast.error(err instanceof Error ? err.message : "InstantScan impossible")
+      const reason =
+        err instanceof Error && err.name === "AbortError"
+          ? "timeout"
+          : err instanceof Error
+            ? err.message
+            : "analyze_failed"
+      trackInstantScanGateTriggered({ reason })
+      setInstantScanState("error")
+      toast.error(
+        reason === "timeout"
+          ? "InstantScan expiré — réessayez ou saisissez manuellement"
+          : reason === "analyze_failed"
+            ? "InstantScan impossible"
+            : reason
+      )
     } finally {
-      setAiLoading(false)
+      globalThis.clearTimeout(timeoutId)
     }
   }, [])
 
+  const retryInstantScan = useCallback(() => {
+    instantScanImageRef.current = null
+    setInstantScanState("idle")
+    setAiSuggestion(null)
+  }, [])
+
   useEffect(() => {
-    if (mode === "guided" && guidedStep === 1 && images[0] && !aiSuggestion && !aiLoading) {
-      void runAiAnalyze(images[0])
-    }
-  }, [mode, guidedStep, images, aiSuggestion, aiLoading, runAiAnalyze])
+    setInstantScanState("idle")
+    setAiSuggestion(null)
+    instantScanImageRef.current = null
+  }, [images[0]])
+
+  useEffect(() => {
+    const url = images[0]?.trim()
+    if (mode !== "guided" || guidedStep !== 1 || !url?.startsWith("http")) return
+    if (instantScanState !== "idle") return
+    if (instantScanImageRef.current === url) return
+
+    instantScanImageRef.current = url
+    void runAiAnalyze(url)
+  }, [mode, guidedStep, images, instantScanState, runAiAnalyze])
 
   const applyAiSuggestion = useCallback(() => {
     if (!aiSuggestion) return
@@ -454,7 +491,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                     />
                     <Button
                       type="button"
-                      disabled={images.length === 0}
+                      disabled={!images[0]?.startsWith("http") || uploadBusy}
                       onClick={() => {
                         completeStep("photo")
                         setGuidedStep(1)
@@ -466,12 +503,12 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                 ) : null}
                 {guidedStep === 1 ? (
                   <div className="space-y-3 rounded-2xl border border-violet-200 bg-violet-50/60 p-4 dark:border-violet-900 dark:bg-violet-950/30">
-                    {aiLoading ? (
+                    {instantScanState === "loading" ? (
                       <p className="flex items-center gap-2 text-sm">
                         <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                         InstantScan en cours…
                       </p>
-                    ) : aiSuggestion ? (
+                    ) : aiSuggestion && instantScanState === "done" ? (
                       <>
                         <p className="text-sm font-medium">InstantScan suggère :</p>
                         <p className="text-base font-semibold">{aiSuggestion.title}</p>
@@ -485,6 +522,34 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                           </Button>
                         </div>
                       </>
+                    ) : instantScanState === "gate" ? (
+                      <div className="space-y-3">
+                        <p className="text-sm text-amber-900 dark:text-amber-100">
+                          InstantScan incertain - complétez manuellement
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <Button type="button" onClick={() => setGuidedStep(2)}>
+                            Saisie manuelle
+                          </Button>
+                          <Button type="button" variant="outline" onClick={retryInstantScan}>
+                            Réessayer
+                          </Button>
+                        </div>
+                      </div>
+                    ) : instantScanState === "error" ? (
+                      <div className="space-y-3">
+                        <p className="text-sm text-red-700 dark:text-red-300">
+                          InstantScan n&apos;a pas abouti.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <Button type="button" variant="outline" onClick={retryInstantScan}>
+                            Réessayer
+                          </Button>
+                          <Button type="button" onClick={() => setGuidedStep(2)}>
+                            Saisie manuelle
+                          </Button>
+                        </div>
+                      </div>
                     ) : (
                       <Button type="button" variant="outline" onClick={() => setGuidedStep(2)}>
                         Saisie manuelle
