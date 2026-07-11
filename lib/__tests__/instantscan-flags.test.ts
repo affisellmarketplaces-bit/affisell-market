@@ -4,7 +4,7 @@ import {
   getClientFlag,
   getInstantScanDisplayName,
   INSTANTSCAN_NAME,
-  isInstantScanBranded,
+  INSTANTSCAN_PRODUCT_NAME,
   isInstantScanServerEnabled,
 } from "@/lib/instantscan/flags"
 
@@ -27,23 +27,13 @@ describe("instantscan flags", () => {
     expect(isInstantScanServerEnabled({ ENABLE_INSTANTSCAN: "true" })).toBe(false)
   })
 
-  it("getClientFlag reads NEXT_PUBLIC_ENABLE_INSTANTSCAN", () => {
+  it("getClientFlag is always true (API is source of truth)", () => {
+    expect(getClientFlag({})).toBe(true)
     expect(getClientFlag({ NEXT_PUBLIC_ENABLE_INSTANTSCAN: "1" })).toBe(true)
   })
 
-  it("getClientFlag reads NEXT_PUBLIC_ENABLE_AI_VISION_V2", () => {
-    expect(getClientFlag({ NEXT_PUBLIC_ENABLE_AI_VISION_V2: "1" })).toBe(true)
-  })
-
-  it("INSTANTSCAN_NAME is branded when NEXT_PUBLIC_ENABLE_INSTANTSCAN=1", () => {
-    expect(getInstantScanDisplayName({ NEXT_PUBLIC_ENABLE_INSTANTSCAN: "1" })).toBe(
-      "⚡ InstantScan"
-    )
-    expect(isInstantScanBranded({ NEXT_PUBLIC_ENABLE_INSTANTSCAN: "1" })).toBe(true)
-  })
-
-  it("INSTANTSCAN_NAME falls back to Guidé without flag", () => {
-    expect(getInstantScanDisplayName({})).toBe("Guidé")
-    expect(typeof INSTANTSCAN_NAME).toBe("string")
+  it("display name is always InstantScan product brand", () => {
+    expect(getInstantScanDisplayName()).toBe("⚡ InstantScan")
+    expect(INSTANTSCAN_NAME).toBe(INSTANTSCAN_PRODUCT_NAME)
   })
 })

@@ -1,5 +1,5 @@
-export const INSTANTSCAN_FETCH_TIMEOUT_MS = 45_000
-export const INSTANTSCAN_MAX_RETRY_ATTEMPTS = 3
+export const INSTANTSCAN_FETCH_TIMEOUT_MS = 60_000
+export const INSTANTSCAN_MAX_RETRY_ATTEMPTS = 2
 
 export type InstantScanAnalyzeResponse = {
   title?: string
@@ -13,12 +13,14 @@ export type InstantScanAnalyzeResponse = {
   latencyMs?: number
   error?: string
   fallback?: string
+  retry_after_sec?: number
 }
 
 export type InstantScanFetchResult = {
   ok: boolean
   status: number
   data: InstantScanAnalyzeResponse
+  retryAfterSec?: number
 }
 
 export type AnalyzeWithRetryOptions = {
@@ -26,8 +28,8 @@ export type AnalyzeWithRetryOptions = {
   onRetry?: (attempt: number, status: number) => void
 }
 
-function isRetryableStatus(status: number): boolean {
-  return status === 429 || status >= 500
+function isTransientServerError(status: number): boolean {
+  return status >= 500 && status !== 501
 }
 
 function sleepMs(ms: number, signal?: AbortSignal): Promise<void> {
@@ -44,6 +46,16 @@ function sleepMs(ms: number, signal?: AbortSignal): Promise<void> {
   })
 }
 
+function parseRetryAfterSec(res: Response, data: InstantScanAnalyzeResponse): number | undefined {
+  const header = res.headers.get("Retry-After")
+  const fromHeader = header ? Number(header) : NaN
+  if (Number.isFinite(fromHeader) && fromHeader > 0) return Math.round(fromHeader)
+  if (typeof data.retry_after_sec === "number" && data.retry_after_sec > 0) {
+    return data.retry_after_sec
+  }
+  return undefined
+}
+
 export async function fetchInstantScanAnalyze(
   imageUrl: string,
   options?: { signal?: AbortSignal }
@@ -57,7 +69,8 @@ export async function fetchInstantScanAnalyze(
       signal: options?.signal,
     })
     const data = (await res.json()) as InstantScanAnalyzeResponse
-    return { ok: res.ok, status: res.status, data }
+    const retryAfterSec = res.status === 429 ? parseRetryAfterSec(res, data) : undefined
+    return { ok: res.ok, status: res.status, data, retryAfterSec }
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") throw err
     return {
@@ -68,7 +81,9 @@ export async function fetchInstantScanAnalyze(
   }
 }
 
-/** Retry 429/500 with backoff 1s / 2s / 4s (max 3 retries). */
+/**
+ * Retry transient 5xx only — never hammers 429 (rate limit has its own cooldown UI).
+ */
 export async function analyzeWithRetry(
   imageUrl: string,
   attempt = 0,
@@ -79,10 +94,18 @@ export async function analyzeWithRetry(
   }
 
   const result = await fetchInstantScanAnalyze(imageUrl, options)
-  if (result.ok || !isRetryableStatus(result.status)) return result
+
+  if (result.status === 429) {
+    return {
+      ...result,
+      data: { ...result.data, error: "rate_limit" },
+    }
+  }
+
+  if (result.ok || !isTransientServerError(result.status)) return result
 
   if (attempt >= INSTANTSCAN_MAX_RETRY_ATTEMPTS) {
-    throw new Error("instantscan_rate_limit")
+    return result
   }
 
   options?.onRetry?.(attempt + 1, result.status)

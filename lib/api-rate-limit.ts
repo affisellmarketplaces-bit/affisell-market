@@ -49,7 +49,7 @@ export function rateLimitResponse(
 
 function tooManyRequestsResponse(retrySec: number): NextResponse {
   return NextResponse.json(
-    { error: "Too many requests. Please try again in a moment." },
+    { error: "rate_limit", retry_after_sec: retrySec },
     {
       status: 429,
       headers: { "Retry-After": String(retrySec) },

@@ -7,7 +7,8 @@ import {
   productAnalysisCacheKey,
   setCachedProductAnalysis,
 } from "@/lib/ai/product-analysis-cache"
-import { guardSupplierAiRoute } from "@/lib/ai-route-guards"
+import { guardSupplierAiSession, INSTANTSCAN_LIVE_LIMIT } from "@/lib/ai-route-guards"
+import { rateLimitClientKey, rateLimitResponseAsync } from "@/lib/api-rate-limit"
 import { isInstantScanServerEnabled } from "@/lib/instantscan/flags"
 import { logInstantScan } from "@/lib/instantscan/log"
 
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
 export async function POST(req: Request) {
-  const gate = await guardSupplierAiRoute(req, "ai-analyze-product")
+  const gate = await guardSupplierAiSession()
   if (!gate.ok) return gate.response
 
   const flagEnabled = isInstantScanServerEnabled()
@@ -29,13 +30,6 @@ export async function POST(req: Request) {
 
   if (!flagEnabled) {
     return NextResponse.json({ error: "instantscan_disabled" }, { status: 501 })
-  }
-
-  if (!process.env.OPENAI_API_KEY?.trim()) {
-    logInstantScan("API rejected — missing OpenAI key", {
-      keyPrefix: process.env.OPENAI_API_KEY?.slice(0, 7) ?? "missing",
-    })
-    return NextResponse.json({ error: "missing_api_key", fallback: "manual" }, { status: 503 })
   }
 
   let body: unknown
@@ -53,19 +47,33 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "image_required" }, { status: 400 })
   }
 
-  logInstantScan("Analyzing image", {
-    imageUrl: imageUrl.slice(0, 120),
-    hasDataUrl: Boolean(imageDataUrl),
-    keyPrefix: process.env.OPENAI_API_KEY?.slice(0, 7),
-  })
-
   const fingerprint = fingerprintImageInput({ imageUrl, imageDataUrl })
   const cacheKey = productAnalysisCacheKey(fingerprint)
   const cached = await getCachedProductAnalysis(cacheKey)
   if (cached) {
-    logInstantScan("Cache hit", { cacheKey })
+    logInstantScan("Cache hit (no rate limit)", { cacheKey, userId: gate.userId })
     return NextResponse.json({ ...cached, cached: true })
   }
+
+  if (!process.env.OPENAI_API_KEY?.trim()) {
+    logInstantScan("API rejected — missing OpenAI key", {
+      keyPrefix: process.env.OPENAI_API_KEY?.slice(0, 7) ?? "missing",
+    })
+    return NextResponse.json({ error: "missing_api_key", fallback: "manual" }, { status: 503 })
+  }
+
+  const limited = await rateLimitResponseAsync(rateLimitClientKey(req, gate.userId), {
+    ...INSTANTSCAN_LIVE_LIMIT,
+    prefix: "ai-analyze-live",
+  })
+  if (limited) return limited
+
+  logInstantScan("Analyzing image", {
+    imageUrl: imageUrl.slice(0, 120),
+    hasDataUrl: Boolean(imageDataUrl),
+    keyPrefix: process.env.OPENAI_API_KEY?.slice(0, 7),
+    userId: gate.userId,
+  })
 
   try {
     const analyzed = await analyzeProductFromImage({ imageUrl, imageDataUrl })

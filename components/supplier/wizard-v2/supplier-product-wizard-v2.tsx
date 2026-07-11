@@ -48,8 +48,16 @@ import {
   analyzeWithRetry,
   INSTANTSCAN_FETCH_TIMEOUT_MS,
 } from "@/lib/ai/instantscan-client"
-import { isInstantScanClientEnabled, getInstantScanDisplayName } from "@/lib/instantscan/flags"
+import { INSTANTSCAN_PRODUCT_NAME } from "@/lib/instantscan/brand"
 import { logInstantScan } from "@/lib/instantscan/log"
+import {
+  canStartInstantScanAnalyze,
+  createInstantScanSessionState,
+  markInstantScanAnalyzeEnd,
+  markInstantScanAnalyzeStart,
+  markInstantScanRateLimited,
+  resetInstantScanSession,
+} from "@/lib/instantscan/session"
 import {
   INSTANTSCAN_CDN_RECHECK_MS,
   resolveInstantScanTrigger,
@@ -67,7 +75,7 @@ type Props = {
   ownerUserId: string
 }
 
-const instantScanBrand = getInstantScanDisplayName()
+const instantScanBrand = INSTANTSCAN_PRODUCT_NAME
 
 const MODES: { id: WizardV2Mode; label: string; hint: string }[] = [
   { id: "express", label: "Express", hint: "URL → preview → publish (~15 s)" },
@@ -99,7 +107,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   const [instantScanState, setInstantScanState] = useState<InstantScanUiState>("idle")
   const instantScanImageRef = useRef<string | null>(null)
   const instantScanPrimaryUrlRef = useRef<string | null>(null)
-  const instantScanClientEnabled = isInstantScanClientEnabled()
+  const instantScanSessionRef = useRef(createInstantScanSessionState())
   const [cdnPollTick, setCdnPollTick] = useState(0)
   const [aiSuggestion, setAiSuggestion] = useState<{
     title: string
@@ -179,7 +187,44 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     [mode]
   )
 
+  const applyInstantScanFields = useCallback(
+    (data: {
+      title?: string
+      description?: string
+      categoryId?: string | null
+      suggestedPrice?: number | null
+    }) => {
+      if (data.title?.trim()) setName(data.title.trim())
+      if (data.description?.trim()) setDescription(data.description.trim())
+      if (data.categoryId) setCategoryId(data.categoryId)
+      if (data.suggestedPrice != null && Number.isFinite(data.suggestedPrice)) {
+        setPrice(String(data.suggestedPrice))
+      }
+    },
+    []
+  )
+
   const runAiAnalyze = useCallback(async (imageUrl: string) => {
+    const session = instantScanSessionRef.current
+    const gate = canStartInstantScanAnalyze(session, imageUrl)
+    if (!gate.ok) {
+      if (gate.reason === "rate_limited") {
+        setInstantScanState("error")
+        toastInstantScanApiError({
+          status: 429,
+          error: "rate_limit",
+          retryAfterSec: gate.retryAfterSec,
+          onRetry: () => {
+            resetInstantScanSession(session)
+            instantScanImageRef.current = null
+            setInstantScanState("idle")
+          },
+        })
+      }
+      return
+    }
+
+    markInstantScanAnalyzeStart(session, imageUrl)
     setInstantScanState("loading")
     const toastId = toastInstantScanLoading()
     const analyzeStarted = Date.now()
@@ -189,12 +234,13 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     logInstantScan("Analyzing", { imageUrl: imageUrl.slice(0, 120) })
 
     const handleRetry = () => {
+      resetInstantScanSession(session)
       instantScanImageRef.current = null
       setInstantScanState("idle")
     }
 
     try {
-      const { ok, status, data } = await analyzeWithRetry(imageUrl, 0, {
+      const { ok, status, data, retryAfterSec } = await analyzeWithRetry(imageUrl, 0, {
         signal: controller.signal,
         onRetry: () => toastInstantScanRetrying(),
       })
@@ -204,6 +250,18 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
 
       if (!ok) {
         toast.dismiss(toastId)
+        if (status === 429 || data.error === "rate_limit") {
+          markInstantScanRateLimited(session, retryAfterSec ?? data.retry_after_sec ?? 60)
+          trackInstantScanError({ reason: "rate_limit", status })
+          setInstantScanState("error")
+          toastInstantScanApiError({
+            status: 429,
+            error: "rate_limit",
+            retryAfterSec: retryAfterSec ?? data.retry_after_sec ?? 60,
+            onRetry: handleRetry,
+          })
+          return
+        }
         if (data.fallback === "manual" && data.error !== "missing_api_key") {
           const reason = data.error === "low_confidence" ? "low_confidence" : "ai_unavailable"
           trackInstantScanGateTriggered({ reason })
@@ -218,12 +276,15 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         return
       }
 
-      setAiSuggestion({
+      const suggestion = {
         title: data.title ?? "",
         description: data.description ?? "",
         categoryId: data.categoryId ?? null,
         suggestedPrice: data.suggestedPrice ?? null,
-      })
+      }
+      setAiSuggestion(suggestion)
+      applyInstantScanFields(suggestion)
+      resetInstantScanSession(session)
       setInstantScanState("done")
       const modelLabel = data.detectedModel?.trim() || data.title?.trim() || "produit"
       const confidencePct =
@@ -262,19 +323,19 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       trackInstantScanGateTriggered({ reason })
       trackInstantScanError({ reason })
       setInstantScanState("error")
-      if (reason === "instantscan_rate_limit") {
-        toastInstantScanApiError({ status: 429, error: reason, onRetry: handleRetry })
-      } else if (reason === "timeout" || reason === "network_error") {
+      if (reason === "timeout" || reason === "network_error") {
         toastInstantScanNetworkError(handleRetry)
       } else {
         toastInstantScanApiError({ status: 0, error: reason, onRetry: handleRetry })
       }
     } finally {
+      markInstantScanAnalyzeEnd(session)
       globalThis.clearTimeout(timeoutId)
     }
-  }, [])
+  }, [applyInstantScanFields])
 
   const retryInstantScan = useCallback(() => {
+    resetInstantScanSession(instantScanSessionRef.current)
     instantScanImageRef.current = null
     setInstantScanState("idle")
     setAiSuggestion(null)
@@ -285,6 +346,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     if (url === instantScanPrimaryUrlRef.current) return
     instantScanPrimaryUrlRef.current = url
     instantScanImageRef.current = null
+    resetInstantScanSession(instantScanSessionRef.current)
     setInstantScanState("idle")
     setAiSuggestion(null)
     logInstantScan("Primary image changed", { url: url?.slice(0, 80) ?? null })
@@ -317,14 +379,13 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       guidedStep,
       decision: decision.action,
       reason: decision.action === "skip" ? decision.reason : undefined,
-      flag: instantScanClientEnabled,
     })
 
     trackInstantScanTriggerAttempt({
       url: images[0] ?? null,
       guided_step: guidedStep,
       reason: decision.action === "skip" ? decision.reason : undefined,
-      client_enabled: instantScanClientEnabled,
+      client_enabled: true,
       mounted,
     })
 
@@ -362,7 +423,6 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     images,
     instantScanState,
     mounted,
-    instantScanClientEnabled,
     cdnPollTick,
     runAiAnalyze,
     completeStep,
@@ -370,13 +430,10 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
 
   const applyAiSuggestion = useCallback(() => {
     if (!aiSuggestion) return
-    setName(aiSuggestion.title)
-    setDescription(aiSuggestion.description)
-    if (aiSuggestion.categoryId) setCategoryId(aiSuggestion.categoryId)
-    if (aiSuggestion.suggestedPrice != null) setPrice(String(aiSuggestion.suggestedPrice))
+    applyInstantScanFields(aiSuggestion)
     completeStep("ai_accept")
     setGuidedStep(2)
-  }, [aiSuggestion, completeStep])
+  }, [aiSuggestion, applyInstantScanFields, completeStep])
 
   const runExpressImport = useCallback(async () => {
     const u = expressUrl.trim()
