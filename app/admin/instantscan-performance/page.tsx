@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-const EVENTS = ["instant_scan_result", "instant_scan_gate_triggered"] as const
+const EVENTS = ["instant_scan_result", "instant_scan_trigger_attempt", "instant_scan_api_called", "instant_scan_error", "instant_scan_gate_triggered"] as const
 
 export default function AdminInstantScanPerformancePage() {
   const posthogHost = posthogAppHostFromCaptureHost(
@@ -38,8 +38,8 @@ export default function AdminInstantScanPerformancePage() {
         </ul>
         <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">
           <code>instant_scan_result</code> — props: <code>model</code>, <code>confidence</code>,{" "}
-          <code>latency_ms</code>, <code>stage</code> (<code>embed</code> | <code>mini</code> |{" "}
-          <code>gpt4o</code> | <code>groq</code>).
+          <code>latency_ms</code>, <code>stage</code>. Also: <code>instant_scan_trigger_attempt</code>,{" "}
+          <code>instant_scan_api_called</code>, <code>instant_scan_error</code>.
         </p>
       </section>
 

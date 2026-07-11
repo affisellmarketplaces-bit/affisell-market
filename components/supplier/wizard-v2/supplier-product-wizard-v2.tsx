@@ -48,7 +48,7 @@ import {
   analyzeWithRetry,
   INSTANTSCAN_FETCH_TIMEOUT_MS,
 } from "@/lib/ai/instantscan-client"
-import { isInstantScanClientEnabled } from "@/lib/instantscan/flags"
+import { isInstantScanClientEnabled, getInstantScanDisplayName } from "@/lib/instantscan/flags"
 import { logInstantScan } from "@/lib/instantscan/log"
 import {
   INSTANTSCAN_CDN_RECHECK_MS,
@@ -67,9 +67,15 @@ type Props = {
   ownerUserId: string
 }
 
+const instantScanBrand = getInstantScanDisplayName()
+
 const MODES: { id: WizardV2Mode; label: string; hint: string }[] = [
   { id: "express", label: "Express", hint: "URL → preview → publish (~15 s)" },
-  { id: "guided", label: "InstantScan", hint: "Photo → InstantScan → prix (~60 s)" },
+  {
+    id: "guided",
+    label: instantScanBrand,
+    hint: `Photo → ${instantScanBrand} → prix (~60 s)`,
+  },
   { id: "pro", label: "Pro", hint: "Wizard classique v1" },
 ]
 
@@ -439,7 +445,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     }
     if (!categoryId.trim()) {
       trackWizardV2PublishBlocked({ mode, reason: "missing_category", field: "category" })
-      toast.error("Catégorie requise — acceptez la suggestion InstantScan ou passez en mode Pro")
+      toast.error(`Catégorie requise — acceptez la suggestion ${instantScanBrand} ou passez en mode Pro`)
       return
     }
     if (images.length === 0 || !images[0]?.startsWith("http")) {
@@ -590,7 +596,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
               <section aria-labelledby="guided-heading" className="space-y-4">
                 <h2 id="guided-heading" className="flex items-center gap-2 text-lg font-semibold">
                   <Sparkles className="h-5 w-5 text-violet-500" aria-hidden />
-                  InstantScan — étape {guidedStep + 1}/3
+                  {instantScanBrand} — étape {guidedStep + 1}/3
                 </h2>
                 {guidedStep === 0 ? (
                   <>
@@ -616,11 +622,11 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                     {instantScanState === "loading" ? (
                       <p className="flex items-center gap-2 text-sm">
                         <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                        InstantScan en cours…
+                        {instantScanBrand} en cours…
                       </p>
                     ) : aiSuggestion && instantScanState === "done" ? (
                       <>
-                        <p className="text-sm font-medium">InstantScan suggère :</p>
+                        <p className="text-sm font-medium">{instantScanBrand} suggère :</p>
                         <p className="text-base font-semibold">{aiSuggestion.title}</p>
                         <p className="text-sm text-zinc-600 line-clamp-3">{aiSuggestion.description}</p>
                         <div className="flex flex-wrap gap-2">
@@ -635,7 +641,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                     ) : instantScanState === "gate" ? (
                       <div className="space-y-3">
                         <p className="text-sm text-amber-900 dark:text-amber-100">
-                          InstantScan incertain - complétez manuellement
+                          {instantScanBrand} incertain - complétez manuellement
                         </p>
                         <div className="flex flex-wrap gap-2">
                           <Button type="button" onClick={() => setGuidedStep(2)}>
@@ -649,7 +655,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                     ) : instantScanState === "error" ? (
                       <div className="space-y-3">
                         <p className="text-sm text-red-700 dark:text-red-300">
-                          InstantScan n&apos;a pas abouti.
+                          {instantScanBrand} n&apos;a pas abouti.
                         </p>
                         <div className="flex flex-wrap gap-2">
                           <Button type="button" variant="outline" onClick={retryInstantScan}>

@@ -20,7 +20,11 @@ export async function POST(req: Request) {
   if (!gate.ok) return gate.response
 
   const flagEnabled = isInstantScanServerEnabled()
-  console.log("[InstantScan] Flag check:", flagEnabled)
+  console.log("[InstantScan] Enabled by:", {
+    ENABLE_INSTANTSCAN: process.env.ENABLE_INSTANTSCAN,
+    ENABLE_AI_VISION_V2: process.env.ENABLE_AI_VISION_V2,
+    decision: flagEnabled,
+  })
   logInstantScan("Flag check", { enabled: flagEnabled })
 
   if (!flagEnabled) {

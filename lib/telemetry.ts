@@ -30,7 +30,7 @@ export function trackInstantScanTriggerAttempt(props: {
   client_enabled: boolean
   mounted: boolean
 }) {
-  capturePosthogClient("instantscan_trigger_attempt", props)
+  capturePosthogClient("instant_scan_trigger_attempt", props)
 }
 
 export function trackInstantScanApiCalled(props: {
@@ -38,11 +38,11 @@ export function trackInstantScanApiCalled(props: {
   status: number
   latency_ms: number
 }) {
-  capturePosthogClient("instantscan_api_called", props)
+  capturePosthogClient("instant_scan_api_called", props)
 }
 
 export function trackInstantScanError(props: { reason: string; status?: number }) {
-  capturePosthogClient("instantscan_error", props)
+  capturePosthogClient("instant_scan_error", props)
 }
 
 /** Server — API analyze-product outcome (no consent gate). */
