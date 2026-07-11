@@ -6,7 +6,7 @@ import { Redis } from "@upstash/redis"
 
 import type { ProductAnalysisResult } from "@/lib/ai/product-analyzer"
 
-const CACHE_TTL_SEC = 7 * 24 * 60 * 60
+const CACHE_TTL_SEC = 24 * 60 * 60
 const MEMORY_MAX = 200
 
 type MemoryEntry = { value: ProductAnalysisResult; expiresAt: number }

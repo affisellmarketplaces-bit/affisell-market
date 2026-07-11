@@ -4,6 +4,16 @@ export function isAiVisionV2Enabled(env: NodeJS.ProcessEnv = process.env): boole
   return raw === "1" || raw === "true"
 }
 
+/** Cascade v2.2 — CLIP-proxy embed match before full GPT vision (ENABLE_AI_VISION_V2 required). */
+export function isAiVisionCascadeEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  if (!isAiVisionV2Enabled(env)) return false
+  const raw = env.ENABLE_AI_VISION_CASCADE?.trim().toLowerCase()
+  return raw === "1" || raw === "true"
+}
+
+export const PRODUCT_VISION_CASCADE_MINI_MODEL =
+  process.env.PRODUCT_VISION_CASCADE_MINI_MODEL?.trim() || "gpt-4o-mini"
+
 export const PRODUCT_VISION_V2_MODEL =
   process.env.PRODUCT_VISION_V2_MODEL?.trim() || "gpt-4o-2026-05-13"
 

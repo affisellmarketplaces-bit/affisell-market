@@ -5,6 +5,7 @@ import { CATEGORIES_AFFISELL } from "@/lib/ai/categories"
 import { groqChatText } from "@/lib/ai/groq-client"
 import { hasOpenAiFallback, openaiChatText } from "@/lib/ai/openai-chat-fallback"
 import {
+  isAiVisionCascadeEnabled,
   isAiVisionV2Enabled,
   PRODUCT_VISION_V2_MODEL,
   PRODUCT_VISION_V2_SYSTEM_PROMPT,
@@ -15,6 +16,7 @@ import {
   parseVisionV2Payload,
   shouldRequireManualFallback,
 } from "@/lib/ai/product-vision-v2-parse"
+import { tryVisionCascadeMatch } from "@/lib/ai/product-vision-cascade"
 import { buildCategoryBrowse, fetchAllCategoriesForBrowse } from "@/lib/category-browse"
 import { prisma } from "@/lib/prisma"
 
@@ -28,7 +30,7 @@ export type ProductAnalysisResult = {
   cached: boolean
   /** Present when ENABLE_AI_VISION_V2 — model self-reported + audited score. */
   confidence?: number
-  visionVersion?: "v1" | "v2"
+  visionVersion?: "v1" | "v2" | "v2.2"
   detectedModel?: string | null
 }
 
@@ -108,6 +110,35 @@ async function resolveCategoryMatch(args: {
 }
 
 async function analyzeProductFromImageV2(
+  input: AnalyzeProductImageInput
+): Promise<Omit<ProductAnalysisResult, "cached">> {
+  const imageUrl = input.imageDataUrl?.trim() || input.imageUrl?.trim() || ""
+
+  if (isAiVisionCascadeEnabled()) {
+    const fingerprint = input.imageDataUrl?.trim()
+      ? `data:${input.imageDataUrl.slice(0, 2000).length}:${input.imageDataUrl.slice(-120)}`
+      : `url:${input.imageUrl?.trim() ?? ""}`
+    const cascade = await tryVisionCascadeMatch({ imageUrl, imageFingerprint: fingerprint })
+    if (cascade) {
+      const { categoryLabel, categoryId } = await resolveCategoryMatch({
+        title: cascade.analysis.title,
+        description: cascade.analysis.description,
+        category: cascade.analysis.category,
+        imageUrl,
+      })
+      return {
+        ...cascade.analysis,
+        category: categoryLabel,
+        categoryId,
+        visionVersion: "v2.2",
+      }
+    }
+  }
+
+  return analyzeProductFromImageV2Gpt(imageUrl)
+}
+
+async function analyzeProductFromImageV2Gpt(
   imageUrl: string
 ): Promise<Omit<ProductAnalysisResult, "cached">> {
   if (!hasOpenAiFallback()) {
@@ -188,7 +219,7 @@ export async function analyzeProductFromImage(
   }
 
   if (isAiVisionV2Enabled()) {
-    return analyzeProductFromImageV2(imageUrl)
+    return analyzeProductFromImageV2(input)
   }
 
   const prompt = `Tu es un expert e-commerce français. Analyse cette image produit.
