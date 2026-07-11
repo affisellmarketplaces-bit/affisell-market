@@ -27,6 +27,7 @@ const LINKS = [
   { href: "/crm", label: "CRM" },
   { href: "/dashboard/admin/leads", label: "Leads" },
   { href: "/dashboard/admin/product-funnel", label: "Funnel produit" },
+  { href: "/admin/instantscan-performance", label: "InstantScan" },
   { href: "/admin/rgpd-registre", label: "RGPD" },
   { href: "/admin/terms-logs", label: "Consentements" },
 ] as const

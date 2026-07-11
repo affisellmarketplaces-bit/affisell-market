@@ -20,6 +20,11 @@ import {
 } from "@/lib/analytics/wizard-v2-posthog"
 import { buildWizardV2PublishBody } from "@/lib/product-wizard-v2/build-publish-payload"
 import {
+  instantScanStageFromVisionVersion,
+  trackInstantScanGateTriggered,
+  trackInstantScanResult,
+} from "@/lib/telemetry"
+import {
   hasShopifyIntegration,
   shopifyDomainFromIntegrations,
 } from "@/lib/product-wizard-v2/shopify-detect"
@@ -43,7 +48,7 @@ type Props = {
 
 const MODES: { id: WizardV2Mode; label: string; hint: string }[] = [
   { id: "express", label: "Express", hint: "URL → preview → publish (~15 s)" },
-  { id: "guided", label: "Guidé", hint: "Photo → IA → prix (~60 s)" },
+  { id: "guided", label: "InstantScan", hint: "Photo → InstantScan → prix (~60 s)" },
   { id: "pro", label: "Pro", hint: "Wizard classique v1" },
 ]
 
@@ -145,6 +150,8 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
 
   const runAiAnalyze = useCallback(async (imageUrl: string) => {
     setAiLoading(true)
+    const toastId = toast.loading("InstantScan en cours...")
+    const analyzeStarted = Date.now()
     try {
       const res = await fetch("/api/ai/analyze-product", {
         method: "POST",
@@ -157,15 +164,23 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         description?: string
         categoryId?: string | null
         suggestedPrice?: number | null
+        confidence?: number
+        detectedModel?: string | null
+        visionVersion?: string
+        instantScanStage?: "embed" | "mini" | "gpt4o" | "groq"
+        latencyMs?: number
         error?: string
         fallback?: string
       }
       if (!res.ok) {
+        toast.dismiss(toastId)
         if (data.fallback === "manual") {
+          const reason = data.error === "low_confidence" ? "low_confidence" : "ai_unavailable"
+          trackInstantScanGateTriggered({ reason })
           toast.message(
             data.error === "low_confidence"
-              ? "Confiance IA insuffisante — complétez manuellement"
-              : "IA indisponible — saisie manuelle"
+              ? "InstantScan incertain - complétez manuellement"
+              : "InstantScan indisponible — saisie manuelle"
           )
           return
         }
@@ -177,9 +192,18 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         categoryId: data.categoryId ?? null,
         suggestedPrice: data.suggestedPrice ?? null,
       })
-      toast.success("Suggestion IA prête")
+      const modelLabel = data.detectedModel?.trim() || data.title?.trim() || "produit"
+      trackInstantScanResult({
+        model: data.detectedModel ?? data.title ?? null,
+        confidence: data.confidence ?? null,
+        latency_ms: data.latencyMs ?? Date.now() - analyzeStarted,
+        stage: instantScanStageFromVisionVersion(data.visionVersion, data.instantScanStage),
+      })
+      toast.success(`✓ InstantScan : ${modelLabel} détecté`, { id: toastId })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Analyse IA impossible")
+      toast.dismiss(toastId)
+      trackInstantScanGateTriggered({ reason: err instanceof Error ? err.message : "analyze_failed" })
+      toast.error(err instanceof Error ? err.message : "InstantScan impossible")
     } finally {
       setAiLoading(false)
     }
@@ -268,7 +292,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     }
     if (!categoryId.trim()) {
       trackWizardV2PublishBlocked({ mode, reason: "missing_category", field: "category" })
-      toast.error("Catégorie requise — acceptez la suggestion IA ou passez en mode Pro")
+      toast.error("Catégorie requise — acceptez la suggestion InstantScan ou passez en mode Pro")
       return
     }
     if (images.length === 0 || !images[0]?.startsWith("http")) {
@@ -419,7 +443,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
               <section aria-labelledby="guided-heading" className="space-y-4">
                 <h2 id="guided-heading" className="flex items-center gap-2 text-lg font-semibold">
                   <Sparkles className="h-5 w-5 text-violet-500" aria-hidden />
-                  Guidé — étape {guidedStep + 1}/3
+                  InstantScan — étape {guidedStep + 1}/3
                 </h2>
                 {guidedStep === 0 ? (
                   <>
@@ -445,11 +469,11 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                     {aiLoading ? (
                       <p className="flex items-center gap-2 text-sm">
                         <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                        IA analyse la photo…
+                        InstantScan en cours…
                       </p>
                     ) : aiSuggestion ? (
                       <>
-                        <p className="text-sm font-medium">IA suggère :</p>
+                        <p className="text-sm font-medium">InstantScan suggère :</p>
                         <p className="text-base font-semibold">{aiSuggestion.title}</p>
                         <p className="text-sm text-zinc-600 line-clamp-3">{aiSuggestion.description}</p>
                         <div className="flex flex-wrap gap-2">

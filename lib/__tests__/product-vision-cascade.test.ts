@@ -3,10 +3,15 @@ import { describe, expect, it } from "vitest"
 import { buildAnalysisFromCatalogMatch, parseVisualCuesPayload } from "@/lib/ai/product-vision-cascade"
 import { deterministicTextEmbedding, normalizeVector } from "@/lib/ai/openai-embeddings"
 import { TOP_PRODUCTS_2026 } from "@/lib/ai/top-products-2026"
-import { isAiVisionCascadeEnabled } from "@/lib/ai/product-vision-v2-config"
+import { isAiVisionCascadeEnabled, isInstantScanEnabled } from "@/lib/ai/product-vision-v2-config"
 
 describe("product-vision-cascade", () => {
-  it("reads ENABLE_AI_VISION_CASCADE flag", () => {
+  it("reads ENABLE_INSTANTSCAN flag", () => {
+    expect(isInstantScanEnabled({ ENABLE_INSTANTSCAN: "1" })).toBe(true)
+    expect(isAiVisionCascadeEnabled({ ENABLE_INSTANTSCAN: "1" })).toBe(true)
+  })
+
+  it("reads ENABLE_AI_VISION_CASCADE flag (retrocompat)", () => {
     expect(isAiVisionCascadeEnabled({ ENABLE_AI_VISION_V2: "1", ENABLE_AI_VISION_CASCADE: "1" })).toBe(
       true
     )

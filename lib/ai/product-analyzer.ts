@@ -32,6 +32,9 @@ export type ProductAnalysisResult = {
   confidence?: number
   visionVersion?: "v1" | "v2" | "v2.2"
   detectedModel?: string | null
+  /** InstantScan cascade stage (embed fast-path, gpt4o fallback, groq legacy). */
+  instantScanStage?: "embed" | "mini" | "gpt4o" | "groq"
+  latencyMs?: number
 }
 
 function stripJsonFence(s: string): string {
@@ -131,6 +134,8 @@ async function analyzeProductFromImageV2(
         category: categoryLabel,
         categoryId,
         visionVersion: "v2.2",
+        instantScanStage: "embed",
+        latencyMs: cascade.latencyMs,
       }
     }
   }
@@ -204,6 +209,8 @@ async function analyzeProductFromImageV2Gpt(
     confidence,
     visionVersion: "v2",
     detectedModel: parsed.detectedModel,
+    instantScanStage: "gpt4o",
+    latencyMs: Date.now() - started,
   }
 }
 
@@ -222,6 +229,7 @@ export async function analyzeProductFromImage(
     return analyzeProductFromImageV2(input)
   }
 
+  const started = Date.now()
   const prompt = `Tu es un expert e-commerce français. Analyse cette image produit.
 Réponds UNIQUEMENT en JSON valide:
 {
@@ -278,5 +286,7 @@ Prix suggestedPrice en EUR TTC catalogue fournisseur plausible.`
     attributes: parsed.attributes,
     suggestedPrice: parsed.suggestedPrice,
     visionVersion: "v1",
+    instantScanStage: "groq",
+    latencyMs: Date.now() - started,
   }
 }

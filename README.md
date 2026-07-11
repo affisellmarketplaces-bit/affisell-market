@@ -78,6 +78,20 @@ Legacy paths redirect: `/` → `/en`, `/creators` → `/en/creators`.
 
 Never edit applied migrations. Change `schema.prisma` then `npx prisma migrate dev --name xxx`. See `.cursorrules`.
 
+## Affisell InstantScan
+
+Cascade IA temps réel pour le wizard v2 (mode **InstantScan**, ex-Guidé) : **CLIP 200ms → GPT-4o-mini 800ms → GPT-4o 2sec**.
+
+| Métrique | Cible |
+|----------|-------|
+| Précision | 98.5% (top 100 SKUs 2024–2026) |
+| Latence p95 | &lt;2 s |
+| Coût | ~0.003 $/analyse |
+
+**Flags** : `ENABLE_INSTANTSCAN=1` (prod). Retrocompat : `ENABLE_AI_VISION_V2=1` + `ENABLE_AI_VISION_CASCADE=1` si `ENABLE_INSTANTSCAN=0`.
+
+**Telemetry** : PostHog `instant_scan_result`, `instant_scan_gate_triggered` — dashboard stub `/admin/instantscan-performance`.
+
 ## Push
 
 ```bash

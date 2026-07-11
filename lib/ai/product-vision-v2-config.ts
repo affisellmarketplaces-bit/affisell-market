@@ -1,12 +1,20 @@
-/** Feature flag — GPT-4o vision + confidence gate for wizard v2 Guided analyze. */
+/** Affisell InstantScan — primary flag (cascade CLIP → mini → GPT-4o). */
+export function isInstantScanEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  const raw = env.ENABLE_INSTANTSCAN?.trim().toLowerCase()
+  return raw === "1" || raw === "true"
+}
+
+/** Feature flag — GPT-4o vision + confidence gate (retrocompat when ENABLE_INSTANTSCAN=0). */
 export function isAiVisionV2Enabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  if (isInstantScanEnabled(env)) return true
   const raw = env.ENABLE_AI_VISION_V2?.trim().toLowerCase()
   return raw === "1" || raw === "true"
 }
 
-/** Cascade v2.2 — CLIP-proxy embed match before full GPT vision (ENABLE_AI_VISION_V2 required). */
+/** InstantScan cascade — embed fast-path before full GPT vision. */
 export function isAiVisionCascadeEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   if (!isAiVisionV2Enabled(env)) return false
+  if (isInstantScanEnabled(env)) return true
   const raw = env.ENABLE_AI_VISION_CASCADE?.trim().toLowerCase()
   return raw === "1" || raw === "true"
 }
