@@ -22,6 +22,8 @@ export type ZeroWaitUploadSlot = {
   progress: number
   previewUrl: string | null
   durableUrl: string | null
+  /** Client-processed JPEG data URL — InstantScan fallback when CDN hotlink fails. */
+  processedDataUrl?: string | null
   error: string | null
 }
 
@@ -84,9 +86,11 @@ export function createUploadSlot(id: string, file: File): ZeroWaitUploadSlot {
 /** Prefer AVIF when supported; JPEG fallback for Safari older builds. */
 export async function encodeProductImageBlob(
   file: File,
-  processFile: ZeroWaitProcessFile
+  processFile: ZeroWaitProcessFile,
+  onProcessedDataUrl?: (dataUrl: string) => void
 ): Promise<Blob> {
   const dataUrl = await processFile(file)
+  onProcessedDataUrl?.(dataUrl)
   const res = await fetch(dataUrl)
   const jpegBlob = await res.blob()
 
@@ -181,7 +185,9 @@ export async function runZeroWaitUpload(args: RunZeroWaitUploadArgs): Promise<Ze
     previewUrl = URL.createObjectURL(file)
     onUpdate({ previewUrl, progress: 15 })
 
-    const encoded = await encodeProductImageBlob(file, processFile)
+    const encoded = await encodeProductImageBlob(file, processFile, (dataUrl) => {
+      onUpdate({ processedDataUrl: dataUrl, progress: 25 })
+    })
     onUpdate({ status: "uploading", progress: 40 })
 
     const durableUrl = await uploadWhole(encoded, file.name.replace(/\.[^/.]+$/, "") || "product")

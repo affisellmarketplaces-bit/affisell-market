@@ -61,6 +61,12 @@ export function toastInstantScanApiError(args: {
     toast.message(`${INSTANTSCAN_PRODUCT_NAME} incertain — complétez manuellement`)
     return
   }
+  if (error === "ai_unavailable") {
+    toast.message(`${INSTANTSCAN_PRODUCT_NAME} indisponible — complétez manuellement`, {
+      action: retryAction,
+    })
+    return
+  }
   if (status === 0 || error === "network_error") {
     toast.error(`${INSTANTSCAN_PRODUCT_NAME} erreur réseau — réessayer`, { action: retryAction })
     return

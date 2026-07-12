@@ -108,6 +108,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   const instantScanImageRef = useRef<string | null>(null)
   const instantScanPrimaryUrlRef = useRef<string | null>(null)
   const instantScanSessionRef = useRef(createInstantScanSessionState())
+  const instantScanDataUrlRef = useRef<string | null>(null)
   const [cdnPollTick, setCdnPollTick] = useState(0)
   const [aiSuggestion, setAiSuggestion] = useState<{
     title: string
@@ -242,6 +243,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     try {
       const { ok, status, data, retryAfterSec } = await analyzeWithRetry(imageUrl, 0, {
         signal: controller.signal,
+        imageDataUrl: instantScanDataUrlRef.current ?? undefined,
         onRetry: () => toastInstantScanRetrying(),
       })
 
@@ -347,6 +349,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     instantScanPrimaryUrlRef.current = url
     instantScanImageRef.current = null
     resetInstantScanSession(instantScanSessionRef.current)
+    instantScanDataUrlRef.current = null
     setInstantScanState("idle")
     setAiSuggestion(null)
     logInstantScan("Primary image changed", { url: url?.slice(0, 80) ?? null })
@@ -661,6 +664,9 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                     <WizardV2ZeroWaitUpload
                       onUrlsChange={setImages}
                       onBusyChange={setUploadBusy}
+                      onProcessedDataUrl={(dataUrl) => {
+                        instantScanDataUrlRef.current = dataUrl
+                      }}
                     />
                     <Button
                       type="button"

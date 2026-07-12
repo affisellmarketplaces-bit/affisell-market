@@ -25,6 +25,7 @@ export type InstantScanFetchResult = {
 
 export type AnalyzeWithRetryOptions = {
   signal?: AbortSignal
+  imageDataUrl?: string
   onRetry?: (attempt: number, status: number) => void
 }
 
@@ -58,14 +59,18 @@ function parseRetryAfterSec(res: Response, data: InstantScanAnalyzeResponse): nu
 
 export async function fetchInstantScanAnalyze(
   imageUrl: string,
-  options?: { signal?: AbortSignal }
+  options?: { signal?: AbortSignal; imageDataUrl?: string }
 ): Promise<InstantScanFetchResult> {
   try {
+    const body: { imageUrl: string; imageDataUrl?: string } = { imageUrl }
+    if (options?.imageDataUrl?.startsWith("data:image/")) {
+      body.imageDataUrl = options.imageDataUrl
+    }
     const res = await fetch("/api/ai/analyze-product", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ imageUrl }),
+      body: JSON.stringify(body),
       signal: options?.signal,
     })
     const data = (await res.json()) as InstantScanAnalyzeResponse

@@ -90,12 +90,15 @@ export async function POST(req: Request) {
     const message = err instanceof Error ? err.message : "analyze_failed"
     console.error("[InstantScan API] Error:", err)
     logInstantScan("API error", { message })
-    if (message === "ai_unavailable") {
+    if (message === "ai_unavailable" || message === "image_not_https" || message === "image_fetch_failed") {
       return NextResponse.json({ error: "ai_unavailable", fallback: "manual" }, { status: 503 })
     }
     if (message === "low_confidence") {
       return NextResponse.json({ error: "low_confidence", fallback: "manual" }, { status: 422 })
     }
-    return NextResponse.json({ error: message }, { status: 500 })
+    if (message === "image_required") {
+      return NextResponse.json({ error: "image_required" }, { status: 400 })
+    }
+    return NextResponse.json({ error: "ai_unavailable", fallback: "manual" }, { status: 503 })
   }
 }

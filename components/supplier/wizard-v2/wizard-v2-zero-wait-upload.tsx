@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils"
 type Props = {
   onUrlsChange: (urls: string[]) => void
   onBusyChange?: (busy: boolean) => void
+  onProcessedDataUrl?: (dataUrl: string | null) => void
   className?: string
 }
 
@@ -36,14 +37,14 @@ async function uploadProcessedBlob(blob: Blob, fileName: string): Promise<string
   return url
 }
 
-export function WizardV2ZeroWaitUpload({ onUrlsChange, onBusyChange, className }: Props) {
+export function WizardV2ZeroWaitUpload({ onUrlsChange, onBusyChange, onProcessedDataUrl, className }: Props) {
   const inputId = useId()
   const [slots, setSlots] = useState<ZeroWaitUploadSlot[]>([])
   const slotsRef = useRef(slots)
   slotsRef.current = slots
 
-  const parentCallbacksRef = useRef({ onUrlsChange, onBusyChange })
-  parentCallbacksRef.current = { onUrlsChange, onBusyChange }
+  const parentCallbacksRef = useRef({ onUrlsChange, onBusyChange, onProcessedDataUrl })
+  parentCallbacksRef.current = { onUrlsChange, onBusyChange, onProcessedDataUrl }
 
   const scheduleParentSync = useCallback(() => {
     scheduleZeroWaitParentSync(() => slotsRef.current, parentCallbacksRef.current)

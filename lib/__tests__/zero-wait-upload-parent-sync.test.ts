@@ -29,10 +29,12 @@ describe("zero-wait-upload-parent-sync", () => {
     expect(deriveZeroWaitParentSync([uploadingSlot])).toEqual({
       urls: [],
       busy: true,
+      processedDataUrl: null,
     })
     expect(deriveZeroWaitParentSync([readySlot])).toEqual({
       urls: ["https://cdn.example/a.jpg"],
       busy: false,
+      processedDataUrl: null,
     })
   })
 

@@ -17,6 +17,7 @@ import {
   shouldRequireManualFallback,
 } from "@/lib/ai/product-vision-v2-parse"
 import { tryVisionCascadeMatch } from "@/lib/ai/product-vision-cascade"
+import { resolveVisionImageForOpenAI } from "@/lib/ai/vision-image-url"
 import { buildCategoryBrowse, fetchAllCategoriesForBrowse } from "@/lib/category-browse"
 import { prisma } from "@/lib/prisma"
 
@@ -112,35 +113,63 @@ async function resolveCategoryMatch(args: {
   }
 }
 
-async function analyzeProductFromImageV2(
+async function resolveCategoryMatchSafe(args: {
+  title: string
+  description: string
+  category: string
+  imageUrl: string
+}) {
+  try {
+    return await resolveCategoryMatch(args)
+  } catch (err) {
+    console.log("[product-analyzer]", {
+      result: "category_match_failed",
+      error: err instanceof Error ? err.message : String(err),
+    })
+    return {
+      categoryLabel: args.category?.trim() || "Autre",
+      categoryId: null as string | null,
+    }
+  }
+}
+
+async function analyzeProductFromImageV2(args: {
   input: AnalyzeProductImageInput
-): Promise<Omit<ProductAnalysisResult, "cached">> {
-  const imageUrl = input.imageDataUrl?.trim() || input.imageUrl?.trim() || ""
+  visionUrl: string
+}): Promise<Omit<ProductAnalysisResult, "cached">> {
+  const { input, visionUrl } = args
 
   if (isAiVisionCascadeEnabled()) {
     const fingerprint = input.imageDataUrl?.trim()
       ? `data:${input.imageDataUrl.slice(0, 2000).length}:${input.imageDataUrl.slice(-120)}`
       : `url:${input.imageUrl?.trim() ?? ""}`
-    const cascade = await tryVisionCascadeMatch({ imageUrl, imageFingerprint: fingerprint })
-    if (cascade) {
-      const { categoryLabel, categoryId } = await resolveCategoryMatch({
-        title: cascade.analysis.title,
-        description: cascade.analysis.description,
-        category: cascade.analysis.category,
-        imageUrl,
-      })
-      return {
-        ...cascade.analysis,
-        category: categoryLabel,
-        categoryId,
-        visionVersion: "v2.2",
-        instantScanStage: "embed",
-        latencyMs: cascade.latencyMs,
+    try {
+      const cascade = await tryVisionCascadeMatch({ imageUrl: visionUrl, imageFingerprint: fingerprint })
+      if (cascade) {
+        const { categoryLabel, categoryId } = await resolveCategoryMatchSafe({
+          title: cascade.analysis.title,
+          description: cascade.analysis.description,
+          category: cascade.analysis.category,
+          imageUrl: visionUrl,
+        })
+        return {
+          ...cascade.analysis,
+          category: categoryLabel,
+          categoryId,
+          visionVersion: "v2.2",
+          instantScanStage: "embed",
+          latencyMs: cascade.latencyMs,
+        }
       }
+    } catch (err) {
+      console.log("[product-analyzer]", {
+        result: "cascade_failed",
+        error: err instanceof Error ? err.message : String(err),
+      })
     }
   }
 
-  return analyzeProductFromImageV2Gpt(imageUrl)
+  return analyzeProductFromImageV2Gpt(visionUrl)
 }
 
 async function analyzeProductFromImageV2Gpt(
@@ -192,7 +221,7 @@ async function analyzeProductFromImageV2Gpt(
     throw new Error("low_confidence")
   }
 
-  const { categoryLabel, categoryId } = await resolveCategoryMatch({
+  const { categoryLabel, categoryId } = await resolveCategoryMatchSafe({
     title: parsed.title,
     description: parsed.description,
     category: parsed.category,
@@ -220,15 +249,21 @@ async function analyzeProductFromImageV2Gpt(
 export async function analyzeProductFromImage(
   input: AnalyzeProductImageInput
 ): Promise<Omit<ProductAnalysisResult, "cached">> {
-  const imageUrl = input.imageDataUrl?.trim() || input.imageUrl?.trim() || ""
-  if (!imageUrl) {
+  if (!input.imageUrl?.trim() && !input.imageDataUrl?.trim()) {
     throw new Error("image_required")
   }
 
+  const resolved = await resolveVisionImageForOpenAI(input)
+  console.log("[product-analyzer]", {
+    result: "vision_input_resolved",
+    source: resolved.source,
+  })
+
   if (isAiVisionV2Enabled()) {
-    return analyzeProductFromImageV2(input)
+    return analyzeProductFromImageV2({ input, visionUrl: resolved.visionUrl })
   }
 
+  const visionUrl = resolved.visionUrl
   const started = Date.now()
   const prompt = `Tu es un expert e-commerce français. Analyse cette image produit.
 Réponds UNIQUEMENT en JSON valide:
@@ -246,7 +281,7 @@ Prix suggestedPrice en EUR TTC catalogue fournisseur plausible.`
     | { type: "image_url"; image_url: { url: string } }
   > = [
     { type: "text", text: prompt },
-    { type: "image_url", image_url: { url: imageUrl } },
+    { type: "image_url", image_url: { url: visionUrl } },
   ]
 
   let raw: string | null = null
@@ -264,11 +299,11 @@ Prix suggestedPrice en EUR TTC catalogue fournisseur plausible.`
   }
 
   const parsed = parseVisionPayload(raw)
-  const { categoryLabel, categoryId } = await resolveCategoryMatch({
+  const { categoryLabel, categoryId } = await resolveCategoryMatchSafe({
     title: parsed.title,
     description: parsed.description,
     category: parsed.category,
-    imageUrl,
+    imageUrl: visionUrl,
   })
 
   console.log("[product-analyzer]", {

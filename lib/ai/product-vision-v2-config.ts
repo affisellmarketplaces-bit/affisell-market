@@ -23,7 +23,7 @@ export const PRODUCT_VISION_CASCADE_MINI_MODEL =
   process.env.PRODUCT_VISION_CASCADE_MINI_MODEL?.trim() || "gpt-4o-mini"
 
 export const PRODUCT_VISION_V2_MODEL =
-  process.env.PRODUCT_VISION_V2_MODEL?.trim() || "gpt-4o-2026-05-13"
+  process.env.PRODUCT_VISION_V2_MODEL?.trim() || "gpt-4o"
 
 export const PRODUCT_VISION_V2_CONFIDENCE_THRESHOLD = (() => {
   const n = Number(process.env.AI_VISION_V2_CONFIDENCE_THRESHOLD ?? "0.8")

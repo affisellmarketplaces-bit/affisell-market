@@ -39,18 +39,35 @@ export async function openaiChatText(options: OpenAiChatOptions): Promise<string
     ? capVisionImagesInMessages(options.messages, GROQ_VISION_MAX_IMAGES)
     : options.messages
 
-  const completion = await client.chat.completions.create({
-    model:
-      options.model && !options.model.startsWith("llama") && !options.model.startsWith("meta-llama")
-        ? options.model
-        : useVision
-          ? OPENAI_VISION_FALLBACK_MODEL
-          : OPENAI_TEXT_FALLBACK_MODEL,
-    messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
-    temperature: options.temperature ?? 0.2,
-    max_tokens: options.max_tokens,
-    response_format: options.response_format,
-  })
+  const primaryModel =
+    options.model && !options.model.startsWith("llama") && !options.model.startsWith("meta-llama")
+      ? options.model
+      : useVision
+        ? OPENAI_VISION_FALLBACK_MODEL
+        : OPENAI_TEXT_FALLBACK_MODEL
 
-  return completion.choices[0]?.message?.content?.trim() ?? null
+  const request = (model: string) =>
+    client.chat.completions.create({
+      model,
+      messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+      temperature: options.temperature ?? 0.2,
+      max_tokens: options.max_tokens,
+      response_format: options.response_format,
+    })
+
+  try {
+    const completion = await request(primaryModel)
+    return completion.choices[0]?.message?.content?.trim() ?? null
+  } catch (err) {
+    const fallback = useVision ? OPENAI_VISION_FALLBACK_MODEL : OPENAI_TEXT_FALLBACK_MODEL
+    if (primaryModel === fallback) throw err
+    console.log("[openai-chat-fallback]", {
+      result: "model_retry",
+      primaryModel,
+      fallback,
+      error: err instanceof Error ? err.message : String(err),
+    })
+    const completion = await request(fallback)
+    return completion.choices[0]?.message?.content?.trim() ?? null
+  }
 }

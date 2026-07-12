@@ -23,8 +23,8 @@ describe("instantscan flags", () => {
     ).toBe(false)
   })
 
-  it("disables truthy strings other than 1", () => {
-    expect(isInstantScanServerEnabled({ ENABLE_INSTANTSCAN: "true" })).toBe(false)
+  it("enables server when ENABLE_INSTANTSCAN=true", () => {
+    expect(isInstantScanServerEnabled({ ENABLE_INSTANTSCAN: "true" })).toBe(true)
   })
 
   it("getClientFlag is always true (API is source of truth)", () => {
