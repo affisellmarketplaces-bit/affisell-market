@@ -7,7 +7,7 @@ import { hasOpenAiFallback, openaiChatText } from "@/lib/ai/openai-chat-fallback
 import {
   isAiVisionCascadeEnabled,
   isAiVisionV2Enabled,
-  PRODUCT_VISION_V2_MODEL,
+  resolveProductVisionV2Model,
   PRODUCT_VISION_V2_SYSTEM_PROMPT,
   PRODUCT_VISION_V2_TEMPERATURE,
 } from "@/lib/ai/product-vision-v2-config"
@@ -184,7 +184,7 @@ async function analyzeProductFromImageV2Gpt(
   let raw: string | null = null
   try {
     raw = await openaiChatText({
-      model: PRODUCT_VISION_V2_MODEL,
+      model: resolveProductVisionV2Model(),
       vision: true,
       temperature: PRODUCT_VISION_V2_TEMPERATURE,
       max_tokens: 700,
@@ -209,16 +209,25 @@ async function analyzeProductFromImageV2Gpt(
   const parsed = parseVisionV2Payload(raw)
   const confidence = auditProductVisionConfidence(parsed)
 
-  console.log("[product-analyzer]", {
-    result: confidence >= 0.8 ? "v2_ok" : "v2_low_confidence",
-    confidence,
-    productType: parsed.productType,
-    detectedModel: parsed.detectedModel,
-    latencyMs: Date.now() - started,
-  })
+  if (shouldRequireManualFallback(confidence) && !parsed.title.trim()) {
+    throw new Error("low_confidence")
+  }
 
   if (shouldRequireManualFallback(confidence)) {
-    throw new Error("low_confidence")
+    console.log("[product-analyzer]", {
+      result: "v2_low_confidence_soft",
+      confidence,
+      productType: parsed.productType,
+      detectedModel: parsed.detectedModel,
+    })
+  } else {
+    console.log("[product-analyzer]", {
+      result: "v2_ok",
+      confidence,
+      productType: parsed.productType,
+      detectedModel: parsed.detectedModel,
+      latencyMs: Date.now() - started,
+    })
   }
 
   const { categoryLabel, categoryId } = await resolveCategoryMatchSafe({

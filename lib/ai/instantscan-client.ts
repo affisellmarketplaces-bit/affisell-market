@@ -73,7 +73,17 @@ export async function fetchInstantScanAnalyze(
       body: JSON.stringify(body),
       signal: options?.signal,
     })
-    const data = (await res.json()) as InstantScanAnalyzeResponse
+
+    let data: InstantScanAnalyzeResponse
+    try {
+      data = (await res.json()) as InstantScanAnalyzeResponse
+    } catch {
+      return {
+        ok: false,
+        status: res.status,
+        data: { error: res.status === 403 ? "session_forbidden" : "invalid_response" },
+      }
+    }
     const retryAfterSec = res.status === 429 ? parseRetryAfterSec(res, data) : undefined
     return { ok: res.ok, status: res.status, data, retryAfterSec }
   } catch (err) {

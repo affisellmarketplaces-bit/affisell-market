@@ -107,6 +107,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   const [instantScanState, setInstantScanState] = useState<InstantScanUiState>("idle")
   const instantScanImageRef = useRef<string | null>(null)
   const instantScanPrimaryUrlRef = useRef<string | null>(null)
+  const [processedImageDataUrl, setProcessedImageDataUrl] = useState<string | null>(null)
   const instantScanSessionRef = useRef(createInstantScanSessionState())
   const instantScanDataUrlRef = useRef<string | null>(null)
   const [cdnPollTick, setCdnPollTick] = useState(0)
@@ -243,7 +244,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     try {
       const { ok, status, data, retryAfterSec } = await analyzeWithRetry(imageUrl, 0, {
         signal: controller.signal,
-        imageDataUrl: instantScanDataUrlRef.current ?? undefined,
+        imageDataUrl: instantScanDataUrlRef.current ?? processedImageDataUrl ?? undefined,
         onRetry: () => toastInstantScanRetrying(),
       })
 
@@ -334,7 +335,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       markInstantScanAnalyzeEnd(session)
       globalThis.clearTimeout(timeoutId)
     }
-  }, [applyInstantScanFields])
+  }, [applyInstantScanFields, processedImageDataUrl])
 
   const retryInstantScan = useCallback(() => {
     resetInstantScanSession(instantScanSessionRef.current)
@@ -346,10 +347,16 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   useEffect(() => {
     const url = images[0]?.trim() ?? null
     if (url === instantScanPrimaryUrlRef.current) return
+    const prev = instantScanPrimaryUrlRef.current
     instantScanPrimaryUrlRef.current = url
     instantScanImageRef.current = null
     resetInstantScanSession(instantScanSessionRef.current)
-    instantScanDataUrlRef.current = null
+    // Keep local JPEG backup when CDN URL arrives for the same upload (null → https)
+    const isFirstCdnForUpload = !prev && Boolean(url?.startsWith("https://"))
+    if (!isFirstCdnForUpload) {
+      instantScanDataUrlRef.current = null
+      setProcessedImageDataUrl(null)
+    }
     setInstantScanState("idle")
     setAiSuggestion(null)
     logInstantScan("Primary image changed", { url: url?.slice(0, 80) ?? null })
@@ -666,6 +673,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                       onBusyChange={setUploadBusy}
                       onProcessedDataUrl={(dataUrl) => {
                         instantScanDataUrlRef.current = dataUrl
+                        setProcessedImageDataUrl(dataUrl)
                       }}
                     />
                     <Button

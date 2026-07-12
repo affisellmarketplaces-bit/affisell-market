@@ -22,8 +22,23 @@ export function isAiVisionCascadeEnabled(env: NodeJS.ProcessEnv = process.env): 
 export const PRODUCT_VISION_CASCADE_MINI_MODEL =
   process.env.PRODUCT_VISION_CASCADE_MINI_MODEL?.trim() || "gpt-4o-mini"
 
-export const PRODUCT_VISION_V2_MODEL =
-  process.env.PRODUCT_VISION_V2_MODEL?.trim() || "gpt-4o"
+const INVALID_MODEL_PATTERN = /gpt-4o-\d{4}-\d{2}-\d{2}/i
+
+/** Reject placeholder/future-dated model IDs that 404 on OpenAI. */
+export function resolveProductVisionV2Model(env: NodeJS.ProcessEnv = process.env): string {
+  const raw = env.PRODUCT_VISION_V2_MODEL?.trim()
+  if (raw && !INVALID_MODEL_PATTERN.test(raw)) return raw
+  if (raw) {
+    console.log("[product-vision-v2-config]", {
+      result: "invalid_model_fallback",
+      configured: raw,
+      fallback: "gpt-4o",
+    })
+  }
+  return "gpt-4o"
+}
+
+export const PRODUCT_VISION_V2_MODEL = resolveProductVisionV2Model()
 
 export const PRODUCT_VISION_V2_CONFIDENCE_THRESHOLD = (() => {
   const n = Number(process.env.AI_VISION_V2_CONFIDENCE_THRESHOLD ?? "0.8")

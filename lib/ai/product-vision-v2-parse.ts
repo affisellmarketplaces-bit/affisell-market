@@ -18,16 +18,7 @@ export type ProductVisionV2Raw = {
 const ACCESSORY_TITLE_PATTERN =
   /\b(coque|étui|etui|housse|case|cover|bumper|screen protector|protecteur|film|verre trempé)\b/i
 
-const DEVICE_PRODUCT_TYPES = new Set([
-  "smartphone",
-  "tablet",
-  "laptop",
-  "audio",
-  "wearable",
-  "console",
-  "camera",
-  "other",
-])
+const DEVICE_PRODUCT_TYPES_REQUIRING_MODEL = new Set(["smartphone", "tablet"])
 
 export function stripJsonFence(s: string): string {
   const t = s.trim()
@@ -100,7 +91,10 @@ export function auditProductVisionConfidence(raw: ProductVisionV2Raw): number {
   let confidence = raw.confidence
 
   if (!raw.title.trim()) confidence = Math.min(confidence, 0.2)
-  if (!raw.detectedModel?.trim() && DEVICE_PRODUCT_TYPES.has(raw.productType)) {
+  if (
+    !raw.detectedModel?.trim() &&
+    DEVICE_PRODUCT_TYPES_REQUIRING_MODEL.has(raw.productType)
+  ) {
     confidence = Math.min(confidence, 0.65)
   }
 

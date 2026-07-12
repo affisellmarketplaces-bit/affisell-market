@@ -46,7 +46,11 @@ export function toastInstantScanApiError(args: {
     toast.error(`${INSTANTSCAN_PRODUCT_NAME} désactivé par l'admin`)
     return
   }
-  if (status === 401 || status === 403 || error === "missing_api_key") {
+  if (status === 403 || error === "session_forbidden") {
+    toast.error(`${INSTANTSCAN_PRODUCT_NAME} — session expirée, reconnectez-vous`)
+    return
+  }
+  if (status === 401 || error === "missing_api_key") {
     toast.error(`${INSTANTSCAN_PRODUCT_NAME} : clé OpenAI manquante`)
     return
   }

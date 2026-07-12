@@ -24,8 +24,9 @@ export function scheduleZeroWaitParentSync(
 ): void {
   queueMicrotask(() => {
     const { urls, busy, processedDataUrl } = deriveZeroWaitParentSync(readSlots())
+    // Data URL first — wizard keeps JPEG backup before CDN URL triggers analyze
+    callbacks.onProcessedDataUrl?.(processedDataUrl)
     callbacks.onUrlsChange(urls)
     callbacks.onBusyChange?.(busy)
-    callbacks.onProcessedDataUrl?.(processedDataUrl)
   })
 }
