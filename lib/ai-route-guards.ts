@@ -8,6 +8,9 @@ const SUPPLIER_AI_LIMIT = { limit: 30, windowMs: 60_000 } as const
 /** Live OpenAI analyze — separate bucket; cache hits skip this limit in route. */
 export const INSTANTSCAN_LIVE_LIMIT = { limit: 20, windowMs: 60_000 } as const
 
+/** Smart Margin Cortex — 100 req/h per supplier. */
+export const SMART_MARGIN_LIMIT = { limit: 100, windowMs: 60 * 60_000 } as const
+
 type AiRouteGuardFail = { ok: false; response: NextResponse<never> }
 
 /** Auth only — use before cache check on analyze-product. */

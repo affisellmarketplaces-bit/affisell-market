@@ -24,6 +24,7 @@ describe("buildWizardV2PublishBody", () => {
 
     expect(body.name).toBe("Test")
     expect(body.price).toBe(29.9)
+    expect(body.commission).toBe(15)
     expect(body.images).toEqual(["https://cdn.example/p.jpg"])
     expect(body.deliveryCountryCodes).toEqual([DELIVERY_WORLDWIDE])
     expect(body.publish).toBe(true)

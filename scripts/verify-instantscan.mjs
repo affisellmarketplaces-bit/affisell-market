@@ -10,7 +10,13 @@ import { spawnSync } from "node:child_process"
 function loadEnvFile(name) {
   const path = resolve(process.cwd(), name)
   if (!existsSync(path)) return
-  for (const line of readFileSync(path, "utf8").split("\n")) {
+  let content = ""
+  try {
+    content = readFileSync(path, "utf8")
+  } catch {
+    return
+  }
+  for (const line of content.split("\n")) {
     const t = line.trim()
     if (!t || t.startsWith("#")) continue
     const i = t.indexOf("=")

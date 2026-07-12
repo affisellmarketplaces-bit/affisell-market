@@ -13,6 +13,7 @@ import {
   toastInstantScanRetrying,
   toastInstantScanSuccess,
 } from "@/components/instantscan-toast"
+import { SmartMarginAiPanel } from "@/components/supplier/smart-margin-ai-panel"
 import { ProductLivePreview } from "@/components/supplier/product-live-preview"
 import { WizardV2ZeroWaitUpload } from "@/components/supplier/wizard-v2/wizard-v2-zero-wait-upload"
 import { Button } from "@/components/ui/button"
@@ -119,6 +120,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   } | null>(null)
   const [publishing, setPublishing] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [commissionPct, setCommissionPct] = useState(15)
   const lastStepRef = useRef("0")
   lastStepRef.current = String(guidedStep)
 
@@ -167,6 +169,18 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       .catch(() => {})
   }, [])
 
+  useEffect(() => {
+    if (defaults?.defaultCommissionPct != null) {
+      setCommissionPct(defaults.defaultCommissionPct)
+    }
+  }, [defaults?.defaultCommissionPct])
+
+  const catalogPriceEur = useMemo(() => {
+    const n = Number(price)
+    if (Number.isFinite(n) && n > 0) return n
+    return aiSuggestion?.suggestedPrice ?? 0
+  }, [price, aiSuggestion?.suggestedPrice])
+
   const previewData = useMemo(
     () => ({
       name,
@@ -187,6 +201,14 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       stepStartedAt.current = Date.now()
     },
     [mode]
+  )
+
+  const handleApplySmartMargin = useCallback(
+    (margin: number) => {
+      setCommissionPct(margin)
+      completeStep("smart_margin")
+    },
+    [completeStep]
   )
 
   const applyInstantScanFields = useCallback(
@@ -536,7 +558,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
           price: priceN,
           categoryId,
           images,
-          commission: defaults.defaultCommissionPct ?? 15,
+          commission: commissionPct,
         },
         defaults
       )
@@ -574,6 +596,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   }, [
     aiSuggestion,
     categoryId,
+    commissionPct,
     defaults,
     description,
     images,
@@ -708,6 +731,16 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                             Modifier
                           </Button>
                         </div>
+                        {(categoryId || aiSuggestion.title) && catalogPriceEur > 0 ? (
+                          <SmartMarginAiPanel
+                            categoryId={categoryId || aiSuggestion.categoryId || ""}
+                            title={aiSuggestion.title || name}
+                            catalogPriceEur={catalogPriceEur}
+                            currentMargin={commissionPct}
+                            onApplyMargin={handleApplySmartMargin}
+                            className="mt-2"
+                          />
+                        ) : null}
                       </>
                     ) : instantScanState === "gate" ? (
                       <div className="space-y-3">
@@ -771,6 +804,15 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                         onChange={(e) => setPrice(e.target.value)}
                       />
                     </div>
+                    {(categoryId || name.trim()) && catalogPriceEur > 0 ? (
+                      <SmartMarginAiPanel
+                        categoryId={categoryId}
+                        title={name}
+                        catalogPriceEur={catalogPriceEur}
+                        currentMargin={commissionPct}
+                        onApplyMargin={handleApplySmartMargin}
+                      />
+                    ) : null}
                   </div>
                 ) : null}
               </section>
@@ -817,7 +859,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                   <div className="grid gap-3 rounded-xl border border-zinc-200 p-4 text-sm dark:border-zinc-800">
                     <p>Pays : {defaults.countryCode}</p>
                     <p>Zone : {defaults.warehouseType}</p>
-                    <p>Commission : {defaults.defaultCommissionPct} %</p>
+                    <p>Commission affiliés : {commissionPct} %</p>
                   </div>
                 ) : null}
 

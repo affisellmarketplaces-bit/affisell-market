@@ -7,9 +7,26 @@ on:
     - cron: "0 3 * * *"
     - cron: "0 9 * * *"
     - cron: "0 9 * * 1"
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 jobs:
+  market-intelligence:
+    if: github.event.schedule == '0 */6 * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync market intelligence fixtures
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ] || [ -z "$VERCEL_APP_URL" ]; then
+            echo "Set GitHub secrets CRON_SECRET and VERCEL_APP_URL"
+            exit 1
+          fi
+          BASE="${VERCEL_APP_URL%/}"
+          curl -fsS -H "Authorization: Bearer ${CRON_SECRET}" "${BASE}/api/cron/sync-market-intelligence"
+
   frequent:
     if: github.event.schedule == '*/30 * * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
