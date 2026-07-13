@@ -123,8 +123,7 @@
     "payout:legacy:scan": "tsx scripts/payout-legacy-backfill.ts",
     "payout:legacy:backfill": "tsx scripts/payout-legacy-backfill.ts --dry-run",
     "payout:legacy:execute": "tsx scripts/payout-legacy-backfill.ts --execute",
-    "verify:payout-unification": "node scripts/verify-payout-unification-ready.mjs"
-    ,
+    "verify:payout-unification": "node scripts/verify-payout-unification-ready.mjs",
     "turbo": "turbo",
     "mi:dev": "turbo run dev --filter=@affisell/mi-web --filter=@affisell/mi-api",
     "mi:build": "turbo run build --filter=@affisell/mi-web --filter=@affisell/mi-api",
