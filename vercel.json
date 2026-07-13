@@ -1,5 +1,5 @@
 {
-  "installCommand": "npm install --include-workspace-root --workspaces --no-audit --no-fund",
+  "installCommand": "npm ci --no-audit --no-fund",
   "buildCommand": "node scripts/vercel-build.mjs",
   "crons": [
     {

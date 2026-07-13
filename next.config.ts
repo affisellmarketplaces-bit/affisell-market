@@ -47,6 +47,9 @@ const nextConfig: NextConfig = {
     "*": [
       "node_modules/onnxruntime-web/**",
       "node_modules/@imgly/background-removal/**",
+      /** Market Intelli monorepo — not part of Affisell Market deploy */
+      "apps/**",
+      "packages/**",
     ],
   },
   /** Runtime `fs.readFileSync` for `/legal/[slug]` markdown sources (standalone / Vercel). */

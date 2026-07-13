@@ -2,10 +2,6 @@
   "name": "affisell-market",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "engines": {
     "node": ">=24.0.0"
   },
@@ -125,6 +121,7 @@
     "payout:legacy:execute": "tsx scripts/payout-legacy-backfill.ts --execute",
     "verify:payout-unification": "node scripts/verify-payout-unification-ready.mjs",
     "turbo": "turbo",
+    "mi:install": "npm install --prefix packages/db && npm install --prefix apps/api && npm install --prefix apps/web",
     "mi:dev": "turbo run dev --filter=@affisell/mi-web --filter=@affisell/mi-api",
     "mi:build": "turbo run build --filter=@affisell/mi-web --filter=@affisell/mi-api",
     "mi:typecheck": "turbo run typecheck --filter=@affisell/mi-web --filter=@affisell/mi-api"

@@ -9,10 +9,14 @@ This repo now contains **Affisell Market** (existing Next.js app) plus a new **M
 
 ## Install & run (local)
 
+Market Intelli is **not** wired into Affisell's Vercel deploy (no npm workspaces at root).
+Install each package separately:
+
 ```bash
 nvm use
-npm run clean
-npm install
+npm run clean          # root Affisell only
+npm install            # Affisell Market (root)
+npm run mi:install     # Market Intelli apps + db package
 docker compose up -d
 npm run mi:dev
 ```
