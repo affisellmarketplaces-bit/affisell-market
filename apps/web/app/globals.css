@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* Minimal baseline — we’ll swap to shadcn tokens once the design system is installed. */
+html,
+body {
+  height: 100%;
+}
+

@@ -30,6 +30,25 @@ services:
       timeout: 3s
       retries: 10
 
+  # Market Intelli V2 (separate DB to avoid colliding with Affisell Market dev DB).
+  marketintelli_db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: marketintelli
+      POSTGRES_PASSWORD: marketintelli
+      POSTGRES_DB: marketintelli
+    volumes:
+      - marketintelli_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marketintelli -d marketintelli"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 volumes:
   affisell_pg_data:
   redis_data:
+  marketintelli_pg_data:
