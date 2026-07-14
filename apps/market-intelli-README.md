@@ -72,8 +72,24 @@ Endpoints:
 
 ## Web (Next.js) — port 3010
 
+Copy `apps/web/.env.example` → `apps/web/.env.local`:
+
 - `NEXT_PUBLIC_MI_API_URL=http://localhost:3002`
-- `/connect` → calls `/auth/tiktok/start` (requires Clerk session token)
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `CLERK_SECRET_KEY`
+
+OAuth bridge:
+
+- `/connect` → button → `/api/tiktok/start` (Next.js proxy)
+- Proxy forwards `Authorization: Bearer <Clerk token>` to API `/auth/tiktok/start`
+- No token in URL or query string
+
+### Test OAuth local
+
+1. Login sur `http://localhost:3010/sign-in`
+2. Va sur `/connect`
+3. Clique **Connect TikTok Shop** → doit redirect vers TikTok
+4. Après auth TikTok → callback → vérifie `ShopConnection` en DB (`packages/db`, port 5434)
 
 ## Token encryption
 
