@@ -430,9 +430,6 @@ export async function proxy(req: NextRequest) {
   return intlResponse
 }
 
-/** @deprecated Alias — use `proxy`. */
-export const middleware = proxy
-
 export const config = {
   matcher: [
     "/((?!api|_next|_vercel|.*\\..*).*)",
@@ -462,5 +459,7 @@ export const config = {
     "/enterprise",
     "/demo",
     "/demo/:path*",
+    "/intelli",
+    "/intelli/:path*",
   ],
 }

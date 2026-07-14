@@ -27,6 +27,7 @@ import { inferLoginPortal, isValidEmailIdentifier } from "@/lib/auth-login-porta
 import { verifyBuyerCheckoutMagicToken } from "@/lib/buyer-checkout-magic"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { computeUserLegalGateHash } from "@/lib/legal/acceptance"
+import { resolveMarketIntelliFeatures } from "@/lib/market-intelli/features"
 import { OAUTH_SIGNUP_INTENT_COOKIE, OAUTH_WELCOME_COOKIE } from "@/lib/oauth-cookies"
 import { prisma } from "@/lib/prisma"
 
@@ -310,6 +311,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: true,
           email: true,
           cguVersion: true,
+          isPro: true,
         },
       })
 
@@ -332,6 +334,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           : typeof user?.name === "string"
             ? user.name
             : (token.name as string | undefined)
+      token.isPro = row?.isPro ?? false
+      token.features = resolveMarketIntelliFeatures(userId, row?.isPro ?? false)
       return token as JWT
     },
 
@@ -349,6 +353,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             : undefined
       session.user.email =
         typeof token.email === "string" ? token.email : (session.user.email ?? null)
+      session.user.isPro = token.isPro === true
+      session.user.features = Array.isArray(token.features)
+        ? token.features.filter((f): f is string => typeof f === "string")
+        : []
 
       return session
     },

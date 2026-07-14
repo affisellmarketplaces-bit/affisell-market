@@ -1,0 +1,67 @@
+/// Market Intelli — isolated Postgres (MARKET_INTELLI_DATABASE_URL).
+/// Generate: npx prisma generate --schema=prisma/market-intelli.schema.prisma
+/// Push: npm run mi:db:push
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client-mi"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("MARKET_INTELLI_DATABASE_URL")
+}
+
+enum MiMarketplaceCode {
+  TIKTOK_SHOP
+  AMAZON
+  EBAY
+  ALIEXPRESS
+  SHOPEE
+  GOOGLE_TRENDS
+}
+
+model ShopConnection {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  shopId       String   @unique
+  shopName     String
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  scopes       String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([shopId])
+}
+
+model ProductSnapshot {
+  id          String            @id @default(cuid())
+  productId   String
+  marketplace MiMarketplaceCode
+  day         DateTime
+  currency    String?
+  price       Decimal?          @db.Decimal(12, 2)
+  sales       Int?
+  rank        Int?
+  views       Int?
+  raw         Json?
+  createdAt   DateTime          @default(now())
+
+  @@unique([productId, marketplace, day])
+  @@index([marketplace, day])
+  @@index([productId])
+}
+
+model WebhookEvent {
+  id         String   @id @default(cuid())
+  externalId String   @unique
+  topic      String?
+  shopId     String?
+  payload    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([shopId])
+  @@index([createdAt])
+}

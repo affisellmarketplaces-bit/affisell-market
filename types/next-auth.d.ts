@@ -8,6 +8,9 @@ declare module "next-auth" {
       /** Profile image URL (JWT / OAuth synced). */
       image?: string | null
       email?: string | null
+      isPro?: boolean
+      /** Product entitlements (e.g. market_intelli). */
+      features?: string[]
     }
   }
 }
@@ -19,5 +22,7 @@ declare module "next-auth/jwt" {
     email?: string
     cguVersion?: string | null
     legalGateHash?: string | null
+    isPro?: boolean
+    features?: string[]
   }
 }
