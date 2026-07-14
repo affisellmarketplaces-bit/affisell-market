@@ -1,34 +1,38 @@
-import { Controller, Get, Query, Req, Res, UseGuards } from "@nestjs/common"
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from "@nestjs/common"
 import type { Response } from "express"
-
-import { ClerkAuthGuard } from "../auth/clerk-auth.guard"
-import { TiktokOAuthService } from "./tiktok-oauth.service"
 import { PrismaClient, encryptString } from "@affisell/mi-db"
+
+import { AuthenticatedRequest, ClerkAuthGuard } from "../auth/clerk-auth.guard"
+import { TIKTOK_SHOP_SCOPES, TiktokOAuthService } from "./tiktok-oauth.service"
 
 @Controller("auth/tiktok")
 export class TiktokAuthController {
   constructor(private readonly oauth: TiktokOAuthService) {}
 
-  @Get()
+  /**
+   * Starts TikTok Shop OAuth for the authenticated Clerk user.
+   * Requires: Authorization: Bearer <Clerk session token>
+   */
+  @Get("start")
   @UseGuards(ClerkAuthGuard)
-  async start(@Req() req: any, @Res() res: Response) {
-    const clerkUserId = String(req?.clerkUserId || "").trim()
-    if (!clerkUserId) return res.status(500).send("Auth guard misconfigured (missing clerkUserId)")
-
-    const state = await this.oauth.createStateNonce({ clerkUserId })
-
-    // TikTok Shop scopes P0 (provided by spec).
-    const scope =
-      "user.info.basic,video.list,tiktok.shop.v2:product:list,tiktok.shop.v2:order:list,tiktok.shop.v2:analytics:view,tiktok.shop.v2:shop:info"
-    const url = this.oauth.buildAuthorizeUrl({
-      state,
-      scope,
-    })
+  async start(@Req() req: AuthenticatedRequest, @Res() res: Response) {
+    const clerkUserId = req.auth.userId
+    const state = await this.oauth.createOAuthState(clerkUserId)
+    const url = this.oauth.buildAuthorizeUrl({ state, scope: TIKTOK_SHOP_SCOPES })
+    console.log("[tiktok-oauth]", { result: "start", clerkUserId })
     return res.redirect(url)
   }
 
   /**
-   * Callback URL must match the one set in TikTok dev console:
+   * Callback URL (TikTok dev console):
    * https://verify.affisell.com/auth/tiktok/callback
    */
   @Get("callback")
@@ -41,54 +45,55 @@ export class TiktokAuthController {
   ) {
     if (error) {
       console.log("[tiktok-oauth]", { result: "error", error, errorDescription })
-      return res.status(400).send("TikTok OAuth error")
+      throw new BadRequestException("TikTok OAuth error")
     }
-    if (!code || !state) return res.status(400).send("Missing code/state")
+    if (!code || !state) throw new BadRequestException("Missing code/state")
 
-    const ctx = await this.oauth.consumeStateNonce(state)
-    if (!ctx) return res.status(400).send("Invalid state")
+    const clerkUserId = await this.oauth.verifyOAuthState(state)
 
     const token = await this.oauth.exchangeCodeForToken(code)
     if (token.error) {
-      console.log("[tiktok-oauth]", { result: "token_error", token })
-      return res.status(400).send("Token exchange failed")
+      console.log("[tiktok-oauth]", { result: "token_error", clerkUserId, token })
+      throw new BadRequestException("Token exchange failed")
     }
 
-    // Persist encrypted tokens (at rest).
+    const accessToken = token.access_token?.trim() ?? ""
+    if (!accessToken) throw new BadRequestException("Missing access token from TikTok")
+
+    const shop = await this.oauth.getShopInfo(accessToken)
+    const expiresAt = new Date(
+      Date.now() + (token.expires_in ? token.expires_in * 1000 : 60 * 60 * 1000)
+    )
+    const scopes = (token.scope ?? "")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+
     const prisma = new PrismaClient()
     try {
       const user = await prisma.user.upsert({
-        where: { clerkUserId: ctx.clerkUserId },
+        where: { clerkUserId },
         update: {},
-        create: { clerkUserId: ctx.clerkUserId },
+        create: { clerkUserId },
         select: { id: true },
       })
 
-      const accessToken = token.access_token || ""
-      if (!accessToken) return res.status(400).send("Missing access token from TikTok")
-
-      const shop = await this.oauth.getShopInfo(accessToken)
-      const shopId = shop.shopId
-      const shopName = shop.shopName
-      const expiresAt = new Date(Date.now() + (token.expires_in ? token.expires_in * 1000 : 60 * 60 * 1000))
-      const scopes = (token.scope || "").split(",").map((s) => s.trim()).filter(Boolean)
-
       await prisma.shopConnection.upsert({
-        where: { shopId },
+        where: { shopId: shop.shopId },
         update: {
           userId: user.id,
-          shopName,
+          shopName: shop.shopName,
           accessToken: encryptString(accessToken),
-          refreshToken: encryptString(token.refresh_token || ""),
+          refreshToken: encryptString(token.refresh_token ?? ""),
           expiresAt,
           scopes,
         },
         create: {
           userId: user.id,
-          shopId,
-          shopName,
+          shopId: shop.shopId,
+          shopName: shop.shopName,
           accessToken: encryptString(accessToken),
-          refreshToken: encryptString(token.refresh_token || ""),
+          refreshToken: encryptString(token.refresh_token ?? ""),
           expiresAt,
           scopes,
         },
@@ -99,15 +104,12 @@ export class TiktokAuthController {
 
     console.log("[tiktok-oauth]", {
       result: "connected",
-      hasAccessToken: Boolean(token.access_token),
+      clerkUserId,
+      shopId: shop.shopId,
       expiresIn: token.expires_in,
       scope: token.scope,
-      openId: token.open_id,
     })
 
-    return res
-      .status(200)
-      .send(`TikTok connected for clerkUserId=${ctx.clerkUserId}. You can close this window.`)
+    return res.status(200).send("TikTok connected. You can close this window.")
   }
 }
-

@@ -1,6 +1,6 @@
 export default function ConnectPage() {
   const apiUrl = process.env.NEXT_PUBLIC_MI_API_URL || "http://localhost:3002"
-  const connectUrl = `${apiUrl.replace(/\/$/, "")}/auth/tiktok`
+  const connectUrl = `${apiUrl.replace(/\/$/, "")}/auth/tiktok/start`
 
   return (
     <div className="space-y-4">

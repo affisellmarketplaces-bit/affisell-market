@@ -1,9 +1,9 @@
-import { Injectable } from "@nestjs/common"
+import { ForbiddenException, Injectable } from "@nestjs/common"
 import { randomBytes } from "node:crypto"
 
 import { RedisService } from "../../shared/redis"
 
-type TikTokTokenResponse = {
+export type TikTokTokenResponse = {
   access_token?: string
   refresh_token?: string
   expires_in?: number
@@ -14,33 +14,49 @@ type TikTokTokenResponse = {
   error_description?: string
 }
 
+const TIKTOK_OAUTH_STATE_TTL_SEC = 600
+
+/** TikTok Shop OAuth scopes — P0. */
+export const TIKTOK_SHOP_SCOPES =
+  "user.info.basic,video.list,tiktok.shop.v2:product:list,tiktok.shop.v2:order:list,tiktok.shop.v2:analytics:view,tiktok.shop.v2:shop:info"
+
 @Injectable()
 export class TiktokOAuthService {
   constructor(private readonly redis: RedisService) {}
 
-  async createStateNonce(input: { clerkUserId: string }): Promise<string> {
-    const state = randomBytes(24).toString("hex")
-    await this.redis.raw.set(
-      `tiktok:oauth:state:${state}`,
-      JSON.stringify({ clerkUserId: input.clerkUserId }),
-      "EX",
-      10 * 60
-    )
+  /**
+   * Binds OAuth state to Clerk userId:
+   * state = `${nonce}.${userId}` stored in Redis for 10 min.
+   */
+  async createOAuthState(clerkUserId: string): Promise<string> {
+    const nonce = randomBytes(16).toString("hex")
+    const state = `${nonce}.${clerkUserId}`
+    await this.redis.raw.setex(`tiktok:state:${state}`, TIKTOK_OAUTH_STATE_TTL_SEC, clerkUserId)
     return state
   }
 
-  async consumeStateNonce(state: string): Promise<{ clerkUserId: string } | null> {
-    const key = `tiktok:oauth:state:${state}`
-    const ok = await this.redis.raw.get(key)
-    if (!ok) return null
-    await this.redis.raw.del(key)
-    try {
-      const parsed = JSON.parse(ok) as { clerkUserId?: unknown }
-      if (typeof parsed.clerkUserId !== "string" || !parsed.clerkUserId.trim()) return null
-      return { clerkUserId: parsed.clerkUserId }
-    } catch {
-      return null
+  /**
+   * Validates state nonce + Redis binding, then deletes key (single-use).
+   */
+  async verifyOAuthState(state: string): Promise<string> {
+    const dot = state.indexOf(".")
+    if (dot <= 0 || dot >= state.length - 1) {
+      throw new ForbiddenException("Invalid OAuth state format")
     }
+
+    const userIdFromState = state.slice(dot + 1).trim()
+    if (!userIdFromState) {
+      throw new ForbiddenException("Invalid OAuth state user")
+    }
+
+    const key = `tiktok:state:${state}`
+    const storedUserId = await this.redis.raw.get(key)
+    if (!storedUserId || storedUserId !== userIdFromState) {
+      throw new ForbiddenException("Invalid or expired OAuth state")
+    }
+
+    await this.redis.raw.del(key)
+    return storedUserId
   }
 
   buildAuthorizeUrl(input: { state: string; scope: string }): string {
@@ -63,7 +79,6 @@ export class TiktokOAuthService {
     const clientKey = process.env.TIKTOK_CLIENT_KEY!
     const clientSecret = process.env.TIKTOK_CLIENT_SECRET!
 
-    // TikTok endpoints differ by product (Shop vs Open Platform). Keep this generic & overridable.
     const body = new URLSearchParams()
     body.set("client_key", clientKey)
     body.set("client_secret", clientSecret)
@@ -76,14 +91,10 @@ export class TiktokOAuthService {
       headers: { "content-type": "application/x-www-form-urlencoded" },
       body,
     })
-    const json = (await res.json().catch(() => ({}))) as TikTokTokenResponse
-    return json
+    return (await res.json().catch(() => ({}))) as TikTokTokenResponse
   }
 
-  /**
-   * TikTok Shop: fetch minimal shop info for persistence (id + name).
-   * Endpoint can evolve; override with `TIKTOK_SHOP_INFO_URL` if needed.
-   */
+  /** TikTok Shop: fetch shop id + name for ShopConnection upsert. */
   async getShopInfo(accessToken: string): Promise<{ shopId: string; shopName: string }> {
     const url =
       process.env.TIKTOK_SHOP_INFO_URL?.trim() ||
@@ -91,18 +102,14 @@ export class TiktokOAuthService {
 
     const res = await fetch(url, {
       method: "GET",
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-      },
+      headers: { authorization: `Bearer ${accessToken}` },
     })
-    const json = (await res.json().catch(() => ({}))) as any
+    const json = (await res.json().catch(() => ({}))) as Record<string, unknown>
 
-    // Best-effort parsing — auditors can adjust mapping once real payload is known.
-    const shopId = String(json?.data?.shop_id || json?.data?.shopId || json?.shop_id || "").trim()
-    const shopName = String(json?.data?.shop_name || json?.data?.shopName || json?.shop_name || "")
-      .trim()
+    const data = (json.data as Record<string, unknown> | undefined) ?? json
+    const shopId = String(data.shop_id ?? data.shopId ?? "").trim()
+    const shopName = String(data.shop_name ?? data.shopName ?? "").trim()
     if (!shopId) throw new Error("TikTok shop info missing shop_id")
     return { shopId, shopName: shopName || "TikTok Shop" }
   }
 }
-
