@@ -130,10 +130,14 @@ export async function evaluateProduct(
   return out
 }
 
-export async function evaluateGlobalScan(): Promise<{ scanned: number; alerts: number }> {
+export async function evaluateGlobalScan(): Promise<{
+  scanned: number
+  alerts: number
+  createdIds: string[]
+}> {
   if (!resolveRadarDatabaseUrl()) {
     console.log("[radar/alerts]", { result: "skipped_no_db" })
-    return { scanned: 0, alerts: 0 }
+    return { scanned: 0, alerts: 0, createdIds: [] }
   }
 
   const db = getRadarDb()
@@ -184,15 +188,20 @@ export async function evaluateGlobalScan(): Promise<{ scanned: number; alerts: n
     }
   }
 
+  const createdIds: string[] = []
   if (toCreate.length > 0) {
-    await db.radarAlert.createMany({ data: toCreate })
+    // createMany does not return ids on Postgres — create sequentially for fan-out
+    for (const row of toCreate) {
+      const created = await db.radarAlert.create({ data: row })
+      createdIds.push(created.id)
+    }
   }
 
   console.log("[radar/alerts]", {
     result: "evaluate_done",
     scanned: recent.length,
-    alerts: toCreate.length,
+    alerts: createdIds.length,
   })
 
-  return { scanned: recent.length, alerts: toCreate.length }
+  return { scanned: recent.length, alerts: createdIds.length, createdIds }
 }
