@@ -12,6 +12,16 @@ export type Category = "marketplace" | "google"
 
 export type AuthType = "oauth" | "api_key" | "sp_api"
 
+export type RadarConnectorProduct = {
+  id: string
+  title: string
+  price?: number
+  currency?: string
+  imageUrl?: string
+  url?: string
+  marketplaceId: string
+}
+
 export interface BaseConnector {
   id: string
   name: string
@@ -26,9 +36,18 @@ export interface BaseConnector {
 
 export interface MarketplaceConnector extends BaseConnector {
   category: "marketplace"
+  /** Optional — live connectors (Amazon SP-API, …) fetch catalog/listings. */
+  getProducts?(
+    accessToken: string,
+    opts?: { marketplaceIds?: string[]; keywords?: string; sellerId?: string }
+  ): Promise<RadarConnectorProduct[]>
 }
 
 export interface GoogleConnector extends BaseConnector {
   category: "google"
   region: "GLOBAL"
+  getProducts?(
+    accessToken: string,
+    opts?: { merchantId?: string }
+  ): Promise<RadarConnectorProduct[]>
 }

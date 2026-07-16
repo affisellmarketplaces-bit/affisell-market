@@ -67,7 +67,7 @@ export default function RadarConnectClient() {
       <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
         <h2 className="text-base font-semibold text-zinc-900">Connecter une source au Radar</h2>
         <p className="mt-2 text-sm text-zinc-600">
-          TikTok Shop est disponible maintenant. Les autres connecteurs arrivent progressivement.
+          TikTok Shop et Amazon SP-API sont disponibles. Les autres connecteurs arrivent progressivement.
         </p>
         {error && (
           <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -108,7 +108,9 @@ export default function RadarConnectClient() {
                 const href =
                   c.id === "tiktok_shop"
                     ? "/api/radar/tiktok/start"
-                    : `/api/radar/${encodeURIComponent(c.id)}/start`
+                    : c.id === "amazon"
+                      ? "/api/radar/amazon/start"
+                      : `/api/radar/${encodeURIComponent(c.id)}/start`
                 return (
                   <ConnectorCard
                     key={c.id}

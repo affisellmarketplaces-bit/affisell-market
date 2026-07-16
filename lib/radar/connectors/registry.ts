@@ -20,9 +20,10 @@ export const MARKETPLACE_CONNECTORS: MarketplaceConnector[] = [
     name: "Amazon",
     logo: "🅰️",
     category: "marketplace",
-    region: "GLOBAL",
+    region: "EU",
     authType: "sp_api",
-    getAuthUrl: stubAuthUrl("amazon"),
+    getAuthUrl: (userId: string) =>
+      `/api/radar/amazon/start?userId=${encodeURIComponent(userId)}`,
   },
   {
     id: "mercadolibre",
@@ -112,7 +113,8 @@ export const GOOGLE_CONNECTORS: GoogleConnector[] = [
   },
 ]
 
-export const LIVE_CONNECTOR_IDS = new Set(["tiktok_shop"])
+/** Client-safe list — keep server-only connectors (amazon.ts) out of this module. */
+export const LIVE_CONNECTOR_IDS = new Set(["tiktok_shop", "amazon"])
 
 export function getConnectorById(id: string) {
   return (

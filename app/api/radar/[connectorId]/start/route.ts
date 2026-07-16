@@ -25,6 +25,10 @@ export async function GET(req: Request, context: RouteContext) {
     return NextResponse.redirect(new URL("/api/radar/tiktok/start", req.url))
   }
 
+  if (id === "amazon") {
+    return NextResponse.redirect(new URL("/api/radar/amazon/start", req.url))
+  }
+
   const connector = getConnectorById(id)
   if (!connector) {
     return NextResponse.redirect(new URL("/radar/connect?error=unknown_connector", req.url))
