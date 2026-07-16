@@ -16,6 +16,7 @@ import {
   resolvePostLoginRedirect,
 } from "@/lib/login-redirect"
 import { requestHost } from "@/lib/custom-domain-host"
+import { marketIntelliDisabledResponse } from "@/lib/market-intelli/gate"
 import { tryCustomDomainMiddleware } from "@/lib/middleware-custom-domain"
 import { canonicalPlatformRedirectUrl } from "@/lib/platform-canonical-url"
 import {
@@ -192,6 +193,9 @@ function rewriteStaticAppPath(req: NextRequest): NextResponse | null {
 
 /** Next.js 16+ proxy (ex-middleware). */
 export async function proxy(req: NextRequest) {
+  const blocked = marketIntelliDisabledResponse(req)
+  if (blocked) return blocked
+
   const pathname = req.nextUrl.pathname
 
   const canonicalRedirect = canonicalPlatformRedirectUrl(
@@ -461,5 +465,6 @@ export const config = {
     "/demo/:path*",
     "/intelli",
     "/intelli/:path*",
+    "/api/intelli/:path*",
   ],
 }
