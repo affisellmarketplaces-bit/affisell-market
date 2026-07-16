@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto"
 
 import { getRedisConnection, getRedisUrl } from "@/lib/auto-order/redis"
 import type { MarketplaceConnector } from "@/lib/radar/connectors/types"
+import { isRadarEnabled, requireRedis } from "@/lib/radar/gate"
 
 export type TikTokTokenResponse = {
   access_token?: string
@@ -16,12 +17,19 @@ export type TikTokTokenResponse = {
   error_description?: string
 }
 
+type OAuthStatePayload = { userId: string; nonce: string }
+
 const TIKTOK_OAUTH_STATE_TTL_SEC = 600
 
 export const TIKTOK_SHOP_SCOPES =
   "user.info.basic,video.list,tiktok.shop.v2:product:list,tiktok.shop.v2:order:list,tiktok.shop.v2:analytics:view,tiktok.shop.v2:shop:info"
 
-const memoryStates = new Map<string, { userId: string; expiresAt: number }>()
+/** Dev-only fallback when Radar is off and REDIS_URL is absent. Never used when RADAR_ENABLED=true. */
+const memoryStates = new Map<string, { payload: OAuthStatePayload; expiresAt: number }>()
+
+function oauthStateKey(state: string): string {
+  return `radar:oauth:state:${state}`
+}
 
 function pruneMemoryStates(): void {
   const now = Date.now()
@@ -30,55 +38,85 @@ function pruneMemoryStates(): void {
   }
 }
 
-/** Binds OAuth state to Affisell userId: `${nonce}.${userId}`. */
+function parseStateUserId(state: string): string {
+  const dot = state.indexOf(".")
+  if (dot <= 0 || dot >= state.length - 1) {
+    throw new Error("Invalid OAuth state format")
+  }
+  const userIdFromState = state.slice(dot + 1).trim()
+  if (!userIdFromState) throw new Error("Invalid OAuth state user")
+  return userIdFromState
+}
+
+/** Binds OAuth state to Affisell userId: `${nonce}.${userId}`. Redis required when Radar is enabled. */
 export async function createTikTokOAuthState(userId: string): Promise<string> {
+  requireRedis()
+
   const nonce = randomBytes(16).toString("hex")
   const state = `${nonce}.${userId}`
-  const key = `tiktok:state:${state}`
+  const key = oauthStateKey(state)
+  const payload: OAuthStatePayload = { userId, nonce }
 
   if (getRedisUrl()) {
     const redis = getRedisConnection()
-    await redis.setex(key, TIKTOK_OAUTH_STATE_TTL_SEC, userId)
-  } else {
-    pruneMemoryStates()
-    memoryStates.set(key, {
-      userId,
-      expiresAt: Date.now() + TIKTOK_OAUTH_STATE_TTL_SEC * 1000,
-    })
+    await redis.setex(key, TIKTOK_OAUTH_STATE_TTL_SEC, JSON.stringify(payload))
+    return state
   }
+
+  // RADAR_ENABLED=false + no REDIS_URL (local): in-memory only
+  console.warn(
+    "[radar/oauth] REDIS_URL missing — using in-memory OAuth state (dev only; multi-instance unsafe)"
+  )
+  pruneMemoryStates()
+  memoryStates.set(key, {
+    payload,
+    expiresAt: Date.now() + TIKTOK_OAUTH_STATE_TTL_SEC * 1000,
+  })
 
   return state
 }
 
 /** Validates state + Redis/memory binding, then deletes key (single-use). */
 export async function verifyTikTokOAuthState(state: string): Promise<string> {
-  const dot = state.indexOf(".")
-  if (dot <= 0 || dot >= state.length - 1) {
-    throw new Error("Invalid OAuth state format")
-  }
+  requireRedis()
 
-  const userIdFromState = state.slice(dot + 1).trim()
-  if (!userIdFromState) throw new Error("Invalid OAuth state user")
-
-  const key = `tiktok:state:${state}`
+  const userIdFromState = parseStateUserId(state)
+  const key = oauthStateKey(state)
 
   if (getRedisUrl()) {
     const redis = getRedisConnection()
-    const storedUserId = await redis.get(key)
-    if (!storedUserId || storedUserId !== userIdFromState) {
-      throw new Error("Invalid or expired OAuth state")
-    }
+    const raw = await redis.get(key)
     await redis.del(key)
-    return storedUserId
+    if (!raw) throw new Error("Invalid or expired OAuth state")
+
+    let stateData: OAuthStatePayload
+    try {
+      stateData = JSON.parse(raw) as OAuthStatePayload
+    } catch {
+      throw new Error("Invalid OAuth state payload")
+    }
+
+    if (!stateData.userId || stateData.userId !== userIdFromState) {
+      throw new Error("State user mismatch")
+    }
+    return stateData.userId
+  }
+
+  if (isRadarEnabled()) {
+    // requireRedis should have thrown already; belt-and-suspenders
+    throw new Error("REDIS_URL required when RADAR_ENABLED=true")
   }
 
   const entry = memoryStates.get(key)
   memoryStates.delete(key)
-  if (!entry || entry.expiresAt < Date.now() || entry.userId !== userIdFromState) {
+  if (!entry || entry.expiresAt < Date.now()) {
     throw new Error("Invalid or expired OAuth state")
   }
+  if (entry.payload.userId !== userIdFromState) {
+    throw new Error("State user mismatch")
+  }
 
-  return entry.userId
+  return entry.payload.userId
 }
 
 export function resolveTikTokRedirectUri(): string {

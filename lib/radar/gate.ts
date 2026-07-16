@@ -7,6 +7,27 @@ export function isRadarEnabled(): boolean {
   return RADAR_ENABLED === "true"
 }
 
+export function isRedisConfigured(): boolean {
+  return Boolean(process.env.REDIS_URL?.trim())
+}
+
+/**
+ * Fail-fast when Radar is on but Redis is missing (OAuth state must be shared across instances).
+ * Safe to call from OAuth helpers; prefer `assertRadarRedisConfigured()` in HTTP handlers.
+ */
+export function requireRedis(): void {
+  if (isRadarEnabled() && !isRedisConfigured()) {
+    throw new Error("REDIS_URL required when RADAR_ENABLED=true")
+  }
+}
+
+/** Guard for connect/OAuth start API handlers. */
+export function assertRadarRedisConfigured(): NextResponse | null {
+  if (!isRadarEnabled()) return null
+  if (isRedisConfigured()) return null
+  return NextResponse.json({ error: "Redis not configured" }, { status: 503 })
+}
+
 export function isRadarPath(pathname: string): boolean {
   return pathname.startsWith("/radar") || pathname.startsWith("/api/radar")
 }
