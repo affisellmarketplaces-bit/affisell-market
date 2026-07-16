@@ -10,6 +10,11 @@ import { createRequire } from "node:module"
 import { createServer } from "node:net"
 import { existsSync, readFileSync, unlinkSync } from "node:fs"
 import { join } from "node:path"
+import {
+  openDevBrowser,
+  openDevBrowserWhenReady,
+  printAffisellDevBanner,
+} from "./affisell-dev-banner.mjs"
 import { resolveDevPort } from "./dev-localhost-url.mjs"
 
 const require = createRequire(import.meta.url)
@@ -99,11 +104,10 @@ if (liveLock && process.env.PLAYWRIGHT_WEB_SERVER !== "1") {
     typeof liveLock.appUrl === "string"
       ? liveLock.appUrl
       : `http://localhost:${liveLock.port ?? resolveDevPort()}`
-  console.log(
-    `\n[affisell dev] Affisell — already running → ${url}\n` +
-      `  PID ${liveLock.pid} · stop with: kill ${liveLock.pid}\n` +
-      `  Or restart: npm run dev:restart\n`
-  )
+  printAffisellDevBanner(url, { alreadyRunning: true })
+  console.log(`  PID ${liveLock.pid} · stop with: kill ${liveLock.pid}`)
+  console.log("  Fresh terminal logs: npm run dev:restart\n")
+  openDevBrowser(url)
   process.exit(0)
 }
 
@@ -111,10 +115,10 @@ const preferred = resolveDevPort()
 const scanPorts = process.env.PLAYWRIGHT_WEB_SERVER !== "1"
 
 if (scanPorts && !(await portFree(preferred)) && (await probeNextDev(preferred))) {
-  console.log(
-    `\n[affisell dev] Affisell — already running → http://localhost:${preferred}\n` +
-      `  Restart: npm run dev:restart\n`
-  )
+  const url = `http://localhost:${preferred}`
+  printAffisellDevBanner(url, { alreadyRunning: true })
+  console.log("  Fresh terminal logs: npm run dev:restart\n")
+  openDevBrowser(url)
   process.exit(0)
 }
 
@@ -126,24 +130,23 @@ async function pickPort() {
 }
 
 const port = scanPorts ? await pickPort() : preferred
+const origin = `http://localhost:${port}`
 
 if (scanPorts && port !== preferred) {
   console.warn(
     `\n[affisell dev] Port ${preferred} is in use → starting on ${port}.\n` +
       `  Tip: stop the other process, or set PORT=${port} in .env for stable URLs.\n`
   )
-} else {
-  console.log(
-    `\n[affisell dev] Affisell — http://localhost:${port}\n` +
-      `  Dashboard: http://localhost:${port}/dashboard/supplier\n` +
-      `  Radar:     http://localhost:${port}/radar\n`
-  )
 }
+
+printAffisellDevBanner(origin)
 
 const child = spawn(process.execPath, [nextBin, "dev", "-p", String(port)], {
   stdio: "inherit",
   env: { ...process.env, PORT: String(port) },
 })
+
+void openDevBrowserWhenReady(origin)
 
 child.on("exit", (code, signal) => {
   if (signal) process.kill(process.pid, signal)
