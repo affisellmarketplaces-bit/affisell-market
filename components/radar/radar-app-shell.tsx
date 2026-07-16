@@ -31,7 +31,7 @@ export default function RadarAppShell({
       href: "/radar/alerts",
       label: unreadCount > 0 ? `🚨 Alertes ${unreadCount}` : "🚨 Alertes",
     },
-    { href: "/radar/map", label: "Map", stub: true as const },
+    { href: "/radar/map", label: "🗺️ Map" },
   ]
 
   useEffect(() => {
@@ -70,17 +70,6 @@ export default function RadarAppShell({
               const active =
                 pathname === item.href ||
                 (item.href !== "/radar" && pathname.startsWith(item.href))
-              if ("stub" in item && item.stub) {
-                return (
-                  <span
-                    key={item.href}
-                    title="Bientôt"
-                    className="cursor-not-allowed rounded-md px-3 py-1.5 text-zinc-400"
-                  >
-                    {item.label}
-                  </span>
-                )
-              }
               return (
                 <Link
                   key={item.href}
