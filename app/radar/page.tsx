@@ -5,14 +5,17 @@ import type { Prisma } from ".prisma/client-mi"
 
 import RadarDashboardFilters from "@/components/radar/radar-dashboard-filters"
 import RadarForceScanButton from "@/components/radar/radar-force-scan-button"
+import RadarMarketingLanding from "@/components/radar/radar-marketing-landing"
+import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
 import { auth } from "@/lib/auth"
 import { getRadarDb } from "@/lib/prisma-radar"
 import { getConnectorById } from "@/lib/radar/connectors/registry"
 import { RADAR_DEMO_WINNERS } from "@/lib/radar/demo-data"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
-import { hasRadarAccess, resolveRadarFeatures } from "@/lib/radar/features"
+import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { getTrendingKeywords } from "@/lib/radar/google/trends-watcher"
+import { getUserRadarPlan } from "@/lib/radar/plans"
 
 const TREND_SEEDS = ["led strip", "shapewear", "phone case"]
 
@@ -130,11 +133,47 @@ export default async function RadarDashboardPage({
   }
 
   const session = await auth()
-  if (!session?.user?.id) redirect("/login")
+  if (!session?.user?.id) {
+    return <RadarMarketingLanding />
+  }
 
-  const features = resolveRadarFeatures(session.user.id, session.user.isPro ?? false)
-  if (!hasRadarAccess(features, session.user.id)) {
-    redirect("/pricing")
+  const planUser = {
+    id: session.user.id,
+    email: session.user.email,
+    isPro: session.user.isPro ?? false,
+    features: session.user.features,
+  }
+  const plan = getUserRadarPlan(planUser)
+  const access = checkRadarAccess(planUser, "dashboard")
+
+  if (!access.allowed || plan.id === "free" || plan.id === "starter") {
+    const teaser = RADAR_DEMO_WINNERS.slice(0, 3)
+    return (
+      <div className="space-y-6">
+        <RadarPaywallPanel
+          plan={plan}
+          title="Débloque Radar Global à $99/m"
+          reason="Voir winners BR avant tes concurrents — Map, alertes Slack, crawl mondial."
+        >
+          <div className="p-6">
+            <p className="text-sm font-medium text-zinc-800">Aperçu winners (teaser)</p>
+            <ul className="mt-3 space-y-2">
+              {teaser.map((w) => (
+                <li key={w.id} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm">
+                  #{w.rank} {w.title} · {w.country}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </RadarPaywallPanel>
+        <p className="text-center text-sm text-zinc-500">
+          Déjà Pro ?{" "}
+          <Link href="/pricing?feature=radar" className="font-medium text-violet-600">
+            Activer Radar
+          </Link>
+        </p>
+      </div>
+    )
   }
 
   const params = await searchParams

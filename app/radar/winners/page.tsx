@@ -6,8 +6,10 @@ import { getRadarDb } from "@/lib/prisma-radar"
 import { getConnectorById } from "@/lib/radar/connectors/registry"
 import { RADAR_DEMO_WINNERS } from "@/lib/radar/demo-data"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
-import { hasRadarAccess, resolveRadarFeatures } from "@/lib/radar/features"
+import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
+import { getUserRadarPlan } from "@/lib/radar/plans"
+import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
 
 function formatPrice(price: { toString(): string } | number, currency: string | null): string {
   const n = typeof price === "number" ? price : Number(price.toString())
@@ -28,8 +30,23 @@ export default async function RadarWinnersPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const features = resolveRadarFeatures(session.user.id, session.user.isPro ?? false)
-  if (!hasRadarAccess(features, session.user.id)) redirect("/pricing")
+  const planUser = {
+    id: session.user.id,
+    email: session.user.email,
+    isPro: session.user.isPro ?? false,
+    features: session.user.features,
+  }
+  const plan = getUserRadarPlan(planUser)
+  const access = checkRadarAccess(planUser, "dashboard")
+  if (!access.allowed || plan.id === "free" || plan.id === "starter") {
+    return (
+      <RadarPaywallPanel
+        plan={plan}
+        title="Winners — Radar Pro"
+        reason="Débloque le top 20 mondial avec Radar Pro ou Global."
+      />
+    )
+  }
 
   let demoMode = false
   let winners: Array<{

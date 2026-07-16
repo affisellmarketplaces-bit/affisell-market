@@ -2,8 +2,11 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
 import { runRadarGlobalScan } from "@/lib/radar/crawler/global-scan"
-import { hasRadarAccess, resolveRadarFeatures } from "@/lib/radar/features"
+import { checkRadarAccess, planLimitReached } from "@/lib/radar/gate-with-plan"
 import { gate } from "@/lib/radar/gate"
+import { getUserRadarPlan } from "@/lib/radar/plans"
+import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
+import { getRadarDb } from "@/lib/prisma-radar"
 import { assertRadarScanRateLimit } from "@/lib/radar/scan-rate-limit"
 
 export const runtime = "nodejs"
@@ -25,14 +28,43 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const features = resolveRadarFeatures(session.user.id, session.user.isPro ?? false)
-  if (!hasRadarAccess(features, session.user.id)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  const planUser = {
+    id: session.user.id,
+    email: session.user.email,
+    isPro: session.user.isPro ?? false,
+    features: session.user.features,
+  }
+  const plan = getUserRadarPlan(planUser)
+  const access = checkRadarAccess(planUser, "scan")
+  if (!access.allowed) {
+    return NextResponse.json(
+      { error: access.reason ?? "Forbidden", plan: plan.id, upgrade: access.upgradePath },
+      { status: 403 }
+    )
+  }
+
+  if (resolveRadarDatabaseUrl()) {
+    try {
+      const count = await getRadarDb().radarGlobalSnapshot.count()
+      if (planLimitReached(plan, "products", count)) {
+        return NextResponse.json(
+          {
+            error: "Limit reached",
+            plan: plan.id,
+            maxProducts: plan.maxProducts,
+            upgrade: "/pricing?feature=radar",
+          },
+          { status: 429 }
+        )
+      }
+    } catch {
+      // ignore count failure — still allow scan
+    }
   }
 
   try {
     const result = await runRadarGlobalScan()
-    console.log("[radar/scan]", { userId: session.user.id, result: "ok", scanned: result.scanned })
+    console.log("[radar/scan]", { userId: session.user.id, plan: plan.id, result: "ok", scanned: result.scanned })
     return NextResponse.json(result)
   } catch (err) {
     console.error("[radar/scan]", {

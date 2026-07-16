@@ -1,11 +1,14 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
 import type { Prisma } from ".prisma/client-mi"
 
 import RadarAlertsClient from "@/app/radar/alerts/alerts-client"
+import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
 import { auth } from "@/lib/auth"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
-import { hasRadarAccess, resolveRadarFeatures } from "@/lib/radar/features"
+import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
+import { getUserRadarPlan } from "@/lib/radar/plans"
 import { getRadarDb } from "@/lib/prisma-radar"
 
 export default async function RadarAlertsPage({
@@ -18,8 +21,28 @@ export default async function RadarAlertsPage({
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const features = resolveRadarFeatures(session.user.id, session.user.isPro ?? false)
-  if (!hasRadarAccess(features, session.user.id)) redirect("/pricing")
+  const planUser = {
+    id: session.user.id,
+    email: session.user.email,
+    isPro: session.user.isPro ?? false,
+    features: session.user.features,
+  }
+  const plan = getUserRadarPlan(planUser)
+  const alertsAccess = checkRadarAccess(planUser, "alerts")
+  const slackAccess = checkRadarAccess(planUser, "slack")
+
+  if (!alertsAccess.allowed) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-base font-semibold text-zinc-900">🚨 Alertes Radar</h2>
+        <RadarPaywallPanel
+          plan={plan}
+          title="Alertes réservées Pro+"
+          reason={alertsAccess.reason ?? "Upgrade to Pro for Radar alerts"}
+        />
+      </div>
+    )
+  }
 
   const params = await searchParams
   const severityFilter = params.severity?.trim() || "all"
@@ -27,12 +50,22 @@ export default async function RadarAlertsPage({
 
   if (!resolveRadarDatabaseUrl()) {
     return (
-      <RadarAlertsClient
-        initialAlerts={[]}
-        unreadCount={0}
-        severityFilter={severityFilter}
-        typeFilter={typeFilter}
-      />
+      <div className="space-y-4">
+        {!slackAccess.allowed && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            Slack dispo en Global $99/m —{" "}
+            <Link href="/pricing?feature=radar" className="font-semibold underline">
+              upgrade
+            </Link>
+          </div>
+        )}
+        <RadarAlertsClient
+          initialAlerts={[]}
+          unreadCount={0}
+          severityFilter={severityFilter}
+          typeFilter={typeFilter}
+        />
+      </div>
     )
   }
 
@@ -47,7 +80,7 @@ export default async function RadarAlertsPage({
     db.radarAlert.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take: Math.min(50, Math.max(plan.maxAlerts, 10)),
     }),
     db.radarAlert.count({
       where: {
@@ -58,14 +91,28 @@ export default async function RadarAlertsPage({
   ])
 
   return (
-    <RadarAlertsClient
-      initialAlerts={alerts.map((a) => ({
-        ...a,
-        createdAt: a.createdAt.toISOString(),
-      }))}
-      unreadCount={unreadCount}
-      severityFilter={severityFilter}
-      typeFilter={typeFilter}
-    />
+    <div className="space-y-4">
+      {!slackAccess.allowed && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          Slack dispo en Global $99/m —{" "}
+          <Link href="/pricing?feature=radar" className="font-semibold underline">
+            upgrade
+          </Link>
+          {" · "}
+          <Link href="/radar/alerts/settings" className="underline">
+            settings
+          </Link>
+        </div>
+      )}
+      <RadarAlertsClient
+        initialAlerts={alerts.map((a) => ({
+          ...a,
+          createdAt: a.createdAt.toISOString(),
+        }))}
+        unreadCount={unreadCount}
+        severityFilter={severityFilter}
+        typeFilter={typeFilter}
+      />
+    </div>
   )
 }

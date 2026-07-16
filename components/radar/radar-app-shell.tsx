@@ -22,6 +22,7 @@ export default function RadarAppShell({
   const { data: session, status } = useSession()
   const router = useRouter()
   const pathname = usePathname()
+  const isPublicRadarHome = pathname === "/radar" || pathname === "/radar/public"
 
   const nav = [
     { href: "/radar", label: "Dashboard" },
@@ -37,21 +38,25 @@ export default function RadarAppShell({
   useEffect(() => {
     if (status === "loading") return
     if (!session?.user) {
+      if (isPublicRadarHome) return
       router.replace("/login")
-      return
     }
-    if (!hasRadarFeature(session.user.features)) {
-      router.replace("/pricing")
-    }
-  }, [session, status, router])
+  }, [session, status, router, isPublicRadarHome])
 
-  if (status === "loading" || !session?.user) {
+  if (status === "loading") {
     return <div className="mx-auto max-w-5xl px-4 py-16 text-sm text-zinc-500">Chargement…</div>
   }
 
-  if (!hasRadarFeature(session.user.features)) {
+  // Public marketing landing — no app chrome
+  if (!session?.user && isPublicRadarHome) {
+    return <>{children}</>
+  }
+
+  if (!session?.user) {
     return null
   }
+
+  const showUpgradeHint = !hasRadarFeature(session.user.features)
 
   return (
     <div className="min-h-[60vh] bg-zinc-50">
@@ -64,6 +69,14 @@ export default function RadarAppShell({
             <h1 className="text-lg font-semibold text-zinc-900">
               📡 Affisell Radar — Vois les winners avant tout le monde
             </h1>
+            {showUpgradeHint && (
+              <p className="mt-1 text-xs text-amber-700">
+                Mode teaser —{" "}
+                <Link href="/pricing?feature=radar" className="font-semibold underline">
+                  passer Pro
+                </Link>
+              </p>
+            )}
           </div>
           <nav className="flex flex-wrap gap-2 text-sm">
             {nav.map((item) => {

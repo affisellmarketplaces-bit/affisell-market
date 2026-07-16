@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
+import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
 import RadarWorldMap from "@/lib/radar/map/RadarWorldMap"
 import {
   MOCK_MAP_STATS,
@@ -9,8 +10,9 @@ import {
 } from "@/lib/radar/map/geo"
 import { auth } from "@/lib/auth"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
-import { hasRadarAccess, resolveRadarFeatures } from "@/lib/radar/features"
+import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
+import { getUserRadarPlan } from "@/lib/radar/plans"
 import { getRadarDb } from "@/lib/prisma-radar"
 
 async function loadCountryStats(): Promise<{ stats: CountryMapStat[]; demo: boolean }> {
@@ -66,11 +68,34 @@ export default async function RadarMapPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const features = resolveRadarFeatures(session.user.id, session.user.isPro ?? false)
-  if (!hasRadarAccess(features, session.user.id)) redirect("/pricing")
+  const planUser = {
+    id: session.user.id,
+    email: session.user.email,
+    isPro: session.user.isPro ?? false,
+    features: session.user.features,
+  }
+  const plan = getUserRadarPlan(planUser)
+  const mapAccess = checkRadarAccess(planUser, "map")
 
   const { stats, demo } = await loadCountryStats()
   const top5 = [...stats].sort((a, b) => b.count - a.count).slice(0, 5)
+
+  if (!mapAccess.allowed) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-base font-semibold text-zinc-900">🗺️ Map Monde</h2>
+        <RadarPaywallPanel
+          plan={plan}
+          title="Map Monde — Radar Pro"
+          reason={mapAccess.reason ?? "Upgrade to Pro for Map"}
+        >
+          <div className="p-2">
+            <RadarWorldMap stats={MOCK_MAP_STATS} demo />
+          </div>
+        </RadarPaywallPanel>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
