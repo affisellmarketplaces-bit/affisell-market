@@ -11,9 +11,16 @@
 | 5 | ✅ | Dashboard live : stats, Top 20, Trends, filtres, Force Scan |
 | 6 | ⬜ | Winners / Map pages + alertes |
 
+## Routing (Next.js 15+)
+
+- **Pas de `middleware.ts`** — ce repo utilise **`proxy.ts`** (convention Next.js actuelle).
+- Gate Radar + 301 `/intelli` → `/radar` : `proxy.ts` appelle `radarDisabledResponse` (`lib/radar/gate.ts`).
+- Cron `/api/radar/cron/*` : exempt du rewrite 404 si flag off (auth `CRON_SECRET`).
+
 ## Jalon 5 — Dashboard `/radar`
 - Queries parallèles : shops, `count`, top winners `rank <= 20`
 - Trends : `getTrendingKeywords(['led strip','shapewear','phone case'])`
 - Filtres marketplace / country / search (URL searchParams)
 - **Forcer Scan** → `POST /api/radar/scan` (session Radar) — *jamais* `CRON_SECRET` côté client
 - Cron inchangé : `GET /api/radar/cron/global-scan` + Bearer `CRON_SECRET`
+- Empty state : banner si `RadarGlobalSnapshot` count = 0 (clés crawler manquantes)
