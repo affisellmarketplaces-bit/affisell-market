@@ -117,3 +117,38 @@ model RadarGlobalSnapshot {
   @@index([crawledAt])
   @@schema("market_intelli")
 }
+
+model RadarAlert {
+  id            String   @id @default(cuid())
+  userId        String? // null = alerte globale système
+  type          String // WINNER_NEW, WINNER_RISING, PRICE_WAR, SATURATION_RISK, NEW_LISTING
+  severity      String // low, medium, high, critical
+  title         String
+  message       String   @db.Text
+  productId     String? // RadarGlobalSnapshot.id ou externalId
+  externalId    String?
+  marketplaceId String
+  country       String?
+  category      String?
+  meta          Json? // { rank, salesEst, oldRank, newRank, priceDropPct, competitorCount }
+  read          Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([userId, read, createdAt])
+  @@index([marketplaceId, country, createdAt])
+  @@schema("market_intelli")
+}
+
+model AlertSubscription {
+  id         String   @id @default(cuid())
+  userId     String
+  channel    String // slack, email, webhook
+  webhookUrl String? // Slack webhook URL chiffré
+  filters    Json? // { marketplaces, countries, minSeverity, categories }
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, channel])
+  @@schema("market_intelli")
+}
