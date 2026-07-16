@@ -56,6 +56,12 @@ npm run radar:db:studio
 npm run mi:db:push       # alias
 ```
 
+## Global crawl (V3+)
+- `lib/radar/crawler/*` — bestsellers + keyword search (TikTok API / Amazon SP-API|scrape)
+- `lib/radar/google/trends-watcher.ts` — Serper / SerpAPI, growth > 50%
+- Cron `GET /api/radar/cron/global-scan` every 6h (`vercel.json`) — Bearer `CRON_SECRET`
+- Model `RadarGlobalSnapshot` — upsert idempotent `@@unique([marketplaceId, externalId, country])`
+
 ## Build constraints
 1. `RADAR_ENABLED=false` + pas de `RADAR_DATABASE_URL` → `next build` OK
 2. Ne pas toucher `app/dashboard`, `app/pricing`, `prisma/schema.prisma`

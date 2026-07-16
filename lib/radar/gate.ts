@@ -11,8 +11,15 @@ export function isRadarPath(pathname: string): boolean {
   return pathname.startsWith("/radar") || pathname.startsWith("/api/radar")
 }
 
+/** Cron routes stay reachable (auth via CRON_SECRET) even when feature flag is off. */
+export function isRadarCronPath(pathname: string): boolean {
+  return pathname.startsWith("/api/radar/cron")
+}
+
 export function radarDisabledResponse(req: NextRequest): NextResponse | null {
-  if (!isRadarPath(req.nextUrl.pathname)) return null
+  const pathname = req.nextUrl.pathname
+  if (!isRadarPath(pathname)) return null
+  if (isRadarCronPath(pathname)) return null
   if (isRadarEnabled()) return null
   return NextResponse.rewrite(new URL("/404", req.url))
 }
