@@ -118,12 +118,22 @@ export default async function RadarDashboardPage({
 
   const lastScan = latestWinners[0]?.crawledAt ?? null
   const hotTrends = trending.filter((t) => t.growth > 50)
+  const awaitingCrawlerKeys = globalCount === 0
 
   return (
     <div className="space-y-8">
       {justConnected && (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           Source connectée avec succès.
+        </div>
+      )}
+
+      {awaitingCrawlerKeys && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          ⚠️ Radar en attente de clés crawler. Ajoute{" "}
+          <code className="rounded bg-amber-100 px-1">TIKTOK_CRAWLER_ACCESS_TOKEN</code> et{" "}
+          <code className="rounded bg-amber-100 px-1">SERPER_API_KEY</code> dans Vercel Env pour
+          activer le scan mondial.
         </div>
       )}
 
@@ -145,7 +155,10 @@ export default async function RadarDashboardPage({
             >
               Connecter
             </Link>
-            <RadarForceScanButton />
+            <RadarForceScanButton
+              disabled={awaitingCrawlerKeys}
+              label={awaitingCrawlerKeys ? "Forcer scan" : "Forcer Scan"}
+            />
           </div>
         </div>
       </section>
@@ -161,9 +174,31 @@ export default async function RadarDashboardPage({
           🔥 Top 20 Bestsellers Mondiaux (Live)
         </h2>
         {latestWinners.length === 0 ? (
-          <p className="mt-4 text-sm text-zinc-600">
-            Aucun snapshot encore. Lance <strong>Forcer Scan</strong> ou attends le cron 6h.
-          </p>
+          <div className="mt-4 space-y-3">
+            <div className="overflow-x-auto rounded-lg border border-dashed border-zinc-200">
+              <table className="min-w-full text-left text-sm">
+                <thead className="border-b border-zinc-100 text-xs uppercase tracking-wide text-zinc-400">
+                  <tr>
+                    <th className="px-2 py-2">Rank</th>
+                    <th className="px-2 py-2">Title</th>
+                    <th className="px-2 py-2">Marketplace</th>
+                    <th className="px-2 py-2">Price</th>
+                    <th className="px-2 py-2">Country</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colSpan={5} className="px-2 py-8 text-center text-zinc-500">
+                      Aucun snapshot — configure les clés crawler puis attends le cron 6h.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="flex justify-end">
+              <RadarForceScanButton disabled label="Forcer scan" />
+            </div>
+          </div>
         ) : (
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full text-left text-sm">

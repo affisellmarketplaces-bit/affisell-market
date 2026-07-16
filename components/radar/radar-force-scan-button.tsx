@@ -3,13 +3,20 @@
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 
-export default function RadarForceScanButton() {
+export default function RadarForceScanButton({
+  disabled = false,
+  label = "Forcer Scan",
+}: {
+  disabled?: boolean
+  label?: string
+}) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   function onForceScan() {
+    if (disabled) return
     setMessage(null)
     setError(null)
     startTransition(async () => {
@@ -44,10 +51,11 @@ export default function RadarForceScanButton() {
       <button
         type="button"
         onClick={onForceScan}
-        disabled={pending}
-        className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-60"
+        disabled={disabled || pending}
+        title={disabled ? "Configure les clés crawler pour activer le scan" : undefined}
+        className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? "Scan en cours…" : "Forcer Scan"}
+        {pending ? "Scan en cours…" : label}
       </button>
       {message && <p className="text-xs text-emerald-700">{message}</p>}
       {error && <p className="text-xs text-red-700">{error}</p>}
