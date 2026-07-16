@@ -15,7 +15,7 @@ function hasRadarFeature(features: string[] | undefined): boolean {
 const NAV = [
   { href: "/radar", label: "Dashboard" },
   { href: "/radar/connect", label: "Connect" },
-  { href: "/radar/winners", label: "Winners", stub: true },
+  { href: "/radar/winners", label: "Winners" },
   { href: "/radar/map", label: "Map", stub: true },
 ] as const
 

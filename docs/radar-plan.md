@@ -8,8 +8,8 @@
 | 2 | ✅ | Connectors registry + TikTok OAuth |
 | 3 | ✅ | Schema Prisma V3 (`ShopConnection`, snapshots) |
 | 4 | ✅ | Crawler global + cron 6h + `RadarGlobalSnapshot` |
-| 5 | ✅ | Dashboard live : stats, Top 20, Trends, filtres, Force Scan |
-| 6 | ⬜ | Winners / Map pages + alertes |
+| 5 | ✅ | Dashboard live + demo fallback DB offline + `/radar/winners` |
+| 6 | ⬜ | Map page + alertes |
 
 ## Routing (Next.js 15+)
 

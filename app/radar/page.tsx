@@ -8,12 +8,27 @@ import RadarForceScanButton from "@/components/radar/radar-force-scan-button"
 import { auth } from "@/lib/auth"
 import { getRadarDb } from "@/lib/prisma-radar"
 import { getConnectorById } from "@/lib/radar/connectors/registry"
+import { RADAR_DEMO_WINNERS } from "@/lib/radar/demo-data"
+import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { hasRadarAccess, resolveRadarFeatures } from "@/lib/radar/features"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { getTrendingKeywords } from "@/lib/radar/google/trends-watcher"
-import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 
 const TREND_SEEDS = ["led strip", "shapewear", "phone case"]
+
+type WinnerRow = {
+  id: string
+  title: string
+  marketplaceId: string
+  country: string
+  price: { toString(): string } | number
+  currency: string | null
+  rank: number | null
+  salesEst: number | null
+  imageUrl: string | null
+  url: string | null
+  crawledAt: Date
+}
 
 function formatPrice(price: { toString(): string } | number, currency: string | null): string {
   const n = typeof price === "number" ? price : Number(price.toString())
@@ -31,6 +46,73 @@ function formatPrice(price: { toString(): string } | number, currency: string | 
 function formatScanDate(d: Date | null | undefined): string {
   if (!d) return "jamais"
   return d.toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" })
+}
+
+function WinnersTable({ rows }: { rows: WinnerRow[] }) {
+  return (
+    <div className="mt-4 overflow-x-auto">
+      <table className="min-w-full text-left text-sm">
+        <thead className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
+          <tr>
+            <th className="px-2 py-2">Rank</th>
+            <th className="px-2 py-2">Image</th>
+            <th className="px-2 py-2">Title</th>
+            <th className="px-2 py-2">Marketplace</th>
+            <th className="px-2 py-2">Price</th>
+            <th className="px-2 py-2">Country</th>
+            <th className="px-2 py-2">Sales est.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => {
+            const connector = getConnectorById(row.marketplaceId)
+            return (
+              <tr key={row.id} className="border-b border-zinc-100 align-middle">
+                <td className="px-2 py-2 font-mono text-xs text-zinc-700">{row.rank ?? "—"}</td>
+                <td className="px-2 py-2">
+                  {row.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={row.imageUrl}
+                      alt=""
+                      className="size-10 rounded object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="text-lg" aria-hidden>
+                      {connector?.logo ?? "📦"}
+                    </span>
+                  )}
+                </td>
+                <td className="max-w-xs px-2 py-2">
+                  {row.url ? (
+                    <a
+                      href={row.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="line-clamp-2 font-medium text-zinc-900 hover:text-violet-700"
+                    >
+                      {row.title}
+                    </a>
+                  ) : (
+                    <span className="line-clamp-2 font-medium text-zinc-900">{row.title}</span>
+                  )}
+                </td>
+                <td className="px-2 py-2 text-zinc-600">{connector?.name ?? row.marketplaceId}</td>
+                <td className="px-2 py-2 tabular-nums text-zinc-800">
+                  {formatPrice(row.price, row.currency)}
+                </td>
+                <td className="px-2 py-2 text-zinc-600">{row.country}</td>
+                <td className="px-2 py-2 tabular-nums text-zinc-600">
+                  {row.salesEst != null ? row.salesEst.toLocaleString("fr-FR") : "—"}
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
 }
 
 export default async function RadarDashboardPage({
@@ -61,70 +143,97 @@ export default async function RadarDashboardPage({
   const q = params.q?.trim() ?? ""
   const justConnected = params.connected === "1"
 
+  let demoMode = false
+  let shopConnections: Array<{
+    id: string
+    shopId: string
+    shopName: string
+    connectorId: string
+  }> = []
+  let globalCount = 0
+  let latestWinners: WinnerRow[] = []
+  let trending: Awaited<ReturnType<typeof getTrendingKeywords>> = []
+
   if (!resolveRadarDatabaseUrl()) {
-    return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
-        Base Radar non configurée (`RADAR_DATABASE_URL`). Lance{" "}
-        <code className="rounded bg-amber-100 px-1">docker compose up -d marketintelli_db</code> puis{" "}
-        <code className="rounded bg-amber-100 px-1">npm run radar:db:push</code>.
-      </div>
-    )
-  }
+    demoMode = true
+    console.warn("[radar/dashboard]", { result: "demo_mode", reason: "no_database_url" })
+  } else {
+    try {
+      const db = getRadarDb()
+      const winnerWhere: Prisma.RadarGlobalSnapshotWhereInput = {
+        rank: { lte: 20 },
+      }
+      if (marketplaceFilter === "tiktok" || marketplaceFilter === "tiktok_shop") {
+        winnerWhere.marketplaceId = "tiktok_shop"
+      } else if (marketplaceFilter === "amazon") {
+        winnerWhere.marketplaceId = "amazon"
+      }
+      if (countryFilter) winnerWhere.country = countryFilter
+      if (q) {
+        winnerWhere.title = { contains: q, mode: "insensitive" }
+      }
 
-  const db = getRadarDb()
+      const [shops, count, winners, trends] = await Promise.all([
+        db.shopConnection.findMany({
+          where: { userId: session.user.id },
+          select: {
+            id: true,
+            shopId: true,
+            shopName: true,
+            connectorId: true,
+          },
+          orderBy: { createdAt: "desc" },
+        }),
+        db.radarGlobalSnapshot.count(),
+        db.radarGlobalSnapshot.findMany({
+          where: winnerWhere,
+          orderBy: { crawledAt: "desc" },
+          take: 20,
+        }),
+        getTrendingKeywords(TREND_SEEDS).catch((err) => {
+          console.error("[radar/dashboard]", {
+            result: "trends_failed",
+            message: err instanceof Error ? err.message : "unknown",
+          })
+          return []
+        }),
+      ])
 
-  const winnerWhere: Prisma.RadarGlobalSnapshotWhereInput = {
-    rank: { lte: 20 },
-  }
-  if (marketplaceFilter === "tiktok" || marketplaceFilter === "tiktok_shop") {
-    winnerWhere.marketplaceId = "tiktok_shop"
-  } else if (marketplaceFilter === "amazon") {
-    winnerWhere.marketplaceId = "amazon"
-  }
-  if (countryFilter) winnerWhere.country = countryFilter
-  if (q) {
-    winnerWhere.title = { contains: q, mode: "insensitive" }
-  }
-
-  const [shopConnections, globalCount, latestWinners, trending] = await Promise.all([
-    db.shopConnection.findMany({
-      where: { userId: session.user.id },
-      select: {
-        id: true,
-        shopId: true,
-        shopName: true,
-        connectorId: true,
-        region: true,
-        expiresAt: true,
-        status: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-    db.radarGlobalSnapshot.count(),
-    db.radarGlobalSnapshot.findMany({
-      where: winnerWhere,
-      orderBy: { crawledAt: "desc" },
-      take: 20,
-    }),
-    getTrendingKeywords(TREND_SEEDS).catch((err) => {
-      console.error("[radar/dashboard]", {
-        result: "trends_failed",
+      shopConnections = shops
+      globalCount = count
+      latestWinners = winners
+      trending = trends
+    } catch (err) {
+      demoMode = true
+      console.warn("[radar/dashboard]", {
+        result: "demo_mode",
+        reason: "db_offline",
         message: err instanceof Error ? err.message : "unknown",
       })
-      return []
-    }),
-  ])
+    }
+  }
+
+  if (demoMode) {
+    latestWinners = RADAR_DEMO_WINNERS
+    globalCount = RADAR_DEMO_WINNERS.length
+  }
 
   const lastScan = latestWinners[0]?.crawledAt ?? null
   const hotTrends = trending.filter((t) => t.growth > 50)
-  const awaitingCrawlerKeys = globalCount === 0
+  const awaitingCrawlerKeys = !demoMode && globalCount === 0
 
   return (
     <div className="space-y-8">
       {justConnected && (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           Source connectée avec succès.
+        </div>
+      )}
+
+      {demoMode && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          Radar DB offline, mode demo — affichage de 5 produits mock. Vérifie{" "}
+          <code className="rounded bg-amber-100 px-1">RADAR_DATABASE_URL</code> / Neon.
         </div>
       )}
 
@@ -143,6 +252,7 @@ export default async function RadarDashboardPage({
             <p className="text-sm font-medium text-zinc-900">
               📡 Radar actif: {globalCount.toLocaleString("fr-FR")} produits trackés |{" "}
               {shopConnections.length} shops connectés | Dernier scan: {formatScanDate(lastScan)}
+              {demoMode ? " (demo)" : ""}
             </p>
             <p className="mt-1 text-xs text-zinc-500">
               Veille bestsellers + Trends — scan auto toutes les 6h.
@@ -155,8 +265,11 @@ export default async function RadarDashboardPage({
             >
               Connecter
             </Link>
+            <Link href="/radar/winners" className="text-sm font-medium text-zinc-600 hover:text-zinc-900">
+              Winners
+            </Link>
             <RadarForceScanButton
-              disabled={awaitingCrawlerKeys}
+              disabled={awaitingCrawlerKeys || demoMode}
               label={awaitingCrawlerKeys ? "Forcer scan" : "Forcer Scan"}
             />
           </div>
@@ -171,7 +284,7 @@ export default async function RadarDashboardPage({
 
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <h2 className="text-base font-semibold text-zinc-900">
-          🔥 Top 20 Bestsellers Mondiaux (Live)
+          🔥 Top 20 Bestsellers Mondiaux {demoMode ? "(Demo)" : "(Live)"}
         </h2>
         {latestWinners.length === 0 ? (
           <div className="mt-4 space-y-3">
@@ -200,72 +313,7 @@ export default async function RadarDashboardPage({
             </div>
           </div>
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
-                <tr>
-                  <th className="px-2 py-2">Rank</th>
-                  <th className="px-2 py-2">Image</th>
-                  <th className="px-2 py-2">Title</th>
-                  <th className="px-2 py-2">Marketplace</th>
-                  <th className="px-2 py-2">Price</th>
-                  <th className="px-2 py-2">Country</th>
-                  <th className="px-2 py-2">Sales est.</th>
-                </tr>
-              </thead>
-              <tbody>
-                {latestWinners.map((row) => {
-                  const connector = getConnectorById(row.marketplaceId)
-                  return (
-                    <tr key={row.id} className="border-b border-zinc-100 align-middle">
-                      <td className="px-2 py-2 font-mono text-xs text-zinc-700">
-                        {row.rank ?? "—"}
-                      </td>
-                      <td className="px-2 py-2">
-                        {row.imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={row.imageUrl}
-                            alt=""
-                            className="size-10 rounded object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <span className="text-lg" aria-hidden>
-                            {connector?.logo ?? "📦"}
-                          </span>
-                        )}
-                      </td>
-                      <td className="max-w-xs px-2 py-2">
-                        {row.url ? (
-                          <a
-                            href={row.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="line-clamp-2 font-medium text-zinc-900 hover:text-violet-700"
-                          >
-                            {row.title}
-                          </a>
-                        ) : (
-                          <span className="line-clamp-2 font-medium text-zinc-900">{row.title}</span>
-                        )}
-                      </td>
-                      <td className="px-2 py-2 text-zinc-600">
-                        {connector?.name ?? row.marketplaceId}
-                      </td>
-                      <td className="px-2 py-2 tabular-nums text-zinc-800">
-                        {formatPrice(row.price, row.currency)}
-                      </td>
-                      <td className="px-2 py-2 text-zinc-600">{row.country}</td>
-                      <td className="px-2 py-2 tabular-nums text-zinc-600">
-                        {row.salesEst != null ? row.salesEst.toLocaleString("fr-FR") : "—"}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+          <WinnersTable rows={latestWinners} />
         )}
       </section>
 
@@ -304,7 +352,9 @@ export default async function RadarDashboardPage({
           </Link>
         </div>
         {shopConnections.length === 0 ? (
-          <p className="mt-3 text-sm text-zinc-600">Aucun shop — connecte TikTok Shop pour des signaux perso.</p>
+          <p className="mt-3 text-sm text-zinc-600">
+            Aucun shop — connecte TikTok, Amazon ou Google Merchant.
+          </p>
         ) : (
           <ul className="mt-3 flex flex-wrap gap-2">
             {shopConnections.map((s) => (
