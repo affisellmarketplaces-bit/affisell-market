@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
-import { assertRadarApiEnabled } from "@/lib/radar/gate"
+import { gate } from "@/lib/radar/gate"
 import {
   TIKTOK_SHOP_SCOPES,
   buildTikTokAuthorizeUrl,
   createTikTokOAuthState,
-} from "@/lib/radar/tiktok-oauth"
+} from "@/lib/radar/connectors/tiktok-shop"
 
 export async function GET(req: Request) {
-  const blocked = assertRadarApiEnabled()
+  const blocked = gate()
   if (blocked) return blocked
 
   const session = await auth()

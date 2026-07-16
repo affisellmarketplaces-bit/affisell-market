@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server"
 
 import { encryptString } from "@/lib/crypto"
-import { getMiDb } from "@/lib/prisma-mi"
-import { assertRadarApiEnabled } from "@/lib/radar/gate"
+import { getRadarDb } from "@/lib/prisma-radar"
 import {
   exchangeCodeForToken,
   getTikTokShopInfo,
   verifyTikTokOAuthState,
-} from "@/lib/radar/tiktok-oauth"
+} from "@/lib/radar/connectors/tiktok-shop"
+import { gate } from "@/lib/radar/gate"
 
 function parseScopes(scope: string | undefined): string[] {
   if (!scope?.trim()) return []
@@ -18,7 +18,7 @@ function parseScopes(scope: string | undefined): string[] {
 }
 
 export async function GET(req: Request) {
-  const blocked = assertRadarApiEnabled()
+  const blocked = gate()
   if (blocked) return blocked
 
   const url = new URL(req.url)
@@ -28,7 +28,9 @@ export async function GET(req: Request) {
 
   if (oauthError) {
     console.log("[radar/tiktok/callback]", { result: "oauth_error", oauthError })
-    return NextResponse.redirect(new URL(`/radar/connect?error=${encodeURIComponent(oauthError)}`, req.url))
+    return NextResponse.redirect(
+      new URL(`/radar/connect?error=${encodeURIComponent(oauthError)}`, req.url)
+    )
   }
 
   if (!code || !state) {
@@ -54,25 +56,32 @@ export async function GET(req: Request) {
       typeof token.expires_in === "number" && token.expires_in > 0 ? token.expires_in : 86400
     const expiresAt = new Date(Date.now() + expiresIn * 1000)
     const scopes = parseScopes(token.scope)
+    const connectorId = "tiktok_shop"
 
-    await getMiDb().shopConnection.upsert({
-      where: { userId },
+    await getRadarDb().shopConnection.upsert({
+      where: {
+        userId_connectorId_shopId: { userId, connectorId, shopId },
+      },
       create: {
         userId,
+        connectorId,
+        category: "marketplace",
+        region: "GLOBAL",
         shopId,
         shopName,
         accessToken: encryptString(token.access_token),
         refreshToken: encryptString(token.refresh_token),
         expiresAt,
         scopes,
+        status: "active",
       },
       update: {
-        shopId,
         shopName,
         accessToken: encryptString(token.access_token),
         refreshToken: encryptString(token.refresh_token),
         expiresAt,
         scopes,
+        status: "active",
       },
     })
 

@@ -1,70 +1,62 @@
 # Affisell Radar Spec V3
 
-## Pourquoi
-Affisell Radar unifie les signaux Google et marketplaces pour aider un marchand a detecter plus vite les opportunites catalogue, pricing et expansion.
+## Mission
+Affisell Radar = veille globale multi-marketplace + Google. Remplace Market Intelli (`/intelli`). Metric cible : +10% LTV via détection winners / pricing / expansion avant les concurrents.
 
-## Scope V3
-- Rebrand complet de `Market Intelli` vers `Affisell Radar`.
-- Surface produit publique sous `/radar` avec compatibilite de build et de routing pour `/intelli`.
-- Ingestion progressive multi-sources avec TikTok Shop comme connecteur actif initial.
+## Surface produit
+| Route | Rôle |
+|-------|------|
+| `/radar` | Dashboard sources + badge Signal Actif |
+| `/radar/connect` | Google + marketplaces par région |
+| `/radar/winners` | Stub |
+| `/radar/map` | Stub |
+| `/api/radar/tiktok/*` | OAuth + webhooks TikTok Shop (live) |
+| `/api/radar/[connectorId]/start` | Start générique registry |
+| `/api/radar/google/start` | Stub Google OAuth |
 
-## Sources V3
+## Compatibilité
+- `/intelli` → **301** `/radar` (via `proxy.ts`, convention Next.js 16)
+- `/api/intelli/*` → **301** `/api/radar/*`
+- Env fallback 1 mois :
+  - `RADAR_ENABLED \|\| MARKET_INTELLI_ENABLED`
+  - `RADAR_DATABASE_URL \|\| MARKET_INTELLI_DATABASE_URL`
+  - `RADAR_BETA_USER_IDS \|\| MARKET_INTELLI_BETA_USER_IDS`
+- Feature flags JWT : `radar` + `market_intelli`
+- `getMiDb()` alias de `getRadarDb()`
+
+## Connectors (`lib/radar/connectors`)
+### Types
+`Region`, `Category`, `BaseConnector`, `MarketplaceConnector`, `GoogleConnector`
+
+### Marketplaces (registry)
+TikTok Shop (live), Amazon, MercadoLibre, Walmart, Shopee, Jumia, Noon, Allegro
 
 ### Google
-- Merchant Center
-  - flux catalogue
-  - erreurs produits
-  - prix et disponibilite
-- Search Console
-  - requetes top impressions
-  - CTR par page produit
-  - intentions SEO a convertir en pages marchandes
+Merchant Center, Search Console, Trends — stubs « Bientôt »
 
-### Marketplaces EU
-- Amazon EU
-- Allegro
-- Bol.com
+### URL parser
+`detectMarketplace(url)`, `extractProductId(url)`
 
-### Marketplaces Americas
-- Amazon US
-- Walmart
-- MercadoLibre
+## Prisma (`prisma/radar.schema.prisma`)
+Schéma Postgres isolé, `@@schema("market_intelli")` :
+- `ShopConnection` — multi-connector `@@unique([userId, connectorId, shopId])`
+- `StandardProduct` — snapshots normalisés
+- `GoogleProductInsight` — signaux GMC / Search Console
+- `WebhookEvent` — ingest idempotent (`externalId` unique)
 
-### Marketplaces Asia
-- Shopee
-- Lazada
+Client généré : `.prisma/client-mi` (lazy via `getRadarDb()` — build safe si flag off).
 
-### Marketplaces Africa & MENA
-- Jumia
-- Noon
-- Takealot
+## Gate
+Si `RADAR_ENABLED != true` et `MARKET_INTELLI_ENABLED != true` → rewrite `/404` pour `/radar` et `/api/radar`.
 
-## Signaux attendus
-- sante du catalogue
-- deltas de prix
-- tendances de ventes
-- signaux de demande
-- priorites d'expansion par zone
+## Scripts
+```bash
+npm run radar:db:push    # node scripts/radar-db.mjs push
+npm run radar:db:studio
+npm run mi:db:push       # alias
+```
 
-## UX V3
-- dashboard `/radar`
-  - etat vide oriente action
-  - badge `Signal Actif` sur chaque source connectee
-  - CTA principal `Scanner un marketplace`
-- page `/radar/connect`
-  - groupes de sources par zone
-  - TikTok Shop disponible immediatement via OAuth
-  - autres sources affichees comme slots d'integration Radar
-
-## Compatibilite
-- `/intelli` redirige en `301` vers `/radar`
-- `/api/intelli/*` redirige en `301` vers `/api/radar/*`
-- fallback env pendant transition:
-  - `RADAR_ENABLED || MARKET_INTELLI_ENABLED`
-  - `RADAR_DATABASE_URL || MARKET_INTELLI_DATABASE_URL`
-  - `RADAR_BETA_USER_IDS || MARKET_INTELLI_BETA_USER_IDS`
-
-## Notes implementation
-- build doit rester safe si `RADAR_ENABLED=false`
-- Prisma client conserve la meme sortie generatee pour eviter une migration de runtime inutile
-- les anciens imports `@/lib/market-intelli/*` restent des aliases vers `@/lib/radar/*`
+## Build constraints
+1. `RADAR_ENABLED=false` + pas de `RADAR_DATABASE_URL` → `next build` OK
+2. Ne pas toucher `app/dashboard`, `app/pricing`, `prisma/schema.prisma`
+3. Tout Radar reste sous `/radar`, `/api/radar`, `lib/radar`, `prisma/radar.schema.prisma`

@@ -1,10 +1,10 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
-import { resolveRadarEnabled } from "@/lib/radar/env"
+import { RADAR_ENABLED } from "@/lib/radar/env"
 
 export function isRadarEnabled(): boolean {
-  return resolveRadarEnabled() === "true"
+  return RADAR_ENABLED === "true"
 }
 
 export function isRadarPath(pathname: string): boolean {
@@ -17,8 +17,13 @@ export function radarDisabledResponse(req: NextRequest): NextResponse | null {
   return NextResponse.rewrite(new URL("/404", req.url))
 }
 
-/** Guard for /api/radar handlers (matcher excludes /api/*). */
+/** Guard for /api/radar handlers. */
 export function assertRadarApiEnabled(): NextResponse | null {
   if (isRadarEnabled()) return null
   return NextResponse.json({ error: "Not found" }, { status: 404 })
+}
+
+/** Alias used by API routes — same as assertRadarApiEnabled. */
+export function gate(): NextResponse | null {
+  return assertRadarApiEnabled()
 }

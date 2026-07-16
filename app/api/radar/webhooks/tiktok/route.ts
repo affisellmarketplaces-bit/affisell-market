@@ -1,15 +1,15 @@
 import { Prisma } from ".prisma/client-mi"
 import { NextResponse } from "next/server"
 
-import { getMiDb } from "@/lib/prisma-mi"
-import { assertRadarApiEnabled } from "@/lib/radar/gate"
+import { getRadarDb } from "@/lib/prisma-radar"
+import { gate } from "@/lib/radar/gate"
 import {
   extractWebhookExternalId,
   verifyTikTokWebhookSignature,
 } from "@/lib/radar/tiktok-webhook"
 
 export async function POST(req: Request) {
-  const blocked = assertRadarApiEnabled()
+  const blocked = gate()
   if (blocked) return blocked
 
   const rawBody = await req.text()
@@ -44,11 +44,12 @@ export async function POST(req: Request) {
     typeof shopIdRaw === "string" || typeof shopIdRaw === "number" ? String(shopIdRaw) : null
 
   try {
-    await getMiDb().webhookEvent.create({
+    await getRadarDb().webhookEvent.create({
       data: {
         externalId,
         topic,
         shopId,
+        connectorId: "tiktok_shop",
         payload: payload as Prisma.InputJsonValue,
       },
     })

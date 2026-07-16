@@ -1,6 +1,6 @@
-/// Alias schema kept for compatibility during Radar transition.
-/// Canonical schema: prisma/radar.schema.prisma
-/// Push: npm run radar:db:push (or npm run mi:db:push alias)
+/// Alias schema — canonical is prisma/radar.schema.prisma
+/// Kept so legacy `npx prisma generate --schema=prisma/market-intelli.schema.prisma` still resolves.
+/// Prefer: npm run radar:db:push
 
 generator client {
   provider = "prisma-client-js"
@@ -10,58 +10,88 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("MARKET_INTELLI_DATABASE_URL")
-}
-
-enum MiMarketplaceCode {
-  TIKTOK_SHOP
-  AMAZON
-  EBAY
-  ALIEXPRESS
-  SHOPEE
-  GOOGLE_TRENDS
+  schemas  = ["market_intelli"]
 }
 
 model ShopConnection {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  shopId       String   @unique
-  shopName     String
-  accessToken  String
-  refreshToken String
-  expiresAt    DateTime
-  scopes       String[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String    @id @default(cuid())
+  userId          String
+  connectorId     String
+  category        String
+  region          String
+  shopId          String
+  shopName        String
+  accessToken     String
+  refreshToken    String?
+  expiresAt       DateTime?
+  merchantId      String?
+  marketplaceMeta Json?
+  scopes          String[]  @default([])
+  status          String    @default("active")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
+  @@unique([userId, connectorId, shopId])
+  @@index([userId])
+  @@index([connectorId])
   @@index([shopId])
+  @@schema("market_intelli")
 }
 
-model ProductSnapshot {
-  id          String            @id @default(cuid())
-  productId   String
-  marketplace MiMarketplaceCode
-  day         DateTime
+model StandardProduct {
+  id          String   @id @default(cuid())
+  connectorId String
+  externalId  String
+  shopId      String?
+  title       String?
   currency    String?
-  price       Decimal?          @db.Decimal(12, 2)
+  price       Decimal? @db.Decimal(12, 2)
   sales       Int?
   rank        Int?
   views       Int?
+  region      String?
+  day         DateTime
   raw         Json?
-  createdAt   DateTime          @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@unique([productId, marketplace, day])
-  @@index([marketplace, day])
-  @@index([productId])
+  @@unique([connectorId, externalId, day])
+  @@index([connectorId, day])
+  @@index([shopId])
+  @@schema("market_intelli")
+}
+
+model GoogleProductInsight {
+  id          String   @id @default(cuid())
+  userId      String
+  merchantId  String?
+  offerId     String?
+  title       String?
+  impressions Int?
+  clicks      Int?
+  ctr         Float?
+  queries     Json?
+  raw         Json?
+  day         DateTime
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, offerId, day])
+  @@index([userId, day])
+  @@index([merchantId])
+  @@schema("market_intelli")
 }
 
 model WebhookEvent {
-  id         String   @id @default(cuid())
-  externalId String   @unique
-  topic      String?
-  shopId     String?
-  payload    Json?
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  externalId  String   @unique
+  topic       String?
+  shopId      String?
+  connectorId String?
+  payload     Json?
+  createdAt   DateTime @default(now())
 
   @@index([shopId])
+  @@index([connectorId])
   @@index([createdAt])
+  @@schema("market_intelli")
 }
