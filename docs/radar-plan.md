@@ -1,0 +1,19 @@
+# Affisell Radar — Plan jalons
+
+> Spec détaillée : `docs/radar-spec.md`
+
+| Jalon | Statut | Contenu |
+|-------|--------|---------|
+| 1 | ✅ | Rebrand `/intelli` → `/radar`, env fallback, gate |
+| 2 | ✅ | Connectors registry + TikTok OAuth |
+| 3 | ✅ | Schema Prisma V3 (`ShopConnection`, snapshots) |
+| 4 | ✅ | Crawler global + cron 6h + `RadarGlobalSnapshot` |
+| 5 | ✅ | Dashboard live : stats, Top 20, Trends, filtres, Force Scan |
+| 6 | ⬜ | Winners / Map pages + alertes |
+
+## Jalon 5 — Dashboard `/radar`
+- Queries parallèles : shops, `count`, top winners `rank <= 20`
+- Trends : `getTrendingKeywords(['led strip','shapewear','phone case'])`
+- Filtres marketplace / country / search (URL searchParams)
+- **Forcer Scan** → `POST /api/radar/scan` (session Radar) — *jamais* `CRON_SECRET` côté client
+- Cron inchangé : `GET /api/radar/cron/global-scan` + Bearer `CRON_SECRET`

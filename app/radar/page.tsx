@@ -1,29 +1,47 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { Suspense } from "react"
+import type { Prisma } from ".prisma/client-mi"
 
+import RadarDashboardFilters from "@/components/radar/radar-dashboard-filters"
+import RadarForceScanButton from "@/components/radar/radar-force-scan-button"
 import { auth } from "@/lib/auth"
 import { getRadarDb } from "@/lib/prisma-radar"
 import { getConnectorById } from "@/lib/radar/connectors/registry"
 import { hasRadarAccess, resolveRadarFeatures } from "@/lib/radar/features"
 import { isRadarEnabled } from "@/lib/radar/gate"
+import { getTrendingKeywords } from "@/lib/radar/google/trends-watcher"
+import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 
-function signalStatus(expiresAt: Date | null, status: string): "Actif" | "Expiré" {
-  if (status !== "active") return "Expiré"
-  if (!expiresAt) return "Actif"
-  return expiresAt.getTime() > Date.now() ? "Actif" : "Expiré"
+const TREND_SEEDS = ["led strip", "shapewear", "phone case"]
+
+function formatPrice(price: { toString(): string } | number, currency: string | null): string {
+  const n = typeof price === "number" ? price : Number(price.toString())
+  if (!Number.isFinite(n)) return "—"
+  try {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: currency && currency.length === 3 ? currency : "USD",
+    }).format(n)
+  } catch {
+    return `${n} ${currency ?? ""}`.trim()
+  }
 }
 
-async function syncProductsStub(formData: FormData) {
-  "use server"
-  const shopId = String(formData.get("shopId") ?? "").trim()
-  const connectorId = String(formData.get("connectorId") ?? "").trim()
-  console.log("[radar]", { shopId, connectorId, result: "sync_products_stub" })
+function formatScanDate(d: Date | null | undefined): string {
+  if (!d) return "jamais"
+  return d.toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" })
 }
 
 export default async function RadarDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ connected?: string }>
+  searchParams: Promise<{
+    connected?: string
+    marketplace?: string
+    country?: string
+    q?: string
+  }>
 }) {
   if (!isRadarEnabled()) {
     redirect("/404")
@@ -37,125 +55,231 @@ export default async function RadarDashboardPage({
     redirect("/pricing")
   }
 
-  const shops = await getRadarDb().shopConnection.findMany({
-    where: { userId: session.user.id },
-    select: {
-      id: true,
-      shopId: true,
-      shopName: true,
-      connectorId: true,
-      region: true,
-      expiresAt: true,
-      status: true,
-      createdAt: true,
-    },
-    orderBy: { createdAt: "desc" },
-  })
-
   const params = await searchParams
+  const marketplaceFilter = params.marketplace?.trim().toLowerCase() ?? ""
+  const countryFilter = params.country?.trim().toUpperCase() ?? ""
+  const q = params.q?.trim() ?? ""
   const justConnected = params.connected === "1"
 
+  if (!resolveRadarDatabaseUrl()) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
+        Base Radar non configurée (`RADAR_DATABASE_URL`). Lance{" "}
+        <code className="rounded bg-amber-100 px-1">docker compose up -d marketintelli_db</code> puis{" "}
+        <code className="rounded bg-amber-100 px-1">npm run radar:db:push</code>.
+      </div>
+    )
+  }
+
+  const db = getRadarDb()
+
+  const winnerWhere: Prisma.RadarGlobalSnapshotWhereInput = {
+    rank: { lte: 20 },
+  }
+  if (marketplaceFilter === "tiktok" || marketplaceFilter === "tiktok_shop") {
+    winnerWhere.marketplaceId = "tiktok_shop"
+  } else if (marketplaceFilter === "amazon") {
+    winnerWhere.marketplaceId = "amazon"
+  }
+  if (countryFilter) winnerWhere.country = countryFilter
+  if (q) {
+    winnerWhere.title = { contains: q, mode: "insensitive" }
+  }
+
+  const [shopConnections, globalCount, latestWinners, trending] = await Promise.all([
+    db.shopConnection.findMany({
+      where: { userId: session.user.id },
+      select: {
+        id: true,
+        shopId: true,
+        shopName: true,
+        connectorId: true,
+        region: true,
+        expiresAt: true,
+        status: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    db.radarGlobalSnapshot.count(),
+    db.radarGlobalSnapshot.findMany({
+      where: winnerWhere,
+      orderBy: { crawledAt: "desc" },
+      take: 20,
+    }),
+    getTrendingKeywords(TREND_SEEDS).catch((err) => {
+      console.error("[radar/dashboard]", {
+        result: "trends_failed",
+        message: err instanceof Error ? err.message : "unknown",
+      })
+      return []
+    }),
+  ])
+
+  const lastScan = latestWinners[0]?.crawledAt ?? null
+  const hotTrends = trending.filter((t) => t.growth > 50)
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {justConnected && (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           Source connectée avec succès.
         </div>
       )}
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
+      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-base font-semibold text-zinc-900">Sources connectées</h2>
-            <p className="mt-1 text-sm text-zinc-600">
-              Signaux marketplaces et Google reliés à votre compte Affisell Radar.
+            <p className="text-sm font-medium text-zinc-900">
+              📡 Radar actif: {globalCount.toLocaleString("fr-FR")} produits trackés |{" "}
+              {shopConnections.length} shops connectés | Dernier scan: {formatScanDate(lastScan)}
+            </p>
+            <p className="mt-1 text-xs text-zinc-500">
+              Veille bestsellers + Trends — scan auto toutes les 6h.
             </p>
           </div>
-          {shops.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/radar/connect"
-              className="shrink-0 text-sm font-medium text-violet-600 hover:text-violet-700"
+              className="text-sm font-medium text-violet-600 hover:text-violet-700"
             >
-              Scanner un marketplace
+              Connecter
             </Link>
-          )}
+            <RadarForceScanButton />
+          </div>
         </div>
+      </section>
 
-        {shops.length === 0 ? (
-          <div className="mt-6 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-4 py-10 text-center">
-            <p className="text-base font-medium text-zinc-900">Aucun signal sur le radar. 📡</p>
-            <p className="mt-1 text-sm text-zinc-600">
-              Connectez un marketplace ou Google pour démarrer la veille.
-            </p>
-            <Link
-              href="/radar/connect"
-              className="mt-5 inline-flex rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
-            >
-              Scanner un marketplace
-            </Link>
-          </div>
+      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <Suspense fallback={<div className="text-sm text-zinc-500">Filtres…</div>}>
+          <RadarDashboardFilters />
+        </Suspense>
+      </section>
+
+      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <h2 className="text-base font-semibold text-zinc-900">
+          🔥 Top 20 Bestsellers Mondiaux (Live)
+        </h2>
+        {latestWinners.length === 0 ? (
+          <p className="mt-4 text-sm text-zinc-600">
+            Aucun snapshot encore. Lance <strong>Forcer Scan</strong> ou attends le cron 6h.
+          </p>
         ) : (
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-            {shops.map((shop) => {
-              const connector = getConnectorById(shop.connectorId)
-              const status = signalStatus(shop.expiresAt, shop.status)
-              const isActive = status === "Actif"
-              return (
-                <li
-                  key={shop.id}
-                  className="rounded-lg border border-zinc-200 bg-zinc-50/80 px-4 py-4"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-lg" aria-hidden>
-                          {connector?.logo ?? "📡"}
-                        </span>
-                        <p className="truncate text-sm font-semibold text-zinc-900">
-                          {shop.shopName}
-                        </p>
-                        <span
-                          className={
-                            isActive
-                              ? "inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800"
-                              : "inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800"
-                          }
-                        >
-                          {isActive && (
-                            <span className="relative flex size-2">
-                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                              <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
-                            </span>
-                          )}
-                          {isActive ? "Signal Actif" : "Expiré"}
-                        </span>
-                      </div>
-                      <p className="text-xs text-zinc-500">
-                        {connector?.name ?? shop.connectorId} · {shop.region}
-                      </p>
-                      <p className="font-mono text-xs text-zinc-600">shopId: {shop.shopId}</p>
-                      <p className="text-xs text-zinc-500">
-                        Connecté le{" "}
-                        {shop.createdAt.toLocaleString("fr-FR", {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                        })}
-                      </p>
-                    </div>
-                    <form action={syncProductsStub}>
-                      <input type="hidden" name="shopId" value={shop.shopId} />
-                      <input type="hidden" name="connectorId" value={shop.connectorId} />
-                      <button
-                        type="submit"
-                        className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-800 hover:bg-zinc-100"
-                      >
-                        Sync
-                      </button>
-                    </form>
-                  </div>
-                </li>
-              )
-            })}
+          <div className="mt-4 overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
+                <tr>
+                  <th className="px-2 py-2">Rank</th>
+                  <th className="px-2 py-2">Image</th>
+                  <th className="px-2 py-2">Title</th>
+                  <th className="px-2 py-2">Marketplace</th>
+                  <th className="px-2 py-2">Price</th>
+                  <th className="px-2 py-2">Country</th>
+                  <th className="px-2 py-2">Sales est.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {latestWinners.map((row) => {
+                  const connector = getConnectorById(row.marketplaceId)
+                  return (
+                    <tr key={row.id} className="border-b border-zinc-100 align-middle">
+                      <td className="px-2 py-2 font-mono text-xs text-zinc-700">
+                        {row.rank ?? "—"}
+                      </td>
+                      <td className="px-2 py-2">
+                        {row.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={row.imageUrl}
+                            alt=""
+                            className="size-10 rounded object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span className="text-lg" aria-hidden>
+                            {connector?.logo ?? "📦"}
+                          </span>
+                        )}
+                      </td>
+                      <td className="max-w-xs px-2 py-2">
+                        {row.url ? (
+                          <a
+                            href={row.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="line-clamp-2 font-medium text-zinc-900 hover:text-violet-700"
+                          >
+                            {row.title}
+                          </a>
+                        ) : (
+                          <span className="line-clamp-2 font-medium text-zinc-900">{row.title}</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-2 text-zinc-600">
+                        {connector?.name ?? row.marketplaceId}
+                      </td>
+                      <td className="px-2 py-2 tabular-nums text-zinc-800">
+                        {formatPrice(row.price, row.currency)}
+                      </td>
+                      <td className="px-2 py-2 text-zinc-600">{row.country}</td>
+                      <td className="px-2 py-2 tabular-nums text-zinc-600">
+                        {row.salesEst != null ? row.salesEst.toLocaleString("fr-FR") : "—"}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <h2 className="text-base font-semibold text-zinc-900">📈 Trending Keywords</h2>
+        <p className="mt-1 text-xs text-zinc-500">
+          Seeds: {TREND_SEEDS.join(", ")} — growth &gt; 50%
+        </p>
+        {hotTrends.length === 0 ? (
+          <p className="mt-4 text-sm text-zinc-600">
+            Aucun mot-clé en forte croissance (configure `SERPER_API_KEY` / `SERPAPI_API_KEY`).
+          </p>
+        ) : (
+          <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {hotTrends.map((t) => (
+              <li
+                key={t.keyword}
+                className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm"
+              >
+                <p className="font-medium text-zinc-900">{t.keyword}</p>
+                <p className="mt-0.5 text-xs text-zinc-600">
+                  volume {t.volume.toLocaleString("fr-FR")} ·{" "}
+                  <span className="font-semibold text-emerald-700">+{t.growth}%</span>
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-base font-semibold text-zinc-900">Shops connectés</h2>
+          <Link href="/radar/connect" className="text-sm font-medium text-violet-600">
+            Scanner un marketplace
+          </Link>
+        </div>
+        {shopConnections.length === 0 ? (
+          <p className="mt-3 text-sm text-zinc-600">Aucun shop — connecte TikTok Shop pour des signaux perso.</p>
+        ) : (
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {shopConnections.map((s) => (
+              <li
+                key={s.id}
+                className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs text-zinc-700"
+              >
+                {getConnectorById(s.connectorId)?.logo ?? "📡"} {s.shopName}
+              </li>
+            ))}
           </ul>
         )}
       </section>
