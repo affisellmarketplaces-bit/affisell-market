@@ -11,17 +11,24 @@ export const dynamic = "force-dynamic"
 
 /**
  * Prod debug — no secrets in response.
- * GET /api/radar/health → { redis, db, cronSecret, serper, marketplaces }
+ * GET /api/radar/health → { redis, db, cronSecret, serper, marketplaces, alertsTable }
  */
 export async function GET() {
   const blocked = gate()
   if (blocked) return blocked
 
   let db = false
+  let alertsTable = false
   if (resolveRadarDatabaseUrl()) {
     try {
       await getRadarDb().$queryRaw`SELECT 1`
       db = true
+      try {
+        await getRadarDb().radarAlert.findFirst({ select: { id: true } })
+        alertsTable = true
+      } catch {
+        alertsTable = false
+      }
     } catch (err) {
       console.warn("[radar/health]", {
         result: "db_down",
@@ -45,6 +52,7 @@ export async function GET() {
     cronSecret,
     serper,
     marketplaces,
+    alertsTable,
     radarEnabled: true,
   }
 

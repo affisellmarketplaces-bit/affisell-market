@@ -25,6 +25,10 @@
     {
       "path": "/api/radar/cron/global-scan",
       "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/radar/cron/alerts",
+      "schedule": "0 */4 * * *"
     }
   ]
 }

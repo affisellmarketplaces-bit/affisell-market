@@ -51,8 +51,15 @@ curl -s "$APP/api/radar/health"
 
 ## Hors score (nice-to-have)
 
-- `/radar/map` + alertes (Jalon 6 restant)
+- `/radar/map` (Jalon 6 restant)
 - Job refresh tokens TikTok périodique
 - Writers `StandardProduct` / `GoogleProductInsight`
+- Historique multi-jours snapshots (améliore WINNER_RISING / PRICE_WAR)
 
-Ces items n’empêchent plus le score produit Radar V1 = 100.
+## Jalon 10 — Alert Engine ✅
+
+- Schema `RadarAlert` + `AlertSubscription`
+- Engine 5 règles + dedupe 24h
+- Cron `/api/radar/cron/alerts` (4h) + Slack notifier
+- UI `/radar/alerts` + settings
+- Après deploy : `npm run radar:db:push`
