@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
 import { runRadarGlobalScan } from "@/lib/radar/crawler/global-scan"
+import { assertRadarScanRateLimit } from "@/lib/radar/scan-rate-limit"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -16,6 +17,9 @@ const CRAWLER_REQUIRED_KEYS = ["TIKTOK_CRAWLER_ACCESS_TOKEN", "SERPER_API_KEY"] 
 export async function GET(req: Request) {
   const denied = authorizeCronRequest(req)
   if (denied) return denied
+
+  const limited = await assertRadarScanRateLimit(req)
+  if (limited) return limited
 
   const missing = CRAWLER_REQUIRED_KEYS.filter((k) => !process.env[k]?.trim())
   if (missing.length > 0) {

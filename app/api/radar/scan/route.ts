@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth"
 import { runRadarGlobalScan } from "@/lib/radar/crawler/global-scan"
 import { hasRadarAccess, resolveRadarFeatures } from "@/lib/radar/features"
 import { gate } from "@/lib/radar/gate"
+import { assertRadarScanRateLimit } from "@/lib/radar/scan-rate-limit"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -12,9 +13,12 @@ export const maxDuration = 300
 /**
  * Force Scan from Radar UI — session + feature gate (never expose CRON_SECRET to the browser).
  */
-export async function POST() {
+export async function POST(req: Request) {
   const blocked = gate()
   if (blocked) return blocked
+
+  const limited = await assertRadarScanRateLimit(req)
+  if (limited) return limited
 
   const session = await auth()
   if (!session?.user?.id) {
