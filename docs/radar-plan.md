@@ -9,8 +9,10 @@
 | 3 | ✅ | Schema Prisma V3 (`ShopConnection`, snapshots) |
 | 4 | ✅ | Crawler global + cron 6h + `RadarGlobalSnapshot` |
 | 5 | ✅ | Dashboard live + demo fallback DB offline + `/radar/winners` |
-| 6 | ⬜ | Map page |
+| 6 | ✅ | Map Monde (d3-geo + world-atlas) |
 | 10 | ✅ | Alert Engine WINNER DETECTED + Slack + cron 4h |
+| 11 | ✅ | Map pulsante /radar/map |
+| 12 | ✅ | Monetisation Pro $49 / Global $99 + landing public |
 
 ## Routing (Next.js 15+)
 
@@ -18,12 +20,13 @@
 - Gate Radar + 301 `/intelli` → `/radar` : `proxy.ts` appelle `radarDisabledResponse` (`lib/radar/gate.ts`).
 - Cron `/api/radar/cron/*` : exempt du rewrite 404 si flag off (auth `CRON_SECRET`).
 
-## Jalon 10 — Alert Engine
-- Models : `RadarAlert`, `AlertSubscription` (`prisma/radar.schema.prisma`) — `npm run radar:db:push`
-- Rules : WINNER_NEW / RISING / PRICE_WAR / SATURATION_RISK / NEW_LISTING
-- Cron : `GET /api/radar/cron/alerts` every 4h (`vercel.json`)
-- UI : `/radar/alerts`, `/radar/alerts/settings` (Slack webhook chiffré)
-- Health : `alertsTable` dans `GET /api/radar/health`
+## Jalon 11–12 — Map + Monetisation
+- Map : `/radar/map` — d3-geo + CDN world-atlas, mock si DB vide
+- Plans : `lib/radar/plans.ts` — Free / Starter / Pro $49 / Global $99
+- Paywall : blur teaser free/starter ; Map Pro+ ; Slack Global
+- Landing public : `/radar` (non loggé) + `/radar/public`
+- Health : `mapReady`, `plans`, `subscriptions`
+- Env : `RADAR_PLANS_ENABLED=true`
 
 ## Jalon 5 — Dashboard `/radar`
 - Queries parallèles : shops, `count`, top winners `rank <= 20`

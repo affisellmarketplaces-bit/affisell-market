@@ -63,3 +63,10 @@ curl -s "$APP/api/radar/health"
 - Cron `/api/radar/cron/alerts` (4h) + Slack notifier
 - UI `/radar/alerts` + settings
 - Après deploy : `npm run radar:db:push`
+
+## Jalon 11–12 — Map + Revenue ✅
+
+- `/radar/map` world map pulsante (d3-geo)
+- Plans Pro $49 / Global $99 + paywalls
+- Landing public `/radar` non authentifié
+- Health : `mapReady`, `plans`
