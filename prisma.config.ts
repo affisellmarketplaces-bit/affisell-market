@@ -34,3 +34,10 @@ if (needsDatabaseUrl && !process.env.DATABASE_URL?.trim()) {
 export default defineConfig({
   schema: "prisma/schema.prisma",
 })
+
+/**
+ * Radar schema (`prisma/radar.schema.prisma`) uses env("RADAR_DATABASE_URL").
+ * `npm run radar:db:push` → scripts/radar-db.mjs sets RADAR_DATABASE_URL to:
+ *   RADAR_DATABASE_URL | Neon DATABASE_URL_UNPOOLED | DATABASE_URL
+ * (skips docker localhost:5434). Tables live in Postgres schema `market_intelli`.
+ */

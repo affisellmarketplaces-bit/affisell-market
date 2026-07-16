@@ -2,7 +2,7 @@ import "server-only"
 
 import type { PrismaClient } from ".prisma/client-mi"
 
-import { RADAR_DATABASE_URL } from "@/lib/radar/env"
+import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 
 const globalForRadar = globalThis as unknown as { radarDb?: PrismaClient }
 
@@ -15,12 +15,28 @@ function createRadarDb(): PrismaClient {
     }) => PrismaClient
   }
 
-  const url = RADAR_DATABASE_URL
+  const explicit =
+    process.env.RADAR_DATABASE_URL?.trim() ||
+    process.env.MARKET_INTELLI_DATABASE_URL?.trim() ||
+    ""
+  const url = resolveRadarDatabaseUrl()
   if (!url) {
     throw new Error(
-      "[prisma-radar] RADAR_DATABASE_URL (or MARKET_INTELLI_DATABASE_URL fallback) is not configured"
+      "[prisma-radar] No database URL — set RADAR_DATABASE_URL or DATABASE_URL (Neon)"
     )
   }
+
+  const usedFallback =
+    !explicit ||
+    /localhost:5434|127\.0\.0\.1:5434/.test(explicit) ||
+    url !== explicit
+  if (usedFallback && (process.env.DATABASE_URL?.trim() || process.env.DATABASE_URL_UNPOOLED?.trim())) {
+    console.log("[prisma-radar]", {
+      result: "using_affisell_database_url_fallback",
+      schema: "market_intelli",
+    })
+  }
+
   return new RadarPrismaClient({
     datasources: { db: { url } },
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],

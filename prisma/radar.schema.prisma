@@ -1,5 +1,5 @@
-/// Affisell Radar V3 — isolated Postgres.
-/// URL: RADAR_DATABASE_URL (fallback MARKET_INTELLI_DATABASE_URL via scripts).
+/// Affisell Radar V3 — Postgres schema `market_intelli`.
+/// URL via scripts/radar-db.mjs: RADAR_DATABASE_URL → Neon DATABASE_URL (no Docker required).
 /// Generate: npx prisma generate --schema=prisma/radar.schema.prisma
 /// Push: npm run radar:db:push
 
