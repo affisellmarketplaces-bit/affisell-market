@@ -90,7 +90,8 @@ export const GOOGLE_CONNECTORS: GoogleConnector[] = [
     region: "GLOBAL",
     authType: "oauth",
     scopes: ["https://www.googleapis.com/auth/content"],
-    getAuthUrl: stubAuthUrl("google_merchant"),
+    getAuthUrl: (userId: string) =>
+      `/api/radar/google/merchant/start?userId=${encodeURIComponent(userId)}`,
   },
   {
     id: "google_search_console",
@@ -113,8 +114,8 @@ export const GOOGLE_CONNECTORS: GoogleConnector[] = [
   },
 ]
 
-/** Client-safe list — keep server-only connectors (amazon.ts) out of this module. */
-export const LIVE_CONNECTOR_IDS = new Set(["tiktok_shop", "amazon"])
+/** Client-safe list — keep server-only connectors out of this module. */
+export const LIVE_CONNECTOR_IDS = new Set(["tiktok_shop", "amazon", "google_merchant"])
 
 export function getConnectorById(id: string) {
   return (

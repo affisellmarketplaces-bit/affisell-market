@@ -67,7 +67,8 @@ export default function RadarConnectClient() {
       <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
         <h2 className="text-base font-semibold text-zinc-900">Connecter une source au Radar</h2>
         <p className="mt-2 text-sm text-zinc-600">
-          TikTok Shop et Amazon SP-API sont disponibles. Les autres connecteurs arrivent progressivement.
+          TikTok Shop, Amazon SP-API et Google Merchant Center sont disponibles. Les autres
+          connecteurs arrivent progressivement.
         </p>
         {error && (
           <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -81,14 +82,21 @@ export default function RadarConnectClient() {
           Google — Où on te trouve
         </h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {GOOGLE_CONNECTORS.map((c) => (
-            <ConnectorCard
-              key={c.id}
-              connector={c}
-              href={`/api/radar/google/start?connectorId=${encodeURIComponent(c.id)}`}
-              enabled={false}
-            />
-          ))}
+          {GOOGLE_CONNECTORS.map((c) => {
+            const live = isConnectorLive(c.id)
+            const href =
+              c.id === "google_merchant"
+                ? "/api/radar/google/merchant/start"
+                : `/api/radar/google/start?connectorId=${encodeURIComponent(c.id)}`
+            return (
+              <ConnectorCard
+                key={c.id}
+                connector={c}
+                href={href}
+                enabled={live}
+              />
+            )
+          })}
         </div>
       </section>
 

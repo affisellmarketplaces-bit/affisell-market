@@ -31,5 +31,9 @@ export async function GET(req: Request) {
     )
   }
 
+  if (connectorId === "google_merchant") {
+    return NextResponse.redirect(new URL("/api/radar/google/merchant/start", req.url))
+  }
+
   return NextResponse.redirect(new URL(connector.getAuthUrl(session.user.id), req.url))
 }
