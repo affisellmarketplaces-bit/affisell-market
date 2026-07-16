@@ -4,17 +4,14 @@
  * - Normal: first free TCP port in [PORT..PORT+19] (default PORT=3001) to avoid EADDRINUSE.
  * - Playwright (`PLAYWRIGHT_WEB_SERVER=1`): fixed `PORT` only (no scan) so `playwright.config` `url` matches.
  * - If a live dev server lock exists, prints its URL and exits 0 (no duplicate next dev).
+ * - Re-prints Affisell URLs in terminal when Next.js reports "Ready" (Cursor terminal, no Chrome).
  */
 import { spawn } from "node:child_process"
 import { createRequire } from "node:module"
 import { createServer } from "node:net"
 import { existsSync, readFileSync, unlinkSync } from "node:fs"
 import { join } from "node:path"
-import {
-  openDevBrowser,
-  openDevBrowserWhenReady,
-  printAffisellDevBanner,
-} from "./affisell-dev-banner.mjs"
+import { attachAffisellReadyBanner, printAffisellDevBanner } from "./affisell-dev-banner.mjs"
 import { resolveDevPort } from "./dev-localhost-url.mjs"
 
 const require = createRequire(import.meta.url)
@@ -107,7 +104,6 @@ if (liveLock && process.env.PLAYWRIGHT_WEB_SERVER !== "1") {
   printAffisellDevBanner(url, { alreadyRunning: true })
   console.log(`  PID ${liveLock.pid} · stop with: kill ${liveLock.pid}`)
   console.log("  Fresh terminal logs: npm run dev:restart\n")
-  openDevBrowser(url)
   process.exit(0)
 }
 
@@ -118,7 +114,6 @@ if (scanPorts && !(await portFree(preferred)) && (await probeNextDev(preferred))
   const url = `http://localhost:${preferred}`
   printAffisellDevBanner(url, { alreadyRunning: true })
   console.log("  Fresh terminal logs: npm run dev:restart\n")
-  openDevBrowser(url)
   process.exit(0)
 }
 
@@ -142,11 +137,19 @@ if (scanPorts && port !== preferred) {
 printAffisellDevBanner(origin)
 
 const child = spawn(process.execPath, [nextBin, "dev", "-p", String(port)], {
-  stdio: "inherit",
+  stdio: ["inherit", "pipe", "pipe"],
   env: { ...process.env, PORT: String(port) },
 })
 
-void openDevBrowserWhenReady(origin)
+attachAffisellReadyBanner(child, origin)
+
+child.stdout?.on("data", (chunk) => {
+  process.stdout.write(chunk)
+})
+
+child.stderr?.on("data", (chunk) => {
+  process.stderr.write(chunk)
+})
 
 child.on("exit", (code, signal) => {
   if (signal) process.kill(process.pid, signal)
