@@ -12,17 +12,27 @@ function hasRadarFeature(features: string[] | undefined): boolean {
   )
 }
 
-const NAV = [
-  { href: "/radar", label: "Dashboard" },
-  { href: "/radar/connect", label: "Connect" },
-  { href: "/radar/winners", label: "Winners" },
-  { href: "/radar/map", label: "Map", stub: true },
-] as const
-
-export default function RadarAppShell({ children }: { children: React.ReactNode }) {
+export default function RadarAppShell({
+  children,
+  unreadCount = 0,
+}: {
+  children: React.ReactNode
+  unreadCount?: number
+}) {
   const { data: session, status } = useSession()
   const router = useRouter()
   const pathname = usePathname()
+
+  const nav = [
+    { href: "/radar", label: "Dashboard" },
+    { href: "/radar/connect", label: "Connect" },
+    { href: "/radar/winners", label: "Winners" },
+    {
+      href: "/radar/alerts",
+      label: unreadCount > 0 ? `🚨 Alertes ${unreadCount}` : "🚨 Alertes",
+    },
+    { href: "/radar/map", label: "Map", stub: true as const },
+  ]
 
   useEffect(() => {
     if (status === "loading") return
@@ -56,8 +66,10 @@ export default function RadarAppShell({ children }: { children: React.ReactNode 
             </h1>
           </div>
           <nav className="flex flex-wrap gap-2 text-sm">
-            {NAV.map((item) => {
-              const active = pathname === item.href
+            {nav.map((item) => {
+              const active =
+                pathname === item.href ||
+                (item.href !== "/radar" && pathname.startsWith(item.href))
               if ("stub" in item && item.stub) {
                 return (
                   <span
