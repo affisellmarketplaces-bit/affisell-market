@@ -2,6 +2,8 @@ import "server-only"
 
 import type { PrismaClient } from ".prisma/client-mi"
 
+import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
+
 const globalForMi = globalThis as unknown as { miDb?: PrismaClient }
 
 function createMiDb(): PrismaClient {
@@ -13,9 +15,11 @@ function createMiDb(): PrismaClient {
     }) => PrismaClient
   }
 
-  const url = process.env.MARKET_INTELLI_DATABASE_URL?.trim()
+  const url = resolveRadarDatabaseUrl()
   if (!url) {
-    throw new Error("[prisma-mi] MARKET_INTELLI_DATABASE_URL is not configured")
+    throw new Error(
+      "[prisma-mi] RADAR_DATABASE_URL (or MARKET_INTELLI_DATABASE_URL fallback) is not configured"
+    )
   }
   return new MiPrismaClient({
     datasources: { db: { url } },

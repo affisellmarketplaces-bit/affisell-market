@@ -16,7 +16,7 @@ import {
   resolvePostLoginRedirect,
 } from "@/lib/login-redirect"
 import { requestHost } from "@/lib/custom-domain-host"
-import { marketIntelliDisabledResponse } from "@/lib/market-intelli/gate"
+import { radarDisabledResponse } from "@/lib/radar/gate"
 import { tryCustomDomainMiddleware } from "@/lib/middleware-custom-domain"
 import { canonicalPlatformRedirectUrl } from "@/lib/platform-canonical-url"
 import {
@@ -193,10 +193,23 @@ function rewriteStaticAppPath(req: NextRequest): NextResponse | null {
 
 /** Next.js 16+ proxy (ex-middleware). */
 export async function proxy(req: NextRequest) {
-  const blocked = marketIntelliDisabledResponse(req)
-  if (blocked) return blocked
-
   const pathname = req.nextUrl.pathname
+  const barePath = pathnameWithoutLocale(pathname)
+  const pathnameLocale = localeFromPathname(pathname)
+
+  if (barePath === "/intelli" || barePath.startsWith("/intelli/")) {
+    const suffix = barePath.slice("/intelli".length)
+    const target = `${pathnameLocale ? `/${pathnameLocale}` : ""}/radar${suffix}`
+    return NextResponse.redirect(new URL(`${target}${req.nextUrl.search}`, req.url), 301)
+  }
+
+  if (barePath === "/api/intelli" || barePath.startsWith("/api/intelli/")) {
+    const suffix = barePath.slice("/api/intelli".length)
+    return NextResponse.redirect(new URL(`/api/radar${suffix}${req.nextUrl.search}`, req.url), 301)
+  }
+
+  const blocked = radarDisabledResponse(req)
+  if (blocked) return blocked
 
   const canonicalRedirect = canonicalPlatformRedirectUrl(
     requestHost(req),
@@ -463,6 +476,9 @@ export const config = {
     "/enterprise",
     "/demo",
     "/demo/:path*",
+    "/radar",
+    "/radar/:path*",
+    "/api/radar/:path*",
     "/intelli",
     "/intelli/:path*",
     "/api/intelli/:path*",

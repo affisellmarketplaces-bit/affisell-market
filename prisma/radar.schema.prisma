@@ -1,6 +1,6 @@
-/// Alias schema kept for compatibility during Radar transition.
-/// Canonical schema: prisma/radar.schema.prisma
-/// Push: npm run radar:db:push (or npm run mi:db:push alias)
+/// Affisell Radar — isolated Postgres (RADAR_DATABASE_URL, fallback MARKET_INTELLI_DATABASE_URL).
+/// Generate: npx prisma generate --schema=prisma/radar.schema.prisma
+/// Push: npm run radar:db:push
 
 generator client {
   provider = "prisma-client-js"
@@ -9,7 +9,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("MARKET_INTELLI_DATABASE_URL")
+  url      = env("RADAR_DATABASE_URL")
 }
 
 enum MiMarketplaceCode {

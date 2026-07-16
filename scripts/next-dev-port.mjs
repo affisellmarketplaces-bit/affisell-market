@@ -100,7 +100,7 @@ if (liveLock && process.env.PLAYWRIGHT_WEB_SERVER !== "1") {
       ? liveLock.appUrl
       : `http://localhost:${liveLock.port ?? resolveDevPort()}`
   console.log(
-    `\n[affisell dev] Already running → ${url}\n` +
+    `\n[affisell dev] Affisell — already running → ${url}\n` +
       `  PID ${liveLock.pid} · stop with: kill ${liveLock.pid}\n` +
       `  Or restart: npm run dev:restart\n`
   )
@@ -112,7 +112,7 @@ const scanPorts = process.env.PLAYWRIGHT_WEB_SERVER !== "1"
 
 if (scanPorts && !(await portFree(preferred)) && (await probeNextDev(preferred))) {
   console.log(
-    `\n[affisell dev] Already running → http://localhost:${preferred}\n` +
+    `\n[affisell dev] Affisell — already running → http://localhost:${preferred}\n` +
       `  Restart: npm run dev:restart\n`
   )
   process.exit(0)
@@ -133,7 +133,11 @@ if (scanPorts && port !== preferred) {
       `  Tip: stop the other process, or set PORT=${port} in .env for stable URLs.\n`
   )
 } else {
-  console.log(`\n[affisell dev] http://localhost:${port}\n`)
+  console.log(
+    `\n[affisell dev] Affisell — http://localhost:${port}\n` +
+      `  Dashboard: http://localhost:${port}/dashboard/supplier\n` +
+      `  Radar:     http://localhost:${port}/radar\n`
+  )
 }
 
 const child = spawn(process.execPath, [nextBin, "dev", "-p", String(port)], {
