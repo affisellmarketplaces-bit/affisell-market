@@ -19,8 +19,11 @@
 
 ## Jalon 5 — Dashboard `/radar`
 - Queries parallèles : shops, `count`, top winners `rank <= 20`
+- **DB offline** → banner « Radar DB offline, mode demo » + 5 produits mock
 - Trends : `getTrendingKeywords(['led strip','shapewear','phone case'])`
 - Filtres marketplace / country / search (URL searchParams)
 - **Forcer Scan** → `POST /api/radar/scan` (session Radar) — *jamais* `CRON_SECRET` côté client
 - Cron inchangé : `GET /api/radar/cron/global-scan` + Bearer `CRON_SECRET`
 - Empty state : banner si `RadarGlobalSnapshot` count = 0 (clés crawler manquantes)
+- **Winners** : `/radar/winners` liste `rank <= 20`
+- **Health** : `GET /api/radar/health` → `{ redis, db, cronSecret, serper, marketplaces }`
