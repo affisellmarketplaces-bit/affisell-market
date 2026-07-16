@@ -1,8 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import Link from "next/link"
-
+import { FastLink } from "@/components/navigation/fast-link"
 import type { AgentProductCard } from "@/lib/agent-product-card-types"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { WishlistHeart } from "@/components/wishlist-heart"
@@ -21,7 +20,7 @@ function AgentProductCardItem({ p }: { p: AgentProductCard }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
     >
-      <Link
+      <FastLink
       href={`/product/${p.id}`}
       className="group flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-zinc-900 transition-all hover:-translate-y-1 hover:border-violet-500/50 hover:shadow-2xl hover:shadow-violet-900/20"
     >
@@ -51,7 +50,7 @@ function AgentProductCardItem({ p }: { p: AgentProductCard }) {
           Voir le produit
         </div>
       </div>
-    </Link>
+    </FastLink>
     </motion.div>
   )
 }

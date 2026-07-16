@@ -22,7 +22,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useLocale } from "next-intl"
-import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
+import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react"
 import nextDynamic from "next/dynamic"
 
 const ReviewsEngine = nextDynamic(
@@ -40,13 +40,6 @@ const BookingCheckoutPanel = nextDynamic(
   () =>
     import("@/components/booking/booking-checkout-panel").then((m) => ({
       default: m.BookingCheckoutPanel,
-    })),
-  { loading: () => null }
-)
-const PdpCrossSellRail = nextDynamic(
-  () =>
-    import("@/components/marketplace/pdp-cross-sell-rail").then((m) => ({
-      default: m.PdpCrossSellRail,
     })),
   { loading: () => null }
 )
@@ -140,8 +133,6 @@ export type ListingShippingBlock = ListingLogisticsInput & {
   freeShippingThresholdEUR: number | null
 }
 
-import type { PdpCrossSellCard } from "@/lib/marketplace-pdp-cross-sell-shared"
-
 type SpecRow = { label: string; value: string }
 
 type Props = {
@@ -180,8 +171,10 @@ type Props = {
   retailPriceEur?: number
   has3D?: boolean
   arModel?: string | null
-  oftenBoughtTogether?: PdpCrossSellCard[]
-  alsoViewed?: PdpCrossSellCard[]
+  compactCrossSellSlot?: ReactNode
+  crossSellFooterSlot?: ReactNode
+  /** Server-hydrated wallet balance — skips client session waterfall when signed in. */
+  initialRewardBalanceCents?: number
   reviewSummary: {
     count: number
     average: number
@@ -365,8 +358,9 @@ export function MarketplaceListingDetail({
   retailPriceEur,
   has3D = false,
   arModel,
-  oftenBoughtTogether = [],
-  alsoViewed = [],
+  compactCrossSellSlot = null,
+  crossSellFooterSlot = null,
+  initialRewardBalanceCents = undefined,
   reviewSummary,
   buyerRewardBadge = null,
   offerBadge = null,
@@ -566,7 +560,7 @@ export function MarketplaceListingDetail({
     quantityOption: (count: number) => t(productT.quantityOption, { count }),
     quantityAria: productT.quantityAria,
   }
-  const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
+  const [rewardBalanceCents, setRewardBalanceCents] = useState(initialRewardBalanceCents ?? 0)
   const [useRewardCents, setUseRewardCents] = useState(0)
 
   const colorMeta = useMemo(
@@ -732,6 +726,10 @@ export function MarketplaceListingDetail({
   }, [buyNowLineSubtotalCents, rewardBalanceCents])
 
   useEffect(() => {
+    if (initialRewardBalanceCents != null) {
+      setRewardBalanceCents(initialRewardBalanceCents)
+      return
+    }
     let cancelled = false
     ;(async () => {
       try {
@@ -754,7 +752,7 @@ export function MarketplaceListingDetail({
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [initialRewardBalanceCents])
 
   useEffect(() => {
     setUseRewardCents((v) => Math.min(Math.max(0, v), maxApplicableReward))
@@ -1572,13 +1570,7 @@ export function MarketplaceListingDetail({
                 </button>
               </div>
 
-              {oftenBoughtTogether.length > 0 ? (
-                <PdpCrossSellRail
-                  items={oftenBoughtTogether}
-                  kind="boughtTogether"
-                  variant="compact"
-                />
-              ) : null}
+              {compactCrossSellSlot}
               </>
               )}
             </motion.div>
@@ -1873,13 +1865,7 @@ export function MarketplaceListingDetail({
         </Suspense>
       </section>
 
-      {oftenBoughtTogether.length > 0 ? (
-        <PdpCrossSellRail items={oftenBoughtTogether} kind="boughtTogether" />
-      ) : null}
-
-      {alsoViewed.length > 0 ? (
-        <PdpCrossSellRail items={alsoViewed} kind="alsoViewed" />
-      ) : null}
+      {crossSellFooterSlot}
 
       {showAr ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">

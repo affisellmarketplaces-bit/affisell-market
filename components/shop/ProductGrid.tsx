@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl"
 
 import type { ProductCardDisplayMode } from "@/components/product/ProductCard"
 import { StorefrontProductCard } from "@/components/storefront/product-card"
+import { useViewportRoutePrefetch } from "@/hooks/use-viewport-route-prefetch"
 import type { ShopProductCard } from "@/lib/shop-storefront-shared"
 import {
   storefrontGridClass,
@@ -35,6 +36,11 @@ export function ProductGrid({
   const t = useTranslations("boutique")
   const tChrome = useTranslations("storefront.buyerChrome")
   const immersive = isStorefrontImmersiveLayout(layout)
+  const productGridRef = useViewportRoutePrefetch<HTMLUListElement>({
+    enabled: mode === "customer",
+    max: 24,
+    deps: [products.length],
+  })
 
   if (products.length === 0) {
     return (
@@ -51,7 +57,7 @@ export function ProductGrid({
           {tChrome("showingCategory", { category: activeCategoryLabel, count: products.length })}
         </p>
       ) : null}
-      <ul className={storefrontGridClass(gridDensity)}>
+      <ul ref={productGridRef} className={storefrontGridClass(gridDensity)}>
         {products.map((item) => (
           <li key={item.listingId}>
             <StorefrontProductCard

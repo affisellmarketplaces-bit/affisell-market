@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
+import { Suspense } from "react"
 import { notFound, redirect } from "next/navigation"
 import { getLocale } from "next-intl/server"
 import { headers } from "next/headers"
@@ -7,6 +8,11 @@ import { headers } from "next/headers"
 import { auth } from "@/auth"
 import { CheckoutRegionComingSoonBanner } from "@/components/marketplace/checkout-region-coming-soon-banner"
 import { GraduatedCheckoutPermanentBanner } from "@/components/marketplace/graduated-checkout-permanent-banner"
+import { PdpCrossSellRailSkeleton } from "@/components/marketplace/pdp-cross-sell-rail-skeleton"
+import {
+  PdpCrossSellCompactStream,
+  PdpCrossSellFooterStream,
+} from "@/components/marketplace/pdp-cross-sell-stream"
 import { RolloutShippingConfirmedBanner } from "@/components/marketplace/rollout-shipping-confirmed-banner"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { filterListingForPromotedVariants } from "@/lib/affiliate-storefront-variants"
@@ -20,7 +26,6 @@ import { shopListingPath } from "@/lib/affiliate-routes"
 import { resolveSiteBaseUrl } from "@/lib/seo-site-url"
 import { isAffiliateOwnerPreviewUrl } from "@/lib/affiliate-store-preview-access"
 import { loadMarketplaceListingPageData } from "@/lib/marketplace-listing-page-loader"
-import { mapPdpCrossSellListings } from "@/lib/marketplace-pdp-cross-sell-shared"
 import { buildListingLogisticsInput } from "@/lib/listing-logistics-display"
 import { mergeColorImagesForProduct, parseProductColorImagesFromDb, enrichGalleryWithColorHeroImages } from "@/lib/product-color-images"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
@@ -195,28 +200,40 @@ export default async function MarketplaceListingPage({
     headers(),
   ])
   const visitorCountry = resolveVisitorCountryIso2(requestHeaders)
-  const checkoutAvailable = visitorCountry ? await isStripeCheckoutCountryResolved(visitorCountry) : true
-  const graduatedCheckout =
-    visitorCountry && checkoutAvailable
-      ? await isGraduatedCheckoutCountryResolved(visitorCountry)
-      : false
-  const rolloutOnly =
-    visitorCountry && checkoutAvailable && !graduatedCheckout
-      ? await isRolloutOnlyCheckoutCountryResolved(visitorCountry)
-      : false
+  const checkoutFlags = visitorCountry
+    ? await Promise.all([
+        isStripeCheckoutCountryResolved(visitorCountry),
+        isGraduatedCheckoutCountryResolved(visitorCountry),
+        isRolloutOnlyCheckoutCountryResolved(visitorCountry),
+      ]).then(([stripe, graduated, rollout]) => ({
+        checkoutAvailable: stripe,
+        graduatedCheckout: stripe && graduated,
+        rolloutOnly: stripe && !graduated && rollout,
+      }))
+    : { checkoutAvailable: true, graduatedCheckout: false, rolloutOnly: false }
+  const { checkoutAvailable, graduatedCheckout, rolloutOnly } = checkoutFlags
 
   const isAffiliateSession = String(session?.user?.role ?? "").toUpperCase() === "AFFILIATE"
   const ownerPreviewByQuery = isAffiliateOwnerPreviewUrl({
     get: (key) => (key === "preview" ? sp.preview ?? null : null),
   })
-  const loaded = await loadMarketplaceListingPageData({
-    listingId: id,
-    storeSlug,
-    buyerUserId: session?.user?.id ?? null,
-    orderId: sp.orderId ?? null,
-    allowOwnerPreview: isAffiliateSession && (ownerPreviewByQuery || Boolean(storeSlug)),
-    ownerAffiliateUserId: session?.user?.id ?? null,
-  })
+  const buyerUserId = session?.user?.id ?? null
+  const [loaded, rewardBalanceRow] = await Promise.all([
+    loadMarketplaceListingPageData({
+      listingId: id,
+      storeSlug,
+      buyerUserId,
+      orderId: sp.orderId ?? null,
+      allowOwnerPreview: isAffiliateSession && (ownerPreviewByQuery || Boolean(storeSlug)),
+      ownerAffiliateUserId: session?.user?.id ?? null,
+    }),
+    buyerUserId
+      ? prisma.user.findUnique({
+          where: { id: buyerUserId },
+          select: { buyerRewardBalanceCents: true },
+        })
+      : Promise.resolve(null),
+  ])
   if (!loaded) notFound()
   const previewQs = sp.preview === "affiliate" ? "?preview=affiliate" : ""
   const resolvedListingId = loaded.listing.id
@@ -243,7 +260,7 @@ export default async function MarketplaceListingPage({
     }
   }
 
-  const { listing, crossSell, viewsLast24h, affiliateCreatorsWatching, writeReviewOrderId } = loaded
+  const { listing, viewsLast24h, affiliateCreatorsWatching, writeReviewOrderId } = loaded
   const useE2eLtv = shouldUseE2eLtvLoopFixtures({ e2eFixtures: sp.e2eFixtures })
   const creatorsWatchingOverride = parseE2eCreatorsWatchingOverride(
     sp.e2eCreatorsWatching,
@@ -347,14 +364,13 @@ export default async function MarketplaceListingPage({
     freeShippingThresholdEUR: freeThresh,
   }
 
-  const oftenBoughtTogether = mapPdpCrossSellListings(crossSell.boughtTogether, {
-    storeSlug,
-    limit: 4,
-  })
-  const alsoViewed = mapPdpCrossSellListings(crossSell.alsoViewed, {
-    storeSlug,
-    limit: 4,
-  })
+  const crossSellStreamArgs = {
+    listingId: listing.id,
+    productId: listing.product.id,
+    affiliateId: listing.affiliateId,
+    storeSlug: storeSlug ?? listing.affiliate.store?.slug?.trim() ?? null,
+    categories,
+  }
 
   const descriptionBullets =
     Array.isArray(p.descriptionBullets) && p.descriptionBullets.length > 0
@@ -476,8 +492,19 @@ export default async function MarketplaceListingPage({
           retailPriceEur={retailPriceEur}
           has3D={has3D}
           arModel={arModel}
-          oftenBoughtTogether={oftenBoughtTogether}
-          alsoViewed={alsoViewed}
+          compactCrossSellSlot={
+            <Suspense fallback={null}>
+              <PdpCrossSellCompactStream {...crossSellStreamArgs} />
+            </Suspense>
+          }
+          crossSellFooterSlot={
+            <Suspense fallback={<PdpCrossSellRailSkeleton />}>
+              <PdpCrossSellFooterStream {...crossSellStreamArgs} />
+            </Suspense>
+          }
+          initialRewardBalanceCents={
+            buyerUserId ? (rewardBalanceRow?.buyerRewardBalanceCents ?? 0) : undefined
+          }
           reviewSummary={{
             count: listing.product.reviewCount,
             average: listing.product.averageRating,

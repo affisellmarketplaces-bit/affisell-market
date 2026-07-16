@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 
+import { CatalogGridPrefetch } from "@/components/navigation/catalog-grid-prefetch"
 import { CatalogCardImage } from "@/components/home/catalog-card-image"
 import {
   normalizeHomeCatalogProduct,
@@ -38,6 +39,7 @@ export async function HomeCatalogStaticGrid({ shell, limit = 24 }: Props) {
       <p className="mb-2 text-[11px] text-zinc-500 dark:text-zinc-400 md:hidden">
         {tHub("listingShort", { count: shell.catalogTotal || items.length })}
       </p>
+      <CatalogGridPrefetch>
       <ul className="affisell-product-grid grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
         {items.map((item, index) => (
           <li key={item.id} className="flex h-full">
@@ -66,6 +68,7 @@ export async function HomeCatalogStaticGrid({ shell, limit = 24 }: Props) {
           </li>
         ))}
       </ul>
+      </CatalogGridPrefetch>
     </div>
   )
 }

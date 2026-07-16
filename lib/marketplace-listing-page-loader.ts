@@ -3,7 +3,6 @@ import {
   buyerMarketplaceProductWhere,
 } from "@/lib/marketplace-buyer-product-filter"
 import { looksLikeAffiliateListingId } from "@/lib/listing-public-url-shared"
-import { loadPdpCrossSellBundle } from "@/lib/load-marketplace-pdp-cross-sell"
 import { countAffiliateCreatorsWatchingProduct } from "@/lib/affiliate-product-opportunity-pulse"
 import { isPrismaMissingColumnError } from "@/lib/prisma-missing-column"
 import { prisma } from "@/lib/prisma"
@@ -328,12 +327,6 @@ export async function loadMarketplaceListingPageData(args: {
     listingSlugRedirect = listing.customSlug.trim()
   }
 
-  const categories = Array.isArray(listing.product.categories)
-    ? listing.product.categories.filter((c): c is string => typeof c === "string" && Boolean(c.trim()))
-    : []
-
-  const storeSlugForRelated = args.storeSlug?.trim() || listing.affiliate.store?.slug?.trim() || null
-
   const orderPromise =
     args.buyerUserId && args.orderId?.trim()
       ? prisma.order.findFirst({
@@ -348,14 +341,7 @@ export async function loadMarketplaceListingPageData(args: {
         })
       : Promise.resolve(null)
 
-  const [crossSell, viewsLast24h, affiliateCreatorsWatching, orderRow] = await Promise.all([
-    loadPdpCrossSellBundle({
-      listingId: listing.id,
-      productId: listing.product.id,
-      affiliateId: listing.affiliateId,
-      storeSlug: storeSlugForRelated,
-      categories,
-    }),
+  const [viewsLast24h, affiliateCreatorsWatching, orderRow] = await Promise.all([
     countViewsLast24h(listing.product.id),
     countAffiliateCreatorsWatchingProduct(listing.product.id),
     orderPromise,
@@ -367,7 +353,6 @@ export async function loadMarketplaceListingPageData(args: {
     listingIdRedirect,
     listingSlugRedirect,
     ownerPreviewUnlisted,
-    crossSell,
     viewsLast24h,
     affiliateCreatorsWatching,
     writeReviewOrderId: orderRow?.id ?? null,
