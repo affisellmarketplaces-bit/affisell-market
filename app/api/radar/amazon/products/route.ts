@@ -30,7 +30,7 @@ export async function GET() {
     Array.isArray(session.user.features) && session.user.features.length > 0
       ? session.user.features
       : resolveRadarFeatures(session.user.id, session.user.isPro ?? false)
-  if (!hasRadarAccess(features, session.user.id)) {
+  if (!hasRadarAccess(features, session.user.id, session.user.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 

@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/admin/expansion", label: "Expansion" },
   { href: "/admin/terminal", label: "Terminal" },
   { href: "/admin/sentinel", label: "Sentinel" },
+  { href: "/admin/radar", label: "Radar" },
   { href: "/admin/kyc", label: "KYC" },
   { href: "/admin/support", label: "Support" },
   { href: "/admin/returns", label: "Retours" },
@@ -55,6 +56,7 @@ export function AdminNav() {
               (link.href === "/admin/expansion" && pathname.startsWith("/admin/expansion")) ||
               (link.href === "/admin/terminal" && pathname.startsWith("/admin/terminal")) ||
               (link.href === "/admin/sentinel" && pathname.startsWith("/admin/sentinel")) ||
+              (link.href === "/admin/radar" && pathname.startsWith("/admin/radar")) ||
               (link.href === "/admin/kyc" && pathname.startsWith("/admin/kyc")) ||
               (link.href === "/admin/support" && pathname.startsWith("/admin/support")) ||
               (link.href === "/admin/returns" && pathname.startsWith("/admin/returns")) ||

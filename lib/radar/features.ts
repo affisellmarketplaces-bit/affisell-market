@@ -4,9 +4,14 @@ import { RADAR_BETA_USER_IDS, RADAR_ENABLED } from "@/lib/radar/env"
 export function resolveRadarFeatures(
   userId: string,
   isPro: boolean,
-  radarPlan?: string | null
+  radarPlan?: string | null,
+  role?: string | null
 ): string[] {
   if (RADAR_ENABLED !== "true") return []
+
+  if (String(role ?? "").toUpperCase() === "ADMIN") {
+    return ["radar", "market_intelli", "radar_global"]
+  }
 
   if (RADAR_BETA_USER_IDS.includes(userId)) {
     return ["radar", "market_intelli", "radar_global"]
@@ -25,7 +30,12 @@ export function resolveRadarFeatures(
   return []
 }
 
-export function hasRadarAccess(features: string[] | undefined, userId?: string): boolean {
+export function hasRadarAccess(
+  features: string[] | undefined,
+  userId?: string,
+  role?: string | null
+): boolean {
+  if (String(role ?? "").toUpperCase() === "ADMIN") return true
   if (Array.isArray(features) && (features.includes("radar") || features.includes("market_intelli"))) {
     return true
   }

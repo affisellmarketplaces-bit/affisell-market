@@ -62,9 +62,35 @@ export const RADAR_PLANS: Record<RadarPlanId, RadarPlan> = {
 export type RadarPlanUser = {
   id?: string | null
   email?: string | null
+  role?: string | null
   isPro?: boolean | null
   features?: string[] | null
   subscriptionTiers?: string[] | null
+}
+
+/** Founder/admin QA: full Radar Global without Stripe. */
+export function isRadarAdminBypass(user: RadarPlanUser | null | undefined): boolean {
+  return String(user?.role ?? "").toUpperCase() === "ADMIN"
+}
+
+export function toRadarPlanUser(
+  user: {
+    id?: string | null
+    email?: string | null
+    role?: string | null
+    isPro?: boolean | null
+    features?: string[] | null
+  },
+  extras?: { subscriptionTiers?: string[] | null }
+): RadarPlanUser {
+  return {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    isPro: user.isPro ?? false,
+    features: user.features,
+    subscriptionTiers: extras?.subscriptionTiers ?? null,
+  }
 }
 
 function plansEnabled(): boolean {
@@ -76,7 +102,7 @@ function plansEnabled(): boolean {
 /**
  * Resolve Radar commercial plan for a user.
  * Dev: RADAR_ENABLED≠true → global (full access while building).
- * Beta user ids / emails → global.
+ * ADMIN / beta user ids / emails → global.
  */
 export function getUserRadarPlan(user: RadarPlanUser | null | undefined): RadarPlan {
   if (!plansEnabled() || RADAR_ENABLED !== "true") {
@@ -84,6 +110,8 @@ export function getUserRadarPlan(user: RadarPlanUser | null | undefined): RadarP
   }
 
   if (!user?.id) return RADAR_PLANS.free
+
+  if (isRadarAdminBypass(user)) return RADAR_PLANS.global
 
   if (RADAR_BETA_USER_IDS.includes(user.id)) return RADAR_PLANS.global
   if (user.email && RADAR_BETA_USER_IDS.includes(user.email)) return RADAR_PLANS.global

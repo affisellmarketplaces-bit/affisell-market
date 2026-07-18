@@ -33,6 +33,7 @@ export default async function RadarWinnersPage() {
   const planUser = {
     id: session.user.id,
     email: session.user.email,
+    role: session.user.role,
     isPro: session.user.isPro ?? false,
     features: session.user.features,
   }

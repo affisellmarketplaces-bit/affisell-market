@@ -5,7 +5,8 @@ import { usePathname, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useEffect } from "react"
 
-function hasRadarFeature(features: string[] | undefined): boolean {
+function hasRadarFeature(features: string[] | undefined, role?: string | null): boolean {
+  if (String(role ?? "").toUpperCase() === "ADMIN") return true
   return (
     Array.isArray(features) &&
     (features.includes("radar") || features.includes("market_intelli"))
@@ -56,7 +57,7 @@ export default function RadarAppShell({
     return null
   }
 
-  const showUpgradeHint = !hasRadarFeature(session.user.features)
+  const showUpgradeHint = !hasRadarFeature(session.user.features, session.user.role)
 
   return (
     <div className="min-h-[60vh] bg-zinc-50">

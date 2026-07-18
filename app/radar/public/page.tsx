@@ -15,6 +15,7 @@ export default async function RadarPublicPage() {
     const plan = getUserRadarPlan({
       id: session.user.id,
       email: session.user.email,
+      role: session.user.role,
       isPro: session.user.isPro ?? false,
       features: session.user.features,
     })
@@ -22,6 +23,7 @@ export default async function RadarPublicPage() {
       {
         id: session.user.id,
         email: session.user.email,
+        role: session.user.role,
         isPro: session.user.isPro ?? false,
         features: session.user.features,
       },
