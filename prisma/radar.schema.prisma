@@ -152,3 +152,38 @@ model AlertSubscription {
   @@unique([userId, channel])
   @@schema("market_intelli")
 }
+
+/// TikTok Shop orders synced from webhooks / API (Affisell Analytics Connector).
+model TikTokOrder {
+  id          String   @id @default(cuid())
+  shopId      String
+  orderId     String
+  status      String?
+  userId      String?
+  payload     Json?
+  syncedAt    DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([shopId, orderId])
+  @@index([shopId, syncedAt])
+  @@index([userId])
+  @@schema("market_intelli")
+}
+
+/// Durable TikTok webhook audit log (debug + Partner Center verification).
+model TikTokWebhookLog {
+  id         String   @id @default(cuid())
+  externalId String?
+  type       String?
+  shopId     String?
+  status     String   @default("received") // received | processed | failed
+  payload    Json?
+  error      String?
+  createdAt  DateTime @default(now())
+
+  @@index([shopId, createdAt])
+  @@index([type, createdAt])
+  @@index([externalId])
+  @@schema("market_intelli")
+}

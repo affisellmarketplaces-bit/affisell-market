@@ -203,7 +203,16 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL(`${target}${req.nextUrl.search}`, req.url), 301)
   }
 
-  if (barePath === "/api/intelli" || barePath.startsWith("/api/intelli/")) {
+  // Keep TikTok OAuth callback + webhooks on /api/intelli/* (Partner Center exact URI — no 301).
+  const intelliApiPassthrough =
+    barePath === "/api/intelli/tiktok/callback" ||
+    barePath === "/api/intelli/tiktok/start" ||
+    barePath.startsWith("/api/intelli/webhooks/")
+
+  if (
+    (barePath === "/api/intelli" || barePath.startsWith("/api/intelli/")) &&
+    !intelliApiPassthrough
+  ) {
     const suffix = barePath.slice("/api/intelli".length)
     return NextResponse.redirect(new URL(`/api/radar${suffix}${req.nextUrl.search}`, req.url), 301)
   }

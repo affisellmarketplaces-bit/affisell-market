@@ -3,8 +3,13 @@ import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto"
 const ALG = "aes-256-gcm"
 
 function keyFromEnv(): Buffer {
-  const hex = process.env.ENCRYPTION_KEY
-  if (!hex) throw new Error("Missing ENCRYPTION_KEY")
+  const hex =
+    process.env.TIKTOK_TOKEN_ENCRYPTION_KEY?.trim() ||
+    process.env.ENCRYPTION_KEY?.trim() ||
+    ""
+  if (!hex) {
+    throw new Error("Missing ENCRYPTION_KEY (or TIKTOK_TOKEN_ENCRYPTION_KEY)")
+  }
   if (!/^[0-9a-fA-F]{64}$/.test(hex)) {
     throw new Error("ENCRYPTION_KEY must be 32 bytes hex (64 chars)")
   }

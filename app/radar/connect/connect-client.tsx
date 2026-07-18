@@ -57,7 +57,16 @@ function ConnectorCard({
   )
 }
 
-export default function RadarConnectClient() {
+export default function RadarConnectClient({
+  tiktokShops = [],
+}: {
+  tiktokShops?: Array<{
+    shopId: string
+    shopName: string
+    status: string
+    expiresAt: string | null
+  }>
+}) {
   const searchParams = useSearchParams()
   const error = searchParams.get("error")
   const byRegion = groupMarketplacesByRegion()
@@ -67,15 +76,51 @@ export default function RadarConnectClient() {
       <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
         <h2 className="text-base font-semibold text-zinc-900">Connecter une source au Radar</h2>
         <p className="mt-2 text-sm text-zinc-600">
-          TikTok Shop, Amazon SP-API et Google Merchant Center sont disponibles. Les autres
-          connecteurs arrivent progressivement.
+          App Partner <strong>Affisell Analytics Connector</strong> — TikTok Shop OAuth + webhooks
+          order/product. Amazon SP-API et Google Merchant aussi disponibles.
         </p>
         {error && (
           <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
             Connexion échouée ({error}). Réessayez ou contactez le support.
           </div>
         )}
+        <div className="mt-4">
+          <Link
+            href="/api/intelli/tiktok/start"
+            className="inline-flex rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+          >
+            Connecter TikTok Shop
+          </Link>
+        </div>
       </section>
+
+      {tiktokShops.length > 0 && (
+        <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-zinc-900">Shops TikTok connectés</h3>
+          <ul className="mt-3 space-y-2">
+            {tiktokShops.map((s) => (
+              <li
+                key={s.shopId}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2 text-sm"
+              >
+                <span className="font-medium text-zinc-800">
+                  🛍️ {s.shopName}{" "}
+                  <span className="font-mono text-xs text-zinc-500">({s.shopId})</span>
+                </span>
+                <span
+                  className={
+                    s.status === "active"
+                      ? "rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800"
+                      : "rounded-full bg-zinc-200 px-2 py-0.5 text-[11px] font-semibold text-zinc-700"
+                  }
+                >
+                  {s.status}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">

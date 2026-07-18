@@ -17,12 +17,19 @@ function parseScopes(scope: string | undefined): string[] {
     .filter(Boolean)
 }
 
+/**
+ * TikTok Shop OAuth callback — Partner Center URI:
+ * https://affisell.com/api/intelli/tiktok/callback
+ * (also available at /api/radar/tiktok/callback)
+ */
 export async function GET(req: Request) {
   const blocked = gate()
   if (blocked) return blocked
 
   const url = new URL(req.url)
-  const code = url.searchParams.get("code")?.trim()
+  const code =
+    url.searchParams.get("code")?.trim() ||
+    url.searchParams.get("auth_code")?.trim()
   const state = url.searchParams.get("state")?.trim()
   const oauthError = url.searchParams.get("error")?.trim()
 
@@ -74,6 +81,10 @@ export async function GET(req: Request) {
         expiresAt,
         scopes,
         status: "active",
+        marketplaceMeta: {
+          openId: token.open_id ?? null,
+          source: "affisell_analytics_connector",
+        },
       },
       update: {
         shopName,
@@ -82,11 +93,20 @@ export async function GET(req: Request) {
         expiresAt,
         scopes,
         status: "active",
+        marketplaceMeta: {
+          openId: token.open_id ?? null,
+          source: "affisell_analytics_connector",
+        },
       },
     })
 
     console.log("[radar/tiktok/callback]", { userId, shopId, result: "connected" })
-    return NextResponse.redirect(new URL("/radar?connected=1", req.url))
+    return NextResponse.redirect(
+      new URL(
+        `/radar?connected=1&success=tiktok_connected&shop_id=${encodeURIComponent(shopId)}`,
+        req.url
+      )
+    )
   } catch (err) {
     console.error("[radar/tiktok/callback]", {
       result: "error",
