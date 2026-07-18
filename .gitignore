@@ -45,11 +45,13 @@ yarn-error.log*
 # Env files with secrets — never commit (.env.local, etc.). Rotate DB keys if they leak.
 .env
 .env.local
+.env.local.radar
 .env.pre-local-merge.bak
 .env.development.local
 .env.test.local
 .env.production.local
 !.env.example
+!.env.local.radar.template
 
 # vercel
 .vercel
