@@ -41,6 +41,8 @@ export function radarDisabledResponse(req: NextRequest): NextResponse | null {
   const pathname = req.nextUrl.pathname
   if (!isRadarPath(pathname)) return null
   if (isRadarCronPath(pathname)) return null
+  // Partner webhooks must stay reachable even if RADAR_ENABLED is off temporarily.
+  if (pathname.startsWith("/api/radar/webhooks/")) return null
   if (isRadarEnabled()) return null
   return NextResponse.rewrite(new URL("/404", req.url))
 }

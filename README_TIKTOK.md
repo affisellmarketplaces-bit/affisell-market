@@ -82,15 +82,27 @@ ngrok http 3001
 # https://xxxx.ngrok.app/api/webhooks/tiktok
 ```
 
-Simuler un ACK (signature skip en local seulement si tu mocks — en prod signature requise) :
+### ACK sans signature (Partner test tool / smoke)
+
+Toujours `200` + `{code:0,message:"success"}` — zsh : **guillemets simples** autour des URLs avec `?`.
 
 ```bash
-# Avec signature réelle (exemple structure — calcule HMAC côté script)
-curl -s -X POST "$NGROK/api/webhooks/tiktok" \
-  -H "content-type: application/json" \
-  -H "x-tt-signature: t=$(date +%s),v1=DEADBEEF" \
-  -d '{"type":1,"shop_id":"demo","data":{"order_id":"ORD1"}}'
+# Local (port dev Affisell = 3001 par défaut)
+curl -s -X POST 'http://localhost:3001/api/webhooks/tiktok' \
+  -H 'Content-Type: application/json' \
+  -d '{"type":1}'
+# → {"code":0,"message":"success"}
+
+# Prod smoke
+curl -s -X POST 'https://affisell.com/api/webhooks/tiktok' \
+  -H 'Content-Type: application/json' \
+  -d '{"type":1}'
+
+# Callback OAuth (zsh: quotes — sinon glob sur ?code=)
+curl -I 'https://affisell.com/api/intelli/tiktok/callback?code=test'
 ```
+
+Unsigned = ACK only (pas de traitement). Signature invalide = ACK + warn log.
 
 Pour un test de signature valide en Node :
 

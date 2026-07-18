@@ -203,6 +203,28 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL(`${target}${req.nextUrl.search}`, req.url), 301)
   }
 
+  // Public Partner / cron surfaces — bypass auth redirects and radar gate.
+  // TikTok unsigned test POSTs + OAuth callback must never 307→/login or 401 here.
+  if (
+    barePath.startsWith("/api/webhooks/") ||
+    barePath.startsWith("/api/cron/") ||
+    barePath === "/api/intelli/tiktok/callback" ||
+    barePath === "/api/intelli/tiktok/start" ||
+    barePath.startsWith("/api/intelli/webhooks/") ||
+    barePath === "/api/radar/webhooks/tiktok" ||
+    barePath.startsWith("/api/radar/webhooks/") ||
+    barePath.startsWith("/api/radar/cron/")
+  ) {
+    if (barePath !== pathname) {
+      const rewriteUrl = req.nextUrl.clone()
+      rewriteUrl.pathname = barePath
+      const requestHeaders = new Headers(req.headers)
+      requestHeaders.set("x-affisell-pathname", pathname)
+      return NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } })
+    }
+    return nextWithPathname(req)
+  }
+
   // Keep TikTok OAuth callback + webhooks on /api/intelli/* (Partner Center exact URI — no 301).
   const intelliApiPassthrough =
     barePath === "/api/intelli/tiktok/callback" ||

@@ -15,33 +15,49 @@ export const dynamic = "force-dynamic"
 
 const OK = { code: 0, message: "success" } as const
 
+function ack(): NextResponse {
+  return NextResponse.json(OK, { status: 200 })
+}
+
 /**
  * TikTok Partner Center webhook:
  * POST https://affisell.com/api/webhooks/tiktok
  *
  * CRITICAL: always respond 200 {code:0} quickly — process in `after()`.
+ * Partner test tool often sends unsigned probes; never 401 those.
  */
 export async function POST(req: Request) {
   const rawBody = await req.text()
   const signatureHeader = resolveTikTokSignatureHeader(req)
 
-  try {
-    verifyTikTokWebhookSignature(rawBody, signatureHeader)
-  } catch (err) {
-    console.error("[webhooks/tiktok]", {
-      result: "signature_rejected",
-      message: err instanceof Error ? err.message : String(err),
+  let signatureOk = false
+  if (signatureHeader) {
+    try {
+      verifyTikTokWebhookSignature(rawBody, signatureHeader)
+      signatureOk = true
+    } catch (err) {
+      console.warn("[webhooks/tiktok]", {
+        result: "signature_invalid_ack_anyway",
+        message: err instanceof Error ? err.message : String(err),
+      })
+    }
+  } else {
+    console.warn("[webhooks/tiktok]", {
+      result: "unsigned_test_ack",
+      note: "TikTok test tool / curl without signature — ACK only",
     })
-    // Still 200 for Partner retries on bad probes? No — 401 for real auth failures.
-    // TikTok may disable on non-2xx; signature fail should stay 401.
-    return NextResponse.json({ code: 401, message: "unauthorized" }, { status: 401 })
   }
 
   let payload: Record<string, unknown> = {}
   try {
     payload = rawBody ? (JSON.parse(rawBody) as Record<string, unknown>) : {}
   } catch {
-    return NextResponse.json(OK)
+    return ack()
+  }
+
+  // Unsigned / invalid signature: ACK for Partner probes, do not process.
+  if (!signatureOk) {
+    return ack()
   }
 
   const externalId = extractWebhookExternalId(rawBody, payload)
@@ -57,7 +73,7 @@ export async function POST(req: Request) {
 
   if (!resolveRadarDatabaseUrl()) {
     console.warn("[webhooks/tiktok]", { result: "no_db", externalId })
-    return NextResponse.json(OK)
+    return ack()
   }
 
   let logId: string | undefined
@@ -86,15 +102,14 @@ export async function POST(req: Request) {
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
       console.log("[webhooks/tiktok]", { externalId, result: "duplicate" })
-      return NextResponse.json(OK)
+      return ack()
     }
     console.error("[webhooks/tiktok]", {
       externalId,
       result: "db_error",
       message: err instanceof Error ? err.message : String(err),
     })
-    // Still ACK to avoid Partner disable — log already attempted
-    return NextResponse.json(OK)
+    return ack()
   }
 
   after(() =>
@@ -111,5 +126,5 @@ export async function POST(req: Request) {
   )
 
   console.log("[webhooks/tiktok]", { externalId, type, shopId, result: "acked" })
-  return NextResponse.json(OK)
+  return ack()
 }
