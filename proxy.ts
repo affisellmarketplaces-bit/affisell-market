@@ -203,6 +203,20 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL(`${target}${req.nextUrl.search}`, req.url), 301)
   }
 
+  // Radar UI lives outside app/[locale] — never let next-intl treat "radar" as a locale.
+  if (barePath === "/radar" || barePath.startsWith("/radar/")) {
+    if (barePath !== pathname) {
+      const rewriteUrl = req.nextUrl.clone()
+      rewriteUrl.pathname = barePath
+      const requestHeaders = new Headers(req.headers)
+      requestHeaders.set("x-affisell-pathname", pathname)
+      const res = NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } })
+      if (pathnameLocale) syncLocaleCookies(res, pathnameLocale)
+      return res
+    }
+    return nextWithPathname(req)
+  }
+
   // Public Partner / cron surfaces — bypass auth redirects and radar gate.
   // TikTok unsigned test POSTs + OAuth callback must never 307→/login or 401 here.
   if (
