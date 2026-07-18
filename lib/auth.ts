@@ -312,6 +312,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: true,
           cguVersion: true,
           isPro: true,
+          radarPlan: true,
         },
       })
 
@@ -335,7 +336,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             ? user.name
             : (token.name as string | undefined)
       token.isPro = row?.isPro ?? false
-      token.features = resolveRadarFeatures(userId, row?.isPro ?? false)
+      token.features = resolveRadarFeatures(userId, row?.isPro ?? false, row?.radarPlan)
       return token as JWT
     },
 

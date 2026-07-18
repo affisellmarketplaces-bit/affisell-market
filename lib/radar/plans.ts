@@ -2,6 +2,9 @@ import { RADAR_BETA_USER_IDS, RADAR_ENABLED } from "@/lib/radar/env"
 
 export type RadarPlanId = "free" | "starter" | "pro" | "global"
 
+/** Paid Radar tiers sold on /pricing */
+export type RadarCheckoutPlanId = Extract<RadarPlanId, "pro" | "global">
+
 export type RadarPlan = {
   id: RadarPlanId
   name: string

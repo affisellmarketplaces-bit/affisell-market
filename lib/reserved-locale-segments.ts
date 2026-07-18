@@ -47,6 +47,7 @@ export const RESERVED_LOCALE_SEGMENTS = new Set([
   "orders",
   "partners",
   "press",
+  "pricing",
   "privacy",
   "product",
   "produits",

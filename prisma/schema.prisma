@@ -23,6 +23,11 @@ model User {
   videoCount                       Int       @default(0) @map("videoUsed")
   isPro                            Boolean   @default(false)
   /**
+   * Affisell Radar commercial tier: free | starter | pro | global.
+   * Set by Stripe Radar checkout / webhook (idempotent).
+   */
+  radarPlan                        String    @default("free")
+  /**
    * Affisell+ supplier trust badge eligibility (role SUPPLIER only).
    */
   isVerifiedSupplier               Boolean   @default(false)

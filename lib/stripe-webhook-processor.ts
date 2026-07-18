@@ -129,11 +129,23 @@ async function processCheckoutSessionCompleted(
   })
 
   if (session.mode === "subscription" && session.payment_status === "paid") {
+    const { activateRadarFromCheckoutSession } = await import("@/lib/stripe-radar")
+    const radarResult = await activateRadarFromCheckoutSession(session)
+    if (radarResult.activated) {
+      console.log("[radar-paywall]", {
+        sessionId: session.id,
+        activated: true,
+        plan: radarResult.plan,
+      })
+      return { orderId: session.metadata?.orderId ?? null, status: "success", error: null }
+    }
+
     const proResult = await activateProFromCheckoutSession(session)
     console.log("[video-paywall]", {
       sessionId: session.id,
       activated: proResult.activated,
       reason: proResult.activated ? null : proResult.reason,
+      radarSkip: radarResult.reason,
     })
     return { orderId: session.metadata?.orderId ?? null, status: "success", error: null }
   }
@@ -218,11 +230,17 @@ async function dispatchStripeEvent(
     case "checkout.session.completed":
       return processCheckoutSessionCompleted(event, tx)
     case "customer.subscription.updated": {
-      await syncProFromSubscriptionUpdate(event.data.object as Stripe.Subscription)
+      const sub = event.data.object as Stripe.Subscription
+      const { syncRadarFromSubscription } = await import("@/lib/stripe-radar")
+      await syncRadarFromSubscription(sub)
+      await syncProFromSubscriptionUpdate(sub)
       return { orderId: null, status: "success", error: null }
     }
     case "customer.subscription.deleted": {
-      await deactivateProFromSubscription(event.data.object as Stripe.Subscription)
+      const sub = event.data.object as Stripe.Subscription
+      const { deactivateRadarFromSubscription } = await import("@/lib/stripe-radar")
+      await deactivateRadarFromSubscription(sub)
+      await deactivateProFromSubscription(sub)
       return { orderId: null, status: "success", error: null }
     }
     case "invoice.payment_failed": {
