@@ -7,8 +7,11 @@ import RadarDashboardFilters from "@/components/radar/radar-dashboard-filters"
 import RadarForceScanButton from "@/components/radar/radar-force-scan-button"
 import RadarMarketingLanding from "@/components/radar/radar-marketing-landing"
 import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
+import RadarTikTokSalesSection from "@/components/radar/radar-tiktok-sales-section"
 import { auth } from "@/lib/auth"
 import { getRadarDb } from "@/lib/prisma-radar"
+import { getTikTokSalesDashboard } from "@/lib/radar/aggregators/tiktok"
+import type { TikTokSalesDashboard } from "@/lib/radar/aggregators/tiktok"
 import { getConnectorById } from "@/lib/radar/connectors/registry"
 import { RADAR_DEMO_WINNERS } from "@/lib/radar/demo-data"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
@@ -192,6 +195,7 @@ export default async function RadarDashboardPage({
   let globalCount = 0
   let latestWinners: WinnerRow[] = []
   let trending: Awaited<ReturnType<typeof getTrendingKeywords>> = []
+  let tiktokSales: TikTokSalesDashboard | null = null
 
   if (!resolveRadarDatabaseUrl()) {
     demoMode = true
@@ -206,6 +210,8 @@ export default async function RadarDashboardPage({
         winnerWhere.marketplaceId = "tiktok_shop"
       } else if (marketplaceFilter === "amazon") {
         winnerWhere.marketplaceId = "amazon"
+      } else if (marketplaceFilter === "shopify") {
+        winnerWhere.marketplaceId = "shopify"
       }
       if (countryFilter) winnerWhere.country = countryFilter
       if (q) {
@@ -242,6 +248,29 @@ export default async function RadarDashboardPage({
       globalCount = count
       latestWinners = winners
       trending = trends
+
+      const tiktokShopIds = shops
+        .filter((s) => s.connectorId === "tiktok_shop")
+        .map((s) => s.shopId)
+      const showTikTokSales =
+        marketplaceFilter === "" ||
+        marketplaceFilter === "tiktok" ||
+        marketplaceFilter === "tiktok_shop"
+      if (showTikTokSales && tiktokShopIds.length > 0) {
+        const to = new Date()
+        const from = new Date(to.getTime() - 30 * 24 * 60 * 60 * 1000)
+        tiktokSales = await getTikTokSalesDashboard({
+          shopIds: tiktokShopIds,
+          from,
+          to,
+        }).catch((err) => {
+          console.error("[radar/dashboard]", {
+            result: "tiktok_sales_failed",
+            message: err instanceof Error ? err.message : "unknown",
+          })
+          return null
+        })
+      }
     } catch (err) {
       demoMode = true
       console.warn("[radar/dashboard]", {
@@ -260,6 +289,11 @@ export default async function RadarDashboardPage({
   const lastScan = latestWinners[0]?.crawledAt ?? null
   const hotTrends = trending.filter((t) => t.growth > 50)
   const awaitingCrawlerKeys = !demoMode && globalCount === 0
+  const hasTikTokConnection = shopConnections.some((s) => s.connectorId === "tiktok_shop")
+  const showTikTokSalesSection =
+    marketplaceFilter === "" ||
+    marketplaceFilter === "tiktok" ||
+    marketplaceFilter === "tiktok_shop"
 
   return (
     <div className="space-y-8">
@@ -320,6 +354,13 @@ export default async function RadarDashboardPage({
           <RadarDashboardFilters />
         </Suspense>
       </section>
+
+      {showTikTokSalesSection && (
+        <RadarTikTokSalesSection
+          dashboard={tiktokSales}
+          hasConnection={hasTikTokConnection}
+        />
+      )}
 
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <h2 className="text-base font-semibold text-zinc-900">

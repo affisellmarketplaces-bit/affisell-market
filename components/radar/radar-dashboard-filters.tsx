@@ -7,6 +7,7 @@ const MARKETPLACES = [
   { value: "", label: "Tous les marketplaces" },
   { value: "tiktok_shop", label: "TikTok Shop" },
   { value: "amazon", label: "Amazon" },
+  { value: "shopify", label: "Shopify" },
 ] as const
 
 const COUNTRIES = [

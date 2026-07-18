@@ -33,6 +33,14 @@
     {
       "path": "/api/cron/tiktok-refresh",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/tiktok-sync-orders",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/tiktok-sync-full",
+      "schedule": "0 2 * * *"
     }
   ]
 }

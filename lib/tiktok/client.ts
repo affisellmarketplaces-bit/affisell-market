@@ -101,7 +101,8 @@ async function tiktokFetchJson(
       })
 
       if (res.status === 429 || res.status >= 500) {
-        await sleep(400 * (attempt + 1))
+        const backoff = Math.min(12_000, 500 * 2 ** attempt)
+        await sleep(backoff)
         lastErr = new Error(`TikTok HTTP ${res.status}`)
         continue
       }
@@ -139,33 +140,80 @@ export async function getShopInfo(
   return { shopId: id, shopName: name || "TikTok Shop", raw: json }
 }
 
-export async function getOrders(
+export type TikTokOrderSearchOpts = {
+  pageSize?: number
+  pageToken?: string
+  orderId?: string
+  /** Unix seconds — create_time_ge */
+  createTimeGe?: number
+  /** Unix seconds — create_time_lt */
+  createTimeLt?: number
+  /** e.g. exclude cancelled via client filter if API ignores */
+  orderStatusList?: number[]
+}
+
+export type TikTokOrderSearchPage = {
+  orders: TikTokShopOrder[]
+  nextPageToken: string | null
+  raw: Record<string, unknown>
+}
+
+export async function searchOrdersPage(
   accessToken: string,
   shopId: string,
-  opts?: { pageSize?: number; orderId?: string }
-): Promise<TikTokShopOrder[]> {
+  opts?: TikTokOrderSearchOpts
+): Promise<TikTokOrderSearchPage> {
   const path = process.env.TIKTOK_ORDER_LIST_PATH?.trim() || "/order/202309/orders/search"
   const body: Record<string, unknown> = {
-    page_size: opts?.pageSize ?? 20,
+    page_size: opts?.pageSize ?? 50,
   }
   if (opts?.orderId) body.order_id_list = [opts.orderId]
+  if (opts?.pageToken) body.page_token = opts.pageToken
+  if (opts?.createTimeGe != null) body.create_time_ge = opts.createTimeGe
+  if (opts?.createTimeLt != null) body.create_time_lt = opts.createTimeLt
+  if (opts?.orderStatusList?.length) body.order_status_list = opts.orderStatusList
 
   const json = await tiktokFetchJson(path, {
     method: "POST",
     accessToken,
     query: { shop_id: shopId },
     body,
+    retries: 4,
   })
   const data = (json.data as Record<string, unknown> | undefined) ?? {}
   const list = (data.orders as unknown[]) ?? (data.order_list as unknown[]) ?? []
-  return (Array.isArray(list) ? list : []).map((row) => {
-    const o = row as Record<string, unknown>
-    return {
-      orderId: String(o.order_id ?? o.id ?? "").trim(),
-      status: o.order_status != null ? String(o.order_status) : undefined,
-      raw: o,
-    }
-  }).filter((o) => o.orderId)
+  const orders = (Array.isArray(list) ? list : [])
+    .map((row) => {
+      const o = row as Record<string, unknown>
+      return {
+        orderId: String(o.order_id ?? o.id ?? "").trim(),
+        status: o.order_status != null ? String(o.order_status) : undefined,
+        raw: o,
+      }
+    })
+    .filter((o) => o.orderId)
+
+  const next =
+    data.next_page_token != null
+      ? String(data.next_page_token).trim()
+      : data.page_token != null
+        ? String(data.page_token).trim()
+        : ""
+
+  return {
+    orders,
+    nextPageToken: next || null,
+    raw: json,
+  }
+}
+
+export async function getOrders(
+  accessToken: string,
+  shopId: string,
+  opts?: { pageSize?: number; orderId?: string }
+): Promise<TikTokShopOrder[]> {
+  const page = await searchOrdersPage(accessToken, shopId, opts)
+  return page.orders
 }
 
 export async function getOrderDetail(

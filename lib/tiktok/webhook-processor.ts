@@ -1,10 +1,9 @@
 import "server-only"
 
-import { Prisma } from ".prisma/client-mi"
-
 import { decryptString } from "@/lib/crypto"
 import { getRadarDb } from "@/lib/prisma-radar"
 import { getOrderDetail, getOrders } from "@/lib/tiktok/client"
+import { upsertTikTokOrderFromRaw } from "@/lib/tiktok/sync"
 
 export type TikTokWebhookPayload = {
   type?: string | number
@@ -59,50 +58,29 @@ export async function processTikTokWebhookEvent(input: {
       } else {
         const accessToken = decryptString(conn.accessToken)
         const data = input.payload.data ?? {}
-        const orderId = String(
-          data.order_id ?? data.orderId ?? data.id ?? ""
-        ).trim()
+        const orderId = String(data.order_id ?? data.orderId ?? data.id ?? "").trim()
 
         let orderPayload: Record<string, unknown> = data
-        let status: string | undefined =
-          data.order_status != null ? String(data.order_status) : undefined
 
         if (orderId) {
           const detail = await getOrderDetail(accessToken, shopId, orderId).catch(() => null)
-          if (detail) {
-            orderPayload = detail.raw
-            status = detail.status ?? status
-          }
+          if (detail) orderPayload = detail.raw
         } else {
           const recent = await getOrders(accessToken, shopId, { pageSize: 5 }).catch(() => [])
-          if (recent[0]) {
-            orderPayload = recent[0].raw
-            status = recent[0].status
-          }
+          if (recent[0]) orderPayload = recent[0].raw
         }
 
         const oid = orderId || String(orderPayload.order_id ?? "").trim()
         if (oid) {
-          await db.tikTokOrder.upsert({
-            where: { shopId_orderId: { shopId, orderId: oid } },
-            create: {
-              shopId,
-              orderId: oid,
-              status: status ?? null,
-              userId: conn.userId,
-              payload: orderPayload as Prisma.InputJsonValue,
-            },
-            update: {
-              status: status ?? null,
-              payload: orderPayload as Prisma.InputJsonValue,
-              syncedAt: new Date(),
-            },
+          await upsertTikTokOrderFromRaw({
+            shopId,
+            userId: conn.userId,
+            raw: { ...orderPayload, order_id: oid },
           })
         }
       }
     } else if (type === "5" || type.includes("product")) {
       console.log("[tiktok/webhook]", { type, shopId, result: "product_cache_invalidate" })
-      // Soft invalidate: bump connection updatedAt as cache bust marker
       if (shopId) {
         await db.shopConnection.updateMany({
           where: { connectorId: "tiktok_shop", shopId },

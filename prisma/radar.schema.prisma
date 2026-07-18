@@ -155,18 +155,29 @@ model AlertSubscription {
 
 /// TikTok Shop orders synced from webhooks / API (Affisell Analytics Connector).
 model TikTokOrder {
-  id          String   @id @default(cuid())
-  shopId      String
-  orderId     String
-  status      String?
-  userId      String?
-  payload     Json?
-  syncedAt    DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String    @id @default(cuid())
+  shopId          String
+  orderId         String
+  status          String?
+  userId          String?
+  /// Denormalized fields for Radar sales KPIs (from order detail).
+  orderStatus     String?
+  orderCreatedAt  DateTime?
+  totalAmount     Decimal?  @db.Decimal(18, 4)
+  currency        String?
+  skuList         Json? // [{ sku, productId, title, qty, unitPrice, imageUrl }]
+  shippingFee     Decimal?  @db.Decimal(18, 4)
+  productFee      Decimal?  @db.Decimal(18, 4)
+  platformFee     Decimal?  @db.Decimal(18, 4)
+  customerInfo    Json? // anonymized { country?, zipPrefix? }
+  payload         Json?
+  syncedAt        DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@unique([shopId, orderId])
   @@index([shopId, syncedAt])
+  @@index([shopId, orderCreatedAt])
   @@index([userId])
   @@schema("market_intelli")
 }

@@ -136,7 +136,24 @@ curl -s -H "Authorization: Bearer $CRON_SECRET" \
 # → { scanned, refreshed, failed, disconnected }
 ```
 
-Vercel Cron : `0 6 * * *` → `/api/cron/tiktok-refresh` (`vercel.json`).
+## Cron order sync
+
+```bash
+# Incremental last 2h (every 15 min)
+curl -s -H "Authorization: Bearer $CRON_SECRET" \
+  "$APP/api/cron/tiktok-sync-orders"
+
+# Full last 30d (daily 02:00 UTC)
+curl -s -H "Authorization: Bearer $CRON_SECRET" \
+  "$APP/api/cron/tiktok-sync-full"
+```
+
+Vercel Cron :
+- `0 6 * * *` → `/api/cron/tiktok-refresh`
+- `*/15 * * * *` → `/api/cron/tiktok-sync-orders`
+- `0 2 * * *` → `/api/cron/tiktok-sync-full`
+
+Après schema orders enrichi : `npm run radar:db:push`
 
 ## Checklist go-live (après validation Partner)
 
