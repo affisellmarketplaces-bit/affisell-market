@@ -34,6 +34,7 @@
 | RADAR_DATABASE_URL | 🔴 MISSING | P1 | absent | Optionnel si Neon `DATABASE_URL` OK + `npm run radar:db:push` |
 | RADAR_BETA_USER_IDS | 🔴 MISSING | P2 | absent | IDs/emails comma-separated → plan Global |
 | SERPER_API_KEY | 🔴 MISSING | P1 | absent | https://serper.dev (Trends + cron skip sans keys) |
+| TIKTOK_CRAWLER_ACCESS_TOKEN | 🔴 MISSING | P1 | absent | Bearer crawler TikTok (Partner token / Apify) — required by global-scan |
 | SERPAPI_API_KEY | 🔴 MISSING | P1 | absent | Fallback SerpAPI |
 | PROXY_URL | 🔴 MISSING | P2 | absent | Optionnel crawler |
 | TIKTOK_CLIENT_KEY | 🔴 MISSING | P1 | absent | TikTok Shop Partner Center |
@@ -72,7 +73,8 @@ Copier-coller (Production + Preview) :
 | `CRON_SECRET` | Production, Preview | Aligné GitHub Actions / Vercel Cron |
 | `DATABASE_URL` | Production, Preview | Neon (déjà souvent présent) |
 | `NEXTAUTH_SECRET` | Production, Preview | déjà souvent présent |
-| `SERPER_API_KEY` | Production, Preview | Trends + global-scan |
+| `SERPER_API_KEY` | Production, Preview | Trends + global-scan — https://serper.dev |
+| `TIKTOK_CRAWLER_ACCESS_TOKEN` | Production, Preview | Bearer TikTok search/trending (Partner token ou Apify) |
 | `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET` | Production, Preview | OAuth TikTok |
 | `TIKTOK_REDIRECT_URI` | Production, Preview | `https://affisell.com/api/radar/tiktok/callback` |
 | `AMAZON_LWA_CLIENT_ID` / `AMAZON_LWA_CLIENT_SECRET` / `AMAZON_SP_API_APPLICATION_ID` | Production, Preview | SP-API |
