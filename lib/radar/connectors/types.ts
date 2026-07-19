@@ -6,6 +6,8 @@ export type Region =
   | "AFRICA"
   | "SEA"
   | "EAST_ASIA"
+  | "SOUTH_ASIA"
+  | "OCEANIA"
   | "GLOBAL"
 
 export type Category = "marketplace" | "google"
