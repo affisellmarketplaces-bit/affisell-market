@@ -13,6 +13,7 @@ const AMAZON_HOST: Record<string, string> = {
   DE: "www.amazon.de",
   UK: "www.amazon.co.uk",
   GB: "www.amazon.co.uk",
+  MX: "www.amazon.com.mx",
 }
 
 function baseProduct(
