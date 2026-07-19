@@ -5,7 +5,9 @@ import { AdminRadarAlertChannels } from "@/components/admin/admin-radar-alert-ch
 import { AdminRadarCheckoutFallback } from "@/components/admin/admin-radar-checkout-fallback"
 import { AdminRadarConnectorsGrid } from "@/components/admin/admin-radar-connectors-grid"
 import { AdminRadarHealthFlags } from "@/components/admin/admin-radar-health-flags"
+import { AdminRadarMultiCountryCrawl } from "@/components/admin/admin-radar-multi-country-crawl"
 import { auth } from "@/auth"
+import { loadCountryCrawlStatuses } from "@/lib/radar/country-crawl-status"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { getUserRadarPlan, toRadarPlanUser } from "@/lib/radar/plans"
 
@@ -27,6 +29,7 @@ export default async function AdminRadarPage() {
 
   const plan = getUserRadarPlan(toRadarPlanUser(session.user))
   const enabled = isRadarEnabled()
+  const countryStatuses = await loadCountryCrawlStatuses(["FR", "US", "MX", "DE", "GB"])
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">
@@ -65,6 +68,8 @@ export default async function AdminRadarPage() {
       <AdminRadarHealthFlags />
 
       <AdminRadarConnectorsGrid />
+
+      <AdminRadarMultiCountryCrawl statuses={countryStatuses} />
 
       <AdminRadarAlertChannels />
 

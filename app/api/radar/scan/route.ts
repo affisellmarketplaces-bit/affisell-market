@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
-import { runRadarGlobalScan } from "@/lib/radar/crawler/global-scan"
+import { parseRadarCountries, runRadarGlobalScan } from "@/lib/radar/crawler/global-scan"
 import { checkRadarAccess, planLimitReached } from "@/lib/radar/gate-with-plan"
 import { gate } from "@/lib/radar/gate"
 import { getUserRadarPlan } from "@/lib/radar/plans"
@@ -64,9 +64,18 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = await runRadarGlobalScan()
-    console.log("[radar/scan]", { userId: session.user.id, plan: plan.id, result: "ok", scanned: result.scanned })
-    return NextResponse.json(result)
+    const body = (await req.json().catch(() => ({}))) as { countries?: string }
+    const urlCountries = new URL(req.url).searchParams.get("countries")
+    const countries = parseRadarCountries(body.countries ?? urlCountries)
+    const result = await runRadarGlobalScan({ countries })
+    console.log("[radar/scan]", {
+      userId: session.user.id,
+      plan: plan.id,
+      result: "ok",
+      scanned: result.scanned,
+      countries: result.countries,
+    })
+    return NextResponse.json({ started: true, ...result })
   } catch (err) {
     console.error("[radar/scan]", {
       userId: session.user.id,
