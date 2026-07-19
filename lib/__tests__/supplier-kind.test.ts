@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  getRadarCockpit,
   getSupplierKindLabel,
   isProducer,
   isStocker,
+  needsSupplierKindOnboarding,
   parseSupplierKind,
 } from "@/lib/supplier-kind"
 
@@ -23,5 +25,13 @@ describe("supplier-kind", () => {
     expect(getSupplierKindLabel("unset")).toBe("Non défini")
     expect(getSupplierKindLabel("producer")).toBe("Producteur")
     expect(getSupplierKindLabel("stocker")).toBe("Stockeur")
+  })
+
+  it("maps Radar cockpit + onboarding flag", () => {
+    expect(getRadarCockpit("producer")).toBe("defense")
+    expect(getRadarCockpit("stocker")).toBe("attaque")
+    expect(getRadarCockpit("unset")).toBeNull()
+    expect(needsSupplierKindOnboarding("unset")).toBe(true)
+    expect(needsSupplierKindOnboarding("producer")).toBe(false)
   })
 })
