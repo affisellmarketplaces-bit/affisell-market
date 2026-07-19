@@ -97,6 +97,8 @@ model WebhookEvent {
   @@schema("market_intelli")
 }
 
+/// Daily product snapshot (Affisell radar "ProductSnapshot").
+/// Unique includes `day` so crawls keep history — required for WINNER_RISING / PRICE_WAR.
 model RadarGlobalSnapshot {
   id            String   @id @default(cuid())
   marketplaceId String
@@ -105,8 +107,8 @@ model RadarGlobalSnapshot {
   price         Decimal  @db.Decimal(12, 2)
   category      String?
   country       String
-  /// UTC calendar day (truncated) — one row per product per day for WINNER_RISING / PRICE_WAR history.
-  day           DateTime
+  /// UTC calendar date — one row per productId(=externalId) per marketplace/country per day.
+  day           DateTime @db.Date @default(dbgenerated("CURRENT_DATE"))
   rank          Int?
   salesEst      Int?
   url           String?
@@ -115,6 +117,8 @@ model RadarGlobalSnapshot {
   crawledAt     DateTime @default(now())
 
   @@unique([marketplaceId, externalId, country, day])
+  @@index([day])
+  @@index([externalId, day])
   @@index([marketplaceId, category, crawledAt])
   @@index([marketplaceId, externalId, country, day])
   @@index([crawledAt])

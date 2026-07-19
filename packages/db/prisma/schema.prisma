@@ -90,6 +90,8 @@ model ProductSnapshot {
   product     Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, marketplace, day])
+  @@index([day])
+  @@index([productId, day])
   @@index([marketplace, day])
 }
 

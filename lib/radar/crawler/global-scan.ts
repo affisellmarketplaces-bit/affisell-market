@@ -5,7 +5,7 @@ import { RADAR_SCAN_CATEGORIES } from "@/lib/radar/crawler/types"
 import { MARKETPLACE_CONNECTORS } from "@/lib/radar/connectors/registry"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { isRadarEnabled } from "@/lib/radar/gate"
-import { upsertGlobalSnapshot } from "@/lib/radar/writers/global-snapshot"
+import { upsertProductSnapshot } from "@/lib/radar/writers/product-writer"
 
 const DEFAULT_COUNTRY = "US"
 
@@ -69,7 +69,7 @@ export async function runRadarGlobalScan(): Promise<RadarGlobalScanResult> {
         scanned += products.length
 
         for (const p of products) {
-          const result = await upsertGlobalSnapshot({
+          const result = await upsertProductSnapshot({
             marketplaceId: p.marketplaceId,
             externalId: p.externalId,
             title: p.title,

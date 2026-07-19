@@ -14,11 +14,19 @@ function ageDays(current: SnapshotLike, history: SnapshotLike[]): number {
   return Math.max(0, (Date.now() - first) / DAY_MS)
 }
 
+function snapshotTime(h: SnapshotLike): number {
+  const day = "day" in h && h.day instanceof Date ? h.day.getTime() : NaN
+  if (Number.isFinite(day)) return day
+  return h.crawledAt.getTime()
+}
+
 function historyInWindow(history: SnapshotLike[], days: number): SnapshotLike[] {
-  const cutoff = Date.now() - days * DAY_MS
+  // Inclusive calendar-day window: today and the previous (days-1) UTC days.
+  const now = new Date()
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - (days - 1)))
   return history
-    .filter((h) => h.crawledAt.getTime() >= cutoff)
-    .sort((a, b) => a.crawledAt.getTime() - b.crawledAt.getTime())
+    .filter((h) => snapshotTime(h) >= start.getTime())
+    .sort((a, b) => snapshotTime(a) - snapshotTime(b))
 }
 
 function checkWinnerNew(ctx: AlertCheckContext): AlertCheckResult | null {
@@ -47,14 +55,14 @@ function checkWinnerNew(ctx: AlertCheckContext): AlertCheckResult | null {
   }
 }
 
-function checkWinnerRising(ctx: AlertCheckContext): AlertCheckResult | null {
+export function checkWinnerRising(ctx: AlertCheckContext): AlertCheckResult | null {
   const { current, history } = ctx
   const newRank = current.rank
   if (newRank == null || newRank > 50) return null
 
   const window = historyInWindow(history, 7)
   // Prefer oldest in window as baseline (rank before the rise)
-  const baseline = window[0] ?? history.sort((a, b) => a.crawledAt.getTime() - b.crawledAt.getTime())[0]
+  const baseline = window[0] ?? [...history].sort((a, b) => snapshotTime(a) - snapshotTime(b))[0]
   if (!baseline || baseline.id === current.id) {
     // Single-row schema: use previousRank if encoded in history duplicate with older crawledAt — skip
     return null
@@ -81,7 +89,7 @@ function checkWinnerRising(ctx: AlertCheckContext): AlertCheckResult | null {
   }
 }
 
-function checkPriceWar(ctx: AlertCheckContext): AlertCheckResult | null {
+export function checkPriceWar(ctx: AlertCheckContext): AlertCheckResult | null {
   const { current, history } = ctx
   const newPrice = decimalToNumber(current.price)
   if (!Number.isFinite(newPrice) || newPrice <= 0) return null

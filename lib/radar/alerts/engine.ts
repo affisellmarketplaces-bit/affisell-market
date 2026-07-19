@@ -9,6 +9,7 @@ import type {
   SnapshotLike,
 } from "@/lib/radar/alerts/types"
 import { normalizeTitle } from "@/lib/radar/alerts/types"
+import { loadSnapshotHistory } from "@/lib/radar/detectors/snapshot-history"
 import { getTrendingKeywords } from "@/lib/radar/google/trends-watcher"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { getRadarDb } from "@/lib/prisma-radar"
@@ -156,15 +157,14 @@ export async function evaluateGlobalScan(): Promise<{
   const seenKeys = new Set<string>()
 
   for (const current of recent) {
-    const history = await db.radarGlobalSnapshot.findMany({
-      where: {
+    const history = await loadSnapshotHistory(
+      {
         marketplaceId: current.marketplaceId,
         externalId: current.externalId,
         country: current.country,
       },
-      orderBy: [{ day: "desc" }, { crawledAt: "desc" }],
-      take: 20,
-    })
+      7
+    )
 
     const inputs = await evaluateProduct(current, history, { trendingKeywords })
     for (const input of inputs) {

@@ -43,6 +43,7 @@ export type SnapshotLike = Pick<
   | "price"
   | "category"
   | "country"
+  | "day"
   | "rank"
   | "salesEst"
   | "url"
