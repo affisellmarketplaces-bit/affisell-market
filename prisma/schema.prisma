@@ -45,6 +45,12 @@ model User {
    * Cached successful paid orders count (recomputed by verify-suppliers cron).
    */
   supplierSuccessfulOrders         Int       @default(0)
+  /**
+   * Affisell Radar supplier sub-type (orthogonal to role=SUPPLIER).
+   * Values: "unset" | "producer" | "stocker"
+   * "producer"=Producteur, "stocker"=Stockeur/Grossiste EU
+   */
+  supplierKind                     String    @default("unset") @db.Text
   stripeCustomerId                 String?   @unique
   stripeSubscriptionId             String?   @unique
   /**
