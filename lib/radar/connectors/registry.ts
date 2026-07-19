@@ -5,7 +5,7 @@ function stubAuthUrl(connectorId: string): (userId: string) => string {
 }
 
 function stubMarketplace(
-  partial: Omit<MarketplaceConnector, "category" | "getAuthUrl"> & {
+  partial: Omit<MarketplaceConnector, "category" | "getAuthUrl" | "authType"> & {
     authType?: MarketplaceConnector["authType"]
   }
 ): MarketplaceConnector {
