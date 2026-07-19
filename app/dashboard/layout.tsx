@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 
 import { DashboardAutoDraft } from "@/components/dashboard/dashboard-auto-draft"
 import { OAuthWelcomeToast } from "@/components/oauth-welcome-toast"
+import { RadarUnlockBanner } from "@/components/radar/radar-unlock-banner"
 import { OAUTH_WELCOME_COOKIE } from "@/lib/oauth-cookies"
 
 /** Auth + cookies on every merchant route — never static at build time. */
@@ -14,6 +15,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <>
+      <RadarUnlockBanner />
       <DashboardAutoDraft />
       {welcome ? (
         <div className="px-4 pt-6 md:px-8">

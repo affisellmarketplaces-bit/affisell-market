@@ -9,6 +9,7 @@ import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
 import { QuickNav } from "@/components/navigation/quick-nav"
 import { MerchantAccountNavActions } from "@/components/merchant-account-nav-actions"
+import { RadarNavPill } from "@/components/radar/radar-nav-pill"
 import { SupplierBookingNavBadge } from "@/components/supplier/supplier-booking-nav-badge"
 import { SupplierNotificationsMenu } from "@/components/supplier/supplier-notifications-menu"
 import { cn } from "@/lib/utils"
@@ -42,6 +43,7 @@ export function NavSupplier() {
 
       <div className={cn(navScrollClass, "order-4 w-full md:order-none md:min-w-0 md:flex-1")}>
         <NavPill href="/dashboard/supplier" label={t("dashboard")} icon={LayoutDashboard} active={onDashboard} />
+        <RadarNavPill variant="supplier" />
         <NavPill href="/dashboard/supplier/orders" label={t("orders")} icon={ShoppingCart} active={onOrders} />
         <SupplierBookingNavBadge>
           {(pendingCount) => (

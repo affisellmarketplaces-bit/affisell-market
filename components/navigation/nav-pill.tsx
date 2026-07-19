@@ -22,6 +22,8 @@ type Props = {
   localeAware?: boolean
   /** Optional count badge (e.g. pending booking check-ins). */
   badgeCount?: number
+  /** Pulsing violet NEW pill (discovery features). */
+  showNewBadge?: boolean
 }
 
 export function NavPill({
@@ -34,6 +36,7 @@ export function NavPill({
   className,
   localeAware = false,
   badgeCount = 0,
+  showNewBadge = false,
 }: Props) {
   const localeRouter = useLocaleRouter()
   const warm = useCallback(() => {
@@ -71,6 +74,16 @@ export function NavPill({
       {badgeCount > 0 ? (
         <span className="ml-0.5 rounded-full bg-cyan-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
           {badgeCount > 99 ? "99+" : badgeCount}
+        </span>
+      ) : null}
+      {showNewBadge ? (
+        <span
+          className={cn(
+            "ml-0.5 animate-pulse rounded-full bg-violet-600 px-1.5 py-0.5 text-[9px] font-bold leading-none tracking-wide text-white",
+            "shadow-[0_0_10px_rgba(124,58,237,0.65)]"
+          )}
+        >
+          NEW
         </span>
       ) : null}
     </>

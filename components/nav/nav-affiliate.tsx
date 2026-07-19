@@ -12,6 +12,7 @@ import { QuickNav } from "@/components/navigation/quick-nav"
 import { NavHeaderSearch } from "@/components/nav/nav-header-search"
 import { MerchantAvatarMenu } from "@/components/nav/merchant-avatar-menu"
 import { MerchantNotificationsMenu } from "@/components/merchant-notifications-menu"
+import { RadarNavPill } from "@/components/radar/radar-nav-pill"
 import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH, AFFILIATE_HUB_PATH } from "@/lib/affiliate-routes"
 import { cn } from "@/lib/utils"
 
@@ -133,6 +134,7 @@ export function NavAffiliate() {
           icon={LayoutDashboard}
           active={onDashboard}
         />
+        <RadarNavPill variant="affiliate" />
         <NavPill
           href="/dashboard/affiliate/earnings"
           label={t("earnings")}

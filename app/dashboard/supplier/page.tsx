@@ -26,6 +26,7 @@ import { loadSupplierMissionControl } from "@/lib/supplier-mission-control"
 import { getSupplierAnalytics } from "@/lib/supplier-dashboard-analytics"
 import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
 import { SupplierPublishReadinessCard } from "@/components/supplier/mission-control/supplier-publish-readiness-card"
+import { RadarSupplierDiscoveryCard } from "@/components/radar/radar-discovery-card"
 import { resolveAppLocale } from "@/lib/i18n-locale"
 import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 
@@ -63,6 +64,7 @@ export default async function DashboardSupplierPage() {
         supplierFeeBpsCatalog: true,
         supplierFeeBpsAutoBuy: true,
         supplierTrustTier: true,
+        supplierKind: true,
       },
     }),
     loadSupplierTrustSnapshot(session.user.id),
@@ -86,6 +88,8 @@ export default async function DashboardSupplierPage() {
               lowStockCount={data.urgent.lowStockCount}
             />
             <SupplierInviteContextBanner />
+
+            <RadarSupplierDiscoveryCard supplierKind={feeUser?.supplierKind} />
 
             {!publishReadiness.verification.allowed ? (
               <SupplierKycPublishBanner
