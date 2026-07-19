@@ -39,24 +39,33 @@ model ShopConnection {
 }
 
 model StandardProduct {
-  id          String   @id @default(cuid())
-  connectorId String
-  externalId  String
-  shopId      String?
-  title       String?
-  currency    String?
-  price       Decimal? @db.Decimal(12, 2)
-  sales       Int?
-  rank        Int?
-  views       Int?
-  region      String?
-  day         DateTime
-  raw         Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  /// Marketplace / connector id (amazon, tiktok_shop, …) — GMC feed key part 1
+  connectorId  String
+  externalId   String
+  country      String   @default("US")
+  shopId       String?
+  title        String?
+  description  String?  @db.Text
+  brand        String?
+  currency     String?
+  price        Decimal? @db.Decimal(12, 2)
+  imageUrl     String?
+  link         String?
+  availability String   @default("in_stock")
+  condition    String   @default("new")
+  sales        Int?
+  rank         Int?
+  views        Int?
+  region       String?
+  day          DateTime @db.Date
+  raw          Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  @@unique([connectorId, externalId, day])
+  @@unique([connectorId, externalId, country, day])
   @@index([connectorId, day])
+  @@index([country, day])
   @@index([shopId])
   @@schema("market_intelli")
 }

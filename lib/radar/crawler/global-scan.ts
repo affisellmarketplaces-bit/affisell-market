@@ -6,6 +6,7 @@ import { MARKETPLACE_CONNECTORS } from "@/lib/radar/connectors/registry"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { upsertProductSnapshot } from "@/lib/radar/writers/product-writer"
+import { upsertStandardProductFromSnapshot } from "@/lib/radar/writers/standard-product-writer"
 
 const DEFAULT_COUNTRY = "US"
 
@@ -63,6 +64,7 @@ export async function runRadarGlobalScan(): Promise<RadarGlobalScanResult> {
   let created = 0
   let updated = 0
   let errorCount = 0
+  let standardUpserts = 0
 
   for (const marketplaceId of marketplaceScanOrder()) {
     for (const category of RADAR_SCAN_CATEGORIES) {
@@ -87,6 +89,30 @@ export async function runRadarGlobalScan(): Promise<RadarGlobalScanResult> {
           })
           if (result.created) created += 1
           else updated += 1
+
+          try {
+            const std = await upsertStandardProductFromSnapshot({
+              marketplaceId: p.marketplaceId,
+              externalId: p.externalId,
+              title: p.title,
+              price: p.price,
+              currency: p.currency,
+              imageUrl: p.imageUrl,
+              country: p.country,
+              url: p.url,
+              day: result.day,
+              sales: p.salesEst,
+              rank: p.rank,
+            })
+            if (std) standardUpserts += 1
+          } catch (stdErr) {
+            console.error("[radar/global-scan]", {
+              result: "standard_product_failed",
+              marketplaceId: p.marketplaceId,
+              externalId: p.externalId,
+              message: stdErr instanceof Error ? stdErr.message : "unknown",
+            })
+          }
         }
       } catch (err) {
         errorCount += 1
@@ -105,6 +131,7 @@ export async function runRadarGlobalScan(): Promise<RadarGlobalScanResult> {
     scanned,
     new: created,
     updated,
+    standardUpserts,
     errors: errorCount,
     degraded: missingOptional.length > 0,
   })
