@@ -2,7 +2,8 @@ import "server-only"
 
 import { NextResponse } from "next/server"
 
-import { getRedisConnection, getRedisUrl } from "@/lib/auto-order/redis"
+import { getRedisUrl } from "@/lib/auto-order/redis"
+import { tryGetRedisClient } from "@/lib/radar/redis"
 
 const WINDOW_SEC = 60
 const MAX_PER_WINDOW = 5
@@ -36,7 +37,8 @@ export async function assertRadarScanRateLimit(req: Request): Promise<NextRespon
 
   if (getRedisUrl()) {
     try {
-      const redis = getRedisConnection()
+      const redis = tryGetRedisClient()
+      if (!redis) throw new Error("redis_null")
       const count = await redis.incr(key)
       if (count === 1) {
         await redis.expire(key, WINDOW_SEC)

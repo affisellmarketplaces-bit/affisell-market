@@ -2,6 +2,7 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { AdminRadarCheckoutFallback } from "@/components/admin/admin-radar-checkout-fallback"
+import { AdminRadarHealthFlags } from "@/components/admin/admin-radar-health-flags"
 import { auth } from "@/auth"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { getUserRadarPlan, toRadarPlanUser } from "@/lib/radar/plans"
@@ -58,6 +59,8 @@ export default async function AdminRadarPage() {
           <code className="text-xs">RADAR_ENABLED=true</code> (Vercel / .env.local) puis redeploy.
         </p>
       ) : null}
+
+      <AdminRadarHealthFlags />
 
       <ul className="mt-8 space-y-3">
         {LINKS.map((link) => (

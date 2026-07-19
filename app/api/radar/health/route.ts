@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { getRedisUrl } from "@/lib/auto-order/redis"
 import { getRadarDb } from "@/lib/prisma-radar"
 import { LIVE_CONNECTOR_IDS } from "@/lib/radar/connectors/registry"
+import { hasEncryptionKey } from "@/lib/radar/encryption"
 import { RADAR_ENABLED, resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { gate, isRedisConfigured } from "@/lib/radar/gate"
 import { RADAR_PLANS } from "@/lib/radar/plans"
@@ -12,7 +13,7 @@ export const dynamic = "force-dynamic"
 
 /**
  * Prod debug — no secrets in response.
- * Keeps existing keys; adds plans, mapReady, subscriptions.
+ * Keeps existing keys; adds plans, mapReady, subscriptions, encryptionKey.
  */
 export async function GET() {
   const blocked = gate()
@@ -46,6 +47,7 @@ export async function GET() {
     }
   }
 
+  const encryptionKey = hasEncryptionKey()
   const redis = Boolean(getRedisUrl() || isRedisConfigured())
   const cronSecret = Boolean(process.env.CRON_SECRET?.trim())
   const serper = Boolean(
@@ -56,9 +58,10 @@ export async function GET() {
   const marketplaces = Array.from(LIVE_CONNECTOR_IDS)
   const mapReady = true
   const plansEnabled = process.env.RADAR_PLANS_ENABLED?.trim() !== "false"
-  const degradedCrawler = !serper || !tiktokCrawler
+  const degradedCrawler = !tiktokCrawler
 
   const payload = {
+    encryptionKey,
     redis,
     db,
     cronSecret,
@@ -81,6 +84,7 @@ export async function GET() {
 
   console.log("[radar/health]", {
     result: "ok",
+    encryptionKey,
     redis,
     db,
     alertsTable,

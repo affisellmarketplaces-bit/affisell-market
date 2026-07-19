@@ -1,6 +1,34 @@
-# RADAR ENV AUDIT — 2026-07-16
+# RADAR ENV AUDIT — 2026-07-16 (updated 2026-07-19)
 
-**Scope :** checklist Radar (25 clés)  
+**Scope :** checklist Radar  
+**Health :** `GET /api/radar/health` → `{ encryptionKey, redis, degradedCrawler, … }` (no secrets)
+
+## Required vs optional
+
+| Env | Required? | If missing |
+|-----|-----------|------------|
+| `ENCRYPTION_KEY` | **P0 required** (OAuth + Slack encrypt) | Throws `ENCRYPTION_KEY_MISSING` — *Add ENCRYPTION_KEY=openssl rand -hex 16 in Vercel* |
+| `REDIS_URL` | **P0 recommended** (OAuth multi-instance) | Soft fail: warning + **in-memory** cron lock; OAuth start 503 when Radar on |
+| `CRON_SECRET` | **P0 required** for `/api/radar/cron/*` | Cron 401 |
+| `RADAR_ENABLED` | **P0** feature flag | Radar 404 |
+| `DATABASE_URL` / Neon | **P0** | Health `db: false` |
+| `NEXTAUTH_SECRET` | **P0** app-wide | Auth broken |
+| `TIKTOK_CRAWLER_ACCESS_TOKEN` | Optional (P1) | `degradedCrawler: true` — Amazon/local continues |
+| `SERPER_API_KEY` | Optional (P1) | Trends / Serper skip |
+| `STRIPE_RADAR_GLOBAL_PRICE_ID` | Optional until $99 CTA | 503 `STRIPE_GLOBAL_NOT_CONFIGURED` — `docs/STRIPE_RADAR_SETUP.md` |
+| TikTok/Amazon/Google OAuth keys | Optional until Connect | Connect start fails clearly |
+| `SLACK_WEBHOOK_URL` | Optional | Alerts without Slack |
+
+```bash
+openssl rand -hex 16
+# or 64 hex (raw AES-256):
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Admin QA: `/admin/radar` shows ENCRYPTION_KEY / REDIS / crawler from health.
+
+---
+
 **Source locale :** `.env.local` (valeurs jamais loggées — statut + longueur + format uniquement)  
 **Vercel :** lecture `.vercel/.env.production.local` (pull local) — pas de `vercel env ls` (non exécuté)
 
@@ -28,8 +56,8 @@
 | NEXTAUTH_SECRET | ✅ OK | P0 | présent, 44 chars, longueur OK | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | RADAR_ENABLED | ✅ OK | P0 | présent, 4 chars, flag=on | Garder `true` en Preview/Prod |
 | RADAR_PLANS_ENABLED | ✅ OK | P2 | présent, 4 chars, flag=on | Paywall actif |
-| ENCRYPTION_KEY | 🔴 MISSING | P0 | absent | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` → **64 hex** |
-| REDIS_URL | ✅ OK | P0 | présent, 113 chars, redis URL | Upstash `rediss://…` |
+| ENCRYPTION_KEY | 🔴 MISSING | P0 | absent | `openssl rand -hex 16` → Vercel + `.env.local` |
+| REDIS_URL | ✅ OK | P0 | présent, 113 chars, redis URL | Upstash — cron OK sans Redis (memory lock) |
 | CRON_SECRET | ✅ OK | P0 | présent, 64 chars | Bearer pour `/api/radar/cron/*` |
 | RADAR_DATABASE_URL | 🔴 MISSING | P1 | absent | Optionnel si Neon `DATABASE_URL` OK + `npm run radar:db:push` |
 | RADAR_BETA_USER_IDS | 🔴 MISSING | P2 | absent | IDs/emails comma-separated → plan Global |
@@ -68,7 +96,7 @@ Copier-coller (Production + Preview) :
 |-----|-----|-------|
 | `RADAR_ENABLED` | Production, Preview | `true` |
 | `RADAR_PLANS_ENABLED` | Production, Preview | `true` |
-| `ENCRYPTION_KEY` | Production, Preview | 64 hex — **même valeur** que local si tokens déjà chiffrés |
+| `ENCRYPTION_KEY` | Production, Preview | `openssl rand -hex 16` (ou 64 hex) — **même valeur** local/prod si tokens déjà chiffrés |
 | `REDIS_URL` | Production, Preview | Upstash |
 | `CRON_SECRET` | Production, Preview | Aligné GitHub Actions / Vercel Cron |
 | `DATABASE_URL` | Production, Preview | Neon (déjà souvent présent) |
@@ -131,5 +159,6 @@ Pas de script `npm run radar:env:check` dans le repo aujourd’hui — utiliser 
 ## Impact produit (ordre)
 
 1. **P0** `ENCRYPTION_KEY` → OAuth connect + Slack encrypt cassés sans ça  
-2. **P1** Serper + TikTok/Amazon/Google → dashboard/cron/connectors vides  
-3. **P2** Slack / Stripe / beta IDs → revenue & alertes
+2. **P0** `REDIS_URL` → OAuth multi-instance ; cron global-scan OK avec memory lock  
+3. **P1** Serper + TikTok crawler → `degradedCrawler` si TikTok token absent  
+4. **P2** Slack / Stripe / beta IDs → revenue & alertes
