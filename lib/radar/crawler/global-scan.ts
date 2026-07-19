@@ -53,7 +53,9 @@ export async function runRadarGlobalScan(): Promise<RadarGlobalScanResult> {
     console.log("[radar/global-scan]", {
       result: "degraded_mode",
       missingOptional,
-      note: "TikTok/Serper skipped; Amazon + local sources continue",
+      note: missingOptional.includes("SERPER_API_KEY")
+        ? "Serper skipped; TikTok+Amazon+DB continue"
+        : "Optional crawler keys missing; available marketplace sources continue",
     })
   }
 

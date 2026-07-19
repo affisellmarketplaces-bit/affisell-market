@@ -4,6 +4,7 @@ import { getRedisUrl } from "@/lib/auto-order/redis"
 import { getRadarDb } from "@/lib/prisma-radar"
 import { LIVE_CONNECTOR_IDS } from "@/lib/radar/connectors/registry"
 import { hasEncryptionKey } from "@/lib/radar/encryption"
+import { isSerperConfigured } from "@/lib/radar/crawler/serper-client"
 import { RADAR_ENABLED, resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { gate, isRedisConfigured } from "@/lib/radar/gate"
 import { RADAR_PLANS } from "@/lib/radar/plans"
@@ -50,9 +51,7 @@ export async function GET() {
   const encryptionKey = hasEncryptionKey()
   const redis = Boolean(getRedisUrl() || isRedisConfigured())
   const cronSecret = Boolean(process.env.CRON_SECRET?.trim())
-  const serper = Boolean(
-    process.env.SERPER_API_KEY?.trim() || process.env.SERPAPI_API_KEY?.trim()
-  )
+  const serper = isSerperConfigured()
   const tiktokCrawler = Boolean(process.env.TIKTOK_CRAWLER_ACCESS_TOKEN?.trim())
 
   const marketplaces = Array.from(LIVE_CONNECTOR_IDS)

@@ -1,5 +1,6 @@
 import "server-only"
 
+import { serperSearchRaw, isSerperConfigured } from "@/lib/radar/crawler/serper-client"
 import { radarFetch } from "@/lib/radar/crawler/http"
 import type { TrendingKeyword } from "@/lib/radar/crawler/types"
 
@@ -44,7 +45,6 @@ function parseTrendsPayload(json: unknown, seedKeywords: string[]): TrendingKeyw
     }
   }
 
-  // Seed fallback: if provider returned nothing structured, keep seeds with synthetic growth=0 skipped
   if (out.length === 0 && seedKeywords.length > 0) {
     console.log("[radar/trends]", { result: "no_high_growth", seeds: seedKeywords.length })
   }
@@ -54,7 +54,7 @@ function parseTrendsPayload(json: unknown, seedKeywords: string[]): TrendingKeyw
 
 /**
  * Google Trends via Serper / SerpAPI (no official Trends API).
- * Returns keywords with growth > 50% over ~7 days when the provider exposes growth.
+ * Missing SERPER_API_KEY → [] (degraded); never throws for missing config.
  */
 export async function getTrendingKeywords(
   seedKeywords: string[]
@@ -62,27 +62,17 @@ export async function getTrendingKeywords(
   const seeds = seedKeywords.map((s) => s.trim()).filter(Boolean)
   if (seeds.length === 0) return []
 
-  const serperKey = process.env.SERPER_API_KEY?.trim()
   const serpApiKey = process.env.SERPAPI_API_KEY?.trim() || process.env.SERPAPI_KEY?.trim()
 
   try {
-    if (serperKey) {
-      const res = await radarFetch("https://google.serper.dev/search", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-api-key": serperKey,
-        },
-        body: JSON.stringify({
-          q: `Google Trends ${seeds.slice(0, 5).join(" OR ")}`,
-          gl: "us",
-        }),
+    if (isSerperConfigured()) {
+      const json = await serperSearchRaw(`Google Trends ${seeds.slice(0, 5).join(" OR ")}`, {
+        gl: "us",
       })
-      if (!res.ok) {
-        console.log("[radar/trends]", { result: "serper_http_error", status: res.status })
+      if (!json) {
+        console.log("[radar/trends]", { result: "serper_empty" })
         return []
       }
-      const json = await res.json().catch(() => ({}))
       const parsed = parseTrendsPayload(json, seeds)
       console.log("[radar/trends]", { result: "serper_ok", count: parsed.length })
       return parsed
@@ -102,7 +92,10 @@ export async function getTrendingKeywords(
       return parsed
     }
 
-    console.log("[radar/trends]", { result: "no_provider_key" })
+    console.warn("[radar/trends]", {
+      result: "no_provider_key",
+      message: "SERPER_API_KEY missing — Trends skipped (P1 optional)",
+    })
     return []
   } catch (err) {
     console.error("[radar/trends]", {

@@ -9,7 +9,7 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 300
 
-/** Optional crawler keys — missing = degraded mode (Amazon scrape / local DB still run). */
+/** Optional keys — missing = degraded (skip that source, continue others). */
 const CRAWLER_OPTIONAL_KEYS = ["TIKTOK_CRAWLER_ACCESS_TOKEN", "SERPER_API_KEY"] as const
 const LOCK_KEY = "radar:cron:global-scan"
 const LOCK_TTL_SEC = 280
@@ -18,7 +18,9 @@ const LOCK_TTL_SEC = 280
  * Global Radar scan — best sellers per marketplace × category.
  * `Authorization: Bearer ${CRON_SECRET}` — schedule every 6h.
  *
- * Degraded mode: without TikTok/Serper keys, still crawls Amazon (+ other local sources).
+ * Degraded mode:
+ * - no SERPER_API_KEY → skip Serper/Trends source, continue TikTok + Amazon + DB
+ * - no TIKTOK_CRAWLER_ACCESS_TOKEN → skip TikTok, continue Amazon + DB
  * Redis optional: in-memory lock fallback when REDIS_URL is missing.
  */
 export async function GET(req: Request) {
@@ -41,10 +43,13 @@ export async function GET(req: Request) {
   }
 
   const missingOptional = CRAWLER_OPTIONAL_KEYS.filter((k) => !process.env[k]?.trim())
+  const serperMissing = missingOptional.includes("SERPER_API_KEY")
   if (missingOptional.length > 0) {
     console.warn("[radar/cron/global-scan]", {
       degraded: true,
-      reason: "Missing optional crawler keys — continuing with Amazon/local",
+      reason: serperMissing
+        ? "SERPER_API_KEY missing — skip Serper/Trends; continue TikTok+Amazon+DB"
+        : "Missing optional crawler keys — continuing with available sources",
       missing: missingOptional,
       lockBackend: lock.backend,
     })

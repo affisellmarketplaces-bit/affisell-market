@@ -59,7 +59,7 @@ export function AdminRadarHealthFlags() {
       ) : !health ? (
         <p className="mt-3 text-sm text-zinc-500">Chargement…</p>
       ) : (
-        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <Flag
             ok={Boolean(health.encryptionKey)}
             label="ENCRYPTION_KEY"
@@ -72,8 +72,13 @@ export function AdminRadarHealthFlags() {
           />
           <Flag
             ok={!health.degradedCrawler}
-            label="Crawler"
+            label="TikTok crawler"
             fix="TIKTOK_CRAWLER_ACCESS_TOKEN (degraded OK)"
+          />
+          <Flag
+            ok={Boolean(health.serper)}
+            label="SERPER_API_KEY"
+            fix="P1 optional — Trends skip; TikTok+Amazon OK"
           />
         </div>
       )}

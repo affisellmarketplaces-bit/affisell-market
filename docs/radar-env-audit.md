@@ -14,7 +14,7 @@
 | `DATABASE_URL` / Neon | **P0** | Health `db: false` |
 | `NEXTAUTH_SECRET` | **P0** app-wide | Auth broken |
 | `TIKTOK_CRAWLER_ACCESS_TOKEN` | Optional (P1) | `degradedCrawler: true` — Amazon/local continues |
-| `SERPER_API_KEY` | Optional (P1) | Trends / Serper skip |
+| `SERPER_API_KEY` | **Optional P1** (Google Trends / Serper search) | Soft skip: warn + `[]` — cron continues TikTok+Amazon+DB; health `serper: false` |
 | `STRIPE_RADAR_GLOBAL_PRICE_ID` | Optional until $99 CTA | 503 `STRIPE_GLOBAL_NOT_CONFIGURED` — `docs/STRIPE_RADAR_SETUP.md` |
 | TikTok/Amazon/Google OAuth keys | Optional until Connect | Connect start fails clearly |
 | `SLACK_WEBHOOK_URL` | Optional | Alerts without Slack |
@@ -61,7 +61,7 @@ Admin QA: `/admin/radar` shows ENCRYPTION_KEY / REDIS / crawler from health.
 | CRON_SECRET | ✅ OK | P0 | présent, 64 chars | Bearer pour `/api/radar/cron/*` |
 | RADAR_DATABASE_URL | 🔴 MISSING | P1 | absent | Optionnel si Neon `DATABASE_URL` OK + `npm run radar:db:push` |
 | RADAR_BETA_USER_IDS | 🔴 MISSING | P2 | absent | IDs/emails comma-separated → plan Global |
-| SERPER_API_KEY | 🔴 MISSING | P1 | absent | https://serper.dev (Trends + cron skip sans keys) |
+| SERPER_API_KEY | 🔴 MISSING | **P1 optional** | absent | https://serper.dev — Trends only; cron degraded-OK without it |
 | TIKTOK_CRAWLER_ACCESS_TOKEN | 🔴 MISSING | P1 | absent | Bearer crawler TikTok (Partner token / Apify) — required by global-scan |
 | SERPAPI_API_KEY | 🔴 MISSING | P1 | absent | Fallback SerpAPI |
 | PROXY_URL | 🔴 MISSING | P2 | absent | Optionnel crawler |
