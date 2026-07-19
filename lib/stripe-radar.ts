@@ -160,11 +160,8 @@ export async function activateRadarFromCheckoutSession(session: Stripe.Checkout.
   // Metadata from our Checkout Session is authoritative. Env price id is a
   // secondary check for webhooks that only carry subscription price ids.
   if (!planFromMeta) {
-    let expectedPrice = resolveRadarStripePriceId(plan)
-    if (!expectedPrice && plan === "global") {
-      const { resolveOrEnsureStripeRadarGlobalPriceId } = await import("@/lib/stripe-radar-ensure")
-      expectedPrice = await resolveOrEnsureStripeRadarGlobalPriceId()
-    }
+    const { resolveOrEnsureStripeRadarPriceId } = await import("@/lib/stripe-radar-ensure")
+    const expectedPrice = await resolveOrEnsureStripeRadarPriceId(plan)
     if (!expectedPrice) {
       console.warn("[radar-paywall] Stripe Radar price missing", { plan })
       return { activated: false as const, reason: "price_not_configured" }

@@ -1,113 +1,199 @@
 import type Stripe from "stripe"
 
+import type { RadarCheckoutPlanId } from "@/lib/radar/plans"
 import { getStripeClient } from "@/lib/stripe"
-import { resolveStripeRadarGlobalPriceId } from "@/lib/stripe-radar"
+import {
+  resolveStripeRadarGlobalPriceId,
+} from "@/lib/stripe-radar"
 
-/** Stable Stripe lookup_key — idempotent across deploys / envs. */
+/** Stable Stripe lookup_keys — idempotent across deploys / Stripe accounts. */
+export const RADAR_PRO_PRICE_LOOKUP_KEY = "affisell_radar_pro_monthly"
 export const RADAR_GLOBAL_PRICE_LOOKUP_KEY = "affisell_radar_global_monthly"
 
-const PRODUCT_NAME = "Affisell Radar Global"
-const UNIT_AMOUNT_CENTS = 9900
+type RadarPriceSpec = {
+  plan: RadarCheckoutPlanId
+  lookupKey: string
+  productName: string
+  unitAmountCents: number
+  featureMeta: string
+}
 
-let cachedGlobalPriceId: string | null = null
-let ensureInFlight: Promise<string | null> | null = null
+const SPECS: Record<RadarCheckoutPlanId, RadarPriceSpec> = {
+  pro: {
+    plan: "pro",
+    lookupKey: RADAR_PRO_PRICE_LOOKUP_KEY,
+    productName: "Affisell Radar Pro",
+    unitAmountCents: 4900,
+    featureMeta: "radar_pro",
+  },
+  global: {
+    plan: "global",
+    lookupKey: RADAR_GLOBAL_PRICE_LOOKUP_KEY,
+    productName: "Affisell Radar Global",
+    unitAmountCents: 9900,
+    featureMeta: "radar_global",
+  },
+}
 
-function radarGlobalCurrency(): string {
-  const raw = process.env.STRIPE_RADAR_GLOBAL_CURRENCY?.trim().toLowerCase()
+const cache: Partial<Record<RadarCheckoutPlanId, string | null>> = {}
+const inFlight: Partial<Record<RadarCheckoutPlanId, Promise<string | null>>> = {}
+
+function radarCurrency(plan: RadarCheckoutPlanId): string {
+  const key =
+    plan === "global" ? "STRIPE_RADAR_GLOBAL_CURRENCY" : "STRIPE_RADAR_PRO_CURRENCY"
+  const raw = process.env[key]?.trim().toLowerCase()
   if (raw && /^[a-z]{3}$/.test(raw)) return raw
   return "usd"
 }
 
-/**
- * Resolve Global $99 price id: env first, then Stripe lookup_key,
- * then auto-create product+price once (Shopify-style billing bootstrap).
- */
-export async function resolveOrEnsureStripeRadarGlobalPriceId(): Promise<string | null> {
-  const fromEnv = resolveStripeRadarGlobalPriceId()
-  if (fromEnv) {
-    cachedGlobalPriceId = fromEnv
-    return fromEnv
+function envCandidates(plan: RadarCheckoutPlanId): string[] {
+  if (plan === "global") {
+    const id = resolveStripeRadarGlobalPriceId()
+    return id ? [id] : []
   }
-  if (cachedGlobalPriceId) return cachedGlobalPriceId
-  if (!process.env.STRIPE_SECRET_KEY?.trim()) return null
-
-  if (!ensureInFlight) {
-    ensureInFlight = ensureRadarGlobalPriceId()
-      .then((id) => {
-        cachedGlobalPriceId = id
-        return id
-      })
-      .finally(() => {
-        ensureInFlight = null
-      })
-  }
-  return ensureInFlight
+  // Prefer dedicated Radar Pro; video STRIPE_PRO_PRICE_ID is a soft fallback
+  // that often points at a deleted / wrong-account price → validated below.
+  const out: string[] = []
+  const radar = process.env.STRIPE_RADAR_PRO_PRICE_ID?.trim()
+  if (radar) out.push(radar)
+  const videoPro = process.env.STRIPE_PRO_PRICE_ID?.trim()
+  if (videoPro && videoPro !== radar) out.push(videoPro)
+  return out
 }
 
-async function findPriceByLookupKey(stripe: Stripe): Promise<string | null> {
+async function priceExistsInStripe(stripe: Stripe, priceId: string): Promise<boolean> {
+  try {
+    const price = await stripe.prices.retrieve(priceId)
+    return Boolean(price?.id) && price.active !== false
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    const missing = /No such price|resource_missing/i.test(message)
+    if (missing) {
+      console.warn("[radar-paywall]", {
+        result: "stale_price_ignored",
+        priceId,
+        message,
+      })
+      return false
+    }
+    throw err
+  }
+}
+
+async function findPriceByLookupKey(stripe: Stripe, lookupKey: string): Promise<string | null> {
   const listed = await stripe.prices.list({
-    lookup_keys: [RADAR_GLOBAL_PRICE_LOOKUP_KEY],
+    lookup_keys: [lookupKey],
     active: true,
     limit: 1,
   })
-  const id = listed.data[0]?.id
-  return id ?? null
+  return listed.data[0]?.id ?? null
 }
 
-async function ensureRadarGlobalPriceId(): Promise<string | null> {
+async function ensurePriceForPlan(plan: RadarCheckoutPlanId): Promise<string | null> {
+  const spec = SPECS[plan]
   try {
     const stripe = getStripeClient()
-    const existing = await findPriceByLookupKey(stripe)
+
+    for (const candidate of envCandidates(plan)) {
+      if (await priceExistsInStripe(stripe, candidate)) {
+        console.log("[radar-paywall]", {
+          result: `${plan}_price_resolved_env`,
+          priceId: candidate,
+        })
+        return candidate
+      }
+    }
+
+    const existing = await findPriceByLookupKey(stripe, spec.lookupKey)
     if (existing) {
       console.log("[radar-paywall]", {
-        result: "global_price_resolved_lookup",
+        result: `${plan}_price_resolved_lookup`,
         priceId: existing,
-        lookupKey: RADAR_GLOBAL_PRICE_LOOKUP_KEY,
+        lookupKey: spec.lookupKey,
       })
       return existing
     }
 
-    const currency = radarGlobalCurrency()
+    const currency = radarCurrency(plan)
     const product = await stripe.products.create({
-      name: PRODUCT_NAME,
+      name: spec.productName,
       metadata: {
-        affisell_feature: "radar_global",
-        affisell_lookup: RADAR_GLOBAL_PRICE_LOOKUP_KEY,
+        affisell_feature: spec.featureMeta,
+        affisell_lookup: spec.lookupKey,
       },
     })
 
     const price = await stripe.prices.create({
       product: product.id,
       currency,
-      unit_amount: UNIT_AMOUNT_CENTS,
+      unit_amount: spec.unitAmountCents,
       recurring: { interval: "month" },
-      lookup_key: RADAR_GLOBAL_PRICE_LOOKUP_KEY,
+      lookup_key: spec.lookupKey,
       metadata: {
-        affisell_feature: "radar_global",
-        plan: "radar_global",
+        affisell_feature: spec.featureMeta,
+        plan: spec.featureMeta,
       },
     })
 
     console.log("[radar-paywall]", {
-      result: "global_price_auto_provisioned",
+      result: `${plan}_price_auto_provisioned`,
       productId: product.id,
       priceId: price.id,
       currency,
-      lookupKey: RADAR_GLOBAL_PRICE_LOOKUP_KEY,
+      lookupKey: spec.lookupKey,
     })
     return price.id
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     console.error("[radar-paywall]", {
-      result: "global_price_ensure_failed",
+      result: `${plan}_price_ensure_failed`,
       message,
     })
     return null
   }
 }
 
-/** Test helper — clear in-memory cache between vitest cases. */
+/**
+ * Resolve Radar Stripe price: validate env IDs (heal stale), then lookup_key,
+ * then auto-create once. Survives wrong-account / deleted STRIPE_PRO_PRICE_ID.
+ */
+export async function resolveOrEnsureStripeRadarPriceId(
+  plan: RadarCheckoutPlanId
+): Promise<string | null> {
+  if (!process.env.STRIPE_SECRET_KEY?.trim()) return null
+
+  const cached = cache[plan]
+  if (cached) return cached
+
+  if (!inFlight[plan]) {
+    inFlight[plan] = ensurePriceForPlan(plan)
+      .then((id) => {
+        cache[plan] = id
+        return id
+      })
+      .finally(() => {
+        delete inFlight[plan]
+      })
+  }
+  return inFlight[plan]!
+}
+
+export async function resolveOrEnsureStripeRadarGlobalPriceId(): Promise<string | null> {
+  return resolveOrEnsureStripeRadarPriceId("global")
+}
+
+export async function resolveOrEnsureStripeRadarProPriceId(): Promise<string | null> {
+  return resolveOrEnsureStripeRadarPriceId("pro")
+}
+
+/** @deprecated use resolveOrEnsureStripeRadarPriceId — kept for callers/tests */
 export function __resetRadarGlobalPriceCacheForTests() {
-  cachedGlobalPriceId = null
-  ensureInFlight = null
+  delete cache.global
+  delete cache.pro
+  delete inFlight.global
+  delete inFlight.pro
+}
+
+export function __resetRadarPriceCacheForTests() {
+  __resetRadarGlobalPriceCacheForTests()
 }

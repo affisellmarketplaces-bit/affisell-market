@@ -69,6 +69,11 @@ export default function PricingPageClient({
         setLoadingPlan(null)
         return
       }
+      if (res.status === 503 && data.error === "STRIPE_PRO_NOT_CONFIGURED") {
+        toast.error("Plan Pro non configuré - lance npm run stripe:ensure-radar")
+        setLoadingPlan(null)
+        return
+      }
       if (!res.ok || !data.url) {
         throw new Error(data.message ?? data.error ?? "Impossible de démarrer le paiement")
       }

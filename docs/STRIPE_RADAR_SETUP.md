@@ -6,13 +6,15 @@
 npm run stripe:ensure-radar
 ```
 
-Crée (idempotent) le produit + price Stripe avec  
-`lookup_key=affisell_radar_global_monthly` ($99/mois) et écrit  
-`STRIPE_RADAR_GLOBAL_PRICE_ID` dans `.env.local`.
+Crée (idempotent) les produits + prices Stripe :
+- Pro $49/mois — `lookup_key=affisell_radar_pro_monthly`
+- Global $99/mois — `lookup_key=affisell_radar_global_monthly`
 
-Sans env, le checkout Global **auto-provisionne** le même price via lookup_key  
-(plus de toast « Plan Global non configuré » tant que `STRIPE_SECRET_KEY` est set).  
-Si Stripe est indisponible → **503** `{ "error": "STRIPE_GLOBAL_NOT_CONFIGURED" }` (pas de 500).
+Écrit `STRIPE_RADAR_PRO_PRICE_ID` + `STRIPE_RADAR_GLOBAL_PRICE_ID` dans `.env.local`.
+
+Sans env (ou avec un **price ID stale** d’un autre compte Stripe), le checkout  
+**valide** l’ID puis auto-provisionne via lookup_key — plus d’erreur  
+`No such price: 'price_…'`. Si Stripe est indisponible → **503** structuré (pas de 500).
 
 ## 1. Créer le produit Stripe (manuel)
 

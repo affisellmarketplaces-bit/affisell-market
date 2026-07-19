@@ -4,10 +4,9 @@ import { auth } from "@/auth"
 import { appBaseUrl } from "@/lib/app-base-url"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
-import { resolveOrEnsureStripeRadarGlobalPriceId } from "@/lib/stripe-radar-ensure"
+import { resolveOrEnsureStripeRadarPriceId } from "@/lib/stripe-radar-ensure"
 import {
   parseRadarCheckoutPlan,
-  resolveRadarStripePriceId,
   sanitizeRadarReturnPath,
   type RadarCheckoutPlanId,
 } from "@/lib/stripe-radar"
@@ -35,10 +34,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "plan must be pro or global" }, { status: 400 })
   }
 
-  let priceId = resolveRadarStripePriceId(plan)
-  if (!priceId && plan === "global") {
-    priceId = await resolveOrEnsureStripeRadarGlobalPriceId()
-  }
+  const priceId = await resolveOrEnsureStripeRadarPriceId(plan)
   if (!priceId) {
     const error =
       plan === "global" ? "STRIPE_GLOBAL_NOT_CONFIGURED" : "STRIPE_PRO_NOT_CONFIGURED"
