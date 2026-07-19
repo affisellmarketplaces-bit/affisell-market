@@ -11,6 +11,7 @@ import {
   isConnectorLive,
 } from "@/lib/radar/connectors/registry"
 import type { MarketplaceConnector } from "@/lib/radar/connectors/types"
+import { resolveTikTokConnectError } from "@/lib/radar/tiktok-connect-errors"
 
 function ConnectorCard({
   connector,
@@ -74,6 +75,7 @@ export default function RadarConnectClient({
 }) {
   const searchParams = useSearchParams()
   const error = searchParams.get("error")
+  const tiktokError = resolveTikTokConnectError(error)
   const byRegion = groupMarketplacesByRegion()
 
   return (
@@ -84,11 +86,26 @@ export default function RadarConnectClient({
           App Partner <strong>Affisell Analytics Connector</strong> — TikTok Shop OAuth + webhooks
           order/product. Amazon SP-API et Google Merchant aussi disponibles.
         </p>
-        {error && (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-            Connexion échouée ({error}). Réessayez ou contactez le support.
+        {tiktokError ? (
+          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <p className="font-semibold">{tiktokError.title}</p>
+            <p className="mt-1 text-amber-900/90">{tiktokError.body}</p>
+            <ol className="mt-2 list-decimal space-y-1 pl-5 text-amber-900/90">
+              {tiktokError.steps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
           </div>
-        )}
+        ) : null}
+        <div className="mt-4 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3 text-xs text-zinc-600">
+          <p className="font-medium text-zinc-800">Si Seller Center affiche « Aucune boutique disponible »</p>
+          <p className="mt-1">
+            L’URL TikTok contient souvent <code className="rounded bg-white px-1">is_draft=true</code>{" "}
+            : l’app Partner est en brouillon. Ajoute ta boutique FR comme{" "}
+            <strong>test shop</strong> dans Partner Center, ou publie l’app — Affisell ne peut pas
+            forcer TikTok à lister un shop non whitelisté.
+          </p>
+        </div>
         <div className="mt-4">
           <Link
             href="/api/intelli/tiktok/start"

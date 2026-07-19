@@ -165,3 +165,19 @@ Après schema orders enrichi : `npm run radar:db:push`
 6. Cron refresh OK  
 
 **Ne pas modifier** IP allowlist / webhook URI déjà configurés dans Partner Center (sauf ngrok temporaire en local).
+
+## Troubleshooting — « Aucune boutique disponible pour la connexion »
+
+Écran Seller Center (`seller-fr.tiktok.com/.../custom-authorize/...?is_draft=true`) :
+
+| Signal | Cause | Action |
+|--------|--------|--------|
+| `is_draft=true` dans l’URL | App Partner encore **draft** | Partner Center → Authorized / Test shops → ajouter le seller FR |
+| Boutique FR visible (wallet, notifs) mais erreur | Shop **non whitelisté** pour l’app draft | Même action — pas un bug Affisell |
+| Compte staff | Pas les droits admin shop | Se connecter avec le owner Seller Center |
+| App publiée + toujours KO | Marché / région app ≠ shop | Vérifier target market EU/FR dans Partner |
+
+Affisell démarre correctement OAuth (`/api/intelli/tiktok/start` → `service_id`).  
+TikTok décide ensuite quelles boutiques apparaissent — **whitelist draft ou publish**.
+
+Guide UI : `/radar/connect` (callout draft).
