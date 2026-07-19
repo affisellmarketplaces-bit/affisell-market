@@ -104,6 +104,8 @@ model RadarGlobalSnapshot {
   price         Decimal  @db.Decimal(12, 2)
   category      String?
   country       String
+  /// UTC calendar day — one row per product per day for WINNER_RISING / PRICE_WAR history.
+  day           DateTime
   rank          Int?
   salesEst      Int?
   url           String?
@@ -111,8 +113,9 @@ model RadarGlobalSnapshot {
   imageUrl      String?
   crawledAt     DateTime @default(now())
 
-  @@unique([marketplaceId, externalId, country])
+  @@unique([marketplaceId, externalId, country, day])
   @@index([marketplaceId, category, crawledAt])
+  @@index([marketplaceId, externalId, country, day])
   @@index([crawledAt])
   @@schema("market_intelli")
 }

@@ -1,11 +1,11 @@
 import "server-only"
 
-import { getRadarDb } from "@/lib/prisma-radar"
-import { MARKETPLACE_CONNECTORS } from "@/lib/radar/connectors/registry"
 import { crawlBestSellers } from "@/lib/radar/crawler/category-crawler"
 import { RADAR_SCAN_CATEGORIES } from "@/lib/radar/crawler/types"
+import { MARKETPLACE_CONNECTORS } from "@/lib/radar/connectors/registry"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { isRadarEnabled } from "@/lib/radar/gate"
+import { upsertGlobalSnapshot } from "@/lib/radar/writers/global-snapshot"
 
 const DEFAULT_COUNTRY = "US"
 
@@ -57,7 +57,6 @@ export async function runRadarGlobalScan(): Promise<RadarGlobalScanResult> {
     })
   }
 
-  const db = getRadarDb()
   let scanned = 0
   let created = 0
   let updated = 0
@@ -70,54 +69,22 @@ export async function runRadarGlobalScan(): Promise<RadarGlobalScanResult> {
         scanned += products.length
 
         for (const p of products) {
-          const existing = await db.radarGlobalSnapshot.findUnique({
-            where: {
-              marketplaceId_externalId_country: {
-                marketplaceId: p.marketplaceId,
-                externalId: p.externalId,
-                country: p.country,
-              },
-            },
-            select: { id: true },
+          const result = await upsertGlobalSnapshot({
+            marketplaceId: p.marketplaceId,
+            externalId: p.externalId,
+            title: p.title,
+            price: p.price,
+            category: p.category ?? category,
+            country: p.country,
+            rank: p.rank,
+            salesEst: p.salesEst,
+            url: p.url,
+            currency: p.currency,
+            imageUrl: p.imageUrl,
+            crawledAt: p.crawledAt,
           })
-
-          await db.radarGlobalSnapshot.upsert({
-            where: {
-              marketplaceId_externalId_country: {
-                marketplaceId: p.marketplaceId,
-                externalId: p.externalId,
-                country: p.country,
-              },
-            },
-            create: {
-              marketplaceId: p.marketplaceId,
-              externalId: p.externalId,
-              title: p.title,
-              price: p.price,
-              category: p.category ?? category,
-              country: p.country,
-              rank: p.rank,
-              salesEst: p.salesEst,
-              url: p.url,
-              currency: p.currency,
-              imageUrl: p.imageUrl,
-              crawledAt: p.crawledAt,
-            },
-            update: {
-              title: p.title,
-              price: p.price,
-              category: p.category ?? category,
-              rank: p.rank,
-              salesEst: p.salesEst,
-              url: p.url,
-              currency: p.currency,
-              imageUrl: p.imageUrl,
-              crawledAt: p.crawledAt,
-            },
-          })
-
-          if (existing) updated += 1
-          else created += 1
+          if (result.created) created += 1
+          else updated += 1
         }
       } catch (err) {
         errorCount += 1

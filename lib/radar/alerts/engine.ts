@@ -162,7 +162,7 @@ export async function evaluateGlobalScan(): Promise<{
         externalId: current.externalId,
         country: current.country,
       },
-      orderBy: { crawledAt: "desc" },
+      orderBy: [{ day: "desc" }, { crawledAt: "desc" }],
       take: 20,
     })
 
