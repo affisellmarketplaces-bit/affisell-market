@@ -36,15 +36,24 @@ export async function POST(req: Request) {
 
   const priceId = resolveRadarStripePriceId(plan)
   if (!priceId) {
-    console.error("[radar-paywall]", { plan, result: "price_not_configured" })
+    const error =
+      plan === "global" ? "STRIPE_GLOBAL_NOT_CONFIGURED" : "STRIPE_PRO_NOT_CONFIGURED"
+    const message =
+      plan === "global"
+        ? "Global plan not configured in Stripe"
+        : "Pro plan not configured in Stripe"
+    console.error("[radar-paywall]", { plan, result: "price_not_configured", error })
+    return NextResponse.json({ error, message }, { status: 503 })
+  }
+
+  if (!process.env.STRIPE_SECRET_KEY?.trim()) {
+    console.error("[radar-paywall]", { plan, result: "stripe_secret_missing" })
     return NextResponse.json(
       {
-        error:
-          plan === "global"
-            ? "STRIPE_RADAR_GLOBAL_PRICE_ID is not configured"
-            : "STRIPE_RADAR_PRO_PRICE_ID (or STRIPE_PRO_PRICE_ID) is not configured",
+        error: "STRIPE_SECRET_NOT_CONFIGURED",
+        message: "Stripe secret key not configured",
       },
-      { status: 500 }
+      { status: 503 }
     )
   }
 

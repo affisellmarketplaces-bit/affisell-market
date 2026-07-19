@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
+import { AdminRadarCheckoutFallback } from "@/components/admin/admin-radar-checkout-fallback"
 import { auth } from "@/auth"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { getUserRadarPlan, toRadarPlanUser } from "@/lib/radar/plans"
@@ -71,6 +72,8 @@ export default async function AdminRadarPage() {
           </li>
         ))}
       </ul>
+
+      <AdminRadarCheckoutFallback />
 
       <p className="mt-8 text-xs text-zinc-500">
         Après login admin, si le paywall reste visible : recharge la session (déconnexion / reconnexion)

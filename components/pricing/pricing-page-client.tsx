@@ -63,9 +63,14 @@ export default function PricingPageClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan, returnPath: "/pricing" }),
       })
-      const data = (await res.json()) as { url?: string; error?: string }
+      const data = (await res.json()) as { url?: string; error?: string; message?: string }
+      if (res.status === 503 && data.error === "STRIPE_GLOBAL_NOT_CONFIGURED") {
+        toast.error("Plan Global non configuré - voir docs/STRIPE_RADAR_SETUP.md")
+        setLoadingPlan(null)
+        return
+      }
       if (!res.ok || !data.url) {
-        throw new Error(data.error ?? "Impossible de démarrer le paiement")
+        throw new Error(data.message ?? data.error ?? "Impossible de démarrer le paiement")
       }
       window.location.href = data.url
     } catch (e) {
