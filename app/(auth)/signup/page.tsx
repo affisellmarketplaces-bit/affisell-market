@@ -1,11 +1,40 @@
 import Link from "next/link"
+import { redirect } from "next/navigation"
 import { ArrowRight, Briefcase, Check, DollarSign, Globe, Package, Shield, ShieldCheck, Store } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { isUsMarket, STOREFRONT_CURRENCY } from "@/lib/market-config"
 import { resolveLiveCheckoutCountryCount } from "@/lib/checkout-country-rollout"
 
-export default async function SignupChooser() {
+type SearchParams = Promise<{
+  role?: string | string[]
+  plan?: string | string[]
+}>
+
+function first(v: string | string[] | undefined): string | null {
+  if (typeof v === "string") return v.trim() || null
+  if (Array.isArray(v) && typeof v[0] === "string") return v[0].trim() || null
+  return null
+}
+
+export default async function SignupChooser({
+  searchParams,
+}: {
+  searchParams?: SearchParams
+}) {
+  const sp = searchParams ? await searchParams : {}
+  const role = first(sp.role)?.toLowerCase() ?? null
+  const plan = first(sp.plan)
+  const planQs = plan ? `?plan=${encodeURIComponent(plan)}` : ""
+
+  // Pricing CTAs: /signup?role=reseller|supplier&plan=…
+  if (role === "reseller" || role === "affiliate") {
+    redirect(`/signup/affiliate${planQs}`)
+  }
+  if (role === "supplier") {
+    redirect(`/signup/supplier${planQs}`)
+  }
+
   const usMarket = isUsMarket()
   const checkoutCount = await resolveLiveCheckoutCountryCount()
   const t = await getTranslations("auth.signupChooser")

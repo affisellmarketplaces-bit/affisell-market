@@ -79,7 +79,9 @@ export function SupplierKindSelector({ initialKind, initialName }: Props) {
           ? "Profil Producteur enregistré"
           : "Profil Stockeur enregistré"
       )
-      router.push("/radar")
+      router.push(
+        selectedKind === "producer" ? "/pricing?kind=producer" : "/pricing?kind=stocker"
+      )
       router.refresh()
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Échec de l’enregistrement")
@@ -108,8 +110,20 @@ export function SupplierKindSelector({ initialKind, initialName }: Props) {
             <Button type="button" variant="bentoAccent" onClick={() => setEditing(true)}>
               Changer
             </Button>
-            <Button type="button" variant="bentoOutline" onClick={() => router.push("/radar")}>
-              Continuer vers Affisell Radar →
+            <Button
+              type="button"
+              variant="bentoOutline"
+              onClick={() =>
+                router.push(
+                  initialKind === "producer"
+                    ? "/pricing?kind=producer"
+                    : initialKind === "stocker"
+                      ? "/pricing?kind=stocker"
+                      : "/pricing"
+                )
+              }
+            >
+              Voir les plans →
             </Button>
           </div>
         </motion.div>

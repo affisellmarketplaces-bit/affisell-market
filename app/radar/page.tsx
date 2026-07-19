@@ -174,8 +174,9 @@ export default async function RadarDashboardPage({
 
   let supplierKind: SupplierKind = "unset"
   let brandName: string | null = null
-  const kindChromeEnabled = session.user.role === "SUPPLIER"
-  if (kindChromeEnabled) {
+  const kindChromeEnabled =
+    session.user.role === "SUPPLIER" || session.user.role === "AFFILIATE"
+  if (session.user.role === "SUPPLIER") {
     const profile = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { supplierKind: true, name: true },
@@ -197,7 +198,12 @@ export default async function RadarDashboardPage({
   if (!access.allowed || plan.id === "free" || plan.id === "starter") {
     const teaser = RADAR_DEMO_WINNERS.slice(0, 3)
     return (
-      <RadarKindCockpit supplierKind={supplierKind} enabled={kindChromeEnabled}>
+      <RadarKindCockpit
+        supplierKind={supplierKind}
+        radarPlanId={plan.id}
+        role={session.user.role}
+        enabled={kindChromeEnabled}
+      >
         <div className="space-y-6">
           <RadarPaywallPanel
             plan={plan}
@@ -343,7 +349,12 @@ export default async function RadarDashboardPage({
     marketplaceFilter === "tiktok_shop"
 
   return (
-    <RadarKindCockpit supplierKind={supplierKind} enabled={kindChromeEnabled}>
+    <RadarKindCockpit
+      supplierKind={supplierKind}
+      radarPlanId={plan.id}
+      role={session.user.role}
+      enabled={kindChromeEnabled}
+    >
       <div className="space-y-8">
       {justConnected && (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
