@@ -51,16 +51,20 @@ export async function GET() {
   const serper = Boolean(
     process.env.SERPER_API_KEY?.trim() || process.env.SERPAPI_API_KEY?.trim()
   )
+  const tiktokCrawler = Boolean(process.env.TIKTOK_CRAWLER_ACCESS_TOKEN?.trim())
 
   const marketplaces = Array.from(LIVE_CONNECTOR_IDS)
   const mapReady = true
   const plansEnabled = process.env.RADAR_PLANS_ENABLED?.trim() !== "false"
+  const degradedCrawler = !serper || !tiktokCrawler
 
   const payload = {
     redis,
     db,
     cronSecret,
     serper,
+    tiktokCrawler,
+    degradedCrawler,
     marketplaces,
     alertsTable,
     radarEnabled: RADAR_ENABLED === "true",
@@ -82,6 +86,9 @@ export async function GET() {
     alertsTable,
     mapReady,
     subscriptions,
+    serper,
+    tiktokCrawler,
+    degradedCrawler,
   })
   return NextResponse.json(payload)
 }

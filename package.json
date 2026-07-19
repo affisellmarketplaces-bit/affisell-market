@@ -23,6 +23,7 @@
     "mi:db:push": "npm run radar:db:push",
     "radar:db:studio": "node scripts/radar-db.mjs studio",
     "mi:db:studio": "npm run radar:db:studio",
+    "radar:health": "node scripts/radar-health.mjs",
     "db:local:up": "docker compose up -d",
     "worker:auto-order": "tsx workers/auto-order-worker.ts",
     "db:local:down": "docker compose down",

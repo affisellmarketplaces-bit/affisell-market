@@ -3,6 +3,11 @@
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 
+/**
+ * Force Scan — always clickable (except while pending).
+ * Parent may pass `disabled` as a soft hint (empty DB / missing P1 keys);
+ * we still run degraded Amazon/local scan via POST /api/radar/scan.
+ */
 export default function RadarForceScanButton({
   disabled = false,
   label = "Forcer Scan",
@@ -16,7 +21,6 @@ export default function RadarForceScanButton({
   const [error, setError] = useState<string | null>(null)
 
   function onForceScan() {
-    if (disabled) return
     setMessage(null)
     setError(null)
     startTransition(async () => {
@@ -27,6 +31,8 @@ export default function RadarForceScanButton({
           scanned?: number
           new?: number
           skipped?: boolean
+          degraded?: boolean
+          missingOptional?: string[]
           reason?: string
           error?: string
         }
@@ -38,7 +44,12 @@ export default function RadarForceScanButton({
           setMessage(`Scan ignoré (${json.reason ?? "skipped"})`)
           return
         }
-        setMessage(`Scan OK — ${json.scanned ?? 0} lus, ${json.new ?? 0} nouveaux`)
+        const degradedNote = json.degraded
+          ? ` · mode dégradé (${(json.missingOptional ?? []).join(", ") || "clés P1 absentes"})`
+          : ""
+        setMessage(
+          `Scan OK — ${json.scanned ?? 0} lus, ${json.new ?? 0} nouveaux${degradedNote}`
+        )
         router.refresh()
       } catch {
         setError("Scan impossible (réseau)")
@@ -51,8 +62,12 @@ export default function RadarForceScanButton({
       <button
         type="button"
         onClick={onForceScan}
-        disabled={disabled || pending}
-        title={disabled ? "Configure les clés crawler pour activer le scan" : undefined}
+        disabled={pending}
+        title={
+          disabled
+            ? "Mode dégradé disponible : Amazon/local sans TikTok/Serper"
+            : undefined
+        }
         className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Scan en cours…" : label}

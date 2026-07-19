@@ -53,6 +53,11 @@ yarn-error.log*
 !.env.example
 !.env.local.radar.template
 
+# Editor / Cursor artefacts (keep tracked `.cursor/rules`)
+Browser Tab
+docs/radar-env-audit.md.bak
+docs/*.bak
+
 # vercel
 .vercel
 

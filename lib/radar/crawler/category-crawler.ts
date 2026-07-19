@@ -32,12 +32,24 @@ async function crawlTikTokBestSellers(
   category: string,
   country: string
 ): Promise<GlobalProduct[]> {
+  const token = process.env.TIKTOK_CRAWLER_ACCESS_TOKEN?.trim()
+  if (!token) {
+    console.log("[radar/crawler]", {
+      marketplaceId: "tiktok_shop",
+      result: "skipped",
+      reason: "MISSING_KEY",
+      key: "TIKTOK_CRAWLER_ACCESS_TOKEN",
+      category,
+      country,
+    })
+    return []
+  }
+
   const apiBase =
     process.env.TIKTOK_SHOP_TRENDING_URL?.trim() ||
     process.env.TIKTOK_OPEN_API_BASE?.trim() ||
     "https://open-api.tiktokglobalshop.com"
 
-  const token = process.env.TIKTOK_CRAWLER_ACCESS_TOKEN?.trim()
   const url = new URL("/api/products/trending", apiBase.endsWith("/") ? apiBase.slice(0, -1) : apiBase)
   // Prefer documented-style path; also try /product/202309/products/search via env override
   if (process.env.TIKTOK_SHOP_TRENDING_URL?.trim()) {
@@ -47,8 +59,10 @@ async function crawlTikTokBestSellers(
   url.searchParams.set("country", country)
   url.searchParams.set("page_size", String(TOP_N))
 
-  const headers: HeadersInit = { accept: "application/json" }
-  if (token) headers.authorization = `Bearer ${token}`
+  const headers: HeadersInit = {
+    accept: "application/json",
+    authorization: `Bearer ${token}`,
+  }
 
   const res = await radarFetch(url.toString(), { headers })
   if (!res.ok) {

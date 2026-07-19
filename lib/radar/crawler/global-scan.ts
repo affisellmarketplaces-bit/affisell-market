@@ -17,6 +17,9 @@ export type RadarGlobalScanResult = {
   new: number
   updated: number
   errors: number
+  /** Present when TikTok/Serper keys are absent — Amazon/local still ran. */
+  degraded?: boolean
+  missingOptional?: string[]
 }
 
 function marketplaceScanOrder(): string[] {
@@ -26,6 +29,11 @@ function marketplaceScanOrder(): string[] {
     ...priority.filter((id) => ids.includes(id)),
     ...ids.filter((id) => !priority.includes(id)),
   ]
+}
+
+function missingOptionalCrawlerKeys(): string[] {
+  const keys = ["TIKTOK_CRAWLER_ACCESS_TOKEN", "SERPER_API_KEY"] as const
+  return keys.filter((k) => !process.env[k]?.trim())
 }
 
 /** Shared global scan used by cron + authenticated Force Scan. */
@@ -38,6 +46,15 @@ export async function runRadarGlobalScan(): Promise<RadarGlobalScanResult> {
   if (!resolveRadarDatabaseUrl()) {
     console.log("[radar/global-scan]", { result: "skipped_no_db" })
     return { ok: true, skipped: true, reason: "no_database_url", scanned: 0, new: 0, updated: 0, errors: 0 }
+  }
+
+  const missingOptional = missingOptionalCrawlerKeys()
+  if (missingOptional.length > 0) {
+    console.log("[radar/global-scan]", {
+      result: "degraded_mode",
+      missingOptional,
+      note: "TikTok/Serper skipped; Amazon + local sources continue",
+    })
   }
 
   const db = getRadarDb()
@@ -120,7 +137,17 @@ export async function runRadarGlobalScan(): Promise<RadarGlobalScanResult> {
     new: created,
     updated,
     errors: errorCount,
+    degraded: missingOptional.length > 0,
   })
 
-  return { ok: true, scanned, new: created, updated, errors: errorCount }
+  return {
+    ok: true,
+    scanned,
+    new: created,
+    updated,
+    errors: errorCount,
+    ...(missingOptional.length > 0
+      ? { degraded: true, missingOptional }
+      : {}),
+  }
 }
