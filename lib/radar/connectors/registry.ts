@@ -103,7 +103,17 @@ export const MARKETPLACE_CONNECTORS: MarketplaceConnector[] = [
   stubMarketplace({ id: "snapdeal", name: "Snapdeal", logo: "🟠", region: "SOUTH_ASIA" }),
 
   // —— Southeast Asia ——
-  stubMarketplace({ id: "shopee", name: "Shopee", logo: "🟠", region: "SEA" }),
+  {
+    id: "shopee",
+    name: "Shopee",
+    logo: "🟠",
+    category: "marketplace",
+    region: "SEA",
+    authType: "api_key",
+    requiresAuth: false,
+    countries: ["MY", "SG", "TH", "VN", "PH"],
+    getAuthUrl: () => "/radar?marketplace=shopee",
+  },
   stubMarketplace({ id: "lazada", name: "Lazada", logo: "🔴", region: "SEA" }),
   stubMarketplace({ id: "tokopedia", name: "Tokopedia", logo: "🟢", region: "SEA" }),
   stubMarketplace({ id: "bukalapak", name: "Bukalapak", logo: "❤️", region: "SEA" }),
@@ -162,7 +172,15 @@ export const GOOGLE_CONNECTORS: GoogleConnector[] = [
 ]
 
 /** Client-safe list — keep server-only connectors out of this module. */
-export const LIVE_CONNECTOR_IDS = new Set(["tiktok_shop", "amazon", "google_merchant"])
+export const LIVE_CONNECTOR_IDS = new Set([
+  "tiktok_shop",
+  "amazon",
+  "google_merchant",
+  "shopee",
+])
+
+/** Connectors crawled by global-scan (public or OAuth-backed listing sources). */
+export const CRAWLABLE_CONNECTOR_IDS = ["tiktok_shop", "amazon", "shopee"] as const
 
 /** Stable continent order for /radar/connect. */
 export const REGION_ORDER: Region[] = [

@@ -38,6 +38,10 @@ export interface BaseConnector {
 
 export interface MarketplaceConnector extends BaseConnector {
   category: "marketplace"
+  /** false = public crawl / no merchant OAuth (e.g. Shopee listing search). */
+  requiresAuth?: boolean
+  /** ISO countries this connector covers when live. */
+  countries?: string[]
   /** Optional — live connectors (Amazon SP-API, …) fetch catalog/listings. */
   getProducts?(
     accessToken: string,

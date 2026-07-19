@@ -2,13 +2,15 @@ import "server-only"
 
 import { crawlBestSellers } from "@/lib/radar/crawler/category-crawler"
 import { RADAR_SCAN_CATEGORIES } from "@/lib/radar/crawler/types"
-import { MARKETPLACE_CONNECTORS } from "@/lib/radar/connectors/registry"
+import { CRAWLABLE_CONNECTOR_IDS } from "@/lib/radar/connectors/registry"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { upsertProductSnapshot } from "@/lib/radar/writers/product-writer"
 import { upsertStandardProductFromSnapshot } from "@/lib/radar/writers/standard-product-writer"
 
 const DEFAULT_COUNTRY = "US"
+/** Shopee SEA — start with MY (public search, no OAuth). */
+const SHOPEE_SCAN_COUNTRIES = ["MY"] as const
 
 export type RadarGlobalScanResult = {
   ok: boolean
@@ -24,12 +26,16 @@ export type RadarGlobalScanResult = {
 }
 
 function marketplaceScanOrder(): string[] {
-  const ids = MARKETPLACE_CONNECTORS.map((c) => c.id)
-  const priority = ["tiktok_shop", "amazon"]
+  const priority = ["tiktok_shop", "amazon", "shopee"] as const
   return [
-    ...priority.filter((id) => ids.includes(id)),
-    ...ids.filter((id) => !priority.includes(id)),
+    ...priority.filter((id) => (CRAWLABLE_CONNECTOR_IDS as readonly string[]).includes(id)),
+    ...CRAWLABLE_CONNECTOR_IDS.filter((id) => !(priority as readonly string[]).includes(id)),
   ]
+}
+
+function countriesForMarketplace(marketplaceId: string): string[] {
+  if (marketplaceId === "shopee") return [...SHOPEE_SCAN_COUNTRIES]
+  return [DEFAULT_COUNTRY]
 }
 
 function missingOptionalCrawlerKeys(): string[] {
@@ -67,61 +73,64 @@ export async function runRadarGlobalScan(): Promise<RadarGlobalScanResult> {
   let standardUpserts = 0
 
   for (const marketplaceId of marketplaceScanOrder()) {
-    for (const category of RADAR_SCAN_CATEGORIES) {
-      try {
-        const products = await crawlBestSellers(marketplaceId, category, DEFAULT_COUNTRY)
-        scanned += products.length
+    for (const country of countriesForMarketplace(marketplaceId)) {
+      for (const category of RADAR_SCAN_CATEGORIES) {
+        try {
+          const products = await crawlBestSellers(marketplaceId, category, country)
+          scanned += products.length
 
-        for (const p of products) {
-          const result = await upsertProductSnapshot({
-            marketplaceId: p.marketplaceId,
-            externalId: p.externalId,
-            title: p.title,
-            price: p.price,
-            category: p.category ?? category,
-            country: p.country,
-            rank: p.rank,
-            salesEst: p.salesEst,
-            url: p.url,
-            currency: p.currency,
-            imageUrl: p.imageUrl,
-            crawledAt: p.crawledAt,
-          })
-          if (result.created) created += 1
-          else updated += 1
-
-          try {
-            const std = await upsertStandardProductFromSnapshot({
+          for (const p of products) {
+            const result = await upsertProductSnapshot({
               marketplaceId: p.marketplaceId,
               externalId: p.externalId,
               title: p.title,
               price: p.price,
+              category: p.category ?? category,
+              country: p.country,
+              rank: p.rank,
+              salesEst: p.salesEst,
+              url: p.url,
               currency: p.currency,
               imageUrl: p.imageUrl,
-              country: p.country,
-              url: p.url,
-              day: result.day,
-              sales: p.salesEst,
-              rank: p.rank,
+              crawledAt: p.crawledAt,
             })
-            if (std) standardUpserts += 1
-          } catch (stdErr) {
-            console.error("[radar/global-scan]", {
-              result: "standard_product_failed",
-              marketplaceId: p.marketplaceId,
-              externalId: p.externalId,
-              message: stdErr instanceof Error ? stdErr.message : "unknown",
-            })
+            if (result.created) created += 1
+            else updated += 1
+
+            try {
+              const std = await upsertStandardProductFromSnapshot({
+                marketplaceId: p.marketplaceId,
+                externalId: p.externalId,
+                title: p.title,
+                price: p.price,
+                currency: p.currency,
+                imageUrl: p.imageUrl,
+                country: p.country,
+                url: p.url,
+                day: result.day,
+                sales: p.salesEst,
+                rank: p.rank,
+              })
+              if (std) standardUpserts += 1
+            } catch (stdErr) {
+              console.error("[radar/global-scan]", {
+                result: "standard_product_failed",
+                marketplaceId: p.marketplaceId,
+                externalId: p.externalId,
+                message: stdErr instanceof Error ? stdErr.message : "unknown",
+              })
+            }
           }
+        } catch (err) {
+          errorCount += 1
+          console.error("[radar/global-scan]", {
+            marketplaceId,
+            category,
+            country,
+            result: "marketplace_failed",
+            message: err instanceof Error ? err.message : "unknown",
+          })
         }
-      } catch (err) {
-        errorCount += 1
-        console.error("[radar/global-scan]", {
-          marketplaceId,
-          category,
-          result: "marketplace_failed",
-          message: err instanceof Error ? err.message : "unknown",
-        })
       }
     }
   }

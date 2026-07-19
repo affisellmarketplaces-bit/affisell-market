@@ -16,10 +16,12 @@ function ConnectorCard({
   connector,
   href,
   enabled,
+  ctaLabel = "Connect",
 }: {
   connector: { id: string; name: string; logo: string; region?: string }
   href: string
   enabled: boolean
+  ctaLabel?: string
 }) {
   return (
     <article className="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
@@ -32,6 +34,9 @@ function ConnectorCard({
           {connector.region && (
             <p className="mt-0.5 text-xs text-zinc-500">{connector.region}</p>
           )}
+          {enabled ? (
+            <p className="mt-1 text-[11px] font-medium text-emerald-700">🟢 Live</p>
+          ) : null}
         </div>
       </div>
       {enabled ? (
@@ -39,7 +44,7 @@ function ConnectorCard({
           href={href}
           className="mt-4 inline-flex justify-center rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
         >
-          Connect
+          {ctaLabel}
         </Link>
       ) : (
         <button
@@ -158,12 +163,15 @@ export default function RadarConnectClient({
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {connectors.map((c: MarketplaceConnector) => {
                 const live = isConnectorLive(c.id)
+                const publicCrawl = c.requiresAuth === false
                 const href =
                   c.id === "tiktok_shop"
                     ? "/api/radar/tiktok/start"
                     : c.id === "amazon"
                       ? "/api/radar/amazon/start"
-                      : `/api/radar/${encodeURIComponent(c.id)}/start`
+                      : c.id === "shopee"
+                        ? "/radar?marketplace=shopee"
+                        : `/api/radar/${encodeURIComponent(c.id)}/start`
                 return (
                   <ConnectorCard
                     key={c.id}
@@ -175,6 +183,7 @@ export default function RadarConnectClient({
                     }}
                     href={href}
                     enabled={live}
+                    ctaLabel={publicCrawl ? "Live · SEA crawl" : "Connect"}
                   />
                 )
               })}

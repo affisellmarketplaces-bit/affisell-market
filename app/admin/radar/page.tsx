@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 
 import { AdminRadarAlertChannels } from "@/components/admin/admin-radar-alert-channels"
 import { AdminRadarCheckoutFallback } from "@/components/admin/admin-radar-checkout-fallback"
+import { AdminRadarConnectorsGrid } from "@/components/admin/admin-radar-connectors-grid"
 import { AdminRadarHealthFlags } from "@/components/admin/admin-radar-health-flags"
 import { auth } from "@/auth"
 import { isRadarEnabled } from "@/lib/radar/gate"
@@ -62,6 +63,8 @@ export default async function AdminRadarPage() {
       ) : null}
 
       <AdminRadarHealthFlags />
+
+      <AdminRadarConnectorsGrid />
 
       <AdminRadarAlertChannels />
 

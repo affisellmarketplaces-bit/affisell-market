@@ -295,6 +295,11 @@ export async function crawlBestSellers(
     return crawlAmazonScrape(cat, cc)
   }
 
+  if (id === "shopee") {
+    const { crawlShopeeBestSellers } = await import("@/lib/radar/connectors/shopee")
+    return crawlShopeeBestSellers(cat, cc)
+  }
+
   console.log("[radar/crawler]", {
     marketplaceId: id,
     result: "bestsellers_unsupported",

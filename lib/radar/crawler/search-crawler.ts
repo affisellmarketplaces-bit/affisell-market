@@ -209,6 +209,11 @@ export async function crawlKeyword(
     return searchAmazon(q, cc)
   }
 
+  if (id === "shopee") {
+    const { searchShopee } = await import("@/lib/radar/connectors/shopee")
+    return searchShopee(q, cc, { limit: TOP_N })
+  }
+
   console.log("[radar/crawler]", {
     marketplaceId: id,
     result: "search_unsupported",

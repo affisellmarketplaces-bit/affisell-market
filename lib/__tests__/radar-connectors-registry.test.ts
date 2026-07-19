@@ -4,6 +4,8 @@ import {
   MARKETPLACE_CONNECTORS,
   REGION_ORDER,
   groupMarketplacesByRegion,
+  isConnectorLive,
+  LIVE_CONNECTOR_IDS,
 } from "@/lib/radar/connectors/registry"
 import type { Region } from "@/lib/radar/connectors/types"
 
@@ -55,5 +57,14 @@ describe("Radar marketplace registry — world coverage", () => {
   it("has unique connector ids", () => {
     const ids = MARKETPLACE_CONNECTORS.map((c) => c.id)
     expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it("marks Shopee as live SEA public crawl", () => {
+    expect(LIVE_CONNECTOR_IDS.has("shopee")).toBe(true)
+    expect(isConnectorLive("shopee")).toBe(true)
+    const shopee = MARKETPLACE_CONNECTORS.find((c) => c.id === "shopee")
+    expect(shopee?.region).toBe("SEA")
+    expect(shopee?.requiresAuth).toBe(false)
+    expect(shopee?.countries).toEqual(["MY", "SG", "TH", "VN", "PH"])
   })
 })
