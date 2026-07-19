@@ -47,8 +47,8 @@ model User {
   supplierSuccessfulOrders         Int       @default(0)
   /**
    * Affisell Radar supplier sub-type (orthogonal to role=SUPPLIER).
-   * Values: "unset" | "producer" | "stocker"
-   * "producer"=Producteur, "stocker"=Stockeur/Grossiste EU
+   * Values: "unset" | "producer" | "stocker" (DB enum — do not rename).
+   * UI labels: producer=Producteur, stocker=Grossiste (Stock FR 24/48h).
    */
   supplierKind                     String    @default("unset") @db.Text
   stripeCustomerId                 String?   @unique
