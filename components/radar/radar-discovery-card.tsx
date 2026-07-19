@@ -78,10 +78,10 @@ export function RadarSupplierDiscoveryCard({ supplierKind, className }: Supplier
             </span>
             <div>
               <p className="text-base font-semibold tracking-tight text-zinc-900 dark:text-white">
-                🔥 Radar Attaque: 12 produits à sourcer avec &gt;10k recherches
+                🔥 Radar Grossiste - Sourcing: 12 produits à sourcer avec &gt;10k recherches
               </p>
               <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Opportunités GMC à faible concurrence — priorisées pour stockeurs.
+                Opportunités GMC à faible concurrence — priorisées pour grossistes.
               </p>
             </div>
           </div>
@@ -110,10 +110,10 @@ export function RadarSupplierDiscoveryCard({ supplierKind, className }: Supplier
           </span>
           <div>
             <p className="text-base font-semibold tracking-tight text-zinc-900 dark:text-white">
-              🚀 Nouveau: Affisell Radar - Défense vs Attaque
+              🚀 Nouveau: Affisell Radar - Producteur vs Grossiste
             </p>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Choisis Producteur ou Stockeur pour débloquer ton cockpit adapté.
+              Choisis Producteur ou Grossiste pour débloquer ton cockpit adapté.
             </p>
           </div>
         </div>

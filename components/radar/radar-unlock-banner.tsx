@@ -90,7 +90,7 @@ export function RadarUnlockBanner() {
         >
           <Radar className="size-4 shrink-0 opacity-90" aria-hidden />
           <span className="truncate">
-            Nouveau: Débloque ton Radar adapté Producteur vs Stockeur →
+            Nouveau: Débloque ton Radar adapté Producteur vs Grossiste →
           </span>
         </Link>
         <button

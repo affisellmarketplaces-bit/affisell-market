@@ -1,7 +1,7 @@
 import "server-only"
 
 import { SupplierWelcomeProducerEmail } from "@/emails/supplier-welcome-producer"
-import { SupplierWelcomeStockerEmail } from "@/emails/supplier-welcome-stocker"
+import { SupplierWelcomeGrossisteEmail } from "@/emails/supplier-welcome-grossiste"
 import { trackServer } from "@/lib/analytics"
 import {
   readResendDeliveryConfig,
@@ -9,7 +9,11 @@ import {
 } from "@/lib/emails/resend-delivery"
 import { publicAbsoluteUrl } from "@/lib/public-app-url"
 import { prisma } from "@/lib/prisma"
-import type { SupplierKind, SupplierKindSetValue } from "@/lib/supplier-kind"
+import {
+  getSupplierKindDisplaySlug,
+  type SupplierKind,
+  type SupplierKindSetValue,
+} from "@/lib/supplier-kind"
 
 export type SendSupplierWelcomeResult =
   | { ok: true; resendId?: string; duplicate?: boolean; skipped?: boolean }
@@ -26,7 +30,7 @@ function displayName(name: string | null | undefined, email: string): string {
 }
 
 const SUBJECTS: Record<SupplierKindSetValue, string> = {
-  stocker: "🔥 Tes 3 premiers produits à sourcer ce mois-ci sont prêts",
+  stocker: "🔥 Tes 3 premiers produits en tant que Grossiste",
   producer: "🛡️ Comment protéger ta marque de la copie chinoise (en 24h)",
 }
 
@@ -96,7 +100,7 @@ export async function sendSupplierWelcomeEmail(args: {
             context: "supplier-welcome",
             intendedTo: email,
             subject: SUBJECTS.stocker,
-            template: SupplierWelcomeStockerEmail,
+            template: SupplierWelcomeGrossisteEmail,
             props: { name: display, radarUrl },
           })
         : await sendResendReactEmail({
@@ -136,6 +140,7 @@ export async function sendSupplierWelcomeEmail(args: {
 
     trackServer(userId, "welcome_email_sent", {
       kind,
+      display_kind: getSupplierKindDisplaySlug(kind),
       previous_kind: previousKind,
       resend_id: sent.resendId ?? null,
     })

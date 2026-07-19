@@ -14,7 +14,7 @@ type Props = {
 }
 
 function supplierRadarLabel(kind: SupplierKind): { label: string; shortLabel: string } {
-  if (kind === "stocker") return { label: "Radar - Attaque", shortLabel: "Attaque" }
+  if (kind === "stocker") return { label: "Radar Grossiste - Sourcing", shortLabel: "Grossiste" }
   if (kind === "producer") return { label: "Radar - Défense", shortLabel: "Défense" }
   return { label: "Radar - Débloquer", shortLabel: "Radar" }
 }

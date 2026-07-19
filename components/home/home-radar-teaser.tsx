@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 /**
- * Public landing teaser — Défense vs Attaque before global footer.
+ * Public landing teaser — Producteur vs Grossiste before global footer.
  */
 export function HomeRadarTeaser({ className }: { className?: string }) {
   return (
@@ -32,7 +32,7 @@ export function HomeRadarTeaser({ className }: { className?: string }) {
           Ne devine plus quoi vendre. Le Radar sait.
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-sm text-zinc-300 sm:text-base">
-          Intelligence marché GMC pour Producteurs et Stockeurs — un cockpit adapté à ta douleur.
+          Intelligence marché GMC pour Producteurs et Grossistes — un cockpit adapté à ta douleur.
         </p>
       </div>
 
@@ -50,9 +50,9 @@ export function HomeRadarTeaser({ className }: { className?: string }) {
           <span className="inline-flex size-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-200">
             <Rocket className="size-5" />
           </span>
-          <h3 className="mt-3 text-lg font-semibold">Attaque pour Stockeurs</h3>
+          <h3 className="mt-3 text-lg font-semibold">Sourcing pour Grossistes</h3>
           <p className="mt-2 text-sm text-zinc-300">
-            Produits &gt;10k recherches, faible concurrence, badge stock 48h — sourcer ce qui part.
+            Produits &gt;10k recherches, faible concurrence, Stock FR + livraison 24/48h certifiée.
           </p>
         </div>
       </div>

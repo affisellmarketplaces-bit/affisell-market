@@ -47,7 +47,7 @@ export default async function SupplierKindOnboardingPage() {
             Qui es-tu sur Affisell Radar ?
           </h1>
           <p className="max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 sm:text-base">
-            Producteur ou stockeur — ton cockpit Radar (défense / attaque) s’adapte. Tu peux changer
+            Producteur ou Grossiste — ton cockpit Radar (défense / sourcing) s’adapte. Tu peux changer
             plus tard.
           </p>
         </header>

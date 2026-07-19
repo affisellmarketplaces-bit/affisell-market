@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { track } from "@/lib/analytics"
 import {
+  getSupplierKindAnalyticsProps,
   getSupplierKindLabel,
   type SupplierKind,
   type SupplierKindSetValue,
@@ -77,8 +78,9 @@ export function SupplierKindSelector({ initialKind, initialName }: Props) {
       }
 
       track("supplier_kind_selected", {
-        kind: selectedKind,
+        ...getSupplierKindAnalyticsProps(selectedKind),
         previous_kind: initialKind,
+        previous_display_kind: getSupplierKindAnalyticsProps(initialKind).display_kind,
         source: "onboarding_kind_page",
         $set: { supplier_kind: selectedKind },
       })
@@ -86,7 +88,7 @@ export function SupplierKindSelector({ initialKind, initialName }: Props) {
       toast.success(
         selectedKind === "producer"
           ? "Profil Producteur enregistré"
-          : "Profil Stockeur enregistré"
+          : "Profil Grossiste enregistré"
       )
       router.push(
         selectedKind === "producer" ? "/pricing?kind=producer" : "/pricing?kind=stocker"
@@ -159,8 +161,8 @@ export function SupplierKindSelector({ initialKind, initialName }: Props) {
               icon={<PackageCheck className="size-6" />}
               badge="RECOMMANDÉ"
               badgeClassName="bg-[#7C3AED] text-white"
-              title="Je suis Stockeur / Grossiste"
-              description="J'importe et je stocke en France/Espagne. Je prends le risque stock pour devenir fournisseur."
+              title="Je suis Grossiste"
+              description="J'importe et je stocke en France. Stock FR + livraison 24/48h certifiée — je prends le risque stock pour devenir fournisseur."
               onSelect={() => setSelectedKind("stocker")}
             />
           </div>

@@ -8,6 +8,7 @@ import { scheduleSupplierWelcomeEmail } from "@/lib/emails/send-supplier-welcome
 import { upsertMerchantDefaults } from "@/lib/merchant-defaults"
 import { prisma } from "@/lib/prisma"
 import {
+  getSupplierKindDisplaySlug,
   parseSupplierKind,
   SUPPLIER_KIND_SET_VALUES,
   type SupplierKind,
@@ -18,7 +19,9 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 const postSchema = z.object({
-  supplierKind: z.enum(SUPPLIER_KIND_SET_VALUES),
+  supplierKind: z
+    .enum([...SUPPLIER_KIND_SET_VALUES, "grossiste"] as const)
+    .transform((v): SupplierKindSetValue => (v === "grossiste" ? "stocker" : v)),
   nom_entreprise: z.string().trim().min(1).max(200).optional(),
   pays_stock: z
     .string()
@@ -62,7 +65,7 @@ export async function POST(req: Request) {
   }
 
   const userId = session.user.id
-  const nextKind = parsed.data.supplierKind as SupplierKind
+  const nextKind = parsed.data.supplierKind
 
   const before = await prisma.user.findUnique({
     where: { id: userId },
@@ -114,7 +117,9 @@ export async function POST(req: Request) {
 
   trackServer(userId, "supplier_kind_selected_server", {
     kind: nextKind,
+    display_kind: getSupplierKindDisplaySlug(nextKind),
     previous_kind: prevKind,
+    previous_display_kind: getSupplierKindDisplaySlug(prevKind),
     onboarding_complete: onboardingComplete,
     source: "api_supplier_profile",
   })

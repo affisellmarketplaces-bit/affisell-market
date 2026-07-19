@@ -48,15 +48,15 @@ const TIERS: Tier[] = [
   {
     id: "dominator",
     name: "Dominator",
-    audience: "Pour Stockeurs",
+    audience: "Pour Grossistes",
     monthly: 79,
     annual: 790,
     icon: null,
     popular: true,
     features: [
       "Tout Lanceur",
-      "Cockpit Attaque GMC (quoi importer)",
-      "Badge Stock 48h +30% conv",
+      "Radar Grossiste - Sourcing GMC",
+      "Stock FR + livraison 24/48h certifiée",
       "Priorité algo resellers",
       "Illimité",
       "Support prioritaire",
@@ -130,11 +130,19 @@ export function AffisellGrowthPricing({ kindHint = null }: Props) {
         </div>
         {kindHint ? (
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Profil détecté :{" "}
-            <span className="font-semibold text-[#7C3AED]">
-              {kindHint === "producer" ? "Producteur" : "Stockeur"}
-            </span>{" "}
-            — plan recommandé mis en avant.
+            {kindHint === "stocker" ? (
+              <>
+                <span className="font-semibold text-[#7C3AED]">
+                  Radar Grossiste - Recommandé pour toi
+                </span>
+              </>
+            ) : (
+              <>
+                Profil détecté :{" "}
+                <span className="font-semibold text-[#7C3AED]">Producteur</span> — plan recommandé
+                mis en avant.
+              </>
+            )}
           </p>
         ) : null}
       </div>
@@ -164,7 +172,7 @@ export function AffisellGrowthPricing({ kindHint = null }: Props) {
               ) : null}
               {isRecommended ? (
                 <span className="absolute -top-3 right-4 z-[2] rounded-full border border-violet-300 bg-white px-2.5 py-1 text-[10px] font-bold tracking-wide text-[#7C3AED] uppercase dark:border-violet-700 dark:bg-zinc-950">
-                  Recommandé pour toi
+                  {kindHint === "stocker" ? "Radar Grossiste" : "Recommandé pour toi"}
                 </span>
               ) : null}
 

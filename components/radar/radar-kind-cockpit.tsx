@@ -74,7 +74,7 @@ export function RadarKindCockpit({
 
   const paywallBody = isReseller
     ? "Les Resellers payants voient 50 produits/semaine. Tu n'en vois que 3."
-    : "Les Stockeurs payants voient 50 produits/semaine. Tu n'en vois que 3."
+    : "Les Grossistes payants voient 50 produits/semaine. Tu n'en vois que 3."
 
   const paywallCta = isReseller
     ? "Passer à Lanceur — 29€/mois →"
@@ -113,7 +113,7 @@ export function RadarKindCockpit({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <CockpitBadge
               icon={<Rocket className="size-4" />}
-              label={`Mode: ${getSupplierKindLabel("stocker")} — Cockpit Attaque`}
+              label={`Mode: ${getSupplierKindLabel("stocker")} — Radar Grossiste - Sourcing`}
               tone="attaque"
             />
             <Button asChild variant="bentoAccent" size="sm">
@@ -123,7 +123,7 @@ export function RadarKindCockpit({
           <div className="grid gap-3 sm:grid-cols-2">
             <KpiCard
               title="Opportunités GMC > 10k recherches / <5 concurrents: 12 produits"
-              hint="Attaque — mock UI"
+              hint="Grossiste — mock UI"
             />
             <KpiCard title="Marge moyenne potentielle: 68%" hint="Estimateur — mock UI" />
           </div>
@@ -218,7 +218,7 @@ function RadarKindOnboardingBanner({
           <div>
             <p className="text-base font-semibold tracking-tight">Débloque ton Radar adapté</p>
             <p className="mt-1 max-w-xl text-sm text-white/85">
-              Tu es Producteur ou Stockeur? Configure ton profil pour voir les bonnes opportunités.
+              Tu es Producteur ou Grossiste? Configure ton profil pour voir les bonnes opportunités.
             </p>
           </div>
         </div>
