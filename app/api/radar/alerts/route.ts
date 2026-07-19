@@ -109,14 +109,19 @@ export async function PATCH(req: Request) {
   return NextResponse.json({ alert: updated })
 }
 
-/** POST { channel, webhookUrl, filters } — upsert AlertSubscription */
+/** POST { channel, webhookUrl, filters } — upsert AlertSubscription (session).
+ * Unauthenticated callers get 401 UNAUTHORIZED (use /api/radar/alerts/send + x-api-key to fire Slack).
+ */
 export async function POST(req: Request) {
   const blocked = gate()
   if (blocked) return blocked
 
   const session = await auth()
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json(
+      { error: "UNAUTHORIZED", message: "Missing x-api-key" },
+      { status: 401 }
+    )
   }
 
   const features =

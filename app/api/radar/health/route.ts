@@ -3,6 +3,11 @@ import { NextResponse } from "next/server"
 import { getRedisUrl } from "@/lib/auto-order/redis"
 import { getRadarDb } from "@/lib/prisma-radar"
 import { LIVE_CONNECTOR_IDS } from "@/lib/radar/connectors/registry"
+import {
+  isRadarAlertsApiKeyConfigured,
+  isResendConfiguredForRadar,
+  isSlackWebhookConfigured,
+} from "@/lib/radar/alerts/auth"
 import { hasEncryptionKey } from "@/lib/radar/encryption"
 import { isSerperConfigured } from "@/lib/radar/crawler/serper-client"
 import { RADAR_ENABLED, resolveRadarDatabaseUrl } from "@/lib/radar/env"
@@ -67,6 +72,9 @@ export async function GET() {
     serper,
     tiktokCrawler,
     degradedCrawler,
+    slack: isSlackWebhookConfigured(),
+    resend: isResendConfiguredForRadar(),
+    alertsApiKey: isRadarAlertsApiKeyConfigured(),
     marketplaces,
     alertsTable,
     radarEnabled: RADAR_ENABLED === "true",
@@ -92,6 +100,9 @@ export async function GET() {
     serper,
     tiktokCrawler,
     degradedCrawler,
+    slack: isSlackWebhookConfigured(),
+    resend: isResendConfiguredForRadar(),
+    alertsApiKey: isRadarAlertsApiKeyConfigured(),
   })
   return NextResponse.json(payload)
 }

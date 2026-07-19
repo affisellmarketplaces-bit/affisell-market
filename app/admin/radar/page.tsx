@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
+import { AdminRadarAlertChannels } from "@/components/admin/admin-radar-alert-channels"
 import { AdminRadarCheckoutFallback } from "@/components/admin/admin-radar-checkout-fallback"
 import { AdminRadarHealthFlags } from "@/components/admin/admin-radar-health-flags"
 import { auth } from "@/auth"
@@ -61,6 +62,8 @@ export default async function AdminRadarPage() {
       ) : null}
 
       <AdminRadarHealthFlags />
+
+      <AdminRadarAlertChannels />
 
       <ul className="mt-8 space-y-3">
         {LINKS.map((link) => (

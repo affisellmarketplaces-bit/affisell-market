@@ -15,9 +15,11 @@
 | `NEXTAUTH_SECRET` | **P0** app-wide | Auth broken |
 | `TIKTOK_CRAWLER_ACCESS_TOKEN` | Optional (P1) | `degradedCrawler: true` — Amazon/local continues |
 | `SERPER_API_KEY` | **Optional P1** (Google Trends / Serper search) | Soft skip: warn + `[]` — cron continues TikTok+Amazon+DB; health `serper: false` |
+| `RADAR_ALERTS_API_KEY` | **Required P1** (prod Slack/email send) | `POST /api/radar/alerts/send` → 401 `UNAUTHORIZED` — generate: `openssl rand -hex 16` |
+| `SLACK_WEBHOOK_URL` | **Optional P1** | Send → 503 `SLACK_NOT_CONFIGURED` (pas de 500) |
+| `RESEND_API_KEY` | **Optional P1** | Email soft-skip `{ emailed: false, reason: "RESEND_NOT_CONFIGURED" }` |
 | `STRIPE_RADAR_GLOBAL_PRICE_ID` | Optional until $99 CTA | 503 `STRIPE_GLOBAL_NOT_CONFIGURED` — `docs/STRIPE_RADAR_SETUP.md` |
 | TikTok/Amazon/Google OAuth keys | Optional until Connect | Connect start fails clearly |
-| `SLACK_WEBHOOK_URL` | Optional | Alerts without Slack |
 
 ```bash
 openssl rand -hex 16
@@ -76,7 +78,9 @@ Admin QA: `/admin/radar` shows ENCRYPTION_KEY / REDIS / crawler from health.
 | GOOGLE_CLIENT_ID | 🔴 MISSING | P1 | absent | Google Cloud OAuth |
 | GOOGLE_CLIENT_SECRET | 🔴 MISSING | P1 | absent | Google Cloud OAuth |
 | GOOGLE_REDIRECT_URI | 🔴 MISSING | P1 | absent | `{APP}/api/radar/google/merchant/callback` |
-| SLACK_WEBHOOK_URL | 🔴 MISSING | P2 | absent | Slack Incoming Webhook (ou UI settings chiffré) |
+| SLACK_WEBHOOK_URL | 🔴 MISSING | **P1 optional** | absent | Incoming Webhook — send → 503 if missing |
+| RADAR_ALERTS_API_KEY | 🔴 MISSING | **P1 required prod** | absent | `openssl rand -hex 16` → header `x-api-key` |
+| RESEND_API_KEY | — | **P1 optional** | (app-wide often set) | Radar email alerts soft-skip if absent |
 | STRIPE_SECRET_KEY | ✅ OK | P2 | présent, 107 chars, stripe sk_ prefix OK | Dashboard Stripe |
 
 ---

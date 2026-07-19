@@ -3,8 +3,10 @@ import "server-only"
 import type { AlertSubscription, RadarAlert } from ".prisma/client-mi"
 
 import { decryptString } from "@/lib/crypto"
+import { sendRadarAlertEmail } from "@/lib/radar/alerts/email"
 import type { AlertSubscriptionFilters, Severity } from "@/lib/radar/alerts/types"
 import { SEVERITY_RANK } from "@/lib/radar/alerts/types"
+import { prisma } from "@/lib/prisma"
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -137,12 +139,49 @@ export async function sendAlertsToSubscribers(
           await sleep(1000)
         }
       } else if (sub.channel === "email") {
-        // TODO: Resend transactional email for Radar alerts
-        console.log("[radar/alerts/notifier]", {
-          result: "email_stub",
-          userId: sub.userId,
-          count: matched.length,
-        })
+        let email = ""
+        try {
+          const user = await prisma.user.findUnique({
+            where: { id: sub.userId },
+            select: { email: true },
+          })
+          email = user?.email?.trim() || ""
+        } catch (err) {
+          console.error("[radar/alerts/notifier]", {
+            result: "email_user_lookup_failed",
+            userId: sub.userId,
+            message: err instanceof Error ? err.message : "unknown",
+          })
+          continue
+        }
+        if (!email) {
+          console.warn("[radar/alerts/notifier]", {
+            result: "email_no_recipient",
+            userId: sub.userId,
+          })
+          continue
+        }
+        for (const alert of matched) {
+          const productUrl =
+            typeof alert.meta === "object" &&
+            alert.meta &&
+            "url" in alert.meta &&
+            typeof (alert.meta as { url?: unknown }).url === "string"
+              ? String((alert.meta as { url: string }).url)
+              : null
+          const emailResult = await sendRadarAlertEmail({
+            to: email,
+            type: alert.type,
+            title: alert.title,
+            message: alert.message,
+            severity: alert.severity,
+            marketplaceId: alert.marketplaceId,
+            country: alert.country,
+            productUrl,
+          })
+          if (emailResult.emailed) sent += 1
+          await sleep(200)
+        }
       } else if (sub.channel === "webhook" && sub.webhookUrl) {
         let url = ""
         try {

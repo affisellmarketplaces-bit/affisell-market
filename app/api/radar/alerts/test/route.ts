@@ -5,6 +5,7 @@ import { decryptString } from "@/lib/crypto"
 import { hasRadarAccess, resolveRadarFeatures } from "@/lib/radar/features"
 import { gate } from "@/lib/radar/gate"
 import { getRadarDb } from "@/lib/prisma-radar"
+import { sendSlackWebhookText } from "@/lib/radar/alerts/slack"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -16,7 +17,10 @@ export async function POST() {
 
   const session = await auth()
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json(
+      { error: "UNAUTHORIZED", message: "Missing x-api-key" },
+      { status: 401 }
+    )
   }
 
   const features =
@@ -34,26 +38,38 @@ export async function POST() {
       },
     })
 
-    let webhook =
-      sub?.webhookUrl != null
-        ? decryptString(sub.webhookUrl)
-        : process.env.SLACK_WEBHOOK_URL?.trim() || ""
+    let webhook = ""
+    if (sub?.webhookUrl != null) {
+      try {
+        webhook = decryptString(sub.webhookUrl)
+      } catch (err) {
+        console.error("[radar/alerts/test]", {
+          userId: session.user.id,
+          result: "decrypt_failed",
+          message: err instanceof Error ? err.message : "unknown",
+        })
+        return NextResponse.json(
+          { error: "SLACK_NOT_CONFIGURED", message: "Stored webhook decrypt failed" },
+          { status: 503 }
+        )
+      }
+    } else {
+      webhook = process.env.SLACK_WEBHOOK_URL?.trim() || ""
+    }
 
     if (!webhook) {
-      return NextResponse.json({ error: "No Slack webhook configured" }, { status: 400 })
+      return NextResponse.json(
+        { error: "SLACK_NOT_CONFIGURED", message: "SLACK_WEBHOOK_URL missing" },
+        { status: 503 }
+      )
     }
 
     const text =
       "*HIGH* - Radar test alert\n🔥 WINNER DETECTED test — Affisell Radar est branché.\nVoir produit | affisell radar"
 
-    const res = await fetch(webhook, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ text }),
-    })
-
-    if (!res.ok) {
-      return NextResponse.json({ error: `Slack HTTP ${res.status}` }, { status: 502 })
+    const slack = await sendSlackWebhookText(webhook, text)
+    if (!slack.ok) {
+      return NextResponse.json({ error: `Slack HTTP ${slack.status}` }, { status: 502 })
     }
 
     console.log("[radar/alerts/test]", { userId: session.user.id, result: "sent" })
