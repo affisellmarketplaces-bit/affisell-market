@@ -9,36 +9,19 @@ import {
 } from "@/lib/marketplace-category-listing-counts"
 import { fetchMarketplaceListings } from "@/lib/marketplace-listings-query"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
+import {
+  categoryBrowsePath,
+  type BrowseCategoryChildLink,
+  type BrowseCategoryListingItem,
+  type BrowseCategoryPageData,
+} from "@/lib/seo-category-pages-shared"
 import { resolveSiteBaseUrl } from "@/lib/seo-site-url"
 
-export type BrowseCategoryChildLink = {
-  slug: string
-  name: string
-  count: number
-}
-
-export type BrowseCategoryPageData = {
-  id: string
-  slug: string
-  name: string
-  fullPath: string
-  metaTitle: string | null
-  metaDesc: string | null
-  parent: { slug: string; name: string } | null
-  children: BrowseCategoryChildLink[]
-  listingCount: number
-}
-
-export type BrowseCategoryListingItem = {
-  listingId: string
-  name: string
-  image: string | null
-  priceCents: number
-  href: string
-  storeName: string | null
-}
-
-import { categoryBrowsePath } from "@/lib/seo-category-pages-shared"
+export type {
+  BrowseCategoryChildLink,
+  BrowseCategoryListingItem,
+  BrowseCategoryPageData,
+} from "@/lib/seo-category-pages-shared"
 
 export { categoryBrowsePath }
 
@@ -51,7 +34,10 @@ export const loadBrowseCategoryBySlug = cache(async function loadBrowseCategoryB
   const category = await withPrismaReconnect(() =>
     prisma.category.findFirst({
       where: {
-        OR: [{ slug: { equals: slug, mode: "insensitive" } }, { slug: { startsWith: `${slug}-`, mode: "insensitive" } }],
+        OR: [
+          { slug: { equals: slug, mode: "insensitive" } },
+          { slug: { startsWith: `${slug}-`, mode: "insensitive" } },
+        ],
       },
       orderBy: { slug: "asc" },
       select: {

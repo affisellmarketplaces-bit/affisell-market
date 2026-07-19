@@ -8,3 +8,30 @@ export function categoryBrowsePath(slug: string): string {
   if (!normalized) return "/"
   return `/browse/${encodeURIComponent(normalized)}`
 }
+
+export type BrowseCategoryChildLink = {
+  slug: string
+  name: string
+  count: number
+}
+
+export type BrowseCategoryPageData = {
+  id: string
+  slug: string
+  name: string
+  fullPath: string
+  metaTitle: string | null
+  metaDesc: string | null
+  parent: { slug: string; name: string } | null
+  children: BrowseCategoryChildLink[]
+  listingCount: number
+}
+
+export type BrowseCategoryListingItem = {
+  listingId: string
+  name: string
+  image: string | null
+  priceCents: number
+  href: string
+  storeName: string | null
+}

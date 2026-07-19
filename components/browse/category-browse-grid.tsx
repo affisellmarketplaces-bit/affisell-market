@@ -6,13 +6,14 @@ import {
   isDisplayableListingImageUrl,
   PRODUCT_CARD_IMAGE_FALLBACK,
 } from "@/lib/affiliate-listing-display"
-import type { BrowseCategoryListingItem } from "@/lib/seo-category-pages"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import type { BrowseCategoryListingItem } from "@/lib/seo-category-pages-shared"
 
 type Props = {
   items: BrowseCategoryListingItem[]
 }
 
+/** Client grid — onError fallback requires client boundary (never import Prisma). */
 export function CategoryBrowseGrid({ items }: Props) {
   if (items.length === 0) return null
 
