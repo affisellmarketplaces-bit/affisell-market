@@ -167,16 +167,21 @@ function buildChildrenByParent(rows: Array<{ id: string; parentId: string | null
   return childrenByParent
 }
 
-/** Single `category.findMany` — reuse for all scopes on one request (avoids P2024). */
-export async function buildCategorySubtreeGraph(prisma: PrismaClient): Promise<CategorySubtreeGraph> {
-  const rows = await prisma.category.findMany({
-    select: { id: true, parentId: true, name: true, fullPath: true },
-  })
+/** Rebuild adjacency maps from serializable rows (e.g. `unstable_cache` payloads). */
+export function categorySubtreeGraphFromRows(rows: CategorySubtreeRow[]): CategorySubtreeGraph {
   const byId = new Map<string, CategorySubtreeRow>()
   for (const r of rows) {
     byId.set(r.id, r)
   }
   return { childrenByParent: buildChildrenByParent(rows), byId }
+}
+
+/** Single `category.findMany` — reuse for all scopes on one request (avoids P2024). */
+export async function buildCategorySubtreeGraph(prisma: PrismaClient): Promise<CategorySubtreeGraph> {
+  const rows = await prisma.category.findMany({
+    select: { id: true, parentId: true, name: true, fullPath: true },
+  })
+  return categorySubtreeGraphFromRows(rows)
 }
 
 export function collectCategorySubtreeIdsFromGraph(graph: CategorySubtreeGraph, rootId: string): string[] {
@@ -215,7 +220,14 @@ let inflightSubtreeGraph: Promise<CategorySubtreeGraph> | null = null
 /** Coalesce parallel `collectCategorySubtreeIds` in the same tick into one DB round-trip. */
 async function loadCategorySubtreeGraphCoalesced(prisma: PrismaClient): Promise<CategorySubtreeGraph> {
   if (!inflightSubtreeGraph) {
-    inflightSubtreeGraph = buildCategorySubtreeGraph(prisma).finally(() => {
+    inflightSubtreeGraph = (async () => {
+      try {
+        const { getCategorySubtreeGraph } = await import("@/lib/category-subtree-graph.server")
+        return await getCategorySubtreeGraph()
+      } catch {
+        return buildCategorySubtreeGraph(prisma)
+      }
+    })().finally(() => {
       queueMicrotask(() => {
         inflightSubtreeGraph = null
       })

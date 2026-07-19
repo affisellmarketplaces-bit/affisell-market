@@ -1,38 +1,49 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { getLocale, getTranslations } from "next-intl/server"
+import { cookies } from "next/headers"
 
 import { CategoryBrowseGrid } from "@/components/browse/category-browse-grid"
+import { browseCategoryCopy } from "@/lib/browse-category-copy"
 import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
 import {
   buildCategoryBreadcrumbJsonLd,
   categoryBrowsePath,
-  loadBrowseCategoryBySlug,
-  loadBrowseCategoryListings,
+  loadBrowseCategoryPageBundle,
 } from "@/lib/seo-category-pages"
 import { resolveSiteBaseUrl } from "@/lib/seo-site-url"
 
-/**
- * next-intl getTranslations/getLocale use request APIs → DYNAMIC_SERVER_USAGE
- * if this page is treated as static/ISR. Force dynamic SSR (SEO still fine).
- */
+/** Cached data loaders (5 min) — page stays dynamic for locale cookie but DB work is reused. */
 export const dynamic = "force-dynamic"
 
 type PageProps = {
   params: Promise<{ categorySlug: string }>
 }
 
+async function resolveBrowseLocale(): Promise<"fr" | "en"> {
+  try {
+    const jar = await cookies()
+    const raw = jar.get("affisell_locale")?.value?.trim().toLowerCase()
+    if (raw?.startsWith("en")) return "en"
+  } catch {
+    /* static / no request */
+  }
+  return "fr"
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { categorySlug } = await params
-  const category = await loadBrowseCategoryBySlug(categorySlug)
-  if (!category) return { title: "Catégorie", robots: { index: false, follow: false } }
+  const [bundle, locale] = await Promise.all([
+    loadBrowseCategoryPageBundle(categorySlug),
+    resolveBrowseLocale(),
+  ])
+  if (!bundle) return { title: "Catégorie", robots: { index: false, follow: false } }
 
-  const t = await getTranslations("browseCategory")
-  const title = category.metaTitle?.trim() || t("metaTitle", { category: category.name })
+  const { category } = bundle
+  const copy = browseCategoryCopy(locale)
+  const title = category.metaTitle?.trim() || copy.metaTitle(category.name)
   const description =
-    category.metaDesc?.trim() ||
-    t("metaDescription", { category: category.name, count: category.listingCount })
+    category.metaDesc?.trim() || copy.metaDescription(category.name, category.listingCount)
   const canonical = `${resolveSiteBaseUrl()}${categoryBrowsePath(category.slug)}`
   const indexable = category.listingCount > 0
 
@@ -49,14 +60,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CategoryBrowsePage({ params }: PageProps) {
   const { categorySlug } = await params
-  const category = await loadBrowseCategoryBySlug(categorySlug)
-  if (!category) notFound()
 
-  const [t, locale, listings] = await Promise.all([
-    getTranslations("browseCategory"),
-    getLocale(),
-    loadBrowseCategoryListings(category.id, 24),
+  const [bundle, locale] = await Promise.all([
+    loadBrowseCategoryPageBundle(categorySlug),
+    resolveBrowseLocale(),
   ])
+  if (!bundle) notFound()
+
+  const { category, listings } = bundle
+  const copy = browseCategoryCopy(locale)
 
   const explorerHref = marketplaceCatalogHref("/", { category: category.id })
   const breadcrumbJsonLd = buildCategoryBreadcrumbJsonLd(category)
@@ -72,7 +84,7 @@ export default async function CategoryBrowsePage({ params }: PageProps) {
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
             <Link href="/" className="hover:text-violet-700 dark:hover:text-violet-300">
-              {t("breadcrumbHome")}
+              {copy.breadcrumbHome}
             </Link>
           </li>
           <li aria-hidden>›</li>
@@ -94,23 +106,25 @@ export default async function CategoryBrowsePage({ params }: PageProps) {
       </nav>
 
       <header className="mb-8 space-y-3">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{category.name}</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+          {category.name}
+        </h1>
         {category.fullPath ? (
           <p className="text-sm text-zinc-500 dark:text-zinc-400">{category.fullPath}</p>
         ) : null}
         <p className="max-w-2xl text-sm text-zinc-600 dark:text-zinc-300">
           {category.metaDesc?.trim() ||
-            t("metaDescription", { category: category.name, count: category.listingCount })}
+            copy.metaDescription(category.name, category.listingCount)}
         </p>
         <p className="text-xs font-medium text-violet-700 dark:text-violet-300">
-          {t("listingCount", { count: category.listingCount })}
+          {copy.listingCount(category.listingCount)}
         </p>
       </header>
 
       {category.children.length > 0 ? (
         <section className="mb-8">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500">
-            {t("subcategories")}
+            {copy.subcategories}
           </h2>
           <ul className="flex flex-wrap gap-2">
             {category.children.map((child) => (
@@ -131,7 +145,7 @@ export default async function CategoryBrowsePage({ params }: PageProps) {
       {listings.length > 0 ? (
         <CategoryBrowseGrid items={listings} />
       ) : (
-        <p className="text-sm text-zinc-500">{t("empty")}</p>
+        <p className="text-sm text-zinc-500">{copy.empty}</p>
       )}
 
       <div className="mt-10">
@@ -139,7 +153,7 @@ export default async function CategoryBrowsePage({ params }: PageProps) {
           href={explorerHref}
           className="inline-flex items-center rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700"
         >
-          {t("seeAll")}
+          {copy.seeAll}
         </Link>
       </div>
 

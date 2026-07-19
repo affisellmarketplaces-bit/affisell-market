@@ -1,10 +1,10 @@
 import type { Prisma, PrismaClient } from "@prisma/client"
 
 import {
-  buildCategorySubtreeGraph,
   collectCategorySubtreeIdsFromGraph,
   labelsForCategoryScopeRows,
 } from "@/lib/category-browse"
+import { getCategorySubtreeGraph } from "@/lib/category-subtree-graph.server"
 
 /**
  * Products in a category scope: taxonomy `categoryId`, legacy `subcategoryId`, or
@@ -14,7 +14,7 @@ export async function buildCategoryScopeProductFilter(
   client: PrismaClient,
   scopeRootId: string
 ): Promise<Prisma.ProductWhereInput> {
-  const graph = await buildCategorySubtreeGraph(client)
+  const graph = await getCategorySubtreeGraph()
   const scopeIds = collectCategorySubtreeIdsFromGraph(graph, scopeRootId)
   const scopeRows = scopeIds
     .map((id) => graph.byId.get(id))

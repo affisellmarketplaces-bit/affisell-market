@@ -1,10 +1,11 @@
 import type { Prisma } from "@prisma/client"
 
 import {
-  buildCategorySubtreeGraph,
   collectCategorySubtreeIdsFromGraph,
   labelsForCategoryScopeRows,
+  type CategorySubtreeGraph,
 } from "@/lib/category-browse"
+import { getCategorySubtreeGraph } from "@/lib/category-subtree-graph.server"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { buildMarketplaceAffiliateWhereFromUrl } from "@/lib/marketplace-listings-query"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
@@ -19,10 +20,7 @@ type ScopeIndex = {
   labels: Set<string>
 }
 
-function buildScopeIndexFromGraph(
-  graph: Awaited<ReturnType<typeof buildCategorySubtreeGraph>>,
-  scopeRootId: string
-): ScopeIndex {
+function buildScopeIndexFromGraph(graph: CategorySubtreeGraph, scopeRootId: string): ScopeIndex {
   const scopeIds = collectCategorySubtreeIdsFromGraph(graph, scopeRootId)
   const rows = scopeIds
     .map((id) => graph.byId.get(id))
@@ -68,7 +66,7 @@ export async function computeMarketplaceCategoryTreeCounts(
     for (const sub of root.children) scopeIds.add(sub.id)
   }
 
-  const graph = await withPrismaReconnect(() => buildCategorySubtreeGraph(prisma))
+  const graph = await getCategorySubtreeGraph()
   for (const id of scopeIds) {
     scopeById.set(id, buildScopeIndexFromGraph(graph, id))
   }
