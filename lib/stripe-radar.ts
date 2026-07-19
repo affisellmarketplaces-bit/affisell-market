@@ -119,7 +119,9 @@ export function sanitizeRadarReturnPath(raw: unknown): string {
     path === "/pricing" ||
     path.startsWith("/pricing/") ||
     path === "/radar" ||
-    path.startsWith("/radar/")
+    path.startsWith("/radar/") ||
+    path === "/admin/radar" ||
+    path.startsWith("/admin/radar/")
   ) {
     return path
   }
@@ -155,14 +157,24 @@ export async function activateRadarFromCheckoutSession(session: Stripe.Checkout.
     return { activated: false as const, reason: "unknown_plan" }
   }
 
-  const expectedPrice = resolveRadarStripePriceId(plan)
-  if (!expectedPrice) {
-    console.warn("[radar-paywall] Stripe Radar price missing", { plan })
-    return { activated: false as const, reason: "price_not_configured" }
-  }
+  // Metadata from our Checkout Session is authoritative. Env price id is a
+  // secondary check for webhooks that only carry subscription price ids.
+  if (!planFromMeta) {
+    let expectedPrice = resolveRadarStripePriceId(plan)
+    if (!expectedPrice && plan === "global") {
+      const { resolveOrEnsureStripeRadarGlobalPriceId } = await import("@/lib/stripe-radar-ensure")
+      expectedPrice = await resolveOrEnsureStripeRadarGlobalPriceId()
+    }
+    if (!expectedPrice) {
+      console.warn("[radar-paywall] Stripe Radar price missing", { plan })
+      return { activated: false as const, reason: "price_not_configured" }
+    }
 
-  if (!subscriptionPriceIds(subscription).includes(expectedPrice)) {
-    return { activated: false as const, reason: "wrong_price" }
+    if (!subscriptionPriceIds(subscription).includes(expectedPrice)) {
+      return { activated: false as const, reason: "wrong_price" }
+    }
+  } else if (subscriptionPriceIds(subscription).length === 0) {
+    return { activated: false as const, reason: "no_price_on_subscription" }
   }
 
   const userId = await resolveUserIdFromCheckout(session)

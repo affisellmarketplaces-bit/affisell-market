@@ -10,6 +10,7 @@ import { auth } from "@/auth"
 import { loadCountryCrawlStatuses } from "@/lib/radar/country-crawl-status"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { getUserRadarPlan, toRadarPlanUser } from "@/lib/radar/plans"
+import { isStripeRadarGlobalConfigured } from "@/lib/stripe-radar"
 
 export const dynamic = "force-dynamic"
 
@@ -29,6 +30,7 @@ export default async function AdminRadarPage() {
 
   const plan = getUserRadarPlan(toRadarPlanUser(session.user))
   const enabled = isRadarEnabled()
+  const globalConfigured = isStripeRadarGlobalConfigured()
   const countryStatuses = await loadCountryCrawlStatuses(["FR", "US", "MX", "DE", "GB"])
 
   return (
@@ -87,7 +89,7 @@ export default async function AdminRadarPage() {
         ))}
       </ul>
 
-      <AdminRadarCheckoutFallback />
+      <AdminRadarCheckoutFallback globalConfigured={globalConfigured} />
 
       <p className="mt-8 text-xs text-zinc-500">
         Après login admin, si le paywall reste visible : recharge la session (déconnexion / reconnexion)

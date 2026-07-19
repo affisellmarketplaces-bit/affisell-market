@@ -1,13 +1,25 @@
 # Stripe — Affisell Radar Global ($99)
 
-Sans `STRIPE_RADAR_GLOBAL_PRICE_ID`, le checkout Global renvoie **503**  
-`{ "error": "STRIPE_GLOBAL_NOT_CONFIGURED" }` (plus de crash 500).
+## Bootstrap 1-clic (recommandé)
 
-## 1. Créer le produit Stripe
+```bash
+npm run stripe:ensure-radar
+```
+
+Crée (idempotent) le produit + price Stripe avec  
+`lookup_key=affisell_radar_global_monthly` ($99/mois) et écrit  
+`STRIPE_RADAR_GLOBAL_PRICE_ID` dans `.env.local`.
+
+Sans env, le checkout Global **auto-provisionne** le même price via lookup_key  
+(plus de toast « Plan Global non configuré » tant que `STRIPE_SECRET_KEY` est set).  
+Si Stripe est indisponible → **503** `{ "error": "STRIPE_GLOBAL_NOT_CONFIGURED" }` (pas de 500).
+
+## 1. Créer le produit Stripe (manuel)
 
 1. Ouvre [Stripe Dashboard → Products](https://dashboard.stripe.com/products)
 2. **Create product** → nom : `Affisell Radar Global`
-3. Pricing : **Recurring** · **$99 / month** (USD) — ou EUR si ton compte est en EUR
+3. Pricing : **Recurring** · **$99 / month** (USD) — ou EUR si ton compte est en EUR  
+   (optionnel : `STRIPE_RADAR_GLOBAL_CURRENCY=eur`)
 4. Enregistre → copie l’ID du **Price** (`price_…`), pas le Product ID (`prod_…`)
 
 ## 2. Variables d’environnement
@@ -58,4 +70,7 @@ Puis depuis `/pricing?feature=radar` → CTA Global, ou `/admin/radar` → « Te
 
 ## 5. UI si non configuré
 
-Toast : **Plan Global non configuré - voir docs/STRIPE_RADAR_SETUP.md**
+Si `STRIPE_SECRET_KEY` manque aussi → toast :  
+**Plan Global non configuré - voir docs/STRIPE_RADAR_SETUP.md**
+
+Sinon le premier checkout auto-crée le price (idempotent).

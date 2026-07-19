@@ -13,7 +13,12 @@ type CheckoutErrorBody = {
   url?: string
 }
 
-export function AdminRadarCheckoutFallback() {
+type Props = {
+  /** Env or previously provisioned price present at SSR. */
+  globalConfigured: boolean
+}
+
+export function AdminRadarCheckoutFallback({ globalConfigured }: Props) {
   const [loading, setLoading] = useState(false)
 
   async function testGlobalCheckout() {
@@ -51,15 +56,34 @@ export function AdminRadarCheckoutFallback() {
         Checkout Stripe Global ($99)
       </p>
       <p className="mt-1 text-xs text-zinc-500">
-        Si{" "}
-        <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-900">
-          STRIPE_RADAR_GLOBAL_PRICE_ID
-        </code>{" "}
-        manque → 503 + toast (pas de 500). Guide repo :{" "}
-        <code className="rounded bg-zinc-100 px-1 text-[11px] dark:bg-zinc-900">
-          {SETUP_DOC}
-        </code>
-        .
+        {globalConfigured ? (
+          <>Price ID configuré (env). Le bouton ouvre Stripe Checkout en mode test.</>
+        ) : (
+          <>
+            Pas de{" "}
+            <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-900">
+              STRIPE_RADAR_GLOBAL_PRICE_ID
+            </code>{" "}
+            en env — au clic, Affisell auto-provisionne le produit Stripe (
+            <code className="rounded bg-zinc-100 px-1 text-[11px] dark:bg-zinc-900">
+              lookup_key=affisell_radar_global_monthly
+            </code>
+            ). Guide :{" "}
+            <code className="rounded bg-zinc-100 px-1 text-[11px] dark:bg-zinc-900">
+              {SETUP_DOC}
+            </code>
+            .
+          </>
+        )}
+      </p>
+      <p
+        className={`mt-2 text-xs font-medium ${
+          globalConfigured
+            ? "text-emerald-700 dark:text-emerald-400"
+            : "text-amber-700 dark:text-amber-400"
+        }`}
+      >
+        {globalConfigured ? "● Global price ready" : "○ Auto-provision on first checkout"}
       </p>
       <button
         type="button"
