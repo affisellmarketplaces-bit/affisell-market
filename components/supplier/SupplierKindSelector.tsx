@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
+import { track } from "@/lib/analytics"
 import {
   getSupplierKindLabel,
   type SupplierKind,
@@ -74,6 +75,14 @@ export function SupplierKindSelector({ initialKind, initialName }: Props) {
       if (!res.ok || !data.ok) {
         throw new Error(data.error ?? "Impossible d’enregistrer ton profil")
       }
+
+      track("supplier_kind_selected", {
+        kind: selectedKind,
+        previous_kind: initialKind,
+        source: "onboarding_kind_page",
+        $set: { supplier_kind: selectedKind },
+      })
+
       toast.success(
         selectedKind === "producer"
           ? "Profil Producteur enregistré"

@@ -6,6 +6,7 @@ import { Check, Crown, Rocket } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { track } from "@/lib/analytics"
 import { cn } from "@/lib/utils"
 
 export type PricingKindHint = "producer" | "stocker" | null
@@ -210,7 +211,19 @@ export function AffisellGrowthPricing({ kindHint = null }: Props) {
                   className="w-full"
                   size="lg"
                 >
-                  <Link href={tier.href}>{tier.cta}</Link>
+                  <Link
+                    href={tier.href}
+                    onClick={() =>
+                      track("pricing_cta_clicked", {
+                        plan: tier.id,
+                        kind_hint: kindHint,
+                        location: "growth_pricing_section",
+                        billing,
+                      })
+                    }
+                  >
+                    {tier.cta}
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>

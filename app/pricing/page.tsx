@@ -37,10 +37,11 @@ export default async function PricingPage({ searchParams }: { searchParams: Sear
 
   const session = await auth()
   let currentRadarPlan = "free"
+  let currentSupplierKind: string | null = null
   if (session?.user?.id) {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { isPro: true, radarPlan: true, email: true },
+      select: { isPro: true, radarPlan: true, email: true, supplierKind: true },
     })
     const plan = getUserRadarPlan({
       id: session.user.id,
@@ -50,6 +51,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Sear
       subscriptionTiers: user?.radarPlan ? [user.radarPlan] : [],
     })
     currentRadarPlan = plan.id
+    currentSupplierKind = user?.supplierKind ?? null
   }
 
   const radarFocus = feature === "radar"
@@ -85,6 +87,8 @@ export default async function PricingPage({ searchParams }: { searchParams: Sear
           highlightFeature={feature}
           currentRadarPlan={currentRadarPlan}
           isAuthenticated={Boolean(session?.user?.id)}
+          kindHint={kindHint}
+          currentSupplierKind={currentSupplierKind}
         />
       )}
     </>

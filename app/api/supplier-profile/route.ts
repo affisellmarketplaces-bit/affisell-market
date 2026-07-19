@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { auth } from "@/auth"
 import { flushLogs, logger } from "@/lib/logger"
+import { trackServer } from "@/lib/analytics"
 import { upsertMerchantDefaults } from "@/lib/merchant-defaults"
 import { prisma } from "@/lib/prisma"
 import {
@@ -108,6 +109,14 @@ export async function POST(req: Request) {
     supplierKind: updated.supplierKind,
     prevKind,
   })
+
+  trackServer(userId, "supplier_kind_selected_server", {
+    kind: nextKind,
+    previous_kind: prevKind,
+    onboarding_complete: onboardingComplete,
+    source: "api_supplier_profile",
+  })
+
   await flushLogs()
 
   return NextResponse.json({

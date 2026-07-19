@@ -2,6 +2,10 @@ import Link from "next/link"
 import { Lock, Radar, Rocket, Shield } from "lucide-react"
 import type { ReactNode } from "react"
 
+import {
+  RadarPaywallCtaButton,
+  RadarPaywallViewTracker,
+} from "@/components/radar/radar-paywall-tracker"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import type { RadarPlanId } from "@/lib/radar/plans"
@@ -80,7 +84,9 @@ export function RadarKindCockpit({
 
   return (
     <div className="space-y-6">
-      {needsOnboarding && isSupplier ? <RadarKindOnboardingBanner /> : null}
+      {needsOnboarding && isSupplier ? (
+        <RadarKindOnboardingBanner supplierKind={supplierKind} cockpit={cockpit} />
+      ) : null}
 
       {supplierKind === "producer" && isSupplier ? (
         <div className="space-y-4">
@@ -149,6 +155,12 @@ export function RadarKindCockpit({
 
         {showPaidBlur ? (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[42%] z-[2]">
+            <RadarPaywallViewTracker
+              supplierKind={supplierKind}
+              cockpit={cockpit}
+              needsOnboarding={false}
+              surface="paid_blur"
+            />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-50/80 to-zinc-50 backdrop-blur-xl dark:via-zinc-950/80 dark:to-zinc-950" />
             <div className="pointer-events-auto relative flex h-full items-center justify-center p-4">
               <Card className="w-full max-w-md border-violet-400/50 bg-white/90 shadow-[0_0_40px_rgba(124,58,237,0.25)] backdrop-blur-xl dark:bg-zinc-950/90">
@@ -162,9 +174,13 @@ export function RadarKindCockpit({
                   <CardDescription className="text-sm">{paywallBody}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-center pb-6">
-                  <Button asChild variant="bentoAccent" size="lg">
-                    <Link href={pricingHref}>{paywallCta}</Link>
-                  </Button>
+                  <RadarPaywallCtaButton
+                    href={pricingHref}
+                    supplierKind={supplierKind}
+                    surface="paid_blur"
+                  >
+                    {paywallCta}
+                  </RadarPaywallCtaButton>
                 </CardContent>
               </Card>
             </div>
@@ -175,9 +191,21 @@ export function RadarKindCockpit({
   )
 }
 
-function RadarKindOnboardingBanner() {
+function RadarKindOnboardingBanner({
+  supplierKind,
+  cockpit,
+}: {
+  supplierKind: SupplierKind
+  cockpit: ReturnType<typeof getRadarCockpit>
+}) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-violet-400/40 bg-gradient-to-br from-[#7C3AED] via-violet-600 to-indigo-700 p-5 text-white shadow-[0_0_40px_rgba(124,58,237,0.35)]">
+      <RadarPaywallViewTracker
+        supplierKind={supplierKind}
+        cockpit={cockpit}
+        needsOnboarding
+        surface="onboarding_banner"
+      />
       <div
         aria-hidden
         className="pointer-events-none absolute -right-8 -top-10 size-40 rounded-full bg-white/10 blur-2xl"
@@ -194,13 +222,16 @@ function RadarKindOnboardingBanner() {
             </p>
           </div>
         </div>
-        <Button
-          asChild
+        <RadarPaywallCtaButton
+          href="/dashboard/supplier/onboarding/kind"
+          supplierKind={supplierKind}
+          surface="onboarding_banner"
           variant="secondary"
+          size="default"
           className="shrink-0 border-0 bg-white text-[#7C3AED] hover:bg-white/90"
         >
-          <Link href="/dashboard/supplier/onboarding/kind">Configurer mon profil →</Link>
-        </Button>
+          Configurer mon profil →
+        </RadarPaywallCtaButton>
       </div>
     </div>
   )
