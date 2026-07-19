@@ -5,10 +5,12 @@ import type { Prisma } from ".prisma/client-mi"
 
 import RadarDashboardFilters from "@/components/radar/radar-dashboard-filters"
 import RadarForceScanButton from "@/components/radar/radar-force-scan-button"
+import { RadarKindCockpit } from "@/components/radar/radar-kind-cockpit"
 import RadarMarketingLanding from "@/components/radar/radar-marketing-landing"
 import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
 import RadarTikTokSalesSection from "@/components/radar/radar-tiktok-sales-section"
 import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 import { getRadarDb } from "@/lib/prisma-radar"
 import { getTikTokSalesDashboard } from "@/lib/radar/aggregators/tiktok"
 import type { TikTokSalesDashboard } from "@/lib/radar/aggregators/tiktok"
@@ -19,6 +21,7 @@ import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { getTrendingKeywords } from "@/lib/radar/google/trends-watcher"
 import { getUserRadarPlan } from "@/lib/radar/plans"
+import { parseSupplierKind, type SupplierKind } from "@/lib/supplier-kind"
 
 const TREND_SEEDS = ["led strip", "shapewear", "phone case"]
 
@@ -54,7 +57,15 @@ function formatScanDate(d: Date | null | undefined): string {
   return d.toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" })
 }
 
-function WinnersTable({ rows }: { rows: WinnerRow[] }) {
+function WinnersTable({
+  rows,
+  brandHighlight,
+}: {
+  rows: WinnerRow[]
+  /** Producer cockpit: highlight titles matching brand name (non-destructive). */
+  brandHighlight?: string | null
+}) {
+  const brand = brandHighlight?.trim().toLowerCase() ?? ""
   return (
     <div className="mt-4 overflow-x-auto">
       <table className="min-w-full text-left text-sm">
@@ -72,8 +83,17 @@ function WinnersTable({ rows }: { rows: WinnerRow[] }) {
         <tbody>
           {rows.map((row) => {
             const connector = getConnectorById(row.marketplaceId)
+            const isBrand =
+              brand.length >= 2 && row.title.toLowerCase().includes(brand)
             return (
-              <tr key={row.id} className="border-b border-zinc-100 align-middle">
+              <tr
+                key={row.id}
+                className={
+                  isBrand
+                    ? "border-b border-violet-100 bg-violet-500/10 align-middle"
+                    : "border-b border-zinc-100 align-middle"
+                }
+              >
                 <td className="px-2 py-2 font-mono text-xs text-zinc-700">{row.rank ?? "—"}</td>
                 <td className="px-2 py-2">
                   {row.imageUrl ? (
@@ -99,9 +119,21 @@ function WinnersTable({ rows }: { rows: WinnerRow[] }) {
                       className="line-clamp-2 font-medium text-zinc-900 hover:text-violet-700"
                     >
                       {row.title}
+                      {isBrand ? (
+                        <span className="ml-2 inline-flex rounded-full bg-violet-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                          Marque
+                        </span>
+                      ) : null}
                     </a>
                   ) : (
-                    <span className="line-clamp-2 font-medium text-zinc-900">{row.title}</span>
+                    <span className="line-clamp-2 font-medium text-zinc-900">
+                      {row.title}
+                      {isBrand ? (
+                        <span className="ml-2 inline-flex rounded-full bg-violet-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                          Marque
+                        </span>
+                      ) : null}
+                    </span>
                   )}
                 </td>
                 <td className="px-2 py-2 text-zinc-600">{connector?.name ?? row.marketplaceId}</td>
@@ -140,6 +172,18 @@ export default async function RadarDashboardPage({
     return <RadarMarketingLanding />
   }
 
+  let supplierKind: SupplierKind = "unset"
+  let brandName: string | null = null
+  const kindChromeEnabled = session.user.role === "SUPPLIER"
+  if (kindChromeEnabled) {
+    const profile = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { supplierKind: true, name: true },
+    })
+    supplierKind = parseSupplierKind(profile?.supplierKind)
+    brandName = profile?.name ?? null
+  }
+
   const planUser = {
     id: session.user.id,
     email: session.user.email,
@@ -153,30 +197,32 @@ export default async function RadarDashboardPage({
   if (!access.allowed || plan.id === "free" || plan.id === "starter") {
     const teaser = RADAR_DEMO_WINNERS.slice(0, 3)
     return (
-      <div className="space-y-6">
-        <RadarPaywallPanel
-          plan={plan}
-          title="Débloque Radar Global à $99/m"
-          reason="Voir winners BR avant tes concurrents — Map, alertes Slack, crawl mondial."
-        >
-          <div className="p-6">
-            <p className="text-sm font-medium text-zinc-800">Aperçu winners (teaser)</p>
-            <ul className="mt-3 space-y-2">
-              {teaser.map((w) => (
-                <li key={w.id} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm">
-                  #{w.rank} {w.title} · {w.country}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </RadarPaywallPanel>
-        <p className="text-center text-sm text-zinc-500">
-          Déjà Pro ?{" "}
-          <Link href="/pricing?feature=radar" className="font-medium text-violet-600">
-            Activer Radar
-          </Link>
-        </p>
-      </div>
+      <RadarKindCockpit supplierKind={supplierKind} enabled={kindChromeEnabled}>
+        <div className="space-y-6">
+          <RadarPaywallPanel
+            plan={plan}
+            title="Débloque Radar Global à $99/m"
+            reason="Voir winners BR avant tes concurrents — Map, alertes Slack, crawl mondial."
+          >
+            <div className="p-6">
+              <p className="text-sm font-medium text-zinc-800">Aperçu winners (teaser)</p>
+              <ul className="mt-3 space-y-2">
+                {teaser.map((w) => (
+                  <li key={w.id} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm">
+                    #{w.rank} {w.title} · {w.country}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </RadarPaywallPanel>
+          <p className="text-center text-sm text-zinc-500">
+            Déjà Pro ?{" "}
+            <Link href="/pricing?feature=radar" className="font-medium text-violet-600">
+              Activer Radar
+            </Link>
+          </p>
+        </div>
+      </RadarKindCockpit>
     )
   }
 
@@ -297,7 +343,8 @@ export default async function RadarDashboardPage({
     marketplaceFilter === "tiktok_shop"
 
   return (
-    <div className="space-y-8">
+    <RadarKindCockpit supplierKind={supplierKind} enabled={kindChromeEnabled}>
+      <div className="space-y-8">
       {justConnected && (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           Source connectée avec succès.
@@ -366,6 +413,11 @@ export default async function RadarDashboardPage({
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <h2 className="text-base font-semibold text-zinc-900">
           🔥 Top 20 Bestsellers Mondiaux {demoMode ? "(Demo)" : "(Live)"}
+          {supplierKind === "producer" && brandName ? (
+            <span className="ml-2 text-xs font-normal text-violet-600">
+              · highlight marque « {brandName} »
+            </span>
+          ) : null}
         </h2>
         {latestWinners.length === 0 ? (
           <div className="mt-4 space-y-3">
@@ -394,7 +446,10 @@ export default async function RadarDashboardPage({
             </div>
           </div>
         ) : (
-          <WinnersTable rows={latestWinners} />
+          <WinnersTable
+            rows={latestWinners}
+            brandHighlight={supplierKind === "producer" ? brandName : null}
+          />
         )}
       </section>
 
@@ -449,6 +504,7 @@ export default async function RadarDashboardPage({
           </ul>
         )}
       </section>
-    </div>
+      </div>
+    </RadarKindCockpit>
   )
 }
