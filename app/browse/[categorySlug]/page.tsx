@@ -42,13 +42,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     category.metaDesc?.trim() ||
     t("metaDescription", { category: category.name, count: category.listingCount })
   const canonical = `${resolveSiteBaseUrl()}${categoryBrowsePath(category.slug)}`
+  const indexable = category.listingCount > 0
 
   return {
     title,
     description,
     alternates: { canonical },
     openGraph: { title, description, url: canonical },
-    robots: { index: true, follow: true },
+    robots: indexable
+      ? { index: true, follow: true }
+      : { index: false, follow: true },
   }
 }
 

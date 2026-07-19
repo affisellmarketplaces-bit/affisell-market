@@ -30,6 +30,9 @@ describe("isStaticAppPathname", () => {
     expect(isStaticAppPathname("/radar")).toBe(true)
     expect(isStaticAppPathname("/radar/connect")).toBe(true)
     expect(isStaticAppPathname("/fr/radar")).toBe(true)
+    expect(isStaticAppPathname("/browse")).toBe(true)
+    expect(isStaticAppPathname("/browse/appareils-electroniques-222")).toBe(true)
+    expect(isStaticAppPathname("/fr/browse/appareils-electroniques-222")).toBe(true)
     expect(isStaticAppPathname("/pricing")).toBe(true)
     expect(isStaticAppPathname("/pricing?feature=radar".split("?")[0]!)).toBe(true)
     expect(isStaticAppPathname("/fr/pricing")).toBe(true)
@@ -50,6 +53,9 @@ describe("isStaticAppPathname", () => {
   it("rewrites locale-prefixed static routes to bare app paths", () => {
     expect(staticAppRewriteTarget("/fr/login")).toBe("/login")
     expect(staticAppRewriteTarget("/fr/accessibilite")).toBe("/accessibilite")
+    expect(staticAppRewriteTarget("/fr/browse/appareils-electroniques-222")).toBe(
+      "/browse/appareils-electroniques-222"
+    )
     expect(staticAppRewriteTarget("/fr/login/customer")).toBe("/login/customer")
     expect(staticAppRewriteTarget("/en/signup/customer")).toBe("/signup/customer")
     expect(staticAppRewriteTarget("/login")).toBeNull()

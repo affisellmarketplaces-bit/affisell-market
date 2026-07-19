@@ -73,7 +73,6 @@ export const loadBrowseCategoryBySlug = cache(async function loadBrowseCategoryB
   if (!category) return null
 
   const listingCount = await countMarketplaceListingsForScope({ categoryId: category.id })
-  if (listingCount <= 0) return null
 
   const children: BrowseCategoryChildLink[] = []
   for (const child of category.children) {
