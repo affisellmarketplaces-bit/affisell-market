@@ -33,6 +33,61 @@ import { prisma } from "@/lib/prisma"
 
 const COOKIE_SAFE = process.env.NODE_ENV === "production"
 
+type AuthUserRow = {
+  role: string
+  image: string | null
+  name: string | null
+  email: string
+  cguVersion: string | null
+  isPro: boolean
+  radarPlan: string | null
+}
+
+/**
+ * Load JWT profile fields. Never throws on schema drift (e.g. pending migrate):
+ * falls back without radarPlan so supplier/affiliate/admin login stays online.
+ */
+async function loadAuthUserRow(userId: string): Promise<AuthUserRow | null> {
+  try {
+    return await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        role: true,
+        image: true,
+        name: true,
+        email: true,
+        cguVersion: true,
+        isPro: true,
+        radarPlan: true,
+      },
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    const missingRadarPlan = /radarPlan/i.test(message) && /does not exist|Unknown arg/i.test(message)
+    if (!missingRadarPlan) {
+      console.error("[auth jwt]", { result: "user_lookup_failed", message })
+      throw err
+    }
+    console.warn("[auth jwt]", {
+      result: "radarPlan_column_missing_fallback",
+      message: "Deploy migration 20260718190000_user_radar_plan — login continues with radarPlan=free",
+    })
+    const fallback = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        role: true,
+        image: true,
+        name: true,
+        email: true,
+        cguVersion: true,
+        isPro: true,
+      },
+    })
+    if (!fallback) return null
+    return { ...fallback, radarPlan: "free" }
+  }
+}
+
 function env(...keys: string[]) {
   for (const k of keys) {
     const v = process.env[k]?.trim()
@@ -303,18 +358,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const shouldRefresh = Boolean(user?.id) || trigger === "update"
       if (!shouldRefresh && token.role) return token as JWT
 
-      const row = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          role: true,
-          image: true,
-          name: true,
-          email: true,
-          cguVersion: true,
-          isPro: true,
-          radarPlan: true,
-        },
-      })
+      const row = await loadAuthUserRow(userId)
 
       token.id = userId
       token.role = row?.role ?? (user as { role?: string }).role ?? (token.role as string) ?? "CUSTOMER"
@@ -339,7 +383,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       token.features = resolveRadarFeatures(
         userId,
         row?.isPro ?? false,
-        row?.radarPlan,
+        row?.radarPlan ?? "free",
         role
       )
       return token as JWT
