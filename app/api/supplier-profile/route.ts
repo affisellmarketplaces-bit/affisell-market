@@ -4,12 +4,14 @@ import { z } from "zod"
 import { auth } from "@/auth"
 import { flushLogs, logger } from "@/lib/logger"
 import { trackServer } from "@/lib/analytics"
+import { scheduleSupplierWelcomeEmail } from "@/lib/emails/send-supplier-welcome"
 import { upsertMerchantDefaults } from "@/lib/merchant-defaults"
 import { prisma } from "@/lib/prisma"
 import {
   parseSupplierKind,
   SUPPLIER_KIND_SET_VALUES,
   type SupplierKind,
+  type SupplierKindSetValue,
 } from "@/lib/supplier-kind"
 
 export const runtime = "nodejs"
@@ -80,7 +82,7 @@ export async function POST(req: Request) {
       supplierKind: nextKind,
       ...(parsed.data.nom_entreprise ? { name: parsed.data.nom_entreprise } : {}),
     },
-    select: { id: true, supplierKind: true, role: true, name: true },
+    select: { id: true, supplierKind: true, role: true, name: true, email: true },
   })
 
   if (parsed.data.pays_stock) {
@@ -116,6 +118,17 @@ export async function POST(req: Request) {
     onboarding_complete: onboardingComplete,
     source: "api_supplier_profile",
   })
+
+  // Welcome email fire-and-forget — never blocks / crashes this POST
+  if (nextKind === "producer" || nextKind === "stocker") {
+    scheduleSupplierWelcomeEmail({
+      userId,
+      kind: nextKind as SupplierKindSetValue,
+      previousKind: prevKind,
+      email: updated.email,
+      name: updated.name,
+    })
+  }
 
   await flushLogs()
 
