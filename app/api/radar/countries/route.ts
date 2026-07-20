@@ -5,8 +5,11 @@ import { gate } from "@/lib/radar/gate"
 import { getWorldRadarCountriesPayload } from "@/lib/radar/world-radar-store.server"
 
 export const runtime = "nodejs"
-export const dynamic = "force-dynamic"
-export const revalidate = 3600
+export const revalidate = 21600
+
+const CACHE_HEADERS = {
+  "Cache-Control": "private, max-age=60, stale-while-revalidate=21600",
+}
 
 /** GET /api/radar/countries — 30 markets grouped by region. */
 export async function GET() {
@@ -20,7 +23,7 @@ export async function GET() {
 
   try {
     const payload = await getWorldRadarCountriesPayload()
-    return NextResponse.json(payload)
+    return NextResponse.json(payload, { headers: CACHE_HEADERS })
   } catch (err) {
     console.error("[api/radar/countries]", {
       result: "error",

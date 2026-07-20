@@ -6,8 +6,13 @@ import { RADAR_DEFAULT_COUNTRY } from "@/lib/radar/dashboard-country.server"
 import { getWorldRadarPayload } from "@/lib/radar/world-radar-store.server"
 
 export const runtime = "nodejs"
-export const dynamic = "force-dynamic"
-export const revalidate = 3600
+/** Auth forces per-request; winners themselves TTL 6h in market_intelli (expiresAt). */
+export const revalidate = 21600
+
+const CACHE_HEADERS = {
+  // Private (session) + long SWR — avoid Cache-Control: no-store on every hit
+  "Cache-Control": "private, max-age=60, stale-while-revalidate=21600",
+}
 
 /**
  * GET /api/radar?country=FR
@@ -38,7 +43,7 @@ export async function GET(req: Request) {
       winners: payload.winners.length,
       source: payload.source,
     })
-    return NextResponse.json(payload)
+    return NextResponse.json(payload, { headers: CACHE_HEADERS })
   } catch (err) {
     console.error("[api/radar]", {
       country,
