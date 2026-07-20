@@ -6,6 +6,7 @@ import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExpl
 import { HomeCatalogSkeleton } from "@/components/home/home-catalog-skeleton"
 import { HomePageWarmup } from "@/components/home/home-page-warmup"
 import { HomeRadarTeaser } from "@/components/home/home-radar-teaser"
+import { HomeWorldRadarTeaser } from "@/components/home/home-world-radar-teaser"
 
 async function CatalogFallback() {
   const t = await getTranslations("home")
@@ -32,6 +33,7 @@ export async function HomePage() {
       <Suspense fallback={<CatalogFallback />}>
         <BuyerMarketplaceExplorer />
       </Suspense>
+      <HomeWorldRadarTeaser className="mt-4 sm:mt-8" />
       <HomeRadarTeaser className="mt-4 sm:mt-8" />
     </main>
   )
