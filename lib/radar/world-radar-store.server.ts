@@ -237,32 +237,45 @@ export async function readCachedWorldRadar(countryCode: string): Promise<WorldRa
   const code = countryCode.toUpperCase()
   const now = new Date()
 
-  const [winners, trending, countryRow] = await Promise.all([
-    db.radarWinner.findMany({
-      where: { countryCode: code, expiresAt: { gt: now } },
-      orderBy: [{ trendingScore: "desc" }, { rank: "asc" }],
-      take: 20,
-    }),
-    db.radarTrendingKeyword.findMany({
-      where: { countryCode: code, expiresAt: { gt: now } },
-      orderBy: { growthRate: "desc" },
-      take: 5,
-    }),
-    db.radarCountry.findUnique({ where: { code } }),
-  ])
+  try {
+    const [winners, trending, countryRow] = await Promise.all([
+      db.radarWinner.findMany({
+        where: { countryCode: code, expiresAt: { gt: now } },
+        orderBy: [{ trendingScore: "desc" }, { rank: "asc" }],
+        take: 20,
+      }),
+      db.radarTrendingKeyword.findMany({
+        where: { countryCode: code, expiresAt: { gt: now } },
+        orderBy: { growthRate: "desc" },
+        take: 5,
+      }),
+      db.radarCountry.findUnique({ where: { code } }),
+    ])
 
-  if (winners.length === 0) return null
+    if (winners.length === 0) return null
 
-  return {
-    winners: winners.map(winnerToDto),
-    trendingKeywords: trending.map(trendingToDto),
-    country: countryDto(code, {
-      productCount: countryRow?.productCount ?? winners.length,
-      lastScanAt: countryRow?.lastScanAt ?? winners[0]?.createdAt,
-    }),
-    lastScanAt: (countryRow?.lastScanAt ?? winners[0]?.createdAt)?.toISOString() ?? null,
-    isLive: isCountryScanLive(countryRow?.lastScanAt ?? winners[0]?.createdAt),
-    source: "cache",
+    return {
+      winners: winners.map(winnerToDto),
+      trendingKeywords: trending.map(trendingToDto),
+      country: countryDto(code, {
+        productCount: countryRow?.productCount ?? winners.length,
+        lastScanAt: countryRow?.lastScanAt ?? winners[0]?.createdAt,
+      }),
+      lastScanAt: (countryRow?.lastScanAt ?? winners[0]?.createdAt)?.toISOString() ?? null,
+      isLive: isCountryScanLive(countryRow?.lastScanAt ?? winners[0]?.createdAt),
+      source: "cache",
+    }
+  } catch (err) {
+    if (isMissingTableError(err)) {
+      worldRadarTablesReady = false
+      return null
+    }
+    console.warn("[world-radar-store]", {
+      result: "cache_read_failed",
+      country: code,
+      message: err instanceof Error ? err.message : "unknown",
+    })
+    return null
   }
 }
 
@@ -318,59 +331,72 @@ export async function getWorldRadarPayload(
   return mockPayload(code)
 }
 
+function mockCountriesPayload(): WorldRadarCountriesPayload {
+  const countries = WORLD_RADAR_COUNTRIES.map((c) =>
+    countryDto(c.code, { productCount: 20, lastScanAt: new Date() })
+  )
+  const byRegion = groupCountriesByRegion(
+    countries.map((c) => ({
+      code: c.code,
+      name: c.name,
+      flag: c.flag,
+      region: c.region as "Europe" | "America" | "Asia" | "Africa" | "Oceania",
+      currency: c.currency,
+      enabled: c.enabled,
+      productCount: c.productCount,
+      lastScanAt: c.lastScanAt ? new Date(c.lastScanAt) : null,
+    }))
+  )
+  return {
+    countries,
+    byRegion: byRegion as Record<string, WorldRadarCountryDto[]>,
+    total: countries.length,
+  }
+}
+
 export async function getWorldRadarCountriesPayload(): Promise<WorldRadarCountriesPayload> {
   const ready = await probeWorldRadarDb()
-  if (!ready) {
-    const countries = WORLD_RADAR_COUNTRIES.map((c) =>
-      countryDto(c.code, { productCount: 20, lastScanAt: new Date() })
+  if (!ready) return mockCountriesPayload()
+
+  try {
+    await seedWorldRadarCountries().catch(() => undefined)
+    const db = getRadarDb()
+    const rows = await db.radarCountry.findMany({
+      where: { enabled: true },
+      orderBy: [{ region: "asc" }, { name: "asc" }],
+    })
+
+    const countries: WorldRadarCountryDto[] = rows.map((r) =>
+      countryDto(r.code, { productCount: r.productCount, lastScanAt: r.lastScanAt })
     )
+
     const byRegion = groupCountriesByRegion(
-      countries.map((c) => ({
-        code: c.code,
-        name: c.name,
-        flag: c.flag,
-        region: c.region as "Europe" | "America" | "Asia" | "Africa" | "Oceania",
-        currency: c.currency,
-        enabled: c.enabled,
-        productCount: c.productCount,
-        lastScanAt: c.lastScanAt ? new Date(c.lastScanAt) : null,
+      rows.map((r) => ({
+        code: r.code,
+        name: r.name,
+        flag: r.flag,
+        region: r.region as "Europe" | "America" | "Asia" | "Africa" | "Oceania",
+        currency: r.currency,
+        enabled: r.enabled,
+        productCount: r.productCount,
+        lastScanAt: r.lastScanAt,
       }))
     )
+
     return {
       countries,
       byRegion: byRegion as Record<string, WorldRadarCountryDto[]>,
       total: countries.length,
     }
-  }
-
-  await seedWorldRadarCountries().catch(() => undefined)
-  const db = getRadarDb()
-  const rows = await db.radarCountry.findMany({
-    where: { enabled: true },
-    orderBy: [{ region: "asc" }, { name: "asc" }],
-  })
-
-  const countries: WorldRadarCountryDto[] = rows.map((r) =>
-    countryDto(r.code, { productCount: r.productCount, lastScanAt: r.lastScanAt })
-  )
-
-  const byRegion = groupCountriesByRegion(
-    rows.map((r) => ({
-      code: r.code,
-      name: r.name,
-      flag: r.flag,
-      region: r.region as "Europe" | "America" | "Asia" | "Africa" | "Oceania",
-      currency: r.currency,
-      enabled: r.enabled,
-      productCount: r.productCount,
-      lastScanAt: r.lastScanAt,
-    }))
-  )
-
-  return {
-    countries,
-    byRegion: byRegion as Record<string, WorldRadarCountryDto[]>,
-    total: countries.length,
+  } catch (err) {
+    if (isMissingTableError(err)) {
+      worldRadarTablesReady = false
+    }
+    console.warn("[world-radar-store]", {
+      result: "countries_fallback_mock",
+      message: err instanceof Error ? err.message : "unknown",
+    })
+    return mockCountriesPayload()
   }
 }
 
