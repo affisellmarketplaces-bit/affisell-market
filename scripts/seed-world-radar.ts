@@ -177,13 +177,19 @@ async function seedCountryWinners(
       },
     })
 
-    console.log(`[RADAR] Scanned ${code}: ${winners.length} winners`)
+    console.log(`[WORLD] Seeded ${code}: ${winners.length} winners`)
     return { country: code, winners: winners.length, trending: trending.length, ok: true }
   } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown"
+    if (/market_intelli|schema not found|does not exist|P2021/i.test(message)) {
+      console.error(
+        "[seed-world-radar] market_intelli schema not found — Run npm run radar:db:push first"
+      )
+    }
     console.error("[seed-world-radar]", {
       result: "country_failed",
       country: code,
-      message: err instanceof Error ? err.message : "unknown",
+      message,
     })
     return { country: code, winners: 0, trending: 0, ok: false }
   }
@@ -205,7 +211,7 @@ async function main() {
   } catch (err) {
     if (isMissingTableError(err)) {
       console.log(
-        "[seed-world-radar] Tables missing — run `npm run radar:db:push` first, then retry"
+        "[seed-world-radar] market_intelli schema not found — Run npm run radar:db:push first"
       )
       await db.$disconnect().catch(() => undefined)
       process.exit(0)

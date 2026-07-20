@@ -13,7 +13,7 @@ export const maxDuration = 300
 
 /**
  * World Radar cron — rotates 5 countries per run (6h schedule).
- * Auth: Bearer ${CRON_SECRET}
+ * Auth: Bearer ${CRON_SECRET} (or x-cron-secret). Dev without secret allowed via authorizeCronRequest.
  */
 export async function GET(req: Request) {
   const denied = authorizeCronRequest(req)
@@ -35,14 +35,38 @@ export async function GET(req: Request) {
 
   console.log("[RADAR]", { result: "cron_start", countries, batchIndex })
 
-  const seeded = await seedWorldRadarCountries().catch(() => 0)
-  const results = await scanAndPersistCountries(countries)
-
-  return NextResponse.json({
-    ok: true,
-    batchIndex,
-    countries,
-    seeded,
-    results,
-  })
+  try {
+    const seeded = await seedWorldRadarCountries().catch((err) => {
+      console.warn("[RADAR]", {
+        result: "seed_countries_skipped",
+        message: err instanceof Error ? err.message : "unknown",
+      })
+      return 0
+    })
+    const results = await scanAndPersistCountries(countries)
+    return NextResponse.json({
+      ok: true,
+      batchIndex,
+      countries,
+      seeded,
+      results,
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown"
+    console.error("[RADAR]", {
+      result: "cron_failed_graceful",
+      message,
+      hint: /market_intelli|does not exist|P2021/i.test(message)
+        ? "Run npm run radar:db:push first"
+        : undefined,
+    })
+    return NextResponse.json({
+      ok: false,
+      degraded: true,
+      batchIndex,
+      countries,
+      error: message,
+      hint: "Tables missing? Run npm run radar:db:push — cron will not crash the deploy.",
+    })
+  }
 }

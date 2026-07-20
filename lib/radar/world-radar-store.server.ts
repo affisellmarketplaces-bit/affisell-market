@@ -13,6 +13,7 @@ import {
   buildMockTrendingForCountry,
   buildMockWinnersForCountry,
 } from "@/lib/radar/world-mock-catalog"
+import { enrichWorldRadarWinners } from "@/lib/radar/enrich-winners.server"
 import type {
   WorldRadarCountriesPayload,
   WorldRadarCountryDto,
@@ -120,7 +121,7 @@ function countryDto(
   }
 }
 
-function mockPayload(countryCode: string): WorldRadarPayload {
+async function mockPayload(countryCode: string): Promise<WorldRadarPayload> {
   const code = countryCode.toUpperCase()
   const winners = buildMockWinnersForCountry(code, 20).map((w, i) =>
     winnerToDto({ ...w, id: `mock-${code}-${i + 1}` })
@@ -128,12 +129,19 @@ function mockPayload(countryCode: string): WorldRadarPayload {
   const trending = buildMockTrendingForCountry(code).map((t) => trendingToDto(t))
   const now = new Date()
   return {
-    winners,
+    winners: await enrichWorldRadarWinners(winners),
     trendingKeywords: trending,
     country: countryDto(code, { productCount: winners.length, lastScanAt: now }),
     lastScanAt: now.toISOString(),
     isLive: true,
     source: "mock",
+  }
+}
+
+async function withMoats(payload: WorldRadarPayload): Promise<WorldRadarPayload> {
+  return {
+    ...payload,
+    winners: await enrichWorldRadarWinners(payload.winners),
   }
 }
 
@@ -289,7 +297,7 @@ export async function getWorldRadarPayload(
   }
 
   const cached = await readCachedWorldRadar(code)
-  if (cached) return cached
+  if (cached) return withMoats(cached)
 
   if (options?.coldScan !== false) {
     try {
@@ -308,7 +316,7 @@ export async function getWorldRadarPayload(
         })
       })
 
-      return {
+      return withMoats({
         winners: scan.winners.map((w, i) => winnerToDto({ ...w, id: `scan-${code}-${i + 1}` })),
         trendingKeywords: scan.trending.map(trendingToDto),
         country: countryDto(code, {
@@ -318,7 +326,7 @@ export async function getWorldRadarPayload(
         lastScanAt: scan.scannedAt.toISOString(),
         isLive: true,
         source: "scan",
-      }
+      })
     } catch (err) {
       console.warn("[world-radar-store]", {
         result: "cold_scan_failed",

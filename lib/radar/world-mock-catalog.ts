@@ -173,10 +173,23 @@ export function buildMockWinnersForCountry(
 }> {
   const country = getWorldCountry(countryCode)
   const currency = country?.currency ?? "USD"
-  const templates = COUNTRY_WINNER_TEMPLATES[countryCode] ?? GENERIC_TEMPLATES
+  const base = COUNTRY_WINNER_TEMPLATES[countryCode] ?? GENERIC_TEMPLATES
+  const pool = [...base]
+  while (pool.length < limit) {
+    const g = GENERIC_TEMPLATES[pool.length % GENERIC_TEMPLATES.length]
+    if (!g) break
+    pool.push({
+      ...g,
+      title: `${g.title} · ${countryCode} #${pool.length + 1}`,
+      source: g.source.includes("Amazon")
+        ? `Amazon ${countryCode}`
+        : `${g.source} ${countryCode}`,
+    })
+  }
+  const templates = pool.slice(0, limit)
   const now = Date.now()
 
-  return templates.slice(0, limit).map((seed, index) => {
+  return templates.map((seed, index) => {
     const rank = index + 1
     const growthRate = jitter(seed.growthRate, 0.05)
     const searches = jitter(seed.searches, 0.06)

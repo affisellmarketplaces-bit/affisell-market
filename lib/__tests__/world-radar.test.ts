@@ -36,7 +36,7 @@ describe("world-countries", () => {
 describe("world-mock-catalog", () => {
   it("builds 20 FR winners with EUR prices", () => {
     const winners = buildMockWinnersForCountry("FR", 20)
-    expect(winners).toHaveLength(10) // FR has 10 templates, pad with limit
+    expect(winners).toHaveLength(20)
     expect(winners[0]?.currency).toBe("EUR")
     expect(winners[0]?.price).toBeGreaterThan(0)
   })

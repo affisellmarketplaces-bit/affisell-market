@@ -4,12 +4,14 @@ import Link from "next/link"
 import useSWR from "swr"
 import { useCallback, useMemo, useState } from "react"
 
+import { SupplierMatchBadge } from "@/components/radar/supplier-match-badge"
 import { formatRadarPriceDisplay } from "@/lib/radar/format-radar-price"
 import type { SupplierKind } from "@/lib/supplier-kind"
 import {
   formatRelativeScanFr,
   type WorldRadarCountriesPayload,
   type WorldRadarPayload,
+  type WorldRadarWinnerDto,
 } from "@/lib/radar/world-radar-types"
 
 type RegionTab = "all" | "Europe" | "America" | "Asia" | "Africa" | "Oceania"
@@ -40,6 +42,52 @@ function competitionLabel(n: number | null, country: string): string {
   const suffix = ` vendeurs ${country}`
   if (n < 5) return `${n}${suffix}`
   return `${n}${suffix}`
+}
+
+function ArbitrageBadge({ row }: { row: WorldRadarWinnerDto }) {
+  const a = row.arbitrage
+  if (!a || a.tier === "none") return null
+  return (
+    <span
+      className="mt-1.5 inline-flex max-w-full flex-col rounded-lg border border-violet-300 bg-violet-50 px-2 py-1 text-[10px] leading-snug text-violet-900"
+      title={a.hint}
+    >
+      <span className="font-bold tracking-wide">
+        {a.tier === "or" ? "🔥 " : ""}
+        {a.label}
+      </span>
+      <span className="font-medium text-violet-700">{a.hint}</span>
+    </span>
+  )
+}
+
+function SaturationCell({ row }: { row: WorldRadarWinnerDto }) {
+  const s = row.saturation
+  if (!s) return <span className="text-zinc-400">—</span>
+  const barColor =
+    s.tier === "vierge"
+      ? "bg-emerald-500"
+      : s.tier === "tot"
+        ? "bg-amber-400"
+        : "bg-red-500"
+  return (
+    <div className="min-w-[7rem]" title={s.prediction ?? undefined}>
+      <div className="flex items-center justify-between gap-1 text-[10px] font-semibold">
+        <span>
+          {s.emoji} {s.label}
+        </span>
+        {s.daysUntilSaturation != null ? (
+          <span className="text-zinc-500">~{s.daysUntilSaturation}j</span>
+        ) : null}
+      </div>
+      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-100">
+        <div
+          className={`h-full rounded-full ${barColor}`}
+          style={{ width: `${Math.min(100, s.barPercent)}%` }}
+        />
+      </div>
+    </div>
+  )
 }
 
 function WinnersSkeleton() {
@@ -110,7 +158,6 @@ export default function WorldRadarTerminal({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <section className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-gradient-to-br from-zinc-950 via-zinc-900 to-violet-950 p-6 text-white shadow-xl">
         <div className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-violet-500/20 blur-3xl" />
         <div className="relative flex flex-wrap items-start justify-between gap-4">
@@ -138,6 +185,9 @@ export default function WorldRadarTerminal({
                 <span className="text-xs text-violet-300">Actualisation…</span>
               ) : null}
             </p>
+            <p className="mt-2 text-[11px] text-zinc-400">
+              Moats: Arbitrage Score™ · Saturation IA · Supplier Match Affisell
+            </p>
           </div>
           <div className="w-full max-w-sm">
             <label className="sr-only" htmlFor="world-radar-search">
@@ -155,7 +205,6 @@ export default function WorldRadarTerminal({
         </div>
       </section>
 
-      {/* Country selector */}
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap gap-2 border-b border-zinc-100 pb-4">
           {REGION_TABS.map((tab) => (
@@ -206,7 +255,6 @@ export default function WorldRadarTerminal({
         </div>
       </section>
 
-      {/* Winners grid */}
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-base font-semibold text-zinc-900">
@@ -231,6 +279,7 @@ export default function WorldRadarTerminal({
                   <th className="px-2 py-2">Produit</th>
                   <th className="px-2 py-2">Source</th>
                   <th className="px-2 py-2">Growth</th>
+                  <th className="px-2 py-2">Saturation</th>
                   <th className="px-2 py-2">Recherches</th>
                   <th className="px-2 py-2">Concurrence</th>
                   <th className="px-2 py-2">Prix</th>
@@ -245,10 +294,14 @@ export default function WorldRadarTerminal({
                     <tr key={row.id} className="border-b border-zinc-100 align-middle">
                       <td className="px-2 py-3 font-mono text-xs">
                         #{row.rank}
-                        {hot ? <span className="ml-1" aria-label="Hot">🔥</span> : null}
+                        {hot ? (
+                          <span className="ml-1" aria-label="Hot">
+                            🔥
+                          </span>
+                        ) : null}
                       </td>
                       <td className="max-w-xs px-2 py-3">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-start gap-3">
                           {row.image ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -262,7 +315,13 @@ export default function WorldRadarTerminal({
                               📦
                             </span>
                           )}
-                          <span className="line-clamp-2 font-medium text-zinc-900">{row.title}</span>
+                          <div className="min-w-0">
+                            <span className="line-clamp-2 font-medium text-zinc-900">
+                              {row.title}
+                            </span>
+                            <ArbitrageBadge row={row} />
+                            <SupplierMatchBadge match={row.supplierMatch} />
+                          </div>
                         </div>
                       </td>
                       <td className="px-2 py-3 text-zinc-600">{row.source}</td>
@@ -274,6 +333,9 @@ export default function WorldRadarTerminal({
                         ) : (
                           "—"
                         )}
+                      </td>
+                      <td className="px-2 py-3">
+                        <SaturationCell row={row} />
                       </td>
                       <td className="px-2 py-3 text-xs text-zinc-600">
                         {formatSearches(row.searches)}
@@ -319,7 +381,6 @@ export default function WorldRadarTerminal({
         )}
       </section>
 
-      {/* Trending keywords */}
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <h2 className="text-base font-semibold text-zinc-900">
           📈 Trending Keywords — {country}
@@ -335,7 +396,9 @@ export default function WorldRadarTerminal({
             >
               <p className="text-sm font-medium text-zinc-900">{t.keyword}</p>
               <div className="mt-2 flex items-end justify-between gap-2">
-                <span className="text-xs font-semibold text-emerald-700">+{Math.round(t.growthRate)}% ↗</span>
+                <span className="text-xs font-semibold text-emerald-700">
+                  +{Math.round(t.growthRate)}% ↗
+                </span>
                 {t.volume != null ? (
                   <span className="text-[10px] text-zinc-500">
                     {t.volume.toLocaleString("fr-FR")}/mois

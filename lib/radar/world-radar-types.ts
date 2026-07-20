@@ -1,4 +1,26 @@
 /** Shared types for World Radar — safe to import from client components. */
+export type SupplierMatchDto = {
+  count: number
+  sampleNames: string[]
+}
+
+export type ArbitrageDto = {
+  score: number
+  tier: "or" | "argent" | "bronze" | "none"
+  label: string
+  hint: string
+}
+
+export type SaturationDto = {
+  index: number
+  tier: "vierge" | "tot" | "sature"
+  label: string
+  emoji: string
+  daysUntilSaturation: number | null
+  prediction: string | null
+  barPercent: number
+}
+
 export type WorldRadarWinnerDto = {
   id: string
   countryCode: string
@@ -13,6 +35,12 @@ export type WorldRadarWinnerDto = {
   competition: number | null
   trendingScore: number
   category: string | null
+  /** Moat 1 — Arbitrage Score™ */
+  arbitrage?: ArbitrageDto
+  /** Moat 2 — Saturation Index */
+  saturation?: SaturationDto
+  /** Moat 3 — Affisell FR supplier match */
+  supplierMatch?: SupplierMatchDto
 }
 
 export type WorldRadarTrendingDto = {
