@@ -67,7 +67,7 @@ export async function getTrendingKeywords(
   try {
     if (isSerperConfigured()) {
       const json = await serperSearchRaw(`Google Trends ${seeds.slice(0, 5).join(" OR ")}`, {
-        gl: "us",
+        gl: "fr",
       })
       if (!json) {
         console.log("[radar/trends]", { result: "serper_empty" })

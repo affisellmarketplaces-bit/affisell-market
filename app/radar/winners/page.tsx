@@ -9,20 +9,7 @@ import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { loadRadarPlanContext } from "@/lib/radar/plan-user.server"
-import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
-
-function formatPrice(price: { toString(): string } | number, currency: string | null): string {
-  const n = typeof price === "number" ? price : Number(price.toString())
-  if (!Number.isFinite(n)) return "—"
-  try {
-    return new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: currency && currency.length === 3 ? currency : "USD",
-    }).format(n)
-  } catch {
-    return `${n} ${currency ?? ""}`.trim()
-  }
-}
+import { formatRadarPriceDisplay } from "@/lib/radar/format-radar-price"
 
 export default async function RadarWinnersPage() {
   if (!isRadarEnabled()) redirect("/404")
@@ -144,7 +131,7 @@ export default async function RadarWinnersPage() {
                       {connector?.logo} {connector?.name ?? row.marketplaceId}
                     </td>
                     <td className="px-3 py-2 tabular-nums">
-                      {formatPrice(row.price, row.currency)}
+                      {formatRadarPriceDisplay(row.price, row.currency)}
                     </td>
                     <td className="px-3 py-2">{row.country}</td>
                     <td className="px-3 py-2 tabular-nums">

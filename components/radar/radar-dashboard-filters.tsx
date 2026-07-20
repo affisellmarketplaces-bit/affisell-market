@@ -22,13 +22,12 @@ const MARKETPLACES = [
 ] as const
 
 const COUNTRIES = [
-  { value: "", label: "Tous les pays" },
-  { value: "US", label: "US" },
+  { value: "FR", label: "🇫🇷 France (Stock FR)" },
+  { value: "US", label: "🇺🇸 États-Unis" },
   { value: "CA", label: "CA" },
   { value: "MX", label: "MX" },
   { value: "BR", label: "BR" },
   { value: "AR", label: "AR" },
-  { value: "FR", label: "FR" },
   { value: "DE", label: "DE" },
   { value: "UK", label: "UK" },
   { value: "PL", label: "PL" },
@@ -62,12 +61,17 @@ export default function RadarDashboardFilters() {
         if (!value) next.delete(key)
         else next.set(key, value)
       }
+      if (!next.get("country")) {
+        next.set("country", "FR")
+      }
       startTransition(() => {
         router.push(`${pathname}?${next.toString()}`)
       })
     },
     [pathname, router, searchParams]
   )
+
+  const countryValue = searchParams.get("country")?.trim().toUpperCase() || "FR"
 
   return (
     <form
@@ -94,15 +98,15 @@ export default function RadarDashboardFilters() {
       </label>
 
       <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600">
-        Country
+        Pays
         <select
           className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900"
-          value={searchParams.get("country") ?? ""}
+          value={countryValue}
           disabled={pending}
-          onChange={(e) => pushFilters({ country: e.target.value })}
+          onChange={(e) => pushFilters({ country: e.target.value || "FR" })}
         >
           {COUNTRIES.map((c) => (
-            <option key={c.value || "all"} value={c.value}>
+            <option key={c.value} value={c.value}>
               {c.label}
             </option>
           ))}
@@ -110,7 +114,7 @@ export default function RadarDashboardFilters() {
       </label>
 
       <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs font-medium text-zinc-600">
-        Search
+        Recherche
         <input
           type="search"
           name="q"

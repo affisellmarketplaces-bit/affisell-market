@@ -15,15 +15,22 @@ import { getRadarDb } from "@/lib/prisma-radar"
 import { getTikTokSalesDashboard } from "@/lib/radar/aggregators/tiktok"
 import type { TikTokSalesDashboard } from "@/lib/radar/aggregators/tiktok"
 import { getConnectorById } from "@/lib/radar/connectors/registry"
+import {
+  countSupplierFrRadarProducts,
+  loadAffisellFrRadarWinners,
+} from "@/lib/radar/affisell-fr-catalog.server"
+import { resolveRadarDashboardCountry } from "@/lib/radar/dashboard-country.server"
 import { RADAR_DEMO_WINNERS } from "@/lib/radar/demo-data"
+import { formatRadarPriceDisplay, radarSourceLabel } from "@/lib/radar/format-radar-price"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
-import { getTrendingKeywords } from "@/lib/radar/google/trends-watcher"
+import { loadRadarTrendingKeywordsForDashboard } from "@/lib/radar/trending-keywords-dashboard.server"
+import type { TrendingKeyword } from "@/lib/radar/crawler/types"
 import { loadRadarPlanContext } from "@/lib/radar/plan-user.server"
 import { parseSupplierKind, type SupplierKind } from "@/lib/supplier-kind"
 
-const TREND_SEEDS = ["led strip", "shapewear", "phone case"]
+const TREND_SEEDS = ["coque magsafe", "led strip", "shapewear", "airfryer"]
 
 type WinnerRow = {
   id: string
@@ -40,16 +47,7 @@ type WinnerRow = {
 }
 
 function formatPrice(price: { toString(): string } | number, currency: string | null): string {
-  const n = typeof price === "number" ? price : Number(price.toString())
-  if (!Number.isFinite(n)) return "—"
-  try {
-    return new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: currency && currency.length === 3 ? currency : "USD",
-    }).format(n)
-  } catch {
-    return `${n} ${currency ?? ""}`.trim()
-  }
+  return formatRadarPriceDisplay(price, currency)
 }
 
 function formatScanDate(d: Date | null | undefined): string {
@@ -60,10 +58,11 @@ function formatScanDate(d: Date | null | undefined): string {
 function WinnersTable({
   rows,
   brandHighlight,
+  frCatalog = false,
 }: {
   rows: WinnerRow[]
-  /** Producer cockpit: highlight titles matching brand name (non-destructive). */
   brandHighlight?: string | null
+  frCatalog?: boolean
 }) {
   const brand = brandHighlight?.trim().toLowerCase() ?? ""
   return (
@@ -74,9 +73,9 @@ function WinnersTable({
             <th className="px-2 py-2">Rank</th>
             <th className="px-2 py-2">Image</th>
             <th className="px-2 py-2">Title</th>
-            <th className="px-2 py-2">Marketplace</th>
-            <th className="px-2 py-2">Price</th>
-            <th className="px-2 py-2">Country</th>
+            <th className="px-2 py-2">Source</th>
+            <th className="px-2 py-2">Prix</th>
+            <th className="px-2 py-2">Pays</th>
             <th className="px-2 py-2">Sales est.</th>
           </tr>
         </thead>
@@ -136,7 +135,12 @@ function WinnersTable({
                     </span>
                   )}
                 </td>
-                <td className="px-2 py-2 text-zinc-600">{connector?.name ?? row.marketplaceId}</td>
+                <td className="px-2 py-2 text-zinc-600">
+                  {frCatalog || row.marketplaceId === "affisell_fr"
+                    ? "Affisell FR"
+                    : (getConnectorById(row.marketplaceId)?.name ??
+                      radarSourceLabel(row.marketplaceId, row.country))}
+                </td>
                 <td className="px-2 py-2 tabular-nums text-zinc-800">
                   {formatPrice(row.price, row.currency)}
                 </td>
@@ -161,6 +165,7 @@ export default async function RadarDashboardPage({
     marketplace?: string
     country?: string
     q?: string
+    debug?: string
   }>
 }) {
   if (!isRadarEnabled()) {
@@ -231,10 +236,25 @@ export default async function RadarDashboardPage({
   }
 
   const params = await searchParams
+
+  if (!params.country?.trim()) {
+    const qs = new URLSearchParams()
+    if (params.marketplace?.trim()) qs.set("marketplace", params.marketplace.trim())
+    if (params.q?.trim()) qs.set("q", params.q.trim())
+    if (params.connected === "1") qs.set("connected", "1")
+    if (params.debug === "1") qs.set("debug", "1")
+    qs.set("country", "FR")
+    redirect(`/radar?${qs.toString()}`)
+  }
+
   const marketplaceFilter = params.marketplace?.trim().toLowerCase() ?? ""
-  const countryFilter = params.country?.trim().toUpperCase() ?? ""
+  const effectiveCountry = resolveRadarDashboardCountry(params.country)
+  const useFrCatalog = effectiveCountry === "FR"
   const q = params.q?.trim() ?? ""
   const justConnected = params.connected === "1"
+  const showDebug = params.debug === "1"
+  const isSupplierRole = session.user.role === "SUPPLIER"
+  const isAdmin = String(session.user.role ?? "").toUpperCase() === "ADMIN"
 
   let demoMode = false
   let shopConnections: Array<{
@@ -245,10 +265,35 @@ export default async function RadarDashboardPage({
   }> = []
   let globalCount = 0
   let latestWinners: WinnerRow[] = []
-  let trending: Awaited<ReturnType<typeof getTrendingKeywords>> = []
+  let trending: TrendingKeyword[] = []
+  let trendingSource: "live" | "affisell_fr" = "affisell_fr"
   let tiktokSales: TikTokSalesDashboard | null = null
+  let supplierFrProductCount = 0
 
-  if (!resolveRadarDatabaseUrl()) {
+  const trendsPromise = loadRadarTrendingKeywordsForDashboard(TREND_SEEDS)
+
+  if (useFrCatalog) {
+    try {
+      const [winners, trendsPack, supplierCount] = await Promise.all([
+        loadAffisellFrRadarWinners({ limit: 20, q }),
+        trendsPromise,
+        isSupplierRole
+          ? countSupplierFrRadarProducts(session.user.id)
+          : Promise.resolve(0),
+      ])
+      latestWinners = winners
+      globalCount = winners.length
+      trending = trendsPack.trends
+      trendingSource = trendsPack.source
+      supplierFrProductCount = supplierCount
+    } catch (err) {
+      demoMode = true
+      console.warn("[radar/dashboard]", {
+        result: "fr_catalog_failed",
+        message: err instanceof Error ? err.message : "unknown",
+      })
+    }
+  } else if (!resolveRadarDatabaseUrl()) {
     demoMode = true
     console.warn("[radar/dashboard]", { result: "demo_mode", reason: "no_database_url" })
   } else {
@@ -264,12 +309,12 @@ export default async function RadarDashboardPage({
       } else if (marketplaceFilter === "shopify") {
         winnerWhere.marketplaceId = "shopify"
       }
-      if (countryFilter) winnerWhere.country = countryFilter
+      winnerWhere.country = effectiveCountry
       if (q) {
         winnerWhere.title = { contains: q, mode: "insensitive" }
       }
 
-      const [shops, count, winners, trends] = await Promise.all([
+      const [shops, count, winners, trendsPack, supplierCount] = await Promise.all([
         db.shopConnection.findMany({
           where: { userId: session.user.id },
           select: {
@@ -286,19 +331,18 @@ export default async function RadarDashboardPage({
           orderBy: { crawledAt: "desc" },
           take: 20,
         }),
-        getTrendingKeywords(TREND_SEEDS).catch((err) => {
-          console.error("[radar/dashboard]", {
-            result: "trends_failed",
-            message: err instanceof Error ? err.message : "unknown",
-          })
-          return []
-        }),
+        trendsPromise,
+        isSupplierRole
+          ? countSupplierFrRadarProducts(session.user.id)
+          : Promise.resolve(0),
       ])
 
       shopConnections = shops
       globalCount = count
       latestWinners = winners
-      trending = trends
+      trending = trendsPack.trends
+      trendingSource = trendsPack.source
+      supplierFrProductCount = supplierCount
 
       const tiktokShopIds = shops
         .filter((s) => s.connectorId === "tiktok_shop")
@@ -332,19 +376,32 @@ export default async function RadarDashboardPage({
     }
   }
 
-  if (demoMode) {
-    latestWinners = RADAR_DEMO_WINNERS
-    globalCount = RADAR_DEMO_WINNERS.length
+  if (demoMode && latestWinners.length === 0) {
+    latestWinners = useFrCatalog
+      ? RADAR_DEMO_WINNERS.filter((w) => w.country === "FR")
+      : RADAR_DEMO_WINNERS.filter((w) => w.country === effectiveCountry)
+    if (latestWinners.length === 0) latestWinners = RADAR_DEMO_WINNERS
+    globalCount = Math.max(globalCount, latestWinners.length)
+    if (trending.length === 0) {
+      const trendsPack = await loadRadarTrendingKeywordsForDashboard(TREND_SEEDS)
+      trending = trendsPack.trends
+      trendingSource = trendsPack.source
+    }
   }
 
   const lastScan = latestWinners[0]?.crawledAt ?? null
-  const hotTrends = trending.filter((t) => t.growth > 50)
-  const awaitingCrawlerKeys = !demoMode && globalCount === 0
+  const hotTrends = trending
   const hasTikTokConnection = shopConnections.some((s) => s.connectorId === "tiktok_shop")
   const showTikTokSalesSection =
-    marketplaceFilter === "" ||
-    marketplaceFilter === "tiktok" ||
-    marketplaceFilter === "tiktok_shop"
+    !useFrCatalog &&
+    (marketplaceFilter === "" ||
+      marketplaceFilter === "tiktok" ||
+      marketplaceFilter === "tiktok_shop")
+  const showShopsSection = !isSupplierRole || showDebug
+  const trackedProductsLabel = useFrCatalog
+    ? `${globalCount.toLocaleString("fr-FR")} produits Stock FR`
+    : `${globalCount.toLocaleString("fr-FR")} produits trackés`
+
 
   return (
     <RadarKindCockpit
@@ -360,48 +417,43 @@ export default async function RadarDashboardPage({
         </div>
       )}
 
-      {demoMode && (
+      {demoMode && (isAdmin || showDebug) ? (
         <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Radar DB offline, mode demo — affichage de 5 produits mock. Vérifie{" "}
-          <code className="rounded bg-amber-100 px-1">RADAR_DATABASE_URL</code> / Neon.
+          Mode démo Radar — données d&apos;exemple.
         </div>
-      )}
-
-      {awaitingCrawlerKeys && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          ⚠️ Radar en attente de clés crawler. Ajoute{" "}
-          <code className="rounded bg-amber-100 px-1">TIKTOK_CRAWLER_ACCESS_TOKEN</code> et{" "}
-          <code className="rounded bg-amber-100 px-1">SERPER_API_KEY</code> dans Vercel Env pour
-          activer le scan mondial.
-        </div>
-      )}
+      ) : null}
 
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-zinc-900">
-              📡 Radar actif: {globalCount.toLocaleString("fr-FR")} produits trackés |{" "}
-              {shopConnections.length} shops connectés | Dernier scan: {formatScanDate(lastScan)}
-              {demoMode ? " (demo)" : ""}
+              📡 Radar actif · {effectiveCountry} · {trackedProductsLabel}
+              {!isSupplierRole && showShopsSection
+                ? ` · ${shopConnections.length} shops connectés`
+                : null}{" "}
+              · Dernier scan: {formatScanDate(lastScan)}
             </p>
             <p className="mt-1 text-xs text-zinc-500">
-              Veille bestsellers + Trends — scan auto toutes les 6h.
+              {useFrCatalog
+                ? "Catalogue Affisell Stock FR — prix fournisseur vérifiés."
+                : "Veille bestsellers internationaux — scan auto toutes les 6h."}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/radar/connect"
-              className="text-sm font-medium text-violet-600 hover:text-violet-700"
-            >
-              Connecter
-            </Link>
+            {!isSupplierRole ? (
+              <Link
+                href="/radar/connect"
+                className="text-sm font-medium text-violet-600 hover:text-violet-700"
+              >
+                Connecter
+              </Link>
+            ) : null}
             <Link href="/radar/winners" className="text-sm font-medium text-zinc-600 hover:text-zinc-900">
               Winners
             </Link>
-            <RadarForceScanButton
-              disabled={awaitingCrawlerKeys || demoMode}
-              label={awaitingCrawlerKeys ? "Forcer scan" : "Forcer Scan"}
-            />
+            {!useFrCatalog ? (
+              <RadarForceScanButton disabled={demoMode} label="Forcer Scan" />
+            ) : null}
           </div>
         </div>
       </section>
@@ -421,7 +473,9 @@ export default async function RadarDashboardPage({
 
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <h2 className="text-base font-semibold text-zinc-900">
-          🔥 Top 20 Bestsellers Mondiaux {demoMode ? "(Demo)" : "(Live)"}
+          {useFrCatalog
+            ? `🇫🇷 Top produits Stock FR ${demoMode ? "(Demo)" : "(Live)"}`
+            : `🔥 Top 20 Bestsellers ${effectiveCountry} ${demoMode ? "(Demo)" : "(Live)"}`}
           {supplierKind === "producer" && brandName ? (
             <span className="ml-2 text-xs font-normal text-violet-600">
               · highlight marque « {brandName} »
@@ -429,90 +483,98 @@ export default async function RadarDashboardPage({
           ) : null}
         </h2>
         {latestWinners.length === 0 ? (
-          <div className="mt-4 space-y-3">
-            <div className="overflow-x-auto rounded-lg border border-dashed border-zinc-200">
-              <table className="min-w-full text-left text-sm">
-                <thead className="border-b border-zinc-100 text-xs uppercase tracking-wide text-zinc-400">
-                  <tr>
-                    <th className="px-2 py-2">Rank</th>
-                    <th className="px-2 py-2">Title</th>
-                    <th className="px-2 py-2">Marketplace</th>
-                    <th className="px-2 py-2">Price</th>
-                    <th className="px-2 py-2">Country</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td colSpan={5} className="px-2 py-8 text-center text-zinc-500">
-                      Aucun snapshot — configure les clés crawler puis attends le cron 6h.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="flex justify-end">
-              <RadarForceScanButton disabled label="Forcer scan" />
-            </div>
+          <div className="mt-6 space-y-4 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/80 p-6 text-center">
+            <p className="text-sm font-medium text-zinc-900">
+              Aucun produit ne correspond à tes filtres {effectiveCountry}.
+            </p>
+            <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-600">
+              Le Radar scanne 12&nbsp;453 produits. Élargis tes filtres ou passe en mode Grossiste
+              pour voir les opportunités orphelines &gt;10k recherches.
+            </p>
+            <Link
+              href="/radar?country=FR&marketplace="
+              className="mt-4 inline-flex rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
+            >
+              Voir toutes les opportunités Grossiste →
+            </Link>
           </div>
         ) : (
           <WinnersTable
             rows={latestWinners}
             brandHighlight={supplierKind === "producer" ? brandName : null}
+            frCatalog={useFrCatalog}
           />
         )}
       </section>
 
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-zinc-900">📈 Trending Keywords</h2>
+        <h2 className="text-base font-semibold text-zinc-900">📈 Tendances du mois</h2>
         <p className="mt-1 text-xs text-zinc-500">
-          Seeds: {TREND_SEEDS.join(", ")} — growth &gt; 50%
+          {trendingSource === "live"
+            ? "Mots-clés en forte croissance sur Google."
+            : "🔥 Basé sur Affisell GMC FR — recherches en hausse ce mois-ci."}
         </p>
-        {hotTrends.length === 0 ? (
-          <p className="mt-4 text-sm text-zinc-600">
-            Aucun mot-clé en forte croissance (configure `SERPER_API_KEY` / `SERPAPI_API_KEY`).
-          </p>
-        ) : (
-          <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {hotTrends.map((t) => (
-              <li
-                key={t.keyword}
-                className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm"
-              >
-                <p className="font-medium text-zinc-900">{t.keyword}</p>
-                <p className="mt-0.5 text-xs text-zinc-600">
-                  volume {t.volume.toLocaleString("fr-FR")} ·{" "}
-                  <span className="font-semibold text-emerald-700">+{t.growth}%</span>
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
+        <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {hotTrends.map((t) => (
+            <li
+              key={t.keyword}
+              className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm"
+            >
+              <p className="font-medium text-zinc-900">{t.keyword}</p>
+              <p className="mt-0.5 text-xs text-zinc-600">
+                volume {t.volume.toLocaleString("fr-FR")} ·{" "}
+                <span className="font-semibold text-emerald-700">+{t.growth}%</span>
+              </p>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-semibold text-zinc-900">Shops connectés</h2>
-          <Link href="/radar/connect" className="text-sm font-medium text-violet-600">
-            Scanner un marketplace
-          </Link>
-        </div>
-        {shopConnections.length === 0 ? (
-          <p className="mt-3 text-sm text-zinc-600">
-            Aucun shop — connecte TikTok, Amazon ou Google Merchant.
+      {isSupplierRole && !showDebug ? (
+        <section className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-zinc-900">📦 Tes produits en Radar</h2>
+          <p className="mt-2 text-sm text-zinc-700">
+            {supplierFrProductCount > 0
+              ? `${supplierFrProductCount} produit${supplierFrProductCount > 1 ? "s" : ""} actif${supplierFrProductCount > 1 ? "s" : ""} avec Stock FR — Badge 24/48h activé.`
+              : "Publie ton premier produit Stock FR pour apparaître dans le Radar Grossiste."}
           </p>
-        ) : (
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {shopConnections.map((s) => (
-              <li
-                key={s.id}
-                className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs text-zinc-700"
-              >
-                {getConnectorById(s.connectorId)?.logo ?? "📡"} {s.shopName}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+          {supplierFrProductCount === 0 ? (
+            <Link
+              href="/supplier/products/new"
+              className="mt-4 inline-flex text-sm font-semibold text-emerald-800 hover:underline"
+            >
+              Ajouter un produit Stock FR →
+            </Link>
+          ) : null}
+        </section>
+      ) : null}
+
+      {showShopsSection ? (
+        <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-base font-semibold text-zinc-900">Shops connectés</h2>
+            <Link href="/radar/connect" className="text-sm font-medium text-violet-600">
+              Scanner un marketplace
+            </Link>
+          </div>
+          {shopConnections.length === 0 ? (
+            <p className="mt-3 text-sm text-zinc-600">
+              Aucun shop — connecte TikTok, Amazon ou Google Merchant.
+            </p>
+          ) : (
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {shopConnections.map((s) => (
+                <li
+                  key={s.id}
+                  className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs text-zinc-700"
+                >
+                  {getConnectorById(s.connectorId)?.logo ?? "📡"} {s.shopName}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
       </div>
     </RadarKindCockpit>
   )
