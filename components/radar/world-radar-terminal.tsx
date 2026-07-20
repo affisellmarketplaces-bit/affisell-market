@@ -166,7 +166,7 @@ export default function WorldRadarTerminal({
               Affisell Intelligence
             </p>
             <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
-              WORLD RADAR — Live Market Intelligence
+              WORLD RADAR — Analyse quotidienne des marchés
             </h1>
             <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-zinc-300">
               <span
@@ -178,15 +178,15 @@ export default function WorldRadarTerminal({
                   className={`size-2 rounded-full ${isLive ? "animate-pulse bg-emerald-400" : "bg-zinc-500"}`}
                   aria-hidden
                 />
-                {isLive ? "LIVE" : "CACHE"}
-                {lastScanLabel !== "jamais" ? ` · Dernier scan ${lastScanLabel}` : ""}
+                {isLive ? "MAJ 6h" : "CACHE"}
+                {lastScanLabel !== "jamais" ? ` · Dernière analyse ${lastScanLabel}` : ""}
               </span>
               {isValidating ? (
                 <span className="text-xs text-violet-300">Actualisation…</span>
               ) : null}
             </p>
             <p className="mt-2 text-[11px] text-zinc-400">
-              Moats: Arbitrage Score™ · Saturation IA · Supplier Match Affisell
+              Signaux e-commerce · Arbitrage Score™ · Saturation · Supplier Match Affisell
             </p>
           </div>
           <div className="w-full max-w-sm">

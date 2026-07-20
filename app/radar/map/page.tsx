@@ -101,7 +101,7 @@ export default async function RadarMapPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-zinc-900">🗺️ Map Monde — Winners live</h2>
+          <h2 className="text-base font-semibold text-zinc-900">🗺️ Map Monde — Winners (analyse quotidienne)</h2>
           <p className="mt-1 text-sm text-zinc-500">
             Points pulsants = activité bestsellers 24h. Clic pays → filtre dashboard.
           </p>
@@ -123,7 +123,7 @@ export default async function RadarMapPage() {
                 <span className="text-zinc-400">({s.country})</span>
               </span>
               <span className="tabular-nums text-zinc-600">
-                {s.count} produits · {Math.round(s.avgSales).toLocaleString("fr-FR")} ventes/j
+                {s.count} produits · score demande {Math.round(s.avgSales).toLocaleString("fr-FR")}
               </span>
             </li>
           ))}

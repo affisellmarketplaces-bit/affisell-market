@@ -102,7 +102,7 @@ export function HomeWorldRadarTeaser({ className }: { className?: string }) {
             id="home-world-radar-heading"
             className="mx-auto mt-5 max-w-4xl text-3xl font-bold tracking-tight text-white sm:text-4xl sm:leading-[1.12] lg:text-[44px]"
           >
-            Le seul terminal qui scanne 30 pays en temps réel.
+            Le seul terminal qui scanne 30 pays — analyse quotidienne.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-zinc-400 sm:text-lg">
             De Paris à Tokyo. De Berlin à São Paulo. Vois les winners avant tout le monde.
@@ -120,10 +120,12 @@ export function HomeWorldRadarTeaser({ className }: { className?: string }) {
             <p className="min-w-0 flex-1 truncate font-mono text-[11px] text-zinc-400 sm:text-xs">
               <span className="text-emerald-400">affisell@world-radar</span>
               <span className="text-zinc-600"> ~ </span>
-              <span className="text-zinc-300">live — 30 countries — last scan: 4 min ago</span>
+              <span className="text-zinc-300">
+                analyse quotidienne — 30 countries — last update: 4h ago
+              </span>
               <span className="ml-2 inline-flex items-center gap-1 text-emerald-400">
                 <span className="size-1.5 animate-pulse rounded-full bg-emerald-400" />
-                LIVE
+                MAJ 6h
               </span>
             </p>
           </div>
@@ -215,8 +217,8 @@ export function HomeWorldRadarTeaser({ className }: { className?: string }) {
             <Link href="/radar">Ouvrir World Radar →</Link>
           </Button>
           <p className="max-w-md text-xs leading-relaxed text-zinc-500 sm:text-sm">
-            30 marchés. Winners live. Un terminal. Moins cher qu&apos;un stagiaire qui scrape Amazon
-            à la main.
+            30 marchés. Signaux e-commerce. Un terminal. Moins cher qu&apos;un stagiaire qui scrape
+            les dynamiques de marché à la main.
           </p>
           <Button
             asChild

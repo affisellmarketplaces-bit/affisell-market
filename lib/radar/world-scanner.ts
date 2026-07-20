@@ -36,7 +36,7 @@ export interface RadarProvider {
   scan(country: string): Promise<ScannedWinner[]>
 }
 
-/** Real Affisell Stock FR catalog — 100% live for France. */
+/** Affisell Stock FR catalog — real marketplace listings for France. */
 export class AffisellProvider implements RadarProvider {
   async scan(country: string): Promise<ScannedWinner[]> {
     if (country.toUpperCase() !== "FR") return []
@@ -58,7 +58,7 @@ export class AffisellProvider implements RadarProvider {
   }
 }
 
-/** Intelligent mock — localized bestsellers with jitter for live feel. */
+/** Intelligent mock — localized bestsellers with jitter for daily-refresh feel. */
 export class MockIntelligentProvider implements RadarProvider {
   async scan(country: string): Promise<ScannedWinner[]> {
     return buildMockWinnersForCountry(country.toUpperCase(), 20)

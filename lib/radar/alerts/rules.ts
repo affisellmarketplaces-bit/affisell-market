@@ -51,7 +51,7 @@ function checkWinnerNew(ctx: AlertCheckContext): AlertCheckResult | null {
       url: current.url,
     },
     title: `Nouveau winner: ${current.title}`,
-    message: `🔥 Nouveau winner détecté: ${current.title} #${rank} sur ${current.marketplaceId} ${current.country} - ${salesEst} ventes/jour estimées, apparu il y a ${ageRounded} jours`,
+    message: `🔥 Nouveau winner détecté: ${current.title} #${rank} sur ${current.marketplaceId} ${current.country} - score demande ${salesEst}, signal apparu il y a ${ageRounded} jours`,
   }
 }
 

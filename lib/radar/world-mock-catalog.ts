@@ -200,7 +200,10 @@ export function buildMockWinnersForCountry(
       rank,
       title: seed.title,
       image: `${seed.image}&t=${now}`,
-      source: seed.source.includes("Amazon") ? seed.source : seed.source,
+      source: seed.source
+        .replace(/Amazon/gi, "Signaux e-commerce")
+        .replace(/TikTok/gi, "Signaux social")
+        .replace(/Google/gi, "Signaux search"),
       price,
       currency,
       growthRate,

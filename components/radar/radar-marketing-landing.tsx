@@ -64,7 +64,9 @@ export default function RadarMarketingLanding() {
         <div className="rounded-xl border border-zinc-700 bg-zinc-900 p-5 font-mono text-xs text-emerald-200 sm:text-sm">
           <p className="text-zinc-500"># slack · WINNER DETECTED</p>
           <p className="mt-2">*CRITICAL* — Nouveau winner: Shapewear High-Waist #3 sur tiktok_shop BR</p>
-          <p className="mt-1 text-zinc-400">12 400 ventes/j estimées, apparu il y a 4 jours</p>
+          <p className="mt-1 text-zinc-400">
+            Dynamiques de marché élevées, signal détecté il y a 4 jours
+          </p>
         </div>
       </section>
 

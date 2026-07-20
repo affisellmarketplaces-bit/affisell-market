@@ -85,7 +85,7 @@ export default function RadarAlertSettingsClient({
         <div>
           <h2 className="text-base font-semibold text-zinc-900">⚙️ Alertes — Slack</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Branche un Incoming Webhook Slack pour recevoir les WINNER DETECTED en temps réel.
+            Branche un Incoming Webhook Slack pour recevoir les WINNER DETECTED (analyse quotidienne).
           </p>
         </div>
         <Link href="/radar/alerts" className="text-sm font-medium text-violet-600">

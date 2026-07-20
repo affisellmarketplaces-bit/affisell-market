@@ -161,8 +161,8 @@ export default function RadarWorldMap({
             {countryCodeToName(tooltip.stat.country)} ({tooltip.stat.country})
           </p>
           <p className="mt-1 text-zinc-300">
-            {tooltip.stat.count} produits — {Math.round(tooltip.stat.avgSales).toLocaleString("fr-FR")}{" "}
-            ventes/j avg
+            {tooltip.stat.count} produits — score demande{" "}
+            {Math.round(tooltip.stat.avgSales).toLocaleString("fr-FR")}
           </p>
           {tooltip.stat.topProductTitle && (
             <p className="mt-1 text-emerald-300">Top: {tooltip.stat.topProductTitle}</p>

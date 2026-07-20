@@ -6,6 +6,7 @@ import RadarMarketingLanding from "@/components/radar/radar-marketing-landing"
 import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
 import RadarTikTokSalesSection from "@/components/radar/radar-tiktok-sales-section"
 import WorldRadarTerminal from "@/components/radar/world-radar-terminal"
+import { RadarLegalDisclaimer } from "@/components/radar/radar-legal-disclaimer"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getRadarDb } from "@/lib/prisma-radar"
@@ -261,6 +262,8 @@ export default async function RadarDashboardPage({
             Mode Producteur — highlight marque « {brandName} » dans les winners FR Affisell.
           </p>
         ) : null}
+
+        <RadarLegalDisclaimer />
       </div>
     </RadarKindCockpit>
   )
