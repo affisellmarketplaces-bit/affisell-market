@@ -17,7 +17,7 @@ for (const name of [".env.pre-local-merge.bak", ".env", ".env.local"]) {
   if (existsSync(path)) loadEnv({ path, override: true })
 }
 
-const PRIORITY = ["FR", "DE", "US", "UK", "JP", "BR", "MA"]
+const PRIORITY_COUNT = 31 // all WORLD_RADAR_COUNTRIES when seed:world runs without --countries
 
 function maskUrl(url) {
   try {
@@ -94,7 +94,7 @@ async function main() {
   console.log("═══════════════════════════════════════════════════")
   console.log(`  Host:  ${host}`)
   console.log(`  URL:   ${maskUrl(url)}`)
-  console.log(`  Pays:  ${PRIORITY.join(", ")}`)
+  console.log(`  Pays:  all ${PRIORITY_COUNT} enabled markets (WORLD_RADAR_COUNTRIES)`)
   console.log("═══════════════════════════════════════════════════")
   console.log("")
 
@@ -127,9 +127,7 @@ async function main() {
   }
 
   console.log("")
-  for (const code of PRIORITY) {
-    console.log(`[PROD] ✅ ${code}: 20 winners`)
-  }
+  console.log(`[PROD] ✅ Seeded ${PRIORITY_COUNT} countries × ~20 winners`)
   console.log("")
   console.log("Va vérifier (session Pro requise):")
   console.log("  https://affisell.com/api/radar?country=FR  → doit retourner 20 winners")

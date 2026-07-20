@@ -12,6 +12,7 @@ import { isCountryScanLive } from "@/lib/radar/world-radar-types"
 describe("world-countries", () => {
   it("exports 30+ countries", () => {
     expect(WORLD_RADAR_COUNTRIES.length).toBeGreaterThanOrEqual(30)
+    expect(WORLD_RADAR_COUNTRIES.length).toBe(31)
   })
 
   it("resolves FR with EUR", () => {

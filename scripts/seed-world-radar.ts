@@ -1,9 +1,11 @@
 #!/usr/bin/env tsx
 /**
- * Seed World Radar countries + initial winners for FR, DE, US, UK, JP, BR, MA.
+ * Seed World Radar — all enabled countries (31) by default.
  * Idempotent CLI — no Next.js / server-only imports.
  *
- * Usage: npm run radar:seed:world
+ * Usage:
+ *   npm run radar:seed:world
+ *   npm run radar:seed:world -- --countries=FR,DE,US
  */
 import { existsSync } from "node:fs"
 import { resolve } from "node:path"
@@ -21,8 +23,6 @@ for (const name of [".env.pre-local-merge.bak", ".env", ".env.local"]) {
   const path = resolve(root, name)
   if (existsSync(path)) loadEnv({ path, override: true })
 }
-
-const PRIORITY = ["FR", "DE", "US", "UK", "JP", "BR", "MA"] as const
 
 function isDockerLocalRadarUrl(url: string): boolean {
   try {
@@ -46,6 +46,41 @@ function resolveRadarUrl(): string | undefined {
     process.env.DATABASE_URL?.trim() ||
     undefined
   )
+}
+
+/** Parse `--countries=FR,DE,US` or `--countries FR,DE` from argv. Default = all enabled. */
+function resolveSeedCountryCodes(): string[] {
+  const args = process.argv.slice(2).filter((a) => a && a !== "--")
+  let raw: string | undefined
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]
+    if (a.startsWith("--countries=")) {
+      raw = a.slice("--countries=".length)
+      break
+    }
+    if (a === "--countries" && args[i + 1]) {
+      raw = args[i + 1]
+      break
+    }
+  }
+
+  if (!raw?.trim()) {
+    return WORLD_RADAR_COUNTRIES.filter((c) => c.enabled).map((c) => c.code)
+  }
+
+  const codes = raw
+    .split(",")
+    .map((c) => c.trim().toUpperCase())
+    .filter(Boolean)
+  const known = new Set(WORLD_RADAR_COUNTRIES.map((c) => c.code))
+  const valid = codes.filter((c) => known.has(c))
+  if (valid.length === 0) {
+    console.warn(
+      "[seed-world-radar] --countries empty/invalid — falling back to all enabled countries"
+    )
+    return WORLD_RADAR_COUNTRIES.filter((c) => c.enabled).map((c) => c.code)
+  }
+  return valid
 }
 
 type RadarDb = {
@@ -204,6 +239,13 @@ async function main() {
     process.exit(1)
   }
 
+  const countryCodes = resolveSeedCountryCodes()
+  console.log("[seed-world-radar]", {
+    result: "start",
+    countries: countryCodes.length,
+    list: countryCodes.join(","),
+  })
+
   const db = createRadarDb(url)
 
   try {
@@ -225,16 +267,23 @@ async function main() {
   }
 
   const seeded = await seedCountries(db)
-  console.log("[seed-world-radar]", { result: "countries_seeded", count: seeded })
+  console.log("[seed-world-radar]", { result: "countries_registry", count: seeded })
 
   const results = []
-  for (const code of PRIORITY) {
+  for (const code of countryCodes) {
     results.push(await seedCountryWinners(db, code))
   }
-  console.log("[seed-world-radar]", { result: "winners_seeded", results })
+
+  const ok = results.filter((r) => r.ok).length
+  console.log("[seed-world-radar]", {
+    result: "winners_seeded",
+    ok,
+    total: results.length,
+    results,
+  })
 
   await db.$disconnect()
-  process.exit(0)
+  process.exit(ok === results.length ? 0 : 1)
 }
 
 main().catch(async (err) => {

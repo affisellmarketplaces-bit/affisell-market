@@ -226,6 +226,34 @@ export default function WorldRadarTerminal({
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {filteredCountries.map((c) => {
             const active = c.code === country
+            const ready = (c.productCount ?? 0) > 0
+            if (!ready) {
+              return (
+                <div
+                  key={c.code}
+                  className="relative overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50/80 px-3 py-2.5 text-left opacity-50"
+                  aria-label={`${c.name} — bientôt disponible`}
+                >
+                  <div className="pointer-events-none absolute inset-0 backdrop-blur-[1px]" aria-hidden />
+                  <span className="relative text-lg blur-[0.5px]" aria-hidden>
+                    {c.flag}
+                  </span>
+                  <p className="relative mt-0.5 text-xs font-semibold text-zinc-700">{c.name}</p>
+                  <span className="relative mt-1 inline-flex rounded-full bg-zinc-200/90 px-2 py-0.5 text-[10px] font-semibold text-zinc-600">
+                    🔒 Bientôt disponible
+                  </span>
+                  <p className="relative mt-1 text-[10px] text-zinc-500">Analyse en cours</p>
+                  <button
+                    type="button"
+                    disabled
+                    className="relative mt-1.5 cursor-not-allowed text-[10px] font-medium text-zinc-400"
+                  >
+                    Être alerté →
+                  </button>
+                </div>
+              )
+            }
+
             return (
               <button
                 key={c.code}
@@ -243,12 +271,20 @@ export default function WorldRadarTerminal({
                     title="Scan récent"
                     aria-hidden
                   />
-                ) : null}
+                ) : (
+                  <span
+                    className="absolute right-2 top-2 size-2 rounded-full bg-emerald-400/70"
+                    title="Données disponibles"
+                    aria-hidden
+                  />
+                )}
                 <span className="text-lg" aria-hidden>
                   {c.flag}
                 </span>
                 <p className="mt-0.5 text-xs font-semibold text-zinc-900">{c.name}</p>
-                <p className="text-[10px] text-zinc-500">{c.productCount} winners</p>
+                <p className="text-[10px] font-medium text-emerald-700">
+                  {c.productCount} winners
+                </p>
               </button>
             )
           })}
