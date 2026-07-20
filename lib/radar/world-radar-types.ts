@@ -35,6 +35,14 @@ export type WorldRadarWinnerDto = {
   competition: number | null
   trendingScore: number
   category: string | null
+  /** V2 rotation / cultural flags */
+  productId?: string
+  isNew?: boolean
+  isHot?: boolean
+  isLocalWinner?: boolean
+  lastWeekRank?: number | null
+  finalScore?: number
+  supplierLabel?: string
   /** Moat 1 — Arbitrage Score™ */
   arbitrage?: ArbitrageDto
   /** Moat 2 — Saturation Index */

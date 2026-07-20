@@ -35,6 +35,10 @@
       "schedule": "0 */6 * * *"
     },
     {
+      "path": "/api/cron/radar-rotate",
+      "schedule": "0 6 * * 1"
+    },
+    {
       "path": "/api/cron/tiktok-refresh",
       "schedule": "0 6 * * *"
     },

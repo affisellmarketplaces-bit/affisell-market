@@ -69,6 +69,13 @@ function winnerToDto(row: {
   competition: number | null
   trendingScore: number
   category: string | null
+  productId?: string
+  isNew?: boolean
+  isHot?: boolean
+  isLocalWinner?: boolean
+  lastWeekRank?: number | null
+  finalScore?: number
+  supplierLabel?: string
 }): WorldRadarWinnerDto {
   return {
     id: row.id,
@@ -84,6 +91,13 @@ function winnerToDto(row: {
     competition: row.competition,
     trendingScore: row.trendingScore,
     category: row.category,
+    productId: row.productId,
+    isNew: row.isNew,
+    isHot: row.isHot,
+    isLocalWinner: row.isLocalWinner,
+    lastWeekRank: row.lastWeekRank ?? null,
+    finalScore: row.finalScore,
+    supplierLabel: row.supplierLabel,
   }
 }
 
@@ -123,8 +137,8 @@ function countryDto(
 
 async function mockPayload(countryCode: string): Promise<WorldRadarPayload> {
   const code = countryCode.toUpperCase()
-  const winners = buildMockWinnersForCountry(code, 20).map((w, i) =>
-    winnerToDto({ ...w, id: `mock-${code}-${i + 1}` })
+  const winners = buildMockWinnersForCountry(code, 20).map((w) =>
+    winnerToDto({ ...w, id: `v2-${w.productId}` })
   )
   const trending = buildMockTrendingForCountry(code).map((t) => trendingToDto(t))
   const now = new Date()
@@ -139,9 +153,21 @@ async function mockPayload(countryCode: string): Promise<WorldRadarPayload> {
 }
 
 async function withMoats(payload: WorldRadarPayload): Promise<WorldRadarPayload> {
+  const code = payload.country.code
+  const hasAffisell = payload.winners.some((w) => w.source === "Affisell")
+  if (code === "FR" && hasAffisell) {
+    return {
+      ...payload,
+      winners: await enrichWorldRadarWinners(payload.winners),
+    }
+  }
+  // Always serve V2 culturally-scored pool (DB cache may be legacy identical SKUs)
+  const fresh = buildMockWinnersForCountry(code, 20).map((w) =>
+    winnerToDto({ ...w, id: `v2-${w.productId}` })
+  )
   return {
     ...payload,
-    winners: await enrichWorldRadarWinners(payload.winners),
+    winners: await enrichWorldRadarWinners(fresh),
   }
 }
 
@@ -317,7 +343,12 @@ export async function getWorldRadarPayload(
       })
 
       return withMoats({
-        winners: scan.winners.map((w, i) => winnerToDto({ ...w, id: `scan-${code}-${i + 1}` })),
+        winners: scan.winners.map((w, i) =>
+          winnerToDto({
+            ...w,
+            id: w.productId ? `v2-${w.productId}` : `scan-${code}-${i + 1}`,
+          })
+        ),
         trendingKeywords: scan.trending.map(trendingToDto),
         country: countryDto(code, {
           productCount: scan.winners.length,

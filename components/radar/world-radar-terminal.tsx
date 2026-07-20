@@ -44,6 +44,50 @@ function competitionLabel(n: number | null, country: string): string {
   return `${n}${suffix}`
 }
 
+function RankDelta({ row }: { row: WorldRadarWinnerDto }) {
+  if (row.lastWeekRank == null) return null
+  const delta = row.lastWeekRank - row.rank
+  if (delta === 0) return <span className="ml-1 text-[10px] text-zinc-400">→</span>
+  if (delta > 0)
+    return (
+      <span className="ml-1 text-[10px] font-semibold text-emerald-600" title={`était #${row.lastWeekRank}`}>
+        ↑{delta}
+      </span>
+    )
+  return (
+    <span className="ml-1 text-[10px] font-semibold text-amber-600" title={`était #${row.lastWeekRank}`}>
+      ↓{Math.abs(delta)}
+    </span>
+  )
+}
+
+function V2Badges({ row }: { row: WorldRadarWinnerDto }) {
+  return (
+    <div className="mt-1.5 flex flex-wrap gap-1">
+      {row.isNew ? (
+        <span className="inline-flex animate-pulse rounded-full border border-violet-300 bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-800">
+          🔥 Nouveau cette semaine
+        </span>
+      ) : null}
+      {row.isHot && row.growthRate != null ? (
+        <span className="inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">
+          ⚡ +{Math.round(row.growthRate)}%
+        </span>
+      ) : null}
+      {row.isLocalWinner ? (
+        <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+          📍 Local Winner
+        </span>
+      ) : null}
+      {row.supplierLabel ? (
+        <span className="inline-flex rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] text-zinc-600">
+          {row.supplierLabel}
+        </span>
+      ) : null}
+    </div>
+  )
+}
+
 function ArbitrageBadge({ row }: { row: WorldRadarWinnerDto }) {
   const a = row.arbitrage
   if (!a || a.tier === "none") return null
@@ -134,7 +178,12 @@ export default function WorldRadarTerminal({
   }, [countriesData, regionTab])
 
   const filteredWinners = useMemo(() => {
-    const winners = data?.winners ?? []
+    const winners = [...(data?.winners ?? [])]
+    winners.sort((a, b) => {
+      const sa = a.finalScore ?? a.arbitrage?.score ?? a.trendingScore ?? 0
+      const sb = b.finalScore ?? b.arbitrage?.score ?? b.trendingScore ?? 0
+      return sb - sa
+    })
     const q = search.trim().toLowerCase()
     if (!q) return winners
     return winners.filter(
@@ -330,6 +379,7 @@ export default function WorldRadarTerminal({
                     <tr key={row.id} className="border-b border-zinc-100 align-middle">
                       <td className="px-2 py-3 font-mono text-xs">
                         #{row.rank}
+                        <RankDelta row={row} />
                         {hot ? (
                           <span className="ml-1" aria-label="Hot">
                             🔥
@@ -355,6 +405,7 @@ export default function WorldRadarTerminal({
                             <span className="line-clamp-2 font-medium text-zinc-900">
                               {row.title}
                             </span>
+                            <V2Badges row={row} />
                             <ArbitrageBadge row={row} />
                             <SupplierMatchBadge match={row.supplierMatch} />
                           </div>
