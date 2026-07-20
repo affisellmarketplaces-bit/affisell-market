@@ -25,6 +25,7 @@
     "mi:db:studio": "npm run radar:db:studio",
     "radar:health": "node scripts/radar-health.mjs",
     "radar:crawl": "tsx scripts/radar-crawl.ts",
+    "radar:seed:world": "tsx scripts/seed-world-radar.ts",
     "radar:crawl:prod": "URL=https://www.affisell.com tsx scripts/radar-crawl.ts",
     "db:local:up": "docker compose up -d",
     "worker:auto-order": "tsx workers/auto-order-worker.ts",

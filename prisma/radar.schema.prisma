@@ -214,3 +214,58 @@ model TikTokWebhookLog {
   @@index([externalId])
   @@schema("market_intelli")
 }
+
+/// World Radar — country registry (30+ markets).
+model RadarCountry {
+  code         String    @id // FR, DE, US, JP, BR, MA, AE, IN, …
+  name         String
+  flag         String // 🇫🇷
+  region       String // Europe, America, Asia, Africa, Oceania
+  currency     String // EUR, USD, JPY
+  enabled      Boolean   @default(true)
+  lastScanAt   DateTime?
+  productCount Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([region, enabled])
+  @@schema("market_intelli")
+}
+
+/// World Radar — cached winners per country (6h TTL via expiresAt).
+model RadarWinner {
+  id            String   @id @default(cuid())
+  countryCode   String
+  rank          Int
+  title         String
+  image         String?
+  source        String // Amazon, TikTok, Google, Affisell
+  price         Float?
+  currency      String
+  growthRate    Float?
+  searches      Int?
+  competition   Int?
+  trendingScore Float
+  category      String?
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime
+
+  @@index([countryCode, trendingScore])
+  @@index([countryCode, expiresAt])
+  @@unique([countryCode, rank, createdAt])
+  @@schema("market_intelli")
+}
+
+/// World Radar — trending keywords per country.
+model RadarTrendingKeyword {
+  id          String   @id @default(cuid())
+  countryCode String
+  keyword     String
+  growthRate  Float
+  volume      Int?
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime @default(now())
+
+  @@index([countryCode, expiresAt])
+  @@schema("market_intelli")
+}
