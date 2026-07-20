@@ -11,7 +11,7 @@ const CACHE_HEADERS = {
   "Cache-Control": "private, max-age=60, stale-while-revalidate=21600",
 }
 
-/** GET /api/radar/countries — 30 markets grouped by region. */
+/** GET /api/radar/countries — 31 markets grouped by region. */
 export async function GET() {
   const blocked = gate()
   if (blocked) return blocked
