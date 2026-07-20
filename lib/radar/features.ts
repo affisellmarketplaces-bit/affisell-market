@@ -3,7 +3,7 @@ import { RADAR_BETA_USER_IDS, RADAR_ENABLED } from "@/lib/radar/env"
 /** Entitlements for Affisell Radar — no DB imports (safe when flag is off). */
 export function resolveRadarFeatures(
   userId: string,
-  isPro: boolean,
+  _isPro: boolean,
   radarPlan?: string | null,
   role?: string | null
 ): string[] {
@@ -21,7 +21,7 @@ export function resolveRadarFeatures(
   if (plan === "global") {
     return ["radar", "market_intelli", "radar_global"]
   }
-  if (plan === "pro" || isPro) {
+  if (plan === "pro") {
     return ["radar", "market_intelli", "radar_pro"]
   }
   if (plan === "starter") {

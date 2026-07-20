@@ -3,7 +3,9 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { useEffect } from "react"
+import { Suspense, useEffect } from "react"
+
+import { RadarCheckoutActivator } from "@/components/radar/radar-checkout-activator"
 
 function hasRadarFeature(features: string[] | undefined, role?: string | null): boolean {
   if (String(role ?? "").toUpperCase() === "ADMIN") return true
@@ -102,6 +104,9 @@ export default function RadarAppShell({
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+      <Suspense fallback={null}>
+        <RadarCheckoutActivator />
+      </Suspense>
     </div>
   )
 }

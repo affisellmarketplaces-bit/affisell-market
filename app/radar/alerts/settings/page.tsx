@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
-import { getUserRadarPlan } from "@/lib/radar/plans"
+import { loadRadarPlanContext } from "@/lib/radar/plan-user.server"
 import { getRadarDb } from "@/lib/prisma-radar"
 
 export default async function RadarAlertSettingsPage() {
@@ -15,14 +15,13 @@ export default async function RadarAlertSettingsPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const planUser = {
+  const { planUser, plan } = await loadRadarPlanContext({
     id: session.user.id,
     email: session.user.email,
     role: session.user.role,
-    isPro: session.user.isPro ?? false,
+    isPro: session.user.isPro,
     features: session.user.features,
-  }
-  const plan = getUserRadarPlan(planUser)
+  })
   const slackAccess = checkRadarAccess(planUser, "slack")
 
   if (!slackAccess.allowed) {
@@ -31,8 +30,7 @@ export default async function RadarAlertSettingsPage() {
         <h2 className="text-base font-semibold text-zinc-900">⚙️ Alertes — Slack</h2>
         <RadarPaywallPanel
           plan={plan}
-          title="Slack — Radar Global $99/m"
-          reason={slackAccess.reason ?? "Slack alerts available on Radar Global"}
+          reason={slackAccess.reason ?? "Slack alerts disponibles sur Radar Global"}
         />
       </div>
     )

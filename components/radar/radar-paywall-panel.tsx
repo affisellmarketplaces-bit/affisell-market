@@ -1,6 +1,7 @@
 import Link from "next/link"
 
 import type { RadarPlan } from "@/lib/radar/plans"
+import { radarGlobalUnlockLabel } from "@/lib/radar/pricing-display"
 
 export default function RadarPaywallPanel({
   plan,
@@ -9,10 +10,12 @@ export default function RadarPaywallPanel({
   children,
 }: {
   plan: RadarPlan
-  title: string
+  title?: string
   reason: string
   children?: React.ReactNode
 }) {
+  const headline = title ?? radarGlobalUnlockLabel({ short: true })
+
   return (
     <div className="relative overflow-hidden rounded-xl border border-amber-200 bg-amber-50">
       {children && (
@@ -25,13 +28,13 @@ export default function RadarPaywallPanel({
           <p className="text-xs font-medium uppercase tracking-wide text-amber-300">
             Plan {plan.name}
           </p>
-          <h3 className="mt-2 text-lg font-semibold text-white">{title}</h3>
+          <h3 className="mt-2 text-lg font-semibold text-white">{headline}</h3>
           <p className="mt-2 text-sm text-zinc-300">{reason}</p>
           <Link
-            href="/pricing?feature=radar"
+            href="/pricing?feature=radar&plan=global"
             className="mt-5 inline-flex rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400"
           >
-            Débloque Radar Global à $99/m
+            {radarGlobalUnlockLabel({ short: true })}
           </Link>
           <p className="mt-2 text-[11px] text-zinc-500">Voir winners BR avant tes concurrents</p>
         </div>

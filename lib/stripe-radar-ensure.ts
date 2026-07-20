@@ -43,7 +43,7 @@ function radarCurrency(plan: RadarCheckoutPlanId): string {
     plan === "global" ? "STRIPE_RADAR_GLOBAL_CURRENCY" : "STRIPE_RADAR_PRO_CURRENCY"
   const raw = process.env[key]?.trim().toLowerCase()
   if (raw && /^[a-z]{3}$/.test(raw)) return raw
-  return "usd"
+  return "eur"
 }
 
 function envCandidates(plan: RadarCheckoutPlanId): string[] {

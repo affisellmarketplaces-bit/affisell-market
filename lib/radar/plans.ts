@@ -128,7 +128,6 @@ export function getUserRadarPlan(user: RadarPlanUser | null | undefined): RadarP
   }
 
   if (
-    user.isPro ||
     tiers.includes("radar_pro") ||
     tiers.includes("pro") ||
     features.includes("radar_pro") ||

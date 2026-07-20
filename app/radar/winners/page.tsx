@@ -8,7 +8,7 @@ import { RADAR_DEMO_WINNERS } from "@/lib/radar/demo-data"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
-import { getUserRadarPlan } from "@/lib/radar/plans"
+import { loadRadarPlanContext } from "@/lib/radar/plan-user.server"
 import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
 
 function formatPrice(price: { toString(): string } | number, currency: string | null): string {
@@ -30,14 +30,13 @@ export default async function RadarWinnersPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const planUser = {
+  const { planUser, plan } = await loadRadarPlanContext({
     id: session.user.id,
     email: session.user.email,
     role: session.user.role,
-    isPro: session.user.isPro ?? false,
+    isPro: session.user.isPro,
     features: session.user.features,
-  }
-  const plan = getUserRadarPlan(planUser)
+  })
   const access = checkRadarAccess(planUser, "dashboard")
   if (!access.allowed || plan.id === "free" || plan.id === "starter") {
     return (

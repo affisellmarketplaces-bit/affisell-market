@@ -3,12 +3,14 @@ import { Lock, Radar, Rocket, Shield } from "lucide-react"
 import type { ReactNode } from "react"
 
 import {
+  RadarPaywallCheckoutButton,
   RadarPaywallCtaButton,
   RadarPaywallViewTracker,
 } from "@/components/radar/radar-paywall-tracker"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { RadarPlanId } from "@/lib/radar/plans"
+import type { RadarCheckoutPlanId, RadarPlanId } from "@/lib/radar/plans"
+import { radarCheckoutCtaLabel } from "@/lib/radar/pricing-display"
 import {
   getRadarCockpit,
   getSupplierKindLabel,
@@ -62,25 +64,22 @@ export function RadarKindCockpit({
     !needsOnboarding &&
     ((isSupplier && supplierKind !== "unset") || isReseller)
 
-  const pricingHref = isReseller
-    ? "/pricing?kind=stocker"
-    : supplierKind === "producer"
-      ? "/pricing?kind=producer"
-      : "/pricing?kind=stocker"
+  const checkoutPlan: RadarCheckoutPlanId =
+    isReseller || supplierKind === "stocker" ? "pro" : "global"
 
   const paywallTitle = isReseller
-    ? "Débloque les opportunités Lanceur"
-    : "Débloque les X autres opportunités"
+    ? "Débloque les opportunités Radar Pro"
+    : supplierKind === "producer"
+      ? "Débloque la veille défense Radar Global"
+      : "Débloque les opportunités sourcing Radar Pro"
 
   const paywallBody = isReseller
-    ? "Les Resellers payants voient 50 produits/semaine. Tu n'en vois que 3."
-    : "Les Grossistes payants voient 50 produits/semaine. Tu n'en vois que 3."
-
-  const paywallCta = isReseller
-    ? "Passer à Lanceur — 29€/mois →"
+    ? "Les Resellers Radar Pro voient 50 produits/semaine. Tu n'en vois que 3."
     : supplierKind === "producer"
-      ? "Passer à Empire — 149€/mois →"
-      : "Passer à Dominator — 79€/mois →"
+      ? "Radar Global : map mondiale, alertes Slack, détection de copies sur GMC."
+      : "Radar Pro : winners live, map, 10 alertes — avant tes concurrents."
+
+  const paywallCta = radarCheckoutCtaLabel(checkoutPlan)
 
   return (
     <div className="space-y-6">
@@ -174,13 +173,14 @@ export function RadarKindCockpit({
                   <CardDescription className="text-sm">{paywallBody}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-center pb-6">
-                  <RadarPaywallCtaButton
-                    href={pricingHref}
+                  <RadarPaywallCheckoutButton
+                    plan={checkoutPlan}
                     supplierKind={supplierKind}
                     surface="paid_blur"
+                    returnPath="/radar"
                   >
                     {paywallCta}
-                  </RadarPaywallCtaButton>
+                  </RadarPaywallCheckoutButton>
                 </CardContent>
               </Card>
             </div>

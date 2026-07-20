@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { track } from "@/lib/analytics"
 import type { RadarCheckoutPlanId } from "@/lib/radar/plans"
 import { RADAR_PLANS, type RadarPlan } from "@/lib/radar/plans"
+import { formatRadarPlanPrice } from "@/lib/radar/pricing-display"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -76,7 +77,7 @@ export default function PricingPageClient({
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, returnPath: "/pricing" }),
+        body: JSON.stringify({ plan, returnPath: "/pricing?feature=radar" }),
       })
       const data = (await res.json()) as { url?: string; error?: string; message?: string }
       if (res.status === 503 && data.error === "STRIPE_GLOBAL_NOT_CONFIGURED") {
@@ -166,10 +167,7 @@ export default function PricingPageClient({
                   ) : null}
                 </div>
                 <p className="mt-3 text-3xl font-semibold text-zinc-900 dark:text-white">
-                  {plan.price === 0 ? "Gratuit" : `$${plan.price}`}
-                  {plan.price > 0 ? (
-                    <span className="text-base font-normal text-zinc-500">/mois</span>
-                  ) : null}
+                  {plan.price === 0 ? "Gratuit" : formatRadarPlanPrice(plan.id)}
                 </p>
                 <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{blurb}</p>
                 <ul className="mt-4 flex-1 space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400">

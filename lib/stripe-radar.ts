@@ -21,7 +21,7 @@ export function resolveStripeRadarGlobalPriceId(): string | null {
   return id || null
 }
 
-/** True when Global $99 checkout can be created (price id present). */
+/** True when Global checkout can be created (price id present). */
 export function isStripeRadarGlobalConfigured(): boolean {
   return Boolean(resolveStripeRadarGlobalPriceId())
 }

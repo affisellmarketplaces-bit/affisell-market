@@ -8,7 +8,8 @@ import { auth } from "@/lib/auth"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
-import { getUserRadarPlan } from "@/lib/radar/plans"
+import { loadRadarPlanContext } from "@/lib/radar/plan-user.server"
+import { formatRadarPlanPrice } from "@/lib/radar/pricing-display"
 import { getRadarDb } from "@/lib/prisma-radar"
 
 export default async function RadarAlertsPage({
@@ -21,14 +22,13 @@ export default async function RadarAlertsPage({
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const planUser = {
+  const { planUser, plan } = await loadRadarPlanContext({
     id: session.user.id,
     email: session.user.email,
     role: session.user.role,
-    isPro: session.user.isPro ?? false,
+    isPro: session.user.isPro,
     features: session.user.features,
-  }
-  const plan = getUserRadarPlan(planUser)
+  })
   const alertsAccess = checkRadarAccess(planUser, "alerts")
   const slackAccess = checkRadarAccess(planUser, "slack")
 
@@ -54,7 +54,7 @@ export default async function RadarAlertsPage({
       <div className="space-y-4">
         {!slackAccess.allowed && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-            Slack dispo en Global $99/m —{" "}
+            Slack dispo en Global {formatRadarPlanPrice("global")} —{" "}
             <Link href="/pricing?feature=radar" className="font-semibold underline">
               upgrade
             </Link>
@@ -95,7 +95,7 @@ export default async function RadarAlertsPage({
     <div className="space-y-4">
       {!slackAccess.allowed && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Slack dispo en Global $99/m —{" "}
+          Slack dispo en Global {formatRadarPlanPrice("global")} —{" "}
           <Link href="/pricing?feature=radar" className="font-semibold underline">
             upgrade
           </Link>

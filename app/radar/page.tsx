@@ -20,7 +20,7 @@ import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { getTrendingKeywords } from "@/lib/radar/google/trends-watcher"
-import { getUserRadarPlan } from "@/lib/radar/plans"
+import { loadRadarPlanContext } from "@/lib/radar/plan-user.server"
 import { parseSupplierKind, type SupplierKind } from "@/lib/supplier-kind"
 
 const TREND_SEEDS = ["led strip", "shapewear", "phone case"]
@@ -185,14 +185,13 @@ export default async function RadarDashboardPage({
     brandName = profile?.name ?? null
   }
 
-  const planUser = {
+  const { planUser, plan } = await loadRadarPlanContext({
     id: session.user.id,
     email: session.user.email,
     role: session.user.role,
-    isPro: session.user.isPro ?? false,
+    isPro: session.user.isPro,
     features: session.user.features,
-  }
-  const plan = getUserRadarPlan(planUser)
+  })
   const access = checkRadarAccess(planUser, "dashboard")
 
   if (!access.allowed || plan.id === "free" || plan.id === "starter") {
@@ -207,7 +206,6 @@ export default async function RadarDashboardPage({
         <div className="space-y-6">
           <RadarPaywallPanel
             plan={plan}
-            title="Débloque Radar Global à $99/m"
             reason="Voir winners BR avant tes concurrents — Map, alertes Slack, crawl mondial."
           >
             <div className="p-6">

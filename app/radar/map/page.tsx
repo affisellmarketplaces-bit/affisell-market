@@ -12,7 +12,7 @@ import { auth } from "@/lib/auth"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
-import { getUserRadarPlan } from "@/lib/radar/plans"
+import { loadRadarPlanContext } from "@/lib/radar/plan-user.server"
 import { getRadarDb } from "@/lib/prisma-radar"
 
 async function loadCountryStats(): Promise<{ stats: CountryMapStat[]; demo: boolean }> {
@@ -68,14 +68,13 @@ export default async function RadarMapPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const planUser = {
+  const { planUser, plan } = await loadRadarPlanContext({
     id: session.user.id,
     email: session.user.email,
     role: session.user.role,
-    isPro: session.user.isPro ?? false,
+    isPro: session.user.isPro,
     features: session.user.features,
-  }
-  const plan = getUserRadarPlan(planUser)
+  })
   const mapAccess = checkRadarAccess(planUser, "map")
 
   const { stats, demo } = await loadCountryStats()

@@ -52,6 +52,7 @@ export function PricingUpgradeToast({ upgrade, sessionId }: Props) {
           )
         }
         replace("/pricing?feature=radar")
+        if (typeof window !== "undefined") window.location.reload()
       })()
       return
     }

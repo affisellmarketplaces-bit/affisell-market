@@ -3,6 +3,7 @@ import Link from "next/link"
 import RadarWorldMap from "@/lib/radar/map/RadarWorldMap"
 import { MOCK_MAP_STATS } from "@/lib/radar/map/geo"
 import { RADAR_PLANS } from "@/lib/radar/plans"
+import { formatRadarPlanPrice, radarGlobalUnlockLabel } from "@/lib/radar/pricing-display"
 
 /** Public marketing landing for Affisell Radar (unauthenticated /radar). */
 export default function RadarMarketingLanding() {
@@ -50,7 +51,7 @@ export default function RadarMarketingLanding() {
         {[
           { t: "Crawl 1M produits/jour", d: "TikTok, Amazon SP-API, Merchant + crawler global." },
           { t: "Détecte winners <30j", d: "5 règles WINNER DETECTED — rank, ventes, saturation." },
-          { t: "Alerte Slack 3h du mat", d: "Tu sais avant le marché. Radar Global $99/m." },
+          { t: "Alerte Slack 3h du mat", d: `Tu sais avant le marché. ${radarGlobalUnlockLabel({ short: true })}.` },
         ].map((c) => (
           <div key={c.t} className="rounded-xl border border-zinc-800 bg-zinc-950/80 p-5 text-left">
             <h2 className="text-sm font-semibold text-emerald-300">{c.t}</h2>
@@ -77,8 +78,7 @@ export default function RadarMarketingLanding() {
             >
               <p className="text-sm font-medium text-emerald-400">{p.name}</p>
               <p className="mt-2 text-3xl font-semibold">
-                ${p.price}
-                <span className="text-base font-normal text-zinc-500">/m</span>
+                {formatRadarPlanPrice(p.id, { short: true })}
               </p>
               <ul className="mt-4 space-y-1 text-sm text-zinc-400">
                 <li>{p.maxShops} shops</li>

@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { formatRadarPlanPrice } from "@/lib/radar/pricing-display"
+
 const SETUP_DOC = "docs/STRIPE_RADAR_SETUP.md"
 const GLOBAL_NOT_CONFIGURED_TOAST =
   "Plan Global non configuré - voir docs/STRIPE_RADAR_SETUP.md"
@@ -53,7 +55,7 @@ export function AdminRadarCheckoutFallback({ globalConfigured }: Props) {
   return (
     <div className="mt-8 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
       <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-        Checkout Stripe Global ($99)
+        Checkout Stripe Global ({formatRadarPlanPrice("global", { short: true })})
       </p>
       <p className="mt-1 text-xs text-zinc-500">
         {globalConfigured ? (

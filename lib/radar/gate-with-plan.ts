@@ -1,5 +1,6 @@
 import type { RadarPlan, RadarPlanId, RadarPlanUser } from "@/lib/radar/plans"
 import { getUserRadarPlan } from "@/lib/radar/plans"
+import { formatRadarPlanPrice } from "@/lib/radar/pricing-display"
 
 export type RadarAccessFeature = "map" | "slack" | "alerts" | "dashboard" | "scan"
 
@@ -46,7 +47,7 @@ export function checkRadarAccess(
       return {
         allowed: false,
         plan,
-        reason: "Slack alerts available on Radar Global $99/m",
+        reason: `Slack alerts disponibles sur Radar Global ${formatRadarPlanPrice("global")}`,
         upgradePath,
       }
     }
