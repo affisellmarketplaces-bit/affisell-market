@@ -5,6 +5,7 @@
 
 import {
   PRODUCT_POOL,
+  resolveProductImage,
   resolveProductTitle,
   type ProductArchetype,
 } from "@/lib/radar/product-pools"
@@ -82,24 +83,6 @@ const PRICE_MULT: Record<string, number> = {
   AR: 0.65,
   CN: 0.7,
   ZA: 0.65,
-}
-
-const UNSPLASH_BY_CAT: Record<string, string> = {
-  beauty: "1434389676619-20d6adf125a9",
-  home_deco: "1558618666-fcd25c85cd64",
-  pet: "1548199973-03cce0bbc87b",
-  car_accessories: "1492144534655-ae79c964c9d7",
-  modest_fashion: "1483985988355-763728e1935b",
-  kawaii_tech: "1601784551446-20c9b0957638",
-  outdoor: "1602143407151-7111542de6e8",
-  baby: "1515488042361-ee00e0ddd4e4",
-  fitness: "1576678927484-cc907957088c",
-  kitchen_gadget: "1556909114-f6e7ad7d4046",
-  phone_accessories: "1601784551446-20c9b0957638",
-  wellness: "1544161515-4ab6ce6db874",
-  party_deco: "1530103862676-de8c9debad1d",
-  eco_home: "1542601906990-b4d3fb778b09",
-  office: "1497366216548-37526070297c",
 }
 
 function clamp(n: number, min: number, max: number): number {
@@ -206,11 +189,6 @@ function sourceLabel(product: ProductArchetype, country: string): string {
   return `Signaux search ${country}`
 }
 
-function imageFor(product: ProductArchetype): string {
-  const id = UNSPLASH_BY_CAT[product.category] ?? "1558618666-fcd25c85cd64"
-  return `https://images.unsplash.com/photo-${id}?w=120&h=120&fit=crop&q=80`
-}
-
 type Ranked = { product: ProductArchetype; score: number }
 
 function rankPool(
@@ -278,7 +256,7 @@ function toWinner(
     countryCode: code,
     rank,
     title: resolveProductTitle(row.product, code),
-    image: imageFor(row.product),
+    image: resolveProductImage(row.product),
     source: sourceLabel(row.product, code),
     price: priceFor(row.product, code),
     currency,

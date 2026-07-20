@@ -68,6 +68,130 @@ export type ProductArchetype = {
   /** 0–1 affinity by country code; missing → 0.12 default (low = cultural mismatch) */
   culturalAffinity: Partial<Record<string, number>>
   arbitragePotential: number
+  /** Unique per SKU — never reuse across products */
+  imageUrl: string
+}
+
+/** Curated Unsplash (200×200) for flagship SKUs — must be 1:1 unique photo IDs. */
+function u(photoId: string): string {
+  return `https://images.unsplash.com/photo-${photoId}?w=200&h=200&fit=crop`
+}
+
+function picsumSeed(id: string): string {
+  return `https://picsum.photos/seed/${encodeURIComponent(id)}/200/200`
+}
+
+/**
+ * Flagship Unsplash URLs — every photo id is unique (asserted at load).
+ * Remaining SKUs use picsum seed = product.id.
+ */
+const CURATED_IMAGES: Record<string, string> = {
+  "baby-car-seat-mirror": u("1566004100631-35d015d6a491"),
+  "baby-diaper-bag": u("1596462502278-27bfdc403348"),
+  "baby-monitor-wifi": u("1544126592-807ade215a0b"),
+  "baby-bottle-warmer": u("1555255707-c68239c7b2f1"),
+  "baby-white-noise": u("1519681393784-d120267933ba"),
+  "baby-stroller-organizer": u("1566454825481-9c31e80f4c25"),
+  "baby-teething-toys": u("1515488042361-ee00e0ddd4e4"),
+  "baby-bath-thermometer": u("1503454537195-1dcabb73ffb9"),
+  "baby-night-light": u("1507003211169-0a1dd7228f2d"),
+  "baby-sterilizer": u("1584437851790-c5a5d8e0e0e1"),
+
+  "car-bike-rack": u("1484156818044-c0402b243283"),
+  "car-tire-inflator": u("1486262715619-67b85e0b08d3"),
+  "car-detail-kit": u("1601362840469-23e8b9a1f0c2"),
+  "car-dash-cam": u("1449965408869-eaa3f722e40d"),
+  "car-phone-mount": u("1511707171634-5f897ff02aa9"),
+  "car-vacuum": u("1558618147-672a1ad6e261"),
+  "car-sunshade": u("1503376780353-7e6692767b70"),
+  "car-led-interior": u("1492144534655-ae79c964c9d7"),
+  "car-seat-organizer": u("1549317661-bd32c8ce0db2"),
+  "car-perfume-clip": u("1616401788921-0e5a5b0b8f1a"),
+
+  "fitness-heart-band": u("1575311373937-040b8e1fd5b6"),
+  "fitness-walking-pad": u("1571019613454-1cb2f99b2d8b"),
+  "fitness-massage-gun": u("1599058917212-d750089bc07e"),
+  "fitness-yoga-mat": u("1544367567-0f2fcb009e0b"),
+  "fitness-resistance-bands": u("1517836353435-1029b93f81cd"),
+  "fitness-foam-roller": u("1518611012118-696072aa579a"),
+  "fitness-jump-rope": u("1434682881908-0025bba8b0e0"),
+  "fitness-pullup-bar": u("1534438327276-14f990683989"),
+
+  "beauty-k-serum": u("1570176179661-ba9599a7e63c"),
+  "beauty-shapewear": u("1515377905703-c913fcd77ea3"),
+  "beauty-hair-straightener": u("1522338140262-f46f5913618a"),
+  "beauty-jade-roller": u("1596755094514-f87e34085b2c"),
+  "beauty-led-mask": u("1616394584738-fc6e612d7a5e"),
+  "beauty-hair-tools-us": u("1522337360788-8b13dee7a37e"),
+  "beauty-microneedle": u("1596755094514-f87e34085b2d"),
+  "beauty-pharma-cream": u("1556228578-0d85b1a4d571"),
+
+  "kawaii-humidifier": u("1601784551446-20c9b0957638"),
+  "kawaii-bento": u("1546069901-ba9599a7e63c"),
+  "kawaii-face-massager": u("1515377905703-c913fcd77ea4"),
+  "kawaii-keyboard": u("1595225476474-87563907a212"),
+  "kawaii-ring-light": u("1492691527719-9d1e07e534b4"),
+  "kawaii-monitor-light": u("1497366216548-37526070297c"),
+  "home-anime-led": u("1514525253161-7a46d19cd819"),
+  "home-humidifier-kawaii": u("1582719478250-c89cae4dc85b"),
+
+  "modest-abaya-steamer": u("1483985988355-763728e1935b"),
+  "modest-abaya-fold": u("1469334031218-e382a71b716b"),
+  "modest-hijab-cap": u("1490481651871-ab68de25d43d"),
+  "modest-ramadan-lantern": u("1513885535751-67b9141c3d0b"),
+  "modest-swim-burkini": u("1507525428034-b723cf961d3e"),
+  "home-prayer-mat-tech": u("1591604129939-f404459b9e2f"),
+  "home-oud-diffuser": u("1608571423902-eed4a5ad8108"),
+
+  "outdoor-stanley-dupe": u("1602143407151-7111542de6e8"),
+  "outdoor-bbq-tools": u("1555939594-58d7cb561ad1"),
+  "outdoor-camping-hammock": u("1504851149312-7d5868f3eb4a"),
+  "outdoor-cooler-bag": u("1523987355523-c7b5b0dd90a7"),
+  "outdoor-hiking-poles": u("1551632811-561732d1e306"),
+  "outdoor-bike-lights": u("1571068316344-75bc76f77890"),
+
+  "kitchen-airfryer": u("1556910103-1c02745aae4d"),
+  "kitchen-blender-usb": u("1570222094114-d054c8e3e0e0"),
+  "kitchen-coffee-grinder": u("1495474472287-4d71bcdd2085"),
+  "kitchen-rice-cooker-mini": u("1536304993881-cff7fc183bff"),
+  "kitchen-milk-frother": u("1495474472287-4d71bcdd2086"),
+  "kitchen-vacuum-sealer": u("1556909114-f6e7ad7d4046"),
+
+  "pet-costume-us": u("1548199973-03cce0bbc87b"),
+  "pet-carrier-jp": u("1587300003388-59208cc962cb"),
+  "pet-feeder-auto": u("1450778869180-41d0601e046e"),
+  "pet-orthopedic-bed": u("1583337130417-3346a1be7dee"),
+  "pet-litter-auto": u("1514888286974-6c03e2ca1dba"),
+
+  "wellness-eye-mask": u("1544161515-4ab6ce6db874"),
+  "wellness-neck-massager": u("1540555707474-c5e0e0e0e0e1"),
+  "wellness-diffuser": u("1608571423902-eed4a5ad8109"),
+  "wellness-weighted-blanket": u("1522771739844-6a9f6d5f14af"),
+  "wellness-water-floss": u("1607619056574-7b8d3ee536b2"),
+
+  "eco-bamboo-cutlery": u("1542601906990-b4d3fb778b09"),
+  "eco-bee-wraps": u("1466637832841-4ea9e82529d3"),
+  "eco-bike-repair": u("1485965120184-e7f86e0e0e0e"),
+  "eco-compost-bin": u("1416879595882-3373a0480b5b"),
+  "eco-solar-garden": u("1416879595882-3373a0480b5c"),
+
+  "home-led-rgb": u("1558618666-fcd25c85cd64"),
+  "home-desk-lamp": u("1507473885765-e6ed057f782c"),
+  "home-chic-vase": u("1493663284031-b7e3aefcae8e"),
+  "home-storage-cube": u("1555041469-a586c61ea9bc"),
+  "home-minimal-shelf": u("1497366811353-6870744d04b5"),
+
+  "party-balloon-arch": u("1530103862676-de8c9debad1d"),
+  "party-neon-sign-custom": u("1514525253161-7a46d19cd820"),
+  "party-projector-stars": u("1419242902214-272b3f66ee7a"),
+
+  "office-laptop-stand": u("1498050108023-c5249f4df085"),
+  "office-webcam": u("1588196749597-9dd075a76fc6"),
+  "office-noise-cancelling": u("1484704849700-f032a568e944"),
+
+  "phone-magsafe-case": u("1512941937669-90a1b58e7e9c"),
+  "phone-charger-gan": u("1601784551446-20c9b0957639"),
+  "phone-selfie-stick": u("1516035069371-29a1b244cc32"),
 }
 
 type AffinityPreset =
@@ -123,6 +247,7 @@ function item(
     seasonality?: number[]
     arbitragePotential?: number
     extraAffinity?: Partial<Record<string, number>>
+    imageUrl?: string
   }
 ): ProductArchetype {
   return {
@@ -134,6 +259,7 @@ function item(
     seasonality: opts?.seasonality ?? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
     culturalAffinity: { ...PRESETS[affinity], ...opts?.extraAffinity },
     arbitragePotential: opts?.arbitragePotential ?? 82,
+    imageUrl: opts?.imageUrl ?? CURATED_IMAGES[id] ?? picsumSeed(id),
   }
 }
 
@@ -326,6 +452,19 @@ if (PRODUCT_POOL.length !== 150) {
     expected: 150,
     actual: PRODUCT_POOL.length,
   })
+}
+
+/** Hard uniqueness gate — never ship duplicate imageUrl across the pool. */
+const _imageUrls = PRODUCT_POOL.map((p) => p.imageUrl)
+const _uniqueImages = new Set(_imageUrls)
+if (_uniqueImages.size !== PRODUCT_POOL.length) {
+  const dupes = _imageUrls.filter((url, i) => _imageUrls.indexOf(url) !== i)
+  console.error("[product-pools]", { result: "duplicate_imageUrl", dupes: [...new Set(dupes)] })
+  throw new Error(`[product-pools] duplicate imageUrl detected (${dupes.length})`)
+}
+
+export function resolveProductImage(product: ProductArchetype): string {
+  return product.imageUrl || picsumSeed(product.id)
 }
 
 export function resolveProductTitle(product: ProductArchetype, countryCode: string): string {
