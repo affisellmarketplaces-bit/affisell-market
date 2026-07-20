@@ -76,7 +76,7 @@ export function RadarKindCockpit({
   const paywallBody = isReseller
     ? "Les Resellers Radar Pro voient 50 produits/semaine. Tu n'en vois que 3."
     : supplierKind === "producer"
-      ? "Radar Global : map mondiale, alertes Slack, détection de copies sur GMC."
+      ? "Radar Global : map mondiale, alertes Slack, police des prix sur GMC."
       : "Radar Pro : winners live, map, 10 alertes — avant tes concurrents."
 
   const paywallCta = radarCheckoutCtaLabel(checkoutPlan)
@@ -100,8 +100,8 @@ export function RadarKindCockpit({
               hint="Réseau affiliate — métrique live à brancher"
             />
             <KpiCard
-              title="Alerte copie: 3 produits similaires détectés sur GMC"
-              hint="Veille défense — mock UI"
+              title="Police des prix: 2 revendeurs sous ton plancher détectés sur GMC"
+              hint="Veille empire — mock UI"
             />
           </div>
         </div>

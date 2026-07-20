@@ -73,7 +73,7 @@ const TIERS: Tier[] = [
     icon: "crown",
     features: [
       "Tout Dominator",
-      "Cockpit Défense anti-copie",
+      "Cockpit Défense — empire & police des prix",
       "Protection prix",
       "Accès Top 20 Resellers",
       "Coaching 1h/mois",

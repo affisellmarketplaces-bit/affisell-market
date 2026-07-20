@@ -22,7 +22,7 @@ export function SupplierWelcomeProducerEmail({
   return (
     <Html>
       <Head />
-      <Preview>Comment protéger ta marque de la copie chinoise (en 24h)</Preview>
+      <Preview>Domine Google Shopping: empire Producteur en 24h</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
@@ -35,19 +35,19 @@ export function SupplierWelcomeProducerEmail({
             <strong>Bienvenue Producteur.</strong> Tu as construit une marque, on va la protéger.
           </Text>
           <Text style={text}>
-            En tant que Producteur, Affisell devient ton <strong>bouclier anti-copie</strong>.
+            En tant que Producteur, Affisell devient ton <strong>cockpit d&apos;empire GMC</strong>.
           </Text>
 
-          <Text style={listItem}>✓ Alerte copie GMC</Text>
-          <Text style={listItem}>✓ Protection prix reseller</Text>
-          <Text style={listItem}>✓ Top 20 resellers FR</Text>
+          <Text style={listItem}>✓ Cartographie de ton empire sur Google Shopping</Text>
+          <Text style={listItem}>✓ Police des prix revendeurs</Text>
+          <Text style={listItem}>✓ Top 20 resellers FR à recruter</Text>
 
           <Button href={radarUrl} style={button}>
-            Activer mon bouclier Défense →
+            Activer mon Radar Producteur →
           </Button>
 
           <Text style={ps}>
-            PS — Demain, je te montre qui vend déjà des copies de ta marque sur Google.
+            PS — Demain, je te montre qui monopolise tes mots-clés de marque sur Google.
           </Text>
           <Text style={muted}>L&apos;équipe Affisell</Text>
         </Container>

@@ -46,15 +46,15 @@ export function RadarSupplierDiscoveryCard({ supplierKind, className }: Supplier
             </span>
             <div>
               <p className="text-base font-semibold tracking-tight text-zinc-900 dark:text-white">
-                🛡️ Radar Défense: 3 copies de ta marque détectées cette semaine
+                🛡️ Radar Producteur: 3 annonces utilisent tes mots-clés de marque cette semaine
               </p>
               <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Bouclier anti-copie GMC — vois qui revend déjà ta marque.
+                Cartographie empire GMC — vois qui monopolise tes requêtes de marque.
               </p>
             </div>
           </div>
           <Button asChild variant="bentoAccent" className="shrink-0">
-            <Link href="/radar">Voir qui me copie →</Link>
+            <Link href="/radar">Contrôler mon empire →</Link>
           </Button>
         </div>
       </div>

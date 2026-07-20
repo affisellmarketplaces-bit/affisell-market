@@ -31,7 +31,7 @@ function displayName(name: string | null | undefined, email: string): string {
 
 const SUBJECTS: Record<SupplierKindSetValue, string> = {
   stocker: "🔥 Tes 3 premiers produits en tant que Grossiste",
-  producer: "🛡️ Comment protéger ta marque de la copie chinoise (en 24h)",
+  producer: "🛡️ Domine Google Shopping: empire Producteur en 24h",
 }
 
 /**
