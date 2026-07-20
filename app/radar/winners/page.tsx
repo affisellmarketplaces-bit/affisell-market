@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
+import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
 import { auth } from "@/lib/auth"
 import { getRadarDb } from "@/lib/prisma-radar"
 import { getConnectorById } from "@/lib/radar/connectors/registry"
