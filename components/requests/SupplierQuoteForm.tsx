@@ -2,16 +2,20 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState, type FormEvent } from "react"
+import { useMemo, useState, type FormEvent } from "react"
 import { toast } from "sonner"
 
+import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
+import { getSupplierDeliveryFeedback } from "@/lib/logistics/delivery-sla"
 import type { ProductQuoteDto } from "@/lib/product-request-types"
 
 export function SupplierQuoteForm({
   requestId,
+  requestCountry,
   existingQuote,
 }: {
   requestId: string
+  requestCountry: string
   existingQuote: ProductQuoteDto | null
 }) {
   const router = useRouter()
@@ -20,6 +24,12 @@ export function SupplierQuoteForm({
   const [deliveryDays, setDeliveryDays] = useState("7")
   const [message, setMessage] = useState("")
   const [pending, setPending] = useState(false)
+
+  const daysNum = Number(deliveryDays)
+  const feedback = useMemo(() => {
+    if (!Number.isFinite(daysNum) || daysNum < 1) return null
+    return getSupplierDeliveryFeedback(daysNum, requestCountry)
+  }, [daysNum, requestCountry])
 
   if (existingQuote) {
     return (
@@ -49,7 +59,13 @@ export function SupplierQuoteForm({
           </div>
           <div>
             <dt className="text-xs text-zinc-500">Délai</dt>
-            <dd className="font-semibold">{existingQuote.deliveryDays}j</dd>
+            <dd className="mt-0.5">
+              <DeliveryBadge
+                days={existingQuote.deliveryDays}
+                country={requestCountry}
+                variant="full"
+              />
+            </dd>
           </div>
         </dl>
         {existingQuote.message ? (
@@ -143,6 +159,21 @@ export function SupplierQuoteForm({
           />
         </label>
       </div>
+
+      {feedback ? (
+        <p
+          className={`rounded-lg border px-3 py-2 text-xs font-medium ${
+            feedback.tone === "boost"
+              ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+              : feedback.tone === "ok"
+                ? "border-amber-300 bg-amber-50 text-amber-950"
+                : "border-red-400 bg-red-50 text-red-900"
+          }`}
+        >
+          {feedback.message}
+        </p>
+      ) : null}
+
       <label className="block text-xs font-medium text-zinc-700">
         Message
         <textarea

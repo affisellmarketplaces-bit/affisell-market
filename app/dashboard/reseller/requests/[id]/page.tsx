@@ -72,6 +72,7 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
         <ResellerQuotesComparator
           requestId={request.id}
           requestStatus={request.status}
+          requestCountry={request.country}
           quotes={quotes.map(serializeProductQuote)}
           winningListingId={listing?.id ?? null}
         />

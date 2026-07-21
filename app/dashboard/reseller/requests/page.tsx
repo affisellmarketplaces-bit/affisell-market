@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { formatRequestRelativeFr } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
@@ -53,6 +54,11 @@ export default async function ResellerRequestsPage() {
                       {formatRequestRelativeFr(r.createdAt)}
                       {r.quotesCount > 0 ? ` · ${r.quotesCount} devis` : ""}
                     </p>
+                    {r.deliverySLA != null ? (
+                      <div className="mt-1.5">
+                        <DeliveryBadge days={r.deliverySLA} country={r.country} />
+                      </div>
+                    ) : null}
                   </div>
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${

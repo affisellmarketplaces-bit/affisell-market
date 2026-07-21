@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import {
+  getSLAForCountry,
+  isDeliveryAcceptable,
+  parseDeliveryPriority,
+  resolveDeliverySLA,
+} from "@/lib/logistics/delivery-sla"
 import { PRODUCT_REQUEST_NOTIF } from "@/lib/product-request-notif-constants"
 import { serializeProductRequest } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
@@ -27,11 +33,28 @@ type PostBody = {
   targetPrice?: unknown
   country?: unknown
   imageUrl?: unknown
+  deliveryPriority?: unknown
 }
 
 function parseCategory(raw: unknown): string {
   const c = typeof raw === "string" ? raw.trim().toLowerCase() : "general"
   return CATEGORIES.has(c) ? c : "general"
+}
+
+async function resolveSupplierTypicalDays(supplierId: string): Promise<number> {
+  const products = await prisma.product.findMany({
+    where: { supplierId, OR: [{ active: true }, { isDraft: true }] },
+    select: { deliveryDays: true, handlingDays: true, processingTime: true },
+    take: 30,
+    orderBy: { updatedAt: "desc" },
+  })
+  if (products.length === 0) return 7
+  const days = products.map((p) => {
+    if (p.deliveryDays != null && p.deliveryDays > 0) return p.deliveryDays
+    if (p.processingTime != null && p.processingTime > 0) return p.processingTime + 3
+    return Math.max(1, p.handlingDays ?? 5)
+  })
+  return Math.min(...days)
 }
 
 /**
@@ -72,6 +95,8 @@ export async function POST(req: Request) {
     typeof body.imageUrl === "string" && body.imageUrl.trim().startsWith("http")
       ? body.imageUrl.trim().slice(0, 2000)
       : null
+  const deliveryPriority = parseDeliveryPriority(body.deliveryPriority)
+  const deliverySLA = resolveDeliverySLA(country, deliveryPriority)
 
   const email = session.user.email?.trim() || `${session.user.id}@affisell.local`
 
@@ -88,8 +113,10 @@ export async function POST(req: Request) {
       imageUrl,
       status: "open",
       quotesCount: 0,
+      deliverySLA,
+      deliveryPriority,
     },
-    select: { id: true, title: true, country: true, category: true },
+    select: { id: true, title: true, country: true, category: true, deliverySLA: true },
   })
 
   console.log("[NEW REQUEST]", {
@@ -97,6 +124,7 @@ export async function POST(req: Request) {
     title: created.title,
     country: created.country,
     category: created.category,
+    deliverySLA: created.deliverySLA,
     result: "Alert suppliers",
   })
 
@@ -192,6 +220,43 @@ export async function GET(req: Request) {
     })
   }
 
+  const typicalDays = await resolveSupplierTypicalDays(session.user.id)
+
+  function withSlaFlags(
+    rows: Array<{
+      id: string
+      resellerId: string
+      resellerEmail: string
+      title: string
+      description: string | null
+      category: string
+      quantity: number
+      targetPrice: number | null
+      country: string
+      imageUrl: string | null
+      status: string
+      quotesCount: number
+      deliverySLA: number | null
+      deliveryPriority: string
+      createdAt: Date
+    }>
+  ) {
+    const mapped = rows.map((r) => {
+      const maxDays = r.deliverySLA ?? getSLAForCountry(r.country).maxDays
+      const slaCompatible =
+        typicalDays <= maxDays || isDeliveryAcceptable(typicalDays, r.country)
+      return {
+        ...serializeProductRequest(r),
+        slaCompatible,
+      }
+    })
+    mapped.sort((a, b) => {
+      if (a.slaCompatible === b.slaCompatible) return 0
+      return a.slaCompatible ? -1 : 1
+    })
+    return mapped
+  }
+
   // SUPPLIER filters: open | fulfilled | mine (quoted by me)
   if (filter === "mine") {
     const rows = await prisma.productRequest.findMany({
@@ -209,12 +274,14 @@ export async function GET(req: Request) {
       orderBy: { createdAt: "desc" },
       take: limit,
     })
+    const quoteStatusById = new Map(rows.map((row) => [row.id, row.quotes[0]?.status ?? null]))
     return NextResponse.json({
-      requests: rows.map((r) => ({
-        ...serializeProductRequest(r),
-        myQuoteStatus: r.quotes[0]?.status ?? null,
+      requests: withSlaFlags(rows).map((r) => ({
+        ...r,
+        myQuoteStatus: quoteStatusById.get(r.id) ?? null,
       })),
       count: rows.length,
+      supplierTypicalDays: typicalDays,
     })
   }
 
@@ -234,19 +301,24 @@ export async function GET(req: Request) {
     take: limit,
   })
 
+  const quoteStatusById = new Map(rows.map((row) => [row.id, row.quotes[0]?.status ?? null]))
+  const requests = withSlaFlags(rows).map((r) => ({
+    ...r,
+    myQuoteStatus: quoteStatusById.get(r.id) ?? null,
+  }))
+
   console.log("[api/requests]", {
     userId: session.user.id,
     role,
-    count: rows.length,
+    count: requests.length,
     status: statusFilter ?? "all",
     filter: filter || null,
+    supplierTypicalDays: typicalDays,
   })
 
   return NextResponse.json({
-    requests: rows.map((r) => ({
-      ...serializeProductRequest(r),
-      myQuoteStatus: r.quotes[0]?.status ?? null,
-    })),
-    count: rows.length,
+    requests,
+    count: requests.length,
+    supplierTypicalDays: typicalDays,
   })
 }

@@ -7,6 +7,7 @@ import { useCallback, useMemo, useState } from "react"
 import { RadarBulkImportModal } from "@/components/radar/RadarBulkImportModal"
 import { RadarImportBar } from "@/components/radar/RadarImportBar"
 import { SupplierMatchBadge } from "@/components/radar/supplier-match-badge"
+import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
 import { WorldArbitrageMiniBadge } from "@/components/import/WorldArbitrageMiniBadge"
 import {
   estimateBulkCatalogTotals,
@@ -661,6 +662,18 @@ export default function WorldRadarTerminal({
                               userRole={userRole}
                               country={country}
                             />
+                            {row.supplierMatch && row.supplierMatch.count > 0 ? (
+                              <div className="mt-1">
+                                <DeliveryBadge
+                                  days={row.supplierMatch.count >= 3 ? 3 : 4}
+                                  country={country}
+                                />
+                              </div>
+                            ) : row.supplierLabel?.includes("CN") ? (
+                              <div className="mt-1">
+                                <DeliveryBadge days={15} country={country} />
+                              </div>
+                            ) : null}
                           </div>
                         </div>
                       </td>

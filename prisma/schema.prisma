@@ -3428,20 +3428,28 @@ model ImportJob {
  * Reseller product demand → supplier alerts (MVP additive).
  */
 model ProductRequest {
-  id            String         @id @default(cuid())
-  resellerId    String
-  resellerEmail String
-  title         String
-  description   String?        @db.Text
-  category      String         @default("general")
-  quantity      Int            @default(100)
-  targetPrice   Float?
-  country       String         @default("FR")
-  imageUrl      String?
-  status        String         @default("open") // open, closed, fulfilled
-  quotesCount   Int            @default(0)
-  createdAt     DateTime       @default(now())
-  quotes        ProductQuote[]
+  id                String         @id @default(cuid())
+  resellerId        String
+  resellerEmail     String
+  title             String
+  description       String?        @db.Text
+  category          String         @default("general")
+  quantity          Int            @default(100)
+  targetPrice       Float?
+  country           String         @default("FR")
+  imageUrl          String?
+  status            String         @default("open") // open, closed, fulfilled
+  quotesCount       Int            @default(0)
+  /**
+   * Max acceptable delivery days for this demand (auto from country + priority).
+   */
+  deliverySLA       Int?
+  /**
+   * Reseller preference: speed | balanced | price
+   */
+  deliveryPriority  String         @default("balanced")
+  createdAt         DateTime       @default(now())
+  quotes            ProductQuote[]
 
   @@index([status])
   @@index([category])

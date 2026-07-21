@@ -13,8 +13,12 @@ export type ProductRequestDto = {
   imageUrl: string | null
   status: string
   quotesCount: number
+  deliverySLA: number | null
+  deliveryPriority: string
   createdAt: string
   myQuoteStatus?: string | null
+  /** Supplier list: can meet reseller SLA with typical stock ETA */
+  slaCompatible?: boolean
 }
 
 export type ProductQuoteDto = {
@@ -50,8 +54,13 @@ export const PRODUCT_REQUEST_COUNTRIES = [
   "IT",
   "JP",
   "SA",
+  "AE",
   "BR",
   "GB",
+  "CA",
+  "KR",
+  "SG",
+  "MX",
 ] as const
 
 export function formatRequestRelativeFr(iso: string | Date): string {
@@ -79,6 +88,8 @@ export function serializeProductRequest(row: {
   imageUrl: string | null
   status: string
   quotesCount: number
+  deliverySLA: number | null
+  deliveryPriority: string
   createdAt: Date
 }): ProductRequestDto {
   return {
@@ -94,6 +105,8 @@ export function serializeProductRequest(row: {
     imageUrl: row.imageUrl,
     status: row.status,
     quotesCount: row.quotesCount,
+    deliverySLA: row.deliverySLA,
+    deliveryPriority: row.deliveryPriority,
     createdAt: row.createdAt.toISOString(),
   }
 }

@@ -45,6 +45,6 @@ describe("radar-copy persona split", () => {
     expect(radarActionCtaLabel("AFFILIATE")).toBe("Lister sans stock →")
     expect(radarActionCtaLabel("SUPPLIER")).toBe("Devenir fournisseur →")
     expect(radarArbitrageGoldHint()).toMatch(/sans stock/)
-    expect(radarEuSuppliersFastLabel()).toMatch(/Sans stock/)
+    expect(radarEuSuppliersFastLabel()).toMatch(/Idéal|Raisonnable|Trop lent|EU/)
   })
 })

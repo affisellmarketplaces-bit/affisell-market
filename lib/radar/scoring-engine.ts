@@ -3,6 +3,7 @@
  * Client-safe.
  */
 
+import { formatRadarSupplierDeliveryLine } from "@/lib/logistics/delivery-sla"
 import {
   PRODUCT_POOL,
   resolveProductImage,
@@ -177,10 +178,29 @@ function competitionFromScore(score: number, productId: string, country: string)
   return n
 }
 
-function supplierLabel(score: number): string {
-  if (score > 90) return "✅ 3 fournisseurs EU - 4j - Sans stock"
-  if (score >= 80) return "✅ 2 fournisseurs EU - Sans stock"
-  return "⚠️ 1 fournisseur EU - Sans stock"
+function supplierLabel(score: number, countryCode: string): string {
+  if (score > 90) {
+    return formatRadarSupplierDeliveryLine({
+      count: 3,
+      marketCountry: countryCode,
+      origin: "EU",
+      days: 3,
+    })
+  }
+  if (score >= 80) {
+    return formatRadarSupplierDeliveryLine({
+      count: 2,
+      marketCountry: countryCode,
+      origin: "EU",
+      days: 4,
+    })
+  }
+  return formatRadarSupplierDeliveryLine({
+    count: 1,
+    marketCountry: countryCode,
+    origin: "CN",
+    days: 15,
+  })
 }
 
 function sourceLabel(product: ProductArchetype, country: string): string {
@@ -270,7 +290,7 @@ function toWinner(
     isHot: growthRate > 150,
     isLocalWinner,
     lastWeekRank,
-    supplierLabel: supplierLabel(row.score),
+    supplierLabel: supplierLabel(row.score, code),
   }
 }
 

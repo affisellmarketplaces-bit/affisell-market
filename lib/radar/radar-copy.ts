@@ -7,6 +7,7 @@ import {
   computeSmartPricing,
   formatEnrichEuro,
 } from "@/lib/import/smart-import-enricher"
+import { formatRadarSupplierDeliveryLine } from "@/lib/logistics/delivery-sla"
 
 /** @deprecated Prefer getRadarCopyForAffiliate().tooltip — kept for tests / tooltips. */
 export const RADAR_NO_STOCK_TOOLTIP =
@@ -112,9 +113,9 @@ export function getRadarCopyForAffiliate(
         : `💜 Marché Vierge ${code} - 0 concurrent - Lancement 1er sans stock →`,
     supplierLabel:
       count >= 3
-        ? `✅ ${count} fournisseurs EU - 4j - Sans stock`
+        ? formatRadarSupplierDeliveryLine({ count, marketCountry: code, origin: "EU", days: 3 })
         : count > 0
-          ? `✅ ${count} fournisseur${count > 1 ? "s" : ""} EU - Sans stock`
+          ? formatRadarSupplierDeliveryLine({ count, marketCountry: code, origin: "EU", days: 4 })
           : `💜 Marché Vierge ${code} - 0 concurrent - Lancement 1er sans stock →`,
     ctaLabel: `Lister sans stock →`,
     tooltip: `Tu listes à ${salePrice}€. Quand tu vends, Affisell achète à ${costPrice}€ et livre. Tu touches ${margin}€. 0 stock.`,
@@ -138,7 +139,7 @@ export function getRadarCopyForSupplier(
     opportunityLabel: `📦 Opportunité Grossiste ${code} - 0 fournisseur local - Devenir le seul →`,
     supplierLabel:
       count > 0
-        ? `⚠️ ${count} fournisseurs EU - 4j - Rupture imminente`
+        ? `${formatRadarSupplierDeliveryLine({ count, marketCountry: code, origin: "EU", days: 4 })} - Rupture imminente`
         : `📦 Opportunité Grossiste ${code} - 0 fournisseur local - Devenir le seul →`,
     ctaLabel: `Devenir fournisseur →`,
     tooltip: `${searchesLabel} recherches/mois en ${code}. 0 fournisseur local. Positionne ton stock et 150 resellers Affisell vendront pour toi.`,

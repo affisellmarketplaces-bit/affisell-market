@@ -74,6 +74,7 @@ export default async function SupplierRequestDetailPage({ params }: PageProps) {
         {request.status === "open" || myQuote ? (
           <SupplierQuoteForm
             requestId={request.id}
+            requestCountry={request.country}
             existingQuote={myQuote ? serializeProductQuote(myQuote) : null}
           />
         ) : (

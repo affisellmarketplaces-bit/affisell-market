@@ -2,26 +2,35 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
+import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
+import { sortQuotesByDeliveryThenPrice } from "@/lib/logistics/delivery-sla"
 import type { ProductQuoteDto } from "@/lib/product-request-types"
 
 export function ResellerQuotesComparator({
   requestId,
   requestStatus,
+  requestCountry,
   quotes,
   winningListingId,
 }: {
   requestId: string
   requestStatus: string
+  requestCountry: string
   quotes: ProductQuoteDto[]
   winningListingId: string | null
 }) {
   const router = useRouter()
   const [pendingId, setPendingId] = useState<string | null>(null)
   const confettiFired = useRef(false)
+
+  const sortedQuotes = useMemo(
+    () => sortQuotesByDeliveryThenPrice(quotes, requestCountry),
+    [quotes, requestCountry]
+  )
 
   async function accept(quoteId: string) {
     setPendingId(quoteId)
@@ -60,14 +69,14 @@ export function ResellerQuotesComparator({
     }
   }
 
-  const accepted = quotes.find((q) => q.status === "accepted") ?? null
+  const accepted = sortedQuotes.find((q) => q.status === "accepted") ?? null
   const fulfilled = requestStatus === "fulfilled" || requestStatus === "closed"
 
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-base font-bold text-zinc-900">
-          Devis reçus ({quotes.length})
+          Devis reçus ({sortedQuotes.length})
         </h2>
         {fulfilled && winningListingId ? (
           <Link
@@ -80,14 +89,17 @@ export function ResellerQuotesComparator({
       </div>
 
       {fulfilled && accepted ? (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          Gagnant:{" "}
-          <strong>{accepted.supplierName || accepted.supplierEmail || "Fournisseur"}</strong> —{" "}
-          {accepted.price}€ · MOQ {accepted.moq} · {accepted.deliveryDays}j
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          <span>
+            Gagnant:{" "}
+            <strong>{accepted.supplierName || accepted.supplierEmail || "Fournisseur"}</strong> —{" "}
+            {accepted.price}€ · MOQ {accepted.moq}
+          </span>
+          <DeliveryBadge days={accepted.deliveryDays} country={requestCountry} variant="full" />
         </div>
       ) : null}
 
-      {quotes.length === 0 ? (
+      {sortedQuotes.length === 0 ? (
         <p className="rounded-xl border border-dashed border-zinc-300 bg-white px-4 py-8 text-center text-sm text-zinc-600">
           Aucun devis pour l’instant — les fournisseurs sont notifiés.
         </p>
@@ -105,7 +117,7 @@ export function ResellerQuotesComparator({
               </tr>
             </thead>
             <tbody>
-              {quotes.map((q) => (
+              {sortedQuotes.map((q) => (
                 <tr key={q.id} className="border-b border-zinc-50 last:border-0">
                   <td className="px-3 py-3 font-medium text-zinc-900">
                     {q.supplierName || q.supplierEmail || "Fournisseur"}
@@ -115,7 +127,9 @@ export function ResellerQuotesComparator({
                   </td>
                   <td className="px-3 py-3 font-semibold">{q.price}€</td>
                   <td className="px-3 py-3">{q.moq}</td>
-                  <td className="px-3 py-3">{q.deliveryDays}j</td>
+                  <td className="px-3 py-3">
+                    <DeliveryBadge days={q.deliveryDays} country={requestCountry} variant="full" />
+                  </td>
                   <td className="max-w-[220px] truncate px-3 py-3 text-xs text-zinc-600">
                     {q.message || "—"}
                   </td>

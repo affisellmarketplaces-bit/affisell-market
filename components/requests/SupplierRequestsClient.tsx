@@ -99,14 +99,20 @@ export function SupplierRequestsClient() {
             <li key={r.id}>
               <Link
                 href={`/dashboard/supplier/requests/${r.id}`}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 transition hover:border-orange-300 hover:bg-orange-50/40"
+                className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 transition ${
+                  r.slaCompatible === false
+                    ? "border-zinc-200 bg-zinc-100/80 opacity-60 hover:opacity-80"
+                    : "border-zinc-200 bg-white hover:border-orange-300 hover:bg-orange-50/40"
+                }`}
               >
                 <div>
                   <p className="font-semibold text-zinc-900">{r.title}</p>
                   <p className="mt-0.5 text-xs text-zinc-500">
                     {r.country} · {r.category} · {r.quantity} pcs ·{" "}
                     {formatRequestRelativeFr(r.createdAt)}
+                    {r.deliverySLA != null ? ` · SLA ≤${r.deliverySLA}j` : ""}
                     {r.myQuoteStatus ? ` · mon devis: ${r.myQuoteStatus}` : ""}
+                    {r.slaCompatible === false ? " · ⚠️ hors SLA typique" : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

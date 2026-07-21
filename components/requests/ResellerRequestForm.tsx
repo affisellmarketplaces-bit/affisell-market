@@ -5,9 +5,24 @@ import { useMemo, useState, type FormEvent } from "react"
 import { toast } from "sonner"
 
 import {
+  getResellerSlaHint,
+  getSLAForCountry,
+  type DeliveryPriority,
+} from "@/lib/logistics/delivery-sla"
+import {
   PRODUCT_REQUEST_CATEGORIES,
   PRODUCT_REQUEST_COUNTRIES,
 } from "@/lib/product-request-types"
+
+const PRIORITY_OPTIONS: Array<{
+  id: DeliveryPriority
+  label: string
+  hint: string
+}> = [
+  { id: "speed", label: "⚡ Vitesse max", hint: "idéal marché" },
+  { id: "balanced", label: "⚖️ Équilibré", hint: "max SLA" },
+  { id: "price", label: "💰 Prix bas", hint: "délai plus souple" },
+]
 
 export function ResellerRequestForm() {
   const router = useRouter()
@@ -40,6 +55,16 @@ export function ResellerRequestForm() {
   const [targetPrice, setTargetPrice] = useState("")
   const [description, setDescription] = useState("")
   const [imageUrl, setImageUrl] = useState("")
+  const [deliveryPriority, setDeliveryPriority] = useState<DeliveryPriority>("balanced")
+
+  const sla = getSLAForCountry(country)
+  const slaHint = getResellerSlaHint(country)
+  const priorityDays =
+    deliveryPriority === "speed"
+      ? sla.idealDays
+      : deliveryPriority === "price"
+        ? Math.max(sla.maxDays, 10)
+        : sla.maxDays
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -63,6 +88,7 @@ export function ResellerRequestForm() {
           targetPrice: priceNum != null && Number.isFinite(priceNum) ? priceNum : null,
           country,
           imageUrl: imageUrl.trim() || null,
+          deliveryPriority,
         }),
       })
       const data = (await res.json().catch(() => ({}))) as { error?: string; id?: string }
@@ -132,6 +158,45 @@ export function ResellerRequestForm() {
           </select>
         </div>
       </div>
+
+      <fieldset className="rounded-xl border border-zinc-200 bg-white p-3">
+        <legend className="px-1 text-xs font-semibold text-zinc-700">Priorité livraison</legend>
+        <div className="mt-1 grid gap-2">
+          {PRIORITY_OPTIONS.map((opt) => (
+            <label
+              key={opt.id}
+              className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                deliveryPriority === opt.id
+                  ? "border-violet-400 bg-violet-50"
+                  : "border-zinc-100 hover:bg-zinc-50"
+              }`}
+            >
+              <input
+                type="radio"
+                name="deliveryPriority"
+                value={opt.id}
+                checked={deliveryPriority === opt.id}
+                onChange={() => setDeliveryPriority(opt.id)}
+              />
+              <span className="font-medium text-zinc-900">
+                {opt.label}{" "}
+                <span className="text-xs font-normal text-zinc-500">
+                  ({opt.id === "speed"
+                    ? `${sla.idealDays}j`
+                    : opt.id === "balanced"
+                      ? `${sla.maxDays}j max`
+                      : `${Math.max(sla.maxDays, 10)}j ok`}
+                  )
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-zinc-600">{slaHint}</p>
+        <p className="mt-1 text-[11px] font-semibold text-violet-700">
+          SLA enregistré: {priorityDays}j ({sla.label})
+        </p>
+      </fieldset>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
