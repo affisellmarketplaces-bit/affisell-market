@@ -6,6 +6,7 @@ import { useCallback, useMemo, useState } from "react"
 
 import { RadarBulkImportModal } from "@/components/radar/RadarBulkImportModal"
 import { RadarImportBar } from "@/components/radar/RadarImportBar"
+import { RadarTopSuppliersRail } from "@/components/radar/RadarTopSuppliersRail"
 import { SupplierMatchBadge } from "@/components/radar/supplier-match-badge"
 import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
 import { WorldArbitrageMiniBadge } from "@/components/import/WorldArbitrageMiniBadge"
@@ -479,6 +480,8 @@ export default function WorldRadarTerminal({
           </div>
         </div>
       </section>
+
+      <RadarTopSuppliersRail />
 
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap gap-2 border-b border-zinc-100 pb-4">

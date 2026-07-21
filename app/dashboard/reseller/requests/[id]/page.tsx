@@ -24,6 +24,19 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
     orderBy: { price: "asc" },
   })
 
+  const acceptedQuote = quotes.find((q) => q.status === "accepted")
+  const existingReview = acceptedQuote
+    ? await prisma.deliveryReview.findUnique({
+        where: {
+          resellerId_quoteId: {
+            resellerId: session.user.id,
+            quoteId: acceptedQuote.id,
+          },
+        },
+        select: { id: true, quoteId: true },
+      })
+    : null
+
   const tag = `request:${id}`
   const listing = await prisma.affiliateProduct.findFirst({
     where: {
@@ -75,6 +88,7 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
           requestCountry={request.country}
           quotes={quotes.map(serializeProductQuote)}
           winningListingId={listing?.id ?? null}
+          alreadyReviewedQuoteId={existingReview?.quoteId ?? null}
         />
       </div>
     </main>

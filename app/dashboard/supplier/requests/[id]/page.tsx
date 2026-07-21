@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
+import { SupplierTrustSelfCard } from "@/components/logistics/SupplierTrustSelfCard"
 import { SupplierQuoteForm } from "@/components/requests/SupplierQuoteForm"
 import { requireSupplierSession } from "@/lib/dashboard-session"
 import { formatRequestRelativeFr, serializeProductQuote } from "@/lib/product-request-types"
@@ -29,6 +30,7 @@ export default async function SupplierRequestDetailPage({ params }: PageProps) {
   return (
     <main className="min-h-[calc(100dvh-3.75rem)] bg-zinc-50/80 px-4 py-8 md:px-8">
       <div className="mx-auto max-w-2xl space-y-6">
+        <SupplierTrustSelfCard supplierId={session.user.id} />
         <div>
           <Link
             href="/dashboard/supplier/requests"

@@ -51,6 +51,14 @@ model User {
    * UI labels: producer=Producteur, stocker=Grossiste (Stock FR 24/48h).
    */
   supplierKind                     String    @default("unset") @db.Text
+  /**
+   * Delivery honesty trust (Product Requests / promised vs actual). Distinct from SupplierProfile.trustScore (Lightning).
+   */
+  trustScore                       Int       @default(75)
+  /**
+   * Cached: trustScore >= 90 from delivery metrics.
+   */
+  isTopSupplier                    Boolean   @default(false)
   stripeCustomerId                 String?   @unique
   stripeSubscriptionId             String?   @unique
   /**
@@ -249,6 +257,8 @@ model User {
   merchantDefault MerchantDefault?
 
   @@index([referredById])
+  @@index([trustScore])
+  @@index([isTopSupplier])
 }
 
 /**
@@ -3476,6 +3486,55 @@ model ProductQuote {
   @@unique([requestId, supplierId])
   @@index([requestId])
   @@index([supplierId])
+}
+
+/**
+ * Rolling delivery honesty metrics for a supplier (Product Requests trust loop).
+ */
+model SupplierMetrics {
+  id                     String   @id @default(cuid())
+  supplierId             String   @unique
+  totalOrders            Int      @default(0)
+  onTimeDeliveries       Int      @default(0)
+  avgDeliveryDays        Float    @default(0)
+  /**
+   * Mean (actualDays - promisedDays); positive = late on average.
+   */
+  promisedVsActualDelta  Float    @default(0)
+  trustScore             Int      @default(75) // 0-100
+  deliveryScore          Int      @default(75) // 0-100 delivery-specific
+  /**
+   * Mean minutes to answer a ProductRequest with a quote.
+   */
+  responseTimeAvg        Int      @default(0)
+  disputeRate            Float    @default(0)
+  lastUpdated            DateTime @default(now())
+
+  @@index([trustScore])
+  @@index([deliveryScore])
+}
+
+/**
+ * Reseller rates promised vs actual delivery after a fulfilled request/order.
+ */
+model DeliveryReview {
+  id           String   @id @default(cuid())
+  orderId      String?
+  requestId    String?
+  quoteId      String?
+  supplierId   String
+  resellerId   String
+  promisedDays Int
+  actualDays   Int
+  isOnTime     Boolean
+  rating       Int // 1-5
+  comment      String?  @db.Text
+  createdAt    DateTime @default(now())
+
+  @@unique([resellerId, quoteId])
+  @@index([supplierId])
+  @@index([isOnTime])
+  @@index([resellerId, createdAt])
 }
 
 // ─── Market Intelli ───
