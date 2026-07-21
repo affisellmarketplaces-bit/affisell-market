@@ -227,21 +227,21 @@ model User {
   /**
    * Affiliate referral program — shareable link `affisell.com/r/{referralCode}`.
    */
-  referralCode              String   @unique @default(cuid())
+  referralCode              String                @unique @default(cuid())
   referredById              String?
-  referredBy                User?    @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
-  referrals                 User[]   @relation("UserReferrals")
-  referralBonusBalanceCents Int      @default(0)
+  referredBy                User?                 @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals                 User[]                @relation("UserReferrals")
+  referralBonusBalanceCents Int                   @default(0)
   referralBonusLedger       ReferralBonusLedger[]
   referralUgcClaims         ReferralUgcClaim[]
-  convertedSupplierLeads    SupplierLead[]       @relation("ConvertedSupplierLead")
+  convertedSupplierLeads    SupplierLead[]        @relation("ConvertedSupplierLead")
 
   /**
    * Wizard v2 gamification — XP, streak, last publish for streak calc.
    */
-  xp                      Int       @default(0)
-  productStreak           Int       @default(0)
-  lastProductPublishedAt  DateTime?
+  xp                     Int       @default(0)
+  productStreak          Int       @default(0)
+  lastProductPublishedAt DateTime?
 
   /**
    * Wizard v2 smart defaults (logistics, commission) per merchant.
@@ -345,26 +345,28 @@ model MerchantLegalDocument {
  * Supplier Lightning Payout — trust scoring and instant settlement eligibility.
  */
 model SupplierProfile {
-  id               String   @id @default(cuid())
-  userId           String   @unique
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  trustScore              Int      @default(50) // 0-100
-  lightningEnabled        Boolean  @default(false)
-  /** Admin bypass of trust-score gate for Lightning Payout (founder override). */
-  lightningAdminOverride  Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trustScore             Int      @default(50) // 0-100
+  lightningEnabled       Boolean  @default(false)
+  /**
+   * Admin bypass of trust-score gate for Lightning Payout (founder override).
+   */
+  lightningAdminOverride Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }
 
 /**
  * Affiliate Lightning Payout — dedicated Connect account for commission transfers.
  */
 model AffiliateProfile {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 /**
@@ -527,8 +529,8 @@ model Store {
    */
   returnAddress   Json?
 
-  communityPosts    CommunityPost[]
-  followerRelations Follow[]        @relation("StoreFollowers")
+  communityPosts        CommunityPost[]
+  followerRelations     Follow[]                    @relation("StoreFollowers")
   newsletterSubscribers StoreNewsletterSubscriber[]
 }
 
@@ -537,17 +539,19 @@ model Store {
  * Idempotent on (storeId, email) — safe on double-submit / replay.
  */
 model StoreNewsletterSubscriber {
-  id                 String    @id @default(cuid())
-  storeId            String
-  store              Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  email              String
-  locale             String?
-  source             String    @default("storefront_newsletter")
-  welcomeEmailSentAt DateTime?
-  /** Campaign key (endsAt|listingIds) — idempotent flash sale alert per subscriber */
+  id                    String    @id @default(cuid())
+  storeId               String
+  store                 Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  email                 String
+  locale                String?
+  source                String    @default("storefront_newsletter")
+  welcomeEmailSentAt    DateTime?
+  /**
+   * Campaign key (endsAt|listingIds) — idempotent flash sale alert per subscriber
+   */
   lastFlashSaleAlertKey String?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@unique([storeId, email])
   @@index([storeId])
@@ -1340,7 +1344,9 @@ model Wishlist {
 model PushSubscription {
   id        String   @id @default(cuid())
   userId    String
-  /** Web Push endpoint URL (unique per browser install). */
+  /**
+   * Web Push endpoint URL (unique per browser install).
+   */
   endpoint  String   @unique
   p256dh    String
   auth      String
@@ -1555,17 +1561,19 @@ model AffiliateProduct {
   /**
    * When true, daily cron nudges per-variant `variantPricing` ±5% (idempotent per UTC day).
    */
-  pricingAutoAdjust         Boolean   @default(false)
+  pricingAutoAdjust        Boolean   @default(false)
   pricingAutoAdjustLastRun DateTime?
 
   /**
    * Set when supplier wholesale rises or affiliate price falls below cost — review margins in listing builder.
    */
-  marginReviewNeeded       Boolean   @default(false)
-  marginReviewAt           DateTime?
-  marginReviewVariantKeys  String[]  @default([])
-  /** Last wholesale snapshot hash we notified for (idempotent alerts). */
-  marginReviewAlertHash    String?
+  marginReviewNeeded      Boolean   @default(false)
+  marginReviewAt          DateTime?
+  marginReviewVariantKeys String[]  @default([])
+  /**
+   * Last wholesale snapshot hash we notified for (idempotent alerts).
+   */
+  marginReviewAlertHash   String?
 
   /**
    * When true, show supplier warranty badge on storefront cards (requires warranty on SKUs).
@@ -2052,7 +2060,9 @@ model Order {
   merchantPayoutLedger             MerchantPayoutLedger[]
   buyerReview                      Review?
   reviewReminderSentAt             DateTime?
-  /** Idempotent guard for J+3 review push nudge. */
+  /**
+   * Idempotent guard for J+3 review push nudge.
+   */
   reviewEarlyNudgeSentAt           DateTime?
   /**
    * Idempotent guard for J+30 repurchase win-back email.
@@ -2104,7 +2114,7 @@ model Order {
   autoFulfillmentBatch             AutoFulfillmentBatch?        @relation(fields: [autoFulfillmentBatchId], references: [id], onDelete: SetNull)
 
   cgvVersionId     String?
-  cgvVersion       LegalVersion?      @relation("OrderCgvVersion", fields: [cgvVersionId], references: [id])
+  cgvVersion       LegalVersion?     @relation("OrderCgvVersion", fields: [cgvVersionId], references: [id])
   cgvAcceptedAt    DateTime?
   legalAcceptances LegalAcceptance[]
 
@@ -2121,23 +2131,23 @@ model Order {
 }
 
 model TransferAttempt {
-  id               String         @id @default(cuid())
-  orderId          String
-  role             TransferRole
-  amountCents      Int
+  id                  String         @id @default(cuid())
+  orderId             String
+  role                TransferRole
+  amountCents         Int
   /**
    * Cumulative Stripe reversal applied to this transfer (partial refunds increment).
    */
   reversedAmountCents Int            @default(0)
-  destination      String
-  status           TransferStatus @default(PENDING)
-  stripeTransferId String?
-  errorCode        String?
-  errorMessage     String?
-  attempts         Int            @default(0)
-  lastAttemptAt    DateTime?
-  createdAt        DateTime       @default(now())
-  order            Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  destination         String
+  status              TransferStatus @default(PENDING)
+  stripeTransferId    String?
+  errorCode           String?
+  errorMessage        String?
+  attempts            Int            @default(0)
+  lastAttemptAt       DateTime?
+  createdAt           DateTime       @default(now())
+  order               Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@unique([orderId, role])
   @@index([status, attempts])
@@ -3412,6 +3422,28 @@ model ImportJob {
 
   @@index([userId, status])
   @@index([userId, createdAt])
+}
+
+/**
+ * Reseller product demand → supplier alerts (MVP additive).
+ */
+model ProductRequest {
+  id            String   @id @default(cuid())
+  resellerId    String
+  resellerEmail String
+  title         String
+  description   String?  @db.Text
+  category      String   @default("general")
+  quantity      Int      @default(100)
+  targetPrice   Float?
+  country       String   @default("FR")
+  imageUrl      String?
+  status        String   @default("open") // open, closed
+  createdAt     DateTime @default(now())
+
+  @@index([status])
+  @@index([category])
+  @@index([resellerId, createdAt])
 }
 
 // ─── Market Intelli ───

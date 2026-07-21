@@ -27,6 +27,7 @@ import { getSupplierAnalytics } from "@/lib/supplier-dashboard-analytics"
 import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
 import { SupplierPublishReadinessCard } from "@/components/supplier/mission-control/supplier-publish-readiness-card"
 import { RadarSupplierDiscoveryCard } from "@/components/radar/radar-discovery-card"
+import { SupplierProductRequestsTeaser } from "@/components/requests/SupplierProductRequestsTeaser"
 import { resolveAppLocale } from "@/lib/i18n-locale"
 import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 
@@ -90,6 +91,8 @@ export default async function DashboardSupplierPage() {
             <SupplierInviteContextBanner />
 
             <RadarSupplierDiscoveryCard supplierKind={feeUser?.supplierKind} />
+
+            <SupplierProductRequestsTeaser />
 
             {!publishReadiness.verification.allowed ? (
               <SupplierKycPublishBanner

@@ -693,22 +693,32 @@ export default function WorldRadarTerminal({
                         {formatRadarPriceDisplay(row.price ?? 0, row.currency)}
                       </td>
                       <td className="px-2 py-3">
-                        {isRadarSupplierRole(userRole) ? (
-                          <Link
-                            href={rowCopy.ctaHref(country)}
-                            className="text-xs font-semibold text-violet-600 hover:text-violet-800"
-                          >
-                            {rowCopy.ctaLabel}
-                          </Link>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => void listOneWithoutStock(row.id)}
-                            className="text-xs font-semibold text-violet-600 hover:text-violet-800"
-                          >
-                            {rowCopy.ctaLabel}
-                          </button>
-                        )}
+                        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
+                          {isRadarSupplierRole(userRole) ? (
+                            <Link
+                              href={rowCopy.ctaHref(country)}
+                              className="text-xs font-semibold text-violet-600 hover:text-violet-800"
+                            >
+                              {rowCopy.ctaLabel}
+                            </Link>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => void listOneWithoutStock(row.id)}
+                              className="text-xs font-semibold text-violet-600 hover:text-violet-800"
+                            >
+                              {rowCopy.ctaLabel}
+                            </button>
+                          )}
+                          {!isRadarSupplierRole(userRole) ? (
+                            <Link
+                              href={`/dashboard/reseller/requests/new?title=${encodeURIComponent(row.title)}&category=${encodeURIComponent(row.category ?? "general")}&country=${encodeURIComponent(country)}`}
+                              className="text-xs font-medium text-zinc-500 hover:text-zinc-800"
+                            >
+                              Demander
+                            </Link>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   )
