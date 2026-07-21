@@ -264,3 +264,45 @@ export function formatEnrichEuro(n: number): string {
     maximumFractionDigits: 2,
   })
 }
+
+export type BulkCatalogTotals = {
+  count: number
+  costTotal: number
+  saleTotal: number
+  marginTotal: number
+  multiplier: number
+  lines: Array<{ title: string; salePrice: number; costPrice: number; margin: number }>
+}
+
+/** Catalog totals for bulk modal (smart x3.2 pricing, not raw radar retail). */
+export function estimateBulkCatalogTotals(
+  winners: Array<{ title: string; supplierPrice?: number | null }>
+): BulkCatalogTotals {
+  const lines = winners.map((w) => {
+    const pricing = computeSmartPricing({
+      title: w.title,
+      supplierPrice: w.supplierPrice,
+    })
+    return {
+      title: w.title,
+      salePrice: pricing.salePrice,
+      costPrice: pricing.costPrice,
+      margin: pricing.margin,
+    }
+  })
+  const costTotal = round2(lines.reduce((s, l) => s + l.costPrice, 0))
+  const saleTotal = round2(lines.reduce((s, l) => s + l.salePrice, 0))
+  const marginTotal = round2(saleTotal - costTotal)
+  const multiplier = costTotal > 0 ? round2(saleTotal / costTotal) : MARKUP
+  return {
+    count: lines.length,
+    costTotal,
+    saleTotal,
+    marginTotal,
+    multiplier,
+    lines,
+  }
+}
+
+export const RADAR_BULK_IMPORT_MAX = 20
+

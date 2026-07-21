@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   computeSmartPricing,
   enrichRadarImport,
+  estimateBulkCatalogTotals,
   estimateBulkProfit,
   psychologicalPrice,
 } from "@/lib/import/smart-import-enricher"
@@ -32,9 +33,17 @@ describe("smart-import-enricher", () => {
 
   it("estimateBulkProfit uses winner price * 2.2", () => {
     const est = estimateBulkProfit([10, 20, null])
-    // 10*2.2 + 20*2.2 + 4.2*2.2
     expect(est.profit).toBe(75.24)
     expect(est.count).toBe(3)
     expect(est.multiplier).toBe(3.2)
+  })
+
+  it("estimateBulkCatalogTotals for 20 defaults → 84 / 299 / +215", () => {
+    const winners = Array.from({ length: 20 }, (_, i) => ({ title: `P${i}` }))
+    const totals = estimateBulkCatalogTotals(winners)
+    expect(totals.costTotal).toBe(84)
+    expect(totals.saleTotal).toBe(299)
+    expect(totals.marginTotal).toBe(215)
+    expect(totals.multiplier).toBeCloseTo(3.56, 1)
   })
 })

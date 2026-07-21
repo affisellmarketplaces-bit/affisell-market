@@ -4,9 +4,16 @@ import Link from "next/link"
 import useSWR from "swr"
 import { useCallback, useMemo, useState } from "react"
 
+import { RadarBulkImportModal } from "@/components/radar/RadarBulkImportModal"
 import { RadarImportBar } from "@/components/radar/RadarImportBar"
 import { SupplierMatchBadge } from "@/components/radar/supplier-match-badge"
+import {
+  estimateBulkCatalogTotals,
+  formatEnrichEuro,
+  RADAR_BULK_IMPORT_MAX,
+} from "@/lib/import/smart-import-enricher"
 import { formatRadarPriceDisplay } from "@/lib/radar/format-radar-price"
+import type { RadarImportDestination } from "@/lib/radar/radar-import-types"
 import type { SupplierKind } from "@/lib/supplier-kind"
 import {
   formatRelativeScanFr,
@@ -14,6 +21,7 @@ import {
   type WorldRadarPayload,
   type WorldRadarWinnerDto,
 } from "@/lib/radar/world-radar-types"
+import { toast } from "sonner"
 
 type RegionTab = "all" | "Europe" | "America" | "Asia" | "Africa" | "Oceania"
 
@@ -159,12 +167,22 @@ export default function WorldRadarTerminal({
   const [regionTab, setRegionTab] = useState<RegionTab>("all")
   const [search, setSearch] = useState("")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [bulkModalOpen, setBulkModalOpen] = useState(false)
+  const [bulkLoading, setBulkLoading] = useState(false)
+  const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number } | null>(
+    null
+  )
 
   const toggleWinnerSelection = useCallback((winnerId: string) => {
     setSelectedIds((prev) =>
       prev.includes(winnerId) ? prev.filter((id) => id !== winnerId) : [...prev, winnerId]
     )
   }, [])
+
+  const defaultBulkDestination: RadarImportDestination =
+    supplierKind === "stocker" || supplierKind === "unset"
+      ? "supplier_draft"
+      : "affisell_catalog"
 
   const { data: countriesData } = useSWR<WorldRadarCountriesPayload>(
     "/api/radar/countries",
@@ -215,22 +233,124 @@ export default function WorldRadarTerminal({
     return selectedIds.map((id) => byId.get(id) ?? null)
   }, [data?.winners, selectedIds])
 
+  const bulkWinners = useMemo(
+    () =>
+      filteredWinners.slice(0, RADAR_BULK_IMPORT_MAX).map((w) => ({
+        id: w.id,
+        title: w.title,
+      })),
+    [filteredWinners]
+  )
+
+  const bulkTotals = useMemo(() => estimateBulkCatalogTotals(bulkWinners), [bulkWinners])
+
   const lastScanLabel = formatRelativeScanFr(data?.lastScanAt)
   const isLive = data?.isLive ?? false
   const isGrossiste = supplierKind === "stocker" || supplierKind === "unset"
 
+  async function runBulkImport(destination: RadarImportDestination) {
+    if (bulkLoading || bulkWinners.length === 0) return
+    const total = bulkWinners.length
+    setBulkLoading(true)
+    setBulkProgress({ current: 0, total })
+
+    const tick = window.setInterval(() => {
+      setBulkProgress((prev) => {
+        if (!prev) return { current: 1, total }
+        const next = Math.min(prev.current + 1, Math.max(total - 1, 1))
+        return { current: next, total }
+      })
+    }, 180)
+
+    try {
+      const res = await fetch("/api/radar/source", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          winnerIds: bulkWinners.map((w) => w.id),
+          country,
+          destination,
+        }),
+      })
+      const dataJson = (await res.json().catch(() => ({}))) as {
+        error?: string
+        count?: number
+        importedCount?: number
+        totalMargin?: number
+        redirectUrl?: string
+      }
+
+      window.clearInterval(tick)
+      setBulkProgress({ current: total, total })
+
+      if (!res.ok) {
+        toast.error(dataJson.error ?? "Import bulk impossible")
+        return
+      }
+
+      const imported = dataJson.importedCount ?? dataJson.count ?? total
+      const margin = dataJson.totalMargin ?? bulkTotals.marginTotal
+
+      if (destination === "supplier_draft" && dataJson.redirectUrl) {
+        toast.success(`🎉 ${imported} produits prêts — ouverture assistant…`)
+        setBulkModalOpen(false)
+        window.location.href = dataJson.redirectUrl
+        return
+      }
+
+      toast.success(
+        `🎉 ${imported} produits importés → Marge +${formatEnrichEuro(margin)}€ → Voir drafts`,
+        {
+          action: {
+            label: "Voir drafts",
+            onClick: () => {
+              window.location.href = "/dashboard/affiliate/catalog?filter=draft"
+            },
+          },
+        }
+      )
+      setBulkModalOpen(false)
+      setSelectedIds([])
+    } catch (err) {
+      window.clearInterval(tick)
+      console.error("[WorldRadarTerminal]", {
+        step: "bulk_import",
+        message: err instanceof Error ? err.message : "unknown",
+      })
+      toast.error("Erreur réseau — réessayez")
+    } finally {
+      setBulkLoading(false)
+      setBulkProgress(null)
+    }
+  }
+
   return (
-    <div className={`space-y-6 ${selectedIds.length > 0 ? "pb-24" : ""}`}>
+    <div className="space-y-6 pb-28">
       <section className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-gradient-to-br from-zinc-950 via-zinc-900 to-violet-950 p-6 text-white shadow-xl">
         <div className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-violet-500/20 blur-3xl" />
         <div className="relative flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">
               Affisell Intelligence
             </p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
-              WORLD RADAR — Analyse quotidienne des marchés
-            </h1>
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                WORLD RADAR — Analyse quotidienne des marchés
+              </h1>
+              {bulkWinners.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setBulkModalOpen(true)}
+                  disabled={bulkLoading}
+                  className="shrink-0 rounded-xl bg-[#6D28D9] px-3.5 py-2 text-xs font-semibold text-white shadow-lg shadow-violet-900/40 transition hover:bg-[#5B21B6] disabled:opacity-60 sm:text-sm"
+                >
+                  {bulkLoading && bulkProgress
+                    ? `Import en cours... ${bulkProgress.current}/${bulkProgress.total}`
+                    : `⚡ Importer les ${bulkWinners.length} ${country} → Catalogue (Marge +${formatEnrichEuro(bulkTotals.marginTotal)}€)`}
+                </button>
+              ) : null}
+            </div>
             <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-zinc-300">
               <span
                 className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
@@ -534,7 +654,24 @@ export default function WorldRadarTerminal({
         selectedPrices={selectedPrices}
         country={country}
         supplierKind={supplierKind}
+        visibleCount={bulkWinners.length}
         onClear={() => setSelectedIds([])}
+        onOpenBulk={() => setBulkModalOpen(true)}
+        bulkProgress={bulkProgress}
+        bulkLoading={bulkLoading}
+      />
+
+      <RadarBulkImportModal
+        open={bulkModalOpen}
+        country={country}
+        winners={bulkWinners}
+        defaultDestination={defaultBulkDestination}
+        progress={bulkProgress}
+        loading={bulkLoading}
+        onClose={() => {
+          if (!bulkLoading) setBulkModalOpen(false)
+        }}
+        onConfirm={(destination) => void runBulkImport(destination)}
       />
     </div>
   )

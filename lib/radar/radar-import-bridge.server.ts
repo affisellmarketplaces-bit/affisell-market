@@ -12,6 +12,7 @@ import type {
 import {
   enrichRadarImport,
   formatEnrichEuro,
+  RADAR_BULK_IMPORT_MAX,
 } from "@/lib/import/smart-import-enricher"
 import type { WorldRadarWinnerDto } from "@/lib/radar/world-radar-types"
 import { getWorldRadarPayload } from "@/lib/radar/world-radar-store.server"
@@ -41,7 +42,10 @@ export async function resolveRadarWinnersForImport(args: {
   country: string
 }): Promise<RadarImportJobProduct[]> {
   const code = args.country.trim().toUpperCase()
-  const uniqueIds = [...new Set(args.winnerIds.map((id) => id.trim()).filter(Boolean))]
+  const uniqueIds = [...new Set(args.winnerIds.map((id) => id.trim()).filter(Boolean))].slice(
+    0,
+    RADAR_BULK_IMPORT_MAX
+  )
   if (uniqueIds.length === 0) return []
 
   const byId = new Map<string, RadarImportJobProduct>()
@@ -93,6 +97,58 @@ export async function resolveRadarWinnersForImport(args: {
     .filter((p): p is RadarImportJobProduct => Boolean(p))
 }
 
+/** Top N winners for a country (live payload → market_intelli fallback). */
+export async function resolveAllCountryWinnersForImport(args: {
+  country: string
+  limit?: number
+}): Promise<RadarImportJobProduct[]> {
+  const code = args.country.trim().toUpperCase()
+  const limit = Math.min(Math.max(args.limit ?? RADAR_BULK_IMPORT_MAX, 1), RADAR_BULK_IMPORT_MAX)
+
+  try {
+    const payload = await getWorldRadarPayload(code)
+    const sorted = [...payload.winners].sort((a, b) => {
+      const sa = a.finalScore ?? a.arbitrage?.score ?? a.trendingScore ?? 0
+      const sb = b.finalScore ?? b.arbitrage?.score ?? b.trendingScore ?? 0
+      return sb - sa
+    })
+    if (sorted.length > 0) {
+      return sorted.slice(0, limit).map(mapWinnerToImportProduct)
+    }
+  } catch (err) {
+    console.warn("[radar-import]", {
+      step: "resolve_all_live",
+      country: code,
+      message: err instanceof Error ? err.message : "unknown",
+    })
+  }
+
+  try {
+    const db = getRadarDb()
+    const rows = await db.radarWinner.findMany({
+      where: { countryCode: code, expiresAt: { gt: new Date() } },
+      orderBy: { trendingScore: "desc" },
+      take: limit,
+    })
+    return rows.map((row) => ({
+      winnerId: row.id,
+      title: row.title,
+      imageUrl: row.image,
+      price: row.price,
+      arbitrageScore: row.trendingScore,
+      category: row.category,
+      source: row.source,
+    }))
+  } catch (err) {
+    console.warn("[radar-import]", {
+      step: "resolve_all_radar_db",
+      country: code,
+      message: err instanceof Error ? err.message : "unknown",
+    })
+    return []
+  }
+}
+
 async function resolveCatalogProductId(
   winner: RadarImportJobProduct
 ): Promise<string | null> {
@@ -141,16 +197,28 @@ function radarSourceTag(country: string): string {
   return `world_radar_${country.trim().toUpperCase()}`
 }
 
-async function createAffiliateDraftFromWinner(args: {
+async function prepareEnrichedDraftRow(args: {
   affiliateId: string
   country: string
   winner: RadarImportJobProduct
-}): Promise<RadarImportJobProduct> {
+}): Promise<{
+  product: RadarImportJobProduct
+  createData: {
+    affiliateId: string
+    productId: string
+    sellingPriceCents: number
+    marginCents: number
+    customTitle: string
+    customImages: string[]
+    customDescription: string
+    isListed: boolean
+  } | null
+}> {
   const productId = await resolveCatalogProductId(args.winner)
   if (!productId) {
     return {
-      ...args.winner,
-      importError: "no_matching_catalog_product",
+      product: { ...args.winner, importError: "no_matching_catalog_product" },
+      createData: null,
     }
   }
 
@@ -159,7 +227,10 @@ async function createAffiliateDraftFromWinner(args: {
     select: { id: true, basePriceCents: true, images: true },
   })
   if (!product) {
-    return { ...args.winner, importError: "catalog_product_inactive" }
+    return {
+      product: { ...args.winner, importError: "catalog_product_inactive" },
+      createData: null,
+    }
   }
 
   const enriched = await enrichRadarImport(
@@ -183,7 +254,6 @@ async function createAffiliateDraftFromWinner(args: {
   const sourceTag = radarSourceTag(args.country)
   const saleCents = Math.round(price * 100)
   const costCents = Math.round(originalPrice * 100)
-  // Floor at catalog base so checkout constraints stay valid; prefer smart sale price.
   const sellingPriceCents = Math.max(saleCents, product.basePriceCents)
   const marginCents = Math.max(0, sellingPriceCents - Math.max(costCents, product.basePriceCents))
   const customImages =
@@ -193,11 +263,18 @@ async function createAffiliateDraftFromWinner(args: {
 
   const customDescription = `${description}\n\nRadar import · source=${sourceTag} · cost=${originalPrice}`
 
-  const listing = await prisma.affiliateProduct.upsert({
-    where: {
-      affiliateId_productId: { affiliateId: args.affiliateId, productId: product.id },
+  return {
+    product: {
+      ...args.winner,
+      title,
+      originalTitle: enriched.originalTitle,
+      price,
+      costPrice: originalPrice,
+      salePrice: price,
+      enrichMultiplier: enriched.multiplier,
+      importError: null,
     },
-    create: {
+    createData: {
       affiliateId: args.affiliateId,
       productId: product.id,
       sellingPriceCents,
@@ -207,36 +284,103 @@ async function createAffiliateDraftFromWinner(args: {
       customDescription,
       isListed: false,
     },
-    update: {
-      customTitle: title,
-      sellingPriceCents,
-      marginCents,
-      customImages: customImages.length > 0 ? customImages : undefined,
-      customDescription,
-      isListed: false,
-    },
-    select: { id: true },
+  }
+}
+
+/** Bulk create drafts via createMany (+ update existing unique pairs). */
+async function createAffiliateDraftsBulk(args: {
+  affiliateId: string
+  country: string
+  winners: RadarImportJobProduct[]
+}): Promise<RadarImportJobProduct[]> {
+  const prepared = []
+  for (const winner of args.winners.slice(0, RADAR_BULK_IMPORT_MAX)) {
+    prepared.push(
+      await prepareEnrichedDraftRow({
+        affiliateId: args.affiliateId,
+        country: args.country,
+        winner,
+      })
+    )
+  }
+
+  const withDataRaw = prepared.filter((p) => p.createData != null)
+  // One AffiliateProduct per catalog productId (unique affiliateId+productId).
+  const seenProduct = new Set<string>()
+  const withData = withDataRaw.filter((p) => {
+    const id = p.createData!.productId
+    if (seenProduct.has(id)) return false
+    seenProduct.add(id)
+    return true
   })
+  const productIds = withData.map((p) => p.createData!.productId)
+
+  const existing = productIds.length
+    ? await prisma.affiliateProduct.findMany({
+        where: {
+          affiliateId: args.affiliateId,
+          productId: { in: productIds },
+        },
+        select: { id: true, productId: true },
+      })
+    : []
+  const existingByProduct = new Map(existing.map((e) => [e.productId, e.id]))
+
+  const toCreate = withData
+    .filter((p) => !existingByProduct.has(p.createData!.productId))
+    .map((p) => p.createData!)
+
+  if (toCreate.length > 0) {
+    await prisma.affiliateProduct.createMany({
+      data: toCreate,
+      skipDuplicates: true,
+    })
+  }
+
+  const toUpdate = withData.filter((p) => existingByProduct.has(p.createData!.productId))
+  for (const row of toUpdate) {
+    const data = row.createData!
+    await prisma.affiliateProduct.update({
+      where: {
+        affiliateId_productId: {
+          affiliateId: args.affiliateId,
+          productId: data.productId,
+        },
+      },
+      data: {
+        customTitle: data.customTitle,
+        sellingPriceCents: data.sellingPriceCents,
+        marginCents: data.marginCents,
+        customImages: data.customImages.length > 0 ? data.customImages : undefined,
+        customDescription: data.customDescription,
+        isListed: false,
+      },
+    })
+  }
+
+  // Re-fetch created IDs for job payload
+  const after = productIds.length
+    ? await prisma.affiliateProduct.findMany({
+        where: { affiliateId: args.affiliateId, productId: { in: productIds } },
+        select: { id: true, productId: true },
+      })
+    : []
+  const idByProduct = new Map(after.map((a) => [a.productId, a.id]))
 
   console.log("[radar-import]", {
-    step: "affiliate_draft_enriched",
-    listingId: listing.id,
-    salePrice: price,
-    costPrice: originalPrice,
+    step: "affiliate_drafts_bulk",
+    created: toCreate.length,
+    updated: toUpdate.length,
     country: args.country,
   })
 
-  return {
-    ...args.winner,
-    title,
-    originalTitle: enriched.originalTitle,
-    price,
-    costPrice: originalPrice,
-    salePrice: price,
-    enrichMultiplier: enriched.multiplier,
-    importedListingId: listing.id,
-    importError: null,
-  }
+  return prepared.map((p) => {
+    if (!p.createData) return p.product
+    return {
+      ...p.product,
+      importedListingId: idByProduct.get(p.createData.productId) ?? null,
+    }
+  })
 }
 
 export async function createRadarImportJob(args: {
@@ -244,27 +388,61 @@ export async function createRadarImportJob(args: {
   country: string
   destination: RadarImportDestination
   products: RadarImportJobProduct[]
-}): Promise<{ jobId: string; count: number; redirectUrl?: string; importedCount: number }> {
+}): Promise<{
+  jobId: string
+  count: number
+  redirectUrl?: string
+  importedCount: number
+  totalMargin: number
+}> {
   const country = args.country.trim().toUpperCase()
+  const capped = args.products.slice(0, RADAR_BULK_IMPORT_MAX)
   let status: RadarImportJobStatus = "pending"
-  let products: RadarImportJobProduct[] = args.products
+  let products: RadarImportJobProduct[] = capped
 
   if (args.destination === "affisell_catalog") {
     status = "processing"
-    const resolved: RadarImportJobProduct[] = []
-    for (const winner of args.products) {
-      resolved.push(
-        await createAffiliateDraftFromWinner({
-          affiliateId: args.userId,
-          country,
-          winner,
-        })
-      )
-    }
-    products = resolved
-    const importedCount = resolved.filter((p) => p.importedListingId).length
+    products = await createAffiliateDraftsBulk({
+      affiliateId: args.userId,
+      country,
+      winners: capped,
+    })
+    const importedCount = products.filter((p) => p.importedListingId).length
     status = importedCount > 0 ? "completed" : "failed"
+  } else {
+    // Enrich pricing snapshot into job JSON (no AffiliateProduct writes).
+    const enrichedProducts: RadarImportJobProduct[] = []
+    for (const winner of capped) {
+      const enriched = await enrichRadarImport(
+        {
+          title: winner.title,
+          price: winner.price,
+          category: winner.category,
+          countryCode: country,
+          source: winner.source,
+        },
+        country
+      )
+      enrichedProducts.push({
+        ...winner,
+        title: enriched.title,
+        originalTitle: enriched.originalTitle,
+        price: enriched.salePrice,
+        costPrice: enriched.costPrice,
+        salePrice: enriched.salePrice,
+        enrichMultiplier: enriched.multiplier,
+      })
+    }
+    products = enrichedProducts
+    status = "completed"
   }
+
+  const totalMargin = products.reduce((sum, p) => {
+    if (p.salePrice != null && p.costPrice != null) {
+      return sum + (p.salePrice - p.costPrice)
+    }
+    return sum
+  }, 0)
 
   const job = await prisma.importJob.create({
     data: {
@@ -284,6 +462,7 @@ export async function createRadarImportJob(args: {
     country,
     destination: args.destination,
     count: products.length,
+    totalMargin: Math.round(totalMargin * 100) / 100,
     status,
   })
 
@@ -300,6 +479,7 @@ export async function createRadarImportJob(args: {
       args.destination === "affisell_catalog"
         ? products.filter((p) => p.importedListingId).length
         : products.length,
+    totalMargin: Math.round(totalMargin * 100) / 100,
   }
 }
 
