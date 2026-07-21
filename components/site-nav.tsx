@@ -22,7 +22,9 @@ function normalizeRole(role: string | null | undefined): "AFFILIATE" | "SUPPLIER
 /** Prefer dashboard path while session is loading — avoids wrong nav + notification API. */
 function roleFromDashboardPath(pathname: string | null): "AFFILIATE" | "SUPPLIER" | null {
   if (!pathname) return null
-  if (pathname.startsWith("/dashboard/affiliate")) return "AFFILIATE"
+  if (pathname.startsWith("/dashboard/affiliate") || pathname.startsWith("/dashboard/reseller")) {
+    return "AFFILIATE"
+  }
   if (pathname.startsWith("/dashboard/supplier")) return "SUPPLIER"
   return null
 }
