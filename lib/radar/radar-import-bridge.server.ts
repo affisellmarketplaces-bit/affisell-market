@@ -9,6 +9,10 @@ import type {
   RadarImportJobProduct,
   RadarImportJobStatus,
 } from "@/lib/radar/radar-import-types"
+import {
+  enrichRadarImport,
+  formatEnrichEuro,
+} from "@/lib/import/smart-import-enricher"
 import type { WorldRadarWinnerDto } from "@/lib/radar/world-radar-types"
 import { getWorldRadarPayload } from "@/lib/radar/world-radar-store.server"
 
@@ -25,6 +29,7 @@ function mapWinnerToImportProduct(w: WorldRadarWinnerDto): RadarImportJobProduct
     imageUrl: w.image,
     price: w.price,
     arbitrageScore: w.arbitrage?.score ?? w.finalScore ?? w.trendingScore ?? null,
+    category: w.category ?? null,
     productId: w.productId ?? null,
     source: w.source,
   }
@@ -70,6 +75,7 @@ export async function resolveRadarWinnersForImport(args: {
           imageUrl: row.image,
           price: row.price,
           arbitrageScore: row.trendingScore,
+          category: row.category,
           source: row.source,
         })
       }
@@ -156,17 +162,36 @@ async function createAffiliateDraftFromWinner(args: {
     return { ...args.winner, importError: "catalog_product_inactive" }
   }
 
-  const priceCents =
-    args.winner.price != null && Number.isFinite(args.winner.price)
-      ? Math.round(args.winner.price * 100)
-      : product.basePriceCents
-  const sellingPriceCents = Math.max(priceCents, product.basePriceCents)
+  const enriched = await enrichRadarImport(
+    {
+      title: args.winner.title,
+      price: args.winner.price,
+      category: args.winner.category,
+      countryCode: args.country,
+      source: args.winner.source,
+    },
+    args.country
+  )
+
+  const title = enriched.title
+  const originalPrice = enriched.costPrice
+  const price = enriched.salePrice
+  const description =
+    `${enriched.seoDescription}\n\n` +
+    `💰 Arbitrage: Acheté ${formatEnrichEuro(enriched.costPrice)}€ → Vendu ${formatEnrichEuro(enriched.salePrice)}€ = +${formatEnrichEuro(enriched.profit)}€ (x${enriched.multiplier.toFixed(1)})`
+
   const sourceTag = radarSourceTag(args.country)
-  const arbitrage = args.winner.arbitrageScore ?? "—"
+  const saleCents = Math.round(price * 100)
+  const costCents = Math.round(originalPrice * 100)
+  // Floor at catalog base so checkout constraints stay valid; prefer smart sale price.
+  const sellingPriceCents = Math.max(saleCents, product.basePriceCents)
+  const marginCents = Math.max(0, sellingPriceCents - Math.max(costCents, product.basePriceCents))
   const customImages =
     args.winner.imageUrl?.trim()
       ? [args.winner.imageUrl.trim()]
       : product.images.filter(Boolean).slice(0, 1)
+
+  const customDescription = `${description}\n\nRadar import · source=${sourceTag} · cost=${originalPrice}`
 
   const listing = await prisma.affiliateProduct.upsert({
     where: {
@@ -176,23 +201,39 @@ async function createAffiliateDraftFromWinner(args: {
       affiliateId: args.affiliateId,
       productId: product.id,
       sellingPriceCents,
-      marginCents: Math.max(0, sellingPriceCents - product.basePriceCents),
-      customTitle: args.winner.title,
+      marginCents,
+      customTitle: title,
       customImages,
-      customDescription: `Radar import · source=${sourceTag} · arbitrage=${arbitrage}`,
+      customDescription,
       isListed: false,
     },
     update: {
-      customTitle: args.winner.title,
+      customTitle: title,
+      sellingPriceCents,
+      marginCents,
       customImages: customImages.length > 0 ? customImages : undefined,
-      customDescription: `Radar import · source=${sourceTag} · arbitrage=${arbitrage}`,
+      customDescription,
       isListed: false,
     },
     select: { id: true },
   })
 
+  console.log("[radar-import]", {
+    step: "affiliate_draft_enriched",
+    listingId: listing.id,
+    salePrice: price,
+    costPrice: originalPrice,
+    country: args.country,
+  })
+
   return {
     ...args.winner,
+    title,
+    originalTitle: enriched.originalTitle,
+    price,
+    costPrice: originalPrice,
+    salePrice: price,
+    enrichMultiplier: enriched.multiplier,
     importedListingId: listing.id,
     importError: null,
   }

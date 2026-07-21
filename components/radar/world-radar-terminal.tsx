@@ -204,10 +204,16 @@ export default function WorldRadarTerminal({
 
   const onSelectCountry = useCallback((code: string) => {
     setCountry(code.toUpperCase())
+    setSelectedIds([])
     const url = new URL(window.location.href)
     url.searchParams.set("country", code.toUpperCase())
     window.history.replaceState(null, "", url.toString())
   }, [])
+
+  const selectedPrices = useMemo(() => {
+    const byId = new Map((data?.winners ?? []).map((w) => [w.id, w.price] as const))
+    return selectedIds.map((id) => byId.get(id) ?? null)
+  }, [data?.winners, selectedIds])
 
   const lastScanLabel = formatRelativeScanFr(data?.lastScanAt)
   const isLive = data?.isLive ?? false
@@ -525,6 +531,7 @@ export default function WorldRadarTerminal({
 
       <RadarImportBar
         selectedIds={selectedIds}
+        selectedPrices={selectedPrices}
         country={country}
         supplierKind={supplierKind}
         onClear={() => setSelectedIds([])}
