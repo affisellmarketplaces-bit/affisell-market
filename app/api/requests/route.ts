@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { PRODUCT_REQUEST_NOTIF } from "@/lib/product-request-notif-constants"
+import { serializeProductRequest } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -85,6 +87,7 @@ export async function POST(req: Request) {
       country,
       imageUrl,
       status: "open",
+      quotesCount: 0,
     },
     select: { id: true, title: true, country: true, category: true },
   })
@@ -98,32 +101,28 @@ export async function POST(req: Request) {
   })
 
   try {
-    const suppliers = await prisma.user.findMany({
+    let suppliers = await prisma.user.findMany({
       where: {
         role: "SUPPLIER",
         products: {
           some: {
             active: true,
-            OR: [
-              { categories: { has: category } },
-              { categories: { hasSome: [category, created.title.slice(0, 24)] } },
-            ],
+            categories: { has: category },
           },
         },
       },
       select: { id: true },
-      take: 25,
+      take: 20,
       orderBy: { createdAt: "desc" },
     })
 
     if (suppliers.length === 0) {
-      const fallback = await prisma.user.findMany({
+      suppliers = await prisma.user.findMany({
         where: { role: "SUPPLIER", products: { some: { active: true } } },
         select: { id: true },
-        take: 15,
+        take: 20,
         orderBy: { createdAt: "desc" },
       })
-      suppliers.push(...fallback)
     }
 
     const uniqueIds = [...new Set(suppliers.map((s) => s.id))]
@@ -131,9 +130,10 @@ export async function POST(req: Request) {
       await prisma.notification.createMany({
         data: uniqueIds.map((userId) => ({
           userId,
-          type: "PRODUCT_REQUEST",
-          message: `🔥 Demande reseller: ${created.title} (${created.country} · ${created.category})`,
-          imageUrl: imageUrl,
+          type: PRODUCT_REQUEST_NOTIF.NEW_REQUEST,
+          message: `Nouvelle demande: ${created.title}`,
+          imageUrl,
+          orderId: created.id,
         })),
       })
       console.log("[api/requests]", {
@@ -161,6 +161,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url)
   const status = (url.searchParams.get("status") ?? "open").trim().toLowerCase()
   const category = url.searchParams.get("category")?.trim().toLowerCase() ?? ""
+  const filter = (url.searchParams.get("filter") ?? "").trim().toLowerCase()
   const limit = Math.min(Math.max(Number(url.searchParams.get("limit") ?? 50), 1), 100)
 
   const role = session.user.role
@@ -168,22 +169,67 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 })
   }
 
-  const statusFilter =
-    status === "all" ? undefined : status === "closed" ? "closed" : "open"
   const categoryFilter = category && CATEGORIES.has(category) ? category : undefined
 
+  let statusFilter: string | undefined
+  if (status === "all") statusFilter = undefined
+  else if (status === "fulfilled" || status === "closed" || status === "open") statusFilter = status
+  else statusFilter = "open"
+
+  if (role === "AFFILIATE") {
+    const rows = await prisma.productRequest.findMany({
+      where: {
+        resellerId: session.user.id,
+        ...(statusFilter ? { status: statusFilter } : {}),
+        ...(categoryFilter ? { category: categoryFilter } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    })
+    return NextResponse.json({
+      requests: rows.map(serializeProductRequest),
+      count: rows.length,
+    })
+  }
+
+  // SUPPLIER filters: open | fulfilled | mine (quoted by me)
+  if (filter === "mine") {
+    const rows = await prisma.productRequest.findMany({
+      where: {
+        quotes: { some: { supplierId: session.user.id } },
+        ...(categoryFilter ? { category: categoryFilter } : {}),
+      },
+      include: {
+        quotes: {
+          where: { supplierId: session.user.id },
+          select: { status: true },
+          take: 1,
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    })
+    return NextResponse.json({
+      requests: rows.map((r) => ({
+        ...serializeProductRequest(r),
+        myQuoteStatus: r.quotes[0]?.status ?? null,
+      })),
+      count: rows.length,
+    })
+  }
+
   const rows = await prisma.productRequest.findMany({
-    where:
-      role === "AFFILIATE"
-        ? {
-            resellerId: session.user.id,
-            ...(statusFilter ? { status: statusFilter } : {}),
-            ...(categoryFilter ? { category: categoryFilter } : {}),
-          }
-        : {
-            status: statusFilter ?? "open",
-            ...(categoryFilter ? { category: categoryFilter } : {}),
-          },
+    where: {
+      status: statusFilter ?? "open",
+      ...(categoryFilter ? { category: categoryFilter } : {}),
+    },
+    include: {
+      quotes: {
+        where: { supplierId: session.user.id },
+        select: { status: true },
+        take: 1,
+      },
+    },
     orderBy: { createdAt: "desc" },
     take: limit,
   })
@@ -193,7 +239,14 @@ export async function GET(req: Request) {
     role,
     count: rows.length,
     status: statusFilter ?? "all",
+    filter: filter || null,
   })
 
-  return NextResponse.json({ requests: rows, count: rows.length })
+  return NextResponse.json({
+    requests: rows.map((r) => ({
+      ...serializeProductRequest(r),
+      myQuoteStatus: r.quotes[0]?.status ?? null,
+    })),
+    count: rows.length,
+  })
 }

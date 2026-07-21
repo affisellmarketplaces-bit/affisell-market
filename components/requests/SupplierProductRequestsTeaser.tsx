@@ -42,8 +42,14 @@ export function SupplierProductRequestsTeaser() {
       ) : (
         <ul className="mt-3 space-y-1.5">
           {rows.map((r) => (
-            <li key={r.id} className="text-xs font-medium text-orange-950">
-              {r.country} — {r.title} — {r.quantity}pcs — {formatRequestRelativeFr(r.createdAt)}
+            <li key={r.id}>
+              <Link
+                href={`/dashboard/supplier/requests/${r.id}`}
+                className="text-xs font-medium text-orange-950 hover:underline"
+              >
+                {r.country} — {r.title} — {r.quantity}pcs — {formatRequestRelativeFr(r.createdAt)}
+                {r.quotesCount > 0 ? ` · ${r.quotesCount} devis` : ""}
+              </Link>
             </li>
           ))}
         </ul>

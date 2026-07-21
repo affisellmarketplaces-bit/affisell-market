@@ -1,4 +1,5 @@
-/** Shared ProductRequest DTO — safe for client. */
+/** Shared ProductRequest / ProductQuote DTOs — safe for client. */
+
 export type ProductRequestDto = {
   id: string
   resellerId: string
@@ -10,6 +11,22 @@ export type ProductRequestDto = {
   targetPrice: number | null
   country: string
   imageUrl: string | null
+  status: string
+  quotesCount: number
+  createdAt: string
+  myQuoteStatus?: string | null
+}
+
+export type ProductQuoteDto = {
+  id: string
+  requestId: string
+  supplierId: string
+  supplierName: string | null
+  supplierEmail: string | null
+  price: number
+  moq: number
+  deliveryDays: number
+  message: string | null
   status: string
   createdAt: string
 }
@@ -47,4 +64,64 @@ export function formatRequestRelativeFr(iso: string | Date): string {
   if (hours < 48) return `il y a ${hours}h`
   const days = Math.floor(hours / 24)
   return `il y a ${days}j`
+}
+
+export function serializeProductRequest(row: {
+  id: string
+  resellerId: string
+  resellerEmail: string
+  title: string
+  description: string | null
+  category: string
+  quantity: number
+  targetPrice: number | null
+  country: string
+  imageUrl: string | null
+  status: string
+  quotesCount: number
+  createdAt: Date
+}): ProductRequestDto {
+  return {
+    id: row.id,
+    resellerId: row.resellerId,
+    resellerEmail: row.resellerEmail,
+    title: row.title,
+    description: row.description,
+    category: row.category,
+    quantity: row.quantity,
+    targetPrice: row.targetPrice,
+    country: row.country,
+    imageUrl: row.imageUrl,
+    status: row.status,
+    quotesCount: row.quotesCount,
+    createdAt: row.createdAt.toISOString(),
+  }
+}
+
+export function serializeProductQuote(row: {
+  id: string
+  requestId: string
+  supplierId: string
+  supplierName: string | null
+  supplierEmail: string | null
+  price: number
+  moq: number
+  deliveryDays: number
+  message: string | null
+  status: string
+  createdAt: Date
+}): ProductQuoteDto {
+  return {
+    id: row.id,
+    requestId: row.requestId,
+    supplierId: row.supplierId,
+    supplierName: row.supplierName,
+    supplierEmail: row.supplierEmail,
+    price: row.price,
+    moq: row.moq,
+    deliveryDays: row.deliveryDays,
+    message: row.message,
+    status: row.status,
+    createdAt: row.createdAt.toISOString(),
+  }
 }

@@ -3428,22 +3428,46 @@ model ImportJob {
  * Reseller product demand → supplier alerts (MVP additive).
  */
 model ProductRequest {
-  id            String   @id @default(cuid())
+  id            String         @id @default(cuid())
   resellerId    String
   resellerEmail String
   title         String
-  description   String?  @db.Text
-  category      String   @default("general")
-  quantity      Int      @default(100)
+  description   String?        @db.Text
+  category      String         @default("general")
+  quantity      Int            @default(100)
   targetPrice   Float?
-  country       String   @default("FR")
+  country       String         @default("FR")
   imageUrl      String?
-  status        String   @default("open") // open, closed
-  createdAt     DateTime @default(now())
+  status        String         @default("open") // open, closed, fulfilled
+  quotesCount   Int            @default(0)
+  createdAt     DateTime       @default(now())
+  quotes        ProductQuote[]
 
   @@index([status])
   @@index([category])
   @@index([resellerId, createdAt])
+}
+
+/**
+ * Supplier quote on a reseller ProductRequest (1 quote max per supplier).
+ */
+model ProductQuote {
+  id            String         @id @default(cuid())
+  requestId     String
+  request       ProductRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  supplierId    String
+  supplierName  String?
+  supplierEmail String?
+  price         Float // unit price proposed
+  moq           Int // minimum order quantity
+  deliveryDays  Int
+  message       String?        @db.Text
+  status        String         @default("pending") // pending, accepted, rejected
+  createdAt     DateTime       @default(now())
+
+  @@unique([requestId, supplierId])
+  @@index([requestId])
+  @@index([supplierId])
 }
 
 // ─── Market Intelli ───

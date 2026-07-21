@@ -9,6 +9,7 @@ import { MerchantNotificationItem } from "@/components/merchant/merchant-notific
 import { buttonVariants } from "@/components/ui/button"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
+import { isProductRequestNotifType } from "@/lib/product-request-notif-constants"
 import { SUPPLIER_INVITE_NOTIF } from "@/lib/supplier-invite-notif-constants"
 import { SUPPLIER_AFFILIATE_INVITE_NOTIF } from "@/lib/supplier-affiliate-invite-notif-constants"
 import { SUPPLIER_PRICE_CHANGE_NOTIF } from "@/lib/affiliate-wholesale-change-notif-constants"
@@ -47,7 +48,8 @@ const config: Record<
     showOrdersLink: (n) =>
       n.type === "NEW_ORDER" ||
       n.type === SUPPLIER_AFFILIATE_INVITE_NOTIF.REGISTERED ||
-      n.type === SUPPLIER_AFFILIATE_INVITE_NOTIF.LISTING_LIVE,
+      n.type === SUPPLIER_AFFILIATE_INVITE_NOTIF.LISTING_LIVE ||
+      isProductRequestNotifType(n.type),
   },
   AFFILIATE: {
     apiPath: "/api/affiliate/notifications",
@@ -59,7 +61,8 @@ const config: Record<
       n.type === "NEW_SALE" ||
       n.type === SUPPLIER_PRICE_CHANGE_NOTIF ||
       n.type === SUPPLIER_INVITE_NOTIF.CATALOG_LIVE ||
-      n.type === SUPPLIER_INVITE_NOTIF.NEW_SUPPLIER_CATALOG,
+      n.type === SUPPLIER_INVITE_NOTIF.NEW_SUPPLIER_CATALOG ||
+      isProductRequestNotifType(n.type),
   },
 }
 
@@ -75,6 +78,24 @@ function resolveNotificationLink(
   cfg: (typeof config)[MerchantRole]
 ): { href: string; label: string } | null {
   if (!cfg.showOrdersLink(n)) return null
+
+  if (isProductRequestNotifType(n.type)) {
+    const requestId = n.orderId
+    if (role === "SUPPLIER") {
+      return {
+        href: requestId
+          ? `/dashboard/supplier/requests/${encodeURIComponent(requestId)}`
+          : "/dashboard/supplier/requests",
+        label: "Voir la demande",
+      }
+    }
+    return {
+      href: requestId
+        ? `/dashboard/reseller/requests/${encodeURIComponent(requestId)}`
+        : "/dashboard/reseller/requests",
+      label: "Voir les devis",
+    }
+  }
 
   if (
     role === "AFFILIATE" &&

@@ -41,26 +41,31 @@ export default async function ResellerRequestsPage() {
         ) : (
           <ul className="space-y-3">
             {rows.map((r) => (
-              <li
-                key={r.id}
-                className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 shadow-sm"
-              >
-                <div>
-                  <p className="font-semibold text-zinc-900">{r.title}</p>
-                  <p className="mt-0.5 text-xs text-zinc-500">
-                    {r.country} · {r.category} · {r.quantity} pcs ·{" "}
-                    {formatRequestRelativeFr(r.createdAt)}
-                  </p>
-                </div>
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
-                    r.status === "open"
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "bg-zinc-100 text-zinc-600"
-                  }`}
+              <li key={r.id}>
+                <Link
+                  href={`/dashboard/reseller/requests/${r.id}`}
+                  className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 shadow-sm transition hover:border-violet-300"
                 >
-                  {r.status}
-                </span>
+                  <div>
+                    <p className="font-semibold text-zinc-900">{r.title}</p>
+                    <p className="mt-0.5 text-xs text-zinc-500">
+                      {r.country} · {r.category} · {r.quantity} pcs ·{" "}
+                      {formatRequestRelativeFr(r.createdAt)}
+                      {r.quotesCount > 0 ? ` · ${r.quotesCount} devis` : ""}
+                    </p>
+                  </div>
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
+                      r.status === "open"
+                        ? "bg-emerald-50 text-emerald-700"
+                        : r.status === "fulfilled"
+                          ? "bg-violet-50 text-violet-700"
+                          : "bg-zinc-100 text-zinc-600"
+                    }`}
+                  >
+                    {r.status}
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
