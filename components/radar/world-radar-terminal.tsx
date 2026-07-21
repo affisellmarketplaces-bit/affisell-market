@@ -4,6 +4,7 @@ import Link from "next/link"
 import useSWR from "swr"
 import { useCallback, useMemo, useState } from "react"
 
+import { RadarImportBar } from "@/components/radar/RadarImportBar"
 import { SupplierMatchBadge } from "@/components/radar/supplier-match-badge"
 import { formatRadarPriceDisplay } from "@/lib/radar/format-radar-price"
 import type { SupplierKind } from "@/lib/supplier-kind"
@@ -157,6 +158,13 @@ export default function WorldRadarTerminal({
   const [country, setCountry] = useState(initialCountry.toUpperCase())
   const [regionTab, setRegionTab] = useState<RegionTab>("all")
   const [search, setSearch] = useState("")
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+
+  const toggleWinnerSelection = useCallback((winnerId: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(winnerId) ? prev.filter((id) => id !== winnerId) : [...prev, winnerId]
+    )
+  }, [])
 
   const { data: countriesData } = useSWR<WorldRadarCountriesPayload>(
     "/api/radar/countries",
@@ -206,7 +214,7 @@ export default function WorldRadarTerminal({
   const isGrossiste = supplierKind === "stocker" || supplierKind === "unset"
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 ${selectedIds.length > 0 ? "pb-24" : ""}`}>
       <section className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-gradient-to-br from-zinc-950 via-zinc-900 to-violet-950 p-6 text-white shadow-xl">
         <div className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-violet-500/20 blur-3xl" />
         <div className="relative flex flex-wrap items-start justify-between gap-4">
@@ -360,6 +368,9 @@ export default function WorldRadarTerminal({
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
                 <tr>
+                  <th className="px-2 py-2">
+                    <span className="sr-only">Sélection</span>
+                  </th>
                   <th className="px-2 py-2">Rank</th>
                   <th className="px-2 py-2">Produit</th>
                   <th className="px-2 py-2">Source</th>
@@ -377,6 +388,15 @@ export default function WorldRadarTerminal({
                   const lowCompetition = (row.competition ?? 99) < 5
                   return (
                     <tr key={row.id} className="border-b border-zinc-100 align-middle">
+                      <td className="px-2 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(row.id)}
+                          onChange={() => toggleWinnerSelection(row.id)}
+                          aria-label={`Sélectionner ${row.title}`}
+                          className="size-4 rounded border-zinc-300 accent-violet-600"
+                        />
+                      </td>
                       <td className="px-2 py-3 font-mono text-xs">
                         #{row.rank}
                         <RankDelta row={row} />
@@ -502,6 +522,13 @@ export default function WorldRadarTerminal({
           ))}
         </ul>
       </section>
+
+      <RadarImportBar
+        selectedIds={selectedIds}
+        country={country}
+        supplierKind={supplierKind}
+        onClear={() => setSelectedIds([])}
+      />
     </div>
   )
 }
