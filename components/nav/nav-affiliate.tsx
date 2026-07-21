@@ -13,6 +13,8 @@ import { NavHeaderSearch } from "@/components/nav/nav-header-search"
 import { MerchantAvatarMenu } from "@/components/nav/merchant-avatar-menu"
 import { MerchantNotificationsMenu } from "@/components/merchant-notifications-menu"
 import { RadarNavPill } from "@/components/radar/radar-nav-pill"
+import { GlobalRequestButton } from "@/components/reseller/GlobalRequestButton"
+import { ResellerRequestsNavLink } from "@/components/reseller/ResellerRequestsNavLink"
 import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH, AFFILIATE_HUB_PATH } from "@/lib/affiliate-routes"
 import { cn } from "@/lib/utils"
 
@@ -68,6 +70,8 @@ export function NavAffiliate() {
   const onReferral = pathname.startsWith("/dashboard/affiliate/referral")
   const onBrandStudio = pathname.startsWith("/dashboard/affiliate/brand-studio")
   const onPromote = pathname.startsWith("/dashboard/affiliate/promote")
+  const onRequests =
+    pathname.startsWith("/dashboard/reseller/requests") || pathname === "/dashboard/reseller"
   const onDashboard =
     pathname === "/dashboard/affiliate" ||
     (pathname.startsWith("/dashboard/affiliate/") &&
@@ -135,6 +139,7 @@ export function NavAffiliate() {
           active={onDashboard}
         />
         <RadarNavPill variant="affiliate" />
+        <ResellerRequestsNavLink active={onRequests} />
         <NavPill
           href="/dashboard/affiliate/earnings"
           label={t("earnings")}
@@ -200,6 +205,7 @@ export function NavAffiliate() {
           className="lg:hidden"
         />
         <LocaleSwitcher />
+        <GlobalRequestButton variant="header" className="hidden md:inline-flex" />
         <QuickNav />
         <MerchantNotificationsMenu role="AFFILIATE" />
         <MerchantAvatarMenu />

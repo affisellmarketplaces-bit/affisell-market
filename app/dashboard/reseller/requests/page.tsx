@@ -1,6 +1,7 @@
 import Link from "next/link"
 
 import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
+import { GlobalRequestButton } from "@/components/reseller/GlobalRequestButton"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { formatRequestRelativeFr } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
@@ -21,23 +22,32 @@ export default async function ResellerRequestsPage() {
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-xl font-bold text-zinc-900">Mes demandes produits</h1>
-          <Link
-            href="/dashboard/reseller/requests/new"
-            className="rounded-xl bg-[#6D28D9] px-4 py-2 text-sm font-semibold text-white hover:bg-[#5B21B6]"
-          >
-            Nouvelle demande
-          </Link>
+          <GlobalRequestButton variant="primary" label="Nouvelle demande" />
         </div>
 
         {rows.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-zinc-300 bg-white px-6 py-12 text-center">
-            <p className="text-sm font-medium text-zinc-800">Aucune demande — Crée ta première</p>
-            <Link
-              href="/dashboard/reseller/requests/new"
-              className="mt-4 inline-flex text-sm font-semibold text-violet-700 hover:underline"
-            >
-              Demander un produit →
-            </Link>
+          <div className="rounded-2xl border border-orange-200 bg-gradient-to-b from-orange-50 to-white px-6 py-12 text-center shadow-sm">
+            <p className="text-lg font-bold text-zinc-900">Aucune demande — Crée ta première</p>
+            <p className="mx-auto mt-3 max-w-md text-sm text-zinc-600">
+              Comment ça marche?
+            </p>
+            <ol className="mx-auto mt-3 max-w-sm space-y-1.5 text-left text-sm text-zinc-700">
+              <li>
+                <strong>1.</strong> Tu demandes un produit introuvable
+              </li>
+              <li>
+                <strong>2.</strong> Fournisseurs devisent en &lt;2h
+              </li>
+              <li>
+                <strong>3.</strong> Tu compares et choisis
+              </li>
+              <li>
+                <strong>4.</strong> Produit créé auto dans ton catalogue
+              </li>
+            </ol>
+            <div className="mt-6">
+              <GlobalRequestButton variant="primary" label="+ Demander un produit" />
+            </div>
           </div>
         ) : (
           <ul className="space-y-3">

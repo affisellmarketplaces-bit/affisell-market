@@ -3,6 +3,7 @@ import { cookies } from "next/headers"
 import { DashboardAutoDraft } from "@/components/dashboard/dashboard-auto-draft"
 import { OAuthWelcomeToast } from "@/components/oauth-welcome-toast"
 import { RadarUnlockBanner } from "@/components/radar/radar-unlock-banner"
+import { ResellerRequestAccessChrome } from "@/components/reseller/ResellerRequestAccessChrome"
 import { OAUTH_WELCOME_COOKIE } from "@/lib/oauth-cookies"
 
 /** Auth + cookies on every merchant route — never static at build time. */
@@ -25,6 +26,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
       ) : null}
       {children}
+      <ResellerRequestAccessChrome />
     </>
   )
 }

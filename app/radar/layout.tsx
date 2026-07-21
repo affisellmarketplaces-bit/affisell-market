@@ -1,4 +1,5 @@
 import RadarAppShell from "@/components/radar/radar-app-shell"
+import { ResellerRequestAccessChrome } from "@/components/reseller/ResellerRequestAccessChrome"
 import { auth } from "@/lib/auth"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { isRadarEnabled } from "@/lib/radar/gate"
@@ -26,5 +27,10 @@ export default async function RadarLayout({ children }: { children: React.ReactN
     }
   }
 
-  return <RadarAppShell unreadCount={unreadCount}>{children}</RadarAppShell>
+  return (
+    <RadarAppShell unreadCount={unreadCount}>
+      {children}
+      <ResellerRequestAccessChrome />
+    </RadarAppShell>
+  )
 }

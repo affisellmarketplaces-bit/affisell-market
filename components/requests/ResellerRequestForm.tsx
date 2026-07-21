@@ -29,16 +29,20 @@ export function ResellerRequestForm() {
   const searchParams = useSearchParams()
   const [busy, setBusy] = useState(false)
 
-  const defaults = useMemo(
-    () => ({
-      title: searchParams.get("title")?.trim() ?? "",
+  const defaults = useMemo(() => {
+    const q = searchParams.get("q")?.trim() ?? ""
+    const titleParam = searchParams.get("title")?.trim() ?? ""
+    return {
+      title: titleParam || q,
+      q,
       category: (searchParams.get("category")?.trim().toLowerCase() || "general") as string,
       country: (searchParams.get("country")?.trim().toUpperCase() || "FR") as string,
-    }),
-    [searchParams]
-  )
+    }
+  }, [searchParams])
 
   const [title, setTitle] = useState(defaults.title)
+  const catalogHint = defaults.q || (searchParams.get("title")?.trim() ?? "")
+  const fromCatalogSearch = Boolean(defaults.q)
   const [category, setCategory] = useState(
     PRODUCT_REQUEST_CATEGORIES.some((c) => c.id === defaults.category)
       ? defaults.category
@@ -108,6 +112,12 @@ export function ResellerRequestForm() {
 
   return (
     <form onSubmit={(e) => void onSubmit(e)} className="mx-auto max-w-xl space-y-4">
+      {fromCatalogSearch || catalogHint ? (
+        <p className="rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-950">
+          Tu cherchais « <strong>{catalogHint}</strong> » dans le catalogue — On prévient les
+          fournisseurs.
+        </p>
+      ) : null}
       <div>
         <label className="text-xs font-semibold text-zinc-700" htmlFor="req-title">
           Titre *

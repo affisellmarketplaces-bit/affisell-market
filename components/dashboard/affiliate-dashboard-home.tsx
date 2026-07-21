@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import Link from "next/link"
 
 import { AffiliateOnboardingChecklist } from "@/components/affiliate/affiliate-onboarding-checklist"
 import { AffiliateKycPublishBanner } from "@/components/affiliate/affiliate-kyc-publish-banner"
@@ -6,6 +7,7 @@ import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/ben
 import { AffiliateAnalyticsWidget } from "@/components/dashboard/affiliate-analytics-widget"
 import { ClawbackRiskWidget } from "@/components/dashboard/clawback-risk-widget"
 import { RadarAffiliateDiscoveryCard } from "@/components/radar/radar-discovery-card"
+import { ResellerRequestCtaBanner } from "@/components/reseller/GlobalRequestButton"
 import { loadAffiliateClawbackRisk } from "@/lib/affiliate-clawback-risk"
 import { loadAffiliateDashboardAnalytics } from "@/lib/affiliate-dashboard-analytics"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
@@ -56,12 +58,22 @@ export async function AffiliateDashboardHome({ callbackPath }: Props) {
     >
       <div className="space-y-6">
         <BentoContainer maxWidth="6xl" className="space-y-4 pt-8">
+          <ResellerRequestCtaBanner />
           <AffiliateKycPublishBanner
             allowed={kycGate.allowed}
             reason={kycGate.reason ?? null}
             status={kycGate.status}
             draftCount={firstSaleProgress.draftListingCount}
           />
+          <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+            Besoin d&apos;un nouveau produit?{" "}
+            <Link
+              href="/dashboard/reseller/requests/new"
+              className="font-semibold text-orange-700 hover:underline"
+            >
+              → Demander
+            </Link>
+          </div>
           <RadarAffiliateDiscoveryCard isFreePlan={isFreePlan} />
           <AffiliateOnboardingChecklist progress={firstSaleProgress} />
           <AffiliateAnalyticsWidget analytics={analytics} />

@@ -29,6 +29,7 @@ import {
 import { AffiliateHero } from "@/components/marketplace/AffiliateHero"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
 import { Sidebar } from "@/components/marketplace/Sidebar"
+import { GlobalRequestButton } from "@/components/reseller/GlobalRequestButton"
 import { Button } from "@/components/ui/button"
 import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH, AFFILIATE_HUB_PATH } from "@/lib/affiliate-routes"
 import { shouldShowAffiliateCreatorsWatchingBadge } from "@/lib/affiliate-product-opportunity-pulse-shared"
@@ -461,38 +462,50 @@ export function AffiliateCatalogExperience({
             </aside>
 
             <div className="min-w-0 flex-1">
-              <form
-                className="mb-6 max-w-xl"
-                role="search"
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  const fd = new FormData(e.currentTarget)
-                  const next = new URLSearchParams(searchParams.toString())
-                  const localQ = String(fd.get("localQ") ?? "").trim()
-                  if (localQ) next.set("q", localQ)
-                  else next.delete("q")
-                  const s = next.toString()
-                  router.push(`${AFFILIATE_CATALOG_PATH}${s ? `?${s}` : ""}`)
-                }}
-              >
-                <label htmlFor="affiliate-catalog-search" className="sr-only">
-                  Rechercher dans le catalogue
-                </label>
-                <div className="relative">
-                  <Search
-                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
-                    aria-hidden
-                  />
-                  <input
-                    id="affiliate-catalog-search"
-                    name="localQ"
-                    type="search"
-                    defaultValue={searchQuery}
-                    placeholder="Nom produit, marque, niche…"
-                    className="h-11 w-full rounded-xl border border-zinc-200/90 bg-white/95 py-2 pl-10 pr-3 text-sm shadow-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-900/80"
-                  />
-                </div>
-              </form>
+              <div className="mb-6 flex max-w-2xl flex-col gap-2 sm:flex-row sm:items-center">
+                <form
+                  className="min-w-0 flex-1"
+                  role="search"
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    const fd = new FormData(e.currentTarget)
+                    const next = new URLSearchParams(searchParams.toString())
+                    const localQ = String(fd.get("localQ") ?? "").trim()
+                    if (localQ) next.set("q", localQ)
+                    else next.delete("q")
+                    const s = next.toString()
+                    router.push(`${AFFILIATE_CATALOG_PATH}${s ? `?${s}` : ""}`)
+                  }}
+                >
+                  <label htmlFor="affiliate-catalog-search" className="sr-only">
+                    Rechercher dans le catalogue
+                  </label>
+                  <div className="relative">
+                    <Search
+                      className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+                      aria-hidden
+                    />
+                    <input
+                      id="affiliate-catalog-search"
+                      name="localQ"
+                      type="search"
+                      defaultValue={searchQuery}
+                      placeholder="Nom produit, marque, niche…"
+                      className="h-11 w-full rounded-xl border border-zinc-200/90 bg-white/95 py-2 pl-10 pr-3 text-sm shadow-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-900/80"
+                    />
+                  </div>
+                </form>
+                <GlobalRequestButton
+                  variant="primary"
+                  label="Demander un produit"
+                  className="shrink-0 whitespace-nowrap px-4 py-2.5 text-xs sm:text-sm"
+                  href={
+                    searchQuery.trim()
+                      ? `/dashboard/reseller/requests/new?q=${encodeURIComponent(searchQuery.trim())}&title=${encodeURIComponent(searchQuery.trim())}`
+                      : "/dashboard/reseller/requests/new"
+                  }
+                />
+              </div>
 
               {error ? (
                 <div
@@ -522,17 +535,47 @@ export function AffiliateCatalogExperience({
                   ))}
                 </div>
               ) : products.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-violet-200/70 bg-white/80 px-6 py-16 text-center dark:border-violet-900/40 dark:bg-zinc-950/50">
-                  <Compass className="mx-auto h-10 w-10 text-violet-500" aria-hidden />
-                  <p className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Aucun SKU pour ces filtres</p>
-                  <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-                    Changez de rayon, de domaine ou réinitialisez pour voir tout le catalogue partenaire.
-                  </p>
-                  {hasFilters ? (
-                    <Button type="button" className="mt-6" onClick={clearFilters}>
-                      Tout afficher
-                    </Button>
-                  ) : null}
+                <div className="rounded-3xl border border-dashed border-orange-200/80 bg-gradient-to-b from-orange-50/80 to-white px-6 py-14 text-center dark:border-orange-900/40 dark:from-orange-950/30 dark:to-zinc-950/50">
+                  <Compass className="mx-auto h-10 w-10 text-orange-500" aria-hidden />
+                  {searchQuery.trim() ? (
+                    <>
+                      <p className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+                        0 produit pour « {searchQuery.trim()} »
+                      </p>
+                      <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
+                        Nos fournisseurs peuvent te le sourcer — réponses en &lt; 2h.
+                      </p>
+                      <div className="mt-6 flex flex-col items-center gap-3">
+                        <GlobalRequestButton
+                          variant="primary"
+                          label={`Demander ${searchQuery.trim().slice(0, 40)} → Alerter les fournisseurs`}
+                          href={`/dashboard/reseller/requests/new?q=${encodeURIComponent(searchQuery.trim())}&title=${encodeURIComponent(searchQuery.trim())}`}
+                        />
+                        {hasFilters ? (
+                          <Button type="button" variant="outline" onClick={clearFilters}>
+                            Tout afficher
+                          </Button>
+                        ) : null}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+                        Aucun SKU pour ces filtres
+                      </p>
+                      <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
+                        Changez de rayon, ou demandez un produit introuvable à nos fournisseurs.
+                      </p>
+                      <div className="mt-6 flex flex-col items-center gap-3">
+                        <GlobalRequestButton variant="primary" label="+ Demander un produit" />
+                        {hasFilters ? (
+                          <Button type="button" variant="outline" onClick={clearFilters}>
+                            Tout afficher
+                          </Button>
+                        ) : null}
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
