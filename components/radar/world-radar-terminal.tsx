@@ -22,6 +22,10 @@ import {
   type WorldRadarPayload,
   type WorldRadarWinnerDto,
 } from "@/lib/radar/world-radar-types"
+import {
+  radarActionCtaHref,
+  radarActionCtaLabel,
+} from "@/lib/radar/radar-copy"
 import { toast } from "sonner"
 
 type RegionTab = "all" | "Europe" | "America" | "Asia" | "Africa" | "Oceania"
@@ -104,10 +108,9 @@ function ArbitrageBadge({ row }: { row: WorldRadarWinnerDto }) {
   return (
     <span
       className="mt-1.5 inline-flex max-w-full flex-col rounded-lg border border-violet-300 bg-violet-50 px-2 py-1 text-[10px] leading-snug text-violet-900"
-      title={a.hint}
+      title={a.tooltip ?? a.hint}
     >
       <span className="font-bold tracking-wide">
-        {a.tier === "or" ? "🔥 " : ""}
         {a.label}
       </span>
       <span className="font-medium text-violet-700">{a.hint}</span>
@@ -160,9 +163,11 @@ function WinnersSkeleton() {
 export default function WorldRadarTerminal({
   initialCountry,
   supplierKind,
+  userRole,
 }: {
   initialCountry: string
   supplierKind: SupplierKind
+  userRole?: string | null
 }) {
   const [country, setCountry] = useState(initialCountry.toUpperCase())
   const [regionTab, setRegionTab] = useState<RegionTab>("all")
@@ -181,7 +186,7 @@ export default function WorldRadarTerminal({
   }, [])
 
   const defaultBulkDestination: RadarImportDestination =
-    supplierKind === "stocker" || supplierKind === "unset"
+    userRole === "SUPPLIER" || supplierKind === "stocker"
       ? "supplier_draft"
       : "affisell_catalog"
 
@@ -247,7 +252,8 @@ export default function WorldRadarTerminal({
 
   const lastScanLabel = formatRelativeScanFr(data?.lastScanAt)
   const isLive = data?.isLive ?? false
-  const isGrossiste = supplierKind === "stocker" || supplierKind === "unset"
+  const actionLabel = radarActionCtaLabel(userRole)
+  const actionHref = radarActionCtaHref(userRole, country)
 
   async function runBulkImport(destination: RadarImportDestination) {
     if (bulkLoading || bulkWinners.length === 0) return
@@ -564,7 +570,7 @@ export default function WorldRadarTerminal({
                             <V2Badges row={row} />
                             <ArbitrageBadge row={row} />
                             <WorldArbitrageMiniBadge row={row} />
-                            <SupplierMatchBadge match={row.supplierMatch} />
+                            <SupplierMatchBadge match={row.supplierMatch} userRole={userRole} />
                           </div>
                         </div>
                       </td>
@@ -597,21 +603,12 @@ export default function WorldRadarTerminal({
                         {formatRadarPriceDisplay(row.price ?? 0, row.currency)}
                       </td>
                       <td className="px-2 py-3">
-                        {isGrossiste ? (
-                          <Link
-                            href="/dashboard/supplier/products/new"
-                            className="text-xs font-semibold text-violet-600 hover:text-violet-800"
-                          >
-                            Sourcer →
-                          </Link>
-                        ) : (
-                          <Link
-                            href={`/radar/winners?country=${country}`}
-                            className="text-xs font-semibold text-zinc-600 hover:text-zinc-900"
-                          >
-                            Voir concurrence →
-                          </Link>
-                        )}
+                        <Link
+                          href={actionHref}
+                          className="text-xs font-semibold text-violet-600 hover:text-violet-800"
+                        >
+                          {actionLabel}
+                        </Link>
                       </td>
                     </tr>
                   )

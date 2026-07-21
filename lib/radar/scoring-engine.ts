@@ -178,9 +178,9 @@ function competitionFromScore(score: number, productId: string, country: string)
 }
 
 function supplierLabel(score: number): string {
-  if (score > 90) return "✅ 3 fournisseurs EU - 4j"
-  if (score >= 80) return "✅ 2 fournisseurs"
-  return "⚠️ 1 fournisseur"
+  if (score > 90) return "✅ 3 fournisseurs EU - 4j - Sans stock"
+  if (score >= 80) return "✅ 2 fournisseurs EU - Sans stock"
+  return "⚠️ 1 fournisseur EU - Sans stock"
 }
 
 function sourceLabel(product: ProductArchetype, country: string): string {

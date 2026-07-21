@@ -202,7 +202,11 @@ export default async function RadarDashboardPage({
           </div>
         ) : null}
 
-        <WorldRadarTerminal initialCountry={effectiveCountry} supplierKind={supplierKind} />
+        <WorldRadarTerminal
+          initialCountry={effectiveCountry}
+          supplierKind={supplierKind}
+          userRole={session.user.role}
+        />
 
         {showTikTokSalesSection ? (
           <RadarTikTokSalesSection

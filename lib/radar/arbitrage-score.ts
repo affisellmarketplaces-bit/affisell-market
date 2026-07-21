@@ -1,7 +1,17 @@
 /**
  * Arbitrage Score™ — cross-border opportunity (Affisell moat).
- * High foreign growth + high search demand − low local competition → gold.
+ * Copy is reseller / no-stock first (see radar-copy.ts).
  */
+
+import {
+  RADAR_NO_STOCK_TOOLTIP,
+  radarArbitrageBronzeHint,
+  radarArbitrageBronzeLabel,
+  radarArbitrageGoldHint,
+  radarArbitrageGoldLabel,
+  radarArbitrageSilverHint,
+  radarArbitrageSilverLabel,
+} from "@/lib/radar/radar-copy"
 
 export type ArbitrageInput = {
   growthRate: number | null
@@ -15,6 +25,8 @@ export type ArbitrageResult = {
   tier: "or" | "argent" | "bronze" | "none"
   label: string
   hint: string
+  /** Hover tooltip — no-stock explanation */
+  tooltip?: string
 }
 
 function clamp(n: number, min: number, max: number): number {
@@ -25,7 +37,6 @@ function clamp(n: number, min: number, max: number): number {
  * Formula (normalized for UI 0–100):
  * score = (growthRate * 0.45) + (searchNorm * 0.35) − (competition * 2)
  * searchNorm = min(searches / 500, 100)
- * Example: growth 150, searches 40k, competition 2 → ~95 (ARBITRAGE OR)
  */
 export function computeArbitrageScore(input: ArbitrageInput): ArbitrageResult {
   const growth = input.growthRate ?? 0
@@ -36,34 +47,31 @@ export function computeArbitrageScore(input: ArbitrageInput): ArbitrageResult {
   const raw = growth * 0.45 + searchNorm * 0.35 - competition * 2
   const score = Math.round(clamp(raw, 0, 100))
 
-  const country = (input.countryCode ?? "FR").toUpperCase()
-  const sourceHint =
-    country === "FR"
-      ? "Source à l'étranger, vends en FR"
-      : `Source au ${country}, vends en FR`
-
   if (score >= 85) {
     return {
       score,
       tier: "or",
-      label: `ARBITRAGE ${score}/100`,
-      hint: `${sourceHint} — Marge x3 estimée 🔥`,
+      label: radarArbitrageGoldLabel(score),
+      hint: radarArbitrageGoldHint(),
+      tooltip: RADAR_NO_STOCK_TOOLTIP,
     }
   }
   if (score >= 70) {
     return {
       score,
       tier: "argent",
-      label: `ARBITRAGE ${score}/100`,
-      hint: `${sourceHint} — Marge x2 estimée`,
+      label: radarArbitrageSilverLabel(score),
+      hint: radarArbitrageSilverHint(),
+      tooltip: RADAR_NO_STOCK_TOOLTIP,
     }
   }
   if (score >= 55) {
     return {
       score,
       tier: "bronze",
-      label: `ARBITRAGE ${score}/100`,
-      hint: "Opportunité cross-border à surveiller",
+      label: radarArbitrageBronzeLabel(score),
+      hint: radarArbitrageBronzeHint(),
+      tooltip: RADAR_NO_STOCK_TOOLTIP,
     }
   }
   return {

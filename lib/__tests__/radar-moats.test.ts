@@ -5,7 +5,7 @@ import { computeSaturation } from "@/lib/radar/saturation"
 import { extractMatchTokens } from "@/lib/radar/supplier-match-shared"
 
 describe("arbitrage-score", () => {
-  it("scores gold for high growth + low competition", () => {
+  it("scores gold for high growth + low competition with no-stock copy", () => {
     const r = computeArbitrageScore({
       growthRate: 150,
       searches: 40_000,
@@ -14,7 +14,9 @@ describe("arbitrage-score", () => {
     })
     expect(r.score).toBeGreaterThanOrEqual(85)
     expect(r.tier).toBe("or")
-    expect(r.label).toContain("ARBITRAGE")
+    expect(r.label).toMatch(/Marché Vierge FR/)
+    expect(r.hint).toMatch(/sans stock/)
+    expect(r.tooltip).toMatch(/0 stock, 0 avance/)
   })
 
   it("scores low when saturated", () => {

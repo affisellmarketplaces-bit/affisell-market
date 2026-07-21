@@ -9,6 +9,8 @@ export type ArbitrageDto = {
   tier: "or" | "argent" | "bronze" | "none"
   label: string
   hint: string
+  /** No-stock hover explanation */
+  tooltip?: string
 }
 
 export type SaturationDto = {
