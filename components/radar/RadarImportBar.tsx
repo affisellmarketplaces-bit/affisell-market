@@ -10,6 +10,7 @@ import {
   formatEnrichEuro,
   RADAR_BULK_IMPORT_MAX,
 } from "@/lib/import/smart-import-enricher"
+import { isRadarSupplierRole, radarBulkBarLabel } from "@/lib/radar/radar-copy"
 import type { RadarImportDestination } from "@/lib/radar/radar-import-types"
 import type { SupplierKind } from "@/lib/supplier-kind"
 
@@ -19,6 +20,7 @@ type Props = {
   selectedPrices: Array<number | null>
   country: string
   supplierKind: SupplierKind
+  userRole?: string | null
   visibleCount: number
   onClear: () => void
   onOpenBulk: () => void
@@ -31,9 +33,12 @@ const DESTINATION_OPTIONS: Array<{ id: RadarImportDestination; label: string }> 
   { id: "supplier_draft", label: "Brouillon fournisseur" },
 ]
 
-function defaultDestination(supplierKind: SupplierKind): RadarImportDestination {
-  const isGrossiste = supplierKind === "stocker" || supplierKind === "unset"
-  return isGrossiste ? "supplier_draft" : "affisell_catalog"
+function defaultDestination(
+  supplierKind: SupplierKind,
+  userRole?: string | null
+): RadarImportDestination {
+  if (isRadarSupplierRole(userRole) || supplierKind === "stocker") return "supplier_draft"
+  return "affisell_catalog"
 }
 
 export function RadarImportBar({
@@ -41,6 +46,7 @@ export function RadarImportBar({
   selectedPrices,
   country,
   supplierKind,
+  userRole,
   visibleCount,
   onClear,
   onOpenBulk,
@@ -48,7 +54,7 @@ export function RadarImportBar({
   bulkLoading,
 }: Props) {
   const [destination, setDestination] = useState<RadarImportDestination>(
-    defaultDestination(supplierKind)
+    defaultDestination(supplierKind, userRole)
   )
   const [loading, setLoading] = useState(false)
 
@@ -65,12 +71,22 @@ export function RadarImportBar({
     return totals.marginTotal
   }, [bulkN])
 
+  const bulkLabel = useMemo(
+    () =>
+      radarBulkBarLabel({
+        role: userRole,
+        count: bulkN,
+        marginEuro: bulkMarginHint,
+      }),
+    [userRole, bulkN, bulkMarginHint]
+  )
+
   const importLabel = useMemo(() => {
-    if (destination === "supplier_draft") {
-      return `Importer en 1 clic → Brouillon fournisseur`
+    if (isRadarSupplierRole(userRole) || destination === "supplier_draft") {
+      return `Proposer en 1 clic → Stock fournisseur`
     }
-    return `Importer en 1 clic → Catalogue`
-  }, [destination])
+    return `Lister sans stock → Catalogue`
+  }, [destination, userRole])
 
   async function handleImport() {
     if (loading || bulkLoading || count === 0) return
@@ -207,7 +223,7 @@ export function RadarImportBar({
             >
               {bulkLoading && bulkProgress
                 ? `Import en cours... ${bulkProgress.current}/${bulkProgress.total}`
-                : `⚡ Importer les ${bulkN} visibles`}
+                : bulkLabel}
             </button>
             {destination === "affisell_catalog" || !hasSelection ? (
               <Link

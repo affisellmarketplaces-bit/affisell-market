@@ -23,8 +23,9 @@ import {
   type WorldRadarWinnerDto,
 } from "@/lib/radar/world-radar-types"
 import {
-  radarActionCtaHref,
-  radarActionCtaLabel,
+  getRadarCopyForRole,
+  isRadarSupplierRole,
+  radarBulkBarLabel,
 } from "@/lib/radar/radar-copy"
 import { toast } from "sonner"
 
@@ -75,7 +76,28 @@ function RankDelta({ row }: { row: WorldRadarWinnerDto }) {
   )
 }
 
-function V2Badges({ row }: { row: WorldRadarWinnerDto }) {
+function V2Badges({
+  row,
+  userRole,
+  country,
+}: {
+  row: WorldRadarWinnerDto
+  userRole?: string | null
+  country: string
+}) {
+  const copy = getRadarCopyForRole(
+    userRole,
+    {
+      id: row.id,
+      score: row.arbitrage?.score ?? row.finalScore ?? row.trendingScore,
+      searches: row.searches,
+      price: row.price,
+      supplierCount: row.supplierMatch?.count ?? (row.supplierLabel ? 3 : 0),
+    },
+    country
+  )
+  const supplierChip = row.supplierLabel || row.supplierMatch ? copy.supplierLabel : null
+
   return (
     <div className="mt-1.5 flex flex-wrap gap-1">
       {row.isNew ? (
@@ -93,27 +115,43 @@ function V2Badges({ row }: { row: WorldRadarWinnerDto }) {
           📍 Local Winner
         </span>
       ) : null}
-      {row.supplierLabel ? (
+      {supplierChip ? (
         <span className="inline-flex rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] text-zinc-600">
-          {row.supplierLabel}
+          {supplierChip}
         </span>
       ) : null}
     </div>
   )
 }
 
-function ArbitrageBadge({ row }: { row: WorldRadarWinnerDto }) {
+function ArbitrageBadge({
+  row,
+  userRole,
+  country,
+}: {
+  row: WorldRadarWinnerDto
+  userRole?: string | null
+  country: string
+}) {
   const a = row.arbitrage
   if (!a || a.tier === "none") return null
+  const copy = getRadarCopyForRole(
+    userRole,
+    {
+      id: row.id,
+      score: a.score,
+      searches: row.searches,
+      price: row.price,
+      supplierCount: row.supplierMatch?.count ?? 0,
+    },
+    country
+  )
   return (
     <span
       className="mt-1.5 inline-flex max-w-full flex-col rounded-lg border border-violet-300 bg-violet-50 px-2 py-1 text-[10px] leading-snug text-violet-900"
-      title={a.tooltip ?? a.hint}
+      title={copy.tooltip}
     >
-      <span className="font-bold tracking-wide">
-        {a.label}
-      </span>
-      <span className="font-medium text-violet-700">{a.hint}</span>
+      <span className="font-bold tracking-wide">{copy.arbitrageLabel}</span>
     </span>
   )
 }
@@ -185,10 +223,9 @@ export default function WorldRadarTerminal({
     )
   }, [])
 
-  const defaultBulkDestination: RadarImportDestination =
-    userRole === "SUPPLIER" || supplierKind === "stocker"
-      ? "supplier_draft"
-      : "affisell_catalog"
+  const defaultBulkDestination: RadarImportDestination = isRadarSupplierRole(userRole)
+    ? "supplier_draft"
+    : "affisell_catalog"
 
   const { data: countriesData } = useSWR<WorldRadarCountriesPayload>(
     "/api/radar/countries",
@@ -252,8 +289,42 @@ export default function WorldRadarTerminal({
 
   const lastScanLabel = formatRelativeScanFr(data?.lastScanAt)
   const isLive = data?.isLive ?? false
-  const actionLabel = radarActionCtaLabel(userRole)
-  const actionHref = radarActionCtaHref(userRole, country)
+
+  async function listOneWithoutStock(winnerId: string) {
+    try {
+      const res = await fetch("/api/radar/source", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          winnerIds: [winnerId],
+          country,
+          destination: "affisell_catalog",
+        }),
+      })
+      const dataJson = (await res.json().catch(() => ({}))) as {
+        error?: string
+        jobId?: string
+        redirectUrl?: string
+        totalMargin?: number
+      }
+      if (!res.ok) {
+        toast.error(dataJson.error ?? "Import impossible")
+        return
+      }
+      const jobUrl =
+        dataJson.redirectUrl ??
+        (dataJson.jobId ? `/dashboard/imports/${dataJson.jobId}` : "/dashboard/affiliate/catalog?filter=draft")
+      toast.success("🎉 Produit listé sans stock")
+      window.location.href = jobUrl
+    } catch (err) {
+      console.error("[WorldRadarTerminal]", {
+        step: "list_one",
+        message: err instanceof Error ? err.message : "unknown",
+      })
+      toast.error("Erreur réseau")
+    }
+  }
 
   async function runBulkImport(destination: RadarImportDestination) {
     if (bulkLoading || bulkWinners.length === 0) return
@@ -363,7 +434,11 @@ export default function WorldRadarTerminal({
                 >
                   {bulkLoading && bulkProgress
                     ? `Import en cours... ${bulkProgress.current}/${bulkProgress.total}`
-                    : `⚡ Importer les ${bulkWinners.length} ${country} → Catalogue (Marge +${formatEnrichEuro(bulkTotals.marginTotal)}€)`}
+                    : radarBulkBarLabel({
+                        role: userRole,
+                        count: bulkWinners.length,
+                        marginEuro: bulkTotals.marginTotal,
+                      })}
                 </button>
               ) : null}
             </div>
@@ -528,6 +603,17 @@ export default function WorldRadarTerminal({
                 {filteredWinners.map((row) => {
                   const hot = (row.growthRate ?? 0) > 100
                   const lowCompetition = (row.competition ?? 99) < 5
+                  const rowCopy = getRadarCopyForRole(
+                    userRole,
+                    {
+                      id: row.id,
+                      score: row.arbitrage?.score ?? row.finalScore,
+                      searches: row.searches,
+                      price: row.price,
+                      supplierCount: row.supplierMatch?.count ?? 0,
+                    },
+                    country
+                  )
                   return (
                     <tr key={row.id} className="border-b border-zinc-100 align-middle">
                       <td className="px-2 py-3">
@@ -567,10 +653,14 @@ export default function WorldRadarTerminal({
                             <span className="line-clamp-2 font-medium text-zinc-900">
                               {row.title}
                             </span>
-                            <V2Badges row={row} />
-                            <ArbitrageBadge row={row} />
+                            <V2Badges row={row} userRole={userRole} country={country} />
+                            <ArbitrageBadge row={row} userRole={userRole} country={country} />
                             <WorldArbitrageMiniBadge row={row} />
-                            <SupplierMatchBadge match={row.supplierMatch} userRole={userRole} />
+                            <SupplierMatchBadge
+                              match={row.supplierMatch}
+                              userRole={userRole}
+                              country={country}
+                            />
                           </div>
                         </div>
                       </td>
@@ -603,12 +693,22 @@ export default function WorldRadarTerminal({
                         {formatRadarPriceDisplay(row.price ?? 0, row.currency)}
                       </td>
                       <td className="px-2 py-3">
-                        <Link
-                          href={actionHref}
-                          className="text-xs font-semibold text-violet-600 hover:text-violet-800"
-                        >
-                          {actionLabel}
-                        </Link>
+                        {isRadarSupplierRole(userRole) ? (
+                          <Link
+                            href={rowCopy.ctaHref(country)}
+                            className="text-xs font-semibold text-violet-600 hover:text-violet-800"
+                          >
+                            {rowCopy.ctaLabel}
+                          </Link>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => void listOneWithoutStock(row.id)}
+                            className="text-xs font-semibold text-violet-600 hover:text-violet-800"
+                          >
+                            {rowCopy.ctaLabel}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   )
@@ -662,6 +762,7 @@ export default function WorldRadarTerminal({
         selectedPrices={selectedPrices}
         country={country}
         supplierKind={supplierKind}
+        userRole={userRole}
         visibleCount={bulkWinners.length}
         onClear={() => setSelectedIds([])}
         onOpenBulk={() => setBulkModalOpen(true)}

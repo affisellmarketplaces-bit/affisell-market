@@ -1,56 +1,53 @@
 import Link from "next/link"
 
-import {
-  radarSupplierMatchEmptyCopy,
-  radarSupplierMatchPositiveCopy,
-} from "@/lib/radar/radar-copy"
+import { getRadarCopyForRole } from "@/lib/radar/radar-copy"
 import type { SupplierMatchDto } from "@/lib/radar/world-radar-types"
 import { cn } from "@/lib/utils"
 
 type Props = {
   match: SupplierMatchDto | null | undefined
   className?: string
-  /** AFFILIATE → catalogue; SUPPLIER → onboarding/new product */
   userRole?: string | null
+  country?: string
 }
 
 /**
- * Supplier Match Instantané — flywheel badge (Affisell catalogue ↔ Radar demand).
- * Copy is no-stock / reseller-first (no “Grossiste”).
+ * Supplier Match badge — affiliate = no-stock · supplier = grossiste opportunity.
  */
-export function SupplierMatchBadge({ match, className, userRole }: Props) {
+export function SupplierMatchBadge({ match, className, userRole, country = "FR" }: Props) {
   if (!match) return null
 
-  const href =
-    userRole === "AFFILIATE"
-      ? "/dashboard/affiliate/catalog"
-      : match.count > 0
-        ? "/dashboard/supplier/products/new"
-        : "/dashboard/supplier/onboarding/kind"
+  const copy = getRadarCopyForRole(
+    userRole,
+    { supplierCount: match.count },
+    country
+  )
 
-  if (match.count > 0) {
-    return (
-      <Link
-        href={href}
-        className={cn(
-          "mt-1.5 inline-flex max-w-full items-center rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold leading-snug text-emerald-800 hover:bg-emerald-100",
-          className
-        )}
-      >
-        {radarSupplierMatchPositiveCopy(match.count)}
-      </Link>
-    )
-  }
+  const href =
+    userRole === "SUPPLIER"
+      ? match.count > 0
+        ? "/dashboard/supplier/products/new?from=radar&mode=supplier"
+        : "/dashboard/supplier/onboarding/kind"
+      : "/dashboard/affiliate/catalog"
+
+  const label = match.count > 0 ? copy.supplierLabel : copy.opportunityLabel
+  const isSupplierEmpty = userRole === "SUPPLIER" && match.count === 0
 
   return (
     <Link
       href={href}
+      title={copy.tooltip}
       className={cn(
-        "mt-1.5 inline-flex max-w-full items-center rounded-lg border border-violet-200 bg-violet-50 px-2 py-1 text-[10px] font-semibold leading-snug text-violet-800 hover:bg-violet-100",
+        "mt-1.5 inline-flex max-w-full items-center rounded-lg border px-2 py-1 text-[10px] font-semibold leading-snug hover:opacity-90",
+        isSupplierEmpty || match.count === 0
+          ? "border-violet-200 bg-violet-50 text-violet-800"
+          : userRole === "SUPPLIER"
+            ? "border-amber-200 bg-amber-50 text-amber-900"
+            : "border-emerald-200 bg-emerald-50 text-emerald-800",
         className
       )}
     >
-      {radarSupplierMatchEmptyCopy()}
+      {label}
     </Link>
   )
 }

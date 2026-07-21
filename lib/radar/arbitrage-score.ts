@@ -1,17 +1,6 @@
 /**
- * Arbitrage Score™ — cross-border opportunity (Affisell moat).
- * Copy is reseller / no-stock first (see radar-copy.ts).
+ * Arbitrage Score™ — numeric moat (persona copy applied in UI via radar-copy.ts).
  */
-
-import {
-  RADAR_NO_STOCK_TOOLTIP,
-  radarArbitrageBronzeHint,
-  radarArbitrageBronzeLabel,
-  radarArbitrageGoldHint,
-  radarArbitrageGoldLabel,
-  radarArbitrageSilverHint,
-  radarArbitrageSilverLabel,
-} from "@/lib/radar/radar-copy"
 
 export type ArbitrageInput = {
   growthRate: number | null
@@ -25,7 +14,6 @@ export type ArbitrageResult = {
   tier: "or" | "argent" | "bronze" | "none"
   label: string
   hint: string
-  /** Hover tooltip — no-stock explanation */
   tooltip?: string
 }
 
@@ -36,7 +24,6 @@ function clamp(n: number, min: number, max: number): number {
 /**
  * Formula (normalized for UI 0–100):
  * score = (growthRate * 0.45) + (searchNorm * 0.35) − (competition * 2)
- * searchNorm = min(searches / 500, 100)
  */
 export function computeArbitrageScore(input: ArbitrageInput): ArbitrageResult {
   const growth = input.growthRate ?? 0
@@ -47,37 +34,15 @@ export function computeArbitrageScore(input: ArbitrageInput): ArbitrageResult {
   const raw = growth * 0.45 + searchNorm * 0.35 - competition * 2
   const score = Math.round(clamp(raw, 0, 100))
 
+  // Neutral labels — persona strings come from getRadarCopyForRole in the terminal.
   if (score >= 85) {
-    return {
-      score,
-      tier: "or",
-      label: radarArbitrageGoldLabel(score),
-      hint: radarArbitrageGoldHint(),
-      tooltip: RADAR_NO_STOCK_TOOLTIP,
-    }
+    return { score, tier: "or", label: `${score}/100`, hint: "High arbitrage" }
   }
   if (score >= 70) {
-    return {
-      score,
-      tier: "argent",
-      label: radarArbitrageSilverLabel(score),
-      hint: radarArbitrageSilverHint(),
-      tooltip: RADAR_NO_STOCK_TOOLTIP,
-    }
+    return { score, tier: "argent", label: `${score}/100`, hint: "Medium arbitrage" }
   }
   if (score >= 55) {
-    return {
-      score,
-      tier: "bronze",
-      label: radarArbitrageBronzeLabel(score),
-      hint: radarArbitrageBronzeHint(),
-      tooltip: RADAR_NO_STOCK_TOOLTIP,
-    }
+    return { score, tier: "bronze", label: `${score}/100`, hint: "Watch" }
   }
-  return {
-    score,
-    tier: "none",
-    label: `Score ${score}/100`,
-    hint: "Pas d'arbitrage clair",
-  }
+  return { score, tier: "none", label: `Score ${score}/100`, hint: "Pas d'arbitrage clair" }
 }
