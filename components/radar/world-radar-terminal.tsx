@@ -7,6 +7,7 @@ import { useCallback, useMemo, useState } from "react"
 import { RadarBulkImportModal } from "@/components/radar/RadarBulkImportModal"
 import { RadarImportBar } from "@/components/radar/RadarImportBar"
 import { SupplierMatchBadge } from "@/components/radar/supplier-match-badge"
+import { WorldArbitrageMiniBadge } from "@/components/import/WorldArbitrageMiniBadge"
 import {
   estimateBulkCatalogTotals,
   formatEnrichEuro,
@@ -275,6 +276,7 @@ export default function WorldRadarTerminal({
       })
       const dataJson = (await res.json().catch(() => ({}))) as {
         error?: string
+        jobId?: string
         count?: number
         importedCount?: number
         totalMargin?: number
@@ -291,27 +293,35 @@ export default function WorldRadarTerminal({
 
       const imported = dataJson.importedCount ?? dataJson.count ?? total
       const margin = dataJson.totalMargin ?? bulkTotals.marginTotal
+      const jobUrl =
+        dataJson.redirectUrl ??
+        (dataJson.jobId ? `/dashboard/imports/${dataJson.jobId}` : null)
 
-      if (destination === "supplier_draft" && dataJson.redirectUrl) {
+      if (destination === "supplier_draft" && jobUrl) {
         toast.success(`🎉 ${imported} produits prêts — ouverture assistant…`)
         setBulkModalOpen(false)
-        window.location.href = dataJson.redirectUrl
+        window.location.href = jobUrl
         return
       }
 
       toast.success(
-        `🎉 ${imported} produits importés → Marge +${formatEnrichEuro(margin)}€ → Voir drafts`,
+        `🎉 ${imported} produits importés → Marge +${formatEnrichEuro(margin)}€`,
         {
           action: {
-            label: "Voir drafts",
+            label: "Voir arbitrage",
             onClick: () => {
-              window.location.href = "/dashboard/affiliate/catalog?filter=draft"
+              window.location.href = jobUrl ?? "/dashboard/affiliate/catalog?filter=draft"
             },
           },
         }
       )
       setBulkModalOpen(false)
       setSelectedIds([])
+      if (jobUrl && destination === "affisell_catalog") {
+        window.setTimeout(() => {
+          window.location.href = jobUrl
+        }, 600)
+      }
     } catch (err) {
       window.clearInterval(tick)
       console.error("[WorldRadarTerminal]", {
@@ -553,6 +563,7 @@ export default function WorldRadarTerminal({
                             </span>
                             <V2Badges row={row} />
                             <ArbitrageBadge row={row} />
+                            <WorldArbitrageMiniBadge row={row} />
                             <SupplierMatchBadge match={row.supplierMatch} />
                           </div>
                         </div>

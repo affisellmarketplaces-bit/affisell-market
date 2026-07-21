@@ -102,28 +102,35 @@ export function RadarImportBar({
 
       const imported = data.importedCount ?? data.count ?? count
       const margin = data.totalMargin ?? marginEstimate.profit
+      const jobUrl =
+        data.redirectUrl ?? (data.jobId ? `/dashboard/imports/${data.jobId}` : null)
 
-      if (destination === "supplier_draft" && data.redirectUrl) {
+      if (destination === "supplier_draft" && jobUrl) {
         toast.success(
           `🎉 ${imported} produit${imported > 1 ? "s" : ""} prêt${imported > 1 ? "s" : ""} — ouverture assistant…`
         )
         onClear()
-        window.location.href = data.redirectUrl
+        window.location.href = jobUrl
         return
       }
 
       toast.success(
-        `🎉 ${imported} produits importés → Marge +${formatEnrichEuro(margin)}€ → Voir drafts`,
+        `🎉 ${imported} produits importés → Marge +${formatEnrichEuro(margin)}€`,
         {
           action: {
-            label: "Voir drafts",
+            label: "Voir arbitrage",
             onClick: () => {
-              window.location.href = "/dashboard/affiliate/catalog?filter=draft"
+              window.location.href = jobUrl ?? "/dashboard/affiliate/catalog?filter=draft"
             },
           },
         }
       )
       onClear()
+      if (jobUrl && destination === "affisell_catalog") {
+        window.setTimeout(() => {
+          window.location.href = jobUrl
+        }, 600)
+      }
     } catch (err) {
       console.error("[RadarImportBar]", {
         result: "error",

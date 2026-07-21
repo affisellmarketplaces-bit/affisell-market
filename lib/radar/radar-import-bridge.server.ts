@@ -469,7 +469,7 @@ export async function createRadarImportJob(args: {
   const redirectUrl =
     args.destination === "supplier_draft"
       ? `/dashboard/supplier/products/new?prefill=${job.id}`
-      : undefined
+      : `/dashboard/imports/${job.id}`
 
   return {
     jobId: job.id,
