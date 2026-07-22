@@ -93,6 +93,7 @@
     "verify:paypal": "node scripts/verify-paypal-checkout-ready.mjs",
     "verify:paypal:prod": "MARKETPLACE_PAYPAL_ENABLED=1 node scripts/verify-paypal-checkout-ready.mjs",
     "verify:store-domains": "node scripts/verify-store-domains-ready.mjs",
+    "audit:prelaunch": "tsx lib/launch/prelaunch-audit.ts",
     "verify:ops": "node scripts/verify-ops-ready.mjs",
     "verify:ltv-ops": "node scripts/verify-ltv-ops-ready.mjs",
     "ltv:ops-playbook": "node scripts/ltv-ops-playbook.mjs",
