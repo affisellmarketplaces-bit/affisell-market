@@ -64,15 +64,35 @@ export function PortalSignInForm({
     return resolvedCallback
   }, [portal, resolvedCallback])
 
-  async function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
+
+    // Prefer FormData so browser autofill is captured even if React state lagged.
+    const form = e.currentTarget
+    const data = new FormData(form)
+    const emailValue = String(data.get("email") ?? email).trim().toLowerCase()
+    const passwordValue = String(data.get("password") ?? password)
+    if (!emailValue) {
+      setError(t("emailRequired"))
+      form.querySelector<HTMLInputElement>("#portal-signin-email")?.focus()
+      return
+    }
+    if (!passwordValue) {
+      setError(t("passwordRequired"))
+      form.querySelector<HTMLInputElement>("#portal-signin-password")?.focus()
+      return
+    }
+    setEmail(emailValue)
+    setPassword(passwordValue)
+
     setLoading(true)
     const res = await signIn("credentials", {
-      email: email.trim().toLowerCase(),
-      password,
-      redirect: false,
+      email: emailValue,
+      password: passwordValue,
+      // Passed as credential so authorize() can infer portal (Auth.js may strip top-level callbackUrl).
       callbackUrl: signInCallback,
+      redirect: false,
     })
     setLoading(false)
     if (res?.ok) {
@@ -136,9 +156,12 @@ export function PortalSignInForm({
             </label>
             <input
               id="portal-signin-email"
+              name="email"
               type="email"
               required
-              autoComplete="email"
+              autoFocus
+              autoComplete="username email"
+              inputMode="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t("emailPlaceholder")}
@@ -160,6 +183,7 @@ export function PortalSignInForm({
             </div>
             <input
               id="portal-signin-password"
+              name="password"
               type="password"
               required
               autoComplete="current-password"

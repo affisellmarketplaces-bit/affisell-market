@@ -405,7 +405,9 @@
     "orPassword": "Or use password",
     "loading": "Loading…",
     "emailPlaceholder": "you@example.com",
-    "passwordPlaceholder": "••••••••",
+    "emailRequired": "Enter your email to sign in.",
+    "passwordRequired": "Enter your password.",
+    "passwordPlaceholder": "Your password",
     "adminLogin": {
       "title": "Affisell Admin sign in",
       "subtitle": "Platform access: auto-fulfill, orders, supplier API.",

@@ -405,7 +405,9 @@
     "orPassword": "Ou avec mot de passe",
     "loading": "Chargement…",
     "emailPlaceholder": "vous@exemple.com",
-    "passwordPlaceholder": "••••••••",
+    "emailRequired": "Saisissez votre e-mail pour vous connecter.",
+    "passwordRequired": "Saisissez votre mot de passe.",
+    "passwordPlaceholder": "Votre mot de passe",
     "adminLogin": {
       "title": "Connexion Affisell Admin",
       "subtitle": "Accès plateforme : auto-fulfill, commandes, fournisseurs API.",
