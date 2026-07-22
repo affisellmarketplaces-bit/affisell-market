@@ -124,9 +124,9 @@ export default withSentryConfig(withNextIntl(nextConfig), {
         authToken,
         org,
         project,
-        silent: false,
-        /** Verbose Sentry bundler logs (upload paths, CLI, etc.) */
-        debug: true,
+        // Keep Vercel build logs under the 4 MB hard limit (debug:true floods file whitelist INFO).
+        silent: true,
+        debug: process.env.SENTRY_BUILD_DEBUG === "1",
         widenClientFileUpload: true,
         sourcemaps: {
           deleteSourcemapsAfterUpload: true,
@@ -137,7 +137,7 @@ export default withSentryConfig(withNextIntl(nextConfig), {
         } as unknown as import("@sentry/nextjs").SentryBuildOptions["release"],
       }
     : {
-        silent: false,
+        silent: true,
         sourcemaps: { disable: true },
         webpack: {
           unstable_sentryWebpackPluginOptions: { disable: true },
