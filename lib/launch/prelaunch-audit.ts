@@ -253,7 +253,11 @@ async function audit(): Promise<Report> {
 
   // ─── 1. BUILD ───
   console.log("🔨 CHECK BUILD...")
-  let pkg: { dependencies?: Record<string, string>; scripts?: Record<string, string> } = {}
+  let pkg: {
+    dependencies?: Record<string, string>
+    devDependencies?: Record<string, string>
+    scripts?: Record<string, string>
+  } = {}
   try {
     pkg = JSON.parse(readText("package.json") || "{}") as typeof pkg
   } catch {
