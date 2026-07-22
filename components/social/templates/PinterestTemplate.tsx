@@ -1,0 +1,1 @@
+export { PinterestTemplate } from "./BubbleSocialTemplates"

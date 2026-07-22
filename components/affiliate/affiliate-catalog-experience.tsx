@@ -593,7 +593,7 @@ export function AffiliateCatalogExperience({
                       <article
                         key={p.id}
                         className={cn(
-                          "relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ring-1 transition hover:shadow-lg dark:bg-zinc-950 dark:ring-zinc-800",
+                          "group relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ring-1 transition hover:shadow-lg dark:bg-zinc-950 dark:ring-zinc-800",
                           isLive && "border-emerald-200/80 ring-emerald-200/60",
                           isHidden && "border-amber-200/80 ring-amber-200/60",
                           !isLive && !isHidden && "border-zinc-100 ring-zinc-100 hover:border-violet-200"
@@ -630,6 +630,13 @@ export function AffiliateCatalogExperience({
                           className="relative aspect-square w-full bg-gradient-to-b from-zinc-50 to-white p-4 text-left dark:from-zinc-900 dark:to-zinc-950"
                           onClick={() => onPickProduct(p.id, listingId ?? null)}
                         >
+                          <Link
+                            href={`/dashboard/reseller/products/${encodeURIComponent(p.id)}/social`}
+                            className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full bg-violet-600 px-3 py-1.5 text-xs font-bold text-white opacity-0 shadow-lg transition group-hover:opacity-100"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Rendre viral →
+                          </Link>
                           <Image
                             src={thumb}
                             alt=""

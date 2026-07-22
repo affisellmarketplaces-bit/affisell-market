@@ -30,7 +30,8 @@ apps/affisell-supplier-extension/dist
 /public/uploads/*
 !/public/uploads/.gitkeep
 
-/public/generated/categories/*.png
+/public/generated/**
+!/public/generated/.gitkeep
 
 # misc
 .DS_Store

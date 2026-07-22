@@ -7,9 +7,20 @@ import {
 import { prisma } from "@/lib/prisma"
 
 /** Canonical product URL for the agent: resolve to a marketplace listing when one exists. */
-export default async function ProductByIdPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ProductByIdPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ view?: string }>
+}) {
   const { id } = await params
+  const sp = await searchParams
   if (!id?.trim()) notFound()
+
+  if (sp.view === "bubble") {
+    redirect(`/product/${id}/bubble`)
+  }
 
   const listing = await prisma.affiliateProduct.findFirst({
     where: {

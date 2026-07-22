@@ -3540,3 +3540,19 @@ model DeliveryReview {
 // ─── Market Intelli ───
 // Models + Prisma client: prisma/market-intelli.schema.prisma (MARKET_INTELLI_DATABASE_URL).
 // Routes: /intelli, /api/intelli — gated by MARKET_INTELLI_ENABLED=true.
+
+/**
+ * Short viral link → /product/:id/bubble with click tracking.
+ */
+model BubbleLink {
+  id                 String   @id @default(cuid())
+  token              String   @unique
+  productId          String
+  affiliateProductId String?
+  clicks             Int      @default(0)
+  createdById        String?
+  createdAt          DateTime @default(now())
+
+  @@index([productId])
+  @@index([createdById])
+}
