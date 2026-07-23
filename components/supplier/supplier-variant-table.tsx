@@ -97,6 +97,7 @@ type VariantLiveSyncProps = {
   status: VariantLiveSyncStatus
   dirty: boolean
   savedAt: number | null
+  errorDetail?: string | null
   onFlush: () => void
   labels: {
     live: string
@@ -518,6 +519,7 @@ export function SupplierVariantTable({
           status={liveSync.status}
           dirty={liveSync.dirty}
           savedAt={liveSync.savedAt}
+          errorDetail={liveSync.errorDetail}
           onFlush={liveSync.onFlush}
           labels={liveSync.labels}
         />

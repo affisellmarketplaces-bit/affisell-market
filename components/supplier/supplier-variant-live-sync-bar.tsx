@@ -12,6 +12,7 @@ type SupplierVariantLiveSyncBarProps = {
   dirty: boolean
   savedAt: number | null
   enabled: boolean
+  errorDetail?: string | null
   onFlush: () => void
   labels: {
     live: string
@@ -28,6 +29,7 @@ export function SupplierVariantLiveSyncBar({
   dirty,
   savedAt,
   enabled,
+  errorDetail,
   onFlush,
   labels,
 }: SupplierVariantLiveSyncBarProps) {
@@ -44,6 +46,8 @@ export function SupplierVariantLiveSyncBar({
         )
       : null
 
+  const showFlush = dirty || status === "error"
+
   return (
     <div
       className={cn(
@@ -56,7 +60,7 @@ export function SupplierVariantLiveSyncBar({
       )}
       aria-live="polite"
     >
-      {dirty ? (
+      {dirty && status !== "error" ? (
         <div
           className="pointer-events-none absolute inset-0 bg-gradient-to-r from-violet-500/0 via-violet-400/10 to-fuchsia-500/0 motion-safe:animate-pulse"
           aria-hidden
@@ -94,14 +98,16 @@ export function SupplierVariantLiveSyncBar({
                     ? labels.dirty
                     : labels.live}
             </p>
-            {!dirty && savedLabel ? (
+            {status === "error" && errorDetail?.trim() ? (
+              <p className="mt-0.5 text-xs text-red-700 dark:text-red-300">{errorDetail.trim()}</p>
+            ) : !dirty && savedLabel ? (
               <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{savedLabel}</p>
             ) : dirty ? (
               <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">{labels.live}</p>
             ) : null}
           </div>
         </div>
-        {dirty ? (
+        {showFlush ? (
           <Button
             type="button"
             size="sm"

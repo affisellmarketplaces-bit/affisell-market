@@ -353,9 +353,15 @@ export async function syncProductVariants(
 
   const existing = await tx.productVariant.findMany({
     where: { productId },
-    select: { id: true },
+    select: { id: true, color: true, size: true, sku: true },
   })
   const existingIds = new Set(existing.map((e) => e.id))
+  const idByCompositeKey = new Map(
+    existing.map((e) => {
+      const key = variantCompositeKey(e.color, e.size, e.sku)
+      return [key, e.id] as const
+    })
+  )
   const keepIds = new Set<string>()
 
   for (const v of variants) {
@@ -375,14 +381,21 @@ export async function syncProductVariants(
       customData: customDataToPrismaJson(v.customData ?? null),
     }
 
-    if (v.id && existingIds.has(v.id)) {
-      await tx.productVariant.update({ where: { id: v.id }, data })
-      keepIds.add(v.id)
+    const compositeKey = variantCompositeKey(v.color, v.size, v.sku)
+    const matchedId =
+      (v.id && existingIds.has(v.id) ? v.id : undefined) ?? idByCompositeKey.get(compositeKey)
+
+    if (matchedId) {
+      await tx.productVariant.update({ where: { id: matchedId }, data })
+      keepIds.add(matchedId)
+      // Prevent a later row with the same composite from creating a duplicate.
+      idByCompositeKey.set(compositeKey, matchedId)
     } else {
       const created = await tx.productVariant.create({
         data: { productId, ...data },
       })
       keepIds.add(created.id)
+      idByCompositeKey.set(compositeKey, created.id)
     }
   }
 
@@ -408,4 +421,12 @@ export async function syncProductVariants(
       ...(baseCents != null ? { basePriceCents: baseCents } : {}),
     },
   })
+}
+
+function variantCompositeKey(
+  color: string | null | undefined,
+  size: string | null | undefined,
+  sku: string | null | undefined
+): string {
+  return `${(color ?? "").trim().toLowerCase()}\0${(size ?? "").trim().toLowerCase()}\0${(sku ?? "").trim().toLowerCase()}`
 }

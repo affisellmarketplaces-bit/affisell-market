@@ -171,6 +171,10 @@ import {
   syncVariantRowsFromSimpleColors,
 } from "@/lib/supplier-variant-row-sync"
 import {
+  createSerialAsyncQueue,
+  isLatestAutosaveGeneration,
+} from "@/lib/supplier-draft-autosave-queue"
+import {
   apiRowsFromSkuTable,
   buildListingMirrorIndexes,
   colorImageByName,
@@ -404,9 +408,13 @@ export function SupplierAddProductForm({
   const skuErrors = useSupplierProductWizardStore((s) => s.skuErrors)
 
   const lastAutosaveJson = useRef("")
+  const autosaveQueueRef = useRef(createSerialAsyncQueue())
+  const autosaveGenerationRef = useRef(0)
   const hydratedFromCache = useRef(false)
   const hydratedListingIdRef = useRef<string | null>(null)
   const skipServerHydrationForIdRef = useRef<string | null>(null)
+  const [draftSyncError, setDraftSyncError] = useState<string | null>(null)
+  const draftSyncErrorRef = useRef<string | null>(null)
 
   const replaceProductQuery = useCallback(
     (mutate: (qs: URLSearchParams) => void) => {
@@ -1661,7 +1669,7 @@ export function SupplierAddProductForm({
   )
 
   const syncDraftToServer = useCallback(
-    async (opts?: {
+    (opts?: {
       silent?: boolean
       force?: boolean
       stepOverride?: WizardStep
@@ -1669,116 +1677,174 @@ export function SupplierAddProductForm({
       afterGallery?: boolean
       /** Bypass stale React state — use fresh CDN URLs from upload callback. */
       imagesOverride?: string[]
-    }) => {
-      if (
-        !listingAutosaveEnabled ||
-        loadingProduct ||
-        saving ||
-        (galleryBusy && !opts?.afterGallery)
-      ) {
-        return false
+      /** Internal: already inside serial queue (avoid double-enqueue on retry). */
+      _queued?: boolean
+    }): Promise<boolean> => {
+      if (!opts?._queued) {
+        return autosaveQueueRef.current.enqueue(() =>
+          syncDraftToServer({ ...opts, _queued: true })
+        )
       }
 
-      const syncStep = opts?.stepOverride ?? step
-      const body = buildDraftSyncBody(syncStep)
-      if (opts?.imagesOverride && opts.imagesOverride.length > 0) {
-        body.images = durableSupplierProductImageUrls(opts.imagesOverride)
-      }
-      const fp = JSON.stringify(body) + `|step:${syncStep}`
-      if (!opts?.force && fp === lastAutosaveJson.current) {
-        if (!opts?.silent) toast.success("Brouillon déjà à jour")
-        return true
-      }
+      const runOnce = async (): Promise<boolean> => {
+        const generation = ++autosaveGenerationRef.current
 
-      setDraftSync("saving")
-      const saveSignal =
-        typeof AbortSignal !== "undefined" && "timeout" in AbortSignal
-          ? AbortSignal.timeout(45_000)
-          : undefined
-      try {
-        const saveViaPost = async () => {
-          const res = await fetch("/api/supplier/products", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            signal: saveSignal,
-            body: JSON.stringify({ ...body, saveAsDraft: true }),
-          })
-          const json = await readJsonResponse<{ id?: string; error?: string }>(res)
-          if (!res.ok) {
-            throw new Error(typeof json.error === "string" ? json.error : "Échec de l'enregistrement")
-          }
-          if (json.id) {
-            skipServerHydrationForIdRef.current = json.id
-            setPendingDraftListingId(json.id)
-            setProductIsDraft(true)
-            replaceProductQuery((qs) => {
-              qs.set("draft", json.id!)
-              if (!qs.has("compose")) qs.set("compose", "1")
-            })
-          }
+        if (
+          !listingAutosaveEnabled ||
+          loadingProduct ||
+          saving ||
+          (galleryBusy && !opts?.afterGallery && !opts?.force)
+        ) {
+          return false
         }
 
-        if (autosaveListingId) {
-          const res = await fetch(`/api/supplier/products/${autosaveListingId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            signal: saveSignal,
-            body: JSON.stringify(body),
-          })
-          const json = await readJsonResponse<{ error?: string }>(res)
-          if (res.status === 404) {
-            markServerDraftDead(autosaveListingId)
-            setPendingDraftListingId("")
-            lastAutosaveJson.current = ""
-            replaceProductQuery((qs) => {
-              qs.delete("draft")
-              qs.delete("edit")
+        const syncStep = opts?.stepOverride ?? step
+        const body = buildDraftSyncBody(syncStep)
+        if (opts?.imagesOverride && opts.imagesOverride.length > 0) {
+          body.images = durableSupplierProductImageUrls(opts.imagesOverride)
+        }
+        // Only mark draft saves — never send saveAsDraft on live listings (API 400).
+        if (canSaveDraft) {
+          body.saveAsDraft = true
+        }
+
+        const fp = JSON.stringify(body) + `|step:${syncStep}`
+        if (!opts?.force && fp === lastAutosaveJson.current) {
+          if (isLatestAutosaveGeneration(generation, autosaveGenerationRef.current)) {
+            setDraftSync("saved")
+            setDraftSyncError(null)
+            draftSyncErrorRef.current = null
+            if (!opts?.silent) toast.success("Brouillon déjà à jour")
+          }
+          return true
+        }
+
+        if (isLatestAutosaveGeneration(generation, autosaveGenerationRef.current)) {
+          setDraftSync("saving")
+          setDraftSyncError(null)
+          draftSyncErrorRef.current = null
+        }
+
+        const saveSignal =
+          typeof AbortSignal !== "undefined" && "timeout" in AbortSignal
+            ? AbortSignal.timeout(45_000)
+            : undefined
+
+        try {
+          const saveViaPost = async () => {
+            const res = await fetch("/api/supplier/products", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              signal: saveSignal,
+              body: JSON.stringify({ ...body, saveAsDraft: true }),
             })
+            const json = await readJsonResponse<{ id?: string; error?: string }>(res)
+            if (!res.ok) {
+              throw new Error(typeof json.error === "string" ? json.error : "Échec de l'enregistrement")
+            }
+            if (json.id) {
+              skipServerHydrationForIdRef.current = json.id
+              setPendingDraftListingId(json.id)
+              setProductIsDraft(true)
+              replaceProductQuery((qs) => {
+                qs.set("draft", json.id!)
+                if (!qs.has("compose")) qs.set("compose", "1")
+              })
+            }
+          }
+
+          if (autosaveListingId) {
+            const res = await fetch(`/api/supplier/products/${autosaveListingId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              signal: saveSignal,
+              body: JSON.stringify(body),
+            })
+            const json = await readJsonResponse<{ error?: string }>(res)
+            if (res.status === 404) {
+              markServerDraftDead(autosaveListingId)
+              setPendingDraftListingId("")
+              lastAutosaveJson.current = ""
+              replaceProductQuery((qs) => {
+                qs.delete("draft")
+                qs.delete("edit")
+              })
+              await saveViaPost()
+            } else if (!res.ok) {
+              throw new Error(typeof json.error === "string" ? json.error : "Échec de l'enregistrement")
+            }
+          } else {
             await saveViaPost()
-          } else if (!res.ok) {
-            throw new Error(typeof json.error === "string" ? json.error : "Échec de l'enregistrement")
           }
-        } else {
-          await saveViaPost()
-        }
 
-        lastAutosaveJson.current = fp
-        setSavedListingFingerprint(fp)
-        setDraftSync("saved")
-        setDraftSyncAt(Date.now())
-        console.log("[supplier-product-autosave]", {
-          productId: autosaveListingId ?? "new",
-          step: syncStep,
-          result: "ok",
-          imageCount: Array.isArray(body.images) ? body.images.length : 0,
-          galleryFlush: Boolean(opts?.afterGallery),
-        })
-        if (!productIsDraft && !editId) setProductIsDraft(true)
-        if (!opts?.silent) toast.success(editId && !productIsDraft ? "Modifications enregistrées" : "Brouillon sauvegardé")
-        return true
-      } catch (e) {
-        setDraftSync("error")
-        const timedOut = e instanceof DOMException && e.name === "TimeoutError"
-        const msg = timedOut
-          ? tImages("errDraftSaveTimeout")
-          : e instanceof Error
-            ? e.message
-            : "Impossible d'enregistrer le brouillon"
-        if (!opts?.silent) {
-          toast.error(msg)
+          if (!isLatestAutosaveGeneration(generation, autosaveGenerationRef.current)) {
+            // Newer edit already queued — keep chain going without flipping UI to error/saved from stale write.
+            return true
+          }
+
+          lastAutosaveJson.current = fp
+          setSavedListingFingerprint(fp)
+          setDraftSync("saved")
+          setDraftSyncAt(Date.now())
+          setDraftSyncError(null)
+          draftSyncErrorRef.current = null
+          console.log("[supplier-product-autosave]", {
+            productId: autosaveListingId ?? "new",
+            step: syncStep,
+            result: "ok",
+            imageCount: Array.isArray(body.images) ? body.images.length : 0,
+            galleryFlush: Boolean(opts?.afterGallery),
+          })
+          if (!productIsDraft && !editId) setProductIsDraft(true)
+          if (!opts?.silent) {
+            toast.success(editId && !productIsDraft ? "Modifications enregistrées" : "Brouillon sauvegardé")
+          }
+          return true
+        } catch (e) {
+          const timedOut = e instanceof DOMException && e.name === "TimeoutError"
+          const msg = timedOut
+            ? tImages("errDraftSaveTimeout")
+            : e instanceof Error
+              ? e.message
+              : "Impossible d'enregistrer le brouillon"
+
+          if (!isLatestAutosaveGeneration(generation, autosaveGenerationRef.current)) {
+            console.log("[supplier-product-autosave]", {
+              productId: autosaveListingId ?? "new",
+              step: syncStep,
+              result: "stale_error_ignored",
+              detail: msg,
+            })
+            return false
+          }
+
+          setDraftSync("error")
+          setDraftSyncError(msg)
+          draftSyncErrorRef.current = msg
+          if (!opts?.silent) {
+            toast.error(msg)
+          }
+          console.log("[supplier-product-autosave]", {
+            productId: autosaveListingId ?? "new",
+            step: syncStep,
+            result: "error",
+            timedOut,
+            galleryFlush: Boolean(opts?.afterGallery),
+            detail: msg,
+          })
+          return false
         }
-        console.log("[supplier-product-autosave]", {
-          productId: autosaveListingId ?? "new",
-          step: syncStep,
-          result: "error",
-          timedOut,
-          galleryFlush: Boolean(opts?.afterGallery),
-          detail: msg,
-        })
-        return false
       }
+
+      const first = await runOnce()
+      if (first) return true
+      // One automatic retry on forced flushes (nav / Synchroniser) — clears transient 5xx.
+      if (opts?.force) {
+        return runOnce()
+      }
+      return false
     },
     [
       autosaveListingId,
@@ -1812,6 +1878,8 @@ export function SupplierAddProductForm({
     lastAutosaveJson.current = fp
     setSavedListingFingerprint(fp)
     setDraftSync("saved")
+    setDraftSyncError(null)
+    draftSyncErrorRef.current = null
   }, [autosaveFingerprint, loadingProduct])
 
   const hasUnsavedChanges = useMemo(() => {
@@ -1848,7 +1916,7 @@ export function SupplierAddProductForm({
         if (listingAutosaveEnabled) {
           const ok = await syncDraftToServer({ force: true, stepOverride: step, silent: true })
           if (!ok && hasUnsavedChanges) {
-            toast.error(tWizard("autosaveError"))
+            toast.error(draftSyncErrorRef.current?.trim() || tWizard("autosaveError"))
             return
           }
         }
@@ -3501,6 +3569,7 @@ export function SupplierAddProductForm({
                         status: draftSync,
                         dirty: hasUnsavedChanges,
                         savedAt: draftSyncAt,
+                        errorDetail: draftSyncError,
                         onFlush: handleSaveChangesClick,
                         labels: variantLiveSyncLabels,
                       }}

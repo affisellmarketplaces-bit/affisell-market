@@ -593,9 +593,14 @@ export async function PUT(
   }, SUPPLIER_PRODUCT_WRITE_TX)
   } catch (e) {
     const message = e instanceof Error ? e.message : "product_update_failed"
-    console.error("[supplier-products-put]", { id, message })
+    console.error("[supplier-products-put]", { id, message, stack: e instanceof Error ? e.stack?.slice(0, 800) : undefined })
+    const timedOut = /timed out|timeout|P2028/i.test(message)
     return Response.json(
-      { error: "Enregistrement impossible (délai dépassé ou données trop lourdes). Réessayez." },
+      {
+        error: timedOut
+          ? "Enregistrement impossible (délai dépassé ou données trop lourdes). Réessayez."
+          : message.slice(0, 240) || "Enregistrement impossible. Réessayez.",
+      },
       { status: 500 }
     )
   }
