@@ -45,15 +45,13 @@ export function HeroSection({ variant, className }: Props) {
         animate="visible"
         transition={motionTransition}
       >
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+        <h1 className="text-4xl font-black tracking-tighter leading-[0.95] sm:text-5xl md:text-6xl">
           {variant === "buyer" ? (
             <>
               <span className="block">{t("title")}</span>
-              <span className="block">
+              <span className="block bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
                 {t("titleLine2Prefix")}
-                <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
-                  {t("titleHighlight")}
-                </span>
+                {t("titleHighlight")}
               </span>
             </>
           ) : (

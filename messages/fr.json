@@ -88,20 +88,20 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Marketplace boutiques de confiance",
-      "description": "Achetez dans des boutiques de confiance, produits vérifiés. Livraison rapide, paiement sécurisé."
+      "title": "Boutiques de confiance. Produits vérifiés. | Affisell - Marketplace UE",
+      "description": "Achetez dans des boutiques vérifiées. Checkout pan-UE, 33 pays, achat protégé, retours 14 jours UE."
     },
     "hero": {
       "title": "Des boutiques de confiance.",
       "titleLine2Prefix": "Produits ",
       "titleHighlight": "vérifiés.",
-      "sub": "Paiement sécurisé · {count} pays · Achat protégé · Retours 14 jours",
-      "subUs": "Checkout US & Canada · {count} pays · Achat protégé · Paiement sécurisé · Retours 14 jours",
+      "sub": "Paiement sécurisé · {count} pays · Achat protégé · Retours 14 jours UE · Boutiques vérifiées",
+      "subUs": "Checkout US & Canada · {count} pays · Achat protégé · Paiement sécurisé · Retours 14 jours · Boutiques vérifiées",
       "searchPlaceholder": "Rechercher produits, boutiques de confiance…",
       "searchLabel": "Rechercher un produit",
       "searchSubmit": "Rechercher",
       "cmdKHint": "Navigation rapide",
-      "ctaPrimary": "Explorer les boutiques",
+      "ctaPrimary": "Explorer les boutiques de confiance",
       "creatorLink": "Vous êtes revendeur ? Vendez sur Affisell →"
     },
     "bento": {

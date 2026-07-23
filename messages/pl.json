@@ -86,14 +86,14 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Marketplace zaufanych sklepów",
-      "description": "Kupuj w zaufanych sklepach ze zweryfikowanymi produktami. Szybka wysyłka, bezpieczna płatność."
+      "title": "Zaufane sklepy. Zweryfikowane produkty. | Affisell - EU Marketplace",
+      "description": "Kupuj w zaufanych zweryfikowanych sklepach. Checkout pan-UE, 33 kraje, chroniony zakup, 14-dniowy zwrot UE."
     },
     "hero": {
       "title": "Sklepy, którym ufasz.",
       "titleHighlight": "zweryfikowane.",
-      "sub": "Checkout Pan-UE · {count} krajów · Chroniony zakup · Bezpieczna płatność · Zwroty 14 dni",
-      "subUs": "Checkout USA i Kanada · {count} krajów · Chroniony zakup · Bezpieczna płatność · Zwroty 14 dni",
+      "sub": "Checkout pan-UE · {count} krajów · Chroniony zakup · Bezpieczna płatność · 14-dniowy zwrot UE · Zweryfikowane sklepy",
+      "subUs": "Checkout USA i Kanada · {count} krajów · Chroniony zakup · Bezpieczna płatność · 14-dniowy zwrot · Zweryfikowane sklepy",
       "searchPlaceholder": "Szukaj produktów, zaufanych sklepów…",
       "searchLabel": "Szukaj produktów",
       "searchSubmit": "Szukaj",

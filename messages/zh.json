@@ -86,14 +86,14 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Trusted stores marketplace",
-      "description": "Shop trusted stores and verified products. Fast shipping, secure checkout."
+      "title": "Trusted stores. Verified products. | Affisell - EU Marketplace",
+      "description": "Shop trusted verified stores. Pan-EU checkout, 33 countries, protected purchase, 14-day EU returns."
     },
     "hero": {
       "title": "Stores you trust.",
       "titleHighlight": "verified.",
-      "sub": "Pan-EU checkout · {count} countries · Protected purchase · Secure payment · 14-day returns",
-      "subUs": "US & Canada checkout · {count} countries · Protected purchase · Secure payment · 14-day returns",
+      "sub": "Pan-EU checkout · {count} countries · Protected purchase · Secure payment · 14-day EU returns · Verified stores",
+      "subUs": "US & Canada checkout · {count} countries · Protected purchase · Secure payment · 14-day returns · Verified stores",
       "searchPlaceholder": "Search products, trusted stores…",
       "searchLabel": "Search products",
       "searchSubmit": "Search",

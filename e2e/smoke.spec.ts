@@ -18,11 +18,19 @@ test.describe("smoke", () => {
 
   test("home → catalog via CTA", async ({ page }) => {
     await page.goto("/")
-    const explore = page.getByRole("link", { name: "Explore catalog" })
+    const explore = page.getByRole("link", { name: "Explore trusted stores" })
     await expect(explore).toBeVisible()
     await explore.click()
     await expect(page).toHaveURL(/#explorer|\/shops\/browse/)
     await expect(page.locator("#explorer")).toBeVisible({ timeout: 30_000 })
+  })
+
+  test("home reseller CTA opens become-reseller", async ({ page }) => {
+    await page.goto("/")
+    const reseller = page.getByRole("link", { name: /Are you a reseller/i })
+    await expect(reseller).toBeVisible()
+    await reseller.click()
+    await expect(page).toHaveURL(/\/become-reseller/)
   })
 
   test("header exposes Cart from catalog", async ({ page }) => {

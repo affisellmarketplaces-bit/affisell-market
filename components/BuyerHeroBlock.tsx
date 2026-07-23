@@ -12,7 +12,6 @@ import { HomeBuyerSmartStripFallback } from "@/components/home/home-buyer-smart-
 import { homeHeroShell } from "@/components/home/home-hero-tokens"
 import { HeroGradientBg } from "@/components/marketing/hero-gradient-bg"
 import { FastLink } from "@/components/navigation/fast-link"
-import { AFFILIATE_RESELLER_SIGNUP_HREF } from "@/lib/affiliate-onboarding-shared"
 import {
   isGraduatedCheckoutCountryResolved,
   isRolloutOnlyCheckoutCountryResolved,
@@ -22,6 +21,8 @@ import {
 import { isUsMarket } from "@/lib/market-config"
 import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
 import { resolveVisitorCountryIso2 } from "@/lib/visitor-country"
+
+const BECOME_RESELLER_HREF = "/become-reseller" as const
 
 export async function BuyerHeroBlock() {
   const [t, requestHeaders, checkoutCountryCount] = await Promise.all([
@@ -49,13 +50,11 @@ export async function BuyerHeroBlock() {
     <section className={`${homeHeroShell} w-full min-w-0 max-w-full px-3 py-3 sm:px-6 sm:py-7 md:px-10 md:py-16`}>
       <HeroGradientBg />
       <div className="relative mx-auto w-full min-w-0 max-w-4xl text-center">
-        <h1 className="text-balance text-[1.18rem] font-bold leading-tight tracking-tight sm:text-2xl md:text-5xl lg:text-6xl">
+        <h1 className="text-balance text-[1.18rem] font-black leading-[0.95] tracking-tighter sm:text-2xl md:text-5xl lg:text-6xl">
           <span className="block">{t("title")}</span>
-          <span className="block">
+          <span className="block bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
             {t("titleLine2Prefix")}
-            <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
-              {t("titleHighlight")}
-            </span>
+            {t("titleHighlight")}
           </span>
         </h1>
         <p className="mx-auto mt-1.5 max-w-2xl text-pretty text-[11px] leading-relaxed text-violet-100/92 sm:mt-4 sm:text-base">
@@ -92,7 +91,7 @@ export async function BuyerHeroBlock() {
         <div className="mt-3 flex flex-col items-center gap-2 sm:mt-8 sm:gap-4">
           <GlowCtaLink href={explorerHref}>{t("ctaPrimary")}</GlowCtaLink>
           <FastLink
-            href={AFFILIATE_RESELLER_SIGNUP_HREF}
+            href={BECOME_RESELLER_HREF}
             localeAware
             className="text-xs font-medium text-violet-100/90 underline-offset-4 transition hover:text-white hover:underline sm:text-sm"
           >

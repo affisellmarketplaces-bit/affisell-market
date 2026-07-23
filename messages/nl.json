@@ -86,14 +86,14 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Marktplaats voor vertrouwde winkels",
-      "description": "Shop in vertrouwde winkels met geverifieerde producten. Snelle verzending, veilige checkout."
+      "title": "Vertrouwde winkels. Geverifieerde producten. | Affisell - EU Marketplace",
+      "description": "Koop in vertrouwde geverifieerde winkels. Pan-EU checkout, 33 landen, beschermde aankoop, 14 dagen EU-retour."
     },
     "hero": {
       "title": "Winkels die je vertrouwt.",
       "titleHighlight": "geverifieerd.",
-      "sub": "Pan-EU checkout · {count} landen · Beschermde aankoop · Veilige betaling · 14 dagen retour",
-      "subUs": "VS & Canada checkout · {count} landen · Beschermde aankoop · Veilige betaling · 14 dagen retour",
+      "sub": "Pan-EU checkout · {count} landen · Beschermde aankoop · Veilige betaling · 14 dagen EU-retour · Geverifieerde winkels",
+      "subUs": "VS & Canada checkout · {count} landen · Beschermde aankoop · Veilige betaling · 14 dagen retour · Geverifieerde winkels",
       "searchPlaceholder": "Zoek producten, vertrouwde winkels…",
       "searchLabel": "Zoek producten",
       "searchSubmit": "Zoeken",

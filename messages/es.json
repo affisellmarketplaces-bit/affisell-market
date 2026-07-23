@@ -86,14 +86,14 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Marketplace de tiendas de confianza",
-      "description": "Compra en tiendas de confianza con productos verificados. Envío rápido, pago seguro."
+      "title": "Tiendas de confianza. Productos verificados. | Affisell - EU Marketplace",
+      "description": "Compra en tiendas verificadas de confianza. Checkout pan-UE, 33 países, compra protegida, devoluciones UE 14 días."
     },
     "hero": {
       "title": "Tiendas de confianza.",
       "titleHighlight": "verificados.",
-      "sub": "Checkout Pan-UE · {count} países · Compra protegida · Pago seguro · Devoluciones 14 días",
-      "subUs": "Checkout EE. UU. y Canadá · {count} países · Compra protegida · Pago seguro · Devoluciones 14 días",
+      "sub": "Checkout pan-UE · {count} países · Compra protegida · Pago seguro · Devoluciones UE 14 días · Tiendas verificadas",
+      "subUs": "Checkout EE.UU. y Canadá · {count} países · Compra protegida · Pago seguro · Devoluciones 14 días · Tiendas verificadas",
       "searchPlaceholder": "Buscar productos, tiendas de confianza…",
       "searchLabel": "Buscar productos",
       "searchSubmit": "Buscar",

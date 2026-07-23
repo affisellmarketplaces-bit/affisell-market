@@ -86,14 +86,14 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Marktplatz für vertrauenswürdige Shops",
-      "description": "Kaufen Sie in vertrauenswürdigen Shops mit verifizierten Produkten. Schneller Versand, sicherer Checkout."
+      "title": "Vertrauenswürdige Shops. Verifizierte Produkte. | Affisell - EU Marketplace",
+      "description": "Kaufen Sie in vertrauenswürdigen verifizierten Shops. Pan-EU Checkout, 33 Länder, geschützter Kauf, 14-tägige EU-Rückgabe."
     },
     "hero": {
       "title": "Shops, denen Sie vertrauen.",
       "titleHighlight": "verifiziert.",
-      "sub": "Pan-EU Checkout · {count} Länder · Geschützter Kauf · Sichere Zahlung · 14-tägige Rückgabe",
-      "subUs": "US & Canada Checkout · {count} Länder · Geschützter Kauf · Sichere Zahlung · 14-tägige Rückgabe",
+      "sub": "Pan-EU Checkout · {count} Länder · Geschützter Kauf · Sichere Zahlung · 14-tägige EU-Rückgabe · Verifizierte Shops",
+      "subUs": "US & Canada Checkout · {count} Länder · Geschützter Kauf · Sichere Zahlung · 14-tägige Rückgabe · Verifizierte Shops",
       "searchPlaceholder": "Produkte, vertrauenswürdige Shops suchen…",
       "searchLabel": "Produkte suchen",
       "searchSubmit": "Suchen",

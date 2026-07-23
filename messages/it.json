@@ -86,14 +86,14 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Marketplace di negozi affidabili",
-      "description": "Acquista in negozi affidabili con prodotti verificati. Spedizione rapida, checkout sicuro."
+      "title": "Negozi affidabili. Prodotti verificati. | Affisell - EU Marketplace",
+      "description": "Acquista in negozi verificati e affidabili. Checkout pan-UE, 33 paesi, acquisto protetto, resi UE 14 giorni."
     },
     "hero": {
       "title": "Negozi di fiducia.",
       "titleHighlight": "verificati.",
-      "sub": "Checkout Pan-UE · {count} paesi · Acquisto protetto · Pagamento sicuro · Resi 14 giorni",
-      "subUs": "Checkout USA e Canada · {count} paesi · Acquisto protetto · Pagamento sicuro · Resi 14 giorni",
+      "sub": "Checkout pan-UE · {count} paesi · Acquisto protetto · Pagamento sicuro · Resi UE 14 giorni · Negozi verificati",
+      "subUs": "Checkout USA e Canada · {count} paesi · Acquisto protetto · Pagamento sicuro · Resi 14 giorni · Negozi verificati",
       "searchPlaceholder": "Cerca prodotti, negozi affidabili…",
       "searchLabel": "Cerca prodotti",
       "searchSubmit": "Cerca",
