@@ -105,8 +105,13 @@ describe("groqChatText OpenAI fallback", () => {
       },
     }))
 
-    const { groqChatText, GROQ_VISION_MODEL } = await import("@/lib/ai/groq-client")
+    const { groqChatText, GROQ_VISION_MODEL, resolveGroqModelId } = await import(
+      "@/lib/ai/groq-client"
+    )
     expect(GROQ_VISION_MODEL).toBe("qwen/qwen3.6-27b")
+    expect(resolveGroqModelId("meta-llama/llama-4-scout-17b-16e-instruct", true)).toBe(
+      "qwen/qwen3.6-27b"
+    )
     const result = await groqChatText({
       vision: true,
       messages: [{ role: "user", content: "hello" }],

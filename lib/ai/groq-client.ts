@@ -11,9 +11,31 @@ import { hasOpenAiFallback, openaiChatText } from "@/lib/ai/openai-chat-fallback
 
 export const GROQ_TEXT_MODEL =
   process.env.GROQ_TEXT_MODEL?.trim() || "llama-3.1-8b-instant"
+
 /** Multimodal vision — Llama 4 Scout shut down 2026-07-17; use Qwen 3.6 vision. */
-export const GROQ_VISION_MODEL =
-  process.env.GROQ_VISION_MODEL?.trim() || "qwen/qwen3.6-27b"
+export const GROQ_VISION_MODEL_DEFAULT = "qwen/qwen3.6-27b"
+
+const DEPRECATED_GROQ_MODELS: Record<string, string> = {
+  "meta-llama/llama-4-scout-17b-16e-instruct": GROQ_VISION_MODEL_DEFAULT,
+  "meta-llama/llama-4-maverick-17b-128e-instruct": GROQ_VISION_MODEL_DEFAULT,
+  "qwen/qwen3-32b": GROQ_VISION_MODEL_DEFAULT,
+}
+
+/** Remap shut-down Groq model IDs so env overrides cannot resurrect 404s. */
+export function resolveGroqModelId(model: string | undefined, vision: boolean): string {
+  const raw = (model?.trim() || (vision ? GROQ_VISION_MODEL_DEFAULT : GROQ_TEXT_MODEL)).trim()
+  const mapped = DEPRECATED_GROQ_MODELS[raw]
+  if (mapped && mapped !== raw) {
+    console.log("[groq-client]", { event: "deprecated_model_remapped", from: raw, to: mapped })
+    return mapped
+  }
+  return raw
+}
+
+export const GROQ_VISION_MODEL = resolveGroqModelId(
+  process.env.GROQ_VISION_MODEL,
+  true
+)
 
 export { GROQ_VISION_MAX_IMAGES, isGroqRateLimitError }
 
@@ -50,9 +72,14 @@ async function groqChatTextDirect(
   groq: Groq,
   options: GroqChatOptions
 ): Promise<string | null> {
-  const messages = prepareMessages(options)
+  const vision = Boolean(options.vision || options.model === GROQ_VISION_MODEL)
+  const model = resolveGroqModelId(
+    options.model ?? (vision ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL),
+    vision
+  )
+  const messages = prepareMessages({ ...options, model, vision })
   const completion = await groq.chat.completions.create({
-    model: options.model ?? (options.vision ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL),
+    model,
     messages,
     temperature: options.temperature ?? 0.2,
     max_tokens: options.max_tokens,
@@ -98,18 +125,28 @@ async function tryOpenAiFallback(
 }
 
 export async function groqChatText(options: GroqChatOptions): Promise<string | null> {
-  const useVision = Boolean(options.vision || options.model === GROQ_VISION_MODEL)
+  const resolvedModel = resolveGroqModelId(
+    options.model,
+    Boolean(options.vision || options.model === GROQ_VISION_MODEL || options.model?.includes("llama-4"))
+  )
+  const useVision = Boolean(
+    options.vision ||
+      resolvedModel === GROQ_VISION_MODEL ||
+      resolvedModel === GROQ_VISION_MODEL_DEFAULT ||
+      resolvedModel.startsWith("qwen/")
+  )
+  const normalized: GroqChatOptions = { ...options, model: resolvedModel, vision: useVision }
 
   const runGroq = async (): Promise<string | null> => {
     const groq = createGroqClient()
 
     if (groq) {
       try {
-        return await groqChatTextDirect(groq, options)
+        return await groqChatTextDirect(groq, normalized)
       } catch (err: unknown) {
         if (shouldFallbackToOpenAi(err)) {
           const fallback = await tryOpenAiFallback(
-            options,
+            normalized,
             isGroqRateLimitError(err) ? "groq_rate_limit" : "groq_unavailable"
           )
           if (fallback) return fallback
@@ -118,7 +155,7 @@ export async function groqChatText(options: GroqChatOptions): Promise<string | n
       }
     }
 
-    const openaiOnly = await tryOpenAiFallback(options, "no_groq_key")
+    const openaiOnly = await tryOpenAiFallback(normalized, "no_groq_key")
     if (openaiOnly) return openaiOnly
 
     return null

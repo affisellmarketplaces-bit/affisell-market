@@ -122,7 +122,14 @@ export function SupplierTitleOptimizer({
         seoKeywords?: string[]
         insight?: string
       }
-      if (!res.ok) throw new Error(data.error ?? "Génération impossible")
+      if (!res.ok) {
+        const raw = typeof data.error === "string" ? data.error : "Génération impossible"
+        const safe =
+          raw.startsWith("{") || /model_not_found|llama-4-scout|"error"/i.test(raw)
+            ? "Optimisation IA indisponible — réessayez."
+            : raw
+        throw new Error(safe)
+      }
 
       if (data.title?.trim()) onTitleChange(data.title.trim().slice(0, 500))
       if (Array.isArray(data.titleVariants)) {
