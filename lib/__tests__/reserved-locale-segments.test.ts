@@ -38,6 +38,8 @@ describe("isStaticAppPathname", () => {
     expect(isStaticAppPathname("/fr/pricing")).toBe(true)
     expect(isStaticAppPathname("/intelli")).toBe(true)
     expect(isStaticAppPathname("/e2e/ltv/badge")).toBe(true)
+    expect(isStaticAppPathname("/become-reseller")).toBe(true)
+    expect(isStaticAppPathname("/fr/become-reseller")).toBe(true)
     expect(isStaticAppPathname("/fr/demo")).toBe(true)
     expect(isStaticAppPathname("/en/demo/affiliate")).toBe(true)
   })
