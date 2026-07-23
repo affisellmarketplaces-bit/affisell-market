@@ -305,6 +305,16 @@ export function buildCommandKCatalog(
     if (item.id === "settings" && item.action === "navigate") {
       return { ...item, href: settingsPath }
     }
+    if (item.id === "creator-stores") {
+      return {
+        ...item,
+        labelKey: persona === "affiliate" ? "items.resellerStores" : "items.creatorStores",
+        keywords:
+          persona === "affiliate"
+            ? ["reseller", "shops", "boutique", "stores", "profit"]
+            : ["trusted", "shops", "boutique", "stores", "verified"],
+      }
+    }
     return item
   })
 }

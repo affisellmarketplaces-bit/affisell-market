@@ -52,8 +52,8 @@
   "PublicNav": {
     "home": "首页",
     "marketplace": "市场",
-    "creatorStores": "创作者商店",
-    "creatorStoresShort": "创作者",
+    "creatorStores": "Trusted stores",
+    "creatorStoresShort": "Trusted",
     "searchPlaceholder": "搜索产品…",
     "searchLabel": "搜索",
     "cmdKBadge": "⌘K",
@@ -82,7 +82,12 @@
     "trustStripText": "Protected purchase · Secure payment · 14-day EU returns",
     "trustStripCta": "Learn more",
     "trustStripDismiss": "Dismiss",
-    "agentEntry": "Agent"
+    "agentEntry": "Agent",
+    "trustedStores": "Trusted stores",
+    "trustedStoresShort": "Trusted",
+    "resellerStores": "Reseller stores",
+    "resellerStoresShort": "Resellers",
+    "resellerStoresBadge": "PROFIT LIVE"
   },
   "home": {
     "meta": {
@@ -722,10 +727,10 @@
     }
   },
   "shops": {
-    "metaTitle": "创作者商店 — Affisell",
+    "metaTitle": "Trusted stores — Affisell",
     "metaDescription": "浏览Affisell由affiliate创作者创建的商店。",
-    "title": "创作者商店",
-    "subtitle": "直接从您的喜爱创作者处购物",
+    "title": "Trusted stores",
+    "subtitle": "Shop directly from stores you trust",
     "filterAll": "全部",
     "emptyCategory": "该类别下尚无商店。",
     "storeMetaTitle": "{name} — {niche} 商店",
@@ -3334,7 +3339,7 @@
     "items": {
       "home": "首页",
       "marketplace": "市场",
-      "creatorStores": "创作者商店",
+      "creatorStores": "Trusted stores",
       "cart": "购物车",
       "wishlist": "心愿单",
       "auctions": "拍卖场",
@@ -3350,7 +3355,8 @@
       "signIn": "登录",
       "createBuyerAccount": "创建买家账户",
       "settings": "设置",
-      "signOut": "注销"
+      "signOut": "注销",
+      "resellerStores": "Reseller stores"
     }
   },
   "footer": {

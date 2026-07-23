@@ -52,8 +52,8 @@
   "PublicNav": {
     "home": "Home",
     "marketplace": "Mercato",
-    "creatorStores": "Negozio dei creatori",
-    "creatorStoresShort": "Creatori",
+    "creatorStores": "Negozi affidabili",
+    "creatorStoresShort": "Trust",
     "searchPlaceholder": "Cerca prodotti…",
     "searchLabel": "Cerca",
     "cmdKBadge": "⌘K",
@@ -82,7 +82,12 @@
     "trustStripText": "Protected purchase · Secure payment · 14-day EU returns",
     "trustStripCta": "Learn more",
     "trustStripDismiss": "Dismiss",
-    "agentEntry": "Agent"
+    "agentEntry": "Agent",
+    "trustedStores": "Negozi affidabili",
+    "trustedStoresShort": "Trust",
+    "resellerStores": "Negozi reseller",
+    "resellerStoresShort": "Reseller",
+    "resellerStoresBadge": "PROFIT LIVE"
   },
   "home": {
     "meta": {
@@ -722,10 +727,10 @@
     }
   },
   "shops": {
-    "metaTitle": "Negozi dei creatori — Affisell",
+    "metaTitle": "Negozi affidabili — Affisell",
     "metaDescription": "Esplora i negozi Affisell dei creatori affiliati.",
-    "title": "Negozio dei creatori",
-    "subtitle": "Acquista direttamente dai tuoi creatori preferiti",
+    "title": "Negozi affidabili",
+    "subtitle": "Acquista direttamente da negozi affidabili",
     "filterAll": "Tutti",
     "emptyCategory": "Ancora nessun negozio in questa categoria.",
     "storeMetaTitle": "{name} — {niche} store",
@@ -3334,7 +3339,7 @@
     "items": {
       "home": "Home",
       "marketplace": "Mercato",
-      "creatorStores": "Negozio creator",
+      "creatorStores": "Negozi affidabili",
       "cart": "Carrello",
       "wishlist": "Lista desideri",
       "auctions": "Auction Arena",
@@ -3350,7 +3355,8 @@
       "signIn": "Accedi",
       "createBuyerAccount": "Crea account acquirente",
       "settings": "Impostazioni",
-      "signOut": "Esci"
+      "signOut": "Esci",
+      "resellerStores": "Negozi reseller"
     }
   },
   "footer": {

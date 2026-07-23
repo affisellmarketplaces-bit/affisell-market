@@ -52,8 +52,8 @@
   "PublicNav": {
     "home": "Startseite",
     "marketplace": "Marktplatz",
-    "creatorStores": "Kreativshops",
-    "creatorStoresShort": "Kreative",
+    "creatorStores": "Vertrauenswürdige Shops",
+    "creatorStoresShort": "Trust",
     "searchPlaceholder": "Produkte suchen…",
     "searchLabel": "Suchen",
     "cmdKBadge": "⌘K",
@@ -82,7 +82,12 @@
     "trustStripText": "Protected purchase · Secure payment · 14-day EU returns",
     "trustStripCta": "Learn more",
     "trustStripDismiss": "Dismiss",
-    "agentEntry": "Agent"
+    "agentEntry": "Agent",
+    "trustedStores": "Vertrauenswürdige Shops",
+    "trustedStoresShort": "Trust",
+    "resellerStores": "Reseller-Shops",
+    "resellerStoresShort": "Reseller",
+    "resellerStoresBadge": "PROFIT LIVE"
   },
   "home": {
     "meta": {
@@ -722,10 +727,10 @@
     }
   },
   "shops": {
-    "metaTitle": "Creator-Shops — Affisell",
+    "metaTitle": "Vertrauenswürdige Shops — Affisell",
     "metaDescription": "Durchstöbern Sie Affisell-Storefronts von Affiliate-Creatoren.",
-    "title": "Creator-Shops",
-    "subtitle": "Kaufen Sie direkt von Ihren Lieblings-Creatoren",
+    "title": "Vertrauenswürdige Shops",
+    "subtitle": "Kaufen Sie direkt in Shops, denen Sie vertrauen",
     "filterAll": "Alle",
     "emptyCategory": "Noch keine Shops in dieser Kategorie.",
     "storeMetaTitle": "{name} — {niche}-Shop",
@@ -3334,7 +3339,7 @@
     "items": {
       "home": "Zuhause",
       "marketplace": "Marktplatz",
-      "creatorStores": "Kreativ-Shop",
+      "creatorStores": "Vertrauenswürdige Shops",
       "cart": "Warenkorb",
       "wishlist": "Wunschzettel",
       "auctions": "Auktion Arena",
@@ -3350,7 +3355,8 @@
       "signIn": "Anmelden",
       "createBuyerAccount": "Käuferkonto erstellen",
       "settings": "Einstellungen",
-      "signOut": "Abmelden"
+      "signOut": "Abmelden",
+      "resellerStores": "Reseller-Shops"
     }
   },
   "footer": {

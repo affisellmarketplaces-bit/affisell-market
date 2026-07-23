@@ -4,11 +4,15 @@ import en from "@/messages/en.json"
 import fr from "@/messages/fr.json"
 
 describe("public marketplace i18n (Lot I)", () => {
-  it("uses reseller copy on nav, shops and discovery", () => {
-    expect(fr.PublicNav.creatorStores).toMatch(/revendeur/i)
-    expect(en.PublicNav.creatorStores).toMatch(/reseller/i)
-    expect(fr.shops.title).toMatch(/revendeur/i)
-    expect(en.shops.title).toMatch(/reseller/i)
+  it("uses trust copy for buyer-facing nav and shops directory", () => {
+    expect(fr.PublicNav.trustedStores).toMatch(/confiance/i)
+    expect(en.PublicNav.trustedStores).toMatch(/trusted/i)
+    expect(fr.PublicNav.resellerStores).toMatch(/revendeur/i)
+    expect(en.PublicNav.resellerStores).toMatch(/reseller/i)
+    expect(fr.PublicNav.creatorStores).toMatch(/confiance/i)
+    expect(en.PublicNav.creatorStores).toMatch(/trusted/i)
+    expect(fr.shops.title).toMatch(/confiance/i)
+    expect(en.shops.title).toMatch(/trusted/i)
     expect(fr.discovery.creators).toMatch(/revendeur/i)
     expect(en.discovery.creators).toMatch(/reseller/i)
   })

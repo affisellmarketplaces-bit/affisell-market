@@ -52,8 +52,8 @@
   "PublicNav": {
     "home": "Inicio",
     "marketplace": "Mercado",
-    "creatorStores": "Tiendas de creadores",
-    "creatorStoresShort": "Creadores",
+    "creatorStores": "Tiendas de confianza",
+    "creatorStoresShort": "Confianza",
     "searchPlaceholder": "Buscar productos…",
     "searchLabel": "Buscar",
     "cmdKBadge": "⌘K",
@@ -82,7 +82,12 @@
     "trustStripText": "Protected purchase · Secure payment · 14-day EU returns",
     "trustStripCta": "Learn more",
     "trustStripDismiss": "Dismiss",
-    "agentEntry": "Agent"
+    "agentEntry": "Agent",
+    "trustedStores": "Tiendas de confianza",
+    "trustedStoresShort": "Confianza",
+    "resellerStores": "Tiendas reseller",
+    "resellerStoresShort": "Reseller",
+    "resellerStoresBadge": "PROFIT LIVE"
   },
   "home": {
     "meta": {
@@ -722,10 +727,10 @@
     }
   },
   "shops": {
-    "metaTitle": "Tiendas de creadores — Affisell",
+    "metaTitle": "Tiendas de confianza — Affisell",
     "metaDescription": "Explora las tiendas de Affisell de creadores afiliados.",
-    "title": "Tiendas de creadores",
-    "subtitle": "Compra directamente de tus creadores favoritos",
+    "title": "Tiendas de confianza",
+    "subtitle": "Compra directamente en tiendas de confianza",
     "filterAll": "Todos",
     "emptyCategory": "Aún no hay tiendas en esta categoría.",
     "storeMetaTitle": "{name} — Tienda de {niche}",
@@ -3334,7 +3339,7 @@
     "items": {
       "home": "Inicio",
       "marketplace": "Mercado",
-      "creatorStores": "Tiendas de creadores",
+      "creatorStores": "Tiendas de confianza",
       "cart": "Carrito",
       "wishlist": "Lista de deseos",
       "auctions": "Arena de subastas",
@@ -3350,7 +3355,8 @@
       "signIn": "Iniciar sesión",
       "createBuyerAccount": "Crear cuenta de comprador",
       "settings": "Configuración",
-      "signOut": "Cerrar sesión"
+      "signOut": "Cerrar sesión",
+      "resellerStores": "Tiendas reseller"
     }
   },
   "footer": {

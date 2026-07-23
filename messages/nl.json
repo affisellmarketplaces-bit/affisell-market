@@ -52,8 +52,8 @@
   "PublicNav": {
     "home": "Home",
     "marketplace": "Marktplaats",
-    "creatorStores": "Creatorenwinkels",
-    "creatorStoresShort": "Creatoren",
+    "creatorStores": "Vertrouwde winkels",
+    "creatorStoresShort": "Trust",
     "searchPlaceholder": "Zoek producten…",
     "searchLabel": "Zoeken",
     "cmdKBadge": "⌘K",
@@ -82,7 +82,12 @@
     "trustStripText": "Protected purchase · Secure payment · 14-day EU returns",
     "trustStripCta": "Learn more",
     "trustStripDismiss": "Dismiss",
-    "agentEntry": "Agent"
+    "agentEntry": "Agent",
+    "trustedStores": "Vertrouwde winkels",
+    "trustedStoresShort": "Trust",
+    "resellerStores": "Reseller stores",
+    "resellerStoresShort": "Reseller",
+    "resellerStoresBadge": "PROFIT LIVE"
   },
   "home": {
     "meta": {
@@ -722,10 +727,10 @@
     }
   },
   "shops": {
-    "metaTitle": "Creator stores — Affisell",
+    "metaTitle": "Vertrouwde winkels — Affisell",
     "metaDescription": "Bekijk de winkelruimtes van Affisell van affiliate-creators.",
-    "title": "Creator stores",
-    "subtitle": "Koop direct bij je favoriete creators",
+    "title": "Vertrouwde winkels",
+    "subtitle": "Koop direct bij winkels die je vertrouwt",
     "filterAll": "Alle",
     "emptyCategory": "Er zijn nog geen winkels in deze categorie.",
     "storeMetaTitle": "{name} — {niche} winkel",
@@ -3334,7 +3339,7 @@
     "items": {
       "home": "Home",
       "marketplace": "Marktplaats",
-      "creatorStores": "Creator stores",
+      "creatorStores": "Vertrouwde winkels",
       "cart": "Winkelwagen",
       "wishlist": "Wensenlijst",
       "auctions": "Veiling Arena",
@@ -3350,7 +3355,8 @@
       "signIn": "Aanmelden",
       "createBuyerAccount": "Koperaccount aanmaken",
       "settings": "Instellingen",
-      "signOut": "Afmelden"
+      "signOut": "Afmelden",
+      "resellerStores": "Reseller stores"
     }
   },
   "footer": {

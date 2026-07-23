@@ -8,9 +8,10 @@ import {
   Menu,
   Package,
   Search,
+  ShieldCheck,
   ShoppingCart,
   Sparkles,
-  Store,
+  TrendingUp,
   Truck,
   User,
 } from "lucide-react"
@@ -36,6 +37,7 @@ import {
   resolvePublicNavMode,
 } from "@/lib/public-nav-mode"
 import { resolvePublicNavSearchContext } from "@/lib/public-nav-search-context"
+import { isResellerStoresNavContext } from "@/lib/public-nav-stores-context"
 import { cn } from "@/lib/utils"
 
 const ACCOUNT_ICONS = {
@@ -56,6 +58,7 @@ export function PublicNav() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const isCustomer = session?.user?.role === "CUSTOMER"
+  const isResellerStoresNav = isResellerStoresNavContext(session?.user?.role, pathname)
   const cartCount = useBuyerCartCount({ deferSync: true })
   const [explorerHash, setExplorerHash] = useState(false)
 
@@ -211,11 +214,12 @@ export function PublicNav() {
       />
       <NavPill
         href="/shops"
-        label={t("creatorStores")}
-        shortLabel={t("creatorStoresShort")}
-        icon={Store}
+        label={isResellerStoresNav ? t("resellerStores") : t("trustedStores")}
+        shortLabel={isResellerStoresNav ? t("resellerStoresShort") : t("trustedStoresShort")}
+        icon={isResellerStoresNav ? TrendingUp : ShieldCheck}
         active={onShops}
         activeVariant="brand"
+        statusBadge={isResellerStoresNav ? t("resellerStoresBadge") : undefined}
       />
     </div>
   )

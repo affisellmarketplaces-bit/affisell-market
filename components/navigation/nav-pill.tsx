@@ -24,6 +24,9 @@ type Props = {
   badgeCount?: number
   /** Pulsing violet NEW pill (discovery features). */
   showNewBadge?: boolean
+  /** Compact status pill (e.g. reseller “PROFIT LIVE”). */
+  statusBadge?: string
+  statusBadgeClassName?: string
 }
 
 export function NavPill({
@@ -37,6 +40,8 @@ export function NavPill({
   localeAware = false,
   badgeCount = 0,
   showNewBadge = false,
+  statusBadge,
+  statusBadgeClassName,
 }: Props) {
   const localeRouter = useLocaleRouter()
   const warm = useCallback(() => {
@@ -84,6 +89,17 @@ export function NavPill({
           )}
         >
           NEW
+        </span>
+      ) : null}
+      {statusBadge ? (
+        <span
+          className={cn(
+            "ml-0.5 hidden items-center gap-1 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold leading-none tracking-wide text-emerald-700 xl:inline-flex dark:bg-emerald-500/20 dark:text-emerald-300",
+            statusBadgeClassName
+          )}
+        >
+          <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-emerald-500" aria-hidden />
+          {statusBadge}
         </span>
       ) : null}
     </>

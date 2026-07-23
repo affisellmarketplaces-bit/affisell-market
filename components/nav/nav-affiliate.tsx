@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { Suspense } from "react"
 import { useTranslations } from "next-intl"
-import { Handshake, Gift, LayoutDashboard, Layers, Palette, Rocket, Store, Wallet } from "lucide-react"
+import { Handshake, Gift, LayoutDashboard, Layers, Palette, Rocket, Store, TrendingUp, Wallet } from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -15,7 +15,12 @@ import { MerchantNotificationsMenu } from "@/components/merchant-notifications-m
 import { RadarNavPill } from "@/components/radar/radar-nav-pill"
 import { GlobalRequestButton } from "@/components/reseller/GlobalRequestButton"
 import { ResellerRequestsNavLink } from "@/components/reseller/ResellerRequestsNavLink"
-import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH, AFFILIATE_HUB_PATH } from "@/lib/affiliate-routes"
+import {
+  AFFILIATE_AGENT_PATH,
+  AFFILIATE_CATALOG_PATH,
+  AFFILIATE_HUB_PATH,
+  PUBLIC_SHOPS_PATH,
+} from "@/lib/affiliate-routes"
 import { cn } from "@/lib/utils"
 
 const navScrollClass =
@@ -58,6 +63,7 @@ function AffiliateInviteSupplierButton({
 export function NavAffiliate() {
   const t = useTranslations("nav.affiliate")
   const tSearch = useTranslations("nav")
+  const tPublic = useTranslations("PublicNav")
   const pathname = usePathname() ?? ""
 
   const onAgent = pathname.startsWith(AFFILIATE_AGENT_PATH)
@@ -72,6 +78,9 @@ export function NavAffiliate() {
   const onPromote = pathname.startsWith("/dashboard/affiliate/promote")
   const onRequests =
     pathname.startsWith("/dashboard/reseller/requests") || pathname === "/dashboard/reseller"
+  const onShops =
+    pathname === PUBLIC_SHOPS_PATH ||
+    (pathname.startsWith(`${PUBLIC_SHOPS_PATH}/`) && !pathname.startsWith("/shops/browse"))
   const onDashboard =
     pathname === "/dashboard/affiliate" ||
     (pathname.startsWith("/dashboard/affiliate/") &&
@@ -116,6 +125,14 @@ export function NavAffiliate() {
           label={t("catalog")}
           icon={Store}
           active={onCatalog}
+        />
+        <NavPill
+          href={PUBLIC_SHOPS_PATH}
+          label={tPublic("resellerStores")}
+          shortLabel={tPublic("resellerStoresShort")}
+          icon={TrendingUp}
+          active={onShops}
+          statusBadge={tPublic("resellerStoresBadge")}
         />
         <NavPill
           href={AFFILIATE_HUB_PATH}
