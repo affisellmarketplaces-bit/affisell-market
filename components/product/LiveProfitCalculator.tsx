@@ -7,9 +7,12 @@ import { useEffect, useRef, useState } from "react"
 import {
   computeNetProfit,
   DEFAULT_PROFIT_PRESET,
+  DEFAULT_SALE_PLATFORM,
   formatProfitEuro,
   PROFIT_PRESETS,
+  SALE_PLATFORMS,
   type ProfitPresetId,
+  type SalePlatformId,
 } from "@/lib/profit/profit-presets"
 import { cn } from "@/lib/utils"
 
@@ -55,17 +58,19 @@ export function LiveProfitCalculator({
   const initial = Math.min(ceil, Math.max(floor, suggestedPrice))
   const [salePrice, setSalePrice] = useState(initial)
   const [preset, setPreset] = useState<ProfitPresetId>(DEFAULT_PROFIT_PRESET)
+  const [salePlatform, setSalePlatform] = useState<SalePlatformId>(DEFAULT_SALE_PLATFORM)
   const slideCount = useRef(0)
   const tracked = useRef(false)
   const controls = useAnimationControls()
 
   const presetCfg = PROFIT_PRESETS[preset]
+  const platformCfg = SALE_PLATFORMS[salePlatform]
   const breakdown = computeNetProfit({
     salePrice,
     cost,
     shippingCost,
     adCost: presetCfg.adCost,
-    shopifyFeeRate: presetCfg.shopifyFee,
+    salePlatform,
   })
 
   useEffect(() => {
@@ -83,6 +88,9 @@ export function LiveProfitCalculator({
       trackProfitEngaged(cost)
     }
   }
+
+  const feePctNum = platformCfg.feeRate * 100
+  const feePct = Number.isInteger(feePctNum) ? String(feePctNum) : feePctNum.toFixed(1)
 
   return (
     <div
@@ -109,6 +117,26 @@ export function LiveProfitCalculator({
         </select>
       </div>
 
+      <label className="mb-2 block text-[10px] font-semibold uppercase tracking-wide text-white/55">
+        Plateforme de vente
+        <select
+          value={salePlatform}
+          onChange={(e) => {
+            const next = e.target.value as SalePlatformId
+            setSalePlatform(next)
+            console.log("[profit-calculator]", { event: "sale_platform_changed", platform: next })
+          }}
+          className="mt-1 w-full rounded-lg border border-white/15 bg-black/40 px-2 py-1.5 text-[11px] font-medium normal-case tracking-normal text-white/90"
+          aria-label="Plateforme de vente"
+        >
+          {(Object.keys(SALE_PLATFORMS) as SalePlatformId[]).map((id) => (
+            <option key={id} value={id}>
+              {SALE_PLATFORMS[id].optionLabelFr}
+            </option>
+          ))}
+        </select>
+      </label>
+
       <label className="block text-xs font-semibold text-white/80">
         Prix vente:{" "}
         <span className="tabular-nums text-white">{salePrice.toFixed(2)}€</span>
@@ -130,8 +158,21 @@ export function LiveProfitCalculator({
           <span className="tabular-nums">-{cost.toFixed(2)}€</span>
         </li>
         <li className="flex justify-between gap-2">
-          <span>Frais Shopify {(presetCfg.shopifyFee * 100).toFixed(0)}%</span>
-          <span className="tabular-nums">-{breakdown.shopifyFee.toFixed(2)}€</span>
+          <span
+            className="inline-flex max-w-[70%] items-center gap-1"
+            title={platformCfg.tooltipFr}
+          >
+            <span>
+              {platformCfg.feeLabelFr} {feePct}%
+            </span>
+            <span
+              className="inline-flex size-3.5 shrink-0 items-center justify-center rounded-full border border-white/25 text-[8px] font-bold text-white/60"
+              aria-label={platformCfg.tooltipFr}
+            >
+              i
+            </span>
+          </span>
+          <span className="tabular-nums">-{breakdown.platformFee.toFixed(2)}€</span>
         </li>
         <li className="flex justify-between gap-2">
           <span>Livraison client</span>
@@ -144,6 +185,11 @@ export function LiveProfitCalculator({
           <span className="tabular-nums">-{breakdown.adCost.toFixed(2)}€</span>
         </li>
       </ul>
+      {salePlatform === "affisell" ? (
+        <p className="mt-1.5 text-[10px] leading-snug text-emerald-300/80">
+          {platformCfg.tooltipFr}
+        </p>
+      ) : null}
 
       <div className="my-3 h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
 
