@@ -1,10 +1,28 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { getGroqApiKey } from "@/lib/ai/groq-client"
+import { hasOpenAiFallback } from "@/lib/ai/openai-chat-fallback"
 import { generateSupplierProductTitle } from "@/lib/supplier-generate-title"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+
+function sanitizeAiError(raw: string): string {
+  const t = raw.trim()
+  if (!t) return "Génération impossible"
+  if (/model_not_found|does not exist|llama-4-scout/i.test(t)) {
+    return "Modèle IA indisponible — réessayez dans un instant."
+  }
+  if (/rate limit|429/i.test(t)) {
+    return "IA saturée — réessayez dans quelques secondes."
+  }
+  // Never surface raw provider JSON to the supplier UI.
+  if (t.startsWith("{") || t.includes('"error"') || t.length > 180) {
+    return "Optimisation IA indisponible — réessayez."
+  }
+  return t.slice(0, 160)
+}
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -15,8 +33,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  if (!process.env.GROQ_API_KEY?.trim()) {
-    return NextResponse.json({ error: "IA indisponible (GROQ_API_KEY manquante)." }, { status: 503 })
+  if (!getGroqApiKey() && !hasOpenAiFallback()) {
+    return NextResponse.json(
+      { error: "IA indisponible (GROQ_API_KEY ou OPENAI_API_KEY manquante)." },
+      { status: 503 }
+    )
   }
 
   let body: Record<string, unknown>
@@ -71,6 +92,7 @@ export async function POST(req: Request) {
     return NextResponse.json(result)
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Génération impossible"
-    return NextResponse.json({ error: msg }, { status: 502 })
+    console.error("[generate-title]", { error: msg.slice(0, 400) })
+    return NextResponse.json({ error: sanitizeAiError(msg) }, { status: 502 })
   }
 }

@@ -1,6 +1,6 @@
 import type Groq from "groq-sdk"
 
-/** Groq llama-4-scout vision: hard limit per request */
+/** Groq vision models — max images per request (Qwen 3.6 allows up to 5). */
 export const GROQ_VISION_MAX_IMAGES = 4
 
 export function countVisionImagesInMessages(
@@ -98,9 +98,16 @@ export function normalizeGroqClientError(err: unknown): Error {
         "Quota IA Groq atteint pour aujourd'hui. Réessayez demain — vos textes et images restent enregistrés."
       )
     }
+    if (inner && /model_not_found|does not exist|not have access/i.test(inner)) {
+      return new Error("Modèle IA Groq indisponible. Réessayez — bascule automatique en cours.")
+    }
     if (inner) return new Error(inner)
   } catch {
     /* not json */
+  }
+
+  if (/model_not_found|does not exist|not have access/i.test(raw)) {
+    return new Error("Modèle IA Groq indisponible. Réessayez — bascule automatique en cours.")
   }
 
   return err instanceof Error ? err : new Error(raw)

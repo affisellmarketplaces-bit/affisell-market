@@ -68,4 +68,49 @@ describe("groqChatText OpenAI fallback", () => {
     })
     expect(result).toBe("openai primary")
   })
+
+  it("falls back to OpenAI on Groq model_not_found", async () => {
+    process.env.GROQ_API_KEY = "test-groq"
+    process.env.OPENAI_API_KEY = "test-openai"
+    delete process.env.GROQ_VISION_MODEL
+
+    vi.doMock("groq-sdk", () => ({
+      default: class Groq {
+        chat = {
+          completions: {
+            create: vi.fn().mockRejectedValue({
+              status: 404,
+              message: JSON.stringify({
+                error: {
+                  message: "The model 'meta-llama/llama-4-scout-17b-16e-instruct' does not exist",
+                  type: "invalid_request_error",
+                  code: "model_not_found",
+                },
+              }),
+            }),
+          },
+        }
+      },
+    }))
+
+    vi.doMock("openai", () => ({
+      default: class OpenAI {
+        chat = {
+          completions: {
+            create: vi.fn().mockResolvedValue({
+              choices: [{ message: { content: "fallback vision ok" } }],
+            }),
+          },
+        }
+      },
+    }))
+
+    const { groqChatText, GROQ_VISION_MODEL } = await import("@/lib/ai/groq-client")
+    expect(GROQ_VISION_MODEL).toBe("qwen/qwen3.6-27b")
+    const result = await groqChatText({
+      vision: true,
+      messages: [{ role: "user", content: "hello" }],
+    })
+    expect(result).toBe("fallback vision ok")
+  })
 })

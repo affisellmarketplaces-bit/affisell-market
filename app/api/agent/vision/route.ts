@@ -1,5 +1,4 @@
-import Groq from "groq-sdk"
-
+import { GROQ_VISION_MODEL, groqChatText } from "@/lib/ai/groq-client"
 import { searchCatalogForAgent } from "@/lib/agent-catalog-search"
 import { prisma } from "@/lib/prisma"
 
@@ -10,10 +9,9 @@ export const revalidate = 0
 
 export async function POST(req: Request) {
   try {
-    if (!process.env.GROQ_API_KEY?.trim()) {
+    if (!process.env.GROQ_API_KEY?.trim() && !process.env.OPENAI_API_KEY?.trim()) {
       return Response.json({ error: "GROQ_API_KEY is not configured." }, { status: 503 })
     }
-    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
     const contentType = req.headers.get("content-type") ?? ""
     let image = ""
@@ -35,8 +33,9 @@ export async function POST(req: Request) {
       return Response.json({ error: "Invalid image payload." }, { status: 400 })
     }
 
-    const completion = await groq.chat.completions.create({
-      model: "meta-llama/llama-4-scout-17b-16e-instruct",
+    const keywords = await groqChatText({
+      model: GROQ_VISION_MODEL,
+      vision: true,
       messages: [
         {
           role: "user",
@@ -50,14 +49,13 @@ export async function POST(req: Request) {
         },
       ],
     })
-    console.log("[agent/vision] groq", JSON.stringify(completion))
+    console.log("[agent/vision]", { result: keywords ? "ok" : "empty", model: GROQ_VISION_MODEL })
 
-    const keywords = completion.choices?.[0]?.message?.content?.trim() || ""
-    const terms = keywords
+    const terms = (keywords ?? "")
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean)
-    const firstTerm = terms[0] || keywords
+    const firstTerm = terms[0] || keywords || ""
     const searchQuery = firstTerm.split(" ")[0] || firstTerm
     console.log("[vision] searching for:", searchQuery)
     const results = await searchCatalogForAgent(prisma, searchQuery)

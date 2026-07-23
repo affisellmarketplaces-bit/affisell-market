@@ -9,8 +9,11 @@ import {
 import { routeLlmText } from "@/lib/ai/llm-router"
 import { hasOpenAiFallback, openaiChatText } from "@/lib/ai/openai-chat-fallback"
 
-export const GROQ_TEXT_MODEL = "llama-3.1-8b-instant"
-export const GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+export const GROQ_TEXT_MODEL =
+  process.env.GROQ_TEXT_MODEL?.trim() || "llama-3.1-8b-instant"
+/** Multimodal vision — Llama 4 Scout shut down 2026-07-17; use Qwen 3.6 vision. */
+export const GROQ_VISION_MODEL =
+  process.env.GROQ_VISION_MODEL?.trim() || "qwen/qwen3.6-27b"
 
 export { GROQ_VISION_MAX_IMAGES, isGroqRateLimitError }
 
@@ -66,7 +69,16 @@ function shouldFallbackToOpenAi(err: unknown): boolean {
       : err && typeof err === "object" && "message" in err
         ? String((err as { message: unknown }).message)
         : String(err)
-  return /503|502|504|service unavailable|overloaded|timeout/i.test(raw)
+  const status =
+    err && typeof err === "object" && "status" in err
+      ? Number((err as { status: unknown }).status)
+      : NaN
+  if (status === 404 || status === 400) {
+    return /model_not_found|does not exist|not have access|invalid_request_error/i.test(raw)
+  }
+  return /503|502|504|service unavailable|overloaded|timeout|model_not_found|does not exist/i.test(
+    raw
+  )
 }
 
 async function tryOpenAiFallback(
