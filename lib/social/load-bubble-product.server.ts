@@ -2,7 +2,24 @@ import "server-only"
 
 import type { BubbleProductView } from "@/lib/social/bubble-product-types"
 import { psychologicalPrice } from "@/lib/import/smart-import-enricher"
+import { isLocalhostHost } from "@/lib/localhost-host"
 import { prisma } from "@/lib/prisma"
+import { resolvePublicAppUrl } from "@/lib/public-app-url"
+
+/** Local Next always speaks HTTP — never emit https://localhost (Chrome SSL protocol error). */
+function bubbleAppOrigin(): string {
+  const origin = resolvePublicAppUrl().replace(/\/$/, "")
+  try {
+    const u = new URL(origin)
+    if (isLocalhostHost(u.hostname)) {
+      u.protocol = "http:"
+      return u.origin
+    }
+    return u.origin
+  } catch {
+    return origin.startsWith("http") ? origin : `http://${origin}`
+  }
+}
 
 export async function loadBubbleProductView(productId: string): Promise<BubbleProductView | null> {
   const product = await prisma.product.findFirst({
@@ -41,7 +58,7 @@ export async function loadBubbleProductView(productId: string): Promise<BubblePr
     product.images[0] ||
     null
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "https://affisell.com"
+  const appUrl = bubbleAppOrigin()
 
   return {
     id: product.id,

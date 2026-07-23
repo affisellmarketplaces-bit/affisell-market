@@ -3,7 +3,8 @@
  * Starts Next dev:
  * - Normal: first free TCP port in [PORT..PORT+19] (default PORT=3001) to avoid EADDRINUSE.
  * - Playwright (`PLAYWRIGHT_WEB_SERVER=1`): fixed `PORT` only (no scan) so `playwright.config` `url` matches.
- * - If a live dev server lock exists, prints its URL and exits 0 (no duplicate next dev).
+ * - If a *healthy* live Dev lock exists (PID + HTTP probe), prints its URL and exits 0.
+ * - Zombie Next (PID alive, HTTP dead) is killed — prevents Chrome ERR_SSL_PROTOCOL_ERROR on localhost.
  * - Re-prints Affisell URLs in terminal when Next.js reports "Ready" (Cursor terminal, no Chrome).
  */
 import { spawn } from "node:child_process"
@@ -65,6 +66,39 @@ function reconcileDevLock() {
   return null
 }
 
+/**
+ * PID-alive is not enough: a hung next-server accepts TCP but never answers HTTP,
+ * and Chrome HTTPS-First then surfaces ERR_SSL_PROTOCOL_ERROR on localhost.
+ * Only reuse the lock when the port actually serves Next.
+ */
+async function reconcileHealthyDevLock() {
+  const lock = reconcileDevLock()
+  if (!lock) return null
+
+  const port = Number(lock.port) || resolveDevPort()
+  const healthy = await probeNextDev(port)
+  if (healthy) return lock
+
+  console.warn(
+    `\n[affisell dev] Lock PID ${lock.pid} is alive but :${port} is not serving HTTP — recycling zombie Next.\n` +
+      `  Tip: this avoids Chrome ERR_SSL_PROTOCOL_ERROR on https://localhost:${port}\n`
+  )
+  try {
+    process.kill(lock.pid, "SIGTERM")
+  } catch {
+    /* ignore */
+  }
+  // Give Next a moment to release the port before we bind.
+  await new Promise((r) => setTimeout(r, 800))
+  try {
+    process.kill(lock.pid, "SIGKILL")
+  } catch {
+    /* already gone */
+  }
+  removeDevLock("zombie-unresponsive")
+  return null
+}
+
 /** Match Next.js dev bind (`::` / dual-stack) — 127.0.0.1-only checks miss EADDRINUSE. */
 function portFree(port) {
   return new Promise((resolve) => {
@@ -95,11 +129,11 @@ async function probeNextDev(port) {
   }
 }
 
-const liveLock = reconcileDevLock()
+const liveLock = await reconcileHealthyDevLock()
 if (liveLock && process.env.PLAYWRIGHT_WEB_SERVER !== "1") {
   const url =
-    typeof liveLock.appUrl === "string"
-      ? liveLock.appUrl
+    typeof liveLock.appUrl === "string" && liveLock.appUrl.startsWith("http")
+      ? liveLock.appUrl.replace(/^https:\/\//i, "http://")
       : `http://localhost:${liveLock.port ?? resolveDevPort()}`
   printAffisellDevBanner(url, { alreadyRunning: true })
   console.log(`  PID ${liveLock.pid} · stop with: kill ${liveLock.pid}`)

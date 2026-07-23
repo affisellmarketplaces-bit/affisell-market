@@ -3,10 +3,22 @@ import { randomBytes } from "node:crypto"
 import { NextResponse } from "next/server"
 
 import { requireAffiliateSession } from "@/lib/dashboard-session"
+import { isLocalhostHost } from "@/lib/localhost-host"
 import { prisma } from "@/lib/prisma"
+import { resolvePublicAppUrl } from "@/lib/public-app-url"
 
 function appOrigin(): string {
-  return process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "https://affisell.com"
+  const origin = resolvePublicAppUrl().replace(/\/$/, "")
+  try {
+    const u = new URL(origin)
+    if (isLocalhostHost(u.hostname)) {
+      u.protocol = "http:"
+      return u.origin
+    }
+    return u.origin
+  } catch {
+    return origin
+  }
 }
 
 export async function POST(request: Request) {
