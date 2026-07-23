@@ -6,6 +6,7 @@ import { useCallback, useMemo, useState } from "react"
 
 import { RadarBulkImportModal } from "@/components/radar/RadarBulkImportModal"
 import { RadarImportBar } from "@/components/radar/RadarImportBar"
+import { RadarPriceCell } from "@/components/radar/RadarPriceCell"
 import { RadarTopSuppliersRail } from "@/components/radar/RadarTopSuppliersRail"
 import { SupplierMatchBadge } from "@/components/radar/supplier-match-badge"
 import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
@@ -15,8 +16,8 @@ import {
   formatEnrichEuro,
   RADAR_BULK_IMPORT_MAX,
 } from "@/lib/import/smart-import-enricher"
-import { formatRadarPriceDisplay } from "@/lib/radar/format-radar-price"
 import type { RadarImportDestination } from "@/lib/radar/radar-import-types"
+import { canViewResellerMargin, radarPriceColumnLabel } from "@/lib/radar/radar-price-veil"
 import type { SupplierKind } from "@/lib/supplier-kind"
 import {
   formatRelativeScanFr,
@@ -384,14 +385,23 @@ export default function WorldRadarTerminal({
       }
 
       toast.success(
-        `🎉 ${imported} produits importés → Marge +${formatEnrichEuro(margin)}€`,
+        canViewResellerMargin(userRole)
+          ? `🎉 ${imported} produits importés → Marge +${formatEnrichEuro(margin)}€`
+          : `🎉 ${imported} opportunités stock prêtes — catalogue fournisseur`,
         {
-          action: {
-            label: "Voir arbitrage",
-            onClick: () => {
-              window.location.href = jobUrl ?? "/dashboard/affiliate/catalog?filter=draft"
-            },
-          },
+          action: canViewResellerMargin(userRole)
+            ? {
+                label: "Voir arbitrage",
+                onClick: () => {
+                  window.location.href = jobUrl ?? "/dashboard/affiliate/catalog?filter=draft"
+                },
+              }
+            : {
+                label: "Voir brouillons",
+                onClick: () => {
+                  window.location.href = jobUrl ?? "/dashboard/supplier/products"
+                },
+              },
         }
       )
       setBulkModalOpen(false)
@@ -599,7 +609,7 @@ export default function WorldRadarTerminal({
                   <th className="px-2 py-2">Saturation</th>
                   <th className="px-2 py-2">Recherches</th>
                   <th className="px-2 py-2">Concurrence</th>
-                  <th className="px-2 py-2">Prix</th>
+                  <th className="px-2 py-2">{radarPriceColumnLabel(userRole)}</th>
                   <th className="px-2 py-2">Action</th>
                 </tr>
               </thead>
@@ -659,7 +669,7 @@ export default function WorldRadarTerminal({
                             </span>
                             <V2Badges row={row} userRole={userRole} country={country} />
                             <ArbitrageBadge row={row} userRole={userRole} country={country} />
-                            <WorldArbitrageMiniBadge row={row} />
+                            <WorldArbitrageMiniBadge row={row} userRole={userRole} />
                             <SupplierMatchBadge
                               match={row.supplierMatch}
                               userRole={userRole}
@@ -705,8 +715,8 @@ export default function WorldRadarTerminal({
                           {competitionLabel(row.competition, country)}
                         </span>
                       </td>
-                      <td className="px-2 py-3 tabular-nums font-medium text-zinc-900">
-                        {formatRadarPriceDisplay(row.price ?? 0, row.currency)}
+                      <td className="px-2 py-3">
+                        <RadarPriceCell row={row} userRole={userRole} />
                       </td>
                       <td className="px-2 py-3">
                         <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center">
@@ -801,6 +811,7 @@ export default function WorldRadarTerminal({
         country={country}
         winners={bulkWinners}
         defaultDestination={defaultBulkDestination}
+        userRole={userRole}
         progress={bulkProgress}
         loading={bulkLoading}
         onClose={() => {

@@ -3,15 +3,45 @@
 import { useState } from "react"
 
 import { formatEnrichEuro } from "@/lib/import/smart-import-enricher"
+import { canViewResellerMargin } from "@/lib/radar/radar-price-veil"
 import { scanWorldArbitrage } from "@/lib/radar/world-arbitrage-scanner"
 import type { WorldRadarWinnerDto } from "@/lib/radar/world-radar-types"
 
 /**
  * Mini world-arbitrage strip for Radar table rows.
  * Avoids name clash with moat `ArbitrageBadge` inside world-radar-terminal.
+ * SUPPLIER: demand score only — never reseller x-multipliers or € margins.
  */
-export function WorldArbitrageMiniBadge({ row }: { row: WorldRadarWinnerDto }) {
+export function WorldArbitrageMiniBadge({
+  row,
+  userRole,
+}: {
+  row: WorldRadarWinnerDto
+  userRole?: string | null
+}) {
   const [open, setOpen] = useState(false)
+  const showResellerEconomics = canViewResellerMargin(userRole) && !row.priceVeiled
+
+  if (!showResellerEconomics) {
+    const score = Math.min(
+      100,
+      Math.round(
+        (row.arbitrage?.score ?? row.finalScore ?? row.trendingScore ?? 70) +
+          (row.growthRate != null && row.growthRate > 50 ? 5 : 0)
+      )
+    )
+    return (
+      <span
+        className="mt-1.5 inline-flex flex-wrap items-center gap-1 rounded border border-violet-700/30 bg-zinc-950 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-violet-200"
+        title="Score demande mondiale — prix vitrine masqué (réservé revendeurs)"
+      >
+        <span>{score}/100</span>
+        <span className="text-zinc-500">·</span>
+        <span>Demande mondiale</span>
+      </span>
+    )
+  }
+
   const scan = scanWorldArbitrage({
     title: row.title,
     price: row.price,

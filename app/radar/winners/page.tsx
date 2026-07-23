@@ -11,6 +11,7 @@ import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { loadRadarPlanContext } from "@/lib/radar/plan-user.server"
 import { formatRadarPriceDisplay } from "@/lib/radar/format-radar-price"
+import { canViewResellerMarketPrice } from "@/lib/radar/radar-price-veil"
 
 export default async function RadarWinnersPage() {
   if (!isRadarEnabled()) redirect("/404")
@@ -103,7 +104,9 @@ export default async function RadarWinnersPage() {
                 <th className="px-3 py-2">Rank</th>
                 <th className="px-3 py-2">Title</th>
                 <th className="px-3 py-2">Marketplace</th>
-                <th className="px-3 py-2">Price</th>
+                <th className="px-3 py-2">
+                  {canViewResellerMarketPrice(session.user.role) ? "Price" : "Signal"}
+                </th>
                 <th className="px-3 py-2">Country</th>
                 <th className="px-3 py-2">Sales est.</th>
               </tr>
@@ -132,7 +135,9 @@ export default async function RadarWinnersPage() {
                       {connector?.logo} {connector?.name ?? row.marketplaceId}
                     </td>
                     <td className="px-3 py-2 tabular-nums">
-                      {formatRadarPriceDisplay(row.price, row.currency)}
+                      {canViewResellerMarketPrice(session.user.role)
+                        ? formatRadarPriceDisplay(row.price, row.currency)
+                        : "◈ Demande"}
                     </td>
                     <td className="px-3 py-2">{row.country}</td>
                     <td className="px-3 py-2 tabular-nums">

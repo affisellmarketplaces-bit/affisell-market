@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { gate } from "@/lib/radar/gate"
 import { RADAR_DEFAULT_COUNTRY } from "@/lib/radar/dashboard-country.server"
+import { redactRadarPayloadForRole } from "@/lib/radar/radar-price-veil"
 import { getWorldRadarPayload } from "@/lib/radar/world-radar-store.server"
 
 export const runtime = "nodejs"
@@ -17,6 +18,7 @@ const CACHE_HEADERS = {
 /**
  * GET /api/radar?country=FR
  * World Radar winners + trending keywords (cache → cold scan → mock fallback).
+ * SUPPLIER responses redact reseller market prices (Price Veil).
  */
 export async function GET(req: Request) {
   const blocked = gate()
@@ -37,13 +39,17 @@ export async function GET(req: Request) {
 
   try {
     const payload = await getWorldRadarPayload(country)
+    const role = session.user.role
+    const safe = redactRadarPayloadForRole(payload, role)
     console.log("[api/radar]", {
       userId: session.user.id,
+      role,
       country,
-      winners: payload.winners.length,
-      source: payload.source,
+      winners: safe.winners.length,
+      priceVeiled: role === "SUPPLIER",
+      source: safe.source,
     })
-    return NextResponse.json(payload, { headers: CACHE_HEADERS })
+    return NextResponse.json(safe, { headers: CACHE_HEADERS })
   } catch (err) {
     console.error("[api/radar]", {
       country,

@@ -30,7 +30,9 @@ describe("radar-copy persona split", () => {
     expect(copy.ctaLabel).toBe("Devenir fournisseur →")
     expect(copy.ctaHref("FR")).toContain("winnerId=w1")
     expect(copy.ctaHref("FR")).toContain("mode=supplier")
-    expect(copy.arbitrageLabel).toMatch(/resellers/)
+    expect(copy.arbitrageLabel).toMatch(/Stock exclusif|recherches/)
+    expect(copy.arbitrageLabel).not.toMatch(/Tu vends à|€ = \+/)
+    expect(copy.tooltip).toMatch(/prix vitrine/i)
   })
 
   it("bulk bar labels differ by role", () => {

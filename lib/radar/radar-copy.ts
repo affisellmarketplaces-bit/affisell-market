@@ -135,14 +135,14 @@ export function getRadarCopyForSupplier(
   const winnerId = winner.id?.trim() ?? ""
 
   return {
-    arbitrageLabel: `🔥 ${score}/100 - ${searchesLabel} recherches/mois - Marge x3 pour tes resellers`,
+    arbitrageLabel: `🔥 ${score}/100 - ${searchesLabel} recherches/mois - Stock exclusif demandé`,
     opportunityLabel: `📦 Opportunité Grossiste ${code} - 0 fournisseur local - Devenir le seul →`,
     supplierLabel:
       count > 0
         ? `${formatRadarSupplierDeliveryLine({ count, marketCountry: code, origin: "EU", days: 4 })} - Rupture imminente`
         : `📦 Opportunité Grossiste ${code} - 0 fournisseur local - Devenir le seul →`,
     ctaLabel: `Devenir fournisseur →`,
-    tooltip: `${searchesLabel} recherches/mois en ${code}. 0 fournisseur local. Positionne ton stock et 150 resellers Affisell vendront pour toi.`,
+    tooltip: `${searchesLabel} recherches/mois en ${code}. Le prix vitrine est réservé aux revendeurs — toi tu captres le volume en stock exclusif.`,
     ctaHref: (c) => {
       const qs = new URLSearchParams({
         from: "radar",

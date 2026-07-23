@@ -11,6 +11,7 @@ import {
   RADAR_BULK_IMPORT_MAX,
 } from "@/lib/import/smart-import-enricher"
 import { isRadarSupplierRole, radarBulkBarLabel } from "@/lib/radar/radar-copy"
+import { canViewResellerMargin } from "@/lib/radar/radar-price-veil"
 import type { RadarImportDestination } from "@/lib/radar/radar-import-types"
 import type { SupplierKind } from "@/lib/supplier-kind"
 
@@ -32,6 +33,15 @@ const DESTINATION_OPTIONS: Array<{ id: RadarImportDestination; label: string }> 
   { id: "affisell_catalog", label: "Catalogue affilié (draft)" },
   { id: "supplier_draft", label: "Brouillon fournisseur" },
 ]
+
+function destinationOptionsForRole(
+  userRole?: string | null
+): Array<{ id: RadarImportDestination; label: string }> {
+  if (isRadarSupplierRole(userRole)) {
+    return DESTINATION_OPTIONS.filter((o) => o.id === "supplier_draft")
+  }
+  return DESTINATION_OPTIONS
+}
 
 function defaultDestination(
   supplierKind: SupplierKind,
@@ -131,12 +141,18 @@ export function RadarImportBar({
       }
 
       toast.success(
-        `🎉 ${imported} produits importés → Marge +${formatEnrichEuro(margin)}€`,
+        canViewResellerMargin(userRole)
+          ? `🎉 ${imported} produits importés → Marge +${formatEnrichEuro(margin)}€`
+          : `🎉 ${imported} opportunités stock prêtes`,
         {
           action: {
-            label: "Voir arbitrage",
+            label: canViewResellerMargin(userRole) ? "Voir arbitrage" : "Voir brouillons",
             onClick: () => {
-              window.location.href = jobUrl ?? "/dashboard/affiliate/catalog?filter=draft"
+              window.location.href =
+                jobUrl ??
+                (canViewResellerMargin(userRole)
+                  ? "/dashboard/affiliate/catalog?filter=draft"
+                  : "/dashboard/supplier/products")
             },
           },
         }
@@ -185,7 +201,7 @@ export function RadarImportBar({
                   className="rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-xs font-medium text-zinc-800"
                   disabled={busy}
                 >
-                  {DESTINATION_OPTIONS.map((opt) => (
+                  {destinationOptionsForRole(userRole).map((opt) => (
                     <option key={opt.id} value={opt.id}>
                       {opt.label}
                     </option>
@@ -226,24 +242,40 @@ export function RadarImportBar({
                 : bulkLabel}
             </button>
             {destination === "affisell_catalog" || !hasSelection ? (
-              <Link
-                href="/dashboard/affiliate/catalog?filter=draft"
-                className="hidden text-xs font-medium text-violet-600 hover:text-violet-800 sm:inline"
-              >
-                Catalogue draft →
-              </Link>
+              canViewResellerMargin(userRole) ? (
+                <Link
+                  href="/dashboard/affiliate/catalog?filter=draft"
+                  className="hidden text-xs font-medium text-violet-600 hover:text-violet-800 sm:inline"
+                >
+                  Catalogue draft →
+                </Link>
+              ) : (
+                <Link
+                  href="/dashboard/supplier/products"
+                  className="hidden text-xs font-medium text-violet-600 hover:text-violet-800 sm:inline"
+                >
+                  Mes brouillons →
+                </Link>
+              )
             ) : null}
           </div>
         </div>
-        {hasSelection ? (
-          <p className="text-xs font-medium text-emerald-700">
-            💰 Marge estimée: +{formatEnrichEuro(marginEstimate.profit)}€ (x
-            {marginEstimate.multiplier.toFixed(1)}) sur {marginEstimate.count} produit
-            {marginEstimate.count > 1 ? "s" : ""}
-          </p>
+        {canViewResellerMargin(userRole) ? (
+          hasSelection ? (
+            <p className="text-xs font-medium text-emerald-700">
+              💰 Marge estimée: +{formatEnrichEuro(marginEstimate.profit)}€ (x
+              {marginEstimate.multiplier.toFixed(1)}) sur {marginEstimate.count} produit
+              {marginEstimate.count > 1 ? "s" : ""}
+            </p>
+          ) : (
+            <p className="text-xs font-medium text-emerald-700">
+              💰 Marge estimée bulk: +{formatEnrichEuro(bulkMarginHint)}€ (x3.2) sur {bulkN} produits
+            </p>
+          )
         ) : (
-          <p className="text-xs font-medium text-emerald-700">
-            💰 Marge estimée bulk: +{formatEnrichEuro(bulkMarginHint)}€ (x3.2) sur {bulkN} produits
+          <p className="text-xs font-medium text-violet-700">
+            ◈ Opportunité stock exclusif — {bulkN} signal
+            {bulkN > 1 ? "s" : ""} demande · prix vitrine masqué (revendeurs)
           </p>
         )}
       </div>

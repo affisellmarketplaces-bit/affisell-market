@@ -32,6 +32,11 @@ export type WorldRadarWinnerDto = {
   source: string
   price: number | null
   currency: string
+  /**
+   * True when market/list price was redacted for SUPPLIER (Price Veil).
+   * Client must not invent a reseller price from other fields.
+   */
+  priceVeiled?: boolean
   growthRate: number | null
   searches: number | null
   competition: number | null
