@@ -4,13 +4,32 @@ import Image from "next/image"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { BubbleProductCard, type BubbleProductCardProduct } from "@/components/product/BubbleProductCard"
+import { LiveProfitCalculator } from "@/components/product/LiveProfitCalculator"
 import type { SocialAssetsBundle } from "@/lib/social/bubble-product-types"
 
 type Props = {
-  product: BubbleProductCardProduct & { bubbleUrl: string }
+  product: BubbleProductCardProduct & { bubbleUrl: string; costPrice?: number | null }
+}
+
+function rewriteCaptionsForPrice(
+  captions: SocialAssetsBundle["captions"],
+  oldPrice: number,
+  newPrice: number
+): SocialAssetsBundle["captions"] {
+  const from = `${oldPrice.toFixed(0)}€`
+  const to = `${newPrice.toFixed(0)}€`
+  const swap = (s: string) => s.replaceAll(from, to)
+  return {
+    moneyHook: swap(captions.moneyHook),
+    problemHook: swap(captions.problemHook),
+    trendHook: swap(captions.trendHook),
+  }
 }
 
 export function ViralCommandCenter({ product }: Props) {
+  const cost =
+    product.costPrice ?? Math.max(0, product.salePrice - (product.marginEuro ?? 0))
+  const [livePrice, setLivePrice] = useState(product.salePrice)
   const [bundle, setBundle] = useState<SocialAssetsBundle | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -20,6 +39,13 @@ export function ViralCommandCenter({ product }: Props) {
     pinterest: true,
     facebook: true,
   })
+
+  const liveProduct: BubbleProductCardProduct & { bubbleUrl: string } = {
+    ...product,
+    salePrice: livePrice,
+    marginEuro: Math.max(0, Math.round((livePrice - cost) * 100) / 100),
+    costPrice: cost,
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -40,22 +66,30 @@ export function ViralCommandCenter({ product }: Props) {
     void load()
   }, [load])
 
+  const liveCaptions = useMemo(() => {
+    if (!bundle) return null
+    return rewriteCaptionsForPrice(bundle.captions, product.salePrice, livePrice)
+  }, [bundle, product.salePrice, livePrice])
+
   const captionsTxt = useMemo(() => {
-    if (!bundle) return ""
+    if (!bundle || !liveCaptions) return ""
     return [
       "=== Hook argent ===",
-      bundle.captions.moneyHook,
+      liveCaptions.moneyHook,
       "",
       "=== Hook problème ===",
-      bundle.captions.problemHook,
+      liveCaptions.problemHook,
       "",
       "=== Hook trend ===",
-      bundle.captions.trendHook,
+      liveCaptions.trendHook,
       "",
       "=== Par asset ===",
-      ...bundle.assets.map((a) => `[${a.key}]\n${a.caption}\n`),
+      ...bundle.assets.map((a) => {
+        const cap = a.caption.replaceAll(`${product.salePrice.toFixed(0)}€`, `${livePrice.toFixed(0)}€`)
+        return `[${a.key}]\n${cap}\n`
+      }),
     ].join("\n")
-  }, [bundle])
+  }, [bundle, liveCaptions, product.salePrice, livePrice])
 
   const copyCaption = async (text: string) => {
     try {
@@ -92,8 +126,20 @@ export function ViralCommandCenter({ product }: Props) {
     <div className="mx-auto max-w-5xl space-y-10 px-4 py-10">
       <header className="flex flex-col items-center gap-6 text-center">
         <h1 className="text-2xl font-black text-zinc-900 dark:text-white">Rendre viral</h1>
-        <BubbleProductCard product={product} variant="bubble-card" showShareBar />
+        <BubbleProductCard product={liveProduct} variant="bubble-card" showShareBar />
       </header>
+
+      <section className="mx-auto max-w-md">
+        <h2 className="mb-3 text-lg font-bold text-zinc-900 dark:text-white">Prix & bénéfice net</h2>
+        <LiveProfitCalculator
+          cost={cost}
+          suggestedPrice={product.salePrice}
+          onPriceChange={setLivePrice}
+        />
+        <p className="mt-2 text-center text-[11px] text-zinc-500">
+          Le slider met à jour la bulle + captions (prix). Régénère les PNG après choix final.
+        </p>
+      </section>
 
       <section>
         <h2 className="mb-4 text-lg font-bold text-zinc-900 dark:text-white">Assets générés auto</h2>
@@ -115,6 +161,9 @@ export function ViralCommandCenter({ product }: Props) {
               >
                 <div className="relative aspect-video bg-zinc-100 dark:bg-zinc-900">
                   <Image src={asset.publicUrl} alt="" fill className="object-contain" unoptimized />
+                  <div className="absolute bottom-2 right-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                    {livePrice.toFixed(0)}€
+                  </div>
                 </div>
                 <div className="space-y-2 p-3">
                   <p className="text-xs font-mono text-zinc-500">{asset.key}</p>
@@ -128,7 +177,14 @@ export function ViralCommandCenter({ product }: Props) {
                     <button
                       type="button"
                       className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-semibold dark:border-zinc-700"
-                      onClick={() => void copyCaption(asset.caption)}
+                      onClick={() =>
+                        void copyCaption(
+                          asset.caption.replaceAll(
+                            `${product.salePrice.toFixed(0)}€`,
+                            `${livePrice.toFixed(0)}€`
+                          )
+                        )
+                      }
                     >
                       Copier caption
                     </button>
@@ -163,14 +219,14 @@ export function ViralCommandCenter({ product }: Props) {
         </button>
       </section>
 
-      {bundle ? (
+      {bundle && liveCaptions ? (
         <section className="space-y-3">
           <h2 className="text-lg font-bold">Caption virale IA</h2>
           {(
             [
-              ["Hook argent", bundle.captions.moneyHook],
-              ["Hook problème", bundle.captions.problemHook],
-              ["Hook trend", bundle.captions.trendHook],
+              ["Hook argent", liveCaptions.moneyHook],
+              ["Hook problème", liveCaptions.problemHook],
+              ["Hook trend", liveCaptions.trendHook],
             ] as const
           ).map(([label, text]) => (
             <div key={label} className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">

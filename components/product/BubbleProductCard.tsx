@@ -5,6 +5,7 @@ import Image from "next/image"
 
 import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
 import { BubbleShareBar } from "@/components/product/BubbleShareBar"
+import { ProfitBadge } from "@/components/product/ProfitBadge"
 import { hexToRgba, useDominantColor } from "@/lib/hooks/useDominantColor"
 import type { BubbleProductVariant } from "@/lib/social/bubble-product-types"
 import { cn } from "@/lib/utils"
@@ -16,6 +17,8 @@ export type BubbleProductCardProduct = {
   salePrice: number
   compareAtPrice?: number | null
   marginEuro: number
+  /** Supplier cost (HT) — enables ProfitBadge net estimate. */
+  costPrice?: number | null
   deliveryDays: number
   deliveryCountry: string
   supplierTrustScore: number
@@ -115,9 +118,13 @@ export function BubbleProductCard({
 
         {showStats ? (
           <div className="stats-bubbles flex flex-wrap items-center justify-center gap-1.5">
-            <span className="bubble-mini rounded-full border border-emerald-300/40 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-100 backdrop-blur-sm">
-              +{formatEuro(product.marginEuro)} sans stock
-            </span>
+            {product.costPrice != null && product.costPrice > 0 ? (
+              <ProfitBadge cost={product.costPrice} salePrice={product.salePrice} />
+            ) : (
+              <span className="bubble-mini rounded-full border border-emerald-300/40 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-100 backdrop-blur-sm">
+                +{formatEuro(product.marginEuro)} sans stock
+              </span>
+            )}
             <span className="bubble-mini inline-flex rounded-full border border-sky-300/40 bg-sky-500/20 px-2 py-0.5 text-[10px] font-bold text-sky-100 backdrop-blur-sm">
               <DeliveryBadge
                 days={product.deliveryDays}

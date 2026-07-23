@@ -28,6 +28,7 @@ import {
 } from "@/components/affiliate/listing-builder-modal"
 import { AffiliateHero } from "@/components/marketplace/AffiliateHero"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
+import { ProfitBadge } from "@/components/product/ProfitBadge"
 import { Sidebar } from "@/components/marketplace/Sidebar"
 import { GlobalRequestButton } from "@/components/reseller/GlobalRequestButton"
 import { Button } from "@/components/ui/button"
@@ -674,6 +675,13 @@ export function AffiliateCatalogExperience({
                             </p>
                           ) : null}
                           <AffiliateCatalogEconomicsPanel economics={economics} className="mt-auto" />
+                          <div className="mt-1">
+                            <ProfitBadge
+                              cost={economics.supplierPriceCents / 100}
+                              salePrice={economics.clientPriceCents / 100}
+                              className="border-emerald-200 bg-emerald-50 text-emerald-800"
+                            />
+                          </div>
                           {supplierHref ? (
                             <Link href={supplierHref} className="flex items-center gap-1 truncate text-xs text-violet-700">
                               <Store className="h-3.5 w-3.5" aria-hidden />

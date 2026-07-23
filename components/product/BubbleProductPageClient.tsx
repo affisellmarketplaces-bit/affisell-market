@@ -2,10 +2,11 @@
 
 import { motion, useScroll, useTransform } from "framer-motion"
 import Link from "next/link"
-import { useRef } from "react"
+import { useRef, useState } from "react"
 
 import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
 import { BubbleProductCard, type BubbleProductCardProduct } from "@/components/product/BubbleProductCard"
+import { LiveProfitCalculator } from "@/components/product/LiveProfitCalculator"
 import { MarginLockListCta } from "@/components/product/MarginLockListCta"
 import { SupplierTrustBadge } from "@/components/logistics/SupplierTrustBadge"
 import type { BubbleProductView } from "@/lib/social/bubble-product-types"
@@ -19,13 +20,17 @@ type Props = {
 }
 
 export function BubbleProductPageClient({ product, similar, catalogSocialHref }: Props) {
+  const cost = product.costPrice ?? Math.max(0, product.salePrice - product.marginEuro)
+  const [liveSalePrice, setLiveSalePrice] = useState(product.salePrice)
+
   const cardProduct: BubbleProductCardProduct = {
     id: product.id,
     title: product.title,
     imageUrl: product.imageUrl,
-    salePrice: product.salePrice,
+    salePrice: liveSalePrice,
     compareAtPrice: product.compareAtPrice,
-    marginEuro: product.marginEuro,
+    marginEuro: Math.max(0, Math.round((liveSalePrice - cost) * 100) / 100),
+    costPrice: cost,
     deliveryDays: product.deliveryDays,
     deliveryCountry: product.deliveryCountry,
     supplierTrustScore: product.supplierTrustScore,
@@ -38,11 +43,7 @@ export function BubbleProductPageClient({ product, similar, catalogSocialHref }:
 
   return (
     <div ref={containerRef} className="relative min-h-screen overflow-x-hidden bg-slate-950 text-white">
-      <motion.div
-        style={{ y: bgY }}
-        className="pointer-events-none fixed inset-0 opacity-80"
-        aria-hidden
-      >
+      <motion.div style={{ y: bgY }} className="pointer-events-none fixed inset-0 opacity-80" aria-hidden>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,#8b5cf6_0%,transparent_45%),radial-gradient(circle_at_80%_30%,#06b6d4_0%,transparent_40%),linear-gradient(180deg,#020617,#0f172a)]" />
       </motion.div>
 
@@ -51,12 +52,28 @@ export function BubbleProductPageClient({ product, similar, catalogSocialHref }:
           <BubbleProductCard product={cardProduct} variant="bubble-card" showShareBar />
         </div>
 
-        <StackBubble title="Prix & marge">
-          <p className="text-3xl font-black">{product.salePrice.toFixed(2)}€</p>
-          <p className="mt-1 text-emerald-300">+{product.marginEuro.toFixed(0)}€ sans stock</p>
+        <StackBubble title="Bénéfice net live">
+          <div id="profit">
+            <LiveProfitCalculator
+              cost={cost}
+              suggestedPrice={product.salePrice}
+              onPriceChange={setLiveSalePrice}
+              showUsePrice
+              onUsePrice={(price) => {
+                setLiveSalePrice(price)
+                void fetch(`/api/products/${encodeURIComponent(product.id)}/margin-lock`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ salePrice: price }),
+                }).then(() => {
+                  window.location.href = catalogSocialHref
+                })
+              }}
+            />
+          </div>
           <MarginLockListCta
             productId={product.id}
-            salePrice={product.salePrice}
+            salePrice={liveSalePrice}
             catalogHref={catalogSocialHref}
           />
         </StackBubble>
@@ -101,6 +118,7 @@ export function BubbleProductPageClient({ product, similar, catalogSocialHref }:
                         imageUrl: s.imageUrl,
                         salePrice: s.salePrice,
                         marginEuro: s.marginEuro,
+                        costPrice: Math.max(0, s.salePrice - s.marginEuro),
                         deliveryDays: product.deliveryDays,
                         deliveryCountry: product.deliveryCountry,
                         supplierTrustScore: product.supplierTrustScore,

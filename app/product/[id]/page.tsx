@@ -18,8 +18,8 @@ export default async function ProductByIdPage({
   const sp = await searchParams
   if (!id?.trim()) notFound()
 
-  if (sp.view === "bubble") {
-    redirect(`/product/${id}/bubble`)
+  if (sp.view === "bubble" || sp.view === "profit") {
+    redirect(`/product/${id}/bubble${sp.view === "profit" ? "#profit" : ""}`)
   }
 
   const listing = await prisma.affiliateProduct.findFirst({

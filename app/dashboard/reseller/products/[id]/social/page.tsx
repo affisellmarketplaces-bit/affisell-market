@@ -21,6 +21,7 @@ export default async function ResellerProductSocialPage({ params }: Props) {
         salePrice: product.salePrice,
         compareAtPrice: product.compareAtPrice,
         marginEuro: product.marginEuro,
+        costPrice: product.costPrice,
         deliveryDays: product.deliveryDays,
         deliveryCountry: product.deliveryCountry,
         supplierTrustScore: product.supplierTrustScore,
