@@ -1669,7 +1669,7 @@ export function SupplierAddProductForm({
   )
 
   const syncDraftToServer = useCallback(
-    (opts?: {
+    async (opts?: {
       silent?: boolean
       force?: boolean
       stepOverride?: WizardStep
