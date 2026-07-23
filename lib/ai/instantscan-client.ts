@@ -7,12 +7,14 @@ export type InstantScanAnalyzeResponse = {
   categoryId?: string | null
   suggestedPrice?: number | null
   confidence?: number
+  needsReview?: boolean
   detectedModel?: string | null
   visionVersion?: string
   instantScanStage?: "embed" | "mini" | "gpt4o" | "groq"
   latencyMs?: number
   error?: string
-  fallback?: string
+  detail?: string
+  fallback?: string | boolean
   retry_after_sec?: number
 }
 

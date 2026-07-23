@@ -27,6 +27,7 @@ import {
   trackWizardV2View,
 } from "@/lib/analytics/wizard-v2-posthog"
 import { buildWizardV2PublishBody } from "@/lib/product-wizard-v2/build-publish-payload"
+import { compressDataUrlForInstantScan } from "@/lib/product-image-upload"
 import {
   instantScanStageFromVisionVersion,
   trackInstantScanApiCalled,
@@ -117,7 +118,10 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     description: string
     categoryId: string | null
     suggestedPrice: number | null
+    confidence?: number | null
+    needsReview?: boolean
   } | null>(null)
+  const [instantScanError, setInstantScanError] = useState<string | null>(null)
   const [publishing, setPublishing] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [commissionPct, setCommissionPct] = useState(15)
@@ -250,6 +254,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
 
     markInstantScanAnalyzeStart(session, imageUrl)
     setInstantScanState("loading")
+    setInstantScanError(null)
     const toastId = toastInstantScanLoading()
     const analyzeStarted = Date.now()
     const controller = new AbortController()
@@ -261,20 +266,55 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       resetInstantScanSession(session)
       instantScanImageRef.current = null
       setInstantScanState("idle")
+      setInstantScanError(null)
     }
 
     try {
+      let imageDataUrl = instantScanDataUrlRef.current ?? processedImageDataUrl ?? undefined
+      if (imageDataUrl?.startsWith("data:image/")) {
+        try {
+          imageDataUrl = await compressDataUrlForInstantScan(imageDataUrl)
+          instantScanDataUrlRef.current = imageDataUrl
+        } catch (compressErr) {
+          console.log("[InstantScan]", {
+            result: "compress_skipped",
+            error: compressErr instanceof Error ? compressErr.message : String(compressErr),
+          })
+        }
+      }
+
       const { ok, status, data, retryAfterSec } = await analyzeWithRetry(imageUrl, 0, {
         signal: controller.signal,
-        imageDataUrl: instantScanDataUrlRef.current ?? processedImageDataUrl ?? undefined,
+        imageDataUrl,
         onRetry: () => toastInstantScanRetrying(),
       })
 
       const latencyMs = Date.now() - analyzeStarted
       trackInstantScanApiCalled({ url: imageUrl, status, latency_ms: latencyMs })
 
+      const partialSuggestion = {
+        title: data.title ?? "",
+        description: data.description ?? "",
+        categoryId: data.categoryId ?? null,
+        suggestedPrice: data.suggestedPrice ?? null,
+        confidence: data.confidence ?? null,
+        needsReview: Boolean(data.needsReview) || (typeof data.confidence === "number" && data.confidence < 0.7),
+      }
+      const hasPartial =
+        Boolean(partialSuggestion.title.trim()) ||
+        (partialSuggestion.suggestedPrice != null && Number.isFinite(partialSuggestion.suggestedPrice))
+
       if (!ok) {
         toast.dismiss(toastId)
+        const detail =
+          typeof data.detail === "string" && data.detail.trim()
+            ? data.detail.trim()
+            : data.error ?? `http_${status}`
+        setInstantScanError(detail)
+        if (hasPartial) {
+          setAiSuggestion(partialSuggestion)
+          applyInstantScanFields(partialSuggestion)
+        }
         if (status === 429 || data.error === "rate_limit") {
           markInstantScanRateLimited(session, retryAfterSec ?? data.retry_after_sec ?? 60)
           trackInstantScanError({ reason: "rate_limit", status })
@@ -306,6 +346,11 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         description: data.description ?? "",
         categoryId: data.categoryId ?? null,
         suggestedPrice: data.suggestedPrice ?? null,
+        confidence: data.confidence ?? null,
+        needsReview:
+          Boolean(data.needsReview) ||
+          data.fallback === true ||
+          (typeof data.confidence === "number" && data.confidence < 0.7),
       }
       setAiSuggestion(suggestion)
       applyInstantScanFields(suggestion)
@@ -336,6 +381,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         confidencePct,
         latencyMs: resultLatencyMs,
         toastId,
+        needsReview: suggestion.needsReview,
       })
     } catch (err) {
       toast.dismiss(toastId)
@@ -345,6 +391,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
           : err instanceof Error
             ? err.message
             : "analyze_failed"
+      setInstantScanError(reason)
       trackInstantScanGateTriggered({ reason })
       trackInstantScanError({ reason })
       setInstantScanState("error")
@@ -363,8 +410,14 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     resetInstantScanSession(instantScanSessionRef.current)
     instantScanImageRef.current = null
     setInstantScanState("idle")
+    setInstantScanError(null)
     setAiSuggestion(null)
   }, [])
+
+  const goManualWithPrefill = useCallback(() => {
+    if (aiSuggestion) applyInstantScanFields(aiSuggestion)
+    setGuidedStep(2)
+  }, [aiSuggestion, applyInstantScanFields])
 
   useEffect(() => {
     const url = images[0]?.trim() ?? null
@@ -721,6 +774,15 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                     ) : aiSuggestion && instantScanState === "done" ? (
                       <>
                         <p className="text-sm font-medium">{instantScanBrand} suggère :</p>
+                        {aiSuggestion.needsReview ? (
+                          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+                            Confiance moyenne
+                            {typeof aiSuggestion.confidence === "number"
+                              ? ` (${Math.round(aiSuggestion.confidence * 100)}%)`
+                              : ""}{" "}
+                            — vérifiez le titre et le prix avant de publier.
+                          </p>
+                        ) : null}
                         <p className="text-base font-semibold">{aiSuggestion.title}</p>
                         <p className="text-sm text-zinc-600 line-clamp-3">{aiSuggestion.description}</p>
                         <div className="flex flex-wrap gap-2">
@@ -747,8 +809,16 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                         <p className="text-sm text-amber-900 dark:text-amber-100">
                           {instantScanBrand} incertain - complétez manuellement
                         </p>
+                        {instantScanError ? (
+                          <p className="text-sm text-red-600 dark:text-red-300">Erreur: {instantScanError}</p>
+                        ) : null}
+                        {aiSuggestion?.title ? (
+                          <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                            Pré-rempli: <span className="font-medium">{aiSuggestion.title}</span>
+                          </p>
+                        ) : null}
                         <div className="flex flex-wrap gap-2">
-                          <Button type="button" onClick={() => setGuidedStep(2)}>
+                          <Button type="button" onClick={goManualWithPrefill}>
                             Saisie manuelle
                           </Button>
                           <Button type="button" variant="outline" onClick={retryInstantScan}>
@@ -761,17 +831,20 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                         <p className="text-sm text-red-700 dark:text-red-300">
                           {instantScanBrand} n&apos;a pas abouti.
                         </p>
+                        {instantScanError ? (
+                          <p className="text-sm text-red-600 dark:text-red-300">Erreur: {instantScanError}</p>
+                        ) : null}
                         <div className="flex flex-wrap gap-2">
                           <Button type="button" variant="outline" onClick={retryInstantScan}>
                             Réessayer
                           </Button>
-                          <Button type="button" onClick={() => setGuidedStep(2)}>
+                          <Button type="button" onClick={goManualWithPrefill}>
                             Saisie manuelle
                           </Button>
                         </div>
                       </div>
                     ) : (
-                      <Button type="button" variant="outline" onClick={() => setGuidedStep(2)}>
+                      <Button type="button" variant="outline" onClick={goManualWithPrefill}>
                         Saisie manuelle
                       </Button>
                     )}

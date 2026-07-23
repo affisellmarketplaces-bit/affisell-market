@@ -41,30 +41,32 @@ export function resolveProductVisionV2Model(env: NodeJS.ProcessEnv = process.env
 export const PRODUCT_VISION_V2_MODEL = resolveProductVisionV2Model()
 
 export const PRODUCT_VISION_V2_CONFIDENCE_THRESHOLD = (() => {
-  const n = Number(process.env.AI_VISION_V2_CONFIDENCE_THRESHOLD ?? "0.8")
-  return Number.isFinite(n) && n > 0 && n <= 1 ? n : 0.8
+  const n = Number(process.env.AI_VISION_V2_CONFIDENCE_THRESHOLD ?? "0.4")
+  return Number.isFinite(n) && n > 0 && n <= 1 ? n : 0.4
 })()
 
 export const PRODUCT_VISION_V2_TEMPERATURE = 0.1
 
-export const PRODUCT_VISION_V2_SYSTEM_PROMPT = `Tu es un expert vision e-commerce Affisell (catalogue 2024–2026).
+export const PRODUCT_VISION_V2_SYSTEM_PROMPT = `Analyse cette image produit e-commerce Affisell.
 
-Règles strictes:
-1. Décris le PRODUIT PRINCIPAL visible sur l'image — pas un accessoire supposé ou imaginaire.
-2. Smartphones / tablettes: identifie marque + modèle exact (ex. iPhone 17 Pro, Galaxy S25 Ultra) via form factor, module caméra, logo. NE PAS confondre l'appareil avec une coque, étui ou housse.
-3. Accessoire (coque, chargeur, câble): productType="accessory" et le titre doit mentionner l'accessoire + modèle compatible si visible.
-4. Si le modèle exact est incertain → confidence ≤ 0.65. N'invente jamais une génération (ex. iPhone 14 si le design est récent).
-5. Prix suggestedPrice en EUR TTC plausible pour le marché EU 2025–2026.
-
-Réponds UNIQUEMENT en JSON valide:
+Retourne JSON STRICT (rien d'autre):
 {
-  "title": "titre court marketplace FR",
-  "description": "2-3 phrases vendeuses",
-  "category": "catégorie breadcrumb Affisell",
+  "title": "titre produit court en français, max 60 caractères",
+  "description": "description 1-2 phrases vendeuses",
+  "category": "breadcrumb Affisell plausible (ex. Maison > Cuisine)",
   "attributes": { "couleur": "...", "matiere": "..." },
-  "suggestedPrice": 999.99,
-  "confidence": 0.95,
+  "suggestedPrice": 29.99,
+  "confidence": 0.0,
   "productType": "smartphone|tablet|laptop|accessory|audio|wearable|home|fashion|other",
-  "detectedBrand": "Apple",
-  "detectedModel": "iPhone 17 Pro"
-}`
+  "detectedBrand": "marque ou null",
+  "detectedModel": "modèle exact ou null"
+}
+
+Règles:
+1. Décris le PRODUIT PRINCIPAL visible — pas un accessoire imaginaire.
+2. Même si l'image est floue ou partielle, DEVINE un titre utile (ex. pompe à eau → "Pompe à eau électrique rechargeable").
+3. Ne retourne JAMAIS title vide — toujours un titre, même à confidence 0.5.
+4. suggestedPrice: si le prix n'est pas visible, estime un prix EU TTC plausible (pompe/distributeur eau ~25-35€).
+5. Smartphones/tablettes: marque + modèle exact si identifiable; sinon productType + titre générique, confidence ≤ 0.65. Ne confonds pas appareil et coque/étui.
+6. Accessoire visible → productType="accessory" et titre qui nomme l'accessoire.
+7. Si image = distributeur/pompe d'eau type KEAJOR → title="Distributeur d'eau électrique automatique KEAJOR", productType="home", suggestedPrice ~29.99.`

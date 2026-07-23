@@ -19,8 +19,20 @@ export function toastInstantScanSuccess(args: {
   confidencePct: string | null
   latencyMs: number
   toastId?: string | number
+  needsReview?: boolean
 }): void {
   const suffix = [args.confidencePct, `${args.latencyMs}ms`].filter(Boolean).join(" • ")
+  if (args.needsReview) {
+    const message = suffix
+      ? `${INSTANTSCAN_PRODUCT_NAME} : ${args.model} (à vérifier) • ${suffix}`
+      : `${INSTANTSCAN_PRODUCT_NAME} : ${args.model} — vérifiez avant publication`
+    if (args.toastId != null) {
+      toast.message(message, { id: args.toastId })
+      return
+    }
+    toast.message(message)
+    return
+  }
   const message = suffix
     ? `${INSTANTSCAN_PRODUCT_NAME} : ${args.model} détecté • ${suffix}`
     : `${INSTANTSCAN_PRODUCT_NAME} : ${args.model} détecté`

@@ -16,6 +16,20 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
+const MISSING_KEY_FALLBACK = {
+  title: "Produit détecté - Complétez manuellement",
+  description: "",
+  category: "Autre",
+  categoryId: null as string | null,
+  attributes: {} as Record<string, string>,
+  suggestedPrice: null as number | null,
+  confidence: 0.5,
+  needsReview: true,
+  fallback: true as const,
+  visionVersion: "v2" as const,
+  instantScanStage: "gpt4o" as const,
+}
+
 export async function POST(req: Request) {
   const gate = await guardSupplierAiSession()
   if (!gate.ok) return gate.response
@@ -56,10 +70,15 @@ export async function POST(req: Request) {
   }
 
   if (!process.env.OPENAI_API_KEY?.trim()) {
-    logInstantScan("API rejected — missing OpenAI key", {
+    logInstantScan("API soft-fallback — missing OpenAI key", {
       keyPrefix: process.env.OPENAI_API_KEY?.slice(0, 7) ?? "missing",
     })
-    return NextResponse.json({ error: "missing_api_key", fallback: "manual" }, { status: 503 })
+    console.error("INSTANTSCAN ERROR FULL:", { reason: "missing_api_key" })
+    return NextResponse.json({
+      ...MISSING_KEY_FALLBACK,
+      cached: false,
+      error: "missing_api_key",
+    })
   }
 
   const limited = await rateLimitResponseAsync(rateLimitClientKey(req, gate.userId), {
@@ -83,22 +102,34 @@ export async function POST(req: Request) {
       model: analyzed.detectedModel ?? analyzed.title?.slice(0, 80),
       latency_ms: analyzed.latencyMs,
       stage: analyzed.instantScanStage ?? analyzed.visionVersion,
+      confidence: analyzed.confidence,
+      needsReview: analyzed.needsReview ?? false,
       cost_usd: 0.003,
     })
     return NextResponse.json(result)
   } catch (err) {
     const message = err instanceof Error ? err.message : "analyze_failed"
-    console.error("[InstantScan API] Error:", err)
-    logInstantScan("API error", { message })
+    const detail = err instanceof Error ? err.message : String(err)
+    console.error("INSTANTSCAN ERROR FULL:", err)
+    logInstantScan("API error", { message, detail })
     if (message === "ai_unavailable" || message === "image_not_https" || message === "image_fetch_failed") {
-      return NextResponse.json({ error: "ai_unavailable", fallback: "manual" }, { status: 503 })
+      return NextResponse.json(
+        { error: "ai_unavailable", detail, fallback: "manual" },
+        { status: 503 }
+      )
     }
     if (message === "low_confidence") {
-      return NextResponse.json({ error: "low_confidence", fallback: "manual" }, { status: 422 })
+      return NextResponse.json(
+        { error: "low_confidence", detail, fallback: "manual" },
+        { status: 422 }
+      )
     }
     if (message === "image_required") {
-      return NextResponse.json({ error: "image_required" }, { status: 400 })
+      return NextResponse.json({ error: "image_required", detail }, { status: 400 })
     }
-    return NextResponse.json({ error: "ai_unavailable", fallback: "manual" }, { status: 503 })
+    return NextResponse.json(
+      { error: "ai_unavailable", detail, fallback: "manual", stack: err instanceof Error ? err.stack : undefined },
+      { status: 503 }
+    )
   }
 }

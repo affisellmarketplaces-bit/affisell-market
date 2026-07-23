@@ -118,6 +118,11 @@ export function shouldRequireManualFallback(
   return confidence < threshold
 }
 
+/** Hard "incertain" only when nothing usable was extracted — not merely low confidence. */
+export function hasUsableVisionExtraction(raw: Pick<ProductVisionV2Raw, "title" | "suggestedPrice">): boolean {
+  return Boolean(raw.title.trim()) || (raw.suggestedPrice != null && Number.isFinite(raw.suggestedPrice))
+}
+
 export function buildVisionV2UserPrompt(): string {
   return `${PRODUCT_VISION_V2_SYSTEM_PROMPT}
 

@@ -185,7 +185,8 @@ const RECENT_PRODUCT_CASES: Array<{
       detectedModel: null,
       confidence: 0.72,
     }),
-    expectManual: true,
+    // Audited ≤0.65 (missing model) — still above soft threshold 0.4 → prefill, don't hard-block
+    expectManual: false,
   },
   {
     name: "Explicit low confidence from model",
@@ -193,6 +194,15 @@ const RECENT_PRODUCT_CASES: Array<{
       title: "Appareil électronique",
       productType: "other",
       confidence: 0.55,
+    }),
+    expectManual: false,
+  },
+  {
+    name: "Very low confidence — still hard-review",
+    raw: fixture({
+      title: "Objet indéterminé",
+      productType: "other",
+      confidence: 0.25,
     }),
     expectManual: true,
   },
@@ -231,8 +241,8 @@ describe("product-vision-v2", () => {
     expect(shouldRequireManualFallback(audited)).toBe(expectManual)
   })
 
-  it("requires manual fallback below 0.8 threshold", () => {
-    expect(shouldRequireManualFallback(0.79)).toBe(true)
-    expect(shouldRequireManualFallback(0.8)).toBe(false)
+  it("requires manual fallback below 0.4 threshold", () => {
+    expect(shouldRequireManualFallback(0.39)).toBe(true)
+    expect(shouldRequireManualFallback(0.4)).toBe(false)
   })
 })

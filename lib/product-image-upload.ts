@@ -3,6 +3,10 @@
 export const PRODUCT_IMAGE_CANVAS = 1200
 export const PRODUCT_IMAGE_PAD = 120
 
+/** InstantScan vision payload — smaller JPEG to avoid OpenAI timeouts. */
+export const INSTANTSCAN_VISION_MAX_PX = 1024
+export const INSTANTSCAN_VISION_JPEG_QUALITY = 0.8
+
 /** Reject only unusably tiny sources; larger images are upscaled on the canvas. */
 export const PRODUCT_GALLERY_MIN_SOURCE_PX = 320
 
@@ -125,10 +129,41 @@ export async function processProductGalleryImageFile(
     const x = (PRODUCT_IMAGE_CANVAS - width) / 2
     const y = (PRODUCT_IMAGE_CANVAS - height) / 2
     decoded.draw(ctx, width, height, x, y)
-    return canvas.toDataURL("image/jpeg", 0.88)
+    return canvas.toDataURL("image/jpeg", 0.8)
   } finally {
     decoded.cleanup()
   }
+}
+
+/**
+ * Re-encode a gallery data URL for InstantScan (max 1024px, JPEG q=0.8).
+ * Idempotent if input is already small enough.
+ */
+export async function compressDataUrlForInstantScan(dataUrl: string): Promise<string> {
+  if (!dataUrl.startsWith("data:image/")) return dataUrl
+
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const el = new Image()
+    el.onload = () => resolve(el)
+    el.onerror = () => reject(new Error("decode"))
+    el.src = dataUrl
+  })
+
+  const srcW = img.naturalWidth || img.width
+  const srcH = img.naturalHeight || img.height
+  if (!srcW || !srcH) return dataUrl
+
+  const scale = Math.min(1, INSTANTSCAN_VISION_MAX_PX / Math.max(srcW, srcH))
+  const w = Math.max(1, Math.round(srcW * scale))
+  const h = Math.max(1, Math.round(srcH * scale))
+
+  const canvas = document.createElement("canvas")
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext("2d")
+  if (!ctx) return dataUrl
+  ctx.drawImage(img, 0, 0, w, h)
+  return canvas.toDataURL("image/jpeg", INSTANTSCAN_VISION_JPEG_QUALITY)
 }
 
 const GALLERY_UPLOAD_CONCURRENCY = 4

@@ -13,6 +13,7 @@ import {
 } from "@/lib/ai/product-vision-v2-config"
 import {
   auditProductVisionConfidence,
+  hasUsableVisionExtraction,
   parseVisionV2Payload,
   shouldRequireManualFallback,
 } from "@/lib/ai/product-vision-v2-parse"
@@ -31,6 +32,8 @@ export type ProductAnalysisResult = {
   cached: boolean
   /** Present when ENABLE_AI_VISION_V2 — model self-reported + audited score. */
   confidence?: number
+  /** True when confidence is below threshold — UI should warn but still prefill. */
+  needsReview?: boolean
   visionVersion?: "v1" | "v2" | "v2.2"
   detectedModel?: string | null
   /** InstantScan cascade stage (embed fast-path, gpt4o fallback, groq legacy). */
@@ -202,21 +205,36 @@ async function analyzeProductFromImageV2Gpt(
     })
     if (!raw) throw new Error("ai_unavailable")
   } catch (err) {
-    console.log("[product-analyzer]", { result: "vision_v2_failed", error: String(err) })
+    console.error("INSTANTSCAN ERROR FULL:", err)
+    console.log("[product-analyzer]", {
+      result: "vision_v2_failed",
+      error: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack?.slice(0, 500) : undefined,
+    })
     throw new Error("ai_unavailable")
   }
 
   const parsed = parseVisionV2Payload(raw)
   const confidence = auditProductVisionConfidence(parsed)
+  const needsReview = shouldRequireManualFallback(confidence)
 
-  if (shouldRequireManualFallback(confidence) && !parsed.title.trim()) {
+  // Hard gate only when nothing usable — never block solely on medium confidence.
+  if (!hasUsableVisionExtraction(parsed)) {
+    console.error("INSTANTSCAN ERROR FULL:", {
+      reason: "empty_extraction",
+      confidence,
+      productType: parsed.productType,
+      rawPreview: raw.slice(0, 400),
+    })
+    console.log("[product-analyzer]", { result: "v2_empty_extraction", confidence })
     throw new Error("low_confidence")
   }
 
-  if (shouldRequireManualFallback(confidence)) {
+  if (needsReview) {
     console.log("[product-analyzer]", {
       result: "v2_low_confidence_soft",
       confidence,
+      threshold: process.env.AI_VISION_V2_CONFIDENCE_THRESHOLD ?? "0.4",
       productType: parsed.productType,
       detectedModel: parsed.detectedModel,
     })
@@ -238,13 +256,14 @@ async function analyzeProductFromImageV2Gpt(
   })
 
   return {
-    title: parsed.title || "Nouveau produit",
+    title: parsed.title || "Produit détecté - Complétez manuellement",
     description: parsed.description,
     category: categoryLabel,
     categoryId,
     attributes: parsed.attributes,
     suggestedPrice: parsed.suggestedPrice,
     confidence,
+    needsReview,
     visionVersion: "v2",
     detectedModel: parsed.detectedModel,
     instantScanStage: "gpt4o",
