@@ -4404,5 +4404,63 @@
       "retry": "Spróbuj ponownie",
       "home": "Domu"
     }
+  },
+  "slogans": {
+    "buyer": {
+      "base": "Stores you trust.",
+      "rotatifs": [
+        "Products verified.",
+        "Makers verified.",
+        "Payments protected.",
+        "Returns guaranteed.",
+        "Shops curated.",
+        "Quality assured."
+      ],
+      "canonical": "Stores you trust. Products verified."
+    },
+    "reseller": {
+      "base": "Turn",
+      "rotatifs": [
+        "products into profits",
+        "ideas into income",
+        "listings into cash",
+        "clicks into profit",
+        "trends into money",
+        "catalog into revenue",
+        "views into sales",
+        "stock into income"
+      ],
+      "fixedSuffix": "Instantly.",
+      "canonical": "Turn products into profits. Instantly.",
+      "metaTitle": "Turn products into profits. Instantly. | Affisell Reseller",
+      "metaDescription": "Live net profit per product, 7-day margin lock, real EU delivery. Start reselling profitable products in 1 click.",
+      "badge": "7 innovations · Margin Lock 7j · Live Profit",
+      "sub": "The only marketplace where every product shows live net profit after fees, ads & shipping. Margin locked for 7 days. No fake 3-7 day delivery.",
+      "ticker": "Trusted by 120+ resellers · €14.2k avg profit/mo",
+      "ctaPrimary": "Start reselling — It's free",
+      "ctaSecondary": "Explore profitable products"
+    },
+    "supplier": {
+      "base": "Turn",
+      "rotatifs": [
+        "inventory into income",
+        "stock into sales",
+        "products into stores",
+        "catalog into cashflow",
+        "warehouse into revenue",
+        "listings into orders",
+        "inventory into scale",
+        "products into 33 countries"
+      ],
+      "fixedSuffix": "Instantly.",
+      "canonical": "Turn inventory into income. Instantly.",
+      "metaTitle": "Turn inventory into income. Instantly. | Affisell Supplier",
+      "metaDescription": "List once. Reach resellers across 33 EU countries. Scale your catalog without opening 33 shops.",
+      "badge": "B2B supply · Pan-EU reach · Payout J+7",
+      "sub": "One catalog. Thousands of reseller storefronts. Real EU delivery, transparent fees, payout you can plan on.",
+      "ticker": "Suppliers shipping to 33 countries · Live catalog sync",
+      "ctaPrimary": "Start supplying — It's free",
+      "ctaSecondary": "Supplier briefing"
+    }
   }
 }

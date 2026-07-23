@@ -91,6 +91,64 @@
     "trustStripDismiss": "Masquer",
     "agentEntry": "Agent"
   },
+  "slogans": {
+    "buyer": {
+      "base": "Des boutiques de confiance.",
+      "rotatifs": [
+        "Produits vérifiés.",
+        "Créateurs vérifiés.",
+        "Paiements protégés.",
+        "Retours garantis.",
+        "Boutiques triées.",
+        "Qualité assurée."
+      ],
+      "canonical": "Des boutiques de confiance. Produits vérifiés."
+    },
+    "reseller": {
+      "base": "Transformez",
+      "rotatifs": [
+        "produits en profits",
+        "idées en revenus",
+        "listings en cash",
+        "clics en profit",
+        "tendances en argent",
+        "catalogue en revenus",
+        "vues en ventes",
+        "stock en revenus"
+      ],
+      "fixedSuffix": "Instantanément.",
+      "canonical": "Transformez produits en profits. Instantanément.",
+      "metaTitle": "Transformez produits en profits. Instantanément. | Affisell Revendeur",
+      "metaDescription": "Profit net live par produit, marge verrouillée 7 jours, livraison UE réelle. Revendez en 1 clic.",
+      "badge": "7 innovations · Margin Lock 7j · Live Profit",
+      "sub": "Le seul marketplace où chaque produit affiche le profit net après frais, pubs et livraison. Marge verrouillée 7 jours. Pas de fausse livraison 3-7 jours.",
+      "ticker": "120+ revendeurs · 14,2 k€ de profit moyen / mois",
+      "ctaPrimary": "Commencer à revendre — C'est gratuit",
+      "ctaSecondary": "Explorer les produits rentables"
+    },
+    "supplier": {
+      "base": "Transformez",
+      "rotatifs": [
+        "stock en ventes",
+        "produits en boutiques",
+        "catalogue en cashflow",
+        "entrepôt en revenus",
+        "listings en commandes",
+        "inventaire en scale",
+        "produits en 33 pays",
+        "stock en chiffre d'affaires"
+      ],
+      "fixedSuffix": "Instantanément.",
+      "canonical": "Transformez stock en ventes. Instantanément.",
+      "metaTitle": "Transformez stock en ventes. Instantanément. | Affisell Fournisseur",
+      "metaDescription": "Listez une fois. Atteignez des revendeurs dans 33 pays UE. Scalez sans ouvrir 33 boutiques.",
+      "badge": "B2B supply · Couverture pan-UE · Payout J+7",
+      "sub": "Un catalogue. Des milliers de vitrines revendeur. Livraison UE réelle, frais transparents, payout planifiable.",
+      "ticker": "Fournisseurs livrant 33 pays · Sync catalogue live",
+      "ctaPrimary": "Devenir fournisseur — C'est gratuit",
+      "ctaSecondary": "Brief fournisseur"
+    }
+  },
   "home": {
     "meta": {
       "title": "Boutiques de confiance. Produits vérifiés. | Affisell - Marketplace UE",

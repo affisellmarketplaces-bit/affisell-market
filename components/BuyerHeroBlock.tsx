@@ -12,6 +12,7 @@ import { HomeBuyerSmartStripFallback } from "@/components/home/home-buyer-smart-
 import { homeHeroShell } from "@/components/home/home-hero-tokens"
 import { HeroGradientBg } from "@/components/marketing/hero-gradient-bg"
 import { FastLink } from "@/components/navigation/fast-link"
+import { RotatingSloganPro } from "@/components/ui/RotatingSloganPro"
 import {
   isGraduatedCheckoutCountryResolved,
   isRolloutOnlyCheckoutCountryResolved,
@@ -25,8 +26,9 @@ import { resolveVisitorCountryIso2 } from "@/lib/visitor-country"
 const BECOME_RESELLER_HREF = "/become-reseller" as const
 
 export async function BuyerHeroBlock() {
-  const [t, requestHeaders, checkoutCountryCount] = await Promise.all([
+  const [t, tSlogan, requestHeaders, checkoutCountryCount] = await Promise.all([
     getTranslations("home.hero"),
+    getTranslations("slogans.buyer"),
     headers(),
     resolveLiveCheckoutCountryCount(),
   ])
@@ -45,18 +47,20 @@ export async function BuyerHeroBlock() {
     graduatedCheckout && visitorCountry
       ? marketplaceCatalogHref("/", { shipsTo: visitorCountry })
       : "/#explorer"
+  const buyerPhrases = tSlogan.raw("rotatifs") as string[]
 
   return (
     <section className={`${homeHeroShell} w-full min-w-0 max-w-full px-3 py-3 sm:px-6 sm:py-7 md:px-10 md:py-16`}>
       <HeroGradientBg />
       <div className="relative mx-auto w-full min-w-0 max-w-4xl text-center">
-        <h1 className="text-balance text-[1.18rem] font-black leading-[0.95] tracking-tighter sm:text-2xl md:text-5xl lg:text-6xl">
-          <span className="block">{t("title")}</span>
-          <span className="block bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
-            {t("titleLine2Prefix")}
-            {t("titleHighlight")}
-          </span>
-        </h1>
+        <RotatingSloganPro
+          persona="buyer"
+          tone="dark"
+          base={tSlogan("base")}
+          phrases={buyerPhrases}
+          canonical={tSlogan("canonical")}
+          className="text-balance text-center text-[1.18rem] sm:text-2xl md:text-5xl lg:text-6xl"
+        />
         <p className="mx-auto mt-1.5 max-w-2xl text-pretty text-[11px] leading-relaxed text-violet-100/92 sm:mt-4 sm:text-base">
           {usMarket ? t("subUs", { count: checkoutCountryCount }) : t("sub", { count: checkoutCountryCount })}
         </p>
