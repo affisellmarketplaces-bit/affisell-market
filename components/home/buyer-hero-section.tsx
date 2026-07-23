@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server"
 import { HeroGradientBg } from "@/components/marketing/hero-gradient-bg"
 import { GlowCtaButton } from "@/components/marketing/glow-cta-button"
 import { BuyerHeroSearch } from "@/components/home/buyer-hero-search"
+import { AFFILIATE_RESELLER_SIGNUP_HREF } from "@/lib/affiliate-onboarding-shared"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 
 export async function BuyerHeroSection() {
@@ -14,9 +15,12 @@ export async function BuyerHeroSection() {
       <HeroGradientBg />
       <div className="relative mx-auto max-w-4xl text-center">
         <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-          {t("title")}{" "}
-          <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
-            {t("titleHighlight")}
+          <span className="block">{t("title")}</span>
+          <span className="block">
+            {t("titleLine2Prefix")}
+            <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
+              {t("titleHighlight")}
+            </span>
           </span>
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-pretty text-sm text-violet-100/95 sm:text-base">
@@ -30,7 +34,7 @@ export async function BuyerHeroSection() {
             {t("ctaPrimary")}
           </GlowCtaButton>
           <Link
-            href="/creators"
+            href={AFFILIATE_RESELLER_SIGNUP_HREF}
             className="text-sm font-medium text-violet-100/90 underline-offset-4 transition hover:text-white hover:underline"
           >
             {t("creatorLink")}

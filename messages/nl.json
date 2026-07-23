@@ -86,20 +86,21 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Creator storefront marketplace",
-      "description": "Winkel geselecteerde producten van je favoriete makers. Snel verzenden, veilige betaling."
+      "title": "Affisell — Marktplaats voor vertrouwde winkels",
+      "description": "Shop in vertrouwde winkels met geverifieerde producten. Snelle verzending, veilige checkout."
     },
     "hero": {
-      "title": "Winkels geselecteerd door je favoriete",
-      "titleHighlight": "makers",
-      "sub": "Snel verzenden · Veilige betaling · 14-dagen retourrecht",
-      "subUs": "US & Canada checkout · {count} countries · USD · Secure payment · 14-day returns",
-      "searchPlaceholder": "Zoek producten, merken, niches…",
+      "title": "Winkels die je vertrouwt.",
+      "titleHighlight": "geverifieerd.",
+      "sub": "Pan-EU checkout · {count} landen · Beschermde aankoop · Veilige betaling · 14 dagen retour",
+      "subUs": "VS & Canada checkout · {count} landen · Beschermde aankoop · Veilige betaling · 14 dagen retour",
+      "searchPlaceholder": "Zoek producten, vertrouwde winkels…",
       "searchLabel": "Zoek producten",
       "searchSubmit": "Zoeken",
-      "cmdKHint": "Snel navigeren",
-      "ctaPrimary": "Catalogus verkennen",
-      "creatorLink": "Ben je een maker? Verkoop op Affisell →"
+      "cmdKHint": "Snelle navigatie",
+      "ctaPrimary": "Ontdek vertrouwde winkels",
+      "creatorLink": "Ben je reseller? Verkoop op Affisell →",
+      "titleLine2Prefix": "Producten "
     },
     "bento": {
       "agentShopping": {

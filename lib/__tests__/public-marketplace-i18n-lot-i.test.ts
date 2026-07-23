@@ -22,8 +22,13 @@ describe("public marketplace i18n (Lot I)", () => {
     expect(en.footer.brand.tagline).toMatch(/reseller/i)
   })
 
-  it("keeps hero copy unchanged (Lot P3.5 excluded)", () => {
-    expect(fr.home.hero.titleHighlight).toMatch(/créateur/i)
-    expect(en.home.hero.titleHighlight).toMatch(/creator/i)
+  it("uses buyer-trust hero copy (B2C), not creator slogan", () => {
+    expect(fr.home.hero.title).toMatch(/confiance/i)
+    expect(fr.home.hero.titleHighlight).toMatch(/vérifiés/i)
+    expect(en.home.hero.title).toMatch(/trust/i)
+    expect(en.home.hero.titleHighlight).toMatch(/verified/i)
+    expect(en.home.hero.ctaPrimary).toMatch(/trusted stores/i)
+    expect(en.home.hero.creatorLink).toMatch(/reseller/i)
+    expect(fr.home.hero.creatorLink).toMatch(/revendeur/i)
   })
 })

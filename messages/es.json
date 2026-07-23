@@ -86,20 +86,21 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Tienda de creadores de productos",
-      "description": "Compre productos curados de tus creadores favoritos. Envío rápido, pago seguro."
+      "title": "Affisell — Marketplace de tiendas de confianza",
+      "description": "Compra en tiendas de confianza con productos verificados. Envío rápido, pago seguro."
     },
     "hero": {
-      "title": "Tiendas curadas por tus creadores favoritos",
-      "titleHighlight": "creadores",
-      "sub": "Envío rápido · Pago seguro · 14 días de devolución",
-      "subUs": "US & Canada checkout · {count} countries · USD · Secure payment · 14-day returns",
-      "searchPlaceholder": "Buscar productos, marcas, nichos…",
+      "title": "Tiendas de confianza.",
+      "titleHighlight": "verificados.",
+      "sub": "Checkout Pan-UE · {count} países · Compra protegida · Pago seguro · Devoluciones 14 días",
+      "subUs": "Checkout EE. UU. y Canadá · {count} países · Compra protegida · Pago seguro · Devoluciones 14 días",
+      "searchPlaceholder": "Buscar productos, tiendas de confianza…",
       "searchLabel": "Buscar productos",
       "searchSubmit": "Buscar",
       "cmdKHint": "Navegación rápida",
-      "ctaPrimary": "Explorar catálogo",
-      "creatorLink": "¿Eres un creador? Vende en Affisell →"
+      "ctaPrimary": "Explorar tiendas de confianza",
+      "creatorLink": "¿Eres revendedor? Vende en Affisell →",
+      "titleLine2Prefix": "Productos "
     },
     "bento": {
       "agentShopping": {

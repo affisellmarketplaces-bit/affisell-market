@@ -88,20 +88,21 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Marketplace boutiques revendeur",
-      "description": "Achetez les produits sélectionnés par vos revendeurs préférés. Livraison rapide, paiement sécurisé."
+      "title": "Affisell — Marketplace boutiques de confiance",
+      "description": "Achetez dans des boutiques de confiance, produits vérifiés. Livraison rapide, paiement sécurisé."
     },
     "hero": {
-      "title": "Les boutiques de vos",
-      "titleHighlight": "créateurs préférés",
-      "sub": "Checkout Pan-UE · {count} pays · EUR · Paiement sécurisé · Retours 14j",
-      "subUs": "Checkout US & Canada · {count} pays · USD · Paiement sécurisé · Retours 14j",
-      "searchPlaceholder": "Produit, marque, niche…",
+      "title": "Des boutiques de confiance.",
+      "titleLine2Prefix": "Produits ",
+      "titleHighlight": "vérifiés.",
+      "sub": "Paiement sécurisé · {count} pays · Achat protégé · Retours 14 jours",
+      "subUs": "Checkout US & Canada · {count} pays · Achat protégé · Paiement sécurisé · Retours 14 jours",
+      "searchPlaceholder": "Rechercher produits, boutiques de confiance…",
       "searchLabel": "Rechercher un produit",
       "searchSubmit": "Rechercher",
       "cmdKHint": "Navigation rapide",
-      "ctaPrimary": "Explorer le catalogue",
-      "creatorLink": "Vous êtes créateur ? Vendez sur Affisell →"
+      "ctaPrimary": "Explorer les boutiques",
+      "creatorLink": "Vous êtes revendeur ? Vendez sur Affisell →"
     },
     "bento": {
       "agentShopping": {

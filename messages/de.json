@@ -86,20 +86,21 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Marktplatz für Kreativ-Verkäufer",
-      "description": "Entdecken Sie kuratierte Produkte von Ihren Lieblingskreativen. Schneller Versand, sicherer Checkout."
+      "title": "Affisell — Marktplatz für vertrauenswürdige Shops",
+      "description": "Kaufen Sie in vertrauenswürdigen Shops mit verifizierten Produkten. Schneller Versand, sicherer Checkout."
     },
     "hero": {
-      "title": "Geschäfte, kuratiert von Ihren Lieblings-",
-      "titleHighlight": "Kreativen",
-      "sub": "Schneller Versand · Sichere Zahlung · 14-tägige Rückgabe",
-      "subUs": "US & Canada checkout · {count} countries · USD · Secure payment · 14-day returns",
-      "searchPlaceholder": "Produkte, Marken, Nischen suchen…",
+      "title": "Shops, denen Sie vertrauen.",
+      "titleHighlight": "verifiziert.",
+      "sub": "Pan-EU Checkout · {count} Länder · Geschützter Kauf · Sichere Zahlung · 14-tägige Rückgabe",
+      "subUs": "US & Canada Checkout · {count} Länder · Geschützter Kauf · Sichere Zahlung · 14-tägige Rückgabe",
+      "searchPlaceholder": "Produkte, vertrauenswürdige Shops suchen…",
       "searchLabel": "Produkte suchen",
       "searchSubmit": "Suchen",
       "cmdKHint": "Schnellnavigation",
-      "ctaPrimary": "Katalog erkunden",
-      "creatorLink": "Sind Sie ein Kreativer? Verkaufen Sie auf Affisell →"
+      "ctaPrimary": "Vertrauenswürdige Shops entdecken",
+      "creatorLink": "Sind Sie Reseller? Verkaufen Sie auf Affisell →",
+      "titleLine2Prefix": "Produkte "
     },
     "bento": {
       "agentShopping": {

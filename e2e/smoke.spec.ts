@@ -7,12 +7,12 @@ test.describe("smoke", () => {
   test("home shows hero and CTA", async ({ page }) => {
     await page.goto("/")
     await expect(
-      page.getByRole("heading", { level: 1, name: /Stores curated by your favorite/i })
+      page.getByRole("heading", { level: 1, name: /Stores you trust/i })
     ).toBeVisible()
-    await expect(page.getByRole("link", { name: "Explore catalog" })).toBeVisible()
+    await expect(page.getByRole("link", { name: "Explore trusted stores" })).toBeVisible()
     await expect(page.getByRole("button", { name: "Search" })).toBeVisible()
     await expect(
-      page.getByPlaceholder("Search products, brands, niches…")
+      page.getByPlaceholder("Search products, trusted stores…")
     ).toBeVisible()
   })
 

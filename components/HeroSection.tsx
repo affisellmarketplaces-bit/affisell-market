@@ -48,9 +48,12 @@ export function HeroSection({ variant, className }: Props) {
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
           {variant === "buyer" ? (
             <>
-              {t("title")}{" "}
-              <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
-                {t("titleHighlight")}
+              <span className="block">{t("title")}</span>
+              <span className="block">
+                {t("titleLine2Prefix")}
+                <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
+                  {t("titleHighlight")}
+                </span>
               </span>
             </>
           ) : (

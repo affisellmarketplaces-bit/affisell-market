@@ -86,20 +86,21 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Sklep twórców marketplace",
-      "description": "Kup ugotowane produkty od Twoich ulubionych twórców. Szybka dostawa, bezpieczne płatności."
+      "title": "Affisell — Marketplace zaufanych sklepów",
+      "description": "Kupuj w zaufanych sklepach ze zweryfikowanymi produktami. Szybka wysyłka, bezpieczna płatność."
     },
     "hero": {
-      "title": "Sklepy ugotowane przez Twoich ulubionych",
-      "titleHighlight": "twórców",
-      "sub": "Szybka dostawa · Bezpieczne płatności · 14-dniowa gwarancja zwrotu",
-      "subUs": "US & Canada checkout · {count} countries · USD · Secure payment · 14-day returns",
-      "searchPlaceholder": "Szukaj produktów, marek, nisz…",
+      "title": "Sklepy, którym ufasz.",
+      "titleHighlight": "zweryfikowane.",
+      "sub": "Checkout Pan-UE · {count} krajów · Chroniony zakup · Bezpieczna płatność · Zwroty 14 dni",
+      "subUs": "Checkout USA i Kanada · {count} krajów · Chroniony zakup · Bezpieczna płatność · Zwroty 14 dni",
+      "searchPlaceholder": "Szukaj produktów, zaufanych sklepów…",
       "searchLabel": "Szukaj produktów",
       "searchSubmit": "Szukaj",
-      "cmdKHint": "Szybki nawigacja",
-      "ctaPrimary": "Eksploruj katalog",
-      "creatorLink": "Jesteś twórcą? Sprzedaj na Affisell →"
+      "cmdKHint": "Szybka nawigacja",
+      "ctaPrimary": "Przeglądaj zaufane sklepy",
+      "creatorLink": "Jesteś resellerem? Sprzedawaj na Affisell →",
+      "titleLine2Prefix": "Produkty "
     },
     "bento": {
       "agentShopping": {

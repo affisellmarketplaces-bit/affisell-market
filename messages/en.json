@@ -88,20 +88,21 @@
   },
   "home": {
     "meta": {
-      "title": "Affisell — Reseller storefront marketplace",
-      "description": "Shop curated products from your favorite resellers. Fast shipping, secure checkout."
+      "title": "Affisell — Trusted stores marketplace",
+      "description": "Shop trusted stores and verified products. Fast shipping, secure checkout."
     },
     "hero": {
-      "title": "Stores curated by your favorite",
-      "titleHighlight": "creators",
-      "sub": "Pan-EU checkout · {count} countries · EUR · Secure payment · 14-day returns",
-      "subUs": "US & Canada checkout · {count} countries · USD · Secure payment · 14-day returns",
-      "searchPlaceholder": "Search products, brands, niches…",
+      "title": "Stores you trust.",
+      "titleLine2Prefix": "Products ",
+      "titleHighlight": "verified.",
+      "sub": "Pan-EU checkout · {count} countries · Protected purchase · Secure payment · 14-day returns",
+      "subUs": "US & Canada checkout · {count} countries · Protected purchase · Secure payment · 14-day returns",
+      "searchPlaceholder": "Search products, trusted stores…",
       "searchLabel": "Search products",
       "searchSubmit": "Search",
       "cmdKHint": "Quick nav",
-      "ctaPrimary": "Explore catalog",
-      "creatorLink": "Are you a creator? Sell on Affisell →"
+      "ctaPrimary": "Explore trusted stores",
+      "creatorLink": "Are you a reseller? Sell on Affisell →"
     },
     "bento": {
       "agentShopping": {

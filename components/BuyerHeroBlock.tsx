@@ -12,6 +12,7 @@ import { HomeBuyerSmartStripFallback } from "@/components/home/home-buyer-smart-
 import { homeHeroShell } from "@/components/home/home-hero-tokens"
 import { HeroGradientBg } from "@/components/marketing/hero-gradient-bg"
 import { FastLink } from "@/components/navigation/fast-link"
+import { AFFILIATE_RESELLER_SIGNUP_HREF } from "@/lib/affiliate-onboarding-shared"
 import {
   isGraduatedCheckoutCountryResolved,
   isRolloutOnlyCheckoutCountryResolved,
@@ -49,9 +50,12 @@ export async function BuyerHeroBlock() {
       <HeroGradientBg />
       <div className="relative mx-auto w-full min-w-0 max-w-4xl text-center">
         <h1 className="text-balance text-[1.18rem] font-bold leading-tight tracking-tight sm:text-2xl md:text-5xl lg:text-6xl">
-          {t("title")}{" "}
-          <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
-            {t("titleHighlight")}
+          <span className="block">{t("title")}</span>
+          <span className="block">
+            {t("titleLine2Prefix")}
+            <span className="bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
+              {t("titleHighlight")}
+            </span>
           </span>
         </h1>
         <p className="mx-auto mt-1.5 max-w-2xl text-pretty text-[11px] leading-relaxed text-violet-100/92 sm:mt-4 sm:text-base">
@@ -88,7 +92,7 @@ export async function BuyerHeroBlock() {
         <div className="mt-3 flex flex-col items-center gap-2 sm:mt-8 sm:gap-4">
           <GlowCtaLink href={explorerHref}>{t("ctaPrimary")}</GlowCtaLink>
           <FastLink
-            href="/creators"
+            href={AFFILIATE_RESELLER_SIGNUP_HREF}
             localeAware
             className="text-xs font-medium text-violet-100/90 underline-offset-4 transition hover:text-white hover:underline sm:text-sm"
           >
