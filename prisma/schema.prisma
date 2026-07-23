@@ -256,6 +256,11 @@ model User {
    */
   merchantDefault MerchantDefault?
 
+  /**
+   * Reseller Margin Lock 7j — protected supplier cost windows.
+   */
+  marginLocks MarginLock[]
+
   @@index([referredById])
   @@index([trustScore])
   @@index([isTopSupplier])
@@ -1031,6 +1036,10 @@ model Product {
    * AliExpress auto-buy source (1:1).
    */
   supplierLink            SupplierLink?
+  /**
+   * Reseller Margin Lock 7j windows on this SKU.
+   */
+  marginLocks             MarginLock[]
 
   @@index([categoryId])
   @@index([aliexpressProductId])
@@ -3555,4 +3564,27 @@ model BubbleLink {
 
   @@index([productId])
   @@index([createdById])
+}
+
+/**
+ * Reseller assurance: supplier cost locked for 7 days so listing margin stays predictable.
+ * Status: ACTIVE | EXPIRED | USED | BROKEN (>15% supplier increase).
+ */
+model MarginLock {
+  id          String   @id @default(cuid())
+  productId   String
+  resellerId  String
+  lockedCost  Float
+  currentCost Float
+  salePrice   Float
+  expiresAt   DateTime
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+
+  product  Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  reseller User    @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+
+  @@index([resellerId, status])
+  @@index([expiresAt])
+  @@index([productId])
 }

@@ -27,6 +27,8 @@ type Props = {
   variant?: BubbleProductVariant
   showStats?: boolean
   showShareBar?: boolean
+  /** Show lock icon when reseller has an active Margin Lock. */
+  showLock?: boolean
   className?: string
 }
 
@@ -47,6 +49,7 @@ export function BubbleProductCard({
   variant = "bubble-card",
   showStats = true,
   showShareBar = false,
+  showLock = false,
   className,
 }: Props) {
   const dominantColor = useDominantColor(product.imageUrl)
@@ -62,6 +65,15 @@ export function BubbleProductCard({
       whileHover={{ scale: 1.05, y: -6 }}
       whileTap={{ scale: 0.98 }}
     >
+      {showLock ? (
+        <span
+          className="absolute right-2 top-2 z-20 inline-flex size-7 items-center justify-center rounded-full border border-emerald-300/50 bg-emerald-500/20 text-sm shadow-lg backdrop-blur-md"
+          title="Prix protégé 7j"
+          aria-label="Margin Lock actif"
+        >
+          🔒
+        </span>
+      ) : null}
       <div
         className="bubble-container absolute inset-0 rounded-[2rem] shadow-2xl"
         style={{

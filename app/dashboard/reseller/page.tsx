@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { ResellerMarginLocksPanel } from "@/components/reseller/ResellerMarginLocksPanel"
 import { ResellerRequestCtaBanner } from "@/components/reseller/GlobalRequestButton"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 
@@ -22,6 +23,7 @@ export default async function ResellerHomePage() {
           </p>
         </div>
         <ResellerRequestCtaBanner />
+        <ResellerMarginLocksPanel />
         <ul className="grid gap-3 sm:grid-cols-2">
           <li>
             <Link

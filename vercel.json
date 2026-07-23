@@ -49,6 +49,10 @@
     {
       "path": "/api/cron/tiktok-sync-full",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/margin-locks",
+      "schedule": "15 5 * * *"
     }
   ]
 }

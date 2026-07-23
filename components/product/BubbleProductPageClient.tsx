@@ -6,6 +6,7 @@ import { useRef } from "react"
 
 import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
 import { BubbleProductCard, type BubbleProductCardProduct } from "@/components/product/BubbleProductCard"
+import { MarginLockListCta } from "@/components/product/MarginLockListCta"
 import { SupplierTrustBadge } from "@/components/logistics/SupplierTrustBadge"
 import type { BubbleProductView } from "@/lib/social/bubble-product-types"
 
@@ -53,12 +54,11 @@ export function BubbleProductPageClient({ product, similar, catalogSocialHref }:
         <StackBubble title="Prix & marge">
           <p className="text-3xl font-black">{product.salePrice.toFixed(2)}€</p>
           <p className="mt-1 text-emerald-300">+{product.marginEuro.toFixed(0)}€ sans stock</p>
-          <Link
-            href={catalogSocialHref}
-            className="mt-4 inline-flex rounded-full bg-violet-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:bg-violet-400"
-          >
-            Lister sans stock →
-          </Link>
+          <MarginLockListCta
+            productId={product.id}
+            salePrice={product.salePrice}
+            catalogHref={catalogSocialHref}
+          />
         </StackBubble>
 
         <StackBubble title="Délais">
