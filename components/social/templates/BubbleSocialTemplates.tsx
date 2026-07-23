@@ -21,6 +21,7 @@ function margin(product: BubbleProductView): string {
   return `+${product.marginEuro.toFixed(0)}€`
 }
 
+/** Satori/ImageResponse: every multi-child node needs explicit display:flex|contents|none. */
 function rootStyle(w: number, h: number): CSSProperties {
   return {
     width: w,
@@ -31,28 +32,38 @@ function rootStyle(w: number, h: number): CSSProperties {
     justifyContent: "center",
     background: `linear-gradient(145deg, ${DEFAULT_ACCENT} 0%, #0f172a 55%, #020617 100%)`,
     color: "white",
-    fontFamily: "system-ui, sans-serif",
+    fontFamily: "system-ui, -apple-system, sans-serif",
     position: "relative",
     overflow: "hidden",
   }
 }
 
 function ProductCircle({ size }: { size: number }) {
+  const ring = Math.max(4, Math.round(size * 0.04))
+  const core = Math.round(size * 0.42)
   return (
     <div
       style={{
         width: size,
         height: size,
-        borderRadius: "50%",
-        border: "4px solid rgba(255,255,255,0.35)",
-        background: "rgba(255,255,255,0.12)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: size * 0.35,
+        borderRadius: size / 2,
+        border: `${ring}px solid rgba(255,255,255,0.35)`,
+        background: "rgba(255,255,255,0.10)",
       }}
     >
-      🫧
+      <div
+        style={{
+          width: core,
+          height: core,
+          display: "flex",
+          borderRadius: core / 2,
+          background: "linear-gradient(160deg, rgba(167,139,250,0.95) 0%, rgba(56,189,248,0.55) 100%)",
+          boxShadow: "0 0 40px rgba(139,92,246,0.55)",
+        }}
+      />
     </div>
   )
 }
@@ -61,6 +72,9 @@ function BubblePill({ children, style }: { children: ReactNode; style?: CSSPrope
   return (
     <div
       style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         borderRadius: 999,
         padding: "12px 28px",
         background: "rgba(255,255,255,0.14)",
@@ -84,67 +98,115 @@ export function BubbleAssetLayout({ product, width, height, template, hook, safe
       : "Lister sans stock → Affisell"
 
   const topPad = safeZone ? 140 : 48
+  const circle = Math.min(width, height) * 0.28
 
   return (
     <div style={rootStyle(width, height)}>
       <div
         style={{
           position: "absolute",
-          inset: 0,
-          background: `radial-gradient(circle at 50% 30%, rgba(139,92,246,0.5), transparent 60%)`,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: "flex",
+          background: "radial-gradient(circle at 50% 30%, rgba(139,92,246,0.5), transparent 60%)",
         }}
       />
-      {hook ? (
+
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          height: "100%",
+          paddingTop: topPad,
+          paddingBottom: safeZone ? 160 : 64,
+          paddingLeft: 48,
+          paddingRight: 48,
+        }}
+      >
+        {hook ? (
+          <div
+            style={{
+              display: "flex",
+              width: "100%",
+              marginBottom: 28,
+              justifyContent: "center",
+              textAlign: "center",
+              fontSize: width > 1000 ? 36 : 30,
+              fontWeight: 800,
+              lineHeight: 1.25,
+            }}
+          >
+            {hook}
+          </div>
+        ) : null}
+
+        <ProductCircle size={circle} />
+
         <div
           style={{
-            position: "absolute",
-            top: topPad,
-            left: 48,
-            right: 48,
+            display: "flex",
+            marginTop: 28,
+            width: "100%",
+            justifyContent: "center",
             textAlign: "center",
-            fontSize: width > 1000 ? 36 : 32,
+            fontSize: Math.min(42, Math.round(width * 0.045)),
             fontWeight: 800,
             lineHeight: 1.2,
           }}
         >
-          {hook}
+          {title}
         </div>
-      ) : null}
-      <ProductCircle size={Math.min(width, height) * 0.28} />
-      <div style={{ marginTop: 32, fontSize: 42, fontWeight: 800, textAlign: "center", padding: "0 40px" }}>
-        {title}
-      </div>
-      <div style={{ display: "flex", gap: 16, marginTop: 24, flexWrap: "wrap", justifyContent: "center" }}>
-        <BubblePill>{money(product)}</BubblePill>
-        <BubblePill style={{ background: "rgba(16,185,129,0.25)", borderColor: "rgba(52,211,153,0.4)" }}>
-          {margin(product)} sans stock
-        </BubblePill>
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          bottom: safeZone ? 160 : 48,
-          left: 48,
-          right: 48,
-          textAlign: "center",
-          fontSize: 26,
-          opacity: 0.92,
-          fontWeight: 600,
-        }}
-      >
-        {cta}
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          bottom: 24,
-          right: 32,
-          fontSize: 22,
-          fontWeight: 700,
-          opacity: 0.8,
-        }}
-      >
-        Affisell 🫧
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            gap: 16,
+            marginTop: 24,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <BubblePill>{money(product)}</BubblePill>
+          <BubblePill style={{ background: "rgba(16,185,129,0.25)", borderColor: "rgba(52,211,153,0.4)" }}>
+            {margin(product)} sans stock
+          </BubblePill>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            marginTop: 28,
+            justifyContent: "center",
+            textAlign: "center",
+            fontSize: 24,
+            opacity: 0.92,
+            fontWeight: 600,
+          }}
+        >
+          {cta}
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            bottom: 28,
+            right: 36,
+            display: "flex",
+            alignItems: "center",
+            fontSize: 22,
+            fontWeight: 700,
+            opacity: 0.85,
+          }}
+        >
+          Affisell · Live Profit
+        </div>
       </div>
     </div>
   )
@@ -170,7 +232,13 @@ export function TikTokTemplate(props: Omit<LayoutProps, "template">) {
 }
 
 export function PinterestTemplate(props: Omit<LayoutProps, "template">) {
-  return <BubbleAssetLayout {...props} template="bubble-pinterest" hook="Catalogue luxe · Dropshipping sans stock" />
+  return (
+    <BubbleAssetLayout
+      {...props}
+      template="bubble-pinterest"
+      hook="Catalogue luxe · Dropshipping sans stock"
+    />
+  )
 }
 
 export function pickTemplateElement(props: LayoutProps) {

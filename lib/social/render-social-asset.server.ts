@@ -9,17 +9,33 @@ import { pickTemplateElement } from "@/components/social/templates/BubbleSocialT
 import type { BubbleProductView } from "@/lib/social/bubble-product-types"
 import { SOCIAL_ASSET_DIMENSIONS, type SocialAssetKey } from "@/lib/social/bubble-product-types"
 
+/**
+ * Writable dir for PNG assets.
+ * Prefer `public/` locally (static serve). On read-only hosts (Vercel), fall back to `/tmp`.
+ */
 function generatedDir(productId: string): string {
-  return path.join(process.cwd(), "public", "generated", "social", productId)
+  const safeId = productId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 80)
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    return path.join("/tmp", "affisell-social", safeId)
+  }
+  return path.join(process.cwd(), "public", "generated", "social", safeId)
 }
 
 export function socialAssetPublicPath(productId: string, key: SocialAssetKey): string {
-  return `/generated/social/${productId}/${key}.png`
+  const safeId = productId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 80)
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    return `/api/products/${encodeURIComponent(productId)}/social-assets/download?format=${encodeURIComponent(key)}`
+  }
+  return `/generated/social/${safeId}/${key}.png`
+}
+
+export function socialAssetAbsolutePath(productId: string, key: SocialAssetKey): string {
+  return path.join(generatedDir(productId), `${key}.png`)
 }
 
 export async function socialAssetFileExists(productId: string, key: SocialAssetKey): Promise<boolean> {
   try {
-    await access(path.join(generatedDir(productId), `${key}.png`))
+    await access(socialAssetAbsolutePath(productId, key))
     return true
   } catch {
     return false
@@ -29,7 +45,7 @@ export async function socialAssetFileExists(productId: string, key: SocialAssetK
 export async function renderSocialAssetPng(
   product: BubbleProductView,
   key: SocialAssetKey
-): Promise<{ relativePath: string; publicUrl: string }> {
+): Promise<{ relativePath: string; publicUrl: string; bytes: number }> {
   const spec = SOCIAL_ASSET_DIMENSIONS[key]
   const dir = generatedDir(product.id)
   await mkdir(dir, { recursive: true })
@@ -51,8 +67,13 @@ export async function renderSocialAssetPng(
   const buffer = Buffer.from(await response.arrayBuffer())
   await writeFile(filePath, buffer)
 
+  const publicUrl = socialAssetPublicPath(product.id, key)
   const relativePath = `generated/social/${product.id}/${filename}`
-  const publicUrl = `/${relativePath}`
-  console.log("[social-asset-render]", { productId: product.id, key, publicUrl })
-  return { relativePath, publicUrl }
+  console.log("[social-asset-render]", {
+    productId: product.id,
+    key,
+    publicUrl,
+    bytes: buffer.length,
+  })
+  return { relativePath, publicUrl, bytes: buffer.length }
 }
