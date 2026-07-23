@@ -25,7 +25,7 @@ export const SLOGAN_SYSTEM: Record<SloganPersona, SloganPersonaConfig> = {
     route: "/",
     emotion: "TRUST",
     color: "from-violet-600 via-indigo-600 to-blue-600",
-    colorOnDark: "from-violet-200 via-fuchsia-200 to-sky-200",
+    colorOnDark: "from-violet-200 via-fuchsia-200 to-indigo-200",
     bg: "bg-violet-50",
     pageBg: "bg-[#faf5ff]",
     textTone: "dark",

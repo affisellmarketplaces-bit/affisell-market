@@ -59,7 +59,7 @@ export async function BuyerHeroBlock() {
           base={tSlogan("base")}
           phrases={buyerPhrases}
           canonical={tSlogan("canonical")}
-          className="text-balance text-center text-[1.18rem] sm:text-2xl md:text-5xl lg:text-6xl"
+          className="text-balance text-center"
         />
         <p className="mx-auto mt-1.5 max-w-2xl text-pretty text-[11px] leading-relaxed text-violet-100/92 sm:mt-4 sm:text-base">
           {usMarket ? t("subUs", { count: checkoutCountryCount }) : t("sub", { count: checkoutCountryCount })}

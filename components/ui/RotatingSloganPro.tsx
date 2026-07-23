@@ -115,10 +115,87 @@ export function RotatingSloganPro({
       ? "text-white/75"
       : "text-zinc-500 dark:text-zinc-400"
 
+  const pulseClass =
+    persona === "supplier"
+      ? "bg-emerald-400"
+      : persona === "reseller"
+        ? "bg-fuchsia-300"
+        : "bg-sky-300"
+
+  const phraseMotion =
+    persona === "buyer" && !prefersReducedMotion
+      ? {
+          initial: { y: 6, opacity: 0, filter: "blur(4px)" },
+          animate: { y: 0, opacity: 1, filter: "blur(0px)" },
+          exit: { y: -6, opacity: 0, filter: "blur(4px)" },
+          transition: { duration: 0.45, ease: motionEaseOut },
+        }
+      : motionProps
+
+  const rotatingSlot = (
+    <span className="relative inline-grid align-baseline">
+      <span
+        className="invisible col-start-1 row-start-1 whitespace-nowrap"
+        aria-hidden
+      >
+        {sizer}
+      </span>
+      <span
+        className={cn(
+          "col-start-1 row-start-1 inline-flex items-baseline gap-2",
+          persona === "buyer" ? "justify-center" : "justify-start"
+        )}
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={phrase}
+            {...phraseMotion}
+            className="relative inline-block origin-center whitespace-nowrap"
+          >
+            <span
+              className={cn(
+                "bg-gradient-to-r bg-clip-text text-transparent",
+                resolvedTone === "dark" && "bg-[length:200%_auto]",
+                gradient
+              )}
+            >
+              {phrase}
+            </span>
+            {!prefersReducedMotion ? (
+              <motion.span
+                className={cn(
+                  "absolute -bottom-1 left-0 h-0.5 w-full origin-left rounded-full bg-gradient-to-r md:-bottom-2",
+                  gradient
+                )}
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{
+                  duration: persona === "buyer" ? 0.8 : 0.55,
+                  ease: persona === "buyer" ? ([0.16, 1, 0.3, 1] as const) : motionEaseOut,
+                  delay: 0.08,
+                }}
+                aria-hidden
+              />
+            ) : null}
+          </motion.span>
+        </AnimatePresence>
+        <span
+          className={cn("size-1.5 shrink-0 animate-pulse rounded-full md:size-2", pulseClass)}
+          aria-hidden
+        />
+      </span>
+    </span>
+  )
+
   return (
     <h1
       className={cn(
-        "text-4xl font-black tracking-tighter leading-[0.9] md:text-6xl lg:text-7xl",
+        "font-black tracking-[-0.04em] leading-[0.9]",
+        persona === "buyer"
+          ? "text-4xl md:text-6xl lg:text-7xl"
+          : "text-4xl tracking-tighter md:text-6xl lg:text-7xl",
         titleClass,
         className
       )}
@@ -127,76 +204,20 @@ export function RotatingSloganPro({
     >
       <span className="sr-only">{copy.canonical}</span>
 
-      <span aria-hidden="true" className="block">
-        <span className={cn(persona === "buyer" ? "block" : "inline")}>{copy.base}</span>
-        {persona === "buyer" ? null : " "}
-        <span
-          className={cn(
-            "relative inline-grid align-baseline",
-            persona === "buyer" && "mt-1 block w-full"
-          )}
-        >
-          <span
-            className={cn(
-              "invisible col-start-1 row-start-1 whitespace-nowrap",
-              persona === "buyer" && "block w-full"
-            )}
-            aria-hidden
-          >
-            {sizer}
+      {persona === "buyer" ? (
+        <>
+          <span aria-hidden="true" className="block">
+            {copy.base}
           </span>
-          <span
-            className={cn(
-              "col-start-1 row-start-1 inline-flex items-center gap-2",
-              persona === "buyer" ? "w-full justify-center" : "justify-start"
-            )}
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.span
-                key={phrase}
-                {...motionProps}
-                className="relative inline-block origin-center whitespace-nowrap [perspective:800px]"
-                style={{ transformStyle: "preserve-3d" }}
-              >
-                <span
-                  className={cn(
-                    "bg-gradient-to-r bg-clip-text text-transparent",
-                    resolvedTone === "dark" && "bg-[length:200%_auto]",
-                    gradient
-                  )}
-                >
-                  {phrase}
-                </span>
-                {!prefersReducedMotion ? (
-                  <motion.span
-                    className={cn(
-                      "absolute -bottom-1 left-0 h-0.5 w-full origin-left rounded-full bg-gradient-to-r",
-                      gradient
-                    )}
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ duration: 0.55, ease: motionEaseOut, delay: 0.08 }}
-                    aria-hidden
-                  />
-                ) : null}
-              </motion.span>
-            </AnimatePresence>
-            <span
-              className={cn(
-                "mb-1 size-2 shrink-0 animate-pulse rounded-full",
-                persona === "supplier"
-                  ? "bg-emerald-400"
-                  : persona === "reseller"
-                    ? "bg-fuchsia-300"
-                    : "bg-sky-300"
-              )}
-              aria-hidden
-            />
+          <span aria-hidden="true" className="relative mt-2 block md:mt-3">
+            {rotatingSlot}
           </span>
+        </>
+      ) : (
+        <span aria-hidden="true" className="block">
+          <span className="inline">{copy.base}</span> {rotatingSlot}
         </span>
-      </span>
+      )}
 
       {copy.fixedSuffix ? (
         <span
