@@ -2968,9 +2968,22 @@ button,
   }
 }
 
+@keyframes affisell-radar-cta-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.45);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgba(139, 92, 246, 0);
+    transform: scale(1.02);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-\[fadeBlur_0\.6s_ease\],
-  .animate-\[fadeBlur_0\.8s_ease\] {
+  .animate-\[fadeBlur_0\.8s_ease\],
+  .animate-\[affisell-radar-cta-pulse_2\.4s_ease-in-out_infinite\] {
     animation: none !important;
   }
 }

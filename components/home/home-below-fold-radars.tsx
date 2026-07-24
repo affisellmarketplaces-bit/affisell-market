@@ -4,18 +4,18 @@ import dynamic from "next/dynamic"
 
 /**
  * Below-fold Radar marketing blocks — excluded from initial JS/HTML.
- * Cuts TBT + DOM on first paint (World Radar ~974px + Producteur/Grossiste).
+ * Cuts TBT + DOM on first paint (World Radar + Producteur/Grossiste).
  */
-const HomeWorldRadarTeaser = dynamic(
+const WorldRadarPro = dynamic(
   () =>
-    import("@/components/home/home-world-radar-teaser").then((m) => ({
-      default: m.HomeWorldRadarTeaser,
+    import("@/components/home/WorldRadarPro").then((m) => ({
+      default: m.WorldRadarPro,
     })),
   {
     ssr: false,
     loading: () => (
       <div
-        className="mt-4 hidden min-h-[28rem] rounded-3xl bg-zinc-950/5 sm:mt-8 md:block"
+        className="mt-4 min-h-[28rem] rounded-3xl border border-white/5 bg-[#0a0a0f]/40 sm:mt-8"
         aria-hidden
       />
     ),
@@ -38,7 +38,8 @@ const HomeRadarTeaser = dynamic(
 export function HomeBelowFoldRadars() {
   return (
     <>
-      <HomeWorldRadarTeaser className="mt-4 hidden sm:mt-8 md:block" />
+      {/* Visible on mobile too — WTF moment after product grid (~363px). */}
+      <WorldRadarPro className="mt-4 sm:mt-8" />
       <HomeRadarTeaser className="mt-4 sm:mt-8" />
     </>
   )
