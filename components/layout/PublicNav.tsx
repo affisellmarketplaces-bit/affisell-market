@@ -239,11 +239,16 @@ export function PublicNav() {
     </div>
   )
 
-  const searchBlock = (options: { suggestions: boolean }) => (
+  const searchBlock = (options: { suggestions: boolean; hideOnMobileHome?: boolean }) => (
     <Suspense
       fallback={<div className="h-9 min-w-0 lg:col-start-3 lg:row-start-1" aria-hidden />}
     >
-      <div className="flex min-w-0 items-center gap-2 lg:col-start-3 lg:row-start-1 lg:justify-center">
+      <div
+        className={cn(
+          "flex min-w-0 items-center gap-2 lg:col-start-3 lg:row-start-1 lg:justify-center",
+          options.hideOnMobileHome && onHome && "hidden md:flex"
+        )}
+      >
         <div className={cn(searchShellClass, searchMaxWidthClass)}>
           <NavHeaderSearch
             id="public-header-search-q"
@@ -308,7 +313,7 @@ export function PublicNav() {
             {mobileUtilities}
           </div>
           {browsePills}
-          {searchBlock({ suggestions: true })}
+          {searchBlock({ suggestions: true, hideOnMobileHome: true })}
           {desktopUtilities({ showAgent: true })}
         </nav>
       )}
