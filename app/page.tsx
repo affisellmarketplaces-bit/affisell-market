@@ -4,7 +4,11 @@ import { HomeLcpPreloadBoundary } from "@/components/home/home-lcp-preload-bound
 import { HomePage } from "@/components/home/HomePage"
 import { resolveAppLocale } from "@/lib/i18n-locale"
 
-/** ISR shell — role redirects run in middleware on `/`. */
+/**
+ * Buyer home (`/`) — ISR shell. Role redirects run in middleware.
+ * Perf P0: LCP via eager×2 product imgs + HomeLcpPreload; TBT via idle MarketplaceView
+ * + dynamic below-fold Radars; CLS via 44px sticky slot + affisell-product-media 4/3.
+ */
 export const revalidate = 60
 
 export async function generateMetadata() {

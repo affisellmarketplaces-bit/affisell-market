@@ -25,6 +25,7 @@ type Props = {
 /**
  * Master rotating slogan — SSR always shows rotatifs[0] (SEO-safe).
  * Client rotation starts only after hydration + reduced-motion / visibility checks.
+ * DOM kept lean (≤6 nodes under h1) for mobile LCP / node budget.
  */
 export function RotatingSloganPro({
   persona,
@@ -99,80 +100,66 @@ export function RotatingSloganPro({
         ? "bg-fuchsia-300"
         : "bg-sky-300"
 
-  const rotatingSlot = (
-    <span className="relative inline-grid min-h-[1.1em] align-baseline">
-      <span className="invisible col-start-1 row-start-1 whitespace-nowrap" aria-hidden>
-        {sizer}
-      </span>
-      <span
-        className={cn(
-          "col-start-1 row-start-1 inline-flex items-baseline gap-2",
-          persona === "buyer" ? "justify-center" : "justify-start"
-        )}
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        <span key={phrase} className="relative inline-block whitespace-nowrap">
-          <span
-            className={cn(
-              "inline-block bg-gradient-to-r bg-clip-text text-transparent",
-              hydrated && "animate-[fadeBlur_0.6s_ease]",
-              gradient
-            )}
-          >
-            {phrase}
-          </span>
-          <span
-            className={cn(
-              "absolute -bottom-1 left-0 h-0.5 w-full origin-left rounded-full bg-gradient-to-r md:-bottom-2",
-              hydrated && "animate-[fadeBlur_0.8s_ease]",
-              gradient
-            )}
-            aria-hidden
-          />
-        </span>
-        <span
-          className={cn("size-1.5 shrink-0 animate-pulse rounded-full md:size-2", pulseClass)}
-          aria-hidden
-        />
-      </span>
-    </span>
+  const phraseClass = cn(
+    "whitespace-nowrap bg-gradient-to-r bg-clip-text text-transparent",
+    hydrated && "animate-[fadeBlur_0.6s_ease]",
+    gradient
   )
 
   return (
     <h1
       className={cn(
         "font-black tracking-[-0.03em] leading-[0.9]",
-        persona === "buyer"
-          ? "text-4xl md:text-6xl lg:text-7xl"
-          : "text-4xl md:text-6xl lg:text-7xl",
+        "text-4xl md:text-6xl lg:text-7xl",
         titleClass,
         className
       )}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* SEO: full canonical always in DOM (SSR + crawlers). */}
       <span className="sr-only">{copy.canonical}</span>
 
       {persona === "buyer" ? (
         <>
-          <span aria-hidden="true" className="block">
+          <span aria-hidden className="block">
             {copy.base}
           </span>
-          <span aria-hidden="true" className="relative mt-2 block md:mt-3">
-            {rotatingSlot}
+          <span
+            aria-hidden
+            className="relative mt-2 inline-grid min-h-[1.1em] items-baseline justify-items-center md:mt-3"
+          >
+            <span className="invisible col-start-1 row-start-1 whitespace-nowrap">{sizer}</span>
+            <span
+              key={phrase}
+              className={cn("col-start-1 row-start-1", phraseClass)}
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {phrase}
+            </span>
           </span>
         </>
       ) : (
-        <span aria-hidden="true" className="block">
-          <span className="inline">{copy.base}</span> {rotatingSlot}
+        <span aria-hidden className="inline-flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <span>{copy.base}</span>
+          <span className="relative inline-grid min-h-[1.1em] items-baseline">
+            <span className="invisible col-start-1 row-start-1 whitespace-nowrap">{sizer}</span>
+            <span className={cn("col-start-1 row-start-1 inline-flex items-baseline gap-2")}>
+              <span key={phrase} className={phraseClass} aria-live="polite" aria-atomic="true">
+                {phrase}
+              </span>
+              <span
+                className={cn("size-1.5 shrink-0 animate-pulse rounded-full md:size-2", pulseClass)}
+                aria-hidden
+              />
+            </span>
+          </span>
         </span>
       )}
 
       {copy.fixedSuffix ? (
         <span
-          aria-hidden="true"
+          aria-hidden
           className={cn(
             "mt-2 block text-2xl font-semibold tracking-tight md:text-3xl",
             suffixClass

@@ -47,6 +47,9 @@ export function MarketplaceBrowseDepartmentsRail({
   if (isLoading || departments.length === 0) return null
 
   const activeSearch = searchParams.get("q")?.trim() ?? ""
+  const visible = departments.slice(0, 8)
+  const hasMore = departments.length > 8
+  const seeAllHref = catalogFilterHref(basePath)
 
   return (
     <section className={cn(brandOrbitRailShell, className)} aria-label={t("ariaLabel")}>
@@ -56,7 +59,7 @@ export function MarketplaceBrowseDepartmentsRail({
         <p className={cn("hidden sm:inline", brandOrbitRailHint)}>{t("hint")}</p>
       </div>
       <div className="relative flex gap-2 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {departments.map((dept) => {
+        {visible.map((dept) => {
           const href = dept.categorySlug
             ? categoryBrowsePath(dept.categorySlug)
             : dept.categoryId
@@ -88,6 +91,18 @@ export function MarketplaceBrowseDepartmentsRail({
             </Link>
           )
         })}
+        {hasMore ? (
+          <Link
+            href={seeAllHref}
+            scroll={false}
+            className={cn(
+              "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition",
+              brandOrbitPillIdle
+            )}
+          >
+            {t("seeAll")}
+          </Link>
+        ) : null}
       </div>
     </section>
   )

@@ -26,7 +26,7 @@ import { MarketplaceBrowseDepartmentsRail } from "@/components/marketplace/marke
 import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
 import { StickyFilterBarPro } from "@/components/mobile/StickyFilterBarPro"
-import { HomeWorldRadarInline } from "@/components/home/home-world-radar-inline"
+import { HomeWorldRadarInlineLazy } from "@/components/home/home-world-radar-inline-lazy"
 import { BuyerBrowseSignalsRecorder } from "@/components/home/buyer-browse-signals-recorder"
 import { HomePersonalizedPicksRailLive } from "@/components/home/home-personalized-picks-rail-live"
 import { CategoryTreeExplorer } from "@/components/marketplace/CategoryTreeExplorer"
@@ -699,7 +699,7 @@ export function MarketplaceView({
               >
                 {products.map((product, index) => (
                   <Fragment key={String(product.listingId ?? product.id)}>
-                    <li className="flex h-full min-h-[260px] md:min-h-0">
+                    <li className="flex h-full">
                       <ProductCard
                         product={product}
                         mode={productCardMode}
@@ -708,7 +708,7 @@ export function MarketplaceView({
                     </li>
                     {embedded && isCustomerBrowse && index === 3 ? (
                       <li className="col-span-2 md:hidden">
-                        <HomeWorldRadarInline />
+                        <HomeWorldRadarInlineLazy />
                       </li>
                     ) : null}
                   </Fragment>

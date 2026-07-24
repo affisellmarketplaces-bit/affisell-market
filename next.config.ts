@@ -64,6 +64,8 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ["@imgly/background-removal", "onnxruntime-web"],
   experimental: {
+    /** Inline critical CSS (requires `critters`) — faster FCP/LCP on home. */
+    optimizeCss: true,
     staleTimes: {
       dynamic: 60,
       static: 300,
@@ -89,6 +91,8 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    deviceSizes: [390, 768, 1024],
+    imageSizes: [200, 400],
     minimumCacheTTL: 3600,
     remotePatterns: [
       { protocol: "https", hostname: "m.media-amazon.com", pathname: "/**" },

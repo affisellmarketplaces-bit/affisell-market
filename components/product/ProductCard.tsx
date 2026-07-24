@@ -294,7 +294,7 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
       data-product-card-mode={mode}
       data-show-business-data={showBusiness ? "true" : "false"}
     >
-      <div className="relative aspect-square min-h-[160px] w-full overflow-hidden rounded-[1.1rem] border border-white/50 bg-gradient-to-br from-violet-50/50 via-white to-sky-50/35 sm:min-h-0 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:via-zinc-950/80 dark:to-teal-950/15">
+      <div className="affisell-product-media relative w-full overflow-hidden rounded-[1.1rem] border border-white/50 bg-gradient-to-br from-violet-50/50 via-white to-sky-50/35 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:via-zinc-950/80 dark:to-teal-950/15">
         {/* Top bar — flex row, no overlapping absolutes (sales ↔ heart). */}
         <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-2">
           <div className="flex min-w-0 flex-1 flex-wrap items-start gap-1">
@@ -349,9 +349,11 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
         <img
           src={src}
           alt={p.title}
+          width={300}
+          height={225}
           className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain p-1 transition-transform duration-300 group-hover:scale-[1.02] sm:p-4"
           loading={imagePriority ? "eager" : "lazy"}
-          fetchPriority={imagePriority ? "high" : "auto"}
+          fetchPriority={imagePriority ? "high" : "low"}
           decoding="async"
           draggable={false}
           onError={(e) => {

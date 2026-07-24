@@ -2428,6 +2428,12 @@ button,
     -webkit-overflow-scrolling: touch;
   }
 
+  /* Product thumb box — fixed aspect + contain for CLS (used with aspect-[4/3]). */
+  .affisell-product-media {
+    aspect-ratio: 4 / 3;
+    contain: layout paint;
+  }
+
   @media (max-width: 380px) {
     .affisell-product-grid {
       gap: 0.5rem;

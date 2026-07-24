@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server"
 
 import { CatalogGridPrefetch } from "@/components/navigation/catalog-grid-prefetch"
 import { CatalogCardImage } from "@/components/home/catalog-card-image"
-import { HomeWorldRadarInline } from "@/components/home/home-world-radar-inline"
+import { HomeWorldRadarInlineLazy } from "@/components/home/home-world-radar-inline-lazy"
 import {
   normalizeHomeCatalogProduct,
 } from "@/lib/home-catalog-product-href"
@@ -16,7 +16,7 @@ type Props = {
 }
 
 /** Server-rendered catalog grid — zero client JS until interactive explorer hydrates. */
-export async function HomeCatalogStaticGrid({ shell, limit = 24 }: Props) {
+export async function HomeCatalogStaticGrid({ shell, limit = 20 }: Props) {
   const t = await getTranslations("marketplace.browse")
   const tHub = await getTranslations("marketplace.mobileHub")
   const items = shell.products
@@ -47,13 +47,13 @@ export async function HomeCatalogStaticGrid({ shell, limit = 24 }: Props) {
       <ul className="affisell-product-grid grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
         {items.map((item, index) => (
           <Fragment key={item.id}>
-            <li className="flex h-full min-h-[260px] md:min-h-0">
+            <li className="flex h-full">
               <Link
                 href={item.href}
                 prefetch
                 className="affisell-inp-tap affisell-home-static-card group flex h-full w-full touch-manipulation flex-col rounded-[1.35rem] border border-[color:var(--affisell-premium-border)] bg-[var(--affisell-premium-glass)] p-1.5 shadow-[var(--affisell-premium-shadow-soft)] transition-transform duration-200 active:scale-[0.99] sm:rounded-3xl sm:p-2"
               >
-                <div className="relative aspect-square min-h-[160px] w-full overflow-hidden rounded-[1.1rem] border border-white/50 bg-gradient-to-br from-violet-50/50 via-white to-sky-50/35 sm:min-h-0 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:via-zinc-950/80 dark:to-teal-950/15">
+                <div className="affisell-product-media relative w-full overflow-hidden rounded-[1.1rem] border border-white/50 bg-gradient-to-br from-violet-50/50 via-white to-sky-50/35 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:via-zinc-950/80 dark:to-teal-950/15">
                   <CatalogCardImage
                     src={item.image}
                     fallbackSrc={item.fallbackImage}
@@ -73,7 +73,7 @@ export async function HomeCatalogStaticGrid({ shell, limit = 24 }: Props) {
             </li>
             {index === 3 ? (
               <li className="col-span-2 md:hidden">
-                <HomeWorldRadarInline />
+                <HomeWorldRadarInlineLazy />
               </li>
             ) : null}
           </Fragment>

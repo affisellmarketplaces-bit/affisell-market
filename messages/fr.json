@@ -1632,7 +1632,8 @@
       "browseDepartmentsRail": {
         "ariaLabel": "Explorer par univers",
         "eyebrow": "Univers populaires",
-        "hint": "Libellés familiers — chaque bouton ouvre le rayon Google correspondant."
+        "hint": "Libellés familiers — chaque bouton ouvre le rayon Google correspondant.",
+        "seeAll": "Voir tout"
       },
       "personalized": {
         "eyebrowForYou": "Pour vous",

@@ -1399,7 +1399,8 @@
       "browseDepartmentsRail": {
         "ariaLabel": "Door afdelingen browsen",
         "eyebrow": "Populaire afdelingen",
-        "hint": "Familiar labels — elk opent de corresponderende Google-taxonomiegang."
+        "hint": "Familiar labels — elk opent de corresponderende Google-taxonomiegang.",
+        "seeAll": "Alles bekijken"
       },
       "personalized": {
         "eyebrowForYou": "Voor jou",

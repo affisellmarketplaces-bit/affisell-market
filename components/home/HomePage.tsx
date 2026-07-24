@@ -3,10 +3,9 @@ import { getTranslations } from "next-intl/server"
 
 import { BuyerHeroBlock } from "@/components/BuyerHeroBlock"
 import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExplorer"
+import { HomeBelowFoldRadars } from "@/components/home/home-below-fold-radars"
 import { HomeCatalogSkeleton } from "@/components/home/home-catalog-skeleton"
 import { HomePageWarmup } from "@/components/home/home-page-warmup"
-import { HomeRadarTeaser } from "@/components/home/home-radar-teaser"
-import { HomeWorldRadarTeaser } from "@/components/home/home-world-radar-teaser"
 
 async function CatalogFallback() {
   const t = await getTranslations("home")
@@ -33,9 +32,8 @@ export async function HomePage() {
       <Suspense fallback={<CatalogFallback />}>
         <BuyerMarketplaceExplorer />
       </Suspense>
-      {/* Mobile: World Radar is inlined after first 4 products (home-world-radar-inline). */}
-      <HomeWorldRadarTeaser className="mt-4 hidden sm:mt-8 md:block" />
-      <HomeRadarTeaser className="mt-4 sm:mt-8" />
+      {/* World Radar + Producteur/Grossiste — dynamic client chunks, not in initial JS. */}
+      <HomeBelowFoldRadars />
     </main>
   )
 }

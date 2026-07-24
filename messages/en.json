@@ -1624,7 +1624,8 @@
       "browseDepartmentsRail": {
         "ariaLabel": "Browse by department",
         "eyebrow": "Popular departments",
-        "hint": "Familiar labels — each opens the matching Google taxonomy aisle."
+        "hint": "Familiar labels — each opens the matching Google taxonomy aisle.",
+        "seeAll": "See all"
       },
       "personalized": {
         "eyebrowForYou": "For you",
