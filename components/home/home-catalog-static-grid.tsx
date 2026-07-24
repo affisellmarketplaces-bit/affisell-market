@@ -28,7 +28,7 @@ export async function HomeCatalogStaticGrid({ shell, limit = 24 }: Props) {
 
   return (
     <div id="explorer" className="affisell-home-explorer min-w-0">
-      {/* Reserve StickyFilterBarPro height so idle→interactive swap does not CLS. */}
+      {/* Reserve exact StickyFilterBarPro slot (h-11 = 44px) before idle→interactive. */}
       <div className="mb-2 h-11 md:hidden" aria-hidden />
       <div className="mb-1.5 hidden items-center justify-between gap-2 md:flex">
         <div>
