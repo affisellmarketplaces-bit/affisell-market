@@ -1,19 +1,26 @@
 "use client"
 
 import Image from "next/image"
+import { AlertTriangle } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { BubbleProductCard, type BubbleProductCardProduct } from "@/components/product/BubbleProductCard"
 import { LiveProfitCalculator } from "@/components/product/LiveProfitCalculator"
 import type { SocialAssetsBundle } from "@/lib/social/bubble-product-types"
+import { getFallbackSocialAssetsBundle } from "@/lib/social/social-assets-fallback"
 
 type BundlePayload = SocialAssetsBundle & {
   failedKeys?: string[]
   okCount?: number
+  fallback?: boolean
 }
 
 type Props = {
   product: BubbleProductCardProduct & { bubbleUrl: string; costPrice?: number | null }
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 function rewriteCaptionsForPrice(
@@ -38,7 +45,7 @@ export function ViralCommandCenter({ product }: Props) {
   const [bundle, setBundle] = useState<BundlePayload | null>(null)
   const [loading, setLoading] = useState(true)
   const [expanding, setExpanding] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [aiPaused, setAiPaused] = useState(false)
   const [platforms, setPlatforms] = useState({
     instagram: true,
     tiktok: true,
@@ -53,42 +60,85 @@ export function ViralCommandCenter({ product }: Props) {
     costPrice: cost,
   }
 
-  const fetchBundle = useCallback(async (priorityOnly: boolean): Promise<BundlePayload> => {
-    const qs = priorityOnly ? "?priority=1" : ""
-    const res = await fetch(`/api/products/${encodeURIComponent(product.id)}/social-assets${qs}`)
-    const data = (await res.json().catch(() => null)) as
-      | (BundlePayload & { error?: string; message?: string })
-      | null
-    if (!res.ok || !data || data.error) {
-      const detail = data?.message || data?.error || `http_${res.status}`
-      throw new Error(detail)
-    }
-    if (!Array.isArray(data.assets) || data.assets.length === 0) {
-      throw new Error("empty_bundle")
-    }
-    return data
-  }, [product.id])
+  const applyFallback = useCallback(
+    (reason: string) => {
+      const fallback = getFallbackSocialAssetsBundle({
+        id: product.id,
+        title: product.title,
+        imageUrl: product.imageUrl,
+        salePrice: livePrice,
+        costPrice: cost,
+        marginEuro: Math.max(0, Math.round((livePrice - cost) * 100) / 100),
+        bubbleUrl: product.bubbleUrl,
+      })
+      console.error("[SOCIAL_ASSETS_ERROR]", { productId: product.id, reason, fallback: true })
+      setBundle(fallback)
+      setAiPaused(true)
+      return fallback
+    },
+    [product, livePrice, cost]
+  )
+
+  const fetchBundle = useCallback(
+    async (priorityOnly: boolean): Promise<BundlePayload> => {
+      const qs = priorityOnly ? "?priority=1" : ""
+      let lastError: Error | null = null
+
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const res = await fetch(
+            `/api/products/${encodeURIComponent(product.id)}/social-assets${qs}`
+          )
+          const data = (await res.json().catch(() => null)) as
+            | (BundlePayload & { error?: string; message?: string })
+            | null
+          if (!res.ok || !data || data.error) {
+            const detail = data?.message || data?.error || `http_${res.status}`
+            throw new Error(detail)
+          }
+          if (!Array.isArray(data.assets) || data.assets.length === 0) {
+            throw new Error("empty_bundle")
+          }
+          return data
+        } catch (err) {
+          lastError = err instanceof Error ? err : new Error("generate_failed")
+          console.error("[SOCIAL_ASSETS_ERROR]", {
+            productId: product.id,
+            attempt: attempt + 1,
+            error: lastError.message,
+          })
+          if (attempt < 2) await sleep(400 * 2 ** attempt)
+        }
+      }
+
+      throw lastError ?? new Error("generate_failed")
+    },
+    [product.id]
+  )
 
   const load = useCallback(async () => {
     setLoading(true)
-    setError(null)
+    setAiPaused(false)
     setExpanding(false)
     try {
-      // Fast path: 4 hero formats first → perceived success in ~1–2s
       const priority = await fetchBundle(true)
       setBundle(priority)
+      setAiPaused(Boolean(priority.fallback))
       setLoading(false)
       console.log("[viral-command]", {
         event: "priority_assets_ready",
         productId: product.id,
         count: priority.assets.length,
+        fallback: priority.fallback ?? false,
       })
 
-      // Expand to full 12-pack without blocking the UI
+      if (priority.fallback) return
+
       setExpanding(true)
       try {
         const full = await fetchBundle(false)
         setBundle(full)
+        setAiPaused(Boolean(full.fallback))
         console.log("[viral-command]", {
           event: "full_assets_ready",
           productId: product.id,
@@ -100,18 +150,16 @@ export function ViralCommandCenter({ product }: Props) {
           event: "expand_failed",
           error: expandErr instanceof Error ? expandErr.message : "expand_failed",
         })
-        // Keep priority pack — still usable
       } finally {
         setExpanding(false)
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "generate_failed"
       console.error("[viral-command]", { event: "generate_failed", error: message })
-      setError("Impossible de générer les assets.")
-      setBundle(null)
+      applyFallback(message)
       setLoading(false)
     }
-  }, [fetchBundle, product.id])
+  }, [fetchBundle, product.id, applyFallback])
 
   useEffect(() => {
     void load()
@@ -164,11 +212,18 @@ export function ViralCommandCenter({ product }: Props) {
     const selected = Object.entries(platforms)
       .filter(([, v]) => v)
       .map(([k]) => k)
-    await fetch(`/api/products/${encodeURIComponent(product.id)}/social-assets`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ platforms: selected }),
-    })
+    try {
+      await fetch(`/api/products/${encodeURIComponent(product.id)}/social-assets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platforms: selected }),
+      })
+    } catch (err) {
+      console.error("[SOCIAL_ASSETS_ERROR]", {
+        event: "publish_stub_failed",
+        error: err instanceof Error ? err.message : "publish_failed",
+      })
+    }
     downloadCaptionsFile()
     alert("P0: captions.txt téléchargé + images régénérées. OAuth publication = P1.")
   }
@@ -201,35 +256,57 @@ export function ViralCommandCenter({ product }: Props) {
             </p>
           ) : null}
         </div>
-        {loading ? (
-          <div className="rounded-2xl border border-violet-200/60 bg-gradient-to-br from-violet-50 to-white p-6 dark:border-violet-900/40 dark:from-violet-950/40 dark:to-zinc-950">
-            <p className="text-sm font-semibold text-violet-800 dark:text-violet-200">
-              Génération du pack viral…
-            </p>
-            <p className="mt-1 text-xs text-zinc-500">
-              Story · Feed · TikTok · Pinterest d&apos;abord, puis le reste.
-            </p>
-            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-violet-100 dark:bg-violet-950">
-              <div className="h-full w-1/3 animate-pulse rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500" />
+
+        {aiPaused ? (
+          <div className="mb-4 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/50 dark:bg-amber-950/30">
+            <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden />
+            <div>
+              <p className="font-bold text-amber-900 dark:text-amber-100">Génération IA en pause</p>
+              <p className="text-sm text-amber-700 dark:text-amber-200/90">
+                On affiche les templates de base. Tes profits restent calculés.
+              </p>
+              <button
+                type="button"
+                onClick={() => void load()}
+                className="mt-2 text-sm font-semibold text-amber-900 underline underline-offset-2 dark:text-amber-100"
+              >
+                Réessayer
+              </button>
             </div>
           </div>
         ) : null}
-        {error ? (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 dark:border-rose-900/50 dark:bg-rose-950/30">
-            <p className="text-sm font-semibold text-rose-700 dark:text-rose-300">{error}</p>
-            <p className="mt-1 text-xs text-rose-600/80 dark:text-rose-400">
-              Les templates OG ont été reforgés (Satori-safe). Un clic suffit.
-            </p>
-            <button
-              type="button"
-              className="mt-3 rounded-full bg-rose-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-rose-500"
-              onClick={() => void load()}
-            >
-              Réessayer
-            </button>
+
+        {loading ? (
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-violet-200/60 bg-gradient-to-br from-violet-50 to-white p-6 dark:border-violet-900/40 dark:from-violet-950/40 dark:to-zinc-950">
+              <p className="text-sm font-semibold text-violet-800 dark:text-violet-200">
+                Génération du pack viral…
+              </p>
+              <p className="mt-1 text-xs text-zinc-500">
+                Story · Feed · TikTok d&apos;abord — retry auto si le réseau rame.
+              </p>
+              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-violet-100 dark:bg-violet-950">
+                <div className="h-full w-1/3 animate-pulse rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500" />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800"
+                >
+                  <div className="aspect-video animate-pulse bg-zinc-100 dark:bg-zinc-900" />
+                  <div className="space-y-2 p-3">
+                    <div className="h-3 w-24 animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+                    <div className="h-8 w-full animate-pulse rounded-lg bg-zinc-100 dark:bg-zinc-800" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : null}
-        {bundle ? (
+
+        {bundle && !loading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {bundle.assets.map((asset) => (
               <article
@@ -244,6 +321,9 @@ export function ViralCommandCenter({ product }: Props) {
                     className="object-contain"
                     unoptimized
                   />
+                  <div className="absolute bottom-2 left-2 rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-bold text-white">
+                    +{Math.max(0, Math.round(livePrice - cost))}€
+                  </div>
                   <div className="absolute bottom-2 right-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
                     {livePrice.toFixed(0)}€
                   </div>
@@ -251,12 +331,23 @@ export function ViralCommandCenter({ product }: Props) {
                 <div className="space-y-2 p-3">
                   <p className="text-xs font-mono text-zinc-500">{asset.key}</p>
                   <div className="flex flex-wrap gap-2">
-                    <a
-                      href={`/api/products/${encodeURIComponent(product.id)}/social-assets/download?format=${encodeURIComponent(asset.key)}`}
-                      className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white"
-                    >
-                      Télécharger
-                    </a>
+                    {bundle.fallback ? (
+                      <a
+                        href={asset.publicUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white"
+                      >
+                        Ouvrir image
+                      </a>
+                    ) : (
+                      <a
+                        href={`/api/products/${encodeURIComponent(product.id)}/social-assets/download?format=${encodeURIComponent(asset.key)}`}
+                        className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white"
+                      >
+                        Télécharger
+                      </a>
+                    )}
                     <button
                       type="button"
                       className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-semibold dark:border-zinc-700"
@@ -277,7 +368,7 @@ export function ViralCommandCenter({ product }: Props) {
             ))}
           </div>
         ) : null}
-        {bundle?.failedKeys && bundle.failedKeys.length > 0 ? (
+        {bundle?.failedKeys && bundle.failedKeys.length > 0 && !bundle.fallback ? (
           <p className="mt-3 text-xs text-amber-600 dark:text-amber-400">
             {bundle.failedKeys.length} format(s) non générés — le reste est prêt.
           </p>

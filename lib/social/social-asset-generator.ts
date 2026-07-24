@@ -1,17 +1,10 @@
 import type { BubbleProductView, SocialAssetKey, SocialAssetsBundle } from "@/lib/social/bubble-product-types"
 import { SOCIAL_ASSET_DIMENSIONS } from "@/lib/social/bubble-product-types"
+import { getFallbackSocialAssetsBundle } from "@/lib/social/social-assets-fallback"
 import { renderSocialAssetPng, socialAssetFileExists, socialAssetPublicPath } from "@/lib/social/render-social-asset.server"
+import { buildViralCaptions } from "@/lib/social/viral-captions"
 
-export function buildViralCaptions(product: BubbleProductView) {
-  const cost = product.costPrice?.toFixed(0) ?? "?"
-  const sale = product.salePrice.toFixed(0)
-  const title = product.title.slice(0, 60)
-  return {
-    moneyHook: `J'ai trouvé ce ${title} à ${cost}€ et je le revends ${sale}€ sans stock… Voilà comment 👇 ${product.bubbleUrl}`,
-    problemHook: `Marre de chercher des produits rentables? Ce ${title} fait +${product.marginEuro.toFixed(0)}€ sans stock. ${product.bubbleUrl}`,
-    trendHook: `POV: Tu découvres le produit que tout le monde va acheter en 2026 — ${title} · ${sale}€ ${product.bubbleUrl}`,
-  }
-}
+export { buildViralCaptions } from "@/lib/social/viral-captions"
 
 const ALL_KEYS = Object.keys(SOCIAL_ASSET_DIMENSIONS) as SocialAssetKey[]
 
@@ -90,34 +83,39 @@ export async function generateSocialAssets(
 ): Promise<SocialAssetsBundle & { failedKeys: SocialAssetKey[]; okCount: number }> {
   const keys = options?.keys?.length ? options.keys : ALL_KEYS
   const persist = options?.persist !== false
-  const captions = buildViralCaptions(product)
   const concurrency = Math.max(1, Math.min(options?.concurrency ?? 3, 6))
 
   const rows = await mapPool(keys, concurrency, (key) =>
     renderOne(product, key, { persist, force: options?.force })
   )
 
-  const assets = rows.map(({ ok: _ok, error: _error, ...asset }) => asset)
+  const okRows = rows.filter((r) => r.ok)
   const failedKeys = rows.filter((r) => !r.ok).map((r) => r.key)
-  const okCount = rows.length - failedKeys.length
+  const okCount = okRows.length
 
   console.log("[social-asset-generator]", {
     productId: product.id,
-    count: assets.length,
+    count: rows.length,
     okCount,
     failedKeys,
   })
 
   if (okCount === 0) {
-    const err = new Error(failedKeys[0] ? `all_assets_failed:${failedKeys[0]}` : "all_assets_failed")
-    throw err
+    console.error("[social-asset-generator]", {
+      event: "all_assets_failed_fallback",
+      productId: product.id,
+      failedKeys,
+    })
+    return getFallbackSocialAssetsBundle(product)
   }
+
+  const assets = okRows.map(({ ok: _ok, error: _error, ...asset }) => asset)
 
   return {
     productId: product.id,
     generatedAt: new Date().toISOString(),
     assets,
-    captions,
+    captions: buildViralCaptions(product),
     failedKeys,
     okCount,
   }

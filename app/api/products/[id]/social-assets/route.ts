@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { loadBubbleProductView } from "@/lib/social/load-bubble-product.server"
 import { socialKeysForPlatforms } from "@/lib/social/platform-keys"
+import { getFallbackSocialAssetsBundle } from "@/lib/social/social-assets-fallback"
 import {
   generateSocialAssets,
   SOCIAL_ASSET_PRIORITY_KEYS,
@@ -37,6 +38,7 @@ export async function GET(request: Request, ctx: RouteCtx) {
       okCount: bundle.okCount,
       failedKeys: bundle.failedKeys,
       priorityOnly,
+      fallback: "fallback" in bundle ? Boolean((bundle as { fallback?: boolean }).fallback) : false,
     })
 
     return NextResponse.json(bundle)
@@ -52,6 +54,26 @@ export async function GET(request: Request, ctx: RouteCtx) {
     }
     const message = err instanceof Error ? err.message : "generate_failed"
     console.error("[social-assets]", { error: message })
+
+    try {
+      const { id } = await ctx.params
+      const product = await loadBubbleProductView(id)
+      if (product) {
+        const fallback = getFallbackSocialAssetsBundle(product)
+        console.log("[social-assets]", {
+          productId: id,
+          event: "api_catch_fallback",
+          error: message.slice(0, 120),
+        })
+        return NextResponse.json(fallback)
+      }
+    } catch (fallbackErr) {
+      console.error("[social-assets]", {
+        event: "fallback_failed",
+        error: fallbackErr instanceof Error ? fallbackErr.message : "fallback_failed",
+      })
+    }
+
     return NextResponse.json(
       { error: "generate_failed", message: message.slice(0, 240) },
       { status: 500 }
@@ -100,6 +122,17 @@ export async function POST(request: Request, ctx: RouteCtx) {
     }
     const message = err instanceof Error ? err.message : "generate_failed"
     console.error("[social-assets]", { error: message, method: "POST" })
+
+    try {
+      const { id } = await ctx.params
+      const product = await loadBubbleProductView(id)
+      if (product) {
+        return NextResponse.json(getFallbackSocialAssetsBundle(product))
+      }
+    } catch {
+      /* fall through */
+    }
+
     return NextResponse.json(
       { error: "generate_failed", message: message.slice(0, 240) },
       { status: 500 }
