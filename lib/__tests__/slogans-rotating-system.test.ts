@@ -11,8 +11,18 @@ describe("slogan rotating system", () => {
     expect(SLOGAN_SYSTEM.buyer.emotion).toBe("TRUST")
     expect(SLOGAN_SYSTEM.reseller.emotion).toBe("PROFIT")
     expect(SLOGAN_SYSTEM.supplier.emotion).toBe("SCALE")
+    expect(SLOGAN_SYSTEM.buyer.interval).toBe(3200)
+    expect(SLOGAN_SYSTEM.reseller.interval).toBe(2500)
+    expect(SLOGAN_SYSTEM.supplier.interval).toBe(2700)
     expect(SLOGAN_SYSTEM.buyer.interval).toBeGreaterThan(SLOGAN_SYSTEM.reseller.interval)
     expect(SLOGAN_SYSTEM.supplier.route).toBe("/become-supplier")
+  })
+
+  it("keeps system.ts as source of truth for rotatifs", async () => {
+    const { SLOGAN_SYSTEM: core } = await import("@/lib/slogans/system")
+    expect(SLOGAN_SYSTEM.buyer.rotatifs).toEqual([...core.buyer.rotatifs])
+    expect(SLOGAN_SYSTEM.reseller.base).toBe(core.reseller.base)
+    expect(SLOGAN_SYSTEM.supplier.fixedSuffix).toBe(core.supplier.suffix)
   })
 
   it("keeps SEO canonical strings stable", () => {

@@ -1,7 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
+import { useEffect, useState } from "react"
 
 import {
   longestSloganPhrase,
@@ -9,7 +8,6 @@ import {
   SLOGAN_SYSTEM,
   type SloganPersona,
 } from "@/lib/slogans/rotating-system"
-import { motionEaseOut } from "@/lib/motion-presets"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -24,10 +22,10 @@ type Props = {
   tone?: "light" | "dark"
 }
 
-const enter = { y: 20, opacity: 0, filter: "blur(8px)", rotateX: -15 }
-const center = { y: 0, opacity: 1, filter: "blur(0px)", rotateX: 0 }
-const exit = { y: -20, opacity: 0, filter: "blur(8px)", rotateX: 15 }
-
+/**
+ * Master rotating slogan — SSR always shows rotatifs[0] (SEO-safe).
+ * Client rotation starts only after hydration + reduced-motion / visibility checks.
+ */
 export function RotatingSloganPro({
   persona,
   base: baseOverride,
@@ -45,75 +43,54 @@ export function RotatingSloganPro({
     canonical: canonicalOverride,
   })
   const [index, setIndex] = useState(0)
+  const [hydrated, setHydrated] = useState(false)
   const [paused, setPaused] = useState(false)
-  const [tabHidden, setTabHidden] = useState(false)
-  const prefersReducedMotion = useReducedMotion()
   const phrase = copy.rotatifs[index] ?? copy.rotatifs[0] ?? ""
   const sizer = longestSloganPhrase(copy.rotatifs)
   const resolvedTone = tone ?? (cfg.textTone === "light" ? "dark" : "light")
-  const gradient =
-    resolvedTone === "dark" ? cfg.colorOnDark : cfg.color
-
-  const goNext = useCallback(() => {
-    setIndex((prev) => (prev + 1) % copy.rotatifs.length)
-  }, [copy.rotatifs.length])
-
-  const goPrev = useCallback(() => {
-    setIndex((prev) => (prev - 1 + copy.rotatifs.length) % copy.rotatifs.length)
-  }, [copy.rotatifs.length])
+  const gradient = resolvedTone === "dark" ? cfg.colorOnDark : cfg.color
 
   useEffect(() => {
-    const onVisibility = () => setTabHidden(document.hidden)
-    onVisibility()
-    document.addEventListener("visibilitychange", onVisibility)
-    return () => document.removeEventListener("visibilitychange", onVisibility)
+    setHydrated(true)
   }, [])
 
   useEffect(() => {
-    if (prefersReducedMotion || paused || tabHidden) return
-    const timer = window.setInterval(goNext, copy.interval)
-    return () => window.clearInterval(timer)
-  }, [goNext, copy.interval, prefersReducedMotion, paused, tabHidden])
+    if (!hydrated) return
+    if (typeof window === "undefined") return
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null
-      if (target?.closest("input, textarea, select, [contenteditable=true]")) return
-      if (event.key === "ArrowRight") {
-        event.preventDefault()
-        goNext()
-      } else if (event.key === "ArrowLeft") {
-        event.preventDefault()
-        goPrev()
+    let timer: number | null = null
+
+    const start = () => {
+      if (timer != null) window.clearInterval(timer)
+      if (document.hidden || paused) return
+      timer = window.setInterval(() => {
+        setIndex((n) => (n + 1) % copy.rotatifs.length)
+      }, copy.interval)
+    }
+
+    const onVisibility = () => {
+      if (document.hidden) {
+        if (timer != null) window.clearInterval(timer)
+        timer = null
+      } else {
+        start()
       }
     }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [goNext, goPrev])
 
-  const motionProps = prefersReducedMotion
-    ? {
-        initial: { opacity: 0.4 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0.4 },
-        transition: { duration: 0.45, ease: "easeInOut" as const },
-      }
-    : {
-        initial: enter,
-        animate: center,
-        exit,
-        transition: { duration: 0.6, ease: motionEaseOut },
-      }
+    start()
+    document.addEventListener("visibilitychange", onVisibility)
+    return () => {
+      if (timer != null) window.clearInterval(timer)
+      document.removeEventListener("visibilitychange", onVisibility)
+    }
+  }, [hydrated, paused, copy.interval, copy.rotatifs.length])
 
   const titleClass =
-    resolvedTone === "dark"
-      ? "text-white"
-      : "text-zinc-950 dark:text-white"
+    resolvedTone === "dark" ? "text-white" : "text-zinc-950 dark:text-white"
 
   const suffixClass =
-    resolvedTone === "dark"
-      ? "text-white/75"
-      : "text-zinc-500 dark:text-zinc-400"
+    resolvedTone === "dark" ? "text-white/75" : "text-zinc-500 dark:text-zinc-400"
 
   const pulseClass =
     persona === "supplier"
@@ -122,22 +99,9 @@ export function RotatingSloganPro({
         ? "bg-fuchsia-300"
         : "bg-sky-300"
 
-  const phraseMotion =
-    persona === "buyer" && !prefersReducedMotion
-      ? {
-          initial: { y: 6, opacity: 0, filter: "blur(4px)" },
-          animate: { y: 0, opacity: 1, filter: "blur(0px)" },
-          exit: { y: -6, opacity: 0, filter: "blur(4px)" },
-          transition: { duration: 0.45, ease: motionEaseOut },
-        }
-      : motionProps
-
   const rotatingSlot = (
-    <span className="relative inline-grid align-baseline">
-      <span
-        className="invisible col-start-1 row-start-1 whitespace-nowrap"
-        aria-hidden
-      >
+    <span className="relative inline-grid min-h-[1.1em] align-baseline">
+      <span className="invisible col-start-1 row-start-1 whitespace-nowrap" aria-hidden>
         {sizer}
       </span>
       <span
@@ -148,39 +112,25 @@ export function RotatingSloganPro({
         aria-live="polite"
         aria-atomic="true"
       >
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.span
-            key={phrase}
-            {...phraseMotion}
-            className="relative inline-block origin-center whitespace-nowrap"
+        <span key={phrase} className="relative inline-block whitespace-nowrap">
+          <span
+            className={cn(
+              "inline-block bg-gradient-to-r bg-clip-text text-transparent",
+              hydrated && "animate-[fadeBlur_0.6s_ease]",
+              gradient
+            )}
           >
-            <span
-              className={cn(
-                "bg-gradient-to-r bg-clip-text text-transparent",
-                resolvedTone === "dark" && "bg-[length:200%_auto]",
-                gradient
-              )}
-            >
-              {phrase}
-            </span>
-            {!prefersReducedMotion ? (
-              <motion.span
-                className={cn(
-                  "absolute -bottom-1 left-0 h-0.5 w-full origin-left rounded-full bg-gradient-to-r md:-bottom-2",
-                  gradient
-                )}
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{
-                  duration: persona === "buyer" ? 0.8 : 0.55,
-                  ease: persona === "buyer" ? ([0.16, 1, 0.3, 1] as const) : motionEaseOut,
-                  delay: 0.08,
-                }}
-                aria-hidden
-              />
-            ) : null}
-          </motion.span>
-        </AnimatePresence>
+            {phrase}
+          </span>
+          <span
+            className={cn(
+              "absolute -bottom-1 left-0 h-0.5 w-full origin-left rounded-full bg-gradient-to-r md:-bottom-2",
+              hydrated && "animate-[fadeBlur_0.8s_ease]",
+              gradient
+            )}
+            aria-hidden
+          />
+        </span>
         <span
           className={cn("size-1.5 shrink-0 animate-pulse rounded-full md:size-2", pulseClass)}
           aria-hidden
@@ -192,16 +142,17 @@ export function RotatingSloganPro({
   return (
     <h1
       className={cn(
-        "font-black tracking-[-0.04em] leading-[0.9]",
+        "font-black tracking-[-0.03em] leading-[0.9]",
         persona === "buyer"
           ? "text-4xl md:text-6xl lg:text-7xl"
-          : "text-4xl tracking-tighter md:text-6xl lg:text-7xl",
+          : "text-4xl md:text-6xl lg:text-7xl",
         titleClass,
         className
       )}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
+      {/* SEO: full canonical always in DOM (SSR + crawlers). */}
       <span className="sr-only">{copy.canonical}</span>
 
       {persona === "buyer" ? (

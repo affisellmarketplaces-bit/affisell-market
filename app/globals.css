@@ -2947,3 +2947,24 @@ button,
     animation: none;
   }
 }
+
+/* RotatingSloganPro — Linear-level phrase entrance */
+@keyframes fadeBlur {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-\[fadeBlur_0\.6s_ease\],
+  .animate-\[fadeBlur_0\.8s_ease\] {
+    animation: none !important;
+  }
+}
