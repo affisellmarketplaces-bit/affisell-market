@@ -1,5 +1,24 @@
 /** Parse persisted notification.message into structured UI fields (display-only). */
 
+export type MerchantNotificationBreakdown = {
+  /** Client TTC when VAT is present. */
+  clientTotal?: string
+  clientHt?: string
+  clientVat?: string
+  /** Line HT when no VAT breakdown. */
+  lineHt?: string
+  /** Net pocket earnings (after Affisell platform fee). */
+  netEarnings?: string
+  commission?: string
+  markup?: string
+  /** Affisell platform fee deducted from affiliate earnings. */
+  affisellFee?: string
+  /** Gross earnings base used for the Affisell fee. */
+  earningsBase?: string
+  /** Supplier: net wholesale after partner + platform fee. */
+  netWholesale?: string
+}
+
 export type ParsedMerchantNotification = {
   kind: "supplier_order" | "affiliate_sale" | "generic"
   headline: string
@@ -10,14 +29,37 @@ export type ParsedMerchantNotification = {
   primaryLabel?: string
   primaryAmount?: string
   detail?: string
+  /** Structured money rows — prefer over truncated `detail` in UI. */
+  breakdown?: MerchantNotificationBreakdown
 }
 
-const EURO_IN_TEXT =
-  /(?:€|EUR)\s*[\d\s.,]+|[\d\s.,]+\s*(?:€|EUR)/i
+/**
+ * Money tokens must include at least one digit.
+ * Do NOT put bare `\s` in the amount class without a leading digit — otherwise
+ * `" €"` (space + euro) matches and the UI shows a naked `€`.
+ */
+const CURRENCY = String.raw`(?:€|EUR|\$|USD)`
+const AMOUNT = String.raw`\d[\d.,\u00a0\u202f\u2009]*`
+const MONEY_TOKEN = new RegExp(
+  String.raw`${CURRENCY}\s*${AMOUNT}|${AMOUNT}\s*${CURRENCY}`,
+  "i"
+)
+function normalizeMoneyToken(raw: string): string {
+  return raw.replace(/[\s\u00a0\u202f\u2009]+/g, " ").trim()
+}
 
-function firstMoneyToken(text: string): string | null {
-  const m = text.match(EURO_IN_TEXT)
-  return m ? m[0].replace(/\s+/g, " ").trim() : null
+export function firstMoneyToken(text: string): string | null {
+  const m = text.match(MONEY_TOKEN)
+  return m ? normalizeMoneyToken(m[0]) : null
+}
+
+function moneyAfterLabel(text: string, label: RegExp): string | null {
+  const re = new RegExp(
+    String.raw`${label.source}\s*(${MONEY_TOKEN.source})`,
+    label.flags.includes("i") ? "i" : "i"
+  )
+  const m = text.match(re)
+  return m?.[1] ? normalizeMoneyToken(m[1]) : null
 }
 
 function splitMessageParts(message: string): string[] {
@@ -55,6 +97,35 @@ function parseProductQtyFromParts(
   return { productName: accumulated.trim(), qty: 1, nextIdx: idx }
 }
 
+function parseClientBlock(block: string): Pick<
+  MerchantNotificationBreakdown,
+  "clientTotal" | "clientHt" | "clientVat" | "lineHt"
+> {
+  if (/^Line HT\b/i.test(block)) {
+    return { lineHt: firstMoneyToken(block) ?? undefined }
+  }
+  if (!/^Client\b/i.test(block)) return {}
+  return {
+    clientTotal: firstMoneyToken(block) ?? undefined,
+    clientHt: moneyAfterLabel(block, /HT\b/i) ?? undefined,
+    clientVat: moneyAfterLabel(block, /VAT\b/i) ?? undefined,
+  }
+}
+
+function parseEarningsParenthetical(paren: string): Pick<
+  MerchantNotificationBreakdown,
+  "commission" | "markup" | "affisellFee"
+> {
+  return {
+    commission: moneyAfterLabel(paren, /commission\b/i) ?? undefined,
+    markup: moneyAfterLabel(paren, /markup\b/i) ?? undefined,
+    affisellFee:
+      moneyAfterLabel(paren, /(?:−|-|–)?\s*fee\b/i) ??
+      moneyAfterLabel(paren, /fee\b/i) ??
+      undefined,
+  }
+}
+
 export function parseSupplierOrderNotification(message: string): ParsedMerchantNotification | null {
   const parts = splitMessageParts(message)
   if (parts[0] !== "New order to ship" || parts.length < 2) return null
@@ -75,10 +146,15 @@ export function parseSupplierOrderNotification(message: string): ParsedMerchantN
   }
 
   const tail = parts.slice(cursor).join(" · ")
-  const primaryAmount =
-    firstMoneyToken(tail.match(/Net wholesale\s+([^(\s]+)/i)?.[0] ?? tail) ??
+  const netWholesale =
+    moneyAfterLabel(tail, /Net wholesale\b/i) ??
     firstMoneyToken(tail.match(/COGS\):\s*([^·]+)/i)?.[1] ?? tail) ??
     firstMoneyToken(tail)
+
+  const breakdown: MerchantNotificationBreakdown = {
+    netWholesale: netWholesale ?? undefined,
+    affisellFee: moneyAfterLabel(tail, /Affisell fee\b/i) ?? undefined,
+  }
 
   return {
     kind: "supplier_order",
@@ -88,8 +164,9 @@ export function parseSupplierOrderNotification(message: string): ParsedMerchantN
     customerEmail,
     partnerCode,
     primaryLabel: "Net wholesale",
-    primaryAmount: primaryAmount ?? undefined,
+    primaryAmount: netWholesale ?? undefined,
     detail: tail || undefined,
+    breakdown: breakdown.netWholesale || breakdown.affisellFee ? breakdown : undefined,
   }
 }
 
@@ -98,10 +175,49 @@ export function parseAffiliateSaleNotification(message: string): ParsedMerchantN
   if (parts[0] !== "Sale on your store" || parts.length < 2) return null
 
   const { productName, qty, nextIdx } = parseProductQtyFromParts(parts, 1)
-  const tail = parts.slice(nextIdx).join(" · ")
-  const earningsMatch = tail.match(/Your earnings\s+([^(\s]+)/i)
-  const primaryAmount =
-    firstMoneyToken(earningsMatch?.[0] ?? tail) ?? firstMoneyToken(tail)
+  const moneyParts = parts.slice(nextIdx)
+  const tail = moneyParts.join(" · ")
+
+  const breakdown: MerchantNotificationBreakdown = {}
+
+  for (const part of moneyParts) {
+    if (/^Client\b/i.test(part) || /^Line HT\b/i.test(part)) {
+      Object.assign(breakdown, parseClientBlock(part))
+      continue
+    }
+
+    const earningsBlock = part.match(
+      /^Your earnings\s+(.+?)(?:\s*\(([^)]*)\))?$/i
+    )
+    if (earningsBlock) {
+      breakdown.netEarnings =
+        firstMoneyToken(earningsBlock[1] ?? "") ?? firstMoneyToken(part) ?? undefined
+      if (earningsBlock[2]) {
+        Object.assign(breakdown, parseEarningsParenthetical(earningsBlock[2]))
+      }
+      continue
+    }
+
+    if (/^Affisell fee\b/i.test(part)) {
+      breakdown.affisellFee =
+        moneyAfterLabel(part, /Affisell fee\b/i) ?? firstMoneyToken(part) ?? undefined
+      const baseParen = part.match(/\(([^)]+)\)/)
+      if (baseParen?.[1]) {
+        breakdown.earningsBase = firstMoneyToken(baseParen[1]) ?? undefined
+      }
+    }
+  }
+
+  // Fallback for older / partially malformed messages
+  if (!breakdown.netEarnings) {
+    breakdown.netEarnings =
+      moneyAfterLabel(tail, /Your earnings\b/i) ?? firstMoneyToken(tail) ?? undefined
+  }
+  if (!breakdown.affisellFee) {
+    breakdown.affisellFee = moneyAfterLabel(tail, /Affisell fee\b/i) ?? undefined
+  }
+
+  const hasBreakdown = Object.values(breakdown).some(Boolean)
 
   return {
     kind: "affiliate_sale",
@@ -109,8 +225,9 @@ export function parseAffiliateSaleNotification(message: string): ParsedMerchantN
     productName,
     qty,
     primaryLabel: "Your earnings",
-    primaryAmount: primaryAmount ?? undefined,
+    primaryAmount: breakdown.netEarnings,
     detail: tail || undefined,
+    breakdown: hasBreakdown ? breakdown : undefined,
   }
 }
 
