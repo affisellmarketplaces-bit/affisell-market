@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, Fragment } from "react"
 
 import Link from "next/link"
 import { Search, X } from "lucide-react"
@@ -24,8 +24,9 @@ import { primaryRegionalShipsFromFacet } from "@/lib/market-region-shipping"
 import { OfferModeQuickRail } from "@/components/marketplace/offer-mode-quick-rail"
 import { MarketplaceBrowseDepartmentsRail } from "@/components/marketplace/marketplace-browse-departments-rail"
 import { MarketplaceAffisellPulse } from "@/components/marketplace/MarketplaceAffisellPulse"
-import { MobileCatalogChrome } from "@/components/marketplace/mobile-catalog-chrome"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
+import { StickyFilterBarPro } from "@/components/mobile/StickyFilterBarPro"
+import { HomeWorldRadarInline } from "@/components/home/home-world-radar-inline"
 import { BuyerBrowseSignalsRecorder } from "@/components/home/buyer-browse-signals-recorder"
 import { HomePersonalizedPicksRailLive } from "@/components/home/home-personalized-picks-rail-live"
 import { CategoryTreeExplorer } from "@/components/marketplace/CategoryTreeExplorer"
@@ -441,18 +442,16 @@ export function MarketplaceView({
           <div className="mt-4 max-w-3xl">
             <MarketplaceSearchBox basePath={basePath} />
           </div>
-        ) : searchQuery.trim() || hasFilters ? (
-          <div className="mb-3 max-w-3xl md:hidden">
-            <MarketplaceSearchBox basePath={basePath} />
-          </div>
         ) : null}
 
-        <MarketplaceDepartmentRail
-          activeCategoryId={categoryId}
-          activeSubcategoryId={subcategoryId}
-          catalogBasePath={basePath}
-          categoriesPayload={categoriesPayload}
-        />
+        <div className={embedded && isCustomerBrowse ? "hidden md:block" : undefined}>
+          <MarketplaceDepartmentRail
+            activeCategoryId={categoryId}
+            activeSubcategoryId={subcategoryId}
+            catalogBasePath={basePath}
+            categoriesPayload={categoriesPayload}
+          />
+        </div>
         {isCustomerBrowse ? (
           <MarketplaceBrowseDepartmentsRail
             activeCategoryId={categoryId}
@@ -529,9 +528,9 @@ export function MarketplaceView({
 
           <div className="min-w-0 flex-1">
             {embedded && isCustomerBrowse ? (
-              <>
+              <div className="hidden md:block">
                 <BuyerRegionBanner className="mb-2 sm:mb-4" variant="compact" />
-                <div className="mb-2 hidden sm:block sm:mb-4">
+                <div className="mb-2 sm:mb-4">
                   <MarketplaceShipsToChip basePath={basePath} />
                 </div>
                 <OfferModeQuickRail
@@ -539,31 +538,15 @@ export function MarketplaceView({
                   className="mb-1.5 sm:mb-4"
                   initialCounts={initialBrowse?.offerRailCounts}
                 />
-              </>
+              </div>
             ) : null}
             {mobileCatalogShell ? (
-              <MobileCatalogChrome
-                productCount={products.length}
-                loading={loading}
-                hasFilters={hasFilters}
-                activeFilterLabel={activeFilterLabel}
-                onClearFilters={clearFilters}
-                categoriesPanel={(close) => (
-                  <CategoryTreeExplorer
-                    onCategoryClick={(id) => {
-                      handleCategoryClick(id)
-                      close()
-                    }}
-                    onShowFullCatalog={() => {
-                      clearFilters()
-                      close()
-                    }}
-                    activeCategoryId={scopeNodeId}
-                    catalogTotal={categoriesPayload?.catalogTotal}
-                    categoriesPayload={categoriesPayload}
-                    inSheet
-                  />
-                )}
+              <StickyFilterBarPro
+                catalogBasePath={basePath}
+                activeCategoryId={categoryId}
+                catalogTotal={categoriesPayload?.catalogTotal}
+                categories={categoriesPayload?.categories ?? []}
+                newCount={initialBrowse?.offerRailCounts?.new}
                 filtersPanel={
                   <MarketplaceFilters
                     categoryId={categoryId}
@@ -578,14 +561,6 @@ export function MarketplaceView({
                   />
                 }
               />
-            ) : null}
-            {embedded && isCustomerBrowse ? (
-              <div className="mb-3 flex sm:hidden">
-                <MarketplaceShipsToChip
-                  basePath={basePath}
-                  className="min-h-9 px-2.5 py-1 text-[11px]"
-                />
-              </div>
             ) : null}
             {hasFilters ? (
               <div className="mb-4 hidden flex-wrap items-center gap-2 md:flex">
@@ -723,13 +698,20 @@ export function MarketplaceView({
                 )}
               >
                 {products.map((product, index) => (
-                  <li key={String(product.listingId ?? product.id)} className="flex h-full">
-                    <ProductCard
-                      product={product}
-                      mode={productCardMode}
-                      imagePriority={embedded && isCustomerBrowse && index < 4}
-                    />
-                  </li>
+                  <Fragment key={String(product.listingId ?? product.id)}>
+                    <li className="flex h-full min-h-[260px] md:min-h-0">
+                      <ProductCard
+                        product={product}
+                        mode={productCardMode}
+                        imagePriority={embedded && isCustomerBrowse && index < 2}
+                      />
+                    </li>
+                    {embedded && isCustomerBrowse && index === 3 ? (
+                      <li className="col-span-2 md:hidden">
+                        <HomeWorldRadarInline />
+                      </li>
+                    ) : null}
+                  </Fragment>
                 ))}
               </ul>
             ) : null}

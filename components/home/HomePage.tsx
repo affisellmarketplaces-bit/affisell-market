@@ -25,7 +25,7 @@ function HeroFallback() {
 /** Buyer home — hero + catalogue load in parallel Suspense (no serial waterfall). */
 export async function HomePage() {
   return (
-    <main className="mx-auto w-full min-w-0 max-w-7xl space-y-2.5 overflow-x-clip px-3 py-2.5 sm:space-y-8 sm:px-6 sm:py-8">
+    <main className="mx-auto w-full min-w-0 max-w-7xl space-y-2.5 overflow-x-clip px-3 py-2.5 pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] sm:space-y-8 sm:px-6 sm:py-8 md:pb-8">
       <HomePageWarmup />
       <Suspense fallback={<HeroFallback />}>
         <BuyerHeroBlock />
@@ -33,7 +33,8 @@ export async function HomePage() {
       <Suspense fallback={<CatalogFallback />}>
         <BuyerMarketplaceExplorer />
       </Suspense>
-      <HomeWorldRadarTeaser className="mt-4 sm:mt-8" />
+      {/* Mobile: World Radar is inlined after first 4 products (home-world-radar-inline). */}
+      <HomeWorldRadarTeaser className="mt-4 hidden sm:mt-8 md:block" />
       <HomeRadarTeaser className="mt-4 sm:mt-8" />
     </main>
   )

@@ -32,7 +32,7 @@ export function BuyerHeroSearch() {
         value={q}
         onChange={(e) => setQ(e.target.value)}
         placeholder={t("searchPlaceholder")}
-        className="affisell-premium-input h-12 w-full min-w-0 rounded-[1.35rem] pl-11 pr-[4.75rem] text-base text-zinc-900 shadow-lg outline-none focus:ring-4 focus:ring-[#6366F1]/30 sm:h-14 sm:pl-12 sm:pr-28 dark:text-zinc-50"
+        className="affisell-premium-input h-10 w-full min-w-0 rounded-[1.35rem] pl-11 pr-[4.75rem] text-sm text-zinc-900 shadow-lg outline-none focus:ring-4 focus:ring-[#6366F1]/30 sm:h-14 sm:pl-12 sm:pr-28 sm:text-base dark:text-zinc-50"
       />
       <kbd className="pointer-events-none absolute right-[4.25rem] top-1/2 hidden -translate-y-1/2 rounded border bg-zinc-50 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 md:inline">
         ⌘K

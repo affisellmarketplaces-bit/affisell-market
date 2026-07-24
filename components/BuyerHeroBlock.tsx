@@ -50,7 +50,9 @@ export async function BuyerHeroBlock() {
   const buyerPhrases = tSlogan.raw("rotatifs") as string[]
 
   return (
-    <section className={`${homeHeroShell} w-full min-w-0 max-w-full px-3 py-3 sm:px-6 sm:py-7 md:px-10 md:py-16`}>
+    <section
+      className={`${homeHeroShell} w-full min-w-0 max-w-full px-3 py-2 max-md:max-h-[280px] max-md:overflow-hidden sm:px-6 sm:py-7 md:max-h-none md:overflow-visible md:px-10 md:py-16`}
+    >
       <HeroGradientBg />
       <div className="relative mx-auto w-full min-w-0 max-w-4xl text-center">
         <RotatingSloganPro
@@ -59,14 +61,14 @@ export async function BuyerHeroBlock() {
           base={tSlogan("base")}
           phrases={buyerPhrases}
           canonical={tSlogan("canonical")}
-          className="text-balance text-center"
+          className="min-h-[5.5rem] text-balance text-center text-[1.65rem] leading-[0.9] sm:min-h-0 sm:text-4xl md:text-6xl lg:text-7xl"
         />
-        <p className="mx-auto mt-1.5 max-w-2xl text-pretty text-[11px] leading-relaxed text-violet-100/92 sm:mt-4 sm:text-base">
+        <p className="mx-auto mt-1 max-w-2xl text-pretty text-[10px] leading-snug text-violet-100/90 sm:mt-4 sm:text-base sm:leading-relaxed">
           {usMarket ? t("subUs", { count: checkoutCountryCount }) : t("sub", { count: checkoutCountryCount })}
         </p>
         {!checkoutAvailable && visitorCountry ? (
           <CheckoutRegionComingSoonBanner
-            className="mx-auto mt-3 max-w-2xl text-left sm:mt-5"
+            className="mx-auto mt-2 hidden max-w-2xl text-left sm:mt-5 sm:block"
             variant="compact"
             visitorCountry={visitorCountry}
             checkoutAvailable={false}
@@ -74,7 +76,7 @@ export async function BuyerHeroBlock() {
         ) : null}
         {graduatedCheckout && visitorCountry ? (
           <GraduatedCheckoutPermanentBanner
-            className="mx-auto mt-3 max-w-2xl text-left sm:mt-5"
+            className="mx-auto mt-2 hidden max-w-2xl text-left sm:mt-5 sm:block"
             variant="compact"
             visitorCountry={visitorCountry}
             checkoutAvailable
@@ -82,17 +84,17 @@ export async function BuyerHeroBlock() {
           />
         ) : rolloutOnly && visitorCountry ? (
           <RolloutShippingConfirmedBanner
-            className="mx-auto mt-3 max-w-2xl text-left sm:mt-5"
+            className="mx-auto mt-2 hidden max-w-2xl text-left sm:mt-5 sm:block"
             variant="compact"
             visitorCountry={visitorCountry}
             checkoutAvailable
             rolloutOnly
           />
         ) : null}
-        <div className="mx-auto mt-3 max-w-xl sm:mt-8">
+        <div className="mx-auto mt-2 max-w-xl sm:mt-8">
           <BuyerHeroSearch />
         </div>
-        <div className="mt-3 flex flex-col items-center gap-2 sm:mt-8 sm:gap-4">
+        <div className="mt-2 hidden flex-col items-center gap-2 sm:mt-8 sm:flex sm:gap-4">
           <GlowCtaLink href={explorerHref}>{t("ctaPrimary")}</GlowCtaLink>
           <FastLink
             href={BECOME_RESELLER_HREF}
@@ -102,9 +104,11 @@ export async function BuyerHeroBlock() {
             {t("creatorLink")}
           </FastLink>
         </div>
-        <Suspense fallback={<HomeBuyerSmartStripFallback />}>
-          <HomeBuyerSmartStrip />
-        </Suspense>
+        <div className="hidden md:block">
+          <Suspense fallback={<HomeBuyerSmartStripFallback />}>
+            <HomeBuyerSmartStrip />
+          </Suspense>
+        </div>
       </div>
     </section>
   )

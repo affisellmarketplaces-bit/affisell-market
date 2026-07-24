@@ -51,7 +51,7 @@ export function ProductPriceOffer({
       <span
         className={cn(
           "font-black tabular-nums tracking-tight text-zinc-900 transition-transform duration-200 dark:text-white",
-          layout === "detail" ? "text-3xl" : layout === "compact" ? "text-lg" : "text-[1.7rem] leading-none",
+          layout === "detail" ? "text-3xl" : layout === "compact" ? "text-lg" : "text-[1.125rem] leading-none md:text-[1.7rem]",
           className
         )}
       >
@@ -65,7 +65,7 @@ export function ProductPriceOffer({
       ? "text-3xl font-bold tracking-tight"
       : layout === "compact"
         ? "text-lg font-bold"
-        : "text-[1.7rem] font-black leading-none tracking-[-0.03em]"
+        : "text-[1.125rem] font-black leading-none tracking-[-0.03em] md:text-[1.7rem]"
 
   return (
     <div className={cn("space-y-1", align === "end" && "text-right", className)}>
@@ -105,7 +105,7 @@ export function ProductPriceOffer({
         </span>
         <span
           className={cn(
-            "inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400",
+            "hidden items-center gap-1 font-semibold text-emerald-700 md:inline-flex dark:text-emerald-400",
             layout === "detail" ? "text-sm" : "text-[11px]"
           )}
         >

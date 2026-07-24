@@ -6,7 +6,7 @@ type ProductDiscountTagProps = {
 }
 
 /**
- * Compact deal signal on product imagery — top-right, clear of wishlist & sales badges.
+ * Compact deal signal on product imagery — bottom-left, clear of wishlist & sales badges.
  */
 export function ProductDiscountTag({ percent, className }: ProductDiscountTagProps) {
   const pct = Math.max(1, Math.min(99, Math.round(percent)))
@@ -14,7 +14,7 @@ export function ProductDiscountTag({ percent, className }: ProductDiscountTagPro
   return (
     <div
       className={cn(
-        "pointer-events-none absolute right-2.5 top-11 z-[18] sm:right-3 sm:top-12",
+        "pointer-events-none absolute bottom-2 left-2 z-[18]",
         className
       )}
       aria-label={`${pct}% off`}

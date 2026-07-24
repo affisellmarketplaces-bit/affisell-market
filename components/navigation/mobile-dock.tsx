@@ -47,6 +47,7 @@ export function MobileDock() {
   const mode = resolvePublicNavMode(bare)
   const dockItems = resolveMobileDockItems(mode)
   const [compact, setCompact] = useState(false)
+  const [scrollHidden, setScrollHidden] = useState(false)
   const [footerVisible, setFooterVisible] = useState(false)
   const hidden =
     role === "AFFILIATE" || role === "SUPPLIER" || shouldHideMobileDock(pathname)
@@ -62,6 +63,7 @@ export function MobileDock() {
       const goingDown = nextY > lastY + 8
       const nearTop = nextY < 96
       setCompact(goingDown && !nearTop)
+      setScrollHidden(goingDown && nextY > 200)
       lastY = nextY
       ticking = false
     }
@@ -106,7 +108,8 @@ export function MobileDock() {
     <nav
       aria-label={t("aria")}
       className={cn(
-        "affisell-mobile-buyer-dock pointer-events-none fixed inset-x-0 bottom-0 z-[90] w-full max-w-[100vw] overflow-x-clip px-2 pb-[max(0.3rem,env(safe-area-inset-bottom,0px))] md:hidden",
+        "affisell-mobile-buyer-dock pointer-events-none fixed inset-x-0 bottom-0 z-[90] w-full max-w-[100vw] overflow-x-clip border-t border-white/20 px-2 pb-[max(0.3rem,env(safe-area-inset-bottom,0px))] backdrop-blur-2xl transition-transform duration-300 md:hidden",
+        scrollHidden ? "translate-y-full" : "translate-y-0",
         compact && "affisell-mobile-buyer-dock--compact",
         footerVisible && "affisell-mobile-buyer-dock--footer-hide",
         mode === "account" && "affisell-mobile-dock--account"

@@ -294,26 +294,32 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
       data-product-card-mode={mode}
       data-show-business-data={showBusiness ? "true" : "false"}
     >
-      <div className="relative aspect-square w-full overflow-hidden rounded-[1.1rem] border border-white/50 bg-gradient-to-br from-violet-50/50 via-white to-sky-50/35 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:via-zinc-950/80 dark:to-teal-950/15">
+      <div className="relative aspect-square min-h-[160px] w-full overflow-hidden rounded-[1.1rem] border border-white/50 bg-gradient-to-br from-violet-50/50 via-white to-sky-50/35 sm:min-h-0 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:via-zinc-950/80 dark:to-teal-950/15">
         {p.offerBadge ? <ProductOfferBadge badge={p.offerBadge} /> : null}
         {hasDiscount ? <ProductDiscountTag percent={discountOffer.percent} /> : null}
         {!showBusiness && p.soldCount != null ? (
-          <ProductSalesBadge count={p.soldCount} variant="overlay" />
+          <ProductSalesBadge count={p.soldCount} variant="overlay" className="left-2 top-2 max-w-[calc(100%-3.5rem)]" />
         ) : null}
         {p.isSponsored ? (
-          <Badge className="absolute bottom-1.5 left-1.5 z-10 gap-1 rounded-full border-0 bg-gradient-to-r from-violet-600 to-cyan-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg shadow-violet-900/40 hover:from-violet-500 hover:to-cyan-400 sm:bottom-2 sm:left-2 sm:px-2 sm:text-[10px]">
+          <Badge className={cn(
+            "absolute z-10 gap-1 rounded-full border-0 bg-gradient-to-r from-violet-600 to-cyan-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg shadow-violet-900/40 hover:from-violet-500 hover:to-cyan-400 sm:px-2 sm:text-[10px]",
+            hasDiscount ? "bottom-2 right-2" : "bottom-2 left-2"
+          )}>
             <Sparkles className="size-3" aria-hidden />
             Promote
           </Badge>
         ) : p.isBestSeller ? (
-          <Badge className="absolute bottom-1.5 left-1.5 z-10 rounded-full bg-amber-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm hover:bg-amber-500 sm:bottom-2 sm:left-2 sm:px-2 sm:text-[10px]">
+          <Badge className={cn(
+            "absolute z-10 rounded-full bg-amber-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm hover:bg-amber-500 sm:px-2 sm:text-[10px]",
+            hasDiscount ? "bottom-2 right-2" : "bottom-2 left-2"
+          )}>
             Best Seller
           </Badge>
         ) : null}
         {productIdStr ? (
-          <WishlistHeart productId={productIdStr} className="absolute right-2 top-2 z-20 sm:right-3 sm:top-3" />
+          <WishlistHeart productId={productIdStr} className="absolute right-2 top-2 z-20 size-8 sm:right-3 sm:top-3 sm:size-9" />
         ) : (
-          <span className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur sm:right-3 sm:top-3 sm:h-9 sm:w-9">
+          <span className="absolute right-2 top-2 z-10 flex size-8 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur sm:right-3 sm:top-3 sm:size-9">
             <Heart className="h-4 w-4 text-gray-700" aria-hidden />
           </span>
         )}
