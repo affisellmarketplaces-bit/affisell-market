@@ -44,7 +44,7 @@ export default async function BubbleOpenGraphImage({ params }: Props) {
         width={1200}
         height={630}
         template="bubble-og"
-        hook={`${product.salePrice.toFixed(0)}€ · +${product.marginEuro.toFixed(0)}€ marge`}
+        hook={`${product.salePrice.toFixed(0)}€ · Livraison 24/48h`}
       />
     ),
     size

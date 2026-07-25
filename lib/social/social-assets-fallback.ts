@@ -16,14 +16,15 @@ export const SOCIAL_ASSET_FALLBACK_KEYS: SocialAssetKey[] = [
 const PLACEHOLDER = "/placeholder.png"
 
 /**
- * Client + server safe fallback pack — product image + captions + profit hooks.
- * Never blocks reseller revenue when ImageResponse / disk write fails.
+ * Client + server safe fallback pack — product image + client-safe captions.
+ * Never embeds margin / cost (P0 confidentiality).
  */
 export function getFallbackSocialAssetsBundle(
   product: Pick<
     BubbleProductView,
-    "id" | "title" | "imageUrl" | "salePrice" | "costPrice" | "marginEuro" | "bubbleUrl"
-  >
+    "id" | "title" | "imageUrl" | "salePrice" | "bubbleUrl"
+  > &
+    Partial<Pick<BubbleProductView, "costPrice" | "marginEuro">>
 ): SocialAssetsBundle & { failedKeys: SocialAssetKey[]; okCount: number; fallback: true } {
   const captions = buildViralCaptions(product)
   const image = (product.imageUrl?.trim() || PLACEHOLDER) as string
@@ -34,8 +35,8 @@ export function getFallbackSocialAssetsBundle(
       key.includes("tiktok")
         ? captions.trendHook
         : key.includes("story")
-          ? `${product.title} — ${product.salePrice}€ · Link in bio`
-          : `${product.title} — ${product.salePrice}€ · +${product.marginEuro.toFixed(0)}€`
+          ? `${product.title} — ${product.salePrice.toFixed(0)}€ · Link in bio`
+          : `${product.title} — ${product.salePrice.toFixed(0)}€ · Livraison 24/48h`
 
     return {
       key,

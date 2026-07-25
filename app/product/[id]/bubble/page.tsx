@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!product) return { title: "Produit · Affisell" }
   return {
     title: `${product.title} · Bulle Affisell`,
-    description: `${product.salePrice}€ · +${product.marginEuro}€ sans stock`,
+    description: `${product.salePrice}€ · Livraison 24/48h · Affisell`,
     openGraph: {
       title: product.title,
       images: [`/product/${id}/bubble/opengraph-image`],
@@ -47,7 +47,6 @@ export default async function BubbleProductPage({ params }: PageProps) {
       title: p.name,
       imageUrl: p.images.find((u) => u?.startsWith("http")) ?? p.images[0] ?? null,
       salePrice: sale,
-      marginEuro: Math.max(0, Math.round((sale - cost) * 100) / 100),
     }
   })
 

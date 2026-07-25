@@ -3,9 +3,9 @@
 import { motion } from "framer-motion"
 import Image from "next/image"
 
-import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
 import { BubbleShareBar } from "@/components/product/BubbleShareBar"
 import { ProfitBadge } from "@/components/product/ProfitBadge"
+import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
 import { hexToRgba, useDominantColor } from "@/lib/hooks/useDominantColor"
 import type { BubbleProductVariant } from "@/lib/social/bubble-product-types"
 import { cn } from "@/lib/utils"
@@ -17,7 +17,7 @@ export type BubbleProductCardProduct = {
   salePrice: number
   compareAtPrice?: number | null
   marginEuro: number
-  /** Supplier cost (HT) — enables ProfitBadge net estimate. */
+  /** Supplier cost (HT) — reseller-only. Never render on client audience. */
   costPrice?: number | null
   deliveryDays: number
   deliveryCountry: string
@@ -32,6 +32,11 @@ type Props = {
   showShareBar?: boolean
   /** Show lock icon when reseller has an active Margin Lock. */
   showLock?: boolean
+  /**
+   * `client` = storefront / share / TikTok preview — never margin, cost, SLA rouge.
+   * `reseller` = dashboard tools only.
+   */
+  audience?: "client" | "reseller"
   className?: string
 }
 
@@ -53,11 +58,13 @@ export function BubbleProductCard({
   showStats = true,
   showShareBar = false,
   showLock = false,
+  audience = "reseller",
   className,
 }: Props) {
   const dominantColor = useDominantColor(product.imageUrl)
   const isMini = variant === "bubble-mini"
   const imageSize = isMini ? 56 : variant === "bubble-card" ? 120 : 140
+  const isClient = audience === "client"
 
   return (
     <motion.div
@@ -67,8 +74,9 @@ export function BubbleProductCard({
       transition={{ type: "spring", stiffness: 260, damping: 22 }}
       whileHover={{ scale: 1.05, y: -6 }}
       whileTap={{ scale: 0.98 }}
+      data-audience={audience}
     >
-      {showLock ? (
+      {showLock && !isClient ? (
         <span
           className="absolute right-2 top-2 z-20 inline-flex size-7 items-center justify-center rounded-full border border-emerald-300/50 bg-emerald-500/20 text-sm shadow-lg backdrop-blur-md"
           title="Prix protégé 7j"
@@ -116,7 +124,20 @@ export function BubbleProductCard({
           <p className="line-clamp-2 px-2 text-center text-xs font-semibold text-white/90">{product.title}</p>
         ) : null}
 
-        {showStats ? (
+        {!isMini ? (
+          <span className="text-2xl font-black tracking-tight text-white">
+            {formatEuro(product.salePrice)}
+          </span>
+        ) : null}
+
+        {isClient && !isMini ? (
+          <p className="px-2 text-center text-[10px] font-medium text-white/70">
+            Livraison 24/48h · Retours 14j
+          </p>
+        ) : null}
+
+        {/* Reseller-only intel — never on shared / TikTok / client preview */}
+        {!isClient && showStats ? (
           <div className="stats-bubbles flex flex-wrap items-center justify-center gap-1.5">
             {product.costPrice != null && product.costPrice > 0 ? (
               <ProfitBadge cost={product.costPrice} salePrice={product.salePrice} />
@@ -136,16 +157,7 @@ export function BubbleProductCard({
           </div>
         ) : null}
 
-        {!isMini ? (
-          <div className="flex flex-col items-center gap-0.5">
-            {product.compareAtPrice != null && product.compareAtPrice > product.salePrice ? (
-              <span className="text-sm text-white/50 line-through">{formatEuro(product.compareAtPrice)}</span>
-            ) : null}
-            <span className="text-2xl font-black tracking-tight text-white">{formatEuro(product.salePrice)}</span>
-          </div>
-        ) : null}
-
-        {showStats && !isMini ? (
+        {!isClient && showStats && !isMini ? (
           <span className="rounded-full border border-amber-200/30 bg-amber-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-amber-100">
             🏆 {Math.round(product.supplierTrustScore)}%
           </span>

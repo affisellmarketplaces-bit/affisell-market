@@ -35,7 +35,11 @@ describe("generateSocialAssets", () => {
     expect(bundle.assets).toHaveLength(12)
     expect(bundle.okCount).toBe(12)
     expect(bundle.failedKeys).toEqual([])
-    expect(bundle.captions.moneyHook).toContain("sans stock")
+    expect(bundle.captions.moneyHook).toContain("Livraison")
+    expect(bundle.captions.moneyHook).not.toMatch(/revend|bénéfice|\+\d+€|coût/i)
+    for (const asset of bundle.assets) {
+      expect(asset.caption).not.toMatch(/bénéfice|marge|\+\d+€\s*(net|marge)|revend/i)
+    }
   }, 120_000)
 
   it("supports priority pack for fast first paint", async () => {

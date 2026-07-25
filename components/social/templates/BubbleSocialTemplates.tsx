@@ -17,10 +17,6 @@ function money(product: BubbleProductView): string {
   return `${product.salePrice.toFixed(0)}€`
 }
 
-function margin(product: BubbleProductView): string {
-  return `+${product.marginEuro.toFixed(0)}€`
-}
-
 /** Satori/ImageResponse: every multi-child node needs explicit display:flex|contents|none. */
 function rootStyle(w: number, h: number): CSSProperties {
   return {
@@ -89,13 +85,16 @@ function BubblePill({ children, style }: { children: ReactNode; style?: CSSPrope
   )
 }
 
-/** OG + social PNG layout (ImageResponse / satori-compatible JSX). */
+/**
+ * OG + social PNG layout — client-facing only.
+ * Never render margin, cost, or "Live Profit" (P0 confidentiality).
+ */
 export function BubbleAssetLayout({ product, width, height, template, hook, safeZone }: LayoutProps) {
   const title = product.title.slice(0, 80)
   const cta =
     template.includes("tiktok") || template.includes("story")
       ? "Link in bio · Affisell"
-      : "Lister sans stock → Affisell"
+      : "Voir le produit → Affisell"
 
   const topPad = safeZone ? 140 : 48
   const circle = Math.min(width, height) * 0.28
@@ -174,8 +173,8 @@ export function BubbleAssetLayout({ product, width, height, template, hook, safe
           }}
         >
           <BubblePill>{money(product)}</BubblePill>
-          <BubblePill style={{ background: "rgba(16,185,129,0.25)", borderColor: "rgba(52,211,153,0.4)" }}>
-            {margin(product)} sans stock
+          <BubblePill style={{ background: "rgba(56,189,248,0.22)", borderColor: "rgba(125,211,252,0.4)" }}>
+            Livraison 24/48h
           </BubblePill>
         </div>
 
@@ -205,7 +204,7 @@ export function BubbleAssetLayout({ product, width, height, template, hook, safe
             opacity: 0.85,
           }}
         >
-          Affisell · Live Profit
+          Affisell
         </div>
       </div>
     </div>
@@ -221,13 +220,13 @@ export function FeedTemplate(props: Omit<LayoutProps, "template">) {
     <BubbleAssetLayout
       {...props}
       template="bubble-feed"
-      hook={`3 bénéfices · ${margin(props.product)} marge · ${props.product.deliveryDays}j livraison`}
+      hook={`${money(props.product)} · Livraison 24/48h · Retours 14j`}
     />
   )
 }
 
 export function TikTokTemplate(props: Omit<LayoutProps, "template">) {
-  const hook = `POV: Tu trouves ce produit à ${props.product.costPrice?.toFixed(0) ?? "—"}€ et tu le revends ${money(props.product)} sans stock`
+  const hook = `POV: Le coup de cœur à ${money(props.product)} — livraison rapide`
   return <BubbleAssetLayout {...props} template="bubble-tiktok" hook={hook} safeZone />
 }
 
@@ -236,7 +235,7 @@ export function PinterestTemplate(props: Omit<LayoutProps, "template">) {
     <BubbleAssetLayout
       {...props}
       template="bubble-pinterest"
-      hook="Catalogue luxe · Dropshipping sans stock"
+      hook="Sélection Affisell · Livraison 24/48h"
     />
   )
 }

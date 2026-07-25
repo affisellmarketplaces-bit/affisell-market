@@ -95,10 +95,15 @@ export function LiveProfitCalculator({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-emerald-400/25 bg-black/55 p-4 text-white shadow-[0_0_40px_rgba(16,185,129,0.18)] backdrop-blur-xl",
+        "rounded-2xl border border-emerald-400/40 bg-black/70 p-4 text-white shadow-[0_0_40px_rgba(16,185,129,0.22)] backdrop-blur-xl ring-1 ring-emerald-400/20",
         className
       )}
     >
+      <div className="mb-3 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-center">
+        <p className="text-[11px] font-bold tracking-wide text-emerald-200">
+          🔒 Vue privée reseller — jamais visible par le client
+        </p>
+      </div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-300/90">
           Live Profit · poche nette

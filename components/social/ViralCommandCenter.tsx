@@ -231,19 +231,32 @@ export function ViralCommandCenter({ product }: Props) {
   return (
     <div className="mx-auto max-w-5xl space-y-10 px-4 py-10">
       <header className="flex flex-col items-center gap-6 text-center">
-        <h1 className="text-2xl font-black text-zinc-900 dark:text-white">Rendre viral</h1>
-        <BubbleProductCard product={liveProduct} variant="bubble-card" showShareBar />
+        <div>
+          <h1 className="text-2xl font-black text-zinc-900 dark:text-white">Rendre viral</h1>
+          <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+            Aperçu client · zéro marge exposée
+          </p>
+        </div>
+        <BubbleProductCard
+          product={liveProduct}
+          variant="bubble-card"
+          showShareBar
+          audience="client"
+        />
       </header>
 
       <section className="mx-auto max-w-md">
-        <h2 className="mb-3 text-lg font-bold text-zinc-900 dark:text-white">Prix & bénéfice net</h2>
+        <h2 className="mb-3 text-lg font-bold text-zinc-900 dark:text-white">
+          Prix &amp; bénéfice net
+        </h2>
         <LiveProfitCalculator
           cost={cost}
           suggestedPrice={product.salePrice}
           onPriceChange={setLivePrice}
         />
         <p className="mt-2 text-center text-[11px] text-zinc-500">
-          Le slider met à jour la bulle + captions (prix). Régénère les PNG après choix final.
+          Zone privée — le slider met à jour le prix client des captions, jamais ta marge sur les
+          PNG.
         </p>
       </section>
 
@@ -263,7 +276,7 @@ export function ViralCommandCenter({ product }: Props) {
             <div>
               <p className="font-bold text-amber-900 dark:text-amber-100">Génération IA en pause</p>
               <p className="text-sm text-amber-700 dark:text-amber-200/90">
-                On affiche les templates de base. Tes profits restent calculés.
+                On affiche les templates de base (prix client uniquement). Ta marge reste privée.
               </p>
               <button
                 type="button"
@@ -321,10 +334,7 @@ export function ViralCommandCenter({ product }: Props) {
                     className="object-contain"
                     unoptimized
                   />
-                  <div className="absolute bottom-2 left-2 rounded-full bg-emerald-600/90 px-2 py-0.5 text-[10px] font-bold text-white">
-                    +{Math.max(0, Math.round(livePrice - cost))}€
-                  </div>
-                  <div className="absolute bottom-2 right-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                  <div className="absolute bottom-2 right-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-bold text-white">
                     {livePrice.toFixed(0)}€
                   </div>
                 </div>
