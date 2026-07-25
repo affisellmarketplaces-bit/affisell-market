@@ -10,6 +10,7 @@ import { ViralCarousel } from "@/components/social/ViralCarousel"
 import type { SocialAssetsBundle } from "@/lib/social/bubble-product-types"
 import {
   downloadViralVideoBlob,
+  previewViralVideoBlob,
   recordViralCarouselVideo,
 } from "@/lib/social/generate-video"
 import { getFallbackSocialAssetsBundle } from "@/lib/social/social-assets-fallback"
@@ -232,32 +233,37 @@ export function ViralCommandCenter({ product }: Props) {
     setExportingVideo(true)
     setExportProgress(0)
     try {
-      // Refresh export spec (medias) — idempotent
       await fetch(`/api/social/generate?productId=${encodeURIComponent(product.id)}`).catch(
         () => null
       )
-      const { blob, ext } = await recordViralCarouselVideo({
+      const result = await recordViralCarouselVideo({
         medias,
         width: 1080,
         height: 1920,
         fps: 30,
         onProgress: setExportProgress,
       })
-      downloadViralVideoBlob(blob, `${product.id}-reel`, ext)
+      downloadViralVideoBlob(result.blob, `${product.id}-reel`, result.ext)
+      previewViralVideoBlob(result.blob)
       console.log("[viral-command]", {
-        event: "reel_exported",
+        event: "reel_exported_h264",
         productId: product.id,
-        bytes: blob.size,
-        ext,
+        bytes: result.bytes,
+        codec: result.codec,
+        ext: result.ext,
       })
     } catch (err) {
       const message = err instanceof Error ? err.message : "export_failed"
       console.error("[viral-command]", { event: "reel_export_failed", error: message })
-      alert(
-        message.includes("image_load_failed") || message.includes("Security")
-          ? "Export bloqué (CORS image). Réessaie avec des images Affisell / CDN CORS."
-          : `Export vidéo échoué: ${message}`
-      )
+      const friendly =
+        message === "h264_unavailable"
+          ? "Ton navigateur ne peut pas encoder H.264. Ouvre Chrome / Edge / Safari récents."
+          : message.includes("image_load_failed") || message.includes("Security")
+            ? "Export bloqué (CORS image). Réessaie — on fetch les médias en CORS."
+            : message === "invalid_mp4_container"
+              ? "Fichier MP4 invalide (garde-fou). Réessaie l’export."
+              : `Export vidéo échoué: ${message}`
+      alert(friendly)
     } finally {
       setExportingVideo(false)
       setExportProgress(0)
@@ -319,8 +325,8 @@ export function ViralCommandCenter({ product }: Props) {
             className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50 dark:bg-white dark:text-zinc-900"
           >
             {exportingVideo
-              ? `Export Reel… ${Math.round(exportProgress * 100)}%`
-              : "Exporter Reel MP4 (1080×1920)"}
+              ? `Encodage H.264… ${Math.round(exportProgress * 100)}%`
+              : "Exporter Reel · MP4 H.264 (QuickTime)"}
           </button>
           <BubbleProductCard
             product={liveProduct}
