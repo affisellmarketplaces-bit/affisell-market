@@ -2,6 +2,7 @@ import type { BubbleProductView, SocialAssetKey, SocialAssetsBundle } from "@/li
 import { SOCIAL_ASSET_DIMENSIONS } from "@/lib/social/bubble-product-types"
 import { getFallbackSocialAssetsBundle } from "@/lib/social/social-assets-fallback"
 import { renderSocialAssetPng, socialAssetFileExists, socialAssetPublicPath } from "@/lib/social/render-social-asset.server"
+import { SOCIAL_ASSET_TEMPLATE_VERSION } from "@/lib/social/resolve-social-product-image"
 import { buildViralCaptions } from "@/lib/social/viral-captions"
 
 export { buildViralCaptions } from "@/lib/social/viral-captions"
@@ -55,7 +56,7 @@ async function renderOne(
     width: spec.width,
     height: spec.height,
     caption,
-    relativePath: `generated/social/${product.id}/${key}.png`,
+    relativePath: `generated/social/${product.id}/${SOCIAL_ASSET_TEMPLATE_VERSION}/${key}.png`,
     publicUrl: socialAssetPublicPath(product.id, key),
   }
 
@@ -66,7 +67,12 @@ async function renderOne(
     const exists = await socialAssetFileExists(product.id, key)
     if (!exists || options.force) {
       const rendered = await renderSocialAssetPng(product, key)
-      return { ...base, publicUrl: rendered.publicUrl, ok: true }
+      return {
+        ...base,
+        publicUrl: rendered.publicUrl,
+        relativePath: rendered.relativePath,
+        ok: true,
+      }
     }
     return { ...base, ok: true }
   } catch (err) {

@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og"
 
 import { BubbleAssetLayout } from "@/components/social/templates/BubbleSocialTemplates"
 import { loadBubbleProductView } from "@/lib/social/load-bubble-product.server"
+import { resolveSocialProductImageSrc } from "@/lib/social/resolve-social-product-image"
 
 export const runtime = "nodejs"
 export const alt = "Affisell · Fiche produit bulle"
@@ -37,10 +38,13 @@ export default async function BubbleOpenGraphImage({ params }: Props) {
     )
   }
 
+  const imageSrc = await resolveSocialProductImageSrc(product.imageUrl, product.id)
+
   return new ImageResponse(
     (
       <BubbleAssetLayout
         product={product}
+        imageSrc={imageSrc}
         width={1200}
         height={630}
         template="bubble-og"

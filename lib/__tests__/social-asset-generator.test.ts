@@ -6,10 +6,13 @@ import { describe, expect, it, afterAll } from "vitest"
 import type { BubbleProductView } from "@/lib/social/bubble-product-types"
 import { generateSocialAssets } from "@/lib/social/social-asset-generator"
 
+const TINY_PNG =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+
 const product: BubbleProductView = {
   id: "probe-gen-001",
   title: "Tableau de bord numérique 12.3 pour Porsche Cayenne",
-  imageUrl: null,
+  imageUrl: TINY_PNG,
   salePrice: 1190.7,
   compareAtPrice: null,
   costPrice: 798.99,
@@ -35,6 +38,7 @@ describe("generateSocialAssets", () => {
     expect(bundle.assets).toHaveLength(12)
     expect(bundle.okCount).toBe(12)
     expect(bundle.failedKeys).toEqual([])
+    expect(bundle.assets[0]?.publicUrl).toContain("v2-photo")
     expect(bundle.captions.moneyHook).toContain("Livraison")
     expect(bundle.captions.moneyHook).not.toMatch(/revend|bénéfice|\+\d+€|coût/i)
     for (const asset of bundle.assets) {

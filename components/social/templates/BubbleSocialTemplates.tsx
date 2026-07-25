@@ -9,6 +9,8 @@ type LayoutProps = {
   template: string
   hook?: string
   safeZone?: boolean
+  /** Resolved absolute / data URL for Satori `<img>` — never the blue gradient stub. */
+  imageSrc?: string | null
 }
 
 const DEFAULT_ACCENT = "#8b5cf6"
@@ -34,9 +36,20 @@ function rootStyle(w: number, h: number): CSSProperties {
   }
 }
 
-function ProductCircle({ size }: { size: number }) {
-  const ring = Math.max(4, Math.round(size * 0.04))
-  const core = Math.round(size * 0.42)
+/**
+ * Product photo circle — real `<img>` when available.
+ * Neutral fallback (no blue/violet placeholder blob).
+ */
+function ProductCircle({
+  size,
+  imageSrc,
+  title,
+}: {
+  size: number
+  imageSrc?: string | null
+  title: string
+}) {
+  const ring = Math.max(4, Math.round(size * 0.035))
   return (
     <div
       style={{
@@ -46,20 +59,43 @@ function ProductCircle({ size }: { size: number }) {
         alignItems: "center",
         justifyContent: "center",
         borderRadius: size / 2,
-        border: `${ring}px solid rgba(255,255,255,0.35)`,
-        background: "rgba(255,255,255,0.10)",
+        overflow: "hidden",
+        border: `${ring}px solid rgba(255,255,255,0.4)`,
+        background: "#ffffff",
+        boxShadow: "0 24px 60px rgba(0,0,0,0.45)",
       }}
     >
-      <div
-        style={{
-          width: core,
-          height: core,
-          display: "flex",
-          borderRadius: core / 2,
-          background: "linear-gradient(160deg, rgba(167,139,250,0.95) 0%, rgba(56,189,248,0.55) 100%)",
-          boxShadow: "0 0 40px rgba(139,92,246,0.55)",
-        }}
-      />
+      {imageSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element -- Satori ImageResponse
+        <img
+          src={imageSrc}
+          alt={title}
+          width={size}
+          height={size}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "flex",
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#f4f4f5",
+            color: "#71717a",
+            fontSize: Math.max(18, Math.round(size * 0.1)),
+            fontWeight: 800,
+          }}
+        >
+          Affisell
+        </div>
+      )}
     </div>
   )
 }
@@ -89,7 +125,15 @@ function BubblePill({ children, style }: { children: ReactNode; style?: CSSPrope
  * OG + social PNG layout — client-facing only.
  * Never render margin, cost, or "Live Profit" (P0 confidentiality).
  */
-export function BubbleAssetLayout({ product, width, height, template, hook, safeZone }: LayoutProps) {
+export function BubbleAssetLayout({
+  product,
+  width,
+  height,
+  template,
+  hook,
+  safeZone,
+  imageSrc,
+}: LayoutProps) {
   const title = product.title.slice(0, 80)
   const cta =
     template.includes("tiktok") || template.includes("story")
@@ -97,7 +141,8 @@ export function BubbleAssetLayout({ product, width, height, template, hook, safe
       : "Voir le produit → Affisell"
 
   const topPad = safeZone ? 140 : 48
-  const circle = Math.min(width, height) * 0.28
+  const circle = Math.min(width, height) * 0.32
+  const resolvedSrc = imageSrc ?? product.imageUrl
 
   return (
     <div style={rootStyle(width, height)}>
@@ -145,7 +190,7 @@ export function BubbleAssetLayout({ product, width, height, template, hook, safe
           </div>
         ) : null}
 
-        <ProductCircle size={circle} />
+        <ProductCircle size={circle} imageSrc={resolvedSrc} title={title} />
 
         <div
           style={{

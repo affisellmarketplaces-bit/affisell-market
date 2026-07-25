@@ -8,6 +8,10 @@ import { ImageResponse } from "next/og"
 import { pickTemplateElement } from "@/components/social/templates/BubbleSocialTemplates"
 import type { BubbleProductView } from "@/lib/social/bubble-product-types"
 import { SOCIAL_ASSET_DIMENSIONS, type SocialAssetKey } from "@/lib/social/bubble-product-types"
+import {
+  resolveSocialProductImageSrc,
+  SOCIAL_ASSET_TEMPLATE_VERSION,
+} from "@/lib/social/resolve-social-product-image"
 
 /**
  * Writable dir for PNG assets.
@@ -16,17 +20,17 @@ import { SOCIAL_ASSET_DIMENSIONS, type SocialAssetKey } from "@/lib/social/bubbl
 function generatedDir(productId: string): string {
   const safeId = productId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 80)
   if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
-    return path.join("/tmp", "affisell-social", safeId)
+    return path.join("/tmp", "affisell-social", safeId, SOCIAL_ASSET_TEMPLATE_VERSION)
   }
-  return path.join(process.cwd(), "public", "generated", "social", safeId)
+  return path.join(process.cwd(), "public", "generated", "social", safeId, SOCIAL_ASSET_TEMPLATE_VERSION)
 }
 
 export function socialAssetPublicPath(productId: string, key: SocialAssetKey): string {
   const safeId = productId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 80)
   if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
-    return `/api/products/${encodeURIComponent(productId)}/social-assets/download?format=${encodeURIComponent(key)}`
+    return `/api/products/${encodeURIComponent(productId)}/social-assets/download?format=${encodeURIComponent(key)}&v=${SOCIAL_ASSET_TEMPLATE_VERSION}`
   }
-  return `/generated/social/${safeId}/${key}.png`
+  return `/generated/social/${safeId}/${SOCIAL_ASSET_TEMPLATE_VERSION}/${key}.png`
 }
 
 export function socialAssetAbsolutePath(productId: string, key: SocialAssetKey): string {
@@ -52,8 +56,11 @@ export async function renderSocialAssetPng(
   const filename = `${key}.png`
   const filePath = path.join(dir, filename)
 
+  const imageSrc = await resolveSocialProductImageSrc(product.imageUrl, product.id)
+
   const element = pickTemplateElement({
     product,
+    imageSrc,
     width: spec.width,
     height: spec.height,
     template: spec.template,
@@ -68,12 +75,13 @@ export async function renderSocialAssetPng(
   await writeFile(filePath, buffer)
 
   const publicUrl = socialAssetPublicPath(product.id, key)
-  const relativePath = `generated/social/${product.id}/${filename}`
+  const relativePath = `generated/social/${product.id}/${SOCIAL_ASSET_TEMPLATE_VERSION}/${filename}`
   console.log("[social-asset-render]", {
     productId: product.id,
     key,
     publicUrl,
     bytes: buffer.length,
+    hasImage: Boolean(imageSrc),
   })
   return { relativePath, publicUrl, bytes: buffer.length }
 }
