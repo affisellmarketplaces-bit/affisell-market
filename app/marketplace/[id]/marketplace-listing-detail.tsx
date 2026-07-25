@@ -50,6 +50,7 @@ import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplac
 import { SupplierTrustBadge } from "@/components/suppliers/supplier-trust-badge"
 import { Button } from "@/components/ui/button"
 import { MobilePdpBuyPanel } from "@/components/product/mobile-pdp-buy-panel"
+import { MobilePdpPersistentBuyBar } from "@/components/product/mobile-pdp-persistent-buy-bar"
 import { ProductListingColorPicker } from "@/components/product/product-listing-color-picker"
 import { ProductMediaGallery } from "@/components/product/product-media-gallery"
 import { ProductOfferBadge } from "@/components/product/product-offer-badge"
@@ -391,7 +392,6 @@ export function MarketplaceListingDetail({
     tryOnFeatureEnabled && tryOnEnabled && Boolean(tryOnGarmentUrl?.trim())
   const purchaseDockRef = useRef<HTMLDivElement>(null)
   const mobilePurchaseRef = useRef<HTMLElement>(null)
-  const [showStickyBuy, setShowStickyBuy] = useState(true)
   const [tryOnOpen, setTryOnOpen] = useState(false)
   const [titleExpanded, setTitleExpanded] = useState(false)
   const { headline: titleHeadline, subline: titleSubline } = useMemo(() => splitListingTitle(name), [name])
@@ -466,60 +466,6 @@ export function MarketplaceListingDetail({
     setDescExpanded(false)
     setTitleExpanded(false)
   }, [listingId])
-
-
-  useEffect(() => {
-    const pickTarget = () => {
-      if (typeof window === "undefined") return null
-      const mobile = window.matchMedia("(max-width: 1023px)").matches
-      if (mobile) {
-        // Observe Buy/Add sentinel — title alone must not hide the sticky bar.
-        return (
-          document.getElementById("mobile-pdp-cta-sentinel") ??
-          mobilePurchaseRef.current
-        )
-      }
-      return purchaseDockRef.current
-    }
-    const el = pickTarget()
-    if (!el) return
-
-    const sync = (entry: IntersectionObserverEntry) => {
-      // Amazon/Shopify: sticky while CTAs are off-screen (below OR above the fold).
-      setShowStickyBuy(!entry.isIntersecting)
-    }
-
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry) return
-        sync(entry)
-      },
-      {
-        threshold: [0, 0.15, 0.35],
-        // Shrink viewport so CTAs partially covered by sticky chrome still count as "needs bar".
-        rootMargin: "0px 0px -72px 0px",
-      }
-    )
-    io.observe(el)
-
-    // Immediate sync (covers first paint when CTAs are below the fold).
-    const rect = el.getBoundingClientRect()
-    const vh = window.innerHeight || 0
-    const visible = rect.bottom > 72 && rect.top < vh - 72
-    setShowStickyBuy(!visible)
-
-    const mq = window.matchMedia("(max-width: 1023px)")
-    const onMq = () => {
-      io.disconnect()
-      const next = pickTarget()
-      if (next) io.observe(next)
-    }
-    mq.addEventListener("change", onMq)
-    return () => {
-      mq.removeEventListener("change", onMq)
-      io.disconnect()
-    }
-  }, [listingId, stock])
 
 
   /** Sync main + thumbnail index when opening another listing or affiliate default color changes. */
@@ -705,10 +651,6 @@ export function MarketplaceListingDetail({
   useEffect(() => {
     setPurchaseQty((q) => clampPurchaseQuantity(q, availableStock))
   }, [availableStock, selectedColor, selectedSize, selectedStorage, listingId])
-
-  useEffect(() => {
-    if (availableStock <= 0) setShowStickyBuy(false)
-  }, [availableStock])
 
   const bookingTicketStock =
     multiGuestBookingLive && selectedSlotSeatsLeft != null
@@ -967,7 +909,7 @@ export function MarketplaceListingDetail({
             transition={reduceMotion ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
           <section className="min-w-0 space-y-2 lg:space-y-4 lg:overflow-visible">
-            <div className="max-lg:sticky max-lg:top-[calc(var(--site-header-offset,3.75rem)+0.35rem)] max-lg:z-20 max-lg:bg-gradient-to-b max-lg:from-white max-lg:via-white/98 max-lg:to-white/90 max-lg:pb-2 max-lg:backdrop-blur-md dark:max-lg:from-zinc-950 dark:max-lg:via-zinc-950/98 dark:max-lg:to-zinc-950/90">
+            <div className="relative z-20 max-lg:bg-gradient-to-b max-lg:from-white max-lg:via-white/98 max-lg:to-white/90 max-lg:pb-1 dark:max-lg:from-zinc-950 dark:max-lg:via-zinc-950/98 dark:max-lg:to-zinc-950/90">
             <div className="relative max-lg:overflow-hidden max-lg:rounded-xl lg:overflow-visible">
               <ProductMediaGallery
                 images={images}
@@ -998,6 +940,34 @@ export function MarketplaceListingDetail({
                 </div>
               </div>
             </div>
+
+            {!bookingCheckoutLive && availableStock > 0 && !showAr ? (
+              <MobilePdpPersistentBuyBar
+                placement="inline"
+                className="mx-1 mt-2 sm:mx-0"
+                titleHeadline={titleHeadline}
+                priceDisplay={priceDisplay}
+                buyNowLabel={productT.buyNowShort}
+                addToCartLabel={productT.addToCart}
+                buyBusy={buyBusy}
+                cartBusy={cartBusy}
+                availableStock={availableStock}
+                buyDisabled={
+                  buyBusy ||
+                  availableStock <= 0 ||
+                  bookingCheckoutBlocked ||
+                  bookingSlotRequired ||
+                  bookingSeatsRequired
+                }
+                cartDisabled={
+                  cartBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingCheckoutLive
+                }
+                onBuyNow={() => void buyNow()}
+                onAddToCart={(e) => void addToCart(e)}
+                brandedStorefront={brandedStorefront}
+                ariaLabel={t(productT.stickyBuyHint)}
+              />
+            ) : null}
             </div>
 
             {colorMeta.length > 0 ? (
@@ -1920,55 +1890,32 @@ export function MarketplaceListingDetail({
         </div>
       ) : null}
 
-      <motion.div
-        role="region"
-        aria-label={t(productT.stickyBuyHint)}
-        aria-hidden={!(availableStock > 0 && showStickyBuy && !showAr)}
-        className="fixed inset-x-0 bottom-0 z-[85] max-w-[100vw] px-3 pb-[max(0.85rem,env(safe-area-inset-bottom))] pt-2 sm:px-6 lg:z-40"
-        initial={false}
-        animate={
-          reduceMotion
-            ? { opacity: availableStock > 0 && showStickyBuy && !showAr ? 1 : 0 }
-            : {
-                y: availableStock > 0 && showStickyBuy && !showAr ? 0 : 120,
-                opacity: availableStock > 0 && showStickyBuy && !showAr ? 1 : 0,
-              }
-        }
-        transition={{ type: "spring", stiffness: 420, damping: 36 }}
-        style={{
-          pointerEvents:
-            availableStock > 0 && showStickyBuy && !showAr && !bookingCheckoutBlocked
-              ? "auto"
-              : "none",
-        }}
-      >
-        <div className={brand.stickyBar}>
-          <div className="min-w-0 flex-[0.9] sm:flex-1">
-            <p className="truncate text-[11px] font-semibold leading-tight text-zinc-900 dark:text-zinc-50">
-              {titleHeadline}
-            </p>
-            <p className={brand.stickyPrice}>{priceDisplay}</p>
-          </div>
-          <div className="flex min-w-0 flex-[1.4] items-center gap-1.5 sm:flex-none sm:gap-2">
-            <Button
-              type="button"
-              disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingSlotRequired || bookingSeatsRequired}
-              onClick={() => void buyNow()}
-              className={brand.stickySecondaryBtn}
-            >
-              {productT.buyNowShort}
-            </Button>
-            <Button
-              type="button"
-              disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingCheckoutLive}
-              onClick={(e) => void addToCart(e)}
-              className={brand.ctaPrimarySticky}
-            >
-              {cartBusy ? "…" : productT.addToCart}
-            </Button>
-          </div>
-        </div>
-      </motion.div>
+      {!bookingCheckoutLive && !showAr ? (
+        <MobilePdpPersistentBuyBar
+          placement="dock"
+          titleHeadline={titleHeadline}
+          priceDisplay={priceDisplay}
+          buyNowLabel={productT.buyNowShort}
+          addToCartLabel={productT.addToCart}
+          buyBusy={buyBusy}
+          cartBusy={cartBusy}
+          availableStock={availableStock}
+          buyDisabled={
+            buyBusy ||
+            availableStock <= 0 ||
+            bookingCheckoutBlocked ||
+            bookingSlotRequired ||
+            bookingSeatsRequired
+          }
+          cartDisabled={
+            cartBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingCheckoutLive
+          }
+          onBuyNow={() => void buyNow()}
+          onAddToCart={(e) => void addToCart(e)}
+          brandedStorefront={brandedStorefront}
+          ariaLabel={t(productT.stickyBuyHint)}
+        />
+      ) : null}
       {identitySheet}
       {tryOnReady ? (
         <TryOnModal
