@@ -18,6 +18,7 @@ export default async function ResellerProductSocialPage({ params }: Props) {
         id: product.id,
         title: product.title,
         imageUrl: product.imageUrl,
+        medias: product.medias,
         salePrice: product.salePrice,
         compareAtPrice: product.compareAtPrice,
         marginEuro: product.marginEuro,

@@ -13,6 +13,7 @@ const product: BubbleProductView = {
   id: "probe-gen-001",
   title: "Tableau de bord numérique 12.3 pour Porsche Cayenne",
   imageUrl: TINY_PNG,
+  medias: [{ type: "image", url: TINY_PNG, duration: 1200 }],
   salePrice: 1190.7,
   compareAtPrice: null,
   costPrice: 798.99,

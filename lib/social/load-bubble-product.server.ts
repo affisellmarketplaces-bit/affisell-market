@@ -1,6 +1,7 @@
 import "server-only"
 
 import type { BubbleProductView } from "@/lib/social/bubble-product-types"
+import { buildViralMedias } from "@/lib/social/build-viral-medias"
 import { psychologicalPrice } from "@/lib/import/smart-import-enricher"
 import { isLocalhostHost } from "@/lib/localhost-host"
 import { prisma } from "@/lib/prisma"
@@ -32,6 +33,9 @@ export async function loadBubbleProductView(productId: string): Promise<BubblePr
       compareAt: true,
       deliveryDays: true,
       shippingCountry: true,
+      videoAdUrl: true,
+      descriptionIllustrationVideos: true,
+      videos: { select: { videoUrl: true }, take: 1 },
       supplier: {
         select: {
           name: true,
@@ -58,12 +62,21 @@ export async function loadBubbleProductView(productId: string): Promise<BubblePr
     product.images[0] ||
     null
 
+  const medias = buildViralMedias({
+    images: product.images,
+    customImages: listing?.customImages,
+    videoUrl: product.videos[0]?.videoUrl ?? null,
+    videoAdUrl: product.videoAdUrl,
+    illustrationVideos: product.descriptionIllustrationVideos,
+  })
+
   const appUrl = bubbleAppOrigin()
 
   return {
     id: product.id,
     title: listing?.customTitle?.trim() || product.name,
     imageUrl,
+    medias,
     salePrice: sale,
     compareAtPrice: product.compareAt != null ? Number(product.compareAt) : null,
     costPrice: cost,

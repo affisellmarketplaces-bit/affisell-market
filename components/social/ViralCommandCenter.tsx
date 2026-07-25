@@ -1,13 +1,19 @@
 "use client"
 
-import Image from "next/image"
 import { AlertTriangle } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { BubbleProductCard, type BubbleProductCardProduct } from "@/components/product/BubbleProductCard"
 import { LiveProfitCalculator } from "@/components/product/LiveProfitCalculator"
+import { ViralAssetCard } from "@/components/social/ViralAssetCard"
+import { ViralCarousel } from "@/components/social/ViralCarousel"
 import type { SocialAssetsBundle } from "@/lib/social/bubble-product-types"
+import {
+  downloadViralVideoBlob,
+  recordViralCarouselVideo,
+} from "@/lib/social/generate-video"
 import { getFallbackSocialAssetsBundle } from "@/lib/social/social-assets-fallback"
+import type { ViralMedia } from "@/types/product"
 
 type BundlePayload = SocialAssetsBundle & {
   failedKeys?: string[]
@@ -16,7 +22,11 @@ type BundlePayload = SocialAssetsBundle & {
 }
 
 type Props = {
-  product: BubbleProductCardProduct & { bubbleUrl: string; costPrice?: number | null }
+  product: BubbleProductCardProduct & {
+    bubbleUrl: string
+    costPrice?: number | null
+    medias?: ViralMedia[]
+  }
 }
 
 function sleep(ms: number) {
@@ -46,12 +56,20 @@ export function ViralCommandCenter({ product }: Props) {
   const [loading, setLoading] = useState(true)
   const [expanding, setExpanding] = useState(false)
   const [aiPaused, setAiPaused] = useState(false)
+  const [exportingVideo, setExportingVideo] = useState(false)
+  const [exportProgress, setExportProgress] = useState(0)
   const [platforms, setPlatforms] = useState({
     instagram: true,
     tiktok: true,
     pinterest: true,
     facebook: true,
   })
+
+  const medias: ViralMedia[] = useMemo(() => {
+    if (product.medias && product.medias.length > 0) return product.medias
+    if (product.imageUrl) return [{ type: "image", url: product.imageUrl, duration: 1200 }]
+    return []
+  }, [product.medias, product.imageUrl])
 
   const liveProduct: BubbleProductCardProduct & { bubbleUrl: string } = {
     ...product,
@@ -129,6 +147,7 @@ export function ViralCommandCenter({ product }: Props) {
         event: "priority_assets_ready",
         productId: product.id,
         count: priority.assets.length,
+        mediaCount: medias.length,
         fallback: priority.fallback ?? false,
       })
 
@@ -159,7 +178,7 @@ export function ViralCommandCenter({ product }: Props) {
       applyFallback(message)
       setLoading(false)
     }
-  }, [fetchBundle, product.id, applyFallback])
+  }, [fetchBundle, product.id, applyFallback, medias.length])
 
   useEffect(() => {
     void load()
@@ -208,6 +227,43 @@ export function ViralCommandCenter({ product }: Props) {
     URL.revokeObjectURL(url)
   }
 
+  const exportReel = async () => {
+    if (medias.length === 0 || exportingVideo) return
+    setExportingVideo(true)
+    setExportProgress(0)
+    try {
+      // Refresh export spec (medias) — idempotent
+      await fetch(`/api/social/generate?productId=${encodeURIComponent(product.id)}`).catch(
+        () => null
+      )
+      const { blob, ext } = await recordViralCarouselVideo({
+        medias,
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        onProgress: setExportProgress,
+      })
+      downloadViralVideoBlob(blob, `${product.id}-reel`, ext)
+      console.log("[viral-command]", {
+        event: "reel_exported",
+        productId: product.id,
+        bytes: blob.size,
+        ext,
+      })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "export_failed"
+      console.error("[viral-command]", { event: "reel_export_failed", error: message })
+      alert(
+        message.includes("image_load_failed") || message.includes("Security")
+          ? "Export bloqué (CORS image). Réessaie avec des images Affisell / CDN CORS."
+          : `Export vidéo échoué: ${message}`
+      )
+    } finally {
+      setExportingVideo(false)
+      setExportProgress(0)
+    }
+  }
+
   const publishStub = async () => {
     const selected = Object.entries(platforms)
       .filter(([, v]) => v)
@@ -234,15 +290,46 @@ export function ViralCommandCenter({ product }: Props) {
         <div>
           <h1 className="text-2xl font-black text-zinc-900 dark:text-white">Rendre viral</h1>
           <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-            Aperçu client · zéro marge exposée
+            Aperçu client · carrousel ciné · zéro marge exposée
           </p>
         </div>
-        <BubbleProductCard
-          product={liveProduct}
-          variant="bubble-card"
-          showShareBar
-          audience="client"
-        />
+
+        {medias.length > 0 ? (
+          <div className="relative mx-auto aspect-[9/16] w-full max-w-[280px] overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl ring-1 ring-violet-500/30">
+            <ViralCarousel medias={medias} autoPlay shape="rect" className="absolute inset-0 rounded-[2rem]" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-4 pt-16 text-left">
+              <p className="line-clamp-2 text-sm font-semibold text-white">{product.title}</p>
+              <p className="mt-1 text-lg font-black text-white">{livePrice.toFixed(0)}€</p>
+            </div>
+          </div>
+        ) : (
+          <BubbleProductCard
+            product={liveProduct}
+            variant="bubble-card"
+            showShareBar
+            audience="client"
+          />
+        )}
+
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <button
+            type="button"
+            disabled={exportingVideo || medias.length === 0}
+            onClick={() => void exportReel()}
+            className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50 dark:bg-white dark:text-zinc-900"
+          >
+            {exportingVideo
+              ? `Export Reel… ${Math.round(exportProgress * 100)}%`
+              : "Exporter Reel MP4 (1080×1920)"}
+          </button>
+          <BubbleProductCard
+            product={liveProduct}
+            variant="bubble-mini"
+            showShareBar={false}
+            audience="client"
+            className="!h-16 !w-16"
+          />
+        </div>
       </header>
 
       <section className="mx-auto max-w-md">
@@ -256,7 +343,7 @@ export function ViralCommandCenter({ product }: Props) {
         />
         <p className="mt-2 text-center text-[11px] text-zinc-500">
           Zone privée — le slider met à jour le prix client des captions, jamais ta marge sur les
-          PNG.
+          PNG / Reel.
         </p>
       </section>
 
@@ -296,7 +383,7 @@ export function ViralCommandCenter({ product }: Props) {
                 Génération du pack viral…
               </p>
               <p className="mt-1 text-xs text-zinc-500">
-                Story · Feed · TikTok d&apos;abord — retry auto si le réseau rame.
+                Story · Feed · TikTok d&apos;abord — carrousel ciné sur chaque carte.
               </p>
               <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-violet-100 dark:bg-violet-950">
                 <div className="h-full w-1/3 animate-pulse rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500" />
@@ -322,59 +409,16 @@ export function ViralCommandCenter({ product }: Props) {
         {bundle && !loading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {bundle.assets.map((asset) => (
-              <article
+              <ViralAssetCard
                 key={asset.key}
-                className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
-              >
-                <div className="relative aspect-video bg-zinc-100 dark:bg-zinc-900">
-                  <Image
-                    src={asset.publicUrl}
-                    alt=""
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                  <div className="absolute bottom-2 right-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-bold text-white">
-                    {livePrice.toFixed(0)}€
-                  </div>
-                </div>
-                <div className="space-y-2 p-3">
-                  <p className="text-xs font-mono text-zinc-500">{asset.key}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {bundle.fallback ? (
-                      <a
-                        href={asset.publicUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white"
-                      >
-                        Ouvrir image
-                      </a>
-                    ) : (
-                      <a
-                        href={`/api/products/${encodeURIComponent(product.id)}/social-assets/download?format=${encodeURIComponent(asset.key)}`}
-                        className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white"
-                      >
-                        Télécharger
-                      </a>
-                    )}
-                    <button
-                      type="button"
-                      className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-semibold dark:border-zinc-700"
-                      onClick={() =>
-                        void copyCaption(
-                          asset.caption.replaceAll(
-                            `${product.salePrice.toFixed(0)}€`,
-                            `${livePrice.toFixed(0)}€`
-                          )
-                        )
-                      }
-                    >
-                      Copier caption
-                    </button>
-                  </div>
-                </div>
-              </article>
+                asset={asset}
+                medias={medias}
+                productId={product.id}
+                livePrice={livePrice}
+                baseSalePrice={product.salePrice}
+                fallback={Boolean(bundle.fallback)}
+                onCopyCaption={(text) => void copyCaption(text)}
+              />
             ))}
           </div>
         ) : null}

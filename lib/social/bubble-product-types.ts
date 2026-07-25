@@ -1,3 +1,5 @@
+import type { ViralMedia } from "@/types/product"
+
 /** Shared bubble / viral product DTO — safe for client. */
 export type BubbleProductVariant =
   | "bubble-mini"
@@ -10,6 +12,8 @@ export type BubbleProductView = {
   id: string
   title: string
   imageUrl: string | null
+  /** Viral Assets V2 — image|video gallery for cinematic carousel / Reel. */
+  medias: ViralMedia[]
   salePrice: number
   compareAtPrice: number | null
   costPrice: number | null
