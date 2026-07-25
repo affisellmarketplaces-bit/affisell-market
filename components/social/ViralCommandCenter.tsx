@@ -13,6 +13,11 @@ import {
   previewViralVideoBlob,
   recordViralCarouselVideo,
 } from "@/lib/social/generate-video"
+import {
+  downloadViralGifBlob,
+  previewViralGifBlob,
+  recordViralBubbleGif,
+} from "@/lib/social/generate-gif"
 import { getFallbackSocialAssetsBundle } from "@/lib/social/social-assets-fallback"
 import type { ViralMedia } from "@/types/product"
 
@@ -59,6 +64,8 @@ export function ViralCommandCenter({ product }: Props) {
   const [aiPaused, setAiPaused] = useState(false)
   const [exportingVideo, setExportingVideo] = useState(false)
   const [exportProgress, setExportProgress] = useState(0)
+  const [exportingGif, setExportingGif] = useState(false)
+  const [gifProgress, setGifProgress] = useState(0)
   const [platforms, setPlatforms] = useState({
     instagram: true,
     tiktok: true,
@@ -229,7 +236,7 @@ export function ViralCommandCenter({ product }: Props) {
   }
 
   const exportReel = async () => {
-    if (medias.length === 0 || exportingVideo) return
+    if (medias.length === 0 || exportingVideo || exportingGif) return
     setExportingVideo(true)
     setExportProgress(0)
     try {
@@ -270,6 +277,42 @@ export function ViralCommandCenter({ product }: Props) {
     }
   }
 
+  const exportGif = async () => {
+    if (medias.length === 0 || exportingGif || exportingVideo) return
+    setExportingGif(true)
+    setGifProgress(0)
+    try {
+      const result = await recordViralBubbleGif({
+        medias,
+        title: product.title,
+        salePrice: livePrice,
+        width: 540,
+        height: 960,
+        fps: 10,
+        onProgress: setGifProgress,
+      })
+      downloadViralGifBlob(result.blob, `${product.id}-bubble`)
+      previewViralGifBlob(result.blob)
+      console.log("[viral-command]", {
+        event: "gif_exported",
+        productId: product.id,
+        bytes: result.bytes,
+        frames: result.frames,
+      })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "gif_failed"
+      console.error("[viral-command]", { event: "gif_export_failed", error: message })
+      alert(
+        message.includes("image_load_failed")
+          ? "GIF bloqué (CORS image)."
+          : `Export GIF échoué: ${message}`
+      )
+    } finally {
+      setExportingGif(false)
+      setGifProgress(0)
+    }
+  }
+
   const publishStub = async () => {
     const selected = Object.entries(platforms)
       .filter(([, v]) => v)
@@ -296,7 +339,7 @@ export function ViralCommandCenter({ product }: Props) {
         <div>
           <h1 className="text-2xl font-black text-zinc-900 dark:text-white">Rendre viral</h1>
           <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-            Aperçu client · carrousel ciné · zéro marge exposée
+            PNG still · GIF WhatsApp · MP4 TikTok · zéro marge exposée
           </p>
         </div>
 
@@ -320,13 +363,23 @@ export function ViralCommandCenter({ product }: Props) {
         <div className="flex flex-wrap items-center justify-center gap-2">
           <button
             type="button"
-            disabled={exportingVideo || medias.length === 0}
+            disabled={exportingGif || exportingVideo || medias.length === 0}
+            onClick={() => void exportGif()}
+            className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+          >
+            {exportingGif
+              ? `GIF animé… ${Math.round(gifProgress * 100)}%`
+              : "Exporter GIF · WhatsApp"}
+          </button>
+          <button
+            type="button"
+            disabled={exportingVideo || exportingGif || medias.length === 0}
             onClick={() => void exportReel()}
             className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50 dark:bg-white dark:text-zinc-900"
           >
             {exportingVideo
               ? `Encodage H.264… ${Math.round(exportProgress * 100)}%`
-              : "Exporter Reel · MP4 H.264 (QuickTime)"}
+              : "Exporter Reel · MP4"}
           </button>
           <BubbleProductCard
             product={liveProduct}
@@ -336,6 +389,10 @@ export function ViralCommandCenter({ product }: Props) {
             className="!h-16 !w-16"
           />
         </div>
+        <p className="max-w-md text-center text-[11px] text-zinc-500">
+          GIF = autoplay partout (DM, status). MP4 = TikTok / Reels / QuickTime. PNG = couverture
+          fixe.
+        </p>
       </header>
 
       <section className="mx-auto max-w-md">
@@ -420,6 +477,7 @@ export function ViralCommandCenter({ product }: Props) {
                 asset={asset}
                 medias={medias}
                 productId={product.id}
+                productTitle={product.title}
                 livePrice={livePrice}
                 baseSalePrice={product.salePrice}
                 fallback={Boolean(bundle.fallback)}

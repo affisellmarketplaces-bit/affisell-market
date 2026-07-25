@@ -15,3 +15,16 @@ export function sniffVideoContainer(bytes: Uint8Array): "mp4" | "webm" | "unknow
   }
   return "unknown"
 }
+
+export function sniffGifContainer(bytes: Uint8Array): boolean {
+  if (bytes.length < 6) return false
+  const header = String.fromCharCode(
+    bytes[0]!,
+    bytes[1]!,
+    bytes[2]!,
+    bytes[3]!,
+    bytes[4]!,
+    bytes[5]!
+  )
+  return header === "GIF87a" || header === "GIF89a"
+}

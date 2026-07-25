@@ -186,6 +186,7 @@
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "framer-motion": "^12.38.0",
+    "gifenc": "^1.0.3",
     "google-auth-library": "^10.6.2",
     "gray-matter": "^4.0.3",
     "groq-sdk": "^1.2.0",
