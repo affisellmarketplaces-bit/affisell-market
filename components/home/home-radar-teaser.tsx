@@ -92,9 +92,18 @@ export function HomeRadarTeaser({ className }: { className?: string }) {
         >
           Deux métiers. Deux Radars. Une même obsession: dominer Google Shopping.
         </h2>
+        <span
+          className="mt-2 inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-sm"
+          aria-label="30 marchés Pan-EU et mondiaux"
+        >
+          🇫🇷 🇩🇪 🇪🇸 🇮🇹 🇺🇸 🇯🇵 🇧🇷{" "}
+          <span className="ml-0.5 font-mono text-[11px] font-semibold tracking-wide text-violet-200">
+            +23
+          </span>
+        </span>
         <p className="mx-auto mt-5 max-w-3xl text-base leading-relaxed text-zinc-300 sm:text-lg">
           Le seul Radar branché sur ton GMC. Pas de bullshit SEO. On te montre qui gagne de
-          l&apos;argent sur ton dos, et où est l&apos;argent à prendre.
+          l&apos;argent sur ton dos, et où est l&apos;argent à prendre — Pan-EU, 30 marchés.
         </p>
       </div>
 
@@ -108,7 +117,7 @@ export function HomeRadarTeaser({ className }: { className?: string }) {
           bullets={[
             {
               icon: <Map className="size-4" aria-hidden />,
-              text: "Cartographie de ton empire: Vois les annonces qui utilisent tes mots-clés de marque en ce moment sur Google Shopping",
+              text: "Cartographie de ton empire: Vois qui utilise tes mots-clés de marque en ce moment sur Google Shopping - 30 pays en live, qui gagne de l'argent sur ton dos.",
             },
             {
               icon: <ShieldCheck className="size-4" aria-hidden />,
@@ -116,7 +125,7 @@ export function HomeRadarTeaser({ className }: { className?: string }) {
             },
             {
               icon: <Users className="size-4" aria-hidden />,
-              text: "Recrutement d'armée: Les 20 resellers FR qui performent déjà dans ta catégorie, prêts à être signés",
+              text: "Recrutement d'armée: Les 20 top resellers Pan-EU qui performent déjà dans ta catégorie (FR/DE/ES/IT/BR), prêts à être signés.",
             },
           ]}
         />
@@ -129,15 +138,15 @@ export function HomeRadarTeaser({ className }: { className?: string }) {
           bullets={[
             {
               icon: <TrendingUp className="size-4 text-emerald-200" aria-hidden />,
-              text: "Produits orphelins: >10k recherches/mois, <4 concurrents avec stock FR. C'est toi ou personne.",
+              text: "Produits orphelins: >10k recherches/mois, <4 concurrents avec stock local. Scan Pan-EU 30 marchés - c'est toi ou personne.",
             },
             {
               icon: <Truck className="size-4 text-emerald-200" aria-hidden />,
-              text: "Le badge qui tue: 'Stock FR 24/48h' = tu passes devant tous les dropshippers. Les resellers te supplient.",
+              text: "Le badge qui tue: 'Stock Local 24/48h' = tu passes devant tous les dropshippers. Le client voit DE, FR, ES, IT - livré en 2j, pas 15j.",
             },
             {
               icon: <Sparkles className="size-4 text-emerald-200" aria-hidden />,
-              text: "Marge cachée: On te montre où les Producteurs n'ont PAS de réseau. Tu deviens leur Grossiste officiel.",
+              text: "Marge cachée: On te montre où les Producteurs n'ont PAS de réseau en Pan-EU. Tu deviens leur Grossiste officiel sur 5 pays en 1 clic.",
             },
           ]}
         />
