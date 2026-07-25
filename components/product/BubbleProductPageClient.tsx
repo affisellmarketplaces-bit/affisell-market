@@ -2,34 +2,50 @@
 
 import { motion, useScroll, useTransform } from "framer-motion"
 import Link from "next/link"
-import { useRef } from "react"
+import { useRef, useState } from "react"
 
 import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
 import { BubbleProductCard, type BubbleProductCardProduct } from "@/components/product/BubbleProductCard"
+import { LiveProfitCalculator } from "@/components/product/LiveProfitCalculator"
+import { MarginLockListCta } from "@/components/product/MarginLockListCta"
 import { SupplierTrustBadge } from "@/components/logistics/SupplierTrustBadge"
 import type { BubbleProductView } from "@/lib/social/bubble-product-types"
 
-type Similar = { id: string; title: string; imageUrl: string | null; salePrice: number }
+type Similar = { id: string; title: string; imageUrl: string | null; salePrice: number; marginEuro: number }
 
 type Props = {
   product: BubbleProductView
   similar: Similar[]
   catalogSocialHref: string
+  /** Authenticated affiliate/reseller — unlock Live Profit + Margin Lock (never for guests). */
+  isResellerViewer?: boolean
 }
 
 /**
- * Public / shared bubble page — client-facing only.
- * Margin & Live Profit live exclusively on reseller dashboard `/social`.
+ * Bubble product page.
+ * - Guest / shared TikTok: client-safe card (no margin).
+ * - Logged-in reseller: full bubble toolkit (profit, lock, viral CTA, orbit).
  */
-export function BubbleProductPageClient({ product, similar, catalogSocialHref }: Props) {
+export function BubbleProductPageClient({
+  product,
+  similar,
+  catalogSocialHref,
+  isResellerViewer = false,
+}: Props) {
+  const cost = product.costPrice ?? Math.max(0, product.salePrice - product.marginEuro)
+  const [liveSalePrice, setLiveSalePrice] = useState(product.salePrice)
+
   const cardProduct: BubbleProductCardProduct = {
     id: product.id,
     title: product.title,
     imageUrl: product.imageUrl,
-    salePrice: product.salePrice,
+    salePrice: isResellerViewer ? liveSalePrice : product.salePrice,
     compareAtPrice: product.compareAtPrice,
-    marginEuro: product.marginEuro,
-    costPrice: product.costPrice,
+    marginEuro: Math.max(
+      0,
+      Math.round(((isResellerViewer ? liveSalePrice : product.salePrice) - cost) * 100) / 100
+    ),
+    costPrice: cost,
     deliveryDays: product.deliveryDays,
     deliveryCountry: product.deliveryCountry,
     supplierTrustScore: product.supplierTrustScore,
@@ -47,44 +63,91 @@ export function BubbleProductPageClient({ product, similar, catalogSocialHref }:
       </motion.div>
 
       <div className="relative mx-auto max-w-lg px-4 pb-32 pt-12">
-        <div className="mb-8 flex justify-center">
+        <div className="mb-16 flex justify-center">
           <BubbleProductCard
             product={cardProduct}
             variant="bubble-card"
             showShareBar
-            audience="client"
+            audience={isResellerViewer ? "reseller" : "client"}
           />
         </div>
 
-        <StackBubble title="Livraison">
-          <p className="text-sm text-white/80">Livraison 24/48h · Retours 14 jours</p>
-          <div className="mt-2">
-            <DeliveryBadge days={product.deliveryDays} country={product.deliveryCountry} variant="full" />
-          </div>
+        {isResellerViewer ? (
+          <StackBubble title="Bénéfice net live · privé">
+            <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-emerald-300/90">
+              🔒 Vue reseller — jamais exposée aux acheteurs / TikTok
+            </p>
+            <div id="profit">
+              <LiveProfitCalculator
+                cost={cost}
+                suggestedPrice={product.salePrice}
+                onPriceChange={setLiveSalePrice}
+                showUsePrice
+                onUsePrice={(price) => {
+                  setLiveSalePrice(price)
+                  void fetch(`/api/products/${encodeURIComponent(product.id)}/margin-lock`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ salePrice: price }),
+                  }).then(() => {
+                    window.location.href = catalogSocialHref
+                  })
+                }}
+              />
+            </div>
+            <MarginLockListCta
+              productId={product.id}
+              salePrice={liveSalePrice}
+              catalogHref={catalogSocialHref}
+            />
+            <Link
+              href={catalogSocialHref}
+              className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-violet-500 px-4 py-2.5 text-sm font-bold text-white shadow-[0_0_24px_rgba(139,92,246,0.45)]"
+            >
+              Rendre viral → Story · TikTok · Pin
+            </Link>
+          </StackBubble>
+        ) : (
+          <StackBubble title="Créateur / revendeur">
+            <p className="text-sm text-white/70">
+              Connecte-toi pour débloquer le Live Profit, le Margin Lock et les assets Story /
+              TikTok.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link
+                href={`/login?callbackUrl=${encodeURIComponent(catalogSocialHref)}`}
+                className="inline-flex rounded-full bg-violet-500 px-4 py-2 text-xs font-bold text-white"
+              >
+                Ouvrir mes bulles →
+              </Link>
+              <Link
+                href={catalogSocialHref}
+                className="inline-flex rounded-full border border-white/20 px-4 py-2 text-xs font-semibold text-white/80"
+              >
+                Rendre viral
+              </Link>
+            </div>
+          </StackBubble>
+        )}
+
+        <StackBubble title="Délais">
+          <DeliveryBadge days={product.deliveryDays} country={product.deliveryCountry} variant="full" />
         </StackBubble>
 
-        <StackBubble title="Boutique">
+        <StackBubble title="Fournisseur">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-lg">
               {product.supplierName?.slice(0, 1) ?? "S"}
             </div>
             <div>
-              <p className="font-semibold">{product.supplierName ?? "Vendeur vérifié"}</p>
+              <p className="font-semibold">{product.supplierName ?? "Fournisseur vérifié"}</p>
               <SupplierTrustBadge trustScore={product.supplierTrustScore} />
             </div>
           </div>
         </StackBubble>
 
-        <StackBubble title="Reseller">
-          <p className="text-sm text-white/70">
-            Tu revend? Calcule ta marge en privé dans le dashboard — jamais exposée ici.
-          </p>
-          <Link
-            href={catalogSocialHref}
-            className="mt-3 inline-flex rounded-full bg-violet-500 px-4 py-2 text-xs font-bold text-white"
-          >
-            Ouvrir Rendre viral →
-          </Link>
+        <StackBubble title="Preuves sociales">
+          <p className="text-sm text-white/70">Avis acheteurs & créateurs — bientôt en bulles chat live.</p>
         </StackBubble>
 
         {similar.length > 0 ? (
@@ -106,13 +169,14 @@ export function BubbleProductPageClient({ product, similar, catalogSocialHref }:
                         title: s.title,
                         imageUrl: s.imageUrl,
                         salePrice: s.salePrice,
-                        marginEuro: 0,
+                        marginEuro: s.marginEuro,
+                        costPrice: Math.max(0, s.salePrice - s.marginEuro),
                         deliveryDays: product.deliveryDays,
                         deliveryCountry: product.deliveryCountry,
                         supplierTrustScore: product.supplierTrustScore,
                       }}
                       variant="bubble-mini"
-                      audience="client"
+                      audience={isResellerViewer ? "reseller" : "client"}
                     />
                   </Link>
                 </motion.div>
@@ -122,8 +186,12 @@ export function BubbleProductPageClient({ product, similar, catalogSocialHref }:
         ) : null}
 
         <p className="mt-12 text-center text-xs text-white/40">
-          <Link href={`/product/${product.id}`} className="underline">
-            Fiche produit
+          <Link href={`/product/${product.id}?view=bubble`} className="underline">
+            Lien canonique
+          </Link>
+          {" · "}
+          <Link href={catalogSocialHref} className="underline">
+            Rendre viral →
           </Link>
         </p>
       </div>
