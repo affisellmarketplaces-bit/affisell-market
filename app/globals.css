@@ -2373,6 +2373,14 @@ button,
 }
 
 /* —— Home embedded catalog — mobile glass shell —— */
+
+/* Product thumb box — ALL viewports (was wrongly nested in max-width:767 only → desktop collapse). */
+.affisell-product-media {
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  min-height: 0;
+}
+
 @media (max-width: 767px) {
   .affisell-home-explorer {
     position: relative;
@@ -2426,12 +2434,6 @@ button,
 
   .affisell-product-grid {
     -webkit-overflow-scrolling: touch;
-  }
-
-  /* Product thumb box — fixed aspect + contain for CLS (used with aspect-[4/3]). */
-  .affisell-product-media {
-    aspect-ratio: 4 / 3;
-    contain: layout paint;
   }
 
   @media (max-width: 380px) {

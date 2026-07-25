@@ -53,7 +53,7 @@ export async function HomeCatalogStaticGrid({ shell, limit = 20 }: Props) {
                 prefetch
                 className="affisell-inp-tap affisell-home-static-card group flex h-full w-full touch-manipulation flex-col rounded-[1.35rem] border border-[color:var(--affisell-premium-border)] bg-[var(--affisell-premium-glass)] p-1.5 shadow-[var(--affisell-premium-shadow-soft)] transition-transform duration-200 active:scale-[0.99] sm:rounded-3xl sm:p-2"
               >
-                <div className="affisell-product-media relative w-full overflow-hidden rounded-[1.1rem] border border-white/50 bg-gradient-to-br from-violet-50/50 via-white to-sky-50/35 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:via-zinc-950/80 dark:to-teal-950/15">
+                <div className="affisell-product-media relative aspect-[4/3] w-full overflow-hidden rounded-[1.1rem] border border-white/50 bg-gradient-to-br from-violet-50/50 via-white to-sky-50/35 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:via-zinc-950/80 dark:to-teal-950/15">
                   <CatalogCardImage
                     src={item.image}
                     fallbackSrc={item.fallbackImage}
