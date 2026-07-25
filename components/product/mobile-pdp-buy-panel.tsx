@@ -129,74 +129,51 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
         className={cn(brand.mobilePanel, className)}
         aria-label={labels.addToCart}
       >
-        <header className="space-y-1.5">
+        <header className="space-y-1">
           {categoryEyebrow ? (
-            <span className={brand.mobileCategoryBadge}>
-              {categoryEyebrow}
-            </span>
+            <span className={brand.mobileCategoryBadge}>{categoryEyebrow}</span>
           ) : null}
-          <h1 className="text-[1.05rem] font-bold leading-snug tracking-tight text-zinc-900 dark:text-zinc-50">
+          <h1 className="line-clamp-2 text-[1.05rem] font-bold leading-snug tracking-tight text-zinc-900 dark:text-zinc-50">
             {titleHeadline}
           </h1>
           {titleSubline ? (
-            <p className="line-clamp-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+            <p className="line-clamp-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
               {titleSubline}
             </p>
           ) : null}
           <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-            <div className="flex flex-wrap items-center gap-2">
-            {salesCount > 0 ? (
-              <ProductSalesBadge count={salesCount} variant="detail" className="!w-auto shrink-0" />
-            ) : null}
-            <div className="flex items-center gap-1 text-xs">
-              <div className="flex">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={cn(
-                      "size-3.5",
-                      i < Math.round(reviewAverage)
-                        ? "fill-amber-400 text-amber-400"
-                        : "fill-zinc-200 text-zinc-200 dark:fill-zinc-700 dark:text-zinc-700"
-                    )}
-                    aria-hidden
-                  />
-                ))}
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              {salesCount > 0 ? (
+                <ProductSalesBadge count={salesCount} variant="detail" className="!w-auto shrink-0" />
+              ) : null}
+              <div className="flex items-center gap-1 text-xs">
+                <div className="flex">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={cn(
+                        "size-3.5",
+                        i < Math.round(reviewAverage)
+                          ? "fill-amber-400 text-amber-400"
+                          : "fill-zinc-200 text-zinc-200 dark:fill-zinc-700 dark:text-zinc-700"
+                      )}
+                      aria-hidden
+                    />
+                  ))}
+                </div>
+                <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                  {reviewAverage.toFixed(1)}
+                </span>
+                <Link href={reviewsHref} className={cn("font-medium", brand.accentText)}>
+                  {labels.reviews(formatReviewCount(reviewCount))}
+                </Link>
               </div>
-              <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-                {reviewAverage.toFixed(1)}
-              </span>
-              <Link
-                href={reviewsHref}
-                className={cn("font-medium", brand.accentText)}
-              >
-                {labels.reviews(formatReviewCount(reviewCount))}
-              </Link>
             </div>
-            </div>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200/90 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
               <WishlistHeart productId={productId} />
             </div>
           </div>
         </header>
-
-        {!hidePurchaseControls ? (
-        <ListingPriceActionCard
-          priceLabel={labels.priceLabel}
-          listingPriceEur={listingPriceEur}
-          activeRetailPriceEur={activeRetailPriceEur}
-          hasRetailCompare={hasRetailCompare}
-          buyerRewardBadge={buyerRewardBadge ?? null}
-          buyNowLineSubtotalCents={buyNowLineSubtotalCents}
-          buyBusy={buyBusy}
-          availableStock={availableStock}
-          onBuyNow={onBuyNow}
-          priceFluidityNote={priceFluidityNote}
-          buyNowShort={labels.buyNowShort}
-          reduceMotion={reduceMotion}
-          brandedStorefront={brandedStorefront}
-        />
-        ) : null}
 
         {colorMeta.length > 0 && !hideColorPicker ? (
           <div>
@@ -296,30 +273,48 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
           </div>
         ) : null}
 
+        {/* Sentinel observed by sticky bar — Buy/Add must be in view, not just the title. */}
         {!hidePurchaseControls ? (
-        <div className="grid grid-cols-[minmax(0,7.5rem)_1fr] gap-2">
-          <MarketplacePurchaseQuantity
-            variant="inline"
-            quantity={purchaseQty}
-            onQuantityChange={onQuantityChange}
-            availableStock={availableStock}
-            inStockLabel={labels.inStock}
-            outOfStockLabel={labels.outOfStock}
-            quantityOptionLabel={labels.quantityOption}
-            quantityAriaLabel={labels.quantityAria}
-            disabled={cartBusy || buyBusy}
-          />
-          <motion.button
-            type="button"
-            disabled={cartBusy || availableStock <= 0}
-            whileTap={{ scale: availableStock > 0 && !cartBusy ? 0.98 : 1 }}
-            onClick={onAddToCart}
-            className={cn("flex h-11 items-center justify-center gap-2 rounded-full", brand.ctaPrimary)}
-          >
-            <ShoppingBag className="size-4 shrink-0" aria-hidden />
-            {cartBusy ? "…" : labels.addToCart}
-          </motion.button>
-        </div>
+          <div id="mobile-pdp-cta-sentinel" className="space-y-3">
+            <ListingPriceActionCard
+              priceLabel={labels.priceLabel}
+              listingPriceEur={listingPriceEur}
+              activeRetailPriceEur={activeRetailPriceEur}
+              hasRetailCompare={hasRetailCompare}
+              buyerRewardBadge={buyerRewardBadge ?? null}
+              buyNowLineSubtotalCents={buyNowLineSubtotalCents}
+              buyBusy={buyBusy}
+              availableStock={availableStock}
+              onBuyNow={onBuyNow}
+              priceFluidityNote={priceFluidityNote}
+              buyNowShort={labels.buyNowShort}
+              reduceMotion={reduceMotion}
+              brandedStorefront={brandedStorefront}
+            />
+            <div className="grid grid-cols-[minmax(0,7.5rem)_1fr] gap-2">
+              <MarketplacePurchaseQuantity
+                variant="inline"
+                quantity={purchaseQty}
+                onQuantityChange={onQuantityChange}
+                availableStock={availableStock}
+                inStockLabel={labels.inStock}
+                outOfStockLabel={labels.outOfStock}
+                quantityOptionLabel={labels.quantityOption}
+                quantityAriaLabel={labels.quantityAria}
+                disabled={cartBusy || buyBusy}
+              />
+              <motion.button
+                type="button"
+                disabled={cartBusy || availableStock <= 0}
+                whileTap={{ scale: availableStock > 0 && !cartBusy ? 0.98 : 1 }}
+                onClick={onAddToCart}
+                className={cn("flex h-11 items-center justify-center gap-2 rounded-full", brand.ctaPrimary)}
+              >
+                <ShoppingBag className="size-4 shrink-0" aria-hidden />
+                {cartBusy ? "…" : labels.addToCart}
+              </motion.button>
+            </div>
+          </div>
         ) : null}
       </section>
     )

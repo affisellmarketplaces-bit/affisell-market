@@ -391,7 +391,7 @@ export function MarketplaceListingDetail({
     tryOnFeatureEnabled && tryOnEnabled && Boolean(tryOnGarmentUrl?.trim())
   const purchaseDockRef = useRef<HTMLDivElement>(null)
   const mobilePurchaseRef = useRef<HTMLElement>(null)
-  const [showStickyBuy, setShowStickyBuy] = useState(false)
+  const [showStickyBuy, setShowStickyBuy] = useState(true)
   const [tryOnOpen, setTryOnOpen] = useState(false)
   const [titleExpanded, setTitleExpanded] = useState(false)
   const { headline: titleHeadline, subline: titleSubline } = useMemo(() => splitListingTitle(name), [name])
@@ -470,22 +470,44 @@ export function MarketplaceListingDetail({
 
   useEffect(() => {
     const pickTarget = () => {
-      if (typeof window === "undefined") return purchaseDockRef.current
-      return window.matchMedia("(max-width: 1023px)").matches
-        ? mobilePurchaseRef.current
-        : purchaseDockRef.current
+      if (typeof window === "undefined") return null
+      const mobile = window.matchMedia("(max-width: 1023px)").matches
+      if (mobile) {
+        // Observe Buy/Add sentinel — title alone must not hide the sticky bar.
+        return (
+          document.getElementById("mobile-pdp-cta-sentinel") ??
+          mobilePurchaseRef.current
+        )
+      }
+      return purchaseDockRef.current
     }
     const el = pickTarget()
     if (!el) return
+
+    const sync = (entry: IntersectionObserverEntry) => {
+      // Amazon/Shopify: sticky while CTAs are off-screen (below OR above the fold).
+      setShowStickyBuy(!entry.isIntersecting)
+    }
+
     const io = new IntersectionObserver(
       ([entry]) => {
         if (!entry) return
-        const past = !entry.isIntersecting && entry.boundingClientRect.top < 96
-        setShowStickyBuy(past)
+        sync(entry)
       },
-      { threshold: 0, rootMargin: "-72px 0px 0px 0px" }
+      {
+        threshold: [0, 0.15, 0.35],
+        // Shrink viewport so CTAs partially covered by sticky chrome still count as "needs bar".
+        rootMargin: "0px 0px -72px 0px",
+      }
     )
     io.observe(el)
+
+    // Immediate sync (covers first paint when CTAs are below the fold).
+    const rect = el.getBoundingClientRect()
+    const vh = window.innerHeight || 0
+    const visible = rect.bottom > 72 && rect.top < vh - 72
+    setShowStickyBuy(!visible)
+
     const mq = window.matchMedia("(max-width: 1023px)")
     const onMq = () => {
       io.disconnect()
@@ -498,6 +520,7 @@ export function MarketplaceListingDetail({
       io.disconnect()
     }
   }, [listingId, stock])
+
 
   /** Sync main + thumbnail index when opening another listing or affiliate default color changes. */
   /* eslint-disable react-hooks/exhaustive-deps -- only reset hero when listing or promoted color changes; omit gallery/colorImages ref churn */
@@ -893,7 +916,7 @@ export function MarketplaceListingDetail({
       {audience === "customer" && categories.length > 0 ? (
         <ListingBrowseSignalsRecorder categories={categories} />
       ) : null}
-      <div className="relative mb-10 max-w-full max-lg:overflow-x-clip lg:mb-14 lg:overflow-visible">
+      <div className="relative mb-10 max-w-full max-lg:overflow-x-clip max-lg:pb-24 lg:mb-14 lg:overflow-visible">
         <motion.div
           className={brand.cardGlowOrb}
           aria-hidden
@@ -996,7 +1019,7 @@ export function MarketplaceListingDetail({
               />
             ) : null}
             {colorMeta.length > 0 ? (
-              <p className="mx-1 text-center text-[11px] leading-snug text-zinc-500 sm:mx-0 lg:text-left dark:text-zinc-400">
+              <p className="mx-1 hidden text-center text-[11px] leading-snug text-zinc-500 sm:mx-0 lg:block lg:text-left dark:text-zinc-400">
                 {productT.gallery.colorPreviewHint}
               </p>
             ) : null}
@@ -1920,30 +1943,30 @@ export function MarketplaceListingDetail({
         }}
       >
         <div className={brand.stickyBar}>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-[0.9] sm:flex-1">
             <p className="truncate text-[11px] font-semibold leading-tight text-zinc-900 dark:text-zinc-50">
               {titleHeadline}
             </p>
-            <p className={brand.stickyPrice}>
-              {priceDisplay}
-            </p>
+            <p className={brand.stickyPrice}>{priceDisplay}</p>
           </div>
-          <Button
-            type="button"
-            disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingSlotRequired || bookingSeatsRequired}
-            onClick={() => void buyNow()}
-            className={brand.stickySecondaryBtn}
-          >
-            {productT.buyNowShort}
-          </Button>
-          <Button
-            type="button"
-            disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingCheckoutLive}
-            onClick={(e) => void addToCart(e)}
-            className={brand.ctaPrimarySticky}
-          >
-            {cartBusy ? "…" : productT.addToCart}
-          </Button>
+          <div className="flex min-w-0 flex-[1.4] items-center gap-1.5 sm:flex-none sm:gap-2">
+            <Button
+              type="button"
+              disabled={buyBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingSlotRequired || bookingSeatsRequired}
+              onClick={() => void buyNow()}
+              className={brand.stickySecondaryBtn}
+            >
+              {productT.buyNowShort}
+            </Button>
+            <Button
+              type="button"
+              disabled={cartBusy || availableStock <= 0 || bookingCheckoutBlocked || bookingCheckoutLive}
+              onClick={(e) => void addToCart(e)}
+              className={brand.ctaPrimarySticky}
+            >
+              {cartBusy ? "…" : productT.addToCart}
+            </Button>
+          </div>
         </div>
       </motion.div>
       {identitySheet}
