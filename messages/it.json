@@ -2883,14 +2883,21 @@
       "zoomHint": "Doppio-tocco o pinza per ingrandire",
       "resetZoom": "Ripristina ingrandimento",
       "desktopHint": "Seleziona una miniatura · passa sopra l'immagine principale per ingrandire",
-      "colorPreviewHint": "Tap a color to update the preview above",
+      "colorPreviewHint": "Tocca un colore per aggiornare l’anteprima",
       "hoverZoomHint": "Passa sopra l'immagine per ingrandire",
       "zoomDetailLevel": "{level}% · vista dettaglio",
       "lightbox": "Galleria a schermo intero",
       "close": "Chiudi",
       "prev": "Immagine precedente",
       "next": "Immagine successiva"
-    }
+    },
+    "addToCartShort": "Carrello",
+    "liveListing": "Offerta live",
+    "redirecting": "Reindirizzamento…",
+    "storeOffer": "Offerta negozio · {offer}",
+    "cashbackPct": "{pct}% cashback",
+    "storeBonusPct": "{pct}% bonus negozio",
+    "optionLabel": "Opzione"
   },
   "Filters": {
     "smartFilters": "Filtri intelligenti",

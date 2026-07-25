@@ -2883,14 +2883,21 @@
       "zoomHint": "双击或捏捏放大",
       "resetZoom": "重置缩放",
       "desktopHint": "选择缩略图 · 鼠标悬停主图像以放大",
-      "colorPreviewHint": "Tap a color to update the preview above",
+      "colorPreviewHint": "点按颜色以更新预览",
       "hoverZoomHint": "鼠标悬停以放大",
       "zoomDetailLevel": "{level}% · detail view",
       "lightbox": "全屏画廊",
       "close": "关闭",
       "prev": "上一张",
       "next": "下一张"
-    }
+    },
+    "addToCartShort": "购物车",
+    "liveListing": "在售",
+    "redirecting": "跳转中…",
+    "storeOffer": "店铺优惠 · {offer}",
+    "cashbackPct": "{pct}% 返现",
+    "storeBonusPct": "{pct}% 店铺奖励",
+    "optionLabel": "选项"
   },
   "Filters": {
     "smartFilters": "智能过滤器",

@@ -2883,14 +2883,21 @@
       "zoomHint": "Doppeltippen oder zusammendrücken, um zu vergrößern",
       "resetZoom": "Vergrößerung zurücksetzen",
       "desktopHint": "Ein Miniaturbild auswählen · Hauptbild bei Mouseover vergrößern",
-      "colorPreviewHint": "Tap a color to update the preview above",
+      "colorPreviewHint": "Farbe tippen, um die Vorschau zu aktualisieren",
       "hoverZoomHint": "Bild bei Mouseover vergrößern",
       "zoomDetailLevel": "{level}% · Detailansicht",
       "lightbox": "Galerie im Vollbild",
       "close": "Schließen",
       "prev": "Vorheriges Bild",
       "next": "Nächstes Bild"
-    }
+    },
+    "addToCartShort": "Warenkorb",
+    "liveListing": "Live-Angebot",
+    "redirecting": "Weiterleitung…",
+    "storeOffer": "Shop-Angebot · {offer}",
+    "cashbackPct": "{pct}% Cashback",
+    "storeBonusPct": "{pct}% Shop-Bonus",
+    "optionLabel": "Option"
   },
   "Filters": {
     "smartFilters": "Intelligente Filter",

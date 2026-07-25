@@ -39,8 +39,14 @@ export function normalizeBuyerRewardForSave(args: {
   return { buyerRewardKind: args.kind, buyerRewardPercent: capped }
 }
 
-export function buyerRewardBadgeText(kind: BuyerRewardKind, pct: number): string | null {
+export function buyerRewardBadgeText(
+  kind: BuyerRewardKind,
+  pct: number,
+  labels?: { cashbackPct?: string; storeBonusPct?: string }
+): string | null {
   if (kind === "NONE" || pct <= 0) return null
-  if (kind === "CASHBACK") return `${pct}% cashback`
-  return `${pct}% store bonus`
+  if (kind === "CASHBACK") {
+    return (labels?.cashbackPct ?? "{pct}% cashback").replace("{pct}", String(pct))
+  }
+  return (labels?.storeBonusPct ?? "{pct}% store bonus").replace("{pct}", String(pct))
 }

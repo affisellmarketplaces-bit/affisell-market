@@ -2883,14 +2883,21 @@
       "zoomHint": "Podwójne naciśnięcie lub przeciągnij, aby powiększyć",
       "resetZoom": "Powróć do oryginalnego rozmiaru",
       "desktopHint": "Wybierz miniaturkę · przejść nad głównym zdjęciem, aby powiększyć",
-      "colorPreviewHint": "Tap a color to update the preview above",
+      "colorPreviewHint": "Dotknij koloru, aby zaktualizować podgląd",
       "hoverZoomHint": "Przejdź nad zdjęciem, aby powiększyć",
       "zoomDetailLevel": "{level}% · widok szczegółowy",
       "lightbox": "Pełnoekranowy galeria",
       "close": "Zamknij",
       "prev": "Poprzednia zdjęcie",
       "next": "Następne zdjęcie"
-    }
+    },
+    "addToCartShort": "Koszyk",
+    "liveListing": "Oferta na żywo",
+    "redirecting": "Przekierowanie…",
+    "storeOffer": "Oferta sklepu · {offer}",
+    "cashbackPct": "{pct}% cashback",
+    "storeBonusPct": "{pct}% bonus sklepu",
+    "optionLabel": "Opcja"
   },
   "Filters": {
     "smartFilters": "Smart Filtry",

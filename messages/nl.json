@@ -2884,14 +2884,21 @@
       "zoomHint": "Dubbelklik of pin om in te zoomen",
       "resetZoom": "Zoom resetten",
       "desktopHint": "Selecteer een thumbnail · hover de hoofdafbeelding om in te zoomen",
-      "colorPreviewHint": "Tap a color to update the preview above",
+      "colorPreviewHint": "Tik op een kleur om de preview bij te werken",
       "hoverZoomHint": "Hover de afbeelding om in te zoomen",
       "zoomDetailLevel": "{level}% · detail weergave",
       "lightbox": "Volledig scherm galerij",
       "close": "Sluiten",
       "prev": "Vorige afbeelding",
       "next": "Volgende afbeelding"
-    }
+    },
+    "addToCartShort": "Winkelwagen",
+    "liveListing": "Live aanbieding",
+    "redirecting": "Doorverwijzen…",
+    "storeOffer": "Winkelaanbieding · {offer}",
+    "cashbackPct": "{pct}% cashback",
+    "storeBonusPct": "{pct}% winkelbonus",
+    "optionLabel": "Optie"
   },
   "Filters": {
     "smartFilters": "Slimme filters",

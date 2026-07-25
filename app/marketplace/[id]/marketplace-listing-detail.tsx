@@ -948,7 +948,7 @@ export function MarketplaceListingDetail({
                 titleHeadline={titleHeadline}
                 priceDisplay={priceDisplay}
                 buyNowLabel={productT.buyNowShort}
-                addToCartLabel={productT.addToCart}
+                addToCartLabel={productT.addToCartShort ?? productT.addToCart}
                 buyBusy={buyBusy}
                 cartBusy={cartBusy}
                 availableStock={availableStock}
@@ -977,6 +977,7 @@ export function MarketplaceListingDetail({
                 selectedColor={selectedColor}
                 onSelectColor={selectColor}
                 colorLabel={productT.colorLabel}
+                optionLabel={productT.optionLabel}
                 variants={variants}
                 customColumns={customColumns}
                 selection={shopperSelection}
@@ -1057,6 +1058,7 @@ export function MarketplaceListingDetail({
               formatReviewCount={formatStoreCount}
               labels={{
                 colorLabel: productT.colorLabel,
+                optionLabel: productT.optionLabel,
                 storageLabel: productT.storageLabel,
                 sizeLabel: productT.sizeLabel,
                 priceLabel: productT.priceLabel,
@@ -1896,7 +1898,7 @@ export function MarketplaceListingDetail({
           titleHeadline={titleHeadline}
           priceDisplay={priceDisplay}
           buyNowLabel={productT.buyNowShort}
-          addToCartLabel={productT.addToCart}
+          addToCartLabel={productT.addToCartShort ?? productT.addToCart}
           buyBusy={buyBusy}
           cartBusy={cartBusy}
           availableStock={availableStock}

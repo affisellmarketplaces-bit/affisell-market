@@ -3166,8 +3166,8 @@
     "priceLabel": "Prix",
     "colorLabel": "Couleur",
     "sizeLabel": "Taille",
-    "storageLabel": "Capacité de stockage",
-    "priceFluidityNote": "Le prix affiché peut changer avant le paiement.",
+    "storageLabel": "Stockage",
+    "priceFluidityNote": "Prix indicatif — peut évoluer avant paiement.",
     "gallery": {
       "thumbRail": "Médias produit",
       "fullView": "Plein écran",
@@ -3181,14 +3181,21 @@
       "zoomHint": "Double-tap ou pincez pour zoomer",
       "resetZoom": "Réinitialiser le zoom",
       "desktopHint": "Choisissez une vignette · survolez l’image pour zoomer",
-      "colorPreviewHint": "Choisissez une couleur pour mettre à jour l’aperçu ci-dessus",
+      "colorPreviewHint": "Touchez une couleur pour mettre à jour l’aperçu",
       "hoverZoomHint": "Survolez l’image pour zoomer",
       "zoomDetailLevel": "{level} % · vue détaillée",
       "lightbox": "Galerie plein écran",
       "close": "Fermer",
       "prev": "Image précédente",
       "next": "Image suivante"
-    }
+    },
+    "addToCartShort": "Panier",
+    "liveListing": "Offre en ligne",
+    "redirecting": "Redirection…",
+    "storeOffer": "Offre boutique · {offer}",
+    "cashbackPct": "{pct}% de cashback",
+    "storeBonusPct": "{pct}% de bonus boutique",
+    "optionLabel": "Option"
   },
   "Filters": {
     "smartFilters": "Filtres intelligents",

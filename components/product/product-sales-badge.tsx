@@ -34,12 +34,12 @@ export function ProductSalesBadge({ count, variant = "overlay", className }: Pro
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-full border border-violet-200/80 bg-violet-50/90 px-2.5 py-1 text-[11px] font-semibold text-violet-950 shadow-sm dark:border-violet-800/60 dark:bg-violet-950/50 dark:text-violet-100",
+          "inline-flex max-w-full items-center gap-1.5 rounded-full border border-violet-200/80 bg-violet-50/90 px-2.5 py-1 text-[11px] font-semibold leading-none text-violet-950 shadow-sm dark:border-violet-800/60 dark:bg-violet-950/50 dark:text-violet-100",
           className
         )}
       >
         <ShoppingBag className="size-3 shrink-0 opacity-80" aria-hidden />
-        {label}
+        <span className="min-w-0 truncate">{label}</span>
       </span>
     )
   }

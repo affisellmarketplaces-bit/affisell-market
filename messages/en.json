@@ -1439,10 +1439,18 @@
       "toastDiscount": "Demo: 10% off popup for {name}",
       "toastMessage": "Demo: message queued for {name}",
       "demoVisitors": {
-        "emma": { "action": "cart: Lavender Candle" },
-        "julien": { "action": "cart: Portable Speaker" },
-        "anonymous": { "action": "homepage" },
-        "lina": { "action": "viewing Leather crossbody bag" }
+        "emma": {
+          "action": "cart: Lavender Candle"
+        },
+        "julien": {
+          "action": "cart: Portable Speaker"
+        },
+        "anonymous": {
+          "action": "homepage"
+        },
+        "lina": {
+          "action": "viewing Leather crossbody bag"
+        }
       }
     },
     "hub": {
@@ -2208,14 +2216,30 @@
         "alibaba1688Key": "Add ONEBOUND_KEY (env) to enable 1-click 1688 import."
       },
       "channels": {
-        "native": { "name": "Affisell stock" },
-        "aliexpress": { "name": "AliExpress" },
-        "alibaba1688": { "name": "1688 (Alibaba)" },
-        "factory": { "name": "Factory / REST" },
-        "bigbuy": { "name": "BigBuy" },
-        "cj": { "name": "CJ Dropshipping" },
-        "amazon": { "name": "Amazon" },
-        "manual": { "name": "Manual" }
+        "native": {
+          "name": "Affisell stock"
+        },
+        "aliexpress": {
+          "name": "AliExpress"
+        },
+        "alibaba1688": {
+          "name": "1688 (Alibaba)"
+        },
+        "factory": {
+          "name": "Factory / REST"
+        },
+        "bigbuy": {
+          "name": "BigBuy"
+        },
+        "cj": {
+          "name": "CJ Dropshipping"
+        },
+        "amazon": {
+          "name": "Amazon"
+        },
+        "manual": {
+          "name": "Manual"
+        }
       }
     }
   },
@@ -2363,12 +2387,30 @@
         "title": "Futuristic presets",
         "hint": "One click to apply palette, layout, and mood — then fine-tune.",
         "items": {
-          "violet-pulse": { "name": "Violet Pulse", "desc": "Dark immersive, neon violet gradient." },
-          "emerald-luxe": { "name": "Emerald Luxe", "desc": "Premium glass, airy grid, emerald accent." },
-          "midnight-orbit": { "name": "Midnight Orbit", "desc": "Cyber cyan on midnight, compact grid." },
-          "rose-editorial": { "name": "Rose Editorial", "desc": "Warm editorial, classic banner hero." },
-          "clean-minimal": { "name": "Clean Minimal", "desc": "Minimal, no hero, product-first." },
-          "quantum-glow": { "name": "Quantum Glow", "desc": "Quantum glass violet, luminous gradient." }
+          "violet-pulse": {
+            "name": "Violet Pulse",
+            "desc": "Dark immersive, neon violet gradient."
+          },
+          "emerald-luxe": {
+            "name": "Emerald Luxe",
+            "desc": "Premium glass, airy grid, emerald accent."
+          },
+          "midnight-orbit": {
+            "name": "Midnight Orbit",
+            "desc": "Cyber cyan on midnight, compact grid."
+          },
+          "rose-editorial": {
+            "name": "Rose Editorial",
+            "desc": "Warm editorial, classic banner hero."
+          },
+          "clean-minimal": {
+            "name": "Clean Minimal",
+            "desc": "Minimal, no hero, product-first."
+          },
+          "quantum-glow": {
+            "name": "Quantum Glow",
+            "desc": "Quantum glass violet, luminous gradient."
+          }
         }
       },
       "launch": {
@@ -3146,7 +3188,14 @@
       "close": "Close",
       "prev": "Previous image",
       "next": "Next image"
-    }
+    },
+    "addToCartShort": "Cart",
+    "liveListing": "Live listing",
+    "redirecting": "Redirecting…",
+    "storeOffer": "Store offer · {offer}",
+    "cashbackPct": "{pct}% cashback",
+    "storeBonusPct": "{pct}% store bonus",
+    "optionLabel": "Option"
   },
   "Filters": {
     "smartFilters": "Smart Filters",
@@ -3193,8 +3242,8 @@
     "targetPrice": "Target {price}",
     "dropBadge": "🔔 -{pct}% {since}",
     "noImage": "No image",
-      "guestBanner": "No account needed — tap ♥ on any product to save favorites on this device.",
-      "guestBannerCta": "Optional: free account to sync and get price alerts",
+    "guestBanner": "No account needed — tap ♥ on any product to save favorites on this device.",
+    "guestBannerCta": "Optional: free account to sync and get price alerts",
     "heart": {
       "add": "Add to favorites",
       "remove": "Remove from favorites",

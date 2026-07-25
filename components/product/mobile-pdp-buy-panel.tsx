@@ -56,6 +56,7 @@ export type MobilePdpBuyPanelProps = {
   productId: string
   labels: {
     colorLabel: string
+    optionLabel?: string
     storageLabel: string
     sizeLabel: string
     priceLabel: string
@@ -141,13 +142,13 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
               {titleSubline}
             </p>
           ) : null}
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 pt-0.5">
+            <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
               {salesCount > 0 ? (
-                <ProductSalesBadge count={salesCount} variant="detail" className="!w-auto shrink-0" />
+                <ProductSalesBadge count={salesCount} variant="inline" className="max-w-[46%] min-w-0 shrink" />
               ) : null}
-              <div className="flex items-center gap-1 text-xs">
-                <div className="flex">
+              <div className="flex min-w-0 items-center gap-1 text-xs">
+                <div className="flex shrink-0">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}
@@ -161,10 +162,13 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                     />
                   ))}
                 </div>
-                <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                <span className="shrink-0 font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
                   {reviewAverage.toFixed(1)}
                 </span>
-                <Link href={reviewsHref} className={cn("font-medium", brand.accentText)}>
+                <Link
+                  href={reviewsHref}
+                  className={cn("min-w-0 truncate font-medium", brand.accentText)}
+                >
                   {labels.reviews(formatReviewCount(reviewCount))}
                 </Link>
               </div>
@@ -179,7 +183,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
           <div>
             <div className="mb-2 flex items-baseline justify-between gap-2">
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
-                {showColorSwatches ? labels.colorLabel : "Option"}
+                {showColorSwatches ? labels.colorLabel : labels.optionLabel ?? labels.colorLabel}
               </p>
               {selectedColor ? (
                 <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{selectedColor}</p>
@@ -290,6 +294,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
               buyNowShort={labels.buyNowShort}
               reduceMotion={reduceMotion}
               brandedStorefront={brandedStorefront}
+              denseMobile
             />
             <div className="grid grid-cols-[minmax(0,7.5rem)_1fr] gap-2">
               <MarketplacePurchaseQuantity

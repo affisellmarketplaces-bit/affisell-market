@@ -49,6 +49,7 @@ import { resolveTryOnFeatureEnabled } from "@/lib/flags/try-on"
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { resolveGalleryListingVideoUrl } from "@/lib/product-playable-video"
 import type { AppLocale } from "@/lib/i18n-locale"
+import { appMessagesForLocale } from "@/lib/i18n-app-messages"
 import { offerModeBadge, parseProductOfferMode } from "@/lib/product-offer-mode"
 import {
   isStorefrontImmersiveLayout,
@@ -331,9 +332,14 @@ export default async function MarketplaceListingPage({
 
   const galleryForPdp = enrichGalleryWithColorHeroImages(gallery, colorNames, colorImages)
 
+  const productCopy = appMessagesForLocale(locale as AppLocale).Product
   const buyerRewardBadge = buyerRewardBadgeText(
     normalizeBuyerRewardKind(listing.buyerRewardKind),
-    listing.buyerRewardPercent ?? 0
+    listing.buyerRewardPercent ?? 0,
+    {
+      cashbackPct: productCopy.cashbackPct,
+      storeBonusPct: productCopy.storeBonusPct,
+    }
   )
 
   const p = listing.product

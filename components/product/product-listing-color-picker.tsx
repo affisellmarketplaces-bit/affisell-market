@@ -23,6 +23,7 @@ type Props = {
   selectedColor: string | null
   onSelectColor: (name: string) => void
   colorLabel: string
+  optionLabel?: string
   variants: ProductVariantsJson | null | undefined
   customColumns: CustomColumn[]
   selection: ShopperVariantSelection
@@ -40,6 +41,7 @@ export function ProductListingColorPicker({
   selectedColor,
   onSelectColor,
   colorLabel,
+  optionLabel = "Option",
   variants,
   customColumns,
   selection,
@@ -63,7 +65,7 @@ export function ProductListingColorPicker({
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
         <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400 lg:text-xs lg:tracking-[0.12em]">
-          {showColorSwatches ? colorLabel : "Option"}
+          {showColorSwatches ? colorLabel : optionLabel}
         </p>
         {selectedColor ? (
           <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 lg:text-sm">
