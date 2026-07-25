@@ -125,18 +125,20 @@ function RadarSweepDisk({ reduceMotion }: { reduceMotion: boolean }) {
 
   return (
     <div
-      className="relative mx-auto aspect-square w-full max-w-[320px] overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0f] sm:max-w-[380px]"
+      className="relative mx-auto aspect-square w-full max-w-[320px] overflow-hidden rounded-2xl border border-white/10 bg-[#080810]/90 sm:max-w-[380px]"
       aria-hidden
     >
       <div
-        className="absolute inset-0 opacity-80"
+        className="absolute inset-0"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
+            "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+          maskImage: "radial-gradient(ellipse at center, black 35%, transparent 78%)",
+          WebkitMaskImage: "radial-gradient(ellipse at center, black 35%, transparent 78%)",
         }}
       />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(120,80,255,0.18),transparent_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(120,80,255,0.16),transparent_70%)]" />
 
       {/* Range rings */}
       <div className="absolute left-1/2 top-1/2 size-[88%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.06]" />
@@ -203,32 +205,31 @@ export function WorldRadarPro({ className }: { className?: string }) {
     <section
       className={cn(
         "relative overflow-hidden rounded-3xl border border-white/10",
-        "bg-[#0a0a0f] px-4 py-10 text-white sm:px-8 sm:py-14 md:px-10 md:py-16",
+        "bg-[#080810] px-4 py-10 text-white sm:px-8 sm:py-14 md:px-10 md:py-16",
         className
       )}
       aria-labelledby="home-world-radar-heading"
+      style={{
+        backgroundImage:
+          "radial-gradient(ellipse 20% 30% at 0% 0%, rgba(120,80,255,0.12), transparent), radial-gradient(ellipse 80% 80% at 100% 100%, rgba(16,185,129,0.08), transparent)",
+      }}
     >
-      {/* Fine grid + violet radial */}
+      {/* Fine grid — fades at edges */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
+            "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)",
+          backgroundSize: "24px 24px",
+          maskImage: "radial-gradient(ellipse at center, black 40%, transparent 78%)",
+          WebkitMaskImage: "radial-gradient(ellipse at center, black 40%, transparent 78%)",
         }}
       />
+      {/* Vignette — cinematic depth */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(120,80,255,0.14),transparent_70%)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-24 top-0 size-72 rounded-full bg-violet-600/20 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-16 bottom-0 size-80 rounded-full bg-emerald-500/10 blur-3xl"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_60%,rgba(0,0,0,0.8)_100%)]"
       />
 
       <div className="relative mx-auto max-w-6xl">
@@ -251,11 +252,18 @@ export function WorldRadarPro({ className }: { className?: string }) {
           </p>
         </div>
 
-        <div className="mt-10 grid items-start gap-6 lg:mt-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] lg:gap-8">
-          <RadarSweepDisk reduceMotion={reduceMotion} />
+        <div className="relative mt-10 grid items-start gap-6 lg:mt-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.15fr)] lg:gap-8">
+          {/* Glow behind radar sweep */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-[22%] top-1/2 size-[min(420px,55vw)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/[0.08] blur-3xl max-lg:left-1/2 max-lg:top-[18%]"
+          />
+          <div className="relative z-[1]">
+            <RadarSweepDisk reduceMotion={reduceMotion} />
+          </div>
 
           {/* Terminal winners */}
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/40 shadow-[0_24px_80px_rgba(0,0,0,0.45)] ring-1 ring-violet-500/15 backdrop-blur-sm">
+          <div className="relative z-[1] overflow-hidden rounded-2xl border border-white/10 bg-black/40 shadow-[0_24px_80px_rgba(0,0,0,0.45)] ring-1 ring-violet-500/15 backdrop-blur-sm">
             <div className="flex items-center gap-3 border-b border-white/10 bg-white/[0.03] px-4 py-3">
               <div className="flex gap-1.5" aria-hidden>
                 <span className="size-2.5 rounded-full bg-[#ff5f57]" />

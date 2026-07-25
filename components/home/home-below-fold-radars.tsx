@@ -15,7 +15,7 @@ const WorldRadarPro = dynamic(
     ssr: false,
     loading: () => (
       <div
-        className="mt-4 min-h-[28rem] rounded-3xl border border-white/5 bg-[#0a0a0f]/40 sm:mt-8"
+        className="mt-4 min-h-[28rem] rounded-3xl border border-white/5 bg-[#080810]/50 sm:mt-8"
         aria-hidden
       />
     ),
