@@ -423,7 +423,7 @@ export function BuyerSwipeCommerce({
       data-testid="affisell-pulse"
       className={cn(
         affisellBrand.epoxyPage,
-        "affisell-swipe-commerce fixed inset-0 z-[140] flex h-screen h-[100dvh] flex-col overflow-hidden",
+        "affisell-swipe-commerce fixed inset-0 z-[210] flex h-screen h-[100dvh] flex-col overflow-hidden",
         showPicks && "affisell-swipe-commerce--with-picks"
       )}
     >

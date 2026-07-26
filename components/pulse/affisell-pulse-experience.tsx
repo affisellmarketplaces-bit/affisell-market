@@ -494,7 +494,7 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
   return (
     <div
       data-testid="affisell-pulse"
-      className={cn(affisellBrand.epoxyPage, "fixed inset-0 z-[140] flex flex-col")}
+      className={cn(affisellBrand.epoxyPage, "fixed inset-0 z-[210] flex flex-col")}
     >
       <div className={affisellBrand.epoxyCanvas} aria-hidden />
       <div className="pointer-events-none absolute inset-0 z-0 opacity-30">

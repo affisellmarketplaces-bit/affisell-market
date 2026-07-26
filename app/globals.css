@@ -77,6 +77,18 @@
   }
 }
 
+/* Pulse / Discover / Battle — hide platform chrome on all breakpoints (header z-200 was covering Pulse). */
+body.affisell-pulse-fullscreen .affisell-global-site-header,
+body.affisell-pulse-fullscreen .affisell-site-footer,
+body.affisell-pulse-fullscreen .affisell-mobile-buyer-dock {
+  display: none !important;
+}
+
+body.affisell-pulse-fullscreen {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 /* Dedicated affiliate storefront — platform chrome hidden; merchant owns the viewport. */
 body.affisell-dedicated-storefront .affisell-global-site-header,
 body.affisell-dedicated-storefront .affisell-mobile-buyer-dock,

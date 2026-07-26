@@ -129,7 +129,7 @@ export function BattleArena() {
 
   if (error && !battle) {
     return (
-      <div className="fixed inset-0 z-[200] flex min-h-[100dvh] flex-col items-center justify-center gap-4 bg-black px-6 text-center text-white">
+      <div className="fixed inset-0 z-[210] flex min-h-[100dvh] flex-col items-center justify-center gap-4 bg-black px-6 text-center text-white">
         <p className="text-lg font-semibold">Battle indisponible</p>
         <p className="max-w-sm text-sm text-white/50">
           {error === "NO_BATTLE_PRODUCTS"
@@ -155,7 +155,7 @@ export function BattleArena() {
 
   if (!battle) {
     return (
-      <div className="fixed inset-0 z-[200] flex min-h-[100dvh] items-center justify-center bg-black text-sm text-white/50">
+      <div className="fixed inset-0 z-[210] flex min-h-[100dvh] items-center justify-center bg-black text-sm text-white/50">
         Chargement du battle…
       </div>
     )
@@ -173,7 +173,7 @@ export function BattleArena() {
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex h-[100dvh] w-screen flex-col overflow-hidden bg-black"
+      className="fixed inset-0 z-[210] flex h-[100dvh] w-screen flex-col overflow-hidden bg-black"
       data-testid="battle-arena"
     >
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4 sm:px-6">

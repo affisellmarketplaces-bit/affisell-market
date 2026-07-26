@@ -22,11 +22,21 @@ export function barePathname(pathname: string): string {
 export function isImmersiveBuyerRoute(pathname: string): boolean {
   const bare = barePathname(pathname)
   if (bare.startsWith("/discover")) return true
+  if (bare.startsWith("/pulse")) return true
   if (bare.startsWith("/luxe")) return true
   if (bare.startsWith("/auctions")) return true
   if (/^\/marketplace\/[^/]+$/.test(bare)) return true
   if (/^\/shops\/[^/]+\/product\//.test(bare)) return true
   return false
+}
+
+/**
+ * Full-viewport Pulse / Battle — hide platform header at every breakpoint
+ * (site header is sticky z-200 and otherwise covers the Pulse chrome).
+ */
+export function isPulseFullscreenRoute(pathname: string): boolean {
+  const bare = barePathname(pathname)
+  return bare.startsWith("/discover") || bare.startsWith("/pulse")
 }
 
 /** Individual affiliate storefront (`/shops/:slug`), not directory or cross-store browse. */
