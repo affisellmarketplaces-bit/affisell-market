@@ -16,6 +16,8 @@ import {
 import { SwipeCommerceDock } from "@/components/pulse/swipe-commerce-dock"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { PulseHeaderCartLink } from "@/components/pulse/pulse-header-cart-link"
+import { PulseBattleBanner } from "@/components/pulse/PulseBattleBanner"
+import { PulseBattleHeaderLink } from "@/components/pulse/PulseBattleHeaderLink"
 import { PulseLayoutModeLink } from "@/components/pulse/pulse-layout-mode-link"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
@@ -444,6 +446,7 @@ export function BuyerSwipeCommerce({
       </div>
 
       <header className="affisell-swipe-header relative z-40 shrink-0 px-2 pb-0.5 pt-[max(0.35rem,env(safe-area-inset-top))] sm:px-3 sm:pb-2 sm:pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <PulseBattleBanner className="-mx-2 mb-1 sm:-mx-3" />
         {fetchError ? (
           <p
             role="alert"
@@ -510,6 +513,7 @@ export function BuyerSwipeCommerce({
           </div>
 
           <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
+            <PulseBattleHeaderLink className="hidden sm:inline-flex" />
             <LanguageSwitcher className="hidden shrink-0 sm:block [&_button]:border-white/15 [&_button]:bg-black/40 [&_button]:text-white" />
             <PulseLayoutModeLink
               target="scroll"

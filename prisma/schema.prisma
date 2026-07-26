@@ -1040,6 +1040,12 @@ model Product {
 
   stockCheckLogs StockCheckLog[]
 
+  /**
+   * Pulse Live Battle contenders (side A / side B).
+   */
+  battlesA PulseBattle[] @relation("battleA")
+  battlesB PulseBattle[] @relation("battleB")
+
   supplier                User                     @relation("SupplierProducts", fields: [supplierId], references: [id])
   tryOns                  TryOn[]
   tryOnJobs               TryOnJob[]
@@ -1097,6 +1103,50 @@ model StockCheckLog {
 
   @@index([productId, checkedAt])
   @@index([checkedAt])
+}
+
+/**
+ * Pulse Live Battle — daily 18h Europe/Paris vote duel (QVC × Twitch).
+ * status: scheduled | live | ended
+ */
+model PulseBattle {
+  id            String    @id @default(cuid())
+  productAId    String
+  productBId    String
+  productA      Product   @relation("battleA", fields: [productAId], references: [id])
+  productB      Product   @relation("battleB", fields: [productBId], references: [id])
+  status        String
+  scheduledAt   DateTime
+  startedAt     DateTime?
+  endedAt       DateTime?
+  winnerId      String?
+  votesA        Int       @default(0)
+  votesB        Int       @default(0)
+  totalVoters   Int       @default(0)
+  flashDiscount Int       @default(20)
+  flashEndsAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  votes PulseBattleVote[]
+
+  @@index([status, scheduledAt])
+  @@index([status, startedAt])
+  @@index([productAId])
+  @@index([productBId])
+}
+
+model PulseBattleVote {
+  id        String   @id @default(cuid())
+  battleId  String
+  productId String
+  userId    String?
+  ip        String?
+  createdAt DateTime @default(now())
+  battle    PulseBattle @relation(fields: [battleId], references: [id], onDelete: Cascade)
+
+  @@index([battleId, userId])
+  @@index([battleId, ip])
+  @@index([battleId, createdAt])
 }
 
 /**

@@ -22,6 +22,8 @@ import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { PulseHeaderCartLink } from "@/components/pulse/pulse-header-cart-link"
+import { PulseBattleBanner } from "@/components/pulse/PulseBattleBanner"
+import { PulseBattleHeaderLink } from "@/components/pulse/PulseBattleHeaderLink"
 import { PulseLayoutModeLink } from "@/components/pulse/pulse-layout-mode-link"
 import { PulseProductMediaStage } from "@/components/pulse/pulse-product-media-stage"
 import { WishlistHeart } from "@/components/wishlist-heart"
@@ -501,6 +503,7 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
       </div>
 
       <header className="affisell-pulse-scroll-header relative z-40 shrink-0">
+        <PulseBattleBanner />
         <PulseProgress active={activeIndex} total={safeItems.length} />
         <div className="flex items-center justify-between gap-1 px-2 pb-1 pt-1.5 sm:gap-2 sm:px-3 sm:pb-2 sm:pt-2">
           <Link
@@ -525,6 +528,7 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
             </span>
           </div>
           <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
+            <PulseBattleHeaderLink />
             <LanguageSwitcher className="shrink-0 scale-[0.88] sm:scale-100 [&_button]:border-white/15 [&_button]:bg-black/40 [&_button]:text-white" />
             <PulseHeaderCartLink />
             <PulseLayoutModeLink target="swipe" label={t("swipeMode")} variant="chip" />

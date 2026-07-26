@@ -89,6 +89,7 @@ export default async function MarketplaceListingPage({
     preview?: string
     e2eFixtures?: string
     e2eCreatorsWatching?: string
+    flash?: string
   }>
   /** When set (shop PDP), listing must belong to this store — single DB round-trip. */
   storeSlug?: string
@@ -395,6 +396,10 @@ export default async function MarketplaceListingPage({
           stock={listing.product.stock}
           lastStockCheck={p.lastStockCheck ?? null}
           lastStockStatus={p.lastStockStatus ?? null}
+          flashPercent={(() => {
+            const n = Number(sp.flash)
+            return Number.isFinite(n) && n > 0 && n < 90 ? Math.round(n) : null
+          })()}
           retailPriceEur={retailPriceEur}
           has3D={has3D}
           arModel={arModel}

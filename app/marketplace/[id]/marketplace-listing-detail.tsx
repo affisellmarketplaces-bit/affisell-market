@@ -179,6 +179,8 @@ type Props = {
   /** Ghost Checkout — last live supplier stock probe. */
   lastStockCheck?: string | Date | null
   lastStockStatus?: string | null
+  /** Pulse Battle ?flash=20 */
+  flashPercent?: number | null
   retailPriceEur?: number
   has3D?: boolean
   arModel?: string | null
@@ -368,6 +370,7 @@ export function MarketplaceListingDetail({
   stock,
   lastStockCheck = null,
   lastStockStatus = null,
+  flashPercent = null,
   retailPriceEur,
   has3D = false,
   arModel,
@@ -1074,6 +1077,7 @@ export function MarketplaceListingDetail({
               productId={productId}
               lastStockCheck={lastStockCheck}
               lastStockStatus={lastStockStatus}
+              flashPercent={flashPercent}
               formatReviewCount={formatStoreCount}
               labels={{
                 colorLabel: productT.colorLabel,
@@ -1277,6 +1281,7 @@ export function MarketplaceListingDetail({
               reduceMotion={reduceMotion ?? false}
               lastStockCheck={lastStockCheck}
               lastStockStatus={lastStockStatus}
+              flashPercent={flashPercent}
             />
             {tryOnReady ? (
               <TryOnTrigger

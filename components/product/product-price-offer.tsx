@@ -17,6 +17,8 @@ type Props = {
   align?: "start" | "end"
   className?: string
   offerMode?: string
+  /** Pulse Battle flash % — shows strikethrough list price + flash price. */
+  flashPercent?: number | null
 }
 
 export function ProductPriceOffer({
@@ -26,11 +28,21 @@ export function ProductPriceOffer({
   align = "start",
   className,
   offerMode,
+  flashPercent = null,
 }: Props) {
   const t = useTranslations("product.discount")
   const tOffer = useTranslations("product.offer")
   const mode = parseProductOfferMode(offerMode)
-  const offer = resolveProductDiscount(price, compareAt)
+
+  const flashPct =
+    typeof flashPercent === "number" &&
+    Number.isFinite(flashPercent) &&
+    flashPercent > 0 &&
+    flashPercent < 90
+      ? Math.round(flashPercent)
+      : null
+  const flashPrice =
+    flashPct != null ? Math.round(price * (1 - flashPct / 100) * 100) / 100 : null
 
   if (isDonationListing(mode, Math.round(price * 100))) {
     return (
@@ -45,6 +57,31 @@ export function ProductPriceOffer({
       </span>
     )
   }
+
+  if (flashPct != null && flashPrice != null) {
+    return (
+      <div className={cn("space-y-1", align === "end" && "text-right", className)}>
+        <div className={cn("flex flex-wrap items-center gap-2", align === "end" && "justify-end")}>
+          <span
+            className={cn(
+              "tabular-nums font-black tracking-tight text-red-600 dark:text-red-400",
+              layout === "detail" ? "text-3xl" : "text-xl"
+            )}
+          >
+            {formatStoreCurrency(flashPrice)}
+          </span>
+          <span className="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-black text-white animate-pulse">
+            −{flashPct}% BATTLE
+          </span>
+        </div>
+        <span className="text-sm tabular-nums text-zinc-400 line-through">
+          {formatStoreCurrency(price)}
+        </span>
+      </div>
+    )
+  }
+
+  const offer = resolveProductDiscount(price, compareAt)
 
   if (!offer) {
     return (
