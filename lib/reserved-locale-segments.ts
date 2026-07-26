@@ -41,6 +41,7 @@ export const RESERVED_LOCALE_SEGMENTS = new Set([
   "help",
   "invite",
   "import",
+  "dropforge",
   "legal",
   "mentions-legales",
   "login",

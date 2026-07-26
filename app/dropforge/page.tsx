@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const MARKET_PILLS = ["Temu", "TikTok Shop", "Amazon", "SHEIN", "Shopify"] as const
 
-export default async function ImportPage() {
+export default async function DropForgePage() {
   const t = await getTranslations("importPage")
 
   return (
@@ -45,7 +45,16 @@ export default async function ImportPage() {
         </Link>
 
         <section className="mt-8 text-center sm:mt-12">
-          <h1 className="text-balance text-3xl font-black tracking-tight sm:text-5xl sm:leading-[1.05]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-violet-300/90">
+            {t("productTag")}
+          </p>
+          <p
+            className="mt-3 bg-gradient-to-br from-white via-violet-100 to-fuchsia-300 bg-clip-text text-5xl font-black tracking-tight text-transparent sm:text-7xl sm:leading-none"
+            style={{ fontFamily: "var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif" }}
+          >
+            {t("productName")}
+          </p>
+          <h1 className="mt-5 text-balance text-xl font-semibold tracking-tight text-violet-50/95 sm:text-2xl">
             {t("title")}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-base text-violet-100/85 sm:text-lg">

@@ -123,7 +123,7 @@
       "badge": "7 innovations · Margin Lock 7j · Live Profit",
       "sub": "Le seul marketplace où chaque produit affiche le profit net après frais, pubs et livraison. Marge verrouillée 7 jours. Pas de fausse livraison 3-7 jours.",
       "ticker": "120+ revendeurs · 14,2 k€ de profit moyen / mois",
-      "ctaPrimary": "Importer depuis Temu / TikTok — gratuit",
+      "ctaPrimary": "Ouvrir DropForge — gratuit",
       "ctaSecondary": "Créer mon compte revendeur"
     },
     "supplier": {
@@ -4832,16 +4832,16 @@
     }
   },
   "importPage": {
-    "metaTitle": "Importer Temu / TikTok → boutique Affisell",
-    "metaDescription": "Colle une URL Temu, TikTok Shop ou Amazon. Affisell crée ta fiche produit. Tu vends depuis ta boutique — sans stock.",
-    "badge": "Import URL · Sans stock",
-    "title": "Colle l’URL. Lance ta boutique.",
-    "subtitle": "Temu, TikTok Shop, Amazon, SHEIN… Affisell scrape la fiche, calcule ta marge, et pousse le produit dans ta vitrine. Les resellers Autods / DSers passent ici.",
+    "metaTitle": "DropForge — URL → boutique Affisell",
+    "metaDescription": "DropForge scrape Temu, TikTok Shop, Amazon ou SHEIN et forge ta fiche produit. Tu vends depuis ta boutique Affisell — sans stock.",
+    "badge": "DropForge · Sans stock",
+    "title": "Colle l’URL. Forge ta boutique.",
+    "subtitle": "Temu, TikTok Shop, Amazon, SHEIN… DropForge lit la fiche, calcule ta marge, et pousse le produit dans ta vitrine. Les resellers Autods / DSers passent ici.",
     "urlLabel": "URL produit",
     "urlPlaceholder": "https://www.temu.com/… ou shop.tiktok.com/…",
     "urlHint": "Colle le lien d’une fiche produit (pas la page d’accueil du site).",
-    "scanCta": "Scanner",
-    "scanning": "Scan…",
+    "scanCta": "Forger",
+    "scanning": "Forge…",
     "detected": "Détecté : {market}",
     "errEmpty": "Colle une URL produit.",
     "errHttps": "L’URL doit commencer par http:// ou https://",
@@ -4878,7 +4878,9 @@
     "step3Title": "3. Vends",
     "step3Body": "Fiche dans ta boutique Affisell. Paiement Stripe. Toi tu encaisses.",
     "tryExamples": "Essayer",
-    "emptyTitle": "Colle une URL — l’aperçu fiche apparaît ici",
-    "emptyBody": "Titre, images, coût source et prix de vente s’affichent après Scanner. Crée ton compte revendeur en 1 clic pour pousser la fiche dans ta boutique."
+    "emptyTitle": "Colle une URL — DropForge forge l’aperçu ici",
+    "emptyBody": "Titre, images, coût source et prix de vente s’affichent après Forger. Crée ton compte revendeur en 1 clic pour pousser la fiche dans ta boutique.",
+    "productName": "DropForge",
+    "productTag": "Affisell · DropForge"
   }
 }

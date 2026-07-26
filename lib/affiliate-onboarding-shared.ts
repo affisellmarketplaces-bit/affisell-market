@@ -5,15 +5,20 @@ export const AFFILIATE_FIRST_LISTING_HUB_HREF =
 
 export const AFFILIATE_RESELLER_SIGNUP_HREF = "/signup/affiliate" as const
 
-/** Public URL → boutique acquisition funnel (Temu / TikTok / Amazon). */
-export const AFFILIATE_URL_IMPORT_HREF = "/import" as const
+/**
+ * DropForge — public URL → boutique acquisition funnel (Temu / TikTok / Amazon).
+ * Legacy `/import` redirects here.
+ */
+export const AFFILIATE_URL_IMPORT_HREF = "/dropforge" as const
+export const DROPFORGE_HREF = AFFILIATE_URL_IMPORT_HREF
+export const DROPFORGE_PRODUCT_NAME = "DropForge" as const
 
 /** Guest → signup (then CGU → swipe hub). Signed-in affiliate → onboarding hub. */
 export function affiliateResellerOnboardingEntryHref(isAffiliateSession: boolean): string {
   return isAffiliateSession ? AFFILIATE_FIRST_LISTING_HUB_HREF : AFFILIATE_RESELLER_SIGNUP_HREF
 }
 
-/** Signup that returns to /import with the pasted URL for auto-preview. */
+/** Signup that returns to DropForge with the pasted URL for auto-preview. */
 export function affiliateUrlImportSignupHref(productUrl?: string | null): string {
   const next = productUrl?.trim()
     ? `${AFFILIATE_URL_IMPORT_HREF}?url=${encodeURIComponent(productUrl.trim())}&auto=1`

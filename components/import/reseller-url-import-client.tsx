@@ -20,6 +20,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { detectMarketplaceFromUrl } from "@/lib/import-marketplace"
 import {
   AFFILIATE_RESELLER_SIGNUP_HREF,
+  AFFILIATE_URL_IMPORT_HREF,
   affiliateUrlImportSignupHref,
 } from "@/lib/affiliate-onboarding-shared"
 import { loginAffiliatePath } from "@/lib/login-redirect"
@@ -204,7 +205,7 @@ export function ResellerUrlImportClient() {
           isListed?: boolean
         }
         if (res.status === 401) {
-          router.push(loginAffiliatePath(`/import?url=${encodeURIComponent(preview.sourceUrl)}`))
+          router.push(loginAffiliatePath(`${AFFILIATE_URL_IMPORT_HREF}?url=${encodeURIComponent(preview.sourceUrl)}`))
           return
         }
         if (!res.ok) throw new Error(data.error ?? t("errCommit"))
@@ -436,7 +437,7 @@ export function ResellerUrlImportClient() {
               </Link>
               <Link
                 href={loginAffiliatePath(
-                  `/import${url.trim() ? `?url=${encodeURIComponent(url.trim())}` : ""}`
+                  `${AFFILIATE_URL_IMPORT_HREF}${url.trim() ? `?url=${encodeURIComponent(url.trim())}` : ""}`
                 )}
                 className={cn(
                   buttonVariants({ variant: "outline" }),
@@ -483,7 +484,7 @@ export function ResellerUrlImportClient() {
           {t("alreadyAccount")}{" "}
           <Link
             href={loginAffiliatePath(
-              `/import${url.trim() ? `?url=${encodeURIComponent(url.trim())}` : ""}`
+              `${AFFILIATE_URL_IMPORT_HREF}${url.trim() ? `?url=${encodeURIComponent(url.trim())}` : ""}`
             )}
             className="font-semibold text-white underline underline-offset-2"
           >

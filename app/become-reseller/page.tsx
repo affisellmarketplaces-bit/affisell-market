@@ -57,7 +57,7 @@ export default async function BecomeResellerPage() {
 
           <div className="mt-8 flex flex-wrap gap-4">
             <Link
-              href="/import"
+              href="/dropforge"
               className={cn(
                 buttonVariants({ size: "lg" }),
                 "rounded-full bg-white px-6 font-medium text-violet-950 hover:bg-violet-50"

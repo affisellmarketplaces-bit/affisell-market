@@ -33,6 +33,9 @@ const nextConfig: NextConfig = {
       { source: "/legal/terms-affiliate", destination: "/conditions-affilie", permanent: true },
       { source: "/accessibility", destination: "/accessibilite", permanent: true },
       { source: "/gdpr", destination: "/dashboard/account/gdpr", permanent: false },
+      /** DropForge — keep /import bookmarks working. */
+      { source: "/import", destination: "/dropforge", permanent: true },
+      { source: "/import/:path*", destination: "/dropforge", permanent: true },
     ]
   },
   output: "standalone" as const,

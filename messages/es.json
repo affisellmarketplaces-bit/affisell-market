@@ -4455,7 +4455,7 @@
       "badge": "7 innovations · Margin Lock 7j · Live Profit",
       "sub": "The only marketplace where every product shows live net profit after fees, ads & shipping. Margin locked for 7 days. No fake 3-7 day delivery.",
       "ticker": "Trusted by 120+ resellers · €14.2k avg profit/mo",
-      "ctaPrimary": "Start reselling — It's free",
+      "ctaPrimary": "Abrir DropForge — gratis",
       "ctaSecondary": "Explore profitable products"
     },
     "supplier": {
@@ -4482,16 +4482,16 @@
     }
   },
   "importPage": {
-    "metaTitle": "Import Temu / TikTok → Affisell store",
-    "metaDescription": "Paste a Temu, TikTok Shop or Amazon URL. Affisell builds your listing. Sell from your storefront — zero inventory.",
-    "badge": "URL import · Zero inventory",
-    "title": "Paste the URL. Launch your store.",
-    "subtitle": "Temu, TikTok Shop, Amazon, SHEIN… Affisell scrapes the page, prices your margin, and pushes the product into your shop. Autods / DSers resellers start here.",
+    "metaTitle": "DropForge — URL → Affisell store",
+    "metaDescription": "DropForge scrapes Temu, TikTok Shop, Amazon or SHEIN and forges your product listing. Sell from your Affisell storefront — zero inventory.",
+    "badge": "DropForge · Zero inventory",
+    "title": "Paste the URL. Forge your store.",
+    "subtitle": "Temu, TikTok Shop, Amazon, SHEIN… DropForge reads the page, prices your margin, and pushes the product into your shop. Autods / DSers resellers start here.",
     "urlLabel": "Product URL",
     "urlPlaceholder": "https://www.temu.com/… or shop.tiktok.com/…",
     "urlHint": "Paste a product page link (not the marketplace homepage).",
-    "scanCta": "Scan",
-    "scanning": "Scanning…",
+    "scanCta": "Forge",
+    "scanning": "Forging…",
     "detected": "Detected: {market}",
     "errEmpty": "Paste a product URL.",
     "errHttps": "URL must start with http:// or https://",
@@ -4528,7 +4528,9 @@
     "step3Title": "3. Sell",
     "step3Body": "Listing on your Affisell shop. Stripe checkout. You get paid.",
     "tryExamples": "Try",
-    "emptyTitle": "Paste a URL — then see your listing preview",
-    "emptyBody": "Title, images, source cost and sell price appear here after Scan. Create your reseller account in one click to push it to your shop."
+    "emptyTitle": "Paste a URL — DropForge builds the preview here",
+    "emptyBody": "Title, images, source cost and sell price appear after Forge. Create your reseller account in one click to push it to your shop.",
+    "productName": "DropForge",
+    "productTag": "Affisell · DropForge"
   }
 }
