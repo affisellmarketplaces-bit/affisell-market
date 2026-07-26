@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache"
 
+import { ensureGhostStockSchema } from "@/lib/ghost/ensure-stock-schema"
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { looksLikeAffiliateListingId } from "@/lib/listing-public-url-shared"
 import { loadListingSocialProofCached } from "@/lib/marketplace-listing-social-proof"
@@ -124,6 +125,105 @@ const listingDetailSelectWithTrust = {
   },
 } as const
 
+/** Pre-Ghost-migration select — omits lastStock* so PDP stays up if migrate lags. */
+const listingDetailProductSelectWithoutGhost = {
+  id: true,
+  supplierId: true,
+  name: true,
+  description: true,
+  descriptionBullets: true,
+  descriptionIllustrationImages: true,
+  descriptionIllustrationVideos: true,
+  images: true,
+  categories: true,
+  colors: true,
+  tags: true,
+  variants: true,
+  colorImages: true,
+  customColumns: true,
+  hasVariants: true,
+  compareAt: true,
+  basePriceCents: true,
+  stock: true,
+  listingKind: true,
+  deliveryMin: true,
+  deliveryMax: true,
+  processingTime: true,
+  warehouseType: true,
+  warehouseCity: true,
+  shippingCountry: true,
+  deliveryCountryCodes: true,
+  shipsFrom: true,
+  freeShippingThreshold: true,
+  videoAdUrl: true,
+  videos: { select: { videoUrl: true }, take: 1 },
+  offerMode: true,
+  minOrderQuantity: true,
+  averageRating: true,
+  reviewCount: true,
+  reviewSentiment: true,
+  ugcCount: true,
+  tryOnEnabled: true,
+  tryOnGarmentUrl: true,
+  attributes: {
+    orderBy: { label: "asc" as const },
+    select: { label: true, key: true, value: true },
+  },
+  productVariants: {
+    select: {
+      id: true,
+      color: true,
+      size: true,
+      stock: true,
+      supplierPrice: true,
+      customData: true,
+    },
+  },
+  supplier: {
+    select: {
+      name: true,
+      isVerifiedSupplier: true,
+    },
+  },
+} as const
+
+const listingDetailSelectWithoutGhost = {
+  id: true,
+  affiliateId: true,
+  sellingPriceCents: true,
+  conversions: true,
+  customTitle: true,
+  customImages: true,
+  customDescription: true,
+  promotedColor: true,
+  promotedSize: true,
+  promotedVariantKeys: true,
+  variantPricing: true,
+  buyerRewardKind: true,
+  buyerRewardPercent: true,
+  showWarranty: true,
+  customSlug: true,
+  product: {
+    select: listingDetailProductSelectWithoutGhost,
+  },
+  affiliate: listingDetailSelect.affiliate,
+} as const
+
+function isListingOptionalColumnError(error: unknown): boolean {
+  return (
+    isPrismaMissingColumnError(error, "supplierTrustTier") ||
+    isPrismaMissingColumnError(error, "lastStockCheck") ||
+    isPrismaMissingColumnError(error, "lastStockStatus")
+  )
+}
+
+function isGhostStockColumnError(error: unknown): boolean {
+  return (
+    isPrismaMissingColumnError(error, "lastStockCheck") ||
+    isPrismaMissingColumnError(error, "lastStockStatus")
+  )
+}
+
 type ListingWhere = {
   id?: string
   productId?: string
@@ -169,6 +269,23 @@ function withTrustTier(
   } as ListingDetailRow
 }
 
+function normalizeListingDetailRow(row: {
+  product: Record<string, unknown> & {
+    lastStockCheck?: Date | null
+    lastStockStatus?: string | null
+    supplier: { name: string | null; isVerifiedSupplier: boolean }
+  }
+}): ListingDetailRowBase {
+  return {
+    ...row,
+    product: {
+      ...row.product,
+      lastStockCheck: row.product.lastStockCheck ?? null,
+      lastStockStatus: row.product.lastStockStatus ?? null,
+    },
+  } as ListingDetailRowBase
+}
+
 async function findListingDetailRow(where: ListingWhere): Promise<ListingDetailRow | null> {
   const whereClause = {
     ...(where.id ? { id: where.id } : {}),
@@ -178,6 +295,11 @@ async function findListingDetailRow(where: ListingWhere): Promise<ListingDetailR
     product: where.product,
     affiliate: where.affiliate,
   }
+
+  const finish = (
+    row: ListingDetailRowBase,
+    supplierTrustTier: string
+  ): ListingDetailRow => withTrustTier(row, supplierTrustTier)
 
   try {
     const row = await prisma.affiliateProduct.findFirst({
@@ -190,17 +312,54 @@ async function findListingDetailRow(where: ListingWhere): Promise<ListingDetailR
       typeof row.product.supplier.supplierTrustTier === "string"
         ? row.product.supplier.supplierTrustTier
         : "NONE"
-    return withTrustTier(row as ListingDetailRowBase, tier)
+    return finish(normalizeListingDetailRow(row as ListingDetailRowBase), tier)
   } catch (error: unknown) {
-    if (!isPrismaMissingColumnError(error, "supplierTrustTier")) throw error
+    if (!isListingOptionalColumnError(error)) throw error
+    if (isGhostStockColumnError(error)) {
+      await ensureGhostStockSchema()
+      try {
+        const row = await prisma.affiliateProduct.findFirst({
+          where: whereClause,
+          select: listingDetailSelectWithTrust,
+        })
+        if (!row?.product) return null
+        const tier =
+          "supplierTrustTier" in row.product.supplier &&
+          typeof row.product.supplier.supplierTrustTier === "string"
+            ? row.product.supplier.supplierTrustTier
+            : "NONE"
+        return finish(normalizeListingDetailRow(row as ListingDetailRowBase), tier)
+      } catch (retryError: unknown) {
+        if (!isListingOptionalColumnError(retryError)) throw retryError
+        console.log("[marketplace-listing]", {
+          result: "ghost_select_fallback",
+          error: retryError instanceof Error ? retryError.message : String(retryError),
+        })
+      }
+    }
+  }
+
+  try {
+    const row = await prisma.affiliateProduct.findFirst({
+      where: whereClause,
+      select: listingDetailSelect,
+    })
+    if (!row?.product) return null
+    return finish(normalizeListingDetailRow(row), "NONE")
+  } catch (error: unknown) {
+    if (!isGhostStockColumnError(error)) throw error
+    console.log("[marketplace-listing]", {
+      result: "legacy_select_without_ghost",
+      error: error instanceof Error ? error.message : String(error),
+    })
   }
 
   const row = await prisma.affiliateProduct.findFirst({
     where: whereClause,
-    select: listingDetailSelect,
+    select: listingDetailSelectWithoutGhost,
   })
   if (!row?.product) return null
-  return withTrustTier(row, "NONE")
+  return finish(normalizeListingDetailRow(row), "NONE")
 }
 
 type PublicListingResolve = {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { rateLimitClientKey, rateLimitResponseAsync } from "@/lib/api-rate-limit"
 import { checkStock } from "@/lib/ghost/check-stock"
+import { ensureGhostStockSchema } from "@/lib/ghost/ensure-stock-schema"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -18,6 +19,8 @@ export async function POST(req: Request) {
     prefix: "ghost-stock-check",
   })
   if (limited) return limited
+
+  await ensureGhostStockSchema()
 
   const body = (await req.json().catch(() => ({}))) as { productId?: string }
   const productId = typeof body.productId === "string" ? body.productId.trim() : ""

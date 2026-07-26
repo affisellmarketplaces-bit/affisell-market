@@ -390,7 +390,8 @@ body.affisell-demo-lab .affisell-header-shell {
     }
 
     .affisell-header-shell {
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: visible;
     }
 
     .affisell-header-shell::before {

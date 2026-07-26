@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
 import { checkStock } from "@/lib/ghost/check-stock"
+import { ensureGhostStockSchema } from "@/lib/ghost/ensure-stock-schema"
 import { opsWebhookAlert } from "@/lib/ops-webhook"
 import { prisma } from "@/lib/prisma"
 import { readResendDeliveryConfig, sendResendEmail } from "@/lib/emails/resend-delivery"
@@ -19,6 +20,8 @@ const STALE_MS = 6 * 60 * 60 * 1000
 export async function GET(req: Request) {
   const denied = authorizeCronRequest(req)
   if (denied) return denied
+
+  await ensureGhostStockSchema()
 
   const staleBefore = new Date(Date.now() - STALE_MS)
   const products = await prisma.product.findMany({
