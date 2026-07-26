@@ -70,21 +70,17 @@ function DockButton({
         "touch-manipulation transition-transform active:scale-[0.97]",
         mobile
           ? cn(
-              "flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-1.5",
-              variant === "buy" && "min-h-[3.55rem] shadow-[0_0_28px_-6px_rgba(124,58,237,0.85)]"
+              "flex aspect-square min-h-0 flex-col items-center justify-center gap-0.5 rounded-2xl px-0.5 py-1",
+              variant === "buy" &&
+                "aspect-auto min-h-[3.35rem] rounded-[1.15rem] shadow-[0_0_28px_-6px_rgba(124,58,237,0.85)]"
             )
           : "min-h-[2.75rem] w-full gap-1 px-1 py-2 sm:min-h-0 sm:gap-0.5 sm:py-2",
         variant === "buy" && !mobile && "sm:shadow-lg",
         className
       )}
     >
-      {direction && mobile ? (
-        <span className="text-[10px] font-black leading-none opacity-90" aria-hidden>
-          {DIRECTION_GLYPH[direction]}
-        </span>
-      ) : null}
       <Icon
-        className={cn("shrink-0", mobile ? "size-5" : "size-[18px] sm:size-5")}
+        className={cn("shrink-0", mobile ? "size-[1.15rem]" : "size-[18px] sm:size-5")}
         aria-hidden
       />
       <DockActionLabel direction={direction} layout={layout}>
@@ -105,7 +101,7 @@ function DockActionLabel({
 }) {
   if (layout === "mobile") {
     return (
-      <span className="max-w-full truncate text-[8px] font-bold uppercase tracking-[0.12em] leading-none">
+      <span className="max-w-full truncate text-[8px] font-bold uppercase tracking-[0.1em] leading-none">
         {children}
       </span>
     )
@@ -133,6 +129,7 @@ type Props = {
   onUndo: () => void
 }
 
+/** Mobile: tactile icons only (no keyboard glyphs). Desktop keeps ↑←→↓ hints. */
 export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }: Props) {
   const t = useTranslations("pulse.commerce")
   const disabled = busy || deckEmpty
@@ -142,16 +139,17 @@ export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }:
       data-testid="pulse-swipe-dock"
       className={cn(
         affisellBrand.epoxyPanel,
-        "affisell-swipe-dock affisell-swipe-dock-panel relative z-50 mx-auto w-full max-w-[380px] shrink-0 px-2 py-2 sm:px-4 sm:py-3",
+        "affisell-swipe-dock affisell-swipe-dock-panel relative z-50 mx-auto w-full max-w-[380px] shrink-0 px-2 py-1.5 sm:px-4 sm:py-3",
         "pb-[max(0.35rem,env(safe-area-inset-bottom))]"
       )}
     >
       <div className="relative mx-auto sm:hidden">
         <div
-          className="pointer-events-none absolute inset-x-[8%] top-[18%] h-px bg-gradient-to-r from-transparent via-violet-300/35 to-transparent"
+          className="pointer-events-none absolute inset-x-[10%] top-[20%] h-px bg-gradient-to-r from-transparent via-violet-300/30 to-transparent"
           aria-hidden
         />
-        <div className="grid grid-cols-[1fr_1.15fr_1fr_1fr_auto] items-stretch gap-1.5">
+        {/* Next · Cart · Undo · Buy · Save — thumb-friendly, no keyboard clutter */}
+        <div className="grid grid-cols-5 items-stretch gap-1.5">
           <DockButton
             layout="mobile"
             direction="left"
@@ -160,16 +158,6 @@ export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }:
             icon={ChevronLeft}
             disabled={disabled}
             onClick={() => onSwipe("left")}
-          />
-          <DockButton
-            layout="mobile"
-            direction="right"
-            label={t("buyShort")}
-            ariaLabel={t("buy")}
-            icon={Zap}
-            variant="buy"
-            disabled={disabled}
-            onClick={() => onSwipe("right")}
           />
           <DockButton
             layout="mobile"
@@ -183,6 +171,24 @@ export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }:
           />
           <DockButton
             layout="mobile"
+            label={t("undoShort")}
+            ariaLabel={t("undo")}
+            icon={RotateCcw}
+            disabled={!canUndo || busy}
+            onClick={onUndo}
+          />
+          <DockButton
+            layout="mobile"
+            direction="right"
+            label={t("buyShort")}
+            ariaLabel={t("buy")}
+            icon={Zap}
+            variant="buy"
+            disabled={disabled}
+            onClick={() => onSwipe("right")}
+          />
+          <DockButton
+            layout="mobile"
             direction="down"
             label={t("saveDropShort")}
             ariaLabel={t("saveDrop")}
@@ -190,15 +196,6 @@ export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }:
             variant="drop"
             disabled={disabled}
             onClick={() => onSwipe("down")}
-          />
-          <DockButton
-            layout="mobile"
-            label={t("undoShort")}
-            ariaLabel={t("undo")}
-            icon={RotateCcw}
-            disabled={!canUndo || busy}
-            onClick={onUndo}
-            className="!min-w-[2.65rem] !rounded-2xl !px-0"
           />
         </div>
       </div>

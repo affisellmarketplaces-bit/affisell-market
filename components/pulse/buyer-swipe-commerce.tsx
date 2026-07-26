@@ -443,13 +443,13 @@ export function BuyerSwipeCommerce({
         />
       </div>
 
-      <header className="affisell-swipe-header relative z-40 shrink-0 px-2 pb-1 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-3 sm:pb-2 sm:pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <header className="affisell-swipe-header relative z-40 shrink-0 px-2 pb-0.5 pt-[max(0.35rem,env(safe-area-inset-top))] sm:px-3 sm:pb-2 sm:pt-[max(0.75rem,env(safe-area-inset-top))]">
         {fetchError ? (
           <p
             role="alert"
             className={cn(
               affisellBrand.epoxyChip,
-              "mx-auto mb-1.5 max-w-[420px] rounded-xl px-2.5 py-1.5 text-center text-[11px] text-amber-100 sm:mb-2 sm:px-3 sm:py-2 sm:text-xs"
+              "mx-auto mb-1 max-w-[420px] rounded-xl px-2.5 py-1.5 text-center text-[11px] text-amber-100 sm:mb-2 sm:px-3 sm:py-2 sm:text-xs"
             )}
           >
             {fetchError}
@@ -458,26 +458,35 @@ export function BuyerSwipeCommerce({
         <div
           className={cn(
             affisellBrand.epoxyPanel,
-            "mx-auto flex max-w-[420px] items-center justify-between gap-1 px-2 py-1.5 sm:gap-2 sm:px-3 sm:py-2"
+            "mx-auto flex h-11 max-w-[420px] items-center justify-between gap-1.5 px-1.5 sm:h-auto sm:gap-2 sm:px-3 sm:py-2"
           )}
         >
           <Link
             href={exitHref}
+            aria-label={tPulse("exit")}
             className={cn(
               affisellBrand.epoxyChip,
-              "flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] font-medium text-white/90 sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs"
+              "flex size-9 shrink-0 items-center justify-center rounded-full text-white/90 sm:size-auto sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs"
             )}
           >
-            <ArrowLeft className="size-3.5 sm:size-4" aria-hidden />
+            <ArrowLeft className="size-4" aria-hidden />
             <span className="hidden sm:inline">{tPulse("exit")}</span>
           </Link>
-          <div className="flex min-w-0 flex-col items-center">
-            <span className={cn(affisellBrand.brandWordmark, "text-[13px] sm:text-sm")}>{tPulse("brand")}</span>
-            <span className="mt-0.5 flex items-center gap-1 sm:mt-1 sm:gap-1.5">
+
+          <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-1">
+            <div className="flex max-w-full items-center justify-center gap-1.5">
+              <span
+                className={cn(
+                  affisellBrand.brandWordmark,
+                  "truncate text-[13px] leading-none sm:text-sm"
+                )}
+              >
+                {tPulse("brand")}
+              </span>
               <span
                 className={cn(
                   affisellBrand.epoxyChip,
-                  "rounded-full px-1.5 py-px text-[8px] font-bold uppercase text-red-100 sm:py-0.5 sm:text-[9px]"
+                  "shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase leading-none text-red-100"
                 )}
               >
                 {tPulse("beta")}
@@ -486,26 +495,28 @@ export function BuyerSwipeCommerce({
                 <span
                   className={cn(
                     affisellBrand.epoxyChip,
-                    "rounded-full px-1.5 py-px text-[8px] font-bold uppercase text-violet-100 sm:py-0.5 sm:text-[9px]"
+                    "hidden shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase text-violet-100 sm:inline-flex"
                   )}
                 >
                   {t("rewindBadge")}
                 </span>
               ) : null}
-            </span>
+            </div>
             {categoryLabel ? (
-              <p className="mt-0.5 max-w-[9rem] truncate text-[9px] text-zinc-400 sm:max-w-[12rem] sm:text-[10px]">
+              <p className="mt-0.5 hidden max-w-[12rem] truncate text-[10px] text-zinc-400 sm:block">
                 {categoryLabel}
               </p>
             ) : null}
           </div>
-          <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
-            <LanguageSwitcher className="shrink-0 scale-[0.88] sm:scale-100 [&_button]:border-white/15 [&_button]:bg-black/40 [&_button]:text-white" />
+
+          <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
+            <LanguageSwitcher className="hidden shrink-0 sm:block [&_button]:border-white/15 [&_button]:bg-black/40 [&_button]:text-white" />
             <PulseLayoutModeLink
               target="scroll"
               label={t("scrollModeShort")}
               categoryId={categoryId}
               subcategoryId={subcategoryId}
+              className="!size-9 !justify-center !gap-0 !px-0 sm:!size-auto sm:!gap-1.5 sm:!px-2.5 [&_span]:hidden sm:[&_span]:inline"
             />
             <PulseHeaderCartLink />
             <span
