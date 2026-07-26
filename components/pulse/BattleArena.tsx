@@ -26,9 +26,14 @@ export function BattleArena() {
         cache: "no-store",
         credentials: "include",
       })
-      const data = (await res.json()) as { ok?: boolean; battle?: BattlePayload; error?: string }
+      const data = (await res.json()) as {
+        ok?: boolean
+        battle?: BattlePayload
+        error?: string
+        message?: string
+      }
       if (!res.ok || !data.battle) {
-        setError(data.error || "unavailable")
+        setError(data.message || data.error || "unavailable")
         return
       }
       setBattle(data.battle)
@@ -54,6 +59,26 @@ export function BattleArena() {
     if (!battle || battle.status !== "live" || battle.alreadyVotedProductId || voting) return
     setVoting(true)
     try {
+      // Ephemeral demo battles: optimistic local vote only
+      if (battle.id.startsWith("demo_")) {
+        setBattle((prev) => {
+          if (!prev) return prev
+          const votesA = productId === prev.productA.id ? prev.votesA + 1 : prev.votesA
+          const votesB = productId === prev.productB.id ? prev.votesB + 1 : prev.votesB
+          const total = votesA + votesB
+          return {
+            ...prev,
+            votesA,
+            votesB,
+            totalVoters: prev.totalVoters + 1,
+            alreadyVotedProductId: productId,
+            pctA: total > 0 ? Math.round((votesA / total) * 100) : 50,
+            pctB: total > 0 ? 100 - Math.round((votesA / total) * 100) : 50,
+          }
+        })
+        return
+      }
+
       const res = await fetch("/api/pulse/battle/vote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -104,10 +129,24 @@ export function BattleArena() {
 
   if (error && !battle) {
     return (
-      <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 bg-black px-6 text-center text-white">
+      <div className="fixed inset-0 z-[200] flex min-h-[100dvh] flex-col items-center justify-center gap-4 bg-black px-6 text-center text-white">
         <p className="text-lg font-semibold">Battle indisponible</p>
-        <p className="text-sm text-white/50">Reviens à 18h Europe/Paris — ou lance le cron create.</p>
-        <Link href="/discover" className="rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black">
+        <p className="max-w-sm text-sm text-white/50">
+          {error === "NO_BATTLE_PRODUCTS"
+            ? "Pas assez de produits listés pour lancer un duel."
+            : "On prépare l’arène — réessaie dans quelques secondes."}
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setError(null)
+            void refresh()
+          }}
+          className="rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black"
+        >
+          Réessayer
+        </button>
+        <Link href="/discover" className="text-xs text-white/50 hover:text-white">
           Retour Pulse
         </Link>
       </div>
@@ -116,7 +155,7 @@ export function BattleArena() {
 
   if (!battle) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-black text-sm text-white/50">
+      <div className="fixed inset-0 z-[200] flex min-h-[100dvh] items-center justify-center bg-black text-sm text-white/50">
         Chargement du battle…
       </div>
     )
@@ -134,7 +173,7 @@ export function BattleArena() {
 
   return (
     <div
-      className="flex h-[100dvh] w-screen flex-col overflow-hidden bg-black"
+      className="fixed inset-0 z-[200] flex h-[100dvh] w-screen flex-col overflow-hidden bg-black"
       data-testid="battle-arena"
     >
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4 sm:px-6">

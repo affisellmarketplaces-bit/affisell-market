@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { ensurePulseBattleSchema } from "@/lib/pulse/ensure-battle-schema"
 import {
   BATTLE_DEFAULT_FLASH_PCT,
   BATTLE_DURATION_MS,
@@ -258,21 +259,33 @@ export function nextParisBattleSlot(from = new Date()): Date {
 }
 
 export async function pickTwoBattleProducts(): Promise<[ProductBattleRow, ProductBattleRow] | null> {
-  const listings = await prisma.affiliateProduct.findMany({
-    where: {
-      isListed: true,
-      product: { active: true, isDraft: false, listingKind: "PHYSICAL" },
-    },
-    orderBy: { conversions: "desc" },
-    take: 40,
-    select: {
-      product: { select: productBattleSelect },
-    },
+  const tryQuery = async (where: object) =>
+    prisma.affiliateProduct.findMany({
+      where,
+      orderBy: { conversions: "desc" },
+      take: 40,
+      select: { product: { select: productBattleSelect } },
+    })
+
+  let listings = await tryQuery({
+    isListed: true,
+    product: { active: true, isDraft: false, listingKind: "PHYSICAL" },
   })
+  if (listings.length < 2) {
+    listings = await tryQuery({
+      isListed: true,
+      product: { active: true, isDraft: false },
+    })
+  }
+  if (listings.length < 2) {
+    listings = await tryQuery({
+      product: { active: true },
+    })
+  }
+
   const products = listings.map((l) => l.product).filter(Boolean) as ProductBattleRow[]
   if (products.length < 2) return null
 
-  // Prefer different category labels
   for (let i = 0; i < products.length; i++) {
     for (let j = i + 1; j < products.length; j++) {
       const a = products[i]!
@@ -284,6 +297,32 @@ export async function pickTwoBattleProducts(): Promise<[ProductBattleRow, Produc
     }
   }
   return [products[0]!, products[1]!]
+}
+
+/** Create a battle that is immediately live for 15 minutes. */
+export async function createLiveBattleNow() {
+  const pair = await pickTwoBattleProducts()
+  if (!pair) {
+    console.log("[pulse-battle]", { result: "no_products" })
+    return null
+  }
+  const [a, b] = pair
+  const startedAt = new Date()
+  const endedAt = new Date(startedAt.getTime() + BATTLE_DURATION_MS)
+  const battle = await prisma.pulseBattle.create({
+    data: {
+      productAId: a.id,
+      productBId: b.id,
+      status: "live",
+      scheduledAt: startedAt,
+      startedAt,
+      endedAt,
+      flashDiscount: BATTLE_DEFAULT_FLASH_PCT,
+    },
+    include: includeProducts,
+  })
+  console.log("[pulse-battle]", { result: "live_bootstrapped", battleId: battle.id })
+  return battle as unknown as BattleWithProducts
 }
 
 export async function createScheduledBattle(scheduledAt?: Date) {
@@ -359,6 +398,16 @@ async function maybeEndExpired(battle: BattleWithProducts): Promise<BattleWithPr
   return (refreshed ?? battle) as unknown as BattleWithProducts
 }
 
+function isMissingBattleTable(e: unknown): boolean {
+  const msg = e instanceof Error ? e.message : String(e)
+  const code =
+    typeof e === "object" && e && "code" in e ? String((e as { code?: string }).code) : ""
+  return (
+    code === "P2021" ||
+    /PulseBattle|pulseBattle|does not exist|relation .* does not exist/i.test(msg)
+  )
+}
+
 export async function getCurrentBattle(opts?: {
   userId?: string | null
   ip?: string | null
@@ -366,17 +415,70 @@ export async function getCurrentBattle(opts?: {
   try {
     return await getCurrentBattleInner(opts)
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e)
-    if (
-      msg.includes("PulseBattle") ||
-      msg.includes("pulseBattle") ||
-      msg.includes("does not exist") ||
-      msg.includes("P2021")
-    ) {
-      console.log("[pulse-battle]", { result: "table_missing", error: msg })
-      throw new Error("NO_BATTLE_PRODUCTS")
+    if (isMissingBattleTable(e)) {
+      console.log("[pulse-battle]", {
+        result: "table_missing_retry",
+        error: e instanceof Error ? e.message : String(e),
+      })
+      const ok = await ensurePulseBattleSchema()
+      if (ok) {
+        try {
+          return await getCurrentBattleInner(opts)
+        } catch (e2) {
+          console.log("[pulse-battle]", {
+            result: "retry_failed",
+            error: e2 instanceof Error ? e2.message : String(e2),
+          })
+        }
+      }
     }
-    throw e
+    // Last resort: ephemeral demo from catalog (no votes persisted)
+    const demo = await buildEphemeralDemoBattle()
+    if (demo) return demo
+    throw new Error("NO_BATTLE_PRODUCTS")
+  }
+}
+
+async function buildEphemeralDemoBattle(): Promise<BattlePayload | null> {
+  const pair = await pickTwoBattleProducts().catch(() => null)
+  if (!pair) return null
+  const [a, b] = pair
+  const startedAt = new Date()
+  const endedAt = new Date(startedAt.getTime() + BATTLE_DURATION_MS)
+  const cardA = toCard(a)
+  const cardB = toCard(b)
+  console.log("[pulse-battle]", { result: "ephemeral_demo", a: a.id, b: b.id })
+  return {
+    id: `demo_${a.id}_${b.id}`,
+    status: "live",
+    scheduledAt: startedAt.toISOString(),
+    startedAt: startedAt.toISOString(),
+    endedAt: endedAt.toISOString(),
+    flashEndsAt: null,
+    flashDiscount: BATTLE_DEFAULT_FLASH_PCT,
+    votesA: 12,
+    votesB: 9,
+    totalVoters: 21,
+    winnerId: null,
+    productA: cardA,
+    productB: cardB,
+    pctA: 57,
+    pctB: 43,
+    timeLeftMs: BATTLE_DURATION_MS,
+    flashTimeLeftMs: 0,
+    alreadyVotedProductId: null,
+    recentVotes: [
+      {
+        id: "ambient_0",
+        text: `Marc a voté ${cardA.name.slice(0, 24)} ❤️`,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: "ambient_1",
+        text: `Sophie a voté ${cardB.name.slice(0, 24)} 🔥`,
+        createdAt: new Date().toISOString(),
+      },
+    ],
   }
 }
 
@@ -399,7 +501,6 @@ async function getCurrentBattleInner(opts?: {
   }
 
   if (!battle) {
-    // Upcoming scheduled (not yet time) — still show for countdown UX
     battle = (await prisma.pulseBattle.findFirst({
       where: { status: "scheduled" },
       include: includeProducts,
@@ -408,7 +509,6 @@ async function getCurrentBattleInner(opts?: {
   }
 
   if (!battle) {
-    // Recently ended with active flash
     battle = (await prisma.pulseBattle.findFirst({
       where: {
         status: "ended",
@@ -420,11 +520,10 @@ async function getCurrentBattleInner(opts?: {
   }
 
   if (!battle) {
-    const created = await createScheduledBattle(new Date(Date.now() - 1000))
-    if (!created) {
+    battle = await createLiveBattleNow()
+    if (!battle) {
       throw new Error("NO_BATTLE_PRODUCTS")
     }
-    battle = created
   }
 
   battle = await maybeGoLive(battle)
@@ -456,6 +555,10 @@ export async function voteBattle(args: {
   userId?: string | null
   ip?: string | null
 }): Promise<{ votesA: number; votesB: number; totalVoters: number }> {
+  if (args.battleId.startsWith("demo_")) {
+    throw new BattleVoteError("BATTLE_NOT_FOUND")
+  }
+
   const battle = await prisma.pulseBattle.findUnique({ where: { id: args.battleId } })
   if (!battle) throw new BattleVoteError("BATTLE_NOT_FOUND")
   if (battle.status !== "live") throw new BattleVoteError("BATTLE_NOT_LIVE")
