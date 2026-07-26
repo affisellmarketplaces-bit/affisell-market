@@ -86,6 +86,13 @@ function stripLeadingBrandToken(tokens: string[]): string[] {
 }
 
 function isLikelyBrandToken(token: string): boolean {
+  if (
+    /^(connecte|connectee|connectes|connectees|intelligente|intelligent|smart|gps|cardio|sport|fitness|tracker|band|bracelet)$/i.test(
+      token
+    )
+  ) {
+    return false
+  }
   return (
     /^[a-z0-9][a-z0-9-]{2,11}$/i.test(token) &&
     !PRODUCT_HEAD_NOUN.test(token) &&
@@ -219,7 +226,16 @@ export function buildListingProductContext(
     options?.bullets
   )
   const { productName, coreTokens, confidence } = extractProductIdentityFromTitle(t)
-  const classificationFocus = productName.length >= 3 ? productName : t
+  let classificationFocus = productName.length >= 3 ? productName : t
+  /** Identity extraction can drop "connectée" (treated as brand) — keep wearable compounds. */
+  if (
+    /\bmontre\s*connect|smart\s*watch|bracelet\s*connect|smart\s*band|montre\s+intelligente/i.test(t) &&
+    !/\bmontre\s*connect|smart\s*watch|bracelet\s*connect|smart\s*band|montre\s+intelligente/i.test(
+      classificationFocus
+    )
+  ) {
+    classificationFocus = t.slice(0, 160)
+  }
 
   return {
     title: t,

@@ -35,10 +35,14 @@ export function isDurableListingImageUrl(imageUrl?: string | null): boolean {
   return img.length > LISTING_CLASSIFY_MIN_IMAGE_URL_LEN && !img.startsWith("blob:")
 }
 
-/** Trigger listing suggest API when title + durable photo, or descriptive title-only (keyword path). */
+/** Trigger listing suggest API when title + durable photo, or a clear product noun / longer title. */
 export function hasListingClassificationSignal(title: string, imageUrl?: string | null): boolean {
   const t = title.trim()
   if (t.length < LISTING_CLASSIFY_MIN_TITLE_LEN) return false
   if (isDurableListingImageUrl(imageUrl)) return true
+  /** Single-token product nouns (Montre, iPhone…) — skip ultra-short fillers like "Pro". */
+  if (!/\s/.test(t) && t.length >= 6 && /^[\p{L}\p{N}][\p{L}\p{N}\-']{4,40}$/u.test(t)) {
+    return true
+  }
   return t.length >= LISTING_CLASSIFY_MIN_TITLE_ONLY_LEN
 }

@@ -40,6 +40,14 @@ const MOSQUITO_LEAVES: LeafPath[] = [
 ]
 
 describe("extractProductIdentityFromTitle", () => {
+  it("keeps product identity for montre connectée titles", () => {
+    const { productName } = extractProductIdentityFromTitle(
+      "Montre connectée sport GPS cardio sommeil"
+    )
+    expect(productName.toLowerCase()).toMatch(/montre/)
+    expect(productName.toLowerCase()).toMatch(/connect/)
+  })
+
   it("extracts ventilateur from noisy marketplace title", () => {
     const r = extractProductIdentityFromTitle(
       "Ventilateur portable USB rechargeable mini bureau | Livraison gratuite | Noir"

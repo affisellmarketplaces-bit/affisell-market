@@ -87,7 +87,7 @@ const PRODUCT_INTENTS: ProductIntent[] = [
   {
     id: "activity_tracker",
     match:
-      /\b(smart\s*band|mi\s*band|bracelet\s*connect|montre\s*connect|fitness\s*tracker|tracker\s*d['']activit|galaxy\s*fit|amazfit|fitbit|oura|whoop|honor\s*band|xiaomi\s*(smart\s*)?band|podometre\s*connect|activity\s*tracker)\b/i,
+      /\b(smart\s*bands?|mi\s*bands?|bracelet\s*connect\w*|montre\s*connect\w*|smart\s*watches?|montre\s+intelligente\w*|fitness\s*trackers?|tracker\s*d['']activit\w*|galaxy\s*fit|amazfit|fitbit|oura|whoop|honor\s*bands?|xiaomi\s*(smart\s*)?bands?|podometre\s*connect\w*|activity\s*trackers?)\b/i,
     boost: [
       /moniteurs?\s+d['']activit/i,
       /moniteurs?\s+biometriques?/i,
@@ -105,6 +105,26 @@ const PRODUCT_INTENTS: ProductIntent[] = [
       /telephones?\s+mobiles?/i,
       /bijoux\s*>\s*[^>]*montres/i,
       /montres\s+de\s+poche/i,
+      /accessoires\s+pour\s+moniteurs\s+d['']activit/i,
+    ],
+  },
+  {
+    id: "wrist_watch",
+    match:
+      /\b(montres?|watches?|wrist\s*watches?|montre\s+(?:homme|femme|luxe|mecanique|automatique|quartz)|montre\s+bracelet|montre\s+de\s+(?:luxe|poche)|chronographe|horlogerie)\b/i,
+    boost: [
+      /bijoux\s*>\s*montres\b/i,
+      /^vetements et accessoires\s*>\s*bijoux\s*>\s*montres$/i,
+      /\bmontres\b(?!\s+de\s+poche)/i,
+    ],
+    penalize: [
+      /accessoires\s+pour\s+montres/i,
+      /bracelets?\s+de\s+montres/i,
+      /kits?\s+de\s+reparation\s+pour\s+montres/i,
+      /stickers?\s+et\s+decalcomanies\s+pour\s+montres/i,
+      /horloges?\s+(murales|de\s+bureau|de\s+parquet|et\s+pointeuses)/i,
+      /pieces?\s+d['']horloges/i,
+      /moniteurs?\s+d['']activit/i,
     ],
   },
   {
@@ -359,7 +379,22 @@ const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number 
     points: 34,
   },
   {
-    phrase: /montre\s+connect/i, breadcrumb: /moniteurs?\s+d['']activit/i, points: 18 },
+    phrase: /montre\s+connect|smart\s*watch|montre\s+intelligente/i,
+    breadcrumb: /moniteurs?\s+d['']activit/i,
+    points: 18,
+  },
+  {
+    /** Plain watch titles — do not fire on "montre connectée" (activity trackers win). */
+    phrase: /\bmontres?\b(?!\s*connect)|\bwatches?\b(?!\s*connect)|\bwrist\s*watch/i,
+    breadcrumb: /bijoux\s*>\s*montres\b|^vetements et accessoires\s*>\s*bijoux\s*>\s*montres$/i,
+    points: 20,
+  },
+  {
+    phrase: /\bmontres?\b|\bwatches?\b/i,
+    breadcrumb:
+      /accessoires\s+pour\s+montres|bracelets?\s+de\s+montres|kits?\s+de\s+reparation\s+pour\s+montres|stickers?\s+.*montres/i,
+    points: -28,
+  },
   {
     phrase: /trottinette\s+electrique|scooter\s*electrique|e-?scooter/i,
     breadcrumb: /trottinettes?/i,
@@ -693,6 +728,17 @@ export function scoreProductTextAgainstBreadcrumb(text: string, breadcrumb: stri
 
   for (const { phrase, breadcrumb: bRx, points } of PHRASE_BOOSTS) {
     if (phrase.test(normText) && bRx.test(b)) score += points
+  }
+
+  /** Exact / French-morphology match on the leaf segment (e.g. titre "Montre" → leaf "Montres"). */
+  const leafSeg = b.split(">").pop()?.trim() ?? ""
+  if (leafSeg.length >= 3) {
+    for (const w of words) {
+      if (tokenMatchesSearchWord(leafSeg, w)) {
+        score += 4
+        break
+      }
+    }
   }
 
   for (const w of words) {

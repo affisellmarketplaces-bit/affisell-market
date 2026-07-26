@@ -19,6 +19,11 @@ const prisma = new PrismaClient()
 
 const CASES = [
   {
+    label: "Montre (titre court)",
+    title: "Montre",
+    description: "",
+  },
+  {
     label: "Montre connectée",
     title: "Montre connectée sport GPS cardio sommeil",
     description: "",
@@ -57,8 +62,27 @@ async function main() {
       suggestions: listing.suggestions.slice(0, 3).map((s) => ({
         breadcrumb: s.breadcrumb,
         confidence: s.confidence,
+        source: s.suggestionSource,
       })),
     })
+    if (c.label.startsWith("Montre (titre")) {
+      const ok = listing.suggestions.some((s) => /Bijoux\s*>\s*Montres/i.test(s.breadcrumb))
+      if (!ok) {
+        console.error("FAIL: expected Bijoux > Montres for plain Montre")
+        process.exitCode = 1
+      }
+    }
+    if (c.label.startsWith("Montre connect")) {
+      const jewelry = listing.suggestions.some((s) => /Bijoux\s*>\s*Montres/i.test(s.breadcrumb))
+      const activity = listing.suggestions.some((s) => /Moniteurs d'activité/i.test(s.breadcrumb))
+      if (jewelry || !activity) {
+        console.error("FAIL: Montre connectée should suggest activity monitors, not jewelry", {
+          jewelry,
+          activity,
+        })
+        process.exitCode = 1
+      }
+    }
   }
 }
 

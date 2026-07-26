@@ -56,7 +56,22 @@ function isViableListingCategory(
   breadcrumb: string
 ): boolean {
   if (categoryOnlyMatchesDescriptionNoise(ctx, breadcrumb)) return false
-  return isCategorySuggestionViable(listingViabilityText(ctx), breadcrumb)
+  if (!isCategorySuggestionViable(listingViabilityText(ctx), breadcrumb)) return false
+
+  /** "Montre connectée" must not land in bijouterie when wearable intent wins. */
+  const focus = listingViabilityText(ctx)
+  if (
+    /\bmontre\s*connect|smart\s*watch|bracelet\s*connect|smart\s*band/i.test(focus) &&
+    /bijoux\s*>\s*montres|^vetements et accessoires\s*>\s*bijoux\s*>\s*montres$/i.test(
+      breadcrumb
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+    )
+  ) {
+    return false
+  }
+  return true
 }
 
 function mergeAiAndKeyword(
@@ -151,7 +166,7 @@ export async function suggestListingCategories(
   }
 
   const keywordFallback = suggestLeafCategoriesFromProductText(
-    ctx.classificationFocus,
+    ctx.title,
     "",
     leafPaths,
     LISTING_CATEGORY_SUGGESTION_LIMIT + 2
@@ -184,9 +199,13 @@ export async function suggestListingCategories(
     })
 
     if (identity?.productNameFr) {
-      ctx = { ...ctx, productName: identity.productNameFr, classificationFocus: identity.productNameFr }
-      if (t.length < 5 && identity.productNameFr.length >= 3) {
-        suggestedProductName = identity.productNameFr
+      const nameFr = identity.productNameFr.trim()
+      /** Keep supplier title in focus — vision often shortens "Montre connectée" → "montre". */
+      const focusParts = [t, nameFr].map((s) => s.trim()).filter(Boolean)
+      const classificationFocus = [...new Set(focusParts)].join(" ").slice(0, 240)
+      ctx = { ...ctx, productName: nameFr, classificationFocus }
+      if (t.length < 5 && nameFr.length >= 3) {
+        suggestedProductName = nameFr
       }
     }
 
@@ -215,6 +234,13 @@ export async function suggestListingCategories(
     seenMerged.add(lp.leafId)
     finalMerged.push(lp)
   }
+
+  /** Rank by live score so keyword intent beats a weak AI jewelry pick for "montre connectée". */
+  finalMerged.sort(
+    (a, b) =>
+      scoreListingContextAgainstBreadcrumb(ctx, b.breadcrumb) -
+      scoreListingContextAgainstBreadcrumb(ctx, a.breadcrumb)
+  )
 
   const suggestions: ListingCategorySuggestion[] = finalMerged.map((lp) => {
     const fromCatalog = catalogIds.has(lp.leafId)

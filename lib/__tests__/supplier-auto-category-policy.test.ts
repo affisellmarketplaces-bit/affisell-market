@@ -10,6 +10,7 @@ describe("supplier-auto-category-policy", () => {
     const img = "https://cdn.example.com/a.jpg"
     expect(hasListingClassificationSignal("", img)).toBe(false)
     expect(hasListingClassificationSignal("ab", img)).toBe(false)
+    expect(hasListingClassificationSignal("Montre", null)).toBe(true)
     expect(hasListingClassificationSignal("Commode 6 tiroirs", null)).toBe(true)
     expect(hasListingClassificationSignal("Stylo multifonction", img)).toBe(true)
     expect(hasListingClassificationSignal("Sony Playstation Portal PS5", null)).toBe(true)

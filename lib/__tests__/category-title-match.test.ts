@@ -151,6 +151,30 @@ const FIXTURE_LEAVES: LeafPath[] = [
 ]
 
 describe("category-title-match", () => {
+  it("keeps activity monitors ahead of jewelry for montre connectée", () => {
+    const title = "Montre connectée sport GPS"
+    const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
+    expect(picks[0]?.leafId).toBe("activity")
+  })
+
+  it("suggests Bijoux > Montres for a plain watch title", () => {
+    const picks = suggestLeafCategoriesFromProductText("Montre", "", FIXTURE_LEAVES, 3)
+    expect(picks.length).toBeGreaterThan(0)
+    expect(picks[0]?.leafId).toBe("watches-jewelry")
+    expect(picks.some((p) => p.leafId === "activity")).toBe(false)
+  })
+
+  it("ranks jewelry watches above watch accessories for Montre", () => {
+    const jewelry = scoreProductTextAgainstBreadcrumb(
+      "Montre",
+      FIXTURE_LEAVES.find((l) => l.leafId === "watches-jewelry")!.breadcrumb
+    )
+    expect(jewelry).toBeGreaterThanOrEqual(7)
+    expect(isCategorySuggestionViable("Montre", FIXTURE_LEAVES.find((l) => l.leafId === "watches-jewelry")!.breadcrumb)).toBe(
+      true
+    )
+  })
+
   it("ranks activity monitors above connectors for a smart band title", () => {
     const title = "Xiaomi Smart Band 10, Montre Connectée"
     const description = "Suivi du sommeil amélioré, écran AMOLED 1.72 pouces, autonomie 21 jours"
