@@ -1018,6 +1018,36 @@ body.affisell-demo-lab .affisell-header-shell {
     -webkit-backdrop-filter: blur(12px);
   }
 
+  /** Footer trust / legal single-line rails — edge fades signal more content. */
+  .affisell-footer-scroll-rail {
+    --affisell-rail-fade: 1.75rem;
+  }
+
+  .affisell-footer-scroll-rail__track {
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 var(--affisell-rail-fade-l, 0px),
+      #000 calc(100% - var(--affisell-rail-fade-r, 0px)),
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 var(--affisell-rail-fade-l, 0px),
+      #000 calc(100% - var(--affisell-rail-fade-r, 0px)),
+      transparent 100%
+    );
+  }
+
+  .affisell-footer-scroll-rail--fade-l {
+    --affisell-rail-fade-l: var(--affisell-rail-fade);
+  }
+
+  .affisell-footer-scroll-rail--fade-r {
+    --affisell-rail-fade-r: var(--affisell-rail-fade);
+  }
+
   .dark .affisell-mobile-dock-epoxy {
     border-color: color-mix(in srgb, var(--brand-light) 22%, white 8%);
     background:

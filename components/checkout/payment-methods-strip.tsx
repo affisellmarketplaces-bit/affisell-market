@@ -1,5 +1,6 @@
 import { PaymentMethodBrandIcon } from "@/components/checkout/payment-method-brand-icons"
 import { PaymentStripeProcessorBadge } from "@/components/checkout/payment-stripe-processor-badge"
+import { FooterScrollRail } from "@/components/footer/footer-scroll-rail"
 import {
   paymentMethodBrandLabel,
   paymentMethodBrandsForDisplay,
@@ -36,6 +37,25 @@ const dividerByVariant: Record<Variant, string> = {
   compact: "bg-zinc-200 dark:bg-zinc-700",
 }
 
+function PaymentBrandTiles({
+  brands,
+  tile,
+}: {
+  brands: PaymentMethodBrandId[]
+  tile: string
+}) {
+  return (
+    <>
+      {brands.map((brand) => (
+        <span key={brand} className={tile} title={paymentMethodBrandLabel(brand)}>
+          <PaymentMethodBrandIcon brand={brand} className="max-h-7 w-auto" />
+          <span className="sr-only">{paymentMethodBrandLabel(brand)}</span>
+        </span>
+      ))}
+    </>
+  )
+}
+
 export function PaymentMethodsStrip({
   className,
   variant = "footer",
@@ -48,44 +68,46 @@ export function PaymentMethodsStrip({
   if (brands.length === 0 && !showStripeLead) return null
 
   const tile = cn(
-    "flex h-9 w-[3.25rem] shrink-0 items-center justify-center overflow-hidden rounded-lg border p-1 transition duration-300 sm:h-10 sm:w-[3.5rem]",
+    "flex h-9 w-[3.25rem] shrink-0 snap-start items-center justify-center overflow-hidden rounded-lg border p-1 transition duration-300 sm:h-10 sm:w-[3.5rem]",
     tileByVariant[variant]
+  )
+
+  const row = (
+    <>
+      {showStripeLead ? (
+        <PaymentStripeProcessorBadge
+          variant={variant}
+          secureLabel={processorSecureLabel}
+          className="shrink-0 snap-start"
+        />
+      ) : null}
+
+      {showStripeLead && brands.length > 0 ? (
+        <span
+          className={cn("hidden h-10 w-px shrink-0 sm:block", dividerByVariant[variant])}
+          aria-hidden
+        />
+      ) : null}
+
+      {brands.length > 0 ? <PaymentBrandTiles brands={brands} tile={tile} /> : null}
+    </>
   )
 
   return (
     <div className={cn("space-y-3", className)} data-testid="payment-methods-strip">
-      <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-        {showStripeLead ? (
-          <PaymentStripeProcessorBadge
-            variant={variant}
-            secureLabel={processorSecureLabel}
-          />
-        ) : null}
-
-        {showStripeLead && brands.length > 0 ? (
-          <span
-            className={cn("hidden h-10 w-px shrink-0 sm:block", dividerByVariant[variant])}
-            aria-hidden
-          />
-        ) : null}
-
-        {brands.length > 0 ? (
-          <ul
-            className="flex flex-wrap items-center gap-2"
-            role="list"
-            aria-label={ariaLabel}
-          >
-            {brands.map((brand) => (
-              <li key={brand} role="listitem">
-                <span className={tile} title={paymentMethodBrandLabel(brand)}>
-                  <PaymentMethodBrandIcon brand={brand} className="max-h-7 w-auto" />
-                  <span className="sr-only">{paymentMethodBrandLabel(brand)}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
+      {variant === "footer" ? (
+        <FooterScrollRail ariaLabel={ariaLabel} density="default">
+          {row}
+        </FooterScrollRail>
+      ) : (
+        <div
+          className="flex flex-wrap items-center gap-2.5 sm:gap-3"
+          role="group"
+          aria-label={ariaLabel}
+        >
+          {row}
+        </div>
+      )}
       {complianceNote ? (
         <p
           className={cn(
