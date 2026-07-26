@@ -1,12 +1,12 @@
 "use client"
 
 import { geoMercator, geoPath } from "d3-geo"
-import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { feature } from "topojson-client"
 import type { Topology } from "topojson-specification"
 import type { FeatureCollection, Geometry } from "geojson"
 
+import { RadarCountryIntelDrawer } from "@/components/radar/RadarCountryIntelDrawer"
 import {
   MOCK_MAP_STATS,
   WORLD_GEO_JSON_URL,
@@ -36,10 +36,10 @@ export default function RadarWorldMap({
   demo?: boolean
   className?: string
 }) {
-  const router = useRouter()
   const [geographies, setGeographies] = useState<FeatureCollection<Geometry> | null>(null)
   const [tooltip, setTooltip] = useState<TooltipState>(null)
   const [loadError, setLoadError] = useState(false)
+  const [selected, setSelected] = useState<CountryMapStat | null>(null)
 
   const data = stats.length > 0 ? stats : MOCK_MAP_STATS
   const maxCount = Math.max(...data.map((d) => d.count), 1)
@@ -90,85 +90,119 @@ export default function RadarWorldMap({
     })
     .filter((m): m is { stat: CountryMapStat; x: number; y: number } => m != null)
 
+  const openCountry = (stat: CountryMapStat) => {
+    setTooltip(null)
+    setSelected(stat)
+    console.log("[radar/map]", {
+      event: "country_pulse_click",
+      country: stat.country,
+      count: stat.count,
+      destination: "country_intel_drawer",
+    })
+  }
+
   return (
-    <div className={cn("relative overflow-hidden rounded-xl border border-zinc-800 bg-[#0b1220]", className)}>
-      {(demo || stats.length === 0) && (
-        <p className="absolute left-3 top-3 z-10 rounded bg-amber-500/20 px-2 py-1 text-[11px] font-medium text-amber-200">
-          Mode demo — données mock
-        </p>
-      )}
-      {loadError && (
-        <p className="absolute right-3 top-3 z-10 rounded bg-red-500/20 px-2 py-1 text-[11px] text-red-200">
-          Geo CDN indisponible — markers seuls
-        </p>
-      )}
-
-      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-auto w-full" role="img" aria-label="Radar world map">
-        <rect width={WIDTH} height={HEIGHT} fill="#0b1220" />
-        {geographies?.features.map((geo, i) => (
-          <path
-            key={geo.id ?? i}
-            d={path(geo) ?? undefined}
-            fill="#1e293b"
-            stroke="#334155"
-            strokeWidth={0.4}
-          />
-        ))}
-
-        {markers.map(({ stat, x, y }) => {
-          const r = markerRadius(stat.count, maxCount)
-          const color = salesToHeatColor(stat.avgSales, maxAvg)
-          return (
-            <g
-              key={stat.country}
-              transform={`translate(${x},${y})`}
-              className="cursor-pointer"
-              onMouseEnter={(e) => {
-                const rect = (e.currentTarget.ownerSVGElement as SVGSVGElement).getBoundingClientRect()
-                const svg = e.currentTarget.ownerSVGElement
-                if (!svg) return
-                const pt = svg.createSVGPoint()
-                pt.x = x
-                pt.y = y
-                setTooltip({
-                  x: ((x / WIDTH) * rect.width),
-                  y: ((y / HEIGHT) * rect.height),
-                  stat,
-                })
-              }}
-              onMouseLeave={() => setTooltip(null)}
-              onClick={() => router.push(`/radar?country=${encodeURIComponent(stat.country)}`)}
-            >
-              <circle r={r * 1.8} fill={color} opacity={0.25}>
-                <animate attributeName="r" values={`${r};${r * 2.2};${r}`} dur="2.4s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.35;0.05;0.35" dur="2.4s" repeatCount="indefinite" />
-              </circle>
-              <circle r={r} fill={color} stroke="#0b1220" strokeWidth={1.5} />
-            </g>
-          )
-        })}
-      </svg>
-
-      {tooltip && (
-        <div
-          className="pointer-events-none absolute z-20 max-w-xs rounded-lg border border-zinc-600 bg-zinc-950/95 px-3 py-2 text-xs text-zinc-100 shadow-lg"
-          style={{
-            left: Math.min(tooltip.x + 12, 280),
-            top: Math.max(tooltip.y - 8, 8),
-          }}
-        >
-          <p className="font-semibold">
-            {countryCodeToName(tooltip.stat.country)} ({tooltip.stat.country})
+    <>
+      <div className={cn("relative overflow-hidden rounded-xl border border-zinc-800 bg-[#0b1220]", className)}>
+        {(demo || stats.length === 0) && (
+          <p className="absolute left-3 top-3 z-10 rounded bg-amber-500/20 px-2 py-1 text-[11px] font-medium text-amber-200">
+            Mode demo — données mock
           </p>
-          <p className="mt-1 text-zinc-300">
-            {tooltip.stat.count} produits — score demande{" "}
-            {Math.round(tooltip.stat.avgSales).toLocaleString("fr-FR")}
+        )}
+        {loadError && (
+          <p className="absolute right-3 top-3 z-10 rounded bg-red-500/20 px-2 py-1 text-[11px] text-red-200">
+            Geo CDN indisponible — markers seuls
           </p>
-          {tooltip.stat.topProductTitle && (
-            <p className="mt-1 text-emerald-300">Top: {tooltip.stat.topProductTitle}</p>
-          )}
-        </div>
-      )}
-    </div>
+        )}
+
+        <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-auto w-full" role="img" aria-label="Radar world map">
+          <rect width={WIDTH} height={HEIGHT} fill="#0b1220" />
+          {geographies?.features.map((geo, i) => (
+            <path
+              key={geo.id ?? i}
+              d={path(geo) ?? undefined}
+              fill="#1e293b"
+              stroke="#334155"
+              strokeWidth={0.4}
+            />
+          ))}
+
+          {markers.map(({ stat, x, y }) => {
+            const r = markerRadius(stat.count, maxCount)
+            const color = salesToHeatColor(stat.avgSales, maxAvg)
+            const active = selected?.country === stat.country
+            return (
+              <g
+                key={stat.country}
+                transform={`translate(${x},${y})`}
+                className="cursor-pointer"
+                role="button"
+                tabIndex={0}
+                aria-label={`${countryCodeToName(stat.country)} — ${stat.count} produits Radar`}
+                onMouseEnter={(e) => {
+                  const svg = e.currentTarget.ownerSVGElement
+                  if (!svg) return
+                  const rect = svg.getBoundingClientRect()
+                  setTooltip({
+                    x: (x / WIDTH) * rect.width,
+                    y: (y / HEIGHT) * rect.height,
+                    stat,
+                  })
+                }}
+                onMouseLeave={() => setTooltip(null)}
+                onClick={() => openCountry(stat)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    openCountry(stat)
+                  }
+                }}
+              >
+                <circle r={r * 1.8} fill={color} opacity={0.25}>
+                  <animate attributeName="r" values={`${r};${r * 2.2};${r}`} dur="2.4s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.35;0.05;0.35" dur="2.4s" repeatCount="indefinite" />
+                </circle>
+                <circle
+                  r={r}
+                  fill={color}
+                  stroke={active ? "#a7f3d0" : "#0b1220"}
+                  strokeWidth={active ? 2.5 : 1.5}
+                />
+              </g>
+            )
+          })}
+        </svg>
+
+        {tooltip && (
+          <div
+            className="pointer-events-none absolute z-20 max-w-xs rounded-lg border border-zinc-600 bg-zinc-950/95 px-3 py-2 text-xs text-zinc-100 shadow-lg"
+            style={{
+              left: Math.min(tooltip.x + 12, 280),
+              top: Math.max(tooltip.y - 8, 8),
+            }}
+          >
+            <p className="font-semibold">
+              {countryCodeToName(tooltip.stat.country)} ({tooltip.stat.country})
+            </p>
+            <p className="mt-1 text-zinc-300">
+              {tooltip.stat.count} produits — score demande{" "}
+              {Math.round(tooltip.stat.avgSales).toLocaleString("fr-FR")}
+            </p>
+            {tooltip.stat.topProductTitle && (
+              <p className="mt-1 text-emerald-300">Top: {tooltip.stat.topProductTitle}</p>
+            )}
+            <p className="mt-1.5 text-[10px] font-medium text-cyan-300/90">
+              Clic → liste Radar 24h (pas le catalogue Affisell)
+            </p>
+          </div>
+        )}
+      </div>
+
+      <RadarCountryIntelDrawer
+        open={selected != null}
+        stat={selected}
+        onClose={() => setSelected(null)}
+      />
+    </>
   )
 }

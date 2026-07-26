@@ -79,6 +79,13 @@ export function countryCodeToName(code: string): string {
   return COUNTRY_NAMES[c] ?? c
 }
 
+/** ISO-3166 alpha-2 only — null if invalid. */
+export function normalizeRadarMapCountry(raw: string): string | null {
+  const c = raw.trim().toUpperCase()
+  if (!/^[A-Z]{2}$/.test(c)) return null
+  return c
+}
+
 export function getCountryCoords(code: string): [number, number] | null {
   const c = code.trim().toUpperCase()
   return COUNTRY_COORDS[c] ?? null

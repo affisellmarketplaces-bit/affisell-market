@@ -103,7 +103,8 @@ export default async function RadarMapPage() {
         <div>
           <h2 className="text-base font-semibold text-zinc-900">🗺️ Map Monde — Winners (analyse quotidienne)</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Points pulsants = activité bestsellers 24h. Clic pays → filtre dashboard.
+            Points pulsants = bestsellers crawlés 24h. Clic pays → liste Radar (même compteur), pas le
+            catalogue Affisell.
           </p>
         </div>
         <Link href="/radar" className="text-sm font-medium text-violet-600 hover:text-violet-700">
@@ -118,10 +119,13 @@ export default async function RadarMapPage() {
         <ol className="mt-3 space-y-2">
           {top5.map((s, i) => (
             <li key={s.country} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-              <span className="font-medium text-zinc-800">
+              <Link
+                href={`/radar/winners?country=${encodeURIComponent(s.country)}`}
+                className="font-medium text-zinc-800 hover:text-violet-700"
+              >
                 {i + 1}. {countryCodeToName(s.country)}{" "}
                 <span className="text-zinc-400">({s.country})</span>
-              </span>
+              </Link>
               <span className="tabular-nums text-zinc-600">
                 {s.count} produits · score demande {Math.round(s.avgSales).toLocaleString("fr-FR")}
               </span>
