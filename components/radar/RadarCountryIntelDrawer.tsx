@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { ExternalLink, Radar, X } from "lucide-react"
-import { useEffect, useId, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
 
 import { getConnectorById } from "@/lib/radar/connectors/registry"
 import { countryCodeToName, type CountryMapStat } from "@/lib/radar/map/geo"
@@ -41,6 +41,7 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [intel, setIntel] = useState<IntelPayload | null>(null)
+  const [marketFilter, setMarketFilter] = useState<string | "all">("all")
 
   useEffect(() => {
     if (!open || !stat) return
@@ -48,6 +49,7 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
     setLoading(true)
     setError(null)
     setIntel(null)
+    setMarketFilter("all")
 
     void (async () => {
       try {
@@ -68,6 +70,11 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
           count: data.count,
           returned: data.products.length,
           demo: data.demo,
+          mix: data.products.reduce<Record<string, number>>((acc, p) => {
+            const k = p.marketplaceId
+            acc[k] = (acc[k] ?? 0) + 1
+            return acc
+          }, {}),
         })
       } catch (err) {
         if (cancelled) return
@@ -92,6 +99,27 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [open, onClose])
+
+  const marketMix = useMemo(() => {
+    if (!intel) return [] as Array<{ id: string; count: number; label: string }>
+    const counts = new Map<string, number>()
+    for (const p of intel.products) {
+      counts.set(p.marketplaceId, (counts.get(p.marketplaceId) ?? 0) + 1)
+    }
+    return [...counts.entries()]
+      .map(([id, count]) => ({
+        id,
+        count,
+        label: getConnectorById(id)?.name ?? id,
+      }))
+      .sort((a, b) => b.count - a.count)
+  }, [intel])
+
+  const visibleProducts = useMemo(() => {
+    if (!intel) return []
+    if (marketFilter === "all") return intel.products
+    return intel.products.filter((p) => p.marketplaceId === marketFilter)
+  }, [intel, marketFilter])
 
   if (!open || !stat) return null
 
@@ -173,12 +201,46 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
                   Mode demo — échantillon. Le compteur map reste la référence 24h.
                 </p>
               ) : null}
+              {marketMix.length > 0 ? (
+                <div className="mb-3 flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setMarketFilter("all")}
+                    className={cn(
+                      "rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide",
+                      marketFilter === "all"
+                        ? "bg-emerald-400 text-zinc-950"
+                        : "bg-white/5 text-zinc-400 ring-1 ring-white/10 hover:text-zinc-200"
+                    )}
+                  >
+                    All · {intel.products.length}
+                  </button>
+                  {marketMix.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setMarketFilter(m.id)}
+                      className={cn(
+                        "rounded-full px-2.5 py-1 text-[10px] font-bold",
+                        marketFilter === m.id
+                          ? "bg-cyan-400 text-zinc-950"
+                          : "bg-white/5 text-zinc-400 ring-1 ring-white/10 hover:text-zinc-200"
+                      )}
+                    >
+                      {m.label} · {m.count}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <p className="mb-3 text-[11px] text-zinc-500">
-                Affichage {intel.products.length.toLocaleString("fr-FR")} /{" "}
-                {displayCount.toLocaleString("fr-FR")} · tri demande (sales est.)
+                Affichage {visibleProducts.length.toLocaleString("fr-FR")}
+                {marketFilter === "all"
+                  ? ` / ${displayCount.toLocaleString("fr-FR")}`
+                  : ""}{" "}
+                · mix multi-market (cap Amazon) · tri demande
               </p>
               <ul className="space-y-2">
-                {intel.products.map((p, idx) => {
+                {visibleProducts.map((p, idx) => {
                   const connector = getConnectorById(p.marketplaceId)
                   const body = (
                     <>
@@ -235,8 +297,8 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
                   )
                 })}
               </ul>
-              {intel.products.length === 0 ? (
-                <p className="text-sm text-zinc-400">Aucun snapshot 24h pour ce pays.</p>
+              {visibleProducts.length === 0 ? (
+                <p className="text-sm text-zinc-400">Aucun snapshot 24h pour ce filtre.</p>
               ) : null}
             </>
           ) : null}

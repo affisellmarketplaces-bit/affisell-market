@@ -103,8 +103,8 @@ export default async function RadarMapPage() {
         <div>
           <h2 className="text-base font-semibold text-zinc-900">🗺️ Map Monde — Winners (analyse quotidienne)</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Points pulsants = bestsellers crawlés 24h. Clic pays → liste Radar (même compteur), pas le
-            catalogue Affisell.
+            Points pulsants = bestsellers crawlés 24h (Amazon, Google, Shopify, eBay…). Clic pays →
+            liste Radar multi-market, pas le catalogue Affisell.
           </p>
         </div>
         <Link href="/radar" className="text-sm font-medium text-violet-600 hover:text-violet-700">

@@ -266,7 +266,7 @@ async function crawlAmazonScrape(category: string, country: string): Promise<Glo
 
 /**
  * Crawl marketplace best-sellers for a category/country.
- * TikTok: trending API (token optional). Amazon: SP-API if configured, else HTML scrape.
+ * Native: TikTok / Amazon / Shopee. Multi-market: Serper Shopping (Google, Shopify, eBay…).
  */
 export async function crawlBestSellers(
   marketplaceId: string,
@@ -299,6 +299,13 @@ export async function crawlBestSellers(
   if (id === "shopee") {
     const { crawlShopeeBestSellers } = await import("@/lib/radar/connectors/shopee")
     return crawlShopeeBestSellers(cat, cc)
+  }
+
+  const { crawlSerperMarketplaceBestSellers, isSerperCrawlMarketplace } = await import(
+    "@/lib/radar/crawler/multi-market-crawler"
+  )
+  if (isSerperCrawlMarketplace(id)) {
+    return crawlSerperMarketplaceBestSellers(id, cat, cc)
   }
 
   console.log("[radar/crawler]", {

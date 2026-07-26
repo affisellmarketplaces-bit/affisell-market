@@ -1,4 +1,5 @@
 import { RADAR_DEMO_WINNERS } from "@/lib/radar/demo-data"
+import { diversifyByMarketplace, marketplaceMixSummary } from "@/lib/radar/diversify-marketplaces"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { MOCK_MAP_STATS, normalizeRadarMapCountry } from "@/lib/radar/map/geo"
 import { getRadarDb } from "@/lib/prisma-radar"
@@ -68,7 +69,7 @@ function demoIntel(country: string, take: number): RadarCountryIntel {
   return {
     country,
     count: mock?.count ?? products.length,
-    products,
+    products: diversifyByMarketplace(products, take, { maxShare: 0.4 }),
     demo: true,
     windowHours: 24,
   }
@@ -85,6 +86,8 @@ export async function loadRadarCountryIntel(
   if (!country) return null
 
   const take = Math.min(Math.max(opts?.take ?? 60, 1), 120)
+  /** Fetch larger pool then diversify so Amazon cannot monopolize the drawer. */
+  const fetchTake = Math.min(take * 4, 400)
 
   if (!resolveRadarDatabaseUrl()) {
     return demoIntel(country, take)
@@ -101,7 +104,7 @@ export async function loadRadarCountryIntel(
       db.radarGlobalSnapshot.findMany({
         where: { country, crawledAt: { gte: since } },
         orderBy: [{ salesEst: "desc" }, { rank: "asc" }, { crawledAt: "desc" }],
-        take,
+        take: fetchTake,
         select: {
           id: true,
           title: true,
@@ -122,10 +125,20 @@ export async function loadRadarCountryIntel(
       return demoIntel(country, take)
     }
 
+    const diversified = diversifyByMarketplace(rows, take, { maxShare: 0.4 })
+    const mix = marketplaceMixSummary(diversified)
+    console.log("[radar/country-intel]", {
+      country,
+      count,
+      fetched: rows.length,
+      returned: diversified.length,
+      mix,
+    })
+
     return {
       country,
       count,
-      products: rows.map((r) => ({
+      products: diversified.map((r) => ({
         id: r.id,
         title: r.title,
         marketplaceId: r.marketplaceId,

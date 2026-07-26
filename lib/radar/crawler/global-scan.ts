@@ -1,6 +1,7 @@
 import "server-only"
 
 import { crawlBestSellers } from "@/lib/radar/crawler/category-crawler"
+import { serperMarketplacesForCountry } from "@/lib/radar/crawler/multi-market-crawler"
 import { RADAR_SCAN_CATEGORIES } from "@/lib/radar/crawler/types"
 import { isShopeeCountry } from "@/lib/radar/connectors/shopee"
 import { acquireCronLock, releaseCronLock } from "@/lib/radar/cron-lock"
@@ -12,6 +13,9 @@ import { upsertStandardProductFromSnapshot } from "@/lib/radar/writers/standard-
 
 /** Default cross-country set for price comparison (override via RADAR_COUNTRIES). */
 export const DEFAULT_RADAR_COUNTRIES = ["FR", "US", "MX", "DE", "GB"] as const
+
+/** Always-on native crawlers (Amazon scrape works without keys). */
+export const NATIVE_RADAR_MARKETPLACES = ["tiktok_shop", "amazon"] as const
 
 const COUNTRY_LOCK_TTL_SEC = 280
 
@@ -53,11 +57,27 @@ export function parseRadarCountries(raw?: string | null): string[] {
   return unique.length > 0 ? unique : [...DEFAULT_RADAR_COUNTRIES]
 }
 
-/** Marketplaces to crawl for a country (Shopee only on SEA hosts). */
+/** Marketplaces to crawl for a country (override via RADAR_CRAWL_MARKETPLACES). */
 export function marketplacesForCountry(country: string): string[] {
   const cc = country.trim().toUpperCase()
-  const base = ["tiktok_shop", "amazon"]
-  if (isShopeeCountry(cc)) return [...base, "shopee"]
+  const fromEnv = process.env.RADAR_CRAWL_MARKETPLACES?.trim()
+  if (fromEnv) {
+    const list = fromEnv
+      .split(/[,;\s]+/)
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean)
+    const unique = [...new Set(list)]
+    if (unique.length > 0) {
+      if (isShopeeCountry(cc) && !unique.includes("shopee")) unique.push("shopee")
+      return unique
+    }
+  }
+
+  const base: string[] = [...NATIVE_RADAR_MARKETPLACES]
+  if (isShopeeCountry(cc)) base.push("shopee")
+  for (const id of serperMarketplacesForCountry(cc)) {
+    if (!base.includes(id)) base.push(id)
+  }
   return base
 }
 
@@ -96,7 +116,7 @@ export async function runParallelCountryCrawls(
 }
 
 /**
- * Crawl TikTok + Amazon (+ Shopee if SEA) for one country, upsert snapshots + StandardProduct.
+ * Crawl multi-marketplace winners for one country (native + Serper majors), upsert snapshots.
  */
 export async function crawlForCountry(country: string): Promise<CountryCrawlResult> {
   const cc = country.trim().toUpperCase() || "US"

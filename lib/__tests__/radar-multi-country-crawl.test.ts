@@ -26,9 +26,29 @@ describe("parseRadarCountries", () => {
 })
 
 describe("marketplacesForCountry", () => {
-  it("adds Shopee only for SEA", () => {
-    expect(marketplacesForCountry("FR")).toEqual(["tiktok_shop", "amazon"])
+  it("includes native + Serper majors for FR; Shopee only for SEA", () => {
+    const prev = process.env.RADAR_CRAWL_MARKETPLACES
+    delete process.env.RADAR_CRAWL_MARKETPLACES
+    const fr = marketplacesForCountry("FR")
+    expect(fr).toContain("tiktok_shop")
+    expect(fr).toContain("amazon")
+    expect(fr).toContain("google_merchant")
+    expect(fr).toContain("shopify")
+    expect(fr).toContain("ebay")
+    expect(fr).not.toContain("shopee")
+    expect(fr).not.toContain("walmart") // US/MX/CA only
     expect(marketplacesForCountry("MY")).toContain("shopee")
+    expect(marketplacesForCountry("US")).toContain("walmart")
+    if (prev === undefined) delete process.env.RADAR_CRAWL_MARKETPLACES
+    else process.env.RADAR_CRAWL_MARKETPLACES = prev
+  })
+
+  it("honors RADAR_CRAWL_MARKETPLACES override", () => {
+    const prev = process.env.RADAR_CRAWL_MARKETPLACES
+    process.env.RADAR_CRAWL_MARKETPLACES = "amazon,google_merchant"
+    expect(marketplacesForCountry("FR")).toEqual(["amazon", "google_merchant"])
+    if (prev === undefined) delete process.env.RADAR_CRAWL_MARKETPLACES
+    else process.env.RADAR_CRAWL_MARKETPLACES = prev
   })
 })
 
