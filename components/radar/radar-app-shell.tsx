@@ -25,7 +25,9 @@ export default function RadarAppShell({
   const { data: session, status } = useSession()
   const router = useRouter()
   const pathname = usePathname()
-  const isPublicRadarHome = pathname === "/radar" || pathname === "/radar/public"
+  const isGlobePage = pathname === "/radar/globe"
+  const isPublicRadarHome =
+    pathname === "/radar" || pathname === "/radar/public" || isGlobePage
 
   const nav = [
     { href: "/radar", label: "Dashboard" },
@@ -36,6 +38,7 @@ export default function RadarAppShell({
       label: unreadCount > 0 ? `🚨 Alertes ${unreadCount}` : "🚨 Alertes",
     },
     { href: "/radar/map", label: "🗺️ Map" },
+    { href: "/radar/globe", label: "Globe LIVE", live: true as const },
   ]
 
   useEffect(() => {
@@ -50,8 +53,8 @@ export default function RadarAppShell({
     return <div className="mx-auto max-w-5xl px-4 py-16 text-sm text-zinc-500">Chargement…</div>
   }
 
-  // Public marketing landing — no app chrome
-  if (!session?.user && isPublicRadarHome) {
+  // Public marketing landing OR immersive globe — no app chrome
+  if ((!session?.user && isPublicRadarHome) || isGlobePage) {
     return <>{children}</>
   }
 
@@ -86,17 +89,24 @@ export default function RadarAppShell({
               const active =
                 pathname === item.href ||
                 (item.href !== "/radar" && pathname.startsWith(item.href))
+              const live = "live" in item && item.live
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={
                     active
-                      ? "rounded-md bg-violet-600 px-3 py-1.5 font-medium text-white"
-                      : "rounded-md px-3 py-1.5 text-zinc-600 hover:bg-zinc-100"
+                      ? "inline-flex items-center gap-1.5 rounded-md bg-violet-600 px-3 py-1.5 font-medium text-white"
+                      : "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-zinc-600 hover:bg-zinc-100"
                   }
                 >
                   {item.label}
+                  {live ? (
+                    <span className="relative flex h-2 w-2" aria-hidden>
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                    </span>
+                  ) : null}
                 </Link>
               )
             })}

@@ -149,9 +149,21 @@ export default async function RadarMapPage() {
             pour voir les winners.
           </p>
         </div>
-        <Link href="/radar" className="text-sm font-medium text-violet-600 hover:text-violet-700">
-          ← Dashboard
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/radar/globe"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-violet-600 hover:text-violet-700"
+          >
+            Globe LIVE
+            <span className="relative flex h-2 w-2" aria-hidden>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+            </span>
+          </Link>
+          <Link href="/radar" className="text-sm font-medium text-violet-600 hover:text-violet-700">
+            ← Dashboard
+          </Link>
+        </div>
       </div>
 
       <RadarWorldMap stats={stats} demo={demo} />

@@ -16,6 +16,7 @@ import { isStripeRadarGlobalConfigured } from "@/lib/stripe-radar"
 export const dynamic = "force-dynamic"
 
 const LINKS = [
+  { href: "/radar/globe", label: "🌍 Globe LIVE", desc: "3D winners live — viral Stripe/Linear WOW" },
   { href: "/radar/map", label: "🗺️ Map Monde", desc: "Winners live par pays (paywall bypass ADMIN)" },
   { href: "/radar", label: "Dashboard", desc: "Sources + signal actif" },
   { href: "/radar/winners", label: "Winners", desc: "Liste winners détectés" },
