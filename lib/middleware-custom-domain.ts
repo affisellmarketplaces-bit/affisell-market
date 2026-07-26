@@ -8,6 +8,7 @@ import {
   type StorefrontRole,
 } from "@/lib/custom-domain-path"
 import { isPlatformHost, requestHost } from "@/lib/custom-domain-host"
+import { rewriteLocalhostToPublic } from "@/lib/public-app-url"
 import {
   rememberStoreResolve,
   resolveStoreHostForMiddleware,
@@ -30,7 +31,10 @@ function platformOriginForResolve(req: NextRequest): string {
     process.env.AFFISELL_PLATFORM_ORIGIN?.trim() ||
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL.replace(/\/$/, "")}` : "")
-  if (fromEnv) return fromEnv.replace(/\/$/, "")
+  if (fromEnv) {
+    // Never call resolve-host against a localhost env while on a real deploy.
+    return rewriteLocalhostToPublic(fromEnv).replace(/\/$/, "")
+  }
 
   const host = requestHost(req)
   if (!isPlatformHost(host)) {

@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
+import { getAbsoluteUrl } from "@/lib/site-url"
 import { getStripeClient } from "@/lib/stripe"
 
 export const runtime = "nodejs"
@@ -13,10 +14,9 @@ const bodySchema = z.object({
 })
 
 function onboardingReturnUrls() {
-  const app = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "http://localhost:3001"
   return {
-    refresh_url: `${app}/admin/stripe-health`,
-    return_url: `${app}/admin/stripe-health?onboarded=1`,
+    refresh_url: getAbsoluteUrl("/admin/stripe-health"),
+    return_url: getAbsoluteUrl("/admin/stripe-health?onboarded=1"),
   }
 }
 

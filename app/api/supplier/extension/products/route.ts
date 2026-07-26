@@ -9,6 +9,7 @@ import {
   executeSupplierProductsImport,
   SUPPLIER_IMPORT_MAX_BATCH,
 } from "@/lib/supplier-products-import-exec"
+import { getSiteUrl } from "@/lib/site-url"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -73,8 +74,7 @@ export async function POST(req: NextRequest) {
     return cors(req, NextResponse.json({ error: result.error }, { status: result.status }))
   }
 
-  const editBase =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "http://localhost:3001"
+  const editBase = getSiteUrl()
 
   return cors(
     req,

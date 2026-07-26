@@ -4,6 +4,7 @@ import path from "path"
 import sharp from "sharp"
 
 import type { MerchCategoryTemplate } from "@/lib/merchandise/templates"
+import { getAbsoluteUrl } from "@/lib/site-url"
 
 export type MerchCardProduct = {
   id: string
@@ -13,11 +14,7 @@ export type MerchCardProduct = {
 function absoluteImageUrl(url: string): string {
   const u = url.trim()
   if (u.startsWith("http://") || u.startsWith("https://")) return u
-  const vercel = process.env.VERCEL_URL
-  const base =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??
-    (vercel ? `https://${vercel}` : "http://localhost:3001")
-  return u.startsWith("/") ? `${base}${u}` : `${base}/${u}`
+  return getAbsoluteUrl(u.startsWith("/") ? u : `/${u}`)
 }
 
 function escapeXml(s: string) {

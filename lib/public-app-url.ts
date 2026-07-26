@@ -38,6 +38,15 @@ export function resolvePublicAppUrl(): string {
     return devLocalhostOrigin()
   }
 
+  // Production: prefer Vercel deployment host only when no public env — then apex.
+  const vercelProd = process.env.VERCEL_URL?.trim()
+  if (vercelProd && !isLocalhostUrl(vercelProd)) {
+    // Prefer canonical apex over *.vercel.app when AFFISELL_PLATFORM_ORIGIN unset.
+    const apex = canonicalPlatformOrigin()
+    if (!isLocalhostUrl(apex) && !apex.includes(".vercel.app")) return apex
+    return normalizeOrigin(vercelProd)
+  }
+
   return canonicalPlatformOrigin()
 }
 

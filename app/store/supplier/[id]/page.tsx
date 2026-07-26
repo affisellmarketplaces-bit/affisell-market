@@ -37,17 +37,12 @@ import {
   loadSupplierShopStoreCached,
 } from "@/lib/supplier-storefront-cache"
 
+import { getSiteUrl } from "@/lib/site-url"
+
 export const revalidate = 60
 
 function appBaseUrl() {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL ??
-    process.env.NEXT_PUBLIC_URL ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    process.env.NEXT_PUBLIC_BASE_URL ??
-    process.env.AUTH_URL ??
-    "http://localhost:3001"
-  ).replace(/\/$/, "")
+  return getSiteUrl()
 }
 
 function socialHref(kind: "instagram" | "tiktok" | "youtube" | "twitch" | "facebook" | "twitter", raw: string) {

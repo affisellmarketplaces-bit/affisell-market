@@ -6,6 +6,7 @@ import {
   readResendDeliveryConfig,
   resolveResendDeliveryRecipient,
 } from "@/lib/emails/resend-delivery"
+import { getAbsoluteUrl } from "@/lib/site-url"
 
 export type SendAffiliateWholesaleChangeEmailArgs = {
   toEmail: string
@@ -18,8 +19,9 @@ export type SendAffiliateWholesaleChangeEmailArgs = {
 }
 
 function buildEditUrl(listingId: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://affisell.com"
-  return `${base.replace(/\/$/, "")}/dashboard/affiliate?editListing=${encodeURIComponent(listingId)}`
+  return getAbsoluteUrl(
+    `/dashboard/affiliate?editListing=${encodeURIComponent(listingId)}`
+  )
 }
 
 export async function sendAffiliateWholesaleChangeEmail(

@@ -1,17 +1,12 @@
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma } from "@/lib/prisma"
+import { getSiteUrl } from "@/lib/site-url"
 import { getStripeClient } from "@/lib/stripe"
 import { stripeProductImages } from "@/lib/product-images"
 
 function baseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_URL ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    process.env.NEXT_PUBLIC_BASE_URL ??
-    process.env.AUTH_URL ??
-    "http://localhost:3001"
-  ).replace(/\/$/, "")
+  return getSiteUrl()
 }
 
 export async function createCheckoutSession(productId: string, userId?: string) {

@@ -2,6 +2,7 @@ import "server-only"
 
 import type { GoogleConnector, RadarConnectorProduct } from "@/lib/radar/connectors/types"
 import { createRadarOAuthState } from "@/lib/radar/oauth-state"
+import { getAbsoluteUrl, resolveConfiguredOrigin } from "@/lib/site-url"
 
 export const GOOGLE_MERCHANT_SCOPE = "https://www.googleapis.com/auth/content"
 
@@ -25,12 +26,8 @@ function googleClientSecret(): string {
 
 export function resolveGoogleMerchantRedirectUri(): string {
   const explicit = process.env.GOOGLE_MERCHANT_REDIRECT_URI?.trim()
-  if (explicit) return explicit
-  const base =
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    process.env.NEXTAUTH_URL?.trim() ||
-    "http://localhost:3001"
-  return new URL("/api/radar/google/merchant/callback", base).toString()
+  if (explicit) return resolveConfiguredOrigin(explicit)
+  return getAbsoluteUrl("/api/radar/google/merchant/callback")
 }
 
 export async function createGoogleMerchantOAuthState(userId: string): Promise<string> {

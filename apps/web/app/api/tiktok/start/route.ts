@@ -16,7 +16,15 @@ export async function GET() {
     return new NextResponse("Unauthorized", { status: 401 })
   }
 
-  const apiUrl = (process.env.NEXT_PUBLIC_MI_API_URL || "http://localhost:3002").replace(/\/$/, "")
+  const apiUrl = process.env.NEXT_PUBLIC_MI_API_URL?.trim().replace(/\/$/, "")
+  if (!apiUrl) {
+    console.log("[tiktok-oauth-proxy]", { result: "missing_NEXT_PUBLIC_MI_API_URL" })
+    return new NextResponse("Market Intelli API URL not configured", { status: 500 })
+  }
+  if (/localhost|127\.0\.0\.1/i.test(apiUrl) && process.env.NODE_ENV === "production") {
+    console.log("[tiktok-oauth-proxy]", { result: "localhost_rejected" })
+    return new NextResponse("Market Intelli API URL must be public in production", { status: 500 })
+  }
 
   const res = await fetch(`${apiUrl}/auth/tiktok/start`, {
     headers: { Authorization: `Bearer ${token}` },

@@ -1,5 +1,7 @@
 import "server-only"
 
+import { getAbsoluteUrl, resolveConfiguredOrigin } from "@/lib/site-url"
+
 /**
  * TikTok Shop env — Affisell Analytics Connector.
  * Supports Partner Center names (TIKTOK_SHOP_*) and legacy Radar names (TIKTOK_*).
@@ -34,13 +36,9 @@ export function tiktokRedirectUri(): string {
   const explicit =
     process.env.TIKTOK_SHOP_REDIRECT_URI?.trim() ||
     process.env.TIKTOK_REDIRECT_URI?.trim()
-  if (explicit) return explicit
-  const base =
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    process.env.NEXTAUTH_URL?.trim() ||
-    "http://localhost:3001"
+  if (explicit) return resolveConfiguredOrigin(explicit)
   // Partner Center prod URI uses /api/intelli/tiktok/callback
-  return new URL("/api/intelli/tiktok/callback", base).toString()
+  return getAbsoluteUrl("/api/intelli/tiktok/callback")
 }
 
 export function assertTikTokCredentials(): void {

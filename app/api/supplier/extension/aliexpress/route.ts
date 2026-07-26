@@ -10,6 +10,7 @@ import {
 } from "@/lib/supplier-extension-auth"
 import { defaultAffiliateCommissionPct } from "@/lib/supplier-commission"
 import { prisma } from "@/lib/prisma"
+import { getSiteUrl } from "@/lib/site-url"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -67,8 +68,7 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     })
     if (existing) {
-      const editBase =
-        process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "http://localhost:3001"
+      const editBase = getSiteUrl()
       return cors(
         req,
         NextResponse.json(
@@ -100,8 +100,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    const editBase =
-      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "http://localhost:3001"
+    const editBase = getSiteUrl()
 
     return cors(
       req,

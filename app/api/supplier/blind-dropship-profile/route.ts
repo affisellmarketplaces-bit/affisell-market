@@ -5,6 +5,7 @@ import { z } from "zod"
 import { auth } from "@/auth"
 import { sealBlindSecret } from "@/lib/blind-dropship-crypto"
 import { prisma } from "@/lib/prisma"
+import { getAbsoluteUrl } from "@/lib/site-url"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -108,7 +109,7 @@ export async function PUT(req: Request) {
     },
   })
 
-  const trackingUrl = new URL("/api/webhooks/supplier/tracking", process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001")
+  const trackingUrl = new URL(getAbsoluteUrl("/api/webhooks/supplier/tracking"))
   trackingUrl.searchParams.set("sid", row.id)
 
   return NextResponse.json({

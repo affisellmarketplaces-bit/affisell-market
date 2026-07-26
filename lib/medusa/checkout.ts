@@ -1,15 +1,9 @@
 import "server-only"
 
-const DEFAULT_MEDUSA_URL = "http://localhost:9000"
-export const MEDUSA_STRIPE_PROVIDER_ID = "pp_stripe_stripe"
+import { medusaBackendUrl } from "@/lib/medusa/backend-url"
 
-export function medusaBackendUrl(): string {
-  return (
-    process.env.MEDUSA_BACKEND_URL?.trim() ||
-    process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL?.trim() ||
-    DEFAULT_MEDUSA_URL
-  ).replace(/\/$/, "")
-}
+export { medusaBackendUrl }
+export const MEDUSA_STRIPE_PROVIDER_ID = "pp_stripe_stripe"
 
 export function medusaPublishableKey(): string | undefined {
   return process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY?.trim() || undefined

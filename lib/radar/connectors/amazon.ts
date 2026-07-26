@@ -2,6 +2,7 @@ import "server-only"
 
 import type { MarketplaceConnector, RadarConnectorProduct } from "@/lib/radar/connectors/types"
 import { createRadarOAuthState } from "@/lib/radar/oauth-state"
+import { getAbsoluteUrl, resolveConfiguredOrigin } from "@/lib/site-url"
 
 export type AmazonLwaTokenResponse = {
   access_token?: string
@@ -23,12 +24,8 @@ export const AMAZON_EU_MARKETPLACE_IDS = [
 
 function resolveAmazonRedirectUri(): string {
   const explicit = process.env.AMAZON_SP_API_REDIRECT_URI?.trim()
-  if (explicit) return explicit
-  const base =
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    process.env.NEXTAUTH_URL?.trim() ||
-    "http://localhost:3001"
-  return new URL("/api/radar/amazon/callback", base).toString()
+  if (explicit) return resolveConfiguredOrigin(explicit)
+  return getAbsoluteUrl("/api/radar/amazon/callback")
 }
 
 function resolveAmazonAuthUrl(): string {

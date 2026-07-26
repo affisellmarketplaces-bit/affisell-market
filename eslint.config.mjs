@@ -28,6 +28,29 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  {
+    files: ["app/**/*.{ts,tsx}", "lib/**/*.{ts,tsx}", "components/**/*.{ts,tsx}"],
+    ignores: [
+      "lib/__tests__/**",
+      "lib/dev-localhost-url.ts",
+      "**/__tests__/**",
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Literal[value=/localhost:300[01]/]",
+          message:
+            "Ne jamais hardcoder localhost:3000/3001. Utilise getSiteUrl() / getAbsoluteUrl() depuis @/lib/site-url (ou chemin relatif /api/...).",
+        },
+        {
+          selector: "Literal[value=/^https?:\\/\\/localhost/]",
+          message:
+            "Ne jamais hardcoder http(s)://localhost. Utilise getSiteUrl() depuis @/lib/site-url.",
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
