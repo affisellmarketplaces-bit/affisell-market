@@ -78,7 +78,7 @@ export default async function RadarMapPage() {
   const mapAccess = checkRadarAccess(planUser, "map")
 
   const { stats, demo } = await loadCountryStats()
-  const top5 = [...stats].sort((a, b) => b.count - a.count).slice(0, 5)
+  const topCountries = [...stats].sort((a, b) => b.count - a.count).slice(0, 10)
 
   if (!mapAccess.allowed) {
     return (
@@ -103,8 +103,8 @@ export default async function RadarMapPage() {
         <div>
           <h2 className="text-base font-semibold text-zinc-900">🗺️ Map Monde — Winners (analyse quotidienne)</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Points pulsants = bestsellers crawlés 24h (Amazon, Google, Shopify, eBay…). Clic pays →
-            liste Radar multi-market, pas le catalogue Affisell.
+            Points pulsants = bestsellers détectés sur les grandes marketplaces (24h). Clique un pays
+            pour voir les winners.
           </p>
         </div>
         <Link href="/radar" className="text-sm font-medium text-violet-600 hover:text-violet-700">
@@ -115,9 +115,9 @@ export default async function RadarMapPage() {
       <RadarWorldMap stats={stats} demo={demo} />
 
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-zinc-900">Top 5 pays (24h)</h3>
+        <h3 className="text-sm font-semibold text-zinc-900">Top 10 pays (24h)</h3>
         <ol className="mt-3 space-y-2">
-          {top5.map((s, i) => (
+          {topCountries.map((s, i) => (
             <li key={s.country} className="flex flex-wrap items-center justify-between gap-2 text-sm">
               <Link
                 href={`/radar/winners?country=${encodeURIComponent(s.country)}`}

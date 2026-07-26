@@ -14,6 +14,15 @@ const AMAZON_HOST: Record<string, string> = {
   UK: "www.amazon.co.uk",
   GB: "www.amazon.co.uk",
   MX: "www.amazon.com.mx",
+  ES: "www.amazon.es",
+  IT: "www.amazon.it",
+  NL: "www.amazon.nl",
+  BR: "www.amazon.com.br",
+  CA: "www.amazon.ca",
+  JP: "www.amazon.co.jp",
+  AU: "www.amazon.com.au",
+  IN: "www.amazon.in",
+  AE: "www.amazon.ae",
 }
 
 const AMAZON_BESTSELLER_PATH: Record<string, string> = {

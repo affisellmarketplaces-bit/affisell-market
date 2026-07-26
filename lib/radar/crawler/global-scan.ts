@@ -11,8 +11,25 @@ import { utcDay } from "@/lib/radar/writers/product-writer"
 import { upsertProductSnapshot } from "@/lib/radar/writers/product-writer"
 import { upsertStandardProductFromSnapshot } from "@/lib/radar/writers/standard-product-writer"
 
-/** Default cross-country set for price comparison (override via RADAR_COUNTRIES). */
-export const DEFAULT_RADAR_COUNTRIES = ["FR", "US", "MX", "DE", "GB"] as const
+/** Default global crawl set — major e‑com markets (override via RADAR_COUNTRIES). */
+export const DEFAULT_RADAR_COUNTRIES = [
+  "FR",
+  "US",
+  "MX",
+  "DE",
+  "GB",
+  "ES",
+  "IT",
+  "NL",
+  "BR",
+  "CA",
+  "JP",
+  "AU",
+  "IN",
+  "AE",
+  "KR",
+  "MY",
+] as const
 
 /** Always-on native crawlers (Amazon scrape works without keys). */
 export const NATIVE_RADAR_MARKETPLACES = ["tiktok_shop", "amazon"] as const

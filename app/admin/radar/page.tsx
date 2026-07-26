@@ -7,6 +7,7 @@ import { AdminRadarConnectorsGrid } from "@/components/admin/admin-radar-connect
 import { AdminRadarHealthFlags } from "@/components/admin/admin-radar-health-flags"
 import { AdminRadarMultiCountryCrawl } from "@/components/admin/admin-radar-multi-country-crawl"
 import { auth } from "@/auth"
+import { DEFAULT_RADAR_COUNTRIES } from "@/lib/radar/crawler/global-scan"
 import { loadCountryCrawlStatuses } from "@/lib/radar/country-crawl-status"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { getUserRadarPlan, toRadarPlanUser } from "@/lib/radar/plans"
@@ -31,7 +32,7 @@ export default async function AdminRadarPage() {
   const plan = getUserRadarPlan(toRadarPlanUser(session.user))
   const enabled = isRadarEnabled()
   const globalConfigured = isStripeRadarGlobalConfigured()
-  const countryStatuses = await loadCountryCrawlStatuses(["FR", "US", "MX", "DE", "GB"])
+  const countryStatuses = await loadCountryCrawlStatuses([...DEFAULT_RADAR_COUNTRIES])
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10">

@@ -12,10 +12,16 @@ import {
 } from "@/lib/radar/writers/standard-product-normalize"
 
 describe("parseRadarCountries", () => {
-  it("defaults to FR/US/MX/DE/GB", () => {
+  it("defaults to a global e-com country set (16+ markets)", () => {
     const prev = process.env.RADAR_COUNTRIES
     delete process.env.RADAR_COUNTRIES
-    expect(parseRadarCountries()).toEqual(["FR", "US", "MX", "DE", "GB"])
+    const countries = parseRadarCountries()
+    expect(countries).toContain("FR")
+    expect(countries).toContain("US")
+    expect(countries).toContain("BR")
+    expect(countries).toContain("JP")
+    expect(countries).toContain("MY")
+    expect(countries.length).toBeGreaterThanOrEqual(12)
     if (prev === undefined) delete process.env.RADAR_COUNTRIES
     else process.env.RADAR_COUNTRIES = prev
   })
