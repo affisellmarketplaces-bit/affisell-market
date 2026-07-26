@@ -1,7 +1,8 @@
 "use client"
 
-import { AlertTriangle } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { AlertTriangle, Sparkles, Zap } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { toast } from "sonner"
 
 import { BubbleProductCard, type BubbleProductCardProduct } from "@/components/product/BubbleProductCard"
 import { LiveProfitCalculator } from "@/components/product/LiveProfitCalculator"
@@ -13,11 +14,11 @@ import {
   previewViralVideoBlob,
   recordViralCarouselVideo,
 } from "@/lib/social/generate-video"
-import {
-  downloadViralGifBlob,
-  previewViralGifBlob,
-  recordViralBubbleGif,
-} from "@/lib/social/generate-gif"
+import { previewViralGifBlob, recordViralBubbleGif } from "@/lib/social/generate-gif"
+import { downloadViralLaunchKit } from "@/lib/social/viral-kit-zip"
+import { computeViralPulse } from "@/lib/social/viral-pulse"
+import { copyTextReliable, shareOrDownloadFile } from "@/lib/social/viral-share"
+import { parseSocialAssetKey } from "@/lib/social/platform-keys"
 import { getFallbackSocialAssetsBundle } from "@/lib/social/social-assets-fallback"
 import type { ViralMedia } from "@/types/product"
 
@@ -33,6 +34,8 @@ type Props = {
     costPrice?: number | null
     medias?: ViralMedia[]
   }
+  /** Deep-link from BubbleShareBar — e.g. story_1080x1920 or story */
+  initialFormat?: string | null
 }
 
 function sleep(ms: number) {
@@ -54,7 +57,13 @@ function rewriteCaptionsForPrice(
   }
 }
 
-export function ViralCommandCenter({ product }: Props) {
+function pulseRingClass(band: "ignition" | "charged" | "launch") {
+  if (band === "launch") return "from-emerald-400 via-cyan-400 to-violet-500"
+  if (band === "charged") return "from-violet-500 via-fuchsia-500 to-amber-400"
+  return "from-zinc-400 via-zinc-500 to-violet-400"
+}
+
+export function ViralCommandCenter({ product, initialFormat = null }: Props) {
   const cost =
     product.costPrice ?? Math.max(0, product.salePrice - (product.marginEuro ?? 0))
   const [livePrice, setLivePrice] = useState(product.salePrice)
@@ -66,12 +75,16 @@ export function ViralCommandCenter({ product }: Props) {
   const [exportProgress, setExportProgress] = useState(0)
   const [exportingGif, setExportingGif] = useState(false)
   const [gifProgress, setGifProgress] = useState(0)
+  const [kitBusy, setKitBusy] = useState(false)
+  const [kitProgress, setKitProgress] = useState(0)
+  const [highlightKey, setHighlightKey] = useState<string | null>(null)
   const [platforms, setPlatforms] = useState({
     instagram: true,
     tiktok: true,
     pinterest: true,
     facebook: true,
   })
+  const deepLinkHandled = useRef(false)
 
   const medias: ViralMedia[] = useMemo(() => {
     if (product.medias && product.medias.length > 0) return product.medias
@@ -209,34 +222,60 @@ export function ViralCommandCenter({ product }: Props) {
       "=== Hook trend ===",
       liveCaptions.trendHook,
       "",
+      `=== Lien bubble ===`,
+      product.bubbleUrl,
+      "",
       "=== Par asset ===",
       ...bundle.assets.map((a) => {
         const cap = a.caption.replaceAll(`${product.salePrice.toFixed(0)}€`, `${livePrice.toFixed(0)}€`)
         return `[${a.key}]\n${cap}\n`
       }),
     ].join("\n")
-  }, [bundle, liveCaptions, product.salePrice, livePrice])
+  }, [bundle, liveCaptions, product.salePrice, livePrice, product.bubbleUrl])
+
+  const netMargin = Math.max(0, Math.round((livePrice - cost) * 100) / 100)
+
+  const pulse = useMemo(
+    () =>
+      computeViralPulse({
+        mediaCount: medias.length,
+        assetCount: bundle?.assets.length ?? 0,
+        captionChars: captionsTxt.length,
+        salePrice: livePrice,
+        netMarginEuro: netMargin,
+        aiPaused,
+      }),
+    [medias.length, bundle?.assets.length, captionsTxt.length, livePrice, netMargin, aiPaused]
+  )
+
+  useEffect(() => {
+    if (!bundle || loading || deepLinkHandled.current) return
+    const raw = initialFormat?.trim()
+    if (!raw) return
+    const key = parseSocialAssetKey(raw)
+    if (!key) return
+    const found = bundle.assets.some((a) => a.key === key)
+    if (!found) return
+    deepLinkHandled.current = true
+    setHighlightKey(key)
+    window.requestAnimationFrame(() => {
+      document.getElementById(`viral-asset-${key}`)?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      })
+    })
+    toast.message("Format ciblé", { description: key.replaceAll("_", " ") })
+    console.log("[viral-command]", { event: "format_deeplink", productId: product.id, key })
+  }, [bundle, loading, initialFormat, product.id])
 
   const copyCaption = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
-    } catch {
-      /* ignore */
-    }
-  }
-
-  const downloadCaptionsFile = () => {
-    const blob = new Blob([captionsTxt], { type: "text/plain;charset=utf-8" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${product.id}-captions.txt`
-    a.click()
-    URL.revokeObjectURL(url)
+    const ok = await copyTextReliable(text)
+    if (ok) toast.success("Caption copiée")
+    else toast.error("Impossible de copier — sélectionne le texte manuellement")
   }
 
   const exportReel = async () => {
-    if (medias.length === 0 || exportingVideo || exportingGif) return
+    if (medias.length === 0 || exportingVideo || exportingGif || kitBusy) return
     setExportingVideo(true)
     setExportProgress(0)
     try {
@@ -252,6 +291,7 @@ export function ViralCommandCenter({ product }: Props) {
       })
       downloadViralVideoBlob(result.blob, `${product.id}-reel`, result.ext)
       previewViralVideoBlob(result.blob)
+      toast.success("Reel H.264 prêt", { description: "Fichier MP4 téléchargé" })
       console.log("[viral-command]", {
         event: "reel_exported_h264",
         productId: product.id,
@@ -270,7 +310,7 @@ export function ViralCommandCenter({ product }: Props) {
             : message === "invalid_mp4_container"
               ? "Fichier MP4 invalide (garde-fou). Réessaie l’export."
               : `Export vidéo échoué: ${message}`
-      alert(friendly)
+      toast.error(friendly)
     } finally {
       setExportingVideo(false)
       setExportProgress(0)
@@ -278,7 +318,7 @@ export function ViralCommandCenter({ product }: Props) {
   }
 
   const exportGif = async () => {
-    if (medias.length === 0 || exportingGif || exportingVideo) return
+    if (medias.length === 0 || exportingGif || exportingVideo || kitBusy) return
     setExportingGif(true)
     setGifProgress(0)
     try {
@@ -291,18 +331,30 @@ export function ViralCommandCenter({ product }: Props) {
         fps: 10,
         onProgress: setGifProgress,
       })
-      downloadViralGifBlob(result.blob, `${product.id}-bubble`)
-      previewViralGifBlob(result.blob)
+      const shareResult = await shareOrDownloadFile({
+        blob: result.blob,
+        filename: `${product.id}-bubble.gif`,
+        title: product.title,
+        text: `${liveCaptions?.moneyHook ?? product.title}\n${product.bubbleUrl}`,
+        mimeType: "image/gif",
+      })
+      if (shareResult === "downloaded") {
+        previewViralGifBlob(result.blob)
+        toast.success("GIF prêt", { description: "Téléchargé — ouvre WhatsApp et joins le fichier" })
+      } else if (shareResult === "shared") {
+        toast.success("Partagé", { description: "Feuille native · WhatsApp / Messages / Fichiers" })
+      }
       console.log("[viral-command]", {
         event: "gif_exported",
         productId: product.id,
         bytes: result.bytes,
         frames: result.frames,
+        shareResult,
       })
     } catch (err) {
       const message = err instanceof Error ? err.message : "gif_failed"
       console.error("[viral-command]", { event: "gif_export_failed", error: message })
-      alert(
+      toast.error(
         message.includes("image_load_failed")
           ? "GIF bloqué (CORS image)."
           : `Export GIF échoué: ${message}`
@@ -313,34 +365,115 @@ export function ViralCommandCenter({ product }: Props) {
     }
   }
 
-  const publishStub = async () => {
+  const downloadKit = async () => {
+    if (!bundle || kitBusy) return
     const selected = Object.entries(platforms)
       .filter(([, v]) => v)
       .map(([k]) => k)
+    if (selected.length === 0) {
+      toast.error("Sélectionne au moins un réseau")
+      return
+    }
+    setKitBusy(true)
+    setKitProgress(0)
     try {
       await fetch(`/api/products/${encodeURIComponent(product.id)}/social-assets`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ platforms: selected }),
+      }).catch(() => null)
+
+      const result = await downloadViralLaunchKit({
+        productId: product.id,
+        assets: bundle.assets,
+        platforms: selected,
+        captionsTxt,
+        onProgress: (p) => setKitProgress(p.ratio),
+      })
+      toast.success("Kit viral téléchargé", {
+        description: `${result.fileCount} fichiers · captions + README`,
+      })
+      console.log("[viral-command]", {
+        event: "launch_kit_ready",
+        productId: product.id,
+        platforms: selected,
+        keys: result.keys,
       })
     } catch (err) {
-      console.error("[SOCIAL_ASSETS_ERROR]", {
-        event: "publish_stub_failed",
-        error: err instanceof Error ? err.message : "publish_failed",
-      })
+      const message = err instanceof Error ? err.message : "kit_failed"
+      console.error("[viral-command]", { event: "kit_failed", error: message })
+      toast.error(message === "empty_kit" ? "Aucun asset sélectionné" : `Kit échoué: ${message}`)
+    } finally {
+      setKitBusy(false)
+      setKitProgress(0)
     }
-    downloadCaptionsFile()
-    alert("P0: captions.txt téléchargé + images régénérées. OAuth publication = P1.")
+  }
+
+  const runPulseAction = () => {
+    if (pulse.nextAction === "price") {
+      document.getElementById("viral-profit")?.scrollIntoView({ behavior: "smooth", block: "center" })
+      return
+    }
+    if (pulse.nextAction === "gif") void exportGif()
+    else if (pulse.nextAction === "reel") void exportReel()
+    else void downloadKit()
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-10 px-4 py-10">
+    <div className="relative mx-auto max-w-5xl space-y-10 px-4 py-10">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(ellipse_at_top,rgba(139,92,246,0.18),transparent_55%)]"
+      />
+
       <header className="flex flex-col items-center gap-6 text-center">
-        <div>
-          <h1 className="text-2xl font-black text-zinc-900 dark:text-white">Rendre viral</h1>
-          <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-            PNG still · GIF WhatsApp · MP4 TikTok · zéro marge exposée
+        <div className="space-y-2">
+          <p className="inline-flex items-center gap-1.5 rounded-full border border-violet-200/80 bg-violet-50/80 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-violet-700 dark:border-violet-800/60 dark:bg-violet-950/50 dark:text-violet-200">
+            <Sparkles className="size-3" aria-hidden />
+            Viral Autopilot
           </p>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white">
+            Rendre viral
+          </h1>
+          <p className="mx-auto max-w-md text-sm font-medium text-zinc-500 dark:text-zinc-400">
+            Gagnez du temps, des millions de vues, et de l&apos;argent — pack prêt à poster, marge
+            jamais exposée.
+          </p>
+        </div>
+
+        <div
+          className="flex flex-col items-center gap-3 sm:flex-row sm:items-end sm:gap-8"
+          aria-live="polite"
+        >
+          <div className="relative">
+            <div
+              className={`absolute -inset-1 rounded-full bg-gradient-to-br ${pulseRingClass(pulse.band)} opacity-80 blur-[2px]`}
+            />
+            <div className="relative flex size-[88px] flex-col items-center justify-center rounded-full bg-zinc-950 text-white shadow-xl ring-2 ring-white/10">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                Pulse
+              </span>
+              <span className="text-2xl font-black tabular-nums">{pulse.score}</span>
+              <span className="text-[10px] font-medium text-zinc-400">{pulse.label}</span>
+            </div>
+          </div>
+          <div className="max-w-xs text-left text-xs text-zinc-600 dark:text-zinc-300">
+            <p className="font-semibold text-zinc-900 dark:text-white">Prochaine action</p>
+            <p className="mt-0.5">{pulse.nextLabel}</p>
+            <ul className="mt-2 space-y-0.5 text-[11px] text-zinc-500">
+              {pulse.signals.slice(0, 3).map((s) => (
+                <li key={s}>· {s}</li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={runPulseAction}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-violet-500/25"
+            >
+              <Zap className="size-3.5" aria-hidden />
+              Autopilot
+            </button>
+          </div>
         </div>
 
         {medias.length > 0 ? (
@@ -363,23 +496,23 @@ export function ViralCommandCenter({ product }: Props) {
         <div className="flex flex-wrap items-center justify-center gap-2">
           <button
             type="button"
-            disabled={exportingGif || exportingVideo || medias.length === 0}
+            disabled={exportingGif || exportingVideo || kitBusy || medias.length === 0}
             onClick={() => void exportGif()}
-            className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+            className="rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 disabled:opacity-50"
           >
             {exportingGif
               ? `GIF animé… ${Math.round(gifProgress * 100)}%`
-              : "Exporter GIF · WhatsApp"}
+              : "Partager GIF · WhatsApp"}
           </button>
           <button
             type="button"
-            disabled={exportingVideo || exportingGif || medias.length === 0}
+            disabled={exportingVideo || exportingGif || kitBusy || medias.length === 0}
             onClick={() => void exportReel()}
             className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50 dark:bg-white dark:text-zinc-900"
           >
             {exportingVideo
               ? `Encodage H.264… ${Math.round(exportProgress * 100)}%`
-              : "Exporter Reel · MP4"}
+              : "Exporter Reel · H.264"}
           </button>
           <BubbleProductCard
             product={liveProduct}
@@ -390,12 +523,12 @@ export function ViralCommandCenter({ product }: Props) {
           />
         </div>
         <p className="max-w-md text-center text-[11px] text-zinc-500">
-          GIF = autoplay partout (DM, status). MP4 = TikTok / Reels / QuickTime. PNG = couverture
+          GIF = share sheet native (autoplay DM). MP4 = TikTok / Reels / QuickTime. PNG = couverture
           fixe.
         </p>
       </header>
 
-      <section className="mx-auto max-w-md">
+      <section id="viral-profit" className="mx-auto max-w-md scroll-mt-24">
         <h2 className="mb-3 text-lg font-bold text-zinc-900 dark:text-white">
           Prix &amp; bénéfice net
         </h2>
@@ -481,6 +614,7 @@ export function ViralCommandCenter({ product }: Props) {
                 livePrice={livePrice}
                 baseSalePrice={product.salePrice}
                 fallback={Boolean(bundle.fallback)}
+                highlighted={highlightKey === asset.key}
                 onCopyCaption={(text) => void copyCaption(text)}
               />
             ))}
@@ -493,8 +627,17 @@ export function ViralCommandCenter({ product }: Props) {
         ) : null}
       </section>
 
-      <section className="rounded-2xl border border-zinc-200 p-6 dark:border-zinc-800">
-        <h2 className="mb-3 text-lg font-bold">Publier partout en 1-clic (P1 OAuth)</h2>
+      <section className="overflow-hidden rounded-2xl border border-zinc-200 bg-gradient-to-br from-zinc-50 via-white to-violet-50/40 p-6 dark:border-zinc-800 dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/20">
+        <div className="mb-1 flex items-center gap-2">
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Kit de lancement</h2>
+          <span className="rounded-full bg-zinc-900/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white dark:bg-white dark:text-zinc-900">
+            1-clic
+          </span>
+        </div>
+        <p className="mb-4 text-xs text-zinc-500">
+          ZIP prêt à poster (PNG sélectionnés + captions + README). Publication OAuth native = P1 —
+          aujourd&apos;hui tu gagnes le temps Amazon Influencer.
+        </p>
         <div className="mb-4 flex flex-wrap gap-4 text-sm">
           {(Object.keys(platforms) as Array<keyof typeof platforms>).map((p) => (
             <label key={p} className="inline-flex items-center gap-2 capitalize">
@@ -509,15 +652,18 @@ export function ViralCommandCenter({ product }: Props) {
         </div>
         <button
           type="button"
-          onClick={() => void publishStub()}
-          className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-bold text-white dark:bg-white dark:text-zinc-900"
+          disabled={kitBusy || !bundle || loading}
+          onClick={() => void downloadKit()}
+          className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50 dark:bg-white dark:text-zinc-900"
         >
-          Publier sur {Object.values(platforms).filter(Boolean).length} réseaux → (P0: zip captions)
+          {kitBusy
+            ? `Packaging… ${Math.round(kitProgress * 100)}%`
+            : `Télécharger le kit · ${Object.values(platforms).filter(Boolean).length} réseaux`}
         </button>
         {liveCaptions ? (
           <div className="mt-6 space-y-3 text-left text-sm text-zinc-600 dark:text-zinc-300">
-            <p className="font-semibold text-zinc-900 dark:text-white">Captions live</p>
-            <pre className="whitespace-pre-wrap rounded-xl bg-zinc-50 p-3 text-xs dark:bg-zinc-900">
+            <p className="font-semibold text-zinc-900 dark:text-white">Captions AI</p>
+            <pre className="whitespace-pre-wrap rounded-xl bg-white/80 p-3 text-xs dark:bg-zinc-900/80">
               {liveCaptions.moneyHook}
             </pre>
             <button
@@ -525,7 +671,7 @@ export function ViralCommandCenter({ product }: Props) {
               className="text-xs font-semibold underline"
               onClick={() => void copyCaption(captionsTxt)}
             >
-              Copier les 3 hooks
+              Copier les 3 hooks + lien bubble
             </button>
           </div>
         ) : null}

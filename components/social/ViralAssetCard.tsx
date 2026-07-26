@@ -19,6 +19,7 @@ type Props = {
   livePrice: number
   baseSalePrice: number
   fallback?: boolean
+  highlighted?: boolean
   onCopyCaption: (caption: string) => void
 }
 
@@ -42,6 +43,7 @@ export function ViralAssetCard({
   livePrice,
   baseSalePrice,
   fallback = false,
+  highlighted = false,
   onCopyCaption,
 }: Props) {
   const [gifBusy, setGifBusy] = useState(false)
@@ -92,7 +94,14 @@ export function ViralAssetCard({
   }
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+    <article
+      id={`viral-asset-${asset.key}`}
+      className={`scroll-mt-28 overflow-hidden rounded-2xl border bg-white transition dark:bg-zinc-950 ${
+        highlighted
+          ? "border-violet-500 ring-2 ring-violet-500/40 shadow-lg shadow-violet-500/10"
+          : "border-zinc-200 dark:border-zinc-800"
+      }`}
+    >
       <div className="relative aspect-video bg-zinc-950">
         <Image
           src={asset.publicUrl}
