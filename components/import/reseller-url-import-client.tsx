@@ -37,7 +37,7 @@ const EXAMPLE_URLS = [
   },
   {
     label: "AliExpress",
-    url: "https://www.aliexpress.com/item/1005005970123456.html",
+    url: "https://www.aliexpress.com/item/1005008719608144.html",
   },
   {
     label: "Temu",
@@ -49,6 +49,11 @@ type Preview = {
   title: string
   description: string
   images: string[]
+  videos?: string[]
+  variants?: Array<{ name: string }>
+  colors?: Array<{ name: string }>
+  sizes?: string[]
+  specs?: Record<string, string>
   costPrice: number
   suggestedPrice: number
   profitPerSale: number
@@ -331,6 +336,23 @@ export function ResellerUrlImportClient() {
                 <span className="rounded-full bg-emerald-500/15 px-3 py-1 font-semibold text-emerald-200">
                   {t("profit")}: {money(preview.profitPerSale, preview.currency)}
                 </span>
+                <span className="rounded-full bg-white/5 px-3 py-1 text-zinc-300">
+                  {t("mediaCount", {
+                    images: preview.images.length,
+                    videos: preview.videos?.length ?? 0,
+                  })}
+                </span>
+                {(preview.variants?.length ?? 0) > 0 ||
+                (preview.colors?.length ?? 0) > 0 ||
+                Object.keys(preview.specs ?? {}).length > 0 ? (
+                  <span className="rounded-full bg-violet-500/15 px-3 py-1 text-violet-100">
+                    {t("attrsCount", {
+                      variants: preview.variants?.length ?? 0,
+                      colors: preview.colors?.length ?? 0,
+                      specs: Object.keys(preview.specs ?? {}).length,
+                    })}
+                  </span>
+                ) : null}
               </div>
               <label className="mt-4 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                 {t("sellPrice")}

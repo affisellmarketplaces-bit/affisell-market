@@ -4,11 +4,22 @@ import * as cheerio from "cheerio"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { shopListingPath } from "@/lib/affiliate-routes"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
+import {
+  DROPFORGE_MAX_DESC,
+  DROPFORGE_MAX_IMAGES,
+  buildDropForgeProductPersistFields,
+  dropForgeIncompleteError,
+  emptyDropForgeExtras,
+  isDropForgeImportComplete,
+  mergeScrapedProducts,
+  type DropForgeCompletePreview,
+} from "@/lib/dropforge-complete-import"
 import { validateDropForgeProductUrl } from "@/lib/dropforge-product-url"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { psychologicalPrice } from "@/lib/import/smart-import-enricher"
 import { detectMarketplaceFromUrl } from "@/lib/import-marketplace"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
+import { syncProductVariants } from "@/lib/product-variant-sku"
 import { runProductImportAgent } from "@/lib/product-import-agent"
 import { prisma } from "@/lib/prisma"
 import type { SupplierScrapedProduct } from "@/lib/supplier-import-url-handler"
@@ -17,26 +28,7 @@ import { normalizeImportBrand } from "@/lib/url-import-apply"
 export const RESELLER_IMPORT_VAULT_EMAIL = "import-vault@affisell.internal"
 export const RESELLER_URL_IMPORT_SOURCE = "reseller_url_import"
 
-export type ResellerImportPreview = {
-  title: string
-  description: string
-  images: string[]
-  costPrice: number
-  suggestedPrice: number
-  profitPerSale: number
-  currency: string
-  brand: string
-  category: string
-  stock: number
-  platform: string
-  marketplaceLabel: string
-  method: string
-  sourceUrl: string
-  warnings: string[]
-  /** Incomplete fetch — still commitable as draft for the reseller to finish. */
-  partial?: boolean
-  catalogProductId?: string
-}
+export type ResellerImportPreview = DropForgeCompletePreview
 
 function asPreview(
   product: SupplierScrapedProduct,
@@ -46,21 +38,79 @@ function asPreview(
     sourceUrl: string
     marketplaceLabel: string
     warnings: string[]
-    partial?: boolean
     catalogProductId?: string
   }
 ): ResellerImportPreview {
-  const cost = Math.max(0.01, Number(product.price) || 0.01)
+  const cost = Math.max(0.01, Number(product.price) || Number(product.costPrice) || 0)
   const suggested =
     typeof product.suggested_price === "number" && product.suggested_price > cost
       ? product.suggested_price
-      : psychologicalPrice(cost * 2.8)
-  return {
-    title: product.title.slice(0, 200),
-    description: (product.description || product.title).slice(0, 4000),
-    images: (product.images ?? [])
-      .filter((u) => typeof u === "string" && /^https?:\/\//i.test(u))
-      .slice(0, 12),
+      : cost > 0
+        ? psychologicalPrice(cost * 2.8)
+        : 0
+  const images = (product.images ?? [])
+    .filter((u) => typeof u === "string" && /^https?:\/\//i.test(u))
+    .slice(0, DROPFORGE_MAX_IMAGES)
+  const videos = (product.videos ?? [])
+    .filter((u) => typeof u === "string" && /^https?:\/\//i.test(u))
+    .slice(0, 6)
+  const variants = (product.variants ?? []).slice(0, 80).map((v) => ({
+    name: String(v.name || "").slice(0, 120),
+    type: String(v.type || "").slice(0, 64),
+    image: typeof v.image === "string" && /^https?:\/\//i.test(v.image) ? v.image : "",
+    price: Math.max(0, Number(v.price) || 0),
+    stock: Math.max(0, Math.round(Number(v.stock) || 0)),
+    sku: String(v.sku || "").slice(0, 64),
+    attributes:
+      v.attributes && typeof v.attributes === "object"
+        ? Object.fromEntries(
+            Object.entries(v.attributes)
+              .filter(([, val]) => typeof val === "string")
+              .slice(0, 12)
+          )
+        : {},
+  }))
+  const colors = (product.colors ?? []).slice(0, 24).map((c) => ({
+    name: String(c.name || "").slice(0, 64),
+    image: typeof c.image === "string" && /^https?:\/\//i.test(c.image) ? c.image : "",
+    hex: String(c.hex || "").slice(0, 16),
+  }))
+  const sizes = (product.sizes ?? [])
+    .map((s) => (typeof s === "string" ? s : s?.name || s?.value || ""))
+    .map((s) => String(s).trim())
+    .filter(Boolean)
+    .slice(0, 40)
+  const specs: Record<string, string> = {}
+  for (const [k, v] of Object.entries(product.specs ?? {})) {
+    if (typeof v === "string" && v.trim()) specs[k.slice(0, 80)] = v.trim().slice(0, 500)
+  }
+
+  const preview: ResellerImportPreview = {
+    title: (product.ai_title || product.title).slice(0, 200),
+    description: (product.ai_description || product.description || product.title).slice(
+      0,
+      DROPFORGE_MAX_DESC
+    ),
+    images,
+    videos,
+    variants,
+    colors,
+    sizes,
+    specs,
+    shipping: {
+      from_country: product.shipping?.from_country || "",
+      delivery_time: product.shipping?.delivery_time || "",
+      shipping_cost: Math.max(0, Number(product.shipping?.shipping_cost) || 0),
+      carrier: product.shipping?.carrier || "",
+    },
+    tags: (product.tags ?? []).filter((t) => typeof t === "string").slice(0, 24),
+    seoKeywords: (product.seo_keywords ?? [])
+      .filter((t) => typeof t === "string")
+      .slice(0, 24),
+    sku: (product.sku || "").slice(0, 64),
+    originalPrice: Math.max(0, Number(product.original_price) || 0),
+    reviewCount: Math.max(0, Math.round(product.reviews?.total || 0)),
+    reviewRating: Math.max(0, Number(product.reviews?.average_rating) || 0),
     costPrice: cost,
     suggestedPrice: suggested,
     profitPerSale: Math.max(0, Number((suggested - cost).toFixed(2))),
@@ -73,9 +123,12 @@ function asPreview(
     method: meta.method,
     sourceUrl: meta.sourceUrl,
     warnings: meta.warnings,
-    partial: meta.partial,
     catalogProductId: meta.catalogProductId,
   }
+  if (!isDropForgeImportComplete(preview)) {
+    preview.partial = true
+  }
+  return preview
 }
 
 /** Idempotent platform supplier that owns URL-imported catalog rows for resellers. */
@@ -228,7 +281,7 @@ async function scrapeOpenGraphPreview(url: string): Promise<SupplierScrapedProdu
       profit_per_sale: parseFloat((suggested - price).toFixed(2)),
       roi: price > 0 ? Math.round(((suggested - price) / price) * 100) : 0,
       tags: ["og-import"],
-      quality_score: 45,
+      quality_score: image && price > 0 ? 55 : 30,
       is_duplicate: false,
       seo_keywords: [],
     }
@@ -238,38 +291,6 @@ async function scrapeOpenGraphPreview(url: string): Promise<SupplierScrapedProdu
       error: e instanceof Error ? e.message : String(e),
     })
     return null
-  }
-}
-
-function buildManualStubPreview(rawUrl: string): ResellerImportPreview {
-  const market = detectMarketplaceFromUrl(rawUrl)
-  let hostHint = market.label
-  try {
-    hostHint = new URL(rawUrl).hostname.replace(/^www\./, "")
-  } catch {
-    /* ignore */
-  }
-  const cost = 9.9
-  const suggested = psychologicalPrice(cost * 2.8)
-  return {
-    title: `Produit importé · ${hostHint}`,
-    description: `Brouillon créé depuis ${rawUrl}. Complète titre, images et prix dans ton catalogue Affisell.`,
-    images: [],
-    costPrice: cost,
-    suggestedPrice: suggested,
-    profitPerSale: Math.max(0, Number((suggested - cost).toFixed(2))),
-    currency: "EUR",
-    brand: "Generic",
-    category: market.label,
-    stock: 99,
-    platform: market.scrapePlatform,
-    marketplaceLabel: market.label,
-    method: "manual-stub",
-    sourceUrl: rawUrl.trim(),
-    warnings: [
-      "Aperçu partiel — la page source est protégée. Tu peux quand même créer un brouillon et finaliser la fiche.",
-    ],
-    partial: true,
   }
 }
 
@@ -289,89 +310,122 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
   if (catalog) {
     const cost = Math.max(0.01, catalog.basePriceCents / 100)
     const suggested = psychologicalPrice(cost * 2.8)
+    const images = catalog.images
+      .filter((u) => /^https?:\/\//i.test(u))
+      .slice(0, DROPFORGE_MAX_IMAGES)
+    const preview: ResellerImportPreview = {
+      ...emptyDropForgeExtras(),
+      title: catalog.name.slice(0, 200),
+      description: (catalog.description || catalog.name).slice(0, DROPFORGE_MAX_DESC),
+      images,
+      costPrice: cost,
+      suggestedPrice: suggested,
+      profitPerSale: Math.max(0, Number((suggested - cost).toFixed(2))),
+      currency: "EUR",
+      brand: "Generic",
+      category: market.label,
+      stock: Math.max(0, catalog.stock),
+      platform: market.scrapePlatform,
+      marketplaceLabel: market.label,
+      method: "catalog-match",
+      sourceUrl: url,
+      warnings: ["Produit déjà dans le catalogue Affisell — prêt à lister sur ta boutique."],
+      catalogProductId: catalog.id,
+    }
+    if (!isDropForgeImportComplete(preview)) {
+      return {
+        ok: false,
+        error: dropForgeIncompleteError(market.label),
+        status: 422,
+        marketplaceLabel: market.label,
+      }
+    }
     console.log("[affiliate-url-import]", {
       stage: "preview",
       result: "catalog_match",
       productId: catalog.id,
+      images: images.length,
     })
-    return {
-      ok: true,
-      preview: {
-        title: catalog.name.slice(0, 200),
-        description: (catalog.description || catalog.name).slice(0, 4000),
-        images: catalog.images.filter((u) => /^https?:\/\//i.test(u)).slice(0, 12),
-        costPrice: cost,
-        suggestedPrice: suggested,
-        profitPerSale: Math.max(0, Number((suggested - cost).toFixed(2))),
-        currency: "EUR",
-        brand: "Generic",
-        category: market.label,
-        stock: Math.max(0, catalog.stock),
-        platform: market.scrapePlatform,
-        marketplaceLabel: market.label,
-        method: "catalog-match",
-        sourceUrl: url,
-        warnings: ["Produit déjà dans le catalogue Affisell — prêt à lister sur ta boutique."],
-        catalogProductId: catalog.id,
-      },
-    }
+    return { ok: true, preview }
   }
 
   const agent = await runProductImportAgent({
     url,
-    options: { markup: 2.8, aiRewrite: false, fast: true },
+    options: { markup: 2.8, aiRewrite: false, fast: false },
   })
 
-  if (agent.ok) {
+  const og = await scrapeOpenGraphPreview(url)
+
+  let product: SupplierScrapedProduct | null = null
+  let method = "agent"
+  let platform: string = market.scrapePlatform
+  const warnings: string[] = []
+
+  if (agent.ok && og) {
+    product = mergeScrapedProducts(agent.product, og)
+    method = `${agent.method}+open-graph`
+    platform = agent.platform
+    warnings.push(...agent.warnings)
+  } else if (agent.ok) {
+    product = agent.product
+    method = agent.method
+    platform = agent.platform
+    warnings.push(...agent.warnings)
+  } else if (og) {
+    product = og
+    method = "open-graph"
+    warnings.push(`Scan principal : ${agent.error}`)
+  } else {
     console.log("[affiliate-url-import]", {
       stage: "preview",
-      result: "ok",
-      method: agent.method,
-      marketplace: agent.marketplace.id,
+      result: "incomplete",
+      marketplaceLabel: market.label,
+      error: agent.error.slice(0, 160),
     })
     return {
-      ok: true,
-      preview: asPreview(agent.product, {
-        platform: agent.platform,
-        method: agent.method,
-        sourceUrl: url,
-        marketplaceLabel: agent.marketplace.label,
-        warnings: agent.warnings,
-      }),
+      ok: false,
+      error: dropForgeIncompleteError(market.label),
+      status: 422,
+      marketplaceLabel: market.label,
     }
   }
 
-  const og = await scrapeOpenGraphPreview(url)
-  if (og) {
+  const preview = asPreview(product, {
+    platform,
+    method,
+    sourceUrl: url,
+    marketplaceLabel: market.label,
+    warnings,
+  })
+
+  if (!isDropForgeImportComplete(preview)) {
     console.log("[affiliate-url-import]", {
       stage: "preview",
-      result: "og_fallback",
-      marketplaceLabel: market.label,
+      result: "incomplete_fields",
+      method,
+      images: preview.images.length,
+      costPrice: preview.costPrice,
     })
     return {
-      ok: true,
-      preview: asPreview(og, {
-        platform: market.scrapePlatform,
-        method: "open-graph",
-        sourceUrl: url,
-        marketplaceLabel: market.label,
-        warnings: [
-          ...(agent.ok === false ? [`Scan principal : ${agent.error}`] : []),
-          "Données partielles (Open Graph) — vérifie prix et images avant publication.",
-        ],
-        partial: true,
-      }),
+      ok: false,
+      error: dropForgeIncompleteError(market.label),
+      status: 422,
+      marketplaceLabel: market.label,
     }
   }
 
   console.log("[affiliate-url-import]", {
     stage: "preview",
-    result: "manual_stub",
-    marketplaceLabel: market.label,
-    error: agent.ok === false ? agent.error.slice(0, 160) : "unknown",
+    result: "ok",
+    method,
+    marketplace: market.id,
+    images: preview.images.length,
+    variants: preview.variants.length,
+    videos: preview.videos.length,
+    specs: Object.keys(preview.specs).length,
   })
 
-  return { ok: true, preview: buildManualStubPreview(url) }
+  return { ok: true, preview }
 }
 
 function sanitizeCommitSnapshot(
@@ -396,16 +450,65 @@ function sanitizeCommitSnapshot(
   const images = Array.isArray(o.images)
     ? o.images
         .filter((u): u is string => typeof u === "string" && /^https?:\/\//i.test(u))
-        .slice(0, 12)
+        .slice(0, DROPFORGE_MAX_IMAGES)
+    : []
+  const videos = Array.isArray(o.videos)
+    ? o.videos
+        .filter((u): u is string => typeof u === "string" && /^https?:\/\//i.test(u))
+        .slice(0, 6)
     : []
   const market = detectMarketplaceFromUrl(sourceUrl)
-  return {
+  const specs: Record<string, string> = {}
+  if (o.specs && typeof o.specs === "object" && !Array.isArray(o.specs)) {
+    for (const [k, v] of Object.entries(o.specs as Record<string, unknown>)) {
+      if (typeof v === "string" && v.trim()) specs[k.slice(0, 80)] = v.trim().slice(0, 500)
+    }
+  }
+  const shipRaw =
+    o.shipping && typeof o.shipping === "object" && !Array.isArray(o.shipping)
+      ? (o.shipping as Record<string, unknown>)
+      : {}
+  const preview: ResellerImportPreview = {
+    ...emptyDropForgeExtras(),
     title,
     description:
       typeof o.description === "string"
-        ? o.description.slice(0, 4000)
+        ? o.description.slice(0, DROPFORGE_MAX_DESC)
         : title,
     images,
+    videos,
+    variants: Array.isArray(o.variants)
+      ? (o.variants as ResellerImportPreview["variants"]).slice(0, 80)
+      : [],
+    colors: Array.isArray(o.colors)
+      ? (o.colors as ResellerImportPreview["colors"]).slice(0, 24)
+      : [],
+    sizes: Array.isArray(o.sizes)
+      ? o.sizes.filter((s): s is string => typeof s === "string").slice(0, 40)
+      : [],
+    specs,
+    shipping: {
+      from_country: typeof shipRaw.from_country === "string" ? shipRaw.from_country : "",
+      delivery_time: typeof shipRaw.delivery_time === "string" ? shipRaw.delivery_time : "",
+      shipping_cost:
+        typeof shipRaw.shipping_cost === "number" ? Math.max(0, shipRaw.shipping_cost) : 0,
+      carrier: typeof shipRaw.carrier === "string" ? shipRaw.carrier : "",
+    },
+    tags: Array.isArray(o.tags)
+      ? o.tags.filter((t): t is string => typeof t === "string").slice(0, 24)
+      : [],
+    seoKeywords: Array.isArray(o.seoKeywords)
+      ? o.seoKeywords.filter((t): t is string => typeof t === "string").slice(0, 24)
+      : [],
+    sku: typeof o.sku === "string" ? o.sku.slice(0, 64) : "",
+    originalPrice:
+      typeof o.originalPrice === "number" && Number.isFinite(o.originalPrice)
+        ? Math.max(0, o.originalPrice)
+        : 0,
+    reviewCount:
+      typeof o.reviewCount === "number" ? Math.max(0, Math.round(o.reviewCount)) : 0,
+    reviewRating:
+      typeof o.reviewRating === "number" ? Math.max(0, o.reviewRating) : 0,
     costPrice,
     suggestedPrice,
     profitPerSale: Math.max(0, Number((suggestedPrice - costPrice).toFixed(2))),
@@ -433,10 +536,11 @@ function sanitizeCommitSnapshot(
     warnings: Array.isArray(o.warnings)
       ? o.warnings.filter((w): w is string => typeof w === "string").slice(0, 8)
       : [],
-    partial: o.partial === true,
     catalogProductId:
       typeof o.catalogProductId === "string" ? o.catalogProductId : undefined,
   }
+  if (!isDropForgeImportComplete(preview)) return null
+  return preview
 }
 
 export async function commitResellerUrlImport(args: {
@@ -481,15 +585,17 @@ export async function commitResellerUrlImport(args: {
         title: args.titleOverride?.trim() || catalog.name.slice(0, 200),
         description: (catalog.description || catalog.name).slice(0, 4000),
         images:
-          catalog.images.filter((u) => /^https?:\/\//i.test(u)).slice(0, 12).length > 0
-            ? catalog.images.filter((u) => /^https?:\/\//i.test(u)).slice(0, 12)
+          catalog.images.filter((u) => /^https?:\/\//i.test(u)).slice(0, DROPFORGE_MAX_IMAGES)
+            .length > 0
+            ? catalog.images
+                .filter((u) => /^https?:\/\//i.test(u))
+                .slice(0, DROPFORGE_MAX_IMAGES)
             : fromSnapshot.images,
         costPrice: cost,
         suggestedPrice: suggested,
         profitPerSale: Math.max(0, Number((suggested - cost).toFixed(2))),
         stock: Math.max(0, catalog.stock),
         method: "catalog-match",
-        partial: false,
         catalogProductId: catalog.id,
         warnings: ["Produit catalogue Affisell — listage direct."],
       }
@@ -516,6 +622,14 @@ export async function commitResellerUrlImport(args: {
     }
   }
 
+  if (!isDropForgeImportComplete(preview)) {
+    return {
+      ok: false,
+      error: dropForgeIncompleteError(preview.marketplaceLabel),
+      status: 422,
+    }
+  }
+
   const supplierId = await ensureResellerImportVaultSupplier()
   const store = await ensureMerchantStore({
     userId: args.affiliateId,
@@ -523,7 +637,8 @@ export async function commitResellerUrlImport(args: {
     displayName: args.affiliateName,
   })
 
-  const costCents = Math.max(1, Math.round(preview.costPrice * 100))
+  const persist = buildDropForgeProductPersistFields(preview)
+  const costCents = persist.basePriceCents
   const sellEur =
     typeof args.sellingPriceEur === "number" && Number.isFinite(args.sellingPriceEur)
       ? args.sellingPriceEur
@@ -543,10 +658,6 @@ export async function commitResellerUrlImport(args: {
         reason: gate.reason,
       })
     }
-    // Partial imports stay draft until images/title are complete
-    if (preview.partial && preview.images.length === 0) {
-      listLive = false
-    }
   }
 
   let productId = preview.catalogProductId ?? null
@@ -565,17 +676,30 @@ export async function commitResellerUrlImport(args: {
     })
 
     const productData = {
-      name: preview.title,
-      description: preview.description,
-      images: preview.images,
+      name: persist.name,
+      description: persist.description,
+      descriptionBullets: persist.descriptionBullets,
+      descriptionIllustrationVideos: persist.descriptionIllustrationVideos,
+      images: persist.images,
+      colors: persist.colors,
+      ...(persist.colorImages != null ? { colorImages: persist.colorImages } : {}),
+      ...(persist.variants != null ? { variants: persist.variants } : {}),
       categories: preview.category ? [preview.category] : [],
-      tags: ["reseller_url_import", preview.platform, preview.method],
+      tags: persist.tags,
       basePriceCents: costCents,
+      ...(persist.compareAt ? { compareAt: persist.compareAt } : {}),
       commissionRate: 15,
-      stock: preview.stock > 0 ? preview.stock : 99,
+      stock: persist.stock,
       sourceUrl: preview.sourceUrl,
       importSource: RESELLER_URL_IMPORT_SOURCE,
       supplierTag: "reseller-import",
+      shippingCountry: persist.shippingCountry,
+      warehouseType: persist.warehouseType,
+      deliveryMin: persist.deliveryMin,
+      deliveryMax: persist.deliveryMax,
+      shippingCost: persist.shippingCost,
+      shipsFrom: persist.shipsFrom,
+      hasVariants: persist.variantInputs.length > 0,
       ...(aeId ? { aliexpressProductId: aeId } : {}),
       active: true,
       isDraft: false,
@@ -595,6 +719,32 @@ export async function commitResellerUrlImport(args: {
           select: { id: true },
         })
     productId = product.id
+
+    if (persist.attributes.length > 0) {
+      for (const attr of persist.attributes) {
+        await prisma.productAttribute.upsert({
+          where: {
+            productId_key: { productId, key: attr.key },
+          },
+          create: {
+            productId,
+            key: attr.key,
+            value: attr.value,
+            label: attr.label,
+          },
+          update: {
+            value: attr.value,
+            label: attr.label,
+          },
+        })
+      }
+    }
+
+    if (persist.variantInputs.length > 0) {
+      await prisma.$transaction(async (tx) => {
+        await syncProductVariants(tx, productId!, true, persist.variantInputs)
+      })
+    }
   }
 
   const listing = await prisma.affiliateProduct.upsert({
@@ -611,7 +761,7 @@ export async function commitResellerUrlImport(args: {
       marginCents,
       customTitle: preview.title,
       customDescription: preview.description,
-      customImages: preview.images,
+      customImages: persist.images,
       isListed: listLive,
     },
     update: {
@@ -619,7 +769,7 @@ export async function commitResellerUrlImport(args: {
       marginCents,
       customTitle: preview.title,
       customDescription: preview.description,
-      customImages: preview.images,
+      customImages: persist.images,
       isListed: listLive,
     },
     select: { id: true, isListed: true },
@@ -632,6 +782,10 @@ export async function commitResellerUrlImport(args: {
     platform: preview.platform,
     method: preview.method,
     isListed: listing.isListed,
+    images: persist.images.length,
+    variants: persist.variantInputs.length,
+    specs: persist.attributes.length,
+    videos: persist.descriptionIllustrationVideos.length,
     result: "committed",
   })
 

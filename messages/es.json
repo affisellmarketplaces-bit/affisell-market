@@ -4498,9 +4498,9 @@
     "errProductUrl": "Paste a specific product link, not the homepage.",
     "errPreview": "Could not read this page. Try again or another URL.",
     "errCommit": "Import failed for now.",
-    "previewOk": "{market} listing ready",
-    "previewPartial": "Partial {market} preview — you can still save a draft",
-    "partialBadge": "Needs polish",
+    "previewOk": "{market} listing complete — everything imported",
+    "previewPartial": "Incomplete {market} preview",
+    "partialBadge": "Incomplete",
     "cost": "Source cost",
     "profit": "Est. margin",
     "sellPrice": "Your sell price",
@@ -4531,6 +4531,9 @@
     "emptyTitle": "Paste a URL — DropForge builds the preview here",
     "emptyBody": "Title, images, source cost and sell price appear after Forge. Create your reseller account in one click to push it to your shop.",
     "productName": "DropForge",
-    "productTag": "Affisell · DropForge"
+    "productTag": "Affisell · DropForge",
+    "errIncomplete": "DropForge requires a complete listing (title, images, price). Check the URL or API config.",
+    "mediaCount": "{images} images · {videos} videos",
+    "attrsCount": "{variants} variants · {colors} colors · {specs} specs"
   }
 }
