@@ -6,18 +6,37 @@ import RadarWorldMap from "@/lib/radar/map/RadarWorldMap"
 import {
   MOCK_MAP_STATS,
   countryCodeToName,
+  mergeMapStatsWithExpected,
   type CountryMapStat,
 } from "@/lib/radar/map/geo"
 import { auth } from "@/lib/auth"
+import {
+  DEFAULT_RADAR_COUNTRIES,
+  parseRadarCountries,
+} from "@/lib/radar/crawler/global-scan"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
 import { loadRadarPlanContext } from "@/lib/radar/plan-user.server"
 import { getRadarDb } from "@/lib/prisma-radar"
 
-async function loadCountryStats(): Promise<{ stats: CountryMapStat[]; demo: boolean }> {
+async function loadCountryStats(): Promise<{
+  stats: CountryMapStat[]
+  demo: boolean
+  expected: string[]
+}> {
+  // Always show the full default coverage grid on the map — even if RADAR_COUNTRIES
+  // env still lists the old 5 (crawl override). Live + pending markers.
+  const expected = [
+    ...new Set([...DEFAULT_RADAR_COUNTRIES, ...parseRadarCountries()]),
+  ]
+
   if (!resolveRadarDatabaseUrl()) {
-    return { stats: MOCK_MAP_STATS, demo: true }
+    return {
+      stats: mergeMapStatsWithExpected(MOCK_MAP_STATS, expected),
+      demo: true,
+      expected,
+    }
   }
 
   try {
@@ -30,35 +49,52 @@ async function loadCountryStats(): Promise<{ stats: CountryMapStat[]; demo: bool
       _count: { _all: true },
       _avg: { salesEst: true },
       orderBy: { _count: { country: "desc" } },
-      take: 40,
+      take: 80,
     })
 
     if (grouped.length === 0) {
-      return { stats: MOCK_MAP_STATS, demo: true }
+      return {
+        stats: mergeMapStatsWithExpected(MOCK_MAP_STATS, expected),
+        demo: true,
+        expected,
+      }
     }
 
-    const stats: CountryMapStat[] = []
+    const live: CountryMapStat[] = []
     for (const row of grouped) {
       const top = await db.radarGlobalSnapshot.findFirst({
         where: { country: row.country, crawledAt: { gte: since } },
         orderBy: [{ salesEst: "desc" }, { rank: "asc" }],
         select: { title: true },
       })
-      stats.push({
+      live.push({
         country: row.country,
         count: row._count._all,
         avgSales: row._avg.salesEst ?? 0,
         topProductTitle: top?.title ?? null,
+        pending: false,
       })
     }
 
-    return { stats, demo: false }
+    const stats = mergeMapStatsWithExpected(live, expected)
+    console.log("[radar/map]", {
+      result: "stats_ok",
+      liveCountries: live.length,
+      mapMarkers: stats.length,
+      expected: expected.length,
+      pending: stats.filter((s) => s.pending).length,
+    })
+    return { stats, demo: false, expected }
   } catch (err) {
     console.warn("[radar/map]", {
       result: "demo_fallback",
       message: err instanceof Error ? err.message : "unknown",
     })
-    return { stats: MOCK_MAP_STATS, demo: true }
+    return {
+      stats: mergeMapStatsWithExpected(MOCK_MAP_STATS, expected),
+      demo: true,
+      expected,
+    }
   }
 }
 
@@ -77,8 +113,10 @@ export default async function RadarMapPage() {
   })
   const mapAccess = checkRadarAccess(planUser, "map")
 
-  const { stats, demo } = await loadCountryStats()
-  const topCountries = [...stats].sort((a, b) => b.count - a.count).slice(0, 10)
+  const { stats, demo, expected } = await loadCountryStats()
+  const activeStats = stats.filter((s) => !s.pending && s.count > 0)
+  const topCountries = [...activeStats].sort((a, b) => b.count - a.count).slice(0, 10)
+  const pendingCount = stats.filter((s) => s.pending || s.count <= 0).length
 
   if (!mapAccess.allowed) {
     return (
@@ -90,7 +128,10 @@ export default async function RadarMapPage() {
           reason={mapAccess.reason ?? "Upgrade to Pro for Map"}
         >
           <div className="p-2">
-            <RadarWorldMap stats={MOCK_MAP_STATS} demo />
+            <RadarWorldMap
+              stats={mergeMapStatsWithExpected(MOCK_MAP_STATS, [...DEFAULT_RADAR_COUNTRIES])}
+              demo
+            />
           </div>
         </RadarPaywallPanel>
       </div>
@@ -103,7 +144,8 @@ export default async function RadarMapPage() {
         <div>
           <h2 className="text-base font-semibold text-zinc-900">🗺️ Map Monde — Winners (analyse quotidienne)</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Points pulsants = bestsellers détectés sur les grandes marketplaces (24h). Clique un pays
+            {stats.length} pays couverts · {activeStats.length} actifs (24h)
+            {pendingCount > 0 ? ` · ${pendingCount} en attente du prochain scan` : ""}. Clique un pays
             pour voir les winners.
           </p>
         </div>
@@ -115,7 +157,11 @@ export default async function RadarMapPage() {
       <RadarWorldMap stats={stats} demo={demo} />
 
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-zinc-900">Top 10 pays (24h)</h3>
+        <h3 className="text-sm font-semibold text-zinc-900">Top pays actifs (24h)</h3>
+        <p className="mt-1 text-xs text-zinc-500">
+          Scan attendu : {expected.join(", ")}
+          {demo ? " · mode demo" : ""}
+        </p>
         <ol className="mt-3 space-y-2">
           {topCountries.map((s, i) => (
             <li key={s.country} className="flex flex-wrap items-center justify-between gap-2 text-sm">
@@ -132,6 +178,12 @@ export default async function RadarMapPage() {
             </li>
           ))}
         </ol>
+        {topCountries.length === 0 ? (
+          <p className="mt-3 text-sm text-zinc-500">
+            Aucun snapshot 24h encore — lance un Force Scan (admin) ou attends le cron 6h. Les{" "}
+            {stats.length} markers sur la carte restent visibles.
+          </p>
+        ) : null}
       </section>
     </div>
   )

@@ -96,15 +96,62 @@ export type CountryMapStat = {
   count: number
   avgSales: number
   topProductTitle: string | null
+  /** No 24h snapshots yet — still shown on map so the coverage grid is visible. */
+  pending?: boolean
 }
 
+/** Seed markers for demo / empty DB — mirrors DEFAULT_RADAR_COUNTRIES coverage. */
 export const MOCK_MAP_STATS: CountryMapStat[] = [
   { country: "US", count: 420, avgSales: 8200, topProductTitle: "LED Strip Lights RGB 5m" },
   { country: "BR", count: 310, avgSales: 12400, topProductTitle: "Shapewear High-Waist" },
   { country: "FR", count: 180, avgSales: 5400, topProductTitle: "MagSafe Phone Case" },
   { country: "DE", count: 150, avgSales: 4900, topProductTitle: "Portable Blender USB-C" },
-  { country: "ID", count: 220, avgSales: 9100, topProductTitle: "Neck Massager Heated" },
+  { country: "GB", count: 140, avgSales: 5100, topProductTitle: "Neck Massager Heated" },
+  { country: "MX", count: 165, avgSales: 6200, topProductTitle: "Wireless Earbuds Pro" },
+  { country: "ES", count: 95, avgSales: 3800, topProductTitle: "Solar Garden Lights" },
+  { country: "IT", count: 88, avgSales: 3600, topProductTitle: "Espresso Tamper Kit" },
+  { country: "NL", count: 72, avgSales: 4100, topProductTitle: "Bike Phone Mount" },
+  { country: "CA", count: 130, avgSales: 4700, topProductTitle: "Heated Gloves" },
+  { country: "JP", count: 200, avgSales: 7800, topProductTitle: "Matcha Whisk Set" },
+  { country: "AU", count: 110, avgSales: 4500, topProductTitle: "Surf Wax Combo" },
+  { country: "IN", count: 260, avgSales: 9100, topProductTitle: "Cotton Kurta Pack" },
+  { country: "AE", count: 85, avgSales: 5600, topProductTitle: "Gold Plated Watch" },
+  { country: "KR", count: 175, avgSales: 6900, topProductTitle: "K-Beauty Serum" },
+  { country: "MY", count: 120, avgSales: 5800, topProductTitle: "Shopee Viral Tumbler" },
 ]
+
+/**
+ * Ensure every expected crawl country appears on the map.
+ * Live snapshot rows win; missing countries get pending zero markers.
+ */
+export function mergeMapStatsWithExpected(
+  live: CountryMapStat[],
+  expectedCountries: readonly string[]
+): CountryMapStat[] {
+  const by = new Map<string, CountryMapStat>()
+  for (const row of live) {
+    const cc = row.country.trim().toUpperCase()
+    if (!/^[A-Z]{2}$/.test(cc)) continue
+    by.set(cc, { ...row, country: cc, pending: row.count <= 0 })
+  }
+  for (const raw of expectedCountries) {
+    const cc = raw.trim().toUpperCase()
+    if (!/^[A-Z]{2}$/.test(cc)) continue
+    if (!by.has(cc)) {
+      by.set(cc, {
+        country: cc,
+        count: 0,
+        avgSales: 0,
+        topProductTitle: null,
+        pending: true,
+      })
+    }
+  }
+  return [...by.values()].sort((a, b) => {
+    if (b.count !== a.count) return b.count - a.count
+    return a.country.localeCompare(b.country)
+  })
+}
 
 /** Map avg salesEst → heat color (green → amber → red). */
 export function salesToHeatColor(avgSales: number, maxAvg: number): string {

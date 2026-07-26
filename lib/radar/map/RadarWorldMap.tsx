@@ -128,8 +128,9 @@ export default function RadarWorldMap({
           ))}
 
           {markers.map(({ stat, x, y }) => {
-            const r = markerRadius(stat.count, maxCount)
-            const color = salesToHeatColor(stat.avgSales, maxAvg)
+            const pending = Boolean(stat.pending) || stat.count <= 0
+            const r = pending ? 5 : markerRadius(stat.count, maxCount)
+            const color = pending ? "#64748b" : salesToHeatColor(stat.avgSales, maxAvg)
             const active = selected?.country === stat.country
             return (
               <g
@@ -138,7 +139,11 @@ export default function RadarWorldMap({
                 className="cursor-pointer"
                 role="button"
                 tabIndex={0}
-                aria-label={`${countryCodeToName(stat.country)} — ${stat.count} produits Radar`}
+                aria-label={
+                  pending
+                    ? `${countryCodeToName(stat.country)} — scan en attente`
+                    : `${countryCodeToName(stat.country)} — ${stat.count} produits Radar`
+                }
                 onMouseEnter={(e) => {
                   const svg = e.currentTarget.ownerSVGElement
                   if (!svg) return
@@ -158,13 +163,16 @@ export default function RadarWorldMap({
                   }
                 }}
               >
-                <circle r={r * 1.8} fill={color} opacity={0.25}>
-                  <animate attributeName="r" values={`${r};${r * 2.2};${r}`} dur="2.4s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" values="0.35;0.05;0.35" dur="2.4s" repeatCount="indefinite" />
-                </circle>
+                {!pending ? (
+                  <circle r={r * 1.8} fill={color} opacity={0.25}>
+                    <animate attributeName="r" values={`${r};${r * 2.2};${r}`} dur="2.4s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.35;0.05;0.35" dur="2.4s" repeatCount="indefinite" />
+                  </circle>
+                ) : null}
                 <circle
                   r={r}
                   fill={color}
+                  opacity={pending ? 0.7 : 1}
                   stroke={active ? "#a7f3d0" : "#0b1220"}
                   strokeWidth={active ? 2.5 : 1.5}
                 />
@@ -185,14 +193,17 @@ export default function RadarWorldMap({
               {countryCodeToName(tooltip.stat.country)} ({tooltip.stat.country})
             </p>
             <p className="mt-1 text-zinc-300">
-              {tooltip.stat.count} produits — score demande{" "}
-              {Math.round(tooltip.stat.avgSales).toLocaleString("fr-FR")}
+              {tooltip.stat.pending || tooltip.stat.count <= 0
+                ? "En attente du prochain scan global"
+                : `${tooltip.stat.count} produits — score demande ${Math.round(tooltip.stat.avgSales).toLocaleString("fr-FR")}`}
             </p>
             {tooltip.stat.topProductTitle && (
               <p className="mt-1 text-emerald-300">Top: {tooltip.stat.topProductTitle}</p>
             )}
             <p className="mt-1.5 text-[10px] font-medium text-cyan-300/90">
-              Clic → liste Radar 24h (pas le catalogue Affisell)
+              {tooltip.stat.pending || tooltip.stat.count <= 0
+                ? "Clic → ouvrir (données après scan)"
+                : "Clic → winners du pays"}
             </p>
           </div>
         )}
