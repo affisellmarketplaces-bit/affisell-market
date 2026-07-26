@@ -162,15 +162,17 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
       platform = "aliexpress"
       method = "aliexpress-api"
     } catch (e) {
-      if (e instanceof AliExpressApiError) {
-        return {
-          ok: false,
-          error: e.message,
-          status: 502,
-          marketplace,
-        }
-      }
-      warnings.push("API AliExpress indisponible — tentative scraping.")
+      const msg = e instanceof Error ? e.message : String(e)
+      warnings.push(
+        e instanceof AliExpressApiError
+          ? `API AliExpress : ${msg} — tentative scraping / aperçu partiel.`
+          : "API AliExpress indisponible — tentative scraping."
+      )
+      console.log("[product-import-agent]", {
+        stage: "aliexpress-api",
+        result: "fallback",
+        error: msg.slice(0, 160),
+      })
     }
   } else if (aeId && !aeConfigured) {
     warnings.push(

@@ -31,6 +31,7 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as {
     url?: string
     sellingPriceEur?: number
+    titleOverride?: string
     listLive?: boolean
   }
   const url = typeof body.url === "string" ? body.url.trim() : ""
@@ -47,6 +48,8 @@ export async function POST(req: Request) {
       typeof body.sellingPriceEur === "number" && Number.isFinite(body.sellingPriceEur)
         ? body.sellingPriceEur
         : undefined,
+    titleOverride:
+      typeof body.titleOverride === "string" ? body.titleOverride : undefined,
     listLive: body.listLive === true,
   })
 
