@@ -397,6 +397,7 @@ export function SupplierAddProductForm({
   const pendingListingBaselineRef = useRef(false)
   const [pendingDraftListingId, setPendingDraftListingId] = useState("")
   const [productIsDraft, setProductIsDraft] = useState(false)
+  const draftIdRef = useRef("")
   const autosaveListingId = editId || draftIdFromUrlUsable || pendingDraftListingId
   const step = useSupplierProductWizardStore((s) => s.step)
   const trySetStep = useSupplierProductWizardStore((s) => s.trySetStep)
@@ -1244,6 +1245,10 @@ export function SupplierAddProductForm({
   }, [composeQs, deadServerDraftIds, markServerDraftDead, ownerUserId, replaceProductQuery])
 
   useEffect(() => {
+    if (urlListingId) draftIdRef.current = urlListingId
+  }, [urlListingId])
+
+  useEffect(() => {
     if (!urlListingId) {
       if (!pendingDraftListingId) setProductIsDraft(false)
       return
@@ -1745,6 +1750,7 @@ export function SupplierAddProductForm({
             }
             if (json.id) {
               skipServerHydrationForIdRef.current = json.id
+              draftIdRef.current = json.id
               setPendingDraftListingId(json.id)
               setProductIsDraft(true)
               replaceProductQuery((qs) => {
@@ -1754,8 +1760,11 @@ export function SupplierAddProductForm({
             }
           }
 
-          if (autosaveListingId) {
-            const res = await fetch(`/api/supplier/products/${autosaveListingId}`, {
+          const listingIdForSave =
+            editId || draftIdFromUrlUsable || pendingDraftListingId || draftIdRef.current
+
+          if (listingIdForSave) {
+            const res = await fetch(`/api/supplier/products/${listingIdForSave}`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
               credentials: "include",
@@ -1764,7 +1773,8 @@ export function SupplierAddProductForm({
             })
             const json = await readJsonResponse<{ error?: string }>(res)
             if (res.status === 404) {
-              markServerDraftDead(autosaveListingId)
+              markServerDraftDead(listingIdForSave)
+              draftIdRef.current = ""
               setPendingDraftListingId("")
               lastAutosaveJson.current = ""
               replaceProductQuery((qs) => {

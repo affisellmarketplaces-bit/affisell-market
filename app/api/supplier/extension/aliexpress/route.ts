@@ -11,6 +11,7 @@ import {
 import { defaultAffiliateCommissionPct } from "@/lib/supplier-commission"
 import { prisma } from "@/lib/prisma"
 import { getSiteUrl } from "@/lib/site-url"
+import { supplierProductComposerEditAbsoluteUrl } from "@/lib/supplier-product-composer-url"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
         supplierId: authResult,
         aliexpressProductId: productId,
       },
-      select: { id: true },
+      select: { id: true, isDraft: true },
     })
     if (existing) {
       const editBase = getSiteUrl()
@@ -75,7 +76,9 @@ export async function POST(req: NextRequest) {
           {
             error: "Product already imported",
             productId: existing.id,
-            editUrl: `${editBase}/dashboard/supplier/products/${existing.id}`,
+            editUrl: supplierProductComposerEditAbsoluteUrl(existing.id, editBase, {
+              isDraft: existing.isDraft,
+            }),
           },
           { status: 409 }
         )
@@ -108,7 +111,9 @@ export async function POST(req: NextRequest) {
         {
           success: true,
           product: { id: product.id, name: product.name },
-          editUrl: `${editBase}/dashboard/supplier/products/${product.id}`,
+          editUrl: supplierProductComposerEditAbsoluteUrl(product.id, editBase, {
+            isDraft: true,
+          }),
         },
         { status: 201 }
       )

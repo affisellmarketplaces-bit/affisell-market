@@ -436,7 +436,7 @@ export async function POST(req: Request) {
           productName: product.name,
         })
       } catch {
-        /* non-fatal */
+        console.error("[supplier-products] community new-drop post failed", { productId: product.id })
       }
     }
     if (!categoryId) {

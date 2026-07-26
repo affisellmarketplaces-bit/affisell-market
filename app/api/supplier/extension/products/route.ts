@@ -10,6 +10,7 @@ import {
   SUPPLIER_IMPORT_MAX_BATCH,
 } from "@/lib/supplier-products-import-exec"
 import { getSiteUrl } from "@/lib/site-url"
+import { supplierProductComposerEditAbsoluteUrl } from "@/lib/supplier-product-composer-url"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -82,8 +83,8 @@ export async function POST(req: NextRequest) {
       success: true,
       count: result.createdCount,
       products: result.products,
-      editUrls: result.products.map(
-        (p) => `${editBase}/dashboard/supplier/products/${p.id}`
+      editUrls: result.products.map((p) =>
+        supplierProductComposerEditAbsoluteUrl(p.id, editBase, { isDraft: true })
       ),
     })
   )

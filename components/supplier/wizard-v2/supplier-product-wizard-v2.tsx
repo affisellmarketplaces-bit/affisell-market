@@ -521,6 +521,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   }, [aiSuggestion, applyInstantScanFields, completeStep])
 
   const runExpressImport = useCallback(async () => {
+    if (publishing) return
     const u = expressUrl.trim()
     if (!/^https?:\/\//i.test(u)) {
       toast.error("URL invalide")
@@ -557,9 +558,10 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     } finally {
       setPublishing(false)
     }
-  }, [completeStep, defaults?.defaultCommissionPct, expressUrl])
+  }, [completeStep, defaults?.defaultCommissionPct, expressUrl, publishing])
 
   const publish = useCallback(async () => {
+    if (publishing) return
     if (!defaults) {
       toast.error("Chargement des préférences…")
       return
@@ -628,7 +630,9 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       await fetch("/api/supplier/gamification/award-product", {
         method: "POST",
         credentials: "include",
-      }).catch(() => {})
+      }).catch((e) => {
+        console.warn("[wizard-v2] award-product", e instanceof Error ? e.message : String(e))
+      })
 
       trackWizardV2PublishSuccess({
         mode,
@@ -653,9 +657,11 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     defaults,
     description,
     images,
+    instantScanBrand,
     mode,
     name,
     price,
+    publishing,
     push,
     uploadBusy,
   ])

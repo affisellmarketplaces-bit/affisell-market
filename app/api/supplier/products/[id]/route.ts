@@ -179,7 +179,28 @@ export async function PUT(
 
   const existingOfferRow = await prisma.product.findUnique({
     where: { id },
-    select: { offerMode: true, isRefurbished: true, minOrderQuantity: true, images: true },
+    select: {
+      offerMode: true,
+      isRefurbished: true,
+      minOrderQuantity: true,
+      images: true,
+      warehouseType: true,
+      shippingCountry: true,
+      warehouseCity: true,
+      processingTime: true,
+      deliveryMin: true,
+      deliveryMax: true,
+      shippingMethods: true,
+      freeShippingThreshold: true,
+      shippingCost: true,
+      digitalAccessUrl: true,
+      digitalAccessInstructions: true,
+      digitalInstantDelivery: true,
+      bookingDurationMinutes: true,
+      bookingCancellationHours: true,
+      bookingVenueLabel: true,
+      bookingInstantConfirm: true,
+    },
   })
 
   if (!existingRow.isDraft && saveAsDraftReq) {
@@ -201,14 +222,31 @@ export async function PUT(
   }
 
   const listingKind = parseListingKind(body.listingKind ?? existingRow.listingKind)
+  const digitalKeysPresent =
+    "digitalAccessUrl" in rawBody ||
+    "digitalAccessInstructions" in rawBody ||
+    "digitalInstantDelivery" in rawBody
   const digitalParsed = parseProductDigitalDeliveryBody(rawBody)
   if (!digitalParsed.ok) {
     return Response.json({ error: digitalParsed.error }, { status: 400 })
   }
+  const bookingKeysPresent =
+    "bookingDurationMinutes" in rawBody ||
+    "bookingCancellationHours" in rawBody ||
+    "bookingVenueLabel" in rawBody ||
+    "bookingInstantConfirm" in rawBody ||
+    "bookingSeatLayout" in rawBody
   const bookingParsed = parseProductBookingBody(rawBody)
   const isPublishing = publish || (!existingRow.isDraft && !saveAsDraftReq)
   if (isPublishing) {
-    const digitalErr = validateDigitalDeliveryForPublish(listingKind, digitalParsed.data, false)
+    const digitalForValidate = digitalKeysPresent
+      ? digitalParsed.data
+      : {
+          digitalAccessUrl: existingOfferRow?.digitalAccessUrl ?? null,
+          digitalAccessInstructions: existingOfferRow?.digitalAccessInstructions ?? null,
+          digitalInstantDelivery: existingOfferRow?.digitalInstantDelivery ?? true,
+        }
+    const digitalErr = validateDigitalDeliveryForPublish(listingKind, digitalForValidate, false)
     if (digitalErr) {
       return Response.json({ error: digitalErr }, { status: 400 })
     }
@@ -312,7 +350,11 @@ export async function PUT(
     if (imagesErr) {
       return Response.json({ error: imagesErr }, { status: 400 })
     }
-    const warehouseErr = validateWarehouseTypePublish(ship.warehouseType)
+    const warehouseTypeForPublish =
+      "warehouseType" in rawBody
+        ? ship.warehouseType
+        : existingOfferRow?.warehouseType ?? null
+    const warehouseErr = validateWarehouseTypePublish(warehouseTypeForPublish)
     if (warehouseErr) {
       return Response.json({ error: warehouseErr }, { status: 400 })
     }
@@ -338,17 +380,19 @@ export async function PUT(
     "importSource" in rawBody
       ? parseChinaImportFields(rawBody)
       : null
-  let categoryId: string | null = null
-  try {
-    categoryId = await normalizeLeafCategoryId(body.categoryId)
-  } catch (e) {
-    if (e instanceof Error && e.message === "CATEGORY_NOT_FOUND") {
-      return Response.json({ error: "Unknown category" }, { status: 400 })
+  let categoryId: string | null | undefined = undefined
+  if ("categoryId" in rawBody) {
+    try {
+      categoryId = await normalizeLeafCategoryId(body.categoryId)
+    } catch (e) {
+      if (e instanceof Error && e.message === "CATEGORY_NOT_FOUND") {
+        return Response.json({ error: "Unknown category" }, { status: 400 })
+      }
+      if (e instanceof Error && e.message === "CATEGORY_NOT_LEAF") {
+        return Response.json({ error: "Category must be a leaf node" }, { status: 400 })
+      }
+      throw e
     }
-    if (e instanceof Error && e.message === "CATEGORY_NOT_LEAF") {
-      return Response.json({ error: "Category must be a leaf node" }, { status: 400 })
-    }
-    throw e
   }
   const affisellOverridePatch = parseAffisellCommissionOverrideFromBody(
     rawBody.affisellCommissionRateOverridePercent ?? rawBody.affisellCommissionRateOverrideBps
@@ -506,38 +550,27 @@ export async function PUT(
         compareAt,
         commissionRate: rate,
         listingKind,
-        digitalAccessUrl: digitalParsed.data.digitalAccessUrl,
-        digitalAccessInstructions: digitalParsed.data.digitalAccessInstructions,
-        digitalInstantDelivery: digitalParsed.data.digitalInstantDelivery,
-        bookingDurationMinutes: bookingParsed.bookingDurationMinutes,
-        bookingCancellationHours: bookingParsed.bookingCancellationHours,
-        bookingVenueLabel: bookingParsed.bookingVenueLabel,
-        bookingInstantConfirm: bookingParsed.bookingInstantConfirm,
-        ...("bookingSeatLayout" in rawBody
-          ? {
-              bookingSeatLayout:
-                bookingParsed.bookingSeatLayout === null || bookingParsed.bookingSeatLayout === undefined
-                  ? Prisma.DbNull
-                  : (bookingParsed.bookingSeatLayout as Prisma.InputJsonValue),
-            }
-          : {}),
         stock,
-        categoryId,
+        ...("categoryId" in rawBody ? { categoryId } : {}),
         ...(affisellOverridePatch !== undefined
           ? { affisellCommissionRateOverrideBps: affisellOverridePatch }
           : {}),
-        shippingCountry: ship.shippingCountry,
-        warehouseType: ship.warehouseType,
-        warehouseCity: ship.warehouseCity,
+        ...("shippingCountry" in rawBody ? { shippingCountry: ship.shippingCountry } : {}),
+        ...("warehouseType" in rawBody ? { warehouseType: ship.warehouseType } : {}),
+        ...("warehouseCity" in rawBody ? { warehouseCity: ship.warehouseCity } : {}),
         ...("deliveryCountryCodes" in rawBody
           ? { deliveryCountryCodes: ship.deliveryCountryCodes }
           : {}),
-        processingTime: ship.processingTime,
-        deliveryMin: ship.deliveryMin,
-        deliveryMax: ship.deliveryMax,
-        shippingMethods: ship.shippingMethods,
-        freeShippingThreshold: ship.freeShippingThreshold,
-        shippingCost: ship.shippingCost,
+        ...("processingTime" in rawBody ? { processingTime: ship.processingTime } : {}),
+        ...("deliveryMin" in rawBody ? { deliveryMin: ship.deliveryMin } : {}),
+        ...("deliveryMax" in rawBody ? { deliveryMax: ship.deliveryMax } : {}),
+        ...("shippingMethods" in rawBody ? { shippingMethods: ship.shippingMethods } : {}),
+        ...("freeShippingThresholdEUR" in rawBody || "freeShippingThreshold" in rawBody
+          ? { freeShippingThreshold: ship.freeShippingThreshold }
+          : {}),
+        ...("shippingCostEUR" in rawBody || "shippingCost" in rawBody
+          ? { shippingCost: ship.shippingCost }
+          : {}),
         shipsFrom: meta.shipsFrom,
         deliveryDays: meta.deliveryDays,
         freeShipping: meta.freeShipping,
@@ -546,6 +579,38 @@ export async function PUT(
         offerMode: offer.offerMode,
         minOrderQuantity: offer.minOrderQuantity,
         isRefurbished: offer.isRefurbished,
+        ...(digitalKeysPresent
+          ? {
+              digitalAccessUrl: digitalParsed.data.digitalAccessUrl,
+              digitalAccessInstructions: digitalParsed.data.digitalAccessInstructions,
+              digitalInstantDelivery: digitalParsed.data.digitalInstantDelivery,
+            }
+          : {}),
+        ...(bookingKeysPresent
+          ? {
+              ...("bookingDurationMinutes" in rawBody
+                ? { bookingDurationMinutes: bookingParsed.bookingDurationMinutes }
+                : {}),
+              ...("bookingCancellationHours" in rawBody
+                ? { bookingCancellationHours: bookingParsed.bookingCancellationHours }
+                : {}),
+              ...("bookingVenueLabel" in rawBody
+                ? { bookingVenueLabel: bookingParsed.bookingVenueLabel }
+                : {}),
+              ...("bookingInstantConfirm" in rawBody
+                ? { bookingInstantConfirm: bookingParsed.bookingInstantConfirm }
+                : {}),
+              ...("bookingSeatLayout" in rawBody
+                ? {
+                    bookingSeatLayout:
+                      bookingParsed.bookingSeatLayout === null ||
+                      bookingParsed.bookingSeatLayout === undefined
+                        ? Prisma.DbNull
+                        : (bookingParsed.bookingSeatLayout as Prisma.InputJsonValue),
+                  }
+                : {}),
+            }
+          : {}),
         ...("customColumns" in rawBody
           ? {
               customColumns:

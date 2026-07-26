@@ -8,7 +8,7 @@ import { parsePromotedVariantKeysBody } from "@/lib/affiliate-storefront-variant
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
 import { buildLuxuryListingPatch } from "@/lib/luxury-listing-patch"
 import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
-import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
+import { isDisplayableListingImageUrl, slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-remove"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
@@ -164,7 +164,7 @@ export async function PATCH(
     data.customImages = (body.customImages as unknown[])
       .filter((x): x is string => typeof x === "string")
       .map((u) => u.trim())
-      .filter(Boolean)
+      .filter((u) => isDisplayableListingImageUrl(u))
       .slice(0, 20)
   }
 

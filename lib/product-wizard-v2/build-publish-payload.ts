@@ -21,7 +21,7 @@ export function buildWizardV2PublishBody(
     name: draft.name.trim(),
     description: draft.description.trim(),
     price,
-    stock: 0,
+    stock: 99,
     commission: Number.isFinite(draft.commission) && draft.commission > 0 ? draft.commission : commission,
     listingKind: "PHYSICAL",
     images: draft.images.filter((u) => u.startsWith("http")),

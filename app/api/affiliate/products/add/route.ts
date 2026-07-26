@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
+import { isDisplayableListingImageUrl } from "@/lib/affiliate-listing-display"
 import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
 import { parsePromotedVariantKeysBody } from "@/lib/affiliate-storefront-variants"
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
@@ -36,7 +37,9 @@ function parseCollections(raw: unknown): string[] {
 
 function mergeCustomImages(productImages: string[], body: Record<string, unknown>): string[] {
   const useAll = body.useAllSupplierImages === true
-  if (useAll) return [...productImages].filter(Boolean).slice(0, 20)
+  if (useAll) {
+    return [...productImages].filter((u) => isDisplayableListingImageUrl(u)).slice(0, 20)
+  }
 
   const selected = Array.isArray(body.supplierImagesSelectedUrls)
     ? (body.supplierImagesSelectedUrls as unknown[]).filter((x): x is string => typeof x === "string")
@@ -44,8 +47,16 @@ function mergeCustomImages(productImages: string[], body: Record<string, unknown
   const extras = Array.isArray(body.additionalImageUrls)
     ? (body.additionalImageUrls as unknown[]).filter((x): x is string => typeof x === "string")
     : []
-  const normalized = [...new Set([...selected, ...extras].map((s) => s.trim()).filter(Boolean))].slice(0, 20)
-  return normalized.length > 0 ? normalized : [...productImages].filter(Boolean).slice(0, 20)
+  const normalized = [
+    ...new Set(
+      [...selected, ...extras]
+        .map((s) => s.trim())
+        .filter((u) => isDisplayableListingImageUrl(u))
+    ),
+  ].slice(0, 20)
+  return normalized.length > 0
+    ? normalized
+    : [...productImages].filter((u) => isDisplayableListingImageUrl(u)).slice(0, 20)
 }
 
 export async function POST(request: Request) {
@@ -72,7 +83,9 @@ export async function POST(request: Request) {
     sellingPriceCents = Math.round(euroRaw * 100)
   }
 
-  const product = await prisma.product.findFirst({ where: { id: productId, active: true } })
+  const product = await prisma.product.findFirst({
+    where: { id: productId, active: true, isDraft: false },
+  })
   if (!product) {
     return NextResponse.json({ error: "Product not found or inactive" }, { status: 404 })
   }
