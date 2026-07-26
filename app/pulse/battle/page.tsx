@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
-import dynamic from "next/dynamic"
+
+import { BattleArena } from "@/components/pulse/BattleArena"
 
 export const metadata: Metadata = {
   title: "Pulse Battle LIVE · Affisell",
@@ -7,24 +8,10 @@ export const metadata: Metadata = {
     "Vote en live à 18h — le winner prend −20% pendant 5 minutes. QVC × Twitch.",
 }
 
-const BattleArena = dynamic(
-  () =>
-    import("@/components/pulse/BattleArena").then((m) => ({
-      default: m.BattleArena,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-black text-sm text-white/50">
-        Chargement du battle…
-      </div>
-    ),
-  }
-)
-
 /**
  * Pulse Live Battle — full-screen vote duel.
  * Path: /pulse/battle
+ * BattleArena is a Client Component (no `dynamic({ ssr:false })` in this Server page).
  */
 export default function PulseBattlePage() {
   return <BattleArena />
