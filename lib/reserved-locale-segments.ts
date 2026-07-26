@@ -40,6 +40,7 @@ export const RESERVED_LOCALE_SEGMENTS = new Set([
   "how-it-works",
   "help",
   "invite",
+  "import",
   "legal",
   "mentions-legales",
   "login",
