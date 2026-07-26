@@ -37,14 +37,18 @@ export function PulseProductMediaStage({
     [slides, item.mediaUrl]
   )
   const [index, setIndex] = useState(startIndex)
+  const [broken, setBroken] = useState<Record<string, boolean>>({})
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     setIndex(startIndex)
+    setBroken({})
   }, [item.id, startIndex])
 
   const current = slides[index] ?? slides[0]
   const hasMultiple = slides.length > 1
+  const currentBroken = Boolean(current && broken[current.url])
+  const fallbackSrc = "/placeholder.png"
 
   useEffect(() => {
     const el = videoRef.current
@@ -68,7 +72,12 @@ export function PulseProductMediaStage({
     advance()
   }
 
-  const isPhoto = Boolean(current && !current.isVideo)
+  const showAsVideo = Boolean(current?.isVideo && !currentBroken)
+  const isPhoto = !showAsVideo
+  const displayUrl =
+    currentBroken || !current
+      ? fallbackSrc
+      : current.url
 
   if (!current) {
     return (
@@ -96,10 +105,10 @@ export function PulseProductMediaStage({
       }}
     >
       <div className="absolute inset-0" aria-hidden>
-        {current.isVideo ? (
+        {showAsVideo ? (
           <video
-            key={`bg-${current.url}`}
-            src={current.url}
+            key={`bg-${current!.url}`}
+            src={current!.url}
             className="h-full w-full scale-105 object-cover opacity-40 blur-xl"
             muted={muted}
             loop
@@ -111,8 +120,8 @@ export function PulseProductMediaStage({
             <div className="absolute inset-0 bg-white" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              key={`bg-${current.url}`}
-              src={current.url}
+              key={`bg-${displayUrl}`}
+              src={displayUrl}
               alt=""
               className="h-full w-full scale-110 object-contain opacity-[0.14] blur-2xl"
             />
@@ -122,7 +131,7 @@ export function PulseProductMediaStage({
 
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
-          key={current.url}
+          key={displayUrl}
           className={cn(
             "relative z-[1] flex h-full w-full items-center justify-center",
             isPhoto ? "p-1.5 sm:p-2" : "p-3"
@@ -132,11 +141,11 @@ export function PulseProductMediaStage({
           exit={{ opacity: 0, scale: 1.01 }}
           transition={{ duration: instantReveal ? 0.08 : 0.14 }}
         >
-          {current.isVideo ? (
+          {showAsVideo ? (
             <video
               ref={videoRef}
-              key={current.url}
-              src={current.url}
+              key={current!.url}
+              src={current!.url}
               className="pointer-events-none max-h-full max-w-full object-contain drop-shadow-[0_24px_48px_rgba(0,0,0,0.5)]"
               muted={muted}
               loop
@@ -146,23 +155,38 @@ export function PulseProductMediaStage({
               controls={false}
               disablePictureInPicture
               controlsList="nodownload nofullscreen noplaybackrate"
+              onError={() => {
+                if (!current) return
+                setBroken((prev) => ({ ...prev, [current.url]: true }))
+                if (hasMultiple) setIndex((i) => (i + 1) % slides.length)
+              }}
             />
-          ) : current.url.startsWith("http") ? (
+          ) : displayUrl.startsWith("http") || displayUrl.startsWith("/") ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={current.url}
+              src={displayUrl}
               alt=""
               className="pointer-events-none h-full w-full object-contain object-center"
+              onError={() => {
+                if (!current) return
+                if (displayUrl === fallbackSrc) return
+                setBroken((prev) => ({ ...prev, [current.url]: true }))
+                if (hasMultiple) setIndex((i) => (i + 1) % slides.length)
+              }}
             />
           ) : (
             <Image
-              src={current.url}
+              src={displayUrl}
               alt=""
               width={512}
               height={512}
               className="pointer-events-none h-full w-full object-contain object-center"
               sizes="(max-width: 420px) 100vw, 380px"
               unoptimized
+              onError={() => {
+                if (!current) return
+                setBroken((prev) => ({ ...prev, [current.url]: true }))
+              }}
             />
           )}
 

@@ -2,8 +2,13 @@ import "server-only"
 
 import { unstable_cache } from "next/cache"
 
-import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
+import {
+  listingDisplayTitle,
+  listingGalleryUrls,
+  PRODUCT_CARD_IMAGE_FALLBACK,
+} from "@/lib/affiliate-listing-display"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
+import { resolveListingCardImageHref } from "@/lib/listing-card-image-shared"
 import { buildMarketplaceAffiliateWhereFromUrl } from "@/lib/marketplace-listings-query"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
 import {
@@ -41,6 +46,8 @@ async function loadBuyerSwipeFeedItemsUncached(
   opts?: { limit?: number }
 ): Promise<PulseFeedItem[]> {
   const limit = Math.min(48, Math.max(6, opts?.limit ?? 24))
+  // Over-fetch so listings skipped for missing store still leave a full deck.
+  const take = Math.min(80, limit * 2)
   const where = await buildMarketplaceAffiliateWhereFromUrl(searchParams)
 
   const rows = await prisma.affiliateProduct.findMany({
@@ -53,7 +60,7 @@ async function loadBuyerSwipeFeedItemsUncached(
       { clicks: "desc" },
       { createdAt: "desc" },
     ],
-    take: limit,
+    take,
     select: {
       id: true,
       sellingPriceCents: true,
@@ -84,23 +91,25 @@ async function loadBuyerSwipeFeedItemsUncached(
   const items: PulseFeedItem[] = []
 
   for (const row of rows) {
+    if (items.length >= limit) break
     const p = row.product
     const store = row.affiliate.store
     if (!store?.slug) continue
 
-    const galleryUrls = [
-      ...listingGalleryUrls(row.customImages ?? [], p.images ?? []),
+    const imageUrls = listingGalleryUrls(row.customImages ?? [], p.images ?? [])
+    const videoUrls = [
       ...(p.videoAdUrl?.trim() ? [p.videoAdUrl.trim()] : []),
       ...p.videos.map((v) => v.videoUrl).filter(Boolean),
     ]
+    const remoteImage =
+      primaryProductImage(p.images) || imageUrls[0] || null
+    const cardHref = resolveListingCardImageHref(remoteImage, row.id)
+    const galleryUrls = [cardHref, ...imageUrls, ...videoUrls]
     const mediaGallery = buildPulseMediaGallery(galleryUrls)
-    const primary = pickPulsePrimaryMedia(galleryUrls)
-    const fallback =
-      primary?.url ||
-      primaryProductImage(p.images) ||
-      listingGalleryUrls(row.customImages ?? [], p.images ?? [])[0] ||
-      null
-    if (!fallback) continue
+    // Prefer photo cover so misclassified / broken videos don't black-out the card.
+    const primary = pickPulsePrimaryMedia(galleryUrls, { preferImage: true })
+    const mediaUrl = primary?.url || cardHref || PRODUCT_CARD_IMAGE_FALLBACK
+    const isVideo = Boolean(primary?.isVideo)
 
     const priceCents = row.sellingPriceCents
     const listingId = row.id
@@ -118,15 +127,25 @@ async function loadBuyerSwipeFeedItemsUncached(
       priceCents,
       compareAtCents: compareAtCents(priceCents, p.basePriceCents, p.compareAt),
       soldCount: normalizeListingSalesCount(row.conversions),
-      mediaUrl: fallback,
-      isVideo: primary?.isVideo ?? false,
-      mediaGallery: mediaGallery.length > 0 ? mediaGallery : undefined,
+      mediaUrl,
+      isVideo,
+      mediaGallery:
+        mediaGallery.length > 0
+          ? mediaGallery
+          : [{ url: mediaUrl, isVideo: false }],
       likes: 0,
       views: 0,
       boosted: row.conversions > 0,
       href: `/shops/${encodeURIComponent(store.slug)}/product/${listingId}`,
     })
   }
+
+  console.log("[buyer-swipe-feed]", {
+    result: "ok",
+    requested: limit,
+    returned: items.length,
+    scanned: rows.length,
+  })
 
   return items
 }

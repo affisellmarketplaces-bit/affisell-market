@@ -14,7 +14,7 @@ export type ProductVideoEmbed = {
   src: string
 }
 
-/** Direct file URL playable in `<video>` (MP4, WebM, Affisell-hosted blobs, Supabase, etc.). */
+/** Direct file URL playable in `<video>` (MP4, WebM, etc.). */
 export function isPlayableDirectVideoUrl(url: string): boolean {
   const trimmed = url.trim()
   if (!trimmed) return false
@@ -27,18 +27,27 @@ export function isPlayableDirectVideoUrl(url: string): boolean {
     const host = u.hostname.toLowerCase()
     const path = `${u.pathname}${u.search}`.toLowerCase()
 
-    if (host.endsWith(".public.blob.vercel-storage.com")) return true
-    if (host.endsWith(".blob.vercel-storage.com")) return true
-    if (host.endsWith(".supabase.co") && path.includes("/storage/")) return true
-    if (host.endsWith(".amazonaws.com") && (path.includes("/videos/") || VIDEO_EXT_RE.test(path))) {
-      return true
+    // Host alone is not enough — product photos often live on the same blob/CDN hosts.
+    const onTrustedVideoHost =
+      host.endsWith(".public.blob.vercel-storage.com") ||
+      host.endsWith(".blob.vercel-storage.com") ||
+      (host.endsWith(".supabase.co") && path.includes("/storage/")) ||
+      host.endsWith(".amazonaws.com")
+
+    if (!onTrustedVideoHost) {
+      // Generic path hints only when extension-like or explicit video segments with file-ish end
+      if (path.includes("/videos/") && VIDEO_EXT_RE.test(path)) return true
+      return false
     }
-    if (path.includes("/video/") || path.includes("video_upload")) return true
+
+    if (VIDEO_EXT_RE.test(path)) return true
+    if (path.includes("/videos/") || path.includes("video_upload")) return true
+    // Reject image-looking blob paths (jpg/png/webp/gif/avif)
+    if (/\.(jpe?g|png|gif|webp|avif|svg)(\?|#|$)/i.test(path)) return false
+    return false
   } catch {
     return false
   }
-
-  return false
 }
 
 /** Gallery / PDP: native file or YouTube/Vimeo embed. */

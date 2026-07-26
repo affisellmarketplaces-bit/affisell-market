@@ -18,8 +18,15 @@ export function buildPulseMediaGallery(urls: string[]): PulseMediaSlide[] {
   return out
 }
 
-export function pickPulsePrimaryMedia(urls: string[]): PulseMediaSlide | null {
+export function pickPulsePrimaryMedia(
+  urls: string[],
+  opts?: { preferImage?: boolean }
+): PulseMediaSlide | null {
   const gallery = buildPulseMediaGallery(urls)
+  if (opts?.preferImage) {
+    const image = gallery.find((s) => !s.isVideo)
+    if (image) return image
+  }
   const video = gallery.find((s) => s.isVideo)
   if (video) return video
   return gallery[0] ?? null

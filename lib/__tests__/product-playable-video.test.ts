@@ -17,6 +17,18 @@ describe("product-playable-video", () => {
     expect(isPlayableDirectVideoUrl("https://cdn.example/promo.webm")).toBe(true)
   })
 
+  it("does not treat product photos on blob/CDN as videos", () => {
+    expect(
+      isPlayableDirectVideoUrl(
+        "https://abc.public.blob.vercel-storage.com/products/chest.jpg"
+      )
+    ).toBe(false)
+    expect(
+      isPlayableDirectVideoUrl("https://xyz.blob.vercel-storage.com/img.webp")
+    ).toBe(false)
+    expect(isPlayableDirectVideoUrl("https://cdn.example.com/photo.png")).toBe(false)
+  })
+
   it("accepts YouTube/Vimeo in gallery mode", () => {
     expect(isGalleryPlayableVideoUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")).toBe(true)
     expect(isGalleryPlayableVideoUrl("https://vimeo.com/123456789")).toBe(true)

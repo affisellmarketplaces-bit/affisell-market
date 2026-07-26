@@ -329,15 +329,16 @@ export async function loadPulseFeedItems(opts?: {
     )
   }
 
-  // Fallback: listed products with hero images when feed is thin
-  if (byKey.size < 6) {
+  // Always backfill listed catalog products (image cards) so marketplace SKUs appear in Pulse.
+  {
+    const need = Math.max(0, limit - byKey.size)
     const fallback = await prisma.affiliateProduct.findMany({
       where: {
         ...buyerListedAffiliateProductWhere,
         product: buyerMarketplaceProductWhere,
       },
       orderBy: [{ conversions: "desc" }, { createdAt: "desc" }],
-      take: 12,
+      take: Math.max(12, need + 12),
       select: {
         id: true,
         sellingPriceCents: true,
@@ -365,18 +366,20 @@ export async function loadPulseFeedItems(opts?: {
     })
 
     for (const row of fallback) {
+      if (byKey.size >= limit) break
       const p = row.product
       const store = row.affiliate.store
       if (!store?.slug) continue
+      if ([...byKey.values()].some((v) => v.productId === p.id || v.listingId === row.id)) {
+        continue
+      }
       const galleryUrls = [
         ...listingGalleryUrls(row.customImages ?? [], p.images ?? []),
         ...(p.videoAdUrl?.trim() ? [p.videoAdUrl.trim()] : []),
         ...p.videos.map((v) => v.videoUrl).filter(Boolean),
       ]
-      const primary = pickPulsePrimaryMedia(galleryUrls)
-      if (!primary) continue
-      const key = `product-fallback-${row.id}`
-      if ([...byKey.keys()].some((k) => k.includes(p.id))) continue
+      const primary = pickPulsePrimaryMedia(galleryUrls, { preferImage: true })
+      if (!primary && galleryUrls.length === 0) continue
 
       const priceCents = row.sellingPriceCents
       const compareRaw = p.compareAt != null ? Number(p.compareAt) : null
@@ -390,7 +393,7 @@ export async function loadPulseFeedItems(opts?: {
       upsert(
         itemWithGallery(
           {
-            id: key,
+            id: `product-catalog-${row.id}`,
             source: "product",
             productId: p.id,
             listingId: row.id,
@@ -403,11 +406,11 @@ export async function loadPulseFeedItems(opts?: {
             compareAtCents,
             soldCount: normalizeListingSalesCount(row.conversions),
             mediaUrl:
-              primary.url ||
+              (primary && !primary.isVideo ? primary.url : null) ||
               listingPrimaryImageUrl(row.customImages, p.images) ||
               primaryProductImage(p.images) ||
               "/placeholder-product.jpg",
-            isVideo: primary.isVideo,
+            isVideo: primary?.isVideo ?? false,
             likes: 0,
             views: 0,
             boosted: touchedProductIds.has(p.id),
@@ -421,7 +424,7 @@ export async function loadPulseFeedItems(opts?: {
           soldCount: row.conversions,
           boosted: touchedProductIds.has(p.id),
           createdAt: row.createdAt,
-        })
+        }) * 0.85
       )
     }
   }
