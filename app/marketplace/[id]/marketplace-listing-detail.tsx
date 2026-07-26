@@ -43,6 +43,10 @@ const BookingCheckoutPanel = nextDynamic(
     })),
   { loading: () => null }
 )
+const TryOnModal = nextDynamic(
+  () => import("@/components/try-on/TryOnModal").then((m) => ({ default: m.TryOnModal })),
+  { ssr: false, loading: () => null }
+)
 
 import { ListingBrowseSignalsRecorder } from "@/components/marketplace/listing-browse-signals-recorder"
 import { ListingPriceActionCard } from "@/components/marketplace/listing-price-action-card"
@@ -72,7 +76,6 @@ import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
-import { TryOnModal } from "@/components/try-on/TryOnModal"
 import { TryOnTrigger } from "@/components/try-on/TryOnEntry"
 import {
   isBookingCheckoutBlocked,

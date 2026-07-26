@@ -5,7 +5,6 @@ import { notFound, redirect } from "next/navigation"
 import { getLocale } from "next-intl/server"
 import { headers } from "next/headers"
 
-import { auth } from "@/auth"
 import { CheckoutRegionComingSoonBanner } from "@/components/marketplace/checkout-region-coming-soon-banner"
 import { GraduatedCheckoutPermanentBanner } from "@/components/marketplace/graduated-checkout-permanent-banner"
 import { PdpCrossSellRailSkeleton } from "@/components/marketplace/pdp-cross-sell-rail-skeleton"
@@ -23,9 +22,11 @@ import {
   listingPrimaryImageUrl,
 } from "@/lib/affiliate-listing-display"
 import { shopListingPath } from "@/lib/affiliate-routes"
-import { resolveSiteBaseUrl } from "@/lib/seo-site-url"
 import { isAffiliateOwnerPreviewUrl } from "@/lib/affiliate-store-preview-access"
+import { resolveVisitorCheckoutFlags } from "@/lib/checkout-country-rollout"
+import { getCachedSession } from "@/lib/get-cached-session"
 import { loadMarketplaceListingPageData } from "@/lib/marketplace-listing-page-loader"
+import { buildListingMetadataForId } from "@/lib/marketplace-listing-seo"
 import { buildListingLogisticsInput } from "@/lib/listing-logistics-display"
 import { mergeColorImagesForProduct, parseProductColorImagesFromDb, enrichGalleryWithColorHeroImages } from "@/lib/product-color-images"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
@@ -41,12 +42,8 @@ import {
 import { variantsFromDb } from "@/lib/product-variants"
 import { parseAffiliateVariantPricingJson } from "@/lib/affiliate-variant-pricing"
 import { buildAggregateRatingJsonLd } from "@/lib/reviews/json-ld"
-import {
-  buildProductListingMetadata,
-  buildProductOfferJsonLd,
-} from "@/lib/product-listing-seo"
+import { buildProductOfferJsonLd } from "@/lib/product-listing-seo"
 import { resolveTryOnFeatureEnabled } from "@/lib/flags/try-on"
-import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { resolveGalleryListingVideoUrl } from "@/lib/product-playable-video"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { appMessagesForLocale } from "@/lib/i18n-app-messages"
@@ -58,11 +55,6 @@ import {
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
 import { cn } from "@/lib/utils"
-import {
-  isGraduatedCheckoutCountryResolved,
-  isRolloutOnlyCheckoutCountryResolved,
-  isStripeCheckoutCountryResolved,
-} from "@/lib/checkout-country-rollout"
 import { resolveVisitorCountryIso2 } from "@/lib/visitor-country"
 import { prisma } from "@/lib/prisma"
 import {
@@ -74,99 +66,7 @@ import { MarketplaceListingDetail } from "./marketplace-listing-detail"
 
 export const revalidate = 60
 
-export async function buildListingMetadataForId(
-  listingId: string,
-  storeSlug?: string
-): Promise<Metadata> {
-  const listing = await prisma.affiliateProduct.findFirst({
-    where: {
-      id: listingId,
-      isListed: true,
-      product: buyerMarketplaceProductWhere,
-      affiliate: {
-        role: "AFFILIATE",
-        ...(storeSlug ? { store: { slug: storeSlug } } : {}),
-      },
-    },
-    select: {
-      sellingPriceCents: true,
-      customTitle: true,
-      customImages: true,
-      customDescription: true,
-      seoTitle: true,
-      seoDescription: true,
-      customSlug: true,
-      product: {
-        select: {
-          name: true,
-          description: true,
-          images: true,
-          stock: true,
-        },
-      },
-    },
-  })
-  const resolved =
-    listing ??
-    (storeSlug
-      ? await prisma.affiliateProduct.findFirst({
-          where: {
-            id: listingId,
-            isListed: true,
-            product: buyerMarketplaceProductWhere,
-            affiliate: { role: "AFFILIATE" },
-          },
-          select: {
-            sellingPriceCents: true,
-            customTitle: true,
-            customImages: true,
-            customDescription: true,
-            seoTitle: true,
-            seoDescription: true,
-            customSlug: true,
-            product: {
-              select: {
-                name: true,
-                description: true,
-                images: true,
-                stock: true,
-              },
-            },
-          },
-        })
-      : null)
-  if (!resolved?.product) return { title: "Produit" }
-  const name = resolved.seoTitle?.trim() || listingDisplayTitle(resolved.customTitle, resolved.product.name)
-  const imageUrl = listingPrimaryImageUrl(resolved.customImages, resolved.product.images) || null
-  const metadata = buildProductListingMetadata({
-    name,
-    description:
-      resolved.seoDescription?.trim() ||
-      listingDisplayDescription(resolved.customDescription, resolved.product.description),
-    imageUrl,
-    priceCents: resolved.sellingPriceCents,
-    inStock: resolved.product.stock > 0,
-    customerFacing: true,
-  })
-
-  if (storeSlug) {
-    const canonical = `${resolveSiteBaseUrl()}${shopListingPath(
-      storeSlug,
-      listingId,
-      resolved.customSlug
-    )}`
-    return {
-      ...metadata,
-      alternates: { canonical },
-      openGraph: {
-        ...metadata.openGraph,
-        url: canonical,
-      },
-    }
-  }
-
-  return metadata
-}
+export { buildListingMetadataForId } from "@/lib/marketplace-listing-seo"
 
 export async function generateMetadata({
   params,
@@ -193,25 +93,24 @@ export default async function MarketplaceListingPage({
   /** When set (shop PDP), listing must belong to this store — single DB round-trip. */
   storeSlug?: string
 }) {
-  const [{ id }, sp, session, locale, requestHeaders] = await Promise.all([
-    params,
-    searchParams,
-    auth(),
-    getLocale(),
-    headers(),
-  ])
+  const [{ id }, sp, requestHeaders] = await Promise.all([params, searchParams, headers()])
   const visitorCountry = resolveVisitorCountryIso2(requestHeaders)
-  const checkoutFlags = visitorCountry
-    ? await Promise.all([
-        isStripeCheckoutCountryResolved(visitorCountry),
-        isGraduatedCheckoutCountryResolved(visitorCountry),
-        isRolloutOnlyCheckoutCountryResolved(visitorCountry),
-      ]).then(([stripe, graduated, rollout]) => ({
-        checkoutAvailable: stripe,
-        graduatedCheckout: stripe && graduated,
-        rolloutOnly: stripe && !graduated && rollout,
-      }))
-    : { checkoutAvailable: true, graduatedCheckout: false, rolloutOnly: false }
+
+  // Anonymous shell starts immediately — session/checkout run in parallel (was serial waterfall).
+  const publicListingPromise = loadMarketplaceListingPageData({
+    listingId: id,
+    storeSlug,
+    buyerUserId: null,
+    orderId: null,
+    allowOwnerPreview: false,
+  })
+
+  const [session, locale, checkoutFlags, publicLoaded] = await Promise.all([
+    getCachedSession(),
+    getLocale(),
+    resolveVisitorCheckoutFlags(visitorCountry),
+    publicListingPromise,
+  ])
   const { checkoutAvailable, graduatedCheckout, rolloutOnly } = checkoutFlags
 
   const isAffiliateSession = String(session?.user?.role ?? "").toUpperCase() === "AFFILIATE"
@@ -219,15 +118,22 @@ export default async function MarketplaceListingPage({
     get: (key) => (key === "preview" ? sp.preview ?? null : null),
   })
   const buyerUserId = session?.user?.id ?? null
+  const allowOwnerPreview =
+    isAffiliateSession && (ownerPreviewByQuery || Boolean(storeSlug))
+  const needsPersonalizedListing =
+    Boolean(buyerUserId && sp.orderId?.trim()) || (!publicLoaded && allowOwnerPreview)
+
   const [loaded, rewardBalanceRow] = await Promise.all([
-    loadMarketplaceListingPageData({
-      listingId: id,
-      storeSlug,
-      buyerUserId,
-      orderId: sp.orderId ?? null,
-      allowOwnerPreview: isAffiliateSession && (ownerPreviewByQuery || Boolean(storeSlug)),
-      ownerAffiliateUserId: session?.user?.id ?? null,
-    }),
+    needsPersonalizedListing
+      ? loadMarketplaceListingPageData({
+          listingId: id,
+          storeSlug,
+          buyerUserId,
+          orderId: sp.orderId ?? null,
+          allowOwnerPreview,
+          ownerAffiliateUserId: session?.user?.id ?? null,
+        })
+      : Promise.resolve(publicLoaded),
     buyerUserId
       ? prisma.user.findUnique({
           where: { id: buyerUserId },
@@ -251,14 +157,6 @@ export default async function MarketplaceListingPage({
       redirect(`${shopListingPath(storeSlug, canonicalId, resolvedCustomSlug)}${previewQs}`)
     }
     redirect(`/marketplace/${canonicalId}${previewQs}`)
-  }
-  if (loaded.listingSlugRedirect) {
-    const canonicalStore = storeSlug ?? loaded.listing.affiliate.store?.slug?.trim()
-    if (canonicalStore) {
-      redirect(
-        `${shopListingPath(canonicalStore, resolvedListingId, loaded.listingSlugRedirect)}${previewQs}`
-      )
-    }
   }
 
   const { listing, viewsLast24h, affiliateCreatorsWatching, writeReviewOrderId } = loaded

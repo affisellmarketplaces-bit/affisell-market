@@ -19,6 +19,7 @@ export async function revalidateAffiliateShopfront(
   revalidateTag("home-marketplace", "max")
   revalidatePath(`/shops/${slug}`)
   revalidatePath(`/shops/${slug}`, "layout")
+  revalidatePath(`/shops/${slug}/product`, "layout")
   bustShopCategoriesResponseCache(slug)
   console.log("[shop-revalidate]", { slug, affiliateUserId })
   return slug

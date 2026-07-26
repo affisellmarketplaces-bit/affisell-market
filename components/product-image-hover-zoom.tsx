@@ -216,6 +216,7 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
           alt={alt}
           draggable={false}
           decoding="async"
+          fetchPriority="high"
           className="absolute inset-0 h-full w-full select-none object-contain object-center p-3 sm:p-4"
           onLoad={measureImageRect}
           onError={() => {

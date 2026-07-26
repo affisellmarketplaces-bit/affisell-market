@@ -152,3 +152,34 @@ export async function isGraduatedCheckoutCountryResolved(
   const graduated = await loadGraduatedCheckoutCountryIso2(region)
   return graduated.includes(normalized)
 }
+
+/** One graduated+pilot load for PDP banners (avoids 3 overlapping Prisma round-trips). */
+export async function resolveVisitorCheckoutFlags(
+  code: string | null | undefined,
+  region: MarketRegion = MARKET_REGION
+): Promise<{
+  checkoutAvailable: boolean
+  graduatedCheckout: boolean
+  rolloutOnly: boolean
+}> {
+  const normalized = normalizeVisitorCountryIso2(code ?? "")
+  if (!normalized) {
+    return { checkoutAvailable: true, graduatedCheckout: false, rolloutOnly: false }
+  }
+
+  const [graduated, pilot] = await Promise.all([
+    loadGraduatedCheckoutCountryIso2(region),
+    loadPilotRolloutCheckoutCountryIso2(region),
+  ])
+  const staticBase = stripeCheckoutAllowedCountriesForRegion(region)
+  const base = mergeEffectiveCheckoutBase(staticBase, graduated)
+  const allowed = mergeCheckoutAllowedCountries(base, pilot)
+  const checkoutAvailable = allowed.includes(normalized)
+  const graduatedCheckout = checkoutAvailable && graduated.includes(normalized)
+  const rolloutOnly =
+    checkoutAvailable &&
+    !graduated.includes(normalized) &&
+    isRolloutOnlyCheckoutCountry(normalized, pilot, base)
+
+  return { checkoutAvailable, graduatedCheckout, rolloutOnly }
+}

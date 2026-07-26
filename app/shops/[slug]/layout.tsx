@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { headers } from "next/headers"
 
 import { AffiliateStorePreviewBannerGate } from "@/components/shop/AffiliateStorePreviewBannerGate"
@@ -24,16 +25,13 @@ import { cn } from "@/lib/utils"
 /** Affiliate shop shell — ISR 60s + cross-request cache (owner preview is client-only). */
 export const revalidate = 60
 
-export default async function ShopPublicLayout({
-  children,
-  params,
+async function ShopStorefrontHeader({
+  slug,
+  isCustomDomain,
 }: {
-  children: React.ReactNode
-  params: Promise<{ slug: string }>
+  slug: string
+  isCustomDomain: boolean
 }) {
-  const { slug } = await params
-  const hdrs = await headers()
-  const isCustomDomain = isCustomDomainHeaders(hdrs)
   const shopHomePath = isCustomDomain ? "/" : `/shops/${slug}`
   const [store, trust] = await Promise.all([
     loadAffiliateShopStoreCached(slug),
@@ -44,7 +42,7 @@ export default async function ShopPublicLayout({
   const immersive = isStorefrontImmersiveLayout(store?.theme.layout)
 
   return (
-    <div className={cn("flex min-h-0 flex-1 flex-col", surfaceClass, immersive && STOREFRONT_IMMERSIVE_ROOT_CLASS)}>
+    <div className={cn(surfaceClass, immersive && STOREFRONT_IMMERSIVE_ROOT_CLASS)}>
       <StorefrontHostChromeSync active={isCustomDomain} />
       <StorefrontImmersiveSync active={immersive} />
       {store && immersive ? (
@@ -82,14 +80,52 @@ export default async function ShopPublicLayout({
         />
       ) : null}
       <AffiliateStorePreviewBannerGate storeSlug={slug} storeUserId={store?.userId ?? ""} />
+    </div>
+  )
+}
+
+async function ShopStorefrontFooter({
+  slug,
+  isCustomDomain,
+}: {
+  slug: string
+  isCustomDomain: boolean
+}) {
+  const store = await loadAffiliateShopStoreCached(slug)
+  if (!store) return null
+  const shopHomePath = isCustomDomain ? "/" : `/shops/${slug}`
+  return (
+    <StorefrontStaticPagesStrip
+      storeName={store.name}
+      shopHomePath={shopHomePath}
+      staticPages={store.theme.staticPages}
+    />
+  )
+}
+
+/**
+ * Stream PDP children without waiting on store chrome (cached) — cuts skeleton time.
+ */
+export default async function ShopPublicLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
+  const hdrs = await headers()
+  const isCustomDomain = isCustomDomainHeaders(hdrs)
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <Suspense fallback={null}>
+        <ShopStorefrontHeader slug={slug} isCustomDomain={isCustomDomain} />
+      </Suspense>
       <main className="min-w-0 overflow-x-clip">{children}</main>
-      {store ? (
-        <StorefrontStaticPagesStrip
-          storeName={store.name}
-          shopHomePath={shopHomePath}
-          staticPages={store.theme.staticPages}
-        />
-      ) : null}
+      <Suspense fallback={null}>
+        <ShopStorefrontFooter slug={slug} isCustomDomain={isCustomDomain} />
+      </Suspense>
     </div>
   )
 }
