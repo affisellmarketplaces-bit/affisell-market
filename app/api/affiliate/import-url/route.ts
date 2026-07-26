@@ -18,9 +18,9 @@ export async function POST(req: Request) {
   const session = await auth()
   const userId = session?.user?.id ?? null
   const limited = await rateLimitResponseAsync(rateLimitClientKey(req, userId), {
-    limit: userId ? 40 : 12,
+    limit: userId ? 60 : 30,
     windowMs: 60 * 60 * 1000,
-    prefix: "affiliate-import-url-preview",
+    prefix: "dropforge-import-url-preview",
   })
   if (limited) return limited
 

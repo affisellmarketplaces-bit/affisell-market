@@ -33,6 +33,7 @@ export async function POST(req: Request) {
     sellingPriceEur?: number
     titleOverride?: string
     listLive?: boolean
+    snapshot?: unknown
   }
   const url = typeof body.url === "string" ? body.url.trim() : ""
   if (!url) {
@@ -51,6 +52,7 @@ export async function POST(req: Request) {
     titleOverride:
       typeof body.titleOverride === "string" ? body.titleOverride : undefined,
     listLive: body.listLive === true,
+    snapshot: body.snapshot,
   })
 
   if (!result.ok) {

@@ -18,6 +18,24 @@ const PLACEHOLDER_SCRAPINGBEE_KEYS = new Set([
   "changeme",
 ])
 
+/** In-process circuit: avoid burning retries after monthly quota / 402. */
+let scrapingBeeQuotaBlockedUntilMs = 0
+
+const QUOTA_RE = /limit reached|credits exhausted|402|quota/i
+
+export function noteScrapingBeeQuotaExhausted(ttlMs = 6 * 60 * 60 * 1000): void {
+  scrapingBeeQuotaBlockedUntilMs = Date.now() + ttlMs
+  console.log("[scrapingbee]", {
+    result: "quota_circuit_open",
+    until: new Date(scrapingBeeQuotaBlockedUntilMs).toISOString(),
+  })
+}
+
+/** Test helper — reset circuit between unit tests. */
+export function resetScrapingBeeQuotaCircuitForTests(): void {
+  scrapingBeeQuotaBlockedUntilMs = 0
+}
+
 export function detectImportPlatform(url: string): ImportPlatform {
   const host = url.toLowerCase()
   if (host.includes("aliexpress.com")) return "aliexpress"
@@ -61,6 +79,7 @@ export function aliExpressCountryCode(url: string): string {
 }
 
 export function getScrapingBeeApiKey(): string | null {
+  if (Date.now() < scrapingBeeQuotaBlockedUntilMs) return null
   const key = process.env.SCRAPINGBEE_API_KEY?.trim()
   if (!key || PLACEHOLDER_SCRAPINGBEE_KEYS.has(key.toLowerCase())) return null
   return key
@@ -177,7 +196,12 @@ export async function fetchHtmlWithScrapingBee(
       })
       const body = await res.text()
       if (!res.ok) {
-        errors.push(`${label}: ${await readScrapingBeeError(res, body)}`)
+        const errMsg = await readScrapingBeeError(res, body)
+        errors.push(`${label}: ${errMsg}`)
+        if (res.status === 402 || QUOTA_RE.test(errMsg)) {
+          noteScrapingBeeQuotaExhausted()
+          break
+        }
         continue
       }
       if (body.length < 500) {
@@ -191,9 +215,14 @@ export async function fetchHtmlWithScrapingBee(
   }
 
   throw new Error(
-    errors.length > 0
-      ? `ScrapingBee failed (${errors.join("; ")})`
-      : "ScrapingBee failed"
+    (() => {
+      const joined =
+        errors.length > 0
+          ? `ScrapingBee failed (${errors.join("; ")})`
+          : "ScrapingBee failed"
+      if (QUOTA_RE.test(joined)) noteScrapingBeeQuotaExhausted()
+      return joined
+    })()
   )
 }
 

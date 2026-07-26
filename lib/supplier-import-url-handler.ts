@@ -268,7 +268,7 @@ function baselineProduct(url: string, platform: Platform): ImportedProduct {
 
 export type SupplierImportUrlBody = {
   url?: string
-  options?: { markup?: number; aiRewrite?: boolean }
+  options?: { markup?: number; aiRewrite?: boolean; /** Skip AI enrich + categorize (DropForge preview). */ fast?: boolean }
 }
 
 export type ScrapeSupplierProductOptions = {

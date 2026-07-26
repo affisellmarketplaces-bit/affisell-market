@@ -18,6 +18,7 @@ import { toast } from "sonner"
 
 import { buttonVariants } from "@/components/ui/button"
 import { detectMarketplaceFromUrl } from "@/lib/import-marketplace"
+import { validateDropForgeProductUrl } from "@/lib/dropforge-product-url"
 import {
   AFFILIATE_RESELLER_SIGNUP_HREF,
   AFFILIATE_URL_IMPORT_HREF,
@@ -108,29 +109,19 @@ export function ResellerUrlImportClient() {
 
   const runPreview = useCallback(async () => {
     const trimmed = url.trim()
-    if (!trimmed) {
-      setScanError(t("errEmpty"))
-      toast.error(t("errEmpty"))
+    const validated = validateDropForgeProductUrl(trimmed)
+    if (!validated.ok) {
+      const msg =
+        validated.code === "empty"
+          ? t("errEmpty")
+          : validated.code === "https"
+            ? t("errHttps")
+            : validated.code === "homepage"
+              ? t("errProductUrl")
+              : validated.error
+      setScanError(msg)
+      toast.error(msg)
       return
-    }
-    if (!/^https?:\/\//i.test(trimmed)) {
-      setScanError(t("errHttps"))
-      toast.error(t("errHttps"))
-      return
-    }
-    // Need a real product URL, not just the marketplace homepage
-    try {
-      const u = new URL(trimmed)
-      if (
-        (u.hostname.includes("temu.com") || u.hostname.includes("amazon.") || u.hostname.includes("aliexpress.")) &&
-        u.pathname.replace(/\/$/, "").length < 8
-      ) {
-        setScanError(t("errProductUrl"))
-        toast.error(t("errProductUrl"))
-        return
-      }
-    } catch {
-      /* ignore — handled by https check */
     }
 
     setLoading(true)
@@ -138,7 +129,7 @@ export function ResellerUrlImportClient() {
     setPreview(null)
     setScanError(null)
     try {
-      window.sessionStorage.setItem(PENDING_KEY, trimmed)
+      window.sessionStorage.setItem(PENDING_KEY, validated.url)
     } catch {
       /* ignore */
     }
@@ -146,7 +137,7 @@ export function ResellerUrlImportClient() {
       const res = await fetch("/api/affiliate/import-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: trimmed }),
+        body: JSON.stringify({ url: validated.url }),
       })
       const data = (await res.json()) as { error?: string; preview?: Preview }
       if (!res.ok || !data.preview) {
@@ -195,6 +186,7 @@ export function ResellerUrlImportClient() {
             sellingPriceEur: Number.isFinite(sell) ? sell : preview.suggestedPrice,
             titleOverride: preview.title,
             listLive: listLive && !preview.partial,
+            snapshot: preview,
           }),
         })
         const data = (await res.json()) as {

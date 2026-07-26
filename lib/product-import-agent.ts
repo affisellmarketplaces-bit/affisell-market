@@ -201,25 +201,30 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
 
   steps.push("enrich")
   let aiEnriched = false
-  const enriched = await enrichScrapedProductWithAi(product, marketplace.label)
-  if (enriched) {
-    product = applyAiEnrichmentToScrapedProduct(product, enriched)
-    aiEnriched = true
-  } else if (!process.env.GROQ_API_KEY?.trim()) {
-    warnings.push("GROQ_API_KEY absente — enrichissement IA désactivé.")
+  const fast = body.options?.fast === true
+  if (!fast) {
+    const enriched = await enrichScrapedProductWithAi(product, marketplace.label)
+    if (enriched) {
+      product = applyAiEnrichmentToScrapedProduct(product, enriched)
+      aiEnriched = true
+    } else if (!process.env.GROQ_API_KEY?.trim()) {
+      warnings.push("GROQ_API_KEY absente — enrichissement IA désactivé.")
+    }
   }
 
   steps.push("categorize")
   let category: ProductImportAgentCategory | null = null
-  try {
-    const rows = await fetchAllCategoriesForBrowse(prisma)
-    const { leafPaths } = buildCategoryBrowse(rows)
-    category = await suggestCategory(product, leafPaths)
-  } catch (e) {
-    console.warn("[product-import-agent] category", {
-      error: e instanceof Error ? e.message : String(e),
-    })
-    warnings.push("Catégorie non suggérée — choisissez-la manuellement.")
+  if (!fast) {
+    try {
+      const rows = await fetchAllCategoriesForBrowse(prisma)
+      const { leafPaths } = buildCategoryBrowse(rows)
+      category = await suggestCategory(product, leafPaths)
+    } catch (e) {
+      console.warn("[product-import-agent] category", {
+        error: e instanceof Error ? e.message : String(e),
+      })
+      warnings.push("Catégorie non suggérée — choisissez-la manuellement.")
+    }
   }
 
   steps.push("done")
