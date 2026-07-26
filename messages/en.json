@@ -1696,7 +1696,17 @@
       "loading": "Loading…",
       "listingShort": "{count, plural, one {# listing} other {# listings}}",
       "desktopHintTitle": "On desktop",
-      "desktopHintBody": "Featured cards and trends stay visible above the catalog."
+      "desktopHintBody": "Featured cards and trends stay visible above the catalog.",
+      "drawerTitle": "Menu",
+      "tabsAria": "Menu navigation",
+      "tabCategories": "Categories",
+      "tabHub": "Affisell Hub",
+      "categoriesEmpty": "Categories unavailable right now.",
+      "browseCategory": "Browse {name}",
+      "seeAllAisles": "See all aisles →",
+      "searchHistory": "Recent",
+      "searchSuggestions": "Suggestions",
+      "searchSwipeHint": "Swipe down to close"
     },
     "departmentRail": {
       "ariaLabel": "Affisell departments",

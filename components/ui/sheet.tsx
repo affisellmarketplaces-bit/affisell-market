@@ -50,7 +50,7 @@ export function SheetContent({
   const close = () => ctx.onOpenChange(false)
 
   return (
-    <div className="fixed inset-0 z-50" role="presentation">
+    <div className="fixed inset-0 z-[320]" role="presentation">
       <button
         type="button"
         aria-label="Close drawer"

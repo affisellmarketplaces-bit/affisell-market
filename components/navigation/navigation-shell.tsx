@@ -19,6 +19,14 @@ const MobileBuyerHub = dynamic(
   { ssr: false }
 )
 
+const MobileSearchOverlay = dynamic(
+  () =>
+    import("@/components/nav/mobile-search-overlay").then((m) => ({
+      default: m.MobileSearchOverlay,
+    })),
+  { ssr: false }
+)
+
 function NavigationWarmupDeferred() {
   const ready = useIdleMount({ idleTimeoutMs: 2800, fallbackDelayMs: 700 })
   if (!ready) return null
@@ -28,7 +36,12 @@ function NavigationWarmupDeferred() {
 function MobileBuyerHubDeferred() {
   const ready = useIdleMount({ idleTimeoutMs: 3000, fallbackDelayMs: 800 })
   if (!ready) return null
-  return <MobileBuyerHub />
+  return (
+    <>
+      <MobileBuyerHub />
+      <MobileSearchOverlay />
+    </>
+  )
 }
 
 /** Global instant-nav affordances (progress, prefetch, ⌘K, mobile dock). */

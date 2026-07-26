@@ -1462,7 +1462,17 @@
       "loading": "Laden…",
       "listingShort": "{count, plural, one {# Anzeige} other {# Anzeigen}}",
       "desktopHintTitle": "Auf dem Desktop",
-      "desktopHintBody": "Hervorgehobene Karten und Trends bleiben über dem Katalog sichtbar."
+      "desktopHintBody": "Hervorgehobene Karten und Trends bleiben über dem Katalog sichtbar.",
+      "drawerTitle": "Menü",
+      "tabsAria": "Menünavigation",
+      "tabCategories": "Kategorien",
+      "tabHub": "Affisell Hub",
+      "categoriesEmpty": "Kategorien derzeit nicht verfügbar.",
+      "browseCategory": "{name} ansehen",
+      "seeAllAisles": "Alle Abteilungen →",
+      "searchHistory": "Zuletzt",
+      "searchSuggestions": "Vorschläge",
+      "searchSwipeHint": "Zum Schließen nach unten wischen"
     },
     "departmentRail": {
       "ariaLabel": "Affisell-Abteilungen",

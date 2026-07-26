@@ -2,14 +2,16 @@
 
 import { useEffect, useState, type ReactNode } from "react"
 
-import { SiteHeaderTrustStrip } from "@/components/nav/site-header-trust-strip"
 import { cn } from "@/lib/utils"
 
 type Props = {
   children: ReactNode
 }
 
-/** Sticky public header — compact + scroll-linked glass after scroll. */
+/**
+ * Sticky public header — Apple-like minimal on mobile (no trust band);
+ * desktop keeps the epoxy shell + scroll glass.
+ */
 export function SiteHeaderChrome({ children }: Props) {
   const [compact, setCompact] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -28,24 +30,27 @@ export function SiteHeaderChrome({ children }: Props) {
   return (
     <header
       className={cn(
-        "affisell-global-site-header sticky top-0 z-[200] w-full max-w-full shrink-0 overflow-x-clip px-2 pt-[max(0.35rem,env(safe-area-inset-top))] transition-[padding,background,backdrop-filter] duration-300 md:px-4 md:pt-3",
+        "affisell-global-site-header sticky top-0 z-[200] w-full max-w-full shrink-0 overflow-x-clip",
+        "border-b border-zinc-200/50 bg-white/80 pt-[env(safe-area-inset-top,0px)] backdrop-blur-xl dark:border-zinc-800/60 dark:bg-black/80",
+        "md:border-b-0 md:bg-transparent md:px-4 md:pt-3 md:backdrop-blur-none dark:md:bg-transparent",
+        "transition-[padding,background,backdrop-filter] duration-300",
         compact && "affisell-global-site-header--compact md:pt-2",
         scrolled && "affisell-global-site-header--scrolled"
       )}
     >
-      <div className="mx-auto max-w-7xl min-w-0">
+      <div className="mx-auto max-w-7xl min-w-0 px-3 md:px-0">
         <div
           className={cn(
-            "affisell-header-shell has-trust-strip relative min-w-0 overflow-hidden md:overflow-visible",
+            "affisell-header-shell relative min-w-0 overflow-hidden md:overflow-visible",
+            "max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:shadow-none max-md:backdrop-blur-none",
             compact && "affisell-header-shell--compact",
             scrolled && "affisell-header-shell--scrolled"
           )}
         >
-          <div className="affisell-header-mesh pointer-events-none absolute inset-0" aria-hidden />
-          <div className="affisell-header-band pointer-events-none absolute inset-x-0 bottom-0 z-[1]" aria-hidden />
+          <div className="affisell-header-mesh pointer-events-none absolute inset-0 max-md:hidden" aria-hidden />
+          <div className="affisell-header-band pointer-events-none absolute inset-x-0 bottom-0 z-[1] max-md:hidden" aria-hidden />
           <div className="relative z-[2]">{children}</div>
         </div>
-        <SiteHeaderTrustStrip compact={compact} />
       </div>
     </header>
   )

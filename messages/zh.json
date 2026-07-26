@@ -1462,7 +1462,17 @@
       "loading": "加载中…",
       "listingShort": "{count, plural, one {# 个商品} other {# 个商品}}",
       "desktopHintTitle": "在桌面上",
-      "desktopHintBody": "推荐卡片和趋势将始终在目录上方可见。"
+      "desktopHintBody": "推荐卡片和趋势将始终在目录上方可见。",
+      "drawerTitle": "Menu",
+      "tabsAria": "Menu navigation",
+      "tabCategories": "Categories",
+      "tabHub": "Affisell Hub",
+      "categoriesEmpty": "Categories unavailable right now.",
+      "browseCategory": "Browse {name}",
+      "seeAllAisles": "See all aisles →",
+      "searchHistory": "Recent",
+      "searchSuggestions": "Suggestions",
+      "searchSwipeHint": "Swipe down to close"
     },
     "departmentRail": {
       "ariaLabel": "Affisell 部门",

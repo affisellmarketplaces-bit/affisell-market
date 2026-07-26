@@ -1462,7 +1462,17 @@
       "loading": "Ładowanie…",
       "listingShort": "{count, plural, one {# oferta} other {# oferty}}",
       "desktopHintTitle": "Na komputerze",
-      "desktopHintBody": "Karty i trendy pozostają widoczne powyżej katalogu."
+      "desktopHintBody": "Karty i trendy pozostają widoczne powyżej katalogu.",
+      "drawerTitle": "Menu",
+      "tabsAria": "Menu navigation",
+      "tabCategories": "Categories",
+      "tabHub": "Affisell Hub",
+      "categoriesEmpty": "Categories unavailable right now.",
+      "browseCategory": "Browse {name}",
+      "seeAllAisles": "See all aisles →",
+      "searchHistory": "Recent",
+      "searchSuggestions": "Suggestions",
+      "searchSwipeHint": "Swipe down to close"
     },
     "departmentRail": {
       "ariaLabel": "Działy Affisell",

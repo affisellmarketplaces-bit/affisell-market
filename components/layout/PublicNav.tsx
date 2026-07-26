@@ -28,7 +28,7 @@ import { Link as LocaleLink, usePathname } from "@/i18n/navigation"
 import { buttonVariants } from "@/components/ui/button"
 import { useBuyerCartCount } from "@/hooks/use-buyer-cart-count"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
-import { openMobileBuyerHub } from "@/lib/buyer-hub-events"
+import { openMobileBuyerHub, openMobileSearch } from "@/lib/buyer-hub-events"
 import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-redirect"
 import { resolvePublicNavActive } from "@/lib/public-nav-active"
 import {
@@ -46,6 +46,9 @@ const ACCOUNT_ICONS = {
   hub: User,
   track: Truck,
 } as const
+
+const mobileIconBtn =
+  "inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-zinc-200/80 bg-zinc-100/90 text-zinc-800 shadow-sm transition active:scale-95 dark:border-zinc-700/80 dark:bg-zinc-900/90 dark:text-zinc-100"
 
 function isAccountNavActive(pathname: string, href: string, exact?: boolean): boolean {
   if (exact) return pathname === href
@@ -91,61 +94,65 @@ export function PublicNav() {
   const searchShellClass =
     "flex w-full min-w-0 items-center rounded-full border border-zinc-200/90 bg-zinc-50/95 shadow-sm ring-violet-500/10 transition-[box-shadow,border-color] focus-within:border-violet-300/80 focus-within:ring-2 focus-within:ring-violet-500/25 dark:border-zinc-700/90 dark:bg-zinc-900/90 dark:focus-within:border-violet-500/50"
 
-  const showCompactMobileUtilities = mode !== "account"
   const searchMaxWidthClass = useMemo(
     () => (mode === "account" ? "lg:max-w-xl" : "lg:max-w-2xl"),
     [mode]
   )
 
-  const logo = (
-    <LocaleLink href="/" className="shrink-0 lg:col-start-1 lg:row-start-1">
-      <span className={cn("text-lg font-bold affisell-logo-text", "affisell-brand-wordmark")}>Affisell</span>
+  /** Desktop wordmark — left-aligned in the lg grid. */
+  const desktopLogo = (
+    <LocaleLink href="/" className="hidden shrink-0 lg:col-start-1 lg:row-start-1 lg:block">
+      <span className={cn("text-lg font-bold affisell-logo-text", "affisell-brand-wordmark")}>
+        Affisell
+      </span>
     </LocaleLink>
   )
 
-  const mobileMenu = (
-    <button
-      type="button"
-      onClick={openMobileBuyerHub}
-      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-200/90 bg-zinc-50/95 text-zinc-700 shadow-sm transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-800 dark:border-zinc-700/90 dark:bg-zinc-900/90 dark:text-zinc-200 dark:hover:border-violet-500/50 dark:hover:bg-violet-950/40 lg:hidden"
-      aria-label={tHub("openMenu")}
-    >
-      <Menu className="size-4" aria-hidden />
-    </button>
-  )
-
-  const mobileUtilities = (
-    <div className="flex shrink-0 items-center gap-1 lg:hidden">
-      {mode === "account" ? <LanguageSwitcher /> : null}
-      {showCompactMobileUtilities ? <ThemeToggleDeferred className="shrink-0" /> : null}
-      <FastLink
-        href="/cart"
-        className={cn(
-          buttonVariants({ size: "sm" }),
-          "relative h-9 min-w-9 gap-1 border-0 bg-violet-600 px-2.5 text-white shadow-md shadow-violet-500/25 hover:bg-violet-700 dark:bg-violet-600 dark:hover:bg-violet-500"
-        )}
-        aria-label={cartAria}
+  /** Mobile Apple/Linear bar: ☰ · Affisell · 🔍 + cart */
+  const mobileMinimalBar = (
+    <div className="relative flex h-11 w-full min-w-0 items-center justify-between lg:hidden">
+      <button
+        type="button"
+        onClick={openMobileBuyerHub}
+        className={mobileIconBtn}
+        aria-label={tHub("openMenu")}
       >
-        <ShoppingCart className="size-4 shrink-0" aria-hidden />
-        <CartCountBadge count={cartCount} size="md" />
-      </FastLink>
-      {status !== "loading" && isCustomer ? (
+        <Menu className="size-[18px]" aria-hidden />
+      </button>
+
+      <LocaleLink
+        href="/"
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+      >
+        <span className="affisell-logo-text affisell-brand-wordmark text-[1.05rem] font-black tracking-tight">
+          Affisell
+        </span>
+      </LocaleLink>
+
+      <div className="flex shrink-0 items-center gap-2">
+        {mode !== "transaction" ? (
+          <button
+            type="button"
+            onClick={openMobileSearch}
+            className={mobileIconBtn}
+            aria-label={t("searchLabel")}
+          >
+            <Search className="size-[18px]" aria-hidden />
+          </button>
+        ) : null}
         <FastLink
-          href="/marketplace/account"
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 w-9 px-0")}
-          aria-label={t("myAccount")}
+          href="/cart"
+          className="relative inline-flex size-9 items-center justify-center rounded-full bg-violet-600 text-white shadow-md shadow-violet-500/30 transition active:scale-95 hover:bg-violet-700"
+          aria-label={cartAria}
         >
-          <User className="size-4 shrink-0" aria-hidden />
+          <ShoppingCart className="size-[18px] shrink-0" aria-hidden />
+          <CartCountBadge
+            count={cartCount}
+            size="sm"
+            className="-right-1 -top-1 bg-zinc-950 ring-1 ring-white dark:ring-zinc-900"
+          />
         </FastLink>
-      ) : (
-        <FastLink
-          href={signInHref}
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 w-9 px-0")}
-          aria-label={t("signIn")}
-        >
-          <User className="size-4 shrink-0" aria-hidden />
-        </FastLink>
-      )}
+      </div>
     </div>
   )
 
@@ -239,16 +246,13 @@ export function PublicNav() {
     </div>
   )
 
-  const searchBlock = (options: { suggestions: boolean; hideOnMobileHome?: boolean }) => (
+  const searchBlock = (options: { suggestions: boolean }) => (
     <Suspense
-      fallback={<div className="h-9 min-w-0 lg:col-start-3 lg:row-start-1" aria-hidden />}
+      fallback={
+        <div className="hidden h-9 min-w-0 lg:col-start-3 lg:row-start-1 lg:block" aria-hidden />
+      }
     >
-      <div
-        className={cn(
-          "flex min-w-0 items-center gap-2 lg:col-start-3 lg:row-start-1 lg:justify-center",
-          options.hideOnMobileHome && onHome && "hidden md:flex"
-        )}
-      >
+      <div className="hidden min-w-0 items-center gap-2 lg:col-start-3 lg:row-start-1 lg:flex lg:justify-center">
         <div className={cn(searchShellClass, searchMaxWidthClass)}>
           <NavHeaderSearch
             id="public-header-search-q"
@@ -266,7 +270,7 @@ export function PublicNav() {
   const backLink = (
     <FastLink
       href={backHref}
-      className="inline-flex min-w-0 max-w-full items-center justify-center gap-1.5 rounded-full px-2 py-1.5 text-sm font-semibold text-violet-800 transition hover:bg-violet-50 hover:text-violet-950 dark:text-violet-200 dark:hover:bg-violet-950/50 dark:hover:text-violet-50 lg:justify-self-center"
+      className="hidden min-w-0 max-w-full items-center justify-center gap-1.5 rounded-full px-2 py-1.5 text-sm font-semibold text-violet-800 transition hover:bg-violet-50 hover:text-violet-950 dark:text-violet-200 dark:hover:bg-violet-950/50 dark:hover:text-violet-50 lg:col-start-2 lg:row-start-1 lg:inline-flex lg:justify-self-center"
     >
       <ArrowLeft className="size-4 shrink-0" aria-hidden />
       <span className="truncate">{backLabel}</span>
@@ -280,11 +284,10 @@ export function PublicNav() {
           aria-label="Main"
           className="affisell-public-nav affisell-public-nav--transaction mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:py-2"
         >
-          <div className="flex min-w-0 items-center gap-2 lg:contents">
-            {logo}
-            <div className="min-w-0 flex-1 lg:col-start-2 lg:row-start-1">{backLink}</div>
-            {mobileMenu}
-            {mobileUtilities}
+          {mobileMinimalBar}
+          <div className="hidden min-w-0 items-center gap-2 lg:contents">
+            {desktopLogo}
+            {backLink}
           </div>
           {desktopUtilities()}
         </nav>
@@ -293,11 +296,8 @@ export function PublicNav() {
           aria-label="Main"
           className="affisell-public-nav affisell-public-nav--account mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
         >
-          <div className="flex min-w-0 items-center justify-between gap-2 lg:contents">
-            {logo}
-            {mobileMenu}
-            {mobileUtilities}
-          </div>
+          {mobileMinimalBar}
+          {desktopLogo}
           {accountPills}
           {searchBlock({ suggestions: false })}
           {desktopUtilities()}
@@ -307,13 +307,10 @@ export function PublicNav() {
           aria-label="Main"
           className="affisell-public-nav mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
         >
-          <div className="flex min-w-0 items-center justify-between gap-2 lg:contents">
-            {logo}
-            {mobileMenu}
-            {mobileUtilities}
-          </div>
+          {mobileMinimalBar}
+          {desktopLogo}
           {browsePills}
-          {searchBlock({ suggestions: true, hideOnMobileHome: true })}
+          {searchBlock({ suggestions: true })}
           {desktopUtilities({ showAgent: true })}
         </nav>
       )}

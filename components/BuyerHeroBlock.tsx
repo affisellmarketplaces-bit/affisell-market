@@ -51,7 +51,7 @@ export async function BuyerHeroBlock() {
 
   return (
     <section
-      className={`${homeHeroShell} w-full min-w-0 max-w-full px-3 py-2 max-md:max-h-[280px] max-md:overflow-hidden sm:px-6 sm:py-7 md:max-h-none md:overflow-visible md:px-10 md:py-16`}
+      className={`${homeHeroShell} w-full min-w-0 max-w-full px-3 py-1.5 max-md:max-h-[196px] max-md:overflow-hidden sm:px-6 sm:py-7 md:max-h-none md:overflow-visible md:px-10 md:py-16`}
     >
       <HeroGradientBg />
       <div className="relative mx-auto w-full min-w-0 max-w-4xl text-center">
@@ -61,7 +61,7 @@ export async function BuyerHeroBlock() {
           base={tSlogan("base")}
           phrases={buyerPhrases}
           canonical={tSlogan("canonical")}
-          className="min-h-[5.5rem] text-balance text-center text-[1.65rem] leading-[0.9] sm:min-h-0 sm:text-4xl md:text-6xl lg:text-7xl"
+          className="min-h-[3.75rem] text-balance text-center text-[1.45rem] leading-[0.92] sm:min-h-0 sm:text-4xl md:text-6xl lg:text-7xl"
         />
         <p className="mx-auto mt-1 max-w-2xl text-pretty text-[10px] leading-snug text-violet-100/90 sm:mt-4 sm:text-base sm:leading-relaxed">
           {usMarket ? t("subUs", { count: checkoutCountryCount }) : t("sub", { count: checkoutCountryCount })}

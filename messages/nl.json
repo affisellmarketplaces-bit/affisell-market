@@ -1463,7 +1463,17 @@
       "loading": "Laden…",
       "listingShort": "{count, plural, one {# artikel} other {# artikelen}}",
       "desktopHintTitle": "Op desktop",
-      "desktopHintBody": "Gefeatureerde kaarten en trends blijven zichtbaar boven de catalogus."
+      "desktopHintBody": "Gefeatureerde kaarten en trends blijven zichtbaar boven de catalogus.",
+      "drawerTitle": "Menu",
+      "tabsAria": "Menu navigation",
+      "tabCategories": "Categories",
+      "tabHub": "Affisell Hub",
+      "categoriesEmpty": "Categories unavailable right now.",
+      "browseCategory": "Browse {name}",
+      "seeAllAisles": "See all aisles →",
+      "searchHistory": "Recent",
+      "searchSuggestions": "Suggestions",
+      "searchSwipeHint": "Swipe down to close"
     },
     "departmentRail": {
       "ariaLabel": "Affisell afdelingen",

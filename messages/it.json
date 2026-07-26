@@ -1462,7 +1462,17 @@
       "loading": "Caricamento…",
       "listingShort": "{count, plural, one {# elenco} other {# elenchi}}",
       "desktopHintTitle": "Su desktop",
-      "desktopHintBody": "Le schede dei prodotti e le tendenze rimangono visibili sopra il catalogo."
+      "desktopHintBody": "Le schede dei prodotti e le tendenze rimangono visibili sopra il catalogo.",
+      "drawerTitle": "Menu",
+      "tabsAria": "Navigazione menu",
+      "tabCategories": "Categorie",
+      "tabHub": "Hub Affisell",
+      "categoriesEmpty": "Categorie non disponibili al momento.",
+      "browseCategory": "Vedi {name}",
+      "seeAllAisles": "Vedi tutti i reparti →",
+      "searchHistory": "Recenti",
+      "searchSuggestions": "Suggerimenti",
+      "searchSwipeHint": "Scorri verso il basso per chiudere"
     },
     "departmentRail": {
       "ariaLabel": "Dipartimenti di Affisell",

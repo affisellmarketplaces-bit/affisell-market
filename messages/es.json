@@ -1462,7 +1462,17 @@
       "loading": "Cargando…",
       "listingShort": "{count, plural, one {# lista} other {# listas}}",
       "desktopHintTitle": "En escritorio",
-      "desktopHintBody": "Las tarjetas destacadas y las tendencias permanecen visibles por encima del catálogo."
+      "desktopHintBody": "Las tarjetas destacadas y las tendencias permanecen visibles por encima del catálogo.",
+      "drawerTitle": "Menú",
+      "tabsAria": "Navegación del menú",
+      "tabCategories": "Categorías",
+      "tabHub": "Hub Affisell",
+      "categoriesEmpty": "Categorías no disponibles por ahora.",
+      "browseCategory": "Ver {name}",
+      "seeAllAisles": "Ver todos los pasillos →",
+      "searchHistory": "Reciente",
+      "searchSuggestions": "Sugerencias",
+      "searchSwipeHint": "Desliza hacia abajo para cerrar"
     },
     "departmentRail": {
       "ariaLabel": "Departamentos de Affisell",
