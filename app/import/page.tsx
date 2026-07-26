@@ -45,11 +45,7 @@ export default async function ImportPage() {
         </Link>
 
         <section className="mt-8 text-center sm:mt-12">
-          <p className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200">
-            <span className="size-1.5 animate-pulse rounded-full bg-emerald-400" aria-hidden />
-            {t("badge")}
-          </p>
-          <h1 className="mt-5 text-balance text-3xl font-black tracking-tight sm:text-5xl sm:leading-[1.05]">
+          <h1 className="text-balance text-3xl font-black tracking-tight sm:text-5xl sm:leading-[1.05]">
             {t("title")}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-pretty text-base text-violet-100/85 sm:text-lg">
