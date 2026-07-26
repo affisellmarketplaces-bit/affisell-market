@@ -203,8 +203,13 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL(`${target}${req.nextUrl.search}`, req.url), 301)
   }
 
-  // Radar UI lives outside app/[locale] — never let next-intl treat "radar" as a locale.
-  if (barePath === "/radar" || barePath.startsWith("/radar/")) {
+  // Radar + Pulse Live Battle live outside app/[locale] — never let next-intl rewrite them.
+  if (
+    barePath === "/radar" ||
+    barePath.startsWith("/radar/") ||
+    barePath === "/pulse" ||
+    barePath.startsWith("/pulse/")
+  ) {
     if (barePath !== pathname) {
       const rewriteUrl = req.nextUrl.clone()
       rewriteUrl.pathname = barePath
