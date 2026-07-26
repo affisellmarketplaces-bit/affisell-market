@@ -30,7 +30,9 @@ export type RadarCountryIntel = {
 
 function demoIntel(country: string, take: number): RadarCountryIntel {
   const mock = MOCK_MAP_STATS.find((s) => s.country === country)
-  const products = RADAR_DEMO_WINNERS.filter((w) => w.country === country)
+  const products: RadarCountryIntelProduct[] = RADAR_DEMO_WINNERS.filter(
+    (w) => w.country === country
+  )
     .slice(0, take)
     .map((w) => ({
       id: w.id,
