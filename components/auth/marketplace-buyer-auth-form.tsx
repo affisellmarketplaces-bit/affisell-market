@@ -76,18 +76,35 @@ export function MarketplaceBuyerAuthForm({
       }
     }
 
-    const res = await signIn("credentials", {
-      email: email.trim().toLowerCase(),
-      password,
-      redirect: false,
-      callbackUrl: returnTo,
-    })
-    setLoading(false)
-    if (res?.ok) {
+    try {
+      const res = await signIn("credentials", {
+        email: email.trim().toLowerCase(),
+        password,
+        redirect: false,
+        callbackUrl: returnTo,
+      })
+      if (res?.error || !res?.ok) {
+        const csrf =
+          res?.error === "MissingCSRF" ||
+          res?.code === "MissingCSRF" ||
+          String(res?.error ?? "").includes("CSRF")
+        setError(
+          csrf
+            ? t("portal.errors.csrf")
+            : (credentialsSignInErrorMessage(res?.code, res?.error, t) ?? t("invalidCredentials"))
+        )
+        return
+      }
       window.location.assign(returnTo)
-      return
+    } catch (err) {
+      console.error("[buyer-auth]", {
+        result: "sign_in_failed",
+        message: err instanceof Error ? err.message : "unknown",
+      })
+      setError(t("invalidCredentials"))
+    } finally {
+      setLoading(false)
     }
-    setError(credentialsSignInErrorMessage(res?.code, res?.error, t) ?? t("invalidCredentials"))
   }
 
   const title = mode === "login" ? tBuyer("loginTitle") : tBuyer("signupTitle")

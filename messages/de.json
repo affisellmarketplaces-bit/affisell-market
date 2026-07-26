@@ -595,7 +595,8 @@
         "non_affiliate_on_affiliate_portal": "Anmeldung abgelehnt: nur Affiliate-Konten sind hier erlaubt.",
         "non_supplier_on_supplier_portal": "Anmeldung abgelehnt: nur Lieferantenkonten sind hier erlaubt.",
         "non_agent_on_agent_portal": "Sign-in denied: only Affisell agent accounts are allowed here.",
-        "email_required_not_id": "Anmeldung abgelehnt: geben Sie Ihre E-Mail-Adresse ein (nicht eine interne ID)."
+        "email_required_not_id": "Anmeldung abgelehnt: geben Sie Ihre E-Mail-Adresse ein (nicht eine interne ID).",
+        "csrf": "Sicherheitsprüfung fehlgeschlagen (häufig durch Tracking-Schutz oder VPN). Seite neu laden, Cookies für affisell.com erlauben und erneut versuchen."
       }
     }
   },

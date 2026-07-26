@@ -717,7 +717,8 @@
         "non_affiliate_on_affiliate_portal": "Connexion refusée : seuls les comptes ambassadeur sont autorisés pour cette destination.",
         "non_supplier_on_supplier_portal": "Connexion refusée : seuls les comptes fournisseur sont autorisés pour cette destination.",
         "non_agent_on_agent_portal": "Connexion refusée : seuls les comptes agent Affisell sont autorisés pour cette destination.",
-        "email_required_not_id": "Connexion refusée : saisissez votre adresse e-mail (pas un identifiant interne / ID)."
+        "email_required_not_id": "Connexion refusée : saisissez votre adresse e-mail (pas un identifiant interne / ID).",
+        "csrf": "Échec du contrôle de sécurité (fréquent avec la protection anti-pistage Firefox ou un VPN). Actualisez la page, autorisez les cookies pour affisell.com, puis réessayez."
       },
       "agent": {
         "title": "Espace agent Affisell",

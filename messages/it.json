@@ -595,7 +595,8 @@
         "non_affiliate_on_affiliate_portal": "Accesso negato: solo gli account affiliati sono consentiti qui.",
         "non_supplier_on_supplier_portal": "Accesso negato: solo gli account del fornitore sono consentiti qui.",
         "non_agent_on_agent_portal": "Sign-in denied: only Affisell agent accounts are allowed here.",
-        "email_required_not_id": "Accesso negato: inserisci l'indirizzo email (non un ID interno)."
+        "email_required_not_id": "Accesso negato: inserisci l'indirizzo email (non un ID interno).",
+        "csrf": "Controllo di sicurezza non riuscito (comune con protezione tracking o VPN). Aggiorna la pagina, consenti i cookie per affisell.com e riprova."
       }
     }
   },

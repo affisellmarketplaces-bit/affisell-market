@@ -595,7 +595,8 @@
         "non_affiliate_on_affiliate_portal": "Toegang geweigerd: alleen affiliate-accounts zijn hier toegestaan.",
         "non_supplier_on_supplier_portal": "Toegang geweigerd: alleen leverancier-accounts zijn hier toegestaan.",
         "non_agent_on_agent_portal": "Sign-in denied: only Affisell agent accounts are allowed here.",
-        "email_required_not_id": "Toegang geweigerd: voer uw e-mailadres in (niet een interne ID)."
+        "email_required_not_id": "Toegang geweigerd: voer uw e-mailadres in (niet een interne ID).",
+        "csrf": "Beveiligingscontrole mislukt (vaak door trackingbescherming of VPN). Vernieuw de pagina, sta cookies toe voor affisell.com en probeer opnieuw."
       }
     }
   },

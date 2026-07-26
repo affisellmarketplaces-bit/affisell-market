@@ -87,19 +87,39 @@ export function PortalSignInForm({
     setPassword(passwordValue)
 
     setLoading(true)
-    const res = await signIn("credentials", {
-      email: emailValue,
-      password: passwordValue,
-      // Passed as credential so authorize() can infer portal (Auth.js may strip top-level callbackUrl).
-      callbackUrl: signInCallback,
-      redirect: false,
-    })
-    setLoading(false)
-    if (res?.ok) {
+    try {
+      const res = await signIn("credentials", {
+        email: emailValue,
+        password: passwordValue,
+        // Passed as credential so authorize() can infer portal (Auth.js may strip top-level callbackUrl).
+        callbackUrl: signInCallback,
+        redirect: false,
+      })
+      // Auth.js returns HTTP 200 + ok:true even on CredentialsSignin / MissingCSRF —
+      // only trust absence of error (see merchant-legal-signup-wizard).
+      if (res?.error || !res?.ok) {
+        const csrf =
+          res?.error === "MissingCSRF" ||
+          res?.code === "MissingCSRF" ||
+          String(res?.error ?? "").includes("CSRF")
+        setError(
+          csrf
+            ? t("portal.errors.csrf")
+            : (credentialsSignInErrorMessage(res?.code, res?.error, t) ?? t("invalidCredentials"))
+        )
+        return
+      }
       window.location.assign(signInCallback)
-      return
+    } catch (err) {
+      console.error("[portal-signin]", {
+        result: "sign_in_failed",
+        portal,
+        message: err instanceof Error ? err.message : "unknown",
+      })
+      setError(t("invalidCredentials"))
+    } finally {
+      setLoading(false)
     }
-    setError(credentialsSignInErrorMessage(res?.code, res?.error, t) ?? t("invalidCredentials"))
   }
 
   return (
