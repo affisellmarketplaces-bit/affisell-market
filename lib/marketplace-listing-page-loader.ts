@@ -301,6 +301,9 @@ async function findListingDetailRow(where: ListingWhere): Promise<ListingDetailR
     supplierTrustTier: string
   ): ListingDetailRow => withTrustTier(row, supplierTrustTier)
 
+  // Heal Ghost columns before first select — avoids a hard P2022 on cold prod.
+  await ensureGhostStockSchema()
+
   try {
     const row = await prisma.affiliateProduct.findFirst({
       where: whereClause,
