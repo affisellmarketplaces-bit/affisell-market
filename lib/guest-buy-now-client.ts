@@ -13,7 +13,23 @@ export type BuyNowWithoutLoginMeta = Pick<
   "title" | "price" | "imageUrl" | "sellerName" | "selectedColor" | "selectedSize"
 > & { productId: string }
 
-export type BuyNowOutcome = "stripe" | "cart" | "error"
+export type BuyNowOutOfStockPayload = {
+  productName?: string
+  alternatives?: Array<{
+    affiliateProductId: string
+    title: string
+    image: string | null
+    priceCents: number
+    href: string
+  }>
+  coupon?: string
+}
+
+export type BuyNowOutcome =
+  | "stripe"
+  | "cart"
+  | "error"
+  | { kind: "out_of_stock"; payload: BuyNowOutOfStockPayload }
 
 /**
  * Stripe checkout once the buyer is identified (CUSTOMER session).
@@ -40,6 +56,17 @@ export async function buyNowWithoutLogin(
 
   const result = await startFastCheckout(body)
   if (fastCheckoutRedirected(result)) return "stripe"
+
+  if (!result.ok && result.status === "out_of_stock") {
+    return {
+      kind: "out_of_stock",
+      payload: {
+        productName: result.productName,
+        alternatives: result.alternatives,
+        coupon: result.coupon,
+      },
+    }
+  }
 
   const cart = await fallbackToCart()
   if (cart === "cart") return "cart"

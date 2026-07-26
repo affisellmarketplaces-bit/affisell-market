@@ -393,6 +393,8 @@ export default async function MarketplaceListingPage({
           variantPricing={parseAffiliateVariantPricingJson(listing.variantPricing)}
           basePriceCents={p.basePriceCents}
           stock={listing.product.stock}
+          lastStockCheck={p.lastStockCheck ?? null}
+          lastStockStatus={p.lastStockStatus ?? null}
           retailPriceEur={retailPriceEur}
           has3D={has3D}
           arModel={arModel}

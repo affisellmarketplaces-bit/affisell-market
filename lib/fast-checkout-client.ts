@@ -13,12 +13,29 @@ export type FastCheckoutBody = {
 }
 
 export type FastCheckoutSuccess = { ok: true; status: "redirected" }
+export type FastCheckoutOutOfStock = {
+  ok: false
+  status: "out_of_stock"
+  productName?: string
+  alternatives?: Array<{
+    affiliateProductId: string
+    title: string
+    image: string | null
+    priceCents: number
+    href: string
+  }>
+  coupon?: string
+  message?: string
+}
 export type FastCheckoutFailure = {
   ok: false
   status: "auth" | "error"
   message?: string
 }
-export type FastCheckoutResult = FastCheckoutSuccess | FastCheckoutFailure
+export type FastCheckoutResult =
+  | FastCheckoutSuccess
+  | FastCheckoutFailure
+  | FastCheckoutOutOfStock
 
 export function fastCheckoutRedirected(
   result: FastCheckoutResult
@@ -46,9 +63,16 @@ export async function startFastCheckout(
       keepalive: true,
     })
 
-    let data: { url?: string; error?: string } = {}
+    let data: {
+      url?: string
+      error?: string
+      message?: string
+      productName?: string
+      alternatives?: FastCheckoutOutOfStock["alternatives"]
+      coupon?: string
+    } = {}
     try {
-      data = (await res.json()) as { url?: string; error?: string }
+      data = (await res.json()) as typeof data
     } catch {
       console.error("[fast-checkout]", { status: res.status, result: "invalid_json" })
       return { ok: false, status: "error", message: "checkout_unavailable" }
@@ -61,6 +85,17 @@ export async function startFastCheckout(
 
     if (res.status === 401) {
       return { ok: false, status: "auth", message: data.error }
+    }
+
+    if (res.status === 409 && data.error === "OUT_OF_STOCK_VERIFIED") {
+      return {
+        ok: false,
+        status: "out_of_stock",
+        productName: data.productName,
+        alternatives: data.alternatives,
+        coupon: data.coupon,
+        message: data.message,
+      }
     }
 
     return { ok: false, status: "error", message: data.error ?? "checkout_failed" }

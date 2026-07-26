@@ -2,6 +2,7 @@ import type Stripe from "stripe"
 
 import { SPONSOR_FLOW_METADATA } from "@/lib/sponsor/sponsor-constants"
 import { extractMarketplaceCheckoutCustomer } from "@/lib/marketplace-checkout-session"
+import { ghostReverifyBeforeFulfill } from "@/lib/ghost/post-pay-reverify"
 import { prisma } from "@/lib/prisma"
 import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
 import { findOrderIdsForCheckoutSession } from "@/lib/stripe-marketplace-commission-split"
@@ -35,6 +36,15 @@ export async function ensureMarketplaceCheckoutFulfilled(
   if (session.mode !== "payment" || session.payment_status !== "paid") return
   if (session.metadata?.flow === "blind_dropship") return
   if (session.metadata?.flow === SPONSOR_FLOW_METADATA) return
+
+  const ghost = await ghostReverifyBeforeFulfill(session)
+  if (ghost.refunded) {
+    logStripeWebhookInfo({
+      metric: "ghost_oos_refunded",
+      sessionId: session.id,
+    })
+    return
+  }
 
   const { customerEmail, shippingAddress } = extractMarketplaceCheckoutCustomer(session)
 

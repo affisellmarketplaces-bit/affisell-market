@@ -5,6 +5,7 @@ import { Clock, MousePointerClick, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { FlexiblePaymentBadge } from "@/components/checkout/flexible-payment-badge"
+import { GhostStockBadge } from "@/components/checkout/GhostStockBadge"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { cn } from "@/lib/utils"
 import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
@@ -26,6 +27,8 @@ type Props = {
   brandedStorefront?: boolean
   /** Compact mobile: less padding, shorter note, no LIVE chip clash. */
   denseMobile?: boolean
+  lastStockCheck?: string | Date | null
+  lastStockStatus?: string | null
 }
 
 export function ListingPriceActionCard({
@@ -44,6 +47,8 @@ export function ListingPriceActionCard({
   className,
   brandedStorefront = false,
   denseMobile = false,
+  lastStockCheck = null,
+  lastStockStatus = null,
 }: Props) {
   const brand = storefrontPdpBrandClasses(brandedStorefront)
   const t = useTranslations("Product")
@@ -65,6 +70,12 @@ export function ListingPriceActionCard({
               price={listingPriceEur}
               compareAt={hasRetailCompare ? activeRetailPriceEur : null}
               layout="detail"
+            />
+          </div>
+          <div className="mt-2">
+            <GhostStockBadge
+              lastStockCheck={lastStockCheck}
+              lastStockStatus={lastStockStatus}
             />
           </div>
           {buyerRewardBadge ? (

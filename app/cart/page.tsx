@@ -10,6 +10,10 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 
 import { MobileCartCheckoutBar } from "@/components/cart/mobile-cart-checkout-bar"
 import { FlexiblePaymentBadge } from "@/components/checkout/flexible-payment-badge"
+import {
+  OutOfStockModal,
+  type GhostOosPayload,
+} from "@/components/checkout/OutOfStockModal"
 import { CartCheckoutShippingNote } from "@/components/cart/cart-checkout-shipping-note"
 import { CheckoutRegionComingSoonBanner } from "@/components/marketplace/checkout-region-coming-soon-banner"
 import { CartRolloutCheckoutNote } from "@/components/marketplace/cart-rollout-checkout-note"
@@ -157,6 +161,7 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true)
   const [checkoutBusy, setCheckoutBusy] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
+  const [ghostOos, setGhostOos] = useState<GhostOosPayload | null>(null)
   const [identityOpen, setIdentityOpen] = useState(false)
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
   const [useRewardCents, setUseRewardCents] = useState(0)
@@ -407,16 +412,31 @@ export default function CartPage() {
           useRewardCents: Math.min(Math.max(0, Math.round(useRewardCents)), maxApplicableReward),
         }),
       })
-      const data = (await res.json()) as { url?: string; error?: string }
+      const data = (await res.json()) as {
+        url?: string
+        error?: string
+        message?: string
+        productName?: string
+        alternatives?: GhostOosPayload["alternatives"]
+        coupon?: string
+      }
       if (data.url) {
         window.location.href = data.url
+        return
+      }
+      if (res.status === 409 && data.error === "OUT_OF_STOCK_VERIFIED") {
+        setGhostOos({
+          productName: data.productName,
+          alternatives: data.alternatives,
+          coupon: data.coupon,
+        })
         return
       }
       if (data.error === "checkout_minimum_not_met") {
         setCheckoutError(t("checkoutMinimumNotMet", { min: MIN_CARD_EUR.toFixed(2) }))
         return
       }
-      setCheckoutError(t("checkoutFailed"))
+      setCheckoutError(data.message || t("checkoutFailed"))
     } finally {
       setCheckoutBusy(false)
     }
@@ -732,6 +752,11 @@ export default function CartPage() {
           onIdentified={afterIdentity}
           checkoutPayload={checkoutIdentityPayload}
           guestCartItems={guestCartItemsForIdentity}
+        />
+        <OutOfStockModal
+          open={Boolean(ghostOos)}
+          payload={ghostOos}
+          onClose={() => setGhostOos(null)}
         />
       </div>
       <MobileCartCheckoutBar

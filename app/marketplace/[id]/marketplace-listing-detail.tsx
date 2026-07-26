@@ -50,6 +50,10 @@ const TryOnModal = nextDynamic(
 
 import { ListingBrowseSignalsRecorder } from "@/components/marketplace/listing-browse-signals-recorder"
 import { ListingPriceActionCard } from "@/components/marketplace/listing-price-action-card"
+import {
+  OutOfStockModal,
+  type GhostOosPayload,
+} from "@/components/checkout/OutOfStockModal"
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
 import { SupplierTrustBadge } from "@/components/suppliers/supplier-trust-badge"
 import { Button } from "@/components/ui/button"
@@ -172,6 +176,9 @@ type Props = {
   variantPricing?: AffiliateVariantPricingMap | null
   basePriceCents: number
   stock: number
+  /** Ghost Checkout — last live supplier stock probe. */
+  lastStockCheck?: string | Date | null
+  lastStockStatus?: string | null
   retailPriceEur?: number
   has3D?: boolean
   arModel?: string | null
@@ -359,6 +366,8 @@ export function MarketplaceListingDetail({
   variantPricing = null,
   basePriceCents,
   stock,
+  lastStockCheck = null,
+  lastStockStatus = null,
   retailPriceEur,
   has3D = false,
   arModel,
@@ -391,6 +400,7 @@ export function MarketplaceListingDetail({
   const router = useRouter()
   const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
   const reduceMotion = useReducedMotion()
+  const [ghostOos, setGhostOos] = useState<GhostOosPayload | null>(null)
   const tryOnReady =
     tryOnFeatureEnabled && tryOnEnabled && Boolean(tryOnGarmentUrl?.trim())
   const purchaseDockRef = useRef<HTMLDivElement>(null)
@@ -823,6 +833,10 @@ export function MarketplaceListingDetail({
           selectedSize: cartSelectedSize ?? undefined,
         }
       )
+      if (typeof outcome === "object" && outcome.kind === "out_of_stock") {
+        setGhostOos(outcome.payload)
+        return
+      }
       if (outcome === "error") {
         const { toast } = await import("sonner")
         toast.error(messages.checkout.checkoutError, {
@@ -1058,6 +1072,8 @@ export function MarketplaceListingDetail({
               buyerRewardBadge={buyerRewardBadge}
               reduceMotion={reduceMotion ?? false}
               productId={productId}
+              lastStockCheck={lastStockCheck}
+              lastStockStatus={lastStockStatus}
               formatReviewCount={formatStoreCount}
               labels={{
                 colorLabel: productT.colorLabel,
@@ -1259,6 +1275,8 @@ export function MarketplaceListingDetail({
               priceFluidityNote={productT.priceFluidityNote}
               buyNowShort={productT.buyNowShort}
               reduceMotion={reduceMotion ?? false}
+              lastStockCheck={lastStockCheck}
+              lastStockStatus={lastStockStatus}
             />
             {tryOnReady ? (
               <TryOnTrigger
@@ -1922,6 +1940,11 @@ export function MarketplaceListingDetail({
         />
       ) : null}
       {identitySheet}
+      <OutOfStockModal
+        open={Boolean(ghostOos)}
+        payload={ghostOos}
+        onClose={() => setGhostOos(null)}
+      />
       {tryOnReady ? (
         <TryOnModal
           open={tryOnOpen}

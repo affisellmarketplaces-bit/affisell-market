@@ -11,6 +11,11 @@ import {
 } from "@/lib/stripe-webhook-observability"
 import { getStripeClient } from "@/lib/stripe"
 
+/**
+ * Stripe webhooks — Ghost stock re-vérif runs in `ensureMarketplaceCheckoutFulfilled`
+ * (lib/marketplace-checkout-fulfill.ts) before order fulfill on checkout.session.completed.
+ */
+
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const revalidate = 0

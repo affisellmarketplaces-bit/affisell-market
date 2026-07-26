@@ -1014,6 +1014,32 @@ model Product {
    */
   medusaVariantId String?
 
+  /**
+   * Ghost Checkout — URL produit chez le fournisseur (AliExpress / Temu / Amazon).
+   * Prefer this over `sourceUrl` when both set; checkStock falls back to sourceUrl.
+   */
+  supplierUrl String?
+  /**
+   * Ghost source: aliexpress | temu | amazon
+   */
+  supplierSource String?
+  /**
+   * External product id at the supplier (NOT Affisell User.supplierId).
+   */
+  supplierProductId String?
+  lastStockCheck    DateTime?
+  /**
+   * in_stock | out_of_stock | low_stock | unknown
+   */
+  lastStockStatus  String?
+  lastPriceSupplier Decimal?
+  /**
+   * Consecutive Ghost check failures — at 3, product is auto-drafted.
+   */
+  stockCheckFails Int @default(0)
+
+  stockCheckLogs StockCheckLog[]
+
   supplier                User                     @relation("SupplierProducts", fields: [supplierId], references: [id])
   tryOns                  TryOn[]
   tryOnJobs               TryOnJob[]
@@ -1052,6 +1078,25 @@ model Product {
   @@index([offerMode])
   @@index([createdAt])
   @@index([listingKind])
+  @@index([lastStockCheck])
+  @@index([supplierSource, lastStockStatus])
+}
+
+/**
+ * Ghost Checkout — audit trail for live supplier stock probes.
+ */
+model StockCheckLog {
+  id             String   @id @default(cuid())
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  status         String
+  supplierPrice  Decimal?
+  checkedAt      DateTime @default(now())
+  responseTimeMs Int
+  source         String?
+
+  @@index([productId, checkedAt])
+  @@index([checkedAt])
 }
 
 /**

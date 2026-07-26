@@ -5,6 +5,10 @@ import { isMedusaCheckoutBody, medusaCheckoutPOST } from "@/lib/medusa/checkout-
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+/**
+ * Marketplace checkout — Ghost stock gate runs inside `marketplaceCheckoutPOST`
+ * (lib/marketplace-checkout.ts) before Stripe Checkout Session create.
+ */
 export async function POST(request: Request) {
   try {
     const raw = await request.text()

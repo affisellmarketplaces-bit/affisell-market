@@ -6,6 +6,7 @@ import {
   listingGalleryUrls,
 } from "@/lib/affiliate-listing-display"
 import { auth } from "@/auth"
+import { assertGhostStockForCheckout } from "@/lib/ghost/checkout-gate"
 import {
   formatCartVariantLabel,
   normalizeCartVariantSignature,
@@ -313,6 +314,10 @@ async function checkoutFromItems(
     })
     if (commissionGate) return commissionGate
 
+    // GHOST CHECK — P0 before Stripe
+    const ghostGate = await assertGhostStockForCheckout(listing.product)
+    if (ghostGate instanceof NextResponse) return ghostGate
+
     loaded.push({
       affiliateProductId: row.affiliateProductId,
       qty: row.qty,
@@ -501,6 +506,10 @@ export async function marketplaceCheckoutPOST(
     }),
   })
   if (commissionGate) return commissionGate
+
+  // GHOST CHECK — P0 before Stripe
+  const ghostGate = await assertGhostStockForCheckout(product)
+  if (ghostGate instanceof NextResponse) return ghostGate
 
   const affiliateProduct = listing
   const affiliate = listing.affiliate

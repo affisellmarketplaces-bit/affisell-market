@@ -75,6 +75,8 @@ export type MobilePdpBuyPanelProps = {
   hideColorPicker?: boolean
   /** Booking listings use BookingCheckoutPanel for purchase — hide cart/qty here. */
   hidePurchaseControls?: boolean
+  lastStockCheck?: string | Date | null
+  lastStockStatus?: string | null
 }
 
 export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>(
@@ -119,6 +121,8 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
       brandedStorefront = false,
       hideColorPicker = false,
       hidePurchaseControls = false,
+      lastStockCheck = null,
+      lastStockStatus = null,
     },
     ref
   ) {
@@ -295,6 +299,8 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
               reduceMotion={reduceMotion}
               brandedStorefront={brandedStorefront}
               denseMobile
+              lastStockCheck={lastStockCheck}
+              lastStockStatus={lastStockStatus}
             />
             <div className="grid grid-cols-[minmax(0,7.5rem)_1fr] gap-2">
               <MarketplacePurchaseQuantity

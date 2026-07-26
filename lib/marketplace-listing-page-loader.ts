@@ -46,6 +46,8 @@ export const listingDetailSelect = {
       compareAt: true,
       basePriceCents: true,
       stock: true,
+      lastStockCheck: true,
+      lastStockStatus: true,
       listingKind: true,
       deliveryMin: true,
       deliveryMax: true,
