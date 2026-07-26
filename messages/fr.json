@@ -123,8 +123,8 @@
       "badge": "7 innovations · Margin Lock 7j · Live Profit",
       "sub": "Le seul marketplace où chaque produit affiche le profit net après frais, pubs et livraison. Marge verrouillée 7 jours. Pas de fausse livraison 3-7 jours.",
       "ticker": "120+ revendeurs · 14,2 k€ de profit moyen / mois",
-      "ctaPrimary": "Commencer à revendre — C'est gratuit",
-      "ctaSecondary": "Explorer les produits rentables"
+      "ctaPrimary": "Importer depuis Temu / TikTok — gratuit",
+      "ctaSecondary": "Créer mon compte revendeur"
     },
     "supplier": {
       "base": "Transformez",
@@ -4830,5 +4830,46 @@
       "retry": "Réessayer",
       "home": "Accueil"
     }
+  },
+  "importPage": {
+    "metaTitle": "Importer Temu / TikTok → boutique Affisell",
+    "metaDescription": "Colle une URL Temu, TikTok Shop ou Amazon. Affisell crée ta fiche produit. Tu vends depuis ta boutique — sans stock.",
+    "badge": "Semaine 1 · URL → Boutique",
+    "title": "Colle l’URL. Lance ta boutique.",
+    "subtitle": "Temu, TikTok Shop, Amazon, SHEIN… Affisell scrape la fiche, calcule ta marge, et pousse le produit dans ta vitrine. Les resellers Autods / DSers passent ici.",
+    "urlLabel": "URL produit",
+    "urlPlaceholder": "https://www.temu.com/… ou shop.tiktok.com/…",
+    "scanCta": "Scanner",
+    "scanning": "Scan…",
+    "detected": "Détecté : {market}",
+    "errEmpty": "Colle une URL produit.",
+    "errHttps": "L’URL doit commencer par http:// ou https://",
+    "errPreview": "Impossible de lire cette page. Réessaie ou change d’URL.",
+    "errCommit": "Import impossible pour le moment.",
+    "previewOk": "Fiche {market} prête",
+    "cost": "Coût source",
+    "profit": "Marge estimée",
+    "sellPrice": "Ton prix de vente",
+    "readyAffiliate": "Prêt — brouillon ou publication live sur ta boutique.",
+    "readyGuest": "Crée ton compte revendeur pour pousser cette fiche dans ta boutique.",
+    "saveDraft": "Sauver brouillon",
+    "publishLive": "Publier live",
+    "signupDraft": "Compte + brouillon",
+    "signupLive": "Compte + publier",
+    "commitLiveOk": "Publié sur ta boutique",
+    "commitDraftOk": "Brouillon créé",
+    "doneLive": "Ta fiche est en ligne.",
+    "doneDraft": "Brouillon prêt — finalise dans le catalogue.",
+    "viewShop": "Voir la fiche",
+    "editListing": "Ouvrir le catalogue",
+    "alreadyAccount": "Déjà revendeur ?",
+    "loginLink": "Connexion",
+    "signupLink": "Créer un compte",
+    "step1Title": "1. Colle le lien",
+    "step1Body": "Temu, TikTok Shop, Amazon — on lit titre, images et prix.",
+    "step2Title": "2. Fixe ta marge",
+    "step2Body": "Prix psychologique auto · tu ajustes en 1 clic.",
+    "step3Title": "3. Vends",
+    "step3Body": "Fiche dans ta boutique Affisell. Paiement Stripe. Toi tu encaisses."
   }
 }
