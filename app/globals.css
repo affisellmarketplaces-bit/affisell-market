@@ -122,7 +122,10 @@ body.affisell-demo-lab .affisell-header-shell {
   --affisell-premium-radius-panel: 1.55rem;
   --affisell-premium-shadow-soft: 0 10px 30px rgb(15 23 42 / 0.08);
   --affisell-premium-shadow-float: 0 18px 40px rgb(76 29 149 / 0.14);
+  /* Hex fallbacks first — color-mix drops the whole decl on older engines */
+  --affisell-premium-border: #e9e4f7;
   --affisell-premium-border: color-mix(in srgb, var(--brand) 16%, white 64%);
+  --affisell-premium-glass: linear-gradient(160deg, #f5f3ff 0%, #fafafa 55%, #eef2ff 100%);
   --affisell-premium-glass: linear-gradient(
     160deg,
     color-mix(in srgb, white 90%, var(--brand-muted)) 0%,
@@ -165,19 +168,32 @@ body.affisell-demo-lab .affisell-header-shell {
   --ai: #06b6d4;
   --ai-muted: #ecfeff;
   --affisell-gradient: linear-gradient(135deg, #6d28d9 0%, #4f46e5 48%, #06b6d4 100%);
+  --chart-1: #dedede;
   --chart-1: oklch(0.87 0 0);
+  --chart-2: #808080;
   --chart-2: oklch(0.556 0 0);
+  --chart-3: #5c5c5c;
   --chart-3: oklch(0.439 0 0);
+  --chart-4: #474747;
   --chart-4: oklch(0.371 0 0);
+  --chart-5: #2e2e2e;
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
+  --sidebar: #fafafa;
   --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: #171717;
   --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: #262626;
   --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: #fafafa;
   --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: #f5f5f5;
   --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: #262626;
   --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: #e5e5e5;
   --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: #a3a3a3;
   --sidebar-ring: oklch(0.708 0 0);
 }
 
@@ -209,7 +225,9 @@ body.affisell-demo-lab .affisell-header-shell {
   --sidebar-accent: #1e293b;
   --sidebar-accent-foreground: #f1f5f9;
   --sidebar-border: #334155;
+  --affisell-premium-border: #3b3358;
   --affisell-premium-border: color-mix(in srgb, var(--brand-light) 20%, white 8%);
+  --affisell-premium-glass: linear-gradient(160deg, #1a1530 0%, #09090b 100%);
   --affisell-premium-glass: linear-gradient(
     160deg,
     color-mix(in srgb, #111827 84%, var(--brand)) 0%,
@@ -342,8 +360,9 @@ body.affisell-demo-lab .affisell-header-shell {
     }
 
     body.affisell-mobile-shell {
+      /* vh first for older engines; dvh for dynamic toolbar; avoid inverted -webkit-fill-available */
+      min-height: 100vh;
       min-height: 100dvh;
-      min-height: -webkit-fill-available;
     }
 
     .affisell-global-site-header {
@@ -386,7 +405,12 @@ body.affisell-demo-lab .affisell-header-shell {
     position: relative;
     overflow: hidden;
     isolation: isolate;
+    border: 1px solid rgb(255 255 255 / 0.32);
     border: 1px solid color-mix(in srgb, white 32%, transparent);
+    background:
+      radial-gradient(95% 75% at 8% 0%, rgb(139 92 246 / 0.22), transparent 58%),
+      radial-gradient(75% 65% at 100% 100%, rgb(6 182 212 / 0.18), transparent 52%),
+      rgb(12 15 26 / 0.72);
     background:
       linear-gradient(
         148deg,
@@ -718,7 +742,8 @@ body.affisell-demo-lab .affisell-header-shell {
     --affisell-swipe-picks-h: 0px;
   }
 
-  .affisell-swipe-commerce:has(.affisell-swipe-picks) {
+  .affisell-swipe-commerce:has(.affisell-swipe-picks),
+  .affisell-swipe-commerce--with-picks {
     --affisell-swipe-picks-h: 5.25rem;
   }
 
@@ -1063,6 +1088,7 @@ body.affisell-demo-lab .affisell-header-shell {
     }
   }
 
+  .affisell-header-shell.has-trust-strip,
   .affisell-header-shell:has(+ .affisell-site-header-trust-strip) {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
@@ -1079,7 +1105,9 @@ body.affisell-demo-lab .affisell-header-shell {
     /* Avoid trapping header dropdowns under page bands (hero) */
     isolation: auto;
     border-radius: 1.5rem;
+    border: 1px solid rgb(109 40 217 / 0.22);
     border: 1px solid color-mix(in srgb, var(--brand) 22%, white 18%);
+    background: rgb(255 255 255 / 0.88);
     background:
       linear-gradient(
         148deg,
@@ -1116,6 +1144,7 @@ body.affisell-demo-lab .affisell-header-shell {
   }
 
   .dark .affisell-header-shell {
+    background: rgb(15 23 42 / 0.92);
     background:
       linear-gradient(
         148deg,

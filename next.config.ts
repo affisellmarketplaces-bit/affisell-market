@@ -64,8 +64,11 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ["@imgly/background-removal", "onnxruntime-web"],
   experimental: {
-    /** Inline critical CSS (requires `critters`) — faster FCP/LCP on home. */
-    optimizeCss: true,
+    /**
+     * Critters `optimizeCss` can strip rules some browsers need → unstyled / blank shells.
+     * Keep false until Critters is proven safe across Firefox + Safari.
+     */
+    optimizeCss: false,
     staleTimes: {
       dynamic: 60,
       static: 300,

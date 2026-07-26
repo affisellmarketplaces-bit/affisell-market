@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { formatStoreCurrency } from "@/lib/market-config"
-import { parseVariantsPayload } from "@/lib/product-variants"
+import { parseVariantsPayload, newVariantRowId } from "@/lib/product-variants"
 import type { ProductVariantApiRow } from "@/lib/product-variant-sku"
 import {
   apiRowsFromSkuTable,
@@ -213,7 +213,7 @@ export function SupplierProductPricingPanel({ productId }: Props) {
               if (e.target.checked && variantRows.length === 0) {
                 setVariantRows([
                   {
-                    id: `new-${crypto.randomUUID()}`,
+                    id: `new-${newVariantRowId()}`,
                     sku: null,
                     color: "",
                     size: null,

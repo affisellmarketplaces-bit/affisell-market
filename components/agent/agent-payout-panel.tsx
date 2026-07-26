@@ -4,6 +4,7 @@ import { useState } from "react"
 
 import { AGENT_MIN_WITHDRAW_CENTS } from "@/lib/agents/agent-payout-shared"
 import { buttonVariants } from "@/components/ui/button"
+import { safeRandomId } from "@/lib/safe-random-id"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -50,7 +51,7 @@ export function AgentPayoutPanel({ balanceCents, connectOnboarded, agentPaused }
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Idempotency-Key": crypto.randomUUID(),
+          "Idempotency-Key": safeRandomId(),
         },
         body: JSON.stringify({}),
       })

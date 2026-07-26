@@ -5,6 +5,14 @@
   "engines": {
     "node": ">=24.0.0"
   },
+  "browserslist": [
+    ">0.5%",
+    "not dead",
+    "iOS >= 15.4",
+    "Safari >= 15.4",
+    "Firefox >= 115",
+    "Chrome >= 109"
+  ],
   "scripts": {
     "clean": "rm -rf node_modules package-lock.json && npm cache clean --force",
     "dev": "node ./scripts/dev-preflight.mjs && node ./scripts/next-dev-port.mjs",

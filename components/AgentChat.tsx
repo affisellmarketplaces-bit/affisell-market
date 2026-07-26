@@ -14,6 +14,7 @@ import {
 import type { AgentHistoryApiResponse } from "@/lib/agent-history"
 import type { AgentSearchToolResult } from "@/lib/agent-product-card-types"
 import { getOrCreateAgentSessionId } from "@/lib/agent-session"
+import { safeRandomId } from "@/lib/safe-random-id"
 import type { UIMessage } from "ai"
 
 type WebkitSpeechRecognitionCtor = new () => {
@@ -173,7 +174,7 @@ export function AgentChat() {
         setMessages((prev) => [
           ...prev,
           {
-            id: crypto.randomUUID(),
+            id: safeRandomId(),
             role: "assistant",
             parts: [
               {
@@ -183,7 +184,7 @@ export function AgentChat() {
               {
                 type: "tool-searchProducts",
                 state: "output-available",
-                toolCallId: crypto.randomUUID(),
+                toolCallId: safeRandomId(),
                 output,
               },
             ],

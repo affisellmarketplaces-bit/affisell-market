@@ -57,7 +57,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} suppressHydrationWarning>
       <body
         className={cn(
-          "affisell-mobile-shell affisell-epoxy-atmosphere flex min-h-dvh flex-col text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50",
+          "affisell-mobile-shell affisell-epoxy-atmosphere flex min-h-screen min-h-dvh flex-col text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50",
           isDedicatedStorefront && "affisell-dedicated-storefront affisell-mobile-dock-off"
         )}
       >

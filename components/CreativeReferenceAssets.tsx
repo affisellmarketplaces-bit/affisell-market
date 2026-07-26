@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
+import { safeRandomId } from "@/lib/safe-random-id"
 import { isSupplierVideoFile } from "@/lib/supplier-variant-video-upload"
 
 export type CreativeReferenceAsset = {
@@ -70,7 +71,7 @@ export function CreativeReferenceAssets({
         return
       }
       if (references.some((r) => r.url === asset.url)) return
-      onChange([...references, { ...asset, id: crypto.randomUUID() }])
+      onChange([...references, { ...asset, id: safeRandomId() }])
     },
     [imageCount, onChange, references, videoCount]
   )

@@ -36,7 +36,7 @@ export function SiteHeaderChrome({ children }: Props) {
       <div className="mx-auto max-w-7xl min-w-0">
         <div
           className={cn(
-            "affisell-header-shell relative min-w-0 overflow-hidden md:overflow-visible",
+            "affisell-header-shell has-trust-strip relative min-w-0 overflow-hidden md:overflow-visible",
             compact && "affisell-header-shell--compact",
             scrolled && "affisell-header-shell--scrolled"
           )}

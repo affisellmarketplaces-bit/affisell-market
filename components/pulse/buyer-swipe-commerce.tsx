@@ -414,12 +414,15 @@ export function BuyerSwipeCommerce({
   const activeCompareEur =
     activeItem?.compareAtCents != null ? activeItem.compareAtCents / 100 : null
 
+  const showPicks = !categoryId && !subcategoryId && Boolean(initialPersonalizedPicks)
+
   return (
     <div
       data-testid="affisell-pulse"
       className={cn(
         affisellBrand.epoxyPage,
-        "affisell-swipe-commerce fixed inset-0 z-[140] flex h-[100dvh] flex-col overflow-hidden"
+        "affisell-swipe-commerce fixed inset-0 z-[140] flex h-screen h-[100dvh] flex-col overflow-hidden",
+        showPicks && "affisell-swipe-commerce--with-picks"
       )}
     >
       <div className={affisellBrand.epoxyCanvas} aria-hidden />
@@ -517,7 +520,7 @@ export function BuyerSwipeCommerce({
         </div>
       </header>
 
-      {!categoryId && !subcategoryId && initialPersonalizedPicks ? (
+      {showPicks && initialPersonalizedPicks ? (
         <div className="affisell-swipe-picks relative z-30 mx-auto w-full max-w-[420px] shrink-0 px-2 sm:px-3">
           <HomePersonalizedPicksRailLive
             initialPicks={initialPersonalizedPicks}

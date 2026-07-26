@@ -67,7 +67,7 @@ function newRow(defaults: {
   videoUrl?: string | null
 }): EditableVariantRow {
   return {
-    id: `new-${crypto.randomUUID()}`,
+    id: `new-${newVariantRowId()}`,
     color: "",
     size: null,
     sku: null,

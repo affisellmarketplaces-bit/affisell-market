@@ -21,6 +21,7 @@ import type { AppLocale } from "@/lib/i18n-locale"
 import { downloadImagesAsZip, safeDownloadFilename } from "@/lib/photo-studio-download"
 import { localeLabel, type PhotoStudioTextSegment } from "@/lib/photo-studio-translate"
 import { renderTranslatedProductImage } from "@/lib/photo-studio-translate-render"
+import { safeRandomId } from "@/lib/safe-random-id"
 
 type StudioMode = "remove-bg" | "enhance-pro" | "lifestyle" | "erase-text" | "translate-text"
 type StudioItem = {
@@ -254,7 +255,7 @@ export default function PhotoStudioClient() {
     const next = files
       .filter((f) => f.type.startsWith("image/"))
       .map((file) => ({
-        id: crypto.randomUUID(),
+        id: safeRandomId(),
         file,
         originalUrl: URL.createObjectURL(file),
         processedUrl: null,
