@@ -4870,6 +4870,13 @@
     "step2Title": "2. Fixe ta marge",
     "step2Body": "Prix psychologique auto · tu ajustes en 1 clic.",
     "step3Title": "3. Vends",
-    "step3Body": "Fiche dans ta boutique Affisell. Paiement Stripe. Toi tu encaisses."
+    "step3Body": "Fiche dans ta boutique Affisell. Paiement Stripe. Toi tu encaisses.",
+    "tryExamples": "Essayer",
+    "emptyTitle": "Colle une URL — l’aperçu fiche apparaît ici",
+    "emptyBody": "Titre, images, coût source et prix de vente s’affichent après Scanner. Crée ton compte revendeur en 1 clic pour pousser la fiche dans ta boutique.",
+    "demoBadge": "Démo",
+    "demoToast": "Scrape live indisponible — aperçu démo {market}",
+    "demoCommitBlocked": "Aperçu démo uniquement — crée ton compte, puis réessaie avec une URL live",
+    "readyDemo": "Mode démo — signup ouvert. La publication live demande un scan réussi."
   }
 }

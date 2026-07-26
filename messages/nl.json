@@ -4521,6 +4521,13 @@
     "step2Title": "2. Set your margin",
     "step2Body": "Psychological pricing auto · tweak in one click.",
     "step3Title": "3. Sell",
-    "step3Body": "Listing on your Affisell shop. Stripe checkout. You get paid."
+    "step3Body": "Listing on your Affisell shop. Stripe checkout. You get paid.",
+    "tryExamples": "Try",
+    "emptyTitle": "Paste a URL — then see your listing preview",
+    "emptyBody": "Title, images, source cost and sell price appear here after Scan. Create your reseller account in one click to push it to your shop.",
+    "demoBadge": "Demo",
+    "demoToast": "Live scrape unavailable — showing a {market} demo preview",
+    "demoCommitBlocked": "Demo preview only — create your account, then retry with a live URL",
+    "readyDemo": "Demo mode — signup unlocked. Live publish needs a successful scrape."
   }
 }

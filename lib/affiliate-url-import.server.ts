@@ -32,6 +32,8 @@ export type ResellerImportPreview = {
   method: string
   sourceUrl: string
   warnings: string[]
+  /** Scrape failed — UI-only sample so the funnel still converts. */
+  demo?: boolean
 }
 
 function asPreview(
@@ -98,6 +100,34 @@ export async function ensureResellerImportVaultSupplier(): Promise<string> {
   return created.id
 }
 
+/** Conversion fallback when ScrapingBee / source page blocks — never commit this row. */
+export function buildDemoResellerImportPreview(rawUrl: string): ResellerImportPreview {
+  const market = detectMarketplaceFromUrl(rawUrl)
+  const cost = 12.9
+  const suggested = psychologicalPrice(cost * 2.8)
+  return {
+    title: `Exemple · Best-seller ${market.label}`,
+    description:
+      "Aperçu démo Affisell — le scrape live est indisponible (quota / page bloquée). Crée ton compte : dès que le scrape repasse, ta vraie URL devient une fiche boutique.",
+    images: [],
+    costPrice: cost,
+    suggestedPrice: suggested,
+    profitPerSale: Math.max(0, Number((suggested - cost).toFixed(2))),
+    currency: "EUR",
+    brand: "Generic",
+    category: "Marketplace",
+    stock: 99,
+    platform: market.scrapePlatform,
+    marketplaceLabel: market.label,
+    method: "demo-fallback",
+    sourceUrl: rawUrl.trim(),
+    warnings: [
+      "Mode démo — scrape live indisponible. Les boutons publient seulement après un scan réel réussi.",
+    ],
+    demo: true,
+  }
+}
+
 export async function previewResellerUrlImport(rawUrl: string): Promise<
   | { ok: true; preview: ResellerImportPreview }
   | { ok: false; error: string; status: number; marketplaceLabel?: string }
@@ -114,6 +144,19 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
   )
 
   if (!scraped.ok) {
+    const soft =
+      /ScrapingBee|limit reached|credits|blocked|Could not extract|timeout|fetch/i.test(
+        scraped.error
+      )
+    if (soft) {
+      console.log("[affiliate-url-import]", {
+        stage: "preview",
+        result: "demo_fallback",
+        marketplaceLabel: market.label,
+        error: scraped.error.slice(0, 160),
+      })
+      return { ok: true, preview: buildDemoResellerImportPreview(url) }
+    }
     return {
       ok: false,
       error: scraped.error,
@@ -165,6 +208,14 @@ export async function commitResellerUrlImport(args: {
     return { ok: false, error: previewRes.error, status: previewRes.status }
   }
   const preview = previewRes.preview
+  if (preview.demo) {
+    return {
+      ok: false,
+      error:
+        "Scan démo uniquement — colle une URL réelle quand le scrape est disponible, ou réessaie plus tard.",
+      status: 409,
+    }
+  }
   const supplierId = await ensureResellerImportVaultSupplier()
   const store = await ensureMerchantStore({
     userId: args.affiliateId,

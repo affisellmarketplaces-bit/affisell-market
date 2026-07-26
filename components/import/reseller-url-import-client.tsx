@@ -27,6 +27,12 @@ import { cn } from "@/lib/utils"
 
 const PENDING_KEY = "affisell_import_pending_url"
 
+const EXAMPLE_URLS = [
+  { label: "Temu", url: "https://www.temu.com/eu-en.html" },
+  { label: "Amazon", url: "https://www.amazon.fr/dp/B0CXYZDEMO" },
+  { label: "TikTok", url: "https://shop.tiktok.com/view/product/0000000000000000000" },
+] as const
+
 type Preview = {
   title: string
   description: string
@@ -42,6 +48,7 @@ type Preview = {
   method: string
   sourceUrl: string
   warnings: string[]
+  demo?: boolean
 }
 
 function money(n: number, currency = "EUR") {
@@ -64,6 +71,7 @@ export function ResellerUrlImportClient() {
   const [sellPrice, setSellPrice] = useState("")
   const [loading, setLoading] = useState(false)
   const [committing, setCommitting] = useState(false)
+  const [scanError, setScanError] = useState<string | null>(null)
   const [done, setDone] = useState<{
     shopHref: string
     editHref: string
@@ -89,16 +97,19 @@ export function ResellerUrlImportClient() {
   const runPreview = useCallback(async () => {
     const trimmed = url.trim()
     if (!trimmed) {
+      setScanError(t("errEmpty"))
       toast.error(t("errEmpty"))
       return
     }
     if (!/^https?:\/\//i.test(trimmed)) {
+      setScanError(t("errHttps"))
       toast.error(t("errHttps"))
       return
     }
     setLoading(true)
     setDone(null)
     setPreview(null)
+    setScanError(null)
     try {
       window.sessionStorage.setItem(PENDING_KEY, trimmed)
     } catch {
@@ -116,9 +127,15 @@ export function ResellerUrlImportClient() {
       }
       setPreview(data.preview)
       setSellPrice(String(data.preview.suggestedPrice))
-      toast.success(t("previewOk", { market: data.preview.marketplaceLabel }))
+      if (data.preview.demo) {
+        toast.message(t("demoToast", { market: data.preview.marketplaceLabel }))
+      } else {
+        toast.success(t("previewOk", { market: data.preview.marketplaceLabel }))
+      }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("errPreview"))
+      const msg = e instanceof Error ? e.message : t("errPreview")
+      setScanError(msg)
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -128,6 +145,12 @@ export function ResellerUrlImportClient() {
     async (listLive: boolean) => {
       if (!preview) return
       if (status === "loading") return
+
+      if (preview.demo) {
+        toast.message(t("demoCommitBlocked"))
+        router.push(affiliateUrlImportSignupHref(preview.sourceUrl))
+        return
+      }
 
       if (!isAffiliate) {
         try {
@@ -213,7 +236,10 @@ export function ResellerUrlImportClient() {
             <input
               id="import-url"
               value={url}
-              onChange={(e) => setUrl(e.target.value)}
+              onChange={(e) => {
+                setUrl(e.target.value)
+                setScanError(null)
+              }}
               placeholder={t("urlPlaceholder")}
               className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-zinc-500"
               inputMode="url"
@@ -241,6 +267,24 @@ export function ResellerUrlImportClient() {
             )}
           </button>
         </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2 px-0.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+            {t("tryExamples")}
+          </span>
+          {EXAMPLE_URLS.map((ex) => (
+            <button
+              key={ex.label}
+              type="button"
+              onClick={() => {
+                setUrl(ex.url)
+                setScanError(null)
+              }}
+              className="rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-violet-100 transition hover:border-violet-400/40 hover:bg-violet-500/15"
+            >
+              {ex.label}
+            </button>
+          ))}
+        </div>
         {market ? (
           <p className="mt-2 px-1 text-[11px] text-violet-200/80">
             {t("detected", { market: market.label })}
@@ -248,25 +292,36 @@ export function ResellerUrlImportClient() {
         ) : null}
       </form>
 
+      {scanError ? (
+        <div
+          role="alert"
+          className="mt-4 rounded-2xl border border-amber-400/35 bg-amber-500/10 px-4 py-3 text-sm text-amber-50"
+        >
+          {scanError}
+        </div>
+      ) : null}
+
       {preview ? (
         <div className="mt-6 overflow-hidden rounded-[1.75rem] border border-white/12 bg-zinc-950/70 shadow-xl backdrop-blur-xl">
           <div className="grid gap-4 p-4 sm:grid-cols-[7.5rem_1fr] sm:p-5">
             <div className="relative mx-auto aspect-square w-28 overflow-hidden rounded-2xl bg-zinc-900 ring-1 ring-white/10 sm:mx-0 sm:w-full">
               {preview.images[0] ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={preview.images[0]}
-                  alt=""
-                  className="size-full object-cover"
-                />
+                <img src={preview.images[0]} alt="" className="size-full object-cover" />
               ) : (
-                <div className="flex size-full items-center justify-center text-zinc-600">
+                <div className="flex size-full flex-col items-center justify-center gap-1 text-zinc-500">
                   <Store className="size-8" aria-hidden />
+                  {preview.demo ? (
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-violet-300">
+                      {t("demoBadge")}
+                    </span>
+                  ) : null}
                 </div>
               )}
             </div>
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-violet-300">
+                {preview.demo ? `${t("demoBadge")} · ` : null}
                 {preview.marketplaceLabel} · {preview.brand}
               </p>
               <h2 className="mt-1 text-lg font-bold leading-snug text-white">{preview.title}</h2>
@@ -300,7 +355,11 @@ export function ResellerUrlImportClient() {
           <div className="flex flex-col gap-2 border-t border-white/10 bg-black/30 p-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="flex items-center gap-2 text-xs text-zinc-400">
               <Sparkles className="size-3.5 text-violet-300" aria-hidden />
-              {isAffiliate ? t("readyAffiliate") : t("readyGuest")}
+              {preview.demo
+                ? t("readyDemo")
+                : isAffiliate
+                  ? t("readyAffiliate")
+                  : t("readyGuest")}
             </p>
             <div className="flex flex-wrap gap-2">
               <button
@@ -313,7 +372,7 @@ export function ResellerUrlImportClient() {
                 )}
               >
                 {committing ? <Loader2 className="size-4 animate-spin" /> : null}
-                {isAffiliate ? t("saveDraft") : t("signupDraft")}
+                {preview.demo || !isAffiliate ? t("signupDraft") : t("saveDraft")}
               </button>
               <button
                 type="button"
@@ -324,13 +383,43 @@ export function ResellerUrlImportClient() {
                   "rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white"
                 )}
               >
-                {isAffiliate ? t("publishLive") : t("signupLive")}
+                {preview.demo || !isAffiliate ? t("signupLive") : t("publishLive")}
                 <ArrowRight className="size-4" aria-hidden />
               </button>
             </div>
           </div>
         </div>
-      ) : null}
+      ) : (
+        <div className="mt-6 rounded-[1.75rem] border border-dashed border-white/15 bg-white/[0.03] px-4 py-8 text-center sm:px-6">
+          <p className="text-sm font-semibold text-white">{t("emptyTitle")}</p>
+          <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-400">
+            {t("emptyBody")}
+          </p>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <Link
+              href={affiliateUrlImportSignupHref(url.trim() || null)}
+              className={cn(
+                buttonVariants(),
+                "rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white"
+              )}
+            >
+              {t("signupLive")}
+              <ArrowRight className="size-4" aria-hidden />
+            </Link>
+            <Link
+              href={loginAffiliatePath(
+                `/import${url.trim() ? `?url=${encodeURIComponent(url.trim())}` : ""}`
+              )}
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "rounded-full border-white/25 bg-transparent text-white hover:bg-white/10"
+              )}
+            >
+              {t("loginLink")}
+            </Link>
+          </div>
+        </div>
+      )}
 
       {done ? (
         <div className="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-sm text-emerald-50">
