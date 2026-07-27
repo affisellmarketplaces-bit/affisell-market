@@ -165,10 +165,10 @@ export function BattleArena() {
   const winnerHref =
     battle.winnerId === battle.productA.id
       ? battle.productA.affiliateProductId
-        ? `/marketplace/${battle.productA.affiliateProductId}?flash=${battle.flashDiscount}`
+        ? `/marketplace/${battle.productA.affiliateProductId}?battleId=${battle.id}`
         : null
       : battle.productB.affiliateProductId
-        ? `/marketplace/${battle.productB.affiliateProductId}?flash=${battle.flashDiscount}`
+        ? `/marketplace/${battle.productB.affiliateProductId}?battleId=${battle.id}`
         : null
 
   return (

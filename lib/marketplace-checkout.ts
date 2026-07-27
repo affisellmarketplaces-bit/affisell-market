@@ -9,6 +9,10 @@ import { auth } from "@/auth"
 import { assertGhostStockForCheckout } from "@/lib/ghost/checkout-gate"
 import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
 import {
+  applyBattleFlashUnitCents,
+  resolveActiveBattleFlash,
+} from "@/lib/pulse/battle-engine"
+import {
   formatCartVariantLabel,
   normalizeCartVariantSignature,
   parseCartVariantSignature,
@@ -529,6 +533,8 @@ export async function marketplaceCheckoutPOST(
     selectedSize?: string | null
     bookingSlotId?: string | null
     bookingSeatLabels?: string[]
+    /** Pulse Battle flash — server-validated; ?flash= URL alone is ignored. */
+    battleId?: string
   }
 
   if (Array.isArray(body.items) && body.items.length > 0) {
@@ -589,10 +595,48 @@ export async function marketplaceCheckoutPOST(
     balanceCents = u?.buyerRewardBalanceCents ?? 0
   }
 
-  const unitSelling = lineSellingPriceCents(listing, {
+  let unitSelling = lineSellingPriceCents(listing, {
     selectedColor: body.selectedColor,
     selectedSize: body.selectedSize,
   })
+
+  const battleId =
+    typeof body.battleId === "string" && body.battleId.trim() ? body.battleId.trim() : ""
+  let appliedBattleFlash: { battleId: string; flashDiscount: number } | null = null
+  if (battleId) {
+    const flash = await resolveActiveBattleFlash({
+      battleId,
+      winnerProductId: product.id,
+    })
+    if (!flash) {
+      console.log("[checkout]", {
+        flow: "single",
+        result: "FLASH_EXPIRED",
+        battleId,
+        productId: product.id,
+      })
+      return NextResponse.json(
+        { error: "FLASH_EXPIRED", message: "battle not found or expired" },
+        { status: 409 }
+      )
+    }
+    const unitBeforeCents = unitSelling
+    unitSelling = applyBattleFlashUnitCents(unitSelling, flash.flashDiscount)
+    appliedBattleFlash = {
+      battleId: flash.battleId,
+      flashDiscount: flash.flashDiscount,
+    }
+    console.log("[checkout]", {
+      flow: "single",
+      result: "flash_validated",
+      battleId: flash.battleId,
+      productId: product.id,
+      flashDiscount: flash.flashDiscount,
+      unitBeforeCents,
+      unitAfterCents: unitSelling,
+    })
+  }
+
   const pricing = computeBookingLineSubtotalCents({
     unitSellingCents: unitSelling,
     quantity: checkoutQty,
@@ -776,6 +820,12 @@ export async function marketplaceCheckoutPOST(
         orderId: order.id,
         productId: product.id,
         affiliateProductId: affiliateProduct.id,
+        ...(appliedBattleFlash
+          ? {
+              battleId: appliedBattleFlash.battleId,
+              flashDiscount: String(appliedBattleFlash.flashDiscount),
+            }
+          : {}),
         ...(buyerUserId ? { buyerUserId } : {}),
       },
     },
@@ -792,6 +842,12 @@ export async function marketplaceCheckoutPOST(
       checkoutVariantLabel: oneShotVariantLabel || "",
       checkoutVariantSignature: oneShotVariantSignature || "",
       locale: checkoutLocale,
+      ...(appliedBattleFlash
+        ? {
+            battleId: appliedBattleFlash.battleId,
+            flashDiscount: String(appliedBattleFlash.flashDiscount),
+          }
+        : {}),
       ...(resolvedBookingSlotId ? { bookingSlotId: resolvedBookingSlotId } : {}),
       ...(buyerUserId ? { buyerUserId } : {}),
     },

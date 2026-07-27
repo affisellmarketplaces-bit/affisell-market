@@ -179,8 +179,12 @@ type Props = {
   /** Ghost Checkout — last live supplier stock probe. */
   lastStockCheck?: string | Date | null
   lastStockStatus?: string | null
-  /** Pulse Battle ?flash=20 */
+  /** Pulse Battle flash — server-validated via ?battleId= */
+  battleId?: string | null
   flashPercent?: number | null
+  flashPrice?: number | null
+  flashEndsAt?: string | null
+  isBattleWinner?: boolean
   retailPriceEur?: number
   has3D?: boolean
   arModel?: string | null
@@ -370,7 +374,11 @@ export function MarketplaceListingDetail({
   stock,
   lastStockCheck = null,
   lastStockStatus = null,
+  battleId = null,
   flashPercent = null,
+  flashPrice = null,
+  flashEndsAt = null,
+  isBattleWinner = false,
   retailPriceEur,
   has3D = false,
   arModel,
@@ -639,6 +647,22 @@ export function MarketplaceListingDetail({
   )
 
   const listingPriceEur = activeListingPriceCents / 100
+  const flashUnitCents =
+    isBattleWinner &&
+    typeof flashPercent === "number" &&
+    flashPercent > 0 &&
+    flashPercent < 90
+      ? Math.max(1, Math.floor(activeListingPriceCents * (1 - flashPercent / 100)))
+      : typeof flashPrice === "number" && Number.isFinite(flashPrice) && flashPrice > 0
+        ? Math.round(flashPrice * 100)
+        : null
+  const displayFlashPriceEur =
+    typeof flashPrice === "number" && Number.isFinite(flashPrice) && flashPrice > 0
+      ? flashPrice
+      : flashUnitCents != null
+        ? flashUnitCents / 100
+        : null
+  const unitCentsForBuy = flashUnitCents ?? activeListingPriceCents
   const hasRetailCompare =
     typeof activeRetailPriceEur === "number" && activeRetailPriceEur > listingPriceEur
   const glanceText = useMemo(() => listingAtAGlance(description, name, tags), [description, name, tags])
@@ -697,7 +721,7 @@ export function MarketplaceListingDetail({
     setPurchaseQty((prev) => clampPurchaseQuantity(prev, bookingTicketStock))
   }, [multiGuestBookingLive, selectedSlotSeatsLeft, bookingTicketStock])
 
-  const buyNowLineSubtotalCents = activeListingPriceCents * (serviceBookingLive ? 1 : purchaseQty)
+  const buyNowLineSubtotalCents = unitCentsForBuy * (serviceBookingLive ? 1 : purchaseQty)
   const maxApplicableReward = useMemo(() => {
     if (buyNowLineSubtotalCents <= 0) return 0
     return Math.max(
@@ -825,13 +849,14 @@ export function MarketplaceListingDetail({
           selectedColor: selectedColor ?? undefined,
           selectedSize: cartSelectedSize ?? undefined,
           cancelPath,
+          ...(battleId ? { battleId } : {}),
         },
         {
           productId: listingId,
           title: name,
           imageUrl: hero,
           sellerName: sellerLabel,
-          price: listingPriceEur,
+          price: displayFlashPriceEur ?? listingPriceEur,
           selectedColor: selectedColor ?? undefined,
           selectedSize: cartSelectedSize ?? undefined,
         }
@@ -1078,6 +1103,9 @@ export function MarketplaceListingDetail({
               lastStockCheck={lastStockCheck}
               lastStockStatus={lastStockStatus}
               flashPercent={flashPercent}
+              flashPrice={displayFlashPriceEur}
+              flashEndsAt={flashEndsAt}
+              isBattleWinner={isBattleWinner}
               formatReviewCount={formatStoreCount}
               labels={{
                 colorLabel: productT.colorLabel,
@@ -1282,6 +1310,9 @@ export function MarketplaceListingDetail({
               lastStockCheck={lastStockCheck}
               lastStockStatus={lastStockStatus}
               flashPercent={flashPercent}
+              flashPrice={displayFlashPriceEur}
+              flashEndsAt={flashEndsAt}
+              isBattleWinner={isBattleWinner}
             />
             {tryOnReady ? (
               <TryOnTrigger

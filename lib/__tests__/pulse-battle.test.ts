@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { nextParisBattleSlot } from "@/lib/pulse/battle-engine"
+import { applyBattleFlashUnitCents, nextParisBattleSlot } from "@/lib/pulse/battle-engine"
 import {
   BATTLE_DEFAULT_FLASH_PCT,
   BATTLE_DURATION_MS,
@@ -18,5 +18,12 @@ describe("pulse battle constants", () => {
     const now = new Date("2026-07-26T10:00:00.000Z")
     const slot = nextParisBattleSlot(now)
     expect(slot.getTime()).toBeGreaterThan(now.getTime())
+  })
+
+  it("applyBattleFlashUnitCents floors and enforces min 1¢", () => {
+    expect(applyBattleFlashUnitCents(1999, 20)).toBe(1599)
+    expect(applyBattleFlashUnitCents(100, 20)).toBe(80)
+    expect(applyBattleFlashUnitCents(1, 20)).toBe(1)
+    expect(applyBattleFlashUnitCents(0, 20)).toBe(0)
   })
 })

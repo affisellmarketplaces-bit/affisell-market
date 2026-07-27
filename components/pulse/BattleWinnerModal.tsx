@@ -31,8 +31,8 @@ export function BattleWinnerModal({ battle, onClose }: Props) {
   const flash = battle.flashDiscount || 20
   const flashCents = Math.round(winner.priceCents * (1 - flash / 100))
   const href = winner.affiliateProductId
-    ? `/marketplace/${winner.affiliateProductId}?flash=${flash}`
-    : `/marketplace/${winner.id}?flash=${flash}`
+    ? `/marketplace/${winner.affiliateProductId}?battleId=${battle.id}`
+    : `/marketplace/${winner.id}?battleId=${battle.id}`
 
   const [burst, setBurst] = useState(true)
   useEffect(() => {

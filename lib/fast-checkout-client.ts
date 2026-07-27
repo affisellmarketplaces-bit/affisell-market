@@ -10,6 +10,8 @@ export type FastCheckoutBody = {
   successPath?: string
   cancelPath?: string
   items?: unknown[]
+  /** Pulse Battle flash — validated server-side in marketplace checkout. */
+  battleId?: string
 }
 
 export type FastCheckoutSuccess = { ok: true; status: "redirected" }
@@ -95,6 +97,14 @@ export async function startFastCheckout(
         alternatives: data.alternatives,
         coupon: data.coupon,
         message: data.message,
+      }
+    }
+
+    if (res.status === 409 && data.error === "FLASH_EXPIRED") {
+      return {
+        ok: false,
+        status: "error",
+        message: data.message ?? "FLASH_EXPIRED",
       }
     }
 

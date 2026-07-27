@@ -29,8 +29,11 @@ type Props = {
   denseMobile?: boolean
   lastStockCheck?: string | Date | null
   lastStockStatus?: string | null
-  /** Pulse Battle flash discount percent (from ?flash=20). */
+  /** Pulse Battle flash — server-validated only. */
   flashPercent?: number | null
+  flashPrice?: number | null
+  flashEndsAt?: string | null
+  isBattleWinner?: boolean
 }
 
 export function ListingPriceActionCard({
@@ -52,6 +55,9 @@ export function ListingPriceActionCard({
   lastStockCheck = null,
   lastStockStatus = null,
   flashPercent = null,
+  flashPrice = null,
+  flashEndsAt = null,
+  isBattleWinner = false,
 }: Props) {
   const brand = storefrontPdpBrandClasses(brandedStorefront)
   const t = useTranslations("Product")
@@ -74,6 +80,9 @@ export function ListingPriceActionCard({
               compareAt={hasRetailCompare ? activeRetailPriceEur : null}
               layout="detail"
               flashPercent={flashPercent}
+              flashPrice={flashPrice}
+              flashEndsAt={flashEndsAt}
+              isWinner={isBattleWinner}
             />
           </div>
           <div className="mt-2">

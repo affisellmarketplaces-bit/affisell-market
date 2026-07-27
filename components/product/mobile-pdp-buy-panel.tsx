@@ -78,6 +78,9 @@ export type MobilePdpBuyPanelProps = {
   lastStockCheck?: string | Date | null
   lastStockStatus?: string | null
   flashPercent?: number | null
+  flashPrice?: number | null
+  flashEndsAt?: string | null
+  isBattleWinner?: boolean
 }
 
 export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>(
@@ -125,6 +128,9 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
       lastStockCheck = null,
       lastStockStatus = null,
       flashPercent = null,
+      flashPrice = null,
+      flashEndsAt = null,
+      isBattleWinner = false,
     },
     ref
   ) {
@@ -304,6 +310,9 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
               lastStockCheck={lastStockCheck}
               lastStockStatus={lastStockStatus}
               flashPercent={flashPercent}
+              flashPrice={flashPrice}
+              flashEndsAt={flashEndsAt}
+              isBattleWinner={isBattleWinner}
             />
             <div className="grid grid-cols-[minmax(0,7.5rem)_1fr] gap-2">
               <MarketplacePurchaseQuantity

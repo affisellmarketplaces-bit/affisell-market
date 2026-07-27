@@ -540,6 +540,72 @@ async function getCurrentBattleInner(opts?: {
   return serializeBattle(battle, alreadyVoted, chat)
 }
 
+export type ActiveBattleFlash = {
+  battleId: string
+  flashDiscount: number
+  flashEndsAt: Date
+}
+
+/** Apply battle flash % to a unit price in cents (floor, min 1¢). */
+export function applyBattleFlashUnitCents(
+  listUnitCents: number,
+  flashDiscountPercent: number
+): number {
+  const pct = Math.max(0, Math.min(89, Math.round(flashDiscountPercent)))
+  const base = Math.max(0, Math.round(listUnitCents))
+  if (pct <= 0 || base <= 0) return base
+  return Math.max(1, Math.floor(base * (1 - pct / 100)))
+}
+
+/**
+ * Server-validated Pulse flash offer for a winning product.
+ * Returns null when battleId is missing, expired, or product is not the winner.
+ */
+export async function resolveActiveBattleFlash(args: {
+  battleId: string
+  winnerProductId: string
+}): Promise<ActiveBattleFlash | null> {
+  const battleId = args.battleId.trim()
+  const winnerProductId = args.winnerProductId.trim()
+  if (!battleId || !winnerProductId) return null
+
+  try {
+    const battle = await prisma.pulseBattle.findFirst({
+      where: {
+        id: battleId,
+        winnerId: winnerProductId,
+        status: "ended",
+        flashEndsAt: { gt: new Date() },
+      },
+      select: {
+        id: true,
+        flashDiscount: true,
+        flashEndsAt: true,
+      },
+    })
+    if (!battle?.flashEndsAt) return null
+    const flashDiscount =
+      battle.flashDiscount > 0 && battle.flashDiscount < 90
+        ? battle.flashDiscount
+        : BATTLE_DEFAULT_FLASH_PCT
+    return {
+      battleId: battle.id,
+      flashDiscount,
+      flashEndsAt: battle.flashEndsAt,
+    }
+  } catch (e) {
+    if (isMissingBattleTable(e)) {
+      console.log("[pulse-battle]", {
+        result: "flash_resolve_table_missing",
+        battleId,
+        error: e instanceof Error ? e.message : String(e),
+      })
+      return null
+    }
+    throw e
+  }
+}
+
 export class BattleVoteError extends Error {
   constructor(
     message: "ALREADY_VOTED" | "BATTLE_NOT_LIVE" | "INVALID_PRODUCT" | "BATTLE_NOT_FOUND"

@@ -3,6 +3,7 @@
 import { TrendingDown } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { BattleTimer } from "@/components/pulse/BattleTimer"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { isDonationListing, parseProductOfferMode } from "@/lib/product-offer-mode"
 import { resolveProductDiscount } from "@/lib/product-discount-display"
@@ -17,7 +18,13 @@ type Props = {
   align?: "start" | "end"
   className?: string
   offerMode?: string
-  /** Pulse Battle flash % — shows strikethrough list price + flash price. */
+  /**
+   * Server-validated Pulse flash price (EUR). Never derive from ?flash= alone.
+   */
+  flashPrice?: number | null
+  flashEndsAt?: string | Date | null
+  isWinner?: boolean
+  /** Discount % for badge when flash is server-validated. */
   flashPercent?: number | null
 }
 
@@ -28,6 +35,9 @@ export function ProductPriceOffer({
   align = "start",
   className,
   offerMode,
+  flashPrice = null,
+  flashEndsAt = null,
+  isWinner = false,
   flashPercent = null,
 }: Props) {
   const t = useTranslations("product.discount")
@@ -41,8 +51,17 @@ export function ProductPriceOffer({
     flashPercent < 90
       ? Math.round(flashPercent)
       : null
-  const flashPrice =
-    flashPct != null ? Math.round(price * (1 - flashPct / 100) * 100) / 100 : null
+  const validatedFlashPrice =
+    typeof flashPrice === "number" && Number.isFinite(flashPrice) && flashPrice > 0
+      ? flashPrice
+      : null
+  const flashEndsAtIso =
+    flashEndsAt instanceof Date
+      ? flashEndsAt.toISOString()
+      : typeof flashEndsAt === "string" && flashEndsAt.trim()
+        ? flashEndsAt.trim()
+        : null
+  const showBattleFlash = Boolean(validatedFlashPrice != null && isWinner)
 
   if (isDonationListing(mode, Math.round(price * 100))) {
     return (
@@ -58,7 +77,7 @@ export function ProductPriceOffer({
     )
   }
 
-  if (flashPct != null && flashPrice != null) {
+  if (showBattleFlash && validatedFlashPrice != null) {
     return (
       <div className={cn("space-y-1", align === "end" && "text-right", className)}>
         <div className={cn("flex flex-wrap items-center gap-2", align === "end" && "justify-end")}>
@@ -68,15 +87,26 @@ export function ProductPriceOffer({
               layout === "detail" ? "text-3xl" : "text-xl"
             )}
           >
-            {formatStoreCurrency(flashPrice)}
+            {formatStoreCurrency(validatedFlashPrice)}
           </span>
           <span className="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-black text-white animate-pulse">
-            −{flashPct}% BATTLE
+            BATTLE WINNER{flashPct != null ? ` −${flashPct}%` : ""}
           </span>
         </div>
         <span className="text-sm tabular-nums text-zinc-400 line-through">
           {formatStoreCurrency(price)}
         </span>
+        {flashEndsAtIso ? (
+          <div
+            className={cn(
+              "flex flex-wrap items-center gap-2 text-xs font-semibold text-red-600 dark:text-red-400",
+              align === "end" && "justify-end"
+            )}
+          >
+            <span>Flash</span>
+            <BattleTimer endsAt={flashEndsAtIso} className="text-red-600 dark:text-red-400" />
+          </div>
+        ) : null}
       </div>
     )
   }

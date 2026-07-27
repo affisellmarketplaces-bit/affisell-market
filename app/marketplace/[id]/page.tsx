@@ -58,6 +58,10 @@ import { cn } from "@/lib/utils"
 import { resolveVisitorCountryIso2 } from "@/lib/visitor-country"
 import { prisma } from "@/lib/prisma"
 import {
+  applyBattleFlashUnitCents,
+  resolveActiveBattleFlash,
+} from "@/lib/pulse/battle-engine"
+import {
   parseE2eCreatorsWatchingOverride,
   shouldUseE2eLtvLoopFixtures,
 } from "@/lib/e2e-ltv-loop-fixtures"
@@ -89,7 +93,8 @@ export default async function MarketplaceListingPage({
     preview?: string
     e2eFixtures?: string
     e2eCreatorsWatching?: string
-    flash?: string
+    /** Pulse Battle flash — must be server-validated; ?flash= alone is ignored. */
+    battleId?: string
   }>
   /** When set (shop PDP), listing must belong to this store — single DB round-trip. */
   storeSlug?: string
@@ -249,6 +254,33 @@ export default async function MarketplaceListingPage({
   const retailPriceEur =
     compareAtEur != null && Number.isFinite(compareAtEur) && compareAtEur > sellingEur ? compareAtEur : undefined
 
+  const battleIdParam = typeof sp.battleId === "string" ? sp.battleId.trim() : ""
+  const battleFlash = battleIdParam
+    ? await resolveActiveBattleFlash({
+        battleId: battleIdParam,
+        winnerProductId: p.id,
+      })
+    : null
+  const flashUnitCents = battleFlash
+    ? applyBattleFlashUnitCents(listing.sellingPriceCents, battleFlash.flashDiscount)
+    : null
+  const flashOffer = battleFlash && flashUnitCents != null
+    ? {
+        battleId: battleFlash.battleId,
+        flashPercent: battleFlash.flashDiscount,
+        flashPrice: flashUnitCents / 100,
+        flashEndsAt: battleFlash.flashEndsAt.toISOString(),
+        isWinner: true as const,
+      }
+    : null
+  if (battleIdParam && !flashOffer) {
+    console.log("[marketplace-pdp]", {
+      result: "battle_flash_ignored",
+      battleId: battleIdParam,
+      productId: p.id,
+    })
+  }
+
   const freeThresh =
     p.freeShippingThreshold != null && Number(p.freeShippingThreshold) > 0
       ? Number(p.freeShippingThreshold)
@@ -396,10 +428,11 @@ export default async function MarketplaceListingPage({
           stock={listing.product.stock}
           lastStockCheck={p.lastStockCheck ?? null}
           lastStockStatus={p.lastStockStatus ?? null}
-          flashPercent={(() => {
-            const n = Number(sp.flash)
-            return Number.isFinite(n) && n > 0 && n < 90 ? Math.round(n) : null
-          })()}
+          battleId={flashOffer?.battleId ?? null}
+          flashPercent={flashOffer?.flashPercent ?? null}
+          flashPrice={flashOffer?.flashPrice ?? null}
+          flashEndsAt={flashOffer?.flashEndsAt ?? null}
+          isBattleWinner={flashOffer?.isWinner ?? false}
           retailPriceEur={retailPriceEur}
           has3D={has3D}
           arModel={arModel}
