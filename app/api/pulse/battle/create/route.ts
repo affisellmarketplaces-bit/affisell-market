@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server"
 
+import { auth } from "@/auth"
 import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
 import {
   createLiveBattleNow,
   createScheduledBattle,
   nextParisBattleSlot,
+  normalizeBattleFlashDiscount,
 } from "@/lib/pulse/battle-engine"
 import { ensurePulseBattleSchema } from "@/lib/pulse/ensure-battle-schema"
 import { prisma } from "@/lib/prisma"
@@ -18,13 +20,33 @@ export const dynamic = "force-dynamic"
  * Query `?live=1` also bootstraps an immediate live battle (ops / first deploy).
  */
 async function handle(req: Request) {
-  const denied = authorizeCronRequest(req)
-  if (denied) return denied
+  const cronDenied = authorizeCronRequest(req)
+  const isCronAuthorized = cronDenied === null
+
+  if (!isCronAuthorized) {
+    if (req.method !== "POST") return cronDenied
+    const session = await auth()
+    const role = String(session?.user?.role ?? "").toUpperCase()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    if (role !== "AFFILIATE" && role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+  }
 
   await ensurePulseBattleSchema()
 
   const url = new URL(req.url)
-  const wantLive = url.searchParams.get("live") === "1"
+  const body =
+    req.method === "POST"
+      ? ((await req.json().catch(() => ({}))) as {
+          live?: boolean
+          flashDiscount?: number
+        })
+      : {}
+  const wantLive = url.searchParams.get("live") === "1" || body.live === true
+  const flashDiscount = normalizeBattleFlashDiscount(body.flashDiscount)
 
   let liveId: string | null = null
   if (wantLive) {
@@ -33,9 +55,13 @@ async function handle(req: Request) {
       select: { id: true },
     })
     if (existingLive) {
+      await prisma.pulseBattle.update({
+        where: { id: existingLive.id },
+        data: { flashDiscount },
+      })
       liveId = existingLive.id
     } else {
-      const live = await createLiveBattleNow()
+      const live = await createLiveBattleNow(flashDiscount)
       liveId = live?.id ?? null
     }
   }
@@ -52,21 +78,28 @@ async function handle(req: Request) {
     select: { id: true, scheduledAt: true },
   })
   if (existing) {
+    const updated = await prisma.pulseBattle.update({
+      where: { id: existing.id },
+      data: { flashDiscount },
+      select: { id: true, scheduledAt: true, flashDiscount: true },
+    })
     console.log("[pulse-battle/create]", {
-      result: "idempotent_skip",
-      battleId: existing.id,
+      result: "idempotent_update",
+      battleId: updated.id,
       liveId,
+      flashDiscount: updated.flashDiscount,
     })
     return NextResponse.json({
       ok: true,
       skipped: true,
-      battleId: existing.id,
+      battleId: updated.id,
       liveId,
-      scheduledAt: existing.scheduledAt.toISOString(),
+      flashDiscount: updated.flashDiscount,
+      scheduledAt: updated.scheduledAt.toISOString(),
     })
   }
 
-  const battle = await createScheduledBattle(slot)
+  const battle = await createScheduledBattle(slot, flashDiscount)
   if (!battle && !liveId) {
     return NextResponse.json({ ok: false, error: "NO_BATTLE_PRODUCTS" }, { status: 503 })
   }
@@ -74,6 +107,7 @@ async function handle(req: Request) {
     ok: true,
     battleId: battle?.id ?? null,
     liveId,
+    flashDiscount,
     scheduledAt: battle?.scheduledAt.toISOString() ?? null,
   })
 }

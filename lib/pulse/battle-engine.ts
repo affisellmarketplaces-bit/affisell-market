@@ -10,6 +10,12 @@ import {
   type PulseBattleStatus,
 } from "@/lib/pulse/battle-types"
 
+export function normalizeBattleFlashDiscount(raw: unknown): number {
+  const n = Math.round(Number(raw))
+  if (!Number.isFinite(n)) return BATTLE_DEFAULT_FLASH_PCT
+  return Math.max(5, Math.min(80, n))
+}
+
 const productBattleSelect = {
   id: true,
   name: true,
@@ -300,7 +306,7 @@ export async function pickTwoBattleProducts(): Promise<[ProductBattleRow, Produc
 }
 
 /** Create a battle that is immediately live for 15 minutes. */
-export async function createLiveBattleNow() {
+export async function createLiveBattleNow(customFlashDiscount?: number) {
   const pair = await pickTwoBattleProducts()
   if (!pair) {
     console.log("[pulse-battle]", { result: "no_products" })
@@ -309,6 +315,10 @@ export async function createLiveBattleNow() {
   const [a, b] = pair
   const startedAt = new Date()
   const endedAt = new Date(startedAt.getTime() + BATTLE_DURATION_MS)
+  const flashDiscount =
+    customFlashDiscount != null
+      ? normalizeBattleFlashDiscount(customFlashDiscount)
+      : BATTLE_DEFAULT_FLASH_PCT
   const battle = await prisma.pulseBattle.create({
     data: {
       productAId: a.id,
@@ -317,7 +327,7 @@ export async function createLiveBattleNow() {
       scheduledAt: startedAt,
       startedAt,
       endedAt,
-      flashDiscount: BATTLE_DEFAULT_FLASH_PCT,
+      flashDiscount,
     },
     include: includeProducts,
   })
@@ -325,7 +335,7 @@ export async function createLiveBattleNow() {
   return battle as unknown as BattleWithProducts
 }
 
-export async function createScheduledBattle(scheduledAt?: Date) {
+export async function createScheduledBattle(scheduledAt?: Date, customFlashDiscount?: number) {
   const pair = await pickTwoBattleProducts()
   if (!pair) {
     console.log("[pulse-battle]", { result: "no_products" })
@@ -333,13 +343,17 @@ export async function createScheduledBattle(scheduledAt?: Date) {
   }
   const [a, b] = pair
   const when = scheduledAt ?? nextParisBattleSlot()
+  const flashDiscount =
+    customFlashDiscount != null
+      ? normalizeBattleFlashDiscount(customFlashDiscount)
+      : BATTLE_DEFAULT_FLASH_PCT
   const battle = await prisma.pulseBattle.create({
     data: {
       productAId: a.id,
       productBId: b.id,
       status: "scheduled",
       scheduledAt: when,
-      flashDiscount: BATTLE_DEFAULT_FLASH_PCT,
+      flashDiscount,
     },
     include: includeProducts,
   })

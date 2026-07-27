@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import { applyBattleFlashUnitCents, nextParisBattleSlot } from "@/lib/pulse/battle-engine"
+import {
+  applyBattleFlashUnitCents,
+  nextParisBattleSlot,
+  normalizeBattleFlashDiscount,
+} from "@/lib/pulse/battle-engine"
 import {
   BATTLE_DEFAULT_FLASH_PCT,
   BATTLE_DURATION_MS,
@@ -25,5 +29,12 @@ describe("pulse battle constants", () => {
     expect(applyBattleFlashUnitCents(100, 20)).toBe(80)
     expect(applyBattleFlashUnitCents(1, 20)).toBe(1)
     expect(applyBattleFlashUnitCents(0, 20)).toBe(0)
+  })
+
+  it("normalizes reseller battle discount into safe bounds", () => {
+    expect(normalizeBattleFlashDiscount(undefined)).toBe(20)
+    expect(normalizeBattleFlashDiscount(3)).toBe(5)
+    expect(normalizeBattleFlashDiscount(18.4)).toBe(18)
+    expect(normalizeBattleFlashDiscount(99)).toBe(80)
   })
 })

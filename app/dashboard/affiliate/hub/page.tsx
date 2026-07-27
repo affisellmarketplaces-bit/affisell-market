@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 
+import { AffiliateBattleDiscountCard } from "@/components/affiliate/affiliate-battle-discount-card"
 import { AffiliateFirstListingCoachBanner } from "@/components/affiliate/affiliate-first-listing-coach-banner"
 import { AffiliateKycPublishBanner } from "@/components/affiliate/affiliate-kyc-publish-banner"
 import { AffiliateOnboardingChecklist } from "@/components/affiliate/affiliate-onboarding-checklist"
@@ -74,6 +75,7 @@ export default async function AffiliateHubPage({ searchParams }: PageProps) {
           <AffiliateOpportunityPulseRail picks={opportunityPicks} compact />
         </div>
       ) : null}
+      <AffiliateBattleDiscountCard />
       <Suspense
         fallback={
           <div className="flex min-h-[calc(100dvh-3.75rem)] items-center justify-center bg-zinc-950 text-zinc-500">
