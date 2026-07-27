@@ -4537,5 +4537,196 @@
     "errIncomplete": "DropForge requires a complete listing (title, images, price). Check the URL or API config.",
     "mediaCount": "{images} images · {videos} videos",
     "attrsCount": "{variants} variants · {colors} colors · {specs} specs"
+  },
+  "productRequests": {
+    "categories": {
+      "baby": "Baby",
+      "auto": "Auto",
+      "fitness": "Fitness",
+      "beauty": "Beauty",
+      "tech": "Tech",
+      "home": "Home",
+      "fashion": "Fashion",
+      "general": "General"
+    },
+    "regions": {
+      "Europe": "Europe",
+      "America": "Americas",
+      "Asia": "Asia",
+      "Africa": "Africa & Middle East",
+      "Oceania": "Oceania",
+      "other": "Other markets"
+    },
+    "status": {
+      "open": "Open",
+      "fulfilled": "Fulfilled",
+      "closed": "Closed",
+      "other": "Closed",
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected"
+    },
+    "common": {
+      "pieces": "pcs",
+      "quotesCount": "{count, plural, one {# quote} other {# quotes}}",
+      "networkError": "Network error",
+      "loading": "Loading…",
+      "supplierFallback": "Supplier",
+      "resellerLabel": "Reseller",
+      "noDescription": "No description.",
+      "targetPrice": "Target price",
+      "dash": "—",
+      "slaWarning": "outside typical SLA"
+    },
+    "sla": {
+      "singleMarket": "For {code}, reasonable delivery: {idealDays}–{maxDays} days. Beyond {maxDays} days, your return rate rises ~40%.",
+      "perMarketLine": "{code} {idealDays}–{maxDays}d",
+      "multiMarket": "Markets {codes} — reasonable delivery: {perMarket}. Combined SLA max {maxDays} days. Beyond that, your return rate rises ~40%.",
+      "registered": "Recorded SLA: {days} days ({label})"
+    },
+    "priorities": {
+      "legend": "Shipping priority",
+      "speed": "⚡ Max speed",
+      "balanced": "⚖️ Balanced",
+      "price": "💰 Lowest price",
+      "daysSpeed": "{days}d",
+      "daysBalanced": "{days}d max",
+      "daysPrice": "{days}d ok"
+    },
+    "reseller": {
+      "globalButton": {
+        "ariaFab": "Request a product",
+        "titleHeader": "Request a product",
+        "labelHeader": "Request",
+        "labelPrimary": "+ Request a missing product",
+        "labelShort": "New request"
+      },
+      "cta": {
+        "title": "Can't find a product?",
+        "body": "Describe it — our suppliers respond in under 2 hours",
+        "button": "+ Request a product"
+      },
+      "new": {
+        "title": "Fehlendes Produkt anfragen",
+        "subtitle": "Affisell-Lieferanten werden sofort benachrichtigt.",
+        "backLink": "Meine Anfragen →",
+        "loading": "Laden…"
+      },
+      "list": {
+        "title": "Meine Produktanfragen",
+        "newButton": "Neue Anfrage",
+        "emptyTitle": "Noch keine Anfragen — erstelle deine erste",
+        "howItWorks": "So funktioniert's",
+        "step1": "You request a product not in the catalog",
+        "step2": "Suppliers quote within 2 hours",
+        "step3": "You compare and choose",
+        "step4": "Product auto-created in your catalog",
+        "emptyCta": "+ Request a product",
+        "metaQuotes": "{count, plural, one {# quote} other {# quotes}}"
+      },
+      "detail": {
+        "backLink": "← My requests"
+      },
+      "form": {
+        "catalogHint": "You searched for « {query} » in the catalog — we alert suppliers.",
+        "titleLabel": "Title *",
+        "titlePlaceholder": "E.g. WiFi baby monitor 1080p",
+        "categoryLabel": "Category",
+        "countriesLabel": "Promotion countries *",
+        "countriesHint": "{selected} / {total} markets · one or more",
+        "selectAll": "Select all",
+        "reset": "Reset",
+        "quantityLabel": "Quantity",
+        "targetPriceLabel": "Target price (€)",
+        "targetPricePlaceholder": "e.g. 14.95",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "Specs, colors, lead times…",
+        "imageLabel": "Image URL (optional)",
+        "imagePlaceholder": "https://",
+        "submit": "Send request → Alert suppliers",
+        "submitting": "Sending…",
+        "toastTitleRequired": "Title required",
+        "toastCountryRequired": "Select at least one country",
+        "toastSubmitFailed": "Could not send request",
+        "toastSubmitSuccess": "Request sent — suppliers alerted"
+      },
+      "quotes": {
+        "title": "Quotes received ({count})",
+        "rateDelivery": "Rate delivery →",
+        "viewCatalog": "View product in catalog →",
+        "winner": "Winner:",
+        "noQuotes": "No quotes yet — suppliers have been notified.",
+        "colSupplier": "Supplier",
+        "colPrice": "Price",
+        "colMoq": "MOQ",
+        "colDelivery": "Lead time",
+        "colTrust": "Trust",
+        "colMessage": "Message",
+        "colAction": "Action",
+        "boostTop": "Boost +30%",
+        "accept": "Accept",
+        "accepting": "…",
+        "accepted": "Accepted",
+        "toastAcceptFailed": "Could not accept quote",
+        "toastAcceptSuccess": "Quote accepted — catalog draft created"
+      },
+      "home": {
+        "title": "Reseller space",
+        "subtitle": "Product requests, catalog and Radar — all in one place.",
+        "myRequests": "My requests →",
+        "catalog": "Catalog →",
+        "dashboard": "Dashboard →",
+        "radar": "World Radar →"
+      }
+    },
+    "supplier": {
+      "list": {
+        "title": "Reseller requests",
+        "categoryFilter": "Category",
+        "categoryAll": "All",
+        "tabOpen": "Open",
+        "tabMine": "My quotes",
+        "tabFulfilled": "Fulfilled",
+        "loading": "Loading…",
+        "empty": "No requests in this filter.",
+        "slaMax": "SLA ≤{days}d",
+        "myQuote": "my quote: {status}",
+        "viewQuote": "View my quote →",
+        "quoteCta": "Quote →"
+      },
+      "detail": {
+        "backLink": "← Requests",
+        "closed": "This request is no longer open ({status})."
+      },
+      "quoteForm": {
+        "titleNew": "Submit a quote",
+        "titleExisting": "Your quote",
+        "priceLabel": "Unit price (€)*",
+        "moqLabel": "MOQ*",
+        "deliveryLabel": "Lead time (days)*",
+        "messageLabel": "Message",
+        "messagePlaceholder": "EU stock, ships in 48h…",
+        "submit": "Send my quote →",
+        "submitting": "Sending…",
+        "backLink": "← Back to requests",
+        "toastPriceRequired": "Unit price required",
+        "toastMoqRequired": "MOQ required",
+        "toastDeliveryRequired": "Lead time required",
+        "toastAlreadyQuoted": "You already quoted",
+        "toastSubmitFailed": "Could not send quote",
+        "toastSubmitSuccess": "Quote sent — reseller notified"
+      },
+      "teaser": {
+        "title": "🔥 Reseller requests — {count, plural, one {# open} other {# open}}",
+        "viewAll": "View all requests →",
+        "empty": "No open requests right now."
+      }
+    },
+    "supplierFeedback": {
+      "boost": "For {code}, max reasonable = {maxDays}d. You propose {days}d → 🟢 +30% visibility boost",
+      "ok": "For {code}, max reasonable = {maxDays}d. You propose {days}d → ✅ Acceptable zone",
+      "warn": "You propose {days}d → 🔴 -50% visibility — reseller may reject (max {maxDays}d for {code})",
+      "allMarkets": "{detail} (all markets: {codes})"
+    }
   }
 }

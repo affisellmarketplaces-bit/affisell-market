@@ -3,10 +3,11 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState, type FormEvent } from "react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
-import { getSupplierDeliveryFeedbackForCountries } from "@/lib/logistics/delivery-sla"
+import { buildSupplierDeliveryFeedbackCopy } from "@/lib/product-request-i18n"
 import type { ProductQuoteDto } from "@/lib/product-request-types"
 
 export function SupplierQuoteForm({
@@ -19,6 +20,9 @@ export function SupplierQuoteForm({
   existingQuote: ProductQuoteDto | null
 }) {
   const router = useRouter()
+  const t = useTranslations("productRequests")
+  const tForm = useTranslations("productRequests.supplier.quoteForm")
+  const tStatus = useTranslations("productRequests.status")
   const [price, setPrice] = useState("")
   const [moq, setMoq] = useState("50")
   const [deliveryDays, setDeliveryDays] = useState("7")
@@ -28,14 +32,16 @@ export function SupplierQuoteForm({
   const daysNum = Number(deliveryDays)
   const feedback = useMemo(() => {
     if (!Number.isFinite(daysNum) || daysNum < 1) return null
-    return getSupplierDeliveryFeedbackForCountries(daysNum, requestCountries)
-  }, [daysNum, requestCountries])
+    return buildSupplierDeliveryFeedbackCopy(daysNum, requestCountries, (key, values) =>
+      t(`supplierFeedback.${key}`, values ?? {})
+    )
+  }, [daysNum, requestCountries, t])
 
   if (existingQuote) {
     return (
       <div className="rounded-xl border border-zinc-200 bg-white p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-bold text-zinc-900">Ton devis</h2>
+          <h2 className="text-sm font-bold text-zinc-900">{tForm("titleExisting")}</h2>
           <span
             className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
               existingQuote.status === "accepted"
@@ -45,20 +51,20 @@ export function SupplierQuoteForm({
                   : "bg-amber-50 text-amber-800"
             }`}
           >
-            {existingQuote.status}
+            {tStatus(existingQuote.status as "pending" | "accepted" | "rejected")}
           </span>
         </div>
         <dl className="mt-3 grid gap-2 text-sm text-zinc-700 sm:grid-cols-3">
           <div>
-            <dt className="text-xs text-zinc-500">Prix</dt>
+            <dt className="text-xs text-zinc-500">{tForm("priceLabel")}</dt>
             <dd className="font-semibold">{existingQuote.price}€</dd>
           </div>
           <div>
-            <dt className="text-xs text-zinc-500">MOQ</dt>
+            <dt className="text-xs text-zinc-500">{tForm("moqLabel")}</dt>
             <dd className="font-semibold">{existingQuote.moq}</dd>
           </div>
           <div>
-            <dt className="text-xs text-zinc-500">Délai</dt>
+            <dt className="text-xs text-zinc-500">{tForm("deliveryLabel")}</dt>
             <dd className="mt-0.5">
               <DeliveryBadge
                 days={existingQuote.deliveryDays}
@@ -81,15 +87,15 @@ export function SupplierQuoteForm({
     const moqN = Number(moq)
     const daysN = Number(deliveryDays)
     if (!Number.isFinite(priceN) || priceN <= 0) {
-      toast.error("Prix unitaire requis")
+      toast.error(tForm("toastPriceRequired"))
       return
     }
     if (!Number.isFinite(moqN) || moqN < 1) {
-      toast.error("MOQ requis")
+      toast.error(tForm("toastMoqRequired"))
       return
     }
     if (!Number.isFinite(daysN) || daysN < 1) {
-      toast.error("Délai requis")
+      toast.error(tForm("toastDeliveryRequired"))
       return
     }
 
@@ -108,13 +114,15 @@ export function SupplierQuoteForm({
       })
       const json = (await res.json().catch(() => ({}))) as { error?: string }
       if (!res.ok) {
-        toast.error(json.error === "already_quoted" ? "Tu as déjà quoté" : "Échec envoi devis")
+        toast.error(
+          json.error === "already_quoted" ? tForm("toastAlreadyQuoted") : tForm("toastSubmitFailed")
+        )
         return
       }
-      toast.success("Devis envoyé — le reseller est notifié")
+      toast.success(tForm("toastSubmitSuccess"))
       router.refresh()
     } catch {
-      toast.error("Erreur réseau")
+      toast.error(t("common.networkError"))
     } finally {
       setPending(false)
     }
@@ -122,10 +130,10 @@ export function SupplierQuoteForm({
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 rounded-xl border border-orange-200 bg-orange-50/60 p-4">
-      <h2 className="text-sm font-bold text-orange-950">Faire un devis</h2>
+      <h2 className="text-sm font-bold text-orange-950">{tForm("titleNew")}</h2>
       <div className="grid gap-3 sm:grid-cols-3">
         <label className="block text-xs font-medium text-zinc-700">
-          Prix unitaire (€)*
+          {tForm("priceLabel")}
           <input
             type="number"
             step="0.01"
@@ -137,7 +145,7 @@ export function SupplierQuoteForm({
           />
         </label>
         <label className="block text-xs font-medium text-zinc-700">
-          MOQ*
+          {tForm("moqLabel")}
           <input
             type="number"
             min="1"
@@ -148,7 +156,7 @@ export function SupplierQuoteForm({
           />
         </label>
         <label className="block text-xs font-medium text-zinc-700">
-          Délai (jours)*
+          {tForm("deliveryLabel")}
           <input
             type="number"
             min="1"
@@ -175,12 +183,12 @@ export function SupplierQuoteForm({
       ) : null}
 
       <label className="block text-xs font-medium text-zinc-700">
-        Message
+        {tForm("messageLabel")}
         <textarea
           rows={3}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Stock EU, envoi 48h…"
+          placeholder={tForm("messagePlaceholder")}
           className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm"
         />
       </label>
@@ -189,10 +197,10 @@ export function SupplierQuoteForm({
         disabled={pending}
         className="inline-flex w-full items-center justify-center rounded-xl bg-[#6D28D9] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#5B21B6] disabled:opacity-60"
       >
-        {pending ? "Envoi…" : "Envoyer mon devis →"}
+        {pending ? tForm("submitting") : tForm("submit")}
       </button>
       <Link href="/dashboard/supplier/requests" className="block text-center text-xs text-zinc-500 hover:underline">
-        ← Retour aux demandes
+        {tForm("backLink")}
       </Link>
     </form>
   )

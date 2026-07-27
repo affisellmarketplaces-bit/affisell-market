@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 
 import { ResellerMarginLocksPanel } from "@/components/reseller/ResellerMarginLocksPanel"
 import { ResellerRequestCtaBanner } from "@/components/reseller/GlobalRequestButton"
@@ -12,15 +13,14 @@ export const dynamic = "force-dynamic"
  */
 export default async function ResellerHomePage() {
   await requireAffiliateSession("/dashboard/reseller")
+  const t = await getTranslations("productRequests.reseller.home")
 
   return (
     <main className="min-h-[calc(100dvh-3.75rem)] bg-zinc-50/80 px-4 py-8 md:px-8">
       <div className="mx-auto max-w-3xl space-y-6">
         <div>
-          <h1 className="text-xl font-bold text-zinc-900">Espace reseller</h1>
-          <p className="mt-1 text-sm text-zinc-600">
-            Demandes produits, catalogue et Radar — tout au même endroit.
-          </p>
+          <h1 className="text-xl font-bold text-zinc-900">{t("title")}</h1>
+          <p className="mt-1 text-sm text-zinc-600">{t("subtitle")}</p>
         </div>
         <ResellerRequestCtaBanner />
         <ResellerMarginLocksPanel />
@@ -30,7 +30,7 @@ export default async function ResellerHomePage() {
               href="/dashboard/reseller/requests"
               className="block rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 hover:border-orange-300"
             >
-              Mes demandes →
+              {t("myRequests")}
             </Link>
           </li>
           <li>
@@ -38,7 +38,7 @@ export default async function ResellerHomePage() {
               href="/dashboard/affiliate/catalog"
               className="block rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 hover:border-orange-300"
             >
-              Catalogue →
+              {t("catalog")}
             </Link>
           </li>
           <li>
@@ -46,7 +46,7 @@ export default async function ResellerHomePage() {
               href="/dashboard/affiliate"
               className="block rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 hover:border-orange-300"
             >
-              Dashboard →
+              {t("dashboard")}
             </Link>
           </li>
           <li>
@@ -54,7 +54,7 @@ export default async function ResellerHomePage() {
               href="/radar"
               className="block rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 hover:border-orange-300"
             >
-              Radar →
+              {t("radar")}
             </Link>
           </li>
         </ul>

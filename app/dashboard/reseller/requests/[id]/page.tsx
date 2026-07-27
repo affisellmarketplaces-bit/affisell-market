@@ -1,9 +1,15 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { getLocale, getTranslations } from "next-intl/server"
 
 import { ResellerQuotesComparator } from "@/components/requests/ResellerQuotesComparator"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
-import { formatRequestRelativeFr, formatProductRequestCountries, resolveProductRequestCountries, serializeProductQuote } from "@/lib/product-request-types"
+import { formatProductRequestRelativeTime } from "@/lib/product-request-i18n"
+import {
+  formatProductRequestCountries,
+  resolveProductRequestCountries,
+  serializeProductQuote,
+} from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -13,6 +19,13 @@ type PageProps = { params: Promise<{ id: string }> }
 export default async function ResellerRequestDetailPage({ params }: PageProps) {
   const session = await requireAffiliateSession("/dashboard/reseller/requests")
   const { id } = await params
+  const [t, tCat, tStatus, tDetail, locale] = await Promise.all([
+    getTranslations("productRequests"),
+    getTranslations("productRequests.categories"),
+    getTranslations("productRequests.status"),
+    getTranslations("productRequests.reseller.detail"),
+    getLocale(),
+  ])
 
   const request = await prisma.productRequest.findFirst({
     where: { id, resellerId: session.user.id },
@@ -48,6 +61,9 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
     select: { id: true },
   })
 
+  const statusKey =
+    request.status === "open" || request.status === "fulfilled" ? request.status : "closed"
+
   return (
     <main className="min-h-[calc(100dvh-3.75rem)] bg-zinc-50/80 px-4 py-8 md:px-8">
       <div className="mx-auto max-w-4xl space-y-6">
@@ -57,24 +73,25 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
               href="/dashboard/reseller/requests"
               className="text-xs font-semibold text-zinc-500 hover:underline"
             >
-              ← Mes demandes
+              {tDetail("backLink")}
             </Link>
             <h1 className="mt-2 text-xl font-bold text-zinc-900">{request.title}</h1>
             <p className="mt-1 text-xs text-zinc-500">
-              {formatProductRequestCountries(countries)} · {request.category} · {request.quantity} pcs ·{" "}
-              {formatRequestRelativeFr(request.createdAt)}
+              {formatProductRequestCountries(countries)} · {tCat(request.category)} ·{" "}
+              {request.quantity} {t("common.pieces")} ·{" "}
+              {formatProductRequestRelativeTime(request.createdAt, locale)}
             </p>
           </div>
           <span
             className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
-              request.status === "open"
+              statusKey === "open"
                 ? "bg-emerald-50 text-emerald-700"
-                : request.status === "fulfilled"
+                : statusKey === "fulfilled"
                   ? "bg-violet-50 text-violet-700"
                   : "bg-zinc-100 text-zinc-600"
             }`}
           >
-            {request.status}
+            {tStatus(statusKey)}
           </span>
         </div>
 

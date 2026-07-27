@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
@@ -30,6 +31,9 @@ export function ResellerQuotesComparator({
   alreadyReviewedQuoteId?: string | null
 }) {
   const router = useRouter()
+  const t = useTranslations("productRequests")
+  const tQuotes = useTranslations("productRequests.reseller.quotes")
+  const tStatus = useTranslations("productRequests.status")
   const [pendingId, setPendingId] = useState<string | null>(null)
   const confettiFired = useRef(false)
   const [reviewOpen, setReviewOpen] = useState(false)
@@ -73,7 +77,7 @@ export function ResellerQuotesComparator({
         affiliateProductId?: string | null
       }
       if (!res.ok) {
-        toast.error(json.error ?? "Acceptation impossible")
+        toast.error(json.error ?? tQuotes("toastAcceptFailed"))
         return
       }
 
@@ -84,7 +88,7 @@ export function ResellerQuotesComparator({
         })
       }
 
-      toast.success("Devis accepté — draft catalogue créé")
+      toast.success(tQuotes("toastAcceptSuccess"))
       const listingId = json.affiliateProductId
       if (listingId) {
         router.push(`${AFFILIATE_CATALOG_PATH}?editListing=${encodeURIComponent(listingId)}`)
@@ -92,7 +96,7 @@ export function ResellerQuotesComparator({
         router.refresh()
       }
     } catch {
-      toast.error("Erreur réseau")
+      toast.error(t("common.networkError"))
     } finally {
       setPendingId(null)
     }
@@ -106,7 +110,7 @@ export function ResellerQuotesComparator({
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-base font-bold text-zinc-900">
-          Devis reçus ({sortedQuotes.length})
+          {tQuotes("title", { count: sortedQuotes.length })}
         </h2>
         <div className="flex flex-wrap items-center gap-2">
           {canReview ? (
@@ -115,7 +119,7 @@ export function ResellerQuotesComparator({
               onClick={() => setReviewOpen(true)}
               className="text-xs font-semibold text-orange-700 hover:underline"
             >
-              Noter la livraison →
+              {tQuotes("rateDelivery")}
             </button>
           ) : null}
           {fulfilled && winningListingId ? (
@@ -123,7 +127,7 @@ export function ResellerQuotesComparator({
               href={`${AFFILIATE_CATALOG_PATH}?editListing=${encodeURIComponent(winningListingId)}`}
               className="text-xs font-semibold text-violet-700 hover:underline"
             >
-              Voir produit dans catalogue →
+              {tQuotes("viewCatalog")}
             </Link>
           ) : null}
         </div>
@@ -132,9 +136,11 @@ export function ResellerQuotesComparator({
       {fulfilled && accepted ? (
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
           <span>
-            Gagnant:{" "}
-            <strong>{accepted.supplierName || accepted.supplierEmail || "Fournisseur"}</strong> —{" "}
-            {accepted.price}€ · MOQ {accepted.moq}
+            {tQuotes("winner")}{" "}
+            <strong>
+              {accepted.supplierName || accepted.supplierEmail || t("common.supplierFallback")}
+            </strong>{" "}
+            — {accepted.price}€ · MOQ {accepted.moq}
           </span>
           <DeliveryBadge days={accepted.deliveryDays} countries={requestCountries} variant="full" />
           <SupplierTrustBadge
@@ -148,20 +154,20 @@ export function ResellerQuotesComparator({
 
       {sortedQuotes.length === 0 ? (
         <p className="rounded-xl border border-dashed border-zinc-300 bg-white px-4 py-8 text-center text-sm text-zinc-600">
-          Aucun devis pour l’instant — les fournisseurs sont notifiés.
+          {tQuotes("noQuotes")}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-zinc-100 bg-zinc-50 text-xs uppercase text-zinc-500">
               <tr>
-                <th className="px-3 py-2 font-semibold">Fournisseur</th>
-                <th className="px-3 py-2 font-semibold">Prix</th>
-                <th className="px-3 py-2 font-semibold">MOQ</th>
-                <th className="px-3 py-2 font-semibold">Délai</th>
-                <th className="px-3 py-2 font-semibold">Trust</th>
-                <th className="px-3 py-2 font-semibold">Message</th>
-                <th className="px-3 py-2 font-semibold">Action</th>
+                <th className="px-3 py-2 font-semibold">{tQuotes("colSupplier")}</th>
+                <th className="px-3 py-2 font-semibold">{tQuotes("colPrice")}</th>
+                <th className="px-3 py-2 font-semibold">{tQuotes("colMoq")}</th>
+                <th className="px-3 py-2 font-semibold">{tQuotes("colDelivery")}</th>
+                <th className="px-3 py-2 font-semibold">{tQuotes("colTrust")}</th>
+                <th className="px-3 py-2 font-semibold">{tQuotes("colMessage")}</th>
+                <th className="px-3 py-2 font-semibold">{tQuotes("colAction")}</th>
               </tr>
             </thead>
             <tbody>
@@ -178,15 +184,15 @@ export function ResellerQuotesComparator({
                     }`}
                   >
                     <td className="px-3 py-3 font-medium text-zinc-900">
-                      {q.supplierName || q.supplierEmail || "Fournisseur"}
+                      {q.supplierName || q.supplierEmail || t("common.supplierFallback")}
                       {q.status !== "pending" ? (
                         <span className="ml-2 text-[10px] uppercase text-zinc-400">
-                          {q.status}
+                          {tStatus(q.status as "pending" | "accepted" | "rejected")}
                         </span>
                       ) : null}
                       {top ? (
                         <span className="ml-2 text-[10px] font-bold text-amber-700">
-                          Boost +30%
+                          {tQuotes("boostTop")}
                         </span>
                       ) : null}
                     </td>
@@ -204,7 +210,7 @@ export function ResellerQuotesComparator({
                       />
                     </td>
                     <td className="max-w-[180px] truncate px-3 py-3 text-xs text-zinc-600">
-                      {q.message || "—"}
+                      {q.message || t("common.dash")}
                     </td>
                     <td className="px-3 py-3">
                       {!fulfilled && q.status === "pending" ? (
@@ -214,12 +220,12 @@ export function ResellerQuotesComparator({
                           onClick={() => void accept(q.id)}
                           className="rounded-lg bg-[#6D28D9] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#5B21B6] disabled:opacity-60"
                         >
-                          {pendingId === q.id ? "…" : "Accepter"}
+                          {pendingId === q.id ? tQuotes("accepting") : tQuotes("accept")}
                         </button>
                       ) : q.status === "accepted" ? (
-                        <span className="text-xs font-bold text-emerald-700">Accepté</span>
+                        <span className="text-xs font-bold text-emerald-700">{tQuotes("accepted")}</span>
                       ) : (
-                        <span className="text-xs text-zinc-400">—</span>
+                        <span className="text-xs text-zinc-400">{t("common.dash")}</span>
                       )}
                     </td>
                   </tr>

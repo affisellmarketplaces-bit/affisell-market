@@ -1,5 +1,10 @@
 /** Shared ProductRequest / ProductQuote DTOs — safe for client. */
 
+export {
+  formatProductRequestRelativeTime,
+  formatRequestRelativeFr,
+} from "@/lib/product-request-i18n"
+
 import { EU_CHECKOUT_EXTRA_ISO2, EU_MEMBER_ISO2 } from "@/lib/eu-market-countries"
 import { COUNTRY_TO_SLA } from "@/lib/logistics/delivery-sla"
 import { WORLD_RADAR_COUNTRIES, type RadarRegion } from "@/lib/radar/world-countries"
@@ -41,15 +46,16 @@ export type ProductQuoteDto = {
   createdAt: string
 }
 
+/** Category ids — labels via productRequests.categories.* i18n keys. */
 export const PRODUCT_REQUEST_CATEGORIES = [
-  { id: "baby", label: "Bébé" },
-  { id: "auto", label: "Auto" },
-  { id: "fitness", label: "Fitness" },
-  { id: "beauty", label: "Beauté" },
-  { id: "tech", label: "Tech" },
-  { id: "home", label: "Maison" },
-  { id: "fashion", label: "Mode" },
-  { id: "general", label: "Général" },
+  { id: "baby" },
+  { id: "auto" },
+  { id: "fitness" },
+  { id: "beauty" },
+  { id: "tech" },
+  { id: "home" },
+  { id: "fashion" },
+  { id: "general" },
 ] as const
 
 /** Shopee-native markets not always present in World Radar seed. */
@@ -118,17 +124,9 @@ const PRODUCT_REQUEST_REGION_ORDER: RadarRegion[] = [
   "Oceania",
 ]
 
-const PRODUCT_REQUEST_REGION_LABELS: Record<RadarRegion, string> = {
-  Europe: "Europe",
-  America: "Amériques",
-  Asia: "Asie",
-  Africa: "Afrique & Moyen-Orient",
-  Oceania: "Océanie",
-}
-
 export type ProductRequestCountryGroup = {
+  /** Region id — label via productRequests.regions.* i18n keys. */
   id: string
-  label: string
   codes: readonly string[]
 }
 
@@ -144,11 +142,7 @@ export function getProductRequestCountryGroups(): ProductRequestCountryGroup[] {
     })
     for (const code of codes) assigned.add(code)
     if (codes.length > 0) {
-      groups.push({
-        id: region,
-        label: PRODUCT_REQUEST_REGION_LABELS[region],
-        codes,
-      })
+      groups.push({ id: region, codes })
     }
   }
 
@@ -171,7 +165,6 @@ export function getProductRequestCountryGroups(): ProductRequestCountryGroup[] {
     } else {
       groups.unshift({
         id: "Europe",
-        label: PRODUCT_REQUEST_REGION_LABELS.Europe,
         codes: sortProductRequestCountries(europeUnassigned),
       })
     }
@@ -180,7 +173,6 @@ export function getProductRequestCountryGroups(): ProductRequestCountryGroup[] {
   if (restUnassigned.length > 0) {
     groups.push({
       id: "other",
-      label: "Autres marchés",
       codes: sortProductRequestCountries(restUnassigned),
     })
   }
@@ -239,18 +231,6 @@ export function resolveProductRequestCountries(row: {
 
 export function formatProductRequestCountries(countries: readonly string[]): string {
   return countries.join(", ")
-}
-
-export function formatRequestRelativeFr(iso: string | Date): string {
-  const d = typeof iso === "string" ? new Date(iso) : iso
-  const diffMs = Date.now() - d.getTime()
-  const mins = Math.floor(diffMs / 60_000)
-  if (mins < 1) return "à l'instant"
-  if (mins < 60) return `il y a ${mins} min`
-  const hours = Math.floor(mins / 60)
-  if (hours < 48) return `il y a ${hours}h`
-  const days = Math.floor(hours / 24)
-  return `il y a ${days}j`
 }
 
 export function serializeProductRequest(row: {

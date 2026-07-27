@@ -2,11 +2,15 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useMemo, useState, type FormEvent } from "react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import {
+  buildResellerSlaHint,
+  priorityDaysLabel,
+} from "@/lib/product-request-i18n"
+import {
   getAggregatedSlaForCountries,
-  getResellerSlaHintForCountries,
   type DeliveryPriority,
   resolveDeliverySLAForCountries,
 } from "@/lib/logistics/delivery-sla"
@@ -20,19 +24,13 @@ import {
 } from "@/lib/product-request-types"
 import { cn } from "@/lib/utils"
 
-const PRIORITY_OPTIONS: Array<{
-  id: DeliveryPriority
-  label: string
-  hint: string
-}> = [
-  { id: "speed", label: "⚡ Vitesse max", hint: "idéal marché" },
-  { id: "balanced", label: "⚖️ Équilibré", hint: "max SLA" },
-  { id: "price", label: "💰 Prix bas", hint: "délai plus souple" },
-]
+const PRIORITY_IDS: DeliveryPriority[] = ["speed", "balanced", "price"]
 
 export function ResellerRequestForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useTranslations("productRequests")
+  const tForm = useTranslations("productRequests.reseller.form")
   const [busy, setBusy] = useState(false)
 
   const defaults = useMemo(() => {
@@ -86,18 +84,21 @@ export function ResellerRequestForm() {
   }, [])
 
   const sla = getAggregatedSlaForCountries(countries)
-  const slaHint = getResellerSlaHintForCountries(countries)
+  const slaHint = useMemo(
+    () => buildResellerSlaHint(countries, (key, values) => t(`sla.${key}`, values ?? {})),
+    [countries, t]
+  )
   const priorityDays = resolveDeliverySLAForCountries(countries, deliveryPriority)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     if (busy) return
     if (title.trim().length < 2) {
-      toast.error("Titre requis")
+      toast.error(tForm("toastTitleRequired"))
       return
     }
     if (countries.length < 1) {
-      toast.error("Sélectionne au moins un pays")
+      toast.error(tForm("toastCountryRequired"))
       return
     }
     setBusy(true)
@@ -120,14 +121,14 @@ export function ResellerRequestForm() {
       })
       const data = (await res.json().catch(() => ({}))) as { error?: string; id?: string }
       if (!res.ok) {
-        toast.error(data.error ?? "Échec envoi")
+        toast.error(data.error ?? tForm("toastSubmitFailed"))
         return
       }
-      toast.success("Demande envoyée — fournisseurs alertés")
+      toast.success(tForm("toastSubmitSuccess"))
       router.push("/dashboard/reseller/requests")
       router.refresh()
     } catch {
-      toast.error("Erreur réseau")
+      toast.error(t("common.networkError"))
     } finally {
       setBusy(false)
     }
@@ -137,13 +138,12 @@ export function ResellerRequestForm() {
     <form onSubmit={(e) => void onSubmit(e)} className="mx-auto max-w-xl space-y-4">
       {fromCatalogSearch || catalogHint ? (
         <p className="rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-950">
-          Tu cherchais « <strong>{catalogHint}</strong> » dans le catalogue — On prévient les
-          fournisseurs.
+          {tForm("catalogHint", { query: catalogHint })}
         </p>
       ) : null}
       <div>
         <label className="text-xs font-semibold text-zinc-700" htmlFor="req-title">
-          Titre *
+          {tForm("titleLabel")}
         </label>
         <input
           id="req-title"
@@ -151,14 +151,14 @@ export function ResellerRequestForm() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-          placeholder="Ex: Babyphone WiFi 1080p"
+          placeholder={tForm("titlePlaceholder")}
         />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="text-xs font-semibold text-zinc-700" htmlFor="req-cat">
-            Catégorie
+            {tForm("categoryLabel")}
           </label>
           <select
             id="req-cat"
@@ -168,7 +168,7 @@ export function ResellerRequestForm() {
           >
             {PRODUCT_REQUEST_CATEGORIES.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.label}
+                {t(`categories.${c.id}`)}
               </option>
             ))}
           </select>
@@ -177,10 +177,13 @@ export function ResellerRequestForm() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-xs font-semibold text-zinc-700" id="req-countries-label">
-                Pays de promotion *
+                {tForm("countriesLabel")}
               </p>
               <p className="mt-0.5 text-[11px] text-zinc-500">
-                {countries.length} / {PRODUCT_REQUEST_COUNTRIES.length} marchés · un ou plusieurs
+                {tForm("countriesHint", {
+                  selected: countries.length,
+                  total: PRODUCT_REQUEST_COUNTRIES.length,
+                })}
               </p>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -189,14 +192,14 @@ export function ResellerRequestForm() {
                 onClick={selectAllCountries}
                 className="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-800 hover:bg-violet-100"
               >
-                Tout sélectionner
+                {tForm("selectAll")}
               </button>
               <button
                 type="button"
                 onClick={clearCountries}
                 className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50"
               >
-                Réinitialiser
+                {tForm("reset")}
               </button>
             </div>
           </div>
@@ -208,7 +211,7 @@ export function ResellerRequestForm() {
             {countryGroups.map((group) => (
               <div key={group.id}>
                 <p className="text-[10px] font-bold uppercase tracking-wide text-zinc-500">
-                  {group.label}
+                  {t(`regions.${group.id}`)}
                 </p>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {group.codes.map((code) => {
@@ -238,13 +241,15 @@ export function ResellerRequestForm() {
       </div>
 
       <fieldset className="rounded-xl border border-zinc-200 bg-white p-3">
-        <legend className="px-1 text-xs font-semibold text-zinc-700">Priorité livraison</legend>
+        <legend className="px-1 text-xs font-semibold text-zinc-700">
+          {t("priorities.legend")}
+        </legend>
         <div className="mt-1 grid gap-2">
-          {PRIORITY_OPTIONS.map((opt) => (
+          {PRIORITY_IDS.map((id) => (
             <label
-              key={opt.id}
+              key={id}
               className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-                deliveryPriority === opt.id
+                deliveryPriority === id
                   ? "border-violet-400 bg-violet-50"
                   : "border-zinc-100 hover:bg-zinc-50"
               }`}
@@ -252,20 +257,14 @@ export function ResellerRequestForm() {
               <input
                 type="radio"
                 name="deliveryPriority"
-                value={opt.id}
-                checked={deliveryPriority === opt.id}
-                onChange={() => setDeliveryPriority(opt.id)}
+                value={id}
+                checked={deliveryPriority === id}
+                onChange={() => setDeliveryPriority(id)}
               />
               <span className="font-medium text-zinc-900">
-                {opt.label}{" "}
+                {t(`priorities.${id}`)}{" "}
                 <span className="text-xs font-normal text-zinc-500">
-                  (
-                  {opt.id === "speed"
-                    ? `${sla.idealDays}j`
-                    : opt.id === "balanced"
-                      ? `${sla.maxDays}j max`
-                      : `${Math.max(sla.maxDays, 10)}j ok`}
-                  )
+                  ({priorityDaysLabel(id, sla, (key, values) => t(`priorities.${key}`, values ?? {}))})
                 </span>
               </span>
             </label>
@@ -273,14 +272,14 @@ export function ResellerRequestForm() {
         </div>
         <p className="mt-2 text-xs text-zinc-600">{slaHint}</p>
         <p className="mt-1 text-[11px] font-semibold text-violet-700">
-          SLA enregistré: {priorityDays}j ({sla.label})
+          {t("sla.registered", { days: priorityDays, label: sla.label })}
         </p>
       </fieldset>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="text-xs font-semibold text-zinc-700" htmlFor="req-qty">
-            Quantité
+            {tForm("quantityLabel")}
           </label>
           <input
             id="req-qty"
@@ -293,7 +292,7 @@ export function ResellerRequestForm() {
         </div>
         <div>
           <label className="text-xs font-semibold text-zinc-700" htmlFor="req-price">
-            Prix cible (€)
+            {tForm("targetPriceLabel")}
           </label>
           <input
             id="req-price"
@@ -302,14 +301,14 @@ export function ResellerRequestForm() {
             value={targetPrice}
             onChange={(e) => setTargetPrice(e.target.value)}
             className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-            placeholder="ex: 14.95"
+            placeholder={tForm("targetPricePlaceholder")}
           />
         </div>
       </div>
 
       <div>
         <label className="text-xs font-semibold text-zinc-700" htmlFor="req-desc">
-          Description
+          {tForm("descriptionLabel")}
         </label>
         <textarea
           id="req-desc"
@@ -317,13 +316,13 @@ export function ResellerRequestForm() {
           onChange={(e) => setDescription(e.target.value)}
           rows={4}
           className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-          placeholder="Specs, couleurs, délais…"
+          placeholder={tForm("descriptionPlaceholder")}
         />
       </div>
 
       <div>
         <label className="text-xs font-semibold text-zinc-700" htmlFor="req-img">
-          Image URL (optionnel)
+          {tForm("imageLabel")}
         </label>
         <input
           id="req-img"
@@ -331,7 +330,7 @@ export function ResellerRequestForm() {
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
           className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-          placeholder="https://"
+          placeholder={tForm("imagePlaceholder")}
         />
       </div>
 
@@ -340,7 +339,7 @@ export function ResellerRequestForm() {
         disabled={busy}
         className="w-full rounded-xl bg-[#6D28D9] px-4 py-3 text-sm font-semibold text-white hover:bg-[#5B21B6] disabled:opacity-60"
       >
-        {busy ? "Envoi…" : "Envoyer la demande → Alerter les fournisseurs"}
+        {busy ? tForm("submitting") : tForm("submit")}
       </button>
     </form>
   )

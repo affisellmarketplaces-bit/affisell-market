@@ -498,7 +498,6 @@ export function AffiliateCatalogExperience({
                 </form>
                 <GlobalRequestButton
                   variant="primary"
-                  label="Demander un produit"
                   className="shrink-0 whitespace-nowrap px-4 py-2.5 text-xs sm:text-sm"
                   href={
                     searchQuery.trim()
@@ -568,7 +567,7 @@ export function AffiliateCatalogExperience({
                         Changez de rayon, ou demandez un produit introuvable à nos fournisseurs.
                       </p>
                       <div className="mt-6 flex flex-col items-center gap-3">
-                        <GlobalRequestButton variant="primary" label="+ Demander un produit" />
+                        <GlobalRequestButton variant="primary" />
                         {hasFilters ? (
                           <Button type="button" variant="outline" onClick={clearFilters}>
                             Tout afficher

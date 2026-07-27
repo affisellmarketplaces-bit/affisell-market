@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Plus } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { cn } from "@/lib/utils"
 
@@ -26,11 +27,13 @@ export function GlobalRequestButton({
   href = NEW_REQUEST_HREF,
   label,
 }: Props) {
+  const t = useTranslations("productRequests.reseller.globalButton")
+
   if (variant === "fab") {
     return (
       <Link
         href={href}
-        aria-label={label ?? "Demander un produit"}
+        aria-label={label ?? t("ariaFab")}
         className={cn(
           "fixed bottom-6 right-6 z-40 flex size-14 items-center justify-center rounded-full",
           "bg-orange-500 text-white shadow-lg shadow-orange-900/30",
@@ -54,10 +57,10 @@ export function GlobalRequestButton({
           "dark:border-orange-900/50 dark:bg-orange-950/40 dark:text-orange-200",
           className
         )}
-        title="Demander un produit"
+        title={t("titleHeader")}
       >
         <Plus className="size-3.5 shrink-0" aria-hidden />
-        <span className="hidden sm:inline">{label ?? "Demander"}</span>
+        <span className="hidden sm:inline">{label ?? t("labelHeader")}</span>
       </Link>
     )
   }
@@ -72,12 +75,14 @@ export function GlobalRequestButton({
       )}
     >
       <Plus className="size-4 shrink-0" aria-hidden />
-      {label ?? "+ Demander un produit introuvable"}
+      {label ?? t("labelPrimary")}
     </Link>
   )
 }
 
 export function ResellerRequestCtaBanner({ className }: { className?: string }) {
+  const t = useTranslations("productRequests.reseller.cta")
+
   return (
     <div
       className={cn(
@@ -86,18 +91,10 @@ export function ResellerRequestCtaBanner({ className }: { className?: string }) 
       )}
     >
       <div>
-        <h3 className="text-base font-bold text-orange-950">
-          Tu ne trouves pas un produit?
-        </h3>
-        <p className="mt-0.5 text-sm text-zinc-600">
-          Décris-le, nos fournisseurs te répondent en &lt; 2h
-        </p>
+        <h3 className="text-base font-bold text-orange-950">{t("title")}</h3>
+        <p className="mt-0.5 text-sm text-zinc-600">{t("body")}</p>
       </div>
-      <GlobalRequestButton
-        variant="primary"
-        label="+ Demander un produit"
-        className="shrink-0 px-6"
-      />
+      <GlobalRequestButton variant="primary" label={t("button")} className="shrink-0 px-6" />
     </div>
   )
 }

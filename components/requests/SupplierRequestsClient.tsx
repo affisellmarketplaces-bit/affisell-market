@@ -1,15 +1,16 @@
 "use client"
 
 import Link from "next/link"
+import { useLocale, useTranslations } from "next-intl"
 import { useState } from "react"
 import useSWR from "swr"
 
 import {
   formatProductRequestCountries,
-  formatRequestRelativeFr,
   PRODUCT_REQUEST_CATEGORIES,
   type ProductRequestDto,
 } from "@/lib/product-request-types"
+import { formatProductRequestRelativeTime } from "@/lib/product-request-i18n"
 
 type FilterTab = "open" | "mine" | "fulfilled"
 
@@ -34,6 +35,10 @@ function buildUrl(tab: FilterTab, category: string) {
 }
 
 export function SupplierRequestsClient() {
+  const locale = useLocale()
+  const t = useTranslations("productRequests")
+  const tList = useTranslations("productRequests.supplier.list")
+  const tCat = useTranslations("productRequests.categories")
   const [category, setCategory] = useState("")
   const [tab, setTab] = useState<FilterTab>("open")
 
@@ -47,18 +52,18 @@ export function SupplierRequestsClient() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-zinc-900">Demandes resellers</h1>
+        <h1 className="text-xl font-bold text-zinc-900">{tList("title")}</h1>
         <label className="flex items-center gap-2 text-xs text-zinc-600">
-          Catégorie
+          {tList("categoryFilter")}
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="rounded-lg border border-zinc-200 px-2 py-1.5 text-xs font-medium"
           >
-            <option value="">Toutes</option>
+            <option value="">{tList("categoryAll")}</option>
             {PRODUCT_REQUEST_CATEGORIES.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.label}
+                {tCat(c.id)}
               </option>
             ))}
           </select>
@@ -68,31 +73,31 @@ export function SupplierRequestsClient() {
       <div className="flex flex-wrap gap-2">
         {(
           [
-            { id: "open", label: "Ouvertes" },
-            { id: "mine", label: "Mes devis" },
-            { id: "fulfilled", label: "Pourvues" },
+            { id: "open", label: tList("tabOpen") },
+            { id: "mine", label: tList("tabMine") },
+            { id: "fulfilled", label: tList("tabFulfilled") },
           ] as const
-        ).map((t) => (
+        ).map((tTab) => (
           <button
-            key={t.id}
+            key={tTab.id}
             type="button"
-            onClick={() => setTab(t.id)}
+            onClick={() => setTab(tTab.id)}
             className={`rounded-full px-3 py-1 text-xs font-semibold ${
-              tab === t.id
+              tab === tTab.id
                 ? "bg-orange-600 text-white"
                 : "bg-white text-zinc-600 ring-1 ring-zinc-200 hover:bg-zinc-50"
             }`}
           >
-            {t.label}
+            {tTab.label}
           </button>
         ))}
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-zinc-500">Chargement…</p>
+        <p className="text-sm text-zinc-500">{tList("loading")}</p>
       ) : rows.length === 0 ? (
         <p className="rounded-xl border border-dashed border-zinc-300 bg-white px-4 py-8 text-center text-sm text-zinc-600">
-          Aucune demande dans ce filtre.
+          {tList("empty")}
         </p>
       ) : (
         <ul className="space-y-2">
@@ -109,21 +114,26 @@ export function SupplierRequestsClient() {
                 <div>
                   <p className="font-semibold text-zinc-900">{r.title}</p>
                   <p className="mt-0.5 text-xs text-zinc-500">
-                    {formatProductRequestCountries(r.countries)} · {r.category} · {r.quantity} pcs ·{" "}
-                    {formatRequestRelativeFr(r.createdAt)}
-                    {r.deliverySLA != null ? ` · SLA ≤${r.deliverySLA}j` : ""}
-                    {r.myQuoteStatus ? ` · mon devis: ${r.myQuoteStatus}` : ""}
-                    {r.slaCompatible === false ? " · ⚠️ hors SLA typique" : ""}
+                    {formatProductRequestCountries(r.countries)} · {tCat(r.category)} ·{" "}
+                    {r.quantity} {t("common.pieces")} ·{" "}
+                    {formatProductRequestRelativeTime(r.createdAt, locale)}
+                    {r.deliverySLA != null
+                      ? ` · ${tList("slaMax", { days: r.deliverySLA })}`
+                      : ""}
+                    {r.myQuoteStatus
+                      ? ` · ${tList("myQuote", { status: r.myQuoteStatus })}`
+                      : ""}
+                    {r.slaCompatible === false ? ` · ⚠️ ${t("common.slaWarning")}` : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   {r.quotesCount > 0 ? (
                     <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-800">
-                      {r.quotesCount} devis
+                      {t("common.quotesCount", { count: r.quotesCount })}
                     </span>
                   ) : null}
                   <span className="text-xs font-semibold text-violet-700">
-                    {r.myQuoteStatus ? "Voir mon devis →" : "Faire un devis →"}
+                    {r.myQuoteStatus ? tList("viewQuote") : tList("quoteCta")}
                   </span>
                 </div>
               </Link>

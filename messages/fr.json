@@ -4893,5 +4893,196 @@
     "emptyBody": "Titre, images, coût source et prix de vente s’affichent après Forger. Crée ton compte revendeur en 1 clic pour pousser la fiche dans ta boutique.",
     "productName": "DropForge",
     "productTag": "Affisell · DropForge"
+  },
+  "productRequests": {
+    "categories": {
+      "baby": "Bébé",
+      "auto": "Auto",
+      "fitness": "Fitness",
+      "beauty": "Beauté",
+      "tech": "Tech",
+      "home": "Maison",
+      "fashion": "Mode",
+      "general": "Général"
+    },
+    "regions": {
+      "Europe": "Europe",
+      "America": "Amériques",
+      "Asia": "Asie",
+      "Africa": "Afrique & Moyen-Orient",
+      "Oceania": "Océanie",
+      "other": "Autres marchés"
+    },
+    "status": {
+      "open": "Ouverte",
+      "fulfilled": "Pourvue",
+      "closed": "Fermée",
+      "other": "Fermée",
+      "pending": "En attente",
+      "accepted": "Accepté",
+      "rejected": "Refusé"
+    },
+    "common": {
+      "pieces": "pcs",
+      "quotesCount": "{count, plural, one {# devis} other {# devis}}",
+      "networkError": "Erreur réseau",
+      "loading": "Chargement…",
+      "supplierFallback": "Fournisseur",
+      "resellerLabel": "Reseller",
+      "noDescription": "Pas de description.",
+      "targetPrice": "Prix cible",
+      "dash": "—",
+      "slaWarning": "hors SLA typique"
+    },
+    "sla": {
+      "singleMarket": "Pour {code}, délai raisonnable : {idealDays}–{maxDays} j. Au-delà de {maxDays} j, ton taux de retour augmente de ~40%.",
+      "perMarketLine": "{code} {idealDays}–{maxDays}j",
+      "multiMarket": "Marchés {codes} — délais raisonnables : {perMarket}. SLA combiné max {maxDays} j. Au-delà, ton taux de retour augmente de ~40%.",
+      "registered": "SLA enregistré : {days} j ({label})"
+    },
+    "priorities": {
+      "legend": "Priorité livraison",
+      "speed": "⚡ Vitesse max",
+      "balanced": "⚖️ Équilibré",
+      "price": "💰 Prix bas",
+      "daysSpeed": "{days}j",
+      "daysBalanced": "{days}j max",
+      "daysPrice": "{days}j ok"
+    },
+    "reseller": {
+      "globalButton": {
+        "ariaFab": "Demander un produit",
+        "titleHeader": "Demander un produit",
+        "labelHeader": "Demander",
+        "labelPrimary": "+ Demander un produit introuvable",
+        "labelShort": "Nouvelle demande"
+      },
+      "cta": {
+        "title": "Tu ne trouves pas un produit ?",
+        "body": "Décris-le — nos fournisseurs te répondent en moins de 2 h",
+        "button": "+ Demander un produit"
+      },
+      "new": {
+        "title": "Demander un produit introuvable",
+        "subtitle": "Les fournisseurs Affisell sont alertés instantanément.",
+        "backLink": "Mes demandes →",
+        "loading": "Chargement…"
+      },
+      "list": {
+        "title": "Mes demandes produits",
+        "newButton": "Nouvelle demande",
+        "emptyTitle": "Aucune demande — crée ta première",
+        "howItWorks": "Comment ça marche ?",
+        "step1": "Tu demandes un produit introuvable",
+        "step2": "Les fournisseurs devisent en moins de 2 h",
+        "step3": "Tu compares et choisis",
+        "step4": "Produit créé auto dans ton catalogue",
+        "emptyCta": "+ Demander un produit",
+        "metaQuotes": "{count, plural, one {# devis} other {# devis}}"
+      },
+      "detail": {
+        "backLink": "← Mes demandes"
+      },
+      "form": {
+        "catalogHint": "Tu cherchais « {query} » dans le catalogue — on prévient les fournisseurs.",
+        "titleLabel": "Titre *",
+        "titlePlaceholder": "Ex : Babyphone WiFi 1080p",
+        "categoryLabel": "Catégorie",
+        "countriesLabel": "Pays de promotion *",
+        "countriesHint": "{selected} / {total} marchés · un ou plusieurs",
+        "selectAll": "Tout sélectionner",
+        "reset": "Réinitialiser",
+        "quantityLabel": "Quantité",
+        "targetPriceLabel": "Prix cible (€)",
+        "targetPricePlaceholder": "ex : 14,95",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "Specs, couleurs, délais…",
+        "imageLabel": "URL image (optionnel)",
+        "imagePlaceholder": "https://",
+        "submit": "Envoyer la demande → Alerter les fournisseurs",
+        "submitting": "Envoi…",
+        "toastTitleRequired": "Titre requis",
+        "toastCountryRequired": "Sélectionne au moins un pays",
+        "toastSubmitFailed": "Échec envoi",
+        "toastSubmitSuccess": "Demande envoyée — fournisseurs alertés"
+      },
+      "quotes": {
+        "title": "Devis reçus ({count})",
+        "rateDelivery": "Noter la livraison →",
+        "viewCatalog": "Voir produit dans catalogue →",
+        "winner": "Gagnant :",
+        "noQuotes": "Aucun devis pour l'instant — les fournisseurs sont notifiés.",
+        "colSupplier": "Fournisseur",
+        "colPrice": "Prix",
+        "colMoq": "MOQ",
+        "colDelivery": "Délai",
+        "colTrust": "Trust",
+        "colMessage": "Message",
+        "colAction": "Action",
+        "boostTop": "Boost +30%",
+        "accept": "Accepter",
+        "accepting": "…",
+        "accepted": "Accepté",
+        "toastAcceptFailed": "Acceptation impossible",
+        "toastAcceptSuccess": "Devis accepté — draft catalogue créé"
+      },
+      "home": {
+        "title": "Espace reseller",
+        "subtitle": "Demandes produits, catalogue et Radar — tout au même endroit.",
+        "myRequests": "Mes demandes →",
+        "catalog": "Catalogue →",
+        "dashboard": "Dashboard →",
+        "radar": "Radar mondial →"
+      }
+    },
+    "supplier": {
+      "list": {
+        "title": "Demandes resellers",
+        "categoryFilter": "Catégorie",
+        "categoryAll": "Toutes",
+        "tabOpen": "Ouvertes",
+        "tabMine": "Mes devis",
+        "tabFulfilled": "Pourvues",
+        "loading": "Chargement…",
+        "empty": "Aucune demande dans ce filtre.",
+        "slaMax": "SLA ≤{days}j",
+        "myQuote": "mon devis : {status}",
+        "viewQuote": "Voir mon devis →",
+        "quoteCta": "Faire un devis →"
+      },
+      "detail": {
+        "backLink": "← Demandes",
+        "closed": "Cette demande n'est plus ouverte ({status})."
+      },
+      "quoteForm": {
+        "titleNew": "Faire un devis",
+        "titleExisting": "Ton devis",
+        "priceLabel": "Prix unitaire (€)*",
+        "moqLabel": "MOQ*",
+        "deliveryLabel": "Délai (jours)*",
+        "messageLabel": "Message",
+        "messagePlaceholder": "Stock EU, envoi 48h…",
+        "submit": "Envoyer mon devis →",
+        "submitting": "Envoi…",
+        "backLink": "← Retour aux demandes",
+        "toastPriceRequired": "Prix unitaire requis",
+        "toastMoqRequired": "MOQ requis",
+        "toastDeliveryRequired": "Délai requis",
+        "toastAlreadyQuoted": "Tu as déjà quoté",
+        "toastSubmitFailed": "Échec envoi devis",
+        "toastSubmitSuccess": "Devis envoyé — le reseller est notifié"
+      },
+      "teaser": {
+        "title": "🔥 Demandes resellers — {count, plural, one {# ouverte} other {# ouvertes}}",
+        "viewAll": "Voir toutes les demandes →",
+        "empty": "Aucune demande ouverte pour le moment."
+      }
+    },
+    "supplierFeedback": {
+      "boost": "Pour {code}, max raisonnable = {maxDays}j. Tu proposes {days}j → 🟢 Boost visibilité +30%",
+      "ok": "Pour {code}, max raisonnable = {maxDays}j. Tu proposes {days}j → ✅ Dans la zone acceptable",
+      "warn": "Tu proposes {days}j → 🔴 -50% visibilité, reseller risque de refuser (max {maxDays}j pour {code})",
+      "allMarkets": "{detail} (tous marchés : {codes})"
+    }
   }
 }

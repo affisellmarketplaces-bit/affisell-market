@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server"
 
+import { cookies } from "next/headers"
+
 import { auth } from "@/auth"
+import { LOCALE_COOKIE, resolveAppLocale } from "@/lib/i18n-locale"
+import { formatProductRequestRelativeTime } from "@/lib/product-request-i18n"
 import { PRODUCT_REQUEST_NOTIF_TYPES } from "@/lib/product-request-notif-constants"
-import { formatRequestRelativeFr } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -24,6 +27,8 @@ export async function GET() {
   }
 
   try {
+    const cookieStore = await cookies()
+    const locale = resolveAppLocale(cookieStore.get(LOCALE_COOKIE)?.value)
     const rows = await prisma.notification.findMany({
       where: {
         userId: session.user.id,
@@ -55,7 +60,7 @@ export async function GET() {
         read: n.read,
         createdAt:
           n.createdAt instanceof Date ? n.createdAt.toISOString() : String(n.createdAt),
-        relative: formatRequestRelativeFr(n.createdAt),
+        relative: formatProductRequestRelativeTime(n.createdAt, locale),
         href,
       }
     })
