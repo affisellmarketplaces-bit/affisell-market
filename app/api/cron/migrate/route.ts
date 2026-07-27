@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic"
 /** Neon migrate deploy can exceed default 10s on large migration queues. */
 export const maxDuration = 300
 
-const MIGRATE_TIMEOUT_MS = 240_000
+const MIGRATE_TIMEOUT_MS = 90_000
 
 async function unlockAdvisoryLocks(): Promise<{ before: number; after: number }> {
   const holders = await prisma.$queryRaw<{ pid: number }[]>`
@@ -50,35 +50,48 @@ async function unlockAdvisoryLocks(): Promise<{ before: number; after: number }>
   return { before: holders.length, after: after.length }
 }
 
+function migrateSpawnEnv(): NodeJS.ProcessEnv {
+  ensureDatabaseUrlUnpooled()
+  return {
+    ...process.env,
+    DATABASE_URL: process.env.DATABASE_URL,
+    PRISMA_CLI_BINARY_TARGETS:
+      process.env.PRISMA_CLI_BINARY_TARGETS ?? "rhel-openssl-3.0.x",
+  }
+}
+
 function resolvePrismaMigrateCommand(): { command: string; args: string[] } {
   const schema = join(process.cwd(), "prisma/schema.prisma")
   const migrateArgs = ["migrate", "deploy", `--schema=${schema}`]
 
-  const localBin = join(process.cwd(), "node_modules/.bin/prisma")
-  if (existsSync(localBin)) {
-    return { command: localBin, args: migrateArgs }
+  const npxBin = join(process.cwd(), "node_modules/.bin/npx")
+  if (existsSync(npxBin)) {
+    return {
+      command: npxBin,
+      args: ["--no-install", "prisma", ...migrateArgs],
+    }
   }
 
-  const prismaEntry = join(process.cwd(), "node_modules/prisma/build/index.js")
-  if (existsSync(prismaEntry)) {
-    return { command: process.execPath, args: [prismaEntry, ...migrateArgs] }
+  const prismaBin = join(process.cwd(), "node_modules/.bin/prisma")
+  if (existsSync(prismaBin)) {
+    return { command: prismaBin, args: migrateArgs }
   }
 
-  throw new Error("Prisma CLI not found in node_modules (expected .bin/prisma)")
+  const prismaJs = join(process.cwd(), "node_modules/prisma/build/index.js")
+  if (existsSync(prismaJs)) {
+    return { command: process.execPath, args: [prismaJs, ...migrateArgs] }
+  }
+
+  throw new Error("Prisma CLI not found in node_modules")
 }
 
 function runMigrateDeploy(): { ok: boolean; output: string; code: number | null } {
-  ensureDatabaseUrlUnpooled()
-
   const { command, args } = resolvePrismaMigrateCommand()
   console.log("[cron/migrate]", { command, args: args.join(" ") })
 
   const result = spawnSync(command, args, {
     cwd: process.cwd(),
-    env: {
-      ...process.env,
-      DATABASE_URL: process.env.DATABASE_URL,
-    },
+    env: migrateSpawnEnv(),
     encoding: "utf8",
     timeout: MIGRATE_TIMEOUT_MS,
     shell: false,
@@ -141,13 +154,9 @@ export async function GET(req: Request) {
     } catch (error: unknown) {
       const err = error as { status?: number; stdout?: Buffer | string; stderr?: Buffer | string }
       const stdout =
-        typeof err.stdout === "string"
-          ? err.stdout
-          : err.stdout?.toString?.() ?? ""
+        typeof err.stdout === "string" ? err.stdout : err.stdout?.toString?.() ?? ""
       const stderr =
-        typeof err.stderr === "string"
-          ? err.stderr
-          : err.stderr?.toString?.() ?? ""
+        typeof err.stderr === "string" ? err.stderr : err.stderr?.toString?.() ?? ""
       const message = error instanceof Error ? error.message : String(error)
       const output = `${stdout}\n${stderr}`.trim() || message
 

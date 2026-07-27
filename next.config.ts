@@ -64,6 +64,14 @@ const nextConfig: NextConfig = {
     "/cookies": ["./legal/content/**/*.md"],
     "/privacy": ["./legal/content/**/*.md"],
     "/cgu": ["./legal/content/**/*.md"],
+    "/api/cron/migrate": [
+      "./node_modules/prisma/**/*",
+      "./node_modules/@prisma/**/*",
+      "./node_modules/.bin/prisma",
+      "./node_modules/.bin/npx",
+      "./prisma/migrations/**/*",
+      "./prisma/schema.prisma",
+    ],
   },
   serverExternalPackages: ["@imgly/background-removal", "onnxruntime-web"],
   experimental: {
