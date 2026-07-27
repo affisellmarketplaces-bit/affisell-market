@@ -28,8 +28,12 @@ export function BattleWinnerModal({ battle, onClose }: Props) {
     battle.winnerId === battle.productA.id ? battle.productA : battle.productB
   const pct =
     battle.winnerId === battle.productA.id ? battle.pctA : battle.pctB
-  const flash = battle.flashDiscount || 20
-  const flashCents = Math.round(winner.priceCents * (1 - flash / 100))
+  const flash = battle.flashDiscount > 0 ? battle.flashDiscount : 20
+  const referenceCents =
+    battle.priceReferenceCents != null && battle.priceReferenceCents > 0
+      ? battle.priceReferenceCents
+      : winner.priceCents
+  const flashCents = Math.max(1, Math.floor(referenceCents * (1 - flash / 100)))
   const href = winner.affiliateProductId
     ? `/marketplace/${winner.affiliateProductId}?battleId=${battle.id}`
     : `/marketplace/${winner.id}?battleId=${battle.id}`
@@ -103,10 +107,15 @@ export function BattleWinnerModal({ battle, onClose }: Props) {
           {winner.name.toUpperCase()} GAGNE AVEC {pct}% DES VOTES
         </h2>
         <p className="mt-3 text-sm text-white/70">
-          <span className="line-through opacity-60">{money(winner.priceCents)}</span>
-          {" → "}
-          <span className="font-bold text-emerald-400">{money(flashCents)}</span>
-          {" pendant 5 min"}
+          <span className="font-bold text-emerald-400">Prix Battle: {money(flashCents)}</span>
+          <br />
+          <span className="text-xs line-through opacity-60">
+            Prix habituel Affisell: {money(referenceCents)}
+          </span>
+          <br />
+          <span className="text-xs text-white/50">
+            −{flash}% — flash jusqu&apos;à la fin du timer · Conforme DGCCRF
+          </span>
         </p>
 
         <div className="mt-4 flex items-center justify-center gap-2 text-xs text-white/50">

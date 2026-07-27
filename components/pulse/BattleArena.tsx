@@ -223,6 +223,7 @@ export function BattleArena() {
           voted={votedId === battle.productA.id}
           disabled={battle.status !== "live" || Boolean(votedId) || voting}
           detailsHref={productADetailsHref}
+          flashDiscount={battle.flashDiscount}
           onVote={() => void vote(battle.productA.id)}
         />
         <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-xl font-black text-black shadow-2xl sm:h-20 sm:w-20 sm:text-2xl">
@@ -237,6 +238,7 @@ export function BattleArena() {
           voted={votedId === battle.productB.id}
           disabled={battle.status !== "live" || Boolean(votedId) || voting}
           detailsHref={productBDetailsHref}
+          flashDiscount={battle.flashDiscount}
           onVote={() => void vote(battle.productB.id)}
         />
       </div>

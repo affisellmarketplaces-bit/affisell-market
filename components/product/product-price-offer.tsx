@@ -26,6 +26,10 @@ type Props = {
   isWinner?: boolean
   /** Discount % for badge when flash is server-validated. */
   flashPercent?: number | null
+  /** DGCCRF: lowest 30d reference (EUR). */
+  priceReferenceEur?: number | null
+  /** Reseller display name who set the flash %. */
+  battleResellerName?: string | null
 }
 
 export function ProductPriceOffer({
@@ -39,6 +43,8 @@ export function ProductPriceOffer({
   flashEndsAt = null,
   isWinner = false,
   flashPercent = null,
+  priceReferenceEur = null,
+  battleResellerName = null,
 }: Props) {
   const t = useTranslations("product.discount")
   const tOffer = useTranslations("product.offer")
@@ -78,8 +84,30 @@ export function ProductPriceOffer({
   }
 
   if (showBattleFlash && validatedFlashPrice != null) {
+    const referenceEur =
+      typeof priceReferenceEur === "number" &&
+      Number.isFinite(priceReferenceEur) &&
+      priceReferenceEur > 0
+        ? priceReferenceEur
+        : price
+    const reseller =
+      typeof battleResellerName === "string" && battleResellerName.trim()
+        ? battleResellerName.trim()
+        : "Affisell"
+    const endsLabel = flashEndsAtIso
+      ? new Date(flashEndsAtIso).toLocaleString("fr-FR", {
+          day: "2-digit",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null
+
     return (
-      <div className={cn("space-y-1", align === "end" && "text-right", className)}>
+      <div
+        className={cn("battle-legal space-y-1", align === "end" && "text-right", className)}
+        data-testid="battle-legal-price"
+      >
         <div className={cn("flex flex-wrap items-center gap-2", align === "end" && "justify-end")}>
           <span
             className={cn(
@@ -87,14 +115,23 @@ export function ProductPriceOffer({
               layout === "detail" ? "text-3xl" : "text-xl"
             )}
           >
-            {formatStoreCurrency(validatedFlashPrice)}
+            Prix Battle: {formatStoreCurrency(validatedFlashPrice)}
           </span>
-          <span className="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-black text-white animate-pulse">
-            BATTLE WINNER{flashPct != null ? ` −${flashPct}%` : ""}
-          </span>
+          {flashPct != null ? (
+            <span className="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-black text-white animate-pulse">
+              −{flashPct}%
+            </span>
+          ) : null}
         </div>
-        <span className="text-sm tabular-nums text-zinc-400 line-through">
-          {formatStoreCurrency(price)}
+        <span className="block text-sm tabular-nums text-zinc-400 line-through">
+          Prix habituel Affisell: {formatStoreCurrency(price)}
+        </span>
+        <span className="block text-xs text-zinc-600 dark:text-zinc-300">
+          {flashPct != null ? `−${flashPct}%` : "Promo"} par {reseller}
+          {endsLabel ? ` — jusqu'au ${endsLabel}` : null}
+        </span>
+        <span className="block text-xs text-gray-500">
+          Prix le plus bas 30j: {formatStoreCurrency(referenceEur)} — Conforme DGCCRF
         </span>
         {flashEndsAtIso ? (
           <div

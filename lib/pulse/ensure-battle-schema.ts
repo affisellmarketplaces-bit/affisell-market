@@ -52,6 +52,45 @@ export async function ensurePulseBattleSchema(): Promise<boolean> {
       `CREATE INDEX IF NOT EXISTS "PulseBattleVote_battleId_ip_idx" ON "PulseBattleVote"("battleId", "ip")`
     )
 
+    // Battle legal columns (reseller flash % + DGCCRF 30d reference)
+    try {
+      await prisma.$executeRawUnsafe(
+        `ALTER TABLE "PulseBattle" ADD COLUMN IF NOT EXISTS "flashDiscountSetBy" TEXT`
+      )
+    } catch {
+      /* duplicate ok */
+    }
+    try {
+      await prisma.$executeRawUnsafe(
+        `ALTER TABLE "PulseBattle" ADD COLUMN IF NOT EXISTS "priceReferenceCents" INTEGER`
+      )
+    } catch {
+      /* duplicate ok */
+    }
+    try {
+      await prisma.$executeRawUnsafe(
+        `ALTER TABLE "PulseBattle" ADD COLUMN IF NOT EXISTS "priceReferenceSource" TEXT DEFAULT 'lowest_30d'`
+      )
+    } catch {
+      /* duplicate ok */
+    }
+
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "PriceHistory" (
+        "id" TEXT NOT NULL,
+        "listingId" TEXT NOT NULL,
+        "priceCents" INTEGER NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "PriceHistory_pkey" PRIMARY KEY ("id")
+      )
+    `)
+    await prisma.$executeRawUnsafe(
+      `CREATE INDEX IF NOT EXISTS "PriceHistory_listingId_createdAt_idx" ON "PriceHistory"("listingId", "createdAt")`
+    )
+    await prisma.$executeRawUnsafe(
+      `CREATE INDEX IF NOT EXISTS "PriceHistory_listingId_idx" ON "PriceHistory"("listingId")`
+    )
+
     // FKs — ignore if already present or Product missing (shouldn't)
     try {
       await prisma.$executeRawUnsafe(`

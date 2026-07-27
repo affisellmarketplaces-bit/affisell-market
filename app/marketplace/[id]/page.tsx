@@ -271,6 +271,11 @@ export default async function MarketplaceListingPage({
         flashPrice: flashUnitCents / 100,
         flashEndsAt: battleFlash.flashEndsAt.toISOString(),
         isWinner: true as const,
+        priceReferenceEur:
+          battleFlash.priceReferenceCents != null && battleFlash.priceReferenceCents > 0
+            ? battleFlash.priceReferenceCents / 100
+            : listing.sellingPriceCents / 100,
+        battleResellerName: sellerLabel,
       }
     : null
   if (battleIdParam && !flashOffer) {
@@ -279,6 +284,22 @@ export default async function MarketplaceListingPage({
       battleId: battleIdParam,
       productId: p.id,
     })
+  }
+
+  // Prefer display name of reseller who set flash % when available
+  let battleResellerDisplay = flashOffer?.battleResellerName ?? sellerLabel
+  if (battleFlash?.flashDiscountSetBy) {
+    try {
+      const setter = await prisma.user.findUnique({
+        where: { id: battleFlash.flashDiscountSetBy },
+        select: { name: true, store: { select: { name: true } } },
+      })
+      const fromSetter =
+        setter?.store?.name?.trim() || setter?.name?.trim() || null
+      if (fromSetter) battleResellerDisplay = fromSetter
+    } catch {
+      /* ignore */
+    }
   }
 
   const freeThresh =
@@ -433,6 +454,8 @@ export default async function MarketplaceListingPage({
           flashPrice={flashOffer?.flashPrice ?? null}
           flashEndsAt={flashOffer?.flashEndsAt ?? null}
           isBattleWinner={flashOffer?.isWinner ?? false}
+          priceReferenceEur={flashOffer?.priceReferenceEur ?? null}
+          battleResellerName={flashOffer ? battleResellerDisplay : null}
           retailPriceEur={retailPriceEur}
           has3D={has3D}
           arModel={arModel}

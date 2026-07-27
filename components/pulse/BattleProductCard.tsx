@@ -14,6 +14,7 @@ type Props = {
   voted: boolean
   disabled: boolean
   detailsHref?: string | null
+  flashDiscount?: number
   onVote: () => void
 }
 
@@ -36,9 +37,11 @@ export function BattleProductCard({
   voted,
   disabled,
   detailsHref = null,
+  flashDiscount = 20,
   onVote,
 }: Props) {
   const leading = pct >= 50
+  const flashPct = Math.max(5, Math.min(50, Math.round(flashDiscount)))
 
   return (
     <div
@@ -73,7 +76,7 @@ export function BattleProductCard({
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-3 p-4 text-center">
         {isWinner ? (
           <span className="rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-black">
-            Gagnant −20%
+            Gagnant −{flashPct}%
           </span>
         ) : null}
         {product.image ? (

@@ -35,6 +35,6 @@ describe("pulse battle constants", () => {
     expect(normalizeBattleFlashDiscount(undefined)).toBe(20)
     expect(normalizeBattleFlashDiscount(3)).toBe(5)
     expect(normalizeBattleFlashDiscount(18.4)).toBe(18)
-    expect(normalizeBattleFlashDiscount(99)).toBe(80)
+    expect(normalizeBattleFlashDiscount(99)).toBe(50)
   })
 })

@@ -12,6 +12,7 @@ import {
   applyBattleFlashUnitCents,
   resolveActiveBattleFlash,
 } from "@/lib/pulse/battle-engine"
+import { recordListingPriceHistory } from "@/lib/pulse/battle-price-history"
 import {
   formatCartVariantLabel,
   normalizeCartVariantSignature,
@@ -620,6 +621,11 @@ export async function marketplaceCheckoutPOST(
       )
     }
     const unitBeforeCents = unitSelling
+    /** Trace listing price for DGCCRF 30d lowest reference. */
+    await recordListingPriceHistory({
+      listingId: affiliateProductId,
+      priceCents: unitBeforeCents,
+    })
     unitSelling = applyBattleFlashUnitCents(unitSelling, flash.flashDiscount)
     appliedBattleFlash = {
       battleId: flash.battleId,

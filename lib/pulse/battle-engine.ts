@@ -13,7 +13,8 @@ import {
 export function normalizeBattleFlashDiscount(raw: unknown): number {
   const n = Math.round(Number(raw))
   if (!Number.isFinite(n)) return BATTLE_DEFAULT_FLASH_PCT
-  return Math.max(5, Math.min(80, n))
+  /** Reseller legal band: 5–50% (DGCCRF promo control). */
+  return Math.max(5, Math.min(50, n))
 }
 
 const productBattleSelect = {
@@ -126,6 +127,9 @@ type BattleWithProducts = {
   votesB: number
   totalVoters: number
   flashDiscount: number
+  flashDiscountSetBy?: string | null
+  priceReferenceCents?: number | null
+  priceReferenceSource?: string | null
   flashEndsAt: Date | null
   productA: ProductBattleRow
   productB: ProductBattleRow
@@ -152,6 +156,9 @@ function serializeBattle(
     endedAt: battle.endedAt?.toISOString() ?? null,
     flashEndsAt: battle.flashEndsAt?.toISOString() ?? null,
     flashDiscount: battle.flashDiscount || BATTLE_DEFAULT_FLASH_PCT,
+    flashDiscountSetBy: battle.flashDiscountSetBy ?? null,
+    priceReferenceCents: battle.priceReferenceCents ?? null,
+    priceReferenceSource: battle.priceReferenceSource ?? null,
     votesA: battle.votesA,
     votesB: battle.votesB,
     totalVoters: battle.totalVoters,
@@ -470,6 +477,9 @@ async function buildEphemeralDemoBattle(): Promise<BattlePayload | null> {
     endedAt: endedAt.toISOString(),
     flashEndsAt: null,
     flashDiscount: BATTLE_DEFAULT_FLASH_PCT,
+    flashDiscountSetBy: null,
+    priceReferenceCents: null,
+    priceReferenceSource: null,
     votesA: 12,
     votesB: 9,
     totalVoters: 21,
@@ -558,6 +568,9 @@ export type ActiveBattleFlash = {
   battleId: string
   flashDiscount: number
   flashEndsAt: Date
+  priceReferenceCents: number | null
+  priceReferenceSource: string | null
+  flashDiscountSetBy: string | null
 }
 
 /** Apply battle flash % to a unit price in cents (floor, min 1¢). */
@@ -595,6 +608,9 @@ export async function resolveActiveBattleFlash(args: {
         id: true,
         flashDiscount: true,
         flashEndsAt: true,
+        priceReferenceCents: true,
+        priceReferenceSource: true,
+        flashDiscountSetBy: true,
       },
     })
     if (!battle?.flashEndsAt) return null
@@ -606,6 +622,9 @@ export async function resolveActiveBattleFlash(args: {
       battleId: battle.id,
       flashDiscount,
       flashEndsAt: battle.flashEndsAt,
+      priceReferenceCents: battle.priceReferenceCents ?? null,
+      priceReferenceSource: battle.priceReferenceSource ?? null,
+      flashDiscountSetBy: battle.flashDiscountSetBy ?? null,
     }
   } catch (e) {
     if (isMissingBattleTable(e)) {

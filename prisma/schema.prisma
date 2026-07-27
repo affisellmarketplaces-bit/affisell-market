@@ -1123,7 +1123,17 @@ model PulseBattle {
   votesA        Int       @default(0)
   votesB        Int       @default(0)
   totalVoters   Int       @default(0)
+  /**
+   * Pourcentage défini par reseller (promo plateforme Affisell).
+   * Appliqué au checkout winner pendant flashEndsAt — pas un MSRP inventé.
+   */
   flashDiscount Int       @default(20)
+  /** userId du reseller (AFFILIATE) qui a défini flashDiscount. */
+  flashDiscountSetBy String?
+  /** Prix référence légal (plus bas 30j listing) au moment du réglage flash. */
+  priceReferenceCents Int?
+  /** Source audit DGCCRF — lowest_30d | listing_current */
+  priceReferenceSource String? @default("lowest_30d")
   flashEndsAt   DateTime?
   createdAt     DateTime  @default(now())
 
@@ -1133,6 +1143,20 @@ model PulseBattle {
   @@index([status, startedAt])
   @@index([productAId])
   @@index([productBId])
+}
+
+/**
+ * Listing price snapshots for DGCCRF “lowest price 30 days” reference (Battle flash).
+ * listingId = AffiliateProduct.id
+ */
+model PriceHistory {
+  id         String   @id @default(cuid())
+  listingId  String
+  priceCents Int
+  createdAt  DateTime @default(now())
+
+  @@index([listingId, createdAt])
+  @@index([listingId])
 }
 
 model PulseBattleVote {

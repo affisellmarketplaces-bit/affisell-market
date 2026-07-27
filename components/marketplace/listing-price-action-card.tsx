@@ -34,6 +34,8 @@ type Props = {
   flashPrice?: number | null
   flashEndsAt?: string | null
   isBattleWinner?: boolean
+  priceReferenceEur?: number | null
+  battleResellerName?: string | null
 }
 
 export function ListingPriceActionCard({
@@ -58,6 +60,8 @@ export function ListingPriceActionCard({
   flashPrice = null,
   flashEndsAt = null,
   isBattleWinner = false,
+  priceReferenceEur = null,
+  battleResellerName = null,
 }: Props) {
   const brand = storefrontPdpBrandClasses(brandedStorefront)
   const t = useTranslations("Product")
@@ -83,6 +87,8 @@ export function ListingPriceActionCard({
               flashPrice={flashPrice}
               flashEndsAt={flashEndsAt}
               isWinner={isBattleWinner}
+              priceReferenceEur={priceReferenceEur}
+              battleResellerName={battleResellerName}
             />
           </div>
           <div className="mt-2">

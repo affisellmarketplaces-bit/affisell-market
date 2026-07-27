@@ -185,6 +185,8 @@ type Props = {
   flashPrice?: number | null
   flashEndsAt?: string | null
   isBattleWinner?: boolean
+  priceReferenceEur?: number | null
+  battleResellerName?: string | null
   retailPriceEur?: number
   has3D?: boolean
   arModel?: string | null
@@ -379,6 +381,8 @@ export function MarketplaceListingDetail({
   flashPrice = null,
   flashEndsAt = null,
   isBattleWinner = false,
+  priceReferenceEur = null,
+  battleResellerName = null,
   retailPriceEur,
   has3D = false,
   arModel,
@@ -1106,6 +1110,8 @@ export function MarketplaceListingDetail({
               flashPrice={displayFlashPriceEur}
               flashEndsAt={flashEndsAt}
               isBattleWinner={isBattleWinner}
+              priceReferenceEur={priceReferenceEur}
+              battleResellerName={battleResellerName}
               formatReviewCount={formatStoreCount}
               labels={{
                 colorLabel: productT.colorLabel,
@@ -1313,6 +1319,8 @@ export function MarketplaceListingDetail({
               flashPrice={displayFlashPriceEur}
               flashEndsAt={flashEndsAt}
               isBattleWinner={isBattleWinner}
+              priceReferenceEur={priceReferenceEur}
+              battleResellerName={battleResellerName}
             />
             {tryOnReady ? (
               <TryOnTrigger

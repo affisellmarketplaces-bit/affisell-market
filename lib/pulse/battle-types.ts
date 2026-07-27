@@ -27,6 +27,11 @@ export type BattlePayload = {
   endedAt: string | null
   flashEndsAt: string | null
   flashDiscount: number
+  /** Reseller who set flash % (userId). */
+  flashDiscountSetBy: string | null
+  /** DGCCRF reference price in cents (lowest 30d). */
+  priceReferenceCents: number | null
+  priceReferenceSource: string | null
   votesA: number
   votesB: number
   totalVoters: number
