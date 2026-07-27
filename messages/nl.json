@@ -1208,6 +1208,8 @@
       "demoNote": "Demo bezoekers (voorbeeldgegevens)",
       "cartLeft": "{time} over",
       "sendDiscount": "Verstuur 10% korting",
+      "sendDiscountLabel": "Korting versturen",
+      "customPctPlaceholder": "% invoeren",
       "startChat": "Start chat",
       "messagePlaceholder": "Typ een bericht…",
       "send": "Verstuur",
@@ -1217,7 +1219,7 @@
       "revenueToday": "omzet",
       "hourlyTraffic": "Uurlijk verkeer",
       "dismiss": "Sluiten",
-      "toastDiscount": "Demo: 10% korting popup voor {name}",
+      "toastDiscount": "Demo: {pct}% korting verzonden naar {name}",
       "toastMessage": "Demo: bericht in de wachtrij voor {name}",
       "demoVisitors": {
         "emma": {

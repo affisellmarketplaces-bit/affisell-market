@@ -1208,6 +1208,8 @@
       "demoNote": "Demo-Besucher (Vorschau-Daten)",
       "cartLeft": "{time} übrig",
       "sendDiscount": "10% Rabatt senden",
+      "sendDiscountLabel": "Rabatt senden",
+      "customPctPlaceholder": "% eingeben",
       "startChat": "Chat starten",
       "messagePlaceholder": "Eine Nachricht eingeben…",
       "send": "Senden",
@@ -1217,7 +1219,7 @@
       "revenueToday": "Umsatz",
       "hourlyTraffic": "Stündlicher Verkehr",
       "dismiss": "Ablehnen",
-      "toastDiscount": "Demo: 10% Rabatt für {name}",
+      "toastDiscount": "Demo: {pct}% Rabatt für {name}",
       "toastMessage": "Demo: Nachricht in der Warteschleife für {name}",
       "demoVisitors": {
         "emma": {

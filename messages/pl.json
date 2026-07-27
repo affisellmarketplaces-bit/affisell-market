@@ -1208,6 +1208,8 @@
       "demoNote": "Wizualizacja demonstracyjna (dane w wersji próbnej)",
       "cartLeft": "{time} left",
       "sendDiscount": "Wyślij 10% zniżki",
+      "sendDiscountLabel": "Wyślij zniżkę",
+      "customPctPlaceholder": "% niestandardowy",
       "startChat": "Rozpocznij rozmowę",
       "messagePlaceholder": "Typuj wiadomość…",
       "send": "Wyślij",
@@ -1217,7 +1219,7 @@
       "revenueToday": "{price} {currency}",
       "hourlyTraffic": "Godzinny ruch",
       "dismiss": "Zamknij",
-      "toastDiscount": "Demo: 10% off popup dla {name}",
+      "toastDiscount": "Demo: {pct}% zniżki dla {name}",
       "toastMessage": "Demo: wiadomość w kolejce dla {name}",
       "demoVisitors": {
         "emma": {

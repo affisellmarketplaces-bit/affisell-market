@@ -1,8 +1,10 @@
 "use client"
 
-import { MessageCircle, Radio, Send, Tag, X } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { ChevronDown, MessageCircle, Radio, Send, Tag, X } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
+
+const DISCOUNT_PRESETS = [5, 10, 15, 20, 25, 30] as const
 
 export type DemoVisitor = {
   id: number
@@ -75,6 +77,9 @@ export default function AffiliateLiveStore({ storeId }: { storeId: string }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [chatForId, setChatForId] = useState<number | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [discountPickerForId, setDiscountPickerForId] = useState<number | null>(null)
+  const [customPct, setCustomPct] = useState("")
+  const discountPickerRef = useRef<HTMLDivElement>(null)
 
   const cartLeftLabel = useCallback((time: string) => t("cartLeft", { time }), [t])
 
@@ -135,6 +140,27 @@ export default function AffiliateLiveStore({ storeId }: { storeId: string }) {
     const timer = window.setTimeout(dismissToast, 3400)
     return () => window.clearTimeout(timer)
   }, [toast, dismissToast])
+
+  useEffect(() => {
+    if (discountPickerForId === null) return
+    function onClickOutside(e: MouseEvent) {
+      if (discountPickerRef.current && !discountPickerRef.current.contains(e.target as Node)) {
+        setDiscountPickerForId(null)
+        setCustomPct("")
+      }
+    }
+    window.addEventListener("mousedown", onClickOutside)
+    return () => window.removeEventListener("mousedown", onClickOutside)
+  }, [discountPickerForId])
+
+  const sendDiscount = useCallback(
+    (visitor: DemoVisitor, pct: number) => {
+      setToast(t("toastDiscount", { name: visitor.name, pct: String(pct) }))
+      setDiscountPickerForId(null)
+      setCustomPct("")
+    },
+    [t]
+  )
 
   const maxBar = useMemo(
     () => (hourlyTraffic.length ? Math.max(...hourlyTraffic, 1) : 1),
@@ -251,14 +277,67 @@ export default function AffiliateLiveStore({ storeId }: { storeId: string }) {
                           </div>
                         ) : null}
                         <div className="mt-2.5 grid grid-cols-1 gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => setToast(t("toastDiscount", { name: v.name }))}
-                            className="inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-medium text-emerald-100 transition hover:bg-emerald-500/20"
-                          >
-                            <Tag className="h-3 w-3 shrink-0" />
-                            <span className="truncate">{t("sendDiscount")}</span>
-                          </button>
+                          <div className="relative" ref={discountPickerForId === v.id ? discountPickerRef : undefined}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDiscountPickerForId(discountPickerForId === v.id ? null : v.id)
+                                setCustomPct("")
+                              }}
+                              className="inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-emerald-500/35 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-medium text-emerald-100 transition hover:bg-emerald-500/20"
+                            >
+                              <Tag className="h-3 w-3 shrink-0" />
+                              <span className="truncate">{t("sendDiscountLabel")}</span>
+                              <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
+                            </button>
+
+                            {discountPickerForId === v.id ? (
+                              <div className="absolute left-0 right-0 top-full z-10 mt-1.5 overflow-hidden rounded-xl border border-white/10 bg-zinc-900/98 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                                <div className="grid grid-cols-3 gap-1 p-2">
+                                  {DISCOUNT_PRESETS.map((pct) => (
+                                    <button
+                                      key={pct}
+                                      type="button"
+                                      onClick={() => sendDiscount(v, pct)}
+                                      className="rounded-lg bg-emerald-500/10 px-2 py-1.5 text-[11px] font-semibold tabular-nums text-emerald-200 transition hover:bg-emerald-500/25 active:scale-95"
+                                    >
+                                      −{pct}%
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className="border-t border-white/[0.06] px-2 pb-2 pt-1.5">
+                                  <form
+                                    className="flex gap-1.5"
+                                    onSubmit={(e) => {
+                                      e.preventDefault()
+                                      const n = Number(customPct)
+                                      if (Number.isFinite(n) && n >= 1 && n <= 90) {
+                                        sendDiscount(v, Math.round(n))
+                                      }
+                                    }}
+                                  >
+                                    <input
+                                      type="number"
+                                      min={1}
+                                      max={90}
+                                      placeholder={t("customPctPlaceholder")}
+                                      value={customPct}
+                                      onChange={(e) => setCustomPct(e.target.value)}
+                                      className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/40 px-2.5 py-1.5 text-[11px] tabular-nums text-white placeholder:text-zinc-500 focus:border-emerald-500/40 focus:outline-none"
+                                      autoFocus
+                                    />
+                                    <button
+                                      type="submit"
+                                      disabled={!customPct || Number(customPct) < 1 || Number(customPct) > 90}
+                                      className="shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-emerald-500 disabled:opacity-30 disabled:hover:bg-emerald-600"
+                                    >
+                                      {t("send")}
+                                    </button>
+                                  </form>
+                                </div>
+                              </div>
+                            ) : null}
+                          </div>
                           <button
                             type="button"
                             onClick={() => setChatForId(chatForId === v.id ? null : v.id)}

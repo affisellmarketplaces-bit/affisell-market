@@ -1208,6 +1208,8 @@
       "demoNote": "Demo visitors (preview data)",
       "cartLeft": "{time} left",
       "sendDiscount": "发送 10% 折扣",
+      "sendDiscountLabel": "发送折扣",
+      "customPctPlaceholder": "自定义 %",
       "startChat": "开始聊天",
       "messagePlaceholder": "Type a message…",
       "send": "发送",
@@ -1217,7 +1219,7 @@
       "revenueToday": "{price}",
       "hourlyTraffic": "每小时流量",
       "dismiss": "关闭",
-      "toastDiscount": "Demo: {count}折扣",
+      "toastDiscount": "Demo: {pct}% 折扣已发送给 {name}",
       "toastMessage": "Demo: {name}的消息已排队",
       "demoVisitors": {
         "emma": {
