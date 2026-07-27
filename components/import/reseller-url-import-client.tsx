@@ -67,6 +67,9 @@ type Preview = {
   warnings: string[]
   partial?: boolean
   catalogProductId?: string
+  fulfillmentReady?: boolean
+  fulfillmentReason?: "aliexpress" | "catalog_link" | "pending_ops"
+  aliexpressProductId?: string | null
 }
 
 function money(n: number, currency = "EUR") {
@@ -179,6 +182,9 @@ export function ResellerUrlImportClient() {
         return
       }
 
+      const canGoLive =
+        !preview.partial && preview.fulfillmentReady === true && listLive === true
+
       setCommitting(true)
       try {
         const sell = parseFloat(sellPrice.replace(",", "."))
@@ -190,7 +196,7 @@ export function ResellerUrlImportClient() {
             url: preview.sourceUrl,
             sellingPriceEur: Number.isFinite(sell) ? sell : preview.suggestedPrice,
             titleOverride: preview.title,
-            listLive: listLive && !preview.partial,
+            listLive: canGoLive,
             snapshot: preview,
           }),
         })
@@ -370,6 +376,18 @@ export function ResellerUrlImportClient() {
                   ))}
                 </ul>
               ) : null}
+
+              <div
+                className={cn(
+                  "mt-4 rounded-xl border px-3 py-2.5 text-xs leading-relaxed",
+                  preview.fulfillmentReady
+                    ? "border-emerald-400/35 bg-emerald-500/10 text-emerald-100"
+                    : "border-rose-400/40 bg-rose-500/10 text-rose-50"
+                )}
+                data-testid="dropforge-fulfillment-status"
+              >
+                {preview.fulfillmentReady ? t("fulfillmentReady") : t("fulfillmentPending")}
+              </div>
             </div>
           </div>
 
@@ -379,7 +397,9 @@ export function ResellerUrlImportClient() {
               {isAffiliate
                 ? preview.partial
                   ? t("readyPartial")
-                  : t("readyAffiliate")
+                  : preview.fulfillmentReady
+                    ? t("readyAffiliate")
+                    : t("readyNoFulfillment")
                 : t("readyGuest")}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -397,14 +417,22 @@ export function ResellerUrlImportClient() {
               </button>
               <button
                 type="button"
-                disabled={committing || (isAffiliate && Boolean(preview.partial))}
+                disabled={
+                  committing ||
+                  (isAffiliate &&
+                    (Boolean(preview.partial) || preview.fulfillmentReady !== true))
+                }
                 onClick={() => void commit(true)}
                 className={cn(
                   buttonVariants(),
                   "rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white disabled:opacity-50"
                 )}
                 title={
-                  isAffiliate && preview.partial ? t("publishNeedsComplete") : undefined
+                  isAffiliate && preview.partial
+                    ? t("publishNeedsComplete")
+                    : isAffiliate && preview.fulfillmentReady !== true
+                      ? t("publishNeedsFulfillment")
+                      : undefined
                 }
               >
                 {isAffiliate ? t("publishLive") : t("signupLive")}

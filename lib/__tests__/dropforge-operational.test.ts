@@ -4,6 +4,7 @@ import {
   isDropForgeImportComplete,
   mergeScrapedProducts,
 } from "@/lib/dropforge-complete-import"
+import { resolveDropForgeFulfillmentMeta } from "@/lib/dropforge-fulfillment"
 import { validateDropForgeProductUrl } from "@/lib/dropforge-product-url"
 import {
   getScrapingBeeApiKey,
@@ -38,6 +39,42 @@ describe("validateDropForgeProductUrl", () => {
     const bad = validateDropForgeProductUrl("ftp://x.com/a")
     expect(bad.ok).toBe(false)
     if (!bad.ok) expect(bad.code).toBe("https")
+  })
+})
+
+describe("DropForge fulfillment readiness (P0)", () => {
+  it("marks AliExpress URLs as fulfillment-ready", () => {
+    const meta = resolveDropForgeFulfillmentMeta({
+      sourceUrl: "https://www.aliexpress.com/item/1005008719608144.html",
+    })
+    expect(meta.fulfillmentReady).toBe(true)
+    expect(meta.fulfillmentReason).toBe("aliexpress")
+    expect(meta.aliexpressProductId).toBe("1005008719608144")
+  })
+
+  it("marks catalog products with SupplierLink as ready", () => {
+    const meta = resolveDropForgeFulfillmentMeta({
+      sourceUrl: "https://www.amazon.fr/dp/B09V3KXJPB",
+      catalogProductId: "prod_1",
+      catalogHasSupplierLink: true,
+    })
+    expect(meta.fulfillmentReady).toBe(true)
+    expect(meta.fulfillmentReason).toBe("catalog_link")
+  })
+
+  it("blocks Amazon/Temu without catalog link", () => {
+    const amazon = resolveDropForgeFulfillmentMeta({
+      sourceUrl: "https://www.amazon.fr/dp/B09V3KXJPB",
+    })
+    expect(amazon.fulfillmentReady).toBe(false)
+    expect(amazon.fulfillmentReason).toBe("pending_ops")
+
+    const temu = resolveDropForgeFulfillmentMeta({
+      sourceUrl: "https://www.temu.com/fr-fr/g-601099512345678.html",
+      catalogProductId: "prod_x",
+      catalogHasSupplierLink: false,
+    })
+    expect(temu.fulfillmentReady).toBe(false)
   })
 })
 

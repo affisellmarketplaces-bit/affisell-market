@@ -14,6 +14,12 @@ import {
   mergeScrapedProducts,
   type DropForgeCompletePreview,
 } from "@/lib/dropforge-complete-import"
+import {
+  catalogProductHasActiveSupplierLink,
+  ensureDropForgeSupplierLink,
+  resolveDropForgeFulfillmentMeta,
+  withDropForgeFulfillment,
+} from "@/lib/dropforge-fulfillment"
 import { validateDropForgeProductUrl } from "@/lib/dropforge-product-url"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { psychologicalPrice } from "@/lib/import/smart-import-enricher"
@@ -313,25 +319,41 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
     const images = catalog.images
       .filter((u) => /^https?:\/\//i.test(u))
       .slice(0, DROPFORGE_MAX_IMAGES)
-    const preview: ResellerImportPreview = {
-      ...emptyDropForgeExtras(),
-      title: catalog.name.slice(0, 200),
-      description: (catalog.description || catalog.name).slice(0, DROPFORGE_MAX_DESC),
-      images,
-      costPrice: cost,
-      suggestedPrice: suggested,
-      profitPerSale: Math.max(0, Number((suggested - cost).toFixed(2))),
-      currency: "EUR",
-      brand: "Generic",
-      category: market.label,
-      stock: Math.max(0, catalog.stock),
-      platform: market.scrapePlatform,
-      marketplaceLabel: market.label,
-      method: "catalog-match",
+    const catalogHasLink = await catalogProductHasActiveSupplierLink(catalog.id)
+    const fulfillment = resolveDropForgeFulfillmentMeta({
       sourceUrl: url,
-      warnings: ["Produit déjà dans le catalogue Affisell — prêt à lister sur ta boutique."],
       catalogProductId: catalog.id,
-    }
+      catalogHasSupplierLink: catalogHasLink,
+    })
+    const preview = withDropForgeFulfillment(
+      {
+        ...emptyDropForgeExtras(),
+        title: catalog.name.slice(0, 200),
+        description: (catalog.description || catalog.name).slice(0, DROPFORGE_MAX_DESC),
+        images,
+        costPrice: cost,
+        suggestedPrice: suggested,
+        profitPerSale: Math.max(0, Number((suggested - cost).toFixed(2))),
+        currency: "EUR",
+        brand: "Generic",
+        category: market.label,
+        stock: Math.max(0, catalog.stock),
+        platform: market.scrapePlatform,
+        marketplaceLabel: market.label,
+        method: "catalog-match",
+        sourceUrl: url,
+        warnings: [
+          "Produit déjà dans le catalogue Affisell — prêt à lister sur ta boutique.",
+          ...(catalogHasLink
+            ? []
+            : [
+                "Catalogue sans SupplierLink — publication live bloquée jusqu’à liaison fournisseur.",
+              ]),
+        ],
+        catalogProductId: catalog.id,
+      },
+      fulfillment
+    )
     if (!isDropForgeImportComplete(preview)) {
       return {
         ok: false,
@@ -345,6 +367,7 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
       result: "catalog_match",
       productId: catalog.id,
       images: images.length,
+      fulfillmentReady: preview.fulfillmentReady,
     })
     return { ok: true, preview }
   }
@@ -390,13 +413,15 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
     }
   }
 
-  const preview = asPreview(product, {
+  const basePreview = asPreview(product, {
     platform,
     method,
     sourceUrl: url,
     marketplaceLabel: market.label,
     warnings,
   })
+  const fulfillment = resolveDropForgeFulfillmentMeta({ sourceUrl: url })
+  const preview = withDropForgeFulfillment(basePreview, fulfillment)
 
   if (!isDropForgeImportComplete(preview)) {
     console.log("[affiliate-url-import]", {
@@ -423,6 +448,7 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
     variants: preview.variants.length,
     videos: preview.videos.length,
     specs: Object.keys(preview.specs).length,
+    fulfillmentReady: preview.fulfillmentReady,
   })
 
   return { ok: true, preview }
@@ -540,7 +566,20 @@ function sanitizeCommitSnapshot(
       typeof o.catalogProductId === "string" ? o.catalogProductId : undefined,
   }
   if (!isDropForgeImportComplete(preview)) return null
-  return preview
+  const fulfillment = resolveDropForgeFulfillmentMeta({
+    sourceUrl,
+    catalogProductId: preview.catalogProductId,
+    catalogHasSupplierLink: o.fulfillmentReason === "catalog_link",
+  })
+  // Prefer server-side AE detection; trust snapshot catalog_link only when flagged.
+  if (o.fulfillmentReady === true && o.fulfillmentReason === "catalog_link") {
+    return withDropForgeFulfillment(preview, {
+      fulfillmentReady: true,
+      fulfillmentReason: "catalog_link",
+      aliexpressProductId: null,
+    })
+  }
+  return withDropForgeFulfillment(preview, fulfillment)
 }
 
 export async function commitResellerUrlImport(args: {
@@ -646,7 +685,32 @@ export async function commitResellerUrlImport(args: {
   const sellingPriceCents = Math.max(costCents + 1, Math.round(sellEur * 100))
   const marginCents = computeAffiliateListingMarginCents(sellingPriceCents, costCents)
 
+  // Resolve fulfillment on the final preview (AE id or catalog with link).
+  {
+    const hasLink = preview.catalogProductId
+      ? await catalogProductHasActiveSupplierLink(preview.catalogProductId)
+      : false
+    const meta = resolveDropForgeFulfillmentMeta({
+      sourceUrl: preview.sourceUrl,
+      catalogProductId: preview.catalogProductId,
+      catalogHasSupplierLink: hasLink,
+    })
+    preview = withDropForgeFulfillment(preview, meta)
+  }
+  const fulfillmentReady = preview.fulfillmentReady === true
+
   let listLive = args.listLive === true
+
+  if (listLive && !fulfillmentReady) {
+    listLive = false
+    console.log("[affiliate-url-import]", {
+      affiliateId: args.affiliateId,
+      result: "forced_draft_no_fulfillment",
+      reason: preview.fulfillmentReason ?? "pending_ops",
+      sourceUrl: preview.sourceUrl.slice(0, 120),
+    })
+  }
+
   if (listLive) {
     const gate = await merchantVerificationGate(args.affiliateId)
     if (!gate.allowed) {
@@ -700,7 +764,7 @@ export async function commitResellerUrlImport(args: {
       shippingCost: persist.shippingCost,
       shipsFrom: persist.shipsFrom,
       hasVariants: persist.variantInputs.length > 0,
-      ...(aeId ? { aliexpressProductId: aeId } : {}),
+      ...(aeId ? { aliexpressProductId: aeId, autoFulfill: true, autoBuyEnabled: true } : {}),
       active: true,
       isDraft: false,
     }
@@ -747,6 +811,20 @@ export async function commitResellerUrlImport(args: {
     }
   }
 
+  // P0: wire SupplierLink so auto-buy no longer fails with NO_SUPPLIER_LINK.
+  const aeIdForLink =
+    preview.aliexpressProductId?.trim() ||
+    parseAliExpressProductId(preview.sourceUrl) ||
+    null
+  if (aeIdForLink && productId) {
+    await ensureDropForgeSupplierLink({
+      productId,
+      sourceUrl: preview.sourceUrl,
+      aeProductId: aeIdForLink,
+      aePriceCents: costCents,
+    })
+  }
+
   const listing = await prisma.affiliateProduct.upsert({
     where: {
       affiliateId_productId: {
@@ -782,6 +860,8 @@ export async function commitResellerUrlImport(args: {
     platform: preview.platform,
     method: preview.method,
     isListed: listing.isListed,
+    fulfillmentReady,
+    supplierLink: Boolean(aeIdForLink),
     images: persist.images.length,
     variants: persist.variantInputs.length,
     specs: persist.attributes.length,

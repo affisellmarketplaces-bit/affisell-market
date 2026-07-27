@@ -64,6 +64,10 @@ export type DropForgeCompletePreview = {
   warnings: string[]
   partial?: boolean
   catalogProductId?: string
+  /** Auto-buy path ready (AliExpress id or catalog SupplierLink). */
+  fulfillmentReady?: boolean
+  fulfillmentReason?: "aliexpress" | "catalog_link" | "pending_ops"
+  aliexpressProductId?: string | null
 }
 
 /** DropForge never accepts an empty shell — title + image + price required. */
