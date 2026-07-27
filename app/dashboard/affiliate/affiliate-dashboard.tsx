@@ -925,15 +925,58 @@ export function AffiliateDashboard({ storeId }: Props) {
                   </div>
                   <button
                     type="button"
+                    role="switch"
+                    aria-checked={discoverUnlistedOnly}
                     onClick={() => setDiscoverUnlistedOnly((v) => !v)}
-                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                    className={cn(
+                      "group relative flex w-full max-w-xl items-center gap-3 overflow-hidden rounded-xl border px-3.5 py-3 text-left transition",
                       discoverUnlistedOnly
-                        ? "border-violet-500 bg-violet-50 text-violet-900 dark:border-violet-600 dark:bg-violet-950/60 dark:text-violet-100"
-                        : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
-                    }`}
+                        ? "border-violet-500/60 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500 text-white shadow-md shadow-violet-500/25 ring-1 ring-violet-400/40"
+                        : "border-violet-300/70 bg-gradient-to-r from-violet-50 via-white to-fuchsia-50 text-violet-950 hover:border-violet-400 hover:shadow-sm dark:border-violet-700/50 dark:from-violet-950/50 dark:via-zinc-950 dark:to-fuchsia-950/30 dark:text-violet-100"
+                    )}
                   >
-                    <Filter className="h-3.5 w-3.5" aria-hidden />
-                    Not in my store yet
+                    <span
+                      className={cn(
+                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                        discoverUnlistedOnly
+                          ? "bg-white/20 text-white"
+                          : "bg-violet-100 text-violet-700 dark:bg-violet-900/60 dark:text-violet-200"
+                      )}
+                      aria-hidden
+                    >
+                      <Filter className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-bold tracking-tight">
+                        Not in my store yet
+                      </span>
+                      <span
+                        className={cn(
+                          "mt-0.5 block text-[11px] leading-snug",
+                          discoverUnlistedOnly
+                            ? "text-violet-100/90"
+                            : "text-violet-700/75 dark:text-violet-300/80"
+                        )}
+                      >
+                        {discoverUnlistedOnly
+                          ? "ON — only products you can still import"
+                          : "Tap to hide SKUs already on your storefront"}
+                      </span>
+                    </span>
+                    <span
+                      className={cn(
+                        "relative h-6 w-11 shrink-0 rounded-full transition",
+                        discoverUnlistedOnly ? "bg-white/30" : "bg-violet-200 dark:bg-violet-800"
+                      )}
+                      aria-hidden
+                    >
+                      <span
+                        className={cn(
+                          "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition",
+                          discoverUnlistedOnly ? "left-[1.375rem]" : "left-0.5"
+                        )}
+                      />
+                    </span>
                   </button>
                 </div>
                 <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto lg:min-w-[13rem]">
