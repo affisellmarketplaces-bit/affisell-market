@@ -3,7 +3,7 @@ import Link from "next/link"
 import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
 import { GlobalRequestButton } from "@/components/reseller/GlobalRequestButton"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
-import { formatRequestRelativeFr } from "@/lib/product-request-types"
+import { formatRequestRelativeFr, formatProductRequestCountries, resolveProductRequestCountries } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -51,7 +51,9 @@ export default async function ResellerRequestsPage() {
           </div>
         ) : (
           <ul className="space-y-3">
-            {rows.map((r) => (
+            {rows.map((r) => {
+              const countries = resolveProductRequestCountries(r)
+              return (
               <li key={r.id}>
                 <Link
                   href={`/dashboard/reseller/requests/${r.id}`}
@@ -60,13 +62,13 @@ export default async function ResellerRequestsPage() {
                   <div>
                     <p className="font-semibold text-zinc-900">{r.title}</p>
                     <p className="mt-0.5 text-xs text-zinc-500">
-                      {r.country} · {r.category} · {r.quantity} pcs ·{" "}
+                      {formatProductRequestCountries(countries)} · {r.category} · {r.quantity} pcs ·{" "}
                       {formatRequestRelativeFr(r.createdAt)}
                       {r.quotesCount > 0 ? ` · ${r.quotesCount} devis` : ""}
                     </p>
                     {r.deliverySLA != null ? (
                       <div className="mt-1.5">
-                        <DeliveryBadge days={r.deliverySLA} country={r.country} />
+                        <DeliveryBadge days={r.deliverySLA} countries={countries} />
                       </div>
                     ) : null}
                   </div>
@@ -83,7 +85,7 @@ export default async function ResellerRequestsPage() {
                   </span>
                 </Link>
               </li>
-            ))}
+            )})}
           </ul>
         )}
       </div>

@@ -80,10 +80,19 @@ export function formatTrustTooltip(metrics: {
 export function quoteVisibilityRank(args: {
   trustScore: number
   deliveryDays: number
-  country: string
+  country?: string
+  countries?: readonly string[]
   getDeliveryScore: (days: number, country: string) => { score: number }
 }): number {
-  const deliveryScore = args.getDeliveryScore(args.deliveryDays, args.country).score
+  const codes =
+    args.countries && args.countries.length > 0
+      ? args.countries
+      : args.country
+        ? [args.country]
+        : ["FR"]
+  const deliveryScore = Math.min(
+    ...codes.map((c) => args.getDeliveryScore(args.deliveryDays, c).score)
+  )
   return args.trustScore * 0.6 + deliveryScore * 0.4
 }
 

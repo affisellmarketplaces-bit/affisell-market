@@ -173,6 +173,97 @@ export function getResellerSlaHint(countryCode: string): string {
   return `Pour ${code}, délai raisonnable: ${sla.idealDays}-${sla.maxDays}j. Au-delà de ${sla.maxDays}j, ton taux de retour augmente de 40%.`
 }
 
+export function getAggregatedSlaForCountries(
+  countryCodes: readonly string[]
+): DeliverySlaBand & { countryCodes: string[] } {
+  const codes =
+    countryCodes.length > 0
+      ? countryCodes.map((c) => normalizeCountryCode(c))
+      : ["FR"]
+  const slas = codes.map(getSLAForCountry)
+  return {
+    idealDays: Math.min(...slas.map((s) => s.idealDays)),
+    maxDays: Math.max(...slas.map((s) => s.maxDays)),
+    label: [...new Set(slas.map((s) => s.label))].join(" / "),
+    priority: Math.max(...slas.map((s) => s.priority)) as 1 | 2 | 3,
+    color: slas.some((s) => s.color === "red")
+      ? "red"
+      : slas.some((s) => s.color === "orange")
+        ? "orange"
+        : "green",
+    countryCodes: codes,
+  }
+}
+
+export function getResellerSlaHintForCountries(countryCodes: readonly string[]): string {
+  const codes =
+    countryCodes.length > 0
+      ? countryCodes.map((c) => normalizeCountryCode(c))
+      : ["FR"]
+  if (codes.length <= 1) return getResellerSlaHint(codes[0] ?? "FR")
+  const agg = getAggregatedSlaForCountries(codes)
+  const perMarket = codes
+    .map((code) => {
+      const sla = getSLAForCountry(code)
+      return `${code} ${sla.idealDays}-${sla.maxDays}j`
+    })
+    .join(" · ")
+  return `Marchés ${codes.join(", ")} — délais raisonnables: ${perMarket}. SLA combiné max ${agg.maxDays}j. Au-delà, ton taux de retour augmente de 40%.`
+}
+
+export function resolveDeliverySLAForCountries(
+  countryCodes: readonly string[],
+  priority: DeliveryPriority = "balanced"
+): number {
+  const codes =
+    countryCodes.length > 0
+      ? countryCodes.map((c) => normalizeCountryCode(c))
+      : ["FR"]
+  return Math.max(...codes.map((c) => resolveDeliverySLA(c, priority)))
+}
+
+export function isDeliveryAcceptableForCountries(
+  deliveryDays: number,
+  countryCodes: readonly string[]
+): boolean {
+  const codes =
+    countryCodes.length > 0
+      ? countryCodes.map((c) => normalizeCountryCode(c))
+      : ["FR"]
+  return codes.every((c) => isDeliveryAcceptable(deliveryDays, c))
+}
+
+export function getDeliveryScoreForCountries(
+  deliveryDays: number,
+  countryCodes: readonly string[]
+): DeliveryScore {
+  const codes =
+    countryCodes.length > 0
+      ? countryCodes.map((c) => normalizeCountryCode(c))
+      : ["FR"]
+  return codes
+    .map((c) => getDeliveryScore(deliveryDays, c))
+    .reduce((worst, scored) => (scored.score < worst.score ? scored : worst))
+}
+
+export function getSupplierDeliveryFeedbackForCountries(
+  deliveryDays: number,
+  countryCodes: readonly string[]
+): { tone: "boost" | "ok" | "warn"; message: string } {
+  const codes =
+    countryCodes.length > 0
+      ? countryCodes.map((c) => normalizeCountryCode(c))
+      : ["FR"]
+  const parts = codes.map((c) => getSupplierDeliveryFeedback(deliveryDays, c))
+  const toneRank = { warn: 0, ok: 1, boost: 2 } as const
+  const worst = parts.reduce((a, b) => (toneRank[a.tone] < toneRank[b.tone] ? a : b))
+  if (codes.length <= 1) return worst
+  return {
+    tone: worst.tone,
+    message: `${worst.message} (tous marchés: ${codes.join(", ")})`,
+  }
+}
+
 export function getSupplierDeliveryFeedback(
   deliveryDays: number,
   countryCode: string

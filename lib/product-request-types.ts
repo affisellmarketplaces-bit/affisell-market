@@ -9,7 +9,9 @@ export type ProductRequestDto = {
   category: string
   quantity: number
   targetPrice: number | null
+  /** Primary market (countries[0]) — legacy single-country field. */
   country: string
+  countries: string[]
   imageUrl: string | null
   status: string
   quotesCount: number
@@ -63,6 +65,50 @@ export const PRODUCT_REQUEST_COUNTRIES = [
   "MX",
 ] as const
 
+const PRODUCT_REQUEST_COUNTRY_SET = new Set<string>(PRODUCT_REQUEST_COUNTRIES)
+
+/** Parse API body / URL params into validated ISO2 list (≥1). */
+export function parseProductRequestCountries(raw: unknown): string[] {
+  if (Array.isArray(raw)) {
+    const parsed = [
+      ...new Set(
+        raw
+          .filter((c): c is string => typeof c === "string")
+          .map((c) => c.trim().toUpperCase())
+          .filter((c) => c.length === 2 && PRODUCT_REQUEST_COUNTRY_SET.has(c))
+      ),
+    ]
+    if (parsed.length > 0) return parsed
+  }
+  if (typeof raw === "string" && raw.trim()) {
+    const fromCsv = raw
+      .split(/[,;\s]+/)
+      .map((c) => c.trim().toUpperCase())
+      .filter((c) => c.length === 2 && PRODUCT_REQUEST_COUNTRY_SET.has(c))
+    if (fromCsv.length > 0) return [...new Set(fromCsv)]
+    if (raw.trim().length === 2) {
+      const c = raw.trim().toUpperCase()
+      if (PRODUCT_REQUEST_COUNTRY_SET.has(c)) return [c]
+    }
+  }
+  return ["FR"]
+}
+
+export function resolveProductRequestCountries(row: {
+  countries?: string[] | null
+  country?: string | null
+}): string[] {
+  if (Array.isArray(row.countries) && row.countries.length > 0) {
+    return row.countries.map((c) => c.trim().toUpperCase()).filter(Boolean)
+  }
+  const c = row.country?.trim().toUpperCase()
+  return c ? [c] : ["FR"]
+}
+
+export function formatProductRequestCountries(countries: readonly string[]): string {
+  return countries.join(", ")
+}
+
 export function formatRequestRelativeFr(iso: string | Date): string {
   const d = typeof iso === "string" ? new Date(iso) : iso
   const diffMs = Date.now() - d.getTime()
@@ -85,6 +131,7 @@ export function serializeProductRequest(row: {
   quantity: number
   targetPrice: number | null
   country: string
+  countries?: string[] | null
   imageUrl: string | null
   status: string
   quotesCount: number
@@ -92,6 +139,7 @@ export function serializeProductRequest(row: {
   deliveryPriority: string
   createdAt: Date
 }): ProductRequestDto {
+  const countries = resolveProductRequestCountries(row)
   return {
     id: row.id,
     resellerId: row.resellerId,
@@ -101,7 +149,8 @@ export function serializeProductRequest(row: {
     category: row.category,
     quantity: row.quantity,
     targetPrice: row.targetPrice,
-    country: row.country,
+    country: countries[0] ?? row.country,
+    countries,
     imageUrl: row.imageUrl,
     status: row.status,
     quotesCount: row.quotesCount,

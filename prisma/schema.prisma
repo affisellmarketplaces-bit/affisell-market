@@ -3550,7 +3550,10 @@ model ProductRequest {
   category          String         @default("general")
   quantity          Int            @default(100)
   targetPrice       Float?
+  /** Primary market — kept in sync with countries[0] for legacy reads. */
   country           String         @default("FR")
+  /** Reseller promotion destinations (1+ ISO2 codes). */
+  countries         String[]       @default(["FR"])
   imageUrl          String?
   status            String         @default("open") // open, closed, fulfilled
   quotesCount       Int            @default(0)

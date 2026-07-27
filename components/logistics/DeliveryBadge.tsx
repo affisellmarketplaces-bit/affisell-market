@@ -1,6 +1,7 @@
 import {
   formatQuoteDeliveryCell,
   getDeliveryScore,
+  getDeliveryScoreForCountries,
   type DeliverySlaColor,
 } from "@/lib/logistics/delivery-sla"
 import { cn } from "@/lib/utils"
@@ -13,18 +14,36 @@ const COLOR_CLASS: Record<DeliverySlaColor, string> = {
 
 type Props = {
   days: number
-  country: string
+  /** Legacy single market — use countries when several destinations. */
+  country?: string
+  countries?: readonly string[]
   className?: string
   /** compact = short badge; full = quote-table style with SLA key */
   variant?: "compact" | "full"
 }
 
+function resolveDeliveryCountries(args: {
+  country?: string
+  countries?: readonly string[]
+}): string[] {
+  if (args.countries && args.countries.length > 0) return [...args.countries]
+  if (args.country?.trim()) return [args.country.trim().toUpperCase()]
+  return ["FR"]
+}
+
 /** Visual SLA badge — green boost / orange ok / red penalty. */
-export function DeliveryBadge({ days, country, className, variant = "compact" }: Props) {
-  const scored = getDeliveryScore(days, country)
+export function DeliveryBadge({ days, country, countries, className, variant = "compact" }: Props) {
+  const marketCodes = resolveDeliveryCountries({ country, countries })
+  const scored =
+    marketCodes.length > 1
+      ? getDeliveryScoreForCountries(days, marketCodes)
+      : getDeliveryScore(days, marketCodes[0] ?? "FR")
+  const primaryCountry = marketCodes[0] ?? "FR"
   const text =
     variant === "full"
-      ? formatQuoteDeliveryCell(days, country)
+      ? marketCodes.length > 1
+        ? `${formatQuoteDeliveryCell(days, primaryCountry)} · ${marketCodes.join(", ")}`
+        : formatQuoteDeliveryCell(days, primaryCountry)
       : `${days}j ${scored.label}`
 
   return (
@@ -34,7 +53,11 @@ export function DeliveryBadge({ days, country, className, variant = "compact" }:
         COLOR_CLASS[scored.color],
         className
       )}
-      title={formatQuoteDeliveryCell(days, country)}
+      title={
+        marketCodes.length > 1
+          ? `${formatQuoteDeliveryCell(days, primaryCountry)} (${marketCodes.join(", ")})`
+          : formatQuoteDeliveryCell(days, primaryCountry)
+      }
     >
       {variant === "full" ? text : `${scored.emoji} ${text}`}
     </span>

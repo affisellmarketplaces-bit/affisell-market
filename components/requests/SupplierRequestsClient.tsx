@@ -5,6 +5,7 @@ import { useState } from "react"
 import useSWR from "swr"
 
 import {
+  formatProductRequestCountries,
   formatRequestRelativeFr,
   PRODUCT_REQUEST_CATEGORIES,
   type ProductRequestDto,
@@ -108,7 +109,7 @@ export function SupplierRequestsClient() {
                 <div>
                   <p className="font-semibold text-zinc-900">{r.title}</p>
                   <p className="mt-0.5 text-xs text-zinc-500">
-                    {r.country} · {r.category} · {r.quantity} pcs ·{" "}
+                    {formatProductRequestCountries(r.countries)} · {r.category} · {r.quantity} pcs ·{" "}
                     {formatRequestRelativeFr(r.createdAt)}
                     {r.deliverySLA != null ? ` · SLA ≤${r.deliverySLA}j` : ""}
                     {r.myQuoteStatus ? ` · mon devis: ${r.myQuoteStatus}` : ""}

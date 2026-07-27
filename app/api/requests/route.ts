@@ -2,13 +2,17 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import {
-  getSLAForCountry,
-  isDeliveryAcceptable,
+  getAggregatedSlaForCountries,
+  isDeliveryAcceptableForCountries,
   parseDeliveryPriority,
-  resolveDeliverySLA,
+  resolveDeliverySLAForCountries,
 } from "@/lib/logistics/delivery-sla"
 import { PRODUCT_REQUEST_NOTIF } from "@/lib/product-request-notif-constants"
-import { serializeProductRequest } from "@/lib/product-request-types"
+import {
+  parseProductRequestCountries,
+  resolveProductRequestCountries,
+  serializeProductRequest,
+} from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -32,6 +36,7 @@ type PostBody = {
   quantity?: unknown
   targetPrice?: unknown
   country?: unknown
+  countries?: unknown
   imageUrl?: unknown
   deliveryPriority?: unknown
 }
@@ -87,16 +92,16 @@ export async function POST(req: Request) {
     typeof body.targetPrice === "number" && Number.isFinite(body.targetPrice) && body.targetPrice > 0
       ? body.targetPrice
       : null
-  const country =
-    typeof body.country === "string" && body.country.trim().length === 2
-      ? body.country.trim().toUpperCase()
-      : "FR"
+  const countries = parseProductRequestCountries(
+    body.countries ?? body.country ?? "FR"
+  )
+  const country = countries[0] ?? "FR"
   const imageUrl =
     typeof body.imageUrl === "string" && body.imageUrl.trim().startsWith("http")
       ? body.imageUrl.trim().slice(0, 2000)
       : null
   const deliveryPriority = parseDeliveryPriority(body.deliveryPriority)
-  const deliverySLA = resolveDeliverySLA(country, deliveryPriority)
+  const deliverySLA = resolveDeliverySLAForCountries(countries, deliveryPriority)
 
   const email = session.user.email?.trim() || `${session.user.id}@affisell.local`
 
@@ -110,19 +115,28 @@ export async function POST(req: Request) {
       quantity,
       targetPrice,
       country,
+      countries,
       imageUrl,
       status: "open",
       quotesCount: 0,
       deliverySLA,
       deliveryPriority,
     },
-    select: { id: true, title: true, country: true, category: true, deliverySLA: true },
+    select: {
+      id: true,
+      title: true,
+      country: true,
+      countries: true,
+      category: true,
+      deliverySLA: true,
+    },
   })
 
   console.log("[NEW REQUEST]", {
     id: created.id,
     title: created.title,
     country: created.country,
+    countries: created.countries,
     category: created.category,
     deliverySLA: created.deliverySLA,
     result: "Alert suppliers",
@@ -233,6 +247,7 @@ export async function GET(req: Request) {
       quantity: number
       targetPrice: number | null
       country: string
+      countries?: string[] | null
       imageUrl: string | null
       status: string
       quotesCount: number
@@ -242,9 +257,11 @@ export async function GET(req: Request) {
     }>
   ) {
     const mapped = rows.map((r) => {
-      const maxDays = r.deliverySLA ?? getSLAForCountry(r.country).maxDays
+      const countries = resolveProductRequestCountries(r)
+      const maxDays =
+        r.deliverySLA ?? getAggregatedSlaForCountries(countries).maxDays
       const slaCompatible =
-        typicalDays <= maxDays || isDeliveryAcceptable(typicalDays, r.country)
+        typicalDays <= maxDays || isDeliveryAcceptableForCountries(typicalDays, countries)
       return {
         ...serializeProductRequest(r),
         slaCompatible,

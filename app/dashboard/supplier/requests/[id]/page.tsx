@@ -4,7 +4,7 @@ import { notFound } from "next/navigation"
 import { SupplierTrustSelfCard } from "@/components/logistics/SupplierTrustSelfCard"
 import { SupplierQuoteForm } from "@/components/requests/SupplierQuoteForm"
 import { requireSupplierSession } from "@/lib/dashboard-session"
-import { formatRequestRelativeFr, serializeProductQuote } from "@/lib/product-request-types"
+import { formatRequestRelativeFr, formatProductRequestCountries, resolveProductRequestCountries, serializeProductQuote } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -17,6 +17,8 @@ export default async function SupplierRequestDetailPage({ params }: PageProps) {
 
   const request = await prisma.productRequest.findUnique({ where: { id } })
   if (!request) notFound()
+
+  const countries = resolveProductRequestCountries(request)
 
   const myQuote = await prisma.productQuote.findUnique({
     where: {
@@ -40,7 +42,7 @@ export default async function SupplierRequestDetailPage({ params }: PageProps) {
           </Link>
           <h1 className="mt-2 text-xl font-bold text-zinc-900">{request.title}</h1>
           <p className="mt-1 text-xs text-zinc-500">
-            {request.country} · {request.category} · {request.quantity} pcs ·{" "}
+            {formatProductRequestCountries(countries)} · {request.category} · {request.quantity} pcs ·{" "}
             {formatRequestRelativeFr(request.createdAt)} · {request.status}
             {request.quotesCount > 0 ? ` · ${request.quotesCount} devis` : ""}
           </p>
@@ -76,7 +78,7 @@ export default async function SupplierRequestDetailPage({ params }: PageProps) {
         {request.status === "open" || myQuote ? (
           <SupplierQuoteForm
             requestId={request.id}
-            requestCountry={request.country}
+            requestCountries={countries}
             existingQuote={myQuote ? serializeProductQuote(myQuote) : null}
           />
         ) : (

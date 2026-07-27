@@ -1,18 +1,21 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { useMemo, useState, type FormEvent } from "react"
+import { useCallback, useMemo, useState, type FormEvent } from "react"
 import { toast } from "sonner"
 
 import {
-  getResellerSlaHint,
-  getSLAForCountry,
+  getAggregatedSlaForCountries,
+  getResellerSlaHintForCountries,
   type DeliveryPriority,
+  resolveDeliverySLAForCountries,
 } from "@/lib/logistics/delivery-sla"
 import {
   PRODUCT_REQUEST_CATEGORIES,
+  parseProductRequestCountries,
   PRODUCT_REQUEST_COUNTRIES,
 } from "@/lib/product-request-types"
+import { cn } from "@/lib/utils"
 
 const PRIORITY_OPTIONS: Array<{
   id: DeliveryPriority
@@ -32,11 +35,15 @@ export function ResellerRequestForm() {
   const defaults = useMemo(() => {
     const q = searchParams.get("q")?.trim() ?? ""
     const titleParam = searchParams.get("title")?.trim() ?? ""
+    const countriesParam =
+      searchParams.get("countries")?.trim() ||
+      searchParams.get("country")?.trim() ||
+      "FR"
     return {
       title: titleParam || q,
       q,
       category: (searchParams.get("category")?.trim().toLowerCase() || "general") as string,
-      country: (searchParams.get("country")?.trim().toUpperCase() || "FR") as string,
+      countries: parseProductRequestCountries(countriesParam),
     }
   }, [searchParams])
 
@@ -48,33 +55,40 @@ export function ResellerRequestForm() {
       ? defaults.category
       : "general"
   )
-  const [country, setCountry] = useState(
-    PRODUCT_REQUEST_COUNTRIES.includes(
-      defaults.country as (typeof PRODUCT_REQUEST_COUNTRIES)[number]
-    )
-      ? defaults.country
-      : "FR"
-  )
+  const [countries, setCountries] = useState<string[]>(defaults.countries)
   const [quantity, setQuantity] = useState(100)
   const [targetPrice, setTargetPrice] = useState("")
   const [description, setDescription] = useState("")
   const [imageUrl, setImageUrl] = useState("")
   const [deliveryPriority, setDeliveryPriority] = useState<DeliveryPriority>("balanced")
 
-  const sla = getSLAForCountry(country)
-  const slaHint = getResellerSlaHint(country)
-  const priorityDays =
-    deliveryPriority === "speed"
-      ? sla.idealDays
-      : deliveryPriority === "price"
-        ? Math.max(sla.maxDays, 10)
-        : sla.maxDays
+  const toggleCountry = useCallback((code: string) => {
+    setCountries((prev) => {
+      if (prev.includes(code)) {
+        const next = prev.filter((c) => c !== code)
+        return next.length > 0 ? next : prev
+      }
+      return [...prev, code].sort(
+        (a, b) =>
+          PRODUCT_REQUEST_COUNTRIES.indexOf(a as (typeof PRODUCT_REQUEST_COUNTRIES)[number]) -
+          PRODUCT_REQUEST_COUNTRIES.indexOf(b as (typeof PRODUCT_REQUEST_COUNTRIES)[number])
+      )
+    })
+  }, [])
+
+  const sla = getAggregatedSlaForCountries(countries)
+  const slaHint = getResellerSlaHintForCountries(countries)
+  const priorityDays = resolveDeliverySLAForCountries(countries, deliveryPriority)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     if (busy) return
     if (title.trim().length < 2) {
       toast.error("Titre requis")
+      return
+    }
+    if (countries.length < 1) {
+      toast.error("Sélectionne au moins un pays")
       return
     }
     setBusy(true)
@@ -90,7 +104,7 @@ export function ResellerRequestForm() {
           category,
           quantity,
           targetPrice: priceNum != null && Number.isFinite(priceNum) ? priceNum : null,
-          country,
+          countries,
           imageUrl: imageUrl.trim() || null,
           deliveryPriority,
         }),
@@ -151,21 +165,35 @@ export function ResellerRequestForm() {
           </select>
         </div>
         <div>
-          <label className="text-xs font-semibold text-zinc-700" htmlFor="req-country">
-            Pays
-          </label>
-          <select
-            id="req-country"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
+          <p className="text-xs font-semibold text-zinc-700" id="req-countries-label">
+            Pays de promotion *
+          </p>
+          <p className="mt-0.5 text-[11px] text-zinc-500">Un ou plusieurs marchés ciblés</p>
+          <div
+            className="mt-2 flex flex-wrap gap-1.5"
+            role="group"
+            aria-labelledby="req-countries-label"
           >
-            {PRODUCT_REQUEST_COUNTRIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+            {PRODUCT_REQUEST_COUNTRIES.map((code) => {
+              const selected = countries.includes(code)
+              return (
+                <button
+                  key={code}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => toggleCountry(code)}
+                  className={cn(
+                    "rounded-lg border px-2.5 py-1 text-xs font-semibold tabular-nums transition",
+                    selected
+                      ? "border-violet-500 bg-violet-600 text-white shadow-sm"
+                      : "border-zinc-200 bg-white text-zinc-600 hover:border-violet-300 hover:bg-violet-50"
+                  )}
+                >
+                  {code}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
@@ -191,7 +219,8 @@ export function ResellerRequestForm() {
               <span className="font-medium text-zinc-900">
                 {opt.label}{" "}
                 <span className="text-xs font-normal text-zinc-500">
-                  ({opt.id === "speed"
+                  (
+                  {opt.id === "speed"
                     ? `${sla.idealDays}j`
                     : opt.id === "balanced"
                       ? `${sla.maxDays}j max`

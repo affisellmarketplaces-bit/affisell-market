@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 
 import { ResellerQuotesComparator } from "@/components/requests/ResellerQuotesComparator"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
-import { formatRequestRelativeFr, serializeProductQuote } from "@/lib/product-request-types"
+import { formatRequestRelativeFr, formatProductRequestCountries, resolveProductRequestCountries, serializeProductQuote } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -18,6 +18,8 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
     where: { id, resellerId: session.user.id },
   })
   if (!request) notFound()
+
+  const countries = resolveProductRequestCountries(request)
 
   const quotes = await prisma.productQuote.findMany({
     where: { requestId: id },
@@ -59,7 +61,7 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
             </Link>
             <h1 className="mt-2 text-xl font-bold text-zinc-900">{request.title}</h1>
             <p className="mt-1 text-xs text-zinc-500">
-              {request.country} · {request.category} · {request.quantity} pcs ·{" "}
+              {formatProductRequestCountries(countries)} · {request.category} · {request.quantity} pcs ·{" "}
               {formatRequestRelativeFr(request.createdAt)}
             </p>
           </div>
@@ -85,7 +87,7 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
         <ResellerQuotesComparator
           requestId={request.id}
           requestStatus={request.status}
-          requestCountry={request.country}
+          requestCountries={countries}
           quotes={quotes.map(serializeProductQuote)}
           winningListingId={listing?.id ?? null}
           alreadyReviewedQuoteId={existingReview?.quoteId ?? null}

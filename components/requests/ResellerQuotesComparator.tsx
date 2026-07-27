@@ -17,14 +17,14 @@ import type { ProductQuoteDto } from "@/lib/product-request-types"
 export function ResellerQuotesComparator({
   requestId,
   requestStatus,
-  requestCountry,
+  requestCountries,
   quotes,
   winningListingId,
   alreadyReviewedQuoteId,
 }: {
   requestId: string
   requestStatus: string
-  requestCountry: string
+  requestCountries: string[]
   quotes: ProductQuoteDto[]
   winningListingId: string | null
   alreadyReviewedQuoteId?: string | null
@@ -47,19 +47,19 @@ export function ResellerQuotesComparator({
       const ra = quoteVisibilityRank({
         trustScore: ta,
         deliveryDays: a.deliveryDays,
-        country: requestCountry,
+        countries: requestCountries,
         getDeliveryScore,
       })
       const rb = quoteVisibilityRank({
         trustScore: tb,
         deliveryDays: b.deliveryDays,
-        country: requestCountry,
+        countries: requestCountries,
         getDeliveryScore,
       })
       if (rb !== ra) return rb - ra
       return a.price - b.price
     })
-  }, [quotes, metricsMap, requestCountry])
+  }, [quotes, metricsMap, requestCountries])
 
   async function accept(quoteId: string) {
     setPendingId(quoteId)
@@ -136,7 +136,7 @@ export function ResellerQuotesComparator({
             <strong>{accepted.supplierName || accepted.supplierEmail || "Fournisseur"}</strong> —{" "}
             {accepted.price}€ · MOQ {accepted.moq}
           </span>
-          <DeliveryBadge days={accepted.deliveryDays} country={requestCountry} variant="full" />
+          <DeliveryBadge days={accepted.deliveryDays} countries={requestCountries} variant="full" />
           <SupplierTrustBadge
             trustScore={metricsMap[accepted.supplierId]?.trustScore ?? 75}
             totalOrders={metricsMap[accepted.supplierId]?.totalOrders}
@@ -193,7 +193,7 @@ export function ResellerQuotesComparator({
                     <td className="px-3 py-3 font-semibold">{q.price}€</td>
                     <td className="px-3 py-3">{q.moq}</td>
                     <td className="px-3 py-3">
-                      <DeliveryBadge days={q.deliveryDays} country={requestCountry} variant="full" />
+                      <DeliveryBadge days={q.deliveryDays} countries={requestCountries} variant="full" />
                     </td>
                     <td className="px-3 py-3">
                       <SupplierTrustBadge

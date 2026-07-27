@@ -6,16 +6,16 @@ import { useMemo, useState, type FormEvent } from "react"
 import { toast } from "sonner"
 
 import { DeliveryBadge } from "@/components/logistics/DeliveryBadge"
-import { getSupplierDeliveryFeedback } from "@/lib/logistics/delivery-sla"
+import { getSupplierDeliveryFeedbackForCountries } from "@/lib/logistics/delivery-sla"
 import type { ProductQuoteDto } from "@/lib/product-request-types"
 
 export function SupplierQuoteForm({
   requestId,
-  requestCountry,
+  requestCountries,
   existingQuote,
 }: {
   requestId: string
-  requestCountry: string
+  requestCountries: string[]
   existingQuote: ProductQuoteDto | null
 }) {
   const router = useRouter()
@@ -28,8 +28,8 @@ export function SupplierQuoteForm({
   const daysNum = Number(deliveryDays)
   const feedback = useMemo(() => {
     if (!Number.isFinite(daysNum) || daysNum < 1) return null
-    return getSupplierDeliveryFeedback(daysNum, requestCountry)
-  }, [daysNum, requestCountry])
+    return getSupplierDeliveryFeedbackForCountries(daysNum, requestCountries)
+  }, [daysNum, requestCountries])
 
   if (existingQuote) {
     return (
@@ -62,7 +62,7 @@ export function SupplierQuoteForm({
             <dd className="mt-0.5">
               <DeliveryBadge
                 days={existingQuote.deliveryDays}
-                country={requestCountry}
+                countries={requestCountries}
                 variant="full"
               />
             </dd>

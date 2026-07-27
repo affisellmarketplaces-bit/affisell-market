@@ -4,6 +4,7 @@ import Link from "next/link"
 import useSWR from "swr"
 
 import {
+  formatProductRequestCountries,
   formatRequestRelativeFr,
   type ProductRequestDto,
 } from "@/lib/product-request-types"
@@ -47,7 +48,7 @@ export function SupplierProductRequestsTeaser() {
                 href={`/dashboard/supplier/requests/${r.id}`}
                 className="text-xs font-medium text-orange-950 hover:underline"
               >
-                {r.country} — {r.title} — {r.quantity}pcs — {formatRequestRelativeFr(r.createdAt)}
+                {formatProductRequestCountries(r.countries)} — {r.title} — {r.quantity}pcs — {formatRequestRelativeFr(r.createdAt)}
                 {r.quotesCount > 0 ? ` · ${r.quotesCount} devis` : ""}
               </Link>
             </li>
