@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { CalendarCheck, Handshake, LayoutDashboard, Package, Rocket, ShoppingCart } from "lucide-react"
+import { CalendarCheck, Flame, Handshake, LayoutDashboard, Package, Rocket, ShoppingCart, Sparkles } from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -12,6 +12,8 @@ import { MerchantAccountNavActions } from "@/components/merchant-account-nav-act
 import { RadarNavPill } from "@/components/radar/radar-nav-pill"
 import { SupplierBookingNavBadge } from "@/components/supplier/supplier-booking-nav-badge"
 import { SupplierNotificationsMenu } from "@/components/supplier/supplier-notifications-menu"
+import { DROPFORGE_HREF } from "@/lib/affiliate-onboarding-shared"
+import { MAGIC_SYSTEMS_HREF } from "@/lib/magic-systems-catalog"
 import { cn } from "@/lib/utils"
 
 const navScrollClass =
@@ -28,6 +30,8 @@ export function NavSupplier() {
   const onProducts = pathname.startsWith("/dashboard/supplier/products")
   const onInviteAffiliate = pathname.startsWith("/dashboard/supplier/invite-affiliate")
   const onPromote = pathname.startsWith("/dashboard/supplier/promote")
+  const onDropForge = pathname === DROPFORGE_HREF || pathname.startsWith(`${DROPFORGE_HREF}?`)
+  const onLab = pathname === MAGIC_SYSTEMS_HREF || pathname.startsWith(`${MAGIC_SYSTEMS_HREF}/`)
 
   return (
     <nav
@@ -43,6 +47,20 @@ export function NavSupplier() {
 
       <div className={cn(navScrollClass, "order-4 w-full md:order-none md:min-w-0 md:flex-1")}>
         <NavPill href="/dashboard/supplier" label={t("dashboard")} icon={LayoutDashboard} active={onDashboard} />
+        <NavPill
+          href={DROPFORGE_HREF}
+          label={t("dropforge")}
+          shortLabel={t("dropforgeShort")}
+          icon={Flame}
+          active={onDropForge}
+        />
+        <NavPill
+          href={MAGIC_SYSTEMS_HREF}
+          label={t("magicLab")}
+          shortLabel={t("magicLabShort")}
+          icon={Sparkles}
+          active={onLab}
+        />
         <RadarNavPill variant="supplier" />
         <NavPill href="/dashboard/supplier/orders" label={t("orders")} icon={ShoppingCart} active={onOrders} />
         <SupplierBookingNavBadge>

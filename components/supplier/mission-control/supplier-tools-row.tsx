@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Landmark, Layers, Plug, Puzzle, Upload } from "lucide-react"
+import { Flame, Landmark, Layers, Plug, Puzzle, Sparkles, Upload } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import {
@@ -8,9 +8,13 @@ import {
   missionControlDivider,
   missionControlIconMuted,
 } from "@/components/supplier/mission-control/mission-control-affisell-shell"
+import { DROPFORGE_HREF } from "@/lib/affiliate-onboarding-shared"
+import { MAGIC_SYSTEMS_HREF } from "@/lib/magic-systems-catalog"
 import { cn } from "@/lib/utils"
 
 const toolKeys = [
+  { key: "dropforge" as const, href: DROPFORGE_HREF, Icon: Flame },
+  { key: "magicLab" as const, href: MAGIC_SYSTEMS_HREF, Icon: Sparkles },
   { key: "import" as const, href: "/dashboard/supplier/import", Icon: Upload },
   { key: "extension" as const, href: "/dashboard/supplier/extension", Icon: Puzzle },
   { key: "finances" as const, href: "/dashboard/supplier/balance", Icon: Landmark },
@@ -28,7 +32,16 @@ export async function SupplierToolsRow() {
       </h2>
       <div className="flex flex-wrap gap-2">
         {toolKeys.map(({ key, href, Icon }) => (
-          <Link key={key} href={href} className={cn("group inline-flex items-center gap-2", missionControlChip)}>
+          <Link
+            key={key}
+            href={href}
+            className={cn(
+              "group inline-flex items-center gap-2",
+              missionControlChip,
+              key === "dropforge" &&
+                "border-violet-400/35 bg-violet-500/10 text-violet-100 ring-1 ring-violet-400/20"
+            )}
+          >
             <Icon className={cn("h-4 w-4 shrink-0", missionControlIconMuted)} aria-hidden />
             {t(key)}
           </Link>

@@ -174,6 +174,7 @@ export async function Footer() {
               <FooterNavLink href="/#explorer">{t("product.exploreCatalog")}</FooterNavLink>
               <FooterNavLink href="/sell">{t("product.sellOnAffisell")}</FooterNavLink>
               <FooterNavLink href="/discover">{t("product.liveShopping")}</FooterNavLink>
+              <FooterNavLink href="/lab">{t("product.magicSystems")}</FooterNavLink>
               <FooterNavLink href="/sell/affiliate-program">{t("product.affiliateProgram")}</FooterNavLink>
             </ul>
           </nav>

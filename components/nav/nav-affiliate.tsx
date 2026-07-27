@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { Suspense } from "react"
 import { useTranslations } from "next-intl"
-import { Handshake, Gift, LayoutDashboard, Layers, Palette, Rocket, Store, TrendingUp, Wallet } from "lucide-react"
+import { Handshake, Gift, LayoutDashboard, Layers, Palette, Rocket, Sparkles, Store, TrendingUp, Wallet } from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -21,6 +21,7 @@ import {
   AFFILIATE_HUB_PATH,
   PUBLIC_SHOPS_PATH,
 } from "@/lib/affiliate-routes"
+import { MAGIC_SYSTEMS_HREF } from "@/lib/magic-systems-catalog"
 import { cn } from "@/lib/utils"
 
 const navScrollClass =
@@ -76,6 +77,7 @@ export function NavAffiliate() {
   const onReferral = pathname.startsWith("/dashboard/affiliate/referral")
   const onBrandStudio = pathname.startsWith("/dashboard/affiliate/brand-studio")
   const onPromote = pathname.startsWith("/dashboard/affiliate/promote")
+  const onLab = pathname === MAGIC_SYSTEMS_HREF || pathname.startsWith(`${MAGIC_SYSTEMS_HREF}/`)
   const onRequests =
     pathname.startsWith("/dashboard/reseller/requests") || pathname === "/dashboard/reseller"
   const onShops =
@@ -91,7 +93,8 @@ export function NavAffiliate() {
       !onInviteSupplier &&
       !onReferral &&
       !onBrandStudio &&
-      !onPromote)
+      !onPromote &&
+      !onLab)
 
   return (
     <nav
@@ -140,6 +143,13 @@ export function NavAffiliate() {
           shortLabel="Swipe"
           icon={Layers}
           active={onHub}
+        />
+        <NavPill
+          href={MAGIC_SYSTEMS_HREF}
+          label={t("magicLab")}
+          shortLabel={t("magicLabShort")}
+          icon={Sparkles}
+          active={onLab}
         />
         <NavPill
           href="/dashboard/affiliate/promote"

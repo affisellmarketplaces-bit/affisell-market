@@ -44,6 +44,8 @@ describe("isStaticAppPathname", () => {
     expect(isStaticAppPathname("/fr/import")).toBe(true)
     expect(isStaticAppPathname("/dropforge")).toBe(true)
     expect(isStaticAppPathname("/fr/dropforge")).toBe(true)
+    expect(isStaticAppPathname("/lab")).toBe(true)
+    expect(isStaticAppPathname("/fr/lab")).toBe(true)
     expect(isStaticAppPathname("/pulse")).toBe(true)
     expect(isStaticAppPathname("/pulse/battle")).toBe(true)
     expect(isStaticAppPathname("/fr/pulse/battle")).toBe(true)

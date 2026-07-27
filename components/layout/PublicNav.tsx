@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Truck,
   User,
+  Wand2,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
@@ -240,6 +241,14 @@ export function PublicNav() {
         active={onDiscover}
         activeVariant="brand"
         showNewBadge
+      />
+      <NavPill
+        href="/lab"
+        label={t("magicLab")}
+        shortLabel={t("magicLabShort")}
+        icon={Wand2}
+        active={pathname === "/lab" || pathname.startsWith("/lab/")}
+        activeVariant="brand"
       />
       <NavPill
         href="/shops"

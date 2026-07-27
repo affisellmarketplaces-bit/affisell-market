@@ -33,7 +33,9 @@
       "referral": "Referrals",
       "referralShort": "Refer",
       "brandStudio": "Brand Studio",
-      "brandStudioShort": "Brand"
+      "brandStudioShort": "Brand",
+      "magicLab": "Magic Systems",
+      "magicLabShort": "Lab"
     },
     "supplier": {
       "badge": "Supplier",
@@ -42,7 +44,11 @@
       "bookings": "Bookings",
       "products": "Products",
       "inviteAffiliate": "Invite affiliate",
-      "inviteAffiliateShort": "Invite"
+      "inviteAffiliateShort": "Invite",
+      "dropforge": "DropForge",
+      "dropforgeShort": "Forge",
+      "magicLab": "Magic Systems",
+      "magicLabShort": "Lab"
     },
     "accountMenu": {
       "aria": "Account menu",
@@ -91,7 +97,9 @@
     "trustStripDismiss": "Dismiss",
     "agentEntry": "Agent",
     "pulseEntry": "Affisell Pulse",
-    "pulseEntryShort": "Pulse"
+    "pulseEntryShort": "Pulse",
+    "magicLab": "Magic Systems",
+    "magicLabShort": "Lab"
   },
   "slogans": {
     "buyer": {
@@ -2053,7 +2061,9 @@
       "extension": "Extension",
       "finances": "Finances",
       "integrations": "Integrations",
-      "supply": "Supply"
+      "supply": "Supply",
+      "dropforge": "DropForge",
+      "magicLab": "Magic Systems"
     },
     "autoBuyPilot": {
       "title": "Auto-buy Pilot",
@@ -3692,7 +3702,9 @@
       "signIn": "Sign in",
       "createBuyerAccount": "Create buyer account",
       "settings": "Settings",
-      "signOut": "Sign out"
+      "signOut": "Sign out",
+      "dropforge": "DropForge",
+      "magicLab": "Magic Systems"
     }
   },
   "footer": {
@@ -3802,7 +3814,8 @@
       "topCreators": "Top resellers",
       "sellOnAffisell": "Sell on Affisell",
       "liveShopping": "Live Shopping",
-      "affiliateProgram": "Reseller B2B program"
+      "affiliateProgram": "Reseller B2B program",
+      "magicSystems": "Magic Systems"
     },
     "company": {
       "title": "Company",
@@ -5095,6 +5108,80 @@
       "ok": "For {code}, max reasonable = {maxDays}d. You propose {days}d → ✅ Acceptable zone",
       "warn": "You propose {days}d → 🔴 -50% visibility — reseller may reject (max {maxDays}d for {code})",
       "allMarkets": "{detail} (all markets: {codes})"
+    }
+  },
+  "magicSystems": {
+    "metaTitle": "Magic Systems — Affisell Lab",
+    "metaDescription": "All Affisell signature systems in one place: DropForge, Pulse, Radar, Supply Hub, Demo Lab and more.",
+    "eyebrow": "Affisell Lab",
+    "title": "Magic Systems",
+    "subtitle": "The revolutionary Affisell stack — supplier sourcing, reseller commerce, and platform engines — in one command center.",
+    "backHome": "Affisell",
+    "filtersAria": "Filter systems by persona",
+    "filters": {
+      "all": "All",
+      "supplier": "Supplier",
+      "affiliate": "Reseller",
+      "platform": "Platform",
+      "buyer": "Buyer"
+    },
+    "status": {
+      "live": "Live",
+      "beta": "Beta",
+      "new": "New"
+    },
+    "open": "Open",
+    "empty": "No systems in this filter yet.",
+    "footerHint": "{count} systems in the Affisell stack",
+    "entries": {
+      "dropforge": {
+        "title": "DropForge",
+        "blurb": "URL → wholesale catalog. AliExpress / 1688 forge + auto-fulfill wiring."
+      },
+      "supplyHub": {
+        "title": "Supply Hub",
+        "blurb": "Channel connectors and supply ops for your warehouse network."
+      },
+      "supplierImport": {
+        "title": "Import Suite",
+        "blurb": "CSV, URL and extension imports into your supplier catalog."
+      },
+      "radar": {
+        "title": "Radar",
+        "blurb": "Demand & arbitrage signals across markets — globe-ready intelligence."
+      },
+      "pulse": {
+        "title": "Pulse / Discover",
+        "blurb": "Swipe commerce feed. Mobile deck + desktop detail panel."
+      },
+      "battle": {
+        "title": "Pulse Battle",
+        "blurb": "Legal flash discounts with 30-day reference pricing."
+      },
+      "swipeHub": {
+        "title": "Swipe Hub",
+        "blurb": "Reseller first-listing & swipe feed control center."
+      },
+      "brandStudio": {
+        "title": "Brand Studio",
+        "blurb": "Storefront theme for your reseller shop."
+      },
+      "demoLab": {
+        "title": "Demo Lab",
+        "blurb": "Try Affisell flows without a production account."
+      },
+      "auctions": {
+        "title": "Auctions",
+        "blurb": "Live bidding arena for buyers."
+      },
+      "luxe": {
+        "title": "Luxe",
+        "blurb": "Premium collection surface."
+      },
+      "pricingRadar": {
+        "title": "Radar Pricing",
+        "blurb": "Subscription value props for Radar growth."
+      }
     }
   }
 }

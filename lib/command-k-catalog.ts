@@ -117,6 +117,23 @@ const CATALOG: CatalogEntry[] = [
     keywords: ["sell", "vendre", "reseller", "revendeur", "affiliate", "b2b"],
   },
   {
+    id: "dropforge",
+    segment: "sell",
+    labelKey: "items.dropforge",
+    action: "navigate",
+    href: "/dropforge",
+    keywords: ["dropforge", "forge", "import", "aliexpress", "1688", "wholesale"],
+    hideForPersona: ["affiliate", "buyer"],
+  },
+  {
+    id: "magic-lab",
+    segment: "sell",
+    labelKey: "items.magicLab",
+    action: "navigate",
+    href: "/lab",
+    keywords: ["lab", "magic", "systems", "pulse", "radar", "dropforge"],
+  },
+  {
     id: "become-seller",
     segment: "sell",
     labelKey: "items.becomeSeller",
