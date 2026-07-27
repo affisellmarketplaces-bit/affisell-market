@@ -72,6 +72,7 @@ import { resolveRequestLocale } from "@/lib/resolve-request-locale"
 import { resolveAppLocale } from "@/lib/i18n-locale"
 import { getStripeClient } from "@/lib/stripe"
 import type Stripe from "stripe"
+import type { Prisma } from "@prisma/client"
 
 type StripeCheckoutAllowedCountries = NonNullable<
   NonNullable<
@@ -198,6 +199,21 @@ function withGhostProductDefaults<T extends Record<string, unknown>>(product: T)
   }
 }
 
+async function loadListingSafe(where: Prisma.AffiliateProductWhereInput) {
+  const row = await prisma.affiliateProduct.findFirst({
+    where,
+    include: {
+      affiliate: true,
+      product: { omit: ghostProductOmit },
+    },
+  })
+  if (!row) return null
+  return {
+    ...row,
+    product: withGhostProductDefaults(row.product),
+  }
+}
+
 async function loadListing(id: string) {
   await ensureGhostStockSchema()
   const where = {
@@ -206,10 +222,7 @@ async function loadListing(id: string) {
   }
 
   try {
-    return await prisma.affiliateProduct.findFirst({
-      where,
-      include: { product: true, affiliate: true },
-    })
+    return await loadListingSafe(where)
   } catch (error: unknown) {
     if (!isPrismaMissingColumnError(error)) throw error
     console.log("[marketplace-checkout]", {
@@ -219,29 +232,15 @@ async function loadListing(id: string) {
     })
     await ensureGhostStockSchema({ force: true })
     try {
-      return await prisma.affiliateProduct.findFirst({
-        where,
-        include: { product: true, affiliate: true },
-      })
+      return await loadListingSafe(where)
     } catch (retryError: unknown) {
       if (!isPrismaMissingColumnError(retryError)) throw retryError
       console.log("[marketplace-checkout]", {
-        result: "ghost_select_fallback",
+        result: "ghost_select_failed",
         listingId: id,
         error: retryError instanceof Error ? retryError.message : String(retryError),
       })
-      const row = await prisma.affiliateProduct.findFirst({
-        where,
-        include: {
-          affiliate: true,
-          product: { omit: ghostProductOmit },
-        },
-      })
-      if (!row) return null
-      return {
-        ...row,
-        product: withGhostProductDefaults(row.product),
-      }
+      throw retryError
     }
   }
 }

@@ -63,7 +63,14 @@ function buildDemoVisitors(tDemo: (key: string) => string): DemoVisitor[] {
   ]
 }
 
-export default function AffiliateLiveStore({ storeId }: { storeId: string }) {
+export default function AffiliateLiveStore({
+  storeId,
+  /** Simulated visitors only — show PREVIEW badge + banner until real analytics ship. */
+  isDemo = true,
+}: {
+  storeId: string
+  isDemo?: boolean
+}) {
   const locale = useLocale()
   const t = useTranslations("affiliate.liveStore")
   const tDemo = useTranslations("affiliate.liveStore.demoVisitors")
@@ -176,15 +183,25 @@ export default function AffiliateLiveStore({ storeId }: { storeId: string }) {
       <button
         type="button"
         onClick={() => setSidebarOpen(true)}
-        className="inline-flex max-w-full items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-50/90 px-3 py-1.5 text-xs font-semibold text-emerald-900 shadow-sm ring-1 ring-emerald-500/20 backdrop-blur-sm transition hover:bg-emerald-100/90 dark:border-emerald-400/30 dark:bg-emerald-950/60 dark:text-emerald-100 dark:ring-emerald-400/20 dark:hover:bg-emerald-900/70"
-        title={t("openAria")}
+        className={
+          isDemo
+            ? "inline-flex max-w-full items-center gap-2 rounded-full border border-amber-500/40 bg-amber-50/90 px-3 py-1.5 text-xs font-semibold text-amber-900 shadow-sm ring-1 ring-amber-500/20 backdrop-blur-sm transition hover:bg-amber-100/90 dark:border-amber-400/30 dark:bg-amber-950/60 dark:text-amber-100 dark:ring-amber-400/20 dark:hover:bg-amber-900/70"
+            : "inline-flex max-w-full items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-50/90 px-3 py-1.5 text-xs font-semibold text-emerald-900 shadow-sm ring-1 ring-emerald-500/20 backdrop-blur-sm transition hover:bg-emerald-100/90 dark:border-emerald-400/30 dark:bg-emerald-950/60 dark:text-emerald-100 dark:ring-emerald-400/20 dark:hover:bg-emerald-900/70"
+        }
+        title={isDemo ? t("previewOpenAria") : t("openAria")}
       >
-        <span className="relative flex h-2 w-2 shrink-0">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-70" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-        </span>
+        {isDemo ? (
+          <span className="relative inline-flex h-2 w-2 shrink-0 rounded-full bg-amber-500" />
+        ) : (
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-70" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          </span>
+        )}
         <Radio className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
-        <span className="truncate">{t("liveBadge", { count: liveCount })}</span>
+        <span className="truncate">
+          {isDemo ? t("previewBadge") : t("liveBadge", { count: liveCount })}
+        </span>
       </button>
 
       {sidebarOpen ? (
@@ -220,6 +237,14 @@ export default function AffiliateLiveStore({ storeId }: { storeId: string }) {
         </div>
 
         <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-4 pb-[max(2rem,env(safe-area-inset-bottom))] pt-4">
+          {isDemo ? (
+            <div
+              role="status"
+              className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs font-medium leading-snug text-amber-100"
+            >
+              {t("previewBanner")}
+            </div>
+          ) : null}
           <section>
             <h3 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{t("activeNow")}</h3>
             <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">{t("demoNote")}</p>

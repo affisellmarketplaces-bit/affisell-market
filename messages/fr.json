@@ -1422,6 +1422,9 @@
     },
     "liveStore": {
       "openAria": "Ouvrir les visiteurs en direct",
+      "previewOpenAria": "Ouvrir l’aperçu visiteurs (données démo)",
+      "previewBadge": "APERÇU • démo",
+      "previewBanner": "Mode aperçu — visiteurs et stats simulés, pas le trafic réel de la boutique.",
       "liveBadge": "LIVE • {count, plural, one {# visiteur} other {# visiteurs}}",
       "eyebrow": "Boutique live",
       "title": "Visiteurs",

@@ -1422,6 +1422,9 @@
     },
     "liveStore": {
       "openAria": "Open live visitors",
+      "previewOpenAria": "Open visitor preview (demo data)",
+      "previewBadge": "PREVIEW • demo",
+      "previewBanner": "Preview mode — simulated visitors and stats, not real store traffic.",
       "liveBadge": "LIVE • {count, plural, one {# visitor} other {# visitors}}",
       "eyebrow": "Live store",
       "title": "Visitors",

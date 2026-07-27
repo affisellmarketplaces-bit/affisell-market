@@ -827,7 +827,7 @@ export function AffiliateDashboard({ storeId }: Props) {
               </div>
               <div className="flex w-full shrink-0 flex-col gap-3 sm:flex-row lg:w-auto lg:flex-col xl:max-w-[280px]">
                 <div className="flex flex-wrap gap-2 sm:justify-end lg:justify-start">
-                  <AffiliateLiveStore storeId={storeId} />
+                  <AffiliateLiveStore storeId={storeId} isDemo />
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
                   <button

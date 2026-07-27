@@ -11,6 +11,21 @@ function baseUrl(): string {
   return getSiteUrl()
 }
 
+const agentListingSelect = {
+  id: true,
+  productId: true,
+  sellingPriceCents: true,
+  customTitle: true,
+  customImages: true,
+  product: {
+    select: {
+      id: true,
+      name: true,
+      images: true,
+    },
+  },
+} as const
+
 async function loadAgentListing(productId: string) {
   await ensureGhostStockSchema()
   const byAffiliateId = {
@@ -22,19 +37,19 @@ async function loadAgentListing(productId: string) {
     ...buyerListedAffiliateProductWhere,
   }
 
-  const findFull = async () =>
+  const findSafe = async () =>
     (await prisma.affiliateProduct.findFirst({
       where: byAffiliateId,
-      include: { product: true },
+      select: agentListingSelect,
     })) ??
     (await prisma.affiliateProduct.findFirst({
       where: byProductId,
-      include: { product: true },
+      select: agentListingSelect,
       orderBy: { id: "asc" },
     }))
 
   try {
-    return await findFull()
+    return await findSafe()
   } catch (error: unknown) {
     if (!isPrismaMissingColumnError(error)) throw error
     console.log("[agent-checkout]", {
@@ -43,46 +58,7 @@ async function loadAgentListing(productId: string) {
       error: error instanceof Error ? error.message : String(error),
     })
     await ensureGhostStockSchema({ force: true })
-    try {
-      return await findFull()
-    } catch (retryError: unknown) {
-      if (!isPrismaMissingColumnError(retryError)) throw retryError
-      console.log("[agent-checkout]", {
-        result: "ghost_select_fallback",
-        productId,
-        error: retryError instanceof Error ? retryError.message : String(retryError),
-      })
-      const productSelect = {
-        id: true,
-        name: true,
-        images: true,
-      } as const
-      return (
-        (await prisma.affiliateProduct.findFirst({
-          where: byAffiliateId,
-          select: {
-            id: true,
-            productId: true,
-            sellingPriceCents: true,
-            customTitle: true,
-            customImages: true,
-            product: { select: productSelect },
-          },
-        })) ??
-        (await prisma.affiliateProduct.findFirst({
-          where: byProductId,
-          select: {
-            id: true,
-            productId: true,
-            sellingPriceCents: true,
-            customTitle: true,
-            customImages: true,
-            product: { select: productSelect },
-          },
-          orderBy: { id: "asc" },
-        }))
-      )
-    }
+    return findSafe()
   }
 }
 
