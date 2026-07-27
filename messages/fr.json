@@ -1781,7 +1781,8 @@
       "scrollModeShort": "Scroll",
       "emptyCategory": "Aucun produit listé dans {name} pour l’instant.",
       "feedLoadFailed": "Impossible de charger le feed",
-      "genericError": "Une erreur est survenue"
+      "genericError": "Une erreur est survenue",
+      "viewDetails": "Voir la fiche produit"
     }
   },
   "merchantAccount": {

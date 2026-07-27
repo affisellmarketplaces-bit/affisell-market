@@ -139,7 +139,7 @@ export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }:
       data-testid="pulse-swipe-dock"
       className={cn(
         affisellBrand.epoxyPanel,
-        "affisell-swipe-dock affisell-swipe-dock-panel relative z-50 mx-auto w-full max-w-[380px] shrink-0 px-2 py-1.5 sm:px-4 sm:py-3",
+        "affisell-swipe-dock affisell-swipe-dock-panel relative z-50 mx-auto w-full max-w-[380px] shrink-0 px-2 py-1.5 sm:px-4 sm:py-3 lg:max-w-none",
         "pb-[max(0.35rem,env(safe-area-inset-bottom))]"
       )}
     >

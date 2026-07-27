@@ -19,8 +19,7 @@ import { PulseHeaderCartLink } from "@/components/pulse/pulse-header-cart-link"
 import { PulseBattleBanner } from "@/components/pulse/PulseBattleBanner"
 import { PulseBattleHeaderLink } from "@/components/pulse/PulseBattleHeaderLink"
 import { PulseLayoutModeLink } from "@/components/pulse/pulse-layout-mode-link"
-import { ProductPriceOffer } from "@/components/product/product-price-offer"
-import { ProductSalesBadge } from "@/components/product/product-sales-badge"
+import { PulseProductDetailPanel } from "@/components/pulse/pulse-product-detail-panel"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
@@ -423,7 +422,7 @@ export function BuyerSwipeCommerce({
       data-testid="affisell-pulse"
       className={cn(
         affisellBrand.epoxyPage,
-        "affisell-swipe-commerce fixed inset-0 z-[210] flex h-screen h-[100dvh] flex-col overflow-hidden",
+        "affisell-swipe-commerce affisell-swipe-commerce--desktop fixed inset-0 z-[210] flex h-screen h-[100dvh] flex-col overflow-hidden",
         showPicks && "affisell-swipe-commerce--with-picks"
       )}
     >
@@ -452,7 +451,7 @@ export function BuyerSwipeCommerce({
             role="alert"
             className={cn(
               affisellBrand.epoxyChip,
-              "mx-auto mb-1 max-w-[420px] rounded-xl px-2.5 py-1.5 text-center text-[11px] text-amber-100 sm:mb-2 sm:px-3 sm:py-2 sm:text-xs"
+              "mx-auto mb-1 max-w-[420px] rounded-xl px-2.5 py-1.5 text-center text-[11px] text-amber-100 sm:mb-2 sm:px-3 sm:py-2 sm:text-xs lg:max-w-7xl"
             )}
           >
             {fetchError}
@@ -461,7 +460,7 @@ export function BuyerSwipeCommerce({
         <div
           className={cn(
             affisellBrand.epoxyPanel,
-            "mx-auto flex h-11 max-w-[420px] items-center justify-between gap-1.5 px-1.5 sm:h-auto sm:gap-2 sm:px-3 sm:py-2"
+            "mx-auto flex h-11 max-w-[420px] items-center justify-between gap-1.5 px-1.5 sm:h-auto sm:gap-2 sm:px-3 sm:py-2 lg:max-w-7xl"
           )}
         >
           <Link
@@ -536,7 +535,7 @@ export function BuyerSwipeCommerce({
       </header>
 
       {showPicks && initialPersonalizedPicks ? (
-        <div className="affisell-swipe-picks relative z-30 mx-auto w-full max-w-[420px] shrink-0 px-2 sm:px-3">
+        <div className="affisell-swipe-picks relative z-30 mx-auto w-full max-w-[420px] shrink-0 px-2 sm:px-3 lg:max-w-7xl">
           <HomePersonalizedPicksRailLive
             initialPicks={initialPersonalizedPicks}
             variant="pulse"
@@ -544,9 +543,10 @@ export function BuyerSwipeCommerce({
         </div>
       ) : null}
 
-      <div className="affisell-swipe-body flex min-h-0 flex-1 flex-col">
-      <main className="affisell-swipe-stage relative z-10 flex min-h-0 flex-1 flex-col px-2 pb-0 sm:px-3 sm:pb-2">
-        <div className="affisell-swipe-card-well relative mx-auto min-h-0 w-full max-w-[380px] flex-1">
+      <div className="affisell-swipe-body flex min-h-0 flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-7xl lg:px-6">
+        <div className="affisell-swipe-desktop-grid flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] lg:items-stretch lg:gap-8">
+      <main className="affisell-swipe-stage relative z-10 flex min-h-0 flex-1 flex-col px-2 pb-0 sm:px-3 sm:pb-2 lg:min-h-0 lg:px-0">
+        <div className="affisell-swipe-card-well relative mx-auto min-h-0 w-full max-w-[380px] flex-1 lg:max-h-[min(72vh,720px)] lg:max-w-none">
           <AnimatePresence mode="popLayout">
             {visibleStack.length === 0 && loading ? (
               <motion.div
@@ -573,40 +573,14 @@ export function BuyerSwipeCommerce({
           </AnimatePresence>
 
           {activeItem ? (
-            <div className="affisell-swipe-commerce-ribbon pointer-events-none absolute inset-x-0 bottom-0 z-40 max-sm:pb-0">
+            <div className="affisell-swipe-commerce-ribbon pointer-events-none absolute inset-x-0 bottom-0 z-40 max-sm:pb-0 lg:hidden">
               <div className="pointer-events-auto px-2.5 pb-2 pt-10 sm:px-3 sm:pb-2.5 sm:pt-12">
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  {activeItem.boosted ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/25 px-1.5 py-px text-[9px] font-bold uppercase text-cyan-100 ring-1 ring-cyan-400/35 backdrop-blur-sm sm:px-2 sm:py-0.5 sm:text-[10px]">
-                      <Sparkles className="size-2.5 sm:size-3" aria-hidden />
-                      {t("hotBadge")}
-                    </span>
-                  ) : null}
-                  {activeItem.soldCount > 0 ? (
-                    <ProductSalesBadge
-                      count={activeItem.soldCount}
-                      variant="inline"
-                      className="!bg-black/35 !text-white !ring-white/20 backdrop-blur-sm"
-                    />
-                  ) : null}
-                </div>
-                <h2 className="mt-1 line-clamp-2 text-[13px] font-semibold leading-tight text-white drop-shadow-sm sm:mt-1.5 sm:text-[15px] sm:leading-snug">
-                  {activeItem.title}
-                </h2>
-                {activeItem.priceCents > 0 ? (
-                  <div className="mt-0.5 [&_p]:!text-white/75 [&_span]:!text-white sm:mt-1">
-                    <ProductPriceOffer
-                      price={activePriceEur}
-                      compareAt={activeCompareEur}
-                      layout="compact"
-                    />
-                  </div>
-                ) : null}
-                {activeItem.storeName ? (
-                  <p className="mt-0.5 truncate text-[10px] text-white/55 sm:mt-1 sm:text-xs sm:text-zinc-300">
-                    {activeItem.storeName}
-                  </p>
-                ) : null}
+                <PulseProductDetailPanel
+                  item={activeItem}
+                  priceEur={activePriceEur}
+                  compareEur={activeCompareEur}
+                  variant="ribbon"
+                />
               </div>
             </div>
           ) : null}
@@ -623,6 +597,31 @@ export function BuyerSwipeCommerce({
           onUndo={handleUndo}
         />
       </main>
+
+      {activeItem ? (
+        <aside
+          className="affisell-swipe-detail-panel relative z-20 hidden min-h-0 lg:flex lg:flex-col lg:justify-center lg:py-4"
+          aria-label={t("viewDetails")}
+        >
+          <div
+            className={cn(
+              affisellBrand.epoxyPanel,
+              "affisell-swipe-detail-panel-inner overflow-y-auto overscroll-contain p-6 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.12),0_24px_64px_rgb(5_8_22_/_0.55)]"
+            )}
+          >
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-violet-300/80">
+              {tPulse("brand")}
+            </p>
+            <PulseProductDetailPanel
+              item={activeItem}
+              priceEur={activePriceEur}
+              compareEur={activeCompareEur}
+              variant="desktop"
+            />
+          </div>
+        </aside>
+      ) : null}
+        </div>
       </div>
 
       <AnimatePresence>

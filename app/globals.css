@@ -822,6 +822,47 @@ body.affisell-demo-lab .affisell-header-shell {
     }
   }
 
+  @media (min-width: 1024px) {
+    .affisell-swipe-commerce--desktop {
+      --affisell-swipe-dock-h: 5.75rem;
+      --affisell-swipe-header-h: 4rem;
+      --affisell-swipe-picks-h: 0px;
+    }
+
+    .affisell-swipe-commerce--desktop:has(.affisell-swipe-picks),
+    .affisell-swipe-commerce--desktop.affisell-swipe-commerce--with-picks {
+      --affisell-swipe-picks-h: 5.5rem;
+    }
+
+    .affisell-swipe-commerce--desktop .affisell-swipe-card-well {
+      min-height: min(
+        72vh,
+        calc(
+          100dvh - var(--affisell-swipe-header-h) - var(--affisell-swipe-picks-h) -
+            var(--affisell-swipe-dock-h) - 2rem
+        )
+      );
+      max-height: min(72vh, 720px);
+    }
+
+    .affisell-swipe-detail-panel {
+      position: sticky;
+      top: calc(var(--affisell-swipe-header-h) + 0.75rem);
+      align-self: start;
+      max-height: calc(100dvh - var(--affisell-swipe-header-h) - 1.5rem);
+    }
+
+    .affisell-swipe-detail-panel-inner {
+      max-height: inherit;
+    }
+
+    .affisell-swipe-commerce--desktop .affisell-swipe-dock-panel {
+      box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.22),
+        0 12px 40px rgb(5 8 22 / 0.35);
+    }
+  }
+
   .affisell-swipe-commerce-ribbon {
     background:
       linear-gradient(

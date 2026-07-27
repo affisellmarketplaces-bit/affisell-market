@@ -1781,7 +1781,8 @@
       "scrollModeShort": "Scroll",
       "emptyCategory": "No listed products in {name} yet.",
       "feedLoadFailed": "Could not load the feed",
-      "genericError": "Something went wrong"
+      "genericError": "Something went wrong",
+      "viewDetails": "View product details"
     }
   },
   "merchantAccount": {
