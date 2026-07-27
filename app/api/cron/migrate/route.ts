@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs"
+import { join } from "node:path"
 import { spawnSync } from "node:child_process"
 
 import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
@@ -8,6 +10,8 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 /** Neon migrate deploy can exceed default 10s on large migration queues. */
 export const maxDuration = 300
+
+const MIGRATE_TIMEOUT_MS = 240_000
 
 async function unlockAdvisoryLocks(): Promise<{ before: number; after: number }> {
   const holders = await prisma.$queryRaw<{ pid: number }[]>`
@@ -46,17 +50,50 @@ async function unlockAdvisoryLocks(): Promise<{ before: number; after: number }>
   return { before: holders.length, after: after.length }
 }
 
+function resolvePrismaMigrateCommand(): { command: string; args: string[] } {
+  const schema = join(process.cwd(), "prisma/schema.prisma")
+  const migrateArgs = ["migrate", "deploy", `--schema=${schema}`]
+
+  const localBin = join(process.cwd(), "node_modules/.bin/prisma")
+  if (existsSync(localBin)) {
+    return { command: localBin, args: migrateArgs }
+  }
+
+  const prismaEntry = join(process.cwd(), "node_modules/prisma/build/index.js")
+  if (existsSync(prismaEntry)) {
+    return { command: process.execPath, args: [prismaEntry, ...migrateArgs] }
+  }
+
+  throw new Error("Prisma CLI not found in node_modules (expected .bin/prisma)")
+}
+
 function runMigrateDeploy(): { ok: boolean; output: string; code: number | null } {
   ensureDatabaseUrlUnpooled()
 
-  const result = spawnSync("npx", ["prisma", "migrate", "deploy"], {
+  const { command, args } = resolvePrismaMigrateCommand()
+  console.log("[cron/migrate]", { command, args: args.join(" ") })
+
+  const result = spawnSync(command, args, {
     cwd: process.cwd(),
-    env: process.env,
+    env: {
+      ...process.env,
+      DATABASE_URL: process.env.DATABASE_URL,
+    },
     encoding: "utf8",
-    timeout: 240_000,
+    timeout: MIGRATE_TIMEOUT_MS,
+    shell: false,
   })
 
   const output = `${result.stdout ?? ""}\n${result.stderr ?? ""}`.trim()
+  if (result.error) {
+    const errMsg = result.error instanceof Error ? result.error.message : String(result.error)
+    return {
+      ok: false,
+      output: output ? `${output}\n${errMsg}` : errMsg,
+      code: result.status ?? 1,
+    }
+  }
+
   return { ok: result.status === 0, output, code: result.status }
 }
 
@@ -74,31 +111,62 @@ export async function GET(req: Request) {
 
   try {
     const locks = await unlockAdvisoryLocks()
-    const deploy = runMigrateDeploy()
 
-    console.log("[cron/migrate]", {
-      deployOk: deploy.ok,
-      exitCode: deploy.code,
-      outputTail: deploy.output.slice(-500),
-    })
+    try {
+      const deploy = runMigrateDeploy()
 
-    if (!deploy.ok) {
+      console.log("[cron/migrate]", {
+        deployOk: deploy.ok,
+        exitCode: deploy.code,
+        outputTail: deploy.output.slice(-500),
+      })
+
+      if (!deploy.ok) {
+        return Response.json(
+          {
+            ok: false,
+            locks,
+            exitCode: deploy.code,
+            output: deploy.output,
+          },
+          { status: 500 }
+        )
+      }
+
+      return Response.json({
+        ok: true,
+        locks,
+        output: deploy.output,
+      })
+    } catch (error: unknown) {
+      const err = error as { status?: number; stdout?: Buffer | string; stderr?: Buffer | string }
+      const stdout =
+        typeof err.stdout === "string"
+          ? err.stdout
+          : err.stdout?.toString?.() ?? ""
+      const stderr =
+        typeof err.stderr === "string"
+          ? err.stderr
+          : err.stderr?.toString?.() ?? ""
+      const message = error instanceof Error ? error.message : String(error)
+      const output = `${stdout}\n${stderr}`.trim() || message
+
+      console.log("[cron/migrate]", {
+        result: "migrate_spawn_failed",
+        exitCode: err.status ?? null,
+        error: message,
+      })
+
       return Response.json(
         {
           ok: false,
           locks,
-          exitCode: deploy.code,
-          output: deploy.output,
+          exitCode: err.status ?? null,
+          output,
         },
         { status: 500 }
       )
     }
-
-    return Response.json({
-      ok: true,
-      locks,
-      output: deploy.output,
-    })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     console.error("[cron/migrate]", { error: message })
