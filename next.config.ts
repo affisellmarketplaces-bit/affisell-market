@@ -65,10 +65,6 @@ const nextConfig: NextConfig = {
     "/privacy": ["./legal/content/**/*.md"],
     "/cgu": ["./legal/content/**/*.md"],
     "/api/cron/migrate": [
-      "./node_modules/prisma/**/*",
-      "./node_modules/@prisma/**/*",
-      "./node_modules/.bin/prisma",
-      "./node_modules/.bin/npx",
       "./prisma/migrations/**/*",
       "./prisma/schema.prisma",
     ],
