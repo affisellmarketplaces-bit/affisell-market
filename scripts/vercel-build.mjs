@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Vercel build helper (optional — vercel.json default is `prisma generate && next build`).
- * Migrations run post-deploy via GET /api/cron/migrate (Bearer CRON_SECRET), not at build time.
- * Opt-in legacy: BUILD_RUN_MIGRATIONS=1 runs heal + migrate deploy (with P1001/P1002 retries).
+ * Vercel build helper (vercel.json: `node scripts/vercel-build.mjs`).
+ * Always attempts `prisma migrate deploy` when DATABASE_URL is set (warn-only on failure).
+ * Backup: GET /api/cron/migrate daily 04:00 UTC. Health: GET /api/health/migrations.
  */
 import { execSync } from "node:child_process"
 import { existsSync } from "node:fs"
@@ -119,6 +119,28 @@ function parseFailedMigrationNames(text) {
   return [...names]
 }
 
+function parsePendingMigrationNames(text) {
+  if (!text || /database schema is up to date/i.test(text)) return []
+
+  const names = new Set()
+  const pendingBlock = text.match(
+    /following migrations have not yet been applied:\s*([\s\S]*?)(?:\n\n|To apply|$)/i
+  )
+  if (pendingBlock?.[1]) {
+    for (const line of pendingBlock[1].split("\n")) {
+      const match = line.trim().match(/^(\d{14}_[a-z0-9_]+)/i)
+      if (match) names.add(match[1])
+    }
+  }
+
+  return [...names]
+}
+
+async function countPendingMigrations() {
+  const status = await execPrisma("migrate status", "migrate status pending count")
+  return parsePendingMigrationNames(status.output).length
+}
+
 async function resolveFailedMigrations(names) {
   for (const name of names) {
     console.log(`\n> npx prisma migrate resolve --applied ${name}`)
@@ -169,20 +191,19 @@ async function healMigrationHistory() {
 }
 
 async function runMigrations() {
-  if (process.env.BUILD_RUN_MIGRATIONS !== "1") {
-    console.log(
-      "\n[vercel-build] Skipping migrate deploy at build (post-deploy: GET /api/cron/migrate)"
-    )
-    return
+  console.log("\n[vercel-build] Running migrate deploy (warn-only on failure)")
+  if (process.env.BUILD_RUN_MIGRATIONS === "1") {
+    console.log("[vercel-build] BUILD_RUN_MIGRATIONS=1")
   }
 
-  console.log("\n[vercel-build] BUILD_RUN_MIGRATIONS=1 — running migrate deploy")
   run("npm run db:unlock")
 
   await healMigrationHistory()
 
   const localMigrations = listLocalMigrationNames()
   console.log(`\nLocal migrations: ${localMigrations.length} in prisma/migrations/`)
+
+  const pendingBefore = await countPendingMigrations()
 
   console.log("\n> npx prisma migrate deploy")
   let deploy = await execPrisma("migrate deploy", "migrate deploy")
@@ -196,21 +217,28 @@ async function runMigrations() {
       if (deploy.output) console.log(deploy.output)
     }
     if (!deploy.ok) {
-      console.error("\n✗ migrate deploy failed.")
+      console.warn("\n⚠ migrate deploy failed — continuing build (cron backup: GET /api/cron/migrate)")
       if (isTransientDbError(deploy.output)) {
-        console.error(
+        console.warn(
           [
             "Neon P1001 checklist:",
             "  1. Wake project in Neon console (compute may be suspended)",
             "  2. Vercel env: DATABASE_URL (pooler) + DATABASE_URL_UNPOOLED (direct host, no -pooler)",
             "  3. sslmode=require on both URLs",
-            "  4. Retry deploy — build retries transient errors up to ~60s",
+            "  4. Cron backup at 04:00 UTC or manual GET /api/cron/migrate",
           ].join("\n")
         )
       }
-      process.exit(1)
+      if (deploy.output) console.warn(deploy.output)
+      const pendingAfterFail = await countPendingMigrations()
+      console.log(`[vercel-build] Migrations: deployed 0 pending (${pendingAfterFail} still pending)`)
+      return
     }
   }
+
+  const pendingAfter = await countPendingMigrations()
+  const deployedCount = Math.max(0, pendingBefore - pendingAfter)
+  console.log(`[vercel-build] Migrations: deployed ${deployedCount} pending`)
 
   const status = await execPrisma("migrate status", "migrate status final")
   if (status.output.includes("Database schema is up to date")) {
@@ -218,10 +246,17 @@ async function runMigrations() {
     return
   }
 
-  if (parseFailedMigrationNames(status.output).length > 0) {
-    console.error("\n✗ Failed migrations remain after deploy:")
-    console.error(status.output)
-    process.exit(1)
+  const failed = parseFailedMigrationNames(status.output)
+  if (failed.length > 0) {
+    console.warn("\n⚠ Failed migrations remain after deploy (build continues):")
+    console.warn(status.output)
+    return
+  }
+
+  if (pendingAfter > 0) {
+    console.warn(`\n⚠ ${pendingAfter} migration(s) still pending after deploy`)
+    if (status.output) console.warn(status.output)
+    return
   }
 
   console.log(status.output || "\n✓ migrate deploy completed")

@@ -61,7 +61,7 @@ function runMigrateDeploy(): { ok: boolean; output: string; code: number | null 
 }
 
 /**
- * Apply pending Prisma migrations once (post-deploy).
+ * Apply pending Prisma migrations (daily backup — primary path is build-time migrate deploy).
  * `Authorization: Bearer ${CRON_SECRET}`
  */
 export async function GET(req: Request) {
