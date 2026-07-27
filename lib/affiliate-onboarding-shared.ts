@@ -4,26 +4,33 @@ export const AFFILIATE_FIRST_LISTING_HUB_HREF =
   "/dashboard/affiliate/hub?mode=swipe&onboarding=1" as const
 
 export const AFFILIATE_RESELLER_SIGNUP_HREF = "/signup/affiliate" as const
+export const SUPPLIER_SIGNUP_HREF = "/signup/supplier" as const
 
 /**
- * DropForge — public URL → boutique acquisition funnel (Temu / TikTok / Amazon).
- * Legacy `/import` redirects here.
+ * DropForge — public URL → Affisell supplier catalog (B2B sourcing).
+ * Legacy `/import` redirects here. Resellers relist from catalog after.
  */
 export const AFFILIATE_URL_IMPORT_HREF = "/dropforge" as const
 export const DROPFORGE_HREF = AFFILIATE_URL_IMPORT_HREF
 export const DROPFORGE_PRODUCT_NAME = "DropForge" as const
+export const DROPFORGE_CATALOG_RESELLER_HREF = "/dashboard/affiliate/catalog" as const
 
 /** Guest → signup (then CGU → swipe hub). Signed-in affiliate → onboarding hub. */
 export function affiliateResellerOnboardingEntryHref(isAffiliateSession: boolean): string {
   return isAffiliateSession ? AFFILIATE_FIRST_LISTING_HUB_HREF : AFFILIATE_RESELLER_SIGNUP_HREF
 }
 
-/** Signup that returns to DropForge with the pasted URL for auto-preview. */
+/** @deprecated DropForge now onboard suppliers — use dropforgeSupplierSignupHref. */
 export function affiliateUrlImportSignupHref(productUrl?: string | null): string {
+  return dropforgeSupplierSignupHref(productUrl)
+}
+
+/** Signup supplier that returns to DropForge with the pasted URL for auto-preview. */
+export function dropforgeSupplierSignupHref(productUrl?: string | null): string {
   const next = productUrl?.trim()
-    ? `${AFFILIATE_URL_IMPORT_HREF}?url=${encodeURIComponent(productUrl.trim())}&auto=1`
-    : AFFILIATE_URL_IMPORT_HREF
-  return `${AFFILIATE_RESELLER_SIGNUP_HREF}?next=${encodeURIComponent(next)}`
+    ? `${DROPFORGE_HREF}?url=${encodeURIComponent(productUrl.trim())}&auto=1`
+    : DROPFORGE_HREF
+  return `${SUPPLIER_SIGNUP_HREF}?next=${encodeURIComponent(next)}`
 }
 
 export function affiliateDraftListingCount(

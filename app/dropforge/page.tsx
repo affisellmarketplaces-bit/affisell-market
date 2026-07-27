@@ -4,7 +4,7 @@ import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { ArrowLeft, ShieldCheck, Sparkles, Zap } from "lucide-react"
 
-import { ResellerUrlImportClient } from "@/components/import/reseller-url-import-client"
+import { DropForgeImportClient } from "@/components/import/reseller-url-import-client"
 import { cn } from "@/lib/utils"
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-const MARKET_PILLS = ["Temu", "TikTok Shop", "Amazon", "SHEIN", "Shopify"] as const
+const MARKET_PILLS = ["AliExpress", "1688", "Amazon", "Temu", "SHEIN"] as const
 
 export default async function DropForgePage() {
   const t = await getTranslations("importPage")
@@ -79,7 +79,7 @@ export default async function DropForgePage() {
               <div className="h-28 animate-pulse rounded-[1.75rem] border border-white/10 bg-white/5" />
             }
           >
-            <ResellerUrlImportClient />
+            <DropForgeImportClient />
           </Suspense>
         </section>
 

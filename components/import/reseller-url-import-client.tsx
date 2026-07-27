@@ -20,24 +20,25 @@ import { buttonVariants } from "@/components/ui/button"
 import { detectMarketplaceFromUrl } from "@/lib/import-marketplace"
 import { validateDropForgeProductUrl } from "@/lib/dropforge-product-url"
 import {
-  AFFILIATE_RESELLER_SIGNUP_HREF,
-  AFFILIATE_URL_IMPORT_HREF,
-  affiliateUrlImportSignupHref,
+  DROPFORGE_CATALOG_RESELLER_HREF,
+  DROPFORGE_HREF,
+  SUPPLIER_SIGNUP_HREF,
+  dropforgeSupplierSignupHref,
 } from "@/lib/affiliate-onboarding-shared"
-import { loginAffiliatePath } from "@/lib/login-redirect"
+import { loginSupplierPath } from "@/lib/login-redirect"
 import { cn } from "@/lib/utils"
 
-const PENDING_KEY = "affisell_import_pending_url"
+const PENDING_KEY = "affisell_dropforge_pending_url"
 
-/** Deep product paths (homepage URLs are rejected client-side). */
+/** Prefer AliExpress / 1688 — primary B2B sourcing paths. */
 const EXAMPLE_URLS = [
-  {
-    label: "Amazon",
-    url: "https://www.amazon.fr/dp/B09V3KXJPB",
-  },
   {
     label: "AliExpress",
     url: "https://www.aliexpress.com/item/1005008719608144.html",
+  },
+  {
+    label: "Amazon",
+    url: "https://www.amazon.fr/dp/B09V3KXJPB",
   },
   {
     label: "Temu",
@@ -80,23 +81,30 @@ function money(n: number, currency = "EUR") {
   }
 }
 
-export function ResellerUrlImportClient() {
+function defaultWholesaleEur(cost: number): number {
+  return Math.max(cost + 0.5, Number((cost * 1.25).toFixed(2)))
+}
+
+/** DropForge B2B — suppliers forge catalog SKUs; resellers relist later. */
+export function DropForgeImportClient() {
   const t = useTranslations("importPage")
   const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const isAffiliate = session?.user?.role === "AFFILIATE"
+  const role = session?.user?.role
+  const isSupplier = role === "SUPPLIER" || role === "ADMIN"
+  const isAffiliate = role === "AFFILIATE"
 
   const [url, setUrl] = useState("")
   const [preview, setPreview] = useState<Preview | null>(null)
-  const [sellPrice, setSellPrice] = useState("")
+  const [wholesalePrice, setWholesalePrice] = useState("")
   const [loading, setLoading] = useState(false)
   const [committing, setCommitting] = useState(false)
   const [scanError, setScanError] = useState<string | null>(null)
   const [done, setDone] = useState<{
-    shopHref: string
+    catalogHref: string
     editHref: string
-    isListed: boolean
+    isPublished: boolean
   } | null>(null)
 
   const market = useMemo(() => (url.trim() ? detectMarketplaceFromUrl(url) : null), [url])
@@ -142,7 +150,7 @@ export function ResellerUrlImportClient() {
       /* ignore */
     }
     try {
-      const res = await fetch("/api/affiliate/import-url", {
+      const res = await fetch("/api/dropforge/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: validated.url }),
@@ -152,7 +160,7 @@ export function ResellerUrlImportClient() {
         throw new Error(data.error ?? t("errPreview"))
       }
       setPreview(data.preview)
-      setSellPrice(String(data.preview.suggestedPrice))
+      setWholesalePrice(String(defaultWholesaleEur(data.preview.costPrice)))
       toast.success(
         data.preview.partial
           ? t("previewPartial", { market: data.preview.marketplaceLabel })
@@ -168,70 +176,74 @@ export function ResellerUrlImportClient() {
   }, [t, url])
 
   const commit = useCallback(
-    async (listLive: boolean) => {
+    async (publishLive: boolean) => {
       if (!preview) return
       if (status === "loading") return
 
-      if (!isAffiliate) {
+      if (!isSupplier) {
         try {
           window.sessionStorage.setItem(PENDING_KEY, preview.sourceUrl)
         } catch {
           /* ignore */
         }
-        router.push(affiliateUrlImportSignupHref(preview.sourceUrl))
+        router.push(dropforgeSupplierSignupHref(preview.sourceUrl))
         return
       }
 
-      const canGoLive =
-        !preview.partial && preview.fulfillmentReady === true && listLive === true
+      const canPublish =
+        !preview.partial && preview.fulfillmentReady === true && publishLive === true
 
       setCommitting(true)
       try {
-        const sell = parseFloat(sellPrice.replace(",", "."))
-        const res = await fetch("/api/affiliate/import-url/commit", {
+        const wholesale = parseFloat(wholesalePrice.replace(",", "."))
+        const res = await fetch("/api/dropforge/commit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
             url: preview.sourceUrl,
-            sellingPriceEur: Number.isFinite(sell) ? sell : preview.suggestedPrice,
+            wholesalePriceEur: Number.isFinite(wholesale)
+              ? wholesale
+              : defaultWholesaleEur(preview.costPrice),
             titleOverride: preview.title,
-            listLive: canGoLive,
+            publishLive: canPublish,
             snapshot: preview,
           }),
         })
         const data = (await res.json()) as {
           error?: string
           code?: string
-          shopHref?: string
+          catalogHref?: string
           editHref?: string
-          isListed?: boolean
+          isPublished?: boolean
         }
         if (res.status === 401) {
-          router.push(loginAffiliatePath(`${AFFILIATE_URL_IMPORT_HREF}?url=${encodeURIComponent(preview.sourceUrl)}`))
+          router.push(
+            loginSupplierPath(
+              `${DROPFORGE_HREF}?url=${encodeURIComponent(preview.sourceUrl)}&auto=1`
+            )
+          )
           return
         }
         if (!res.ok) throw new Error(data.error ?? t("errCommit"))
         setDone({
-          shopHref: data.shopHref ?? "/shops",
-          editHref: data.editHref ?? "/dashboard/affiliate/catalog",
-          isListed: data.isListed === true,
+          catalogHref: data.catalogHref ?? "/dashboard/supplier/products",
+          editHref: data.editHref ?? "/dashboard/supplier/products",
+          isPublished: data.isPublished === true,
         })
         try {
           window.sessionStorage.removeItem(PENDING_KEY)
         } catch {
           /* ignore */
         }
-        toast.success(
-          data.isListed ? t("commitLiveOk") : t("commitDraftOk")
-        )
+        toast.success(data.isPublished ? t("commitLiveOk") : t("commitDraftOk"))
       } catch (e) {
         toast.error(e instanceof Error ? e.message : t("errCommit"))
       } finally {
         setCommitting(false)
       }
     },
-    [isAffiliate, preview, router, sellPrice, status, t]
+    [isSupplier, preview, router, wholesalePrice, status, t]
   )
 
   useEffect(() => {
@@ -243,6 +255,27 @@ export function ResellerUrlImportClient() {
 
   return (
     <div className="mx-auto w-full max-w-3xl">
+      {isAffiliate ? (
+        <div
+          role="status"
+          className="mb-4 rounded-2xl border border-amber-400/35 bg-amber-500/10 px-4 py-3 text-sm text-amber-50"
+          data-testid="dropforge-reseller-redirect"
+        >
+          <p className="font-semibold">{t("resellerNoticeTitle")}</p>
+          <p className="mt-1 text-xs leading-relaxed text-amber-100/90">{t("resellerNoticeBody")}</p>
+          <Link
+            href={DROPFORGE_CATALOG_RESELLER_HREF}
+            className={cn(
+              buttonVariants({ size: "sm" }),
+              "mt-3 rounded-full bg-white/10 text-white hover:bg-white/20"
+            )}
+          >
+            {t("resellerCatalogCta")}
+            <ArrowRight className="size-3.5" aria-hidden />
+          </Link>
+        </div>
+      ) : null}
+
       <form
         className="relative overflow-hidden rounded-[1.75rem] border border-white/15 bg-white/10 p-3 shadow-2xl shadow-violet-950/40 backdrop-blur-xl sm:p-4"
         onSubmit={(e) => {
@@ -340,7 +373,7 @@ export function ResellerUrlImportClient() {
                   {t("cost")}: {money(preview.costPrice, preview.currency)}
                 </span>
                 <span className="rounded-full bg-emerald-500/15 px-3 py-1 font-semibold text-emerald-200">
-                  {t("profit")}: {money(preview.profitPerSale, preview.currency)}
+                  {t("wholesaleHint")}: {money(defaultWholesaleEur(preview.costPrice), preview.currency)}
                 </span>
                 <span className="rounded-full bg-white/5 px-3 py-1 text-zinc-300">
                   {t("mediaCount", {
@@ -348,23 +381,12 @@ export function ResellerUrlImportClient() {
                     videos: preview.videos?.length ?? 0,
                   })}
                 </span>
-                {(preview.variants?.length ?? 0) > 0 ||
-                (preview.colors?.length ?? 0) > 0 ||
-                Object.keys(preview.specs ?? {}).length > 0 ? (
-                  <span className="rounded-full bg-violet-500/15 px-3 py-1 text-violet-100">
-                    {t("attrsCount", {
-                      variants: preview.variants?.length ?? 0,
-                      colors: preview.colors?.length ?? 0,
-                      specs: Object.keys(preview.specs ?? {}).length,
-                    })}
-                  </span>
-                ) : null}
               </div>
               <label className="mt-4 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-                {t("sellPrice")}
+                {t("wholesalePrice")}
                 <input
-                  value={sellPrice}
-                  onChange={(e) => setSellPrice(e.target.value)}
+                  value={wholesalePrice}
+                  onChange={(e) => setWholesalePrice(e.target.value)}
                   className="mt-1.5 w-full max-w-[12rem] rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-base font-semibold text-white outline-none focus:border-violet-400/50"
                   inputMode="decimal"
                 />
@@ -394,32 +416,33 @@ export function ResellerUrlImportClient() {
           <div className="flex flex-col gap-2 border-t border-white/10 bg-black/30 p-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="flex items-center gap-2 text-xs text-zinc-400">
               <Sparkles className="size-3.5 text-violet-300" aria-hidden />
-              {isAffiliate
+              {isSupplier
                 ? preview.partial
                   ? t("readyPartial")
                   : preview.fulfillmentReady
-                    ? t("readyAffiliate")
+                    ? t("readySupplier")
                     : t("readyNoFulfillment")
                 : t("readyGuest")}
             </p>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                disabled={committing}
+                disabled={committing || isAffiliate}
                 onClick={() => void commit(false)}
                 className={cn(
                   buttonVariants({ variant: "outline" }),
-                  "rounded-full border-white/25 bg-transparent text-white hover:bg-white/10"
+                  "rounded-full border-white/25 bg-transparent text-white hover:bg-white/10 disabled:opacity-50"
                 )}
               >
                 {committing ? <Loader2 className="size-4 animate-spin" /> : null}
-                {isAffiliate ? t("saveDraft") : t("signupDraft")}
+                {isSupplier ? t("saveDraft") : t("signupDraft")}
               </button>
               <button
                 type="button"
                 disabled={
                   committing ||
-                  (isAffiliate &&
+                  isAffiliate ||
+                  (isSupplier &&
                     (Boolean(preview.partial) || preview.fulfillmentReady !== true))
                 }
                 onClick={() => void commit(true)}
@@ -428,14 +451,14 @@ export function ResellerUrlImportClient() {
                   "rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white disabled:opacity-50"
                 )}
                 title={
-                  isAffiliate && preview.partial
+                  isSupplier && preview.partial
                     ? t("publishNeedsComplete")
-                    : isAffiliate && preview.fulfillmentReady !== true
+                    : isSupplier && preview.fulfillmentReady !== true
                       ? t("publishNeedsFulfillment")
                       : undefined
                 }
               >
-                {isAffiliate ? t("publishLive") : t("signupLive")}
+                {isSupplier ? t("publishLive") : t("signupLive")}
                 <ArrowRight className="size-4" aria-hidden />
               </button>
             </div>
@@ -465,10 +488,10 @@ export function ResellerUrlImportClient() {
               </button>
             ))}
           </div>
-          {!isAffiliate ? (
+          {!isSupplier && !isAffiliate ? (
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
               <Link
-                href={affiliateUrlImportSignupHref(url.trim() || null)}
+                href={dropforgeSupplierSignupHref(url.trim() || null)}
                 className={cn(
                   buttonVariants(),
                   "rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white"
@@ -478,8 +501,8 @@ export function ResellerUrlImportClient() {
                 <ArrowRight className="size-4" aria-hidden />
               </Link>
               <Link
-                href={loginAffiliatePath(
-                  `${AFFILIATE_URL_IMPORT_HREF}${url.trim() ? `?url=${encodeURIComponent(url.trim())}` : ""}`
+                href={loginSupplierPath(
+                  `${DROPFORGE_HREF}${url.trim() ? `?url=${encodeURIComponent(url.trim())}` : ""}`
                 )}
                 className={cn(
                   buttonVariants({ variant: "outline" }),
@@ -497,7 +520,7 @@ export function ResellerUrlImportClient() {
         <div className="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-sm text-emerald-50">
           <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-300" aria-hidden />
           <div className="min-w-0 space-y-2">
-            <p className="font-semibold">{done.isListed ? t("doneLive") : t("doneDraft")}</p>
+            <p className="font-semibold">{done.isPublished ? t("doneLive") : t("doneDraft")}</p>
             <div className="flex flex-wrap gap-2">
               <Link
                 href={done.editHref}
@@ -505,35 +528,33 @@ export function ResellerUrlImportClient() {
               >
                 {t("editListing")}
               </Link>
-              {done.isListed ? (
-                <Link
-                  href={done.shopHref}
-                  className={cn(
-                    buttonVariants({ size: "sm", variant: "outline" }),
-                    "rounded-full border-white/25 bg-transparent text-white"
-                  )}
-                >
-                  {t("viewShop")}
-                </Link>
-              ) : null}
+              <Link
+                href={done.catalogHref}
+                className={cn(
+                  buttonVariants({ size: "sm", variant: "outline" }),
+                  "rounded-full border-white/25 bg-transparent text-white"
+                )}
+              >
+                {t("viewCatalog")}
+              </Link>
             </div>
           </div>
         </div>
       ) : null}
 
-      {!isAffiliate && status !== "loading" ? (
+      {!isSupplier && !isAffiliate && status !== "loading" ? (
         <p className="mt-4 text-center text-xs text-violet-200/70">
           {t("alreadyAccount")}{" "}
           <Link
-            href={loginAffiliatePath(
-              `${AFFILIATE_URL_IMPORT_HREF}${url.trim() ? `?url=${encodeURIComponent(url.trim())}` : ""}`
+            href={loginSupplierPath(
+              `${DROPFORGE_HREF}${url.trim() ? `?url=${encodeURIComponent(url.trim())}` : ""}`
             )}
             className="font-semibold text-white underline underline-offset-2"
           >
             {t("loginLink")}
           </Link>
           {" · "}
-          <Link href={AFFILIATE_RESELLER_SIGNUP_HREF} className="underline underline-offset-2">
+          <Link href={SUPPLIER_SIGNUP_HREF} className="underline underline-offset-2">
             {t("signupLink")}
           </Link>
         </p>
@@ -541,3 +562,6 @@ export function ResellerUrlImportClient() {
     </div>
   )
 }
+
+/** @deprecated Use DropForgeImportClient — kept for import path stability. */
+export const ResellerUrlImportClient = DropForgeImportClient

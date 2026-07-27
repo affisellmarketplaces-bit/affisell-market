@@ -8,8 +8,16 @@ import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfro
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-/** Commit scraped URL into AffiliateProduct (+ vault Product). AFFILIATE only. */
+/**
+ * @deprecated Prefer POST /api/dropforge/commit (SUPPLIER B2B).
+ * Legacy reseller URL → AffiliateProduct path — kept for backward compatibility.
+ */
 export async function POST(req: Request) {
+  console.log("[affiliate-url-import]", {
+    stage: "commit",
+    result: "legacy_affiliate_path",
+    hint: "use_/api/dropforge/commit",
+  })
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized", code: "auth_required" }, { status: 401 })

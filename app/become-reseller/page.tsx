@@ -57,7 +57,7 @@ export default async function BecomeResellerPage() {
 
           <div className="mt-8 flex flex-wrap gap-4">
             <Link
-              href="/dropforge"
+              href={AFFILIATE_RESELLER_SIGNUP_HREF}
               className={cn(
                 buttonVariants({ size: "lg" }),
                 "rounded-full bg-white px-6 font-medium text-violet-950 hover:bg-violet-50"
@@ -66,7 +66,7 @@ export default async function BecomeResellerPage() {
               {t("ctaPrimary")}
             </Link>
             <Link
-              href={AFFILIATE_RESELLER_SIGNUP_HREF}
+              href="/dashboard/affiliate/catalog"
               className={cn(
                 buttonVariants({ variant: "outline", size: "lg" }),
                 "rounded-full border-white/40 bg-transparent px-6 font-medium text-white hover:bg-white/10"

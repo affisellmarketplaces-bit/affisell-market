@@ -65,13 +65,13 @@ export default async function BecomeSupplierPage() {
               {t("ctaPrimary")}
             </Link>
             <Link
-              href="/sell/become-supplier"
+              href="/dropforge"
               className={cn(
                 buttonVariants({ variant: "outline", size: "lg" }),
                 "rounded-full border-white/40 bg-transparent px-6 font-medium text-white hover:bg-white/10"
               )}
             >
-              {t("ctaSecondary")}
+              DropForge
             </Link>
           </div>
         </div>
