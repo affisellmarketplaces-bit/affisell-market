@@ -19,23 +19,32 @@ export const loadPdpCrossSellCards = cache(
     storeSlug?: string | null
     categories: string[]
   }): Promise<PdpCrossSellCards> => {
-    const crossSell = await loadPdpCrossSellBundle({
-      listingId: args.listingId,
-      productId: args.productId,
-      affiliateId: args.affiliateId,
-      storeSlug: args.storeSlug?.trim() || null,
-      categories: args.categories,
-    })
+    try {
+      const crossSell = await loadPdpCrossSellBundle({
+        listingId: args.listingId,
+        productId: args.productId,
+        affiliateId: args.affiliateId,
+        storeSlug: args.storeSlug?.trim() || null,
+        categories: args.categories,
+      })
 
-    return {
-      oftenBoughtTogether: mapPdpCrossSellListings(crossSell.boughtTogether, {
-        storeSlug: args.storeSlug ?? undefined,
-        limit: 4,
-      }),
-      alsoViewed: mapPdpCrossSellListings(crossSell.alsoViewed, {
-        storeSlug: args.storeSlug ?? undefined,
-        limit: 4,
-      }),
+      return {
+        oftenBoughtTogether: mapPdpCrossSellListings(crossSell.boughtTogether, {
+          storeSlug: args.storeSlug ?? undefined,
+          limit: 4,
+        }),
+        alsoViewed: mapPdpCrossSellListings(crossSell.alsoViewed, {
+          storeSlug: args.storeSlug ?? undefined,
+          limit: 4,
+        }),
+      }
+    } catch (e) {
+      console.log("[pdp-cross-sell]", {
+        result: "cards_failed",
+        listingId: args.listingId,
+        error: e instanceof Error ? e.message : String(e),
+      })
+      return { oftenBoughtTogether: [], alsoViewed: [] }
     }
   }
 )

@@ -21,7 +21,14 @@ export default async function ShopsProductPage({
   searchParams,
 }: {
   params: Promise<{ slug: string; id: string }>
-  searchParams: Promise<{ writeReview?: string; orderId?: string; preview?: string }>
+  searchParams: Promise<{
+    writeReview?: string
+    orderId?: string
+    preview?: string
+    battleId?: string
+    e2eFixtures?: string
+    e2eCreatorsWatching?: string
+  }>
 }) {
   const { slug, id } = await params
   return MarketplaceListingPage({

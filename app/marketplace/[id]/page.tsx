@@ -255,50 +255,66 @@ export default async function MarketplaceListingPage({
     compareAtEur != null && Number.isFinite(compareAtEur) && compareAtEur > sellingEur ? compareAtEur : undefined
 
   const battleIdParam = typeof sp.battleId === "string" ? sp.battleId.trim() : ""
-  const battleFlash = battleIdParam
-    ? await resolveActiveBattleFlash({
+  let flashOffer: {
+    battleId: string
+    flashPercent: number
+    flashPrice: number
+    flashEndsAt: string
+    isWinner: true
+    priceReferenceEur: number
+    battleResellerName: string
+  } | null = null
+  let battleResellerDisplay = sellerLabel
+
+  if (battleIdParam) {
+    try {
+      const battleFlash = await resolveActiveBattleFlash({
         battleId: battleIdParam,
         winnerProductId: p.id,
       })
-    : null
-  const flashUnitCents = battleFlash
-    ? applyBattleFlashUnitCents(listing.sellingPriceCents, battleFlash.flashDiscount)
-    : null
-  const flashOffer = battleFlash && flashUnitCents != null
-    ? {
-        battleId: battleFlash.battleId,
-        flashPercent: battleFlash.flashDiscount,
-        flashPrice: flashUnitCents / 100,
-        flashEndsAt: battleFlash.flashEndsAt.toISOString(),
-        isWinner: true as const,
-        priceReferenceEur:
-          battleFlash.priceReferenceCents != null && battleFlash.priceReferenceCents > 0
-            ? battleFlash.priceReferenceCents / 100
-            : listing.sellingPriceCents / 100,
-        battleResellerName: sellerLabel,
+      const flashUnitCents = battleFlash
+        ? applyBattleFlashUnitCents(listing.sellingPriceCents, battleFlash.flashDiscount)
+        : null
+      if (battleFlash && flashUnitCents != null) {
+        flashOffer = {
+          battleId: battleFlash.battleId,
+          flashPercent: battleFlash.flashDiscount,
+          flashPrice: flashUnitCents / 100,
+          flashEndsAt: battleFlash.flashEndsAt.toISOString(),
+          isWinner: true,
+          priceReferenceEur:
+            battleFlash.priceReferenceCents != null && battleFlash.priceReferenceCents > 0
+              ? battleFlash.priceReferenceCents / 100
+              : listing.sellingPriceCents / 100,
+          battleResellerName: sellerLabel,
+        }
+        if (battleFlash.flashDiscountSetBy) {
+          try {
+            const setter = await prisma.user.findUnique({
+              where: { id: battleFlash.flashDiscountSetBy },
+              select: { name: true, store: { select: { name: true } } },
+            })
+            const fromSetter =
+              setter?.store?.name?.trim() || setter?.name?.trim() || null
+            if (fromSetter) battleResellerDisplay = fromSetter
+          } catch {
+            /* ignore reseller name lookup */
+          }
+        }
+      } else {
+        console.log("[marketplace-pdp]", {
+          result: "battle_flash_ignored",
+          battleId: battleIdParam,
+          productId: p.id,
+        })
       }
-    : null
-  if (battleIdParam && !flashOffer) {
-    console.log("[marketplace-pdp]", {
-      result: "battle_flash_ignored",
-      battleId: battleIdParam,
-      productId: p.id,
-    })
-  }
-
-  // Prefer display name of reseller who set flash % when available
-  let battleResellerDisplay = flashOffer?.battleResellerName ?? sellerLabel
-  if (battleFlash?.flashDiscountSetBy) {
-    try {
-      const setter = await prisma.user.findUnique({
-        where: { id: battleFlash.flashDiscountSetBy },
-        select: { name: true, store: { select: { name: true } } },
+    } catch (e) {
+      console.log("[marketplace-pdp]", {
+        result: "battle_flash_failed",
+        battleId: battleIdParam,
+        productId: p.id,
+        error: e instanceof Error ? e.message : String(e),
       })
-      const fromSetter =
-        setter?.store?.name?.trim() || setter?.name?.trim() || null
-      if (fromSetter) battleResellerDisplay = fromSetter
-    } catch {
-      /* ignore */
     }
   }
 

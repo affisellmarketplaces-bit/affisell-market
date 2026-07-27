@@ -425,7 +425,10 @@ function isMissingBattleTable(e: unknown): boolean {
     typeof e === "object" && e && "code" in e ? String((e as { code?: string }).code) : ""
   return (
     code === "P2021" ||
-    /PulseBattle|pulseBattle|does not exist|relation .* does not exist/i.test(msg)
+    code === "P2022" ||
+    /PulseBattle|pulseBattle|PriceHistory|does not exist|column .* does not exist|relation .* does not exist/i.test(
+      msg
+    )
   )
 }
 
@@ -597,6 +600,7 @@ export async function resolveActiveBattleFlash(args: {
   if (!battleId || !winnerProductId) return null
 
   try {
+    await ensurePulseBattleSchema()
     const battle = await prisma.pulseBattle.findFirst({
       where: {
         id: battleId,
@@ -627,15 +631,14 @@ export async function resolveActiveBattleFlash(args: {
       flashDiscountSetBy: battle.flashDiscountSetBy ?? null,
     }
   } catch (e) {
-    if (isMissingBattleTable(e)) {
-      console.log("[pulse-battle]", {
-        result: "flash_resolve_table_missing",
-        battleId,
-        error: e instanceof Error ? e.message : String(e),
-      })
-      return null
-    }
-    throw e
+    console.log("[pulse-battle]", {
+      result: "flash_resolve_failed",
+      battleId,
+      schemaMissing: isMissingBattleTable(e),
+      error: e instanceof Error ? e.message : String(e),
+    })
+    /** Never crash PDP / checkout — flash is optional. */
+    return null
   }
 }
 

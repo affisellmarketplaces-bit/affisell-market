@@ -84,68 +84,76 @@ export function ProductPriceOffer({
   }
 
   if (showBattleFlash && validatedFlashPrice != null) {
-    const referenceEur =
-      typeof priceReferenceEur === "number" &&
-      Number.isFinite(priceReferenceEur) &&
-      priceReferenceEur > 0
-        ? priceReferenceEur
-        : price
-    const reseller =
-      typeof battleResellerName === "string" && battleResellerName.trim()
-        ? battleResellerName.trim()
-        : "Affisell"
-    const endsLabel = flashEndsAtIso
-      ? new Date(flashEndsAtIso).toLocaleString("fr-FR", {
-          day: "2-digit",
-          month: "short",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : null
+    try {
+      const referenceEur =
+        typeof priceReferenceEur === "number" &&
+        Number.isFinite(priceReferenceEur) &&
+        priceReferenceEur > 0
+          ? priceReferenceEur
+          : price
+      const reseller =
+        typeof battleResellerName === "string" && battleResellerName.trim()
+          ? battleResellerName.trim()
+          : "Affisell"
+      const endsLabel = flashEndsAtIso
+        ? new Date(flashEndsAtIso).toLocaleString("fr-FR", {
+            day: "2-digit",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : null
 
-    return (
-      <div
-        className={cn("battle-legal space-y-1", align === "end" && "text-right", className)}
-        data-testid="battle-legal-price"
-      >
-        <div className={cn("flex flex-wrap items-center gap-2", align === "end" && "justify-end")}>
-          <span
-            className={cn(
-              "tabular-nums font-black tracking-tight text-red-600 dark:text-red-400",
-              layout === "detail" ? "text-3xl" : "text-xl"
-            )}
-          >
-            Prix Battle: {formatStoreCurrency(validatedFlashPrice)}
-          </span>
-          {flashPct != null ? (
-            <span className="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-black text-white animate-pulse">
-              −{flashPct}%
+      return (
+        <div
+          className={cn("battle-legal space-y-1", align === "end" && "text-right", className)}
+          data-testid="battle-legal-price"
+        >
+          <div className={cn("flex flex-wrap items-center gap-2", align === "end" && "justify-end")}>
+            <span
+              className={cn(
+                "tabular-nums font-black tracking-tight text-red-600 dark:text-red-400",
+                layout === "detail" ? "text-3xl" : "text-xl"
+              )}
+            >
+              Prix Battle: {formatStoreCurrency(validatedFlashPrice)}
             </span>
+            {flashPct != null ? (
+              <span className="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-black text-white animate-pulse">
+                −{flashPct}%
+              </span>
+            ) : null}
+          </div>
+          <span className="block text-sm tabular-nums text-zinc-400 line-through">
+            Prix habituel Affisell: {formatStoreCurrency(price)}
+          </span>
+          <span className="block text-xs text-zinc-600 dark:text-zinc-300">
+            {flashPct != null ? `−${flashPct}%` : "Promo"} par {reseller}
+            {endsLabel ? ` — jusqu'au ${endsLabel}` : null}
+          </span>
+          <span className="block text-xs text-gray-500">
+            Prix le plus bas 30j: {formatStoreCurrency(referenceEur)} — Conforme DGCCRF
+          </span>
+          {flashEndsAtIso ? (
+            <div
+              className={cn(
+                "flex flex-wrap items-center gap-2 text-xs font-semibold text-red-600 dark:text-red-400",
+                align === "end" && "justify-end"
+              )}
+            >
+              <span>Flash</span>
+              <BattleTimer endsAt={flashEndsAtIso} className="text-red-600 dark:text-red-400" />
+            </div>
           ) : null}
         </div>
-        <span className="block text-sm tabular-nums text-zinc-400 line-through">
-          Prix habituel Affisell: {formatStoreCurrency(price)}
-        </span>
-        <span className="block text-xs text-zinc-600 dark:text-zinc-300">
-          {flashPct != null ? `−${flashPct}%` : "Promo"} par {reseller}
-          {endsLabel ? ` — jusqu'au ${endsLabel}` : null}
-        </span>
-        <span className="block text-xs text-gray-500">
-          Prix le plus bas 30j: {formatStoreCurrency(referenceEur)} — Conforme DGCCRF
-        </span>
-        {flashEndsAtIso ? (
-          <div
-            className={cn(
-              "flex flex-wrap items-center gap-2 text-xs font-semibold text-red-600 dark:text-red-400",
-              align === "end" && "justify-end"
-            )}
-          >
-            <span>Flash</span>
-            <BattleTimer endsAt={flashEndsAtIso} className="text-red-600 dark:text-red-400" />
-          </div>
-        ) : null}
-      </div>
-    )
+      )
+    } catch (e) {
+      console.error("[product-price-offer]", {
+        result: "battle_legal_render_failed",
+        error: e instanceof Error ? e.message : String(e),
+      })
+      // Fall through to standard price UI — never blank the PDP.
+    }
   }
 
   const offer = resolveProductDiscount(price, compareAt)
