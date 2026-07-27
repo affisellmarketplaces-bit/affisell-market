@@ -8,6 +8,7 @@ describe("resolvePublicNavActive", () => {
       onHome: true,
       onMarketplace: false,
       onShops: false,
+      onDiscover: false,
     })
   })
 
@@ -16,6 +17,7 @@ describe("resolvePublicNavActive", () => {
       onHome: false,
       onMarketplace: true,
       onShops: false,
+      onDiscover: false,
     })
   })
 
@@ -24,6 +26,7 @@ describe("resolvePublicNavActive", () => {
       onHome: false,
       onMarketplace: true,
       onShops: false,
+      onDiscover: false,
     })
   })
 
@@ -32,6 +35,16 @@ describe("resolvePublicNavActive", () => {
       onHome: false,
       onMarketplace: false,
       onShops: true,
+      onDiscover: false,
+    })
+  })
+
+  it("marks discover on /discover", () => {
+    expect(resolvePublicNavActive("/discover", false)).toEqual({
+      onHome: false,
+      onMarketplace: false,
+      onShops: false,
+      onDiscover: true,
     })
   })
 })

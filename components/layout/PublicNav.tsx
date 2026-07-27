@@ -75,7 +75,7 @@ export function PublicNav() {
   }, [pathname])
 
   const mode = resolvePublicNavMode(pathname)
-  const { onHome, onMarketplace, onShops } = resolvePublicNavActive(pathname, explorerHash)
+  const { onHome, onMarketplace, onShops, onDiscover } = resolvePublicNavActive(pathname, explorerHash)
   const searchContext = resolvePublicNavSearchContext(pathname, explorerHash)
 
   const isBuyerContext =
@@ -131,14 +131,27 @@ export function PublicNav() {
 
       <div className="flex shrink-0 items-center gap-2">
         {mode !== "transaction" ? (
-          <button
-            type="button"
-            onClick={openMobileSearch}
-            className={mobileIconBtn}
-            aria-label={t("searchLabel")}
-          >
-            <Search className="size-[18px]" aria-hidden />
-          </button>
+          <>
+            <FastLink
+              href="/discover"
+              className={cn(
+                mobileIconBtn,
+                onDiscover &&
+                  "border-violet-300 bg-violet-100 text-violet-800 dark:border-violet-500/50 dark:bg-violet-950/80 dark:text-violet-100"
+              )}
+              aria-label={t("pulseEntry")}
+            >
+              <Sparkles className="size-[18px]" aria-hidden />
+            </FastLink>
+            <button
+              type="button"
+              onClick={openMobileSearch}
+              className={mobileIconBtn}
+              aria-label={t("searchLabel")}
+            >
+              <Search className="size-[18px]" aria-hidden />
+            </button>
+          </>
         ) : null}
         <FastLink
           href="/cart"
@@ -218,6 +231,15 @@ export function PublicNav() {
         icon={Search}
         active={onMarketplace}
         activeVariant="brand"
+      />
+      <NavPill
+        href="/discover"
+        label={t("pulseEntry")}
+        shortLabel={t("pulseEntryShort")}
+        icon={Sparkles}
+        active={onDiscover}
+        activeVariant="brand"
+        showNewBadge
       />
       <NavPill
         href="/shops"

@@ -194,6 +194,24 @@ export function MobileBuyerHub() {
           {bodyReady ? (
             activeTab === "categories" ? (
               <div role="tabpanel">
+                <FastLink
+                  href="/discover"
+                  onClick={closeHub}
+                  className="mb-4 flex items-center gap-3 rounded-2xl border border-violet-500/30 bg-gradient-to-r from-violet-600/90 via-fuchsia-600/85 to-violet-700/90 p-3 shadow-lg shadow-violet-900/40 transition active:scale-[0.98]"
+                >
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-black/20">
+                    <Sparkles className="size-5 text-white" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-white">{t("discover")}</span>
+                      <span className="rounded-full bg-red-500/90 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white">
+                        {tPulse("beta")}
+                      </span>
+                    </span>
+                    <span className="mt-0.5 block text-[11px] text-white/85">{t("discoverMarketHint")}</span>
+                  </span>
+                </FastLink>
                 <CategoryTree onNavigate={closeHub} />
               </div>
             ) : (

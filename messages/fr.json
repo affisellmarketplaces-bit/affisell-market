@@ -76,7 +76,7 @@
     "searchProductsTitle": "Produits",
     "searchQuickBrowse": "Catalogue",
     "searchQuickStores": "Boutiques",
-    "searchQuickDiscover": "Discover",
+    "searchQuickDiscover": "Affisell Pulse",
     "searchQuickAuctions": "Enchères",
     "searchLoading": "Recherche…",
     "searchNoResults": "Aucun produit trouvé",
@@ -89,7 +89,9 @@
     "trustStripText": "Achat protégé · Paiement sécurisé · Retours 14j UE",
     "trustStripCta": "En savoir plus",
     "trustStripDismiss": "Masquer",
-    "agentEntry": "Agent"
+    "agentEntry": "Agent",
+    "pulseEntry": "Affisell Pulse",
+    "pulseEntryShort": "Pulse"
   },
   "slogans": {
     "buyer": {
@@ -3707,6 +3709,7 @@
       "howItWorks": "Comment ça marche",
       "howSellingWorks": "Comment vendre",
       "browseCatalog": "Explorer le catalogue",
+      "affisellPulse": "Affisell Pulse",
       "auctions": "Arène enchères",
       "luxe": "Affisell Luxe",
       "buyerProtection": "Achat protégé · retours",
