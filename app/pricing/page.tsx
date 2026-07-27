@@ -10,7 +10,7 @@ import { prisma } from "@/lib/prisma"
 export const metadata: Metadata = {
   title: "Pricing — Affisell",
   description:
-    "Lanceur, Dominator, Empire — plans Affisell pour resellers, grossistes et marques. Radar Pro & Global.",
+    "Radar Pro & Global, Lanceur, Dominator, Empire — abonnements Affisell pour capturer les winners avant le marché.",
 }
 
 type SearchParams = Promise<{
@@ -69,7 +69,8 @@ export default async function PricingPage({ searchParams }: { searchParams: Sear
               Choisis ton arme de croissance
             </h1>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400 sm:text-base">
-              Reseller, Grossiste ou Marque — un plan clair, conversion max, zéro friction.
+              Reseller, Grossiste ou Marque — des plans pensés pour la conversion, la priorité algo
+              et la défense de marque. Pas de flou : chaque ligne = un avantage business.
             </p>
           </div>
           <div className="mt-10">
