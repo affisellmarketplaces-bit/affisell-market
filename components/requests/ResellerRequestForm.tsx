@@ -11,9 +11,12 @@ import {
   resolveDeliverySLAForCountries,
 } from "@/lib/logistics/delivery-sla"
 import {
+  getProductRequestCountryGroups,
   PRODUCT_REQUEST_CATEGORIES,
   parseProductRequestCountries,
   PRODUCT_REQUEST_COUNTRIES,
+  productRequestCountryChipLabel,
+  sortProductRequestCountries,
 } from "@/lib/product-request-types"
 import { cn } from "@/lib/utils"
 
@@ -62,18 +65,24 @@ export function ResellerRequestForm() {
   const [imageUrl, setImageUrl] = useState("")
   const [deliveryPriority, setDeliveryPriority] = useState<DeliveryPriority>("balanced")
 
+  const countryGroups = useMemo(() => getProductRequestCountryGroups(), [])
+
   const toggleCountry = useCallback((code: string) => {
     setCountries((prev) => {
       if (prev.includes(code)) {
         const next = prev.filter((c) => c !== code)
         return next.length > 0 ? next : prev
       }
-      return [...prev, code].sort(
-        (a, b) =>
-          PRODUCT_REQUEST_COUNTRIES.indexOf(a as (typeof PRODUCT_REQUEST_COUNTRIES)[number]) -
-          PRODUCT_REQUEST_COUNTRIES.indexOf(b as (typeof PRODUCT_REQUEST_COUNTRIES)[number])
-      )
+      return sortProductRequestCountries([...prev, code])
     })
+  }, [])
+
+  const selectAllCountries = useCallback(() => {
+    setCountries([...PRODUCT_REQUEST_COUNTRIES])
+  }, [])
+
+  const clearCountries = useCallback(() => {
+    setCountries(["FR"])
   }, [])
 
   const sla = getAggregatedSlaForCountries(countries)
@@ -164,35 +173,66 @@ export function ResellerRequestForm() {
             ))}
           </select>
         </div>
-        <div>
-          <p className="text-xs font-semibold text-zinc-700" id="req-countries-label">
-            Pays de promotion *
-          </p>
-          <p className="mt-0.5 text-[11px] text-zinc-500">Un ou plusieurs marchés ciblés</p>
+        <div className="sm:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-xs font-semibold text-zinc-700" id="req-countries-label">
+                Pays de promotion *
+              </p>
+              <p className="mt-0.5 text-[11px] text-zinc-500">
+                {countries.length} / {PRODUCT_REQUEST_COUNTRIES.length} marchés · un ou plusieurs
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={selectAllCountries}
+                className="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-800 hover:bg-violet-100"
+              >
+                Tout sélectionner
+              </button>
+              <button
+                type="button"
+                onClick={clearCountries}
+                className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50"
+              >
+                Réinitialiser
+              </button>
+            </div>
+          </div>
           <div
-            className="mt-2 flex flex-wrap gap-1.5"
+            className="mt-2 max-h-56 space-y-3 overflow-y-auto rounded-xl border border-zinc-200 bg-zinc-50/60 p-3"
             role="group"
             aria-labelledby="req-countries-label"
           >
-            {PRODUCT_REQUEST_COUNTRIES.map((code) => {
-              const selected = countries.includes(code)
-              return (
-                <button
-                  key={code}
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={() => toggleCountry(code)}
-                  className={cn(
-                    "rounded-lg border px-2.5 py-1 text-xs font-semibold tabular-nums transition",
-                    selected
-                      ? "border-violet-500 bg-violet-600 text-white shadow-sm"
-                      : "border-zinc-200 bg-white text-zinc-600 hover:border-violet-300 hover:bg-violet-50"
-                  )}
-                >
-                  {code}
-                </button>
-              )
-            })}
+            {countryGroups.map((group) => (
+              <div key={group.id}>
+                <p className="text-[10px] font-bold uppercase tracking-wide text-zinc-500">
+                  {group.label}
+                </p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {group.codes.map((code) => {
+                    const selected = countries.includes(code)
+                    return (
+                      <button
+                        key={code}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => toggleCountry(code)}
+                        className={cn(
+                          "rounded-lg border px-2 py-1 text-xs font-semibold tabular-nums transition",
+                          selected
+                            ? "border-violet-500 bg-violet-600 text-white shadow-sm"
+                            : "border-zinc-200 bg-white text-zinc-600 hover:border-violet-300 hover:bg-violet-50"
+                        )}
+                      >
+                        {productRequestCountryChipLabel(code)}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
