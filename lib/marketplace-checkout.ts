@@ -7,11 +7,13 @@ import {
 } from "@/lib/affiliate-listing-display"
 import { auth } from "@/auth"
 import { assertGhostStockForCheckout } from "@/lib/ghost/checkout-gate"
+import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
 import {
   formatCartVariantLabel,
   normalizeCartVariantSignature,
   parseCartVariantSignature,
 } from "@/lib/cart-variant"
+import { isPrismaMissingColumnError } from "@/lib/prisma-missing-column"
 import {
   AFFILIATE_COMMISSION_REQUIRED_ERROR,
   productHasExplicitSupplierCommission,
@@ -169,14 +171,75 @@ function validateOfferCheckoutLine(
   return null
 }
 
+const ghostProductOmit = {
+  supplierUrl: true,
+  supplierSource: true,
+  supplierProductId: true,
+  lastStockCheck: true,
+  lastStockStatus: true,
+  lastPriceSupplier: true,
+  stockCheckFails: true,
+} as const
+
+function withGhostProductDefaults<T extends Record<string, unknown>>(product: T) {
+  return {
+    supplierUrl: null as string | null,
+    supplierSource: null as string | null,
+    supplierProductId: null as string | null,
+    lastStockCheck: null as Date | null,
+    lastStockStatus: null as string | null,
+    lastPriceSupplier: null,
+    stockCheckFails: 0,
+    ...product,
+  }
+}
+
 async function loadListing(id: string) {
-  return prisma.affiliateProduct.findFirst({
-    where: {
-      id,
-      ...buyerListedAffiliateProductWhere,
-    },
-    include: { product: true, affiliate: true },
-  })
+  await ensureGhostStockSchema()
+  const where = {
+    id,
+    ...buyerListedAffiliateProductWhere,
+  }
+
+  try {
+    return await prisma.affiliateProduct.findFirst({
+      where,
+      include: { product: true, affiliate: true },
+    })
+  } catch (error: unknown) {
+    if (!isPrismaMissingColumnError(error)) throw error
+    console.log("[marketplace-checkout]", {
+      result: "ghost_p2022_retry",
+      listingId: id,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    await ensureGhostStockSchema({ force: true })
+    try {
+      return await prisma.affiliateProduct.findFirst({
+        where,
+        include: { product: true, affiliate: true },
+      })
+    } catch (retryError: unknown) {
+      if (!isPrismaMissingColumnError(retryError)) throw retryError
+      console.log("[marketplace-checkout]", {
+        result: "ghost_select_fallback",
+        listingId: id,
+        error: retryError instanceof Error ? retryError.message : String(retryError),
+      })
+      const row = await prisma.affiliateProduct.findFirst({
+        where,
+        include: {
+          affiliate: true,
+          product: { omit: ghostProductOmit },
+        },
+      })
+      if (!row) return null
+      return {
+        ...row,
+        product: withGhostProductDefaults(row.product),
+      }
+    }
+  }
 }
 
 function guardExplicitSupplierCommission(args: {

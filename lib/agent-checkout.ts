@@ -1,5 +1,7 @@
 import { listingDisplayTitle, listingGalleryUrls } from "@/lib/affiliate-listing-display"
+import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
+import { isPrismaMissingColumnError } from "@/lib/prisma-missing-column"
 import { prisma } from "@/lib/prisma"
 import { getSiteUrl } from "@/lib/site-url"
 import { getStripeClient } from "@/lib/stripe"
@@ -9,27 +11,87 @@ function baseUrl(): string {
   return getSiteUrl()
 }
 
+async function loadAgentListing(productId: string) {
+  await ensureGhostStockSchema()
+  const byAffiliateId = {
+    id: productId,
+    ...buyerListedAffiliateProductWhere,
+  }
+  const byProductId = {
+    productId,
+    ...buyerListedAffiliateProductWhere,
+  }
+
+  const findFull = async () =>
+    (await prisma.affiliateProduct.findFirst({
+      where: byAffiliateId,
+      include: { product: true },
+    })) ??
+    (await prisma.affiliateProduct.findFirst({
+      where: byProductId,
+      include: { product: true },
+      orderBy: { id: "asc" },
+    }))
+
+  try {
+    return await findFull()
+  } catch (error: unknown) {
+    if (!isPrismaMissingColumnError(error)) throw error
+    console.log("[agent-checkout]", {
+      result: "ghost_p2022_retry",
+      productId,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    await ensureGhostStockSchema({ force: true })
+    try {
+      return await findFull()
+    } catch (retryError: unknown) {
+      if (!isPrismaMissingColumnError(retryError)) throw retryError
+      console.log("[agent-checkout]", {
+        result: "ghost_select_fallback",
+        productId,
+        error: retryError instanceof Error ? retryError.message : String(retryError),
+      })
+      const productSelect = {
+        id: true,
+        name: true,
+        images: true,
+      } as const
+      return (
+        (await prisma.affiliateProduct.findFirst({
+          where: byAffiliateId,
+          select: {
+            id: true,
+            productId: true,
+            sellingPriceCents: true,
+            customTitle: true,
+            customImages: true,
+            product: { select: productSelect },
+          },
+        })) ??
+        (await prisma.affiliateProduct.findFirst({
+          where: byProductId,
+          select: {
+            id: true,
+            productId: true,
+            sellingPriceCents: true,
+            customTitle: true,
+            customImages: true,
+            product: { select: productSelect },
+          },
+          orderBy: { id: "asc" },
+        }))
+      )
+    }
+  }
+}
+
 export async function createCheckoutSession(productId: string, userId?: string) {
   const stripe = getStripeClient()
   const id = productId.trim()
   if (!id) return null
 
-  const listing =
-    (await prisma.affiliateProduct.findFirst({
-      where: {
-        id,
-        ...buyerListedAffiliateProductWhere,
-      },
-      include: { product: true },
-    })) ??
-    (await prisma.affiliateProduct.findFirst({
-      where: {
-        productId: id,
-        ...buyerListedAffiliateProductWhere,
-      },
-      include: { product: true },
-      orderBy: { id: "asc" },
-    }))
+  const listing = await loadAgentListing(id)
 
   if (!listing) return null
 

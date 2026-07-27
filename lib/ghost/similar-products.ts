@@ -4,6 +4,7 @@ import {
   listingGalleryUrls,
 } from "@/lib/affiliate-listing-display"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
+import { isPrismaMissingColumnError } from "@/lib/prisma-missing-column"
 import { prisma } from "@/lib/prisma"
 
 export type GhostAlternative = {
@@ -40,31 +41,56 @@ export async function getSimilarInStockProducts(
         }
       : {}
 
-  const listings = await prisma.affiliateProduct.findMany({
-    where: {
-      ...buyerListedAffiliateProductWhere,
-      productId: { not: productId },
-      product: {
-        active: true,
-        isDraft: false,
-        ...categoryFilter,
-        AND: [
-          {
-            OR: [
-              { lastStockStatus: { in: ["in_stock", "low_stock"] } },
-              { lastStockStatus: null },
-            ],
-          },
-        ],
+  const baseWhere = {
+    ...buyerListedAffiliateProductWhere,
+    productId: { not: productId },
+    product: {
+      active: true,
+      isDraft: false,
+      ...categoryFilter,
+    },
+  }
+
+  const listingInclude = {
+    product: { select: { name: true, images: true, basePriceCents: true } },
+    affiliate: { select: { store: { select: { slug: true } } } },
+  } as const
+
+  let listings
+  try {
+    listings = await prisma.affiliateProduct.findMany({
+      where: {
+        ...baseWhere,
+        product: {
+          ...baseWhere.product,
+          AND: [
+            {
+              OR: [
+                { lastStockStatus: { in: ["in_stock", "low_stock"] } },
+                { lastStockStatus: null },
+              ],
+            },
+          ],
+        },
       },
-    },
-    include: {
-      product: { select: { name: true, images: true, basePriceCents: true } },
-      affiliate: { select: { store: { select: { slug: true } } } },
-    },
-    orderBy: { updatedAt: "desc" },
-    take: take * 4,
-  })
+      include: listingInclude,
+      orderBy: { updatedAt: "desc" },
+      take: take * 4,
+    })
+  } catch (error: unknown) {
+    if (!isPrismaMissingColumnError(error)) throw error
+    console.log("[ghost-similar]", {
+      result: "ghost_filter_fallback",
+      productId,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    listings = await prisma.affiliateProduct.findMany({
+      where: baseWhere,
+      include: listingInclude,
+      orderBy: { updatedAt: "desc" },
+      take: take * 4,
+    })
+  }
 
   const out: GhostAlternative[] = []
   for (const row of listings) {

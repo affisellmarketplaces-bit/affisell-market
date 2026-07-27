@@ -1,12 +1,48 @@
 import type Stripe from "stripe"
 
 import { checkStock } from "@/lib/ghost/check-stock"
+import { ensureGhostStockSchema } from "@/lib/ghost/ensure-ghost-schema"
 import { GHOST_STOCK15_COUPON } from "@/lib/ghost/types"
 import { readResendDeliveryConfig, sendResendEmail } from "@/lib/emails/resend-delivery"
 import { getStripeClient } from "@/lib/stripe"
 import { findOrderIdsForCheckoutSession } from "@/lib/stripe-marketplace-commission-split"
 import { opsWebhookAlert } from "@/lib/ops-webhook"
+import { isPrismaMissingColumnError } from "@/lib/prisma-missing-column"
 import { prisma } from "@/lib/prisma"
+
+const ghostProductSelect = {
+  id: true,
+  name: true,
+  supplierUrl: true,
+  supplierSource: true,
+  supplierProductId: true,
+  sourceUrl: true,
+  importSource: true,
+  aliexpressProductId: true,
+  lastPriceSupplier: true,
+  basePriceCents: true,
+  stock: true,
+} as const
+
+const productSelectWithoutGhost = {
+  id: true,
+  name: true,
+  sourceUrl: true,
+  importSource: true,
+  aliexpressProductId: true,
+  basePriceCents: true,
+  stock: true,
+} as const
+
+function padGhostProductFields<T extends Record<string, unknown>>(product: T) {
+  return {
+    supplierUrl: null as string | null,
+    supplierSource: null as string | null,
+    supplierProductId: null as string | null,
+    lastPriceSupplier: null,
+    ...product,
+  }
+}
 
 /**
  * Re-vérif Ghost après paiement, avant fulfill.
@@ -15,33 +51,62 @@ import { prisma } from "@/lib/prisma"
 export async function ghostReverifyBeforeFulfill(
   session: Stripe.Checkout.Session
 ): Promise<{ refunded: boolean }> {
+  await ensureGhostStockSchema()
+
   const orderIds = await findOrderIdsForCheckoutSession(session.id)
-  const orders =
-    orderIds.length > 0
-      ? await prisma.order.findMany({
-          where: { id: { in: orderIds } },
-          select: {
-            id: true,
-            productId: true,
-            customerEmail: true,
-            product: {
-              select: {
-                id: true,
-                name: true,
-                supplierUrl: true,
-                supplierSource: true,
-                supplierProductId: true,
-                sourceUrl: true,
-                importSource: true,
-                aliexpressProductId: true,
-                lastPriceSupplier: true,
-                basePriceCents: true,
-                stock: true,
-              },
-            },
-          },
-        })
-      : []
+
+  async function loadOrdersWithGhost() {
+    if (orderIds.length === 0) return []
+    return prisma.order.findMany({
+      where: { id: { in: orderIds } },
+      select: {
+        id: true,
+        productId: true,
+        customerEmail: true,
+        product: { select: ghostProductSelect },
+      },
+    })
+  }
+
+  async function loadOrdersWithoutGhost() {
+    if (orderIds.length === 0) return []
+    const rows = await prisma.order.findMany({
+      where: { id: { in: orderIds } },
+      select: {
+        id: true,
+        productId: true,
+        customerEmail: true,
+        product: { select: productSelectWithoutGhost },
+      },
+    })
+    return rows.map((o) => ({
+      ...o,
+      product: o.product ? padGhostProductFields(o.product) : o.product,
+    }))
+  }
+
+  let orders: Awaited<ReturnType<typeof loadOrdersWithGhost>>
+  try {
+    orders = await loadOrdersWithGhost()
+  } catch (error: unknown) {
+    if (!isPrismaMissingColumnError(error)) throw error
+    console.log("[ghost-webhook]", {
+      result: "ghost_p2022_retry",
+      sessionId: session.id,
+      error: error instanceof Error ? error.message : String(error),
+    })
+    await ensureGhostStockSchema({ force: true })
+    try {
+      orders = await loadOrdersWithGhost()
+    } catch (retryError: unknown) {
+      if (!isPrismaMissingColumnError(retryError)) throw retryError
+      console.log("[ghost-webhook]", {
+        result: "ghost_select_fallback",
+        sessionId: session.id,
+      })
+      orders = (await loadOrdersWithoutGhost()) as typeof orders
+    }
+  }
 
   // Session may not have PENDING orders yet — resolve from metadata
   let products = orders.map((o) => o.product).filter(Boolean)
@@ -51,27 +116,35 @@ export async function ghostReverifyBeforeFulfill(
       session.metadata?.productId?.trim() ||
       ""
     if (apId) {
-      const listing = await prisma.affiliateProduct.findUnique({
-        where: { id: apId },
-        select: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              supplierUrl: true,
-              supplierSource: true,
-              supplierProductId: true,
-              sourceUrl: true,
-              importSource: true,
-              aliexpressProductId: true,
-              lastPriceSupplier: true,
-              basePriceCents: true,
-              stock: true,
-            },
-          },
-        },
-      })
-      if (listing?.product) products = [listing.product]
+      try {
+        const listing = await prisma.affiliateProduct.findUnique({
+          where: { id: apId },
+          select: { product: { select: ghostProductSelect } },
+        })
+        if (listing?.product) products = [listing.product]
+      } catch (error: unknown) {
+        if (!isPrismaMissingColumnError(error)) throw error
+        await ensureGhostStockSchema({ force: true })
+        try {
+          const listing = await prisma.affiliateProduct.findUnique({
+            where: { id: apId },
+            select: { product: { select: ghostProductSelect } },
+          })
+          if (listing?.product) products = [listing.product]
+        } catch (retryError: unknown) {
+          if (!isPrismaMissingColumnError(retryError)) throw retryError
+          console.log("[ghost-webhook]", {
+            result: "ghost_listing_fallback",
+            sessionId: session.id,
+            apId,
+          })
+          const listing = await prisma.affiliateProduct.findUnique({
+            where: { id: apId },
+            select: { product: { select: productSelectWithoutGhost } },
+          })
+          if (listing?.product) products = [padGhostProductFields(listing.product)]
+        }
+      }
     }
   }
 
