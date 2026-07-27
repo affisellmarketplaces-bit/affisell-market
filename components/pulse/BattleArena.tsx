@@ -162,14 +162,16 @@ export function BattleArena() {
   }
 
   const votedId = battle.alreadyVotedProductId
+  const productADetailsHref = battle.productA.affiliateProductId
+    ? `/marketplace/${battle.productA.affiliateProductId}?battleId=${battle.id}`
+    : null
+  const productBDetailsHref = battle.productB.affiliateProductId
+    ? `/marketplace/${battle.productB.affiliateProductId}?battleId=${battle.id}`
+    : null
   const winnerHref =
     battle.winnerId === battle.productA.id
-      ? battle.productA.affiliateProductId
-        ? `/marketplace/${battle.productA.affiliateProductId}?battleId=${battle.id}`
-        : null
-      : battle.productB.affiliateProductId
-        ? `/marketplace/${battle.productB.affiliateProductId}?battleId=${battle.id}`
-        : null
+      ? productADetailsHref
+      : productBDetailsHref
 
   return (
     <div
@@ -220,6 +222,7 @@ export function BattleArena() {
           isWinner={battle.winnerId === battle.productA.id}
           voted={votedId === battle.productA.id}
           disabled={battle.status !== "live" || Boolean(votedId) || voting}
+          detailsHref={productADetailsHref}
           onVote={() => void vote(battle.productA.id)}
         />
         <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-xl font-black text-black shadow-2xl sm:h-20 sm:w-20 sm:text-2xl">
@@ -233,6 +236,7 @@ export function BattleArena() {
           isWinner={battle.winnerId === battle.productB.id}
           voted={votedId === battle.productB.id}
           disabled={battle.status !== "live" || Boolean(votedId) || voting}
+          detailsHref={productBDetailsHref}
           onVote={() => void vote(battle.productB.id)}
         />
       </div>

@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+
 import { cn } from "@/lib/utils"
 import type { BattleProductCard } from "@/lib/pulse/battle-types"
 
@@ -11,6 +13,7 @@ type Props = {
   isWinner: boolean
   voted: boolean
   disabled: boolean
+  detailsHref?: string | null
   onVote: () => void
 }
 
@@ -32,6 +35,7 @@ export function BattleProductCard({
   isWinner,
   voted,
   disabled,
+  detailsHref = null,
   onVote,
 }: Props) {
   const leading = pct >= 50
@@ -86,19 +90,29 @@ export function BattleProductCard({
         <p className="text-white/70">{money(product.priceCents)}</p>
         <p className="text-[10px] uppercase tracking-wider text-white/40">{product.category}</p>
 
-        <button
-          type="button"
-          disabled={disabled || voted}
-          onClick={onVote}
-          className={cn(
-            "mt-2 h-12 min-w-[9rem] rounded-full px-6 text-sm font-black transition active:scale-[0.98] disabled:opacity-60",
-            voted
-              ? "bg-emerald-500 text-black"
-              : "bg-white text-black hover:bg-zinc-100"
-          )}
-        >
-          {voted ? "Voté ✓" : "VOTER"}
-        </button>
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-2">
+          <button
+            type="button"
+            disabled={disabled || voted}
+            onClick={onVote}
+            className={cn(
+              "h-12 min-w-[9rem] rounded-full px-6 text-sm font-black transition active:scale-[0.98] disabled:opacity-60",
+              voted
+                ? "bg-emerald-500 text-black"
+                : "bg-white text-black hover:bg-zinc-100"
+            )}
+          >
+            {voted ? "Voté ✓" : "VOTER"}
+          </button>
+          {detailsHref ? (
+            <Link
+              href={detailsHref}
+              className="inline-flex h-12 min-w-[9rem] items-center justify-center rounded-full border border-white/30 bg-white/10 px-6 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/15"
+            >
+              Détails
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       <div className="relative z-10 px-3 pb-3">
