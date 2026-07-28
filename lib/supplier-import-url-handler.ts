@@ -219,6 +219,110 @@ function globalSentiment(avg: number): ReviewSentiment {
   return "negative"
 }
 
+function cleanText(value: string): string {
+  return value.replace(/\s+/g, " ").replace(/\u200e|\u200f/g, "").trim()
+}
+
+function extractMoneyValue(raw: string): number {
+  const normalized = raw.replace(/\s+/g, " ").trim()
+  if (!normalized) return 0
+  const euroMatch = normalized.match(/(?:€|EUR)\s*([\d]+(?:[.,]\d{1,2})?)/i)
+  if (euroMatch?.[1]) return num(euroMatch[1])
+  const trailingEuroMatch = normalized.match(/([\d]+(?:[.,]\d{1,2})?)\s*(?:€|EUR)/i)
+  if (trailingEuroMatch?.[1]) return num(trailingEuroMatch[1])
+  return num(normalized.replace(/[^\d.,]/g, ""))
+}
+
+function extractAmazonImagesFromHtml(html: string): string[] {
+  const urls = new Set<string>()
+  const push = (raw: string) => {
+    const url = hdImage(raw)
+    if (url && /^https:\/\/m\.media-amazon\.com\//i.test(url)) urls.add(url)
+  }
+  for (const match of html.matchAll(/"(?:hiRes|large|thumb|mainUrl|src)"\s*:\s*"([^"]+)"/g)) {
+    push(match[1] ?? "")
+  }
+  for (const match of html.matchAll(/https?:\\\/\\\/m\.media-amazon\.com\\\/images\\\/I\\\/[^"\\]+/g)) {
+    push((match[0] ?? "").replace(/\\\//g, "/"))
+  }
+  return [...urls].slice(0, 16)
+}
+
+function extractAmazonSpecs(
+  $: cheerio.CheerioAPI
+): { specs: Record<string, string>; colors: string[]; sizes: string[] } {
+  const specs: Record<string, string> = {}
+  const colors = new Set<string>()
+  const sizes = new Set<string>()
+  const rows = [
+    "#productDetails_techSpec_section_1 tr",
+    "#productDetails_detailBullets_sections1 tr",
+    "#productOverview_feature_div tr",
+  ]
+  for (const selector of rows) {
+    $(selector).each((_, row) => {
+      const key = cleanText($(row).find("th").first().text())
+      const value = cleanText($(row).find("td").first().text())
+      if (!key || !value) return
+      specs[key] = value
+      if (/color|couleur/i.test(key)) colors.add(value)
+      if (/size|taille/i.test(key)) sizes.add(value)
+    })
+  }
+  $("#detailBullets_feature_div li").each((_, li) => {
+    const key = cleanText(
+      $(li).find(".a-text-bold, .a-color-secondary, .po-break-word").first().text()
+    ).replace(/[:\u202a\u202c]+$/, "")
+    const text = cleanText($(li).text())
+    if (!text) return
+    const value = key ? cleanText(text.replace(key, "").replace(/^[:\s-]+/, "")) : text
+    if (key && value) specs[key] = value
+    if (/color|couleur/i.test(key)) colors.add(value)
+    if (/size|taille/i.test(key)) sizes.add(value)
+  })
+  return { specs, colors: [...colors], sizes: [...sizes] }
+}
+
+function extractAmazonPrice($: cheerio.CheerioAPI, html: string): number {
+  const selectorCandidates = [
+    "#corePrice_feature_div .a-offscreen",
+    "#corePrice_desktop .a-offscreen",
+    "#corePriceDisplay_desktop_feature_div .a-offscreen",
+    "#apex_desktop .a-offscreen",
+    "#priceblock_ourprice",
+    "#priceblock_dealprice",
+    ".reinventPricePriceToPayMargin .a-offscreen",
+    ".apexPriceToPay .a-offscreen",
+    ".priceToPay .a-offscreen",
+  ]
+  for (const selector of selectorCandidates) {
+    const value = extractMoneyValue(cleanText($(selector).first().text()))
+    if (value > 0) return value
+  }
+
+  const regionAnchors = [
+    'id="corePrice_desktop"',
+    'id="corePrice_feature_div"',
+    'id="apex_desktop"',
+    'id="buybox"',
+    'id="ppd"',
+  ]
+  for (const anchor of regionAnchors) {
+    const start = html.indexOf(anchor)
+    if (start < 0) continue
+    const region = html.slice(start, start + 12_000)
+    for (const match of region.matchAll(/(?:€|EUR)\s*([\d]+(?:[.,]\d{1,2})?)/gi)) {
+      const value = num(match[1] ?? "")
+      if (value > 0) return value
+    }
+    for (const match of region.matchAll(/([\d]+(?:[.,]\d{1,2})?)\s*(?:€|EUR)/gi)) {
+      const value = num(match[1] ?? "")
+      if (value > 0) return value
+    }
+  }
+  return 0
+}
+
 function baselineProduct(url: string, platform: Platform): ImportedProduct {
   return {
     title: "",
@@ -640,11 +744,18 @@ function parseAERData(aerData: Record<string, unknown>, url: string): ImportedPr
 function parseAmazonHTML(html: string, url: string): ImportedProduct {
   const $ = cheerio.load(html)
   const out = baselineProduct(url, "amazon")
-  out.title = $("#productTitle").text().trim()
-  out.description = $("#feature-bullets").text().trim()
-  out.price = num($(".a-price .a-offscreen").first().text().replace(/[^\d.,]/g, ""))
+  out.title =
+    cleanText($("#productTitle").text()) ||
+    cleanText($('input#productTitle').attr("value") ?? "") ||
+    cleanText($("title").text()).replace(/\s*:\s*Amazon\.[^:]+.*$/i, "")
+  const bulletLines = $("#feature-bullets li, #feature-bullets .a-list-item")
+    .map((_, el) => cleanText($(el).text()))
+    .get()
+    .filter(Boolean)
+  out.description = bulletLines.join(" ").slice(0, 4000)
+  out.price = extractAmazonPrice($, html)
   out.original_price = num(
-    $(".a-text-price .a-offscreen").first().text().replace(/[^\d.,]/g, "")
+    cleanText($(".a-text-price .a-offscreen").first().text()).replace(/[^\d.,]/g, "")
   )
   $("#altImages img, #imageBlock img").each((_, el) => {
     const src = $(el).attr("src") ?? $(el).attr("data-src") ?? ""
@@ -652,19 +763,43 @@ function parseAmazonHTML(html: string, url: string): ImportedProduct {
   })
   const landing = $("#landingImage").attr("src") ?? ""
   if (landing) out.images.unshift(hdImage(landing))
+  out.images.push(...extractAmazonImagesFromHtml(html))
   out.images = [...new Set(out.images.filter(Boolean))].slice(0, 12)
   if (out.images.length === 0 && landing) out.images = [hdImage(landing)]
-  out.brand = $("#bylineInfo").text().trim()
+  const { specs, colors, sizes } = extractAmazonSpecs($)
+  out.specs = specs
+  out.colors = colors.map((name) => ({
+    name,
+    image: out.images[0] ?? "",
+    hex: catalogHexForColorName(name),
+  }))
+  out.sizes = sizes.map((name) => ({ name, value: name }))
+  out.brand =
+    cleanText($("#bylineInfo").text()).replace(/^Brand:\s*/i, "").replace(/^Marque\s*:\s*/i, "") ||
+    specs.Brand ||
+    specs.Marque ||
+    cleanText($('input#bylineInfo').attr("value") ?? "")
+  if (!out.description) {
+    const specSummary = Object.entries(specs)
+      .slice(0, 6)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(". ")
+    out.description = specSummary || out.title
+  }
   out.shipping = {
-    from_country: "USA",
-    delivery_time: "2-5 days",
+    from_country: url.includes(".fr") ? "France" : "Amazon Marketplace",
+    delivery_time: "2-7 days",
     shipping_cost: 0,
-    carrier: "",
+    carrier: "Amazon",
   }
   out.reviews.total =
     parseInt($("#acrCustomerReviewText").text().replace(/[^\d]/g, ""), 10) || 0
   out.reviews.average_rating = num($(".a-icon-alt").first().text().split(" ")[0])
   out.reviews.sentiment = globalSentiment(out.reviews.average_rating)
+  out.sku =
+    cleanText($('input#ASIN').attr("value") ?? $('input#asin').attr("value") ?? "") ||
+    url.match(/\/dp\/([A-Z0-9]{8,14})/i)?.[1] ||
+    ""
   out.category = "Amazon Product"
   out.tags = generateSEO(out.title, out.category)
   return out
