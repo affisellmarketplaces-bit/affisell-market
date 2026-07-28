@@ -25,7 +25,65 @@ import { prisma } from "@/lib/prisma"
 /** Supplier DropForge catalog rows (B2B sourcing → resellers relist). */
 export const SUPPLIER_DROPFORGE_IMPORT_SOURCE = "dropforge_supplier"
 
+const ALIEXPRESS_SOURCE_RE = /aliexpress\.com|aliexpress\.us/i
+const AMAZON_SOURCE_RE = /amazon\.(com|fr|de|co\.uk|ca|it|es|com\.au)/i
+
 export { resellerImportPreviewJson }
+
+function detectDropForgeSourcePlatform(sourceUrl: string): {
+  isAliExpress: boolean
+  isAmazon: boolean
+} {
+  return {
+    isAliExpress: ALIEXPRESS_SOURCE_RE.test(sourceUrl),
+    isAmazon: AMAZON_SOURCE_RE.test(sourceUrl),
+  }
+}
+
+async function ensureManualSupplierLink(args: {
+  productId: string
+  sourceUrl: string
+  costCents: number
+}): Promise<{ created: boolean; linkId: string }> {
+  const existing = await prisma.supplierLink.findUnique({
+    where: { productId: args.productId },
+    select: { id: true },
+  })
+
+  const link = await prisma.supplierLink.upsert({
+    where: { productId: args.productId },
+    create: {
+      productId: args.productId,
+      aeProductId: `manual-${args.productId}`,
+      aeSkuId: null,
+      aeShopId: "",
+      aePriceCents: args.costCents,
+      aeShippingCents: 0,
+      aeUrl: args.sourceUrl,
+      autoBuyEnabled: false,
+      isActive: true,
+      lastSyncAt: new Date(),
+    },
+    update: {
+      aeUrl: args.sourceUrl,
+      aePriceCents: args.costCents,
+      autoBuyEnabled: false,
+      isActive: true,
+      lastSyncAt: new Date(),
+    },
+    select: { id: true },
+  })
+
+  console.log("[supplier-dropforge]", {
+    stage: "supplier_link",
+    productId: args.productId,
+    linkId: link.id,
+    source: "manual_supplier",
+    result: existing ? "updated" : "created",
+  })
+
+  return { created: !existing, linkId: link.id }
+}
 
 async function enrichSupplierDropForgePreview(
   preview: ResellerImportPreview
@@ -131,6 +189,7 @@ export async function commitSupplierDropForgeImport(args: {
       catalogHref: string
       isPublished: boolean
       fulfillmentReady: boolean
+      fulfillmentType: "auto_aliexpress" | "manual_supplier"
     }
   | { ok: false; error: string; status: number }
 > {
@@ -224,6 +283,8 @@ export async function commitSupplierDropForgeImport(args: {
     preview.aliexpressProductId?.trim() ||
     parseAliExpressProductId(preview.sourceUrl) ||
     null
+  const { isAliExpress, isAmazon } = detectDropForgeSourcePlatform(preview.sourceUrl)
+  const fulfillmentType = isAliExpress ? "auto_aliexpress" : "manual_supplier"
 
   const existingProduct = await prisma.product.findFirst({
     where: {
@@ -256,8 +317,8 @@ export async function commitSupplierDropForgeImport(args: {
     commissionRate: 15,
     stock: persist.stock,
     sourceUrl: preview.sourceUrl,
-    importSource: aeId ? "aliexpress" : SUPPLIER_DROPFORGE_IMPORT_SOURCE,
-    supplierTag: "dropforge",
+    importSource: isAliExpress && aeId ? "aliexpress" : SUPPLIER_DROPFORGE_IMPORT_SOURCE,
+    supplierTag: isAliExpress ? "dropforge" : "manual_fulfillment",
     shippingCountry: persist.shippingCountry,
     warehouseType: persist.warehouseType,
     deliveryMin: persist.deliveryMin,
@@ -265,13 +326,17 @@ export async function commitSupplierDropForgeImport(args: {
     shippingCost: persist.shippingCost,
     shipsFrom: persist.shipsFrom,
     hasVariants: persist.variantInputs.length > 0,
-    ...(aeId
+    ...(isAliExpress && aeId
       ? {
           aliexpressProductId: aeId,
           autoFulfill: true,
           autoBuyEnabled: true,
         }
-      : { fulfillmentChannel: "MANUAL" as const }),
+      : {
+          fulfillmentChannel: "MANUAL" as const,
+          autoFulfill: false,
+          autoBuyEnabled: false,
+        }),
     active: publishLive,
     isDraft: !publishLive,
   }
@@ -316,12 +381,18 @@ export async function commitSupplierDropForgeImport(args: {
     })
   }
 
-  if (aeId) {
+  if (isAliExpress && aeId) {
     await ensureDropForgeSupplierLink({
       productId: product.id,
       sourceUrl: preview.sourceUrl,
       aeProductId: aeId,
       aePriceCents: costCents,
+    })
+  } else {
+    await ensureManualSupplierLink({
+      productId: product.id,
+      sourceUrl: preview.sourceUrl,
+      costCents,
     })
   }
 
@@ -336,7 +407,9 @@ export async function commitSupplierDropForgeImport(args: {
     method: preview.method,
     isPublished: publishLive,
     fulfillmentReady,
-    supplierLink: Boolean(aeId),
+    fulfillmentType,
+    supplierLink: Boolean(isAliExpress ? aeId : true),
+    sourcePlatform: isAliExpress ? "aliexpress" : isAmazon ? "amazon" : "manual_supplier",
     wholesaleCents,
     costCents,
     result: "committed",
@@ -350,5 +423,6 @@ export async function commitSupplierDropForgeImport(args: {
     catalogHref: `/dashboard/supplier/products`,
     isPublished: publishLive,
     fulfillmentReady,
+    fulfillmentType,
   }
 }
