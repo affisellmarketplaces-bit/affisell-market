@@ -62,7 +62,7 @@ describe("DropForge fulfillment readiness (P0)", () => {
     expect(meta.fulfillmentReason).toBe("catalog_link")
   })
 
-  it("blocks Amazon/Temu without catalog link", () => {
+  it("blocks Amazon/Temu without catalog link for affiliates", () => {
     const amazon = resolveDropForgeFulfillmentMeta({
       sourceUrl: "https://www.amazon.fr/dp/B09V3KXJPB",
     })
@@ -75,6 +75,22 @@ describe("DropForge fulfillment readiness (P0)", () => {
       catalogHasSupplierLink: false,
     })
     expect(temu.fulfillmentReady).toBe(false)
+  })
+
+  it("allows Amazon/Temu for supplier B2B catalog with manual fulfillment", () => {
+    const amazon = resolveDropForgeFulfillmentMeta({
+      sourceUrl: "https://www.amazon.fr/dp/B09V3KXJPB",
+      supplierCatalog: true,
+    })
+    expect(amazon.fulfillmentReady).toBe(true)
+    expect(amazon.fulfillmentReason).toBe("manual_supplier")
+
+    const temu = resolveDropForgeFulfillmentMeta({
+      sourceUrl: "https://www.temu.com/fr-fr/g-601099512345678.html",
+      supplierCatalog: true,
+    })
+    expect(temu.fulfillmentReady).toBe(true)
+    expect(temu.fulfillmentReason).toBe("manual_supplier")
   })
 })
 

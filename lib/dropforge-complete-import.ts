@@ -66,7 +66,7 @@ export type DropForgeCompletePreview = {
   catalogProductId?: string
   /** Auto-buy path ready (AliExpress id or catalog SupplierLink). */
   fulfillmentReady?: boolean
-  fulfillmentReason?: "aliexpress" | "catalog_link" | "pending_ops"
+  fulfillmentReason?: "aliexpress" | "catalog_link" | "manual_supplier" | "pending_ops"
   aliexpressProductId?: string | null
 }
 

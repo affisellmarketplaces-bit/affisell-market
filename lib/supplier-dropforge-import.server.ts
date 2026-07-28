@@ -25,7 +25,40 @@ import { prisma } from "@/lib/prisma"
 /** Supplier DropForge catalog rows (B2B sourcing → resellers relist). */
 export const SUPPLIER_DROPFORGE_IMPORT_SOURCE = "dropforge_supplier"
 
-export { previewResellerUrlImport as previewDropForgeImport, resellerImportPreviewJson }
+export { resellerImportPreviewJson }
+
+async function enrichSupplierDropForgePreview(
+  preview: ResellerImportPreview
+): Promise<ResellerImportPreview> {
+  const hasLink = preview.catalogProductId
+    ? await catalogProductHasActiveSupplierLink(preview.catalogProductId)
+    : false
+  const enriched = withDropForgeFulfillment(
+    preview,
+    resolveDropForgeFulfillmentMeta({
+      sourceUrl: preview.sourceUrl,
+      catalogProductId: preview.catalogProductId,
+      catalogHasSupplierLink: hasLink,
+      supplierCatalog: true,
+    })
+  )
+  enriched.warnings = enriched.warnings.filter(
+    (w) => !/publication live bloquée|sans SupplierLink/i.test(w)
+  )
+  return enriched
+}
+
+export async function previewDropForgeImport(
+  rawUrl: string
+): Promise<
+  | { ok: true; preview: ResellerImportPreview }
+  | { ok: false; error: string; status: number; marketplaceLabel?: string }
+> {
+  const result = await previewResellerUrlImport(rawUrl)
+  if (!result.ok) return result
+  const preview = await enrichSupplierDropForgePreview(result.preview)
+  return { ok: true, preview }
+}
 
 function sanitizeSupplierSnapshot(
   raw: unknown,
@@ -70,6 +103,7 @@ function sanitizeSupplierSnapshot(
     catalogProductId:
       typeof o.catalogProductId === "string" ? o.catalogProductId : undefined,
     catalogHasSupplierLink: o.fulfillmentReason === "catalog_link",
+    supplierCatalog: true,
   })
   return withDropForgeFulfillment(preview, meta)
 }
@@ -139,6 +173,7 @@ export async function commitSupplierDropForgeImport(args: {
     sourceUrl: preview.sourceUrl,
     catalogProductId: preview.catalogProductId,
     catalogHasSupplierLink: hasLink,
+    supplierCatalog: true,
   })
   preview = withDropForgeFulfillment(preview, fulfillment)
   const fulfillmentReady = preview.fulfillmentReady === true
@@ -236,7 +271,7 @@ export async function commitSupplierDropForgeImport(args: {
           autoFulfill: true,
           autoBuyEnabled: true,
         }
-      : {}),
+      : { fulfillmentChannel: "MANUAL" as const }),
     active: publishLive,
     isDraft: !publishLive,
   }

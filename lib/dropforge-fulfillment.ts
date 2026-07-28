@@ -2,10 +2,16 @@ import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
 import type { DropForgeCompletePreview } from "@/lib/dropforge-complete-import"
 import { prisma } from "@/lib/prisma"
 
+export type DropForgeFulfillmentReason =
+  | "aliexpress"
+  | "catalog_link"
+  | "manual_supplier"
+  | "pending_ops"
+
 export type DropForgeFulfillmentMeta = {
   fulfillmentReady: boolean
   /** Why live publish is allowed or blocked */
-  fulfillmentReason: "aliexpress" | "catalog_link" | "pending_ops"
+  fulfillmentReason: DropForgeFulfillmentReason
   aliexpressProductId: string | null
 }
 
@@ -18,6 +24,8 @@ export function resolveDropForgeFulfillmentMeta(args: {
   sourceUrl: string
   catalogProductId?: string | null
   catalogHasSupplierLink?: boolean
+  /** Supplier B2B catalog — non-AE sources publish live with manual fulfillment. */
+  supplierCatalog?: boolean
 }): DropForgeFulfillmentMeta {
   const aeId = parseAliExpressProductId(args.sourceUrl)
   if (aeId) {
@@ -31,6 +39,13 @@ export function resolveDropForgeFulfillmentMeta(args: {
     return {
       fulfillmentReady: true,
       fulfillmentReason: "catalog_link",
+      aliexpressProductId: null,
+    }
+  }
+  if (args.supplierCatalog) {
+    return {
+      fulfillmentReady: true,
+      fulfillmentReason: "manual_supplier",
       aliexpressProductId: null,
     }
   }

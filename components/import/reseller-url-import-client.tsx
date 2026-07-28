@@ -69,7 +69,7 @@ type Preview = {
   partial?: boolean
   catalogProductId?: string
   fulfillmentReady?: boolean
-  fulfillmentReason?: "aliexpress" | "catalog_link" | "pending_ops"
+  fulfillmentReason?: "aliexpress" | "catalog_link" | "manual_supplier" | "pending_ops"
   aliexpressProductId?: string | null
 }
 
@@ -83,6 +83,35 @@ function money(n: number, currency = "EUR") {
 
 function defaultWholesaleEur(cost: number): number {
   return Math.max(cost + 0.5, Number((cost * 1.25).toFixed(2)))
+}
+
+function isSupplierPublishable(p: Preview): boolean {
+  return (
+    p.title.trim().length >= 3 &&
+    p.images.length >= 1 &&
+    p.costPrice > 0 &&
+    p.fulfillmentReady === true
+  )
+}
+
+function fulfillmentStatusMessage(p: Preview, t: (key: string) => string): string {
+  if (p.fulfillmentReason === "aliexpress" || p.fulfillmentReason === "catalog_link") {
+    return t("fulfillmentReady")
+  }
+  if (p.fulfillmentReason === "manual_supplier") {
+    return t("fulfillmentManualSupplier")
+  }
+  return t("fulfillmentPending")
+}
+
+function fulfillmentStatusTone(p: Preview): string {
+  if (p.fulfillmentReason === "manual_supplier") {
+    return "border-sky-400/35 bg-sky-500/10 text-sky-100"
+  }
+  if (p.fulfillmentReady) {
+    return "border-emerald-400/35 bg-emerald-500/10 text-emerald-100"
+  }
+  return "border-rose-400/40 bg-rose-500/10 text-rose-50"
 }
 
 /** DropForge B2B — suppliers forge catalog SKUs; resellers relist later. */
@@ -191,7 +220,7 @@ export function DropForgeImportClient() {
       }
 
       const canPublish =
-        !preview.partial && preview.fulfillmentReady === true && publishLive === true
+        isSupplier && isSupplierPublishable(preview) && publishLive === true
 
       setCommitting(true)
       try {
@@ -402,13 +431,11 @@ export function DropForgeImportClient() {
               <div
                 className={cn(
                   "mt-4 rounded-xl border px-3 py-2.5 text-xs leading-relaxed",
-                  preview.fulfillmentReady
-                    ? "border-emerald-400/35 bg-emerald-500/10 text-emerald-100"
-                    : "border-rose-400/40 bg-rose-500/10 text-rose-50"
+                  fulfillmentStatusTone(preview)
                 )}
                 data-testid="dropforge-fulfillment-status"
               >
-                {preview.fulfillmentReady ? t("fulfillmentReady") : t("fulfillmentPending")}
+                {fulfillmentStatusMessage(preview, t)}
               </div>
             </div>
           </div>
@@ -418,10 +445,14 @@ export function DropForgeImportClient() {
               <Sparkles className="size-3.5 text-violet-300" aria-hidden />
               {isSupplier
                 ? preview.partial
-                  ? t("readyPartial")
-                  : preview.fulfillmentReady
-                    ? t("readySupplier")
-                    : t("readyNoFulfillment")
+                  ? preview.fulfillmentReady
+                    ? t("readyPartialSupplier")
+                    : t("readyPartial")
+                  : preview.fulfillmentReason === "manual_supplier"
+                    ? t("readyManualSupplier")
+                    : preview.fulfillmentReady
+                      ? t("readySupplier")
+                      : t("readyNoFulfillment")
                 : t("readyGuest")}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -442,8 +473,7 @@ export function DropForgeImportClient() {
                 disabled={
                   committing ||
                   isAffiliate ||
-                  (isSupplier &&
-                    (Boolean(preview.partial) || preview.fulfillmentReady !== true))
+                  (isSupplier && !isSupplierPublishable(preview))
                 }
                 onClick={() => void commit(true)}
                 className={cn(
@@ -451,11 +481,11 @@ export function DropForgeImportClient() {
                   "rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white disabled:opacity-50"
                 )}
                 title={
-                  isSupplier && preview.partial
-                    ? t("publishNeedsComplete")
-                    : isSupplier && preview.fulfillmentReady !== true
+                  isSupplier && !isSupplierPublishable(preview)
+                    ? preview.fulfillmentReady !== true
                       ? t("publishNeedsFulfillment")
-                      : undefined
+                      : t("publishNeedsComplete")
+                    : undefined
                 }
               >
                 {isSupplier ? t("publishLive") : t("signupLive")}
