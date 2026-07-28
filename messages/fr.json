@@ -47,6 +47,8 @@
       "inviteAffiliateShort": "Inviter",
       "dropforge": "DropForge",
       "dropforgeShort": "Forge",
+      "supply": "Stock Affisell",
+      "supplyShort": "Stock",
       "magicLab": "Magic Systems",
       "magicLabShort": "Lab"
     },
@@ -2061,7 +2063,7 @@
       "extension": "Extension",
       "finances": "Finances",
       "integrations": "Intégrations",
-      "supply": "Supply",
+      "supply": "Stock Affisell",
       "dropforge": "DropForge",
       "magicLab": "Magic Systems"
     },
@@ -2208,6 +2210,13 @@
       "capabilitiesAria": "Capacités du connecteur",
       "openChannel": "Ouvrir",
       "footerNote": "Les canaux Phase 2–3 s’activent au fur et à mesure des partenariats API. Aucun auto-buy n’est déclenché depuis cette page.",
+      "featured": {
+        "eyebrow": "Canal prioritaire · Phase 1",
+        "tagline": "Catalogue stock interne sur les rails Affisell — catalogue, commandes et pack sans dépendance externe.",
+        "ctaCatalog": "Gérer le catalogue",
+        "ctaAdd": "Ajouter un SKU",
+        "statsLinked": "SKUs natifs"
+      },
       "phase": "Phase {n}",
       "totals": {
         "skus": "SKUs",
@@ -3704,7 +3713,8 @@
       "settings": "Paramètres",
       "signOut": "Déconnexion",
       "dropforge": "DropForge",
-      "magicLab": "Magic Systems"
+      "magicLab": "Magic Systems",
+      "affisellStock": "Stock Affisell"
     }
   },
   "footer": {
@@ -5134,6 +5144,10 @@
     "empty": "Aucun système dans ce filtre pour l’instant.",
     "footerHint": "{count} systèmes dans la stack Affisell",
     "entries": {
+      "affisellStock": {
+        "title": "Stock Affisell",
+        "blurb": "Ton canal stock interne — catalogue, fulfillment et commandes sur la plateforme."
+      },
       "dropforge": {
         "title": "DropForge",
         "blurb": "URL → catalogue wholesale. Forge AliExpress / 1688 + auto-fulfill."

@@ -60,10 +60,10 @@ export default async function SupplierSupplyHubPage() {
         Tableau de bord
       </Link>
       <div className="space-y-8">
+        <SupplyHubPanel snapshot={snapshot} />
         <AutoBuyPilotPanel snapshot={pilot} />
         <AgentNetworkPanel snapshot={agentNetwork} />
         <ChinaBuyRoutesPanel snapshot={chinaBuy} />
-        <SupplyHubPanel snapshot={snapshot} />
       </div>
     </div>
   )

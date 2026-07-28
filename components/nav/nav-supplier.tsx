@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { CalendarCheck, Flame, Handshake, LayoutDashboard, Package, Rocket, ShoppingCart, Sparkles } from "lucide-react"
+import { CalendarCheck, Flame, Handshake, Layers, LayoutDashboard, Package, Rocket, ShoppingCart, Sparkles } from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -31,6 +31,9 @@ export function NavSupplier() {
   const onInviteAffiliate = pathname.startsWith("/dashboard/supplier/invite-affiliate")
   const onPromote = pathname.startsWith("/dashboard/supplier/promote")
   const onDropForge = pathname === DROPFORGE_HREF || pathname.startsWith(`${DROPFORGE_HREF}?`)
+  const onSupply =
+    pathname === "/dashboard/supplier/supply" ||
+    pathname.startsWith("/dashboard/supplier/supply?")
   const onLab = pathname === MAGIC_SYSTEMS_HREF || pathname.startsWith(`${MAGIC_SYSTEMS_HREF}/`)
 
   return (
@@ -47,6 +50,13 @@ export function NavSupplier() {
 
       <div className={cn(navScrollClass, "order-4 w-full md:order-none md:min-w-0 md:flex-1")}>
         <NavPill href="/dashboard/supplier" label={t("dashboard")} icon={LayoutDashboard} active={onDashboard} />
+        <NavPill
+          href="/dashboard/supplier/supply#affisell-stock"
+          label={t("supply")}
+          shortLabel={t("supplyShort")}
+          icon={Layers}
+          active={onSupply}
+        />
         <NavPill
           href={DROPFORGE_HREF}
           label={t("dropforge")}

@@ -4,6 +4,8 @@ import {
   SUPPLY_HUB_CHANNEL_DEFS,
   SUPPLY_HUB_UNLOCKED_CHANNELS,
   lockSupplyHubConnectors,
+  partitionSupplyHubConnectors,
+  sortSupplyHubConnectors,
   type SupplyHubConnectorSnapshot,
 } from "@/lib/supplier/supply-hub-shared"
 
@@ -42,5 +44,20 @@ describe("supply hub channel lock", () => {
   it("unlockAll keeps real statuses for the admin Supply Lab", () => {
     const open = lockSupplyHubConnectors(fakeConnectors(), { unlockAll: true })
     expect(open.every((c) => c.uiStatus === "connected" && c.href)).toBe(true)
+  })
+
+  it("sortSupplyHubConnectors keeps Affisell stock first", () => {
+    const shuffled = [...fakeConnectors()].reverse()
+    const sorted = sortSupplyHubConnectors(shuffled)
+    expect(sorted[0]?.channelType).toBe("AFFISELL_NATIVE")
+    expect(SUPPLY_HUB_CHANNEL_DEFS[0]?.channelType).toBe("AFFISELL_NATIVE")
+  })
+
+  it("partitionSupplyHubConnectors isolates native channel", () => {
+    const locked = lockSupplyHubConnectors(fakeConnectors())
+    const { native, others } = partitionSupplyHubConnectors(locked)
+    expect(native?.channelType).toBe("AFFISELL_NATIVE")
+    expect(others.every((c) => c.channelType !== "AFFISELL_NATIVE")).toBe(true)
+    expect(others.length).toBe(locked.length - 1)
   })
 })

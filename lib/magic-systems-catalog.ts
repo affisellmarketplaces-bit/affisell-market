@@ -25,6 +25,16 @@ export const MAGIC_SYSTEMS_PRODUCT_NAME = "Magic Systems" as const
 
 export const MAGIC_SYSTEMS_CATALOG: MagicSystemEntry[] = [
   {
+    id: "affisellStock",
+    persona: "supplier",
+    titleKey: "affisellStock",
+    blurbKey: "affisellStock",
+    href: "/dashboard/supplier/supply#affisell-stock",
+    status: "live",
+    accent: "sky",
+    keywords: ["stock", "warehouse", "native", "inventory", "affisell", "catalog"],
+  },
+  {
     id: "dropforge",
     persona: "supplier",
     titleKey: "dropforge",

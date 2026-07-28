@@ -36,7 +36,7 @@ export const SUPPLY_HUB_CHANNEL_DEFS: SupplyHubChannelDef[] = [
       negotiate: "off",
       packaging: "beta",
     },
-    href: "/dashboard/supplier/products/new",
+    href: "/dashboard/supplier/products",
   },
   {
     channelType: "ALIEXPRESS",
@@ -48,7 +48,7 @@ export const SUPPLY_HUB_CHANNEL_DEFS: SupplyHubChannelDef[] = [
       negotiate: "off",
       packaging: "soon",
     },
-    href: "/dashboard/supplier/import",
+    href: "/dropforge",
   },
   {
     channelType: "ALIBABA_1688",
@@ -161,12 +161,35 @@ export function lockSupplyHubConnectors(
   connectors: SupplyHubConnectorSnapshot[],
   options?: { unlockAll?: boolean }
 ): SupplyHubConnectorSnapshot[] {
-  if (options?.unlockAll) return connectors
-  return connectors.map((c) =>
-    SUPPLY_HUB_UNLOCKED_CHANNELS.has(c.channelType)
-      ? c
-      : { ...c, uiStatus: "roadmap", href: undefined, hintKey: undefined, stats: undefined }
+  if (options?.unlockAll) return sortSupplyHubConnectors(connectors)
+  return sortSupplyHubConnectors(
+    connectors.map((c) =>
+      SUPPLY_HUB_UNLOCKED_CHANNELS.has(c.channelType)
+        ? c
+        : { ...c, uiStatus: "roadmap", href: undefined, hintKey: undefined, stats: undefined }
+    )
   )
+}
+
+/** Affisell stock is always connector #1 in the Supply Hub. */
+export function sortSupplyHubConnectors(
+  connectors: SupplyHubConnectorSnapshot[]
+): SupplyHubConnectorSnapshot[] {
+  const order = new Map(
+    SUPPLY_HUB_CHANNEL_DEFS.map((def, index) => [def.channelType, index])
+  )
+  return [...connectors].sort(
+    (a, b) => (order.get(a.channelType) ?? 999) - (order.get(b.channelType) ?? 999)
+  )
+}
+
+export function partitionSupplyHubConnectors(connectors: SupplyHubConnectorSnapshot[]): {
+  native: SupplyHubConnectorSnapshot | undefined
+  others: SupplyHubConnectorSnapshot[]
+} {
+  const native = connectors.find((c) => c.channelType === "AFFISELL_NATIVE")
+  const others = connectors.filter((c) => c.channelType !== "AFFISELL_NATIVE")
+  return { native, others }
 }
 
 export function resolveAliExpressUiStatus(args: {

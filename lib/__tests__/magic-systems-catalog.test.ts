@@ -15,6 +15,12 @@ describe("magic-systems-catalog", () => {
     expect(MAGIC_SYSTEMS_HREF).toBe("/lab")
   })
 
+  it("lists Affisell stock before DropForge for suppliers", () => {
+    const suppliers = filterMagicSystems("supplier")
+    expect(suppliers[0]?.id).toBe("affisellStock")
+    expect(suppliers.some((e) => e.id === "dropforge")).toBe(true)
+  })
+
   it("filters by persona", () => {
     const suppliers = filterMagicSystems("supplier")
     expect(suppliers.every((e) => e.persona === "supplier")).toBe(true)
@@ -23,6 +29,7 @@ describe("magic-systems-catalog", () => {
 
   it("prioritizes persona systems for supplier / affiliate roles", () => {
     const forSupplier = magicSystemsForRole("SUPPLIER")
+    expect(forSupplier[0]?.id).toBe("affisellStock")
     expect(forSupplier.some((e) => e.id === "dropforge")).toBe(true)
     expect(forSupplier.every((e) => e.persona === "supplier" || e.persona === "platform")).toBe(
       true

@@ -13,13 +13,13 @@ import { MAGIC_SYSTEMS_HREF } from "@/lib/magic-systems-catalog"
 import { cn } from "@/lib/utils"
 
 const toolKeys = [
+  { key: "supply" as const, href: "/dashboard/supplier/supply#affisell-stock", Icon: Layers },
   { key: "dropforge" as const, href: DROPFORGE_HREF, Icon: Flame },
   { key: "magicLab" as const, href: MAGIC_SYSTEMS_HREF, Icon: Sparkles },
   { key: "import" as const, href: "/dashboard/supplier/import", Icon: Upload },
   { key: "extension" as const, href: "/dashboard/supplier/extension", Icon: Puzzle },
   { key: "finances" as const, href: "/dashboard/supplier/balance", Icon: Landmark },
   { key: "integrations" as const, href: "/dashboard/supplier/integrations", Icon: Plug },
-  { key: "supply" as const, href: "/dashboard/supplier/supply", Icon: Layers },
 ]
 
 export async function SupplierToolsRow() {
@@ -38,6 +38,8 @@ export async function SupplierToolsRow() {
             className={cn(
               "group inline-flex items-center gap-2",
               missionControlChip,
+              key === "supply" &&
+                "border-sky-400/35 bg-sky-500/10 text-sky-100 ring-1 ring-sky-400/20",
               key === "dropforge" &&
                 "border-violet-400/35 bg-violet-500/10 text-violet-100 ring-1 ring-violet-400/20"
             )}

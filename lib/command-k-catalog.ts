@@ -117,6 +117,15 @@ const CATALOG: CatalogEntry[] = [
     keywords: ["sell", "vendre", "reseller", "revendeur", "affiliate", "b2b"],
   },
   {
+    id: "affisell-stock",
+    segment: "sell",
+    labelKey: "items.affisellStock",
+    action: "navigate",
+    href: "/dashboard/supplier/supply#affisell-stock",
+    keywords: ["stock", "affisell", "warehouse", "native", "inventory", "supply"],
+    hideForPersona: ["affiliate", "buyer"],
+  },
+  {
     id: "dropforge",
     segment: "sell",
     labelKey: "items.dropforge",

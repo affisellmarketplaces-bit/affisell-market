@@ -47,6 +47,8 @@
       "inviteAffiliateShort": "Invite",
       "dropforge": "DropForge",
       "dropforgeShort": "Forge",
+      "supply": "Affisell stock",
+      "supplyShort": "Stock",
       "magicLab": "Magic Systems",
       "magicLabShort": "Lab"
     },
@@ -2061,7 +2063,7 @@
       "extension": "Extension",
       "finances": "Finances",
       "integrations": "Integrations",
-      "supply": "Supply",
+      "supply": "Affisell stock",
       "dropforge": "DropForge",
       "magicLab": "Magic Systems"
     },
@@ -2208,6 +2210,13 @@
       "capabilitiesAria": "Connector capabilities",
       "openChannel": "Open",
       "footerNote": "Phase 2–3 channels unlock as API partnerships go live. No auto-buy is triggered from this page.",
+      "featured": {
+        "eyebrow": "Primary channel · Phase 1",
+        "tagline": "Warehouse-native catalog on Affisell rails — catalog, orders and pack ops without third-party lock-in.",
+        "ctaCatalog": "Manage catalog",
+        "ctaAdd": "Add SKU",
+        "statsLinked": "Native SKUs"
+      },
       "phase": "Phase {n}",
       "totals": {
         "skus": "SKUs",
@@ -3704,7 +3713,8 @@
       "settings": "Settings",
       "signOut": "Sign out",
       "dropforge": "DropForge",
-      "magicLab": "Magic Systems"
+      "magicLab": "Magic Systems",
+      "affisellStock": "Affisell stock"
     }
   },
   "footer": {
@@ -5134,6 +5144,10 @@
     "empty": "No systems in this filter yet.",
     "footerHint": "{count} systems in the Affisell stack",
     "entries": {
+      "affisellStock": {
+        "title": "Affisell stock",
+        "blurb": "Your native warehouse channel — catalog, fulfillment and orders on-platform."
+      },
       "dropforge": {
         "title": "DropForge",
         "blurb": "URL → wholesale catalog. AliExpress / 1688 forge + auto-fulfill wiring."
