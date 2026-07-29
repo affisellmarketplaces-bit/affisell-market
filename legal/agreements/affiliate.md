@@ -11,7 +11,7 @@ order: 3
 
 **Version 1.0.0 — Effective au 09/07/2026 — Dernière mise à jour : {{LAST_UPDATED}}**
 
-Les présentes Conditions générales affilié (ci-après les « **CGA** ») complètent les [Conditions générales d'utilisation](/legal/terms-of-service) (CGU), les [CGV](/legal/terms-of-sale) et la [Politique de confidentialité](/legal/privacy-policy). Elles régissent la relation entre **Affisell SAS**, société par actions simplifiée au capital de {{CAPITAL}} euros, immatriculée au RCS d'Aix-en-Provence sous le numéro {{SIREN}}, dont le siège social est situé {{ADRESSE}} (ci-après « **Affisell** »), et tout partenaire inscrit en qualité d'**Affilié** (créateur, influenceur, curateur de vitrine).
+Les présentes Conditions générales affilié (ci-après les « **CGA** ») complètent les [Conditions générales d'utilisation](/legal/cgu) (CGU), les [CGV](/legal/cgv) et la [Politique de confidentialité](/legal/confidentialite). Elles régissent la relation entre l'entreprise individuelle **{{LEGAL_NAME}}**, exploitant sous le nom commercial **{{COMPANY_NAME}}** (SIRET {{SIRET}}, SIREN {{SIREN}}, NAF {{NAF}}), dont le siège / domiciliation est situé {{ADRESSE}} — {{VAT_REGIME}} (ci-après « **Affisell** »), et tout partenaire inscrit en qualité d'**Affilié** (créateur, influenceur, curateur de vitrine).
 
 L'acceptation des présentes CGA est requise pour publier une vitrine et percevoir une rémunération partenaire sur la Plateforme.
 
@@ -19,7 +19,7 @@ L'acceptation des présentes CGA est requise pour publier une vitrine et percevo
 
 ## 1. Mandat commercial indépendant
 
-**1.1** L'**Affilié** est **mandataire commercial indépendant** : il sélectionne, présente et commercialise des produits de Fournisseurs via sa vitrine Affisell. **Il n'est pas salarié** d'Affisell ni des Fournisseurs. **Aucun contrat de travail** n'est conclu. L'Affilié **n'est pas le vendeur** des marchandises : le contrat de vente est conclu entre l'**Acheteur** et le **Fournisseur**, conformément aux [CGU](/legal/terms-of-service) et aux [CGV](/legal/terms-of-sale).
+**1.1** L'**Affilié** est **mandataire commercial indépendant** : il sélectionne, présente et commercialise des produits de Fournisseurs via sa vitrine Affisell. **Il n'est pas salarié** d'Affisell ni des Fournisseurs. **Aucun contrat de travail** n'est conclu. L'Affilié **n'est pas le vendeur** des marchandises : le contrat de vente est conclu entre l'**Acheteur** et le **Fournisseur**, conformément aux [CGU](/legal/cgu) et aux [CGV](/legal/cgv).
 
 **1.2** **Affisell** fournit une **plateforme technique d'affiliation** : hébergement de vitrine, checkout, paiement Stripe Connect, outils de pricing, notifications et modération. Affisell n'expédie pas les produits, ne détient pas le stock et n'émet pas la facture de vente du bien au consommateur final.
 
@@ -37,13 +37,13 @@ L'acceptation des présentes CGA est requise pour publier une vitrine et percevo
 
 ## 3. Prix — CLAUSE 300 %
 
-**3.1** L'**Affilié fixe librement le prix public** de vente de chaque produit promu sur sa vitrine, conformément aux [CGU](/legal/terms-of-service) article 5 et aux [CGV](/legal/terms-of-sale) article 3.
+**3.1** L'**Affilié fixe librement le prix public** de vente de chaque produit promu sur sa vitrine, conformément aux [CGU](/legal/cgu) article 5 et aux [CGV](/legal/cgv) article 3.
 
 **3.2** La **marge de l'Affilié** est **plafonnée à 300 % (trois cents pour cent)** du **wholesale hors taxes (HT)** fixé par le Fournisseur. Tout listing dépassant ce plafond est **bloqué à la publication**, conformément aux [CGS](/legal/terms-supplier) article 3.
 
 **3.3** Le **prix plancher** est égal au **wholesale HT + commission Affisell** (frais de plateforme applicables sur la ligne commande). L'Affilié ne peut fixer un prix public inférieur à ce plancher.
 
-**3.4** Affisell peut **suspendre un listing sous 48 heures ouvrées** si le prix public est **manifestement abusif**, sur signalement d'un Acheteur, d'un Fournisseur ou d'une autorité. L'Affilié est notifié et peut soumettre ses observations. La réactivation relève de la décision d'Affisell, conformément aux [CGU](/legal/terms-of-service) article 5.5.
+**3.4** Affisell peut **suspendre un listing sous 48 heures ouvrées** si le prix public est **manifestement abusif**, sur signalement d'un Acheteur, d'un Fournisseur ou d'une autorité. L'Affilié est notifié et peut soumettre ses observations. La réactivation relève de la décision d'Affisell, conformément aux [CGU](/legal/cgu) article 5.5.
 
 ---
 
@@ -55,7 +55,7 @@ L'acceptation des présentes CGA est requise pour publier une vitrine et percevo
 
 Le **taux de commission** (`commissionRate`) est fixé par le Fournisseur sur la fiche produit et **figé au moment de la vente** (snapshot commande), conformément aux [CGS](/legal/terms-supplier) article 3.1.
 
-**4.2** La commission est **acquise définitivement à J+7** après **confirmation de livraison** par l'Acheteur, ou **auto-confirmation à J+10** après livraison si l'Acheteur reste silencieux (date `payoutEligibleAt`), conformément aux [CGU](/legal/terms-of-service) article 6.3 et aux [CGV](/legal/terms-of-sale) article 5.4.
+**4.2** La commission est **acquise définitivement à J+7** après **confirmation de livraison** par l'Acheteur, ou **auto-confirmation à J+10** après livraison si l'Acheteur reste silencieux (date `payoutEligibleAt`), conformément aux [CGU](/legal/cgu) article 6.3 et aux [CGV](/legal/cgv) article 5.4.
 
 **4.3** Le **payout** intervient via **Stripe Connect**, dans un délai **maximum de 30 jours** après J+7, sous réserve du **seuil minimal de 50 €** de solde éligible. Les montants inférieurs sont reportés au cycle suivant.
 
@@ -69,7 +69,7 @@ Le **taux de commission** (`commissionRate`) est fixé par le Fournisseur sur la
 
 **5.1** Sont **interdits** : **spam**, **brand bidding** (achat de mots-clés sur les marques Fournisseur ou Affisell sans autorisation écrite), **publicité trompeuse**, **cookie stuffing**, fausses réductions, présentation de l'Affilié comme vendeur du produit, contrefaçon et contenus illicites.
 
-**5.2** L'**Affilié est seul responsable** du contenu de ses promotions (textes, vidéos, embeds, réseaux sociaux). Si l'Affilié **collecte des adresses email** ou données prospects, il respecte le **RGPD** et la [Politique de confidentialité](/legal/privacy-policy) : base légale, information, droits des personnes, sécurité et durée de conservation.
+**5.2** L'**Affilié est seul responsable** du contenu de ses promotions (textes, vidéos, embeds, réseaux sociaux). Si l'Affilié **collecte des adresses email** ou données prospects, il respecte le **RGPD** et la [Politique de confidentialité](/legal/confidentialite) : base légale, information, droits des personnes, sécurité et durée de conservation.
 
 ---
 
@@ -89,4 +89,4 @@ Les présentes CGA sont soumises au **droit français**. À défaut de résoluti
 
 ---
 
-**Contact** — Affisell SAS, {{ADRESSE}} — {{EMAIL}} — DPO : {{DPO}}
+**Contact** — Affisell, {{ADRESSE}} — {{EMAIL}} — DPO : {{DPO}}

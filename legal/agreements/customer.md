@@ -11,9 +11,9 @@ order: 1
 
 **Version 1.0.0 — Dernière mise à jour : {{LAST_UPDATED}}**
 
-Les présentes Conditions générales d'utilisation (ci-après les « **CGU** ») régissent l'accès et l'utilisation de la plateforme **Affisell** (ci-après la « **Plateforme** »), éditée par **Affisell SAS**, société par actions simplifiée au capital de {{CAPITAL}} euros, immatriculée au RCS d'Aix-en-Provence sous le numéro {{SIREN}}, dont le siège social est situé {{ADRESSE}}, numéro de TVA intracommunautaire FR{{TVA}} (ci-après « **Affisell** », « **nous** »).
+Les présentes Conditions générales d'utilisation (ci-après les « **CGU** ») régissent l'accès et l'utilisation de la plateforme **Affisell** (ci-après la « **Plateforme** »), éditée par l'entreprise individuelle **{{LEGAL_NAME}}**, exploitant sous le nom commercial **{{COMPANY_NAME}}** (SIRET {{SIRET}}, SIREN {{SIREN}}, NAF {{NAF}}), dont le siège / domiciliation est situé {{ADRESSE}} — {{VAT_REGIME}} (ci-après « **Affisell** », « **nous** »).
 
-L'utilisation de la Plateforme implique l'acceptation pleine et entière des présentes CGU, de la [Politique de confidentialité](/legal/privacy-policy) et, le cas échéant, des conditions spécifiques applicables à votre qualité (Fournisseur ou Affilié).
+L'utilisation de la Plateforme implique l'acceptation pleine et entière des présentes CGU, de la [Politique de confidentialité](/legal/confidentialite) et, le cas échéant, des conditions spécifiques applicables à votre qualité (Fournisseur ou Affilié).
 
 ---
 
@@ -65,7 +65,7 @@ Au sens des présentes CGU :
 
 2.5. **Conditions spécifiques.** Les Fournisseurs et Affiliés sont en outre soumis à leurs conditions particulières respectives ([CGS](/legal/terms-supplier), [CGA](/legal/terms-affiliate)), qui complètent les présentes CGU. En cas de contradiction sur un point spécifique à leur activité marchande, les conditions particulières prévalent pour les parties concernées.
 
-2.6. **Documents annexes.** Les politiques suivantes font partie intégrante du cadre contractuel : [Politique de confidentialité](/legal/privacy-policy), [Politique cookies](/legal/cookies-policy), [CGV](/legal/terms-of-sale), [Politique de remboursement](/legal/refund-policy).
+2.6. **Documents annexes.** Les politiques suivantes font partie intégrante du cadre contractuel : [Politique de confidentialité](/legal/confidentialite), [Politique cookies](/legal/cookies), [CGV](/legal/cgv), [Politique de remboursement](/legal/refund-policy).
 
 ---
 
@@ -73,13 +73,13 @@ Au sens des présentes CGU :
 
 3.1. **Création de compte.** L'accès à certaines fonctionnalités requiert la création d'un compte. L'Utilisateur s'engage à fournir des informations exactes, complètes et à jour.
 
-3.2. **Acceptation.** L'inscription et l'utilisation de la Plateforme impliquent l'acceptation des présentes CGU et de la [Politique de confidentialité](/legal/privacy-policy). Les Fournisseurs et Affiliés acceptent en outre leurs conditions spécifiques et les conditions Stripe Connect applicables.
+3.2. **Acceptation.** L'inscription et l'utilisation de la Plateforme impliquent l'acceptation des présentes CGU et de la [Politique de confidentialité](/legal/confidentialite). Les Fournisseurs et Affiliés acceptent en outre leurs conditions spécifiques et les conditions Stripe Connect applicables.
 
 3.3. **Identifiants.** L'Utilisateur est seul responsable de la confidentialité de ses identifiants et de toute activité réalisée depuis son compte. Il doit informer Affisell sans délai de toute utilisation non autorisée.
 
 3.4. **Vérification.** Affisell peut exiger une vérification d'identité (KYC) pour les Fournisseurs et Affiliés avant toute publication de catalogue ou de vitrine, conformément à ses obligations réglementaires.
 
-3.5. **Compte invité.** Un Acheteur peut passer commande sans créer de compte ; les présentes CGU et la [Politique de confidentialité](/legal/privacy-policy) s'appliquent néanmoins à la transaction.
+3.5. **Compte invité.** Un Acheteur peut passer commande sans créer de compte ; les présentes CGU et la [Politique de confidentialité](/legal/confidentialite) s'appliquent néanmoins à la transaction.
 
 ---
 
@@ -227,7 +227,7 @@ Affisell perçoit une commission de plateforme calculée sur le **montant hors t
 
 7.1. **Durée.** Les présentes CGU sont conclues pour une durée indéterminée à compter de leur acceptation par l'Utilisateur.
 
-7.2. **Résiliation par l'Utilisateur.** L'Utilisateur peut à tout moment cesser d'utiliser la Plateforme et demander la suppression de son compte conformément à la [Politique de confidentialité](/legal/privacy-policy), sous réserve des obligations résiduelles (commandes en cours, litiges, obligations fiscales).
+7.2. **Résiliation par l'Utilisateur.** L'Utilisateur peut à tout moment cesser d'utiliser la Plateforme et demander la suppression de son compte conformément à la [Politique de confidentialité](/legal/confidentialite), sous réserve des obligations résiduelles (commandes en cours, litiges, obligations fiscales).
 
 7.3. **Suspension et résiliation par Affisell.** Affisell peut suspendre ou résilier l'accès d'un Utilisateur, sans préavis en cas d'urgence ou après mise en demeure selon la gravité, notamment en cas de :
 
@@ -257,7 +257,7 @@ Affisell perçoit une commission de plateforme calculée sur le **montant hors t
 
 9.1. L'Acheteur consommateur bénéficie du droit de rétractation de **14 jours** pour les biens éligibles, sous réserve des exceptions légales (articles L221-28 et suivants du Code de la consommation).
 
-9.2. Les modalités pratiques de retour et de remboursement sont détaillées dans la [Politique de remboursement](/legal/refund-policy) et les [CGV](/legal/terms-of-sale).
+9.2. Les modalités pratiques de retour et de remboursement sont détaillées dans la [Politique de remboursement](/legal/refund-policy) et les [CGV](/legal/cgv).
 
 ---
 
@@ -287,13 +287,13 @@ Affisell perçoit une commission de plateforme calculée sur le **montant hors t
 
 ## Article 12 — Données personnelles
 
-Le traitement des données personnelles est décrit dans la [Politique de confidentialité](/legal/privacy-policy). L'Utilisateur peut exercer ses droits (accès, rectification, effacement, portabilité, opposition) depuis son espace RGPD (`/dashboard/account/gdpr` ou `/marketplace/account/gdpr`).
+Le traitement des données personnelles est décrit dans la [Politique de confidentialité](/legal/confidentialite). L'Utilisateur peut exercer ses droits (accès, rectification, effacement, portabilité, opposition) depuis son espace RGPD (`/dashboard/account/gdpr` ou `/marketplace/account/gdpr`).
 
 ---
 
 ## Article 13 — Cookies
 
-L'utilisation de cookies et traceurs est régie par la [Politique cookies](/legal/cookies-policy). L'Utilisateur peut gérer ses préférences via la bannière de consentement.
+L'utilisation de cookies et traceurs est régie par la [Politique cookies](/legal/cookies). L'Utilisateur peut gérer ses préférences via la bannière de consentement.
 
 ---
 
@@ -323,7 +323,7 @@ L'utilisation de cookies et traceurs est régie par la [Politique cookies](/lega
 
 ## Article 16 — Contact
 
-**Affisell SAS**  
+**Affisell**  
 {{ADRESSE}}  
 Email : {{EMAIL}}  
 Délégué à la protection des données (DPO) : {{DPO}}

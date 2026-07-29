@@ -76,7 +76,7 @@ export function AffiliateCguOnboardingForm({ nextHref, className }: Props) {
       </button>
       {error ? <p className="text-center text-sm text-rose-600 dark:text-rose-300">{error}</p> : null}
       <p className="text-center text-xs text-zinc-500">
-        <Link href="/cgu" className="underline-offset-2 hover:underline">
+        <Link href="/legal/cgu" className="underline-offset-2 hover:underline">
           Lire les CGU en entier
         </Link>
       </p>

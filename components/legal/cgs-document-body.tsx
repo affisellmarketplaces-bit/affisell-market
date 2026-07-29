@@ -14,7 +14,7 @@ export function CgsDocumentBody() {
 
       <p>
         Les présentes Conditions générales de services — applicables aux <strong>Affiliés</strong> / créateurs
-        (« <strong>CGS</strong> ») — complètent les <a href="/cgu">CGU</a> d&apos;{c.name} (« Affisell »).
+        (« <strong>CGS</strong> ») — complètent les <a href="/legal/cgu">CGU</a> d&apos;{c.name} (« Affisell »).
         En activant votre boutique affiliée, vous acceptez les CGS.
       </p>
 
@@ -87,7 +87,7 @@ export function CgsDocumentBody() {
       <h2>Article 7 — Contact</h2>
       <p>
         Support affilié : <a href={`mailto:${c.supportEmail}`}>{c.supportEmail}</a> — DPO :{" "}
-        <a href={`mailto:${c.dpoEmail}`}>{c.dpoEmail}</a>. Voir aussi les <a href="/cgu">CGU</a>.
+        <a href={`mailto:${c.dpoEmail}`}>{c.dpoEmail}</a>. Voir aussi les <a href="/legal/cgu">CGU</a>.
       </p>
       <p>
         <strong>{c.name}</strong> — {c.address}

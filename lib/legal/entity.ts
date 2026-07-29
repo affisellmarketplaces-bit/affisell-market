@@ -16,12 +16,14 @@ export function applyLegalPlaceholders(text: string, lastUpdated?: string): stri
     c.contactEmail.includes("@") && !c.contactEmail.includes("À compléter")
       ? c.contactEmail
       : c.supportEmail
+  /** Never inject 293B prose into FR{{TVA}} slots — use empty or N/A. */
+  const tvaNumber = c.tva.replace(/\D/g, "") ? c.tva.replace(/\D/g, "") : "N/A"
   return text
     .replaceAll("{{COMPANY_NAME}}", c.name)
     .replaceAll("{{SIREN}}", c.siren)
     .replaceAll("{{SIRET}}", c.siret)
     .replaceAll("{{RCS}}", c.rcs)
-    .replaceAll("{{TVA}}", c.tva || c.vatRegime || "{{TVA}}")
+    .replaceAll("{{TVA}}", tvaNumber)
     .replaceAll("{{CAPITAL}}", c.capital)
     .replaceAll("{{ADRESSE}}", c.address)
     .replaceAll("{{LAST_UPDATED}}", date)
@@ -33,10 +35,11 @@ export function applyLegalPlaceholders(text: string, lastUpdated?: string): stri
     .replaceAll("{{DOMICILIATION}}", c.domiciliationAddress)
     .replaceAll("{{LEGAL_NAME}}", c.legalName)
     .replaceAll("{{NAF}}", c.naf)
-    .replaceAll("{{VAT_REGIME}}", c.vatRegime || c.tva || "")
+    .replaceAll("{{VAT_REGIME}}", c.vatRegime || (c.tva ? `TVA ${c.tva}` : ""))
     .replaceAll("{{MEDIATOR_NAME}}", c.mediatorName)
     .replaceAll("{{MEDIATOR_SITE}}", c.mediatorUrl)
     .replaceAll("{{MEDIATOR_URL}}", c.mediatorUrl)
+    .replaceAll("{{ODR_URL}}", c.odrUrl)
     .replaceAll("{{SUPPLIER_CATALOG_FEE}}", fees.supplierCatalog)
     .replaceAll("{{SUPPLIER_AUTO_BUY_FEE}}", fees.supplierAutoBuy)
     .replaceAll("{{AFFILIATE_EARNINGS_FEE}}", fees.affiliateEarnings)

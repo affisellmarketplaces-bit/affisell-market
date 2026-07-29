@@ -11,9 +11,9 @@ order: 2
 
 **Version 1.0.0 — Effective au 09/07/2026 — Dernière mise à jour : {{LAST_UPDATED}}**
 
-Les présentes Conditions générales fournisseur (ci-après les « **CGS** ») complètent les [Conditions générales d'utilisation](/legal/terms-of-service) (CGU) et régissent la relation entre **Affisell SAS**, société par actions simplifiée au capital de {{CAPITAL}} euros, immatriculée au RCS d'Aix-en-Provence sous le numéro {{SIREN}}, dont le siège social est situé {{ADRESSE}} (ci-après « **Affisell** »), et tout professionnel inscrit en qualité de **Fournisseur**.
+Les présentes Conditions générales fournisseur (ci-après les « **CGS** ») complètent les [Conditions générales d'utilisation](/legal/cgu) (CGU) et régissent la relation entre l'entreprise individuelle **{{LEGAL_NAME}}**, exploitant sous le nom commercial **{{COMPANY_NAME}}** (SIRET {{SIRET}}, SIREN {{SIREN}}, NAF {{NAF}}), dont le siège / domiciliation est situé {{ADRESSE}} — {{VAT_REGIME}} (ci-après « **Affisell** »), et tout professionnel inscrit en qualité de **Fournisseur**.
 
-L'acceptation des présentes CGS, des CGU et de la [Politique de confidentialité](/legal/privacy-policy) est requise pour publier un catalogue et recevoir des commandes sur la Plateforme.
+L'acceptation des présentes CGS, des CGU et de la [Politique de confidentialité](/legal/confidentialite) est requise pour publier un catalogue et recevoir des commandes sur la Plateforme.
 
 ---
 
@@ -21,7 +21,7 @@ L'acceptation des présentes CGS, des CGU et de la [Politique de confidentialit�
 
 **1.1** Le **Fournisseur** utilise Affisell comme **place de marché** pour distribuer ses produits via des **Affiliés** (partenaires curateurs) qui présentent les produits sur leur vitrine et fixent le prix public dans les bornes contractuelles.
 
-**1.2** **Affisell** agit en qualité de **mandataire technique** et opérateur de place de marché : hébergement, checkout, paiement Stripe Connect, notifications, médiation et modération. Le **Fournisseur reste le vendeur** vis-à-vis du **Client** (Acheteur) au sens du Code de la consommation et des [CGV](/legal/terms-of-sale). Affisell n'est pas partie au contrat de vente du produit.
+**1.2** **Affisell** agit en qualité de **mandataire technique** et opérateur de place de marché : hébergement, checkout, paiement Stripe Connect, notifications, médiation et modération. Le **Fournisseur reste le vendeur** vis-à-vis du **Client** (Acheteur) au sens du Code de la consommation et des [CGV](/legal/cgv). Affisell n'est pas partie au contrat de vente du produit.
 
 **1.3** Une commande sur la Plateforme correspond à **un seul produit** (panier mono-produit), conformément aux CGU et CGV Affisell.
 
@@ -46,7 +46,7 @@ L'acceptation des présentes CGS, des CGU et de la [Politique de confidentialit�
 
 Les taux applicables à une commande sont **figés au moment de la vente** (snapshot sur la commande).
 
-**3.2** Le **prix public** affiché au Client est fixé par l'**Affilié**, et non par Affisell ni par le Fournisseur. La **marge de l'Affilié** est **plafonnée à 300 % (trois cents pour cent)** du wholesale HT, conformément aux [CGU](/legal/terms-of-service).
+**3.2** Le **prix public** affiché au Client est fixé par l'**Affilié**, et non par Affisell ni par le Fournisseur. La **marge de l'Affilié** est **plafonnée à 300 % (trois cents pour cent)** du wholesale HT, conformément aux [CGU](/legal/cgu).
 
 **3.3** Le **prix plancher** (coût revendeur) est égal au **wholesale HT + commission Affisell** (frais de plateforme applicables sur la ligne commande). L'Affilié ne peut fixer un prix public inférieur à ce plancher. La **vente à perte** au-delà de ce plancher technique est interdite.
 
@@ -62,7 +62,7 @@ Les taux applicables à une commande sont **figés au moment de la vente** (snap
 
 **4.3** Un **numéro de tracking** (suivi transporteur) est communiqué à l'Acheteur dès expédition. L'absence de tracking sur une commande expédiée constitue un manquement.
 
-**4.4** La **confirmation de livraison** par l'Acheteur, ou l'**auto-confirmation à J+10** après livraison si l'Acheteur reste silencieux, déclenche le calendrier d'**acquisition définitive des commissions et reversements à J+7** (date `payoutEligibleAt`), conformément aux [CGU](/legal/terms-of-service).
+**4.4** La **confirmation de livraison** par l'Acheteur, ou l'**auto-confirmation à J+10** après livraison si l'Acheteur reste silencieux, déclenche le calendrier d'**acquisition définitive des commissions et reversements à J+7** (date `payoutEligibleAt`), conformément aux [CGU](/legal/cgu).
 
 **4.5** Les frais de retour marchandise (RMA) liés à un défaut de conformité imputable au Fournisseur sont à sa charge.
 
@@ -92,7 +92,7 @@ Les taux applicables à une commande sont **figés au moment de la vente** (snap
 
 **6.3** Si le Fournisseur est **défaillant** (absence de réponse, refus de retrait, non-conformité avérée), Affisell procède à une **déréférencement immédiate** du catalogue ou du SKU concerné. Les **frais** liés au traitement du signalement, aux remboursements facilités et au recouvrement peuvent être **mis à la charge du Fournisseur**.
 
-**6.4** Le Fournisseur assume la **responsabilité primaire** sur le **rappel produit**, la **garantie légale de conformité (2 ans à compter de la livraison)** et les **vices cachés (2 ans à compter de la découverte)**, conformément aux [CGV](/legal/terms-of-sale) art. 7 et au Code de la consommation. Affisell facilite la médiation mais n'est pas fabricant ni importateur.
+**6.4** Le Fournisseur assume la **responsabilité primaire** sur le **rappel produit**, la **garantie légale de conformité (2 ans à compter de la livraison)** et les **vices cachés (2 ans à compter de la découverte)**, conformément aux [CGV](/legal/cgv) art. 7 et au Code de la consommation. Affisell facilite la médiation mais n'est pas fabricant ni importateur.
 
 **6.5** En cas de produit présentant un **risque grave imminent**, Affisell peut stopper la vente **immédiatement** sans préavis.
 
@@ -120,6 +120,6 @@ Les taux applicables à une commande sont **figés au moment de la vente** (snap
 
 ## 9. Contact
 
-**Affisell SAS** — {{ADRESSE}}  
+**Affisell** — {{ADRESSE}}  
 Email Fournisseur : {{EMAIL}}  
 Délégué à la protection des données : {{DPO}}

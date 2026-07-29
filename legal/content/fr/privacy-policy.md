@@ -11,7 +11,7 @@ order: 4
 
 ## Article 1 — Responsable de traitement
 
-**Affisell SAS** — {{ADRESSE}} — SIREN {{SIREN}} — TVA FR{{TVA}}  
+**Affisell** — {{ADRESSE}} — SIREN {{SIREN}} — TVA {{VAT_REGIME}}  
 Contact : {{EMAIL}} — Délégué à la protection des données (DPO) : **{{DPO}}**
 
 ## Article 2 — Données collectées
@@ -22,7 +22,7 @@ Contact : {{EMAIL}} — Délégué à la protection des données (DPO) : **{{DPO
 | Entreprise | Raison sociale, SIRET (fournisseur) | KYC, facturation |
 | Paiement | Identifiants Stripe, IBAN (via Stripe Connect) | Paiement, reversements |
 | Commande | Adresse de livraison, historique d'achats | Exécution du contrat |
-| Technique | Logs, IP, cookies (voir [Politique cookies](/legal/cookies-policy)) | Sécurité, amélioration du service |
+| Technique | Logs, IP, cookies (voir [Politique cookies](/legal/cookies)) | Sécurité, amélioration du service |
 | Contenus | Images, descriptions produits | Hébergement marketplace |
 
 ## Article 3 — Bases légales
@@ -44,7 +44,7 @@ Contact : {{EMAIL}} — Délégué à la protection des données (DPO) : **{{DPO
 - Compte actif : durée de la relation contractuelle.
 - Données de commande et comptables : **3 ans** après la fin de la relation commerciale, sauf obligation légale plus longue.
 - Logs techniques : jusqu'à **12 mois** sauf incident de sécurité.
-- Cookies : selon [Politique cookies](/legal/cookies-policy).
+- Cookies : selon [Politique cookies](/legal/cookies).
 
 ## Article 6 — Vos droits
 

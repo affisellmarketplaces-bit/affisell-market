@@ -122,7 +122,7 @@ export async function LegalMentionsPage() {
               <dl>
                 <Field label={t("mediation.mediator")} value={c.mediatorName} />
                 <LinkField label={t("mediation.site")} href={c.mediatorUrl} value={c.mediatorUrl} />
-                <LinkField label={t("mediation.odr")} href={EU_CONSUMER_ODR_URL} value={EU_CONSUMER_ODR_URL} />
+                <LinkField label={t("mediation.odr")} href={c.odrUrl} value={c.odrUrl} />
               </dl>
               <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                 {t.rich("mediation.body", norms)}
@@ -142,7 +142,7 @@ export async function LegalMentionsPage() {
               </h2>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="/cgu" className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-300">
+                  <Link href="/legal/cgu" className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-300">
                     {t("docs.cgu")}
                   </Link>
                 </li>
@@ -164,7 +164,7 @@ export async function LegalMentionsPage() {
                 </li>
                 <li>
                   <Link
-                    href="/privacy"
+                    href="/legal/confidentialite"
                     className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
                   >
                     {t("docs.privacy")}
@@ -172,7 +172,7 @@ export async function LegalMentionsPage() {
                 </li>
                 <li>
                   <Link
-                    href="/protected-checkout"
+                    href="/legal/retractation"
                     className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
                   >
                     {t("docs.returns")}
@@ -180,7 +180,7 @@ export async function LegalMentionsPage() {
                 </li>
                 <li>
                   <Link
-                    href="/cookies"
+                    href="/legal/cookies"
                     className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
                   >
                     {t("docs.cookies")}

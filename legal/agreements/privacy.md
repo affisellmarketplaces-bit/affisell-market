@@ -11,15 +11,15 @@ order: 4
 
 **Version 1.0.0 — Effective au 09/07/2026 — Dernière mise à jour : {{LAST_UPDATED}}**
 
-La présente Politique de confidentialité (ci-après la « **Politique** ») informe les personnes concernées, conformément aux **articles 13 et 14 du Règlement (UE) 2016/679 (RGPD)**, du traitement de leurs données personnelles par **Affisell SAS** dans le cadre de la plateforme marketplace Affisell (ci-après la « **Plateforme** »).
+La présente Politique de confidentialité (ci-après la « **Politique** ») informe les personnes concernées, conformément aux **articles 13 et 14 du Règlement (UE) 2016/679 (RGPD)**, du traitement de leurs données personnelles par **Affisell** dans le cadre de la plateforme marketplace Affisell (ci-après la « **Plateforme** »).
 
-L'utilisation de la Plateforme implique la prise de connaissance de la présente Politique, complétée par la [Politique cookies](/legal/cookies-policy) pour les traceurs.
+L'utilisation de la Plateforme implique la prise de connaissance de la présente Politique, complétée par la [Politique cookies](/legal/cookies) pour les traceurs.
 
 ---
 
 ## 1. Responsable de traitement
 
-**Affisell SAS**, société par actions simplifiée, immatriculée au **RCS de Paris**, dont le siège social est situé {{ADRESSE}}, numéro SIREN {{SIREN}}, TVA intracommunautaire FR{{TVA}}.
+**Affisell** — l'entreprise individuelle **{{LEGAL_NAME}}**, exploitant sous le nom commercial **{{COMPANY_NAME}}** (SIRET {{SIRET}}, SIREN {{SIREN}}, NAF {{NAF}}), dont le siège / domiciliation est situé {{ADRESSE}} — {{VAT_REGIME}}.
 
 **Contact général** : {{EMAIL}}  
 **Délégué à la protection des données (DPO)** : [dpo@affisell.com](mailto:dpo@affisell.com) (également accessible via {{DPO}})
@@ -51,7 +51,7 @@ Les données traitées dépendent du **rôle** de l'Utilisateur sur la Plateform
 - **Technique** : adresse IP, logs de connexion, User-Agent
 
 **2.4 Tous les rôles**  
-- **Cookies et traceurs** : voir article 7 et [Politique cookies](/legal/cookies-policy)  
+- **Cookies et traceurs** : voir article 7 et [Politique cookies](/legal/cookies)  
 - **Logs de connexion** : horodatage, IP, identifiant de session, événements de sécurité  
 - **User-Agent** : navigateur, appareil, système d'exploitation (logs techniques et anti-fraude)
 
@@ -129,7 +129,7 @@ Conformément aux articles 15 à 22 du RGPD, vous disposez des droits suivants :
 - **`affisell_locale`** — préférence de langue  
 - Cookies strictement nécessaires au paiement Stripe
 
-**7.2 Cookies analytics et marketing** : déposés **uniquement après consentement** via le bandeau cookies (voir [Politique cookies](/legal/cookies-policy)). Vous pouvez modifier vos préférences à tout moment depuis le lien « Cookies » en pied de page ou l'espace RGPD.
+**7.2 Cookies analytics et marketing** : déposés **uniquement après consentement** via le bandeau cookies (voir [Politique cookies](/legal/cookies)). Vous pouvez modifier vos préférences à tout moment depuis le lien « Cookies » en pied de page ou l'espace RGPD.
 
 ---
 
@@ -155,6 +155,6 @@ Toute modification **substantielle** de la présente Politique sera portée à v
 
 ## 10. Contact
 
-**Affisell SAS** — {{ADRESSE}}  
+**Affisell** — {{ADRESSE}}  
 Email : {{EMAIL}}  
 DPO : [dpo@affisell.com](mailto:dpo@affisell.com)

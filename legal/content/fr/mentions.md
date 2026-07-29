@@ -11,14 +11,14 @@ order: 0
 
 ## Éditeur du site
 
-**Affisell SAS**  
+**Affisell**  
 Société par actions simplifiée au capital de **{{CAPITAL}}** euros  
 Siège social : {{ADRESSE}}  
 RCS : {{RCS}}  
 Numéro SIREN : {{SIREN}}  
-TVA intracommunautaire : **FR{{TVA}}**  
+TVA intracommunautaire : **{{VAT_REGIME}}**  
 Email : [{{EMAIL}}](mailto:contact@affisell.com)  
-Directeur de la publication : le représentant légal d'Affisell SAS
+Directeur de la publication : le représentant légal d'Affisell
 
 ## Hébergeur
 
@@ -41,9 +41,9 @@ Conformément aux articles L612-1 et suivants du Code de la consommation, l'Ache
 
 ## Documents contractuels
 
-- [CGU plateforme](/legal/terms-of-service)
+- [CGU plateforme](/legal/cgu)
 - [CGS Fournisseur](/legal/terms-supplier)
 - [CGA Affilié](/legal/terms-affiliate)
-- [Politique de confidentialité](/legal/privacy-policy)
+- [Politique de confidentialité](/legal/confidentialite)
 - [Politique de remboursement](/legal/refund-policy)
-- [Politique cookies](/legal/cookies-policy)
+- [Politique cookies](/legal/cookies)

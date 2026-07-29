@@ -11,9 +11,9 @@ export type StorefrontTrustSnapshot = {
 }
 
 export const STOREFRONT_TRUST_LEGAL_LINKS = [
-  { href: "/legal/terms-of-sale", key: "termsOfSale" as const },
-  { href: "/legal/privacy-policy", key: "privacy" as const },
-  { href: "/legal/mentions", key: "legalNotice" as const },
-  { href: "/protected-checkout", key: "returns" as const },
+  { href: "/legal/cgv", key: "termsOfSale" as const },
+  { href: "/legal/confidentialite", key: "privacy" as const },
+  { href: "/legal/mentions-legales", key: "legalNotice" as const },
+  { href: "/legal/retractation", key: "returns" as const },
   { href: "/support", key: "support" as const },
 ] as const

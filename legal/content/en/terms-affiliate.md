@@ -9,7 +9,7 @@ order: 3
 
 **Last updated: {{LAST_UPDATED}}**
 
-These Affiliate General Terms ("**AGT**") supplement the [GTU](/legal/terms-of-service) and govern the relationship between **Affisell SAS** and any partner registered as an **Affiliate** (creator, influencer, storefront curator).
+These Affiliate General Terms ("**AGT**") supplement the [GTU](/legal/terms-of-service) and govern the relationship between **Affisell** and any partner registered as an **Affiliate** (creator, influencer, storefront curator).
 
 ## Article 1 — Curator partner status (not seller)
 

@@ -4,7 +4,6 @@ import Link from "next/link"
 import { LegalLaunchShell, LegalSection } from "@/components/legal/legal-launch-shell"
 import { AFFISELL_LEGAL_IDENTITY } from "@/lib/legal/auto-entreprise-identity"
 import { readCompanyLegal } from "@/lib/legal/company-env"
-import { EU_CONSUMER_ODR_URL } from "@/lib/legal/mentions-constants"
 
 export const metadata: Metadata = {
   title: "Conditions générales de vente (CGV) | Affisell",
@@ -116,8 +115,17 @@ export default function LegalCgvPage() {
 
       <LegalSection id="litiges" title="8. Médiation">
         <p>
-          Réclamation amiable d’abord, puis plateforme ODR :{" "}
-          <a href={EU_CONSUMER_ODR_URL} className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-300" target="_blank" rel="noreferrer">
+          Réclamation amiable d’abord auprès de{" "}
+          <a href={`mailto:${c.supportEmail}`} className="font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300">
+            {c.supportEmail}
+          </a>
+          , puis médiateur{" "}
+          <strong className="text-zinc-900 dark:text-white">{c.mediatorName}</strong> (
+          <a href={c.mediatorUrl} className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-300" target="_blank" rel="noreferrer">
+            {c.mediatorUrl.replace(/^https?:\/\//, "")}
+          </a>
+          ). Plateforme ODR UE :{" "}
+          <a href={c.odrUrl} className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-300" target="_blank" rel="noreferrer">
             ec.europa.eu/consumers/odr
           </a>
           .

@@ -9,7 +9,7 @@ order: 2
 
 **Last updated: {{LAST_UPDATED}}**
 
-These Supplier General Terms ("**SGT**") supplement the [GTU](/legal/terms-of-service) and govern the relationship between **Affisell SAS** ({{SIREN}}, {{ADRESSE}}) and any professional registered as a **Supplier**.
+These Supplier General Terms ("**SGT**") supplement the [GTU](/legal/terms-of-service) and govern the relationship between **Affisell** ({{SIREN}}, {{ADRESSE}}) and any professional registered as a **Supplier**.
 
 ## Article 1 — Qualification and information obligations
 

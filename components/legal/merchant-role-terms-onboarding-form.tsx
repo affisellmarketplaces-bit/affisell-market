@@ -76,7 +76,7 @@ export function MerchantRoleTermsOnboardingForm({ role, nextHref, className }: P
           Lire les {label} en entier
         </Link>
         {" · "}
-        <Link href="/cgu" className="underline-offset-2 hover:underline">
+        <Link href="/legal/cgu" className="underline-offset-2 hover:underline">
           CGU
         </Link>
       </p>

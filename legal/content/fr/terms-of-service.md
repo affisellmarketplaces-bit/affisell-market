@@ -9,7 +9,7 @@ order: 1
 
 **Dernière mise à jour : {{LAST_UPDATED}}**
 
-Les présentes Conditions générales d'utilisation (« **CGU** ») régissent l'accès et l'utilisation de la plateforme **Affisell** (ci-après la « **Plateforme** »), éditée par **Affisell SAS**, société par actions simplifiée au capital de {{CAPITAL}} euros, immatriculée au RCS d'Aix-en-Provence sous le numéro {{SIREN}}, dont le siège social est situé {{ADRESSE}}, numéro de TVA intracommunautaire FR{{TVA}} (ci-après « **Affisell** », « **nous** »).
+Les présentes Conditions générales d'utilisation (« **CGU** ») régissent l'accès et l'utilisation de la plateforme **Affisell** (ci-après la « **Plateforme** »), éditée par l'entreprise individuelle **{{LEGAL_NAME}}**, exploitant sous le nom commercial **{{COMPANY_NAME}}** (SIRET {{SIRET}}, SIREN {{SIREN}}, NAF {{NAF}}), dont le siège / domiciliation est situé {{ADRESSE}} — {{VAT_REGIME}} (ci-après « **Affisell** », « **nous** »).
 
 ## Article 1 — Objet et champ d'application
 
@@ -29,7 +29,7 @@ Les présentes Conditions générales d'utilisation (« **CGU** ») régissent l
 
 ## Article 3 — Inscription et compte
 
-3.1. L'inscription requiert des informations exactes et une acceptation des CGU et de la [Politique de confidentialité](/legal/privacy-policy).
+3.1. L'inscription requiert des informations exactes et une acceptation des CGU et de la [Politique de confidentialité](/legal/confidentialite).
 
 3.2. L'Utilisateur est responsable de la confidentialité de ses identifiants.
 
@@ -85,11 +85,11 @@ Les présentes Conditions générales d'utilisation (« **CGU** ») régissent l
 
 ## Article 11 — Données personnelles
 
-Le traitement des données est décrit dans la [Politique de confidentialité](/legal/privacy-policy). L'Utilisateur peut exercer ses droits RGPD depuis [son espace RGPD](/dashboard/account/gdpr).
+Le traitement des données est décrit dans la [Politique de confidentialité](/legal/confidentialite). L'Utilisateur peut exercer ses droits RGPD depuis [son espace RGPD](/dashboard/account/gdpr).
 
 ## Article 12 — Cookies
 
-Voir la [Politique cookies](/legal/cookies-policy).
+Voir la [Politique cookies](/legal/cookies).
 
 ## Article 13 — Modification des CGU
 
@@ -105,4 +105,4 @@ Affisell peut modifier les CGU. Les Utilisateurs seront informés en cas de chan
 
 ## Article 15 — Contact
 
-**Affisell SAS** — {{ADRESSE}} — {{EMAIL}} — DPO : {{DPO}}
+**Affisell** — {{ADRESSE}} — {{EMAIL}} — DPO : {{DPO}}

@@ -11,7 +11,7 @@ order: 4
 
 ## Article 1 — Data Controller
 
-**Affisell SAS** — {{ADRESSE}} — SIREN {{SIREN}} — VAT FR{{TVA}}  
+**Affisell** — {{ADRESSE}} — SIREN {{SIREN}} — VAT FR{{TVA}}  
 Contact: {{EMAIL}} — Data Protection Officer (DPO): **{{DPO}}**
 
 ## Article 2 — Collected Data

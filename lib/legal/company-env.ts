@@ -22,14 +22,20 @@ export type CompanyLegal = {
   vatRegime: string
   naf: string
   rcs: string
+  /** Médiateur consommation L.612-1 (ex. CM2C). */
   mediatorUrl: string
   mediatorName: string
+  /** Plateforme ODR UE (secondaire). */
+  odrUrl: string
   host: string
 }
 
 const id = AFFISELL_LEGAL_IDENTITY
 
 const DEFAULT_HOST = `${id.hostPrimary.name} — ${id.hostPrimary.street}, ${id.hostPrimary.city}, ${id.hostPrimary.state} ${id.hostPrimary.postalCode}, ${id.hostPrimary.countryFr} — ${id.hostPrimary.website.replace(/^https?:\/\//, "")} · ${id.hostSecondary.name} (données)`
+
+const DEFAULT_MEDIATOR_NAME = "CM2C — Centre de la médiation de la consommation"
+const DEFAULT_MEDIATOR_URL = "https://www.cm2c.net"
 
 function envFirst(keys: readonly string[]): string | undefined {
   for (const key of keys) {
@@ -61,6 +67,11 @@ export function resolveSupportEmail(): string {
   return raw
 }
 
+/**
+ * Public contact for legal pages.
+ * Prefer explicit contact env; else support — never leave a broken placeholder on live pages.
+ * Address domiciliation remains a separate placeholder until COMPANY_ADDRESS is set.
+ */
 export function resolveContactEmail(): string {
   const raw = envFirst([
     "NEXT_PUBLIC_CONTACT_EMAIL",
@@ -68,7 +79,7 @@ export function resolveContactEmail(): string {
     "SUPPORT_EMAIL",
     "NEXT_PUBLIC_SUPPORT_EMAIL",
   ])
-  if (!raw || !isValidEmail(raw)) return id.emailPlaceholder
+  if (!raw || !isValidEmail(raw)) return SUPPORT_EMAIL_FALLBACK
   return raw
 }
 
@@ -117,15 +128,18 @@ export function readCompanyLegal(): CompanyLegal {
     envFirst(["COMPANY_DOMICILIATION_ADDRESS", "AFFISELL_DOMICILIATION_ADDRESS"]) ?? address
   const legalForm =
     envFirst(["COMPANY_LEGAL_FORM", "AFFISELL_LEGAL_FORM"]) ?? id.legalForm
+
+  const mediationOrg = envFirst(["MEDIATION_ORG", "AFFISELL_MEDIATION_ORG"])
   const mediatorName =
     envFirst(["MEDIATOR_NAME", "AFFISELL_MEDIATOR_NAME"]) ??
-    "Plateforme européenne de règlement en ligne des litiges"
-  const mediatorUrl = envFirst(["NEXT_PUBLIC_MEDIATOR_URL", "MEDIATOR_URL"]) ?? EU_CONSUMER_ODR_URL
+    (mediationOrg ? `${mediationOrg} — Centre de la médiation de la consommation` : DEFAULT_MEDIATOR_NAME)
+  const mediatorUrl =
+    envFirst(["NEXT_PUBLIC_MEDIATOR_URL", "MEDIATOR_URL"]) ?? DEFAULT_MEDIATOR_URL
+  const odrUrl = envFirst(["NEXT_PUBLIC_ODR_URL", "ODR_URL"]) ?? EU_CONSUMER_ODR_URL
+
   const contactEmail = resolveContactEmail()
   const supportEmail = resolveSupportEmail()
-  const dpoEmail =
-    envFirst(["DPO_EMAIL"]) ??
-    (isValidEmail(contactEmail) ? contactEmail : "dpo@affisell.com")
+  const dpoEmail = envFirst(["DPO_EMAIL"]) ?? "dpo@affisell.com"
 
   return {
     name,
@@ -144,6 +158,7 @@ export function readCompanyLegal(): CompanyLegal {
     rcs,
     mediatorUrl,
     mediatorName,
+    odrUrl,
     domiciliationAddress,
     legalForm,
     host: DEFAULT_HOST,

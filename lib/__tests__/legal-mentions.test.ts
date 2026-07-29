@@ -8,18 +8,16 @@ import {
 } from "@/lib/legal/mentions-constants"
 
 describe("legal-mentions", () => {
-  it("defaults DPO to dpo@affisell.com when contact email pending", () => {
+  it("defaults DPO to dpo@affisell.com", () => {
     const c = readCompanyLegal()
-    expect(c.dpoEmail).toMatch(/@/)
-    if (c.contactEmail.includes("À compléter")) {
-      expect(c.dpoEmail).toBe("dpo@affisell.com")
-    }
+    expect(c.dpoEmail).toBe("dpo@affisell.com")
   })
 
-  it("uses EU ODR mediation defaults until configured", () => {
+  it("uses CM2C as L.612-1 mediator with ODR secondary", () => {
     const c = readCompanyLegal()
-    expect(c.mediatorName).toContain("européenne")
-    expect(c.mediatorUrl).toBe("https://ec.europa.eu/consumers/odr")
+    expect(c.mediatorName).toMatch(/CM2C/i)
+    expect(c.mediatorUrl).toMatch(/cm2c\.net/i)
+    expect(c.odrUrl).toBe("https://ec.europa.eu/consumers/odr")
   })
 
   it("uses domiciliation address for registered office display", () => {

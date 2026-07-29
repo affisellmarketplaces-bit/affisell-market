@@ -3773,7 +3773,7 @@
       "mobileTagline": "Marketplace revendeurs · paiement sécurisé · support 24/7",
       "desktopTagline": "La marketplace où revendeurs partenaires et fournisseurs grandissent en Europe — conformité UE, expérience fluide.",
       "stripeNoticeShort": "Carte bancaire · authentification forte · TVA conforme UE",
-      "vatNotice": "TVA collectée et reversée conformément à la réglementation applicable.",
+      "vatNotice": "Affisell (intermédiaire) : TVA non applicable art. 293 B du CGI. La TVA éventuelle sur les ventes relève du fournisseur vendeur / checkout Stripe Tax.",
       "stripeNotice": "Paiements sécurisés par carte bancaire (authentification forte lorsque requis).",
       "copyright": "© {year} {legalName} — {name} — SIRET {siret} —",
       "odrLink": "Règlement des litiges en ligne (UE)",
@@ -4107,7 +4107,7 @@
         },
         "hq": {
           "label": "Siège",
-          "value": "Affisell SAS · UE"
+          "value": "Affisell · UE"
         },
         "model": {
           "label": "Modèle",

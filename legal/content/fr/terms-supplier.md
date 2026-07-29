@@ -9,7 +9,7 @@ order: 2
 
 **Dernière mise à jour : {{LAST_UPDATED}}**
 
-Les présentes Conditions générales fournisseur (« **CGS** ») complètent les [CGU](/legal/terms-of-service) et régissent la relation entre **Affisell SAS** ({{SIREN}}, {{ADRESSE}}) et tout professionnel inscrit en qualité de **Fournisseur**.
+Les présentes Conditions générales fournisseur (« **CGS** ») complètent les [CGU](/legal/cgu) et régissent la relation entre **Affisell** ({{SIREN}}, {{ADRESSE}}) et tout professionnel inscrit en qualité de **Fournisseur**.
 
 ## Article 1 — Qualification et obligations d'information
 

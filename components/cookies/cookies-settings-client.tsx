@@ -101,7 +101,7 @@ export function CookiesSettingsClient() {
         {saved ? (
           <span className="text-sm text-emerald-600 dark:text-emerald-400">Préférences enregistrées.</span>
         ) : null}
-        <Link href="/privacy" className="text-sm text-violet-700 underline-offset-2 hover:underline dark:text-violet-300">
+        <Link href="/legal/confidentialite" className="text-sm text-violet-700 underline-offset-2 hover:underline dark:text-violet-300">
           Politique de confidentialité
         </Link>
       </div>

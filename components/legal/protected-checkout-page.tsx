@@ -146,7 +146,7 @@ export async function ProtectedCheckoutPage() {
           <Link href="/track-order" className={cn(buttonVariants({ variant: "outline" }))}>
             {t("trackCta")}
           </Link>
-          <Link href="/cgv" className={cn(buttonVariants({ variant: "ghost" }))}>
+          <Link href="/legal/cgv" className={cn(buttonVariants({ variant: "ghost" }))}>
             {t("legalCta")}
           </Link>
         </div>

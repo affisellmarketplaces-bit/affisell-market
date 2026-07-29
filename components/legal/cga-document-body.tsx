@@ -14,7 +14,7 @@ export function CgaDocumentBody() {
 
       <p>
         Les présentes Conditions générales fournisseur (« <strong>CGA</strong> ») — applicables aux{" "}
-        <strong>Fournisseurs</strong> — complètent les <a href="/cgu">CGU</a> d&apos;{c.name} (« Affisell »).
+        <strong>Fournisseurs</strong> — complètent les <a href="/legal/cgu">CGU</a> d&apos;{c.name} (« Affisell »).
         En vous inscrivant en qualité de Fournisseur, vous acceptez sans réserve les CGA.
       </p>
 
@@ -113,7 +113,7 @@ export function CgaDocumentBody() {
 
       <h2>Article 7 — Données et contact</h2>
       <p>
-        Le traitement des données est décrit dans la <a href="/privacy">Politique de confidentialité</a>.
+        Le traitement des données est décrit dans la <a href="/legal/confidentialite">Politique de confidentialité</a>.
         Questions CGA : <a href={`mailto:${c.supportEmail}`}>{c.supportEmail}</a> — DPO :{" "}
         <a href={`mailto:${c.dpoEmail}`}>{c.dpoEmail}</a>.
       </p>

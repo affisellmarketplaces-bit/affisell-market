@@ -11,9 +11,9 @@ order: 0
 
 **Version 1.0.0 — Effective au 09/07/2026 — Dernière mise à jour : {{LAST_UPDATED}}**
 
-Les présentes Conditions générales de vente (ci-après les « **CGV** ») s'appliquent à tout achat réalisé sur la plateforme **Affisell**, éditée par **Affisell SAS**, société par actions simplifiée au capital de {{CAPITAL}} euros, immatriculée au RCS d'Aix-en-Provence sous le numéro {{SIREN}}, dont le siège social est situé {{ADRESSE}}, numéro de TVA intracommunautaire FR{{TVA}} (ci-après « **Affisell** »).
+Les présentes Conditions générales de vente (ci-après les « **CGV** ») s'appliquent à tout achat réalisé sur la plateforme **Affisell**, éditée par l'entreprise individuelle **{{LEGAL_NAME}}**, exploitant sous le nom commercial **{{COMPANY_NAME}}** (SIRET {{SIRET}}, SIREN {{SIREN}}, NAF {{NAF}}), dont le siège / domiciliation est situé {{ADRESSE}} — {{VAT_REGIME}} (ci-après « **Affisell** »).
 
-Les CGV complètent les [Conditions générales d'utilisation](/legal/terms-of-service) (CGU). En validant une commande, l'Acheteur reconnaît avoir pris connaissance des présentes CGV et les accepter sans réserve. Cette acceptation est enregistrée et associée à la commande.
+Les CGV complètent les [Conditions générales d'utilisation](/legal/cgu) (CGU). En validant une commande, l'Acheteur reconnaît avoir pris connaissance des présentes CGV et les accepter sans réserve. Cette acceptation est enregistrée et associée à la commande.
 
 ---
 
@@ -43,7 +43,7 @@ Les CGV complètent les [Conditions générales d'utilisation](/legal/terms-of-s
 
 **3.2** Les prix sont indiqués **toutes taxes comprises (TTC)**. La **TVA** est calculée et collectée via **Stripe Tax** (ou mécanisme équivalent) selon le pays de livraison ou de consommation de l'Acheteur.
 
-**3.3** La **marge de l'Affilié** est **plafonnée à 300 % (trois cents pour cent)** du prix **wholesale hors taxes** fixé par le Fournisseur. Tout listing dépassant ce plafond est bloqué à la publication, conformément aux [CGU](/legal/terms-of-service).
+**3.3** La **marge de l'Affilié** est **plafonnée à 300 % (trois cents pour cent)** du prix **wholesale hors taxes** fixé par le Fournisseur. Tout listing dépassant ce plafond est bloqué à la publication, conformément aux [CGU](/legal/cgu).
 
 **3.4** Le **prix plancher** (coût revendeur) est égal au **wholesale HT + commission Affisell** (frais de plateforme applicables sur la ligne commande). L'Affilié ne peut fixer un prix public inférieur à ce plancher.
 
@@ -55,7 +55,7 @@ Les CGV complètent les [Conditions générales d'utilisation](/legal/terms-of-s
 
 **4.1** Le paiement est exigible **à 100 % à la commande** par carte bancaire (et moyens compatibles) via **Stripe**.
 
-**4.2** Les fonds sont **détenus par Stripe** (custody Stripe Connect) jusqu'à l'**expédition** du produit par le Fournisseur et, le cas échéant, jusqu'à l'éligibilité aux reversements marchands selon les [CGU](/legal/terms-of-service).
+**4.2** Les fonds sont **détenus par Stripe** (custody Stripe Connect) jusqu'à l'**expédition** du produit par le Fournisseur et, le cas échéant, jusqu'à l'éligibilité aux reversements marchands selon les [CGU](/legal/cgu).
 
 **4.3** Une **confirmation de commande** est envoyée à l'Acheteur par **email sous 1 heure** suivant l'acceptation du paiement, récapitulant le produit, le prix TTC, le Vendeur (Fournisseur) et les présentes CGV.
 
@@ -71,7 +71,7 @@ Les CGV complètent les [Conditions générales d'utilisation](/legal/terms-of-s
 
 **5.3** Les **risques** (perte, détérioration) sont **transférés à l'Acheteur à la livraison** effective du produit, conformément aux articles L216-4 et L216-5 du Code de la consommation.
 
-**5.4** La **confirmation de livraison** par l'Acheteur, ou l'**auto-confirmation à J+10** après livraison si l'Acheteur reste silencieux, déclenche le calendrier d'**acquisition définitive des commissions à J+7** (date `payoutEligibleAt`), conformément aux [CGU](/legal/terms-of-service) et au Blueprint Affisell.
+**5.4** La **confirmation de livraison** par l'Acheteur, ou l'**auto-confirmation à J+10** après livraison si l'Acheteur reste silencieux, déclenche le calendrier d'**acquisition définitive des commissions à J+7** (date `payoutEligibleAt`), conformément aux [CGU](/legal/cgu) et au Blueprint Affisell.
 
 ---
 
@@ -85,7 +85,7 @@ Les CGV complètent les [Conditions générales d'utilisation](/legal/terms-of-s
 
 **6.4** Le **remboursement intégral** (produit et frais de livraison initiaux lorsque la loi l'impose) est effectué **sous 14 jours** suivant la réception du retour ou la preuve d'expédition du retour, via le **moyen de paiement initial** et mécanisme **Stripe Transfer Reversal**.
 
-**6.5** Si le **Transfer Reversal** échoue pour **insuffisance de fonds** du Fournisseur, le **Fournisseur demeure débiteur principal** envers Affisell. Affisell peut avancer le remboursement à l'Acheteur afin de préserver la confiance de la plateforme, puis procéder au recouvrement auprès du Fournisseur, majoré des frais bancaires et de gestion, conformément aux [CGU](/legal/terms-of-service) art. 6.5.
+**6.5** Si le **Transfer Reversal** échoue pour **insuffisance de fonds** du Fournisseur, le **Fournisseur demeure débiteur principal** envers Affisell. Affisell peut avancer le remboursement à l'Acheteur afin de préserver la confiance de la plateforme, puis procéder au recouvrement auprès du Fournisseur, majoré des frais bancaires et de gestion, conformément aux [CGU](/legal/cgu) art. 6.5.
 
 **6.6** Le droit de rétractation ne s'applique pas aux produits exclus par la loi (articles L221-28 et suivants du Code de la consommation).
 
@@ -115,13 +115,13 @@ Les CGV complètent les [Conditions générales d'utilisation](/legal/terms-of-s
 
 ## 9. Données personnelles
 
-Le traitement des données personnelles de l'Acheteur est décrit dans la [Politique de confidentialité](/legal/privacy-policy).
+Le traitement des données personnelles de l'Acheteur est décrit dans la [Politique de confidentialité](/legal/confidentialite).
 
 ---
 
 ## 10. Contact
 
-**Affisell SAS** — {{ADRESSE}}  
+**Affisell** — {{ADRESSE}}  
 Support : {{SUPPORT_EMAIL}}  
 DPO : {{DPO}}
 
@@ -133,7 +133,7 @@ DPO : {{DPO}}
 
 **À l'attention de :**  
 [Nom et adresse du Fournisseur — voir confirmation de commande]  
-Copie : Affisell SAS — {{ADRESSE}} — {{SUPPORT_EMAIL}}
+Copie : Affisell — {{ADRESSE}} — {{SUPPORT_EMAIL}}
 
 Je/Nous (*) notifie/notifions (*) par la présente ma/notre (*) rétractation du contrat portant sur la vente du bien ci-dessous :
 

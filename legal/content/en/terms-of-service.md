@@ -9,7 +9,7 @@ order: 1
 
 **Last updated: {{LAST_UPDATED}}**
 
-These General Terms of Use ("**GTU**") govern access to and use of the **Affisell** platform (hereinafter the "**Platform**"), published by **Affisell SAS**, a simplified joint-stock company with a capital of {{CAPITAL}} euros, registered with the RCS of Aix-en-Provence under number {{SIREN}}, with its registered office at {{ADRESSE}}, intra-community VAT number FR{{TVA}} (hereinafter "**Affisell**", "**we**").
+These General Terms of Use ("**GTU**") govern access to and use of the **Affisell** platform (hereinafter the "**Platform**"), published by **Affisell**, a simplified joint-stock company with a capital of {{CAPITAL}} euros, registered with the RCS of Aix-en-Provence under number {{SIREN}}, with its registered office at {{ADRESSE}}, intra-community VAT number FR{{TVA}} (hereinafter "**Affisell**", "**we**").
 
 ## Article 1 — Purpose and scope
 
@@ -105,4 +105,4 @@ Affisell may amend the GTU. Users will be informed in the event of a substantial
 
 ## Article 15 — Contact
 
-**Affisell SAS** — {{ADRESSE}} — {{EMAIL}} — DPO: {{DPO}}
+**Affisell** — {{ADRESSE}} — {{EMAIL}} — DPO: {{DPO}}

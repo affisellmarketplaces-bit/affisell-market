@@ -11,14 +11,14 @@ order: 0
 
 ## Site Publisher
 
-**Affisell SAS**  
+**Affisell**  
 Simplified joint-stock company with a capital of **{{CAPITAL}}** euros  
 Head office: {{ADRESSE}}  
 RCS: {{RCS}}  
 SIREN number: {{SIREN}}  
 VAT number: **FR{{TVA}}**  
 Email: [{{EMAIL}}](mailto:contact@affisell.com)  
-Publisher: the legal representative of Affisell SAS
+Publisher: the legal representative of Affisell
 
 ## Host
 

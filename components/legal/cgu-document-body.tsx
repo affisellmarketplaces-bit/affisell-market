@@ -4,12 +4,6 @@ import { CGU_LAST_UPDATED_LABEL } from "@/lib/legal/cgu"
 /** Corps des CGU — variables société via .env (readCompanyLegal). */
 export function CguDocumentBody() {
   const c = readCompanyLegal()
-  const siren =
-    c.siret.replace(/\D/g, "").length >= 9
-      ? c.siret.replace(/\D/g, "").slice(0, 9)
-      : c.siret
-  const capital = c.capital.startsWith("[") ? "variable" : c.capital
-  const tvaSuffix = siren.replace(/\D/g, "").slice(0, 11) || "XXXXXXXXXXX"
 
   return (
     <>
@@ -20,18 +14,11 @@ export function CguDocumentBody() {
       <p>
         Les présentes Conditions générales d&apos;utilisation (« <strong>CGU</strong> ») régissent
         l&apos;accès et l&apos;utilisation de la plateforme <strong>Affisell</strong> (ci-après la «{" "}
-        <strong>Plateforme</strong> »), éditée par <strong>{c.name}</strong>
-        {capital !== "variable" ? (
-          <>
-            , société par actions simplifiée au capital de {capital} euros
-          </>
-        ) : null}
-        , immatriculée au RCS d&apos;Aix-en-Provence sous le numéro {siren}, dont le siège social est
-        situé {c.address}
-        {tvaSuffix ? (
-          <>, numéro de TVA intracommunautaire FR{tvaSuffix}</>
-        ) : null}{" "}
-        (ci-après « <strong>Affisell</strong> », « <strong>nous</strong> »).
+        <strong>Plateforme</strong> »), éditée par l&apos;entreprise individuelle{" "}
+        <strong>{c.legalName}</strong>, exploitant sous le nom commercial <strong>{c.name}</strong>{" "}
+        (SIRET {c.siret}, SIREN {c.siren}, NAF {c.naf}), dont le siège / domiciliation est situé{" "}
+        {c.address} — {c.vatRegime || "TVA non applicable, art. 293 B du CGI"} (ci-après «{" "}
+        <strong>Affisell</strong> », « <strong>nous</strong> »).
       </p>
       <p>
         Directeur de la publication : <strong>{c.publisher}</strong>. Contact :{" "}
@@ -55,7 +42,7 @@ export function CguDocumentBody() {
       <p>
         1.3. Les CGU s&apos;appliquent à tout Utilisateur de la Plateforme. Les Fournisseurs et Affiliés
         sont également soumis à leurs conditions spécifiques respectives (
-        <a href="/conditions-fournisseur">CGA</a> fournisseur, <a href="/conditions-affilie">CGS</a>{" "}
+        <a href="/conditions-fournisseur">CGS</a> fournisseur, <a href="/conditions-affilie">CGA</a>{" "}
         affilié).
       </p>
 
@@ -83,7 +70,7 @@ export function CguDocumentBody() {
       <h2>Article 3 — Inscription et compte</h2>
       <p>
         3.1. L&apos;inscription requiert des informations exactes et une acceptation des présentes CGU et
-        de la <a href="/privacy">Politique de confidentialité</a>.
+        de la <a href="/legal/confidentialite">Politique de confidentialité</a>.
       </p>
       <p>3.2. L&apos;Utilisateur est responsable de la confidentialité de ses identifiants.</p>
       <p>
@@ -175,7 +162,7 @@ export function CguDocumentBody() {
       <h2>Article 11 — Données personnelles</h2>
       <p>
         Le traitement des données est décrit dans la{" "}
-        <a href="/privacy">Politique de confidentialité</a>. L&apos;Utilisateur peut exercer ses droits
+        <a href="/legal/confidentialite">Politique de confidentialité</a>. L&apos;Utilisateur peut exercer ses droits
         RGPD depuis <a href="/dashboard/account/gdpr">son espace RGPD</a>.
       </p>
 

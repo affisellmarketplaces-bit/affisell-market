@@ -150,7 +150,7 @@ export function GdprAccountPanel() {
           dpo@affisell.com
         </a>{" "}
         ·{" "}
-        <Link href="/legal/privacy-policy" className="underline">
+        <Link href="/legal/confidentialite" className="underline">
           Politique de confidentialité
         </Link>
       </p>

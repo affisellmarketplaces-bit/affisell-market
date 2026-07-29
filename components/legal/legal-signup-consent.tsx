@@ -50,7 +50,7 @@ export function LegalSignupConsent({
         <span>
           {t.rich("acceptCgu", {
             cgu: (chunks) => (
-              <Link href="/cgu" target="_blank" rel="noopener noreferrer" className={linkClass}>
+              <Link href="/legal/cgu" target="_blank" rel="noopener noreferrer" className={linkClass}>
                 {chunks}
               </Link>
             ),
@@ -93,7 +93,7 @@ export function LegalSignupConsent({
         <span>
           {t.rich("acceptPrivacy", {
             privacy: (chunks) => (
-              <Link href="/privacy" target="_blank" rel="noopener noreferrer" className={linkClass}>
+              <Link href="/legal/confidentialite" target="_blank" rel="noopener noreferrer" className={linkClass}>
                 {chunks}
               </Link>
             ),
