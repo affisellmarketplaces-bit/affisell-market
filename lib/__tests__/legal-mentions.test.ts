@@ -8,9 +8,12 @@ import {
 } from "@/lib/legal/mentions-constants"
 
 describe("legal-mentions", () => {
-  it("defaults DPO to dpo@affisell.com", () => {
+  it("defaults DPO to dpo@affisell.com when contact email pending", () => {
     const c = readCompanyLegal()
-    expect(c.dpoEmail).toBe("dpo@affisell.com")
+    expect(c.dpoEmail).toMatch(/@/)
+    if (c.contactEmail.includes("À compléter")) {
+      expect(c.dpoEmail).toBe("dpo@affisell.com")
+    }
   })
 
   it("uses EU ODR mediation defaults until configured", () => {
@@ -26,7 +29,7 @@ describe("legal-mentions", () => {
 
   it("formats Vercel US host for LCEN", () => {
     expect(VERCEL_HOST_LEGAL.name).toBe("Vercel Inc.")
-    expect(VERCEL_HOST_LEGAL.street).toContain("Lemon")
+    expect(VERCEL_HOST_LEGAL.street).toContain("Barranca")
   })
 
   it("exposes EU ODR platform URL", () => {

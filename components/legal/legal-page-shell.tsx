@@ -6,14 +6,14 @@ import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { cn } from "@/lib/utils"
 
 const LEGAL_NAV = [
-  { href: "/cgv", key: "cgv" },
-  { href: "/cgu", key: "cgu" },
+  { href: "/legal/cgv", key: "cgv" },
+  { href: "/legal/cgu", key: "cgu" },
   { href: "/conditions-fournisseur", key: "supplier" },
   { href: "/conditions-affilie", key: "affiliate" },
-  { href: "/legal/mentions", key: "legalNotice" },
-  { href: "/privacy", key: "privacy" },
-  { href: "/cookies", key: "cookies" },
-  { href: "/protected-checkout", key: "returns" },
+  { href: "/legal/mentions-legales", key: "legalNotice" },
+  { href: "/legal/confidentialite", key: "privacy" },
+  { href: "/legal/cookies", key: "cookies" },
+  { href: "/legal/retractation", key: "returns" },
   { href: "/contact", key: "contact" },
 ] as const
 

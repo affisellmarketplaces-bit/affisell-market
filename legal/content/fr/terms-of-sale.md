@@ -33,6 +33,15 @@ Le règlement s'effectue en ligne via **Stripe** (carte bancaire et moyens compa
 
 Les produits proposés sur Affisell proviennent fréquemment d'entrepôts situés en Asie ou en Europe. Sauf indication contraire sur la fiche produit, le **délai de livraison estimé est de 15 à 30 jours ouvrés** à compter de la confirmation de commande, hors cas de force majeure, contrôle douanier ou rupture de stock. Un numéro de suivi est communiqué lorsque le fournisseur l'expédie.
 
+### 4.1 DropForge — imports fournisseurs tiers
+
+Lorsque des fiches sont créées via **DropForge** :
+
+- les produits peuvent provenir de catalogues tiers (AliExpress, Amazon, autres) ;
+- le **fulfillment AliExpress** peut être automatisé (auto-buy) lorsqu'il est activé ;
+- le **fulfillment Amazon / sources manuelles** est traité manuellement (hors auto-buy) ;
+- les stocks, prix d'achat et délais restent sous la responsabilité du fournisseur tiers et peuvent varier.
+
 ## 5. Droit de rétractation (14 jours — UE)
 
 Conformément aux [articles L221-18 et suivants du Code de la consommation](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000006296027/) et à la [directive 2011/83/UE](https://eur-lex.europa.eu/eli/dir/2011/83/oj), vous disposez d'un délai de **14 jours calendaires** à compter de la réception du produit pour exercer votre droit de rétractation, sans avoir à justifier de motifs. Le produit doit être retourné dans son état d'origine, non utilisé, avec emballage intact. Les **frais de retour sont à votre charge**, sauf si le produit est défectueux, non conforme ou si la loi applicable impose le contraire.

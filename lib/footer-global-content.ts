@@ -9,7 +9,7 @@ type FooterTranslator = (
 
 export function buildFooterGlobalContent(
   t: FooterTranslator,
-  company: { name: string; siret: string },
+  company: { name: string; siret: string; legalName?: string },
   year: number
 ): FooterGlobalContent {
   return {
@@ -77,13 +77,14 @@ export function buildFooterGlobalContent(
       cta: t("trustBeaconCta"),
     },
     legalBar: [
+      { href: "/legal/mentions-legales", label: t("legalNotice") },
+      { href: "/legal/cgv", label: t("cgv") },
+      { href: "/legal/cgu", label: t("cgu") },
+      { href: "/legal/confidentialite", label: t("privacyPolicy") },
+      { href: "/legal/cookies", label: t("cookieSettings") },
+      { href: "/legal/retractation", label: t("returns") },
       { href: "/accessibilite", label: t("accessibility") },
-      { href: "/cgv", label: t("cgv") },
-      { href: "/cgu", label: t("cgu") },
-      { href: "/privacy", label: t("privacyPolicy") },
-      { href: "/cookies", label: t("cookieSettings") },
-      { href: "/legal/mentions", label: t("legalNotice") },
-      { href: "/protected-checkout", label: t("returns") },
+      { href: "/protected-checkout", label: t("buyerProtectionShort") },
     ],
     socialLinks: FOOTER_SOCIAL_LINKS.map(({ id, href }) => ({
       id,
@@ -98,7 +99,12 @@ export function buildFooterGlobalContent(
     vatNotice: t("vatNotice"),
     stripeNotice: t("stripeNotice"),
     stripeNoticeShort: t("stripeNoticeShort"),
-    copyrightLine: t("copyright", { year, name: company.name, siret: company.siret }),
+    copyrightLine: t("copyright", {
+      year,
+      name: company.name,
+      legalName: company.legalName ?? company.name,
+      siret: company.siret,
+    }),
     odrLink: t("odrLink"),
     odrHref: "https://ec.europa.eu/consumers/odr",
     panEuBadge: t("panEuBadge"),

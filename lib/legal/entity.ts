@@ -12,21 +12,28 @@ export function applyLegalPlaceholders(text: string, lastUpdated?: string): stri
   const c = readCompanyLegal()
   const date = lastUpdated ?? new Date().toISOString().slice(0, 10)
   const fees = legalPlatformFeeLabels
+  const emailForDocs =
+    c.contactEmail.includes("@") && !c.contactEmail.includes("À compléter")
+      ? c.contactEmail
+      : c.supportEmail
   return text
     .replaceAll("{{COMPANY_NAME}}", c.name)
     .replaceAll("{{SIREN}}", c.siren)
     .replaceAll("{{SIRET}}", c.siret)
     .replaceAll("{{RCS}}", c.rcs)
-    .replaceAll("{{TVA}}", c.tva || "{{TVA}}")
+    .replaceAll("{{TVA}}", c.tva || c.vatRegime || "{{TVA}}")
     .replaceAll("{{CAPITAL}}", c.capital)
     .replaceAll("{{ADRESSE}}", c.address)
     .replaceAll("{{LAST_UPDATED}}", date)
     .replaceAll("{{DPO}}", c.dpoEmail)
-    .replaceAll("{{EMAIL}}", c.contactEmail)
+    .replaceAll("{{EMAIL}}", emailForDocs)
     .replaceAll("{{SUPPORT_EMAIL}}", c.supportEmail)
-    .replaceAll("{{CONTACT_EMAIL}}", c.contactEmail)
+    .replaceAll("{{CONTACT_EMAIL}}", emailForDocs)
     .replaceAll("{{PUBLISHER}}", c.publisher)
     .replaceAll("{{DOMICILIATION}}", c.domiciliationAddress)
+    .replaceAll("{{LEGAL_NAME}}", c.legalName)
+    .replaceAll("{{NAF}}", c.naf)
+    .replaceAll("{{VAT_REGIME}}", c.vatRegime || c.tva || "")
     .replaceAll("{{MEDIATOR_NAME}}", c.mediatorName)
     .replaceAll("{{MEDIATOR_SITE}}", c.mediatorUrl)
     .replaceAll("{{MEDIATOR_URL}}", c.mediatorUrl)

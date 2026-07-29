@@ -3775,7 +3775,7 @@
       "stripeNoticeShort": "Carte bancaire · authentification forte · TVA conforme UE",
       "vatNotice": "TVA collectée et reversée conformément à la réglementation applicable.",
       "stripeNotice": "Paiements sécurisés par carte bancaire (authentification forte lorsque requis).",
-      "copyright": "© {year} Affisell — {name} — SIRET {siret} —",
+      "copyright": "© {year} {legalName} — {name} — SIRET {siret} —",
       "odrLink": "Règlement des litiges en ligne (UE)",
       "social": {
         "x": "Affisell sur X",

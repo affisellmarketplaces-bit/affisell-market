@@ -44,8 +44,28 @@ export default async function LegalRegistryPage() {
           </a>
         </p>
 
-        <footer className="mt-6 border-t border-zinc-200 pt-6 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-          Dernière MAJ : 10/07/2026 — Engine v2.0.0
+        <footer className="mt-6 space-y-3 border-t border-zinc-200 pt-6 text-xs text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+          <nav className="flex flex-wrap gap-x-4 gap-y-2">
+            <a href="/legal/mentions-legales" className="hover:text-violet-700 dark:hover:text-violet-300">
+              Mentions légales
+            </a>
+            <a href="/legal/cgv" className="hover:text-violet-700 dark:hover:text-violet-300">
+              CGV
+            </a>
+            <a href="/legal/cgu" className="hover:text-violet-700 dark:hover:text-violet-300">
+              CGU
+            </a>
+            <a href="/legal/confidentialite" className="hover:text-violet-700 dark:hover:text-violet-300">
+              Confidentialité
+            </a>
+            <a href="/legal/cookies" className="hover:text-violet-700 dark:hover:text-violet-300">
+              Cookies
+            </a>
+            <a href="/legal/retractation" className="hover:text-violet-700 dark:hover:text-violet-300">
+              Rétractation
+            </a>
+          </nav>
+          <p>Dernière MAJ : 29/07/2026 — Auto-entreprise Affisell · SIRET 99119663500015</p>
         </footer>
       </BentoContainer>
     </BentoShell>

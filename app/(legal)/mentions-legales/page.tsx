@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 
-/** Alias historique → page canonique `/legal/mentions`. */
+/** Alias historique → mentions auto-entreprise. */
 export default function MentionsLegalesAliasPage() {
-  redirect("/legal/mentions")
+  redirect("/legal/mentions-legales")
 }

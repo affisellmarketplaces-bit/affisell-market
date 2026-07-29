@@ -1,9 +1,12 @@
+import { AFFISELL_LEGAL_IDENTITY } from "@/lib/legal/auto-entreprise-identity"
 import { EU_CONSUMER_ODR_URL } from "@/lib/legal/mentions-constants"
 
-/** Société Affisell — source unique (pages légales, markdown, factures, footer). */
+/** Affisell — source unique (pages légales, markdown, factures, footer). */
 
 export type CompanyLegal = {
   name: string
+  /** Nom civil du micro-entrepreneur. */
+  legalName: string
   siret: string
   siren: string
   address: string
@@ -15,14 +18,18 @@ export type CompanyLegal = {
   dpoEmail: string
   contactEmail: string
   tva: string
+  /** Message régime TVA (ex. art. 293 B) lorsque pas de n° TVA. */
+  vatRegime: string
+  naf: string
   rcs: string
   mediatorUrl: string
   mediatorName: string
   host: string
 }
 
-const DEFAULT_HOST =
-  "Vercel Inc. — 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis — vercel.com"
+const id = AFFISELL_LEGAL_IDENTITY
+
+const DEFAULT_HOST = `${id.hostPrimary.name} — ${id.hostPrimary.street}, ${id.hostPrimary.city}, ${id.hostPrimary.state} ${id.hostPrimary.postalCode}, ${id.hostPrimary.countryFr} — ${id.hostPrimary.website.replace(/^https?:\/\//, "")} · ${id.hostSecondary.name} (données)`
 
 function envFirst(keys: readonly string[]): string | undefined {
   for (const key of keys) {
@@ -34,14 +41,34 @@ function envFirst(keys: readonly string[]): string | undefined {
 
 const SUPPORT_EMAIL_FALLBACK = "support@affisell.com"
 
+function isValidEmail(raw: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(raw)
+}
+
 /** Reject truncated env values like `support@` (missing domain). */
 export function resolveSupportEmail(): string {
-  const raw = envFirst(["SUPPORT_EMAIL", "NEXT_PUBLIC_SUPPORT_EMAIL"])
+  const raw = envFirst([
+    "SUPPORT_EMAIL",
+    "NEXT_PUBLIC_SUPPORT_EMAIL",
+    "NEXT_PUBLIC_CONTACT_EMAIL",
+    "COMPANY_CONTACT_EMAIL",
+  ])
   if (!raw) return SUPPORT_EMAIL_FALLBACK
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(raw)) {
+  if (!isValidEmail(raw)) {
     console.warn("[company-env] Invalid SUPPORT_EMAIL, using fallback", { raw })
     return SUPPORT_EMAIL_FALLBACK
   }
+  return raw
+}
+
+export function resolveContactEmail(): string {
+  const raw = envFirst([
+    "NEXT_PUBLIC_CONTACT_EMAIL",
+    "COMPANY_CONTACT_EMAIL",
+    "SUPPORT_EMAIL",
+    "NEXT_PUBLIC_SUPPORT_EMAIL",
+  ])
+  if (!raw || !isValidEmail(raw)) return id.emailPlaceholder
   return raw
 }
 
@@ -65,43 +92,55 @@ function resolveSiren(siret: string): string {
 }
 
 export function readCompanyLegal(): CompanyLegal {
-  const name = envFirst(["COMPANY_NAME", "NEXT_PUBLIC_COMPANY_NAME"]) ?? "Affisell SAS"
+  const name = envFirst(["COMPANY_NAME", "NEXT_PUBLIC_COMPANY_NAME"]) ?? id.commercialName
+  const legalName =
+    envFirst(["COMPANY_LEGAL_NAME", "PUBLISHER_NAME", "AFFISELL_LEGAL_NAME"]) ?? id.legalName
   const siret =
-    envFirst(["COMPANY_SIRET", "NEXT_PUBLIC_COMPANY_SIRET"]) ?? "[PLACEHOLDER — SIRET]"
+    envFirst(["COMPANY_SIRET", "NEXT_PUBLIC_COMPANY_SIRET"]) ?? id.siret
   const siren = resolveSiren(siret)
   const address =
     envFirst(["COMPANY_ADDRESS", "AFFISELL_ADDRESS", "NEXT_PUBLIC_COMPANY_ADDRESS"]) ??
-    "[PLACEHOLDER — adresse du siège social]"
+    id.addressPlaceholder
   const capital =
-    envFirst(["COMPANY_CAPITAL", "AFFISELL_CAPITAL"]) ??
-    "[PLACEHOLDER — capital social en euros]"
-  const publisher =
-    envFirst(["PUBLISHER_NAME"]) ?? "[PLACEHOLDER — directeur de publication]"
+    envFirst(["COMPANY_CAPITAL", "AFFISELL_CAPITAL"]) ?? "Sans capital social (entreprise individuelle)"
+  const publisher = envFirst(["PUBLISHER_NAME"]) ?? id.legalName
   const tva = envFirst(["AFFISELL_TVA", "NEXT_PUBLIC_COMPANY_VAT", "COMPANY_VAT"]) ?? ""
+  const vatRegime =
+    envFirst(["AFFISELL_VAT_REGIME", "COMPANY_VAT_REGIME"]) ??
+    (tva ? "" : id.vatRegimeFr)
+  const naf =
+    envFirst(["COMPANY_NAF", "AFFISELL_NAF"]) ?? `${id.nafCode} — ${id.nafLabel}`
   const rcs =
     envFirst(["AFFISELL_RCS"]) ??
-    (siren.includes("PLACEHOLDER") ? "RCS Aix-en-Provence {{SIREN}}" : `RCS Aix-en-Provence ${siren}`)
+    `Immatriculation au Registre national des entreprises (RNE) — SIREN ${siren}`
   const domiciliationAddress =
     envFirst(["COMPANY_DOMICILIATION_ADDRESS", "AFFISELL_DOMICILIATION_ADDRESS"]) ?? address
   const legalForm =
-    envFirst(["COMPANY_LEGAL_FORM", "AFFISELL_LEGAL_FORM"]) ??
-    "Société par actions simplifiée (SAS)"
+    envFirst(["COMPANY_LEGAL_FORM", "AFFISELL_LEGAL_FORM"]) ?? id.legalForm
   const mediatorName =
     envFirst(["MEDIATOR_NAME", "AFFISELL_MEDIATOR_NAME"]) ??
     "Plateforme européenne de règlement en ligne des litiges"
   const mediatorUrl = envFirst(["NEXT_PUBLIC_MEDIATOR_URL", "MEDIATOR_URL"]) ?? EU_CONSUMER_ODR_URL
+  const contactEmail = resolveContactEmail()
+  const supportEmail = resolveSupportEmail()
+  const dpoEmail =
+    envFirst(["DPO_EMAIL"]) ??
+    (isValidEmail(contactEmail) ? contactEmail : "dpo@affisell.com")
 
   return {
     name,
+    legalName,
     siret,
     siren,
     address,
     capital,
     publisher,
-    supportEmail: resolveSupportEmail(),
-    dpoEmail: envFirst(["DPO_EMAIL"]) ?? "dpo@affisell.com",
-    contactEmail: envFirst(["COMPANY_CONTACT_EMAIL"]) ?? "contact@affisell.com",
+    supportEmail,
+    dpoEmail,
+    contactEmail,
     tva,
+    vatRegime,
+    naf,
     rcs,
     mediatorUrl,
     mediatorName,
@@ -116,13 +155,15 @@ export function readAffisellLegalEntity() {
   const c = readCompanyLegal()
   return {
     companyName: c.name,
+    legalName: c.legalName,
     siren: c.siren,
     rcs: c.rcs,
-    tva: c.tva,
+    tva: c.tva || c.vatRegime,
     capitalEur: c.capital,
     address: c.address,
     email: c.contactEmail,
     dpoEmail: c.dpoEmail,
     host: c.host,
+    naf: c.naf,
   }
 }

@@ -23,10 +23,11 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: "/terms", destination: "/cgu", permanent: true },
-      { source: "/legal/cookies-policy", destination: "/cookies", permanent: true },
-      { source: "/legal/privacy-policy", destination: "/privacy", permanent: true },
-      { source: "/legal/terms-of-service", destination: "/cgu", permanent: true },
+      { source: "/legal/privacy-policy", destination: "/legal/confidentialite", permanent: true },
+      { source: "/legal/terms-of-service", destination: "/legal/cgu", permanent: true },
+      { source: "/legal/cookies-policy", destination: "/legal/cookies", permanent: true },
+      { source: "/legal/refund-policy", destination: "/legal/retractation", permanent: true },
+      { source: "/terms", destination: "/legal/cgu", permanent: true },
       { source: "/cga", destination: "/conditions-fournisseur", permanent: true },
       { source: "/cgs", destination: "/conditions-affilie", permanent: true },
       { source: "/legal/terms-supplier", destination: "/conditions-fournisseur", permanent: true },

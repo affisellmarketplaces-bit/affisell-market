@@ -40,7 +40,7 @@ export async function LegalMentionsPage() {
   const t = await getTranslations("legalPages.mentions")
   const norms = buildNormativeRichTags(locale)
   const c = readCompanyLegal()
-  const vat = formatVatIntracommunautaire(c.tva)
+  const vat = formatVatIntracommunautaire(c.tva, c.vatRegime)
   const host = VERCEL_HOST_LEGAL
 
   return (
@@ -63,10 +63,11 @@ export async function LegalMentionsPage() {
                 {t("editor.title")}
               </h2>
               <dl>
-                <Field label={t("editor.denomination")} value={c.name} />
+                <Field label={t("editor.denomination")} value={`${c.name} (${c.legalName})`} />
                 <Field label={t("editor.form")} value={c.legalForm} />
-                <Field label={t("editor.capital")} value={`${c.capital} €`} />
                 <Field label={t("editor.siren")} value={c.siren} />
+                <Field label="SIRET" value={c.siret} />
+                <Field label="Code NAF" value={c.naf} />
                 <Field label={t("editor.rcs")} value={c.rcs} />
                 <Field label={t("editor.vat")} value={vat} />
                 <Field label={t("editor.seat")} value={c.domiciliationAddress} />
