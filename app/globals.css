@@ -2117,6 +2117,26 @@ button,
   }
 }
 
+@keyframes mirror-float {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0) rotate(var(--mirror-rotate, 0deg));
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-10px) rotate(calc(var(--mirror-rotate, 0deg) + 2deg));
+  }
+}
+
+.animate-mirror-float {
+  animation: mirror-float ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-mirror-float {
+    animation: none;
+  }
+}
+
 @keyframes checkout-handoff {
   0% {
     transform: translateX(-120%);

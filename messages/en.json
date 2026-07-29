@@ -5200,5 +5200,13 @@
         "blurb": "Subscription value props for Radar growth."
       }
     }
+  },
+  "mirrorAttract": {
+    "ariaLabel": "Affisell mirror showcase — products in orbit",
+    "eyebrow": "Mirror showcase",
+    "title": "Orbital commerce",
+    "subtitle": "Verified products drift through the Affisell ecosystem.",
+    "hint": "Tap a product to explore · or anywhere to resume",
+    "brandPulse": "Affisell · EU Marketplace"
   }
 }

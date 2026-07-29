@@ -5200,5 +5200,13 @@
         "blurb": "Props d’abonnement pour la croissance Radar."
       }
     }
+  },
+  "mirrorAttract": {
+    "ariaLabel": "Vitrine miroir Affisell — produits en orbite",
+    "eyebrow": "Vitrine miroir",
+    "title": "Le commerce orbital",
+    "subtitle": "Des produits vérifiés flottent dans l’écosystème Affisell.",
+    "hint": "Touchez un produit pour explorer · ou n’importe où pour reprendre",
+    "brandPulse": "Affisell · Marketplace UE"
   }
 }
