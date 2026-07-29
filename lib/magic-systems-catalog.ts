@@ -89,7 +89,7 @@ export const MAGIC_SYSTEMS_CATALOG: MagicSystemEntry[] = [
     persona: "affiliate",
     titleKey: "battle",
     blurbKey: "battle",
-    href: "/dashboard/affiliate/hub?battle=1",
+    href: "/dashboard/affiliate/hub#battle",
     status: "beta",
     accent: "amber",
     keywords: ["battle", "flash", "discount", "dgccrf"],
@@ -99,7 +99,7 @@ export const MAGIC_SYSTEMS_CATALOG: MagicSystemEntry[] = [
     persona: "affiliate",
     titleKey: "swipeHub",
     blurbKey: "swipeHub",
-    href: "/dashboard/affiliate/hub",
+    href: "/dashboard/affiliate/hub?mode=swipe",
     status: "live",
     accent: "violet",
     keywords: ["swipe", "hub", "listing", "feed"],
@@ -194,4 +194,26 @@ export function magicSystemsFiltersForRole(
     return ["affiliate", "platform", "all"]
   }
   return ["buyer"]
+}
+
+/** Pathname only — strips query + hash for route integrity checks. */
+export function magicSystemPathname(href: string): string {
+  const path = href.split("#")[0]?.split("?")[0]?.trim() || "/"
+  return path.startsWith("/") ? path : `/${path}`
+}
+
+/** Known App Router pages for Magic Systems hrefs (no dynamic segments except verified). */
+export const MAGIC_SYSTEM_ROUTE_FILES: Record<string, string> = {
+  "/dashboard/supplier/supply": "app/dashboard/supplier/supply/page.tsx",
+  "/dropforge": "app/dropforge/page.tsx",
+  "/dashboard/supplier/import": "app/dashboard/supplier/import/page.tsx",
+  "/radar": "app/radar/page.tsx",
+  "/discover": "app/discover/page.tsx",
+  "/dashboard/affiliate/hub": "app/dashboard/affiliate/hub/page.tsx",
+  "/dashboard/affiliate/brand-studio": "app/dashboard/affiliate/brand-studio/page.tsx",
+  "/demo": "app/demo/page.tsx",
+  "/auctions": "app/auctions/page.tsx",
+  "/luxe": "app/luxe/page.tsx",
+  "/pricing": "app/pricing/page.tsx",
+  "/lab": "app/lab/page.tsx",
 }

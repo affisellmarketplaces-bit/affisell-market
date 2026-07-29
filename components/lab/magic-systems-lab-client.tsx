@@ -30,9 +30,23 @@ const STATUS_CLASS: Record<MagicSystemEntry["status"], string> = {
   new: "bg-fuchsia-500/25 text-fuchsia-50 ring-fuchsia-400/40",
 }
 
+function LabSkeleton() {
+  return (
+    <div className="relative mx-auto max-w-6xl px-4 pb-24 pt-10 sm:px-6 sm:pt-14" aria-busy>
+      <div className="h-4 w-40 animate-pulse rounded bg-white/10" />
+      <div className="mt-4 h-12 w-72 max-w-full animate-pulse rounded-lg bg-white/10" />
+      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="h-44 animate-pulse rounded-2xl border border-white/10 bg-white/5" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function MagicSystemsLabClient() {
   const t = useTranslations("magicSystems")
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const role = session?.user?.role
 
   const roleCatalog = useMemo(() => magicSystemsForRole(role), [role])
@@ -53,8 +67,13 @@ export function MagicSystemsLabClient() {
 
   const entries = useMemo(() => {
     if (filter === "all") return roleCatalog
-    return filterMagicSystems(filter, roleCatalog)
+    const scoped = filterMagicSystems(filter, roleCatalog)
+    return scoped.length > 0 ? scoped : roleCatalog
   }, [filter, roleCatalog])
+
+  if (status === "loading") {
+    return <LabSkeleton />
+  }
 
   return (
     <div className="relative mx-auto max-w-6xl px-4 pb-24 pt-10 sm:px-6 sm:pt-14">
@@ -97,17 +116,24 @@ export function MagicSystemsLabClient() {
         </div>
       ) : null}
 
-      <ul className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-3", filters.length > 1 ? "mt-10" : "mt-8")}>
+      <ul
+        className={cn(
+          "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
+          filters.length > 1 ? "mt-10" : "mt-8"
+        )}
+      >
         {entries.map((entry) => (
           <li key={entry.id}>
             <Link
               href={entry.href}
+              prefetch={false}
               className={cn(
                 "group relative flex h-full flex-col overflow-hidden rounded-2xl border bg-gradient-to-br p-5 backdrop-blur-md transition",
                 "hover:-translate-y-0.5 hover:border-white/25 hover:shadow-[0_20px_50px_rgb(5_8_22_/_0.45)]",
                 ACCENT[entry.accent]
               )}
               data-testid={`magic-system-${entry.id}`}
+              data-persona={entry.persona}
             >
               <div className="flex items-start justify-between gap-2">
                 <span

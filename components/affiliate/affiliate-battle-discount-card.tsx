@@ -24,6 +24,16 @@ export function AffiliateBattleDiscountCard() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (typeof window === "undefined") return
+    const focusBattle =
+      window.location.hash === "#battle" ||
+      new URLSearchParams(window.location.search).get("battle") === "1"
+    if (!focusBattle) return
+    const el = document.getElementById("battle")
+    el?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }, [])
+
+  useEffect(() => {
     let cancelled = false
     void (async () => {
       try {
@@ -88,7 +98,10 @@ export function AffiliateBattleDiscountCard() {
   }
 
   return (
-    <section className="mx-auto max-w-3xl space-y-3 px-4 pt-4 sm:px-6">
+    <section
+      id="battle"
+      className="mx-auto max-w-3xl scroll-mt-24 space-y-3 px-4 pt-4 sm:px-6"
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="inline-flex items-center gap-2 rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-900 dark:bg-violet-950/50 dark:text-violet-100">
           <Swords className="size-3.5" aria-hidden />
