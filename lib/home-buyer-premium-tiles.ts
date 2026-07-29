@@ -1,10 +1,14 @@
-import { Crown, Gavel, ShieldCheck, Swords } from "lucide-react"
+import { Crown, Gavel, ShieldCheck } from "lucide-react"
 
 import type { BuyerGlassTileProps } from "@/components/home/home-buyer-glass-tile"
 import { BUYER_TILE_ACCENTS } from "@/lib/home-buyer-accent-palette"
 
 type Translator = (key: string) => string
 
+/**
+ * Rangée 2 desktop (hors hero purple primary band) — auctions / luxe / trust.
+ * Hub Battles lives in PublicNav (2ᵉ bande chrome), not here.
+ */
 export function buildPremiumBuyerTiles(
   t: Translator,
   tServices: Translator
@@ -16,13 +20,6 @@ export function buildPremiumBuyerTiles(
       hint: tServices("auctionsHint"),
       Icon: Gavel,
       accent: BUYER_TILE_ACCENTS.auctions.glow,
-    },
-    {
-      href: "/battles",
-      label: tServices("battles"),
-      hint: tServices("battlesHint"),
-      Icon: Swords,
-      accent: BUYER_TILE_ACCENTS.battles.glow,
     },
     {
       href: "/luxe",

@@ -102,7 +102,9 @@
     "pulseEntryShort": "Pulse",
     "magicLab": "Magic Systems",
     "magicLabShort": "Lab",
-    "searchQuickBattles": "Battles"
+    "searchQuickBattles": "Battles",
+    "battlesEntry": "Hub Battles",
+    "battlesEntryShort": "Battles"
   },
   "slogans": {
     "buyer": {

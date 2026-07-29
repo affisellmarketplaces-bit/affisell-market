@@ -5,6 +5,7 @@ export type PublicNavActiveState = {
   onMarketplace: boolean
   onShops: boolean
   onDiscover: boolean
+  onBattles: boolean
 }
 
 /** Pure active-state logic for buyer public header pills. */
@@ -23,7 +24,9 @@ export function resolvePublicNavActive(
   const onShops =
     pathname === "/shops" ||
     (pathname.startsWith("/shops/") && !pathname.startsWith(PUBLIC_MARKETPLACE_BROWSE_PATH))
-  const onDiscover = bare.startsWith("/discover") || bare.startsWith("/pulse")
+  const onBattles = bare.startsWith("/battles")
+  const onDiscover =
+    !onBattles && (bare.startsWith("/discover") || bare.startsWith("/pulse"))
 
-  return { onHome, onMarketplace, onShops, onDiscover }
+  return { onHome, onMarketplace, onShops, onDiscover, onBattles }
 }

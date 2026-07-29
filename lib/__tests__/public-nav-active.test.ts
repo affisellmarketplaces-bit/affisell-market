@@ -9,6 +9,7 @@ describe("resolvePublicNavActive", () => {
       onMarketplace: false,
       onShops: false,
       onDiscover: false,
+      onBattles: false,
     })
   })
 
@@ -18,6 +19,7 @@ describe("resolvePublicNavActive", () => {
       onMarketplace: true,
       onShops: false,
       onDiscover: false,
+      onBattles: false,
     })
   })
 
@@ -27,6 +29,7 @@ describe("resolvePublicNavActive", () => {
       onMarketplace: true,
       onShops: false,
       onDiscover: false,
+      onBattles: false,
     })
   })
 
@@ -36,6 +39,7 @@ describe("resolvePublicNavActive", () => {
       onMarketplace: false,
       onShops: true,
       onDiscover: false,
+      onBattles: false,
     })
   })
 
@@ -45,6 +49,17 @@ describe("resolvePublicNavActive", () => {
       onMarketplace: false,
       onShops: false,
       onDiscover: true,
+      onBattles: false,
+    })
+  })
+
+  it("marks battles hub without activating Pulse", () => {
+    expect(resolvePublicNavActive("/battles", false)).toEqual({
+      onHome: false,
+      onMarketplace: false,
+      onShops: false,
+      onDiscover: false,
+      onBattles: true,
     })
   })
 })

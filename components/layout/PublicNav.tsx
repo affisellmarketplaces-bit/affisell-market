@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   ShoppingCart,
   Sparkles,
+  Swords,
   TrendingUp,
   Truck,
   User,
@@ -78,7 +79,10 @@ export function PublicNav() {
   }, [pathname])
 
   const mode = resolvePublicNavMode(pathname)
-  const { onHome, onMarketplace, onShops, onDiscover } = resolvePublicNavActive(pathname, explorerHash)
+  const { onHome, onMarketplace, onShops, onDiscover, onBattles } = resolvePublicNavActive(
+    pathname,
+    explorerHash
+  )
   const searchContext = resolvePublicNavSearchContext(pathname, explorerHash)
 
   const isBuyerContext =
@@ -145,6 +149,17 @@ export function PublicNav() {
               aria-label={t("pulseEntry")}
             >
               <Sparkles className="size-[18px]" aria-hidden />
+            </FastLink>
+            <FastLink
+              href="/battles"
+              className={cn(
+                mobileIconBtn,
+                onBattles &&
+                  "border-fuchsia-300 bg-fuchsia-100 text-fuchsia-900 dark:border-fuchsia-500/50 dark:bg-fuchsia-950/80 dark:text-fuchsia-100"
+              )}
+              aria-label={t("battlesEntry")}
+            >
+              <Swords className="size-[18px]" aria-hidden />
             </FastLink>
             <button
               type="button"
@@ -243,6 +258,14 @@ export function PublicNav() {
         active={onDiscover}
         activeVariant="brand"
         showNewBadge
+      />
+      <NavPill
+        href="/battles"
+        label={t("battlesEntry")}
+        shortLabel={t("battlesEntryShort")}
+        icon={Swords}
+        active={onBattles}
+        activeVariant="brand"
       />
       {showMagicLab ? (
         <NavPill
