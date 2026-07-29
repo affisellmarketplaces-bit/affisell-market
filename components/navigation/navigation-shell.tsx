@@ -8,7 +8,6 @@ import { InstantNavigationListener } from "@/components/navigation/instant-navig
 import { MobileDock } from "@/components/navigation/mobile-dock"
 import { NavigationProgress } from "@/components/navigation/navigation-progress"
 import { NavigationWarmup } from "@/components/navigation/navigation-warmup"
-import { MirrorAttractDeferred } from "@/components/attract/mirror-attract-deferred"
 import { CommandKDeferred } from "@/components/navigation/command-k-deferred"
 import { useIdleMount } from "@/hooks/use-idle-mount"
 
@@ -58,7 +57,6 @@ export function NavigationShell() {
       <CommandKDeferred />
       <MobileBuyerHubDeferred />
       <MobileDock />
-      <MirrorAttractDeferred />
     </>
   )
 }
