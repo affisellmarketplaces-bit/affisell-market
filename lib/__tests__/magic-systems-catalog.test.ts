@@ -41,4 +41,10 @@ describe("magic-systems-catalog", () => {
       true
     )
   })
+
+  it("isolates buyer / guest from supplier DropForge catalog", () => {
+    const forBuyer = magicSystemsForRole("CUSTOMER")
+    expect(forBuyer.every((e) => e.persona === "buyer")).toBe(true)
+    expect(forBuyer.some((e) => e.id === "dropforge")).toBe(false)
+  })
 })

@@ -1,26 +1,19 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { ArrowUpRight, Sparkles } from "lucide-react"
 
 import {
-  MAGIC_SYSTEMS_CATALOG,
   filterMagicSystems,
+  magicSystemsFiltersForRole,
+  magicSystemsForRole,
   type MagicSystemEntry,
   type MagicSystemsFilter,
 } from "@/lib/magic-systems-catalog"
 import { cn } from "@/lib/utils"
-
-const FILTERS: MagicSystemsFilter[] = [
-  "all",
-  "supplier",
-  "affiliate",
-  "platform",
-  "buyer",
-]
 
 const ACCENT: Record<MagicSystemEntry["accent"], string> = {
   violet: "from-violet-500/25 via-transparent to-fuchsia-500/10 border-violet-400/30",
@@ -42,16 +35,26 @@ export function MagicSystemsLabClient() {
   const { data: session } = useSession()
   const role = session?.user?.role
 
+  const roleCatalog = useMemo(() => magicSystemsForRole(role), [role])
+  const filters = useMemo(() => magicSystemsFiltersForRole(role), [role])
+
   const defaultFilter: MagicSystemsFilter =
-    role === "SUPPLIER"
+    role === "SUPPLIER" || role === "ADMIN"
       ? "supplier"
       : role === "AFFILIATE"
         ? "affiliate"
-        : "all"
+        : "buyer"
 
   const [filter, setFilter] = useState<MagicSystemsFilter>(defaultFilter)
 
-  const entries = useMemo(() => filterMagicSystems(filter), [filter])
+  useEffect(() => {
+    setFilter(defaultFilter)
+  }, [defaultFilter])
+
+  const entries = useMemo(() => {
+    if (filter === "all") return roleCatalog
+    return filterMagicSystems(filter, roleCatalog)
+  }, [filter, roleCatalog])
 
   return (
     <div className="relative mx-auto max-w-6xl px-4 pb-24 pt-10 sm:px-6 sm:pt-14">
@@ -68,31 +71,33 @@ export function MagicSystemsLabClient() {
         <p className="mt-4 text-pretty text-base text-violet-100/85 sm:text-lg">{t("subtitle")}</p>
       </header>
 
-      <div
-        className="mt-8 flex flex-wrap gap-2"
-        role="tablist"
-        aria-label={t("filtersAria")}
-      >
-        {FILTERS.map((f) => (
-          <button
-            key={f}
-            type="button"
-            role="tab"
-            aria-selected={filter === f}
-            onClick={() => setFilter(f)}
-            className={cn(
-              "rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
-              filter === f
-                ? "border-white/30 bg-white text-zinc-950"
-                : "border-white/12 bg-white/5 text-zinc-200 hover:border-violet-400/40 hover:bg-violet-500/15"
-            )}
-          >
-            {t(`filters.${f}`)}
-          </button>
-        ))}
-      </div>
+      {filters.length > 1 ? (
+        <div
+          className="mt-8 flex flex-wrap gap-2"
+          role="tablist"
+          aria-label={t("filtersAria")}
+        >
+          {filters.map((f) => (
+            <button
+              key={f}
+              type="button"
+              role="tab"
+              aria-selected={filter === f}
+              onClick={() => setFilter(f)}
+              className={cn(
+                "rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
+                filter === f
+                  ? "border-white/30 bg-white text-zinc-950"
+                  : "border-white/12 bg-white/5 text-zinc-200 hover:border-violet-400/40 hover:bg-violet-500/15"
+              )}
+            >
+              {t(`filters.${f}`)}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
-      <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-3", filters.length > 1 ? "mt-10" : "mt-8")}>
         {entries.map((entry) => (
           <li key={entry.id}>
             <Link

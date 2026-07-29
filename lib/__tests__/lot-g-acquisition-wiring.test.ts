@@ -10,6 +10,8 @@ describe("Lot G — acquisition wiring", () => {
     const becomeSeller = items.find((i) => i.id === "become-seller")
     expect(sellHub?.href).toBe("/sell")
     expect(becomeSeller?.href).toBe("/sell")
+    expect(items.some((i) => i.id === "dropforge")).toBe(false)
+    expect(items.some((i) => i.id === "magic-lab")).toBe(false)
   })
 
   it("exposes /sell in global footer sell section", () => {

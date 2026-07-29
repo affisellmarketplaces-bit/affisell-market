@@ -1,10 +1,14 @@
 "use client"
 
 import dynamic from "next/dynamic"
+import { useSession } from "next-auth/react"
+
+import { canSeeHomeMerchantRadar } from "@/lib/role-feature-matrix"
 
 /**
  * Below-fold Radar marketing blocks — excluded from initial JS/HTML.
  * Cuts TBT + DOM on first paint (World Radar + Producteur/Grossiste).
+ * Hidden for logged-in buyers (merchant acquisition only).
  */
 const WorldRadarPro = dynamic(
   () =>
@@ -36,11 +40,15 @@ const HomeRadarTeaser = dynamic(
 )
 
 export function HomeBelowFoldRadars() {
+  const { data: session, status } = useSession()
+  if (status === "authenticated" && !canSeeHomeMerchantRadar(session?.user?.role)) {
+    return null
+  }
+
   return (
     <>
-      {/* Visible on mobile too — WTF moment after product grid (~363px). */}
-      <WorldRadarPro className="mt-4 sm:mt-8" />
-      <HomeRadarTeaser className="mt-4 sm:mt-8" />
+      <WorldRadarPro />
+      <HomeRadarTeaser />
     </>
   )
 }

@@ -38,6 +38,7 @@ import {
   resolvePublicNavMode,
 } from "@/lib/public-nav-mode"
 import { resolvePublicNavSearchContext } from "@/lib/public-nav-search-context"
+import { canSeeMagicLabChrome } from "@/lib/role-feature-matrix"
 import { isResellerStoresNavContext } from "@/lib/public-nav-stores-context"
 import { cn } from "@/lib/utils"
 
@@ -62,6 +63,7 @@ export function PublicNav() {
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const isCustomer = session?.user?.role === "CUSTOMER"
+  const showMagicLab = canSeeMagicLabChrome(session?.user?.role)
   const isResellerStoresNav = isResellerStoresNavContext(session?.user?.role, pathname)
   const cartCount = useBuyerCartCount({ deferSync: true })
   const [explorerHash, setExplorerHash] = useState(false)
@@ -242,14 +244,16 @@ export function PublicNav() {
         activeVariant="brand"
         showNewBadge
       />
-      <NavPill
-        href="/lab"
-        label={t("magicLab")}
-        shortLabel={t("magicLabShort")}
-        icon={Wand2}
-        active={pathname === "/lab" || pathname.startsWith("/lab/")}
-        activeVariant="brand"
-      />
+      {showMagicLab ? (
+        <NavPill
+          href="/lab"
+          label={t("magicLab")}
+          shortLabel={t("magicLabShort")}
+          icon={Wand2}
+          active={pathname === "/lab" || pathname.startsWith("/lab/")}
+          activeVariant="brand"
+        />
+      ) : null}
       <NavPill
         href="/shops"
         label={isResellerStoresNav ? t("resellerStores") : t("trustedStores")}

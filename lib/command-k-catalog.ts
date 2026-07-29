@@ -123,7 +123,7 @@ const CATALOG: CatalogEntry[] = [
     action: "navigate",
     href: "/dashboard/supplier/supply#affisell-stock",
     keywords: ["stock", "affisell", "warehouse", "native", "inventory", "supply"],
-    hideForPersona: ["affiliate", "buyer"],
+    hideForPersona: ["affiliate", "buyer", "guest"],
   },
   {
     id: "dropforge",
@@ -132,7 +132,7 @@ const CATALOG: CatalogEntry[] = [
     action: "navigate",
     href: "/dropforge",
     keywords: ["dropforge", "forge", "import", "aliexpress", "1688", "wholesale"],
-    hideForPersona: ["affiliate", "buyer"],
+    hideForPersona: ["affiliate", "buyer", "guest"],
   },
   {
     id: "magic-lab",
@@ -141,6 +141,7 @@ const CATALOG: CatalogEntry[] = [
     action: "navigate",
     href: "/lab",
     keywords: ["lab", "magic", "systems", "pulse", "radar", "dropforge"],
+    hideForPersona: ["buyer", "guest"],
   },
   {
     id: "become-seller",

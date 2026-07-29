@@ -169,7 +169,7 @@ export function filterMagicSystems(
 export function magicSystemsForRole(
   role: string | undefined | null
 ): MagicSystemEntry[] {
-  if (role === "SUPPLIER") {
+  if (role === "SUPPLIER" || role === "ADMIN") {
     return MAGIC_SYSTEMS_CATALOG.filter(
       (e) => e.persona === "supplier" || e.persona === "platform"
     )
@@ -179,5 +179,19 @@ export function magicSystemsForRole(
       (e) => e.persona === "affiliate" || e.persona === "platform"
     )
   }
-  return MAGIC_SYSTEMS_CATALOG
+  /** Buyer + guest: only buyer-facing systems (no DropForge / Supply / Brand Studio). */
+  return MAGIC_SYSTEMS_CATALOG.filter((e) => e.persona === "buyer")
+}
+
+/** Filter tabs visible for a session role. */
+export function magicSystemsFiltersForRole(
+  role: string | undefined | null
+): MagicSystemsFilter[] {
+  if (role === "SUPPLIER" || role === "ADMIN") {
+    return ["supplier", "platform", "all"]
+  }
+  if (role === "AFFILIATE") {
+    return ["affiliate", "platform", "all"]
+  }
+  return ["buyer"]
 }
