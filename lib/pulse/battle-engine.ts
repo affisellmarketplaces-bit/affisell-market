@@ -315,7 +315,8 @@ export async function pickTwoBattleProducts(): Promise<[ProductBattleRow, Produc
 /** Create a battle that is immediately live for 15 minutes. */
 export async function createLiveBattleNow(
   customFlashDiscount?: number,
-  pairOverride?: { productAId: string; productBId: string } | null
+  pairOverride?: { productAId: string; productBId: string } | null,
+  durationMinutes?: number | null
 ) {
   const pair = pairOverride
     ? null
@@ -327,7 +328,11 @@ export async function createLiveBattleNow(
     return null
   }
   const startedAt = new Date()
-  const endedAt = new Date(startedAt.getTime() + BATTLE_DURATION_MS)
+  const durationMs =
+    typeof durationMinutes === "number" && durationMinutes >= 5 && durationMinutes <= 1440
+      ? durationMinutes * 60_000
+      : BATTLE_DURATION_MS
+  const endedAt = new Date(startedAt.getTime() + durationMs)
   const flashDiscount =
     customFlashDiscount != null
       ? normalizeBattleFlashDiscount(customFlashDiscount)
@@ -356,7 +361,8 @@ export async function createLiveBattleNow(
 export async function createScheduledBattle(
   scheduledAt?: Date,
   customFlashDiscount?: number,
-  pairOverride?: { productAId: string; productBId: string } | null
+  pairOverride?: { productAId: string; productBId: string } | null,
+  _durationMinutes?: number | null
 ) {
   const pair = pairOverride ? null : await pickTwoBattleProducts()
   const productAId = pairOverride?.productAId ?? pair?.[0]?.id

@@ -102,6 +102,9 @@ async function handle(req: Request) {
           live?: boolean
           flashDiscount?: number
           listingId?: string
+          listingIdA?: string
+          listingIdB?: string
+          durationMinutes?: number
         })
       : {}
   const wantLive = url.searchParams.get("live") === "1" || body.live === true
@@ -109,12 +112,39 @@ async function handle(req: Request) {
     body.flashDiscount != null ? body.flashDiscount : 20
   )
 
+  const durationMinutes =
+    typeof body.durationMinutes === "number" &&
+    Number.isFinite(body.durationMinutes) &&
+    body.durationMinutes >= 5 &&
+    body.durationMinutes <= 1440
+      ? Math.round(body.durationMinutes)
+      : null
+
+  const listingIdA = typeof body.listingIdA === "string" ? body.listingIdA.trim() : ""
+  const listingIdB = typeof body.listingIdB === "string" ? body.listingIdB.trim() : ""
   const listingIdRaw =
-    typeof body.listingId === "string" ? body.listingId.trim() : ""
+    listingIdA || (typeof body.listingId === "string" ? body.listingId.trim() : "")
   let preferredProductId: string | null = null
   let pairOverride: { productAId: string; productBId: string } | null = null
 
-  if (listingIdRaw && setterUserId) {
+  if (listingIdA && listingIdB && setterUserId) {
+    const ownedA = await loadOwnedBattleListing(setterUserId, listingIdA)
+    const ownedB = await loadOwnedBattleListing(setterUserId, listingIdB)
+    if (!ownedA || !ownedB) {
+      return NextResponse.json(
+        { error: "Un des deux listings est introuvable ou non listé" },
+        { status: 404 }
+      )
+    }
+    if (ownedA.productId === ownedB.productId) {
+      return NextResponse.json(
+        { error: "Les deux produits Battle doivent être différents" },
+        { status: 400 }
+      )
+    }
+    pairOverride = { productAId: ownedA.productId, productBId: ownedB.productId }
+    preferredProductId = ownedA.productId
+  } else if (listingIdRaw && setterUserId) {
     const owned = await loadOwnedBattleListing(setterUserId, listingIdRaw)
     if (!owned) {
       return NextResponse.json(
@@ -170,7 +200,7 @@ async function handle(req: Request) {
         liveId = existingLive.id
       }
     } else {
-      const live = await createLiveBattleNow(flashDiscount, pairOverride)
+      const live = await createLiveBattleNow(flashDiscount, pairOverride, durationMinutes)
       liveId = live?.id ?? null
       if (live && setterUserId) {
         if (listingIdRaw) {
@@ -255,7 +285,7 @@ async function handle(req: Request) {
     })
   }
 
-  const battle = await createScheduledBattle(slot, flashDiscount, pairOverride)
+  const battle = await createScheduledBattle(slot, flashDiscount, pairOverride, durationMinutes)
   if (!battle && !liveId) {
     return NextResponse.json({ ok: false, error: "NO_BATTLE_PRODUCTS" }, { status: 503 })
   }
