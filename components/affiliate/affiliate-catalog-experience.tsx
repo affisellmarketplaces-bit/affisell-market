@@ -32,7 +32,12 @@ import { ProfitBadge } from "@/components/product/ProfitBadge"
 import { Sidebar } from "@/components/marketplace/Sidebar"
 import { GlobalRequestButton } from "@/components/reseller/GlobalRequestButton"
 import { Button } from "@/components/ui/button"
-import { AFFILIATE_AGENT_PATH, AFFILIATE_CATALOG_PATH, AFFILIATE_HUB_PATH } from "@/lib/affiliate-routes"
+import {
+  AFFILIATE_AGENT_PATH,
+  AFFILIATE_CATALOG_PATH,
+  AFFILIATE_HUB_BATTLE_HREF,
+  AFFILIATE_HUB_SWIPE_HREF,
+} from "@/lib/affiliate-routes"
 import { shouldShowAffiliateCreatorsWatchingBadge } from "@/lib/affiliate-product-opportunity-pulse-shared"
 import { buildAffiliateCatalogCardEconomicsFromProduct } from "@/lib/affiliate-catalog-margin-display"
 import type { AffiliateOpportunityPulseCard } from "@/lib/affiliate-catalog-opportunity-pulse"
@@ -75,10 +80,16 @@ const NICHE_PILLS = [
 
 const PULSE_LINKS = [
   {
-    href: AFFILIATE_HUB_PATH,
+    href: AFFILIATE_HUB_SWIPE_HREF,
     label: "Swipe Feed",
     hint: "Lister en 1 geste",
     className: "from-violet-600 to-fuchsia-600",
+  },
+  {
+    href: AFFILIATE_HUB_BATTLE_HREF,
+    label: "Pulse Battle",
+    hint: "Duel vitrine · flash",
+    className: "from-amber-600 to-orange-600",
   },
   {
     href: AFFILIATE_AGENT_PATH,

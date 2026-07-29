@@ -1,9 +1,21 @@
 "use client"
 
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 import { useTranslations } from "next-intl"
-import { Handshake, Gift, LayoutDashboard, Layers, Palette, Rocket, Sparkles, Store, TrendingUp, Wallet } from "lucide-react"
+import {
+  Handshake,
+  Gift,
+  LayoutDashboard,
+  Layers,
+  Palette,
+  Rocket,
+  Sparkles,
+  Store,
+  Swords,
+  TrendingUp,
+  Wallet,
+} from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -18,7 +30,10 @@ import { ResellerRequestsNavLink } from "@/components/reseller/ResellerRequestsN
 import {
   AFFILIATE_AGENT_PATH,
   AFFILIATE_CATALOG_PATH,
+  AFFILIATE_HUB_BATTLE_HREF,
   AFFILIATE_HUB_PATH,
+  AFFILIATE_HUB_SWIPE_HREF,
+  parseAffiliateHubMode,
   PUBLIC_SHOPS_PATH,
 } from "@/lib/affiliate-routes"
 import { MAGIC_SYSTEMS_HREF } from "@/lib/magic-systems-catalog"
@@ -62,16 +77,32 @@ function AffiliateInviteSupplierButton({
 }
 
 export function NavAffiliate() {
+  return (
+    <Suspense
+      fallback={
+        <nav aria-label="Affiliate" className="mx-auto h-14 max-w-7xl animate-pulse px-4" />
+      }
+    >
+      <NavAffiliateInner />
+    </Suspense>
+  )
+}
+
+function NavAffiliateInner() {
   const t = useTranslations("nav.affiliate")
   const tSearch = useTranslations("nav")
   const tPublic = useTranslations("PublicNav")
   const pathname = usePathname() ?? ""
+  const searchParams = useSearchParams()
+  const hubMode = parseAffiliateHubMode(searchParams.get("mode"))
+  const onHubPath =
+    pathname === AFFILIATE_HUB_PATH || pathname.startsWith(`${AFFILIATE_HUB_PATH}/`)
 
   const onAgent = pathname.startsWith(AFFILIATE_AGENT_PATH)
   const onCatalog =
     pathname === AFFILIATE_CATALOG_PATH || pathname.startsWith(`${AFFILIATE_CATALOG_PATH}/`)
-  const onHub =
-    pathname === AFFILIATE_HUB_PATH || pathname.startsWith(`${AFFILIATE_HUB_PATH}/`)
+  const onBattle = onHubPath && hubMode === "battle"
+  const onSwipe = onHubPath && hubMode === "swipe"
   const onEarnings = pathname.startsWith("/dashboard/affiliate/earnings")
   const onInviteSupplier = pathname.startsWith("/dashboard/affiliate/invite-supplier")
   const onReferral = pathname.startsWith("/dashboard/affiliate/referral")
@@ -88,7 +119,7 @@ export function NavAffiliate() {
     (pathname.startsWith("/dashboard/affiliate/") &&
       !onEarnings &&
       !onCatalog &&
-      !onHub &&
+      !onHubPath &&
       !onAgent &&
       !onInviteSupplier &&
       !onReferral &&
@@ -138,11 +169,18 @@ export function NavAffiliate() {
           statusBadge={tPublic("resellerStoresBadge")}
         />
         <NavPill
-          href={AFFILIATE_HUB_PATH}
+          href={AFFILIATE_HUB_BATTLE_HREF}
+          label="Pulse Battle"
+          shortLabel="Battle"
+          icon={Swords}
+          active={onBattle}
+        />
+        <NavPill
+          href={AFFILIATE_HUB_SWIPE_HREF}
           label="Swipe Feed"
           shortLabel="Swipe"
           icon={Layers}
-          active={onHub}
+          active={onSwipe}
         />
         <NavPill
           href={MAGIC_SYSTEMS_HREF}

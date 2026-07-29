@@ -89,7 +89,7 @@ export const MAGIC_SYSTEMS_CATALOG: MagicSystemEntry[] = [
     persona: "affiliate",
     titleKey: "battle",
     blurbKey: "battle",
-    href: "/dashboard/affiliate/hub#battle",
+    href: "/dashboard/affiliate/hub?mode=battle",
     status: "beta",
     accent: "amber",
     keywords: ["battle", "flash", "discount", "dgccrf"],

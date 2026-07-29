@@ -4,6 +4,8 @@ import { getTranslations } from "next-intl/server"
 
 import { AffiliateBattleDiscountCard } from "@/components/affiliate/affiliate-battle-discount-card"
 import { AffiliateFirstListingCoachBanner } from "@/components/affiliate/affiliate-first-listing-coach-banner"
+import { AffiliateHubHashRedirect } from "@/components/affiliate/affiliate-hub-hash-redirect"
+import { AffiliateHubLauncher } from "@/components/affiliate/affiliate-hub-launcher"
 import { AffiliateKycPublishBanner } from "@/components/affiliate/affiliate-kyc-publish-banner"
 import { AffiliateOnboardingChecklist } from "@/components/affiliate/affiliate-onboarding-checklist"
 import { AffiliateOpportunityPulseRail } from "@/components/affiliate/affiliate-opportunity-pulse-rail"
@@ -11,6 +13,7 @@ import { AffiliateSwipeFeed } from "@/components/affiliate/swipe-feed/affiliate-
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { loadAffiliateOpportunityPulsePicks } from "@/lib/affiliate-catalog-opportunity-pulse"
 import { isAffiliateOnboardingQuery } from "@/lib/affiliate-onboarding-shared"
+import { parseAffiliateHubMode } from "@/lib/affiliate-routes"
 import { loadAffiliateFirstSaleProgress } from "@/lib/merchant-first-sale-progress"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 
@@ -35,7 +38,7 @@ export default async function AffiliateHubPage({ searchParams }: PageProps) {
 
   const sp = await searchParams
   const modeRaw = typeof sp.mode === "string" ? sp.mode : Array.isArray(sp.mode) ? sp.mode[0] : ""
-  const initialMode = modeRaw === "swipe" ? "swipe" : "hub"
+  const hubMode = parseAffiliateHubMode(modeRaw)
   const showFirstListingCoach = isAffiliateOnboardingQuery(sp.onboarding)
 
   const [gate, progress, opportunityPicks] = await Promise.all([
@@ -48,11 +51,14 @@ export default async function AffiliateHubPage({ searchParams }: PageProps) {
   ])
 
   const showTopRail = showFirstListingCoach || !progress.kycApproved
+  /** Opportunity rail only on Swipe (sourcing) — not on Battle setup. */
+  const showOpportunityRail = hubMode === "swipe" && opportunityPicks.length > 0
 
   const tHub = await getTranslations("affiliate.hub")
 
   return (
     <div className="space-y-4">
+      <AffiliateHubHashRedirect />
       {showTopRail ? (
         <div className="mx-auto max-w-3xl space-y-3 px-4 pt-4 sm:px-6">
           {showFirstListingCoach && progress.showChecklist ? (
@@ -70,24 +76,32 @@ export default async function AffiliateHubPage({ searchParams }: PageProps) {
           ) : null}
         </div>
       ) : null}
-      {opportunityPicks.length > 0 ? (
+      {showOpportunityRail ? (
         <div className="mx-auto max-w-3xl px-4 pt-2 sm:px-6">
           <AffiliateOpportunityPulseRail picks={opportunityPicks} compact />
         </div>
       ) : null}
-      <AffiliateBattleDiscountCard />
-      <Suspense
-        fallback={
-          <div className="flex min-h-[calc(100dvh-3.75rem)] items-center justify-center bg-zinc-950 text-zinc-500">
-            {tHub("hubLoading")}
-          </div>
-        }
-      >
-        <AffiliateSwipeFeed
-          initialMode={initialMode}
-          listingContext={showFirstListingCoach ? "onboarding" : "swipe"}
-        />
-      </Suspense>
+
+      {hubMode === "battle" ? (
+        <AffiliateBattleDiscountCard />
+      ) : null}
+
+      {hubMode === "hub" ? <AffiliateHubLauncher /> : null}
+
+      {hubMode === "swipe" ? (
+        <Suspense
+          fallback={
+            <div className="flex min-h-[calc(100dvh-3.75rem)] items-center justify-center bg-zinc-950 text-zinc-500">
+              {tHub("hubLoading")}
+            </div>
+          }
+        >
+          <AffiliateSwipeFeed
+            initialMode="swipe"
+            listingContext={showFirstListingCoach ? "onboarding" : "swipe"}
+          />
+        </Suspense>
+      ) : null}
     </div>
   )
 }

@@ -18,6 +18,8 @@ import {
 
 import { BattleDiscountSlider } from "@/components/pulse/BattleDiscountSlider"
 import { Button } from "@/components/ui/button"
+import { AFFILIATE_HUB_SWIPE_HREF } from "@/lib/affiliate-routes"
+import { BATTLES_ARENA_HREF } from "@/lib/battles-hub-types"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { cn } from "@/lib/utils"
 
@@ -332,6 +334,7 @@ export function AffiliateBattleDiscountCard() {
     if (typeof window === "undefined") return
     const focusBattle =
       window.location.hash === "#battle" ||
+      new URLSearchParams(window.location.search).get("mode") === "battle" ||
       new URLSearchParams(window.location.search).get("battle") === "1"
     if (!focusBattle) return
     document.getElementById("battle")?.scrollIntoView({ behavior: "smooth", block: "start" })
@@ -572,19 +575,31 @@ export function AffiliateBattleDiscountCard() {
   return (
     <section id="battle" className="mx-auto max-w-3xl scroll-mt-24 space-y-3 px-4 pt-4 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="inline-flex items-center gap-2 rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-900 dark:bg-violet-950/50 dark:text-violet-100">
+        <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-950 dark:bg-amber-950/50 dark:text-amber-100">
           <Swords className="size-3.5" aria-hidden />
           Pulse Battle · discount légal
         </div>
-        {battleState?.id ? (
+        <div className="flex flex-wrap items-center gap-3">
           <Link
-            href={`/dashboard/pulse/${battleState.id}`}
-            className="text-xs font-medium text-emerald-700 hover:underline dark:text-emerald-400"
+            href={BATTLES_ARENA_HREF}
+            className="text-xs font-medium text-zinc-500 hover:text-zinc-800 hover:underline dark:hover:text-zinc-200"
           >
-            Ouvrir détail Battle →
+            Arène publique →
           </Link>
-        ) : null}
+          {battleState?.id ? (
+            <Link
+              href={`/dashboard/pulse/${battleState.id}`}
+              className="text-xs font-medium text-emerald-700 hover:underline dark:text-emerald-400"
+            >
+              Ouvrir détail Battle →
+            </Link>
+          ) : null}
+        </div>
       </div>
+
+      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+        Mode Battle exclusif — le Swipe Feed (ajout vitrine) est sur un autre onglet.
+      </p>
 
       {loading ? (
         <div className="h-52 animate-pulse rounded-2xl bg-zinc-100 dark:bg-zinc-900" />
@@ -698,20 +713,20 @@ export function AffiliateBattleDiscountCard() {
               Produits du Battle
             </h2>
             <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-              Coche <strong>Produit 1</strong> puis <strong>Produit 2</strong> — le duel
-              oppose ces deux fiches. Le gagnant (votes) reçoit le flash.
+              Choisis <strong>2 fiches déjà en vitrine</strong> (pas le catalogue Swipe). Coche
+              Produit 1 puis Produit 2 — le gagnant du vote reçoit le flash discount.
             </p>
           </div>
 
           {listings.length < 2 ? (
             <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/50 dark:text-zinc-300">
               <AlertTriangle className="mb-1 inline size-4 text-amber-500" /> Il faut au
-              moins 2 fiches listées pour créer un duel.
+              moins 2 fiches listées en vitrine pour créer un duel.
               <Link
-                href="/dashboard/affiliate/hub?mode=swipe"
+                href={AFFILIATE_HUB_SWIPE_HREF}
                 className="mt-2 block font-semibold text-violet-700 hover:underline dark:text-violet-300"
               >
-                Ouvrir le Swipe Feed →
+                Ouvrir Swipe Feed pour ajouter des produits →
               </Link>
             </div>
           ) : (

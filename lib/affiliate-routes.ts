@@ -2,8 +2,23 @@
 import { listingPublicSegment } from "@/lib/listing-public-url-shared"
 export const AFFILIATE_CATALOG_PATH = "/dashboard/affiliate/catalog"
 
-/** Swipe Feed hub — Tinder-style product discovery & one-tap listing. */
+/**
+ * Affiliate hub shell — modes are exclusive (never mix Battle + Swipe UI):
+ * - `?mode=swipe` → Swipe Feed (discover SKUs → list in vitrine)
+ * - `?mode=battle` → Pulse Battle (pick 2 listed products → duel / flash)
+ * - no mode → launcher choosing Battle vs Swipe
+ */
 export const AFFILIATE_HUB_PATH = "/dashboard/affiliate/hub"
+export const AFFILIATE_HUB_SWIPE_HREF = `${AFFILIATE_HUB_PATH}?mode=swipe` as const
+export const AFFILIATE_HUB_BATTLE_HREF = `${AFFILIATE_HUB_PATH}?mode=battle` as const
+
+export type AffiliateHubMode = "hub" | "swipe" | "battle"
+
+export function parseAffiliateHubMode(raw: string | undefined | null): AffiliateHubMode {
+  if (raw === "swipe") return "swipe"
+  if (raw === "battle") return "battle"
+  return "hub"
+}
 
 /** Agent IA sourcing (marges, choix SKU vitrine) — pas l’agent shopping acheteur `/agent`. */
 export const AFFILIATE_AGENT_PATH = "/dashboard/affiliate/agent"

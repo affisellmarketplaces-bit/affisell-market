@@ -28,8 +28,10 @@ describe("magic-systems route integrity", () => {
   it("wires affiliate battle + swipe deep links correctly", () => {
     const battle = MAGIC_SYSTEMS_CATALOG.find((e) => e.id === "battle")
     const swipe = MAGIC_SYSTEMS_CATALOG.find((e) => e.id === "swipeHub")
-    expect(battle?.href).toBe("/dashboard/affiliate/hub#battle")
+    expect(battle?.href).toBe("/dashboard/affiliate/hub?mode=battle")
     expect(swipe?.href).toBe("/dashboard/affiliate/hub?mode=swipe")
+    expect(battle?.href).not.toContain("mode=swipe")
+    expect(swipe?.href).not.toContain("mode=battle")
   })
 
   it("keeps role catalogs non-empty and persona-pure", () => {
