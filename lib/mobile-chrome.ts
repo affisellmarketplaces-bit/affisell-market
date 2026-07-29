@@ -23,6 +23,7 @@ export function isImmersiveBuyerRoute(pathname: string): boolean {
   const bare = barePathname(pathname)
   if (bare.startsWith("/discover")) return true
   if (bare.startsWith("/pulse")) return true
+  if (bare.startsWith("/veil")) return true
   if (bare.startsWith("/luxe")) return true
   if (bare.startsWith("/auctions")) return true
   if (/^\/marketplace\/[^/]+$/.test(bare)) return true
@@ -31,12 +32,16 @@ export function isImmersiveBuyerRoute(pathname: string): boolean {
 }
 
 /**
- * Full-viewport Pulse / Battle — hide platform header at every breakpoint
- * (site header is sticky z-200 and otherwise covers the Pulse chrome).
+ * Full-viewport Pulse / Battle / Clair Veil — hide platform header at every breakpoint
+ * (site header is sticky z-200 and otherwise covers the immersive chrome).
  */
 export function isPulseFullscreenRoute(pathname: string): boolean {
   const bare = barePathname(pathname)
-  return bare.startsWith("/discover") || bare.startsWith("/pulse")
+  return (
+    bare.startsWith("/discover") ||
+    bare.startsWith("/pulse") ||
+    bare.startsWith("/veil")
+  )
 }
 
 /** Individual affiliate storefront (`/shops/:slug`), not directory or cross-store browse. */

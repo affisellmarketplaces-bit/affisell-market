@@ -49,6 +49,8 @@ describe("isStaticAppPathname", () => {
     expect(isStaticAppPathname("/pulse")).toBe(true)
     expect(isStaticAppPathname("/pulse/battle")).toBe(true)
     expect(isStaticAppPathname("/fr/pulse/battle")).toBe(true)
+    expect(isStaticAppPathname("/veil")).toBe(true)
+    expect(isStaticAppPathname("/fr/veil")).toBe(true)
     expect(isStaticAppPathname("/become-supplier")).toBe(true)
     expect(isStaticAppPathname("/fr/become-supplier")).toBe(true)
     expect(isStaticAppPathname("/fr/demo")).toBe(true)
