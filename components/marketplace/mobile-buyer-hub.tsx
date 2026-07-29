@@ -14,6 +14,7 @@ import {
   Menu,
   ShieldCheck,
   Sparkles,
+  Swords,
   User,
   X,
 } from "lucide-react"
@@ -95,6 +96,14 @@ export function MobileBuyerHub() {
         hint: t("auctionsHint"),
         Icon: Gavel,
         cardClass: BUYER_TILE_ACCENTS.auctions.card,
+      },
+      {
+        href: "/battles",
+        label: t("battles"),
+        hint: t("battlesHint"),
+        Icon: Swords,
+        cardClass: BUYER_TILE_ACCENTS.battles.card,
+        liveLabel: tPulse("beta"),
       },
       {
         href: "/luxe",

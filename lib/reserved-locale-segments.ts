@@ -9,6 +9,7 @@ export const RESERVED_LOCALE_SEGMENTS = new Set([
   "agent",
   "agents",
   "auctions",
+  "battles",
   "affiliate",
   "about",
   "accessibilite",

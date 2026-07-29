@@ -25,6 +25,7 @@ export function isImmersiveBuyerRoute(pathname: string): boolean {
   if (bare.startsWith("/pulse")) return true
   if (bare.startsWith("/luxe")) return true
   if (bare.startsWith("/auctions")) return true
+  if (bare.startsWith("/battles")) return true
   if (/^\/marketplace\/[^/]+$/.test(bare)) return true
   if (/^\/shops\/[^/]+\/product\//.test(bare)) return true
   return false

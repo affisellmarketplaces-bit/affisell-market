@@ -13,6 +13,7 @@ export type FeatureSurfaceId =
   | "pulseDiscover"
   | "auctions"
   | "luxe"
+  | "battlesHub"
   | "cartWishlistOrders"
   | "agentShopping"
   | "magicLab"
@@ -36,6 +37,7 @@ export const ROLE_FEATURE_MATRIX: Record<
   pulseDiscover: { audience: "buyer", buyerVisible: true, note: "Public Pulse feed" },
   auctions: { audience: "buyer", buyerVisible: true, note: "Buyer auctions" },
   luxe: { audience: "buyer", buyerVisible: true, note: "Buyer luxe" },
+  battlesHub: { audience: "buyer", buyerVisible: true, note: "Buyer Battles Hub discovery" },
   cartWishlistOrders: { audience: "buyer", buyerVisible: true, note: "Buyer commerce" },
   agentShopping: { audience: "buyer", buyerVisible: true, note: "Buyer agent" },
   magicLab: {

@@ -18,4 +18,5 @@ export const PUBLIC_NAV_SEARCH_QUICK_LINKS = [
   { id: "shops", href: "/shops", labelKey: "searchQuickStores" as const },
   { id: "discover", href: "/discover", labelKey: "searchQuickDiscover" as const },
   { id: "auctions", href: "/auctions", labelKey: "searchQuickAuctions" as const },
+  { id: "battles", href: "/battles", labelKey: "searchQuickBattles" as const },
 ] as const

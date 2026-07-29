@@ -101,7 +101,8 @@
     "pulseEntry": "Affisell Pulse",
     "pulseEntryShort": "Pulse",
     "magicLab": "Magic Systems",
-    "magicLabShort": "Lab"
+    "magicLabShort": "Lab",
+    "searchQuickBattles": "Battles"
   },
   "slogans": {
     "buyer": {
@@ -267,7 +268,9 @@
       "bestSellers": "Meilleures ventes",
       "bestSellersHint": "Top 7 jours · jeu de cartes live",
       "bestSellersBadge": "7j",
-      "bestSellersSold": "{count} vendus"
+      "bestSellersSold": "{count} vendus",
+      "battles": "Hub Battles",
+      "battlesHint": "Duels live · flash discount"
     }
   },
   "creators": {
@@ -3714,7 +3717,8 @@
       "signOut": "Déconnexion",
       "dropforge": "DropForge",
       "magicLab": "Magic Systems",
-      "affisellStock": "Stock Affisell"
+      "affisellStock": "Stock Affisell",
+      "battles": "Hub des Battles"
     }
   },
   "footer": {
@@ -3737,6 +3741,7 @@
       "browseCatalog": "Explorer le catalogue",
       "affisellPulse": "Affisell Pulse",
       "auctions": "Arène enchères",
+      "battles": "Hub des Battles",
       "luxe": "Affisell Luxe",
       "buyerProtection": "Achat protégé · retours",
       "buyerProtectionShort": "Achat protégé",
@@ -5198,7 +5203,38 @@
       "pricingRadar": {
         "title": "Pricing Radar",
         "blurb": "Props d’abonnement pour la croissance Radar."
+      },
+      "battlesHub": {
+        "title": "Hub des Battles",
+        "blurb": "Découvre les duels Pulse et vote pour le flash."
       }
     }
+  },
+  "battles": {
+    "metaTitle": "Hub des Battles — Affisell",
+    "metaDescription": "Découvre les duels Pulse Battle en direct, vote et gagne le flash discount.",
+    "eyebrow": "Pulse Arena",
+    "title": "Hub des Battles",
+    "subtitle": "Vote pour ton produit favori. Le gagnant déclenche un flash discount réel au checkout.",
+    "back": "Catalogue",
+    "live": "LIVE",
+    "flash": "flash",
+    "upcoming": "À venir",
+    "ended": "Terminé",
+    "votes": "{count} votes",
+    "sectionLive": "Duel en direct",
+    "sectionFlash": "Flash gagnant actif",
+    "sectionUpcoming": "Prochains duels",
+    "sectionRecent": "Battles récents",
+    "enterArena": "Entrer dans l’arène",
+    "shopFlash": "Profiter du flash",
+    "watchArena": "Voir l’arène",
+    "seeWinner": "Voir le gagnant",
+    "viewA": "Produit A",
+    "viewB": "Produit B",
+    "winner": "Gagnant",
+    "empty": "Aucun battle pour l’instant — reviens bientôt ou explore Pulse.",
+    "goPulse": "Ouvrir Pulse",
+    "tickerEmpty": "Hub des Battles — vote, flash, victoire"
   }
 }

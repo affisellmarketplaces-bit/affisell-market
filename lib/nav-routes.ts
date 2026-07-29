@@ -15,6 +15,7 @@ export const BUYER_WARM_ROUTES = [
   "/protected-checkout",
   "/login",
   "/auctions",
+  "/battles",
   "/luxe",
 ] as const
 

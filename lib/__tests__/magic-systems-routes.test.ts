@@ -43,5 +43,7 @@ describe("magic-systems route integrity", () => {
 
     const buyer = magicSystemsForRole("CUSTOMER")
     expect(buyer.every((e) => e.persona === "buyer")).toBe(true)
+    expect(buyer.some((e) => e.id === "battlesHub")).toBe(true)
+    expect(buyer.some((e) => e.href === "/battles")).toBe(true)
   })
 })

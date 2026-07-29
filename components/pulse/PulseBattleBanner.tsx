@@ -10,18 +10,18 @@ type Props = {
 }
 
 /**
- * Top banner linking to /pulse/battle — shows LIVE when a battle is live.
+ * Top banner linking to /battles hub — shows LIVE when a battle is live.
  */
 export function PulseBattleBanner({ className }: Props) {
   const [live, setLive] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    void fetch("/api/pulse/battle/current", { cache: "no-store" })
+    void fetch("/api/pulse/battle/list", { cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) return
-        const data = (await res.json()) as { battle?: { status?: string } }
-        if (!cancelled) setLive(data.battle?.status === "live")
+        const data = (await res.json()) as { live?: { status?: string } | null }
+        if (!cancelled) setLive(data.live?.status === "live")
       })
       .catch(() => {
         /* never crash pulse */
@@ -33,7 +33,7 @@ export function PulseBattleBanner({ className }: Props) {
 
   return (
     <Link
-      href="/pulse/battle"
+      href="/battles"
       className={cn(
         "relative z-50 flex items-center justify-center gap-2 border-b border-white/10 bg-gradient-to-r from-red-600 via-fuchsia-600 to-violet-600 px-3 py-2 text-center text-[11px] font-bold text-white sm:text-xs",
         className
@@ -49,8 +49,8 @@ export function PulseBattleBanner({ className }: Props) {
         <span aria-hidden>🔥</span>
       )}
       {live
-        ? "BATTLE LIVE — VOTE ET GAGNE −20% →"
-        : "BATTLE LIVE À 18H — VOTE ET GAGNE −20% →"}
+        ? "HUB BATTLES — VOTE ET GAGNE LE FLASH →"
+        : "HUB DES BATTLES — DÉCOUVRE LES DUELS →"}
     </Link>
   )
 }

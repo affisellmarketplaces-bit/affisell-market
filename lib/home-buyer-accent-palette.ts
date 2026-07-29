@@ -35,6 +35,11 @@ export const BUYER_TILE_ACCENTS = {
     icon: "from-violet-600 to-fuchsia-600",
     card: "from-violet-700 via-fuchsia-800 to-indigo-950",
   },
+  battles: {
+    glow: "from-fuchsia-400/75 to-rose-500/70",
+    icon: "from-fuchsia-500 to-rose-600",
+    card: "from-fuchsia-700 via-rose-800 to-violet-950",
+  },
   luxe: {
     glow: "from-indigo-400/70 to-violet-600/80",
     icon: "from-indigo-500 to-violet-700",

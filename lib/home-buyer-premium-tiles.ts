@@ -1,4 +1,4 @@
-import { Crown, Gavel, ShieldCheck } from "lucide-react"
+import { Crown, Gavel, ShieldCheck, Swords } from "lucide-react"
 
 import type { BuyerGlassTileProps } from "@/components/home/home-buyer-glass-tile"
 import { BUYER_TILE_ACCENTS } from "@/lib/home-buyer-accent-palette"
@@ -16,6 +16,13 @@ export function buildPremiumBuyerTiles(
       hint: tServices("auctionsHint"),
       Icon: Gavel,
       accent: BUYER_TILE_ACCENTS.auctions.glow,
+    },
+    {
+      href: "/battles",
+      label: tServices("battles"),
+      hint: tServices("battlesHint"),
+      Icon: Swords,
+      accent: BUYER_TILE_ACCENTS.battles.glow,
     },
     {
       href: "/luxe",

@@ -100,6 +100,15 @@ const CATALOG: CatalogEntry[] = [
     hideForPersona: ["seller"],
   },
   {
+    id: "battles",
+    segment: "buy",
+    labelKey: "items.battles",
+    action: "navigate",
+    href: "/battles",
+    keywords: ["battle", "battles", "pulse", "vote", "flash", "duel", "combat"],
+    hideForPersona: ["seller"],
+  },
+  {
     id: "luxe",
     segment: "buy",
     labelKey: "items.luxe",

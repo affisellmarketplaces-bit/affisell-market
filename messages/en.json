@@ -101,7 +101,8 @@
     "pulseEntry": "Affisell Pulse",
     "pulseEntryShort": "Pulse",
     "magicLab": "Magic Systems",
-    "magicLabShort": "Lab"
+    "magicLabShort": "Lab",
+    "searchQuickBattles": "Battles"
   },
   "slogans": {
     "buyer": {
@@ -267,7 +268,9 @@
       "bestSellers": "Top sellers",
       "bestSellersHint": "7-day hottest · live card deck",
       "bestSellersBadge": "7d",
-      "bestSellersSold": "{count} sold"
+      "bestSellersSold": "{count} sold",
+      "battles": "Battles Hub",
+      "battlesHint": "Live duels · flash discounts"
     }
   },
   "creators": {
@@ -3714,7 +3717,8 @@
       "signOut": "Sign out",
       "dropforge": "DropForge",
       "magicLab": "Magic Systems",
-      "affisellStock": "Affisell stock"
+      "affisellStock": "Affisell stock",
+      "battles": "Battles Hub"
     }
   },
   "footer": {
@@ -3737,6 +3741,7 @@
       "browseCatalog": "Browse catalog",
       "affisellPulse": "Affisell Pulse",
       "auctions": "Auction Arena",
+      "battles": "Battles Hub",
       "luxe": "Affisell Luxe",
       "buyerProtection": "Protected checkout · returns",
       "buyerProtectionShort": "Protected checkout",
@@ -5198,7 +5203,38 @@
       "pricingRadar": {
         "title": "Radar Pricing",
         "blurb": "Subscription value props for Radar growth."
+      },
+      "battlesHub": {
+        "title": "Battles Hub",
+        "blurb": "Discover Pulse duels and vote for the flash."
       }
     }
+  },
+  "battles": {
+    "metaTitle": "Battles Hub — Affisell",
+    "metaDescription": "Discover live Pulse Battles, vote, and unlock flash discounts.",
+    "eyebrow": "Pulse Arena",
+    "title": "Battles Hub",
+    "subtitle": "Vote for your favorite. The winner unlocks a real flash discount at checkout.",
+    "back": "Catalog",
+    "live": "LIVE",
+    "flash": "flash",
+    "upcoming": "Upcoming",
+    "ended": "Ended",
+    "votes": "{count} votes",
+    "sectionLive": "Live duel",
+    "sectionFlash": "Winner flash live",
+    "sectionUpcoming": "Upcoming duels",
+    "sectionRecent": "Recent battles",
+    "enterArena": "Enter the arena",
+    "shopFlash": "Shop the flash",
+    "watchArena": "Watch arena",
+    "seeWinner": "See the winner",
+    "viewA": "Product A",
+    "viewB": "Product B",
+    "winner": "Winner",
+    "empty": "No battles yet — check back soon or explore Pulse.",
+    "goPulse": "Open Pulse",
+    "tickerEmpty": "Battles Hub — vote, flash, win"
   }
 }

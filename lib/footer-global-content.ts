@@ -23,6 +23,7 @@ export function buildFooterGlobalContent(
           { href: PUBLIC_MARKETPLACE_BROWSE_PATH, label: t("browseCatalog") },
           { href: "/discover", label: t("affisellPulse") },
           { href: "/auctions", label: t("auctions") },
+          { href: "/battles", label: t("battles") },
           { href: "/luxe", label: t("luxe") },
           { href: "/how-it-works", label: t("howItWorks") },
           { href: "/protected-checkout", label: t("buyerProtection") },

@@ -27,7 +27,7 @@ export function PulseBattleHeaderLink({ className }: { className?: string }) {
 
   return (
     <Link
-      href="/pulse/battle"
+      href="/battles"
       className={cn(
         "inline-flex items-center gap-1 rounded-full border border-white/15 bg-black/40 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white/90",
         className
