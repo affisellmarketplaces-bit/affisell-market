@@ -59,7 +59,6 @@ export const RESERVED_LOCALE_SEGMENTS = new Set([
   "produits",
   "protected-checkout",
   "pulse",
-  "veil",
   "radar",
   "intelli",
   "reaccept-terms",
