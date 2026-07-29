@@ -68,10 +68,24 @@ export async function PATCH(req: Request, ctx: RouteCtx) {
     )
   }
 
-  const listingA = await findPrimaryListingForProduct(battle.productAId)
-  const listingB = await findPrimaryListingForProduct(battle.productBId)
-  const ownsA = listingA?.affiliateId === userId
-  const ownsB = listingB?.affiliateId === userId
+  const ownListingA = await prisma.affiliateProduct.findFirst({
+    where: {
+      productId: battle.productAId,
+      affiliateId: userId,
+      isListed: true,
+    },
+    select: { id: true, sellingPriceCents: true },
+  })
+  const ownListingB = await prisma.affiliateProduct.findFirst({
+    where: {
+      productId: battle.productBId,
+      affiliateId: userId,
+      isListed: true,
+    },
+    select: { id: true, sellingPriceCents: true },
+  })
+  const ownsA = Boolean(ownListingA)
+  const ownsB = Boolean(ownListingB)
   if (role !== "ADMIN" && !ownsA && !ownsB) {
     console.log("[pulse-battle/flash-discount]", {
       result: "forbidden_not_owner",
@@ -81,7 +95,13 @@ export async function PATCH(req: Request, ctx: RouteCtx) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const listing = ownsA ? listingA : ownsB ? listingB : listingA ?? listingB
+  const listing =
+    ownsA && ownListingA
+      ? ownListingA
+      : ownsB && ownListingB
+        ? ownListingB
+        : (await findPrimaryListingForProduct(battle.productAId)) ??
+          (await findPrimaryListingForProduct(battle.productBId))
   const currentCents = listing?.sellingPriceCents ?? 0
   const listingId = listing?.id ?? ""
   const ref = listingId

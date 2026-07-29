@@ -36,6 +36,7 @@ export async function GET() {
     },
     select: {
       id: true,
+      productId: true,
       sellingPriceCents: true,
       customTitle: true,
       customImages: true,
@@ -47,6 +48,7 @@ export async function GET() {
 
   const items = rows.map((row) => ({
     listingId: row.id,
+    productId: row.productId,
     title: listingDisplayTitle(row.customTitle, row.product.name),
     imageUrl: listingPrimaryImageUrl(row.customImages, row.product.images) || null,
     priceCents: row.sellingPriceCents,

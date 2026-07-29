@@ -313,13 +313,19 @@ export async function pickTwoBattleProducts(): Promise<[ProductBattleRow, Produc
 }
 
 /** Create a battle that is immediately live for 15 minutes. */
-export async function createLiveBattleNow(customFlashDiscount?: number) {
-  const pair = await pickTwoBattleProducts()
-  if (!pair) {
+export async function createLiveBattleNow(
+  customFlashDiscount?: number,
+  pairOverride?: { productAId: string; productBId: string } | null
+) {
+  const pair = pairOverride
+    ? null
+    : await pickTwoBattleProducts()
+  const productAId = pairOverride?.productAId ?? pair?.[0]?.id
+  const productBId = pairOverride?.productBId ?? pair?.[1]?.id
+  if (!productAId || !productBId || productAId === productBId) {
     console.log("[pulse-battle]", { result: "no_products" })
     return null
   }
-  const [a, b] = pair
   const startedAt = new Date()
   const endedAt = new Date(startedAt.getTime() + BATTLE_DURATION_MS)
   const flashDiscount =
@@ -328,8 +334,8 @@ export async function createLiveBattleNow(customFlashDiscount?: number) {
       : BATTLE_DEFAULT_FLASH_PCT
   const battle = await prisma.pulseBattle.create({
     data: {
-      productAId: a.id,
-      productBId: b.id,
+      productAId,
+      productBId,
       status: "live",
       scheduledAt: startedAt,
       startedAt,
@@ -338,17 +344,27 @@ export async function createLiveBattleNow(customFlashDiscount?: number) {
     },
     include: includeProducts,
   })
-  console.log("[pulse-battle]", { result: "live_bootstrapped", battleId: battle.id })
+  console.log("[pulse-battle]", {
+    result: "live_bootstrapped",
+    battleId: battle.id,
+    productAId,
+    productBId,
+  })
   return battle as unknown as BattleWithProducts
 }
 
-export async function createScheduledBattle(scheduledAt?: Date, customFlashDiscount?: number) {
-  const pair = await pickTwoBattleProducts()
-  if (!pair) {
+export async function createScheduledBattle(
+  scheduledAt?: Date,
+  customFlashDiscount?: number,
+  pairOverride?: { productAId: string; productBId: string } | null
+) {
+  const pair = pairOverride ? null : await pickTwoBattleProducts()
+  const productAId = pairOverride?.productAId ?? pair?.[0]?.id
+  const productBId = pairOverride?.productBId ?? pair?.[1]?.id
+  if (!productAId || !productBId || productAId === productBId) {
     console.log("[pulse-battle]", { result: "no_products" })
     return null
   }
-  const [a, b] = pair
   const when = scheduledAt ?? nextParisBattleSlot()
   const flashDiscount =
     customFlashDiscount != null
@@ -356,8 +372,8 @@ export async function createScheduledBattle(scheduledAt?: Date, customFlashDisco
       : BATTLE_DEFAULT_FLASH_PCT
   const battle = await prisma.pulseBattle.create({
     data: {
-      productAId: a.id,
-      productBId: b.id,
+      productAId,
+      productBId,
       status: "scheduled",
       scheduledAt: when,
       flashDiscount,
@@ -368,6 +384,8 @@ export async function createScheduledBattle(scheduledAt?: Date, customFlashDisco
     result: "scheduled",
     battleId: battle.id,
     scheduledAt: when.toISOString(),
+    productAId,
+    productBId,
   })
   return battle as unknown as BattleWithProducts
 }
