@@ -1,20 +1,13 @@
 "use client"
 
 import { AnimatePresence, motion } from "framer-motion"
-import {
-  ArrowLeft,
-  Radio,
-  Swords,
-  Timer,
-  Trophy,
-  Zap,
-} from "lucide-react"
-import Image from "next/image"
+import { ArrowLeft, Radio, Swords, Timer, Trophy, Zap } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { affisellBrand } from "@/lib/affisell-brand"
+import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import {
   BATTLES_ARENA_HREF,
   type BattlesHubCard,
@@ -22,7 +15,6 @@ import {
   type BattlesHubProduct,
 } from "@/lib/battles-hub-types"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
-import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -42,172 +34,254 @@ function formatCountdown(ms: number): string {
   return `${m}:${String(r).padStart(2, "0")}`
 }
 
-function ProductThumb({
+function statusLabel(
+  battle: BattlesHubCard,
+  t: ReturnType<typeof useTranslations<"battles">>
+): string {
+  if (battle.status === "live") return t("live")
+  if (battle.status === "scheduled") return t("upcoming")
+  if (battle.flashTimeLeftMs > 0) return t("flash")
+  return t("ended")
+}
+
+/**
+ * Arena-style half — full-bleed product image like /pulse/battle.
+ */
+function ArenaHalf({
   product,
+  votes,
+  pct,
   side,
-  winner,
+  isWinner,
+  flashDiscount,
+  detailsHref,
+  voteHref,
+  size,
+  showVoteCta,
 }: {
   product: BattlesHubProduct
+  votes: number
+  pct: number
   side: "A" | "B"
-  winner?: boolean
+  isWinner: boolean
+  flashDiscount: number
+  detailsHref: string | null
+  voteHref: string
+  size: "hero" | "rail"
+  showVoteCta: boolean
 }) {
+  const t = useTranslations("battles")
+  const leading = pct >= 50
+
   return (
     <div
       className={cn(
-        "relative flex flex-1 flex-col items-center gap-2 rounded-2xl border p-3",
-        winner
-          ? "border-amber-400/60 bg-amber-500/10 ring-1 ring-amber-400/30"
-          : side === "A"
-            ? "border-amber-500/25 bg-amber-500/5"
-            : "border-violet-500/25 bg-violet-500/5"
+        "relative flex min-h-0 flex-col overflow-hidden border-white/10",
+        side === "A" ? "border-r" : "border-l",
+        isWinner && "ring-2 ring-inset ring-emerald-400/80"
       )}
     >
-      {winner ? (
-        <span className="absolute -top-2 right-2 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-zinc-950">
-          <Trophy className="size-2.5" aria-hidden />
-          Win
-        </span>
-      ) : null}
-      <span className="relative size-20 overflow-hidden rounded-xl bg-white/5 sm:size-24">
+      {product.image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={product.image}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-zinc-900" />
+      )}
+      <div className="absolute inset-0 bg-black/55" aria-hidden />
+
+      <div
+        className={cn(
+          "relative z-10 flex flex-1 flex-col items-center justify-center gap-2 p-3 text-center sm:gap-3 sm:p-4",
+          size === "hero" ? "py-8 sm:py-12" : "py-5 sm:py-6"
+        )}
+      >
+        {isWinner ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-black">
+            <Trophy className="size-3" aria-hidden />
+            {t("winnerBadge", { pct: flashDiscount })}
+          </span>
+        ) : null}
+
         {product.image ? (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={product.image}
             alt=""
-            fill
-            className="object-cover"
-            sizes="96px"
-            unoptimized
+            className={cn(
+              "rounded-2xl object-cover shadow-2xl ring-1 ring-white/20",
+              size === "hero"
+                ? "h-28 w-28 sm:h-40 sm:w-40"
+                : "h-20 w-20 sm:h-24 sm:w-24"
+            )}
           />
-        ) : (
-          <span className="flex size-full items-center justify-center text-xs text-white/30">
-            —
-          </span>
-        )}
-      </span>
-      <p className="line-clamp-2 text-center text-xs font-semibold text-white/90">
-        {product.name}
-      </p>
-      <p className="text-[11px] tabular-nums text-white/55">
-        {formatStoreCurrencyFromCents(product.priceCents)}
-      </p>
+        ) : null}
+
+        <h3
+          className={cn(
+            "max-w-[92%] font-bold leading-snug text-white",
+            size === "hero" ? "text-sm sm:text-lg" : "text-xs sm:text-sm"
+          )}
+        >
+          {product.name}
+        </h3>
+        <p className="text-sm text-white/75 sm:text-base">
+          {formatStoreCurrencyFromCents(product.priceCents)}
+        </p>
+        <p className="text-[9px] uppercase tracking-wider text-white/40 sm:text-[10px]">
+          {product.category}
+        </p>
+
+        <div className="mt-1 flex flex-wrap items-center justify-center gap-2 sm:mt-2">
+          {showVoteCta ? (
+            <Link
+              href={voteHref}
+              className="inline-flex h-10 min-w-[7.5rem] items-center justify-center rounded-full bg-white px-5 text-xs font-black text-black transition hover:bg-zinc-100 sm:h-12 sm:min-w-[9rem] sm:text-sm"
+            >
+              {t("voteCta")}
+            </Link>
+          ) : null}
+          {detailsHref ? (
+            <Link
+              href={detailsHref}
+              className={cn(
+                "inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 px-5 text-xs font-bold text-white backdrop-blur-sm transition hover:bg-white/15 sm:text-sm",
+                showVoteCta ? "h-10 min-w-[7.5rem] sm:h-12 sm:min-w-[9rem]" : "h-9 px-4"
+              )}
+            >
+              {t("detailsCta")}
+            </Link>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="relative z-10 px-3 pb-3">
+        <div className="mb-1 flex justify-between text-[10px] font-semibold text-white/70">
+          <span>{t("votes", { count: votes })}</span>
+          <span>{pct}%</span>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-white/15">
+          <div
+            className={cn(
+              "h-full rounded-full transition-all duration-500",
+              leading ? "bg-emerald-400" : "bg-white/40"
+            )}
+            style={{ width: `${Math.max(4, pct)}%` }}
+          />
+        </div>
+      </div>
     </div>
   )
 }
 
-function BattleDuelCard({
+/**
+ * Netflix / Pulse Arena VS board — preferred product battle display.
+ */
+function ArenaDuelBoard({
   battle,
-  accent = "live",
-  ctaHref,
-  ctaLabel,
+  size = "rail",
 }: {
   battle: BattlesHubCard
-  accent?: "live" | "upcoming" | "recent"
-  ctaHref: string
-  ctaLabel: string
+  size?: "hero" | "rail"
 }) {
   const t = useTranslations("battles")
   const winnerIsA = battle.winnerId === battle.productA.id
   const winnerIsB = battle.winnerId === battle.productB.id
   const flashActive = battle.flashTimeLeftMs > 0
+  const showVoteCta = battle.status !== "ended"
+  const detailsA = battle.productA.affiliateProductId
+    ? `/marketplace/${battle.productA.affiliateProductId}?battleId=${encodeURIComponent(battle.id)}`
+    : null
+  const detailsB = battle.productB.affiliateProductId
+    ? `/marketplace/${battle.productB.affiliateProductId}?battleId=${encodeURIComponent(battle.id)}`
+    : null
 
   return (
     <article
       className={cn(
-        "relative overflow-hidden rounded-3xl border p-4 sm:p-5",
-        accent === "live" &&
-          "battles-hub-live-glow border-fuchsia-400/35 bg-gradient-to-br from-fuchsia-950/50 via-zinc-950/80 to-violet-950/40",
-        accent === "upcoming" &&
-          "border-white/10 bg-white/[0.04] backdrop-blur-md",
-        accent === "recent" && "border-white/8 bg-white/[0.03]"
+        "relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 shadow-2xl shadow-black/40",
+        size === "hero" && "battles-hub-live-glow border-fuchsia-400/25"
       )}
       data-testid={`battles-hub-card-${battle.id}`}
     >
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          {accent === "live" && battle.status === "live" ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-              <span className="size-1.5 animate-pulse rounded-full bg-white" />
-              {t("live")}
-            </span>
-          ) : null}
+      <div className="flex items-center justify-between gap-2 border-b border-white/10 bg-black/90 px-3 py-2.5 sm:px-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+            {battle.status === "live" ? (
+              <span className="size-1.5 animate-pulse rounded-full bg-red-500" aria-hidden />
+            ) : (
+              <span className="size-1.5 rounded-full bg-white/35" aria-hidden />
+            )}
+            Pulse Battle • {statusLabel(battle, t)}
+          </span>
+          <span className="text-[10px] text-white/50">
+            {t("voters", { count: battle.totalVoters })}
+          </span>
+          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-bold text-white/80">
+            −{battle.flashDiscount}%
+          </span>
           {flashActive ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-200 ring-1 ring-emerald-400/30">
+            <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-300">
               <Zap className="size-3" aria-hidden />
-              −{battle.flashDiscount}% {t("flash")}
+              {t("flash")}
             </span>
-          ) : (
-            <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/70">
-              −{battle.flashDiscount}%
-            </span>
-          )}
-          {battle.status === "scheduled" ? (
-            <span className="text-[10px] font-medium text-white/50">{t("upcoming")}</span>
-          ) : null}
-          {battle.status === "ended" && !flashActive ? (
-            <span className="text-[10px] font-medium text-white/50">{t("ended")}</span>
           ) : null}
         </div>
-        {battle.timeLeftMs > 0 ? (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold tabular-nums text-fuchsia-200">
-            <Timer className="size-3.5" aria-hidden />
+        {battle.timeLeftMs > 0 && battle.status === "live" ? (
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold tabular-nums text-white/80">
+            <Timer className="size-3" aria-hidden />
             {formatCountdown(battle.timeLeftMs)}
           </span>
         ) : flashActive ? (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold tabular-nums text-emerald-200">
-            <Timer className="size-3.5" aria-hidden />
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold tabular-nums text-emerald-200">
+            <Timer className="size-3" aria-hidden />
             {formatCountdown(battle.flashTimeLeftMs)}
           </span>
+        ) : battle.status === "scheduled" ? (
+          <span className="text-[11px] font-medium text-white/70">{t("soonPulse")}</span>
         ) : null}
       </div>
 
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3">
-        <ProductThumb product={battle.productA} side="A" winner={winnerIsA} />
-        <div className="flex flex-col items-center gap-1 px-1">
-          <Swords className="size-5 text-fuchsia-300/90" aria-hidden />
-          <div className="w-16 overflow-hidden rounded-full bg-white/10 sm:w-20">
-            <div
-              className="h-1.5 rounded-full bg-gradient-to-r from-amber-400 to-violet-400"
-              style={{ width: `${battle.pctA}%` }}
-            />
-          </div>
-          <p className="text-[10px] tabular-nums text-white/60">
-            {battle.pctA}% · {battle.pctB}%
-          </p>
-          <p className="text-[9px] text-white/40">
-            {t("votes", { count: battle.totalVoters })}
-          </p>
-        </div>
-        <ProductThumb product={battle.productB} side="B" winner={winnerIsB} />
-      </div>
+      <div
+        className={cn(
+          "relative grid grid-cols-2",
+          size === "hero" ? "min-h-[min(72vh,680px)]" : "min-h-[300px] sm:min-h-[360px]"
+        )}
+      >
+        <ArenaHalf
+          product={battle.productA}
+          votes={battle.votesA}
+          pct={battle.pctA}
+          side="A"
+          isWinner={winnerIsA}
+          flashDiscount={battle.flashDiscount}
+          detailsHref={detailsA}
+          voteHref={BATTLES_ARENA_HREF}
+          size={size}
+          showVoteCta={showVoteCta}
+        />
+        <ArenaHalf
+          product={battle.productB}
+          votes={battle.votesB}
+          pct={battle.pctB}
+          side="B"
+          isWinner={winnerIsB}
+          flashDiscount={battle.flashDiscount}
+          detailsHref={detailsB}
+          voteHref={BATTLES_ARENA_HREF}
+          size={size}
+          showVoteCta={showVoteCta}
+        />
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Link
-          href={ctaHref}
-          className={cn(
-            "inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition",
-            accent === "live"
-              ? "bg-white text-zinc-950 hover:bg-fuchsia-100"
-              : "border border-white/20 bg-white/10 text-white hover:bg-white/15"
-          )}
+        <div
+          className="pointer-events-none absolute left-1/2 top-1/2 z-20 flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-sm font-black text-zinc-950 shadow-xl ring-4 ring-black/50 sm:size-14 sm:text-base"
+          aria-hidden
         >
-          {ctaLabel}
-        </Link>
-        {battle.productA.affiliateProductId ? (
-          <Link
-            href={`/marketplace/${battle.productA.affiliateProductId}?battleId=${encodeURIComponent(battle.id)}`}
-            className="inline-flex items-center rounded-full px-3 py-2.5 text-xs font-medium text-white/70 hover:text-white"
-          >
-            {t("viewA")}
-          </Link>
-        ) : null}
-        {battle.productB.affiliateProductId ? (
-          <Link
-            href={`/marketplace/${battle.productB.affiliateProductId}?battleId=${encodeURIComponent(battle.id)}`}
-            className="inline-flex items-center rounded-full px-3 py-2.5 text-xs font-medium text-white/70 hover:text-white"
-          >
-            {t("viewB")}
-          </Link>
-        ) : null}
+          VS
+        </div>
       </div>
     </article>
   )
@@ -244,7 +318,6 @@ export function BattlesHubExperience({ initial }: Props) {
     return () => window.clearInterval(id)
   }, [])
 
-  /** Local countdown decay between polls. */
   const liveDisplay = useMemo(() => {
     void tick
     if (!payload.live) return null
@@ -326,7 +399,7 @@ export function BattlesHubExperience({ initial }: Props) {
         </div>
       </div>
 
-      <main className="relative z-10 mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6 sm:py-10">
+      <main className="relative z-10 mx-auto max-w-6xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
         <p className="max-w-xl text-sm text-white/65">{t("subtitle")}</p>
 
         <AnimatePresence mode="wait">
@@ -362,14 +435,7 @@ export function BattlesHubExperience({ initial }: Props) {
                   >
                     {liveDisplay.status === "live" ? t("sectionLive") : t("sectionFlash")}
                   </h2>
-                  <BattleDuelCard
-                    battle={liveDisplay}
-                    accent="live"
-                    ctaHref={BATTLES_ARENA_HREF}
-                    ctaLabel={
-                      liveDisplay.status === "live" ? t("enterArena") : t("shopFlash")
-                    }
-                  />
+                  <ArenaDuelBoard battle={liveDisplay} size="hero" />
                 </section>
               ) : null}
 
@@ -381,15 +447,10 @@ export function BattlesHubExperience({ initial }: Props) {
                   >
                     {t("sectionUpcoming")}
                   </h2>
-                  <ul className="grid gap-4 lg:grid-cols-2">
+                  <ul className="grid gap-5 lg:grid-cols-1 xl:grid-cols-1">
                     {payload.upcoming.map((b) => (
                       <li key={b.id}>
-                        <BattleDuelCard
-                          battle={b}
-                          accent="upcoming"
-                          ctaHref={BATTLES_ARENA_HREF}
-                          ctaLabel={t("watchArena")}
-                        />
+                        <ArenaDuelBoard battle={b} size="rail" />
                       </li>
                     ))}
                   </ul>
@@ -404,21 +465,10 @@ export function BattlesHubExperience({ initial }: Props) {
                   >
                     {t("sectionRecent")}
                   </h2>
-                  <ul className="grid gap-4 sm:grid-cols-2">
+                  <ul className="grid gap-5 lg:grid-cols-2">
                     {payload.recent.map((b) => (
                       <li key={b.id}>
-                        <BattleDuelCard
-                          battle={b}
-                          accent="recent"
-                          ctaHref={
-                            b.winnerId === b.productA.id && b.productA.affiliateProductId
-                              ? `/marketplace/${b.productA.affiliateProductId}?battleId=${encodeURIComponent(b.id)}`
-                              : b.winnerId === b.productB.id && b.productB.affiliateProductId
-                                ? `/marketplace/${b.productB.affiliateProductId}?battleId=${encodeURIComponent(b.id)}`
-                                : BATTLES_ARENA_HREF
-                          }
-                          ctaLabel={t("seeWinner")}
-                        />
+                        <ArenaDuelBoard battle={b} size="rail" />
                       </li>
                     ))}
                   </ul>

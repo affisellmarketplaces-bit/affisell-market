@@ -5237,6 +5237,11 @@
     "winner": "Winner",
     "empty": "No battles yet — check back soon or explore Pulse.",
     "goPulse": "Open Pulse",
-    "tickerEmpty": "Battles Hub — vote, flash, win"
+    "tickerEmpty": "Battles Hub — vote, flash, win",
+    "voteCta": "VOTE",
+    "detailsCta": "Details",
+    "winnerBadge": "Winner −{pct}%",
+    "soonPulse": "Soon 6pm Pulse",
+    "voters": "{count} voters"
   }
 }

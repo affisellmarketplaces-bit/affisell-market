@@ -5237,6 +5237,11 @@
     "winner": "Gagnant",
     "empty": "Aucun battle pour l’instant — reviens bientôt ou explore Pulse.",
     "goPulse": "Ouvrir Pulse",
-    "tickerEmpty": "Hub des Battles — vote, flash, victoire"
+    "tickerEmpty": "Hub des Battles — vote, flash, victoire",
+    "voteCta": "VOTER",
+    "detailsCta": "Détails",
+    "winnerBadge": "Gagnant −{pct}%",
+    "soonPulse": "Bientôt 18h Pulse",
+    "voters": "{count} votants"
   }
 }

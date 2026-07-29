@@ -13,6 +13,7 @@ const productSelect = {
   id: true,
   name: true,
   images: true,
+  categories: true,
   basePriceCents: true,
   affiliateProducts: {
     where: { isListed: true },
@@ -26,6 +27,7 @@ type ProductRow = {
   id: string
   name: string
   images: unknown
+  categories: unknown
   basePriceCents: number
   affiliateProducts: Array<{ id: string; sellingPriceCents: number }>
 }
@@ -36,6 +38,12 @@ function firstImage(images: unknown): string | null {
   return u?.trim() || null
 }
 
+function firstCategory(categories: unknown): string {
+  if (!Array.isArray(categories)) return "Marketplace"
+  const c = categories.find((x): x is string => typeof x === "string" && Boolean(x.trim()))
+  return c?.trim() || "Marketplace"
+}
+
 function toProduct(p: ProductRow): BattlesHubProduct {
   const listing = p.affiliateProducts[0]
   return {
@@ -43,6 +51,7 @@ function toProduct(p: ProductRow): BattlesHubProduct {
     name: p.name,
     image: firstImage(p.images),
     priceCents: listing?.sellingPriceCents ?? p.basePriceCents,
+    category: firstCategory(p.categories),
     affiliateProductId: listing?.id ?? null,
   }
 }

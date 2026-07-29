@@ -5,6 +5,7 @@ export type BattlesHubProduct = {
   name: string
   image: string | null
   priceCents: number
+  category: string
   affiliateProductId: string | null
 }
 
