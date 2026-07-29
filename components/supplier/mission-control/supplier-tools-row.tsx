@@ -39,12 +39,22 @@ export async function SupplierToolsRow() {
               "group inline-flex items-center gap-2",
               missionControlChip,
               key === "supply" &&
-                "border-sky-400/35 bg-sky-500/10 text-sky-100 ring-1 ring-sky-400/20",
+                "border-sky-300/70 bg-sky-50 text-sky-950 ring-1 ring-sky-400/25 dark:border-sky-400/40 dark:bg-sky-500/15 dark:text-sky-50 dark:ring-sky-400/25",
               key === "dropforge" &&
-                "border-violet-400/35 bg-violet-500/10 text-violet-100 ring-1 ring-violet-400/20"
+                "border-violet-300/70 bg-violet-50 text-violet-950 ring-1 ring-violet-400/25 dark:border-violet-400/40 dark:bg-violet-500/15 dark:text-violet-50 dark:ring-violet-400/25"
             )}
           >
-            <Icon className={cn("h-4 w-4 shrink-0", missionControlIconMuted)} aria-hidden />
+            <Icon
+              className={cn(
+                "h-4 w-4 shrink-0",
+                key === "supply"
+                  ? "text-sky-700 dark:text-sky-300"
+                  : key === "dropforge"
+                    ? "text-violet-700 dark:text-violet-300"
+                    : missionControlIconMuted
+              )}
+              aria-hidden
+            />
             {t(key)}
           </Link>
         ))}
