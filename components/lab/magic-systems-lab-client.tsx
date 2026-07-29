@@ -143,7 +143,7 @@ export function MagicSystemsLabClient() {
 
       <p className="mt-12 flex items-center justify-center gap-2 text-center text-xs text-zinc-500">
         <Sparkles className="size-3.5 text-violet-400/80" aria-hidden />
-        {t("footerHint", { count: MAGIC_SYSTEMS_CATALOG.length })}
+        {t("footerHint", { count: roleCatalog.length })}
       </p>
     </div>
   )
