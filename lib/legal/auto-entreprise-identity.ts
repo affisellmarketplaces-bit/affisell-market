@@ -13,13 +13,13 @@ export const AFFISELL_LEGAL_IDENTITY = {
   nafCode: "4791B",
   nafLabel: "Vente à distance sur catalogue spécialisé",
   /**
-   * Domicile personnel + établissement principal (Kbis).
+   * Siège publié (établissement Kbis) — sans détail logement.
    * Overridable via COMPANY_ADDRESS / COMPANY_DOMICILIATION_ADDRESS.
    */
-  address: "Cité Univ Bat P2 Log 2809, 20 Rue de Cuques, 13100 Aix-en-Provence",
+  address: "20 Rue de Cuques, 13100 Aix-en-Provence",
   establishmentAddress: "20 Rue de Cuques, 13100 Aix-en-Provence",
   /** @deprecated kept for older callers — same as `address`. */
-  addressPlaceholder: "Cité Univ Bat P2 Log 2809, 20 Rue de Cuques, 13100 Aix-en-Provence",
+  addressPlaceholder: "20 Rue de Cuques, 13100 Aix-en-Provence",
   emailPlaceholder: "[À compléter — e-mail de contact]",
   vatRegimeFr: "TVA non applicable, art. 293 B du CGI",
   activitySince: "09/09/2025",
