@@ -115,9 +115,9 @@ export function PublicNav() {
     </LocaleLink>
   )
 
-  /** Mobile Apple/Linear bar: ☰ · Affisell · 🔍 + cart */
+  /** Mobile Apple/Linear bar: ☰ · Affisell · actions — grid avoids logo/icon collision. */
   const mobileMinimalBar = (
-    <div className="relative flex h-11 w-full min-w-0 items-center justify-between lg:hidden">
+    <div className="grid h-11 w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1 lg:hidden">
       <button
         type="button"
         onClick={openMobileBuyerHub}
@@ -129,20 +129,21 @@ export function PublicNav() {
 
       <LocaleLink
         href="/"
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+        className="justify-self-center truncate px-1 text-center"
       >
         <span className="affisell-logo-text affisell-brand-wordmark text-[1.05rem] font-black tracking-tight">
           Affisell
         </span>
       </LocaleLink>
 
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 items-center justify-end gap-1 max-[360px]:gap-0.5">
         {mode !== "transaction" ? (
           <>
             <FastLink
               href="/discover"
               className={cn(
                 mobileIconBtn,
+                "max-[340px]:hidden",
                 onDiscover &&
                   "border-violet-300 bg-violet-100 text-violet-800 dark:border-violet-500/50 dark:bg-violet-950/80 dark:text-violet-100"
               )}

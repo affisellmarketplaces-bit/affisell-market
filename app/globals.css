@@ -2273,6 +2273,22 @@ button,
       radial-gradient(ellipse 110% 70% at 50% -15%, rgba(217, 70, 239, 0.35), transparent 55%),
       radial-gradient(ellipse 70% 50% at 100% 40%, rgba(109, 40, 217, 0.28), transparent 50%),
       radial-gradient(ellipse 55% 40% at 0% 85%, rgba(244, 63, 94, 0.18), transparent 45%);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  @media (max-width: 639px) {
+    .affisell-battles-hub {
+      background-image:
+        radial-gradient(ellipse 120% 55% at 50% -10%, rgba(217, 70, 239, 0.4), transparent 55%),
+        radial-gradient(ellipse 80% 40% at 100% 60%, rgba(109, 40, 217, 0.22), transparent 50%);
+    }
+
+    .battles-hub-live-glow {
+      box-shadow:
+        0 0 0 1px rgba(232, 121, 249, 0.22),
+        0 0 28px rgba(192, 38, 211, 0.22),
+        0 12px 36px rgba(0, 0, 0, 0.45);
+    }
   }
 
   .affisell-battles-grid {

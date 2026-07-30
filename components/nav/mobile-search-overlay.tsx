@@ -1,15 +1,17 @@
 "use client"
 
 import { useCallback, useEffect, useId, useRef, useState, type TouchEvent } from "react"
-import { Clock, Search, X } from "lucide-react"
+import { Clock, Search, Sparkles, Store, Swords, TrendingUp, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { useDebouncedCallback } from "use-debounce"
 
+import { FastLink } from "@/components/navigation/fast-link"
 import { MOBILE_SEARCH_OPEN_EVENT } from "@/lib/buyer-hub-events"
 import { shopListingPath } from "@/lib/affiliate-routes"
 import { navigateBuyerHomeCatalog } from "@/lib/marketplace-catalog-nav.client"
 import { buyerHaptic } from "@/lib/buyer-haptics"
+import { PUBLIC_NAV_SEARCH_QUICK_LINKS } from "@/lib/public-nav-search-context"
 import { cn } from "@/lib/utils"
 
 const HISTORY_KEY = "affisell_mobile_search_history_v1"
@@ -163,7 +165,7 @@ export function MobileSearchOverlay() {
             commitSearch(q)
           }}
         >
-          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-3 py-2.5 shadow-lg shadow-violet-500/10">
+          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-3 py-2.5 shadow-lg shadow-violet-500/10 ring-1 ring-violet-400/10">
             <Search className="size-4 shrink-0 text-violet-300" aria-hidden />
             <input
               ref={inputRef}
@@ -175,20 +177,53 @@ export function MobileSearchOverlay() {
               enterKeyHint="search"
               aria-controls={listboxId}
             />
+            {q ? (
+              <button
+                type="button"
+                onClick={() => setQ("")}
+                className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-zinc-400 hover:bg-white/10 hover:text-white"
+                aria-label={tHub("close")}
+              >
+                <X className="size-3.5" aria-hidden />
+              </button>
+            ) : null}
           </div>
           <button
             type="button"
             onClick={close}
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white"
-            aria-label={tHub("close")}
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm font-semibold text-zinc-200 hover:bg-white/10 hover:text-white"
           >
-            <X className="size-4" aria-hidden />
+            {tHub("close")}
           </button>
         </form>
 
         <p className="mt-2 px-1 text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">
           {tHub("searchSwipeHint")}
         </p>
+
+        {!q.trim() ? (
+          <div className="mt-3 flex flex-wrap gap-1.5 px-0.5">
+            {PUBLIC_NAV_SEARCH_QUICK_LINKS.map((link) => (
+              <FastLink
+                key={link.id}
+                href={link.href}
+                onClick={close}
+                className="inline-flex min-h-9 items-center gap-1 rounded-full border border-violet-400/35 bg-violet-500/15 px-3 py-1.5 text-xs font-semibold text-violet-100 transition active:scale-[0.98] hover:bg-violet-500/25"
+              >
+                {link.id === "discover" ? (
+                  <Sparkles className="size-3.5" aria-hidden />
+                ) : link.id === "shops" ? (
+                  <Store className="size-3.5" aria-hidden />
+                ) : link.id === "battles" ? (
+                  <Swords className="size-3.5" aria-hidden />
+                ) : (
+                  <TrendingUp className="size-3.5" aria-hidden />
+                )}
+                {t(link.labelKey)}
+              </FastLink>
+            ))}
+          </div>
+        ) : null}
 
         {history.length > 0 && !q.trim() ? (
           <div className="mt-4">

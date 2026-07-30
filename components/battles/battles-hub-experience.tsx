@@ -46,6 +46,7 @@ function statusLabel(
 
 /**
  * Arena-style half — full-bleed product image like /pulse/battle.
+ * Mobile-first density: stacked CTAs, clamped titles, compact thumbs.
  */
 function ArenaHalf({
   product,
@@ -91,18 +92,21 @@ function ArenaHalf({
       ) : (
         <div className="absolute inset-0 bg-zinc-900" />
       )}
-      <div className="absolute inset-0 bg-black/55" aria-hidden />
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/55 to-black/80"
+        aria-hidden
+      />
 
       <div
         className={cn(
-          "relative z-10 flex flex-1 flex-col items-center justify-center gap-2 p-3 text-center sm:gap-3 sm:p-4",
-          size === "hero" ? "py-8 sm:py-12" : "py-5 sm:py-6"
+          "relative z-10 flex flex-1 flex-col items-center justify-center gap-1.5 px-2 text-center sm:gap-3 sm:px-4",
+          size === "hero" ? "py-5 sm:py-12" : "py-4 sm:py-6"
         )}
       >
         {isWinner ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-black">
-            <Trophy className="size-3" aria-hidden />
-            {t("winnerBadge", { pct: flashDiscount })}
+          <span className="inline-flex max-w-full items-center gap-1 truncate rounded-full bg-emerald-500 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-black sm:px-3 sm:py-1 sm:text-[10px]">
+            <Trophy className="size-2.5 shrink-0 sm:size-3" aria-hidden />
+            <span className="truncate">{t("winnerBadge", { pct: flashDiscount })}</span>
           </span>
         ) : null}
 
@@ -112,34 +116,34 @@ function ArenaHalf({
             src={product.image}
             alt=""
             className={cn(
-              "rounded-2xl object-cover shadow-2xl ring-1 ring-white/20",
+              "rounded-xl object-cover shadow-2xl ring-1 ring-white/20 sm:rounded-2xl",
               size === "hero"
-                ? "h-28 w-28 sm:h-40 sm:w-40"
-                : "h-20 w-20 sm:h-24 sm:w-24"
+                ? "h-[4.5rem] w-[4.5rem] sm:h-40 sm:w-40"
+                : "h-14 w-14 sm:h-24 sm:w-24"
             )}
           />
         ) : null}
 
         <h3
           className={cn(
-            "max-w-[92%] font-bold leading-snug text-white",
-            size === "hero" ? "text-sm sm:text-lg" : "text-xs sm:text-sm"
+            "max-w-[96%] font-bold leading-snug text-white line-clamp-2 sm:line-clamp-3",
+            size === "hero" ? "text-[11px] sm:text-lg" : "text-[10px] sm:text-sm"
           )}
         >
           {product.name}
         </h3>
-        <p className="text-sm text-white/75 sm:text-base">
+        <p className="text-xs font-semibold tabular-nums text-white/80 sm:text-base sm:font-normal sm:text-white/75">
           {formatStoreCurrencyFromCents(product.priceCents)}
         </p>
-        <p className="text-[9px] uppercase tracking-wider text-white/40 sm:text-[10px]">
+        <p className="hidden max-w-[96%] truncate text-[9px] uppercase tracking-wider text-white/40 sm:block sm:text-[10px]">
           {product.category}
         </p>
 
-        <div className="mt-1 flex flex-wrap items-center justify-center gap-2 sm:mt-2">
+        <div className="mt-1 flex w-full max-w-[9.5rem] flex-col items-stretch gap-1.5 px-0.5 sm:mt-2 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-2">
           {showVoteCta ? (
             <Link
               href={voteHref}
-              className="inline-flex h-10 min-w-[7.5rem] items-center justify-center rounded-full bg-white px-5 text-xs font-black text-black transition hover:bg-zinc-100 sm:h-12 sm:min-w-[9rem] sm:text-sm"
+              className="inline-flex h-9 w-full items-center justify-center rounded-full bg-white px-3 text-[11px] font-black tracking-wide text-black transition active:scale-[0.98] hover:bg-zinc-100 sm:h-12 sm:min-w-[9rem] sm:w-auto sm:px-5 sm:text-sm"
             >
               {t("voteCta")}
             </Link>
@@ -148,8 +152,8 @@ function ArenaHalf({
             <Link
               href={detailsHref}
               className={cn(
-                "inline-flex items-center justify-center rounded-full border border-white/30 bg-white/10 px-5 text-xs font-bold text-white backdrop-blur-sm transition hover:bg-white/15 sm:text-sm",
-                showVoteCta ? "h-10 min-w-[7.5rem] sm:h-12 sm:min-w-[9rem]" : "h-9 px-4"
+                "inline-flex w-full items-center justify-center rounded-full border border-white/30 bg-white/10 px-3 text-[11px] font-bold text-white backdrop-blur-sm transition active:scale-[0.98] hover:bg-white/15 sm:w-auto sm:px-5 sm:text-sm",
+                showVoteCta ? "h-9 sm:h-12 sm:min-w-[9rem]" : "h-8 sm:h-9"
               )}
             >
               {t("detailsCta")}
@@ -158,12 +162,12 @@ function ArenaHalf({
         </div>
       </div>
 
-      <div className="relative z-10 px-3 pb-3">
-        <div className="mb-1 flex justify-between text-[10px] font-semibold text-white/70">
+      <div className="relative z-10 px-2 pb-2 sm:px-3 sm:pb-3">
+        <div className="mb-0.5 flex justify-between text-[9px] font-semibold text-white/70 sm:mb-1 sm:text-[10px]">
           <span>{t("votes", { count: votes })}</span>
-          <span>{pct}%</span>
+          <span className="tabular-nums">{pct}%</span>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-white/15">
+        <div className="h-1.5 overflow-hidden rounded-full bg-white/15 sm:h-2">
           <div
             className={cn(
               "h-full rounded-full transition-all duration-500",
@@ -202,25 +206,28 @@ function ArenaDuelBoard({
   return (
     <article
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 shadow-2xl shadow-black/40",
+        "relative overflow-hidden rounded-xl border border-white/10 bg-zinc-950 shadow-2xl shadow-black/40 sm:rounded-2xl",
         size === "hero" && "battles-hub-live-glow border-fuchsia-400/25"
       )}
       data-testid={`battles-hub-card-${battle.id}`}
     >
-      <div className="flex items-center justify-between gap-2 border-b border-white/10 bg-black/90 px-3 py-2.5 sm:px-4">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+      <div className="flex items-start justify-between gap-2 border-b border-white/10 bg-black/90 px-2.5 py-2 sm:items-center sm:px-4 sm:py-2.5">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1 sm:gap-3">
+          <span className="inline-flex max-w-full items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.12em] text-white sm:text-[10px] sm:tracking-[0.14em]">
             {battle.status === "live" ? (
-              <span className="size-1.5 animate-pulse rounded-full bg-red-500" aria-hidden />
+              <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-red-500" aria-hidden />
             ) : (
-              <span className="size-1.5 rounded-full bg-white/35" aria-hidden />
+              <span className="size-1.5 shrink-0 rounded-full bg-white/35" aria-hidden />
             )}
-            Pulse Battle • {statusLabel(battle, t)}
+            <span className="truncate">
+              <span className="hidden sm:inline">Pulse Battle • </span>
+              {statusLabel(battle, t)}
+            </span>
           </span>
-          <span className="text-[10px] text-white/50">
+          <span className="text-[9px] text-white/50 sm:text-[10px]">
             {t("voters", { count: battle.totalVoters })}
           </span>
-          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-bold text-white/80">
+          <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[9px] font-bold text-white/80 sm:px-2">
             −{battle.flashDiscount}%
           </span>
           {flashActive ? (
@@ -231,24 +238,28 @@ function ArenaDuelBoard({
           ) : null}
         </div>
         {battle.timeLeftMs > 0 && battle.status === "live" ? (
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold tabular-nums text-white/80">
+          <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-semibold tabular-nums text-white/80 sm:text-[11px]">
             <Timer className="size-3" aria-hidden />
             {formatCountdown(battle.timeLeftMs)}
           </span>
         ) : flashActive ? (
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold tabular-nums text-emerald-200">
+          <span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-semibold tabular-nums text-emerald-200 sm:text-[11px]">
             <Timer className="size-3" aria-hidden />
             {formatCountdown(battle.flashTimeLeftMs)}
           </span>
         ) : battle.status === "scheduled" ? (
-          <span className="text-[11px] font-medium text-white/70">{t("soonPulse")}</span>
+          <span className="hidden shrink-0 text-[11px] font-medium text-white/70 sm:inline">
+            {t("soonPulse")}
+          </span>
         ) : null}
       </div>
 
       <div
         className={cn(
           "relative grid grid-cols-2",
-          size === "hero" ? "min-h-[min(72vh,680px)]" : "min-h-[300px] sm:min-h-[360px]"
+          size === "hero"
+            ? "min-h-[min(58dvh,420px)] sm:min-h-[min(72vh,680px)]"
+            : "min-h-[240px] sm:min-h-[360px]"
         )}
       >
         <ArenaHalf
@@ -277,7 +288,7 @@ function ArenaDuelBoard({
         />
 
         <div
-          className="pointer-events-none absolute left-1/2 top-1/2 z-20 flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-sm font-black text-zinc-950 shadow-xl ring-4 ring-black/50 sm:size-14 sm:text-base"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-20 flex size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[11px] font-black text-zinc-950 shadow-xl ring-4 ring-black/50 sm:size-14 sm:text-base"
           aria-hidden
         >
           VS
@@ -361,27 +372,27 @@ export function BattlesHubExperience({ initial }: Props) {
       <header
         className={cn(
           affisellBrand.epoxySurface,
-          "relative z-20 mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6"
+          "relative z-20 mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-2.5 sm:gap-3 sm:px-6 sm:py-3"
         )}
       >
         <Link
           href={PUBLIC_MARKETPLACE_BROWSE_PATH}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-white/70 transition hover:text-white"
+          className="inline-flex min-h-9 min-w-9 items-center justify-center gap-1.5 rounded-full text-sm font-medium text-white/70 transition hover:bg-white/5 hover:text-white sm:min-w-0 sm:justify-start sm:px-1"
         >
-          <ArrowLeft className="size-4" aria-hidden />
-          {t("back")}
+          <ArrowLeft className="size-4 shrink-0" aria-hidden />
+          <span className="hidden sm:inline">{t("back")}</span>
         </Link>
-        <div className="text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-fuchsia-300/90">
+        <div className="min-w-0 flex-1 text-center">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-fuchsia-300/90 sm:text-[10px] sm:tracking-[0.22em]">
             {t("eyebrow")}
           </p>
-          <h1 className="text-lg font-black tracking-tight text-white sm:text-xl">
+          <h1 className="truncate text-base font-black tracking-tight text-white sm:text-xl">
             {t("title")}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-9 items-center justify-end gap-2 sm:min-w-[4.5rem]">
           {liveDisplay?.status === "live" ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+            <span className="inline-flex items-center gap-1 rounded-full bg-red-500/90 px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-white sm:gap-1.5 sm:px-2.5 sm:text-[10px]">
               <Radio className="size-3" aria-hidden />
               {t("live")}
             </span>
@@ -391,16 +402,18 @@ export function BattlesHubExperience({ initial }: Props) {
         </div>
       </header>
 
-      <div className="relative z-10 overflow-hidden border-y border-white/10 bg-black/30 py-2">
-        <div className="affisell-battles-ticker flex w-max gap-8 whitespace-nowrap px-4 text-[11px] font-medium text-white/55">
+      <div className="relative z-10 overflow-hidden border-y border-white/10 bg-black/30 py-1.5 sm:py-2">
+        <div className="affisell-battles-ticker flex w-max gap-8 whitespace-nowrap px-3 text-[10px] font-medium text-white/55 sm:px-4 sm:text-[11px]">
           {tickerItems.map((line, i) => (
             <span key={`${line}-${i}`}>{line}</span>
           ))}
         </div>
       </div>
 
-      <main className="relative z-10 mx-auto max-w-6xl space-y-8 px-4 py-6 sm:px-6 sm:py-8">
-        <p className="max-w-xl text-sm text-white/65">{t("subtitle")}</p>
+      <main className="relative z-10 mx-auto max-w-6xl space-y-6 px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:space-y-8 sm:px-6 sm:py-8">
+        <p className="max-w-xl text-pretty text-xs leading-relaxed text-white/65 sm:text-sm">
+          {t("subtitle")}
+        </p>
 
         <AnimatePresence mode="wait">
           {empty ? (
@@ -425,13 +438,13 @@ export function BattlesHubExperience({ initial }: Props) {
               key="content"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-10"
+              className="space-y-6 sm:space-y-10"
             >
               {liveDisplay ? (
-                <section aria-labelledby="battles-live-heading" className="space-y-3">
+                <section aria-labelledby="battles-live-heading" className="space-y-2 sm:space-y-3">
                   <h2
                     id="battles-live-heading"
-                    className="text-xs font-semibold uppercase tracking-[0.18em] text-fuchsia-300/90"
+                    className="text-[10px] font-semibold uppercase tracking-[0.18em] text-fuchsia-300/90 sm:text-xs"
                   >
                     {liveDisplay.status === "live" ? t("sectionLive") : t("sectionFlash")}
                   </h2>
@@ -440,14 +453,14 @@ export function BattlesHubExperience({ initial }: Props) {
               ) : null}
 
               {payload.upcoming.length > 0 ? (
-                <section aria-labelledby="battles-upcoming-heading" className="space-y-3">
+                <section aria-labelledby="battles-upcoming-heading" className="space-y-2 sm:space-y-3">
                   <h2
                     id="battles-upcoming-heading"
-                    className="text-xs font-semibold uppercase tracking-[0.18em] text-white/50"
+                    className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50 sm:text-xs"
                   >
                     {t("sectionUpcoming")}
                   </h2>
-                  <ul className="grid gap-5 lg:grid-cols-1 xl:grid-cols-1">
+                  <ul className="grid gap-3 sm:gap-5">
                     {payload.upcoming.map((b) => (
                       <li key={b.id}>
                         <ArenaDuelBoard battle={b} size="rail" />
@@ -458,14 +471,14 @@ export function BattlesHubExperience({ initial }: Props) {
               ) : null}
 
               {payload.recent.length > 0 ? (
-                <section aria-labelledby="battles-recent-heading" className="space-y-3">
+                <section aria-labelledby="battles-recent-heading" className="space-y-2 sm:space-y-3">
                   <h2
                     id="battles-recent-heading"
-                    className="text-xs font-semibold uppercase tracking-[0.18em] text-white/50"
+                    className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50 sm:text-xs"
                   >
                     {t("sectionRecent")}
                   </h2>
-                  <ul className="grid gap-5 lg:grid-cols-2">
+                  <ul className="grid gap-3 sm:gap-5 lg:grid-cols-2">
                     {payload.recent.map((b) => (
                       <li key={b.id}>
                         <ArenaDuelBoard battle={b} size="rail" />
