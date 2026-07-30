@@ -23,6 +23,9 @@ describe("legal-mentions", () => {
   it("uses domiciliation address for registered office display", () => {
     const c = readCompanyLegal()
     expect(c.domiciliationAddress).toBeTruthy()
+    expect(c.domiciliationAddress).not.toMatch(/À compléter/i)
+    expect(c.domiciliationAddress).toMatch(/Aix-en-Provence/i)
+    expect(c.rcs).toMatch(/Aix-en-Provence/i)
   })
 
   it("formats Vercel US host for LCEN", () => {

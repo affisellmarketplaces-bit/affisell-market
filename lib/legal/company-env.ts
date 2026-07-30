@@ -111,7 +111,7 @@ export function readCompanyLegal(): CompanyLegal {
   const siren = resolveSiren(siret)
   const address =
     envFirst(["COMPANY_ADDRESS", "AFFISELL_ADDRESS", "NEXT_PUBLIC_COMPANY_ADDRESS"]) ??
-    id.addressPlaceholder
+    id.address
   const capital =
     envFirst(["COMPANY_CAPITAL", "AFFISELL_CAPITAL"]) ?? "Sans capital social (entreprise individuelle)"
   const publisher = envFirst(["PUBLISHER_NAME"]) ?? id.legalName
@@ -121,9 +121,7 @@ export function readCompanyLegal(): CompanyLegal {
     (tva ? "" : id.vatRegimeFr)
   const naf =
     envFirst(["COMPANY_NAF", "AFFISELL_NAF"]) ?? `${id.nafCode} — ${id.nafLabel}`
-  const rcs =
-    envFirst(["AFFISELL_RCS"]) ??
-    `Immatriculation au Registre national des entreprises (RNE) — SIREN ${siren}`
+  const rcs = envFirst(["AFFISELL_RCS"]) ?? id.rcs
   const domiciliationAddress =
     envFirst(["COMPANY_DOMICILIATION_ADDRESS", "AFFISELL_DOMICILIATION_ADDRESS"]) ?? address
   const legalForm =

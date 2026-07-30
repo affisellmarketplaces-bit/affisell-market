@@ -1,19 +1,29 @@
-/** Identité légale Affisell — lancement auto-entreprise (source unique, sans secrets). */
+/** Identité légale Affisell — extrait Kbis RCS Aix-en-Provence (15/09/2025). */
 
 export const AFFISELL_LEGAL_IDENTITY = {
   commercialName: "Affisell",
-  legalName: "HOUAGA Nelson Wolfgang",
+  /** État civil Kbis : HOUAGA Julien, Nelson, Wolfgang */
+  legalName: "HOUAGA Julien Nelson Wolfgang",
   legalForm:
     "Entreprise individuelle — micro-entreprise (auto-entreprise) en franchise de base de TVA",
   siret: "99119663500015",
   siren: "991196635",
+  /** Greffe / RCS sur l’extrait d’immatriculation. */
+  rcs: "991 196 635 R.C.S. Aix-en-Provence",
   nafCode: "4791B",
   nafLabel: "Vente à distance sur catalogue spécialisé",
-  /** Affiché tant que COMPANY_ADDRESS n'est pas défini. */
-  addressPlaceholder: "[À compléter — adresse de domiciliation]",
+  /**
+   * Domicile personnel + établissement principal (Kbis).
+   * Overridable via COMPANY_ADDRESS / COMPANY_DOMICILIATION_ADDRESS.
+   */
+  address: "Cité Univ Bat P2 Log 2809, 20 Rue de Cuques, 13100 Aix-en-Provence",
+  establishmentAddress: "20 Rue de Cuques, 13100 Aix-en-Provence",
+  /** @deprecated kept for older callers — same as `address`. */
+  addressPlaceholder: "Cité Univ Bat P2 Log 2809, 20 Rue de Cuques, 13100 Aix-en-Provence",
   emailPlaceholder: "[À compléter — e-mail de contact]",
   vatRegimeFr: "TVA non applicable, art. 293 B du CGI",
   activitySince: "09/09/2025",
+  rcsRegisteredAt: "15/09/2025",
   activitySummary:
     "Exploitation de la marketplace Affisell, outil DropForge, et mise en relation entre fournisseurs, revendeurs et acheteurs.",
   hostPrimary: {
@@ -39,4 +49,4 @@ export const AFFISELL_LEGAL_IDENTITY = {
   ],
 } as const
 
-export const LEGAL_LAUNCH_VERSION = "2026-07-29"
+export const LEGAL_LAUNCH_VERSION = "2026-07-30"

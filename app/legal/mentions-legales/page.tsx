@@ -8,7 +8,7 @@ import { VERCEL_HOST_LEGAL } from "@/lib/legal/mentions-constants"
 export const metadata: Metadata = {
   title: "Mentions légales | Affisell",
   description:
-    "Mentions légales Affisell — entreprise individuelle HOUAGA Nelson Wolfgang, SIRET 99119663500015, NAF 4791B.",
+    "Mentions légales Affisell — entreprise individuelle HOUAGA Julien Nelson Wolfgang, SIRET 99119663500015, NAF 4791B.",
   robots: { index: true, follow: true },
 }
 

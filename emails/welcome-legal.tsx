@@ -93,7 +93,7 @@ export function WelcomeLegalEmail({
 
           <Text style={text}>Ces documents sont versionnés et horodatés.</Text>
 
-          <Text style={footer}>Affisell — HOUAGA Nelson Wolfgang (entreprise individuelle)</Text>
+          <Text style={footer}>Affisell — HOUAGA Julien Nelson Wolfgang (entreprise individuelle)</Text>
         </Container>
       </Body>
     </Html>
