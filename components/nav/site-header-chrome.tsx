@@ -30,7 +30,7 @@ export function SiteHeaderChrome({ children }: Props) {
   return (
     <header
       className={cn(
-        "affisell-global-site-header sticky top-0 z-[200] w-full max-w-full shrink-0 overflow-x-clip overflow-y-visible",
+        "affisell-global-site-header sticky top-0 z-[200] w-full max-w-full shrink-0 overflow-x-clip overflow-y-visible md:overflow-visible",
         "border-b border-zinc-200/50 bg-white/80 pt-[env(safe-area-inset-top,0px)] backdrop-blur-xl dark:border-zinc-800/60 dark:bg-black/80",
         "md:border-b-0 md:bg-transparent md:px-4 md:pt-3 md:backdrop-blur-none dark:md:bg-transparent",
         "transition-[padding,background,backdrop-filter] duration-300",

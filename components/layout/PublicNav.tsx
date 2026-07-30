@@ -234,7 +234,7 @@ export function PublicNav() {
   )
 
   const browsePills = (
-    <div className="hidden min-w-0 items-center gap-0.5 lg:col-start-2 lg:row-start-1 lg:flex affisell-public-nav-pills">
+    <div className="affisell-public-nav-pills hidden min-w-0 max-w-full items-center gap-0.5 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] lg:col-start-2 lg:row-start-1 lg:flex [&::-webkit-scrollbar]:hidden">
       <NavPill
         href="/"
         label={t("home")}
@@ -307,11 +307,14 @@ export function PublicNav() {
   const searchBlock = (options: { suggestions: boolean }) => (
     <Suspense
       fallback={
-        <div className="hidden h-9 min-w-0 lg:col-start-3 lg:row-start-1 lg:block" aria-hidden />
+        <div
+          className="hidden h-9 min-w-0 lg:col-start-3 lg:row-start-1 lg:block lg:min-w-[17rem]"
+          aria-hidden
+        />
       }
     >
-      <div className="hidden min-w-0 items-center gap-2 lg:col-start-3 lg:row-start-1 lg:flex lg:justify-center">
-        <div className={cn(searchShellClass, searchMaxWidthClass)}>
+      <div className="hidden min-w-0 items-center gap-2 lg:col-start-3 lg:row-start-1 lg:flex lg:min-w-[17rem] lg:justify-stretch">
+        <div className={cn(searchShellClass, searchMaxWidthClass, "relative w-full overflow-visible")}>
           <NavHeaderSearch
             id="public-header-search-q"
             placeholder={t("searchPlaceholder")}
@@ -320,7 +323,9 @@ export function PublicNav() {
             searchContext={searchContext}
           />
         </div>
-        {options.suggestions ? <CommandKTriggerDeferred className="hidden lg:inline-flex" /> : null}
+        {options.suggestions ? (
+          <CommandKTriggerDeferred className="hidden shrink-0 lg:inline-flex" />
+        ) : null}
       </div>
     </Suspense>
   )
@@ -352,7 +357,7 @@ export function PublicNav() {
       ) : mode === "account" ? (
         <nav
           aria-label="Main"
-          className="affisell-public-nav affisell-public-nav--account mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
+          className="affisell-public-nav affisell-public-nav--account mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_minmax(17rem,1.15fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
         >
           {mobileMinimalBar}
           {desktopLogo}
@@ -363,7 +368,7 @@ export function PublicNav() {
       ) : (
         <nav
           aria-label="Main"
-          className="affisell-public-nav mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_auto_minmax(0,1fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
+          className="affisell-public-nav mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_minmax(17rem,1.15fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
         >
           {mobileMinimalBar}
           {desktopLogo}

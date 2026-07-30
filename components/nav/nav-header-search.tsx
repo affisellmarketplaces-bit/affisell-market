@@ -205,7 +205,10 @@ export function NavHeaderSearch({
   }
 
   return (
-    <div ref={rootRef} className="relative min-w-0 flex-1">
+    <div
+      ref={rootRef}
+      className="affisell-nav-header-search relative min-w-0 flex-1 [container-type:inline-size]"
+    >
       <form className="flex min-w-0 flex-1 items-center gap-2" onSubmit={onSubmit} role="search">
         <div className="relative flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2">
           <label htmlFor={id} className="sr-only">
@@ -213,7 +216,7 @@ export function NavHeaderSearch({
           </label>
           <Search className="pointer-events-none absolute left-3 h-4 w-4 text-zinc-400" aria-hidden />
           {contextLabel ? (
-            <span className="pointer-events-none absolute left-9 hidden max-w-[5.5rem] truncate rounded-full bg-violet-100/95 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-800 sm:inline dark:bg-violet-950/70 dark:text-violet-200">
+            <span className="affisell-nav-search-context pointer-events-none absolute left-9 hidden max-w-[5.5rem] truncate rounded-full bg-violet-100/95 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-800 sm:inline dark:bg-violet-950/70 dark:text-violet-200">
               {contextLabel}
             </span>
           ) : null}
@@ -232,7 +235,7 @@ export function NavHeaderSearch({
             aria-controls={showPanel ? listboxId : undefined}
             className={cn(
               "h-10 w-full min-w-0 rounded-full border-0 bg-transparent py-2 pr-2 text-zinc-900 shadow-none outline-none placeholder:text-zinc-400 focus:ring-0 dark:text-zinc-100",
-              contextLabel ? "pl-[7.25rem] sm:pl-[8.5rem]" : "pl-9"
+              contextLabel ? "pl-9 sm:pl-[7.25rem] lg:pl-[8.5rem]" : "pl-9"
             )}
           />
         </div>
@@ -242,7 +245,7 @@ export function NavHeaderSearch({
         <div
           id={listboxId}
           role="listbox"
-          className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-[300] overflow-hidden rounded-2xl border border-zinc-200/90 bg-white/98 shadow-xl shadow-violet-500/10 backdrop-blur-md dark:border-zinc-700/90 dark:bg-zinc-950/98"
+          className="affisell-nav-search-panel absolute left-0 top-[calc(100%+0.35rem)] z-[300] w-[min(28rem,calc(100vw-1.5rem))] overflow-hidden rounded-2xl border border-zinc-200/90 bg-white/98 shadow-xl shadow-violet-500/10 backdrop-blur-md dark:border-zinc-700/90 dark:bg-zinc-950/98"
         >
           <div className="border-b border-zinc-100 px-3 py-2 dark:border-zinc-800">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">

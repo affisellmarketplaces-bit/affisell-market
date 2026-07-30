@@ -1474,6 +1474,25 @@ body.affisell-demo-lab .affisell-header-shell {
     display: none;
   }
 
+  /** Keep search suggestions readable even if the shell is momentarily narrow. */
+  .affisell-nav-header-search {
+    container-type: inline-size;
+  }
+
+  @container (max-width: 14rem) {
+    .affisell-nav-search-context {
+      display: none !important;
+    }
+
+    .affisell-nav-header-search input[type="search"] {
+      padding-left: 2.25rem !important;
+    }
+  }
+
+  .affisell-nav-search-panel {
+    min-width: min(20rem, calc(100vw - 1.5rem));
+  }
+
   /** Public nav — active pill with violet→cyan band (buyer header). */
   .affisell-nav-pill-band {
     background: linear-gradient(
