@@ -2873,6 +2873,7 @@
     "aiSummary": "AI Summary",
     "reviews": "{count} 个评论",
     "byStore": "由 {store}",
+    "soldBy": "由 {seller} 销售 · 供应商",
     "curatedByPartner": "Creator partner",
     "verifiedPartnerStorefront": "Verified partner storefront",
     "fulfilledBySupplier": "Sold and shipped by supplier",

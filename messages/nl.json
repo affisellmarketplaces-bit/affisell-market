@@ -2874,6 +2874,7 @@
     "aiSummary": "AI Samenvatting",
     "reviews": "{count} reviews",
     "byStore": "van {store}",
+    "soldBy": "Verkocht door {seller} · leverancier",
     "curatedByPartner": "Creator partner",
     "verifiedPartnerStorefront": "Verified partner storefront",
     "fulfilledBySupplier": "Sold and shipped by supplier",

@@ -2873,6 +2873,7 @@
     "aiSummary": "Resumen de AI",
     "reviews": "{count} reseñas",
     "byStore": "de {store}",
+    "soldBy": "Vendido por {seller} · proveedor",
     "curatedByPartner": "Creator partner",
     "verifiedPartnerStorefront": "Verified partner storefront",
     "fulfilledBySupplier": "Sold and shipped by supplier",

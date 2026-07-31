@@ -1,5 +1,6 @@
 import type Stripe from "stripe"
 
+import { appBaseUrl } from "@/lib/app-base-url"
 import { isAffisellVatFranchise } from "@/lib/legal/company-env"
 
 /**
@@ -35,6 +36,29 @@ export function marketplaceCheckoutTaxOptions(): Pick<
   return {
     automatic_tax: { enabled: true },
     tax_id_collection: { enabled: true },
+  }
+}
+
+/**
+ * Pre-pay CGV gate on Stripe Checkout (Code de la conso).
+ * Requires Stripe Dashboard → Settings → Public details → Terms of service URL
+ * = `{APP_URL}/legal/cgv` (same path as footer).
+ */
+export function marketplaceCheckoutCgvConsentOptions(): Pick<
+  Stripe.Checkout.SessionCreateParams,
+  "consent_collection" | "custom_text"
+> {
+  const tosUrl = `${appBaseUrl().replace(/\/$/, "")}/legal/cgv`
+  console.log("[marketplace-stripe-checkout]", { result: "cgv_consent_required", tosUrl })
+  return {
+    consent_collection: {
+      terms_of_service: "required",
+    },
+    custom_text: {
+      terms_of_service_acceptance: {
+        message: `J'accepte les Conditions générales de vente Affisell (${tosUrl}).`,
+      },
+    },
   }
 }
 

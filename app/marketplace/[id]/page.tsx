@@ -29,7 +29,7 @@ import { loadMarketplaceListingPageData } from "@/lib/marketplace-listing-page-l
 import { buildListingMetadataForId } from "@/lib/marketplace-listing-seo"
 import { buildListingLogisticsInput } from "@/lib/listing-logistics-display"
 import { mergeColorImagesForProduct, parseProductColorImagesFromDb, enrichGalleryWithColorHeroImages } from "@/lib/product-color-images"
-import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
+import { publicPartnerSellerLabel, publicSupplierVendorLabel } from "@/lib/public-seller-display"
 import {
   buildCustomColumnProductSpecs,
   parseCustomColumnsFromDb,
@@ -186,9 +186,14 @@ export default async function MarketplaceListingPage({
         showTrustedSoldBy: Boolean(st.customDomain && st.domainVerified),
       }
     : null
-  const sellerLabel = publicPartnerSellerLabel({
+  const partnerLabel = publicPartnerSellerLabel({
     storeName: st?.name,
     affiliateDisplayName: listing.affiliate.name,
+  })
+  const sellerLabel = publicSupplierVendorLabel({
+    supplierName: listing.product.supplier.name,
+    tradeName: listing.product.supplier.merchantLegalProfile?.tradeName,
+    legalEntityName: listing.product.supplier.merchantLegalProfile?.legalEntityName,
   })
   const gallery = listingGalleryUrls(listing.customImages, listing.product.images ?? [])
   const categories = Array.isArray(listing.product.categories)
@@ -264,7 +269,7 @@ export default async function MarketplaceListingPage({
     priceReferenceEur: number
     battleResellerName: string
   } | null = null
-  let battleResellerDisplay = sellerLabel
+  let battleResellerDisplay = partnerLabel
 
   if (battleIdParam) {
     try {
@@ -286,7 +291,7 @@ export default async function MarketplaceListingPage({
             battleFlash.priceReferenceCents != null && battleFlash.priceReferenceCents > 0
               ? battleFlash.priceReferenceCents / 100
               : listing.sellingPriceCents / 100,
-          battleResellerName: sellerLabel,
+          battleResellerName: partnerLabel,
         }
         if (battleFlash.flashDiscountSetBy) {
           try {
@@ -447,6 +452,7 @@ export default async function MarketplaceListingPage({
           descriptionIllustrationVideos={descriptionIllustrationVideos}
           productSpecs={productSpecs}
           sellerLabel={sellerLabel}
+          partnerLabel={partnerLabel}
           isVerifiedSupplier={listing.product.supplier.isVerifiedSupplier}
           supplierTrustTier={listing.product.supplier.supplierTrustTier}
           storefront={storefront}

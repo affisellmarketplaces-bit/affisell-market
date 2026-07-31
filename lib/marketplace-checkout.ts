@@ -66,6 +66,7 @@ import { reserveBookingSlotHoldInTransaction } from "@/lib/booking/slot-hold"
 import { marketplaceCheckoutPaymentSessionOptionsForAmount } from "@/lib/marketplace-checkout-payment-methods"
 import {
   buildHtLineItem,
+  marketplaceCheckoutCgvConsentOptions,
   marketplaceCheckoutTaxOptions,
   type MarketplaceStripeLineItem,
 } from "@/lib/marketplace-stripe-checkout"
@@ -472,6 +473,7 @@ async function checkoutFromItems(
     payment_method_types: paymentMethodTypes,
     line_items: stripeLineItems,
     ...marketplaceCheckoutTaxOptions(),
+    ...marketplaceCheckoutCgvConsentOptions(),
     success_url: `${baseUrl}${successPath}`,
     cancel_url: `${baseUrl}${cancelPath}`,
     customer_creation: "always",
@@ -492,6 +494,7 @@ async function checkoutFromItems(
       appliedRewardCents: String(appliedCents),
       linePaids: JSON.stringify(paidLineCents),
       locale: checkoutLocale,
+      cgvConsentRequired: "1",
       ...(primarySupplierId ? { sellerId: primarySupplierId } : {}),
       ...(buyerUserId ? { buyerUserId } : {}),
     },
@@ -810,6 +813,7 @@ export async function marketplaceCheckoutPOST(
     payment_method_types: paymentMethodTypes,
     line_items: stripeLineItems,
     ...marketplaceCheckoutTaxOptions(),
+    ...marketplaceCheckoutCgvConsentOptions(),
     success_url: `${baseUrl}${successPath}`,
     cancel_url: `${baseUrl}${cancelPath}`,
     customer_creation: "always",
@@ -847,6 +851,7 @@ export async function marketplaceCheckoutPOST(
       checkoutVariantLabel: oneShotVariantLabel || "",
       checkoutVariantSignature: oneShotVariantSignature || "",
       locale: checkoutLocale,
+      cgvConsentRequired: "1",
       ...(appliedBattleFlash
         ? {
             battleId: appliedBattleFlash.battleId,

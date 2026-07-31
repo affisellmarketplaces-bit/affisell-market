@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest"
 import {
   buildHtLineItem,
   isStripeAutomaticTaxEnabled,
+  marketplaceCheckoutCgvConsentOptions,
   marketplaceCheckoutTaxOptions,
 } from "@/lib/marketplace-stripe-checkout"
 
@@ -54,5 +55,16 @@ describe("marketplace-stripe-checkout VAT franchise", () => {
       qty: 1,
     })
     expect(line.price_data.tax_behavior).toBe("exclusive")
+  })
+
+  it("requires Stripe Checkout CGV consent before charge", () => {
+    const opts = marketplaceCheckoutCgvConsentOptions()
+    expect(opts.consent_collection?.terms_of_service).toBe("required")
+    const acceptance = opts.custom_text?.terms_of_service_acceptance
+    expect(acceptance).toEqual(
+      expect.objectContaining({
+        message: expect.stringMatching(/\/legal\/cgv/),
+      })
+    )
   })
 })

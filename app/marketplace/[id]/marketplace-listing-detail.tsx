@@ -159,7 +159,10 @@ type Props = {
   descriptionIllustrationImages?: string[]
   descriptionIllustrationVideos?: string[]
   productSpecs?: SpecRow[]
+  /** Legal vendeur (fournisseur). */
   sellerLabel: string
+  /** Boutique affilié / curateur (optionnel). */
+  partnerLabel?: string
   isVerifiedSupplier?: boolean
   supplierTrustTier?: string | null
   storefront: StorefrontInfo | null
@@ -358,6 +361,7 @@ export function MarketplaceListingDetail({
   descriptionIllustrationVideos = [],
   productSpecs = [],
   sellerLabel,
+  partnerLabel,
   isVerifiedSupplier = false,
   supplierTrustTier = null,
   storefront,
@@ -1193,6 +1197,9 @@ export function MarketplaceListingDetail({
                     className="mb-2"
                     size="md"
                   />
+                  <p className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    {t(productT.soldBy, { seller: sellerLabel })}
+                  </p>
                   {offerBadge ? (
                     <div className="mb-2 flex flex-wrap items-center gap-2">
                       <ProductOfferBadge badge={offerBadge} variant="inline" />
@@ -1781,7 +1788,9 @@ export function MarketplaceListingDetail({
                 <ChevronRight className="h-5 w-5 shrink-0 text-zinc-400" aria-hidden />
               </Link>
             ) : audience === "merchant" ? (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">{t(productT.byStore, { store: sellerLabel })}</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                {t(productT.byStore, { store: partnerLabel || sellerLabel })}
+              </p>
             ) : null}
           </aside>
 
