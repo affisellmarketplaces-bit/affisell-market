@@ -1,7 +1,7 @@
 import React from "react"
 import { Document, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer"
 
-import { readAffisellLegalEntity } from "@/lib/legal/company-env"
+import { isAffisellVatFranchise, readCompanyLegal } from "@/lib/legal/company-env"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 
 const styles = StyleSheet.create({
@@ -32,12 +32,18 @@ function money(cents: number) {
 }
 
 function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoiceData }) {
-  const legal = readAffisellLegalEntity()
-  const tvaSuffix = legal.tva ? ` · TVA FR${legal.tva}` : ""
-  const legalFooter = `${legal.companyName} · SIREN ${legal.siren}${tvaSuffix} · ${legal.address}`
+  const company = readCompanyLegal()
+  const franchise = isAffisellVatFranchise(company)
+  const vatBit = company.tva.trim()
+    ? ` · TVA FR${company.tva.replace(/^FR/i, "")}`
+    : company.vatRegime
+      ? ` · ${company.vatRegime}`
+      : ""
+  const legalFooter = `${company.name} · SIREN ${company.siren}${vatBit} · ${company.address}`
 
   let title = "Document"
   let lines: { label: string; amount: string }[] = []
+  let customerVatNote: string | null = null
 
   if (type === "SUPPLIER") {
     title = "Facture wholesale — reversement fournisseur"
@@ -45,11 +51,15 @@ function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoi
   } else if (type === "AFFILIATE") {
     title = "Note de commission affilié"
     lines = [{ label: "Gains affilié (commission + markup net)", amount: money(order.affiliateEarningCents) }]
+  } else if (franchise || order.taxCents <= 0) {
+    title = "Facture client"
+    lines = [{ label: "Total", amount: money(order.totalCents) }]
+    customerVatNote = company.vatRegime || "TVA non applicable, art. 293 B du CGI"
   } else {
     title = "Facture client TTC"
     lines = [
       { label: "Montant HT", amount: money(order.subtotalCents) },
-      { label: "TVA (20 %)", amount: money(order.taxCents) },
+      { label: "TVA", amount: money(order.taxCents) },
       { label: "Total TTC", amount: money(order.totalCents) },
     ]
   }
@@ -59,10 +69,11 @@ function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoi
       <Page size="A4" style={styles.page}>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.meta}>
-          {legal.companyName} · Commande {order.orderId.slice(0, 12)} · {order.createdAt}
+          {company.name} · Commande {order.orderId.slice(0, 12)} · {order.createdAt}
         </Text>
         <Text style={styles.meta}>Produit : {order.productName}</Text>
         {type === "CUSTOMER" ? <Text style={styles.meta}>Client : {order.customerEmail}</Text> : null}
+        {customerVatNote ? <Text style={styles.meta}>{customerVatNote}</Text> : null}
 
         <View style={{ marginTop: 24 }}>
           {lines.map((line) => (

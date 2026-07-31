@@ -163,6 +163,15 @@ export function readCompanyLegal(): CompanyLegal {
   }
 }
 
+/**
+ * Micro-entreprise en franchise de base (art. 293 B) :
+ * pas de n° TVA intracommunautaire → Affisell ne collecte pas de TVA via Stripe Tax.
+ * Override ops : `STRIPE_AUTOMATIC_TAX=1` (taxable) ou `=0` (forcer off).
+ */
+export function isAffisellVatFranchise(company: CompanyLegal = readCompanyLegal()): boolean {
+  return !company.tva.trim()
+}
+
 /** Forme legacy pour PDF / pages marketing. */
 export function readAffisellLegalEntity() {
   const c = readCompanyLegal()
@@ -171,7 +180,9 @@ export function readAffisellLegalEntity() {
     legalName: c.legalName,
     siren: c.siren,
     rcs: c.rcs,
-    tva: c.tva || c.vatRegime,
+    /** N° TVA only — régime 293 B is `vatRegime`, not stuffed into `tva`. */
+    tva: c.tva,
+    vatRegime: c.vatRegime,
     capitalEur: c.capital,
     address: c.address,
     email: c.contactEmail,

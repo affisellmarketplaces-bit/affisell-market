@@ -40,4 +40,9 @@ describe("legal-mentions", () => {
   it("formats FR VAT number", () => {
     expect(formatVatIntracommunautaire("12345678901")).toMatch(/^FR/)
   })
+
+  it("is in franchise when COMPANY_VAT empty (art. 293 B)", async () => {
+    const { isAffisellVatFranchise } = await import("@/lib/legal/company-env")
+    expect(isAffisellVatFranchise(readCompanyLegal())).toBe(!readCompanyLegal().tva.trim())
+  })
 })

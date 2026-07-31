@@ -23,7 +23,7 @@ Pour chaque commande :
 
 ## 2. Prix, TVA et facturation
 
-Les prix affichés incluent la TVA applicable au moment de la commande lorsque la mention « TVA incluse » figure sur la page produit. La TVA est calculée selon le pays de l'acheteur (Stripe Tax ou mécanisme équivalent). Le **fournisseur vendeur** demeure responsable de ses obligations fiscales. La facture est émise au nom de {{COMPANY_NAME}} en tant qu'intermédiaire de facturation ou selon les règles fiscales applicables au fournisseur. Les frais de livraison, le cas échéant, sont indiqués avant validation du paiement.
+Les prix affichés sont ceux facturés au checkout. Lorsque Affisell opère en franchise de base de TVA (art. 293 B du CGI), **aucun montant de TVA n'est ajouté** par Stripe Tax sur la session de paiement Affisell. Le **fournisseur vendeur** demeure responsable de ses obligations fiscales. La facture client rappelle le régime applicable. Les frais de livraison, le cas échéant, sont indiqués avant validation du paiement.
 
 ## 3. Paiement
 

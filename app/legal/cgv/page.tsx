@@ -72,6 +72,10 @@ export default function LegalCgvPage() {
           La commande est confirmée après acceptation du paiement. Les frais de livraison, s’ils s’appliquent, sont
           rappelés avant validation.
         </p>
+        <p className="text-xs text-zinc-500">
+          {c.vatRegime || AFFISELL_LEGAL_IDENTITY.vatRegimeFr}
+          {c.tva ? ` · N° TVA ${c.tva}` : " — aucun montant de TVA n’est ajouté au checkout Affisell."}
+        </p>
       </LegalSection>
 
       <LegalSection id="delais" title="4. Livraison — délais variables">
