@@ -1541,7 +1541,10 @@
       "scrollModeShort": "Scroll",
       "emptyCategory": "当前{name}分类中暂无商品。",
       "feedLoadFailed": "无法加载feed",
-      "genericError": "出现错误"
+      "genericError": "出现错误",
+      "saveDropRemoved": "已从心愿单移除",
+      "buyFailed": "结账失败 — 请重试",
+      "outOfStock": "缺货"
     }
   },
   "merchantAccount": {

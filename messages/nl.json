@@ -1542,7 +1542,10 @@
       "scrollModeShort": "Scroll",
       "emptyCategory": "Geen geregistreerde producten in {name} nog.",
       "feedLoadFailed": "Kan de feed niet laden",
-      "genericError": "Er ging iets mis"
+      "genericError": "Er ging iets mis",
+      "saveDropRemoved": "Verwijderd van verlanglijst",
+      "buyFailed": "Afrekenen mislukt — probeer opnieuw",
+      "outOfStock": "Niet op voorraad"
     }
   },
   "merchantAccount": {

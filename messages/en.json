@@ -1797,7 +1797,10 @@
       "emptyCategory": "No listed products in {name} yet.",
       "feedLoadFailed": "Could not load the feed",
       "genericError": "Something went wrong",
-      "viewDetails": "View product details"
+      "viewDetails": "View product details",
+      "saveDropRemoved": "Removed from wishlist",
+      "buyFailed": "Checkout failed — try again",
+      "outOfStock": "Out of stock"
     }
   },
   "merchantAccount": {

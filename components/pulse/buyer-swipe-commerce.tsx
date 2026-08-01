@@ -231,8 +231,11 @@ export function BuyerSwipeCommerce({
   }, [deck, recordView])
 
   const addToCart = useCallback(
-    async (item: PulseFeedItem) => {
-      if (!item.listingId) return
+    async (item: PulseFeedItem): Promise<boolean> => {
+      if (!item.listingId) {
+        showToast(t("genericError"))
+        return false
+      }
       const result = await addToBuyerCart({
         productId: item.listingId,
         qty: 1,
@@ -243,7 +246,15 @@ export function BuyerSwipeCommerce({
       if (result.ok) {
         console.log("[buyer-swipe-commerce]", { listingId: item.listingId, result: "cart" })
         showToast(t("cartAdded"))
+        return true
       }
+      console.log("[buyer-swipe-commerce]", {
+        listingId: item.listingId,
+        result: "cart_failed",
+        error: result.error,
+      })
+      showToast(result.error || t("genericError"), { force: true })
+      return false
     },
     [showToast, t]
   )
@@ -255,41 +266,52 @@ export function BuyerSwipeCommerce({
   }, [showToast, t])
 
   const saveDrop = useCallback(
-    async (item: PulseFeedItem) => {
-      if (!item.productId) return
+    async (item: PulseFeedItem): Promise<boolean> => {
+      if (!item.productId) {
+        showToast(t("genericError"))
+        return false
+      }
       const targetPriceEur = Math.max(0.01, Math.round(item.priceCents * 0.95) / 100)
       const result = await toggleProductWishlist(item.productId, { targetPriceEur })
-      if (result.ok) {
+      if (!result.ok) {
         console.log("[buyer-swipe-commerce]", {
           productId: item.productId,
-          result: "save-drop",
-          wished: result.wished,
+          result: "save_drop_failed",
+          error: result.error,
         })
-        showToast(t("saveDrop"))
-        if (result.wished) {
-          const session = await fetchBuyerSessionSnapshot()
-          if (!session.userId) {
-            markPendingPricePushAfterLogin()
-            showToast(t("saveDropLoginForPush"), { force: true })
-            const qs = searchParams.toString()
-            const callbackUrl = `${pathname}${qs ? `?${qs}` : ""}`
-            navigate(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
-            return
-          }
-          const pushPermission = await requestPriceAlertPushSubscription()
-          if (pushPermission === "granted") {
-            showToast(t("saveDropPushEnabled"))
-          }
+        showToast(result.error || t("genericError"), { force: true })
+        return false
+      }
+      console.log("[buyer-swipe-commerce]", {
+        productId: item.productId,
+        result: "save-drop",
+        wished: result.wished,
+      })
+      showToast(result.wished ? t("saveDrop") : t("saveDropRemoved"))
+      if (result.wished) {
+        const session = await fetchBuyerSessionSnapshot()
+        if (!session.userId) {
+          markPendingPricePushAfterLogin()
+          showToast(t("saveDropLoginForPush"), { force: true })
+          const qs = searchParams.toString()
+          const callbackUrl = `${pathname}${qs ? `?${qs}` : ""}`
+          navigate(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
+          return true
+        }
+        const pushPermission = await requestPriceAlertPushSubscription()
+        if (pushPermission === "granted") {
+          showToast(t("saveDropPushEnabled"))
         }
       }
+      return true
     },
     [navigate, pathname, searchParams, showToast, t]
   )
 
   const buyNow = useCallback(
     async (item: PulseFeedItem) => {
-      if (!item.listingId) return
-      await buyNowWithIdentity(
+      if (!item.listingId) return "error" as const
+      return buyNowWithIdentity(
         {
           productId: item.listingId,
           qty: 1,
@@ -311,6 +333,12 @@ export function BuyerSwipeCommerce({
     setDeck((d) => d.filter((p) => p.id !== productId))
   }, [])
 
+  const abortSwipe = useCallback(() => {
+    topCardRef.current?.reset()
+    setBusy(false)
+    setDragGlow({ x: 0, y: 0 })
+  }, [])
+
   const commitSwipe = useCallback(
     async (direction: BuyerSwipeDirection) => {
       const item = deckRef.current[0]
@@ -322,26 +350,49 @@ export function BuyerSwipeCommerce({
 
       try {
         if (direction === "up") {
-          await addToCart(item)
+          const ok = await addToCart(item)
+          if (!ok) {
+            abortSwipe()
+            return
+          }
         } else if (direction === "down") {
-          await saveDrop(item)
+          const ok = await saveDrop(item)
+          if (!ok) {
+            abortSwipe()
+            return
+          }
           setSkippedPool((pool) => (pool.some((p) => p.id === item.id) ? pool : [...pool, item]))
         } else if (direction === "right") {
-          await buyNow(item)
+          const outcome = await buyNow(item)
+          if (outcome === "needs_identity") {
+            // Keep card until identity sheet completes or cancels
+            abortSwipe()
+            return
+          }
+          if (outcome === "error") {
+            showToast(t("buyFailed"), { force: true })
+            abortSwipe()
+            return
+          }
+          if (typeof outcome === "object" && outcome.kind === "out_of_stock") {
+            showToast(t("outOfStock"), { force: true })
+            abortSwipe()
+            return
+          }
+          // "stripe" | "cart" — page usually navigates; still advance for consistency
         } else {
           setSkippedPool((pool) => (pool.some((p) => p.id === item.id) ? pool : [...pool, item]))
         }
       } catch (e) {
         showToast(e instanceof Error ? e.message : t("genericError"))
-        topCardRef.current?.reset()
-        setBusy(false)
+        abortSwipe()
         return
       }
 
       advanceDeck(item.id)
       setBusy(false)
     },
-    [addToCart, advanceDeck, buyNow, saveDrop, showToast, t]
+    [abortSwipe, addToCart, advanceDeck, buyNow, saveDrop, showToast, t]
   )
 
   const handleUndo = useCallback(() => {

@@ -1541,7 +1541,10 @@
       "scrollModeShort": "Desplazar",
       "emptyCategory": "No hay productos listados en {name} aún.",
       "feedLoadFailed": "No se pudo cargar la alimentación",
-      "genericError": "Algo salió mal"
+      "genericError": "Algo salió mal",
+      "saveDropRemoved": "Eliminado de favoritos",
+      "buyFailed": "Pago fallido — inténtalo de nuevo",
+      "outOfStock": "Agotado"
     }
   },
   "merchantAccount": {

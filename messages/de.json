@@ -1541,7 +1541,10 @@
       "scrollModeShort": "Scrollen",
       "emptyCategory": "Keine gelisteten Produkte in {name} vorhanden.",
       "feedLoadFailed": "Konnte die Feed nicht laden",
-      "genericError": "Etwas ist schiefgelaufen"
+      "genericError": "Etwas ist schiefgelaufen",
+      "saveDropRemoved": "Von der Wunschliste entfernt",
+      "buyFailed": "Checkout fehlgeschlagen — erneut versuchen",
+      "outOfStock": "Nicht auf Lager"
     }
   },
   "merchantAccount": {

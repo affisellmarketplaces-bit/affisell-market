@@ -1541,7 +1541,10 @@
       "scrollModeShort": "Scorrimento",
       "emptyCategory": "Nessi prodotti elencati in {name} ancora.",
       "feedLoadFailed": "Impossibile caricare il feed",
-      "genericError": "È successo qualcosa di sbagliato"
+      "genericError": "È successo qualcosa di sbagliato",
+      "saveDropRemoved": "Rimosso dai preferiti",
+      "buyFailed": "Checkout non riuscito — riprova",
+      "outOfStock": "Esaurito"
     }
   },
   "merchantAccount": {

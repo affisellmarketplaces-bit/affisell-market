@@ -9,6 +9,7 @@ import {
 import { fetchBuyerSessionSnapshot } from "@/lib/buyer-session-client"
 import {
   buyNowWithoutLogin,
+  type BuyNowOutcome,
   type BuyNowWithoutLoginMeta,
 } from "@/lib/guest-buy-now-client"
 import type { FastCheckoutBody } from "@/lib/fast-checkout-client"
@@ -28,13 +29,16 @@ export function useBuyNowWithIdentity() {
   }, [])
 
   const buyNow = useCallback(
-    async (body: FastCheckoutBody, meta: BuyNowWithoutLoginMeta) => {
+    async (
+      body: FastCheckoutBody,
+      meta: BuyNowWithoutLoginMeta
+    ): Promise<BuyNowOutcome | "needs_identity"> => {
       const session = await fetchBuyerSessionSnapshot()
       if (!session.isCustomerBuyer) {
         pendingRef.current = { body, meta }
         setCheckoutPayload(body as CheckoutIdentityPayload)
         setIdentityOpen(true)
-        return "needs_identity" as const
+        return "needs_identity"
       }
       return runBuyNow(body, meta)
     },
@@ -47,7 +51,11 @@ export function useBuyNowWithIdentity() {
     const pending = pendingRef.current
     pendingRef.current = null
     if (!pending) return
-    await runBuyNow(pending.body, pending.meta)
+    const outcome = await runBuyNow(pending.body, pending.meta)
+    console.log("[buy-now-identity]", {
+      listingId: pending.meta.productId,
+      result: typeof outcome === "string" ? outcome : outcome.kind,
+    })
   }, [runBuyNow])
 
   const closeIdentity = useCallback(() => {

@@ -1,7 +1,12 @@
+import { resolvePublicAppUrl } from "@/lib/public-app-url"
+
+function connectAppBase(): string {
+  return resolvePublicAppUrl().replace(/\/$/, "")
+}
+
 /** URL CGU/CGA/CGS affichée sur le dashboard Stripe Connect du marchand. */
 export function stripeConnectBusinessUrl(role: string): string {
-  const base =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "")?.trim() || "https://affisell.com"
+  const base = connectAppBase()
   if (role === "SUPPLIER") {
     return `${base}/conditions-fournisseur`
   }
@@ -12,8 +17,7 @@ export function stripeConnectBusinessUrl(role: string): string {
 }
 
 export function stripeConnectReturnUrls(role: string): { refresh_url: string; return_url: string } {
-  const base =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "")?.trim() || "https://affisell.com"
+  const base = connectAppBase()
   const path =
     role === "SUPPLIER"
       ? "/dashboard/supplier/balance"

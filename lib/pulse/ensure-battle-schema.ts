@@ -1,13 +1,20 @@
 import { prisma } from "@/lib/prisma"
 
 let ensured = false
+let ensurePromise: Promise<boolean> | null = null
 
-/**
- * Idempotent DDL so Pulse Battle works before cron migrate finishes.
- * Safe to re-run (IF NOT EXISTS).
- */
-export async function ensurePulseBattleSchema(): Promise<boolean> {
-  if (ensured) return true
+async function addConstraintIfMissing(sql: string): Promise<void> {
+  // Postgres logs 42710 through Prisma before catch — use DO/EXCEPTION instead.
+  await prisma.$executeRawUnsafe(`
+    DO $$ BEGIN
+      ${sql};
+    EXCEPTION
+      WHEN duplicate_object THEN NULL;
+    END $$;
+  `)
+}
+
+async function ensureOnce(): Promise<boolean> {
   try {
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "PulseBattle" (
@@ -91,31 +98,18 @@ export async function ensurePulseBattleSchema(): Promise<boolean> {
       `CREATE INDEX IF NOT EXISTS "PriceHistory_listingId_idx" ON "PriceHistory"("listingId")`
     )
 
-    // FKs — ignore if already present or Product missing (shouldn't)
-    try {
-      await prisma.$executeRawUnsafe(`
-        ALTER TABLE "PulseBattle" ADD CONSTRAINT "PulseBattle_productAId_fkey"
-          FOREIGN KEY ("productAId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE
-      `)
-    } catch {
-      /* duplicate_object ok */
-    }
-    try {
-      await prisma.$executeRawUnsafe(`
-        ALTER TABLE "PulseBattle" ADD CONSTRAINT "PulseBattle_productBId_fkey"
-          FOREIGN KEY ("productBId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE
-      `)
-    } catch {
-      /* duplicate_object ok */
-    }
-    try {
-      await prisma.$executeRawUnsafe(`
-        ALTER TABLE "PulseBattleVote" ADD CONSTRAINT "PulseBattleVote_battleId_fkey"
-          FOREIGN KEY ("battleId") REFERENCES "PulseBattle"("id") ON DELETE CASCADE ON UPDATE CASCADE
-      `)
-    } catch {
-      /* duplicate_object ok */
-    }
+    await addConstraintIfMissing(`
+      ALTER TABLE "PulseBattle" ADD CONSTRAINT "PulseBattle_productAId_fkey"
+        FOREIGN KEY ("productAId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    `)
+    await addConstraintIfMissing(`
+      ALTER TABLE "PulseBattle" ADD CONSTRAINT "PulseBattle_productBId_fkey"
+        FOREIGN KEY ("productBId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    `)
+    await addConstraintIfMissing(`
+      ALTER TABLE "PulseBattleVote" ADD CONSTRAINT "PulseBattleVote_battleId_fkey"
+        FOREIGN KEY ("battleId") REFERENCES "PulseBattle"("id") ON DELETE CASCADE ON UPDATE CASCADE
+    `)
 
     ensured = true
     console.log("[pulse-battle]", { result: "schema_ensured" })
@@ -127,4 +121,17 @@ export async function ensurePulseBattleSchema(): Promise<boolean> {
     })
     return false
   }
+}
+
+/**
+ * Idempotent DDL so Pulse Battle works before cron migrate finishes.
+ * Safe to re-run (IF NOT EXISTS / duplicate_object). Concurrent callers share one promise.
+ */
+export async function ensurePulseBattleSchema(): Promise<boolean> {
+  if (ensured) return true
+  if (ensurePromise) return ensurePromise
+  ensurePromise = ensureOnce().finally(() => {
+    ensurePromise = null
+  })
+  return ensurePromise
 }

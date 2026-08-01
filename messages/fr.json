@@ -1797,7 +1797,10 @@
       "emptyCategory": "Aucun produit listé dans {name} pour l’instant.",
       "feedLoadFailed": "Impossible de charger le feed",
       "genericError": "Une erreur est survenue",
-      "viewDetails": "Voir la fiche produit"
+      "viewDetails": "Voir la fiche produit",
+      "saveDropRemoved": "Retiré des favoris",
+      "buyFailed": "Paiement impossible — réessayez",
+      "outOfStock": "Rupture de stock"
     }
   },
   "merchantAccount": {

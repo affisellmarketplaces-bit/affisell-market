@@ -1541,7 +1541,10 @@
       "scrollModeShort": "Przewijaj",
       "emptyCategory": "Brak produktów w kategorii {name}.",
       "feedLoadFailed": "Nie udało się załadować karmy",
-      "genericError": "Coś poszło nie tak"
+      "genericError": "Coś poszło nie tak",
+      "saveDropRemoved": "Usunięto z ulubionych",
+      "buyFailed": "Płatność nieudana — spróbuj ponownie",
+      "outOfStock": "Brak w magazynie"
     }
   },
   "merchantAccount": {

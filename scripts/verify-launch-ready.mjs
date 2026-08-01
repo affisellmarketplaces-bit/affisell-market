@@ -173,7 +173,8 @@ for (const c of checks) {
   if (c.detail) console.log(`  ${c.detail}`)
 }
 
-console.log(`\nCGV URL to paste in Stripe: ${tosUrl}`)
+console.log(`\nCGV URL (local probe): ${tosUrl}`)
+console.log("CGV URL (Stripe Production): https://affisell.com/legal/cgv")
 console.log("Stripe Dashboard: https://dashboard.stripe.com/settings/public")
 console.log("Vercel tokens:    https://vercel.com/account/tokens")
 console.log("CM2C:             https://www.cm2c.net\n")
