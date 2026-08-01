@@ -89,6 +89,7 @@
     "og:affiliate": "node scripts/generate-og-affiliate.mjs",
     "verify:no-secrets": "node scripts/verify-no-secrets.mjs",
     "verify:security": "npm run verify:no-secrets && vitest run lib/__tests__/security-hardening.test.ts lib/__tests__/api-rate-limit.test.ts lib/__tests__/require-production-secret.test.ts",
+    "verify:security-ops": "node scripts/verify-security-ops-ready.mjs",
     "stripe:ensure-radar": "tsx scripts/ensure-stripe-radar-prices.ts",
     "verify:video-paywall": "node scripts/verify-video-paywall-ready.mjs",
     "verify:video-paywall:prod": "VIDEO_PAYWALL_PAUSED=0 node scripts/verify-video-paywall-ready.mjs",
