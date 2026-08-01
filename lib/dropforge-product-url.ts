@@ -1,8 +1,10 @@
 /** DropForge — shared product URL guards (client + server). */
 
+import { assertSafeOutboundUrl } from "@/lib/safe-outbound-url"
+
 export type DropForgeUrlValidation =
   | { ok: true; url: string }
-  | { ok: false; error: string; code: "empty" | "https" | "homepage" | "invalid" }
+  | { ok: false; error: string; code: "empty" | "https" | "homepage" | "invalid" | "blocked" }
 
 function isMarketplaceProductPath(hostname: string, pathname: string): boolean | null {
   const host = hostname.toLowerCase()
@@ -49,6 +51,22 @@ export function validateDropForgeProductUrl(raw: string): DropForgeUrlValidation
     u = new URL(trimmed)
   } catch {
     return { ok: false, error: "URL invalide.", code: "invalid" }
+  }
+
+  const safe = assertSafeOutboundUrl(trimmed, { allowHttp: true })
+  if (!safe.ok) {
+    if (safe.code === "protocol") {
+      return {
+        ok: false,
+        error: "L’URL doit commencer par http:// ou https://",
+        code: "https",
+      }
+    }
+    return {
+      ok: false,
+      error: "Cette URL n’est pas autorisée (hôte privé / local).",
+      code: "blocked",
+    }
   }
 
   const productOk = isMarketplaceProductPath(u.hostname, u.pathname)

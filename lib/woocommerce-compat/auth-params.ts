@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { assertSafeOutboundUrl } from "@/lib/safe-outbound-url"
+
 const scopeSchema = z.enum(["read", "write", "read_write"])
 
 const paramsSchema = z.object({
@@ -17,17 +19,25 @@ export type WooCommerceAuthParamsResult =
   | { ok: false; error: string }
 
 function validateCallbackUrl(url: string): string | null {
-  let parsed: URL
-  try {
-    parsed = new URL(url)
-  } catch {
+  const safe = assertSafeOutboundUrl(url)
+  if (!safe.ok) {
+    if (safe.code === "protocol") return "callback_must_be_https"
+    if (safe.code === "blocked_host") {
+      if (safe.error === "url_host_blocked") {
+        try {
+          const host = new URL(url).hostname.toLowerCase()
+          if (host === "localhost" || host.endsWith(".localhost")) {
+            return "callback_localhost_not_allowed"
+          }
+        } catch {
+          /* fall through */
+        }
+      }
+      return "callback_host_blocked"
+    }
     return "invalid_callback_url"
   }
-  if (parsed.protocol !== "https:") return "callback_must_be_https"
-  if (parsed.port && parsed.port !== "443") return "callback_must_not_include_port"
-  if (parsed.hostname === "localhost" || parsed.hostname.endsWith(".localhost")) {
-    return "callback_localhost_not_allowed"
-  }
+  if (safe.url.port && safe.url.port !== "443") return "callback_must_not_include_port"
   return null
 }
 

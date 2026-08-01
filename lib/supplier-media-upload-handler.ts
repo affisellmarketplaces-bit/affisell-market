@@ -8,6 +8,11 @@ import {
   uploadSupplierMediaBuffer,
   type SupplierMediaKind,
 } from "@/lib/supplier-media-storage.server"
+import {
+  isImageSniff,
+  isVideoSniff,
+  sniffUploadBytes,
+} from "@/lib/upload-content-sniff"
 import { videoLog } from "@/lib/video-logger"
 
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024
@@ -38,13 +43,14 @@ export async function handleSupplierMediaUpload(
     return NextResponse.json({ error: "Missing file" }, { status: 400 })
   }
 
-  const isImage = file.type.startsWith("image/")
-  const isVideo = file.type.startsWith("video/") || /\.(mp4|webm|mov|m4v)$/i.test(file.name)
-  if (!isImage && !isVideo) {
+  const claimedImage = file.type.startsWith("image/")
+  const claimedVideo =
+    file.type.startsWith("video/") || /\.(mp4|webm|mov|m4v)$/i.test(file.name)
+  if (!claimedImage && !claimedVideo) {
     return NextResponse.json({ error: "File must be an image or video" }, { status: 400 })
   }
 
-  const kind: SupplierMediaKind = isVideo ? "video" : "image"
+  const kind: SupplierMediaKind = claimedVideo ? "video" : "image"
   const maxBytes = kind === "image" ? MAX_IMAGE_BYTES : MAX_VIDEO_BYTES
   if (file.size > maxBytes) {
     return NextResponse.json(
@@ -53,13 +59,38 @@ export async function handleSupplierMediaUpload(
     )
   }
 
-  const ext = extensionForSupplierFile(file, kind)
-  const contentType = contentTypeForSupplierFile(file, kind, ext)
+  const bytes = Buffer.from(await file.arrayBuffer())
+  const sniffed = sniffUploadBytes(bytes)
+  if (!sniffed) {
+    console.log("[supplier-media]", { result: "sniff_rejected", userId })
+    return NextResponse.json({ error: "Unrecognized or unsafe file content" }, { status: 400 })
+  }
+  if (kind === "image" && !isImageSniff(sniffed.kind)) {
+    return NextResponse.json({ error: "File content is not a supported image" }, { status: 400 })
+  }
+  if (kind === "video" && !isVideoSniff(sniffed.kind)) {
+    return NextResponse.json({ error: "File content is not a supported video" }, { status: 400 })
+  }
+
+  const ext =
+    sniffed.kind === "jpeg"
+      ? "jpg"
+      : sniffed.kind === "png"
+        ? "png"
+        : sniffed.kind === "webp"
+          ? "webp"
+          : sniffed.kind === "gif"
+            ? "gif"
+            : sniffed.kind === "webm"
+              ? "webm"
+              : sniffed.kind === "mp4"
+                ? "mp4"
+                : extensionForSupplierFile(file, kind)
+  const contentType = sniffed.mime || contentTypeForSupplierFile(file, kind, ext)
   const filenameBase = normalizeSupplierMediaFilename(file.name || kind)
   const subfolder = form.get("subfolder") === "video-refs" ? "video-refs" : undefined
 
   try {
-    const bytes = Buffer.from(await file.arrayBuffer())
     const { url, storage } = await uploadSupplierMediaBuffer({
       userId,
       bytes,
@@ -74,6 +105,7 @@ export async function handleSupplierMediaUpload(
       userId,
       kind,
       storage,
+      sniffed: sniffed.kind,
     })
 
     return NextResponse.json({

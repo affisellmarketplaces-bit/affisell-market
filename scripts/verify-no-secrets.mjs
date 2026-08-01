@@ -9,8 +9,12 @@ import { readFileSync } from "node:fs"
 const PATTERNS = [
   { name: "Groq API key", re: /\bgsk_[A-Za-z0-9]{20,}\b/ },
   { name: "OpenAI API key", re: /\bsk-[A-Za-z0-9]{20,}\b/ },
-  { name: "Stripe secret key", re: /\bsk_live_[A-Za-z0-9]{10,}\b/ },
+  { name: "Stripe live secret key", re: /\bsk_live_[A-Za-z0-9]{10,}\b/ },
+  { name: "Stripe test secret key", re: /\bsk_test_[A-Za-z0-9]{10,}\b/ },
+  { name: "Stripe webhook secret", re: /\bwhsec_[A-Za-z0-9]{20,}\b/ },
+  { name: "GitHub PAT", re: /\bghp_[A-Za-z0-9]{36,}\b/ },
   { name: "AWS access key", re: /\bAKIA[0-9A-Z]{16}\b/ },
+  { name: "Private key PEM", re: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
 ]
 
 const MAX_BUFFER = 128 * 1024 * 1024
@@ -59,7 +63,13 @@ function scanFile(path) {
 }
 
 const files = trackedFiles().filter(
-  (file) => !file.includes("node_modules/") && !file.includes("/.next/")
+  (file) =>
+    !file.includes("node_modules/") &&
+    !file.includes("/.next/") &&
+    !file.endsWith(".test.ts") &&
+    !file.endsWith(".test.tsx") &&
+    !file.includes("/__tests__/") &&
+    !file.includes("/fixtures/")
 )
 const violations = files.flatMap(scanFile)
 

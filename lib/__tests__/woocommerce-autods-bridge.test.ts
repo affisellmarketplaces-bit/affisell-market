@@ -32,6 +32,19 @@ describe("woocommerce autods bridge", () => {
     expect(parsed.ok).toBe(false)
   })
 
+  it("rejects private callback hosts", () => {
+    const parsed = parseWooCommerceAuthParams(
+      new URLSearchParams({
+        app_name: "AutoDS",
+        scope: "read_write",
+        user_id: "1",
+        return_url: "https://platform.autods.com/return",
+        callback_url: "https://169.254.169.254/latest/meta-data/",
+      })
+    )
+    expect(parsed.ok).toBe(false)
+  })
+
   it("generates ck_/cs_ keys", () => {
     const keys = generateWooCommerceApiKeys()
     expect(keys.consumerKey.startsWith("ck_")).toBe(true)

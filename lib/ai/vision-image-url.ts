@@ -1,5 +1,7 @@
 import "server-only"
 
+import { assertSafeOutboundUrl } from "@/lib/safe-outbound-url"
+
 const MAX_VISION_BYTES = 5 * 1024 * 1024
 
 export type ResolvedVisionImage = {
@@ -42,8 +44,14 @@ export async function resolveVisionImageForOpenAI(input: {
     throw new Error("image_not_https")
   }
 
+  const safe = assertSafeOutboundUrl(url)
+  if (!safe.ok) {
+    console.log("[vision-image-url]", { result: "ssrf_blocked", code: safe.code })
+    throw new Error("image_url_blocked")
+  }
+
   try {
-    const res = await fetch(url, {
+    const res = await fetch(safe.url.toString(), {
       signal: AbortSignal.timeout(15_000),
       headers: { Accept: "image/*" },
       cache: "no-store",

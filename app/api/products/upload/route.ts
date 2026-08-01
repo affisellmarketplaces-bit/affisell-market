@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { isImageSniff, sniffUploadBytes } from "@/lib/upload-content-sniff"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -77,10 +78,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid category" }, { status: 400 })
   }
 
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 120) || "image"
-  const key = `products/${Date.now()}-${safeName}`
-
   const buffer = Buffer.from(await file.arrayBuffer())
+  const sniffed = sniffUploadBytes(buffer)
+  if (!sniffed || !isImageSniff(sniffed.kind)) {
+    console.log("[upload]", { result: "sniff_rejected", userId: session.user.id })
+    return NextResponse.json({ error: "Unrecognized or unsafe image content" }, { status: 400 })
+  }
+
+  const safeExt =
+    sniffed.kind === "png"
+      ? "png"
+      : sniffed.kind === "webp"
+        ? "webp"
+        : sniffed.kind === "gif"
+          ? "gif"
+          : "jpg"
+  const safeName =
+    file.name.replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 120).replace(/\.[^.]+$/, "") || "image"
+  const key = `products/${Date.now()}-${safeName}.${safeExt}`
 
   try {
     await client.send(
@@ -88,7 +103,7 @@ export async function POST(request: NextRequest) {
         Bucket: bucket,
         Key: key,
         Body: buffer,
-        ContentType: file.type || "application/octet-stream",
+        ContentType: sniffed.mime,
       })
     )
   } catch (e) {

@@ -3,6 +3,7 @@ import "server-only"
 import { put } from "@vercel/blob"
 
 import type { MerchantDocumentType } from "@/lib/merchant-legal/merchant-legal-status-shared"
+import { isImageSniff, isPdfSniff, sniffUploadBytes } from "@/lib/upload-content-sniff"
 
 const MAX_BYTES = 8 * 1024 * 1024
 const ALLOWED_MIME = new Set([
@@ -38,9 +39,18 @@ export async function storeSignupDocumentDraft(
   const check = validateSignupDocumentFile(file)
   if (!check.ok) throw new Error(check.error)
 
-  const mime = file.type.trim()
-  const ext = extensionForMime(mime)
   const bytes = Buffer.from(await file.arrayBuffer())
+  const sniffed = sniffUploadBytes(bytes)
+  if (!sniffed || (!isPdfSniff(sniffed.kind) && !isImageSniff(sniffed.kind))) {
+    console.log("[signup-docs]", { result: "sniff_rejected", draftId, documentType })
+    throw new Error("file_type_invalid")
+  }
+  if (sniffed.kind === "gif") {
+    throw new Error("file_type_invalid")
+  }
+
+  const mime = sniffed.mime
+  const ext = extensionForMime(mime)
   const key = `signup-drafts/${draftId}/${documentType.toLowerCase()}.${ext}`
 
   const blob = await put(key, bytes, {

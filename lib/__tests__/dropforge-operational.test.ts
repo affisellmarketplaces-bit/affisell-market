@@ -40,6 +40,14 @@ describe("validateDropForgeProductUrl", () => {
     expect(bad.ok).toBe(false)
     if (!bad.ok) expect(bad.code).toBe("https")
   })
+
+  it("rejects private / metadata hosts (SSRF)", () => {
+    const blocked = validateDropForgeProductUrl("https://169.254.169.254/latest/meta-data/")
+    expect(blocked.ok).toBe(false)
+    if (!blocked.ok) expect(blocked.code).toBe("blocked")
+    expect(validateDropForgeProductUrl("http://127.0.0.1/admin").ok).toBe(false)
+    expect(validateDropForgeProductUrl("https://localhost/product/1").ok).toBe(false)
+  })
 })
 
 describe("DropForge fulfillment readiness (P0)", () => {
