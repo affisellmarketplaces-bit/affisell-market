@@ -8,6 +8,17 @@ export const PLATFORM_FEE = 0.1
 export const RESERVE_RATE = 0.2
 /** Hours after reservation before instant payout eligibility window. */
 export const PAYOUT_DELAY = 24
+/**
+ * Public « Paiement 24h » badge — reseller must earn trust with real sales first.
+ * Below this, the vitrine does not advertise 24h payouts.
+ */
+export const LEGION_PAYOUT_24H_MIN_SALES = 10
+
+/** True when the storefront may display the Paiement 24h trust badge. */
+export function canShowLegionPayout24hBadge(totalSales: number): boolean {
+  const n = Math.max(0, Math.floor(Number(totalSales) || 0))
+  return n >= LEGION_PAYOUT_24H_MIN_SALES
+}
 
 export type LegionSplitResult = {
   product_price: number

@@ -6,6 +6,7 @@ import { Check, Copy, Zap } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import { AFFISELL_LEGAL_IDENTITY } from "@/lib/legal/auto-entreprise-identity"
+import { canShowLegionPayout24hBadge } from "@/lib/legion/split"
 
 export type LegionStoreProduct = {
   id: string
@@ -103,13 +104,15 @@ export function StoreTemplate({ profile, products, referralRef }: Props) {
                 </p>
               ) : null}
               <div className="mt-4 flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-800">
-                  <Zap className="size-3" aria-hidden />
-                  Paiement 24h
-                </span>
+                {canShowLegionPayout24hBadge(profile.totalSales) ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-800">
+                    <Zap className="size-3" aria-hidden />
+                    Paiement 24h
+                  </span>
+                ) : null}
                 {profile.totalSales > 0 ? (
                   <span className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-[11px] font-medium text-zinc-700">
-                    {profile.totalSales} ventes
+                    {profile.totalSales} vente{profile.totalSales > 1 ? "s" : ""}
                   </span>
                 ) : null}
               </div>

@@ -3,8 +3,10 @@ import { describe, expect, it, vi } from "vitest"
 import {
   calculateLegionSplit,
   canInstantPayout,
+  canShowLegionPayout24hBadge,
   getPayoutDueAt,
   LEGION_OVERRIDE_RATE,
+  LEGION_PAYOUT_24H_MIN_SALES,
   PAYOUT_DELAY,
   PLATFORM_FEE,
   RESERVE_RATE,
@@ -79,5 +81,13 @@ describe("payout helpers", () => {
     expect(canInstantPayout(50, 40)).toBe(true)
     expect(canInstantPayout(30, 40)).toBe(false)
     expect(canInstantPayout(100, 0)).toBe(false)
+  })
+
+  it("Paiement 24h badge requires notoriété via sales", () => {
+    expect(LEGION_PAYOUT_24H_MIN_SALES).toBe(10)
+    expect(canShowLegionPayout24hBadge(0)).toBe(false)
+    expect(canShowLegionPayout24hBadge(9)).toBe(false)
+    expect(canShowLegionPayout24hBadge(10)).toBe(true)
+    expect(canShowLegionPayout24hBadge(42)).toBe(true)
   })
 })
