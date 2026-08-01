@@ -3992,11 +3992,11 @@
     "curationNote": "只有供应商开启了Affisell Luxe的产品才会出现在这里（由代理商上架后）"
   },
   "sponsorBoost": {
-    "eyebrow": "Affisell Boost",
+    "eyebrow": "Affisell Placement",
     "title": "智能推广",
-    "subtitleSupplier": "Premium placement across every affiliate storefront. You only pay a % of HT after a sale closes — no upfront budget.",
-    "subtitleAffiliate": "Push your listing up. The % is charged only when an order is paid. Live boost score.",
-    "liveScore": "实时加速分数",
+    "subtitleSupplier": "Premium placement across affiliate storefronts. You only pay a % of HT after a sale closes — no upfront budget. (Distinct from Légion Battle 2h.)",
+    "subtitleAffiliate": "Push your listing up. The % is charged only when an order is paid. Live placement score.",
+    "liveScore": "Placement score",
     "target": "目标",
     "selectedSku": "激活SKU",
     "htPrice": "批发{price}",
@@ -4012,9 +4012,9 @@
     "budget": "Per concluded sale",
     "quoteMeta": "评分 {score} · {rate}% HT · {days}d",
     "boostPower": "Power",
-    "boostPowerAria": "Boost score {score}",
-    "cta": "激活 Boost",
-    "checkoutError": "Could not activate boost",
+    "boostPowerAria": "Placement score {score}",
+    "cta": "Activate Placement",
+    "checkoutError": "Could not activate placement",
     "recentCampaigns": "最近活动",
     "status": {
       "PENDING_PAYMENT": "待付款",

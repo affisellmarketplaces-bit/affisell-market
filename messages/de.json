@@ -3992,11 +3992,11 @@
     "curationNote": "Nur Produkte mit Affisell Luxe aktiviert durch den Lieferanten erscheinen hier (sobald sie von einem Affiliate aufgeführt werden)."
   },
   "sponsorBoost": {
-    "eyebrow": "Affisell Boost",
+    "eyebrow": "Affisell Placement",
     "title": "Intelligente Werbung",
-    "subtitleSupplier": "Premium placement across every affiliate storefront. You only pay a % of HT after a sale closes — no upfront budget.",
-    "subtitleAffiliate": "Push your listing up. The % is charged only when an order is paid. Live boost score.",
-    "liveScore": "Live-Boost-Score",
+    "subtitleSupplier": "Premium placement across affiliate storefronts. You only pay a % of HT after a sale closes — no upfront budget. (Distinct from Légion Battle 2h.)",
+    "subtitleAffiliate": "Push your listing up. The % is charged only when an order is paid. Live placement score.",
+    "liveScore": "Placement score",
     "target": "Ziel",
     "selectedSku": "Aktives SKU",
     "htPrice": "Großhandelspreis {price}",
@@ -4012,9 +4012,9 @@
     "budget": "Per concluded sale",
     "quoteMeta": "Score {score} · {rate}% HT · {days}d",
     "boostPower": "Leistung",
-    "boostPowerAria": "Boost-Score {score}",
-    "cta": "Aktiviere Boost",
-    "checkoutError": "Could not activate boost",
+    "boostPowerAria": "Placement score {score}",
+    "cta": "Activate Placement",
+    "checkoutError": "Could not activate placement",
     "recentCampaigns": "Jüngste Kampagnen",
     "status": {
       "PENDING_PAYMENT": "Ausstehende Zahlung",

@@ -139,3 +139,67 @@ export async function accrueSponsorSuccessFeesForOrder(
 
   return { chargedCents, campaignIds }
 }
+
+/**
+ * Refund clawback for Affisell Placement SUCCESS_FEE.
+ * Marks ACCRUED charges REVERSED (idempotent) and decrements campaign accruedFeeCents.
+ * Connect clawback of payouts is handled separately by existing refund rails.
+ */
+export async function reverseSponsorSuccessFeesForOrder(
+  orderId: string,
+  opts?: { fraction?: number }
+): Promise<{ reversedCents: number; chargeIds: string[] }> {
+  const fraction = Math.min(1, Math.max(0, opts?.fraction ?? 1))
+  if (fraction <= 0) return { reversedCents: 0, chargeIds: [] }
+
+  const { prisma } = await import("@/lib/prisma")
+  const charges = await prisma.sponsorCampaignCharge.findMany({
+    where: { orderId, status: "ACCRUED" },
+    select: { id: true, campaignId: true, feeCents: true },
+  })
+  if (charges.length === 0) return { reversedCents: 0, chargeIds: [] }
+
+  let reversedCents = 0
+  const chargeIds: string[] = []
+
+  for (const charge of charges) {
+    const undo = Math.max(0, Math.round(charge.feeCents * fraction))
+    if (undo <= 0) continue
+
+    const updated = await prisma.sponsorCampaignCharge.updateMany({
+      where: { id: charge.id, status: "ACCRUED" },
+      data: { status: "REVERSED" },
+    })
+    if (updated.count === 0) continue
+
+    await prisma.sponsorCampaign.update({
+      where: { id: charge.campaignId },
+      data: { accruedFeeCents: { decrement: undo } },
+    })
+
+    // Keep platform ledger honest on the order snapshot (fee was added at accrue).
+    const orderRow = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { affisellFeeCents: true },
+    })
+    if (orderRow) {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { affisellFeeCents: Math.max(0, orderRow.affisellFeeCents - undo) },
+      })
+    }
+
+    reversedCents += undo
+    chargeIds.push(charge.id)
+    console.log("[sponsor]", {
+      result: "success_fee_reversed",
+      orderId,
+      campaignId: charge.campaignId,
+      chargeId: charge.id,
+      undo,
+      fraction,
+    })
+  }
+
+  return { reversedCents, chargeIds }
+}

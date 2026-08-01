@@ -69,12 +69,12 @@ export function BoostButton({ productId, productTitle, currentArmySize }: Props)
   if (boosted) {
     return (
       <div className="rounded-[20px] border border-black/10 bg-[#d4ff00] p-5 text-black shadow-sm">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Boost actif</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Battle active</p>
         <p className="mt-1 text-2xl font-bold tracking-tight tabular-nums">
           {Math.round(boosted.rate * 100)}% · {BOOST_DURATION_HOURS}h
         </p>
         <p className="mt-2 text-sm text-black/70">
-          L’armée Affisell est notifiée. Fin :{" "}
+          Commission affilié appliquée au checkout pendant la fenêtre. Fin :{" "}
           {new Date(boosted.endsAt).toLocaleTimeString("fr-FR", {
             hour: "2-digit",
             minute: "2-digit",
@@ -90,14 +90,14 @@ export function BoostButton({ productId, productTitle, currentArmySize }: Props)
   return (
     <div className="rounded-[20px] border border-zinc-200 bg-white p-5 shadow-sm">
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-        Légion Boost
+        Légion Battle
       </p>
       <p className="mt-1 text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">
         {currentArmySize.toLocaleString("fr-FR")}
       </p>
       <p className="text-sm text-zinc-500">revendeurs actifs dans l’armée</p>
 
-      <p className="mt-5 text-xs font-semibold text-zinc-700">Commission boost</p>
+      <p className="mt-5 text-xs font-semibold text-zinc-700">Commission affilié (2h)</p>
       <div className="mt-2 grid grid-cols-4 gap-2">
         {RATE_OPTIONS.map((opt) => {
           const active = rate === opt
@@ -119,7 +119,8 @@ export function BoostButton({ productId, productTitle, currentArmySize }: Props)
       </div>
 
       <p className="mt-4 text-sm text-zinc-600">
-        Pendant {BOOST_DURATION_HOURS}h, toute l’armée voit ce produit en Battle Royale.
+        Pendant {BOOST_DURATION_HOURS}h : bandeau Battle Royale + commission affilié réelle au
+        checkout (ne change pas le taux catalogue permanent). Distinct du Placement pay-per-sale.
       </p>
 
       {error ? (
@@ -132,7 +133,7 @@ export function BoostButton({ productId, productTitle, currentArmySize }: Props)
         onClick={() => void launchBoost()}
         className="mt-4 w-full rounded-full bg-[#d4ff00] px-4 py-3 text-sm font-bold text-black transition hover:brightness-95 disabled:opacity-60"
       >
-        {loading ? "Lancement…" : "Lancer BOOST"}
+        {loading ? "Lancement…" : "Lancer Battle"}
       </button>
 
       <p className="mt-4 text-center text-[11px] text-zinc-400">

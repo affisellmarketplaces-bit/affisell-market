@@ -225,11 +225,25 @@ async function createPaidMarketplaceOrder(
       variants,
       optionName,
     }) * qty
-  const supplierCommissionRateBps = await resolveSupplierCommissionRateBpsForProductId({
+  const supplierCommissionRateBpsBase = await resolveSupplierCommissionRateBpsForProductId({
     productId: listing.productId,
     optionName,
     variants,
   })
+  const { resolveActiveLegionBoostCommission, recordLegionBoostSale } = await import(
+    "@/lib/legion/resolve-active-boost-commission"
+  )
+  const legionBoost = await resolveActiveLegionBoostCommission(tx, listing.productId)
+  const supplierCommissionRateBps = legionBoost?.commissionBps ?? supplierCommissionRateBpsBase
+  if (legionBoost) {
+    console.log("[legion-boost]", {
+      result: "checkout_commission_override",
+      productId: listing.productId,
+      boostId: legionBoost.boostId,
+      commissionBps: legionBoost.commissionBps,
+      baseBps: supplierCommissionRateBpsBase,
+    })
+  }
   const affisellCommissionRateBps = await resolveAffisellCommissionRateBpsForProductId(
     listing.productId
   )
@@ -443,6 +457,22 @@ async function createPaidMarketplaceOrder(
       orderId: order.id,
       error: sponsorErr instanceof Error ? sponsorErr.message : String(sponsorErr),
     })
+  }
+
+  if (legionBoost) {
+    try {
+      await recordLegionBoostSale(tx, {
+        boostId: legionBoost.boostId,
+        qty,
+        gmvCents: settlement.affisellFeeBaseCents,
+      })
+    } catch (legionErr) {
+      console.error("[legion-boost]", {
+        result: "sale_record_failed",
+        orderId: order.id,
+        error: legionErr instanceof Error ? legionErr.message : String(legionErr),
+      })
+    }
   }
 
   const variantBit = args.variantLabel ? ` · ${args.variantLabel}` : ""

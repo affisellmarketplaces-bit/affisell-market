@@ -31,6 +31,12 @@ export type LegionStripePatchResult = {
 }
 
 /**
+ * QUARANTINED — do not call from Stripe webhook / Lightning / Phase1 settlement.
+ * Parallel Connect transfers would double-pay vs scheduleMarketplaceTransferAttempts.
+ * Légion Battle commission is applied in stripe-marketplace-fulfill via
+ * resolveActiveLegionBoostCommission (bps override on the order snapshot only).
+ * Override 2% filleul→parrain still needs a Phase1-integrated slice before wiring.
+ *
  * Additive LÉGION Connect transfers — import into existing webhook/payout flows.
  * Does not replace Lightning or scheduleMarketplaceTransferAttempts.
  */

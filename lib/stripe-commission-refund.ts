@@ -163,6 +163,38 @@ export async function handleStripeChargeRefundedWithCommission(
         settlementStatus = "REFUND_PENDING_CLAWBACK"
         alertClawbackBlocked(order.id, safety.reason)
       }
+
+      try {
+        const { reverseSponsorSuccessFeesForOrder } = await import(
+          "@/lib/sponsor/charge-sponsor-on-sale"
+        )
+        await reverseSponsorSuccessFeesForOrder(order.id, { fraction: 1 })
+      } catch (sponsorRevErr) {
+        console.error("[sponsor]", {
+          result: "success_fee_reverse_failed",
+          orderId: order.id,
+          error: sponsorRevErr instanceof Error ? sponsorRevErr.message : String(sponsorRevErr),
+        })
+      }
+    } else if (lastStripeRefundId && totalCents > 0) {
+      try {
+        const { reverseSponsorSuccessFeesForOrder } = await import(
+          "@/lib/sponsor/charge-sponsor-on-sale"
+        )
+        const fraction = Math.min(1, chargeRefunded / totalCents)
+        // Only reverse once per full charge-refunded pass — use remaining ACCRUED only.
+        // For partial, reverse proportional amount by marking full charge REVERSED when fraction>=0.99
+        // else leave ACCRUED until full (avoids fractional status without schema change).
+        if (fraction >= 0.99) {
+          await reverseSponsorSuccessFeesForOrder(order.id, { fraction: 1 })
+        }
+      } catch (sponsorRevErr) {
+        console.error("[sponsor]", {
+          result: "success_fee_partial_reverse_failed",
+          orderId: order.id,
+          error: sponsorRevErr instanceof Error ? sponsorRevErr.message : String(sponsorRevErr),
+        })
+      }
     }
 
     await prisma.order.update({
