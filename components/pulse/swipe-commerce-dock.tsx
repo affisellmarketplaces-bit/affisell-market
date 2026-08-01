@@ -12,7 +12,6 @@ import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 
 import type { BuyerSwipeDirection } from "@/components/pulse/buyer-swipe-card"
-import { affisellBrand } from "@/lib/affisell-brand"
 import { cn } from "@/lib/utils"
 
 type SwipeDockDirection = BuyerSwipeDirection
@@ -24,17 +23,17 @@ const DIRECTION_GLYPH: Record<SwipeDockDirection, string> = {
   down: "↓",
 }
 
+type DockTone = "skip" | "cart" | "undo" | "buy" | "save"
+
 type DockButtonProps = {
   direction?: SwipeDockDirection
   label: string
   ariaLabel: string
   icon: LucideIcon
+  tone: DockTone
   disabled?: boolean
   onClick: () => void
-  variant?: "default" | "cart" | "buy" | "drop"
-  className?: string
   layout?: "mobile" | "desktop"
-  prominence?: "ghost" | "secondary" | "primary"
 }
 
 function DockButton({
@@ -42,25 +41,13 @@ function DockButton({
   label,
   ariaLabel,
   icon: Icon,
+  tone,
   disabled,
   onClick,
-  variant = "default",
-  className,
   layout = "desktop",
-  prominence = "secondary",
 }: DockButtonProps) {
-  const shell =
-    variant === "buy"
-      ? affisellBrand.epoxyActionBuy
-      : variant === "cart"
-        ? affisellBrand.epoxyActionCart
-        : variant === "drop"
-          ? affisellBrand.epoxyActionDrop
-          : affisellBrand.epoxyActionBtn
-
   const mobile = layout === "mobile"
-  const primary = prominence === "primary"
-  const ghost = prominence === "ghost"
+  const primary = tone === "buy"
 
   return (
     <button
@@ -69,42 +56,42 @@ function DockButton({
       onClick={onClick}
       aria-label={ariaLabel}
       data-testid={direction ? `pulse-swipe-dock-${direction}` : "pulse-swipe-dock-undo"}
+      data-tone={tone}
       className={cn(
-        shell,
-        "pulse-dock-btn touch-manipulation transition-[transform,box-shadow,filter] duration-200 ease-out active:scale-[0.96]",
+        "pulse-hud-pad group relative isolate touch-manipulation overflow-hidden",
+        "flex flex-col items-center justify-center",
+        "transition-[transform,box-shadow,filter,background-color] duration-200 ease-out",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#05070d]",
+        "active:scale-[0.94] disabled:pointer-events-none disabled:opacity-35",
         mobile
           ? cn(
-              "flex min-h-0 flex-col items-center justify-center gap-0.5 rounded-2xl px-0.5 py-1",
-              primary
-                ? "aspect-auto min-h-[3.1rem] rounded-[1.15rem] shadow-[0_0_36px_-4px_rgba(34,211,238,0.7)]"
-                : "aspect-square",
-              ghost && "opacity-80"
+              "min-h-0 gap-1 rounded-[1.15rem] px-0.5 py-1.5",
+              primary ? "pulse-hud-pad--buy min-h-[3.25rem] rounded-[1.35rem]" : "aspect-square"
             )
           : cn(
-              "min-h-[2.75rem] w-full gap-1 px-1 py-2 sm:min-h-0 sm:gap-0.5 sm:py-2.5",
-              primary && "sm:min-h-[3.25rem] sm:shadow-[0_0_32px_-6px_rgba(34,211,238,0.55)]"
+              "min-h-[3rem] w-full gap-1 rounded-2xl px-1 py-2.5",
+              primary && "pulse-hud-pad--buy min-h-[3.5rem]"
             ),
-        primary && "pulse-dock-btn--primary",
-        ghost && "pulse-dock-btn--ghost",
-        className
+        `pulse-hud-pad--${tone}`
       )}
     >
-      <Icon
+      <span className="pulse-hud-pad__sheen" aria-hidden />
+      <span
         className={cn(
-          "shrink-0",
-          mobile
-            ? primary
-              ? "size-[1.35rem]"
-              : "size-[1.1rem]"
-            : primary
-              ? "size-5 sm:size-[1.35rem]"
-              : "size-[18px] sm:size-5"
+          "pulse-hud-pad__icon relative z-[1] grid place-items-center rounded-full",
+          primary ? "size-8 sm:size-9" : "size-7 sm:size-8"
         )}
-        aria-hidden
-      />
+      >
+        <Icon
+          className={cn("shrink-0", primary ? "size-[1.15rem] sm:size-5" : "size-4 sm:size-[1.05rem]")}
+          strokeWidth={primary ? 2.35 : 2.1}
+          aria-hidden
+        />
+      </span>
       <DockActionLabel direction={direction} layout={layout} emphasis={primary}>
         {label}
       </DockActionLabel>
+      {primary ? <span className="pulse-hud-pad__pulse" aria-hidden /> : null}
     </button>
   )
 }
@@ -124,8 +111,8 @@ function DockActionLabel({
     return (
       <span
         className={cn(
-          "max-w-full truncate uppercase leading-none tracking-[0.12em]",
-          emphasis ? "text-[9px] font-black" : "text-[8px] font-bold"
+          "relative z-[1] max-w-full truncate uppercase leading-none tracking-[0.14em]",
+          emphasis ? "text-[9px] font-black text-white" : "text-[7.5px] font-bold text-white/88"
         )}
       >
         {children}
@@ -134,16 +121,16 @@ function DockActionLabel({
   }
 
   return (
-    <span className="flex flex-col items-center gap-0.5 leading-none">
+    <span className="relative z-[1] flex flex-col items-center gap-0.5 leading-none">
       {direction ? (
-        <span className="text-[11px] font-black leading-none opacity-95 sm:hidden" aria-hidden>
+        <span className="text-[10px] font-black leading-none text-white/70 lg:hidden" aria-hidden>
           {DIRECTION_GLYPH[direction]}
         </span>
       ) : null}
       <span
         className={cn(
-          "uppercase tracking-[0.1em]",
-          emphasis ? "text-[9px] font-black sm:text-[11px]" : "text-[8px] font-semibold sm:text-[10px]"
+          "uppercase tracking-[0.14em]",
+          emphasis ? "text-[10px] font-black text-white sm:text-[11px]" : "text-[8px] font-bold text-white/85 sm:text-[10px]"
         )}
       >
         {children}
@@ -160,126 +147,132 @@ type Props = {
   onUndo: () => void
 }
 
-/** Mobile: tactile icons only (no keyboard glyphs). Desktop keeps ↑←→↓ hints. */
+/** Same 5 actions — HUD pads. Mobile: tactile. Desktop (lg+): + keyboard hint strip. */
 export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }: Props) {
   const t = useTranslations("pulse.commerce")
   const disabled = busy || deckEmpty
+
+  const pads = (
+    <>
+      <DockButton
+        direction="left"
+        label={t("skipShort")}
+        ariaLabel={t("skip")}
+        icon={ChevronLeft}
+        tone="skip"
+        disabled={disabled}
+        onClick={() => onSwipe("left")}
+      />
+      <DockButton
+        direction="up"
+        label={t("cartShort")}
+        ariaLabel={t("cart")}
+        icon={ShoppingBag}
+        tone="cart"
+        disabled={disabled}
+        onClick={() => onSwipe("up")}
+      />
+      <DockButton
+        label={t("undoShort")}
+        ariaLabel={t("undo")}
+        icon={RotateCcw}
+        tone="undo"
+        disabled={!canUndo || busy}
+        onClick={onUndo}
+      />
+      <DockButton
+        direction="right"
+        label={t("buyShort")}
+        ariaLabel={t("buy")}
+        icon={Zap}
+        tone="buy"
+        disabled={disabled}
+        onClick={() => onSwipe("right")}
+      />
+      <DockButton
+        direction="down"
+        label={t("saveDropShort")}
+        ariaLabel={t("saveDrop")}
+        icon={Bookmark}
+        tone="save"
+        disabled={disabled}
+        onClick={() => onSwipe("down")}
+      />
+    </>
+  )
 
   return (
     <div
       data-testid="pulse-swipe-dock"
       className={cn(
-        affisellBrand.epoxyPanel,
-        "affisell-swipe-dock affisell-swipe-dock-panel pulse-command-deck relative z-50 mx-auto w-full max-w-[min(100%,380px)] shrink-0 px-1.5 py-1 sm:max-w-[420px] sm:px-3 sm:py-1.5 lg:max-w-none lg:px-4 lg:py-3",
-        "pb-[max(0.25rem,env(safe-area-inset-bottom))]"
+        "affisell-swipe-dock affisell-swipe-dock-panel pulse-command-deck pulse-hud-deck relative z-50 mx-auto w-full max-w-[min(100%,400px)] shrink-0",
+        "px-1.5 py-1 sm:max-w-[440px] sm:px-2.5 sm:py-1.5 lg:max-w-none lg:px-4 lg:py-3",
+        "pb-[max(0.3rem,env(safe-area-inset-bottom))]"
       )}
     >
-      <div className="relative mx-auto lg:hidden">
-        <div className="pulse-command-deck__horizon" aria-hidden />
-        {/* Skip · Cart · Undo · Buy · Save — Buy is the primary conversion node */}
-        <div className="pulse-command-deck__grid grid grid-cols-[0.85fr_0.9fr_0.8fr_1.25fr_0.9fr] items-end gap-1 sm:gap-1.5">
-          <DockButton
-            layout="mobile"
-            direction="left"
-            label={t("skipShort")}
-            ariaLabel={t("skip")}
-            icon={ChevronLeft}
-            prominence="ghost"
-            disabled={disabled}
-            onClick={() => onSwipe("left")}
-          />
-          <DockButton
-            layout="mobile"
-            direction="up"
-            label={t("cartShort")}
-            ariaLabel={t("cart")}
-            icon={ShoppingBag}
-            variant="cart"
-            disabled={disabled}
-            onClick={() => onSwipe("up")}
-          />
-          <DockButton
-            layout="mobile"
-            label={t("undoShort")}
-            ariaLabel={t("undo")}
-            icon={RotateCcw}
-            prominence="ghost"
-            disabled={!canUndo || busy}
-            onClick={onUndo}
-          />
-          <DockButton
-            layout="mobile"
-            direction="right"
-            label={t("buyShort")}
-            ariaLabel={t("buy")}
-            icon={Zap}
-            variant="buy"
-            prominence="primary"
-            disabled={disabled}
-            onClick={() => onSwipe("right")}
-          />
-          <DockButton
-            layout="mobile"
-            direction="down"
-            label={t("saveDropShort")}
-            ariaLabel={t("saveDrop")}
-            icon={Bookmark}
-            variant="drop"
-            disabled={disabled}
-            onClick={() => onSwipe("down")}
-          />
+      <div className="pulse-hud-deck__rim" aria-hidden />
+      <div className="pulse-hud-deck__channel relative">
+        <div className="relative mx-auto lg:hidden">
+          <div className="pulse-command-deck__grid pulse-hud-deck__grid grid grid-cols-[0.88fr_0.92fr_0.82fr_1.28fr_0.92fr] items-end gap-1 sm:gap-1.5">
+            {/* clone with mobile layout */}
+            <DockButton
+              layout="mobile"
+              direction="left"
+              label={t("skipShort")}
+              ariaLabel={t("skip")}
+              icon={ChevronLeft}
+              tone="skip"
+              disabled={disabled}
+              onClick={() => onSwipe("left")}
+            />
+            <DockButton
+              layout="mobile"
+              direction="up"
+              label={t("cartShort")}
+              ariaLabel={t("cart")}
+              icon={ShoppingBag}
+              tone="cart"
+              disabled={disabled}
+              onClick={() => onSwipe("up")}
+            />
+            <DockButton
+              layout="mobile"
+              label={t("undoShort")}
+              ariaLabel={t("undo")}
+              icon={RotateCcw}
+              tone="undo"
+              disabled={!canUndo || busy}
+              onClick={onUndo}
+            />
+            <DockButton
+              layout="mobile"
+              direction="right"
+              label={t("buyShort")}
+              ariaLabel={t("buy")}
+              icon={Zap}
+              tone="buy"
+              disabled={disabled}
+              onClick={() => onSwipe("right")}
+            />
+            <DockButton
+              layout="mobile"
+              direction="down"
+              label={t("saveDropShort")}
+              ariaLabel={t("saveDrop")}
+              icon={Bookmark}
+              tone="save"
+              disabled={disabled}
+              onClick={() => onSwipe("down")}
+            />
+          </div>
         </div>
-      </div>
 
-      <p className="mb-1.5 hidden text-center text-[10px] font-medium uppercase tracking-[0.22em] text-cyan-200/45 lg:mb-2 lg:block">
-        {t("hint")}
-      </p>
-      <div className="pulse-command-deck__grid hidden grid-cols-[0.9fr_1fr_0.85fr_1.4fr_1fr] items-end gap-2 lg:grid">
-        <DockButton
-          direction="left"
-          label={t("skipShort")}
-          ariaLabel={t("skip")}
-          icon={ChevronLeft}
-          prominence="ghost"
-          disabled={disabled}
-          onClick={() => onSwipe("left")}
-        />
-        <DockButton
-          direction="up"
-          label={t("cartShort")}
-          ariaLabel={t("cart")}
-          icon={ShoppingBag}
-          variant="cart"
-          disabled={disabled}
-          onClick={() => onSwipe("up")}
-        />
-        <DockButton
-          label={t("undoShort")}
-          ariaLabel={t("undo")}
-          icon={RotateCcw}
-          prominence="ghost"
-          disabled={!canUndo || busy}
-          onClick={onUndo}
-        />
-        <DockButton
-          direction="right"
-          label={t("buyShort")}
-          ariaLabel={t("buy")}
-          icon={Zap}
-          variant="buy"
-          prominence="primary"
-          disabled={disabled}
-          onClick={() => onSwipe("right")}
-        />
-        <DockButton
-          direction="down"
-          label={t("saveDropShort")}
-          ariaLabel={t("saveDrop")}
-          icon={Bookmark}
-          variant="drop"
-          disabled={disabled}
-          onClick={() => onSwipe("down")}
-        />
+        <p className="mb-2 hidden text-center text-[10px] font-medium uppercase tracking-[0.28em] text-cyan-100/40 lg:block">
+          {t("hint")}
+        </p>
+        <div className="pulse-command-deck__grid pulse-hud-deck__grid hidden grid-cols-[0.9fr_1fr_0.85fr_1.35fr_1fr] items-end gap-2 lg:grid">
+          {pads}
+        </div>
       </div>
     </div>
   )
