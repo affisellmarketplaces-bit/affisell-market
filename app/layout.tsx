@@ -49,9 +49,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   ])
   const hdrs = await headers()
   const pathname = hdrs.get("x-affisell-pathname") ?? ""
-  const isDedicatedStorefront =
-    isCustomDomainHeaders(hdrs) || isLegionStorefrontPathname(pathname)
-  const clientMessages = isDedicatedStorefront
+  const isCustomDomain = isCustomDomainHeaders(hdrs)
+  const isLegionStorefront = isLegionStorefrontPathname(pathname)
+  /** Hide platform chrome on custom domains + Légion @username vitrines. */
+  const isDedicatedStorefront = isCustomDomain || isLegionStorefront
+  /**
+   * Slim i18n only on custom-domain shops (payload). Légion keeps full messages —
+   * otherwise residual client UI (gallery, cookies, etc.) throws MISSING_MESSAGE.
+   */
+  const clientMessages = isCustomDomain
     ? slimClientMessagesForDedicatedStorefront(messages, pathname)
     : messages
 
