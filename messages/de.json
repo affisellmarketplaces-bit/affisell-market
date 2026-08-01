@@ -1521,7 +1521,7 @@
     "emptyBody": "Ersteller laden Clips hoch. Durchsuchen Sie den Katalog, während die Feed gefüllt wird.",
     "browseCatalog": "Marktplatz durchsuchen",
     "commerce": {
-      "hint": "↑ Warenkorb · ← Nächster · → Kaufen · ↓ Speichern",
+      "hint": "↑ Warenkorb · ← Weiter · → Kaufen · ↓ Wunsch",
       "cart": "In den Warenkorb legen",
       "cartShort": "Warenkorb",
       "cartAdded": "Zum Warenkorb hinzugefügt",
@@ -1529,12 +1529,12 @@
       "buy": "Jetzt kaufen",
       "buyShort": "Kaufen",
       "skip": "Nächstes Produkt",
-      "skipShort": "Nächster",
+      "skipShort": "Weiter",
       "saveDrop": "Speichern — Wunschliste + Preisalarm",
       "saveDropPushEnabled": "Push-Benachrichtigungen für Preissenkungen aktiviert",
-      "saveDropShort": "Speichern",
+      "saveDropShort": "Wunsch",
       "undo": "Produkt zurück in den Stapel",
-      "undoShort": "Rückgängig",
+      "undoShort": "Zurück",
       "rewindOn": "Neue Ankünfte abgeschlossen — Rewind-Modus aktiviert",
       "rewindBadge": "Rewind",
       "scrollMode": "Vertikaler Scroll-Modus",
@@ -1544,7 +1544,20 @@
       "genericError": "Etwas ist schiefgelaufen",
       "saveDropRemoved": "Von der Wunschliste entfernt",
       "buyFailed": "Checkout fehlgeschlagen — erneut versuchen",
-      "outOfStock": "Nicht auf Lager"
+      "outOfStock": "Nicht auf Lager",
+      "coach": {
+        "eyebrow": "Command Brief",
+        "title": "Pulse in 5 Gesten",
+        "body": "Jeder Button hat eine Aufgabe. Einmal lernen — dann swipen.",
+        "padPass": "Weiter — Produkt überspringen",
+        "padCart": "Warenkorb — hinzufügen ohne den Feed zu verlassen",
+        "padUndo": "Zurück — letztes übersprungenes Produkt wiederherstellen",
+        "padBuy": "Kaufen — sofortiger Checkout",
+        "padWish": "Wunsch — speichern + Preisalarm",
+        "footnote": "Tipp: Karte in denselben Richtungen swipen wie die Buttons.",
+        "cta": "Verstanden — los swipen",
+        "dismiss": "Guide schließen"
+      }
     }
   },
   "merchantAccount": {
@@ -1589,7 +1602,8 @@
       "stepCustomize": "1 Price & title",
       "publishCta": "Publish listing",
       "publishHint": "Goes live after KYC — draft saved if pending",
-      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved."
+      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved.",
+      "buyerContrast": "Hinweis: Im Käufer-Pulse bedeutet Rechts-Swipe = Kaufen. Hier (Reseller) = Produkt listen."
     },
     "listingBuilder": {
       "referencePriceLabel": "Reference price (base SKU)",

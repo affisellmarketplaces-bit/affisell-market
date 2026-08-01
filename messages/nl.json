@@ -1522,7 +1522,7 @@
     "emptyBody": "Creatoren uploaden clips. Bekijk de catalogus terwijl de feed wordt opgevuld.",
     "browseCatalog": "Catalogus bekijken",
     "commerce": {
-      "hint": "↑ Tas · ← Volgende · → Kopen · ↓ Opslaan Drop",
+      "hint": "↑ Mand · ← Door · → Kopen · ↓ Wens",
       "cart": "Toevoegen aan tas",
       "cartShort": "Tas",
       "cartAdded": "Toegevoegd aan tas",
@@ -1530,12 +1530,12 @@
       "buy": "Nu kopen",
       "buyShort": "Kopen",
       "skip": "Volgende product",
-      "skipShort": "Volgende",
+      "skipShort": "Door",
       "saveDrop": "Opslaan Drop — wensenlijst + prijsalert",
       "saveDropPushEnabled": "Pushmeldingen ingeschakeld voor prijsdalingen",
-      "saveDropShort": "Opslaan",
+      "saveDropShort": "Wens",
       "undo": "Product terug in stapel",
-      "undoShort": "Terugzetten",
+      "undoShort": "Terug",
       "rewindOn": "Nieuwe aankomsten gedaan — Terugspoelen modus aan",
       "rewindBadge": "Terugspoelen",
       "scrollMode": "Verticale scroll modus",
@@ -1545,7 +1545,20 @@
       "genericError": "Er ging iets mis",
       "saveDropRemoved": "Verwijderd van verlanglijst",
       "buyFailed": "Afrekenen mislukt — probeer opnieuw",
-      "outOfStock": "Niet op voorraad"
+      "outOfStock": "Niet op voorraad",
+      "coach": {
+        "eyebrow": "Command brief",
+        "title": "Shop Pulse in 5 gebaren",
+        "body": "Elke knop doet één ding. Leer één keer — swipe daarna.",
+        "padPass": "Door — dit product overslaan",
+        "padCart": "Mand — toevoegen zonder de feed te verlaten",
+        "padUndo": "Terug — laatste overgeslagen product herstellen",
+        "padBuy": "Kopen — directe checkout",
+        "padWish": "Wens — opslaan + prijsalert",
+        "footnote": "Tip: swipe de kaart in dezelfde richtingen als de knoppen.",
+        "cta": "Begrepen — start swipen",
+        "dismiss": "Gids sluiten"
+      }
     }
   },
   "merchantAccount": {
@@ -1590,7 +1603,8 @@
       "stepCustomize": "1 Price & title",
       "publishCta": "Publish listing",
       "publishHint": "Goes live after KYC — draft saved if pending",
-      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved."
+      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved.",
+      "buyerContrast": "Let op: op koper-Pulse is swipe rechts = Kopen. Hier (reseller) = product listen."
     },
     "listingBuilder": {
       "referencePriceLabel": "Reference price (base SKU)",

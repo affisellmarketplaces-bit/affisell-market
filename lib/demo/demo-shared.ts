@@ -46,7 +46,7 @@ export const DEMO_JOURNEY_STEPS: Record<DemoPersonaKey, DemoJourneyStep[]> = {
       id: "discover",
       titleKey: "steps.affiliate.discover.title",
       bodyKey: "steps.affiliate.discover.body",
-      href: "/discover",
+      href: "/discover?coach=1",
     },
     {
       id: "catalog",
@@ -79,7 +79,7 @@ export const DEMO_JOURNEY_STEPS: Record<DemoPersonaKey, DemoJourneyStep[]> = {
       id: "shop",
       titleKey: "steps.buyer.shop.title",
       bodyKey: "steps.buyer.shop.body",
-      href: "/discover",
+      href: "/discover?coach=1",
     },
     {
       id: "trust",

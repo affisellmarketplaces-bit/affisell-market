@@ -1521,7 +1521,7 @@
     "emptyBody": "Gli autori stanno caricando clip. Esplora il catalogo mentre il feed si riempie.",
     "browseCatalog": "Esplora il mercato",
     "commerce": {
-      "hint": "↑ Carrello · ← Prossimo · → Acquista · ↓ Salva Drop",
+      "hint": "↑ Carrello · ← Passa · → Acquista · ↓ Preferiti",
       "cart": "Aggiungi al carrello",
       "cartShort": "Carrello",
       "cartAdded": "Aggiunto al carrello",
@@ -1529,12 +1529,12 @@
       "buy": "Acquista ora",
       "buyShort": "Acquista",
       "skip": "Prossimo prodotto",
-      "skipShort": "Prossimo",
+      "skipShort": "Passa",
       "saveDrop": "Salva Drop — wishlist + avviso prezzo",
       "saveDropPushEnabled": "Notifiche push attivate per cali di prezzo",
-      "saveDropShort": "Salva",
+      "saveDropShort": "Preferiti",
       "undo": "Prodotto tornato nella pila",
-      "undoShort": "Annulla",
+      "undoShort": "Indietro",
       "rewindOn": "Arrivi nuovi fatti — Modalità rewind attiva",
       "rewindBadge": "Rewind",
       "scrollMode": "Modalità di scorrimento verticale",
@@ -1544,7 +1544,20 @@
       "genericError": "È successo qualcosa di sbagliato",
       "saveDropRemoved": "Rimosso dai preferiti",
       "buyFailed": "Checkout non riuscito — riprova",
-      "outOfStock": "Esaurito"
+      "outOfStock": "Esaurito",
+      "coach": {
+        "eyebrow": "Command brief",
+        "title": "Acquista su Pulse in 5 gesti",
+        "body": "Ogni pad ha un solo compito. Impara una volta — poi swipe.",
+        "padPass": "Passa — salta questo prodotto",
+        "padCart": "Carrello — aggiungi senza uscire dal feed",
+        "padUndo": "Indietro — ripristina l’ultimo prodotto saltato",
+        "padBuy": "Acquista — checkout immediato",
+        "padWish": "Preferiti — salva + alert prezzo",
+        "footnote": "Suggerimento: swipa la card nelle stesse direzioni dei pad.",
+        "cta": "Capito — inizia",
+        "dismiss": "Chiudi guida"
+      }
     }
   },
   "merchantAccount": {
@@ -1589,7 +1602,8 @@
       "stepCustomize": "1 Price & title",
       "publishCta": "Publish listing",
       "publishHint": "Goes live after KYC — draft saved if pending",
-      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved."
+      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved.",
+      "buyerContrast": "Nota: su Pulse acquirente, swipe destra = Acquista. Qui (reseller) = metti in vetrina."
     },
     "listingBuilder": {
       "referencePriceLabel": "Reference price (base SKU)",

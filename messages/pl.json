@@ -1521,7 +1521,7 @@
     "emptyBody": "Twórcy publikują klipy. Przejdź do katalogu, gdy karmazyn się wypełni.",
     "browseCatalog": "Przeglądaj rynki",
     "commerce": {
-      "hint": "↑ Koszyk · ← Następny · → Kup · ↓ Zapisz",
+      "hint": "↑ Koszyk · ← Pomiń · → Kup · ↓ Lista",
       "cart": "Dodaj do koszyka",
       "cartShort": "Koszyk",
       "cartAdded": "Dodano do koszyka",
@@ -1529,12 +1529,12 @@
       "buy": "Kup teraz",
       "buyShort": "Kup",
       "skip": "Następny produkt",
-      "skipShort": "Następny",
+      "skipShort": "Pomiń",
       "saveDrop": "Zapisz produkt — lista życzeń + powiadomienie o cenie",
       "saveDropPushEnabled": "Powiadomienia push włączone przy spadkach cen",
-      "saveDropShort": "Zapisz",
+      "saveDropShort": "Lista",
       "undo": "Produkt wrócił na stos",
-      "undoShort": "Cofnij",
+      "undoShort": "Wróć",
       "rewindOn": "Nowe produkty — tryb rewind włączony",
       "rewindBadge": "Rewind",
       "scrollMode": "Tryb pionowego przewijania",
@@ -1544,7 +1544,20 @@
       "genericError": "Coś poszło nie tak",
       "saveDropRemoved": "Usunięto z ulubionych",
       "buyFailed": "Płatność nieudana — spróbuj ponownie",
-      "outOfStock": "Brak w magazynie"
+      "outOfStock": "Brak w magazynie",
+      "coach": {
+        "eyebrow": "Command brief",
+        "title": "Kupuj na Pulse w 5 gestach",
+        "body": "Każdy przycisk ma jedno zadanie. Naucz się raz — potem swipe.",
+        "padPass": "Pomiń — pomiń ten produkt",
+        "padCart": "Koszyk — dodaj bez wychodzenia z feedu",
+        "padUndo": "Wróć — przywróć ostatni pominięty produkt",
+        "padBuy": "Kup — natychmiastowa płatność",
+        "padWish": "Lista — zapisz + alert ceny",
+        "footnote": "Wskazówka: przeciągaj kartę w tych samych kierunkach.",
+        "cta": "Rozumiem — zaczynam",
+        "dismiss": "Zamknij przewodnik"
+      }
     }
   },
   "merchantAccount": {
@@ -1589,7 +1602,8 @@
       "stepCustomize": "1 Price & title",
       "publishCta": "Publish listing",
       "publishHint": "Goes live after KYC — draft saved if pending",
-      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved."
+      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved.",
+      "buyerContrast": "Uwaga: na Pulse kupującego swipe w prawo = Kup. Tutaj (reseller) = wystaw produkt."
     },
     "listingBuilder": {
       "referencePriceLabel": "Reference price (base SKU)",

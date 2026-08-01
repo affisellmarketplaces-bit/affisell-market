@@ -1521,7 +1521,7 @@
     "emptyBody": "创作者正在上传视频。浏览目录等待内容更新。",
     "browseCatalog": "浏览市场",
     "commerce": {
-      "hint": "↑ 购物车 · ← 下一件 · → 购买 · ↓ 保存",
+      "hint": "↑ 购物车 · ← 跳过 · → 购买 · ↓ 收藏",
       "cart": "添加到购物车",
       "cartShort": "购物车",
       "cartAdded": "已添加到购物车",
@@ -1529,12 +1529,12 @@
       "buy": "立即购买",
       "buyShort": "购买",
       "skip": "下一件商品",
-      "skipShort": "Next",
+      "skipShort": "跳过",
       "saveDrop": "Save Drop — wishlist + price alert",
       "saveDropPushEnabled": "已开启降价推送提醒",
-      "saveDropShort": "Save",
+      "saveDropShort": "收藏",
       "undo": "Product back in stack",
-      "undoShort": "Undo",
+      "undoShort": "撤回",
       "rewindOn": "New arrivals done — Rewind mode on",
       "rewindBadge": "Rewind",
       "scrollMode": "Vertical scroll mode",
@@ -1544,7 +1544,20 @@
       "genericError": "出现错误",
       "saveDropRemoved": "已从心愿单移除",
       "buyFailed": "结账失败 — 请重试",
-      "outOfStock": "缺货"
+      "outOfStock": "缺货",
+      "coach": {
+        "eyebrow": "操作简报",
+        "title": "用 5 个手势玩转 Pulse",
+        "body": "每个按钮只做一件事。学一次，之后就能高速滑动购买。",
+        "padPass": "跳过 — 略过此商品",
+        "padCart": "购物车 — 加入购物车不离开信息流",
+        "padUndo": "撤回 — 恢复上一张跳过的商品",
+        "padBuy": "购买 — 立即结账",
+        "padWish": "收藏 — 保存并开启降价提醒",
+        "footnote": "提示：卡片滑动方向与底部按钮一致。",
+        "cta": "明白了 — 开始滑动",
+        "dismiss": "关闭指南"
+      }
     }
   },
   "merchantAccount": {
@@ -1589,7 +1602,8 @@
       "stepCustomize": "1 Price & title",
       "publishCta": "Publish listing",
       "publishHint": "Goes live after KYC — draft saved if pending",
-      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved."
+      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved.",
+      "buyerContrast": "注意：买家 Pulse 右滑 = 购买。此处（分销）右滑 = 上架商品。"
     },
     "listingBuilder": {
       "referencePriceLabel": "Reference price (base SKU)",

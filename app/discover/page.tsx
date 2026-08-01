@@ -42,6 +42,7 @@ type PageProps = {
     subcategory?: string
     layout?: string
     e2eFixtures?: string
+    coach?: string
   }>
 }
 
@@ -139,6 +140,8 @@ export default async function DiscoverPage({ searchParams }: PageProps) {
       subcategoryId={subcategoryId}
       categoryLabel={categoryLabel}
       initialPersonalizedPicks={personalizedPicks}
+      forceCoach={sp.coach === "1"}
+      suppressCoach={useE2eFixtures || sp.coach === "0"}
     />
   )
 }

@@ -1521,7 +1521,7 @@
     "emptyBody": "Los creadores están subiendo clips. Explora el catálogo mientras se llena la alimentación.",
     "browseCatalog": "Explora el mercado",
     "commerce": {
-      "hint": "↑ Carrito · ← Siguiente · → Comprar · ↓ Guardar Drop",
+      "hint": "↑ Carrito · ← Pasar · → Comprar · ↓ Deseos",
       "cart": "Agregar al carrito",
       "cartShort": "Carrito",
       "cartAdded": "Agregado al carrito",
@@ -1529,12 +1529,12 @@
       "buy": "Comprar ahora",
       "buyShort": "Comprar",
       "skip": "Siguiente producto",
-      "skipShort": "Siguiente",
+      "skipShort": "Pasar",
       "saveDrop": "Guardar Drop — lista de deseos + alerta de precio",
       "saveDropPushEnabled": "Alertas push activadas para bajadas de precio",
-      "saveDropShort": "Guardar",
+      "saveDropShort": "Deseos",
       "undo": "Producto de nuevo en la pila",
-      "undoShort": "Deshacer",
+      "undoShort": "Volver",
       "rewindOn": "Llegaron nuevos productos — Modo de retroceso activado",
       "rewindBadge": "Retroceso",
       "scrollMode": "Modo de desplazamiento vertical",
@@ -1544,7 +1544,20 @@
       "genericError": "Algo salió mal",
       "saveDropRemoved": "Eliminado de favoritos",
       "buyFailed": "Pago fallido — inténtalo de nuevo",
-      "outOfStock": "Agotado"
+      "outOfStock": "Agotado",
+      "coach": {
+        "eyebrow": "Brief de mando",
+        "title": "Compra en Pulse con 5 gestos",
+        "body": "Cada botón hace una sola cosa. Aprende una vez — luego desliza.",
+        "padPass": "Pasar — saltar este producto",
+        "padCart": "Carrito — añadir sin salir del feed",
+        "padUndo": "Volver — restaurar el último producto saltado",
+        "padBuy": "Comprar — checkout inmediato",
+        "padWish": "Deseos — guardar + alerta de precio",
+        "footnote": "Consejo: desliza la tarjeta en las mismas direcciones.",
+        "cta": "Entendido — empezar",
+        "dismiss": "Cerrar guía"
+      }
     }
   },
   "merchantAccount": {
@@ -1589,7 +1602,8 @@
       "stepCustomize": "1 Price & title",
       "publishCta": "Publish listing",
       "publishHint": "Goes live after KYC — draft saved if pending",
-      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved."
+      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved.",
+      "buyerContrast": "Nota: en Pulse comprador, swipe derecha = Comprar. Aquí (reseller) = listar el producto."
     },
     "listingBuilder": {
       "referencePriceLabel": "Reference price (base SKU)",

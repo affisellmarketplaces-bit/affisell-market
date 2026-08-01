@@ -1775,7 +1775,7 @@
     "emptyBody": "Les revendeurs publient leurs clips. Explorez le catalogue en attendant.",
     "browseCatalog": "Voir le marketplace",
     "commerce": {
-      "hint": "↑ Panier · ← Suivant · → Acheter · ↓ Sauvegarder",
+      "hint": "↑ Panier · ← Passer · → Acheter · ↓ Favoris",
       "cart": "Ajouter au panier",
       "cartShort": "Panier",
       "cartAdded": "Ajouté au panier",
@@ -1783,13 +1783,13 @@
       "buy": "Acheter maintenant",
       "buyShort": "Acheter",
       "skip": "Produit suivant",
-      "skipShort": "Suivant",
+      "skipShort": "Passer",
       "saveDrop": "Sauvegarder — favoris + alerte prix",
       "saveDropPushEnabled": "Alertes push activées pour les baisses de prix",
       "saveDropLoginForPush": "Connectez-vous pour recevoir les alertes prix sur ce produit",
-      "saveDropShort": "Garder",
+      "saveDropShort": "Favoris",
       "undo": "Produit remis dans la pile",
-      "undoShort": "Annuler",
+      "undoShort": "Retour",
       "rewindOn": "Nouveautés terminées — mode Rewind activé",
       "rewindBadge": "Relance",
       "scrollMode": "Mode défilement vertical",
@@ -1800,7 +1800,20 @@
       "viewDetails": "Voir la fiche produit",
       "saveDropRemoved": "Retiré des favoris",
       "buyFailed": "Paiement impossible — réessayez",
-      "outOfStock": "Rupture de stock"
+      "outOfStock": "Rupture de stock",
+      "coach": {
+        "eyebrow": "Brief de commande",
+        "title": "Achetez sur Pulse en 5 gestes",
+        "body": "Chaque pad a un seul job. Apprenez une fois — puis swiper à vitesse commerce.",
+        "padPass": "Passer — ignorer ce produit (suivant dans la pile)",
+        "padCart": "Panier — ajouter sans quitter le feed",
+        "padUndo": "Retour — remettre le dernier produit passé",
+        "padBuy": "Acheter — paiement immédiat pour ce produit",
+        "padWish": "Favoris — sauvegarder + alerte baisse de prix",
+        "footnote": "Astuce : swiper la carte dans les mêmes directions que les pads.",
+        "cta": "Compris — je swipe",
+        "dismiss": "Fermer le guide"
+      }
     }
   },
   "merchantAccount": {
@@ -1859,7 +1872,8 @@
       "stepCustomize": "1 Prix & titre",
       "publishCta": "Publier la fiche",
       "publishHint": "Live après KYC — brouillon si en attente",
-      "kycDraftSaved": "KYC en cours — brouillon enregistré. Publiez depuis le dashboard une fois validé."
+      "kycDraftSaved": "KYC en cours — brouillon enregistré. Publiez depuis le dashboard une fois validé.",
+      "buyerContrast": "Note : sur Pulse acheteur, swipe droite = Acheter. Ici (revendeur), swipe droite = mettre en fiche."
     },
     "listingBuilder": {
       "referencePriceLabel": "Prix de référence (SKU de base)",

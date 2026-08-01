@@ -41,6 +41,9 @@ export function AffiliateFirstListingCoachBanner({ className }: Props) {
             <li>{t("stepPrice")}</li>
             <li>{t("stepPublish")}</li>
           </ol>
+          <p className="mt-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 px-2.5 py-2 text-[11px] leading-snug text-cyan-900/80 dark:text-cyan-100/80">
+            {t("buyerContrast")}
+          </p>
         </div>
       </div>
     </section>

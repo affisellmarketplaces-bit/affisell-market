@@ -212,6 +212,9 @@ export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }:
     >
       <div className="pulse-hud-deck__rim" aria-hidden />
       <div className="pulse-hud-deck__channel relative">
+        <p className="mb-1 px-1 text-center text-[9px] font-medium uppercase tracking-[0.16em] text-cyan-200/40 sm:mb-1.5 sm:text-[10px] sm:tracking-[0.22em]">
+          {t("hint")}
+        </p>
         <div className="relative mx-auto lg:hidden">
           <div className="pulse-command-deck__grid pulse-hud-deck__grid grid grid-cols-[0.88fr_0.92fr_0.82fr_1.28fr_0.92fr] items-end gap-1 sm:gap-1.5">
             {/* clone with mobile layout */}
@@ -267,9 +270,6 @@ export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }:
           </div>
         </div>
 
-        <p className="mb-2 hidden text-center text-[10px] font-medium uppercase tracking-[0.28em] text-cyan-100/40 lg:block">
-          {t("hint")}
-        </p>
         <div className="pulse-command-deck__grid pulse-hud-deck__grid hidden grid-cols-[0.9fr_1fr_0.85fr_1.35fr_1fr] items-end gap-2 lg:grid">
           {pads}
         </div>

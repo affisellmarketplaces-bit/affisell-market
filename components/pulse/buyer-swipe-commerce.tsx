@@ -13,6 +13,10 @@ import {
   type BuyerSwipeCardHandle,
   type BuyerSwipeDirection,
 } from "@/components/pulse/buyer-swipe-card"
+import {
+  PulseCommandBrief,
+  usePulseCommandBriefGate,
+} from "@/components/pulse/pulse-command-brief"
 import { SwipeCommerceDock } from "@/components/pulse/swipe-commerce-dock"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { PulseHeaderCartLink } from "@/components/pulse/pulse-header-cart-link"
@@ -70,6 +74,10 @@ type Props = {
   subcategoryId?: string | null
   categoryLabel?: string | null
   initialPersonalizedPicks?: BuyerPersonalizedPicksPayload
+  /** Force Command Brief (?coach=1). */
+  forceCoach?: boolean
+  /** Skip coach (e2e fixtures / ?coach=0). */
+  suppressCoach?: boolean
 }
 
 export function BuyerSwipeCommerce({
@@ -78,6 +86,8 @@ export function BuyerSwipeCommerce({
   subcategoryId = null,
   categoryLabel = null,
   initialPersonalizedPicks,
+  forceCoach = false,
+  suppressCoach = false,
 }: Props) {
   const t = useTranslations("pulse.commerce")
   const tPulse = useTranslations("pulse")
@@ -85,6 +95,13 @@ export function BuyerSwipeCommerce({
   const { push: navigate, replace, prefetch, mounted } = useSafeAppRouter()
   const searchParams = useSearchParams()
   const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
+  const coach = usePulseCommandBriefGate({
+    force: forceCoach || searchParams.get("coach") === "1",
+    suppress:
+      suppressCoach ||
+      searchParams.get("coach") === "0" ||
+      searchParams.get("e2eFixtures") === "1",
+  })
 
   const [deck, setDeck] = useState<PulseFeedItem[]>(() =>
     initialItems.filter((i) => i.mediaUrl && i.listingId)
@@ -601,7 +618,8 @@ export function BuyerSwipeCommerce({
         </div>
       ) : null}
 
-      <div className="affisell-swipe-body flex min-h-0 flex-1 flex-col overflow-hidden lg:mx-auto lg:w-full lg:max-w-7xl lg:px-6">
+      <div className="affisell-swipe-body relative flex min-h-0 flex-1 flex-col overflow-hidden lg:mx-auto lg:w-full lg:max-w-7xl lg:px-6">
+        <PulseCommandBrief open={coach.open} onDismiss={coach.dismiss} />
         <div className="affisell-swipe-desktop-grid flex min-h-0 flex-1 flex-col overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] lg:items-stretch lg:gap-8">
       <main className="affisell-swipe-stage relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-2 pb-0 sm:px-3 sm:pb-1 lg:min-h-0 lg:px-0">
         <div className="affisell-swipe-card-well pulse-card-well relative mx-auto min-h-0 w-full max-w-[380px] flex-1 lg:max-h-[min(72vh,720px)] lg:max-w-none">

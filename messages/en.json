@@ -1775,7 +1775,7 @@
     "emptyBody": "Resellers are uploading clips. Explore the catalog while the feed fills.",
     "browseCatalog": "Browse marketplace",
     "commerce": {
-      "hint": "↑ Cart · ← Next · → Buy · ↓ Save Drop",
+      "hint": "↑ Cart · ← Pass · → Buy · ↓ Wish",
       "cart": "Add to cart",
       "cartShort": "Cart",
       "cartAdded": "Added to cart",
@@ -1783,13 +1783,13 @@
       "buy": "Buy now",
       "buyShort": "Buy",
       "skip": "Next product",
-      "skipShort": "Next",
+      "skipShort": "Pass",
       "saveDrop": "Save Drop — wishlist + price alert",
       "saveDropPushEnabled": "Push alerts enabled for price drops",
       "saveDropLoginForPush": "Sign in to get price-drop alerts on this product",
-      "saveDropShort": "Save",
+      "saveDropShort": "Wish",
       "undo": "Product back in stack",
-      "undoShort": "Undo",
+      "undoShort": "Back",
       "rewindOn": "New arrivals done — Rewind mode on",
       "rewindBadge": "Rewind",
       "scrollMode": "Vertical scroll mode",
@@ -1800,7 +1800,20 @@
       "viewDetails": "View product details",
       "saveDropRemoved": "Removed from wishlist",
       "buyFailed": "Checkout failed — try again",
-      "outOfStock": "Out of stock"
+      "outOfStock": "Out of stock",
+      "coach": {
+        "eyebrow": "Command brief",
+        "title": "Shop Affisell Pulse in 5 gestures",
+        "body": "Each pad does one job. Learn once — then shop at swipe speed.",
+        "padPass": "Pass — skip this product (next in the deck)",
+        "padCart": "Cart — add without leaving the feed",
+        "padUndo": "Back — restore the last skipped product",
+        "padBuy": "Buy — instant checkout for this product",
+        "padWish": "Wish — save + price-drop alert",
+        "footnote": "Tip: swipe the card the same directions as the pads.",
+        "cta": "Got it — start swiping",
+        "dismiss": "Close guide"
+      }
     }
   },
   "merchantAccount": {
@@ -1859,7 +1872,8 @@
       "stepCustomize": "1 Price & title",
       "publishCta": "Publish listing",
       "publishHint": "Goes live after KYC — draft saved if pending",
-      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved."
+      "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved.",
+      "buyerContrast": "Note: on buyer Pulse, swipe right = Buy. Here (reseller), swipe right = list the product."
     },
     "listingBuilder": {
       "referencePriceLabel": "Reference price (base SKU)",
