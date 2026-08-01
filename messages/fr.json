@@ -816,7 +816,8 @@
       "identifyFailed": "Impossible de continuer. Réessayez.",
       "signInFailed": "Connexion impossible après identification.",
       "networkError": "Réseau indisponible. Réessayez."
-    }
+    },
+    "tryPulse": "Essayer Affisell Pulse"
   },
   "buyerAccount": {
     "navAria": "Espace client",
@@ -917,7 +918,9 @@
       "beauty": "Beauté",
       "home": "Maison",
       "lifestyle": "Lifestyle"
-    }
+    },
+    "tryPulse": "Acheter avec Pulse",
+    "tryPulseHint": "5 gestes — swipez pour acheter"
   },
   "supplier": {
     "form": {
@@ -1306,7 +1309,50 @@
     "swipeFeed": {
       "feedLoadFailed": "Impossible de charger le feed",
       "serviceUnavailable": "Service temporairement indisponible — réessayez dans un instant.",
-      "genericError": "Une erreur est survenue"
+      "genericError": "Une erreur est survenue",
+      "emptyTitle": "Plus de cartes",
+      "emptyFeedDown": "Feed indisponible",
+      "emptyBody": "Tous les produits disponibles sont listés ou passés. Essayez le catalogue ou réinitialisez les filtres.",
+      "reload": "Recharger",
+      "catalog": "Catalogue",
+      "gestureHint": "← Passer · → Éditer & publier · Annuler",
+      "rewindHint": "Mode Rewind — gauche restaure les SKU passés",
+      "pass": "Passer",
+      "undo": "Annuler",
+      "editPublish": "Éditer & publier",
+      "launchTitle": "Lancer le Swipe Feed",
+      "rewindOn": "Nouveaux SKU terminés — mode Rewind activé",
+      "filters": "Filtres",
+      "rewindModeBody": "Mode Rewind · vos SKUs passés reviennent pour une seconde chance",
+      "launchEyebrow": "Mode immersif",
+      "launchBody": "Découvrez des produits en un geste. Swipez à droite pour ouvrir le studio (marge, titre, SEO) avant publication en vitrine.",
+      "launchStack": "Stack de 3 cartes · Undo · Filtres commission",
+      "tipRight": "Swipe →",
+      "tipRightDesc": "Studio marge + vitrine",
+      "tipLeft": "Swipe ←",
+      "tipLeftDesc": "Masque le SKU",
+      "tipUndo": "Undo",
+      "tipUndoDesc": "Annule le dernier",
+      "networkError": "Erreur réseau",
+      "restoredToDeck": "Produit remis dans la pile",
+      "publishedToast": "✓ {name} publié en vitrine",
+      "listedPendingSync": "Listé — sync swipe en attente",
+      "undoDone": "Action annulée",
+      "undoFailed": "Impossible d'annuler",
+      "classicCatalog": "Catalogue classique",
+      "hubBadge": "Nouveau — Hub affilié",
+      "coach": {
+        "eyebrow": "Swipe affilié",
+        "title": "Listez en 3 gestes",
+        "body": "Droite = studio marge & publier. Gauche = passer. Undo = annuler. Filtres pour commission & niche.",
+        "cta": "Compris — je liste",
+        "dismiss": "Fermer le guide",
+        "contrast": "Note : chez l'acheteur, droite = Acheter. Ici, droite = mettre en fiche."
+      },
+      "backHub": "Hub",
+      "listedCount": "{count} listés",
+      "skippedCount": "{count} passés",
+      "rewindLabel": "Rewind"
     },
     "referral": {
       "metaTitle": "Parrainage — Affisell",
@@ -1703,7 +1749,9 @@
       "listingCount": "{count, plural, one {# annonce} other {# annonces}}",
       "listingCountForQuery": " pour « {query} »",
       "dbEmptyTitle": "Base de données temporairement indisponible",
-      "dbDevHint": "En local : lancez npm run db:local:setup et définissez DATABASE_URL dans .env.local sur postgresql://affisell:affisell@localhost:5433/affisell"
+      "dbDevHint": "En local : lancez npm run db:local:setup et définissez DATABASE_URL dans .env.local sur postgresql://affisell:affisell@localhost:5433/affisell",
+      "tryPulse": "Acheter avec Pulse",
+      "tryPulseHint": "5 gestes — swipez pour acheter"
     },
     "mobileHub": {
       "title": "Hub Affisell",
@@ -1814,6 +1862,14 @@
         "cta": "Compris — je swipe",
         "dismiss": "Fermer le guide"
       }
+    },
+    "scrollCoach": {
+      "eyebrow": "Mode scroll",
+      "title": "Pulse vertical — achetez comme des stories",
+      "body": "Glissez vers le haut pour le clip suivant. Achetez ou panier sur le produit. Préférez les pads ? Passez en mode swipe.",
+      "cta": "Compris",
+      "dismiss": "Fermer",
+      "openSwipe": "Ouvrir le mode swipe avec guide"
     }
   },
   "merchantAccount": {
@@ -1873,7 +1929,9 @@
       "publishCta": "Publier la fiche",
       "publishHint": "Live après KYC — brouillon si en attente",
       "kycDraftSaved": "KYC en cours — brouillon enregistré. Publiez depuis le dashboard une fois validé.",
-      "buyerContrast": "Note : sur Pulse acheteur, swipe droite = Acheter. Ici (revendeur), swipe droite = mettre en fiche."
+      "buyerContrast": "Note : sur Pulse acheteur, swipe droite = Acheter. Ici (revendeur), swipe droite = mettre en fiche.",
+      "dismiss": "Masquer",
+      "ctaGotIt": "C'est parti"
     },
     "listingBuilder": {
       "referencePriceLabel": "Prix de référence (SKU de base)",
@@ -3674,7 +3732,17 @@
     "metaDescription": "Conseiller shopping IA pour les acheteurs — découvrez et comparez les produits du marketplace.",
     "eyebrow": "Acheteur",
     "heroTitle": "Trouvez. Comparez. Achetez.",
-    "heroSub": "Votre conseiller shopping IA — recherche dans le marketplace en temps réel"
+    "heroSub": "Votre conseiller shopping IA — recherche dans le marketplace en temps réel",
+    "coach": {
+      "eyebrow": "Agent shopping",
+      "title": "Demandez comme un pro",
+      "body": "Décrivez le besoin, le budget et le pays de livraison. Essayez une invite ci-dessous.",
+      "cta": "Commencer",
+      "dismiss": "Fermer",
+      "p1": "Trouve-moi un cadeau < 50 € livré en France",
+      "p2": "Compare deux produits maison tendances",
+      "p3": "Que dois-je acheter pour un petit appartement ?"
+    }
   },
   "marketplacePulse": {
     "hint": "Filtrez par rayon ou domaine, explorez les tendances, puis publiez chaque SKU sur votre boutique vitrine en un clic."

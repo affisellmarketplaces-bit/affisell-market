@@ -73,7 +73,7 @@ export const DEMO_JOURNEY_STEPS: Record<DemoPersonaKey, DemoJourneyStep[]> = {
       id: "browse",
       titleKey: "steps.buyer.browse.title",
       bodyKey: "steps.buyer.browse.body",
-      href: "/marketplace",
+      href: "/discover?coach=1",
     },
     {
       id: "shop",

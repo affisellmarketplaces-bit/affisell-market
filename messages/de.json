@@ -672,7 +672,8 @@
       "identifyFailed": "Konnte nicht fortfahren. Versuchen Sie es erneut.",
       "signInFailed": "Anmeldung nach Identifizierung fehlgeschlagen.",
       "networkError": "Netzwerk nicht verfügbar. Versuchen Sie es erneut."
-    }
+    },
+    "tryPulse": "Affisell Pulse ausprobieren"
   },
   "buyerAccount": {
     "navAria": "Kundenbereich",
@@ -773,7 +774,9 @@
       "beauty": "Schönheit",
       "home": "Zuhause",
       "lifestyle": "Lebensstil"
-    }
+    },
+    "tryPulse": "Mit Pulse shoppen",
+    "tryPulseHint": "5 Gesten — swipen zum Kaufen"
   },
   "supplier": {
     "form": {
@@ -1140,7 +1143,50 @@
     "swipeFeed": {
       "feedLoadFailed": "Konnte den Feed nicht laden",
       "serviceUnavailable": "Service ist vorübergehend nicht verfügbar — versuchen Sie es in einem Moment noch einmal.",
-      "genericError": "Etwas ist schiefgelaufen"
+      "genericError": "Etwas ist schiefgelaufen",
+      "emptyTitle": "No more cards",
+      "emptyFeedDown": "Feed unavailable",
+      "emptyBody": "All available products are listed or passed. Try the catalog or reset filters.",
+      "reload": "Reload",
+      "catalog": "Catalog",
+      "gestureHint": "← Pass · → Edit & publish · Undo",
+      "rewindHint": "Rewind mode — left restores skipped SKUs",
+      "pass": "Pass",
+      "undo": "Undo",
+      "editPublish": "Edit & publish",
+      "launchTitle": "Launch Swipe Feed",
+      "rewindOn": "New SKUs done — Rewind mode on",
+      "filters": "Filters",
+      "rewindModeBody": "Rewind mode — skipped SKUs come back for a second chance",
+      "launchEyebrow": "Immersive mode",
+      "launchBody": "Discover products in one gesture. Swipe right to open the studio (margin, title, SEO) before publishing.",
+      "launchStack": "3-card stack · Undo · Commission filters",
+      "tipRight": "Swipe →",
+      "tipRightDesc": "Margin studio + storefront",
+      "tipLeft": "Swipe ←",
+      "tipLeftDesc": "Hide the SKU",
+      "tipUndo": "Undo",
+      "tipUndoDesc": "Undo last action",
+      "networkError": "Network error",
+      "restoredToDeck": "Product back in the stack",
+      "publishedToast": "✓ {name} live on storefront",
+      "listedPendingSync": "Listed — swipe sync pending",
+      "undoDone": "Action undone",
+      "undoFailed": "Could not undo",
+      "classicCatalog": "Classic catalog",
+      "hubBadge": "New — Affiliate hub",
+      "coach": {
+        "eyebrow": "Affiliate swipe",
+        "title": "List in 3 gestures",
+        "body": "Right = margin studio & publish. Left = pass. Undo = reverse. Filters for commission & niche.",
+        "cta": "Got it — start listing",
+        "dismiss": "Close guide",
+        "contrast": "Note: for buyers, right = Buy. Here, right = list on storefront."
+      },
+      "backHub": "Hub",
+      "listedCount": "{count} listed",
+      "skippedCount": "{count} passed",
+      "rewindLabel": "Rewind"
     },
     "earnings": {
       "taxCompliance": {
@@ -1449,7 +1495,9 @@
       "listingCount": "{count, plural, one {# Anzeige} other {# Anzeigen}}",
       "listingCountForQuery": " für « {query} »",
       "dbEmptyTitle": "Datenbank vorübergehend nicht verfügbar",
-      "dbDevHint": "Lokale Entwicklung: Führen Sie npm run db:local:setup aus und setzen Sie DATABASE_URL in .env.local auf postgresql://affisell:affisell@localhost:5433/affisell"
+      "dbDevHint": "Lokale Entwicklung: Führen Sie npm run db:local:setup aus und setzen Sie DATABASE_URL in .env.local auf postgresql://affisell:affisell@localhost:5433/affisell",
+      "tryPulse": "Mit Pulse shoppen",
+      "tryPulseHint": "5 Gesten — swipen zum Kaufen"
     },
     "mobileHub": {
       "title": "Affisell Hub",
@@ -1558,6 +1606,14 @@
         "cta": "Verstanden — los swipen",
         "dismiss": "Guide schließen"
       }
+    },
+    "scrollCoach": {
+      "eyebrow": "Scroll-Modus",
+      "title": "Vertikales Pulse — shoppen wie Stories",
+      "body": "Nach oben für den nächsten Clip. Kaufen oder Warenkorb am Produkt. Lieber Pads? Zum Swipe-Modus.",
+      "cta": "Verstanden",
+      "dismiss": "Schließen",
+      "openSwipe": "Swipe-Modus mit Guide öffnen"
     }
   },
   "merchantAccount": {
@@ -1603,7 +1659,9 @@
       "publishCta": "Publish listing",
       "publishHint": "Goes live after KYC — draft saved if pending",
       "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved.",
-      "buyerContrast": "Hinweis: Im Käufer-Pulse bedeutet Rechts-Swipe = Kaufen. Hier (Reseller) = Produkt listen."
+      "buyerContrast": "Hinweis: Im Käufer-Pulse bedeutet Rechts-Swipe = Kaufen. Hier (Reseller) = Produkt listen.",
+      "dismiss": "Dismiss",
+      "ctaGotIt": "Let's go"
     },
     "listingBuilder": {
       "referencePriceLabel": "Reference price (base SKU)",
@@ -3335,7 +3393,17 @@
     "metaDescription": "KI-Einkaufsberater für Käufer — entdecken und vergleichen Sie Marktplatzprodukte.",
     "eyebrow": "Käufer",
     "heroTitle": "Finden. Vergleichen. Kaufen.",
-    "heroSub": "Ihr KI-Einkaufsberater — durchsuchen Sie den Live-Marktplatz in Echtzeit"
+    "heroSub": "Ihr KI-Einkaufsberater — durchsuchen Sie den Live-Marktplatz in Echtzeit",
+    "coach": {
+      "eyebrow": "Shopping agent",
+      "title": "Ask like a pro",
+      "body": "Describe need, budget, and delivery country. Try a starter prompt below.",
+      "cta": "Start chatting",
+      "dismiss": "Close",
+      "p1": "Find me a gift under €50 delivered in France",
+      "p2": "Compare two trending home products",
+      "p3": "What should I buy for a small apartment?"
+    }
   },
   "marketplacePulse": {
     "hint": "Filter nach Abteilung oder Nische, Trends erkunden, dann jede SKU in einem Klick auf dein Storefront veröffentlichen."

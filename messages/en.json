@@ -816,7 +816,8 @@
       "identifyFailed": "Could not continue. Try again.",
       "signInFailed": "Sign-in failed after identification.",
       "networkError": "Network unavailable. Try again."
-    }
+    },
+    "tryPulse": "Try Affisell Pulse"
   },
   "buyerAccount": {
     "navAria": "Customer area",
@@ -917,7 +918,9 @@
       "beauty": "Beauty",
       "home": "Home",
       "lifestyle": "Lifestyle"
-    }
+    },
+    "tryPulse": "Shop with Pulse",
+    "tryPulseHint": "5 gestures — swipe to buy"
   },
   "supplier": {
     "form": {
@@ -1306,7 +1309,50 @@
     "swipeFeed": {
       "feedLoadFailed": "Could not load the feed",
       "serviceUnavailable": "Service temporarily unavailable — try again in a moment.",
-      "genericError": "Something went wrong"
+      "genericError": "Something went wrong",
+      "emptyTitle": "No more cards",
+      "emptyFeedDown": "Feed unavailable",
+      "emptyBody": "All available products are listed or passed. Try the catalog or reset filters.",
+      "reload": "Reload",
+      "catalog": "Catalog",
+      "gestureHint": "← Pass · → Edit & publish · Undo",
+      "rewindHint": "Rewind mode — left restores skipped SKUs",
+      "pass": "Pass",
+      "undo": "Undo",
+      "editPublish": "Edit & publish",
+      "launchTitle": "Launch Swipe Feed",
+      "rewindOn": "New SKUs done — Rewind mode on",
+      "filters": "Filters",
+      "rewindModeBody": "Rewind mode — skipped SKUs come back for a second chance",
+      "launchEyebrow": "Immersive mode",
+      "launchBody": "Discover products in one gesture. Swipe right to open the studio (margin, title, SEO) before publishing.",
+      "launchStack": "3-card stack · Undo · Commission filters",
+      "tipRight": "Swipe →",
+      "tipRightDesc": "Margin studio + storefront",
+      "tipLeft": "Swipe ←",
+      "tipLeftDesc": "Hide the SKU",
+      "tipUndo": "Undo",
+      "tipUndoDesc": "Undo last action",
+      "networkError": "Network error",
+      "restoredToDeck": "Product back in the stack",
+      "publishedToast": "✓ {name} live on storefront",
+      "listedPendingSync": "Listed — swipe sync pending",
+      "undoDone": "Action undone",
+      "undoFailed": "Could not undo",
+      "classicCatalog": "Classic catalog",
+      "hubBadge": "New — Affiliate hub",
+      "coach": {
+        "eyebrow": "Affiliate swipe",
+        "title": "List in 3 gestures",
+        "body": "Right = margin studio & publish. Left = pass. Undo = reverse. Filters for commission & niche.",
+        "cta": "Got it — start listing",
+        "dismiss": "Close guide",
+        "contrast": "Note: for buyers, right = Buy. Here, right = list on storefront."
+      },
+      "backHub": "Hub",
+      "listedCount": "{count} listed",
+      "skippedCount": "{count} passed",
+      "rewindLabel": "Rewind"
     },
     "referral": {
       "metaTitle": "Referrals — Affisell",
@@ -1703,7 +1749,9 @@
       "listingCount": "{count, plural, one {# listing} other {# listings}}",
       "listingCountForQuery": " for « {query} »",
       "dbEmptyTitle": "Database temporarily unavailable",
-      "dbDevHint": "Local dev: run npm run db:local:setup and set DATABASE_URL in .env.local to postgresql://affisell:affisell@localhost:5433/affisell"
+      "dbDevHint": "Local dev: run npm run db:local:setup and set DATABASE_URL in .env.local to postgresql://affisell:affisell@localhost:5433/affisell",
+      "tryPulse": "Shop with Pulse",
+      "tryPulseHint": "5 gestures — swipe to buy"
     },
     "mobileHub": {
       "title": "Affisell Hub",
@@ -1814,6 +1862,14 @@
         "cta": "Got it — start swiping",
         "dismiss": "Close guide"
       }
+    },
+    "scrollCoach": {
+      "eyebrow": "Scroll mode",
+      "title": "Vertical Pulse — shop like stories",
+      "body": "Swipe up for the next clip. Tap buy or cart on the product. Prefer pads? Switch to swipe mode.",
+      "cta": "Got it",
+      "dismiss": "Close",
+      "openSwipe": "Open swipe mode with guide"
     }
   },
   "merchantAccount": {
@@ -1873,7 +1929,9 @@
       "publishCta": "Publish listing",
       "publishHint": "Goes live after KYC — draft saved if pending",
       "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved.",
-      "buyerContrast": "Note: on buyer Pulse, swipe right = Buy. Here (reseller), swipe right = list the product."
+      "buyerContrast": "Note: on buyer Pulse, swipe right = Buy. Here (reseller), swipe right = list the product.",
+      "dismiss": "Dismiss",
+      "ctaGotIt": "Let's go"
     },
     "listingBuilder": {
       "referencePriceLabel": "Reference price (base SKU)",
@@ -3674,7 +3732,17 @@
     "metaDescription": "AI shopping advisor for buyers — discover and compare marketplace products.",
     "eyebrow": "Buyer",
     "heroTitle": "Find. Compare. Buy.",
-    "heroSub": "Your AI shopping advisor — search the live marketplace in real time"
+    "heroSub": "Your AI shopping advisor — search the live marketplace in real time",
+    "coach": {
+      "eyebrow": "Shopping agent",
+      "title": "Ask like a pro",
+      "body": "Describe need, budget, and delivery country. Try a starter prompt below.",
+      "cta": "Start chatting",
+      "dismiss": "Close",
+      "p1": "Find me a gift under €50 delivered in France",
+      "p2": "Compare two trending home products",
+      "p3": "What should I buy for a small apartment?"
+    }
   },
   "marketplacePulse": {
     "hint": "Filter by department or niche, explore trends, then publish each SKU to your storefront in one click."

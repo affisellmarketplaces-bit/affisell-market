@@ -239,13 +239,22 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
         <div className="rounded-3xl border border-dashed border-zinc-300 bg-zinc-50/80 px-6 py-16 text-center dark:border-zinc-700 dark:bg-zinc-900/40">
           <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{t("emptyTitle")}</p>
           <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">{t("emptyBody")}</p>
-          <Link
-            href={PUBLIC_MARKETPLACE_BROWSE_PATH}
-            className="mt-6 inline-flex items-center gap-2 rounded-2xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-violet-700"
-          >
-            {t("viewAllProducts")}
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/discover?coach=1"
+              className="inline-flex items-center gap-2 rounded-2xl bg-cyan-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-cyan-700"
+            >
+              <Sparkles className="h-4 w-4" aria-hidden />
+              {t("tryPulse")}
+            </Link>
+            <Link
+              href={PUBLIC_MARKETPLACE_BROWSE_PATH}
+              className="inline-flex items-center gap-2 rounded-2xl border border-zinc-300 bg-white px-5 py-2.5 text-sm font-semibold text-zinc-800 shadow-sm hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+            >
+              {t("viewAllProducts")}
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
         </div>
       ) : (
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">

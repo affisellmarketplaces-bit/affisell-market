@@ -83,7 +83,7 @@ export function MobileBuyerHub() {
         cardClass: BUYER_TILE_ACCENTS.agent.card,
       },
       {
-        href: "/discover",
+        href: "/discover?coach=1",
         label: t("discover"),
         hint: t("discoverMarketHint"),
         Icon: Sparkles,
@@ -204,7 +204,7 @@ export function MobileBuyerHub() {
             activeTab === "categories" ? (
               <div role="tabpanel">
                 <FastLink
-                  href="/discover"
+                  href="/discover?coach=1"
                   onClick={closeHub}
                   className="mb-4 flex items-center gap-3 rounded-2xl border border-violet-500/30 bg-gradient-to-r from-violet-600/90 via-fuchsia-600/85 to-violet-700/90 p-3 shadow-lg shadow-violet-900/40 transition active:scale-[0.98]"
                 >

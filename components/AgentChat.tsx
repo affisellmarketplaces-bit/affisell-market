@@ -11,6 +11,7 @@ import {
   AgentToolSearchProductsPart,
   type SearchProductsToolPart,
 } from "@/components/agent-tool-search-products"
+import { AgentCommandBrief } from "@/components/agent/agent-command-brief"
 import type { AgentHistoryApiResponse } from "@/lib/agent-history"
 import type { AgentSearchToolResult } from "@/lib/agent-product-card-types"
 import { getOrCreateAgentSessionId } from "@/lib/agent-session"
@@ -300,6 +301,7 @@ export function AgentChat() {
           />
         </div>
         <div className="relative z-10 flex h-full flex-col bg-black/40 backdrop-blur-3xl">
+          <AgentCommandBrief onPickPrompt={(prompt) => setInput(prompt)} />
           {paymentSuccess ? (
             <div className="m-4 rounded-xl border border-emerald-400/40 bg-emerald-900/30 px-3 py-2 text-sm font-medium text-emerald-200">
               ✅ Commande confirmée!

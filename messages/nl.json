@@ -672,7 +672,8 @@
       "identifyFailed": "Kan niet doorgaan. Probeer opnieuw.",
       "signInFailed": "Inloggen mislukt na identificatie.",
       "networkError": "Netwerk onbereikbaar. Probeer opnieuw."
-    }
+    },
+    "tryPulse": "Probeer Affisell Pulse"
   },
   "buyerAccount": {
     "navAria": "Klantgebied",
@@ -773,7 +774,9 @@
       "beauty": "Schoonheid",
       "home": "Thuis",
       "lifestyle": "Levensstijl"
-    }
+    },
+    "tryPulse": "Shoppen met Pulse",
+    "tryPulseHint": "5 gebaren — swipe om te kopen"
   },
   "supplier": {
     "form": {
@@ -1140,7 +1143,50 @@
     "swipeFeed": {
       "feedLoadFailed": "Kon de feed niet laden",
       "serviceUnavailable": "Dienst tijdelijk niet beschikbaar — probeer het opnieuw in een moment.",
-      "genericError": "Er ging iets mis"
+      "genericError": "Er ging iets mis",
+      "emptyTitle": "No more cards",
+      "emptyFeedDown": "Feed unavailable",
+      "emptyBody": "All available products are listed or passed. Try the catalog or reset filters.",
+      "reload": "Reload",
+      "catalog": "Catalog",
+      "gestureHint": "← Pass · → Edit & publish · Undo",
+      "rewindHint": "Rewind mode — left restores skipped SKUs",
+      "pass": "Pass",
+      "undo": "Undo",
+      "editPublish": "Edit & publish",
+      "launchTitle": "Launch Swipe Feed",
+      "rewindOn": "New SKUs done — Rewind mode on",
+      "filters": "Filters",
+      "rewindModeBody": "Rewind mode — skipped SKUs come back for a second chance",
+      "launchEyebrow": "Immersive mode",
+      "launchBody": "Discover products in one gesture. Swipe right to open the studio (margin, title, SEO) before publishing.",
+      "launchStack": "3-card stack · Undo · Commission filters",
+      "tipRight": "Swipe →",
+      "tipRightDesc": "Margin studio + storefront",
+      "tipLeft": "Swipe ←",
+      "tipLeftDesc": "Hide the SKU",
+      "tipUndo": "Undo",
+      "tipUndoDesc": "Undo last action",
+      "networkError": "Network error",
+      "restoredToDeck": "Product back in the stack",
+      "publishedToast": "✓ {name} live on storefront",
+      "listedPendingSync": "Listed — swipe sync pending",
+      "undoDone": "Action undone",
+      "undoFailed": "Could not undo",
+      "classicCatalog": "Classic catalog",
+      "hubBadge": "New — Affiliate hub",
+      "coach": {
+        "eyebrow": "Affiliate swipe",
+        "title": "List in 3 gestures",
+        "body": "Right = margin studio & publish. Left = pass. Undo = reverse. Filters for commission & niche.",
+        "cta": "Got it — start listing",
+        "dismiss": "Close guide",
+        "contrast": "Note: for buyers, right = Buy. Here, right = list on storefront."
+      },
+      "backHub": "Hub",
+      "listedCount": "{count} listed",
+      "skippedCount": "{count} passed",
+      "rewindLabel": "Rewind"
     },
     "earnings": {
       "taxCompliance": {
@@ -1450,7 +1496,9 @@
       "listingCount": "{count, plural, one {# artikel} other {# artikelen}}",
       "listingCountForQuery": " voor « {query} »",
       "dbEmptyTitle": "Database tijdelijk niet beschikbaar",
-      "dbDevHint": "Locaal dev: run npm run db:local:setup en zet DATABASE_URL in .env.local op postgresql://affisell:affisell@localhost:5433/affisell"
+      "dbDevHint": "Locaal dev: run npm run db:local:setup en zet DATABASE_URL in .env.local op postgresql://affisell:affisell@localhost:5433/affisell",
+      "tryPulse": "Shoppen met Pulse",
+      "tryPulseHint": "5 gebaren — swipe om te kopen"
     },
     "mobileHub": {
       "title": "Affisell Hub",
@@ -1559,6 +1607,14 @@
         "cta": "Begrepen — start swipen",
         "dismiss": "Gids sluiten"
       }
+    },
+    "scrollCoach": {
+      "eyebrow": "Scrollmodus",
+      "title": "Verticale Pulse — shoppen als stories",
+      "body": "Swipe omhoog voor de volgende clip. Koop of mand op het product. Liever pads? Swipe-modus.",
+      "cta": "Begrepen",
+      "dismiss": "Sluiten",
+      "openSwipe": "Open swipe-modus met gids"
     }
   },
   "merchantAccount": {
@@ -1604,7 +1660,9 @@
       "publishCta": "Publish listing",
       "publishHint": "Goes live after KYC — draft saved if pending",
       "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved.",
-      "buyerContrast": "Let op: op koper-Pulse is swipe rechts = Kopen. Hier (reseller) = product listen."
+      "buyerContrast": "Let op: op koper-Pulse is swipe rechts = Kopen. Hier (reseller) = product listen.",
+      "dismiss": "Dismiss",
+      "ctaGotIt": "Let's go"
     },
     "listingBuilder": {
       "referencePriceLabel": "Reference price (base SKU)",
@@ -3336,7 +3394,17 @@
     "metaDescription": "AI winkeladviseur voor kopers — ontdek en vergelijk marktplaatsproducten.",
     "eyebrow": "Koper",
     "heroTitle": "Zoek. Vergelijk. Koop.",
-    "heroSub": "Uw AI winkeladviseur — zoek de live marktplaats in real-time"
+    "heroSub": "Uw AI winkeladviseur — zoek de live marktplaats in real-time",
+    "coach": {
+      "eyebrow": "Shopping agent",
+      "title": "Ask like a pro",
+      "body": "Describe need, budget, and delivery country. Try a starter prompt below.",
+      "cta": "Start chatting",
+      "dismiss": "Close",
+      "p1": "Find me a gift under €50 delivered in France",
+      "p2": "Compare two trending home products",
+      "p3": "What should I buy for a small apartment?"
+    }
   },
   "marketplacePulse": {
     "hint": "Filter door afdeling of niche, ontdek trends, en publiceer elk SKU vervolgens in één klik naar je webwinkel."

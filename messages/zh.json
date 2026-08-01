@@ -672,7 +672,8 @@
       "identifyFailed": "无法继续。请再试一次。",
       "signInFailed": "身份识别后登录失败。",
       "networkError": "网络不可用。请再试一次。"
-    }
+    },
+    "tryPulse": "试试 Affisell Pulse"
   },
   "buyerAccount": {
     "navAria": "客户区域",
@@ -773,7 +774,9 @@
       "beauty": "美容",
       "home": "家居",
       "lifestyle": "生活方式"
-    }
+    },
+    "tryPulse": "用 Pulse 购物",
+    "tryPulseHint": "5 个手势 — 滑动购买"
   },
   "supplier": {
     "form": {
@@ -1140,7 +1143,50 @@
     "swipeFeed": {
       "feedLoadFailed": "无法加载feed",
       "serviceUnavailable": "服务暂时不可用 — 试试再试",
-      "genericError": "发生了错误"
+      "genericError": "发生了错误",
+      "emptyTitle": "No more cards",
+      "emptyFeedDown": "Feed unavailable",
+      "emptyBody": "All available products are listed or passed. Try the catalog or reset filters.",
+      "reload": "Reload",
+      "catalog": "Catalog",
+      "gestureHint": "← Pass · → Edit & publish · Undo",
+      "rewindHint": "Rewind mode — left restores skipped SKUs",
+      "pass": "Pass",
+      "undo": "Undo",
+      "editPublish": "Edit & publish",
+      "launchTitle": "Launch Swipe Feed",
+      "rewindOn": "New SKUs done — Rewind mode on",
+      "filters": "Filters",
+      "rewindModeBody": "Rewind mode — skipped SKUs come back for a second chance",
+      "launchEyebrow": "Immersive mode",
+      "launchBody": "Discover products in one gesture. Swipe right to open the studio (margin, title, SEO) before publishing.",
+      "launchStack": "3-card stack · Undo · Commission filters",
+      "tipRight": "Swipe →",
+      "tipRightDesc": "Margin studio + storefront",
+      "tipLeft": "Swipe ←",
+      "tipLeftDesc": "Hide the SKU",
+      "tipUndo": "Undo",
+      "tipUndoDesc": "Undo last action",
+      "networkError": "Network error",
+      "restoredToDeck": "Product back in the stack",
+      "publishedToast": "✓ {name} live on storefront",
+      "listedPendingSync": "Listed — swipe sync pending",
+      "undoDone": "Action undone",
+      "undoFailed": "Could not undo",
+      "classicCatalog": "Classic catalog",
+      "hubBadge": "New — Affiliate hub",
+      "coach": {
+        "eyebrow": "Affiliate swipe",
+        "title": "List in 3 gestures",
+        "body": "Right = margin studio & publish. Left = pass. Undo = reverse. Filters for commission & niche.",
+        "cta": "Got it — start listing",
+        "dismiss": "Close guide",
+        "contrast": "Note: for buyers, right = Buy. Here, right = list on storefront."
+      },
+      "backHub": "Hub",
+      "listedCount": "{count} listed",
+      "skippedCount": "{count} passed",
+      "rewindLabel": "Rewind"
     },
     "earnings": {
       "taxCompliance": {
@@ -1449,7 +1495,9 @@
       "listingCount": "{count, plural, one {# 件} other {# 件}}",
       "listingCountForQuery": " for « {query} »",
       "dbEmptyTitle": "数据库暂时不可用",
-      "dbDevHint": "本地开发: 运行 npm run db:local:setup 并在 .env.local 中设置 DATABASE_URL 为 postgresql://affisell:affisell@localhost:5433/affisell"
+      "dbDevHint": "本地开发: 运行 npm run db:local:setup 并在 .env.local 中设置 DATABASE_URL 为 postgresql://affisell:affisell@localhost:5433/affisell",
+      "tryPulse": "用 Pulse 购物",
+      "tryPulseHint": "5 个手势 — 滑动购买"
     },
     "mobileHub": {
       "title": "Affisell Hub",
@@ -1558,6 +1606,14 @@
         "cta": "明白了 — 开始滑动",
         "dismiss": "关闭指南"
       }
+    },
+    "scrollCoach": {
+      "eyebrow": "滚动模式",
+      "title": "纵向 Pulse — 像故事一样购物",
+      "body": "上滑看下一条。在商品上购买或加购。更喜欢底部按钮？切换滑动模式。",
+      "cta": "明白了",
+      "dismiss": "关闭",
+      "openSwipe": "打开带指南的滑动模式"
     }
   },
   "merchantAccount": {
@@ -1603,7 +1659,9 @@
       "publishCta": "Publish listing",
       "publishHint": "Goes live after KYC — draft saved if pending",
       "kycDraftSaved": "KYC pending — draft saved. Publish from your dashboard once approved.",
-      "buyerContrast": "注意：买家 Pulse 右滑 = 购买。此处（分销）右滑 = 上架商品。"
+      "buyerContrast": "注意：买家 Pulse 右滑 = 购买。此处（分销）右滑 = 上架商品。",
+      "dismiss": "Dismiss",
+      "ctaGotIt": "Let's go"
     },
     "listingBuilder": {
       "referencePriceLabel": "Reference price (base SKU)",
@@ -3335,7 +3393,17 @@
     "metaDescription": "AI 购物顾问 — 发现并比较市场产品。",
     "eyebrow": "买家",
     "heroTitle": "找到。比较。购买。",
-    "heroSub": "您的 AI 购物顾问 — 实时搜索市场"
+    "heroSub": "您的 AI 购物顾问 — 实时搜索市场",
+    "coach": {
+      "eyebrow": "Shopping agent",
+      "title": "Ask like a pro",
+      "body": "Describe need, budget, and delivery country. Try a starter prompt below.",
+      "cta": "Start chatting",
+      "dismiss": "Close",
+      "p1": "Find me a gift under €50 delivered in France",
+      "p2": "Compare two trending home products",
+      "p3": "What should I buy for a small apartment?"
+    }
   },
   "marketplacePulse": {
     "hint": "根据部门或专题过滤，探索趋势，然后在一个点击中将每个SKU发布到您的商店中。"

@@ -22,6 +22,7 @@ import {
   SwipeFiltersSheet,
   swipeFiltersActiveCount,
 } from "@/components/affiliate/swipe-feed/swipe-filters-sheet"
+import { AffiliateSwipeCommandBrief } from "@/components/affiliate/affiliate-swipe-command-brief"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
@@ -171,7 +172,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
     setReplayMode(true)
     setFeedExhausted(false)
     setDeck(shuffleProducts(skippedReplayPool))
-    showToast("Nouveaux SKU terminés — mode Rewind activé")
+    showToast(tSwipe("rewindOn"))
   }, [mode, loading, busy, studioOpen, feedExhausted, deck.length, skippedReplayPool, showToast])
 
   const visibleStack = useMemo(() => deck.slice(0, STACK_VISIBLE), [deck])
@@ -214,7 +215,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
           return [...pool, product]
         })
       } catch (e) {
-        showToast(e instanceof Error ? e.message : "Erreur réseau")
+        showToast(e instanceof Error ? e.message : tSwipe("networkError"))
         topCardRef.current?.reset()
         setBusy(false)
         return
@@ -223,17 +224,17 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
       setDeck((d) => d.slice(1))
       setBusy(false)
     },
-    [busy, showToast]
+    [busy, showToast, tSwipe]
   )
 
   const closeStudio = useCallback(() => {
     setStudioOpen(false)
     if (studioProduct) {
       setDeck((d) => [studioProduct, ...d.filter((p) => p.id !== studioProduct.id)])
-      showToast("Produit remis dans la pile")
+      showToast(tSwipe("restoredToDeck"))
     }
     setStudioProduct(null)
-  }, [showToast, studioProduct])
+  }, [showToast, studioProduct, tSwipe])
 
   const handleStudioPublished = useCallback(
     async ({ listingId, product }: { listingId?: string; product: SwipeFeedProduct }) => {
@@ -249,9 +250,9 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
           ...h.slice(0, 19),
         ])
         setSessionStats((s) => ({ ...s, listed: s.listed + 1 }))
-        showToast(`✓ ${product.name.slice(0, 36)} publié en vitrine`)
+        showToast(tSwipe("publishedToast", { name: product.name.slice(0, 36) }))
       } catch {
-        showToast("Listé — sync swipe en attente")
+        showToast(tSwipe("listedPendingSync"))
       } finally {
         setSkippedReplayPool((pool) => pool.filter((p) => p.id !== product.id))
         setStudioOpen(false)
@@ -261,7 +262,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
         }
       }
     },
-    [listingContext, router, sessionStats.listed, showToast]
+    [listingContext, router, sessionStats.listed, showToast, tSwipe]
   )
 
   const handleUndo = useCallback(async () => {
@@ -288,13 +289,13 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
 
       setDeck((d) => [last.product, ...d.filter((p) => p.id !== last.product.id)])
       setHistory((h) => h.slice(1))
-      showToast("Action annulée")
+      showToast(tSwipe("undoDone"))
     } catch {
-      showToast("Impossible d'annuler")
+      showToast(tSwipe("undoFailed"))
     } finally {
       setBusy(false)
     }
-  }, [history, busy, showToast])
+  }, [history, busy, showToast, tSwipe])
 
   useEffect(() => {
     if (mode !== "swipe") return
@@ -324,7 +325,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
             className="mb-8 inline-flex items-center gap-2 text-sm text-zinc-400 transition-colors hover:text-white"
           >
             <ArrowLeft className="size-4" aria-hidden />
-            Catalogue classique
+            {tSwipe("classicCatalog")}
           </Link>
 
           <motion.div
@@ -334,14 +335,13 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
           >
             <p className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-violet-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-violet-300 ring-1 ring-violet-400/30">
               <Zap className="size-3.5" aria-hidden />
-              Nouveau — Hub affilié
+              {tSwipe("hubBadge")}
             </p>
             <h1 className="text-4xl font-black tracking-tight md:text-5xl">
               Swipe Feed
             </h1>
             <p className="mt-4 max-w-lg text-lg text-zinc-400">
-              Découvrez des produits en un geste. Swipez à droite pour ouvrir le studio
-              (marge, titre, SEO) avant publication en vitrine.
+              {tSwipe("launchBody")}
             </p>
           </motion.div>
 
@@ -358,10 +358,10 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.12),transparent_50%)]" />
             <div className="relative flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-violet-200/90">Mode immersif</p>
-                <p className="mt-1 text-2xl font-bold">Lancer le Swipe Feed</p>
+                <p className="text-sm font-medium text-violet-200/90">{tSwipe("launchEyebrow")}</p>
+                <p className="mt-1 text-2xl font-bold">{tSwipe("launchTitle")}</p>
                 <p className="mt-2 text-sm text-zinc-300/80">
-                  Stack de 3 cartes · Undo · Filtres commission
+                  {tSwipe("launchStack")}
                 </p>
               </div>
               <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm transition-transform group-hover:rotate-6">
@@ -372,9 +372,9 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
 
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             {[
-              { icon: Heart, label: "Swipe →", desc: "Studio marge + vitrine" },
-              { icon: X, label: "Swipe ←", desc: "Masque le SKU" },
-              { icon: RotateCcw, label: "Undo", desc: "Annule le dernier" },
+              { icon: Heart, label: tSwipe("tipRight"), desc: tSwipe("tipRightDesc") },
+              { icon: X, label: tSwipe("tipLeft"), desc: tSwipe("tipLeftDesc") },
+              { icon: RotateCcw, label: tSwipe("tipUndo"), desc: tSwipe("tipUndoDesc") },
             ].map(({ icon: Icon, label, desc }) => (
               <div
                 key={label}
@@ -396,6 +396,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
       data-testid="affiliate-swipe-feed"
       className="relative flex min-h-[calc(100dvh-3.75rem)] flex-col overflow-hidden bg-gradient-to-b from-zinc-50 via-violet-50/40 to-zinc-100 text-zinc-900 dark:from-zinc-950 dark:via-violet-950/30 dark:to-zinc-950 dark:text-zinc-50 dark:[&_.epoxy-chip]:text-zinc-100"
     >
+      <AffiliateSwipeCommandBrief />
       <div className="pointer-events-none absolute inset-0">
         <motion.div
           className="absolute -left-24 top-0 h-96 w-96 rounded-full bg-violet-400/20 blur-[100px] dark:bg-violet-600/25"
@@ -426,18 +427,22 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
           className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-white/80 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/80 dark:hover:text-white"
         >
           <ArrowLeft className="size-4" aria-hidden />
-          Hub
+          {tSwipe("backHub")}
         </button>
 
         <div className={cn(affisellBrand.epoxyChip, "flex items-center gap-2 rounded-full px-3 py-1 text-xs text-zinc-800 dark:text-zinc-100")}>
           <Sparkles className="size-3.5 text-violet-600 dark:text-violet-400" aria-hidden />
-          <span className="font-medium text-emerald-700 dark:text-emerald-400">{sessionStats.listed} listés</span>
+          <span className="font-medium text-emerald-700 dark:text-emerald-400">
+            {tSwipe("listedCount", { count: sessionStats.listed })}
+          </span>
           <span className="text-zinc-300 dark:text-zinc-600">·</span>
-          <span className="text-zinc-500 dark:text-zinc-400">{sessionStats.skipped} passés</span>
+          <span className="text-zinc-500 dark:text-zinc-400">
+            {tSwipe("skippedCount", { count: sessionStats.skipped })}
+          </span>
           {replayMode ? (
             <>
               <span className="text-zinc-300 dark:text-zinc-600">·</span>
-              <span className="font-semibold text-violet-700 dark:text-violet-300">Rewind</span>
+              <span className="font-semibold text-violet-700 dark:text-violet-300">{tSwipe("rewindLabel")}</span>
             </>
           ) : null}
         </div>
@@ -449,7 +454,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
             "relative inline-flex size-9 items-center justify-center rounded-full border border-zinc-200/80 bg-white/80 shadow-sm backdrop-blur-md transition-colors hover:bg-white dark:border-white/10 dark:bg-zinc-900/70 dark:hover:bg-zinc-800",
             filterCount > 0 && "border-violet-400 text-violet-700 dark:border-violet-500/50 dark:text-violet-300"
           )}
-          aria-label="Filtres"
+          aria-label={tSwipe("filters")}
         >
           <Filter className="size-4" />
           {filterCount > 0 && (
@@ -472,11 +477,10 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
               >
                 <Layers className="mb-4 size-12 text-zinc-600" aria-hidden />
                 <p className="text-lg font-semibold">
-                  {fetchError ? "Feed indisponible" : "Plus de cartes"}
+                  {fetchError ? tSwipe("emptyFeedDown") : tSwipe("emptyTitle")}
                 </p>
                 <p className="mt-2 text-sm text-zinc-500">
-                  {fetchError ??
-                    "Tous les produits disponibles sont listés ou passés. Essayez le catalogue ou réinitialisez les filtres."}
+                  {fetchError ?? tSwipe("emptyBody")}
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
                   <Button
@@ -488,13 +492,13 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
                       void fetchMore(true)
                     }}
                   >
-                    Recharger
+                    {tSwipe("reload")}
                   </Button>
                   <Link
                     href={AFFILIATE_CATALOG_PATH}
                     className={cn(buttonVariants({ variant: "bentoOutline", size: "bento" }), "border-zinc-700")}
                   >
-                    Catalogue
+                    {tSwipe("catalog")}
                   </Link>
                 </div>
               </motion.div>
@@ -526,9 +530,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
         </div>
 
         <p className="mt-3 text-center text-[11px] text-zinc-500 dark:text-zinc-500">
-          {replayMode
-            ? "Mode Rewind · vos SKUs passés reviennent pour une seconde chance"
-            : "← Passer · → Éditer & publier · ⌘Z Annuler"}
+          {replayMode ? tSwipe("rewindModeBody") : tSwipe("gestureHint")}
         </p>
       </div>
 
@@ -540,7 +542,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
             disabled={busy || studioOpen || deck.length === 0}
             onClick={() => requestSwipe("left")}
             className="group flex size-14 items-center justify-center rounded-full border-2 border-rose-300 bg-white text-rose-600 shadow-md transition-all hover:scale-110 hover:border-rose-400 hover:shadow-rose-200/80 active:scale-95 disabled:opacity-40 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/25"
-            aria-label="Passer"
+            aria-label={tSwipe("pass")}
           >
             <X className="size-7 transition-transform group-active:-translate-x-0.5" />
           </button>
@@ -550,7 +552,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
             disabled={history.length === 0 || busy}
             onClick={() => void handleUndo()}
             className="flex size-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm transition-all hover:border-zinc-300 disabled:opacity-30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
-            aria-label="Annuler"
+            aria-label={tSwipe("undo")}
           >
             <RotateCcw className="size-5" />
           </button>
@@ -561,7 +563,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
             disabled={busy || studioOpen || deck.length === 0}
             onClick={() => requestSwipe("right")}
             className="group flex size-14 items-center justify-center rounded-full border-2 border-emerald-300 bg-white text-emerald-600 shadow-md transition-all hover:scale-110 hover:border-emerald-400 hover:shadow-emerald-200/80 active:scale-95 disabled:opacity-40 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/25"
-            aria-label="Éditer et publier"
+            aria-label={tSwipe("editPublish")}
           >
             <Heart className="size-7 transition-transform group-active:translate-x-0.5" />
           </button>
@@ -573,7 +575,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
               "flex size-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm transition-all hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300",
               filterCount > 0 && "border-violet-400 text-violet-700 dark:border-violet-500/50 dark:text-violet-300"
             )}
-            aria-label="Filtres"
+            aria-label={tSwipe("filters")}
           >
             <Filter className="size-5" />
           </button>

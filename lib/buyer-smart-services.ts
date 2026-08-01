@@ -36,7 +36,7 @@ export const BUYER_SMART_SERVICES: BuyerSmartService[] = [
     cardClass: `${BUYER_TILE_ACCENTS.agent.card} text-white shadow-violet-500/25`,
   },
   {
-    href: "/discover",
+    href: "/discover?coach=1",
     label: "Affisell Pulse",
     hint: "Signaux marché",
     Icon: Sparkles,

@@ -20,6 +20,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
+import { AffisellCoachBrief } from "@/components/affisell/affisell-coach-brief"
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { PulseHeaderCartLink } from "@/components/pulse/pulse-header-cart-link"
 import { PulseBattleBanner } from "@/components/pulse/PulseBattleBanner"
@@ -427,14 +428,19 @@ function PulseCard({
 
 export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props) {
   const t = useTranslations("pulse")
+  const tScroll = useTranslations("pulse.scrollCoach")
   const pathname = usePathname()
   const { push, replace, mounted } = useSafeAppRouter()
   const searchParams = useSearchParams()
+  const forceCoach = searchParams.get("coach") === "1"
+  const suppressCoach =
+    searchParams.get("coach") === "0" || searchParams.get("e2eFixtures") === "1"
   const [activeIndex, setActiveIndex] = useState(0)
   const [muted, setMuted] = useState(true)
   const refs = useRef<Array<HTMLElement | null>>([])
 
   const safeItems = useMemo(() => items.filter((i) => i.mediaUrl), [items])
+  const swipeCoachHref = discoverSwipeHref({ coach: true })
 
   useEffect(() => {
     if (!mounted || searchParams.get("success") !== "true") return
@@ -481,12 +487,20 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
         <Sparkles className="mb-4 size-12 text-violet-400" />
         <p className="text-lg font-semibold">{t("emptyTitle")}</p>
         <p className="mt-2 max-w-sm text-sm text-zinc-400">{t("emptyBody")}</p>
-        <Link
-          href="/marketplace"
-          className="mt-6 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-6 py-2.5 text-sm font-semibold"
-        >
-          {t("browseCatalog")}
-        </Link>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link
+            href={discoverSwipeHref({ coach: true })}
+            className="rounded-full bg-gradient-to-r from-cyan-500 to-teal-500 px-6 py-2.5 text-sm font-semibold"
+          >
+            {tScroll("openSwipe")}
+          </Link>
+          <Link
+            href="/marketplace"
+            className="rounded-full border border-white/20 bg-white/5 px-6 py-2.5 text-sm font-semibold"
+          >
+            {t("browseCatalog")}
+          </Link>
+        </div>
       </div>
     )
   }
@@ -497,6 +511,25 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
       className={cn(affisellBrand.epoxyPage, "fixed inset-0 z-[210] flex flex-col")}
     >
       <div className={affisellBrand.epoxyCanvas} aria-hidden />
+      <AffisellCoachBrief
+        surface="buyerPulseScroll"
+        force={forceCoach}
+        suppress={suppressCoach}
+        eyebrow={tScroll("eyebrow")}
+        title={tScroll("title")}
+        body={tScroll("body")}
+        cta={tScroll("cta")}
+        dismissLabel={tScroll("dismiss")}
+        testId="pulse-scroll-command-brief"
+      >
+        <Link
+          href={swipeCoachHref}
+          className="block rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 py-2.5 text-center text-xs font-semibold text-cyan-100"
+        >
+          {tScroll("openSwipe")}
+        </Link>
+        <p className="mt-2 text-center text-[11px] text-white/45">{t("hint")}</p>
+      </AffisellCoachBrief>
       <div className="pointer-events-none absolute inset-0 z-0 opacity-30">
         <div className="absolute -left-1/4 top-0 h-[50vh] w-[70vw] rounded-full bg-violet-600/40 blur-[100px]" />
         <div className="absolute -right-1/4 bottom-0 h-[40vh] w-[60vw] rounded-full bg-cyan-500/30 blur-[90px]" />
@@ -505,6 +538,9 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
       <header className="affisell-pulse-scroll-header relative z-40 shrink-0">
         <PulseBattleBanner />
         <PulseProgress active={activeIndex} total={safeItems.length} />
+        <p className="px-3 pb-1 text-center text-[10px] font-medium uppercase tracking-[0.16em] text-cyan-200/40">
+          {t("hint")}
+        </p>
         <div className="flex items-center justify-between gap-1 px-2 pb-1 pt-1.5 sm:gap-2 sm:px-3 sm:pb-2 sm:pt-2">
           <Link
             href="/#explorer"

@@ -41,7 +41,7 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
       cardClass: `${BUYER_TILE_ACCENTS.luxe.card} text-white shadow-violet-500/25`,
     },
     {
-      href: "/discover",
+      href: "/discover?coach=1",
       label: t("discover"),
       liveLabel: tPulse("beta"),
       hint: t("discoverMarketHint"),
@@ -86,7 +86,7 @@ export function MarketplaceAffisellPulse({ audience = "default" }: Props) {
       className: `${BUYER_TILE_ACCENTS.agent.card} text-white shadow-violet-500/25`,
     },
     {
-      href: "/discover",
+      href: "/discover?coach=1",
       label: t("discover"),
       hint: t("discoverHint"),
       className: `${BUYER_TILE_ACCENTS.pulse.card} text-white shadow-fuchsia-500/25`,

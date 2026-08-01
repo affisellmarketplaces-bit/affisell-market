@@ -50,7 +50,8 @@ export default async function AffiliateHubPage({ searchParams }: PageProps) {
     }),
   ])
 
-  const showTopRail = showFirstListingCoach || !progress.kycApproved
+  const showSwipeCoachBanner = hubMode === "swipe" || showFirstListingCoach
+  const showTopRail = showSwipeCoachBanner || !progress.kycApproved
   /** Opportunity rail only on Swipe (sourcing) — not on Battle setup. */
   const showOpportunityRail = hubMode === "swipe" && opportunityPicks.length > 0
 
@@ -64,7 +65,9 @@ export default async function AffiliateHubPage({ searchParams }: PageProps) {
           {showFirstListingCoach && progress.showChecklist ? (
             <AffiliateOnboardingChecklist progress={progress} />
           ) : null}
-          {showFirstListingCoach ? <AffiliateFirstListingCoachBanner /> : null}
+          {showSwipeCoachBanner ? (
+            <AffiliateFirstListingCoachBanner force={showFirstListingCoach} />
+          ) : null}
           {!progress.kycApproved ? (
             <AffiliateKycPublishBanner
               allowed={gate.allowed}
