@@ -48,9 +48,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     getCachedSession(),
   ])
   const hdrs = await headers()
+  const pathname = hdrs.get("x-affisell-pathname") ?? ""
   const isDedicatedStorefront =
     isCustomDomainHeaders(hdrs) || isLegionStorefrontPathname(pathname)
-  const pathname = hdrs.get("x-affisell-pathname") ?? ""
   const clientMessages = isDedicatedStorefront
     ? slimClientMessagesForDedicatedStorefront(messages, pathname)
     : messages
