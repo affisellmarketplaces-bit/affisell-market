@@ -21,6 +21,12 @@ import { cn } from "@/lib/utils"
 const WIDTH = 960
 const HEIGHT = 480
 
+/** Stable SVG numbers — Node vs browser float differ by ~1 ulp and break hydration. */
+function svgNum(n: number, digits = 3): number {
+  const f = 10 ** digits
+  return Math.round(n * f) / f
+}
+
 type TooltipState = {
   x: number
   y: number
@@ -86,7 +92,7 @@ export default function RadarWorldMap({
       if (!coords) return null
       const projected = projection(coords)
       if (!projected) return null
-      return { stat, x: projected[0], y: projected[1] }
+      return { stat, x: svgNum(projected[0]), y: svgNum(projected[1]) }
     })
     .filter((m): m is { stat: CountryMapStat; x: number; y: number } => m != null)
 

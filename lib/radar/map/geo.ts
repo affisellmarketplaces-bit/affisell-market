@@ -163,5 +163,5 @@ export function salesToHeatColor(avgSales: number, maxAvg: number): string {
 
 export function markerRadius(count: number, maxCount: number): number {
   const t = maxCount > 0 ? count / maxCount : 0.2
-  return 4 + t * 14
+  return Math.round((4 + t * 14) * 100) / 100
 }
