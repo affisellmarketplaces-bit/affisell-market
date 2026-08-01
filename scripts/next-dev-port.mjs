@@ -170,7 +170,17 @@ if (scanPorts && port !== preferred) {
 
 printAffisellDevBanner(origin)
 
-const child = spawn(process.execPath, [nextBin, "dev", "-p", String(port)], {
+/**
+ * Default webpack: Turbopack can hang forever on `GET /` ("○ Compiling / ...") → blank browser.
+ * Opt into Turbopack with AFFISELL_DEV_TURBOPACK=1 once that regresses.
+ */
+const bundlerFlag =
+  process.env.AFFISELL_DEV_TURBOPACK === "1" || process.env.AFFISELL_DEV_TURBOPACK === "true"
+    ? "--turbopack"
+    : "--webpack"
+console.log(`[affisell dev] bundler ${bundlerFlag}\n`)
+
+const child = spawn(process.execPath, [nextBin, "dev", "-p", String(port), bundlerFlag], {
   stdio: ["inherit", "pipe", "pipe"],
   env: { ...process.env, PORT: String(port) },
 })

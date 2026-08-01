@@ -50,10 +50,18 @@ async function loadHomeMarketplaceShellUncached(
   })
 }
 
+const HOME_SHELL_TIMEOUT_MS = 12_000
+
 /** Dedupe within a single RSC request (page preload + Suspense child). */
 export const loadHomeMarketplaceShellSafe = cache(async (locale: AppLocale) => {
   try {
-    return await loadHomeMarketplaceShellUncached(locale)
+    const shell = await Promise.race([
+      loadHomeMarketplaceShellUncached(locale),
+      new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error("home_shell_timeout")), HOME_SHELL_TIMEOUT_MS)
+      }),
+    ])
+    return shell
   } catch (error) {
     console.error("[home-marketplace-shell]", { locale, error })
     return EMPTY_HOME_SHELL
