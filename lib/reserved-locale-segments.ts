@@ -76,6 +76,7 @@ export const RESERVED_LOCALE_SEGMENTS = new Set([
   "supplier",
   "support",
   "track-order",
+  "u",
   "wc-auth",
   "wp-json",
   "wishlist",

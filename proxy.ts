@@ -8,7 +8,7 @@ import {
   isMarketplaceListingPath,
   resolveLegacyMarketplaceIndexPath,
 } from "@/lib/affiliate-routes"
-import { LOCALE_COOKIE, localeCookieMaxAgeSec, resolveAppLocale } from "@/lib/i18n-locale"
+import { LOCALE_COOKIE, localeCookieMaxAgeSec, resolveAppLocale, isAppLocale } from "@/lib/i18n-locale"
 import { localeFromPathname, pathnameWithoutLocale } from "@/lib/locale-path"
 import {
   loginAffiliatePath,
@@ -27,7 +27,11 @@ import {
   legalGateOk,
   reacceptTermsUrl,
 } from "@/lib/middleware-terms-gate"
-import { isStaticAppPathname, staticAppRewriteTarget } from "@/lib/reserved-locale-segments"
+import {
+  isValidLegionUsername,
+  normalizeLegionUsername,
+} from "@/lib/legion/username"
+import { staticAppRewriteTarget, isStaticAppPathname } from "@/lib/reserved-locale-segments"
 
 const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 const FORCED_CUSTOMER_HEADER = "x-affisell-view-role"
@@ -191,6 +195,23 @@ function rewriteStaticAppPath(req: NextRequest): NextResponse | null {
   return res
 }
 
+/**
+ * LÉGION public vitrine: `/nelson` → rewrite `/u/nelson` (avoids clash with `app/[locale]`).
+ */
+function rewriteLegionStorefront(req: NextRequest): NextResponse | null {
+  const bare = pathnameWithoutLocale(req.nextUrl.pathname)
+  const parts = bare.split("/").filter(Boolean)
+  if (parts.length !== 1) return null
+  const segment = normalizeLegionUsername(parts[0] ?? "")
+  if (!segment || isAppLocale(segment) || !isValidLegionUsername(segment)) return null
+
+  const rewriteUrl = req.nextUrl.clone()
+  rewriteUrl.pathname = `/u/${segment}`
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set("x-affisell-pathname", req.nextUrl.pathname)
+  return NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } })
+}
+
 /** Next.js 16+ proxy (ex-middleware). */
 export async function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname
@@ -289,6 +310,9 @@ export async function proxy(req: NextRequest) {
   if (HOME_PATHS.has(pathname)) {
     return handleHomePath(req)
   }
+
+  const legionRewrite = rewriteLegionStorefront(req)
+  if (legionRewrite) return legionRewrite
 
   const bareEarly = pathnameWithoutLocale(pathname)
   if (bareEarly === "/home") {

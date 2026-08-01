@@ -131,6 +131,7 @@ model User {
   affiliateProducts    AffiliateProduct[]
   supplierOrders       Order[]            @relation("SupplierOrders")
   store                Store?
+  storeProfile         StoreProfile?
   affiliateOrders      Order[]            @relation("AffiliateOrders")
   notifications        Notification[]
   cart                 Cart?
@@ -547,6 +548,58 @@ model Store {
   communityPosts        CommunityPost[]
   followerRelations     Follow[]                    @relation("StoreFollowers")
   newsletterSubscribers StoreNewsletterSubscriber[]
+}
+
+/**
+ * LÉGION storefront profile (@username) — 1:1 with User, parallel to Store branding.
+ * Public vitrine at /[username]; Connect override via LegionReferral.
+ */
+model StoreProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /**
+   * Public handle — lowercase [a-z0-9_]{3,20}
+   */
+  username      String   @unique
+  displayName   String?
+  bio           String?
+  avatarUrl     String?
+  tiktokUrl     String?
+  instagramUrl  String?
+  isActive      Boolean  @default(true)
+  totalSales    Int      @default(0)
+  totalEarnings Decimal  @default(0) @db.Decimal(14, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sponsoredReferrals LegionReferral[] @relation("LegionSponsor")
+  referredBy         LegionReferral?  @relation("LegionReferred")
+  legionOrders       Order[]
+
+  @@index([username])
+  @@index([userId])
+}
+
+/**
+ * LÉGION 1-level lifetime override (default 2%) — filleul → parrain.
+ */
+model LegionReferral {
+  id                  String       @id @default(cuid())
+  sponsorId           String
+  sponsor             StoreProfile @relation("LegionSponsor", fields: [sponsorId], references: [id], onDelete: Cascade)
+  referredId          String       @unique
+  referred            StoreProfile @relation("LegionReferred", fields: [referredId], references: [id], onDelete: Cascade)
+  /**
+   * active | blocked
+   */
+  status              String       @default("active")
+  overrideRate        Decimal      @default(0.02) @db.Decimal(5, 4)
+  totalOverrideEarned Decimal      @default(0) @db.Decimal(14, 2)
+  createdAt           DateTime     @default(now())
+
+  @@index([sponsorId])
+  @@index([referredId])
 }
 
 /**
@@ -2121,9 +2174,25 @@ model Order {
    */
   payoutTransferIds                Json?
   /**
-   * PENDING | PROCESSING | PAID | FAILED
+   * PENDING | PROCESSING | PAID | FAILED — Connect / Lightning (do not repurpose for LÉGION).
    */
   payoutStatus                     String                       @default("PENDING")
+  /**
+   * LÉGION storefront that originated the sale (@username).
+   */
+  storeProfileId                   String?
+  storeProfile                     StoreProfile?                @relation(fields: [storeProfileId], references: [id], onDelete: SetNull)
+  /**
+   * LÉGION override amount in EUR (filleul margin → sponsor).
+   */
+  legionOverrideAmount             Decimal?                     @default(0) @db.Decimal(14, 2)
+  /**
+   * pending | reserved | paid_24h | failed — LÉGION rail only.
+   */
+  legionPayoutStatus               String?                      @default("pending")
+  legionPayoutDueAt                DateTime?
+  legionSupplierAmount             Decimal?                     @db.Decimal(14, 2)
+  legionReserveAmount              Decimal?                     @db.Decimal(14, 2)
   stripeSessionId                  String                       @unique
   /**
    * Medusa v2 order id (admin sync from Affisell Stripe checkout).
@@ -2263,6 +2332,7 @@ model Order {
   autoBuyLog               FulfillmentLog?
 
   @@index([affiliateId])
+  @@index([storeProfileId])
   @@index([splitStatus])
   @@index([supplierId, status, shipDeadlineAt])
   @@index([autodsStatus, createdAt])
