@@ -28,18 +28,28 @@ export function PulseProductDetailPanel({
 }: PulseProductDetailPanelProps) {
   const t = useTranslations("pulse.commerce")
   const detailHref = resolvePulseItemDetailHref(item)
+  const ribbon = variant === "ribbon"
 
-  const titleClass =
-    variant === "desktop"
-      ? "text-xl font-semibold leading-snug tracking-tight text-white sm:text-2xl"
-      : "line-clamp-2 text-[13px] font-semibold leading-tight text-white drop-shadow-sm sm:text-[15px] sm:leading-snug"
+  const titleClass = ribbon
+    ? "line-clamp-2 text-[13px] font-semibold leading-snug tracking-[-0.01em] text-white drop-shadow-[0_1px_12px_rgb(0_0_0_/_0.45)] sm:text-[15px]"
+    : "text-xl font-semibold leading-snug tracking-tight text-white sm:text-2xl"
 
   return (
-    <div className={className} data-testid="pulse-product-detail-panel">
-      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+    <div
+      className={cn(ribbon && "pulse-product-ribbon", className)}
+      data-testid="pulse-product-detail-panel"
+    >
+      <div className={cn("flex flex-wrap items-center gap-1.5", ribbon ? "gap-1" : "sm:gap-2")}>
         {item.boosted ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/25 px-1.5 py-px text-[9px] font-bold uppercase text-cyan-100 ring-1 ring-cyan-400/35 backdrop-blur-sm sm:px-2 sm:py-0.5 sm:text-[10px]">
-            <Sparkles className="size-2.5 sm:size-3" aria-hidden />
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full font-bold uppercase tracking-[0.14em] text-cyan-50 ring-1 backdrop-blur-md",
+              ribbon
+                ? "bg-cyan-400/20 px-1.5 py-px text-[8px] ring-cyan-300/40"
+                : "bg-cyan-500/25 px-2 py-0.5 text-[10px] ring-cyan-400/35"
+            )}
+          >
+            <Sparkles className={cn(ribbon ? "size-2.5" : "size-3")} aria-hidden />
             {t("hotBadge")}
           </span>
         ) : null}
@@ -47,7 +57,7 @@ export function PulseProductDetailPanel({
           <ProductSalesBadge
             count={item.soldCount}
             variant="inline"
-            className="!bg-black/35 !text-white !ring-white/20 backdrop-blur-sm"
+            className="!bg-black/40 !text-white/90 !ring-white/15 backdrop-blur-md"
           />
         ) : null}
       </div>
@@ -56,15 +66,15 @@ export function PulseProductDetailPanel({
         href={detailHref}
         prefetch
         className={cn(
-          "group block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-violet-400/80",
-          variant === "ribbon" ? "mt-1 sm:mt-1.5" : "mt-3"
+          "group block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70",
+          ribbon ? "mt-1 sm:mt-1.5" : "mt-3"
         )}
         data-testid="pulse-product-title-link"
       >
         <h2
           className={cn(
             titleClass,
-            "transition-colors group-hover:text-violet-200 group-focus-visible:text-violet-200"
+            "transition-colors group-hover:text-cyan-100 group-focus-visible:text-cyan-100"
           )}
         >
           {item.title}
@@ -84,8 +94,8 @@ export function PulseProductDetailPanel({
       {priceEur > 0 ? (
         <div
           className={cn(
-            variant === "ribbon"
-              ? "mt-0.5 [&_p]:!text-white/75 [&_span]:!text-white sm:mt-1"
+            ribbon
+              ? "pulse-product-ribbon__price mt-1.5 [&_p]:!text-cyan-100/70 [&_span]:!text-white sm:mt-2"
               : "mt-4 [&_span]:!text-white [&_p]:!text-white/70"
           )}
         >
@@ -100,10 +110,8 @@ export function PulseProductDetailPanel({
       {item.storeName ? (
         <p
           className={cn(
-            "truncate text-white/55",
-            variant === "ribbon"
-              ? "mt-0.5 text-[10px] sm:mt-1 sm:text-xs sm:text-zinc-300"
-              : "mt-3 text-sm text-white/60"
+            "truncate font-medium tracking-wide text-white/45",
+            ribbon ? "mt-1 text-[10px] sm:text-[11px]" : "mt-3 text-sm text-white/55"
           )}
         >
           {item.storeName}
@@ -116,7 +124,7 @@ export function PulseProductDetailPanel({
           prefetch
           className={cn(
             affisellBrand.epoxyCta,
-            "mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3.5 text-sm font-semibold text-white backdrop-blur-md transition hover:border-violet-400/40 hover:bg-violet-500/15 hover:text-violet-100"
+            "mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3.5 text-sm font-semibold text-white backdrop-blur-md transition hover:border-cyan-400/35 hover:bg-cyan-500/10 hover:text-cyan-50"
           )}
           data-testid="pulse-view-details-cta"
         >

@@ -225,7 +225,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
           data-product-id={item.productId}
           className={cn(
             affisellBrand.epoxySurface,
-            "relative flex h-full flex-col overflow-hidden rounded-[1.35rem] sm:rounded-[1.75rem]"
+            "pulse-swipe-card relative flex h-full flex-col overflow-hidden rounded-[1.35rem] sm:rounded-[1.85rem]"
           )}
         >
           <PulseProductMediaStage
@@ -261,8 +261,8 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             direction="right"
             icon={Zap}
             label={t("buyShort")}
-            iconClassName="text-violet-200"
-            badgeClassName="border-violet-300/50 text-violet-100"
+            iconClassName="text-cyan-200"
+            badgeClassName="border-cyan-300/50 text-cyan-50"
             style={{ opacity: buyOpacity }}
             className="pointer-events-none absolute right-3 top-1/2 z-20 -translate-y-1/2 sm:right-4"
             mobileHidden

@@ -48,8 +48,12 @@ export function HomePersonalizedPicksRail({ picks, className, variant = "default
         <div className="min-w-0">
           <p
             className={cn(
-              "font-semibold uppercase tracking-[0.18em] text-violet-600 dark:text-violet-300",
-              pulse ? "text-[8px]" : compact ? "text-[9px]" : "text-[10px]"
+              "font-semibold uppercase tracking-[0.18em]",
+              pulse
+                ? "text-[8px] text-cyan-300"
+                : compact
+                  ? "text-[9px] text-violet-600 dark:text-violet-300"
+                  : "text-[10px] text-violet-600 dark:text-violet-300"
             )}
           >
             {personalized ? t("eyebrowForYou") : t("eyebrowTrending")}

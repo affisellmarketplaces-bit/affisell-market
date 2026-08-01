@@ -757,7 +757,7 @@ body.affisell-demo-lab .affisell-header-shell {
   }
 
   .affisell-swipe-commerce {
-    --affisell-swipe-dock-h: 4.65rem;
+    --affisell-swipe-dock-h: 5rem;
     --affisell-swipe-header-h: 3.15rem;
     --affisell-swipe-picks-h: 0px;
   }
@@ -930,6 +930,161 @@ body.affisell-demo-lab .affisell-header-shell {
 
   .affisell-swipe-toast {
     bottom: calc(var(--affisell-swipe-dock-h) + 1.25rem + env(safe-area-inset-bottom));
+  }
+
+  /* —— Pulse commerce stage (scoped; conversion hierarchy) —— */
+  .affisell-swipe-commerce.affisell-epoxy-page,
+  .affisell-swipe-commerce {
+    background-image:
+      radial-gradient(ellipse 95% 55% at 50% -18%, rgb(6 182 212 / 0.22), transparent 58%),
+      radial-gradient(ellipse 70% 48% at 100% 42%, rgb(16 185 129 / 0.12), transparent 55%),
+      radial-gradient(ellipse 55% 40% at 0% 78%, rgb(251 191 36 / 0.08), transparent 50%),
+      linear-gradient(180deg, #060a12 0%, #05070d 48%, #03050a 100%);
+  }
+
+  .pulse-atmosphere__scan {
+    position: absolute;
+    inset: 0;
+    opacity: 0.22;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        transparent 0,
+        transparent 3px,
+        rgb(148 163 184 / 0.035) 3px,
+        rgb(148 163 184 / 0.035) 4px
+      );
+    mask-image: radial-gradient(ellipse 75% 65% at 50% 45%, black, transparent 78%);
+    animation: pulse-atmosphere-drift 18s linear infinite;
+  }
+
+  @keyframes pulse-atmosphere-drift {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(4px);
+    }
+  }
+
+  .pulse-card-well {
+    isolation: isolate;
+  }
+
+  .pulse-card-well__aura {
+    pointer-events: none;
+    position: absolute;
+    inset: 8% 6% 10%;
+    z-index: 0;
+    border-radius: 2rem;
+    background: radial-gradient(
+      ellipse 70% 55% at 50% 45%,
+      rgb(34 211 238 / 0.16),
+      transparent 70%
+    );
+    filter: blur(28px);
+  }
+
+  .pulse-swipe-card.epoxy-surface {
+    border-color: color-mix(in srgb, #67e8f9 28%, white 18%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.38),
+      inset 0 -1px 0 rgb(255 255 255 / 0.05),
+      0 0 0 1px rgb(34 211 238 / 0.08),
+      0 22px 56px rgb(2 6 23 / 0.55),
+      0 0 48px rgb(34 211 238 / 0.12);
+  }
+
+  .affisell-swipe-commerce-ribbon {
+    background:
+      linear-gradient(
+        to top,
+        rgb(3 7 18 / 0.98) 0%,
+        rgb(3 7 18 / 0.82) 38%,
+        rgb(3 7 18 / 0.35) 68%,
+        transparent 100%
+      );
+    backdrop-filter: blur(6px);
+  }
+
+  .affisell-swipe-commerce-ribbon::before {
+    inset: auto 10% 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(34 211 238 / 0.55),
+      rgb(52 211 153 / 0.4),
+      transparent
+    );
+    box-shadow: 0 0 18px rgb(34 211 238 / 0.35);
+  }
+
+  .pulse-product-ribbon__price span:first-child,
+  .pulse-product-ribbon__price > span {
+    letter-spacing: -0.03em;
+    text-shadow: 0 0 24px rgb(34 211 238 / 0.25);
+  }
+
+  .pulse-command-deck.affisell-swipe-dock-panel {
+    border-radius: 1.35rem;
+    border-color: color-mix(in srgb, #67e8f9 22%, white 16%);
+    background:
+      linear-gradient(
+        165deg,
+        color-mix(in srgb, white 18%, transparent) 0%,
+        color-mix(in srgb, white 4%, transparent) 42%,
+        color-mix(in srgb, #020617 55%, transparent) 100%
+      ),
+      radial-gradient(90% 80% at 70% 0%, rgb(34 211 238 / 0.12), transparent 55%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.28),
+      0 -10px 36px rgb(2 6 23 / 0.55),
+      0 0 40px rgb(34 211 238 / 0.08);
+  }
+
+  .pulse-command-deck__horizon {
+    pointer-events: none;
+    position: absolute;
+    inset-inline: 12%;
+    top: 18%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(103 232 249 / 0.35),
+      transparent
+    );
+  }
+
+  .affisell-swipe-commerce .epoxy-action-btn--buy,
+  .pulse-dock-btn--primary.epoxy-action-btn--buy {
+    border: 1px solid color-mix(in srgb, #a5f3fc 55%, transparent);
+    background: linear-gradient(145deg, rgb(8 145 178 / 0.95), rgb(15 118 110 / 0.92));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.45),
+      0 12px 32px rgb(6 182 212 / 0.45),
+      0 0 0 1px rgb(34 211 238 / 0.15);
+  }
+
+  .pulse-dock-btn--ghost {
+    border-color: color-mix(in srgb, white 18%, transparent);
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, white 10%, transparent),
+      color-mix(in srgb, black 28%, transparent)
+    );
+    color: rgb(226 232 240 / 0.88);
+  }
+
+  .affisell-swipe-commerce .affisell-swipe-header .epoxy-surface {
+    border-color: color-mix(in srgb, #67e8f9 16%, white 14%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse-atmosphere__scan {
+      animation: none;
+    }
   }
 
   .affisell-mobile-dock-epoxy {

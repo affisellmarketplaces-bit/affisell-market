@@ -427,20 +427,26 @@ export function BuyerSwipeCommerce({
       )}
     >
       <div className={affisellBrand.epoxyCanvas} aria-hidden />
-      <div className="pointer-events-none absolute inset-0">
+      <div className="pulse-atmosphere pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="pulse-atmosphere__scan" />
         <motion.div
-          className="absolute -left-24 top-0 h-96 w-96 rounded-full bg-emerald-500/20 blur-[100px]"
-          animate={{ opacity: [0.3, 0.55, 0.3] }}
-          style={{ scale: 1 + Math.max(0, -dragGlow.y) * 0.12 }}
-          transition={{ duration: 6, repeat: Infinity }}
+          className="absolute -left-28 top-[-10%] h-[28rem] w-[28rem] rounded-full bg-emerald-400/18 blur-[110px]"
+          animate={{ opacity: [0.28, 0.5, 0.28] }}
+          style={{ scale: 1 + Math.max(0, -dragGlow.y) * 0.14 }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          className="absolute -right-16 bottom-24 h-80 w-80 rounded-full bg-violet-600/25 blur-[90px]"
-          style={{ scale: 1 + Math.max(0, dragGlow.x) * 0.12 }}
+          className="absolute -right-20 top-[28%] h-[22rem] w-[22rem] rounded-full bg-cyan-400/20 blur-[100px]"
+          style={{ scale: 1 + Math.max(0, dragGlow.x) * 0.14 }}
         />
         <motion.div
-          className="absolute left-1/2 bottom-0 h-64 w-64 -translate-x-1/2 rounded-full bg-amber-500/15 blur-[80px]"
+          className="absolute left-1/2 bottom-[-8%] h-72 w-72 -translate-x-1/2 rounded-full bg-amber-400/12 blur-[90px]"
           style={{ scale: 1 + Math.max(0, dragGlow.y) * 0.12 }}
+        />
+        <motion.div
+          className="absolute inset-x-[18%] top-[42%] h-px bg-gradient-to-r from-transparent via-cyan-300/25 to-transparent"
+          animate={{ opacity: [0.15, 0.4, 0.15] }}
+          transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
 
@@ -546,7 +552,8 @@ export function BuyerSwipeCommerce({
       <div className="affisell-swipe-body flex min-h-0 flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-7xl lg:px-6">
         <div className="affisell-swipe-desktop-grid flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] lg:items-stretch lg:gap-8">
       <main className="affisell-swipe-stage relative z-10 flex min-h-0 flex-1 flex-col px-2 pb-0 sm:px-3 sm:pb-2 lg:min-h-0 lg:px-0">
-        <div className="affisell-swipe-card-well relative mx-auto min-h-0 w-full max-w-[380px] flex-1 lg:max-h-[min(72vh,720px)] lg:max-w-none">
+        <div className="affisell-swipe-card-well pulse-card-well relative mx-auto min-h-0 w-full max-w-[380px] flex-1 lg:max-h-[min(72vh,720px)] lg:max-w-none">
+          <div className="pulse-card-well__aura" aria-hidden />
           <AnimatePresence mode="popLayout">
             {visibleStack.length === 0 && loading ? (
               <motion.div
@@ -555,7 +562,7 @@ export function BuyerSwipeCommerce({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                <div className="size-10 animate-spin rounded-full border-2 border-violet-500/30 border-t-violet-400" />
+                <div className="size-10 animate-spin rounded-full border-2 border-cyan-500/25 border-t-cyan-300" />
               </motion.div>
             ) : (
               visibleStack.map((item, i) => (
@@ -574,7 +581,7 @@ export function BuyerSwipeCommerce({
 
           {activeItem ? (
             <div className="affisell-swipe-commerce-ribbon pointer-events-none absolute inset-x-0 bottom-0 z-40 max-sm:pb-0 lg:hidden">
-              <div className="pointer-events-auto px-2.5 pb-2 pt-10 sm:px-3 sm:pb-2.5 sm:pt-12">
+              <div className="pointer-events-auto px-3 pb-2.5 pt-12 sm:px-3.5 sm:pb-3 sm:pt-14">
                 <PulseProductDetailPanel
                   item={activeItem}
                   priceEur={activePriceEur}
@@ -609,7 +616,7 @@ export function BuyerSwipeCommerce({
               "affisell-swipe-detail-panel-inner overflow-y-auto overscroll-contain p-6 shadow-[inset_0_1px_0_rgb(255_255_255_/_0.12),0_24px_64px_rgb(5_8_22_/_0.55)]"
             )}
           >
-            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-violet-300/80">
+            <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.28em] text-cyan-300/70">
               {tPulse("brand")}
             </p>
             <PulseProductDetailPanel
