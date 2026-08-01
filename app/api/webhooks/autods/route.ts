@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
   const signature = req.headers.get("x-autods-signature")
 
   const sigCheck = verifyAutoDsWebhookSignature(rawBody, signature, clientIp)
+  if (sigCheck === "missing_prod") {
+    return NextResponse.json({ error: "AUTODS_WEBHOOK_SECRET is not configured" }, { status: 503 })
+  }
   if (sigCheck === "invalid") {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
   }

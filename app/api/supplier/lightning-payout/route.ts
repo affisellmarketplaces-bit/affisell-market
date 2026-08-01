@@ -4,6 +4,7 @@ import { z } from "zod"
 import { auth } from "@/auth"
 import { calculateTrustScoreBreakdown } from "@/lib/trust-score"
 import { prisma } from "@/lib/prisma"
+import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -43,6 +44,9 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
+  const originBlock = assertSameSiteRequestOrigin(req)
+  if (originBlock) return originBlock
+
   const session = await auth()
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

@@ -1,10 +1,27 @@
 import { NextResponse } from "next/server"
 
 import { getRedisUrl } from "@/lib/auto-order/redis"
+import { mustEnforceProductionSecrets } from "@/lib/require-production-secret"
 
 type Bucket = { resetAt: number; count: number }
 
 const buckets = new Map<string, Bucket>()
+let warnedMemoryFallbackNoRedis = false
+
+function warnMemoryFallbackNoRedisOnce(): void {
+  if (warnedMemoryFallbackNoRedis) return
+  if (!mustEnforceProductionSecrets()) return
+  warnedMemoryFallbackNoRedis = true
+  console.warn("[rate-limit]", {
+    result: "memory_fallback_no_redis",
+    hint: "Set REDIS_URL for distributed limits on Vercel",
+  })
+}
+
+/** Test helper — reset one-shot prod warning. */
+export function resetRateLimitMemoryFallbackWarnForTests(): void {
+  warnedMemoryFallbackNoRedis = false
+}
 
 /** Client key: prefer authenticated user id, else first IP from proxies. */
 export function rateLimitClientKey(req: Request, userId?: string | null): string {
@@ -90,6 +107,7 @@ export async function rateLimitResponseAsync(
   opts: { limit: number; windowMs: number; prefix?: string }
 ): Promise<NextResponse | null> {
   if (!getRedisUrl()) {
+    warnMemoryFallbackNoRedisOnce()
     return rateLimitResponse(key, opts)
   }
 

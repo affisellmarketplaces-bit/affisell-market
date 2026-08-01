@@ -1,7 +1,32 @@
 /** Response headers applied site-wide (see `next.config.ts` `headers()`). */
+
+/** Enforcing CSP — clickjacking + object/base only (full script-src is Report-Only). */
+export const AFFISELL_CSP_ENFORCE =
+  "frame-ancestors 'self'; object-src 'none'; base-uri 'self'"
+
+/**
+ * Report-Only CSP — observe Next + Stripe without breaking checkout.
+ * Reports land on `/api/csp-report` when browsers support report-uri / report-to.
+ */
+export const AFFISELL_CSP_REPORT_ONLY = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://*.stripe.com https://*.sentry-cdn.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "connect-src 'self' https: wss: https://api.stripe.com https://*.stripe.com https://*.sentry.io https://*.vercel-insights.com",
+  "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://*.stripe.com",
+  "worker-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self' https://checkout.stripe.com https://*.stripe.com",
+  "frame-ancestors 'self'",
+  "report-uri /api/csp-report",
+].join("; ")
+
 export const AFFISELL_SECURITY_HEADERS: ReadonlyArray<{ key: string; value: string }> = [
-  /** Clickjacking — full CSP script-src deferred (Next + Stripe friction). */
-  { key: "Content-Security-Policy", value: "frame-ancestors 'self'; object-src 'none'; base-uri 'self'" },
+  { key: "Content-Security-Policy", value: AFFISELL_CSP_ENFORCE },
+  { key: "Content-Security-Policy-Report-Only", value: AFFISELL_CSP_REPORT_ONLY },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

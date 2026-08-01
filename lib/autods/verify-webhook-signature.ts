@@ -1,6 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 
-export type AutoDsSignatureCheck = "valid" | "invalid" | "skipped"
+import { webhookSecretGate } from "@/lib/require-production-secret"
+
+export type AutoDsSignatureCheck = "valid" | "invalid" | "skipped" | "missing_prod"
 
 export function verifyAutoDsWebhookSignature(
   rawBody: string,
@@ -8,7 +10,15 @@ export function verifyAutoDsWebhookSignature(
   clientIp: string | null
 ): AutoDsSignatureCheck {
   const secret = process.env.AUTODS_WEBHOOK_SECRET?.trim()
-  if (!secret) {
+  const gate = webhookSecretGate(secret)
+  if (gate === "missing_prod") {
+    console.error("[autods-webhook]", {
+      result: "missing_prod_secret",
+      ip: clientIp ?? "unknown",
+    })
+    return "missing_prod"
+  }
+  if (gate === "missing_sig") {
     console.log("[autods-webhook]", {
       result: "signature_skipped_no_secret",
       ip: clientIp ?? "unknown",
@@ -24,7 +34,7 @@ export function verifyAutoDsWebhookSignature(
     return "invalid"
   }
 
-  const expected = createHmac("sha256", secret).update(rawBody).digest("hex")
+  const expected = createHmac("sha256", secret!).update(rawBody).digest("hex")
   const provided = signature.trim().replace(/^sha256=/i, "")
 
   try {

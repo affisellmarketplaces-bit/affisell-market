@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import { requireAgentContext } from "@/lib/agents/require-agent-context"
 import { withdrawAgentBalance } from "@/lib/agents/withdraw-agent-balance"
+import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -15,6 +16,9 @@ const bodySchema = z
 
 /** Withdraw agent balance to Stripe Connect (full balance if amount omitted). */
 export async function POST(req: Request) {
+  const originBlock = assertSameSiteRequestOrigin(req)
+  if (originBlock) return originBlock
+
   const guard = await requireAgentContext()
   if (!guard.ok) {
     return NextResponse.json({ error: guard.error }, { status: guard.status })

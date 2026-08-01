@@ -10,6 +10,7 @@ import {
   logStripeWebhookInfo,
 } from "@/lib/stripe-webhook-observability"
 import { getStripeClient } from "@/lib/stripe"
+import { mustEnforceProductionSecrets } from "@/lib/require-production-secret"
 
 /**
  * Stripe webhooks — Ghost stock re-vérif runs in `ensureMarketplaceCheckoutFulfilled`
@@ -28,16 +29,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 })
   }
 
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET?.trim() ?? ""
+  const isDevFixture =
+    process.env.NODE_ENV === "development" && signature === "test"
+  if (!webhookSecret && !isDevFixture) {
+    console.error("[stripe-webhook]", {
+      result: "missing_secret",
+      enforce: mustEnforceProductionSecrets(),
+    })
+    return NextResponse.json(
+      { error: "STRIPE_WEBHOOK_SECRET is not configured" },
+      { status: mustEnforceProductionSecrets() ? 503 : 500 }
+    )
+  }
+
   const body = await req.text()
 
   let event: Stripe.Event
-  const isDevFixture =
-    process.env.NODE_ENV === "development" && signature === "test"
   try {
     if (isDevFixture) {
       event = JSON.parse(body) as Stripe.Event
     } else {
-      event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
     }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Invalid webhook signature"

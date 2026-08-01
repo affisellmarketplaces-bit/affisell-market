@@ -2,11 +2,15 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { deleteMerchantUser } from "@/lib/delete-merchant-account"
+import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-export async function DELETE() {
+export async function DELETE(req: Request) {
+  const originBlock = assertSameSiteRequestOrigin(req)
+  if (originBlock) return originBlock
+
   const session = await auth()
   const userId = session?.user?.id
   const role = session?.user?.role

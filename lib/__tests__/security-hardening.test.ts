@@ -1,11 +1,16 @@
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   assertSafeOutboundUrl,
   isBlockedOutboundHostname,
 } from "@/lib/safe-outbound-url"
 import { sniffUploadBytes } from "@/lib/upload-content-sniff"
-import { buildSecurityHeaders } from "@/lib/security-headers"
+import { AFFISELL_CSP_REPORT_ONLY, buildSecurityHeaders } from "@/lib/security-headers"
+import {
+  assertSameSiteRequestOrigin,
+  isAllowedRequestOrigin,
+} from "@/lib/request-origin-guard"
+import { verifyAutoDsWebhookSignature } from "@/lib/autods/verify-webhook-signature"
 
 describe("safe-outbound-url", () => {
   it("allows public https hosts", () => {
@@ -47,13 +52,88 @@ describe("upload-content-sniff", () => {
 })
 
 describe("security-headers", () => {
-  it("includes clickjacking and CORP hardening", () => {
-    const keys = buildSecurityHeaders().map((h) => h.key)
+  it("includes clickjacking, CORP, and Report-Only CSP", () => {
+    const headers = buildSecurityHeaders()
+    const keys = headers.map((h) => h.key)
     expect(keys).toContain("X-Frame-Options")
     expect(keys).toContain("Cross-Origin-Opener-Policy")
     expect(keys).toContain("Content-Security-Policy")
-    const csp = buildSecurityHeaders().find((h) => h.key === "Content-Security-Policy")?.value ?? ""
+    expect(keys).toContain("Content-Security-Policy-Report-Only")
+    const csp = headers.find((h) => h.key === "Content-Security-Policy")?.value ?? ""
     expect(csp).toContain("frame-ancestors 'self'")
     expect(csp).toContain("object-src 'none'")
+    expect(AFFISELL_CSP_REPORT_ONLY).toContain("https://js.stripe.com")
+    expect(AFFISELL_CSP_REPORT_ONLY).toContain("report-uri /api/csp-report")
+  })
+})
+
+describe("request-origin-guard", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it("allows same-origin Sec-Fetch-Site and platform Origin", () => {
+    vi.stubEnv("NODE_ENV", "development")
+    vi.stubEnv("VERCEL", "")
+    vi.stubEnv("AFFISELL_PLATFORM_ORIGIN", "https://affisell.com")
+
+    const sameOrigin = assertSameSiteRequestOrigin(
+      new Request("https://affisell.com/api/x", {
+        method: "POST",
+        headers: { "sec-fetch-site": "same-origin" },
+      })
+    )
+    expect(sameOrigin).toBeNull()
+
+    expect(isAllowedRequestOrigin("https://affisell.com")).toBe(true)
+
+    const ok = assertSameSiteRequestOrigin(
+      new Request("https://affisell.com/api/x", {
+        method: "POST",
+        headers: { origin: "https://affisell.com" },
+      })
+    )
+    expect(ok).toBeNull()
+
+    const bad = assertSameSiteRequestOrigin(
+      new Request("https://affisell.com/api/x", {
+        method: "POST",
+        headers: { origin: "https://evil.example" },
+      })
+    )
+    expect(bad?.status).toBe(403)
+  })
+
+  it("skips Bearer machine callers", () => {
+    const res = assertSameSiteRequestOrigin(
+      new Request("https://affisell.com/api/x", {
+        method: "POST",
+        headers: {
+          origin: "https://evil.example",
+          authorization: "Bearer cron-secret",
+        },
+      })
+    )
+    expect(res).toBeNull()
+  })
+})
+
+describe("autods webhook signature gate", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it("fails closed in production without secret", () => {
+    vi.stubEnv("NODE_ENV", "production")
+    vi.stubEnv("VERCEL", "")
+    vi.stubEnv("AUTODS_WEBHOOK_SECRET", "")
+    expect(verifyAutoDsWebhookSignature("{}", null, "1.1.1.1")).toBe("missing_prod")
+  })
+
+  it("skips signature in local dev without secret", () => {
+    vi.stubEnv("NODE_ENV", "development")
+    vi.stubEnv("VERCEL", "")
+    vi.stubEnv("AUTODS_WEBHOOK_SECRET", "")
+    expect(verifyAutoDsWebhookSignature("{}", null, "1.1.1.1")).toBe("skipped")
   })
 })
