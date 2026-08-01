@@ -4,6 +4,7 @@ import Link from "next/link"
 import { notFound, redirect } from "next/navigation"
 
 import { GenerateVideoButton } from "@/components/GenerateVideoButton"
+import { BoostButton } from "@/components/supplier/BoostButton"
 import { SupplierProductPricingPanel } from "@/components/supplier/supplier-product-pricing-panel"
 import { SupplierTryOnPanel } from "@/components/supplier/supplier-try-on-panel"
 import { UpgradeToast } from "@/components/upgrade-toast"
@@ -26,7 +27,7 @@ export default async function SupplierProductVideoPage({
   const { id } = await params
   const { upgrade, session_id: sessionId } = await searchParams
 
-  const [product, quotaRow, productVideo] = await Promise.all([
+  const [product, quotaRow, productVideo, armySize] = await Promise.all([
     prisma.product.findFirst({
       where: { id, supplierId: session.user.id },
       select: { id: true, name: true, images: true, isDraft: true },
@@ -36,6 +37,7 @@ export default async function SupplierProductVideoPage({
       where: { productId: id },
       select: { videoUrl: true, style: true },
     }),
+    prisma.storeProfile.count({ where: { isActive: true } }),
   ])
 
   if (!product || !quotaRow) notFound()
@@ -127,6 +129,15 @@ export default async function SupplierProductVideoPage({
         ) : null}
 
         <SupplierProductPricingPanel productId={product.id} />
+        {!product.isDraft ? (
+          <div className="mt-8">
+            <BoostButton
+              productId={product.id}
+              productTitle={product.name}
+              currentArmySize={armySize}
+            />
+          </div>
+        ) : null}
         <div className="mt-8">
           <SupplierTryOnPanel productId={product.id} />
         </div>

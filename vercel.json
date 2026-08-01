@@ -64,6 +64,10 @@
       "schedule": "0 */6 * * *"
     },
     {
+      "path": "/api/cron/boost-expire",
+      "schedule": "*/1 * * * *"
+    },
+    {
       "path": "/api/pulse/battle/create",
       "schedule": "0 16 * * *"
     }

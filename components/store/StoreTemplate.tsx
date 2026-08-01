@@ -7,6 +7,7 @@ import { useMemo, useState } from "react"
 
 import { AFFISELL_LEGAL_IDENTITY } from "@/lib/legal/auto-entreprise-identity"
 import { canShowLegionPayout24hBadge } from "@/lib/legion/split"
+import { BoostBanner } from "@/components/store/BoostBanner"
 
 export type LegionStoreProduct = {
   id: string
@@ -79,6 +80,8 @@ export function StoreTemplate({ profile, products, referralRef }: Props) {
           </button>
         </div>
       </header>
+
+      <BoostBanner />
 
       <main className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6">
         <section className="relative overflow-hidden rounded-[28px] border border-zinc-200/80 bg-gradient-to-br from-white via-zinc-50 to-cyan-50/40 p-6 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.45)] sm:p-10">

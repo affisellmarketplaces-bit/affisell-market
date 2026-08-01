@@ -132,6 +132,7 @@ model User {
   supplierOrders       Order[]            @relation("SupplierOrders")
   store                Store?
   storeProfile         StoreProfile?
+  legionBoosts         LegionBoost[]
   affiliateOrders      Order[]            @relation("AffiliateOrders")
   notifications        Notification[]
   cart                 Cart?
@@ -600,6 +601,34 @@ model LegionReferral {
 
   @@index([sponsorId])
   @@index([referredId])
+}
+
+/**
+ * LÉGION BOOST — temporary affiliate commission spike (2h battle window).
+ * status: active | expired | cancelled
+ */
+model LegionBoost {
+  id                String   @id @default(cuid())
+  supplierId        String
+  supplier          User     @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  productId         String
+  productTitle      String?
+  oldMarginRate     Decimal  @default(0.30) @db.Decimal(5, 4)
+  /**
+   * 0.35–0.50 inclusive
+   */
+  boostMarginRate   Decimal  @db.Decimal(5, 4)
+  startsAt          DateTime @default(now())
+  endsAt            DateTime
+  status            String   @default("active")
+  armyNotifiedCount Int      @default(0)
+  boostSalesCount   Int      @default(0)
+  boostGmv          Decimal  @default(0) @db.Decimal(14, 2)
+  createdAt         DateTime @default(now())
+
+  @@index([status, endsAt])
+  @@index([productId, status])
+  @@index([supplierId])
 }
 
 /**
