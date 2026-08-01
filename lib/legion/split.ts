@@ -12,7 +12,7 @@ export const PAYOUT_DELAY = 24
  * Public « Paiement 24h » badge — reseller must earn trust with real sales first.
  * Below this, the vitrine does not advertise 24h payouts.
  */
-export const LEGION_PAYOUT_24H_MIN_SALES = 10
+export const LEGION_PAYOUT_24H_MIN_SALES = 100
 
 /** True when the storefront may display the Paiement 24h trust badge. */
 export function canShowLegionPayout24hBadge(totalSales: number): boolean {

@@ -84,10 +84,10 @@ describe("payout helpers", () => {
   })
 
   it("Paiement 24h badge requires notoriété via sales", () => {
-    expect(LEGION_PAYOUT_24H_MIN_SALES).toBe(10)
+    expect(LEGION_PAYOUT_24H_MIN_SALES).toBe(100)
     expect(canShowLegionPayout24hBadge(0)).toBe(false)
-    expect(canShowLegionPayout24hBadge(9)).toBe(false)
-    expect(canShowLegionPayout24hBadge(10)).toBe(true)
-    expect(canShowLegionPayout24hBadge(42)).toBe(true)
+    expect(canShowLegionPayout24hBadge(99)).toBe(false)
+    expect(canShowLegionPayout24hBadge(100)).toBe(true)
+    expect(canShowLegionPayout24hBadge(142)).toBe(true)
   })
 })
