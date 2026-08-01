@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   augmentPrismaDatasourceUrl,
+  getPrismaDatasourceUrl,
   neonDirectHostToPooler,
   normalizePrismaRawUrl,
 } from "@/lib/prisma-datasource-url"
@@ -91,6 +92,43 @@ describe("normalizePrismaRawUrl", () => {
     const raw =
       "postgresql://user:pass@ep-misty-sea-al1ne07p.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
     expect(normalizePrismaRawUrl(raw)).toBe(raw)
+  })
+})
+
+describe("getPrismaDatasourceUrl", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it("keeps direct DATABASE_URL when DIRECT_URL is wrongly set to pooler", () => {
+    vi.stubEnv("NODE_ENV", "development")
+    vi.stubEnv(
+      "DATABASE_URL",
+      "postgresql://user:pass@ep-foo.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+    )
+    vi.stubEnv(
+      "DIRECT_URL",
+      "postgresql://user:pass@ep-foo-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+    )
+    const out = getPrismaDatasourceUrl()
+    const url = new URL(out)
+    expect(url.hostname).toBe("ep-foo.c-3.eu-central-1.aws.neon.tech")
+    expect(url.searchParams.get("pgbouncer")).toBeNull()
+  })
+
+  it("swaps pooler DATABASE_URL to direct DIRECT_URL in development", () => {
+    vi.stubEnv("NODE_ENV", "development")
+    vi.stubEnv(
+      "DATABASE_URL",
+      "postgresql://user:pass@ep-foo-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+    )
+    vi.stubEnv(
+      "DIRECT_URL",
+      "postgresql://user:pass@ep-foo.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+    )
+    const out = getPrismaDatasourceUrl()
+    const url = new URL(out)
+    expect(url.hostname).toBe("ep-foo.c-3.eu-central-1.aws.neon.tech")
   })
 })
 

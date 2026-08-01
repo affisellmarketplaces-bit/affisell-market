@@ -126,8 +126,25 @@ export function getPrismaDatasourceUrl(): string {
     throw new Error("DATABASE_URL is not set")
   }
 
-  if (isDev && !poolerForced && (directExplicit || unpooled)) {
-    raw = unpooled ?? raw
+  if (isDev && !poolerForced) {
+    if (directExplicit && unpooled) {
+      raw = unpooled
+    } else if (unpooled) {
+      // Neon templates often set DATABASE_URL=pooler + DIRECT_URL=unpooled.
+      // Some local envs invert that — never swap onto a pooler when DATABASE_URL is already direct.
+      try {
+        const primary = new URL(raw)
+        const alt = new URL(unpooled)
+        const primaryPooler =
+          isNeonPoolerUrl(primary) || POOLER_HOST_RE.test(primary.hostname)
+        const altPooler = isNeonPoolerUrl(alt) || POOLER_HOST_RE.test(alt.hostname)
+        if (primaryPooler && !altPooler) {
+          raw = unpooled
+        }
+      } catch {
+        /* keep DATABASE_URL */
+      }
+    }
   }
 
   return augmentPrismaDatasourceUrl(normalizePrismaRawUrl(raw))
