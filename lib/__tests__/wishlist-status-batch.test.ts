@@ -83,4 +83,26 @@ describe("wishlist-status-batch", () => {
     await new Promise((r) => setTimeout(r, 10))
     expect(fetchMock).not.toHaveBeenCalled()
   })
+
+  it("soft-fails network errors without throwing (no console.error overlay)", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {})
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")))
+
+    let status: { wished: boolean } | null = null
+    const unsub = subscribeWishlistStatus("p1", (s) => {
+      status = s
+    })
+    await new Promise((r) => setTimeout(r, 20))
+    unsub()
+
+    expect(status).toEqual({ wished: false, dropPercent: 0, likeCount: 0 })
+    expect(errSpy).not.toHaveBeenCalled()
+    expect(log).toHaveBeenCalledWith(
+      "[wishlist-status-batch]",
+      expect.objectContaining({ result: "network_error" })
+    )
+    log.mockRestore()
+    errSpy.mockRestore()
+  })
 })
