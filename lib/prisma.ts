@@ -49,21 +49,36 @@ function createBasePrismaClient(): PrismaClient {
 
   if (useEventLogs) {
     client.$on("error", (event) => {
+      const msg = event.message
+      // Idle pool drops look like "kind: Closed" and also match retryable regex —
+      // must not tear down the singleton (storm under parallel RSC).
+      if (
+        /kind:\s*Closed|postgresql connection.*closed/i.test(msg) &&
+        !/E57P01|administrator command|P1017/i.test(msg)
+      ) {
+        schedulePrismaClientReset("closed")
+        return
+      }
       if (isRetryablePrismaConnectionError(event)) {
-        console.warn("[prisma] transient DB disconnect — will reconnect on next query")
-        void resetPrismaClient()
+        schedulePrismaClientReset("retryable")
         return
       }
-      if (/connection.*closed|kind:\s*Closed/i.test(event.message)) {
-        console.warn("[prisma] transient DB disconnect — will reconnect on next query")
-        void resetPrismaClient()
-        return
-      }
-      console.error("prisma:error", event.message)
+      console.error("prisma:error", msg)
     })
     client.$on("warn", (event) => {
       console.warn("prisma:warn", event.message)
     })
+  }
+
+  try {
+    const host = new URL(url).hostname
+    console.log("[prisma]", {
+      result: "client_created",
+      host,
+      pooler: /-pooler\./i.test(host) || url.includes("pgbouncer=true"),
+    })
+  } catch {
+    /* ignore bad URL parse — create already has datasources url */
   }
 
   return client
@@ -152,6 +167,7 @@ async function executeWithReconnect({
         `[prisma] ${prismaErrorCode(error) || "connection"} — ${shouldResetPrismaEngine(error) ? "reset & " : ""}retry ${attempt + 1}/${maxRetries} in ${delayMs}ms`
       )
       if (shouldResetPrismaEngine(error)) {
+        lastScheduledResetAt = Date.now()
         await resetPrismaClient()
       }
       await sleep(delayMs)
@@ -212,6 +228,40 @@ function assertPrismaServerOnly(): void {
 
 /** Drop cached engine after pooler/admin disconnect (E57P01 / P1017). */
 let resetInFlight: Promise<void> | null = null
+/** Coalesce engine teardown — parallel Next RSC used to storm $disconnect on idle Closed. */
+let lastScheduledResetAt = 0
+let lastIdleClosedLogAt = 0
+const RESET_COALESCE_MS = 5_000
+const IDLE_CLOSED_LOG_MS = 15_000
+
+/**
+ * Idle `kind: Closed` engine events must NOT tear down the singleton (cascades under load).
+ * Hard / query-path disconnects still reset, but at most once per coalesce window.
+ */
+export function schedulePrismaClientReset(
+  reason: "retryable" | "closed" | "query"
+): void {
+  const now = Date.now()
+  if (reason === "closed") {
+    if (now - lastIdleClosedLogAt >= IDLE_CLOSED_LOG_MS) {
+      lastIdleClosedLogAt = now
+      console.warn("[prisma] idle connection closed — lazy reconnect on next query")
+    }
+    return
+  }
+  if (now - lastScheduledResetAt < RESET_COALESCE_MS) {
+    return
+  }
+  lastScheduledResetAt = now
+  console.warn("[prisma] transient DB disconnect — will reconnect on next query", { reason })
+  void resetPrismaClient()
+}
+
+/** @internal tests */
+export function __resetPrismaResetCoalesceStateForTests(): void {
+  lastScheduledResetAt = 0
+  lastIdleClosedLogAt = 0
+}
 
 export async function resetPrismaClient(): Promise<void> {
   if (resetInFlight) return resetInFlight
@@ -311,6 +361,7 @@ export async function withPrismaReconnect<T>(
         `[prisma] ${prismaErrorCode(error) || "connection"} — ${shouldResetPrismaEngine(error) ? "reset & " : ""}retry ${attempt + 1}/${maxRetries} in ${delayMs}ms`
       )
       if (shouldResetPrismaEngine(error)) {
+        lastScheduledResetAt = Date.now()
         await resetPrismaClient()
       }
       await sleep(delayMs)
