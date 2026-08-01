@@ -3,6 +3,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { cookies } from "next/headers"
 
+import { BrowseScrollTop } from "@/components/browse/browse-scroll-top"
 import { CategoryBrowseGrid } from "@/components/browse/category-browse-grid"
 import { browseCategoryCopy } from "@/lib/browse-category-copy"
 import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
@@ -74,7 +75,11 @@ export default async function CategoryBrowsePage({ params }: PageProps) {
   const breadcrumbJsonLd = buildCategoryBreadcrumbJsonLd(category)
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <main
+      id="browse-category-main"
+      className="mx-auto max-w-6xl scroll-mt-24 px-4 py-10 sm:px-6"
+    >
+      <BrowseScrollTop />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
@@ -131,6 +136,7 @@ export default async function CategoryBrowsePage({ params }: PageProps) {
               <li key={child.slug}>
                 <Link
                   href={categoryBrowsePath(child.slug)}
+                  scroll
                   className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200"
                 >
                   {child.name}

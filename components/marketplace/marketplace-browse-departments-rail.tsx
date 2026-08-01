@@ -75,11 +75,13 @@ export function MarketplaceBrowseDepartmentsRail({
           const active = dept.categoryId
             ? activeCategoryId === dept.categoryId
             : Boolean(dept.searchQuery && activeSearch === dept.searchQuery)
+          // Full page `/browse/{slug}` must scroll to top — scroll={false} lands mid-footer.
+          const isBrowseDoc = Boolean(dept.categorySlug)
           return (
             <Link
               key={dept.id}
               href={href}
-              scroll={false}
+              scroll={isBrowseDoc}
               className={cn(
                 "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition",
                 active ? brandOrbitPillActive : brandOrbitPillIdle

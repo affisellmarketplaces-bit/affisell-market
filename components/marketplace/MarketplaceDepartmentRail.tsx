@@ -67,7 +67,7 @@ function DepartmentRailItems({
           <div key={c.id} className="flex shrink-0 items-center gap-1">
             <Link
               href={categoryBrowsePath(c.slug)}
-              scroll={false}
+              scroll
               className={cn(
                 affisellBrand.quickLink,
                 "affisell-quick-link--buyer inline-flex min-h-11 shrink-0 items-center !rounded-full !py-2 text-xs",

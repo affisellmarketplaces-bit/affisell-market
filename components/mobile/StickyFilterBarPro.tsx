@@ -127,7 +127,7 @@ export function StickyFilterBarPro({
                 <Link
                   key={c.id}
                   href={categoryBrowsePath(c.slug)}
-                  scroll={false}
+                  scroll
                   className={cn(
                     "inline-flex h-7 w-[7.5rem] shrink-0 items-center justify-center gap-1 truncate rounded-full px-2 text-[11px] font-semibold",
                     on
