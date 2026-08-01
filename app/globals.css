@@ -772,7 +772,20 @@ body.affisell-demo-lab .affisell-header-shell {
 
   .affisell-swipe-commerce:has(.affisell-swipe-picks),
   .affisell-swipe-commerce--with-picks {
-    --affisell-swipe-picks-h: 3.85rem;
+    /* Beacon strip: eyebrow + Ø40 thumb + price — not full ProductCards */
+    --affisell-swipe-picks-h: 4.65rem;
+  }
+
+  .affisell-pulse-for-you-track {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .affisell-pulse-for-you-track > li {
+    flex: 0 0 auto;
   }
 
   .affisell-swipe-card-well {
@@ -861,7 +874,7 @@ body.affisell-demo-lab .affisell-header-shell {
 
     .affisell-swipe-commerce:has(.affisell-swipe-picks),
     .affisell-swipe-commerce--with-picks {
-      --affisell-swipe-picks-h: 4.15rem;
+      --affisell-swipe-picks-h: 4.9rem;
     }
   }
 
@@ -876,7 +889,7 @@ body.affisell-demo-lab .affisell-header-shell {
 
     .affisell-swipe-commerce--desktop:has(.affisell-swipe-picks),
     .affisell-swipe-commerce--desktop.affisell-swipe-commerce--with-picks {
-      --affisell-swipe-picks-h: 5.25rem;
+      --affisell-swipe-picks-h: 5.5rem;
     }
 
     .affisell-swipe-commerce--desktop .affisell-swipe-card-well {
