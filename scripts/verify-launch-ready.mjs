@@ -7,7 +7,8 @@ import { existsSync, readFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { createRequire } from "node:module"
 
-function loadDotEnv(path) {
+/** Like Next.js: .env.local overrides .env when override=true. */
+function loadDotEnv(path, { override = false } = {}) {
   if (!existsSync(path)) return
   const raw = readFileSync(path, "utf8")
   for (const line of raw.split("\n")) {
@@ -23,12 +24,13 @@ function loadDotEnv(path) {
     ) {
       val = val.slice(1, -1)
     }
-    if (process.env[key] === undefined) process.env[key] = val
+    if (override || process.env[key] === undefined) process.env[key] = val
   }
 }
 
+// .env.local overrides .env (Next.js convention)
 loadDotEnv(resolve(process.cwd(), ".env"))
-loadDotEnv(resolve(process.cwd(), ".env.local"))
+loadDotEnv(resolve(process.cwd(), ".env.local"), { override: true })
 
 const require = createRequire(import.meta.url)
 
