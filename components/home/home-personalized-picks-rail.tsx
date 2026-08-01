@@ -31,7 +31,7 @@ export function HomePersonalizedPicksRail({ picks, className, variant = "default
       className={cn(
         brandOrbitRailShell,
         pulse
-          ? "mb-1 max-h-[4.1rem] overflow-hidden p-1.5 sm:mb-2 sm:max-h-[5.25rem] sm:p-2"
+          ? "mb-0 max-h-none overflow-visible p-1.5 sm:mb-1 sm:p-2"
           : compact
             ? "mb-3 p-2.5 sm:p-3"
             : "mb-4 p-3 sm:mb-5 sm:rounded-3xl sm:p-4",
@@ -94,7 +94,7 @@ export function HomePersonalizedPicksRail({ picks, className, variant = "default
         className={cn(
           "relative flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           compact && "gap-2.5",
-          pulse && "gap-2 pb-0"
+          pulse && "gap-2 overflow-x-auto overflow-y-visible pb-0 [-webkit-overflow-scrolling:touch]"
         )}
       >
         {picks.items.map((item) => (
@@ -103,7 +103,7 @@ export function HomePersonalizedPicksRail({ picks, className, variant = "default
             className={cn(
               "shrink-0 snap-start",
               pulse
-                ? "w-[3.85rem] sm:w-[4.75rem]"
+                ? "w-[3.25rem] sm:w-[3.75rem]"
                 : compact
                   ? "w-[10.25rem] sm:w-[11rem]"
                   : "w-[11.5rem] sm:w-[12.75rem]"

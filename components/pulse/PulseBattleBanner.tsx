@@ -35,7 +35,7 @@ export function PulseBattleBanner({ className }: Props) {
     <Link
       href="/battles"
       className={cn(
-        "relative z-50 flex items-center justify-center gap-2 border-b border-white/10 bg-gradient-to-r from-red-600 via-fuchsia-600 to-violet-600 px-3 py-2 text-center text-[11px] font-bold text-white sm:text-xs",
+        "relative z-50 flex items-center justify-center gap-1.5 border-b border-white/10 bg-gradient-to-r from-red-600 via-fuchsia-600 to-violet-600 px-2 py-1.5 text-center text-[10px] font-bold leading-tight text-white sm:gap-2 sm:px-3 sm:py-2 sm:text-[11px] md:text-xs",
         className
       )}
       data-testid="pulse-battle-banner"
@@ -48,9 +48,11 @@ export function PulseBattleBanner({ className }: Props) {
       ) : (
         <span aria-hidden>🔥</span>
       )}
-      {live
-        ? "HUB BATTLES — VOTE ET GAGNE LE FLASH →"
-        : "HUB DES BATTLES — DÉCOUVRE LES DUELS →"}
+      <span className="min-w-0 truncate">
+        {live
+          ? "HUB BATTLES — VOTE ET GAGNE LE FLASH →"
+          : "HUB DES BATTLES — DÉCOUVRE LES DUELS →"}
+      </span>
     </Link>
   )
 }

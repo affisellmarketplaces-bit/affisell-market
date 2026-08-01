@@ -21,7 +21,7 @@ export function PulseHeaderCartLink({ className }: { className?: string }) {
       aria-label={aria}
       className={cn(
         affisellBrand.epoxyChip,
-        "relative flex size-9 shrink-0 items-center justify-center rounded-full text-white/90 transition active:scale-95",
+        "relative flex size-8 shrink-0 items-center justify-center rounded-full text-white/90 transition active:scale-95 sm:size-9",
         className
       )}
     >

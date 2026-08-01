@@ -76,7 +76,7 @@ function DockButton({
           ? cn(
               "flex min-h-0 flex-col items-center justify-center gap-0.5 rounded-2xl px-0.5 py-1",
               primary
-                ? "aspect-auto min-h-[3.55rem] rounded-[1.25rem] shadow-[0_0_36px_-4px_rgba(34,211,238,0.7)]"
+                ? "aspect-auto min-h-[3.1rem] rounded-[1.15rem] shadow-[0_0_36px_-4px_rgba(34,211,238,0.7)]"
                 : "aspect-square",
               ghost && "opacity-80"
             )
@@ -170,14 +170,14 @@ export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }:
       data-testid="pulse-swipe-dock"
       className={cn(
         affisellBrand.epoxyPanel,
-        "affisell-swipe-dock affisell-swipe-dock-panel pulse-command-deck relative z-50 mx-auto w-full max-w-[380px] shrink-0 px-2 py-1.5 sm:px-4 sm:py-3 lg:max-w-none",
-        "pb-[max(0.35rem,env(safe-area-inset-bottom))]"
+        "affisell-swipe-dock affisell-swipe-dock-panel pulse-command-deck relative z-50 mx-auto w-full max-w-[min(100%,380px)] shrink-0 px-1.5 py-1 sm:max-w-[420px] sm:px-3 sm:py-1.5 lg:max-w-none lg:px-4 lg:py-3",
+        "pb-[max(0.25rem,env(safe-area-inset-bottom))]"
       )}
     >
-      <div className="relative mx-auto sm:hidden">
+      <div className="relative mx-auto lg:hidden">
         <div className="pulse-command-deck__horizon" aria-hidden />
         {/* Skip · Cart · Undo · Buy · Save — Buy is the primary conversion node */}
-        <div className="pulse-command-deck__grid grid grid-cols-[0.9fr_0.95fr_0.85fr_1.35fr_0.95fr] items-end gap-1.5">
+        <div className="pulse-command-deck__grid grid grid-cols-[0.85fr_0.9fr_0.8fr_1.25fr_0.9fr] items-end gap-1 sm:gap-1.5">
           <DockButton
             layout="mobile"
             direction="left"
@@ -231,10 +231,10 @@ export function SwipeCommerceDock({ busy, deckEmpty, canUndo, onSwipe, onUndo }:
         </div>
       </div>
 
-      <p className="mb-1.5 hidden text-center text-[10px] font-medium uppercase tracking-[0.22em] text-cyan-200/45 sm:mb-2 sm:block">
+      <p className="mb-1.5 hidden text-center text-[10px] font-medium uppercase tracking-[0.22em] text-cyan-200/45 lg:mb-2 lg:block">
         {t("hint")}
       </p>
-      <div className="pulse-command-deck__grid hidden grid-cols-[0.9fr_1fr_0.85fr_1.4fr_1fr] items-end gap-2 sm:grid">
+      <div className="pulse-command-deck__grid hidden grid-cols-[0.9fr_1fr_0.85fr_1.4fr_1fr] items-end gap-2 lg:grid">
         <DockButton
           direction="left"
           label={t("skipShort")}

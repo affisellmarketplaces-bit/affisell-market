@@ -450,8 +450,8 @@ export function BuyerSwipeCommerce({
         />
       </div>
 
-      <header className="affisell-swipe-header relative z-40 shrink-0 px-2 pb-0.5 pt-[max(0.35rem,env(safe-area-inset-top))] sm:px-3 sm:pb-2 sm:pt-[max(0.75rem,env(safe-area-inset-top))]">
-        <PulseBattleBanner className="-mx-2 mb-1 sm:-mx-3" />
+      <header className="affisell-swipe-header relative z-40 shrink-0 px-2 pb-0.5 pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-3 sm:pb-1.5 sm:pt-[max(0.5rem,env(safe-area-inset-top))]">
+        <PulseBattleBanner className="affisell-swipe-banner -mx-2 mb-1 sm:-mx-3" />
         {fetchError ? (
           <p
             role="alert"
@@ -466,7 +466,7 @@ export function BuyerSwipeCommerce({
         <div
           className={cn(
             affisellBrand.epoxyPanel,
-            "mx-auto flex h-11 max-w-[420px] items-center justify-between gap-1.5 px-1.5 sm:h-auto sm:gap-2 sm:px-3 sm:py-2 lg:max-w-7xl"
+            "mx-auto flex h-10 max-w-[420px] items-center justify-between gap-1 px-1.5 sm:h-11 sm:gap-2 sm:px-3 sm:py-2 lg:max-w-7xl"
           )}
         >
           <Link
@@ -474,7 +474,7 @@ export function BuyerSwipeCommerce({
             aria-label={tPulse("exit")}
             className={cn(
               affisellBrand.epoxyChip,
-              "flex size-9 shrink-0 items-center justify-center rounded-full text-white/90 sm:size-auto sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs"
+              "flex size-8 shrink-0 items-center justify-center rounded-full text-white/90 sm:size-auto sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs"
             )}
           >
             <ArrowLeft className="size-4" aria-hidden />
@@ -482,11 +482,11 @@ export function BuyerSwipeCommerce({
           </Link>
 
           <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-1">
-            <div className="flex max-w-full items-center justify-center gap-1.5">
+            <div className="flex max-w-full items-center justify-center gap-1 sm:gap-1.5">
               <span
                 className={cn(
                   affisellBrand.brandWordmark,
-                  "truncate text-[13px] leading-none sm:text-sm"
+                  "max-w-[11rem] truncate text-[12px] leading-none sm:max-w-[14rem] sm:text-sm lg:max-w-none"
                 )}
               >
                 {tPulse("brand")}
@@ -503,7 +503,7 @@ export function BuyerSwipeCommerce({
                 <span
                   className={cn(
                     affisellBrand.epoxyChip,
-                    "hidden shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase text-violet-100 sm:inline-flex"
+                    "hidden shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase text-violet-100 lg:inline-flex"
                   )}
                 >
                   {t("rewindBadge")}
@@ -511,27 +511,28 @@ export function BuyerSwipeCommerce({
               ) : null}
             </div>
             {categoryLabel ? (
-              <p className="mt-0.5 hidden max-w-[12rem] truncate text-[10px] text-zinc-400 sm:block">
+              <p className="mt-0.5 hidden max-w-[12rem] truncate text-[10px] text-zinc-400 lg:block">
                 {categoryLabel}
               </p>
             ) : null}
           </div>
 
-          <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
-            <PulseBattleHeaderLink className="hidden sm:inline-flex" />
-            <LanguageSwitcher className="hidden shrink-0 sm:block [&_button]:border-white/15 [&_button]:bg-black/40 [&_button]:text-white" />
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+            {/* Banner already links to battles — keep header chip for large screens only */}
+            <PulseBattleHeaderLink className="hidden lg:inline-flex" />
+            <LanguageSwitcher className="hidden shrink-0 lg:block [&_button]:border-white/15 [&_button]:bg-black/40 [&_button]:text-white" />
             <PulseLayoutModeLink
               target="scroll"
               label={t("scrollModeShort")}
               categoryId={categoryId}
               subcategoryId={subcategoryId}
-              className="!size-9 !justify-center !gap-0 !px-0 sm:!size-auto sm:!gap-1.5 sm:!px-2.5 [&_span]:hidden sm:[&_span]:inline"
+              className="!size-8 !justify-center !gap-0 !px-0 sm:!size-9 lg:!size-auto lg:!gap-1.5 lg:!px-2.5 [&_span]:hidden lg:[&_span]:inline"
             />
             <PulseHeaderCartLink />
             <span
               className={cn(
                 affisellBrand.epoxyChip,
-                "hidden tabular-nums rounded-full px-2 py-1 text-xs text-white/80 sm:inline-flex"
+                "hidden tabular-nums rounded-full px-2 py-1 text-xs text-white/80 lg:inline-flex"
               )}
             >
               {deck.length > 0 ? deck.length : "—"}
@@ -549,11 +550,12 @@ export function BuyerSwipeCommerce({
         </div>
       ) : null}
 
-      <div className="affisell-swipe-body flex min-h-0 flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-7xl lg:px-6">
-        <div className="affisell-swipe-desktop-grid flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] lg:items-stretch lg:gap-8">
-      <main className="affisell-swipe-stage relative z-10 flex min-h-0 flex-1 flex-col px-2 pb-0 sm:px-3 sm:pb-2 lg:min-h-0 lg:px-0">
+      <div className="affisell-swipe-body flex min-h-0 flex-1 flex-col overflow-hidden lg:mx-auto lg:w-full lg:max-w-7xl lg:px-6">
+        <div className="affisell-swipe-desktop-grid flex min-h-0 flex-1 flex-col overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] lg:items-stretch lg:gap-8">
+      <main className="affisell-swipe-stage relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-2 pb-0 sm:px-3 sm:pb-1 lg:min-h-0 lg:px-0">
         <div className="affisell-swipe-card-well pulse-card-well relative mx-auto min-h-0 w-full max-w-[380px] flex-1 lg:max-h-[min(72vh,720px)] lg:max-w-none">
           <div className="pulse-card-well__aura" aria-hidden />
+          <div className="pulse-card-well__frame relative min-h-0 w-full">
           <AnimatePresence mode="popLayout">
             {visibleStack.length === 0 && loading ? (
               <motion.div
@@ -581,7 +583,7 @@ export function BuyerSwipeCommerce({
 
           {activeItem ? (
             <div className="affisell-swipe-commerce-ribbon pointer-events-none absolute inset-x-0 bottom-0 z-40 max-sm:pb-0 lg:hidden">
-              <div className="pointer-events-auto px-3 pb-2.5 pt-12 sm:px-3.5 sm:pb-3 sm:pt-14">
+              <div className="pointer-events-auto px-3 pb-2 pt-10 sm:px-3.5 sm:pb-2.5 sm:pt-12">
                 <PulseProductDetailPanel
                   item={activeItem}
                   priceEur={activePriceEur}
@@ -591,6 +593,7 @@ export function BuyerSwipeCommerce({
               </div>
             </div>
           ) : null}
+          </div>
         </div>
 
         <SwipeCommerceDock
