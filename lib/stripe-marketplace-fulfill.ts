@@ -425,6 +425,26 @@ async function createPaidMarketplaceOrder(
     data: { conversions: { increment: qty } },
   })
 
+  try {
+    const { accrueSponsorSuccessFeesForOrder } = await import(
+      "@/lib/sponsor/charge-sponsor-on-sale"
+    )
+    await accrueSponsorSuccessFeesForOrder(tx, {
+      orderId: order.id,
+      productId: listing.productId,
+      affiliateProductId: listing.id,
+      htCents: settlement.affisellFeeBaseCents,
+      supplierId: listing.product.supplierId,
+      affiliateId: listing.affiliateId,
+    })
+  } catch (sponsorErr) {
+    console.error("[sponsor]", {
+      result: "success_fee_accrual_failed",
+      orderId: order.id,
+      error: sponsorErr instanceof Error ? sponsorErr.message : String(sponsorErr),
+    })
+  }
+
   const variantBit = args.variantLabel ? ` · ${args.variantLabel}` : ""
   await createMarketplaceOrderNotifications(tx, {
     orderId: order.id,

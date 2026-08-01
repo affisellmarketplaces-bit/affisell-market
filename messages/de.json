@@ -3994,34 +3994,38 @@
   "sponsorBoost": {
     "eyebrow": "Affisell Boost",
     "title": "Intelligente Werbung",
-    "subtitleSupplier": "Stimuliere dein Katalog über alle Affiliate-Shops hinweg. Zahlst eine % des Großhandels-Preises — Premium-Platzierung mit Live-Score.",
-    "subtitleAffiliate": "Schiebe deine Liste an die Spitze des Marktplatzes. Der ROI ist auf dem Live-Boost-Score sichtbar.",
+    "subtitleSupplier": "Premium placement across every affiliate storefront. You only pay a % of HT after a sale closes — no upfront budget.",
+    "subtitleAffiliate": "Push your listing up. The % is charged only when an order is paid. Live boost score.",
     "liveScore": "Live-Boost-Score",
     "target": "Ziel",
     "selectedSku": "Aktives SKU",
     "htPrice": "Großhandelspreis {price}",
     "noProducts": "Keine geeigneten Produkte.",
-    "investment": "Großhandelsinvestition",
-    "duration": "Dauer",
+    "investment": "Success fee share (HT)",
+    "duration": "Promotion window",
     "placement": {
       "label": "Platzierung",
       "HOME_SPOTLIGHT": "Hauptfokus",
       "CATEGORY_TOP": "Kategorie oben",
       "SEARCH_BOOST": "Suchbooster"
     },
-    "budget": "Schätzung des Budgets",
+    "budget": "Per concluded sale",
     "quoteMeta": "Score {score} · {rate}% HT · {days}d",
     "boostPower": "Leistung",
     "boostPowerAria": "Boost-Score {score}",
     "cta": "Aktiviere Boost",
-    "checkoutError": "Bezahlfehler",
+    "checkoutError": "Could not activate boost",
     "recentCampaigns": "Jüngste Kampagnen",
     "status": {
       "PENDING_PAYMENT": "Ausstehende Zahlung",
       "ACTIVE": "Aktiv",
       "EXPIRED": "Abgelaufen",
       "CANCELLED": "Storniert"
-    }
+    },
+    "successFeeHint": "Billed only when a buyer pays — never a subscription or deposit.",
+    "perSaleFee": "Cost per sale",
+    "quoteMetaSuccess": "Score {score} · {rate}% HT · live {days}d · pay on sale",
+    "payOnSaleBadge": "Pay-per-sale"
   },
   "demoLab": {
     "eyebrow": "Affisell Demo Lab",

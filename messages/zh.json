@@ -3994,34 +3994,38 @@
   "sponsorBoost": {
     "eyebrow": "Affisell Boost",
     "title": "智能推广",
-    "subtitleSupplier": "在每个合作商店中提升您的目录。付费一部分零售价 — 高级置顶与实时评分。",
-    "subtitleAffiliate": "将您的列表推到市场的顶部。实时提升分数可见于ROI",
+    "subtitleSupplier": "Premium placement across every affiliate storefront. You only pay a % of HT after a sale closes — no upfront budget.",
+    "subtitleAffiliate": "Push your listing up. The % is charged only when an order is paid. Live boost score.",
     "liveScore": "实时加速分数",
     "target": "目标",
     "selectedSku": "激活SKU",
     "htPrice": "批发{price}",
     "noProducts": "无符合条件的产品。",
-    "investment": "批发投资",
-    "duration": "有效期",
+    "investment": "Success fee share (HT)",
+    "duration": "Promotion window",
     "placement": {
       "label": "放置位置",
       "HOME_SPOTLIGHT": "首页焦点",
       "CATEGORY_TOP": "分类顶部",
       "SEARCH_BOOST": "搜索加速"
     },
-    "budget": "预估预算",
+    "budget": "Per concluded sale",
     "quoteMeta": "评分 {score} · {rate}% HT · {days}d",
     "boostPower": "Power",
     "boostPowerAria": "Boost score {score}",
     "cta": "激活 Boost",
-    "checkoutError": "支付错误",
+    "checkoutError": "Could not activate boost",
     "recentCampaigns": "最近活动",
     "status": {
       "PENDING_PAYMENT": "待付款",
       "ACTIVE": "活动中",
       "EXPIRED": "已过期",
       "CANCELLED": "已取消"
-    }
+    },
+    "successFeeHint": "Billed only when a buyer pays — never a subscription or deposit.",
+    "perSaleFee": "Cost per sale",
+    "quoteMetaSuccess": "Score {score} · {rate}% HT · live {days}d · pay on sale",
+    "payOnSaleBadge": "Pay-per-sale"
   },
   "demoLab": {
     "eyebrow": "Affisell Demo Lab",

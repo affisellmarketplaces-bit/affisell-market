@@ -8,7 +8,12 @@ import {
   type SponsorPlacement,
 } from "@/lib/sponsor/sponsor-constants"
 import { loadSponsorHtCents, resolveSponsorTarget } from "@/lib/sponsor/sponsor-access"
-import { quoteSponsorCampaign } from "@/lib/sponsor/sponsor-pricing"
+import {
+  isSponsorBillingMode,
+  quoteSponsorCampaign,
+  type SponsorBillingMode,
+} from "@/lib/sponsor/sponsor-pricing"
+import { SPONSOR_BILLING_MODE } from "@/lib/sponsor/sponsor-constants"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -19,6 +24,7 @@ type Body = {
   sponsorRateBps?: number
   durationDays?: number
   placement?: string
+  billingMode?: string
 }
 
 export async function POST(req: Request) {
@@ -45,6 +51,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid placement" }, { status: 400 })
   }
 
+  const billingMode: SponsorBillingMode = isSponsorBillingMode(body.billingMode)
+    ? body.billingMode
+    : SPONSOR_BILLING_MODE.SUCCESS_FEE
+
   const htCents = await loadSponsorHtCents(target)
   if (htCents <= 0) {
     return NextResponse.json({ error: "Invalid product HT price" }, { status: 400 })
@@ -55,6 +65,7 @@ export async function POST(req: Request) {
     sponsorRateBps: Number(body.sponsorRateBps ?? 500),
     durationDays,
     placement,
+    billingMode,
   })
 
   return NextResponse.json({ target, quote })

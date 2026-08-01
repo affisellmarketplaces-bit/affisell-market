@@ -3994,34 +3994,38 @@
   "sponsorBoost": {
     "eyebrow": "Affisell Boost",
     "title": "Mądra promocja",
-    "subtitleSupplier": "Zwiększ swoją katalogu na każdym sklepie partnerkim. Płać % z ceny hurtowej HT — premiowe umieszczenie z żywym punktacją.",
-    "subtitleAffiliate": "Wypchnij swoją ofertę na szczyt rynku. Zysk widoczny na żywej punktacji boostu.",
+    "subtitleSupplier": "Premium placement across every affiliate storefront. You only pay a % of HT after a sale closes — no upfront budget.",
+    "subtitleAffiliate": "Push your listing up. The % is charged only when an order is paid. Live boost score.",
     "liveScore": "Żywa punktacja boostu",
     "target": "Cel",
     "selectedSku": "Aktywny SKU",
     "htPrice": "Cena hurtowa {price}",
     "noProducts": "Brak produktów do wyboru.",
-    "investment": "Inwestycja hurtowa",
-    "duration": "Czas trwania",
+    "investment": "Success fee share (HT)",
+    "duration": "Promotion window",
     "placement": {
       "label": "Umiejscowienie",
       "HOME_SPOTLIGHT": "Oświetlenie strony głównej",
       "CATEGORY_TOP": "Najlepsze w kategorii",
       "SEARCH_BOOST": "Wzmocnienie wyszukiwania"
     },
-    "budget": "Szacowany budżet",
+    "budget": "Per concluded sale",
     "quoteMeta": "Ocena {score} · {rate}% HT · {days}d",
     "boostPower": "Moc",
     "boostPowerAria": "Wzmocnienie oceny {score}",
     "cta": "Aktywuj Boost",
-    "checkoutError": "Błąd płatności",
+    "checkoutError": "Could not activate boost",
     "recentCampaigns": "Ostatnie kampanie",
     "status": {
       "PENDING_PAYMENT": "W trakcie oczekiwania na płatność",
       "ACTIVE": "Aktywny",
       "EXPIRED": "Wygasł",
       "CANCELLED": "Anulowany"
-    }
+    },
+    "successFeeHint": "Billed only when a buyer pays — never a subscription or deposit.",
+    "perSaleFee": "Cost per sale",
+    "quoteMetaSuccess": "Score {score} · {rate}% HT · live {days}d · pay on sale",
+    "payOnSaleBadge": "Pay-per-sale"
   },
   "demoLab": {
     "eyebrow": "Affisell Demo Lab",

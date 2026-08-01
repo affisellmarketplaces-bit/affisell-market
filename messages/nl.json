@@ -3995,34 +3995,38 @@
   "sponsorBoost": {
     "eyebrow": "Affisell Boost",
     "title": "Slimme promotie",
-    "subtitleSupplier": "Verhoog uw catalogus op elke affiliate-winkel. Betal een % van de wholesale HT — premium plaatsing met live scoring.",
-    "subtitleAffiliate": "Zet uw vermelding op de top van de marktplaats. ROI zichtbaar op de live boost score.",
+    "subtitleSupplier": "Premium placement across every affiliate storefront. You only pay a % of HT after a sale closes — no upfront budget.",
+    "subtitleAffiliate": "Push your listing up. The % is charged only when an order is paid. Live boost score.",
     "liveScore": "Live boost score",
     "target": "Doel",
     "selectedSku": "Actieve SKU",
     "htPrice": "Wholesale {price}",
     "noProducts": "Geen geschikte producten.",
-    "investment": "Wholesale investering",
-    "duration": "Duur",
+    "investment": "Success fee share (HT)",
+    "duration": "Promotion window",
     "placement": {
       "label": "Plaatsing",
       "HOME_SPOTLIGHT": "Home spotlight",
       "CATEGORY_TOP": "Categorie top",
       "SEARCH_BOOST": "Zoekboost"
     },
-    "budget": "Geschatte budget",
+    "budget": "Per concluded sale",
     "quoteMeta": "Score {score} · {rate}% HT · {days}d",
     "boostPower": "Kracht",
     "boostPowerAria": "Boost score {score}",
     "cta": "Activeren Boost",
-    "checkoutError": "Betaalerror",
+    "checkoutError": "Could not activate boost",
     "recentCampaigns": "Recente campagnes",
     "status": {
       "PENDING_PAYMENT": "In afwachting van betaling",
       "ACTIVE": "Actief",
       "EXPIRED": "Verlopen",
       "CANCELLED": "Geannuleerd"
-    }
+    },
+    "successFeeHint": "Billed only when a buyer pays — never a subscription or deposit.",
+    "perSaleFee": "Cost per sale",
+    "quoteMetaSuccess": "Score {score} · {rate}% HT · live {days}d · pay on sale",
+    "payOnSaleBadge": "Pay-per-sale"
   },
   "demoLab": {
     "eyebrow": "Affisell Demo Lab",

@@ -3994,34 +3994,38 @@
   "sponsorBoost": {
     "eyebrow": "Affisell Boost",
     "title": "Promozione intelligente",
-    "subtitleSupplier": "Rafforza il tuo catalogo su ogni negozio affiliato. Paga il % di HT al dettaglio — posizionamento premium con punteggio in tempo reale.",
-    "subtitleAffiliate": "Spingi la tua lista al primo posto del mercato. Il ROI è visibile sul punteggio di boost in tempo reale.",
+    "subtitleSupplier": "Premium placement across every affiliate storefront. You only pay a % of HT after a sale closes — no upfront budget.",
+    "subtitleAffiliate": "Push your listing up. The % is charged only when an order is paid. Live boost score.",
     "liveScore": "Punteggio di boost in tempo reale",
     "target": "Target",
     "selectedSku": "SKU attivo",
     "htPrice": "Investimento al dettaglio {price}",
     "noProducts": "Nessun prodotto idoneo.",
-    "investment": "Investimento al dettaglio",
-    "duration": "Durata",
+    "investment": "Success fee share (HT)",
+    "duration": "Promotion window",
     "placement": {
       "label": "Posizionamento",
       "HOME_SPOTLIGHT": "Spotlight home",
       "CATEGORY_TOP": "Categoria top",
       "SEARCH_BOOST": "Boost di ricerca"
     },
-    "budget": "Budget stimato",
+    "budget": "Per concluded sale",
     "quoteMeta": "Punteggio {score} · {rate}% HT · {days}d",
     "boostPower": "Potenza",
     "boostPowerAria": "Punteggio di boost {score}",
     "cta": "Attiva Boost",
-    "checkoutError": "Errore di pagamento",
+    "checkoutError": "Could not activate boost",
     "recentCampaigns": "Campagne recenti",
     "status": {
       "PENDING_PAYMENT": "In attesa di pagamento",
       "ACTIVE": "Attivo",
       "EXPIRED": "Scaduto",
       "CANCELLED": "Annullato"
-    }
+    },
+    "successFeeHint": "Billed only when a buyer pays — never a subscription or deposit.",
+    "perSaleFee": "Cost per sale",
+    "quoteMetaSuccess": "Score {score} · {rate}% HT · live {days}d · pay on sale",
+    "payOnSaleBadge": "Pay-per-sale"
   },
   "demoLab": {
     "eyebrow": "Affisell Demo Lab",

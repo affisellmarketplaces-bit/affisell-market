@@ -45,10 +45,12 @@ type CatalogItem =
 
 type Quote = {
   feeCents: number
+  feePerSaleCents?: number
   ratePercent: number
   durationDays: number
   placement: SponsorPlacement
   boostScore: number
+  billingMode?: "SUCCESS_FEE" | "UPFRONT"
 }
 
 type CampaignRow = {
@@ -118,12 +120,19 @@ export function SponsorBoostStudio({ role, items }: Props) {
       try {
         const body =
           selected.kind === "supplier"
-            ? { productId: selected.productId, sponsorRateBps: rateBps, durationDays, placement }
+            ? {
+                productId: selected.productId,
+                sponsorRateBps: rateBps,
+                durationDays,
+                placement,
+                billingMode: "SUCCESS_FEE",
+              }
             : {
                 affiliateProductId: selected.affiliateProductId,
                 sponsorRateBps: rateBps,
                 durationDays,
                 placement,
+                billingMode: "SUCCESS_FEE",
               }
         const res = await fetch("/api/sponsor/quote", {
           method: "POST",
@@ -156,12 +165,19 @@ export function SponsorBoostStudio({ role, items }: Props) {
     try {
       const body =
         selected.kind === "supplier"
-          ? { productId: selected.productId, sponsorRateBps: rateBps, durationDays, placement }
+          ? {
+              productId: selected.productId,
+              sponsorRateBps: rateBps,
+              durationDays,
+              placement,
+              billingMode: "SUCCESS_FEE",
+            }
           : {
               affiliateProductId: selected.affiliateProductId,
               sponsorRateBps: rateBps,
               durationDays,
               placement,
+              billingMode: "SUCCESS_FEE",
             }
       const res = await fetch("/api/sponsor/checkout", {
         method: "POST",
@@ -171,6 +187,10 @@ export function SponsorBoostStudio({ role, items }: Props) {
       const data = await res.json()
       if (data.url) {
         window.location.href = data.url as string
+        return
+      }
+      if (data.ok && data.campaignId) {
+        await loadCampaigns()
         return
       }
       alert(data.error ?? t("checkoutError"))
@@ -318,6 +338,9 @@ export function SponsorBoostStudio({ role, items }: Props) {
                   {ratePercent.toFixed(1)}%
                 </span>
               </div>
+              <p className="mt-1 text-[11px] leading-relaxed text-cyan-300/90">
+                {t("successFeeHint")}
+              </p>
               <input
                 type="range"
                 min={SPONSOR_MIN_RATE_BPS}
@@ -387,28 +410,31 @@ export function SponsorBoostStudio({ role, items }: Props) {
             </div>
 
             <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-[1fr_auto] min-[480px]:items-end">
-              <div className="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-600/25 to-zinc-900 p-4">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-violet-200/90">
-                  {t("budget")}
+              <div className="rounded-2xl border border-cyan-400/35 bg-gradient-to-br from-cyan-500/20 via-violet-600/20 to-zinc-900 p-4 shadow-[0_0_40px_-12px_rgba(34,211,238,0.45)]">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-200/90">
+                  {t("perSaleFee")}
                 </p>
                 <p className="mt-1 text-3xl font-bold tabular-nums text-white sm:text-4xl">
                   {loadingQuote ? (
-                    <Loader2 className="inline size-8 animate-spin text-violet-300" aria-hidden />
+                    <Loader2 className="inline size-8 animate-spin text-cyan-300" aria-hidden />
                   ) : quote ? (
-                    formatStoreCurrencyFromCents(quote.feeCents)
+                    formatStoreCurrencyFromCents(quote.feePerSaleCents ?? quote.feeCents)
                   ) : (
                     "—"
                   )}
                 </p>
                 {quote ? (
                   <p className="mt-2 text-xs text-zinc-400">
-                    {t("quoteMeta", {
+                    {t("quoteMetaSuccess", {
                       score: quote.boostScore,
                       rate: quote.ratePercent,
                       days: quote.durationDays,
                     })}
                   </p>
                 ) : null}
+                <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#d4ff00]/40 bg-[#d4ff00]/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#d4ff00]">
+                  {t("payOnSaleBadge")}
+                </p>
               </div>
 
               {quote ? (
@@ -478,7 +504,9 @@ export function SponsorBoostStudio({ role, items }: Props) {
                   {t("budget")}
                 </p>
                 <p className="truncate text-xl font-bold tabular-nums text-white">
-                  {loadingQuote ? "…" : formatStoreCurrencyFromCents(quote.feeCents)}
+                  {loadingQuote
+                    ? "…"
+                    : formatStoreCurrencyFromCents(quote.feePerSaleCents ?? quote.feeCents)}
                 </p>
               </div>
               <Button

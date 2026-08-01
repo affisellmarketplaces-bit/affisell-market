@@ -3994,34 +3994,38 @@
   "sponsorBoost": {
     "eyebrow": "Affisell Boost",
     "title": "Promoción inteligente",
-    "subtitleSupplier": "Aumenta tu catálogo en todas las tiendas de afiliados. Paga un % de HT de costo de venta — colocación premium con puntuación en vivo.",
-    "subtitleAffiliate": "Envía tu lista a la parte superior del mercado de productos. ROI visible en la puntuación de impulso en vivo.",
+    "subtitleSupplier": "Premium placement across every affiliate storefront. You only pay a % of HT after a sale closes — no upfront budget.",
+    "subtitleAffiliate": "Push your listing up. The % is charged only when an order is paid. Live boost score.",
     "liveScore": "Puntuación de impulso en vivo",
     "target": "Objetivo",
     "selectedSku": "SKU activo",
     "htPrice": "Inversión de costo de venta",
     "noProducts": "No hay productos elegibles.",
-    "investment": "Inversión de costo de venta",
-    "duration": "Duración",
+    "investment": "Success fee share (HT)",
+    "duration": "Promotion window",
     "placement": {
       "label": "Colocación",
       "HOME_SPOTLIGHT": "Destacado en la página principal",
       "CATEGORY_TOP": "En la parte superior de la categoría",
       "SEARCH_BOOST": "Impulso en la búsqueda"
     },
-    "budget": "Presupuesto estimado",
+    "budget": "Per concluded sale",
     "quoteMeta": "Puntuación {score} · {rate}% HT · {days}d",
     "boostPower": "Potencia",
     "boostPowerAria": "Puntuación de impulso {score}",
     "cta": "Activar Impulso",
-    "checkoutError": "Error de pago",
+    "checkoutError": "Could not activate boost",
     "recentCampaigns": "Campañas recientes",
     "status": {
       "PENDING_PAYMENT": "Pendiente de pago",
       "ACTIVE": "Activo",
       "EXPIRED": "Vencido",
       "CANCELLED": "Cancelado"
-    }
+    },
+    "successFeeHint": "Billed only when a buyer pays — never a subscription or deposit.",
+    "perSaleFee": "Cost per sale",
+    "quoteMetaSuccess": "Score {score} · {rate}% HT · live {days}d · pay on sale",
+    "payOnSaleBadge": "Pay-per-sale"
   },
   "demoLab": {
     "eyebrow": "Affisell Demo Lab",

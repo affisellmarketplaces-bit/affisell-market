@@ -67,6 +67,49 @@ export async function activateSponsorCampaignFromCheckout(
   return { activated: true as const, campaignId: updated.id, duplicate: false }
 }
 
+/** Activate SUCCESS_FEE campaign immediately (no Stripe Checkout). Idempotent. */
+export async function activateSponsorCampaignSuccessFee(
+  campaignId: string,
+  tx: Prisma.TransactionClient
+) {
+  const existing = await tx.sponsorCampaign.findUnique({ where: { id: campaignId } })
+  if (!existing) {
+    throw new Error(`sponsor campaign not found: ${campaignId}`)
+  }
+  if (existing.status === SPONSOR_STATUS.ACTIVE) {
+    return { activated: true as const, campaignId, duplicate: true }
+  }
+
+  const now = new Date()
+  const endsAt = new Date(now.getTime() + existing.durationDays * 86_400_000)
+
+  const updated = await tx.sponsorCampaign.update({
+    where: { id: campaignId },
+    data: {
+      status: SPONSOR_STATUS.ACTIVE,
+      billingMode: "SUCCESS_FEE",
+      startsAt: now,
+      endsAt,
+    },
+  })
+
+  if (updated.affiliateProductId && updated.setsListingFeatured) {
+    await tx.affiliateProduct.update({
+      where: { id: updated.affiliateProductId },
+      data: { isFeatured: true },
+    })
+  }
+
+  console.log("[sponsor]", {
+    campaignId: updated.id,
+    billingMode: "SUCCESS_FEE",
+    result: "activated_success_fee",
+    endsAt: updated.endsAt?.toISOString(),
+  })
+
+  return { activated: true as const, campaignId: updated.id, duplicate: false }
+}
+
 export function isSponsorCheckoutSession(session: Stripe.Checkout.Session): boolean {
   return session.metadata?.flow === SPONSOR_FLOW_METADATA
 }

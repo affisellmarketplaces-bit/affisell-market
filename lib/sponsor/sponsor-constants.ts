@@ -32,3 +32,8 @@ export const SPONSOR_STATUS = {
   EXPIRED: "EXPIRED",
   CANCELLED: "CANCELLED",
 } as const
+
+export const SPONSOR_BILLING_MODE = {
+  SUCCESS_FEE: "SUCCESS_FEE",
+  UPFRONT: "UPFRONT",
+} as const

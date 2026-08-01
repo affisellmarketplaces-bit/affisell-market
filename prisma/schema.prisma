@@ -1823,7 +1823,18 @@ model SponsorCampaign {
   affiliateProductId      String?
   sponsorRateBps          Int
   htCentsSnapshot         Int
+  /**
+   * UPFRONT: prepaid Stripe fee. SUCCESS_FEE: per-sale fee snapshot (display + charge base).
+   */
   feeCents                Int
+  /**
+   * SUCCESS_FEE (default) | UPFRONT
+   */
+  billingMode             String    @default("SUCCESS_FEE")
+  /**
+   * Sum of ACCRUED success fees (cents).
+   */
+  accruedFeeCents         Int       @default(0)
   durationDays            Int
   placement               String
   status                  String    @default("PENDING_PAYMENT")
@@ -1836,13 +1847,37 @@ model SponsorCampaign {
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
 
-  payer            User              @relation("SponsorCampaignPayer", fields: [payerUserId], references: [id], onDelete: Cascade)
-  product          Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
-  affiliateProduct AffiliateProduct? @relation(fields: [affiliateProductId], references: [id], onDelete: SetNull)
+  payer            User                    @relation("SponsorCampaignPayer", fields: [payerUserId], references: [id], onDelete: Cascade)
+  product          Product                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  affiliateProduct AffiliateProduct?       @relation(fields: [affiliateProductId], references: [id], onDelete: SetNull)
+  charges          SponsorCampaignCharge[]
 
   @@index([status, endsAt])
   @@index([affiliateProductId, status])
   @@index([productId, status, payerRole])
+  @@index([billingMode, status])
+}
+
+/**
+ * Idempotent per-order success fee for Affisell Boost (SUCCESS_FEE billing).
+ */
+model SponsorCampaignCharge {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   SponsorCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  feeCents   Int
+  htCents    Int
+  /**
+   * ACCRUED | REVERSED
+   */
+  status     String   @default("ACCRUED")
+  createdAt  DateTime @default(now())
+
+  @@unique([orderId, campaignId])
+  @@index([campaignId])
+  @@index([orderId])
 }
 
 /**
@@ -2359,6 +2394,7 @@ model Order {
   transferReversals        TransferReversal[]
   transferAttempts         TransferAttempt[]
   autoBuyLog               FulfillmentLog?
+  sponsorCampaignCharges   SponsorCampaignCharge[]
 
   @@index([affiliateId])
   @@index([storeProfileId])
