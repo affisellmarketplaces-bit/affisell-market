@@ -6,14 +6,12 @@ import { Check, Copy, Zap } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import { AFFISELL_LEGAL_IDENTITY } from "@/lib/legal/auto-entreprise-identity"
-import { cn } from "@/lib/utils"
 
 export type LegionStoreProduct = {
   id: string
   name: string
   imageUrl: string | null
   priceCents: number
-  marginLabel?: string | null
   href: string
 }
 
@@ -76,7 +74,7 @@ export function StoreTemplate({ profile, products, referralRef }: Props) {
             className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-800 shadow-sm transition hover:border-zinc-300"
           >
             {copied ? <Check className="size-3.5 text-emerald-600" /> : <Copy className="size-3.5" />}
-            {copied ? "Copié" : "Copier ma boutique"}
+            {copied ? "Copié" : "Copier le lien"}
           </button>
         </div>
       </header>
@@ -94,7 +92,7 @@ export function StoreTemplate({ profile, products, referralRef }: Props) {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-700/80">
-                Boutique Légion
+                Boutique
               </p>
               <h1 className="mt-1 text-4xl font-bold tracking-[-0.03em] text-zinc-950 sm:text-5xl">
                 {profile.displayName}
@@ -105,9 +103,6 @@ export function StoreTemplate({ profile, products, referralRef }: Props) {
                 </p>
               ) : null}
               <div className="mt-4 flex flex-wrap gap-2">
-                <span className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-[11px] font-medium text-zinc-700">
-                  SIRET {AFFISELL_LEGAL_IDENTITY.siret} · TVA 293B
-                </span>
                 <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-800">
                   <Zap className="size-3" aria-hidden />
                   Paiement 24h
@@ -125,8 +120,8 @@ export function StoreTemplate({ profile, products, referralRef }: Props) {
         {referralRef ? (
           <div className="mt-6 rounded-[20px] bg-zinc-950 px-5 py-4 text-white shadow-lg">
             <p className="text-sm font-medium text-white/80">
-              Invité par <span className="font-bold text-cyan-300">@{referralRef}</span> — rejoins la
-              Légion et lance ta boutique.
+              Invité par <span className="font-bold text-cyan-300">@{referralRef}</span> — crée ta
+              boutique Affisell.
             </p>
             <Link
               href={`/onboarding/affiliate?ref=${encodeURIComponent(referralRef)}`}
@@ -172,9 +167,6 @@ export function StoreTemplate({ profile, products, referralRef }: Props) {
                       <p className="text-sm font-bold tabular-nums text-zinc-950">
                         {formatEur(p.priceCents)}
                       </p>
-                      {p.marginLabel ? (
-                        <p className="text-[11px] font-medium text-emerald-700">{p.marginLabel}</p>
-                      ) : null}
                     </div>
                   </Link>
                 </li>

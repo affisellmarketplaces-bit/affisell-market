@@ -68,13 +68,13 @@ async function main() {
     userId: nelsonUser.id,
     username: "nelson",
     displayName: "Nelson",
-    bio: "Fondateur Affisell — Légion semaine 1.",
+    bio: "Sélection Affisell — produits vérifiés, paiement sécurisé.",
   })
   const sarah = await ensureProfile({
     userId: sarahUser.id,
     username: "sarah",
     displayName: "Sarah",
-    bio: "Filleul Légion — boutique test.",
+    bio: "Ma boutique Affisell — tendances & bons plans.",
   })
 
   console.log("[legion]", {

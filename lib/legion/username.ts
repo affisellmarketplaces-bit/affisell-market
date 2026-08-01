@@ -97,3 +97,16 @@ export function isValidLegionUsername(raw: string): boolean {
   const u = normalizeLegionUsername(raw)
   return LEGION_USERNAME_RE.test(u) && !LEGION_RESERVED_USERNAMES.has(u)
 }
+
+/** True for `/nelson` or `/u/nelson` — lean chrome (no global Affisell header/footer). */
+export function isLegionStorefrontPathname(pathname: string): boolean {
+  const bare = (pathname.split("?")[0] ?? "").split("#")[0] ?? ""
+  const parts = bare.split("/").filter(Boolean)
+  if (parts.length === 2 && parts[0] === "u" && isValidLegionUsername(parts[1] ?? "")) {
+    return true
+  }
+  if (parts.length === 1 && isValidLegionUsername(parts[0] ?? "")) {
+    return true
+  }
+  return false
+}

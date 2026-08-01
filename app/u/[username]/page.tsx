@@ -56,12 +56,10 @@ export default async function LegionStorefrontPage({ params, searchParams }: Pag
       customTitle: true,
       customImages: true,
       sellingPriceCents: true,
-      marginCents: true,
       product: {
         select: {
           name: true,
           images: true,
-          basePriceCents: true,
         },
       },
     },
@@ -69,16 +67,11 @@ export default async function LegionStorefrontPage({ params, searchParams }: Pag
 
   let products = affiliateListings.map((row) => {
     const gallery = listingGalleryUrls(row.customImages, row.product.images)
-    const price = row.sellingPriceCents
-    const cost = row.product.basePriceCents
-    const marginPct =
-      price > 0 ? Math.round(((price - cost) / price) * 100) : null
     return {
       id: row.id,
       name: row.customTitle?.trim() || row.product.name,
       imageUrl: gallery[0] ?? null,
-      priceCents: price,
-      marginLabel: marginPct != null && marginPct > 0 ? `Marge ~${marginPct}%` : null,
+      priceCents: row.sellingPriceCents,
       href: `/marketplace/${row.id}`,
     }
   })
@@ -103,7 +96,6 @@ export default async function LegionStorefrontPage({ params, searchParams }: Pag
         name: row.customTitle?.trim() || row.product.name,
         imageUrl: gallery[0] ?? null,
         priceCents: row.sellingPriceCents,
-        marginLabel: null,
         href: `/marketplace/${row.id}`,
       }
     })
