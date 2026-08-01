@@ -2978,7 +2978,8 @@
       "lightbox": "Galleria a schermo intero",
       "close": "Chiudi",
       "prev": "Immagine precedente",
-      "next": "Immagine successiva"
+      "next": "Immagine successiva",
+      "tapToZoom": "Tap to zoom"
     },
     "addToCartShort": "Carrello",
     "liveListing": "Offerta live",

@@ -1,9 +1,12 @@
 "use client"
 
 import { AnimatePresence, motion } from "framer-motion"
+import { Maximize2 } from "lucide-react"
 import Image from "next/image"
+import { useTranslations } from "next-intl"
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
 
+import { ProductGalleryLightbox } from "@/components/product/product-gallery-lightbox"
 import { affisellBrand } from "@/lib/affisell-brand"
 import type { PulseFeedItem } from "@/lib/pulse-feed-types"
 import {
@@ -20,6 +23,10 @@ type Props = {
   muted?: boolean
   /** Skip fade-in on first paint (swipe top card). */
   instantReveal?: boolean
+  /** Photo lightbox (pinch / double-tap). Default true. */
+  enablePhotoZoom?: boolean
+  /** Notify parent (e.g. pause Framer drag while lightbox is open). */
+  onLightboxOpenChange?: (open: boolean) => void
   className?: string
   onTapAdvance?: () => void
 }
@@ -29,8 +36,11 @@ export function PulseProductMediaStage({
   active = true,
   muted = true,
   instantReveal = false,
+  enablePhotoZoom = true,
+  onLightboxOpenChange,
   className,
 }: Props) {
+  const tGallery = useTranslations("Product.gallery")
   const slides = useMemo(() => resolvePulseMediaSlides(item), [item])
   const startIndex = useMemo(
     () => pulseMediaStartIndex(slides, item.mediaUrl),
@@ -38,12 +48,34 @@ export function PulseProductMediaStage({
   )
   const [index, setIndex] = useState(startIndex)
   const [broken, setBroken] = useState<Record<string, boolean>>({})
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const onLightboxOpenChangeRef = useRef(onLightboxOpenChange)
+  onLightboxOpenChangeRef.current = onLightboxOpenChange
+
+  const photoUrls = useMemo(
+    () =>
+      slides
+        .filter((s) => !s.isVideo)
+        .map((s) => s.url)
+        .filter((url) => url.trim().length > 0 && !broken[url]),
+    [slides, broken]
+  )
 
   useEffect(() => {
     setIndex(startIndex)
     setBroken({})
+    setLightboxOpen(false)
   }, [item.id, startIndex])
+
+  useEffect(() => {
+    onLightboxOpenChangeRef.current?.(lightboxOpen)
+  }, [lightboxOpen])
+
+  useEffect(() => {
+    if (!active && lightboxOpen) setLightboxOpen(false)
+  }, [active, lightboxOpen])
 
   const current = slides[index] ?? slides[0]
   const hasMultiple = slides.length > 1
@@ -72,12 +104,26 @@ export function PulseProductMediaStage({
     advance()
   }
 
+  function openLightbox(e: MouseEvent<HTMLButtonElement>) {
+    e.stopPropagation()
+    e.preventDefault()
+    if (!enablePhotoZoom || photoUrls.length === 0) return
+    const currentUrl = current && !current.isVideo ? current.url : null
+    const photoIdx = currentUrl
+      ? Math.max(0, photoUrls.findIndex((u) => u === currentUrl))
+      : 0
+    setLightboxIndex(photoIdx >= 0 ? photoIdx : 0)
+    setLightboxOpen(true)
+    console.log("[pulse-zoom]", { listingId: item.listingId, result: "open" })
+  }
+
   const showAsVideo = Boolean(current?.isVideo && !currentBroken)
   const isPhoto = !showAsVideo
   const displayUrl =
     currentBroken || !current
       ? fallbackSrc
       : current.url
+  const canZoom = enablePhotoZoom && isPhoto && photoUrls.length > 0
 
   if (!current) {
     return (
@@ -212,6 +258,26 @@ export function PulseProductMediaStage({
         aria-hidden
       />
 
+      {canZoom ? (
+        <button
+          type="button"
+          data-testid="pulse-photo-zoom"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={openLightbox}
+          className={cn(
+            "absolute right-2 top-2 z-30 flex size-9 items-center justify-center rounded-full",
+            "border border-white/35 bg-zinc-950/55 text-white shadow-[0_8px_24px_rgb(2_6_23_/_0.45)]",
+            "backdrop-blur-md transition active:scale-95",
+            "hover:border-cyan-300/50 hover:bg-zinc-950/70 hover:shadow-[0_0_20px_rgb(34_211_238_/_0.25)]",
+            "sm:right-3 sm:top-3 sm:size-10"
+          )}
+          aria-label={tGallery("fullView")}
+          title={tGallery("tapToZoom")}
+        >
+          <Maximize2 className="size-4 sm:size-[1.125rem]" aria-hidden />
+        </button>
+      ) : null}
+
       {hasMultiple ? (
         <div
           className={cn(
@@ -224,6 +290,21 @@ export function PulseProductMediaStage({
         >
           {index + 1}/{slides.length}
         </div>
+      ) : null}
+
+      {enablePhotoZoom && photoUrls.length > 0 ? (
+        <ProductGalleryLightbox
+          open={lightboxOpen}
+          onClose={() => {
+            setLightboxOpen(false)
+            console.log("[pulse-zoom]", { listingId: item.listingId, result: "close" })
+          }}
+          images={photoUrls}
+          index={lightboxIndex}
+          onIndexChange={setLightboxIndex}
+          alt={item.title}
+          className="z-[320]"
+        />
       ) : null}
     </div>
   )

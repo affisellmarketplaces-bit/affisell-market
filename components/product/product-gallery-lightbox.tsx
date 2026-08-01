@@ -34,6 +34,8 @@ type ProductGalleryLightboxProps = {
   index: number
   onIndexChange: (index: number) => void
   alt: string
+  /** Raise above immersive shells (Pulse z-[210]). Default z-[200]. */
+  className?: string
 }
 
 function clamp(n: number, min: number, max: number) {
@@ -99,7 +101,7 @@ function ZoomableSlide({
   }, [active])
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (scale <= 1 || e.pointerType === "touch") return
+    if (scale <= 1) return
     dragStart.current = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y }
     e.currentTarget.setPointerCapture(e.pointerId)
   }
@@ -209,6 +211,7 @@ export function ProductGalleryLightbox({
   index,
   onIndexChange,
   alt,
+  className,
 }: ProductGalleryLightboxProps) {
   const t = useTranslations("Product.gallery")
   const reduceMotion = useReducedMotion()
@@ -313,13 +316,14 @@ export function ProductGalleryLightbox({
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-[200] flex flex-col"
+          className={cn("fixed inset-0 z-[200] flex flex-col", className)}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           role="dialog"
           aria-modal
           aria-label={t("lightbox")}
+          data-testid="product-gallery-lightbox"
         >
           <motion.button
             type="button"

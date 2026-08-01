@@ -3306,7 +3306,8 @@
       "lightbox": "Full screen gallery",
       "close": "Close",
       "prev": "Previous image",
-      "next": "Next image"
+      "next": "Next image",
+      "tapToZoom": "Tap to zoom"
     },
     "addToCartShort": "Cart",
     "liveListing": "Live listing",

@@ -3306,7 +3306,8 @@
       "lightbox": "Galerie plein écran",
       "close": "Fermer",
       "prev": "Image précédente",
-      "next": "Image suivante"
+      "next": "Image suivante",
+      "tapToZoom": "Touchez pour zoomer"
     },
     "addToCartShort": "Panier",
     "liveListing": "Offre en ligne",

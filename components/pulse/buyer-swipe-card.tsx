@@ -5,6 +5,7 @@ import {
   useCallback,
   useImperativeHandle,
   useRef,
+  useState,
 } from "react"
 import {
   animate,
@@ -106,6 +107,7 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
   const y = useMotionValue(0)
   const exitingRef = useRef(false)
   const lockedAxisRef = useRef<PulseSwipeAxis | null>(null)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   const rotate = useTransform(x, [-220, 0, 220], [-8, 0, 8])
   const stackScale = 1 - stackIndex * (stackIndex === 0 ? 0 : 0.035)
@@ -210,9 +212,9 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
     >
       <motion.div
         data-testid={isTop ? "pulse-swipe-drag-surface" : undefined}
-        className={cn("h-full touch-none select-none", isTop && "cursor-grab active:cursor-grabbing")}
+        className={cn("h-full touch-none select-none", isTop && !lightboxOpen && "cursor-grab active:cursor-grabbing")}
         style={{ x: isTop ? x : 0, y: isTop ? y : 0, rotate: isTop ? rotate : 0 }}
-        drag={isTop}
+        drag={isTop && !lightboxOpen}
         dragElastic={0.38}
         dragMomentum={false}
         onDragStart={handleDragStart}
@@ -232,6 +234,8 @@ export const BuyerSwipeCard = forwardRef<BuyerSwipeCardHandle, Props>(function B
             item={item}
             active={isTop}
             instantReveal={isTop && stackIndex === 0}
+            enablePhotoZoom={isTop}
+            onLightboxOpenChange={setLightboxOpen}
             className="relative min-h-0 flex-1"
           />
 

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Film, Maximize2, Play } from "lucide-react"
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react"
 import { useTranslations } from "next-intl"
 
 import { ProductVideoPlayer } from "@/components/product/product-video-player"
@@ -59,6 +59,7 @@ export function MobileProductGalleryCarousel({
   const [scrollIndex, setScrollIndex] = useState(0)
   const syncingFromParent = useRef(false)
   const lastSyncedActiveRef = useRef(activeIndex)
+  const tapRef = useRef<{ x: number; y: number; t: number } | null>(null)
 
   const safeImages = images.length > 0 ? images : [PLACEHOLDER]
   const hasVideo = Boolean(videoUrl?.trim() && isGalleryPlayableVideoUrl(videoUrl))
@@ -143,6 +144,27 @@ export function MobileProductGalleryCarousel({
         total: safeImages.length,
       })
 
+  function onImagePointerDown(e: ReactPointerEvent<HTMLElement>) {
+    if (e.pointerType === "mouse" && e.button !== 0) return
+    tapRef.current = { x: e.clientX, y: e.clientY, t: Date.now() }
+  }
+
+  function onImagePointerUp(e: ReactPointerEvent<HTMLElement>, slide: Extract<Slide, { kind: "image" }>) {
+    const start = tapRef.current
+    tapRef.current = null
+    if (!start) return
+    const dx = Math.abs(e.clientX - start.x)
+    const dy = Math.abs(e.clientY - start.y)
+    const dt = Date.now() - start.t
+    // Short stationary tap → lightbox; horizontal swipe keeps carousel scroll.
+    if (dx > 14 || dy > 14 || dt > 420) return
+    onOpenLightbox(slide.index)
+  }
+
+  function onImagePointerCancel() {
+    tapRef.current = null
+  }
+
   return (
     <div className={cn("relative min-w-0", className)}>
       <div
@@ -161,8 +183,18 @@ export function MobileProductGalleryCarousel({
             data-slide-index={i}
             className="relative w-full shrink-0 snap-center snap-always"
             aria-hidden={i !== scrollIndex}
+            onPointerDown={slide.kind === "image" ? onImagePointerDown : undefined}
+            onPointerUp={
+              slide.kind === "image" ? (e) => onImagePointerUp(e, slide) : undefined
+            }
+            onPointerCancel={slide.kind === "image" ? onImagePointerCancel : undefined}
           >
-            <div className="relative aspect-[5/6] max-h-[min(30dvh,15.5rem)] w-full overflow-hidden rounded-2xl border border-zinc-200/70 bg-gradient-to-b from-zinc-50 to-white shadow-[0_20px_50px_-28px_rgba(91,33,217,0.35)] dark:border-zinc-700/80 dark:from-zinc-900 dark:to-zinc-950 sm:max-h-[min(40dvh,20rem)]">
+            <div
+              className={cn(
+                "relative aspect-[5/6] max-h-[min(30dvh,15.5rem)] w-full overflow-hidden rounded-2xl border border-zinc-200/70 bg-gradient-to-b from-zinc-50 to-white shadow-[0_20px_50px_-28px_rgba(91,33,217,0.35)] dark:border-zinc-700/80 dark:from-zinc-900 dark:to-zinc-950 sm:max-h-[min(40dvh,20rem)]",
+                slide.kind === "image" && "cursor-zoom-in"
+              )}
+            >
               {slide.kind === "video" ? (
                 <ProductVideoWishlistOverlay productId={productId ?? ""} className="h-full w-full">
                   <ProductVideoPlayer url={videoUrl!} className="h-full w-full object-contain" />
@@ -211,6 +243,7 @@ export function MobileProductGalleryCarousel({
             onClick={() => onOpenLightbox(currentSlide.index)}
             className="pointer-events-auto flex size-9 items-center justify-center rounded-full border border-white/30 bg-black/45 text-white shadow-lg backdrop-blur-md active:scale-95"
             aria-label={t("fullView")}
+            title={t("tapToZoom")}
           >
             <Maximize2 className="size-4" aria-hidden />
           </button>
