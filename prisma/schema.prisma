@@ -2405,6 +2405,11 @@ model Order {
   @@index([splitStatus])
   @@index([supplierId, status, shipDeadlineAt])
   @@index([autodsStatus, createdAt])
+  /**
+   * Légion Battle leaderboard — partial SQL index also exists:
+   * idx_orders_leaderboard (productId, paidAt, storeProfileId) WHERE payoutStatus <> FAILED
+   */
+  @@index([productId, paidAt, storeProfileId])
 }
 
 model TransferAttempt {

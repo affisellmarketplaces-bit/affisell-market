@@ -1,72 +1,54 @@
-# LÉGION BOOST (Week 2)
+# LÉGION BOOST + Leaderboard (Week 2–3)
 
-Temporary affiliate commission spike (35–50%) for **2 hours**, broadcast to the Légion army via the public storefront banner.
+Temporary affiliate commission spike (35–50%) for **2 hours**, army banner, and **real-time Battle leaderboard**.
 
-Runtime stack: **Prisma / Neon + NextAuth** (same as Week 1). Spec SQL lives in `supabase/migrations/20250710_boost.sql`.
+Runtime stack: **Prisma / Neon + NextAuth**. Spec SQL:
+- `supabase/migrations/20250710_boost.sql`
+- `supabase/migrations/20250711_leaderboard.sql`
 
 ## Integration
 
 ### Storefront (`StoreTemplate`)
 
-`BoostBanner` is mounted under the sticky header in `components/store/StoreTemplate.tsx`.
+`BoostBanner` + `LeaderboardLegion` under the sticky header.
 
-- Polls `GET /api/legion/boost/active` every 30s
-- Shows the soonest-ending active boost (Battle Royale `#d4ff00`)
+- Banner polls `GET /api/legion/boost/active` every 30s
+- Leaderboard polls `GET /api/legion/leaderboard` every 10s
 - CTA → `/product/{id}?boost={boostId}`
 
 ### Supplier dashboard
 
-`BoostButton` is on `/dashboard/supplier/products/[id]` (published products only).
+`BoostButton` + `LeaderboardLegion` on `/dashboard/supplier/products/[id]` (published products).
 
 ```tsx
 import { BoostButton } from "@/components/supplier/BoostButton"
+import { LeaderboardLegion } from "@/components/store/LeaderboardLegion"
 
-<BoostButton
-  productId={product.id}
-  productTitle={product.name}
-  currentArmySize={armySize} // active StoreProfile count
-/>
+<BoostButton productId={product.id} productTitle={product.name} currentArmySize={armySize} />
+<LeaderboardLegion productId={product.id} />
 ```
 
-Footer of the button shows SIRET `99119663500015`.
+Footer shows SIRET `99119663500015`.
 
 ## APIs
 
 | Method | Path | Auth |
 |--------|------|------|
-| POST | `/api/legion/boost` | Supplier session (NextAuth). Body `supplier_id` only allowed outside production. |
+| POST | `/api/legion/boost` | Supplier session |
 | GET | `/api/legion/boost/active` | Public |
+| GET | `/api/legion/leaderboard` | Public (`boost_id`, `product_id` optional) |
 | GET | `/api/cron/boost-expire` | `Authorization: Bearer ${CRON_SECRET}` |
 
-Cron: `vercel.json` → `*/1 * * * *` → `/api/cron/boost-expire` (calls SQL `expire_boosts()`).
+## Leaderboard semantics
 
-## Test (curl)
+- Window: `Order.paidAt` between boost `startsAt`–`endsAt`
+- Attribution: `Order.storeProfileId` → `StoreProfile`
+- Excludes `payoutStatus = FAILED` and `status = refunded`
+- Prefers SQL view `legion_leaderboard`; Prisma aggregation fallback if view missing (`fallback: true`)
+
+## Test
 
 ```bash
-npx prisma migrate deploy
-
-# Active boosts (public)
-curl -s 'http://localhost:3001/api/legion/boost/active' | jq .
-
-# Create boost (logged-in supplier cookie, or local fallback)
-curl -s -X POST 'http://localhost:3001/api/legion/boost' \
-  -H 'Content-Type: application/json' \
-  -H 'Cookie: ...' \
-  -d '{"product_id":"<PRODUCT_ID>","product_title":"Demo","boost_margin_rate":0.40}'
-
-# Expire cron
-curl -s 'http://localhost:3001/api/cron/boost-expire' \
-  -H "Authorization: Bearer $CRON_SECRET"
-
-# Vitrine
-open 'http://localhost:3001/nelson'
+curl -s 'http://localhost:3001/api/legion/leaderboard' | jq .
+curl -s 'http://localhost:3001/api/legion/leaderboard?product_id=PRODUCT_ID' | jq .
 ```
-
-## Files
-
-- `supabase/migrations/20250710_boost.sql`
-- `prisma/migrations/20260801200000_legion_boost_week2/`
-- `lib/legion/boost.ts` · `lib/legion/expire-boosts.ts`
-- `app/api/legion/boost/route.ts` · `active/route.ts`
-- `app/api/cron/boost-expire/route.ts`
-- `components/store/BoostBanner.tsx` · `components/supplier/BoostButton.tsx`

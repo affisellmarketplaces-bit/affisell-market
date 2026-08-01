@@ -8,6 +8,7 @@ import { useMemo, useState } from "react"
 
 import { LanguageSwitcher } from "@/components/LanguageSwitcher"
 import { BoostBanner } from "@/components/store/BoostBanner"
+import { LeaderboardLegion } from "@/components/store/LeaderboardLegion"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { intlLocaleTag } from "@/lib/i18n-ui-locale"
 import { AFFISELL_LEGAL_IDENTITY } from "@/lib/legal/auto-entreprise-identity"
@@ -93,6 +94,9 @@ export function StoreTemplate({ profile, products, referralRef }: Props) {
       <BoostBanner />
 
       <main className="mx-auto max-w-6xl px-4 pb-16 pt-10 sm:px-6">
+        <div className="mb-8">
+          <LeaderboardLegion />
+        </div>
         <section className="relative overflow-hidden rounded-[28px] border border-zinc-200/80 bg-gradient-to-br from-white via-zinc-50 to-cyan-50/40 p-6 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.45)] sm:p-10">
           <div
             className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-cyan-400/15 blur-3xl"

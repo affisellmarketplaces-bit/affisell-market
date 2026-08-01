@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation"
 
 import { GenerateVideoButton } from "@/components/GenerateVideoButton"
 import { BoostButton } from "@/components/supplier/BoostButton"
+import { LeaderboardLegion } from "@/components/store/LeaderboardLegion"
 import { SupplierProductPricingPanel } from "@/components/supplier/supplier-product-pricing-panel"
 import { SupplierTryOnPanel } from "@/components/supplier/supplier-try-on-panel"
 import { UpgradeToast } from "@/components/upgrade-toast"
@@ -130,12 +131,13 @@ export default async function SupplierProductVideoPage({
 
         <SupplierProductPricingPanel productId={product.id} />
         {!product.isDraft ? (
-          <div className="mt-8">
+          <div className="mt-8 space-y-6">
             <BoostButton
               productId={product.id}
               productTitle={product.name}
               currentArmySize={armySize}
             />
+            <LeaderboardLegion productId={product.id} />
           </div>
         ) : null}
         <div className="mt-8">

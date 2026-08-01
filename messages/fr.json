@@ -5368,7 +5368,11 @@
     "errorNetwork": "Erreur réseau",
     "productFallback": "Produit",
     "boostEnded": "BOOST terminé — {title}",
-    "boostLive": "BATTLE ROYALE — {title} à {pct}% · {minutes} min restantes"
+    "boostLive": "BATTLE ROYALE — {title} à {pct}% · {minutes} min restantes",
+    "leaderboardEmpty": "Aucune vente pendant cette Battle… Sois le premier.",
+    "leaderboardLive": "LIVE",
+    "leaderboardSales": "{count} ventes",
+    "leaderboardSalesOne": "{count} vente"
   },
   "cookieBanner": {
     "aria": "Consentement cookies",
