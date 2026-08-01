@@ -50,4 +50,14 @@ describe("legion boost helpers", () => {
     expect(msg).toContain("40%")
     expect(msg).toContain("90 min")
   })
+
+  it("formatBoostMessage respects French locale", () => {
+    const msg = formatBoostMessage({
+      productTitle: "Watch X",
+      boostMarginRate: 0.4,
+      minutesLeft: 90,
+      locale: "fr",
+    })
+    expect(msg).toContain("restantes")
+  })
 })

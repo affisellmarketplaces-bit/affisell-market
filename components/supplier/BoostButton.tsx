@@ -1,8 +1,11 @@
 "use client"
 
 import { useState } from "react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { AFFISELL_LEGAL_IDENTITY } from "@/lib/legal/auto-entreprise-identity"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { intlLocaleTag } from "@/lib/i18n-ui-locale"
 import {
   BOOST_DURATION_HOURS,
   BOOST_MARGIN_DEFAULT,
@@ -17,6 +20,8 @@ type Props = {
 }
 
 export function BoostButton({ productId, productTitle, currentArmySize }: Props) {
+  const t = useTranslations("legion")
+  const locale = useLocale() as AppLocale
   const [rate, setRate] = useState<number>(BOOST_MARGIN_DEFAULT)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -46,7 +51,7 @@ export function BoostButton({ productId, productTitle, currentArmySize }: Props)
         boost?: { id: string; ends_at: string; boost_margin_rate: number }
       }
       if (!res.ok || !data.ok || !data.boost) {
-        setError(data.error ?? "boost_failed")
+        setError(t("errorBoostFailed"))
         return
       }
       setBoosted({
@@ -60,25 +65,25 @@ export function BoostButton({ productId, productTitle, currentArmySize }: Props)
         boostId: data.boost.id,
       })
     } catch {
-      setError("network_error")
+      setError(t("errorNetwork"))
     } finally {
       setLoading(false)
     }
   }
 
   if (boosted) {
+    const endsLabel = new Date(boosted.endsAt).toLocaleTimeString(intlLocaleTag(locale), {
+      hour: "2-digit",
+      minute: "2-digit",
+    })
     return (
       <div className="rounded-[20px] border border-black/10 bg-[#d4ff00] p-5 text-black shadow-sm">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Battle active</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em]">{t("battleActive")}</p>
         <p className="mt-1 text-2xl font-bold tracking-tight tabular-nums">
           {Math.round(boosted.rate * 100)}% · {BOOST_DURATION_HOURS}h
         </p>
         <p className="mt-2 text-sm text-black/70">
-          Commission affilié appliquée au checkout pendant la fenêtre. Fin :{" "}
-          {new Date(boosted.endsAt).toLocaleTimeString("fr-FR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+          {t("battleActiveHint", { time: endsLabel })}
         </p>
         <p className="mt-4 text-[11px] text-black/50">
           SIRET {AFFISELL_LEGAL_IDENTITY.siret}
@@ -90,14 +95,14 @@ export function BoostButton({ productId, productTitle, currentArmySize }: Props)
   return (
     <div className="rounded-[20px] border border-zinc-200 bg-white p-5 shadow-sm">
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-        Légion Battle
+        {t("eyebrow")}
       </p>
       <p className="mt-1 text-2xl font-bold tracking-tight text-zinc-950 tabular-nums">
-        {currentArmySize.toLocaleString("fr-FR")}
+        {currentArmySize.toLocaleString(intlLocaleTag(locale))}
       </p>
-      <p className="text-sm text-zinc-500">revendeurs actifs dans l’armée</p>
+      <p className="text-sm text-zinc-500">{t("armyLabel")}</p>
 
-      <p className="mt-5 text-xs font-semibold text-zinc-700">Commission affilié (2h)</p>
+      <p className="mt-5 text-xs font-semibold text-zinc-700">{t("commissionLabel")}</p>
       <div className="mt-2 grid grid-cols-4 gap-2">
         {RATE_OPTIONS.map((opt) => {
           const active = rate === opt
@@ -118,10 +123,7 @@ export function BoostButton({ productId, productTitle, currentArmySize }: Props)
         })}
       </div>
 
-      <p className="mt-4 text-sm text-zinc-600">
-        Pendant {BOOST_DURATION_HOURS}h : bandeau Battle Royale + commission affilié réelle au
-        checkout (ne change pas le taux catalogue permanent). Distinct du Placement pay-per-sale.
-      </p>
+      <p className="mt-4 text-sm text-zinc-600">{t("battleHint", { hours: BOOST_DURATION_HOURS })}</p>
 
       {error ? (
         <p className="mt-3 text-sm font-medium text-red-600">{error}</p>
@@ -133,7 +135,7 @@ export function BoostButton({ productId, productTitle, currentArmySize }: Props)
         onClick={() => void launchBoost()}
         className="mt-4 w-full rounded-full bg-[#d4ff00] px-4 py-3 text-sm font-bold text-black transition hover:brightness-95 disabled:opacity-60"
       >
-        {loading ? "Lancement…" : "Lancer Battle"}
+        {loading ? t("launching") : t("launchBattle")}
       </button>
 
       <p className="mt-4 text-center text-[11px] text-zinc-400">

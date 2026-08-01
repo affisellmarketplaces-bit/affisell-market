@@ -40,13 +40,18 @@ export function formatBoostMessage(args: {
   productTitle: string
   boostMarginRate: number
   minutesLeft: number
+  /** Prefer buyer/merchant UI locale; defaults EN for API payloads. */
+  locale?: string
 }): string {
   const pct = Math.round(args.boostMarginRate * 100)
-  const title = args.productTitle.trim() || "Produit"
+  const isFr = args.locale === "fr"
+  const title = args.productTitle.trim() || (isFr ? "Produit" : "Product")
   if (args.minutesLeft <= 0) {
-    return `BOOST terminé — ${title}`
+    return isFr ? `BOOST terminé — ${title}` : `BATTLE ended — ${title}`
   }
-  return `BATTLE ROYALE — ${title} à ${pct}% · ${args.minutesLeft} min restantes`
+  return isFr
+    ? `BATTLE ROYALE — ${title} à ${pct}% · ${args.minutesLeft} min restantes`
+    : `BATTLE ROYALE — ${title} at ${pct}% · ${args.minutesLeft} min left`
 }
 
 export function boostEndsAt(from: Date = new Date()): Date {

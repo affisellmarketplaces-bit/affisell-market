@@ -209,7 +209,14 @@ function rewriteLegionStorefront(req: NextRequest): NextResponse | null {
   rewriteUrl.pathname = `/u/${segment}`
   const requestHeaders = new Headers(req.headers)
   requestHeaders.set("x-affisell-pathname", req.nextUrl.pathname)
-  return NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } })
+  const res = NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } })
+  const cookieLocale = req.cookies.get(LOCALE_COOKIE)?.value
+  const pathnameLocale = localeFromPathname(req.nextUrl.pathname)
+  syncLocaleCookies(
+    res,
+    pathnameLocale ?? resolveAppLocale(cookieLocale ?? routing.defaultLocale)
+  )
+  return res
 }
 
 /** Next.js 16+ proxy (ex-middleware). */

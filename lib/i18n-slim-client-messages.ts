@@ -8,6 +8,12 @@ const DEDICATED_SHOP_BASE_KEYS = [
   "cart",
   "errors",
   "auth",
+  "PublicNav",
+  "footer",
+  "cookieBanner",
+  "legion",
+  "ghostCheckout",
+  "CommandK",
 ] as const
 
 const DEDICATED_SHOP_PDP_KEYS = [
@@ -20,7 +26,7 @@ const DEDICATED_SHOP_PDP_KEYS = [
   "marketplace",
 ] as const
 
-const DEDICATED_SUPPLIER_KEYS = ["errors"] as const
+const DEDICATED_SUPPLIER_KEYS = ["errors", "cookieBanner", "CommandK"] as const
 
 function omitStorefrontBrandStudio(value: unknown): unknown {
   if (!value || typeof value !== "object" || Array.isArray(value)) return value

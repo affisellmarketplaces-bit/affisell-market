@@ -1,9 +1,11 @@
 "use client"
 
 import { TrendingDown } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 import { BattleTimer } from "@/components/pulse/BattleTimer"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { intlLocaleTag } from "@/lib/i18n-ui-locale"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { isDonationListing, parseProductOfferMode } from "@/lib/product-offer-mode"
 import { resolveProductDiscount } from "@/lib/product-discount-display"
@@ -48,6 +50,7 @@ export function ProductPriceOffer({
 }: Props) {
   const t = useTranslations("product.discount")
   const tOffer = useTranslations("product.offer")
+  const locale = useLocale() as AppLocale
   const mode = parseProductOfferMode(offerMode)
 
   const flashPct =
@@ -96,13 +99,17 @@ export function ProductPriceOffer({
           ? battleResellerName.trim()
           : "Affisell"
       const endsLabel = flashEndsAtIso
-        ? new Date(flashEndsAtIso).toLocaleString("fr-FR", {
+        ? new Date(flashEndsAtIso).toLocaleString(intlLocaleTag(locale), {
             day: "2-digit",
             month: "short",
             hour: "2-digit",
             minute: "2-digit",
           })
         : null
+      const promoLine =
+        flashPct != null
+          ? tOffer("promoByPct", { pct: flashPct, reseller })
+          : tOffer("promoBy", { reseller })
 
       return (
         <div
@@ -116,7 +123,7 @@ export function ProductPriceOffer({
                 layout === "detail" ? "text-3xl" : "text-xl"
               )}
             >
-              Prix Battle: {formatStoreCurrency(validatedFlashPrice)}
+              {tOffer("battlePrice", { price: formatStoreCurrency(validatedFlashPrice) })}
             </span>
             {flashPct != null ? (
               <span className="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-black text-white animate-pulse">
@@ -125,14 +132,14 @@ export function ProductPriceOffer({
             ) : null}
           </div>
           <span className="block text-sm tabular-nums text-zinc-400 line-through">
-            Prix habituel Affisell: {formatStoreCurrency(price)}
+            {tOffer("usualPrice", { price: formatStoreCurrency(price) })}
           </span>
           <span className="block text-xs text-zinc-600 dark:text-zinc-300">
-            {flashPct != null ? `−${flashPct}%` : "Promo"} par {reseller}
-            {endsLabel ? ` — jusqu'au ${endsLabel}` : null}
+            {promoLine}
+            {endsLabel ? tOffer("until", { date: endsLabel }) : null}
           </span>
           <span className="block text-xs text-gray-500">
-            Prix le plus bas 30j: {formatStoreCurrency(referenceEur)} — Conforme DGCCRF
+            {tOffer("lowest30d", { price: formatStoreCurrency(referenceEur) })}
           </span>
           {flashEndsAtIso ? (
             <div
@@ -141,7 +148,7 @@ export function ProductPriceOffer({
                 align === "end" && "justify-end"
               )}
             >
-              <span>Flash</span>
+              <span>{tOffer("flash")}</span>
               <BattleTimer endsAt={flashEndsAtIso} className="text-red-600 dark:text-red-400" />
             </div>
           ) : null}

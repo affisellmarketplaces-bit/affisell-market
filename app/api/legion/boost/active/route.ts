@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
+import { LOCALE_COOKIE, resolveAppLocale } from "@/lib/i18n-locale"
 import { calculateBoostUrgency, formatBoostMessage } from "@/lib/legion/boost"
 import { expireLegionBoosts } from "@/lib/legion/expire-boosts"
 import { prisma } from "@/lib/prisma"
@@ -23,6 +24,14 @@ export async function GET(req: Request) {
   // Lazy expire so banner never shows stale battles if cron lags.
   await expireLegionBoosts()
 
+  const cookieHeader = req.headers.get("cookie") ?? ""
+  const cookieMatch = cookieHeader.match(
+    new RegExp(`(?:^|;\\s*)${LOCALE_COOKIE}=([^;]+)`)
+  )
+  const locale = resolveAppLocale(
+    cookieMatch?.[1] ? decodeURIComponent(cookieMatch[1]) : "en"
+  )
+
   const now = new Date()
   const rows = await prisma.legionBoost.findMany({
     where: { status: "active", endsAt: { gt: now } },
@@ -43,7 +52,7 @@ export async function GET(req: Request) {
 
   const boosts = rows.map((row) => {
     const urgency = calculateBoostUrgency(row.endsAt, now)
-    const title = row.productTitle?.trim() || "Produit"
+    const title = row.productTitle?.trim() || (locale === "fr" ? "Produit" : "Product")
     const rate = Number(row.boostMarginRate)
     return {
       id: row.id,
@@ -62,6 +71,7 @@ export async function GET(req: Request) {
         productTitle: title,
         boostMarginRate: rate,
         minutesLeft: urgency.minutesLeft,
+        locale,
       }),
     }
   })

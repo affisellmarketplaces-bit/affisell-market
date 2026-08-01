@@ -24,8 +24,9 @@
 
 - Cookie `affisell_locale` drives UI on most routes (`/marketplace`, `/dashboard`, `/discover`, etc.).
 - URL prefix `/fr` only on `/`, `/agent`, `/creators`, `/partners` — switcher updates path + cookie there.
-- Elsewhere: cookie + `router.refresh()` + client `IntlAppProvider` event (`affisell:locale-change`).
-- Switcher: header (public/supplier/affiliate), `app/login|signup/layout`, Pulse immersive pages (Demo Lab uses global header).
+- Elsewhere: cookie + full navigation (`window.location.replace`) so server + client next-intl remount with the selected locale.
+- Switcher: header (public/supplier/affiliate), `app/login|signup/layout`, Pulse immersive pages, Légion `@username` vitrines.
+- Buyer chrome wired to next-intl includes Légion storefront, cookie banner, Ghost Checkout OOS, Battle flash price.
 
 ## Demo Lab (`/demo`)
 

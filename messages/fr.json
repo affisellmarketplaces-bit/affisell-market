@@ -1802,7 +1802,14 @@
       "percentOff": "−{percent} %"
     },
     "offer": {
-      "free": "Gratuit"
+      "free": "Gratuit",
+      "battlePrice": "Prix Battle: {price}",
+      "usualPrice": "Prix habituel Affisell: {price}",
+      "promoByPct": "−{pct}% par {reseller}",
+      "promoBy": "Promo par {reseller}",
+      "until": " — jusqu'au {date}",
+      "lowest30d": "Prix le plus bas 30j: {price} — Conforme DGCCRF",
+      "flash": "Flash"
     }
   },
   "pulse": {
@@ -5334,5 +5341,60 @@
     "winnerBadge": "Gagnant −{pct}%",
     "soonPulse": "Bientôt 18h Pulse",
     "voters": "{count} votants"
+  },
+  "legion": {
+    "copyLink": "Copier le lien",
+    "copied": "Copié",
+    "shop": "Boutique",
+    "payout24h": "Paiement 24h",
+    "salesOne": "{count} vente",
+    "salesMany": "{count} ventes",
+    "invitedBy": "Invité par @{username} — crée ta boutique Affisell.",
+    "join": "Rejoindre",
+    "selection": "Sélection",
+    "emptyProducts": "Aucun produit listé pour le moment.",
+    "battleRoyale": "Battle Royale",
+    "minutesLeft": "{minutes} min",
+    "sellNow": "Vendre maintenant",
+    "battleActive": "Battle active",
+    "battleActiveHint": "Commission affilié appliquée au checkout pendant la fenêtre. Fin : {time}",
+    "armyLabel": "revendeurs actifs dans l’armée",
+    "commissionLabel": "Commission affilié (2h)",
+    "battleHint": "Pendant {hours}h : bandeau Battle Royale + commission affilié réelle au checkout (ne change pas le taux catalogue permanent). Distinct du Placement pay-per-sale.",
+    "launching": "Lancement…",
+    "launchBattle": "Lancer Battle",
+    "eyebrow": "Légion Battle",
+    "errorBoostFailed": "Impossible de lancer la Battle",
+    "errorNetwork": "Erreur réseau",
+    "productFallback": "Produit",
+    "boostEnded": "BOOST terminé — {title}",
+    "boostLive": "BATTLE ROYALE — {title} à {pct}% · {minutes} min restantes"
+  },
+  "cookieBanner": {
+    "aria": "Consentement cookies",
+    "body": "Nous utilisons des cookies essentiels pour faire fonctionner Affisell, et des cookies d’audience uniquement avec votre accord.",
+    "learnMore": "En savoir plus",
+    "accept": "Accepter",
+    "refuse": "Refuser",
+    "configure": "Paramétrer"
+  },
+  "ghostCheckout": {
+    "badgeFresh": "Stock vérifié il y a {minutes} min",
+    "badgeToday": "Stock vérifié aujourd’hui",
+    "badgeTitle": "On vérifie le stock chez le fournisseur avant chaque paiement",
+    "eyebrow": "Ghost Checkout",
+    "title": "Rupture vérifiée à l’instant",
+    "bodyNamed": "On vient de vérifier chez notre fournisseur — {name} est en rupture. On ne t’a pas débité.",
+    "bodyGeneric": "On vient de vérifier chez notre fournisseur : ce produit est en rupture. On ne t’a pas débité.",
+    "couponLabel": "Code {coupon} (−15%)",
+    "copied": "Copié",
+    "copy": "Copier",
+    "copySuccess": "Code {coupon} copié",
+    "copyFail": "Copie impossible",
+    "close": "Fermer",
+    "alternatives": "Alternatives en stock",
+    "buy": "Acheter",
+    "alertCta": "Être alerté au retour",
+    "alertToast": "Alerte retour enregistrée — on te prévient."
   }
 }

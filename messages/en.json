@@ -1802,7 +1802,14 @@
       "percentOff": "{percent}% off"
     },
     "offer": {
-      "free": "Free"
+      "free": "Free",
+      "battlePrice": "Battle price: {price}",
+      "usualPrice": "Usual Affisell price: {price}",
+      "promoByPct": "−{pct}% by {reseller}",
+      "promoBy": "Promo by {reseller}",
+      "until": " — until {date}",
+      "lowest30d": "Lowest price 30d: {price} — DGCCRF compliant",
+      "flash": "Flash"
     }
   },
   "pulse": {
@@ -5334,5 +5341,60 @@
     "winnerBadge": "Winner −{pct}%",
     "soonPulse": "Soon 6pm Pulse",
     "voters": "{count} voters"
+  },
+  "legion": {
+    "copyLink": "Copy link",
+    "copied": "Copied",
+    "shop": "Shop",
+    "payout24h": "24h payout",
+    "salesOne": "{count} sale",
+    "salesMany": "{count} sales",
+    "invitedBy": "Invited by @{username} — create your Affisell shop.",
+    "join": "Join",
+    "selection": "Picks",
+    "emptyProducts": "No products listed yet.",
+    "battleRoyale": "Battle Royale",
+    "minutesLeft": "{minutes} min",
+    "sellNow": "Sell now",
+    "battleActive": "Battle live",
+    "battleActiveHint": "Affiliate commission applied at checkout during the window. Ends: {time}",
+    "armyLabel": "active resellers in the army",
+    "commissionLabel": "Affiliate commission (2h)",
+    "battleHint": "For {hours}h: Battle Royale banner + real affiliate commission at checkout (does not change the permanent catalog rate). Distinct from pay-per-sale Placement.",
+    "launching": "Launching…",
+    "launchBattle": "Launch Battle",
+    "eyebrow": "Légion Battle",
+    "errorBoostFailed": "Could not start the battle",
+    "errorNetwork": "Network error",
+    "productFallback": "Product",
+    "boostEnded": "BATTLE ended — {title}",
+    "boostLive": "BATTLE ROYALE — {title} at {pct}% · {minutes} min left"
+  },
+  "cookieBanner": {
+    "aria": "Cookie consent",
+    "body": "We use essential cookies to run Affisell, and audience cookies only with your consent.",
+    "learnMore": "Learn more",
+    "accept": "Accept",
+    "refuse": "Refuse",
+    "configure": "Settings"
+  },
+  "ghostCheckout": {
+    "badgeFresh": "Stock verified {minutes} min ago",
+    "badgeToday": "Stock verified today",
+    "badgeTitle": "We verify stock with the supplier before every payment",
+    "eyebrow": "Ghost Checkout",
+    "title": "Just verified out of stock",
+    "bodyNamed": "We just checked with our supplier — {name} is out of stock. You were not charged.",
+    "bodyGeneric": "We just checked with our supplier: this product is out of stock. You were not charged.",
+    "couponLabel": "Code {coupon} (−15%)",
+    "copied": "Copied",
+    "copy": "Copy",
+    "copySuccess": "Code {coupon} copied",
+    "copyFail": "Could not copy",
+    "close": "Close",
+    "alternatives": "In-stock alternatives",
+    "buy": "Buy",
+    "alertCta": "Notify me when back",
+    "alertToast": "Back-in-stock alert saved — we'll notify you."
   }
 }

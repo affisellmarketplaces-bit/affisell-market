@@ -2,6 +2,7 @@
 
 import { useMemo } from "react"
 import { ShieldCheck } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { cn } from "@/lib/utils"
 
@@ -16,9 +17,11 @@ function minutesAgo(d: Date): number {
 }
 
 /**
- * Ghost Checkout badge — stock vérifié chez le fournisseur.
+ * Ghost Checkout badge — stock verified with supplier.
  */
 export function GhostStockBadge({ lastStockCheck, lastStockStatus, className }: Props) {
+  const t = useTranslations("ghostCheckout")
+
   const info = useMemo(() => {
     if (!lastStockCheck) return null
     const checked =
@@ -31,11 +34,11 @@ export function GhostStockBadge({ lastStockCheck, lastStockStatus, className }: 
     if (mins < 60) {
       return {
         tone: "fresh" as const,
-        label: `Stock vérifié il y a ${Math.max(1, mins)} min`,
+        label: t("badgeFresh", { minutes: Math.max(1, mins) }),
       }
     }
-    return { tone: "today" as const, label: "Stock vérifié aujourd’hui" }
-  }, [lastStockCheck, lastStockStatus])
+    return { tone: "today" as const, label: t("badgeToday") }
+  }, [lastStockCheck, lastStockStatus, t])
 
   if (!info) return null
 
@@ -48,7 +51,7 @@ export function GhostStockBadge({ lastStockCheck, lastStockStatus, className }: 
           : "bg-zinc-500/10 text-zinc-600 ring-1 ring-zinc-400/20 dark:text-zinc-300",
         className
       )}
-      title="On vérifie le stock chez le fournisseur avant chaque paiement"
+      title={t("badgeTitle")}
       data-testid="ghost-stock-badge"
     >
       <ShieldCheck className="size-3.5 shrink-0" aria-hidden />

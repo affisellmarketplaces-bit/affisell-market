@@ -28,10 +28,21 @@ describe("i18n-slim-client-messages", () => {
     expect((slim.storefront as Record<string, unknown>).brandStudio).toBeUndefined()
   })
 
+  it("includes chrome + consent namespaces on shop home", () => {
+    const full = loadAppMessages("en")
+    const slim = slimClientMessagesForDedicatedStorefront(full, "/shops/demo-shop")
+    expect(slim.PublicNav).toBeTruthy()
+    expect(slim.footer).toBeTruthy()
+    expect(slim.cookieBanner).toBeTruthy()
+    expect(slim.legion).toBeTruthy()
+    expect(slim.ghostCheckout).toBeTruthy()
+  })
+
   it("keeps minimal bundle on supplier storefront paths", () => {
     const full = loadAppMessages("en")
     const slim = slimClientMessagesForDedicatedStorefront(full, "/store/supplier/acme")
     expect(slim.errors).toBeTruthy()
+    expect(slim.cookieBanner).toBeTruthy()
     expect(slim.storefront).toBeUndefined()
     expect(slim.boutique).toBeUndefined()
   })
@@ -39,6 +50,6 @@ describe("i18n-slim-client-messages", () => {
   it("shop home slim is smaller than full bundle", () => {
     const full = loadAppMessages("en")
     const slim = slimClientMessagesForDedicatedStorefront(full, "/shops/demo-shop")
-    expect(JSON.stringify(slim).length).toBeLessThan(JSON.stringify(full).length * 0.35)
+    expect(JSON.stringify(slim).length).toBeLessThan(JSON.stringify(full).length * 0.5)
   })
 })

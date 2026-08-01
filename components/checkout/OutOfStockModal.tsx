@@ -3,9 +3,12 @@
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { Bell, Copy, X } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { buttonVariants } from "@/components/ui/button"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { intlLocaleTag } from "@/lib/i18n-ui-locale"
 import { GHOST_STOCK15_COUPON } from "@/lib/ghost/types"
 import { cn } from "@/lib/utils"
 
@@ -29,17 +32,12 @@ type Props = {
   payload: GhostOosPayload | null
 }
 
-function money(cents: number) {
-  return (cents / 100).toLocaleString("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  })
-}
-
 /**
  * Shown when checkout returns 409 OUT_OF_STOCK_VERIFIED.
  */
 export function OutOfStockModal({ open, onClose, payload }: Props) {
+  const t = useTranslations("ghostCheckout")
+  const locale = useLocale() as AppLocale
   const [copied, setCopied] = useState(false)
   const coupon = payload?.coupon || GHOST_STOCK15_COUPON
   const alts = payload?.alternatives ?? []
@@ -50,13 +48,20 @@ export function OutOfStockModal({ open, onClose, payload }: Props) {
 
   if (!open) return null
 
+  function money(cents: number) {
+    return (cents / 100).toLocaleString(intlLocaleTag(locale), {
+      style: "currency",
+      currency: "EUR",
+    })
+  }
+
   async function copyCoupon() {
     try {
       await navigator.clipboard.writeText(coupon)
       setCopied(true)
-      toast.success(`Code ${coupon} copié`)
+      toast.success(t("copySuccess", { coupon }))
     } catch {
-      toast.error("Copie impossible")
+      toast.error(t("copyFail"))
     }
   }
 
@@ -73,35 +78,27 @@ export function OutOfStockModal({ open, onClose, payload }: Props) {
           type="button"
           onClick={onClose}
           className="absolute right-3 top-3 rounded-full p-2 text-zinc-400 hover:bg-white/10 hover:text-white"
-          aria-label="Fermer"
+          aria-label={t("close")}
         >
           <X className="size-4" />
         </button>
 
         <div className="space-y-4 p-6 pt-8">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-amber-300/90">
-            Ghost Checkout
+            {t("eyebrow")}
           </p>
           <h2 id="ghost-oos-title" className="text-xl font-bold tracking-tight">
-            Rupture vérifiée à l’instant
+            {t("title")}
           </h2>
           <p className="text-sm leading-relaxed text-zinc-300">
-            On vient de vérifier chez notre fournisseur
-            {payload?.productName ? (
-              <>
-                {" "}
-                — <span className="font-semibold text-white">{payload.productName}</span> est en
-                rupture.
-              </>
-            ) : (
-              " : ce produit est en rupture."
-            )}{" "}
-            On ne t’a pas débité.
+            {payload?.productName
+              ? t("bodyNamed", { name: payload.productName })
+              : t("bodyGeneric")}
           </p>
 
           <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 px-3 py-2.5">
             <span className="text-sm text-emerald-100">
-              Code <strong>{coupon}</strong> (−15%)
+              {t("couponLabel", { coupon })}
             </span>
             <button
               type="button"
@@ -112,14 +109,14 @@ export function OutOfStockModal({ open, onClose, payload }: Props) {
               )}
             >
               <Copy className="size-3.5" aria-hidden />
-              {copied ? "Copié" : "Copier"}
+              {copied ? t("copied") : t("copy")}
             </button>
           </div>
 
           {alts.length > 0 ? (
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                Alternatives en stock
+                {t("alternatives")}
               </p>
               <ul className="grid gap-2 sm:grid-cols-3">
                 {alts.map((a) => (
@@ -143,7 +140,7 @@ export function OutOfStockModal({ open, onClose, payload }: Props) {
                           {money(a.priceCents)}
                         </p>
                         <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-300">
-                          Acheter
+                          {t("buy")}
                         </span>
                       </div>
                     </Link>
@@ -156,7 +153,7 @@ export function OutOfStockModal({ open, onClose, payload }: Props) {
           <button
             type="button"
             onClick={() => {
-              toast.message("Alerte retour enregistrée — on te prévient.")
+              toast.message(t("alertToast"))
               onClose()
             }}
             className={cn(
@@ -165,7 +162,7 @@ export function OutOfStockModal({ open, onClose, payload }: Props) {
             )}
           >
             <Bell className="size-4" aria-hidden />
-            Être alerté au retour
+            {t("alertCta")}
           </button>
         </div>
       </div>

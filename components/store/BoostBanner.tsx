@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 
 import { calculateBoostUrgency } from "@/lib/legion/boost"
 
@@ -18,6 +19,7 @@ type ActiveBoost = {
 }
 
 export function BoostBanner() {
+  const t = useTranslations("legion")
   const [boost, setBoost] = useState<ActiveBoost | null>(null)
 
   const load = useCallback(async () => {
@@ -49,7 +51,7 @@ export function BoostBanner() {
     <div className="sticky top-16 z-30 border-b border-black/10 bg-[#d4ff00] text-black shadow-sm">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-6">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em]">Battle Royale</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em]">{t("battleRoyale")}</p>
           <p className="truncate text-sm font-semibold tracking-tight sm:text-base">
             {boost.product_title}{" "}
             <span className="tabular-nums">· {pct}%</span>
@@ -69,13 +71,13 @@ export function BoostBanner() {
                 : "rounded-full border border-black/20 bg-white/70 px-2.5 py-1 text-xs font-bold tabular-nums"
             }
           >
-            {live.minutesLeft} min
+            {t("minutesLeft", { minutes: live.minutesLeft })}
           </span>
           <Link
             href={`/product/${encodeURIComponent(boost.product_id)}?boost=${encodeURIComponent(boost.id)}`}
             className="rounded-full bg-black px-3 py-1.5 text-xs font-bold text-[#d4ff00] transition hover:bg-zinc-800"
           >
-            Vendre maintenant
+            {t("sellNow")}
           </Link>
         </div>
       </div>
