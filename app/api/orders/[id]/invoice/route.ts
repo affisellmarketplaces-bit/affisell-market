@@ -48,17 +48,34 @@ export async function GET(req: Request, { params }: Params) {
   }
 
   const subtotalCents = affisellFeeBaseCentsFromOrder(order)
-  const pdf = await renderOrderInvoicePdf(type, {
-    orderId: order.id,
-    productName: order.product.name,
-    createdAt: order.createdAt.toISOString().slice(0, 10),
-    supplierPayoutCents: order.supplierPayoutCents,
-    affiliateEarningCents: order.affiliatePayoutCents + order.affiliateMarginRetainedCents,
-    totalCents: order.totalCents ?? subtotalCents + (order.taxCents ?? 0),
-    subtotalCents,
-    taxCents: order.taxCents ?? 0,
-    customerEmail: order.customerEmail,
-  })
+  // SUPPLIER invoice: wholesale net only — never pass retail HT/TTC into the PDF input.
+  const pdfInput =
+    type === "SUPPLIER"
+      ? {
+          orderId: order.id,
+          productName: order.product.name,
+          createdAt: order.createdAt.toISOString().slice(0, 10),
+          supplierPayoutCents: order.supplierPayoutCents,
+          affiliateEarningCents: 0,
+          totalCents: order.supplierPayoutCents,
+          subtotalCents: order.supplierPayoutCents,
+          taxCents: 0,
+          customerEmail: order.customerEmail,
+        }
+      : {
+          orderId: order.id,
+          productName: order.product.name,
+          createdAt: order.createdAt.toISOString().slice(0, 10),
+          supplierPayoutCents: order.supplierPayoutCents,
+          affiliateEarningCents:
+            order.affiliatePayoutCents + order.affiliateMarginRetainedCents,
+          totalCents: order.totalCents ?? subtotalCents + (order.taxCents ?? 0),
+          subtotalCents,
+          taxCents: order.taxCents ?? 0,
+          customerEmail: order.customerEmail,
+        }
+
+  const pdf = await renderOrderInvoicePdf(type, pdfInput)
 
   return new NextResponse(new Uint8Array(pdf), {
     headers: {

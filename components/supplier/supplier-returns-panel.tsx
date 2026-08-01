@@ -16,8 +16,9 @@ type ReturnRow = {
   reasonCode: string
   reasonDetail: string | null
   evidenceUrls: unknown
-  requestedRefundCents: number
-  approvedRefundCents: number | null
+  /** Wholesale clawback at risk — never buyer/reseller retail €. */
+  supplierLiabilityCents: number
+  hasApprovedRefund: boolean
   sellerNote: string | null
   rejectionReason: string | null
   buyerTrackingCarrier: string | null
@@ -166,7 +167,9 @@ export function SupplierReturnsPanel({ className }: { className?: string }) {
               <p className="font-medium text-zinc-900 dark:text-zinc-50">{r.order.productName}</p>
               <p className="text-xs text-zinc-500">
                 {r.order.customerEmail} · ordered {new Date(r.order.orderedAt).toLocaleDateString()} · ×
-                {r.order.quantity} · wholesale {formatStoreCurrencyFromCents(r.order.supplierNetCents)}
+                {r.order.quantity} · wholesale{" "}
+                {formatStoreCurrencyFromCents(r.order.supplierNetCents)} · at risk{" "}
+                {formatStoreCurrencyFromCents(r.supplierLiabilityCents)}
                 {r.order.partnerListingCode ? (
                   <>
                     {" "}
@@ -213,12 +216,7 @@ export function SupplierReturnsPanel({ className }: { className?: string }) {
                   type="button"
                   size="sm"
                   disabled={busy === r.id}
-                  onClick={() =>
-                    void patch(r.id, {
-                      action: "approve",
-                      approvedRefundCents: r.requestedRefundCents,
-                    })
-                  }
+                  onClick={() => void patch(r.id, { action: "approve" })}
                 >
                   Approve return
                 </Button>

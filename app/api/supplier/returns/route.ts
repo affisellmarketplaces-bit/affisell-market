@@ -1,9 +1,31 @@
 import { auth } from "@/auth"
 import { resolveSupplierPayoutCentsFromOrder } from "@/lib/marketplace-order-settlement"
 import { prisma } from "@/lib/prisma"
+import {
+  assertNoSupplierRetailLeak,
+  supplierReturnLiabilityCents,
+} from "@/lib/supplier-retail-veil"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+
+const ORDER_SETTLEMENT_SELECT = {
+  id: true,
+  customerEmail: true,
+  sellingPriceCents: true,
+  basePriceCents: true,
+  supplierPriceCents: true,
+  supplierPayoutCents: true,
+  supplierCommissionRateBps: true,
+  usesAffisellAutoBuy: true,
+  supplierFeeCents: true,
+  aeWholesaleCents: true,
+  affiliatePayoutCents: true,
+  quantity: true,
+  createdAt: true,
+  affiliate: { select: { store: { select: { partnerListingCode: true } } } },
+  product: { select: { name: true, images: true } },
+} as const
 
 export async function GET() {
   const session = await auth()
@@ -19,36 +41,27 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
     take: 200,
     include: {
-      order: {
-        select: {
-          id: true,
-          customerEmail: true,
-          basePriceCents: true,
-          supplierPriceCents: true,
-          supplierPayoutCents: true,
-          supplierCommissionRateBps: true,
-          usesAffisellAutoBuy: true,
-          supplierFeeCents: true,
-          aeWholesaleCents: true,
-          affiliatePayoutCents: true,
-          quantity: true,
-          createdAt: true,
-          affiliate: { select: { store: { select: { partnerListingCode: true } } } },
-          product: { select: { name: true, images: true } },
-        },
-      },
+      order: { select: ORDER_SETTLEMENT_SELECT },
     },
   })
 
-  return Response.json(
-    rows.map((r) => ({
+  const payload = rows.map((r) => {
+    const buyerRefund =
+      r.approvedRefundCents ?? r.requestedRefundCents
+    const supplierLiabilityCents = supplierReturnLiabilityCents({
+      order: r.order,
+      buyerRefundCents: buyerRefund,
+      buyerSellCents: r.order.sellingPriceCents,
+    })
+    return {
       id: r.id,
       status: r.status,
       reasonCode: r.reasonCode,
       reasonDetail: r.reasonDetail,
       evidenceUrls: r.evidenceUrls,
-      requestedRefundCents: r.requestedRefundCents,
-      approvedRefundCents: r.approvedRefundCents,
+      /** Wholesale clawback at risk — never buyer retail refund €. */
+      supplierLiabilityCents,
+      hasApprovedRefund: r.approvedRefundCents != null,
       sellerNote: r.sellerNote,
       rejectionReason: r.rejectionReason,
       buyerTrackingCarrier: r.buyerTrackingCarrier,
@@ -69,6 +82,10 @@ export async function GET() {
         productName: r.order.product.name,
         productImageUrl: r.order.product.images[0] ?? null,
       },
-    }))
-  )
+    }
+  })
+
+  assertNoSupplierRetailLeak(payload)
+  console.log("[supplier-returns]", { supplierId: session.user.id, count: payload.length })
+  return Response.json(payload)
 }

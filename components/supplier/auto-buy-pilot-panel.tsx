@@ -231,7 +231,7 @@ function PilotSkuRow({
   const eco = sku.economics
   const styles = BAND_STYLES[eco.healthBand] ?? BAND_STYLES.unknown
   const underpriced =
-    eco.suggestedPriceCents != null && eco.suggestedPriceCents > sku.sellingPriceCents
+    eco.suggestedPriceCents != null && eco.suggestedPriceCents > sku.catalogPriceCents
 
   return (
     <li className="rounded-xl border border-white/10 bg-white/5 p-3 sm:p-4">
@@ -247,7 +247,7 @@ function PilotSkuRow({
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{sku.name}</p>
           <p className="text-xs tabular-nums text-zinc-400">
-            {t("row.price")} {eur(sku.sellingPriceCents)} · {t("row.cogs")} {eur(sku.cogsCents)} ·{" "}
+            {t("row.price")} {eur(sku.catalogPriceCents)} · {t("row.cogs")} {eur(sku.cogsCents)} ·{" "}
             {t("row.net")}{" "}
             <span
               className={cn(

@@ -3,9 +3,27 @@ import { reverseBuyerRewardEarnOnRefund } from "@/lib/buyer-reward-ledger"
 import { initiateMarketplaceRefundPipeline } from "@/lib/marketplace-refund-pipeline"
 import { prisma } from "@/lib/prisma"
 import { supplierActionToNextStatus } from "@/lib/order-return-state"
+import {
+  assertNoSupplierRetailLeak,
+  supplierReturnLiabilityCents,
+} from "@/lib/supplier-retail-veil"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+
+const ORDER_SETTLEMENT_SELECT = {
+  id: true,
+  sellingPriceCents: true,
+  basePriceCents: true,
+  supplierPriceCents: true,
+  supplierPayoutCents: true,
+  supplierCommissionRateBps: true,
+  usesAffisellAutoBuy: true,
+  supplierFeeCents: true,
+  aeWholesaleCents: true,
+  affiliatePayoutCents: true,
+  product: { select: { name: true } },
+} as const
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ returnId: string }> }) {
   const session = await auth()
@@ -25,6 +43,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ returnId: str
     action?: string
     sellerNote?: string
     rejectionReason?: string
+    /** Ignored — suppliers must never set/see buyer retail refund €. */
     approvedRefundCents?: number
   }
   try {
@@ -46,13 +65,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ returnId: str
   const ret = await prisma.orderReturn.findFirst({
     where: { id: returnId, order: { supplierId: session.user.id } },
     include: {
-      order: {
-        select: {
-          id: true,
-          sellingPriceCents: true,
-          product: { select: { name: true } },
-        },
-      },
+      order: { select: ORDER_SETTLEMENT_SELECT },
     },
   })
 
@@ -82,15 +95,17 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ returnId: str
         sellerNote: sellerNote || null,
       },
     })
-    return Response.json({ id: updated.id, status: updated.status })
+    const payload = { id: updated.id, status: updated.status }
+    assertNoSupplierRetailLeak(payload)
+    return Response.json(payload)
   }
 
   if (action === "approve") {
-    let approved =
-      typeof body.approvedRefundCents === "number" && Number.isFinite(body.approvedRefundCents)
-        ? Math.round(body.approvedRefundCents)
-        : ret.requestedRefundCents
-    approved = Math.max(0, Math.min(approved, ret.order.sellingPriceCents))
+    // Buyer retail amount stays server-side (Stripe / rewards). Ignore client body.
+    const approved = Math.max(
+      0,
+      Math.min(ret.requestedRefundCents, ret.order.sellingPriceCents)
+    )
 
     const updated = await prisma.orderReturn.update({
       where: { id: returnId },
@@ -100,11 +115,27 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ returnId: str
         sellerNote: sellerNote || null,
       },
     })
-    return Response.json({
+
+    const supplierLiabilityCents = supplierReturnLiabilityCents({
+      order: ret.order,
+      buyerRefundCents: approved,
+      buyerSellCents: ret.order.sellingPriceCents,
+    })
+
+    const payload = {
       id: updated.id,
       status: updated.status,
-      approvedRefundCents: updated.approvedRefundCents,
+      supplierLiabilityCents,
+      hasApprovedRefund: true,
+    }
+    assertNoSupplierRetailLeak(payload)
+    console.log("[supplier-returns]", {
+      returnId,
+      action: "approve",
+      supplierLiabilityCents,
+      result: "ok",
     })
+    return Response.json(payload)
   }
 
   if (action === "mark_received") {
@@ -116,7 +147,13 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ returnId: str
         sellerNote: sellerNote ?? ret.sellerNote,
       },
     })
-    return Response.json({ id: updated.id, status: updated.status, receivedAt: updated.receivedAt })
+    const payload = {
+      id: updated.id,
+      status: updated.status,
+      receivedAt: updated.receivedAt,
+    }
+    assertNoSupplierRetailLeak(payload)
+    return Response.json(payload)
   }
 
   const updated = await prisma.orderReturn.update({
@@ -154,5 +191,19 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ returnId: str
     }
   }
 
-  return Response.json({ id: updated.id, status: updated.status, refundedAt: updated.refundedAt })
+  const supplierLiabilityCents = supplierReturnLiabilityCents({
+    order: ret.order,
+    buyerRefundCents:
+      updated.approvedRefundCents ?? ret.approvedRefundCents ?? ret.requestedRefundCents,
+    buyerSellCents: ret.order.sellingPriceCents,
+  })
+
+  const payload = {
+    id: updated.id,
+    status: updated.status,
+    refundedAt: updated.refundedAt,
+    supplierLiabilityCents,
+  }
+  assertNoSupplierRetailLeak(payload)
+  return Response.json(payload)
 }

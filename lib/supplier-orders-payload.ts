@@ -6,6 +6,7 @@ import { formatOrderShippingAddress } from "@/lib/order-shipping-address"
 import { extractShippingCountryIso2FromAddress } from "@/lib/trusted-carriers-shared"
 import { isSupplierTrackingLocked } from "@/lib/order-tracking-lock.shared"
 import { resolveSupplierPayoutCentsFromOrder } from "@/lib/marketplace-order-settlement"
+import { assertNoSupplierRetailLeak } from "@/lib/supplier-retail-veil"
 import { orderPayoutTiming, payoutStatusLabel } from "@/lib/order-payout-policy"
 import { prisma } from "@/lib/prisma"
 import { buildShipPulseSnapshot, resolveShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
@@ -349,7 +350,9 @@ export async function fetchSupplierOrders(
   }
 
   mapped.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
-  return mapped.slice(0, 200)
+  const out = mapped.slice(0, 200)
+  assertNoSupplierRetailLeak(out)
+  return out
 }
 
 export async function countSupplierOrdersToShip(supplierId: string): Promise<number> {

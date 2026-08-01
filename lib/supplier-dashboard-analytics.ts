@@ -18,8 +18,9 @@ function startOfUtcDay(d: Date): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
 }
 
-function estimateStripeFeeCents(sellingPriceCents: number): number {
-  return Math.round(Math.max(0, sellingPriceCents) * 0.029 + 25)
+/** Estimate on wholesale charge base — never reseller retail (invertible leak). */
+function estimateStripeFeeCents(wholesaleChargeCents: number): number {
+  return Math.round(Math.max(0, wholesaleChargeCents) * 0.029 + 25)
 }
 
 type SupplierOrderRow = {
@@ -28,7 +29,6 @@ type SupplierOrderRow = {
   productId: string
   affiliateId: string
   status: string
-  sellingPriceCents: number
   basePriceCents: number
   supplierPriceCents: number
   supplierPayoutCents: number
@@ -127,7 +127,6 @@ export async function getSupplierAnalytics(
         productId: true,
         affiliateId: true,
         status: true,
-        sellingPriceCents: true,
         basePriceCents: true,
         supplierPriceCents: true,
         supplierPayoutCents: true,
@@ -184,7 +183,6 @@ export async function getSupplierAnalytics(
         payoutEligibleAt: { not: null, lte: payoutHorizon },
       },
       select: {
-        sellingPriceCents: true,
         basePriceCents: true,
         supplierPriceCents: true,
         supplierPayoutCents: true,
@@ -219,10 +217,10 @@ export async function getSupplierAnalytics(
 
   const dailyRevenue = buildDailySeries(ordersWithNet, SUPPLIER_ANALYTICS_WINDOW_DAYS, now)
   const totalRevenue30dCents = ordersWithNet.reduce((sum, row) => sum + row.netCents, 0)
-  const stripeFeesCents = windowOrders.reduce(
-    (sum, o) => sum + estimateStripeFeeCents(o.sellingPriceCents),
-    0
-  )
+  const stripeFeesCents = windowOrders.reduce((sum, o) => {
+    const wholesale = Math.max(0, o.supplierPriceCents || o.basePriceCents)
+    return sum + estimateStripeFeeCents(wholesale)
+  }, 0)
   const chargebackCents = chargebackAgg._sum.amountCents ?? 0
   const netMarginCents = Math.max(0, totalRevenue30dCents - stripeFeesCents - chargebackCents)
   const returnRatePct =

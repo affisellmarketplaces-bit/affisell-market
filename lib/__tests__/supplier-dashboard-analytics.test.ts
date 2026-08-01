@@ -55,7 +55,6 @@ describe("getSupplierAnalytics", () => {
       if (args.where && "payoutEligibleAt" in (args.where ?? {})) {
         return [
           {
-            sellingPriceCents: 10_000,
             basePriceCents: 8000,
             supplierPriceCents: 8000,
             supplierPayoutCents: 6000,
@@ -75,7 +74,6 @@ describe("getSupplierAnalytics", () => {
           productId: "prod_1",
           affiliateId: "aff_1",
           status: "paid",
-          sellingPriceCents: 10_000,
           basePriceCents: 8000,
           supplierPriceCents: 8000,
           supplierPayoutCents: 6000,

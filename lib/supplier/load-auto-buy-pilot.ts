@@ -10,13 +10,15 @@ import {
   type PilotPortfolioSummary,
   type SkuEconomics,
 } from "@/lib/supplier/auto-buy-profitability"
+import { assertNoSupplierRetailLeak } from "@/lib/supplier-retail-veil"
 
 export type AutoBuyPilotSku = {
   productId: string
   name: string
   image: string | null
   productActive: boolean
-  sellingPriceCents: number
+  /** Catalog wholesale (product.basePriceCents) — never reseller retail. */
+  catalogPriceCents: number
   cogsCents: number | null
   aeUrl: string | null
   linkActive: boolean
@@ -91,7 +93,6 @@ export async function loadAutoBuyPilotSnapshot(
           _sum: {
             basePriceCents: true,
             supplierMarginCents: true,
-            marginCents: true,
           },
         })
       : Promise.resolve([]),
@@ -111,7 +112,8 @@ export async function loadAutoBuyPilotSnapshot(
       {
         orders: row._count._all,
         revenueCents: row._sum.basePriceCents ?? 0,
-        marginCents: row._sum.supplierMarginCents ?? row._sum.marginCents ?? 0,
+        // Never fall back to Order.marginCents (affiliate markup / retail uplift).
+        marginCents: row._sum.supplierMarginCents ?? 0,
       },
     ])
   )
@@ -135,7 +137,7 @@ export async function loadAutoBuyPilotSnapshot(
       name: p.name,
       image: p.images[0] ?? null,
       productActive: p.active,
-      sellingPriceCents: p.basePriceCents,
+      catalogPriceCents: p.basePriceCents,
       cogsCents,
       aeUrl: link?.aeUrl ?? null,
       linkActive: link?.isActive ?? false,
@@ -169,7 +171,9 @@ export async function loadAutoBuyPilotSnapshot(
     radarCategories: radar.length,
   })
 
-  return { skus, summary, radar, windowDays: WINDOW_DAYS }
+  const snapshot = { skus, summary, radar, windowDays: WINDOW_DAYS }
+  assertNoSupplierRetailLeak(snapshot)
+  return snapshot
 }
 
 async function buildDemandRadar(

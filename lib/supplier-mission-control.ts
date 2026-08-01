@@ -102,7 +102,6 @@ function windowBounds(now: Date): {
 
 type OrderAggRow = {
   quantity: number
-  sellingPriceCents: number
   basePriceCents: number
   supplierPriceCents: number
   supplierPayoutCents: number
@@ -142,7 +141,6 @@ async function fetchMarketplaceOrders(
     },
     select: {
       quantity: true,
-      sellingPriceCents: true,
       basePriceCents: true,
       supplierPriceCents: true,
       supplierPayoutCents: true,
