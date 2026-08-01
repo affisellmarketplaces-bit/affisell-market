@@ -268,6 +268,20 @@ async function processOneAttempt(
     })
 
     await applyOrderSettlement(attempt.orderId)
+
+    if (attempt.role === "AFFILIATE") {
+      try {
+        const { payLegionOverrideForOrder } = await import("@/lib/legion/pay-referral-override")
+        await payLegionOverrideForOrder(attempt.orderId)
+      } catch (legionPayErr) {
+        console.error("[legion]", {
+          result: "override_pay_hook_failed",
+          orderId: attempt.orderId,
+          error: legionPayErr instanceof Error ? legionPayErr.message : String(legionPayErr),
+        })
+      }
+    }
+
     return "success"
   } catch (error) {
     let errorCode: string | null = null
@@ -348,6 +362,38 @@ export async function runProcessTransfersJob(options?: {
     if (outcome === "success") success += 1
     if (outcome === "failed") failed += 1
     if (outcome === "held") held += 1
+  }
+
+  // Catch-up: affiliate already settled (or zero affiliate transfer) but Légion override still reserved.
+  try {
+    const reserved = await prisma.order.findMany({
+      where: {
+        legionPayoutStatus: "reserved",
+        legionOverrideAmount: { gt: 0 },
+        ...(options?.orderId ? { id: options.orderId } : {}),
+        OR: [
+          { affiliatePayoutAt: { not: null } },
+          {
+            transferAttempts: {
+              some: { role: "AFFILIATE", status: "SUCCESS" },
+            },
+          },
+          { payoutStatus: "PAID" },
+        ],
+      },
+      take: 20,
+      select: { id: true },
+      orderBy: { paidAt: "asc" },
+    })
+    const { payLegionOverrideForOrder } = await import("@/lib/legion/pay-referral-override")
+    for (const row of reserved) {
+      await payLegionOverrideForOrder(row.id)
+    }
+  } catch (catchUpErr) {
+    console.error("[legion]", {
+      result: "override_catchup_failed",
+      error: catchUpErr instanceof Error ? catchUpErr.message : String(catchUpErr),
+    })
   }
 
   const duration_ms = Date.now() - started

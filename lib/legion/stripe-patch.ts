@@ -35,9 +35,11 @@ export type LegionStripePatchResult = {
  * Parallel Connect transfers would double-pay vs scheduleMarketplaceTransferAttempts.
  * Légion Battle commission is applied in stripe-marketplace-fulfill via
  * resolveActiveLegionBoostCommission (bps override on the order snapshot only).
- * Override 2% filleul→parrain still needs a Phase1-integrated slice before wiring.
+ * Lifetime override 2% is Phase1-integrated via:
+ *   applyLegionReferralOverrideOnFulfill → payLegionOverrideForOrder
+ * (filleul deduction + single sponsor transfer — not this helper).
  *
- * Additive LÉGION Connect transfers — import into existing webhook/payout flows.
+ * Legacy additive LÉGION Connect transfers — keep for offline/scripts only.
  * Does not replace Lightning or scheduleMarketplaceTransferAttempts.
  */
 export async function handleAffisellLegionOrder(args: {

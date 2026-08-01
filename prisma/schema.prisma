@@ -1870,6 +1870,10 @@ model SponsorCampaignCharge {
   feeCents   Int
   htCents    Int
   /**
+   * Cumulative SUCCESS_FEE clawback (partial refunds). Full when >= feeCents → status REVERSED.
+   */
+  reversedCents Int    @default(0)
+  /**
    * ACCRUED | REVERSED
    */
   status     String   @default("ACCRUED")

@@ -9,6 +9,46 @@ function paymentIntentId(session: Stripe.Checkout.Session): string | null {
     : session.payment_intent?.id ?? null
 }
 
+/** Expire other ACTIVE SUCCESS_FEE campaigns on the same product + payerRole (no double bill). */
+async function supersedeSiblingSuccessFeeCampaigns(
+  tx: Prisma.TransactionClient,
+  campaign: {
+    id: string
+    productId: string
+    payerRole: string
+    affiliateProductId: string | null
+    billingMode: string
+  },
+  now: Date
+) {
+  if (campaign.billingMode !== "SUCCESS_FEE") return
+
+  const where = {
+    status: SPONSOR_STATUS.ACTIVE,
+    billingMode: "SUCCESS_FEE" as const,
+    payerRole: campaign.payerRole,
+    productId: campaign.productId,
+    id: { not: campaign.id },
+    ...(campaign.payerRole === "AFFILIATE" && campaign.affiliateProductId
+      ? { affiliateProductId: campaign.affiliateProductId }
+      : {}),
+  }
+
+  const result = await tx.sponsorCampaign.updateMany({
+    where,
+    data: { status: SPONSOR_STATUS.EXPIRED, endsAt: now },
+  })
+  if (result.count > 0) {
+    console.log("[sponsor]", {
+      result: "superseded_sibling_success_fee",
+      campaignId: campaign.id,
+      expiredCount: result.count,
+      productId: campaign.productId,
+      payerRole: campaign.payerRole,
+    })
+  }
+}
+
 export async function activateSponsorCampaignFromCheckout(
   session: Stripe.Checkout.Session,
   tx: Prisma.TransactionClient
@@ -36,6 +76,8 @@ export async function activateSponsorCampaignFromCheckout(
   const now = new Date()
   const endsAt = new Date(now.getTime() + existing.durationDays * 86_400_000)
   const pi = paymentIntentId(session)
+
+  await supersedeSiblingSuccessFeeCampaigns(tx, existing, now)
 
   const updated = await tx.sponsorCampaign.update({
     where: { id: campaignId },
@@ -82,6 +124,12 @@ export async function activateSponsorCampaignSuccessFee(
 
   const now = new Date()
   const endsAt = new Date(now.getTime() + existing.durationDays * 86_400_000)
+
+  await supersedeSiblingSuccessFeeCampaigns(
+    tx,
+    { ...existing, billingMode: "SUCCESS_FEE" },
+    now
+  )
 
   const updated = await tx.sponsorCampaign.update({
     where: { id: campaignId },

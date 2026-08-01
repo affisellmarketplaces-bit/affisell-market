@@ -42,3 +42,20 @@ describe("sponsor success-fee pricing", () => {
     ).toBe(750) // ×1.5
   })
 })
+
+describe("sponsor success-fee partial clawback math", () => {
+  it("computes proportional undo from fee × fraction − already reversed", () => {
+    const feeCents = 500
+    const fraction = 0.4
+    const alreadyReversed = 0
+    const targetReversed = Math.min(feeCents, Math.round(feeCents * fraction))
+    const undo = Math.max(0, targetReversed - alreadyReversed)
+    expect(targetReversed).toBe(200)
+    expect(undo).toBe(200)
+
+    const secondFraction = 1
+    const secondTarget = Math.min(feeCents, Math.round(feeCents * secondFraction))
+    const secondUndo = Math.max(0, secondTarget - targetReversed)
+    expect(secondUndo).toBe(300)
+  })
+})

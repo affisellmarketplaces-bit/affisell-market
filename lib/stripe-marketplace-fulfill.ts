@@ -459,6 +459,26 @@ async function createPaidMarketplaceOrder(
     })
   }
 
+  try {
+    const { applyLegionReferralOverrideOnFulfill } = await import(
+      "@/lib/legion/apply-referral-override"
+    )
+    await applyLegionReferralOverrideOnFulfill(tx, {
+      orderId: order.id,
+      affiliateId: listing.affiliateId,
+      sellingPriceCents: settlement.sellingPriceCents,
+    })
+  } catch (legionOverrideErr) {
+    console.error("[legion]", {
+      result: "override_reserve_failed",
+      orderId: order.id,
+      error:
+        legionOverrideErr instanceof Error
+          ? legionOverrideErr.message
+          : String(legionOverrideErr),
+    })
+  }
+
   if (legionBoost) {
     try {
       await recordLegionBoostSale(tx, {

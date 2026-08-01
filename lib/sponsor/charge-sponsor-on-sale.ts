@@ -8,8 +8,31 @@ import { successFeeCentsForSale } from "@/lib/sponsor/sponsor-pricing"
 
 type Tx = Prisma.TransactionClient
 
+type CampaignRow = {
+  id: string
+  payerRole: string
+  payerUserId: string
+  sponsorRateBps: number
+  placement: string
+}
+
 /**
- * After a paid marketplace order: accrue Affisell Boost SUCCESS_FEE on matching active campaigns.
+ * At most one SUCCESS_FEE charge per payerRole on an order (highest rate wins).
+ * Prevents stacked ACTIVE campaigns from double-billing HT.
+ */
+function pickCampaignsPerPayerRole(campaigns: CampaignRow[]): CampaignRow[] {
+  const best = new Map<string, CampaignRow>()
+  for (const c of campaigns) {
+    const prev = best.get(c.payerRole)
+    if (!prev || c.sponsorRateBps > prev.sponsorRateBps) {
+      best.set(c.payerRole, c)
+    }
+  }
+  return [...best.values()]
+}
+
+/**
+ * After a paid marketplace order: accrue Affisell Placement SUCCESS_FEE on matching active campaigns.
  * Idempotent on (orderId, campaignId). Deducts from payer's Connect payout snapshot on the order.
  */
 export async function accrueSponsorSuccessFeesForOrder(
@@ -49,10 +72,11 @@ export async function accrueSponsorSuccessFeesForOrder(
     return { chargedCents: 0, campaignIds: [] }
   }
 
+  const selected = pickCampaignsPerPayerRole(campaigns)
   let chargedCents = 0
   const campaignIds: string[] = []
 
-  for (const campaign of campaigns) {
+  for (const campaign of selected) {
     if (!isSponsorPlacement(campaign.placement)) continue
 
     const feeCents = successFeeCentsForSale({
@@ -69,6 +93,7 @@ export async function accrueSponsorSuccessFeesForOrder(
           feeCents,
           htCents: args.htCents,
           status: "ACCRUED",
+          reversedCents: 0,
         },
       })
     } catch {
@@ -142,7 +167,7 @@ export async function accrueSponsorSuccessFeesForOrder(
 
 /**
  * Refund clawback for Affisell Placement SUCCESS_FEE.
- * Marks ACCRUED charges REVERSED (idempotent) and decrements campaign accruedFeeCents.
+ * `fraction` = share of order already refunded (0–1). Idempotent via reversedCents.
  * Connect clawback of payouts is handled separately by existing refund rails.
  */
 export async function reverseSponsorSuccessFeesForOrder(
@@ -154,8 +179,11 @@ export async function reverseSponsorSuccessFeesForOrder(
 
   const { prisma } = await import("@/lib/prisma")
   const charges = await prisma.sponsorCampaignCharge.findMany({
-    where: { orderId, status: "ACCRUED" },
-    select: { id: true, campaignId: true, feeCents: true },
+    where: {
+      orderId,
+      OR: [{ status: "ACCRUED" }, { status: "REVERSED", reversedCents: { gt: 0 } }],
+    },
+    select: { id: true, campaignId: true, feeCents: true, reversedCents: true, status: true },
   })
   if (charges.length === 0) return { reversedCents: 0, chargeIds: [] }
 
@@ -163,12 +191,25 @@ export async function reverseSponsorSuccessFeesForOrder(
   const chargeIds: string[] = []
 
   for (const charge of charges) {
-    const undo = Math.max(0, Math.round(charge.feeCents * fraction))
+    const targetReversed = Math.min(
+      charge.feeCents,
+      Math.max(0, Math.round(charge.feeCents * fraction))
+    )
+    const undo = Math.max(0, targetReversed - charge.reversedCents)
     if (undo <= 0) continue
 
+    const nextReversed = charge.reversedCents + undo
+    const nextStatus = nextReversed >= charge.feeCents ? "REVERSED" : "ACCRUED"
+
     const updated = await prisma.sponsorCampaignCharge.updateMany({
-      where: { id: charge.id, status: "ACCRUED" },
-      data: { status: "REVERSED" },
+      where: {
+        id: charge.id,
+        reversedCents: charge.reversedCents,
+      },
+      data: {
+        reversedCents: nextReversed,
+        status: nextStatus,
+      },
     })
     if (updated.count === 0) continue
 
@@ -177,7 +218,6 @@ export async function reverseSponsorSuccessFeesForOrder(
       data: { accruedFeeCents: { decrement: undo } },
     })
 
-    // Keep platform ledger honest on the order snapshot (fee was added at accrue).
     const orderRow = await prisma.order.findUnique({
       where: { id: orderId },
       select: { affisellFeeCents: true },
@@ -198,6 +238,8 @@ export async function reverseSponsorSuccessFeesForOrder(
       chargeId: charge.id,
       undo,
       fraction,
+      reversedCents: nextReversed,
+      status: nextStatus,
     })
   }
 

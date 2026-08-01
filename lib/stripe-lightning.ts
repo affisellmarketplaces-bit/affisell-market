@@ -260,6 +260,17 @@ export async function triggerLightningPayout(orderId: string): Promise<Lightning
       result: "paid",
     })
 
+    try {
+      const { payLegionOverrideForOrder } = await import("@/lib/legion/pay-referral-override")
+      await payLegionOverrideForOrder(orderId)
+    } catch (legionPayErr) {
+      console.error("[legion]", {
+        result: "override_pay_lightning_hook_failed",
+        orderId,
+        error: legionPayErr instanceof Error ? legionPayErr.message : String(legionPayErr),
+      })
+    }
+
     return { success: true }
   } catch (error) {
     await prisma.order.updateMany({
