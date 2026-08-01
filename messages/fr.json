@@ -2440,7 +2440,8 @@
       "carrier": "Transporteur",
       "carrierCountryHint": "Transporteurs approuvés pour {country}",
       "trackingNumber": "N° de suivi *",
-      "splitDetail": "Voir le détail du split →"
+      "splitDetail": "Voir le détail du split →",
+      "verifyTracking": "Vérifier tracking"
     },
     "fulfillmentRail": {
       "ariaLabel": "Progression expédition",
@@ -3463,7 +3464,20 @@
     "tagInternational": "International",
     "tagLastMile": "Dernier km",
     "tagMarketplace": "Marketplace",
-    "routeSummary": "{origin} → {destination} · {count} service(s)"
+    "routeSummary": "{origin} → {destination} · {count} service(s)",
+    "fastest": "Le plus rapide",
+    "cheapest": "Le moins cher fiable",
+    "balanced": "Recommandé",
+    "verify": "Vérifier tracking",
+    "fakeAlert": "Tracking suspect",
+    "verifyValid": "Format valide",
+    "crackingScore": "Score anti-fake {score}/100",
+    "officialTrack": "Suivi officiel",
+    "mockModeHint": "Mode mock — ajoute TRACKINGMORE_API_KEY pour le live",
+    "liveModeHint": "Statut live TrackingMore",
+    "verifyPageTitle": "Vérificateur Tracking Anti-Fake",
+    "verifyPageSubtitle": "Détecte les numéros inventés et ouvre le suivi officiel du transporteur.",
+    "pdpOptionsTitle": "Livraison pro"
   },
   "pages": {
     "trackOrder": {

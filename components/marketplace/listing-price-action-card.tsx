@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { FlexiblePaymentBadge } from "@/components/checkout/flexible-payment-badge"
 import { GhostStockBadge } from "@/components/checkout/GhostStockBadge"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
+import { ProductShippingOptions } from "@/components/shipping/ProductShippingOptions"
 import { cn } from "@/lib/utils"
 import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
 
@@ -36,6 +37,8 @@ type Props = {
   isBattleWinner?: boolean
   priceReferenceEur?: number | null
   battleResellerName?: string | null
+  /** Buyer ship-to country ISO2 for carrier recommendations (default FR). */
+  shippingCountry?: string | null
 }
 
 export function ListingPriceActionCard({
@@ -62,6 +65,7 @@ export function ListingPriceActionCard({
   isBattleWinner = false,
   priceReferenceEur = null,
   battleResellerName = null,
+  shippingCountry = "FR",
 }: Props) {
   const brand = storefrontPdpBrandClasses(brandedStorefront)
   const t = useTranslations("Product")
@@ -111,6 +115,7 @@ export function ListingPriceActionCard({
             amountCents={buyNowLineSubtotalCents}
             className={cn(denseMobile ? "mt-2" : "mt-2.5")}
           />
+          <ProductShippingOptions country={shippingCountry} />
         </div>
 
         <div

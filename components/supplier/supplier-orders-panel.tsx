@@ -711,11 +711,17 @@ export function SupplierOrdersPanel({ className }: { className?: string }) {
                       ) : null}
 
                       {o.status === "shipped" && o.trackingNumber ? (
-                        <div className="mt-3 flex items-center gap-2 rounded-lg border border-emerald-200/80 bg-emerald-50/90 px-3 py-2 text-sm text-emerald-950 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-100">
+                        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200/80 bg-emerald-50/90 px-3 py-2 text-sm text-emerald-950 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-100">
                           <Truck className="size-4 shrink-0" aria-hidden />
                           <span className="min-w-0 flex-1 truncate font-medium">
                             {o.trackingCarrier ?? "Carrier"} · {o.trackingNumber}
                           </span>
+                          <Link
+                            href={`/shipping/verify?code=${encodeURIComponent(o.trackingNumber)}`}
+                            className="inline-flex shrink-0 items-center rounded-full bg-emerald-900/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-950 underline-offset-2 hover:underline dark:bg-emerald-100/10 dark:text-emerald-50"
+                          >
+                            {msg("actions.verifyTracking")}
+                          </Link>
                           {o.trackingLocked ? (
                             <span
                               className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-900/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-900 dark:bg-emerald-100/10 dark:text-emerald-100"
