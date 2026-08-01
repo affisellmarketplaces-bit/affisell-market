@@ -75,7 +75,7 @@ function createBasePrismaClient(): PrismaClient {
     console.log("[prisma]", {
       result: "client_created",
       host,
-      pooler: /-pooler\./i.test(host) || url.includes("pgbouncer=true"),
+      pooler: /-pooler\./i.test(host),
     })
   } catch {
     /* ignore bad URL parse — create already has datasources url */

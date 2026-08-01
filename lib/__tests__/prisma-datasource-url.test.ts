@@ -55,6 +55,17 @@ describe("augmentPrismaDatasourceUrl", () => {
     expect(url.searchParams.get("connect_timeout")).toBe("30")
   })
 
+  it("strips mistaken pgbouncer=true from direct Neon hosts", () => {
+    vi.stubEnv("NODE_ENV", "development")
+    const raw =
+      "postgresql://user:pass@ep-foo.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require&pgbouncer=true"
+    const out = augmentPrismaDatasourceUrl(raw)
+    const url = new URL(out)
+    expect(url.hostname).toBe("ep-foo.c-3.eu-central-1.aws.neon.tech")
+    expect(url.searchParams.get("pgbouncer")).toBeNull()
+    expect(url.searchParams.get("connection_limit")).toBe("20")
+  })
+
   it("leaves non-pooler URLs unchanged in production", () => {
     vi.stubEnv("NODE_ENV", "production")
     const raw = "postgresql://user:pass@localhost:5432/mydb"

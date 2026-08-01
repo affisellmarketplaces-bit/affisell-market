@@ -49,13 +49,37 @@ export function neonDirectHostToPooler(hostname: string): string | null {
   return `${match[1]}-pooler${match[2]}`
 }
 
+function isNeonPoolerHost(hostname: string): boolean {
+  return POOLER_HOST_RE.test(hostname)
+}
+
+/** True only for real Neon pooler hosts (`*-pooler.*`). Ignore stray `pgbouncer=true` on direct hosts. */
 function isNeonPoolerUrl(url: URL): boolean {
-  return url.searchParams.get("pgbouncer") === "true" || POOLER_HOST_RE.test(url.hostname)
+  return isNeonPoolerHost(url.hostname)
+}
+
+/** Strip mistaken pgbouncer flags from direct Neon endpoints. */
+export function scrubDirectNeonUrl(rawUrl: string): string {
+  const trimmed = rawUrl.trim()
+  if (!trimmed) return trimmed
+  let url: URL
+  try {
+    url = new URL(trimmed)
+  } catch {
+    return trimmed
+  }
+  if (!NEON_HOST_RE.test(url.hostname) || isNeonPoolerHost(url.hostname)) {
+    return trimmed
+  }
+  if (url.searchParams.get("pgbouncer") === "true") {
+    url.searchParams.delete("pgbouncer")
+  }
+  return url.toString()
 }
 
 /** Apply pool params when using Neon pooler (or explicit pgbouncer=true). Dev: tune Postgres URLs. */
 export function augmentPrismaDatasourceUrl(rawUrl: string): string {
-  const trimmed = rawUrl.trim()
+  const trimmed = scrubDirectNeonUrl(rawUrl.trim())
   if (!trimmed) return trimmed
 
   let url: URL
