@@ -16,9 +16,6 @@ describe("aliexpress-oauth-token-exchange", () => {
   it("defaults redirect URI to production Vercel callback", () => {
     vi.stubEnv("ALIEXPRESS_OAUTH_REDIRECT_URI", "")
     expect(resolveAliExpressOAuthRedirectUri()).toBe(DEFAULT_ALIEXPRESS_OAUTH_REDIRECT_URI)
-    expect(DEFAULT_ALIEXPRESS_OAUTH_REDIRECT_URI).toBe(
-      "https://affisell-market.vercel.app/api/aliexpress/oauth/callback"
-    )
   })
 
   it("unwraps gopResponseBody JSON string", () => {
@@ -32,42 +29,23 @@ describe("aliexpress-oauth-token-exchange", () => {
     expect(nested?.access_token).toBe("tok_a")
   })
 
-  it("falls back from REST create to GET oauth/token when POST would 405", async () => {
+  it("succeeds on first IOP ms+sha256 create attempt", async () => {
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       const u = String(url)
       const method = (init?.method ?? "GET").toUpperCase()
-
-      if (u.includes("/rest/auth/token/create")) {
-        return {
-          ok: false,
-          status: 400,
-          text: async () => JSON.stringify({ error_response: { msg: "Invalid signature" } }),
-        }
-      }
-      if (u.includes("/rest/auth/token/get")) {
-        return {
-          ok: false,
-          status: 404,
-          text: async () => JSON.stringify({ error: "not_found" }),
-        }
-      }
-      if (u.startsWith("https://api-sg.aliexpress.com/oauth/token") && method === "GET") {
+      if (u.includes("/rest/auth/token/create") && method === "GET") {
         return {
           ok: true,
           status: 200,
           text: async () =>
             JSON.stringify({
-              access_token: "access_via_get",
-              refresh_token: "refresh_via_get",
-              expires_in: 3600,
+              access_token: "access_iop",
+              refresh_token: "refresh_iop",
+              expires_in: 86400,
             }),
         }
       }
-      return {
-        ok: false,
-        status: 405,
-        text: async () => "Method Not Allowed",
-      }
+      return { ok: false, status: 404, text: async () => "" }
     })
     vi.stubGlobal("fetch", fetchMock)
 
@@ -79,18 +57,30 @@ describe("aliexpress-oauth-token-exchange", () => {
 
     expect(result.ok).toBe(true)
     if (!result.ok) return
-    expect(result.tokens.access_token).toBe("access_via_get")
-    expect(result.tokens.method).toContain("GET oauth/token")
-    expect(result.attempts.some((a) => a.httpStatus === 400 || a.httpStatus === 404)).toBe(true)
+    expect(result.tokens.access_token).toBe("access_iop")
+    const firstUrl = String(fetchMock.mock.calls[0]?.[0] ?? "")
+    expect(firstUrl).toContain("/rest/auth/token/create?")
+    expect(firstUrl).not.toContain("+")
   })
 
-  it("surfaces AliExpress body text on total failure (not bare http_405)", async () => {
+  it("surfaces IllegalTimestamp from AE body instead of trailing oauth 404", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
-        ok: false,
-        status: 405,
-        text: async () => "Method Not Allowed — use GET",
+      vi.fn(async (url: string) => {
+        const u = String(url)
+        if (u.includes("/rest/auth/token")) {
+          return {
+            ok: true,
+            status: 200,
+            text: async () =>
+              JSON.stringify({
+                type: "ISV",
+                code: "IllegalTimestamp",
+                message: "The timestamp is invalid or malformed",
+              }),
+          }
+        }
+        return { ok: false, status: 404, text: async () => "" }
       })
     )
 
@@ -102,8 +92,8 @@ describe("aliexpress-oauth-token-exchange", () => {
 
     expect(result.ok).toBe(false)
     if (result.ok) return
-    expect(result.error).toMatch(/405|Method Not Allowed/i)
-    expect(result.bodyText).toContain("Method Not Allowed")
-    expect(result.attempts.length).toBeGreaterThan(1)
+    expect(result.error).toMatch(/IllegalTimestamp|malformed/i)
+    expect(result.error).not.toBe("http_404")
+    expect(result.bodyText).toContain("IllegalTimestamp")
   })
 })

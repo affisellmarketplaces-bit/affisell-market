@@ -1,14 +1,15 @@
 /**
  * AliExpress OAuth — exchange authorization code for access/refresh tokens.
  *
- * DS Open Platform (official): signed GET /rest/auth/token/create
- * Legacy OAuth2: GET|POST /oauth/token (POST often returns 405 on SG).
+ * DS Open Platform (official): signed GET/POST /rest/auth/token/create
+ * Legacy OAuth2: GET|POST /oauth/token (often 404/405 on SG).
  */
 
-import crypto from "crypto"
-
 import {
+  encodeAliExpressQuery,
   getAliExpressTimestamp,
+  getAliExpressTimestampMs,
+  signAliExpressIopHmacSha256,
   signAliExpressParams,
   signAliExpressParamsHmacSha256,
 } from "@/lib/aliexpress-open-api"
@@ -21,7 +22,6 @@ export const ALIEXPRESS_REST_TOKEN_GET_URL =
 
 /**
  * Must match the Redirect URI registered in AliExpress Open Platform exactly.
- * Override only for deliberate local/staging experiments (AE console must match).
  */
 export const DEFAULT_ALIEXPRESS_OAUTH_REDIRECT_URI =
   "https://affisell-market.vercel.app/api/aliexpress/oauth/callback"
@@ -83,23 +83,15 @@ function pickNumber(obj: Record<string, unknown>, keys: string[]): number | null
   return null
 }
 
-/** @deprecated Prefer getAliExpressTimestamp from aliexpress-open-api (Asia/Shanghai). */
-export { getAliExpressTimestamp }
+export { getAliExpressTimestamp, getAliExpressTimestampMs }
 
-/** IOP HMAC-SHA256 sign: apiPath + sorted(key+value), hex uppercase (legacy SDK path). */
+/** IOP HMAC-SHA256: apiPath + sorted(key+value) — re-export for tests/scripts. */
 export function signAliExpressIopSha256(
   apiPath: string,
   params: Record<string, string>,
   appSecret: string
 ): string {
-  const sortedKeys = Object.keys(params)
-    .filter((k) => k !== "sign")
-    .sort()
-  let base = apiPath
-  for (const key of sortedKeys) {
-    base += key + params[key]!
-  }
-  return crypto.createHmac("sha256", appSecret).update(base, "utf8").digest("hex").toUpperCase()
+  return signAliExpressIopHmacSha256(apiPath, params, appSecret)
 }
 
 function maskToken(token: string): string {
@@ -107,7 +99,6 @@ function maskToken(token: string): string {
   return `${token.slice(0, 4)}…${token.slice(-4)} (len=${token.length})`
 }
 
-/** Safe log payload — never dump full secrets. */
 export function summarizeAliExpressTokens(tokens: AliExpressTokenExchangeSuccess) {
   return {
     method: tokens.method,
@@ -130,10 +121,15 @@ function parseJsonLoose(text: string): unknown {
   }
 }
 
-/** Unwrap AE token payloads (flat, token_result, gopResponseBody JSON string, etc.). */
 export function extractAliExpressTokenPayload(json: unknown): Record<string, unknown> | null {
   const root = asRecord(json)
   if (!root) return null
+
+  // AE business errors often come as HTTP 200 with { code, message }
+  const code = pickString(root, ["code"])
+  if (code && code !== "0" && !root.access_token && !root.gopResponseBody) {
+    return null
+  }
 
   const gopBody = root.gopResponseBody
   if (typeof gopBody === "string" && gopBody.trim()) {
@@ -178,11 +174,23 @@ function errorMessageFromBody(json: unknown, fallback: string): string {
   const errNode = asRecord(root.error_response) ?? root
   return (
     pickString(root, ["error_description", "error", "message", "msg"]) ||
-    pickString(errNode, ["msg", "sub_msg", "message", "error_description", "error"]) ||
+    pickString(errNode, ["msg", "sub_msg", "message", "error_description", "error", "code"]) ||
+    (typeof root.code === "string" && root.code !== "0" ? `${root.code}: ${String(root.message ?? "")}` : "") ||
     (typeof root.gopErrorCode === "string" && root.gopErrorCode !== "0"
       ? `gopErrorCode=${root.gopErrorCode}`
       : "") ||
     fallback
+  )
+}
+
+function isFatalCodeError(msg: string): boolean {
+  const m = msg.toLowerCase()
+  return (
+    m.includes("invalid_grant") ||
+    m.includes("code expired") ||
+    m.includes("invalid code") ||
+    m.includes("authorization code is invalid") ||
+    m.includes("isv.code-invalid")
   )
 }
 
@@ -203,13 +211,7 @@ async function runAttempt(
       result: "network_error",
       bodyText: message,
     })
-    return {
-      method,
-      url,
-      httpStatus: 0,
-      bodyText: message,
-      body: { message },
-    }
+    return { method, url, httpStatus: 0, bodyText: message, body: { message } }
   }
 
   const bodyText = await res.text()
@@ -229,42 +231,74 @@ async function runAttempt(
   }
 }
 
-function buildSignedRestCreateUrl(args: {
+type RestSignMode = "iop-sha256" | "top-md5" | "top-hmac"
+
+function buildSignedRestRequest(args: {
   apiPath: "/auth/token/create" | "/auth/token/get"
   code: string
   clientId: string
   clientSecret: string
-  signMethod: "md5" | "sha256"
-}): string {
+  timestampMode: "ms" | "beijing"
+  signMode: RestSignMode
+  signMethodParam: string
+}): { url: string; formBody: string; params: Record<string, string>; label: string } {
   const base =
     args.apiPath === "/auth/token/get"
       ? ALIEXPRESS_REST_TOKEN_GET_URL
       : ALIEXPRESS_REST_TOKEN_CREATE_URL
 
+  const timestamp =
+    args.timestampMode === "ms" ? getAliExpressTimestampMs() : getAliExpressTimestamp()
+
   const params: Record<string, string> = {
     app_key: args.clientId,
     code: args.code,
-    sign_method: args.signMethod,
-    timestamp: getAliExpressTimestamp(),
+    sign_method: args.signMethodParam,
+    timestamp,
   }
-  params.sign =
-    args.signMethod === "sha256"
-      ? signAliExpressParamsHmacSha256(params, args.clientSecret)
-      : signAliExpressParams(params, args.clientSecret)
 
-  // Log timestamp used (no secrets) — helps diagnose IllegalTimestamp on Vercel
+  if (args.signMode === "iop-sha256") {
+    params.sign = signAliExpressIopHmacSha256(args.apiPath, params, args.clientSecret)
+  } else if (args.signMode === "top-hmac") {
+    params.sign = signAliExpressParamsHmacSha256(params, args.clientSecret)
+  } else {
+    params.sign = signAliExpressParams(params, args.clientSecret)
+  }
+
+  const query = encodeAliExpressQuery(params)
+  const label = `${args.apiPath} ${args.timestampMode} ${args.signMode}`
+
   console.log("[aliexpress-oauth-exchange]", {
-    method: `sign ${args.signMethod} ${args.apiPath}`,
-    timestamp: params.timestamp,
-    tz: "Asia/Shanghai",
+    method: `sign ${label}`,
+    timestamp,
+    timestampMode: args.timestampMode,
+    sign_method: args.signMethodParam,
+    spaceEncoding: "%20",
   })
 
-  return `${base}?${new URLSearchParams(params).toString()}`
+  return {
+    url: `${base}?${query}`,
+    formBody: query,
+    params,
+    label,
+  }
+}
+
+function pickBestFailure(attempts: AliExpressTokenAttempt[]): AliExpressTokenAttempt {
+  // Prefer AE business errors (HTTP 200 + code) over empty 404 oauth endpoints
+  for (const a of attempts) {
+    const root = asRecord(a.body)
+    if (root && (root.code || root.error_response || root.message)) return a
+  }
+  for (const a of [...attempts].reverse()) {
+    if (a.bodyText.trim()) return a
+  }
+  return attempts[attempts.length - 1]!
 }
 
 /**
- * Exchange `code` for tokens. Tries DS REST create (signed) then legacy OAuth GET/POST.
- * AE codes are single-use (~10 min TTL).
+ * Exchange `code` for tokens.
+ * Priority: IOP ms+sha256 (DS) → Beijing datetime MD5 → POST variants → legacy oauth.
  */
 export async function exchangeAliExpressAuthorizationCode(args: {
   code: string
@@ -299,66 +333,129 @@ export async function exchangeAliExpressAuthorizationCode(args: {
     }
   }
 
-  const oauthQuery = new URLSearchParams({
+  const oauthParams = {
     grant_type: "authorization_code",
     client_id: clientId,
     client_secret: clientSecret,
     code,
     redirect_uri: redirectUri,
-  })
+  }
+  const oauthQuery = encodeAliExpressQuery(oauthParams)
 
-  const plan: Array<{ method: string; run: () => Promise<AliExpressTokenAttempt> }> = [
-    // 1) Official DS Open Platform — same pattern as /auth/token/refresh
+  type Step = { method: string; run: () => Promise<AliExpressTokenAttempt> }
+  const plan: Step[] = []
+
+  const restVariants: Array<{
+    apiPath: "/auth/token/create" | "/auth/token/get"
+    timestampMode: "ms" | "beijing"
+    signMode: RestSignMode
+    signMethodParam: string
+    http: "GET" | "POST"
+  }> = [
+    // Working pattern from IOP / community SDKs for DS apps
     {
-      method: "GET rest/auth/token/create md5",
-      run: () =>
-        runAttempt(
-          "GET rest/auth/token/create md5",
-          buildSignedRestCreateUrl({
-            apiPath: "/auth/token/create",
-            code,
-            clientId,
-            clientSecret,
-            signMethod: "md5",
-          }),
-          { method: "GET", headers: { Accept: "application/json" } }
-        ),
+      apiPath: "/auth/token/create",
+      timestampMode: "ms",
+      signMode: "iop-sha256",
+      signMethodParam: "sha256",
+      http: "GET",
     },
     {
-      method: "GET rest/auth/token/create sha256",
-      run: () =>
-        runAttempt(
-          "GET rest/auth/token/create sha256",
-          buildSignedRestCreateUrl({
-            apiPath: "/auth/token/create",
-            code,
-            clientId,
-            clientSecret,
-            signMethod: "sha256",
-          }),
-          { method: "GET", headers: { Accept: "application/json" } }
-        ),
+      apiPath: "/auth/token/create",
+      timestampMode: "ms",
+      signMode: "iop-sha256",
+      signMethodParam: "sha256",
+      http: "POST",
     },
     {
-      method: "GET rest/auth/token/get md5",
-      run: () =>
-        runAttempt(
-          "GET rest/auth/token/get md5",
-          buildSignedRestCreateUrl({
-            apiPath: "/auth/token/get",
-            code,
-            clientId,
-            clientSecret,
-            signMethod: "md5",
-          }),
-          { method: "GET", headers: { Accept: "application/json" } }
-        ),
+      apiPath: "/auth/token/create",
+      timestampMode: "ms",
+      signMode: "iop-sha256",
+      signMethodParam: "hmac-sha256",
+      http: "GET",
     },
-    // 2) Legacy OAuth2 — GET first (old SDK); POST often 405 on api-sg
+    // Classic TOP datetime + MD5 (refresh path style), with %20 encoding
+    {
+      apiPath: "/auth/token/create",
+      timestampMode: "beijing",
+      signMode: "top-md5",
+      signMethodParam: "md5",
+      http: "GET",
+    },
+    {
+      apiPath: "/auth/token/create",
+      timestampMode: "beijing",
+      signMode: "top-md5",
+      signMethodParam: "md5",
+      http: "POST",
+    },
+    {
+      apiPath: "/auth/token/create",
+      timestampMode: "beijing",
+      signMode: "iop-sha256",
+      signMethodParam: "sha256",
+      http: "GET",
+    },
+    {
+      apiPath: "/auth/token/create",
+      timestampMode: "beijing",
+      signMode: "top-hmac",
+      signMethodParam: "sha256",
+      http: "GET",
+    },
+    {
+      apiPath: "/auth/token/get",
+      timestampMode: "ms",
+      signMode: "iop-sha256",
+      signMethodParam: "sha256",
+      http: "GET",
+    },
+    {
+      apiPath: "/auth/token/get",
+      timestampMode: "beijing",
+      signMode: "top-md5",
+      signMethodParam: "md5",
+      http: "GET",
+    },
+  ]
+
+  for (const v of restVariants) {
+    const method = `${v.http} ${v.apiPath} ${v.timestampMode} ${v.signMode}`
+    plan.push({
+      method,
+      run: async () => {
+        const built = buildSignedRestRequest({
+          apiPath: v.apiPath,
+          code,
+          clientId,
+          clientSecret,
+          timestampMode: v.timestampMode,
+          signMode: v.signMode,
+          signMethodParam: v.signMethodParam,
+        })
+        if (v.http === "POST") {
+          return runAttempt(method, built.url.split("?")[0]!, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+              Accept: "application/json",
+            },
+            body: built.formBody,
+          })
+        }
+        return runAttempt(method, built.url, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        })
+      },
+    })
+  }
+
+  plan.push(
     {
       method: "GET oauth/token",
       run: () =>
-        runAttempt("GET oauth/token", `${ALIEXPRESS_OAUTH_TOKEN_URL}?${oauthQuery.toString()}`, {
+        runAttempt("GET oauth/token", `${ALIEXPRESS_OAUTH_TOKEN_URL}?${oauthQuery}`, {
           method: "GET",
           headers: { Accept: "application/json" },
         }),
@@ -369,13 +466,13 @@ export async function exchangeAliExpressAuthorizationCode(args: {
         runAttempt("POST oauth/token form", ALIEXPRESS_OAUTH_TOKEN_URL, {
           method: "POST",
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
             Accept: "application/json",
           },
           body: oauthQuery,
         }),
-    },
-  ]
+    }
+  )
 
   for (const step of plan) {
     const attempt = await step.run()
@@ -387,30 +484,23 @@ export async function exchangeAliExpressAuthorizationCode(args: {
       return { ok: true, tokens, attempts }
     }
 
-    // Stop early on clear invalid_grant / expired code — no point burning more attempts
-    const msg = errorMessageFromBody(attempt.body, "").toLowerCase()
-    if (
-      msg.includes("invalid_grant") ||
-      msg.includes("code expired") ||
-      msg.includes("expire") ||
-      msg.includes("invalid code")
-    ) {
-      break
-    }
+    const msg = errorMessageFromBody(attempt.body, attempt.bodyText)
+    if (isFatalCodeError(msg)) break
   }
 
-  const last = attempts[attempts.length - 1]
-  const lastBody = last?.body ?? null
-  const lastText = last?.bodyText ?? ""
-  const detail = errorMessageFromBody(lastBody, lastText || `http_${last?.httpStatus ?? 502}`)
+  const best = pickBestFailure(attempts)
+  const detail = errorMessageFromBody(
+    best.body,
+    best.bodyText || `http_${best.httpStatus || 502}`
+  )
   const error =
-    detail && detail !== `http_${last?.httpStatus ?? 502}`
-      ? `${detail} (http_${last?.httpStatus ?? 502})`
-      : `http_${last?.httpStatus ?? 502}${lastText ? `: ${lastText.slice(0, 500)}` : ""}`
+    detail && !detail.startsWith("http_")
+      ? `${detail} (via ${best.method}, http_${best.httpStatus})`
+      : `http_${best.httpStatus}${best.bodyText ? `: ${best.bodyText.slice(0, 500)}` : ""}`
 
   return {
     ok: false,
-    httpStatus: last?.httpStatus && last.httpStatus > 0 ? last.httpStatus : 502,
+    httpStatus: best.httpStatus > 0 ? best.httpStatus : 502,
     error,
     body: {
       attempts: attempts.map((a) => ({
@@ -420,9 +510,9 @@ export async function exchangeAliExpressAuthorizationCode(args: {
         body: a.body,
         bodyText: a.bodyText.slice(0, 2000),
       })),
-      last: lastBody,
+      best: best.body,
     },
-    bodyText: lastText,
+    bodyText: best.bodyText,
     attempts,
   }
 }

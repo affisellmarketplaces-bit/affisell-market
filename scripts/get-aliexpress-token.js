@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
  * Exchange an AliExpress OAuth authorization code for access/refresh tokens.
- * Tries DS REST /auth/token/create (signed) then legacy GET/POST /oauth/token.
  *
  * Usage:
  *   node --env-file=.env.local scripts/get-aliexpress-token.js <authorization_code>
@@ -14,45 +13,38 @@ const REST_CREATE = "https://api-sg.aliexpress.com/rest/auth/token/create"
 const DEFAULT_REDIRECT =
   "https://affisell-market.vercel.app/api/aliexpress/oauth/callback"
 
-function formatTimestamp(d = new Date()) {
-  // Asia/Shanghai (UTC+8) — AliExpress IllegalTimestamp if server TZ used
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).formatToParts(d)
-  const pick = (type) => {
-    const raw = parts.find((p) => p.type === type)?.value ?? "00"
-    return String(raw).padStart(2, "0")
-  }
-  let hour = pick("hour")
-  if (hour === "24") hour = "00"
-  return `${pick("year")}-${pick("month")}-${pick("day")} ${hour}:${pick("minute")}:${pick("second")}`
+function beijingTs(d = new Date()) {
+  const shifted = new Date(d.getTime() + 8 * 60 * 60 * 1000)
+  const p = (n) => String(n).padStart(2, "0")
+  return `${shifted.getUTCFullYear()}-${p(shifted.getUTCMonth() + 1)}-${p(shifted.getUTCDate())} ${p(shifted.getUTCHours())}:${p(shifted.getUTCMinutes())}:${p(shifted.getUTCSeconds())}`
 }
 
-function signMd5(params, appSecret) {
-  const keys = Object.keys(params)
+function msTs(d = new Date()) {
+  return String(d.getTime())
+}
+
+function encodeQuery(params) {
+  return Object.entries(params)
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join("&")
+}
+
+function payload(params) {
+  return Object.keys(params)
     .filter((k) => k !== "sign")
     .sort()
-  let base = appSecret
-  for (const key of keys) base += key + params[key]
-  base += appSecret
+    .map((k) => k + params[k])
+    .join("")
+}
+
+function signMd5(params, secret) {
+  const base = secret + payload(params) + secret
   return crypto.createHash("md5").update(base, "utf8").digest("hex").toUpperCase()
 }
 
-function signSha256(params, appSecret) {
-  const keys = Object.keys(params)
-    .filter((k) => k !== "sign")
-    .sort()
-  let base = appSecret
-  for (const key of keys) base += key + params[key]
-  base += appSecret
-  return crypto.createHmac("sha256", appSecret).update(base, "utf8").digest("hex").toUpperCase()
+function signIopSha256(apiPath, params, secret) {
+  const base = apiPath + payload(params)
+  return crypto.createHmac("sha256", secret).update(base, "utf8").digest("hex").toUpperCase()
 }
 
 function extractTokens(json) {
@@ -65,6 +57,7 @@ function extractTokens(json) {
     }
   }
   nested = nested?.token_result || nested?.data || nested
+  if (nested?.code && nested.code !== "0" && !nested.access_token) return { access: null }
   const access = nested?.access_token || nested?.accessToken
   const refresh = nested?.refresh_token || nested?.refreshToken
   return { access, refresh, nested }
@@ -110,68 +103,62 @@ async function main() {
     code_len: code.length,
   })
 
-  const oauthQuery = new URLSearchParams({
+  const variants = [
+    { ts: msTs(), signMethod: "sha256", mode: "iop", http: "GET" },
+    { ts: msTs(), signMethod: "sha256", mode: "iop", http: "POST" },
+    { ts: beijingTs(), signMethod: "md5", mode: "md5", http: "GET" },
+    { ts: beijingTs(), signMethod: "md5", mode: "md5", http: "POST" },
+  ]
+
+  for (const v of variants) {
+    const params = {
+      app_key: clientId,
+      code,
+      sign_method: v.signMethod,
+      timestamp: v.ts,
+    }
+    params.sign =
+      v.mode === "iop"
+        ? signIopSha256("/auth/token/create", params, clientSecret)
+        : signMd5(params, clientSecret)
+    const body = encodeQuery(params)
+    const label = `${v.http} create ${v.signMethod} ts=${v.ts}`
+    const attempt =
+      v.http === "POST"
+        ? await tryFetch(label, REST_CREATE, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+              Accept: "application/json",
+            },
+            body,
+          })
+        : await tryFetch(label, `${REST_CREATE}?${body}`, { method: "GET" })
+    const t = extractTokens(attempt.json)
+    if (t.access) return printSuccess(t)
+  }
+
+  const oauth = encodeQuery({
     grant_type: "authorization_code",
     client_id: clientId,
     client_secret: clientSecret,
     code,
     redirect_uri: redirectUri,
   })
-
-  const attempts = []
-
-  // 1) REST create md5
-  {
-    const params = {
-      app_key: clientId,
-      code,
-      sign_method: "md5",
-      timestamp: formatTimestamp(),
-    }
-    params.sign = signMd5(params, clientSecret)
-    const url = `${REST_CREATE}?${new URLSearchParams(params)}`
-    attempts.push(await tryFetch("GET rest/auth/token/create md5", url, { method: "GET" }))
-    const t = extractTokens(attempts.at(-1).json)
-    if (t.access) return printSuccess(t)
-  }
-
-  // 2) REST create sha256
-  {
-    const params = {
-      app_key: clientId,
-      code,
-      sign_method: "sha256",
-      timestamp: formatTimestamp(),
-    }
-    params.sign = signSha256(params, clientSecret)
-    const url = `${REST_CREATE}?${new URLSearchParams(params)}`
-    attempts.push(await tryFetch("GET rest/auth/token/create sha256", url, { method: "GET" }))
-    const t = extractTokens(attempts.at(-1).json)
-    if (t.access) return printSuccess(t)
-  }
-
-  // 3) GET oauth/token
-  {
-    attempts.push(
-      await tryFetch("GET oauth/token", `${OAUTH_TOKEN_URL}?${oauthQuery}`, { method: "GET" })
-    )
-    const t = extractTokens(attempts.at(-1).json)
-    if (t.access) return printSuccess(t)
-  }
-
-  // 4) POST oauth/token
-  {
-    attempts.push(
-      await tryFetch("POST oauth/token", OAUTH_TOKEN_URL, {
+  for (const [label, url, init] of [
+    ["GET oauth/token", `${OAUTH_TOKEN_URL}?${oauth}`, { method: "GET" }],
+    [
+      "POST oauth/token",
+      OAUTH_TOKEN_URL,
+      {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Accept: "application/json",
-        },
-        body: oauthQuery,
-      })
-    )
-    const t = extractTokens(attempts.at(-1).json)
+        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+        body: oauth,
+      },
+    ],
+  ]) {
+    const attempt = await tryFetch(label, url, init)
+    const t = extractTokens(attempt.json)
     if (t.access) return printSuccess(t)
   }
 

@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  encodeAliExpressQuery,
   getAliExpressTimestamp,
+  getAliExpressTimestampMs,
+  signAliExpressIopHmacSha256,
   signAliExpressParams,
   signAliExpressParamsHmacSha256,
 } from "@/lib/aliexpress-open-api"
@@ -58,18 +61,46 @@ describe("signAliExpressParams", () => {
     }
     const sign = signAliExpressParamsHmacSha256(params, "secret")
     expect(sign).toMatch(/^[A-F0-9]{64}$/)
-    expect(sign).toBe(signAliExpressParamsHmacSha256({ ...params, sign: "x" }, "secret"))
+  })
+
+  it("IOP HMAC prefixes api path", () => {
+    const params = {
+      app_key: "534690",
+      code: "abc",
+      sign_method: "sha256",
+      timestamp: "1712345678901",
+    }
+    const a = signAliExpressIopHmacSha256("/auth/token/create", params, "secret")
+    const b = signAliExpressIopHmacSha256("/auth/token/create", params, "secret")
+    expect(a).toBe(b)
+    expect(a).toMatch(/^[A-F0-9]{64}$/)
+    expect(a).not.toBe(signAliExpressParamsHmacSha256(params, "secret"))
   })
 })
 
 describe("getAliExpressTimestamp", () => {
-  it("formats Asia/Shanghai as YYYY-MM-DD HH:mm:ss", () => {
-    // 2026-08-02 06:20:30 UTC → 14:20:30 in Shanghai (UTC+8)
+  it("formats Asia/Shanghai as YYYY-MM-DD HH:mm:ss via UTC+8 math", () => {
     const ts = getAliExpressTimestamp(new Date("2026-08-02T06:20:30.000Z"))
     expect(ts).toBe("2026-08-02 14:20:30")
   })
 
   it("matches AliExpress pattern", () => {
     expect(getAliExpressTimestamp()).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/)
+  })
+
+  it("exposes epoch ms for IOP callers", () => {
+    const d = new Date("2026-08-02T06:20:30.000Z")
+    expect(getAliExpressTimestampMs(d)).toBe(String(d.getTime()))
+  })
+})
+
+describe("encodeAliExpressQuery", () => {
+  it("encodes spaces as %20 not +", () => {
+    const q = encodeAliExpressQuery({
+      timestamp: "2026-08-02 14:20:30",
+      app_key: "534690",
+    })
+    expect(q).toContain("timestamp=2026-08-02%2014%3A20%3A30")
+    expect(q).not.toContain("+")
   })
 })

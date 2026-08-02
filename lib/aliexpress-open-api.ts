@@ -40,30 +40,33 @@ export type AliExpressClientCredentials = {
 
 /**
  * AliExpress Open Platform timestamp: `yyyy-MM-dd HH:mm:ss` in Asia/Shanghai (UTC+8).
- * Server local TZ (e.g. Vercel UTC) must not be used — AE rejects IllegalTimestamp.
+ * Uses fixed UTC+8 offset math (no Intl) — Vercel/edge Intl quirks caused IllegalTimestamp.
  */
 export function getAliExpressTimestamp(date: Date = new Date()): string {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).formatToParts(date)
+  const SHANGHAI_OFFSET_MS = 8 * 60 * 60 * 1000
+  const shifted = new Date(date.getTime() + SHANGHAI_OFFSET_MS)
+  const y = shifted.getUTCFullYear()
+  const m = String(shifted.getUTCMonth() + 1).padStart(2, "0")
+  const d = String(shifted.getUTCDate()).padStart(2, "0")
+  const h = String(shifted.getUTCHours()).padStart(2, "0")
+  const min = String(shifted.getUTCMinutes()).padStart(2, "0")
+  const s = String(shifted.getUTCSeconds()).padStart(2, "0")
+  return `${y}-${m}-${d} ${h}:${min}:${s}`
+}
 
-  const pick = (type: Intl.DateTimeFormatPartTypes): string => {
-    const raw = parts.find((p) => p.type === type)?.value ?? "00"
-    return raw.padStart(2, "0")
-  }
+/** Epoch ms string — required by newer IOP `/rest/auth/token/*` callers. */
+export function getAliExpressTimestampMs(date: Date = new Date()): string {
+  return String(date.getTime())
+}
 
-  let hour = pick("hour")
-  // Some engines emit "24" for midnight with hour12:false
-  if (hour === "24") hour = "00"
-
-  return `${pick("year")}-${pick("month")}-${pick("day")} ${hour}:${pick("minute")}:${pick("second")}`
+/**
+ * Build query string with RFC3986 encoding (`%20` for spaces).
+ * Never use URLSearchParams here — it emits `+` for spaces and AE rejects the timestamp.
+ */
+export function encodeAliExpressQuery(params: Record<string, string>): string {
+  return Object.entries(params)
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join("&")
 }
 
 function asRecord(v: unknown): Record<string, unknown> | null {
@@ -92,14 +95,26 @@ export function signAliExpressParams(
 }
 
 /**
- * HMAC-SHA256 of the same TOP wrap string (secret + kv + secret), uppercase hex.
- * Used when sign_method=sha256 on REST system APIs.
+ * HMAC-SHA256 of the TOP wrap string (secret + kv + secret), uppercase hex.
  */
 export function signAliExpressParamsHmacSha256(
   params: Record<string, string>,
   appSecret: string
 ): string {
   const base = appSecret + aliExpressSignPayload(params) + appSecret
+  return crypto.createHmac("sha256", appSecret).update(base, "utf8").digest("hex").toUpperCase()
+}
+
+/**
+ * Official IOP signature: HMAC-SHA256(apiPath + sorted key+value, appSecret), uppercase hex.
+ * Used by `/rest/auth/token/create` with `sign_method=sha256`.
+ */
+export function signAliExpressIopHmacSha256(
+  apiPath: string,
+  params: Record<string, string>,
+  appSecret: string
+): string {
+  const base = apiPath + aliExpressSignPayload(params)
   return crypto.createHmac("sha256", appSecret).update(base, "utf8").digest("hex").toUpperCase()
 }
 

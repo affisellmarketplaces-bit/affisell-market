@@ -1,4 +1,4 @@
-import { AliExpressApiError, getAliExpressTimestamp, signAliExpressParams } from "@/lib/aliexpress-open-api"
+import { AliExpressApiError, encodeAliExpressQuery, getAliExpressTimestamp, signAliExpressParams } from "@/lib/aliexpress-open-api"
 import type { AliExpressEnvConfig } from "@/lib/aliexpress-config"
 
 const REFRESH_TIMEOUT_MS = 10_000
@@ -33,7 +33,7 @@ export async function refreshAliExpressAccessToken(
   }
   params.sign = signAliExpressParams(params, config.appSecret)
 
-  const url = `${refreshBaseUrl(config.sandbox)}?${new URLSearchParams(params).toString()}`
+  const url = `${refreshBaseUrl(config.sandbox)}?${encodeAliExpressQuery(params)}`
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), REFRESH_TIMEOUT_MS)
 
