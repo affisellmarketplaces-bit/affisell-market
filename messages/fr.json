@@ -3473,8 +3473,9 @@
     "verifyValid": "Format valide",
     "crackingScore": "Score anti-fake {score}/100",
     "officialTrack": "Suivi officiel",
-    "mockModeHint": "Mode mock — ajoute TRACKINGMORE_API_KEY pour le live",
-    "liveModeHint": "Statut live TrackingMore",
+    "verifyMissing": "Saisis un numéro de tracking à vérifier.",
+    "verifyNetwork": "Erreur réseau — réessaie dans un instant.",
+    "verifyFailed": "Vérification impossible — contrôle le numéro et réessaie.",
     "verifyPageTitle": "Vérificateur Tracking Anti-Fake",
     "verifyPageSubtitle": "Détecte les numéros inventés et ouvre le suivi officiel du transporteur.",
     "pdpOptionsTitle": "Livraison pro"

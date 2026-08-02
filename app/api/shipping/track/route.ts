@@ -62,7 +62,6 @@ export async function GET(req: Request) {
       crackingScore: result.crackingScore,
       isFake: result.isFake,
       realStatus: result.realStatus,
-      mode: result.mode,
       links: result.links,
     })
   } catch (err) {

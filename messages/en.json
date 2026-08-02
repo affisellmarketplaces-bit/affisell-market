@@ -3473,8 +3473,9 @@
     "verifyValid": "Valid format",
     "crackingScore": "Anti-fake score {score}/100",
     "officialTrack": "Official tracking",
-    "mockModeHint": "Mock mode — set TRACKINGMORE_API_KEY for live status",
-    "liveModeHint": "Live TrackingMore status",
+    "verifyMissing": "Enter a tracking number to verify.",
+    "verifyNetwork": "Network error — try again in a moment.",
+    "verifyFailed": "Verification failed — check the number and try again.",
     "verifyPageTitle": "Anti-Fake Tracking Verifier",
     "verifyPageSubtitle": "Detect fabricated tracking numbers and open the carrier’s official tracker.",
     "pdpOptionsTitle": "Pro shipping"

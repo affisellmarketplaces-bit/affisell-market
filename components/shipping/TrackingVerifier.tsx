@@ -6,7 +6,6 @@ import { useCallback, useEffect, useState } from "react"
 import { AlertTriangle, CheckCircle2, ExternalLink, Loader2, Search } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { AFFISELL_LEGAL_IDENTITY } from "@/lib/legal/auto-entreprise-identity"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -30,7 +29,6 @@ type TrackResponse = {
   crackingScore: number
   isFake: boolean
   realStatus: string | null
-  mode: "live" | "mock"
   links: {
     official: string
     google: string
@@ -135,7 +133,11 @@ export function TrackingVerifier({ className }: { className?: string }) {
 
       {error ? (
         <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-100">
-          {error}
+          {error === "missing_code"
+            ? t("verifyMissing")
+            : error === "network"
+              ? t("verifyNetwork")
+              : t("verifyFailed")}
         </p>
       ) : null}
 
@@ -236,10 +238,6 @@ export function TrackingVerifier({ className }: { className?: string }) {
       ) : null}
 
       <p className="text-center text-[11px] leading-relaxed text-zinc-400">
-        {result?.mode === "mock" || !result ? t("mockModeHint") : t("liveModeHint")}
-        {" · "}
-        SIRET {AFFISELL_LEGAL_IDENTITY.siret}
-        {" · "}
         <Link href="/shipping" className="underline-offset-2 hover:underline">
           {t("carriersTitle")}
         </Link>
