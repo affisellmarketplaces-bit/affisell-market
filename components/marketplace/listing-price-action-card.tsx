@@ -71,12 +71,24 @@ export function ListingPriceActionCard({
   const t = useTranslations("Product")
 
   return (
-    <div className={cn(brand.priceCard, denseMobile && "p-3 sm:p-5", className)}>
+    <div
+      className={cn(
+        "@container/price-action",
+        brand.priceCard,
+        denseMobile && "p-3 sm:p-5",
+        className
+      )}
+    >
       <div className={brand.priceCardOrb} aria-hidden />
 
+      {/*
+        Viewport `lg:flex-row` crushed the sticky PDP sidebar (~320px): Buy + note
+        sat in 10rem while Pro shipping forced 3 tiny columns. Stack by default;
+        side-by-side only when this card itself is wide enough.
+      */}
       <div
         className={cn(
-          "relative flex flex-col gap-3 lg:flex-row lg:items-stretch lg:justify-between lg:gap-5",
+          "relative flex flex-col gap-3 @[34rem]:flex-row @[34rem]:items-stretch @[34rem]:justify-between @[34rem]:gap-5",
           denseMobile ? "gap-3" : "gap-4"
         )}
       >
@@ -120,7 +132,8 @@ export function ListingPriceActionCard({
 
         <div
           className={cn(
-            "flex min-w-0 flex-col justify-center gap-2 border-t border-zinc-200/70 pt-3 lg:w-[10.25rem] lg:shrink-0 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0 dark:border-zinc-700/80",
+            "flex min-w-0 flex-col justify-center gap-2 border-t border-zinc-200/70 pt-3 dark:border-zinc-700/80",
+            "@[34rem]:w-[11rem] @[34rem]:shrink-0 @[34rem]:border-l @[34rem]:border-t-0 @[34rem]:pl-5 @[34rem]:pt-0",
             !denseMobile && "gap-2.5 pt-4"
           )}
         >
