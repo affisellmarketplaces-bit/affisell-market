@@ -1,30 +1,56 @@
+import { timingSafeEqual } from "node:crypto"
+
 import { NextResponse } from "next/server"
 
 import { forceRefreshAndPersistAliExpressTokens } from "@/lib/aliexpress-oauth"
 import { AliExpressApiError } from "@/lib/aliexpress-open-api"
 import { authorizeCronRequest } from "@/lib/cron/authorize-cron-request"
+import { mustEnforceProductionSecrets } from "@/lib/require-production-secret"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
-/**
- * Force AliExpress token refresh + DB persist.
- * Auth: `Authorization: Bearer ${CRON_SECRET}` or `x-cron-secret: ${CRON_SECRET}`
- * (Also accepts `?secret=` for manual ops — same value as CRON_SECRET.)
- */
-export async function GET(req: Request) {
+function safeEqual(a: string, b: string): boolean {
+  const ba = Buffer.from(a)
+  const bb = Buffer.from(b)
+  if (ba.length !== bb.length) return false
+  return timingSafeEqual(ba, bb)
+}
+
+function authorizeAliExpressRefresh(req: Request): NextResponse | null {
+  const cronSecret = process.env.CRON_SECRET?.trim() ?? ""
   const url = new URL(req.url)
   const querySecret = url.searchParams.get("secret")?.trim() ?? ""
-  const cronSecret = process.env.CRON_SECRET?.trim() ?? ""
+  const headerSecret = req.headers.get("x-cron-secret")?.trim() ?? ""
 
-  // Allow ?secret= for founder curl; still require exact match when CRON_SECRET set
-  if (querySecret && cronSecret && querySecret === cronSecret) {
-    // authorized via query
-  } else {
-    const denied = authorizeCronRequest(req)
-    if (denied) return denied
+  if (!cronSecret) {
+    if (mustEnforceProductionSecrets()) {
+      return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 503 })
+    }
+    return null
   }
+
+  // Manual test: ?secret=CRON_SECRET
+  if (querySecret && safeEqual(querySecret, cronSecret)) return null
+
+  // Vercel Cron / ops: x-cron-secret
+  if (headerSecret && safeEqual(headerSecret, cronSecret)) return null
+
+  // Also accept Authorization: Bearer (shared Affisell cron pattern)
+  return authorizeCronRequest(req)
+}
+
+/**
+ * Force AliExpress token refresh + DB persist.
+ * Auth (any one):
+ * - `x-cron-secret: ${CRON_SECRET}` (Vercel Cron / ops)
+ * - `?secret=${CRON_SECRET}` (manual curl)
+ * - `Authorization: Bearer ${CRON_SECRET}`
+ */
+export async function GET(req: Request) {
+  const denied = authorizeAliExpressRefresh(req)
+  if (denied) return denied
 
   try {
     const result = await forceRefreshAndPersistAliExpressTokens()
