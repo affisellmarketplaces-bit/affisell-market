@@ -1,19 +1,72 @@
 #!/usr/bin/env node
 /**
  * Exchange an AliExpress OAuth authorization code for access/refresh tokens.
+ * Tries DS REST /auth/token/create (signed) then legacy GET/POST /oauth/token.
  *
  * Usage:
  *   node --env-file=.env.local scripts/get-aliexpress-token.js <authorization_code>
- *
- * Env:
- *   ALIEXPRESS_APP_KEY
- *   ALIEXPRESS_APP_SECRET
- *   ALIEXPRESS_OAUTH_REDIRECT_URI (optional — defaults to production callback)
  */
 
-const TOKEN_URL = "https://api-sg.aliexpress.com/oauth/token"
+const crypto = require("node:crypto")
+
+const OAUTH_TOKEN_URL = "https://api-sg.aliexpress.com/oauth/token"
+const REST_CREATE = "https://api-sg.aliexpress.com/rest/auth/token/create"
 const DEFAULT_REDIRECT =
   "https://affisell-market.vercel.app/api/aliexpress/oauth/callback"
+
+function formatTimestamp(d = new Date()) {
+  const pad = (n) => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+}
+
+function signMd5(params, appSecret) {
+  const keys = Object.keys(params)
+    .filter((k) => k !== "sign")
+    .sort()
+  let base = appSecret
+  for (const key of keys) base += key + params[key]
+  base += appSecret
+  return crypto.createHash("md5").update(base, "utf8").digest("hex").toUpperCase()
+}
+
+function signSha256(apiPath, params, appSecret) {
+  const keys = Object.keys(params)
+    .filter((k) => k !== "sign")
+    .sort()
+  let base = apiPath
+  for (const key of keys) base += key + params[key]
+  return crypto.createHmac("sha256", appSecret).update(base, "utf8").digest("hex").toUpperCase()
+}
+
+function extractTokens(json) {
+  let nested = json
+  if (json && typeof json.gopResponseBody === "string") {
+    try {
+      nested = JSON.parse(json.gopResponseBody)
+    } catch {
+      /* keep */
+    }
+  }
+  nested = nested?.token_result || nested?.data || nested
+  const access = nested?.access_token || nested?.accessToken
+  const refresh = nested?.refresh_token || nested?.refreshToken
+  return { access, refresh, nested }
+}
+
+async function tryFetch(label, url, init) {
+  console.log(`\n→ ${label}\n  ${url.split("?")[0]}`)
+  const res = await fetch(url, init)
+  const text = await res.text()
+  let json
+  try {
+    json = text ? JSON.parse(text) : null
+  } catch {
+    json = { raw: text }
+  }
+  console.log(`  HTTP ${res.status}`)
+  console.log(text.slice(0, 2000))
+  return { res, text, json }
+}
 
 async function main() {
   const code = process.argv[2]?.trim()
@@ -40,7 +93,7 @@ async function main() {
     code_len: code.length,
   })
 
-  const body = new URLSearchParams({
+  const oauthQuery = new URLSearchParams({
     grant_type: "authorization_code",
     client_id: clientId,
     client_secret: clientSecret,
@@ -48,44 +101,73 @@ async function main() {
     redirect_uri: redirectUri,
   })
 
-  const res = await fetch(TOKEN_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Accept: "application/json",
-    },
-    body,
-  })
+  const attempts = []
 
-  const text = await res.text()
-  let json
-  try {
-    json = text ? JSON.parse(text) : null
-  } catch {
-    json = { raw: text }
+  // 1) REST create md5
+  {
+    const params = {
+      app_key: clientId,
+      code,
+      sign_method: "md5",
+      timestamp: formatTimestamp(),
+    }
+    params.sign = signMd5(params, clientSecret)
+    const url = `${REST_CREATE}?${new URLSearchParams(params)}`
+    attempts.push(await tryFetch("GET rest/auth/token/create md5", url, { method: "GET" }))
+    const t = extractTokens(attempts.at(-1).json)
+    if (t.access) return printSuccess(t)
   }
 
-  if (!res.ok) {
-    console.error("[get-aliexpress-token] HTTP", res.status)
-    console.error(JSON.stringify(json, null, 2))
-    process.exit(2)
+  // 2) REST create sha256
+  {
+    const params = {
+      app_key: clientId,
+      code,
+      sign_method: "sha256",
+      timestamp: formatTimestamp(),
+    }
+    params.sign = signSha256("/auth/token/create", params, clientSecret)
+    const url = `${REST_CREATE}?${new URLSearchParams(params)}`
+    attempts.push(await tryFetch("GET rest/auth/token/create sha256", url, { method: "GET" }))
+    const t = extractTokens(attempts.at(-1).json)
+    if (t.access) return printSuccess(t)
   }
 
-  const nested = json?.token_result || json?.data || json
-  const access = nested?.access_token || nested?.accessToken
-  const refresh = nested?.refresh_token || nested?.refreshToken
-
-  if (!access) {
-    console.error("[get-aliexpress-token] No access_token in response:")
-    console.error(JSON.stringify(json, null, 2))
-    process.exit(2)
+  // 3) GET oauth/token
+  {
+    attempts.push(
+      await tryFetch("GET oauth/token", `${OAUTH_TOKEN_URL}?${oauthQuery}`, { method: "GET" })
+    )
+    const t = extractTokens(attempts.at(-1).json)
+    if (t.access) return printSuccess(t)
   }
 
+  // 4) POST oauth/token
+  {
+    attempts.push(
+      await tryFetch("POST oauth/token", OAUTH_TOKEN_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json",
+        },
+        body: oauthQuery,
+      })
+    )
+    const t = extractTokens(attempts.at(-1).json)
+    if (t.access) return printSuccess(t)
+  }
+
+  console.error("\n[get-aliexpress-token] All methods failed")
+  process.exit(2)
+}
+
+function printSuccess(t) {
   console.log("\n=== Paste into Vercel / .env.local ===\n")
-  console.log(`ALIEXPRESS_ACCESS_TOKEN=${access}`)
-  console.log(`ALIEXPRESS_REFRESH_TOKEN=${refresh || ""}`)
-  console.log("\n=== Full JSON ===\n")
-  console.log(JSON.stringify(json, null, 2))
+  console.log(`ALIEXPRESS_ACCESS_TOKEN=${t.access}`)
+  console.log(`ALIEXPRESS_REFRESH_TOKEN=${t.refresh || ""}`)
+  console.log("\n=== Nested JSON ===\n")
+  console.log(JSON.stringify(t.nested, null, 2))
 }
 
 main().catch((err) => {

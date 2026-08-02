@@ -146,22 +146,42 @@ export async function GET(req: Request) {
       error: exchanged.error,
       httpStatus: exchanged.httpStatus,
       redirectUri,
+      attempts: exchanged.attempts.map((a) => ({
+        method: a.method,
+        httpStatus: a.httpStatus,
+        bodyText: a.bodyText.slice(0, 1500),
+      })),
     })
     const payload = {
       ok: false as const,
       error: exchanged.error,
       httpStatus: exchanged.httpStatus,
       redirect_uri: redirectUri,
+      bodyText: exchanged.bodyText,
       aliexpress: exchanged.body,
+      attempts: exchanged.attempts.map((a) => ({
+        method: a.method,
+        url: a.url,
+        httpStatus: a.httpStatus,
+        bodyText: a.bodyText,
+        body: a.body,
+      })),
     }
     if (jsonMode) {
-      return NextResponse.json(payload, { status: exchanged.httpStatus >= 400 ? exchanged.httpStatus : 400 })
+      return NextResponse.json(payload, {
+        status: exchanged.httpStatus >= 400 ? exchanged.httpStatus : 400,
+      })
     }
     return htmlPage(
       "Échange token AliExpress échoué",
       `<p class="sub">${escapeHtml(exchanged.error)}</p>
-       <div class="card"><pre>${escapeHtml(JSON.stringify(payload, null, 2))}</pre></div>
-       <p class="hint">Vérifie que le redirect_uri est EXACTEMENT<br/><code>${escapeHtml(DEFAULT_ALIEXPRESS_OAUTH_REDIRECT_URI)}</code><br/>et que le code OAuth a moins de ~10 minutes.</p>`,
+       <div class="card">
+         <label>Réponse AliExpress (texte)</label>
+         <pre>${escapeHtml(exchanged.bodyText || "(vide)")}</pre>
+         <label>Détail / tentatives</label>
+         <pre>${escapeHtml(JSON.stringify(payload, null, 2))}</pre>
+       </div>
+       <p class="hint">Vérifie que le redirect_uri est EXACTEMENT<br/><code>${escapeHtml(DEFAULT_ALIEXPRESS_OAUTH_REDIRECT_URI)}</code><br/>et que le code OAuth a moins de ~10 minutes. Relance un nouveau flow OAuth après ce fix.</p>`,
       false
     )
   }
