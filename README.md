@@ -98,6 +98,82 @@ Cascade IA temps réel pour le wizard v2 (mode **InstantScan**, ex-Guidé) : **C
 npm run push:safe
 ```
 
+## AliExpress Auto-Order Flow
+
+When a marketplace order is **paid**, Affisell can place the matching dropship order on AliExpress Open API (DS).
+
+```
+Stripe checkout.session.completed (paid)
+  → Order status=paid + shippingAddress snapshot
+  → triggerAutoFulfillmentForStripeSession
+       ├─ auto-buy queue (FulfillmentLog) → createAliExpressDsOrder
+       │     fallback: browser checkout + Stripe Issuing card
+       └─ universal auto-order batch → AliExpressSupplierAdapter.placeOrder
+  → Order.supplierOrderId = AE order id, status=fulfilling
+```
+
+### Env
+
+| Var | Role |
+|-----|------|
+| `ALIEXPRESS_APP_KEY` / `APP_SECRET` | Open Platform app (e.g. 534690) |
+| `ALIEXPRESS_ACCESS_TOKEN` / `REFRESH_TOKEN` | Bootstrap; auto-refresh → DB (`PlatformOAuthCredential`) |
+| `CRON_SECRET` | Auth for create/fulfill/refresh routes |
+| `ENCRYPTION_KEY` | Encrypt tokens at rest |
+| `AE_DRY_RUN=true` | Fake AE order ids (no real DS place) |
+| `DISABLE_AUTO_BUY=true` | Kill switch |
+
+### Manual / ops APIs
+
+```bash
+# 1) Place DS order directly (test product + SKU)
+curl -sS -X POST "https://affisell-market.vercel.app/api/aliexpress/order/create" \
+  -H "Authorization: Bearer $CRON_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "supplierProductId":"100500123",
+    "skuId":"120000123",
+    "quantity":1,
+    "shippingAddress":{
+      "name":"Test Buyer",
+      "phone":"+33612345678",
+      "address1":"10 Rue de Rivoli",
+      "city":"Paris",
+      "zip":"75001",
+      "countryCode":"FR",
+      "state":"IDF"
+    }
+  }'
+# → { "ok":true, "aliexpressOrderId":"…", "trackingPreview":null }
+
+# 2) Fulfill a paid Affisell order (idempotent)
+curl -sS -X POST "https://affisell-market.vercel.app/api/orders/$ORDER_ID/fulfill" \
+  -H "Authorization: Bearer $CRON_SECRET"
+# → { "ok":true, "aliexpressOrderId":"…", "status":"fulfilling" }
+
+# Async (BullMQ / Inngest event order.paid, retry 3×):
+curl -sS -X POST "https://affisell-market.vercel.app/api/orders/$ORDER_ID/fulfill" \
+  -H "Authorization: Bearer $CRON_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"async":true}'
+```
+
+Auth alternatives: `x-cron-secret`, or HMAC-SHA256 of body in `x-affisell-signature` (secret = `CRON_SECRET`).
+
+### Worker
+
+```bash
+npm run worker:auto-order   # REDIS_URL required — listens order.paid + auto-buy
+```
+
+### Mapping
+
+`lib/aliexpress-mapping.ts` → `mapAffisellAddressToAliExpress()` builds AE `logistics_address` (`contact_person`, `full_address`, `city`, `province`, `zip`, `country`, `mobile_no`, `phone_country`). Logs only **city + zip** (never full street).
+
+### Token refresh
+
+Cron every 12h: `GET /api/aliexpress/refresh` (see `vercel.json`).
+
 ## Try-On AI
 
 Virtual try-on for **apparel** listings (Replicate IDM-VTON). Feature flag **OFF** in production by default (`TRY_ON_ENABLED=0`). QA: append `?tryon=true` on the PDP.

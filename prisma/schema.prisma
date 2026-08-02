@@ -2203,6 +2203,10 @@ model Order {
    */
   status                           String                       @default("paid")
   /**
+   * Upstream supplier order id (AliExpress DS order id, CJ, …) when auto-fulfill placed.
+   */
+  supplierOrderId                  String?
+  /**
    * Set when seller confirms they received / are packing; triggers buyer-visible “preparing” state.
    */
   supplierPreparingAt              DateTime?
@@ -2405,6 +2409,7 @@ model Order {
   @@index([splitStatus])
   @@index([supplierId, status, shipDeadlineAt])
   @@index([autodsStatus, createdAt])
+  @@index([supplierOrderId])
   /**
    * Légion Battle leaderboard — partial SQL index also exists:
    * idx_orders_leaderboard (productId, paidAt, storeProfileId) WHERE payoutStatus <> FAILED

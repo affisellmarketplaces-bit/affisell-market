@@ -203,6 +203,27 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   if (!log) return
   if (log.status === "BOUGHT" || log.status === "REFUNDED") return
 
+  // Already placed via /api/orders/[id]/fulfill or order.paid worker
+  const existingSupplierOrderId = await prisma.order.findUnique({
+    where: { id: log.orderId },
+    select: { supplierOrderId: true },
+  })
+  if (existingSupplierOrderId?.supplierOrderId) {
+    await prisma.fulfillmentLog.update({
+      where: { id: log.id },
+      data: {
+        status: "BOUGHT",
+        aeOrderId: existingSupplierOrderId.supplierOrderId,
+        errorMsg: null,
+      },
+    })
+    logAutoBuy("already_supplier_ordered", {
+      orderId: log.orderId,
+      supplierOrderIdTail: existingSupplierOrderId.supplierOrderId.slice(-6),
+    })
+    return
+  }
+
   const todayOrders = await prisma.fulfillmentLog.count({
     where: {
       status: "BOUGHT",
@@ -424,6 +445,8 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
     await tx.order.update({
       where: { id: log.orderId },
       data: {
+        supplierOrderId: aeOrderId,
+        status: "fulfilling",
         fulfilledAt: new Date(),
         fulfillmentStatus: "ORDERED",
         supplierPreparingAt: new Date(),
@@ -469,6 +492,8 @@ async function completeAutoBuyDryRun(input: AutoBuyDryRunInput): Promise<{ succe
     await tx.order.update({
       where: { id: input.orderId },
       data: {
+        supplierOrderId: dryRunOrderId,
+        status: "fulfilling",
         fulfilledAt: new Date(),
         fulfillmentStatus: "ORDERED",
         supplierPreparingAt: new Date(),
