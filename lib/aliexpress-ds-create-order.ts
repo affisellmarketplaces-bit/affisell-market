@@ -8,7 +8,15 @@ import {
   type AffisellShippingAddressInput,
   type AliExpressLogisticsAddress,
 } from "@/lib/aliexpress-mapping"
-import { AliExpressApiError, AliExpressClient, createAliExpressClient } from "@/lib/aliexpress-open-api"
+import { getValidAccessToken } from "@/lib/aliexpress-oauth"
+import {
+  AliExpressApiError,
+  AliExpressClient,
+  encodeAliExpressQuery,
+  getAliExpressTimestampMs,
+  signAliExpressTopHmacSha256,
+} from "@/lib/aliexpress-open-api"
+import { readAliExpressConfig } from "@/lib/aliexpress-config"
 
 export type CreateAliExpressDsOrderInput = {
   supplierProductId: string
@@ -16,6 +24,8 @@ export type CreateAliExpressDsOrderInput = {
   quantity: number
   shippingAddress: AffisellShippingAddressInput
   customerNote?: string | null
+  /** Optional AE logistics service name (from freight.calculate). */
+  logisticsServiceName?: string | null
 }
 
 export type CreateAliExpressDsOrderResult =
@@ -33,11 +43,18 @@ export type CreateAliExpressDsOrderResult =
       debugPayload?: Record<string, unknown>
     }
 
+/** Official DS place-order methods (ae_sdk / Open Platform). */
 const DS_ORDER_METHODS = [
   "aliexpress.ds.order.create",
-  "aliexpress.ds.trade.order.create",
-  "aliexpress.trade.ds.order.create",
+  "aliexpress.trade.buy.placeorder",
 ] as const
+
+const SYNC_HOSTS = [
+  "https://api-sg.aliexpress.com/sync",
+  "https://api.aliexpress.com/sync",
+] as const
+
+const REQUEST_TIMEOUT_MS = 20_000
 
 function asRecord(v: unknown): Record<string, unknown> | null {
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null
@@ -52,18 +69,46 @@ function pickString(obj: Record<string, unknown>, keys: string[]): string {
   return ""
 }
 
+function extractOrderList(node: Record<string, unknown>): string[] {
+  const raw = node.order_list ?? node.orderList
+  if (Array.isArray(raw)) {
+    return raw.map((x) => String(x)).filter(Boolean)
+  }
+  const nested = asRecord(raw)
+  if (nested) {
+    const numbers = nested.number ?? nested.numbers
+    if (Array.isArray(numbers)) {
+      return numbers.map((x) => String(x)).filter(Boolean)
+    }
+    if (typeof numbers === "string" || typeof numbers === "number") {
+      return [String(numbers)]
+    }
+  }
+  if (typeof raw === "string" || typeof raw === "number") {
+    return [String(raw)]
+  }
+  return []
+}
+
 function extractOrderId(payload: unknown): { orderId: string; trackingPreview: string | null } {
   const root = asRecord(payload) ?? {}
   const candidates = [
     asRecord(root.aliexpress_ds_order_create_response),
-    asRecord(root.aliexpress_ds_trade_order_create_response),
-    asRecord(root.aliexpress_trade_ds_order_create_response),
+    asRecord(root.aliexpress_trade_buy_placeorder_response),
     asRecord(root.result),
     root,
   ].filter(Boolean) as Record<string, unknown>[]
 
   for (const node of candidates) {
     const result = asRecord(node.result) ?? node
+    const fromList = extractOrderList(result)
+    if (fromList[0]) {
+      return {
+        orderId: fromList[0]!,
+        trackingPreview:
+          pickString(result, ["tracking_number", "trackingNumber", "logistics_no"]) || null,
+      }
+    }
     const orderId = pickString(result, [
       "order_id",
       "orderId",
@@ -72,25 +117,26 @@ function extractOrderId(payload: unknown): { orderId: string; trackingPreview: s
       "trade_order_id",
     ])
     if (orderId) {
-      const trackingPreview =
-        pickString(result, ["tracking_number", "trackingNumber", "logistics_no", "lp_number"]) ||
-        null
-      return { orderId, trackingPreview }
+      return {
+        orderId,
+        trackingPreview:
+          pickString(result, ["tracking_number", "trackingNumber", "logistics_no"]) || null,
+      }
     }
   }
   return { orderId: "", trackingPreview: null }
 }
 
-function isUnavailableMethodError(message: string): boolean {
+function isRetryableMethodError(message: string): boolean {
   const m = message.toLowerCase()
   return (
+    m.includes("api path is invalid") ||
     m.includes("isv.api-not-exist") ||
     m.includes("api not exist") ||
     m.includes("invalid-method") ||
     m.includes("method not support") ||
-    m.includes("permission") ||
-    m.includes("not authorized") ||
-    m.includes("isp.remote-service-error")
+    m.includes("permission deny") ||
+    m.includes("not authorized")
   )
 }
 
@@ -99,27 +145,149 @@ function isRateLimitError(message: string): boolean {
   return m.includes("rate") || m.includes("limit") || m.includes("too many") || m.includes("throttle")
 }
 
-function buildBizParams(args: {
+/** AE place-order logistics_address (official DTO fields). */
+function toPlaceOrderAddress(logistics: AliExpressLogisticsAddress) {
+  return {
+    address: logistics.address || logistics.full_address,
+    address2: "",
+    city: logistics.city,
+    contact_person: logistics.contact_person,
+    full_name: logistics.contact_person,
+    country: logistics.country,
+    province: logistics.province,
+    zip: logistics.zip,
+    mobile_no: logistics.mobile_no,
+    // Official examples use "+33" style
+    phone_country: logistics.phone_country.startsWith("+")
+      ? logistics.phone_country
+      : `+${logistics.phone_country}`,
+    locale: "fr_FR",
+  }
+}
+
+function buildPlaceOrderBizParams(args: {
   productId: string
   skuId: string
   quantity: number
   logistics: AliExpressLogisticsAddress
   buyerMessage: string
+  logisticsServiceName?: string | null
 }): Record<string, string> {
-  const logisticsJson = JSON.stringify(args.logistics)
+  const productIdNum = Number(args.productId)
+  const productItem: Record<string, unknown> = {
+    product_id: Number.isFinite(productIdNum) ? productIdNum : args.productId,
+    product_count: Math.max(1, args.quantity),
+  }
+  // sku_attr = SKU property string (e.g. "14:200003699#Black"); sku_id = numeric when known
+  if (args.skuId.includes(":") || args.skuId.includes("#")) {
+    productItem.sku_attr = args.skuId
+  } else {
+    productItem.sku_attr = args.skuId
+    productItem.sku_id = args.skuId
+  }
+  if (args.buyerMessage) productItem.order_memo = args.buyerMessage.slice(0, 500)
+  if (args.logisticsServiceName?.trim()) {
+    productItem.logistics_service_name = args.logisticsServiceName.trim()
+  }
+
+  const placeOrderDto = {
+    logistics_address: toPlaceOrderAddress(args.logistics),
+    product_items: [productItem],
+  }
+
   return {
-    product_id: args.productId,
-    product_count: String(Math.max(1, args.quantity)),
-    sku_id: args.skuId,
-    sku_attr: args.skuId,
-    logistics_address: logisticsJson,
-    buyer_message: args.buyerMessage.slice(0, 500),
+    param_place_order_request4_open_api_d_t_o: JSON.stringify(placeOrderDto),
   }
 }
 
+function parseGatewayError(json: unknown): string | null {
+  const root = asRecord(json)
+  if (!root) return null
+  if (root.type === "ISV" || root.type === "ISP") {
+    return (
+      pickString(root, ["message", "msg", "sub_msg", "error"]) ||
+      "AliExpress ISV error"
+    )
+  }
+  const err = asRecord(root.error_response)
+  if (err) {
+    return (
+      pickString(err, ["sub_msg", "msg", "message", "error"]) ||
+      "AliExpress API error"
+    )
+  }
+  return null
+}
+
 /**
- * Place AliExpress DS order with method fallbacks (test accounts often miss one API).
- * Retries up to 3× on rate-limit with exponential backoff.
+ * TOP/OP sync call matching ae_sdk: sha256 HMAC, epoch-ms timestamp, query on URL, POST.
+ * Avoids URLSearchParams (`+` for spaces) — uses encodeAliExpressQuery.
+ */
+async function callAliExpressSyncMethod(args: {
+  method: string
+  bizParams: Record<string, string>
+  appKey: string
+  appSecret: string
+  accessToken: string
+  host: string
+}): Promise<unknown> {
+  const params: Record<string, string> = {
+    method: args.method,
+    app_key: args.appKey,
+    session: args.accessToken,
+    access_token: args.accessToken,
+    sign_method: "sha256",
+    timestamp: getAliExpressTimestampMs(),
+    format: "json",
+    v: "2.0",
+    simplify: "true",
+    ...args.bizParams,
+  }
+  params.sign = signAliExpressTopHmacSha256(params, args.appSecret)
+
+  const url = `${args.host}?${encodeAliExpressQuery(params)}`
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+      },
+      body: "",
+      signal: controller.signal,
+      cache: "no-store",
+    })
+  } catch (e) {
+    if (e instanceof Error && e.name === "AbortError") {
+      throw new AliExpressApiError("AliExpress API request timed out")
+    }
+    throw e
+  } finally {
+    clearTimeout(timeout)
+  }
+
+  const text = await res.text()
+  let json: unknown
+  try {
+    json = text ? JSON.parse(text) : null
+  } catch {
+    throw new AliExpressApiError(`AliExpress non-JSON (HTTP ${res.status})`)
+  }
+
+  const gatewayError = parseGatewayError(json)
+  if (gatewayError) {
+    throw new AliExpressApiError(gatewayError)
+  }
+
+  return json
+}
+
+/**
+ * Place AliExpress DS order with official place-order DTO + method/host fallbacks.
  */
 export async function createAliExpressDsOrder(
   input: CreateAliExpressDsOrderInput
@@ -165,103 +333,138 @@ export async function createAliExpressDsOrder(
     return { ok: false, error: "aliexpress_api_not_configured", methodAttempts: [] }
   }
 
+  const config = readAliExpressConfig()
+  let accessToken: string
+  try {
+    accessToken = await getValidAccessToken()
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "token_error",
+      methodAttempts: [],
+    }
+  }
+
   const buyerMessage = (input.customerNote ?? "").trim()
-  const biz = buildBizParams({
+  const biz = buildPlaceOrderBizParams({
     productId,
     skuId,
     quantity: qty,
     logistics,
     buyerMessage,
+    logisticsServiceName: input.logisticsServiceName,
   })
 
   const methodAttempts: string[] = []
   let lastError = "aliexpress_ds_order_failed"
   let lastPayload: Record<string, unknown> | undefined
 
-  const maxAttempts = 3
+  const maxAttempts = 2
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    let client: AliExpressClient
-    try {
-      client = await createAliExpressClient()
-    } catch (e) {
-      return {
-        ok: false,
-        error: e instanceof Error ? e.message : "token_error",
-        methodAttempts,
-      }
-    }
-
-    for (const method of DS_ORDER_METHODS) {
-      methodAttempts.push(`${method}#${attempt}`)
-      try {
-        const payload = await client.request(method, biz)
-        const { orderId, trackingPreview } = extractOrderId(payload)
-        if (orderId) {
-          console.log("[aliexpress-ds-create]", {
-            result: "ok",
+    for (const host of SYNC_HOSTS) {
+      const hostLabel = host.includes("api-sg") ? "sg" : "global"
+      for (const method of DS_ORDER_METHODS) {
+        const label = `${method}@${hostLabel}#${attempt}`
+        methodAttempts.push(label)
+        try {
+          const payload = await callAliExpressSyncMethod({
             method,
-            attempt,
-            aliexpressOrderId: `…${orderId.slice(-6)}`,
+            bizParams: biz,
+            appKey: config.appKey,
+            appSecret: config.appSecret,
+            accessToken,
+            host,
+          })
+          const { orderId, trackingPreview } = extractOrderId(payload)
+          if (orderId) {
+            console.log("[aliexpress-ds-create]", {
+              result: "ok",
+              method: label,
+              aliexpressOrderId: `…${orderId.slice(-6)}`,
+              ...addrLog,
+            })
+            return {
+              ok: true,
+              aliexpressOrderId: orderId,
+              trackingPreview,
+              method: label,
+            }
+          }
+
+          // Business failure without order id (address / stock / payment)
+          const root = asRecord(payload) ?? {}
+          const place =
+            asRecord(root.aliexpress_trade_buy_placeorder_response) ??
+            asRecord(root.aliexpress_ds_order_create_response) ??
+            root
+          const result = asRecord(place.result) ?? place
+          const bizMsg =
+            pickString(result, ["error_code", "error_msg", "msg", "message", "sub_msg"]) ||
+            "aliexpress_ds_order_id_missing"
+          lastError = bizMsg
+          lastPayload = {
+            method: label,
+            productId,
+            quantity: qty,
+            address: addrLog,
+            responseKeys: Object.keys(root),
+            bizMsg,
+          }
+          console.log("[aliexpress-ds-create]", {
+            result: "no_order_id",
+            method: label,
+            bizMsg,
             ...addrLog,
           })
-          return {
-            ok: true,
-            aliexpressOrderId: orderId,
-            trackingPreview,
-            method,
+          // Don't retry other hosts for clear business errors
+          if (
+            bizMsg.includes("ADDRESS") ||
+            bizMsg.includes("INVENTORY") ||
+            bizMsg.includes("PRICE") ||
+            bizMsg.startsWith("A00")
+          ) {
+            return {
+              ok: false,
+              error: bizMsg,
+              methodAttempts,
+              debugPayload: lastPayload,
+            }
           }
-        }
-        lastError = "aliexpress_ds_order_id_missing"
-        lastPayload = {
-          method,
-          productId,
-          quantity: qty,
-          address: addrLog,
-          responseKeys: Object.keys(asRecord(payload) ?? {}),
-        }
-        console.log("[aliexpress-ds-create]", {
-          result: "no_order_id",
-          method,
-          attempt,
-          ...addrLog,
-        })
-      } catch (e) {
-        const message =
-          e instanceof AliExpressApiError
-            ? e.message
-            : e instanceof Error
+        } catch (e) {
+          const message =
+            e instanceof AliExpressApiError
               ? e.message
-              : "aliexpress_ds_order_failed"
-        lastError = message
-        lastPayload = { method, productId, quantity: qty, address: addrLog, error: message }
+              : e instanceof Error
+                ? e.message
+                : "aliexpress_ds_order_failed"
+          lastError = message
+          lastPayload = {
+            method: label,
+            productId,
+            quantity: qty,
+            address: addrLog,
+            error: message,
+          }
 
-        if (isRateLimitError(message) && attempt < maxAttempts) {
-          const delayMs = 500 * 2 ** (attempt - 1)
-          console.log("[aliexpress-ds-create]", {
-            result: "rate_limit_backoff",
-            attempt,
-            delayMs,
-            method,
-          })
-          await new Promise((r) => setTimeout(r, delayMs))
-          break // retry outer attempt with same methods
-        }
+          if (isRateLimitError(message) && attempt < maxAttempts) {
+            const delayMs = 800 * 2 ** (attempt - 1)
+            console.log("[aliexpress-ds-create]", {
+              result: "rate_limit_backoff",
+              attempt,
+              delayMs,
+              method: label,
+            })
+            await new Promise((r) => setTimeout(r, delayMs))
+            break
+          }
 
-        if (isUnavailableMethodError(message)) {
           console.log("[aliexpress-ds-create]", {
-            result: "method_unavailable",
-            method,
+            result: isRetryableMethodError(message) ? "method_unavailable" : "method_error",
+            method: label,
             message,
+            ...addrLog,
           })
-          continue
         }
-
-        console.log("[aliexpress-ds-create]", {
-          result: "method_error",
-          method,
-          message,
-          ...addrLog,
-        })
       }
     }
   }

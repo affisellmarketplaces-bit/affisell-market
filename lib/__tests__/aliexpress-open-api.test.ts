@@ -7,6 +7,7 @@ import {
   signAliExpressIopHmacSha256,
   signAliExpressParams,
   signAliExpressParamsHmacSha256,
+  signAliExpressTopHmacSha256,
 } from "@/lib/aliexpress-open-api"
 
 describe("signAliExpressParams", () => {
@@ -61,6 +62,20 @@ describe("signAliExpressParams", () => {
     }
     const sign = signAliExpressParamsHmacSha256(params, "secret")
     expect(sign).toMatch(/^[A-F0-9]{64}$/)
+  })
+
+  it("TOP Open Platform HMAC signs sorted kv without secret wrap (ae_sdk)", () => {
+    const params = {
+      app_key: "534690",
+      method: "aliexpress.ds.order.create",
+      sign_method: "sha256",
+      timestamp: "1712345678901",
+    }
+    const a = signAliExpressTopHmacSha256(params, "secret")
+    const b = signAliExpressTopHmacSha256(params, "secret")
+    expect(a).toBe(b)
+    expect(a).toMatch(/^[A-F0-9]{64}$/)
+    expect(a).not.toBe(signAliExpressParamsHmacSha256(params, "secret"))
   })
 
   it("IOP HMAC prefixes api path", () => {

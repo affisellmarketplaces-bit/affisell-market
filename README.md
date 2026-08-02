@@ -177,6 +177,8 @@ npm run worker:auto-order   # REDIS_URL required — listens order.paid + auto-b
 
 `lib/aliexpress-mapping.ts` → `mapAffisellAddressToAliExpress()` builds AE `logistics_address` (`contact_person`, `full_address`, `city`, `province`, `zip`, `country`, `mobile_no`, `phone_country`). Logs only **city + zip** (never full street).
 
+Place-order uses the official DTO (`param_place_order_request4_open_api_d_t_o` with `logistics_address` + `product_items`), signed with Open Platform HMAC-SHA256 on `api-sg.aliexpress.com/sync` (`aliexpress.ds.order.create` → fallback `aliexpress.trade.buy.placeorder`). Prefer a real AE `sku_attr` (ex. `14:200003699#Black`), not a placeholder sku id.
+
 ### Token refresh
 
 Cron every 12h: `GET /api/aliexpress/refresh` (see `vercel.json`).

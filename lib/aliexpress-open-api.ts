@@ -105,6 +105,21 @@ export function signAliExpressParamsHmacSha256(
 }
 
 /**
+ * Open Platform / ae_sdk sync signing: HMAC-SHA256(sorted key+value, appSecret) — no secret wrap.
+ * Used by `aliexpress.ds.order.create` on api-sg.aliexpress.com/sync.
+ */
+export function signAliExpressTopHmacSha256(
+  params: Record<string, string>,
+  appSecret: string
+): string {
+  return crypto
+    .createHmac("sha256", appSecret)
+    .update(aliExpressSignPayload(params), "utf8")
+    .digest("hex")
+    .toUpperCase()
+}
+
+/**
  * Official IOP signature: HMAC-SHA256(apiPath + sorted key+value, appSecret), uppercase hex.
  * Used by `/rest/auth/token/create` with `sign_method=sha256`.
  */
