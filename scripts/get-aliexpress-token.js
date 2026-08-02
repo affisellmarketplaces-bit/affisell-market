@@ -15,8 +15,24 @@ const DEFAULT_REDIRECT =
   "https://affisell-market.vercel.app/api/aliexpress/oauth/callback"
 
 function formatTimestamp(d = new Date()) {
-  const pad = (n) => String(n).padStart(2, "0")
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  // Asia/Shanghai (UTC+8) — AliExpress IllegalTimestamp if server TZ used
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(d)
+  const pick = (type) => {
+    const raw = parts.find((p) => p.type === type)?.value ?? "00"
+    return String(raw).padStart(2, "0")
+  }
+  let hour = pick("hour")
+  if (hour === "24") hour = "00"
+  return `${pick("year")}-${pick("month")}-${pick("day")} ${hour}:${pick("minute")}:${pick("second")}`
 }
 
 function signMd5(params, appSecret) {
@@ -29,12 +45,13 @@ function signMd5(params, appSecret) {
   return crypto.createHash("md5").update(base, "utf8").digest("hex").toUpperCase()
 }
 
-function signSha256(apiPath, params, appSecret) {
+function signSha256(params, appSecret) {
   const keys = Object.keys(params)
     .filter((k) => k !== "sign")
     .sort()
-  let base = apiPath
+  let base = appSecret
   for (const key of keys) base += key + params[key]
+  base += appSecret
   return crypto.createHmac("sha256", appSecret).update(base, "utf8").digest("hex").toUpperCase()
 }
 
@@ -126,7 +143,7 @@ async function main() {
       sign_method: "sha256",
       timestamp: formatTimestamp(),
     }
-    params.sign = signSha256("/auth/token/create", params, clientSecret)
+    params.sign = signSha256(params, clientSecret)
     const url = `${REST_CREATE}?${new URLSearchParams(params)}`
     attempts.push(await tryFetch("GET rest/auth/token/create sha256", url, { method: "GET" }))
     const t = extractTokens(attempts.at(-1).json)

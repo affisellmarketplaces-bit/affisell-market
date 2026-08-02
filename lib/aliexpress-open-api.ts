@@ -38,29 +38,69 @@ export type AliExpressClientCredentials = {
   sandbox?: boolean
 }
 
-function formatTimestamp(d = new Date()): string {
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+/**
+ * AliExpress Open Platform timestamp: `yyyy-MM-dd HH:mm:ss` in Asia/Shanghai (UTC+8).
+ * Server local TZ (e.g. Vercel UTC) must not be used — AE rejects IllegalTimestamp.
+ */
+export function getAliExpressTimestamp(date: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(date)
+
+  const pick = (type: Intl.DateTimeFormatPartTypes): string => {
+    const raw = parts.find((p) => p.type === type)?.value ?? "00"
+    return raw.padStart(2, "0")
+  }
+
+  let hour = pick("hour")
+  // Some engines emit "24" for midnight with hour12:false
+  if (hour === "24") hour = "00"
+
+  return `${pick("year")}-${pick("month")}-${pick("day")} ${hour}:${pick("minute")}:${pick("second")}`
 }
 
 function asRecord(v: unknown): Record<string, unknown> | null {
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null
 }
 
-/** MD5 sign per Taobao Open Platform: secret + sorted(key+value) + secret, uppercase hex. */
+/** Sorted `key+value` concat (excludes `sign`). */
+export function aliExpressSignPayload(params: Record<string, string>): string {
+  const sortedKeys = Object.keys(params)
+    .filter((k) => k !== "sign")
+    .sort()
+  let payload = ""
+  for (const key of sortedKeys) {
+    payload += key + params[key]!
+  }
+  return payload
+}
+
+/** MD5 sign per Taobao/AliExpress Open Platform: secret + sorted(key+value) + secret, uppercase hex. */
 export function signAliExpressParams(
   params: Record<string, string>,
   appSecret: string
 ): string {
-  const sortedKeys = Object.keys(params)
-    .filter((k) => k !== "sign")
-    .sort()
-  let base = appSecret
-  for (const key of sortedKeys) {
-    base += key + params[key]!
-  }
-  base += appSecret
+  const base = appSecret + aliExpressSignPayload(params) + appSecret
   return crypto.createHash("md5").update(base, "utf8").digest("hex").toUpperCase()
+}
+
+/**
+ * HMAC-SHA256 of the same TOP wrap string (secret + kv + secret), uppercase hex.
+ * Used when sign_method=sha256 on REST system APIs.
+ */
+export function signAliExpressParamsHmacSha256(
+  params: Record<string, string>,
+  appSecret: string
+): string {
+  const base = appSecret + aliExpressSignPayload(params) + appSecret
+  return crypto.createHmac("sha256", appSecret).update(base, "utf8").digest("hex").toUpperCase()
 }
 
 function parseTopLevelError(payload: Record<string, unknown>): never {
@@ -150,7 +190,7 @@ export class AliExpressClient {
       method,
       app_key: this.appKey,
       sign_method: "md5",
-      timestamp: formatTimestamp(),
+      timestamp: getAliExpressTimestamp(),
       format: "json",
       v: "2.0",
       session: this.accessToken,

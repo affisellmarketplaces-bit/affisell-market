@@ -7,7 +7,11 @@
 
 import crypto from "crypto"
 
-import { signAliExpressParams } from "@/lib/aliexpress-open-api"
+import {
+  getAliExpressTimestamp,
+  signAliExpressParams,
+  signAliExpressParamsHmacSha256,
+} from "@/lib/aliexpress-open-api"
 
 export const ALIEXPRESS_OAUTH_TOKEN_URL = "https://api-sg.aliexpress.com/oauth/token"
 export const ALIEXPRESS_REST_TOKEN_CREATE_URL =
@@ -79,12 +83,10 @@ function pickNumber(obj: Record<string, unknown>, keys: string[]): number | null
   return null
 }
 
-function formatTimestamp(d = new Date()): string {
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
-}
+/** @deprecated Prefer getAliExpressTimestamp from aliexpress-open-api (Asia/Shanghai). */
+export { getAliExpressTimestamp }
 
-/** IOP HMAC-SHA256 sign: apiPath + sorted(key+value), hex uppercase. */
+/** IOP HMAC-SHA256 sign: apiPath + sorted(key+value), hex uppercase (legacy SDK path). */
 export function signAliExpressIopSha256(
   apiPath: string,
   params: Record<string, string>,
@@ -243,12 +245,19 @@ function buildSignedRestCreateUrl(args: {
     app_key: args.clientId,
     code: args.code,
     sign_method: args.signMethod,
-    timestamp: formatTimestamp(),
+    timestamp: getAliExpressTimestamp(),
   }
   params.sign =
     args.signMethod === "sha256"
-      ? signAliExpressIopSha256(args.apiPath, params, args.clientSecret)
+      ? signAliExpressParamsHmacSha256(params, args.clientSecret)
       : signAliExpressParams(params, args.clientSecret)
+
+  // Log timestamp used (no secrets) — helps diagnose IllegalTimestamp on Vercel
+  console.log("[aliexpress-oauth-exchange]", {
+    method: `sign ${args.signMethod} ${args.apiPath}`,
+    timestamp: params.timestamp,
+    tz: "Asia/Shanghai",
+  })
 
   return `${base}?${new URLSearchParams(params).toString()}`
 }

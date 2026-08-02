@@ -1,4 +1,4 @@
-import { signAliExpressParams, AliExpressApiError } from "@/lib/aliexpress-open-api"
+import { AliExpressApiError, getAliExpressTimestamp, signAliExpressParams } from "@/lib/aliexpress-open-api"
 import type { AliExpressEnvConfig } from "@/lib/aliexpress-config"
 
 const REFRESH_TIMEOUT_MS = 10_000
@@ -6,10 +6,6 @@ const REFRESH_TIMEOUT_MS = 10_000
 let cachedAccessToken: string | null = null
 let cachedExpiresAtMs = 0
 
-function formatTimestamp(d = new Date()): string {
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
-}
 
 function refreshBaseUrl(sandbox: boolean): string {
   return sandbox
@@ -33,7 +29,7 @@ export async function refreshAliExpressAccessToken(
     app_key: config.appKey,
     refresh_token: config.refreshToken,
     sign_method: "md5",
-    timestamp: formatTimestamp(),
+    timestamp: getAliExpressTimestamp(),
   }
   params.sign = signAliExpressParams(params, config.appSecret)
 
