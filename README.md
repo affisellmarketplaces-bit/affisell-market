@@ -126,7 +126,7 @@ Stripe checkout.session.completed (paid)
 ### Manual / ops APIs
 
 ```bash
-# 1) Place DS order directly (test product + SKU)
+# 1) Place DS order directly (test product + SKU) — MUST pass CRON_SECRET
 curl -sS -X POST "https://affisell-market.vercel.app/api/aliexpress/order/create" \
   -H "Authorization: Bearer $CRON_SECRET" \
   -H "Content-Type: application/json" \
@@ -146,6 +146,13 @@ curl -sS -X POST "https://affisell-market.vercel.app/api/aliexpress/order/create
   }'
 # → { "ok":true, "aliexpressOrderId":"…", "trackingPreview":null }
 
+# Equivalent auth options:
+#   -H "x-cron-secret: $CRON_SECRET"
+#   "?secret=$CRON_SECRET" on the URL
+#   JSON field "secret":"$CRON_SECRET" in the body
+```
+
+```bash
 # 2) Fulfill a paid Affisell order (idempotent)
 curl -sS -X POST "https://affisell-market.vercel.app/api/orders/$ORDER_ID/fulfill" \
   -H "Authorization: Bearer $CRON_SECRET"
@@ -158,7 +165,7 @@ curl -sS -X POST "https://affisell-market.vercel.app/api/orders/$ORDER_ID/fulfil
   -d '{"async":true}'
 ```
 
-Auth alternatives: `x-cron-secret`, or HMAC-SHA256 of body in `x-affisell-signature` (secret = `CRON_SECRET`).
+Auth alternatives: `x-cron-secret`, `?secret=`, JSON `secret`, or HMAC-SHA256 of body in `x-affisell-signature` (secret = `CRON_SECRET`).
 
 ### Worker
 
