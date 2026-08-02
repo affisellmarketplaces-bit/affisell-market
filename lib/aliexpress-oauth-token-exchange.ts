@@ -52,7 +52,12 @@ export type AliExpressTokenAttempt = {
 }
 
 export type AliExpressTokenExchangeResult =
-  | { ok: true; tokens: AliExpressTokenExchangeSuccess; attempts: AliExpressTokenAttempt[] }
+  | {
+      ok: true
+      tokens: AliExpressTokenExchangeSuccess
+      attempts: AliExpressTokenAttempt[]
+      persisted?: boolean
+    }
   | {
       ok: false
       httpStatus: number
@@ -94,9 +99,11 @@ export function signAliExpressIopSha256(
   return signAliExpressIopHmacSha256(apiPath, params, appSecret)
 }
 
+/** Log-safe mask — last 4 chars only (never full token). */
 function maskToken(token: string): string {
-  if (token.length <= 10) return `…(len=${token.length})`
-  return `${token.slice(0, 4)}…${token.slice(-4)} (len=${token.length})`
+  if (!token) return "(empty)"
+  if (token.length <= 4) return `**** (len=${token.length})`
+  return `…${token.slice(-4)} (len=${token.length})`
 }
 
 export function summarizeAliExpressTokens(tokens: AliExpressTokenExchangeSuccess) {
@@ -109,6 +116,47 @@ export function summarizeAliExpressTokens(tokens: AliExpressTokenExchangeSuccess
     user_id: tokens.user_id,
     seller_id: tokens.seller_id,
     account: tokens.account,
+  }
+}
+
+function expiresAtFromSecondsOrMs(raw: number | null, fallbackSeconds: number): Date {
+  if (raw == null || !Number.isFinite(raw)) {
+    return new Date(Date.now() + fallbackSeconds * 1000)
+  }
+  // Absolute epoch ms vs relative seconds
+  if (raw > 1e12) return new Date(raw)
+  if (raw > 1e10) return new Date(raw) // epoch seconds*1000-ish
+  return new Date(Date.now() + raw * 1000)
+}
+
+/** Best-effort persist after OAuth exchange (DB encrypted). Never throws. */
+async function persistExchangedTokens(
+  tokens: AliExpressTokenExchangeSuccess
+): Promise<{ persisted: boolean; error?: string }> {
+  try {
+    const { saveAliExpressTokens } = await import("@/lib/aliexpress-token-store")
+    const { clearAliExpressTokenMemoryCache } = await import("@/lib/aliexpress-oauth")
+    const saved = await saveAliExpressTokens({
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
+      accessExpiresAt: expiresAtFromSecondsOrMs(tokens.expires_in, 86_400),
+      refreshExpiresAt: tokens.refresh_expires_in
+        ? expiresAtFromSecondsOrMs(tokens.refresh_expires_in, 172_800)
+        : null,
+      accountHint: tokens.account ?? tokens.seller_id ?? tokens.user_id,
+      meta: {
+        via: "oauth_token_exchange",
+        method: tokens.method,
+        exchangedAt: new Date().toISOString(),
+      },
+    })
+    clearAliExpressTokenMemoryCache()
+    if (!saved.ok) return { persisted: false, error: saved.error }
+    return { persisted: true }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error("[aliexpress-oauth]", { result: "persist_error", message })
+    return { persisted: false, error: message }
   }
 }
 
@@ -481,7 +529,14 @@ export async function exchangeAliExpressAuthorizationCode(args: {
     const nested = extractAliExpressTokenPayload(attempt.body)
     const tokens = nested ? tokensFromPayload(nested, attempt.method) : null
     if (tokens) {
-      return { ok: true, tokens, attempts }
+      const persist = await persistExchangedTokens(tokens)
+      console.log("[aliexpress-oauth]", {
+        result: "exchange_ok",
+        ...summarizeAliExpressTokens(tokens),
+        persisted: persist.persisted,
+        persistError: persist.error ?? null,
+      })
+      return { ok: true, tokens, attempts, persisted: persist.persisted }
     }
 
     const msg = errorMessageFromBody(attempt.body, attempt.bodyText)

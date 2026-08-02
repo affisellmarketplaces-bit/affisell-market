@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "node:crypto"
+
 import { NextResponse } from "next/server"
 
 import { readAliExpressConfig } from "@/lib/aliexpress-config"
@@ -8,6 +10,7 @@ import {
   resolveAliExpressOAuthRedirectUri,
   summarizeAliExpressTokens,
 } from "@/lib/aliexpress-oauth-token-exchange"
+import { mustEnforceProductionSecrets } from "@/lib/require-production-secret"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -25,6 +28,41 @@ function escapeHtml(s: string): string {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const ba = Buffer.from(a)
+  const bb = Buffer.from(b)
+  if (ba.length !== bb.length) return false
+  return timingSafeEqual(ba, bb)
+}
+
+/** Reveal plaintext tokens only with setup/cron secret (or local non-prod). */
+function canRevealAliExpressTokens(req: Request): boolean {
+  const setup =
+    process.env.ALIEXPRESS_OAUTH_SETUP_SECRET?.trim() ||
+    process.env.CRON_SECRET?.trim() ||
+    ""
+  if (!setup) {
+    return !mustEnforceProductionSecrets()
+  }
+  const url = new URL(req.url)
+  const q =
+    url.searchParams.get("setup_secret")?.trim() ||
+    url.searchParams.get("secret")?.trim() ||
+    ""
+  if (q && safeEqual(q, setup)) return true
+  const header =
+    req.headers.get("x-aliexpress-setup-secret")?.trim() ||
+    req.headers.get("x-cron-secret")?.trim() ||
+    ""
+  return Boolean(header && safeEqual(header, setup))
+}
+
+function maskTail(token: string): string {
+  if (!token) return "(empty)"
+  if (token.length <= 4) return "****"
+  return `…${token.slice(-4)}`
 }
 
 function htmlPage(title: string, body: string, ok: boolean): NextResponse {
@@ -47,7 +85,9 @@ function htmlPage(title: string, body: string, ok: boolean): NextResponse {
     textarea { min-height: 4.5rem; }
     .hint { margin-top: 1rem; font-size: 0.8rem; color: #d4d4d8; line-height: 1.45; }
     a { color: #c4b5fd; }
-    .btn { display: inline-flex; margin-top: 0.75rem; padding: 0.55rem 0.9rem; border-radius: 999px; background: #fafafa; color: #09090b; font-weight: 600; font-size: 0.85rem; text-decoration: none; border: 0; cursor: pointer; }
+    .btn { display: inline-flex; margin-top: 0.75rem; margin-right: 0.5rem; padding: 0.55rem 0.9rem; border-radius: 999px; background: #fafafa; color: #09090b; font-weight: 600; font-size: 0.85rem; text-decoration: none; border: 0; cursor: pointer; }
+    .btn-muted { background: #27272a; color: #fafafa; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
@@ -61,6 +101,10 @@ function htmlPage(title: string, body: string, ok: boolean): NextResponse {
       if (!el) return;
       el.select();
       navigator.clipboard?.writeText(el.value);
+    }
+    function hideTokens() {
+      document.getElementById('token-panel')?.classList.add('hidden');
+      document.getElementById('tokens-hidden-msg')?.classList.remove('hidden');
     }
   </script>
 </body>
@@ -78,6 +122,7 @@ function htmlPage(title: string, body: string, ok: boolean): NextResponse {
 /**
  * GET /api/aliexpress/oauth/callback?code=
  * AliExpress redirects here after seller authorize. Exchanges code → tokens.
+ * Plaintext tokens only with ?setup_secret= / CRON_SECRET (or local non-prod).
  */
 export async function GET(req: Request) {
   const url = new URL(req.url)
@@ -87,6 +132,7 @@ export async function GET(req: Request) {
   const redirectUri = resolveAliExpressOAuthRedirectUri()
   const config = readAliExpressConfig()
   const jsonMode = wantsJson(req)
+  const reveal = canRevealAliExpressTokens(req)
 
   if (aeError) {
     const payload = {
@@ -187,61 +233,84 @@ export async function GET(req: Request) {
   }
 
   const { tokens } = exchanged
+  const persisted = exchanged.persisted === true
   console.log("[aliexpress-oauth]", {
     result: "ok",
     redirectUri,
+    reveal,
+    persisted,
     ...summarizeAliExpressTokens(tokens),
   })
 
-  const payload = {
-    ok: true as const,
-    redirect_uri: redirectUri,
-    access_token: tokens.access_token,
-    refresh_token: tokens.refresh_token,
+  const safeMeta = {
     expires_in: tokens.expires_in,
     refresh_expires_in: tokens.refresh_expires_in,
-    user_id: tokens.user_id,
-    seller_id: tokens.seller_id,
     account: tokens.account,
-    env_hint: {
-      ALIEXPRESS_ACCESS_TOKEN: tokens.access_token,
-      ALIEXPRESS_REFRESH_TOKEN: tokens.refresh_token,
-    },
+    seller_id: tokens.seller_id,
+    user_id: tokens.user_id,
+    redirect_uri: redirectUri,
+    persisted,
+    access_token_tail: maskTail(tokens.access_token),
+    refresh_token_tail: maskTail(tokens.refresh_token),
   }
 
   if (jsonMode) {
-    return NextResponse.json(payload, {
-      headers: { "Cache-Control": "no-store" },
-    })
+    if (!reveal) {
+      return NextResponse.json(
+        { ok: true, ...safeMeta, message: "Tokens persisted; pass setup_secret to reveal plaintext" },
+        { headers: { "Cache-Control": "no-store" } }
+      )
+    }
+    return NextResponse.json(
+      {
+        ok: true,
+        ...safeMeta,
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        env_hint: {
+          ALIEXPRESS_ACCESS_TOKEN: tokens.access_token,
+          ALIEXPRESS_REFRESH_TOKEN: tokens.refresh_token,
+        },
+      },
+      { headers: { "Cache-Control": "no-store" } }
+    )
+  }
+
+  if (!reveal) {
+    return htmlPage(
+      "Tokens AliExpress enregistrés",
+      `<p class="sub">Échange OK. Tokens masqués sur cette page (callback public AliExpress).</p>
+       <div class="card">
+         <pre>${escapeHtml(JSON.stringify(safeMeta, null, 2))}</pre>
+         <p class="hint">
+           ${
+             persisted
+               ? "Persistance DB chiffrée OK — le cron <code>/api/cron/aliexpress-refresh</code> renouvellera automatiquement."
+               : "Persistance DB échouée (ENCRYPTION_KEY ?). Relance avec <code>?setup_secret=CRON_SECRET</code> pour copier vers Vercel env."
+           }
+         </p>
+       </div>
+       <p class="hint">Pour afficher les tokens en clair : ajoute <code>?setup_secret=…</code> (ALIEXPRESS_OAUTH_SETUP_SECRET ou CRON_SECRET).</p>`,
+      true
+    )
   }
 
   return htmlPage(
     "Tokens AliExpress prêts",
-    `<p class="sub">Copie ces valeurs dans Vercel → Environment Variables (Production + Preview), puis redeploy. Ne partage pas cette page.</p>
-     <div class="card">
+    `<p class="sub">Copie dans Vercel si besoin, puis masque. Ne partage pas cette URL.</p>
+     <div class="card" id="token-panel">
        <label for="access">ALIEXPRESS_ACCESS_TOKEN</label>
        <textarea id="access" readonly>${escapeHtml(tokens.access_token)}</textarea>
        <button type="button" class="btn" onclick="copyField('access')">Copier access_token</button>
        <label for="refresh">ALIEXPRESS_REFRESH_TOKEN</label>
        <textarea id="refresh" readonly>${escapeHtml(tokens.refresh_token || "(absent)")}</textarea>
        <button type="button" class="btn" onclick="copyField('refresh')">Copier refresh_token</button>
+       <button type="button" class="btn btn-muted" onclick="hideTokens()">Masquer après copie</button>
        <label>Meta</label>
-       <pre>${escapeHtml(
-         JSON.stringify(
-           {
-             expires_in: tokens.expires_in,
-             refresh_expires_in: tokens.refresh_expires_in,
-             account: tokens.account,
-             seller_id: tokens.seller_id,
-             user_id: tokens.user_id,
-             redirect_uri: redirectUri,
-           },
-           null,
-           2
-         )
-       )}</pre>
+       <pre>${escapeHtml(JSON.stringify(safeMeta, null, 2))}</pre>
      </div>
-     <p class="hint">Redirect URI utilisé : <code>${escapeHtml(redirectUri)}</code></p>`,
+     <p id="tokens-hidden-msg" class="hint hidden">Tokens masqués dans le DOM. Recharge avec setup_secret si besoin.</p>
+     <p class="hint">Redirect URI : <code>${escapeHtml(redirectUri)}</code> · persisted=${persisted}</p>`,
     true
   )
 }

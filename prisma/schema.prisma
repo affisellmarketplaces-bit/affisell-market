@@ -3075,6 +3075,23 @@ model SupplierLink {
 }
 
 /**
+ * Platform-level OAuth tokens (AliExpress Open API, etc.) — AES-GCM encrypted at rest.
+ * Singleton per provider (e.g. provider="aliexpress").
+ */
+model PlatformOAuthCredential {
+  id                     String    @id @default(cuid())
+  provider               String    @unique
+  accessTokenEncrypted   String
+  refreshTokenEncrypted  String
+  accessExpiresAt        DateTime?
+  refreshExpiresAt       DateTime?
+  accountHint            String?
+  meta                   Json?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+}
+
+/**
  * Per Affisell variant (color/size) → AliExpress SKU + purchase price for auto-buy.
  */
 model SupplierLinkVariant {
@@ -3082,6 +3099,7 @@ model SupplierLinkVariant {
   supplierLinkId   String
   supplierLink     SupplierLink    @relation(fields: [supplierLinkId], references: [id], onDelete: Cascade)
   productVariantId String?
+
   productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id], onDelete: SetNull)
   /**
    * Normalized color key for order.variantLabel matching when no ProductVariant row.

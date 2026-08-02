@@ -1,7 +1,6 @@
 import crypto from "crypto"
 
 import { getAliExpressConfigStatus, readAliExpressConfig } from "@/lib/aliexpress-config"
-import { resolveAliExpressAccessToken } from "@/lib/aliexpress-oauth"
 
 const REQUEST_TIMEOUT_MS = 10_000
 
@@ -291,14 +290,16 @@ export class AliExpressClient {
   }
 }
 
-/** Build client with resolved session (env token or refresh). */
+/** Build client with resolved session (DB/env token or auto-refresh). */
 export async function createAliExpressClient(): Promise<AliExpressClient> {
   const config = readAliExpressConfig()
   const status = getAliExpressConfigStatus(config)
   if (!status.configured) {
     throw new AliExpressApiError(status.message)
   }
-  const accessToken = await resolveAliExpressAccessToken(config)
+  // Dynamic import avoids circular dependency with aliexpress-oauth.ts
+  const { getValidAccessToken } = await import("@/lib/aliexpress-oauth")
+  const accessToken = await getValidAccessToken()
   return new AliExpressClient({
     appKey: config.appKey,
     appSecret: config.appSecret,

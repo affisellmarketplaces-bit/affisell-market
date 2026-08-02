@@ -48,6 +48,10 @@
       "schedule": "0 6 * * *"
     },
     {
+      "path": "/api/cron/aliexpress-refresh",
+      "schedule": "0 */12 * * *"
+    },
+    {
       "path": "/api/cron/tiktok-sync-orders",
       "schedule": "*/15 * * * *"
     },
