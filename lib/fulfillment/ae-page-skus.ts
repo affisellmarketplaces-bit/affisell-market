@@ -23,6 +23,7 @@ function num(v: unknown): number {
 type PropValueMeta = {
   propName: string
   displayName: string
+  imageUrl: string | null
 }
 
 /** Build lookup `propertyId:valueId` → label from productSKUPropertyList. */
@@ -50,7 +51,13 @@ function buildSkuPropertyLookup(
         txt(v.propertyValueName) ||
         txt(v.name) ||
         valueId
-      out.set(`${propId}:${valueId}`, { propName, displayName })
+      const imageRaw =
+        txt(v.skuPropertyImagePath) ||
+        txt(v.skuPropertyImageSummPath) ||
+        txt(v.image) ||
+        txt(v.imageUrl)
+      const imageUrl = imageRaw && /^https?:\/\//i.test(imageRaw) ? imageRaw : null
+      out.set(`${propId}:${valueId}`, { propName, displayName, imageUrl })
     }
   }
 
@@ -73,11 +80,18 @@ function parseSkuAttrSegment(segment: string): { propId: string; valueId: string
 function labelsFromSkuAttr(
   skuAttr: string,
   lookup: Map<string, PropValueMeta>
-): { parts: string[]; attributes: Record<string, string>; color: string | null; size: string | null } {
+): {
+  parts: string[]
+  attributes: Record<string, string>
+  color: string | null
+  size: string | null
+  imageUrl: string | null
+} {
   const attributes: Record<string, string> = {}
   const parts: string[] = []
   let color: string | null = null
   let size: string | null = null
+  let imageUrl: string | null = null
 
   for (const segment of skuAttr.split(";")) {
     const parsed = parseSkuAttrSegment(segment)
@@ -89,15 +103,17 @@ function labelsFromSkuAttr(
     const propLower = meta.propName.toLowerCase()
     if (!color && (propLower.includes("color") || propLower.includes("couleur"))) {
       color = meta.displayName
+      if (meta.imageUrl) imageUrl = meta.imageUrl
     }
     if (!size && (propLower.includes("size") || propLower.includes("taille"))) {
       size = meta.displayName
     }
+    if (!imageUrl && meta.imageUrl) imageUrl = meta.imageUrl
   }
 
   if (!color && parts.length === 1) color = parts[0] ?? null
 
-  return { parts, attributes, color, size }
+  return { parts, attributes, color, size, imageUrl }
 }
 
 function parsePriceCentsFromSkuVal(skuVal: Record<string, unknown>): number {
@@ -175,9 +191,15 @@ export function parseAeSkusFromPagePayload(
     seenIds.add(aeSkuId)
 
     const skuAttr = txt(row.skuAttr) || txt(row.sku_attr)
-    const { parts, color, size } = skuAttr
+    const { parts, color, size, attributes, imageUrl } = skuAttr
       ? labelsFromSkuAttr(skuAttr, lookup)
-      : { parts: [] as string[], color: null as string | null, size: null as string | null }
+      : {
+          parts: [] as string[],
+          color: null as string | null,
+          size: null as string | null,
+          attributes: {} as Record<string, string>,
+          imageUrl: null as string | null,
+        }
 
     const aePriceCents = parsePriceCentsFromSkuVal(skuVal)
     const stock = Math.max(0, Math.round(num(skuVal.availQuantity ?? skuVal.availableStock ?? row.stock)))
@@ -189,6 +211,8 @@ export function parseAeSkusFromPagePayload(
       matchSize: size?.trim() || null,
       aePriceCents,
       stock,
+      imageUrl,
+      attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
     })
   }
 

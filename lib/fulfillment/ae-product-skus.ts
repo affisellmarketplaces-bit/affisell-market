@@ -10,6 +10,10 @@ export type AeProductSkuRow = {
   matchSize: string | null
   aePriceCents: number
   stock: number
+  /** Color / option swatch image when AE exposes it */
+  imageUrl?: string | null
+  /** Raw property map e.g. { Couleur: "1", Taille: "M" } */
+  attributes?: Record<string, string>
 }
 
 function asRecord(v: unknown): Record<string, unknown> | null {
@@ -62,10 +66,18 @@ function parsePriceEur(sku: Record<string, unknown>, result: Record<string, unkn
   return n
 }
 
-function parseSkuProperties(sku: Record<string, unknown>): { color: string | null; size: string | null; label: string } {
+function parseSkuProperties(sku: Record<string, unknown>): {
+  color: string | null
+  size: string | null
+  label: string
+  imageUrl: string | null
+  attributes: Record<string, string>
+} {
   const parts: string[] = []
+  const attributes: Record<string, string> = {}
   let color: string | null = null
   let size: string | null = null
+  let imageUrl: string | null = null
 
   const rawProps =
     sku.ae_sku_property_dtos ??
@@ -83,7 +95,8 @@ function parseSkuProperties(sku: Record<string, unknown>): { color: string | nul
       "property_name",
       "name",
       "spec_name",
-    ]).toLowerCase()
+    ])
+    const nameLower = name.toLowerCase()
     const value = pickString(rec, [
       "sku_property_value",
       "property_value",
@@ -93,12 +106,36 @@ function parseSkuProperties(sku: Record<string, unknown>): { color: string | nul
     ])
     if (!value) continue
     parts.push(value)
-    if (!color && (name.includes("color") || name.includes("couleur") || name === "color")) {
+    if (name) attributes[name] = value
+    if (!color && (nameLower.includes("color") || nameLower.includes("couleur") || nameLower === "color")) {
       color = value
     }
-    if (!size && (name.includes("size") || name.includes("taille"))) {
+    if (!size && (nameLower.includes("size") || nameLower.includes("taille"))) {
       size = value
     }
+    if (!imageUrl) {
+      const img = pickString(rec, [
+        "sku_image",
+        "sku_property_image_path",
+        "sku_image_url",
+        "image",
+        "image_url",
+        "skuPropertyImagePath",
+      ])
+      if (img && /^https?:\/\//i.test(img)) imageUrl = img
+    }
+  }
+
+  // Some AE payloads put the image on the SKU root
+  if (!imageUrl) {
+    const rootImg = pickString(sku, [
+      "sku_image",
+      "sku_img",
+      "sku_image_url",
+      "image",
+      "image_url",
+    ])
+    if (rootImg && /^https?:\/\//i.test(rootImg)) imageUrl = rootImg
   }
 
   if (!color && parts.length === 1) {
@@ -107,7 +144,7 @@ function parseSkuProperties(sku: Record<string, unknown>): { color: string | nul
 
   const label = parts.length > 0 ? parts.join(" · ") : pickString(sku, ["sku_attr", "sku_code"]) || "SKU"
 
-  return { color, size, label }
+  return { color, size, label, imageUrl, attributes }
 }
 
 /** Parse all SKUs from `aliexpress.ds.product.get` payload. */
@@ -131,7 +168,7 @@ export function parseAeProductSkusFromPayload(payload: unknown, aeProductId: str
     const aeSkuId = normalizeAeSkuCandidate(rawId) ?? ""
     if (!aeSkuId) continue
 
-    const { color, size, label } = parseSkuProperties(sku)
+    const { color, size, label, imageUrl, attributes } = parseSkuProperties(sku)
     const priceEur = parsePriceEur(sku, result)
     const stockRaw = sku.sku_available_stock ?? sku.available_stock ?? sku.stock
     const stock = Math.max(0, Math.round(Number(stockRaw)) || 0)
@@ -143,6 +180,8 @@ export function parseAeProductSkusFromPayload(payload: unknown, aeProductId: str
       matchSize: size?.trim() || null,
       aePriceCents: priceEur > 0 ? Math.max(100, Math.round(priceEur * 100)) : 0,
       stock,
+      imageUrl,
+      attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
     })
   }
 

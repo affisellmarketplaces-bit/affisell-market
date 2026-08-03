@@ -29,6 +29,9 @@ type EnlistSuccess = {
   name: string
   autoBuyEnabled: boolean
   source: string
+  hasVariants?: boolean
+  variantCount?: number
+  specCount?: number
 }
 
 type Props = {
@@ -135,11 +138,12 @@ export function AutoFulfillEnlistSheet({ open, onOpenChange, onEnlisted }: Props
                 Ajouter un produit Auto-Buy
               </h2>
               <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Colle une URL AliExpress — le produit est créé sur le compte{" "}
+                Colle une URL AliExpress — import complet sur{" "}
                 <span className="font-semibold text-violet-700 dark:text-violet-300">
                   Affisell AutoBuy
-                </span>{" "}
-                et publié pour les resellers (catalogue affilié).
+                </span>
+                : variantes / couleurs, prix par SKU, caractéristiques, publié pour les
+                resellers.
               </p>
             </div>
           </div>
@@ -177,6 +181,20 @@ export function AutoFulfillEnlistSheet({ open, onOpenChange, onEnlisted }: Props
                   <dt className="text-zinc-500">Source</dt>
                   <dd>{success.source}</dd>
                 </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-zinc-500">Variantes</dt>
+                  <dd className="font-semibold tabular-nums">
+                    {success.hasVariants && (success.variantCount ?? 0) > 1
+                      ? `${success.variantCount} SKUs (couleurs / prix)`
+                      : "1 SKU (simple)"}
+                  </dd>
+                </div>
+                {(success.specCount ?? 0) > 0 ? (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-zinc-500">Caractéristiques</dt>
+                    <dd className="font-semibold tabular-nums">{success.specCount}</dd>
+                  </div>
+                ) : null}
               </dl>
               <div className="flex flex-col gap-2 pt-1">
                 <Link
