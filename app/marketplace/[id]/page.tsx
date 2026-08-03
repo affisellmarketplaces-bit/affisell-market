@@ -21,11 +21,12 @@ import {
   variantPresentationDisplayLabels,
 } from "@/lib/affiliate-variant-presentation"
 import {
-  listingDisplayDescription,
   listingDisplayTitle,
   listingGalleryUrls,
   listingPrimaryImageUrl,
 } from "@/lib/affiliate-listing-display"
+import { normalizeProductDescriptionFields } from "@/lib/html-description-extract"
+import { stripDescriptionImageMarkers } from "@/lib/description-rich-content"
 import { shopListingPath } from "@/lib/affiliate-routes"
 import { isAffiliateOwnerPreviewUrl } from "@/lib/affiliate-store-preview-access"
 import { resolveVisitorCheckoutFlags } from "@/lib/checkout-country-rollout"
@@ -264,6 +265,39 @@ export default async function MarketplaceListingPage({
   )
 
   const p = listing.product
+
+  // Heal AE HTML / orphan [[img:N]] markers so PDP never leaks raw tags.
+  const healedDescription = normalizeProductDescriptionFields({
+    description: p.description,
+    descriptionIllustrationImages: Array.isArray(p.descriptionIllustrationImages)
+      ? (p.descriptionIllustrationImages as unknown[]).filter(
+          (u): u is string => typeof u === "string"
+        )
+      : [],
+  })
+  if (healedDescription.changed) {
+    try {
+      await prisma.product.update({
+        where: { id: p.id },
+        data: {
+          description: healedDescription.description,
+          descriptionIllustrationImages: healedDescription.descriptionIllustrationImages,
+        },
+      })
+      console.log("[marketplace-pdp]", {
+        result: "description_normalized",
+        productId: p.id,
+        imageCount: healedDescription.descriptionIllustrationImages.length,
+      })
+    } catch (e) {
+      console.log("[marketplace-pdp]", {
+        result: "description_normalize_failed",
+        productId: p.id,
+        error: e instanceof Error ? e.message : String(e),
+      })
+    }
+  }
+
   const offerMode = parseProductOfferMode(p.offerMode)
   const offerBadge = offerModeBadge(offerMode, locale as AppLocale)
   const sellingEur = listing.sellingPriceCents / 100
@@ -370,12 +404,25 @@ export default async function MarketplaceListingPage({
       : []
 
   const descriptionIllustrationImages =
-    Array.isArray(p.descriptionIllustrationImages) && p.descriptionIllustrationImages.length > 0
-      ? (p.descriptionIllustrationImages as unknown[])
-          .filter((x): x is string => typeof x === "string")
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : []
+    healedDescription.descriptionIllustrationImages.length > 0
+      ? healedDescription.descriptionIllustrationImages
+      : Array.isArray(p.descriptionIllustrationImages) && p.descriptionIllustrationImages.length > 0
+        ? (p.descriptionIllustrationImages as unknown[])
+            .filter((x): x is string => typeof x === "string")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : []
+
+  const productDescriptionForDisplay = healedDescription.description
+
+  const listingDescriptionForDisplay = (() => {
+    const custom = listing.customDescription?.trim()
+    if (custom) {
+      // Affiliate overlay is plain copy; strip any legacy markers (photos come from product).
+      return stripDescriptionImageMarkers(custom) || productDescriptionForDisplay
+    }
+    return productDescriptionForDisplay
+  })()
 
   const descriptionIllustrationVideos =
     Array.isArray(p.descriptionIllustrationVideos) && p.descriptionIllustrationVideos.length > 0
@@ -455,10 +502,7 @@ export default async function MarketplaceListingPage({
           promotedColor={listing.promotedColor}
           promotedSize={listing.promotedSize}
           name={displayName}
-          description={listingDisplayDescription(
-            listing.customDescription,
-            listing.product.description
-          )}
+          description={listingDescriptionForDisplay}
           descriptionBullets={descriptionBullets}
           descriptionIllustrationImages={descriptionIllustrationImages}
           descriptionIllustrationVideos={descriptionIllustrationVideos}

@@ -1,6 +1,5 @@
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import {
-  looksLikeHtmlDescription,
   normalizeProductDescriptionFields,
 } from "@/lib/html-description-extract"
 import { decimalToNumber } from "@/lib/serialize-for-client"
@@ -62,27 +61,25 @@ export async function loadSupplierStorefrontCatalogProduct(params: {
   let description = product.description
   let descriptionIllustrationImages = product.descriptionIllustrationImages ?? []
 
-  if (looksLikeHtmlDescription(description)) {
-    const normalized = normalizeProductDescriptionFields({
-      description,
-      descriptionIllustrationImages,
+  const normalized = normalizeProductDescriptionFields({
+    description,
+    descriptionIllustrationImages,
+  })
+  if (normalized.changed) {
+    await prisma.product.update({
+      where: { id: product.id },
+      data: {
+        description: normalized.description,
+        descriptionIllustrationImages: normalized.descriptionIllustrationImages,
+      },
     })
-    if (normalized.changed) {
-      await prisma.product.update({
-        where: { id: product.id },
-        data: {
-          description: normalized.description,
-          descriptionIllustrationImages: normalized.descriptionIllustrationImages,
-        },
-      })
-      description = normalized.description
-      descriptionIllustrationImages = normalized.descriptionIllustrationImages
-      console.log("[supplier/storefront-preview]", {
-        result: "description_normalized",
-        productId: product.id,
-        imageCount: descriptionIllustrationImages.length,
-      })
-    }
+    description = normalized.description
+    descriptionIllustrationImages = normalized.descriptionIllustrationImages
+    console.log("[supplier/storefront-preview]", {
+      result: "description_normalized",
+      productId: product.id,
+      imageCount: descriptionIllustrationImages.length,
+    })
   }
 
   const liveAffiliateListingWhere = {

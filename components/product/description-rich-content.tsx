@@ -3,6 +3,7 @@
 import {
   descriptionHasImageMarkers,
   parseDescriptionRichContent,
+  stripDescriptionImageMarkers,
   unreferencedIllustrationImages,
 } from "@/lib/description-rich-content"
 import { cn } from "@/lib/utils"
@@ -14,18 +15,26 @@ type Props = {
   textClassName?: string
 }
 
+/**
+ * Renders long description + illustrative photos.
+ * - Inline `[[img:N]]` → image at that index
+ * - Never leaks raw markers into the UI
+ * - When no markers, still shows all illustration images after the text
+ */
 export function DescriptionRichContent({ description, images, className, textClassName }: Props) {
-  const parts = parseDescriptionRichContent(description, images)
+  const usableImages = images.filter((u) => typeof u === "string" && u.trim().length > 0)
   const hasMarkers = descriptionHasImageMarkers(description)
-  const trailingImages = hasMarkers ? unreferencedIllustrationImages(description, images) : []
+  const parts = parseDescriptionRichContent(description, usableImages)
+  const trailingImages = hasMarkers
+    ? unreferencedIllustrationImages(description, usableImages)
+    : usableImages
 
   return (
     <div className={cn("space-y-4", className)}>
       {parts.map((part, index) =>
         part.kind === "text" ? (
           (() => {
-            // Never leak raw [[img:N]] markers into UI if parsing edge-cases leave leftovers
-            const safeText = part.text.replace(/\[\[img:\d+\]\]/g, "").trim()
+            const safeText = stripDescriptionImageMarkers(part.text)
             if (!safeText) return null
             return (
               <p
@@ -54,7 +63,7 @@ export function DescriptionRichContent({ description, images, className, textCla
           </div>
         ) : null
       )}
-      {hasMarkers && trailingImages.length > 0 ? (
+      {trailingImages.length > 0 ? (
         <ul className="grid gap-3 sm:grid-cols-2">
           {trailingImages.map((src, imageIndex) => (
             <li

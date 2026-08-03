@@ -46,6 +46,22 @@ describe("html-description-extract", () => {
     expect(light.text).toContain("Makita")
     expect(light.imageUrls.length).toBeGreaterThanOrEqual(2)
     expect(sanitizeListingDescriptionField(AE_FIXTURE)).not.toMatch(/detailmodule/)
+    expect(sanitizeListingDescriptionField(AE_FIXTURE)).not.toMatch(/\[\[img:/)
+  })
+
+  it("sanitizeListingDescriptionField strips orphan markers from plain text", () => {
+    const raw = "Hello\n\n[[img:0]]\n[[img:1]]\n\nWorld"
+    expect(sanitizeListingDescriptionField(raw)).toBe("Hello\n\nWorld")
+  })
+
+  it("normalizeProductDescriptionFields strips orphan markers when no illustration URLs", () => {
+    const once = normalizeProductDescriptionFields({
+      description: "Feature\n[[img:0]]\n[[img:1]]",
+      descriptionIllustrationImages: [],
+    })
+    expect(once.changed).toBe(true)
+    expect(once.description).not.toMatch(/\[\[img:/)
+    expect(once.description).toContain("Feature")
   })
 
   it("extracts background-image and linked photos too", () => {

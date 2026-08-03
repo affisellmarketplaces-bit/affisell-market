@@ -69,7 +69,7 @@ import { ProductVideoPlayer } from "@/components/product/product-video-player"
 import { requestPriceAlertPushSubscription } from "@/components/push/request-price-alert-push"
 import { ProductVideoWishlistOverlay } from "@/components/product/product-video-wishlist-overlay"
 import { DescriptionRichContent } from "@/components/product/description-rich-content"
-import { descriptionHasImageMarkers } from "@/lib/description-rich-content"
+import { descriptionHasImageMarkers, stripDescriptionImageMarkers } from "@/lib/description-rich-content"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { appMessagesForLocale } from "@/lib/i18n-app-messages"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH, shopListingPath } from "@/lib/affiliate-routes"
@@ -243,7 +243,7 @@ function t(template: string, vars?: Record<string, string | number>) {
 
 /** One short honest snippet from the listing—not generic placeholder copy. */
 function listingAtAGlance(description: string, name: string, tags: string[]): string | null {
-  const d = description.replace(/\s+/g, " ").trim()
+  const d = stripDescriptionImageMarkers(description).replace(/\s+/g, " ").trim()
   if (d.length >= 28) {
     const max = 220
     if (d.length <= max) return d
@@ -680,7 +680,7 @@ export function MarketplaceListingDetail({
 
   /** Short excerpt for the footer details panel (SEO / second entry point without repeating the full body). */
   const descriptionFooterExcerpt = useMemo(() => {
-    const d = description.replace(/\s+/g, " ").trim()
+    const d = stripDescriptionImageMarkers(description).replace(/\s+/g, " ").trim()
     if (!d) return null
     const max = 420
     if (d.length <= max) return d

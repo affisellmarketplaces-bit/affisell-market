@@ -8,6 +8,8 @@ import { useTranslations } from "next-intl"
 
 import { flushAllMerchantDrafts, registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
 import { sanitizeListingDescriptionField } from "@/lib/html-description-extract-shared"
+import { DescriptionRichContent } from "@/components/product/description-rich-content"
+import { descriptionHasImageMarkers } from "@/lib/description-rich-content"
 
 import { AiPricingOptimizer } from "@/components/affiliate/ai-pricing-optimizer"
 import {
@@ -54,6 +56,7 @@ type CatalogProduct = {
   id: string
   name: string
   description?: string
+  descriptionIllustrationImages?: string[]
   images: string[]
   basePriceCents: number
   commissionRate?: number
@@ -779,8 +782,28 @@ function ListingBuilderModalBody({
                   onChange={(e) => setForm((f) => ({ ...f, customDescription: e.target.value }))}
                   rows={5}
                   className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-gray-900"
-                  placeholder={product.description?.slice(0, 280)}
+                  placeholder={sanitizeListingDescriptionField(product.description ?? "").slice(0, 280)}
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  Plain text only — supplier photos appear below when available.
+                </p>
+                {(form.customDescription.trim().length > 0 ||
+                  (product.descriptionIllustrationImages?.length ?? 0) > 0) && (
+                  <div className="mt-3 rounded-xl border border-zinc-100 bg-zinc-50/80 p-3 dark:border-zinc-800 dark:bg-zinc-900/40">
+                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                      Shopper preview
+                    </p>
+                    <DescriptionRichContent
+                      description={
+                        descriptionHasImageMarkers(form.customDescription)
+                          ? form.customDescription
+                          : form.customDescription || product.description || ""
+                      }
+                      images={product.descriptionIllustrationImages ?? []}
+                      textClassName="text-zinc-600 dark:text-zinc-400"
+                    />
+                  </div>
+                )}
               </div>
 
               {listing?.marginReviewNeeded ? (

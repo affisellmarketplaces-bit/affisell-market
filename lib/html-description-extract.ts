@@ -3,6 +3,10 @@ import "server-only"
 import * as cheerio from "cheerio"
 
 import {
+  descriptionHasImageMarkers,
+  stripDescriptionImageMarkers,
+} from "@/lib/description-rich-content"
+import {
   extractHtmlDescriptionLight,
   looksLikeHtmlDescription,
   type ExtractedHtmlDescription,
@@ -127,29 +131,43 @@ export function normalizeProductDescriptionFields(input: {
   descriptionIllustrationImages: string[]
   changed: boolean
 } {
-  const existing = (input.descriptionIllustrationImages ?? []).filter(
-    (u) => typeof u === "string" && /^https?:\/\//i.test(u.trim())
-  )
-  if (!looksLikeHtmlDescription(input.description)) {
-    return {
-      description: input.description,
-      descriptionIllustrationImages: existing,
-      changed: false,
+  const existing = (input.descriptionIllustrationImages ?? [])
+    .filter((u) => typeof u === "string" && /^https?:\/\//i.test(u.trim()))
+    .map((u) => u.trim())
+
+  let description = input.description
+  let images = existing
+  let changed = false
+
+  if (looksLikeHtmlDescription(description)) {
+    const extracted = extractHtmlDescriptionContent(description)
+    const merged: string[] = []
+    const seen = new Set<string>()
+    for (const u of [...extracted.imageUrls, ...existing]) {
+      const t = u.trim()
+      if (!t || seen.has(t)) continue
+      seen.add(t)
+      merged.push(t)
+      if (merged.length >= 40) break
+    }
+    description = extracted.text || description.replace(/<[^>]+>/g, " ").trim()
+    images = merged
+    changed = true
+  }
+
+  // Orphan markers with no illustration URLs → strip (can't render photos; never leak tags).
+  // Markers + URLs → keep for DescriptionRichContent.
+  if (descriptionHasImageMarkers(description) && images.length === 0) {
+    const cleaned = stripDescriptionImageMarkers(description)
+    if (cleaned !== description) {
+      description = cleaned
+      changed = true
     }
   }
-  const extracted = extractHtmlDescriptionContent(input.description)
-  const merged: string[] = []
-  const seen = new Set<string>()
-  for (const u of [...extracted.imageUrls, ...existing]) {
-    const t = u.trim()
-    if (!t || seen.has(t)) continue
-    seen.add(t)
-    merged.push(t)
-    if (merged.length >= 40) break
-  }
+
   return {
-    description: extracted.text || input.description.replace(/<[^>]+>/g, " ").trim(),
-    descriptionIllustrationImages: merged,
-    changed: true,
+    description,
+    descriptionIllustrationImages: images,
+    changed,
   }
 }

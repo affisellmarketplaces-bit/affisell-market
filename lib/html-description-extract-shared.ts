@@ -98,10 +98,22 @@ export function extractHtmlDescriptionLight(
   return { text, imageUrls, hadHtml: true }
 }
 
-/** Prefer clean customDescription for listing form defaults. */
+function stripImgMarkers(text: string): string {
+  return text
+    .replace(/\r\n/g, "\n")
+    .replace(/\[\[\s*img\s*:\s*\d+\s*\]\]/gi, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
+}
+
+/** Prefer clean customDescription for listing form defaults (no raw HTML, no [[img:N]] leaks). */
 export function sanitizeListingDescriptionField(input: string | null | undefined): string {
   const raw = (input ?? "").trim()
   if (!raw) return ""
-  if (!looksLikeHtmlDescription(raw)) return raw.slice(0, 16_000)
-  return extractHtmlDescriptionLight(raw, { insertImageMarkers: true }).text.slice(0, 16_000)
+  if (!looksLikeHtmlDescription(raw)) {
+    return stripImgMarkers(raw).slice(0, 16_000)
+  }
+  const extracted = extractHtmlDescriptionLight(raw, { insertImageMarkers: false }).text
+  return stripImgMarkers(extracted).slice(0, 16_000)
 }

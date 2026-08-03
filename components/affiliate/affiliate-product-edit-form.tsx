@@ -13,6 +13,7 @@ import {
   formatAffiliateListingDescriptionFromAi,
   type ProductDescriptionAiResult,
 } from "@/lib/affiliate-product-description-shared"
+import { sanitizeListingDescriptionField } from "@/lib/html-description-extract-shared"
 
 type ListingPayload = {
   listing: {
@@ -69,7 +70,11 @@ export function AffiliateProductEditForm() {
       setCustomTitle(data.listing.customTitle ?? "")
       setSeoTitle(data.listing.seoTitle ?? "")
       setSeoDescription(data.listing.seoDescription ?? "")
-      setCustomDescription(data.listing.customDescription ?? data.product.description ?? "")
+      setCustomDescription(
+        sanitizeListingDescriptionField(
+          data.listing.customDescription ?? data.product.description ?? ""
+        )
+      )
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur de chargement")
     } finally {
