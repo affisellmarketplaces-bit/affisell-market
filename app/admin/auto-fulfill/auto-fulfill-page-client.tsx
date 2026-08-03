@@ -25,6 +25,7 @@ import {
   AutoFulfillEnlistSheet,
   AutoFulfillEnlistTrigger,
 } from "@/components/admin/auto-fulfill/auto-fulfill-enlist-sheet"
+import { AutoFulfillEnlistRequestsQueue } from "@/components/admin/auto-fulfill/auto-fulfill-enlist-requests-queue"
 import {
   AutoFulfillMetricTile,
   AutoFulfillSectionShell,
@@ -432,8 +433,8 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
                 </div>
               </div>
               <p className="max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Achat automatique côté Affisell après paiement client. Enliste un produit AliExpress
-                en un clic (sans compte supplier), configure le mapping SKU, puis pilote le pipeline.
+                Achat automatique après paiement. Les fournisseurs demandent l’enlist ; Affisell
+                admin approuve. Instant Enlist manuel reste disponible pour le vault plateforme.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 lg:max-w-xs lg:flex-col">
@@ -485,7 +486,7 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
         {stats ? (
           <div className="mb-8 space-y-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Couverture catalogue</p>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <AutoFulfillMetricTile
                 label="Liens AE actifs"
                 value={stats.productsWithLink}
@@ -499,6 +500,13 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
                 tone="ai"
                 icon={Zap}
                 hint="Prêts pour achat automatique post-paiement"
+              />
+              <AutoFulfillMetricTile
+                label="Demandes fournisseur"
+                value={stats.enlistRequestsPending}
+                tone="amber"
+                icon={Clock}
+                hint="File Instant Enlist à approuver"
               />
             </div>
             <p className="pt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
@@ -545,6 +553,24 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
         ) : null}
 
         <div className="space-y-8">
+          <AutoFulfillSectionShell
+            eyebrow="Inbound"
+            title="Demandes Instant Enlist"
+            description="Le fournisseur soumet l’URL AliExpress — vous validez, le produit est créé sous son compte."
+          >
+            {isLoading && !data ? (
+              <div className="flex items-center gap-3 py-8 text-sm text-zinc-500">
+                <RefreshCw className="h-5 w-5 animate-spin text-brand" aria-hidden />
+                Chargement de la file…
+              </div>
+            ) : (
+              <AutoFulfillEnlistRequestsQueue
+                requests={data?.pendingEnlistRequests ?? []}
+                onChanged={() => void mutate()}
+              />
+            )}
+          </AutoFulfillSectionShell>
+
           <AutoFulfillSectionShell
             eyebrow="Catalogue"
             title="Produits"

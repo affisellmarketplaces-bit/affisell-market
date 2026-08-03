@@ -2207,6 +2207,34 @@
         },
         "covered": "You're in",
         "opportunity": "Opportunity"
+      },
+      "enlistRequest": {
+        "title": "Request Instant Enlist",
+        "subtitle": "Paste the AliExpress URL — Affisell admin reviews, then the product is created under your account with auto-buy ready.",
+        "urlLabel": "AliExpress URL",
+        "urlPlaceholder": "https://www.aliexpress.com/item/…",
+        "urlRequired": "Paste an AliExpress URL.",
+        "nameLabel": "Name (optional)",
+        "namePlaceholder": "e.g. Pro Bluetooth Headset",
+        "noteLabel": "Ops note (optional)",
+        "notePlaceholder": "Preferred SKU, target margin…",
+        "submit": "Send to Affisell",
+        "submitOk": "Request sent — an Affisell admin will review it.",
+        "alreadyPending": "This URL is already in the review queue.",
+        "alreadyApproved": "This product is already approved for auto-buy.",
+        "invalidUrl": "Invalid AliExpress URL.",
+        "submitError": "Could not submit — try again.",
+        "historyTitle": "Your requests",
+        "historyEmpty": "No requests yet.",
+        "cancel": "Cancel request",
+        "cancelOk": "Request cancelled.",
+        "cancelError": "Could not cancel.",
+        "status": {
+          "PENDING_REVIEW": "In review",
+          "APPROVED": "Approved",
+          "REJECTED": "Rejected",
+          "CANCELLED": "Cancelled"
+        }
       }
     },
     "agentNetwork": {

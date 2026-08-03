@@ -1,5 +1,9 @@
 import type { AutoBuyStatus } from "@prisma/client"
 
+import {
+  listPendingAutoBuyEnlistRequests,
+} from "@/lib/auto-buy-enlist-request"
+import type { AutoBuyEnlistRequestDto } from "@/lib/auto-buy-enlist-request-types"
 import { orderUsesAffisellAutoBuy } from "@/lib/marketplace-supplier-fee"
 import { prisma } from "@/lib/prisma"
 
@@ -46,9 +50,11 @@ export type AdminAutoFulfillDashboard = {
     logsBought: number
     logsFailed: number
     logsRefunded: number
+    enlistRequestsPending: number
   }
   products: AdminAutoFulfillProductRow[]
   recentLogs: AdminAutoFulfillLogRow[]
+  pendingEnlistRequests: AutoBuyEnlistRequestDto[]
 }
 
 export async function loadAdminAutoFulfillDashboard(
@@ -77,8 +83,10 @@ export async function loadAdminAutoFulfillDashboard(
     logsBought,
     logsFailed,
     logsRefunded,
+    enlistRequestsPending,
     products,
     recentLogs,
+    pendingEnlistRequests,
   ] = await Promise.all([
     prisma.supplierLink.count({ where: { isActive: true } }),
     prisma.supplierLink.count({ where: { isActive: true, autoBuyEnabled: true } }),
@@ -87,6 +95,7 @@ export async function loadAdminAutoFulfillDashboard(
     prisma.fulfillmentLog.count({ where: { status: "BOUGHT" } }),
     prisma.fulfillmentLog.count({ where: { status: "FAILED" } }),
     prisma.fulfillmentLog.count({ where: { status: "REFUNDED" } }),
+    prisma.autoBuyEnlistRequest.count({ where: { status: "PENDING_REVIEW" } }),
     prisma.product.findMany({
       where: productWhere,
       take,
@@ -142,6 +151,7 @@ export async function loadAdminAutoFulfillDashboard(
         },
       },
     }),
+    listPendingAutoBuyEnlistRequests(40),
   ])
 
   return {
@@ -153,6 +163,7 @@ export async function loadAdminAutoFulfillDashboard(
       logsBought,
       logsFailed,
       logsRefunded,
+      enlistRequestsPending,
     },
     products: products.map((p) => ({
       id: p.id,
@@ -191,5 +202,6 @@ export async function loadAdminAutoFulfillDashboard(
       createdAt: log.createdAt.toISOString(),
       updatedAt: log.updatedAt.toISOString(),
     })),
+    pendingEnlistRequests,
   }
 }

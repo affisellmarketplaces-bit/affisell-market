@@ -2207,6 +2207,34 @@
         },
         "covered": "Vous y êtes",
         "opportunity": "Opportunité"
+      },
+      "enlistRequest": {
+        "title": "Demander un Instant Enlist",
+        "subtitle": "Collez l’URL AliExpress — Affisell admin valide, le produit est créé sous votre compte avec auto-buy prêt.",
+        "urlLabel": "URL AliExpress",
+        "urlPlaceholder": "https://fr.aliexpress.com/item/…",
+        "urlRequired": "Collez une URL AliExpress.",
+        "nameLabel": "Nom (optionnel)",
+        "namePlaceholder": "Ex. Casque Bluetooth Pro",
+        "noteLabel": "Note ops (optionnel)",
+        "notePlaceholder": "SKU préféré, marge cible…",
+        "submit": "Envoyer à Affisell",
+        "submitOk": "Demande envoyée — un admin Affisell va l’examiner.",
+        "alreadyPending": "Cette URL est déjà en file d’attente.",
+        "alreadyApproved": "Ce produit est déjà approuvé pour l’auto-buy.",
+        "invalidUrl": "URL AliExpress invalide.",
+        "submitError": "Envoi impossible — réessayez.",
+        "historyTitle": "Vos demandes",
+        "historyEmpty": "Aucune demande pour l’instant.",
+        "cancel": "Annuler la demande",
+        "cancelOk": "Demande annulée.",
+        "cancelError": "Annulation impossible.",
+        "status": {
+          "PENDING_REVIEW": "En revue",
+          "APPROVED": "Approuvé",
+          "REJECTED": "Refusé",
+          "CANCELLED": "Annulé"
+        }
       }
     },
     "agentNetwork": {

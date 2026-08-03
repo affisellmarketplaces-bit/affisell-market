@@ -12,6 +12,7 @@ import type {
   AutoBuyPilotSku,
 } from "@/lib/supplier/load-auto-buy-pilot"
 import { DemandRadarGrid } from "@/components/supplier/demand-radar-grid"
+import { AutoBuyEnlistRequestForm } from "@/components/supplier/auto-buy-enlist-request-form"
 import { cn } from "@/lib/utils"
 
 const BAND_STYLES: Record<string, { badge: string; bar: string }> = {
@@ -211,6 +212,10 @@ export function AutoBuyPilotPanel({ snapshot }: { snapshot: AutoBuyPilotSnapshot
             ))}
           </ul>
         )}
+      </div>
+
+      <div className="px-5 pb-2 sm:px-6">
+        <AutoBuyEnlistRequestForm />
       </div>
 
       <DemandRadarGrid categories={radar} windowDays={windowDays} />

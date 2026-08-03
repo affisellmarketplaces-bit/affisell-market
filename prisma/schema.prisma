@@ -244,6 +244,8 @@ model User {
   referralBonusBalanceCents Int                   @default(0)
   referralBonusLedger       ReferralBonusLedger[]
   referralUgcClaims         ReferralUgcClaim[]
+  autoBuyEnlistRequests     AutoBuyEnlistRequest[] @relation("AutoBuyEnlistSupplier")
+  autoBuyEnlistReviews      AutoBuyEnlistRequest[] @relation("AutoBuyEnlistReviewer")
   convertedSupplierLeads    SupplierLead[]        @relation("ConvertedSupplierLead")
 
   /**
@@ -3094,6 +3096,36 @@ model PlatformOAuthCredential {
   meta                   Json?
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
+}
+
+/**
+ * Supplier asks Affisell admin to Instant-Enlist an AliExpress product for auto-buy.
+ * Admin approves → enlistAeProductForAutoBuy(supplierId) → Product + SupplierLink.
+ */
+model AutoBuyEnlistRequest {
+  id                   String    @id @default(cuid())
+  supplierId           String
+  supplier             User      @relation("AutoBuyEnlistSupplier", fields: [supplierId], references: [id], onDelete: Cascade)
+  aeUrl                String
+  aeProductId          String
+  nameHint             String?
+  note                 String?   @db.Text
+  wholesalePriceCents  Int?
+  /**
+   * PENDING_REVIEW | APPROVED | REJECTED | CANCELLED
+   */
+  status               String    @default("PENDING_REVIEW")
+  rejectionReason      String?
+  productId            String?
+  reviewedById         String?
+  reviewedBy           User?     @relation("AutoBuyEnlistReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt           DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@unique([supplierId, aeProductId])
+  @@index([status, createdAt])
+  @@index([supplierId, createdAt])
 }
 
 /**
