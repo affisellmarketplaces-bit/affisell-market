@@ -4,6 +4,11 @@ import {
   estimateTotalPartnerGainCents,
   listedSellingPriceFromAffiliateProducts,
 } from "@/lib/affiliate-catalog-margin-display"
+import {
+  catalogAddedSinceDate,
+  parseCatalogAddedWindow,
+  parseCatalogVitrineFilter,
+} from "@/lib/affiliate-catalog-filters-shared"
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
 import {
@@ -94,13 +99,17 @@ function mapProductToHighlight(
 }
 
 export async function buildAffiliateCatalogProductWhere(
-  searchParams: URLSearchParams
+  searchParams: URLSearchParams,
+  opts?: { affiliateId?: string }
 ): Promise<Prisma.ProductWhereInput> {
   const categoryId = searchParams.get("categoryId") ?? searchParams.get("category")
   const subcategoryId = searchParams.get("subcategoryId") ?? searchParams.get("subcategory")
   const scopeRootId = subcategoryId ?? categoryId
   const q = (searchParams.get("q") ?? "").trim()
   const nicheRaw = (searchParams.get("niche") ?? "").trim().toLowerCase() as AffiliateCatalogNiche
+  const vitrine = parseCatalogVitrineFilter(searchParams.get("vitrine"))
+  const addedWindow = parseCatalogAddedWindow(searchParams.get("added"))
+  const addedSince = catalogAddedSinceDate(addedWindow)
 
   const andParts: Prisma.ProductWhereInput[] = [{ active: true, isDraft: false }]
 
@@ -136,6 +145,27 @@ export async function buildAffiliateCatalogProductWhere(
     })
   }
 
+  if (addedSince) {
+    andParts.push({ createdAt: { gte: addedSince } })
+  }
+
+  const affiliateId = opts?.affiliateId?.trim()
+  if (affiliateId && vitrine === "hors") {
+    andParts.push({
+      NOT: {
+        affiliateProducts: {
+          some: { affiliateId, isListed: true },
+        },
+      },
+    })
+  } else if (affiliateId && vitrine === "en") {
+    andParts.push({
+      affiliateProducts: {
+        some: { affiliateId, isListed: true },
+      },
+    })
+  }
+
   return { AND: andParts }
 }
 
@@ -144,7 +174,7 @@ export async function loadAffiliateCatalogProducts(
   searchParams: URLSearchParams,
   take = 96
 ): Promise<AffiliateCatalogProduct[]> {
-  const where = await buildAffiliateCatalogProductWhere(searchParams)
+  const where = await buildAffiliateCatalogProductWhere(searchParams, { affiliateId })
   const sort = searchParams.get("sort")?.trim() ?? "new"
 
   const orderBy: Prisma.ProductOrderByWithRelationInput[] =
@@ -195,7 +225,7 @@ async function loadScopedProducts(
   take: number,
   orderBy: Prisma.ProductOrderByWithRelationInput | Prisma.ProductOrderByWithRelationInput[]
 ): Promise<AffiliateCatalogProduct[]> {
-  const where = await buildAffiliateCatalogProductWhere(searchParams)
+  const where = await buildAffiliateCatalogProductWhere(searchParams, { affiliateId })
   const rows = await prisma.product.findMany({
     where,
     select: affiliateDiscoverCardSelect(affiliateId),
@@ -211,7 +241,7 @@ export async function loadAffiliateCatalogHighlights(
   limit = 12
 ): Promise<AffiliateCatalogHighlights> {
   const sevenDaysAgo = new Date(Date.now() - 7 * MS_DAY)
-  const baseWhere = await buildAffiliateCatalogProductWhere(searchParams)
+  const baseWhere = await buildAffiliateCatalogProductWhere(searchParams, { affiliateId })
 
   const ranked = await prisma.$queryRaw<{ productId: string; c: bigint }[]>`
     SELECT o."productId", COUNT(*)::bigint AS c

@@ -1419,6 +1419,21 @@
       "sortRevenueDesc": "Reseller earnings · high → low",
       "supplierSheetAria": "Supplier product page"
     },
+    "catalogFilters": {
+      "groupAria": "Storefront and date-added filters",
+      "horsVitrine": "Not on your storefront yet",
+      "horsVitrineActive": "not on storefront",
+      "addedLabel": "Added",
+      "addedActive": "added {window}",
+      "added": {
+        "all": "All",
+        "7d": "7d",
+        "30d": "30d",
+        "90d": "90d"
+      },
+      "sortAria": "Sort catalog",
+      "sortNewest": "Date added · newest first"
+    },
     "earnings": {
       "cockpit": {
         "eyebrow": "Partner commerce",

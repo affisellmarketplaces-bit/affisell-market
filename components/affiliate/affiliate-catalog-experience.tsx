@@ -12,6 +12,7 @@ import {
   Search,
   Sparkles,
   Store,
+  StoreOff,
   X,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -41,6 +42,11 @@ import {
 import { shouldShowAffiliateCreatorsWatchingBadge } from "@/lib/affiliate-product-opportunity-pulse-shared"
 import { buildAffiliateCatalogCardEconomicsFromProduct } from "@/lib/affiliate-catalog-margin-display"
 import type { AffiliateOpportunityPulseCard } from "@/lib/affiliate-catalog-opportunity-pulse"
+import {
+  parseCatalogAddedWindow,
+  parseCatalogVitrineFilter,
+  type CatalogAddedWindow,
+} from "@/lib/affiliate-catalog-filters-shared"
 import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
 import {
   AFFILIATE_CATALOG_NICHES,
@@ -70,7 +76,17 @@ type CatalogProduct = {
   supplier: { email: string; store?: { name: string; slug: string } | null }
 }
 
+const ADDED_WINDOW_OPTIONS: CatalogAddedWindow[] = ["all", "7d", "30d", "90d"]
+
 type DiscoverSortKey = "new" | "commission-desc" | "price-asc" | "price-desc" | "name"
+
+function parseDiscoverSort(raw: string | null): DiscoverSortKey {
+  const v = (raw ?? "").trim()
+  if (v === "commission-desc" || v === "price-asc" || v === "price-desc" || v === "name" || v === "new") {
+    return v
+  }
+  return "new"
+}
 
 const NICHE_PILLS = [
   { id: "fitness", label: "Fitness" },
@@ -131,17 +147,20 @@ export function AffiliateCatalogExperience({
 }: Props) {
   const tOpportunity = useTranslations("affiliate.opportunityPulse")
   const tCatalog = useTranslations("affiliate.catalogEconomics")
+  const tFilters = useTranslations("affiliate.catalogFilters")
   const router = useRouter()
   const searchParams = useSearchParams()
   const categoryId = searchParams.get("category")
   const subcategoryId = searchParams.get("subcategory")
   const searchQuery = searchParams.get("q") ?? ""
   const activeNiche = searchParams.get("niche")?.trim().toLowerCase() ?? ""
+  const vitrineFilter = parseCatalogVitrineFilter(searchParams.get("vitrine"))
+  const addedWindow = parseCatalogAddedWindow(searchParams.get("added"))
+  const sort = parseDiscoverSort(searchParams.get("sort"))
 
   const [products, setProducts] = useState<AffiliateCatalogProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [sort, setSort] = useState<DiscoverSortKey>("new")
   const [storeSlug, setStoreSlug] = useState<string | null>(null)
 
   const [modalProduct, setModalProduct] = useState<CatalogProduct | null>(null)
@@ -154,8 +173,42 @@ export function AffiliateCatalogExperience({
   const filterKey = searchParams.toString()
 
   const hasFilters = Boolean(
-    categoryId || subcategoryId || searchQuery.trim() || activeNiche || searchParams.get("highlight")
+    categoryId ||
+      subcategoryId ||
+      searchQuery.trim() ||
+      activeNiche ||
+      searchParams.get("highlight") ||
+      vitrineFilter !== "all" ||
+      addedWindow !== "all"
   )
+
+  function patchCatalogParams(mutate: (params: URLSearchParams) => void) {
+    const params = new URLSearchParams(searchParams.toString())
+    mutate(params)
+    const s = params.toString()
+    router.push(`${AFFILIATE_CATALOG_PATH}${s ? `?${s}` : ""}`)
+  }
+
+  function setSort(next: DiscoverSortKey) {
+    patchCatalogParams((params) => {
+      if (next === "new") params.delete("sort")
+      else params.set("sort", next)
+    })
+  }
+
+  function toggleHorsVitrine() {
+    patchCatalogParams((params) => {
+      if (vitrineFilter === "hors") params.delete("vitrine")
+      else params.set("vitrine", "hors")
+    })
+  }
+
+  function setAddedWindow(next: CatalogAddedWindow) {
+    patchCatalogParams((params) => {
+      if (next === "all") params.delete("added")
+      else params.set("added", next)
+    })
+  }
 
   useEffect(() => {
     const highlight = searchParams.get("highlight")
@@ -180,6 +233,7 @@ export function AffiliateCatalogExperience({
     setError(null)
     const params = new URLSearchParams(searchParams.toString())
     if (sort !== "new") params.set("sort", sort)
+    else params.delete("sort")
     const qs = params.toString()
     void fetch(`/api/affiliate/discover-catalog${qs ? `?${qs}` : ""}`, { credentials: "include" })
       .then(async (r) => {
@@ -398,9 +452,9 @@ export function AffiliateCatalogExperience({
                   value={sort}
                   onChange={(e) => setSort(e.target.value as DiscoverSortKey)}
                   className="appearance-none rounded-xl border border-zinc-200 bg-white py-2 pl-9 pr-8 text-sm font-medium dark:border-zinc-700 dark:bg-zinc-950"
-                  aria-label="Trier le catalogue"
+                  aria-label={tFilters("sortAria")}
                 >
-                  <option value="new">Nouveautés</option>
+                  <option value="new">{tFilters("sortNewest")}</option>
                   <option value="commission-desc">{tCatalog("sortRevenueDesc")}</option>
                   <option value="price-asc">Prix fournisseur ↑</option>
                   <option value="price-desc">Prix fournisseur ↓</option>
@@ -528,15 +582,70 @@ export function AffiliateCatalogExperience({
               ) : null}
 
               {!loading ? (
-                <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-                  <strong className="font-semibold text-zinc-900 dark:text-zinc-100">{filteredCount}</strong> SKU
-                  {searchQuery.trim() ? (
-                    <>
-                      {" "}
-                      pour « {searchQuery.trim()} »
-                    </>
-                  ) : null}
-                </p>
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    <strong className="font-semibold text-zinc-900 dark:text-zinc-100">{filteredCount}</strong> SKU
+                    {searchQuery.trim() ? (
+                      <>
+                        {" "}
+                        pour « {searchQuery.trim()} »
+                      </>
+                    ) : null}
+                    {vitrineFilter === "hors" ? (
+                      <span className="ml-1.5 text-orange-700 dark:text-orange-300">
+                        · {tFilters("horsVitrineActive")}
+                      </span>
+                    ) : null}
+                    {addedWindow !== "all" ? (
+                      <span className="ml-1.5 text-violet-700 dark:text-violet-300">
+                        · {tFilters("addedActive", { window: tFilters(`added.${addedWindow}`) })}
+                      </span>
+                    ) : null}
+                  </p>
+
+                  <div
+                    className="flex flex-wrap items-center gap-2"
+                    role="group"
+                    aria-label={tFilters("groupAria")}
+                  >
+                    <button
+                      type="button"
+                      onClick={toggleHorsVitrine}
+                      aria-pressed={vitrineFilter === "hors"}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm transition",
+                        vitrineFilter === "hors"
+                          ? "border-orange-500 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-500/25"
+                          : "border-orange-200/90 bg-white text-orange-800 hover:border-orange-400 hover:bg-orange-50 dark:border-orange-900/50 dark:bg-zinc-950 dark:text-orange-200 dark:hover:bg-orange-950/40"
+                      )}
+                    >
+                      <StoreOff className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                      {tFilters("horsVitrine")}
+                    </button>
+
+                    <span className="hidden h-4 w-px bg-zinc-200 sm:block dark:bg-zinc-700" aria-hidden />
+
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                      {tFilters("addedLabel")}
+                    </span>
+                    {ADDED_WINDOW_OPTIONS.map((window) => (
+                      <button
+                        key={window}
+                        type="button"
+                        onClick={() => setAddedWindow(window)}
+                        aria-pressed={addedWindow === window}
+                        className={cn(
+                          "rounded-full border px-2.5 py-1 text-[11px] font-semibold transition",
+                          addedWindow === window
+                            ? "border-violet-500 bg-violet-600 text-white shadow-sm shadow-violet-500/20"
+                            : "border-zinc-200 bg-white text-zinc-600 hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300"
+                        )}
+                      >
+                        {tFilters(`added.${window}`)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ) : null}
 
               {loading ? (
@@ -615,14 +724,12 @@ export function AffiliateCatalogExperience({
                             <Check className="h-3 w-3" aria-hidden />
                             En vitrine
                           </div>
-                        ) : null}
-                        {isHidden ? (
-                          <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-amber-500 px-2 py-1 text-xs font-medium text-white shadow">
+                        ) : (
+                          <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-orange-500 px-2 py-1 text-xs font-medium text-white shadow">
                             Hors vitrine
                           </div>
-                        ) : null}
+                        )}
                         {!isLive &&
-                        !isHidden &&
                         shouldShowAffiliateCreatorsWatchingBadge(p.affiliateCreatorsWatching ?? 0) ? (
                           <div
                             className="absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] items-center gap-1 rounded-full bg-violet-600 px-2 py-1 text-[10px] font-bold text-white shadow"

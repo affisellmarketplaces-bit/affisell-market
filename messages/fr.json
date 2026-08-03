@@ -1419,6 +1419,21 @@
       "sortRevenueDesc": "Revenu revendeur · haut → bas",
       "supplierSheetAria": "Fiche fournisseur"
     },
+    "catalogFilters": {
+      "groupAria": "Filtres vitrine et date d'ajout",
+      "horsVitrine": "Pas encore en vitrine",
+      "horsVitrineActive": "hors vitrine",
+      "addedLabel": "Ajoutés",
+      "addedActive": "ajoutés {window}",
+      "added": {
+        "all": "Tous",
+        "7d": "7 j",
+        "30d": "30 j",
+        "90d": "90 j"
+      },
+      "sortAria": "Trier le catalogue",
+      "sortNewest": "Date d'ajout · récent → ancien"
+    },
     "earnings": {
       "cockpit": {
         "eyebrow": "Commerce partenaire",
