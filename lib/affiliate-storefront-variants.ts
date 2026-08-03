@@ -4,7 +4,7 @@ import {
   findColorImageRowForName,
   parseProductColorImagesFromDb,
 } from "@/lib/product-color-images"
-import { parseVariantsPayload } from "@/lib/product-variants"
+import { parseVariantsPayload, type ProductVariantsJson } from "@/lib/product-variants"
 import { splitVariantLineName } from "@/lib/supplier-sku-builder"
 
 export type AffiliateVariantOption = {
