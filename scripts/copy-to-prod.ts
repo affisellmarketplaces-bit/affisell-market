@@ -65,10 +65,11 @@ function productPayload(row: Awaited<ReturnType<PrismaClient["product"]["findMan
 function affiliateProductPayload(
   row: Awaited<ReturnType<PrismaClient["affiliateProduct"]["findMany"]>>[number]
 ) {
-  const { variantPricing, ...rest } = row
+  const { variantPricing, variantPresentation, ...rest } = row
   return {
     ...rest,
     variantPricing: jsonOrNull(variantPricing),
+    variantPresentation: jsonOrNull(variantPresentation),
   } satisfies Prisma.AffiliateProductUncheckedCreateInput
 }
 
