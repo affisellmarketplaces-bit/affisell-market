@@ -1423,6 +1423,11 @@
       "groupAria": "Storefront and date-added filters",
       "horsVitrine": "Not on your storefront yet",
       "horsVitrineActive": "not on storefront",
+      "horsVitrineOnHint": "Turn on: show only SKUs not on your storefront",
+      "horsVitrineOffHint": "Turn off: show the full catalog",
+      "toggleOn": "ON",
+      "toggleOff": "OFF",
+      "updating": "Updating…",
       "addedLabel": "Added",
       "addedActive": "added {window}",
       "added": {

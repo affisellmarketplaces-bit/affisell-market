@@ -9,8 +9,9 @@ import {
   ExternalLink,
   Eye,
   Filter,
-  Search,
+  Loader2,
   PackageX,
+  Search,
   Sparkles,
   Store,
   X,
@@ -159,7 +160,8 @@ export function AffiliateCatalogExperience({
   const sort = parseDiscoverSort(searchParams.get("sort"))
 
   const [products, setProducts] = useState<AffiliateCatalogProduct[]>([])
-  const [loading, setLoading] = useState(true)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [storeSlug, setStoreSlug] = useState<string | null>(null)
 
@@ -169,8 +171,11 @@ export function AffiliateCatalogExperience({
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<number | null>(null)
   const productDeepLinkConsumed = useRef(false)
+  const catalogFetchAbort = useRef<AbortController | null>(null)
+  const hasLoadedOnce = useRef(false)
 
   const filterKey = searchParams.toString()
+  const horsVitrineOn = vitrineFilter === "hors"
 
   const hasFilters = Boolean(
     categoryId ||
@@ -178,7 +183,7 @@ export function AffiliateCatalogExperience({
       searchQuery.trim() ||
       activeNiche ||
       searchParams.get("highlight") ||
-      vitrineFilter !== "all" ||
+      horsVitrineOn ||
       addedWindow !== "all"
   )
 
@@ -186,7 +191,8 @@ export function AffiliateCatalogExperience({
     const params = new URLSearchParams(searchParams.toString())
     mutate(params)
     const s = params.toString()
-    router.push(`${AFFILIATE_CATALOG_PATH}${s ? `?${s}` : ""}`)
+    // replace + no scroll → toggle stays under the finger, layout doesn't jump
+    router.replace(`${AFFILIATE_CATALOG_PATH}${s ? `?${s}` : ""}`, { scroll: false })
   }
 
   function setSort(next: DiscoverSortKey) {
@@ -198,7 +204,7 @@ export function AffiliateCatalogExperience({
 
   function toggleHorsVitrine() {
     patchCatalogParams((params) => {
-      if (vitrineFilter === "hors") params.delete("vitrine")
+      if (horsVitrineOn) params.delete("vitrine")
       else params.set("vitrine", "hors")
     })
   }
@@ -229,23 +235,42 @@ export function AffiliateCatalogExperience({
   }, [])
 
   useEffect(() => {
-    setLoading(true)
+    catalogFetchAbort.current?.abort()
+    const controller = new AbortController()
+    catalogFetchAbort.current = controller
+
+    if (hasLoadedOnce.current) setRefreshing(true)
+    else setInitialLoading(true)
     setError(null)
+
     const params = new URLSearchParams(searchParams.toString())
     if (sort !== "new") params.set("sort", sort)
     else params.delete("sort")
     const qs = params.toString()
-    void fetch(`/api/affiliate/discover-catalog${qs ? `?${qs}` : ""}`, { credentials: "include" })
+
+    void fetch(`/api/affiliate/discover-catalog${qs ? `?${qs}` : ""}`, {
+      credentials: "include",
+      signal: controller.signal,
+    })
       .then(async (r) => {
         const data = (await r.json()) as { products?: AffiliateCatalogProduct[]; error?: string }
         if (!r.ok) throw new Error(data.error ?? "Impossible de charger le catalogue")
+        if (controller.signal.aborted) return
         setProducts(Array.isArray(data.products) ? data.products : [])
+        hasLoadedOnce.current = true
       })
       .catch((e: unknown) => {
+        if (controller.signal.aborted) return
         setProducts([])
         setError(e instanceof Error ? e.message : "Impossible de charger le catalogue")
       })
-      .finally(() => setLoading(false))
+      .finally(() => {
+        if (controller.signal.aborted) return
+        setInitialLoading(false)
+        setRefreshing(false)
+      })
+
+    return () => controller.abort()
   }, [filterKey, sort, searchParams])
 
   function showToast(msg: string) {
@@ -363,7 +388,7 @@ export function AffiliateCatalogExperience({
   )
 
   useEffect(() => {
-    if (productDeepLinkConsumed.current || loading) return
+    if (productDeepLinkConsumed.current || initialLoading) return
     const pid = searchParams.get("productId")?.trim()
     if (!pid) return
     const row = products.find((p) => p.id === pid)
@@ -377,7 +402,7 @@ export function AffiliateCatalogExperience({
     const s = params.toString()
     router.replace(`${AFFILIATE_CATALOG_PATH}${s ? `?${s}` : ""}`, { scroll: false })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot deep link from agent cards
-  }, [loading, products, searchParams, openCreate, openEdit, router])
+  }, [initialLoading, products, searchParams, openCreate, openEdit, router])
 
   const handleCategoryClick = (catId: string, subId?: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -398,7 +423,7 @@ export function AffiliateCatalogExperience({
   }
 
   function clearFilters() {
-    router.push(AFFILIATE_CATALOG_PATH)
+    router.replace(AFFILIATE_CATALOG_PATH, { scroll: false })
   }
 
   const filteredCount = products.length
@@ -581,81 +606,107 @@ export function AffiliateCatalogExperience({
                 </div>
               ) : null}
 
-              {!loading ? (
-                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    <strong className="font-semibold text-zinc-900 dark:text-zinc-100">{filteredCount}</strong> SKU
-                    {searchQuery.trim() ? (
-                      <>
-                        {" "}
-                        pour « {searchQuery.trim()} »
-                      </>
-                    ) : null}
-                    {vitrineFilter === "hors" ? (
-                      <span className="ml-1.5 text-orange-700 dark:text-orange-300">
-                        · {tFilters("horsVitrineActive")}
-                      </span>
-                    ) : null}
-                    {addedWindow !== "all" ? (
-                      <span className="ml-1.5 text-violet-700 dark:text-violet-300">
-                        · {tFilters("addedActive", { window: tFilters(`added.${addedWindow}`) })}
-                      </span>
-                    ) : null}
-                  </p>
+              <div className="mb-4 flex min-h-[2.75rem] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400" aria-live="polite">
+                  {initialLoading ? (
+                    <span className="inline-block h-4 w-24 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
+                  ) : (
+                    <>
+                      <strong className="font-semibold text-zinc-900 dark:text-zinc-100">{filteredCount}</strong> SKU
+                      {searchQuery.trim() ? (
+                        <>
+                          {" "}
+                          pour « {searchQuery.trim()} »
+                        </>
+                      ) : null}
+                      {horsVitrineOn ? (
+                        <span className="ml-1.5 text-orange-700 dark:text-orange-300">
+                          · {tFilters("horsVitrineActive")}
+                        </span>
+                      ) : null}
+                      {addedWindow !== "all" ? (
+                        <span className="ml-1.5 text-violet-700 dark:text-violet-300">
+                          · {tFilters("addedActive", { window: tFilters(`added.${addedWindow}`) })}
+                        </span>
+                      ) : null}
+                      {refreshing ? (
+                        <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400">
+                          <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+                          {tFilters("updating")}
+                        </span>
+                      ) : null}
+                    </>
+                  )}
+                </p>
 
-                  <div
-                    className="flex flex-wrap items-center gap-2"
-                    role="group"
-                    aria-label={tFilters("groupAria")}
+                <div
+                  className="flex flex-wrap items-center gap-2"
+                  role="group"
+                  aria-label={tFilters("groupAria")}
+                >
+                  <button
+                    type="button"
+                    onClick={toggleHorsVitrine}
+                    aria-pressed={horsVitrineOn}
+                    title={horsVitrineOn ? tFilters("horsVitrineOffHint") : tFilters("horsVitrineOnHint")}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm transition will-change-transform",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60 focus-visible:ring-offset-2",
+                      horsVitrineOn
+                        ? "border-orange-500 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-500/25"
+                        : "border-orange-200/90 bg-white text-orange-800 hover:border-orange-400 hover:bg-orange-50 dark:border-orange-900/50 dark:bg-zinc-950 dark:text-orange-200 dark:hover:bg-orange-950/40"
+                    )}
                   >
-                    <button
-                      type="button"
-                      onClick={toggleHorsVitrine}
-                      aria-pressed={vitrineFilter === "hors"}
+                    {horsVitrineOn ? (
+                      <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    ) : (
+                      <PackageX className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    )}
+                    <span>{tFilters("horsVitrine")}</span>
+                    <span
                       className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm transition",
-                        vitrineFilter === "hors"
-                          ? "border-orange-500 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-500/25"
-                          : "border-orange-200/90 bg-white text-orange-800 hover:border-orange-400 hover:bg-orange-50 dark:border-orange-900/50 dark:bg-zinc-950 dark:text-orange-200 dark:hover:bg-orange-950/40"
+                        "rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                        horsVitrineOn
+                          ? "bg-white/25 text-white"
+                          : "bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-200"
                       )}
                     >
-                      <PackageX className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                      {tFilters("horsVitrine")}
-                    </button>
-
-                    <span className="hidden h-4 w-px bg-zinc-200 sm:block dark:bg-zinc-700" aria-hidden />
-
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-                      {tFilters("addedLabel")}
+                      {horsVitrineOn ? tFilters("toggleOn") : tFilters("toggleOff")}
                     </span>
-                    {ADDED_WINDOW_OPTIONS.map((window) => (
-                      <button
-                        key={window}
-                        type="button"
-                        onClick={() => setAddedWindow(window)}
-                        aria-pressed={addedWindow === window}
-                        className={cn(
-                          "rounded-full border px-2.5 py-1 text-[11px] font-semibold transition",
-                          addedWindow === window
-                            ? "border-violet-500 bg-violet-600 text-white shadow-sm shadow-violet-500/20"
-                            : "border-zinc-200 bg-white text-zinc-600 hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300"
-                        )}
-                      >
-                        {tFilters(`added.${window}`)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
+                  </button>
 
-              {loading ? (
+                  <span className="hidden h-4 w-px bg-zinc-200 sm:block dark:bg-zinc-700" aria-hidden />
+
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                    {tFilters("addedLabel")}
+                  </span>
+                  {ADDED_WINDOW_OPTIONS.map((window) => (
+                    <button
+                      key={window}
+                      type="button"
+                      onClick={() => setAddedWindow(window)}
+                      aria-pressed={addedWindow === window}
+                      className={cn(
+                        "rounded-full border px-2.5 py-1 text-[11px] font-semibold transition",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/50",
+                        addedWindow === window
+                          ? "border-violet-500 bg-violet-600 text-white shadow-sm shadow-violet-500/20"
+                          : "border-zinc-200 bg-white text-zinc-600 hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300"
+                      )}
+                    >
+                      {tFilters(`added.${window}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {initialLoading ? (
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
                   {Array.from({ length: 6 }).map((_, i) => (
                     <div key={i} className="aspect-[4/5] animate-pulse rounded-2xl bg-zinc-100 dark:bg-zinc-800/60" />
                   ))}
                 </div>
-              ) : products.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-orange-200/80 bg-gradient-to-b from-orange-50/80 to-white px-6 py-14 text-center dark:border-orange-900/40 dark:from-orange-950/30 dark:to-zinc-950/50">
+              ) : products.length === 0 ? (                <div className="rounded-3xl border border-dashed border-orange-200/80 bg-gradient-to-b from-orange-50/80 to-white px-6 py-14 text-center dark:border-orange-900/40 dark:from-orange-950/30 dark:to-zinc-950/50">
                   <Compass className="mx-auto h-10 w-10 text-orange-500" aria-hidden />
                   {searchQuery.trim() ? (
                     <>
@@ -698,7 +749,13 @@ export function AffiliateCatalogExperience({
                   )}
                 </div>
               ) : (
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <div
+                  className={cn(
+                    "grid gap-5 sm:grid-cols-2 lg:grid-cols-3 transition-opacity duration-200",
+                    refreshing && "pointer-events-none opacity-55"
+                  )}
+                  aria-busy={refreshing}
+                >
                   {products.map((p) => {
                     const listingState = resolveCatalogListingState(p.affiliateProducts)
                     const isLive = listingState.kind === "live"
