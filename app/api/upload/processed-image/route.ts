@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     process.env.VERCEL !== "1" &&
     process.env.PHOTO_STUDIO_DEV_BYPASS === "1"
   const effectiveUserId = session?.user?.id || (bypassDevAuth ? "dev-local" : "")
-  const effectiveRole = session?.user?.role || (bypassDevAuth ? "SUPPLIER" : "")
+  const effectiveRole = String(session?.user?.role || (bypassDevAuth ? "SUPPLIER" : "")).toUpperCase()
 
   if (!effectiveUserId) {
     console.error("[upload/processed-image] auth missing session", {

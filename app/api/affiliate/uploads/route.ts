@@ -11,6 +11,7 @@ const MAX_BYTES = 2 * 1024 * 1024
 const MIME_EXT: Record<string, string> = {
   "image/png": ".png",
   "image/jpeg": ".jpg",
+  "image/webp": ".webp",
 }
 
 export async function POST(req: Request) {

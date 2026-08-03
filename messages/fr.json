@@ -1983,6 +1983,12 @@
         "nameLabel": "Nom affiché",
         "nameHint": "Ex. Noir Mat au lieu de Variant 1 — visible sur votre boutique",
         "photoLabel": "Photo variante",
+        "photoFile": "Fichier",
+        "photoUrlPlaceholder": "https://… ou coller un lien",
+        "photoApplyUrl": "OK",
+        "photoRemove": "Retirer la photo",
+        "photoMissing": "Photo manquante — fichier ou lien",
+        "photoDropHint": "Glissez une image ici, ou cliquez Fichier (JPG / PNG / WebP)",
         "marginLabel": "Votre marge (€)",
         "clientPrice": "Prix client",
         "reviewBadge": "À revoir"

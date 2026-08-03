@@ -1983,6 +1983,12 @@
         "nameLabel": "Display name",
         "nameHint": "e.g. Matte Black instead of Variant 1 — shown on your storefront",
         "photoLabel": "Variant photo",
+        "photoFile": "Upload file",
+        "photoUrlPlaceholder": "https://… or paste a link",
+        "photoApplyUrl": "OK",
+        "photoRemove": "Remove photo",
+        "photoMissing": "Missing photo — file or link",
+        "photoDropHint": "Drop an image here, or click Upload file (JPG / PNG / WebP)",
         "marginLabel": "Your margin (€)",
         "clientPrice": "Client price",
         "reviewBadge": "To review"

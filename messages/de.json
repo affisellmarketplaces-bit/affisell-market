@@ -1706,7 +1706,13 @@
         "reviewBadge": "To review",
         "nameLabel": "Anzeigename",
         "nameHint": "z. B. Matt Schwarz statt Variant 1",
-        "photoLabel": "Variantenfoto"
+        "photoLabel": "Variantenfoto",
+        "photoFile": "Upload file",
+        "photoUrlPlaceholder": "https://… or paste a link",
+        "photoApplyUrl": "OK",
+        "photoRemove": "Remove photo",
+        "photoMissing": "Missing photo — file or link",
+        "photoDropHint": "Drop an image here, or click Upload file (JPG / PNG / WebP)"
       }
     }
   },

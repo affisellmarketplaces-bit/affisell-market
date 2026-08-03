@@ -1707,7 +1707,13 @@
         "reviewBadge": "To review",
         "nameLabel": "Nombre visible",
         "nameHint": "Ej. Negro mate en lugar de Variant 1",
-        "photoLabel": "Foto variante"
+        "photoLabel": "Foto variante",
+        "photoFile": "Upload file",
+        "photoUrlPlaceholder": "https://… or paste a link",
+        "photoApplyUrl": "OK",
+        "photoRemove": "Remove photo",
+        "photoMissing": "Missing photo — file or link",
+        "photoDropHint": "Drop an image here, or click Upload file (JPG / PNG / WebP)"
       }
     }
   },
