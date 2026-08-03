@@ -10,9 +10,9 @@ import {
   Eye,
   Filter,
   Search,
+  PackageX,
   Sparkles,
   Store,
-  StoreOff,
   X,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -619,7 +619,7 @@ export function AffiliateCatalogExperience({
                           : "border-orange-200/90 bg-white text-orange-800 hover:border-orange-400 hover:bg-orange-50 dark:border-orange-900/50 dark:bg-zinc-950 dark:text-orange-200 dark:hover:bg-orange-950/40"
                       )}
                     >
-                      <StoreOff className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                      <PackageX className="h-3.5 w-3.5 shrink-0" aria-hidden />
                       {tFilters("horsVitrine")}
                     </button>
 
