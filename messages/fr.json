@@ -1974,12 +1974,15 @@
       },
       "variantMargins": {
         "title": "Variantes & marges",
-        "subtitle": "Choisissez les déclinaisons visibles et fixez une marge par variante. Prix client = fournisseur + marge.",
+        "subtitle": "Choisissez les déclinaisons visibles, renommez-les, ajoutez une photo et fixez une marge. Prix client = fournisseur + marge.",
         "applyGlobalMargin": "Marge globale → toutes ({amount} €)",
         "selectAll": "Tout sélectionner",
         "selectNone": "Tout désélectionner",
         "stock": "stock {count}",
         "supplier": "Fournisseur",
+        "nameLabel": "Nom affiché",
+        "nameHint": "Ex. Noir Mat au lieu de Variant 1 — visible sur votre boutique",
+        "photoLabel": "Photo variante",
         "marginLabel": "Votre marge (€)",
         "clientPrice": "Prix client",
         "reviewBadge": "À revoir"

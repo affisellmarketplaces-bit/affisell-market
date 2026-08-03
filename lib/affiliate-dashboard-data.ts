@@ -94,6 +94,7 @@ const affiliateListingRowSelect = {
   promotedSize: true,
   promotedVariantKeys: true,
   variantPricing: true,
+  variantPresentation: true,
   pricingAutoAdjust: true,
   marginReviewNeeded: true,
   marginReviewVariantKeys: true,

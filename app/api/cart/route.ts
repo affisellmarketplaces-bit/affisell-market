@@ -68,6 +68,7 @@ export async function GET() {
       colorImagesJson: p.colorImages,
       variantsJson: p.variants,
       selectedColor: row.selectedColor,
+      variantPresentationJson: listing.variantPresentation,
     })
 
     const variants = variantsFromDb(p.variants)

@@ -69,18 +69,19 @@ export function ProductListingColorPicker({
         </p>
         {selectedColor ? (
           <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 lg:text-sm">
-            {selectedColor}
+            {colorMeta.find((c) => shopperColorLabelsMatch(selectedColor, c.name))?.displayName ??
+              selectedColor}
           </p>
         ) : null}
       </div>
 
       {showColorSwatches ? (
         <div className="mt-2 flex gap-2.5 overflow-x-auto overscroll-x-contain pb-0.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] lg:flex-wrap lg:overflow-visible lg:pb-0 [&::-webkit-scrollbar]:hidden">
-          {colorMeta.map(({ name: colorName, meta, imageUrl }) => (
+          {colorMeta.map(({ name: colorName, displayName, meta, imageUrl }) => (
             <ProductColorSwatchButton
               key={colorName}
-              name={colorName}
-              meta={resolveCatalogColorSwatch(colorName, meta)}
+              name={displayName}
+              meta={resolveCatalogColorSwatch(displayName, meta)}
               imageUrl={imageUrl}
               selected={shopperColorLabelsMatch(selectedColor, colorName)}
               selectedClassName={brand.swatchSelectedRing}
@@ -91,7 +92,7 @@ export function ProductListingColorPicker({
         </div>
       ) : (
         <div className="mt-2 flex gap-2 overflow-x-auto overscroll-x-contain pb-0.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] lg:flex-wrap lg:overflow-visible lg:pb-0 [&::-webkit-scrollbar]:hidden">
-          {colorMeta.map(({ name: colorName }) => {
+          {colorMeta.map(({ name: colorName, displayName }) => {
             const matchedRow = findVariantRowForShopperSelection({
               variants: variants ?? null,
               customColumns,
@@ -123,7 +124,7 @@ export function ProductListingColorPicker({
                   out && "cursor-not-allowed opacity-40"
                 )}
               >
-                <span className="block leading-tight">{colorName}</span>
+                <span className="block leading-tight">{displayName}</span>
                 <span
                   className={cn(
                     "mt-0.5 block text-[11px] font-semibold tabular-nums",

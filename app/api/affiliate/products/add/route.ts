@@ -4,11 +4,12 @@ import { Prisma } from "@prisma/client"
 import { auth } from "@/auth"
 import { isDisplayableListingImageUrl } from "@/lib/affiliate-listing-display"
 import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
-import { parsePromotedVariantKeysBody } from "@/lib/affiliate-storefront-variants"
+import { parsePromotedVariantKeysBody, buildAffiliateVariantOptions } from "@/lib/affiliate-storefront-variants"
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
 import { resolveLuxuryListingCreateFields } from "@/lib/luxury-listing-patch"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
 import { sanitizeListingDescriptionField } from "@/lib/html-description-extract-shared"
+import { parseVariantPresentationBody } from "@/lib/affiliate-variant-presentation"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { resolveVariantPricingBodyForProduct } from "@/lib/affiliate-variant-pricing-request"
@@ -275,6 +276,22 @@ export async function POST(request: Request) {
     }
   }
 
+  let variantPresentationPatch: Prisma.InputJsonValue | typeof Prisma.DbNull | undefined
+  if ("variantPresentation" in body) {
+    const allowed =
+      promotedVariantKeys !== undefined && promotedVariantKeys.length > 0
+        ? promotedVariantKeys
+        : buildAffiliateVariantOptions(productForPromo).map((o) => o.key)
+    const pres = parseVariantPresentationBody(body.variantPresentation, allowed)
+    if (!pres.ok && !saveDraft) {
+      return NextResponse.json({ error: pres.error }, { status: 400 })
+    }
+    if (pres.ok) {
+      variantPresentationPatch =
+        pres.value === null ? Prisma.DbNull : (pres.value as Prisma.InputJsonValue)
+    }
+  }
+
   const pricingAutoAdjustPatch =
     typeof body.pricingAutoAdjust === "boolean" ? body.pricingAutoAdjust : undefined
 
@@ -334,6 +351,9 @@ export async function POST(request: Request) {
         ...promoPatch,
         ...keysPatch,
         ...(variantPricingPatch !== undefined ? { variantPricing: variantPricingPatch } : {}),
+        ...(variantPresentationPatch !== undefined
+          ? { variantPresentation: variantPresentationPatch }
+          : {}),
         ...(pricingAutoAdjustPatch !== undefined ? { pricingAutoAdjust: pricingAutoAdjustPatch } : {}),
       },
       update: {
@@ -356,6 +376,9 @@ export async function POST(request: Request) {
         ...promoPatch,
         ...keysPatch,
         ...(variantPricingPatch !== undefined ? { variantPricing: variantPricingPatch } : {}),
+        ...(variantPresentationPatch !== undefined
+          ? { variantPresentation: variantPresentationPatch }
+          : {}),
         ...(pricingAutoAdjustPatch !== undefined ? { pricingAutoAdjust: pricingAutoAdjustPatch } : {}),
         ...marginReviewClearPatch,
       },

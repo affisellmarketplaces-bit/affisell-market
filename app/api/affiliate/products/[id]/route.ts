@@ -4,7 +4,8 @@ import { Prisma } from "@prisma/client"
 
 import { auth } from "@/auth"
 import { parsePromotedVariantPatch } from "@/lib/affiliate-promoted-variant"
-import { parsePromotedVariantKeysBody } from "@/lib/affiliate-storefront-variants"
+import { parsePromotedVariantKeysBody, buildAffiliateVariantOptions } from "@/lib/affiliate-storefront-variants"
+import { parseVariantPresentationBody } from "@/lib/affiliate-variant-presentation"
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
 import { buildLuxuryListingPatch } from "@/lib/luxury-listing-patch"
 import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
@@ -284,6 +285,22 @@ export async function PATCH(
       pricingRes.variantPricing === null
         ? Prisma.DbNull
         : (pricingRes.variantPricing as Prisma.InputJsonValue)
+  }
+
+  if ("variantPresentation" in body) {
+    const options = buildAffiliateVariantOptions(productForPromo)
+    const allowed =
+      Array.isArray(data.promotedVariantKeys) && data.promotedVariantKeys.length > 0
+        ? data.promotedVariantKeys
+        : Array.isArray(listing.promotedVariantKeys) && listing.promotedVariantKeys.length > 0
+          ? listing.promotedVariantKeys
+          : options.map((o) => o.key)
+    const pres = parseVariantPresentationBody(body.variantPresentation, allowed)
+    if (!pres.ok) {
+      return NextResponse.json({ error: pres.error }, { status: 400 })
+    }
+    data.variantPresentation =
+      pres.value === null ? Prisma.DbNull : (pres.value as Prisma.InputJsonValue)
   }
 
   if (typeof body.pricingAutoAdjust === "boolean") {

@@ -5,7 +5,10 @@ import { isUsableProductImageUrl } from "@/lib/product-image-url"
 import type { CatalogColorSwatch } from "@/lib/product-catalog-constants"
 
 export type MarketplaceColorMetaRow = {
+  /** Stable supplier color key (selection / cart matching) */
   name: string
+  /** Shopper-facing label when affiliate renamed the variant */
+  displayName: string
   meta: CatalogColorSwatch
   imageUrl: string | null
 }
@@ -40,17 +43,21 @@ export function shopperColorLabelsMatch(
 /** Build shopper-facing color swatches from supplier color names + stored colorImages. */
 export function buildMarketplaceColorMeta(
   colorNames: string[],
-  colorImages: ProductColorImageRow[]
+  colorImages: ProductColorImageRow[],
+  displayLabels?: Record<string, string> | null
 ): MarketplaceColorMetaRow[] {
   const preliminary = colorNames.map((name) => {
     const row = findColorImageRowForName(colorImages, name)
     const swatch = resolveColorSwatchMeta(name, row?.hex)
     const imageRaw = row?.image?.trim() ?? ""
     const imageUrl = imageRaw && isUsableProductImageUrl(imageRaw) ? imageRaw : null
+    const displayName =
+      (displayLabels && (displayLabels[name] || displayLabels[name.trim()]))?.trim() || name
     return {
       name,
+      displayName,
       meta: {
-        name,
+        name: displayName,
         hex: swatch.hex,
         ...(swatch.multicolor ? { multicolor: true } : {}),
       },
@@ -70,7 +77,7 @@ export function buildMarketplaceColorMeta(
     return {
       ...row,
       meta: {
-        name: row.name,
+        name: row.displayName,
         hex: resolved.hex,
         ...(resolved.multicolor ? { multicolor: true } : {}),
       },

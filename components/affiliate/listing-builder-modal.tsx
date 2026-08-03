@@ -13,6 +13,7 @@ import { AiPricingOptimizer } from "@/components/affiliate/ai-pricing-optimizer"
 import {
   AffiliateVariantMarginEditor,
   initialVariantMarginEuroByKey,
+  initialVariantPresentationByKey,
 } from "@/components/affiliate/affiliate-variant-margin-editor"
 import {
   buildVariantPricingFromMargins,
@@ -20,6 +21,10 @@ import {
   sellingPriceCentsFromMargin,
   serializeVariantPricingForDb,
 } from "@/lib/affiliate-variant-pricing"
+import {
+  parseAffiliateVariantPresentationJson,
+  serializeVariantPresentationForDb,
+} from "@/lib/affiliate-variant-presentation"
 import { suggestSafeMarginsAfterWholesaleIncrease } from "@/lib/affiliate-margin-auto-fix"
 import {
   clampBuyerRewardPercent,
@@ -90,6 +95,7 @@ export type SerializedListing = {
   promotedSize?: string | null
   promotedVariantKeys?: string[]
   variantPricing?: unknown
+  variantPresentation?: unknown
   pricingAutoAdjust?: boolean
   marginReviewNeeded?: boolean
   marginReviewVariantKeys?: string[]
@@ -135,6 +141,7 @@ type FormFields = {
   promotedSize: string
   promotedVariantPick: Record<string, boolean>
   variantMarginEUR: Record<string, string>
+  variantPresentation: Record<string, { label: string; imageUrl: string }>
   pricingAutoAdjust: boolean
   showWarranty: boolean
   luxuryTier: LuxuryTier
@@ -198,6 +205,10 @@ function getListingFormDefaults(
           : suggestedCents != null
             ? (suggestedCents - product.basePriceCents) / 100
             : null,
+    }),
+    variantPresentation: initialVariantPresentationByKey({
+      options: variantOptions,
+      presentation: parseAffiliateVariantPresentationJson(L?.variantPresentation),
     }),
     pricingAutoAdjust: Boolean(L?.pricingAutoAdjust),
     showWarranty: Boolean(L?.showWarranty),
@@ -473,6 +484,24 @@ function ListingBuilderModalBody({
           : {}
       const variantPricingPayload = serializeVariantPricingForDb(variantPricingMap)
 
+      const presentationMap = Object.fromEntries(
+        variantOptions.map((o) => {
+          const v = form.variantPresentation[o.key]
+          const labelRaw = v?.label?.trim() ?? ""
+          const imageRaw = v?.imageUrl?.trim() ?? ""
+          const label =
+            labelRaw && labelRaw !== o.label.trim() ? labelRaw : undefined
+          const image = imageRaw || undefined
+          return [o.key, { ...(label ? { label } : {}), ...(image ? { image } : {}) }]
+        })
+      ) as Record<string, { label?: string; image?: string }>
+      const variantPresentationPayload = serializeVariantPresentationForDb(
+        presentationMap,
+        promotedVariantKeys.length > 0
+          ? promotedVariantKeys
+          : variantOptions.map((o) => o.key)
+      )
+
       if (
         !saveDraft &&
         variantOptions.length > 1 &&
@@ -525,6 +554,7 @@ function ListingBuilderModalBody({
           promotedSize: form.promotedSize.trim() || null,
           promotedVariantKeys,
           ...(variantPricingPayload ? { variantPricing: variantPricingPayload } : {}),
+          variantPresentation: variantPresentationPayload,
           pricingAutoAdjust: form.pricingAutoAdjust,
           showWarranty: form.showWarranty,
           luxuryTier: form.luxuryTier,
@@ -587,6 +617,7 @@ function ListingBuilderModalBody({
           promotedSize: form.promotedSize.trim() || null,
           promotedVariantKeys,
           ...(variantPricingPayload ? { variantPricing: variantPricingPayload } : {}),
+          variantPresentation: variantPresentationPayload,
           pricingAutoAdjust: form.pricingAutoAdjust,
           showWarranty: form.showWarranty,
           luxuryTier: form.luxuryTier,
@@ -784,6 +815,7 @@ function ListingBuilderModalBody({
                   options={variantOptions}
                   pick={form.promotedVariantPick}
                   marginEuroByKey={form.variantMarginEUR}
+                  presentationByKey={form.variantPresentation}
                   globalMarginEuro={marginEUR}
                   highlightVariantKeys={listing?.marginReviewVariantKeys ?? []}
                   disabled={busy || uploadBusy}
@@ -797,6 +829,19 @@ function ListingBuilderModalBody({
                     setForm((f) => ({
                       ...f,
                       variantMarginEUR: { ...f.variantMarginEUR, [key]: value },
+                    }))
+                  }
+                  onPresentationChange={(key, patch) =>
+                    setForm((f) => ({
+                      ...f,
+                      variantPresentation: {
+                        ...f.variantPresentation,
+                        [key]: {
+                          label: f.variantPresentation[key]?.label ?? "",
+                          imageUrl: f.variantPresentation[key]?.imageUrl ?? "",
+                          ...patch,
+                        },
+                      },
                     }))
                   }
                   onSelectAll={() =>

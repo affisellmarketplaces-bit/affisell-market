@@ -1703,7 +1703,10 @@
         "supplier": "Supplier",
         "marginLabel": "Your margin (€)",
         "clientPrice": "Client price",
-        "reviewBadge": "To review"
+        "reviewBadge": "To review",
+        "nameLabel": "Anzeigename",
+        "nameHint": "z. B. Matt Schwarz statt Variant 1",
+        "photoLabel": "Variantenfoto"
       }
     }
   },

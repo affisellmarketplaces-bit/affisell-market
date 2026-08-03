@@ -63,12 +63,12 @@ export async function POST(req: Request) {
       { status: 401 }
     )
   }
-  if (effectiveRole !== "SUPPLIER" && effectiveRole !== "ADMIN") {
+  if (effectiveRole !== "SUPPLIER" && effectiveRole !== "ADMIN" && effectiveRole !== "AFFILIATE") {
     console.error("[upload/processed-image] wrong role", { role: effectiveRole })
     return Response.json(
       {
         error: "Forbidden",
-        detail: `Only suppliers or admins can upload processed images. Current role: ${effectiveRole || "unknown"}.`,
+        detail: `Only suppliers, affiliates, or admins can upload processed images. Current role: ${effectiveRole || "unknown"}.`,
       },
       { status: 403 }
     )

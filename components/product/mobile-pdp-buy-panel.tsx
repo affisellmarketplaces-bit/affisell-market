@@ -202,16 +202,19 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                 {showColorSwatches ? labels.colorLabel : labels.optionLabel ?? labels.colorLabel}
               </p>
               {selectedColor ? (
-                <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{selectedColor}</p>
+                <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                  {colorMeta.find((c) => shopperColorLabelsMatch(selectedColor, c.name))?.displayName ??
+                    selectedColor}
+                </p>
               ) : null}
             </div>
             <div className="flex gap-2.5 overflow-x-auto overscroll-x-contain pb-0.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {colorMeta.map(({ name: colorName, meta, imageUrl }) =>
+              {colorMeta.map(({ name: colorName, displayName, meta, imageUrl }) =>
                 showColorSwatches ? (
                   <ProductColorSwatchButton
                     key={colorName}
-                    name={colorName}
-                    meta={resolveCatalogColorSwatch(colorName, meta)}
+                    name={displayName}
+                    meta={resolveCatalogColorSwatch(displayName, meta)}
                     imageUrl={imageUrl}
                     selected={shopperColorLabelsMatch(selectedColor, colorName)}
                     selectedClassName={brand.swatchSelectedRing}
@@ -230,7 +233,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                         : "border-zinc-200 bg-white text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
                     )}
                   >
-                    {colorName}
+                    {displayName}
                   </button>
                 )
               )}

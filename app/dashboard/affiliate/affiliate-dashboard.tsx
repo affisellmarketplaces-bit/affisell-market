@@ -539,6 +539,11 @@ export function AffiliateDashboard({ storeId }: Props) {
       promotedColor: listing.promotedColor ?? null,
       promotedSize: listing.promotedSize ?? null,
       promotedVariantKeys: listing.promotedVariantKeys ?? [],
+      variantPricing: listing.variantPricing ?? null,
+      variantPresentation: listing.variantPresentation ?? null,
+      pricingAutoAdjust: listing.pricingAutoAdjust ?? false,
+      marginReviewNeeded: listing.marginReviewNeeded ?? false,
+      marginReviewVariantKeys: listing.marginReviewVariantKeys ?? [],
       showWarranty: listing.showWarranty ?? false,
     })
   }

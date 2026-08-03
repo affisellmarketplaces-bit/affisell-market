@@ -1,4 +1,8 @@
 import { listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import {
+  mergePresentationImagesIntoColorRows,
+  parseAffiliateVariantPresentationJson,
+} from "@/lib/affiliate-variant-presentation"
 import { parseCartVariantSignature } from "@/lib/cart-variant"
 import {
   comparableImageUrl,
@@ -15,6 +19,8 @@ type ResolveArgs = {
   colorImagesJson: unknown
   variantsJson: unknown
   selectedColor?: string | null
+  /** Affiliate listing photo overrides keyed by variant/color */
+  variantPresentationJson?: unknown
 }
 
 /** Common supplier typos → catalog color name (for image map keys). */
@@ -78,10 +84,12 @@ export function resolveCartLineImageUrl(args: ResolveArgs): string {
   const raw = typeof args.selectedColor === "string" ? args.selectedColor.trim() : ""
   if (!raw) return fallback
 
-  const merged =
+  const mergedRaw =
     colorNames.length > 0
       ? mergeColorImagesForProduct(colorNames, args.colorImagesJson, args.variantsJson)
       : (parseProductColorImagesFromDb(args.colorImagesJson) ?? [])
+  const presentation = parseAffiliateVariantPresentationJson(args.variantPresentationJson)
+  const merged = mergePresentationImagesIntoColorRows(colorNames, mergedRaw, presentation)
 
   const normalized = normalizeColorQueryForLookup(raw)
   const lookupColor = normalized !== raw ? normalized : raw
@@ -110,6 +118,7 @@ export function colorNameFromVariantLabel(variantLabel: string | null | undefine
 
 type MarketplaceListingForImage = {
   customImages: string[] | null | undefined
+  variantPresentation?: unknown
   product: {
     images: string[]
     colors: string[]
@@ -133,5 +142,6 @@ export function resolveMarketplaceOrderLineImageUrl(
     colorImagesJson: listing.product.colorImages,
     variantsJson: listing.product.variants,
     selectedColor: color,
+    variantPresentationJson: listing.variantPresentation,
   })
 }

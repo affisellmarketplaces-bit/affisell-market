@@ -1974,12 +1974,15 @@
       },
       "variantMargins": {
         "title": "Variants & margins",
-        "subtitle": "Choose storefront variants and set a margin per SKU. Client price = supplier + your margin.",
+        "subtitle": "Pick storefront variants, rename them, add a photo, and set a margin. Client price = supplier + your margin.",
         "applyGlobalMargin": "Global margin → all ({amount} €)",
         "selectAll": "Select all",
         "selectNone": "Select none",
         "stock": "stock {count}",
         "supplier": "Supplier",
+        "nameLabel": "Display name",
+        "nameHint": "e.g. Matte Black instead of Variant 1 — shown on your storefront",
+        "photoLabel": "Variant photo",
         "marginLabel": "Your margin (€)",
         "clientPrice": "Client price",
         "reviewBadge": "To review"

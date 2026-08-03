@@ -1781,6 +1781,13 @@ model AffiliateProduct {
   variantPricing Json?
 
   /**
+   * Listing-only display overrides keyed by stable supplier variant keys (promotedVariantKeys).
+   * Example: { "Variant 3": { "label": "Noir Mat", "image": "https://…" } }
+   * Does not mutate Product.colorImages — shopper PDP/cart prefer these when set.
+   */
+  variantPresentation Json?
+
+  /**
    * When true, daily cron nudges per-variant `variantPricing` ±5% (idempotent per UTC day).
    */
   pricingAutoAdjust        Boolean   @default(false)

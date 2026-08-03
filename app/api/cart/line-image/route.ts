@@ -37,6 +37,7 @@ export async function GET(req: Request) {
     colorImagesJson: p.colorImages,
     variantsJson: p.variants,
     selectedColor: color || null,
+    variantPresentationJson: listing.variantPresentation,
   })
 
   return Response.json({ imageUrl: imageUrl || "" })

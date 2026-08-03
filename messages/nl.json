@@ -1704,7 +1704,10 @@
         "supplier": "Supplier",
         "marginLabel": "Your margin (€)",
         "clientPrice": "Client price",
-        "reviewBadge": "To review"
+        "reviewBadge": "To review",
+        "nameLabel": "Nombre visible",
+        "nameHint": "Ej. Negro mate en lugar de Variant 1",
+        "photoLabel": "Foto variante"
       }
     }
   },

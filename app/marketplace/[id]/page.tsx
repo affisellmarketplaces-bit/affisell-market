@@ -16,6 +16,11 @@ import { RolloutShippingConfirmedBanner } from "@/components/marketplace/rollout
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { filterListingForPromotedVariants } from "@/lib/affiliate-storefront-variants"
 import {
+  mergePresentationImagesIntoColorRows,
+  parseAffiliateVariantPresentationJson,
+  variantPresentationDisplayLabels,
+} from "@/lib/affiliate-variant-presentation"
+import {
   listingDisplayDescription,
   listingDisplayTitle,
   listingGalleryUrls,
@@ -234,10 +239,17 @@ export default async function MarketplaceListingPage({
     customColumns: customCols,
     productVariantCustomData: listing.product.productVariants?.map((v) => v.customData),
   })
-  const colorImages =
+  const colorImagesRaw =
     colorNames.length > 0
       ? mergeColorImagesForProduct(colorNames, listing.product.colorImages, listing.product.variants)
       : (parseProductColorImagesFromDb(listing.product.colorImages) ?? [])
+  const variantPresentation = parseAffiliateVariantPresentationJson(listing.variantPresentation)
+  const colorImages = mergePresentationImagesIntoColorRows(
+    colorNames,
+    colorImagesRaw,
+    variantPresentation
+  )
+  const colorDisplayLabels = variantPresentationDisplayLabels(variantPresentation, colorNames)
 
   const galleryForPdp = enrichGalleryWithColorHeroImages(gallery, colorNames, colorImages)
 
@@ -464,6 +476,7 @@ export default async function MarketplaceListingPage({
           tags={tags}
           variants={variants}
           colorImages={colorImages}
+          colorDisplayLabels={colorDisplayLabels}
           shipping={shipping}
           listingPriceCents={listing.sellingPriceCents}
           variantPricing={parseAffiliateVariantPricingJson(listing.variantPricing)}

@@ -174,6 +174,8 @@ type Props = {
   tags: string[]
   variants: ProductVariantsJson | null
   colorImages: ProductColorImageRow[]
+  /** Affiliate custom labels keyed by stable color name */
+  colorDisplayLabels?: Record<string, string> | null
   shipping: ListingShippingBlock
   listingPriceCents: number
   variantPricing?: AffiliateVariantPricingMap | null
@@ -373,6 +375,7 @@ export function MarketplaceListingDetail({
   customColumns = [],
   variants,
   colorImages,
+  colorDisplayLabels = null,
   shipping,
   listingPriceCents,
   variantPricing = null,
@@ -565,8 +568,8 @@ export function MarketplaceListingDetail({
   const [useRewardCents, setUseRewardCents] = useState(0)
 
   const colorMeta = useMemo(
-    () => buildMarketplaceColorMeta(colorNames, colorImages),
-    [colorNames, colorImages]
+    () => buildMarketplaceColorMeta(colorNames, colorImages, colorDisplayLabels),
+    [colorNames, colorImages, colorDisplayLabels]
   )
 
   const showColorSwatches = shouldShowMarketplaceColorSwatches(colorMeta)
