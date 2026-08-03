@@ -83,6 +83,7 @@ async function resolveProductCatalogMeta(
   name: string
   images: string[]
   description: string
+  descriptionIllustrationImages: string[]
   specs: AeProductSpecRow[]
 }> {
   if (!AliExpressClient.isConfigured()) {
@@ -90,6 +91,7 @@ async function resolveProductCatalogMeta(
       name: fallback,
       images: [],
       description: `Auto-buy AE ${aeProductId}`,
+      descriptionIllustrationImages: [],
       specs: [],
     }
   }
@@ -102,6 +104,7 @@ async function resolveProductCatalogMeta(
       name: mapped.name?.trim() || fallback,
       images: mapped.images.slice(0, 12),
       description: mapped.description?.trim() || `Auto-buy AE — ${mapped.name || aeProductId}`,
+      descriptionIllustrationImages: mapped.descriptionIllustrationImages ?? [],
       specs,
     }
   } catch {
@@ -109,6 +112,7 @@ async function resolveProductCatalogMeta(
       name: fallback,
       images: [],
       description: `Auto-buy AE ${aeProductId}`,
+      descriptionIllustrationImages: [],
       specs: [],
     }
   }
@@ -353,6 +357,9 @@ export async function enlistAeProductForAutoBuy(
         description: meta.description || undefined,
         ...(meta.images.length > 0 ? { images: meta.images } : {}),
         ...(descriptionBullets.length > 0 ? { descriptionBullets } : {}),
+        ...(meta.descriptionIllustrationImages.length > 0
+          ? { descriptionIllustrationImages: meta.descriptionIllustrationImages }
+          : {}),
         ...(publish ? { active: true, isDraft: false } : {}),
         ...(canReassignToPlatform ? { supplierId } : {}),
         ...(input.name?.trim() ? { name: input.name.trim() } : {}),
@@ -421,6 +428,7 @@ export async function enlistAeProductForAutoBuy(
         name,
         description: meta.description,
         descriptionBullets,
+        descriptionIllustrationImages: meta.descriptionIllustrationImages,
         images: meta.images,
         categories: ["Auto-buy"],
         tags: usedPlatformAutoBuy ? ["affisell-autobuy"] : [],

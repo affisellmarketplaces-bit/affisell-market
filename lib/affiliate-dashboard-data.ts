@@ -37,6 +37,8 @@ export function affiliateCatalogProductDetailSelect(affiliateId: string): Prisma
   return {
     ...affiliateDiscoverCardSelect(affiliateId),
     description: true,
+    descriptionBullets: true,
+    descriptionIllustrationImages: true,
     variants: true,
     hasVariants: true,
     productVariants: {

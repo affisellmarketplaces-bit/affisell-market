@@ -7,6 +7,7 @@ import { Loader2, Rocket, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { flushAllMerchantDrafts, registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
+import { sanitizeListingDescriptionField } from "@/lib/html-description-extract-shared"
 
 import { AiPricingOptimizer } from "@/components/affiliate/ai-pricing-optimizer"
 import {
@@ -162,7 +163,9 @@ function getListingFormDefaults(
 
   return {
     customTitle: L?.customTitle ?? "",
-    customDescription: L?.customDescription ?? product.description ?? "",
+    customDescription: sanitizeListingDescriptionField(
+      L?.customDescription ?? product.description ?? ""
+    ),
     useAllSupplierImages: !L || L.customImages.length === 0,
     imagePick,
     extraUrls: L?.customImages.filter((u) => !urls.includes(u)).join("\n") ?? "",

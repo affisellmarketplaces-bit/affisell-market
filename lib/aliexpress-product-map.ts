@@ -1,9 +1,11 @@
 import { unwrapAliExpressMethodResponse } from "@/lib/aliexpress-open-api"
+import { extractHtmlDescriptionContent } from "@/lib/html-description-extract"
 
 export type AliExpressMappedProduct = {
   aliexpressProductId: string
   name: string
   description: string
+  descriptionIllustrationImages: string[]
   images: string[]
   basePriceCents: number
   stock: number
@@ -134,9 +136,10 @@ export function mapAliExpressGetProductResponse(
   const priceEur = parsePriceEur(firstSku, result)
   const stock = parseStock(firstSku, result)
 
-  const description =
+  const descriptionRaw =
     pickString(base, ["detail", "product_description", "description"]) ||
     `Imported from AliExpress product ${productId}.`
+  const extracted = extractHtmlDescriptionContent(descriptionRaw)
 
   if (!subject) {
     throw new Error("AliExpress product has no title")
@@ -148,7 +151,8 @@ export function mapAliExpressGetProductResponse(
   return {
     aliexpressProductId: productId,
     name: subject.slice(0, 500),
-    description: description.slice(0, 20_000),
+    description: (extracted.text || descriptionRaw.replace(/<[^>]+>/g, " ").trim()).slice(0, 20_000),
+    descriptionIllustrationImages: extracted.imageUrls.slice(0, 40),
     images,
     basePriceCents: Math.max(100, Math.round(priceEur * 100)),
     stock: stock > 0 ? stock : 1,

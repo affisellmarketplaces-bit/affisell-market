@@ -2,6 +2,10 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { affiliateCatalogProductDetailSelect } from "@/lib/affiliate-dashboard-data"
+import {
+  looksLikeHtmlDescription,
+  normalizeProductDescriptionFields,
+} from "@/lib/html-description-extract"
 import { mergeColorImagesForProduct } from "@/lib/product-color-images"
 import { prisma } from "@/lib/prisma"
 
@@ -30,10 +34,39 @@ export async function GET(
     if (!product) {
       return NextResponse.json({ error: "Not found" }, { status: 404 })
     }
+
+    let description = product.description
+    let descriptionIllustrationImages = product.descriptionIllustrationImages ?? []
+
+    if (looksLikeHtmlDescription(description)) {
+      const normalized = normalizeProductDescriptionFields({
+        description,
+        descriptionIllustrationImages,
+      })
+      if (normalized.changed) {
+        await prisma.product.update({
+          where: { id: product.id },
+          data: {
+            description: normalized.description,
+            descriptionIllustrationImages: normalized.descriptionIllustrationImages,
+          },
+        })
+        description = normalized.description
+        descriptionIllustrationImages = normalized.descriptionIllustrationImages
+        console.log("[affiliate/catalog-product]", {
+          result: "description_normalized",
+          productId: product.id,
+          imageCount: descriptionIllustrationImages.length,
+        })
+      }
+    }
+
     const colors = product.colors ?? []
     return NextResponse.json({
       product: {
         ...product,
+        description,
+        descriptionIllustrationImages,
         colorImages: mergeColorImagesForProduct(colors, product.colorImages, product.variants).map(
           ({ color, hex }) => ({ color, hex, image: "" })
         ),

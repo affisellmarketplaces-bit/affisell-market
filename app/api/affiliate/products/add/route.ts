@@ -8,6 +8,7 @@ import { parsePromotedVariantKeysBody } from "@/lib/affiliate-storefront-variant
 import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-request"
 import { resolveLuxuryListingCreateFields } from "@/lib/luxury-listing-patch"
 import { slugifyListingSlug } from "@/lib/affiliate-listing-display"
+import { sanitizeListingDescriptionField } from "@/lib/html-description-extract-shared"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { resolveVariantPricingBodyForProduct } from "@/lib/affiliate-variant-pricing-request"
@@ -117,7 +118,8 @@ export async function POST(request: Request) {
 
   const customDescriptionRaw =
     typeof body.customDescription === "string" ? body.customDescription.trim().slice(0, 16000) : ""
-  const customDescription = customDescriptionRaw.length > 0 ? customDescriptionRaw : null
+  const customDescription =
+    customDescriptionRaw.length > 0 ? sanitizeListingDescriptionField(customDescriptionRaw) || null : null
 
   const customImages = mergeCustomImages(product.images as string[], body)
 

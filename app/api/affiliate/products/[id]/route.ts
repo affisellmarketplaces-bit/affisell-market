@@ -9,6 +9,7 @@ import { resolveBuyerRewardForListing } from "@/lib/affiliate-buyer-reward-reque
 import { buildLuxuryListingPatch } from "@/lib/luxury-listing-patch"
 import { cancelAuctionsForListings } from "@/lib/auction-listing-lifecycle"
 import { isDisplayableListingImageUrl, slugifyListingSlug } from "@/lib/affiliate-listing-display"
+import { sanitizeListingDescriptionField } from "@/lib/html-description-extract-shared"
 import { parseShowWarrantyFlag, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import { removeAffiliateListingsFromStorefront } from "@/lib/affiliate-listing-remove"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
@@ -156,8 +157,8 @@ export async function PATCH(
   }
 
   if (typeof body.customDescription === "string") {
-    const d = body.customDescription.trim().slice(0, 16000)
-    data.customDescription = d.length ? d : null
+    const d = sanitizeListingDescriptionField(body.customDescription.trim().slice(0, 16000))
+    data.customDescription = d.length ? d.slice(0, 16000) : null
   }
 
   if (Array.isArray(body.customImages)) {
