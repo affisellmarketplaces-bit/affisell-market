@@ -16,6 +16,12 @@ describe("sanitizeAeVariantColor", () => {
   it("strips commas and plus that break VARIANT_COLOR_REGEX", () => {
     expect(sanitizeAeVariantColor("Red, Blue", 0)).toBe("Red Blue")
   })
+
+  it("keeps AE hash / underscore codes as readable names instead of Variant N", () => {
+    expect(sanitizeAeVariantColor("#01", 0)).toBe("01")
+    expect(sanitizeAeVariantColor("01_Black", 1)).toBe("01 Black")
+    expect(sanitizeAeVariantColor("#02 Noir Mat", 2)).toBe("02 Noir Mat")
+  })
 })
 
 describe("aeSkusToVariantPersist", () => {
@@ -78,6 +84,13 @@ describe("aeSkusToVariantPersist", () => {
     expect(persist.colorImages).toHaveLength(3)
     expect(persist.colorImages[0]?.image).toContain("red.jpg")
     expect(persist.minPriceCents).toBe(2890)
+    expect(persist.variantInputs[0]?.customData).toMatchObject({
+      image: "https://ae01.alicdn.com/kf/red.jpg",
+      aeLabel: "1",
+    })
+    expect(persist.variantInputs[1]?.customData).toMatchObject({
+      image: "https://ae01.alicdn.com/kf/gold.jpg",
+    })
     expect(persist.defaultAeSkuId).toBe("sku-grey")
     expect(persist.variantInputs[0]?.supplierPrice).toBe(29.39)
     expect(persist.variantInputs[0]?.sku).toBe("sku-red")

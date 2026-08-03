@@ -1,6 +1,10 @@
 import { buildVariantOptionLabel } from "@/lib/marketplace-purchase-quantity"
 import { wholesaleCentsForAffiliateOption } from "@/lib/affiliate-variant-pricing"
 import {
+  shopperLabelFromVariantCustomData,
+  variantImageFromCustomData,
+} from "@/lib/affiliate-variant-shopper-label"
+import {
   findColorImageRowForName,
   parseProductColorImagesFromDb,
 } from "@/lib/product-color-images"
@@ -46,19 +50,28 @@ export function buildAffiliateVariantOptions(product: {
   const rows = parsed?.variantRows ?? []
   const colorImages = parseProductColorImagesFromDb(product.colorImages) ?? []
   const gallery = (product.images ?? []).filter((u) => typeof u === "string" && u.trim())
+  const colorNames = product.colors.map((c) => c.trim()).filter(Boolean)
+  const multiVariant =
+    rows.length > 1 ||
+    (product.productVariants?.length ?? 0) > 1 ||
+    colorNames.length > 1
   const seen = new Set<string>()
   const out: AffiliateVariantOption[] = []
 
   const resolveImage = (color: string | null, customData?: unknown): string => {
-    if (customData && typeof customData === "object" && !Array.isArray(customData)) {
-      const img = (customData as Record<string, unknown>).image
-      if (typeof img === "string" && img.trim()) return img.trim()
-    }
+    const fromCustom = variantImageFromCustomData(customData)
+    if (fromCustom) return fromCustom
     if (color) {
       const row = findColorImageRowForName(colorImages, color)
       if (row?.image?.trim()) return row.image.trim()
     }
-    return gallery[0]?.trim() ?? ""
+    // Multi-SKU: never stamp the same hero on every row — prefer color-index gallery match
+    if (multiVariant && color && gallery.length > 1) {
+      const idx = colorNames.findIndex((c) => c.toLowerCase() === color.trim().toLowerCase())
+      if (idx >= 0 && gallery[idx]?.trim()) return gallery[idx]!.trim()
+    }
+    if (!multiVariant) return gallery[0]?.trim() ?? ""
+    return ""
   }
 
   const wholesaleFor = (key: string, color: string | null, size: string | null) =>
@@ -111,12 +124,13 @@ export function buildAffiliateVariantOptions(product: {
 
   if (out.length === 0 && product.productVariants?.length) {
     for (const v of product.productVariants) {
-      const label = buildVariantOptionLabel(v.color, v.size)
-      if (!label) continue
-      const { color, size } = splitVariantLineName(label)
+      const stableKey = buildVariantOptionLabel(v.color, v.size)
+      if (!stableKey) continue
+      const { color, size } = splitVariantLineName(stableKey)
+      const shopperLabel = shopperLabelFromVariantCustomData(stableKey, v.customData, v.size)
       push({
-        key: label,
-        label,
+        key: stableKey,
+        label: shopperLabel,
         color: color || null,
         size,
         stock: Math.max(0, Math.round(v.stock) || 0),
@@ -127,7 +141,7 @@ export function buildAffiliateVariantOptions(product: {
 
   if (out.length === 0) {
     const sizes = parsed?.size ?? []
-    const colors = product.colors.map((c) => c.trim()).filter(Boolean)
+    const colors = colorNames
     if (colors.length > 0 && sizes.length > 0) {
       for (const color of colors) {
         for (const size of sizes) {

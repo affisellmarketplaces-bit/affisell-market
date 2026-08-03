@@ -307,3 +307,32 @@ export function mergeColorImagesForProduct(
     }
   })
 }
+
+/**
+ * Fill empty color swatch images from ProductVariant.customData.image (AE SKU photos).
+ * Idempotent — never overwrites an existing per-color URL.
+ */
+export function enrichColorImagesFromProductVariants(
+  colorImages: ProductColorImageRow[],
+  productVariants?: Array<{ color: string | null; customData?: unknown }> | null
+): ProductColorImageRow[] {
+  if (!productVariants?.length) return colorImages
+  const rows = colorImages.map((r) => ({ ...r }))
+  for (const v of productVariants) {
+    const color = typeof v.color === "string" ? v.color.trim() : ""
+    if (!color) continue
+    const raw =
+      v.customData && typeof v.customData === "object" && !Array.isArray(v.customData)
+        ? (v.customData as Record<string, unknown>).image
+        : null
+    const img = typeof raw === "string" && /^https?:\/\//i.test(raw.trim()) ? raw.trim() : ""
+    if (!img) continue
+    const row = findColorImageRowForName(rows, color)
+    if (row) {
+      if (!row.image?.trim()) row.image = img
+    } else {
+      rows.push({ color, hex: resolveColorSwatchMeta(color).hex, image: img })
+    }
+  }
+  return rows
+}

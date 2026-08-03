@@ -5,7 +5,7 @@ import { affiliateCatalogProductDetailSelect } from "@/lib/affiliate-dashboard-d
 import {
   normalizeProductDescriptionFields,
 } from "@/lib/html-description-extract"
-import { mergeColorImagesForProduct } from "@/lib/product-color-images"
+import { mergeColorImagesForProduct, enrichColorImagesFromProductVariants } from "@/lib/product-color-images"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -59,12 +59,16 @@ export async function GET(
     }
 
     const colors = product.colors ?? []
+    const colorImages = enrichColorImagesFromProductVariants(
+      mergeColorImagesForProduct(colors, product.colorImages, product.variants),
+      product.productVariants
+    )
     return NextResponse.json({
       product: {
         ...product,
         description,
         descriptionIllustrationImages,
-        colorImages: mergeColorImagesForProduct(colors, product.colorImages, product.variants),
+        colorImages,
       },
     })
   } catch (e) {

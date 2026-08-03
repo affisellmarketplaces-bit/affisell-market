@@ -7,6 +7,7 @@ import { toast } from "sonner"
 
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import type { AffiliateVariantOption } from "@/lib/affiliate-storefront-variants"
+import { isPlaceholderVariantColor } from "@/lib/affiliate-variant-shopper-label"
 import {
   marginEuroFromPrices,
   sellingPriceCentsFromMargin,
@@ -524,8 +525,15 @@ export function initialVariantPresentationByKey(args: {
     const entry =
       map[opt.key] ??
       Object.entries(map).find(([k]) => k.toLowerCase() === opt.key.toLowerCase())?.[1]
+    const savedLabel = entry?.label?.trim() ?? ""
+    const savedColorPart = savedLabel.split(" / ")[0]?.trim() ?? savedLabel
+    const useSavedLabel =
+      Boolean(savedLabel) &&
+      !isPlaceholderVariantColor(savedColorPart) &&
+      savedLabel.toLowerCase() !== opt.key.toLowerCase()
     out[opt.key] = {
-      label: entry?.label?.trim() || opt.label,
+      // Prefer real AE/shopper names over stale "Variant N" overlays
+      label: useSavedLabel ? savedLabel : opt.label,
       imageUrl: entry?.image?.trim() || opt.imageUrl || "",
     }
   }

@@ -22,12 +22,16 @@ export type AeSkuVariantPersist = {
   variantBullets: string[]
 }
 
-/** Keep Affisell color regex happy (no commas / +). */
+/** Keep Affisell color regex happy (no commas / + / AE junk like # _ *). */
 export function sanitizeAeVariantColor(raw: string, index: number): string {
   let c = raw
     .trim()
+    // AE often uses "#01", "01_Black", "Red+Blue" — normalize before regex gate
     .replace(/[,+]+/g, " ")
+    .replace(/[#*_]+/g, " ")
+    .replace(/[·•]+/g, " ")
     .replace(/\s+/g, " ")
+    .trim()
     .slice(0, 32)
   if (!c || !VARIANT_COLOR_REGEX.test(c)) {
     c = `Variant ${index + 1}`
@@ -50,6 +54,9 @@ function buildAeVariantCustomData(
   const customData: VariantCustomData = {
     aeLabel: sku.aeLabel,
     aePriceCents: priceCents,
+  }
+  if (sku.imageUrl && /^https?:\/\//i.test(sku.imageUrl.trim())) {
+    customData.image = sku.imageUrl.trim()
   }
   if (sku.attributes) {
     for (const [key, value] of Object.entries(sku.attributes)) {
