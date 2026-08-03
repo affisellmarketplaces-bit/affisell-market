@@ -1,8 +1,12 @@
 import "server-only"
 
-import { ensureResellerImportVaultSupplier } from "@/lib/affiliate-url-import.server"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
+import {
+  AFFISELL_AUTOBUY_IMPORT_SOURCE,
+  AFFISELL_AUTOBUY_SUPPLIER_EMAIL,
+  ensureAffisellAutoBuySupplier,
+} from "@/lib/auto-buy-platform-supplier"
 import { resolveSupplierLinkFromAeInput } from "@/lib/fulfillment/supplier-link-resolve"
 import {
   AliExpressClient,
@@ -11,18 +15,28 @@ import {
 import { generateAffisellSku } from "@/lib/sku/generate"
 import { prisma } from "@/lib/prisma"
 
+/** Legacy Import Vault — may still own AE drafts; safe to reassign to AutoBuy. */
+const LEGACY_PLATFORM_SUPPLIER_EMAILS = [
+  AFFISELL_AUTOBUY_SUPPLIER_EMAIL,
+  "import-vault@affisell.internal",
+] as const
+
 export type EnlistAeProductInput = {
   aeUrl: string
   /** Optional display name override */
   name?: string | null
-  /** Optional supplier; defaults to Affisell Import Vault (platform-owned) */
+  /**
+   * Optional supplier override.
+   * Default: Affisell AutoBuy platform catalog (reseller-ready).
+   */
   supplierId?: string | null
   /** Override wholesale HT cents; otherwise resolved AE price */
   wholesalePriceCents?: number | null
   autoBuyEnabled?: boolean
   /**
-   * When true, product is published (active, not draft).
-   * Default false — admin finishes SKU mapping first.
+   * When true, product is published (active, not draft) → visible to resellers.
+   * Default true for Instant Enlist / platform AutoBuy catalog.
+   * Pass false to keep draft while finishing SKU mapping.
    */
   publish?: boolean
 }
@@ -36,6 +50,8 @@ export type EnlistAeProductResult = {
   aePriceCents: number
   name: string
   autoBuyEnabled: boolean
+  published: boolean
+  supplierId: string
   source: string
 }
 
@@ -66,8 +82,9 @@ async function resolveProductTitle(
 }
 
 /**
- * Admin Instant Enlist: AliExpress URL → Product + SupplierLink (auto-buy ready).
- * Idempotent on `aliexpressProductId` — reuses existing draft/ops product when found.
+ * Instant Enlist: AliExpress URL → Product + SupplierLink under Affisell AutoBuy
+ * (or an explicit supplier), published for resellers by default.
+ * Idempotent on `aliexpressProductId`.
  */
 export async function enlistAeProductForAutoBuy(
   input: EnlistAeProductInput
@@ -95,9 +112,11 @@ export async function enlistAeProductForAutoBuy(
       : Math.max(1, resolved.aePriceCents || 1)
 
   const autoBuyEnabled = input.autoBuyEnabled !== false
-  const publish = input.publish === true
+  const publish = input.publish !== false
+  const explicitSupplierId = input.supplierId?.trim() || ""
 
-  let supplierId = input.supplierId?.trim() || ""
+  let supplierId = explicitSupplierId
+  let usedPlatformAutoBuy = false
   if (supplierId) {
     const supplier = await prisma.user.findFirst({
       where: { id: supplierId, role: "SUPPLIER" },
@@ -105,7 +124,18 @@ export async function enlistAeProductForAutoBuy(
     })
     if (!supplier) return { ok: false, error: "supplier_not_found" }
   } else {
-    supplierId = await ensureResellerImportVaultSupplier()
+    const platform = await ensureAffisellAutoBuySupplier()
+    supplierId = platform.id
+    usedPlatformAutoBuy = true
+  }
+
+  const platformOwnerIds = new Set<string>([supplierId])
+  if (usedPlatformAutoBuy) {
+    const platformUsers = await prisma.user.findMany({
+      where: { email: { in: [...LEGACY_PLATFORM_SUPPLIER_EMAILS] } },
+      select: { id: true },
+    })
+    for (const u of platformUsers) platformOwnerIds.add(u.id)
   }
 
   const existing = await prisma.product.findFirst({
@@ -113,6 +143,8 @@ export async function enlistAeProductForAutoBuy(
     select: {
       id: true,
       name: true,
+      supplierId: true,
+      importSource: true,
       supplierLink: { select: { id: true } },
     },
     orderBy: { updatedAt: "desc" },
@@ -146,6 +178,11 @@ export async function enlistAeProductForAutoBuy(
       },
     })
 
+    const canReassignToPlatform =
+      usedPlatformAutoBuy &&
+      (platformOwnerIds.has(existing.supplierId) ||
+        existing.importSource === AFFISELL_AUTOBUY_IMPORT_SOURCE)
+
     await prisma.product.update({
       where: { id: existing.id },
       data: {
@@ -155,6 +192,7 @@ export async function enlistAeProductForAutoBuy(
         supplierWholesaleCents: wholesale,
         sourceUrl: resolved.aeUrl,
         ...(publish ? { active: true, isDraft: false } : {}),
+        ...(canReassignToPlatform ? { supplierId } : {}),
         ...(input.name?.trim() ? { name: input.name.trim() } : {}),
       },
     })
@@ -163,6 +201,8 @@ export async function enlistAeProductForAutoBuy(
       result: "reused",
       productId: existing.id,
       aeProductId,
+      supplierId: canReassignToPlatform ? supplierId : existing.supplierId,
+      published: publish,
       source: resolved.source,
     })
 
@@ -175,6 +215,8 @@ export async function enlistAeProductForAutoBuy(
       aePriceCents: wholesale,
       name: input.name?.trim() || existing.name,
       autoBuyEnabled,
+      published: publish,
+      supplierId: canReassignToPlatform ? supplierId : existing.supplierId,
       source: resolved.source ?? "unknown",
     }
   }
@@ -196,12 +238,13 @@ export async function enlistAeProductForAutoBuy(
         description: meta.description,
         images: meta.images,
         categories: ["Auto-buy"],
+        tags: usedPlatformAutoBuy ? ["affisell-autobuy"] : [],
         basePriceCents,
         commissionRate: 10,
         stock: 999,
         active: publish,
         isDraft: !publish,
-        importSource: "admin_ae_enlist",
+        importSource: AFFISELL_AUTOBUY_IMPORT_SOURCE,
         sourceUrl: resolved.aeUrl,
         aliexpressProductId: aeProductId,
         affisellSku,
@@ -239,6 +282,9 @@ export async function enlistAeProductForAutoBuy(
     wholesale,
     source: resolved.source,
     autoBuyEnabled,
+    published: publish,
+    supplierId,
+    platformAutoBuy: usedPlatformAutoBuy,
   })
 
   return {
@@ -250,6 +296,8 @@ export async function enlistAeProductForAutoBuy(
     aePriceCents: wholesale,
     name,
     autoBuyEnabled,
+    published: publish,
+    supplierId,
     source: resolved.source ?? "unknown",
   }
 }

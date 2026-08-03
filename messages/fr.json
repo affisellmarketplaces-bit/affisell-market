@@ -2210,7 +2210,7 @@
       },
       "enlistRequest": {
         "title": "Demander un Instant Enlist",
-        "subtitle": "Collez l’URL AliExpress — Affisell admin valide, le produit est créé sous votre compte avec auto-buy prêt.",
+        "subtitle": "Collez l’URL AliExpress — Affisell admin valide, le produit rejoint le catalogue Affisell AutoBuy (disponible aux resellers).",
         "urlLabel": "URL AliExpress",
         "urlPlaceholder": "https://fr.aliexpress.com/item/…",
         "urlRequired": "Collez une URL AliExpress.",

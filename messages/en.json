@@ -2210,7 +2210,7 @@
       },
       "enlistRequest": {
         "title": "Request Instant Enlist",
-        "subtitle": "Paste the AliExpress URL — Affisell admin reviews, then the product is created under your account with auto-buy ready.",
+        "subtitle": "Paste the AliExpress URL — Affisell admin reviews, then the product joins the Affisell AutoBuy catalog (available to resellers).",
         "urlLabel": "AliExpress URL",
         "urlPlaceholder": "https://www.aliexpress.com/item/…",
         "urlRequired": "Paste an AliExpress URL.",

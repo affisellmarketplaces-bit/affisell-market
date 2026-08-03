@@ -375,6 +375,7 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
   )
 
   const stats = data?.stats
+  const platformSupplier = data?.platformSupplier
   const logTotal = stats
     ? stats.logsPending +
       stats.logsBuying +
@@ -433,8 +434,8 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
                 </div>
               </div>
               <p className="max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Achat automatique après paiement. Les fournisseurs demandent l’enlist ; Affisell
-                admin approuve. Instant Enlist manuel reste disponible pour le vault plateforme.
+                Achat automatique après paiement. Instant Enlist et demandes fournisseur
+                alimentent le compte Affisell AutoBuy — produits publiés pour les resellers.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 lg:max-w-xs lg:flex-col">
@@ -483,10 +484,39 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
 
         <AffisellPlatformFeesExplainer className="mb-8" variant="admin" highlightAutoBuy />
 
+        {platformSupplier ? (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cyan-300/40 bg-gradient-to-r from-cyan-50/90 via-white to-violet-50/80 px-4 py-3 dark:border-cyan-900/50 dark:from-cyan-950/40 dark:via-zinc-950 dark:to-violet-950/30">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
+                Compte plateforme
+              </p>
+              <p className="truncate text-sm font-semibold text-zinc-900 dark:text-white">
+                {platformSupplier.name}
+                <span className="ml-2 font-mono text-[11px] font-normal text-zinc-500">
+                  {platformSupplier.email}
+                </span>
+              </p>
+              <p className="text-xs text-zinc-500">
+                Boutique {platformSupplier.storeName ?? "—"}
+                {platformSupplier.storeSlug ? ` · /shops/${platformSupplier.storeSlug}` : ""}
+                {" · "}catalogue reseller auto-publié
+              </p>
+            </div>
+            {stats ? (
+              <div className="rounded-xl border border-cyan-200/70 bg-white/80 px-3 py-2 text-right dark:border-cyan-900 dark:bg-zinc-900/60">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">SKU live</p>
+                <p className="text-xl font-black tabular-nums text-cyan-700 dark:text-cyan-300">
+                  {stats.platformCatalogSkus}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
         {stats ? (
           <div className="mb-8 space-y-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Couverture catalogue</p>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <AutoFulfillMetricTile
                 label="Liens AE actifs"
                 value={stats.productsWithLink}
@@ -500,6 +530,13 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
                 tone="ai"
                 icon={Zap}
                 hint="Prêts pour achat automatique post-paiement"
+              />
+              <AutoFulfillMetricTile
+                label="Affisell AutoBuy live"
+                value={stats.platformCatalogSkus}
+                tone="emerald"
+                icon={Sparkles}
+                hint="Publiés pour les resellers (catalogue affilié)"
               />
               <AutoFulfillMetricTile
                 label="Demandes fournisseur"
@@ -556,7 +593,7 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
           <AutoFulfillSectionShell
             eyebrow="Inbound"
             title="Demandes Instant Enlist"
-            description="Le fournisseur soumet l’URL AliExpress — vous validez, le produit est créé sous son compte."
+            description="Le fournisseur propose une URL AliExpress — à l’approbation, le SKU rejoint Affisell AutoBuy (catalogue resellers)."
           >
             {isLoading && !data ? (
               <div className="flex items-center gap-3 py-8 text-sm text-zinc-500">

@@ -88,6 +88,7 @@ export function AutoFulfillEnlistSheet({ open, onOpenChange, onEnlisted }: Props
               name: name.trim() || undefined,
               wholesalePriceCents,
               autoBuyEnabled,
+              publish: true,
             }),
           })
           const body = (await res.json()) as EnlistSuccess | { ok?: false; error?: string }
@@ -134,8 +135,11 @@ export function AutoFulfillEnlistSheet({ open, onOpenChange, onEnlisted }: Props
                 Ajouter un produit Auto-Buy
               </h2>
               <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Colle une URL AliExpress — Affisell crée le produit + lien fournisseur
-                sans passer par un compte supplier.
+                Colle une URL AliExpress — le produit est créé sur le compte{" "}
+                <span className="font-semibold text-violet-700 dark:text-violet-300">
+                  Affisell AutoBuy
+                </span>{" "}
+                et publié pour les resellers (catalogue affilié).
               </p>
             </div>
           </div>

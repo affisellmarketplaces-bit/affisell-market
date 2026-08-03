@@ -181,13 +181,13 @@ export async function approveAutoBuyEnlistRequest(input: {
     return { ok: false, error: "not_pending" }
   }
 
+  // Nominations land on Affisell AutoBuy catalog (reseller-ready), not the requester's inventory.
   const enlisted = await enlistAeProductForAutoBuy({
     aeUrl: row.aeUrl,
     name: row.nameHint,
-    supplierId: row.supplierId,
     wholesalePriceCents: row.wholesalePriceCents,
     autoBuyEnabled: true,
-    publish: false,
+    publish: true,
   })
 
   if (!enlisted.ok) {

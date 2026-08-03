@@ -122,6 +122,7 @@
     "test:veo": "tsx test-veo.ts",
     "test:veo:pipeline": "tsx scripts/test-veo-pipeline.ts",
     "demo:ensure": "tsx scripts/ensure-demo-lab-users.ts",
+    "autobuy:ensure": "tsx scripts/ensure-autobuy-supplier.ts",
     "tryon:pilot": "tsx scripts/ensure-try-on-pilot.ts",
     "expansion:pilot": "tsx scripts/expansion-pilot.ts",
     "expansion:status": "tsx scripts/expansion-status.ts",

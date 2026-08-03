@@ -4,6 +4,9 @@ import {
   listPendingAutoBuyEnlistRequests,
 } from "@/lib/auto-buy-enlist-request"
 import type { AutoBuyEnlistRequestDto } from "@/lib/auto-buy-enlist-request-types"
+import {
+  ensureAffisellAutoBuySupplier,
+} from "@/lib/auto-buy-platform-supplier"
 import { orderUsesAffisellAutoBuy } from "@/lib/marketplace-supplier-fee"
 import { prisma } from "@/lib/prisma"
 
@@ -51,6 +54,14 @@ export type AdminAutoFulfillDashboard = {
     logsFailed: number
     logsRefunded: number
     enlistRequestsPending: number
+    platformCatalogSkus: number
+  }
+  platformSupplier: {
+    id: string
+    email: string
+    name: string
+    storeSlug: string | null
+    storeName: string | null
   }
   products: AdminAutoFulfillProductRow[]
   recentLogs: AdminAutoFulfillLogRow[]
@@ -75,6 +86,8 @@ export async function loadAdminAutoFulfillDashboard(
       }
     : {}
 
+  const platform = await ensureAffisellAutoBuySupplier()
+
   const [
     productsWithLink,
     productsAutoBuyOn,
@@ -84,6 +97,7 @@ export async function loadAdminAutoFulfillDashboard(
     logsFailed,
     logsRefunded,
     enlistRequestsPending,
+    platformCatalogSkus,
     products,
     recentLogs,
     pendingEnlistRequests,
@@ -96,6 +110,14 @@ export async function loadAdminAutoFulfillDashboard(
     prisma.fulfillmentLog.count({ where: { status: "FAILED" } }),
     prisma.fulfillmentLog.count({ where: { status: "REFUNDED" } }),
     prisma.autoBuyEnlistRequest.count({ where: { status: "PENDING_REVIEW" } }),
+    prisma.product.count({
+      where: {
+        supplierId: platform.id,
+        active: true,
+        isDraft: false,
+        autoBuyEnabled: true,
+      },
+    }),
     prisma.product.findMany({
       where: productWhere,
       take,
@@ -164,6 +186,14 @@ export async function loadAdminAutoFulfillDashboard(
       logsFailed,
       logsRefunded,
       enlistRequestsPending,
+      platformCatalogSkus,
+    },
+    platformSupplier: {
+      id: platform.id,
+      email: platform.email,
+      name: platform.name,
+      storeSlug: platform.storeSlug,
+      storeName: platform.storeName,
     },
     products: products.map((p) => ({
       id: p.id,
