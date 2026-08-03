@@ -15,6 +15,17 @@ export async function loadAdminProductSupplierLink(productId: string) {
       autoFulfill: true,
       autoBuyEnabled: true,
       hasVariants: true,
+      active: true,
+      isDraft: true,
+      supplierId: true,
+      supplier: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          store: { select: { slug: true, name: true } },
+        },
+      },
       supplierLink: {
         include: {
           variantMappings: {

@@ -1,10 +1,16 @@
 import { ensureMerchantStore } from "@/lib/ensure-store"
+import {
+  AFFISELL_AUTOBUY_IMPORT_SOURCE,
+  AFFISELL_AUTOBUY_SUPPLIER_EMAIL,
+  AFFISELL_AUTOBUY_SUPPLIER_NAME,
+} from "@/lib/auto-buy-platform-supplier-shared"
 import { prisma } from "@/lib/prisma"
 
-/** Platform supplier that owns Affisell Auto-Buy catalog SKUs for resellers. */
-export const AFFISELL_AUTOBUY_SUPPLIER_EMAIL = "autobuy@affisell.internal"
-export const AFFISELL_AUTOBUY_SUPPLIER_NAME = "Affisell AutoBuy"
-export const AFFISELL_AUTOBUY_IMPORT_SOURCE = "admin_ae_enlist"
+export {
+  AFFISELL_AUTOBUY_IMPORT_SOURCE,
+  AFFISELL_AUTOBUY_SUPPLIER_EMAIL,
+  AFFISELL_AUTOBUY_SUPPLIER_NAME,
+} from "@/lib/auto-buy-platform-supplier-shared"
 
 export type AffisellAutoBuySupplier = {
   id: string

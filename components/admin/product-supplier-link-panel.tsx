@@ -7,6 +7,7 @@ import { CloudDownload, ExternalLink, Package, Plus, RefreshCw, Sparkles, Trash2
 import { AeCatalogImportHub } from "@/components/admin/ae-catalog-import-hub"
 import { AeExpressImportLauncher, type AeCaptureResult } from "@/components/admin/ae-express-import-launcher"
 import { AePasteCatalogPanel } from "@/components/admin/ae-paste-catalog-panel"
+import { AdminPushToSupplierCard } from "@/components/admin/admin-push-to-supplier-card"
 
 import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
 import { Button } from "@/components/ui/button"
@@ -838,6 +839,24 @@ export function ProductSupplierLinkPanel({ product }: { product: AdminProductSup
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
         {message ? <p className="text-sm text-emerald-600">{message}</p> : null}
+
+        <AdminPushToSupplierCard
+          productId={product.id}
+          owner={{
+            id: product.supplier.id,
+            name: product.supplier.name,
+            email: product.supplier.email,
+            storeSlug: product.supplier.store?.slug ?? null,
+            storeName: product.supplier.store?.name ?? null,
+          }}
+          onPushed={(payload) => {
+            setMessage(
+              payload.storePath
+                ? `Push OK — boutique ${payload.storePath}`
+                : `Push OK (${payload.result})`
+            )
+          }}
+        />
 
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" onClick={() => window.open(form.aeUrl, "_blank")}>
