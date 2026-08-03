@@ -19,8 +19,10 @@ import {
 } from "lucide-react"
 
 import { buttonVariants } from "@/components/ui/button"
+import { DescriptionRichContent } from "@/components/product/description-rich-content"
 import type { SupplierAffiliatePreviewProduct } from "@/lib/supplier-affiliate-preview-types"
 import { listingGalleryUrls } from "@/lib/affiliate-listing-display"
+import { descriptionHasImageMarkers } from "@/lib/description-rich-content"
 import { shippingCountryLabel } from "@/lib/product-shipping-display"
 import { parseProductColorImagesFromDb } from "@/lib/product-color-images"
 import {
@@ -98,7 +100,14 @@ export function SupplierAffiliateEvalPreview({
   const colorRows = parseProductColorImagesFromDb(product.colorImages) ?? []
   const visible = product.active && !product.isDraft
   const desc = product.description?.trim() ?? ""
-  const descLong = desc.length > 420
+  const illustrationImages = useMemo(() => {
+    const raw = product.descriptionIllustrationImages ?? []
+    return raw.filter((u): u is string => typeof u === "string" && Boolean(u.trim()))
+  }, [product.descriptionIllustrationImages])
+  const descLong =
+    desc.replace(/\s+/g, " ").trim().length > 420 ||
+    descriptionHasImageMarkers(desc) ||
+    illustrationImages.length > 0
 
   async function copyId() {
     try {
@@ -334,10 +343,14 @@ export function SupplierAffiliateEvalPreview({
                     <div
                       className={cn(
                         "relative text-sm leading-relaxed text-zinc-600 dark:text-zinc-400",
-                        !descOpen && descLong && "max-h-[7.5rem] overflow-hidden"
+                        !descOpen && descLong && "max-h-[min(18rem,42vh)] overflow-hidden"
                       )}
                     >
-                      <p className="whitespace-pre-wrap">{desc}</p>
+                      <DescriptionRichContent
+                        description={desc}
+                        images={illustrationImages}
+                        textClassName="text-zinc-600 dark:text-zinc-400"
+                      />
                       {!descOpen && descLong ? (
                         <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent dark:from-zinc-950" />
                       ) : null}

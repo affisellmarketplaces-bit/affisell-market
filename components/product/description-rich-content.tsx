@@ -23,17 +23,22 @@ export function DescriptionRichContent({ description, images, className, textCla
     <div className={cn("space-y-4", className)}>
       {parts.map((part, index) =>
         part.kind === "text" ? (
-          part.text.trim() ? (
-            <p
-              key={`text-${index}`}
-              className={cn(
-                "whitespace-pre-wrap break-words text-sm leading-relaxed text-zinc-700 dark:text-zinc-300",
-                textClassName
-              )}
-            >
-              {part.text}
-            </p>
-          ) : null
+          (() => {
+            // Never leak raw [[img:N]] markers into UI if parsing edge-cases leave leftovers
+            const safeText = part.text.replace(/\[\[img:\d+\]\]/g, "").trim()
+            if (!safeText) return null
+            return (
+              <p
+                key={`text-${index}`}
+                className={cn(
+                  "whitespace-pre-wrap break-words text-sm leading-relaxed text-zinc-700 dark:text-zinc-300",
+                  textClassName
+                )}
+              >
+                {safeText}
+              </p>
+            )
+          })()
         ) : part.src ? (
           <div
             key={`img-${part.index}-${index}`}

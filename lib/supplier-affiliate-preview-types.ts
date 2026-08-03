@@ -4,6 +4,7 @@ export type SupplierAffiliatePreviewProduct = {
   id: string
   name: string
   description: string
+  descriptionIllustrationImages?: string[]
   basePriceCents: number
   compareAt: number | null
   commissionRate: number

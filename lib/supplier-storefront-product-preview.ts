@@ -1,11 +1,19 @@
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
+import {
+  looksLikeHtmlDescription,
+  normalizeProductDescriptionFields,
+} from "@/lib/html-description-extract"
 import { decimalToNumber } from "@/lib/serialize-for-client"
 import { prisma } from "@/lib/prisma"
+import type { SupplierAffiliatePreviewProduct } from "@/lib/supplier-affiliate-preview-types"
+
+export type { SupplierAffiliatePreviewProduct } from "@/lib/supplier-affiliate-preview-types"
 
 export const supplierAffiliatePreviewProductSelect = {
   id: true,
   name: true,
   description: true,
+  descriptionIllustrationImages: true,
   basePriceCents: true,
   compareAt: true,
   commissionRate: true,
@@ -24,10 +32,6 @@ export const supplierAffiliatePreviewProductSelect = {
   variants: true,
   colorImages: true,
 } as const
-
-import type { SupplierAffiliatePreviewProduct } from "@/lib/supplier-affiliate-preview-types"
-
-export type { SupplierAffiliatePreviewProduct } from "@/lib/supplier-affiliate-preview-types"
 
 export async function loadSupplierStorefrontCatalogProduct(params: {
   storeSlug: string
@@ -55,6 +59,32 @@ export async function loadSupplierStorefrontCatalogProduct(params: {
   })
   if (!product) return null
 
+  let description = product.description
+  let descriptionIllustrationImages = product.descriptionIllustrationImages ?? []
+
+  if (looksLikeHtmlDescription(description)) {
+    const normalized = normalizeProductDescriptionFields({
+      description,
+      descriptionIllustrationImages,
+    })
+    if (normalized.changed) {
+      await prisma.product.update({
+        where: { id: product.id },
+        data: {
+          description: normalized.description,
+          descriptionIllustrationImages: normalized.descriptionIllustrationImages,
+        },
+      })
+      description = normalized.description
+      descriptionIllustrationImages = normalized.descriptionIllustrationImages
+      console.log("[supplier/storefront-preview]", {
+        result: "description_normalized",
+        productId: product.id,
+        imageCount: descriptionIllustrationImages.length,
+      })
+    }
+  }
+
   const liveAffiliateListingWhere = {
     productId: product.id,
     isListed: true,
@@ -69,6 +99,8 @@ export async function loadSupplierStorefrontCatalogProduct(params: {
 
   const previewProduct: SupplierAffiliatePreviewProduct = {
     ...product,
+    description,
+    descriptionIllustrationImages,
     compareAt: decimalToNumber(product.compareAt),
   }
 
