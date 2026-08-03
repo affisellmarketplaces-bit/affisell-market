@@ -124,6 +124,23 @@ export function AffiliateVariantMarginEditor({
                   onChange={() => onPickChange(opt.key, !checked)}
                   className="mt-1 rounded border-gray-300"
                 />
+                <div
+                  className={cn(
+                    "relative mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border",
+                    opt.imageUrl
+                      ? "border-emerald-200 bg-white dark:border-emerald-900"
+                      : "border-dashed border-gray-300 bg-gray-50 dark:border-zinc-700 dark:bg-zinc-900"
+                  )}
+                >
+                  {opt.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={opt.imageUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-[9px] font-medium uppercase tracking-wide text-gray-400">
+                      —
+                    </span>
+                  )}
+                </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">

@@ -54,6 +54,7 @@ type CatalogProduct = {
   commissionRate?: number
   supplierCommissionRateBps?: number | null
   colors?: string[]
+  colorImages?: unknown
   variants?: unknown
   hasVariants?: boolean
   productVariants?: Array<{
@@ -237,6 +238,8 @@ function ListingBuilderModalBody({
       buildAffiliateVariantOptions({
         colors: product.colors ?? [],
         variants: product.variants,
+        colorImages: product.colorImages,
+        images: product.images,
         basePriceCents: product.basePriceCents,
         hasVariants: product.hasVariants,
         productVariants: product.productVariants,

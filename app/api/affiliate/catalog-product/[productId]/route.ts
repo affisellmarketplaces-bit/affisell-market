@@ -67,9 +67,7 @@ export async function GET(
         ...product,
         description,
         descriptionIllustrationImages,
-        colorImages: mergeColorImagesForProduct(colors, product.colorImages, product.variants).map(
-          ({ color, hex }) => ({ color, hex, image: "" })
-        ),
+        colorImages: mergeColorImagesForProduct(colors, product.colorImages, product.variants),
       },
     })
   } catch (e) {

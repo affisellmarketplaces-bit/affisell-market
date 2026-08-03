@@ -21,6 +21,19 @@ type Props = {
   disabled?: boolean
 }
 
+async function uploadProcessedImage(file: File): Promise<string | null> {
+  const fd = new FormData()
+  fd.set("file", file)
+  const res = await fetch("/api/upload/processed-image", {
+    method: "POST",
+    body: fd,
+    credentials: "include",
+  })
+  if (!res.ok) return null
+  const data = (await res.json()) as { url?: string }
+  return typeof data.url === "string" && data.url.trim() ? data.url.trim() : null
+}
+
 function initialMode(value: string): ImageMode {
   if (value.startsWith("data:image/")) return "file"
   return "url"
@@ -51,6 +64,14 @@ export function SupplierSimpleColorImageField({ rowId, value, onChange, disabled
       if (!file || disabled) return
       setBusy(true)
       try {
+        const uploaded = await uploadProcessedImage(file)
+        if (uploaded) {
+          onChange(uploaded)
+          setMode("url")
+          setUrlDraft(uploaded)
+          toast.success("Photo couleur uploadée")
+          return
+        }
         const dataUrl = await processColorSwatchFile(file)
         onChange(dataUrl)
         setMode("file")
@@ -101,7 +122,7 @@ export function SupplierSimpleColorImageField({ rowId, value, onChange, disabled
   return (
     <div className="min-w-0 flex-[2] space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Label className="text-xs">Photo couleur (optionnelle)</Label>
+        <Label className="text-xs">Photo de la variante (couleur)</Label>
         <div className="inline-flex rounded-lg border border-zinc-200 p-0.5 dark:border-zinc-700">
           <button
             type="button"

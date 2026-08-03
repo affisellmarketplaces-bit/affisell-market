@@ -204,7 +204,7 @@ export function AutoFulfillEnlistSheet({ open, onOpenChange, onEnlisted }: Props
                     "justify-center gap-2 rounded-full bg-violet-600 hover:bg-violet-700"
                   )}
                 >
-                  Configurer SKUs / variantes
+                  Configurer photos & prix variantes
                   <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                 </Link>
                 <Button

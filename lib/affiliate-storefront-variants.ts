@@ -1,6 +1,10 @@
 import { buildVariantOptionLabel } from "@/lib/marketplace-purchase-quantity"
 import { wholesaleCentsForAffiliateOption } from "@/lib/affiliate-variant-pricing"
-import { parseVariantsPayload, type ProductVariantsJson } from "@/lib/product-variants"
+import {
+  findColorImageRowForName,
+  parseProductColorImagesFromDb,
+} from "@/lib/product-color-images"
+import { parseVariantsPayload } from "@/lib/product-variants"
 import { splitVariantLineName } from "@/lib/supplier-sku-builder"
 
 export type AffiliateVariantOption = {
@@ -12,6 +16,8 @@ export type AffiliateVariantOption = {
   stock: number
   /** Supplier wholesale HT cents for this SKU line */
   wholesaleCents: number
+  /** Color hero / variant photo when available */
+  imageUrl?: string
 }
 
 export function normalizeVariantPromotionKey(key: string): string {
@@ -22,6 +28,8 @@ export function normalizeVariantPromotionKey(key: string): string {
 export function buildAffiliateVariantOptions(product: {
   colors: string[]
   variants: unknown
+  colorImages?: unknown
+  images?: string[]
   basePriceCents?: number
   hasVariants?: boolean
   productVariants?: Array<{
@@ -30,13 +38,28 @@ export function buildAffiliateVariantOptions(product: {
     stock: number
     supplierPrice?: unknown
     wholesalePriceCents?: number | null
+    customData?: unknown
   }>
 }): AffiliateVariantOption[] {
   const basePriceCents = Math.max(0, Math.round(product.basePriceCents ?? 0))
   const parsed = parseVariantsPayload(product.variants)
   const rows = parsed?.variantRows ?? []
+  const colorImages = parseProductColorImagesFromDb(product.colorImages) ?? []
+  const gallery = (product.images ?? []).filter((u) => typeof u === "string" && u.trim())
   const seen = new Set<string>()
   const out: AffiliateVariantOption[] = []
+
+  const resolveImage = (color: string | null, customData?: unknown): string => {
+    if (customData && typeof customData === "object" && !Array.isArray(customData)) {
+      const img = (customData as Record<string, unknown>).image
+      if (typeof img === "string" && img.trim()) return img.trim()
+    }
+    if (color) {
+      const row = findColorImageRowForName(colorImages, color)
+      if (row?.image?.trim()) return row.image.trim()
+    }
+    return gallery[0]?.trim() ?? ""
+  }
 
   const wholesaleFor = (key: string, color: string | null, size: string | null) =>
     wholesaleCentsForAffiliateOption({
@@ -48,16 +71,26 @@ export function buildAffiliateVariantOptions(product: {
       productVariants: product.productVariants,
     })
 
-  const push = (opt: Omit<AffiliateVariantOption, "wholesaleCents"> & { wholesaleCents?: number }) => {
+  const push = (
+    opt: Omit<AffiliateVariantOption, "wholesaleCents" | "imageUrl"> & {
+      wholesaleCents?: number
+      imageUrl?: string
+      customData?: unknown
+    }
+  ) => {
     const k = normalizeVariantPromotionKey(opt.key).toLowerCase()
     if (!k || seen.has(k)) return
     seen.add(k)
     out.push({
-      ...opt,
       key: normalizeVariantPromotionKey(opt.key),
+      label: opt.label,
+      color: opt.color,
+      size: opt.size,
+      stock: opt.stock,
       wholesaleCents:
         opt.wholesaleCents ??
         wholesaleFor(normalizeVariantPromotionKey(opt.key), opt.color, opt.size),
+      imageUrl: opt.imageUrl?.trim() || resolveImage(opt.color, opt.customData) || undefined,
     })
   }
 
@@ -72,6 +105,7 @@ export function buildAffiliateVariantOptions(product: {
       size,
       stock: Math.max(0, Math.round(row.stock) || 0),
       wholesaleCents: row.priceCents > 0 ? row.priceCents : undefined,
+      imageUrl: row.image?.trim() || undefined,
     })
   }
 
@@ -86,6 +120,7 @@ export function buildAffiliateVariantOptions(product: {
         color: color || null,
         size,
         stock: Math.max(0, Math.round(v.stock) || 0),
+        customData: v.customData,
       })
     }
   }

@@ -41,6 +41,7 @@ export function affiliateCatalogProductDetailSelect(affiliateId: string): Prisma
     descriptionIllustrationImages: true,
     variants: true,
     hasVariants: true,
+    colorImages: true,
     productVariants: {
       select: {
         color: true,

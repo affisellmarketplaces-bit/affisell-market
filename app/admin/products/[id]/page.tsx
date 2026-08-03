@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Suspense } from "react"
 import { notFound, redirect } from "next/navigation"
 
+import { AdminProductVariantsEditor } from "@/components/admin/admin-product-variants-editor"
 import { ProductSupplierLinkPanel } from "@/components/admin/product-supplier-link-panel"
 import { auth } from "@/auth"
 import { loadAdminProductSupplierLink } from "@/lib/admin/products/load-product-supplier-link"
@@ -24,10 +25,10 @@ export default async function AdminProductSupplierLinkPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <div className="mx-auto max-w-2xl space-y-6 p-8">
+      <div className="mx-auto max-w-3xl space-y-6 p-8">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-wide text-zinc-500">Produit</p>
+            <p className="text-xs uppercase tracking-wide text-zinc-500">Produit · AutoBuy</p>
             <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">{product.name}</h1>
             <p className="mt-1 font-mono text-xs text-zinc-500">{product.id}</p>
           </div>
@@ -38,6 +39,12 @@ export default async function AdminProductSupplierLinkPage({ params }: Props) {
             ← Auto-Fulfill
           </Link>
         </div>
+
+        <AdminProductVariantsEditor
+          productId={product.id}
+          variants={product.productVariants}
+          colorImages={product.colorImages}
+        />
 
         <Suspense fallback={<div className="h-40 animate-pulse rounded-xl bg-zinc-200 dark:bg-zinc-800" />}>
           <ProductSupplierLinkPanel product={product} />

@@ -17,6 +17,9 @@ export async function loadAdminProductSupplierLink(productId: string) {
       hasVariants: true,
       active: true,
       isDraft: true,
+      colors: true,
+      colorImages: true,
+      images: true,
       supplierId: true,
       supplier: {
         select: {
@@ -39,7 +42,16 @@ export async function loadAdminProductSupplierLink(productId: string) {
         },
       },
       productVariants: {
-        select: { id: true, color: true, size: true, sku: true, publicPrice: true },
+        select: {
+          id: true,
+          color: true,
+          size: true,
+          sku: true,
+          publicPrice: true,
+          wholesalePriceCents: true,
+          stock: true,
+          customData: true,
+        },
         orderBy: [{ color: "asc" }, { size: "asc" }],
       },
     },
