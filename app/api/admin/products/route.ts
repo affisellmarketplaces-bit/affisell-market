@@ -4,6 +4,8 @@ import { z } from "zod"
 
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
+import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
+import { trimColorSwatchImageForStore } from "@/lib/color-swatch-store"
 import { generateAffisellSku, generateVariantSku } from "@/lib/sku/generate"
 import { colorSizeFromAttributes, isVariantMappingRecord } from "@/lib/sku/variant-mapping"
 import { prisma } from "@/lib/prisma"
@@ -12,6 +14,8 @@ const variantRowSchema = z.object({
   attributes: z.record(z.string(), z.string()),
   wholesalePriceCents: z.number().int().min(0).optional(),
   supplierSku: z.string().nullable().optional(),
+  /** HTTPS or data URL swatch for this variant color */
+  imageUrl: z.string().max(500_000).nullable().optional(),
 })
 
 const createSchema = z.object({
@@ -62,8 +66,6 @@ export async function POST(req: Request) {
       : undefined
 
   const affisellSku = await generateAffisellSku()
-  const wholesaleDec = new Prisma.Decimal(body.wholesalePriceCents / 100)
-  const publicDec = new Prisma.Decimal(Math.round(body.wholesalePriceCents * 1.35) / 100)
   const variants = body.variants ?? []
   const hasVariants = variants.length > 0
 
@@ -73,12 +75,47 @@ export async function POST(req: Request) {
   }
 
   const product = await prisma.$transaction(async (tx) => {
+    const colorImages: Array<{ color: string; hex: string; image: string }> = []
+    const colors: string[] = []
+    const galleryImages: string[] = []
+    const seenColor = new Set<string>()
+
+    for (const row of variants) {
+      const { color } = colorSizeFromAttributes(row.attributes)
+      const image = trimColorSwatchImageForStore(row.imageUrl?.trim() || "")
+      if (color?.trim()) {
+        const colorName = color.trim().slice(0, 32)
+        const key = colorName.toLowerCase()
+        if (!seenColor.has(key)) {
+          seenColor.add(key)
+          colors.push(colorName)
+          colorImages.push({
+            color: colorName,
+            hex: resolveColorSwatchMeta(colorName).hex,
+            image,
+          })
+        } else if (image) {
+          const existing = colorImages.find((c) => c.color.toLowerCase() === key)
+          if (existing && !existing.image) existing.image = image
+        }
+      }
+      if (image && /^https?:\/\//i.test(image) && galleryImages.length < 12) {
+        galleryImages.push(image)
+      }
+    }
+
     const created = await tx.product.create({
       data: {
         supplierId: body.supplierId,
         name: body.name.trim(),
         description: `Produit auto-buy AE — ${body.name.trim()}`,
         categories: ["Auto-buy"],
+        images: galleryImages,
+        colors,
+        colorImages:
+          colorImages.length > 0
+            ? (colorImages as unknown as Prisma.InputJsonValue)
+            : undefined,
         basePriceCents: Math.max(body.wholesalePriceCents, Math.round(body.wholesalePriceCents * 1.35)),
         commissionRate: 10,
         stock: 999,
@@ -103,6 +140,11 @@ export async function POST(req: Request) {
         const { color, size } = colorSizeFromAttributes(row.attributes)
         const sku = generateVariantSku(affisellSku, row.attributes)
         const rowWholesale = row.wholesalePriceCents ?? body.wholesalePriceCents
+        const image = trimColorSwatchImageForStore(row.imageUrl?.trim() || "")
+        const customData =
+          image.length > 0
+            ? ({ image } as Prisma.InputJsonValue)
+            : undefined
         const pv = await tx.productVariant.create({
           data: {
             productId: created.id,
@@ -115,6 +157,7 @@ export async function POST(req: Request) {
             supplierPrice: new Prisma.Decimal(rowWholesale / 100),
             publicPrice: new Prisma.Decimal(Math.round(rowWholesale * 1.35) / 100),
             stock: 999,
+            customData,
           },
         })
         variantRows.push({ id: pv.id, sku })
@@ -157,6 +200,7 @@ export async function POST(req: Request) {
     affisellSku,
     variantCount: product.variantRows.length,
     autoBuyEnabled: body.autoBuyEnabled,
+    hasVariantImages: (body.variants ?? []).some((v) => Boolean(v.imageUrl?.trim())),
   })
 
   return NextResponse.json({
