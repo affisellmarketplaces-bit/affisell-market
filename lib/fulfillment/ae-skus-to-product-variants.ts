@@ -1,8 +1,12 @@
 import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
 import type { ProductColorImageRow } from "@/lib/product-color-images"
-import type { ProductVariantInput } from "@/lib/product-variant-sku"
+import {
+  productVariantInputSchema,
+  type ProductVariantInput,
+} from "@/lib/product-variant-sku"
 import { VARIANT_COLOR_REGEX } from "@/lib/supplier-sku-builder"
+import type { VariantCustomData } from "@/types/product"
 
 const MAX_VARIANTS = 120
 
@@ -37,6 +41,24 @@ export function sanitizeAeVariantColor(raw: string, index: number): string {
 function sanitizeSize(raw: string | null | undefined): string | null {
   if (!raw?.trim()) return null
   return raw.trim().slice(0, 16)
+}
+
+function buildAeVariantCustomData(
+  sku: AeProductSkuRow,
+  priceCents: number
+): VariantCustomData {
+  const customData: VariantCustomData = {
+    aeLabel: sku.aeLabel,
+    aePriceCents: priceCents,
+  }
+  if (sku.attributes) {
+    for (const [key, value] of Object.entries(sku.attributes)) {
+      if (typeof value === "string" && value.trim()) {
+        customData[key.slice(0, 64)] = value.slice(0, 200)
+      }
+    }
+  }
+  return customData
 }
 
 /**
@@ -80,24 +102,24 @@ export function aeSkusToVariantPersist(aeSkus: AeProductSkuRow[]): AeSkuVariantP
     const size = sanitizeSize(sku.matchSize)
     const priceCents = sku.aePriceCents > 0 ? sku.aePriceCents : 100
     const supplierPrice = Math.max(0.01, priceCents / 100)
+    const publicPrice = Math.round(supplierPrice * 1.35 * 100) / 100
     const composite = `${color.toLowerCase()}|${(size ?? "").toLowerCase()}|${sku.aeSkuId}`
     if (seenComposite.has(composite)) return
     seenComposite.add(composite)
 
-    variantInputs.push({
+    // Parse through Zod so output matches ProductVariantInput (transformed schema).
+    const parsed = productVariantInputSchema.safeParse({
       color,
       size,
       sku: sku.aeSkuId.slice(0, 64),
       supplierPrice,
-      publicPrice: Math.round(supplierPrice * 1.35 * 100) / 100,
+      publicPrice,
       stock: Math.max(0, sku.stock),
       commissionRate: 10,
-      customData: {
-        aeLabel: sku.aeLabel,
-        aePriceCents: priceCents,
-        ...(sku.attributes ?? {}),
-      },
+      customData: buildAeVariantCustomData(sku, priceCents),
     })
+    if (!parsed.success) return
+    variantInputs.push(parsed.data)
 
     const colorKey = color.toLowerCase()
     if (!seenColor.has(colorKey)) {
