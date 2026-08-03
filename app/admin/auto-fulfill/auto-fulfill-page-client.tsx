@@ -12,6 +12,7 @@ import {
   Clock,
   ExternalLink,
   Link2,
+  Plus,
   RefreshCw,
   Search,
   ShoppingCart,
@@ -20,6 +21,10 @@ import {
   Zap,
 } from "lucide-react"
 
+import {
+  AutoFulfillEnlistSheet,
+  AutoFulfillEnlistTrigger,
+} from "@/components/admin/auto-fulfill/auto-fulfill-enlist-sheet"
 import {
   AutoFulfillMetricTile,
   AutoFulfillSectionShell,
@@ -179,6 +184,7 @@ function AutoBuyToggle({
 export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boolean }) {
   const [q, setQ] = useState("")
   const deferredQ = useDeferredValue(q)
+  const [enlistOpen, setEnlistOpen] = useState(false)
 
   const swrKey = useMemo(() => ["admin-auto-fulfill", deferredQ] as const, [deferredQ])
   const { data, isLoading, error, mutate } = useSWR(swrKey, () => fetchAdminAutoFulfillDashboard(deferredQ), {
@@ -426,11 +432,22 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
                 </div>
               </div>
               <p className="max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Achat automatique côté Affisell après paiement client. Configurez le lien fournisseur par produit,
-                puis pilotez le pipeline ci-dessous.
+                Achat automatique côté Affisell après paiement client. Enliste un produit AliExpress
+                en un clic (sans compte supplier), configure le mapping SKU, puis pilote le pipeline.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 lg:max-w-xs lg:flex-col">
+              <AutoFulfillEnlistTrigger onClick={() => setEnlistOpen(true)} />
+              <Link
+                href="/admin/products/new"
+                className={cn(
+                  affisellBrand.epoxyChip,
+                  "inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold text-brand hover:text-brand-hover dark:text-brand-light"
+                )}
+              >
+                <Plus className="h-4 w-4" aria-hidden />
+                Formulaire complet
+              </Link>
               <Link
                 href="/admin/integrations/autods"
                 className={cn(
@@ -531,19 +548,22 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
           <AutoFulfillSectionShell
             eyebrow="Catalogue"
             title="Produits"
-            description="Collez l’URL AliExpress et activez l’auto-achat par fiche produit."
+            description="Enliste une URL AliExpress, active l’auto-achat, puis affine le mapping SKU."
             action={
-              <div className="relative w-full max-w-sm">
-                <Search
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
-                  aria-hidden
-                />
-                <Input
-                  className="rounded-full border-violet-200/80 bg-white pl-9 shadow-sm dark:border-violet-900/50 dark:bg-zinc-950"
-                  placeholder="Recherche nom, id, email fournisseur…"
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                />
+              <div className="flex w-full flex-col gap-2 sm:max-w-md sm:flex-row sm:items-center">
+                <AutoFulfillEnlistTrigger onClick={() => setEnlistOpen(true)} />
+                <div className="relative w-full flex-1">
+                  <Search
+                    className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+                    aria-hidden
+                  />
+                  <Input
+                    className="rounded-full border-violet-200/80 bg-white pl-9 shadow-sm dark:border-violet-900/50 dark:bg-zinc-950"
+                    placeholder="Recherche nom, id, email fournisseur…"
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                  />
+                </div>
               </div>
             }
           >
@@ -585,6 +605,12 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
           </AutoFulfillSectionShell>
         </div>
       </div>
+
+      <AutoFulfillEnlistSheet
+        open={enlistOpen}
+        onOpenChange={setEnlistOpen}
+        onEnlisted={() => void mutate()}
+      />
     </div>
   )
 }
