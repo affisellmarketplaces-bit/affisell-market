@@ -15,7 +15,10 @@ import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
 import { cn } from "@/lib/utils"
 
 export type MobilePdpColorMeta = {
+  /** Stable supplier color key (selection / cart matching) */
   name: string
+  /** Shopper-facing label (affiliate rename or same as name) */
+  displayName: string
   meta?: { hex: string; multicolor?: boolean }
   imageUrl?: string | null
 }
@@ -213,8 +216,8 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                 showColorSwatches ? (
                   <ProductColorSwatchButton
                     key={colorName}
-                    name={displayName}
-                    meta={resolveCatalogColorSwatch(displayName, meta)}
+                    name={displayName || colorName}
+                    meta={resolveCatalogColorSwatch(displayName || colorName, meta)}
                     imageUrl={imageUrl}
                     selected={shopperColorLabelsMatch(selectedColor, colorName)}
                     selectedClassName={brand.swatchSelectedRing}
@@ -233,7 +236,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
                         : "border-zinc-200 bg-white text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
                     )}
                   >
-                    {displayName}
+                    {displayName || colorName}
                   </button>
                 )
               )}
