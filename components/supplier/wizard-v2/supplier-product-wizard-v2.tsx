@@ -45,7 +45,13 @@ import {
 } from "@/lib/product-wizard-v2/shopify-detect"
 import type { WizardV2Mode } from "@/lib/product-wizard-v2/feature-flag"
 import { resolveWizardV2Mode } from "@/lib/product-wizard-v2/feature-flag"
-import { buildUrlImportFormPatch } from "@/lib/url-import-apply"
+import {
+  writeSupplierAddProductDraftCache,
+  type SupplierSimpleColorRow,
+} from "@/lib/supplier-add-product-draft-cache"
+import { DELIVERY_WORLDWIDE } from "@/lib/supplier-delivery-countries"
+import { skuTableRowFromApiVariant } from "@/lib/supplier-sku-builder"
+import { buildUrlImportFormPatch, type UrlImportFormPatch } from "@/lib/url-import-apply"
 import { publishBlockedUploadMessage } from "@/lib/upload/zero-wait-uploader"
 import { cn } from "@/lib/utils"
 import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
@@ -107,6 +113,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     hasVariants: boolean
     variants: ProductVariantInput[]
   } | null>(null)
+  const [expressImportPatch, setExpressImportPatch] = useState<UrlImportFormPatch | null>(null)
   const [uploadBusy, setUploadBusy] = useState(false)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
@@ -230,6 +237,107 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     },
     [completeStep]
   )
+
+  const openFullWizardPrefilled = useCallback(() => {
+    if (!name.trim()) {
+      toast.error("Importez d'abord un produit")
+      return
+    }
+
+    const patch = expressImportPatch
+    const simpleColorRows: SupplierSimpleColorRow[] =
+      patch?.variants.mode === "simple"
+        ? (patch.variants.simpleColors ?? []).map((row) => ({
+            id: row.id,
+            name: row.name,
+            image: row.image,
+          }))
+        : []
+
+    writeSupplierAddProductDraftCache(ownerUserId, {
+      mode: "compose",
+      step: 2,
+      name: name.trim(),
+      description: description.trim(),
+      categoryId: categoryId.trim(),
+      images,
+      price: price.trim(),
+      compareAt: patch?.compareAt ?? "",
+      stock:
+        patch?.stock ??
+        String(
+          skuVariants?.hasVariants
+            ? skuVariants.variants.reduce((acc, row) => acc + Math.max(0, row.stock), 0)
+            : 99
+        ),
+      listingKind: "PHYSICAL",
+      commission: String(commissionPct),
+      shippingCountry: patch?.shippingCountry || defaults?.countryCode || "FR",
+      warehouseType:
+        patch?.warehouseType ||
+        (defaults?.warehouseType === "local" ||
+        defaults?.warehouseType === "regional" ||
+        defaults?.warehouseType === "international"
+          ? defaults.warehouseType
+          : "regional"),
+      deliveryCountryCodes: [DELIVERY_WORLDWIDE],
+      processingTime: patch?.processingTime ?? "1",
+      deliveryMin: patch?.deliveryMin ?? "2",
+      deliveryMax: patch?.deliveryMax ?? "7",
+      shippingCost: patch?.shippingCost ?? "0",
+      shipsFrom: "",
+      deliveryDays: "",
+      freeShipping: patch?.shippingCost === "0",
+      offerMode: defaults?.offerMode ?? "NEW",
+      minOrderQuantity: 1,
+      supplierTag: "express-import",
+      specValues: patch?.specValuesPatch ?? {},
+      descriptionBullets: [],
+      descriptionIllustrationImages: images.slice(1, 12),
+      descriptionIllustrationVideos: patch?.illustrationVideos ?? [],
+      variantFormMode: skuVariants?.hasVariants
+        ? "advanced"
+        : patch?.variants.mode === "simple"
+          ? "simple"
+          : "none",
+      variantSizesText:
+        patch?.variants.mode === "simple" ? patch.variants.sizes.join(", ") : "",
+      variantColorsText:
+        patch?.variants.mode === "simple" ? simpleColorRows.map((row) => row.name).join(", ") : "",
+      simpleColorRows,
+      variantRows: patch?.variants.mode === "advanced" ? patch.variants.variantRows : [],
+      advancedSkuRows:
+        skuVariants?.hasVariants && skuVariants.variants.length > 0
+          ? skuVariants.variants.map((row) =>
+              skuTableRowFromApiVariant({
+                ...row,
+                color: row.color,
+                size: row.size ?? null,
+                sku: row.sku ?? null,
+                customData: row.customData ?? null,
+              })
+            )
+          : [],
+      skuCustomColumns: [],
+      skuHiddenColumns: [],
+    })
+
+    push("/dashboard/supplier/products/new?wizard=v1&compose=1")
+  }, [
+    categoryId,
+    commissionPct,
+    defaults?.countryCode,
+    defaults?.offerMode,
+    defaults?.warehouseType,
+    description,
+    expressImportPatch,
+    images,
+    name,
+    ownerUserId,
+    price,
+    push,
+    skuVariants,
+  ])
 
   const applyInstantScanFields = useCallback(
     (data: {
@@ -572,6 +680,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         categoryAttrs: [],
         commissionPct: String(defaults?.defaultCommissionPct ?? 15),
       })
+      setExpressImportPatch(patch)
       const title =
         patch.name.trim() ||
         (typeof p.ai_title === "string" ? p.ai_title.trim() : "") ||
@@ -609,6 +718,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       } else {
         setSkuVariants(null)
       }
+      setShowAdvanced(true)
       completeStep("express_import")
       const warn = Array.isArray(data.warnings) ? data.warnings.filter(Boolean) : []
       if (warn[0]) toast.message(warn[0], { duration: 5000 })
@@ -1066,6 +1176,11 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                     <p>Pays : {defaults.countryCode}</p>
                     <p>Zone : {defaults.warehouseType}</p>
                     <p>Commission affiliés : {commissionPct} %</p>
+                    {expressImportPatch ? (
+                      <Button type="button" variant="outline" onClick={openFullWizardPrefilled}>
+                        Ouvrir tous les détails préremplis
+                      </Button>
+                    ) : null}
                   </div>
                 ) : null}
 
@@ -1080,6 +1195,15 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                   Publier le produit
                 </Button>
                 <p className="text-xs text-zinc-500">
+                  {expressImportPatch ? (
+                    <button
+                      type="button"
+                      className="mb-2 block text-left font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
+                      onClick={openFullWizardPrefilled}
+                    >
+                      Compléter automatiquement le reste des détails dans le wizard complet
+                    </button>
+                  ) : null}
                   <a href="?wizard=v1&compose=1" className="underline">
                     Ouvrir le wizard classique (v1)
                   </a>
