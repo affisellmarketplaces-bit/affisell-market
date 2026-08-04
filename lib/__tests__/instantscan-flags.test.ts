@@ -17,9 +17,28 @@ describe("instantscan flags", () => {
     expect(isInstantScanServerEnabled({ ENABLE_AI_VISION_V2: "1" })).toBe(true)
   })
 
-  it("disables when ENABLE_INSTANTSCAN empty string", () => {
+  it("disables when ENABLE_INSTANTSCAN=0 even if OpenAI key present", () => {
     expect(
-      isInstantScanServerEnabled({ ENABLE_INSTANTSCAN: "", ENABLE_AI_VISION_V2: "" })
+      isInstantScanServerEnabled({
+        ENABLE_INSTANTSCAN: "0",
+        OPENAI_API_KEY: "sk-test",
+      })
+    ).toBe(false)
+  })
+
+  it("auto-enables when OpenAI key is configured", () => {
+    expect(
+      isInstantScanServerEnabled({
+        ENABLE_INSTANTSCAN: "",
+        ENABLE_AI_VISION_V2: "",
+        OPENAI_API_KEY: "sk-test",
+      })
+    ).toBe(true)
+  })
+
+  it("stays off without flag and without OpenAI key", () => {
+    expect(
+      isInstantScanServerEnabled({ ENABLE_INSTANTSCAN: "", ENABLE_AI_VISION_V2: "", OPENAI_API_KEY: "" })
     ).toBe(false)
   })
 

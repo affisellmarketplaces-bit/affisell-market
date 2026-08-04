@@ -15,7 +15,16 @@ describe("parseAliExpressProductId", () => {
     ).toBe("1005008719608144")
   })
 
-  it("detects aliexpress hosts", () => {
-    expect(isAliExpressImportInput("https://fr.aliexpress.com/item/1.html")).toBe(true)
+  it("parses tracking / origin_prod embeds", () => {
+    expect(
+      parseAliExpressProductId(
+        "https://s.click.aliexpress.com/e/_pSomething?_p_origin_prod:1005012670002032"
+      )
+    ).toBe("1005012670002032")
+    expect(
+      parseAliExpressProductId(
+        "https://www.aliexpress.com/item/x.html?%7C_p_origin_prod%3A1005012670002032"
+      )
+    ).toBe("1005012670002032")
   })
 })

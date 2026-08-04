@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { AGENTS, PLATFORMS } from "@/lib/agents"
 import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
+import { tryImportChinaViaAgent } from "@/lib/import-china-ae-bridge"
 import { handleSupplierImportUrl } from "@/lib/supplier-import-url-handler"
 
 export const runtime = "nodejs"
@@ -14,6 +15,8 @@ export const dynamic = "force-dynamic"
  * loggés pour Metabase, puis l'import délègue au handler URL existant
  * (OneBound pour 1688, scraping pour le reste). Idempotent : pré-remplit
  * la fiche, ne crée rien en base.
+ *
+ * AliExpress → import agent (API + scrape fallback) so Express Wizard works.
  */
 export async function POST(req: Request) {
   const session = await auth()
@@ -51,10 +54,13 @@ export async function POST(req: Request) {
     result: "import_requested",
   })
 
-  const res = await handleSupplierImportUrl(session.user.id, {
+  const importBody = {
     url: body.url,
     options: body.options,
-  })
+  }
+
+  const aeRes = await tryImportChinaViaAgent(importBody)
+  const res = aeRes ?? (await handleSupplierImportUrl(session.user.id, importBody))
 
   // Renvoie le choix d'agent au client pour affichage (badge récap).
   if (res instanceof NextResponse && res.ok && agent) {

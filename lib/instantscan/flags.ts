@@ -2,11 +2,16 @@ import { INSTANTSCAN_NAME, INSTANTSCAN_PRODUCT_NAME } from "@/lib/instantscan/br
 
 export { INSTANTSCAN_NAME, INSTANTSCAN_PRODUCT_NAME, getInstantScanDisplayName } from "@/lib/instantscan/brand"
 
-/** Server — ENABLE_INSTANTSCAN=1|true OR ENABLE_AI_VISION_V2=1|true */
+/** Server — ENABLE_INSTANTSCAN=1|true OR ENABLE_AI_VISION_V2=1|true OR OpenAI key present.
+ * Explicit ENABLE_INSTANTSCAN=0|false always disables.
+ */
 export function isInstantScanServerEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   const instant = env.ENABLE_INSTANTSCAN?.trim().toLowerCase()
+  if (instant === "0" || instant === "false") return false
   const vision = env.ENABLE_AI_VISION_V2?.trim().toLowerCase()
-  return instant === "1" || instant === "true" || vision === "1" || vision === "true"
+  if (instant === "1" || instant === "true" || vision === "1" || vision === "true") return true
+  // Production-friendly: InstantScan works whenever vision API is configured
+  return Boolean(env.OPENAI_API_KEY?.trim())
 }
 
 /**

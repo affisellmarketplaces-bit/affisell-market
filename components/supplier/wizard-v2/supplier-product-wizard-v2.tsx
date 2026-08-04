@@ -535,7 +535,13 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         credentials: "include",
         body: JSON.stringify({ url: u, options: { aiRewrite: true, markup: 2.5 } }),
       })
-      const data = (await res.json()) as { products?: unknown[]; error?: string }
+      const data = (await res.json()) as {
+        products?: unknown[]
+        error?: string
+        warnings?: string[]
+        method?: string
+        category?: { leafId?: string | null; breadcrumb?: string } | null
+      }
       if (!res.ok) throw new Error(data.error ?? "import_failed")
       const raw = Array.isArray(data.products) ? data.products[0] : null
       const p =
@@ -546,13 +552,29 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         categoryAttrs: [],
         commissionPct: String(defaults?.defaultCommissionPct ?? 15),
       })
-      setName(patch.name)
+      const title =
+        patch.name.trim() ||
+        (typeof p.ai_title === "string" ? p.ai_title.trim() : "") ||
+        (typeof p.title === "string" ? p.title.trim() : "")
+      if (!title) throw new Error("Titre introuvable — réessayez ou passez en InstantScan")
+      setName(title.slice(0, 500))
       setDescription(patch.description)
-      setPrice(String(patch.price))
-      if (patch.categoryId) setCategoryId(patch.categoryId)
+      if (patch.price) setPrice(String(patch.price))
+      const catFromProduct =
+        (typeof p.categoryId === "string" && p.categoryId.trim()) ||
+        data.category?.leafId?.trim() ||
+        ""
+      if (catFromProduct) setCategoryId(catFromProduct)
+      else if (patch.categoryId) setCategoryId(patch.categoryId)
       if (patch.images[0]) setImages(patch.images)
       completeStep("express_import")
-      toast.success("Produit importé — vérifiez l'aperçu")
+      const warn = Array.isArray(data.warnings) ? data.warnings.filter(Boolean) : []
+      if (warn[0]) toast.message(warn[0], { duration: 5000 })
+      toast.success(
+        data.method?.includes("aliexpress")
+          ? "AliExpress importé — vérifiez l'aperçu"
+          : "Produit importé — vérifiez l'aperçu"
+      )
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Import impossible")
     } finally {
@@ -728,18 +750,22 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                   <Zap className="h-5 w-5 text-amber-500" aria-hidden />
                   Express — collez une URL
                 </h2>
-                <Label htmlFor="express-url">URL produit (Shopify, marketplace…)</Label>
+                <Label htmlFor="express-url">URL produit (AliExpress, Shopify, marketplace…)</Label>
                 <Input
                   id="express-url"
                   value={expressUrl}
                   onChange={(e) => setExpressUrl(e.target.value)}
-                  placeholder="https://…"
+                  placeholder="https://www.aliexpress.com/item/… ou Shopify"
                   className="h-11"
                 />
                 <Button type="button" disabled={publishing} onClick={() => void runExpressImport()}>
                   {publishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Analyser l&apos;URL
                 </Button>
+                <p className="text-xs text-zinc-500">
+                  AliExpress passe par l&apos;API officielle (titre, prix, photos). Shopify et autres marketplaces
+                  restent en scrape Express.
+                </p>
               </section>
             ) : (
               <section aria-labelledby="guided-heading" className="space-y-4">
