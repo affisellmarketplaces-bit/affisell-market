@@ -1420,10 +1420,13 @@
       "supplierSheetAria": "Fiche fournisseur"
     },
     "catalogFilters": {
-      "groupAria": "Filtres vitrine et date d'ajout",
-      "horsVitrine": "Pas encore en vitrine",
-      "horsVitrineActive": "à publier",
-      "horsVitrineOnHint": "Activer : n'afficher que les nouveautés et fiches pas encore publiées",
+      "groupAria": "Filtres boutique et date d'ajout",
+      "notInStoreYet": "Pas encore dans ma boutique",
+      "notInStoreYetOn": "ON — uniquement les produits à importer",
+      "notInStoreYetOff": "Appuyez pour masquer les SKU déjà en vitrine",
+      "horsVitrine": "Pas encore dans ma boutique",
+      "horsVitrineActive": "pas encore dans ma boutique",
+      "horsVitrineOnHint": "Activer : masquer les SKU déjà en vitrine",
       "horsVitrineOffHint": "Désactiver : afficher tout le catalogue",
       "toggleOn": "ON",
       "toggleOff": "OFF",

@@ -10,7 +10,6 @@ import {
   Eye,
   Filter,
   Loader2,
-  PackageX,
   Search,
   Sparkles,
   Store,
@@ -606,98 +605,123 @@ export function AffiliateCatalogExperience({
                 </div>
               ) : null}
 
-              <div className="mb-4 flex min-h-[2.75rem] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-zinc-600 dark:text-zinc-400" aria-live="polite">
-                  {initialLoading ? (
-                    <span className="inline-block h-4 w-24 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
-                  ) : (
-                    <>
-                      <strong className="font-semibold text-zinc-900 dark:text-zinc-100">{filteredCount}</strong> SKU
-                      {searchQuery.trim() ? (
-                        <>
-                          {" "}
-                          pour « {searchQuery.trim()} »
-                        </>
-                      ) : null}
-                      {horsVitrineOn ? (
-                        <span className="ml-1.5 text-orange-700 dark:text-orange-300">
-                          · {tFilters("horsVitrineActive")}
-                        </span>
-                      ) : null}
-                      {addedWindow !== "all" ? (
-                        <span className="ml-1.5 text-violet-700 dark:text-violet-300">
-                          · {tFilters("addedActive", { window: tFilters(`added.${addedWindow}`) })}
-                        </span>
-                      ) : null}
-                      {refreshing ? (
-                        <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400">
-                          <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
-                          {tFilters("updating")}
-                        </span>
-                      ) : null}
-                    </>
-                  )}
-                </p>
-
-                <div
-                  className="flex flex-wrap items-center gap-2"
-                  role="group"
-                  aria-label={tFilters("groupAria")}
-                >
-                  <button
-                    type="button"
-                    onClick={toggleHorsVitrine}
-                    aria-pressed={horsVitrineOn}
-                    title={horsVitrineOn ? tFilters("horsVitrineOffHint") : tFilters("horsVitrineOnHint")}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm transition will-change-transform",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60 focus-visible:ring-offset-2",
-                      horsVitrineOn
-                        ? "border-orange-500 bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-orange-500/25"
-                        : "border-orange-200/90 bg-white text-orange-800 hover:border-orange-400 hover:bg-orange-50 dark:border-orange-900/50 dark:bg-zinc-950 dark:text-orange-200 dark:hover:bg-orange-950/40"
-                    )}
-                  >
-                    {horsVitrineOn ? (
-                      <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              <div className="mb-4 space-y-3">
+                <div className="flex min-h-[2.75rem] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400" aria-live="polite">
+                    {initialLoading ? (
+                      <span className="inline-block h-4 w-24 animate-pulse rounded bg-zinc-200 dark:bg-zinc-800" />
                     ) : (
-                      <PackageX className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                      <>
+                        <strong className="font-semibold text-zinc-900 dark:text-zinc-100">{filteredCount}</strong> SKU
+                        {searchQuery.trim() ? (
+                          <>
+                            {" "}
+                            pour « {searchQuery.trim()} »
+                          </>
+                        ) : null}
+                        {horsVitrineOn ? (
+                          <span className="ml-1.5 text-violet-700 dark:text-violet-300">
+                            · {tFilters("horsVitrineActive")}
+                          </span>
+                        ) : null}
+                        {addedWindow !== "all" ? (
+                          <span className="ml-1.5 text-violet-700 dark:text-violet-300">
+                            · {tFilters("addedActive", { window: tFilters(`added.${addedWindow}`) })}
+                          </span>
+                        ) : null}
+                        {refreshing ? (
+                          <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400">
+                            <Loader2 className="h-3 w-3 animate-spin" aria-hidden />
+                            {tFilters("updating")}
+                          </span>
+                        ) : null}
+                      </>
                     )}
-                    <span>{tFilters("horsVitrine")}</span>
+                  </p>
+
+                  <div
+                    className="flex flex-wrap items-center gap-2"
+                    role="group"
+                    aria-label={tFilters("groupAria")}
+                  >
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                      {tFilters("addedLabel")}
+                    </span>
+                    {ADDED_WINDOW_OPTIONS.map((window) => (
+                      <button
+                        key={window}
+                        type="button"
+                        onClick={() => setAddedWindow(window)}
+                        aria-pressed={addedWindow === window}
+                        className={cn(
+                          "rounded-full border px-2.5 py-1 text-[11px] font-semibold transition",
+                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/50",
+                          addedWindow === window
+                            ? "border-violet-500 bg-violet-600 text-white shadow-sm shadow-violet-500/20"
+                            : "border-zinc-200 bg-white text-zinc-600 hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300"
+                        )}
+                      >
+                        {tFilters(`added.${window}`)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={horsVitrineOn}
+                  onClick={toggleHorsVitrine}
+                  title={horsVitrineOn ? tFilters("horsVitrineOffHint") : tFilters("horsVitrineOnHint")}
+                  className={cn(
+                    "group relative flex w-full max-w-xl items-center gap-3 overflow-hidden rounded-xl border px-3.5 py-3 text-left transition",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60 focus-visible:ring-offset-2",
+                    horsVitrineOn
+                      ? "border-violet-500/60 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500 text-white shadow-md shadow-violet-500/25 ring-1 ring-violet-400/40"
+                      : "border-violet-300/70 bg-gradient-to-r from-violet-50 via-white to-fuchsia-50 text-violet-950 hover:border-violet-400 hover:shadow-sm dark:border-violet-700/50 dark:from-violet-950/50 dark:via-zinc-950 dark:to-fuchsia-950/30 dark:text-violet-100"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                      horsVitrineOn
+                        ? "bg-white/20 text-white"
+                        : "bg-violet-100 text-violet-700 dark:bg-violet-900/60 dark:text-violet-200"
+                    )}
+                    aria-hidden
+                  >
+                    <Filter className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-bold tracking-tight">
+                      {tFilters("notInStoreYet")}
+                    </span>
                     <span
                       className={cn(
-                        "rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                        "mt-0.5 block text-[11px] leading-snug",
                         horsVitrineOn
-                          ? "bg-white/25 text-white"
-                          : "bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-200"
+                          ? "text-violet-100/90"
+                          : "text-violet-700/75 dark:text-violet-300/80"
                       )}
                     >
-                      {horsVitrineOn ? tFilters("toggleOn") : tFilters("toggleOff")}
+                      {horsVitrineOn ? tFilters("notInStoreYetOn") : tFilters("notInStoreYetOff")}
                     </span>
-                  </button>
-
-                  <span className="hidden h-4 w-px bg-zinc-200 sm:block dark:bg-zinc-700" aria-hidden />
-
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-                    {tFilters("addedLabel")}
                   </span>
-                  {ADDED_WINDOW_OPTIONS.map((window) => (
-                    <button
-                      key={window}
-                      type="button"
-                      onClick={() => setAddedWindow(window)}
-                      aria-pressed={addedWindow === window}
+                  <span
+                    className={cn(
+                      "relative h-6 w-11 shrink-0 rounded-full transition",
+                      horsVitrineOn ? "bg-white/30" : "bg-violet-200 dark:bg-violet-800"
+                    )}
+                    aria-hidden
+                  >
+                    <span
                       className={cn(
-                        "rounded-full border px-2.5 py-1 text-[11px] font-semibold transition",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/50",
-                        addedWindow === window
-                          ? "border-violet-500 bg-violet-600 text-white shadow-sm shadow-violet-500/20"
-                          : "border-zinc-200 bg-white text-zinc-600 hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300"
+                        "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition",
+                        horsVitrineOn ? "left-[1.375rem]" : "left-0.5"
                       )}
-                    >
-                      {tFilters(`added.${window}`)}
-                    </button>
-                  ))}
-                </div>
+                    />
+                  </span>
+                </button>
               </div>
 
               {initialLoading ? (
