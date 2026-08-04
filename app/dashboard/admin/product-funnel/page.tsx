@@ -48,7 +48,7 @@ export default function AdminProductFunnelPage() {
         <h2 className="text-sm font-semibold text-violet-900 dark:text-violet-100">PostHog dashboard</h2>
         <p className="mt-2 text-sm text-violet-900/80 dark:text-violet-200/80">
           Create a funnel: <strong>wizard_v2_view</strong> → <strong>wizard_v2_publish_success</strong>.
-          Break down by <code>mode</code> (express / guided). Alert if{" "}
+          Break down by <code>mode</code> (express / pro). Alert if{" "}
           <code>wizard_v2_publish_blocked</code> rate &gt; 15%.
         </p>
         {projectId ? (

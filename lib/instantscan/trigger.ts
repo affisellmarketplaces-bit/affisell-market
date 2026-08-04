@@ -4,8 +4,11 @@ export type InstantScanUiState = "idle" | "loading" | "done" | "gate" | "error"
 
 export const INSTANTSCAN_CDN_RECHECK_MS = 500
 
+/** Legacy guided mode kept for unit tests / dormant trigger — not exposed in UI. */
+export type InstantScanTriggerMode = WizardV2Mode | "guided"
+
 export type InstantScanTriggerInput = {
-  mode: WizardV2Mode
+  mode: InstantScanTriggerMode
   guidedStep: number
   primaryImageUrl: string | null | undefined
   analyzeState: InstantScanUiState

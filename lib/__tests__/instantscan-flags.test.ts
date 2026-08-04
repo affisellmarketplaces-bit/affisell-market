@@ -9,15 +9,23 @@ import {
 } from "@/lib/instantscan/flags"
 
 describe("instantscan flags", () => {
-  it("enables server when ENABLE_INSTANTSCAN=1", () => {
+  it("enables server only when ENABLE_INSTANTSCAN=1|true (product retired)", () => {
     expect(isInstantScanServerEnabled({ ENABLE_INSTANTSCAN: "1" })).toBe(true)
+    expect(isInstantScanServerEnabled({ ENABLE_INSTANTSCAN: "true" })).toBe(true)
   })
 
-  it("enables server when ENABLE_AI_VISION_V2=1", () => {
-    expect(isInstantScanServerEnabled({ ENABLE_AI_VISION_V2: "1" })).toBe(true)
+  it("ignores ENABLE_AI_VISION_V2 and OpenAI key — InstantScan UI retired", () => {
+    expect(isInstantScanServerEnabled({ ENABLE_AI_VISION_V2: "1" })).toBe(false)
+    expect(
+      isInstantScanServerEnabled({
+        ENABLE_INSTANTSCAN: "",
+        ENABLE_AI_VISION_V2: "",
+        OPENAI_API_KEY: "sk-test",
+      })
+    ).toBe(false)
   })
 
-  it("disables when ENABLE_INSTANTSCAN=0 even if OpenAI key present", () => {
+  it("disables when ENABLE_INSTANTSCAN=0", () => {
     expect(
       isInstantScanServerEnabled({
         ENABLE_INSTANTSCAN: "0",
@@ -26,32 +34,18 @@ describe("instantscan flags", () => {
     ).toBe(false)
   })
 
-  it("auto-enables when OpenAI key is configured", () => {
-    expect(
-      isInstantScanServerEnabled({
-        ENABLE_INSTANTSCAN: "",
-        ENABLE_AI_VISION_V2: "",
-        OPENAI_API_KEY: "sk-test",
-      })
-    ).toBe(true)
-  })
-
-  it("stays off without flag and without OpenAI key", () => {
+  it("stays off without explicit InstantScan flag", () => {
     expect(
       isInstantScanServerEnabled({ ENABLE_INSTANTSCAN: "", ENABLE_AI_VISION_V2: "", OPENAI_API_KEY: "" })
     ).toBe(false)
   })
 
-  it("enables server when ENABLE_INSTANTSCAN=true", () => {
-    expect(isInstantScanServerEnabled({ ENABLE_INSTANTSCAN: "true" })).toBe(true)
+  it("getClientFlag is false (InstantScan not offered in UI)", () => {
+    expect(getClientFlag({})).toBe(false)
+    expect(getClientFlag({ NEXT_PUBLIC_ENABLE_INSTANTSCAN: "1" })).toBe(false)
   })
 
-  it("getClientFlag is always true (API is source of truth)", () => {
-    expect(getClientFlag({})).toBe(true)
-    expect(getClientFlag({ NEXT_PUBLIC_ENABLE_INSTANTSCAN: "1" })).toBe(true)
-  })
-
-  it("display name is always InstantScan product brand", () => {
+  it("display name remains InstantScan product brand for dormant API", () => {
     expect(getInstantScanDisplayName()).toBe("⚡ InstantScan")
     expect(INSTANTSCAN_NAME).toBe(INSTANTSCAN_PRODUCT_NAME)
   })

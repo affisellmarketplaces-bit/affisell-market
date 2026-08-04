@@ -53,15 +53,29 @@ function isTruthyFlag(name) {
   return v === "1" || v === "true"
 }
 
+// InstantScan product UI retired (Express + Pro). Route stays opt-in for diagnostics.
+const instantOn = isTruthyFlag("ENABLE_INSTANTSCAN")
 ok(
-  "ENABLE_INSTANTSCAN or ENABLE_AI_VISION_V2",
-  isTruthyFlag("ENABLE_INSTANTSCAN") || isTruthyFlag("ENABLE_AI_VISION_V2"),
-  `INSTANTSCAN=${process.env.ENABLE_INSTANTSCAN?.trim() || "(unset)"} V2=${process.env.ENABLE_AI_VISION_V2?.trim() || "(unset)"}`
+  "InstantScan product status",
+  true,
+  instantOn
+    ? "ENABLE_INSTANTSCAN=1 (dormant API opt-in)"
+    : "retired from wizard UI — Express + Pro only"
 )
 
-const openaiKey = process.env.OPENAI_API_KEY?.trim()
-ok("OPENAI_API_KEY", Boolean(openaiKey), openaiKey ? `${openaiKey.slice(0, 7)}…` : "missing")
+if (instantOn) {
+  ok(
+    "OPENAI_API_KEY (required when InstantScan API opted in)",
+    Boolean(process.env.OPENAI_API_KEY?.trim()),
+    process.env.OPENAI_API_KEY?.trim()
+      ? `${process.env.OPENAI_API_KEY.trim().slice(0, 7)}…`
+      : "missing"
+  )
+} else {
+  ok("OPENAI_API_KEY", true, "optional while InstantScan UI retired")
+}
 
+const openaiKey = process.env.OPENAI_API_KEY?.trim()
 const model = process.env.PRODUCT_VISION_V2_MODEL?.trim() || "gpt-4o"
 const badModel = /gpt-4o-\d{4}-\d{2}-\d{2}/i.test(model)
 const resolvedModel = badModel ? "gpt-4o" : model

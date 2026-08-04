@@ -1,6 +1,7 @@
 export type ProductWizardVersion = "v1" | "v2"
 
-export type WizardV2Mode = "express" | "guided" | "pro"
+/** InstantScan (`guided`) retired — v2 ships Express + Pro only. */
+export type WizardV2Mode = "express" | "pro"
 
 /** Server + client: ENABLE_WIZARD_V2=1|true enables v2 by default. */
 export function isWizardV2EnvEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
@@ -26,8 +27,12 @@ export function resolveProductWizardVersion(args: {
   return args.envEnabled ? "v2" : "v1"
 }
 
+/**
+ * Express is the only v2 publish path.
+ * Legacy `guided` / InstantScan query params map to Express (no dead-end UI).
+ */
 export function resolveWizardV2Mode(modeQuery?: string | null): WizardV2Mode {
   const mode = modeQuery?.trim().toLowerCase()
-  if (mode === "express" || mode === "guided" || mode === "pro") return mode
-  return "guided"
+  if (mode === "pro") return "pro"
+  return "express"
 }

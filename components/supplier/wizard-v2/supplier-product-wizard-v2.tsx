@@ -2,17 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { Loader2, Sparkles, Zap } from "lucide-react"
+import { Loader2, Zap } from "lucide-react"
 import { toast } from "sonner"
 
 import { BentoShell } from "@/components/affisell/bento-ui"
-import {
-  toastInstantScanApiError,
-  toastInstantScanLoading,
-  toastInstantScanNetworkError,
-  toastInstantScanRetrying,
-  toastInstantScanSuccess,
-} from "@/components/instantscan-toast"
 import { CategoryAutosuggest } from "@/components/product/CategoryAutosuggest"
 import { SmartMarginAiPanel } from "@/components/supplier/smart-margin-ai-panel"
 import { ProductLivePreview } from "@/components/supplier/product-live-preview"
@@ -30,15 +23,6 @@ import {
 } from "@/lib/analytics/wizard-v2-posthog"
 import { buildWizardV2PublishBody } from "@/lib/product-wizard-v2/build-publish-payload"
 import type { ProductVariantInput } from "@/lib/product-variant-sku"
-import { compressDataUrlForInstantScan } from "@/lib/product-image-upload"
-import {
-  instantScanStageFromVisionVersion,
-  trackInstantScanApiCalled,
-  trackInstantScanError,
-  trackInstantScanGateTriggered,
-  trackInstantScanResult,
-  trackInstantScanTriggerAttempt,
-} from "@/lib/telemetry"
 import {
   hasShopifyIntegration,
   shopifyDomainFromIntegrations,
@@ -55,25 +39,6 @@ import { buildUrlImportFormPatch, type UrlImportFormPatch } from "@/lib/url-impo
 import { publishBlockedUploadMessage } from "@/lib/upload/zero-wait-uploader"
 import { cn } from "@/lib/utils"
 import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
-import {
-  analyzeWithRetry,
-  INSTANTSCAN_FETCH_TIMEOUT_MS,
-} from "@/lib/ai/instantscan-client"
-import { INSTANTSCAN_PRODUCT_NAME } from "@/lib/instantscan/brand"
-import { logInstantScan } from "@/lib/instantscan/log"
-import {
-  canStartInstantScanAnalyze,
-  createInstantScanSessionState,
-  markInstantScanAnalyzeEnd,
-  markInstantScanAnalyzeStart,
-  markInstantScanRateLimited,
-  resetInstantScanSession,
-} from "@/lib/instantscan/session"
-import {
-  INSTANTSCAN_CDN_RECHECK_MS,
-  resolveInstantScanTrigger,
-  type InstantScanUiState,
-} from "@/lib/instantscan/trigger"
 
 type MerchantDefaults = {
   countryCode: string | null
@@ -86,15 +51,8 @@ type Props = {
   ownerUserId: string
 }
 
-const instantScanBrand = INSTANTSCAN_PRODUCT_NAME
-
 const MODES: { id: WizardV2Mode; label: string; hint: string }[] = [
   { id: "express", label: "Express", hint: "URL → preview → publish (~15 s)" },
-  {
-    id: "guided",
-    label: instantScanBrand,
-    hint: `Photo → ${instantScanBrand} → prix (~60 s)`,
-  },
   { id: "pro", label: "Pro", hint: "Wizard classique v1" },
 ]
 
@@ -121,28 +79,10 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   const [categoryBreadcrumb, setCategoryBreadcrumb] = useState("")
   const [price, setPrice] = useState("")
   const [expressUrl, setExpressUrl] = useState("")
-  const [guidedStep, setGuidedStep] = useState(0)
-  const [instantScanState, setInstantScanState] = useState<InstantScanUiState>("idle")
-  const instantScanImageRef = useRef<string | null>(null)
-  const instantScanPrimaryUrlRef = useRef<string | null>(null)
-  const [processedImageDataUrl, setProcessedImageDataUrl] = useState<string | null>(null)
-  const instantScanSessionRef = useRef(createInstantScanSessionState())
-  const instantScanDataUrlRef = useRef<string | null>(null)
-  const [cdnPollTick, setCdnPollTick] = useState(0)
-  const [aiSuggestion, setAiSuggestion] = useState<{
-    title: string
-    description: string
-    categoryId: string | null
-    suggestedPrice: number | null
-    confidence?: number | null
-    needsReview?: boolean
-  } | null>(null)
-  const [instantScanError, setInstantScanError] = useState<string | null>(null)
   const [publishing, setPublishing] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [commissionPct, setCommissionPct] = useState(15)
-  const lastStepRef = useRef("0")
-  lastStepRef.current = String(guidedStep)
+  const lastStepRef = useRef("express")
 
   useEffect(() => {
     trackWizardV2View({ mode, entry_point: "compose" })
@@ -159,6 +99,17 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     if (!mounted || mode !== "pro") return
     replace("/dashboard/supplier/products/new?wizard=v1&compose=1", { scroll: false })
   }, [mode, mounted, replace])
+
+  // Legacy InstantScan bookmarks (?mode=guided) → Express
+  useEffect(() => {
+    if (!mounted) return
+    const raw = searchParams.get("mode")?.trim().toLowerCase()
+    if (raw !== "guided" && raw !== "instantscan") return
+    const qs = new URLSearchParams(searchParams.toString())
+    qs.set("wizard", "v2")
+    qs.set("mode", "express")
+    replace(`/dashboard/supplier/products/new?${qs.toString()}`, { scroll: false })
+  }, [mounted, replace, searchParams])
 
   useEffect(() => {
     void fetch("/api/supplier/merchant-defaults", { credentials: "include" })
@@ -205,8 +156,8 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   const catalogPriceEur = useMemo(() => {
     const n = Number(price)
     if (Number.isFinite(n) && n > 0) return n
-    return aiSuggestion?.suggestedPrice ?? 0
-  }, [price, aiSuggestion?.suggestedPrice])
+    return 0
+  }, [price])
 
   const previewData = useMemo(
     () => ({
@@ -339,318 +290,6 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     skuVariants,
   ])
 
-  const applyInstantScanFields = useCallback(
-    (data: {
-      title?: string
-      description?: string
-      categoryId?: string | null
-      suggestedPrice?: number | null
-    }) => {
-      if (data.title?.trim()) setName(data.title.trim())
-      if (data.description?.trim()) setDescription(data.description.trim())
-      if (data.categoryId) setCategoryId(data.categoryId)
-      if (data.suggestedPrice != null && Number.isFinite(data.suggestedPrice)) {
-        setPrice(String(data.suggestedPrice))
-      }
-    },
-    []
-  )
-
-  const runAiAnalyze = useCallback(async (imageUrl: string) => {
-    const session = instantScanSessionRef.current
-    const gate = canStartInstantScanAnalyze(session, imageUrl)
-    if (!gate.ok) {
-      if (gate.reason === "rate_limited") {
-        setInstantScanState("error")
-        toastInstantScanApiError({
-          status: 429,
-          error: "rate_limit",
-          retryAfterSec: gate.retryAfterSec,
-          onRetry: () => {
-            resetInstantScanSession(session)
-            instantScanImageRef.current = null
-            setInstantScanState("idle")
-          },
-        })
-      }
-      return
-    }
-
-    markInstantScanAnalyzeStart(session, imageUrl)
-    setInstantScanState("loading")
-    setInstantScanError(null)
-    const toastId = toastInstantScanLoading()
-    const analyzeStarted = Date.now()
-    const controller = new AbortController()
-    const timeoutId = globalThis.setTimeout(() => controller.abort(), INSTANTSCAN_FETCH_TIMEOUT_MS)
-    let toastSettled = false
-
-    logInstantScan("Analyzing", { imageUrl: imageUrl.slice(0, 120) })
-
-    const handleRetry = () => {
-      resetInstantScanSession(session)
-      instantScanImageRef.current = null
-      setInstantScanState("idle")
-      setInstantScanError(null)
-    }
-
-    try {
-      let imageDataUrl = instantScanDataUrlRef.current ?? processedImageDataUrl ?? undefined
-      if (imageDataUrl?.startsWith("data:image/")) {
-        try {
-          imageDataUrl = await compressDataUrlForInstantScan(imageDataUrl)
-          instantScanDataUrlRef.current = imageDataUrl
-        } catch (compressErr) {
-          console.log("[InstantScan]", {
-            result: "compress_skipped",
-            error: compressErr instanceof Error ? compressErr.message : String(compressErr),
-          })
-        }
-      }
-
-      const { ok, status, data, retryAfterSec } = await analyzeWithRetry(imageUrl, 0, {
-        signal: controller.signal,
-        imageDataUrl,
-        onRetry: () => toastInstantScanRetrying(),
-      })
-
-      const latencyMs = Date.now() - analyzeStarted
-      trackInstantScanApiCalled({ url: imageUrl, status, latency_ms: latencyMs })
-
-      const partialSuggestion = {
-        title: data.title ?? "",
-        description: data.description ?? "",
-        categoryId: data.categoryId ?? null,
-        suggestedPrice: data.suggestedPrice ?? null,
-        confidence: data.confidence ?? null,
-        needsReview: Boolean(data.needsReview) || (typeof data.confidence === "number" && data.confidence < 0.7),
-      }
-      const hasPartial =
-        Boolean(partialSuggestion.title.trim()) ||
-        (partialSuggestion.suggestedPrice != null && Number.isFinite(partialSuggestion.suggestedPrice))
-
-      if (!ok) {
-        toast.dismiss(toastId)
-        toastSettled = true
-        const detail =
-          typeof data.detail === "string" && data.detail.trim()
-            ? data.detail.trim()
-            : data.error ?? `http_${status}`
-        setInstantScanError(detail)
-        if (hasPartial) {
-          setAiSuggestion(partialSuggestion)
-          applyInstantScanFields(partialSuggestion)
-        }
-        if (status === 429 || data.error === "rate_limit") {
-          markInstantScanRateLimited(session, retryAfterSec ?? data.retry_after_sec ?? 60)
-          trackInstantScanError({ reason: "rate_limit", status })
-          setInstantScanState("error")
-          toastInstantScanApiError({
-            status: 429,
-            error: "rate_limit",
-            retryAfterSec: retryAfterSec ?? data.retry_after_sec ?? 60,
-            onRetry: handleRetry,
-          })
-          return
-        }
-        if (data.fallback === "manual" && data.error !== "missing_api_key") {
-          const reason = data.error === "low_confidence" ? "low_confidence" : "ai_unavailable"
-          trackInstantScanGateTriggered({ reason })
-          trackInstantScanError({ reason, status })
-          setInstantScanState("gate")
-          toastInstantScanApiError({ status, error: data.error, onRetry: handleRetry })
-          return
-        }
-        trackInstantScanError({ reason: data.error ?? "analyze_failed", status })
-        setInstantScanState("error")
-        toastInstantScanApiError({ status, error: data.error, onRetry: handleRetry })
-        return
-      }
-
-      const suggestion = {
-        title: data.title ?? "",
-        description: data.description ?? "",
-        categoryId: data.categoryId ?? null,
-        suggestedPrice: data.suggestedPrice ?? null,
-        confidence: data.confidence ?? null,
-        needsReview:
-          Boolean(data.needsReview) ||
-          data.fallback === true ||
-          Boolean(data.error) ||
-          (typeof data.confidence === "number" && data.confidence < 0.7),
-      }
-      setAiSuggestion(suggestion)
-      applyInstantScanFields(suggestion)
-      resetInstantScanSession(session)
-      setInstantScanState("done")
-      const modelLabel = data.detectedModel?.trim() || data.title?.trim() || "produit"
-      const confidencePct =
-        typeof data.confidence === "number" ? `${Math.round(data.confidence * 100)}%` : null
-      const resultLatencyMs = data.latencyMs ?? latencyMs
-      const stage = instantScanStageFromVisionVersion(data.visionVersion, data.instantScanStage)
-
-      trackInstantScanResult({
-        model: data.detectedModel ?? data.title ?? null,
-        confidence: data.confidence ?? null,
-        latency_ms: resultLatencyMs,
-        stage,
-      })
-
-      logInstantScan("API called", {
-        model: modelLabel,
-        latency_ms: resultLatencyMs,
-        stage,
-        cost_usd: 0.003,
-        soft_fallback: Boolean(data.error),
-      })
-
-      toastInstantScanSuccess({
-        model: modelLabel,
-        confidencePct,
-        latencyMs: resultLatencyMs,
-        toastId,
-        needsReview: suggestion.needsReview,
-      })
-      toastSettled = true
-    } catch (err) {
-      toast.dismiss(toastId)
-      toastSettled = true
-      const reason =
-        err instanceof Error && err.name === "AbortError"
-          ? "timeout"
-          : err instanceof Error
-            ? err.message
-            : "analyze_failed"
-      setInstantScanError(reason)
-      trackInstantScanGateTriggered({ reason })
-      trackInstantScanError({ reason })
-      setInstantScanState("error")
-      if (reason === "timeout" || reason === "network_error") {
-        toastInstantScanNetworkError(handleRetry)
-      } else {
-        toastInstantScanApiError({ status: 0, error: reason, onRetry: handleRetry })
-      }
-    } finally {
-      markInstantScanAnalyzeEnd(session)
-      globalThis.clearTimeout(timeoutId)
-      if (!toastSettled) toast.dismiss(toastId)
-    }
-  }, [applyInstantScanFields, processedImageDataUrl])
-
-  const retryInstantScan = useCallback(() => {
-    resetInstantScanSession(instantScanSessionRef.current)
-    instantScanImageRef.current = null
-    setInstantScanState("idle")
-    setInstantScanError(null)
-    setAiSuggestion(null)
-  }, [])
-
-  const goManualWithPrefill = useCallback(() => {
-    if (aiSuggestion) applyInstantScanFields(aiSuggestion)
-    setGuidedStep(2)
-  }, [aiSuggestion, applyInstantScanFields])
-
-  useEffect(() => {
-    const url = images[0]?.trim() ?? null
-    if (url === instantScanPrimaryUrlRef.current) return
-    const prev = instantScanPrimaryUrlRef.current
-    instantScanPrimaryUrlRef.current = url
-    instantScanImageRef.current = null
-    resetInstantScanSession(instantScanSessionRef.current)
-    // Keep local JPEG backup when CDN URL arrives for the same upload (null → https)
-    const isFirstCdnForUpload = !prev && Boolean(url?.startsWith("https://"))
-    if (!isFirstCdnForUpload) {
-      instantScanDataUrlRef.current = null
-      setProcessedImageDataUrl(null)
-    }
-    setInstantScanState("idle")
-    setAiSuggestion(null)
-    logInstantScan("Primary image changed", { url: url?.slice(0, 80) ?? null })
-  }, [images[0]])
-
-  useEffect(() => {
-    const url = images[0]?.trim() ?? null
-    if (!url || url.startsWith("https://")) return
-    logInstantScan("CDN pending — recheck", { url: url.slice(0, 40) })
-    const timer = globalThis.setTimeout(() => setCdnPollTick((t) => t + 1), INSTANTSCAN_CDN_RECHECK_MS)
-    return () => globalThis.clearTimeout(timer)
-  }, [images[0], cdnPollTick])
-
-  useEffect(() => {
-    const analyzed = instantScanState === "done"
-    const decision = resolveInstantScanTrigger({
-      mode,
-      guidedStep,
-      primaryImageUrl: images[0],
-      analyzeState: instantScanState,
-      attemptedUrl: instantScanImageRef.current,
-      mounted,
-      analyzed,
-    })
-
-    logInstantScan("Trigger check", {
-      images: images.length,
-      analyzed,
-      mounted,
-      guidedStep,
-      decision: decision.action,
-      reason: decision.action === "skip" ? decision.reason : undefined,
-    })
-
-    trackInstantScanTriggerAttempt({
-      url: images[0] ?? null,
-      guided_step: guidedStep,
-      reason: decision.action === "skip" ? decision.reason : undefined,
-      client_enabled: true,
-      mounted,
-    })
-
-    if (decision.action === "skip") return
-
-    if (decision.action === "wait_cdn") return
-
-    if (decision.action === "advance_step") {
-      logInstantScan("Trigger check", {
-        images: images.length,
-        analyzed,
-        mounted,
-        guidedStep: 0,
-        decision: "advance_step",
-      })
-      completeStep("photo")
-      setGuidedStep(1)
-      return
-    }
-
-    logInstantScan("Trigger check", {
-      images: images.length,
-      analyzed,
-      mounted,
-      guidedStep,
-      decision: "analyze",
-      url: decision.url.slice(0, 80),
-    })
-
-    instantScanImageRef.current = decision.url
-    void runAiAnalyze(decision.url)
-  }, [
-    mode,
-    guidedStep,
-    images,
-    instantScanState,
-    mounted,
-    cdnPollTick,
-    runAiAnalyze,
-    completeStep,
-  ])
-
-  const applyAiSuggestion = useCallback(() => {
-    if (!aiSuggestion) return
-    applyInstantScanFields(aiSuggestion)
-    completeStep("ai_accept")
-    setGuidedStep(2)
-  }, [aiSuggestion, applyInstantScanFields, completeStep])
-
   const runExpressImport = useCallback(async () => {
     if (publishing) return
     const u = expressUrl.trim()
@@ -692,7 +331,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         patch.name.trim() ||
         (typeof p.ai_title === "string" ? p.ai_title.trim() : "") ||
         (typeof p.title === "string" ? p.title.trim() : "")
-      if (!title) throw new Error("Titre introuvable — réessayez ou passez en InstantScan")
+      if (!title) throw new Error("Titre introuvable — réessayez ou passez en mode Pro")
       setName(title.slice(0, 500))
       setDescription(patch.description)
       if (patch.price) setPrice(String(patch.price))
@@ -775,7 +414,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     }
     if (!categoryId.trim()) {
       trackWizardV2PublishBlocked({ mode, reason: "missing_category", field: "category" })
-      toast.error(`Catégorie requise — acceptez la suggestion ${instantScanBrand} ou passez en mode Pro`)
+      toast.error("Catégorie requise — choisissez une catégorie ou passez en mode Pro")
       return
     }
     if (images.length === 0 || !images[0]?.startsWith("http")) {
@@ -824,7 +463,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       trackWizardV2PublishSuccess({
         mode,
         duration_total_ms: Date.now() - startedAt.current,
-        ai_used: Boolean(aiSuggestion),
+        ai_used: false,
         image_count: images.length,
       })
 
@@ -838,13 +477,11 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       setPublishing(false)
     }
   }, [
-    aiSuggestion,
     categoryId,
     commissionPct,
     defaults,
     description,
     images,
-    instantScanBrand,
     mode,
     name,
     price,
@@ -869,7 +506,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
           <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-violet-600">Wizard v2</p>
           <h1 className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">Publier en 1 clic</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Mode {mode} — utilisateur {ownerUserId.slice(0, 8)}…
+            Mode Express — utilisateur {ownerUserId.slice(0, 8)}…
           </p>
         </header>
 
@@ -910,315 +547,160 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,400px)_1fr]">
           <div className="min-w-0 space-y-6">
-            {mode === "express" ? (
-              <section aria-labelledby="express-heading" className="space-y-4">
-                <h2 id="express-heading" className="flex items-center gap-2 text-lg font-semibold">
-                  <Zap className="h-5 w-5 text-amber-500" aria-hidden />
-                  Express — collez une URL
-                </h2>
-                <Label htmlFor="express-url">URL produit (AliExpress, Shopify, marketplace…)</Label>
-                <Input
-                  id="express-url"
-                  value={expressUrl}
-                  onChange={(e) => setExpressUrl(e.target.value)}
-                  placeholder="https://www.aliexpress.com/item/… ou Shopify"
-                  className="h-11"
-                />
-                <Button type="button" disabled={publishing} onClick={() => void runExpressImport()}>
-                  {publishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Analyser l&apos;URL
-                </Button>
-                <p className="text-xs text-zinc-500">
-                  AliExpress passe par l&apos;API officielle (titre, prix, photos). Shopify et autres marketplaces
-                  restent en scrape Express.
-                </p>
-              </section>
-            ) : (
-              <section aria-labelledby="guided-heading" className="space-y-4">
-                <h2 id="guided-heading" className="flex items-center gap-2 text-lg font-semibold">
-                  <Sparkles className="h-5 w-5 text-violet-500" aria-hidden />
-                  {instantScanBrand} — étape {guidedStep + 1}/3
-                </h2>
-                {guidedStep === 0 ? (
-                  <>
-                    <p className="text-sm text-zinc-600">Quelle est ta photo principale ?</p>
-                    <WizardV2ZeroWaitUpload
-                      onUrlsChange={setImages}
-                      onBusyChange={setUploadBusy}
-                      onProcessedDataUrl={(dataUrl) => {
-                        instantScanDataUrlRef.current = dataUrl
-                        setProcessedImageDataUrl(dataUrl)
-                      }}
+            <section aria-labelledby="express-heading" className="space-y-4">
+              <h2 id="express-heading" className="flex items-center gap-2 text-lg font-semibold">
+                <Zap className="h-5 w-5 text-amber-500" aria-hidden />
+                Express — collez une URL
+              </h2>
+              <Label htmlFor="express-url">URL produit (AliExpress, Shopify, marketplace…)</Label>
+              <Input
+                id="express-url"
+                value={expressUrl}
+                onChange={(e) => setExpressUrl(e.target.value)}
+                placeholder="https://www.aliexpress.com/item/… ou Shopify"
+                className="h-11"
+              />
+              <Button type="button" disabled={publishing} onClick={() => void runExpressImport()}>
+                {publishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Analyser l&apos;URL
+              </Button>
+              <p className="text-xs text-zinc-500">
+                AliExpress passe par l&apos;API officielle (titre, prix, photos). Shopify et autres marketplaces
+                restent en scrape Express. Pour une fiche photo manuelle, utilisez le mode Pro.
+              </p>
+            </section>
+
+            <div className="space-y-4 border-t border-zinc-200 pt-6 dark:border-zinc-800">
+              {images.length === 0 ? (
+                <WizardV2ZeroWaitUpload onUrlsChange={setImages} onBusyChange={setUploadBusy} />
+              ) : (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {images.slice(0, 12).map((url) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      key={url}
+                      src={url}
+                      alt=""
+                      className="h-16 w-16 shrink-0 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700"
                     />
-                    <Button
-                      type="button"
-                      disabled={!images[0]?.startsWith("https://") || uploadBusy}
-                      onClick={() => {
-                        completeStep("photo")
-                        setGuidedStep(1)
-                      }}
-                    >
-                      Continuer
-                    </Button>
-                  </>
-                ) : null}
-                {guidedStep === 1 ? (
-                  <div className="space-y-3 rounded-2xl border border-violet-200 bg-violet-50/60 p-4 dark:border-violet-900 dark:bg-violet-950/30">
-                    {instantScanState === "loading" ? (
-                      <p className="flex items-center gap-2 text-sm">
-                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                        {instantScanBrand} en cours…
-                      </p>
-                    ) : aiSuggestion && instantScanState === "done" ? (
-                      <>
-                        <p className="text-sm font-medium">{instantScanBrand} suggère :</p>
-                        {aiSuggestion.needsReview ? (
-                          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
-                            Confiance moyenne
-                            {typeof aiSuggestion.confidence === "number"
-                              ? ` (${Math.round(aiSuggestion.confidence * 100)}%)`
-                              : ""}{" "}
-                            — vérifiez le titre et le prix avant de publier.
-                          </p>
-                        ) : null}
-                        <p className="text-base font-semibold">{aiSuggestion.title}</p>
-                        <p className="text-sm text-zinc-600 line-clamp-3">{aiSuggestion.description}</p>
-                        <div className="flex flex-wrap gap-2">
-                          <Button type="button" onClick={applyAiSuggestion}>
-                            Garder
-                          </Button>
-                          <Button type="button" variant="outline" onClick={() => setGuidedStep(2)}>
-                            Modifier
-                          </Button>
-                        </div>
-                        {(categoryId || aiSuggestion.title) && catalogPriceEur > 0 ? (
-                          <SmartMarginAiPanel
-                            categoryId={categoryId || aiSuggestion.categoryId || ""}
-                            title={aiSuggestion.title || name}
-                            catalogPriceEur={catalogPriceEur}
-                            currentMargin={commissionPct}
-                            onApplyMargin={handleApplySmartMargin}
-                            className="mt-2"
-                          />
-                        ) : null}
-                      </>
-                    ) : instantScanState === "gate" ? (
-                      <div className="space-y-3">
-                        <p className="text-sm text-amber-900 dark:text-amber-100">
-                          {instantScanBrand} a besoin d&apos;un coup de main — vérifiez le titre et le prix
-                        </p>
-                        {instantScanError && instantScanError !== "ai_unavailable" ? (
-                          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                            Détail: {instantScanError}
-                          </p>
-                        ) : null}
-                        {aiSuggestion?.title ? (
-                          <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                            Pré-rempli: <span className="font-medium">{aiSuggestion.title}</span>
-                          </p>
-                        ) : null}
-                        <div className="flex flex-wrap gap-2">
-                          <Button type="button" onClick={goManualWithPrefill}>
-                            Saisie manuelle
-                          </Button>
-                          <Button type="button" variant="outline" onClick={retryInstantScan}>
-                            Réessayer
-                          </Button>
-                        </div>
-                      </div>
-                    ) : instantScanState === "error" ? (
-                      <div className="space-y-3">
-                        <p className="text-sm text-red-700 dark:text-red-300">
-                          {instantScanBrand} n&apos;a pas abouti.
-                        </p>
-                        {instantScanError ? (
-                          <p className="text-sm text-red-600 dark:text-red-300">Erreur: {instantScanError}</p>
-                        ) : null}
-                        <div className="flex flex-wrap gap-2">
-                          <Button type="button" variant="outline" onClick={retryInstantScan}>
-                            Réessayer
-                          </Button>
-                          <Button type="button" onClick={goManualWithPrefill}>
-                            Saisie manuelle
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <Button type="button" variant="outline" onClick={goManualWithPrefill}>
-                        Saisie manuelle
-                      </Button>
-                    )}
-                  </div>
-                ) : null}
-                {guidedStep >= 2 ? (
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="v2-name">Titre</Label>
-                      <Input id="v2-name" value={name} onChange={(e) => setName(e.target.value)} className="mt-1 h-11" />
-                    </div>
-                    <div>
-                      <Label htmlFor="v2-desc">Description</Label>
-                      <textarea
-                        id="v2-desc"
-                        className="mt-1 min-h-[88px] w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="v2-price">Prix catalogue (EUR)</Label>
-                      <Input
-                        id="v2-price"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        className="mt-1 h-11"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                      />
-                    </div>
-                    {(categoryId || name.trim()) && catalogPriceEur > 0 ? (
-                      <SmartMarginAiPanel
-                        categoryId={categoryId}
-                        title={name}
-                        catalogPriceEur={catalogPriceEur}
-                        currentMargin={commissionPct}
-                        onApplyMargin={handleApplySmartMargin}
-                      />
-                    ) : null}
-                  </div>
-                ) : null}
-              </section>
-            )}
-
-            {(mode === "express" || guidedStep >= 2) && (
-              <div className="space-y-4 border-t border-zinc-200 pt-6 dark:border-zinc-800">
-                {mode === "express" && images.length === 0 ? (
-                  <WizardV2ZeroWaitUpload onUrlsChange={setImages} onBusyChange={setUploadBusy} />
-                ) : null}
-                {mode === "express" && images.length > 0 ? (
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {images.slice(0, 12).map((url) => (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        key={url}
-                        src={url}
-                        alt=""
-                        className="h-16 w-16 shrink-0 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700"
-                      />
-                    ))}
-                    {images.length > 12 ? (
-                      <span className="flex h-16 items-center text-xs text-zinc-500">
-                        +{images.length - 12}
-                      </span>
-                    ) : null}
-                  </div>
-                ) : null}
-                {mode === "express" ? (
-                  <>
-                    <div>
-                      <Label htmlFor="v2-express-name">Titre</Label>
-                      <Input
-                        id="v2-express-name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="mt-1 h-11"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="v2-express-desc">Description & caractéristiques</Label>
-                      <textarea
-                        id="v2-express-desc"
-                        className="mt-1 min-h-[120px] w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="v2-express-price">Prix (EUR)</Label>
-                      <Input
-                        id="v2-express-price"
-                        type="number"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                        className="mt-1 h-11"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Catégorie</Label>
-                      {categoryId && categoryBreadcrumb ? (
-                        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
-                          {categoryBreadcrumb}
-                        </p>
-                      ) : null}
-                      <CategoryAutosuggest
-                        title={name}
-                        description={description}
-                        imageUrl={images[0] ?? null}
-                        browse={browse}
-                        categoryId={categoryId}
-                        onChange={(leafId, path) => {
-                          setCategoryId(leafId)
-                          setCategoryBreadcrumb(path.map((s) => s.name).join(" > "))
-                        }}
-                      />
-                    </div>
-                    {skuVariants?.hasVariants ? (
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {skuVariants.variants.length} variantes SKU importées — synchronisées à la
-                        publication
-                      </p>
-                    ) : null}
-                  </>
-                ) : null}
-
-                <button
-                  type="button"
-                  className="text-sm font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
-                  aria-expanded={showAdvanced}
-                  onClick={() => setShowAdvanced((v) => !v)}
-                >
-                  Avancé — logistique & commission
-                </button>
-                {showAdvanced && defaults ? (
-                  <div className="grid gap-3 rounded-xl border border-zinc-200 p-4 text-sm dark:border-zinc-800">
-                    <p>Pays : {defaults.countryCode}</p>
-                    <p>Zone : {defaults.warehouseType}</p>
-                    <p>Commission affiliés : {commissionPct} %</p>
-                    {expressImportPatch ? (
-                      <Button type="button" variant="outline" onClick={openFullWizardPrefilled}>
-                        Ouvrir tous les détails préremplis
-                      </Button>
-                    ) : null}
-                  </div>
-                ) : null}
-
-                <Button
-                  type="button"
-                  size="lg"
-                  className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600"
-                  disabled={publishing || uploadBusy}
-                  onClick={() => void publish()}
-                >
-                  {publishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Publier le produit
-                </Button>
-                <p className="text-xs text-zinc-500">
-                  {expressImportPatch ? (
-                    <button
-                      type="button"
-                      className="mb-2 block text-left font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
-                      onClick={openFullWizardPrefilled}
-                    >
-                      Compléter automatiquement le reste des détails dans le wizard complet
-                    </button>
+                  ))}
+                  {images.length > 12 ? (
+                    <span className="flex h-16 items-center text-xs text-zinc-500">
+                      +{images.length - 12}
+                    </span>
                   ) : null}
-                  <a href="?wizard=v1&compose=1" className="underline">
-                    Ouvrir le wizard classique (v1)
-                  </a>
-                </p>
+                </div>
+              )}
+              <div>
+                <Label htmlFor="v2-express-name">Titre</Label>
+                <Input
+                  id="v2-express-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="mt-1 h-11"
+                />
               </div>
-            )}
+              <div>
+                <Label htmlFor="v2-express-desc">Description & caractéristiques</Label>
+                <textarea
+                  id="v2-express-desc"
+                  className="mt-1 min-h-[120px] w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="v2-express-price">Prix (EUR)</Label>
+                <Input
+                  id="v2-express-price"
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="mt-1 h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Catégorie</Label>
+                {categoryId && categoryBreadcrumb ? (
+                  <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
+                    {categoryBreadcrumb}
+                  </p>
+                ) : null}
+                <CategoryAutosuggest
+                  title={name}
+                  description={description}
+                  imageUrl={images[0] ?? null}
+                  browse={browse}
+                  categoryId={categoryId}
+                  onChange={(leafId, path) => {
+                    setCategoryId(leafId)
+                    setCategoryBreadcrumb(path.map((s) => s.name).join(" > "))
+                  }}
+                />
+              </div>
+              {skuVariants?.hasVariants ? (
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {skuVariants.variants.length} variantes SKU importées — synchronisées à la
+                  publication
+                </p>
+              ) : null}
+
+              {(categoryId || name.trim()) && catalogPriceEur > 0 ? (
+                <SmartMarginAiPanel
+                  categoryId={categoryId}
+                  title={name}
+                  catalogPriceEur={catalogPriceEur}
+                  currentMargin={commissionPct}
+                  onApplyMargin={handleApplySmartMargin}
+                />
+              ) : null}
+
+              <button
+                type="button"
+                className="text-sm font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
+                aria-expanded={showAdvanced}
+                onClick={() => setShowAdvanced((v) => !v)}
+              >
+                Avancé — logistique & commission
+              </button>
+              {showAdvanced && defaults ? (
+                <div className="grid gap-3 rounded-xl border border-zinc-200 p-4 text-sm dark:border-zinc-800">
+                  <p>Pays : {defaults.countryCode}</p>
+                  <p>Zone : {defaults.warehouseType}</p>
+                  <p>Commission affiliés : {commissionPct} %</p>
+                  {expressImportPatch ? (
+                    <Button type="button" variant="outline" onClick={openFullWizardPrefilled}>
+                      Ouvrir tous les détails préremplis
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <Button
+                type="button"
+                size="lg"
+                className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600"
+                disabled={publishing || uploadBusy}
+                onClick={() => void publish()}
+              >
+                {publishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Publier le produit
+              </Button>
+              <p className="text-xs text-zinc-500">
+                {expressImportPatch ? (
+                  <button
+                    type="button"
+                    className="mb-2 block text-left font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
+                    onClick={openFullWizardPrefilled}
+                  >
+                    Compléter automatiquement le reste des détails dans le wizard complet
+                  </button>
+                ) : null}
+                <a href="?wizard=v1&compose=1" className="underline">
+                  Ouvrir le wizard classique (v1)
+                </a>
+              </p>
+            </div>
           </div>
 
           <ProductLivePreview data={previewData} variant="sidebar" />

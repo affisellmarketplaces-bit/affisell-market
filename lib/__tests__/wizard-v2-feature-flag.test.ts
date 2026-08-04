@@ -33,8 +33,11 @@ describe("product-wizard-v2 feature-flag", () => {
     expect(isWizardV2EnvEnabled({})).toBe(false)
   })
 
-  it("resolves guided mode by default", () => {
-    expect(resolveWizardV2Mode(null)).toBe("guided")
+  it("defaults to express — InstantScan/guided retired", () => {
+    expect(resolveWizardV2Mode(null)).toBe("express")
     expect(resolveWizardV2Mode("express")).toBe("express")
+    expect(resolveWizardV2Mode("guided")).toBe("express")
+    expect(resolveWizardV2Mode("instantscan")).toBe("express")
+    expect(resolveWizardV2Mode("pro")).toBe("pro")
   })
 })

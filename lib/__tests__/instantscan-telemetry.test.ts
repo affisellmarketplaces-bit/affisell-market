@@ -30,8 +30,9 @@ describe("ENABLE_INSTANTSCAN flag", () => {
   })
 
   it("falls back to legacy flags when INSTANTSCAN=0", () => {
+    // InstantScan server is explicit-only; ENABLE_AI_VISION_V2 no longer reopens the route
     expect(isInstantScanServerEnabled({ ENABLE_INSTANTSCAN: "0", ENABLE_AI_VISION_V2: "1" })).toBe(
-      true
+      false
     )
   })
 })
