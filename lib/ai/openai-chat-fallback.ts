@@ -14,6 +14,9 @@ function getOpenAIClient(): OpenAI | null {
   return new OpenAI({ apiKey: key })
 }
 
+/** Hard cap so InstantScan never hangs past Vercel/route maxDuration. */
+export const OPENAI_CHAT_TIMEOUT_MS = 45_000
+
 export type OpenAiChatOptions = {
   messages: Groq.Chat.Completions.ChatCompletionMessageParam[]
   model?: string
@@ -21,6 +24,8 @@ export type OpenAiChatOptions = {
   max_tokens?: number
   response_format?: { type: "json_object" }
   vision?: boolean
+  /** Override default OPENAI_CHAT_TIMEOUT_MS */
+  timeoutMs?: number
 }
 
 export function hasOpenAiFallback(): boolean {
@@ -51,14 +56,18 @@ export async function openaiChatText(options: OpenAiChatOptions): Promise<string
         ? OPENAI_VISION_FALLBACK_MODEL
         : OPENAI_TEXT_FALLBACK_MODEL
 
+  const timeoutMs = options.timeoutMs ?? OPENAI_CHAT_TIMEOUT_MS
   const request = (model: string) =>
-    client.chat.completions.create({
-      model,
-      messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
-      temperature: options.temperature ?? 0.2,
-      max_tokens: options.max_tokens,
-      response_format: options.response_format,
-    })
+    client.chat.completions.create(
+      {
+        model,
+        messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+        temperature: options.temperature ?? 0.2,
+        max_tokens: options.max_tokens,
+        response_format: options.response_format,
+      },
+      { timeout: timeoutMs, maxRetries: 1 }
+    )
 
   try {
     const completion = await request(primaryModel)

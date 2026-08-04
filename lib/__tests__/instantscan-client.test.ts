@@ -59,6 +59,24 @@ describe("instantscan-client analyzeWithRetry", () => {
     expect(result.ok).toBe(true)
   })
 
+  it("does not retry semantic ai_unavailable 503", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 503,
+      headers: { get: () => null },
+      json: async () => ({ error: "ai_unavailable", fallback: "manual" }),
+    })
+    vi.stubGlobal("fetch", fetchMock)
+
+    const onRetry = vi.fn()
+    const result = await analyzeWithRetry("https://cdn.example.com/bag.jpg", 0, { onRetry })
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(onRetry).not.toHaveBeenCalled()
+    expect(result.ok).toBe(false)
+    expect(result.data.error).toBe("ai_unavailable")
+  })
+
   it("stops after max retries on persistent 5xx", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,

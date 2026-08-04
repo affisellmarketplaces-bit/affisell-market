@@ -31,8 +31,14 @@ export type AnalyzeWithRetryOptions = {
   onRetry?: (attempt: number, status: number) => void
 }
 
-function isTransientServerError(status: number): boolean {
-  return status >= 500 && status !== 501
+function isTransientServerError(status: number, data?: InstantScanAnalyzeResponse): boolean {
+  if (status < 500 || status === 501) return false
+  // Semantic InstantScan failures must not be retried (burns latency + looks hung).
+  const err = data?.error
+  if (err === "ai_unavailable" || err === "low_confidence" || err === "image_fetch_failed") {
+    return false
+  }
+  return true
 }
 
 function sleepMs(ms: number, signal?: AbortSignal): Promise<void> {
@@ -119,7 +125,7 @@ export async function analyzeWithRetry(
     }
   }
 
-  if (result.ok || !isTransientServerError(result.status)) return result
+  if (result.ok || !isTransientServerError(result.status, result.data)) return result
 
   if (attempt >= INSTANTSCAN_MAX_RETRY_ATTEMPTS) {
     return result

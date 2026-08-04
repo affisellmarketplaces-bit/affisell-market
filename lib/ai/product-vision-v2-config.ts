@@ -1,14 +1,17 @@
+import { isInstantScanServerEnabled } from "@/lib/instantscan/flags"
+
 /** Affisell InstantScan — primary flag (cascade CLIP → mini → GPT-4o). */
 export function isInstantScanEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   const raw = env.ENABLE_INSTANTSCAN?.trim().toLowerCase()
   return raw === "1" || raw === "true"
 }
 
-/** Feature flag — GPT-4o vision + confidence gate (retrocompat when ENABLE_INSTANTSCAN=0). */
+/**
+ * GPT-4o InstantScan path — lockstep with InstantScan route gate.
+ * Prevents OPENAI_API_KEY auto-enable from falling through to legacy Groq v1.
+ */
 export function isAiVisionV2Enabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  if (isInstantScanEnabled(env)) return true
-  const raw = env.ENABLE_AI_VISION_V2?.trim().toLowerCase()
-  return raw === "1" || raw === "true"
+  return isInstantScanServerEnabled(env)
 }
 
 /** InstantScan cascade — embed fast-path before full GPT vision. */
@@ -16,7 +19,10 @@ export function isAiVisionCascadeEnabled(env: NodeJS.ProcessEnv = process.env): 
   if (!isAiVisionV2Enabled(env)) return false
   if (isInstantScanEnabled(env)) return true
   const raw = env.ENABLE_AI_VISION_CASCADE?.trim().toLowerCase()
-  return raw === "1" || raw === "true"
+  if (raw === "0" || raw === "false") return false
+  if (raw === "1" || raw === "true") return true
+  // When InstantScan is auto-enabled via OpenAI key, cascade on by default
+  return Boolean(env.OPENAI_API_KEY?.trim())
 }
 
 export const PRODUCT_VISION_CASCADE_MINI_MODEL =

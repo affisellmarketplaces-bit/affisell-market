@@ -111,25 +111,35 @@ export async function POST(req: Request) {
     const message = err instanceof Error ? err.message : "analyze_failed"
     const detail = err instanceof Error ? err.message : String(err)
     console.error("INSTANTSCAN ERROR FULL:", err)
-    logInstantScan("API error", { message, detail })
-    if (message === "ai_unavailable" || message === "image_not_https" || message === "image_fetch_failed") {
-      return NextResponse.json(
-        { error: "ai_unavailable", detail, fallback: "manual" },
-        { status: 503 }
-      )
-    }
-    if (message === "low_confidence") {
-      return NextResponse.json(
-        { error: "low_confidence", detail, fallback: "manual" },
-        { status: 422 }
-      )
+    logInstantScan("API soft-fallback", { message, detail })
+
+    // Soft fallback — never hard-block the wizard; supplier can edit & publish.
+    if (
+      message === "ai_unavailable" ||
+      message === "image_not_https" ||
+      message === "image_fetch_failed" ||
+      message === "low_confidence" ||
+      message === "analyze_failed"
+    ) {
+      return NextResponse.json({
+        ...MISSING_KEY_FALLBACK,
+        cached: false,
+        error: message === "low_confidence" ? "low_confidence" : "ai_unavailable",
+        detail,
+        needsReview: true,
+        fallback: true,
+      })
     }
     if (message === "image_required") {
       return NextResponse.json({ error: "image_required", detail }, { status: 400 })
     }
-    return NextResponse.json(
-      { error: "ai_unavailable", detail, fallback: "manual", stack: err instanceof Error ? err.stack : undefined },
-      { status: 503 }
-    )
+    return NextResponse.json({
+      ...MISSING_KEY_FALLBACK,
+      cached: false,
+      error: "ai_unavailable",
+      detail,
+      needsReview: true,
+      fallback: true,
+    })
   }
 }

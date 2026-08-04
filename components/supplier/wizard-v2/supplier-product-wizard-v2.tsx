@@ -383,6 +383,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     const analyzeStarted = Date.now()
     const controller = new AbortController()
     const timeoutId = globalThis.setTimeout(() => controller.abort(), INSTANTSCAN_FETCH_TIMEOUT_MS)
+    let toastSettled = false
 
     logInstantScan("Analyzing", { imageUrl: imageUrl.slice(0, 120) })
 
@@ -430,6 +431,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
 
       if (!ok) {
         toast.dismiss(toastId)
+        toastSettled = true
         const detail =
           typeof data.detail === "string" && data.detail.trim()
             ? data.detail.trim()
@@ -474,6 +476,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         needsReview:
           Boolean(data.needsReview) ||
           data.fallback === true ||
+          Boolean(data.error) ||
           (typeof data.confidence === "number" && data.confidence < 0.7),
       }
       setAiSuggestion(suggestion)
@@ -498,6 +501,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         latency_ms: resultLatencyMs,
         stage,
         cost_usd: 0.003,
+        soft_fallback: Boolean(data.error),
       })
 
       toastInstantScanSuccess({
@@ -507,8 +511,10 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         toastId,
         needsReview: suggestion.needsReview,
       })
+      toastSettled = true
     } catch (err) {
       toast.dismiss(toastId)
+      toastSettled = true
       const reason =
         err instanceof Error && err.name === "AbortError"
           ? "timeout"
@@ -527,6 +533,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     } finally {
       markInstantScanAnalyzeEnd(session)
       globalThis.clearTimeout(timeoutId)
+      if (!toastSettled) toast.dismiss(toastId)
     }
   }, [applyInstantScanFields, processedImageDataUrl])
 
@@ -998,10 +1005,12 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                     ) : instantScanState === "gate" ? (
                       <div className="space-y-3">
                         <p className="text-sm text-amber-900 dark:text-amber-100">
-                          {instantScanBrand} incertain - complétez manuellement
+                          {instantScanBrand} a besoin d&apos;un coup de main — vérifiez le titre et le prix
                         </p>
-                        {instantScanError ? (
-                          <p className="text-sm text-red-600 dark:text-red-300">Erreur: {instantScanError}</p>
+                        {instantScanError && instantScanError !== "ai_unavailable" ? (
+                          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                            Détail: {instantScanError}
+                          </p>
                         ) : null}
                         {aiSuggestion?.title ? (
                           <p className="text-sm text-zinc-600 dark:text-zinc-300">

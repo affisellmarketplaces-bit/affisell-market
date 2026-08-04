@@ -209,10 +209,16 @@ const RECENT_PRODUCT_CASES: Array<{
 ]
 
 describe("product-vision-v2", () => {
-  it("reads ENABLE_AI_VISION_V2 flag", () => {
+  it("aligns vision v2 with InstantScan server gate", () => {
     expect(isAiVisionV2Enabled({ ENABLE_AI_VISION_V2: "1" })).toBe(true)
+    expect(isAiVisionV2Enabled({ ENABLE_INSTANTSCAN: "1" })).toBe(true)
     expect(isAiVisionV2Enabled({ ENABLE_AI_VISION_V2: "0" })).toBe(false)
     expect(isAiVisionV2Enabled({})).toBe(false)
+    // OPENAI_API_KEY auto-enable — never fall through to Groq v1 while InstantScan is on
+    expect(isAiVisionV2Enabled({ OPENAI_API_KEY: "sk-test" })).toBe(true)
+    expect(
+      isAiVisionV2Enabled({ ENABLE_INSTANTSCAN: "0", OPENAI_API_KEY: "sk-test" })
+    ).toBe(false)
   })
 
   it("parses JSON payload with confidence and productType", () => {

@@ -139,13 +139,26 @@ export async function processProductGalleryImageFile(
  * Re-encode a gallery data URL for InstantScan (max 1024px, JPEG q=0.8).
  * Idempotent if input is already small enough.
  */
+const INSTANTSCAN_COMPRESS_DECODE_MS = 8_000
+
 export async function compressDataUrlForInstantScan(dataUrl: string): Promise<string> {
   if (!dataUrl.startsWith("data:image/")) return dataUrl
 
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const el = new Image()
-    el.onload = () => resolve(el)
-    el.onerror = () => reject(new Error("decode"))
+    const timer = globalThis.setTimeout(() => {
+      el.onload = null
+      el.onerror = null
+      reject(new Error("compress_timeout"))
+    }, INSTANTSCAN_COMPRESS_DECODE_MS)
+    el.onload = () => {
+      globalThis.clearTimeout(timer)
+      resolve(el)
+    }
+    el.onerror = () => {
+      globalThis.clearTimeout(timer)
+      reject(new Error("decode"))
+    }
     el.src = dataUrl
   })
 
