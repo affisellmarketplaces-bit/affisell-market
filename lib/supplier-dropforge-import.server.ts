@@ -307,6 +307,7 @@ export async function commitSupplierDropForgeImport(args: {
     ...(persist.colorImages != null ? { colorImages: persist.colorImages } : {}),
     ...(persist.variants != null ? { variants: persist.variants } : {}),
     categories: preview.category ? [preview.category] : [],
+    ...(preview.categoryId?.trim() ? { categoryId: preview.categoryId.trim() } : {}),
     tags: [...persist.tags, "dropforge", "b2b-sourcing"].slice(0, 24),
     basePriceCents: wholesaleCents,
     supplierWholesaleCents: wholesaleCents,

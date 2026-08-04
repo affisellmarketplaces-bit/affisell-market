@@ -1,9 +1,10 @@
 import { Prisma } from "@prisma/client"
 
+import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
 import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
+import { sanitizeAeVariantColor } from "@/lib/fulfillment/ae-skus-to-product-variants"
 import type { ProductVariantInput } from "@/lib/product-variant-sku"
 import type { SupplierScrapedProduct } from "@/lib/supplier-import-url-handler"
-import { VARIANT_COLOR_REGEX } from "@/lib/supplier-sku-builder"
 import {
   extractVideoUrls,
   guessIso2Country,
@@ -33,6 +34,15 @@ export type DropForgeShipping = {
   carrier: string
 }
 
+/** Serializable Instant-Enlist SKU matrix — preferred on commit when present. */
+export type DropForgeSkuVariantsPayload = {
+  hasVariants: boolean
+  variants: ProductVariantInput[]
+  colors: string[]
+  colorImages: Array<{ color: string; hex: string; image: string }>
+  totalStock: number
+}
+
 /** Full DropForge fiche — every field we persist on commit. */
 export type DropForgeCompletePreview = {
   title: string
@@ -56,6 +66,7 @@ export type DropForgeCompletePreview = {
   currency: string
   brand: string
   category: string
+  categoryId?: string
   stock: number
   platform: string
   marketplaceLabel: string
@@ -68,6 +79,8 @@ export type DropForgeCompletePreview = {
   fulfillmentReady?: boolean
   fulfillmentReason?: "aliexpress" | "catalog_link" | "manual_supplier" | "pending_ops"
   aliexpressProductId?: string | null
+  /** Gold-path AE SKU matrix from import agent (Instant Enlist fidelity). */
+  skuVariants?: DropForgeSkuVariantsPayload | null
 }
 
 /** DropForge never accepts an empty shell — title + image + price required. */
@@ -140,8 +153,7 @@ export function mergeScrapedProducts(
     primary.variants.length > 0 ? primary.variants : secondary.variants
   const colors = primary.colors.length > 0 ? primary.colors : secondary.colors
   const sizes = primary.sizes.length > 0 ? primary.sizes : secondary.sizes
-  const specs =
-    Object.keys(primary.specs).length > 0 ? primary.specs : secondary.specs
+  const specs = { ...secondary.specs, ...primary.specs }
   const price = primary.price > 0 ? primary.price : secondary.price
   const suggested =
     primary.suggested_price > 0
@@ -213,22 +225,28 @@ export function scrapedToVariantInputs(
   const out: ProductVariantInput[] = []
 
   if (mapped.mode === "advanced") {
-    for (const row of mapped.variantRows) {
-      const colorRaw = row.name.split(/[|/·•]/)[0]?.trim() || row.name
-      const color = colorRaw.slice(0, 32)
-      if (!VARIANT_COLOR_REGEX.test(color)) continue
+    product.variants.forEach((row, index) => {
+      if (!row.name && !row.sku) return
+      const parts = row.name.split(/\s*[|/·•]\s*/).map((p) => p.trim()).filter(Boolean)
+      const colorFromAttr =
+        row.attributes?.Couleur || row.attributes?.Color || row.attributes?.couleur || ""
+      const sizeFromAttr =
+        row.attributes?.Taille || row.attributes?.Size || row.attributes?.size || ""
+      const color = sanitizeAeVariantColor(colorFromAttr || parts[0] || row.name || `V${index + 1}`, index)
+      const sizeRaw = sizeFromAttr || (parts.length > 1 ? parts[1] : null)
+      const size = sizeRaw ? sizeRaw.slice(0, 16) : null
+      const price =
+        row.price > 0
+          ? row.price
+          : (mapped.variantRows.find((v) => v.sku === row.sku)?.priceCents ?? Math.round(cost * 100)) /
+            100
+      const img = row.image ? absolutizeCdnImageUrl(row.image) ?? row.image : ""
       out.push({
         color,
-        size: null,
+        size,
         sku: row.sku || null,
-        supplierPrice: Math.max(
-          0.01,
-          (row.priceCents || Math.round(cost * 100)) / 100
-        ),
-        publicPrice: Math.max(
-          0.01,
-          (row.priceCents || Math.round(cost * 100)) / 100
-        ),
+        supplierPrice: Math.max(0.01, price),
+        publicPrice: Math.max(0.01, price),
         stock: Math.max(0, row.stock),
         commissionRate: 15,
         weightGrams: null,
@@ -237,8 +255,18 @@ export function scrapedToVariantInputs(
         warehouseCode: null,
         videoUrl: null,
         processingDays: 2,
+        customData: {
+          ...(row.name ? { aeLabel: row.name.slice(0, 200) } : {}),
+          ...(img && /^https?:\/\//i.test(img) ? { image: img } : {}),
+          ...Object.fromEntries(
+            Object.entries(row.attributes || {})
+              .filter(([, v]) => typeof v === "string" && v.trim())
+              .slice(0, 12)
+              .map(([k, v]) => [k.slice(0, 64), String(v).slice(0, 200)])
+          ),
+        },
       })
-    }
+    })
   }
 
   if (out.length === 0 && mapped.mode === "simple") {
@@ -247,9 +275,8 @@ export function scrapedToVariantInputs(
         ? mapped.simpleColors.map((c) => c.name).filter(Boolean)
         : ["Default"]
     const sizes = mapped.sizes.length > 0 ? mapped.sizes : [null]
-    for (const colorName of colors) {
-      const color = colorName.slice(0, 32)
-      if (!VARIANT_COLOR_REGEX.test(color)) continue
+    colors.forEach((colorName, index) => {
+      const color = sanitizeAeVariantColor(colorName, index)
       for (const size of sizes) {
         out.push({
           color,
@@ -259,9 +286,7 @@ export function scrapedToVariantInputs(
           publicPrice: cost,
           stock: Math.max(
             0,
-            Math.round(
-              product.stock / Math.max(1, colors.length * sizes.length)
-            )
+            Math.round(product.stock / Math.max(1, colors.length * sizes.length))
           ),
           commissionRate: 15,
           weightGrams: null,
@@ -272,10 +297,10 @@ export function scrapedToVariantInputs(
           processingDays: 2,
         })
       }
-    }
+    })
   }
 
-  return out.slice(0, 80)
+  return out.slice(0, 120)
 }
 
 export function buildDropForgeProductPersistFields(preview: DropForgeCompletePreview): {
@@ -302,11 +327,17 @@ export function buildDropForgeProductPersistFields(preview: DropForgeCompletePre
 } {
   const costCents = Math.max(1, Math.round(preview.costPrice * 100))
   const videos = extractVideoUrls(preview.videos, 4)
-  const colorNames = preview.colors
-    .map((c) => c.name.trim())
-    .filter(Boolean)
-    .slice(0, 24)
-  const colorImages =
+  const colorNamesFromSku =
+    preview.skuVariants?.colors?.filter(Boolean).slice(0, 24) ?? []
+  const colorNames =
+    preview.colors
+      .map((c) => c.name.trim())
+      .filter(Boolean)
+      .slice(0, 24)
+      .concat(colorNamesFromSku.filter((c) => !preview.colors.some((x) => x.name === c)))
+      .slice(0, 24)
+
+  const colorImagesFromPreview =
     preview.colors.length > 0
       ? preview.colors
           .filter((c) => c.name.trim())
@@ -314,15 +345,30 @@ export function buildDropForgeProductPersistFields(preview: DropForgeCompletePre
           .map((c) => ({
             color: c.name.trim(),
             hex: resolveColorSwatchMeta(c.name, c.hex).hex,
-            image: c.image && /^https?:\/\//i.test(c.image) ? c.image : "",
+            image: c.image
+              ? absolutizeCdnImageUrl(c.image) ?? (/^https?:\/\//i.test(c.image) ? c.image : "")
+              : "",
           }))
-      : undefined
+      : []
+  const colorImagesFromSku = (preview.skuVariants?.colorImages ?? []).map((c) => ({
+    color: c.color,
+    hex: c.hex || resolveColorSwatchMeta(c.color).hex,
+    image: c.image
+      ? absolutizeCdnImageUrl(c.image) ?? (/^https?:\/\//i.test(c.image) ? c.image : "")
+      : "",
+  }))
+  const colorImagesMerged =
+    colorImagesFromPreview.length > 0
+      ? colorImagesFromPreview
+      : colorImagesFromSku.length > 0
+        ? colorImagesFromSku
+        : undefined
 
   const shipCc = guessIso2Country(preview.shipping.from_country)
   const { min, max } = parseDeliveryRange(preview.shipping.delivery_time)
   const bullets = Object.entries(preview.specs)
     .filter(([, v]) => typeof v === "string" && v.trim())
-    .slice(0, 12)
+    .slice(0, 40)
     .map(([k, v]) => `${k}: ${v}`)
 
   const attributes = Object.entries(preview.specs)
@@ -360,6 +406,13 @@ export function buildDropForgeProductPersistFields(preview: DropForgeCompletePre
     .filter(Boolean)
     .slice(0, 40)
 
+  const goldVariants =
+    preview.skuVariants?.hasVariants &&
+    Array.isArray(preview.skuVariants.variants) &&
+    preview.skuVariants.variants.length > 1
+      ? preview.skuVariants.variants.slice(0, 120)
+      : null
+
   return {
     name: preview.title.slice(0, 200),
     description: preview.description.slice(0, DROPFORGE_MAX_DESC),
@@ -367,7 +420,7 @@ export function buildDropForgeProductPersistFields(preview: DropForgeCompletePre
     descriptionIllustrationVideos: videos,
     images: preview.images.slice(0, DROPFORGE_MAX_IMAGES),
     colors: colorNames.length > 0 ? colorNames : preview.sizes.slice(0, 24),
-    colorImages: colorImages as Prisma.InputJsonValue | undefined,
+    colorImages: colorImagesMerged as Prisma.InputJsonValue | undefined,
     variants:
       preview.variants.length > 0
         ? (preview.variants as unknown as Prisma.InputJsonValue)
@@ -375,7 +428,12 @@ export function buildDropForgeProductPersistFields(preview: DropForgeCompletePre
     tags,
     basePriceCents: costCents,
     compareAt,
-    stock: preview.stock > 0 ? preview.stock : 99,
+    stock:
+      preview.skuVariants?.totalStock && preview.skuVariants.totalStock > 0
+        ? preview.skuVariants.totalStock
+        : preview.stock > 0
+          ? preview.stock
+          : 99,
     shippingCountry: shipCc || null,
     warehouseType:
       shipCc === "CN" || /china|cn/i.test(preview.shipping.from_country)
@@ -390,6 +448,6 @@ export function buildDropForgeProductPersistFields(preview: DropForgeCompletePre
     ),
     shipsFrom: preview.shipping.from_country || null,
     attributes,
-    variantInputs: scrapedToVariantInputs(preview),
+    variantInputs: goldVariants ?? scrapedToVariantInputs(preview),
   }
 }

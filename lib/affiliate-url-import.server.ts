@@ -4,6 +4,7 @@ import * as cheerio from "cheerio"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { shopListingPath } from "@/lib/affiliate-routes"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
+import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
 import {
   DROPFORGE_MAX_DESC,
   DROPFORGE_MAX_IMAGES,
@@ -13,6 +14,7 @@ import {
   isDropForgeImportComplete,
   mergeScrapedProducts,
   type DropForgeCompletePreview,
+  type DropForgeSkuVariantsPayload,
 } from "@/lib/dropforge-complete-import"
 import {
   catalogProductHasActiveSupplierLink,
@@ -55,15 +57,20 @@ function asPreview(
         ? psychologicalPrice(cost * 2.8)
         : 0
   const images = (product.images ?? [])
+    .map((u) => (typeof u === "string" ? absolutizeCdnImageUrl(u) ?? u : ""))
     .filter((u) => typeof u === "string" && /^https?:\/\//i.test(u))
     .slice(0, DROPFORGE_MAX_IMAGES)
   const videos = (product.videos ?? [])
+    .map((u) => (typeof u === "string" ? absolutizeCdnImageUrl(u) ?? u : ""))
     .filter((u) => typeof u === "string" && /^https?:\/\//i.test(u))
     .slice(0, 6)
-  const variants = (product.variants ?? []).slice(0, 80).map((v) => ({
+  const variants = (product.variants ?? []).slice(0, 120).map((v) => ({
     name: String(v.name || "").slice(0, 120),
     type: String(v.type || "").slice(0, 64),
-    image: typeof v.image === "string" && /^https?:\/\//i.test(v.image) ? v.image : "",
+    image:
+      typeof v.image === "string"
+        ? absolutizeCdnImageUrl(v.image) ?? (/^https?:\/\//i.test(v.image) ? v.image : "")
+        : "",
     price: Math.max(0, Number(v.price) || 0),
     stock: Math.max(0, Math.round(Number(v.stock) || 0)),
     sku: String(v.sku || "").slice(0, 64),
@@ -72,13 +79,16 @@ function asPreview(
         ? Object.fromEntries(
             Object.entries(v.attributes)
               .filter(([, val]) => typeof val === "string")
-              .slice(0, 12)
+              .slice(0, 24)
           )
         : {},
   }))
   const colors = (product.colors ?? []).slice(0, 24).map((c) => ({
     name: String(c.name || "").slice(0, 64),
-    image: typeof c.image === "string" && /^https?:\/\//i.test(c.image) ? c.image : "",
+    image:
+      typeof c.image === "string"
+        ? absolutizeCdnImageUrl(c.image) ?? (/^https?:\/\//i.test(c.image) ? c.image : "")
+        : "",
     hex: String(c.hex || "").slice(0, 16),
   }))
   const sizes = (product.sizes ?? [])
@@ -174,37 +184,60 @@ async function matchCatalogProduct(url: string): Promise<{
   images: string[]
   basePriceCents: number
   stock: number
+  colors: string[]
+  colorImages: unknown
+  descriptionBullets: string[]
+  attributes: Array<{ key: string; value: string; label: string }>
 } | null> {
+  const select = {
+    id: true,
+    name: true,
+    description: true,
+    images: true,
+    basePriceCents: true,
+    stock: true,
+    colors: true,
+    colorImages: true,
+    descriptionBullets: true,
+    attributes: {
+      select: { key: true, value: true, label: true },
+      take: 40,
+    },
+  } as const
+
   const aeId = parseAliExpressProductId(url)
   if (aeId) {
     const byAe = await prisma.product.findFirst({
       where: { aliexpressProductId: aeId, active: true, isDraft: false },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        images: true,
-        basePriceCents: true,
-        stock: true,
-      },
+      select,
       orderBy: { updatedAt: "desc" },
     })
-    if (byAe) return byAe
+    if (byAe) {
+      return {
+        ...byAe,
+        attributes: byAe.attributes.map((a) => ({
+          key: a.key,
+          value: a.value,
+          label: a.label,
+        })),
+      }
+    }
   }
 
   const byUrl = await prisma.product.findFirst({
     where: { sourceUrl: url, active: true, isDraft: false },
-    select: {
-      id: true,
-      name: true,
-      description: true,
-      images: true,
-      basePriceCents: true,
-      stock: true,
-    },
+    select,
     orderBy: { updatedAt: "desc" },
   })
-  return byUrl
+  if (!byUrl) return null
+  return {
+    ...byUrl,
+    attributes: byUrl.attributes.map((a) => ({
+      key: a.key,
+      value: a.value,
+      label: a.label,
+    })),
+  }
 }
 
 /** Open Graph / Twitter cards — works on many storefronts without ScrapingBee. */
@@ -312,11 +345,12 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
 
   const market = detectMarketplaceFromUrl(url)
 
-  const catalog = await matchCatalogProduct(url)
+    const catalog = await matchCatalogProduct(url)
   if (catalog) {
     const cost = Math.max(0.01, catalog.basePriceCents / 100)
     const suggested = psychologicalPrice(cost * 2.8)
     const images = catalog.images
+      .map((u) => absolutizeCdnImageUrl(u) ?? u)
       .filter((u) => /^https?:\/\//i.test(u))
       .slice(0, DROPFORGE_MAX_IMAGES)
     const catalogHasLink = await catalogProductHasActiveSupplierLink(catalog.id)
@@ -325,12 +359,45 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
       catalogProductId: catalog.id,
       catalogHasSupplierLink: catalogHasLink,
     })
+    const specs: Record<string, string> = {}
+    for (const a of catalog.attributes) {
+      if (a.value?.trim()) specs[a.key.slice(0, 80)] = a.value.trim().slice(0, 500)
+    }
+    if (catalog.descriptionBullets?.length) {
+      for (const bullet of catalog.descriptionBullets.slice(0, 20)) {
+        const m = bullet.match(/^([^:]+):\s*(.+)$/)
+        if (m?.[1] && m[2] && !specs[m[1].trim()]) {
+          specs[m[1].trim().slice(0, 80)] = m[2].trim().slice(0, 500)
+        }
+      }
+    }
+    const colors = (catalog.colors ?? [])
+      .filter(Boolean)
+      .slice(0, 24)
+      .map((name) => {
+        const fromJson =
+          Array.isArray(catalog.colorImages)
+            ? (catalog.colorImages as Array<{ color?: string; image?: string; hex?: string }>).find(
+                (c) => c.color?.toLowerCase() === name.toLowerCase()
+              )
+            : null
+        return {
+          name,
+          image:
+            typeof fromJson?.image === "string"
+              ? absolutizeCdnImageUrl(fromJson.image) ?? fromJson.image
+              : "",
+          hex: typeof fromJson?.hex === "string" ? fromJson.hex : "",
+        }
+      })
     const preview = withDropForgeFulfillment(
       {
         ...emptyDropForgeExtras(),
         title: catalog.name.slice(0, 200),
         description: (catalog.description || catalog.name).slice(0, DROPFORGE_MAX_DESC),
         images,
+        colors,
+        specs,
         costPrice: cost,
         suggestedPrice: suggested,
         profitPerSale: Math.max(0, Number((suggested - cost).toFixed(2))),
@@ -420,6 +487,33 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
     marketplaceLabel: market.label,
     warnings,
   })
+  if (agent.ok && agent.category?.leafId) {
+    basePreview.categoryId = agent.category.leafId
+    if (agent.category.breadcrumb) basePreview.category = agent.category.breadcrumb.slice(0, 120)
+  }
+  if (agent.ok && agent.skuVariants) {
+    const payload: DropForgeSkuVariantsPayload = {
+      hasVariants: agent.skuVariants.hasVariants,
+      variants: agent.skuVariants.variantInputs,
+      colors: agent.skuVariants.colors,
+      colorImages: agent.skuVariants.colorImages.map((c) => ({
+        color: c.color,
+        hex: c.hex,
+        image: c.image
+          ? absolutizeCdnImageUrl(c.image) ?? (/^https?:\/\//i.test(c.image) ? c.image : "")
+          : "",
+      })),
+      totalStock: agent.skuVariants.totalStock,
+    }
+    basePreview.skuVariants = payload
+    if (basePreview.colors.length === 0 && payload.colorImages.length > 0) {
+      basePreview.colors = payload.colorImages.map((c) => ({
+        name: c.color,
+        image: c.image,
+        hex: c.hex,
+      }))
+    }
+  }
   const fulfillment = resolveDropForgeFulfillmentMeta({ sourceUrl: url })
   const preview = withDropForgeFulfillment(basePreview, fulfillment)
 
@@ -452,6 +546,26 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
   })
 
   return { ok: true, preview }
+}
+
+function parseSkuVariantsPayload(raw: unknown): DropForgeSkuVariantsPayload | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null
+  const o = raw as Record<string, unknown>
+  if (!Array.isArray(o.variants) || o.variants.length === 0) return null
+  return {
+    hasVariants: Boolean(o.hasVariants),
+    variants: o.variants as DropForgeSkuVariantsPayload["variants"],
+    colors: Array.isArray(o.colors)
+      ? o.colors.filter((c): c is string => typeof c === "string").slice(0, 24)
+      : [],
+    colorImages: Array.isArray(o.colorImages)
+      ? (o.colorImages as DropForgeSkuVariantsPayload["colorImages"]).slice(0, 24)
+      : [],
+    totalStock:
+      typeof o.totalStock === "number" && Number.isFinite(o.totalStock)
+        ? Math.max(0, Math.round(o.totalStock))
+        : 0,
+  }
 }
 
 function sanitizeCommitSnapshot(
@@ -564,6 +678,8 @@ function sanitizeCommitSnapshot(
       : [],
     catalogProductId:
       typeof o.catalogProductId === "string" ? o.catalogProductId : undefined,
+    categoryId: typeof o.categoryId === "string" ? o.categoryId.trim() : undefined,
+    skuVariants: parseSkuVariantsPayload(o.skuVariants),
   }
   if (!isDropForgeImportComplete(preview)) return null
   const fulfillment = resolveDropForgeFulfillmentMeta({

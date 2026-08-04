@@ -410,6 +410,13 @@ export function DropForgeImportClient() {
                     videos: preview.videos?.length ?? 0,
                   })}
                 </span>
+                <span className="rounded-full bg-violet-500/15 px-3 py-1 text-violet-100">
+                  {t("attrsCount", {
+                    variants: preview.variants?.length ?? 0,
+                    colors: preview.colors?.length ?? 0,
+                    specs: Object.keys(preview.specs ?? {}).length,
+                  })}
+                </span>
               </div>
               <label className="mt-4 block text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                 {t("wholesalePrice")}

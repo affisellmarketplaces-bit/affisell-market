@@ -67,11 +67,22 @@ function applyAeSkuMatrixToScraped(
   persist: AeSkuVariantPersist,
   markup: number
 ): SupplierScrapedProduct {
-  const aeSkusFromPersist = persist.variantInputs
-  if (aeSkusFromPersist.length === 0 && !persist.hasVariants) {
+  if (!persist.hasVariants || persist.variantInputs.length === 0) {
+    const colors = persist.colorImages.map((c) => ({
+      name: c.color,
+      image: c.image ? absolutizeCdnImageUrl(c.image) ?? c.image : "",
+      hex: c.hex,
+    }))
+    const sizesFromBullets: Array<{ name: string; value: string }> = []
     return {
       ...product,
+      colors: colors.length > 0 ? colors : product.colors,
+      sizes: product.sizes.length > 0 ? product.sizes : sizesFromBullets,
       stock: persist.totalStock > 0 ? persist.totalStock : product.stock,
+      tags:
+        colors.length > 0
+          ? Array.from(new Set([...product.tags, "ae-skus"]))
+          : product.tags,
     }
   }
 

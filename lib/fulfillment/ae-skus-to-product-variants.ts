@@ -55,8 +55,11 @@ function buildAeVariantCustomData(
     aeLabel: sku.aeLabel,
     aePriceCents: priceCents,
   }
-  if (sku.imageUrl && /^https?:\/\//i.test(sku.imageUrl.trim())) {
-    customData.image = sku.imageUrl.trim()
+  if (sku.imageUrl) {
+    const abs = sku.imageUrl.trim().startsWith("//")
+      ? `https:${sku.imageUrl.trim()}`
+      : sku.imageUrl.trim()
+    if (/^https?:\/\//i.test(abs)) customData.image = abs
   }
   if (sku.attributes) {
     for (const [key, value] of Object.entries(sku.attributes)) {
@@ -77,15 +80,41 @@ export function aeSkusToVariantPersist(aeSkus: AeProductSkuRow[]): AeSkuVariantP
 
   if (usable.length <= 1) {
     const only = usable[0]
+    const colorImages: ProductColorImageRow[] = []
+    const colors: string[] = []
+    if (only) {
+      const displayColor =
+        only.attributes?.Couleur ||
+        only.attributes?.Color ||
+        only.attributes?.couleur ||
+        only.attributes?.color ||
+        (only.matchColor && only.matchColor !== "default" ? only.matchColor : null)
+      if (displayColor) {
+        const color = sanitizeAeVariantColor(displayColor, 0)
+        colors.push(color)
+        const img =
+          only.imageUrl &&
+          (/^https?:\/\//i.test(only.imageUrl.trim()) || only.imageUrl.trim().startsWith("//"))
+            ? only.imageUrl.trim().startsWith("//")
+              ? `https:${only.imageUrl.trim()}`
+              : only.imageUrl.trim()
+            : ""
+        colorImages.push({
+          color,
+          hex: resolveColorSwatchMeta(color).hex,
+          image: img,
+        })
+      }
+    }
     return {
       hasVariants: false,
       variantInputs: [],
-      colorImages: [],
-      colors: [],
+      colorImages,
+      colors,
       minPriceCents: only?.aePriceCents && only.aePriceCents > 0 ? only.aePriceCents : 0,
       totalStock: only?.stock ?? 0,
       defaultAeSkuId: only?.aeSkuId ?? null,
-      variantBullets: [],
+      variantBullets: only?.aeLabel ? [`${only.aeLabel}`] : [],
     }
   }
 
