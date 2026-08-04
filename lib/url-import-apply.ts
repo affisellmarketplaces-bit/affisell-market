@@ -1,5 +1,11 @@
 import type { SupplierSimpleColorRow } from "@/lib/supplier-add-product-draft-cache"
 import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
+import { stripDescriptionImageMarkers } from "@/lib/description-rich-content"
+import {
+  extractHtmlDescriptionLight,
+  looksLikeHtmlDescription,
+  sanitizeListingDescriptionField,
+} from "@/lib/html-description-extract-shared"
 import { newVariantRowId, type ProductVariantLine } from "@/lib/product-variants"
 
 /** Marketplace default when the source brand is unknown or untrusted. */
@@ -112,6 +118,8 @@ export type UrlImportScrapedProduct = {
   variants?: unknown
   colors?: unknown
   sizes?: unknown
+  /** AE / rich HTML — illustration URLs (parallel to [[img:N]] markers). */
+  descriptionIllustrationImages?: unknown
 }
 
 export type UrlImportVariantApply = {
@@ -243,6 +251,8 @@ export type UrlImportFormPatch = {
   name: string
   description: string
   images: string[]
+  /** Description / detail photos (not hero) — for Pro wizard & PDP. */
+  illustrationImages: string[]
   illustrationVideos: string[]
   stock: string
   price: string
@@ -263,6 +273,57 @@ export type UrlImportFormPatch = {
   sourceUrl?: string
   chinaBuyingAgentId?: string
   chinaPlatform?: string
+}
+
+function mergeHttpsImageLists(...lists: string[][]): string[] {
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const list of lists) {
+    for (const raw of list) {
+      const u = absolutizeImportImage(raw)
+      if (!u || seen.has(u)) continue
+      seen.add(u)
+      out.push(u)
+      if (out.length >= 40) return out
+    }
+  }
+  return out
+}
+
+/** Plain-text description for Express textarea — never leak [[img:N]]. */
+export function cleanUrlImportDescription(
+  rawDescription: string,
+  title: string,
+  specs: Record<string, unknown>,
+  mappedSpecKeys: Set<string>
+): string {
+  const sanitized = sanitizeListingDescriptionField(rawDescription)
+  const stripped = stripDescriptionImageMarkers(sanitized || rawDescription)
+  const withSpecs = appendUnmappedSpecsToDescription(stripped, specs, mappedSpecKeys)
+  const text = withSpecs.trim()
+  if (text.length >= 12) return text.slice(0, 8000)
+  const titleFallback = title.trim()
+    ? `${title.trim()} — fiche produit importée via Affisell Express.`
+    : "Fiche produit importée via Affisell Express."
+  return appendUnmappedSpecsToDescription(titleFallback, specs, mappedSpecKeys).slice(0, 8000)
+}
+
+function collectIllustrationImagesFromProduct(p: UrlImportScrapedProduct): string[] {
+  const fromField = Array.isArray(p.descriptionIllustrationImages)
+    ? p.descriptionIllustrationImages
+        .map((x) => (typeof x === "string" ? absolutizeImportImage(x) : null))
+        .filter((x): x is string => Boolean(x))
+    : []
+
+  const desc = txt(p.description) || txt(p.ai_description)
+  if (!desc) return fromField.slice(0, 40)
+
+  if (looksLikeHtmlDescription(desc)) {
+    const fromHtml = extractHtmlDescriptionLight(desc, { insertImageMarkers: false }).imageUrls
+    return mergeHttpsImageLists(fromField, fromHtml)
+  }
+
+  return fromField.slice(0, 40)
 }
 
 export function guessIso2Country(label: string): string {
@@ -367,14 +428,15 @@ export function buildUrlImportFormPatch(
   }
 ): UrlImportFormPatch {
   const title = txt(p.title)
-  const descRaw =
-    txt(p.ai_description) || txt(p.description) || "—"
-  const images = Array.isArray(p.images)
+  const descRaw = txt(p.ai_description) || txt(p.description) || ""
+  const galleryImages = Array.isArray(p.images)
     ? p.images
         .map((x) => (typeof x === "string" ? absolutizeImportImage(x) : null))
         .filter((x): x is string => Boolean(x))
-        .slice(0, 40)
     : []
+  const illustrationImages = collectIllustrationImagesFromProduct(p)
+  // Hero gallery first, then detail photos so Express thumbnails show real images
+  const images = mergeHttpsImageLists(galleryImages, illustrationImages)
   const illustrationVideos = extractVideoUrls(p.videos, 2)
 
   const stockN = Math.max(0, Math.round(num(p.stock)))
@@ -416,7 +478,7 @@ export function buildUrlImportFormPatch(
   const mappedSpecKeys = new Set(
     Object.keys(specValuesPatch).map((k) => k.toLowerCase())
   )
-  const description = appendUnmappedSpecsToDescription(descRaw, specsRec, mappedSpecKeys)
+  const description = cleanUrlImportDescription(descRaw, title, specsRec, mappedSpecKeys)
 
   const variants = mapImportedVariants(p, priceUsd, options.commissionPct)
 
@@ -425,8 +487,9 @@ export function buildUrlImportFormPatch(
 
   return {
     name: title.slice(0, 500),
-    description: description.slice(0, 8000),
+    description,
     images,
+    illustrationImages: illustrationImages.filter((u) => !galleryImages.includes(u)).slice(0, 40),
     illustrationVideos,
     stock: String(stockN || 0),
     price: priceUsd > 0 ? priceUsd.toFixed(2) : "",

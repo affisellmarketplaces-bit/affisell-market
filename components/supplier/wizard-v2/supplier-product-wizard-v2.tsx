@@ -23,6 +23,7 @@ import {
 } from "@/lib/analytics/wizard-v2-posthog"
 import { buildWizardV2PublishBody } from "@/lib/product-wizard-v2/build-publish-payload"
 import type { ProductVariantInput } from "@/lib/product-variant-sku"
+import { stripDescriptionImageMarkers } from "@/lib/description-rich-content"
 import {
   hasShopifyIntegration,
   shopifyDomainFromIntegrations,
@@ -159,14 +160,19 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     return 0
   }, [price])
 
+  const previewDescription = useMemo(
+    () => stripDescriptionImageMarkers(description),
+    [description]
+  )
+
   const previewData = useMemo(
     () => ({
       name,
-      description,
+      description: previewDescription,
       price: Number(price) || 0,
       imageUrl: images[0] ?? null,
     }),
-    [name, description, price, images]
+    [name, previewDescription, price, images]
   )
 
   const completeStep = useCallback(
@@ -244,7 +250,10 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       supplierTag: "express-import",
       specValues: patch?.specValuesPatch ?? {},
       descriptionBullets: [],
-      descriptionIllustrationImages: images.slice(1, 12),
+      descriptionIllustrationImages:
+        patch?.illustrationImages?.length
+          ? patch.illustrationImages
+          : images.slice(1, 24),
       descriptionIllustrationVideos: patch?.illustrationVideos ?? [],
       variantFormMode: skuVariants?.hasVariants
         ? "advanced"
@@ -333,7 +342,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         (typeof p.title === "string" ? p.title.trim() : "")
       if (!title) throw new Error("Titre introuvable — réessayez ou passez en mode Pro")
       setName(title.slice(0, 500))
-      setDescription(patch.description)
+      setDescription(stripDescriptionImageMarkers(patch.description))
       if (patch.price) setPrice(String(patch.price))
       const catFromProduct =
         (typeof p.categoryId === "string" && p.categoryId.trim()) ||
@@ -434,11 +443,12 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       const body = buildWizardV2PublishBody(
         {
           name,
-          description,
+          description: stripDescriptionImageMarkers(description),
           price: priceN,
           categoryId,
           images,
           commission: commissionPct,
+          descriptionIllustrationImages: expressImportPatch?.illustrationImages,
           skuVariants,
         },
         defaults
@@ -481,6 +491,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     commissionPct,
     defaults,
     description,
+    expressImportPatch,
     images,
     mode,
     name,
@@ -606,8 +617,14 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                   id="v2-express-desc"
                   className="mt-1 min-h-[120px] w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => setDescription(stripDescriptionImageMarkers(e.target.value))}
                 />
+                {images.length > 1 ? (
+                  <p className="text-xs text-zinc-500">
+                    {images.length} photos dans la galerie — elles s&apos;affichent dans l&apos;aperçu et
+                    à la publication (plus de balises [[img:N]]).
+                  </p>
+                ) : null}
               </div>
               <div>
                 <Label htmlFor="v2-express-price">Prix (EUR)</Label>

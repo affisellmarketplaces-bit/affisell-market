@@ -9,6 +9,7 @@ export type WizardV2Draft = {
   categoryId: string
   images: string[]
   commission: number
+  descriptionIllustrationImages?: string[]
   /** AE / Express multi-SKU matrix — synced on create when hasVariants. */
   skuVariants?: { hasVariants: boolean; variants: ProductVariantInput[] } | null
 }
@@ -40,6 +41,12 @@ export function buildWizardV2PublishBody(
     deliveryMax: 7,
     shippingMethods: ["standard"],
     publish: true,
+  }
+
+  if (draft.descriptionIllustrationImages && draft.descriptionIllustrationImages.length > 0) {
+    body.descriptionIllustrationImages = draft.descriptionIllustrationImages.filter((u) =>
+      u.startsWith("http")
+    )
   }
 
   const sku = draft.skuVariants

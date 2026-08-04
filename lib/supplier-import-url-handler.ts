@@ -49,6 +49,8 @@ export type SupplierScrapedProduct = {
   currency: string
   images: string[]
   videos: string[]
+  /** Detail photos extracted from AE HTML description (no [[img:N]] in text). */
+  descriptionIllustrationImages?: string[]
   variants: Array<{
     name: string
     type: string

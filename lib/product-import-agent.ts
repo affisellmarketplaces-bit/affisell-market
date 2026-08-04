@@ -3,6 +3,7 @@ import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
 import { getAliExpressConfigStatus } from "@/lib/aliexpress-config"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
 import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
+import { stripDescriptionImageMarkers } from "@/lib/description-rich-content"
 import { classifyAffisellProduct } from "@/lib/ai/classify-product"
 import {
   buildCategoryBrowse,
@@ -170,14 +171,15 @@ function aliExpressToScraped(
   const suggested = parseFloat((priceEur * markup).toFixed(2))
   return {
     title: mapped.name,
-    description: mapped.description,
+    description: stripDescriptionImageMarkers(mapped.description),
     ai_title: mapped.name,
-    ai_description: mapped.description,
+    ai_description: stripDescriptionImageMarkers(mapped.description),
     price: priceEur,
     original_price: priceEur,
     currency: "EUR",
     images: mapped.images,
     videos: mapped.videos ?? [],
+    descriptionIllustrationImages: mapped.descriptionIllustrationImages ?? [],
     variants: [],
     colors: [],
     sizes: [],

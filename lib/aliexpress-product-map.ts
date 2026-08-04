@@ -1,5 +1,6 @@
 import { unwrapAliExpressMethodResponse } from "@/lib/aliexpress-open-api"
 import { absolutizeCdnImageUrl, collectAbsolutizedImageUrls } from "@/lib/cdn-image-url"
+import { stripDescriptionImageMarkers } from "@/lib/description-rich-content"
 import {
   parseAeProductSpecsFromPayload,
   specsToDescriptionBullets,
@@ -210,7 +211,8 @@ export function mapAliExpressGetProductResponse(
   const descriptionRaw =
     pickString(base, ["detail", "product_description", "description"]) ||
     `Imported from AliExpress product ${productId}.`
-  const extracted = extractHtmlDescriptionContent(descriptionRaw)
+  // Express / plain textareas must never see [[img:N]] — photos live in gallery + illustrationImages
+  const extracted = extractHtmlDescriptionContent(descriptionRaw, { insertImageMarkers: false })
   const illustrationImages = (extracted.imageUrls ?? [])
     .map((u) => absolutizeCdnImageUrl(u) ?? u)
     .filter((u) => /^https?:\/\//i.test(u))
@@ -239,10 +241,9 @@ export function mapAliExpressGetProductResponse(
   }
 
   const brand = brandFromSpecs(specs)
-  const baseDescription = (extracted.text || descriptionRaw.replace(/<[^>]+>/g, " ").trim()).slice(
-    0,
-    12_000
-  )
+  const baseDescription = stripDescriptionImageMarkers(
+    extracted.text || descriptionRaw.replace(/<[^>]+>/g, " ").trim()
+  ).slice(0, 12_000)
 
   return {
     aliexpressProductId: productId,

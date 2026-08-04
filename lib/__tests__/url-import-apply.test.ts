@@ -68,4 +68,29 @@ describe("url-import-apply", () => {
     ])
     expect(patch.description).toMatch(/450W/)
   })
+
+  it("strips [[img:N]] markers and keeps photos in gallery", () => {
+    const markers = Array.from({ length: 8 }, (_, i) => `[[img:${i}]]`).join("\n")
+    const patch = buildUrlImportFormPatch(
+      {
+        title: "Pistolet à eau électrique",
+        description: markers,
+        price: 7.5,
+        images: [
+          "https://ae01.alicdn.com/kf/hero.jpg",
+          "https://ae01.alicdn.com/kf/detail-0.jpg",
+        ],
+        descriptionIllustrationImages: [
+          "https://ae01.alicdn.com/kf/detail-0.jpg",
+          "https://ae01.alicdn.com/kf/detail-1.jpg",
+        ],
+        specs: { battery: "7.4V", range: "8m" },
+      },
+      { markup: 2.5, categoryAttrs: [], commissionPct: "15" }
+    )
+    expect(patch.description).not.toMatch(/\[\[\s*img\s*:/i)
+    expect(patch.description).toMatch(/Pistolet|CARACTÉRISTIQUES|battery|7\.4V/i)
+    expect(patch.images.length).toBeGreaterThanOrEqual(2)
+    expect(patch.illustrationImages).toContain("https://ae01.alicdn.com/kf/detail-1.jpg")
+  })
 })

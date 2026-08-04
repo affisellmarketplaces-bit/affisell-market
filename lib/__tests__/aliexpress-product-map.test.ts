@@ -63,15 +63,39 @@ describe("mapAliExpressGetProductResponse images + specs", () => {
     expect(mapped.basePriceCents).toBe(4999)
   })
 
-  it("collectAbsolutizedImageUrls dedupes protocol-relative", () => {
-    const urls = collectAbsolutizedImageUrls([
-      "//ae01.alicdn.com/a.jpg",
-      "https://ae01.alicdn.com/a.jpg",
-      "//ae01.alicdn.com/b.jpg",
-    ])
-    expect(urls).toEqual([
-      "https://ae01.alicdn.com/a.jpg",
-      "https://ae01.alicdn.com/b.jpg",
-    ])
+  it("extracts HTML detail images without leaking [[img:N]] into description", () => {
+    const mapped = mapAliExpressGetProductResponse(
+      {
+        aliexpress_ds_product_get_response: {
+          result: {
+            ae_item_base_info_dto: {
+              subject: "Electric water gun",
+              detail:
+                '<p>Fun outdoor toy</p><img src="//ae01.alicdn.com/kf/d0.jpg"/><img src="https://ae01.alicdn.com/kf/d1.jpg"/>',
+            },
+            ae_multimedia_info_dto: {
+              image_urls: "//ae01.alicdn.com/kf/hero.jpg",
+            },
+            ae_item_sku_info_dtos: {
+              ae_item_sku_info_d_t_o: [
+                {
+                  sku_id: "1",
+                  offer_sale_price: "18.73",
+                  sku_available_stock: 50,
+                  sku_price: "18.73",
+                },
+              ],
+            },
+            target_sale_price: "18.73",
+          },
+        },
+      },
+      "1005011995562037"
+    )
+
+    expect(mapped.description).not.toMatch(/\[\[\s*img\s*:/i)
+    expect(mapped.description).toMatch(/Fun outdoor toy/)
+    expect(mapped.descriptionIllustrationImages.length).toBeGreaterThanOrEqual(2)
+    expect(mapped.images.some((u) => u.includes("d0.jpg"))).toBe(true)
   })
 })
