@@ -1422,8 +1422,8 @@
     "catalogFilters": {
       "groupAria": "Filtres vitrine et date d'ajout",
       "horsVitrine": "Pas encore en vitrine",
-      "horsVitrineActive": "hors vitrine",
-      "horsVitrineOnHint": "Activer : n'afficher que les SKU hors vitrine",
+      "horsVitrineActive": "à publier",
+      "horsVitrineOnHint": "Activer : n'afficher que les nouveautés et fiches pas encore publiées",
       "horsVitrineOffHint": "Désactiver : afficher tout le catalogue",
       "toggleOn": "ON",
       "toggleOff": "OFF",

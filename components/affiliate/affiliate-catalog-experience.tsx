@@ -312,7 +312,7 @@ export function AffiliateCatalogExperience({
       }
       const hidden = data.hiddenIds?.length ?? 0
       const deleted = data.deletedIds?.length ?? 0
-      if (hidden > 0) showToast("Retiré de la vitrine — prêt à réimporter")
+      if (hidden > 0) showToast("Retiré de la vitrine — vous pourrez le publier à nouveau")
       else if (deleted > 0) showToast("Produit libéré — de nouveau dans Discover")
       else showToast("Fiche retirée de la vitrine")
       await refreshCatalogProducts()
@@ -759,6 +759,7 @@ export function AffiliateCatalogExperience({
                   {products.map((p) => {
                     const listingState = resolveCatalogListingState(p.affiliateProducts)
                     const isLive = listingState.kind === "live"
+                    const isReady = listingState.kind === "ready"
                     const isHidden = listingState.kind === "hidden"
                     const listingId = listingState.kind !== "none" ? listingState.listingId : undefined
                     const thumb = primaryProductImage(p.images) || "/placeholder-product.jpg"
@@ -772,8 +773,10 @@ export function AffiliateCatalogExperience({
                         className={cn(
                           "group relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm ring-1 transition hover:shadow-lg dark:bg-zinc-950 dark:ring-zinc-800",
                           isLive && "border-emerald-200/80 ring-emerald-200/60",
+                          isReady && "border-violet-200/80 ring-violet-200/50",
                           isHidden && "border-amber-200/80 ring-amber-200/60",
-                          !isLive && !isHidden && "border-zinc-100 ring-zinc-100 hover:border-violet-200"
+                          listingState.kind === "none" &&
+                            "border-zinc-100 ring-zinc-100 hover:border-violet-200"
                         )}
                       >
                         {isLive ? (
@@ -781,9 +784,13 @@ export function AffiliateCatalogExperience({
                             <Check className="h-3 w-3" aria-hidden />
                             En vitrine
                           </div>
-                        ) : (
+                        ) : isHidden ? (
                           <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-orange-500 px-2 py-1 text-xs font-medium text-white shadow">
-                            Hors vitrine
+                            Retiré
+                          </div>
+                        ) : (
+                          <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-violet-600 px-2 py-1 text-xs font-medium text-white shadow">
+                            Nouveau
                           </div>
                         )}
                         {!isLive &&

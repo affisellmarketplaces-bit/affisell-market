@@ -63,6 +63,8 @@ function normalizeCatalogRow(row: DiscoverRow): AffiliateCatalogProduct {
       id: a.id,
       isListed: a.isListed,
       sellingPriceCents: a.sellingPriceCents,
+      clicks: a.clicks,
+      conversions: a.conversions,
     })),
     supplier: {
       email: supplier.email,

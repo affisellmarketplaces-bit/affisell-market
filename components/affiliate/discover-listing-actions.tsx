@@ -23,19 +23,22 @@ type Props = {
 const copy = {
   fr: {
     add: "Ajouter à ma vitrine",
+    launch: "Mettre en vitrine",
     edit: "Modifier ma fiche",
     relist: "Remettre en vitrine",
     release: "Libérer du flux",
     releaseTitle: "Libérer ce SKU ?",
     releaseBody:
-      "Le produit disparaît de votre boutique publique et redevient disponible dans Discover — vous pourrez le republier avec une nouvelle marge à tout moment.",
+      "Le produit disparaît de votre boutique publique et redevient disponible dans Discover — vous pourrez le publier à nouveau avec une nouvelle marge à tout moment.",
     releaseHint: "Les ventes passées restent dans votre historique.",
     cancel: "Garder en vitrine",
     confirm: "Libérer",
-    hiddenBadge: "Hors vitrine — prêt à relister",
+    readyBadge: "Nouveau — prêt à publier",
+    hiddenBadge: "Retiré de la vitrine — republier possible",
   },
   en: {
     add: "Add to my store",
+    launch: "Publish to storefront",
     edit: "Edit listing",
     relist: "Add back to storefront",
     release: "Release from store",
@@ -45,7 +48,8 @@ const copy = {
     releaseHint: "Past orders stay in your history.",
     cancel: "Keep live",
     confirm: "Release",
-    hiddenBadge: "Off storefront — ready to relist",
+    readyBadge: "New — ready to publish",
+    hiddenBadge: "Removed from storefront — publish again anytime",
   },
 } as const
 
@@ -93,6 +97,24 @@ export function DiscoverListingActions({
               {t.add}
             </span>
           </motion.button>
+        ) : null}
+
+        {state.kind === "ready" ? (
+          <>
+            <p className="flex items-center gap-1.5 rounded-xl border border-violet-200/80 bg-violet-50/90 px-3 py-2 text-[11px] font-medium text-violet-950 dark:border-violet-900/40 dark:bg-violet-950/40 dark:text-violet-100">
+              <Sparkles className="size-3.5 shrink-0" aria-hidden />
+              {t.readyBadge}
+            </p>
+            <Button
+              type="button"
+              variant="bentoAccent"
+              className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500"
+              onClick={() => onEdit(state.listingId)}
+            >
+              <Rocket className="size-4" aria-hidden />
+              {t.launch}
+            </Button>
+          </>
         ) : null}
 
         {state.kind === "hidden" ? (
@@ -151,7 +173,7 @@ export function DiscoverListingActions({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] flex items-end justify-center bg-zinc-950/60 p-4 backdrop-blur-md sm:items-center"
+            className="fixed inset-x-0 bottom-0 z-[120] flex items-end justify-center bg-zinc-950/60 p-4 backdrop-blur-md sm:items-center"
             role="presentation"
             onMouseDown={(e) => {
               if (e.target === e.currentTarget) closeRelease()

@@ -1422,8 +1422,8 @@
     "catalogFilters": {
       "groupAria": "Storefront and date-added filters",
       "horsVitrine": "Not on your storefront yet",
-      "horsVitrineActive": "not on storefront",
-      "horsVitrineOnHint": "Turn on: show only SKUs not on your storefront",
+      "horsVitrineActive": "to publish",
+      "horsVitrineOnHint": "Turn on: show only new and unpublished SKUs",
       "horsVitrineOffHint": "Turn off: show the full catalog",
       "toggleOn": "ON",
       "toggleOff": "OFF",

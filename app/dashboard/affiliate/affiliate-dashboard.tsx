@@ -1070,9 +1070,11 @@ export function AffiliateDashboard({ storeId }: Props) {
           {filteredDiscover.map((p) => {
             const listingState = resolveCatalogListingState(p.affiliateProducts)
             const isLive = listingState.kind === "live"
+            const isReady = listingState.kind === "ready"
             const isHidden = listingState.kind === "hidden"
             const thumb = primaryProductImage(p.images) || "/placeholder.png"
-            const fresh = listingState.kind === "none" && isSkuFresh(p.createdAt)
+            const fresh =
+              (listingState.kind === "none" || isReady) && isSkuFresh(p.createdAt)
             const supplierBrand = supplierDisplayLabel(p)
             const supplierHref = p.supplier.store?.slug?.trim()
               ? `/store/supplier/${encodeURIComponent(p.supplier.store.slug)}`
@@ -1089,8 +1091,9 @@ export function AffiliateDashboard({ storeId }: Props) {
                 className={cn(
                   "relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 transition hover:ring-violet-200/90 dark:bg-zinc-950 dark:hover:ring-violet-900/50",
                   isLive && "ring-emerald-200/90 dark:ring-emerald-900/50",
+                  isReady && "ring-violet-200/90 dark:ring-violet-900/40",
                   isHidden && "ring-amber-200/90 dark:ring-amber-900/40",
-                  !isLive && !isHidden && "ring-gray-100 dark:ring-zinc-800"
+                  listingState.kind === "none" && "ring-gray-100 dark:ring-zinc-800"
                 )}
               >
                 {isLive ? (
@@ -1101,12 +1104,12 @@ export function AffiliateDashboard({ storeId }: Props) {
                 ) : null}
                 {isHidden ? (
                   <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-amber-500 px-2 py-1 text-xs font-medium text-white shadow-sm">
-                    Off storefront
+                    Removed
                   </div>
                 ) : null}
-                {listingState.kind === "none" && fresh ? (
+                {isReady || (listingState.kind === "none" && fresh) ? (
                   <div className="pointer-events-none absolute left-3 top-3 z-10">
-                    <span className="rounded-full bg-sky-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
+                    <span className="rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow">
                       New
                     </span>
                   </div>
