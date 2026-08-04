@@ -1,4 +1,9 @@
 import { unwrapAliExpressMethodResponse } from "@/lib/aliexpress-open-api"
+import { absolutizeCdnImageUrl, collectAbsolutizedImageUrls } from "@/lib/cdn-image-url"
+import {
+  parseAeProductSpecsFromPayload,
+  specsToDescriptionBullets,
+} from "@/lib/fulfillment/ae-product-specs"
 import { extractHtmlDescriptionContent } from "@/lib/html-description-extract"
 
 export type AliExpressMappedProduct = {
@@ -6,9 +11,13 @@ export type AliExpressMappedProduct = {
   name: string
   description: string
   descriptionIllustrationImages: string[]
+  /** Gallery + SKU swatches + description illustrations (absolutized https) */
   images: string[]
   basePriceCents: number
   stock: number
+  brand: string
+  specs: Record<string, string>
+  videos: string[]
 }
 
 function asRecord(v: unknown): Record<string, unknown> | null {
@@ -22,23 +31,6 @@ function pickString(obj: Record<string, unknown> | null, keys: string[]): string
     if (typeof v === "string" && v.trim()) return v.trim()
   }
   return ""
-}
-
-function parseImageUrls(raw: unknown): string[] {
-  if (Array.isArray(raw)) {
-    return raw
-      .filter((u): u is string => typeof u === "string" && u.trim().length > 0)
-      .map((u) => u.trim())
-      .slice(0, 12)
-  }
-  if (typeof raw === "string" && raw.trim()) {
-    return raw
-      .split(/[;,]/)
-      .map((u) => u.trim())
-      .filter(Boolean)
-      .slice(0, 12)
-  }
-  return []
 }
 
 function parseSkuList(raw: unknown): Record<string, unknown>[] {
@@ -94,6 +86,83 @@ function parseStock(sku: Record<string, unknown>, result: Record<string, unknown
   return n
 }
 
+function mergeImageLists(...lists: string[][]): string[] {
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const list of lists) {
+    for (const u of list) {
+      const abs = absolutizeCdnImageUrl(u)
+      if (!abs || seen.has(abs)) continue
+      seen.add(abs)
+      out.push(abs)
+      if (out.length >= 40) return out
+    }
+  }
+  return out
+}
+
+/** Pull protocol-relative SKU swatch URLs without importing ae-product-skus (circular). */
+function collectSkuImageUrls(result: Record<string, unknown>): string[] {
+  const skus = parseSkuList(
+    result.ae_item_sku_info_dtos ??
+      result.ae_item_sku_info_dto ??
+      result.sku_info ??
+      result.skus
+  )
+  const out: string[] = []
+  for (const sku of skus) {
+    const root = pickString(sku, ["sku_image", "sku_img", "sku_image_url", "image", "image_url"])
+    if (root) out.push(root)
+    const rawProps =
+      sku.ae_sku_property_dtos ??
+      sku.ae_sku_property_dto ??
+      sku.sku_property_list ??
+      sku.sku_props
+    const propList = Array.isArray(rawProps) ? rawProps : rawProps ? [rawProps] : []
+    for (const p of propList) {
+      const rec = asRecord(p)
+      if (!rec) continue
+      const img = pickString(rec, [
+        "sku_image",
+        "sku_property_image_path",
+        "sku_image_url",
+        "image",
+        "image_url",
+        "skuPropertyImagePath",
+      ])
+      if (img) out.push(img)
+    }
+  }
+  return out
+}
+
+function brandFromSpecs(specs: Record<string, string>): string {
+  for (const [k, v] of Object.entries(specs)) {
+    if (!v.trim()) continue
+    if (/^brand(_name)?$/i.test(k) || /marque/i.test(k)) {
+      if (/^none$/i.test(v) || /n\/?a/i.test(v)) return ""
+      return v.trim().slice(0, 48)
+    }
+  }
+  return ""
+}
+
+function appendCharacteristics(description: string, specs: Record<string, string>): string {
+  const parts: string[] = [description.trim()].filter(Boolean)
+  const bullets = specsToDescriptionBullets(
+    Object.entries(specs).map(([key, value]) => ({
+      key,
+      label: key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      value,
+    })),
+    40
+  )
+  if (bullets.length > 0 && !/CARACTÉRISTIQUES|CHARACTERISTICS/i.test(description)) {
+    parts.push(`CARACTÉRISTIQUES\n${bullets.map((b) => `• ${b}`).join("\n")}`)
+  }
+  return parts.join("\n\n").slice(0, 20_000)
+}
+
 /** Map `aliexpress.ds.product.get` JSON to Affisell product fields. */
 export function mapAliExpressGetProductResponse(
   payload: unknown,
@@ -118,11 +187,13 @@ export function mapAliExpressGetProductResponse(
     pickString(base, ["subject", "product_title", "title", "product_name"]) ||
     pickString(result, ["subject", "product_title"])
 
-  const images = parseImageUrls(
+  const gallery = collectAbsolutizedImageUrls(
     media.image_urls ??
       media.image_url_list ??
+      media.image_list ??
       result.image_urls ??
-      base.image_urls
+      base.image_urls,
+    24
   )
 
   const skus = parseSkuList(
@@ -140,6 +211,25 @@ export function mapAliExpressGetProductResponse(
     pickString(base, ["detail", "product_description", "description"]) ||
     `Imported from AliExpress product ${productId}.`
   const extracted = extractHtmlDescriptionContent(descriptionRaw)
+  const illustrationImages = (extracted.imageUrls ?? [])
+    .map((u) => absolutizeCdnImageUrl(u) ?? u)
+    .filter((u) => /^https?:\/\//i.test(u))
+    .slice(0, 40)
+
+  const skuImages = collectAbsolutizedImageUrls(collectSkuImageUrls(result), 24)
+  const images = mergeImageLists(gallery, skuImages, illustrationImages)
+
+  const specRows = parseAeProductSpecsFromPayload(payload)
+  const specs: Record<string, string> = {}
+  for (const row of specRows) {
+    if (row.value.trim()) specs[row.key] = row.value.trim()
+  }
+
+  const videoRaw =
+    media.video_urls ?? media.video_url_list ?? media.video_url ?? result.video_urls
+  const videos = collectAbsolutizedImageUrls(videoRaw, 3).filter(
+    (u) => /\.(mp4|webm|m3u8)(\?|$)/i.test(u) || /video/i.test(u)
+  )
 
   if (!subject) {
     throw new Error("AliExpress product has no title")
@@ -148,13 +238,22 @@ export function mapAliExpressGetProductResponse(
     throw new Error("AliExpress product price not found — confirm EUR/FR locale on the API app")
   }
 
+  const brand = brandFromSpecs(specs)
+  const baseDescription = (extracted.text || descriptionRaw.replace(/<[^>]+>/g, " ").trim()).slice(
+    0,
+    12_000
+  )
+
   return {
     aliexpressProductId: productId,
     name: subject.slice(0, 500),
-    description: (extracted.text || descriptionRaw.replace(/<[^>]+>/g, " ").trim()).slice(0, 20_000),
-    descriptionIllustrationImages: extracted.imageUrls.slice(0, 40),
+    description: appendCharacteristics(baseDescription, specs),
+    descriptionIllustrationImages: illustrationImages.slice(0, 40),
     images,
     basePriceCents: Math.max(100, Math.round(priceEur * 100)),
     stock: stock > 0 ? stock : 1,
+    brand,
+    specs,
+    videos,
   }
 }

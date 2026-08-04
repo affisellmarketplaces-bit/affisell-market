@@ -75,6 +75,7 @@ describe("import-china-ae-bridge", () => {
       steps: ["detect", "fetch", "done"],
       aiEnriched: false,
       category: { leafId: "leaf-1", breadcrumb: "Home > Tools", confidence: 0.8, reason: "test" },
+      skuVariants: null,
     })
 
     const res = await tryImportChinaViaAgent({

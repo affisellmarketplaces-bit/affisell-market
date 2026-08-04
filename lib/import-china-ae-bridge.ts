@@ -61,6 +61,9 @@ export async function tryImportChinaViaAgent(
     titleLen: product.title?.length ?? 0,
     price: product.price,
     imageCount: product.images?.length ?? 0,
+    specCount: Object.keys(product.specs ?? {}).length,
+    categoryLeaf: out.category?.leafId ?? null,
+    hasSkuVariants: Boolean(out.skuVariants?.hasVariants),
   })
 
   return NextResponse.json({
@@ -70,5 +73,14 @@ export async function tryImportChinaViaAgent(
     warnings: out.warnings,
     marketplace: out.marketplace,
     category: out.category,
+    skuVariants: out.skuVariants
+      ? {
+          hasVariants: out.skuVariants.hasVariants,
+          variants: out.skuVariants.variantInputs,
+          colors: out.skuVariants.colors,
+          colorImages: out.skuVariants.colorImages,
+          totalStock: out.skuVariants.totalStock,
+        }
+      : null,
   })
 }

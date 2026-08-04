@@ -13,8 +13,10 @@ import {
   toastInstantScanRetrying,
   toastInstantScanSuccess,
 } from "@/components/instantscan-toast"
+import { CategoryAutosuggest } from "@/components/product/CategoryAutosuggest"
 import { SmartMarginAiPanel } from "@/components/supplier/smart-margin-ai-panel"
 import { ProductLivePreview } from "@/components/supplier/product-live-preview"
+import type { BrowsePayload } from "@/components/supplier/supplier-category-picker"
 import { WizardV2ZeroWaitUpload } from "@/components/supplier/wizard-v2/wizard-v2-zero-wait-upload"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,6 +29,7 @@ import {
   trackWizardV2View,
 } from "@/lib/analytics/wizard-v2-posthog"
 import { buildWizardV2PublishBody } from "@/lib/product-wizard-v2/build-publish-payload"
+import type { ProductVariantInput } from "@/lib/product-variant-sku"
 import { compressDataUrlForInstantScan } from "@/lib/product-image-upload"
 import {
   instantScanStageFromVisionVersion,
@@ -98,11 +101,17 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
 
   const [defaults, setDefaults] = useState<MerchantDefaults | null>(null)
   const [shopifyDomain, setShopifyDomain] = useState<string | null>(null)
+  const [browse, setBrowse] = useState<BrowsePayload | null>(null)
   const [images, setImages] = useState<string[]>([])
+  const [skuVariants, setSkuVariants] = useState<{
+    hasVariants: boolean
+    variants: ProductVariantInput[]
+  } | null>(null)
   const [uploadBusy, setUploadBusy] = useState(false)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [categoryId, setCategoryId] = useState("")
+  const [categoryBreadcrumb, setCategoryBreadcrumb] = useState("")
   const [price, setPrice] = useState("")
   const [expressUrl, setExpressUrl] = useState("")
   const [guidedStep, setGuidedStep] = useState(0)
@@ -149,6 +158,13 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       .then((r) => (r.ok ? r.json() : null))
       .then((j: { defaults?: MerchantDefaults } | null) => {
         if (j?.defaults) setDefaults(j.defaults)
+      })
+      .catch(() => {})
+
+    void fetch("/api/categories/browse?lite=1")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: BrowsePayload | null) => {
+        if (j?.nodes) setBrowse(j)
       })
       .catch(() => {})
 
@@ -533,7 +549,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ url: u, options: { aiRewrite: true, markup: 2.5 } }),
+        body: JSON.stringify({ url: u, options: { aiRewrite: true, markup: 2.5, fast: true } }),
       })
       const data = (await res.json()) as {
         products?: unknown[]
@@ -541,6 +557,10 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         warnings?: string[]
         method?: string
         category?: { leafId?: string | null; breadcrumb?: string } | null
+        skuVariants?: {
+          hasVariants?: boolean
+          variants?: ProductVariantInput[]
+        } | null
       }
       if (!res.ok) throw new Error(data.error ?? "import_failed")
       const raw = Array.isArray(data.products) ? data.products[0] : null
@@ -564,15 +584,42 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         (typeof p.categoryId === "string" && p.categoryId.trim()) ||
         data.category?.leafId?.trim() ||
         ""
-      if (catFromProduct) setCategoryId(catFromProduct)
-      else if (patch.categoryId) setCategoryId(patch.categoryId)
-      if (patch.images[0]) setImages(patch.images)
+      if (catFromProduct) {
+        setCategoryId(catFromProduct)
+        setCategoryBreadcrumb(
+          (typeof p.categoryBreadcrumb === "string" && p.categoryBreadcrumb) ||
+            data.category?.breadcrumb ||
+            ""
+        )
+      } else if (patch.categoryId) {
+        setCategoryId(patch.categoryId)
+        setCategoryBreadcrumb(patch.categoryBreadcrumb ?? "")
+      }
+      setImages(patch.images)
+      const markup = 2.5
+      const commission = defaults?.defaultCommissionPct ?? 15
+      if (data.skuVariants?.hasVariants && Array.isArray(data.skuVariants.variants)) {
+        const scaled = data.skuVariants.variants.map((v) => ({
+          ...v,
+          supplierPrice: Math.round(v.supplierPrice * markup * 100) / 100,
+          publicPrice: Math.round((v.publicPrice ?? v.supplierPrice) * markup * 100) / 100,
+          commissionRate: commission,
+        }))
+        setSkuVariants({ hasVariants: true, variants: scaled })
+      } else {
+        setSkuVariants(null)
+      }
       completeStep("express_import")
       const warn = Array.isArray(data.warnings) ? data.warnings.filter(Boolean) : []
       if (warn[0]) toast.message(warn[0], { duration: 5000 })
+      const imgN = patch.images.length
+      const specN =
+        p.specs && typeof p.specs === "object" && !Array.isArray(p.specs)
+          ? Object.keys(p.specs as object).length
+          : 0
       toast.success(
         data.method?.includes("aliexpress")
-          ? "AliExpress importé — vérifiez l'aperçu"
+          ? `AliExpress importé — ${imgN} photo${imgN > 1 ? "s" : ""}, ${specN} caractéristique${specN > 1 ? "s" : ""}`
           : "Produit importé — vérifiez l'aperçu"
       )
     } catch (err) {
@@ -636,6 +683,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
           categoryId,
           images,
           commission: commissionPct,
+          skuVariants,
         },
         defaults
       )
@@ -685,6 +733,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     price,
     publishing,
     push,
+    skuVariants,
     uploadBusy,
   ])
 
@@ -928,6 +977,24 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                 {mode === "express" && images.length === 0 ? (
                   <WizardV2ZeroWaitUpload onUrlsChange={setImages} onBusyChange={setUploadBusy} />
                 ) : null}
+                {mode === "express" && images.length > 0 ? (
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {images.slice(0, 12).map((url) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={url}
+                        src={url}
+                        alt=""
+                        className="h-16 w-16 shrink-0 rounded-lg border border-zinc-200 object-cover dark:border-zinc-700"
+                      />
+                    ))}
+                    {images.length > 12 ? (
+                      <span className="flex h-16 items-center text-xs text-zinc-500">
+                        +{images.length - 12}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
                 {mode === "express" ? (
                   <>
                     <div>
@@ -940,6 +1007,15 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                       />
                     </div>
                     <div>
+                      <Label htmlFor="v2-express-desc">Description & caractéristiques</Label>
+                      <textarea
+                        id="v2-express-desc"
+                        className="mt-1 min-h-[120px] w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                      />
+                    </div>
+                    <div>
                       <Label htmlFor="v2-express-price">Prix (EUR)</Label>
                       <Input
                         id="v2-express-price"
@@ -949,6 +1025,31 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                         className="mt-1 h-11"
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Catégorie</Label>
+                      {categoryId && categoryBreadcrumb ? (
+                        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
+                          {categoryBreadcrumb}
+                        </p>
+                      ) : null}
+                      <CategoryAutosuggest
+                        title={name}
+                        description={description}
+                        imageUrl={images[0] ?? null}
+                        browse={browse}
+                        categoryId={categoryId}
+                        onChange={(leafId, path) => {
+                          setCategoryId(leafId)
+                          setCategoryBreadcrumb(path.map((s) => s.name).join(" > "))
+                        }}
+                      />
+                    </div>
+                    {skuVariants?.hasVariants ? (
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                        {skuVariants.variants.length} variantes SKU importées — synchronisées à la
+                        publication
+                      </p>
+                    ) : null}
                   </>
                 ) : null}
 

@@ -333,6 +333,31 @@ export function mergeSpecsFromImport(
   return out
 }
 
+function absolutizeImportImage(url: string): string | null {
+  const t = url.trim()
+  if (!t) return null
+  if (t.startsWith("//")) return `https:${t}`
+  if (/^https?:\/\//i.test(t)) return t
+  if (t.startsWith("/") && /alicdn|aliexpress/i.test(t)) return `https://ae01.alicdn.com${t}`
+  return null
+}
+
+function appendUnmappedSpecsToDescription(
+  desc: string,
+  specs: Record<string, unknown>,
+  mappedKeys: Set<string>
+): string {
+  const leftover: string[] = []
+  for (const [k, v] of Object.entries(specs)) {
+    if (typeof v !== "string" || !v.trim()) continue
+    if (mappedKeys.has(k.toLowerCase())) continue
+    leftover.push(`• ${k.replace(/_/g, " ")}: ${v.trim()}`)
+  }
+  if (leftover.length === 0) return desc
+  if (/CARACTÉRISTIQUES|CHARACTERISTICS/i.test(desc)) return desc.slice(0, 8000)
+  return `${desc}\n\nCARACTÉRISTIQUES\n${leftover.slice(0, 40).join("\n")}`.slice(0, 8000)
+}
+
 export function buildUrlImportFormPatch(
   p: UrlImportScrapedProduct,
   options: {
@@ -345,7 +370,10 @@ export function buildUrlImportFormPatch(
   const descRaw =
     txt(p.ai_description) || txt(p.description) || "—"
   const images = Array.isArray(p.images)
-    ? p.images.filter((x): x is string => typeof x === "string" && /^https?:\/\//i.test(x)).slice(0, 12)
+    ? p.images
+        .map((x) => (typeof x === "string" ? absolutizeImportImage(x) : null))
+        .filter((x): x is string => Boolean(x))
+        .slice(0, 40)
     : []
   const illustrationVideos = extractVideoUrls(p.videos, 2)
 
@@ -379,17 +407,25 @@ export function buildUrlImportFormPatch(
           : ""
 
   const brand = normalizeImportBrand(txt(p.brand), title)
+  const specsRec = asRec(p.specs) as Record<string, unknown>
   const specValuesPatch = mergeSpecsFromImport(
     options.categoryAttrs,
-    asRec(p.specs) as Record<string, unknown>,
+    specsRec,
     brand
   )
+  const mappedSpecKeys = new Set(
+    Object.keys(specValuesPatch).map((k) => k.toLowerCase())
+  )
+  const description = appendUnmappedSpecsToDescription(descRaw, specsRec, mappedSpecKeys)
 
   const variants = mapImportedVariants(p, priceUsd, options.commissionPct)
 
+  const categoryId = txt((p as { categoryId?: unknown }).categoryId)
+  const categoryBreadcrumb = txt((p as { categoryBreadcrumb?: unknown }).categoryBreadcrumb)
+
   return {
     name: title.slice(0, 500),
-    description: descRaw.slice(0, 8000),
+    description: description.slice(0, 8000),
     images,
     illustrationVideos,
     stock: String(stockN || 0),
@@ -404,5 +440,6 @@ export function buildUrlImportFormPatch(
     shippingCost: Number.isFinite(shipCost) && shipCost >= 0 ? String(shipCost) : "0",
     specValuesPatch,
     variants,
+    ...(categoryId ? { categoryId, categoryBreadcrumb: categoryBreadcrumb || undefined } : {}),
   }
 }

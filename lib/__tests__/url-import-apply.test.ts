@@ -50,4 +50,22 @@ describe("url-import-apply", () => {
     expect(patch.variants.mode).toBe("simple")
     expect(patch.variants.sizes).toContain("M")
   })
+
+  it("absolutizes protocol-relative AliExpress images", () => {
+    const patch = buildUrlImportFormPatch(
+      {
+        title: "Nettoyeur",
+        description: "Desc",
+        price: 50,
+        images: ["//ae01.alicdn.com/kf/hero.jpg", "https://ae01.alicdn.com/kf/side.jpg"],
+        specs: { power: "450W" },
+      },
+      { markup: 2.5, categoryAttrs: [], commissionPct: "15" }
+    )
+    expect(patch.images).toEqual([
+      "https://ae01.alicdn.com/kf/hero.jpg",
+      "https://ae01.alicdn.com/kf/side.jpg",
+    ])
+    expect(patch.description).toMatch(/450W/)
+  })
 })

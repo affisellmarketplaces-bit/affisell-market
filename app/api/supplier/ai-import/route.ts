@@ -43,5 +43,11 @@ export async function POST(req: Request) {
     steps: out.steps,
     aiEnriched: out.aiEnriched,
     category: out.category,
+    skuVariants: out.skuVariants
+      ? {
+          hasVariants: out.skuVariants.hasVariants,
+          variants: out.skuVariants.variantInputs,
+        }
+      : null,
   })
 }

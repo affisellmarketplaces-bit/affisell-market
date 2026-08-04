@@ -113,7 +113,7 @@ function parseSkuProperties(sku: Record<string, unknown>): {
     if (!size && (nameLower.includes("size") || nameLower.includes("taille"))) {
       size = value
     }
-    if (!imageUrl) {
+      if (!imageUrl) {
       const img = pickString(rec, [
         "sku_image",
         "sku_property_image_path",
@@ -122,7 +122,10 @@ function parseSkuProperties(sku: Record<string, unknown>): {
         "image_url",
         "skuPropertyImagePath",
       ])
-      if (img && /^https?:\/\//i.test(img)) imageUrl = img
+      if (img) {
+        const abs = img.startsWith("//") ? `https:${img}` : img
+        if (/^https?:\/\//i.test(abs)) imageUrl = abs
+      }
     }
   }
 
@@ -135,7 +138,10 @@ function parseSkuProperties(sku: Record<string, unknown>): {
       "image",
       "image_url",
     ])
-    if (rootImg && /^https?:\/\//i.test(rootImg)) imageUrl = rootImg
+    if (rootImg) {
+      const abs = rootImg.startsWith("//") ? `https:${rootImg}` : rootImg
+      if (/^https?:\/\//i.test(abs)) imageUrl = abs
+    }
   }
 
   if (!color && parts.length === 1) {

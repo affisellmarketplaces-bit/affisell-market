@@ -2,12 +2,18 @@ import { AliExpressApiError, createAliExpressClient } from "@/lib/aliexpress-ope
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
 import { getAliExpressConfigStatus } from "@/lib/aliexpress-config"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
+import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
 import { classifyAffisellProduct } from "@/lib/ai/classify-product"
 import {
   buildCategoryBrowse,
   fetchAllCategoriesForBrowse,
   type LeafPath,
 } from "@/lib/category-browse"
+import { parseAeProductSkusFromPayload } from "@/lib/fulfillment/ae-product-skus"
+import {
+  aeSkusToVariantPersist,
+  type AeSkuVariantPersist,
+} from "@/lib/fulfillment/ae-skus-to-product-variants"
 import { prisma } from "@/lib/prisma"
 import { detectMarketplaceFromUrl } from "@/lib/import-marketplace"
 import {
@@ -44,6 +50,8 @@ export type ProductImportAgentResult = {
   steps: ProductImportAgentStep[]
   aiEnriched: boolean
   category: ProductImportAgentCategory | null
+  /** Ready-to-publish AE SKU matrix (Express / Instant Enlist). */
+  skuVariants: AeSkuVariantPersist | null
 }
 
 export type ProductImportAgentError = {
@@ -52,6 +60,94 @@ export type ProductImportAgentError = {
   status: number
   useAliExpressApi?: boolean
   marketplace?: ReturnType<typeof detectMarketplaceFromUrl>
+}
+
+function applyAeSkuMatrixToScraped(
+  product: SupplierScrapedProduct,
+  persist: AeSkuVariantPersist,
+  markup: number
+): SupplierScrapedProduct {
+  const aeSkusFromPersist = persist.variantInputs
+  if (aeSkusFromPersist.length === 0 && !persist.hasVariants) {
+    return {
+      ...product,
+      stock: persist.totalStock > 0 ? persist.totalStock : product.stock,
+    }
+  }
+
+  const variants = persist.variantInputs.map((v) => {
+    const img =
+      typeof v.customData?.image === "string"
+        ? absolutizeCdnImageUrl(v.customData.image) ?? v.customData.image
+        : ""
+    return {
+      name: [v.color, v.size].filter(Boolean).join(" · ") || v.sku || "Variant",
+      type: "Variant",
+      image: typeof img === "string" ? img : "",
+      price: v.supplierPrice,
+      stock: v.stock,
+      sku: v.sku ?? "",
+      attributes: {
+        ...(v.color ? { Couleur: v.color } : {}),
+        ...(v.size ? { Taille: v.size } : {}),
+      },
+    }
+  })
+
+  const colors = persist.colorImages.map((c) => ({
+    name: c.color,
+    image: c.image ? absolutizeCdnImageUrl(c.image) ?? c.image : "",
+    hex: c.hex,
+  }))
+
+  const sizes = [
+    ...new Set(
+      persist.variantInputs
+        .map((v) => v.size)
+        .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+    ),
+  ].map((name) => ({ name, value: name }))
+
+  const optionLines = persist.variantBullets.slice(0, 24)
+  let description = product.description
+  if (optionLines.length > 0 && !/OPTIONS|VARIANTES/i.test(description)) {
+    description = `${description}\n\nOPTIONS\n${optionLines.map((l) => `• ${l}`).join("\n")}`.slice(
+      0,
+      20_000
+    )
+  }
+
+  const minEur =
+    persist.minPriceCents > 0 ? persist.minPriceCents / 100 : product.price
+  const suggested = parseFloat((minEur * markup).toFixed(2))
+  const galleryExtra = colors.map((c) => c.image).filter((u) => /^https?:\/\//i.test(u))
+  const images = [...product.images]
+  const seen = new Set(images)
+  for (const u of galleryExtra) {
+    if (seen.has(u)) continue
+    seen.add(u)
+    images.push(u)
+    if (images.length >= 40) break
+  }
+
+  return {
+    ...product,
+    description,
+    ai_description: description,
+    price: minEur,
+    original_price: minEur,
+    images,
+    variants,
+    colors,
+    sizes,
+    stock: persist.totalStock > 0 ? persist.totalStock : product.stock,
+    basePrice: suggested,
+    costPrice: minEur,
+    suggested_price: suggested,
+    profit_per_sale: parseFloat((suggested - minEur).toFixed(2)),
+    roi: minEur > 0 ? Math.round(((suggested - minEur) / minEur) * 100) : product.roi,
+    tags: Array.from(new Set([...product.tags, "ae-skus"])),
+  }
 }
 
 function aliExpressToScraped(
@@ -70,11 +166,11 @@ function aliExpressToScraped(
     original_price: priceEur,
     currency: "EUR",
     images: mapped.images,
-    videos: [],
+    videos: mapped.videos ?? [],
     variants: [],
     colors: [],
     sizes: [],
-    brand: "",
+    brand: mapped.brand ?? "",
     category: "AliExpress",
     sku: `ae-${mapped.aliexpressProductId}`,
     stock: mapped.stock,
@@ -91,7 +187,7 @@ function aliExpressToScraped(
       items: [],
       sentiment: "neutral",
     },
-    specs: {},
+    specs: mapped.specs ?? {},
     source_platform: "aliexpress",
     source_url: sourceUrl,
     basePrice: suggested,
@@ -147,6 +243,11 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
   let method = "agent"
 
   let product: SupplierScrapedProduct | null = null
+  let skuVariants: AeSkuVariantPersist | null = null
+  const markup =
+    typeof body.options?.markup === "number" && body.options.markup > 0
+      ? body.options.markup
+      : 2.5
 
   steps.push("fetch")
 
@@ -159,8 +260,22 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
       const raw = await client.getProduct(aeId)
       const mapped = mapAliExpressGetProductResponse(raw, aeId)
       product = aliExpressToScraped(mapped, rawUrl)
+      const aeSkus = parseAeProductSkusFromPayload(raw, aeId)
+      const persist = aeSkusToVariantPersist(aeSkus)
+      skuVariants = persist
+      product = applyAeSkuMatrixToScraped(product, persist, markup)
+      // Absolutize any leftover protocol-relative gallery URLs
+      product = {
+        ...product,
+        images: product.images
+          .map((u) => absolutizeCdnImageUrl(u) ?? u)
+          .filter((u) => /^https?:\/\//i.test(u)),
+      }
       platform = "aliexpress"
       method = "aliexpress-api"
+      if (product.images.length === 0) {
+        warnings.push("Aucune image CDN — uploadez une photo ou réessayez l'URL.")
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       warnings.push(
@@ -212,19 +327,21 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
     }
   }
 
+  // Always categorize — Express publish requires categoryId (fast skips only AI enrich).
   steps.push("categorize")
   let category: ProductImportAgentCategory | null = null
-  if (!fast) {
-    try {
-      const rows = await fetchAllCategoriesForBrowse(prisma)
-      const { leafPaths } = buildCategoryBrowse(rows)
-      category = await suggestCategory(product, leafPaths)
-    } catch (e) {
-      console.warn("[product-import-agent] category", {
-        error: e instanceof Error ? e.message : String(e),
-      })
+  try {
+    const rows = await fetchAllCategoriesForBrowse(prisma)
+    const { leafPaths } = buildCategoryBrowse(rows)
+    category = await suggestCategory(product, leafPaths)
+    if (!category?.leafId) {
       warnings.push("Catégorie non suggérée — choisissez-la manuellement.")
     }
+  } catch (e) {
+    console.warn("[product-import-agent] category", {
+      error: e instanceof Error ? e.message : String(e),
+    })
+    warnings.push("Catégorie non suggérée — choisissez-la manuellement.")
   }
 
   steps.push("done")
@@ -235,6 +352,9 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
     aiEnriched,
     categoryLeaf: category?.leafId ?? null,
     imageCount: product.images.length,
+    specCount: Object.keys(product.specs ?? {}).length,
+    variantCount: product.variants?.length ?? 0,
+    skuVariants: skuVariants?.hasVariants ?? false,
   })
 
   return {
@@ -247,5 +367,6 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
     steps,
     aiEnriched,
     category,
+    skuVariants,
   }
 }
