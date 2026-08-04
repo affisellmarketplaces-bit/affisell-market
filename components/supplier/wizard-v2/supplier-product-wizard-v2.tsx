@@ -214,8 +214,19 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       description,
       price: Number(price) || 0,
       imageUrl: images[0] ?? null,
+      illustrationImages: images.slice(1),
     }),
     [name, description, price, images]
+  )
+
+  const previewChangeHandlers = useMemo(
+    () => ({
+      onNameChange: (next: string) => setName(next),
+      onDescriptionChange: (next: string) => setDescription(next),
+      onPriceChange: (next: number) =>
+        setPrice(Number.isFinite(next) && next > 0 ? String(Math.round(next * 100) / 100) : ""),
+    }),
+    []
   )
 
   const completeStep = useCallback(
@@ -1212,9 +1223,17 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
             )}
           </div>
 
-          <ProductLivePreview data={previewData} variant="sidebar" />
+          <ProductLivePreview
+            data={previewData}
+            variant="sidebar"
+            onChange={previewChangeHandlers}
+          />
         </div>
-        <ProductLivePreview data={previewData} variant="drawer" />
+        <ProductLivePreview
+          data={previewData}
+          variant="drawer"
+          onChange={previewChangeHandlers}
+        />
       </div>
     </BentoShell>
   )
