@@ -23,7 +23,8 @@ import {
 } from "@/lib/analytics/wizard-v2-posthog"
 import { buildWizardV2PublishBody } from "@/lib/product-wizard-v2/build-publish-payload"
 import type { ProductVariantInput } from "@/lib/product-variant-sku"
-import { stripDescriptionImageMarkers } from "@/lib/description-rich-content"
+import { stripDescriptionImageMarkers, stripImportOptionsFromDescription } from "@/lib/description-rich-content"
+import { advancedSkuRowsFromExpressImport } from "@/lib/express-handoff-skus"
 import {
   hasShopifyIntegration,
   shopifyDomainFromIntegrations,
@@ -31,14 +32,11 @@ import {
 import type { WizardV2Mode } from "@/lib/product-wizard-v2/feature-flag"
 import { resolveWizardV2Mode } from "@/lib/product-wizard-v2/feature-flag"
 import {
-  readSupplierAddProductDraftCache,
   supplierExpressHandoffWizardUrl,
   writeSupplierAddProductDraftCache,
-  type SupplierAddProductCachePayload,
   type SupplierSimpleColorRow,
 } from "@/lib/supplier-add-product-draft-cache"
 import { DELIVERY_WORLDWIDE } from "@/lib/supplier-delivery-countries"
-import { skuTableRowFromApiVariant } from "@/lib/supplier-sku-builder"
 import { buildUrlImportFormPatch, type UrlImportFormPatch } from "@/lib/url-import-apply"
 import { publishBlockedUploadMessage } from "@/lib/upload/zero-wait-uploader"
 import { cn } from "@/lib/utils"
@@ -214,11 +212,17 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
           }))
         : []
 
+    const advancedSkuRows = advancedSkuRowsFromExpressImport({ skuVariants, patch })
+    const hasAdvancedSkus = advancedSkuRows.length >= 2
+    const cleanDescription = stripImportOptionsFromDescription(
+      stripDescriptionImageMarkers(description.trim())
+    )
+
     writeSupplierAddProductDraftCache(ownerUserId, {
       mode: "compose",
-      step: 1,
+      step: hasAdvancedSkus ? 2 : 1,
       name: name.trim(),
-      description: description.trim(),
+      description: cleanDescription,
       categoryId: categoryId.trim(),
       images,
       price: price.trim(),
@@ -258,7 +262,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
           ? patch.illustrationImages
           : images.slice(1, 24),
       descriptionIllustrationVideos: patch?.illustrationVideos ?? [],
-      variantFormMode: skuVariants?.hasVariants
+      variantFormMode: hasAdvancedSkus
         ? "advanced"
         : patch?.variants.mode === "simple"
           ? "simple"
@@ -268,19 +272,8 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       variantColorsText:
         patch?.variants.mode === "simple" ? simpleColorRows.map((row) => row.name).join(", ") : "",
       simpleColorRows,
-      variantRows: patch?.variants.mode === "advanced" ? patch.variants.variantRows : [],
-      advancedSkuRows:
-        skuVariants?.hasVariants && skuVariants.variants.length > 0
-          ? skuVariants.variants.map((row) =>
-              skuTableRowFromApiVariant({
-                ...row,
-                color: row.color,
-                size: row.size ?? null,
-                sku: row.sku ?? null,
-                customData: row.customData ?? null,
-              })
-            )
-          : [],
+      variantRows: [],
+      advancedSkuRows,
       skuCustomColumns: [],
       skuHiddenColumns: [],
     })
@@ -345,7 +338,9 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         (typeof p.title === "string" ? p.title.trim() : "")
       if (!title) throw new Error("Titre introuvable — réessayez ou passez en mode Pro")
       setName(title.slice(0, 500))
-      setDescription(stripDescriptionImageMarkers(patch.description))
+      setDescription(
+        stripImportOptionsFromDescription(stripDescriptionImageMarkers(patch.description))
+      )
       if (patch.price) setPrice(String(patch.price))
       const catFromProduct =
         (typeof p.categoryId === "string" && p.categoryId.trim()) ||

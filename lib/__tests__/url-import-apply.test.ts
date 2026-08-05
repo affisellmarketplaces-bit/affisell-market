@@ -93,4 +93,19 @@ describe("url-import-apply", () => {
     expect(patch.images.length).toBeGreaterThanOrEqual(2)
     expect(patch.illustrationImages).toContain("https://ae01.alicdn.com/kf/detail-1.jpg")
   })
+
+  it("strips OPTIONS blocks from imported descriptions", () => {
+    const patch = buildUrlImportFormPatch(
+      {
+        title: "Tablette",
+        description: `Fiche produit\n\nOPTIONS\n• 14:175#Green — 44.59 €\n• 14:1052#Pink — 44.19 €`,
+        price: 40,
+        images: ["https://ae01.alicdn.com/kf/hero.jpg"],
+      },
+      { markup: 2.5, categoryAttrs: [], commissionPct: "15" }
+    )
+    expect(patch.description).not.toMatch(/OPTIONS/i)
+    expect(patch.description).not.toMatch(/14:175#Green/)
+    expect(patch.description).toMatch(/Fiche produit/)
+  })
 })

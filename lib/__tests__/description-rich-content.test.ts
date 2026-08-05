@@ -6,6 +6,7 @@ import {
   parseDescriptionRichContent,
   reindexDescriptionAfterImageRemoval,
   stripDescriptionImageMarkers,
+  stripImportOptionsFromDescription,
   stripStandaloneImageMarkerLines,
   unreferencedIllustrationImages,
 } from "@/lib/description-rich-content"
@@ -59,5 +60,21 @@ Accroche produit.
 
 POINTS FORTS
 Détail.`)
+  })
+
+  it("strips AE OPTIONS bullet blocks from import descriptions", () => {
+    const raw = `Tablette Android 14
+
+OPTIONS
+• 14:175#Green;200000828:200003982#Standard accessories — 44.59 €
+• 14:1052#Pink;200000828:200003982#Standard accessories — 44.19 €
+
+CARACTÉRISTIQUES
+• RAM: 8GB`
+    const stripped = stripImportOptionsFromDescription(raw)
+    expect(stripped).not.toMatch(/OPTIONS/i)
+    expect(stripped).not.toMatch(/14:175#Green/)
+    expect(stripped).toMatch(/Tablette Android/)
+    expect(stripped).toMatch(/RAM: 8GB/)
   })
 })

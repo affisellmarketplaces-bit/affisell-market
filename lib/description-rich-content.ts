@@ -24,7 +24,19 @@ export function descriptionHasImageMarkers(text: string): boolean {
   return MARKER_TEST_RE.test(normalizeDescriptionMarkerNoise(text))
 }
 
-/** Strip all [[img:N]] markers (and leftover blank lines) for plain-text UIs / form fields. */
+/** Strip AE import "OPTIONS / VARIANTES" bullet blocks — belong in SKU matrix, not description. */
+export function stripImportOptionsFromDescription(text: string): string {
+  const raw = normalizeDescriptionMarkerNoise(text)
+  const withoutBlock = raw.replace(
+    /\n{0,2}(?:OPTIONS|VARIANTES)\s*\n(?:[ \t]*[•\-*][ \t]*[^\n]+\n?)+/gi,
+    "\n"
+  )
+  return withoutBlock
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
+}
+
 export function stripDescriptionImageMarkers(text: string): string {
   return normalizeDescriptionMarkerNoise(text)
     .replace(/\[\[\s*img\s*:\s*\d+\s*\]\]/gi, "")

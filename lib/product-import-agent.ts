@@ -3,7 +3,7 @@ import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
 import { getAliExpressConfigStatus } from "@/lib/aliexpress-config"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
 import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
-import { stripDescriptionImageMarkers } from "@/lib/description-rich-content"
+import { stripDescriptionImageMarkers, stripImportOptionsFromDescription } from "@/lib/description-rich-content"
 import { classifyAffisellProduct } from "@/lib/ai/classify-product"
 import {
   buildCategoryBrowse,
@@ -121,8 +121,10 @@ function applyAeSkuMatrixToScraped(
   ].map((name) => ({ name, value: name }))
 
   const optionLines = persist.variantBullets.slice(0, 24)
-  let description = product.description
-  if (optionLines.length > 0 && !/OPTIONS|VARIANTES/i.test(description)) {
+  const hasSkuMatrix = variants.length >= 2 || persist.hasVariants
+  let description = stripImportOptionsFromDescription(product.description)
+  // SKU options → variant matrix / step 2 — never dump raw AE lines into description.
+  if (!hasSkuMatrix && optionLines.length > 0 && !/OPTIONS|VARIANTES/i.test(description)) {
     description = `${description}\n\nOPTIONS\n${optionLines.map((l) => `• ${l}`).join("\n")}`.slice(
       0,
       20_000

@@ -1,6 +1,6 @@
 import type { SupplierSimpleColorRow } from "@/lib/supplier-add-product-draft-cache"
 import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
-import { stripDescriptionImageMarkers } from "@/lib/description-rich-content"
+import { stripDescriptionImageMarkers, stripImportOptionsFromDescription } from "@/lib/description-rich-content"
 import {
   extractHtmlDescriptionLight,
   looksLikeHtmlDescription,
@@ -298,7 +298,9 @@ export function cleanUrlImportDescription(
   mappedSpecKeys: Set<string>
 ): string {
   const sanitized = sanitizeListingDescriptionField(rawDescription)
-  const stripped = stripDescriptionImageMarkers(sanitized || rawDescription)
+  const stripped = stripImportOptionsFromDescription(
+    stripDescriptionImageMarkers(sanitized || rawDescription)
+  )
   const withSpecs = appendUnmappedSpecsToDescription(stripped, specs, mappedSpecKeys)
   const text = withSpecs.trim()
   if (text.length >= 12) return text.slice(0, 8000)

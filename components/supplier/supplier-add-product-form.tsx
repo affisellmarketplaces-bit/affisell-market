@@ -149,6 +149,7 @@ import {
   usesVariantSkuPricing,
 } from "@/lib/supplier-catalog-price"
 import { registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
+import { stripImportOptionsFromDescription } from "@/lib/description-rich-content"
 import { suggestDeliveryCountriesFromWarehouse } from "@/lib/supplier-delivery-countries"
 import { parseSupplierDecimalInput } from "@/lib/supplier-decimal-input"
 import { readJsonResponse } from "@/lib/read-json-response"
@@ -1526,7 +1527,7 @@ export function SupplierAddProductForm({
       if (Date.now() - c.updatedAt > 14 * 24 * 60 * 60 * 1000) return false
       trySetStep((Math.min(3, Math.max(1, c.step ?? 1)) as WizardStep) || 1)
       setName(c.name)
-      setDescription(c.description)
+      setDescription(stripImportOptionsFromDescription(c.description))
       setCategoryId(c.categoryId)
       setImages(Array.isArray(c.images) ? c.images : [])
       setPrice(c.price)
