@@ -196,6 +196,42 @@ const FIXTURE_LEAVES: LeafPath[] = [
       "Vêtements et accessoires > Vêtements > Sous-vêtements et chaussettes > Slips de sport",
     path: [],
   },
+  {
+    leafId: "mascara",
+    breadcrumb:
+      "Santé et beauté > Hygiène personnelle > Cosmétiques > Maquillage > Maquillage pour les yeux > Mascara",
+    path: [],
+  },
+  {
+    leafId: "false-lashes-accessories",
+    breadcrumb:
+      "Santé et beauté > Hygiène personnelle > Cosmétiques > Accessoires cosmétiques > Accessoires de maquillage > Accessoires pour faux cils",
+    path: [],
+  },
+  {
+    leafId: "face-foundation",
+    breadcrumb:
+      "Santé et beauté > Hygiène personnelle > Cosmétiques > Maquillage > Maquillage du visage > Fonds de teint et correcteurs de teint",
+    path: [],
+  },
+  {
+    leafId: "makeup-sponges",
+    breadcrumb:
+      "Santé et beauté > Hygiène personnelle > Cosmétiques > Accessoires cosmétiques > Accessoires de maquillage > Éponges de maquillage",
+    path: [],
+  },
+  {
+    leafId: "skin-serum",
+    breadcrumb:
+      "Santé et beauté > Hygiène personnelle > Cosmétiques > Soin de la peau > Crèmes et lotions",
+    path: [],
+  },
+  {
+    leafId: "skincare-tools",
+    breadcrumb:
+      "Santé et beauté > Hygiène personnelle > Cosmétiques > Accessoires cosmétiques > Accessoires pour le soin de la peau > Rouleaux pour le soin de la peau",
+    path: [],
+  },
 ]
 
 describe("category-title-match", () => {
@@ -455,5 +491,56 @@ describe("category-title-match", () => {
     expect(picks[0]?.leafId).toBe("lip-gloss")
     expect(picks.some((p) => p.leafId === "body-glitter")).toBe(false)
     expect(picks.some((p) => p.leafId === "sport-briefs")).toBe(false)
+  })
+
+  it("suggests Mascara for eye makeup, not fake-lash accessories", () => {
+    const title = "Mascara volume noir waterproof"
+    const mascaraScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "mascara")!.breadcrumb
+    )
+    const lashAccessoryScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "false-lashes-accessories")!.breadcrumb
+    )
+
+    expect(mascaraScore).toBeGreaterThan(lashAccessoryScore)
+    const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
+    expect(picks[0]?.leafId).toBe("mascara")
+    expect(picks.some((p) => p.leafId === "false-lashes-accessories")).toBe(false)
+  })
+
+  it("suggests face makeup for liquid blush, not makeup tools", () => {
+    const title = "Blush liquide longue tenue"
+    const faceScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "face-foundation")!.breadcrumb
+    )
+    const spongeScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "makeup-sponges")!.breadcrumb
+    )
+
+    expect(faceScore).toBeGreaterThan(spongeScore)
+    const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
+    expect(picks[0]?.leafId).toBe("face-foundation")
+    expect(picks.some((p) => p.leafId === "makeup-sponges")).toBe(false)
+  })
+
+  it("suggests skincare for vitamin C serum, not skincare tools", () => {
+    const title = "Sérum visage vitamine C hydratant anti-âge"
+    const serumScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "skin-serum")!.breadcrumb
+    )
+    const toolsScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "skincare-tools")!.breadcrumb
+    )
+
+    expect(serumScore).toBeGreaterThan(toolsScore)
+    const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
+    expect(picks[0]?.leafId).toBe("skin-serum")
+    expect(picks.some((p) => p.leafId === "skincare-tools")).toBe(false)
   })
 })

@@ -201,7 +201,7 @@ const PRODUCT_INTENTS: ProductIntent[] = [
   {
     id: "lip_cosmetics",
     match:
-      /\b(gloss(?:\s+a?\s+levres?)?|lip\s*gloss|brillant\s+a?\s+levres?|rouge\s+a?\s+levres?|rouges?\s+a?\s+levres?|crayon\s+a?\s+levres?|baume\s+a?\s+levres?|soin\s+des?\s+levres?|repulpant|repulpante|hydratant|hydratante|teinte\s+pour\s+levres?)\b/i,
+      /\b(gloss(?:\s+a?\s+levres?)?|lip\s*gloss|brillant\s+a?\s+levres?|rouge\s+a?\s+levres?|rouges?\s+a?\s+levres?|crayon\s+a?\s+levres?|baume\s+a?\s+levres?|soin\s+des?\s+levres?|repulpant\s+(?:des?\s+)?levres?|hydratant\s+(?:des?\s+)?levres?|teinte\s+pour\s+levres?)\b/i,
     boost: [
       /maquillage\s+pour\s+les\s+levres/i,
       /brillant\s+a\s+levres/i,
@@ -222,6 +222,70 @@ const PRODUCT_INTENTS: ProductIntent[] = [
       /papeterie/i,
       /brillant\s+pour\s+le\s+corps/i,
       /paillettes?\s+pour\s+le\s+corps/i,
+    ],
+  },
+  {
+    id: "eye_makeup",
+    match:
+      /\b(mascara|eye-?liner|eyeliner|fard\s+a\s+paupieres?|faux-?cils?|recourbe-?cils?|cils?|sourcils?|brow\s+pencil|ombre\s+a\s+paupieres?)\b/i,
+    boost: [
+      /maquillage\s+pour\s+les\s+yeux/i,
+      /mascara/i,
+      /eye-?liner/i,
+      /fard\s+a\s+paupieres?/i,
+      /faux-?cils?/i,
+      /crayons?\s+sourcils/i,
+      /apprets?\s+pour\s+cils/i,
+    ],
+    penalize: [
+      /accessoires\s+pour\s+faux\s+cils/i,
+      /colle\s+a\s+faux\s+cils/i,
+      /dissolvant\s+de\s+colle\s+a\s+faux\s+cils/i,
+      /miroirs?\s+de\s+maquillage/i,
+      /pinceaux\s+de\s+maquillage/i,
+    ],
+  },
+  {
+    id: "face_makeup",
+    match:
+      /\b(blush|fard\s+a\s+joues?|fond(?:s)?\s+de\s+teint|correcteur(?:s)?\s+de\s+teint|poudre\s+pour\s+visage|highlighter|surligneur|luminizer|base\s+de\s+maquillage|primer)\b/i,
+    boost: [
+      /maquillage\s+du\s+visage/i,
+      /fards?\s+a\s+joues/i,
+      /fonds?\s+de\s+teint/i,
+      /correcteurs?\s+de\s+teint/i,
+      /poudres?\s+pour\s+visage/i,
+      /surligneurs?\s+et\s+luminizers?/i,
+      /base\s+de\s+maquillage\s+pour\s+le\s+visage/i,
+    ],
+    penalize: [
+      /miroirs?\s+de\s+maquillage/i,
+      /eponges?\s+de\s+maquillage/i,
+      /pinceaux\s+de\s+maquillage/i,
+      /papier\s+matifiant/i,
+    ],
+  },
+  {
+    id: "skin_care",
+    match:
+      /\b(serum|serums|s[eé]rum|s[eé]rums|creme\s+visage|cr[eè]me\s+visage|cr[eè]me\s+hydratante|nettoyant\s+visage|tonique|astringent|anti-?age|anti-?acne|masque\s+visage|gommage|spf|protection\s+solaire|demaquillant)\b/i,
+    boost: [
+      /soin\s+de\s+la\s+peau/i,
+      /cremes?\s+et\s+lotions/i,
+      /nettoyants?\s+visage/i,
+      /lotions?\s+toniques?\s+et\s+astringentes?/i,
+      /masques?\s+et\s+gommages/i,
+      /protection\s+solaire/i,
+      /traitements?\s+contre\s+l['']acne/i,
+      /kits?\s+de\s+soins?\s+anti-?age/i,
+      /demaquillants?/i,
+    ],
+    penalize: [
+      /accessoires\s+pour\s+le\s+soin\s+de\s+la\s+peau/i,
+      /applicateurs?\s+de\s+lotion/i,
+      /rouleaux?\s+pour\s+le\s+soin\s+de\s+la\s+peau/i,
+      /sauna\s+facial/i,
+      /brosses?\s+pour\s+nettoyer\s+la\s+peau/i,
     ],
   },
   {
@@ -574,7 +638,7 @@ const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number 
     points: 52,
   },
   {
-    phrase: /repulpant|repulpante|hydratant|hydratante/i,
+    phrase: /(?:gloss|lip\s*gloss|brillant\s+a?\s+levres?|baume\s+a?\s+levres?|soin\s+des?\s+levres?).*(repulpant|repulpante|hydratant|hydratante)|(repulpant|repulpante|hydratant|hydratante).*(gloss|lip\s*gloss|levres?)/i,
     breadcrumb: /cosmetiques?|maquillage|soins?\s+des?\s+levres/i,
     points: 16,
   },
@@ -582,6 +646,31 @@ const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number 
     phrase: /gloss\s+a?\s+levres?|lip\s*gloss|brillant\s+a?\s+levres?|rouge\s+a?\s+levres?|baume\s+a?\s+levres?/i,
     breadcrumb: /slips?\s+de\s+sport|cyclisme|adhesif|colle|paillettes?\s+pour\s+le\s+corps|decoration\s+du\s+corps/i,
     points: -58,
+  },
+  {
+    phrase: /mascara|eye-?liner|eyeliner|fard\s+a\s+paupieres?|faux-?cils?/i,
+    breadcrumb: /maquillage\s+pour\s+les\s+yeux|mascara|eye-?liner|fard\s+a\s+paupieres?|faux-?cils/i,
+    points: 48,
+  },
+  {
+    phrase: /mascara|eye-?liner|eyeliner|faux-?cils?/i,
+    breadcrumb: /accessoires\s+pour\s+faux\s+cils|colle\s+a\s+faux\s+cils|miroirs?\s+de\s+maquillage|pinceaux\s+de\s+maquillage/i,
+    points: -42,
+  },
+  {
+    phrase: /blush|fard\s+a\s+joues?|fond(?:s)?\s+de\s+teint|correcteur(?:s)?\s+de\s+teint|poudre\s+pour\s+visage|highlighter|surligneur/i,
+    breadcrumb: /maquillage\s+du\s+visage|fards?\s+a\s+joues|fonds?\s+de\s+teint|correcteurs?\s+de\s+teint|poudres?\s+pour\s+visage|surligneurs?\s+et\s+luminizers?/i,
+    points: 46,
+  },
+  {
+    phrase: /serum|s[eé]rum|creme\s+visage|cr[eè]me\s+visage|cr[eè]me\s+hydratante|nettoyant\s+visage|tonique|anti-?age|anti-?acne|spf|protection\s+solaire/i,
+    breadcrumb: /soin\s+de\s+la\s+peau|cremes?\s+et\s+lotions|nettoyants?\s+visage|lotions?\s+toniques?|masques?\s+et\s+gommages|protection\s+solaire|traitements?\s+contre\s+l['']acne/i,
+    points: 44,
+  },
+  {
+    phrase: /serum|s[eé]rum|creme\s+visage|cr[eè]me\s+visage|cr[eè]me\s+hydratante|nettoyant\s+visage/i,
+    breadcrumb: /accessoires\s+pour\s+le\s+soin\s+de\s+la\s+peau|applicateurs?\s+de\s+lotion|rouleaux?\s+pour\s+le\s+soin\s+de\s+la\s+peau|sauna\s+facial/i,
+    points: -44,
   },
 ]
 

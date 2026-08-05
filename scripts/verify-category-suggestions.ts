@@ -49,6 +49,16 @@ const CASES = [
     title: "Gloss à lèvres repulpant hydratant",
     description: "",
   },
+  {
+    label: "Mascara",
+    title: "Mascara volume noir waterproof",
+    description: "",
+  },
+  {
+    label: "Sérum visage",
+    title: "Sérum visage vitamine C hydratant anti-âge",
+    description: "",
+  },
 ] as const
 
 async function main() {
@@ -121,6 +131,46 @@ async function main() {
       if (!lip || wrong) {
         console.error("FAIL: lip gloss should suggest lip cosmetics, not unrelated leaves", {
           lip,
+          wrong,
+          top: listing.suggestions[0]?.breadcrumb,
+        })
+        process.exitCode = 1
+      }
+    }
+    if (c.label.startsWith("Mascara")) {
+      const eye = listing.suggestions.some((s) =>
+        /maquillage pour les yeux|mascara|eye-liner|fard a paupieres|faux-cils/i.test(
+          s.breadcrumb.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        )
+      )
+      const wrong = listing.suggestions.some((s) =>
+        /accessoires pour faux cils|miroirs de maquillage|pinceaux de maquillage/i.test(
+          s.breadcrumb.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        )
+      )
+      if (!eye || wrong) {
+        console.error("FAIL: mascara should suggest eye makeup, not accessory leaves", {
+          eye,
+          wrong,
+          top: listing.suggestions[0]?.breadcrumb,
+        })
+        process.exitCode = 1
+      }
+    }
+    if (c.label.startsWith("Sérum visage")) {
+      const care = listing.suggestions.some((s) =>
+        /soin de la peau|cremes et lotions|nettoyants visage|lotions toniques|masques et gommages/i.test(
+          s.breadcrumb.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        )
+      )
+      const wrong = listing.suggestions.some((s) =>
+        /accessoires pour le soin de la peau|applicateurs de lotion|rouleaux pour le soin de la peau|sauna facial/i.test(
+          s.breadcrumb.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        )
+      )
+      if (!care || wrong) {
+        console.error("FAIL: face serum should suggest skincare, not skincare tools", {
+          care,
           wrong,
           top: listing.suggestions[0]?.breadcrumb,
         })

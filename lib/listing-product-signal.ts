@@ -56,6 +56,16 @@ const PRODUCT_HEAD_NOUN = new RegExp(
     "baume",
     "rouge",
     "maquillage",
+    "mascara",
+    "eyeliner",
+    "blush",
+    "serum",
+    "sérum",
+    "crème",
+    "creme",
+    "visage",
+    "fond",
+    "teint",
   ].join("|"),
   "i"
 )
@@ -384,12 +394,50 @@ export function breadcrumbConflictsWithIdentity(
   }
 
   const lipCosmeticLike =
-    /\b(gloss|lip\s*gloss|brillant\s+a?\s+levres?|rouge\s+a?\s+levres?|baume\s+a?\s+levres?|crayon\s+a?\s+levres?|soin\s+des?\s+levres?|repulpant|hydratant)\b/i.test(
+    /\b(gloss|lip\s*gloss|brillant\s+a?\s+levres?|rouge\s+a?\s+levres?|baume\s+a?\s+levres?|crayon\s+a?\s+levres?|soin\s+des?\s+levres?|repulpant\s+(?:des?\s+)?levres?|hydratant\s+(?:des?\s+)?levres?)\b/i.test(
       focus
     ) || tokens.some((t) => /gloss|levres|lèvres|lip|baume|rouge|maquillage/.test(t))
   if (lipCosmeticLike) {
     if (
       /\b(slips?\s+de\s+sport|cyclisme|adhesif|colle|emballages?|papeterie|decoration\s+du\s+corps|paillettes?\s+pour\s+le\s+corps)\b/i.test(
+        b
+      )
+    ) {
+      return true
+    }
+  }
+
+  const eyeMakeupLike =
+    /\b(mascara|eye-?liner|eyeliner|fard\s+a\s+paupieres?|faux-?cils?|recourbe-?cils?|cils?|sourcils?)\b/i.test(
+      focus
+    ) || tokens.some((t) => /mascara|eyeliner|cils|sourcils|fard/.test(t))
+  if (eyeMakeupLike) {
+    if (
+      /\b(accessoires\s+pour\s+faux\s+cils|colle\s+a\s+faux\s+cils|dissolvant\s+de\s+colle\s+a\s+faux\s+cils|miroirs?\s+de\s+maquillage|pinceaux\s+de\s+maquillage)\b/i.test(
+        b
+      )
+    ) {
+      return true
+    }
+  }
+
+  const faceMakeupLike =
+    /\b(blush|fard\s+a\s+joues?|fond(?:s)?\s+de\s+teint|correcteur(?:s)?\s+de\s+teint|poudre\s+pour\s+visage|highlighter|surligneur|luminizer)\b/i.test(
+      focus
+    ) || tokens.some((t) => /blush|fond|teint|visage|poudre|surligneur/.test(t))
+  if (faceMakeupLike) {
+    if (/\b(miroirs?\s+de\s+maquillage|eponges?\s+de\s+maquillage|pinceaux\s+de\s+maquillage)\b/i.test(b)) {
+      return true
+    }
+  }
+
+  const skinCareLike =
+    /\b(serum|s[eé]rum|creme\s+visage|cr[eè]me\s+visage|cr[eè]me\s+hydratante|nettoyant\s+visage|tonique|astringent|anti-?age|anti-?acne|spf|protection\s+solaire|demaquillant)\b/i.test(
+      focus
+    ) || tokens.some((t) => /serum|sérum|creme|crème|visage|tonique|spf/.test(t))
+  if (skinCareLike) {
+    if (
+      /\b(accessoires\s+pour\s+le\s+soin\s+de\s+la\s+peau|applicateurs?\s+de\s+lotion|rouleaux?\s+pour\s+le\s+soin\s+de\s+la\s+peau|sauna\s+facial|brosses?\s+pour\s+nettoyer\s+la\s+peau)\b/i.test(
         b
       )
     ) {

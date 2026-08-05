@@ -141,6 +141,9 @@ Règles suggestions:
 - Figurines / peluches / poupées (y compris célébrités, personnages) → Jeux et jouets > Jouets > Poupées, coffrets et figurines > Peluches ou Figurines jouets. JAMAIS animaux de compagnie, aquarium, collerettes.
 - Gloss / rouge à lèvres / baume à lèvres / soins repulpants hydratants pour lèvres → Santé et beauté > Hygiène personnelle > Cosmétiques > Maquillage pour les lèvres
   ou Soins des lèvres selon le titre. JAMAIS slips, cyclisme, adhésifs, décoration du corps.
+- Mascara / eye-liner / fard à paupières / faux-cils → Maquillage pour les yeux, pas accessoires de maquillage.
+- Blush / fond de teint / correcteur / poudre / highlighter → Maquillage du visage, pas pinceaux, éponges ou miroirs.
+- Sérum / crème visage / nettoyant visage / tonique / SPF / anti-âge / anti-acné → Soin de la peau, pas accessoires de soin.
 
 LISTE AUTORISÉE:
 ${listBlock}`
