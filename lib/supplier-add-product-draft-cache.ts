@@ -122,6 +122,33 @@ export function writeSupplierAddProductDraftCache(
   }
 }
 
+/** Query flag — Express wizard v2 → classic wizard handoff (ignore stale server draft). */
+export const SUPPLIER_EXPRESS_HANDOFF_QUERY = "expressHandoff"
+
+const EXPRESS_IMPORT_TAG = "express-import"
+const EXPRESS_HANDOFF_MAX_AGE_MS = 15 * 60 * 1000
+
+export function isExpressImportDraftCache(
+  payload: SupplierAddProductCachePayload | null | undefined
+): payload is SupplierAddProductCachePayload {
+  if (!payload) return false
+  if (payload.supplierTag !== EXPRESS_IMPORT_TAG) return false
+  if (Date.now() - payload.updatedAt > EXPRESS_HANDOFF_MAX_AGE_MS) return false
+  return Boolean(payload.name?.trim() || payload.images?.length)
+}
+
+/** Fresh Express → Pro handoff payload (compose mode, recent). */
+export function readExpressImportDraftCache(
+  ownerUserId: string
+): SupplierAddProductCachePayload | null {
+  const cached = readSupplierAddProductDraftCache("compose", ownerUserId)
+  return isExpressImportDraftCache(cached) ? cached : null
+}
+
+export function supplierExpressHandoffWizardUrl(): string {
+  return `/dashboard/supplier/products/new?wizard=v1&compose=1&${SUPPLIER_EXPRESS_HANDOFF_QUERY}=1`
+}
+
 export function clearSupplierAddProductDraftCache(ownerUserId?: string) {
   if (typeof window === "undefined") return
   try {

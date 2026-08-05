@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useDebounce } from "use-debounce"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -132,9 +132,12 @@ import {
 } from "@/components/supplier/supplier-variant-composer-panel"
 import {
   clearSupplierAddProductDraftCache,
+  readExpressImportDraftCache,
   readSupplierAddProductDraftCache,
+  SUPPLIER_EXPRESS_HANDOFF_QUERY,
   writeSupplierAddProductDraftCache,
   type SupplierAddProductCacheMode,
+  type SupplierAddProductCachePayload,
   type SupplierSimpleColorRow,
   type SupplierVariantFormMode,
 } from "@/lib/supplier-add-product-draft-cache"
@@ -368,6 +371,7 @@ export function SupplierAddProductForm({
   const editId = searchParams.get("edit")?.trim() ?? ""
   const draftIdFromUrl = searchParams.get("draft")?.trim() ?? ""
   const composeQs = searchParams.get("compose") === "1"
+  const expressHandoffQs = searchParams.get(SUPPLIER_EXPRESS_HANDOFF_QUERY) === "1"
 
   const cacheMode: SupplierAddProductCacheMode = assistShortcuts ? "assist" : composeQs ? "compose" : "plain"
   const tForm = useTranslations("supplier.form")
@@ -384,10 +388,10 @@ export function SupplierAddProductForm({
   }, [])
   const draftIdFromUrlUsable =
     draftIdFromUrl && !deadServerDraftIds.includes(draftIdFromUrl) ? draftIdFromUrl : ""
-  const urlListingId = editId || draftIdFromUrlUsable
+  const urlListingId = editId || (expressHandoffQs ? "" : draftIdFromUrlUsable)
 
   const [loadingProduct, setLoadingProduct] = useState(
-    () => Boolean(editId || draftIdFromUrl)
+    () => Boolean(editId || (draftIdFromUrl && !expressHandoffQs))
   )
   const [saving, setSaving] = useState(false)
   const [wizardNavBusy, setWizardNavBusy] = useState(false)
@@ -412,6 +416,7 @@ export function SupplierAddProductForm({
   const autosaveQueueRef = useRef(createSerialAsyncQueue())
   const autosaveGenerationRef = useRef(0)
   const hydratedFromCache = useRef(false)
+  const expressHandoffPendingRef = useRef(expressHandoffQs)
   const hydratedListingIdRef = useRef<string | null>(null)
   const skipServerHydrationForIdRef = useRef<string | null>(null)
   const [draftSyncError, setDraftSyncError] = useState<string | null>(null)
@@ -1516,134 +1521,179 @@ export function SupplierAddProductForm({
     ]
   )
 
+  const applyDraftCache = useCallback(
+    (c: SupplierAddProductCachePayload, opts?: { toastMessage?: string }) => {
+      if (Date.now() - c.updatedAt > 14 * 24 * 60 * 60 * 1000) return false
+      trySetStep((Math.min(3, Math.max(1, c.step ?? 1)) as WizardStep) || 1)
+      setName(c.name)
+      setDescription(c.description)
+      setCategoryId(c.categoryId)
+      setImages(Array.isArray(c.images) ? c.images : [])
+      setPrice(c.price)
+      setCompareAt(c.compareAt)
+      setStock(c.stock)
+      if (LISTING_KINDS.includes(c.listingKind as ListingKind)) {
+        setListingKind(c.listingKind as ListingKind)
+      }
+      setCommission(c.commission)
+      setShippingCountry(c.shippingCountry)
+      setWarehouseType(
+        c.warehouseType === "local" || c.warehouseType === "regional" || c.warehouseType === "international"
+          ? c.warehouseType
+          : ""
+      )
+      setDeliveryCountryCodes(Array.isArray(c.deliveryCountryCodes) ? c.deliveryCountryCodes : [])
+      setProcessingTime(c.processingTime)
+      setDeliveryMin(c.deliveryMin)
+      setDeliveryMax(c.deliveryMax)
+      setShippingCost(c.shippingCost)
+      setShipsFrom(c.shipsFrom)
+      setDeliveryDays(c.deliveryDays)
+      setFreeShipping(c.freeShipping)
+      setIsLuxury(Boolean(c.isLuxury))
+      if (c.offerMode) {
+        const mode = parseProductOfferMode(c.offerMode)
+        setOfferMode(mode)
+        setOfferModeAcknowledged(true)
+        if (c.minOrderQuantity != null) {
+          setMinOrderQuantity(normalizeMinOrderQuantity(mode, c.minOrderQuantity))
+        }
+      }
+      setSupplierTag(c.supplierTag)
+      setSpecValues(c.specValues)
+      setDescriptionBullets(c.descriptionBullets?.length ? c.descriptionBullets : [""])
+      setDescriptionIllustrationImages(
+        Array.isArray(c.descriptionIllustrationImages)
+          ? c.descriptionIllustrationImages.filter((x): x is string => typeof x === "string")
+          : []
+      )
+      setDescriptionIllustrationVideos(
+        Array.isArray(c.descriptionIllustrationVideos)
+          ? c.descriptionIllustrationVideos.filter((x): x is string => typeof x === "string")
+          : []
+      )
+      if (c.variantFormMode === "none" || c.variantFormMode === "simple" || c.variantFormMode === "advanced") {
+        setVariantFormMode(c.variantFormMode)
+      }
+      if (typeof c.variantSizesText === "string") setVariantSizesText(c.variantSizesText)
+      if (typeof c.variantColorsText === "string") setVariantColorsText(c.variantColorsText)
+      if (Array.isArray(c.simpleColorRows) && c.simpleColorRows.length > 0) {
+        const ok = c.simpleColorRows.filter(
+          (r): r is SupplierSimpleColorRow =>
+            r != null &&
+            typeof r === "object" &&
+            typeof (r as SupplierSimpleColorRow).id === "string" &&
+            typeof (r as SupplierSimpleColorRow).name === "string" &&
+            typeof (r as SupplierSimpleColorRow).image === "string"
+        )
+        if (ok.length > 0) setSimpleColorRows(ok)
+      } else if (Array.isArray(c.variantColorImageRows) && c.variantColorImageRows.length > 0) {
+        setSimpleColorRows(
+          c.variantColorImageRows
+            .filter(
+              (r): r is { color: string; image: string } =>
+                r != null && typeof r === "object" && typeof r.color === "string" && typeof r.image === "string"
+            )
+            .map((r) => ({ id: newVariantRowId(), name: r.color, image: r.image }))
+        )
+      } else if (typeof c.variantColorsText === "string" && c.variantColorsText.trim()) {
+        setSimpleColorRows(
+          [...new Set(parseCsvOptions(c.variantColorsText))].map((name) => ({
+            id: newVariantRowId(),
+            name,
+            image: "",
+          }))
+        )
+      }
+      if (Array.isArray(c.advancedSkuRows) && c.advancedSkuRows.length > 0) {
+        const ok = c.advancedSkuRows.filter(
+          (r): r is EditableVariantRow =>
+            r != null &&
+            typeof r === "object" &&
+            typeof (r as EditableVariantRow).id === "string" &&
+            typeof (r as EditableVariantRow).color === "string"
+        )
+        if (ok.length > 0) {
+          setAdvancedSkuRows(ok)
+          setVariantFormMode("advanced")
+        }
+      }
+      if (Array.isArray(c.skuCustomColumns) && c.skuCustomColumns.length > 0) {
+        setSkuCustomColumns(
+          c.skuCustomColumns.filter(
+            (col): col is SkuCustomColumnDef =>
+              col != null &&
+              typeof col === "object" &&
+              typeof (col as SkuCustomColumnDef).id === "string" &&
+              typeof (col as SkuCustomColumnDef).key === "string"
+          )
+        )
+      }
+      if (Array.isArray(c.skuHiddenColumns) && c.skuHiddenColumns.length > 0) {
+        setSkuHiddenColumns(parseSkuHiddenColumns(c.skuHiddenColumns))
+      }
+      if (Array.isArray(c.variantRows) && c.variantRows.length > 0) {
+        setVariantRows(
+          c.variantRows.filter(
+            (r): r is ProductVariantLine =>
+              r != null &&
+              typeof r === "object" &&
+              typeof (r as ProductVariantLine).id === "string" &&
+              typeof (r as ProductVariantLine).name === "string"
+          )
+        )
+      }
+      pendingListingBaselineRef.current = true
+      if (opts?.toastMessage) {
+        toast(opts.toastMessage, { duration: 4500 })
+      }
+      return true
+    },
+    [trySetStep]
+  )
+
+  useLayoutEffect(() => {
+    if (!expressHandoffQs || hydratedFromCache.current) return
+    hydratedFromCache.current = true
+
+    const cached = readExpressImportDraftCache(ownerUserId)
+    if (cached) {
+      applyDraftCache(cached, {
+        toastMessage: "Import Express — fiche préremplie dans le wizard Pro",
+      })
+      draftIdRef.current = ""
+      setPendingDraftListingId("")
+      setProductIsDraft(false)
+      setLoadingProduct(false)
+    }
+
+    expressHandoffPendingRef.current = false
+    replaceProductQuery((qs) => {
+      qs.delete("draft")
+      qs.delete("edit")
+      qs.delete(SUPPLIER_EXPRESS_HANDOFF_QUERY)
+    })
+  }, [applyDraftCache, expressHandoffQs, ownerUserId, replaceProductQuery])
+
   useEffect(() => {
-    if (urlListingId || pendingDraftListingId || hydratedFromCache.current || loadingBrowse) return
+    if (expressHandoffQs || urlListingId || pendingDraftListingId || hydratedFromCache.current || loadingBrowse) {
+      return
+    }
     const c = readSupplierAddProductDraftCache(cacheMode, ownerUserId)
     hydratedFromCache.current = true
     if (!c) return
-    if (Date.now() - c.updatedAt > 14 * 24 * 60 * 60 * 1000) return
-    trySetStep((Math.min(3, Math.max(1, c.step ?? 1)) as WizardStep) || 1)
-    setName(c.name)
-    setDescription(c.description)
-    setCategoryId(c.categoryId)
-    setImages(Array.isArray(c.images) ? c.images : [])
-    setPrice(c.price)
-    setCompareAt(c.compareAt)
-    setStock(c.stock)
-    if (LISTING_KINDS.includes(c.listingKind as ListingKind)) {
-      setListingKind(c.listingKind as ListingKind)
+    if (applyDraftCache(c, { toastMessage: "Restored your last on-device draft for this workflow." })) {
+      return
     }
-    setCommission(c.commission)
-    setShippingCountry(c.shippingCountry)
-    setWarehouseType(
-      c.warehouseType === "local" || c.warehouseType === "regional" || c.warehouseType === "international"
-        ? c.warehouseType
-        : ""
-    )
-    setDeliveryCountryCodes(Array.isArray(c.deliveryCountryCodes) ? c.deliveryCountryCodes : [])
-    setProcessingTime(c.processingTime)
-    setDeliveryMin(c.deliveryMin)
-    setDeliveryMax(c.deliveryMax)
-    setShippingCost(c.shippingCost)
-    setShipsFrom(c.shipsFrom)
-    setDeliveryDays(c.deliveryDays)
-    setFreeShipping(c.freeShipping)
-    setIsLuxury(Boolean(c.isLuxury))
-    if (c.offerMode) {
-      const mode = parseProductOfferMode(c.offerMode)
-      setOfferMode(mode)
-      setOfferModeAcknowledged(true)
-      if (c.minOrderQuantity != null) {
-        setMinOrderQuantity(normalizeMinOrderQuantity(mode, c.minOrderQuantity))
-      }
-    }
-    setSupplierTag(c.supplierTag)
-    setSpecValues(c.specValues)
-    setDescriptionBullets(c.descriptionBullets?.length ? c.descriptionBullets : [""])
-    setDescriptionIllustrationImages(
-      Array.isArray(c.descriptionIllustrationImages)
-        ? c.descriptionIllustrationImages.filter((x): x is string => typeof x === "string")
-        : []
-    )
-    setDescriptionIllustrationVideos(
-      Array.isArray(c.descriptionIllustrationVideos)
-        ? c.descriptionIllustrationVideos.filter((x): x is string => typeof x === "string")
-        : []
-    )
-    if (c.variantFormMode === "none" || c.variantFormMode === "simple" || c.variantFormMode === "advanced") {
-      setVariantFormMode(c.variantFormMode)
-    }
-    if (typeof c.variantSizesText === "string") setVariantSizesText(c.variantSizesText)
-    if (typeof c.variantColorsText === "string") setVariantColorsText(c.variantColorsText)
-    if (Array.isArray(c.simpleColorRows) && c.simpleColorRows.length > 0) {
-      const ok = c.simpleColorRows.filter(
-        (r): r is SupplierSimpleColorRow =>
-          r != null &&
-          typeof r === "object" &&
-          typeof (r as SupplierSimpleColorRow).id === "string" &&
-          typeof (r as SupplierSimpleColorRow).name === "string" &&
-          typeof (r as SupplierSimpleColorRow).image === "string"
-      )
-      if (ok.length > 0) setSimpleColorRows(ok)
-    } else if (Array.isArray(c.variantColorImageRows) && c.variantColorImageRows.length > 0) {
-      setSimpleColorRows(
-        c.variantColorImageRows
-          .filter(
-            (r): r is { color: string; image: string } =>
-              r != null && typeof r === "object" && typeof r.color === "string" && typeof r.image === "string"
-          )
-          .map((r) => ({ id: newVariantRowId(), name: r.color, image: r.image }))
-      )
-    } else if (typeof c.variantColorsText === "string" && c.variantColorsText.trim()) {
-      setSimpleColorRows(
-        [...new Set(parseCsvOptions(c.variantColorsText))].map((name) => ({
-          id: newVariantRowId(),
-          name,
-          image: "",
-        }))
-      )
-    }
-    if (Array.isArray(c.advancedSkuRows) && c.advancedSkuRows.length > 0) {
-      const ok = c.advancedSkuRows.filter(
-        (r): r is EditableVariantRow =>
-          r != null &&
-          typeof r === "object" &&
-          typeof (r as EditableVariantRow).id === "string" &&
-          typeof (r as EditableVariantRow).color === "string"
-      )
-      if (ok.length > 0) {
-        setAdvancedSkuRows(ok)
-        setVariantFormMode("advanced")
-      }
-    }
-    if (Array.isArray(c.skuCustomColumns) && c.skuCustomColumns.length > 0) {
-      setSkuCustomColumns(
-        c.skuCustomColumns.filter(
-          (col): col is SkuCustomColumnDef =>
-            col != null &&
-            typeof col === "object" &&
-            typeof (col as SkuCustomColumnDef).id === "string" &&
-            typeof (col as SkuCustomColumnDef).key === "string"
-        )
-      )
-    }
-    if (Array.isArray(c.skuHiddenColumns) && c.skuHiddenColumns.length > 0) {
-      setSkuHiddenColumns(parseSkuHiddenColumns(c.skuHiddenColumns))
-    }
-    if (Array.isArray(c.variantRows) && c.variantRows.length > 0) {
-      setVariantRows(
-        c.variantRows.filter(
-          (r): r is ProductVariantLine =>
-            r != null &&
-            typeof r === "object" &&
-            typeof (r as ProductVariantLine).id === "string" &&
-            typeof (r as ProductVariantLine).name === "string"
-        )
-      )
-    }
-    pendingListingBaselineRef.current = true
-    toast("Restored your last on-device draft for this workflow.", { duration: 4500 })
-  }, [urlListingId, pendingDraftListingId, loadingBrowse, cacheMode, ownerUserId])
+  }, [
+    applyDraftCache,
+    cacheMode,
+    expressHandoffQs,
+    loadingBrowse,
+    ownerUserId,
+    pendingDraftListingId,
+    urlListingId,
+  ])
 
   useEffect(() => {
     if (loadingProduct || loadingBrowse) return
@@ -1693,6 +1743,10 @@ export function SupplierAddProductForm({
 
       const runOnce = async (): Promise<boolean> => {
         const generation = ++autosaveGenerationRef.current
+
+        if (expressHandoffPendingRef.current) {
+          return false
+        }
 
         if (
           !listingAutosaveEnabled ||
@@ -1977,6 +2031,7 @@ export function SupplierAddProductForm({
 
   useEffect(() => {
     if (typeof window === "undefined") return
+    if (expressHandoffPendingRef.current) return
     if (loadingProduct || saving || !listingAutosaveEnabled || galleryBusy) return
 
     let cancelled = false

@@ -31,7 +31,10 @@ import {
 import type { WizardV2Mode } from "@/lib/product-wizard-v2/feature-flag"
 import { resolveWizardV2Mode } from "@/lib/product-wizard-v2/feature-flag"
 import {
+  readSupplierAddProductDraftCache,
+  supplierExpressHandoffWizardUrl,
   writeSupplierAddProductDraftCache,
+  type SupplierAddProductCachePayload,
   type SupplierSimpleColorRow,
 } from "@/lib/supplier-add-product-draft-cache"
 import { DELIVERY_WORLDWIDE } from "@/lib/supplier-delivery-countries"
@@ -213,7 +216,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
 
     writeSupplierAddProductDraftCache(ownerUserId, {
       mode: "compose",
-      step: 2,
+      step: 1,
       name: name.trim(),
       description: description.trim(),
       categoryId: categoryId.trim(),
@@ -282,7 +285,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       skuHiddenColumns: [],
     })
 
-    push("/dashboard/supplier/products/new?wizard=v1&compose=1")
+    push(supplierExpressHandoffWizardUrl())
   }, [
     categoryId,
     commissionPct,
