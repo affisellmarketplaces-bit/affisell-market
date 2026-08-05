@@ -297,7 +297,12 @@ export function leafPathsForAiCatalog(
   const viability = listingViabilityText(ctx)
   const out: LeafPath[] = []
   const seen = new Set<string>()
-  for (const lp of leafPathsForDetectedIntent(ctx.classificationFocus, "", leafPaths, 20)) {
+  for (const lp of leafPathsForDetectedIntent(
+    ctx.classificationFocus,
+    ctx.supplierHints,
+    leafPaths,
+    24
+  )) {
     if (!seen.has(lp.leafId)) {
       seen.add(lp.leafId)
       out.push(lp)
@@ -319,6 +324,38 @@ export function leafPathsForAiCatalog(
       out.push(lp)
     }
   }
+
+  /** No-intent / weak-score: prioritize leaf segments that share a title token before tree order. */
+  if (out.length < 80) {
+    const tokens = (ctx.coreTokens.length > 0
+      ? ctx.coreTokens
+      : viability
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .split(/[^a-z0-9]+/)
+          .filter((w) => w.length >= 4)
+    ).slice(0, 8)
+
+    const leafHits = leafPaths
+      .map((lp) => {
+        const leafSeg = lp.breadcrumb.split(">").pop()?.trim() ?? ""
+        let hit = 0
+        for (const t of tokens) {
+          if (leafSeg.toLowerCase().includes(t) || lp.breadcrumb.toLowerCase().includes(t)) hit += 1
+        }
+        return { lp, hit }
+      })
+      .filter(({ hit, lp }) => hit > 0 && !seen.has(lp.leafId))
+      .sort((a, b) => b.hit - a.hit)
+
+    for (const { lp } of leafHits) {
+      if (out.length >= MAX_CATALOG_LINES_FOR_AI) break
+      seen.add(lp.leafId)
+      out.push(lp)
+    }
+  }
+
   for (const lp of leafPaths) {
     if (out.length >= MAX_CATALOG_LINES_FOR_AI) break
     if (!seen.has(lp.leafId)) {

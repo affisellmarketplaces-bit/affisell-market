@@ -450,6 +450,99 @@ const PRODUCT_INTENTS: ProductIntent[] = [
     penalize: [/velo/i, /sport/i, /electronique/i, /telephonie/i],
   },
   {
+    id: "bags_luggage",
+    match:
+      /\b(sac\s+a\s+dos|sacs?\s+a\s+dos|backpack|valise|valises|sac\s+de\s+voyage|sac\s+bandouliere|sac\s+a\s+main|sac\s+a\s+main|portefeuille|wallet|maroquinerie|sac\s+banane|crossbody|tote\s+bag)\b/i,
+    boost: [
+      /bagages?\s+et\s+maroquinerie/i,
+      /sacs?\s+a\s+dos/i,
+      /valises?/i,
+      /sacs?\s+de\s+voyage/i,
+      /portefeuilles?/i,
+      /sacs?\s+banane/i,
+    ],
+    penalize: [/sacs?\s+a\s+litiere/i, /sacs?\s+pour\s+cadeaux/i, /housses?\s+pour\s+appareils/i],
+  },
+  {
+    id: "footwear",
+    match:
+      /\b(chaussures?|baskets?|sneakers?|bottines?|bottes?|sandales?|tongs?|mocassins?|escarpins?|running\s+shoes?|chaussures?\s+de\s+sport)\b/i,
+    boost: [/chaussures?/i, /baskets?/i, /sandales?/i, /bottes?/i, /vetements?\s+et\s+accessoires/i],
+    penalize: [/pieces?\s+detachees/i, /accessoires\s+pour\s+chaussures/i, /cirage/i],
+  },
+  {
+    id: "tablet",
+    match:
+      /\b(tablette|tablettes|ipad|galaxy\s+tab|android\s+tablet|tablette\s+multimedia|tablet)\b/i,
+    boost: [/tablettes?\s+multimedia/i, /ordinateurs?/i, /tablettes?/i],
+    penalize: [
+      /tablettes?\s+de\s+clavier/i,
+      /tablettes?\s+graphiques/i,
+      /accessoires\s+pour\s+tablettes/i,
+      /housses?\s+pour\s+tablettes/i,
+    ],
+  },
+  {
+    id: "home_lighting",
+    match:
+      /\b(lampe\s+(?:de\s+)?(?:bureau|chevet|salon|led|plafond)|lampadaire|luminaire|applique\s+murale|plafonnier|guirlande\s+lumineuse|ampoule\s+led|lampe\s+led)\b/i,
+    boost: [/luminaires?/i, /lampes?/i, /ampoules?/i, /maison\s+et\s+jardin/i],
+    penalize: [
+      /lampes?\s+de\s+securite/i,
+      /lampes?\s+pour\s+armes/i,
+      /lampes?\s+studio/i,
+      /lampes?\s+de\s+rechange/i,
+      /surveillance/i,
+    ],
+  },
+  {
+    id: "baby_gear",
+    match:
+      /\b(poussette|landau|siege\s+auto\s+bebe|siege\s+auto\s+b[eé]b[eé]|baignoire\s+bebe|baignoire\s+b[eé]b[eé]|biberon|couches?\s+bebe|couches?\s+b[eé]b[eé]|tapis\s+d['']eveil|tapis\s+d[''][eé]veil|porte[- ]bebe|porte[- ]b[eé]b[eé])\b/i,
+    boost: [
+      /bebes?\s+et\s+tout-petits/i,
+      /poussettes?/i,
+      /sieges?\s+auto/i,
+      /biberons?/i,
+      /accessoires\s+de\s+bain\s+pour\s+bebes?/i,
+      /jouets?\s+pour\s+bebes?/i,
+    ],
+    penalize: [/jouets?\s+pour\s+chiens/i, /animaux/i, /vetements?\s+fitness/i],
+  },
+  {
+    id: "pet_supplies",
+    match:
+      /\b(laisse\s+(?:pour\s+)?chien|collier\s+(?:pour\s+)?chien|harnais\s+(?:pour\s+)?chien|croquettes?|litiere\s+(?:pour\s+)?chat|jouet\s+(?:pour\s+)?chien|niche\s+(?:pour\s+)?chien|gamelle\s+(?:pour\s+)?(?:chien|chat)|pet\s+supplies)\b/i,
+    boost: [
+      /animaux\s+et\s+articles\s+pour\s+animaux/i,
+      /accessoires\s+pour\s+chiens/i,
+      /accessoires\s+pour\s+chats/i,
+      /colliers?\s+et\s+harnais/i,
+      /nourriture\s+pour\s+chiens/i,
+      /jouets?\s+pour\s+chiens/i,
+    ],
+    penalize: [/jeux\s+et\s+jouets/i, /peluches/i, /figurines/i, /aquarium/i],
+  },
+  {
+    id: "bedding",
+    match:
+      /\b(housse\s+de\s+couette|draps?\s+de\s+lit|oreiller|oreillers|couette|couverture|taie\s+d['']oreiller|literie|bedding|parure\s+de\s+lit)\b/i,
+    boost: [/literie/i, /linge/i, /housses?\s+de\s+couette/i, /draps?\s+de\s+lit/i, /oreillers?/i],
+    penalize: [/literie\s+pour\s+petits\s+animaux/i, /literie\s+medicale/i, /matelas\s+de\s+sieste/i],
+  },
+  {
+    id: "fashion_jewelry",
+    match:
+      /\b(collier(?!\s+chien)|colliers?(?!\s+et\s+harnais)|bague|bagues|bracelet(?!\s+connect)|bracelets?(?!\s+connect)|boucles?\s+d['']oreilles?|earrings?|necklace|ring\b|bijoux?\s+fantaisie)\b/i,
+    boost: [/bijoux/i, /colliers?/i, /bagues?/i, /bracelets?/i, /boucles?\s+d['']oreilles?/i],
+    penalize: [
+      /montres?/i,
+      /moniteurs?\s+d['']activit/i,
+      /colliers?\s+et\s+harnais\s+pour\s+animaux/i,
+      /colliers?\s+de\s+trepieds/i,
+    ],
+  },
+  {
     id: "mosquito_screen",
     match:
       /\b(moustiquaire|moustiquaires|mosquito\s*net|insect\s*screen|rideau\s*(?:magnetique|anti.?insect|moustiquaire)|filet\s*anti.?moustique|ecran\s*anti.?insect)\b/i,
@@ -671,6 +764,61 @@ const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number 
     phrase: /serum|s[eé]rum|creme\s+visage|cr[eè]me\s+visage|cr[eè]me\s+hydratante|nettoyant\s+visage/i,
     breadcrumb: /accessoires\s+pour\s+le\s+soin\s+de\s+la\s+peau|applicateurs?\s+de\s+lotion|rouleaux?\s+pour\s+le\s+soin\s+de\s+la\s+peau|sauna\s+facial/i,
     points: -44,
+  },
+  {
+    phrase: /sac\s+a\s+dos|backpack|valise|portefeuille|sac\s+banane/i,
+    breadcrumb: /bagages?\s+et\s+maroquinerie|sacs?\s+a\s+dos|valises?|portefeuilles?/i,
+    points: 46,
+  },
+  {
+    phrase: /chaussures?|baskets?|sneakers?|sandales?/i,
+    breadcrumb: /chaussures?|baskets?|sandales?/i,
+    points: 44,
+  },
+  {
+    phrase: /tablette|ipad|galaxy\s+tab/i,
+    breadcrumb: /tablettes?\s+multimedia/i,
+    points: 48,
+  },
+  {
+    phrase: /tablette|ipad|galaxy\s+tab/i,
+    breadcrumb: /tablettes?\s+de\s+clavier|tablettes?\s+graphiques|housses?\s+pour\s+tablettes/i,
+    points: -40,
+  },
+  {
+    phrase: /lampe\s+(?:de\s+)?(?:bureau|chevet|led)|lampadaire|luminaire|ampoule\s+led/i,
+    breadcrumb: /luminaires?|lampes?|ampoules?/i,
+    points: 42,
+  },
+  {
+    phrase: /lampe\s+(?:de\s+)?(?:bureau|chevet|led)|lampadaire|luminaire/i,
+    breadcrumb: /lampes?\s+de\s+securite|surveillance|lampes?\s+pour\s+armes/i,
+    points: -50,
+  },
+  {
+    phrase: /poussette|biberon|siege\s+auto\s+bebe|tapis\s+d['']eveil/i,
+    breadcrumb: /bebes?\s+et\s+tout-petits|poussettes?|biberons?/i,
+    points: 44,
+  },
+  {
+    phrase: /laisse\s+chien|collier\s+chien|croquettes?|litiere\s+chat|jouet\s+pour\s+chien/i,
+    breadcrumb: /animaux\s+et\s+articles|accessoires\s+pour\s+chiens|accessoires\s+pour\s+chats/i,
+    points: 46,
+  },
+  {
+    phrase: /housse\s+de\s+couette|draps?\s+de\s+lit|oreiller|literie|parure\s+de\s+lit/i,
+    breadcrumb: /literie|housses?\s+de\s+couette|draps?\s+de\s+lit|oreillers?/i,
+    points: 44,
+  },
+  {
+    phrase: /collier|bague|bracelet|boucles?\s+d['']oreilles/i,
+    breadcrumb: /bijoux|colliers?|bagues?|bracelets?|boucles?\s+d['']oreilles/i,
+    points: 36,
+  },
+  {
+    phrase: /collier|bague|bracelet/i,
+    breadcrumb: /colliers?\s+et\s+harnais\s+pour\s+animaux|montres?|moniteurs?\s+d['']activit/i,
+    points: -40,
   },
 ]
 
@@ -973,22 +1121,25 @@ export function isCategorySuggestionViable(
 /**
  * Suggest leaf categories from title + description using intent-aware scoring.
  * Returns nothing when confidence is too low (no arbitrary filler categories).
+ * Soft rescue may pass a lower `minScore` — never use that for auto-apply.
  */
 export function suggestLeafCategoriesFromProductText(
   title: string,
   description: string,
   leafPaths: LeafPath[],
-  limit = 3
+  limit = 3,
+  options?: { minScore?: number }
 ): LeafPath[] {
   const text = `${title} ${description}`.trim()
   if (text.length < 2) return []
+  const floor = options?.minScore ?? MIN_SUGGESTION_SCORE
 
   const scored = leafPaths
     .map((lp) => ({
       lp,
       s: scoreProductTextAgainstBreadcrumb(text, lp.breadcrumb),
     }))
-    .filter(({ s }) => s >= MIN_SUGGESTION_SCORE)
+    .filter(({ s }) => s >= floor)
     .sort((a, b) => b.s - a.s)
 
   if (scored.length === 0) return []

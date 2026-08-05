@@ -59,6 +59,16 @@ const CASES = [
     title: "Sérum visage vitamine C hydratant anti-âge",
     description: "",
   },
+  {
+    label: "Sac à dos",
+    title: "Sac à dos voyage impermeable 40L",
+    description: "",
+  },
+  {
+    label: "Tablette Android",
+    title: "Tablette Android 14 écran 10 pouces",
+    description: "",
+  },
 ] as const
 
 async function main() {
@@ -173,6 +183,15 @@ async function main() {
           care,
           wrong,
           top: listing.suggestions[0]?.breadcrumb,
+        })
+        process.exitCode = 1
+      }
+    }
+    if (c.label.startsWith("Sac à dos") || c.label.startsWith("Tablette Android")) {
+      if (listing.suggestions.length === 0) {
+        console.error("FAIL: must never return empty suggestions for clear product titles", {
+          label: c.label,
+          title: c.title,
         })
         process.exitCode = 1
       }

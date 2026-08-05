@@ -16,6 +16,7 @@ import {
   scoreListingContextAgainstBreadcrumb,
   type ListingProductInsight,
 } from "@/lib/listing-product-signal"
+import { softRescueCategorySuggestions } from "@/lib/category-soft-rescue"
 import {
   findWearableCategoryAlternatives,
   isCategorySuggestionViable,
@@ -221,8 +222,18 @@ export async function suggestListingCategories(
     }
   }
 
-  const viableKeywords = keywordFallback.filter((lp) => isViableListingCategory(ctx, lp.breadcrumb))
-  const keywordPicks = viableKeywords.length > 0 ? viableKeywords : keywordFallback
+  /** Re-score keywords after AI identity may have enriched classificationFocus. */
+  const keywordAfterIdentity = suggestLeafCategoriesFromProductText(
+    ctx.classificationFocus || ctx.title,
+    ctx.supplierHints,
+    leafPaths,
+    LISTING_CATEGORY_SUGGESTION_LIMIT + 2
+  )
+  const keywordPool =
+    keywordAfterIdentity.length > 0 ? keywordAfterIdentity : keywordFallback
+
+  const viableKeywords = keywordPool.filter((lp) => isViableListingCategory(ctx, lp.breadcrumb))
+  const keywordPicks = viableKeywords.length > 0 ? viableKeywords : keywordPool
 
   const merged = mergeAiAndKeyword(ctx, aiPicks, keywordPicks, LISTING_CATEGORY_SUGGESTION_LIMIT)
 
@@ -282,6 +293,7 @@ export async function suggestListingCategories(
   let finalSuggestions = suggestions
   let finalTopScore = topScore
   let finalSource = source
+  let softRescueUsed = false
 
   if (finalSuggestions.length === 0) {
     const rescue = suggestLeafCategoriesFromProductText(
@@ -302,9 +314,42 @@ export async function suggestListingCategories(
     finalSource = finalSuggestions.length > 0 ? "keyword" : source
   }
 
+  /** Soft guarantee: never leave a supplier with zero chips when title has product signal. */
+  if (finalSuggestions.length === 0) {
+    const soft = softRescueCategorySuggestions(ctx, leafPaths, LISTING_CATEGORY_SUGGESTION_LIMIT)
+    if (soft.length > 0) {
+      softRescueUsed = true
+      finalSuggestions = soft.map((lp) => {
+        const score = scoreListingContextAgainstBreadcrumb(ctx, lp.breadcrumb)
+        return {
+          ...lp,
+          /** Cap low — soft rescue must never auto-apply. */
+          confidence: Math.min(0.55, 0.28 + score / 50),
+          suggestionSource: "keyword" as const,
+          aiReason: "Suggestion de secours — vérifiez avant de publier",
+        }
+      })
+      finalTopScore = soft[0]
+        ? scoreListingContextAgainstBreadcrumb(ctx, soft[0].breadcrumb)
+        : 0
+      finalSource = "keyword"
+    }
+  }
+
+  console.log("[suggest-listing]", {
+    titleLen: t.length,
+    visionUsed,
+    source: finalSource,
+    suggestionCount: finalSuggestions.length,
+    topScore: finalTopScore,
+    softRescueUsed,
+    topLeaf: finalSuggestions[0]?.leafId ?? null,
+  })
+
   const top = finalSuggestions[0] ?? null
   const autoApplyRecommended =
     top != null &&
+    !softRescueUsed &&
     shouldAutoApplyCategorySuggestion({
       confidence: top.confidence ?? 0,
       suggestionSource: top.suggestionSource,
@@ -313,6 +358,7 @@ export async function suggestListingCategories(
 
   const recommendedLeafId =
     top &&
+    !softRescueUsed &&
     (autoApplyRecommended ||
       catalogIds.has(top.leafId) ||
       finalTopScore >= MIN_KEYWORD_SCORE_FOR_MERGE ||
@@ -324,9 +370,11 @@ export async function suggestListingCategories(
   const productInsightOut: ListingProductInsight | null = baseInsight
     ? {
         ...baseInsight,
-        focusLabel: visionUsed
-          ? `Scan photo + titre → ${baseInsight.productName}`
-          : baseInsight.focusLabel,
+        focusLabel: softRescueUsed
+          ? `${baseInsight.focusLabel} — suggestion de secours (à confirmer)`
+          : visionUsed
+            ? `Scan photo + titre → ${baseInsight.productName}`
+            : baseInsight.focusLabel,
       }
     : null
 

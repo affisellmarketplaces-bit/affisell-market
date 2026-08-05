@@ -66,6 +66,25 @@ const PRODUCT_HEAD_NOUN = new RegExp(
     "visage",
     "fond",
     "teint",
+    "sac",
+    "valise",
+    "portefeuille",
+    "chaussure",
+    "chaussures",
+    "basket",
+    "baskets",
+    "tablette",
+    "lampe",
+    "lampadaire",
+    "luminaire",
+    "poussette",
+    "biberon",
+    "oreiller",
+    "couette",
+    "literie",
+    "collier",
+    "bague",
+    "bracelet",
   ].join("|"),
   "i"
 )
@@ -441,6 +460,29 @@ export function breadcrumbConflictsWithIdentity(
         b
       )
     ) {
+      return true
+    }
+  }
+
+  const tabletLike =
+    /\b(tablette|tablettes|ipad|galaxy\s+tab|tablet)\b/i.test(focus) ||
+    tokens.some((t) => /tablette|ipad|tablet/.test(t))
+  if (tabletLike) {
+    if (
+      /\b(tablettes?\s+de\s+clavier|tablettes?\s+graphiques|housses?\s+pour\s+tablettes|accessoires\s+pour\s+tablettes)\b/i.test(
+        b
+      )
+    ) {
+      return true
+    }
+  }
+
+  const homeLampLike =
+    /\b(lampe\s+(?:de\s+)?(?:bureau|chevet|salon|led)|lampadaire|luminaire|ampoule\s+led)\b/i.test(
+      focus
+    ) || tokens.some((t) => /lampe|lampadaire|luminaire|ampoule/.test(t))
+  if (homeLampLike) {
+    if (/\b(lampes?\s+de\s+securite|surveillance|lampes?\s+pour\s+armes|lampes?\s+studio)\b/i.test(b)) {
       return true
     }
   }

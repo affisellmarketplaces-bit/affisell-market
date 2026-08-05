@@ -144,6 +144,14 @@ Règles suggestions:
 - Mascara / eye-liner / fard à paupières / faux-cils → Maquillage pour les yeux, pas accessoires de maquillage.
 - Blush / fond de teint / correcteur / poudre / highlighter → Maquillage du visage, pas pinceaux, éponges ou miroirs.
 - Sérum / crème visage / nettoyant visage / tonique / SPF / anti-âge / anti-acné → Soin de la peau, pas accessoires de soin.
+- Sac à dos / valise / portefeuille → Bagages et maroquinerie.
+- Baskets / chaussures → Chaussures (pas accessoires de chaussures).
+- Tablette / iPad → Tablettes multimédias (pas housses).
+- Lampe de bureau / lampadaire → Luminaires (pas lampes de sécurité).
+- Poussette / biberon → Bébés et tout-petits.
+- Laisse / collier chien / croquettes → Articles pour animaux (pas peluches jouets).
+- Housse de couette / draps → Literie.
+- Collier / bague / bracelet fantaisie → Bijoux (pas montres connectées).
 
 LISTE AUTORISÉE:
 ${listBlock}`
