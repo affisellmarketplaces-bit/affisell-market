@@ -44,6 +44,11 @@ const CASES = [
     title: "Nouvelle collection : Figurine en peluche Michael Jackson pour",
     description: "",
   },
+  {
+    label: "Gloss lèvres",
+    title: "Gloss à lèvres repulpant hydratant",
+    description: "",
+  },
 ] as const
 
 async function main() {
@@ -97,6 +102,26 @@ async function main() {
         console.error("FAIL: plush figurine should suggest Jeux et jouets > Peluches, not pets", {
           plush,
           pet,
+          top: listing.suggestions[0]?.breadcrumb,
+        })
+        process.exitCode = 1
+      }
+    }
+    if (c.label.startsWith("Gloss lèvres")) {
+      const lip = listing.suggestions.some((s) =>
+        /maquillage pour les levres|brillant a levres|soins des levres|baumes a levres/i.test(
+          s.breadcrumb.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        )
+      )
+      const wrong = listing.suggestions.some((s) =>
+        /slips de sport|cyclisme|adhesif|decoration du corps|paillettes pour le corps/i.test(
+          s.breadcrumb.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        )
+      )
+      if (!lip || wrong) {
+        console.error("FAIL: lip gloss should suggest lip cosmetics, not unrelated leaves", {
+          lip,
+          wrong,
           top: listing.suggestions[0]?.breadcrumb,
         })
         process.exitCode = 1

@@ -172,6 +172,30 @@ const FIXTURE_LEAVES: LeafPath[] = [
       "Animaux et articles pour animaux de compagnie > Articles pour animaux de compagnie > Collerettes pour animaux de compagnie",
     path: [],
   },
+  {
+    leafId: "lip-gloss",
+    breadcrumb:
+      "Santé et beauté > Hygiène personnelle > Cosmétiques > Maquillage > Maquillage pour les lèvres > Brillant à lèvres",
+    path: [],
+  },
+  {
+    leafId: "lip-balm",
+    breadcrumb:
+      "Santé et beauté > Hygiène personnelle > Cosmétiques > Soin de la peau > Soins des lèvres > Baumes à lèvres",
+    path: [],
+  },
+  {
+    leafId: "body-glitter",
+    breadcrumb:
+      "Santé et beauté > Hygiène personnelle > Cosmétiques > Maquillage > Maquillage pour le corps > Paillettes pour le corps et les cheveux",
+    path: [],
+  },
+  {
+    leafId: "sport-briefs",
+    breadcrumb:
+      "Vêtements et accessoires > Vêtements > Sous-vêtements et chaussettes > Slips de sport",
+    path: [],
+  },
 ]
 
 describe("category-title-match", () => {
@@ -402,5 +426,34 @@ describe("category-title-match", () => {
         FIXTURE_LEAVES.find((l) => l.leafId === "pet-collars")!.breadcrumb
       )
     ).toBe(false)
+  })
+
+  it("suggests Brillant à lèvres for hydrating plumping lip gloss", () => {
+    const title = "Gloss à lèvres repulpant hydratant"
+    const glossScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "lip-gloss")!.breadcrumb
+    )
+    const balmScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "lip-balm")!.breadcrumb
+    )
+    const bodyGlitterScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "body-glitter")!.breadcrumb
+    )
+    const sportBriefsScore = scoreProductTextAgainstBreadcrumb(
+      title,
+      FIXTURE_LEAVES.find((l) => l.leafId === "sport-briefs")!.breadcrumb
+    )
+
+    expect(glossScore).toBeGreaterThan(balmScore)
+    expect(glossScore).toBeGreaterThan(bodyGlitterScore)
+    expect(glossScore).toBeGreaterThan(sportBriefsScore)
+
+    const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
+    expect(picks[0]?.leafId).toBe("lip-gloss")
+    expect(picks.some((p) => p.leafId === "body-glitter")).toBe(false)
+    expect(picks.some((p) => p.leafId === "sport-briefs")).toBe(false)
   })
 })

@@ -49,6 +49,13 @@ const PRODUCT_HEAD_NOUN = new RegExp(
     "poupées",
     "doudou",
     "marionnette",
+    "gloss",
+    "lèvres",
+    "levres",
+    "lip",
+    "baume",
+    "rouge",
+    "maquillage",
   ].join("|"),
   "i"
 )
@@ -369,6 +376,20 @@ export function breadcrumbConflictsWithIdentity(
   if (plushToyLike) {
     if (
       /\b(animaux\s+et\s+articles|aquarium|poissons|collerettes|colliers?\s+pour\s+animaux|jouets\s+pour\s+(chiens|chats|oiseaux)|entretien\s+d.?aquarium|litiere)\b/i.test(
+        b
+      )
+    ) {
+      return true
+    }
+  }
+
+  const lipCosmeticLike =
+    /\b(gloss|lip\s*gloss|brillant\s+a?\s+levres?|rouge\s+a?\s+levres?|baume\s+a?\s+levres?|crayon\s+a?\s+levres?|soin\s+des?\s+levres?|repulpant|hydratant)\b/i.test(
+      focus
+    ) || tokens.some((t) => /gloss|levres|lèvres|lip|baume|rouge|maquillage/.test(t))
+  if (lipCosmeticLike) {
+    if (
+      /\b(slips?\s+de\s+sport|cyclisme|adhesif|colle|emballages?|papeterie|decoration\s+du\s+corps|paillettes?\s+pour\s+le\s+corps)\b/i.test(
         b
       )
     ) {

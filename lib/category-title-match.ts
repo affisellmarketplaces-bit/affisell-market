@@ -199,6 +199,32 @@ const PRODUCT_INTENTS: ProductIntent[] = [
     penalize: [/decolorants?/i, /colorations?/i, /teintures?/i, /shampooings?/i],
   },
   {
+    id: "lip_cosmetics",
+    match:
+      /\b(gloss(?:\s+a?\s+levres?)?|lip\s*gloss|brillant\s+a?\s+levres?|rouge\s+a?\s+levres?|rouges?\s+a?\s+levres?|crayon\s+a?\s+levres?|baume\s+a?\s+levres?|soin\s+des?\s+levres?|repulpant|repulpante|hydratant|hydratante|teinte\s+pour\s+levres?)\b/i,
+    boost: [
+      /maquillage\s+pour\s+les\s+levres/i,
+      /brillant\s+a\s+levres/i,
+      /rouge\s+a\s+levres/i,
+      /crayon\s+a\s+levres/i,
+      /apprets?\s+pour\s+les\s+levres/i,
+      /soins?\s+des?\s+levres/i,
+      /baumes?\s+a\s+levres/i,
+      /cosmetiques?/i,
+      /maquillage/i,
+    ],
+    penalize: [
+      /slips?\s+de\s+sport/i,
+      /cyclisme/i,
+      /adhesif/i,
+      /colle/i,
+      /emballages?/i,
+      /papeterie/i,
+      /brillant\s+pour\s+le\s+corps/i,
+      /paillettes?\s+pour\s+le\s+corps/i,
+    ],
+  },
+  {
     id: "plush_figurine",
     match:
       /\b(figurines?|peluches?|peluche|plush(?:ie|ies|es)?|stuffed\s+animals?|poupees?|poupées?|poupée|doudous?|doudou|marionnettes?|figurine\s+en\s+peluche|peluche\s+collectible|figurine\s+de\s+collection)\b/i,
@@ -542,6 +568,21 @@ const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number 
     breadcrumb: /animaux|aquarium|poissons|collerettes|colliers?\s+pour\s+animaux|jouets\s+pour\s+(chiens|chats)/i,
     points: -65,
   },
+  {
+    phrase: /gloss\s+a?\s+levres?|lip\s*gloss|brillant\s+a?\s+levres?|rouge\s+a?\s+levres?|crayon\s+a?\s+levres?|baume\s+a?\s+levres?|soin\s+des?\s+levres?/i,
+    breadcrumb: /maquillage\s+pour\s+les\s+levres|brillant\s+a\s+levres|rouge\s+a\s+levres|crayon\s+a\s+levres|soins?\s+des?\s+levres|baumes?\s+a\s+levres/i,
+    points: 52,
+  },
+  {
+    phrase: /repulpant|repulpante|hydratant|hydratante/i,
+    breadcrumb: /cosmetiques?|maquillage|soins?\s+des?\s+levres/i,
+    points: 16,
+  },
+  {
+    phrase: /gloss\s+a?\s+levres?|lip\s*gloss|brillant\s+a?\s+levres?|rouge\s+a?\s+levres?|baume\s+a?\s+levres?/i,
+    breadcrumb: /slips?\s+de\s+sport|cyclisme|adhesif|colle|paillettes?\s+pour\s+le\s+corps|decoration\s+du\s+corps/i,
+    points: -58,
+  },
 ]
 
 const COMPOUND_TERMS: Array<{ pattern: RegExp; token: string }> = [
@@ -552,6 +593,9 @@ const COMPOUND_TERMS: Array<{ pattern: RegExp; token: string }> = [
   { pattern: /\bps4\b/i, token: "ps4" },
   { pattern: /\bmoustiquaire\s+porte\b|\bporte\s+moustiquaire\b/i, token: "moustiquaire" },
   { pattern: /\bmoustiquaire\s+(?:magnetique|fenetre|fenêtre)\b/i, token: "moustiquaire" },
+  { pattern: /\blip\s*gloss\b|\bgloss\s+a?\s+levres?\b/i, token: "lipgloss" },
+  { pattern: /\brouge\s+a?\s+levres?\b/i, token: "rougealevres" },
+  { pattern: /\bbaume\s+a?\s+levres?\b/i, token: "baumealevres" },
 ]
 
 function normalizeText(s: string): string {
