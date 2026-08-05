@@ -199,6 +199,32 @@ const PRODUCT_INTENTS: ProductIntent[] = [
     penalize: [/decolorants?/i, /colorations?/i, /teintures?/i, /shampooings?/i],
   },
   {
+    id: "plush_figurine",
+    match:
+      /\b(figurines?|peluches?|peluche|plush(?:ie|ies|es)?|stuffed\s+animals?|poupees?|poupées?|poupée|doudous?|doudou|marionnettes?|figurine\s+en\s+peluche|peluche\s+collectible|figurine\s+de\s+collection)\b/i,
+    boost: [
+      /jeux\s+et\s+jouets/i,
+      /poupees.*figurines/i,
+      /peluches/i,
+      /figurines?\s+jouets/i,
+      /marionnettes/i,
+      /poupees/i,
+      /figurines?\s+a\s+tete\s+mobile/i,
+      /sets?\s+de\s+jeu/i,
+    ],
+    penalize: [
+      /animaux\s+et\s+articles\s+pour\s+animaux/i,
+      /aquarium/i,
+      /poissons/i,
+      /collerettes/i,
+      /accessoires\s+pour\s+(chiens|chats|oiseaux|poissons)/i,
+      /jouets\s+pour\s+(chiens|chats|oiseaux)/i,
+      /entretien\s+d.?aquarium/i,
+      /litiere/i,
+      /colliers?\s+pour\s+animaux/i,
+    ],
+  },
+  {
     id: "womens_leggings",
     match:
       /\b(legging|leggings|anti[- ]?cellulite|collant|collants|yoga\s+pants|pantalon\s+gainant|cuissardes?\s+femme)\b/i,
@@ -506,6 +532,16 @@ const PHRASE_BOOSTS: Array<{ phrase: RegExp; breadcrumb: RegExp; points: number 
     breadcrumb: /colle|adhesif|aimant|aquarium|poisson|artisanat|arts?\s*et\s*loisirs/i,
     points: -55,
   },
+  {
+    phrase: /figurine|peluche|plush|poupée|poupee|doudou|marionnette/i,
+    breadcrumb: /jeux\s+et\s+jouets.*peluches|peluches|figurines?\s+jouets|poupees.*figurines/i,
+    points: 48,
+  },
+  {
+    phrase: /figurine|peluche|plush|poupée|poupee|doudou/i,
+    breadcrumb: /animaux|aquarium|poissons|collerettes|colliers?\s+pour\s+animaux|jouets\s+pour\s+(chiens|chats)/i,
+    points: -65,
+  },
 ]
 
 const COMPOUND_TERMS: Array<{ pattern: RegExp; token: string }> = [
@@ -547,7 +583,16 @@ function tokenMatchesSearchWord(token: string, word: string): boolean {
   for (const tf of tokenForms) {
     for (const wf of wordForms) {
       if (tf === wf) return true
+      if (wf.length >= 6 && tf.length >= 6) {
+        const prefixLen = 6
+        if (tf.startsWith(wf.slice(0, prefixLen)) || wf.startsWith(tf.slice(0, prefixLen))) {
+          return true
+        }
+      }
       if (wf.length >= 5 && tf.length >= 5 && (tf.startsWith(wf.slice(0, 5)) || wf.startsWith(tf.slice(0, 5)))) {
+        /** Block known false friends (collection ↔ collerettes, décorations…). */
+        const pair = [tf, wf].sort().join("|")
+        if (pair === "collection|collerettes" || pair === "collection|decorations") return false
         return true
       }
     }

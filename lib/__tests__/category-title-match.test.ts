@@ -148,6 +148,30 @@ const FIXTURE_LEAVES: LeafPath[] = [
       "Vêtements et accessoires > Vêtements > Vêtements fitness et sports > Pantalons de football américain",
     path: [],
   },
+  {
+    leafId: "plush-toys",
+    breadcrumb:
+      "Jeux et jouets > Jouets > Poupées, coffrets et figurines > Peluches",
+    path: [],
+  },
+  {
+    leafId: "toy-figurines",
+    breadcrumb:
+      "Jeux et jouets > Jouets > Poupées, coffrets et figurines > Figurines jouets",
+    path: [],
+  },
+  {
+    leafId: "aquarium-decor",
+    breadcrumb:
+      "Animaux et articles pour animaux de compagnie > Articles pour animaux de compagnie > Accessoires pour poissons > Décorations pour aquariums",
+    path: [],
+  },
+  {
+    leafId: "pet-collars",
+    breadcrumb:
+      "Animaux et articles pour animaux de compagnie > Articles pour animaux de compagnie > Collerettes pour animaux de compagnie",
+    path: [],
+  },
 ]
 
 describe("category-title-match", () => {
@@ -353,5 +377,30 @@ describe("category-title-match", () => {
     const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
     expect(picks[0]?.leafId).toBe("console-salon")
     expect(picks.some((p) => p.leafId === "jeux-video-soft")).toBe(false)
+  })
+
+  it("does not match collection inside collerettes (prefix trap)", () => {
+    expect(
+      wordMatchesInBreadcrumb(
+        "collection",
+        FIXTURE_LEAVES.find((l) => l.leafId === "pet-collars")!.breadcrumb
+      )
+    ).toBe(false)
+  })
+
+  it("suggests Peluches for plush figurine titles, not pet categories", () => {
+    const title = "Nouvelle collection : Figurine en peluche Michael Jackson pour"
+    const picks = suggestLeafCategoriesFromProductText(title, "", FIXTURE_LEAVES, 3)
+
+    expect(picks.length).toBeGreaterThan(0)
+    expect(picks[0]?.leafId).toBe("plush-toys")
+    expect(picks.some((p) => p.leafId === "aquarium-decor")).toBe(false)
+    expect(picks.some((p) => p.leafId === "pet-collars")).toBe(false)
+    expect(
+      isCategorySuggestionViable(
+        title,
+        FIXTURE_LEAVES.find((l) => l.leafId === "pet-collars")!.breadcrumb
+      )
+    ).toBe(false)
   })
 })

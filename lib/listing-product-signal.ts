@@ -37,6 +37,18 @@ const PRODUCT_HEAD_NOUN = new RegExp(
     "meuble",
     "etagere",
     "étagère",
+    "figurine",
+    "figurines",
+    "peluche",
+    "peluches",
+    "jouet",
+    "jouets",
+    "poupee",
+    "poupée",
+    "poupees",
+    "poupées",
+    "doudou",
+    "marionnette",
   ].join("|"),
   "i"
 )
@@ -343,6 +355,20 @@ export function breadcrumbConflictsWithIdentity(
   if (mosquitoLike) {
     if (
       /\b(colle|colles|adhesif|adhesifs|aimant|arts?\s*et\s*loisirs|artisanat|aquarium|poisson|entretien\s+d.?aquarium|bande\s+thermocoll|thermocollant)\b/i.test(
+        b
+      )
+    ) {
+      return true
+    }
+  }
+
+  const plushToyLike =
+    /\b(figurines?|peluches?|plush|poupees?|poupées?|doudou|marionnettes?|stuffed\s+animal)\b/i.test(
+      focus
+    ) || tokens.some((t) => /figurine|peluche|jouet|poupee|poupée|doudou|marionnette/.test(t))
+  if (plushToyLike) {
+    if (
+      /\b(animaux\s+et\s+articles|aquarium|poissons|collerettes|colliers?\s+pour\s+animaux|jouets\s+pour\s+(chiens|chats|oiseaux)|entretien\s+d.?aquarium|litiere)\b/i.test(
         b
       )
     ) {

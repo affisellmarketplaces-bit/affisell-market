@@ -39,6 +39,11 @@ const CASES = [
     title: "Sony Playstation Portal - Lecteur à distance pour PS5 Blanc",
     description: "",
   },
+  {
+    label: "Peluche Michael Jackson",
+    title: "Nouvelle collection : Figurine en peluche Michael Jackson pour",
+    description: "",
+  },
 ] as const
 
 async function main() {
@@ -79,6 +84,20 @@ async function main() {
         console.error("FAIL: Montre connectée should suggest activity monitors, not jewelry", {
           jewelry,
           activity,
+        })
+        process.exitCode = 1
+      }
+    }
+    if (c.label.startsWith("Peluche Michael")) {
+      const plush = listing.suggestions.some((s) => /Peluches/i.test(s.breadcrumb))
+      const pet = listing.suggestions.some((s) =>
+        /aquarium|collerettes|animaux de compagnie/i.test(s.breadcrumb)
+      )
+      if (!plush || pet) {
+        console.error("FAIL: plush figurine should suggest Jeux et jouets > Peluches, not pets", {
+          plush,
+          pet,
+          top: listing.suggestions[0]?.breadcrumb,
         })
         process.exitCode = 1
       }

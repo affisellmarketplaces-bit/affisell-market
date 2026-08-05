@@ -9,6 +9,7 @@ import {
 import { suggestCategoriesFromCatalog } from "@/lib/category-marketplace-learning"
 import {
   buildListingProductContext,
+  breadcrumbConflictsWithIdentity,
   categoryOnlyMatchesDescriptionNoise,
   listingProductInsight,
   listingViabilityText,
@@ -55,6 +56,7 @@ function isViableListingCategory(
   ctx: ReturnType<typeof buildListingProductContext>,
   breadcrumb: string
 ): boolean {
+  if (breadcrumbConflictsWithIdentity(ctx, breadcrumb)) return false
   if (categoryOnlyMatchesDescriptionNoise(ctx, breadcrumb)) return false
   if (!isCategorySuggestionViable(listingViabilityText(ctx), breadcrumb)) return false
 

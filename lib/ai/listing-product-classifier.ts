@@ -138,6 +138,7 @@ Règles suggestions:
   OU Équipements sportifs > Camping > Moustiquaires. JAMAIS colles, adhésifs, aquarium.
 - Ventilateurs portables → Chauffage et climatisation > Ventilateurs.
 - Montres/bracelets connectés → moniteurs d'activité, jamais bijoux montres classiques.
+- Figurines / peluches / poupées (y compris célébrités, personnages) → Jeux et jouets > Jouets > Poupées, coffrets et figurines > Peluches ou Figurines jouets. JAMAIS animaux de compagnie, aquarium, collerettes.
 
 LISTE AUTORISÉE:
 ${listBlock}`
