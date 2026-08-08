@@ -297,9 +297,7 @@ export function SupplierDashboardProductsCatalog({
             const kindKey = String(p.listingKind ?? "").toUpperCase()
             const kindShort = LISTING_LABEL[kindKey] ?? kindKey.replace(/_/g, " ").toLowerCase()
             const status = statusMeta(p)
-            const editHref = p.isDraft
-              ? `/dashboard/supplier/products/new?compose=1&draft=${p.id}`
-              : `/dashboard/supplier/products/new?edit=${p.id}`
+            const editHref = `/dashboard/supplier/products/${p.id}/edit`
             const previewHref = `/dashboard/supplier/products/affiliate-preview/${p.id}`
             const isSelected = p.isDraft && selectedIds.has(p.id)
 
