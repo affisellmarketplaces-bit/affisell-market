@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import ShoeSizeGuide from "@/components/product/ShoeSizeGuide"
 import {
   CORE_SPEC_FIELDS_PRESET,
   mergeCoreCategoryAttrs,
@@ -103,6 +104,12 @@ export function CategoryAttributeFields({
     onChange({ ...values, [key]: v })
   }
 
+  const isPointureEUField = (label: string) => label.trim().toLowerCase() === "pointure eu"
+
+  const handleSelectShoeSize = (key: string, eu: number) => {
+    onChange({ ...values, [key]: String(eu), Taille: String(eu) })
+  }
+
   const handleOptimize = useCallback(
     async (attr: CategoryAttrRow) => {
       if (!optimizeContext) {
@@ -178,6 +185,8 @@ export function CategoryAttributeFields({
             : "border-zinc-200 dark:border-zinc-700"
 
           const isOptimizable = Boolean(attr.recommended && isTextarea && optimizeContext)
+          const showShoeSizeGuide = isPointureEUField(attr.label)
+          const shoeGuideBrand = values.Marque || values.brand
           const isOptimizing = optimizingKey === attr.key
 
           return (
@@ -337,6 +346,14 @@ export function CategoryAttributeFields({
                   onChange={(e) => setKey(attr.key, e.target.value)}
                   placeholder={attr.options?.length ? attr.options.join(", ") : attr.label}
                 />
+              ) : null}
+              {showShoeSizeGuide ? (
+                <div className="mt-4 rounded-3xl border border-violet-200/60 bg-violet-50/70 p-4 shadow-sm shadow-violet-200/20 dark:border-violet-500/30 dark:bg-zinc-950/80">
+                  <ShoeSizeGuide
+                    brand={shoeGuideBrand}
+                    onSelect={(eu) => handleSelectShoeSize(attr.key, eu)}
+                  />
+                </div>
               ) : null}
               {fieldErrors.map((err) => (
                 <p key={err} className="mt-1 text-sm text-red-600 dark:text-red-400">
