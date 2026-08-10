@@ -125,7 +125,7 @@ import {
 } from "@/lib/affiliate-variant-pricing"
 import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
 import { cn } from "@/lib/utils"
-
+import { ShoeSizeGuideTrigger } from "@/components/product/ShoeSizeGuide"
 const EMPTY_SIZE_OPTIONS: string[] = []
 
 type StorefrontInfo = {
@@ -440,7 +440,10 @@ export function MarketplaceListingDetail({
     const s = variants?.size
     return s && s.length > 0 ? s : EMPTY_SIZE_OPTIONS
   }, [variants?.size])
-
+  const isShoeProduct = useMemo(() => {
+    const hay = [...categories,...tags, name].join(" ").toLowerCase()
+    return /chaussure|chauss|shoe|sneaker|basket|footwear|pointure/.test(hay)
+  }, [categories, tags, name])
   const initialStorage = useMemo(() => storageOptions[0] ?? null, [storageOptions])
 
   const initialColor = useMemo(() => {
@@ -1441,17 +1444,16 @@ export function MarketplaceListingDetail({
             ) : null}
 
             {sizeOptions.length > 0 ? (
-              <div>
-                <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 lg:text-sm lg:normal-case lg:font-semibold lg:text-zinc-900 dark:lg:text-zinc-100">
-                    {productT.sizeLabel}
-                  </p>
-                  {selectedSize ? (
-                    <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 lg:text-sm">
-                      {selectedSize}
-                    </p>
-                  ) : null}
-                </div>
+  <div>
+    <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
+      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 lg:text-sm lg:normal-case lg:font-semibold lg:text-zinc-900 dark:lg:text-zinc-100">
+        {productT.sizeLabel}
+      </p>
+      <div className="flex items-center gap-2">
+        {selectedSize ? <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 lg:text-sm">{selectedSize}</p> : null}
+      {isShoeProduct ? <ShoeSizeGuideTrigger brand={name} gender="femme" /> : null}
+      </div>
+    </div>
                 <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-5">
                   {sizeOptions.map((s) => (
                     <button

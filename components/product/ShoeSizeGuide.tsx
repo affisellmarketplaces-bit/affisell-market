@@ -1,264 +1,135 @@
 "use client"
-import { useMemo, useState } from "react"
-import { motion } from "framer-motion"
-import { SHOE_CHART, BRAND_FIT, findClosestByCm } from "@/lib/shoeSizes"
+import { useState, useMemo } from "react"
+import { Ruler, Table2, Sparkles, X, Footprints } from "lucide-react"
+
+type Gender = "femme" | "homme"
+type ShoeSize = { eu: number; cm: number }
+
+// --- DONNÉES INTÉGRÉES (plus besoin de @/lib/shoeSizes) ---
+const FEMME_SIZES: ShoeSize[] = [
+  { eu: 35, cm: 22.5 }, { eu: 36, cm: 23 }, { eu: 36.5, cm: 23.5 }, { eu: 37, cm: 23.5 },
+  { eu: 37.5, cm: 24 }, { eu: 38, cm: 24 }, { eu: 38.5, cm: 24.5 }, { eu: 39, cm: 25 },
+  { eu: 40, cm: 25.5 }, { eu: 40.5, cm: 26 }, { eu: 41, cm: 26.5 }, { eu: 42, cm: 27 },
+]
+const HOMME_SIZES: ShoeSize[] = [
+  { eu: 39, cm: 25 }, { eu: 40, cm: 25.5 }, { eu: 40.5, cm: 26 }, { eu: 41, cm: 26.5 },
+  { eu: 41.5, cm: 27 }, { eu: 42, cm: 27 }, { eu: 42.5, cm: 27.5 }, { eu: 43, cm: 28 },
+  { eu: 44, cm: 28.5 }, { eu: 44.5, cm: 29 }, { eu: 45, cm: 29.5 }, { eu: 46, cm: 30 },
+]
+function getShoeSizes(gender: Gender) {
+  return gender === "femme"? FEMME_SIZES : HOMME_SIZES
+}
+function cn(...c: (string | false | undefined)[]) { return c.filter(Boolean).join(" ") }
 
 type Props = {
   brand?: string
+  gender?: Gender
+  selectedEU?: number
   onSelect?: (eu: number) => void
+  className?: string
 }
 
-const GENDER_OPTIONS = [
-  { key: "homme", label: "Homme" },
-  { key: "femme", label: "Femme" },
-] as const
+export default function ShoeSizeGuide({ brand, gender: initialGender = "femme", selectedEU, onSelect, className }: Props) {
+  const [gender, setGender] = useState<Gender>(initialGender)
+  const [mode, setMode] = useState<"measure" | "table">("measure")
+  const [cm, setCm] = useState("")
 
-export default function ShoeSizeGuide({ brand, onSelect }: Props) {
-  const [cm, setCm] = useState(26.0)
-  const [gender, setGender] = useState<"homme" | "femme">("homme")
-  const [tab, setTab] = useState<"mesurer" | "convertir">("mesurer")
+  const sizes = useMemo(() => getShoeSizes(gender), [gender])
 
-  const fit = brand ? BRAND_FIT[brand] : null
-  const delta = fit?.delta ?? 0
-
-  const base = useMemo(() => findClosestByCm(cm), [cm])
-  const recommended = useMemo(() => {
-    const idx = SHOE_CHART.findIndex((row) => row.eu === base.eu)
-    const shift = Math.round(delta * 2)
-    const index = Math.min(SHOE_CHART.length - 1, Math.max(0, idx + shift))
-    return SHOE_CHART[index] ?? base
-  }, [base, delta])
+  const suggested = useMemo(() => {
+    if (!cm) return null
+    const num = parseFloat(cm.replace(",", "."))
+    if (isNaN(num)) return null
+    let best = sizes[0]
+    let diff = Infinity
+    for (const s of sizes) {
+      const d = Math.abs(s.cm - num)
+      if (d < diff) { diff = d; best = s }
+    }
+    return best
+  }, [cm, sizes])
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/90 shadow-[0_30px_80px_rgba(15,23,42,0.16)] backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/65"
-      aria-label="Guide des tailles chaussures"
-    >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.18),transparent_45%)]" />
-      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-slate-950 via-violet-950 to-slate-900 px-6 py-6 text-white">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-3xl">
-            <div className="flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.3em] text-violet-200/80">
-              <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1">Guide augmenté</span>
-              <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1">Calcul instantané</span>
-              <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1">Fit optimisé</span>
+    <div className={cn("w-full rounded- border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-[0_12px_40px_rgba(0,0,0,0.06)] overflow-hidden", className)}>
+      <div className="relative bg-[#0A0A0F] px-6 py-6 md:px-8 md:py-7">
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-600/30 via-fuchsia-500/20 to-transparent" />
+        <div className="relative flex justify-between items-start gap-4">
+          <div className="flex-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10">
+              <Sparkles className="size-3 text-white/70" />
+              <span className="text- tracking-[0.2em] text-white/70 uppercase">Intelligent • Buyer</span>
             </div>
-            <h3 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">Guide pointures intelligent</h3>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-violet-200/85 sm:text-base">
-              Une lecture claire, une recommandation transparente et un confort prévisible pour réduire les retours et renforcer la confiance d'achat.
-            </p>
+            <h3 className="mt-4 text- md:text- font-semibold leading-[1.1] text-white">Guide de pointure<br/>intelligent</h3>
+            <p className="mt-2.5 text- leading-[1.5] text-white/60 max-w-">Trouve ta pointure parfaite. Réduit les retours de 30% sur les chaussures.</p>
+            <div className="mt-4 flex gap-2">
+              <button onClick={() => setGender("femme")} className={cn("h-8 px-4 rounded-full text-xs font-medium border transition", gender==="femme"? "bg-white text-black border-white" : "bg-white/10 text-white/70 border-white/10 hover:bg-white/15")}>Femme</button>
+              <button onClick={() => setGender("homme")} className={cn("h-8 px-4 rounded-full text-xs font-medium border transition", gender==="homme"? "bg-white text-black border-white" : "bg-white/10 text-white/70 border-white/10 hover:bg-white/15")}>Homme</button>
+            </div>
           </div>
-
-          <div className="rounded-[2rem] border border-white/10 bg-white/10 px-5 py-4 text-right text-sm text-violet-100 shadow-[0_18px_40px_rgba(79,70,229,0.16)] backdrop-blur-xl">
-            <div className="text-[10px] uppercase tracking-[0.24em] text-violet-200">Impact estimé</div>
-            <div className="mt-3 text-3xl font-semibold">-30%</div>
-            <div className="text-xs text-violet-200/80">moins de retours sur les chaussures</div>
+          <div className="shrink-0 rounded-2xl bg-white/[0.06] border border-white/10 px-5 py-4 text-center backdrop-blur">
+            <div className="text- tracking-[0.15em] text-white/50 uppercase">Impact</div>
+            <div className="text- font-bold text-white -my-1">-30%</div>
+            <div className="text- text-white/50 leading-[1.2]">de retours<br/>chaussures</div>
           </div>
         </div>
       </div>
 
-      <div className="relative p-6 sm:p-7">
-        <div className="grid gap-3 md:grid-cols-[1.05fr_0.95fr]">
-          <div className="grid gap-3 sm:grid-cols-2">
-            {GENDER_OPTIONS.map((option) => (
-              <button
-                key={option.key}
-                type="button"
-                onClick={() => setGender(option.key)}
-                className={`rounded-3xl px-4 py-3 text-sm font-semibold transition ${
-                  gender === option.key
-                    ? "border border-violet-400 bg-violet-600 text-white shadow-lg shadow-violet-500/20"
-                    : "border border-zinc-200 bg-white text-zinc-700 hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
-                }`}
-                aria-pressed={gender === option.key}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setTab("mesurer")}
-              className={`rounded-3xl px-4 py-3 text-sm font-semibold transition ${
-                tab === "mesurer"
-                  ? "bg-violet-600 text-white"
-                  : "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
-              }`}
-            >
-              📏 Mesurer mon pied
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("convertir")}
-              className={`rounded-3xl px-4 py-3 text-sm font-semibold transition ${
-                tab === "convertir"
-                  ? "bg-violet-600 text-white"
-                  : "border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
-              }`}
-            >
-              🔄 Table complète
-            </button>
-          </div>
+      <div className="p-5 md:p-6">
+        <div className="flex gap-2">
+          <button onClick={() => setMode("measure")} className={cn("flex-1 h- rounded-2xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition", mode==="measure"? "bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-black" : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:border-zinc-300")}><Ruler className="size-4" /><span>Mesurer mon pied</span></button>
+          <button onClick={() => setMode("table")} className={cn("flex-1 h- rounded-2xl border text-xs font-medium flex flex-col items-center justify-center gap-1 transition", mode==="table"? "bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-black" : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:border-zinc-300")}><Table2 className="size-4" /><span>Table complète</span></button>
         </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-[1.5fr_0.95fr]">
-          <div className="space-y-5 rounded-[2rem] border border-violet-200/30 bg-zinc-50/95 p-5 shadow-[0_20px_45px_rgba(99,102,241,0.12)] dark:border-violet-500/20 dark:bg-zinc-950/80">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.22em] text-violet-500">Longueur exacte</p>
-                <p className="mt-3 text-4xl font-semibold text-zinc-950 dark:text-white">{cm.toFixed(1)} cm</p>
-                <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Correspond à EU {base.eu}</p>
-              </div>
-              <div className="rounded-3xl bg-white/10 px-4 py-3 text-right text-xs uppercase tracking-[0.22em] text-violet-100 shadow-sm shadow-violet-200/10 dark:bg-white/10">
-                Base calculée
-                <div className="mt-2 text-2xl font-bold">EU {base.eu}</div>
-              </div>
+        {mode === "measure"? (
+          <div className="mt-6 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 p-4">
+            <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Longueur de ton pied en CM</label>
+            <div className="mt-2 flex gap-2">
+              <input value={cm} onChange={e=>setCm(e.target.value)} placeholder="Ex: 25.3" className="flex-1 h-11 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 text-sm outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400" />
+              {cm && <button onClick={()=>setCm("")} className="h-11 w-11 rounded-xl border bg-white flex items-center justify-center"><X className="size-4"/></button>}
             </div>
-
-            <div className="space-y-4">
-              <input
-                type="range"
-                min={21}
-                max={31}
-                step={0.1}
-                value={cm}
-                onChange={(event) => setCm(parseFloat(event.target.value))}
-                className="h-3 w-full cursor-pointer rounded-full accent-violet-500"
-                aria-label="Longueur du pied en centimètres"
-              />
-              <div className="grid grid-cols-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
-                <span>21 cm</span>
-                <span>23 cm</span>
-                <span className="text-center">25 cm</span>
-                <span className="text-right">27 cm</span>
-                <span className="text-right">31 cm</span>
+            {suggested && (
+              <div className="mt-3 flex items-center justify-between rounded-xl bg-white dark:bg-zinc-900 border border-violet-200 dark:border-violet-800 p-3">
+                <span className="text-xs text-zinc-500">Pointure conseillée</span>
+                <button onClick={()=>onSelect?.(suggested.eu)} className="h-8 px-4 rounded-full bg-violet-600 text-white text-xs font-semibold hover:bg-violet-700">EU {suggested.eu} • {suggested.cm} cm</button>
               </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-4">
-              {[
-                { label: "EU", value: recommended.eu },
-                { label: gender === "femme" ? "US W" : "US M", value: gender === "femme" ? recommended.us_w : recommended.us_m },
-                { label: "UK", value: recommended.uk },
-                { label: "CM", value: recommended.mp },
-              ].map((item) => (
-                <div key={item.label} className="rounded-3xl bg-white px-4 py-4 text-center shadow-sm shadow-violet-100/30 dark:bg-zinc-900">
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{item.label}</div>
-                  <div className="mt-3 text-2xl font-semibold text-zinc-950 dark:text-white">{item.value}</div>
-                </div>
+            )}
+            <p className="mt-3 text- leading-[1.4] text-zinc-500">Mesure talon contre mur, le soir. Ajoute 0,5 cm de confort.</p>
+          </div>
+        ) : (
+          <div className="mt-6">
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h- overflow-y-auto pr-1">
+              {sizes.map(s => (
+                <button key={s.eu} onClick={()=>onSelect?.(s.eu)} className={cn("h-11 rounded-xl border text-xs font-medium transition flex flex-col items-center justify-center leading-none", selectedEU===s.eu? "bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-black shadow" : "bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:border-zinc-900 dark:hover:border-white")}>
+                  <span>EU {s.eu}</span><span className="text- opacity-60">{s.cm} cm</span>
+                </button>
               ))}
             </div>
           </div>
-
-          <div className="space-y-4">
-            <div className="rounded-[2rem] border border-zinc-200/70 bg-white px-5 py-5 shadow-sm dark:border-zinc-700/80 dark:bg-zinc-950">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">Recommandation</p>
-                  <p className="mt-2 text-3xl font-semibold text-zinc-950 dark:text-white">EU {recommended.eu}</p>
-                </div>
-                <div className="rounded-3xl bg-violet-950/10 px-4 py-2 text-sm font-semibold text-violet-100 dark:bg-violet-500/15 dark:text-violet-200">
-                  Ajustement {delta >= 0 ? "+" : ""}{(delta * 100).toFixed(0)} %
-                </div>
-              </div>
-              <div className="mt-4 grid gap-3 text-sm text-zinc-600 dark:text-zinc-300">
-                <div className="rounded-3xl bg-zinc-50 p-3 dark:bg-zinc-900">Mesure calibrée pour un confort maximal et une meilleure conversion.</div>
-                {fit ? (
-                  <div className="rounded-3xl border border-amber-200/80 bg-amber-50/90 p-3 text-sm text-amber-950 dark:border-amber-500/20 dark:bg-amber-950/25 dark:text-amber-100">
-                    <span className="font-semibold">{brand}</span> — {fit.note}. Recommandation ajustée à <span className="font-semibold">EU {recommended.eu}</span>.
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => onSelect?.(recommended.eu)}
-              className="w-full rounded-[2rem] bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
-            >
-              Appliquer EU {recommended.eu}
-            </button>
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-[1.5fr_0.95fr]">
-          {tab === "convertir" ? (
-            <div className="rounded-[2rem] border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
-              <div className="grid grid-cols-5 gap-2 border-b border-zinc-200 bg-zinc-100 px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
-                <span>EU</span>
-                <span>US</span>
-                <span>UK</span>
-                <span>CM</span>
-                <span className="text-right">Action</span>
-              </div>
-              <div className="max-h-72 overflow-y-auto divide-y divide-zinc-200 dark:divide-zinc-800">
-                {SHOE_CHART.map((row) => {
-                  const active = row.eu === recommended.eu
-                  return (
-                    <div
-                      key={row.eu}
-                      className={`grid grid-cols-5 gap-2 px-4 py-3 text-sm transition ${
-                        active
-                          ? "bg-violet-600 text-white"
-                          : "bg-white text-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
-                      }`}
-                    >
-                      <span className="font-semibold">{row.eu}</span>
-                      <span>{gender === "femme" ? row.us_w : row.us_m}</span>
-                      <span>{row.uk}</span>
-                      <span>{row.cm}</span>
-                      <button
-                        type="button"
-                        onClick={() => onSelect?.(row.eu)}
-                        className={`justify-self-end rounded-full px-3 py-1 text-xs font-semibold transition ${
-                          active
-                            ? "bg-white text-violet-700"
-                            : "bg-zinc-950 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
-                        }`}
-                      >
-                        Choisir
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-[2rem] border border-zinc-200 bg-white px-5 py-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
-              <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">
-                <span className="rounded-full bg-zinc-100 px-3 py-1 dark:bg-zinc-800">Smart fit</span>
-                <span className="rounded-full bg-zinc-100 px-3 py-1 dark:bg-zinc-800">Conversion</span>
-                <span className="rounded-full bg-zinc-100 px-3 py-1 dark:bg-zinc-800">Confort</span>
-              </div>
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                {[
-                  { label: "EU recommandé", value: `EU ${recommended.eu}` },
-                  { label: "US", value: gender === "femme" ? recommended.us_w : recommended.us_m },
-                  { label: "UK", value: recommended.uk },
-                ].map((item) => (
-                  <div key={item.label} className="rounded-3xl border border-zinc-200/80 bg-zinc-50 p-4 text-center dark:border-zinc-700/80 dark:bg-zinc-900">
-                    <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">{item.label}</div>
-                    <div className="mt-3 text-2xl font-semibold text-zinc-950 dark:text-white">{item.value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="rounded-[2rem] border border-zinc-200/80 bg-zinc-50/95 px-5 py-5 text-sm leading-6 text-zinc-600 shadow-sm shadow-zinc-200/30 dark:border-zinc-700/80 dark:bg-zinc-950/65 dark:text-zinc-300">
-            <p className="font-semibold text-zinc-950 dark:text-white">Comment utiliser ce guide</p>
-            <ul className="mt-3 space-y-3 list-disc pl-5 text-sm">
-              <li>Place ton talon contre un mur et mesure jusqu’au bout de l’orteil.</li>
-              <li>Utilise la valeur en centimètres et vérifie le tableau de conversion.</li>
-              <li>Ajoute 0,5&nbsp;cm pour un confort assuré et des retours limités.</li>
-            </ul>
-          </div>
+        )}
+        <div className="mt-5 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-800/30 p-3.5 flex gap-2.5">
+          <span className="text-xs">💡</span>
+          <p className="text- leading-[1.5] text-amber-900/80 dark:text-amber-100/70">Pro : Si tu hésites entre deux pointures, prends la plus grande. Le confort augmente la satisfaction de 40%.</p>
         </div>
       </div>
-    </motion.div>
+    </div>
+  )
+}
+
+export function ShoeSizeGuideTrigger(props: Props) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <button onClick={()=>setOpen(true)} className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 underline underline-offset-4">
+        <Footprints className="size-3.5" /> Guide des tailles
+      </button>
+      {open && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" onClick={()=>setOpen(false)}>
+          <div className="w-full max-w- max-h- overflow-y-auto rounded-" onClick={e=>e.stopPropagation()}>
+            <ShoeSizeGuide {...props} />
+            <button onClick={()=>setOpen(false)} className="mt-3 w-full h-11 rounded-xl bg-white text-black text-sm font-medium">Fermer</button>
+          </div>
+        </div>
+      )}
+    </>
   )
 }

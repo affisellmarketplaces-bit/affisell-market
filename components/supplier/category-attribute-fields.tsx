@@ -348,11 +348,13 @@ export function CategoryAttributeFields({
                 />
               ) : null}
               {showShoeSizeGuide ? (
-                <div className="mt-4 rounded-3xl border border-violet-200/60 bg-violet-50/70 p-4 shadow-sm shadow-violet-200/20 dark:border-violet-500/30 dark:bg-zinc-950/80">
-                  <ShoeSizeGuide
-                    brand={shoeGuideBrand}
-                    onSelect={(eu) => handleSelectShoeSize(attr.key, eu)}
-                  />
+                <div className="col-span-full w-full mt-4">
+                  <div className="col-span-full mt-6">
+                    <ShoeSizeGuide
+                      brand={shoeGuideBrand}
+                      onSelect={(eu) => handleSelectShoeSize(attr.key, eu)}
+                    />
+                  </div>
                 </div>
               ) : null}
               {fieldErrors.map((err) => (
