@@ -1444,26 +1444,26 @@ export function MarketplaceListingDetail({
             ) : null}
 
             {sizeOptions.length > 0 ? (
-  <div>
-    <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 lg:text-sm lg:normal-case lg:font-semibold lg:text-zinc-900 dark:lg:text-zinc-100">
-        {productT.sizeLabel}
-      </p>
-      <div className="flex items-center gap-2">
-        {selectedSize ? <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 lg:text-sm">{selectedSize}</p> : null}
-      {isShoeProduct ? <ShoeSizeGuideTrigger brand={name} gender="femme" /> : null}
-      </div>
-    </div>
-                <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-5">
+              <div>
+                <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 lg:text-sm lg:normal-case lg:font-semibold lg:text-zinc-900 dark:lg:text-zinc-100">
+                    {productT.sizeLabel}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    {selectedSize ? <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 lg:text-sm">{selectedSize}</p> : null}
+                    {isShoeProduct ? <ShoeSizeGuideTrigger brand={name} gender="femme" /> : null}
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
                   {sizeOptions.map((s) => (
                     <button
                       key={s}
                       type="button"
                       onClick={() => setSelectedSize(s)}
-                      className={`rounded-xl border px-2 py-2.5 text-sm font-medium transition ${
+                      className={`min-w-10 h-10 rounded-xl border px-3 text-sm font-medium transition ${
                         selectedSize === s
-                          ? brand.chipSelected
-                          : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
+                          ? "bg-violet-600 text-white border-violet-600 shadow-[0_2px_10px_rgba(124,58,237,0.3)]"
+                          : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 hover:border-zinc-900 dark:hover:border-zinc-300 hover:bg-zinc-50"
                       }`}
                     >
                       {s}
