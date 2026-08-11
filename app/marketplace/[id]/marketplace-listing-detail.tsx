@@ -1825,7 +1825,7 @@ export function MarketplaceListingDetail({
               </Link>
             ) : audience === "merchant" ? (
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                {t(productT.byStore, { store: partnerLabel || storefront?.name || productT.curatedByPartner })}
+                {t(productT.byStore, { store: partnerLabel || productT.curatedByPartner })}
               </p>
             ) : null}
           </aside>
