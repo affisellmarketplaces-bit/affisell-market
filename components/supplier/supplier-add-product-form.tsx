@@ -417,6 +417,8 @@ export function SupplierAddProductForm({
   const autosaveQueueRef = useRef(createCoalescingSerialAsyncQueue())
   const autosaveGenerationRef = useRef(0)
   const publishInFlightRef = useRef(false)
+  const autosaveSuppressedRef = useRef(false)
+  const autosaveAbortRef = useRef<AbortController | null>(null)
   const serverListingIsDraftRef = useRef(true)
   const hydratedFromCache = useRef(false)
   const expressHandoffPendingRef = useRef(expressHandoffQs)
@@ -1749,7 +1751,11 @@ export function SupplierAddProductForm({
       const runOnce = async (): Promise<boolean> => {
         const generation = ++autosaveGenerationRef.current
 
-        if (expressHandoffPendingRef.current || publishInFlightRef.current) {
+        if (
+          expressHandoffPendingRef.current ||
+          publishInFlightRef.current ||
+          autosaveSuppressedRef.current
+        ) {
           return false
         }
 
@@ -1767,10 +1773,14 @@ export function SupplierAddProductForm({
         if (opts?.imagesOverride && opts.imagesOverride.length > 0) {
           body.images = durableSupplierProductImageUrls(opts.imagesOverride)
         }
-        // Only mark draft saves — never send saveAsDraft on live listings (API 400).
-        if (canSaveDraft) {
+        // Only mark draft saves when the server row is still a draft.
+        if (canSaveDraft && serverListingIsDraftRef.current) {
           body.saveAsDraft = true
         }
+
+        autosaveAbortRef.current?.abort()
+        const autosaveAbort = new AbortController()
+        autosaveAbortRef.current = autosaveAbort
 
         const fp = JSON.stringify(body) + `|step:${syncStep}`
         if (!opts?.force && fp === lastAutosaveJson.current) {
@@ -1789,10 +1799,15 @@ export function SupplierAddProductForm({
           draftSyncErrorRef.current = null
         }
 
-        const saveSignal =
-          typeof AbortSignal !== "undefined" && "timeout" in AbortSignal
-            ? AbortSignal.timeout(45_000)
-            : undefined
+        const saveSignal = (() => {
+          if (typeof AbortSignal === "undefined") return autosaveAbort.signal
+          const timeoutSignal =
+            "timeout" in AbortSignal ? AbortSignal.timeout(45_000) : undefined
+          if (timeoutSignal && "any" in AbortSignal && typeof AbortSignal.any === "function") {
+            return AbortSignal.any([timeoutSignal, autosaveAbort.signal])
+          }
+          return autosaveAbort.signal
+        })()
 
         try {
           const saveViaPost = async () => {
@@ -1873,6 +1888,14 @@ export function SupplierAddProductForm({
           }
           return true
         } catch (e) {
+          if (e instanceof DOMException && e.name === "AbortError") {
+            console.log("[supplier-product-autosave]", {
+              productId: autosaveListingId ?? "new",
+              step: syncStep,
+              result: "aborted",
+            })
+            return false
+          }
           const timedOut = e instanceof DOMException && e.name === "TimeoutError"
           const msg = timedOut
             ? tImages("errDraftSaveTimeout")
@@ -2067,10 +2090,11 @@ export function SupplierAddProductForm({
   useEffect(() => {
     if (!listingAutosaveEnabled) return
     const unregister = registerMerchantDraftFlush("supplier-add-product", () => {
+      if (autosaveSuppressedRef.current) return
       void syncDraftToServer({ silent: true, force: true })
     })
     return () => {
-      if (hasUnsavedChangesRef.current) {
+      if (hasUnsavedChangesRef.current && !autosaveSuppressedRef.current) {
         void syncDraftToServer({ silent: true, force: true })
       }
       unregister()
@@ -2218,8 +2242,9 @@ export function SupplierAddProductForm({
   ])
 
   async function executeListingSubmit(payload: Record<string, unknown>, serverId: string | null) {
-    publishInFlightRef.current = true
+    autosaveAbortRef.current?.abort()
     autosaveGenerationRef.current += 1
+    publishInFlightRef.current = true
     setSaving(true)
     try {
       const publishDraftListing = Boolean(
@@ -2232,7 +2257,7 @@ export function SupplierAddProductForm({
       )
 
       let res: Response
-      if (publishDraftListing) {
+      if (publishDraftListing && serverId) {
         res = await fetch(`/api/supplier/products/${serverId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -2261,7 +2286,13 @@ export function SupplierAddProductForm({
           body: JSON.stringify(payload),
         })
       }
-      const json = await readJsonResponse<{ error?: string; id?: string; errors?: string[] }>(res)
+      const json = await readJsonResponse<{
+        error?: string
+        id?: string
+        errors?: string[]
+        isDraft?: boolean
+        active?: boolean
+      }>(res)
       if (!res.ok) {
         const serverBlockers = mapServerPublishBlockers(
           json as { error?: string; errors?: string[]; issues?: unknown }
@@ -2275,6 +2306,23 @@ export function SupplierAddProductForm({
         ])
         return
       }
+
+      const mustBeLive = publishDraftListing || !serverId
+      const publishedLive = !mustBeLive || (json.isDraft === false && json.active === true)
+
+      if (mustBeLive && !publishedLive) {
+        applyPublishBlockers([
+          {
+            field: "specs",
+            message:
+              "Publication incomplete — le produit est resté en brouillon. Réessayez dans quelques secondes.",
+          },
+        ])
+        toast.error("Publication incomplete — le produit est resté en brouillon.")
+        return
+      }
+
+      autosaveSuppressedRef.current = true
       setPublishBlockers([])
       setSpecFormErrors([])
       if (categoryId && categoryPath.length) {
@@ -2291,7 +2339,11 @@ export function SupplierAddProductForm({
           .catch(() => {})
       }
       clearSupplierAddProductDraftCache(ownerUserId)
-      lastAutosaveJson.current = ""
+      const publishedFingerprint =
+        JSON.stringify({ ...payload, publish: publishDraftListing ? true : undefined }) +
+        `|step:${step}`
+      lastAutosaveJson.current = publishedFingerprint
+      setSavedListingFingerprint(publishedFingerprint)
       serverListingIsDraftRef.current = false
       setProductIsDraft(false)
       toast.success(

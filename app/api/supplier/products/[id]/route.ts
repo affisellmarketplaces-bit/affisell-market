@@ -4,7 +4,10 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { SUPPLIER_PRODUCT_WRITE_TX } from "@/lib/prisma-transaction-options"
 import { loadSupplierProductForPut } from "@/lib/supplier-product-put-load"
-import { resolveSupplierProductDraftLivePatch } from "@/lib/supplier-product-draft-live-patch"
+import {
+  applySupplierProductVisibilityFlags,
+  isSupplierProductResellerVisible,
+} from "@/lib/supplier-product-visibility-flags"
 import { onSupplierProductPublishedFromInvite } from "@/lib/supplier-invitation"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { scheduleProductAutoCategorization } from "@/lib/product-auto-categorize"
@@ -158,9 +161,16 @@ export async function PUT(
   const rawBody = (await req.json()) as Record<string, unknown>
   const publish = Boolean(rawBody.publish)
   const saveAsDraftReq = Boolean(rawBody.saveAsDraft)
+  /** Ignore stale client autosaves that still send saveAsDraft after the listing went live. */
+  const effectiveSaveAsDraft = saveAsDraftReq && existingRow.isDraft
 
-  if (!existingRow.isDraft && saveAsDraftReq) {
-    return Response.json({ error: "This listing is live—use Publish to update it." }, { status: 400 })
+  if (!existingRow.isDraft && saveAsDraftReq && !publish) {
+    console.log("[supplier-products-put]", {
+      productId: id,
+      publish,
+      saveAsDraft: saveAsDraftReq,
+      result: "stale_draft_autosave_on_live",
+    })
   }
 
   const body = rawBody as {
@@ -193,7 +203,7 @@ export async function PUT(
     "bookingInstantConfirm" in rawBody ||
     "bookingSeatLayout" in rawBody
   const bookingParsed = parseProductBookingBody(rawBody)
-  const isPublishing = publish || (!existingRow.isDraft && !saveAsDraftReq)
+  const isPublishing = publish || (!existingRow.isDraft && !effectiveSaveAsDraft)
   if (isPublishing) {
     const digitalForValidate = digitalKeysPresent
       ? digitalParsed.data
@@ -438,26 +448,11 @@ export async function PUT(
   let updated
   try {
     updated = await prisma.$transaction(async (tx) => {
-    const currentRow = await tx.product.findUnique({
-      where: { id },
-      select: { isDraft: true },
-    })
-    if (!currentRow) {
-      throw new Error("product_not_found")
-    }
-
-    const draftLivePatch = resolveSupplierProductDraftLivePatch({
-      publish,
-      saveAsDraft: saveAsDraftReq,
-      currentIsDraft: currentRow.isDraft,
-    })
-
     const p = await tx.product.update({
       where: { id },
       data: {
         name: nameResolved,
         description: desc,
-        ...draftLivePatch,
         ...(descriptionBulletsPatch !== undefined
           ? { descriptionBullets: descriptionBulletsPatch }
           : {}),
@@ -603,7 +598,13 @@ export async function PUT(
       await syncProductVariants(tx, id, variantPatch.hasVariants, variantPatch.variants)
     }
 
-    return p
+    await applySupplierProductVisibilityFlags(tx, id, {
+      publish,
+      saveAsDraft: effectiveSaveAsDraft,
+    })
+
+    const freshRow = await tx.product.findUnique({ where: { id } })
+    return freshRow ?? p
   }, SUPPLIER_PRODUCT_WRITE_TX)
   } catch (e) {
     const message = e instanceof Error ? e.message : "product_update_failed"
@@ -632,12 +633,28 @@ export async function PUT(
     })
   }
 
+  if (publish && !isSupplierProductResellerVisible(updated)) {
+    console.error("[supplier-products-put]", {
+      productId: id,
+      publish,
+      saveAsDraft: saveAsDraftReq,
+      resultActive: updated.active,
+      resultIsDraft: updated.isDraft,
+      result: "publish_incomplete",
+    })
+    return Response.json(
+      { error: "Publication incomplete — le produit est resté en brouillon. Réessayez." },
+      { status: 409 }
+    )
+  }
+
   console.log("[supplier-products-put]", {
     productId: id,
     publish,
     saveAsDraft: saveAsDraftReq,
     resultActive: updated.active,
     resultIsDraft: updated.isDraft,
+    resellerVisible: isSupplierProductResellerVisible(updated),
   })
 
   const variantsChanged = Boolean(variantPatch && !("error" in variantPatch))
@@ -648,7 +665,9 @@ export async function PUT(
       })
     : null
 
-  if (activatingFromDraft) {
+  const wasPublishedLive = publish && isSupplierProductResellerVisible(updated)
+
+  if (wasPublishedLive) {
     const supplierStore = await prisma.store.findUnique({
       where: { userId: session.user.id },
       select: { id: true },
