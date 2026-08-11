@@ -50,7 +50,12 @@ export default function ShoeSizeGuide({ brand, gender: initialGender = "femme", 
   }, [cm, sizes])
 
   return (
-    <div className={cn("w-full rounded- border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-[0_12px_40px_rgba(0,0,0,0.06)] overflow-hidden", className)}>
+    <div
+      className={cn(
+        "w-full rounded-2xl border border-violet-200/50 dark:border-violet-800/30 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl p-5 md:p-6 shadow-[0_8px_32px_rgba(0,0,0,0.06)]",
+        className
+      )}
+    >
       <div className="relative bg-[#0A0A0F] px-6 py-6 md:px-8 md:py-7">
         <div className="absolute inset-0 bg-gradient-to-br from-violet-600/30 via-fuchsia-500/20 to-transparent" />
         <div className="relative flex justify-between items-start gap-4">
