@@ -175,7 +175,7 @@ import {
   syncVariantRowsFromSimpleColors,
 } from "@/lib/supplier-variant-row-sync"
 import {
-  createSerialAsyncQueue,
+  createCoalescingSerialAsyncQueue,
   isLatestAutosaveGeneration,
 } from "@/lib/supplier-draft-autosave-queue"
 import {
@@ -414,8 +414,10 @@ export function SupplierAddProductForm({
   const skuErrors = useSupplierProductWizardStore((s) => s.skuErrors)
 
   const lastAutosaveJson = useRef("")
-  const autosaveQueueRef = useRef(createSerialAsyncQueue())
+  const autosaveQueueRef = useRef(createCoalescingSerialAsyncQueue())
   const autosaveGenerationRef = useRef(0)
+  const publishInFlightRef = useRef(false)
+  const serverListingIsDraftRef = useRef(true)
   const hydratedFromCache = useRef(false)
   const expressHandoffPendingRef = useRef(expressHandoffQs)
   const hydratedListingIdRef = useRef<string | null>(null)
@@ -1236,6 +1238,7 @@ export function SupplierAddProductForm({
         setSpecValues({})
       }
       setProductIsDraft(Boolean(data.isDraft))
+      serverListingIsDraftRef.current = Boolean(data.isDraft)
       setCategoryAiTag(false)
       hydratedListingIdRef.current = id
     } catch (e) {
@@ -1664,7 +1667,8 @@ export function SupplierAddProductForm({
       })
       draftIdRef.current = ""
       setPendingDraftListingId("")
-      setProductIsDraft(false)
+      setProductIsDraft(true)
+      serverListingIsDraftRef.current = true
       setLoadingProduct(false)
     }
 
@@ -1745,7 +1749,7 @@ export function SupplierAddProductForm({
       const runOnce = async (): Promise<boolean> => {
         const generation = ++autosaveGenerationRef.current
 
-        if (expressHandoffPendingRef.current) {
+        if (expressHandoffPendingRef.current || publishInFlightRef.current) {
           return false
         }
 
@@ -1808,6 +1812,7 @@ export function SupplierAddProductForm({
               draftIdRef.current = json.id
               setPendingDraftListingId(json.id)
               setProductIsDraft(true)
+              serverListingIsDraftRef.current = true
               replaceProductQuery((qs) => {
                 qs.set("draft", json.id!)
                 if (!qs.has("compose")) qs.set("compose", "1")
@@ -2028,7 +2033,7 @@ export function SupplierAddProductForm({
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [hasUnsavedChanges, listingAutosaveEnabled, step, syncDraftToServer])
 
-  const autosaveDebounceMs = step === 2 ? 500 : step >= 2 ? 900 : 2200
+  const autosaveDebounceMs = step === 2 ? 1200 : step >= 3 ? 900 : 2200
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -2056,13 +2061,8 @@ export function SupplierAddProductForm({
     syncDraftToServer,
   ])
 
-  const prevWizardStepRef = useRef(step)
-  useEffect(() => {
-    const prev = prevWizardStepRef.current
-    prevWizardStepRef.current = step
-    if (prev === step || !listingAutosaveEnabled) return
-    void syncDraftToServer({ silent: true, force: true, stepOverride: step })
-  }, [step, listingAutosaveEnabled, syncDraftToServer])
+  const hasUnsavedChangesRef = useRef(hasUnsavedChanges)
+  hasUnsavedChangesRef.current = hasUnsavedChanges
 
   useEffect(() => {
     if (!listingAutosaveEnabled) return
@@ -2070,7 +2070,9 @@ export function SupplierAddProductForm({
       void syncDraftToServer({ silent: true, force: true })
     })
     return () => {
-      void syncDraftToServer({ silent: true, force: true })
+      if (hasUnsavedChangesRef.current) {
+        void syncDraftToServer({ silent: true, force: true })
+      }
       unregister()
     }
   }, [listingAutosaveEnabled, syncDraftToServer])
@@ -2216,10 +2218,21 @@ export function SupplierAddProductForm({
   ])
 
   async function executeListingSubmit(payload: Record<string, unknown>, serverId: string | null) {
+    publishInFlightRef.current = true
+    autosaveGenerationRef.current += 1
     setSaving(true)
     try {
+      const publishDraftListing = Boolean(
+        serverId &&
+          (serverListingIsDraftRef.current ||
+            productIsDraft ||
+            composeQs ||
+            draftIdFromUrlUsable ||
+            pendingDraftListingId)
+      )
+
       let res: Response
-      if (serverId && productIsDraft) {
+      if (publishDraftListing) {
         res = await fetch(`/api/supplier/products/${serverId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -2232,6 +2245,13 @@ export function SupplierAddProductForm({
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify(payload),
+        })
+      } else if (serverId) {
+        res = await fetch(`/api/supplier/products/${serverId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ ...payload, publish: true }),
         })
       } else {
         res = await fetch("/api/supplier/products", {
@@ -2272,8 +2292,10 @@ export function SupplierAddProductForm({
       }
       clearSupplierAddProductDraftCache(ownerUserId)
       lastAutosaveJson.current = ""
+      serverListingIsDraftRef.current = false
+      setProductIsDraft(false)
       toast.success(
-        serverId && !productIsDraft ? "Product updated." : "Product published to your catalog."
+        publishDraftListing ? "Product published to your catalog." : "Product updated."
       )
       router.push("/dashboard/supplier/products")
       router.refresh()
@@ -2281,6 +2303,7 @@ export function SupplierAddProductForm({
       const msg = e instanceof Error ? e.message : "Publication impossible"
       applyPublishBlockers([{ field: "specs", message: msg }])
     } finally {
+      publishInFlightRef.current = false
       setSaving(false)
       setWholesalePreSaveOpen(false)
       setWholesalePreSavePreview(null)
@@ -2345,7 +2368,15 @@ export function SupplierAddProductForm({
     const payload = assembleListingPayload(false) as Record<string, unknown>
     const serverId = autosaveListingId
 
-    if (serverId && !productIsDraft) {
+    const isLiveCatalogEdit =
+      Boolean(serverId) &&
+      !serverListingIsDraftRef.current &&
+      !productIsDraft &&
+      !composeQs &&
+      !draftIdFromUrlUsable &&
+      !pendingDraftListingId
+
+    if (isLiveCatalogEdit && serverId) {
       const preview = await fetchSupplierWholesalePreview(serverId, payload)
       if (wholesalePreSaveNeedsConfirm(preview)) {
         setWholesalePreSavePreview(preview)
@@ -2469,7 +2500,7 @@ export function SupplierAddProductForm({
       setImages(durable)
       if (durable.length > 0) clearPublishFieldError("images")
 
-      const maxAttempts = 3
+      const maxAttempts = 2
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
         const ok = await syncDraftToServer({
           silent: true,

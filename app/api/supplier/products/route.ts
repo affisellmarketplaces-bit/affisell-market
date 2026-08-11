@@ -429,15 +429,16 @@ export async function POST(req: Request) {
       select: { id: true },
     })
     if (supplierStore) {
-      try {
-        await createNewDropCommunityPost({
-          storeId: supplierStore.id,
+      void createNewDropCommunityPost({
+        storeId: supplierStore.id,
+        productId: product.id,
+        productName: product.name,
+      }).catch((e) =>
+        console.error("[supplier-products] community new-drop post failed", {
           productId: product.id,
-          productName: product.name,
+          error: e instanceof Error ? e.message : String(e),
         })
-      } catch {
-        console.error("[supplier-products] community new-drop post failed", { productId: product.id })
-      }
+      )
     }
     if (!categoryId) {
       scheduleProductAutoCategorization(product.id)
@@ -454,7 +455,9 @@ export async function POST(req: Request) {
     }).catch((e) => console.error("[supplier-invite] publish hook", e))
   }
 
-  void revalidateSupplierShopfront(supplierId)
+  if (!saveAsDraft) {
+    void revalidateSupplierShopfront(supplierId)
+  }
 
   return Response.json(product, { status: 201 })
 }

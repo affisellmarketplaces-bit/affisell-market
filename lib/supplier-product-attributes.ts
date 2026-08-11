@@ -59,3 +59,34 @@ export function parseProductAttributesBody(body: Record<string, unknown>): Parse
     colorImages: parseProductColorImagesFromBody(body.colorImages),
   }
 }
+
+export type NormalizedProductAttribute = { key: string; label: string; value: string }
+
+export function normalizeProductAttributesFromBody(
+  rows: unknown
+): NormalizedProductAttribute[] {
+  if (!Array.isArray(rows)) return []
+  return rows
+    .map((row) => (row && typeof row === "object" ? (row as Record<string, unknown>) : null))
+    .filter((row): row is Record<string, unknown> => row != null)
+    .map((row) => ({
+      key: String(row.key ?? "").trim(),
+      label: String(row.label ?? row.key ?? "").trim(),
+      value: String(row.value ?? "").trim(),
+    }))
+    .filter((r) => r.key.length > 0 && r.value.length > 0)
+}
+
+function attributeSignature(rows: NormalizedProductAttribute[]): string {
+  return rows
+    .map((r) => `${r.key}\0${r.label}\0${r.value}`)
+    .sort()
+    .join("\n")
+}
+
+export function supplierProductAttributesEqual(
+  existing: NormalizedProductAttribute[],
+  incoming: NormalizedProductAttribute[]
+): boolean {
+  return attributeSignature(existing) === attributeSignature(incoming)
+}

@@ -362,7 +362,9 @@ export async function syncProductVariants(
       return [key, e.id] as const
     })
   )
-  const keepIds = new Set<string>()
+
+  const updateOps: Array<Promise<unknown>> = []
+  const createRows: Prisma.ProductVariantCreateManyInput[] = []
 
   for (const v of variants) {
     const data = {
@@ -386,19 +388,32 @@ export async function syncProductVariants(
       (v.id && existingIds.has(v.id) ? v.id : undefined) ?? idByCompositeKey.get(compositeKey)
 
     if (matchedId) {
-      await tx.productVariant.update({ where: { id: matchedId }, data })
-      keepIds.add(matchedId)
-      // Prevent a later row with the same composite from creating a duplicate.
+      updateOps.push(tx.productVariant.update({ where: { id: matchedId }, data }))
       idByCompositeKey.set(compositeKey, matchedId)
     } else {
-      const created = await tx.productVariant.create({
-        data: { productId, ...data },
-      })
-      keepIds.add(created.id)
-      idByCompositeKey.set(compositeKey, created.id)
+      createRows.push({ productId, ...data })
     }
   }
 
+  if (updateOps.length > 0) {
+    await Promise.all(updateOps)
+  }
+  if (createRows.length > 0) {
+    await tx.productVariant.createMany({ data: createRows })
+  }
+
+  const expectedKeys = new Set(
+    variants.map((v) => variantCompositeKey(v.color, v.size, v.sku))
+  )
+  const currentRows = await tx.productVariant.findMany({
+    where: { productId },
+    select: { id: true, color: true, size: true, sku: true },
+  })
+  const keepIds = new Set(
+    currentRows
+      .filter((row) => expectedKeys.has(variantCompositeKey(row.color, row.size, row.sku)))
+      .map((row) => row.id)
+  )
   const toDelete = [...existingIds].filter((id) => !keepIds.has(id))
   if (toDelete.length) {
     await tx.productVariant.deleteMany({ where: { id: { in: toDelete } } })

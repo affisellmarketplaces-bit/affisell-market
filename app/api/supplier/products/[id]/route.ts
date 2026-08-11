@@ -3,11 +3,16 @@ import { Prisma } from "@prisma/client"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { SUPPLIER_PRODUCT_WRITE_TX } from "@/lib/prisma-transaction-options"
-import { findSupplierProductGuardForPut } from "@/lib/supplier-product-is-draft-fallback"
+import { loadSupplierProductForPut } from "@/lib/supplier-product-put-load"
+import { resolveSupplierProductDraftLivePatch } from "@/lib/supplier-product-draft-live-patch"
 import { onSupplierProductPublishedFromInvite } from "@/lib/supplier-invitation"
 import { createNewDropCommunityPost } from "@/lib/community-new-drop"
 import { scheduleProductAutoCategorization } from "@/lib/product-auto-categorize"
-import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
+import {
+  normalizeProductAttributesFromBody,
+  parseProductAttributesBody,
+  supplierProductAttributesEqual,
+} from "@/lib/supplier-product-attributes"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
 import {
@@ -140,68 +145,19 @@ export async function PUT(
   }
 
   const { id } = await context.params
-  const own = await assertOwnProduct(session.user.id, id)
-  if (!own) {
+
+  const putLoad = await loadSupplierProductForPut(id, session.user.id)
+  if (!putLoad) {
     return Response.json({ error: "Not found" }, { status: 404 })
   }
+
+  const existingRow = putLoad.guard
+  const wholesaleBeforeSnapshot = putLoad.wholesaleBeforeSnapshot
+  const existingOfferRow = putLoad.offerRow
 
   const rawBody = (await req.json()) as Record<string, unknown>
   const publish = Boolean(rawBody.publish)
   const saveAsDraftReq = Boolean(rawBody.saveAsDraft)
-
-  const existingRow = await findSupplierProductGuardForPut(id)
-  if (!existingRow) {
-    return Response.json({ error: "Not found" }, { status: 404 })
-  }
-
-  const wholesaleBeforeRow = await prisma.product.findUnique({
-    where: { id },
-    select: {
-      basePriceCents: true,
-      variants: true,
-      colors: true,
-      hasVariants: true,
-      productVariants: {
-        select: {
-          color: true,
-          size: true,
-          stock: true,
-          supplierPrice: true,
-          wholesalePriceCents: true,
-        },
-        orderBy: { createdAt: "asc" },
-      },
-    },
-  })
-  const wholesaleBeforeSnapshot = wholesaleBeforeRow
-    ? captureWholesaleSnapshotFromProductRow(wholesaleBeforeRow)
-    : null
-
-  const existingOfferRow = await prisma.product.findUnique({
-    where: { id },
-    select: {
-      offerMode: true,
-      isRefurbished: true,
-      minOrderQuantity: true,
-      images: true,
-      warehouseType: true,
-      shippingCountry: true,
-      warehouseCity: true,
-      processingTime: true,
-      deliveryMin: true,
-      deliveryMax: true,
-      shippingMethods: true,
-      freeShippingThreshold: true,
-      shippingCost: true,
-      digitalAccessUrl: true,
-      digitalAccessInstructions: true,
-      digitalInstantDelivery: true,
-      bookingDurationMinutes: true,
-      bookingCancellationHours: true,
-      bookingVenueLabel: true,
-      bookingInstantConfirm: true,
-    },
-  })
 
   if (!existingRow.isDraft && saveAsDraftReq) {
     return Response.json({ error: "This listing is live—use Publish to update it." }, { status: 400 })
@@ -361,12 +317,7 @@ export async function PUT(
     const deliveryCodesForPublish =
       "deliveryCountryCodes" in rawBody
         ? ship.deliveryCountryCodes
-        : (
-            await prisma.product.findUnique({
-              where: { id },
-              select: { deliveryCountryCodes: true },
-            })
-          )?.deliveryCountryCodes ?? []
+        : putLoad.deliveryCountryCodes
     const deliveryErr = validateDeliveryCountriesPublish(deliveryCodesForPublish)
     if (deliveryErr) {
       return Response.json({ error: deliveryErr }, { status: 400 })
@@ -397,17 +348,7 @@ export async function PUT(
   const affisellOverridePatch = parseAffisellCommissionOverrideFromBody(
     rawBody.affisellCommissionRateOverridePercent ?? rawBody.affisellCommissionRateOverrideBps
   )
-  const productAttributes = Array.isArray(body.productAttributes)
-    ? body.productAttributes
-        .map((row) => (row && typeof row === "object" ? (row as Record<string, unknown>) : null))
-        .filter((row): row is Record<string, unknown> => row != null)
-        .map((row) => ({
-          key: String(row.key ?? "").trim(),
-          label: String(row.label ?? row.key ?? "").trim(),
-          value: String(row.value ?? "").trim(),
-        }))
-        .filter((r) => r.key.length > 0 && r.value.length > 0)
-    : []
+  const productAttributes = normalizeProductAttributesFromBody(body.productAttributes)
 
   let customColumnsUpdate: CustomColumn[] | undefined
   if ("customColumns" in rawBody) {
@@ -439,14 +380,7 @@ export async function PUT(
   if (variantPatch && !("error" in variantPatch)) {
     const cols =
       customColumnsUpdate ??
-      parseCustomColumnsFromDb(
-        (
-          await prisma.product.findUnique({
-            where: { id },
-            select: { customColumns: true },
-          })
-        )?.customColumns
-      )
+      parseCustomColumnsFromDb(putLoad.customColumns)
     const customErr = validateVariantsCustomData(cols, rawSkuVariants)
     if (customErr && !draftUpdateOnly) {
       return Response.json({ error: customErr }, { status: 400 })
@@ -483,11 +417,7 @@ export async function PUT(
   } else if (isPublishing && !draftUpdateOnly) {
     let persistedVariantRates = variantCommissionRates
     if (!persistedVariantRates?.length) {
-      const variantJson = await prisma.product.findUnique({
-        where: { id },
-        select: { variants: true },
-      })
-      const parsed = parseVariantsPayload(variantJson?.variants ?? null)
+      const parsed = parseVariantsPayload(putLoad.listingVariantsJson ?? null)
       const rows = parsed?.variantRows ?? []
       if (rows.length > 0) {
         persistedVariantRates = rows.map((row) => row.commission)
@@ -508,11 +438,26 @@ export async function PUT(
   let updated
   try {
     updated = await prisma.$transaction(async (tx) => {
+    const currentRow = await tx.product.findUnique({
+      where: { id },
+      select: { isDraft: true },
+    })
+    if (!currentRow) {
+      throw new Error("product_not_found")
+    }
+
+    const draftLivePatch = resolveSupplierProductDraftLivePatch({
+      publish,
+      saveAsDraft: saveAsDraftReq,
+      currentIsDraft: currentRow.isDraft,
+    })
+
     const p = await tx.product.update({
       where: { id },
       data: {
         name: nameResolved,
         description: desc,
+        ...draftLivePatch,
         ...(descriptionBulletsPatch !== undefined
           ? { descriptionBullets: descriptionBulletsPatch }
           : {}),
@@ -619,8 +564,6 @@ export async function PUT(
                   : Prisma.DbNull,
             }
           : {}),
-        ...(existingRow.isDraft && !publish ? { active: false, isDraft: true } : {}),
-        ...(existingRow.isDraft && publish ? { active: true, isDraft: false } : {}),
         ...(chinaImport
           ? {
               ...(chinaImport.sourceUrl !== null ? { sourceUrl: chinaImport.sourceUrl } : {}),
@@ -638,16 +581,22 @@ export async function PUT(
       },
     })
 
-    await tx.productAttribute.deleteMany({ where: { productId: id } })
-    if (productAttributes.length) {
-      await tx.productAttribute.createMany({
-        data: productAttributes.map((a) => ({
-          productId: id,
-          key: a.key,
-          label: a.label || a.key,
-          value: a.value,
-        })),
-      })
+    const shouldSyncProductAttributes =
+      "productAttributes" in rawBody &&
+      !supplierProductAttributesEqual(putLoad.attributes, productAttributes)
+
+    if (shouldSyncProductAttributes) {
+      await tx.productAttribute.deleteMany({ where: { productId: id } })
+      if (productAttributes.length) {
+        await tx.productAttribute.createMany({
+          data: productAttributes.map((a) => ({
+            productId: id,
+            key: a.key,
+            label: a.label || a.key,
+            value: a.value,
+          })),
+        })
+      }
     }
 
     if (variantPatch && !("error" in variantPatch)) {
@@ -683,10 +632,21 @@ export async function PUT(
     })
   }
 
-  const fresh = await prisma.product.findUnique({
-    where: { id },
-    include: { productVariants: { orderBy: { createdAt: "asc" } } },
+  console.log("[supplier-products-put]", {
+    productId: id,
+    publish,
+    saveAsDraft: saveAsDraftReq,
+    resultActive: updated.active,
+    resultIsDraft: updated.isDraft,
   })
+
+  const variantsChanged = Boolean(variantPatch && !("error" in variantPatch))
+  const fresh = variantsChanged
+    ? await prisma.product.findUnique({
+        where: { id },
+        include: { productVariants: { orderBy: { createdAt: "asc" } } },
+      })
+    : null
 
   if (activatingFromDraft) {
     const supplierStore = await prisma.store.findUnique({
@@ -694,27 +654,27 @@ export async function PUT(
       select: { id: true },
     })
     if (supplierStore) {
-      try {
-        await createNewDropCommunityPost({
-          storeId: supplierStore.id,
+      void createNewDropCommunityPost({
+        storeId: supplierStore.id,
+        productId: updated.id,
+        productName: updated.name,
+      }).catch((e) =>
+        console.error("[supplier-products] community new-drop post failed", {
           productId: updated.id,
-          productName: updated.name,
+          error: e instanceof Error ? e.message : String(e),
         })
-      } catch {
-        /* non-fatal */
-      }
+      )
     }
-    if (fresh) {
-      void onSupplierProductPublishedFromInvite({
-        supplierId: session.user.id,
-        productId: fresh.id,
-        productName: fresh.name,
-        commissionRate: fresh.commissionRate,
-        variants: fresh.variants,
-        basePriceCents: fresh.basePriceCents,
-        images: fresh.images,
-      }).catch((e) => console.error("[supplier-invite] publish hook", e))
-    }
+    const publishRow = fresh ?? updated
+    void onSupplierProductPublishedFromInvite({
+      supplierId: session.user.id,
+      productId: publishRow.id,
+      productName: publishRow.name,
+      commissionRate: publishRow.commissionRate,
+      variants: publishRow.variants,
+      basePriceCents: publishRow.basePriceCents,
+      images: publishRow.images,
+    }).catch((e) => console.error("[supplier-invite] publish hook", e))
   }
 
   if (seatLayoutChanged && listingKind === "EXPERIENCE") {
@@ -755,14 +715,21 @@ export async function PUT(
     scheduleProductAutoCategorization(updated.id, { allowDraft: true })
   }
 
-  void revalidateSupplierShopfront(session.user.id)
-  if ("images" in rawBody || "image" in rawBody || "colorImages" in rawBody) {
+  const shouldRevalidateShopfront =
+    publish || activatingFromDraft || (!updated.isDraft && updated.active)
+  if (shouldRevalidateShopfront) {
+    void revalidateSupplierShopfront(session.user.id)
+  }
+  if (
+    shouldRevalidateShopfront &&
+    ("images" in rawBody || "image" in rawBody || "colorImages" in rawBody)
+  ) {
     void revalidateListingCardImagesForProduct(id)
   }
 
   return Response.json({
     ...(fresh ?? updated),
-    variants: (fresh?.productVariants ?? []).map((v) =>
+    variants: (fresh?.productVariants ?? putLoad.productVariants).map((v) =>
       serializeProductVariantRow(v, fresh?.commissionRate ?? updated.commissionRate)
     ),
   })

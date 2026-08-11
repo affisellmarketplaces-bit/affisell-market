@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  createCoalescingSerialAsyncQueue,
   createSerialAsyncQueue,
   isLatestAutosaveGeneration,
 } from "@/lib/supplier-draft-autosave-queue"
@@ -31,6 +32,29 @@ describe("supplier-draft-autosave-queue", () => {
     })
     await expect(failed).rejects.toThrow("boom")
     await expect(q.enqueue(async () => "ok")).resolves.toBe("ok")
+  })
+
+  it("coalesces burst enqueues into one flush with the latest task", async () => {
+    const q = createCoalescingSerialAsyncQueue()
+    let runs = 0
+
+    const slow = q.enqueue(async () => {
+      await new Promise((r) => setTimeout(r, 40))
+      runs += 1
+      return "slow"
+    })
+    const burstA = q.enqueue(async () => {
+      runs += 10
+      return "a"
+    })
+    const burstB = q.enqueue(async () => {
+      runs += 100
+      return "latest"
+    })
+
+    await expect(slow).resolves.toBe("slow")
+    await expect(Promise.all([burstA, burstB])).resolves.toEqual(["latest", "latest"])
+    expect(runs).toBe(101)
   })
 
   it("detects stale autosave generations", () => {

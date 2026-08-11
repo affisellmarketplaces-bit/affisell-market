@@ -461,7 +461,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       const data = (await res.json()) as { error?: string; id?: string }
       if (!res.ok) throw new Error(data.error ?? "publish_failed")
 
-      await fetch("/api/supplier/gamification/award-product", {
+      void fetch("/api/supplier/gamification/award-product", {
         method: "POST",
         credentials: "include",
       }).catch((e) => {
