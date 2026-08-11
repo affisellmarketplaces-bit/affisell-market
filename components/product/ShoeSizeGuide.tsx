@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { createPortal } from "react-dom"
 import { Footprints, Ruler, Sparkles, Table2, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -91,8 +92,8 @@ export default function ShoeSizeGuide({
       className={cn(
         "w-full overflow-hidden border border-violet-200/50 bg-white shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:border-violet-800/30 dark:bg-zinc-900 dark:shadow-black/40",
         onClose
-          ? "rounded-t-2xl border-x-0 border-b-0 sm:rounded-2xl sm:border-x sm:border-b"
-          : "rounded-2xl",
+          ? "rounded-t-2xl border-x-0 border-b-0 bg-white sm:rounded-2xl sm:border-x sm:border-b dark:bg-zinc-900"
+          : "rounded-2xl bg-white dark:bg-zinc-900",
         className
       )}
     >
@@ -276,6 +277,11 @@ export default function ShoeSizeGuide({
 
 export function ShoeSizeGuideTrigger(props: Props) {
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -291,6 +297,32 @@ export function ShoeSizeGuideTrigger(props: Props) {
     }
   }, [open])
 
+  const modal =
+    open && mounted ? (
+      <div
+        className="fixed inset-0 z-[250] isolate flex items-end justify-center sm:items-center sm:p-4"
+        role="presentation"
+      >
+        <button
+          type="button"
+          aria-label="Fermer le guide des tailles"
+          className="absolute inset-0 bg-zinc-950/80 backdrop-blur-md"
+          onClick={() => setOpen(false)}
+        />
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="shoe-size-guide-title"
+          className="relative z-10 w-full max-w-lg shadow-2xl shadow-black/25 sm:max-w-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="max-h-[min(92dvh,720px)] overflow-y-auto overscroll-contain">
+            <ShoeSizeGuide {...props} onClose={() => setOpen(false)} />
+          </div>
+        </div>
+      </div>
+    ) : null
+
   return (
     <>
       <button
@@ -302,28 +334,7 @@ export function ShoeSizeGuideTrigger(props: Props) {
         Guide des tailles
       </button>
 
-      {open ? (
-        <div
-          className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4"
-          role="presentation"
-        >
-          <button
-            type="button"
-            aria-label="Fermer"
-            className="absolute inset-0 bg-zinc-950/65 backdrop-blur-[2px]"
-            onClick={() => setOpen(false)}
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="shoe-size-guide-title"
-            className="relative z-10 max-h-[92dvh] w-full max-w-lg overflow-y-auto overscroll-contain sm:max-w-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ShoeSizeGuide {...props} onClose={() => setOpen(false)} />
-          </div>
-        </div>
-      ) : null}
+      {modal ? createPortal(modal, document.body) : null}
     </>
   )
 }
