@@ -62,10 +62,15 @@ export default function ShoeSizeGuide({ brand, gender: initialGender = "femme", 
           <div className="flex-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10">
               <Sparkles className="size-3 text-white/70" />
-              <span className="text- tracking-[0.2em] text-white/70 uppercase">Intelligent • Buyer</span>
+              <span className="text-[10px] tracking-[0.2em] text-white/70 uppercase leading-none">Intelligent • Buyer</span>
             </div>
-            <h3 className="mt-4 text- md:text- font-semibold leading-[1.1] text-white">Guide de pointure<br/>intelligent</h3>
-            <p className="mt-2.5 text- leading-[1.5] text-white/60 max-w-">Trouve ta pointure parfaite. Réduit les retours de 30% sur les chaussures.</p>
+            <h3 className="mt-4 flex items-center gap-2 text-lg md:text-xl font-semibold leading-snug text-white">
+              <span className="whitespace-nowrap">Guide de pointure intelligent</span>
+              <span className="ml-0.5 shrink-0 px-2 py-0.5 rounded-full bg-violet-500 text-white text-[10px] font-bold tracking-widest uppercase">
+                PRO
+              </span>
+            </h3>
+            <p className="mt-2.5 text-sm leading-relaxed text-white/60 max-w-md">Trouve ta pointure parfaite. Réduit les retours de 30% sur les chaussures.</p>
             <div className="mt-4 flex gap-2">
               <button onClick={() => setGender("femme")} className={cn("h-8 px-4 rounded-full text-xs font-medium border transition", gender==="femme"? "bg-white text-black border-white" : "bg-white/10 text-white/70 border-white/10 hover:bg-white/15")}>Femme</button>
               <button onClick={() => setGender("homme")} className={cn("h-8 px-4 rounded-full text-xs font-medium border transition", gender==="homme"? "bg-white text-black border-white" : "bg-white/10 text-white/70 border-white/10 hover:bg-white/15")}>Homme</button>
