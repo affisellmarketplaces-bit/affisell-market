@@ -4,6 +4,7 @@ import Link from "next/link"
 import { motion, useReducedMotion } from "framer-motion"
 import {
   ArrowRight,
+  BadgeCheck,
   Bell,
   ChevronDown,
   ChevronRight,
@@ -419,6 +420,10 @@ export function MarketplaceListingDetail({
   const messages = appMessagesForLocale(locale)
   const productT = messages.Product
   const breadcrumbT = messages.Breadcrumb
+  const checkoutSellerName =
+    brandedStorefront && (partnerLabel?.trim() || storefront?.name?.trim())
+      ? (partnerLabel?.trim() || storefront!.name.trim())
+      : sellerLabel
   const router = useRouter()
   const { buyNow: buyNowWithIdentity, identitySheet } = useBuyNowWithIdentity()
   const reduceMotion = useReducedMotion()
@@ -809,7 +814,7 @@ export function MarketplaceListingDetail({
         qty: purchaseQty,
         title: name,
         imageUrl: hero,
-        sellerName: sellerLabel,
+        sellerName: checkoutSellerName,
         price: listingPriceEur,
         selectedColor: selectedColor ?? undefined,
         selectedSize: cartSelectedSize ?? undefined,
@@ -869,7 +874,7 @@ export function MarketplaceListingDetail({
           productId: listingId,
           title: name,
           imageUrl: hero,
-          sellerName: sellerLabel,
+          sellerName: checkoutSellerName,
           price: displayFlashPriceEur ?? listingPriceEur,
           selectedColor: selectedColor ?? undefined,
           selectedSize: cartSelectedSize ?? undefined,
@@ -1197,15 +1202,41 @@ export function MarketplaceListingDetail({
                   aria-hidden
                 />
                 <div className="pl-0 lg:pl-2">
-                  <SupplierTrustBadge
-                    tier={supplierTrustTier}
-                    isVerifiedSupplier={isVerifiedSupplier}
-                    className="mb-2"
-                    size="md"
-                  />
-                  <p className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    {t(productT.soldBy, { seller: sellerLabel })}
-                  </p>
+                  {brandedStorefront ? (
+                    isVerifiedSupplier ||
+                    (supplierTrustTier && supplierTrustTier !== "NONE") ? (
+                      <span className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-300/60 bg-emerald-50/90 px-2.5 py-1 text-xs font-semibold text-emerald-900 dark:border-emerald-700/50 dark:bg-emerald-950/40 dark:text-emerald-100">
+                        <BadgeCheck className="size-4 shrink-0" aria-hidden />
+                        {productT.verifiedPartnerStorefront}
+                      </span>
+                    ) : null
+                  ) : (
+                    <SupplierTrustBadge
+                      tier={supplierTrustTier}
+                      isVerifiedSupplier={isVerifiedSupplier}
+                      className="mb-2"
+                      size="md"
+                    />
+                  )}
+                  {brandedStorefront ? (
+                    partnerLabel || storefront?.name ? (
+                      <p className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        <span className="text-zinc-500 dark:text-zinc-400">{productT.curatedByPartner}</span>
+                        <span aria-hidden> · </span>
+                        <span className="text-zinc-900 dark:text-zinc-50">
+                          {partnerLabel || storefront?.name}
+                        </span>
+                      </p>
+                    ) : (
+                      <p className="mb-2 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                        {productT.verifiedPartnerStorefront}
+                      </p>
+                    )
+                  ) : (
+                    <p className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      {t(productT.fulfilledBySupplier)}
+                    </p>
+                  )}
                   {offerBadge ? (
                     <div className="mb-2 flex flex-wrap items-center gap-2">
                       <ProductOfferBadge badge={offerBadge} variant="inline" />
@@ -1794,7 +1825,7 @@ export function MarketplaceListingDetail({
               </Link>
             ) : audience === "merchant" ? (
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                {t(productT.byStore, { store: partnerLabel || sellerLabel })}
+                {t(productT.byStore, { store: partnerLabel || storefront?.name || productT.curatedByPartner })}
               </p>
             ) : null}
           </aside>

@@ -134,13 +134,13 @@ export function BubbleProductPageClient({
           <DeliveryBadge days={product.deliveryDays} country={product.deliveryCountry} variant="full" />
         </StackBubble>
 
-        <StackBubble title="Fournisseur">
+        <StackBubble title="Partenaire Affisell">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-lg">
-              {product.supplierName?.slice(0, 1) ?? "S"}
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10 text-lg font-semibold text-white/90">
+              A
             </div>
             <div>
-              <p className="font-semibold">{product.supplierName ?? "Fournisseur vérifié"}</p>
+              <p className="font-semibold">Partenaire vérifié</p>
               <SupplierTrustBadge trustScore={product.supplierTrustScore} />
             </div>
           </div>

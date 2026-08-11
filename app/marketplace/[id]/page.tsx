@@ -197,7 +197,7 @@ export default async function MarketplaceListingPage({
     affiliateDisplayName: listing.affiliate.name,
   })
   const sellerLabel = publicSupplierVendorLabel({
-    supplierName: listing.product.supplier.name,
+    storeName: listing.product.supplier.store?.name,
     tradeName: listing.product.supplier.merchantLegalProfile?.tradeName,
     legalEntityName: listing.product.supplier.merchantLegalProfile?.legalEntityName,
   })
@@ -479,7 +479,7 @@ export default async function MarketplaceListingPage({
   ) {
     ;(productJsonLd as Record<string, unknown>).brand = {
       "@type": "Brand",
-      name: listing.product.supplier.name?.trim() || "Affisell+ Supplier",
+      name: storeSlug ? partnerLabel : sellerLabel,
     }
   }
 

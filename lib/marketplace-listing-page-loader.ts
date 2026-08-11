@@ -88,6 +88,7 @@ export const listingDetailSelect = {
         select: {
           name: true,
           isVerifiedSupplier: true,
+          store: { select: { name: true } },
           merchantLegalProfile: {
             select: {
               tradeName: true,
@@ -126,6 +127,7 @@ const listingDetailSelectWithTrust = {
           name: true,
           isVerifiedSupplier: true,
           supplierTrustTier: true,
+          store: { select: { name: true } },
           merchantLegalProfile: {
             select: {
               tradeName: true,
@@ -196,6 +198,7 @@ const listingDetailProductSelectWithoutGhost = {
     select: {
       name: true,
       isVerifiedSupplier: true,
+      store: { select: { name: true } },
       merchantLegalProfile: {
         select: {
           tradeName: true,

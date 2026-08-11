@@ -23,19 +23,21 @@ export function publicPartnerSellerLabel(opts: {
 
 /**
  * Legal vendeur on the PDP / cart — supplier (fournisseur), per CGV.
- * Prefer KYC trade / legal entity name when available.
+ * Prefer KYC trade / legal entity / supplier storefront brand — never raw User.name on buyer UI.
  */
 export function publicSupplierVendorLabel(opts: {
-  supplierName?: string | null
+  storeName?: string | null
   tradeName?: string | null
   legalEntityName?: string | null
+  /** @deprecated Ignored on buyer-facing surfaces — use storeName or KYC fields. */
+  supplierName?: string | null
 }): string {
   const trade = isUsablePublicName(opts.tradeName)
   if (trade) return trade
   const legal = isUsablePublicName(opts.legalEntityName)
   if (legal) return legal
-  const name = isUsablePublicName(opts.supplierName)
-  if (name) return name
+  const store = isUsablePublicName(opts.storeName)
+  if (store) return store
   return "Verified supplier"
 }
 

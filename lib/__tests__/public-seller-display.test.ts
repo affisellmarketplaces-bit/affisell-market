@@ -44,12 +44,24 @@ describe("publicSupplierVendorLabel", () => {
     ).toBe("Acme Supply")
   })
 
-  it("falls back to legal entity then supplier name", () => {
+  it("prefers store brand over deprecated user name", () => {
+    expect(
+      publicSupplierVendorLabel({
+        supplierName: "John Personal",
+        storeName: "Acme Footwear",
+        tradeName: null,
+        legalEntityName: null,
+      })
+    ).toBe("Acme Footwear")
+  })
+
+  it("falls back to legal entity then generic (never raw user name)", () => {
     expect(
       publicSupplierVendorLabel({
         supplierName: "John",
         tradeName: null,
         legalEntityName: "ACME SAS",
+        storeName: null,
       })
     ).toBe("ACME SAS")
     expect(
@@ -57,8 +69,9 @@ describe("publicSupplierVendorLabel", () => {
         supplierName: "John",
         tradeName: "  ",
         legalEntityName: null,
+        storeName: null,
       })
-    ).toBe("John")
+    ).toBe("Verified supplier")
   })
 
   it("never exposes email as vendeur", () => {

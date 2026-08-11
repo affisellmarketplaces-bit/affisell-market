@@ -38,7 +38,6 @@ export async function loadBubbleProductView(productId: string): Promise<BubblePr
       videos: { select: { videoUrl: true }, take: 1 },
       supplier: {
         select: {
-          name: true,
           trustScore: true,
         },
       },
@@ -84,7 +83,7 @@ export async function loadBubbleProductView(productId: string): Promise<BubblePr
     deliveryDays: product.deliveryDays ?? 5,
     deliveryCountry: product.shippingCountry?.trim().toUpperCase() || "FR",
     supplierTrustScore: product.supplier.trustScore ?? 75,
-    supplierName: product.supplier.name,
+    supplierName: null,
     listingId: listing?.id ?? null,
     bubbleUrl: `${appUrl}/product/${product.id}/bubble`,
   }
