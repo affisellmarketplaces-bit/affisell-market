@@ -104,6 +104,7 @@ async function enrichAeSkusFromPageHtml(
   if (apiRows.length === 0) return apiRows
   try {
     const fetched = await fetchAliExpressProductHtml(url)
+    if (!fetched.ok) return apiRows
     const parsed = parseAeCatalogFromHtml(fetched.html, url)
     if (parsed.aeSkus.length <= 1) return apiRows
 

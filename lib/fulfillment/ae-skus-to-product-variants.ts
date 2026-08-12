@@ -26,6 +26,18 @@ export type AeSkuVariantPersist = {
 
 const MAX_VARIANTS = 120
 
+function stringAttributesFromCustomData(
+  customData: VariantCustomData | null | undefined
+): Record<string, string> | undefined {
+  if (!customData || typeof customData !== "object") return undefined
+  const attrs: Record<string, string> = {}
+  for (const [key, value] of Object.entries(customData)) {
+    if (key === "aeLabel" || key === "image") continue
+    if (typeof value === "string" && value.trim()) attrs[key] = value
+  }
+  return Object.keys(attrs).length > 0 ? attrs : undefined
+}
+
 /** True when most shopper labels collapsed to generic `Variant N`. */
 export function isWeakAeSkuPersist(persist: AeSkuVariantPersist): boolean {
   if (persist.variantInputs.length < 2) return true
@@ -35,14 +47,7 @@ export function isWeakAeSkuPersist(persist: AeSkuVariantPersist): boolean {
       {
         aeLabel: typeof v.customData?.aeLabel === "string" ? v.customData.aeLabel : v.color,
         matchColor: v.color,
-        attributes:
-          typeof v.customData === "object" && v.customData
-            ? Object.fromEntries(
-                Object.entries(v.customData).filter(
-                  ([k, val]) => k !== "aeLabel" && k !== "image" && typeof val === "string"
-                )
-              )
-            : undefined,
+        attributes: stringAttributesFromCustomData(v.customData),
       },
       index
     )
