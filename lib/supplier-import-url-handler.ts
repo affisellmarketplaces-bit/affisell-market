@@ -13,6 +13,8 @@ import {
   type AliExpressParseInput,
 } from "@/lib/import-url-scrape"
 import { mirrorImportedVideosToR2 } from "@/lib/import-video-r2"
+import { parseAeSkusFromPagePayload } from "@/lib/fulfillment/ae-page-skus"
+import { aeSkusToVariantPersist } from "@/lib/fulfillment/ae-skus-to-product-variants"
 import { extract1688Id, get1688 } from "@/lib/onebound"
 import { prisma } from "@/lib/prisma"
 
@@ -665,36 +667,75 @@ function parseAERData(aerData: Record<string, unknown>, url: string): ImportedPr
     carrier: "Standard",
   }
 
-  const variants = (Array.isArray(skuModule.productSKUPropertyList)
-    ? skuModule.productSKUPropertyList
-    : []
-  ).flatMap((propRaw) => {
-    const prop = asRec(propRaw)
-    const propName = txt(prop.skuPropertyName)
-    const values = Array.isArray(prop.skuPropertyValues)
-      ? prop.skuPropertyValues
+  const skuPage = parseAeSkusFromPagePayload(aerData, { url })
+  if (skuPage.aeSkus.length > 1) {
+    const persist = aeSkusToVariantPersist(skuPage.aeSkus)
+    if (persist.hasVariants) {
+      out.variants = persist.variantInputs.map((v) => {
+        const img =
+          typeof v.customData?.image === "string" && v.customData.image.trim()
+            ? hdImage(v.customData.image)
+            : ""
+        return {
+          name: [v.color, v.size].filter(Boolean).join(" · ") || v.sku || "Variant",
+          type: "Variant",
+          image: img,
+          price: v.supplierPrice,
+          stock: v.stock,
+          sku: v.sku ?? "",
+          attributes: {
+            ...(v.color ? { Couleur: v.color } : {}),
+            ...(v.size ? { Taille: v.size } : {}),
+          },
+        }
+      })
+      out.colors = persist.colorImages.map((c) => ({
+        name: c.color,
+        image: c.image ? hdImage(c.image) : "",
+        hex: c.hex || catalogHexForColorName(c.color),
+      }))
+      out.sizes = [
+        ...new Set(
+          persist.variantInputs
+            .map((v) => v.size)
+            .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+        ),
+      ].map((name) => ({ name, value: name }))
+      if (persist.minPriceCents > 0) out.price = persist.minPriceCents / 100
+      if (persist.totalStock > 0) out.stock = persist.totalStock
+    }
+  } else {
+    const variants = (Array.isArray(skuModule.productSKUPropertyList)
+      ? skuModule.productSKUPropertyList
       : []
-    return values.map((vRaw) => {
-      const v = asRec(vRaw)
-      const name = txt(v.propertyValueDisplayName)
-      return {
-        name,
-        type: propName,
-        image: txt(v.skuPropertyImagePath) ? hdImage(txt(v.skuPropertyImagePath)) : "",
-        price: prices[0] || 0,
-        stock: 50,
-        sku: `AE-${txt(v.propertyValueId)}`,
-        attributes: { [propName]: name },
-      }
+    ).flatMap((propRaw) => {
+      const prop = asRec(propRaw)
+      const propName = txt(prop.skuPropertyName)
+      const values = Array.isArray(prop.skuPropertyValues)
+        ? prop.skuPropertyValues
+        : []
+      return values.map((vRaw) => {
+        const v = asRec(vRaw)
+        const name = txt(v.propertyValueDisplayName)
+        return {
+          name,
+          type: propName,
+          image: txt(v.skuPropertyImagePath) ? hdImage(txt(v.skuPropertyImagePath)) : "",
+          price: prices[0] || 0,
+          stock: 50,
+          sku: `AE-${txt(v.propertyValueId)}`,
+          attributes: { [propName]: name },
+        }
+      })
     })
-  })
-  out.variants = variants
-  out.colors = variants
-    .filter((v) => v.type.toLowerCase().includes("color"))
-    .map((v) => ({ name: v.name, image: v.image, hex: catalogHexForColorName(v.name) }))
-  out.sizes = variants
-    .filter((v) => v.type.toLowerCase().includes("size"))
-    .map((v) => ({ name: v.name, value: v.name }))
+    out.variants = variants
+    out.colors = variants
+      .filter((v) => v.type.toLowerCase().includes("color"))
+      .map((v) => ({ name: v.name, image: v.image, hex: catalogHexForColorName(v.name) }))
+    out.sizes = variants
+      .filter((v) => v.type.toLowerCase().includes("size"))
+      .map((v) => ({ name: v.name, value: v.name }))
+  }
 
   const starLevel = asRec(reviewModule.starLevel)
   const avg = num(reviewModule.averageStar)

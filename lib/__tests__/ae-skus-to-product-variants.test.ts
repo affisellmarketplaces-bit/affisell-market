@@ -161,4 +161,73 @@ describe("parseAeSkusFromPagePayload — color images", () => {
     expect(persist.hasVariants).toBe(true)
     expect(persist.variantInputs).toHaveLength(3)
   })
+
+  it("maps silicone hose SKUs with human labels and per-color thumbnails", () => {
+    const parsed = parseAeSkusFromPagePayload({
+      pageModule: {
+        productInfoComponent: {
+          productInfo: { storeId: "1", subject: "UXCELL Silicone Hose" },
+        },
+        skuComponent: {
+          skuModule: {
+            productSKUPropertyList: [
+              {
+                skuPropertyId: 14,
+                skuPropertyName: "Color",
+                skuPropertyValues: [
+                  {
+                    propertyValueId: 771,
+                    propertyValueDisplayName: "55mm Blue",
+                    skuPropertyImagePath: "https://ae01.alicdn.com/kf/blue-55.jpg",
+                  },
+                  {
+                    propertyValueId: 366,
+                    propertyValueDisplayName: "40mm Blue",
+                    skuPropertyImagePath: "https://ae01.alicdn.com/kf/blue-40.jpg",
+                  },
+                  {
+                    propertyValueId: 200,
+                    propertyValueDisplayName: "30mm Black",
+                    skuPropertyImagePath: "https://ae01.alicdn.com/kf/black-30.jpg",
+                  },
+                ],
+              },
+            ],
+            skuPriceList: [
+              {
+                skuAttr: "14:771#55mm Blue",
+                skuId: "120000771001",
+                skuVal: { availQuantity: 9, skuActivityAmount: { value: "6.09" } },
+              },
+              {
+                skuAttr: "14:366#40mm Blue",
+                skuId: "120000366002",
+                skuVal: { availQuantity: 4, skuActivityAmount: { value: "5.49" } },
+              },
+              {
+                skuAttr: "14:200#30mm Black",
+                skuId: "120000200003",
+                skuVal: { availQuantity: 12, skuActivityAmount: { value: "4.99" } },
+              },
+            ],
+          },
+        },
+      },
+    })
+
+    expect(parsed.aeSkus).toHaveLength(3)
+    expect(parsed.aeSkus[0]?.aeLabel).toBe("55mm Blue")
+    expect(parsed.aeSkus[0]?.imageUrl).toContain("blue-55.jpg")
+
+    const persist = aeSkusToVariantPersist(parsed.aeSkus)
+    expect(persist.hasVariants).toBe(true)
+    expect(persist.colors).toEqual(["55mm Blue", "40mm Blue", "30mm Black"])
+    expect(persist.variantInputs[0]?.color).toBe("55mm Blue")
+    expect(persist.variantInputs[0]?.customData).toMatchObject({
+      image: "https://ae01.alicdn.com/kf/blue-55.jpg",
+      aeLabel: "55mm Blue",
+    })
+    expect(persist.colorImages[0]?.image).toContain("blue-55.jpg")
+    expect(persist.colorImages[2]?.image).toContain("black-30.jpg")
+  })
 })

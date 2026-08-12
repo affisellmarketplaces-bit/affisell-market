@@ -9,11 +9,13 @@ import {
   fetchAllCategoriesForBrowse,
   type LeafPath,
 } from "@/lib/category-browse"
-import { parseAeProductSkusFromPayload } from "@/lib/fulfillment/ae-product-skus"
+import { parseAeProductSkusFromPayload, type AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
 import {
   aeSkusToVariantPersist,
   type AeSkuVariantPersist,
 } from "@/lib/fulfillment/ae-skus-to-product-variants"
+import { normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
+import { canonicalVariantColorKey } from "@/lib/fulfillment/variant-color-match"
 import { prisma } from "@/lib/prisma"
 import { detectMarketplaceFromUrl } from "@/lib/import-marketplace"
 import {
@@ -60,6 +62,35 @@ export type ProductImportAgentError = {
   status: number
   useAliExpressApi?: boolean
   marketplace?: ReturnType<typeof detectMarketplaceFromUrl>
+}
+
+function aeRowsFromScrapedVariants(product: SupplierScrapedProduct): AeProductSkuRow[] {
+  const rows: AeProductSkuRow[] = []
+  for (const v of product.variants ?? []) {
+    const aeSkuId = normalizeAeSkuCandidate(v.sku) ?? ""
+    if (!aeSkuId) continue
+    const attrs = v.attributes ?? {}
+    const colorAttr =
+      attrs.Couleur ??
+      attrs.Color ??
+      attrs.couleur ??
+      attrs.color ??
+      (v.name?.trim() || null)
+    rows.push({
+      aeSkuId,
+      aeLabel: v.name?.trim() || String(colorAttr ?? aeSkuId),
+      matchColor: colorAttr ? canonicalVariantColorKey(String(colorAttr)) : null,
+      matchSize:
+        (typeof attrs.Taille === "string" && attrs.Taille.trim()) ||
+        (typeof attrs.Size === "string" && attrs.Size.trim()) ||
+        null,
+      aePriceCents: v.price > 0 ? Math.max(100, Math.round(v.price * 100)) : 0,
+      stock: Math.max(0, Math.round(v.stock)),
+      imageUrl: v.image?.trim() || null,
+      attributes: Object.keys(attrs).length > 0 ? attrs : undefined,
+    })
+  }
+  return rows
 }
 
 function applyAeSkuMatrixToScraped(
@@ -327,6 +358,17 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
     platform = scraped.platform
     method = scraped.method
     warnings.push(...scraped.warnings)
+  }
+
+  if (!skuVariants && product && (product.variants?.length ?? 0) >= 2) {
+    const aeRows = aeRowsFromScrapedVariants(product)
+    if (aeRows.length >= 2) {
+      const persist = aeSkusToVariantPersist(aeRows)
+      if (persist.hasVariants) {
+        skuVariants = persist
+        product = applyAeSkuMatrixToScraped(product, persist, markup)
+      }
+    }
   }
 
   steps.push("enrich")

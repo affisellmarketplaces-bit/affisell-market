@@ -1,5 +1,8 @@
 import { extractWindowJson } from "@/lib/import-url-scrape"
 import { normalizeAerRoot } from "@/lib/fulfillment/ae-aer-normalize"
+import {
+  stripAeSkuTechnicalLabel,
+} from "@/lib/fulfillment/ae-variant-display-name"
 import { normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import { canonicalVariantColorKey } from "@/lib/fulfillment/variant-color-match"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
@@ -94,21 +97,44 @@ function labelsFromSkuAttr(
   let imageUrl: string | null = null
 
   for (const segment of skuAttr.split(";")) {
+    const trimmed = segment.trim()
+    const hashIdx = trimmed.indexOf("#")
+    const inlineHuman =
+      hashIdx >= 0 ? stripAeSkuTechnicalLabel(trimmed.slice(hashIdx + 1)) : ""
+
     const parsed = parseSkuAttrSegment(segment)
-    if (!parsed) continue
+    if (!parsed) {
+      if (inlineHuman) {
+        attributes.Option = inlineHuman
+        parts.push(inlineHuman)
+        if (!color) color = inlineHuman
+      }
+      continue
+    }
     const meta = lookup.get(`${parsed.propId}:${parsed.valueId}`)
-    if (!meta) continue
-    attributes[meta.propName] = meta.displayName
-    parts.push(meta.displayName)
-    const propLower = meta.propName.toLowerCase()
-    if (!color && (propLower.includes("color") || propLower.includes("couleur"))) {
-      color = meta.displayName
-      if (meta.imageUrl) imageUrl = meta.imageUrl
+    if (meta) {
+      attributes[meta.propName] = meta.displayName
+      parts.push(meta.displayName)
+      const propLower = meta.propName.toLowerCase()
+      if (!color && (propLower.includes("color") || propLower.includes("couleur"))) {
+        color = meta.displayName
+        if (meta.imageUrl) imageUrl = meta.imageUrl
+      }
+      if (!size && (propLower.includes("size") || propLower.includes("taille"))) {
+        size = meta.displayName
+      }
+      if (
+        !imageUrl &&
+        meta.imageUrl &&
+        (propLower.includes("color") || propLower.includes("couleur"))
+      ) {
+        imageUrl = meta.imageUrl
+      }
+    } else if (inlineHuman) {
+      attributes[`Option ${parsed.propId}`] = inlineHuman
+      parts.push(inlineHuman)
+      if (!color) color = inlineHuman
     }
-    if (!size && (propLower.includes("size") || propLower.includes("taille"))) {
-      size = meta.displayName
-    }
-    if (!imageUrl && meta.imageUrl) imageUrl = meta.imageUrl
   }
 
   if (!color && parts.length === 1) color = parts[0] ?? null

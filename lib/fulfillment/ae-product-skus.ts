@@ -1,4 +1,5 @@
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
+import { humanLabelFromAeSkuAttr } from "@/lib/fulfillment/ae-variant-display-name"
 import { normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import { unwrapAliExpressMethodResponse } from "@/lib/aliexpress-open-api"
 import { canonicalVariantColorKey } from "@/lib/fulfillment/variant-color-match"
@@ -98,22 +99,30 @@ function parseSkuProperties(sku: Record<string, unknown>): {
     ])
     const nameLower = name.toLowerCase()
     const value = pickString(rec, [
+      "property_value_definition_name",
+      "property_value_display_name",
+      "propertyValueDisplayName",
+      "sku_property_value_name",
       "sku_property_value",
       "property_value",
       "value",
       "spec_value",
-      "property_value_definition_name",
     ])
     if (!value) continue
     parts.push(value)
     if (name) attributes[name] = value
-    if (!color && (nameLower.includes("color") || nameLower.includes("couleur") || nameLower === "color")) {
+    const isColorProp =
+      nameLower.includes("color") ||
+      nameLower.includes("couleur") ||
+      nameLower === "color"
+    const isSizeProp = nameLower.includes("size") || nameLower.includes("taille")
+    if (!color && isColorProp) {
       color = value
     }
-    if (!size && (nameLower.includes("size") || nameLower.includes("taille"))) {
+    if (!size && isSizeProp) {
       size = value
     }
-      if (!imageUrl) {
+    if (isColorProp && !imageUrl) {
       const img = pickString(rec, [
         "sku_image",
         "sku_property_image_path",
@@ -148,7 +157,16 @@ function parseSkuProperties(sku: Record<string, unknown>): {
     color = parts[0] ?? null
   }
 
-  const label = parts.length > 0 ? parts.join(" · ") : pickString(sku, ["sku_attr", "sku_code"]) || "SKU"
+  const skuAttr = pickString(sku, ["sku_attr", "skuAttr"])
+  const labelFromAttr = skuAttr ? humanLabelFromAeSkuAttr(skuAttr) : null
+  const label =
+    parts.length > 0
+      ? parts.join(" · ")
+      : labelFromAttr || skuAttr || pickString(sku, ["sku_code"]) || "SKU"
+
+  if (!color && labelFromAttr) {
+    color = labelFromAttr
+  }
 
   return { color, size, label, imageUrl, attributes }
 }

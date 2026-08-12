@@ -65,11 +65,6 @@ export function buildAffiliateVariantOptions(product: {
       const row = findColorImageRowForName(colorImages, color)
       if (row?.image?.trim()) return row.image.trim()
     }
-    // Multi-SKU: never stamp the same hero on every row — prefer color-index gallery match
-    if (multiVariant && color && gallery.length > 1) {
-      const idx = colorNames.findIndex((c) => c.toLowerCase() === color.trim().toLowerCase())
-      if (idx >= 0 && gallery[idx]?.trim()) return gallery[idx]!.trim()
-    }
     if (!multiVariant) return gallery[0]?.trim() ?? ""
     return ""
   }

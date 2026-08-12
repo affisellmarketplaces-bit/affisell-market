@@ -1,11 +1,14 @@
 import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
+import {
+  normalizeAeVariantColorLabel,
+  resolveAeVariantDisplayColor,
+} from "@/lib/fulfillment/ae-variant-display-name"
 import type { ProductColorImageRow } from "@/lib/product-color-images"
 import {
   productVariantInputSchema,
   type ProductVariantInput,
 } from "@/lib/product-variant-sku"
-import { VARIANT_COLOR_REGEX } from "@/lib/supplier-sku-builder"
 import type { VariantCustomData } from "@/types/product"
 
 const MAX_VARIANTS = 120
@@ -24,22 +27,7 @@ export type AeSkuVariantPersist = {
 
 /** Keep Affisell color regex happy (no commas / + / AE junk like # _ *). */
 export function sanitizeAeVariantColor(raw: string, index: number): string {
-  let c = raw
-    .trim()
-    // AE often uses "#01", "01_Black", "Red+Blue" — normalize before regex gate
-    .replace(/[,+]+/g, " ")
-    .replace(/[#*_]+/g, " ")
-    .replace(/[·•]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 32)
-  if (!c || !VARIANT_COLOR_REGEX.test(c)) {
-    c = `Variant ${index + 1}`
-  }
-  if (!VARIANT_COLOR_REGEX.test(c)) {
-    c = `V${index + 1}`
-  }
-  return c.slice(0, 32)
+  return normalizeAeVariantColorLabel(raw, index)
 }
 
 function sanitizeSize(raw: string | null | undefined): string | null {
@@ -83,13 +71,8 @@ export function aeSkusToVariantPersist(aeSkus: AeProductSkuRow[]): AeSkuVariantP
     const colorImages: ProductColorImageRow[] = []
     const colors: string[] = []
     if (only) {
-      const displayColor =
-        only.attributes?.Couleur ||
-        only.attributes?.Color ||
-        only.attributes?.couleur ||
-        only.attributes?.color ||
-        (only.matchColor && only.matchColor !== "default" ? only.matchColor : null)
-      if (displayColor) {
+      const displayColor = resolveAeVariantDisplayColor(only, 0)
+      if (displayColor && !/^Variant \d+$/i.test(displayColor)) {
         const color = sanitizeAeVariantColor(displayColor, 0)
         colors.push(color)
         const img =
@@ -125,15 +108,7 @@ export function aeSkusToVariantPersist(aeSkus: AeProductSkuRow[]): AeSkuVariantP
   const seenComposite = new Set<string>()
 
   usable.forEach((sku, index) => {
-    const displayColor =
-      sku.attributes?.Couleur ||
-      sku.attributes?.Color ||
-      sku.attributes?.couleur ||
-      sku.attributes?.color ||
-      (sku.matchColor && sku.matchColor !== "default" ? sku.matchColor : null) ||
-      sku.aeLabel.split("·")[0]?.trim() ||
-      `Variant ${index + 1}`
-
+    const displayColor = resolveAeVariantDisplayColor(sku, index)
     const color = sanitizeAeVariantColor(displayColor, index)
     const size = sanitizeSize(sku.matchSize)
     const priceCents = sku.aePriceCents > 0 ? sku.aePriceCents : 100
@@ -142,6 +117,14 @@ export function aeSkusToVariantPersist(aeSkus: AeProductSkuRow[]): AeSkuVariantP
     const composite = `${color.toLowerCase()}|${(size ?? "").toLowerCase()}|${sku.aeSkuId}`
     if (seenComposite.has(composite)) return
     seenComposite.add(composite)
+
+    const skuImage =
+      sku.imageUrl &&
+      (/^https?:\/\//i.test(sku.imageUrl.trim()) || sku.imageUrl.trim().startsWith("//"))
+        ? sku.imageUrl.trim().startsWith("//")
+          ? `https:${sku.imageUrl.trim()}`
+          : sku.imageUrl.trim()
+        : ""
 
     // Parse through Zod so output matches ProductVariantInput (transformed schema).
     const parsed = productVariantInputSchema.safeParse({
@@ -161,16 +144,14 @@ export function aeSkusToVariantPersist(aeSkus: AeProductSkuRow[]): AeSkuVariantP
     if (!seenColor.has(colorKey)) {
       seenColor.add(colorKey)
       colors.push(color)
-      const img =
-        sku.imageUrl && /^https?:\/\//i.test(sku.imageUrl) ? sku.imageUrl.trim() : ""
       colorImages.push({
         color,
         hex: resolveColorSwatchMeta(color).hex,
-        image: img,
+        image: skuImage,
       })
-    } else if (sku.imageUrl && /^https?:\/\//i.test(sku.imageUrl)) {
+    } else if (skuImage) {
       const row = colorImages.find((c) => c.color.toLowerCase() === colorKey)
-      if (row && !row.image) row.image = sku.imageUrl.trim()
+      if (row && !row.image) row.image = skuImage
     }
   })
 

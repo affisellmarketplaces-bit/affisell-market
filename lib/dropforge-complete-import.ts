@@ -334,15 +334,23 @@ export function buildDropForgeProductPersistFields(preview: DropForgeCompletePre
 } {
   const costCents = Math.max(1, Math.round(preview.costPrice * 100))
   const videos = extractVideoUrls(preview.videos, 4)
+  const hasSkuMatrix =
+    Boolean(preview.skuVariants?.hasVariants) &&
+    (preview.skuVariants?.variants?.length ?? 0) > 1
   const colorNamesFromSku =
     preview.skuVariants?.colors?.filter(Boolean).slice(0, 24) ?? []
+  const colorNamesFromPreview = preview.colors
+    .map((c) => c.name.trim())
+    .filter(Boolean)
+    .slice(0, 24)
   const colorNames =
-    preview.colors
-      .map((c) => c.name.trim())
-      .filter(Boolean)
-      .slice(0, 24)
-      .concat(colorNamesFromSku.filter((c) => !preview.colors.some((x) => x.name === c)))
-      .slice(0, 24)
+    hasSkuMatrix && colorNamesFromSku.length > 0
+      ? colorNamesFromSku
+      : colorNamesFromPreview.length > 0
+        ? colorNamesFromPreview
+            .concat(colorNamesFromSku.filter((c) => !colorNamesFromPreview.includes(c)))
+            .slice(0, 24)
+        : colorNamesFromSku.slice(0, 24)
 
   const colorImagesFromPreview =
     preview.colors.length > 0
@@ -365,11 +373,13 @@ export function buildDropForgeProductPersistFields(preview: DropForgeCompletePre
       : "",
   }))
   const colorImagesMerged =
-    colorImagesFromPreview.length > 0
-      ? colorImagesFromPreview
-      : colorImagesFromSku.length > 0
-        ? colorImagesFromSku
-        : undefined
+    hasSkuMatrix && colorImagesFromSku.length > 0
+      ? colorImagesFromSku
+      : colorImagesFromPreview.length > 0
+        ? colorImagesFromPreview
+        : colorImagesFromSku.length > 0
+          ? colorImagesFromSku
+          : undefined
 
   const shipCc = guessIso2Country(preview.shipping.from_country)
   const { min, max } = parseDeliveryRange(preview.shipping.delivery_time)
