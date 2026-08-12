@@ -1,8 +1,14 @@
+/** Canonical PDP URL — stable for API, scrape, and catalog dedupe. */
+export function canonicalAliExpressItemUrl(productId: string): string {
+  const id = productId.trim()
+  return `https://www.aliexpress.com/item/${id}.html`
+}
+
 /** True when input looks like an AliExpress product URL or numeric product id. */
 export function isAliExpressImportInput(input: string): boolean {
   const raw = input.trim().toLowerCase()
   if (!raw) return false
-  if (raw.includes("aliexpress.com") || raw.includes("aliexpress.us")) return true
+  if (/aliexpress\.(com|us)/i.test(raw) || /(?:^|\.)aliexpress\./i.test(raw)) return true
   const compact = raw.replace(/\s/g, "")
   return /^\d{13,}$/.test(compact)
 }
@@ -21,7 +27,8 @@ export function parseAliExpressProductId(input: string): string | null {
 
   const fromQuery =
     raw.match(/[?&#](?:product[_-]?id|item[_-]?id)=(\d{13,})/i)?.[1] ||
-    raw.match(/_p_origin_prod[=:](\d{13,})/i)?.[1] ||
+    raw.match(/_p_origin_prod[=:%3A]+(\d{13,})/i)?.[1] ||
+    raw.match(/x_object_id[=:%3A]+(\d{13,})/i)?.[1] ||
     raw.match(/origin_prod[=:%3A]+(\d{13,})/i)?.[1]
   if (fromQuery) return fromQuery
 

@@ -1,5 +1,9 @@
 /** DropForge — shared product URL guards (client + server). */
 
+import {
+  canonicalAliExpressItemUrl,
+  parseAliExpressProductId,
+} from "@/lib/aliexpress-product-id"
 import { assertSafeOutboundUrl } from "@/lib/safe-outbound-url"
 
 export type DropForgeUrlValidation =
@@ -10,8 +14,9 @@ function isMarketplaceProductPath(hostname: string, pathname: string): boolean |
   const host = hostname.toLowerCase()
   const path = pathname.replace(/\/+$/, "") || "/"
 
-  if (/aliexpress\.(com|us)/i.test(host)) {
-    return /\/item\/\d{6,}/i.test(path)
+  if (/aliexpress\.(com|us)/i.test(host) || /(?:^|\.)aliexpress\./i.test(host)) {
+    if (/\/item\/\d{6,}/i.test(path)) return true
+    return parseAliExpressProductId(`${host}${path}`) != null
   }
   if (/temu\.com/i.test(host)) {
     return path !== "/" && path.length >= 8
@@ -67,6 +72,20 @@ export function validateDropForgeProductUrl(raw: string): DropForgeUrlValidation
       error: "Cette URL n’est pas autorisée (hôte privé / local).",
       code: "blocked",
     }
+  }
+
+  const aeId = parseAliExpressProductId(trimmed)
+  if (aeId && /aliexpress/i.test(trimmed)) {
+    const canonical = canonicalAliExpressItemUrl(aeId)
+    const canonicalSafe = assertSafeOutboundUrl(canonical, { allowHttp: true })
+    if (!canonicalSafe.ok) {
+      return {
+        ok: false,
+        error: "Cette URL n’est pas autorisée (hôte privé / local).",
+        code: "blocked",
+      }
+    }
+    return { ok: true, url: canonical }
   }
 
   const productOk = isMarketplaceProductPath(u.hostname, u.pathname)

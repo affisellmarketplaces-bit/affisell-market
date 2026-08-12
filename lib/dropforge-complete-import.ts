@@ -96,8 +96,15 @@ export function isDropForgeImportComplete(
   )
 }
 
-export function dropForgeIncompleteError(marketplaceLabel: string): string {
-  return `DropForge n’a pas pu importer la fiche complète (${marketplaceLabel}). Vérifie l’URL produit, ou configure ALIEXPRESS_APP_KEY / SCRAPINGBEE_API_KEY sur le serveur.`
+export function dropForgeIncompleteError(
+  marketplaceLabel: string,
+  hints?: string[]
+): string {
+  const lead = `DropForge n’a pas pu importer la fiche complète (${marketplaceLabel}).`
+  if (hints && hints.length > 0) {
+    return `${lead} ${hints.join(" ")}`
+  }
+  return `${lead} Vérifie l’URL produit, ou configure ALIEXPRESS_APP_KEY / SCRAPINGBEE_API_KEY sur le serveur.`
 }
 
 export function emptyDropForgeExtras(): Pick<

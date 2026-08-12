@@ -19,6 +19,16 @@ describe("validateDropForgeProductUrl", () => {
     expect(r.ok).toBe(true)
   })
 
+  it("accepts AliExpress tracking URLs with embedded product id", () => {
+    const r = validateDropForgeProductUrl(
+      "https://s.click.aliexpress.com/e/_pTest?_p_origin_prod:1005012670002032"
+    )
+    expect(r.ok).toBe(true)
+    if (r.ok) {
+      expect(r.url).toBe("https://www.aliexpress.com/item/1005012670002032.html")
+    }
+  })
+
   it("accepts AliExpress item URLs", () => {
     const r = validateDropForgeProductUrl(
       "https://www.aliexpress.com/item/1005008719608144.html"

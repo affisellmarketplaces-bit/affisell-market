@@ -9,13 +9,13 @@ import {
   DROPFORGE_MAX_DESC,
   DROPFORGE_MAX_IMAGES,
   buildDropForgeProductPersistFields,
-  dropForgeIncompleteError,
   emptyDropForgeExtras,
   isDropForgeImportComplete,
   mergeScrapedProducts,
   type DropForgeCompletePreview,
   type DropForgeSkuVariantsPayload,
 } from "@/lib/dropforge-complete-import"
+import { dropForgeImportFailureMessage } from "@/lib/dropforge-import-diagnostics"
 import {
   catalogProductHasActiveSupplierLink,
   ensureDropForgeSupplierLink,
@@ -342,6 +342,13 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
     return { ok: false, error: validated.error, status: 400 }
   }
   const url = validated.url
+  if (url !== rawUrl.trim()) {
+    console.log("[affiliate-url-import]", {
+      stage: "normalize",
+      from: rawUrl.trim().slice(0, 120),
+      to: url,
+    })
+  }
 
   const market = detectMarketplaceFromUrl(url)
 
@@ -424,7 +431,7 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
     if (!isDropForgeImportComplete(preview)) {
       return {
         ok: false,
-        error: dropForgeIncompleteError(market.label),
+        error: dropForgeImportFailureMessage(market.label),
         status: 422,
         marketplaceLabel: market.label,
       }
@@ -474,7 +481,7 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
     })
     return {
       ok: false,
-      error: dropForgeIncompleteError(market.label),
+      error: dropForgeImportFailureMessage(market.label),
       status: 422,
       marketplaceLabel: market.label,
     }
@@ -527,7 +534,7 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
     })
     return {
       ok: false,
-      error: dropForgeIncompleteError(market.label),
+      error: dropForgeImportFailureMessage(market.label),
       status: 422,
       marketplaceLabel: market.label,
     }
@@ -780,7 +787,7 @@ export async function commitResellerUrlImport(args: {
   if (!isDropForgeImportComplete(preview)) {
     return {
       ok: false,
-      error: dropForgeIncompleteError(preview.marketplaceLabel),
+      error: dropForgeImportFailureMessage(preview.marketplaceLabel),
       status: 422,
     }
   }

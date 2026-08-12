@@ -5052,6 +5052,7 @@
     "urlLabel": "Product URL",
     "urlPlaceholder": "https://www.aliexpress.com/item/… or 1688.com/…",
     "urlHint": "Paste a product page link (not the marketplace homepage). AliExpress unlocks auto-fulfill.",
+    "urlNormalized": "Tracking link converted to canonical product URL",
     "scanCta": "Forge",
     "scanning": "Forging…",
     "detected": "Detected: {market}",

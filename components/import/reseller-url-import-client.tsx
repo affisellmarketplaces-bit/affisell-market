@@ -190,6 +190,10 @@ export function DropForgeImportClient() {
       }
       setPreview(data.preview)
       setWholesalePrice(String(defaultWholesaleEur(data.preview.costPrice)))
+      if (validated.url !== trimmed) {
+        setUrl(validated.url)
+        toast.message(t("urlNormalized"), { description: validated.url })
+      }
       toast.success(
         data.preview.partial
           ? t("previewPartial", { market: data.preview.marketplaceLabel })

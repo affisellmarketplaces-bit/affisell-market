@@ -7,9 +7,9 @@ import {
 import {
   DROPFORGE_MAX_IMAGES,
   buildDropForgeProductPersistFields,
-  dropForgeIncompleteError,
   isDropForgeImportComplete,
 } from "@/lib/dropforge-complete-import"
+import { dropForgeImportFailureMessage } from "@/lib/dropforge-import-diagnostics"
 import {
   ensureDropForgeSupplierLink,
   resolveDropForgeFulfillmentMeta,
@@ -220,7 +220,7 @@ export async function commitSupplierDropForgeImport(args: {
   if (!isDropForgeImportComplete(preview)) {
     return {
       ok: false,
-      error: dropForgeIncompleteError(preview.marketplaceLabel),
+      error: dropForgeImportFailureMessage(preview.marketplaceLabel),
       status: 422,
     }
   }

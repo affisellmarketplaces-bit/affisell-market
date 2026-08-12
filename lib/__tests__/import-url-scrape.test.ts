@@ -19,11 +19,26 @@ describe("import-url-scrape", () => {
     expect(extract1688Id("https://example.com/produit")).toBeNull()
   })
 
-  it("normalizes AliExpress item URLs", () => {
+  it("normalizes AliExpress item URLs to canonical www host", () => {
     const url =
       "https://fr.aliexpress.com/item/1005008719608144.html?spm=a2g0o.productlist.main.1"
     expect(normalizeImportUrl(url, "aliexpress")).toBe(
-      "https://fr.aliexpress.com/item/1005008719608144.html?spm=a2g0o.productlist.main.1"
+      "https://www.aliexpress.com/item/1005008719608144.html"
+    )
+  })
+
+  it("normalizes AliExpress tracking URLs via embedded id", () => {
+    expect(
+      normalizeImportUrl(
+        "https://s.click.aliexpress.com/e/_p?_p_origin_prod:1005012670002032",
+        "aliexpress"
+      )
+    ).toBe("https://www.aliexpress.com/item/1005012670002032.html")
+  })
+
+  it("detects aliexpress.us as aliexpress platform", () => {
+    expect(detectImportPlatform("https://www.aliexpress.us/item/1005008719608144.html")).toBe(
+      "aliexpress"
     )
   })
 

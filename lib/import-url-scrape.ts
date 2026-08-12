@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio"
 
+import { canonicalAliExpressItemUrl, parseAliExpressProductId } from "@/lib/aliexpress-product-id"
 import { catalogHexForColorName } from "@/lib/color-name-hex"
 
 export type ImportPlatform =
@@ -38,7 +39,7 @@ export function resetScrapingBeeQuotaCircuitForTests(): void {
 
 export function detectImportPlatform(url: string): ImportPlatform {
   const host = url.toLowerCase()
-  if (host.includes("aliexpress.com")) return "aliexpress"
+  if (host.includes("aliexpress.com") || host.includes("aliexpress.us")) return "aliexpress"
   if (host.includes("1688.com")) return "1688"
   if (host.includes("amazon.")) return "amazon"
   if (host.includes("/products/") || host.includes("myshopify.com")) return "shopify"
@@ -50,6 +51,8 @@ export function detectImportPlatform(url: string): ImportPlatform {
 /** Canonical product URL (stable item id, locale host preserved). */
 export function normalizeImportUrl(url: string, platform: ImportPlatform): string {
   if (platform !== "aliexpress") return url.trim()
+  const aeId = parseAliExpressProductId(url)
+  if (aeId) return canonicalAliExpressItemUrl(aeId)
   try {
     const u = new URL(url.trim())
     const itemMatch = u.pathname.match(/\/item\/(\d+)\.html/i)

@@ -5052,6 +5052,7 @@
     "urlLabel": "URL produit",
     "urlPlaceholder": "https://www.aliexpress.com/item/… ou 1688.com/…",
     "urlHint": "Colle le lien d’une fiche produit (pas la page d’accueil). AliExpress active l’auto-fulfill.",
+    "urlNormalized": "Lien de tracking converti en URL produit canonique",
     "scanCta": "Forger",
     "scanning": "Forge…",
     "detected": "Détecté : {market}",

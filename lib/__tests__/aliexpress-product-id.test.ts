@@ -27,4 +27,12 @@ describe("parseAliExpressProductId", () => {
       )
     ).toBe("1005012670002032")
   })
+
+  it("parses x_object_id embeds (prefers origin_prod over listing id)", () => {
+    expect(
+      parseAliExpressProductId(
+        "https://s.click.aliexpress.com/e/_x?%7Cx_object_id%3A1005006994531739%7C_p_origin_prod%3A1005006366492177"
+      )
+    ).toBe("1005006366492177")
+  })
 })
