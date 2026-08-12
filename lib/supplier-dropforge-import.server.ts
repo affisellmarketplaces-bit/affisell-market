@@ -220,7 +220,7 @@ export async function commitSupplierDropForgeImport(args: {
   if (!isDropForgeImportComplete(preview)) {
     return {
       ok: false,
-      error: dropForgeImportFailureMessage(preview.marketplaceLabel),
+      error: await dropForgeImportFailureMessage(preview.marketplaceLabel),
       status: 422,
     }
   }

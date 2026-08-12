@@ -308,7 +308,8 @@ export class AliExpressClient {
 /** Build client with resolved session (DB/env token or auto-refresh). */
 export async function createAliExpressClient(): Promise<AliExpressClient> {
   const config = readAliExpressConfig()
-  const status = getAliExpressConfigStatus(config)
+  const { getAliExpressApiReadyStatus } = await import("@/lib/aliexpress-api-ready.server")
+  const status = await getAliExpressApiReadyStatus()
   if (!status.configured) {
     throw new AliExpressApiError(status.message)
   }

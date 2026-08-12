@@ -1,6 +1,5 @@
 import { AliExpressApiError, createAliExpressClient } from "@/lib/aliexpress-open-api"
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
-import { getAliExpressConfigStatus } from "@/lib/aliexpress-config"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
 import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
 import { stripDescriptionImageMarkers, stripImportOptionsFromDescription } from "@/lib/description-rich-content"
@@ -267,7 +266,8 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
   steps.push("fetch")
 
   const aeId = marketplace.preferAliExpressApi ? parseAliExpressProductId(rawUrl) : null
-  const aeConfigured = getAliExpressConfigStatus().configured
+  const { isAliExpressApiReady } = await import("@/lib/aliexpress-api-ready.server")
+  const aeConfigured = aeId ? await isAliExpressApiReady() : false
 
   if (aeId && aeConfigured) {
     try {

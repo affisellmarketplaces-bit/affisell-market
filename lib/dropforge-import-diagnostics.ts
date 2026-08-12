@@ -1,15 +1,23 @@
-import { getAliExpressConfigStatus } from "@/lib/aliexpress-config"
+import { getAliExpressApiReadyStatus } from "@/lib/aliexpress-api-ready.server"
 import { dropForgeIncompleteError } from "@/lib/dropforge-complete-import"
 import { getScrapingBeeApiKey } from "@/lib/import-url-scrape"
 
 /** Actionable hints for ops / suppliers when DropForge completeness gate fails. */
-export function dropForgeImportFailureHints(marketplaceLabel: string): string[] {
+export async function dropForgeImportFailureHints(
+  marketplaceLabel: string
+): Promise<string[]> {
   const hints: string[] = []
 
   if (marketplaceLabel === "AliExpress") {
-    const ae = getAliExpressConfigStatus()
+    const ae = await getAliExpressApiReadyStatus()
     if (!ae.configured) {
       hints.push(ae.message)
+    } else if (ae.tokenSource === "db") {
+      hints.push(
+        ae.accountHint
+          ? `Session OAuth active (${ae.accountHint}).`
+          : "Session OAuth active en base chiffrée."
+      )
     }
     if (!getScrapingBeeApiKey()) {
       hints.push(
@@ -34,6 +42,9 @@ export function dropForgeImportFailureHints(marketplaceLabel: string): string[] 
   return hints
 }
 
-export function dropForgeImportFailureMessage(marketplaceLabel: string): string {
-  return dropForgeIncompleteError(marketplaceLabel, dropForgeImportFailureHints(marketplaceLabel))
+export async function dropForgeImportFailureMessage(marketplaceLabel: string): Promise<string> {
+  return dropForgeIncompleteError(
+    marketplaceLabel,
+    await dropForgeImportFailureHints(marketplaceLabel)
+  )
 }

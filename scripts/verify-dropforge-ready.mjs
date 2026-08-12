@@ -63,10 +63,16 @@ if (!accessToken && !refreshToken) {
 }
 
 console.log("\n[verify:dropforge] DropForge import readiness\n")
-console.log(`  AliExpress API : ${aeConfigured ? "✓ configured" : "✗ missing"}`)
+console.log(`  AliExpress API : ${aeConfigured ? "✓ configured (env tokens)" : "○ env tokens absent"}`)
 if (!aeConfigured && missing.length > 0) {
-  console.log(`    → Variables manquantes : ${missing.join(", ")}`)
+  console.log(`    → ${missing.join(", ")}`)
 }
+console.log(
+  "  OAuth DB       : (prod) tokens chiffrés via callback — pas vérifiable hors serveur"
+)
+console.log(
+  "    → après OAuth OK, tester GET /api/supplier/aliexpress/health (session fournisseur)"
+)
 console.log(`  ScrapingBee    : ${scrapingBeeOk ? "✓ key present" : "✗ SCRAPINGBEE_API_KEY missing"}`)
 
 const trackingSample =
@@ -83,9 +89,16 @@ if (idMatch) {
 
 if (!aeConfigured && !scrapingBeeOk) {
   console.error(
-    "\n✗ DropForge AliExpress imports need at least one of: AliExpress OAuth (API) or SCRAPINGBEE_API_KEY.\n"
+    "\n✗ DropForge AliExpress imports need env tokens OR OAuth DB session + app creds, or SCRAPINGBEE_API_KEY.\n"
   )
   process.exit(1)
+}
+
+if (!aeConfigured && scrapingBeeOk) {
+  console.log(
+    "\n⚠ Env tokens absents — OK si OAuth prod déjà enregistré (persisted: true). Vérifiez /api/supplier/aliexpress/health.\n"
+  )
+  process.exit(0)
 }
 
 console.log("\n✓ DropForge import path ready (API and/or scrape fallback).\n")

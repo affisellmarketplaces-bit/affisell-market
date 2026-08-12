@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/nextjs"
 
-import { getAliExpressConfigStatus } from "@/lib/aliexpress-config"
+import { getAliExpressApiReadyStatus } from "@/lib/aliexpress-api-ready.server"
 import { AliExpressApiError, createAliExpressClient, unwrapAliExpressMethodResponse } from "@/lib/aliexpress-open-api"
 import { requireSupplierOrAdminSession } from "@/lib/supplier-or-admin-session"
 
@@ -20,7 +20,7 @@ export async function GET() {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  const configStatus = getAliExpressConfigStatus()
+  const configStatus = await getAliExpressApiReadyStatus()
   if (!configStatus.configured) {
     return Response.json(
       {
@@ -36,7 +36,12 @@ export async function GET() {
     const client = await createAliExpressClient()
     const payload = await client.request("aliexpress.system.time.get", {})
     const time = extractSystemTime(payload)
-    return Response.json({ status: "ok", time })
+    return Response.json({
+      status: "ok",
+      time,
+      tokenSource: configStatus.tokenSource,
+      accountHint: configStatus.accountHint,
+    })
   } catch (e) {
     if (!(e instanceof AliExpressApiError)) {
       Sentry.captureException(e)

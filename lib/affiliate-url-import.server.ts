@@ -431,7 +431,7 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
     if (!isDropForgeImportComplete(preview)) {
       return {
         ok: false,
-        error: dropForgeImportFailureMessage(market.label),
+        error: await dropForgeImportFailureMessage(market.label),
         status: 422,
         marketplaceLabel: market.label,
       }
@@ -481,7 +481,7 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
     })
     return {
       ok: false,
-      error: dropForgeImportFailureMessage(market.label),
+      error: await dropForgeImportFailureMessage(market.label),
       status: 422,
       marketplaceLabel: market.label,
     }
@@ -534,7 +534,7 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
     })
     return {
       ok: false,
-      error: dropForgeImportFailureMessage(market.label),
+      error: await dropForgeImportFailureMessage(market.label),
       status: 422,
       marketplaceLabel: market.label,
     }
@@ -787,7 +787,7 @@ export async function commitResellerUrlImport(args: {
   if (!isDropForgeImportComplete(preview)) {
     return {
       ok: false,
-      error: dropForgeImportFailureMessage(preview.marketplaceLabel),
+      error: await dropForgeImportFailureMessage(preview.marketplaceLabel),
       status: 422,
     }
   }
