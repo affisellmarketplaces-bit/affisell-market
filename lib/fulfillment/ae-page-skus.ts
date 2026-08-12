@@ -1,7 +1,9 @@
 import { extractWindowJson } from "@/lib/import-url-scrape"
+import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
 import { normalizeAerRoot } from "@/lib/fulfillment/ae-aer-normalize"
 import {
   buildSkuPropertyLookupFromPageModule,
+  findImageByDisplayNameInLookup,
   labelsFromSkuAttr,
   preferHumanAeLabel,
 } from "@/lib/fulfillment/ae-sku-property-lookup"
@@ -55,6 +57,28 @@ function pickSkuId(row: Record<string, unknown>, skuVal: Record<string, unknown>
   return ""
 }
 
+function pickImageFromSkuRow(
+  row: Record<string, unknown>,
+  skuVal: Record<string, unknown>
+): string | null {
+  for (const source of [row, skuVal]) {
+    for (const key of [
+      "skuPropertyImagePath",
+      "skuPropertyImageSummPath",
+      "sku_property_image_path",
+      "skuPropImg",
+      "skuImage",
+      "sku_image",
+      "image",
+      "imageUrl",
+    ]) {
+      const abs = absolutizeCdnImageUrl(txt(source[key]))
+      if (abs) return abs
+    }
+  }
+  return null
+}
+
 export type AePageParseResult = {
   aeSkus: AeProductSkuRow[]
   aePriceCents: number
@@ -100,7 +124,7 @@ export function parseAeSkusFromPagePayload(
     seenIds.add(aeSkuId)
 
     const skuAttr = txt(row.skuAttr) || txt(row.sku_attr)
-    const { parts, color, size, attributes, imageUrl } = skuAttr
+    const parsedAttr = skuAttr
       ? labelsFromSkuAttr(skuAttr, lookup)
       : {
           parts: [] as string[],
@@ -109,19 +133,24 @@ export function parseAeSkusFromPagePayload(
           attributes: {} as Record<string, string>,
           imageUrl: null as string | null,
         }
+    const aeLabel = preferHumanAeLabel(parsedAttr.parts, skuAttr || null)
+    let imageUrl =
+      parsedAttr.imageUrl ||
+      pickImageFromSkuRow(row, skuVal) ||
+      findImageByDisplayNameInLookup(lookup, aeLabel)
 
     const aePriceCents = parsePriceCentsFromSkuVal(skuVal)
     const stock = Math.max(0, Math.round(num(skuVal.availQuantity ?? skuVal.availableStock ?? row.stock)))
 
     aeSkus.push({
       aeSkuId,
-      aeLabel: preferHumanAeLabel(parts, skuAttr || null),
-      matchColor: color ? canonicalVariantColorKey(color) : null,
-      matchSize: size?.trim() || null,
+      aeLabel,
+      matchColor: parsedAttr.color ? canonicalVariantColorKey(parsedAttr.color) : null,
+      matchSize: parsedAttr.size?.trim() || null,
       aePriceCents,
       stock,
       imageUrl,
-      attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
+      attributes: Object.keys(parsedAttr.attributes).length > 0 ? parsedAttr.attributes : undefined,
     })
   }
 

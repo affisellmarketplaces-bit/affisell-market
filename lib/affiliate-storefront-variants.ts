@@ -28,6 +28,41 @@ export function normalizeVariantPromotionKey(key: string): string {
   return key.trim()
 }
 
+type ProductVariantRowInput = {
+  color: string | null
+  size: string | null
+  stock: number
+  supplierPrice?: unknown
+  wholesalePriceCents?: number | null
+  customData?: unknown
+}
+
+function indexProductVariants(
+  productVariants?: ProductVariantRowInput[] | null
+): Map<string, ProductVariantRowInput> {
+  const out = new Map<string, ProductVariantRowInput>()
+  if (!productVariants?.length) return out
+  for (const v of productVariants) {
+    const stableKey = buildVariantOptionLabel(v.color, v.size)
+    if (!stableKey) continue
+    out.set(stableKey.toLowerCase(), v)
+    if (v.color?.trim()) out.set(v.color.trim().toLowerCase(), v)
+  }
+  return out
+}
+
+function findProductVariantForKey(
+  index: Map<string, ProductVariantRowInput>,
+  key: string,
+  color: string | null
+): ProductVariantRowInput | undefined {
+  const lower = key.trim().toLowerCase()
+  return (
+    index.get(lower) ??
+    (color?.trim() ? index.get(color.trim().toLowerCase()) : undefined)
+  )
+}
+
 /** Build selectable variant rows for the affiliate listing builder. */
 export function buildAffiliateVariantOptions(product: {
   colors: string[]
@@ -36,14 +71,7 @@ export function buildAffiliateVariantOptions(product: {
   images?: string[]
   basePriceCents?: number
   hasVariants?: boolean
-  productVariants?: Array<{
-    color: string | null
-    size: string | null
-    stock: number
-    supplierPrice?: unknown
-    wholesalePriceCents?: number | null
-    customData?: unknown
-  }>
+  productVariants?: ProductVariantRowInput[]
 }): AffiliateVariantOption[] {
   const basePriceCents = Math.max(0, Math.round(product.basePriceCents ?? 0))
   const parsed = parseVariantsPayload(product.variants)
@@ -51,6 +79,7 @@ export function buildAffiliateVariantOptions(product: {
   const colorImages = parseProductColorImagesFromDb(product.colorImages) ?? []
   const gallery = (product.images ?? []).filter((u) => typeof u === "string" && u.trim())
   const colorNames = product.colors.map((c) => c.trim()).filter(Boolean)
+  const pvIndex = indexProductVariants(product.productVariants)
   const multiVariant =
     rows.length > 1 ||
     (product.productVariants?.length ?? 0) > 1 ||
@@ -106,6 +135,7 @@ export function buildAffiliateVariantOptions(product: {
     const name = row.name.trim()
     if (!name) continue
     const { color, size } = splitVariantLineName(name)
+    const pv = findProductVariantForKey(pvIndex, name, color || null)
     push({
       key: name,
       label: name,
@@ -114,7 +144,17 @@ export function buildAffiliateVariantOptions(product: {
       stock: Math.max(0, Math.round(row.stock) || 0),
       wholesaleCents: row.priceCents > 0 ? row.priceCents : undefined,
       imageUrl: row.image?.trim() || undefined,
+      customData: pv?.customData,
     })
+  }
+
+  if (out.length > 0 && pvIndex.size > 0) {
+    for (const opt of out) {
+      if (opt.imageUrl) continue
+      const pv = findProductVariantForKey(pvIndex, opt.key, opt.color)
+      const fromCustom = variantImageFromCustomData(pv?.customData)
+      if (fromCustom) opt.imageUrl = fromCustom
+    }
   }
 
   if (out.length === 0 && product.productVariants?.length) {

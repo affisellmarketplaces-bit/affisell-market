@@ -1,12 +1,14 @@
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
 import {
   buildSkuPropertyLookupFromApiPayload,
+  findImageByDisplayNameInLookup,
   labelsFromSkuAttr,
   preferHumanAeLabel,
 } from "@/lib/fulfillment/ae-sku-property-lookup"
 import { isNumericOnlyVariantToken } from "@/lib/fulfillment/ae-variant-display-name"
 import { normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import { unwrapAliExpressMethodResponse } from "@/lib/aliexpress-open-api"
+import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
 import { canonicalVariantColorKey } from "@/lib/fulfillment/variant-color-match"
 import type { AeSkuPropValueMeta } from "@/lib/fulfillment/ae-sku-property-lookup"
 
@@ -39,8 +41,7 @@ function pickString(obj: Record<string, unknown> | null, keys: string[]): string
 
 function absolutizeImage(raw: string): string | null {
   if (!raw) return null
-  const abs = raw.startsWith("//") ? `https:${raw}` : raw
-  return /^https?:\/\//i.test(abs) ? abs : null
+  return absolutizeCdnImageUrl(raw) ?? null
 }
 
 function parseSkuList(raw: unknown): Record<string, unknown>[] {
@@ -142,10 +143,11 @@ function parseSkuPropertyDtos(
       const img = pickString(rec, [
         "sku_image",
         "sku_property_image_path",
+        "skuPropertyImagePath",
+        "skuPropertyImageSummPath",
         "sku_image_url",
         "image",
         "image_url",
-        "skuPropertyImagePath",
       ])
       if (img) imageUrl = absolutizeImage(img)
     }
@@ -156,6 +158,8 @@ function parseSkuPropertyDtos(
       "sku_image",
       "sku_img",
       "sku_image_url",
+      "skuPropertyImagePath",
+      "skuPropertyImageSummPath",
       "image",
       "image_url",
     ])
@@ -204,6 +208,10 @@ function parseSkuRow(
           break
         }
       }
+    }
+
+    if (!imageUrl) {
+      imageUrl = findImageByDisplayNameInLookup(lookup, label)
     }
 
     return { color, size, label, imageUrl, attributes }

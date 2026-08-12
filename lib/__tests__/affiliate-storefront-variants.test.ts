@@ -112,4 +112,59 @@ describe("affiliate-storefront-variants", () => {
     expect(options[0]?.imageUrl).toBeUndefined()
     expect(options[1]?.imageUrl).toBeUndefined()
   })
+
+  it("fills variant row photos from productVariants customData when legacy rows lack image", () => {
+    const options = buildAffiliateVariantOptions({
+      colors: ["55mm Black", "50mm Black"],
+      images: ["https://cdn/hero.jpg"],
+      colorImages: [
+        { color: "55mm Black", hex: "#000", image: "" },
+        { color: "50mm Black", hex: "#000", image: "" },
+      ],
+      variants: {
+        variantRows: [
+          {
+            id: "1",
+            name: "55mm Black",
+            sku: "sku-1",
+            priceCents: 459,
+            stock: 7,
+            commission: 10,
+            sales: 0,
+          },
+          {
+            id: "2",
+            name: "50mm Black",
+            sku: "sku-2",
+            priceCents: 459,
+            stock: 3,
+            commission: 10,
+            sales: 0,
+          },
+        ],
+      },
+      productVariants: [
+        {
+          color: "55mm Black",
+          size: null,
+          stock: 7,
+          customData: {
+            aeLabel: "55mm Black",
+            image: "https://ae01.alicdn.com/kf/black-55.jpg",
+          },
+        },
+        {
+          color: "50mm Black",
+          size: null,
+          stock: 3,
+          customData: {
+            aeLabel: "50mm Black",
+            image: "https://ae01.alicdn.com/kf/black-50.jpg",
+          },
+        },
+      ],
+    })
+    expect(options[0]?.imageUrl).toContain("black-55.jpg")
+    expect(options[1]?.imageUrl).toContain("black-50.jpg")
+  })
 })

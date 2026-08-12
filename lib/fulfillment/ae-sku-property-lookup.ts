@@ -3,6 +3,7 @@ import {
   isNumericOnlyVariantToken,
   stripAeSkuTechnicalLabel,
 } from "@/lib/fulfillment/ae-variant-display-name"
+import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
 
 export type AeSkuPropValueMeta = {
   propName: string
@@ -22,8 +23,7 @@ function txt(v: unknown): string {
 
 function absolutizeImage(raw: string): string | null {
   if (!raw) return null
-  const abs = raw.startsWith("//") ? `https:${raw}` : raw
-  return /^https?:\/\//i.test(abs) ? abs : null
+  return absolutizeCdnImageUrl(raw) ?? null
 }
 
 function pickDisplayName(rec: Record<string, unknown>): string {
@@ -42,6 +42,9 @@ function pickImage(rec: Record<string, unknown>): string | null {
   const raw =
     txt(rec.sku_property_image_path) ||
     txt(rec.skuPropertyImagePath) ||
+    txt(rec.skuPropertyImageSummPath) ||
+    txt(rec.sku_property_image_summ_path) ||
+    txt(rec.propertyValueImagePath) ||
     txt(rec.sku_image) ||
     txt(rec.sku_image_url) ||
     txt(rec.image) ||
@@ -192,6 +195,20 @@ export function parseSkuAttrSegment(segment: string): { propId: string; valueId:
   return { propId, valueId: valuePart }
 }
 
+/** Match swatch URL when only the human label is known (e.g. `55mm Black`). */
+export function findImageByDisplayNameInLookup(
+  lookup: Map<string, AeSkuPropValueMeta>,
+  displayName: string
+): string | null {
+  const want = displayName.trim().toLowerCase()
+  if (!want) return null
+  for (const meta of lookup.values()) {
+    if (!meta.imageUrl) continue
+    if (meta.displayName.trim().toLowerCase() === want) return meta.imageUrl
+  }
+  return null
+}
+
 /** Resolve human labels + swatch images from AE `sku_attr` string. */
 export function labelsFromSkuAttr(
   skuAttr: string,
@@ -226,31 +243,49 @@ export function labelsFromSkuAttr(
     }
     const meta = lookup.get(`${parsed.propId}:${parsed.valueId}`)
     if (meta) {
-      attributes[meta.propName] = meta.displayName
-      parts.push(meta.displayName)
+      const label =
+        inlineHuman &&
+        (!meta.displayName ||
+          isNumericOnlyVariantToken(meta.displayName) ||
+          meta.displayName.trim().toLowerCase() !== inlineHuman.trim().toLowerCase())
+          ? inlineHuman
+          : meta.displayName
+      attributes[meta.propName] = label
+      parts.push(label)
       const propLower = meta.propName.toLowerCase()
       if (!color && (propLower.includes("color") || propLower.includes("couleur"))) {
-        color = meta.displayName
-        if (meta.imageUrl) imageUrl = meta.imageUrl
+        color = label
+      } else if (!color && inlineHuman) {
+        color = inlineHuman
       }
       if (!size && (propLower.includes("size") || propLower.includes("taille"))) {
-        size = meta.displayName
+        size = label
       }
-      if (
-        !imageUrl &&
-        meta.imageUrl &&
-        (propLower.includes("color") || propLower.includes("couleur"))
-      ) {
-        imageUrl = meta.imageUrl
-      }
+      if (meta.imageUrl && !imageUrl) imageUrl = meta.imageUrl
     } else if (inlineHuman) {
       attributes[`Option ${parsed.propId}`] = inlineHuman
       parts.push(inlineHuman)
       if (!color) color = inlineHuman
+      const img = findImageByDisplayNameInLookup(lookup, inlineHuman)
+      if (img && !imageUrl) imageUrl = img
     }
   }
 
   if (!color && parts.length === 1) color = parts[0] ?? null
+
+  if (!imageUrl) {
+    for (const segment of skuAttr.split(";")) {
+      const hashIdx = segment.indexOf("#")
+      if (hashIdx < 0) continue
+      const human = stripAeSkuTechnicalLabel(segment.slice(hashIdx + 1))
+      if (!human) continue
+      const img = findImageByDisplayNameInLookup(lookup, human)
+      if (img) {
+        imageUrl = img
+        break
+      }
+    }
+  }
 
   return { parts, attributes, color, size, imageUrl }
 }

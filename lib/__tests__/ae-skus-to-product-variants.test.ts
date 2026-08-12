@@ -289,4 +289,41 @@ describe("parseAeProductSkusFromPayload — API sku_attr labels", () => {
       image: "https://ae01.alicdn.com/kf/blue-55.jpg",
     })
   })
+
+  it("resolves swatch image from skuPropertyImageSummPath when id lookup misses", () => {
+    const parsed = parseAeSkusFromPagePayload({
+      pageModule: {
+        productInfoComponent: {
+          productInfo: { storeId: "1", subject: "UXCELL Silicone Hose" },
+        },
+        skuComponent: {
+          skuModule: {
+            productSKUPropertyList: [
+              {
+                skuPropertyId: 14,
+                skuPropertyName: "Color",
+                skuPropertyValues: [
+                  {
+                    propertyValueId: 771,
+                    propertyValueDisplayName: "55mm Black",
+                    skuPropertyImageSummPath: "//ae01.alicdn.com/kf/black-55.jpg",
+                  },
+                ],
+              },
+            ],
+            skuPriceList: [
+              {
+                skuAttr: "14:771#55mm Black",
+                skuId: "120000771001",
+                skuVal: { availQuantity: 7, skuActivityAmount: { value: "6.09" } },
+              },
+            ],
+          },
+        },
+      },
+    })
+
+    expect(parsed.aeSkus[0]?.aeLabel).toBe("55mm Black")
+    expect(parsed.aeSkus[0]?.imageUrl).toContain("black-55.jpg")
+  })
 })
