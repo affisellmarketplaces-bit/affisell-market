@@ -1,8 +1,14 @@
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
-import { humanLabelFromAeSkuAttr } from "@/lib/fulfillment/ae-variant-display-name"
+import {
+  buildSkuPropertyLookupFromApiPayload,
+  labelsFromSkuAttr,
+  preferHumanAeLabel,
+} from "@/lib/fulfillment/ae-sku-property-lookup"
+import { isNumericOnlyVariantToken } from "@/lib/fulfillment/ae-variant-display-name"
 import { normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import { unwrapAliExpressMethodResponse } from "@/lib/aliexpress-open-api"
 import { canonicalVariantColorKey } from "@/lib/fulfillment/variant-color-match"
+import type { AeSkuPropValueMeta } from "@/lib/fulfillment/ae-sku-property-lookup"
 
 export type AeProductSkuRow = {
   aeSkuId: string
@@ -13,7 +19,7 @@ export type AeProductSkuRow = {
   stock: number
   /** Color / option swatch image when AE exposes it */
   imageUrl?: string | null
-  /** Raw property map e.g. { Couleur: "1", Taille: "M" } */
+  /** Raw property map e.g. { Couleur: "55mm Blue" } */
   attributes?: Record<string, string>
 }
 
@@ -29,6 +35,12 @@ function pickString(obj: Record<string, unknown> | null, keys: string[]): string
     if (typeof v === "number" && Number.isFinite(v)) return String(v)
   }
   return ""
+}
+
+function absolutizeImage(raw: string): string | null {
+  if (!raw) return null
+  const abs = raw.startsWith("//") ? `https:${raw}` : raw
+  return /^https?:\/\//i.test(abs) ? abs : null
 }
 
 function parseSkuList(raw: unknown): Record<string, unknown>[] {
@@ -67,12 +79,14 @@ function parsePriceEur(sku: Record<string, unknown>, result: Record<string, unkn
   return n
 }
 
-function parseSkuProperties(sku: Record<string, unknown>): {
+function parseSkuPropertyDtos(
+  sku: Record<string, unknown>
+): {
+  parts: string[]
+  attributes: Record<string, string>
   color: string | null
   size: string | null
-  label: string
   imageUrl: string | null
-  attributes: Record<string, string>
 } {
   const parts: string[] = []
   const attributes: Record<string, string> = {}
@@ -109,17 +123,19 @@ function parseSkuProperties(sku: Record<string, unknown>): {
       "spec_value",
     ])
     if (!value) continue
-    parts.push(value)
+    if (!isNumericOnlyVariantToken(value)) {
+      parts.push(value)
+    }
     if (name) attributes[name] = value
     const isColorProp =
       nameLower.includes("color") ||
       nameLower.includes("couleur") ||
       nameLower === "color"
     const isSizeProp = nameLower.includes("size") || nameLower.includes("taille")
-    if (!color && isColorProp) {
+    if (!color && isColorProp && !isNumericOnlyVariantToken(value)) {
       color = value
     }
-    if (!size && isSizeProp) {
+    if (!size && isSizeProp && !isNumericOnlyVariantToken(value)) {
       size = value
     }
     if (isColorProp && !imageUrl) {
@@ -131,14 +147,10 @@ function parseSkuProperties(sku: Record<string, unknown>): {
         "image_url",
         "skuPropertyImagePath",
       ])
-      if (img) {
-        const abs = img.startsWith("//") ? `https:${img}` : img
-        if (/^https?:\/\//i.test(abs)) imageUrl = abs
-      }
+      if (img) imageUrl = absolutizeImage(img)
     }
   }
 
-  // Some AE payloads put the image on the SKU root
   if (!imageUrl) {
     const rootImg = pickString(sku, [
       "sku_image",
@@ -147,28 +159,69 @@ function parseSkuProperties(sku: Record<string, unknown>): {
       "image",
       "image_url",
     ])
-    if (rootImg) {
-      const abs = rootImg.startsWith("//") ? `https:${rootImg}` : rootImg
-      if (/^https?:\/\//i.test(abs)) imageUrl = abs
-    }
+    if (rootImg) imageUrl = absolutizeImage(rootImg)
   }
 
-  if (!color && parts.length === 1) {
-    color = parts[0] ?? null
-  }
+  return { parts, attributes, color, size, imageUrl }
+}
 
+function parseSkuRow(
+  sku: Record<string, unknown>,
+  lookup: Map<string, AeSkuPropValueMeta>
+): {
+  color: string | null
+  size: string | null
+  label: string
+  imageUrl: string | null
+  attributes: Record<string, string>
+} {
   const skuAttr = pickString(sku, ["sku_attr", "skuAttr"])
-  const labelFromAttr = skuAttr ? humanLabelFromAeSkuAttr(skuAttr) : null
-  const label =
-    parts.length > 0
-      ? parts.join(" · ")
-      : labelFromAttr || skuAttr || pickString(sku, ["sku_code"]) || "SKU"
+  const fromDtos = parseSkuPropertyDtos(sku)
 
-  if (!color && labelFromAttr) {
-    color = labelFromAttr
+  if (skuAttr) {
+    const fromAttr = labelsFromSkuAttr(skuAttr, lookup)
+    const attributes = { ...fromDtos.attributes, ...fromAttr.attributes }
+    const label = preferHumanAeLabel(fromAttr.parts, skuAttr)
+    const color =
+      fromAttr.color ||
+      fromDtos.color ||
+      (fromAttr.parts.length === 1 ? fromAttr.parts[0] ?? null : null)
+    const size = fromAttr.size || fromDtos.size
+    let imageUrl = fromAttr.imageUrl || fromDtos.imageUrl
+
+    if (!imageUrl && skuAttr) {
+      for (const segment of skuAttr.split(";")) {
+        const parsed = segment.trim()
+        const colon = parsed.indexOf(":")
+        if (colon <= 0) continue
+        const propId = parsed.slice(0, colon).trim()
+        let valuePart = parsed.slice(colon + 1).trim()
+        const hash = valuePart.indexOf("#")
+        if (hash >= 0) valuePart = valuePart.slice(0, hash).trim()
+        const meta = lookup.get(`${propId}:${valuePart}`)
+        if (meta?.imageUrl) {
+          imageUrl = meta.imageUrl
+          break
+        }
+      }
+    }
+
+    return { color, size, label, imageUrl, attributes }
   }
 
-  return { color, size, label, imageUrl, attributes }
+  const label = preferHumanAeLabel(fromDtos.parts, null)
+  let color = fromDtos.color
+  if (!color && fromDtos.parts.length === 1 && !isNumericOnlyVariantToken(fromDtos.parts[0] ?? "")) {
+    color = fromDtos.parts[0] ?? null
+  }
+
+  return {
+    color,
+    size: fromDtos.size,
+    label,
+    imageUrl: fromDtos.imageUrl,
+    attributes: fromDtos.attributes,
+  }
 }
 
 /** Parse all SKUs from `aliexpress.ds.product.get` payload. */
@@ -183,6 +236,7 @@ export function parseAeProductSkusFromPayload(payload: unknown, aeProductId: str
       result.skus
   )
 
+  const lookup = buildSkuPropertyLookupFromApiPayload(result, skus)
   const rows: AeProductSkuRow[] = []
 
   for (const sku of skus) {
@@ -192,7 +246,7 @@ export function parseAeProductSkusFromPayload(payload: unknown, aeProductId: str
     const aeSkuId = normalizeAeSkuCandidate(rawId) ?? ""
     if (!aeSkuId) continue
 
-    const { color, size, label, imageUrl, attributes } = parseSkuProperties(sku)
+    const { color, size, label, imageUrl, attributes } = parseSkuRow(sku, lookup)
     const priceEur = parsePriceEur(sku, result)
     const stockRaw = sku.sku_available_stock ?? sku.available_stock ?? sku.stock
     const stock = Math.max(0, Math.round(Number(stockRaw)) || 0)

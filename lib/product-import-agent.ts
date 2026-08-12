@@ -10,8 +10,12 @@ import {
   type LeafPath,
 } from "@/lib/category-browse"
 import { parseAeProductSkusFromPayload, type AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
+import { parseAeCatalogFromHtml } from "@/lib/fulfillment/ae-catalog-from-html"
+import { fetchAliExpressProductHtml } from "@/lib/fulfillment/fetch-ae-page-html"
 import {
   aeSkusToVariantPersist,
+  isWeakAeSkuPersist,
+  mergeAeProductSkuRows,
   type AeSkuVariantPersist,
 } from "@/lib/fulfillment/ae-skus-to-product-variants"
 import { normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
@@ -91,6 +95,44 @@ function aeRowsFromScrapedVariants(product: SupplierScrapedProduct): AeProductSk
     })
   }
   return rows
+}
+
+async function enrichAeSkusFromPageHtml(
+  url: string,
+  apiRows: AeProductSkuRow[]
+): Promise<AeProductSkuRow[]> {
+  if (apiRows.length === 0) return apiRows
+  try {
+    const fetched = await fetchAliExpressProductHtml(url)
+    const parsed = parseAeCatalogFromHtml(fetched.html, url)
+    if (parsed.aeSkus.length <= 1) return apiRows
+
+    const apiPersist = aeSkusToVariantPersist(apiRows)
+    const htmlPersist = aeSkusToVariantPersist(parsed.aeSkus)
+    const apiWeak = isWeakAeSkuPersist(apiPersist)
+    const htmlStrong = !isWeakAeSkuPersist(htmlPersist)
+    const htmlHasMore = parsed.aeSkus.length > apiRows.length
+
+    if ((apiWeak && htmlStrong) || (apiWeak && htmlHasMore) || htmlHasMore) {
+      const merged = mergeAeProductSkuRows(apiRows, parsed.aeSkus)
+      console.log("[product-import-agent]", {
+        stage: "ae-html-sku-enrich",
+        result: "merged",
+        apiSkuCount: apiRows.length,
+        htmlSkuCount: parsed.aeSkus.length,
+        mergedSkuCount: merged.length,
+      })
+      return merged
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    console.log("[product-import-agent]", {
+      stage: "ae-html-sku-enrich",
+      result: "skip",
+      error: msg.slice(0, 160),
+    })
+  }
+  return apiRows
 }
 
 function applyAeSkuMatrixToScraped(
@@ -306,7 +348,8 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
       const raw = await client.getProduct(aeId)
       const mapped = mapAliExpressGetProductResponse(raw, aeId)
       product = aliExpressToScraped(mapped, rawUrl)
-      const aeSkus = parseAeProductSkusFromPayload(raw, aeId)
+      let aeSkus = parseAeProductSkusFromPayload(raw, aeId)
+      aeSkus = await enrichAeSkusFromPageHtml(rawUrl, aeSkus)
       const persist = aeSkusToVariantPersist(aeSkus)
       skuVariants = persist
       product = applyAeSkuMatrixToScraped(product, persist, markup)

@@ -1,8 +1,10 @@
 import { extractWindowJson } from "@/lib/import-url-scrape"
 import { normalizeAerRoot } from "@/lib/fulfillment/ae-aer-normalize"
 import {
-  stripAeSkuTechnicalLabel,
-} from "@/lib/fulfillment/ae-variant-display-name"
+  buildSkuPropertyLookupFromPageModule,
+  labelsFromSkuAttr,
+  preferHumanAeLabel,
+} from "@/lib/fulfillment/ae-sku-property-lookup"
 import { normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import { canonicalVariantColorKey } from "@/lib/fulfillment/variant-color-match"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
@@ -21,125 +23,6 @@ function num(v: unknown): number {
   if (typeof v === "number" && Number.isFinite(v)) return v
   const n = Number(String(v ?? "").replace(/[^\d.,]/g, "").replace(",", "."))
   return Number.isFinite(n) ? n : 0
-}
-
-type PropValueMeta = {
-  propName: string
-  displayName: string
-  imageUrl: string | null
-}
-
-/** Build lookup `propertyId:valueId` → label from productSKUPropertyList. */
-function buildSkuPropertyLookup(
-  skuModule: Record<string, unknown>
-): Map<string, PropValueMeta> {
-  const out = new Map<string, PropValueMeta>()
-  const props = Array.isArray(skuModule.productSKUPropertyList)
-    ? skuModule.productSKUPropertyList
-    : []
-
-  for (const propRaw of props) {
-    const prop = asRec(propRaw)
-    if (!prop) continue
-    const propId = txt(prop.skuPropertyId) || txt(prop.propertyId)
-    const propName = txt(prop.skuPropertyName) || txt(prop.propertyName) || "Option"
-    const values = Array.isArray(prop.skuPropertyValues) ? prop.skuPropertyValues : []
-    for (const vRaw of values) {
-      const v = asRec(vRaw)
-      if (!v) continue
-      const valueId = txt(v.propertyValueId) || txt(v.valueId)
-      if (!propId || !valueId) continue
-      const displayName =
-        txt(v.propertyValueDisplayName) ||
-        txt(v.propertyValueName) ||
-        txt(v.name) ||
-        valueId
-      const imageRaw =
-        txt(v.skuPropertyImagePath) ||
-        txt(v.skuPropertyImageSummPath) ||
-        txt(v.image) ||
-        txt(v.imageUrl)
-      const imageUrl = imageRaw && /^https?:\/\//i.test(imageRaw) ? imageRaw : null
-      out.set(`${propId}:${valueId}`, { propName, displayName, imageUrl })
-    }
-  }
-
-  return out
-}
-
-function parseSkuAttrSegment(segment: string): { propId: string; valueId: string } | null {
-  const trimmed = segment.trim()
-  if (!trimmed) return null
-  const colon = trimmed.indexOf(":")
-  if (colon <= 0) return null
-  const propId = trimmed.slice(0, colon).trim()
-  let valuePart = trimmed.slice(colon + 1).trim()
-  const hash = valuePart.indexOf("#")
-  if (hash >= 0) valuePart = valuePart.slice(0, hash).trim()
-  if (!propId || !valuePart) return null
-  return { propId, valueId: valuePart }
-}
-
-function labelsFromSkuAttr(
-  skuAttr: string,
-  lookup: Map<string, PropValueMeta>
-): {
-  parts: string[]
-  attributes: Record<string, string>
-  color: string | null
-  size: string | null
-  imageUrl: string | null
-} {
-  const attributes: Record<string, string> = {}
-  const parts: string[] = []
-  let color: string | null = null
-  let size: string | null = null
-  let imageUrl: string | null = null
-
-  for (const segment of skuAttr.split(";")) {
-    const trimmed = segment.trim()
-    const hashIdx = trimmed.indexOf("#")
-    const inlineHuman =
-      hashIdx >= 0 ? stripAeSkuTechnicalLabel(trimmed.slice(hashIdx + 1)) : ""
-
-    const parsed = parseSkuAttrSegment(segment)
-    if (!parsed) {
-      if (inlineHuman) {
-        attributes.Option = inlineHuman
-        parts.push(inlineHuman)
-        if (!color) color = inlineHuman
-      }
-      continue
-    }
-    const meta = lookup.get(`${parsed.propId}:${parsed.valueId}`)
-    if (meta) {
-      attributes[meta.propName] = meta.displayName
-      parts.push(meta.displayName)
-      const propLower = meta.propName.toLowerCase()
-      if (!color && (propLower.includes("color") || propLower.includes("couleur"))) {
-        color = meta.displayName
-        if (meta.imageUrl) imageUrl = meta.imageUrl
-      }
-      if (!size && (propLower.includes("size") || propLower.includes("taille"))) {
-        size = meta.displayName
-      }
-      if (
-        !imageUrl &&
-        meta.imageUrl &&
-        (propLower.includes("color") || propLower.includes("couleur"))
-      ) {
-        imageUrl = meta.imageUrl
-      }
-    } else if (inlineHuman) {
-      attributes[`Option ${parsed.propId}`] = inlineHuman
-      parts.push(inlineHuman)
-      if (!color) color = inlineHuman
-    }
-  }
-
-  if (!color && parts.length === 1) color = parts[0] ?? null
-
-  return { parts, attributes, color, size, imageUrl }
 }
 
 function parsePriceCentsFromSkuVal(skuVal: Record<string, unknown>): number {
@@ -202,7 +85,7 @@ export function parseAeSkusFromPagePayload(
   const skuModule = asRec(asRec(pageModule.skuComponent)?.skuModule) ?? {}
   const storeComponent = asRec(pageModule.storeComponent) ?? {}
 
-  const lookup = buildSkuPropertyLookup(skuModule)
+  const lookup = buildSkuPropertyLookupFromPageModule(skuModule)
   const skuPriceList = Array.isArray(skuModule.skuPriceList) ? skuModule.skuPriceList : []
 
   const aeSkus: AeProductSkuRow[] = []
@@ -232,7 +115,7 @@ export function parseAeSkusFromPagePayload(
 
     aeSkus.push({
       aeSkuId,
-      aeLabel: parts.length > 0 ? parts.join(" · ") : aeSkuId,
+      aeLabel: preferHumanAeLabel(parts, skuAttr || null),
       matchColor: color ? canonicalVariantColorKey(color) : null,
       matchSize: size?.trim() || null,
       aePriceCents,

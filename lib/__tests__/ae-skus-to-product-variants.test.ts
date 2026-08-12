@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
+import { parseAeProductSkusFromPayload } from "@/lib/fulfillment/ae-product-skus"
 import {
   aeSkusToVariantPersist,
   sanitizeAeVariantColor,
@@ -229,5 +230,63 @@ describe("parseAeSkusFromPagePayload — color images", () => {
     })
     expect(persist.colorImages[0]?.image).toContain("blue-55.jpg")
     expect(persist.colorImages[2]?.image).toContain("black-30.jpg")
+  })
+})
+
+describe("parseAeProductSkusFromPayload — API sku_attr labels", () => {
+  it("prefers human labels from sku_attr over numeric property DTOs", () => {
+    const payload = {
+      aliexpress_ds_product_get_response: {
+        result: {
+          ae_item_sku_info_dtos: [
+            {
+              sku_id: "120000771001",
+              sku_attr: "14:771#55mm Blue",
+              offer_sale_price: "6.09",
+              sku_available_stock: 9,
+              ae_sku_property_dtos: [
+                {
+                  sku_property_id: "14",
+                  sku_property_name: "Color",
+                  property_value_id: "771",
+                  sku_property_value: "771",
+                  sku_property_image_path: "https://ae01.alicdn.com/kf/blue-55.jpg",
+                },
+              ],
+            },
+            {
+              sku_id: "120000200003",
+              sku_attr: "14:200#30mm Black",
+              offer_sale_price: "4.99",
+              sku_available_stock: 12,
+              ae_sku_property_dtos: [
+                {
+                  sku_property_id: "14",
+                  sku_property_name: "Color",
+                  property_value_id: "200",
+                  sku_property_value: "200",
+                  sku_property_image_path: "https://ae01.alicdn.com/kf/black-30.jpg",
+                },
+              ],
+            },
+          ],
+        },
+      },
+    }
+
+    const rows = parseAeProductSkusFromPayload(payload, "3256805347946532")
+    expect(rows).toHaveLength(2)
+    expect(rows[0]?.aeLabel).toBe("55mm Blue")
+    expect(rows[0]?.imageUrl).toContain("blue-55.jpg")
+    expect(rows[1]?.aeLabel).toBe("30mm Black")
+
+    const persist = aeSkusToVariantPersist(rows)
+    expect(persist.hasVariants).toBe(true)
+    expect(persist.colors).toEqual(["55mm Blue", "30mm Black"])
+    expect(persist.variantInputs[0]?.color).toBe("55mm Blue")
+    expect(persist.variantInputs[0]?.customData).toMatchObject({
+      aeLabel: "55mm Blue",
+      image: "https://ae01.alicdn.com/kf/blue-55.jpg",
+    })
   })
 })

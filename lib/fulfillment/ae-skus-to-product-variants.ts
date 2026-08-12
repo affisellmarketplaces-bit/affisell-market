@@ -1,6 +1,7 @@
 import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
 import {
+  isNumericOnlyVariantToken,
   normalizeAeVariantColorLabel,
   resolveAeVariantDisplayColor,
 } from "@/lib/fulfillment/ae-variant-display-name"
@@ -10,8 +11,6 @@ import {
   type ProductVariantInput,
 } from "@/lib/product-variant-sku"
 import type { VariantCustomData } from "@/types/product"
-
-const MAX_VARIANTS = 120
 
 export type AeSkuVariantPersist = {
   hasVariants: boolean
@@ -23,6 +22,63 @@ export type AeSkuVariantPersist = {
   defaultAeSkuId: string | null
   /** Bullets derived from SKU labels (fallback when AE specs missing) */
   variantBullets: string[]
+}
+
+const MAX_VARIANTS = 120
+
+/** True when most shopper labels collapsed to generic `Variant N`. */
+export function isWeakAeSkuPersist(persist: AeSkuVariantPersist): boolean {
+  if (persist.variantInputs.length < 2) return true
+  let weak = 0
+  persist.variantInputs.forEach((v, index) => {
+    const label = resolveAeVariantDisplayColor(
+      {
+        aeLabel: typeof v.customData?.aeLabel === "string" ? v.customData.aeLabel : v.color,
+        matchColor: v.color,
+        attributes:
+          typeof v.customData === "object" && v.customData
+            ? Object.fromEntries(
+                Object.entries(v.customData).filter(
+                  ([k, val]) => k !== "aeLabel" && k !== "image" && typeof val === "string"
+                )
+              )
+            : undefined,
+      },
+      index
+    )
+    if (/^Variant \d+$/i.test(label) || isNumericOnlyVariantToken(label)) weak += 1
+  })
+  return weak / persist.variantInputs.length >= 0.5
+}
+
+/** Overlay API stock/prices onto HTML-parsed SKU rows (same aeSkuId). */
+export function mergeAeProductSkuRows(
+  apiRows: AeProductSkuRow[],
+  htmlRows: AeProductSkuRow[]
+): AeProductSkuRow[] {
+  const apiById = new Map(apiRows.map((r) => [r.aeSkuId, r]))
+  const out: AeProductSkuRow[] = []
+  const seen = new Set<string>()
+
+  for (const row of htmlRows) {
+    const api = apiById.get(row.aeSkuId)
+    out.push(
+      api
+        ? {
+            ...row,
+            aePriceCents: api.aePriceCents > 0 ? api.aePriceCents : row.aePriceCents,
+            stock: api.stock >= 0 ? api.stock : row.stock,
+          }
+        : row
+    )
+    seen.add(row.aeSkuId)
+  }
+
+  for (const row of apiRows) {
+    if (!seen.has(row.aeSkuId)) out.push(row)
+  }
+
+  return out
 }
 
 /** Keep Affisell color regex happy (no commas / + / AE junk like # _ *). */
