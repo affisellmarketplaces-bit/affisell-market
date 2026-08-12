@@ -74,6 +74,8 @@ import {
   captureWholesaleSnapshotFromProductRow,
   notifyAffiliatesAfterSupplierProductSave,
 } from "@/lib/affiliate-wholesale-change-notify"
+import { deleteSupplierProduct } from "@/lib/supplier-product-remove.server"
+import { SUPPLIER_PRODUCT_REMOVE_CODE } from "@/lib/supplier-product-remove-shared"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -942,23 +944,26 @@ export async function DELETE(
   }
 
   const { id } = await context.params
-  const own = await assertOwnProduct(session.user.id, id)
-  if (!own) {
-    return Response.json({ error: "Not found" }, { status: 404 })
+  const result = await deleteSupplierProduct(session.user.id, id)
+
+  if (!result.ok) {
+    const status =
+      result.code === SUPPLIER_PRODUCT_REMOVE_CODE.NOT_FOUND
+        ? 404
+        : result.code === SUPPLIER_PRODUCT_REMOVE_CODE.REQUIRES_RECALL
+          ? 409
+          : 409
+    return Response.json(
+      {
+        error: result.message,
+        code: result.code,
+        ...(result.listedAffiliateCount != null
+          ? { listedAffiliateCount: result.listedAffiliateCount }
+          : {}),
+      },
+      { status }
+    )
   }
-
-  const orderCount = await prisma.order.count({ where: { productId: id } })
-  if (orderCount > 0) {
-    return Response.json({ error: "Cannot delete a product that has orders" }, { status: 409 })
-  }
-
-  const supplierId = session.user.id
-  await prisma.$transaction([
-    prisma.affiliateProduct.deleteMany({ where: { productId: id } }),
-    prisma.product.delete({ where: { id, supplierId } }),
-  ])
-
-  void revalidateSupplierShopfront(supplierId)
 
   return new Response(null, { status: 204 })
 }

@@ -7,6 +7,7 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { clearSupplierAddProductDraftCache } from "@/lib/supplier-add-product-draft-cache"
+import { SUPPLIER_PRODUCT_REMOVE_CODE } from "@/lib/supplier-product-remove-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -45,7 +46,21 @@ export function SupplierDeleteDraftButton({
         method: "DELETE",
       })
       if (res.status === 409) {
-        toast.error("Impossible de supprimer : ce produit a déjà des commandes.")
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string
+          code?: string
+        }
+        if (data.code === SUPPLIER_PRODUCT_REMOVE_CODE.REQUIRES_RECALL) {
+          toast.error(
+            "Ce produit est en vitrine chez des revendeurs — utilisez le rappel produit."
+          )
+          return
+        }
+        toast.error(
+          typeof data.error === "string"
+            ? data.error
+            : "Impossible de supprimer : ce produit a déjà des commandes."
+        )
         return
       }
       if (!res.ok && res.status !== 204) {

@@ -20,7 +20,7 @@ import {
 import { toast } from "sonner"
 
 import { BentoCard, BentoPageHeading, BentoStat } from "@/components/affisell/bento-ui"
-import { SupplierDeleteDraftButton } from "@/components/supplier/supplier-delete-draft-button"
+import { SupplierProductRemoveActions } from "@/components/supplier/supplier-product-remove-actions"
 import { SupplierDraftBulkToolbar } from "@/components/supplier/supplier-draft-bulk-toolbar"
 import { useSupplierDraftSelection } from "@/components/supplier/use-supplier-draft-selection"
 import { buttonVariants } from "@/components/ui/button"
@@ -425,7 +425,7 @@ export function SupplierDashboardProductsCatalog({
                         <Eye className="h-4 w-4" aria-hidden />
                         Aperçu partenaire
                       </Link>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className={cn("grid gap-2", p.isDraft ? "grid-cols-2" : "grid-cols-3")}>
                         <Link
                           href={editHref}
                           className={cn(
@@ -437,21 +437,34 @@ export function SupplierDashboardProductsCatalog({
                           {p.isDraft ? "Reprendre" : "Modifier"}
                         </Link>
                         {!p.isDraft ? (
-                          <Link
-                            href={`/dashboard/supplier/products/${p.id}`}
-                            className={cn(
-                              buttonVariants({ variant: "outline", size: "sm" }),
-                              "inline-flex items-center justify-center gap-1.5 rounded-xl border-zinc-200 dark:border-zinc-700"
-                            )}
-                          >
-                            <Video className="h-3.5 w-3.5 opacity-70" aria-hidden />
-                            Vidéo produit
-                          </Link>
+                          <>
+                            <Link
+                              href={`/dashboard/supplier/products/${p.id}`}
+                              className={cn(
+                                buttonVariants({ variant: "outline", size: "sm" }),
+                                "inline-flex items-center justify-center gap-1.5 rounded-xl border-zinc-200 dark:border-zinc-700"
+                              )}
+                            >
+                              <Video className="h-3.5 w-3.5 opacity-70" aria-hidden />
+                              Vidéo
+                            </Link>
+                            <SupplierProductRemoveActions
+                              ownerUserId={ownerUserId}
+                              productId={p.id}
+                              productName={p.name}
+                              isDraft={false}
+                              partnersListed={partnersListed}
+                              variant="icon"
+                              className="flex h-9 w-full items-center justify-center rounded-xl"
+                            />
+                          </>
                         ) : (
-                          <SupplierDeleteDraftButton
+                          <SupplierProductRemoveActions
                             ownerUserId={ownerUserId}
                             productId={p.id}
                             productName={p.name}
+                            isDraft
+                            partnersListed={0}
                             variant="icon"
                             className="flex h-9 w-full items-center justify-center rounded-xl border border-zinc-200 dark:border-zinc-700"
                           />
