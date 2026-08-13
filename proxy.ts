@@ -542,6 +542,8 @@ export const config = {
     "/marketplace/:path*",
     "/store",
     "/store/:path*",
+    "/boutique",
+    "/boutique/:path*",
     "/admin",
     "/admin/:path*",
     "/dashboard",
