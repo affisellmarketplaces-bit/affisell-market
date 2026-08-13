@@ -11,6 +11,7 @@ import type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-stor
 type ResellerStorefrontGridProps = {
   storeSlug: string
   storeLabel: string
+  tagline?: string | null
   theme: ResellerBoutiqueThemeProps
   products: ResellerStorefrontListProduct[]
   count: number
@@ -19,6 +20,7 @@ type ResellerStorefrontGridProps = {
 export function ResellerStorefrontGrid({
   storeSlug,
   storeLabel,
+  tagline,
   theme,
   products,
   count,
@@ -38,7 +40,7 @@ export function ResellerStorefrontGrid({
             <span style={{ color: "var(--boutique-hero-accent)" }}>{storeLabel}</span>
           </h2>
           <p className="max-w-xl text-sm opacity-80">
-            Sélection curator — checkout 1-clic propulsé par Affisell.
+            {tagline?.trim() || "Sélection curator — checkout 1-clic propulsé par Affisell."}
           </p>
         </div>
       }
@@ -47,7 +49,7 @@ export function ResellerStorefrontGrid({
         {products.map((product) => (
           <article
             key={product.id}
-            className="group flex h-full flex-col overflow-hidden rounded-3xl border shadow-sm backdrop-blur-sm transition hover:shadow-lg"
+            className="group boutique-card-wow flex h-full flex-col overflow-hidden rounded-3xl border shadow-sm backdrop-blur-sm"
             style={{
               backgroundColor: "var(--boutique-card-bg)",
               borderColor: "var(--boutique-card-border)",

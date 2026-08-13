@@ -11,6 +11,7 @@ import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/compo
 import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
 import { StorefrontAiBannerButton } from "@/components/storefront/storefront-ai-banner-button"
 import { StorefrontAiCopyButton } from "@/components/storefront/storefront-ai-copy-button"
+import { StorefrontAiThemeStudioPanel } from "@/components/storefront/storefront-ai-theme-studio-panel"
 import { StorefrontBrandAnalyticsPanel } from "@/components/storefront/storefront-brand-analytics-panel"
 import { StorefrontBrandLaunchPanel } from "@/components/storefront/storefront-brand-launch-panel"
 import { StorefrontBrandPreviewPanel } from "@/components/storefront/storefront-brand-preview-panel"
@@ -48,6 +49,7 @@ import {
   DEFAULT_HOMEPAGE_SECTIONS,
   homepageSectionsEqual,
   serializeHomepageSections,
+  updateHomepageSectionContent,
   type HomepageSection,
 } from "@/lib/storefront-sections-shared"
 import {
@@ -69,6 +71,8 @@ import {
 import type { BrandLaunchConfig } from "@/lib/storefront-brand-launch"
 import type { StorefrontPresetAb } from "@/lib/storefront-preset-ab-shared"
 import { computeBrandPulse } from "@/lib/storefront-brand-pulse-shared"
+import { brandAiThemeToStorefrontTheme } from "@/lib/storefront-brand-ai-theme-shared"
+import type { BrandAiThemePayload } from "@/lib/storefront-brand-ai-theme-shared"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
 import { readAmplifyCopiedFlag } from "@/lib/storefront-share-channel-recommendation"
 import { cn } from "@/lib/utils"
@@ -713,6 +717,56 @@ export function MerchantBrandStudio({
     setHeaderBrandAlign(theme.headerBrandAlign ?? DEFAULT_STOREFRONT_THEME.headerBrandAlign!)
   }
 
+  const handleAiThemeApplyAndSave = useCallback(
+    async (payload: BrandAiThemePayload): Promise<boolean> => {
+      const theme = brandAiThemeToStorefrontTheme(payload)
+      const nextSections = updateHomepageSectionContent(homepageSections, "story", {
+        body: payload.storyBody,
+      })
+
+      applyPreset(theme, payload.presetId)
+      setDescription(payload.description)
+      setHomepageSections(nextSections)
+
+      const nextSnapshot = snapshotFromDraft({
+        name,
+        description: payload.description,
+        bannerUrl,
+        logoUrl,
+        primaryHex: payload.primary,
+        accent: payload.accent,
+        trustRailText,
+        nameBadge: theme.nameBadge ?? nameBadge,
+        layout: payload.layout,
+        heroStyle: payload.heroStyle,
+        gridDensity: payload.gridDensity,
+        surface: payload.surface,
+        headerBrandAlign,
+        presetId: payload.presetId,
+        homepageSections: nextSections,
+        staticPages,
+        heroVideoUrl,
+        embedWidget,
+      })
+
+      return persistSnapshot(nextSnapshot, t("aiTheme.saved"))
+    },
+    [
+      homepageSections,
+      name,
+      bannerUrl,
+      logoUrl,
+      trustRailText,
+      nameBadge,
+      headerBrandAlign,
+      staticPages,
+      heroVideoUrl,
+      embedWidget,
+      persistSnapshot,
+      t,
+    ]
+  )
+
   const brandPulse = useMemo(
     () =>
       computeBrandPulse({
@@ -933,6 +987,13 @@ export function MerchantBrandStudio({
             {message}
           </BentoCard>
         ) : null}
+
+        <StorefrontAiThemeStudioPanel
+          role={role}
+          disabled={saving || loading}
+          boutiquePreviewHref={boutiquePreviewHref}
+          onApplyAndSave={handleAiThemeApplyAndSave}
+        />
 
         <StorefrontBrandLaunchPanel
           storeName={name}

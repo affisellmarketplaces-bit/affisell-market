@@ -87,7 +87,7 @@ export function resolveResellerBoutiqueThemeCssVars(
 
   if (surface === "dark") {
     return {
-      pageBg: `linear-gradient(135deg, ${primary} 0%, ${mid} 48%, ${accent} 100%)`,
+      pageBg: `radial-gradient(ellipse 120% 80% at 10% 90%, ${primary} 0%, transparent 55%), radial-gradient(ellipse 90% 70% at 90% 10%, ${accent} 0%, transparent 50%), linear-gradient(145deg, ${primary} 0%, ${mid} 42%, ${accent} 100%)`,
       pageText: "#f4f4f5",
       headerBg: "rgba(9, 9, 11, 0.28)",
       headerBorder: "rgba(255, 255, 255, 0.14)",

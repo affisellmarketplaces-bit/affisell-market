@@ -2537,6 +2537,18 @@
       "liveUrl": "Live URL",
       "previewAffisell": "Preview on Affisell",
       "boutiquePreview": "Boutique grid /boutique",
+      "aiTheme": {
+        "badge": "AI · Auto personalization",
+        "title": "Futuristic storefront in 1 click",
+        "subtitle": "AI reads your catalog, picks a wow preset (Nebula Aurora, Solar Flare…), applies colors + copy, and publishes to /boutique and /shops.",
+        "cta": "Personalize my store with AI",
+        "generating": "Crafting your brand universe…",
+        "hint": "Preset + palette + tagline — synced to boutique & storefront.",
+        "failed": "AI personalization unavailable — try again.",
+        "saveFailed": "Theme generated but save failed.",
+        "saved": "Store personalized — live wow storefront ✨",
+        "viewBoutique": "View my /boutique vitrine"
+      },
       "liveStore": {
         "title": "Your store is live",
         "subtitle": "Your branded address on {suffix} — same catalog as your listings, Ads-ready and Affisell-verified.",

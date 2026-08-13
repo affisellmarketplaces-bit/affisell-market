@@ -240,6 +240,7 @@ export type ResellerBoutiqueStoreContext = {
   storeSlug: string
   storeName: string
   storeLabel: string
+  tagline: string | null
   theme: ResellerBoutiqueThemeProps
 }
 
@@ -254,6 +255,7 @@ export async function loadResellerBoutiqueStoreContext(
     select: {
       slug: true,
       name: true,
+      description: true,
       storefrontTheme: true,
     },
   })
@@ -264,6 +266,7 @@ export async function loadResellerBoutiqueStoreContext(
     storeSlug: store.slug,
     storeName: store.name,
     storeLabel: formatResellerStoreLabel(store.slug),
+    tagline: store.description?.trim() || null,
     theme: serializeResellerBoutiqueTheme(parseStorefrontTheme(store.storefrontTheme)),
   }
 }

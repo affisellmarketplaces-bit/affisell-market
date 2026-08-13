@@ -2537,6 +2537,18 @@
       "liveUrl": "URL publique",
       "previewAffisell": "Aperçu sur Affisell",
       "boutiquePreview": "Vitrine boutique /boutique",
+      "aiTheme": {
+        "badge": "IA · Personnalisation auto",
+        "title": "Vitrine futuriste en 1 clic",
+        "subtitle": "L'IA analyse votre catalogue, choisit le preset wow (Nebula Aurora, Solar Flare…), applique couleurs + copy et publie sur /boutique et /shops.",
+        "cta": "Personnaliser ma boutique avec l'IA",
+        "generating": "Création de votre univers…",
+        "hint": "Preset + palette + tagline — synchronisé boutique & storefront.",
+        "failed": "Personnalisation IA indisponible — réessayez.",
+        "saveFailed": "Thème généré mais enregistrement impossible.",
+        "saved": "Boutique personnalisée — vitrine live avec effet waouh ✨",
+        "viewBoutique": "Voir ma vitrine /boutique"
+      },
       "liveStore": {
         "title": "Votre boutique est en ligne",
         "subtitle": "Votre adresse brandée sur {suffix} — même catalogue que vos fiches, prête pour Google Ads et vérifiée Affisell.",

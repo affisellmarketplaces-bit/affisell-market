@@ -91,6 +91,7 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
     <ResellerStorefrontGrid
       storeSlug={storeSlug}
       storeLabel={storeLabel}
+      tagline={storeContext?.tagline ?? null}
       theme={resolvedTheme}
       products={storefront.products}
       count={storefront.count}

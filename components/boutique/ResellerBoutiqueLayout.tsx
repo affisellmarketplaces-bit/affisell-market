@@ -5,6 +5,7 @@ import { Sparkles } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { ResellerBoutiqueThemeStyles } from "@/components/boutique/ResellerBoutiqueThemeStyles"
+import { ResellerBoutiqueAmbientFx } from "@/components/boutique/ResellerBoutiqueAmbientFx"
 import type { ResellerBoutiqueThemeProps } from "@/lib/boutique/reseller-boutique-theme-shared"
 
 type ResellerBoutiqueLayoutProps = {
@@ -33,8 +34,9 @@ export function ResellerBoutiqueLayout({
         className="relative min-h-screen overflow-hidden"
         style={{ background: "var(--boutique-page-bg)", color: "var(--boutique-page-text)" }}
       >
+        <ResellerBoutiqueAmbientFx />
         <div
-          className="pointer-events-none absolute -left-24 top-40 h-72 w-72 rounded-full blur-3xl"
+          className="pointer-events-none absolute -left-24 top-40 h-72 w-72 rounded-full blur-3xl boutique-float"
           style={{ backgroundColor: "var(--boutique-glow-primary)" }}
           aria-hidden
         />
