@@ -1,10 +1,10 @@
 "use client"
 
 import Image from "next/image"
-import { ArrowRight, Eye } from "lucide-react"
+import { Eye, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
-import { ResellerBoutiqueLayout } from "@/components/boutique/ResellerBoutiqueLayout"
 import type { ResellerBoutiqueThemeProps } from "@/lib/boutique/reseller-boutique-theme-shared"
 import type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
 
@@ -17,77 +17,89 @@ type ResellerStorefrontGridProps = {
   count: number
 }
 
+function storeInitial(label: string): string {
+  const trimmed = label.trim()
+  return trimmed ? trimmed.charAt(0).toUpperCase() : "B"
+}
+
 export function ResellerStorefrontGrid({
   storeSlug,
   storeLabel,
   tagline,
-  theme,
+  theme: _theme,
   products,
   count,
 }: ResellerStorefrontGridProps) {
   const router = useRouter()
 
+  const handleAiPersonalize = () => {
+    toast.message("AI Personalization coming soon — will call /api/ai/store-avatar")
+  }
+
   return (
-    <ResellerBoutiqueLayout
-      storeSlug={storeSlug}
-      storeLabel={storeLabel}
-      theme={theme}
-      productCount={count}
-      hero={
-        <div className="space-y-3">
-          <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-5xl">
-            Boutique{" "}
-            <span style={{ color: "var(--boutique-hero-accent)" }}>{storeLabel}</span>
-          </h2>
-          <p className="max-w-xl text-sm opacity-80">
-            {tagline?.trim() || "Sélection curator — checkout 1-clic propulsé par Affisell."}
-          </p>
+    <>
+      <header className="relative mb-10 md:mb-12">
+        <button
+          type="button"
+          onClick={handleAiPersonalize}
+          className="mb-6 inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-black px-5 py-2.5 text-sm font-medium text-white shadow-[0_0_20px_rgba(109,40,217,0.3)] transition-all duration-300 hover:scale-[1.02] hover:bg-white hover:text-black hover:shadow-[0_0_30px_rgba(109,40,217,0.5)] md:absolute md:right-0 md:top-0 md:mb-0 md:w-auto"
+        >
+          <Sparkles className="size-4 shrink-0" aria-hidden />
+          Personalize my store with AI ✨
+        </button>
+
+        <div className="flex items-start gap-4 pr-0 md:pr-[17rem]">
+          <span
+            className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-teal-500 text-sm font-bold text-white shadow-lg ring-2 ring-white/20"
+            aria-hidden
+          >
+            {storeInitial(storeLabel)}
+          </span>
+          <div className="min-w-0 space-y-3">
+            <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">
+              Boutique{" "}
+              <span className="bg-gradient-to-r from-white to-violet-200 bg-clip-text text-transparent">
+                {storeLabel}
+              </span>
+            </h1>
+            {tagline?.trim() ? (
+              <p className="max-w-xl text-sm leading-relaxed text-white/60">{tagline.trim()}</p>
+            ) : null}
+            <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm text-white/70">
+              {count} produit{count > 1 ? "s" : ""}
+            </span>
+          </div>
         </div>
-      }
-    >
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      </header>
+
+      <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
         {products.map((product) => (
           <article
             key={product.id}
-            className="group boutique-card-wow flex h-full flex-col overflow-hidden rounded-3xl border shadow-sm backdrop-blur-sm"
-            style={{
-              backgroundColor: "var(--boutique-card-bg)",
-              borderColor: "var(--boutique-card-border)",
-            }}
+            className="group rounded-3xl border border-white/50 bg-white/[0.95] p-3 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.2)]"
           >
-            <div
-              className="relative aspect-square overflow-hidden border-b"
-              style={{
-                background: "var(--boutique-card-image-bg)",
-                borderColor: "var(--boutique-card-border)",
-              }}
-            >
+            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-gray-50">
               <Image
                 src={product.image}
                 alt={product.title}
                 fill
                 className="object-contain p-4 transition duration-500 group-hover:scale-[1.02]"
-                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                sizes="(max-width: 768px) 100vw, 50vw"
                 unoptimized={product.image.startsWith("http") || product.image.startsWith("/uploads")}
               />
               {product.isOutOfStock ? (
-                <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-rose-700 shadow-sm">
+                <span className="absolute left-3 top-3 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
                   Out of stock
                 </span>
               ) : null}
             </div>
 
-            <div className="flex flex-1 flex-col p-4">
-              <h2
-                className="line-clamp-2 min-h-[2.75rem] text-base font-semibold leading-snug"
-                style={{ color: "var(--boutique-card-title)" }}
-              >
-                {product.title}
-              </h2>
-              <p
-                className="mt-2 bg-clip-text text-lg font-bold tabular-nums text-transparent"
-                style={{ backgroundImage: "var(--boutique-price-gradient)" }}
-              >
+            <div className="p-4 pt-4">
+              <h2 className="text-lg font-bold leading-tight text-gray-900">{product.title}</h2>
+              <p className="mt-1 line-clamp-2 text-sm text-gray-500">
+                Checkout sécurisé · Livraison Affisell
+              </p>
+              <p className="mt-3 text-2xl font-extrabold tracking-tight text-gray-900">
                 {product.priceLabel}
               </p>
 
@@ -98,20 +110,19 @@ export function ResellerStorefrontGrid({
                     `/boutique/${encodeURIComponent(storeSlug)}?productId=${encodeURIComponent(product.id)}`
                   )
                 }
-                className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition hover:opacity-95"
-                style={{
-                  backgroundImage: "var(--boutique-button-gradient)",
-                  boxShadow: "var(--boutique-button-shadow)",
-                }}
+                className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-teal-500 text-sm font-medium text-white transition-all duration-300 hover:from-violet-700 hover:to-teal-600 hover:shadow-[0_4px_20px_rgba(109,40,217,0.4)] group-hover:scale-[1.01]"
               >
-                <Eye className="h-4 w-4" aria-hidden />
+                <Eye className="size-4" aria-hidden />
                 Voir le produit
-                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
               </button>
             </div>
           </article>
         ))}
       </div>
-    </ResellerBoutiqueLayout>
+
+      <footer className="mt-12 border-t border-white/10 pt-6 text-center text-xs text-white/40">
+        Boutique {storeSlug} · Propulsé par Affisell
+      </footer>
+    </>
   )
 }

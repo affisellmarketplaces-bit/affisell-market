@@ -9,6 +9,7 @@ import { serializeResellerBoutiqueTheme } from "@/lib/boutique/reseller-boutique
 import { formatResellerStoreLabel } from "@/lib/boutique/reseller-storefront-shared"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
+import { ResellerBoutiquePageShell } from "@/components/boutique/reseller-boutique-page-shell"
 import { ResellerStorefrontEmptyState } from "@/components/boutique/ResellerStorefrontEmptyState"
 import { ResellerStorefrontGrid } from "@/components/boutique/ResellerStorefrontGrid"
 import { ResellerStorefrontShell } from "@/components/boutique/ResellerStorefrontShell"
@@ -79,22 +80,26 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
 
   if (storefront.count === 0) {
     return (
-      <ResellerStorefrontEmptyState
-        storeSlug={storeSlug}
-        storeLabel={storeLabel}
-        theme={resolvedTheme}
-      />
+      <ResellerBoutiquePageShell>
+        <ResellerStorefrontEmptyState
+          storeSlug={storeSlug}
+          storeLabel={storeLabel}
+          theme={resolvedTheme}
+        />
+      </ResellerBoutiquePageShell>
     )
   }
 
   return (
-    <ResellerStorefrontGrid
-      storeSlug={storeSlug}
-      storeLabel={storeLabel}
-      tagline={storeContext?.tagline ?? null}
-      theme={resolvedTheme}
-      products={storefront.products}
-      count={storefront.count}
-    />
+    <ResellerBoutiquePageShell>
+      <ResellerStorefrontGrid
+        storeSlug={storeSlug}
+        storeLabel={storeLabel}
+        tagline={storeContext?.tagline ?? null}
+        theme={resolvedTheme}
+        products={storefront.products}
+        count={storefront.count}
+      />
+    </ResellerBoutiquePageShell>
   )
 }
