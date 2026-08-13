@@ -6,6 +6,9 @@ export type StorefrontThemeId =
   | "luxury-obsidian"
   | "neon-cyber"
 
+/** Alias used in boutique UI components. */
+export type StorefrontTheme = StorefrontThemeId
+
 export const DEFAULT_STOREFRONT_THEME_ID: StorefrontThemeId = "dark-futuristic"
 
 export const STOREFRONT_THEME_IDS: StorefrontThemeId[] = [
@@ -23,6 +26,9 @@ export type StorefrontThemeTokens = {
   shellOverlay: string
   blob1: string
   blob2: string
+  gridClass: string
+  cardClass: string
+  buttonClass: string
   card: string
   cardImageBg: string
   cardTitle: string
@@ -47,6 +53,10 @@ export const STOREFRONT_THEMES: Record<StorefrontThemeId, StorefrontThemeTokens>
     shellOverlay: "from-[#1a0b3d] via-[#0a0a0f] to-[#0f766e]",
     blob1: "from-violet-600/30 to-indigo-600/30",
     blob2: "from-teal-400/20 to-cyan-400/20",
+    gridClass: "w-full",
+    cardClass:
+      "bg-white/[0.95] border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl",
+    buttonClass: "from-violet-600 to-teal-500 hover:from-violet-700 hover:to-teal-600",
     card: "bg-white/[0.95] border-white/50",
     cardImageBg: "bg-gray-50",
     cardTitle: "text-gray-900",
@@ -70,6 +80,9 @@ export const STOREFRONT_THEMES: Record<StorefrontThemeId, StorefrontThemeTokens>
     shellOverlay: "from-orange-50/80 via-[#fafaf9] to-violet-50/60",
     blob1: "from-orange-200/40 to-pink-200/40",
     blob2: "from-blue-200/30 to-violet-200/30",
+    gridClass: "w-full",
+    cardClass: "bg-white border-gray-200 shadow-sm",
+    buttonClass: "from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600",
     card: "bg-white border-stone-200/80",
     cardImageBg: "bg-stone-50",
     cardTitle: "text-gray-900",
@@ -93,6 +106,9 @@ export const STOREFRONT_THEMES: Record<StorefrontThemeId, StorefrontThemeTokens>
     shellOverlay: "from-zinc-950 via-black to-zinc-900",
     blob1: "from-amber-500/10 to-yellow-500/10",
     blob2: "from-zinc-700/20 to-zinc-900/20",
+    gridClass: "w-full",
+    cardClass: "bg-zinc-900 border-zinc-800 text-white shadow-xl shadow-black/40",
+    buttonClass: "from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700",
     card: "bg-zinc-900 border-zinc-800",
     cardImageBg: "bg-zinc-950",
     cardTitle: "text-white",
@@ -116,6 +132,10 @@ export const STOREFRONT_THEMES: Record<StorefrontThemeId, StorefrontThemeTokens>
     shellOverlay: "from-fuchsia-950/40 via-[#050507] to-cyan-950/30",
     blob1: "from-fuchsia-600/25 to-cyan-400/25",
     blob2: "from-lime-400/15 to-emerald-400/15",
+    gridClass: "w-full",
+    cardClass:
+      "bg-white/[0.92] border-fuchsia-500/30 shadow-[0_0_24px_rgba(217,70,239,0.12)] backdrop-blur-xl",
+    buttonClass: "from-fuchsia-600 to-cyan-500 hover:from-fuchsia-700 hover:to-cyan-600",
     card: "bg-white/[0.92] border-fuchsia-500/20",
     cardImageBg: "bg-zinc-950",
     cardTitle: "text-gray-900",

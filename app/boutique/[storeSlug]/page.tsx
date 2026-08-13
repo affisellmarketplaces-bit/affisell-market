@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 
 import {
   loadResellerBoutiqueStoreContext,
@@ -97,14 +98,16 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
   }
 
   return (
-    <ResellerStorefrontView
-      storeSlug={storeSlug}
-      storeLabel={storeLabel}
-      tagline={storeContext?.tagline ?? null}
-      brandTheme={resolvedTheme}
-      initialVisualTheme={initialVisualTheme}
-      products={storefront.products}
-      count={storefront.count}
-    />
+    <Suspense fallback={null}>
+      <ResellerStorefrontView
+        storeSlug={storeSlug}
+        storeLabel={storeLabel}
+        tagline={storeContext?.tagline ?? null}
+        brandTheme={resolvedTheme}
+        initialVisualTheme={initialVisualTheme}
+        products={storefront.products}
+        count={storefront.count}
+      />
+    </Suspense>
   )
 }
