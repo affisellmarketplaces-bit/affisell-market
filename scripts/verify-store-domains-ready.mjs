@@ -50,8 +50,10 @@ if (token && projectId) {
 
 for (const rel of [
   "lib/store-custom-domain-activation.ts",
+  "lib/store-subdomain-provisioning.ts",
   "app/api/cron/sync-store-vercel-domains/route.ts",
   "app/api/store/verify-domain/route.ts",
+  "scripts/provision-store-subdomains.ts",
 ]) {
   if (existsSync(resolve(process.cwd(), rel))) ok(`file ${rel}`)
   else fail(`file ${rel}`, "Missing")
@@ -67,4 +69,5 @@ if (failed.length > 0) {
   process.exit(1)
 }
 
-console.log("\nOK — Custom domain auto-SSL ready (cron sync-store-vercel-domains every 30 min).")
+console.log("\nOK — Custom domain + auto subdomain SSL ready (cron sync-store-vercel-domains every 30 min).")
+console.log("One-shot: npm run provision:store-subdomains")

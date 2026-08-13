@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client"
 
 import { allocateUniquePartnerListingCode } from "@/lib/partner-listing-code"
 import { prisma } from "@/lib/prisma"
+import { provisionStoreSubdomainOnVercel } from "@/lib/store-subdomain-provisioning"
 import { defaultStoreNameFromSignup, slugFromStoreName } from "@/lib/store-slug"
 
 async function slugAvailable(
@@ -41,7 +42,7 @@ export async function ensureMerchantStore(
   const slug = await allocateUniqueSlug(name, params.userId, tx)
   const partnerListingCode = await allocateUniquePartnerListingCode(tx)
 
-  return tx.store.create({
+  const created = await tx.store.create({
     data: {
       userId: params.userId,
       name,
@@ -49,4 +50,17 @@ export async function ensureMerchantStore(
       partnerListingCode,
     },
   })
+
+  if (tx === prisma) {
+    void provisionStoreSubdomainOnVercel(created.id, created.slug).catch((e) => {
+      console.log("[ensure-store]", {
+        storeId: created.id,
+        slug: created.slug,
+        result: "subdomain_provision_error",
+        error: e instanceof Error ? e.message : String(e),
+      })
+    })
+  }
+
+  return created
 }

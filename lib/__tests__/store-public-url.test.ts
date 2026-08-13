@@ -32,7 +32,7 @@ describe("storePublicUrl", () => {
     expect(urls.subdomainUrl).toBe("https://ecom-store.shops.affisell.com")
   })
 
-  it("uses auto subdomain as primary on production app domain", () => {
+  it("uses auto subdomain as primary on production when SSL active", () => {
     vi.stubEnv("NODE_ENV", "production")
     vi.stubEnv("AFFISELL_STORE_HOST_SUFFIX", "shops.affisell.com")
     vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://affisell.com")
@@ -40,10 +40,26 @@ describe("storePublicUrl", () => {
     const urls = resolveStorePublicUrls({
       slug: "my-shop",
       role: "AFFILIATE",
+      subdomainVercelStatus: "active",
     })
     expect(urls.subdomainUrl).toBe("https://my-shop.shops.affisell.com")
     expect(urls.primaryUrl).toBe(urls.subdomainUrl)
+    expect(urls.subdomainSslActive).toBe(true)
     expect(urls.platformPathUrl).toContain("/shops/my-shop")
+  })
+
+  it("uses platform path when subdomain SSL is not active yet", () => {
+    vi.stubEnv("NODE_ENV", "production")
+    vi.stubEnv("AFFISELL_STORE_HOST_SUFFIX", "shops.affisell.com")
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://affisell.com")
+
+    const urls = resolveStorePublicUrls({
+      slug: "ecom-store",
+      role: "AFFILIATE",
+      subdomainVercelStatus: "pending",
+    })
+    expect(urls.primaryUrl).toBe("https://affisell.com/shops/ecom-store")
+    expect(urls.subdomainSslActive).toBe(false)
   })
 
   it("uses platform path in local dev for clickable links", () => {

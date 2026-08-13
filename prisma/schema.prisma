@@ -515,6 +515,12 @@ model Store {
   vercelDomainError    String?
   vercelDomainSyncedAt DateTime?
   /**
+   * Auto subdomain `{slug}.shops.affisell.com` on Vercel: registered | pending | active | failed | skipped
+   */
+  subdomainVercelStatus   String?
+  subdomainVercelError    String?
+  subdomainVercelSyncedAt DateTime?
+  /**
    * Public storefront branding: `{ "primary"?: "#hex", "accent"?: "#hex" }`.
    */
   storefrontTheme      Json?

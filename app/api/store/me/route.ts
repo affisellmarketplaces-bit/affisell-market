@@ -2,7 +2,9 @@ import { auth } from "@/auth"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { getStoreCnameTarget } from "@/lib/store-cname-target"
 import { prisma } from "@/lib/prisma"
-import { storePublicUrl, resolveStorePublicUrls, storeHostSuffixForUi } from "@/lib/store-public-url"
+import { storePublicUrl, resolveStorePublicUrls, storeHostSuffixForUi, storePublicUrlInputFromStore } from "@/lib/store-public-url"
+import { ensureStoreSubdomainReady } from "@/lib/store-subdomain-provisioning"
+import { isVercelDomainAutoProvisionEnabled } from "@/lib/vercel-project-domains"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
 export const runtime = "nodejs"
@@ -26,15 +28,26 @@ export async function GET() {
     store = await ensureMerchantStore({ userId, email: u.email, displayName: u.name })
   }
 
+  if (isVercelDomainAutoProvisionEnabled() && store.subdomainVercelStatus !== "active") {
+    try {
+      await ensureStoreSubdomainReady(store.id, store.slug)
+      store =
+        (await prisma.store.findUnique({ where: { userId } })) ??
+        store
+    } catch (e) {
+      console.log("[store/me]", {
+        storeId: store.id,
+        slug: store.slug,
+        result: "subdomain_provision_error",
+        error: e instanceof Error ? e.message : String(e),
+      })
+    }
+  }
+
   const dnsTarget = getStoreCnameTarget()
 
   const merchantRole = role === "SUPPLIER" ? "SUPPLIER" : "AFFILIATE"
-  const urlInput = {
-    slug: store.slug,
-    customDomain: store.customDomain,
-    domainVerified: store.domainVerified,
-    role: merchantRole as "SUPPLIER" | "AFFILIATE",
-  }
+  const urlInput = storePublicUrlInputFromStore(store, merchantRole)
   const urls = resolveStorePublicUrls(urlInput)
   const publicStoreUrl = storePublicUrl(urlInput)
 

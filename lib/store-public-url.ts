@@ -11,6 +11,8 @@ export type StorePublicUrlInput = {
   customDomain?: string | null
   domainVerified?: boolean
   role: "AFFILIATE" | "SUPPLIER"
+  /** Vercel SSL for `{slug}.shops.affisell.com` — primary subdomain only when `active`. */
+  subdomainVercelStatus?: string | null
 }
 
 export type StorePublicUrls = {
@@ -19,6 +21,25 @@ export type StorePublicUrls = {
   subdomainUrl: string
   platformPathUrl: string
   customDomainUrl: string | null
+  subdomainSslActive: boolean
+}
+
+export function storePublicUrlInputFromStore(
+  store: {
+    slug: string
+    customDomain?: string | null
+    domainVerified?: boolean
+    subdomainVercelStatus?: string | null
+  },
+  role: "AFFILIATE" | "SUPPLIER"
+): StorePublicUrlInput {
+  return {
+    slug: store.slug,
+    customDomain: store.customDomain,
+    domainVerified: store.domainVerified,
+    subdomainVercelStatus: store.subdomainVercelStatus,
+    role,
+  }
 }
 
 export function storePathOnPlatform(input: StorePublicUrlInput): string {
@@ -43,10 +64,14 @@ function appOriginHost(): string {
   }
 }
 
-function shouldUseSubdomainAsPrimaryClickable(): boolean {
+function isSubdomainSslActive(input: StorePublicUrlInput): boolean {
+  return input.subdomainVercelStatus === "active"
+}
+
+function shouldUseSubdomainAsPrimaryClickable(input: StorePublicUrlInput): boolean {
   if (!isStoreSubdomainEnabled()) return false
   if (process.env.AFFISELL_STORE_SUBDOMAIN_PRIMARY === "0") return false
-  if (process.env.AFFISELL_STORE_SUBDOMAIN_PRIMARY === "1") return true
+  if (!isSubdomainSslActive(input)) return false
 
   const host = appOriginHost()
   // Vercel preview URLs — wildcard *.shops.affisell.com is not attached to this deployment.
@@ -54,7 +79,7 @@ function shouldUseSubdomainAsPrimaryClickable(): boolean {
   // Local dev — prefer /shops/{slug} on the Next origin (shops.localhost often unroutable).
   if (host === "localhost" || host.endsWith(".localhost")) return false
 
-  return process.env.NODE_ENV === "production"
+  return process.env.NODE_ENV === "production" || process.env.AFFISELL_STORE_SUBDOMAIN_PRIMARY === "1"
 }
 
 export function resolveStorePublicUrls(input: StorePublicUrlInput): StorePublicUrls {
@@ -67,13 +92,14 @@ export function resolveStorePublicUrls(input: StorePublicUrlInput): StorePublicU
 
   const primaryUrl =
     customDomainUrl ??
-    (shouldUseSubdomainAsPrimaryClickable() ? subdomainUrl : platformPathUrl)
+    (shouldUseSubdomainAsPrimaryClickable(input) ? subdomainUrl : platformPathUrl)
 
   return {
     primaryUrl,
     subdomainUrl,
     platformPathUrl,
     customDomainUrl,
+    subdomainSslActive: isSubdomainSslActive(input),
   }
 }
 

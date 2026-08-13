@@ -1,6 +1,6 @@
 import { sendStoreFlashSaleAlertEmail } from "@/lib/emails/send-store-flash-sale-alert"
 import { prisma } from "@/lib/prisma"
-import { storePublicUrl } from "@/lib/store-public-url"
+import { storePublicUrl, storePublicUrlInputFromStore } from "@/lib/store-public-url"
 import {
   resolveFlashSaleNewsletterCampaign,
 } from "@/lib/store-flash-sale-newsletter.shared"
@@ -17,6 +17,7 @@ export type MaybeNotifyFlashSaleNewsletterInput = {
   slug: string
   customDomain: string | null
   domainVerified: boolean
+  subdomainVercelStatus?: string | null
   previousTheme: StorefrontTheme
   nextTheme: StorefrontTheme
 }
@@ -86,12 +87,17 @@ export async function runFlashSaleNewsletterBlast(
   })
 
   const listings = await loadFlashSaleListings(config.listingIds)
-  const shopUrl = storePublicUrl({
-    slug: input.slug,
-    customDomain: input.customDomain,
-    domainVerified: input.domainVerified,
-    role: "AFFILIATE",
-  })
+  const shopUrl = storePublicUrl(
+    storePublicUrlInputFromStore(
+      {
+        slug: input.slug,
+        customDomain: input.customDomain,
+        domainVerified: input.domainVerified,
+        subdomainVercelStatus: input.subdomainVercelStatus,
+      },
+      "AFFILIATE"
+    )
+  )
 
   let emailsSent = 0
   let skipped = 0

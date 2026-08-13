@@ -1,6 +1,6 @@
 import { sendStoreNewsletterWelcomeEmail } from "@/lib/emails/send-store-newsletter-welcome"
 import { prisma } from "@/lib/prisma"
-import { storePublicUrl } from "@/lib/store-public-url"
+import { storePublicUrl, storePublicUrlInputFromStore } from "@/lib/store-public-url"
 import { normalizeStoreNewsletterEmail } from "@/lib/store-newsletter-subscribe.shared"
 
 export type SubscribeStoreNewsletterInput = {
@@ -64,12 +64,7 @@ export async function subscribeStoreNewsletter(
   })
 
   const created = !existing
-  const shopUrl = storePublicUrl({
-    slug: store.slug,
-    customDomain: store.customDomain,
-    domainVerified: store.domainVerified,
-    role: "AFFILIATE",
-  })
+  const shopUrl = storePublicUrl(storePublicUrlInputFromStore(store, "AFFILIATE"))
 
   if (created) {
     await prisma.notification.create({

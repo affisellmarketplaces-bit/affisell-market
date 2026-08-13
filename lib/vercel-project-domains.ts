@@ -25,6 +25,19 @@ type VercelProjectDomainResponse = {
   error?: { code?: string; message?: string }
 }
 
+function normalizeVercelProjectDomain(domainRaw: string): string | null {
+  const direct = normalizeRequestHost(domainRaw)
+  if (direct) return direct
+
+  const trimmed = domainRaw.trim().toLowerCase().replace(/\.$/, "")
+  if (!trimmed.startsWith("*.")) return null
+  const apex = trimmed.slice(2)
+  if (!apex || !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/.test(apex)) {
+    return null
+  }
+  return trimmed
+}
+
 function vercelConfig() {
   const token = process.env.VERCEL_API_TOKEN?.trim()
   const projectId = process.env.VERCEL_PROJECT_ID?.trim()
@@ -71,7 +84,7 @@ async function vercelApi<T>(
 
 export async function addDomainToVercelProject(domainRaw: string): Promise<VercelDomainProvisionResult> {
   const cfg = vercelConfig()
-  const domain = normalizeRequestHost(domainRaw)
+  const domain = normalizeVercelProjectDomain(domainRaw)
   if (!cfg) {
     return { attempted: false, status: "skipped", message: "Vercel API not configured (VERCEL_API_TOKEN, VERCEL_PROJECT_ID)" }
   }
@@ -125,7 +138,7 @@ export async function getVercelProjectDomain(
   domainRaw: string
 ): Promise<{ verified: boolean; status: VercelDomainProvisionStatus } | null> {
   const cfg = vercelConfig()
-  const domain = normalizeRequestHost(domainRaw)
+  const domain = normalizeVercelProjectDomain(domainRaw)
   if (!cfg || !domain) return null
 
   const path = `/v9/projects/${encodeURIComponent(cfg.projectId)}/domains/${encodeURIComponent(domain)}${teamQuery(cfg.teamId)}`

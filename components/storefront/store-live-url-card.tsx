@@ -12,6 +12,7 @@ type StoreUrls = {
   subdomainUrl: string
   platformPathUrl: string
   customDomainUrl: string | null
+  subdomainSslActive: boolean
 }
 
 type Props = {
@@ -106,6 +107,16 @@ export function StoreLiveUrlCard({ urls, storeHostSuffix, loading }: Props) {
         </div>
 
         <CopyRow label={t("subdomainLabel")} url={urls.subdomainUrl} highlight />
+
+        {!urls.subdomainSslActive ? (
+          <p className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs leading-relaxed text-amber-100">
+            {t("subdomainPending")}
+          </p>
+        ) : (
+          <p className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs leading-relaxed text-emerald-100">
+            {t("subdomainActive")}
+          </p>
+        )}
 
         {urls.customDomainUrl ? (
           <CopyRow label={t("customDomainLabel")} url={urls.customDomainUrl} highlight />

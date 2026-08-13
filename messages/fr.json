@@ -2555,7 +2555,9 @@
         "subdomainLabel": "URL boutique dédiée",
         "customDomainLabel": "Domaine personnalisé",
         "platformLabel": "Chemin Affisell (secours)",
-        "openPrimary": "Ouvrir la boutique"
+        "openPrimary": "Ouvrir la boutique",
+        "subdomainPending": "HTTPS en cours sur votre sous-domaine — le lien principal utilise Affisell.com en secours. Actualisez dans 1–2 min après ouverture du Brand Studio.",
+        "subdomainActive": "HTTPS actif — votre URL dédiée est prête pour Google Ads."
       },
       "storeName": "Nom de la boutique",
       "heroBanner": "Bannière hero (URL HTTPS)",

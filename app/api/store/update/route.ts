@@ -263,6 +263,7 @@ export async function POST(req: Request) {
         slug: updated.slug,
         customDomain: updated.customDomain,
         domainVerified: updated.domainVerified,
+        subdomainVercelStatus: updated.subdomainVercelStatus,
         previousTheme: existingTheme,
         nextTheme: parseStorefrontTheme(updated.storefrontTheme),
       })
