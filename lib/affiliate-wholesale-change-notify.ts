@@ -10,9 +10,9 @@ import {
   detectWholesaleIncreases,
   evaluateListingMarginReview,
   parseListingVariantPricing,
-  wholesaleSnapshotHash,
   type WholesaleSnapshot,
 } from "@/lib/affiliate-wholesale-change-guard"
+import { wholesaleSnapshotHash } from "@/lib/affiliate-wholesale-snapshot-hash.server"
 
 export async function notifyAffiliatesOfWholesaleChange(args: {
   productId: string

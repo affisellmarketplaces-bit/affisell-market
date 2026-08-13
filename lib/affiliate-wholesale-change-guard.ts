@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto"
-
 import { buildAffiliateVariantOptions } from "@/lib/affiliate-storefront-variants"
 import {
   parseAffiliateVariantPricingJson,
@@ -48,15 +46,6 @@ export function buildWholesaleSnapshot(args: {
     basePriceCents: Math.max(0, Math.round(args.basePriceCents)),
     variantWholesaleCents,
   }
-}
-
-export function wholesaleSnapshotHash(snapshot: WholesaleSnapshot): string {
-  const rows = Object.entries(snapshot.variantWholesaleCents)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([k, c]) => `${k}:${c}`)
-    .join("|")
-  const raw = `${snapshot.basePriceCents}#${rows}`
-  return createHash("sha256").update(raw).digest("hex").slice(0, 20)
 }
 
 export function detectWholesaleIncreases(

@@ -5,8 +5,8 @@ import {
   detectWholesaleIncreases,
   evaluateListingMarginReview,
   listingMarginReviewIsResolved,
-  wholesaleSnapshotHash,
 } from "@/lib/affiliate-wholesale-change-guard"
+import { wholesaleSnapshotHash } from "@/lib/affiliate-wholesale-snapshot-hash.server"
 
 describe("affiliate-wholesale-change-guard", () => {
   const baseProduct = {
