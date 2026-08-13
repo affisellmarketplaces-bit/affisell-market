@@ -21,6 +21,13 @@ import { stripDescriptionImageMarkers } from "@/lib/description-rich-content"
 import { parseCustomColumnsFromDb } from "@/lib/product-custom-columns"
 import { variantsFromDb } from "@/lib/product-variants"
 import { prisma } from "@/lib/prisma"
+import {
+  formatResellerStoreLabel,
+  type ResellerStorefrontListProduct,
+} from "@/lib/boutique/reseller-storefront-shared"
+
+export type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
+export { formatResellerStoreLabel } from "@/lib/boutique/reseller-storefront-shared"
 
 export type ResellerStorefrontProduct = {
   listingId: string
@@ -224,10 +231,121 @@ export async function loadResellerStorefrontProduct(
   }
 }
 
-export function formatResellerStoreLabel(storeSlug: string): string {
-  return storeSlug
-    .split("-")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ")
+export type ResellerStorefrontListOwner = {
+  id: string
+  storeName: string
+  storeSlug: string
+}
+
+export type ResellerStorefrontListResult = {
+  owner: ResellerStorefrontListOwner | null
+  products: ResellerStorefrontListProduct[]
+  count: number
+}
+
+export async function loadResellerStorefrontList(args: {
+  storeSlug: string
+}): Promise<ResellerStorefrontListResult> {
+  const storeSlug = args.storeSlug.trim()
+  if (!storeSlug) {
+    return { owner: null, products: [], count: 0 }
+  }
+
+  const store = await prisma.store.findUnique({
+    where: { slug: storeSlug },
+    select: {
+      slug: true,
+      name: true,
+      userId: true,
+    },
+  })
+
+  if (!store) {
+    console.log("[boutique-storefront-list]", { storeSlug, result: "store_not_found" })
+    return { owner: null, products: [], count: 0 }
+  }
+
+  const listings = await prisma.affiliateProduct.findMany({
+    where: {
+      affiliateId: store.userId,
+      ...buyerListedAffiliateProductWhere,
+    },
+    select: {
+      id: true,
+      customTitle: true,
+      sellingPriceCents: true,
+      variantPricing: true,
+      promotedVariantKeys: true,
+      customImages: true,
+      product: {
+        select: {
+          name: true,
+          images: true,
+          stock: true,
+          basePriceCents: true,
+          variants: true,
+          colors: true,
+          customColumns: true,
+          productVariants: {
+            select: {
+              id: true,
+              color: true,
+              size: true,
+              stock: true,
+              customData: true,
+              supplierPrice: true,
+              wholesalePriceCents: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { updatedAt: "desc" },
+  })
+
+  const products: ResellerStorefrontListProduct[] = listings
+    .filter((listing): listing is typeof listing & { product: NonNullable<typeof listing.product> } =>
+      Boolean(listing.product)
+    )
+    .map((listing) => {
+      const commerce = resolveResellerDefaultListingCommerce({
+        listingSellingPriceCents: listing.sellingPriceCents,
+        variantPricingRaw: listing.variantPricing,
+        promotedVariantKeys: listing.promotedVariantKeys,
+        product: {
+          basePriceCents: listing.product.basePriceCents,
+          stock: listing.product.stock,
+          variants: listing.product.variants,
+          colors: listing.product.colors ?? [],
+          customColumns: listing.product.customColumns,
+          productVariants: listing.product.productVariants ?? [],
+        },
+      })
+
+      return {
+        id: listing.id,
+        title: listingDisplayTitle(listing.customTitle, listing.product.name),
+        priceCents: commerce.priceCents,
+        priceLabel: formatStoreCurrencyFromCents(commerce.priceCents),
+        image: listingPrimaryImageUrl(listing.customImages, listing.product.images) || "/placeholder.png",
+        isOutOfStock: commerce.availableStock <= 0,
+      }
+    })
+
+  console.log("[boutique-storefront-list]", {
+    storeSlug,
+    ownerId: store.userId,
+    count: products.length,
+    result: "loaded",
+  })
+
+  return {
+    owner: {
+      id: store.userId,
+      storeName: store.name,
+      storeSlug: store.slug,
+    },
+    products,
+    count: products.length,
+  }
 }
