@@ -85,12 +85,15 @@ export function ResellerStorefrontGrid({
     setTheme(next)
   }, [])
 
-  const handleRegenerate = useCallback(() => {
+  const handleRegenerate = useCallback(async () => {
     setRegenerating(true)
     const nextTheme = nextStorefrontThemeId(theme)
     setTheme(nextTheme)
     toast.success(`Theme: ${STOREFRONT_THEMES[nextTheme].label} ✨`)
-    window.setTimeout(() => setRegenerating(false), 600)
+    await new Promise<void>((resolve) => {
+      window.setTimeout(resolve, 600)
+    })
+    setRegenerating(false)
   }, [theme])
 
   const handleGenerateFromModal = async ({
