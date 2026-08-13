@@ -1,18 +1,28 @@
 "use client"
 
 import Image from "next/image"
-import { Eye, Sparkles } from "lucide-react"
+import { Eye, RefreshCw, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useCallback, useState } from "react"
 import { toast } from "sonner"
 
+import { AIPersonalizeModal } from "@/components/boutique/AIPersonalizeModal"
 import type { ResellerBoutiqueThemeProps } from "@/lib/boutique/reseller-boutique-theme-shared"
 import type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
+import {
+  getStorefrontThemeTokens,
+  nextStorefrontThemeId,
+  type StorefrontThemeId,
+} from "@/lib/boutique/storefront-themes"
+import { cn } from "@/lib/utils"
 
 type ResellerStorefrontGridProps = {
   storeSlug: string
   storeLabel: string
   tagline?: string | null
-  theme: ResellerBoutiqueThemeProps
+  brandTheme: ResellerBoutiqueThemeProps
+  visualTheme: StorefrontThemeId
+  onVisualThemeChange: (themeId: StorefrontThemeId) => void
   products: ResellerStorefrontListProduct[]
   count: number
 }
@@ -26,31 +36,121 @@ export function ResellerStorefrontGrid({
   storeSlug,
   storeLabel,
   tagline,
-  theme: _theme,
+  brandTheme: _brandTheme,
+  visualTheme,
+  onVisualThemeChange,
   products,
   count,
 }: ResellerStorefrontGridProps) {
   const router = useRouter()
+  const tokens = getStorefrontThemeTokens(visualTheme)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
+  const [cardsPulsing, setCardsPulsing] = useState(false)
 
-  const handleAiPersonalize = () => {
-    toast.message("AI Personalization coming soon — will call /api/ai/store-avatar")
+  const applyTheme = useCallback(
+    (themeId: StorefrontThemeId) => {
+      onVisualThemeChange(themeId)
+    },
+    [onVisualThemeChange]
+  )
+
+  const runRegenerate = useCallback(
+    async (options?: { vibe?: string; fromModal?: boolean }) => {
+      setRegenerating(true)
+      setCardsPulsing(true)
+
+      try {
+        const res = await fetch("/api/store/generate-brand-copy", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            niche: options?.vibe?.trim() || undefined,
+            locale: "fr",
+          }),
+        })
+
+        if (res.ok) {
+          toast.success("Layout regenerated with AI copy")
+        } else {
+          if (!options?.fromModal) {
+            const next = nextStorefrontThemeId(visualTheme)
+            applyTheme(next)
+          }
+          toast.message("Theme applied — AI generation coming soon")
+        }
+      } catch {
+        if (!options?.fromModal) {
+          const next = nextStorefrontThemeId(visualTheme)
+          applyTheme(next)
+        }
+        toast.message("Theme applied — AI generation coming soon")
+      } finally {
+        window.setTimeout(() => {
+          setCardsPulsing(false)
+          setRegenerating(false)
+        }, 1000)
+      }
+    },
+    [applyTheme, visualTheme]
+  )
+
+  const handleGenerateFromModal = async ({
+    vibe,
+    themeId,
+  }: {
+    vibe: string
+    themeId: StorefrontThemeId
+  }) => {
+    applyTheme(themeId)
+    setModalOpen(false)
+    await runRegenerate({ vibe, fromModal: true })
   }
 
   return (
     <>
       <header className="relative mb-10 md:mb-12">
-        <button
-          type="button"
-          onClick={handleAiPersonalize}
-          className="mb-6 inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-black px-5 py-2.5 text-sm font-medium text-white shadow-[0_0_20px_rgba(109,40,217,0.3)] transition-all duration-300 hover:scale-[1.02] hover:bg-white hover:text-black hover:shadow-[0_0_30px_rgba(109,40,217,0.5)] md:absolute md:right-0 md:top-0 md:mb-0 md:w-auto"
-        >
-          <Sparkles className="size-4 shrink-0" aria-hidden />
-          Personalize my store with AI ✨
-        </button>
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:justify-end md:absolute md:right-0 md:top-0 md:mb-0 md:flex-row">
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className={cn(
+              "inline-flex w-full items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-300 hover:scale-[1.02] sm:w-auto",
+              tokens.aiButton
+            )}
+          >
+            <Sparkles className="size-4 shrink-0" aria-hidden />
+            Personalize my store with AI ✨
+          </button>
+          <button
+            type="button"
+            title="Regenerate layout with AI"
+            disabled={regenerating}
+            onClick={() => void runRegenerate()}
+            className={cn(
+              "group inline-flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 sm:w-auto",
+              tokens.regenerateButton
+            )}
+          >
+            <RefreshCw
+              className={cn(
+                "size-4 shrink-0 transition-transform duration-500 group-hover:rotate-180",
+                regenerating && "animate-spin"
+              )}
+              aria-hidden
+            />
+            <span className="sm:hidden">Regenerate</span>
+            <span className="hidden sm:inline">↻ Regenerate</span>
+          </button>
+        </div>
 
-        <div className="flex items-start gap-4 pr-0 md:pr-[17rem]">
+        <div className="flex items-start gap-4 pr-0 md:pr-[22rem]">
           <span
-            className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-teal-500 text-sm font-bold text-white shadow-lg ring-2 ring-white/20"
+            className={cn(
+              "flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-sm font-bold text-white shadow-lg ring-2",
+              tokens.avatar
+            )}
             aria-hidden
           >
             {storeInitial(storeLabel)}
@@ -58,27 +158,47 @@ export function ResellerStorefrontGrid({
           <div className="min-w-0 space-y-3">
             <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">
               Boutique{" "}
-              <span className="bg-gradient-to-r from-white to-violet-200 bg-clip-text text-transparent">
+              <span
+                className={cn(
+                  "bg-gradient-to-r bg-clip-text text-transparent",
+                  tokens.headerTitleGradient
+                )}
+              >
                 {storeLabel}
               </span>
             </h1>
             {tagline?.trim() ? (
-              <p className="max-w-xl text-sm leading-relaxed text-white/60">{tagline.trim()}</p>
+              <p className={cn("max-w-xl text-sm leading-relaxed", tokens.headerMuted)}>
+                {tagline.trim()}
+              </p>
             ) : null}
-            <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm text-white/70">
+            <span
+              className={cn(
+                "inline-flex items-center rounded-full border px-3 py-1 text-sm",
+                tokens.badge
+              )}
+            >
               {count} produit{count > 1 ? "s" : ""}
             </span>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
+      <div
+        className={cn(
+          "mx-auto grid max-w-4xl grid-cols-1 gap-6 transition-all duration-700 ease-in-out md:grid-cols-2",
+          cardsPulsing && "animate-pulse"
+        )}
+      >
         {products.map((product) => (
           <article
             key={product.id}
-            className="group rounded-3xl border border-white/50 bg-white/[0.95] p-3 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.2)]"
+            className={cn(
+              "group rounded-3xl border p-3 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.2)]",
+              tokens.card
+            )}
           >
-            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-gray-50">
+            <div className={cn("relative aspect-[4/3] overflow-hidden rounded-2xl", tokens.cardImageBg)}>
               <Image
                 src={product.image}
                 alt={product.title}
@@ -95,11 +215,11 @@ export function ResellerStorefrontGrid({
             </div>
 
             <div className="p-4 pt-4">
-              <h2 className="text-lg font-bold leading-tight text-gray-900">{product.title}</h2>
-              <p className="mt-1 line-clamp-2 text-sm text-gray-500">
+              <h2 className={cn("text-lg font-bold leading-tight", tokens.cardTitle)}>{product.title}</h2>
+              <p className={cn("mt-1 line-clamp-2 text-sm", tokens.cardMuted)}>
                 Checkout sécurisé · Livraison Affisell
               </p>
-              <p className="mt-3 text-2xl font-extrabold tracking-tight text-gray-900">
+              <p className={cn("mt-3 text-2xl font-extrabold tracking-tight", tokens.price)}>
                 {product.priceLabel}
               </p>
 
@@ -110,7 +230,10 @@ export function ResellerStorefrontGrid({
                     `/boutique/${encodeURIComponent(storeSlug)}?productId=${encodeURIComponent(product.id)}`
                   )
                 }
-                className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-teal-500 text-sm font-medium text-white transition-all duration-300 hover:from-violet-700 hover:to-teal-600 hover:shadow-[0_4px_20px_rgba(109,40,217,0.4)] group-hover:scale-[1.01]"
+                className={cn(
+                  "mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r text-sm font-medium text-white transition-all duration-300 hover:shadow-[0_4px_20px_rgba(109,40,217,0.4)] group-hover:scale-[1.01]",
+                  tokens.cta
+                )}
               >
                 <Eye className="size-4" aria-hidden />
                 Voir le produit
@@ -120,9 +243,20 @@ export function ResellerStorefrontGrid({
         ))}
       </div>
 
-      <footer className="mt-12 border-t border-white/10 pt-6 text-center text-xs text-white/40">
-        Boutique {storeSlug} · Propulsé par Affisell
+      <footer className={cn("mt-12 border-t pt-6 text-center text-xs", tokens.footer)}>
+        Boutique {storeSlug} · Propulsé par Affisell · {tokens.label}
       </footer>
+
+      <AIPersonalizeModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        storeSlug={storeSlug}
+        selectedTheme={visualTheme}
+        onThemeSelect={applyTheme}
+        onGenerate={handleGenerateFromModal}
+        onRegenerateDescription={() => runRegenerate({ fromModal: true })}
+        generating={regenerating}
+      />
     </>
   )
 }

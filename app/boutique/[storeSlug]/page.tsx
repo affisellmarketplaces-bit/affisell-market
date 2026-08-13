@@ -7,18 +7,22 @@ import {
 } from "@/lib/boutique/load-reseller-storefront.server"
 import { serializeResellerBoutiqueTheme } from "@/lib/boutique/reseller-boutique-theme-shared"
 import { formatResellerStoreLabel } from "@/lib/boutique/reseller-storefront-shared"
+import {
+  DEFAULT_STOREFRONT_THEME_ID,
+  parseStorefrontThemeId,
+} from "@/lib/boutique/storefront-themes"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
 import { ResellerBoutiquePageShell } from "@/components/boutique/reseller-boutique-page-shell"
 import { ResellerStorefrontEmptyState } from "@/components/boutique/ResellerStorefrontEmptyState"
-import { ResellerStorefrontGrid } from "@/components/boutique/ResellerStorefrontGrid"
+import { ResellerStorefrontView } from "@/components/boutique/ResellerStorefrontView"
 import { ResellerStorefrontShell } from "@/components/boutique/ResellerStorefrontShell"
 
 export const revalidate = 60
 
 type PageProps = {
   params: Promise<{ storeSlug: string }>
-  searchParams: Promise<{ productId?: string }>
+  searchParams: Promise<{ productId?: string; theme?: string }>
 }
 
 const defaultTheme = serializeResellerBoutiqueTheme(parseStorefrontTheme(null))
@@ -77,10 +81,12 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
 
   const storefront = await loadResellerStorefrontList({ storeSlug })
   const resolvedTheme = storefront.theme ?? theme
+  const initialVisualTheme =
+    parseStorefrontThemeId(sp.theme) ?? DEFAULT_STOREFRONT_THEME_ID
 
   if (storefront.count === 0) {
     return (
-      <ResellerBoutiquePageShell>
+      <ResellerBoutiquePageShell themeId={initialVisualTheme}>
         <ResellerStorefrontEmptyState
           storeSlug={storeSlug}
           storeLabel={storeLabel}
@@ -91,15 +97,14 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
   }
 
   return (
-    <ResellerBoutiquePageShell>
-      <ResellerStorefrontGrid
-        storeSlug={storeSlug}
-        storeLabel={storeLabel}
-        tagline={storeContext?.tagline ?? null}
-        theme={resolvedTheme}
-        products={storefront.products}
-        count={storefront.count}
-      />
-    </ResellerBoutiquePageShell>
+    <ResellerStorefrontView
+      storeSlug={storeSlug}
+      storeLabel={storeLabel}
+      tagline={storeContext?.tagline ?? null}
+      brandTheme={resolvedTheme}
+      initialVisualTheme={initialVisualTheme}
+      products={storefront.products}
+      count={storefront.count}
+    />
   )
 }
