@@ -1,5 +1,6 @@
 import { appBaseUrl } from "@/lib/app-base-url"
 import { normalizeRequestHost } from "@/lib/custom-domain-host"
+import type { StorePublicUrls } from "@/lib/store-public-url-shared"
 import {
   isStoreSubdomainEnabled,
   storeHostSuffix,
@@ -15,14 +16,7 @@ export type StorePublicUrlInput = {
   subdomainVercelStatus?: string | null
 }
 
-export type StorePublicUrls = {
-  /** Best URL for ads / sharing (custom domain > subdomain > platform path). */
-  primaryUrl: string
-  subdomainUrl: string
-  platformPathUrl: string
-  customDomainUrl: string | null
-  subdomainSslActive: boolean
-}
+export type { StorePublicUrls } from "@/lib/store-public-url-shared"
 
 export function storePublicUrlInputFromStore(
   store: {

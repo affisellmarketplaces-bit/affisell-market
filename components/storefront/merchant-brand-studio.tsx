@@ -28,6 +28,7 @@ import { StorefrontPresetAbPanel } from "@/components/storefront/storefront-pres
 import { StorefrontPresetOptimizerPanel } from "@/components/storefront/storefront-preset-optimizer-panel"
 import { StorefrontShareGrowPanel } from "@/components/storefront/storefront-share-grow-panel"
 import { StoreLiveUrlCard } from "@/components/storefront/store-live-url-card"
+import type { StorePublicUrls } from "@/lib/store-public-url-shared"
 import { StoreNameBadgePicker } from "@/components/storefront/store-name-badge-picker"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -234,12 +235,7 @@ export function MerchantBrandStudio({
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [publicStoreUrl, setPublicStoreUrl] = useState<string | null>(null)
-  const [storeUrls, setStoreUrls] = useState<{
-    primaryUrl: string
-    subdomainUrl: string
-    platformPathUrl: string
-    customDomainUrl: string | null
-  } | null>(null)
+  const [storeUrls, setStoreUrls] = useState<StorePublicUrls | null>(null)
   const [storeHostSuffix, setStoreHostSuffix] = useState<string | null>(null)
   const [name, setName] = useState("")
   const [bannerUrl, setBannerUrl] = useState("")
@@ -342,12 +338,7 @@ export function MerchantBrandStudio({
       const json = (await res.json()) as {
         store?: StoreRow
         publicStoreUrl?: string
-        storeUrls?: {
-          primaryUrl: string
-          subdomainUrl: string
-          platformPathUrl: string
-          customDomainUrl: string | null
-        }
+        storeUrls?: StorePublicUrls
         storeHostSuffix?: string | null
         brandPulseMetrics?: {
           liveCatalogCount: number

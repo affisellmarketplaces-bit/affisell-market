@@ -5,18 +5,11 @@ import { useTranslations } from "next-intl"
 import { useCallback, useState } from "react"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
+import type { StorePublicUrls } from "@/lib/store-public-url-shared"
 import { cn } from "@/lib/utils"
 
-type StoreUrls = {
-  primaryUrl: string
-  subdomainUrl: string
-  platformPathUrl: string
-  customDomainUrl: string | null
-  subdomainSslActive: boolean
-}
-
 type Props = {
-  urls: StoreUrls | null
+  urls: StorePublicUrls | null
   storeHostSuffix?: string | null
   loading?: boolean
 }
