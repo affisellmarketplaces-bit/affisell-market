@@ -24,9 +24,19 @@ export async function POST(req: Request) {
 
   if (!result.success) {
     const status =
-      result.error === "listing_not_found" ? 404 : result.error === "out_of_stock" ? 409 : 400
+      result.error === "listing_not_found"
+        ? 404
+        : result.error === "out_of_stock"
+          ? 409
+          : 400
     return NextResponse.json(result, { status })
   }
 
-  return NextResponse.json(result)
+  return NextResponse.json({
+    success: true,
+    checkoutUrl: result.checkoutUrl,
+    orderId: result.orderId,
+    marginCents: result.marginCents,
+    sellingPriceCents: result.sellingPriceCents,
+  })
 }

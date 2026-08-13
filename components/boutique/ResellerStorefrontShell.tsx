@@ -17,6 +17,7 @@ type ResellerStorefrontShellProps = {
 
 type CreateResellerOrderResponse = {
   success?: boolean
+  checkoutUrl?: string
   orderId?: string
   marginCents?: number
   error?: string
@@ -44,7 +45,7 @@ export function ResellerStorefrontShell({
         }),
       })
       const data = (await res.json()) as CreateResellerOrderResponse
-      if (!res.ok || !data.success) {
+      if (!res.ok || !data.success || !data.checkoutUrl) {
         toast.error("Commande impossible", {
           description:
             data.error === "out_of_stock"
@@ -54,10 +55,7 @@ export function ResellerStorefrontShell({
         return
       }
 
-      const marginEur = ((data.marginCents ?? 0) / 100).toFixed(2)
-      toast.success(`Commande créée pour ${storeSlug} - Marge: ${marginEur}€`, {
-        description: data.orderId ? `Réf. ${data.orderId}` : undefined,
-      })
+      window.location.href = data.checkoutUrl
     } catch {
       toast.error("Erreur réseau", { description: "Vérifiez votre connexion." })
     } finally {
