@@ -5,7 +5,7 @@ import {
   loadResellerStorefrontProduct,
 } from "@/lib/boutique/load-reseller-storefront.server"
 
-import { ResellerStorefrontShell } from "./components/ResellerStorefrontShell"
+import { ResellerStorefrontShell } from "@/components/boutique/ResellerStorefrontShell"
 
 export const revalidate = 60
 

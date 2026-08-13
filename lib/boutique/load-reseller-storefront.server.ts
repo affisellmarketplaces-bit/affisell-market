@@ -42,7 +42,7 @@ type ResellerListingCommerce = {
 }
 
 /** Mirrors marketplace PDP default color/size + activeVariantRow pricing & stock. */
-function resolveResellerDefaultListingCommerce(args: {
+export function resolveResellerDefaultListingCommerce(args: {
   listingSellingPriceCents: number
   variantPricingRaw: unknown
   promotedVariantKeys: string[] | null | undefined

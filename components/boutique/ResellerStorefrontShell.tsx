@@ -1,10 +1,12 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, Package, ShieldCheck, Sparkles, Truck } from "lucide-react"
+import { ArrowRight, Loader2, Package, ShieldCheck, Sparkles, Truck } from "lucide-react"
+import { useCallback, useState } from "react"
+import { toast } from "sonner"
 
-import {
-  type ResellerStorefrontProduct,
-} from "@/lib/boutique/load-reseller-storefront.server"
+import type { ResellerStorefrontProduct } from "@/lib/boutique/load-reseller-storefront.server"
 
 type ResellerStorefrontShellProps = {
   storeSlug: string
@@ -13,12 +15,56 @@ type ResellerStorefrontShellProps = {
   requestedListingId: string | null
 }
 
+type CreateResellerOrderResponse = {
+  success?: boolean
+  orderId?: string
+  marginCents?: number
+  error?: string
+}
+
 export function ResellerStorefrontShell({
   storeSlug,
   storeLabel,
   product,
   requestedListingId,
 }: ResellerStorefrontShellProps) {
+  const [loading, setLoading] = useState(false)
+
+  const handleBuyNow = useCallback(async () => {
+    if (!product || product.isOutOfStock) return
+
+    setLoading(true)
+    try {
+      const res = await fetch("/api/store/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          storeSlug,
+          productId: product.listingId,
+        }),
+      })
+      const data = (await res.json()) as CreateResellerOrderResponse
+      if (!res.ok || !data.success) {
+        toast.error("Commande impossible", {
+          description:
+            data.error === "out_of_stock"
+              ? "Ce produit est en rupture de stock."
+              : "Réessayez dans un instant.",
+        })
+        return
+      }
+
+      const marginEur = ((data.marginCents ?? 0) / 100).toFixed(2)
+      toast.success(`Commande créée pour ${storeSlug} - Marge: ${marginEur}€`, {
+        description: data.orderId ? `Réf. ${data.orderId}` : undefined,
+      })
+    } catch {
+      toast.error("Erreur réseau", { description: "Vérifiez votre connexion." })
+    } finally {
+      setLoading(false)
+    }
+  }, [product, storeSlug])
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#faf8ff] text-zinc-900">
       <div
@@ -131,7 +177,7 @@ export function ResellerStorefrontShell({
                 </div>
                 <div className="flex items-center gap-2 rounded-xl border border-zinc-200/80 bg-zinc-50/80 px-3 py-2 text-xs font-medium text-zinc-700">
                   <Truck className="h-4 w-4 text-violet-600" aria-hidden />
-                  Checkout marketplace intégré
+                  Checkout reseller 1-clic
                 </div>
               </div>
 
@@ -145,18 +191,29 @@ export function ResellerStorefrontShell({
                   Rupture de stock
                 </button>
               ) : (
-                <Link
-                  href={product.marketplaceHref}
-                  className="mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 via-violet-600 to-indigo-600 text-base font-bold text-white shadow-[0_16px_40px_-16px_rgba(91,33,217,0.65)] transition hover:from-violet-500 hover:to-indigo-500"
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => void handleBuyNow()}
+                  className="mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 via-violet-600 to-indigo-600 text-base font-bold text-white shadow-[0_16px_40px_-16px_rgba(91,33,217,0.65)] transition hover:from-violet-500 hover:to-indigo-500 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  Acheter maintenant
-                  <ArrowRight className="h-5 w-5" aria-hidden />
-                </Link>
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+                      Création en cours…
+                    </>
+                  ) : (
+                    <>
+                      Acheter maintenant
+                      <ArrowRight className="h-5 w-5" aria-hidden />
+                    </>
+                  )}
+                </button>
               )}
               <p className="mt-3 text-center text-[11px] text-zinc-500">
                 {product.isOutOfStock
                   ? "Ce produit est indisponible sur le marketplace — alerte stock bientôt."
-                  : "Tu seras redirigé vers le checkout Affisell pour finaliser la commande."}
+                  : "Commande reseller sécurisée — ta marge est calculée automatiquement."}
               </p>
             </div>
           </section>
