@@ -10,5 +10,9 @@ export async function POST(req: Request) {
   if (!slug) {
     return NextResponse.json({ success: false, error: "invalid storeName" }, { status: 400 })
   }
-  return NextResponse.json({ success: true, url: `/boutique/${slug}`, slug, productId: body.productId ?? null })
+  const listingId = body.productId?.trim() || null
+  const url = listingId
+    ? `/boutique/${slug}?productId=${encodeURIComponent(listingId)}`
+    : `/boutique/${slug}`
+  return NextResponse.json({ success: true, url, slug, productId: listingId })
 }
