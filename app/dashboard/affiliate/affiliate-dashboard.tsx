@@ -40,6 +40,7 @@ import type { CSSProperties } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 
+import { CreateStoreButton } from "@/components/store/CreateStoreButton"
 import AffiliateLiveStore from "@/components/affiliate/affiliate-live-store"
 import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import { DiscoverListingActions } from "@/components/affiliate/discover-listing-actions"
@@ -111,11 +112,13 @@ function sortAffiliateListingByPosition(a: Listing, b: Listing) {
 function SortableStoreCard(props: {
   listing: Listing
   selected: boolean
+  storeSlug: string | null
+  storeName: string | null
   onSelect: () => void
   onToggleList: () => void
   onToggleAuction: () => void
 }) {
-  const { listing, selected, onSelect, onToggleList, onToggleAuction } = props
+  const { listing, selected, storeSlug, storeName, onSelect, onToggleList, onToggleAuction } = props
   const p = listing.product
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -230,6 +233,13 @@ function SortableStoreCard(props: {
           Auction Arena
         </label>
         <div className="mt-3 flex flex-col gap-2">
+          <CreateStoreButton
+            productId={listing.id}
+            defaultSlug={storeSlug}
+            defaultStoreName={storeName}
+            variant="compact"
+            className="w-full"
+          />
           <Link
             href={`/dashboard/affiliate/products/${listing.id}/edit`}
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
@@ -1246,6 +1256,8 @@ export function AffiliateDashboard({ storeId }: Props) {
                       <SortableStoreCard
                         key={l.id}
                         listing={l}
+                        storeSlug={storeSlug}
+                        storeName={storeName}
                         selected={selected.has(l.id)}
                         onSelect={() =>
                           setSelected((prev) => {

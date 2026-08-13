@@ -14,9 +14,24 @@ type PageProps = {
   searchParams: Promise<{ productId?: string }>
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { storeSlug } = await params
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
+  const [{ storeSlug }, sp] = await Promise.all([params, searchParams])
   const label = formatResellerStoreLabel(storeSlug)
+  const listingId = sp.productId?.trim() || null
+  const product = listingId ? await loadResellerStorefrontProduct(listingId) : null
+
+  if (product) {
+    return {
+      title: `${product.title} | ${label}`,
+      description: product.descriptionExcerpt || `Achetez ${product.title} sur la boutique ${label}.`,
+      openGraph: {
+        title: `${product.title} · ${label}`,
+        description: product.descriptionExcerpt,
+        images: product.imageUrl ? [{ url: product.imageUrl }] : undefined,
+      },
+    }
+  }
+
   return {
     title: `${label} | Boutique Affisell`,
     description: `Découvrez la boutique reseller ${label} propulsée par Affisell.`,

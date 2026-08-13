@@ -60,11 +60,15 @@ export function ResellerStorefrontShell({
             <p className="mt-3 text-sm leading-relaxed text-zinc-600">
               {requestedListingId
                 ? "Ce produit n'est pas disponible ou l'identifiant listing est invalide."
-                : "Ta vitrine est prête. Publie un produit depuis le dashboard, puis crée ta boutique en 1 clic."}
+                : "Ajoute ?productId=TON_LISTING_ID à l'URL pour afficher ton produit phare."}
             </p>
             {requestedListingId ? (
               <p className="mt-2 font-mono text-xs text-zinc-400">listing: {requestedListingId}</p>
-            ) : null}
+            ) : (
+              <p className="mt-2 rounded-lg bg-violet-50 px-3 py-2 font-mono text-[11px] text-violet-800">
+                /boutique/{storeSlug}?productId=&lt;AffiliateProduct.id&gt;
+              </p>
+            )}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/dashboard/affiliate"
