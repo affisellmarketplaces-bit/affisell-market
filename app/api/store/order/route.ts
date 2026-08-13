@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { createResellerOrder } from "@/lib/boutique/create-reseller-order.server"
+import { AFFILIATE_COMMISSION_REQUIRED_ERROR } from "@/lib/supplier-explicit-commission"
 
 export async function POST(req: Request) {
   let body: { storeSlug?: string; productId?: string; customerEmail?: string }
@@ -28,7 +29,9 @@ export async function POST(req: Request) {
         ? 404
         : result.error === "out_of_stock"
           ? 409
-          : 400
+          : result.error === AFFILIATE_COMMISSION_REQUIRED_ERROR
+            ? 409
+            : 400
     return NextResponse.json(result, { status })
   }
 

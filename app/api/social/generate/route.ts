@@ -27,7 +27,7 @@ type Body = {
  */
 export async function POST(request: Request) {
   try {
-    await requireAffiliateSession()
+    const session = await requireAffiliateSession()
     const body = (await request.json().catch(() => null)) as Body | null
     const productId = body?.productId?.trim()
     if (!productId) {
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     }
 
     const mode = body?.mode ?? "both"
-    const product = await loadBubbleProductView(productId)
+    const product = await loadBubbleProductView(productId, session.user.id)
     if (!product) {
       return NextResponse.json({ error: "product_not_found" }, { status: 404 })
     }

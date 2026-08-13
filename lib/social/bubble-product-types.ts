@@ -24,6 +24,13 @@ export type BubbleProductView = {
   supplierName: string | null
   listingId: string | null
   bubbleUrl: string
+  /** Reseller storefront slug when loaded for an affiliate session. */
+  storeSlug?: string | null
+  storeName?: string | null
+  /** Full checkout URL `/boutique/{slug}?productId={listingId}`. */
+  boutiqueUrl?: string | null
+  /** Display label e.g. affisell.com/boutique/zh-monmonde */
+  boutiqueHostLabel?: string | null
 }
 
 export type SocialAssetKey =

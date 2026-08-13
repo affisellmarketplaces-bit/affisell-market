@@ -12,8 +12,8 @@ type Props = {
 export default async function ResellerProductSocialPage({ params, searchParams }: Props) {
   const { id } = await params
   const { format } = await searchParams
-  await requireAffiliateSession(`/dashboard/reseller/products/${id}/social`)
-  const product = await loadBubbleProductView(id)
+  const session = await requireAffiliateSession(`/dashboard/reseller/products/${id}/social`)
+  const product = await loadBubbleProductView(id, session.user.id)
   if (!product) notFound()
 
   return (
@@ -32,6 +32,11 @@ export default async function ResellerProductSocialPage({ params, searchParams }
         deliveryCountry: product.deliveryCountry,
         supplierTrustScore: product.supplierTrustScore,
         bubbleUrl: product.bubbleUrl,
+        listingId: product.listingId,
+        storeSlug: product.storeSlug,
+        storeName: product.storeName,
+        boutiqueUrl: product.boutiqueUrl,
+        boutiqueHostLabel: product.boutiqueHostLabel,
       }}
     />
   )

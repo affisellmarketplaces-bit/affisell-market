@@ -27,6 +27,10 @@ import { prisma } from "@/lib/prisma"
 import { stripeProductImages } from "@/lib/product-images"
 import { variantsFromDb } from "@/lib/product-variants"
 import { resolveSupplierCommissionRateBpsForProductId } from "@/lib/supplier-commission-rate.server"
+import {
+  AFFILIATE_COMMISSION_REQUIRED_ERROR,
+  productHasExplicitSupplierCommission,
+} from "@/lib/supplier-explicit-commission"
 import { intersectProductDeliveryCountries } from "@/lib/supplier-delivery-countries"
 import { splitVariantLineName } from "@/lib/supplier-sku-builder"
 import { getStripeClient } from "@/lib/stripe"
@@ -156,6 +160,8 @@ export async function createResellerOrder(
           customColumns: true,
           listingKind: true,
           deliveryCountryCodes: true,
+          commissionRate: true,
+          offerMode: true,
           productVariants: {
             select: {
               id: true,
@@ -195,6 +201,23 @@ export async function createResellerOrder(
 
   if (commerce.availableStock <= 0) {
     return { success: false, error: "out_of_stock" }
+  }
+
+  if (
+    !productHasExplicitSupplierCommission({
+      commissionRate: listing.product.commissionRate,
+      variants: listing.product.variants,
+      offerMode: listing.product.offerMode,
+      optionName: commerce.defaultOptionName,
+    })
+  ) {
+    console.log("[reseller-order]", {
+      storeSlug,
+      productId,
+      result: "commission_required",
+      error: AFFILIATE_COMMISSION_REQUIRED_ERROR,
+    })
+    return { success: false, error: AFFILIATE_COMMISSION_REQUIRED_ERROR }
   }
 
   const sellingPriceCents = commerce.priceCents

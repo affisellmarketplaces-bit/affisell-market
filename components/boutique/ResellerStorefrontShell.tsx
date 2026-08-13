@@ -23,6 +23,16 @@ type CreateResellerOrderResponse = {
   error?: string
 }
 
+const ORDER_ERROR_HINTS: Record<string, string> = {
+  out_of_stock: "Ce produit est en rupture de stock.",
+  affiliate_commission_required: "Commission fournisseur manquante — contactez le support.",
+  stripe_minimum_not_met: "Montant trop faible pour Stripe (min. 0,50 €).",
+  delivery_destination_unavailable: "Livraison indisponible pour ce produit.",
+  stripe_unavailable: "Paiement temporairement indisponible.",
+  stripe_session_failed: "Session Stripe impossible — réessayez.",
+  listing_not_found: "Produit introuvable ou non listé.",
+}
+
 export function ResellerStorefrontShell({
   storeSlug,
   storeLabel,
@@ -48,14 +58,13 @@ export function ResellerStorefrontShell({
       if (!res.ok || !data.success || !data.checkoutUrl) {
         toast.error("Commande impossible", {
           description:
-            data.error === "out_of_stock"
-              ? "Ce produit est en rupture de stock."
-              : "Réessayez dans un instant.",
+            (data.error && ORDER_ERROR_HINTS[data.error]) ||
+            "Réessayez dans un instant.",
         })
         return
       }
 
-      window.location.href = data.checkoutUrl
+      window.location.assign(data.checkoutUrl)
     } catch {
       toast.error("Erreur réseau", { description: "Vérifiez votre connexion." })
     } finally {

@@ -1,11 +1,12 @@
 "use client"
 
-import { AlertTriangle, Sparkles, Zap } from "lucide-react"
+import { AlertTriangle, Copy, ExternalLink, Sparkles, Zap } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { BubbleProductCard, type BubbleProductCardProduct } from "@/components/product/BubbleProductCard"
 import { LiveProfitCalculator } from "@/components/product/LiveProfitCalculator"
+import { CreateStoreButton } from "@/components/store/CreateStoreButton"
 import { ViralAssetCard } from "@/components/social/ViralAssetCard"
 import { ViralCarousel } from "@/components/social/ViralCarousel"
 import type { SocialAssetsBundle } from "@/lib/social/bubble-product-types"
@@ -33,6 +34,11 @@ type Props = {
     bubbleUrl: string
     costPrice?: number | null
     medias?: ViralMedia[]
+    listingId?: string | null
+    storeSlug?: string | null
+    storeName?: string | null
+    boutiqueUrl?: string | null
+    boutiqueHostLabel?: string | null
   }
   /** Deep-link from BubbleShareBar — e.g. story_1080x1920 or story */
   initialFormat?: string | null
@@ -419,6 +425,20 @@ export function ViralCommandCenter({ product, initialFormat = null }: Props) {
     else void downloadKit()
   }
 
+  const copyBoutiqueUrl = useCallback(async () => {
+    const url = product.boutiqueUrl?.trim()
+    if (!url) {
+      toast.error("Liste d'abord ce produit pour générer ta boutique checkout.")
+      return
+    }
+    const ok = await copyTextReliable(url)
+    if (ok) {
+      toast.success("Lien boutique copié", { description: product.boutiqueHostLabel ?? url })
+    } else {
+      toast.error("Copie impossible", { description: "Copiez le lien manuellement." })
+    }
+  }, [product.boutiqueHostLabel, product.boutiqueUrl])
+
   return (
     <div className="relative mx-auto max-w-5xl space-y-10 px-4 py-10">
       <div
@@ -537,6 +557,56 @@ export function ViralCommandCenter({ product, initialFormat = null }: Props) {
           suggestedPrice={product.salePrice}
           onPriceChange={setLivePrice}
         />
+        {product.listingId ? (
+          <div className="mt-4 rounded-2xl border border-violet-200/70 bg-violet-50/80 p-4 dark:border-violet-800/50 dark:bg-violet-950/30">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-violet-700 dark:text-violet-200">
+              Boutique checkout 1-clic
+            </p>
+            {product.boutiqueHostLabel ? (
+              <div className="mt-2 flex items-center gap-2 rounded-xl border border-violet-200/80 bg-white/90 px-3 py-2 dark:border-violet-900/60 dark:bg-zinc-950/80">
+                <code className="min-w-0 flex-1 truncate text-xs font-semibold text-violet-900 dark:text-violet-100">
+                  {product.boutiqueHostLabel}?productId={product.listingId}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => void copyBoutiqueUrl()}
+                  className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-violet-200 text-violet-700 hover:bg-violet-100 dark:border-violet-800 dark:text-violet-200 dark:hover:bg-violet-950"
+                  aria-label="Copier le lien boutique"
+                >
+                  <Copy className="size-3.5" aria-hidden />
+                </button>
+                {product.boutiqueUrl ? (
+                  <a
+                    href={product.boutiqueUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-violet-200 text-violet-700 hover:bg-violet-100 dark:border-violet-800 dark:text-violet-200 dark:hover:bg-violet-950"
+                    aria-label="Ouvrir la boutique"
+                  >
+                    <ExternalLink className="size-3.5" aria-hidden />
+                  </a>
+                ) : null}
+              </div>
+            ) : (
+              <p className="mt-2 text-xs text-violet-800 dark:text-violet-200">
+                Configure le slug de ta boutique dans Brand Studio pour activer le lien public.
+              </p>
+            )}
+            <div className="mt-3">
+              <CreateStoreButton
+                productId={product.listingId}
+                defaultSlug={product.storeSlug}
+                defaultStoreName={product.storeName}
+                variant="compact"
+                className="w-full"
+              />
+            </div>
+          </div>
+        ) : (
+          <p className="mt-3 rounded-xl border border-amber-200/80 bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
+            Publie ce produit dans ton catalogue pour débloquer la boutique checkout.
+          </p>
+        )}
         <p className="mt-2 text-center text-[11px] text-zinc-500">
           Zone privée — le slider met à jour le prix client des captions, jamais ta marge sur les
           PNG / Reel.
