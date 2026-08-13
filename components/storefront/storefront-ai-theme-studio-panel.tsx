@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl"
 import { useCallback, useState } from "react"
 
 import { capturePosthogClient } from "@/lib/analytics/posthog"
+import { postBrandAiJson } from "@/lib/storefront-ai-fetch-shared"
 import type { BrandAiThemePayload } from "@/lib/storefront-brand-ai-theme-shared"
 import { cn } from "@/lib/utils"
 
@@ -34,20 +35,19 @@ export function StorefrontAiThemeStudioPanel({
     setError(null)
     setSaved(false)
     try {
-      const res = await fetch("/api/store/generate-brand-theme", {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ locale }),
-      })
-      const json = (await res.json()) as { theme?: BrandAiThemePayload; error?: string }
-      if (!res.ok || !json.theme) {
-        throw new Error(json.error ?? t("failed"))
+      const result = await postBrandAiJson<{ theme?: BrandAiThemePayload }>(
+        "/api/store/generate-brand-theme",
+        { locale },
+        t("failed")
+      )
+      const theme = result.data?.theme
+      if (!result.ok || !theme) {
+        throw new Error(result.error ?? t("failed"))
       }
 
-      setLastResult(json.theme)
+      setLastResult(theme)
 
-      const ok = await onApplyAndSave(json.theme)
+      const ok = await onApplyAndSave(theme)
       if (!ok) {
         throw new Error(t("saveFailed"))
       }
@@ -55,14 +55,14 @@ export function StorefrontAiThemeStudioPanel({
       setSaved(true)
       capturePosthogClient("brand_ai_theme_applied", {
         role,
-        presetId: json.theme.presetId,
-        source: json.theme.source,
+        presetId: theme.presetId,
+        source: theme.source,
       })
       console.log("[brand-studio]", {
         event: "ai_theme_applied",
         role,
-        presetId: json.theme.presetId,
-        source: json.theme.source,
+        presetId: theme.presetId,
+        source: theme.source,
         result: "ok",
       })
     } catch (e) {

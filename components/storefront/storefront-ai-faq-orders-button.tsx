@@ -6,6 +6,7 @@ import { useCallback, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
+import { postBrandAiJson } from "@/lib/storefront-ai-fetch-shared"
 import type { StorefrontFaqItem } from "@/lib/storefront-static-pages-shared"
 import { updateStaticPage } from "@/lib/storefront-static-pages-shared"
 import type { StorefrontStaticPages } from "@/lib/storefront-static-pages-shared"
@@ -27,23 +28,22 @@ export function StorefrontAiFaqOrdersButton({ role, pages, disabled = false, onA
     setBusy(true)
     setError(null)
     try {
-      const res = await fetch("/api/store/generate-brand-faq-from-orders", {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ locale }),
-      })
-      const json = (await res.json()) as { faqItems?: StorefrontFaqItem[]; error?: string }
-      if (!res.ok || !json.faqItems) {
-        throw new Error(json.error ?? t("failed"))
+      const result = await postBrandAiJson<{ faqItems?: StorefrontFaqItem[] }>(
+        "/api/store/generate-brand-faq-from-orders",
+        { locale },
+        t("failed")
+      )
+      const faqItems = result.data?.faqItems
+      if (!result.ok || !faqItems) {
+        throw new Error(result.error ?? t("failed"))
       }
       const next = updateStaticPage(pages, "faq", {
         enabled: true,
         title: pages.faq.title ?? "FAQ",
-        faqItems: json.faqItems,
+        faqItems,
       })
       onApply(next)
-      capturePosthogClient("brand_ai_faq_orders_generated", { role, itemCount: json.faqItems.length })
+      capturePosthogClient("brand_ai_faq_orders_generated", { role, itemCount: faqItems.length })
       console.log("[brand-studio]", { event: "ai_faq_orders_generated", role, result: "ok" })
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("failed")

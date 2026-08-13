@@ -6,6 +6,7 @@ import { useCallback, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
+import { postBrandAiJson } from "@/lib/storefront-ai-fetch-shared"
 import type { BrandLaunchNiche } from "@/lib/storefront-brand-launch"
 import {
   updateHomepageSectionContent,
@@ -47,23 +48,22 @@ export function StorefrontAiCopyButton({
     setBusy(true)
     setError(null)
     try {
-      const res = await fetch("/api/store/generate-brand-copy", {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ niche: niche ?? undefined, locale }),
-      })
-      const json = (await res.json()) as { copy?: GeneratedCopy; error?: string }
-      if (!res.ok || !json.copy) {
-        throw new Error(json.error ?? t("failed"))
+      const result = await postBrandAiJson<{ copy?: GeneratedCopy }>(
+        "/api/store/generate-brand-copy",
+        { niche: niche ?? undefined, locale },
+        t("failed")
+      )
+      const copy = result.data?.copy
+      if (!result.ok || !copy) {
+        throw new Error(result.error ?? t("failed"))
       }
       let sections = homepageSections
-      sections = updateHomepageSectionContent(sections, "story", { body: json.copy.storyBody })
+      sections = updateHomepageSectionContent(sections, "story", { body: copy.storyBody })
       sections = updateHomepageSectionContent(sections, "cta", {
-        title: json.copy.ctaTitle,
-        body: json.copy.ctaBody,
+        title: copy.ctaTitle,
+        body: copy.ctaBody,
       })
-      onApply({ description: json.copy.description, homepageSections: sections })
+      onApply({ description: copy.description, homepageSections: sections })
       capturePosthogClient("brand_ai_copy_generated", { role, niche: niche ?? "auto" })
       console.log("[brand-studio]", { event: "ai_copy_generated", role, result: "ok" })
     } catch (e) {

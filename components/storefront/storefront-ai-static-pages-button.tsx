@@ -6,6 +6,7 @@ import { useCallback, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
+import { postBrandAiJson } from "@/lib/storefront-ai-fetch-shared"
 import type { BrandLaunchNiche } from "@/lib/storefront-brand-launch"
 import type { StorefrontStaticPages } from "@/lib/storefront-static-pages-shared"
 
@@ -31,17 +32,16 @@ export function StorefrontAiStaticPagesButton({
     setBusy(true)
     setError(null)
     try {
-      const res = await fetch("/api/store/generate-brand-static-pages", {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ niche: niche ?? undefined, locale }),
-      })
-      const json = (await res.json()) as { pages?: StorefrontStaticPages; error?: string }
-      if (!res.ok || !json.pages) {
-        throw new Error(json.error ?? t("failed"))
+      const result = await postBrandAiJson<{ pages?: StorefrontStaticPages }>(
+        "/api/store/generate-brand-static-pages",
+        { niche: niche ?? undefined, locale },
+        t("failed")
+      )
+      const pages = result.data?.pages
+      if (!result.ok || !pages) {
+        throw new Error(result.error ?? t("failed"))
       }
-      onApply(json.pages)
+      onApply(pages)
       capturePosthogClient("brand_ai_static_pages_generated", { role, niche: niche ?? "auto" })
       console.log("[brand-studio]", { event: "ai_static_pages_generated", role, result: "ok" })
     } catch (e) {

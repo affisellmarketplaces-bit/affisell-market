@@ -2705,8 +2705,8 @@
       "aiBanner": {
         "cta": "Générer la bannière avec l'IA",
         "generating": "Création…",
-        "hint": "Hero large depuis vos couleurs + niche. Active le mode bannière — enregistrez pour publier.",
-        "failed": "Bannière IA indisponible — vérifiez HF_TOKEN ou réessayez."
+        "hint": "Hero large depuis vos couleurs + niche. Fallback gradient automatique si HF indisponible — enregistrez pour publier.",
+        "failed": "Bannière IA indisponible — réessayez dans un instant."
       },
       "aiStaticPages": {
         "cta": "Générer À propos, FAQ & Retours avec l'IA",

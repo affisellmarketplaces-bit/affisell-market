@@ -2705,8 +2705,8 @@
       "aiBanner": {
         "cta": "Generate banner with AI",
         "generating": "Creating…",
-        "hint": "Wide hero image from your colors + niche. Sets hero to banner mode — save to publish.",
-        "failed": "AI banner unavailable — check HF_TOKEN or try again."
+        "hint": "Wide hero from your colors + niche. Auto gradient fallback if HF unavailable — save to publish.",
+        "failed": "AI banner unavailable — try again in a moment."
       },
       "aiStaticPages": {
         "cta": "Generate About, FAQ & Returns with AI",

@@ -7,6 +7,7 @@ import { useCallback, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
 import type { BrandLaunchNiche } from "@/lib/storefront-brand-launch"
+import { postBrandAiJson } from "@/lib/storefront-ai-fetch-shared"
 
 type Props = {
   role: "AFFILIATE" | "SUPPLIER"
@@ -29,19 +30,27 @@ export function StorefrontAiBannerButton({
     setBusy(true)
     setError(null)
     try {
-      const res = await fetch("/api/store/generate-brand-banner", {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ niche: niche ?? undefined }),
-      })
-      const json = (await res.json()) as { bannerUrl?: string; error?: string }
-      if (!res.ok || !json.bannerUrl) {
-        throw new Error(json.error ?? t("failed"))
+      const result = await postBrandAiJson<{ bannerUrl?: string; source?: string }>(
+        "/api/store/generate-brand-banner",
+        { niche: niche ?? undefined },
+        t("failed")
+      )
+      const bannerUrl = result.data?.bannerUrl
+      if (!result.ok || !bannerUrl) {
+        throw new Error(result.error ?? t("failed"))
       }
-      onApply(json.bannerUrl)
-      capturePosthogClient("brand_ai_banner_generated", { role, niche: niche ?? "auto" })
-      console.log("[brand-studio]", { event: "ai_banner_generated", role, result: "ok" })
+      onApply(bannerUrl)
+      capturePosthogClient("brand_ai_banner_generated", {
+        role,
+        niche: niche ?? "auto",
+        source: result.data?.source ?? "unknown",
+      })
+      console.log("[brand-studio]", {
+        event: "ai_banner_generated",
+        role,
+        source: result.data?.source,
+        result: "ok",
+      })
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("failed")
       setError(msg)

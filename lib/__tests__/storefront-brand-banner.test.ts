@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { buildStoreBrandBannerPrompt } from "@/lib/storefront-brand-banner.server"
+import { buildStoreBrandBannerPrompt, buildGradientBannerSvg } from "@/lib/storefront-brand-banner.server"
 
 describe("buildStoreBrandBannerPrompt", () => {
   it("includes brand colors and niche mood", () => {
@@ -25,5 +25,16 @@ describe("buildStoreBrandBannerPrompt", () => {
       niche: "invalid",
     })
     expect(prompt.toLowerCase()).toContain("fashion")
+  })
+
+  it("builds gradient svg fallback with brand colors", () => {
+    const svg = buildGradientBannerSvg({
+      storeName: "Ecom Store",
+      primary: "#5b21b6",
+      accent: "#06b6d4",
+    }).toString("utf-8")
+    expect(svg).toContain("#5b21b6")
+    expect(svg).toContain("#06b6d4")
+    expect(svg).toContain("<svg")
   })
 })
