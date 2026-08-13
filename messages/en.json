@@ -2536,6 +2536,7 @@
       "supplierDescription": "How buyers see your supplier shop: banner, brand colors, and custom domain.",
       "liveUrl": "Live URL",
       "previewAffisell": "Preview on Affisell",
+      "boutiquePreview": "Boutique grid /boutique",
       "liveStore": {
         "title": "Your store is live",
         "subtitle": "Your branded address on {suffix} — same catalog as your listings, Ads-ready and Affisell-verified.",
@@ -2571,7 +2572,7 @@
       "logoLogisticsBody": "AI avatar, ship-from address, and slug in <profileLink>Store profile</profileLink>.",
       "presets": {
         "title": "Futuristic presets",
-        "hint": "One click to apply palette, layout, and mood — then fine-tune.",
+        "hint": "One click to apply palette, layout, and mood — synced to /boutique/{slug} and /shops/{slug}.",
         "items": {
           "violet-pulse": {
             "name": "Violet Pulse",
@@ -2596,6 +2597,22 @@
           "quantum-glow": {
             "name": "Quantum Glow",
             "desc": "Quantum glass violet, luminous gradient."
+          },
+          "nebula-aurora": {
+            "name": "Nebula Aurora",
+            "desc": "Deep violet → neon cyan — premium dark boutique."
+          },
+          "solar-flare": {
+            "name": "Solar Flare",
+            "desc": "Copper & gold solar mood, high conversion."
+          },
+          "ocean-depth": {
+            "name": "Ocean Depth",
+            "desc": "Abyss blue & electric cyan, tech trust."
+          },
+          "crimson-nova": {
+            "name": "Crimson Nova",
+            "desc": "Magma rose on dark, fashion editorial."
           }
         }
       },

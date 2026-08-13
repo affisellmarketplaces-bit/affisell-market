@@ -2536,6 +2536,7 @@
       "supplierDescription": "Ce que voient les acheteurs sur votre boutique fournisseur : bannière, couleurs de marque et domaine personnalisé.",
       "liveUrl": "URL publique",
       "previewAffisell": "Aperçu sur Affisell",
+      "boutiquePreview": "Vitrine boutique /boutique",
       "liveStore": {
         "title": "Votre boutique est en ligne",
         "subtitle": "Votre adresse brandée sur {suffix} — même catalogue que vos fiches, prête pour Google Ads et vérifiée Affisell.",
@@ -2571,7 +2572,7 @@
       "logoLogisticsBody": "Avatar IA, adresse d'expédition et slug dans <profileLink>Profil boutique</profileLink>.",
       "presets": {
         "title": "Presets futuristes",
-        "hint": "Un clic pour appliquer palette, layout et ambiance — personnalisez ensuite.",
+        "hint": "Un clic pour appliquer palette, layout et ambiance — synchronisé sur /boutique/{slug} et /shops/{slug}.",
         "items": {
           "violet-pulse": {
             "name": "Violet Pulse",
@@ -2596,6 +2597,22 @@
           "quantum-glow": {
             "name": "Quantum Glow",
             "desc": "Verre violet quantique, dégradé lumineux."
+          },
+          "nebula-aurora": {
+            "name": "Nebula Aurora",
+            "desc": "Violet profond → cyan néon — vitrine boutique dark premium."
+          },
+          "solar-flare": {
+            "name": "Solar Flare",
+            "desc": "Ambiance solaire cuivre & or, impact conversion."
+          },
+          "ocean-depth": {
+            "name": "Ocean Depth",
+            "desc": "Bleu abyssal & cyan électrique, confiance tech."
+          },
+          "crimson-nova": {
+            "name": "Crimson Nova",
+            "desc": "Rose magma sur fond sombre, éditorial mode."
           }
         }
       },

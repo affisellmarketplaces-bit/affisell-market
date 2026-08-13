@@ -25,6 +25,11 @@ import {
   formatResellerStoreLabel,
   type ResellerStorefrontListProduct,
 } from "@/lib/boutique/reseller-storefront-shared"
+import {
+  serializeResellerBoutiqueTheme,
+  type ResellerBoutiqueThemeProps,
+} from "@/lib/boutique/reseller-boutique-theme-shared"
+import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
 export type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
 export { formatResellerStoreLabel } from "@/lib/boutique/reseller-storefront-shared"
@@ -231,6 +236,38 @@ export async function loadResellerStorefrontProduct(
   }
 }
 
+export type ResellerBoutiqueStoreContext = {
+  storeSlug: string
+  storeName: string
+  storeLabel: string
+  theme: ResellerBoutiqueThemeProps
+}
+
+export async function loadResellerBoutiqueStoreContext(
+  storeSlug: string
+): Promise<ResellerBoutiqueStoreContext | null> {
+  const slug = storeSlug.trim()
+  if (!slug) return null
+
+  const store = await prisma.store.findUnique({
+    where: { slug },
+    select: {
+      slug: true,
+      name: true,
+      storefrontTheme: true,
+    },
+  })
+
+  if (!store) return null
+
+  return {
+    storeSlug: store.slug,
+    storeName: store.name,
+    storeLabel: formatResellerStoreLabel(store.slug),
+    theme: serializeResellerBoutiqueTheme(parseStorefrontTheme(store.storefrontTheme)),
+  }
+}
+
 export type ResellerStorefrontListOwner = {
   id: string
   storeName: string
@@ -241,6 +278,7 @@ export type ResellerStorefrontListResult = {
   owner: ResellerStorefrontListOwner | null
   products: ResellerStorefrontListProduct[]
   count: number
+  theme: ResellerBoutiqueThemeProps
 }
 
 export async function loadResellerStorefrontList(args: {
@@ -248,7 +286,12 @@ export async function loadResellerStorefrontList(args: {
 }): Promise<ResellerStorefrontListResult> {
   const storeSlug = args.storeSlug.trim()
   if (!storeSlug) {
-    return { owner: null, products: [], count: 0 }
+    return {
+      owner: null,
+      products: [],
+      count: 0,
+      theme: serializeResellerBoutiqueTheme(parseStorefrontTheme(null)),
+    }
   }
 
   const store = await prisma.store.findUnique({
@@ -257,13 +300,21 @@ export async function loadResellerStorefrontList(args: {
       slug: true,
       name: true,
       userId: true,
+      storefrontTheme: true,
     },
   })
 
   if (!store) {
     console.log("[boutique-storefront-list]", { storeSlug, result: "store_not_found" })
-    return { owner: null, products: [], count: 0 }
+    return {
+      owner: null,
+      products: [],
+      count: 0,
+      theme: serializeResellerBoutiqueTheme(parseStorefrontTheme(null)),
+    }
   }
+
+  const theme = serializeResellerBoutiqueTheme(parseStorefrontTheme(store.storefrontTheme))
 
   const listings = await prisma.affiliateProduct.findMany({
     where: {
@@ -347,5 +398,6 @@ export async function loadResellerStorefrontList(args: {
     },
     products,
     count: products.length,
+    theme,
   }
 }

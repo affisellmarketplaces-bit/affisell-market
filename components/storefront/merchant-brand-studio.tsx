@@ -199,6 +199,8 @@ function snapshotsEqual(a: BrandStudioSnapshot, b: BrandStudioSnapshot): boolean
 type Props = {
   role: MerchantRole
   previewHref: string
+  /** Public reseller boutique grid at /boutique/{slug} */
+  boutiquePreviewHref?: string
   profileHref: string
   profileLabel: string
   studioPath?: string
@@ -208,6 +210,7 @@ type Props = {
 export function MerchantBrandStudio({
   role,
   previewHref,
+  boutiquePreviewHref,
   profileHref,
   profileLabel,
   studioPath,
@@ -884,6 +887,17 @@ export function MerchantBrandStudio({
                 <Sparkles className="size-4" aria-hidden />
                 {t("liveUrl")}
               </a>
+            ) : null}
+            {boutiquePreviewHref && role === "AFFILIATE" ? (
+              <Link
+                href={boutiquePreviewHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-11 items-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-4 text-sm font-medium text-cyan-950 dark:border-cyan-900 dark:bg-cyan-950/40 dark:text-cyan-100"
+              >
+                <Palette className="size-4" aria-hidden />
+                {t("boutiquePreview")}
+              </Link>
             ) : null}
             <Link
               href={previewHref}

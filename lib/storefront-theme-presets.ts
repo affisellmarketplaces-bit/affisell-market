@@ -85,6 +85,58 @@ export const STOREFRONT_THEME_PRESETS: StorefrontThemePreset[] = [
       surface: "glass",
     },
   },
+  {
+    id: "nebula-aurora",
+    theme: {
+      presetId: "nebula-aurora",
+      primary: "#5b21b6",
+      accent: "#06b6d4",
+      nameBadge: "neon-slab",
+      layout: "immersive",
+      heroStyle: "gradient",
+      gridDensity: "spacious",
+      surface: "dark",
+    },
+  },
+  {
+    id: "solar-flare",
+    theme: {
+      presetId: "solar-flare",
+      primary: "#9a3412",
+      accent: "#fbbf24",
+      nameBadge: "chrome-beam",
+      layout: "immersive",
+      heroStyle: "gradient",
+      gridDensity: "cozy",
+      surface: "dark",
+    },
+  },
+  {
+    id: "ocean-depth",
+    theme: {
+      presetId: "ocean-depth",
+      primary: "#0c4a6e",
+      accent: "#22d3ee",
+      nameBadge: "orbit-ring",
+      layout: "classic",
+      heroStyle: "gradient",
+      gridDensity: "spacious",
+      surface: "dark",
+    },
+  },
+  {
+    id: "crimson-nova",
+    theme: {
+      presetId: "crimson-nova",
+      primary: "#881337",
+      accent: "#fb7185",
+      nameBadge: "holo-ribbon",
+      layout: "immersive",
+      heroStyle: "gradient",
+      gridDensity: "cozy",
+      surface: "dark",
+    },
+  },
 ]
 
 export function findStorefrontThemePreset(id: string): StorefrontThemePreset | undefined {
