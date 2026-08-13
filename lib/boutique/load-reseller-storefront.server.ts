@@ -1,8 +1,26 @@
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { filterListingForPromotedVariants } from "@/lib/affiliate-storefront-variants"
+import {
+  lookupVariantPricingEntry,
+  parseAffiliateVariantPricingJson,
+  resolveAffiliateSellingPriceCentsForOption,
+} from "@/lib/affiliate-variant-pricing"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
+import {
+  buildVariantOptionLabel,
+  resolveListingAvailableStock,
+} from "@/lib/marketplace-purchase-quantity"
+import {
+  collectStorageOptionValues,
+  findVariantRowForShopperSelection,
+  resolveMarketplacePrimaryOptionNames,
+  variantsWithProductVariantRows,
+} from "@/lib/marketplace-variant-dimensions"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
-import { prisma } from "@/lib/prisma"
 import { stripDescriptionImageMarkers } from "@/lib/description-rich-content"
+import { parseCustomColumnsFromDb } from "@/lib/product-custom-columns"
+import { variantsFromDb } from "@/lib/product-variants"
+import { prisma } from "@/lib/prisma"
 
 export type ResellerStorefrontProduct = {
   listingId: string
@@ -10,7 +28,111 @@ export type ResellerStorefrontProduct = {
   descriptionExcerpt: string
   imageUrl: string
   priceLabel: string
+  /** Variant-aware unit price (same source as marketplace PDP default selection). */
+  priceCents: number
+  isOutOfStock: boolean
+  stockLabel: string
   marketplaceHref: string
+}
+
+type ResellerListingCommerce = {
+  priceCents: number
+  availableStock: number
+  defaultOptionName: string | null
+}
+
+/** Mirrors marketplace PDP default color/size + activeVariantRow pricing & stock. */
+function resolveResellerDefaultListingCommerce(args: {
+  listingSellingPriceCents: number
+  variantPricingRaw: unknown
+  promotedVariantKeys: string[] | null | undefined
+  product: {
+    basePriceCents: number
+    stock: number
+    variants: unknown
+    colors: string[]
+    customColumns: unknown
+    productVariants: Array<{
+      id: string
+      color: string | null
+      size: string | null
+      stock: number
+      customData: unknown
+      supplierPrice: unknown
+      wholesalePriceCents?: number | null
+    }>
+  }
+}): ResellerListingCommerce {
+  const customCols = parseCustomColumnsFromDb(args.product.customColumns)
+  const variantsRaw = variantsWithProductVariantRows(
+    variantsFromDb(args.product.variants),
+    args.product.productVariants ?? [],
+    customCols,
+    args.product.basePriceCents
+  )
+  const storageOptionsRaw = collectStorageOptionValues({
+    variants: variantsRaw,
+    customColumns: customCols,
+    productVariantCustomData: args.product.productVariants?.map((v) => v.customData),
+  })
+  const colorNamesRaw = resolveMarketplacePrimaryOptionNames(
+    args.product.colors.filter((c) => Boolean(c.trim())),
+    variantsRaw,
+    storageOptionsRaw
+  )
+  const { variants, colorNames } = filterListingForPromotedVariants({
+    variants: variantsRaw,
+    colorNames: colorNamesRaw,
+    promotedVariantKeys: args.promotedVariantKeys,
+  })
+  const storageOptions = collectStorageOptionValues({
+    variants,
+    customColumns: customCols,
+    productVariantCustomData: args.product.productVariants?.map((v) => v.customData),
+  })
+
+  const selectedColor = colorNames[0] ?? null
+  const sizeOptions = variants?.size?.length ? variants.size : []
+  const selectedSize = sizeOptions[0] ?? null
+  const selectedStorage = storageOptions[0] ?? null
+
+  const activeVariantRow = findVariantRowForShopperSelection({
+    variants,
+    customColumns: customCols,
+    selection: {
+      selectedPrimary: selectedColor,
+      selectedStorage,
+      selectedSize,
+    },
+  })
+
+  const variantPricing = parseAffiliateVariantPricingJson(args.variantPricingRaw)
+  const labeledOption = buildVariantOptionLabel(selectedColor, selectedSize)
+  const defaultOptionName =
+    activeVariantRow?.name?.trim() ||
+    (labeledOption && lookupVariantPricingEntry(variantPricing, labeledOption) ? labeledOption : null) ||
+    selectedColor ||
+    Object.keys(variantPricing)[0] ||
+    null
+
+  const priceCents = resolveAffiliateSellingPriceCentsForOption({
+    listingSellingPriceCents: args.listingSellingPriceCents,
+    productBasePriceCents: args.product.basePriceCents,
+    variants,
+    optionName: defaultOptionName,
+    variantPricing,
+  })
+
+  const availableStock = activeVariantRow
+    ? Math.max(0, Math.round(activeVariantRow.stock) || 0)
+    : resolveListingAvailableStock({
+        productStock: args.product.stock,
+        variants,
+        selectedColor,
+        selectedSize,
+      })
+
+  return { priceCents, availableStock, defaultOptionName }
 }
 
 export async function loadResellerStorefrontProduct(
@@ -29,18 +151,62 @@ export async function loadResellerStorefrontProduct(
       customTitle: true,
       customDescription: true,
       sellingPriceCents: true,
+      variantPricing: true,
+      promotedVariantKeys: true,
       customImages: true,
       product: {
         select: {
           name: true,
           description: true,
           images: true,
+          stock: true,
+          basePriceCents: true,
+          variants: true,
+          colors: true,
+          customColumns: true,
+          productVariants: {
+            select: {
+              id: true,
+              color: true,
+              size: true,
+              stock: true,
+              customData: true,
+              supplierPrice: true,
+              wholesalePriceCents: true,
+            },
+          },
         },
       },
     },
   })
 
   if (!listing?.product) return null
+
+  const commerce = resolveResellerDefaultListingCommerce({
+    listingSellingPriceCents: listing.sellingPriceCents,
+    variantPricingRaw: listing.variantPricing,
+    promotedVariantKeys: listing.promotedVariantKeys,
+    product: {
+      basePriceCents: listing.product.basePriceCents,
+      stock: listing.product.stock,
+      variants: listing.product.variants,
+      colors: listing.product.colors ?? [],
+      customColumns: listing.product.customColumns,
+      productVariants: listing.product.productVariants ?? [],
+    },
+  })
+
+  const isOutOfStock = commerce.availableStock <= 0
+  const stockLabel = isOutOfStock ? "Out of stock" : "En stock"
+
+  console.log("[boutique-storefront]", {
+    listingId: listing.id,
+    defaultOptionName: commerce.defaultOptionName,
+    priceCents: commerce.priceCents,
+    availableStock: commerce.availableStock,
+    isOutOfStock,
+    result: "loaded",
+  })
 
   const rawDescription = listing.customDescription?.trim() || listing.product.description
   const plainDescription = stripDescriptionImageMarkers(rawDescription).replace(/\s+/g, " ").trim()
@@ -50,7 +216,10 @@ export async function loadResellerStorefrontProduct(
     title: listingDisplayTitle(listing.customTitle, listing.product.name),
     descriptionExcerpt: plainDescription.slice(0, 420),
     imageUrl: listingPrimaryImageUrl(listing.customImages, listing.product.images) || "/placeholder.png",
-    priceLabel: formatStoreCurrencyFromCents(listing.sellingPriceCents),
+    priceLabel: formatStoreCurrencyFromCents(commerce.priceCents),
+    priceCents: commerce.priceCents,
+    isOutOfStock,
+    stockLabel,
     marketplaceHref: `/marketplace/${listing.id}`,
   }
 }

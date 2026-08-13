@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, ShieldCheck, Sparkles, Truck } from "lucide-react"
+import { ArrowRight, Package, ShieldCheck, Sparkles, Truck } from "lucide-react"
 
 import {
   type ResellerStorefrontProduct,
@@ -107,7 +107,19 @@ export function ResellerStorefrontShell({
               <h2 className="mt-2 text-balance text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
                 {product.title}
               </h2>
-              <p className="mt-4 text-3xl font-bold tabular-nums text-violet-700">{product.priceLabel}</p>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <p className="text-3xl font-bold tabular-nums text-violet-700">{product.priceLabel}</p>
+                <span
+                  className={
+                    product.isOutOfStock
+                      ? "inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-800"
+                      : "inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800"
+                  }
+                >
+                  <Package className="h-3.5 w-3.5" aria-hidden />
+                  {product.stockLabel}
+                </span>
+              </div>
               {product.descriptionExcerpt ? (
                 <p className="mt-5 text-sm leading-relaxed text-zinc-600">{product.descriptionExcerpt}</p>
               ) : null}
@@ -123,15 +135,28 @@ export function ResellerStorefrontShell({
                 </div>
               </div>
 
-              <Link
-                href={product.marketplaceHref}
-                className="mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 via-violet-600 to-indigo-600 text-base font-bold text-white shadow-[0_16px_40px_-16px_rgba(91,33,217,0.65)] transition hover:from-violet-500 hover:to-indigo-500"
-              >
-                Acheter maintenant
-                <ArrowRight className="h-5 w-5" aria-hidden />
-              </Link>
+              {product.isOutOfStock ? (
+                <button
+                  type="button"
+                  disabled
+                  aria-disabled
+                  className="mt-8 inline-flex h-14 w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-zinc-100 text-base font-bold text-zinc-500"
+                >
+                  Rupture de stock
+                </button>
+              ) : (
+                <Link
+                  href={product.marketplaceHref}
+                  className="mt-8 inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 via-violet-600 to-indigo-600 text-base font-bold text-white shadow-[0_16px_40px_-16px_rgba(91,33,217,0.65)] transition hover:from-violet-500 hover:to-indigo-500"
+                >
+                  Acheter maintenant
+                  <ArrowRight className="h-5 w-5" aria-hidden />
+                </Link>
+              )}
               <p className="mt-3 text-center text-[11px] text-zinc-500">
-                Tu seras redirigé vers le checkout Affisell pour finaliser la commande.
+                {product.isOutOfStock
+                  ? "Ce produit est indisponible sur le marketplace — alerte stock bientôt."
+                  : "Tu seras redirigé vers le checkout Affisell pour finaliser la commande."}
               </p>
             </div>
           </section>
