@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 import { auth } from "@/auth"
-import { syncPartnerMarketplaceAlertsBeforeInbox } from "@/lib/marketplace-order-notification-sync"
+import { syncPartnerMarketplaceAlertsBeforeInboxIfDue } from "@/lib/marketplace-order-notification-sync"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import { prisma } from "@/lib/prisma"
 import {
@@ -14,7 +14,7 @@ import { countSupplierOrdersToShip } from "@/lib/supplier-orders-payload"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-export async function GET() {
+export async function GET(req: Request) {
   const session = await auth()
   if (!session?.user?.id) {
     return Response.json({ error: "Not authenticated" }, { status: 401 })
@@ -23,8 +23,13 @@ export async function GET() {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
+  const forceSync = new URL(req.url).searchParams.get("sync") === "1"
+
   try {
-    await syncPartnerMarketplaceAlertsBeforeInbox({ supplierId: session.user.id })
+    await syncPartnerMarketplaceAlertsBeforeInboxIfDue(
+      { supplierId: session.user.id },
+      { force: forceSync }
+    )
     await reopenLegacySupplierToShipAlerts(session.user.id)
   } catch (error) {
     console.error("[supplier-notifications]", {

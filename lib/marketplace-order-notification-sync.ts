@@ -11,6 +11,20 @@ export type SyncPartnerMarketplaceAlertsResult = {
   heal: HealPartnerNotificationsResult
 }
 
+/** Avoid Stripe reconcile + inbox heal on every notifications poll (was ~2s every 3s). */
+export const PARTNER_MARKETPLACE_ALERT_SYNC_MIN_INTERVAL_MS = 60_000
+
+const lastSyncAtByPartnerKey = new Map<string, number>()
+
+function partnerSyncKey(scope: PartnerScope): string {
+  return "supplierId" in scope ? `supplier:${scope.supplierId}` : `affiliate:${scope.affiliateId}`
+}
+
+/** @internal test helper */
+export function resetPartnerMarketplaceAlertSyncThrottleForTests(): void {
+  lastSyncAtByPartnerKey.clear()
+}
+
 /** Fulfill recent paid Stripe checkouts, then heal missing inbox rows — call before reading notifications. */
 export async function syncPartnerMarketplaceAlertsBeforeInbox(
   scope: PartnerScope
@@ -27,5 +41,20 @@ export async function syncPartnerMarketplaceAlertsBeforeInbox(
     })
   }
 
+  lastSyncAtByPartnerKey.set(partnerSyncKey(scope), Date.now())
   return { reconcile, heal }
+}
+
+/** Throttled inbox sync for notification polling — skips heavy work if synced recently. */
+export async function syncPartnerMarketplaceAlertsBeforeInboxIfDue(
+  scope: PartnerScope,
+  options?: { force?: boolean }
+): Promise<SyncPartnerMarketplaceAlertsResult | null> {
+  const key = partnerSyncKey(scope)
+  const now = Date.now()
+  const last = lastSyncAtByPartnerKey.get(key) ?? 0
+  if (!options?.force && now - last < PARTNER_MARKETPLACE_ALERT_SYNC_MIN_INTERVAL_MS) {
+    return null
+  }
+  return syncPartnerMarketplaceAlertsBeforeInbox(scope)
 }

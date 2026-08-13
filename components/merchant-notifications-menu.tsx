@@ -145,9 +145,10 @@ export function MerchantNotificationsMenu({
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [dropdownCoords, setDropdownCoords] = useState<{ top: number; right: number } | null>(null)
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (opts?: { forceSync?: boolean }) => {
     try {
-      const res = await fetch(cfg.apiPath, { cache: "no-store" })
+      const url = opts?.forceSync ? `${cfg.apiPath}?sync=1` : cfg.apiPath
+      const res = await fetch(url, { cache: "no-store" })
       if (!res.ok) return
       const j = (await res.json()) as {
         unreadCount: number
@@ -177,7 +178,8 @@ export function MerchantNotificationsMenu({
     const unsub = subscribeMerchantNotifications(cfg.eventName, () => void load())
 
     function pollIntervalMs() {
-      return document.visibilityState === "visible" ? 3_000 : 60_000
+      if (document.visibilityState !== "visible") return 60_000
+      return role === "SUPPLIER" ? 15_000 : 30_000
     }
 
     let intervalId = window.setInterval(() => void load(), pollIntervalMs())
@@ -204,7 +206,7 @@ export function MerchantNotificationsMenu({
   }, [load, cfg.eventName])
 
   useEffect(() => {
-    if (open) void load()
+    if (open) void load({ forceSync: true })
   }, [open, load])
 
   useLayoutEffect(() => {

@@ -14,11 +14,16 @@ vi.mock("@/lib/marketplace-order-notification-heal", () => ({
   healRecentPartnerMarketplaceNotifications,
 }))
 
-import { syncPartnerMarketplaceAlertsBeforeInbox } from "@/lib/marketplace-order-notification-sync"
+import {
+  resetPartnerMarketplaceAlertSyncThrottleForTests,
+  syncPartnerMarketplaceAlertsBeforeInbox,
+  syncPartnerMarketplaceAlertsBeforeInboxIfDue,
+} from "@/lib/marketplace-order-notification-sync"
 
 describe("syncPartnerMarketplaceAlertsBeforeInbox", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    resetPartnerMarketplaceAlertSyncThrottleForTests()
   })
 
   it("reconciles paid checkouts before healing inbox rows", async () => {
@@ -39,5 +44,28 @@ describe("syncPartnerMarketplaceAlertsBeforeInbox", () => {
       reconcile: { scanned: 1, healed: 1 },
       heal: { scanned: 2, healed: 1 },
     })
+  })
+
+  it("skips heavy sync when polled again within the throttle window", async () => {
+    reconcilePartnerPendingCheckoutOrders.mockResolvedValue({ scanned: 0, healed: 0 })
+    healRecentPartnerMarketplaceNotifications.mockResolvedValue({ scanned: 0, healed: 0 })
+
+    await syncPartnerMarketplaceAlertsBeforeInboxIfDue({ affiliateId: "aff_1" })
+    const skipped = await syncPartnerMarketplaceAlertsBeforeInboxIfDue({ affiliateId: "aff_1" })
+
+    expect(skipped).toBeNull()
+    expect(reconcilePartnerPendingCheckoutOrders).toHaveBeenCalledTimes(1)
+    expect(healRecentPartnerMarketplaceNotifications).toHaveBeenCalledTimes(1)
+  })
+
+  it("forces sync when requested", async () => {
+    reconcilePartnerPendingCheckoutOrders.mockResolvedValue({ scanned: 0, healed: 0 })
+    healRecentPartnerMarketplaceNotifications.mockResolvedValue({ scanned: 0, healed: 0 })
+
+    await syncPartnerMarketplaceAlertsBeforeInboxIfDue({ affiliateId: "aff_1" })
+    await syncPartnerMarketplaceAlertsBeforeInboxIfDue({ affiliateId: "aff_1" }, { force: true })
+
+    expect(reconcilePartnerPendingCheckoutOrders).toHaveBeenCalledTimes(2)
+    expect(healRecentPartnerMarketplaceNotifications).toHaveBeenCalledTimes(2)
   })
 })

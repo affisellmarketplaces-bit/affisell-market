@@ -1,14 +1,14 @@
 import { z } from "zod"
 
 import { auth } from "@/auth"
-import { syncPartnerMarketplaceAlertsBeforeInbox } from "@/lib/marketplace-order-notification-sync"
+import { syncPartnerMarketplaceAlertsBeforeInboxIfDue } from "@/lib/marketplace-order-notification-sync"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-export async function GET() {
+export async function GET(req: Request) {
   const session = await auth()
   if (!session?.user?.id) {
     return Response.json({ error: "Not authenticated" }, { status: 401 })
@@ -17,8 +17,13 @@ export async function GET() {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
+  const forceSync = new URL(req.url).searchParams.get("sync") === "1"
+
   try {
-    await syncPartnerMarketplaceAlertsBeforeInbox({ affiliateId: session.user.id })
+    await syncPartnerMarketplaceAlertsBeforeInboxIfDue(
+      { affiliateId: session.user.id },
+      { force: forceSync }
+    )
   } catch (error) {
     console.error("[affiliate-notifications]", {
       userId: session.user.id,
