@@ -326,4 +326,34 @@ describe("parseAeProductSkusFromPayload — API sku_attr labels", () => {
     expect(parsed.aeSkus[0]?.aeLabel).toBe("55mm Black")
     expect(parsed.aeSkus[0]?.imageUrl).toContain("black-55.jpg")
   })
+
+  it("reads swatch image from non-color property names on API SKUs", () => {
+    const payload = {
+      aliexpress_ds_product_get_response: {
+        result: {
+          ae_item_sku_info_dtos: [
+            {
+              sku_id: "120000771001",
+              sku_attr: "14:771#60mm Red",
+              offer_sale_price: "6.09",
+              sku_available_stock: 7,
+              ae_sku_property_dtos: [
+                {
+                  sku_property_id: "14",
+                  sku_property_name: "Specification",
+                  property_value_id: "771",
+                  property_value_definition_name: "60mm Red",
+                  sku_property_image_path: "https://ae01.alicdn.com/kf/red-60.jpg",
+                },
+              ],
+            },
+          ],
+        },
+      },
+    }
+
+    const rows = parseAeProductSkusFromPayload(payload, "3256805347946532")
+    expect(rows[0]?.aeLabel).toBe("60mm Red")
+    expect(rows[0]?.imageUrl).toContain("red-60.jpg")
+  })
 })

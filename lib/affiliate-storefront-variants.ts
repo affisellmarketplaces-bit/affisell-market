@@ -47,6 +47,12 @@ function indexProductVariants(
     if (!stableKey) continue
     out.set(stableKey.toLowerCase(), v)
     if (v.color?.trim()) out.set(v.color.trim().toLowerCase(), v)
+    const custom =
+      v.customData && typeof v.customData === "object" && !Array.isArray(v.customData)
+        ? (v.customData as Record<string, unknown>)
+        : null
+    const aeLabel = typeof custom?.aeLabel === "string" ? custom.aeLabel.trim() : ""
+    if (aeLabel) out.set(aeLabel.toLowerCase(), v)
   }
   return out
 }
@@ -54,11 +60,14 @@ function indexProductVariants(
 function findProductVariantForKey(
   index: Map<string, ProductVariantRowInput>,
   key: string,
-  color: string | null
+  color: string | null,
+  label?: string
 ): ProductVariantRowInput | undefined {
   const lower = key.trim().toLowerCase()
+  const labelLower = label?.trim().toLowerCase()
   return (
     index.get(lower) ??
+    (labelLower ? index.get(labelLower) : undefined) ??
     (color?.trim() ? index.get(color.trim().toLowerCase()) : undefined)
   )
 }
@@ -87,9 +96,13 @@ export function buildAffiliateVariantOptions(product: {
   const seen = new Set<string>()
   const out: AffiliateVariantOption[] = []
 
-  const resolveImage = (color: string | null, customData?: unknown): string => {
+  const resolveImage = (color: string | null, customData?: unknown, label?: string): string => {
     const fromCustom = variantImageFromCustomData(customData)
     if (fromCustom) return fromCustom
+    if (label) {
+      const byLabel = findColorImageRowForName(colorImages, label)
+      if (byLabel?.image?.trim()) return byLabel.image.trim()
+    }
     if (color) {
       const row = findColorImageRowForName(colorImages, color)
       if (row?.image?.trim()) return row.image.trim()
@@ -127,7 +140,7 @@ export function buildAffiliateVariantOptions(product: {
       wholesaleCents:
         opt.wholesaleCents ??
         wholesaleFor(normalizeVariantPromotionKey(opt.key), opt.color, opt.size),
-      imageUrl: opt.imageUrl?.trim() || resolveImage(opt.color, opt.customData) || undefined,
+      imageUrl: opt.imageUrl?.trim() || resolveImage(opt.color, opt.customData, opt.label) || undefined,
     })
   }
 
@@ -135,10 +148,12 @@ export function buildAffiliateVariantOptions(product: {
     const name = row.name.trim()
     if (!name) continue
     const { color, size } = splitVariantLineName(name)
-    const pv = findProductVariantForKey(pvIndex, name, color || null)
+    const pv = findProductVariantForKey(pvIndex, name, color || null, name)
     push({
       key: name,
-      label: name,
+      label: pv
+        ? shopperLabelFromVariantCustomData(name, pv.customData, size)
+        : name,
       color: color || null,
       size,
       stock: Math.max(0, Math.round(row.stock) || 0),
@@ -151,7 +166,7 @@ export function buildAffiliateVariantOptions(product: {
   if (out.length > 0 && pvIndex.size > 0) {
     for (const opt of out) {
       if (opt.imageUrl) continue
-      const pv = findProductVariantForKey(pvIndex, opt.key, opt.color)
+      const pv = findProductVariantForKey(pvIndex, opt.key, opt.color, opt.label)
       const fromCustom = variantImageFromCustomData(pv?.customData)
       if (fromCustom) opt.imageUrl = fromCustom
     }

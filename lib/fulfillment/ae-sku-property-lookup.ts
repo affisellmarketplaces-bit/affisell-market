@@ -44,6 +44,8 @@ function pickImage(rec: Record<string, unknown>): string | null {
     txt(rec.skuPropertyImagePath) ||
     txt(rec.skuPropertyImageSummPath) ||
     txt(rec.sku_property_image_summ_path) ||
+    txt(rec.property_value_image_url) ||
+    txt(rec.propertyValueImageUrl) ||
     txt(rec.propertyValueImagePath) ||
     txt(rec.sku_image) ||
     txt(rec.sku_image_url) ||

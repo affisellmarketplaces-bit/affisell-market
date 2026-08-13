@@ -9,6 +9,7 @@ import {
 } from "@/lib/fulfillment/ae-sku-property-lookup"
 import { normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import { canonicalVariantColorKey } from "@/lib/fulfillment/variant-color-match"
+import { hydrateAeSkuRowImages } from "@/lib/fulfillment/ae-sku-image-hydrate"
 import type { AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
 
 function asRec(v: unknown): Record<string, unknown> | null {
@@ -165,7 +166,7 @@ export function parseAeSkusFromPagePayload(
     ""
 
   return {
-    aeSkus,
+    aeSkus: hydrateAeSkuRowImages(aeSkus, { lookup }),
     aePriceCents,
     aeShopId,
     title: txt(productInfo.subject),

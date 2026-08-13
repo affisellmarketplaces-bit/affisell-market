@@ -5,7 +5,7 @@ import { affiliateCatalogProductDetailSelect } from "@/lib/affiliate-dashboard-d
 import {
   normalizeProductDescriptionFields,
 } from "@/lib/html-description-extract"
-import { mergeColorImagesForProduct, enrichColorImagesFromProductVariants } from "@/lib/product-color-images"
+import { backfillAeVariantImagesForCatalogProduct, persistAeVariantImageBackfill } from "@/lib/fulfillment/backfill-ae-variant-images.server"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -59,16 +59,31 @@ export async function GET(
     }
 
     const colors = product.colors ?? []
-    const colorImages = enrichColorImagesFromProductVariants(
-      mergeColorImagesForProduct(colors, product.colorImages, product.variants),
-      product.productVariants
-    )
+    const backfill = await backfillAeVariantImagesForCatalogProduct({
+      aliexpressProductId: product.aliexpressProductId,
+      colors,
+      colorImages: product.colorImages,
+      variants: product.variants,
+      productVariants: product.productVariants,
+    })
+    if (backfill.backfilled) {
+      void persistAeVariantImageBackfill(product.id, backfill).catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err)
+        console.log("[affiliate/catalog-product]", {
+          result: "ae_image_persist_failed",
+          productId: product.id,
+          error: msg.slice(0, 160),
+        })
+      })
+    }
+    const colorImages = backfill.colorImages
     return NextResponse.json({
       product: {
         ...product,
         description,
         descriptionIllustrationImages,
         colorImages,
+        productVariants: backfill.productVariants,
       },
     })
   } catch (e) {

@@ -48,11 +48,14 @@ export function affiliateCatalogProductDetailSelect(affiliateId: string): Prisma
     variants: true,
     hasVariants: true,
     colorImages: true,
+    aliexpressProductId: true,
     productVariants: {
       select: {
+        id: true,
         color: true,
         size: true,
         stock: true,
+        sku: true,
         customData: true,
         supplierPrice: true,
         wholesalePriceCents: true,

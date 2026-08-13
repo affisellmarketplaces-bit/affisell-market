@@ -9,6 +9,7 @@ import { isNumericOnlyVariantToken } from "@/lib/fulfillment/ae-variant-display-
 import { normalizeAeSkuCandidate } from "@/lib/fulfillment/map-catalog-skus-to-ae"
 import { unwrapAliExpressMethodResponse } from "@/lib/aliexpress-open-api"
 import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
+import { hydrateAeSkuRowImages } from "@/lib/fulfillment/ae-sku-image-hydrate"
 import { canonicalVariantColorKey } from "@/lib/fulfillment/variant-color-match"
 import type { AeSkuPropValueMeta } from "@/lib/fulfillment/ae-sku-property-lookup"
 
@@ -139,12 +140,15 @@ function parseSkuPropertyDtos(
     if (!size && isSizeProp && !isNumericOnlyVariantToken(value)) {
       size = value
     }
-    if (isColorProp && !imageUrl) {
+    if (!imageUrl) {
       const img = pickString(rec, [
         "sku_image",
         "sku_property_image_path",
         "skuPropertyImagePath",
         "skuPropertyImageSummPath",
+        "sku_property_image_summ_path",
+        "property_value_image_url",
+        "propertyValueImageUrl",
         "sku_image_url",
         "image",
         "image_url",
@@ -287,5 +291,5 @@ export function parseAeProductSkusFromPayload(payload: unknown, aeProductId: str
     }
   }
 
-  return rows
+  return hydrateAeSkuRowImages(rows, { lookup })
 }

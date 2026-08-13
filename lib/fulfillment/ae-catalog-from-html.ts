@@ -35,6 +35,7 @@ function skusFromLegacyHtml(html: string, url: string): AeProductSkuRow[] {
       matchSize: v.type?.toLowerCase().includes("size") ? v.name : null,
       aePriceCents: v.price > 0 ? Math.max(100, Math.round(v.price * 100)) : 0,
       stock: Math.max(0, Math.round(v.stock)),
+      imageUrl: v.image?.trim() || null,
     })
   }
 

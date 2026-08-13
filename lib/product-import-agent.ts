@@ -12,6 +12,7 @@ import {
 import { parseAeProductSkusFromPayload, type AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
 import { parseAeCatalogFromHtml } from "@/lib/fulfillment/ae-catalog-from-html"
 import { fetchAliExpressProductHtml } from "@/lib/fulfillment/fetch-ae-page-html"
+import { hydrateAeSkuRowImages } from "@/lib/fulfillment/ae-sku-image-hydrate"
 import {
   aeSkusToVariantPersist,
   isWeakAeSkuPersist,
@@ -123,7 +124,11 @@ async function enrichAeSkusFromPageHtml(
         htmlSkuCount: parsed.aeSkus.length,
         mergedSkuCount: merged.length,
       })
-      return merged
+      return hydrateAeSkuRowImages(merged, {
+        colorSwatches: parsed.aeSkus
+          .filter((s) => s.aeLabel && s.imageUrl)
+          .map((s) => ({ name: s.aeLabel, image: s.imageUrl })),
+      })
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
