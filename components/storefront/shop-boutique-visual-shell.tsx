@@ -8,19 +8,17 @@ import { getStorefrontThemeById } from "@/lib/boutique/storefront-theme-engine"
 
 type Props = {
   themeId: string
-  header?: ReactNode
   children: ReactNode
 }
 
-/** One themed canvas — merchant nav + boutique body share the same procedural skin. */
-export function ResellerBoutiquePageShell({ themeId, header, children }: Props) {
+/** Buyer `/shops/` body — procedural boutique skin saved from design studio. */
+export function ShopBoutiqueVisualShell({ themeId, children }: Props) {
   const theme = getStorefrontThemeById(themeId)
 
   return (
     <ResellerBoutiqueThemeVars theme={theme}>
-      <BoutiqueProceduralCanvas className="relative min-h-screen w-full overflow-hidden">
-        {header}
-        <div className="mx-auto w-full max-w-[1600px] px-6 py-10 md:px-8 lg:px-10">{children}</div>
+      <BoutiqueProceduralCanvas className="relative min-h-[40vh] w-full overflow-hidden">
+        {children}
       </BoutiqueProceduralCanvas>
     </ResellerBoutiqueThemeVars>
   )

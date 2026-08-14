@@ -2,11 +2,12 @@ import { Suspense } from "react"
 import { headers } from "next/headers"
 
 import { AffiliateStorePreviewBannerGate } from "@/components/shop/AffiliateStorePreviewBannerGate"
+import { ShopBoutiqueVisualShell } from "@/components/storefront/shop-boutique-visual-shell"
+import { StorefrontBoutiqueThemedChrome } from "@/components/storefront/storefront-boutique-themed-chrome"
 import { StorefrontImmersiveSync } from "@/components/storefront/storefront-immersive-sync"
 import { StorefrontImmersiveViewTracker } from "@/components/storefront/storefront-immersive-view-tracker"
 import { StorefrontPresetAbSync } from "@/components/storefront/storefront-preset-ab-sync"
 import { StorefrontPresetViewTracker } from "@/components/storefront/storefront-preset-view-tracker"
-import { StorefrontBuyerChromeBar } from "@/components/storefront/storefront-buyer-chrome-bar"
 import { StorefrontHostChromeSync } from "@/components/storefront/storefront-host-chrome-sync"
 import { StorefrontStaticPagesStrip } from "@/components/storefront/storefront-static-pages-strip"
 import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-styles"
@@ -14,6 +15,10 @@ import {
   loadAffiliateShopStoreCached,
   loadAffiliateStorefrontTrustCached,
 } from "@/lib/shop-storefront-cache"
+import {
+  DEFAULT_STOREFRONT_THEME_ID,
+  parseStorefrontThemeId,
+} from "@/lib/boutique/storefront-themes"
 import {
   isStorefrontImmersiveLayout,
   STOREFRONT_IMMERSIVE_ROOT_CLASS,
@@ -40,6 +45,9 @@ async function ShopStorefrontHeader({
 
   const surfaceClass = storefrontSurfaceClass(store?.theme.surface)
   const immersive = isStorefrontImmersiveLayout(store?.theme.layout)
+  const boutiqueVisualTheme =
+    parseStorefrontThemeId(store?.theme.boutiqueVisualTheme ?? null) ??
+    DEFAULT_STOREFRONT_THEME_ID
 
   return (
     <div className={cn(surfaceClass, immersive && STOREFRONT_IMMERSIVE_ROOT_CLASS)}>
@@ -65,7 +73,8 @@ async function ShopStorefrontHeader({
       ) : null}
       {store ? <StorefrontThemeStyles theme={store.theme} /> : null}
       {store ? (
-        <StorefrontBuyerChromeBar
+        <StorefrontBoutiqueThemedChrome
+          boutiqueThemeId={boutiqueVisualTheme}
           storeName={store.name}
           logoUrl={store.logoUrl ?? store.aiAvatarUrl}
           accent={store.theme.accent}
@@ -103,6 +112,23 @@ async function ShopStorefrontFooter({
   )
 }
 
+async function ShopStorefrontMain({
+  slug,
+  children,
+}: {
+  slug: string
+  children: React.ReactNode
+}) {
+  const store = await loadAffiliateShopStoreCached(slug)
+  const boutiqueVisualTheme =
+    parseStorefrontThemeId(store?.theme.boutiqueVisualTheme ?? null) ??
+    DEFAULT_STOREFRONT_THEME_ID
+
+  return (
+    <ShopBoutiqueVisualShell themeId={boutiqueVisualTheme}>{children}</ShopBoutiqueVisualShell>
+  )
+}
+
 /**
  * Stream PDP children without waiting on store chrome (cached) — cuts skeleton time.
  */
@@ -122,7 +148,11 @@ export default async function ShopPublicLayout({
       <Suspense fallback={null}>
         <ShopStorefrontHeader slug={slug} isCustomDomain={isCustomDomain} />
       </Suspense>
-      <main className="min-w-0 overflow-x-clip">{children}</main>
+      <main className="min-w-0 overflow-x-clip">
+        <Suspense fallback={null}>
+          <ShopStorefrontMain slug={slug}>{children}</ShopStorefrontMain>
+        </Suspense>
+      </main>
       <Suspense fallback={null}>
         <ShopStorefrontFooter slug={slug} isCustomDomain={isCustomDomain} />
       </Suspense>

@@ -1,11 +1,22 @@
-import { buildResellerBoutiqueStorefrontChrome } from "@/components/boutique/build-reseller-boutique-storefront-chrome"
-import type { ResellerBoutiqueStoreContext } from "@/lib/boutique/load-reseller-storefront.server"
-import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
+import type { Session } from "next-auth"
 
-/** @deprecated Prefer `buildResellerBoutiqueStorefrontChrome` — kept for call-site stability. */
+import { ResellerBoutiqueMerchantHeader } from "@/components/boutique/reseller-boutique-merchant-header"
+import type { ResellerBoutiqueStoreContext } from "@/lib/boutique/load-reseller-storefront.server"
+
 export function buildResellerBoutiqueHeader(
   storeContext: ResellerBoutiqueStoreContext,
-  trust: StorefrontTrustSnapshot | null
+  session: Session | null
 ) {
-  return buildResellerBoutiqueStorefrontChrome(storeContext, trust)
+  const userId = session?.user?.id
+  const isOwner = Boolean(userId && userId === storeContext.ownerUserId)
+
+  return (
+    <ResellerBoutiqueMerchantHeader
+      storeSlug={storeContext.storeSlug}
+      storeName={storeContext.storeName}
+      logoUrl={storeContext.logoUrl}
+      aiAvatarUrl={storeContext.aiAvatarUrl}
+      isOwner={isOwner}
+    />
+  )
 }

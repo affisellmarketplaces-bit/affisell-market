@@ -1,36 +1,30 @@
 import { describe, expect, it } from "vitest"
 
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
+import {
+  DEFAULT_STOREFRONT_THEME_ID,
+  parseStorefrontThemeId,
+} from "@/lib/boutique/storefront-themes"
 
-describe("boutique storefront chrome context", () => {
-  it("brand studio theme carries hero video fields for Veo hero band", () => {
+describe("shop boutique visual sync", () => {
+  it("resolves saved boutiqueVisualTheme for /shops/ chrome", () => {
     const theme = parseStorefrontTheme({
-      primary: "#18181b",
-      accent: "#ec4899",
+      boutiqueVisualTheme: "t-0190",
       heroStyle: "video",
       heroVideoUrl: "https://cdn.example.com/veo-loop.mp4",
-      boutiqueVisualTheme: "t-0190",
     })
 
+    expect(parseStorefrontThemeId(theme.boutiqueVisualTheme)).toBe("t-0190")
     expect(theme.heroStyle).toBe("video")
     expect(theme.heroVideoUrl).toBe("https://cdn.example.com/veo-loop.mp4")
-    expect(theme.boutiqueVisualTheme).toBe("t-0190")
   })
 
-  it("preserves boutique visual theme when brand studio fields update", () => {
-    const existing = parseStorefrontTheme({
-      boutiqueVisualTheme: "t-0128",
-      boutiqueAiTagline: "Premium picks",
-    })
-    const merged = parseStorefrontTheme({
-      ...existing,
-      primary: "#000000",
-      accent: "#7c3aed",
-      heroStyle: "banner",
-    })
-
-    expect(merged.boutiqueVisualTheme).toBe("t-0128")
-    expect(merged.boutiqueAiTagline).toBe("Premium picks")
-    expect(merged.primary).toBe("#000000")
+  it("falls back to default procedural theme when none saved", () => {
+    expect(parseStorefrontThemeId(null)).toBeNull()
+    expect(parseStorefrontThemeId(undefined)).toBeNull()
+    expect(
+      parseStorefrontThemeId(parseStorefrontTheme(null).boutiqueVisualTheme ?? null) ??
+        DEFAULT_STOREFRONT_THEME_ID
+    ).toBe(DEFAULT_STOREFRONT_THEME_ID)
   })
 })

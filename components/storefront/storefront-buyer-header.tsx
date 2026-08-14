@@ -34,6 +34,8 @@ type Props = {
   trust?: StorefrontTrustSnapshot | null
   isCustomDomain?: boolean
   shopHomePath?: string
+  /** Procedural boutique header skin (`--boutique-merchant-header-*`). */
+  boutiqueSeamless?: boolean
 }
 
 // LOGIC PRESERVED — menu / cart control wiring (href, onClick, a11y)
@@ -133,12 +135,13 @@ export function StorefrontBuyerHeader({
   trust = null,
   isCustomDomain = false,
   shopHomePath = "/",
+  boutiqueSeamless = false,
 }: Props) {
   // LOGIC PRESERVED — brand derivation + alignment flags
   const displayName = storeName.trim() || "Store"
   const hasLogo = Boolean(logoUrl?.trim())
   const useBadgeStyle = nameBadge !== "classic"
-  const lightHeader = isLightStorefrontHeader(primary)
+  const lightHeader = boutiqueSeamless ? false : isLightStorefrontHeader(primary)
   void headerBrandAlign
   void useBadgeStyle
 
@@ -165,24 +168,53 @@ export function StorefrontBuyerHeader({
       className={cn(
         "affisell-storefront-chrome relative isolate overflow-hidden",
         "sticky top-0 z-50 border-b backdrop-blur-xl",
-        lightHeader
-          ? "text-zinc-900 shadow-[0_1px_0_0_rgba(0,0,0,0.06)]"
-          : "text-zinc-100 shadow-[0_1px_0_0_rgba(255,255,255,0.05)]",
+        boutiqueSeamless
+          ? "border-white/10 text-zinc-100 shadow-[inset_0_-1px_0_rgba(255,255,255,0.08)]"
+          : lightHeader
+            ? "text-zinc-900 shadow-[0_1px_0_0_rgba(0,0,0,0.06)]"
+            : "text-zinc-100 shadow-[0_1px_0_0_rgba(255,255,255,0.05)]",
         "pt-[env(safe-area-inset-top)]"
       )}
       style={
         {
-          ...storefrontHeaderShellStyle(primary, accent),
+          ...(boutiqueSeamless
+            ? {
+                backgroundImage: [
+                  "linear-gradient(180deg, var(--boutique-merchant-header-from) 0%, var(--boutique-merchant-header-via) 38%, var(--boutique-merchant-header-to) 62%, var(--boutique-merchant-header-fade, transparent) 100%)",
+                  "linear-gradient(90deg, var(--boutique-merchant-header-from) 0%, var(--boutique-merchant-header-via) 48%, var(--boutique-merchant-header-to) 100%)",
+                ].join(", "),
+                boxShadow:
+                  "var(--boutique-merchant-header-shadow, inset 0 -1px 0 rgba(255,255,255,0.08))",
+                borderBottomColor: "var(--boutique-merchant-header-border, rgba(255,255,255,0.1))",
+              }
+            : storefrontHeaderShellStyle(primary, accent)),
           "--site-header-offset": trust
             ? `calc(${compact ? "6.75rem" : "7.5rem"} + env(safe-area-inset-top))`
             : `calc(${compact ? "3.25rem" : "3.75rem"} + env(safe-area-inset-top))`,
         } as CSSProperties
       }
     >
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_-30%,var(--store-header-accent-glow),transparent_58%)]"
-        aria-hidden
-      />
+      {boutiqueSeamless ? (
+        <>
+          <div
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_85%_120%_at_0%_-20%,rgba(255,255,255,0.14),transparent_55%)]"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse 75% 110% at 100% 0%, var(--boutique-merchant-header-glow, rgba(34,211,238,0.22)), transparent 58%)",
+            }}
+            aria-hidden
+          />
+        </>
+      ) : (
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_-30%,var(--store-header-accent-glow),transparent_58%)]"
+          aria-hidden
+        />
+      )}
       <div
         className={cn(
           "pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent",
