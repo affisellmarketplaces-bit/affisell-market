@@ -1,9 +1,5 @@
 /** Affiliate product discovery (margins, commissions) — not the public buyer marketplace. */
 import { listingPublicSegment } from "@/lib/listing-public-url-shared"
-import {
-  affiliateBuyerStorefrontHomePath,
-  affiliateBuyerStorefrontProductPath,
-} from "@/lib/boutique/affiliate-buyer-storefront-path"
 export const AFFILIATE_CATALOG_PATH = "/dashboard/affiliate/catalog"
 
 /**
@@ -34,7 +30,7 @@ export const PUBLIC_SHOPS_PATH = "/shops"
 export const PUBLIC_MARKETPLACE_BROWSE_PATH = "/shops/browse"
 
 export function shopStorefrontPath(slug: string): string {
-  return affiliateBuyerStorefrontHomePath(slug)
+  return `${PUBLIC_SHOPS_PATH}/${encodeURIComponent(slug)}`
 }
 
 export function shopListingPath(
@@ -43,7 +39,7 @@ export function shopListingPath(
   customSlug?: string | null
 ): string {
   const segment = listingPublicSegment(listingId, customSlug)
-  return affiliateBuyerStorefrontProductPath(storeSlug, segment)
+  return `${shopStorefrontPath(storeSlug)}/product/${encodeURIComponent(segment)}`
 }
 
 export { isAffiliateShopStorefrontPath } from "@/lib/mobile-chrome"

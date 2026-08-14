@@ -56,7 +56,6 @@ import {
   estimateTotalPartnerGainCents,
   listedSellingPriceFromAffiliateProducts,
 } from "@/lib/affiliate-catalog-margin-display"
-import { affiliateBuyerStorefrontHomePath } from "@/lib/boutique/affiliate-buyer-storefront-path"
 import { affiliateListingPreviewHref } from "@/lib/affiliate-store-preview-access"
 import { ProductColorSwatchDots } from "@/components/product/product-color-swatch-dots"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
@@ -565,7 +564,7 @@ export function AffiliateDashboard({ storeId }: Props) {
       return
     }
     window.open(
-      `${affiliateBuyerStorefrontHomePath(storeSlug)}?preview=affiliate`,
+      `/shops/${encodeURIComponent(storeSlug)}?preview=affiliate`,
       "_blank",
       "noopener,noreferrer"
     )

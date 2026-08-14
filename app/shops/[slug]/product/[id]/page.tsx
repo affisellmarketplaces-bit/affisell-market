@@ -1,8 +1,10 @@
 import type { Metadata } from "next"
 
-import { buildListingMetadataForId } from "@/app/marketplace/[id]/page"
-import { redirectAffiliateShopProductToBoutique } from "@/lib/boutique/redirect-affiliate-shop-to-boutique.server"
+import MarketplaceListingPage, {
+  buildListingMetadataForId,
+} from "@/app/marketplace/[id]/page"
 
+/** Shop PDP — ISR 60s (same listing shell as marketplace, scoped by store slug). */
 export const revalidate = 60
 
 export async function generateMetadata({
@@ -28,6 +30,10 @@ export default async function ShopsProductPage({
     e2eCreatorsWatching?: string
   }>
 }) {
-  const [{ slug, id }, sp] = await Promise.all([params, searchParams])
-  redirectAffiliateShopProductToBoutique(slug, id, sp)
+  const { slug, id } = await params
+  return MarketplaceListingPage({
+    params: Promise.resolve({ id }),
+    searchParams,
+    storeSlug: slug,
+  })
 }

@@ -5,7 +5,6 @@ import { useEffect } from "react"
 import { Store } from "lucide-react"
 
 import Link from "next/link"
-import { affiliateBuyerStorefrontHomePath } from "@/lib/boutique/affiliate-buyer-storefront-path"
 import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-shared"
 
 type Props = { shops: PublicShopDirectoryEntry[] }
@@ -29,7 +28,7 @@ export function FeaturedStoresCarousel({ shops }: Props) {
         {shops.map((shop) => (
           <li key={shop.slug} className="min-w-[8.5rem] shrink-0">
             <Link
-              href={affiliateBuyerStorefrontHomePath(shop.slug)}
+              href={`/shops/${shop.slug}`}
               className="flex items-center gap-2 rounded-lg border border-gray-100 px-2 py-1.5 text-xs dark:border-gray-800"
             >
               {shop.logoUrl ? (

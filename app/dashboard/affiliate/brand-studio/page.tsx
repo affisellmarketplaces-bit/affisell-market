@@ -3,7 +3,6 @@ import { requireAffiliateSession } from "@/lib/dashboard-session"
 
 import { MerchantBrandStudio } from "@/components/storefront/merchant-brand-studio"
 import { ensureMerchantStore } from "@/lib/ensure-store"
-import { affiliateBuyerStorefrontHomePath } from "@/lib/boutique/affiliate-buyer-storefront-path"
 import { buildResellerBoutiquePath } from "@/lib/boutique/reseller-store-slug"
 import { prisma } from "@/lib/prisma"
 
@@ -38,7 +37,7 @@ export default async function AffiliateBrandStudioPage() {
   }
   if (!store?.slug) redirect("/dashboard/affiliate")
 
-  const previewHref = `${affiliateBuyerStorefrontHomePath(store.slug)}?preview=affiliate`
+  const previewHref = `/shops/${encodeURIComponent(store.slug)}?preview=affiliate`
   const boutiquePreviewHref = buildResellerBoutiquePath(store.slug)
 
   return (

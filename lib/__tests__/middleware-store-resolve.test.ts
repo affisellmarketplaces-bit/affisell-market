@@ -14,7 +14,7 @@ describe("resolveAffisellSubdomainHost", () => {
     const resolved = resolveAffisellSubdomainHost("ecom-store.shops.localhost")
     expect(resolved?.slug).toBe("ecom-store")
     expect(resolved?.role).toBe("AFFILIATE")
-    expect(resolved?.storePrefix).toBe("/boutique/ecom-store")
+    expect(resolved?.storePrefix).toBe("/shops/ecom-store")
   })
 })
 

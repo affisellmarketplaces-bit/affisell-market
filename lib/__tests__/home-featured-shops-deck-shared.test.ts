@@ -27,7 +27,7 @@ describe("buildFeaturedShopDeckCards", () => {
     expect(cards[0]).toMatchObject({
       slug: "ecom-store",
       name: "Ecom Store",
-      href: "/boutique/ecom-store",
+      href: "/shops/ecom-store",
       accent: "#6366f1",
       metaLabel: "4.7 ★",
     })

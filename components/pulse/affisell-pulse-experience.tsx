@@ -28,7 +28,6 @@ import { PulseBattleHeaderLink } from "@/components/pulse/PulseBattleHeaderLink"
 import { PulseLayoutModeLink } from "@/components/pulse/pulse-layout-mode-link"
 import { PulseProductMediaStage } from "@/components/pulse/pulse-product-media-stage"
 import { WishlistHeart } from "@/components/wishlist-heart"
-import { affiliateBuyerStorefrontHomePath } from "@/lib/boutique/affiliate-buyer-storefront-path"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
@@ -282,7 +281,7 @@ function PulseCard({
       <div className="absolute bottom-[calc(7.5rem+env(safe-area-inset-bottom))] right-2 z-30 flex flex-col items-center gap-2.5 sm:bottom-28 sm:right-3 sm:gap-4">
         {item.storeSlug ? (
           <Link
-            href={affiliateBuyerStorefrontHomePath(item.storeSlug)}
+            href={`/shops/${encodeURIComponent(item.storeSlug)}`}
             className="relative block"
             onClick={(e) => e.stopPropagation()}
           >

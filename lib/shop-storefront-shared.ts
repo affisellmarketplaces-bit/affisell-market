@@ -1,8 +1,5 @@
 /** Shop directory + product card types/mappers — safe for `"use client"` (no Prisma). */
 
-import {
-  affiliateBuyerStorefrontProductPath,
-} from "@/lib/boutique/affiliate-buyer-storefront-path"
 import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 import type { StorefrontTheme } from "@/lib/storefront-theme-shared"
 
@@ -83,7 +80,7 @@ export function shopProductToCardProps(
   const href =
     options?.dedicatedHost === true
       ? `/product/${item.listingId}`
-      : affiliateBuyerStorefrontProductPath(storeSlug, item.listingId)
+      : `/shops/${storeSlug}/product/${item.listingId}`
 
   return {
     listingId: item.listingId,

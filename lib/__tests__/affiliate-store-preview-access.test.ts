@@ -32,6 +32,6 @@ describe("affiliate-store-preview-access", () => {
         listingId: "listing_1",
         productId: "product_1",
       })
-    ).toBe("/boutique/ecom-store?productId=listing_1&preview=affiliate")
+    ).toBe("/shops/ecom-store/product/listing_1?preview=affiliate")
   })
 })

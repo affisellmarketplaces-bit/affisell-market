@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest"
 
 import { isPlatformHost, normalizeRequestHost } from "@/lib/custom-domain-host"
-import { affiliateBuyerStorefrontHomePath } from "@/lib/boutique/affiliate-buyer-storefront-path"
 import {
   isMerchantPublicPlatformPath,
   mapCustomDomainPath,
@@ -35,7 +34,7 @@ describe("mapCustomDomainPath", () => {
     const slug = "my-shop"
     expect(mapCustomDomainPath("/", slug, "AFFILIATE")).toBe(storePublicPrefix(slug, "AFFILIATE"))
     expect(mapCustomDomainPath("/product/abc", slug, "AFFILIATE")).toBe(
-      affiliateBuyerStorefrontHomePath(slug)
+      `/shops/${slug}/product/abc`
     )
   })
 
