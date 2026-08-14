@@ -109,6 +109,18 @@ export function sectionCopyString(
   return typeof v === "string" && v.trim() ? v.trim() : fallback
 }
 
+/** Buyer vitrine — story only when copy is not a repeat of the store tagline. */
+export function resolveStorefrontStoryBody(
+  content: HomepageSectionContent | undefined,
+  storeDescription: string | null | undefined
+): string | null {
+  const tagline = storeDescription?.trim() ?? ""
+  const body = sectionCopyString(content, "body", "") || tagline
+  if (!body) return null
+  if (tagline && body === tagline) return null
+  return body
+}
+
 export function sectionProductLimit(content: HomepageSectionContent | undefined): number {
   const n = content?.productLimit
   if (typeof n === "number" && Number.isFinite(n)) {

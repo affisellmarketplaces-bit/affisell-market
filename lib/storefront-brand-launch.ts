@@ -90,14 +90,12 @@ export function buildBrandLaunchConfig(args: {
     case "fashion":
       sections = enableSections(sections, [
         "hero",
-        "story",
         "bestsellers",
         "products",
         "trust",
         "cta",
       ])
       sections = withSectionCopy(sections, {
-        story: { eyebrow: "Curated edit", body: args.description },
         bestsellers: { productLimit: 8 },
         cta: {
           eyebrow: "New drops",

@@ -11,6 +11,7 @@ import { StorefrontThemeStyles } from "@/components/storefront/storefront-theme-
 import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 import {
   getEnabledHomepageSections,
+  resolveStorefrontStoryBody,
   sectionCopyString,
   type HomepageSection,
 } from "@/lib/storefront-sections-shared"
@@ -219,8 +220,10 @@ export function StorefrontLivePreview({ draft, className }: Props) {
                     </ul>
                   </div>
                 )
-              case "story":
-                return sampleTagline ? (
+              case "story": {
+                const body = resolveStorefrontStoryBody(content, draft.description)
+                if (!body) return null
+                return (
                   <div
                     key="story"
                     className="border-b border-zinc-200/80 px-4 py-3 dark:border-zinc-800"
@@ -228,11 +231,10 @@ export function StorefrontLivePreview({ draft, className }: Props) {
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
                       {sectionCopyString(content, "eyebrow", tSections("storyEyebrow"))}
                     </p>
-                    <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-                      {sectionCopyString(content, "body", sampleTagline)}
-                    </p>
+                    <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{body}</p>
                   </div>
-                ) : null
+                )
+              }
               case "bestsellers":
                 return (
                   <div key="bestsellers" className="border-b border-zinc-200/80 px-3 py-3 dark:border-zinc-800">

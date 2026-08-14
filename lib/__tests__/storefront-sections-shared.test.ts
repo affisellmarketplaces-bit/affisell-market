@@ -8,6 +8,7 @@ import {
   parseHomepageSections,
   parseHomepageSectionsFromJson,
   reorderHomepageSections,
+  resolveStorefrontStoryBody,
   toggleHomepageSection,
 } from "@/lib/storefront-sections-shared"
 
@@ -130,5 +131,27 @@ describe("homepage section helpers", () => {
     const parsed = parseHomepageSectionsFromJson(json)
     expect(parsed.find((s) => s.type === "trust")?.enabled).toBe(false)
     expect(parseHomepageSectionsFromJson("{bad")).toEqual(DEFAULT_HOMEPAGE_SECTIONS)
+  })
+})
+
+describe("resolveStorefrontStoryBody", () => {
+  it("returns null when story repeats the store tagline", () => {
+    const tagline = "Ecom Store — curated fashion picks your audience will love."
+    expect(
+      resolveStorefrontStoryBody(
+        { eyebrow: "Curated edit", body: tagline },
+        tagline
+      )
+    ).toBeNull()
+    expect(resolveStorefrontStoryBody(undefined, tagline)).toBeNull()
+  })
+
+  it("returns unique story copy when it differs from the tagline", () => {
+    expect(
+      resolveStorefrontStoryBody(
+        { body: "Hand-picked pieces from Parisian ateliers." },
+        "Ecom Store — curated fashion picks your audience will love."
+      )
+    ).toBe("Hand-picked pieces from Parisian ateliers.")
   })
 })

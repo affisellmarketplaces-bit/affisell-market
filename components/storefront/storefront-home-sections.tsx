@@ -13,6 +13,7 @@ import { StorefrontTaglineBand } from "@/components/storefront/storefront-taglin
 import type { ShopProductCard, ShopStoreSummary } from "@/lib/shop-storefront-shared"
 import {
   getEnabledHomepageSections,
+  resolveStorefrontStoryBody,
   sectionCopyString,
 } from "@/lib/storefront-sections-shared"
 import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
@@ -75,8 +76,7 @@ export async function StorefrontHomeSections({
               />
             )
           case "story": {
-            const body =
-              sectionCopyString(content, "body", "") || store.description?.trim() || ""
+            const body = resolveStorefrontStoryBody(content, store.description)
             if (!body) return null
             return (
               <section
