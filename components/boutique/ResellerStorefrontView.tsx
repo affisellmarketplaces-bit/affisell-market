@@ -12,7 +12,9 @@ type Props = {
   tagline?: string | null
   brandTheme: ResellerBoutiqueThemeProps
   initialVisualTheme: StorefrontTheme
+  persistedVisualTheme: StorefrontTheme
   titleTypography: BoutiqueTitleTypography
+  persistedTitleTypography: BoutiqueTitleTypography
   products: ResellerStorefrontListProduct[]
   count: number
 }

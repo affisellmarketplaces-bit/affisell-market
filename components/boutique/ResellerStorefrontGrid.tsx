@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { Eye, RotateCw, ShoppingBag, Sparkles } from "lucide-react"
+import { Check, Eye, Loader2, RotateCw, ShoppingBag, Sparkles } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -33,9 +33,20 @@ type ResellerStorefrontGridProps = {
   tagline?: string | null
   brandTheme: ResellerBoutiqueThemeProps
   initialVisualTheme?: StorefrontTheme
+  persistedVisualTheme?: StorefrontTheme
   titleTypography?: BoutiqueTitleTypography
+  persistedTitleTypography?: BoutiqueTitleTypography
   products: ResellerStorefrontListProduct[]
   count: number
+}
+
+function typographyEqual(a: BoutiqueTitleTypography, b: BoutiqueTitleTypography): boolean {
+  return (
+    a.fontId === b.fontId &&
+    a.ornamentId === b.ornamentId &&
+    a.layoutId === b.layoutId &&
+    (a.displayOverride ?? null) === (b.displayOverride ?? null)
+  )
 }
 
 function readInitialTheme(storeSlug: string, fallback: StorefrontTheme): StorefrontTheme {
@@ -56,7 +67,9 @@ export function ResellerStorefrontGrid({
   tagline,
   brandTheme: _brandTheme,
   initialVisualTheme = DEFAULT_STOREFRONT_THEME_ID,
+  persistedVisualTheme = DEFAULT_STOREFRONT_THEME_ID,
   titleTypography: initialTitleTypography = DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY,
+  persistedTitleTypography = DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY,
   products,
   count,
 }: ResellerStorefrontGridProps) {
@@ -68,8 +81,19 @@ export function ResellerStorefrontGrid({
   const [hydrated, setHydrated] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [isStoreOwner, setIsStoreOwner] = useState(false)
+  const [persistedTheme, setPersistedTheme] = useState<StorefrontTheme>(persistedVisualTheme)
+  const [persistedTypography, setPersistedTypography] =
+    useState<BoutiqueTitleTypography>(persistedTitleTypography)
+  const [persistedTagline, setPersistedTagline] = useState<string | null>(tagline?.trim() ?? null)
 
   const themeDef = useMemo(() => getStorefrontThemeById(theme), [theme])
+
+  const isDirty =
+    theme !== persistedTheme ||
+    !typographyEqual(titleTypography, persistedTypography) ||
+    (displayTagline ?? null) !== persistedTagline
 
   useEffect(() => {
     if (tagline?.trim()) setDisplayTagline(tagline.trim())
@@ -77,7 +101,27 @@ export function ResellerStorefrontGrid({
 
   useEffect(() => {
     setTitleTypography(initialTitleTypography)
-  }, [initialTitleTypography])
+    setPersistedTypography(persistedTitleTypography)
+  }, [initialTitleTypography, persistedTitleTypography])
+
+  useEffect(() => {
+    setPersistedTheme(persistedVisualTheme)
+  }, [persistedVisualTheme])
+
+  useEffect(() => {
+    let cancelled = false
+    void fetch("/api/store/me", { credentials: "include", cache: "no-store" })
+      .then(async (res) => (res.ok ? ((await res.json()) as { store?: { slug?: string } }) : null))
+      .then((data) => {
+        if (!cancelled) setIsStoreOwner(data?.store?.slug === storeSlug)
+      })
+      .catch(() => {
+        if (!cancelled) setIsStoreOwner(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [storeSlug])
 
   useEffect(() => {
     const fromUrl = parseStorefrontThemeId(searchParams.get("theme"))
@@ -109,6 +153,58 @@ export function ResellerStorefrontGrid({
     })
     setRegenerating(false)
   }, [theme])
+
+  const handleSaveDesign = useCallback(async () => {
+    if (!isStoreOwner || !isDirty) return
+    setSaving(true)
+    try {
+      const result = await postBrandAiJson<{
+        persisted?: boolean
+        themeId: StorefrontTheme
+        label: string
+      }>(
+        "/api/store/save-boutique-design",
+        {
+          storeSlug,
+          themeId: theme,
+          tagline: displayTagline,
+          fontId: titleTypography.fontId,
+          ornamentId: titleTypography.ornamentId,
+          layoutId: titleTypography.layoutId,
+          displayOverride: titleTypography.displayOverride,
+        },
+        "Save failed"
+      )
+
+      if (!result.ok || !result.data?.themeId) {
+        throw new Error(result.error ?? "Save failed")
+      }
+
+      setPersistedTheme(result.data.themeId)
+      setPersistedTypography(titleTypography)
+      setPersistedTagline(displayTagline ?? null)
+      toast.success(`${result.data.label} — design saved for all visitors ✨`)
+      console.log("[boutique]", {
+        event: "design_saved",
+        storeSlug,
+        themeId: result.data.themeId,
+        result: "ok",
+      })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Save failed"
+      toast.error(msg)
+      console.log("[boutique]", { event: "design_saved", storeSlug, result: "error", error: msg })
+    } finally {
+      setSaving(false)
+    }
+  }, [
+    displayTagline,
+    isDirty,
+    isStoreOwner,
+    storeSlug,
+    theme,
+    titleTypography,
+  ])
 
   const handleGenerateFromModal = async ({
     vibe,
@@ -173,6 +269,13 @@ export function ResellerStorefrontGrid({
 
       if (themeResult.ok && themeResult.data) {
         if (themeResult.data.tagline?.trim()) setDisplayTagline(themeResult.data.tagline.trim())
+        setPersistedTheme(resolvedThemeId)
+        setPersistedTagline(themeResult.data.tagline?.trim() ?? displayTagline ?? null)
+        setPersistedTypography(
+          titleResult.ok && titleResult.data?.typography
+            ? titleResult.data.typography
+            : nextTitleTypography
+        )
         toast.success(
           themeResult.data.persisted
             ? `${def.label} — live for all visitors ✨`
@@ -193,7 +296,7 @@ export function ResellerStorefrontGrid({
   return (
     <ResellerBoutiquePageShell themeId={theme}>
       <div className="relative mb-12 w-full">
-        <div className="mb-6 flex flex-col gap-2 sm:absolute sm:right-0 sm:top-0 sm:z-20 sm:mb-0 sm:flex-row">
+        <div className="mb-6 flex flex-col gap-2 sm:absolute sm:right-0 sm:top-0 sm:z-20 sm:mb-0 sm:flex-row sm:flex-wrap sm:justify-end">
           <button
             type="button"
             onClick={() => setModalOpen(true)}
@@ -211,7 +314,8 @@ export function ResellerStorefrontGrid({
             type="button"
             title="Regenerate layout with AI"
             onClick={() => void handleRegenerate()}
-            className="inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300"
+            disabled={regenerating || saving}
+            className="inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 disabled:opacity-60"
             style={{
               background: "var(--boutique-regen-bg)",
               borderColor: "var(--boutique-regen-border)",
@@ -224,9 +328,43 @@ export function ResellerStorefrontGrid({
             />
             ↻ Regenerate
           </button>
+          {isStoreOwner ? (
+            <button
+              type="button"
+              title="Save design for all visitors"
+              disabled={!isDirty || saving || regenerating}
+              onClick={() => void handleSaveDesign()}
+              className={cn(
+                "inline-flex items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-sm font-semibold transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50",
+                isDirty && "hover:scale-[1.02] hover:shadow-lg"
+              )}
+              style={
+                isDirty
+                  ? {
+                      backgroundImage:
+                        "linear-gradient(90deg, var(--boutique-button-from), var(--boutique-button-to))",
+                      borderColor: "transparent",
+                      color: "#fff",
+                      boxShadow: "var(--boutique-button-shadow)",
+                    }
+                  : {
+                      background: "var(--boutique-badge-bg)",
+                      borderColor: "var(--boutique-badge-border)",
+                      color: "var(--boutique-badge-text)",
+                    }
+              }
+            >
+              {saving ? (
+                <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+              ) : (
+                <Check className="size-4 shrink-0" aria-hidden />
+              )}
+              {saving ? "Saving…" : isDirty ? "Save design ✨" : "Design saved"}
+            </button>
+          ) : null}
         </div>
 
-        <header className="relative w-full pt-2 pr-0 sm:pr-[22rem]">
+        <header className="relative w-full pt-2 pr-0 sm:pr-[28rem]">
           <BoutiqueStoreTitle storeLabel={storeLabel} typography={titleTypography} />
 
           <div className="mt-5 flex flex-wrap items-center gap-3">

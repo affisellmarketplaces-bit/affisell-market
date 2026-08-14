@@ -86,9 +86,10 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
 
   const storefront = await loadResellerStorefrontList({ storeSlug })
   const resolvedTheme = storefront.theme ?? theme
-  const savedVisualTheme = parseStorefrontThemeId(storeContext?.boutiqueVisualTheme ?? null)
+  const savedVisualTheme =
+    parseStorefrontThemeId(storeContext?.boutiqueVisualTheme ?? null) ?? DEFAULT_STOREFRONT_THEME_ID
   const initialVisualTheme =
-    parseStorefrontThemeId(sp.theme) ?? savedVisualTheme ?? DEFAULT_STOREFRONT_THEME_ID
+    parseStorefrontThemeId(sp.theme) ?? savedVisualTheme
 
   if (storefront.count === 0) {
     return (
@@ -110,7 +111,9 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
         tagline={storeContext?.tagline ?? null}
         brandTheme={resolvedTheme}
         initialVisualTheme={initialVisualTheme}
+        persistedVisualTheme={savedVisualTheme}
         titleTypography={storeContext?.titleTypography ?? DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY}
+        persistedTitleTypography={storeContext?.titleTypography ?? DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY}
         products={storefront.products}
         count={storefront.count}
       />

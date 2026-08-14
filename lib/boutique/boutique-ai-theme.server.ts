@@ -14,6 +14,7 @@ import {
 import {
   boutiqueTitleTypographyToStoreFields,
   inferBoutiqueTitleTypographyFromVibe,
+  type BoutiqueTitleTypography,
 } from "@/lib/boutique/boutique-title-typography-shared"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
@@ -192,6 +193,55 @@ export async function persistBoutiqueVisualTheme(args: {
 function sanitizeExistingDisplay(raw: string): string | null {
   const t = raw.trim().slice(0, 80)
   return t || null
+}
+
+export async function saveBoutiqueDesignSnapshot(args: {
+  userId: string
+  storeSlug: string
+  themeId: string
+  tagline?: string | null
+  titleTypography?: BoutiqueTitleTypography
+}): Promise<{ slug: string; themeId: string; label: string }> {
+  const slug = args.storeSlug.trim()
+  if (!slug) throw new Error("Invalid store slug")
+
+  const store = await prisma.store.findUnique({
+    where: { userId: args.userId },
+    select: { id: true, slug: true, storefrontTheme: true },
+  })
+  if (!store || store.slug !== slug) {
+    throw new Error("Store not found")
+  }
+
+  const themeMeta = getStorefrontThemeById(args.themeId)
+  const existing = parseStorefrontTheme(store.storefrontTheme)
+  const tagline =
+    args.tagline !== undefined && args.tagline !== null
+      ? args.tagline.trim().slice(0, 120) || undefined
+      : existing.boutiqueAiTagline
+
+  await prisma.store.update({
+    where: { id: store.id },
+    data: {
+      storefrontTheme: {
+        ...existing,
+        boutiqueVisualTheme: themeMeta.id,
+        boutiqueAiTagline: tagline,
+        ...(args.titleTypography
+          ? boutiqueTitleTypographyToStoreFields(args.titleTypography)
+          : {}),
+      },
+    },
+  })
+
+  console.log("[save-boutique-design]", {
+    userId: args.userId,
+    storeId: store.id,
+    themeId: themeMeta.id,
+    result: "ok",
+  })
+
+  return { slug: store.slug, themeId: themeMeta.id, label: themeMeta.label }
 }
 
 export function readBoutiqueVisualThemeFromStore(raw: unknown): {
