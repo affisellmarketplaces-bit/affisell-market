@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     })
 
     revalidatePath(`/boutique/${encodeURIComponent(store.slug)}`)
-    revalidateTag(shopTag(store.slug))
+    revalidateTag(shopTag(store.slug), "max")
 
     console.log("[update-boutique-title]", {
       userId,

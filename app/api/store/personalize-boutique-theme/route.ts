@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       })
       revalidatePath(`/boutique/${encodeURIComponent(store.slug)}`)
       revalidatePath(`/shops/${encodeURIComponent(store.slug)}`)
-      revalidateTag(shopTag(store.slug))
+      revalidateTag(shopTag(store.slug), "max")
     }
 
     const themeMeta = getStorefrontThemeById(result.themeId)
