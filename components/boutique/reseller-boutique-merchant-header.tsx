@@ -50,13 +50,8 @@ function NavLink({
       href={href}
       className={cn(
         "relative shrink-0 whitespace-nowrap px-4 py-2 text-[15px] tracking-tight transition-colors duration-700 ease-in-out",
-        active ? "font-semibold" : "font-normal"
+        active ? "font-semibold text-white" : "font-normal text-white/85 hover:text-white"
       )}
-      style={{
-        color: active
-          ? "var(--boutique-merchant-header-text, #ffffff)"
-          : "var(--boutique-merchant-header-text-muted, rgba(255,255,255,0.86))",
-      }}
       aria-current={active ? "page" : undefined}
     >
       {label}
@@ -103,9 +98,8 @@ export function ResellerBoutiqueMerchantHeader({
       aria-label={t("aria")}
     >
       <div
-        className="relative overflow-hidden backdrop-blur-2xl backdrop-saturate-150 transition-[background,border-color,box-shadow,color] duration-700 ease-in-out"
+        className="relative overflow-hidden backdrop-blur-2xl backdrop-saturate-150 transition-[background,border-color,box-shadow] duration-700 ease-in-out"
         style={{
-          color: "var(--boutique-merchant-header-text, #ffffff)",
           backgroundImage: [
             "linear-gradient(180deg, var(--boutique-merchant-header-from) 0%, var(--boutique-merchant-header-via) 38%, var(--boutique-merchant-header-to) 62%, var(--boutique-merchant-header-fade, transparent) 100%)",
             "linear-gradient(90deg, var(--boutique-merchant-header-from) 0%, var(--boutique-merchant-header-via) 48%, var(--boutique-merchant-header-to) 100%)",
@@ -114,11 +108,7 @@ export function ResellerBoutiqueMerchantHeader({
         }}
       >
         <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse 85% 120% at 0% -20%, var(--boutique-merchant-header-scrim, rgba(255,255,255,0.14)), transparent 55%)",
-          }}
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_85%_120%_at_0%_-20%,rgba(255,255,255,0.14),transparent_55%)]"
           aria-hidden
         />
         <div
@@ -156,11 +146,7 @@ export function ResellerBoutiqueMerchantHeader({
             <Link
               href="/cart"
               prefetch
-              className="relative inline-flex size-10 items-center justify-center transition-[color,background-color] duration-700 ease-in-out hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-              style={{
-                color: "var(--boutique-merchant-header-icon, #ffffff)",
-                outlineColor: "var(--boutique-merchant-header-focus-ring, rgba(34,211,238,0.85))",
-              }}
+              className="relative inline-flex size-10 items-center justify-center text-white transition-[color] duration-700 ease-in-out hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/50"
               aria-label={cartAria}
             >
               <ShoppingCart className="size-[22px] stroke-[1.75]" aria-hidden />
@@ -179,8 +165,7 @@ export function ResellerBoutiqueMerchantHeader({
         </div>
 
         <nav
-          className="relative flex items-center gap-0.5 overflow-x-auto border-t px-2 py-1.5 lg:hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          style={{ borderColor: "var(--boutique-merchant-header-divider, rgba(255,255,255,0.12))" }}
+          className="relative flex items-center gap-0.5 overflow-x-auto border-t border-white/10 px-2 py-1.5 lg:hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           aria-label={t("navAria")}
         >
           <NavLink href={nav.dashboard} label={t("dashboard")} active={onDashboard} />

@@ -53,24 +53,14 @@ export function BoutiqueMerchantAvatarMenu({
         aria-label={t("aria")}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="group flex items-center gap-0.5 rounded-full py-0.5 pl-0.5 pr-1 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 hover:bg-[var(--boutique-merchant-header-hover-bg,rgba(255,255,255,0.1))]"
-        style={{
-          outlineColor: "var(--boutique-merchant-header-focus-ring, rgba(34,211,238,0.85))",
-        }}
+        className="group flex items-center gap-0.5 rounded-full py-0.5 pl-0.5 pr-1 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300/80"
       >
-        <span
-          className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-[var(--boutique-merchant-header-hover-bg,rgba(255,255,255,0.06))]"
-          style={{ borderColor: "var(--boutique-merchant-header-divider, rgba(255,255,255,0.3))" }}
-        >
+        <span className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/30 bg-white/[0.06]">
           {storeAvatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={storeAvatarUrl} alt="" className="size-full object-cover" loading="eager" />
           ) : (
-            <UserRound
-              className="size-5 stroke-[1.5]"
-              style={{ color: "var(--boutique-merchant-header-icon, #ffffff)" }}
-              aria-hidden
-            />
+            <UserRound className="size-5 text-white/90 stroke-[1.5]" aria-hidden />
           )}
           {isOwner && !hasCustomMark ? (
             <span
@@ -87,8 +77,10 @@ export function BoutiqueMerchantAvatarMenu({
           ) : null}
         </span>
         <ChevronDown
-          className={cn("size-4 shrink-0 transition", open && "rotate-180")}
-          style={{ color: "var(--boutique-merchant-header-icon, #ffffff)" }}
+          className={cn(
+            "size-4 shrink-0 text-white/90 transition",
+            open && "rotate-180 text-cyan-200"
+          )}
           aria-hidden
         />
       </button>

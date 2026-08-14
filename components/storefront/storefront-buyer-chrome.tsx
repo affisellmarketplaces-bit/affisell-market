@@ -28,8 +28,6 @@ type Props = {
   shopHomePath?: string
   trust?: StorefrontTrustSnapshot | null
   isCustomDomain?: boolean
-  boutiqueSeamless?: boolean
-  boutiqueThemeIsDark?: boolean
 }
 
 const EMPTY_CATEGORIES: StorefrontCategoryGroup[] = []
@@ -48,8 +46,6 @@ export function StorefrontBuyerChrome({
   shopHomePath = "/",
   trust = null,
   isCustomDomain = false,
-  boutiqueSeamless = false,
-  boutiqueThemeIsDark = true,
 }: Props) {
   const serverCategories = categories ?? EMPTY_CATEGORIES
   const t = useTranslations("storefront.buyerChrome")
@@ -142,8 +138,6 @@ export function StorefrontBuyerChrome({
           trust={trust}
           isCustomDomain={isCustomDomain}
           shopHomePath={shopHomePath}
-          boutiqueSeamless={boutiqueSeamless}
-          boutiqueThemeIsDark={boutiqueThemeIsDark}
         />
       </div>
 

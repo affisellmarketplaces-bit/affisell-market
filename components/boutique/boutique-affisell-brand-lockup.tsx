@@ -62,10 +62,7 @@ export function BoutiqueAffisellBrandLockup({ badgeLabel, className }: LockupPro
     <div className={cn("flex min-w-0 items-center gap-4", className)}>
       <div className="flex min-w-0 items-center gap-2.5">
         <AffisellBoutiqueMark />
-        <span
-          className="truncate text-[1.2rem] font-bold tracking-[-0.02em]"
-          style={{ color: "var(--boutique-merchant-header-text, #ffffff)" }}
-        >
+        <span className="truncate text-[1.2rem] font-bold tracking-[-0.02em] text-white">
           Affisell
         </span>
       </div>

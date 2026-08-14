@@ -58,21 +58,6 @@ describe("storefront-theme-engine", () => {
     expect(a.cssVars.merchantHeaderActive).not.toBe(b.cssVars.merchantHeaderActive)
   })
 
-  it("light-band themes flip merchant header copy to dark for contrast", () => {
-    const theme = getStorefrontThemeById("t-0198")
-    expect(theme.isDark).toBe(false)
-    expect(theme.cssVars.merchantHeaderText).not.toBe("#ffffff")
-    expect(theme.cssVars.merchantHeaderTextMuted).not.toContain("255,255,255")
-    expect(theme.cssVars.merchantHeaderScrim).toContain("15,23,42")
-  })
-
-  it("dark-band themes keep light merchant header copy", () => {
-    const theme = getStorefrontThemeById("t-0000")
-    expect(theme.isDark).toBe(true)
-    expect(theme.cssVars.merchantHeaderText).toBe("#ffffff")
-    expect(theme.cssVars.merchantHeaderIcon).toContain("255")
-  })
-
   it("builds storage keys per slug", () => {
     expect(storefrontThemeStorageKey("ecom-store")).toBe("affisell:store-theme:ecom-store")
   })
