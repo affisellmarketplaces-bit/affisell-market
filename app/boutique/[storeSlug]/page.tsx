@@ -3,7 +3,7 @@ import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 
 import { auth } from "@/auth"
-import { buildResellerBoutiqueHeader } from "@/components/boutique/build-reseller-boutique-header"
+import { buildResellerBoutiqueStorefrontChrome } from "@/components/boutique/build-reseller-boutique-storefront-chrome"
 
 import {
   loadResellerBoutiqueStoreContext,
@@ -22,6 +22,7 @@ import {
 } from "@/lib/boutique/storefront-themes"
 import { resolveBoutiqueVisitorVisualTheme } from "@/lib/boutique/boutique-affisell-chrome-shared"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
+import { loadAffiliateStorefrontTrustCached } from "@/lib/shop-storefront-cache"
 
 import { ResellerBoutiquePageShell } from "@/components/boutique/reseller-boutique-page-shell"
 import { ResellerStorefrontEmptyState } from "@/components/boutique/ResellerStorefrontEmptyState"
@@ -72,9 +73,10 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
   const [{ storeSlug }, sp] = await Promise.all([params, searchParams])
   const requestedListingId = sp.productId?.trim() || null
 
-  const [storeContext, session] = await Promise.all([
+  const [storeContext, session, trust] = await Promise.all([
     loadResellerBoutiqueStoreContext(storeSlug),
     auth(),
+    loadAffiliateStorefrontTrustCached(storeSlug),
   ])
   const storeLabel = storeContext?.storeLabel ?? formatResellerStoreLabel(storeSlug)
   const theme = storeContext?.theme ?? defaultTheme
@@ -84,7 +86,9 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
   const savedVisualTheme =
     parseStorefrontThemeId(storeContext?.boutiqueVisualTheme ?? null) ?? DEFAULT_STOREFRONT_THEME_ID
   const boutiqueHeader =
-    storeContext != null ? buildResellerBoutiqueHeader(storeContext, session) : null
+    storeContext != null
+      ? buildResellerBoutiqueStorefrontChrome(storeContext, trust)
+      : null
 
   if (requestedListingId) {
     const product = await loadResellerStorefrontProduct(requestedListingId)

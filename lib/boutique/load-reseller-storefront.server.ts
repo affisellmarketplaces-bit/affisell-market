@@ -31,7 +31,7 @@ import {
   type ResellerBoutiqueThemeProps,
 } from "@/lib/boutique/reseller-boutique-theme-shared"
 import { parseBoutiqueTitleTypography } from "@/lib/boutique/boutique-title-typography-shared"
-import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
+import { parseStorefrontTheme, type StorefrontTheme } from "@/lib/storefront-theme-shared"
 
 export type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
 export { formatResellerStoreLabel } from "@/lib/boutique/reseller-storefront-shared"
@@ -245,7 +245,11 @@ export type ResellerBoutiqueStoreContext = {
   ownerUserId: string
   logoUrl: string | null
   aiAvatarUrl: string | null
+  bannerUrl: string | null
+  description: string | null
   tagline: string | null
+  /** Brand Studio theme (hero Veo, accent, sections) — shared with `/shops/`. */
+  brandStudioTheme: StorefrontTheme
   /** Merchant-saved procedural theme for /boutique (t-XXXX). */
   boutiqueVisualTheme: string | null
   titleTypography: ReturnType<typeof parseBoutiqueTitleTypography>
@@ -266,6 +270,7 @@ export async function loadResellerBoutiqueStoreContext(
       userId: true,
       logoUrl: true,
       aiAvatarUrl: true,
+      bannerUrl: true,
       description: true,
       storefrontTheme: true,
     },
@@ -284,7 +289,10 @@ export async function loadResellerBoutiqueStoreContext(
     ownerUserId: store.userId,
     logoUrl: store.logoUrl?.trim() || null,
     aiAvatarUrl: store.aiAvatarUrl?.trim() || null,
+    bannerUrl: store.bannerUrl?.trim() || null,
+    description: store.description?.trim() || null,
     tagline: (boutiqueAiTagline ?? store.description?.trim()) || null,
+    brandStudioTheme: parsedTheme,
     boutiqueVisualTheme,
     titleTypography: parseBoutiqueTitleTypography(parsedTheme),
     theme: serializeResellerBoutiqueTheme(parsedTheme),
