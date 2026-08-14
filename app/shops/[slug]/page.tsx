@@ -1,23 +1,14 @@
 import type { Metadata } from "next"
-import { headers } from "next/headers"
-import { notFound } from "next/navigation"
 import { getTranslations } from "next-intl/server"
 
-import { StorefrontHomeSections } from "@/components/storefront/storefront-home-sections"
-import {
-  filterShopProductsByCategory,
-  groupShopProductsByCategory,
-} from "@/lib/shop-storefront-categories"
-import {
-  loadAffiliateShopProductsForUserCached,
-  loadAffiliateShopStoreCached,
-  loadAffiliateStorefrontTrustCached,
-} from "@/lib/shop-storefront-cache"
-import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
+import { redirectAffiliateShopHomeToBoutique } from "@/lib/boutique/redirect-affiliate-shop-to-boutique.server"
+import { loadAffiliateShopStoreCached } from "@/lib/shop-storefront-cache"
 import {
   e2eFlashSaleShopFixture,
   shouldUseE2eStorefrontFlashSaleFixtures,
 } from "@/lib/e2e-storefront-flash-sale-fixtures"
+
+import LegacyShopSlugPage from "./legacy-shop-home-page"
 
 export const revalidate = 60
 
@@ -45,47 +36,13 @@ export default async function ShopSlugPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ cat?: string; e2eFlashSale?: string }>
+  searchParams: Promise<{ cat?: string; e2eFlashSale?: string; preview?: string }>
 }) {
-  const { slug } = await params
-  const { cat, e2eFlashSale } = await searchParams
-  const hdrs = await headers()
-  const isDedicatedHost = isCustomDomainHeaders(hdrs)
+  const [{ slug }, sp] = await Promise.all([params, searchParams])
 
-  const useE2eFlashSale = shouldUseE2eStorefrontFlashSaleFixtures({ e2eFlashSale })
+  if (!shouldUseE2eStorefrontFlashSaleFixtures({ e2eFlashSale: sp.e2eFlashSale })) {
+    redirectAffiliateShopHomeToBoutique(slug, sp)
+  }
 
-  const [storeFront, trust, products] = useE2eFlashSale
-    ? (() => {
-        const fixture = e2eFlashSaleShopFixture()
-        return [fixture.store, null, fixture.products] as const
-      })()
-    : await (async () => {
-        const store = await loadAffiliateShopStoreCached(slug)
-        if (!store) return [null, null, []] as const
-        const [trustRow, productRows] = await Promise.all([
-          loadAffiliateStorefrontTrustCached(slug),
-          loadAffiliateShopProductsForUserCached(store.userId, slug),
-        ])
-        return [store, trustRow, productRows] as const
-      })()
-  if (!storeFront) notFound()
-
-  const categories = groupShopProductsByCategory(products)
-  const activeCategory =
-    typeof cat === "string" && cat.length > 0
-      ? categories.find((c) => c.slug === cat) ?? null
-      : null
-  const visibleProducts = filterShopProductsByCategory(products, activeCategory?.id ?? null)
-
-  return (
-    <StorefrontHomeSections
-      store={storeFront}
-      trust={trust}
-      slug={slug}
-      products={visibleProducts}
-      catalogProducts={products}
-      activeCategoryLabel={activeCategory?.name ?? null}
-      isDedicatedHost={isDedicatedHost}
-    />
-  )
+  return <LegacyShopSlugPage slug={slug} searchParams={sp} fixture={e2eFlashSaleShopFixture()} />
 }
