@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  AFFISELL_BOUTIQUE_CHROME,
-  resolveBoutiqueVisitorVisualTheme,
-} from "@/lib/boutique/boutique-affisell-chrome-shared"
+import { resolveBoutiqueVisitorVisualTheme } from "@/lib/boutique/boutique-affisell-chrome-shared"
+import { getStorefrontThemeById } from "@/lib/boutique/storefront-theme-engine"
 
 describe("boutique-affisell-chrome-shared", () => {
-  it("keeps fixed platform chrome colors", () => {
-    expect(AFFISELL_BOUTIQUE_CHROME.merchantHeaderFrom).toBe("#1a1f5c")
-    expect(AFFISELL_BOUTIQUE_CHROME.merchantHeaderLogoTop).toBe("#4ee2ec")
+  it("merchant header tints align with shell gradient for seamless chrome", () => {
+    const theme = getStorefrontThemeById("t-0185")
+    expect(theme.cssVars.merchantHeaderFrom).toBe(theme.cssVars.shellGradientFrom)
+    expect(theme.cssVars.merchantHeaderVia).toBe(theme.cssVars.shellGradientVia)
+    expect(theme.cssVars.merchantHeaderTo).toBe(theme.cssVars.shellGradientTo)
   })
 
   it("buyers always receive persisted theme", () => {

@@ -52,6 +52,7 @@ export type StorefrontThemeCssVars = {
   merchantHeaderLogoTo: string
   merchantHeaderLogoTop: string
   merchantHeaderLogoBottom: string
+  merchantHeaderFade: string
   merchantHeaderShadow: string
 }
 
@@ -168,15 +169,11 @@ export function buildStorefrontTheme(indexInput: number): StorefrontThemeDefinit
   const family = FAMILY_NAMES[index % FAMILY_NAMES.length] ?? "Aurora"
   const label = `${family} ${index + 1}`
 
-  const merchantHeaderFrom = isDark
-    ? hsl(h1, satBase * 0.9, 11 + (index % 6))
-    : hsl(h1, satBase * 0.75, 26 + (index % 5))
-  const merchantHeaderVia = isDark
-    ? hsl(h2, satBase * 0.82, 15 + (index % 5))
-    : hsl(h2, satBase * 0.7, 32 + (index % 4))
-  const merchantHeaderTo = isDark
-    ? hsl(h3, satAccent * 0.95, 26 + (index % 9))
-    : hsl(h3, satAccent * 0.85, 40 + (index % 7))
+  /** Merchant nav tints match shell gradient so header + body feel like one canvas. */
+  const merchantHeaderFrom = shellFrom
+  const merchantHeaderVia = shellVia
+  const merchantHeaderTo = shellTo
+  const merchantHeaderFade = isDark ? hsla(h1, satBase * 0.35, 6 + (index % 5), 0) : hsla(h1, 18, 97, 0)
   const merchantHeaderActive = hsl(h3, satAccent, isDark ? 70 : 46)
   const merchantHeaderCartBadge = hsl(h3, satAccent, isDark ? 72 : 54)
   const merchantHeaderLogoTop = hsl(h3, satAccent, isDark ? 78 : 62)
@@ -241,7 +238,8 @@ export function buildStorefrontTheme(indexInput: number): StorefrontThemeDefinit
       merchantHeaderLogoBottom,
       merchantHeaderLogoFrom: merchantHeaderLogoBottom,
       merchantHeaderLogoTo: merchantHeaderLogoTop,
-      merchantHeaderShadow: `0 18px 50px ${hsla(h1, satAccent, isDark ? 22 : 32, isDark ? 0.55 : 0.32)}`,
+      merchantHeaderFade,
+      merchantHeaderShadow: `inset 0 -1px 0 ${hsla(h2, 55, 72, isDark ? 0.18 : 0.22)}`,
     },
   }
 }

@@ -60,6 +60,7 @@ export function boutiqueThemeStyle(theme: StorefrontThemeDefinition): CSSPropert
     ["--boutique-merchant-header-logo-to" as string]: v.merchantHeaderLogoTo,
     ["--boutique-merchant-header-logo-top" as string]: v.merchantHeaderLogoTop,
     ["--boutique-merchant-header-logo-bottom" as string]: v.merchantHeaderLogoBottom,
+    ["--boutique-merchant-header-fade" as string]: v.merchantHeaderFade,
     ["--boutique-merchant-header-shadow" as string]: v.merchantHeaderShadow,
     backgroundColor: v.shellBg,
   }
