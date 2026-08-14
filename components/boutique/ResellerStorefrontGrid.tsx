@@ -40,6 +40,7 @@ type ResellerStorefrontGridProps = {
   products: ResellerStorefrontListProduct[]
   count: number
   header?: ReactNode
+  viewerIsOwner?: boolean
 }
 
 function typographyEqual(a: BoutiqueTitleTypography, b: BoutiqueTitleTypography): boolean {
@@ -76,6 +77,7 @@ export function ResellerStorefrontGrid({
   products,
   count,
   header,
+  viewerIsOwner: viewerIsOwnerHint = false,
 }: ResellerStorefrontGridProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -86,7 +88,7 @@ export function ResellerStorefrontGrid({
   const [modalOpen, setModalOpen] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [isStoreOwner, setIsStoreOwner] = useState(false)
+  const [isStoreOwner, setIsStoreOwner] = useState(viewerIsOwnerHint)
   const [persistedTheme, setPersistedTheme] = useState<StorefrontTheme>(persistedVisualTheme)
   const [persistedTypography, setPersistedTypography] =
     useState<BoutiqueTitleTypography>(persistedTitleTypography)
@@ -113,6 +115,10 @@ export function ResellerStorefrontGrid({
   }, [persistedVisualTheme])
 
   useEffect(() => {
+    if (viewerIsOwnerHint) {
+      setIsStoreOwner(true)
+      return
+    }
     let cancelled = false
     void fetch("/api/store/me", { credentials: "include", cache: "no-store" })
       .then(async (res) => (res.ok ? ((await res.json()) as { store?: { slug?: string } }) : null))
@@ -125,22 +131,32 @@ export function ResellerStorefrontGrid({
     return () => {
       cancelled = true
     }
-  }, [storeSlug])
+  }, [storeSlug, viewerIsOwnerHint])
 
   useEffect(() => {
+    if (!isStoreOwner) {
+      setTheme(persistedVisualTheme)
+      setHydrated(true)
+      return
+    }
     const fromUrl = parseStorefrontThemeId(searchParams.get("theme"))
     const fromStorage = readInitialTheme(storeSlug, initialVisualTheme)
     setTheme(fromUrl ?? fromStorage)
     setHydrated(true)
-  }, [initialVisualTheme, searchParams, storeSlug])
+  }, [initialVisualTheme, isStoreOwner, persistedVisualTheme, searchParams, storeSlug])
 
   useEffect(() => {
-    if (!hydrated) return
+    if (!hydrated || !isStoreOwner) return
     writeStoredStorefrontTheme(storeSlug, theme)
     const url = new URL(window.location.href)
     url.searchParams.set("theme", theme)
     window.history.replaceState(null, "", url.toString())
-  }, [hydrated, storeSlug, theme])
+  }, [hydrated, isStoreOwner, storeSlug, theme])
+
+  useEffect(() => {
+    if (isStoreOwner) return
+    setTheme(persistedVisualTheme)
+  }, [isStoreOwner, persistedVisualTheme])
 
   const applyTheme = useCallback((next: StorefrontTheme) => {
     setTheme(next)
@@ -301,6 +317,8 @@ export function ResellerStorefrontGrid({
     <ResellerBoutiquePageShell themeId={theme} header={header}>
       <div className="relative mb-12 w-full">
         <div className="mb-6 flex flex-col gap-2 sm:absolute sm:right-0 sm:top-0 sm:z-20 sm:mb-0 sm:flex-row sm:flex-wrap sm:justify-end">
+          {isStoreOwner ? (
+            <>
           <button
             type="button"
             onClick={() => setModalOpen(true)}
@@ -332,7 +350,6 @@ export function ResellerStorefrontGrid({
             />
             ↻ Regenerate
           </button>
-          {isStoreOwner ? (
             <button
               type="button"
               title="Save design for all visitors"
@@ -365,6 +382,7 @@ export function ResellerStorefrontGrid({
               )}
               {saving ? "Saving…" : isDirty ? "Save design ✨" : "Design saved"}
             </button>
+            </>
           ) : null}
         </div>
 

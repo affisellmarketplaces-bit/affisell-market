@@ -7,6 +7,7 @@ import { useCallback, useState, type ReactNode } from "react"
 import { toast } from "sonner"
 
 import { ResellerBoutiqueLayout } from "@/components/boutique/ResellerBoutiqueLayout"
+import { BoutiqueAffisellChromeVars } from "@/components/boutique/boutique-affisell-chrome-vars"
 import { ResellerBoutiqueThemeVars } from "@/components/boutique/reseller-boutique-theme-vars"
 import type { ResellerBoutiqueThemeProps } from "@/lib/boutique/reseller-boutique-theme-shared"
 import type { ResellerStorefrontProduct } from "@/lib/boutique/load-reseller-storefront.server"
@@ -87,13 +88,10 @@ export function ResellerStorefrontShell({
   }, [product, storeSlug])
 
   return (
-    <ResellerBoutiqueThemeVars theme={getStorefrontThemeById(visualThemeId)}>
-      <ResellerBoutiqueLayout
-        storeSlug={storeSlug}
-        storeLabel={storeLabel}
-        theme={theme}
-        header={header}
-      >
+    <>
+      {header ? <BoutiqueAffisellChromeVars>{header}</BoutiqueAffisellChromeVars> : null}
+      <ResellerBoutiqueThemeVars theme={getStorefrontThemeById(visualThemeId)}>
+        <ResellerBoutiqueLayout storeSlug={storeSlug} storeLabel={storeLabel} theme={theme}>
       {!product ? (
         <section
           className="mx-auto max-w-2xl rounded-[1.75rem] border p-10 text-center backdrop-blur-xl"
@@ -280,6 +278,7 @@ export function ResellerStorefrontShell({
         </section>
       )}
     </ResellerBoutiqueLayout>
-    </ResellerBoutiqueThemeVars>
+      </ResellerBoutiqueThemeVars>
+    </>
   )
 }

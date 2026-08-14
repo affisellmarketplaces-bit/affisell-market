@@ -20,6 +20,7 @@ import {
   DEFAULT_STOREFRONT_THEME_ID,
   parseStorefrontThemeId,
 } from "@/lib/boutique/storefront-themes"
+import { resolveBoutiqueVisitorVisualTheme } from "@/lib/boutique/boutique-affisell-chrome-shared"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
 import { ResellerBoutiquePageShell } from "@/components/boutique/reseller-boutique-page-shell"
@@ -77,13 +78,16 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
   ])
   const storeLabel = storeContext?.storeLabel ?? formatResellerStoreLabel(storeSlug)
   const theme = storeContext?.theme ?? defaultTheme
+  const viewerIsOwner = Boolean(
+    session?.user?.id && storeContext?.ownerUserId === session.user.id
+  )
+  const savedVisualTheme =
+    parseStorefrontThemeId(storeContext?.boutiqueVisualTheme ?? null) ?? DEFAULT_STOREFRONT_THEME_ID
   const boutiqueHeader =
     storeContext != null ? buildResellerBoutiqueHeader(storeContext, session) : null
 
   if (requestedListingId) {
     const product = await loadResellerStorefrontProduct(requestedListingId)
-    const savedVisualTheme =
-      parseStorefrontThemeId(storeContext?.boutiqueVisualTheme ?? null) ?? DEFAULT_STOREFRONT_THEME_ID
     return (
       <ResellerStorefrontShell
         storeSlug={storeSlug}
@@ -99,16 +103,17 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
 
   const storefront = await loadResellerStorefrontList({ storeSlug })
   const resolvedTheme = storefront.theme ?? theme
-  const savedVisualTheme =
-    parseStorefrontThemeId(storeContext?.boutiqueVisualTheme ?? null) ?? DEFAULT_STOREFRONT_THEME_ID
-  const initialVisualTheme =
-    parseStorefrontThemeId(sp.theme) ?? savedVisualTheme
+  const visitorVisualTheme = resolveBoutiqueVisitorVisualTheme({
+    persistedThemeId: savedVisualTheme,
+    requestedThemeId: sp.theme,
+    viewerIsOwner,
+  })
   const t = await getTranslations("boutique.productCard")
   const productCardTrustLine = t("trustLine")
 
   if (storefront.count === 0) {
     return (
-      <ResellerBoutiquePageShell themeId={initialVisualTheme} header={boutiqueHeader}>
+      <ResellerBoutiquePageShell themeId={visitorVisualTheme} header={boutiqueHeader}>
         <ResellerStorefrontEmptyState
           storeSlug={storeSlug}
           storeLabel={storeLabel}
@@ -125,8 +130,9 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
         storeLabel={storeLabel}
         tagline={storeContext?.tagline ?? null}
         brandTheme={resolvedTheme}
-        initialVisualTheme={initialVisualTheme}
+        initialVisualTheme={visitorVisualTheme}
         persistedVisualTheme={savedVisualTheme}
+        viewerIsOwner={viewerIsOwner}
         titleTypography={storeContext?.titleTypography ?? DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY}
         persistedTitleTypography={storeContext?.titleTypography ?? DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY}
         productCardTrustLine={productCardTrustLine}

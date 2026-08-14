@@ -21,6 +21,7 @@ type Props = {
   products: ResellerStorefrontListProduct[]
   count: number
   header?: ReactNode
+  viewerIsOwner?: boolean
 }
 
 export function ResellerStorefrontView(props: Props) {
