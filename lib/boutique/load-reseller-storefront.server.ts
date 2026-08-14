@@ -274,7 +274,7 @@ export async function loadResellerBoutiqueStoreContext(
     storeSlug: store.slug,
     storeName: store.name,
     storeLabel: formatResellerStoreLabel(store.slug),
-    tagline: boutiqueAiTagline ?? store.description?.trim() || null,
+    tagline: (boutiqueAiTagline ?? store.description?.trim()) || null,
     boutiqueVisualTheme,
     titleTypography: parseBoutiqueTitleTypography(parsedTheme),
     theme: serializeResellerBoutiqueTheme(parsedTheme),
