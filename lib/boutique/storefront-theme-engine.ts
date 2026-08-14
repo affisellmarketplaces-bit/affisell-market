@@ -54,6 +54,14 @@ export type StorefrontThemeCssVars = {
   merchantHeaderLogoBottom: string
   merchantHeaderFade: string
   merchantHeaderShadow: string
+  /** Nav + wordmark — flips with `isDark` for WCAG contrast on every regeneration. */
+  merchantHeaderText: string
+  merchantHeaderTextMuted: string
+  merchantHeaderIcon: string
+  merchantHeaderHoverBg: string
+  merchantHeaderDivider: string
+  merchantHeaderFocusRing: string
+  merchantHeaderScrim: string
 }
 
 export type StorefrontThemeDefinition = {
@@ -178,6 +186,13 @@ export function buildStorefrontTheme(indexInput: number): StorefrontThemeDefinit
   const merchantHeaderCartBadge = hsl(h3, satAccent, isDark ? 72 : 54)
   const merchantHeaderLogoTop = hsl(h3, satAccent, isDark ? 78 : 62)
   const merchantHeaderLogoBottom = hsl(h1, satBase * 0.92, isDark ? 38 : 30)
+  const merchantHeaderText = isDark ? "#ffffff" : hsl(h1, 38, 18)
+  const merchantHeaderTextMuted = isDark ? "rgba(255,255,255,0.86)" : hsla(h1, 22, 32, 0.78)
+  const merchantHeaderIcon = isDark ? "rgba(255,255,255,0.94)" : hsl(h1, 35, 22)
+  const merchantHeaderHoverBg = isDark ? "rgba(255,255,255,0.10)" : hsla(h1, 24, 42, 0.08)
+  const merchantHeaderDivider = isDark ? "rgba(255,255,255,0.12)" : hsla(h1, 28, 38, 0.22)
+  const merchantHeaderFocusRing = isDark ? hsla(h3, satAccent, 72, 0.85) : hsla(h3, satAccent, 42, 0.75)
+  const merchantHeaderScrim = isDark ? "rgba(255,255,255,0.14)" : "rgba(15,23,42,0.05)"
 
   return {
     id: themeIdFromIndex(index),
@@ -240,6 +255,13 @@ export function buildStorefrontTheme(indexInput: number): StorefrontThemeDefinit
       merchantHeaderLogoTo: merchantHeaderLogoTop,
       merchantHeaderFade,
       merchantHeaderShadow: `inset 0 -1px 0 ${hsla(h2, 55, 72, isDark ? 0.18 : 0.22)}`,
+      merchantHeaderText,
+      merchantHeaderTextMuted,
+      merchantHeaderIcon,
+      merchantHeaderHoverBg,
+      merchantHeaderDivider,
+      merchantHeaderFocusRing,
+      merchantHeaderScrim,
     },
   }
 }

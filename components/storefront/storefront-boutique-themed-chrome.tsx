@@ -34,7 +34,7 @@ export function StorefrontBoutiqueThemedChrome({
 
   return (
     <ResellerBoutiqueThemeVars theme={theme}>
-      <StorefrontBuyerChrome {...chrome} boutiqueSeamless />
+      <StorefrontBuyerChrome {...chrome} boutiqueSeamless boutiqueThemeIsDark={theme.isDark} />
     </ResellerBoutiqueThemeVars>
   )
 }

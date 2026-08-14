@@ -36,6 +36,8 @@ type Props = {
   shopHomePath?: string
   /** Procedural boutique header skin (`--boutique-merchant-header-*`). */
   boutiqueSeamless?: boolean
+  /** Required when `boutiqueSeamless` — drives icon/text contrast on light skins. */
+  boutiqueThemeIsDark?: boolean
 }
 
 // LOGIC PRESERVED — menu / cart control wiring (href, onClick, a11y)
@@ -136,12 +138,13 @@ export function StorefrontBuyerHeader({
   isCustomDomain = false,
   shopHomePath = "/",
   boutiqueSeamless = false,
+  boutiqueThemeIsDark = true,
 }: Props) {
   // LOGIC PRESERVED — brand derivation + alignment flags
   const displayName = storeName.trim() || "Store"
   const hasLogo = Boolean(logoUrl?.trim())
   const useBadgeStyle = nameBadge !== "classic"
-  const lightHeader = boutiqueSeamless ? false : isLightStorefrontHeader(primary)
+  const lightHeader = boutiqueSeamless ? !boutiqueThemeIsDark : isLightStorefrontHeader(primary)
   void headerBrandAlign
   void useBadgeStyle
 
@@ -169,7 +172,7 @@ export function StorefrontBuyerHeader({
         "affisell-storefront-chrome relative isolate overflow-hidden",
         "sticky top-0 z-50 border-b backdrop-blur-xl",
         boutiqueSeamless
-          ? "border-white/10 text-zinc-100 shadow-[inset_0_-1px_0_rgba(255,255,255,0.08)]"
+          ? "shadow-[inset_0_-1px_0_rgba(255,255,255,0.08)]"
           : lightHeader
             ? "text-zinc-900 shadow-[0_1px_0_0_rgba(0,0,0,0.06)]"
             : "text-zinc-100 shadow-[0_1px_0_0_rgba(255,255,255,0.05)]",
@@ -186,6 +189,7 @@ export function StorefrontBuyerHeader({
                 boxShadow:
                   "var(--boutique-merchant-header-shadow, inset 0 -1px 0 rgba(255,255,255,0.08))",
                 borderBottomColor: "var(--boutique-merchant-header-border, rgba(255,255,255,0.1))",
+                color: "var(--boutique-merchant-header-text, #ffffff)",
               }
             : storefrontHeaderShellStyle(primary, accent)),
           "--site-header-offset": trust
@@ -197,7 +201,11 @@ export function StorefrontBuyerHeader({
       {boutiqueSeamless ? (
         <>
           <div
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_85%_120%_at_0%_-20%,rgba(255,255,255,0.14),transparent_55%)]"
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse 85% 120% at 0% -20%, var(--boutique-merchant-header-scrim, rgba(255,255,255,0.14)), transparent 55%)",
+            }}
             aria-hidden
           />
           <div
@@ -259,8 +267,13 @@ export function StorefrontBuyerHeader({
           <span
             className={cn(
               "pointer-events-auto max-w-[min(72vw,16rem)] truncate text-sm font-medium uppercase tracking-[0.2em]",
-              lightHeader ? "text-zinc-900" : "text-zinc-100"
+              !boutiqueSeamless && (lightHeader ? "text-zinc-900" : "text-zinc-100")
             )}
+            style={
+              boutiqueSeamless
+                ? { color: "var(--boutique-merchant-header-text, #ffffff)" }
+                : undefined
+            }
           >
             {displayName}
           </span>
