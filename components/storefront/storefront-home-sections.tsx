@@ -39,6 +39,7 @@ export async function StorefrontHomeSections({
 }: Props) {
   const sections = getEnabledHomepageSections(store.theme.homepageSections ?? [])
   const t = await getTranslations("storefront.homeSections")
+  const storySectionEnabled = sections.some((s) => s.type === "story")
 
   if (sections.length === 0) return null
 
@@ -50,7 +51,13 @@ export async function StorefrontHomeSections({
 
         switch (section.type) {
           case "hero":
-            return <StorefrontHeroBlock key="hero" store={store} />
+            return (
+              <StorefrontHeroBlock
+                key="hero"
+                store={store}
+                suppressDescription={storySectionEnabled}
+              />
+            )
           case "flash-sale":
             return (
               <StorefrontFlashSaleSection
@@ -214,7 +221,24 @@ export async function StorefrontHomeSections({
   )
 }
 
-function StorefrontHeroBlock({ store }: { store: ShopStoreSummary }) {
+function StorefrontHeroBlock({
+  store,
+  suppressDescription = false,
+}: {
+  store: ShopStoreSummary
+  suppressDescription?: boolean
+}) {
+  if (suppressDescription) {
+    return (
+      <StorefrontDedicatedHero
+        bannerUrl={store.bannerUrl}
+        theme={store.theme}
+        brandAlign={store.theme.headerBrandAlign}
+        suppressDescription
+      />
+    )
+  }
+
   if (store.theme.layout === "minimal") {
     if (!store.description?.trim()) return null
     return (

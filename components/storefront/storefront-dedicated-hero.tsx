@@ -16,10 +16,19 @@ type Props = {
   bannerUrl?: string | null
   theme?: StorefrontTheme
   brandAlign?: StorefrontHeaderBrandAlign
+  /** When a story section owns the pitch, hero stays visual-only. */
+  suppressDescription?: boolean
 }
 
 /** Hero strip for dedicated storefront hosts — no duplicate logo/name (buyer chrome handles that). */
-export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAlign }: Props) {
+export function StorefrontDedicatedHero({
+  description,
+  bannerUrl,
+  theme,
+  brandAlign,
+  suppressDescription = false,
+}: Props) {
+  const pitch = suppressDescription ? null : description?.trim() || null
   const accent = theme?.accent ?? "#7c3aed"
   const primary = theme?.primary ?? "#18181b"
   const heroStyle = theme?.heroStyle ?? "banner"
@@ -33,7 +42,7 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
   const showVideoHero = heroStyle === "video" && heroVideoUrl.length > 0
   const showHero = heroStyle !== "none" && (showImageBanner || showGradientHero || showVideoHero)
 
-  if (!showHero && !description?.trim()) return null
+  if (!showHero && !pitch) return null
 
   return (
     <section
@@ -72,10 +81,10 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
             )}
             aria-hidden
           />
-          {immersive && description?.trim() ? (
+          {immersive && pitch ? (
             <div className="absolute inset-x-0 bottom-0 px-4 pb-4 sm:px-6 sm:pb-6">
               <p className="max-w-2xl text-base font-medium leading-relaxed text-white/95 drop-shadow-md sm:text-lg">
-                {description}
+                {pitch}
               </p>
             </div>
           ) : null}
@@ -102,10 +111,10 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
             className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10"
             aria-hidden
           />
-          {description?.trim() ? (
+          {pitch ? (
             <div className="absolute inset-x-0 bottom-0 px-4 pb-3 sm:px-6 sm:pb-4">
               <p className="max-w-2xl text-sm font-medium leading-relaxed text-white/90 drop-shadow-sm sm:text-base">
-                {description}
+                {pitch}
               </p>
             </div>
           ) : null}
@@ -114,7 +123,7 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
         <div
           className={cn(
             "relative w-full overflow-hidden",
-            description?.trim()
+            pitch
               ? immersive
                 ? "h-32 sm:h-40"
                 : "h-20 sm:h-24"
@@ -128,19 +137,19 @@ export function StorefrontDedicatedHero({ description, bannerUrl, theme, brandAl
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(255,255,255,0.16),transparent_52%)]" />
           <div className="absolute inset-x-0 bottom-0 h-px bg-white/15" />
-          {description?.trim() ? (
+          {pitch ? (
             <div className="relative flex h-full items-end px-4 pb-3 sm:px-6 sm:pb-4">
               <p className="max-w-2xl text-sm font-medium leading-relaxed text-white/90 drop-shadow-sm sm:text-base">
-                {description}
+                {pitch}
               </p>
             </div>
           ) : null}
         </div>
       ) : null}
 
-      {description?.trim() && !showGradientHero && !showVideoHero && !(immersive && showImageBanner) ? (
+      {pitch && !showGradientHero && !showVideoHero && !(immersive && showImageBanner) ? (
         <StorefrontTaglineBand
-          description={description}
+          description={pitch}
           accent={accent}
           align={headerAlign}
           className="border-t-0 bg-transparent py-3 sm:py-4"

@@ -92,6 +92,7 @@ export function StorefrontLivePreview({ draft, className }: Props) {
     heroVideoUrl: videoForHero,
   }
   const enabledSections = getEnabledHomepageSections(draft.homepageSections)
+  const storySectionEnabled = enabledSections.some((s) => s.type === "story")
   const sampleTagline = draft.description.trim() || t("sampleTagline")
 
   return (
@@ -162,6 +163,17 @@ export function StorefrontLivePreview({ draft, className }: Props) {
             const content = section.content
             switch (section.type) {
               case "hero":
+                if (storySectionEnabled) {
+                  return (
+                    <StorefrontDedicatedHero
+                      key="hero"
+                      bannerUrl={bannerForHero}
+                      theme={heroTheme}
+                      brandAlign={draft.headerBrandAlign}
+                      suppressDescription
+                    />
+                  )
+                }
                 if (draft.layout === "minimal") {
                   return sampleTagline ? (
                     <StorefrontTaglineBand
