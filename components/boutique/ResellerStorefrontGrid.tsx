@@ -1,9 +1,9 @@
 "use client"
 
 import Image from "next/image"
-import { Eye, RotateCw, Sparkles } from "lucide-react"
+import { Eye, RotateCw, ShoppingBag, Sparkles } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import { AIPersonalizeModal } from "@/components/boutique/AIPersonalizeModal"
@@ -12,10 +12,9 @@ import type { ResellerBoutiqueThemeProps } from "@/lib/boutique/reseller-boutiqu
 import type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
 import {
   DEFAULT_STOREFRONT_THEME_ID,
-  getStorefrontThemeTokens,
+  getStorefrontThemeById,
   nextStorefrontThemeId,
   parseStorefrontThemeId,
-  STOREFRONT_THEMES,
   type StorefrontTheme,
   writeStoredStorefrontTheme,
 } from "@/lib/boutique/storefront-themes"
@@ -29,11 +28,6 @@ type ResellerStorefrontGridProps = {
   initialVisualTheme?: StorefrontTheme
   products: ResellerStorefrontListProduct[]
   count: number
-}
-
-function storeInitial(label: string): string {
-  const trimmed = label.trim()
-  return trimmed ? trimmed.charAt(0).toUpperCase() : "B"
 }
 
 function readInitialTheme(storeSlug: string, fallback: StorefrontTheme): StorefrontTheme {
@@ -64,7 +58,7 @@ export function ResellerStorefrontGrid({
   const [modalOpen, setModalOpen] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
 
-  const tokens = getStorefrontThemeTokens(theme)
+  const themeDef = useMemo(() => getStorefrontThemeById(theme), [theme])
 
   useEffect(() => {
     const fromUrl = parseStorefrontThemeId(searchParams.get("theme"))
@@ -88,8 +82,9 @@ export function ResellerStorefrontGrid({
   const handleRegenerate = useCallback(async () => {
     setRegenerating(true)
     const nextTheme = nextStorefrontThemeId(theme)
+    const nextDef = getStorefrontThemeById(nextTheme)
     setTheme(nextTheme)
-    toast.success(`Theme: ${STOREFRONT_THEMES[nextTheme].label} ✨`)
+    toast.success(`Theme: ${nextDef.label} ✨`)
     await new Promise<void>((resolve) => {
       window.setTimeout(resolve, 600)
     })
@@ -105,7 +100,7 @@ export function ResellerStorefrontGrid({
   }) => {
     applyTheme(themeId)
     setModalOpen(false)
-    toast.success(`Theme: ${STOREFRONT_THEMES[themeId].label} ✨`)
+    toast.success(`Theme: ${getStorefrontThemeById(themeId).label} ✨`)
     if (vibe.trim()) {
       void fetch("/api/store/generate-brand-copy", {
         method: "POST",
@@ -120,53 +115,17 @@ export function ResellerStorefrontGrid({
 
   return (
     <ResellerBoutiquePageShell themeId={theme}>
-      <header className="mb-10 flex w-full flex-col gap-6 md:mb-12 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex min-w-0 items-start gap-4">
-          <span
-            className={cn(
-              "flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-sm font-bold text-white shadow-lg ring-2",
-              tokens.avatar
-            )}
-            aria-hidden
-          >
-            {storeInitial(storeLabel)}
-          </span>
-          <div className="min-w-0 space-y-3">
-            <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">
-              Boutique{" "}
-              <span
-                className={cn(
-                  "bg-gradient-to-r bg-clip-text text-transparent",
-                  tokens.headerTitleGradient
-                )}
-              >
-                {storeLabel}
-              </span>
-            </h1>
-            {tagline?.trim() ? (
-              <p className={cn("max-w-2xl text-sm leading-relaxed", tokens.headerMuted)}>
-                {tagline.trim()}
-              </p>
-            ) : null}
-            <span
-              className={cn(
-                "inline-flex items-center rounded-full border px-3 py-1 text-sm",
-                tokens.badge
-              )}
-            >
-              {count} produit{count > 1 ? "s" : ""}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row lg:w-auto lg:justify-end">
+      <div className="relative mb-12 w-full">
+        <div className="mb-6 flex flex-col gap-2 sm:absolute sm:right-0 sm:top-0 sm:z-20 sm:mb-0 sm:flex-row">
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className={cn(
-              "inline-flex items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-300 hover:scale-[1.02]",
-              tokens.aiButton
-            )}
+            className="inline-flex items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium shadow-[0_0_24px_var(--boutique-accent-soft)] transition-all duration-300 hover:scale-[1.02]"
+            style={{
+              background: "var(--boutique-ai-bg)",
+              borderColor: "var(--boutique-ai-border)",
+              color: "var(--boutique-ai-text)",
+            }}
           >
             <Sparkles className="size-4 shrink-0" aria-hidden />
             Personalize my store with AI ✨
@@ -174,11 +133,13 @@ export function ResellerStorefrontGrid({
           <button
             type="button"
             title="Regenerate layout with AI"
-            onClick={handleRegenerate}
-            className={cn(
-              "inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300",
-              tokens.regenerateButton
-            )}
+            onClick={() => void handleRegenerate()}
+            className="inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300"
+            style={{
+              background: "var(--boutique-regen-bg)",
+              borderColor: "var(--boutique-regen-border)",
+              color: "var(--boutique-regen-text)",
+            }}
           >
             <RotateCw
               className={cn("size-4 shrink-0", regenerating && "animate-spin")}
@@ -187,30 +148,74 @@ export function ResellerStorefrontGrid({
             ↻ Regenerate
           </button>
         </div>
-      </header>
+
+        <header className="relative w-full pt-2 pr-0 sm:pr-[22rem]">
+          <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+            <span style={{ color: "var(--boutique-header-word)" }}>Boutique </span>
+            <span
+              className="bg-clip-text text-transparent"
+              style={{
+                backgroundImage: `linear-gradient(90deg, var(--boutique-header-accent-from), var(--boutique-header-accent-to))`,
+              }}
+            >
+              {storeLabel}
+            </span>
+          </h1>
+
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <span
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium backdrop-blur-sm"
+              style={{
+                background: "var(--boutique-badge-bg)",
+                borderColor: "var(--boutique-badge-border)",
+                color: "var(--boutique-badge-text)",
+              }}
+            >
+              <ShoppingBag className="size-4 shrink-0 opacity-80" aria-hidden />
+              {count} produit{count > 1 ? "s" : ""}
+            </span>
+            <span
+              className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+              style={{
+                borderColor: "var(--boutique-badge-border)",
+                color: "var(--boutique-accent)",
+              }}
+            >
+              {themeDef.family} · {themeDef.index + 1}/{1024}
+            </span>
+          </div>
+
+          {tagline?.trim() ? (
+            <p className="mt-4 max-w-2xl text-base leading-relaxed" style={{ color: "var(--boutique-header-muted)" }}>
+              {tagline.trim()}
+            </p>
+          ) : null}
+        </header>
+      </div>
 
       <div
         className={cn(
-          "grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
-          tokens.gridClass,
+          "grid w-full grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4",
           regenerating && "animate-pulse duration-700"
         )}
       >
         {products.map((product) => (
           <article
             key={product.id}
-            className={cn(
-              "group rounded-3xl border p-3 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.2)]",
-              tokens.cardClass
-            )}
+            className="group rounded-3xl border p-3 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1"
+            style={{
+              background: "var(--boutique-card-bg)",
+              borderColor: "var(--boutique-card-border)",
+              boxShadow: "var(--boutique-card-shadow)",
+            }}
           >
-            <div className={cn("relative aspect-square overflow-hidden rounded-2xl bg-white", tokens.cardImageBg)}>
+            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-white">
               <Image
                 src={product.image}
                 alt={product.title}
                 fill
                 className="object-contain p-4 transition duration-500 group-hover:scale-[1.02]"
-                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 25vw"
+                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
                 unoptimized={product.image.startsWith("http") || product.image.startsWith("/uploads")}
               />
               {product.isOutOfStock ? (
@@ -221,11 +226,13 @@ export function ResellerStorefrontGrid({
             </div>
 
             <div className="p-4 pt-4">
-              <h2 className={cn("text-lg font-bold leading-tight", tokens.cardTitle)}>{product.title}</h2>
-              <p className={cn("mt-1 line-clamp-2 text-sm", tokens.cardMuted)}>
+              <h2 className="text-lg font-bold leading-tight" style={{ color: "var(--boutique-card-title)" }}>
+                {product.title}
+              </h2>
+              <p className="mt-1 line-clamp-2 text-sm" style={{ color: "var(--boutique-card-muted)" }}>
                 Checkout sécurisé · Livraison Affisell
               </p>
-              <p className={cn("mt-3 text-2xl font-extrabold tracking-tight", tokens.price)}>
+              <p className="mt-3 text-2xl font-extrabold tracking-tight" style={{ color: "var(--boutique-price)" }}>
                 {product.priceLabel}
               </p>
 
@@ -236,10 +243,11 @@ export function ResellerStorefrontGrid({
                     `/boutique/${encodeURIComponent(storeSlug)}?productId=${encodeURIComponent(product.id)}`
                   )
                 }
-                className={cn(
-                  "mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r text-sm font-medium text-white transition-all duration-300 hover:shadow-[0_4px_20px_rgba(109,40,217,0.4)] group-hover:scale-[1.01]",
-                  tokens.buttonClass
-                )}
+                className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-full text-sm font-medium text-white transition-all duration-300 group-hover:scale-[1.01]"
+                style={{
+                  backgroundImage: "linear-gradient(90deg, var(--boutique-button-from), var(--boutique-button-to))",
+                  boxShadow: "var(--boutique-button-shadow)",
+                }}
               >
                 <Eye className="size-4" aria-hidden />
                 Voir le produit
@@ -249,8 +257,14 @@ export function ResellerStorefrontGrid({
         ))}
       </div>
 
-      <footer className={cn("mt-12 w-full border-t pt-6 text-center text-xs", tokens.footer)}>
-        Boutique {storeSlug} · Propulsé par Affisell · {tokens.label}
+      <footer
+        className="mt-12 w-full border-t pt-6 text-center text-xs"
+        style={{
+          borderColor: "var(--boutique-footer-border)",
+          color: "var(--boutique-footer-text)",
+        }}
+      >
+        Boutique {storeSlug} · Propulsé par Affisell · {themeDef.label}
       </footer>
 
       <AIPersonalizeModal
