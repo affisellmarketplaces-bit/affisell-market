@@ -50,6 +50,8 @@ export type StorefrontThemeCssVars = {
   merchantHeaderCartBadgeText: string
   merchantHeaderLogoFrom: string
   merchantHeaderLogoTo: string
+  merchantHeaderLogoTop: string
+  merchantHeaderLogoBottom: string
   merchantHeaderShadow: string
 }
 
@@ -177,6 +179,8 @@ export function buildStorefrontTheme(indexInput: number): StorefrontThemeDefinit
     : hsl(h3, satAccent * 0.85, 40 + (index % 7))
   const merchantHeaderActive = hsl(h3, satAccent, isDark ? 70 : 46)
   const merchantHeaderCartBadge = hsl(h3, satAccent, isDark ? 72 : 54)
+  const merchantHeaderLogoTop = hsl(h3, satAccent, isDark ? 78 : 62)
+  const merchantHeaderLogoBottom = hsl(h1, satBase * 0.92, isDark ? 38 : 30)
 
   return {
     id: themeIdFromIndex(index),
@@ -233,8 +237,10 @@ export function buildStorefrontTheme(indexInput: number): StorefrontThemeDefinit
       merchantHeaderActiveGlow: hsla(h3, satAccent, isDark ? 70 : 48, 0.92),
       merchantHeaderCartBadge,
       merchantHeaderCartBadgeText: isDark ? hsl(h1, satBase * 0.85, 12) : hsl(h1, satBase * 0.75, 16),
-      merchantHeaderLogoFrom: hsl(h1, satAccent, isDark ? 74 : 52),
-      merchantHeaderLogoTo: hsl(h3, satAccent, isDark ? 72 : 48),
+      merchantHeaderLogoTop,
+      merchantHeaderLogoBottom,
+      merchantHeaderLogoFrom: merchantHeaderLogoBottom,
+      merchantHeaderLogoTo: merchantHeaderLogoTop,
       merchantHeaderShadow: `0 18px 50px ${hsla(h1, satAccent, isDark ? 22 : 32, isDark ? 0.55 : 0.32)}`,
     },
   }

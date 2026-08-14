@@ -2,9 +2,10 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Globe, ShoppingCart } from "lucide-react"
+import { ShoppingCart } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { BoutiqueAffisellBrandLockup } from "@/components/boutique/boutique-affisell-brand-lockup"
 import { BoutiqueMerchantAvatarMenu } from "@/components/boutique/boutique-merchant-avatar-menu"
 import { FastLink } from "@/components/navigation/fast-link"
 import { useBuyerCartCount } from "@/hooks/use-buyer-cart-count"
@@ -17,23 +18,6 @@ type Props = {
   logoUrl: string | null
   aiAvatarUrl: string | null
   isOwner?: boolean
-}
-
-function AffisellMark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 32 32" className={cn("size-8 shrink-0", className)} aria-hidden>
-      <defs>
-        <linearGradient id="boutique-affisell-mark" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="var(--boutique-merchant-header-logo-from, #6366f1)" />
-          <stop offset="100%" stopColor="var(--boutique-merchant-header-logo-to, #22d3ee)" />
-        </linearGradient>
-      </defs>
-      <path
-        fill="url(#boutique-affisell-mark)"
-        d="M5 27V5h6.1l4.8 10.4L20.7 5H26.8v22h-4.8V13.6L17.2 27h-3.4L9.8 13.6V27H5z"
-      />
-    </svg>
-  )
 }
 
 function HeaderCartBadge({ count }: { count: number }) {
@@ -139,25 +123,14 @@ export function ResellerBoutiqueMerchantHeader({
           />
 
           <div className="relative grid min-h-[3.75rem] grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-2 sm:px-6 lg:min-h-[4rem] lg:px-8">
-            <div className="flex min-w-0 shrink-0 items-center gap-3">
+            <div className="flex min-w-0 shrink-0 items-center">
               <FastLink
                 href={nav.dashboard}
-                className="flex items-center gap-2.5 rounded-lg transition hover:opacity-90"
+                className="min-w-0 rounded-lg transition hover:opacity-90"
+                aria-label="Affisell"
               >
-                <AffisellMark />
-                <span className="text-[1.15rem] font-bold tracking-tight text-white">Affisell</span>
+                <BoutiqueAffisellBrandLockup badgeLabel={t("badgeReseller")} />
               </FastLink>
-              <span
-                className="inline-flex items-center gap-1.5 rounded-md border bg-transparent px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/95 transition-[border-color] duration-700 ease-in-out"
-                style={{ borderColor: "var(--boutique-merchant-header-badge-border, rgba(34,211,238,0.7))" }}
-              >
-                <Globe
-                  className="size-3 shrink-0 transition-[color] duration-700 ease-in-out"
-                  style={{ color: "var(--boutique-merchant-header-badge-icon, #67e8f9)" }}
-                  aria-hidden
-                />
-                {t("badgeReseller")}
-              </span>
             </div>
 
             <nav

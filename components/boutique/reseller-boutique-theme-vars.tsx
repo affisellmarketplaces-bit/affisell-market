@@ -58,6 +58,8 @@ export function boutiqueThemeStyle(theme: StorefrontThemeDefinition): CSSPropert
     ["--boutique-merchant-header-cart-badge-text" as string]: v.merchantHeaderCartBadgeText,
     ["--boutique-merchant-header-logo-from" as string]: v.merchantHeaderLogoFrom,
     ["--boutique-merchant-header-logo-to" as string]: v.merchantHeaderLogoTo,
+    ["--boutique-merchant-header-logo-top" as string]: v.merchantHeaderLogoTop,
+    ["--boutique-merchant-header-logo-bottom" as string]: v.merchantHeaderLogoBottom,
     ["--boutique-merchant-header-shadow" as string]: v.merchantHeaderShadow,
     backgroundColor: v.shellBg,
   }

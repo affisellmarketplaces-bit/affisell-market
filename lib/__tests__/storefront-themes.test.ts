@@ -46,6 +46,8 @@ describe("storefront-theme-engine", () => {
     expect(theme.cssVars.shellBg).toMatch(/^hsl/)
     expect(theme.cssVars.buttonFrom).toMatch(/^hsl/)
     expect(theme.cssVars.merchantHeaderFrom).toMatch(/^hsl/)
+    expect(theme.cssVars.merchantHeaderLogoTop).toMatch(/^hsl/)
+    expect(theme.cssVars.merchantHeaderLogoBottom).toMatch(/^hsl/)
     expect(theme.label).toContain("Aurora")
   })
 
