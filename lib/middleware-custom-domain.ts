@@ -2,7 +2,11 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 import { resolveDevPort } from "@/lib/dev-localhost-url"
-import { mapCustomDomainPath, type StorefrontRole } from "@/lib/custom-domain-path"
+import {
+  isBlockedOnCustomDomain,
+  mapCustomDomainPath,
+  type StorefrontRole,
+} from "@/lib/custom-domain-path"
 import { affiliateBuyerStorefrontHomePath } from "@/lib/boutique/affiliate-buyer-storefront-path"
 import { isPlatformHost, requestHost } from "@/lib/custom-domain-host"
 import { rewriteLocalhostToPublic } from "@/lib/public-app-url"
