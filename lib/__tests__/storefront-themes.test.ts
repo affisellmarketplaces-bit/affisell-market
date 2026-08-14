@@ -45,7 +45,15 @@ describe("storefront-theme-engine", () => {
     const theme = getStorefrontThemeById(DEFAULT_STOREFRONT_THEME_ID)
     expect(theme.cssVars.shellBg).toMatch(/^hsl/)
     expect(theme.cssVars.buttonFrom).toMatch(/^hsl/)
+    expect(theme.cssVars.merchantHeaderFrom).toMatch(/^hsl/)
     expect(theme.label).toContain("Aurora")
+  })
+
+  it("merchant header vars shift between regenerations", () => {
+    const a = getStorefrontThemeById("t-0181")
+    const b = getStorefrontThemeById("t-0182")
+    expect(a.cssVars.merchantHeaderFrom).not.toBe(b.cssVars.merchantHeaderFrom)
+    expect(a.cssVars.merchantHeaderActive).not.toBe(b.cssVars.merchantHeaderActive)
   })
 
   it("builds storage keys per slug", () => {

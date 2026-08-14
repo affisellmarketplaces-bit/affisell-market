@@ -24,9 +24,8 @@ function AffisellMark({ className }: { className?: string }) {
     <svg viewBox="0 0 32 32" className={cn("size-8 shrink-0", className)} aria-hidden>
       <defs>
         <linearGradient id="boutique-affisell-mark" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#6366f1" />
-          <stop offset="55%" stopColor="#8b5cf6" />
-          <stop offset="100%" stopColor="#22d3ee" />
+          <stop offset="0%" stopColor="var(--boutique-merchant-header-logo-from, #6366f1)" />
+          <stop offset="100%" stopColor="var(--boutique-merchant-header-logo-to, #22d3ee)" />
         </linearGradient>
       </defs>
       <path
@@ -37,12 +36,15 @@ function AffisellMark({ className }: { className?: string }) {
   )
 }
 
-/** Cyan count pill — always visible, including 0 (matches design spec). */
 function HeaderCartBadge({ count }: { count: number }) {
   const label = count > 99 ? "99+" : String(count)
   return (
     <span
-      className="pointer-events-none absolute -right-0.5 -top-0.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-cyan-400 px-1 text-[10px] font-bold tabular-nums leading-none text-indigo-950"
+      className="pointer-events-none absolute -right-0.5 -top-0.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-full px-1 text-[10px] font-bold tabular-nums leading-none transition-[background-color,color] duration-700 ease-in-out"
+      style={{
+        backgroundColor: "var(--boutique-merchant-header-cart-badge, #22d3ee)",
+        color: "var(--boutique-merchant-header-cart-badge-text, #1e1b4b)",
+      }}
       aria-hidden
     >
       {label}
@@ -63,7 +65,7 @@ function NavLink({
     <FastLink
       href={href}
       className={cn(
-        "relative shrink-0 whitespace-nowrap px-4 py-2 text-[15px] tracking-tight transition-colors",
+        "relative shrink-0 whitespace-nowrap px-4 py-2 text-[15px] tracking-tight transition-colors duration-700 ease-in-out",
         active ? "font-semibold text-white" : "font-normal text-white/85 hover:text-white"
       )}
       aria-current={active ? "page" : undefined}
@@ -71,7 +73,11 @@ function NavLink({
       {label}
       {active ? (
         <span
-          className="absolute inset-x-3 -bottom-0.5 h-[3px] rounded-full bg-cyan-400 shadow-[0_0_14px_rgba(34,211,238,0.9)]"
+          className="absolute inset-x-3 -bottom-0.5 h-[3px] rounded-full transition-[background-color,box-shadow] duration-700 ease-in-out"
+          style={{
+            backgroundColor: "var(--boutique-merchant-header-active, #22d3ee)",
+            boxShadow: "0 0 14px var(--boutique-merchant-header-active-glow, rgba(34,211,238,0.9))",
+          }}
           aria-hidden
         />
       ) : null}
@@ -79,7 +85,7 @@ function NavLink({
   )
 }
 
-/** Default chrome for every /boutique/[slug] — pixel-aligned with merchant mockup. */
+/** Merchant nav chrome — colors driven by `--boutique-merchant-header-*` (synced with theme regenerations). */
 export function ResellerBoutiqueMerchantHeader({
   storeSlug,
   storeName,
@@ -110,17 +116,25 @@ export function ResellerBoutiqueMerchantHeader({
       <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-10">
         <div
           className={cn(
-            "relative overflow-hidden rounded-t-[1.35rem] border border-white/[0.08]",
-            "bg-gradient-to-r from-[#1a1f5c] via-[#312e81] to-[#0891b2]",
-            "shadow-[0_18px_50px_rgba(15,23,42,0.55)]"
+            "relative overflow-hidden rounded-t-[1.35rem] border transition-[background,box-shadow,border-color] duration-700 ease-in-out"
           )}
+          style={{
+            borderColor: "var(--boutique-merchant-header-border, rgba(255,255,255,0.08))",
+            backgroundImage:
+              "linear-gradient(to right, var(--boutique-merchant-header-from, #1a1f5c), var(--boutique-merchant-header-via, #312e81), var(--boutique-merchant-header-to, #0891b2))",
+            boxShadow: "var(--boutique-merchant-header-shadow, 0 18px 50px rgba(15,23,42,0.55))",
+          }}
         >
           <div
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_80%_at_0%_0%,rgba(255,255,255,0.12),transparent_50%)]"
             aria-hidden
           />
           <div
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_100%_at_100%_50%,rgba(34,211,238,0.22),transparent_55%)]"
+            className="pointer-events-none absolute inset-0 transition-[background] duration-700 ease-in-out"
+            style={{
+              background:
+                "radial-gradient(ellipse 70% 100% at 100% 50%, var(--boutique-merchant-header-glow, rgba(34,211,238,0.22)), transparent 55%)",
+            }}
             aria-hidden
           />
 
@@ -133,8 +147,15 @@ export function ResellerBoutiqueMerchantHeader({
                 <AffisellMark />
                 <span className="text-[1.15rem] font-bold tracking-tight text-white">Affisell</span>
               </FastLink>
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-cyan-400/70 bg-transparent px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/95">
-                <Globe className="size-3 shrink-0 text-cyan-300" aria-hidden />
+              <span
+                className="inline-flex items-center gap-1.5 rounded-md border bg-transparent px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/95 transition-[border-color] duration-700 ease-in-out"
+                style={{ borderColor: "var(--boutique-merchant-header-badge-border, rgba(34,211,238,0.7))" }}
+              >
+                <Globe
+                  className="size-3 shrink-0 transition-[color] duration-700 ease-in-out"
+                  style={{ color: "var(--boutique-merchant-header-badge-icon, #67e8f9)" }}
+                  aria-hidden
+                />
                 {t("badgeReseller")}
               </span>
             </div>
@@ -154,7 +175,7 @@ export function ResellerBoutiqueMerchantHeader({
               <Link
                 href="/cart"
                 prefetch
-                className="relative inline-flex size-10 items-center justify-center text-white transition hover:text-cyan-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300/80"
+                className="relative inline-flex size-10 items-center justify-center text-white transition-[color] duration-700 ease-in-out hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/50"
                 aria-label={cartAria}
               >
                 <ShoppingCart className="size-[22px] stroke-[1.75]" aria-hidden />

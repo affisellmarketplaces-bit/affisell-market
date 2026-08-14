@@ -82,6 +82,8 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
 
   if (requestedListingId) {
     const product = await loadResellerStorefrontProduct(requestedListingId)
+    const savedVisualTheme =
+      parseStorefrontThemeId(storeContext?.boutiqueVisualTheme ?? null) ?? DEFAULT_STOREFRONT_THEME_ID
     return (
       <ResellerStorefrontShell
         storeSlug={storeSlug}
@@ -90,6 +92,7 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
         product={product}
         requestedListingId={requestedListingId}
         header={boutiqueHeader}
+        visualThemeId={savedVisualTheme}
       />
     )
   }

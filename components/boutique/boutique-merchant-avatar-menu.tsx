@@ -64,7 +64,12 @@ export function BoutiqueMerchantAvatarMenu({
           )}
           {isOwner && !hasCustomMark ? (
             <span
-              className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-cyan-400 text-[9px] font-bold text-indigo-950 ring-2 ring-[#312e81]"
+              className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full text-[9px] font-bold ring-2 transition-[background-color,color] duration-700 ease-in-out"
+              style={{
+                backgroundColor: "var(--boutique-merchant-header-cart-badge, #22d3ee)",
+                color: "var(--boutique-merchant-header-cart-badge-text, #312e81)",
+                borderColor: "var(--boutique-merchant-header-via, #312e81)",
+              }}
               aria-hidden
             >
               +

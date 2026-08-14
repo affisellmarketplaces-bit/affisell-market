@@ -36,6 +36,21 @@ export type StorefrontThemeCssVars = {
   regenerateBg: string
   regenerateBorder: string
   regenerateText: string
+  /** Sticky merchant nav on /boutique — evolves with procedural regenerations. */
+  merchantHeaderFrom: string
+  merchantHeaderVia: string
+  merchantHeaderTo: string
+  merchantHeaderBorder: string
+  merchantHeaderGlow: string
+  merchantHeaderBadgeBorder: string
+  merchantHeaderBadgeIcon: string
+  merchantHeaderActive: string
+  merchantHeaderActiveGlow: string
+  merchantHeaderCartBadge: string
+  merchantHeaderCartBadgeText: string
+  merchantHeaderLogoFrom: string
+  merchantHeaderLogoTo: string
+  merchantHeaderShadow: string
 }
 
 export type StorefrontThemeDefinition = {
@@ -151,6 +166,18 @@ export function buildStorefrontTheme(indexInput: number): StorefrontThemeDefinit
   const family = FAMILY_NAMES[index % FAMILY_NAMES.length] ?? "Aurora"
   const label = `${family} ${index + 1}`
 
+  const merchantHeaderFrom = isDark
+    ? hsl(h1, satBase * 0.9, 11 + (index % 6))
+    : hsl(h1, satBase * 0.75, 26 + (index % 5))
+  const merchantHeaderVia = isDark
+    ? hsl(h2, satBase * 0.82, 15 + (index % 5))
+    : hsl(h2, satBase * 0.7, 32 + (index % 4))
+  const merchantHeaderTo = isDark
+    ? hsl(h3, satAccent * 0.95, 26 + (index % 9))
+    : hsl(h3, satAccent * 0.85, 40 + (index % 7))
+  const merchantHeaderActive = hsl(h3, satAccent, isDark ? 70 : 46)
+  const merchantHeaderCartBadge = hsl(h3, satAccent, isDark ? 72 : 54)
+
   return {
     id: themeIdFromIndex(index),
     index,
@@ -195,6 +222,20 @@ export function buildStorefrontTheme(indexInput: number): StorefrontThemeDefinit
       regenerateBg: isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.75)",
       regenerateBorder: isDark ? "rgba(255,255,255,0.22)" : hsla(h1, 18, 72, 0.45),
       regenerateText: isDark ? "rgba(255,255,255,0.92)" : "#334155",
+      merchantHeaderFrom,
+      merchantHeaderVia,
+      merchantHeaderTo,
+      merchantHeaderBorder: isDark ? hsla(h2, 55, 72, 0.22) : hsla(h1, 35, 42, 0.28),
+      merchantHeaderGlow: hsla(h3, satAccent, isDark ? 58 : 52, isDark ? 0.32 : 0.24),
+      merchantHeaderBadgeBorder: hsla(h3, satAccent, isDark ? 72 : 50, 0.78),
+      merchantHeaderBadgeIcon: hsl(h3, satAccent, isDark ? 78 : 42),
+      merchantHeaderActive,
+      merchantHeaderActiveGlow: hsla(h3, satAccent, isDark ? 70 : 48, 0.92),
+      merchantHeaderCartBadge,
+      merchantHeaderCartBadgeText: isDark ? hsl(h1, satBase * 0.85, 12) : hsl(h1, satBase * 0.75, 16),
+      merchantHeaderLogoFrom: hsl(h1, satAccent, isDark ? 74 : 52),
+      merchantHeaderLogoTo: hsl(h3, satAccent, isDark ? 72 : 48),
+      merchantHeaderShadow: `0 18px 50px ${hsla(h1, satAccent, isDark ? 22 : 32, isDark ? 0.55 : 0.32)}`,
     },
   }
 }
