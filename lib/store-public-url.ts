@@ -1,3 +1,4 @@
+import { affiliateBuyerStorefrontHomePath } from "@/lib/boutique/affiliate-buyer-storefront-path"
 import { appBaseUrl } from "@/lib/app-base-url"
 import { normalizeRequestHost } from "@/lib/custom-domain-host"
 import type { StorePublicUrls } from "@/lib/store-public-url-shared"
@@ -38,7 +39,7 @@ export function storePublicUrlInputFromStore(
 
 export function storePathOnPlatform(input: StorePublicUrlInput): string {
   const enc = encodeURIComponent(input.slug)
-  return input.role === "SUPPLIER" ? `/store/supplier/${enc}` : `/shops/${enc}`
+  return input.role === "SUPPLIER" ? `/store/supplier/${enc}` : affiliateBuyerStorefrontHomePath(input.slug)
 }
 
 export function storeSubdomainPublicUrl(slug: string): string {

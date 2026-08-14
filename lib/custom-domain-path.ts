@@ -1,10 +1,17 @@
+import { affiliateBuyerStorefrontHomePath } from "@/lib/boutique/affiliate-buyer-storefront-path"
+
 /** Map paths on a merchant custom domain to internal Affisell storefront routes. */
 
 export type StorefrontRole = "AFFILIATE" | "SUPPLIER"
 
+/** Legacy shell for auth + Brand Studio static pages on affiliate hosts. */
+export function affiliateStoreLegacyPrefix(slug: string): string {
+  return `/shops/${encodeURIComponent(slug)}`
+}
+
 export function storePublicPrefix(slug: string, role: StorefrontRole): string {
   const enc = encodeURIComponent(slug)
-  return role === "SUPPLIER" ? `/store/supplier/${enc}` : `/shops/${enc}`
+  return role === "SUPPLIER" ? `/store/supplier/${enc}` : affiliateBuyerStorefrontHomePath(slug)
 }
 
 const BLOCKED_PREFIXES = [
@@ -70,7 +77,7 @@ export function mapCustomDomainPath(
   if (bare === "/" || bare === "") return prefix
 
   if (role === "AFFILIATE" && isStoreStaticPagePath(bare)) {
-    return `${prefix}${bare}`
+    return `${affiliateStoreLegacyPrefix(slug)}${bare}`
   }
 
   if (role === "AFFILIATE") {
@@ -78,13 +85,12 @@ export function mapCustomDomainPath(
       return bare
     }
     if (
-      bare.startsWith("/product/") ||
       bare === "/account" ||
       bare.startsWith("/account/") ||
       bare === "/login" ||
       bare === "/signup"
     ) {
-      return `${prefix}${bare}`
+      return `${affiliateStoreLegacyPrefix(slug)}${bare}`
     }
   }
 

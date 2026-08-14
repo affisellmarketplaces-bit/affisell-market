@@ -6,6 +6,7 @@ import { ArrowRight, Euro, ShoppingBag, Star } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { StoreNameBadge } from "@/components/storefront/store-name-badge"
+import { affiliateBuyerStorefrontHomePath } from "@/lib/boutique/affiliate-buyer-storefront-path"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import type { PublicShopDirectoryEntry } from "@/lib/shop-storefront-shared"
 import { cn } from "@/lib/utils"
@@ -57,7 +58,7 @@ export function ShopDirectoryCard({ shop }: { shop: PublicShopDirectoryEntry }) 
     shop.startingPriceCents != null && shop.startingPriceCents > 0
       ? formatStoreCurrencyFromCents(shop.startingPriceCents, { maximumFractionDigits: 0 })
       : null
-  const href = `/shops/${shop.slug}`
+  const href = affiliateBuyerStorefrontHomePath(shop.slug)
 
   return (
     <article

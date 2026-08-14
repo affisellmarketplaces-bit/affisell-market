@@ -27,7 +27,7 @@ describe("storePublicUrl", () => {
       slug: "ecom-store",
       role: "AFFILIATE",
     })
-    expect(urls.platformPathUrl).toBe("https://affisell-market.vercel.app/shops/ecom-store")
+    expect(urls.platformPathUrl).toBe("https://affisell-market.vercel.app/boutique/ecom-store")
     expect(urls.primaryUrl).toBe(urls.platformPathUrl)
     expect(urls.subdomainUrl).toBe("https://ecom-store.shops.affisell.com")
   })
@@ -45,7 +45,7 @@ describe("storePublicUrl", () => {
     expect(urls.subdomainUrl).toBe("https://my-shop.shops.affisell.com")
     expect(urls.primaryUrl).toBe(urls.subdomainUrl)
     expect(urls.subdomainSslActive).toBe(true)
-    expect(urls.platformPathUrl).toContain("/shops/my-shop")
+    expect(urls.platformPathUrl).toContain("/boutique/my-shop")
   })
 
   it("uses platform path when subdomain SSL is not active yet", () => {
@@ -58,7 +58,7 @@ describe("storePublicUrl", () => {
       role: "AFFILIATE",
       subdomainVercelStatus: "pending",
     })
-    expect(urls.primaryUrl).toBe("https://affisell.com/shops/ecom-store")
+    expect(urls.primaryUrl).toBe("https://affisell.com/boutique/ecom-store")
     expect(urls.subdomainSslActive).toBe(false)
   })
 
@@ -74,6 +74,6 @@ describe("storePublicUrl", () => {
     })
     expect(urls.subdomainUrl).toBe("http://my-shop.shops.localhost:3001")
     expect(urls.primaryUrl).toBe(urls.platformPathUrl)
-    expect(urls.platformPathUrl).toContain("/shops/my-shop")
+    expect(urls.platformPathUrl).toContain("/boutique/my-shop")
   })
 })

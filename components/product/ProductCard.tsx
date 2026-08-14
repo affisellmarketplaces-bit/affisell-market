@@ -21,6 +21,10 @@ import { Badge } from "@/components/ui/badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { calcMarginCents } from "@/lib/product-card-margin"
+import {
+  affiliateBuyerStorefrontHomePath,
+  affiliateBuyerStorefrontProductPath,
+} from "@/lib/boutique/affiliate-buyer-storefront-path"
 import { cn } from "@/lib/utils"
 
 export type ProductCardDisplayMode = "affiliate" | "customer" | "supplier"
@@ -261,7 +265,7 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
     (typeof o.href === "string" && o.href
       ? o.href
       : listingId && storeSlug && mode === "customer"
-        ? `/shops/${encodeURIComponent(storeSlug)}/product/${encodeURIComponent(listingId)}`
+        ? affiliateBuyerStorefrontProductPath(storeSlug, listingId)
         : listingId
           ? `/marketplace/${encodeURIComponent(listingId)}`
           : mode === "customer"

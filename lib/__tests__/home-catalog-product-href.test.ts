@@ -9,7 +9,7 @@ describe("home-catalog-product-href", () => {
   it("builds shop product url when slug is present", () => {
     expect(
       homeCatalogProductHref({ listingId: "abc", storeSlug: "my-shop" })
-    ).toBe("/shops/my-shop/product/abc")
+    ).toBe("/boutique/my-shop?productId=abc")
   })
 
   it("normalizes listing rows for static grid", () => {

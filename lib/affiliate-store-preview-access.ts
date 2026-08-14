@@ -1,3 +1,7 @@
+import {
+  affiliateBuyerStorefrontProductPath,
+} from "@/lib/boutique/affiliate-buyer-storefront-path"
+
 /** True when the signed-in user owns this affiliate storefront. */
 export function isAffiliateStoreOwner(
   sessionUserId: string | null | undefined,
@@ -30,7 +34,7 @@ export function affiliateListingPreviewHref(args: {
   const listingId = args.listingId?.trim()
   const storeSlug = args.storeSlug?.trim()
   if (listingId && storeSlug) {
-    return `/shops/${encodeURIComponent(storeSlug)}/product/${encodeURIComponent(listingId)}?preview=affiliate`
+    return affiliateBuyerStorefrontProductPath(storeSlug, listingId, { preview: "affiliate" })
   }
   if (listingId) {
     return `/marketplace/${encodeURIComponent(listingId)}?preview=affiliate`

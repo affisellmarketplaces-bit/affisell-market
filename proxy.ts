@@ -17,6 +17,7 @@ import {
 } from "@/lib/login-redirect"
 import { requestHost } from "@/lib/custom-domain-host"
 import { radarDisabledResponse } from "@/lib/radar/gate"
+import { resolveAffiliateShopToBoutiqueRedirect } from "@/lib/boutique/affiliate-buyer-storefront-path"
 import { tryCustomDomainMiddleware } from "@/lib/middleware-custom-domain"
 import { canonicalPlatformRedirectUrl } from "@/lib/platform-canonical-url"
 import {
@@ -357,9 +358,24 @@ export async function proxy(req: NextRequest) {
     const slug = bare.slice("/store/".length).split("/")[0]
     if (slug) {
       const u = req.nextUrl.clone()
-      u.pathname = `/shops/${slug}`
+      u.pathname = `/boutique/${slug}`
       return NextResponse.redirect(u, 308)
     }
+  }
+
+  const boutiqueRedirectTarget = resolveAffiliateShopToBoutiqueRedirect(bare)
+  if (boutiqueRedirectTarget) {
+    const locale = localeFromPathname(req.nextUrl.pathname)
+    const [redirectPath, redirectQuery = ""] = boutiqueRedirectTarget.split("?", 2)
+    const u = req.nextUrl.clone()
+    u.pathname = locale ? `/${locale}${redirectPath}` : redirectPath
+    if (redirectQuery) {
+      const merged = new URLSearchParams(redirectQuery)
+      merged.forEach((value, key) => {
+        u.searchParams.set(key, value)
+      })
+    }
+    return NextResponse.redirect(u, 308)
   }
 
   if (bare === "/shops" || bare.startsWith("/shops/")) {

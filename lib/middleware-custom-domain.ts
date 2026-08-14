@@ -2,11 +2,8 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 import { resolveDevPort } from "@/lib/dev-localhost-url"
-import {
-  isBlockedOnCustomDomain,
-  mapCustomDomainPath,
-  type StorefrontRole,
-} from "@/lib/custom-domain-path"
+import { mapCustomDomainPath, type StorefrontRole } from "@/lib/custom-domain-path"
+import { affiliateBuyerStorefrontHomePath } from "@/lib/boutique/affiliate-buyer-storefront-path"
 import { isPlatformHost, requestHost } from "@/lib/custom-domain-host"
 import { rewriteLocalhostToPublic } from "@/lib/public-app-url"
 import {
@@ -122,6 +119,24 @@ export async function tryCustomDomainMiddleware(
 
   if (isBlockedOnCustomDomain(bare)) {
     return redirectToPlatformApp(req, bare)
+  }
+
+  if (resolved.role === "AFFILIATE" && bare.startsWith("/product/")) {
+    const listingId = decodeURIComponent(bare.slice("/product/".length).split("/")[0] ?? "").trim()
+    if (listingId) {
+      const url = req.nextUrl.clone()
+      const locale = localeFromPathname(req.nextUrl.pathname)
+      const boutiquePath = affiliateBuyerStorefrontHomePath(resolved.slug)
+      url.pathname = locale ? `/${locale}${boutiquePath}` : boutiquePath
+      url.searchParams.set("productId", listingId)
+      const requestHeaders = new Headers(req.headers)
+      attachCustomDomainHeaders(requestHeaders, resolved, url.pathname)
+      return withStoreResolveCookie(
+        NextResponse.rewrite(url, { request: { headers: requestHeaders } }),
+        host,
+        resolved
+      )
+    }
   }
 
   const mapped = mapCustomDomainPath(bare, resolved.slug, resolved.role)

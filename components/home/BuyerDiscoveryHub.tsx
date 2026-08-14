@@ -8,6 +8,7 @@ import { ArrowRight, Search, Sparkles, Store } from "lucide-react"
 
 import { AllStoresTriangleBadge } from "@/components/storefront/all-stores-triangle-badge"
 import { ProductCard } from "@/components/product/ProductCard"
+import { affiliateBuyerStorefrontHomePath } from "@/lib/boutique/affiliate-buyer-storefront-path"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import {
   buyerListingToCardProps,
@@ -226,7 +227,7 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
         </p>
         {shopSlug ? (
           <Link
-            href={`/shops/${encodeURIComponent(shopSlug)}`}
+            href={affiliateBuyerStorefrontHomePath(shopSlug)}
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-violet-700 hover:underline dark:text-violet-300"
           >
             <Store className="h-4 w-4" aria-hidden />
@@ -274,7 +275,7 @@ export function BuyerDiscoveryHub({ shops, products, categories }: Props) {
             {filteredShops.slice(0, 6).map((shop) => (
               <li key={shop.slug}>
                 <Link
-                  href={`/shops/${shop.slug}`}
+                  href={affiliateBuyerStorefrontHomePath(shop.slug)}
                   className="flex items-center gap-4 rounded-2xl border border-zinc-200/90 bg-white/90 p-4 shadow-sm transition hover:border-violet-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950/90"
                 >
                   {shop.logoUrl ? (
