@@ -2,6 +2,9 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 
+import { auth } from "@/auth"
+import { buildResellerBoutiqueHeader } from "@/components/boutique/build-reseller-boutique-header"
+
 import {
   loadResellerBoutiqueStoreContext,
   loadResellerStorefrontList,
@@ -68,9 +71,14 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
   const [{ storeSlug }, sp] = await Promise.all([params, searchParams])
   const requestedListingId = sp.productId?.trim() || null
 
-  const storeContext = await loadResellerBoutiqueStoreContext(storeSlug)
+  const [storeContext, session] = await Promise.all([
+    loadResellerBoutiqueStoreContext(storeSlug),
+    auth(),
+  ])
   const storeLabel = storeContext?.storeLabel ?? formatResellerStoreLabel(storeSlug)
   const theme = storeContext?.theme ?? defaultTheme
+  const boutiqueHeader =
+    storeContext != null ? buildResellerBoutiqueHeader(storeContext, session) : null
 
   if (requestedListingId) {
     const product = await loadResellerStorefrontProduct(requestedListingId)
@@ -81,6 +89,7 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
         theme={theme}
         product={product}
         requestedListingId={requestedListingId}
+        header={boutiqueHeader}
       />
     )
   }
@@ -96,7 +105,7 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
 
   if (storefront.count === 0) {
     return (
-      <ResellerBoutiquePageShell themeId={initialVisualTheme}>
+      <ResellerBoutiquePageShell themeId={initialVisualTheme} header={boutiqueHeader}>
         <ResellerStorefrontEmptyState
           storeSlug={storeSlug}
           storeLabel={storeLabel}
@@ -120,6 +129,7 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
         productCardTrustLine={productCardTrustLine}
         products={storefront.products}
         count={storefront.count}
+        header={boutiqueHeader}
       />
     </Suspense>
   )

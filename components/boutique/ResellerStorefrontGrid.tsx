@@ -2,7 +2,7 @@
 
 import { Check, Loader2, RotateCw, ShoppingBag, Sparkles } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import { toast } from "sonner"
 
 import { AIPersonalizeModal } from "@/components/boutique/AIPersonalizeModal"
@@ -39,6 +39,7 @@ type ResellerStorefrontGridProps = {
   productCardTrustLine: string
   products: ResellerStorefrontListProduct[]
   count: number
+  header?: ReactNode
 }
 
 function typographyEqual(a: BoutiqueTitleTypography, b: BoutiqueTitleTypography): boolean {
@@ -74,6 +75,7 @@ export function ResellerStorefrontGrid({
   productCardTrustLine,
   products,
   count,
+  header,
 }: ResellerStorefrontGridProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -296,7 +298,7 @@ export function ResellerStorefrontGrid({
   }
 
   return (
-    <ResellerBoutiquePageShell themeId={theme}>
+    <ResellerBoutiquePageShell themeId={theme} header={header}>
       <div className="relative mb-12 w-full">
         <div className="mb-6 flex flex-col gap-2 sm:absolute sm:right-0 sm:top-0 sm:z-20 sm:mb-0 sm:flex-row sm:flex-wrap sm:justify-end">
           <button

@@ -3207,6 +3207,26 @@
     "productCard": {
       "trustLine": "Paiement sécurisé · Livraison sécurisée"
     },
+    "merchantHeader": {
+      "aria": "Navigation revendeur boutique",
+      "navAria": "Menu boutique",
+      "badgeReseller": "Revendeur",
+      "badgeSupplier": "Fournisseur",
+      "dashboard": "Tableau de bord",
+      "boutique": "Boutique",
+      "orders": "Commandes",
+      "clients": "Clients",
+      "settings": "Paramètres",
+      "cart": "Panier",
+      "avatar": {
+        "aria": "Menu profil boutique",
+        "close": "Fermer le menu",
+        "addLogo": "Ajouter logo ou photo",
+        "editLogo": "Modifier logo ou photo",
+        "settings": "Paramètres boutique",
+        "signOut": "Se déconnecter"
+      }
+    },
     "trust": {
       "poweredBy": "Propulsé par Affisell",
       "verifiedBy": "Vérifié par Affisell",

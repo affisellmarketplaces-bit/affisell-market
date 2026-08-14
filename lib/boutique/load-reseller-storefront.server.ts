@@ -242,6 +242,9 @@ export type ResellerBoutiqueStoreContext = {
   storeSlug: string
   storeName: string
   storeLabel: string
+  ownerUserId: string
+  logoUrl: string | null
+  aiAvatarUrl: string | null
   tagline: string | null
   /** Merchant-saved procedural theme for /boutique (t-XXXX). */
   boutiqueVisualTheme: string | null
@@ -260,6 +263,9 @@ export async function loadResellerBoutiqueStoreContext(
     select: {
       slug: true,
       name: true,
+      userId: true,
+      logoUrl: true,
+      aiAvatarUrl: true,
       description: true,
       storefrontTheme: true,
     },
@@ -275,6 +281,9 @@ export async function loadResellerBoutiqueStoreContext(
     storeSlug: store.slug,
     storeName: store.name,
     storeLabel: formatResellerStoreLabel(store.slug),
+    ownerUserId: store.userId,
+    logoUrl: store.logoUrl?.trim() || null,
+    aiAvatarUrl: store.aiAvatarUrl?.trim() || null,
     tagline: (boutiqueAiTagline ?? store.description?.trim()) || null,
     boutiqueVisualTheme,
     titleTypography: parseBoutiqueTitleTypography(parsedTheme),

@@ -1,5 +1,7 @@
 "use client"
 
+import type { ReactNode } from "react"
+
 import { ResellerStorefrontGrid } from "@/components/boutique/ResellerStorefrontGrid"
 import type { ResellerBoutiqueThemeProps } from "@/lib/boutique/reseller-boutique-theme-shared"
 import type { BoutiqueTitleTypography } from "@/lib/boutique/boutique-title-typography-shared"
@@ -18,6 +20,7 @@ type Props = {
   productCardTrustLine: string
   products: ResellerStorefrontListProduct[]
   count: number
+  header?: ReactNode
 }
 
 export function ResellerStorefrontView(props: Props) {

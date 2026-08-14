@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Loader2, Package, ShieldCheck, Sparkles, Truck } from "lucide-react"
-import { useCallback, useState } from "react"
+import { useCallback, useState, type ReactNode } from "react"
 import { toast } from "sonner"
 
 import { ResellerBoutiqueLayout } from "@/components/boutique/ResellerBoutiqueLayout"
@@ -16,6 +16,7 @@ type ResellerStorefrontShellProps = {
   theme: ResellerBoutiqueThemeProps
   product: ResellerStorefrontProduct | null
   requestedListingId: string | null
+  header?: ReactNode
 }
 
 type CreateResellerOrderResponse = {
@@ -42,6 +43,7 @@ export function ResellerStorefrontShell({
   theme,
   product,
   requestedListingId,
+  header,
 }: ResellerStorefrontShellProps) {
   const [loading, setLoading] = useState(false)
 
@@ -77,7 +79,12 @@ export function ResellerStorefrontShell({
   }, [product, storeSlug])
 
   return (
-    <ResellerBoutiqueLayout storeSlug={storeSlug} storeLabel={storeLabel} theme={theme}>
+    <ResellerBoutiqueLayout
+      storeSlug={storeSlug}
+      storeLabel={storeLabel}
+      theme={theme}
+      header={header}
+    >
       {!product ? (
         <section
           className="mx-auto max-w-2xl rounded-[1.75rem] border p-10 text-center backdrop-blur-xl"

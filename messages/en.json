@@ -3207,6 +3207,26 @@
     "productCard": {
       "trustLine": "Secure checkout · Secure delivery"
     },
+    "merchantHeader": {
+      "aria": "Reseller boutique navigation",
+      "navAria": "Boutique menu",
+      "badgeReseller": "Reseller",
+      "badgeSupplier": "Supplier",
+      "dashboard": "Dashboard",
+      "boutique": "Store",
+      "orders": "Orders",
+      "clients": "Clients",
+      "settings": "Settings",
+      "cart": "Cart",
+      "avatar": {
+        "aria": "Store profile menu",
+        "close": "Close menu",
+        "addLogo": "Add logo or photo",
+        "editLogo": "Edit logo or photo",
+        "settings": "Store settings",
+        "signOut": "Sign out"
+      }
+    },
     "trust": {
       "poweredBy": "Powered by Affisell",
       "verifiedBy": "Verified by Affisell",

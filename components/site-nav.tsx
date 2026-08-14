@@ -43,8 +43,9 @@ export function SiteNav({ initialRole = null }: Props) {
   const isCreatorStorefront =
     pathname?.startsWith("/shops/") &&
     !pathname.startsWith("/shops/browse")
+  const isResellerBoutique = pathname?.startsWith("/boutique/")
 
-  if (isCreatorStorefront || isAuthRoute) {
+  if (isCreatorStorefront || isAuthRoute || isResellerBoutique) {
     return null
   }
 

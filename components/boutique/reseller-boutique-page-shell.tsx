@@ -7,15 +7,17 @@ import { getStorefrontThemeById } from "@/lib/boutique/storefront-theme-engine"
 
 type Props = {
   themeId: string
+  header?: ReactNode
   children: ReactNode
 }
 
-export function ResellerBoutiquePageShell({ themeId, children }: Props) {
+export function ResellerBoutiquePageShell({ themeId, header, children }: Props) {
   const theme = getStorefrontThemeById(themeId)
 
   return (
     <ResellerBoutiqueThemeVars theme={theme}>
       <div className="relative min-h-screen w-full overflow-hidden">
+        {header}
         <div
           className="pointer-events-none absolute inset-0 z-0 transition-all duration-700 ease-in-out"
           style={{

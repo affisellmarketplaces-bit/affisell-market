@@ -13,6 +13,7 @@ type ResellerBoutiqueLayoutProps = {
   storeLabel: string
   theme: ResellerBoutiqueThemeProps
   productCount?: number | null
+  header?: ReactNode
   hero?: ReactNode
   children: ReactNode
   footer?: ReactNode
@@ -23,6 +24,7 @@ export function ResellerBoutiqueLayout({
   storeLabel,
   theme,
   productCount,
+  header,
   hero,
   children,
   footer,
@@ -46,6 +48,9 @@ export function ResellerBoutiqueLayout({
           aria-hidden
         />
 
+        {header}
+
+        {!header ? (
         <header
           className="sticky top-0 z-20 border-b backdrop-blur-xl"
           style={{
@@ -93,6 +98,7 @@ export function ResellerBoutiqueLayout({
             </Link>
           </div>
         </header>
+        ) : null}
 
         <main className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
           {hero ? <div className="mb-8 sm:mb-10">{hero}</div> : null}
