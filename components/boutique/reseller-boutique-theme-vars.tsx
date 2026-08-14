@@ -62,13 +62,24 @@ export function boutiqueThemeStyle(theme: StorefrontThemeDefinition): CSSPropert
     ["--boutique-merchant-header-logo-bottom" as string]: v.merchantHeaderLogoBottom,
     ["--boutique-merchant-header-fade" as string]: v.merchantHeaderFade,
     ["--boutique-merchant-header-shadow" as string]: v.merchantHeaderShadow,
+    ["--boutique-merchant-header-text" as string]: v.merchantHeaderText,
+    ["--boutique-merchant-header-text-muted" as string]: v.merchantHeaderTextMuted,
+    ["--boutique-merchant-header-icon" as string]: v.merchantHeaderIcon,
+    ["--boutique-merchant-header-hover-bg" as string]: v.merchantHeaderHoverBg,
+    ["--boutique-merchant-header-divider" as string]: v.merchantHeaderDivider,
+    ["--boutique-merchant-header-focus-ring" as string]: v.merchantHeaderFocusRing,
+    ["--boutique-merchant-header-scrim" as string]: v.merchantHeaderScrim,
     backgroundColor: v.shellBg,
   }
 }
 
 export function ResellerBoutiqueThemeVars({ theme, children }: Props) {
   return (
-    <div className="boutique-theme-root transition-[background-color] duration-700 ease-in-out" style={boutiqueThemeStyle(theme)}>
+    <div
+      className="boutique-theme-root transition-[background-color] duration-700 ease-in-out"
+      data-boutique-theme-mode={theme.isDark ? "dark" : "light"}
+      style={boutiqueThemeStyle(theme)}
+    >
       {children}
     </div>
   )
