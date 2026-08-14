@@ -1,12 +1,12 @@
 "use client"
 
-import Image from "next/image"
-import { Check, Eye, Loader2, RotateCw, ShoppingBag, Sparkles } from "lucide-react"
+import { Check, Loader2, RotateCw, ShoppingBag, Sparkles } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import { AIPersonalizeModal } from "@/components/boutique/AIPersonalizeModal"
+import { ResellerBoutiqueProductCard } from "@/components/boutique/ResellerBoutiqueProductCard"
 import { BoutiqueStoreTitle } from "@/components/boutique/boutique-store-title"
 import { ResellerBoutiquePageShell } from "@/components/boutique/reseller-boutique-page-shell"
 import type { ResellerBoutiqueThemeProps } from "@/lib/boutique/reseller-boutique-theme-shared"
@@ -407,60 +407,16 @@ export function ResellerStorefrontGrid({
         )}
       >
         {products.map((product) => (
-          <article
+          <ResellerBoutiqueProductCard
             key={product.id}
-            className="group rounded-3xl border p-3 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1"
-            style={{
-              background: "var(--boutique-card-bg)",
-              borderColor: "var(--boutique-card-border)",
-              boxShadow: "var(--boutique-card-shadow)",
-            }}
-          >
-            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-white">
-              <Image
-                src={product.image}
-                alt={product.title}
-                fill
-                className="object-contain p-4 transition duration-500 group-hover:scale-[1.02]"
-                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
-                unoptimized={product.image.startsWith("http") || product.image.startsWith("/uploads")}
-              />
-              {product.isOutOfStock ? (
-                <span className="absolute left-3 top-3 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
-                  Out of stock
-                </span>
-              ) : null}
-            </div>
-
-            <div className="p-4 pt-4">
-              <h2 className="text-lg font-bold leading-tight" style={{ color: "var(--boutique-card-title)" }}>
-                {product.title}
-              </h2>
-              <p className="mt-1 line-clamp-2 text-sm" style={{ color: "var(--boutique-card-muted)" }}>
-                {productCardTrustLine}
-              </p>
-              <p className="mt-3 text-2xl font-extrabold tracking-tight" style={{ color: "var(--boutique-price)" }}>
-                {product.priceLabel}
-              </p>
-
-              <button
-                type="button"
-                onClick={() =>
-                  router.push(
-                    `/boutique/${encodeURIComponent(storeSlug)}?productId=${encodeURIComponent(product.id)}`
-                  )
-                }
-                className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-full text-sm font-medium text-white transition-all duration-300 group-hover:scale-[1.01]"
-                style={{
-                  backgroundImage: "linear-gradient(90deg, var(--boutique-button-from), var(--boutique-button-to))",
-                  boxShadow: "var(--boutique-button-shadow)",
-                }}
-              >
-                <Eye className="size-4" aria-hidden />
-                Voir le produit
-              </button>
-            </div>
-          </article>
+            product={product}
+            productCardTrustLine={productCardTrustLine}
+            onViewProduct={(listingId) =>
+              router.push(
+                `/boutique/${encodeURIComponent(storeSlug)}?productId=${encodeURIComponent(listingId)}`
+              )
+            }
+          />
         ))}
       </div>
 

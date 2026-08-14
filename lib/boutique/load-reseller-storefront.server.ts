@@ -1,4 +1,5 @@
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { filterListingForPromotedVariants } from "@/lib/affiliate-storefront-variants"
 import {
   lookupVariantPricingEntry,
@@ -336,17 +337,24 @@ export async function loadResellerStorefrontList(args: {
     },
     select: {
       id: true,
+      productId: true,
       customTitle: true,
       sellingPriceCents: true,
       variantPricing: true,
       promotedVariantKeys: true,
       customImages: true,
+      conversions: true,
+      isFeatured: true,
+      buyerRewardKind: true,
+      buyerRewardPercent: true,
       product: {
         select: {
+          id: true,
           name: true,
           images: true,
           stock: true,
           basePriceCents: true,
+          compareAt: true,
           variants: true,
           colors: true,
           customColumns: true,
@@ -366,6 +374,14 @@ export async function loadResellerStorefrontList(args: {
     },
     orderBy: { updatedAt: "desc" },
   })
+
+  const bestSellerIds = new Set(
+    [...listings]
+      .filter((row) => row.conversions > 0)
+      .sort((a, b) => b.conversions - a.conversions)
+      .slice(0, 3)
+      .map((row) => row.id)
+  )
 
   const products: ResellerStorefrontListProduct[] = listings
     .filter((listing): listing is typeof listing & { product: NonNullable<typeof listing.product> } =>
@@ -388,11 +404,22 @@ export async function loadResellerStorefrontList(args: {
 
       return {
         id: listing.id,
+        productId: listing.productId,
         title: listingDisplayTitle(listing.customTitle, listing.product.name),
         priceCents: commerce.priceCents,
         priceLabel: formatStoreCurrencyFromCents(commerce.priceCents),
+        compareAtCents:
+          listing.product.compareAt != null
+            ? Math.round(Number(listing.product.compareAt) * 100)
+            : null,
         image: listingPrimaryImageUrl(listing.customImages, listing.product.images) || "/placeholder.png",
         isOutOfStock: commerce.availableStock <= 0,
+        soldCount: listing.conversions,
+        isBestSeller: listing.isFeatured || bestSellerIds.has(listing.id),
+        buyerRewardBadge: buyerRewardBadgeText(
+          normalizeBuyerRewardKind(listing.buyerRewardKind),
+          listing.buyerRewardPercent
+        ),
       }
     })
 
