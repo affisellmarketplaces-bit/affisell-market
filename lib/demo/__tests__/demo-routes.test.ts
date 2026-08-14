@@ -6,6 +6,7 @@ describe("demo-routes", () => {
   it("detects demo lab paths", () => {
     expect(isDemoLabRoute("/demo")).toBe(true)
     expect(isDemoLabRoute("/demo/supplier")).toBe(true)
+    expect(isDemoLabRoute("/demo/storefront-formats")).toBe(true)
     expect(isDemoLabRoute("/fr/demo")).toBe(true)
     expect(isDemoLabRoute("/marketplace")).toBe(false)
   })

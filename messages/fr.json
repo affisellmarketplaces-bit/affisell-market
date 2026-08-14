@@ -2537,6 +2537,7 @@
       "liveUrl": "URL publique",
       "previewAffisell": "Aperçu sur Affisell",
       "boutiquePreview": "Vitrine boutique /boutique",
+      "formatsCatalog": "Tous les formats vitrine",
       "aiTheme": {
         "badge": "IA · Personnalisation auto",
         "title": "Vitrine futuriste en 1 clic",
@@ -4665,6 +4666,84 @@
           "hint": "Compte marketplace, suivi commandes"
         }
       }
+    },
+    "storefrontFormats": {
+      "eyebrow": "Storefront OS",
+      "title": "Catalogue des formats vitrine",
+      "subtitle": "Chaque expérience vitrine publique sur Affisell — rôle, URL et tests live en un clic. Votre hub de référence dans le Demo Lab.",
+      "backToDemo": "Retour au Demo Lab",
+      "architectureTitle": "Architecture dual-model",
+      "architectureDiagram": "Marchand affilié\n├── /shops/{slug}     → Brand Studio (chrome acheteur, sections modulaires)\n├── /boutique/{slug}  → Boutique procédurale (1024 skins, studio design)\n├── /embed/shops/{slug} → Widget embarqué (toggle Brand Studio)\n└── domaine custom CNAME → rewrite vers /shops/{slug}\n\nMarchand fournisseur\n└── /store/supplier/{slug} → Vitrine catalogue supplier\n\nCréateur (Légion)\n└── /u/{username} → Vitrine @handle (parallèle au slug Store)",
+      "formatsGridTitle": "Formats disponibles",
+      "stats": {
+        "formats": "Formats publics",
+        "boutiqueSkins": "Skins boutique",
+        "brandPresets": "Presets brand",
+        "presetsHint": "curated Brand Studio"
+      },
+      "tierPrimary": "Format core",
+      "tierChannel": "Canal",
+      "linkDisabled": "Config requise",
+      "matrixTitle": "Matrice Brand Studio",
+      "matrixBody": "Knobs combinables sur /shops/ — layout × hero × surface × sections × preset.",
+      "matrix": {
+        "layouts": "Layouts",
+        "heroes": "Modes hero",
+        "surfaces": "Surfaces",
+        "sections": "Blocs home"
+      },
+      "matrixBoutiqueNote": "{count} refs thème boutique en showcase sur la carte Boutique (moteur complet : 1 024 skins procéduraux).",
+      "footerNote": "Slugs résolus depuis les comptes Demo Lab si seedés — sinon fallback boutiques live. Safe à partager produit & QA.",
+      "optionCountSkins": "{count} skins procéduraux · Regenerate / Save dans le body boutique",
+      "optionCountBrandStudio": "{layouts} layouts · {heroes} heroes · {presets} presets",
+      "audiences": {
+        "buyer": "Acheteur",
+        "affiliate": "Affilié",
+        "supplier": "Fournisseur",
+        "creator": "Créateur"
+      },
+      "formats": {
+        "brand-studio-shops": {
+          "title": "Brand Studio · /shops/",
+          "role": "Vitrine acheteur principale pour affiliés. Chrome noir, trust rail, homepage modulaire (hero, bestsellers, trust…). Configurable dans Brand Studio."
+        },
+        "boutique-procedural": {
+          "title": "Boutique procédurale · /boutique/",
+          "role": "Vitrine affilié design-forward. Header seamless procédural, tagline IA, 1024 skins. Outils owner (Regenerate, Save) dans le body — même catalogue que /shops/."
+        },
+        "supplier-storefront": {
+          "title": "Vitrine fournisseur · /store/supplier/",
+          "role": "Catalogue public fournisseur. Parcours checkout direct marque. Vue que les affiliés prévisualisent lors du sourcing."
+        },
+        "legion-profile": {
+          "title": "Légion · /u/{username}",
+          "role": "Vitrine handle créateur (@username). Identité parallèle au slug Store — optimisée trafic social et parrainage Légion."
+        },
+        "embed-widget": {
+          "title": "Widget embed · /embed/shops/",
+          "role": "Rail produits iframe pour sites externes. Activer dans Brand Studio → Embed widget, puis tester l'URL snippet live."
+        }
+      },
+      "links": {
+        "liveBuyer": "Ouvrir vitrine acheteur live",
+        "ownerPreview": "Preview owner (?preview=affiliate)",
+        "brandStudio": "Éditer dans Brand Studio",
+        "boutiqueLive": "Ouvrir boutique (thème sauvegardé)",
+        "boutiqueTheme": "Tester skin {theme}",
+        "supplierLive": "Ouvrir vitrine fournisseur",
+        "supplierStudio": "Brand Studio fournisseur",
+        "legionLive": "Ouvrir profil @",
+        "legionSettings": "Configurer handle Légion",
+        "legionSetup": "Configurer @username",
+        "legionMissing": "Aucun StoreProfile actif en base — créez un handle dans les réglages.",
+        "embedLive": "Ouvrir URL embed",
+        "embedRequiresEnable": "Activez Embed widget dans Brand Studio — l'URL sert alors le rail iframe.",
+        "brandStudioEmbed": "Brand Studio → panneau Embed",
+        "shopsBrowse": "Parcourir les shops",
+        "discover": "Discover fournisseurs"
+      },
+      "indexCardTitle": "Formats vitrine",
+      "indexCardBody": "Catalogue de tous les types de vitrine — rôles, URLs et liens test live pour QA et produit."
     },
     "feedback": {
       "title": "Votre avis compte",

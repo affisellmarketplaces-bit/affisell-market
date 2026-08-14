@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { ExternalLink, Palette, Save, Sparkles } from "lucide-react"
+import { ExternalLink, Layers, Palette, Save, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { FormEvent } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -955,6 +955,13 @@ export function MerchantBrandStudio({
                 {t("boutiquePreview")}
               </Link>
             ) : null}
+            <Link
+              href="/demo/storefront-formats"
+              className="inline-flex h-11 items-center gap-2 rounded-xl border border-indigo-200/90 bg-indigo-50/80 px-4 text-sm font-medium text-indigo-950 dark:border-indigo-900/60 dark:bg-indigo-950/30 dark:text-indigo-100"
+            >
+              <Layers className="size-4" aria-hidden />
+              {t("formatsCatalog")}
+            </Link>
             <Link
               href={previewHref}
               target="_blank"

@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { getTranslations } from "next-intl/server"
-import { ArrowRight, ShoppingBag, Store, Users } from "lucide-react"
+import { ArrowRight, Layers, ShoppingBag, Store, Users } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 import { DemoSandboxPortalSection } from "@/components/demo/demo-sandbox-portal-section"
@@ -33,6 +33,35 @@ export async function DemoLabIndex() {
       </section>
 
       <DemoSandboxPortalSection />
+
+      <Link
+        href="/demo/storefront-formats"
+        className={cn(
+          "group relative flex overflow-hidden rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-zinc-950 via-indigo-950/80 to-violet-950 p-6 text-white transition",
+          "hover:border-violet-400/50 hover:shadow-xl hover:shadow-violet-500/15"
+        )}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(139,92,246,0.25),transparent_55%)]"
+          aria-hidden
+        />
+        <span className="relative inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-violet-200 ring-1 ring-white/15">
+          <Layers className="h-6 w-6" aria-hidden />
+        </span>
+        <div className="relative ml-5 flex-1">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-violet-300">
+            {t("storefrontFormats.eyebrow")}
+          </p>
+          <h2 className="mt-1 text-lg font-bold">{t("storefrontFormats.indexCardTitle")}</h2>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+            {t("storefrontFormats.indexCardBody")}
+          </p>
+          <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-violet-200 group-hover:gap-2">
+            {t("storefrontFormats.title")}
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
+          </span>
+        </div>
+      </Link>
 
       <ul className="grid gap-5 sm:grid-cols-3">
         {DEMO_PERSONAS.map((persona) => {
