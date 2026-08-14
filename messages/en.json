@@ -3224,7 +3224,9 @@
         "addLogo": "Add logo or photo",
         "editLogo": "Edit logo or photo",
         "settings": "Store settings",
-        "signOut": "Sign out"
+        "signOut": "Sign out",
+        "storeFallback": "Reseller store",
+        "visitorHint": "Logo and identity are managed by the reseller — sign in as the owner to customize."
       }
     },
     "trust": {

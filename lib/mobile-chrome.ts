@@ -72,6 +72,7 @@ export function shouldHideMobileDock(pathname: string): boolean {
   if (bare.startsWith("/dashboard")) return true
   if (bare.startsWith("/demo")) return true
   if (isAffiliateShopStorefrontPath(pathname)) return true
+  if (barePathname(pathname).startsWith("/boutique/")) return true
   if (isImmersiveBuyerRoute(pathname)) return true
   if (isCheckoutFocusRoute(pathname)) return true
   return false

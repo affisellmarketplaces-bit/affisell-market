@@ -15,6 +15,11 @@ describe("shouldHideMobileDock", () => {
     expect(shouldHideMobileDock("/fr/shops/acme")).toBe(true)
   })
 
+  it("hides on reseller boutique storefronts", () => {
+    expect(shouldHideMobileDock("/boutique/ecom-store")).toBe(true)
+    expect(shouldHideMobileDock("/fr/boutique/ecom-store")).toBe(true)
+  })
+
   it("shows on browse surfaces", () => {
     expect(shouldHideMobileDock("/")).toBe(false)
     expect(shouldHideMobileDock("/marketplace")).toBe(false)

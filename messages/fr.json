@@ -3224,7 +3224,9 @@
         "addLogo": "Ajouter logo ou photo",
         "editLogo": "Modifier logo ou photo",
         "settings": "Paramètres boutique",
-        "signOut": "Se déconnecter"
+        "signOut": "Se déconnecter",
+        "storeFallback": "Boutique revendeur",
+        "visitorHint": "Logo et identité gérés par le revendeur — connectez-vous en tant que propriétaire pour personnaliser."
       }
     },
     "trust": {

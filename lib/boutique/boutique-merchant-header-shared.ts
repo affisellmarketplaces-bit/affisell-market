@@ -36,17 +36,23 @@ export function resolveBoutiqueMerchantNav(
   }
 }
 
+export function resolveStoreAvatarUrl(args: {
+  logoUrl: string | null | undefined
+  aiAvatarUrl: string | null | undefined
+}): string | null {
+  const logo = args.logoUrl?.trim()
+  if (logo) return logo
+  const ai = args.aiAvatarUrl?.trim()
+  return ai || null
+}
+
+/** @deprecated Prefer resolveStoreAvatarUrl for public boutique chrome. */
 export function resolveMerchantAvatarUrl(args: {
   logoUrl: string | null | undefined
   aiAvatarUrl: string | null | undefined
   userImage?: string | null | undefined
 }): string | null {
-  const logo = args.logoUrl?.trim()
-  if (logo) return logo
-  const ai = args.aiAvatarUrl?.trim()
-  if (ai) return ai
-  const user = args.userImage?.trim()
-  return user || null
+  return (resolveStoreAvatarUrl(args) ?? args.userImage?.trim()) || null
 }
 
 export function merchantAvatarInitial(storeName: string): string {

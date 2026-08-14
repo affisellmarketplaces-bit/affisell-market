@@ -2,15 +2,12 @@
 
 import Link from "next/link"
 import { signOut, useSession } from "next-auth/react"
-import { ChevronDown, ImagePlus, LogOut, Settings, Sparkles } from "lucide-react"
+import { ChevronDown, ImagePlus, LogOut, Settings, Sparkles, UserRound } from "lucide-react"
 import { useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { useTranslations } from "next-intl"
 
-import {
-  merchantAvatarInitial,
-  resolveMerchantAvatarUrl,
-} from "@/lib/boutique/boutique-merchant-header-shared"
+import { resolveStoreAvatarUrl } from "@/lib/boutique/boutique-merchant-header-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -33,18 +30,14 @@ export function BoutiqueMerchantAvatarMenu({
   className,
 }: Props) {
   const t = useTranslations("boutique.merchantHeader.avatar")
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [open, setOpen] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
   const [coords, setCoords] = useState({ top: 0, left: 0 })
 
-  const avatarUrl = resolveMerchantAvatarUrl({
-    logoUrl,
-    aiAvatarUrl,
-    userImage: session?.user?.image,
-  })
-  const initial = merchantAvatarInitial(storeName)
-  const hasCustomMark = Boolean(logoUrl?.trim() || aiAvatarUrl?.trim())
+  const storeAvatarUrl = resolveStoreAvatarUrl({ logoUrl, aiAvatarUrl })
+  const hasCustomMark = Boolean(storeAvatarUrl)
+  const isSignedIn = status === "authenticated"
 
   useLayoutEffect(() => {
     if (!open || !btnRef.current) return
@@ -53,25 +46,25 @@ export function BoutiqueMerchantAvatarMenu({
   }, [open])
 
   return (
-    <div className={cn("relative flex items-center gap-1", className)}>
+    <div className={cn("relative flex items-center gap-0.5", className)}>
       <button
         ref={btnRef}
         type="button"
         aria-label={t("aria")}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="group flex items-center gap-1 rounded-full p-0.5 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300/80"
+        className="group flex items-center gap-0.5 rounded-full py-0.5 pl-0.5 pr-1 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300/80"
       >
-        <span className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/25 bg-white/10 shadow-[0_0_20px_rgba(34,211,238,0.25)] ring-1 ring-white/10 transition group-hover:border-cyan-300/50 group-hover:shadow-[0_0_24px_rgba(34,211,238,0.45)]">
-          {avatarUrl ? (
+        <span className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/30 bg-white/[0.06]">
+          {storeAvatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarUrl} alt="" className="size-full object-cover" loading="eager" />
+            <img src={storeAvatarUrl} alt="" className="size-full object-cover" loading="eager" />
           ) : (
-            <span className="text-sm font-bold text-white">{initial}</span>
+            <UserRound className="size-5 text-white/90 stroke-[1.5]" aria-hidden />
           )}
           {isOwner && !hasCustomMark ? (
             <span
-              className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-cyan-400 text-[9px] font-bold text-indigo-950 ring-2 ring-indigo-900"
+              className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-cyan-400 text-[9px] font-bold text-indigo-950 ring-2 ring-[#312e81]"
               aria-hidden
             >
               +
@@ -80,7 +73,7 @@ export function BoutiqueMerchantAvatarMenu({
         </span>
         <ChevronDown
           className={cn(
-            "size-4 shrink-0 text-white/80 transition",
+            "size-4 shrink-0 text-white/90 transition",
             open && "rotate-180 text-cyan-200"
           )}
           aria-hidden
@@ -102,41 +95,47 @@ export function BoutiqueMerchantAvatarMenu({
                 style={{ top: coords.top, left: coords.left }}
               >
                 <p className="truncate px-3 py-2 text-xs font-medium text-cyan-100/70">
-                  {storeName.trim() || session?.user?.email}
+                  {storeName.trim() || t("storeFallback")}
                 </p>
                 {isOwner ? (
-                  <Link
-                    href={brandStudioHref}
-                    role="menuitem"
-                    className="flex items-center gap-2 px-3 py-2.5 text-sm text-white hover:bg-white/10"
-                    onClick={() => setOpen(false)}
-                  >
-                    {hasCustomMark ? (
-                      <Sparkles className="size-4 shrink-0 text-cyan-300" aria-hidden />
-                    ) : (
-                      <ImagePlus className="size-4 shrink-0 text-cyan-300" aria-hidden />
-                    )}
-                    {hasCustomMark ? t("editLogo") : t("addLogo")}
-                  </Link>
-                ) : null}
-                <Link
-                  href={settingsHref}
-                  role="menuitem"
-                  className="flex items-center gap-2 px-3 py-2.5 text-sm text-white hover:bg-white/10"
-                  onClick={() => setOpen(false)}
-                >
-                  <Settings className="size-4 shrink-0 opacity-80" aria-hidden />
-                  {t("settings")}
-                </Link>
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-white hover:bg-white/10"
-                  onClick={() => void signOut({ callbackUrl: "/" })}
-                >
-                  <LogOut className="size-4 shrink-0 opacity-80" aria-hidden />
-                  {t("signOut")}
-                </button>
+                  <>
+                    <Link
+                      href={brandStudioHref}
+                      role="menuitem"
+                      className="flex items-center gap-2 px-3 py-2.5 text-sm text-white hover:bg-white/10"
+                      onClick={() => setOpen(false)}
+                    >
+                      {hasCustomMark ? (
+                        <Sparkles className="size-4 shrink-0 text-cyan-300" aria-hidden />
+                      ) : (
+                        <ImagePlus className="size-4 shrink-0 text-cyan-300" aria-hidden />
+                      )}
+                      {hasCustomMark ? t("editLogo") : t("addLogo")}
+                    </Link>
+                    <Link
+                      href={settingsHref}
+                      role="menuitem"
+                      className="flex items-center gap-2 px-3 py-2.5 text-sm text-white hover:bg-white/10"
+                      onClick={() => setOpen(false)}
+                    >
+                      <Settings className="size-4 shrink-0 opacity-80" aria-hidden />
+                      {t("settings")}
+                    </Link>
+                    {isSignedIn ? (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-white hover:bg-white/10"
+                        onClick={() => void signOut({ callbackUrl: "/" })}
+                      >
+                        <LogOut className="size-4 shrink-0 opacity-80" aria-hidden />
+                        {t("signOut")}
+                      </button>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className="px-3 pb-2.5 text-xs leading-relaxed text-white/60">{t("visitorHint")}</p>
+                )}
               </div>
             </>,
             document.body
