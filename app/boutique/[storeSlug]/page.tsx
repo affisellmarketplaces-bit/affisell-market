@@ -9,6 +9,10 @@ import {
 import { serializeResellerBoutiqueTheme } from "@/lib/boutique/reseller-boutique-theme-shared"
 import { formatResellerStoreLabel } from "@/lib/boutique/reseller-storefront-shared"
 import {
+  DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY,
+  parseBoutiqueTitleTypography,
+} from "@/lib/boutique/boutique-title-typography-shared"
+import {
   DEFAULT_STOREFRONT_THEME_ID,
   parseStorefrontThemeId,
 } from "@/lib/boutique/storefront-themes"
@@ -82,8 +86,9 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
 
   const storefront = await loadResellerStorefrontList({ storeSlug })
   const resolvedTheme = storefront.theme ?? theme
+  const savedVisualTheme = parseStorefrontThemeId(storeContext?.boutiqueVisualTheme ?? null)
   const initialVisualTheme =
-    parseStorefrontThemeId(sp.theme) ?? DEFAULT_STOREFRONT_THEME_ID
+    parseStorefrontThemeId(sp.theme) ?? savedVisualTheme ?? DEFAULT_STOREFRONT_THEME_ID
 
   if (storefront.count === 0) {
     return (
@@ -105,6 +110,7 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
         tagline={storeContext?.tagline ?? null}
         brandTheme={resolvedTheme}
         initialVisualTheme={initialVisualTheme}
+        titleTypography={storeContext?.titleTypography ?? DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY}
         products={storefront.products}
         count={storefront.count}
       />

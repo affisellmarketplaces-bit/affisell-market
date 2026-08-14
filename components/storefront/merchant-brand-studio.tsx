@@ -12,6 +12,8 @@ import { StoreCustomDomainCard } from "@/components/storefront/store-custom-doma
 import { StorefrontAiBannerButton } from "@/components/storefront/storefront-ai-banner-button"
 import { StorefrontAiCopyButton } from "@/components/storefront/storefront-ai-copy-button"
 import { StorefrontAiThemeStudioPanel } from "@/components/storefront/storefront-ai-theme-studio-panel"
+import { BoutiqueAiPersonalizePanel } from "@/components/storefront/boutique-ai-personalize-panel"
+import { BoutiqueTitleStudioPanel } from "@/components/storefront/boutique-title-studio-panel"
 import { StorefrontBrandAnalyticsPanel } from "@/components/storefront/storefront-brand-analytics-panel"
 import { StorefrontBrandLaunchPanel } from "@/components/storefront/storefront-brand-launch-panel"
 import { StorefrontBrandPreviewPanel } from "@/components/storefront/storefront-brand-preview-panel"
@@ -36,6 +38,12 @@ import {
   DEFAULT_STORE_NAME_BADGE,
   type StoreNameBadgeStyle,
 } from "@/lib/store-name-badge-styles"
+import {
+  DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY,
+  parseBoutiqueTitleTypography,
+  type BoutiqueTitleTypography,
+} from "@/lib/boutique/boutique-title-typography-shared"
+import { formatResellerStoreLabel } from "@/lib/boutique/reseller-storefront-shared"
 import {
   DEFAULT_STOREFRONT_THEME,
   parseStorefrontTheme,
@@ -262,6 +270,8 @@ export function MerchantBrandStudio({
   const [heroVideoUrl, setHeroVideoUrl] = useState("")
   const [embedWidget, setEmbedWidget] = useState<StorefrontEmbedWidget>(DEFAULT_EMBED_WIDGET)
   const [storeSlug, setStoreSlug] = useState("")
+  const [boutiqueTitleTypography, setBoutiqueTitleTypography] =
+    useState<BoutiqueTitleTypography>(DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY)
   const [brandPulseMetrics, setBrandPulseMetrics] = useState({
     liveCatalogCount: 0,
     customDomainVerified: false,
@@ -387,6 +397,7 @@ export function MerchantBrandStudio({
         setHeroVideoUrl(snap.heroVideoUrl)
         setEmbedWidget(snap.embedWidget)
         setStoreSlug(st.slug)
+        setBoutiqueTitleTypography(parseBoutiqueTitleTypography(parseStorefrontTheme(st.storefrontTheme)))
         setPresetAb(parseStorefrontTheme(st.storefrontTheme).brandOps?.presetAb ?? null)
         setSavedSnapshot(snap)
       }
@@ -984,6 +995,21 @@ export function MerchantBrandStudio({
           disabled={saving || loading}
           boutiquePreviewHref={boutiquePreviewHref}
           onApplyAndSave={handleAiThemeApplyAndSave}
+        />
+
+        <BoutiqueAiPersonalizePanel
+          role={role}
+          disabled={saving || loading}
+          boutiquePreviewHref={boutiquePreviewHref}
+        />
+
+        <BoutiqueTitleStudioPanel
+          role={role}
+          storeLabel={storeSlug ? formatResellerStoreLabel(storeSlug) : name || "Ma boutique"}
+          initialTypography={boutiqueTitleTypography}
+          disabled={saving || loading}
+          boutiquePreviewHref={boutiquePreviewHref}
+          onSaved={setBoutiqueTitleTypography}
         />
 
         <StorefrontBrandLaunchPanel

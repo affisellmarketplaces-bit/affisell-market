@@ -2,6 +2,7 @@
 
 import { ResellerStorefrontGrid } from "@/components/boutique/ResellerStorefrontGrid"
 import type { ResellerBoutiqueThemeProps } from "@/lib/boutique/reseller-boutique-theme-shared"
+import type { BoutiqueTitleTypography } from "@/lib/boutique/boutique-title-typography-shared"
 import type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
 import type { StorefrontTheme } from "@/lib/boutique/storefront-themes"
 
@@ -11,6 +12,7 @@ type Props = {
   tagline?: string | null
   brandTheme: ResellerBoutiqueThemeProps
   initialVisualTheme: StorefrontTheme
+  titleTypography: BoutiqueTitleTypography
   products: ResellerStorefrontListProduct[]
   count: number
 }

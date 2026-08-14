@@ -7,17 +7,24 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import { AIPersonalizeModal } from "@/components/boutique/AIPersonalizeModal"
+import { BoutiqueStoreTitle } from "@/components/boutique/boutique-store-title"
 import { ResellerBoutiquePageShell } from "@/components/boutique/reseller-boutique-page-shell"
 import type { ResellerBoutiqueThemeProps } from "@/lib/boutique/reseller-boutique-theme-shared"
+import {
+  DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY,
+  type BoutiqueTitleTypography,
+} from "@/lib/boutique/boutique-title-typography-shared"
 import type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
 import {
   DEFAULT_STOREFRONT_THEME_ID,
   getStorefrontThemeById,
   nextStorefrontThemeId,
   parseStorefrontThemeId,
+  themeRefFromVibe,
   type StorefrontTheme,
   writeStoredStorefrontTheme,
 } from "@/lib/boutique/storefront-themes"
+import { postBrandAiJson } from "@/lib/storefront-ai-fetch-shared"
 import { cn } from "@/lib/utils"
 
 type ResellerStorefrontGridProps = {
@@ -26,6 +33,7 @@ type ResellerStorefrontGridProps = {
   tagline?: string | null
   brandTheme: ResellerBoutiqueThemeProps
   initialVisualTheme?: StorefrontTheme
+  titleTypography?: BoutiqueTitleTypography
   products: ResellerStorefrontListProduct[]
   count: number
 }
@@ -48,17 +56,28 @@ export function ResellerStorefrontGrid({
   tagline,
   brandTheme: _brandTheme,
   initialVisualTheme = DEFAULT_STOREFRONT_THEME_ID,
+  titleTypography: initialTitleTypography = DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY,
   products,
   count,
 }: ResellerStorefrontGridProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [theme, setTheme] = useState<StorefrontTheme>(initialVisualTheme)
+  const [displayTagline, setDisplayTagline] = useState<string | null>(tagline?.trim() ?? null)
+  const [titleTypography, setTitleTypography] = useState<BoutiqueTitleTypography>(initialTitleTypography)
   const [hydrated, setHydrated] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
 
   const themeDef = useMemo(() => getStorefrontThemeById(theme), [theme])
+
+  useEffect(() => {
+    if (tagline?.trim()) setDisplayTagline(tagline.trim())
+  }, [tagline])
+
+  useEffect(() => {
+    setTitleTypography(initialTitleTypography)
+  }, [initialTitleTypography])
 
   useEffect(() => {
     const fromUrl = parseStorefrontThemeId(searchParams.get("theme"))
@@ -94,22 +113,80 @@ export function ResellerStorefrontGrid({
   const handleGenerateFromModal = async ({
     vibe,
     themeId,
+    titleTypography: nextTitleTypography,
   }: {
     vibe: string
     themeId: StorefrontTheme
+    titleTypography: BoutiqueTitleTypography
   }) => {
-    applyTheme(themeId)
-    setModalOpen(false)
-    toast.success(`Theme: ${getStorefrontThemeById(themeId).label} ✨`)
-    if (vibe.trim()) {
-      void fetch("/api/store/generate-brand-copy", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ niche: vibe.trim(), locale: "fr" }),
-      }).catch(() => {
-        /* optional AI — theme already applied */
-      })
+    setRegenerating(true)
+    const locale =
+      typeof document !== "undefined" && document.documentElement.lang?.startsWith("fr")
+        ? "fr"
+        : "en"
+
+    try {
+      const [themeResult, titleResult] = await Promise.all([
+        postBrandAiJson<{
+          themeId: StorefrontTheme
+          label: string
+          tagline?: string
+          rationale?: string
+          persisted?: boolean
+        }>(
+          "/api/store/personalize-boutique-theme",
+          {
+            vibe: vibe.trim(),
+            locale,
+            themeId: vibe.trim() ? undefined : themeId,
+            persist: true,
+          },
+          "Personalization failed"
+        ),
+        postBrandAiJson<{ typography: typeof nextTitleTypography }>(
+          "/api/store/update-boutique-title",
+          {
+            fontId: nextTitleTypography.fontId,
+            ornamentId: nextTitleTypography.ornamentId,
+            layoutId: nextTitleTypography.layoutId,
+            displayOverride: nextTitleTypography.displayOverride,
+          },
+          "Title save failed"
+        ),
+      ])
+
+      const resolvedThemeId =
+        themeResult.ok && themeResult.data?.themeId
+          ? themeResult.data.themeId
+          : vibe.trim()
+            ? themeRefFromVibe(vibe)
+            : themeId
+
+      applyTheme(resolvedThemeId)
+      const def = getStorefrontThemeById(resolvedThemeId)
+
+      if (titleResult.ok && titleResult.data?.typography) {
+        setTitleTypography(titleResult.data.typography)
+      } else {
+        setTitleTypography(nextTitleTypography)
+      }
+
+      if (themeResult.ok && themeResult.data) {
+        if (themeResult.data.tagline?.trim()) setDisplayTagline(themeResult.data.tagline.trim())
+        toast.success(
+          themeResult.data.persisted
+            ? `${def.label} — live for all visitors ✨`
+            : `${def.label} ✨`
+        )
+        if (themeResult.data.rationale?.trim()) {
+          toast.message(themeResult.data.rationale.trim(), { duration: 5000 })
+        }
+      } else {
+        toast.success(`${def.label} ✨`)
+      }
+      setModalOpen(false)
+    } finally {
+      setRegenerating(false)
     }
   }
 
@@ -150,17 +227,7 @@ export function ResellerStorefrontGrid({
         </div>
 
         <header className="relative w-full pt-2 pr-0 sm:pr-[22rem]">
-          <h1 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-            <span style={{ color: "var(--boutique-header-word)" }}>Boutique </span>
-            <span
-              className="bg-clip-text text-transparent"
-              style={{
-                backgroundImage: `linear-gradient(90deg, var(--boutique-header-accent-from), var(--boutique-header-accent-to))`,
-              }}
-            >
-              {storeLabel}
-            </span>
-          </h1>
+          <BoutiqueStoreTitle storeLabel={storeLabel} typography={titleTypography} />
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <span
@@ -185,9 +252,9 @@ export function ResellerStorefrontGrid({
             </span>
           </div>
 
-          {tagline?.trim() ? (
+          {displayTagline ? (
             <p className="mt-4 max-w-2xl text-base leading-relaxed" style={{ color: "var(--boutique-header-muted)" }}>
-              {tagline.trim()}
+              {displayTagline}
             </p>
           ) : null}
         </header>
@@ -271,8 +338,11 @@ export function ResellerStorefrontGrid({
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         storeSlug={storeSlug}
+        storeLabel={storeLabel}
         selectedTheme={theme}
+        titleTypography={titleTypography}
         onThemeSelect={applyTheme}
+        onTitleTypographyChange={setTitleTypography}
         onGenerate={handleGenerateFromModal}
         onRegenerateDescription={handleRegenerate}
         generating={regenerating}

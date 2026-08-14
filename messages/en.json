@@ -2549,6 +2549,42 @@
         "saved": "Store personalized — live wow storefront ✨",
         "viewBoutique": "View my /boutique vitrine"
       },
+      "aiBoutique": {
+        "badge": "AI · 1024 designs",
+        "title": "Describe your boutique universe",
+        "subtitle": "Describe the vibe you want — AI picks a palette from 1024 futuristic themes, writes your hero tagline, and publishes to /boutique for every visitor.",
+        "supplierHint": "As a supplier, your /boutique palette is ready if you also sell as an affiliate — same slug, unified experience.",
+        "vibeLabel": "Describe your brand",
+        "vibePlaceholder": "e.g. minimalist luxury tech creator store, neon cyberpunk gaming vibe…",
+        "vibeHint": "Catalog + vibe → harmonized palette, hero tagline, and automatic save.",
+        "vibeRequired": "Describe your universe before generating.",
+        "cta": "Personalize with AI ✨",
+        "generating": "Composing your storefront…",
+        "failed": "Boutique personalization unavailable — try again.",
+        "viewBoutique": "View live /boutique"
+      },
+      "boutiqueTitle": {
+        "badge": "Typography · /boutique",
+        "title": "Fonts & special characters",
+        "subtitle": "Customize your storefront hero title — 10 premium fonts, ✦◈★ ornaments, and free-form titles with symbols.",
+        "preview": "Live preview",
+        "fonts": "Fonts",
+        "ornaments": "Ornaments",
+        "specialChars": "Special characters",
+        "customTitle": "Custom title",
+        "customPlaceholder": "e.g. ✦ {name} ✦",
+        "save": "Publish title",
+        "saving": "Publishing…",
+        "saved": "Title published — live on /boutique for all visitors.",
+        "failed": "Could not publish title — try again.",
+        "viewBoutique": "View /boutique",
+        "layout": {
+          "boutique-accent": "Boutique + accent",
+          "full-gradient": "Full gradient",
+          "name-only": "Name only",
+          "custom-only": "Custom only"
+        }
+      },
       "liveStore": {
         "title": "Your store is live",
         "subtitle": "Your branded address on {suffix} — same catalog as your listings, Ads-ready and Affisell-verified.",

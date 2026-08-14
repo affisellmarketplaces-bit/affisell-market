@@ -2549,6 +2549,42 @@
         "saved": "Boutique personnalisée — vitrine live avec effet waouh ✨",
         "viewBoutique": "Voir ma vitrine /boutique"
       },
+      "aiBoutique": {
+        "badge": "IA · 1024 designs",
+        "title": "Décrivez votre univers boutique",
+        "subtitle": "Décrivez l'ambiance souhaitée — l'IA choisit une palette parmi 1024 thèmes futuristes, rédige l'accroche et publie sur /boutique pour tous vos visiteurs.",
+        "supplierHint": "En tant que fournisseur, votre palette /boutique est prête si vous revendez aussi en affilié — même slug, expérience unifiée.",
+        "vibeLabel": "Décrivez votre marque",
+        "vibePlaceholder": "ex. boutique luxe minimaliste pour créateurs tech, ambiance néon cyberpunk…",
+        "vibeHint": "Catalogue + vibe → palette harmonisée, tagline hero et sauvegarde automatique.",
+        "vibeRequired": "Décrivez votre univers avant de générer.",
+        "cta": "Personnaliser avec l'IA ✨",
+        "generating": "Composition de votre vitrine…",
+        "failed": "Personnalisation boutique indisponible — réessayez.",
+        "viewBoutique": "Voir /boutique live"
+      },
+      "boutiqueTitle": {
+        "badge": "Typographie · /boutique",
+        "title": "Polices & caractères spéciaux",
+        "subtitle": "Personnalisez le titre hero de votre vitrine — 10 polices premium, ornements ✦◈★ et titre libre avec symboles.",
+        "preview": "Aperçu live",
+        "fonts": "Polices",
+        "ornaments": "Ornements",
+        "specialChars": "Caractères spéciaux",
+        "customTitle": "Titre personnalisé",
+        "customPlaceholder": "ex. ✦ {name} ✦",
+        "save": "Publier le titre",
+        "saving": "Publication…",
+        "saved": "Titre publié — visible sur /boutique pour tous vos visiteurs.",
+        "failed": "Impossible de publier le titre — réessayez.",
+        "viewBoutique": "Voir /boutique",
+        "layout": {
+          "boutique-accent": "Boutique + accent",
+          "full-gradient": "Tout en dégradé",
+          "name-only": "Nom seul",
+          "custom-only": "Titre libre"
+        }
+      },
       "liveStore": {
         "title": "Votre boutique est en ligne",
         "subtitle": "Votre adresse brandée sur {suffix} — même catalogue que vos fiches, prête pour Google Ads et vérifiée Affisell.",

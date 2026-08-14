@@ -29,6 +29,7 @@ import {
   serializeResellerBoutiqueTheme,
   type ResellerBoutiqueThemeProps,
 } from "@/lib/boutique/reseller-boutique-theme-shared"
+import { parseBoutiqueTitleTypography } from "@/lib/boutique/boutique-title-typography-shared"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
 export type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
@@ -241,6 +242,9 @@ export type ResellerBoutiqueStoreContext = {
   storeName: string
   storeLabel: string
   tagline: string | null
+  /** Merchant-saved procedural theme for /boutique (t-XXXX). */
+  boutiqueVisualTheme: string | null
+  titleTypography: ReturnType<typeof parseBoutiqueTitleTypography>
   theme: ResellerBoutiqueThemeProps
 }
 
@@ -262,12 +266,18 @@ export async function loadResellerBoutiqueStoreContext(
 
   if (!store) return null
 
+  const parsedTheme = parseStorefrontTheme(store.storefrontTheme)
+  const boutiqueAiTagline = parsedTheme.boutiqueAiTagline?.trim() || null
+  const boutiqueVisualTheme = parsedTheme.boutiqueVisualTheme?.trim() || null
+
   return {
     storeSlug: store.slug,
     storeName: store.name,
     storeLabel: formatResellerStoreLabel(store.slug),
-    tagline: store.description?.trim() || null,
-    theme: serializeResellerBoutiqueTheme(parseStorefrontTheme(store.storefrontTheme)),
+    tagline: boutiqueAiTagline ?? store.description?.trim() || null,
+    boutiqueVisualTheme,
+    titleTypography: parseBoutiqueTitleTypography(parsedTheme),
+    theme: serializeResellerBoutiqueTheme(parsedTheme),
   }
 }
 

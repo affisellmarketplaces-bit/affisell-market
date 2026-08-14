@@ -62,6 +62,18 @@ export type StorefrontTheme = {
   staticPages?: StorefrontStaticPages
   /** Cron / ops metadata — preserved across Brand Studio saves. */
   brandOps?: StorefrontBrandOps
+  /** Saved /boutique procedural theme id (e.g. t-0128). */
+  boutiqueVisualTheme?: string
+  /** AI-generated hero tagline for /boutique header. */
+  boutiqueAiTagline?: string
+  /** Boutique H1 font preset id. */
+  boutiqueTitleFont?: string
+  /** Decorative ornament around store name. */
+  boutiqueTitleOrnament?: string
+  /** Title layout mode for /boutique header. */
+  boutiqueTitleLayout?: string
+  /** Custom store title with special characters. */
+  boutiqueTitleDisplay?: string
 }
 
 const HEX_RE = /^#[0-9a-f]{6}$/i
@@ -126,6 +138,30 @@ export function parseStorefrontTheme(raw: unknown): StorefrontTheme {
     homepageSections: parseHomepageSections(o.homepageSections),
     staticPages: parseStaticPages(o.staticPages),
     brandOps: parseStorefrontBrandOps(o.brandOps),
+    boutiqueVisualTheme:
+      typeof o.boutiqueVisualTheme === "string" && o.boutiqueVisualTheme.trim()
+        ? o.boutiqueVisualTheme.trim().slice(0, 12)
+        : undefined,
+    boutiqueAiTagline:
+      typeof o.boutiqueAiTagline === "string" && o.boutiqueAiTagline.trim()
+        ? o.boutiqueAiTagline.trim().slice(0, 120)
+        : undefined,
+    boutiqueTitleFont:
+      typeof o.boutiqueTitleFont === "string" && o.boutiqueTitleFont.trim()
+        ? o.boutiqueTitleFont.trim().slice(0, 24)
+        : undefined,
+    boutiqueTitleOrnament:
+      typeof o.boutiqueTitleOrnament === "string" && o.boutiqueTitleOrnament.trim()
+        ? o.boutiqueTitleOrnament.trim().slice(0, 24)
+        : undefined,
+    boutiqueTitleLayout:
+      typeof o.boutiqueTitleLayout === "string" && o.boutiqueTitleLayout.trim()
+        ? o.boutiqueTitleLayout.trim().slice(0, 24)
+        : undefined,
+    boutiqueTitleDisplay:
+      typeof o.boutiqueTitleDisplay === "string" && o.boutiqueTitleDisplay.trim()
+        ? o.boutiqueTitleDisplay.trim().slice(0, 80)
+        : undefined,
   }
 }
 
@@ -247,6 +283,12 @@ export function themeFromBrandStudioFields(
         ? parseEmbedWidget(input.embedWidget)
         : existing.embedWidget,
     brandOps: existing.brandOps,
+    boutiqueVisualTheme: existing.boutiqueVisualTheme,
+    boutiqueAiTagline: existing.boutiqueAiTagline,
+    boutiqueTitleFont: existing.boutiqueTitleFont,
+    boutiqueTitleOrnament: existing.boutiqueTitleOrnament,
+    boutiqueTitleLayout: existing.boutiqueTitleLayout,
+    boutiqueTitleDisplay: existing.boutiqueTitleDisplay,
   }
 }
 
