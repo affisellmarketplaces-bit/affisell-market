@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
+import { getTranslations } from "next-intl/server"
 
 import {
   loadResellerBoutiqueStoreContext,
@@ -90,6 +91,8 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
     parseStorefrontThemeId(storeContext?.boutiqueVisualTheme ?? null) ?? DEFAULT_STOREFRONT_THEME_ID
   const initialVisualTheme =
     parseStorefrontThemeId(sp.theme) ?? savedVisualTheme
+  const t = await getTranslations("boutique.productCard")
+  const productCardTrustLine = t("trustLine")
 
   if (storefront.count === 0) {
     return (
@@ -114,6 +117,7 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
         persistedVisualTheme={savedVisualTheme}
         titleTypography={storeContext?.titleTypography ?? DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY}
         persistedTitleTypography={storeContext?.titleTypography ?? DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY}
+        productCardTrustLine={productCardTrustLine}
         products={storefront.products}
         count={storefront.count}
       />

@@ -3204,6 +3204,9 @@
     "tryOn": {
       "cta": "Essayer virtuellement"
     },
+    "productCard": {
+      "trustLine": "Paiement sécurisé · Expédition par le fournisseur"
+    },
     "trust": {
       "poweredBy": "Propulsé par Affisell",
       "verifiedBy": "Vérifié par Affisell",

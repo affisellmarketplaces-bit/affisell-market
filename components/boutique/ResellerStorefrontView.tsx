@@ -15,6 +15,7 @@ type Props = {
   persistedVisualTheme: StorefrontTheme
   titleTypography: BoutiqueTitleTypography
   persistedTitleTypography: BoutiqueTitleTypography
+  productCardTrustLine: string
   products: ResellerStorefrontListProduct[]
   count: number
 }

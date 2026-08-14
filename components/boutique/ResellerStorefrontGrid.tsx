@@ -36,6 +36,7 @@ type ResellerStorefrontGridProps = {
   persistedVisualTheme?: StorefrontTheme
   titleTypography?: BoutiqueTitleTypography
   persistedTitleTypography?: BoutiqueTitleTypography
+  productCardTrustLine: string
   products: ResellerStorefrontListProduct[]
   count: number
 }
@@ -70,6 +71,7 @@ export function ResellerStorefrontGrid({
   persistedVisualTheme = DEFAULT_STOREFRONT_THEME_ID,
   titleTypography: initialTitleTypography = DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY,
   persistedTitleTypography = DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY,
+  productCardTrustLine,
   products,
   count,
 }: ResellerStorefrontGridProps) {
@@ -435,7 +437,7 @@ export function ResellerStorefrontGrid({
                 {product.title}
               </h2>
               <p className="mt-1 line-clamp-2 text-sm" style={{ color: "var(--boutique-card-muted)" }}>
-                Checkout sécurisé · Livraison Affisell
+                {productCardTrustLine}
               </p>
               <p className="mt-3 text-2xl font-extrabold tracking-tight" style={{ color: "var(--boutique-price)" }}>
                 {product.priceLabel}
