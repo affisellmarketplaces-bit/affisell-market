@@ -4673,7 +4673,7 @@
       "subtitle": "Every public storefront experience on Affisell — who it's for, which URL, and one-click live tests. Your reference hub inside Demo Lab.",
       "backToDemo": "Back to Demo Lab",
       "architectureTitle": "Dual-model architecture",
-      "architectureDiagram": "Affiliate merchant\n├── /shops/{slug}     → Brand Studio (buyer chrome, modular sections)\n├── /boutique/{slug}  → Procedural boutique (1024 skins, design studio)\n├── /embed/shops/{slug} → Embeddable widget (Brand Studio toggle)\n└── custom domain CNAME → rewrites to /shops/{slug}\n\nSupplier merchant\n└── /store/supplier/{slug} → Supplier catalog vitrine\n\nCreator (Légion)\n└── /u/{username} → @handle vitrine (parallel to Store slug)",
+      "architectureDiagram": "Affiliate merchant\n├── /shops/[slug]     → Brand Studio (buyer chrome, modular sections)\n├── /boutique/[slug]  → Procedural boutique (1024 skins, design studio)\n├── /embed/shops/[slug] → Embeddable widget (Brand Studio toggle)\n└── custom domain CNAME → rewrites to /shops/[slug]\n\nSupplier merchant\n└── /store/supplier/[slug] → Supplier catalog vitrine\n\nCreator (Légion)\n└── /u/[username] → @handle vitrine (parallel to Store slug)",
       "formatsGridTitle": "Available formats",
       "stats": {
         "formats": "Public formats",
@@ -4716,7 +4716,7 @@
           "role": "Public catalog for suppliers. Direct-to-brand checkout path. The view affiliates preview when sourcing products."
         },
         "legion-profile": {
-          "title": "Légion · /u/{username}",
+          "title": "Légion · /u/[username]",
           "role": "Creator handle vitrine (@username). Parallel identity to Store slug — optimized for social traffic and Légion referrals."
         },
         "embed-widget": {

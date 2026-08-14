@@ -4673,7 +4673,7 @@
       "subtitle": "Chaque expérience vitrine publique sur Affisell — rôle, URL et tests live en un clic. Votre hub de référence dans le Demo Lab.",
       "backToDemo": "Retour au Demo Lab",
       "architectureTitle": "Architecture dual-model",
-      "architectureDiagram": "Marchand affilié\n├── /shops/{slug}     → Brand Studio (chrome acheteur, sections modulaires)\n├── /boutique/{slug}  → Boutique procédurale (1024 skins, studio design)\n├── /embed/shops/{slug} → Widget embarqué (toggle Brand Studio)\n└── domaine custom CNAME → rewrite vers /shops/{slug}\n\nMarchand fournisseur\n└── /store/supplier/{slug} → Vitrine catalogue supplier\n\nCréateur (Légion)\n└── /u/{username} → Vitrine @handle (parallèle au slug Store)",
+      "architectureDiagram": "Marchand affilié\n├── /shops/[slug]     → Brand Studio (chrome acheteur, sections modulaires)\n├── /boutique/[slug]  → Boutique procédurale (1024 skins, studio design)\n├── /embed/shops/[slug] → Widget embarqué (toggle Brand Studio)\n└── domaine custom CNAME → rewrite vers /shops/[slug]\n\nMarchand fournisseur\n└── /store/supplier/[slug] → Vitrine catalogue supplier\n\nCréateur (Légion)\n└── /u/[username] → Vitrine @handle (parallèle au slug Store)",
       "formatsGridTitle": "Formats disponibles",
       "stats": {
         "formats": "Formats publics",
@@ -4716,7 +4716,7 @@
           "role": "Catalogue public fournisseur. Parcours checkout direct marque. Vue que les affiliés prévisualisent lors du sourcing."
         },
         "legion-profile": {
-          "title": "Légion · /u/{username}",
+          "title": "Légion · /u/[username]",
           "role": "Vitrine handle créateur (@username). Identité parallèle au slug Store — optimisée trafic social et parrainage Légion."
         },
         "embed-widget": {
