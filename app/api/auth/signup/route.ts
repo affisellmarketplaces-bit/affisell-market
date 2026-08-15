@@ -71,6 +71,8 @@ export async function POST(req: Request) {
       rnaNumber?: string
       countryCode?: string
       buyerAccountType?: string
+      affiliateExpress?: boolean
+      locale?: string
     }
     const {
       email,
@@ -93,6 +95,8 @@ export async function POST(req: Request) {
       rnaNumber,
       countryCode,
       buyerAccountType,
+      affiliateExpress,
+      locale: localeRaw,
     } = body
     const emailNormalized = typeof email === "string" ? email.toLowerCase().trim() : ""
     if (!emailNormalized || !password) {
@@ -156,43 +160,48 @@ export async function POST(req: Request) {
     let pendingDraftId: string | null = null
 
     if (resolvedRole === "SUPPLIER" || resolvedRole === "AFFILIATE") {
-      const draftId = signupDraftId?.trim() ?? ""
-      if (!isValidSignupDraftId(draftId)) {
-        return NextResponse.json({ error: "signup_draft_required" }, { status: 400 })
+      const expressAffiliate = resolvedRole === "AFFILIATE" && affiliateExpress === true
+      if (expressAffiliate) {
+        logBusiness("signup", { result: "affiliate_express", role: resolvedRole })
+      } else {
+        const draftId = signupDraftId?.trim() ?? ""
+        if (!isValidSignupDraftId(draftId)) {
+          return NextResponse.json({ error: "signup_draft_required" }, { status: 400 })
+        }
+        const draftRows = await loadSignupDrafts(draftId)
+        const validated = validateMerchantSignupPayload(
+          resolvedRole,
+          {
+            legalStatus: legalStatus ?? "",
+            legalEntityName,
+            tradeName,
+            siret,
+            vatNumber,
+            rnaNumber,
+            countryCode,
+          },
+          draftRows.map((r) => ({ documentType: r.documentType, fileUrl: r.fileUrl }))
+        )
+        if (!validated.ok) {
+          logBusiness("signup", { result: "legal_validation_failed", error: validated.error, role: resolvedRole })
+          return NextResponse.json({ error: validated.error }, { status: 400 })
+        }
+        const byType = new Map(draftRows.map((r) => [r.documentType, r]))
+        merchantLegal = {
+          ...validated.data,
+          documents: validated.data.documents.map((d) => {
+            const row = byType.get(d.documentType)
+            return {
+              documentType: d.documentType,
+              fileUrl: d.fileUrl,
+              fileName: row?.fileName ?? null,
+              mimeType: row?.mimeType ?? null,
+              fileSizeBytes: row?.fileSizeBytes ?? null,
+            }
+          }),
+        }
+        pendingDraftId = draftId
       }
-      const draftRows = await loadSignupDrafts(draftId)
-      const validated = validateMerchantSignupPayload(
-        resolvedRole,
-        {
-          legalStatus: legalStatus ?? "",
-          legalEntityName,
-          tradeName,
-          siret,
-          vatNumber,
-          rnaNumber,
-          countryCode,
-        },
-        draftRows.map((r) => ({ documentType: r.documentType, fileUrl: r.fileUrl }))
-      )
-      if (!validated.ok) {
-        logBusiness("signup", { result: "legal_validation_failed", error: validated.error, role: resolvedRole })
-        return NextResponse.json({ error: validated.error }, { status: 400 })
-      }
-      const byType = new Map(draftRows.map((r) => [r.documentType, r]))
-      merchantLegal = {
-        ...validated.data,
-        documents: validated.data.documents.map((d) => {
-          const row = byType.get(d.documentType)
-          return {
-            documentType: d.documentType,
-            fileUrl: d.fileUrl,
-            fileName: row?.fileName ?? null,
-            mimeType: row?.mimeType ?? null,
-            fileSizeBytes: row?.fileSizeBytes ?? null,
-          }
-        }),
-      }
-      pendingDraftId = draftId
     }
 
     const displayName =
@@ -217,6 +226,25 @@ export async function POST(req: Request) {
       roleTermsOk
     ) {
       await logTermsAcceptanceFromRequest(req, user.id, termsLogTypeForRole(resolvedRole))
+    }
+
+    if (resolvedRole === "SUPPLIER" || resolvedRole === "AFFILIATE") {
+      const { recordSignupLegalAcceptances } = await import(
+        "@/lib/legal/record-signup-legal-acceptances.server"
+      )
+      await recordSignupLegalAcceptances({
+        userId: user.id,
+        role: resolvedRole,
+        req,
+        locale: localeRaw,
+      }).catch((err: unknown) => {
+        console.log("[signup]", {
+          userId: user.id,
+          role: resolvedRole,
+          result: "legal_acceptance_failed",
+          error: err instanceof Error ? err.message : String(err),
+        })
+      })
     }
 
     let store = null

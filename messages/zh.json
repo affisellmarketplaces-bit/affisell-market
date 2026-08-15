@@ -642,6 +642,29 @@
       "signIn": "Sign in",
       "inviteBanner": "Signup linked to an Affisell partner invitation."
     },
+    "affiliateExpress": {
+      "badge": "Reseller · Express launch",
+      "title": "Launch your storefront in 60 seconds",
+      "subtitle": "You curate and promote — Affisell suppliers handle stock and delivery. No warehouse, no shipping labels.",
+      "stepProfile": "Your storefront",
+      "stepProfileHint": "How buyers will recognize you. You can refine this in Brand Studio later.",
+      "stepAccount": "Secure access",
+      "fieldDisplayName": "Display name",
+      "fieldDisplayNamePlaceholder": "Nova Finds, Style Lab…",
+      "fieldSocial": "TikTok / Instagram (optional)",
+      "fieldPassword": "Password",
+      "continue": "Continue",
+      "back": "Back",
+      "submit": "Create my reseller account",
+      "hasAccount": "Already a reseller?",
+      "signIn": "Sign in",
+      "kycDeferredNote": "Identity verification is only required before your first live listing — explore and save drafts freely until then.",
+      "trust": {
+        "noStock": "Zero inventory",
+        "noShipping": "Zero shipping",
+        "verifyLater": "Verify to publish"
+      }
+    },
     "merchantLegal": {
       "badge": "Affisell verification · Trust Layer",
       "titleSupplier": "Secure supplier onboarding",
@@ -666,6 +689,8 @@
       "vatNotice": "卖家仍然负责 VAT。Affisell 费用适用于净金额不含 VAT。",
       "vatNoticeAffiliate": "请按税务居住国申报合作伙伴报酬。买家增值税在结账时（Stripe Tax）由供货供应商收取。",
       "affiliateStatusCardSub": "Curator partner — identity only; tax filings under your country of residence",
+      "affiliateKycIdentityTitle": "Quick identity check",
+      "affiliateKycIdentityHint": "Resellers curate products — suppliers ship. ID only, no business registry.",
       "hasAccountSupplier": "已经是合作伙伴吗?",
       "hasAccountAffiliate": "已经是创作者吗?",
       "signIn": "Sign in",

@@ -642,6 +642,29 @@
       "signIn": "Se connecter",
       "inviteBanner": "Inscription liée à une invitation partenaire Affisell."
     },
+    "affiliateExpress": {
+      "badge": "Revendeur · Lancement express",
+      "title": "Lancez votre vitrine en 60 secondes",
+      "subtitle": "Vous sélectionnez et promouvez — les fournisseurs Affisell gèrent stock et livraison. Pas d’entrepôt, pas d’étiquettes colis.",
+      "stepProfile": "Votre vitrine",
+      "stepProfileHint": "Comment les acheteurs vous reconnaîtront. Affinez dans Brand Studio ensuite.",
+      "stepAccount": "Accès sécurisé",
+      "fieldDisplayName": "Nom affiché",
+      "fieldDisplayNamePlaceholder": "Nova Finds, Style Lab…",
+      "fieldSocial": "TikTok / Instagram (optionnel)",
+      "fieldPassword": "Mot de passe",
+      "continue": "Continuer",
+      "back": "Retour",
+      "submit": "Créer mon compte revendeur",
+      "hasAccount": "Déjà revendeur ?",
+      "signIn": "Se connecter",
+      "kycDeferredNote": "La vérification d’identité n’est requise qu’avant votre première mise en ligne — explorez et enregistrez des brouillons librement.",
+      "trust": {
+        "noStock": "Zéro stock",
+        "noShipping": "Zéro expédition",
+        "verifyLater": "Vérifier pour publier"
+      }
+    },
     "merchantLegal": {
       "badge": "Vérification Affisell · Trust Layer",
       "titleSupplier": "Inscription fournisseur sécurisée",
@@ -666,6 +689,8 @@
       "vatNotice": "Le fournisseur est seul responsable de la TVA sur les ventes. Affisell prélève sa commission sur le HT.",
       "vatNoticeAffiliate": "Vous êtes partenaire curateur, pas vendeur : déclarez votre rémunération selon les règles de votre pays de résidence. La TVA sur les ventes aux acheteurs est collectée au checkout selon le pays de livraison et relève du fournisseur vendeur.",
       "affiliateStatusCardSub": "Partenaire curateur — identité uniquement ; déclarations fiscales selon votre pays",
+      "affiliateKycIdentityTitle": "Vérification d’identité rapide",
+      "affiliateKycIdentityHint": "Les revendeurs curatent — les fournisseurs livrent. Pièce d’identité uniquement, pas de KBIS.",
       "hasAccountSupplier": "Déjà partenaire ?",
       "hasAccountAffiliate": "Déjà revendeur ?",
       "signIn": "Se connecter",

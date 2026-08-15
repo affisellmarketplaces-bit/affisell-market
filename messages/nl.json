@@ -642,6 +642,29 @@
       "signIn": "Aanmelden",
       "inviteBanner": "Signup linked to an Affisell partner invitation."
     },
+    "affiliateExpress": {
+      "badge": "Reseller · Express launch",
+      "title": "Launch your storefront in 60 seconds",
+      "subtitle": "You curate and promote — Affisell suppliers handle stock and delivery. No warehouse, no shipping labels.",
+      "stepProfile": "Your storefront",
+      "stepProfileHint": "How buyers will recognize you. You can refine this in Brand Studio later.",
+      "stepAccount": "Secure access",
+      "fieldDisplayName": "Display name",
+      "fieldDisplayNamePlaceholder": "Nova Finds, Style Lab…",
+      "fieldSocial": "TikTok / Instagram (optional)",
+      "fieldPassword": "Password",
+      "continue": "Continue",
+      "back": "Back",
+      "submit": "Create my reseller account",
+      "hasAccount": "Already a reseller?",
+      "signIn": "Sign in",
+      "kycDeferredNote": "Identity verification is only required before your first live listing — explore and save drafts freely until then.",
+      "trust": {
+        "noStock": "Zero inventory",
+        "noShipping": "Zero shipping",
+        "verifyLater": "Verify to publish"
+      }
+    },
     "merchantLegal": {
       "badge": "Affisell-verificatie · Trust Layer",
       "titleSupplier": "Veilige leverancierinschrijving",
@@ -666,6 +689,8 @@
       "vatNotice": "Verkopers blijven aansprakelijk voor BTW. Affisell-kosten worden toegepast op netto bedragen excl. BTW.",
       "vatNoticeAffiliate": "Declareer partnerinkomsten volgens uw fiscale woonland. Koper-BTW wordt bij checkout (Stripe Tax) geïnd door de leverende verkoper.",
       "affiliateStatusCardSub": "Curator partner — identity only; tax filings under your country of residence",
+      "affiliateKycIdentityTitle": "Quick identity check",
+      "affiliateKycIdentityHint": "Resellers curate products — suppliers ship. ID only, no business registry.",
       "hasAccountSupplier": "Al een partner?",
       "hasAccountAffiliate": "Al een maker?",
       "signIn": "Aanmelden",

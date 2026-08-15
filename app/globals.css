@@ -2501,6 +2501,13 @@ body.affisell-demo-lab .affisell-header-shell {
   }
 }
 
+.affisell-reseller-express-aurora {
+  background:
+    radial-gradient(ellipse 100% 70% at 50% -10%, rgba(139, 92, 246, 0.35), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 85% 10%, rgba(217, 70, 239, 0.18), transparent 50%),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03), transparent);
+}
+
 button,
 [role="button"] {
   touch-action: manipulation;

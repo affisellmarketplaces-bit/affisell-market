@@ -20,6 +20,7 @@ import {
 import { MerchantLegalDocumentSlot } from "@/components/auth/merchant-legal-document-slot"
 import { buttonVariants } from "@/components/ui/button"
 import {
+  AFFILIATE_DEFAULT_LEGAL_STATUS,
   MERCHANT_LEGAL_STATUSES,
   MERCHANT_LEGAL_STATUS_CATALOG,
   documentsForSignup,
@@ -39,8 +40,9 @@ const STATUS_ICONS = {
   globe: Globe2,
 } as const
 
-const STEPS = ["status", "identity", "documents"] as const
-type Step = (typeof STEPS)[number]
+const SUPPLIER_STEPS = ["status", "identity", "documents"] as const
+const AFFILIATE_STEPS = ["identity", "documents"] as const
+type Step = (typeof SUPPLIER_STEPS)[number] | (typeof AFFILIATE_STEPS)[number]
 
 const ERROR_KEYS: Record<string, string> = {
   signup_draft_required: "errDraft",
@@ -59,9 +61,12 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
   const tLegal = useTranslations("auth.merchantLegal")
   const router = useRouter()
   const draftId = useMemo(() => createSignupDraftId(), [])
+  const steps = role === "AFFILIATE" ? AFFILIATE_STEPS : SUPPLIER_STEPS
 
-  const [step, setStep] = useState<Step>("status")
-  const [legalStatus, setLegalStatus] = useState<MerchantLegalStatus | null>(null)
+  const [step, setStep] = useState<Step>(role === "AFFILIATE" ? "identity" : "status")
+  const [legalStatus, setLegalStatus] = useState<MerchantLegalStatus | null>(
+    role === "AFFILIATE" ? AFFILIATE_DEFAULT_LEGAL_STATUS : null
+  )
   const [legalEntityName, setLegalEntityName] = useState("")
   const [tradeName, setTradeName] = useState("")
   const [siret, setSiret] = useState("")
@@ -75,7 +80,7 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
   const meta = legalStatus ? MERCHANT_LEGAL_STATUS_CATALOG[legalStatus] : null
   const signupFields = legalStatus ? signupFieldsForStatus(legalStatus, role) : []
   const docList = legalStatus ? documentsForSignup(legalStatus, role) : []
-  const stepIndex = STEPS.indexOf(step)
+  const stepIndex = steps.indexOf(step as (typeof steps)[number])
 
   function resolveError(code: string): string {
     if (code.startsWith("missing_document:")) {
@@ -137,7 +142,7 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6 flex justify-center gap-2">
-        {STEPS.map((s, i) => (
+        {steps.map((s, i) => (
           <div
             key={s}
             className={cn(
@@ -150,7 +155,7 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
       </div>
 
       <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 sm:p-6">
-        {step === "status" ? (
+        {step === "status" && role === "SUPPLIER" ? (
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{tLegal("stepStatus")}</h2>
             <ul className="grid gap-2 sm:grid-cols-2">
@@ -201,7 +206,14 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
 
         {step === "identity" && meta ? (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{tLegal("stepIdentity")}</h2>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
+              {role === "AFFILIATE" ? tLegal("affiliateKycIdentityTitle") : tLegal("stepIdentity")}
+            </h2>
+            {role === "AFFILIATE" ? (
+              <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                {tLegal("affiliateKycIdentityHint")}
+              </p>
+            ) : null}
             {signupFields.includes("legalEntityName") ? (
               <Field
                 id="legal-entity"
@@ -231,14 +243,16 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
               <Field id="rna" label={tLegal("fieldRna")} value={rnaNumber} onChange={setRnaNumber} required />
             ) : null}
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setStep("status")}
-                className={cn(buttonVariants({ variant: "outline" }), "flex-1 gap-1")}
-              >
-                <ChevronLeft className="size-4" aria-hidden />
-                {tLegal("back")}
-              </button>
+              {role === "SUPPLIER" ? (
+                <button
+                  type="button"
+                  onClick={() => setStep("status")}
+                  className={cn(buttonVariants({ variant: "outline" }), "flex-1 gap-1")}
+                >
+                  <ChevronLeft className="size-4" aria-hidden />
+                  {tLegal("back")}
+                </button>
+              ) : null}
               <button
                 type="button"
                 disabled={!canAdvanceFromIdentity()}

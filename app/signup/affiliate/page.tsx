@@ -3,7 +3,7 @@
 import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 
-import { MerchantLegalSignupWizard } from "@/components/auth/merchant-legal-signup-wizard"
+import { AffiliateExpressSignupWizard } from "@/components/auth/affiliate-express-signup-wizard"
 import {
   AFFILIATE_FIRST_LISTING_HUB_HREF,
   AFFILIATE_URL_IMPORT_HREF,
@@ -20,12 +20,7 @@ function AffiliateSignupInner() {
       : safeNext || AFFILIATE_FIRST_LISTING_HUB_HREF
 
   return (
-    <MerchantLegalSignupWizard
-      role="AFFILIATE"
-      accent="violet"
-      afterLoginPath={afterLoginPath}
-      defaultSocialHandle
-    />
+    <AffiliateExpressSignupWizard afterLoginPath={afterLoginPath} />
   )
 }
 

@@ -140,6 +140,9 @@ export const MERCHANT_LEGAL_STATUS_CATALOG: Record<MerchantLegalStatus, Merchant
 export const BUYER_ACCOUNT_TYPES = ["INDIVIDUAL", "PROFESSIONAL"] as const
 export type BuyerAccountType = (typeof BUYER_ACCOUNT_TYPES)[number]
 
+/** Default legal bucket for curator/reseller accounts (no seller-of-record). */
+export const AFFILIATE_DEFAULT_LEGAL_STATUS: MerchantLegalStatus = "PARTICULIER"
+
 export function isMerchantLegalStatus(value: string): value is MerchantLegalStatus {
   return (MERCHANT_LEGAL_STATUSES as readonly string[]).includes(value)
 }
