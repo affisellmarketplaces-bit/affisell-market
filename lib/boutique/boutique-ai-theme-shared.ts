@@ -1,6 +1,9 @@
 /** Client-safe types + fallbacks for /boutique AI personalization (no Prisma). */
 
 import {
+  sanitizePublicBoutiqueTagline,
+} from "@/lib/boutique/haute-gamme-themes-shared"
+import {
   STOREFRONT_THEME_COUNT,
   themeRefFromVibe,
   type StorefrontTheme,
@@ -119,8 +122,8 @@ export function inferBoutiquePersonalizeFromVibe(args: {
     themeId,
     label: `Theme ${index + 1}`,
     tagline: fr
-      ? `${storeName} — ${vibe.slice(0, 72)} · Checkout sécurisé Affisell.`
-      : `${storeName} — ${vibe.slice(0, 72)} · Affisell secure checkout.`,
+      ? `${storeName} — sélection premium · Paiement sécurisé Affisell.`
+      : `${storeName} — premium curated selection · Secure Affisell checkout.`,
     rationale: fr
       ? `Palette harmonisée pour « ${vibe.slice(0, 60)} » (moteur ${index + 1}/${STOREFRONT_THEME_COUNT}).`
       : `Harmonized palette for “${vibe.slice(0, 60)}” (engine ${index + 1}/${STOREFRONT_THEME_COUNT}).`,
@@ -160,13 +163,16 @@ export function parseBoutiqueAiPersonalizeJson(raw: string): Omit<BoutiqueAiPers
   }
 }
 
-export function mergeBoutiqueTagline(storeName: string, tagline: string, locale?: string): string {
-  const fr = locale === "fr"
-  const clean = tagline.trim()
-  if (!clean) {
-    return fr
-      ? `${storeName} — sélection premium · Checkout 1-clic Affisell.`
-      : `${storeName} — premium selection · Affisell 1-click checkout.`
-  }
-  return clean.slice(0, MAX_TAGLINE)
+export function mergeBoutiqueTagline(
+  storeName: string,
+  tagline: string,
+  locale?: string,
+  vibe?: string
+): string {
+  return sanitizePublicBoutiqueTagline({
+    raw: tagline,
+    storeLabel: storeName.trim() || (locale === "fr" ? "Ma boutique" : "My store"),
+    locale,
+    vibe,
+  })
 }

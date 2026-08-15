@@ -24,6 +24,7 @@ type Props = {
   header?: ReactNode
   viewerIsOwner?: boolean
   brandStudio?: BrandStudioSnapshot | null
+  brandStudioHref?: string
 }
 
 export function ResellerStorefrontView(props: Props) {

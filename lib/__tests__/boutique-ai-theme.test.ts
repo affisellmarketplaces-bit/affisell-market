@@ -54,6 +54,8 @@ describe("boutique-ai-theme-shared", () => {
     })
     expect(result.themeId).toMatch(/^t-\d{4}$/)
     expect(result.tagline).toContain("Nord Studio")
+    expect(result.tagline).not.toContain("scandinavian")
+    expect(result.tagline).not.toContain("audience")
     expect(result.source).toBe("rules")
   })
 })

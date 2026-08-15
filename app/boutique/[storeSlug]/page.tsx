@@ -142,6 +142,7 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
         count={storefront.count}
         header={boutiqueHeader}
         brandStudio={storeContext?.brandStudio ?? null}
+        brandStudioHref="/dashboard/affiliate/brand-studio"
       />
     </Suspense>
   )

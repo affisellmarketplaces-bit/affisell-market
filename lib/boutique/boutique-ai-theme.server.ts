@@ -16,6 +16,8 @@ import {
   inferBoutiqueTitleTypographyFromVibe,
   type BoutiqueTitleTypography,
 } from "@/lib/boutique/boutique-title-typography-shared"
+import { sanitizePublicBoutiqueTagline } from "@/lib/boutique/haute-gamme-themes-shared"
+import { formatResellerStoreLabel } from "@/lib/boutique/reseller-storefront-shared"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
 export type { BoutiqueAiPersonalizePayload } from "@/lib/boutique/boutique-ai-theme-shared"
@@ -63,7 +65,7 @@ export async function generateBoutiqueVisualTheme(args: {
     return {
       themeId: manual.id,
       label: manual.label,
-      tagline: mergeBoutiqueTagline(args.storeName, vibe, locale),
+      tagline: mergeBoutiqueTagline(args.storeName, vibe, locale, vibe),
       rationale:
         locale === "fr"
           ? `Palette ${manual.label} sélectionnée manuellement.`
@@ -113,7 +115,7 @@ export async function generateBoutiqueVisualTheme(args: {
           output: {
             themeIndex: "integer 0-1023",
             label: "short theme name",
-            tagline: "hero tagline max 110 chars for boutique header",
+            tagline: "buyer-facing hero tagline max 110 chars for shoppers (never say your audience)",
             rationale: "one sentence why this palette fits the vibe",
           },
         }),
@@ -145,7 +147,7 @@ export async function generateBoutiqueVisualTheme(args: {
   return {
     ...parsed,
     label: resolved.label,
-    tagline: mergeBoutiqueTagline(args.storeName, parsed.tagline, locale),
+    tagline: mergeBoutiqueTagline(args.storeName, parsed.tagline, locale, vibe),
     source: "ai",
   }
 }
@@ -158,7 +160,7 @@ export async function persistBoutiqueVisualTheme(args: {
 }): Promise<void> {
   const store = await prisma.store.findUnique({
     where: { userId: args.userId },
-    select: { id: true, storefrontTheme: true },
+    select: { id: true, slug: true, storefrontTheme: true },
   })
   if (!store) return
 
@@ -167,14 +169,22 @@ export async function persistBoutiqueVisualTheme(args: {
     args.vibe?.trim()
       ? inferBoutiqueTitleTypographyFromVibe({ vibe: args.vibe, locale: args.locale })
       : null
+  const storeLabel = formatResellerStoreLabel(store.slug ?? "")
+  const publicTagline = sanitizePublicBoutiqueTagline({
+    raw: args.payload.tagline,
+    storeLabel,
+    locale: args.locale,
+    vibe: args.vibe,
+  })
+  const { brandStudio: _dropBrandStudio, ...themeWithoutBrandStudio } = existing
 
   await prisma.store.update({
     where: { id: store.id },
     data: {
       storefrontTheme: {
-        ...existing,
+        ...themeWithoutBrandStudio,
         boutiqueVisualTheme: args.payload.themeId,
-        boutiqueAiTagline: args.payload.tagline,
+        boutiqueAiTagline: publicTagline,
         ...(titleFromVibe
           ? boutiqueTitleTypographyToStoreFields({
               fontId: titleFromVibe.fontId,
@@ -215,18 +225,28 @@ export async function saveBoutiqueDesignSnapshot(args: {
 
   const themeMeta = getStorefrontThemeById(args.themeId)
   const existing = parseStorefrontTheme(store.storefrontTheme)
-  const tagline =
+  const storeLabel = formatResellerStoreLabel(store.slug)
+  const publicTagline =
     args.tagline !== undefined && args.tagline !== null
-      ? args.tagline.trim().slice(0, 120) || undefined
-      : existing.boutiqueAiTagline
+      ? sanitizePublicBoutiqueTagline({
+          raw: args.tagline,
+          storeLabel,
+          brandStudio: existing.brandStudio ?? null,
+        })
+      : sanitizePublicBoutiqueTagline({
+          raw: existing.boutiqueAiTagline ?? null,
+          storeLabel,
+          brandStudio: existing.brandStudio ?? null,
+        })
+  const { brandStudio: _dropBrandStudio, ...themeWithoutBrandStudio } = existing
 
   await prisma.store.update({
     where: { id: store.id },
     data: {
       storefrontTheme: {
-        ...existing,
+        ...themeWithoutBrandStudio,
         boutiqueVisualTheme: themeMeta.id,
-        boutiqueAiTagline: tagline,
+        boutiqueAiTagline: publicTagline,
         ...(args.titleTypography
           ? boutiqueTitleTypographyToStoreFields(args.titleTypography)
           : {}),

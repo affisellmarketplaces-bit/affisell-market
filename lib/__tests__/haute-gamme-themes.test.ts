@@ -10,6 +10,8 @@ import {
   parseBrandStudioSnapshot,
   resolvePublicBoutiqueTagline,
   resolveStableDesignIndex,
+  sanitizePublicBoutiqueTagline,
+  isHauteGammeDesignId,
 } from "@/lib/boutique/haute-gamme-themes-shared"
 import { matchVibeToDesign } from "@/lib/boutique/haute-gamme-themes-shared"
 
@@ -115,5 +117,31 @@ describe("haute-gamme-themes", () => {
     expect(a).toBe(b)
     expect(a).toBeGreaterThanOrEqual(1)
     expect(a).toBeLessThanOrEqual(1024)
+  })
+
+  it("sanitizePublicBoutiqueTagline strips affiliate copy", () => {
+    const design = getHauteGammeDesignById("cyber")!
+    const cleaned = sanitizePublicBoutiqueTagline({
+      raw: "Ecom Store — neon picks your audience will love.",
+      storeLabel: "Ecom Store",
+      brandStudio: {
+        designId: design.id,
+        vibe: "neon",
+        merchantTagline: "Ecom Store — neon picks your audience will love.",
+        buyerTagline: "Ecom Store — Future archive 001 — tech & gaming curated for you.",
+        palette: design.palette,
+        typography: design.typography,
+        heroTitle: "✦ Ecom Store ✦",
+        designIndex: 816,
+        updatedAt: "2026-08-15T12:00:00.000Z",
+      },
+    })
+    expect(isAffiliateFacingTagline(cleaned)).toBe(false)
+    expect(cleaned).toContain("Future archive 001")
+  })
+
+  it("isHauteGammeDesignId recognizes design ids", () => {
+    expect(isHauteGammeDesignId("cyber")).toBe(true)
+    expect(isHauteGammeDesignId("t-0816")).toBe(false)
   })
 })

@@ -1,6 +1,7 @@
 "use client"
 
-import { Check, Loader2, RotateCw, ShoppingBag, Sparkles } from "lucide-react"
+import Link from "next/link"
+import { Check, ExternalLink, Loader2, RotateCw, ShoppingBag, Sparkles } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import { toast } from "sonner"
@@ -44,6 +45,7 @@ type ResellerStorefrontGridProps = {
   header?: ReactNode
   viewerIsOwner?: boolean
   brandStudio?: BrandStudioSnapshot | null
+  brandStudioHref?: string
 }
 
 function typographyEqual(a: BoutiqueTitleTypography, b: BoutiqueTitleTypography): boolean {
@@ -82,6 +84,7 @@ export function ResellerStorefrontGrid({
   header,
   viewerIsOwner: viewerIsOwnerHint = false,
   brandStudio = null,
+  brandStudioHref = "/dashboard/affiliate/brand-studio",
 }: ResellerStorefrontGridProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -100,6 +103,8 @@ export function ResellerStorefrontGrid({
 
   const themeDef = useMemo(() => getStorefrontThemeById(theme), [theme])
   const activeBrandStudio = brandStudio
+  const hasHauteGamme = Boolean(activeBrandStudio?.designId)
+  const buyerTagline = tagline?.trim() ?? activeBrandStudio?.buyerTagline?.trim() ?? null
   const badgeLabel = activeBrandStudio
     ? `${activeBrandStudio.designId.toUpperCase()} · ${activeBrandStudio.designIndex}/1024`
     : `${themeDef.family} · ${themeDef.index + 1}/1024`
@@ -114,13 +119,14 @@ export function ResellerStorefrontGrid({
   }, [activeBrandStudio, titleTypography])
 
   const isDirty =
-    theme !== persistedTheme ||
-    !typographyEqual(titleTypography, persistedTypography) ||
-    (displayTagline ?? null) !== persistedTagline
+    !hasHauteGamme &&
+    (theme !== persistedTheme ||
+      !typographyEqual(titleTypography, persistedTypography) ||
+      (displayTagline ?? null) !== persistedTagline)
 
   useEffect(() => {
-    if (tagline?.trim()) setDisplayTagline(tagline.trim())
-  }, [tagline])
+    if (buyerTagline) setDisplayTagline(buyerTagline)
+  }, [buyerTagline])
 
   useEffect(() => {
     setTitleTypography(initialTitleTypography)
@@ -163,12 +169,12 @@ export function ResellerStorefrontGrid({
   }, [initialVisualTheme, isStoreOwner, persistedVisualTheme, searchParams, storeSlug])
 
   useEffect(() => {
-    if (!hydrated || !isStoreOwner) return
+    if (!hydrated || !isStoreOwner || hasHauteGamme) return
     writeStoredStorefrontTheme(storeSlug, theme)
     const url = new URL(window.location.href)
     url.searchParams.set("theme", theme)
     window.history.replaceState(null, "", url.toString())
-  }, [hydrated, isStoreOwner, storeSlug, theme])
+  }, [hasHauteGamme, hydrated, isStoreOwner, storeSlug, theme])
 
   useEffect(() => {
     if (isStoreOwner) return
@@ -334,7 +340,21 @@ export function ResellerStorefrontGrid({
     <ResellerBoutiquePageShell themeId={theme} brandStudio={activeBrandStudio} header={header}>
       <div className="relative mb-12 w-full">
         <div className="mb-6 flex flex-col gap-2 sm:absolute sm:right-0 sm:top-0 sm:z-20 sm:mb-0 sm:flex-row sm:flex-wrap sm:justify-end">
-          {isStoreOwner ? (
+          {isStoreOwner && hasHauteGamme ? (
+            <Link
+              href={brandStudioHref}
+              className="inline-flex items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-sm font-semibold shadow-[0_0_24px_var(--boutique-accent-soft)] transition-all duration-300 hover:scale-[1.02]"
+              style={{
+                background: "var(--boutique-ai-bg)",
+                borderColor: "var(--boutique-ai-border)",
+                color: "var(--boutique-ai-text)",
+              }}
+            >
+              <ExternalLink className="size-4 shrink-0" aria-hidden />
+              Edit universe in Brand Studio
+            </Link>
+          ) : null}
+          {isStoreOwner && !hasHauteGamme ? (
             <>
           <button
             type="button"
@@ -473,7 +493,7 @@ export function ResellerStorefrontGrid({
       </footer>
 
       <AIPersonalizeModal
-        open={modalOpen}
+        open={modalOpen && !hasHauteGamme}
         onClose={() => setModalOpen(false)}
         storeSlug={storeSlug}
         storeLabel={storeLabel}

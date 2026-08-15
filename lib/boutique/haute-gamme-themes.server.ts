@@ -92,6 +92,7 @@ export async function persistBrandStudioSnapshot(args: {
       storefrontTheme: {
         ...existing,
         brandStudio: args.snapshot,
+        boutiqueVisualTheme: `t-${String(args.snapshot.designIndex - 1).padStart(4, "0")}`,
         boutiqueAiTagline: args.snapshot.buyerTagline,
         boutiqueTitleDisplay: args.snapshot.heroTitle,
         boutiqueTitleLayout: "custom-only",

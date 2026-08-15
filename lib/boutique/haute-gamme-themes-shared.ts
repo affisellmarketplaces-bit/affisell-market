@@ -339,6 +339,46 @@ export function buildHauteGammeTagline(args: {
   return buildHauteGammeMerchantTagline({ vibe: args.vibe, storeLabel: args.storeLabel })
 }
 
+export function isHauteGammeDesignId(id: string): boolean {
+  return (HAUTE_GAMME_DESIGN_IDS as readonly string[]).includes(id.trim().toLowerCase())
+}
+
+export function sanitizePublicBoutiqueTagline(args: {
+  raw: string | null | undefined
+  storeLabel: string
+  locale?: string
+  brandStudio?: BrandStudioSnapshot | null
+  vibe?: string
+}): string {
+  const storeLabel = args.storeLabel.trim() || "Store"
+  const raw = args.raw?.trim()
+  if (raw && !isAffiliateFacingTagline(raw)) {
+    return raw.slice(0, 120)
+  }
+
+  if (args.brandStudio?.buyerTagline?.trim()) {
+    return args.brandStudio.buyerTagline.trim()
+  }
+
+  const designFromStudio = args.brandStudio?.designId
+    ? getHauteGammeDesignById(args.brandStudio.designId)
+    : null
+  const designFromVibe = args.vibe?.trim() ? matchVibeToDesign(args.vibe) : null
+  const design = designFromStudio ?? designFromVibe
+  if (design) {
+    return buildHauteGammeBuyerTagline({
+      design,
+      storeLabel,
+      locale: args.locale,
+    })
+  }
+
+  const fr = args.locale === "fr"
+  return fr
+    ? `${storeLabel} — sélection premium · Paiement sécurisé Affisell.`
+    : `${storeLabel} — premium curated selection · Secure Affisell checkout.`
+}
+
 export function resolvePublicBoutiqueTagline(args: {
   brandStudio: BrandStudioSnapshot | null
   boutiqueAiTagline: string | null
@@ -364,6 +404,15 @@ export function resolvePublicBoutiqueTagline(args: {
   const ai = args.boutiqueAiTagline?.trim()
   if (ai && !isAffiliateFacingTagline(ai)) {
     return ai
+  }
+
+  if (ai && isAffiliateFacingTagline(ai)) {
+    return sanitizePublicBoutiqueTagline({
+      raw: ai,
+      storeLabel: args.storeLabel,
+      locale: args.locale,
+      brandStudio: args.brandStudio,
+    })
   }
 
   const description = args.storeDescription?.trim()
