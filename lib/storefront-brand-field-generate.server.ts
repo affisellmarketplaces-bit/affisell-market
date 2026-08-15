@@ -1,6 +1,3 @@
-import { mkdir, writeFile } from "node:fs/promises"
-import path from "node:path"
-
 import { groqChatText, GROQ_TEXT_MODEL } from "@/lib/ai/groq-client"
 import type { BoutiqueTitleTypography } from "@/lib/boutique/boutique-title-typography-shared"
 import { DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY } from "@/lib/boutique/boutique-title-typography-shared"
@@ -31,6 +28,7 @@ import {
   inferTrustRailTextColor,
 } from "@/lib/storefront-brand-field-generate-shared"
 import { buildInitialsLogoSvg } from "@/lib/storefront-brand-logo.server"
+import { persistBrandStudioMedia } from "@/lib/storefront-brand-media-storage.server"
 import {
   BRAND_LAUNCH_NICHES,
   buildBrandLaunchConfig,
@@ -132,14 +130,6 @@ async function loadThemePayload(args: {
   locale?: string
 }): Promise<BrandAiThemePayload> {
   return generateStoreBrandTheme(args)
-}
-
-async function saveUpload(userId: string, prefix: string, ext: string, buf: Buffer): Promise<string> {
-  const filename = `${prefix}-${userId}-${Date.now()}.${ext}`
-  const dir = path.join(process.cwd(), "public", "uploads")
-  await mkdir(dir, { recursive: true })
-  await writeFile(path.join(dir, filename), buf)
-  return `/uploads/${filename}`
 }
 
 function inferBoutiqueTitle(presetId: string | null): BoutiqueTitleTypography {
@@ -381,9 +371,20 @@ export async function generateBrandStudioField(args: GenerateArgs): Promise<Bran
 
     case "logo": {
       const buf = buildInitialsLogoSvg({ storeName: ctx.name, primary, accent })
-      const logoUrl = await saveUpload(args.userId, "ai-logo", "svg", buf)
-      console.log("[generate-brand-field]", { field: "logo", userId: args.userId, result: "ok", logoUrl })
-      return { field: "logo", source: "rules", logoUrl }
+      const uploaded = await persistBrandStudioMedia({
+        userId: args.userId,
+        kind: "logo",
+        ext: "svg",
+        bytes: buf,
+      })
+      console.log("[generate-brand-field]", {
+        field: "logo",
+        userId: args.userId,
+        result: "ok",
+        logoUrl: uploaded.url,
+        storage: uploaded.storage,
+      })
+      return { field: "logo", source: "rules", logoUrl: uploaded.url }
     }
 
     case "banner": {
@@ -401,8 +402,13 @@ export async function generateBrandStudioField(args: GenerateArgs): Promise<Bran
         source = "gradient"
       }
       const ext = source === "hf" ? "png" : "svg"
-      const bannerUrl = await saveUpload(args.userId, "ai-banner", ext, imageBuf)
-      return { field: "banner", source, bannerUrl }
+      const uploaded = await persistBrandStudioMedia({
+        userId: args.userId,
+        kind: "banner",
+        ext,
+        bytes: imageBuf,
+      })
+      return { field: "banner", source, bannerUrl: uploaded.url }
     }
 
     case "copy": {

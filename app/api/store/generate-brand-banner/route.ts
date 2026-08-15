@@ -1,6 +1,3 @@
-import { mkdir, writeFile } from "node:fs/promises"
-import path from "node:path"
-
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
@@ -10,6 +7,7 @@ import {
   buildStoreBrandBannerPrompt,
   generateStoreBrandBannerImage,
 } from "@/lib/storefront-brand-banner.server"
+import { persistBrandStudioMedia } from "@/lib/storefront-brand-media-storage.server"
 import { prisma } from "@/lib/prisma"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
@@ -60,14 +58,21 @@ export async function POST(req: NextRequest) {
     }
 
     const ext = source === "hf" ? "png" : "svg"
-    const filename = `ai-banner-${userId}-${Date.now()}.${ext}`
-    const dir = path.join(process.cwd(), "public", "uploads")
-    await mkdir(dir, { recursive: true })
-    await writeFile(path.join(dir, filename), imageBuf)
+    const uploaded = await persistBrandStudioMedia({
+      userId,
+      kind: "banner",
+      ext,
+      bytes: imageBuf,
+    })
 
-    const bannerUrl = `/uploads/${filename}`
-    console.log("[generate-brand-banner]", { userId, result: "ok", bannerUrl, source })
-    return NextResponse.json({ bannerUrl, source })
+    console.log("[generate-brand-banner]", {
+      userId,
+      result: "ok",
+      bannerUrl: uploaded.url,
+      source,
+      storage: uploaded.storage,
+    })
+    return NextResponse.json({ bannerUrl: uploaded.url, source })
   } catch (e) {
     const message = e instanceof Error ? e.message : "Banner generation failed"
     console.log("[generate-brand-banner]", { result: "error", error: message })

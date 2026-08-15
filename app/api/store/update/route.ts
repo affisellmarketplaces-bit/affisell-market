@@ -1,11 +1,9 @@
-import path from "node:path"
-
-import { mkdir, writeFile } from "fs/promises"
 import { revalidatePath, revalidateTag } from "next/cache"
 
 import { auth } from "@/auth"
 import { allocateUniqueSlug, ensureMerchantStore } from "@/lib/ensure-store"
 import { prisma } from "@/lib/prisma"
+import { persistBrandStudioMedia } from "@/lib/storefront-brand-media-storage.server"
 import { shopTag } from "@/lib/shop-storefront-cache"
 import { supplierTag } from "@/lib/supplier-storefront-cache"
 import { parseStorefrontTheme, themeFromBrandStudioFields } from "@/lib/storefront-theme-shared"
@@ -168,12 +166,20 @@ export async function POST(req: Request) {
       return Response.json({ error: "Logo file is too large (max ~2 MB)" }, { status: 400 })
     }
     const buf = Buffer.from(await logoFile.arrayBuffer())
-    const ext = MIME_EXT[logoFile.type]
-    const filename = `${userId}-${Date.now()}${ext}`
-    const dir = path.join(process.cwd(), "public", "uploads")
-    await mkdir(dir, { recursive: true })
-    await writeFile(path.join(dir, filename), buf)
-    logoUrl = `/uploads/${filename}`
+    const ext = MIME_EXT[logoFile.type].slice(1)
+    try {
+      const uploaded = await persistBrandStudioMedia({
+        userId,
+        kind: "logo",
+        ext,
+        bytes: buf,
+      })
+      logoUrl = uploaded.url
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Logo upload failed"
+      console.log("[store-update]", { userId, result: "logo_upload_error", error: message })
+      return Response.json({ error: message }, { status: 503 })
+    }
   } else {
     const u = safeHttpsUrl(logoUrlText)
     if (u !== undefined) {
