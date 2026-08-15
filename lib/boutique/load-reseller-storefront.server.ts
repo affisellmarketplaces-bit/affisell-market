@@ -32,6 +32,7 @@ import {
 } from "@/lib/boutique/reseller-boutique-theme-shared"
 import { parseBoutiqueTitleTypography } from "@/lib/boutique/boutique-title-typography-shared"
 import type { BrandStudioSnapshot } from "@/lib/boutique/haute-gamme-themes-shared"
+import { parseBrandStudioSnapshot, resolvePublicBoutiqueTagline } from "@/lib/boutique/haute-gamme-themes-shared"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
 export type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
@@ -279,17 +280,26 @@ export async function loadResellerBoutiqueStoreContext(
   const parsedTheme = parseStorefrontTheme(store.storefrontTheme)
   const boutiqueAiTagline = parsedTheme.boutiqueAiTagline?.trim() || null
   const boutiqueVisualTheme = parsedTheme.boutiqueVisualTheme?.trim() || null
+  const storeLabel = formatResellerStoreLabel(store.slug)
+  const brandStudio =
+    parseBrandStudioSnapshot(parsedTheme.brandStudio, { storeLabel }) ??
+    null
 
   return {
     storeSlug: store.slug,
     storeName: store.name,
-    storeLabel: formatResellerStoreLabel(store.slug),
+    storeLabel,
     ownerUserId: store.userId,
     logoUrl: store.logoUrl?.trim() || null,
     aiAvatarUrl: store.aiAvatarUrl?.trim() || null,
-    tagline: (parsedTheme.brandStudio?.tagline ?? boutiqueAiTagline ?? store.description?.trim()) || null,
+    tagline: resolvePublicBoutiqueTagline({
+      brandStudio,
+      boutiqueAiTagline,
+      storeDescription: store.description?.trim() ?? null,
+      storeLabel,
+    }),
     boutiqueVisualTheme,
-    brandStudio: parsedTheme.brandStudio ?? null,
+    brandStudio,
     titleTypography: parseBoutiqueTitleTypography(parsedTheme),
     theme: serializeResellerBoutiqueTheme(parsedTheme),
   }

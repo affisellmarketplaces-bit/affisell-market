@@ -2563,6 +2563,8 @@
         "generating": "Composing your storefront…",
         "designing": "Designing your universe…",
         "saved": "Design saved ✨",
+        "buyerTaglineLabel": "Live on /boutique (buyers)",
+        "merchantTaglineLabel": "Your brief (Brand Studio only)",
         "failed": "Boutique personalization unavailable — try again.",
         "viewBoutique": "View live /boutique"
       },

@@ -31,14 +31,17 @@ export async function POST(req: NextRequest) {
     let vibe = ""
     let catalog: string[] = []
 
+    let locale: string | undefined
     try {
       const body = (await req.json()) as {
         storeSlug?: string
         vibe?: string
         catalog?: string[]
+        locale?: string
       }
       storeSlug = typeof body.storeSlug === "string" ? body.storeSlug.trim() : ""
       vibe = typeof body.vibe === "string" ? body.vibe.trim().slice(0, 400) : ""
+      locale = body.locale === "fr" ? "fr" : "en"
       catalog = Array.isArray(body.catalog)
         ? body.catalog
             .filter((t): t is string => typeof t === "string" && t.trim().length > 0)
@@ -76,6 +79,7 @@ export async function POST(req: NextRequest) {
       storeSlug: resolvedSlug,
       vibe,
       design,
+      locale,
     })
 
     await persistBrandStudioSnapshot({
@@ -106,7 +110,9 @@ export async function POST(req: NextRequest) {
         heroTitle: snapshot.heroTitle,
         designIndex: snapshot.designIndex,
       },
-      tagline: snapshot.tagline,
+      merchantTagline: snapshot.merchantTagline,
+      buyerTagline: snapshot.buyerTagline,
+      tagline: snapshot.buyerTagline,
       boutiquePath: `/boutique/${encodeURIComponent(resolvedSlug)}`,
     })
   } catch (e) {

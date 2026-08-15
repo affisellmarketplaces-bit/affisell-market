@@ -22,6 +22,8 @@ type GenerateResponse = {
     heroTitle: string
     designIndex: number
   }
+  merchantTagline: string
+  buyerTagline: string
   tagline: string
   boutiquePath?: string
 }
@@ -165,8 +167,15 @@ export function BoutiqueAiPersonalizePanel({
                   />
                 ))}
               </div>
-              <p className="mt-3 text-sm text-violet-100/90">{lastResult.tagline}</p>
-              <p className="mt-1 text-xs text-zinc-500">{lastResult.design.heroTitle}</p>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                {t("buyerTaglineLabel")}
+              </p>
+              <p className="mt-1 text-sm text-violet-100/90">{lastResult.buyerTagline}</p>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                {t("merchantTaglineLabel")}
+              </p>
+              <p className="mt-1 text-sm text-zinc-400">{lastResult.merchantTagline}</p>
+              <p className="mt-2 text-xs text-zinc-500">{lastResult.design.heroTitle}</p>
             </div>
           ) : null}
 

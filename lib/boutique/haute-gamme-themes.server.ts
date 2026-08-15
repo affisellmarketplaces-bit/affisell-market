@@ -4,8 +4,9 @@ import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 import { boutiqueTitleTypographyToStoreFields } from "@/lib/boutique/boutique-title-typography-shared"
 import { formatResellerStoreLabel } from "@/lib/boutique/reseller-storefront-shared"
 import {
+  buildHauteGammeBuyerTagline,
   buildHauteGammeHeroTitle,
-  buildHauteGammeTagline,
+  buildHauteGammeMerchantTagline,
   hauteGammeToBoutiqueTitleTypography,
   resolveStableDesignIndex,
   type BrandStudioSnapshot,
@@ -35,12 +36,17 @@ export function buildBrandStudioGeneration(args: {
   storeSlug: string
   vibe: string
   design: HauteGammeDesign
+  locale?: string
 }): BrandStudioSnapshot {
   const storeLabel = formatResellerStoreLabel(args.storeSlug)
-  const tagline = buildHauteGammeTagline({
-    design: args.design,
+  const merchantTagline = buildHauteGammeMerchantTagline({
     vibe: args.vibe,
     storeLabel,
+  })
+  const buyerTagline = buildHauteGammeBuyerTagline({
+    design: args.design,
+    storeLabel,
+    locale: args.locale,
   })
   const heroTitle = buildHauteGammeHeroTitle({
     storeLabel,
@@ -50,7 +56,8 @@ export function buildBrandStudioGeneration(args: {
   return {
     designId: args.design.id,
     vibe: args.vibe.trim().slice(0, 400),
-    tagline,
+    merchantTagline,
+    buyerTagline,
     palette: args.design.palette,
     typography: args.design.typography,
     heroTitle,
@@ -85,7 +92,7 @@ export async function persistBrandStudioSnapshot(args: {
       storefrontTheme: {
         ...existing,
         brandStudio: args.snapshot,
-        boutiqueAiTagline: args.snapshot.tagline,
+        boutiqueAiTagline: args.snapshot.buyerTagline,
         boutiqueTitleDisplay: args.snapshot.heroTitle,
         boutiqueTitleLayout: "custom-only",
         ...titleFields,

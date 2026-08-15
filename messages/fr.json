@@ -2563,6 +2563,8 @@
         "generating": "Composition de votre vitrine…",
         "designing": "Design de votre univers…",
         "saved": "Design enregistré ✨",
+        "buyerTaglineLabel": "Live sur /boutique (acheteurs)",
+        "merchantTaglineLabel": "Votre brief (Brand Studio uniquement)",
         "failed": "Personnalisation boutique indisponible — réessayez.",
         "viewBoutique": "Voir /boutique live"
       },

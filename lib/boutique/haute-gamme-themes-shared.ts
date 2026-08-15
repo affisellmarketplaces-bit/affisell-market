@@ -43,7 +43,10 @@ export type HauteGammeDesign = {
 export type BrandStudioSnapshot = {
   designId: string
   vibe: string
-  tagline: string
+  /** Affiliate-facing copy — Brand Studio preview only. */
+  merchantTagline: string
+  /** Buyer-facing copy — live on public /boutique. */
+  buyerTagline: string
   palette: HauteGammePalette
   typography: HauteGammeTypography
   heroTitle: string
@@ -268,16 +271,139 @@ export function getHauteGammeDesignById(id: string): HauteGammeDesign | null {
   return HAUTE_GAMME_DESIGNS.find((d) => d.id === normalized) ?? null
 }
 
-export function parseBrandStudioSnapshot(raw: unknown): BrandStudioSnapshot | null {
+const BUYER_TAGLINE_BY_DESIGN: Record<
+  HauteGammeDesignId,
+  { en: string; fr: string }
+> = {
+  eclipse: {
+    en: "Curated essentials for the modern era.",
+    fr: "Essentiels curatés pour l'ère moderne.",
+  },
+  atelier: {
+    en: "Objects of desire, thoughtfully sourced.",
+    fr: "Objets de désir, sélectionnés avec soin.",
+  },
+  noir: {
+    en: "Precision. Craft. Detail.",
+    fr: "Précision. Savoir-faire. Détail.",
+  },
+  cyber: {
+    en: "Future archive 001 — tech & gaming curated for you.",
+    fr: "Future archive 001 — tech & gaming sélectionnés pour vous.",
+  },
+  lush: {
+    en: "Rooted in nature, refined for everyday.",
+    fr: "Inspiré par la nature, pensé pour vous.",
+  },
+  minimal: {
+    en: "Less, but better.",
+    fr: "Moins, mais mieux.",
+  },
+}
+
+export function isAffiliateFacingTagline(text: string): boolean {
+  return /your audience|ton audience|votre audience|picks your audience|audience will love/i.test(
+    text
+  )
+}
+
+export function buildHauteGammeMerchantTagline(args: {
+  vibe: string
+  storeLabel: string
+}): string {
+  const vibe = args.vibe.trim()
+  if (!vibe) {
+    return `${args.storeLabel} — curated picks your audience will love.`.slice(0, 160)
+  }
+  return `${args.storeLabel} — ${vibe} picks your audience will love.`.slice(0, 160)
+}
+
+export function buildHauteGammeBuyerTagline(args: {
+  design: HauteGammeDesign
+  storeLabel: string
+  locale?: string
+}): string {
+  const locale = args.locale === "fr" ? "fr" : "en"
+  const template =
+    BUYER_TAGLINE_BY_DESIGN[args.design.id as HauteGammeDesignId]?.[locale] ??
+    args.design.taglineTemplate
+  return `${args.storeLabel} — ${template}`.slice(0, 120)
+}
+
+/** @deprecated Use buildHauteGammeMerchantTagline — kept for legacy imports. */
+export function buildHauteGammeTagline(args: {
+  design: HauteGammeDesign
+  vibe: string
+  storeLabel: string
+}): string {
+  return buildHauteGammeMerchantTagline({ vibe: args.vibe, storeLabel: args.storeLabel })
+}
+
+export function resolvePublicBoutiqueTagline(args: {
+  brandStudio: BrandStudioSnapshot | null
+  boutiqueAiTagline: string | null
+  storeDescription: string | null
+  storeLabel: string
+  locale?: string
+}): string | null {
+  if (args.brandStudio?.buyerTagline?.trim()) {
+    return args.brandStudio.buyerTagline.trim()
+  }
+
+  if (args.brandStudio?.designId) {
+    const design = getHauteGammeDesignById(args.brandStudio.designId)
+    if (design) {
+      return buildHauteGammeBuyerTagline({
+        design,
+        storeLabel: args.storeLabel,
+        locale: args.locale,
+      })
+    }
+  }
+
+  const ai = args.boutiqueAiTagline?.trim()
+  if (ai && !isAffiliateFacingTagline(ai)) {
+    return ai
+  }
+
+  const description = args.storeDescription?.trim()
+  if (description && !isAffiliateFacingTagline(description)) {
+    return description
+  }
+
+  return null
+}
+
+export function parseBrandStudioSnapshot(
+  raw: unknown,
+  options?: { storeLabel?: string; locale?: string }
+): BrandStudioSnapshot | null {
   if (!isRecord(raw)) return null
   const designId = typeof raw.designId === "string" ? raw.designId.trim().toLowerCase() : ""
   const design = getHauteGammeDesignById(designId)
   if (!design) return null
 
-  const tagline = typeof raw.tagline === "string" ? raw.tagline.trim().slice(0, 160) : ""
-  if (!tagline) return null
-
   const vibe = typeof raw.vibe === "string" ? raw.vibe.trim().slice(0, 400) : ""
+  const legacyTagline =
+    typeof raw.tagline === "string" ? raw.tagline.trim().slice(0, 160) : ""
+  const storeLabel = options?.storeLabel?.trim() || "Store"
+
+  const merchantTagline =
+    typeof raw.merchantTagline === "string" && raw.merchantTagline.trim()
+      ? raw.merchantTagline.trim().slice(0, 160)
+      : isAffiliateFacingTagline(legacyTagline)
+        ? legacyTagline
+        : buildHauteGammeMerchantTagline({ vibe, storeLabel })
+
+  const buyerTagline =
+    typeof raw.buyerTagline === "string" && raw.buyerTagline.trim()
+      ? raw.buyerTagline.trim().slice(0, 120)
+      : legacyTagline && !isAffiliateFacingTagline(legacyTagline)
+        ? legacyTagline.slice(0, 120)
+        : buildHauteGammeBuyerTagline({ design, storeLabel, locale: options?.locale })
+
+  if (!merchantTagline && !buyerTagline) return null
+
   const heroTitle =
     typeof raw.heroTitle === "string" ? raw.heroTitle.trim().slice(0, 80) : ""
   const designIndex =
@@ -292,7 +418,8 @@ export function parseBrandStudioSnapshot(raw: unknown): BrandStudioSnapshot | nu
   return {
     designId: design.id,
     vibe,
-    tagline,
+    merchantTagline,
+    buyerTagline,
     palette: parsePalette(raw.palette, design.palette),
     typography: parseTypography(raw.typography, design.typography),
     heroTitle,
@@ -301,9 +428,12 @@ export function parseBrandStudioSnapshot(raw: unknown): BrandStudioSnapshot | nu
   }
 }
 
-export function parseBrandStudioFromStorefrontTheme(raw: unknown): BrandStudioSnapshot | null {
+export function parseBrandStudioFromStorefrontTheme(
+  raw: unknown,
+  options?: { storeLabel?: string; locale?: string }
+): BrandStudioSnapshot | null {
   if (!isRecord(raw)) return null
-  return parseBrandStudioSnapshot(raw.brandStudio)
+  return parseBrandStudioSnapshot(raw.brandStudio, options)
 }
 
 export function matchVibeToDesign(vibe: string): HauteGammeDesign {
@@ -344,18 +474,6 @@ export function resolveStableDesignIndex(storeSlug: string, designId: string): n
     hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
   }
   return (hash % 1024) + 1
-}
-
-export function buildHauteGammeTagline(args: {
-  design: HauteGammeDesign
-  vibe: string
-  storeLabel: string
-}): string {
-  const vibe = args.vibe.trim()
-  if (vibe) {
-    return `${args.storeLabel} — ${vibe} picks your audience will love.`.slice(0, 160)
-  }
-  return `${args.design.name} — ${args.design.taglineTemplate}`.slice(0, 160)
 }
 
 export function buildHauteGammeHeroTitle(args: {
