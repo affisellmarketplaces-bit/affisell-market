@@ -231,6 +231,7 @@ function StorefrontHeroBlock({
   if (suppressDescription) {
     return (
       <StorefrontDedicatedHero
+        storeName={store.name}
         bannerUrl={store.bannerUrl}
         theme={store.theme}
         brandAlign={store.theme.headerBrandAlign}
@@ -252,6 +253,7 @@ function StorefrontHeroBlock({
 
   return (
     <StorefrontDedicatedHero
+      storeName={store.name}
       description={store.description}
       bannerUrl={store.bannerUrl}
       theme={store.theme}

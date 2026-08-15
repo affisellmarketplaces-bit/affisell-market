@@ -2865,6 +2865,23 @@ button,
     transform: skewX(14deg);
   }
 
+  /* Veo hero — cinematic store name overlay */
+  .affisell-hero-video-brand {
+    animation: affisell-hero-video-brand-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+    filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.45));
+  }
+
+  @keyframes affisell-hero-video-brand-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   /* Triangular « All stores » chip */
   .affisell-all-stores-triangle {
     position: relative;

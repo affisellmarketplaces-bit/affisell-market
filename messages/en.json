@@ -3038,7 +3038,9 @@
         "generate": "Generate with Veo",
         "generating": "Generating…",
         "generateFailed": "Could not generate hero video",
-        "useAsHero": "Use as hero"
+        "useAsHero": "Use as hero",
+        "showStoreName": "Show store name on video",
+        "showStoreNameHint": "Uses your Brand Studio name badge — crisp overlay, not burned into Veo."
       },
       "embedWidget": {
         "title": "Embed widget",

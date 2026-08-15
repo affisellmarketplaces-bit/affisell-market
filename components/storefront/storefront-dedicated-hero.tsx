@@ -1,6 +1,8 @@
 "use client"
 
+import { StorefrontHeroVideoNameOverlay } from "@/components/storefront/storefront-hero-video-name-overlay"
 import { StorefrontTaglineBand } from "@/components/storefront/storefront-tagline-band"
+import { resolveHeroVideoShowStoreName } from "@/lib/storefront-hero-video-shared"
 import type {
   StorefrontHeaderBrandAlign,
   StorefrontTheme,
@@ -12,6 +14,7 @@ import {
 import { cn } from "@/lib/utils"
 
 type Props = {
+  storeName?: string | null
   description?: string | null
   bannerUrl?: string | null
   theme?: StorefrontTheme
@@ -22,6 +25,7 @@ type Props = {
 
 /** Hero strip for dedicated storefront hosts — no duplicate logo/name (buyer chrome handles that). */
 export function StorefrontDedicatedHero({
+  storeName,
   description,
   bannerUrl,
   theme,
@@ -41,6 +45,8 @@ export function StorefrontDedicatedHero({
   const showGradientHero = heroStyle === "gradient"
   const showVideoHero = heroStyle === "video" && heroVideoUrl.length > 0
   const showHero = heroStyle !== "none" && (showImageBanner || showGradientHero || showVideoHero)
+  const showVideoStoreName =
+    showVideoHero && resolveHeroVideoShowStoreName(theme) && Boolean(storeName?.trim())
 
   if (!showHero && !pitch) return null
 
@@ -111,7 +117,16 @@ export function StorefrontDedicatedHero({
             className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10"
             aria-hidden
           />
-          {pitch ? (
+          {showVideoStoreName && storeName?.trim() ? (
+            <StorefrontHeroVideoNameOverlay
+              storeName={storeName.trim()}
+              nameBadge={theme?.nameBadge}
+              accent={accent}
+              primary={primary}
+              align={headerAlign}
+            />
+          ) : null}
+          {pitch && !showVideoStoreName ? (
             <div className="absolute inset-x-0 bottom-0 px-4 pb-3 sm:px-6 sm:pb-4">
               <p className="max-w-2xl text-sm font-medium leading-relaxed text-white/90 drop-shadow-sm sm:text-base">
                 {pitch}

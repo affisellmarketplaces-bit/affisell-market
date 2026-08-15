@@ -10,6 +10,17 @@ export function normalizeHeroVideoUrl(raw: unknown): string | undefined {
   return t
 }
 
+export function parseHeroVideoShowStoreName(raw: unknown): boolean {
+  if (raw === false || raw === 0 || raw === "0" || raw === "false") return false
+  return true
+}
+
+export function resolveHeroVideoShowStoreName(
+  theme: { heroVideoShowStoreName?: boolean } | null | undefined
+): boolean {
+  return parseHeroVideoShowStoreName(theme?.heroVideoShowStoreName ?? true)
+}
+
 export function buildStoreHeroVeoPrompt(args: {
   storeName: string
   description?: string | null

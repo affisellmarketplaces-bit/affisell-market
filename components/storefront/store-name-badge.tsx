@@ -11,8 +11,8 @@ type Props = {
   accent?: string
   primary?: string
   className?: string
-  /** h1 vs inline preview */
-  size?: "store" | "preview"
+  /** h1 vs inline preview vs cinematic Veo overlay */
+  size?: "store" | "preview" | "hero"
 }
 
 export function StoreNameBadge({
@@ -24,9 +24,11 @@ export function StoreNameBadge({
   size = "store",
 }: Props) {
   const textClass =
-    size === "store"
-      ? "text-xl font-bold tracking-tight sm:text-2xl"
-      : "text-sm font-bold tracking-tight"
+    size === "hero"
+      ? "text-xl font-bold tracking-tight sm:text-2xl md:text-3xl lg:text-4xl"
+      : size === "store"
+        ? "text-xl font-bold tracking-tight sm:text-2xl"
+        : "text-sm font-bold tracking-tight"
 
   if (style === "classic") {
     return (

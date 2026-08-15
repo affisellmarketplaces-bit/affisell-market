@@ -9,7 +9,7 @@ import {
   parseEmbedWidget,
   type StorefrontEmbedWidget,
 } from "@/lib/storefront-embed-shared"
-import { normalizeHeroVideoUrl } from "@/lib/storefront-hero-video-shared"
+import { normalizeHeroVideoUrl, parseHeroVideoShowStoreName } from "@/lib/storefront-hero-video-shared"
 import {
   parseStaticPages,
   type StorefrontStaticPages,
@@ -54,6 +54,8 @@ export type StorefrontTheme = {
   presetId?: string
   /** Optional Veo / HTTPS loop for hero when heroStyle is `video`. */
   heroVideoUrl?: string
+  /** Show Brand Studio store name overlay on Veo hero (default on). */
+  heroVideoShowStoreName?: boolean
   /** Embeddable shop widget (iframe snippet in Brand Studio). */
   embedWidget?: StorefrontEmbedWidget
   /** Ordered homepage blocks for `/shops/{slug}`. */
@@ -122,6 +124,7 @@ export function parseStorefrontTheme(raw: unknown): StorefrontTheme {
     layout: parseEnum(o.layout, STOREFRONT_LAYOUT_MODES, DEFAULT_STOREFRONT_THEME.layout!),
     heroStyle: parseEnum(o.heroStyle, STOREFRONT_HERO_STYLES, DEFAULT_STOREFRONT_THEME.heroStyle!),
     heroVideoUrl: normalizeHeroVideoUrl(o.heroVideoUrl),
+    heroVideoShowStoreName: parseHeroVideoShowStoreName(o.heroVideoShowStoreName),
     embedWidget: parseEmbedWidget(o.embedWidget),
     gridDensity: parseEnum(
       o.gridDensity,
@@ -210,6 +213,7 @@ export type BrandStudioThemeInput = {
   homepageSections?: unknown
   staticPages?: unknown
   heroVideoUrl?: unknown
+  heroVideoShowStoreName?: unknown
   embedWidget?: unknown
 }
 
@@ -278,6 +282,10 @@ export function themeFromBrandStudioFields(
           ? undefined
           : normalizeHeroVideoUrl(input.heroVideoUrl) ?? existing.heroVideoUrl
         : existing.heroVideoUrl,
+    heroVideoShowStoreName:
+      input.heroVideoShowStoreName !== undefined && input.heroVideoShowStoreName !== null
+        ? parseHeroVideoShowStoreName(input.heroVideoShowStoreName)
+        : existing.heroVideoShowStoreName,
     embedWidget:
       input.embedWidget !== undefined && input.embedWidget !== null
         ? parseEmbedWidget(input.embedWidget)

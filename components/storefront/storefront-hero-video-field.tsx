@@ -4,25 +4,39 @@ import { Loader2, Sparkles, Video } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useCallback, useState } from "react"
 
+import { StorefrontHeroVideoNameOverlay } from "@/components/storefront/storefront-hero-video-name-overlay"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import type { StorefrontHeaderBrandAlign, StorefrontHeroStyle } from "@/lib/storefront-theme-shared"
+import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 import { cn } from "@/lib/utils"
 
-import type { StorefrontHeroStyle } from "@/lib/storefront-theme-shared"
 type Props = {
   heroStyle: StorefrontHeroStyle
   heroVideoUrl: string
+  heroVideoShowStoreName: boolean
   storeName: string
+  nameBadge: StoreNameBadgeStyle
+  accent: string
+  primary: string
+  headerBrandAlign: StorefrontHeaderBrandAlign
   onHeroStyle: (style: StorefrontHeroStyle) => void
   onHeroVideoUrl: (url: string) => void
+  onHeroVideoShowStoreName: (show: boolean) => void
 }
 
 export function StorefrontHeroVideoField({
   heroStyle,
   heroVideoUrl,
+  heroVideoShowStoreName,
   storeName,
+  nameBadge,
+  accent,
+  primary,
+  headerBrandAlign,
   onHeroStyle,
   onHeroVideoUrl,
+  onHeroVideoShowStoreName,
 }: Props) {
   const t = useTranslations("storefront.brandStudio.heroVideo")
   const [generating, setGenerating] = useState(false)
@@ -43,13 +57,14 @@ export function StorefrontHeroVideoField({
       if (!json.videoUrl) throw new Error(t("generateFailed"))
       onHeroVideoUrl(json.videoUrl)
       onHeroStyle("video")
+      onHeroVideoShowStoreName(true)
       console.log("[storefront-hero-video]", { storeName, result: "generated" })
     } catch (e) {
       setGenError(e instanceof Error ? e.message : t("generateFailed"))
     } finally {
       setGenerating(false)
     }
-  }, [onHeroStyle, onHeroVideoUrl, storeName, t])
+  }, [onHeroStyle, onHeroVideoShowStoreName, onHeroVideoUrl, storeName, t])
 
   return (
     <div
@@ -83,7 +98,7 @@ export function StorefrontHeroVideoField({
       </label>
 
       {heroVideoUrl.trim() ? (
-        <div className="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
+        <div className="relative overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
           <video
             src={heroVideoUrl.trim()}
             className="aspect-video w-full bg-zinc-950 object-cover"
@@ -92,8 +107,34 @@ export function StorefrontHeroVideoField({
             playsInline
             preload="metadata"
           />
+          {heroVideoShowStoreName ? (
+            <StorefrontHeroVideoNameOverlay
+              storeName={storeName}
+              nameBadge={nameBadge}
+              accent={accent}
+              primary={primary}
+              align={headerBrandAlign}
+            />
+          ) : null}
         </div>
       ) : null}
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-zinc-200/80 bg-white/60 p-3 dark:border-zinc-700 dark:bg-zinc-900/40">
+        <input
+          type="checkbox"
+          className="mt-0.5 size-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500"
+          checked={heroVideoShowStoreName}
+          onChange={(e) => onHeroVideoShowStoreName(e.target.checked)}
+        />
+        <span>
+          <span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            {t("showStoreName")}
+          </span>
+          <span className="mt-0.5 block text-xs text-zinc-500 dark:text-zinc-400">
+            {t("showStoreNameHint")}
+          </span>
+        </span>
+      </label>
 
       <div className="flex flex-wrap items-center gap-2">
         <Button type="button" size="sm" onClick={() => void handleGenerate()} disabled={generating}>

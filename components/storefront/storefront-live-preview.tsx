@@ -43,6 +43,7 @@ export type StorefrontDraft = {
   headerBrandAlign: StorefrontHeaderBrandAlign
   homepageSections: HomepageSection[]
   heroVideoUrl: string
+  heroVideoShowStoreName: boolean
 }
 
 type Props = {
@@ -91,6 +92,7 @@ export function StorefrontLivePreview({ draft, className }: Props) {
   const heroTheme: StorefrontTheme = {
     ...theme,
     heroVideoUrl: videoForHero,
+    heroVideoShowStoreName: draft.heroVideoShowStoreName,
   }
   const enabledSections = getEnabledHomepageSections(draft.homepageSections)
   const storySectionEnabled = enabledSections.some((s) => s.type === "story")
@@ -168,6 +170,7 @@ export function StorefrontLivePreview({ draft, className }: Props) {
                   return (
                     <StorefrontDedicatedHero
                       key="hero"
+                      storeName={draft.name.trim() || t("sampleName")}
                       bannerUrl={bannerForHero}
                       theme={heroTheme}
                       brandAlign={draft.headerBrandAlign}
@@ -188,6 +191,7 @@ export function StorefrontLivePreview({ draft, className }: Props) {
                 return (
                   <StorefrontDedicatedHero
                     key="hero"
+                    storeName={draft.name.trim() || t("sampleName")}
                     description={sampleTagline}
                     bannerUrl={bannerForHero}
                     theme={heroTheme}

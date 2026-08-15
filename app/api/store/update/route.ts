@@ -94,6 +94,7 @@ export async function POST(req: Request) {
   const themeHomepageSections = fd.get("themeHomepageSections")
   const themeStaticPages = fd.get("themeStaticPages")
   const themeHeroVideoUrl = fd.get("themeHeroVideoUrl")
+  const themeHeroVideoShowStoreName = fd.get("themeHeroVideoShowStoreName")
   const themeEmbedWidget = fd.get("themeEmbedWidget")
   const hasThemeFields =
     themePrimary !== null ||
@@ -109,6 +110,7 @@ export async function POST(req: Request) {
     themeHomepageSections !== null ||
     themeStaticPages !== null ||
     themeHeroVideoUrl !== null ||
+    themeHeroVideoShowStoreName !== null ||
     themeEmbedWidget !== null
   const existingTheme = parseStorefrontTheme(store.storefrontTheme)
   let homepageSectionsInput: unknown = undefined
@@ -150,6 +152,7 @@ export async function POST(req: Request) {
         homepageSections: homepageSectionsInput,
         staticPages: staticPagesInput,
         heroVideoUrl: themeHeroVideoUrl,
+        heroVideoShowStoreName: themeHeroVideoShowStoreName,
         embedWidget: embedWidgetInput,
       })
     : undefined

@@ -115,6 +115,7 @@ type BrandStudioSnapshot = {
   homepageSections: HomepageSection[]
   staticPages: StorefrontStaticPages
   heroVideoUrl: string
+  heroVideoShowStoreName: boolean
   embedWidget: StorefrontEmbedWidget
 }
 
@@ -140,6 +141,7 @@ function snapshotFromStore(st: StoreRow): BrandStudioSnapshot {
     homepageSections: theme.homepageSections ?? DEFAULT_HOMEPAGE_SECTIONS,
     staticPages: theme.staticPages ?? DEFAULT_STATIC_PAGES,
     heroVideoUrl: theme.heroVideoUrl ?? "",
+    heroVideoShowStoreName: theme.heroVideoShowStoreName !== false,
     embedWidget: theme.embedWidget ?? DEFAULT_EMBED_WIDGET,
   }
 }
@@ -162,6 +164,7 @@ function snapshotFromDraft(input: {
   homepageSections: HomepageSection[]
   staticPages: StorefrontStaticPages
   heroVideoUrl: string
+  heroVideoShowStoreName: boolean
   embedWidget: StorefrontEmbedWidget
 }): BrandStudioSnapshot {
   return {
@@ -182,6 +185,7 @@ function snapshotFromDraft(input: {
     homepageSections: input.homepageSections,
     staticPages: input.staticPages,
     heroVideoUrl: input.heroVideoUrl.trim(),
+    heroVideoShowStoreName: input.heroVideoShowStoreName,
     embedWidget: input.embedWidget,
   }
 }
@@ -205,6 +209,7 @@ function snapshotsEqual(a: BrandStudioSnapshot, b: BrandStudioSnapshot): boolean
     homepageSectionsEqual(a.homepageSections, b.homepageSections) &&
     staticPagesEqual(a.staticPages, b.staticPages) &&
     a.heroVideoUrl === b.heroVideoUrl &&
+    a.heroVideoShowStoreName === b.heroVideoShowStoreName &&
     embedWidgetsEqual(a.embedWidget, b.embedWidget)
   )
 }
@@ -268,6 +273,7 @@ export function MerchantBrandStudio({
   const [homepageSections, setHomepageSections] = useState<HomepageSection[]>(DEFAULT_HOMEPAGE_SECTIONS)
   const [staticPages, setStaticPages] = useState<StorefrontStaticPages>(DEFAULT_STATIC_PAGES)
   const [heroVideoUrl, setHeroVideoUrl] = useState("")
+  const [heroVideoShowStoreName, setHeroVideoShowStoreName] = useState(true)
   const [embedWidget, setEmbedWidget] = useState<StorefrontEmbedWidget>(DEFAULT_EMBED_WIDGET)
   const [storeSlug, setStoreSlug] = useState("")
   const [boutiqueTitleTypography, setBoutiqueTitleTypography] =
@@ -395,6 +401,7 @@ export function MerchantBrandStudio({
         setHomepageSections(snap.homepageSections)
         setStaticPages(snap.staticPages)
         setHeroVideoUrl(snap.heroVideoUrl)
+        setHeroVideoShowStoreName(snap.heroVideoShowStoreName)
         setEmbedWidget(snap.embedWidget)
         setStoreSlug(st.slug)
         setBoutiqueTitleTypography(parseBoutiqueTitleTypography(parseStorefrontTheme(st.storefrontTheme)))
@@ -443,6 +450,7 @@ export function MerchantBrandStudio({
         fd.set("themeHomepageSections", serializeHomepageSections(snapshot.homepageSections))
         fd.set("themeStaticPages", serializeStaticPages(snapshot.staticPages))
         fd.set("themeHeroVideoUrl", snapshot.heroVideoUrl)
+        fd.set("themeHeroVideoShowStoreName", snapshot.heroVideoShowStoreName ? "1" : "0")
         fd.set("themeEmbedWidget", serializeEmbedWidget(snapshot.embedWidget))
         if (logoFile) {
           fd.set("logo", logoFile)
@@ -514,6 +522,7 @@ export function MerchantBrandStudio({
       homepageSections,
       staticPages: nextStaticPages,
       heroVideoUrl,
+      heroVideoShowStoreName,
       embedWidget,
     })
 
@@ -584,6 +593,7 @@ export function MerchantBrandStudio({
       homepageSections,
       staticPages,
       heroVideoUrl,
+      heroVideoShowStoreName,
       embedWidget: nextEmbedWidget,
     })
 
@@ -651,6 +661,7 @@ export function MerchantBrandStudio({
         homepageSections: config.homepageSections,
         staticPages: config.staticPages,
         heroVideoUrl,
+        heroVideoShowStoreName,
         embedWidget,
       })
       const saved = await persistSnapshot(launchSnapshot, t("launch.saved"))
@@ -667,6 +678,7 @@ export function MerchantBrandStudio({
         if (res.ok && json.videoUrl) {
           setHeroVideoUrl(json.videoUrl)
           setHeroStyle("video")
+          setHeroVideoShowStoreName(true)
           const withVideo = snapshotFromDraft({
             name,
             description: config.description,
@@ -685,6 +697,7 @@ export function MerchantBrandStudio({
             homepageSections: config.homepageSections,
             staticPages: config.staticPages,
             heroVideoUrl: json.videoUrl,
+            heroVideoShowStoreName: true,
             embedWidget,
           })
           await persistSnapshot(withVideo, t("launch.veoSaved"))
@@ -748,6 +761,7 @@ export function MerchantBrandStudio({
         homepageSections: nextSections,
         staticPages,
         heroVideoUrl,
+        heroVideoShowStoreName,
         embedWidget,
       })
 
@@ -763,6 +777,7 @@ export function MerchantBrandStudio({
       headerBrandAlign,
       staticPages,
       heroVideoUrl,
+      heroVideoShowStoreName,
       embedWidget,
       persistSnapshot,
       t,
@@ -823,6 +838,7 @@ export function MerchantBrandStudio({
       headerBrandAlign,
       homepageSections,
       heroVideoUrl,
+      heroVideoShowStoreName,
     }),
     [
       name,
@@ -842,6 +858,7 @@ export function MerchantBrandStudio({
       headerBrandAlign,
       homepageSections,
       heroVideoUrl,
+      heroVideoShowStoreName,
     ]
   )
 
@@ -865,6 +882,7 @@ export function MerchantBrandStudio({
         homepageSections,
         staticPages,
         heroVideoUrl,
+        heroVideoShowStoreName,
         embedWidget,
       }),
     [
@@ -885,6 +903,7 @@ export function MerchantBrandStudio({
       homepageSections,
       staticPages,
       heroVideoUrl,
+      heroVideoShowStoreName,
       embedWidget,
     ]
   )
@@ -1162,9 +1181,15 @@ export function MerchantBrandStudio({
               <StorefrontHeroVideoField
                 heroStyle={heroStyle}
                 heroVideoUrl={heroVideoUrl}
+                heroVideoShowStoreName={heroVideoShowStoreName}
                 storeName={name.trim() || t("launch.defaultStoreName")}
+                nameBadge={nameBadge}
+                accent={accent}
+                primary={primaryHex}
+                headerBrandAlign={headerBrandAlign}
                 onHeroStyle={setHeroStyle}
                 onHeroVideoUrl={setHeroVideoUrl}
+                onHeroVideoShowStoreName={setHeroVideoShowStoreName}
               />
 
               {role === "AFFILIATE" && storeSlug ? (
