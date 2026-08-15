@@ -7,6 +7,7 @@ import type { CSSProperties, ReactNode } from "react"
 import { brandOrbitStorefrontTrustRail } from "@/lib/affisell-brand-orbit-shared"
 import type { StorefrontTrustSnapshot } from "@/lib/storefront-trust-shared"
 import {
+  resolveStorefrontTrustRailColors,
   storefrontHeaderTrustRailStyle,
   storefrontTrustRailTextColor,
 } from "@/lib/storefront-header-chrome-shared"
@@ -23,10 +24,11 @@ type Props = {
   className?: string
 }
 
-function TrustSeparator({ lightRail = true }: { lightRail?: boolean }) {
+function TrustSeparator({ colors }: { colors: { text: string } }) {
   return (
     <span
-      className={cn("mx-2 hidden h-3 w-px shrink-0 sm:inline", lightRail ? "bg-black/12" : "bg-white/10")}
+      className="mx-2.5 hidden h-4 w-px shrink-0 sm:inline"
+      style={{ backgroundColor: `color-mix(in srgb, ${colors.text} 22%, transparent)` }}
       aria-hidden
     />
   )
@@ -36,21 +38,48 @@ function TrustChip({
   children,
   tone = "neutral",
   futuristic = false,
+  colors,
   className,
 }: {
   children: ReactNode
   tone?: "neutral" | "accent" | "verified" | "secure"
   futuristic?: boolean
-  lightHeader?: boolean
+  colors?: { text: string; icon: string; pillBorder: string; pillBg: string }
   className?: string
 }) {
-  if (futuristic) {
+  if (futuristic && colors) {
+    const toneStyles =
+      tone === "verified"
+        ? {
+            border: "color-mix(in srgb, #10b981 45%, transparent)",
+            bg: "color-mix(in srgb, #10b981 12%, white 88%)",
+            icon: "#059669",
+          }
+        : tone === "secure"
+          ? {
+              border: "color-mix(in srgb, #f59e0b 40%, transparent)",
+              bg: "color-mix(in srgb, #f59e0b 10%, white 90%)",
+              icon: "#d97706",
+            }
+          : {
+              border: colors.pillBorder,
+              bg: colors.pillBg,
+              icon: colors.icon,
+            }
+
     return (
       <span
         className={cn(
-          "inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold uppercase tracking-widest",
+          "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1",
+          "text-[11px] font-bold uppercase tracking-[0.1em] shadow-sm backdrop-blur-md sm:text-xs sm:tracking-[0.12em]",
           className
         )}
+        style={{
+          color: colors.text,
+          borderColor: toneStyles.border,
+          background: toneStyles.bg,
+          boxShadow: `0 1px 8px -2px color-mix(in srgb, ${toneStyles.icon} 28%, transparent)`,
+        }}
       >
         {children}
       </span>
@@ -91,14 +120,15 @@ export function StorefrontHeaderTrustRail({
 
   const integrated = variant === "integrated"
   const futuristic = visual === "futuristic" && integrated
-  const labelColor = storefrontTrustRailTextColor(trustRailText)
+  const colors = resolveStorefrontTrustRailColors(primary, accent, trustRailText)
+  const labelColor = futuristic ? colors.text : storefrontTrustRailTextColor(trustRailText)
 
   return (
     <div
       className={cn(
         "affisell-storefront-trust-rail relative overflow-hidden",
         futuristic
-          ? "h-7 border-b backdrop-blur-md"
+          ? "min-h-9 border-b backdrop-blur-lg sm:min-h-10"
           : integrated
             ? brandOrbitStorefrontTrustRail
             : "border-b border-zinc-200/80 bg-gradient-to-r from-violet-50/90 via-white to-emerald-50/70 dark:border-zinc-800 dark:from-violet-950/30 dark:via-zinc-950 dark:to-emerald-950/20",
@@ -106,7 +136,12 @@ export function StorefrontHeaderTrustRail({
       )}
       style={
         futuristic
-          ? { ...storefrontHeaderTrustRailStyle(primary), color: labelColor }
+          ? ({
+              ...storefrontHeaderTrustRailStyle(primary, accent),
+              color: labelColor,
+              "--store-trust-accent": accent,
+              "--store-trust-rail-text": labelColor,
+            } as CSSProperties)
           : integrated && !futuristic
             ? ({ "--store-trust-accent": accent } as CSSProperties)
             : undefined
@@ -121,23 +156,35 @@ export function StorefrontHeaderTrustRail({
           <div className="affisell-storefront-trust-rail__scan pointer-events-none absolute inset-x-0 top-0 h-px" aria-hidden />
         </>
       ) : (
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-black/10 to-transparent" aria-hidden />
+        <>
+          <div
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(105deg,transparent_38%,color-mix(in_srgb,var(--store-trust-accent,#7c3aed)_12%,transparent)_50%,transparent_62%)]"
+            aria-hidden
+          />
+          <div className="affisell-storefront-trust-rail__scan pointer-events-none absolute inset-x-0 top-0 h-px opacity-80" aria-hidden />
+        </>
       )}
 
       <div
         className={cn(
-          "relative mx-auto flex h-7 max-w-6xl items-center overflow-x-auto overscroll-x-contain",
-          futuristic ? "gap-0 px-4 sm:px-6" : "gap-1.5 px-4 py-1.5 sm:gap-2 sm:px-6 sm:py-2",
+          "relative mx-auto flex max-w-6xl items-center overflow-x-auto overscroll-x-contain",
+          futuristic
+            ? "min-h-9 gap-1 px-4 py-1.5 sm:min-h-10 sm:gap-1.5 sm:px-6 sm:py-2"
+            : "gap-1.5 px-4 py-1.5 sm:gap-2 sm:px-6 sm:py-2",
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         )}
         role="region"
         aria-label={t("headerTrustAria")}
       >
         {!isCustomDomain ? (
-          <TrustChip tone="accent" futuristic={futuristic}>
+          <TrustChip tone="accent" futuristic={futuristic} colors={colors}>
             {futuristic ? (
               <>
-                <Sparkles className="size-3 shrink-0 opacity-80" aria-hidden />
+                <Sparkles
+                  className="size-3.5 shrink-0 sm:size-4"
+                  style={{ color: colors.icon }}
+                  aria-hidden
+                />
                 <span>{t("poweredBy")}</span>
               </>
             ) : (
@@ -153,19 +200,19 @@ export function StorefrontHeaderTrustRail({
           </TrustChip>
         ) : null}
 
-        {futuristic && !isCustomDomain ? <TrustSeparator /> : null}
+        {futuristic && !isCustomDomain ? <TrustSeparator colors={colors} /> : null}
 
         {trust.merchantVerified ? (
-          <TrustChip tone="verified" futuristic={futuristic}>
-            <BadgeCheck className="size-3 shrink-0 opacity-80" aria-hidden />
+          <TrustChip tone="verified" futuristic={futuristic} colors={colors}>
+            <BadgeCheck className="size-3.5 shrink-0 sm:size-4" style={{ color: "#059669" }} aria-hidden />
             <span className="hidden sm:inline">
               {isCustomDomain ? t("merchantVerified") : t("verifiedBy")}
             </span>
             <span className="sm:hidden">{t("verifiedShort")}</span>
           </TrustChip>
         ) : (
-          <TrustChip tone="secure" futuristic={futuristic}>
-            <ShieldCheck className="size-3 shrink-0 opacity-80" aria-hidden />
+          <TrustChip tone="secure" futuristic={futuristic} colors={colors}>
+            <ShieldCheck className="size-3.5 shrink-0 sm:size-4" style={{ color: "#d97706" }} aria-hidden />
             <span className="hidden sm:inline">
               {isCustomDomain ? t("secureCheckout") : t("platformSecured")}
             </span>
@@ -173,14 +220,13 @@ export function StorefrontHeaderTrustRail({
           </TrustChip>
         )}
 
-        {futuristic ? <TrustSeparator /> : null}
+        {futuristic ? <TrustSeparator colors={colors} /> : null}
 
         {!futuristic && isCustomDomain ? (
           <span
             className={cn(
               "ml-auto hidden shrink-0 uppercase tracking-[0.18em] text-zinc-500",
-              futuristic ? "text-[10px] font-semibold md:inline" : "text-[9px] font-medium text-zinc-400 dark:text-zinc-500",
-              integrated && !futuristic ? "md:inline" : !futuristic ? "sm:inline" : ""
+              integrated ? "text-[9px] font-medium text-zinc-400 md:inline dark:text-zinc-500" : "sm:inline"
             )}
           >
             {t("officialStorefront")}

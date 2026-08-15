@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import {
   isLightStorefrontHeader,
+  resolveStorefrontTrustRailColors,
   storefrontHeaderLuminance,
   storefrontHeaderShellStyle,
   storefrontHeaderTrustRailStyle,
@@ -22,9 +23,20 @@ describe("storefront-header-chrome-shared", () => {
   })
 
   it("uses light trust rail background and black label default", () => {
-    const style = storefrontHeaderTrustRailStyle("#2563eb")
+    const style = storefrontHeaderTrustRailStyle("#2563eb", "#06b6d4")
     expect(style.background).toContain("white")
     expect(storefrontTrustRailTextColor()).toBe("#18181b")
     expect(storefrontTrustRailTextColor("#ffffff")).toBe("#ffffff")
+  })
+
+  it("forces readable trust rail text when merchant picks low-contrast accent", () => {
+    const colors = resolveStorefrontTrustRailColors("#18181b", "#06b6d4", "#06b6d4")
+    expect(colors.text).toBe("#0f172a")
+    expect(colors.icon).toBe("#06b6d4")
+  })
+
+  it("keeps dark custom trust rail text when contrast is sufficient", () => {
+    const colors = resolveStorefrontTrustRailColors("#18181b", "#7c3aed", "#18181b")
+    expect(colors.text).toBe("#18181b")
   })
 })

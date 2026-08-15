@@ -51,17 +51,59 @@ export function storefrontHeaderShellStyle(primary: string, accent: string): CSS
   } as CSSProperties
 }
 
-export function storefrontHeaderTrustRailStyle(primary: string): CSSProperties {
+export function storefrontHeaderTrustRailStyle(primary: string, accent?: string): CSSProperties {
   const p = normalizeHexColor(primary) ?? "#18181b"
+  const a = normalizeHexColor(accent) ?? "#7c3aed"
   return {
-    background: `linear-gradient(180deg, color-mix(in srgb, ${p} 8%, white 92%) 0%, color-mix(in srgb, ${p} 14%, white 86%) 100%)`,
-    borderBottomColor: `color-mix(in srgb, ${p} 20%, white 80%)`,
+    background: `linear-gradient(90deg, color-mix(in srgb, ${a} 14%, white 86%) 0%, color-mix(in srgb, ${p} 8%, white 92%) 48%, color-mix(in srgb, ${a} 12%, white 88%) 100%)`,
+    borderBottomColor: `color-mix(in srgb, ${a} 32%, ${p} 14%)`,
+    boxShadow: `inset 0 1px 0 0 color-mix(in srgb, white 72%, transparent)`,
   }
 }
 
 /** Default black — merchants can override via `storefrontTheme.trustRailText`. */
 export function storefrontTrustRailTextColor(trustRailText?: string): string {
   return normalizeHexColor(trustRailText) ?? "#18181b"
+}
+
+export type StorefrontTrustRailColors = {
+  text: string
+  icon: string
+  pillBorder: string
+  pillBg: string
+}
+
+const TRUST_RAIL_SURFACE = "#f4f4f5"
+
+function contrastRatio(foreground: string, background: string): number {
+  const fg = storefrontHeaderLuminance(foreground)
+  const bg = storefrontHeaderLuminance(background)
+  const lighter = Math.max(fg, bg)
+  const darker = Math.min(fg, bg)
+  return (lighter + 0.05) / (darker + 0.05)
+}
+
+/** Ensures trust rail labels stay readable on the light glass band (ignores low-contrast accent picks). */
+export function resolveStorefrontTrustRailColors(
+  primary: string,
+  accent?: string,
+  trustRailText?: string
+): StorefrontTrustRailColors {
+  const a = normalizeHexColor(accent) ?? "#7c3aed"
+  const p = normalizeHexColor(primary) ?? "#18181b"
+  const custom = normalizeHexColor(trustRailText)
+
+  let text = "#0f172a"
+  if (custom && contrastRatio(custom, TRUST_RAIL_SURFACE) >= 4.5) {
+    text = custom
+  }
+
+  return {
+    text,
+    icon: a,
+    pillBorder: `color-mix(in srgb, ${a} 42%, ${p} 18%)`,
+    pillBg: `color-mix(in srgb, ${a} 10%, white 90%)`,
+  }
 }
 
 export function storefrontHeaderTextTone(isLight: boolean): "light" | "dark" {

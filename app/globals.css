@@ -3284,10 +3284,10 @@ button,
   background: linear-gradient(
     90deg,
     transparent,
-    color-mix(in srgb, var(--store-trust-accent, #7c3aed) 45%, transparent),
+    color-mix(in srgb, var(--store-trust-accent, #7c3aed) 55%, transparent),
     transparent
   );
-  opacity: 0.55;
+  opacity: 0.65;
 }
 
 @media (prefers-reduced-motion: no-preference) {
