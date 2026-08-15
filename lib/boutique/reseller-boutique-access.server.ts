@@ -1,7 +1,19 @@
+import "server-only"
+
+import {
+  AFFILIATE_BOUTIQUE_OWNER_ROLE,
+  affiliateBoutiquePublicPath,
+  isAffiliateBoutiqueApiRole,
+  supplierCatalogPublicPath,
+} from "@/lib/boutique/reseller-boutique-access-shared"
 import { prisma } from "@/lib/prisma"
 
-/** `/boutique/{slug}` resolves only for affiliate-owned stores (reseller procedural storefront). */
-export const AFFILIATE_BOUTIQUE_OWNER_ROLE = "AFFILIATE" as const
+export {
+  AFFILIATE_BOUTIQUE_OWNER_ROLE,
+  affiliateBoutiquePublicPath,
+  isAffiliateBoutiqueApiRole,
+  supplierCatalogPublicPath,
+} from "@/lib/boutique/reseller-boutique-access-shared"
 
 export type AffiliateBoutiqueStoreRecord = {
   slug: string
@@ -60,16 +72,4 @@ export async function assertAffiliateBoutiqueStoreMatchesAffiliate(args: {
     return { ok: false }
   }
   return { ok: true, storeUserId: store.userId }
-}
-
-export function isAffiliateBoutiqueApiRole(role: string | null | undefined): boolean {
-  return role === AFFILIATE_BOUTIQUE_OWNER_ROLE
-}
-
-export function supplierCatalogPublicPath(storeSlug: string): string {
-  return `/store/supplier/${encodeURIComponent(storeSlug.trim())}`
-}
-
-export function affiliateBoutiquePublicPath(storeSlug: string): string {
-  return `/boutique/${encodeURIComponent(storeSlug.trim())}`
 }

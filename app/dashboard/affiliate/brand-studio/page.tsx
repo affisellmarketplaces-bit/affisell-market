@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { Suspense } from "react"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 
 import { MerchantBrandStudio } from "@/components/storefront/merchant-brand-studio"
@@ -41,14 +42,16 @@ export default async function AffiliateBrandStudioPage() {
   const boutiquePreviewHref = buildResellerBoutiquePath(store.slug)
 
   return (
-    <MerchantBrandStudio
-      role="AFFILIATE"
-      previewHref={previewHref}
-      boutiquePreviewHref={boutiquePreviewHref}
-      profileHref="/dashboard/affiliate/settings/store"
-      profileLabel="Store profile"
-      studioPath="/dashboard/affiliate/brand-studio"
-      createListingHref="/dashboard/affiliate?openCreate=1"
-    />
+    <Suspense fallback={null}>
+      <MerchantBrandStudio
+        role="AFFILIATE"
+        previewHref={previewHref}
+        boutiquePreviewHref={boutiquePreviewHref}
+        profileHref="/dashboard/affiliate/settings/store"
+        profileLabel="Store profile"
+        studioPath="/dashboard/affiliate/brand-studio"
+        createListingHref="/dashboard/affiliate?openCreate=1"
+      />
+    </Suspense>
   )
 }

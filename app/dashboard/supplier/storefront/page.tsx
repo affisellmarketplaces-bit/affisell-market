@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { Suspense } from "react"
 import { requireSupplierSession } from "@/lib/dashboard-session"
 
 import { MerchantBrandStudio } from "@/components/storefront/merchant-brand-studio"
@@ -33,12 +34,14 @@ export default async function SupplierStorefrontPage() {
   const previewHref = `/store/supplier/${encodeURIComponent(store.slug)}`
 
   return (
-    <MerchantBrandStudio
-      role="SUPPLIER"
-      previewHref={previewHref}
-      profileHref="/dashboard/supplier/settings/store"
-      profileLabel="Store profile"
-      studioPath="/dashboard/supplier/storefront"
-    />
+    <Suspense fallback={null}>
+      <MerchantBrandStudio
+        role="SUPPLIER"
+        previewHref={previewHref}
+        profileHref="/dashboard/supplier/settings/store"
+        profileLabel="Store profile"
+        studioPath="/dashboard/supplier/storefront"
+      />
+    </Suspense>
   )
 }

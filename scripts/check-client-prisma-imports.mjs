@@ -91,6 +91,10 @@ for (const file of walk(ROOT)) {
   if (!isClientFile(file, src)) continue
 
   for (const libImport of parseLibImports(src)) {
+    if (libImport.endsWith(".server") || libImport.includes(".server.")) {
+      violations.push({ client: path.relative(ROOT, file), lib: `@/lib/${libImport}` })
+      continue
+    }
     if (libImportLoadsPrisma(libImport)) {
       violations.push({ client: path.relative(ROOT, file), lib: `@/lib/${libImport}` })
     }

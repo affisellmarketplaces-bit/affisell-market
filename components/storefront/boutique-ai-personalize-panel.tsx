@@ -12,7 +12,7 @@ import type { BrandStudioSnapshot } from "@/lib/boutique/haute-gamme-themes-shar
 import {
   affiliateBoutiquePublicPath,
   supplierCatalogPublicPath,
-} from "@/lib/boutique/reseller-boutique-access.server"
+} from "@/lib/boutique/reseller-boutique-access-shared"
 import { postBrandAiJson } from "@/lib/storefront-ai-fetch-shared"
 import { cn } from "@/lib/utils"
 
