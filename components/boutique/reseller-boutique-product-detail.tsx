@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { ArrowRight, Loader2, Package, ShieldCheck, Truck } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -8,6 +7,7 @@ import { toast } from "sonner"
 import { VariantSelector } from "@/app/marketplace/[id]/components/VariantSelector"
 import { SizeSelector } from "@/app/marketplace/[id]/components/SizeSelector"
 import { ProductListingColorPicker } from "@/components/product/product-listing-color-picker"
+import { ProductMediaGallery } from "@/components/product/product-media-gallery"
 import {
   resolveAffiliateSellingPriceCentsForOption,
   type AffiliateVariantPricingMap,
@@ -24,8 +24,13 @@ import {
   findVariantRowForShopperSelection,
   type ShopperVariantSelection,
 } from "@/lib/marketplace-variant-dimensions"
-import { resolveColorHeroImageUrl } from "@/lib/product-color-images"
-import { cn } from "@/lib/utils"
+import {
+  colorForImageIndex,
+  galleryIndexForImageUrl,
+  imageIndexForColor,
+  resolveColorHeroImageUrl,
+} from "@/lib/product-color-images"
+import { resolveUsableProductImageUrl } from "@/lib/product-image-url"
 
 type Props = {
   storeSlug: string
@@ -55,16 +60,74 @@ const brandedChipSelected =
   "border-transparent text-white shadow-md [background-image:var(--boutique-button-gradient)]"
 
 export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props) {
-  const [selectedColor, setSelectedColor] = useState<string | null>(
-    product.defaultSelection.selectedColor
+  const images = useMemo(
+    () => product.gallery.filter((url): url is string => typeof url === "string" && Boolean(url.trim())),
+    [product.gallery]
   )
+
+  const initialColor = product.defaultSelection.selectedColor
+  const [selectedColor, setSelectedColor] = useState<string | null>(initialColor)
   const [selectedSize, setSelectedSize] = useState<string | null>(
     product.defaultSelection.selectedSize
   )
   const [selectedStorage, setSelectedStorage] = useState<string | null>(
     product.defaultSelection.selectedStorage
   )
+  const [selectedImage, setSelectedImage] = useState(() =>
+    imageIndexForColor(initialColor, product.colorNames, product.colorImages, images)
+  )
+  const [galleryHeroLock, setGalleryHeroLock] = useState(true)
   const [loading, setLoading] = useState(false)
+
+  const selectColor = useCallback(
+    (colorName: string) => {
+      setGalleryHeroLock(false)
+      setSelectedColor(colorName)
+      setSelectedImage(imageIndexForColor(colorName, product.colorNames, product.colorImages, images))
+    },
+    [images, product.colorImages, product.colorNames]
+  )
+
+  const selectGalleryImage = useCallback(
+    (index: number) => {
+      const mappedColor = colorForImageIndex(index, product.colorNames, product.colorImages, images)
+      if (mappedColor) {
+        setGalleryHeroLock(false)
+        setSelectedColor(mappedColor)
+        setSelectedImage(index)
+        return
+      }
+      setGalleryHeroLock(true)
+      setSelectedImage(index)
+    },
+    [images, product.colorImages, product.colorNames]
+  )
+
+  const safeImageIndex = Math.min(Math.max(0, selectedImage), Math.max(0, images.length - 1))
+
+  const colorVariantIndex = useMemo(
+    () => imageIndexForColor(selectedColor, product.colorNames, product.colorImages, images),
+    [images, product.colorImages, product.colorNames, selectedColor]
+  )
+
+  const colorHeroUrl = useMemo(
+    () => resolveColorHeroImageUrl(selectedColor, product.colorNames, product.colorImages, images),
+    [images, product.colorImages, product.colorNames, selectedColor]
+  )
+
+  const hero = useMemo(() => {
+    if (galleryHeroLock) {
+      return resolveUsableProductImageUrl(images[safeImageIndex], images)
+    }
+    return colorHeroUrl
+  }, [colorHeroUrl, galleryHeroLock, images, safeImageIndex])
+
+  const activeThumbIndex = useMemo(() => {
+    if (galleryHeroLock) return safeImageIndex
+    const heroIdx = galleryIndexForImageUrl(colorHeroUrl, images)
+    if (heroIdx >= 0) return heroIdx
+    return colorVariantIndex
+  }, [colorHeroUrl, colorVariantIndex, galleryHeroLock, images, safeImageIndex])
 
   const colorMeta = useMemo(
     () => buildMarketplaceColorMeta(product.colorNames, product.colorImages),
@@ -123,14 +186,6 @@ export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props
   const priceLabel = formatStoreCurrencyFromCents(activePriceCents)
   const optionsLabel = formatResellerVariantOptionsLabel(product.variantSummary)
 
-  const heroUrl = useMemo(
-    () =>
-      resolveColorHeroImageUrl(selectedColor, product.colorNames, product.colorImages, product.gallery) ||
-      product.gallery[0] ||
-      product.imageUrl,
-    [product.colorImages, product.colorNames, product.gallery, product.imageUrl, selectedColor]
-  )
-
   const handleBuyNow = useCallback(async () => {
     if (isOutOfStock) return
 
@@ -174,46 +229,20 @@ export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props
   return (
     <section className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-10">
       <div
-        className="overflow-hidden rounded-[1.75rem] border shadow-lg backdrop-blur-sm"
+        className="overflow-hidden rounded-[1.75rem] border p-3 shadow-lg backdrop-blur-sm sm:p-4"
         style={{
           backgroundColor: "var(--boutique-card-bg)",
           borderColor: "var(--boutique-card-border)",
         }}
       >
-        <div className="relative aspect-square" style={{ background: "var(--boutique-card-image-bg)" }}>
-          <Image
-            src={heroUrl}
-            alt={product.title}
-            fill
-            className="object-contain p-6 transition duration-500"
-            sizes="(max-width: 1024px) 100vw, 560px"
-            priority
-            unoptimized={heroUrl.startsWith("http") || heroUrl.startsWith("/uploads")}
-          />
-        </div>
-        {product.gallery.length > 1 ? (
-          <div className="flex gap-2 overflow-x-auto border-t p-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {product.gallery.slice(0, 8).map((url) => (
-              <div
-                key={url}
-                className={cn(
-                  "relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border",
-                  url === heroUrl ? "ring-2 ring-[var(--boutique-hero-accent)]" : "opacity-80"
-                )}
-                style={{ borderColor: "var(--boutique-card-border)" }}
-              >
-                <Image
-                  src={url}
-                  alt=""
-                  fill
-                  className="object-contain p-1"
-                  sizes="64px"
-                  unoptimized={url.startsWith("http") || url.startsWith("/uploads")}
-                />
-              </div>
-            ))}
-          </div>
-        ) : null}
+        <ProductMediaGallery
+          images={images.length > 0 ? images : [product.imageUrl]}
+          heroSrc={hero}
+          activeThumbIndex={activeThumbIndex}
+          onSelectImage={selectGalleryImage}
+          productId={product.catalogProductId}
+          alt={product.title}
+        />
       </div>
 
       <div
@@ -260,7 +289,7 @@ export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props
               colorMeta={colorMeta}
               showColorSwatches={showColorSwatches}
               selectedColor={selectedColor}
-              onSelectColor={setSelectedColor}
+              onSelectColor={selectColor}
               colorLabel="Couleur"
               optionLabel="Option"
               variants={product.variants}

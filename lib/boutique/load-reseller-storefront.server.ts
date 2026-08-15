@@ -49,6 +49,8 @@ export type ResellerStorefrontProduct = {
 }
 
 export type ResellerBoutiqueProductDetail = ResellerStorefrontProduct & {
+  /** Catalog product id — wishlist / gallery overlays. */
+  catalogProductId: string
   listingPriceCents: number
   basePriceCents: number
   variantPricing: AffiliateVariantPricingMap | null
@@ -94,6 +96,7 @@ const listingProductSelect = {
 function mapResellerProductDetail(args: {
   listing: {
     id: string
+    productId: string
     customTitle: string | null
     customDescription: string | null
     sellingPriceCents: number
@@ -168,6 +171,7 @@ function mapResellerProductDetail(args: {
 
   return {
     listingId: listing.id,
+    catalogProductId: listing.productId,
     title: listingDisplayTitle(listing.customTitle, listing.product.name),
     descriptionExcerpt: plainDescription.slice(0, 420),
     imageUrl: gallery[0] || "/placeholder.png",
@@ -209,6 +213,7 @@ export async function loadResellerBoutiqueProductDetail(
     },
     select: {
       id: true,
+      productId: true,
       customTitle: true,
       customDescription: true,
       sellingPriceCents: true,
