@@ -10,11 +10,11 @@ import {
 import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission.server"
 import { appBaseUrl } from "@/lib/app-base-url"
 import {
-  loadResellerStorefrontProduct,
-  resolveResellerDefaultListingCommerce,
-} from "@/lib/boutique/load-reseller-storefront.server"
+  resolveResellerListingCommerce,
+} from "@/lib/boutique/reseller-listing-commerce.server"
 import { normalizeCartVariantSignature } from "@/lib/cart-variant"
 import { resolveStripeCheckoutAllowedCountries } from "@/lib/checkout-country-rollout"
+import { buildVariantOptionLabel } from "@/lib/marketplace-purchase-quantity"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { marketplaceCheckoutPaymentSessionOptionsForAmount } from "@/lib/marketplace-checkout-payment-methods"
 import {
@@ -40,6 +40,9 @@ export type CreateResellerOrderInput = {
   storeSlug: string
   productId: string
   customerEmail?: string | null
+  selectedColor?: string | null
+  selectedSize?: string | null
+  selectedStorage?: string | null
 }
 
 export type CreateResellerOrderResult =
@@ -118,14 +121,6 @@ export async function createResellerOrder(
     return { success: false, error: "missing_fields" }
   }
 
-  const storefront = await loadResellerStorefrontProduct(productId)
-  if (!storefront) {
-    return { success: false, error: "listing_not_found" }
-  }
-  if (storefront.isOutOfStock) {
-    return { success: false, error: "out_of_stock" }
-  }
-
   const listing = await prisma.affiliateProduct.findFirst({
     where: {
       id: productId,
@@ -185,7 +180,7 @@ export async function createResellerOrder(
     return { success: false, error: "listing_not_found" }
   }
 
-  const commerce = resolveResellerDefaultListingCommerce({
+  const commerce = resolveResellerListingCommerce({
     listingSellingPriceCents: listing.sellingPriceCents,
     variantPricingRaw: listing.variantPricing,
     promotedVariantKeys: listing.promotedVariantKeys,
@@ -196,6 +191,11 @@ export async function createResellerOrder(
       colors: listing.product.colors ?? [],
       customColumns: listing.product.customColumns,
       productVariants: listing.product.productVariants ?? [],
+    },
+    selection: {
+      selectedPrimary: input.selectedColor,
+      selectedSize: input.selectedSize,
+      selectedStorage: input.selectedStorage,
     },
   })
 
@@ -241,7 +241,11 @@ export async function createResellerOrder(
   })
 
   const marginCents = Math.max(0, sellingPriceCents - wholesalePriceCents)
-  const checkoutVariantLabel = commerce.defaultOptionName?.trim() || null
+  const checkoutVariantLabel =
+    commerce.defaultOptionName?.trim() ||
+    buildVariantOptionLabel(commerce.selectedColor, commerce.selectedSize) ||
+    commerce.selectedStorage ||
+    null
   const variantParts = checkoutVariantLabel
     ? splitVariantLineName(checkoutVariantLabel)
     : { color: "", size: null as string | null }
@@ -393,6 +397,9 @@ export async function createResellerOrder(
     stripeSessionId: checkoutSession.id,
     sellingPriceCents,
     marginCents,
+    selectedColor: commerce.selectedColor,
+    selectedSize: commerce.selectedSize,
+    selectedStorage: commerce.selectedStorage,
     result: "checkout_ready",
   })
 

@@ -1,3 +1,5 @@
+import type { ResellerListingVariantSummary } from "@/lib/boutique/reseller-listing-variants-shared"
+
 export type ResellerStorefrontListProduct = {
   id: string
   /** Underlying catalog product — wishlist / likes. */
@@ -11,6 +13,9 @@ export type ResellerStorefrontListProduct = {
   soldCount: number
   isBestSeller: boolean
   buyerRewardBadge: string | null
+  variantSummary: ResellerListingVariantSummary
+  /** Swatch dots on cards — same resolver as marketplace PDP. */
+  colorSwatchNames: string[]
 }
 
 export function formatResellerStoreLabel(storeSlug: string): string {

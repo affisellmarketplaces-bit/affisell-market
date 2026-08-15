@@ -1,31 +1,28 @@
-import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { listingDisplayTitle, listingGalleryUrls, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import type { AffiliateVariantPricingMap } from "@/lib/affiliate-variant-pricing"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
-import { filterListingForPromotedVariants } from "@/lib/affiliate-storefront-variants"
-import {
-  lookupVariantPricingEntry,
-  parseAffiliateVariantPricingJson,
-  resolveAffiliateSellingPriceCentsForOption,
-} from "@/lib/affiliate-variant-pricing"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
-import {
-  buildVariantOptionLabel,
-  resolveListingAvailableStock,
-} from "@/lib/marketplace-purchase-quantity"
-import {
-  collectStorageOptionValues,
-  findVariantRowForShopperSelection,
-  resolveMarketplacePrimaryOptionNames,
-  variantsWithProductVariantRows,
-} from "@/lib/marketplace-variant-dimensions"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { stripDescriptionImageMarkers } from "@/lib/description-rich-content"
-import { parseCustomColumnsFromDb } from "@/lib/product-custom-columns"
-import { variantsFromDb } from "@/lib/product-variants"
+import type { ProductColorImageRow } from "@/lib/product-color-images"
+import type { ProductVariantsJson } from "@/lib/product-variants"
 import { prisma } from "@/lib/prisma"
+import type { CustomColumn } from "@/types/product"
 import {
   formatResellerStoreLabel,
   type ResellerStorefrontListProduct,
 } from "@/lib/boutique/reseller-storefront-shared"
+import {
+  prepareResellerListingVariantContext,
+  resolveResellerDefaultListingCommerce,
+  resolveResellerListingColorImages,
+  resolveResellerListingCommerce,
+  summarizeResellerListingVariants,
+} from "@/lib/boutique/reseller-listing-commerce.server"
+import {
+  formatResellerPriceFromLabel,
+  type ResellerListingVariantSummary,
+} from "@/lib/boutique/reseller-listing-variants-shared"
 import {
   serializeResellerBoutiqueTheme,
   type ResellerBoutiqueThemeProps,
@@ -51,109 +48,157 @@ export type ResellerStorefrontProduct = {
   marketplaceHref: string
 }
 
-type ResellerListingCommerce = {
-  priceCents: number
-  availableStock: number
-  defaultOptionName: string | null
-}
-
-/** Mirrors marketplace PDP default color/size + activeVariantRow pricing & stock. */
-export function resolveResellerDefaultListingCommerce(args: {
-  listingSellingPriceCents: number
-  variantPricingRaw: unknown
-  promotedVariantKeys: string[] | null | undefined
-  product: {
-    basePriceCents: number
-    stock: number
-    variants: unknown
-    colors: string[]
-    customColumns: unknown
-    productVariants: Array<{
-      id: string
-      color: string | null
-      size: string | null
-      stock: number
-      customData: unknown
-      supplierPrice: unknown
-      wholesalePriceCents?: number | null
-    }>
+export type ResellerBoutiqueProductDetail = ResellerStorefrontProduct & {
+  listingPriceCents: number
+  basePriceCents: number
+  variantPricing: AffiliateVariantPricingMap | null
+  colorNames: string[]
+  colorImages: ProductColorImageRow[]
+  storageOptions: string[]
+  sizeOptions: string[]
+  variants: ProductVariantsJson | null
+  customColumns: CustomColumn[]
+  variantSummary: ResellerListingVariantSummary
+  gallery: string[]
+  catalogStock: number
+  defaultSelection: {
+    selectedColor: string | null
+    selectedSize: string | null
+    selectedStorage: string | null
   }
-}): ResellerListingCommerce {
-  const customCols = parseCustomColumnsFromDb(args.product.customColumns)
-  const variantsRaw = variantsWithProductVariantRows(
-    variantsFromDb(args.product.variants),
-    args.product.productVariants ?? [],
-    customCols,
-    args.product.basePriceCents
-  )
-  const storageOptionsRaw = collectStorageOptionValues({
-    variants: variantsRaw,
-    customColumns: customCols,
-    productVariantCustomData: args.product.productVariants?.map((v) => v.customData),
-  })
-  const colorNamesRaw = resolveMarketplacePrimaryOptionNames(
-    args.product.colors.filter((c) => Boolean(c.trim())),
-    variantsRaw,
-    storageOptionsRaw
-  )
-  const { variants, colorNames } = filterListingForPromotedVariants({
-    variants: variantsRaw,
-    colorNames: colorNamesRaw,
-    promotedVariantKeys: args.promotedVariantKeys,
-  })
-  const storageOptions = collectStorageOptionValues({
-    variants,
-    customColumns: customCols,
-    productVariantCustomData: args.product.productVariants?.map((v) => v.customData),
-  })
-
-  const selectedColor = colorNames[0] ?? null
-  const sizeOptions = variants?.size?.length ? variants.size : []
-  const selectedSize = sizeOptions[0] ?? null
-  const selectedStorage = storageOptions[0] ?? null
-
-  const activeVariantRow = findVariantRowForShopperSelection({
-    variants,
-    customColumns: customCols,
-    selection: {
-      selectedPrimary: selectedColor,
-      selectedStorage,
-      selectedSize,
-    },
-  })
-
-  const variantPricing = parseAffiliateVariantPricingJson(args.variantPricingRaw)
-  const labeledOption = buildVariantOptionLabel(selectedColor, selectedSize)
-  const defaultOptionName =
-    activeVariantRow?.name?.trim() ||
-    (labeledOption && lookupVariantPricingEntry(variantPricing, labeledOption) ? labeledOption : null) ||
-    selectedColor ||
-    Object.keys(variantPricing)[0] ||
-    null
-
-  const priceCents = resolveAffiliateSellingPriceCentsForOption({
-    listingSellingPriceCents: args.listingSellingPriceCents,
-    productBasePriceCents: args.product.basePriceCents,
-    variants,
-    optionName: defaultOptionName,
-    variantPricing,
-  })
-
-  const availableStock = activeVariantRow
-    ? Math.max(0, Math.round(activeVariantRow.stock) || 0)
-    : resolveListingAvailableStock({
-        productStock: args.product.stock,
-        variants,
-        selectedColor,
-        selectedSize,
-      })
-
-  return { priceCents, availableStock, defaultOptionName }
 }
 
-export async function loadResellerStorefrontProduct(
+export { resolveResellerDefaultListingCommerce, resolveResellerListingCommerce } from "@/lib/boutique/reseller-listing-commerce.server"
+
+const listingProductSelect = {
+  stock: true,
+  basePriceCents: true,
+  variants: true,
+  colors: true,
+  customColumns: true,
+  colorImages: true,
+  images: true,
+  productVariants: {
+    select: {
+      id: true,
+      color: true,
+      size: true,
+      stock: true,
+      customData: true,
+      supplierPrice: true,
+      wholesalePriceCents: true,
+    },
+  },
+} as const
+
+function mapResellerProductDetail(args: {
+  listing: {
+    id: string
+    customTitle: string | null
+    customDescription: string | null
+    sellingPriceCents: number
+    variantPricing: unknown
+    promotedVariantKeys: string[] | null
+    customImages: string[]
+    product: {
+      name: string
+      description: string | null
+      images: string[]
+      stock: number
+      basePriceCents: number
+      variants: unknown
+      colors: string[]
+      customColumns: unknown
+      colorImages?: unknown
+      productVariants: Array<{
+        id: string
+        color: string | null
+        size: string | null
+        stock: number
+        customData: unknown
+        supplierPrice: unknown
+        wholesalePriceCents?: number | null
+      }>
+    }
+  }
+}): ResellerBoutiqueProductDetail {
+  const { listing } = args
+  const productShape = {
+    basePriceCents: listing.product.basePriceCents,
+    stock: listing.product.stock,
+    variants: listing.product.variants,
+    colors: listing.product.colors ?? [],
+    customColumns: listing.product.customColumns,
+    colorImages: listing.product.colorImages,
+    productVariants: listing.product.productVariants ?? [],
+  }
+
+  const ctx = prepareResellerListingVariantContext({
+    variantPricingRaw: listing.variantPricing,
+    promotedVariantKeys: listing.promotedVariantKeys,
+    product: productShape,
+  })
+
+  const commerce = resolveResellerListingCommerce({
+    listingSellingPriceCents: listing.sellingPriceCents,
+    variantPricingRaw: listing.variantPricing,
+    promotedVariantKeys: listing.promotedVariantKeys,
+    product: productShape,
+  })
+
+  const variantSummary = summarizeResellerListingVariants({
+    listingSellingPriceCents: listing.sellingPriceCents,
+    variantPricingRaw: listing.variantPricing,
+    promotedVariantKeys: listing.promotedVariantKeys,
+    product: productShape,
+  })
+
+  const colorImages = resolveResellerListingColorImages({
+    product: productShape,
+    colorNames: ctx.colorNames,
+  })
+
+  const isOutOfStock = commerce.availableStock <= 0
+  const stockLabel = isOutOfStock ? "Rupture de stock" : "En stock"
+  const priceFromLabel = formatResellerPriceFromLabel(variantSummary, formatStoreCurrencyFromCents)
+
+  const rawDescription = listing.customDescription?.trim() || listing.product.description || ""
+  const plainDescription = stripDescriptionImageMarkers(rawDescription).replace(/\s+/g, " ").trim()
+  const gallery = listingGalleryUrls(listing.customImages, listing.product.images)
+
+  return {
+    listingId: listing.id,
+    title: listingDisplayTitle(listing.customTitle, listing.product.name),
+    descriptionExcerpt: plainDescription.slice(0, 420),
+    imageUrl: gallery[0] || "/placeholder.png",
+    priceLabel: priceFromLabel ?? formatStoreCurrencyFromCents(commerce.priceCents),
+    priceCents: commerce.priceCents,
+    isOutOfStock,
+    stockLabel,
+    marketplaceHref: `/marketplace/${listing.id}`,
+    listingPriceCents: listing.sellingPriceCents,
+    basePriceCents: listing.product.basePriceCents,
+    variantPricing: ctx.variantPricing,
+    colorNames: ctx.colorNames,
+    colorImages,
+    storageOptions: ctx.storageOptions,
+    sizeOptions: ctx.sizeOptions,
+    variants: ctx.variants,
+    customColumns: ctx.customColumns,
+    variantSummary,
+    gallery: gallery.length > 0 ? gallery : ["/placeholder.png"],
+    catalogStock: listing.product.stock,
+    defaultSelection: {
+      selectedColor: commerce.selectedColor,
+      selectedSize: commerce.selectedSize,
+      selectedStorage: commerce.selectedStorage,
+    },
+  }
+}
+
+export async function loadResellerBoutiqueProductDetail(
   listingId: string | null | undefined
-): Promise<ResellerStorefrontProduct | null> {
+): Promise<ResellerBoutiqueProductDetail | null> {
   const id = listingId?.trim()
   if (!id) return null
 
@@ -172,25 +217,9 @@ export async function loadResellerStorefrontProduct(
       customImages: true,
       product: {
         select: {
+          ...listingProductSelect,
           name: true,
           description: true,
-          images: true,
-          stock: true,
-          basePriceCents: true,
-          variants: true,
-          colors: true,
-          customColumns: true,
-          productVariants: {
-            select: {
-              id: true,
-              color: true,
-              size: true,
-              stock: true,
-              customData: true,
-              supplierPrice: true,
-              wholesalePriceCents: true,
-            },
-          },
         },
       },
     },
@@ -198,45 +227,36 @@ export async function loadResellerStorefrontProduct(
 
   if (!listing?.product) return null
 
-  const commerce = resolveResellerDefaultListingCommerce({
-    listingSellingPriceCents: listing.sellingPriceCents,
-    variantPricingRaw: listing.variantPricing,
-    promotedVariantKeys: listing.promotedVariantKeys,
-    product: {
-      basePriceCents: listing.product.basePriceCents,
-      stock: listing.product.stock,
-      variants: listing.product.variants,
-      colors: listing.product.colors ?? [],
-      customColumns: listing.product.customColumns,
-      productVariants: listing.product.productVariants ?? [],
-    },
-  })
-
-  const isOutOfStock = commerce.availableStock <= 0
-  const stockLabel = isOutOfStock ? "Out of stock" : "En stock"
+  const detail = mapResellerProductDetail({ listing })
 
   console.log("[boutique-storefront]", {
     listingId: listing.id,
-    defaultOptionName: commerce.defaultOptionName,
-    priceCents: commerce.priceCents,
-    availableStock: commerce.availableStock,
-    isOutOfStock,
-    result: "loaded",
+    optionCount: detail.variantSummary.optionCount,
+    hasMultipleOptions: detail.variantSummary.hasMultipleOptions,
+    priceCents: detail.priceCents,
+    isOutOfStock: detail.isOutOfStock,
+    result: "detail_loaded",
   })
 
-  const rawDescription = listing.customDescription?.trim() || listing.product.description
-  const plainDescription = stripDescriptionImageMarkers(rawDescription).replace(/\s+/g, " ").trim()
+  return detail
+}
+
+export async function loadResellerStorefrontProduct(
+  listingId: string | null | undefined
+): Promise<ResellerStorefrontProduct | null> {
+  const detail = await loadResellerBoutiqueProductDetail(listingId)
+  if (!detail) return null
 
   return {
-    listingId: listing.id,
-    title: listingDisplayTitle(listing.customTitle, listing.product.name),
-    descriptionExcerpt: plainDescription.slice(0, 420),
-    imageUrl: listingPrimaryImageUrl(listing.customImages, listing.product.images) || "/placeholder.png",
-    priceLabel: formatStoreCurrencyFromCents(commerce.priceCents),
-    priceCents: commerce.priceCents,
-    isOutOfStock,
-    stockLabel,
-    marketplaceHref: `/marketplace/${listing.id}`,
+    listingId: detail.listingId,
+    title: detail.title,
+    descriptionExcerpt: detail.descriptionExcerpt,
+    imageUrl: detail.imageUrl,
+    priceLabel: detail.priceLabel,
+    priceCents: detail.priceCents,
+    isOutOfStock: detail.isOutOfStock,
+    stockLabel: detail.stockLabel,
+    marketplaceHref: detail.marketplaceHref,
   }
 }
 
@@ -411,26 +431,43 @@ export async function loadResellerStorefrontList(args: {
       Boolean(listing.product)
     )
     .map((listing) => {
+      const productShape = {
+        basePriceCents: listing.product.basePriceCents,
+        stock: listing.product.stock,
+        variants: listing.product.variants,
+        colors: listing.product.colors ?? [],
+        customColumns: listing.product.customColumns,
+        productVariants: listing.product.productVariants ?? [],
+      }
+
       const commerce = resolveResellerDefaultListingCommerce({
         listingSellingPriceCents: listing.sellingPriceCents,
         variantPricingRaw: listing.variantPricing,
         promotedVariantKeys: listing.promotedVariantKeys,
-        product: {
-          basePriceCents: listing.product.basePriceCents,
-          stock: listing.product.stock,
-          variants: listing.product.variants,
-          colors: listing.product.colors ?? [],
-          customColumns: listing.product.customColumns,
-          productVariants: listing.product.productVariants ?? [],
-        },
+        product: productShape,
       })
+
+      const variantSummary = summarizeResellerListingVariants({
+        listingSellingPriceCents: listing.sellingPriceCents,
+        variantPricingRaw: listing.variantPricing,
+        promotedVariantKeys: listing.promotedVariantKeys,
+        product: productShape,
+      })
+
+      const ctx = prepareResellerListingVariantContext({
+        variantPricingRaw: listing.variantPricing,
+        promotedVariantKeys: listing.promotedVariantKeys,
+        product: productShape,
+      })
+
+      const priceFromLabel = formatResellerPriceFromLabel(variantSummary, formatStoreCurrencyFromCents)
 
       return {
         id: listing.id,
         productId: listing.productId,
         title: listingDisplayTitle(listing.customTitle, listing.product.name),
         priceCents: commerce.priceCents,
-        priceLabel: formatStoreCurrencyFromCents(commerce.priceCents),
+        priceLabel: priceFromLabel ?? formatStoreCurrencyFromCents(commerce.priceCents),
         compareAtCents:
           listing.product.compareAt != null
             ? Math.round(Number(listing.product.compareAt) * 100)
@@ -443,6 +480,8 @@ export async function loadResellerStorefrontList(args: {
           normalizeBuyerRewardKind(listing.buyerRewardKind),
           listing.buyerRewardPercent
         ),
+        variantSummary,
+        colorSwatchNames: ctx.colorNames.slice(0, 8),
       }
     })
 

@@ -4,9 +4,16 @@ import { createResellerOrder } from "@/lib/boutique/create-reseller-order.server
 import { AFFILIATE_COMMISSION_REQUIRED_ERROR } from "@/lib/supplier-explicit-commission"
 
 export async function POST(req: Request) {
-  let body: { storeSlug?: string; productId?: string; customerEmail?: string }
+  let body: {
+    storeSlug?: string
+    productId?: string
+    customerEmail?: string
+    selectedColor?: string | null
+    selectedSize?: string | null
+    selectedStorage?: string | null
+  }
   try {
-    body = (await req.json()) as { storeSlug?: string; productId?: string; customerEmail?: string }
+    body = (await req.json()) as typeof body
   } catch {
     return NextResponse.json({ success: false, error: "invalid_json" }, { status: 400 })
   }
@@ -21,6 +28,9 @@ export async function POST(req: Request) {
     storeSlug,
     productId,
     customerEmail: body.customerEmail,
+    selectedColor: body.selectedColor,
+    selectedSize: body.selectedSize,
+    selectedStorage: body.selectedStorage,
   })
 
   if (!result.success) {

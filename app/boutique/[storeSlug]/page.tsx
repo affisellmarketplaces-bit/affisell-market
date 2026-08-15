@@ -6,9 +6,9 @@ import { auth } from "@/auth"
 import { buildResellerBoutiqueHeader } from "@/components/boutique/build-reseller-boutique-header"
 
 import {
+  loadResellerBoutiqueProductDetail,
   loadResellerBoutiqueStoreContext,
   loadResellerStorefrontList,
-  loadResellerStorefrontProduct,
 } from "@/lib/boutique/load-reseller-storefront.server"
 import { serializeResellerBoutiqueTheme } from "@/lib/boutique/reseller-boutique-theme-shared"
 import { formatResellerStoreLabel } from "@/lib/boutique/reseller-storefront-shared"
@@ -43,7 +43,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const storeContext = await loadResellerBoutiqueStoreContext(storeSlug)
   const label = storeContext?.storeLabel ?? formatResellerStoreLabel(storeSlug)
   const listingId = sp.productId?.trim() || null
-  const product = listingId ? await loadResellerStorefrontProduct(listingId) : null
+  const product = listingId ? await loadResellerBoutiqueProductDetail(listingId) : null
 
   if (product) {
     return {
@@ -89,7 +89,7 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
     storeContext != null ? buildResellerBoutiqueHeader(storeContext, session, trust) : null
 
   if (requestedListingId) {
-    const product = await loadResellerStorefrontProduct(requestedListingId)
+    const product = await loadResellerBoutiqueProductDetail(requestedListingId)
     return (
       <ResellerStorefrontShell
         storeSlug={storeSlug}

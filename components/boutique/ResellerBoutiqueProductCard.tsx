@@ -3,12 +3,14 @@
 import Image from "next/image"
 import { Eye } from "lucide-react"
 
+import { ProductColorSwatchDots } from "@/components/product/product-color-swatch-dots"
 import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { Badge } from "@/components/ui/badge"
 import type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
+import { formatResellerVariantOptionsLabel } from "@/lib/boutique/reseller-listing-variants-shared"
 import { resolveBuyerCardImageHref } from "@/lib/listing-card-image-shared"
 import { resolveProductDiscount } from "@/lib/product-discount-display"
 import { cn } from "@/lib/utils"
@@ -31,6 +33,13 @@ export function ResellerBoutiqueProductCard({
       : null
   const discountOffer = resolveProductDiscount(priceEur, compareAtEur)
   const imageSrc = resolveBuyerCardImageHref(product.image, product.id)
+  const optionsLabel = formatResellerVariantOptionsLabel(product.variantSummary)
+  const showFromPrice =
+    product.variantSummary.hasMultipleOptions &&
+    product.variantSummary.priceFromCents !== product.variantSummary.priceToCents
+  const displayPriceEur = showFromPrice
+    ? product.variantSummary.priceFromCents / 100
+    : priceEur
 
   return (
     <article
@@ -105,8 +114,33 @@ export function ResellerBoutiqueProductCard({
           </p>
         ) : null}
 
+        {optionsLabel ? (
+          <p className="mt-2 flex flex-wrap items-center gap-2">
+            <ProductColorSwatchDots
+              colors={product.colorSwatchNames}
+              max={6}
+              sizeClassName="h-4 w-4"
+            />
+            <span
+              className="text-[11px] font-medium uppercase tracking-wide opacity-70"
+              style={{ color: "var(--boutique-card-muted)" }}
+            >
+              {optionsLabel}
+            </span>
+          </p>
+        ) : null}
+
         <div className="mt-2">
-          <ProductPriceOffer price={priceEur} compareAt={compareAtEur} layout="card" />
+          {showFromPrice ? (
+            <p
+              className="text-lg font-bold tabular-nums tracking-tight"
+              style={{ color: "var(--boutique-card-title)" }}
+            >
+              {product.priceLabel}
+            </p>
+          ) : (
+            <ProductPriceOffer price={displayPriceEur} compareAt={compareAtEur} layout="card" />
+          )}
         </div>
 
         <p
