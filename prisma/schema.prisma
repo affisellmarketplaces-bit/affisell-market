@@ -3256,6 +3256,24 @@ model DemoFeedback {
 }
 
 /**
+ * Structured churn signal captured before account deletion (user row may be hard-deleted after).
+ */
+model AccountDeletionFeedback {
+  id           String   @id @default(cuid())
+  userId       String
+  role         String
+  reasonCode   String
+  reasonDetail String?  @db.Text
+  source       String
+  locale       String?
+  createdAt    DateTime @default(now())
+
+  @@index([reasonCode, createdAt])
+  @@index([role, createdAt])
+  @@index([userId, createdAt])
+}
+
+/**
  * ROW buyer interest — notify when checkout opens in their country (idempotent per email+country+region).
  */
 model CheckoutLaunchWaitlist {

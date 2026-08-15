@@ -1912,16 +1912,24 @@
   "accountDeletion": {
     "eyebrow": "Permanent action",
     "title": "Delete your account",
-    "subtitle": "No surveys, no retention questions — just a clear, irreversible closure when you are ready.",
+    "subtitle": "Three clear steps — impact, your feedback, then email confirmation.",
     "stepImpact": "Impact",
+    "stepReason": "Reason",
     "stepConfirm": "Confirm",
     "loadingPreview": "Loading deletion preview…",
     "impactIntro": "The following will be permanently removed or anonymized:",
-    "noSurveyNote": "We do not ask why you are leaving. Your decision is respected without follow-up questions.",
+    "feedbackNote": "Tell us why you are leaving — one tap helps us prioritize product improvements. No marketing follow-up.",
+    "reasonLegend": "Main reason for leaving",
+    "reasonDetailOptionalLabel": "Anything we should improve? (optional)",
+    "reasonDetailRequiredLabel": "Briefly describe your reason",
+    "reasonDetailPlaceholder": "Missing feature, friction point, or what would have kept you…",
+    "reasonDetailMinHint": "At least 10 characters when selecting « Other ».",
+    "reasonSummary": "Reported reason: {reason}",
     "confirmIntro": "Type your account email to confirm. This prevents accidental deletion.",
     "confirmLabel": "Account email",
     "confirmHint": "Must match {email}",
     "continue": "Continue",
+    "back": "Back",
     "confirmDelete": "Delete permanently",
     "deleting": "Deleting…",
     "cancel": "Cancel",
@@ -1932,6 +1940,18 @@
     "blockedOpenOrdersTitle": "Deletion blocked — orders in progress",
     "blockedOpenOrdersBody": "Finish or cancel in-progress orders before deleting your buyer account.",
     "contactSupport": "Contact support@affisell.com",
+    "reasons": {
+      "too_complex": "Too complex to use",
+      "missing_features": "Missing features I need",
+      "pricing_fees": "Pricing or fees",
+      "found_alternative": "Switching to another platform",
+      "low_sales": "Not enough sales / traction",
+      "support_issue": "Support did not meet expectations",
+      "compliance_kyc": "KYC or compliance friction",
+      "privacy_data": "Privacy or data concerns",
+      "taking_break": "Taking a break (may return)",
+      "other": "Other reason"
+    },
     "impact": {
       "supplier": [
         "Supplier profile, store settings, and custom domain bindings",
@@ -1957,7 +1977,9 @@
       "network": "Network error. Try again.",
       "deleteFailed": "Deletion failed. Try again or contact support.",
       "hasOrders": "This account has marketplace orders and cannot be deleted automatically.",
-      "openBuyerOrders": "Cannot delete while orders are in progress."
+      "openBuyerOrders": "Cannot delete while orders are in progress.",
+      "reasonRequired": "Select a reason before continuing.",
+      "reasonDetailRequired": "Please describe your reason (at least 10 characters)."
     }
   },
   "gdprAccount": {

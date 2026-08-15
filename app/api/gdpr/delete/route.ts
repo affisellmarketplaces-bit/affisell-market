@@ -2,9 +2,10 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import {
-  type AccountDeletionConfirmPayload,
-  isAccountDeletionConfirmed,
-} from "@/lib/account-deletion-shared"
+  parseAccountDeletionRequest,
+  persistAccountDeletionFeedback,
+} from "@/lib/account-deletion-request.server"
+import { type AccountDeletionConfirmPayload } from "@/lib/account-deletion-shared"
 import { deleteMerchantUser } from "@/lib/delete-merchant-account"
 import { prisma } from "@/lib/prisma"
 import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
@@ -30,34 +31,38 @@ export async function POST(req: Request) {
   }
 
   const body = (await req.json().catch(() => ({}))) as AccountDeletionConfirmPayload
-  if (!isAccountDeletionConfirmed(body, user.email)) {
-    return NextResponse.json(
-      { error: "Type your account email to confirm permanent deletion." },
-      { status: 400 }
-    )
+  const parsed = parseAccountDeletionRequest(body, user.email, "gdpr")
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error, code: parsed.code }, { status: parsed.status })
   }
 
   if (user.role === "SUPPLIER" || user.role === "AFFILIATE") {
-    const result = await deleteMerchantUser(session.user.id, user.role)
-    if (!result.ok) {
-      console.log("[account-delete]", {
-        userId: session.user.id,
-        role: user.role,
-        result: "blocked",
-        code: result.code,
-      })
-      return NextResponse.json(
-        {
-          error:
-            result.code === "HAS_ORDERS"
-              ? "This account has marketplace orders and cannot be deleted automatically. Contact support."
-              : "Account could not be deleted.",
+    try {
+      await persistAccountDeletionFeedback(session.user.id, user.role, parsed)
+      const result = await deleteMerchantUser(session.user.id, user.role)
+      if (!result.ok) {
+        console.log("[account-delete]", {
+          userId: session.user.id,
+          role: user.role,
+          result: "blocked",
           code: result.code,
-        },
-        { status: 409 }
-      )
+        })
+        return NextResponse.json(
+          {
+            error:
+              result.code === "HAS_ORDERS"
+                ? "This account has marketplace orders and cannot be deleted automatically. Contact support."
+                : "Account could not be deleted.",
+            code: result.code,
+          },
+          { status: 409 }
+        )
+      }
+      return NextResponse.json({ ok: true })
+    } catch (e) {
+      console.error("[account-delete]", { userId: session.user.id, role: user.role, error: e })
+      return NextResponse.json({ error: "Deletion failed." }, { status: 500 })
     }
-    return NextResponse.json({ ok: true })
   }
 
   const openOrders = await prisma.order.count({
@@ -78,6 +83,8 @@ export async function POST(req: Request) {
       { status: 409 }
     )
   }
+
+  await persistAccountDeletionFeedback(session.user.id, user.role, parsed)
 
   await prisma.user.update({
     where: { id: session.user.id },

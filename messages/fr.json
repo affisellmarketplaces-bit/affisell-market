@@ -1912,16 +1912,24 @@
   "accountDeletion": {
     "eyebrow": "Action définitive",
     "title": "Supprimer votre compte",
-    "subtitle": "Aucun sondage, aucune question de rétention — une fermeture claire et irréversible quand vous le décidez.",
+    "subtitle": "Trois étapes claires — impact, votre retour, puis confirmation par email.",
     "stepImpact": "Impact",
+    "stepReason": "Raison",
     "stepConfirm": "Confirmer",
     "loadingPreview": "Chargement de l’aperçu…",
     "impactIntro": "Les éléments suivants seront supprimés ou anonymisés définitivement :",
-    "noSurveyNote": "Nous ne demandons pas pourquoi vous partez. Votre décision est respectée, sans questionnaire.",
+    "feedbackNote": "Dites-nous pourquoi vous partez — un clic nous aide à prioriser les améliorations. Aucun relance marketing.",
+    "reasonLegend": "Raison principale du départ",
+    "reasonDetailOptionalLabel": "Que devrions-nous améliorer ? (optionnel)",
+    "reasonDetailRequiredLabel": "Décrivez brièvement votre raison",
+    "reasonDetailPlaceholder": "Fonction manquante, friction, ou ce qui vous aurait fait rester…",
+    "reasonDetailMinHint": "Minimum 10 caractères si vous choisissez « Autre ».",
+    "reasonSummary": "Raison signalée : {reason}",
     "confirmIntro": "Saisissez l’email de votre compte pour confirmer. Cela évite une suppression accidentelle.",
     "confirmLabel": "Email du compte",
     "confirmHint": "Doit correspondre à {email}",
     "continue": "Continuer",
+    "back": "Retour",
     "confirmDelete": "Supprimer définitivement",
     "deleting": "Suppression…",
     "cancel": "Annuler",
@@ -1932,6 +1940,18 @@
     "blockedOpenOrdersTitle": "Suppression bloquée — commandes en cours",
     "blockedOpenOrdersBody": "Finalisez ou annulez les commandes en cours avant de supprimer votre compte acheteur.",
     "contactSupport": "Contacter support@affisell.com",
+    "reasons": {
+      "too_complex": "Trop complexe à utiliser",
+      "missing_features": "Fonctionnalités manquantes",
+      "pricing_fees": "Tarifs ou commissions",
+      "found_alternative": "Passage à une autre plateforme",
+      "low_sales": "Pas assez de ventes / traction",
+      "support_issue": "Support insatisfaisant",
+      "compliance_kyc": "Friction KYC / conformité",
+      "privacy_data": "Préoccupations vie privée / données",
+      "taking_break": "Pause (je pourrais revenir)",
+      "other": "Autre raison"
+    },
     "impact": {
       "supplier": [
         "Supplier profile, store settings, and custom domain bindings",
@@ -1957,7 +1977,9 @@
       "network": "Erreur réseau. Réessayez.",
       "deleteFailed": "Échec de la suppression. Réessayez ou contactez le support.",
       "hasOrders": "Ce compte a des commandes marketplace — suppression automatique impossible.",
-      "openBuyerOrders": "Suppression impossible tant que des commandes sont en cours."
+      "openBuyerOrders": "Suppression impossible tant que des commandes sont en cours.",
+      "reasonRequired": "Sélectionnez une raison avant de continuer.",
+      "reasonDetailRequired": "Décrivez votre raison (minimum 10 caractères)."
     }
   },
   "gdprAccount": {

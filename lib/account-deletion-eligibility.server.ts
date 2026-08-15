@@ -3,6 +3,7 @@ import type {
   AccountDeletionImpactScope,
   AccountDeletionPreview,
 } from "@/lib/account-deletion-shared"
+import { ACCOUNT_DELETION_REASON_CODES } from "@/lib/account-deletion-shared"
 import { prisma } from "@/lib/prisma"
 
 function roleLabel(role: string): string {
@@ -45,6 +46,7 @@ export async function getAccountDeletionPreview(userId: string): Promise<Account
       canDelete: orderCount === 0,
       blockCode,
       impactScope: merchantImpactScope(user.role),
+      reasonCodes: [...ACCOUNT_DELETION_REASON_CODES],
     }
   }
 
@@ -64,5 +66,6 @@ export async function getAccountDeletionPreview(userId: string): Promise<Account
     canDelete: openOrders === 0,
     blockCode,
     impactScope: "buyer" satisfies AccountDeletionImpactScope,
+    reasonCodes: [...ACCOUNT_DELETION_REASON_CODES],
   }
 }

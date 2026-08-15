@@ -2,9 +2,10 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import {
-  type AccountDeletionConfirmPayload,
-  isAccountDeletionConfirmed,
-} from "@/lib/account-deletion-shared"
+  parseAccountDeletionRequest,
+  persistAccountDeletionFeedback,
+} from "@/lib/account-deletion-request.server"
+import { type AccountDeletionConfirmPayload } from "@/lib/account-deletion-shared"
 import { deleteMerchantUser } from "@/lib/delete-merchant-account"
 import { prisma } from "@/lib/prisma"
 import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
@@ -35,14 +36,13 @@ export async function DELETE(req: Request) {
   }
 
   const body = (await req.json().catch(() => ({}))) as AccountDeletionConfirmPayload
-  if (!isAccountDeletionConfirmed(body, user.email)) {
-    return NextResponse.json(
-      { error: "Type your account email to confirm permanent deletion." },
-      { status: 400 }
-    )
+  const parsed = parseAccountDeletionRequest(body, user.email, "merchant")
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error, code: parsed.code }, { status: parsed.status })
   }
 
   try {
+    await persistAccountDeletionFeedback(userId, role, parsed)
     const result = await deleteMerchantUser(userId, role)
     if (!result.ok) {
       if (result.code === "HAS_ORDERS") {
