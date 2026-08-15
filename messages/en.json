@@ -2872,6 +2872,43 @@
         "hint": "Fills tagline + Story + CTA sections. Review before publishing.",
         "failed": "AI copy unavailable — check GROQ_API_KEY or try again."
       },
+      "generate": {
+        "cta": "Generate",
+        "generating": "Generating…",
+        "failed": "Generation failed — try again.",
+        "fields": {
+          "preset": "Generate",
+          "name": "Generate",
+          "logo": "Generate",
+          "banner": "Generate",
+          "copy": "Generate",
+          "colors": "Generate",
+          "layout": "Generate",
+          "nameBadge": "Generate",
+          "sections": "Generate",
+          "embed": "Generate",
+          "boutiqueTitle": "Generate",
+          "staticPages": "Generate",
+          "faqOrders": "Generate",
+          "sectionContent": "Generate"
+        },
+        "hints": {
+          "preset": "AI-matched preset, palette, layout & tagline from your catalog.",
+          "name": "Brand name from niche + catalog keywords.",
+          "logo": "Gradient monogram from your store name & colors.",
+          "banner": "Cinematic hero — HF image or gradient fallback.",
+          "copy": "Tagline + Story + CTA sections.",
+          "colors": "Primary, accent & trust rail from catalog AI.",
+          "layout": "Layout, hero, grid & surface tuned to your niche.",
+          "nameBadge": "Badge style matched to your surface & preset.",
+          "sections": "Enable & copy homepage blocks for your niche.",
+          "embed": "Ready-to-copy embed widget with headline.",
+          "boutiqueTitle": "Font & ornament paired to your preset.",
+          "staticPages": "About, FAQ & Returns (EU-friendly).",
+          "faqOrders": "FAQ from your last 30 days of orders.",
+          "sectionContent": "Fill this section with niche-aware copy."
+        }
+      },
       "layoutControls": {
         "title": "Structure & mood",
         "headerBrand": "Store name in header",

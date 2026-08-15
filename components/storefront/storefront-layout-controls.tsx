@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl"
 
+import { BrandStudioFieldHeader } from "@/components/storefront/brand-studio-field-header"
+import type { BrandFieldGenerateResponse } from "@/lib/storefront-brand-field-generate-shared"
 import type {
   StorefrontGridDensity,
   StorefrontHeaderBrandAlign,
@@ -22,6 +24,11 @@ type Props = {
   onGridDensity: (v: StorefrontGridDensity) => void
   onSurface: (v: StorefrontSurface) => void
   onHeaderBrandAlign: (v: StorefrontHeaderBrandAlign) => void
+  generate?: {
+    role: "AFFILIATE" | "SUPPLIER"
+    disabled?: boolean
+    onApply: (result: BrandFieldGenerateResponse) => void
+  }
 }
 
 function OptionChip<T extends string>({
@@ -60,12 +67,25 @@ export function StorefrontLayoutControls({
   onGridDensity,
   onSurface,
   onHeaderBrandAlign,
+  generate,
 }: Props) {
   const t = useTranslations("storefront.brandStudio.layoutControls")
 
   return (
     <div className="space-y-5 rounded-2xl border border-gray-200/80 bg-gray-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
-      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{t("title")}</p>
+      <BrandStudioFieldHeader
+        label={t("title")}
+        generate={
+          generate
+            ? {
+                field: "layout",
+                role: generate.role,
+                disabled: generate.disabled,
+                onApply: generate.onApply,
+              }
+            : undefined
+        }
+      />
 
       <div className="space-y-2">
         <p className="text-[11px] font-medium text-gray-600 dark:text-zinc-400">{t("headerBrand")}</p>

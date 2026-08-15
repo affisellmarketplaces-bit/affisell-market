@@ -2,7 +2,9 @@
 
 import { useTranslations } from "next-intl"
 
+import { BrandStudioFieldHeader } from "@/components/storefront/brand-studio-field-header"
 import { StoreNameBadge } from "@/components/storefront/store-name-badge"
+import type { BrandFieldGenerateResponse } from "@/lib/storefront-brand-field-generate-shared"
 import {
   STORE_NAME_BADGE_CATALOG,
   type StoreNameBadgeStyle,
@@ -15,15 +17,39 @@ type Props = {
   previewName: string
   accent: string
   primary: string
+  generate?: {
+    role: "AFFILIATE" | "SUPPLIER"
+    disabled?: boolean
+    onApply: (result: BrandFieldGenerateResponse) => void
+  }
 }
 
-export function StoreNameBadgePicker({ value, onChange, previewName, accent, primary }: Props) {
+export function StoreNameBadgePicker({
+  value,
+  onChange,
+  previewName,
+  accent,
+  primary,
+  generate,
+}: Props) {
   const t = useTranslations("storefront.brandStudio.nameBadges")
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{t("sectionTitle")}</p>
-      <p className="text-sm text-gray-600 dark:text-zinc-400">{t("sectionHint")}</p>
+      <BrandStudioFieldHeader
+        label={t("sectionTitle")}
+        hint={t("sectionHint")}
+        generate={
+          generate
+            ? {
+                field: "nameBadge",
+                role: generate.role,
+                disabled: generate.disabled,
+                onApply: generate.onApply,
+              }
+            : undefined
+        }
+      />
       <ul className="grid gap-3 sm:grid-cols-2">
         {STORE_NAME_BADGE_CATALOG.map((item) => {
           const selected = value === item.id

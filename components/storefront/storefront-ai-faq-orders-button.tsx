@@ -1,14 +1,9 @@
 "use client"
 
-import { Loader2, Sparkles } from "lucide-react"
-import { useLocale, useTranslations } from "next-intl"
-import { useCallback, useState } from "react"
+import { useTranslations } from "next-intl"
 
-import { Button } from "@/components/ui/button"
-import { capturePosthogClient } from "@/lib/analytics/posthog"
-import { postBrandAiJson } from "@/lib/storefront-ai-fetch-shared"
-import type { StorefrontFaqItem } from "@/lib/storefront-static-pages-shared"
-import { updateStaticPage } from "@/lib/storefront-static-pages-shared"
+import { BrandStudioGenerateButton } from "@/components/storefront/brand-studio-generate-button"
+import type { BrandFieldGenerateResponse } from "@/lib/storefront-brand-field-generate-shared"
 import type { StorefrontStaticPages } from "@/lib/storefront-static-pages-shared"
 
 type Props = {
@@ -18,61 +13,20 @@ type Props = {
   onApply: (pages: StorefrontStaticPages) => void
 }
 
-export function StorefrontAiFaqOrdersButton({ role, pages, disabled = false, onApply }: Props) {
+export function StorefrontAiFaqOrdersButton({ role, disabled = false, onApply }: Props) {
   const t = useTranslations("storefront.brandStudio.aiFaqOrders")
-  const locale = useLocale()
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const generate = useCallback(async () => {
-    setBusy(true)
-    setError(null)
-    try {
-      const result = await postBrandAiJson<{ faqItems?: StorefrontFaqItem[] }>(
-        "/api/store/generate-brand-faq-from-orders",
-        { locale },
-        t("failed")
-      )
-      const faqItems = result.data?.faqItems
-      if (!result.ok || !faqItems) {
-        throw new Error(result.error ?? t("failed"))
-      }
-      const next = updateStaticPage(pages, "faq", {
-        enabled: true,
-        title: pages.faq.title ?? "FAQ",
-        faqItems,
-      })
-      onApply(next)
-      capturePosthogClient("brand_ai_faq_orders_generated", { role, itemCount: faqItems.length })
-      console.log("[brand-studio]", { event: "ai_faq_orders_generated", role, result: "ok" })
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : t("failed")
-      setError(msg)
-      console.log("[brand-studio]", { event: "ai_faq_orders_generated", role, result: "error", error: msg })
-    } finally {
-      setBusy(false)
-    }
-  }, [locale, onApply, pages, role, t])
 
   return (
-    <div className="space-y-2">
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={disabled || busy}
-        onClick={() => void generate()}
-        className="border-indigo-300/70 text-indigo-900 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-100"
-      >
-        {busy ? (
-          <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
-        ) : (
-          <Sparkles className="mr-2 size-4" aria-hidden />
-        )}
-        {busy ? t("generating") : t("cta")}
-      </Button>
-      <p className="text-[11px] text-gray-500 dark:text-zinc-500">{t("hint")}</p>
-      {error ? <p className="text-[11px] text-rose-600 dark:text-rose-400">{error}</p> : null}
-    </div>
+    <BrandStudioGenerateButton
+      field="faqOrders"
+      role={role}
+      disabled={disabled}
+      variant="default"
+      label={t("cta")}
+      hint={t("hint")}
+      onApply={(result: BrandFieldGenerateResponse) => {
+        if (result.staticPages) onApply(result.staticPages)
+      }}
+    />
   )
 }

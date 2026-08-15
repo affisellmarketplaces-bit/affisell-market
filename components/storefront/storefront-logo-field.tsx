@@ -5,7 +5,9 @@ import { useRef, useState } from "react"
 import { ImagePlus, Link2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { BrandStudioFieldHeader } from "@/components/storefront/brand-studio-field-header"
 import { Input } from "@/components/ui/input"
+import type { BrandFieldGenerateResponse } from "@/lib/storefront-brand-field-generate-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -13,9 +15,20 @@ type Props = {
   logoPreview: string | null
   onLogoUrlChange: (url: string) => void
   onLogoFile: (file: File | null) => void
+  generate?: {
+    role: "AFFILIATE" | "SUPPLIER"
+    disabled?: boolean
+    onApply: (result: BrandFieldGenerateResponse) => void
+  }
 }
 
-export function StorefrontLogoField({ logoUrl, logoPreview, onLogoUrlChange, onLogoFile }: Props) {
+export function StorefrontLogoField({
+  logoUrl,
+  logoPreview,
+  onLogoUrlChange,
+  onLogoFile,
+  generate,
+}: Props) {
   const t = useTranslations("storefront.brandStudio.logo")
   const fileRef = useRef<HTMLInputElement>(null)
   const [localPreview, setLocalPreview] = useState<string | null>(null)
@@ -34,7 +47,19 @@ export function StorefrontLogoField({ logoUrl, logoPreview, onLogoUrlChange, onL
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{t("title")}</p>
+      <BrandStudioFieldHeader
+        label={t("title")}
+        generate={
+          generate
+            ? {
+                field: "logo",
+                role: generate.role,
+                disabled: generate.disabled,
+                onApply: generate.onApply,
+              }
+            : undefined
+        }
+      />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
         <div
           className={cn(

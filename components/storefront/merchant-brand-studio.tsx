@@ -9,8 +9,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { StoreCustomDomainCard } from "@/components/storefront/store-custom-domain-card"
-import { StorefrontAiBannerButton } from "@/components/storefront/storefront-ai-banner-button"
 import { StorefrontAiCopyButton } from "@/components/storefront/storefront-ai-copy-button"
+import { BrandStudioFieldHeader } from "@/components/storefront/brand-studio-field-header"
 import { StorefrontAiThemeStudioPanel } from "@/components/storefront/storefront-ai-theme-studio-panel"
 import { BoutiqueAiPersonalizePanel } from "@/components/storefront/boutique-ai-personalize-panel"
 import { BoutiqueTitleStudioPanel } from "@/components/storefront/boutique-title-studio-panel"
@@ -81,7 +81,8 @@ import type { BrandLaunchConfig } from "@/lib/storefront-brand-launch"
 import type { StorefrontPresetAb } from "@/lib/storefront-preset-ab-shared"
 import { computeBrandPulse } from "@/lib/storefront-brand-pulse-shared"
 import { brandAiThemeToStorefrontTheme } from "@/lib/storefront-brand-ai-theme-shared"
-import type { BrandAiThemePayload } from "@/lib/storefront-brand-ai-theme-shared"
+import type { BrandAiThemePayload, BrandAiThemePresetId } from "@/lib/storefront-brand-ai-theme-shared"
+import type { BrandFieldGenerateResponse } from "@/lib/storefront-brand-field-generate-shared"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
 import { readAmplifyCopiedFlag } from "@/lib/storefront-share-channel-recommendation"
 import { cn } from "@/lib/utils"
@@ -732,6 +733,61 @@ export function MerchantBrandStudio({
     setHeaderBrandAlign(theme.headerBrandAlign ?? DEFAULT_STOREFRONT_THEME.headerBrandAlign!)
   }
 
+  const applyBrandFieldResult = useCallback(
+    (result: BrandFieldGenerateResponse) => {
+      if (result.name) setName(result.name)
+      if (result.logoUrl) {
+        setLogoUrl(result.logoUrl)
+        setLogoFile(null)
+      }
+      if (result.bannerUrl) {
+        setBannerUrl(result.bannerUrl)
+        setHeroStyle("banner")
+      }
+      if (result.description) setDescription(result.description)
+      if (result.primary) setPrimaryHex(result.primary)
+      if (result.accent) setAccent(result.accent)
+      if (result.trustRailText) setTrustRailText(result.trustRailText)
+      if (result.nameBadge) setNameBadge(result.nameBadge)
+      if (result.layout) setLayout(result.layout)
+      if (result.heroStyle) setHeroStyle(result.heroStyle)
+      if (result.gridDensity) setGridDensity(result.gridDensity)
+      if (result.surface) setSurface(result.surface)
+      if (result.headerBrandAlign) setHeaderBrandAlign(result.headerBrandAlign)
+      if (result.homepageSections) setHomepageSections(result.homepageSections)
+      if (result.staticPages) setStaticPages(result.staticPages)
+      if (result.embedWidget) setEmbedWidget(result.embedWidget)
+
+      if (result.presetId && result.primary && result.accent) {
+        const payload: BrandAiThemePayload = {
+          presetId: result.presetId as BrandAiThemePresetId,
+          primary: result.primary,
+          accent: result.accent,
+          surface: result.surface ?? "dark",
+          layout: result.layout ?? "immersive",
+          heroStyle: result.heroStyle ?? "gradient",
+          gridDensity: result.gridDensity ?? "spacious",
+          description: result.description ?? description,
+          boutiqueTagline: result.description ?? description,
+          storyBody: result.description ?? description,
+          rationale: "AI field generate",
+          source: result.source === "ai" ? "ai" : "rules",
+        }
+        applyPreset(brandAiThemeToStorefrontTheme(payload), result.presetId)
+      }
+    },
+    [description]
+  )
+
+  const brandGenerateProps = useMemo(
+    () => ({
+      role,
+      disabled: saving || loading,
+      onApply: applyBrandFieldResult,
+    }),
+    [applyBrandFieldResult, loading, role, saving]
+  )
+
   const handleAiThemeApplyAndSave = useCallback(
     async (payload: BrandAiThemePayload): Promise<boolean> => {
       const theme = brandAiThemeToStorefrontTheme(payload)
@@ -1049,12 +1105,18 @@ export function MerchantBrandStudio({
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(280px,22rem)]">
           <BentoCard>
             <form id={BRAND_STUDIO_FORM_ID} onSubmit={onSubmit} className="space-y-8">
-              <StorefrontThemePresetPicker value={presetId} onApply={applyPreset} />
+              <StorefrontThemePresetPicker
+                value={presetId}
+                onApply={applyPreset}
+                generate={brandGenerateProps}
+              />
 
               <div className="space-y-2">
-                <label htmlFor="bs-name" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  {t("storeName")}
-                </label>
+                <BrandStudioFieldHeader
+                  htmlFor="bs-name"
+                  label={t("storeName")}
+                  generate={{ field: "name", ...brandGenerateProps }}
+                />
                 <Input id="bs-name" bento value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
 
@@ -1070,13 +1132,16 @@ export function MerchantBrandStudio({
                   logoPreview={logoPreview}
                   onLogoUrlChange={setLogoUrl}
                   onLogoFile={setLogoFile}
+                  generate={brandGenerateProps}
                 />
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="bs-banner" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  {t("heroBanner")}
-                </label>
+                <BrandStudioFieldHeader
+                  htmlFor="bs-banner"
+                  label={t("heroBanner")}
+                  generate={{ field: "banner", ...brandGenerateProps }}
+                />
                 <Input
                   id="bs-banner"
                   bento
@@ -1085,20 +1150,14 @@ export function MerchantBrandStudio({
                   onChange={(e) => setBannerUrl(e.target.value)}
                   placeholder="https://…"
                 />
-                <StorefrontAiBannerButton
-                  role={role}
-                  disabled={saving}
-                  onApply={(nextBannerUrl) => {
-                    setBannerUrl(nextBannerUrl)
-                    setHeroStyle("banner")
-                  }}
-                />
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="bs-desc" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  {t("tagline")}
-                </label>
+                <BrandStudioFieldHeader
+                  htmlFor="bs-desc"
+                  label={t("tagline")}
+                  generate={{ field: "copy", ...brandGenerateProps }}
+                />
                 <textarea
                   id="bs-desc"
                   rows={4}
@@ -1113,17 +1172,24 @@ export function MerchantBrandStudio({
                   homepageSections={homepageSections}
                   onApply={({ description: nextDescription, homepageSections: nextSections }) => {
                     setDescription(nextDescription)
-                    setHomepageSections(nextSections)
+                    if (nextSections.length > 0) setHomepageSections(nextSections)
                   }}
                 />
               </div>
 
-              <StorefrontHeaderColorPicker value={primaryHex} accent={accent} onChange={setPrimaryHex} />
+              <StorefrontHeaderColorPicker
+                value={primaryHex}
+                accent={accent}
+                onChange={setPrimaryHex}
+                generate={brandGenerateProps}
+              />
 
               <div className="space-y-2">
-                <label htmlFor="bs-accent" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  {t("accent")}
-                </label>
+                <BrandStudioFieldHeader
+                  htmlFor="bs-accent"
+                  label={t("accent")}
+                  generate={{ field: "colors", ...brandGenerateProps }}
+                />
                 <input
                   id="bs-accent"
                   type="color"
@@ -1134,10 +1200,12 @@ export function MerchantBrandStudio({
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="bs-trust-rail" className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  {t("trustRailText")}
-                </label>
-                <p className="text-xs text-gray-500 dark:text-zinc-400">{t("trustRailTextHint")}</p>
+                <BrandStudioFieldHeader
+                  htmlFor="bs-trust-rail"
+                  label={t("trustRailText")}
+                  hint={t("trustRailTextHint")}
+                  generate={{ field: "colors", ...brandGenerateProps }}
+                />
                 <div className="flex flex-wrap items-center gap-2">
                   <input
                     id="bs-trust-rail"
@@ -1177,6 +1245,7 @@ export function MerchantBrandStudio({
                 onGridDensity={setGridDensity}
                 onSurface={setSurface}
                 onHeaderBrandAlign={setHeaderBrandAlign}
+                generate={brandGenerateProps}
               />
 
               <StorefrontHeroVideoField
@@ -1206,11 +1275,19 @@ export function MerchantBrandStudio({
                     storeName={name.trim() || t("launch.defaultStoreName")}
                     widget={embedWidget}
                     onChange={setEmbedWidget}
+                    generate={brandGenerateProps}
                   />
                 </div>
               ) : null}
 
-              <StorefrontSectionsEditor sections={homepageSections} onChange={setHomepageSections} />
+              <StorefrontSectionsEditor
+                sections={homepageSections}
+                onChange={setHomepageSections}
+                generate={{
+                  ...brandGenerateProps,
+                  onSectionApply: applyBrandFieldResult,
+                }}
+              />
 
               <div
                 ref={pagesPanelRef}
@@ -1233,6 +1310,7 @@ export function MerchantBrandStudio({
                 previewName={name.trim() || "Ecom Store"}
                 accent={accent}
                 primary={primaryHex}
+                generate={brandGenerateProps}
               />
 
               <div className="sticky bottom-0 z-10 -mx-2 hidden border-t border-gray-200/80 bg-white/90 px-2 py-4 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/90 sm:-mx-4 sm:px-4 lg:block">

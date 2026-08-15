@@ -2,24 +2,41 @@
 
 import { useTranslations } from "next-intl"
 
+import { BrandStudioFieldHeader } from "@/components/storefront/brand-studio-field-header"
 import { STOREFRONT_THEME_PRESETS } from "@/lib/storefront-theme-presets"
+import type { BrandFieldGenerateResponse } from "@/lib/storefront-brand-field-generate-shared"
 import type { StorefrontTheme } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
   value: string | null
   onApply: (theme: StorefrontTheme, presetId: string) => void
+  generate?: {
+    role: "AFFILIATE" | "SUPPLIER"
+    disabled?: boolean
+    onApply: (result: BrandFieldGenerateResponse) => void
+  }
 }
 
-export function StorefrontThemePresetPicker({ value, onApply }: Props) {
+export function StorefrontThemePresetPicker({ value, onApply, generate }: Props) {
   const t = useTranslations("storefront.brandStudio.presets")
 
   return (
     <div className="space-y-3">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{t("title")}</p>
-        <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">{t("hint")}</p>
-      </div>
+      <BrandStudioFieldHeader
+        label={t("title")}
+        hint={t("hint")}
+        generate={
+          generate
+            ? {
+                field: "preset",
+                role: generate.role,
+                disabled: generate.disabled,
+                onApply: generate.onApply,
+              }
+            : undefined
+        }
+      />
       <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
         {STOREFRONT_THEME_PRESETS.map((preset) => {
           const selected = value === preset.id

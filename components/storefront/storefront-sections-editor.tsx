@@ -22,7 +22,9 @@ import { useMemo, useState } from "react"
 
 import { StorefrontSectionContentPanel } from "@/components/storefront/storefront-section-content-panel"
 import { StorefrontFlashSalePanel } from "@/components/storefront/storefront-flash-sale-panel"
+import { BrandStudioFieldHeader } from "@/components/storefront/brand-studio-field-header"
 import { capturePosthogClient } from "@/lib/analytics/posthog"
+import type { BrandFieldGenerateResponse } from "@/lib/storefront-brand-field-generate-shared"
 import {
   HOMEPAGE_SECTION_TYPES,
   reorderHomepageSections,
@@ -35,6 +37,12 @@ import { cn } from "@/lib/utils"
 type Props = {
   sections: HomepageSection[]
   onChange: (sections: HomepageSection[]) => void
+  generate?: {
+    role: "AFFILIATE" | "SUPPLIER"
+    disabled?: boolean
+    onApply: (result: BrandFieldGenerateResponse) => void
+    onSectionApply: (result: BrandFieldGenerateResponse) => void
+  }
 }
 
 type SortableRowProps = {
@@ -44,6 +52,7 @@ type SortableRowProps = {
   sections: HomepageSection[]
   onChange: (sections: HomepageSection[]) => void
   onToggleExpand: (type: HomepageSectionType) => void
+  generate?: Props["generate"]
 }
 
 function SortableSectionRow({
@@ -53,6 +62,7 @@ function SortableSectionRow({
   sections,
   onChange,
   onToggleExpand,
+  generate,
 }: SortableRowProps) {
   const t = useTranslations("storefront.brandStudio.sections")
   const label = t(`types.${section.type}.label`)
@@ -140,14 +150,27 @@ function SortableSectionRow({
         section.type === "flash-sale" ? (
           <StorefrontFlashSalePanel sections={sections} onChange={onChange} />
         ) : (
-          <StorefrontSectionContentPanel section={section} sections={sections} onChange={onChange} />
+          <StorefrontSectionContentPanel
+            section={section}
+            sections={sections}
+            onChange={onChange}
+            generate={
+              generate
+                ? {
+                    role: generate.role,
+                    disabled: generate.disabled,
+                    onApply: generate.onSectionApply,
+                  }
+                : undefined
+            }
+          />
         )
       ) : null}
     </li>
   )
 }
 
-export function StorefrontSectionsEditor({ sections, onChange }: Props) {
+export function StorefrontSectionsEditor({ sections, onChange, generate }: Props) {
   const t = useTranslations("storefront.brandStudio.sections")
   const [expanded, setExpanded] = useState<HomepageSectionType | null>(null)
 
@@ -181,14 +204,31 @@ export function StorefrontSectionsEditor({ sections, onChange }: Props) {
 
   return (
     <div className="space-y-3">
-      <div>
-        <p className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-zinc-100">
-          <LayoutList className="size-4 text-violet-600" aria-hidden />
-          {t("title")}
-        </p>
-        <p className="mt-1 text-xs text-gray-500 dark:text-zinc-400">{t("hint")}</p>
-        <p className="mt-1 text-[11px] text-violet-700 dark:text-violet-300">{t("dragHint")}</p>
-      </div>
+      <BrandStudioFieldHeader
+        label={
+          <span className="flex items-center gap-2 text-sm font-semibold normal-case text-gray-900 dark:text-zinc-100">
+            <LayoutList className="size-4 text-violet-600" aria-hidden />
+            {t("title")}
+          </span>
+        }
+        hint={
+          <>
+            {t("hint")}
+            <span className="mt-1 block text-[11px] text-violet-700 dark:text-violet-300">{t("dragHint")}</span>
+          </>
+        }
+        labelClassName="normal-case tracking-normal"
+        generate={
+          generate
+            ? {
+                field: "sections",
+                role: generate.role,
+                disabled: generate.disabled,
+                onApply: generate.onApply,
+              }
+            : undefined
+        }
+      />
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
@@ -204,6 +244,7 @@ export function StorefrontSectionsEditor({ sections, onChange }: Props) {
                 onToggleExpand={(type) =>
                   setExpanded((prev) => (prev === type ? null : type))
                 }
+                generate={generate}
               />
             ))}
           </ul>

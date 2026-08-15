@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useState } from "react"
 
 import { BoutiqueStoreTitle } from "@/components/boutique/boutique-store-title"
+import { BrandStudioGenerateButton } from "@/components/storefront/brand-studio-generate-button"
 import {
   BOUTIQUE_TITLE_CHAR_PALETTE,
   BOUTIQUE_TITLE_FONTS,
@@ -17,6 +18,7 @@ import {
   type BoutiqueTitleTypography,
 } from "@/lib/boutique/boutique-title-typography-shared"
 import { postBrandAiJson } from "@/lib/storefront-ai-fetch-shared"
+import type { BrandFieldGenerateResponse } from "@/lib/storefront-brand-field-generate-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -96,14 +98,30 @@ export function BoutiqueTitleStudioPanel({
   return (
     <div className="overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
       <div className="border-b border-zinc-100 px-6 py-5 dark:border-zinc-800 sm:px-8">
-        <div className="flex items-center gap-2 text-violet-600 dark:text-violet-300">
-          <Type className="size-5" aria-hidden />
-          <span className="text-[11px] font-bold uppercase tracking-[0.16em]">{t("badge")}</span>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 text-violet-600 dark:text-violet-300">
+              <Type className="size-5" aria-hidden />
+              <span className="text-[11px] font-bold uppercase tracking-[0.16em]">{t("badge")}</span>
+            </div>
+            <h2 className="mt-2 text-xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-2xl">
+              {t("title")}
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
+          </div>
+          <BrandStudioGenerateButton
+            field="boutiqueTitle"
+            role={role}
+            disabled={disabled || busy}
+            onApply={(result: BrandFieldGenerateResponse) => {
+              if (result.boutiqueTitle) {
+                setTypography(result.boutiqueTitle)
+                setDisplayDraft(result.boutiqueTitle.displayOverride ?? "")
+                setSaved(false)
+              }
+            }}
+          />
         </div>
-        <h2 className="mt-2 text-xl font-bold tracking-tight text-zinc-900 dark:text-white sm:text-2xl">
-          {t("title")}
-        </h2>
-        <p className="mt-1 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
       </div>
 
       <div className="space-y-6 px-6 py-6 sm:px-8">

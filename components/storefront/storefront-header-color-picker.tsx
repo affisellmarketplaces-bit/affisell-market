@@ -3,7 +3,9 @@
 import { Check } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { BrandStudioFieldHeader } from "@/components/storefront/brand-studio-field-header"
 import { STOREFRONT_HEADER_COLOR_SWATCHES } from "@/lib/storefront-header-chrome-shared"
+import type { BrandFieldGenerateResponse } from "@/lib/storefront-brand-field-generate-shared"
 import { normalizeHexColor } from "@/lib/storefront-theme-shared"
 import { cn } from "@/lib/utils"
 
@@ -11,9 +13,14 @@ type Props = {
   value: string
   accent: string
   onChange: (hex: string) => void
+  generate?: {
+    role: "AFFILIATE" | "SUPPLIER"
+    disabled?: boolean
+    onApply: (result: BrandFieldGenerateResponse) => void
+  }
 }
 
-export function StorefrontHeaderColorPicker({ value, accent, onChange }: Props) {
+export function StorefrontHeaderColorPicker({ value, accent, onChange, generate }: Props) {
   const t = useTranslations("storefront.brandStudio")
   const normalized = normalizeHexColor(value) ?? "#18181b"
   const isCustomSwatch = !STOREFRONT_HEADER_COLOR_SWATCHES.some(
@@ -22,10 +29,20 @@ export function StorefrontHeaderColorPicker({ value, accent, onChange }: Props) 
 
   return (
     <div className="space-y-3">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{t("headerColor")}</p>
-        <p className="mt-1 text-sm text-gray-600 dark:text-zinc-400">{t("headerColorHint")}</p>
-      </div>
+      <BrandStudioFieldHeader
+        label={t("headerColor")}
+        hint={t("headerColorHint")}
+        generate={
+          generate
+            ? {
+                field: "colors",
+                role: generate.role,
+                disabled: generate.disabled,
+                onApply: generate.onApply,
+              }
+            : undefined
+        }
+      />
 
       <div
         className="relative overflow-hidden rounded-2xl border border-gray-200 shadow-inner dark:border-zinc-700"

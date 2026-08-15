@@ -110,26 +110,26 @@
     "buyer": {
       "base": "Des boutiques de confiance.",
       "rotatifs": [
-        "Produits vérifiés.",
-        "Créateurs vérifiés.",
-        "Paiements protégés.",
-        "Retours garantis.",
-        "Boutiques triées.",
-        "Qualité assurée."
+        "Products verified.",
+        "Makers verified.",
+        "Payments protected.",
+        "Returns guaranteed.",
+        "Shops curated.",
+        "Quality assured."
       ],
       "canonical": "Des boutiques de confiance. Produits vérifiés."
     },
     "reseller": {
       "base": "Transformez",
       "rotatifs": [
-        "produits en profits",
-        "idées en revenus",
-        "listings en cash",
-        "clics en profit",
-        "tendances en argent",
-        "catalogue en revenus",
-        "vues en ventes",
-        "stock en revenus"
+        "products into profits",
+        "ideas into income",
+        "listings into cash",
+        "clicks into profit",
+        "trends into money",
+        "catalog into revenue",
+        "views into sales",
+        "stock into income"
       ],
       "fixedSuffix": "Instantanément.",
       "canonical": "Transformez produits en profits. Instantanément.",
@@ -144,14 +144,14 @@
     "supplier": {
       "base": "Transformez",
       "rotatifs": [
-        "stock en ventes",
-        "produits en boutiques",
-        "catalogue en cashflow",
-        "entrepôt en revenus",
-        "listings en commandes",
-        "inventaire en scale",
-        "produits en 33 pays",
-        "stock en chiffre d'affaires"
+        "inventory into income",
+        "stock into sales",
+        "products into stores",
+        "catalog into cashflow",
+        "warehouse into revenue",
+        "listings into orders",
+        "inventory into scale",
+        "products into 33 countries"
       ],
       "fixedSuffix": "Instantanément.",
       "canonical": "Transformez stock en ventes. Instantanément.",
@@ -531,10 +531,10 @@
       "affiliateTitle": "Rejoindre en tant que revendeur",
       "affiliateSubtitle": "Sélectionnez des produits rentables du catalogue fournisseur et lancez votre boutique.",
       "affiliateBenefits": [
-        "Gagnez sur chaque vente",
-        "Sans stock",
-        "Paiements réguliers",
-        "Outils marketing"
+        "Earn on every sale",
+        "No inventory",
+        "Regular payouts",
+        "Marketing tools"
       ],
       "affiliateCta": "Commencer — gratuit",
       "affiliateCheckoutEu": "Checkout dans {count} pays européens",
@@ -542,16 +542,16 @@
       "supplierTitle": "Rejoindre en tant que fournisseur",
       "supplierSubtitle": "Listez une fois, touchez plus d'acheteurs via un réseau de revendeurs performant.",
       "supplierBenefits": [
-        "Distribution revendeurs",
-        "Zéro coût initial",
-        "Livraison UE & internationale",
-        "Tableau de bord analytics"
+        "Reseller distribution",
+        "Zero upfront cost",
+        "EU & international shipping",
+        "Analytics dashboard"
       ],
       "supplierBenefitsUs": [
-        "Distribution revendeurs",
-        "Zéro coût initial",
-        "Livraison US & internationale",
-        "Tableau de bord analytics"
+        "Reseller distribution",
+        "Zero upfront cost",
+        "US & international shipping",
+        "Analytics dashboard"
       ],
       "supplierCta": "Vendre — gratuit",
       "trustEu": "Pensé pour le commerce européen · paiements sécurisés",
@@ -1778,28 +1778,28 @@
     },
     "mobileHub": {
       "title": "Hub Affisell",
-      "drawerTitle": "Menu",
       "subtitle": "Services, Pulse, Luxe & plus — sans quitter le catalogue.",
       "openMenu": "Ouvrir le menu",
       "close": "Fermer",
       "menu": "Menu",
-      "tabsAria": "Navigation menu",
-      "tabCategories": "Catégories",
-      "tabHub": "Hub Affisell",
       "categories": "Catég.",
       "filters": "Filtres",
       "categoriesTitle": "Catégories",
+      "filtersTitle": "Filtres produit",
+      "loading": "Chargement…",
+      "listingShort": "{count, plural, one {# annonce} other {# annonces}}",
+      "desktopHintTitle": "Sur desktop",
+      "desktopHintBody": "Les cartes À la une et tendances restent visibles au-dessus du catalogue.",
+      "drawerTitle": "Menu",
+      "tabsAria": "Navigation menu",
+      "tabCategories": "Catégories",
+      "tabHub": "Hub Affisell",
       "categoriesEmpty": "Catégories indisponibles pour le moment.",
       "browseCategory": "Voir {name}",
       "seeAllAisles": "Voir tous les rayons →",
-      "filtersTitle": "Filtres produit",
-      "loading": "Chargement…",
       "searchHistory": "Récent",
       "searchSuggestions": "Suggestions",
-      "searchSwipeHint": "Glisser vers le bas pour fermer",
-      "listingShort": "{count, plural, one {# annonce} other {# annonces}}",
-      "desktopHintTitle": "Sur desktop",
-      "desktopHintBody": "Les cartes À la une et tendances restent visibles au-dessus du catalogue."
+      "searchSwipeHint": "Glisser vers le bas pour fermer"
     },
     "departmentRail": {
       "ariaLabel": "Rayons Affisell",
@@ -2871,6 +2871,43 @@
         "generating": "Rédaction…",
         "hint": "Remplit l'accroche + sections Story et CTA. Relisez avant publication.",
         "failed": "IA indisponible — vérifiez GROQ_API_KEY ou réessayez."
+      },
+      "generate": {
+        "cta": "Générer",
+        "generating": "Génération…",
+        "failed": "Échec de la génération — réessayez.",
+        "fields": {
+          "preset": "Générer",
+          "name": "Générer",
+          "logo": "Générer",
+          "banner": "Générer",
+          "copy": "Générer",
+          "colors": "Générer",
+          "layout": "Générer",
+          "nameBadge": "Générer",
+          "sections": "Générer",
+          "embed": "Générer",
+          "boutiqueTitle": "Générer",
+          "staticPages": "Générer",
+          "faqOrders": "Générer",
+          "sectionContent": "Générer"
+        },
+        "hints": {
+          "preset": "Preset, palette, layout et accroche IA depuis votre catalogue.",
+          "name": "Nom de marque depuis niche + mots-clés catalogue.",
+          "logo": "Monogramme dégradé depuis nom & couleurs.",
+          "banner": "Hero cinématique — image HF ou fallback gradient.",
+          "copy": "Accroche + sections Story et CTA.",
+          "colors": "Primaire, accent et trust rail depuis l'IA catalogue.",
+          "layout": "Layout, hero, grille et surface adaptés à votre niche.",
+          "nameBadge": "Style badge adapté à votre surface & preset.",
+          "sections": "Active et remplit les blocs homepage pour votre niche.",
+          "embed": "Widget embed prêt avec titre accrocheur.",
+          "boutiqueTitle": "Police & ornement assortis au preset.",
+          "staticPages": "À propos, FAQ et Retours (conformes UE).",
+          "faqOrders": "FAQ depuis vos commandes des 30 derniers jours.",
+          "sectionContent": "Remplit cette section avec copy adaptée."
+        }
       },
       "layoutControls": {
         "title": "Structure & ambiance",

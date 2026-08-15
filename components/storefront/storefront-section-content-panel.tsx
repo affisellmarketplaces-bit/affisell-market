@@ -2,7 +2,9 @@
 
 import { useTranslations } from "next-intl"
 
+import { BrandStudioGenerateButton } from "@/components/storefront/brand-studio-generate-button"
 import { Input } from "@/components/ui/input"
+import type { BrandFieldGenerateResponse } from "@/lib/storefront-brand-field-generate-shared"
 import {
   updateHomepageSectionContent,
   type HomepageSection,
@@ -14,6 +16,11 @@ type Props = {
   section: HomepageSection
   sections: HomepageSection[]
   onChange: (sections: HomepageSection[]) => void
+  generate?: {
+    role: "AFFILIATE" | "SUPPLIER"
+    disabled?: boolean
+    onApply: (result: BrandFieldGenerateResponse) => void
+  }
 }
 
 type FieldKey = keyof HomepageSectionContent
@@ -30,7 +37,7 @@ const FIELDS_BY_TYPE: Record<HomepageSectionType, FieldKey[]> = {
   cta: ["eyebrow", "title", "body", "buttonLabel", "buttonHref"],
 }
 
-export function StorefrontSectionContentPanel({ section, sections, onChange }: Props) {
+export function StorefrontSectionContentPanel({ section, sections, onChange, generate }: Props) {
   const t = useTranslations("storefront.brandStudio.sections.content")
   const fields = FIELDS_BY_TYPE[section.type]
 
@@ -55,9 +62,20 @@ export function StorefrontSectionContentPanel({ section, sections, onChange }: P
 
   return (
     <div className="mt-2 space-y-2 border-t border-violet-200/60 pt-2 dark:border-violet-900/40">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-700 dark:text-violet-300">
-        {t("title")}
-      </p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-700 dark:text-violet-300">
+          {t("title")}
+        </p>
+        {generate ? (
+          <BrandStudioGenerateButton
+            field="sectionContent"
+            role={generate.role}
+            disabled={generate.disabled}
+            sectionType={section.type}
+            onApply={generate.onApply}
+          />
+        ) : null}
+      </div>
       {fields.map((field) => (
         <label key={field} className="block space-y-1">
           <span className="text-[11px] font-medium text-gray-600 dark:text-zinc-400">

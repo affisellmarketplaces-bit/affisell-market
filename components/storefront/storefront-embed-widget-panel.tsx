@@ -6,6 +6,8 @@ import { useCallback, useMemo, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { BrandStudioGenerateButton } from "@/components/storefront/brand-studio-generate-button"
+import type { BrandFieldGenerateResponse } from "@/lib/storefront-brand-field-generate-shared"
 import {
   buildStoreEmbedIframeSnippet,
   storeEmbedPublicUrl,
@@ -18,9 +20,14 @@ type Props = {
   storeName: string
   widget: StorefrontEmbedWidget
   onChange: (widget: StorefrontEmbedWidget) => void
+  generate?: {
+    role: "AFFILIATE" | "SUPPLIER"
+    disabled?: boolean
+    onApply: (result: BrandFieldGenerateResponse) => void
+  }
 }
 
-export function StorefrontEmbedWidgetPanel({ slug, storeName, widget, onChange }: Props) {
+export function StorefrontEmbedWidgetPanel({ slug, storeName, widget, onChange, generate }: Props) {
   const t = useTranslations("storefront.brandStudio.embedWidget")
   const [copied, setCopied] = useState(false)
 
@@ -68,6 +75,14 @@ export function StorefrontEmbedWidgetPanel({ slug, storeName, widget, onChange }
           />
           {t("enable")}
         </label>
+        {generate ? (
+          <BrandStudioGenerateButton
+            field="embed"
+            role={generate.role}
+            disabled={generate.disabled}
+            onApply={generate.onApply}
+          />
+        ) : null}
       </div>
 
       {widget.enabled ? (

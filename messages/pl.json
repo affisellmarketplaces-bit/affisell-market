@@ -30,8 +30,12 @@
       "earningsShort": "Płatności",
       "inviteSupplier": "Zaproś dostawcę",
       "inviteSupplierShort": "Zaproś",
+      "referral": "Referrals",
+      "referralShort": "Refer",
       "brandStudio": "Brand Studio",
-      "brandStudioShort": "Brand"
+      "brandStudioShort": "Brand",
+      "magicLab": "Magic Systems",
+      "magicLabShort": "Lab"
     },
     "supplier": {
       "badge": "Dostawca",
@@ -40,7 +44,13 @@
       "bookings": "Rezerwacje",
       "products": "Produkty",
       "inviteAffiliate": "Zaproś partnera",
-      "inviteAffiliateShort": "Zaproś"
+      "inviteAffiliateShort": "Zaproś",
+      "dropforge": "DropForge",
+      "dropforgeShort": "Forge",
+      "supply": "Affisell stock",
+      "supplyShort": "Stock",
+      "magicLab": "Magic Systems",
+      "magicLabShort": "Lab"
     },
     "accountMenu": {
       "aria": "Menu konta",
@@ -52,6 +62,11 @@
   "PublicNav": {
     "home": "Strona główna",
     "marketplace": "Rynek",
+    "trustedStores": "Zaufane sklepy",
+    "trustedStoresShort": "Trust",
+    "resellerStores": "Sklepy reseller",
+    "resellerStoresShort": "Reseller",
+    "resellerStoresBadge": "PROFIT LIVE",
     "creatorStores": "Zaufane sklepy",
     "creatorStoresShort": "Trust",
     "searchPlaceholder": "Szukaj produktów…",
@@ -83,11 +98,71 @@
     "trustStripCta": "Learn more",
     "trustStripDismiss": "Dismiss",
     "agentEntry": "Agent",
-    "trustedStores": "Zaufane sklepy",
-    "trustedStoresShort": "Trust",
-    "resellerStores": "Sklepy reseller",
-    "resellerStoresShort": "Reseller",
-    "resellerStoresBadge": "PROFIT LIVE"
+    "pulseEntry": "Affisell Pulse",
+    "pulseEntryShort": "Pulse",
+    "magicLab": "Magic Systems",
+    "magicLabShort": "Lab",
+    "searchQuickBattles": "Battles",
+    "battlesEntry": "Battles Hub",
+    "battlesEntryShort": "Battles"
+  },
+  "slogans": {
+    "buyer": {
+      "base": "Stores you trust.",
+      "rotatifs": [
+        "Products verified.",
+        "Makers verified.",
+        "Payments protected.",
+        "Returns guaranteed.",
+        "Shops curated.",
+        "Quality assured."
+      ],
+      "canonical": "Stores you trust. Products verified."
+    },
+    "reseller": {
+      "base": "Turn",
+      "rotatifs": [
+        "products into profits",
+        "ideas into income",
+        "listings into cash",
+        "clicks into profit",
+        "trends into money",
+        "catalog into revenue",
+        "views into sales",
+        "stock into income"
+      ],
+      "fixedSuffix": "Instantly.",
+      "canonical": "Turn products into profits. Instantly.",
+      "metaTitle": "Turn products into profits. Instantly. | Affisell Reseller",
+      "metaDescription": "Live net profit per product, 7-day margin lock, real EU delivery. Start reselling profitable products in 1 click.",
+      "badge": "7 innovations · Margin Lock 7j · Live Profit",
+      "sub": "The only marketplace where every product shows live net profit after fees, ads & shipping. Margin locked for 7 days. No fake 3-7 day delivery.",
+      "ticker": "Trusted by 120+ resellers · €14.2k avg profit/mo",
+      "ctaPrimary": "Otwórz DropForge — za darmo",
+      "ctaSecondary": "Explore profitable products"
+    },
+    "supplier": {
+      "base": "Turn",
+      "rotatifs": [
+        "inventory into income",
+        "stock into sales",
+        "products into stores",
+        "catalog into cashflow",
+        "warehouse into revenue",
+        "listings into orders",
+        "inventory into scale",
+        "products into 33 countries"
+      ],
+      "fixedSuffix": "Instantly.",
+      "canonical": "Turn inventory into income. Instantly.",
+      "metaTitle": "Turn inventory into income. Instantly. | Affisell Supplier",
+      "metaDescription": "List once. Reach resellers across 33 EU countries. Scale your catalog without opening 33 shops.",
+      "badge": "B2B supply · Pan-EU reach · Payout J+7",
+      "sub": "One catalog. Thousands of reseller storefronts. Real EU delivery, transparent fees, payout you can plan on.",
+      "ticker": "Suppliers shipping to 33 countries · Live catalog sync",
+      "ctaPrimary": "Start supplying — It's free",
+      "ctaSecondary": "Supplier briefing"
+    }
   },
   "home": {
     "meta": {
@@ -96,6 +171,7 @@
     },
     "hero": {
       "title": "Sklepy, którym ufasz.",
+      "titleLine2Prefix": "Produkty ",
       "titleHighlight": "zweryfikowane.",
       "sub": "Checkout pan-UE · {count} krajów · Chroniony zakup · Bezpieczna płatność · 14-dniowy zwrot UE · Zweryfikowane sklepy",
       "subUs": "Checkout USA i Kanada · {count} krajów · Chroniony zakup · Bezpieczna płatność · 14-dniowy zwrot · Zweryfikowane sklepy",
@@ -104,8 +180,7 @@
       "searchSubmit": "Szukaj",
       "cmdKHint": "Szybka nawigacja",
       "ctaPrimary": "Przeglądaj zaufane sklepy",
-      "creatorLink": "Jesteś resellerem? Sprzedawaj na Affisell →",
-      "titleLine2Prefix": "Produkty "
+      "creatorLink": "Jesteś resellerem? Sprzedawaj na Affisell →"
     },
     "bento": {
       "agentShopping": {
@@ -195,7 +270,9 @@
       "bestSellers": "Bestsellery",
       "bestSellersHint": "Top 7 dni · talia kart na żywo",
       "bestSellersBadge": "7d",
-      "bestSellersSold": "{count} sprzedanych"
+      "bestSellersSold": "{count} sprzedanych",
+      "battles": "Battles Hub",
+      "battlesHint": "Live duels · flash discounts"
     }
   },
   "creators": {
@@ -408,10 +485,18 @@
     "continueGoogle": "Kontynuuj z Google",
     "orPassword": "Albo użyj hasła",
     "loading": "Ładowanie…",
+    "emailPlaceholder": "you@example.com",
+    "emailRequired": "Enter your email to sign in.",
+    "passwordRequired": "Enter your password.",
+    "passwordPlaceholder": "Your password",
     "adminLogin": {
       "title": "Logowanie do Affisell Admin",
       "subtitle": "Dostęp do platformy: automatyczne wypełnianie, zamówienia, API dostawcy.",
-      "back": "Powrót"
+      "back": "Powrót",
+      "brand": "Affisell Admin",
+      "signOut": "Sign out",
+      "signIn": "Sign in",
+      "fallbackName": "Admin"
     },
     "loginSelector": {
       "title": "Profesjonalne logowanie Affisell",
@@ -424,6 +509,58 @@
       "trackOrderLink": "Śledź moje zamówienie →",
       "noAccount": "Nie masz jeszcze konta twórcy?",
       "createSpace": "Utwórz moje miejsce"
+    },
+    "signupChooser": {
+      "badgeEu": "Affisell · Pan-EU",
+      "badgeUs": "Affisell · North America",
+      "titleEu": "Join suppliers and resellers across Europe",
+      "titleUs": "Join suppliers and resellers across North America",
+      "subtitleEu": "The reseller-first marketplace — one checkout in {count} countries, prices in EUR, VAT handled at payment.",
+      "subtitleUs": "The reseller-first marketplace — checkout in the US & Canada, prices in {currency}, tax handled at payment.",
+      "payoutsEu": "27 EU markets · secure payouts where supported",
+      "payoutsUs": "US & Canada checkout · secure payouts where supported",
+      "statsCountries": "{count} countries",
+      "statsCheckoutEu": "EU checkout today",
+      "statsCheckoutUs": "US & Canada checkout",
+      "statsCurrencyUsd": "USD · Tax",
+      "statsCurrencyEur": "EUR · VAT",
+      "taxUs": "Tax calculated at checkout",
+      "taxEu": "VAT calculated at checkout",
+      "statsSupport": "24/7 support",
+      "affiliateBadge": "Most popular",
+      "affiliateTitle": "Join as a reseller",
+      "affiliateSubtitle": "Pick profitable products from the supplier catalog and launch your store.",
+      "affiliateBenefits": [
+        "Earn on every sale",
+        "No inventory",
+        "Regular payouts",
+        "Marketing tools"
+      ],
+      "affiliateCta": "Get started — free",
+      "affiliateCheckoutEu": "Checkout in {count} European countries",
+      "affiliateCheckoutUs": "Checkout in the US & Canada",
+      "supplierTitle": "Join as a Supplier",
+      "supplierSubtitle": "List once, reach more buyers through a high-performing reseller network.",
+      "supplierBenefits": [
+        "Reseller distribution",
+        "Zero upfront cost",
+        "EU & international shipping",
+        "Analytics dashboard"
+      ],
+      "supplierBenefitsUs": [
+        "Reseller distribution",
+        "Zero upfront cost",
+        "US & international shipping",
+        "Analytics dashboard"
+      ],
+      "supplierCta": "Start selling — free",
+      "trustEu": "Built for European commerce · secure payments",
+      "trustUs": "Built for North American commerce · secure payments",
+      "pci": "PCI compliant",
+      "gdpr": "EU GDPR",
+      "secure3d": "3D Secure",
+      "hasAccount": "Already have an account or cashback wallet?",
+      "signIn": "Sign in"
     },
     "non_customer_on_customer_portal": "To nie jest konto kupujące. Użyj logowania twórcy lub dostawcy.",
     "marketplaceBuyer": {
@@ -442,7 +579,8 @@
       "backTrackOrder": "← Śledź moje zamówienie",
       "wrongPortalTitle": "You're signed in with a merchant account",
       "wrongPortalBody": "Your current session is a {role} account. Sign out to open your buyer account with the email used at checkout.",
-      "wrongPortalSignOut": "Sign out and use buyer login"
+      "wrongPortalSignOut": "Sign out and use buyer login",
+      "acceptTermsError": "Please accept the terms and privacy policy."
     },
     "customerSignup": {
       "heroTitle": "Sklep & Otrzymuj do 20% z powrotem",
@@ -501,7 +639,8 @@
       "subtitle": "Tysiące twórców może sprzedawać Twoje produkty",
       "createButton": "Utwórz konto",
       "hasAccount": "Już partner?",
-      "signIn": "Zaloguj się"
+      "signIn": "Zaloguj się",
+      "inviteBanner": "Signup linked to an Affisell partner invitation."
     },
     "merchantLegal": {
       "badge": "Weryfikacja Affisell · Warstwa zaufania",
@@ -597,6 +736,11 @@
         "non_agent_on_agent_portal": "Sign-in denied: only Affisell agent accounts are allowed here.",
         "email_required_not_id": "Zalogowanie odmówione: podaj adres e-mail (nie ID wewnętrzne).",
         "csrf": "Kontrola bezpieczeństwa nie powiodła się (często ochrona przed śledzeniem lub VPN). Odśwież stronę, zezwól na pliki cookie dla affisell.com i spróbuj ponownie."
+      },
+      "agent": {
+        "title": "Affisell agent space",
+        "subtitle": "Quality checks, compliance and express relay — network-assigned missions.",
+        "signup": "Apply as an agent"
       }
     }
   },
@@ -1140,6 +1284,28 @@
     "redirecting": "Przekierowywanie…",
     "catalogNoDescription": "Brak opisu",
     "supplierPrefix": "Dostawca",
+    "sourcingAgent": {
+      "eyebrow": "Sourcing agent",
+      "openCatalog": "Open catalog →",
+      "heroTitle": "Which SKUs should you resell this week?",
+      "heroSub": "I compare estimated reseller earnings (margin + commission), supplier fit, and niche — to fill your storefront with the right products.",
+      "chipBestMargin": "Best sellers & margin",
+      "chipNiche": "Niche analysis",
+      "thinking": "Sourcing analysis…",
+      "starter1": "High-margin TikTok SKUs under €50",
+      "starter2": "7-day best sellers · max reseller earnings",
+      "starter3": "Compare women's leggings suppliers",
+      "starter4": "Profitable smartwatches to list",
+      "highlightsBestSellers": "Best sellers · 7 days",
+      "highlightsBestSellersHint": "Top network SKUs — estimated reseller earnings",
+      "highlightsHighMargin": "Highest reseller margin",
+      "highlightsHighMarginHint": "Commission + markup at suggested customer price (+30%)",
+      "highlightsNewArrivals": "New catalog arrivals",
+      "highlightsNewArrivalsHint": "Recent SKUs to list before other resellers",
+      "highlightsEmpty": "No catalog signals yet — try a niche search.",
+      "highlightsLoading": "Loading catalog trends…",
+      "highlightsError": "Catalog trends unavailable."
+    },
     "swipeFeed": {
       "feedLoadFailed": "Nie udało się załadować karmy",
       "serviceUnavailable": "Usługa tymczasowo niedostępna — spróbuj ponownie za chwilę.",
@@ -1188,7 +1354,101 @@
       "skippedCount": "{count} passed",
       "rewindLabel": "Rewind"
     },
+    "referral": {
+      "metaTitle": "Referrals — Affisell",
+      "metaDescription": "Share your link, earn 10% of referrals' net sales, and unlock the UGC bounty.",
+      "eyebrow": "Growth",
+      "title": "Referrals & UGC bounty",
+      "description": "Invite creators — 10% of their net earnings on every sale. 5% welcome bonus for referrals under 30 days.",
+      "stats": {
+        "referrals": "Referrals",
+        "month": "Earned this month",
+        "balance": "Referral balance"
+      },
+      "link": {
+        "title": "Your referral link",
+        "body": "Share this link: each affiliate signup earns you 10% of their net earnings.",
+        "hint": "10% referrer · 5% welcome bonus (< 30 days) · 50€ tweet bounty"
+      },
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Could not copy",
+      "tweet": {
+        "title": "Tweet your payout",
+        "body": "Share your latest payout with your link — social proof to recruit.",
+        "cta": "Pre-filled tweet"
+      },
+      "bounty": {
+        "title": "UGC bounty — €50",
+        "body": "Tweet your J+7 payout with #Affisell300 + screenshot → manual review → +€50 to your balance.",
+        "tweetLabel": "Tweet URL",
+        "screenshotLabel": "Payout screenshot",
+        "upload": "Choose image",
+        "submit": "Submit claim",
+        "submitted": "Claim submitted — review within 48h.",
+        "pending": "Claim pending team review.",
+        "missingFields": "Tweet + screenshot required.",
+        "errors": {
+          "invalid_tweet_url": "Invalid tweet URL (x.com / twitter.com).",
+          "screenshot_required": "Add a screenshot.",
+          "claim_already_pending": "A claim is already pending.",
+          "bounty_already_claimed": "Bounty already claimed.",
+          "unknown": "Could not submit — try again."
+        }
+      }
+    },
+    "opportunityPulse": {
+      "eyebrow": "Opportunity Pulse",
+      "title": "Hot SKUs to list",
+      "hint": "Other resellers are viewing these products — list before they do.",
+      "watchingOne": "{count} reseller is viewing this SKU",
+      "watchingMany": "{count} resellers are viewing this SKU",
+      "listNow": "List now",
+      "editListing": "Edit listing",
+      "viewCatalog": "Browse full catalog"
+    },
+    "catalogEconomics": {
+      "supplierPrice": "Supplier price",
+      "customerPrice": "Suggested customer price",
+      "listedCustomerPrice": "Customer price (your listing)",
+      "customerPriceShort": "Customer",
+      "resellerMargin": "Your reseller margin",
+      "supplierCommission": "Supplier commission",
+      "estimatedRevenue": "Estimated reseller earnings",
+      "estimatedRevenueHint": "Commission + margin at {markupPct}% suggested markup",
+      "sortRevenueDesc": "Reseller earnings · high → low",
+      "supplierSheetAria": "Supplier product page"
+    },
+    "catalogFilters": {
+      "groupAria": "Storefront and date-added filters",
+      "notInStoreYet": "Not in my store yet",
+      "notInStoreYetOn": "ON — only products you can still import",
+      "notInStoreYetOff": "Tap to hide SKUs already on your storefront",
+      "horsVitrine": "Not in my store yet",
+      "horsVitrineActive": "not in my store yet",
+      "horsVitrineOnHint": "Turn on: hide SKUs already on your storefront",
+      "horsVitrineOffHint": "Turn off: show the full catalog",
+      "toggleOn": "ON",
+      "toggleOff": "OFF",
+      "updating": "Updating…",
+      "addedLabel": "Added",
+      "addedActive": "added {window}",
+      "added": {
+        "all": "All",
+        "7d": "7d",
+        "30d": "30d",
+        "90d": "90d"
+      },
+      "sortAria": "Sort catalog",
+      "sortNewest": "Date added · newest first"
+    },
     "earnings": {
+      "cockpit": {
+        "eyebrow": "Partner commerce",
+        "title": "Earnings cockpit",
+        "description": "Reseller remuneration: supplier commission + net markup on each sale, minus Affisell platform fee. You are a curator reseller, not the product seller — declare under your country of residence.",
+        "paidOutLabel": "Paid out (ledger)"
+      },
       "taxCompliance": {
         "title": "Curator partner tax framework",
         "body": "You are not the product seller. You receive partner remuneration (supplier commission + net markup) for curation and promotion — declare it under the tax and social rules of your country of residence.",
@@ -1246,6 +1506,9 @@
     },
     "liveStore": {
       "openAria": "Otwórz żywe odwiedzających",
+      "previewOpenAria": "Open visitor preview (demo data)",
+      "previewBadge": "PREVIEW • demo",
+      "previewBanner": "Preview mode — simulated visitors and stats, not real store traffic.",
       "liveBadge": "NA ŻYWO • {count, plural, one {# odwiedzający} other {# odwiedzających}}",
       "eyebrow": "Sklep na żywo",
       "title": "Odwiedzający",
@@ -1304,7 +1567,12 @@
       "yourListings": "Twoje oferty",
       "liveOnStorefront": "Wydaj się na stronie sklepu",
       "skus": "SKUs",
-      "storefrontUnavailable": "Dane sklepu niedostępne"
+      "storefrontUnavailable": "Dane sklepu niedostępne",
+      "welcomeTitle": "Welcome to your reseller hub",
+      "welcomeBody": "Set up your storefront below, then explore the <catalog>reseller catalog</catalog> to add your first products.",
+      "metaTitle": "Reseller hub — Swipe | Affisell",
+      "metaDescription": "Discover supplier SKUs, estimate margins, and list in swipe mode.",
+      "hubLoading": "Loading hub…"
     },
     "mySelection": "Moje oferty na stronie sklepu",
     "selectionHint": "Wybierz produkty z katalogu i ustal cenę detaliczną.",
@@ -1329,6 +1597,14 @@
     "subtitle": "Aktywne listy sklepow",
     "empty": "Nic jeszcze nie jest dostępne.",
     "sellerLabel": "Wybór partnera twórcy",
+    "pdp": {
+      "crossSell": {
+        "eyebrowBoughtTogether": "Frequently bought together",
+        "titleBoughtTogether": "Complete your pick",
+        "eyebrowAlsoViewed": "Discovery",
+        "titleAlsoViewed": "Customers also viewed"
+      }
+    },
     "sidebar": {
       "title": "Kategorie",
       "subtitle": "Przeglądaj według działu",
@@ -1448,7 +1724,8 @@
       "browseDepartmentsRail": {
         "ariaLabel": "Przeglądaj według kategorii",
         "eyebrow": "Popularne kategorie",
-        "hint": "Znajomościowe etykiety — każda otwiera odpowiadającą taksonomię Google."
+        "hint": "Znajomościowe etykiety — każda otwiera odpowiadającą taksonomię Google.",
+        "seeAll": "See all"
       },
       "personalized": {
         "eyebrowForYou": "Dla Ciebie",
@@ -1548,7 +1825,14 @@
       "percentOff": "{percent}% zniżki"
     },
     "offer": {
-      "free": "Darmowy"
+      "free": "Darmowy",
+      "battlePrice": "Battle price: {price}",
+      "usualPrice": "Usual Affisell price: {price}",
+      "promoByPct": "−{pct}% by {reseller}",
+      "promoBy": "Promo by {reseller}",
+      "until": " — until {date}",
+      "lowest30d": "Lowest price 30d: {price} — DGCCRF compliant",
+      "flash": "Flash"
     }
   },
   "pulse": {
@@ -1580,6 +1864,7 @@
       "skipShort": "Pomiń",
       "saveDrop": "Zapisz produkt — lista życzeń + powiadomienie o cenie",
       "saveDropPushEnabled": "Powiadomienia push włączone przy spadkach cen",
+      "saveDropLoginForPush": "Sign in to get price-drop alerts on this product",
       "saveDropShort": "Lista",
       "undo": "Produkt wrócił na stos",
       "undoShort": "Wróć",
@@ -1590,6 +1875,7 @@
       "emptyCategory": "Brak produktów w kategorii {name}.",
       "feedLoadFailed": "Nie udało się załadować karmy",
       "genericError": "Coś poszło nie tak",
+      "viewDetails": "View product details",
       "saveDropRemoved": "Usunięto z ulubionych",
       "buyFailed": "Płatność nieudana — spróbuj ponownie",
       "outOfStock": "Brak w magazynie",
@@ -1633,7 +1919,21 @@
       "stepPublish": "Opublikuj na marketplace",
       "stepShare": "Udostępnij link do sklepu",
       "start": "Kontynuuj",
-      "draftReadyHint": "You already have {count, plural, one {# draft ready} other {# drafts ready}} to publish after approval."
+      "ctaKyc": "Complete verification",
+      "ctaCreate": "Open swipe hub",
+      "ctaPublish": "Open publish flow",
+      "ctaShare": "Open my shop",
+      "ctaResumeDraft": "Resume latest draft",
+      "progress": "{done}/{total} steps",
+      "draftReadyHint": "You already have {count, plural, one {# draft ready} other {# drafts ready}} to publish after approval.",
+      "resumeDraftHint": "{count, plural, one {Your newest draft opens directly in the publish editor.} other {Your newest draft opens directly in the publish editor.}}",
+      "pageEyebrow": "Reseller onboarding",
+      "cguTitle": "Terms of use",
+      "cguBody": "Required before accessing your reseller workspace.",
+      "cgsTitle": "Partner terms (CGS)",
+      "cgsBody": "20% commission, influencer law, fair advertising and €5,000/year threshold — required acceptance.",
+      "backSignup": "Back to signup",
+      "readCgs": "Read partner terms"
     },
     "kycPublish": {
       "badge": "Publish blocked",
@@ -1673,6 +1973,8 @@
       "marginAutoFixSaving": "Saving safe margins…",
       "marginAutoFixApplied": "Safe margins applied on {count} variant(s) — listing updated.",
       "marginAutoFixFailed": "Could not apply safe margins. Try again or adjust manually.",
+      "useAllSupplierImages": "Use all supplier images",
+      "useAllSupplierImagesHint": "{count, plural, one {# photo included in your listing} other {# photos included in your listing}}",
       "aiPricing": {
         "title": "AI Pricing Optimizer",
         "beta": "BETA",
@@ -1701,9 +2003,6 @@
         "selectNone": "Select none",
         "stock": "stock {count}",
         "supplier": "Supplier",
-        "marginLabel": "Your margin (€)",
-        "clientPrice": "Client price",
-        "reviewBadge": "To review",
         "nameLabel": "Nombre visible",
         "nameHint": "Ej. Negro mate en lugar de Variant 1",
         "photoLabel": "Foto variante",
@@ -1712,7 +2011,10 @@
         "photoApplyUrl": "OK",
         "photoRemove": "Remove photo",
         "photoMissing": "Missing photo — file or link",
-        "photoDropHint": "Drop an image here, or click Upload file (JPG / PNG / WebP)"
+        "photoDropHint": "Drop an image here, or click Upload file (JPG / PNG / WebP)",
+        "marginLabel": "Your margin (€)",
+        "clientPrice": "Client price",
+        "reviewBadge": "To review"
       }
     }
   },
@@ -1880,7 +2182,9 @@
       "extension": "Rozszerzenie",
       "finances": "Finanse",
       "integrations": "Integracje",
-      "supply": "Zarządzaj dostawcami"
+      "supply": "Zarządzaj dostawcami",
+      "dropforge": "DropForge",
+      "magicLab": "Magic Systems"
     },
     "autoBuyPilot": {
       "title": "Auto-buy Pilot",
@@ -1935,6 +2239,34 @@
         },
         "covered": "You're in",
         "opportunity": "Opportunity"
+      },
+      "enlistRequest": {
+        "title": "Request Instant Enlist",
+        "subtitle": "Paste the AliExpress URL — Affisell admin reviews, then the product joins the Affisell AutoBuy catalog (available to resellers).",
+        "urlLabel": "AliExpress URL",
+        "urlPlaceholder": "https://www.aliexpress.com/item/…",
+        "urlRequired": "Paste an AliExpress URL.",
+        "nameLabel": "Name (optional)",
+        "namePlaceholder": "e.g. Pro Bluetooth Headset",
+        "noteLabel": "Ops note (optional)",
+        "notePlaceholder": "Preferred SKU, target margin…",
+        "submit": "Send to Affisell",
+        "submitOk": "Request sent — an Affisell admin will review it.",
+        "alreadyPending": "This URL is already in the review queue.",
+        "alreadyApproved": "This product is already approved for auto-buy.",
+        "invalidUrl": "Invalid AliExpress URL.",
+        "submitError": "Could not submit — try again.",
+        "historyTitle": "Your requests",
+        "historyEmpty": "No requests yet.",
+        "cancel": "Cancel request",
+        "cancelOk": "Request cancelled.",
+        "cancelError": "Could not cancel.",
+        "status": {
+          "PENDING_REVIEW": "In review",
+          "APPROVED": "Approved",
+          "REJECTED": "Rejected",
+          "CANCELLED": "Cancelled"
+        }
       }
     },
     "agentNetwork": {
@@ -2025,6 +2357,13 @@
       "capabilitiesAria": "Możliwości dostawcy",
       "openChannel": "Otwarty",
       "footerNote": "Kanały faz 2–3 są dostępne po uruchomieniu partnerstw API. Nie jest wywoływana automatyczna kupna z tej strony.",
+      "featured": {
+        "eyebrow": "Primary channel · Phase 1",
+        "tagline": "Warehouse-native catalog on Affisell rails — catalog, orders and pack ops without third-party lock-in.",
+        "ctaCatalog": "Manage catalog",
+        "ctaAdd": "Add SKU",
+        "statsLinked": "Native SKUs"
+      },
       "phase": "Faza {n}",
       "totals": {
         "skus": "Produkty",
@@ -2137,6 +2476,8 @@
     "trackingInvalid": "This tracking number is not recognized by the carrier.",
     "trackingValidating": "Verifying tracking number with the carrier…",
     "trackingVerified": "Tracking verified — real-time updates enabled for the buyer.",
+    "trackingLocked": "Locked",
+    "trackingLockedHint": "Carrier-validated tracking — cannot be changed. Contact support if incorrect.",
     "trackingHint": "Paste the exact label number. Random values are rejected.",
     "carrierRequired": "Choose an approved carrier for the delivery country.",
     "updateFailed": "Aktualizacja nieudana",
@@ -2159,7 +2500,8 @@
       "carrier": "Carrier",
       "carrierCountryHint": "Approved carriers for {country}",
       "trackingNumber": "Tracking number *",
-      "splitDetail": "View payout split →"
+      "splitDetail": "View payout split →",
+      "verifyTracking": "Verify tracking"
     },
     "fulfillmentRail": {
       "ariaLabel": "Fulfillment progress",
@@ -2180,6 +2522,10 @@
     }
   },
   "storefront": {
+    "flashSale": {
+      "countdownAria": "Time remaining until the sale ends",
+      "days": "d"
+    },
     "brandStudio": {
       "loading": "Ładowanie…",
       "affiliateEyebrow": "Marka twórcy",
@@ -2190,13 +2536,69 @@
       "supplierDescription": "Jak widzą Twój sklep dostawcy: baner, kolory marki i domena niestandardowa.",
       "liveUrl": "Adres URL żywy",
       "previewAffisell": "Podgląd na Affisell",
+      "boutiquePreview": "Boutique grid /boutique",
+      "formatsCatalog": "All vitrine formats",
+      "aiTheme": {
+        "badge": "AI · Auto personalization",
+        "title": "Futuristic storefront in 1 click",
+        "subtitle": "AI reads your catalog, picks a wow preset (Nebula Aurora, Solar Flare…), applies colors + copy, and publishes to /boutique and /shops.",
+        "cta": "Personalize my store with AI",
+        "generating": "Crafting your brand universe…",
+        "hint": "Preset + palette + tagline — synced to boutique & storefront.",
+        "failed": "AI personalization unavailable — try again.",
+        "saveFailed": "Theme generated but save failed.",
+        "saved": "Store personalized — live wow storefront ✨",
+        "viewBoutique": "View my /boutique vitrine"
+      },
+      "aiBoutique": {
+        "badge": "AI · 1024 designs",
+        "title": "Describe your boutique universe",
+        "subtitle": "Describe the vibe you want — AI picks a palette from 1024 futuristic themes, writes your hero tagline, and publishes to /boutique for every visitor.",
+        "supplierHint": "As a supplier, your /boutique palette is ready if you also sell as an affiliate — same slug, unified experience.",
+        "vibeLabel": "Describe your brand",
+        "vibePlaceholder": "e.g. minimalist luxury tech creator store, neon cyberpunk gaming vibe…",
+        "vibeHint": "Catalog + vibe → harmonized palette, hero tagline, and automatic save.",
+        "vibeRequired": "Describe your universe before generating.",
+        "cta": "Personalize with AI ✨",
+        "generating": "Composing your storefront…",
+        "designing": "Designing your universe…",
+        "saved": "Design saved ✨",
+        "buyerTaglineLabel": "Live on /boutique (buyers)",
+        "merchantTaglineLabel": "Your brief (Brand Studio only)",
+        "failed": "Boutique personalization unavailable — try again.",
+        "viewBoutique": "View live /boutique"
+      },
+      "boutiqueTitle": {
+        "badge": "Typography · /boutique",
+        "title": "Fonts & special characters",
+        "subtitle": "Customize your storefront hero title — 10 premium fonts, ✦◈★ ornaments, and free-form titles with symbols.",
+        "preview": "Live preview",
+        "fonts": "Fonts",
+        "ornaments": "Ornaments",
+        "specialChars": "Special characters",
+        "customTitle": "Custom title",
+        "customPlaceholder": "e.g. ✦ {name} ✦",
+        "save": "Publish title",
+        "saving": "Publishing…",
+        "saved": "Title published — live on /boutique for all visitors.",
+        "failed": "Could not publish title — try again.",
+        "viewBoutique": "View /boutique",
+        "layout": {
+          "boutique-accent": "Boutique + accent",
+          "full-gradient": "Full gradient",
+          "name-only": "Name only",
+          "custom-only": "Custom only"
+        }
+      },
       "liveStore": {
         "title": "Your store is live",
         "subtitle": "Your branded address on {suffix} — same catalog as your listings, Ads-ready and Affisell-verified.",
         "subdomainLabel": "Dedicated storefront URL",
         "customDomainLabel": "Custom domain",
         "platformLabel": "Affisell path (backup)",
-        "openPrimary": "Open storefront"
+        "openPrimary": "Open storefront",
+        "subdomainPending": "HTTPS is provisioning on your subdomain — the primary link uses affisell.com as backup. Refresh in 1–2 min after opening Brand Studio.",
+        "subdomainActive": "HTTPS active — your dedicated URL is ready for Google Ads."
       },
       "storeName": "Nazwa sklepu",
       "heroBanner": "Baner bohatera (adres URL HTTPS)",
@@ -2250,6 +2652,22 @@
           "quantum-glow": {
             "name": "Quantum Glow",
             "desc": "Quantum glass violet, luminous gradient."
+          },
+          "nebula-aurora": {
+            "name": "Nebula Aurora",
+            "desc": "Deep violet → neon cyan — premium dark boutique."
+          },
+          "solar-flare": {
+            "name": "Solar Flare",
+            "desc": "Copper & gold solar mood, high conversion."
+          },
+          "ocean-depth": {
+            "name": "Ocean Depth",
+            "desc": "Abyss blue & electric cyan, tech trust."
+          },
+          "crimson-nova": {
+            "name": "Crimson Nova",
+            "desc": "Magma rose on dark, fashion editorial."
           }
         }
       },
@@ -2293,6 +2711,11 @@
         "nativeShare": "Share…",
         "shareMessage": "Discover {name} — curated products on Affisell",
         "enableEmbedHint": "Enable embed widget to show your shop on your blog or site →",
+        "recommended": "Best for you",
+        "postSharePrompt": "Your listing is live — share your shop link to get your first visitors.",
+        "awaitingFirstClick": "Link shared — waiting for your first shop visit.",
+        "firstTraffic": "{count, plural, one {# visit on your listings} other {# visits on your listings}}",
+        "firstSale": "{count, plural, one {# sale — keep sharing!} other {# sales — keep sharing!}}",
         "amplify": {
           "title": "Amplify the channel already converting",
           "subtitle": "Reuse the same message on your bio, blog, or profile so more buyers land on the shop that is already selling.",
@@ -2449,6 +2872,43 @@
         "hint": "Fills tagline + Story + CTA sections. Review before publishing.",
         "failed": "AI copy unavailable — check GROQ_API_KEY or try again."
       },
+      "generate": {
+        "cta": "Generate",
+        "generating": "Generating…",
+        "failed": "Generation failed — try again.",
+        "fields": {
+          "preset": "Generate",
+          "name": "Generate",
+          "logo": "Generate",
+          "banner": "Generate",
+          "copy": "Generate",
+          "colors": "Generate",
+          "layout": "Generate",
+          "nameBadge": "Generate",
+          "sections": "Generate",
+          "embed": "Generate",
+          "boutiqueTitle": "Generate",
+          "staticPages": "Generate",
+          "faqOrders": "Generate",
+          "sectionContent": "Generate"
+        },
+        "hints": {
+          "preset": "AI-matched preset, palette, layout & tagline from your catalog.",
+          "name": "Brand name from niche + catalog keywords.",
+          "logo": "Gradient monogram from your store name & colors.",
+          "banner": "Cinematic hero — HF image or gradient fallback.",
+          "copy": "Tagline + Story + CTA sections.",
+          "colors": "Primary, accent & trust rail from catalog AI.",
+          "layout": "Layout, hero, grid & surface tuned to your niche.",
+          "nameBadge": "Badge style matched to your surface & preset.",
+          "sections": "Enable & copy homepage blocks for your niche.",
+          "embed": "Ready-to-copy embed widget with headline.",
+          "boutiqueTitle": "Font & ornament paired to your preset.",
+          "staticPages": "About, FAQ & Returns (EU-friendly).",
+          "faqOrders": "FAQ from your last 30 days of orders.",
+          "sectionContent": "Fill this section with niche-aware copy."
+        }
+      },
       "layoutControls": {
         "title": "Structure & mood",
         "headerBrand": "Store name in header",
@@ -2557,8 +3017,26 @@
           "cta": {
             "label": "Discover CTA",
             "desc": "Invite buyers to explore Affisell."
+          },
+          "flash-sale": {
+            "label": "Flash sale",
+            "desc": "Countdown timer + limited-time product rail."
           }
         }
+      },
+      "flashSale": {
+        "title": "Flash sale setup",
+        "hint": "Pick products and end time — the section hides automatically when the timer hits zero.",
+        "eyebrow": "Eyebrow",
+        "eyebrowPlaceholder": "Limited offer",
+        "headline": "Promo headline",
+        "headlinePlaceholder": "Up to 30% off — ends soon",
+        "duration": "Sale ends",
+        "presetHours": "{hours}h",
+        "products": "Products ({count}/{max})",
+        "loadingCatalog": "Loading catalog…",
+        "emptyCatalog": "List at least one product to run a flash sale.",
+        "loadFailed": "Could not load your catalog."
       },
       "staticPages": {
         "title": "Store pages",
@@ -2601,7 +3079,9 @@
         "generate": "Generate with Veo",
         "generating": "Generating…",
         "generateFailed": "Could not generate hero video",
-        "useAsHero": "Use as hero"
+        "useAsHero": "Use as hero",
+        "showStoreName": "Show store name on video",
+        "showStoreNameHint": "Uses your Brand Studio name badge — crisp overlay, not burned into Veo."
       },
       "embedWidget": {
         "title": "Embed widget",
@@ -2692,6 +3172,9 @@
       "newsletterPlaceholder": "ty@przyklad.pl",
       "newsletterButton": "Zapisz się",
       "newsletterSuccess": "Jesteś na liście — sprawdź skrzynkę.",
+      "newsletterSubmitting": "Subscribing…",
+      "newsletterInvalidEmail": "Enter a valid email address.",
+      "newsletterError": "Could not subscribe. Try again in a moment.",
       "newsletterDisclaimer": "Bez spamu — wypisz się w każdej chwili.",
       "trustTitle": "Affisell verified partner storefront",
       "trustBody": "Partner code {code} — curated by this creator, sold by the supplier, Affisell secure checkout.",
@@ -2699,7 +3182,10 @@
       "ctaEyebrow": "Explore Affisell",
       "ctaTitle": "Discover more creators",
       "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
-      "ctaButton": "Browse marketplace"
+      "ctaButton": "Browse marketplace",
+      "flashSaleEyebrow": "Limited offer",
+      "flashSaleTitle": "Flash sale — ending soon",
+      "flashSaleLive": "LIVE"
     },
     "buyerChrome": {
       "openCategories": "Browse categories",
@@ -2761,6 +3247,31 @@
     "noProducts": "Brak dostępnych produktów.",
     "tryOn": {
       "cta": "Try on virtually"
+    },
+    "productCard": {
+      "trustLine": "Secure checkout · Secure delivery"
+    },
+    "merchantHeader": {
+      "aria": "Reseller boutique navigation",
+      "navAria": "Boutique menu",
+      "badgeReseller": "Reseller",
+      "badgeSupplier": "Supplier",
+      "dashboard": "Dashboard",
+      "boutique": "Store",
+      "orders": "Orders",
+      "clients": "Clients",
+      "settings": "Settings",
+      "cart": "Cart",
+      "avatar": {
+        "aria": "Store profile menu",
+        "close": "Close menu",
+        "addLogo": "Add logo or photo",
+        "editLogo": "Edit logo or photo",
+        "settings": "Store settings",
+        "signOut": "Sign out",
+        "storeFallback": "Reseller store",
+        "visitorHint": "Logo and identity are managed by the reseller — sign in as the owner to customize."
+      }
     },
     "trust": {
       "poweredBy": "Powered by Affisell",
@@ -2841,7 +3352,17 @@
     "timelineLabel": "Order progress",
     "stepPayment": "Payment secured",
     "stepOrder": "Order registered",
-    "stepEmail": "Confirmation email sent"
+    "stepEmail": "Confirmation email sent",
+    "hub": {
+      "reviewEyebrow": "Your review matters",
+      "reviewTitle": "Share your experience",
+      "reviewHint": "Help the community — 30 seconds to rate your purchase.",
+      "reviewCta": "Leave a review",
+      "pushTitle": "Live delivery updates",
+      "pushBody": "Shipping and delivery alerts on this device — no spam.",
+      "pushEnable": "Enable alerts",
+      "pushLoading": "Notifications…"
+    }
   },
   "cancel": {
     "title": "Zamówienie anulowane",
@@ -2929,6 +3450,8 @@
     "topVentes": "Najlepiej oceniane",
     "liveViewers": "{count} osoby oglądają to",
     "trendingViews24h": "Popularne · {count} wyświetleń w ciągu 24h",
+    "affiliateCreatorsWatchingOne": "{count} reseller is viewing this SKU",
+    "affiliateCreatorsWatchingMany": "{count} resellers are viewing this SKU",
     "stickyBuyHint": "Szybka sprzedaż podczas przeglądania",
     "onlyLeft": "Jeszcze tylko {count} sztuk w magazynie",
     "delivery48h": "Dostawa w ciągu 2 dni",
@@ -3137,7 +3660,21 @@
     "tagInternational": "Międzynarodowy",
     "tagLastMile": "Ostatni mil",
     "tagMarketplace": "Rynek",
-    "routeSummary": "{origin} → {destination} · {count} przewoźników"
+    "routeSummary": "{origin} → {destination} · {count} przewoźników",
+    "fastest": "Fastest",
+    "cheapest": "Cheapest reliable",
+    "balanced": "Recommended",
+    "verify": "Verify tracking",
+    "fakeAlert": "Suspicious tracking",
+    "verifyValid": "Valid format",
+    "crackingScore": "Anti-fake score {score}/100",
+    "officialTrack": "Official tracking",
+    "verifyMissing": "Enter a tracking number to verify.",
+    "verifyNetwork": "Network error — try again in a moment.",
+    "verifyFailed": "Verification failed — check the number and try again.",
+    "verifyPageTitle": "Anti-Fake Tracking Verifier",
+    "verifyPageSubtitle": "Detect fabricated tracking numbers and open the carrier’s official tracker.",
+    "pdpOptionsTitle": "Pro shipping"
   },
   "pages": {
     "trackOrder": {
@@ -3171,6 +3708,11 @@
       "cookies": "Ciasteczka",
       "returns": "Zwroty",
       "contact": "Kontakt"
+    },
+    "signupConsent": {
+      "acceptCgu": "I accept the <cgu>Terms of use</cgu>",
+      "acceptRoleTerms": "I accept the <terms>{roleTerms}</terms>",
+      "acceptPrivacy": "I accept the <privacy>Privacy policy</privacy>"
     }
   },
   "legalPages": {
@@ -3345,6 +3887,10 @@
       "title": "1. Buyer",
       "body": "Browse the catalog, pay securely, and track your order from your account."
     },
+    "reseller": {
+      "title": "2. Affisell reseller",
+      "body": "Pick supplier SKUs, set your customer price, and publish on your storefront — no stock or shipping."
+    },
     "creator": {
       "title": "2. Creator partner",
       "body": "Pick products, customize your storefront, and share it — Affisell handles checkout end to end."
@@ -3354,6 +3900,8 @@
       "body": "Publish your catalog, ship fast and safely, and get paid once delivery is confirmed."
     },
     "ctaBrowse": "Explore catalog",
+    "ctaSell": "Sell on Affisell",
+    "ctaProgram": "Reseller B2B program",
     "ctaPartner": "Become a creator partner"
   },
   "supportPage": {
@@ -3456,6 +4004,7 @@
       "home": "Strona główna",
       "marketplace": "Rynek",
       "creatorStores": "Zaufane sklepy",
+      "resellerStores": "Sklepy reseller",
       "cart": "Koszyk",
       "wishlist": "Lista życzeń",
       "auctions": "Aukcja Arena",
@@ -3465,6 +4014,7 @@
       "listProduct": "Dodaj produkt",
       "mySales": "Moje sprzedaże",
       "becomeSeller": "Stań się twórcą",
+      "sellOnAffisell": "Sell on Affisell",
       "becomePartner": "Stań się partnerem",
       "analytics": "Analiza",
       "payouts": "Płatności",
@@ -3472,7 +4022,10 @@
       "createBuyerAccount": "Utwórz konto kupującego",
       "settings": "Ustawienia",
       "signOut": "Wyloguj się",
-      "resellerStores": "Sklepy reseller"
+      "dropforge": "DropForge",
+      "magicLab": "Magic Systems",
+      "affisellStock": "Affisell stock",
+      "battles": "Battles Hub"
     }
   },
   "footer": {
@@ -3493,12 +4046,16 @@
       "howItWorks": "Jak to działa",
       "howSellingWorks": "Jak sprzedawać",
       "browseCatalog": "Przegląd katalogu",
+      "affisellPulse": "Affisell Pulse",
       "auctions": "Arena Aukcyjna",
+      "battles": "Battles Hub",
       "luxe": "Affisell Luxe",
       "buyerProtection": "Zapewniona sprzedaż · zwroty",
       "buyerProtectionShort": "Zapewniona sprzedaż",
       "wishlist": "Lista życzeń",
       "becomeCreator": "Stań się twórcą",
+      "becomeReseller": "Create reseller account",
+      "sellOnAffisell": "Sell on Affisell",
       "affiliateProgram": "Program partnerski",
       "becomeSupplier": "Stań się dostawcą",
       "enterpriseBrands": "Enterprise brands",
@@ -3546,6 +4103,8 @@
     "cookies": "Pliki cookie",
     "sellTitle": "Sprzedaj",
     "becomeCreator": "Stań się twórcą",
+    "becomeReseller": "Create reseller account",
+    "sellOnAffisell": "Sell on Affisell",
     "becomePartner": "Stań się partnerem",
     "helpTitle": "Pomoc",
     "faq": "FAQ",
@@ -3575,8 +4134,10 @@
       "title": "Produkt",
       "exploreCatalog": "Odkryj katalog",
       "topCreators": "Najlepsi Twórcy",
+      "sellOnAffisell": "Sell on Affisell",
       "liveShopping": "Live Shopping",
-      "affiliateProgram": "Program partnerski"
+      "affiliateProgram": "Program partnerski",
+      "magicSystems": "Magic Systems"
     },
     "company": {
       "title": "Firma",
@@ -4011,6 +4572,7 @@
     "htPrice": "Cena hurtowa {price}",
     "noProducts": "Brak produktów do wyboru.",
     "investment": "Success fee share (HT)",
+    "successFeeHint": "Billed only when a buyer pays — never a subscription or deposit.",
     "duration": "Promotion window",
     "placement": {
       "label": "Umiejscowienie",
@@ -4019,7 +4581,10 @@
       "SEARCH_BOOST": "Wzmocnienie wyszukiwania"
     },
     "budget": "Per concluded sale",
+    "perSaleFee": "Cost per sale",
     "quoteMeta": "Ocena {score} · {rate}% HT · {days}d",
+    "quoteMetaSuccess": "Score {score} · {rate}% HT · live {days}d · pay on sale",
+    "payOnSaleBadge": "Pay-per-sale",
     "boostPower": "Moc",
     "boostPowerAria": "Placement score {score}",
     "cta": "Activate Placement",
@@ -4030,11 +4595,7 @@
       "ACTIVE": "Aktywny",
       "EXPIRED": "Wygasł",
       "CANCELLED": "Anulowany"
-    },
-    "successFeeHint": "Billed only when a buyer pays — never a subscription or deposit.",
-    "perSaleFee": "Cost per sale",
-    "quoteMetaSuccess": "Score {score} · {rate}% HT · live {days}d · pay on sale",
-    "payOnSaleBadge": "Pay-per-sale"
+    }
   },
   "demoLab": {
     "eyebrow": "Affisell Demo Lab",
@@ -4149,6 +4710,84 @@
         }
       }
     },
+    "storefrontFormats": {
+      "eyebrow": "Storefront OS",
+      "title": "Vitrine formats catalog",
+      "subtitle": "Every public storefront experience on Affisell — who it's for, which URL, and one-click live tests. Your reference hub inside Demo Lab.",
+      "backToDemo": "Back to Demo Lab",
+      "architectureTitle": "Dual-model architecture",
+      "architectureDiagram": "Affiliate merchant\n├── /shops/[slug]     → Brand Studio (buyer chrome, modular sections)\n├── /boutique/[slug]  → Procedural boutique (1024 skins, design studio)\n├── /embed/shops/[slug] → Embeddable widget (Brand Studio toggle)\n└── custom domain CNAME → rewrites to /shops/[slug]\n\nSupplier merchant\n└── /store/supplier/[slug] → Supplier catalog vitrine\n\nCreator (Légion)\n└── /u/[username] → @handle vitrine (parallel to Store slug)",
+      "formatsGridTitle": "Available formats",
+      "stats": {
+        "formats": "Public formats",
+        "boutiqueSkins": "Boutique skins",
+        "brandPresets": "Brand presets",
+        "presetsHint": "curated in Brand Studio"
+      },
+      "tierPrimary": "Core format",
+      "tierChannel": "Distribution",
+      "linkDisabled": "Setup required",
+      "matrixTitle": "Brand Studio option matrix",
+      "matrixBody": "Combinable knobs on /shops/ — layout × hero × surface × sections × preset.",
+      "matrix": {
+        "layouts": "Layouts",
+        "heroes": "Hero modes",
+        "surfaces": "Surfaces",
+        "sections": "Home blocks"
+      },
+      "matrixBoutiqueNote": "{count} curated boutique theme refs showcased on the Boutique format card (full engine: 1 024 procedural skins).",
+      "footerNote": "Slugs resolve from Demo Lab accounts when seeded — otherwise fallback live stores. Safe to share with product & QA.",
+      "optionCountSkins": "{count} procedural skins · Regenerate / Save in boutique body",
+      "optionCountBrandStudio": "{layouts} layouts · {heroes} heroes · {presets} presets",
+      "audiences": {
+        "buyer": "Buyer",
+        "affiliate": "Affiliate",
+        "supplier": "Supplier",
+        "creator": "Creator"
+      },
+      "formats": {
+        "brand-studio-shops": {
+          "title": "Brand Studio · /shops/",
+          "role": "Primary buyer vitrine for affiliates. Black buyer chrome, trust rail, modular homepage (hero, bestsellers, trust…). Configured in Brand Studio."
+        },
+        "boutique-procedural": {
+          "title": "Procedural boutique · /boutique/",
+          "role": "Design-forward affiliate vitrine. Seamless procedural header, AI tagline, 1024 skins. Owner tools (Regenerate, Save) in page body — same catalog as /shops/."
+        },
+        "supplier-storefront": {
+          "title": "Supplier vitrine · /store/supplier/",
+          "role": "Public catalog for suppliers. Direct-to-brand checkout path. The view affiliates preview when sourcing products."
+        },
+        "legion-profile": {
+          "title": "Légion · /u/[username]",
+          "role": "Creator handle vitrine (@username). Parallel identity to Store slug — optimized for social traffic and Légion referrals."
+        },
+        "embed-widget": {
+          "title": "Embed widget · /embed/shops/",
+          "role": "Iframe-friendly product rail for external sites. Enable in Brand Studio → Embed widget, then test the live snippet URL."
+        }
+      },
+      "links": {
+        "liveBuyer": "Open live buyer vitrine",
+        "ownerPreview": "Owner preview (?preview=affiliate)",
+        "brandStudio": "Edit in Brand Studio",
+        "boutiqueLive": "Open boutique (saved theme)",
+        "boutiqueTheme": "Test skin {theme}",
+        "supplierLive": "Open supplier vitrine",
+        "supplierStudio": "Supplier Brand Studio",
+        "legionLive": "Open @profile",
+        "legionSettings": "Configure Légion handle",
+        "legionSetup": "Set up @username",
+        "legionMissing": "No active StoreProfile in database — create a handle in settings first.",
+        "embedLive": "Open embed URL",
+        "embedRequiresEnable": "Enable Embed widget in Brand Studio first — then this URL serves the iframe rail.",
+        "brandStudioEmbed": "Brand Studio → Embed panel",
+        "shopsBrowse": "Browse creator shops",
+        "discover": "Discover suppliers"
+      },
+      "indexCardTitle": "Storefront formats",
+      "indexCardBody": "Catalog of all vitrine types — roles, URLs, and live test links for QA and product."
+    },
     "feedback": {
       "title": "Twoje opinie są ważne",
       "subtitle": "1 do 5 — jak było w ogóle?",
@@ -4238,6 +4877,81 @@
       "messagePlaceholder": "Twoja wiadomość…",
       "accepted": "Zaakceptowałeś przedłużenie.",
       "rejected": "Odrzuciłeś przedłużenie."
+    }
+  },
+  "payoutPolicy": {
+    "shared": {
+      "stripePerOrder": "Stripe Connect transfers — per order, not a monthly batch.",
+      "dashboardDisclaimer": "Amounts shown are indicative until the Connect transfer succeeds. Timing depends on shipment, delivery confirmation, returns and KYC.",
+      "returnsBlock": "Transfer blocked while a return is open on the order.",
+      "clawback": "Approved return: cancellation or clawback on amounts already transferred."
+    },
+    "supplier": {
+      "standard": "Supplier (standard): payout after shipment with valid tracking, once upstream purchase is funded when applicable (auto-buy). Typically within 48h of shipment when Connect is active.",
+      "lightning": "Lightning Payout (eligible suppliers): supplier and reseller transfers may run at shipment."
+    },
+    "affiliate": {
+      "standard": "Affisell reseller: payout after buyer confirms delivery, then {days} calendar days.",
+      "autoConfirm": "If the buyer stays silent: auto-confirmation at J+{days} after carrier delivery, then transfer."
+    },
+    "connect": {
+      "supplierTitle": "Stripe Connect payouts",
+      "supplierBody": "Set up your bank account to receive wholesale sales after shipment (valid tracking), per Affisell rules.",
+      "affiliateTitle": "Stripe Connect payouts",
+      "affiliateBody": "Enable Stripe Connect to collect reseller margin and supplier commission after delivery confirmation.",
+      "supplierCta": "Set up payouts",
+      "affiliateCta": "Enable payouts",
+      "supplierKycHint": "Your KYC profile must be approved before catalogue publish.",
+      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront."
+    },
+    "pulseHub": {
+      "paidOutFootnote": "Net of recorded payouts and any clawbacks — see activity below.",
+      "supplierBandHint": "Wholesale value of units sold in this window (before platform payout timing).",
+      "emptyLedger": "No payout entries yet — they appear when orders pass shipment / delivery steps.",
+      "ledgerTitle": "Payout ledger"
+    }
+  },
+  "browseCategory": {
+    "metaTitle": "{category} — Shop on Affisell",
+    "metaDescription": "Discover {count, plural, one {# product} other {# products}} in {category} on Affisell.",
+    "breadcrumbHome": "Home",
+    "subcategories": "Subcategories",
+    "listingCount": "{count, plural, one {# product} other {# products}}",
+    "seeAll": "Browse full catalog",
+    "empty": "No products yet."
+  },
+  "sellPage": {
+    "meta": {
+      "title": "Sell on Affisell — Reseller or supplier",
+      "description": "Resell without inventory or supply the catalogue: two Affisell B2B paths."
+    },
+    "eyebrow": "Sell on Affisell",
+    "title": "Choose your model",
+    "description": "Affisell connects suppliers, Affisell resellers (no inventory) and buyers — no extra technical role.",
+    "resellerTitle": "Affisell reseller",
+    "resellerBody": "Pick supplier SKUs, set your customer price, earn margin + commission — supplier handles fulfillment.",
+    "resellerCta": "Open reseller catalog",
+    "resellerStartCta": "Launch my reseller store",
+    "resellerCatalogCta": "Browse catalog",
+    "supplierTitle": "Supplier",
+    "supplierBody": "Publish your wholesale catalogue, ship orders, Stripe Connect payouts after shipment.",
+    "supplierCta": "Become a supplier",
+    "resellerProgramCta": "Reseller B2B program",
+    "supplierFrameworkCta": "Supplier B2B framework",
+    "howItWorks": "How it works"
+  },
+  "supplierStorefront": {
+    "browse": {
+      "partnerListingsOne": "{count} active reseller",
+      "partnerListingsMany": "{count} active resellers"
+    },
+    "trust": {
+      "subtitle": "Affisell trust signals for this supplier",
+      "ordersFulfilled": "Orders fulfilled",
+      "ordersCount": "{count, plural, one {# order} other {# orders}}",
+      "avgRating": "Average rating",
+      "fastShip": "Ships within 48h",
+      "disputeRate": "Dispute rate"
     }
   },
   "sellAffiliateProgram": {
@@ -4353,6 +5067,15 @@
     "tracking": "Parcel tracking",
     "carrierDefault": "Carrier",
     "trackPackage": "Track my parcel",
+    "trackingTimeline": {
+      "title": "Tracking history",
+      "events": {
+        "TRACKING_REGISTERED": "Package shipped",
+        "IN_TRANSIT": "In transit",
+        "DELIVERED": "Delivered",
+        "TRACKING_UPDATED": "Tracking updated"
+      }
+    },
     "deliveredOn": "Delivered on",
     "estimatedDelivery": "Estimated delivery",
     "etaPending": "Updating — we'll email you when ready",
@@ -4464,6 +5187,15 @@
       "ctaReview": "Dodaj opinię",
       "footerNote": "Otrzymujesz ten email tylko raz. Dziękujemy za pomoc w rozwoju Affisell."
     },
+    "repurchaseReminder": {
+      "preview": "Ready to reorder {productName}?",
+      "subject": "Time to restock · {productName}",
+      "heading": "Need a refill?",
+      "body": "It's been a while since order #{orderId}. {productName} is still available — reorder in one click.",
+      "ctaTitle": "Buy again before it sells out",
+      "ctaRepurchase": "Buy again",
+      "footerNote": "One email per order. Unsubscribe from marketing in your account settings."
+    },
     "paymentFailed": {
       "preview": "Wymagana akcja: nieudana płatność #{orderId}",
       "subject": "Wymagana akcja: odrzucona płatność dla #{orderId}",
@@ -4525,64 +5257,6 @@
       "home": "Domu"
     }
   },
-  "slogans": {
-    "buyer": {
-      "base": "Stores you trust.",
-      "rotatifs": [
-        "Products verified.",
-        "Makers verified.",
-        "Payments protected.",
-        "Returns guaranteed.",
-        "Shops curated.",
-        "Quality assured."
-      ],
-      "canonical": "Stores you trust. Products verified."
-    },
-    "reseller": {
-      "base": "Turn",
-      "rotatifs": [
-        "products into profits",
-        "ideas into income",
-        "listings into cash",
-        "clicks into profit",
-        "trends into money",
-        "catalog into revenue",
-        "views into sales",
-        "stock into income"
-      ],
-      "fixedSuffix": "Instantly.",
-      "canonical": "Turn products into profits. Instantly.",
-      "metaTitle": "Turn products into profits. Instantly. | Affisell Reseller",
-      "metaDescription": "Live net profit per product, 7-day margin lock, real EU delivery. Start reselling profitable products in 1 click.",
-      "badge": "7 innovations · Margin Lock 7j · Live Profit",
-      "sub": "The only marketplace where every product shows live net profit after fees, ads & shipping. Margin locked for 7 days. No fake 3-7 day delivery.",
-      "ticker": "Trusted by 120+ resellers · €14.2k avg profit/mo",
-      "ctaPrimary": "Otwórz DropForge — za darmo",
-      "ctaSecondary": "Explore profitable products"
-    },
-    "supplier": {
-      "base": "Turn",
-      "rotatifs": [
-        "inventory into income",
-        "stock into sales",
-        "products into stores",
-        "catalog into cashflow",
-        "warehouse into revenue",
-        "listings into orders",
-        "inventory into scale",
-        "products into 33 countries"
-      ],
-      "fixedSuffix": "Instantly.",
-      "canonical": "Turn inventory into income. Instantly.",
-      "metaTitle": "Turn inventory into income. Instantly. | Affisell Supplier",
-      "metaDescription": "List once. Reach resellers across 33 EU countries. Scale your catalog without opening 33 shops.",
-      "badge": "B2B supply · Pan-EU reach · Payout J+7",
-      "sub": "One catalog. Thousands of reseller storefronts. Real EU delivery, transparent fees, payout you can plan on.",
-      "ticker": "Suppliers shipping to 33 countries · Live catalog sync",
-      "ctaPrimary": "Start supplying — It's free",
-      "ctaSecondary": "Supplier briefing"
-    }
-  },
   "importPage": {
     "metaTitle": "DropForge — URL → Affisell store",
     "metaDescription": "DropForge scrapes Temu, TikTok Shop, Amazon or SHEIN and forges your product listing. Sell from your Affisell storefront — zero inventory.",
@@ -4592,6 +5266,7 @@
     "urlLabel": "Product URL",
     "urlPlaceholder": "https://www.temu.com/… or shop.tiktok.com/…",
     "urlHint": "Paste a product page link (not the marketplace homepage).",
+    "urlNormalized": "Tracking link converted to canonical product URL",
     "scanCta": "Forge",
     "scanning": "Forging…",
     "detected": "Detected: {market}",
@@ -4599,17 +5274,30 @@
     "errHttps": "URL must start with http:// or https://",
     "errProductUrl": "Paste a specific product link, not the homepage.",
     "errPreview": "Could not read this page. Try again or another URL.",
+    "errIncomplete": "DropForge requires a complete listing (title, images, price). Check the URL or API config.",
     "errCommit": "Import failed for now.",
     "previewOk": "{market} listing complete — everything imported",
     "previewPartial": "Incomplete {market} preview",
     "partialBadge": "Incomplete",
+    "mediaCount": "{images} images · {videos} videos",
+    "attrsCount": "{variants} variants · {colors} colors · {specs} specs",
     "cost": "Source cost",
     "profit": "Est. margin",
     "sellPrice": "Your sell price",
+    "wholesalePrice": "Wholesale price (for resellers)",
+    "wholesaleHint": "Suggested wholesale",
     "readyAffiliate": "Ready — save as draft or publish live to your shop.",
+    "readySupplier": "Ready — save draft or publish to the Affisell catalog for resellers.",
     "readyPartial": "Draft available now — add images / price before going live.",
+    "readyPartialSupplier": "Partial scrape — verify wholesale price & variants, then publish to catalog.",
+    "readyManualSupplier": "Ready — publish to B2B catalog. You fulfill shipments manually.",
+    "readyNoFulfillment": "Draft only — auto-fulfillment not wired yet (prefer AliExpress for 1-click ship).",
     "readyGuest": "Create your reseller account to push this listing into your shop.",
     "publishNeedsComplete": "Finish the listing (images) before publishing live.",
+    "publishNeedsFulfillment": "Live publish blocked until supplier fulfillment is linked.",
+    "fulfillmentReady": "✅ Auto-fulfillment wired — AliExpress SupplierLink ready.",
+    "fulfillmentManualSupplier": "📦 Manual fulfillment — you ship orders; resellers list from your wholesale catalog.",
+    "fulfillmentPending": "⚠️ Fulfillment not auto-wired — stays draft until AliExpress link or ops match.",
     "saveDraft": "Save draft",
     "publishLive": "Publish live",
     "signupDraft": "Account + draft",
@@ -4619,10 +5307,14 @@
     "doneLive": "Your listing is live.",
     "doneDraft": "Draft ready — finish in catalog.",
     "viewShop": "View listing",
+    "viewCatalog": "Open my products",
     "editListing": "Open catalog",
     "alreadyAccount": "Already a reseller?",
     "loginLink": "Sign in",
     "signupLink": "Create account",
+    "resellerNoticeTitle": "DropForge is for suppliers",
+    "resellerNoticeBody": "You sell without stock — list products from the Affisell catalog. Suppliers forge SKUs with DropForge.",
+    "resellerCatalogCta": "Open reseller catalog",
     "step1Title": "1. Paste the link",
     "step1Body": "Temu, TikTok Shop, Amazon — we read title, images and price.",
     "step2Title": "2. Set your margin",
@@ -4633,10 +5325,7 @@
     "emptyTitle": "Paste a URL — DropForge builds the preview here",
     "emptyBody": "Title, images, source cost and sell price appear after Forge. Create your reseller account in one click to push it to your shop.",
     "productName": "DropForge",
-    "productTag": "Affisell · DropForge",
-    "errIncomplete": "DropForge requires a complete listing (title, images, price). Check the URL or API config.",
-    "mediaCount": "{images} images · {videos} videos",
-    "attrsCount": "{variants} variants · {colors} colors · {specs} specs"
+    "productTag": "Affisell · DropForge"
   },
   "productRequests": {
     "categories": {
@@ -4828,5 +5517,178 @@
       "warn": "You propose {days}d → 🔴 -50% visibility — reseller may reject (max {maxDays}d for {code})",
       "allMarkets": "{detail} (all markets: {codes})"
     }
+  },
+  "magicSystems": {
+    "metaTitle": "Magic Systems — Affisell Lab",
+    "metaDescription": "All Affisell signature systems in one place: DropForge, Pulse, Radar, Supply Hub, Demo Lab and more.",
+    "eyebrow": "Affisell Lab",
+    "title": "Magic Systems",
+    "subtitle": "The revolutionary Affisell stack — supplier sourcing, reseller commerce, and platform engines — in one command center.",
+    "backHome": "Affisell",
+    "filtersAria": "Filter systems by persona",
+    "filters": {
+      "all": "All",
+      "supplier": "Supplier",
+      "affiliate": "Reseller",
+      "platform": "Platform",
+      "buyer": "Buyer"
+    },
+    "status": {
+      "live": "Live",
+      "beta": "Beta",
+      "new": "New"
+    },
+    "open": "Open",
+    "empty": "No systems in this filter yet.",
+    "footerHint": "{count} systems in the Affisell stack",
+    "entries": {
+      "affisellStock": {
+        "title": "Affisell stock",
+        "blurb": "Your native warehouse channel — catalog, fulfillment and orders on-platform."
+      },
+      "dropforge": {
+        "title": "DropForge",
+        "blurb": "URL → wholesale catalog. AliExpress / 1688 forge + auto-fulfill wiring."
+      },
+      "supplyHub": {
+        "title": "Supply Hub",
+        "blurb": "Channel connectors and supply ops for your warehouse network."
+      },
+      "supplierImport": {
+        "title": "Import Suite",
+        "blurb": "CSV, URL and extension imports into your supplier catalog."
+      },
+      "radar": {
+        "title": "Radar",
+        "blurb": "Demand & arbitrage signals across markets — globe-ready intelligence."
+      },
+      "pulse": {
+        "title": "Pulse / Discover",
+        "blurb": "Swipe commerce feed. Mobile deck + desktop detail panel."
+      },
+      "battle": {
+        "title": "Pulse Battle",
+        "blurb": "Legal flash discounts with 30-day reference pricing."
+      },
+      "swipeHub": {
+        "title": "Swipe Hub",
+        "blurb": "Reseller first-listing & swipe feed control center."
+      },
+      "brandStudio": {
+        "title": "Brand Studio",
+        "blurb": "Storefront theme for your reseller shop."
+      },
+      "demoLab": {
+        "title": "Demo Lab",
+        "blurb": "Try Affisell flows without a production account."
+      },
+      "auctions": {
+        "title": "Auctions",
+        "blurb": "Live bidding arena for buyers."
+      },
+      "luxe": {
+        "title": "Luxe",
+        "blurb": "Premium collection surface."
+      },
+      "pricingRadar": {
+        "title": "Radar Pricing",
+        "blurb": "Subscription value props for Radar growth."
+      },
+      "battlesHub": {
+        "title": "Battles Hub",
+        "blurb": "Discover Pulse duels and vote for the flash."
+      }
+    }
+  },
+  "battles": {
+    "metaTitle": "Battles Hub — Affisell",
+    "metaDescription": "Discover live Pulse Battles, vote, and unlock flash discounts.",
+    "eyebrow": "Pulse Arena",
+    "title": "Battles Hub",
+    "subtitle": "Vote for your favorite. The winner unlocks a real flash discount at checkout.",
+    "back": "Catalog",
+    "live": "LIVE",
+    "flash": "flash",
+    "upcoming": "Upcoming",
+    "ended": "Ended",
+    "votes": "{count} votes",
+    "sectionLive": "Live duel",
+    "sectionFlash": "Winner flash live",
+    "sectionUpcoming": "Upcoming duels",
+    "sectionRecent": "Recent battles",
+    "enterArena": "Enter the arena",
+    "shopFlash": "Shop the flash",
+    "watchArena": "Watch arena",
+    "seeWinner": "See the winner",
+    "viewA": "Product A",
+    "viewB": "Product B",
+    "winner": "Winner",
+    "empty": "No battles yet — check back soon or explore Pulse.",
+    "goPulse": "Open Pulse",
+    "tickerEmpty": "Battles Hub — vote, flash, win",
+    "voteCta": "VOTE",
+    "detailsCta": "Details",
+    "winnerBadge": "Winner −{pct}%",
+    "soonPulse": "Soon 6pm Pulse",
+    "voters": "{count} voters"
+  },
+  "legion": {
+    "copyLink": "Copy link",
+    "copied": "Copied",
+    "shop": "Shop",
+    "payout24h": "24h payout",
+    "salesOne": "{count} sale",
+    "salesMany": "{count} sales",
+    "invitedBy": "Invited by @{username} — create your Affisell shop.",
+    "join": "Join",
+    "selection": "Picks",
+    "emptyProducts": "No products listed yet.",
+    "battleRoyale": "Battle Royale",
+    "minutesLeft": "{minutes} min",
+    "sellNow": "Sell now",
+    "battleActive": "Battle live",
+    "battleActiveHint": "Affiliate commission applied at checkout during the window. Ends: {time}",
+    "armyLabel": "active resellers in the army",
+    "commissionLabel": "Affiliate commission (2h)",
+    "battleHint": "For {hours}h: Battle Royale banner + real affiliate commission at checkout (does not change the permanent catalog rate). Distinct from pay-per-sale Placement.",
+    "launching": "Launching…",
+    "launchBattle": "Launch Battle",
+    "eyebrow": "Légion Battle",
+    "errorBoostFailed": "Could not start the battle",
+    "errorNetwork": "Network error",
+    "productFallback": "Product",
+    "boostEnded": "BATTLE ended — {title}",
+    "boostLive": "BATTLE ROYALE — {title} at {pct}% · {minutes} min left",
+    "leaderboardEmpty": "No sales yet during this Battle… Be the first.",
+    "leaderboardLive": "LIVE",
+    "leaderboardSales": "{count} sales",
+    "leaderboardSalesOne": "{count} sale"
+  },
+  "cookieBanner": {
+    "aria": "Cookie consent",
+    "body": "We use essential cookies to run Affisell, and audience cookies only with your consent.",
+    "learnMore": "Learn more",
+    "accept": "Accept",
+    "refuse": "Refuse",
+    "configure": "Settings"
+  },
+  "ghostCheckout": {
+    "badgeFresh": "Stock verified {minutes} min ago",
+    "badgeToday": "Stock verified today",
+    "badgeTitle": "We verify stock with the supplier before every payment",
+    "eyebrow": "Ghost Checkout",
+    "title": "Just verified out of stock",
+    "bodyNamed": "We just checked with our supplier — {name} is out of stock. You were not charged.",
+    "bodyGeneric": "We just checked with our supplier: this product is out of stock. You were not charged.",
+    "couponLabel": "Code {coupon} (−15%)",
+    "copied": "Copied",
+    "copy": "Copy",
+    "copySuccess": "Code {coupon} copied",
+    "copyFail": "Could not copy",
+    "close": "Close",
+    "alternatives": "In-stock alternatives",
+    "buy": "Buy",
+    "alertCta": "Notify me when back",
+    "alertToast": "Back-in-stock alert saved — we'll notify you."
   }
 }
