@@ -28,6 +28,7 @@ export async function deleteMerchantUser(
       await tx.notification.deleteMany({ where: { userId } })
       await tx.user.delete({ where: { id: userId } })
     })
+    console.log("[account-delete]", { userId, role, result: "deleted" })
     return { ok: true }
   }
 
@@ -49,5 +50,6 @@ export async function deleteMerchantUser(
     await tx.user.delete({ where: { id: userId } })
   })
 
+  console.log("[account-delete]", { userId, role, result: "deleted" })
   return { ok: true }
 }

@@ -2468,6 +2468,39 @@ body.affisell-demo-lab .affisell-header-shell {
   }
 }
 
+.affisell-account-delete-overlay {
+  animation: affisell-sheet-fade-in 180ms ease-out;
+}
+
+.affisell-account-delete-panel {
+  animation: affisell-account-delete-rise 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.affisell-account-delete-aurora {
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(239, 68, 68, 0.22), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 90% 0%, rgba(244, 63, 94, 0.12), transparent 50%),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04), transparent);
+}
+
+@keyframes affisell-account-delete-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .affisell-account-delete-overlay,
+  .affisell-account-delete-panel {
+    animation: none;
+  }
+}
+
 button,
 [role="button"] {
   touch-action: manipulation;

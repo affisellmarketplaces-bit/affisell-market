@@ -1,11 +1,11 @@
 "use client"
 
 import Link from "next/link"
+import { LogOut, UserRound } from "lucide-react"
 import { signOut } from "next-auth/react"
-import { LogOut, Trash2, UserRound } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useState } from "react"
 
+import { AccountDeletionFlow } from "@/components/account/account-deletion-flow"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -23,26 +23,6 @@ export function MerchantAccountNavActions({
   showDeleteAccount = false,
 }: Props) {
   const t = useTranslations("merchantAccount")
-  const [busy, setBusy] = useState<"delete" | null>(null)
-  const [err, setErr] = useState<string | null>(null)
-
-  async function deleteAccount() {
-    const ok = window.confirm(t("deleteConfirm"))
-    if (!ok) return
-    setErr(null)
-    setBusy("delete")
-    try {
-      const res = await fetch("/api/user/account", { method: "DELETE" })
-      const data = (await res.json().catch(() => ({}))) as { error?: string }
-      if (!res.ok) {
-        setErr(data.error ?? `Error (${res.status})`)
-        return
-      }
-      await signOut({ callbackUrl: "/" })
-    } finally {
-      setBusy(null)
-    }
-  }
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
@@ -70,20 +50,8 @@ export function MerchantAccountNavActions({
         {t("signOut")}
       </button>
       {showDeleteAccount ? (
-        <button
-          type="button"
-          disabled={busy === "delete"}
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm" }),
-            "gap-1.5 border-red-200 bg-white/90 text-red-700 hover:bg-red-50 disabled:opacity-60 dark:border-red-900/60 dark:bg-zinc-900/90 dark:text-red-400 dark:hover:bg-red-950/40"
-          )}
-          onClick={() => void deleteAccount()}
-        >
-          <Trash2 className="size-4 shrink-0" aria-hidden />
-          {busy === "delete" ? t("deleting") : t("deleteAccount")}
-        </button>
+        <AccountDeletionFlow variant="merchant" triggerLabel={t("deleteAccount")} />
       ) : null}
-      {err ? <p className="w-full text-xs text-red-600 dark:text-red-400">{err}</p> : null}
     </div>
   )
 }

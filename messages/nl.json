@@ -1909,6 +1909,73 @@
     "deleting": "Verwijderen…",
     "deleteConfirm": "Verwijder je account permanent? Dit kan niet ongedaan worden gemaakt. Als je in het verleden als verkoper bestellingen hebt geplaatst op de marktplaats, kan verwijdering geblokkeerd worden."
   },
+  "accountDeletion": {
+    "eyebrow": "Permanent action",
+    "title": "Delete your account",
+    "subtitle": "No surveys, no retention questions — just a clear, irreversible closure when you are ready.",
+    "stepImpact": "Impact",
+    "stepConfirm": "Confirm",
+    "loadingPreview": "Loading deletion preview…",
+    "impactIntro": "The following will be permanently removed or anonymized:",
+    "noSurveyNote": "We do not ask why you are leaving. Your decision is respected without follow-up questions.",
+    "confirmIntro": "Type your account email to confirm. This prevents accidental deletion.",
+    "confirmLabel": "Account email",
+    "confirmHint": "Must match {email}",
+    "continue": "Continue",
+    "confirmDelete": "Delete permanently",
+    "deleting": "Deleting…",
+    "cancel": "Cancel",
+    "triggerMerchant": "Delete account",
+    "triggerGdpr": "Delete my account",
+    "blockedOrdersTitle": "Deletion blocked — marketplace orders exist",
+    "blockedOrdersBody": "Merchant accounts with order history must be handled by support for legal and payout records.",
+    "blockedOpenOrdersTitle": "Deletion blocked — orders in progress",
+    "blockedOpenOrdersBody": "Finish or cancel in-progress orders before deleting your buyer account.",
+    "contactSupport": "Contact support@affisell.com",
+    "impact": {
+      "supplier": [
+        "Supplier profile, store settings, and custom domain bindings",
+        "Product catalog, drafts, and wholesale pricing",
+        "Reseller listings linked to your SKUs",
+        "In-app notifications for this merchant account"
+      ],
+      "affiliate": [
+        "Affiliate storefront, brand studio assets, and shop theme",
+        "Published and draft product listings",
+        "Promotional links and marketplace visibility",
+        "In-app notifications for this merchant account"
+      ],
+      "buyer": [
+        "Profile name, avatar, and sign-in credentials (anonymized)",
+        "Cookie and marketing consent preferences",
+        "Push notification subscriptions",
+        "Past orders retained in anonymized form for legal and accounting obligations"
+      ]
+    },
+    "errors": {
+      "previewFailed": "Could not load deletion preview.",
+      "network": "Network error. Try again.",
+      "deleteFailed": "Deletion failed. Try again or contact support.",
+      "hasOrders": "This account has marketplace orders and cannot be deleted automatically.",
+      "openBuyerOrders": "Cannot delete while orders are in progress."
+    }
+  },
+  "gdprAccount": {
+    "exportTitle": "Export my data",
+    "exportBody": "Download a copy of your personal data (profile, orders, notifications).",
+    "cookiesTitle": "Cookie consents",
+    "cookiesBody": "Manage analytics and marketing categories.",
+    "cookiesPolicy": "Cookie policy",
+    "essentialCookies": "Essential (required)",
+    "analyticsCookies": "Analytics",
+    "marketingCookies": "Marketing",
+    "consentSaved": "Preferences saved.",
+    "consentFailed": "Could not save preferences.",
+    "deleteTitle": "Delete my account",
+    "deleteBody": "Under GDPR (right to erasure). Past orders may be kept in anonymized form for accounting obligations.",
+    "dpoLabel": "DPO:",
+    "privacyPolicy": "Privacy policy"
+  },
   "affiliateDashboard": {
     "onboarding": {
       "title": "Start je affiliate-winkel",

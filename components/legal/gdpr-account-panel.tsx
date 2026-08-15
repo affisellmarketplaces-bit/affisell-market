@@ -2,12 +2,14 @@
 
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 
+import { AccountDeletionFlow } from "@/components/account/account-deletion-flow"
 import { BentoCard } from "@/components/affisell/bento-ui"
-import { Button } from "@/components/ui/button"
 import type { CookieConsentPrefs } from "@/lib/legal/consent"
 
 export function GdprAccountPanel() {
+  const t = useTranslations("gdprAccount")
   const [consent, setConsent] = useState<CookieConsentPrefs | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -34,27 +36,10 @@ export function GdprAccountPanel() {
     setBusy(null)
     if (res.ok) {
       setConsent(next)
-      setMessage("Préférences enregistrées.")
+      setMessage(t("consentSaved"))
     } else {
-      setMessage("Échec de l'enregistrement.")
+      setMessage(t("consentFailed"))
     }
-  }
-
-  async function deleteAccount() {
-    if (!window.confirm("Supprimer définitivement votre compte ? Cette action est irréversible.")) return
-    setBusy("delete")
-    const res = await fetch("/api/gdpr/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ confirm: "DELETE" }),
-    })
-    setBusy(null)
-    if (res.ok) {
-      window.location.href = "/"
-      return
-    }
-    const data = (await res.json()) as { error?: string }
-    setMessage(data.error ?? "Suppression impossible.")
   }
 
   return (
@@ -66,10 +51,8 @@ export function GdprAccountPanel() {
       ) : null}
 
       <BentoCard className="space-y-4 p-6">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Exporter mes données</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Téléchargez une copie de vos données personnelles (profil, commandes, notifications).
-        </p>
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{t("exportTitle")}</h2>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">{t("exportBody")}</p>
         <div className="flex flex-wrap gap-2">
           <a
             href="/api/gdpr/export?format=json"
@@ -87,16 +70,16 @@ export function GdprAccountPanel() {
       </BentoCard>
 
       <BentoCard className="space-y-4 p-6">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Consentements cookies</h2>
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{t("cookiesTitle")}</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Gérez les catégories analytics et marketing.{" "}
+          {t("cookiesBody")}{" "}
           <Link href="/cookies" className="text-violet-700 underline-offset-2 hover:underline dark:text-violet-300">
-            Politique cookies
+            {t("cookiesPolicy")}
           </Link>
         </p>
         <div className="space-y-2 text-sm">
           <label className="flex items-center gap-2">
-            <input type="checkbox" checked disabled /> Essentiels (obligatoire)
+            <input type="checkbox" checked disabled /> {t("essentialCookies")}
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -112,7 +95,7 @@ export function GdprAccountPanel() {
               }
               disabled={busy === "consent"}
             />
-            Analytics
+            {t("analyticsCookies")}
           </label>
           <label className="flex items-center gap-2">
             <input
@@ -128,30 +111,25 @@ export function GdprAccountPanel() {
               }
               disabled={busy === "consent"}
             />
-            Marketing
+            {t("marketingCookies")}
           </label>
         </div>
       </BentoCard>
 
       <BentoCard className="space-y-4 border-red-200 p-6 dark:border-red-900/50">
-        <h2 className="text-lg font-semibold text-red-800 dark:text-red-200">Supprimer mon compte</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Conformément au RGPD (droit à l&apos;effacement). Les commandes passées peuvent être conservées de façon
-          anonymisée pour obligations comptables.
-        </p>
-        <Button variant="destructive" size="sm" disabled={busy === "delete"} onClick={() => void deleteAccount()}>
-          {busy === "delete" ? "Suppression…" : "Supprimer mon compte"}
-        </Button>
+        <h2 className="text-lg font-semibold text-red-800 dark:text-red-200">{t("deleteTitle")}</h2>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">{t("deleteBody")}</p>
+        <AccountDeletionFlow variant="gdpr" triggerStyle="destructive" />
       </BentoCard>
 
       <p className="text-xs text-zinc-500">
-        DPO :{" "}
+        {t("dpoLabel")}{" "}
         <a href="mailto:dpo@affisell.com" className="underline">
           dpo@affisell.com
         </a>{" "}
         ·{" "}
         <Link href="/legal/confidentialite" className="underline">
-          Politique de confidentialité
+          {t("privacyPolicy")}
         </Link>
       </p>
     </div>

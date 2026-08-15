@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import {
+  type AccountDeletionConfirmPayload,
+  isAccountDeletionConfirmed,
+} from "@/lib/account-deletion-shared"
 import { deleteMerchantUser } from "@/lib/delete-merchant-account"
+import { prisma } from "@/lib/prisma"
 import { assertSameSiteRequestOrigin } from "@/lib/request-origin-guard"
 
 export const runtime = "nodejs"
@@ -21,14 +26,32 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "Only supplier or affiliate accounts can be deleted here." }, { status: 403 })
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  })
+  if (!user?.email) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 })
+  }
+
+  const body = (await req.json().catch(() => ({}))) as AccountDeletionConfirmPayload
+  if (!isAccountDeletionConfirmed(body, user.email)) {
+    return NextResponse.json(
+      { error: "Type your account email to confirm permanent deletion." },
+      { status: 400 }
+    )
+  }
+
   try {
     const result = await deleteMerchantUser(userId, role)
     if (!result.ok) {
       if (result.code === "HAS_ORDERS") {
+        console.log("[account-delete]", { userId, role, result: "blocked", code: result.code })
         return NextResponse.json(
           {
             error:
               "This account has marketplace orders and cannot be deleted automatically. Contact support if you need your data removed.",
+            code: "HAS_ORDERS",
           },
           { status: 409 }
         )
@@ -37,7 +60,7 @@ export async function DELETE(req: Request) {
     }
     return NextResponse.json({ ok: true })
   } catch (e) {
-    console.error("[DELETE /api/user/account]", e)
+    console.error("[account-delete]", { userId, role, error: e })
     return NextResponse.json(
       { error: "Deletion failed. Try again or contact support if the problem persists." },
       { status: 500 }
