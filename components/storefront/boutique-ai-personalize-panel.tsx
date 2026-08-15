@@ -9,6 +9,10 @@ import { toast } from "sonner"
 
 import { capturePosthogClient } from "@/lib/analytics/posthog"
 import type { BrandStudioSnapshot } from "@/lib/boutique/haute-gamme-themes-shared"
+import {
+  affiliateBoutiquePublicPath,
+  supplierCatalogPublicPath,
+} from "@/lib/boutique/reseller-boutique-access.server"
 import { postBrandAiJson } from "@/lib/storefront-ai-fetch-shared"
 import { cn } from "@/lib/utils"
 
@@ -26,6 +30,7 @@ type GenerateResponse = {
   buyerTagline: string
   tagline: string
   boutiquePath?: string
+  supplierCatalogPath?: string
 }
 
 type Props = {
@@ -83,9 +88,11 @@ export function BoutiqueAiPersonalizePanel({
 
       toast.success(t("saved"))
       const target =
-        boutiquePreviewHref ??
-        result.data.boutiquePath ??
-        `/boutique/${encodeURIComponent(storeSlug)}`
+        role === "AFFILIATE"
+          ? boutiquePreviewHref ??
+            result.data.boutiquePath ??
+            affiliateBoutiquePublicPath(storeSlug)
+          : result.data.supplierCatalogPath ?? supplierCatalogPublicPath(storeSlug)
       router.push(
         `${target}?theme=${encodeURIComponent(result.data.design.id)}&vibe=${encodeURIComponent(trimmed)}`
       )

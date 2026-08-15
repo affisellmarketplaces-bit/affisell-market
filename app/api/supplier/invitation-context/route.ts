@@ -21,7 +21,7 @@ export async function GET() {
         affiliate: {
           select: {
             name: true,
-            store: { select: { name: true, slug: true, logoUrl: true } },
+            store: { select: { name: true, partnerListingCode: true, logoUrl: true } },
           },
         },
       },
@@ -39,7 +39,7 @@ export async function GET() {
         categoryHint: invitation.categoryHint,
         affiliateName:
           store?.name?.trim() || invitation.affiliate.name?.trim() || "Créateur Affisell",
-        affiliateSlug: store?.slug ?? null,
+        partnerListingCode: store?.partnerListingCode?.trim() || null,
         affiliateLogoUrl: store?.logoUrl ?? null,
         catalogLive: invitation.status === "CATALOG_LIVE",
       },

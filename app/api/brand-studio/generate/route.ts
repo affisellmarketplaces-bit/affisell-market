@@ -4,6 +4,11 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import {
+  affiliateBoutiquePublicPath,
+  isAffiliateBoutiqueApiRole,
+  supplierCatalogPublicPath,
+} from "@/lib/boutique/reseller-boutique-access.server"
+import {
   buildBrandStudioGeneration,
   loadBrandStudioCatalogTitles,
   persistBrandStudioSnapshot,
@@ -88,7 +93,11 @@ export async function POST(req: NextRequest) {
       snapshot,
     })
 
-    revalidatePath(`/boutique/${encodeURIComponent(resolvedSlug)}`)
+    if (role === "AFFILIATE") {
+      revalidatePath(affiliateBoutiquePublicPath(resolvedSlug))
+    } else {
+      revalidatePath(supplierCatalogPublicPath(resolvedSlug))
+    }
     revalidatePath(`/dashboard/affiliate/brand-studio`)
     revalidateTag(shopTag(resolvedSlug), "max")
 
@@ -113,7 +122,9 @@ export async function POST(req: NextRequest) {
       merchantTagline: snapshot.merchantTagline,
       buyerTagline: snapshot.buyerTagline,
       tagline: snapshot.buyerTagline,
-      boutiquePath: `/boutique/${encodeURIComponent(resolvedSlug)}`,
+      ...(role === "AFFILIATE"
+        ? { boutiquePath: affiliateBoutiquePublicPath(resolvedSlug) }
+        : { supplierCatalogPath: supplierCatalogPublicPath(resolvedSlug) }),
     })
   } catch (e) {
     const message = e instanceof Error ? e.message : "Brand studio generation failed"

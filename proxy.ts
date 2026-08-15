@@ -366,6 +366,10 @@ export async function proxy(req: NextRequest) {
     return withForcedCustomerRole(req)
   }
 
+  if (bare.startsWith("/boutique/")) {
+    return withForcedCustomerRole(req)
+  }
+
   if (secret) {
     const path = bare + (req.nextUrl.search || "")
     const token = await getToken({
@@ -393,6 +397,10 @@ export async function proxy(req: NextRequest) {
 
     if (isMarketplaceListingPath(bare)) {
       return withForcedCustomerRole(req)
+    }
+
+    if (bare.startsWith("/boutique/") && role === "SUPPLIER") {
+      return NextResponse.redirect(new URL("/dashboard/supplier", req.url))
     }
 
     const isSupplierArea = bare === "/dashboard/supplier" || bare.startsWith("/dashboard/supplier/")

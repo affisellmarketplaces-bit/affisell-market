@@ -2,6 +2,11 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import {
+  affiliateBoutiquePublicPath,
+  isAffiliateBoutiqueApiRole,
+  supplierCatalogPublicPath,
+} from "@/lib/boutique/reseller-boutique-access.server"
 import { generateStoreBrandTheme } from "@/lib/storefront-brand-ai-theme.server"
 import { prisma } from "@/lib/prisma"
 
@@ -45,7 +50,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       theme,
-      boutiquePath: `/boutique/${encodeURIComponent(store.slug)}`,
+      ...(role === "AFFILIATE"
+        ? { boutiquePath: affiliateBoutiquePublicPath(store.slug) }
+        : { supplierCatalogPath: supplierCatalogPublicPath(store.slug) }),
     })
   } catch (e) {
     const message = e instanceof Error ? e.message : "Theme generation failed"

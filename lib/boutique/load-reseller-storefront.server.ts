@@ -12,6 +12,7 @@ import {
   formatResellerStoreLabel,
   type ResellerStorefrontListProduct,
 } from "@/lib/boutique/reseller-storefront-shared"
+import { loadAffiliateBoutiqueStoreBySlug } from "@/lib/boutique/reseller-boutique-access.server"
 import {
   prepareResellerListingVariantContext,
   resolveResellerDefaultListingCommerce,
@@ -284,22 +285,7 @@ export type ResellerBoutiqueStoreContext = {
 export async function loadResellerBoutiqueStoreContext(
   storeSlug: string
 ): Promise<ResellerBoutiqueStoreContext | null> {
-  const slug = storeSlug.trim()
-  if (!slug) return null
-
-  const store = await prisma.store.findUnique({
-    where: { slug },
-    select: {
-      slug: true,
-      name: true,
-      userId: true,
-      logoUrl: true,
-      aiAvatarUrl: true,
-      description: true,
-      storefrontTheme: true,
-    },
-  })
-
+  const store = await loadAffiliateBoutiqueStoreBySlug(storeSlug)
   if (!store) return null
 
   const parsedTheme = parseStorefrontTheme(store.storefrontTheme)
@@ -348,6 +334,17 @@ export async function loadResellerStorefrontList(args: {
 }): Promise<ResellerStorefrontListResult> {
   const storeSlug = args.storeSlug.trim()
   if (!storeSlug) {
+    return {
+      owner: null,
+      products: [],
+      count: 0,
+      theme: serializeResellerBoutiqueTheme(parseStorefrontTheme(null)),
+    }
+  }
+
+  const affiliateStore = await loadAffiliateBoutiqueStoreBySlug(storeSlug)
+  if (!affiliateStore) {
+    console.log("[boutique-storefront-list]", { storeSlug, result: "not_affiliate_boutique" })
     return {
       owner: null,
       products: [],

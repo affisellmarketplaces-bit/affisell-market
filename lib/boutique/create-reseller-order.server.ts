@@ -10,6 +10,9 @@ import {
 import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission.server"
 import { appBaseUrl } from "@/lib/app-base-url"
 import {
+  assertAffiliateBoutiqueStoreMatchesAffiliate,
+} from "@/lib/boutique/reseller-boutique-access.server"
+import {
   resolveResellerListingCommerce,
 } from "@/lib/boutique/reseller-listing-commerce.server"
 import { normalizeCartVariantSignature } from "@/lib/cart-variant"
@@ -177,6 +180,20 @@ export async function createResellerOrder(
     return { success: false, error: "listing_not_found" }
   }
   if (!listing.product.active || !listing.product.supplierId) {
+    return { success: false, error: "listing_not_found" }
+  }
+
+  const boutiqueMatch = await assertAffiliateBoutiqueStoreMatchesAffiliate({
+    storeSlug,
+    affiliateId: listing.affiliateId,
+  })
+  if (!boutiqueMatch.ok) {
+    console.log("[reseller-order]", {
+      storeSlug,
+      productId,
+      affiliateId: listing.affiliateId,
+      result: "boutique_store_mismatch",
+    })
     return { success: false, error: "listing_not_found" }
   }
 

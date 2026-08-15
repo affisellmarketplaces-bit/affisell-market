@@ -52,6 +52,14 @@ describe("supplier-retail-veil", () => {
     expect(leaks.some((l) => l.key === "sellingPriceCents")).toBe(true)
   })
 
+  it("flags reseller boutique identity keys", () => {
+    const leaks = collectSupplierRetailLeaks({
+      partnerListingCode: "AFS-OK",
+      boutiquePath: "/boutique/hidden",
+    })
+    expect(leaks.some((l) => l.key === "boutiquePath")).toBe(true)
+  })
+
   it("accepts wholesale-only return payload shape", () => {
     const payload = [
       {

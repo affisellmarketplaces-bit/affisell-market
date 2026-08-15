@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
-import Link from "next/link"
 import { BadgePercent, Handshake, Loader2, Sparkles } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -12,7 +11,7 @@ type InviteContext = {
   offeredCommissionPct: number | null
   categoryHint: string | null
   affiliateName: string
-  affiliateSlug: string | null
+  partnerListingCode: string | null
   affiliateLogoUrl: string | null
   catalogLive: boolean
 }
@@ -91,6 +90,11 @@ export function SupplierInviteContextBanner({
               : "Publiez votre premier produit pour activer le réseau affilié et la vitrine de votre partenaire."}
           </p>
           <div className="mt-2 flex flex-wrap gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+            {ctx.partnerListingCode ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 font-mono font-medium dark:bg-zinc-900">
+                Réf. partenaire Affisell · {ctx.partnerListingCode}
+              </span>
+            ) : null}
             {ctx.offeredCommissionPct != null ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 font-medium dark:bg-zinc-900">
                 <BadgePercent className="h-3 w-3 text-emerald-600" aria-hidden />
@@ -102,16 +106,6 @@ export function SupplierInviteContextBanner({
             ) : null}
           </div>
         </div>
-        {ctx.affiliateSlug ? (
-          <Link
-            href={`/store/${encodeURIComponent(ctx.affiliateSlug)}`}
-            className="shrink-0 text-xs font-medium text-violet-700 hover:underline dark:text-violet-400"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Voir la vitrine partenaire →
-          </Link>
-        ) : null}
       </div>
     </div>
   )

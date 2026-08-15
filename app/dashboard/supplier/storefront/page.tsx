@@ -2,7 +2,6 @@ import { redirect } from "next/navigation"
 import { requireSupplierSession } from "@/lib/dashboard-session"
 
 import { MerchantBrandStudio } from "@/components/storefront/merchant-brand-studio"
-import { buildResellerBoutiquePath } from "@/lib/boutique/reseller-store-slug"
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import { prisma } from "@/lib/prisma"
 
@@ -32,13 +31,11 @@ export default async function SupplierStorefrontPage() {
   }
   if (!store?.slug) redirect("/dashboard/supplier")
   const previewHref = `/store/supplier/${encodeURIComponent(store.slug)}`
-  const boutiquePreviewHref = buildResellerBoutiquePath(store.slug)
 
   return (
     <MerchantBrandStudio
       role="SUPPLIER"
       previewHref={previewHref}
-      boutiquePreviewHref={boutiquePreviewHref}
       profileHref="/dashboard/supplier/settings/store"
       profileLabel="Store profile"
       studioPath="/dashboard/supplier/storefront"

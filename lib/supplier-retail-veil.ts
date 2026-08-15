@@ -6,6 +6,8 @@
 import { resolveSupplierPayoutCentsFromOrder } from "@/lib/marketplace-order-settlement"
 import type { ResolveOrderSupplierSettlementInput } from "@/lib/marketplace-supplier-fee"
 
+import { SUPPLIER_PARTNER_IDENTITY_FORBIDDEN_KEYS } from "@/lib/boutique/supplier-partner-identity-veil-shared"
+
 /** Keys that must never appear in supplier-facing JSON payloads. */
 export const SUPPLIER_RETAIL_FORBIDDEN_KEYS = [
   "sellingPriceCents",
@@ -15,6 +17,7 @@ export const SUPPLIER_RETAIL_FORBIDDEN_KEYS = [
   "approvedRefundCents",
   "linePaidCents",
   "totalCents",
+  ...SUPPLIER_PARTNER_IDENTITY_FORBIDDEN_KEYS,
 ] as const
 
 export type SupplierRetailForbiddenKey = (typeof SUPPLIER_RETAIL_FORBIDDEN_KEYS)[number]

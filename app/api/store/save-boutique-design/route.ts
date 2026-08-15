@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { isAffiliateBoutiqueApiRole } from "@/lib/boutique/reseller-boutique-access.server"
 import { saveBoutiqueDesignSnapshot } from "@/lib/boutique/boutique-ai-theme.server"
 import { parseBoutiqueTitleTypography } from "@/lib/boutique/boutique-title-typography-shared"
 import { parseStorefrontThemeRef } from "@/lib/boutique/storefront-themes"
@@ -19,8 +20,8 @@ export async function POST(req: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
     }
-    if (role !== "AFFILIATE" && role !== "SUPPLIER") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    if (!isAffiliateBoutiqueApiRole(role)) {
+      return NextResponse.json({ error: "affiliate_boutique_only" }, { status: 403 })
     }
 
     let body: {

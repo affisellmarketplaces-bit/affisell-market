@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { notFound, redirect } from "next/navigation"
 import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 
@@ -78,15 +79,21 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
     auth(),
     loadAffiliateStorefrontTrustCached(storeSlug),
   ])
-  const storeLabel = storeContext?.storeLabel ?? formatResellerStoreLabel(storeSlug)
-  const theme = storeContext?.theme ?? defaultTheme
-  const viewerIsOwner = Boolean(
-    session?.user?.id && storeContext?.ownerUserId === session.user.id
-  )
+
+  if (session?.user?.role === "SUPPLIER") {
+    redirect("/dashboard/supplier")
+  }
+
+  if (!storeContext) {
+    notFound()
+  }
+
+  const storeLabel = storeContext.storeLabel
+  const theme = storeContext.theme
+  const viewerIsOwner = Boolean(session?.user?.id && storeContext.ownerUserId === session.user.id)
   const savedVisualTheme =
-    parseStorefrontThemeId(storeContext?.boutiqueVisualTheme ?? null) ?? DEFAULT_STOREFRONT_THEME_ID
-  const boutiqueHeader =
-    storeContext != null ? buildResellerBoutiqueHeader(storeContext, session, trust) : null
+    parseStorefrontThemeId(storeContext.boutiqueVisualTheme ?? null) ?? DEFAULT_STOREFRONT_THEME_ID
+  const boutiqueHeader = buildResellerBoutiqueHeader(storeContext, session, trust)
 
   if (requestedListingId) {
     const product = await loadResellerBoutiqueProductDetail(requestedListingId)
@@ -130,18 +137,18 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
       <ResellerStorefrontView
         storeSlug={storeSlug}
         storeLabel={storeLabel}
-        tagline={storeContext?.tagline ?? null}
+        tagline={storeContext.tagline ?? null}
         brandTheme={resolvedTheme}
         initialVisualTheme={visitorVisualTheme}
         persistedVisualTheme={savedVisualTheme}
         viewerIsOwner={viewerIsOwner}
-        titleTypography={storeContext?.titleTypography ?? DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY}
-        persistedTitleTypography={storeContext?.titleTypography ?? DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY}
+        titleTypography={storeContext.titleTypography ?? DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY}
+        persistedTitleTypography={storeContext.titleTypography ?? DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY}
         productCardTrustLine={productCardTrustLine}
         products={storefront.products}
         count={storefront.count}
         header={boutiqueHeader}
-        brandStudio={storeContext?.brandStudio ?? null}
+        brandStudio={storeContext.brandStudio ?? null}
         brandStudioHref="/dashboard/affiliate/brand-studio"
       />
     </Suspense>
