@@ -7,6 +7,7 @@ import {
 } from "@/lib/marketplace-variant-dimensions"
 import type { ProductVariantsJson } from "@/lib/product-variants"
 import type { CustomColumn } from "@/types/product"
+import { cn } from "@/lib/utils"
 
 type Props = {
   storageOptions: string[]
@@ -20,6 +21,9 @@ type Props = {
   basePriceCents: number
   activeListingPriceCents: number
   brandedChipSelected: string
+  unselectedChipClass?: string
+  outOfStockChipClass?: string
+  outOfStockLabel?: string
 }
 
 export function VariantSelector({
@@ -34,8 +38,18 @@ export function VariantSelector({
   basePriceCents,
   activeListingPriceCents,
   brandedChipSelected,
+  unselectedChipClass,
+  outOfStockChipClass,
+  outOfStockLabel = "Épuisé",
 }: Props) {
   if (storageOptions.length === 0) return null
+
+  const defaultUnselected =
+    "border-zinc-300 bg-zinc-50 text-zinc-900 hover:border-zinc-500 hover:bg-white dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-zinc-400"
+  const defaultOut =
+    "cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 opacity-70 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-500"
+  const unselectedClass = unselectedChipClass ?? defaultUnselected
+  const outClass = outOfStockChipClass ?? defaultOut
 
   return (
     <div>
@@ -72,20 +86,28 @@ export function VariantSelector({
               key={cap}
               type="button"
               disabled={out}
+              aria-disabled={out}
+              aria-label={out ? `${storageLabel} ${cap} — ${outOfStockLabel}` : `${storageLabel} ${cap}`}
               onClick={() => onSelectStorage(cap)}
-              className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
-                selectedStorage === cap
-                  ? brandedChipSelected
-                  : "border-zinc-200 hover:border-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
-              } ${out ? "cursor-not-allowed opacity-40" : ""}`}
+              className={cn(
+                "rounded-xl border px-3 py-2 text-sm font-medium transition",
+                selectedStorage === cap && !out ? brandedChipSelected : null,
+                selectedStorage !== cap && !out ? unselectedClass : null,
+                out ? outClass : null
+              )}
             >
-              <span className="block leading-tight">{cap}</span>
+              <span className={cn("block leading-tight", out && "line-through")}>{cap}</span>
               <span
-                className={`mt-0.5 block text-[11px] font-semibold tabular-nums ${
-                  selectedStorage === cap ? "text-white/90" : "text-zinc-500 dark:text-zinc-400"
-                }`}
+                className={cn(
+                  "mt-0.5 block text-[11px] font-semibold tabular-nums",
+                  selectedStorage === cap && !out
+                    ? "text-white/90"
+                    : out
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-zinc-500 dark:text-zinc-400"
+                )}
               >
-                {formatStoreCurrencyFromCents(optionCents)}
+                {out ? outOfStockLabel : formatStoreCurrencyFromCents(optionCents)}
               </span>
             </button>
           )

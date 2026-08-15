@@ -59,6 +59,70 @@ const ORDER_ERROR_HINTS: Record<string, string> = {
 const brandedChipSelected =
   "border-transparent text-white shadow-md [background-image:var(--boutique-button-gradient)]"
 
+const boutiqueChipUnselected =
+  "border-[color:var(--boutique-card-border)] bg-[var(--boutique-badge-bg)] text-[var(--boutique-card-title)] shadow-sm hover:border-[color:var(--boutique-accent)] hover:bg-white/90"
+
+const boutiqueChipOutOfStock =
+  "cursor-not-allowed border-[color:var(--boutique-card-border)] bg-zinc-100 text-zinc-400 line-through opacity-80"
+
+function isLikelyShoeProduct(title: string): boolean {
+  return /chaussure|chaussures|sneaker|boot|basket|sandale|footwear|shoe/i.test(title)
+}
+
+function resolveSizeStockForSelection(args: {
+  size: string
+  color: string | null
+  storage: string | null
+  product: ResellerBoutiqueProductDetail
+}): number {
+  const row = findVariantRowForShopperSelection({
+    variants: args.product.variants,
+    customColumns: args.product.customColumns,
+    selection: {
+      selectedPrimary: args.color,
+      selectedStorage: args.storage,
+      selectedSize: args.size,
+    },
+  })
+  if (row) return Math.max(0, Math.round(row.stock) || 0)
+  return resolveListingAvailableStock({
+    productStock: args.product.catalogStock,
+    variants: args.product.variants,
+    selectedColor: args.color,
+    selectedSize: args.size,
+  })
+}
+
+function pickFirstInStockSize(args: {
+  color: string | null
+  storage: string | null
+  product: ResellerBoutiqueProductDetail
+  preferred?: string | null
+}): string | null {
+  if (args.preferred) {
+    const preferredStock = resolveSizeStockForSelection({
+      size: args.preferred,
+      color: args.color,
+      storage: args.storage,
+      product: args.product,
+    })
+    if (preferredStock > 0) return args.preferred
+  }
+  for (const size of args.product.sizeOptions) {
+    if (
+      resolveSizeStockForSelection({
+        size,
+        color: args.color,
+        storage: args.storage,
+        product: args.product,
+      }) > 0
+    ) {
+      return size
+    }
+  }
+  return args.product.sizeOptions[0] ?? null
+}
+
 export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props) {
   const images = useMemo(
     () => product.gallery.filter((url): url is string => typeof url === "string" && Boolean(url.trim())),
@@ -66,13 +130,17 @@ export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props
   )
 
   const initialColor = product.defaultSelection.selectedColor
+  const initialStorage = product.defaultSelection.selectedStorage
   const [selectedColor, setSelectedColor] = useState<string | null>(initialColor)
-  const [selectedSize, setSelectedSize] = useState<string | null>(
-    product.defaultSelection.selectedSize
+  const [selectedSize, setSelectedSize] = useState<string | null>(() =>
+    pickFirstInStockSize({
+      color: initialColor,
+      storage: initialStorage,
+      product,
+      preferred: product.defaultSelection.selectedSize,
+    })
   )
-  const [selectedStorage, setSelectedStorage] = useState<string | null>(
-    product.defaultSelection.selectedStorage
-  )
+  const [selectedStorage, setSelectedStorage] = useState<string | null>(initialStorage)
   const [selectedImage, setSelectedImage] = useState(() =>
     imageIndexForColor(initialColor, product.colorNames, product.colorImages, images)
   )
@@ -84,8 +152,16 @@ export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props
       setGalleryHeroLock(false)
       setSelectedColor(colorName)
       setSelectedImage(imageIndexForColor(colorName, product.colorNames, product.colorImages, images))
+      setSelectedSize((prev) =>
+        pickFirstInStockSize({
+          color: colorName,
+          storage: selectedStorage,
+          product,
+          preferred: prev,
+        })
+      )
     },
-    [images, product.colorImages, product.colorNames]
+    [images, product, selectedStorage]
   )
 
   const selectGalleryImage = useCallback(
@@ -186,6 +262,17 @@ export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props
   const priceLabel = formatStoreCurrencyFromCents(activePriceCents)
   const optionsLabel = formatResellerVariantOptionsLabel(product.variantSummary)
 
+  const resolveSizeStock = useCallback(
+    (size: string) =>
+      resolveSizeStockForSelection({
+        size,
+        color: selectedColor,
+        storage: selectedStorage,
+        product,
+      }),
+    [product, selectedColor, selectedStorage]
+  )
+
   const handleBuyNow = useCallback(async () => {
     if (isOutOfStock) return
 
@@ -250,6 +337,7 @@ export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props
         style={{
           backgroundColor: "var(--boutique-card-bg)",
           borderColor: "var(--boutique-card-border)",
+          color: "var(--boutique-card-title)",
         }}
       >
         <p
@@ -314,15 +402,23 @@ export function ResellerBoutiqueProductDetailPanel({ storeSlug, product }: Props
               basePriceCents={product.basePriceCents}
               activeListingPriceCents={activePriceCents}
               brandedChipSelected={brandedChipSelected}
+              unselectedChipClass={boutiqueChipUnselected}
+              outOfStockChipClass={boutiqueChipOutOfStock}
             />
             <SizeSelector
               sizeOptions={product.sizeOptions}
               selectedSize={selectedSize}
               onSelectSize={setSelectedSize}
               sizeLabel="Taille"
-              isShoeProduct={false}
+              isShoeProduct={isLikelyShoeProduct(product.title)}
               productName={product.title}
               brandedChipSelected={brandedChipSelected}
+              getOptionStock={resolveSizeStock}
+              unselectedChipClass={boutiqueChipUnselected}
+              outOfStockChipClass={boutiqueChipOutOfStock}
+              showStockLegend
+              inStockLegendLabel="Disponible"
+              outOfStockLegendLabel="Épuisé"
             />
           </div>
         ) : null}
