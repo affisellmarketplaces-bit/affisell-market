@@ -31,6 +31,7 @@ import {
   type ResellerBoutiqueThemeProps,
 } from "@/lib/boutique/reseller-boutique-theme-shared"
 import { parseBoutiqueTitleTypography } from "@/lib/boutique/boutique-title-typography-shared"
+import type { BrandStudioSnapshot } from "@/lib/boutique/haute-gamme-themes-shared"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
 export type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
@@ -248,6 +249,8 @@ export type ResellerBoutiqueStoreContext = {
   tagline: string | null
   /** Merchant-saved procedural theme for /boutique (t-XXXX). */
   boutiqueVisualTheme: string | null
+  /** Haute gamme design synced from Brand Studio. */
+  brandStudio: BrandStudioSnapshot | null
   titleTypography: ReturnType<typeof parseBoutiqueTitleTypography>
   theme: ResellerBoutiqueThemeProps
 }
@@ -284,8 +287,9 @@ export async function loadResellerBoutiqueStoreContext(
     ownerUserId: store.userId,
     logoUrl: store.logoUrl?.trim() || null,
     aiAvatarUrl: store.aiAvatarUrl?.trim() || null,
-    tagline: (boutiqueAiTagline ?? store.description?.trim()) || null,
+    tagline: (parsedTheme.brandStudio?.tagline ?? boutiqueAiTagline ?? store.description?.trim()) || null,
     boutiqueVisualTheme,
+    brandStudio: parsedTheme.brandStudio ?? null,
     titleTypography: parseBoutiqueTitleTypography(parsedTheme),
     theme: serializeResellerBoutiqueTheme(parsedTheme),
   }

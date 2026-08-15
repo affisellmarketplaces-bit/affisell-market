@@ -3,32 +3,49 @@
 import Link from "next/link"
 import { Loader2, Sparkles, Wand2 } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 import { useCallback, useState } from "react"
+import { toast } from "sonner"
 
 import { capturePosthogClient } from "@/lib/analytics/posthog"
-import type { BoutiqueAiPersonalizePayload } from "@/lib/boutique/boutique-ai-theme-shared"
+import type { BrandStudioSnapshot } from "@/lib/boutique/haute-gamme-themes-shared"
 import { postBrandAiJson } from "@/lib/storefront-ai-fetch-shared"
 import { cn } from "@/lib/utils"
 
+type GenerateResponse = {
+  success: boolean
+  design: {
+    id: string
+    name: string
+    palette: BrandStudioSnapshot["palette"]
+    typography: BrandStudioSnapshot["typography"]
+    heroTitle: string
+    designIndex: number
+  }
+  tagline: string
+  boutiquePath?: string
+}
+
 type Props = {
   role: "AFFILIATE" | "SUPPLIER"
+  storeSlug: string
   disabled?: boolean
   boutiquePreviewHref?: string
 }
 
 export function BoutiqueAiPersonalizePanel({
   role,
+  storeSlug,
   disabled = false,
   boutiquePreviewHref,
 }: Props) {
   const t = useTranslations("storefront.brandStudio.aiBoutique")
   const locale = useLocale()
+  const router = useRouter()
   const [vibe, setVibe] = useState("")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [lastResult, setLastResult] = useState<
-    (BoutiqueAiPersonalizePayload & { family?: string }) | null
-  >(null)
+  const [lastResult, setLastResult] = useState<GenerateResponse | null>(null)
 
   const run = useCallback(async () => {
     const trimmed = vibe.trim()
@@ -40,36 +57,41 @@ export function BoutiqueAiPersonalizePanel({
     setBusy(true)
     setError(null)
     try {
-      const result = await postBrandAiJson<
-        BoutiqueAiPersonalizePayload & { family?: string; boutiquePath?: string }
-      >(
-        "/api/store/personalize-boutique-theme",
-        { vibe: trimmed, locale, persist: true },
+      const result = await postBrandAiJson<GenerateResponse>(
+        "/api/brand-studio/generate",
+        { storeSlug, vibe: trimmed, locale },
         t("failed")
       )
 
-      if (!result.ok || !result.data?.themeId) {
+      if (!result.ok || !result.data?.success || !result.data.design?.id) {
         throw new Error(result.error ?? t("failed"))
       }
 
       setLastResult(result.data)
-      capturePosthogClient("boutique_ai_theme_applied", {
+      capturePosthogClient("boutique_haute_gamme_applied", {
         role,
-        themeId: result.data.themeId,
-        source: result.data.source,
+        designId: result.data.design.id,
       })
       console.log("[brand-studio]", {
-        event: "boutique_ai_personalize",
+        event: "haute_gamme_personalize",
         role,
-        themeId: result.data.themeId,
-        source: result.data.source,
+        designId: result.data.design.id,
         result: "ok",
       })
+
+      toast.success(t("saved"))
+      const target =
+        boutiquePreviewHref ??
+        result.data.boutiquePath ??
+        `/boutique/${encodeURIComponent(storeSlug)}`
+      router.push(
+        `${target}?theme=${encodeURIComponent(result.data.design.id)}&vibe=${encodeURIComponent(trimmed)}`
+      )
     } catch (e) {
       const msg = e instanceof Error ? e.message : t("failed")
       setError(msg)
       console.log("[brand-studio]", {
-        event: "boutique_ai_personalize",
+        event: "haute_gamme_personalize",
         role,
         result: "error",
         error: msg,
@@ -77,7 +99,7 @@ export function BoutiqueAiPersonalizePanel({
     } finally {
       setBusy(false)
     }
-  }, [locale, role, t, vibe])
+  }, [boutiquePreviewHref, locale, role, router, storeSlug, t, vibe])
 
   return (
     <div className="relative overflow-hidden rounded-[1.75rem] border border-cyan-500/25 bg-gradient-to-br from-[#0c1222] via-[#1a1040] to-[#042f2e] p-[1px] shadow-[0_24px_80px_-24px_rgba(34,211,238,0.45)]">
@@ -121,13 +143,30 @@ export function BoutiqueAiPersonalizePanel({
           </label>
 
           {lastResult ? (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-zinc-200">
-              <p className="font-semibold text-cyan-200">
-                {lastResult.label}
-                {lastResult.family ? ` · ${lastResult.family}` : ""}
-              </p>
-              <p className="mt-1 text-xs text-zinc-400">{lastResult.rationale}</p>
-              <p className="mt-2 text-sm text-violet-100/90">{lastResult.tagline}</p>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-sm text-zinc-200">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-semibold text-cyan-200">{lastResult.design.name}</p>
+                <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-widest text-zinc-400">
+                  {lastResult.design.id.toUpperCase()} · {lastResult.design.designIndex}/1024
+                </span>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {[
+                  lastResult.design.palette.bgFrom,
+                  lastResult.design.palette.bgTo,
+                  lastResult.design.palette.accent,
+                  lastResult.design.palette.cardBg,
+                ].map((swatch) => (
+                  <span
+                    key={swatch}
+                    className="h-8 w-8 rounded-full border border-white/15 shadow-sm"
+                    style={{ background: swatch }}
+                    aria-hidden
+                  />
+                ))}
+              </div>
+              <p className="mt-3 text-sm text-violet-100/90">{lastResult.tagline}</p>
+              <p className="mt-1 text-xs text-zinc-500">{lastResult.design.heroTitle}</p>
             </div>
           ) : null}
 
@@ -151,12 +190,12 @@ export function BoutiqueAiPersonalizePanel({
               ) : (
                 <Wand2 className="size-4" aria-hidden />
               )}
-              {busy ? t("generating") : t("cta")}
+              {busy ? t("designing") : t("cta")}
             </button>
 
-            {lastResult?.persisted && boutiquePreviewHref ? (
+            {lastResult && boutiquePreviewHref ? (
               <Link
-                href={`${boutiquePreviewHref}?theme=${encodeURIComponent(lastResult.themeId)}`}
+                href={`${boutiquePreviewHref}?theme=${encodeURIComponent(lastResult.design.id)}&vibe=${encodeURIComponent(vibe.trim())}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex h-12 items-center justify-center rounded-full border border-white/15 bg-white/5 px-5 text-sm font-medium text-zinc-100 transition hover:bg-white/10"

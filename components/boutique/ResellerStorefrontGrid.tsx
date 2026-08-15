@@ -10,6 +10,8 @@ import { ResellerBoutiqueProductCard } from "@/components/boutique/ResellerBouti
 import { BoutiqueStoreTitle } from "@/components/boutique/boutique-store-title"
 import { ResellerBoutiquePageShell } from "@/components/boutique/reseller-boutique-page-shell"
 import type { ResellerBoutiqueThemeProps } from "@/lib/boutique/reseller-boutique-theme-shared"
+import type { BrandStudioSnapshot } from "@/lib/boutique/haute-gamme-themes-shared"
+import type { HauteGammeTypography } from "@/lib/boutique/haute-gamme-themes-shared"
 import {
   DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY,
   type BoutiqueTitleTypography,
@@ -41,6 +43,7 @@ type ResellerStorefrontGridProps = {
   count: number
   header?: ReactNode
   viewerIsOwner?: boolean
+  brandStudio?: BrandStudioSnapshot | null
 }
 
 function typographyEqual(a: BoutiqueTitleTypography, b: BoutiqueTitleTypography): boolean {
@@ -78,6 +81,7 @@ export function ResellerStorefrontGrid({
   count,
   header,
   viewerIsOwner: viewerIsOwnerHint = false,
+  brandStudio = null,
 }: ResellerStorefrontGridProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -95,6 +99,19 @@ export function ResellerStorefrontGrid({
   const [persistedTagline, setPersistedTagline] = useState<string | null>(tagline?.trim() ?? null)
 
   const themeDef = useMemo(() => getStorefrontThemeById(theme), [theme])
+  const activeBrandStudio = brandStudio
+  const badgeLabel = activeBrandStudio
+    ? `${activeBrandStudio.designId.toUpperCase()} · ${activeBrandStudio.designIndex}/1024`
+    : `${themeDef.family} · ${themeDef.index + 1}/1024`
+  const heroTypography: HauteGammeTypography | undefined = activeBrandStudio?.typography
+  const resolvedTitleTypography = useMemo(() => {
+    if (!activeBrandStudio) return titleTypography
+    return {
+      ...titleTypography,
+      layoutId: "custom-only" as const,
+      displayOverride: activeBrandStudio.heroTitle,
+    }
+  }, [activeBrandStudio, titleTypography])
 
   const isDirty =
     theme !== persistedTheme ||
@@ -314,7 +331,7 @@ export function ResellerStorefrontGrid({
   }
 
   return (
-    <ResellerBoutiquePageShell themeId={theme} header={header}>
+    <ResellerBoutiquePageShell themeId={theme} brandStudio={activeBrandStudio} header={header}>
       <div className="relative mb-12 w-full">
         <div className="mb-6 flex flex-col gap-2 sm:absolute sm:right-0 sm:top-0 sm:z-20 sm:mb-0 sm:flex-row sm:flex-wrap sm:justify-end">
           {isStoreOwner ? (
@@ -387,7 +404,11 @@ export function ResellerStorefrontGrid({
         </div>
 
         <header className="relative w-full pt-2 pr-0 sm:pr-[28rem]">
-          <BoutiqueStoreTitle storeLabel={storeLabel} typography={titleTypography} />
+          <BoutiqueStoreTitle
+            storeLabel={storeLabel}
+            typography={resolvedTitleTypography}
+            heroTypography={heroTypography}
+          />
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <span
@@ -408,7 +429,7 @@ export function ResellerStorefrontGrid({
                 color: "var(--boutique-accent)",
               }}
             >
-              {themeDef.family} · {themeDef.index + 1}/{1024}
+              {badgeLabel}
             </span>
           </div>
 
@@ -447,7 +468,8 @@ export function ResellerStorefrontGrid({
           color: "var(--boutique-footer-text)",
         }}
       >
-        Boutique {storeSlug} · Propulsé par Affisell · {themeDef.label}
+        Boutique {storeSlug} · Propulsé par Affisell ·{" "}
+        {activeBrandStudio ? activeBrandStudio.designId.toUpperCase() : themeDef.label}
       </footer>
 
       <AIPersonalizeModal

@@ -33,7 +33,7 @@ export const revalidate = 60
 
 type PageProps = {
   params: Promise<{ storeSlug: string }>
-  searchParams: Promise<{ productId?: string; theme?: string }>
+  searchParams: Promise<{ productId?: string; theme?: string; vibe?: string }>
 }
 
 const defaultTheme = serializeResellerBoutiqueTheme(parseStorefrontTheme(null))
@@ -141,6 +141,7 @@ export default async function ResellerBoutiquePage({ params, searchParams }: Pag
         products={storefront.products}
         count={storefront.count}
         header={boutiqueHeader}
+        brandStudio={storeContext?.brandStudio ?? null}
       />
     </Suspense>
   )

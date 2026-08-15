@@ -18,6 +18,10 @@ import {
   parseStorefrontBrandOps,
   type StorefrontBrandOps,
 } from "@/lib/storefront-theme-ops-shared"
+import {
+  parseBrandStudioSnapshot,
+  type BrandStudioSnapshot,
+} from "@/lib/boutique/haute-gamme-themes-shared"
 
 export type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
 export type { StorefrontEmbedWidget } from "@/lib/storefront-embed-shared"
@@ -76,6 +80,8 @@ export type StorefrontTheme = {
   boutiqueTitleLayout?: string
   /** Custom store title with special characters. */
   boutiqueTitleDisplay?: string
+  /** Haute gamme Brand Studio → /boutique live sync. */
+  brandStudio?: BrandStudioSnapshot
 }
 
 const HEX_RE = /^#[0-9a-f]{6}$/i
@@ -165,6 +171,7 @@ export function parseStorefrontTheme(raw: unknown): StorefrontTheme {
       typeof o.boutiqueTitleDisplay === "string" && o.boutiqueTitleDisplay.trim()
         ? o.boutiqueTitleDisplay.trim().slice(0, 80)
         : undefined,
+    brandStudio: parseBrandStudioSnapshot(o.brandStudio) ?? undefined,
   }
 }
 
@@ -297,6 +304,7 @@ export function themeFromBrandStudioFields(
     boutiqueTitleOrnament: existing.boutiqueTitleOrnament,
     boutiqueTitleLayout: existing.boutiqueTitleLayout,
     boutiqueTitleDisplay: existing.boutiqueTitleDisplay,
+    brandStudio: existing.brandStudio,
   }
 }
 

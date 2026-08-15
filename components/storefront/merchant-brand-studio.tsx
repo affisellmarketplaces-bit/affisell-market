@@ -1025,6 +1025,7 @@ export function MerchantBrandStudio({
 
         <BoutiqueAiPersonalizePanel
           role={role}
+          storeSlug={storeSlug}
           disabled={saving || loading}
           boutiquePreviewHref={boutiquePreviewHref}
         />

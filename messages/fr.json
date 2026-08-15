@@ -2561,6 +2561,8 @@
         "vibeRequired": "Décrivez votre univers avant de générer.",
         "cta": "Personnaliser avec l'IA ✨",
         "generating": "Composition de votre vitrine…",
+        "designing": "Design de votre univers…",
+        "saved": "Design enregistré ✨",
         "failed": "Personnalisation boutique indisponible — réessayez.",
         "viewBoutique": "Voir /boutique live"
       },

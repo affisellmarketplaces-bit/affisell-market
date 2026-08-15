@@ -34,14 +34,14 @@ export function ResellerBoutiqueProductCard({
 
   return (
     <article
-      className="group rounded-3xl border p-3 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1"
+      className="group rounded-2xl border p-3 backdrop-blur-xl transition-all duration-500 hover:-translate-y-1.5 hover:scale-[1.01] hover:shadow-xl"
       style={{
         background: "var(--boutique-card-bg)",
         borderColor: "var(--boutique-card-border)",
-        boxShadow: "var(--boutique-card-shadow)",
+        boxShadow: "var(--boutique-card-shadow, 0 20px 60px rgba(0, 0, 0, 0.15))",
       }}
     >
-      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-white">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-white">
         <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-2">
           <div className="min-w-0 flex-1">
             <ProductSalesBadge
@@ -90,7 +90,10 @@ export function ResellerBoutiqueProductCard({
       </div>
 
       <div className="p-4 pt-4">
-        <h2 className="text-lg font-bold leading-tight" style={{ color: "var(--boutique-card-title)" }}>
+        <h2
+          className="text-lg font-medium leading-tight tracking-tight"
+          style={{ color: "var(--boutique-card-title)" }}
+        >
           {product.title}
         </h2>
 
@@ -106,7 +109,10 @@ export function ResellerBoutiqueProductCard({
           <ProductPriceOffer price={priceEur} compareAt={compareAtEur} layout="card" />
         </div>
 
-        <p className="mt-2 line-clamp-2 text-sm" style={{ color: "var(--boutique-card-muted)" }}>
+        <p
+          className="mt-2 line-clamp-2 text-xs uppercase tracking-widest opacity-60"
+          style={{ color: "var(--boutique-card-muted)" }}
+        >
           {productCardTrustLine}
         </p>
 

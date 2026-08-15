@@ -8,6 +8,7 @@ import {
   getBoutiqueTitleFontPreset,
   type BoutiqueTitleTypography,
 } from "@/lib/boutique/boutique-title-typography-shared"
+import type { HauteGammeTypography } from "@/lib/boutique/haute-gamme-themes-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -15,6 +16,7 @@ type Props = {
   typography: BoutiqueTitleTypography
   prefixWord?: string
   className?: string
+  heroTypography?: HauteGammeTypography
 }
 
 export function BoutiqueStoreTitle({
@@ -22,6 +24,7 @@ export function BoutiqueStoreTitle({
   typography,
   prefixWord = "Boutique",
   className,
+  heroTypography,
 }: Props) {
   const font = getBoutiqueTitleFontPreset(typography.fontId)
   const { segments, ariaLabel } = buildBoutiqueTitleSegments({
@@ -32,8 +35,9 @@ export function BoutiqueStoreTitle({
 
   const titleStyle: CSSProperties = {
     fontFamily: font.family,
-    fontWeight: font.weight,
-    letterSpacing: font.letterSpacing,
+    fontWeight: heroTypography?.heroWeight ?? font.weight,
+    letterSpacing: heroTypography?.heroTracking ?? font.letterSpacing,
+    fontStyle: heroTypography?.heroItalic ? "italic" : undefined,
   }
 
   return (
@@ -41,7 +45,8 @@ export function BoutiqueStoreTitle({
       <BoutiqueTitleFontLink fontId={typography.fontId} />
       <h1
         className={cn(
-          "text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl",
+          "text-balance text-4xl tracking-tight sm:text-5xl lg:text-6xl",
+          !heroTypography && "font-bold",
           className
         )}
         style={titleStyle}

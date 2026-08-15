@@ -1,22 +1,39 @@
 "use client"
 
-import type { ReactNode } from "react"
+import type { CSSProperties, ReactNode } from "react"
 
-import { ResellerBoutiqueThemeVars } from "@/components/boutique/reseller-boutique-theme-vars"
+import { boutiqueThemeStyle } from "@/components/boutique/reseller-boutique-theme-vars"
+import type { BrandStudioSnapshot } from "@/lib/boutique/haute-gamme-themes-shared"
+import { brandStudioToThemeDefinition } from "@/lib/boutique/haute-gamme-themes-shared"
 import { getStorefrontThemeById } from "@/lib/boutique/storefront-theme-engine"
 
 type Props = {
   themeId: string
+  brandStudio?: BrandStudioSnapshot | null
   header?: ReactNode
   children: ReactNode
 }
 
+function mergeThemeStyle(
+  base: CSSProperties,
+  overrides: CSSProperties
+): CSSProperties {
+  return { ...base, ...overrides }
+}
+
 /** One themed canvas — merchant nav + boutique body share the same procedural skin. */
-export function ResellerBoutiquePageShell({ themeId, header, children }: Props) {
-  const theme = getStorefrontThemeById(themeId)
+export function ResellerBoutiquePageShell({ themeId, brandStudio, header, children }: Props) {
+  const proceduralTheme = getStorefrontThemeById(themeId)
+  const theme = brandStudio ? brandStudioToThemeDefinition(brandStudio) : proceduralTheme
+  const style = mergeThemeStyle(boutiqueThemeStyle(theme), {})
 
   return (
-    <ResellerBoutiqueThemeVars theme={theme}>
+    <div
+      className="boutique-theme-root transition-[background-color] duration-700 ease-in-out"
+      data-boutique-theme-mode={theme.isDark ? "dark" : "light"}
+      data-haute-gamme={brandStudio ? brandStudio.designId : undefined}
+      style={style}
+    >
       <div className="relative min-h-screen w-full overflow-hidden">
         <div
           className="pointer-events-none absolute inset-0 z-0 transition-all duration-700 ease-in-out"
@@ -48,6 +65,6 @@ export function ResellerBoutiquePageShell({ themeId, header, children }: Props) 
           </div>
         </div>
       </div>
-    </ResellerBoutiqueThemeVars>
+    </div>
   )
 }

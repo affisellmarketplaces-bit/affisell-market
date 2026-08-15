@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 
 import { ResellerStorefrontGrid } from "@/components/boutique/ResellerStorefrontGrid"
 import type { ResellerBoutiqueThemeProps } from "@/lib/boutique/reseller-boutique-theme-shared"
+import type { BrandStudioSnapshot } from "@/lib/boutique/haute-gamme-themes-shared"
 import type { BoutiqueTitleTypography } from "@/lib/boutique/boutique-title-typography-shared"
 import type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
 import type { StorefrontTheme } from "@/lib/boutique/storefront-themes"
@@ -22,6 +23,7 @@ type Props = {
   count: number
   header?: ReactNode
   viewerIsOwner?: boolean
+  brandStudio?: BrandStudioSnapshot | null
 }
 
 export function ResellerStorefrontView(props: Props) {

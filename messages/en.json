@@ -2561,6 +2561,8 @@
         "vibeRequired": "Describe your universe before generating.",
         "cta": "Personalize with AI ✨",
         "generating": "Composing your storefront…",
+        "designing": "Designing your universe…",
+        "saved": "Design saved ✨",
         "failed": "Boutique personalization unavailable — try again.",
         "viewBoutique": "View live /boutique"
       },
