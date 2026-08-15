@@ -3311,6 +3311,142 @@ button,
   }
 }
 
+/* —— Quantum trust rail (storefront header) —— */
+.affisell-trust-quantum-aurora {
+  animation: affisell-trust-aurora-drift 14s ease-in-out infinite;
+}
+
+.affisell-trust-quantum-grid {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--trust-rail-mesh, #7c3aed) 28%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--trust-rail-mesh, #7c3aed) 28%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(180deg, black 0%, transparent 92%);
+}
+
+.affisell-trust-quantum-chip {
+  animation: affisell-trust-chip-enter 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.affisell-trust-quantum-connector {
+  position: relative;
+  width: 1.75rem;
+  height: 0.75rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.affisell-trust-quantum-connector__line {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-50%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--store-trust-accent, #7c3aed) 45%, transparent),
+    transparent
+  );
+}
+
+.affisell-trust-quantum-connector__dot {
+  position: relative;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 9999px;
+  background: var(--store-trust-accent, #7c3aed);
+  box-shadow: 0 0 10px var(--store-trust-glow, rgba(124, 58, 237, 0.45));
+}
+
+.affisell-trust-live-signal {
+  position: relative;
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.affisell-trust-live-signal__core {
+  position: absolute;
+  inset: 0.125rem;
+  border-radius: 9999px;
+  background: #10b981;
+}
+
+.affisell-trust-live-signal__ping {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: color-mix(in srgb, #10b981 55%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .affisell-trust-quantum-connector__dot {
+    animation: affisell-trust-connector-flow 2.8s ease-in-out infinite;
+  }
+
+  .affisell-trust-live-signal__ping {
+    animation: affisell-trust-live-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+}
+
+@keyframes affisell-trust-aurora-drift {
+  0%,
+  100% {
+    transform: translateX(-4%) scale(1);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translateX(4%) scale(1.02);
+    opacity: 1;
+  }
+}
+
+@keyframes affisell-trust-chip-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes affisell-trust-connector-flow {
+  0%,
+  100% {
+    transform: translateX(-6px);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateX(6px);
+    opacity: 1;
+  }
+}
+
+@keyframes affisell-trust-live-ping {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  70%,
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .affisell-trust-quantum-aurora,
+  .affisell-trust-quantum-chip,
+  .affisell-trust-quantum-connector__dot,
+  .affisell-trust-live-signal__ping {
+    animation: none !important;
+  }
+}
+
 /* —— Marketplace circular economy offer cards (glass tiles, no shared band) —— */
 .affisell-offer-mode-rail {
   /* layout wrapper only */

@@ -55,9 +55,14 @@ export function storefrontHeaderTrustRailStyle(primary: string, accent?: string)
   const p = normalizeHexColor(primary) ?? "#18181b"
   const a = normalizeHexColor(accent) ?? "#7c3aed"
   return {
-    background: `linear-gradient(90deg, color-mix(in srgb, ${a} 14%, white 86%) 0%, color-mix(in srgb, ${p} 8%, white 92%) 48%, color-mix(in srgb, ${a} 12%, white 88%) 100%)`,
-    borderBottomColor: `color-mix(in srgb, ${a} 32%, ${p} 14%)`,
-    boxShadow: `inset 0 1px 0 0 color-mix(in srgb, white 72%, transparent)`,
+    background: [
+      `linear-gradient(180deg, color-mix(in srgb, ${a} 16%, white 84%) 0%, color-mix(in srgb, ${p} 10%, white 90%) 42%, color-mix(in srgb, ${a} 12%, white 88%) 100%)`,
+    ].join(", "),
+    borderBottomColor: `color-mix(in srgb, ${a} 36%, ${p} 16%)`,
+    boxShadow: [
+      `inset 0 1px 0 0 color-mix(in srgb, white 78%, transparent)`,
+      `0 4px 24px -16px color-mix(in srgb, ${a} 28%, transparent)`,
+    ].join(", "),
   }
 }
 
@@ -71,6 +76,9 @@ export type StorefrontTrustRailColors = {
   icon: string
   pillBorder: string
   pillBg: string
+  aurora: string
+  mesh: string
+  glow: string
 }
 
 const TRUST_RAIL_SURFACE = "#f4f4f5"
@@ -103,6 +111,9 @@ export function resolveStorefrontTrustRailColors(
     icon: a,
     pillBorder: `color-mix(in srgb, ${a} 42%, ${p} 18%)`,
     pillBg: `color-mix(in srgb, ${a} 10%, white 90%)`,
+    aurora: `linear-gradient(90deg, color-mix(in srgb, ${a} 18%, transparent) 0%, color-mix(in srgb, ${p} 10%, transparent) 50%, color-mix(in srgb, ${a} 14%, transparent) 100%)`,
+    mesh: `color-mix(in srgb, ${a} 8%, ${p} 4%)`,
+    glow: `color-mix(in srgb, ${a} 38%, transparent)`,
   }
 }
 

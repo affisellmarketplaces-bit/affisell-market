@@ -33,6 +33,8 @@ describe("storefront-header-chrome-shared", () => {
     const colors = resolveStorefrontTrustRailColors("#18181b", "#06b6d4", "#06b6d4")
     expect(colors.text).toBe("#0f172a")
     expect(colors.icon).toBe("#06b6d4")
+    expect(colors.aurora).toContain("gradient")
+    expect(colors.glow).toContain("color-mix")
   })
 
   it("keeps dark custom trust rail text when contrast is sufficient", () => {

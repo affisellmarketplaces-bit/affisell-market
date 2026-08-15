@@ -1,6 +1,6 @@
 "use client"
 
-import { BadgeCheck, ShieldCheck, Sparkles } from "lucide-react"
+import { BadgeCheck, ShieldCheck, ShieldEllipsis, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { CSSProperties, ReactNode } from "react"
 
@@ -10,7 +10,12 @@ import {
   resolveStorefrontTrustRailColors,
   storefrontHeaderTrustRailStyle,
   storefrontTrustRailTextColor,
+  type StorefrontTrustRailColors,
 } from "@/lib/storefront-header-chrome-shared"
+import {
+  trustRailChipPalette,
+  type TrustRailChipTone,
+} from "@/lib/storefront-trust-rail-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -24,68 +29,91 @@ type Props = {
   className?: string
 }
 
-function TrustSeparator({ colors }: { colors: { text: string } }) {
+function TrustConnector() {
   return (
-    <span
-      className="mx-2.5 hidden h-4 w-px shrink-0 sm:inline"
-      style={{ backgroundColor: `color-mix(in srgb, ${colors.text} 22%, transparent)` }}
-      aria-hidden
-    />
+    <span className="affisell-trust-quantum-connector mx-1 hidden shrink-0 sm:inline-flex" aria-hidden>
+      <span className="affisell-trust-quantum-connector__line" />
+      <span className="affisell-trust-quantum-connector__dot" />
+    </span>
   )
 }
 
-function TrustChip({
+function QuantumChip({
+  tone,
+  colors,
+  icon,
+  label,
+  sublabel,
+  live = false,
+  delayMs = 0,
+}: {
+  tone: TrustRailChipTone
+  colors: StorefrontTrustRailColors
+  icon: ReactNode
+  label: ReactNode
+  sublabel?: ReactNode
+  live?: boolean
+  delayMs?: number
+}) {
+  const palette = trustRailChipPalette(tone, colors)
+
+  return (
+    <span
+      className="affisell-trust-quantum-chip group relative inline-flex shrink-0"
+      style={{ animationDelay: `${delayMs}ms` }}
+    >
+      <span
+        className="affisell-trust-quantum-chip__halo pointer-events-none absolute -inset-1 rounded-full opacity-60 blur-md transition-opacity duration-500 group-hover:opacity-90"
+        style={{ background: palette.glow }}
+        aria-hidden
+      />
+      <span
+        className="affisell-trust-quantum-chip__shell relative inline-flex items-center gap-2 rounded-full border px-3 py-1.5 sm:px-3.5 sm:py-2"
+        style={{
+          color: palette.text,
+          borderColor: palette.border,
+          background: palette.bg,
+          boxShadow: `0 0 0 1px color-mix(in srgb, white 55%, transparent), 0 8px 22px -14px ${palette.glow}`,
+        }}
+      >
+        <span
+          className="affisell-trust-quantum-chip__icon-orbit relative flex size-6 shrink-0 items-center justify-center rounded-full sm:size-7"
+          style={{
+            color: palette.icon,
+            background: palette.iconBg,
+            boxShadow: `inset 0 1px 0 color-mix(in srgb, white 70%, transparent), 0 0 16px -4px ${palette.glow}`,
+          }}
+        >
+          {icon}
+        </span>
+        <span className="flex min-w-0 flex-col leading-tight">
+          <span className="truncate text-[10px] font-bold uppercase tracking-[0.12em] sm:text-[11px] sm:tracking-[0.14em]">
+            {label}
+          </span>
+          {sublabel ? (
+            <span className="hidden truncate text-[9px] font-medium tracking-[0.08em] text-current/65 sm:block">
+              {sublabel}
+            </span>
+          ) : null}
+        </span>
+        {live ? (
+          <span className="affisell-trust-live-signal ml-0.5 hidden shrink-0 sm:inline-flex" aria-hidden>
+            <span className="affisell-trust-live-signal__ping" />
+            <span className="affisell-trust-live-signal__core" />
+          </span>
+        ) : null}
+      </span>
+    </span>
+  )
+}
+
+function ClassicChip({
   children,
   tone = "neutral",
-  futuristic = false,
-  colors,
-  className,
 }: {
   children: ReactNode
   tone?: "neutral" | "accent" | "verified" | "secure"
-  futuristic?: boolean
-  colors?: { text: string; icon: string; pillBorder: string; pillBg: string }
-  className?: string
 }) {
-  if (futuristic && colors) {
-    const toneStyles =
-      tone === "verified"
-        ? {
-            border: "color-mix(in srgb, #10b981 45%, transparent)",
-            bg: "color-mix(in srgb, #10b981 12%, white 88%)",
-            icon: "#059669",
-          }
-        : tone === "secure"
-          ? {
-              border: "color-mix(in srgb, #f59e0b 40%, transparent)",
-              bg: "color-mix(in srgb, #f59e0b 10%, white 90%)",
-              icon: "#d97706",
-            }
-          : {
-              border: colors.pillBorder,
-              bg: colors.pillBg,
-              icon: colors.icon,
-            }
-
-    return (
-      <span
-        className={cn(
-          "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1",
-          "text-[11px] font-bold uppercase tracking-[0.1em] shadow-sm backdrop-blur-md sm:text-xs sm:tracking-[0.12em]",
-          className
-        )}
-        style={{
-          color: colors.text,
-          borderColor: toneStyles.border,
-          background: toneStyles.bg,
-          boxShadow: `0 1px 8px -2px color-mix(in srgb, ${toneStyles.icon} 28%, transparent)`,
-        }}
-      >
-        {children}
-      </span>
-    )
-  }
-
   return (
     <span
       className={cn(
@@ -97,12 +125,37 @@ function TrustChip({
         tone === "verified" &&
           "border-emerald-300/60 bg-emerald-50/85 text-emerald-900 dark:border-emerald-800/45 dark:bg-emerald-950/35 dark:text-emerald-100",
         tone === "secure" &&
-          "border-amber-200/70 bg-amber-50/85 text-amber-900 dark:border-amber-900/45 dark:bg-amber-950/30 dark:text-amber-100",
-        className
+          "border-amber-200/70 bg-amber-50/85 text-amber-900 dark:border-amber-900/45 dark:bg-amber-950/30 dark:text-amber-100"
       )}
     >
       {children}
     </span>
+  )
+}
+
+function QuantumRailCanvas({ colors }: { colors: StorefrontTrustRailColors }) {
+  return (
+    <>
+      <div
+        className="affisell-trust-quantum-aurora pointer-events-none absolute inset-0 opacity-90"
+        style={{ background: colors.aurora }}
+        aria-hidden
+      />
+      <div
+        className="affisell-trust-quantum-grid pointer-events-none absolute inset-0 opacity-[0.35]"
+        style={
+          {
+            "--trust-rail-mesh": colors.mesh,
+          } as CSSProperties
+        }
+        aria-hidden
+      />
+      <div className="affisell-storefront-trust-rail__scan pointer-events-none absolute inset-x-0 top-0 h-px opacity-90" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-black/8 to-transparent"
+        aria-hidden
+      />
+    </>
   )
 }
 
@@ -119,35 +172,38 @@ export function StorefrontHeaderTrustRail({
   const t = useTranslations("boutique.trust")
 
   const integrated = variant === "integrated"
-  const futuristic = visual === "futuristic" && integrated
+  const quantum = visual === "futuristic" && integrated
   const colors = resolveStorefrontTrustRailColors(primary, accent, trustRailText)
-  const labelColor = futuristic ? colors.text : storefrontTrustRailTextColor(trustRailText)
+  const labelColor = quantum ? colors.text : storefrontTrustRailTextColor(trustRailText)
 
   return (
     <div
       className={cn(
         "affisell-storefront-trust-rail relative overflow-hidden",
-        futuristic
-          ? "min-h-9 border-b backdrop-blur-lg sm:min-h-10"
+        quantum
+          ? "min-h-10 border-b backdrop-blur-xl sm:min-h-11"
           : integrated
             ? brandOrbitStorefrontTrustRail
             : "border-b border-zinc-200/80 bg-gradient-to-r from-violet-50/90 via-white to-emerald-50/70 dark:border-zinc-800 dark:from-violet-950/30 dark:via-zinc-950 dark:to-emerald-950/20",
         className
       )}
       style={
-        futuristic
+        quantum
           ? ({
               ...storefrontHeaderTrustRailStyle(primary, accent),
               color: labelColor,
               "--store-trust-accent": accent,
               "--store-trust-rail-text": labelColor,
+              "--store-trust-glow": colors.glow,
             } as CSSProperties)
-          : integrated && !futuristic
+          : integrated && !quantum
             ? ({ "--store-trust-accent": accent } as CSSProperties)
             : undefined
       }
     >
-      {!futuristic ? (
+      {quantum ? (
+        <QuantumRailCanvas colors={colors} />
+      ) : (
         <>
           <div
             className="pointer-events-none absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,color-mix(in_srgb,var(--store-trust-accent,#7c3aed)_6%,transparent)_50%,transparent_60%)] opacity-80"
@@ -155,83 +211,134 @@ export function StorefrontHeaderTrustRail({
           />
           <div className="affisell-storefront-trust-rail__scan pointer-events-none absolute inset-x-0 top-0 h-px" aria-hidden />
         </>
-      ) : (
-        <>
-          <div
-            className="pointer-events-none absolute inset-0 bg-[linear-gradient(105deg,transparent_38%,color-mix(in_srgb,var(--store-trust-accent,#7c3aed)_12%,transparent)_50%,transparent_62%)]"
-            aria-hidden
-          />
-          <div className="affisell-storefront-trust-rail__scan pointer-events-none absolute inset-x-0 top-0 h-px opacity-80" aria-hidden />
-        </>
       )}
 
       <div
         className={cn(
           "relative mx-auto flex max-w-6xl items-center overflow-x-auto overscroll-x-contain",
-          futuristic
-            ? "min-h-9 gap-1 px-4 py-1.5 sm:min-h-10 sm:gap-1.5 sm:px-6 sm:py-2"
+          quantum
+            ? "min-h-10 gap-0.5 px-4 py-2 sm:min-h-11 sm:gap-1 sm:px-6 sm:py-2.5"
             : "gap-1.5 px-4 py-1.5 sm:gap-2 sm:px-6 sm:py-2",
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         )}
         role="region"
         aria-label={t("headerTrustAria")}
       >
-        {!isCustomDomain ? (
-          <TrustChip tone="accent" futuristic={futuristic} colors={colors}>
-            {futuristic ? (
+        {quantum ? (
+          <>
+            {!isCustomDomain ? (
               <>
-                <Sparkles
-                  className="size-3.5 shrink-0 sm:size-4"
-                  style={{ color: colors.icon }}
-                  aria-hidden
+                <QuantumChip
+                  tone="orbit"
+                  colors={colors}
+                  live
+                  delayMs={0}
+                  icon={<Sparkles className="size-3.5 sm:size-4" aria-hidden />}
+                  label={t("poweredBy")}
+                  sublabel={t("poweredBySub")}
                 />
-                <span>{t("poweredBy")}</span>
+                <TrustConnector />
+              </>
+            ) : null}
+
+            {trust.merchantVerified ? (
+              <>
+                <QuantumChip
+                  tone="verified"
+                  colors={colors}
+                  delayMs={80}
+                  icon={<BadgeCheck className="size-3.5 sm:size-4" aria-hidden />}
+                  label={
+                    <>
+                      <span className="hidden sm:inline">
+                        {isCustomDomain ? t("merchantVerified") : t("verifiedBy")}
+                      </span>
+                      <span className="sm:hidden">{t("verifiedShort")}</span>
+                    </>
+                  }
+                  sublabel={t("verifiedSub")}
+                />
+                <TrustConnector />
               </>
             ) : (
               <>
+                <QuantumChip
+                  tone="secure"
+                  colors={colors}
+                  live
+                  delayMs={80}
+                  icon={<ShieldCheck className="size-3.5 sm:size-4" aria-hidden />}
+                  label={
+                    <>
+                      <span className="hidden sm:inline">
+                        {isCustomDomain ? t("secureCheckout") : t("platformSecured")}
+                      </span>
+                      <span className="sm:hidden">{t("securedShort")}</span>
+                    </>
+                  }
+                  sublabel={t("platformSecuredSub")}
+                />
+                <TrustConnector />
+              </>
+            )}
+
+            <QuantumChip
+              tone="compliance"
+              colors={colors}
+              delayMs={160}
+              icon={<ShieldEllipsis className="size-3.5 sm:size-4" aria-hidden />}
+              label={
+                <>
+                  <span className="hidden md:inline">{t("euProtection")}</span>
+                  <span className="md:hidden">{t("euProtectionShort")}</span>
+                </>
+              }
+              sublabel={t("euProtectionSub")}
+            />
+          </>
+        ) : (
+          <>
+            {!isCustomDomain ? (
+              <ClassicChip tone="accent">
                 <span className="relative flex size-1.5 shrink-0" aria-hidden>
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400/70 opacity-60" />
                   <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
                 </span>
                 <Sparkles className="size-3 shrink-0 opacity-80" aria-hidden />
                 <span>{t("poweredBy")}</span>
-              </>
+              </ClassicChip>
+            ) : null}
+
+            {trust.merchantVerified ? (
+              <ClassicChip tone="verified">
+                <BadgeCheck className="size-3 shrink-0 opacity-80" aria-hidden />
+                <span className="hidden sm:inline">
+                  {isCustomDomain ? t("merchantVerified") : t("verifiedBy")}
+                </span>
+                <span className="sm:hidden">{t("verifiedShort")}</span>
+              </ClassicChip>
+            ) : (
+              <ClassicChip tone="secure">
+                <ShieldCheck className="size-3 shrink-0 opacity-80" aria-hidden />
+                <span className="hidden sm:inline">
+                  {isCustomDomain ? t("secureCheckout") : t("platformSecured")}
+                </span>
+                <span className="sm:hidden">{t("securedShort")}</span>
+              </ClassicChip>
             )}
-          </TrustChip>
-        ) : null}
 
-        {futuristic && !isCustomDomain ? <TrustSeparator colors={colors} /> : null}
-
-        {trust.merchantVerified ? (
-          <TrustChip tone="verified" futuristic={futuristic} colors={colors}>
-            <BadgeCheck className="size-3.5 shrink-0 sm:size-4" style={{ color: "#059669" }} aria-hidden />
-            <span className="hidden sm:inline">
-              {isCustomDomain ? t("merchantVerified") : t("verifiedBy")}
-            </span>
-            <span className="sm:hidden">{t("verifiedShort")}</span>
-          </TrustChip>
-        ) : (
-          <TrustChip tone="secure" futuristic={futuristic} colors={colors}>
-            <ShieldCheck className="size-3.5 shrink-0 sm:size-4" style={{ color: "#d97706" }} aria-hidden />
-            <span className="hidden sm:inline">
-              {isCustomDomain ? t("secureCheckout") : t("platformSecured")}
-            </span>
-            <span className="sm:hidden">{t("securedShort")}</span>
-          </TrustChip>
+            {!isCustomDomain ? (
+              <span
+                className={cn(
+                  "ml-auto hidden shrink-0 uppercase tracking-[0.18em] text-zinc-500",
+                  integrated ? "text-[9px] font-medium text-zinc-400 md:inline dark:text-zinc-500" : "sm:inline"
+                )}
+              >
+                {t("officialStorefront")}
+              </span>
+            ) : null}
+          </>
         )}
-
-        {futuristic ? <TrustSeparator colors={colors} /> : null}
-
-        {!futuristic && isCustomDomain ? (
-          <span
-            className={cn(
-              "ml-auto hidden shrink-0 uppercase tracking-[0.18em] text-zinc-500",
-              integrated ? "text-[9px] font-medium text-zinc-400 md:inline dark:text-zinc-500" : "sm:inline"
-            )}
-          >
-            {t("officialStorefront")}
-          </span>
-        ) : null}
       </div>
     </div>
   )

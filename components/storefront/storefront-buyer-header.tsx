@@ -174,7 +174,7 @@ export function StorefrontBuyerHeader({
         {
           ...storefrontHeaderShellStyle(primary, accent),
           "--site-header-offset": trust
-            ? `calc(${compact ? "7.5rem" : "8.25rem"} + env(safe-area-inset-top))`
+            ? `calc(${compact ? "7.75rem" : "8.5rem"} + env(safe-area-inset-top))`
             : `calc(${compact ? "3.25rem" : "3.75rem"} + env(safe-area-inset-top))`,
         } as CSSProperties
       }
