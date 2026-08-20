@@ -391,7 +391,6 @@ export async function proxy(req: NextRequest) {
     if (bare === "/marketplace") {
       const u = req.nextUrl.clone()
       u.pathname = resolveLegacyMarketplaceIndexPath(role)
-      u.search = ""
       return NextResponse.redirect(u, 308)
     }
 

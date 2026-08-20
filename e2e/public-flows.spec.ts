@@ -69,16 +69,17 @@ test.describe("public flows", () => {
     await expect(page.getByTestId("affisell-pulse")).toBeVisible({ timeout: 30_000 })
   })
 
-  test("legacy /marketplace redirects guests to home explorer", async ({ page }) => {
+  test("legacy /marketplace redirects guests to public browse catalog", async ({ page }) => {
     await page.goto("/marketplace")
-    await expect(page).toHaveURL(/#explorer/)
-    await expect(page.locator("#explorer")).toBeVisible({ timeout: 30_000 })
+    await expect(page).toHaveURL(/\/shops\/browse/)
+    await expect(page.getByRole("heading", { level: 1, name: /Marketplace/i })).toBeVisible({
+      timeout: 30_000,
+    })
   })
 
   test("legacy /marketplace?q= keeps search on guest redirect", async ({ page }) => {
     await page.goto("/marketplace?q=chaussures")
-    await expect(page).toHaveURL(/\?q=chaussures/)
-    await expect(page).toHaveURL(/#explorer/)
+    await expect(page).toHaveURL(/\/shops\/browse\?q=chaussures/)
   })
 
   test("hero search navigates to home explorer with query", async ({ page }) => {

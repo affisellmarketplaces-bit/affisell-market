@@ -10,7 +10,7 @@ import useSWR from "swr"
 
 import { ProductCard, type ProductCardDisplayMode } from "@/components/ProductCard"
 import { ProductCardPreviewToggle } from "@/components/product/ProductCardPreviewToggle"
-import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
+import { AFFILIATE_CATALOG_PATH, PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { usePreviewAsCustomer } from "@/hooks/usePreviewAsCustomer"
 import { useViewportRoutePrefetch } from "@/hooks/use-viewport-route-prefetch"
 import { useUserRole } from "@/hooks/useUserRole"
@@ -158,8 +158,14 @@ export function MarketplaceView({
     return "/api/marketplace/products"
   }, [searchParams, embedded, isCustomerBrowse])
 
+  const isStandaloneBrowse =
+    isCustomerBrowse && basePath.replace(/\/$/, "") === PUBLIC_MARKETPLACE_BROWSE_PATH
+
   const useInitialFallback = Boolean(
-    initialBrowse && embedded && isCustomerBrowse && searchParams.toString() === ""
+    initialBrowse &&
+      isCustomerBrowse &&
+      searchParams.toString() === "" &&
+      (embedded || isStandaloneBrowse)
   )
 
   const { data: catalogData, error: catalogError, isLoading, isValidating } = useSWR<CatalogApiResponse>(

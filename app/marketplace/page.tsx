@@ -30,7 +30,7 @@ export default async function MarketplaceIndexRedirectPage({ searchParams }: Pag
   const target = resolveLegacyMarketplaceIndexPath(role)
   const params = toUrlSearchParams(await searchParams)
   if (target === PUBLIC_MARKETPLACE_BROWSE_PATH) {
-    redirect(marketplaceCatalogHref("/", params))
+    redirect(marketplaceCatalogHref(PUBLIC_MARKETPLACE_BROWSE_PATH, params))
   }
   const qs = params.toString()
   if (target === AFFILIATE_CATALOG_PATH) {
