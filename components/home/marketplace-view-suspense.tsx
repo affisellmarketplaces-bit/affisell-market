@@ -8,14 +8,25 @@ import type { HomeMarketplaceShell } from "@/lib/home-marketplace-shell"
 
 type Props = {
   shell: HomeMarketplaceShell
+  basePath?: string
+  embedded?: boolean
 }
 
-/** Required Suspense parent for `useSearchParams` inside embedded home catalog. */
-export function MarketplaceViewSuspense({ shell }: Props) {
+/** Required Suspense parent for `useSearchParams` inside buyer catalog surfaces. */
+export function MarketplaceViewSuspense({
+  shell,
+  basePath = "/",
+  embedded = true,
+}: Props) {
   const hasProducts = shell.products.length > 0
   return (
     <Suspense fallback={hasProducts ? null : <HomeCatalogSkeleton />}>
-      <MarketplaceView basePath="/" audience="customer" embedded initialBrowse={shell} />
+      <MarketplaceView
+        basePath={basePath}
+        audience="customer"
+        embedded={embedded}
+        initialBrowse={shell}
+      />
     </Suspense>
   )
 }

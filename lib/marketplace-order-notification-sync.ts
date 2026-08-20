@@ -1,13 +1,13 @@
-import { reconcilePartnerPendingCheckoutOrders } from "@/lib/cron/reconcile-partner-pending-checkouts"
-import {
-  healRecentPartnerMarketplaceNotifications,
-  type HealPartnerNotificationsResult,
-} from "@/lib/marketplace-order-notification-heal"
+import type { HealPartnerNotificationsResult } from "@/lib/marketplace-order-notification-heal"
 
 type PartnerScope = { supplierId: string } | { affiliateId: string }
 
 export type SyncPartnerMarketplaceAlertsResult = {
-  reconcile: Awaited<ReturnType<typeof reconcilePartnerPendingCheckoutOrders>>
+  reconcile: Awaited<
+    ReturnType<
+      (typeof import("@/lib/cron/reconcile-partner-pending-checkouts"))["reconcilePartnerPendingCheckoutOrders"]
+    >
+  >
   heal: HealPartnerNotificationsResult
 }
 
@@ -29,6 +29,11 @@ export function resetPartnerMarketplaceAlertSyncThrottleForTests(): void {
 export async function syncPartnerMarketplaceAlertsBeforeInbox(
   scope: PartnerScope
 ): Promise<SyncPartnerMarketplaceAlertsResult> {
+  const [{ reconcilePartnerPendingCheckoutOrders }, { healRecentPartnerMarketplaceNotifications }] =
+    await Promise.all([
+      import("@/lib/cron/reconcile-partner-pending-checkouts"),
+      import("@/lib/marketplace-order-notification-heal"),
+    ])
   const reconcile = await reconcilePartnerPendingCheckoutOrders(scope)
   const heal = await healRecentPartnerMarketplaceNotifications(scope)
 

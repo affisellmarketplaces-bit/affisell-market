@@ -75,7 +75,7 @@ const nextConfig: NextConfig = {
       "./prisma/schema.prisma",
     ],
   },
-  serverExternalPackages: ["@imgly/background-removal", "onnxruntime-web"],
+  serverExternalPackages: ["@imgly/background-removal", "onnxruntime-web", "playwright"],
   experimental: {
     /**
      * Critters `optimizeCss` can strip rules some browsers need → unstyled / blank shells.
@@ -100,7 +100,7 @@ const nextConfig: NextConfig = {
   webpack: (config, { isServer }) => {
     if (isServer) {
       if (Array.isArray(config.externals)) {
-        config.externals.push("@imgly/background-removal", "onnxruntime-web")
+        config.externals.push("@imgly/background-removal", "onnxruntime-web", "playwright")
       }
     }
     return config
