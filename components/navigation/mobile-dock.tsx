@@ -17,11 +17,14 @@ import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
 
 import { CartCountBadge } from "@/components/cart/cart-count-badge"
-import { FastLink } from "@/components/navigation/fast-link"
+import { MobileDockLink } from "@/components/navigation/mobile-dock-link"
+import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 import { useBuyerCartCount } from "@/hooks/use-buyer-cart-count"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { barePathname, shouldHideMobileDock } from "@/lib/mobile-chrome"
 import { resolveMobileDockItems, type MobileDockItemId } from "@/lib/mobile-dock-config"
+import { MOBILE_DOCK_WARM_ROUTES } from "@/lib/mobile-dock-warm-routes"
+import { prefetchRoutes } from "@/lib/prefetch-routes"
 import { resolvePublicNavMode } from "@/lib/public-nav-mode"
 import { cn } from "@/lib/utils"
 
@@ -46,11 +49,20 @@ export function MobileDock() {
   const cartCount = useBuyerCartCount({ deferSync: true })
   const mode = resolvePublicNavMode(bare)
   const dockItems = resolveMobileDockItems(mode)
+  const { prefetch, mounted } = useSafeAppRouter()
   const [compact, setCompact] = useState(false)
   const [scrollHidden, setScrollHidden] = useState(false)
   const [footerVisible, setFooterVisible] = useState(false)
   const hidden =
     role === "AFFILIATE" || role === "SUPPLIER" || shouldHideMobileDock(pathname)
+
+  useEffect(() => {
+    if (!mounted || hidden) return
+    return prefetchRoutes(prefetch, MOBILE_DOCK_WARM_ROUTES, {
+      idleTimeoutMs: 400,
+      fallbackDelayMs: 120,
+    })
+  }, [hidden, mounted, prefetch])
 
   useEffect(() => {
     if (hidden) return
@@ -108,7 +120,7 @@ export function MobileDock() {
     <nav
       aria-label={t("aria")}
       className={cn(
-        "affisell-mobile-buyer-dock pointer-events-none fixed inset-x-0 bottom-0 z-[90] w-full max-w-[100vw] overflow-x-clip border-t border-white/20 px-2 pb-[max(0.3rem,env(safe-area-inset-bottom,0px))] backdrop-blur-2xl transition-transform duration-300 md:hidden",
+        "affisell-mobile-buyer-dock fixed inset-x-0 bottom-0 z-[100] w-full max-w-[100vw] overflow-x-clip border-t border-white/20 px-2 pb-[max(0.3rem,env(safe-area-inset-bottom,0px))] backdrop-blur-2xl transition-transform duration-300 md:hidden",
         scrollHidden ? "translate-y-full" : "translate-y-0",
         compact && "affisell-mobile-buyer-dock--compact",
         footerVisible && "affisell-mobile-buyer-dock--footer-hide",
@@ -118,7 +130,7 @@ export function MobileDock() {
       <ul
         className={cn(
           affisellBrand.epoxySurfaceLight,
-          "affisell-mobile-dock-epoxy pointer-events-auto mx-auto flex w-full max-w-md items-end justify-between gap-0.5 rounded-[1.55rem] p-1 ring-1 ring-violet-500/10 dark:ring-violet-400/15"
+          "affisell-mobile-dock-epoxy mx-auto flex w-full max-w-md items-end justify-between gap-0.5 rounded-[1.55rem] p-1 ring-1 ring-violet-500/10 dark:ring-violet-400/15"
         )}
       >
         {dockItems.map(({ id, href, labelKey, featured, match }) => {
@@ -126,7 +138,7 @@ export function MobileDock() {
           const active = match(bare)
           return (
             <li key={id} className={cn("flex flex-1 justify-center", featured && "-mt-2")}>
-              <FastLink
+              <MobileDockLink
                 href={href}
                 className={cn(
                   "relative flex min-h-11 w-full min-w-0 max-w-[4.1rem] flex-col items-center justify-center gap-0.5 rounded-[1rem] px-1 py-1.5 text-[9px] font-bold uppercase tracking-[0.08em] transition-all duration-200 active:scale-95 sm:px-1.5",
@@ -150,7 +162,7 @@ export function MobileDock() {
                 />
                 {id === "cart" ? <CartCountBadge count={cartCount} size="sm" /> : null}
                 <span className="max-w-full truncate">{t(labelKey)}</span>
-              </FastLink>
+              </MobileDockLink>
             </li>
           )
         })}
