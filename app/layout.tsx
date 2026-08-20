@@ -15,6 +15,7 @@ import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
 import { slimClientMessagesForDedicatedStorefront } from "@/lib/i18n-slim-client-messages"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { isLegionStorefrontPathname } from "@/lib/legion/username"
+import { DevCssReady } from "@/components/shell/dev-css-ready"
 import { cn } from "@/lib/utils"
 
 import "./globals.css"
@@ -69,6 +70,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           isDedicatedStorefront && "affisell-dedicated-storefront affisell-mobile-dock-off"
         )}
       >
+        <DevCssReady />
         <CookieConsentHeadScripts />
         <AuthSessionProvider session={session}>
           <IntlAppProvider locale={locale} messages={clientMessages} now={now}>

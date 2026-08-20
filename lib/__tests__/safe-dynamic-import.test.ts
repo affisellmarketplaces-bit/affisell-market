@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { safeDynamicImport } from "@/lib/safe-dynamic-import"
+import {
+  isSafeDynamicNullComponent,
+  safeDynamicImport,
+} from "@/lib/safe-dynamic-import"
 
 describe("safeDynamicImport", () => {
   it("returns module on success", async () => {
@@ -13,6 +16,7 @@ describe("safeDynamicImport", () => {
       throw new Error("ChunkLoadError")
     }, "Test")
     expect(result).toEqual({ default: expect.any(Function) })
+    expect(isSafeDynamicNullComponent((result as { default: () => null }).default)).toBe(true)
     expect((result as { default: () => null }).default()).toBeNull()
   })
 })
