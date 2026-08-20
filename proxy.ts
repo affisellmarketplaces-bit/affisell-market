@@ -31,6 +31,8 @@ import {
   normalizeLegionUsername,
 } from "@/lib/legion/username"
 import { staticAppRewriteTarget, isStaticAppPathname } from "@/lib/reserved-locale-segments"
+import { isBuyerPublicFastPath } from "@/lib/buyer-public-fast-path"
+import { devLeanBlockedResponse } from "@/lib/dev-lean-gate"
 
 const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 const FORCED_CUSTOMER_HEADER = "x-affisell-view-role"
@@ -224,6 +226,9 @@ export async function proxy(req: NextRequest) {
   const barePath = pathnameWithoutLocale(pathname)
   const pathnameLocale = localeFromPathname(pathname)
 
+  const leanBlocked = devLeanBlockedResponse(req, barePath)
+  if (leanBlocked) return leanBlocked
+
   if (barePath === "/intelli" || barePath.startsWith("/intelli/")) {
     const suffix = barePath.slice("/intelli".length)
     const target = `${pathnameLocale ? `/${pathnameLocale}` : ""}/radar${suffix}`
@@ -287,6 +292,19 @@ export async function proxy(req: NextRequest) {
 
   const blocked = radarDisabledResponse(req)
   if (blocked) return blocked
+
+  /** Buyer storefront — sync proxy only (dev webpack queue melts on async JWT/intl). */
+  if (isBuyerPublicFastPath(barePath)) {
+    if (barePath !== pathname) {
+      const rewriteUrl = req.nextUrl.clone()
+      rewriteUrl.pathname = barePath
+      const requestHeaders = new Headers(req.headers)
+      requestHeaders.set("x-affisell-pathname", pathname)
+      requestHeaders.set(FORCED_CUSTOMER_HEADER, "customer")
+      return NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } })
+    }
+    return withForcedCustomerRole(req)
+  }
 
   const canonicalRedirect = canonicalPlatformRedirectUrl(
     requestHost(req),

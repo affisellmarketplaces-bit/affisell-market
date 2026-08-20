@@ -16,6 +16,7 @@
   "scripts": {
     "clean": "rm -rf node_modules package-lock.json && npm cache clean --force",
     "dev": "node ./scripts/dev-preflight.mjs && node ./scripts/next-dev-port.mjs",
+    "dev:buyer": "AFFISELL_DEV_LEAN=1 NEXT_PUBLIC_AFFISELL_DEV_LEAN=1 node ./scripts/dev-preflight.mjs && AFFISELL_DEV_LEAN=1 NEXT_PUBLIC_AFFISELL_DEV_LEAN=1 node ./scripts/dev-restart.mjs",
     "dev:restart": "node ./scripts/dev-preflight.mjs && node ./scripts/dev-restart.mjs",
     "dev:url": "node scripts/print-dev-url.mjs",
     "boutique:listings": "node scripts/boutique-list-listings.mjs",

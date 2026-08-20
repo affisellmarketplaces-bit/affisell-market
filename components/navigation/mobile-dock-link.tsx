@@ -15,7 +15,9 @@ import { buyerHaptic } from "@/lib/buyer-haptics"
 import { signalInstantNavigationStart } from "@/lib/instant-navigation-events.client"
 import {
   MOBILE_DOCK_NAV_STALL_MS,
+  releaseDockNavLock,
   shouldHardFallbackNav,
+  tryAcquireDockNavLock,
 } from "@/lib/mobile-dock-nav"
 import { cn } from "@/lib/utils"
 
@@ -63,6 +65,7 @@ export function MobileDockLink({ href, className, children, ...rest }: Props) {
       window.clearTimeout(stallTimer.current)
       stallTimer.current = null
     }
+    releaseDockNavLock()
   }, [pathname])
 
   useEffect(
@@ -87,11 +90,14 @@ export function MobileDockLink({ href, className, children, ...rest }: Props) {
       if (event.button !== 0) return
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 
+      if (!tryAcquireDockNavLock()) return
+
       buyerHaptic("tap")
       signalInstantNavigationStart()
 
       if (pathname === targetPath) {
         event.preventDefault()
+        releaseDockNavLock()
         window.scrollTo({ top: 0, behavior: "smooth" })
         return
       }
@@ -101,6 +107,7 @@ export function MobileDockLink({ href, className, children, ...rest }: Props) {
 
       if (stallTimer.current != null) window.clearTimeout(stallTimer.current)
       stallTimer.current = window.setTimeout(() => {
+        releaseDockNavLock()
         if (shouldHardFallbackNav(targetPath, window.location.pathname)) {
           console.warn("[mobile-dock-link]", { href: target, result: "hard-fallback" })
           window.location.assign(target)

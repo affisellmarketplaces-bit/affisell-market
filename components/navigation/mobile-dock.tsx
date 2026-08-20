@@ -24,6 +24,7 @@ import { affisellBrand } from "@/lib/affisell-brand"
 import { barePathname, shouldHideMobileDock } from "@/lib/mobile-chrome"
 import { resolveMobileDockItems, type MobileDockItemId } from "@/lib/mobile-dock-config"
 import { MOBILE_DOCK_WARM_ROUTES } from "@/lib/mobile-dock-warm-routes"
+import { isDevLeanMode } from "@/lib/dev-lean"
 import { prefetchRoutes } from "@/lib/prefetch-routes"
 import { resolvePublicNavMode } from "@/lib/public-nav-mode"
 import { cn } from "@/lib/utils"
@@ -58,6 +59,25 @@ export function MobileDock() {
 
   useEffect(() => {
     if (!mounted || hidden) return
+
+    if (isDevLeanMode()) {
+      const timers: number[] = []
+      MOBILE_DOCK_WARM_ROUTES.forEach((href, index) => {
+        timers.push(
+          window.setTimeout(() => {
+            try {
+              prefetch(href)
+            } catch {
+              /* warming */
+            }
+          }, index * 900)
+        )
+      })
+      return () => {
+        for (const id of timers) window.clearTimeout(id)
+      }
+    }
+
     return prefetchRoutes(prefetch, MOBILE_DOCK_WARM_ROUTES, {
       idleTimeoutMs: 400,
       fallbackDelayMs: 120,

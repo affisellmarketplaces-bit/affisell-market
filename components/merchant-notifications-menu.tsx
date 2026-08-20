@@ -178,17 +178,28 @@ export function MerchantNotificationsMenu({
     const unsub = subscribeMerchantNotifications(cfg.eventName, () => void load())
 
     function pollIntervalMs() {
+      if (
+        process.env.NODE_ENV === "development" &&
+        process.env.NEXT_PUBLIC_AFFISELL_DEV_MERCHANT_POLL !== "1"
+      ) {
+        return 0
+      }
       if (document.visibilityState !== "visible") return 60_000
       if (process.env.NODE_ENV === "development") return 120_000
       return role === "SUPPLIER" ? 15_000 : 30_000
     }
 
-    let intervalId = window.setInterval(() => void load(), pollIntervalMs())
+    let intervalId: number | null = null
+    const intervalMs = pollIntervalMs()
+    if (intervalMs > 0) {
+      intervalId = window.setInterval(() => void load(), intervalMs)
+    }
 
     function onVisibilityChange() {
-      window.clearInterval(intervalId)
+      if (intervalId != null) window.clearInterval(intervalId)
       if (document.visibilityState === "visible") void load()
-      intervalId = window.setInterval(() => void load(), pollIntervalMs())
+      const nextMs = pollIntervalMs()
+      intervalId = nextMs > 0 ? window.setInterval(() => void load(), nextMs) : null
     }
 
     function onFocus() {
@@ -200,7 +211,7 @@ export function MerchantNotificationsMenu({
 
     return () => {
       unsub()
-      window.clearInterval(intervalId)
+      if (intervalId != null) window.clearInterval(intervalId)
       document.removeEventListener("visibilitychange", onVisibilityChange)
       window.removeEventListener("focus", onFocus)
     }

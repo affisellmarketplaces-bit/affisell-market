@@ -11,7 +11,10 @@ export function printAffisellDevBanner(origin, { alreadyRunning = false, ready =
     `\n${head}\n` +
       `  Home:      ${origin}/\n` +
       `  Dashboard: ${origin}/dashboard/supplier\n` +
-      `  Radar:     ${origin}/radar\n`
+      `  Radar:     ${origin}/radar\n` +
+      (process.env.AFFISELL_DEV_LEAN === "1"
+        ? `  Mode:      buyer-lean (close dashboard tabs; use one browser tab)\n`
+        : "")
   )
 }
 
