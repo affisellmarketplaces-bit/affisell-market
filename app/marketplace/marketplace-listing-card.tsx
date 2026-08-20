@@ -1,6 +1,6 @@
 "use client"
 
-import { FastLink } from "@/components/navigation/fast-link"
+import { ResilientLink } from "@/components/navigation/resilient-link"
 import { useTranslations } from "next-intl"
 
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
@@ -82,7 +82,7 @@ export function MarketplaceListingCard({
 
   return (
     <div className="group flex h-full w-full flex-col overflow-hidden rounded-3xl border border-gray-100/90 bg-white/90 shadow-sm backdrop-blur-sm transition hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 dark:border-zinc-800 dark:bg-zinc-950/70 dark:hover:border-violet-800/50">
-      <FastLink href={detailHref} className="block" onPointerDown={() => recordClick()}>
+      <ResilientLink href={detailHref} className="block" onPointerDown={() => recordClick()}>
         <div className="relative flex h-72 w-full items-center justify-center overflow-hidden rounded-t-2xl border-b border-gray-100/80 bg-gradient-to-br from-violet-50/35 to-teal-50/20 p-4 dark:border-zinc-800 dark:from-violet-950/20 dark:to-teal-950/10">
           <img
             src={listing.image}
@@ -146,7 +146,7 @@ export function MarketplaceListingCard({
             </p>
           ) : null}
         </div>
-      </FastLink>
+      </ResilientLink>
       <div className="px-4 pb-4">
         <div className="mt-3 flex gap-2">
           <button

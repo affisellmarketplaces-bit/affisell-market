@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Heart, Sparkles } from "lucide-react"
 
-import { FastLink } from "@/components/navigation/fast-link"
+import { ResilientLink } from "@/components/navigation/resilient-link"
 import {
   isDisplayableListingImageUrl,
   PRODUCT_CARD_IMAGE_FALLBACK,
@@ -280,7 +280,7 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
 
   const showBusiness = mode === "affiliate" || mode === "supplier"
   const showMargin = mode === "affiliate"
-  const LinkComp = mode === "customer" ? FastLink : Link
+  const LinkComp = mode === "customer" ? ResilientLink : Link
 
   return (
     <LinkComp
