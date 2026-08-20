@@ -8,12 +8,17 @@ import { HomeCatalogImageWarmup } from "@/components/home/home-catalog-image-war
 import type { HomeMarketplaceShell } from "@/lib/home-marketplace-shell"
 import { pickHomeLcpImageUrls } from "@/lib/home-lcp-images"
 import { useIdleMount } from "@/hooks/use-idle-mount"
+import { safeDynamicImport } from "@/lib/safe-dynamic-import"
 
 const MarketplaceViewSuspense = dynamic(
   () =>
-    import("@/components/home/marketplace-view-suspense").then((m) => ({
-      default: m.MarketplaceViewSuspense,
-    })),
+    safeDynamicImport(
+      () =>
+        import("@/components/home/marketplace-view-suspense").then((m) => ({
+          default: m.MarketplaceViewSuspense,
+        })),
+      "MarketplaceViewSuspense"
+    ),
   { ssr: false }
 )
 

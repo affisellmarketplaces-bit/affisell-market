@@ -9,7 +9,7 @@ import { MobileDock } from "@/components/navigation/mobile-dock"
 import { NavigationProgress } from "@/components/navigation/navigation-progress"
 import { NavigationWarmup } from "@/components/navigation/navigation-warmup"
 import { CommandKDeferred } from "@/components/navigation/command-k-deferred"
-import { useIdleMount } from "@/hooks/use-idle-mount"
+import { useShellIdleMount } from "@/hooks/use-shell-idle-mount"
 import { safeDynamicImport } from "@/lib/safe-dynamic-import"
 
 const MobileBuyerHub = dynamic(
@@ -37,13 +37,13 @@ const MobileSearchOverlay = dynamic(
 )
 
 function NavigationWarmupDeferred() {
-  const ready = useIdleMount({ idleTimeoutMs: 2800, fallbackDelayMs: 700 })
+  const ready = useShellIdleMount({ idleTimeoutMs: 2800, fallbackDelayMs: 700 })
   if (!ready) return null
   return <NavigationWarmup />
 }
 
 function MobileBuyerHubDeferred() {
-  const ready = useIdleMount({ idleTimeoutMs: 3000, fallbackDelayMs: 800 })
+  const ready = useShellIdleMount({ idleTimeoutMs: 3000, fallbackDelayMs: 800 })
   if (!ready) return null
   return (
     <>
