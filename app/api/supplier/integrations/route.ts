@@ -9,6 +9,11 @@ import {
   parseShopifyIntegrationConfig,
 } from "@/lib/supplier-integration-config"
 import { prisma } from "@/lib/prisma"
+import {
+  integrationLiveConnected,
+  loadSupplierIntegrationsForUser,
+  parseIntegrationSyncSummary,
+} from "@/lib/supplier/load-supplier-integrations"
 import { normalizeShopifyAdminHost } from "@/lib/shopify-sync-map"
 
 export const runtime = "nodejs"
@@ -26,36 +31,40 @@ export async function GET(req: Request) {
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
     `${url.protocol}//${url.host}`
 
-  const rows = await prisma.supplierIntegration.findMany({
-    where: { userId: session.user.id },
-    orderBy: { updatedAt: "desc" },
-    select: {
-      id: true,
-      platform: true,
-      name: true,
-      enabled: true,
-      config: true,
-      shopDomain: true,
-      status: true,
-      accessTokenEncrypted: true,
-      lastSyncAt: true,
-      lastSyncError: true,
-      lastSyncSummary: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  })
+  try {
+    const { rows, schemaMode } = await loadSupplierIntegrationsForUser(session.user.id)
 
-  const integrations = rows.map(({ accessTokenEncrypted: _enc, ...r }) => ({
-    ...r,
-    config: maskIntegrationConfig(r.config),
-    inboundUrl:
-      r.platform === "webhook"
-        ? `${base}/api/integrations/inbound/${r.id}`
-        : null,
-  }))
+    const integrations = rows.map((r) => {
+      const config = maskIntegrationConfig(r.config)
+      return {
+        id: r.id,
+        platform: r.platform,
+        name: r.name,
+        enabled: r.enabled,
+        config,
+        shopDomain: "shopDomain" in r ? r.shopDomain : null,
+        status: "status" in r ? r.status : null,
+        lastSyncAt: r.lastSyncAt?.toISOString() ?? null,
+        lastSyncError: r.lastSyncError,
+        syncStats: parseIntegrationSyncSummary(r.lastSyncSummary),
+        inboundUrl:
+          r.platform === "webhook" ? `${base}/api/integrations/inbound/${r.id}` : null,
+        liveConnected: integrationLiveConnected({
+          platform: r.platform,
+          enabled: r.enabled,
+          status: "status" in r ? r.status : null,
+          config: r.config,
+          shopDomain: "shopDomain" in r ? r.shopDomain : null,
+        }),
+      }
+    })
 
-  return NextResponse.json({ integrations, appBaseUrl: base })
+    return NextResponse.json({ integrations, appBaseUrl: base, schemaMode })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Load failed"
+    console.error("[api/supplier/integrations]", { userId: session.user.id, result: "error", error: msg })
+    return NextResponse.json({ error: msg, integrations: [] }, { status: 503 })
+  }
 }
 
 export async function POST(req: Request) {
