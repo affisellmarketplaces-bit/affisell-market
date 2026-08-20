@@ -38,13 +38,13 @@ export async function PdpCrossSellFooterStream(args: StreamArgs) {
   const { oftenBoughtTogether, alsoViewed } = await safeLoadCards(args)
   if (oftenBoughtTogether.length === 0 && alsoViewed.length === 0) return null
   return (
-    <>
+    <div className="space-y-10">
       {oftenBoughtTogether.length > 0 ? (
         <PdpCrossSellRail items={oftenBoughtTogether} kind="boughtTogether" />
       ) : null}
       {alsoViewed.length > 0 ? (
         <PdpCrossSellRail items={alsoViewed} kind="alsoViewed" />
       ) : null}
-    </>
+    </div>
   )
 }

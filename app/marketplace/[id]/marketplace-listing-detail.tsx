@@ -103,8 +103,9 @@ export function MarketplaceListingDetail(props: ListingDetailProps) {
             aria-hidden
           />
           <motion.div className="relative grid min-w-0 grid-cols-1 gap-2 lg:grid-cols-12 lg:items-start lg:gap-x-12 lg:gap-y-8">
-            <ListingBreadcrumbNav homeLabel={messages.Breadcrumb.home} categories={categories} />
+            <ListingBreadcrumbNav key="pdp-breadcrumb" homeLabel={messages.Breadcrumb.home} categories={categories} />
             <ListingGalleryColumn
+              key="pdp-gallery"
               {...props}
               customColumns={ctrl.safeCustomColumns}
               shipping={props.shipping}
@@ -112,12 +113,14 @@ export function MarketplaceListingDetail(props: ListingDetailProps) {
               ctrl={ctrl}
             />
             <ListingSidebarColumn
+              key="pdp-sidebar"
               {...props}
               customColumns={ctrl.safeCustomColumns}
               shipping={props.shipping}
               ctrl={ctrl}
             />
             <ListingAboutSection
+              key="pdp-about"
               reduceMotion={reduceMotion}
               description={description}
               descriptionBullets={descriptionBullets}

@@ -194,7 +194,7 @@ export function ListingPurchaseDock({
           labels={bookingCheckoutLabels}
         />
       ) : (
-        <>
+        <div className="flex flex-col">
           <div className="mb-3 hidden items-start gap-2.5 lg:flex">
             <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-amber-500/25">
               <Zap className="h-4 w-4" aria-hidden />
@@ -325,8 +325,12 @@ export function ListingPurchaseDock({
             </button>
           </div>
 
-          {compactCrossSellSlot}
-        </>
+          {compactCrossSellSlot ? (
+            <div key="compact-cross-sell" className="mt-4 min-w-0">
+              {compactCrossSellSlot}
+            </div>
+          ) : null}
+        </div>
       )}
     </motion.div>
   )
