@@ -69,7 +69,7 @@ export async function launchAeBrowserPage(): Promise<
   | { ok: false; error: string }
 > {
   try {
-    const pw = await import("playwright")
+    const pw = await import(/* webpackIgnore: true */ "playwright")
     const browser = await pw.chromium.launch({
       headless: process.env.AE_BROWSER_HEADLESS !== "false",
     })

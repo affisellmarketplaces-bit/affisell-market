@@ -1,4 +1,4 @@
-import { reconcilePartnerPendingCheckoutOrders } from "@/lib/cron/reconcile-partner-pending-checkouts"
+import type { ReconcilePartnerPendingResult } from "@/lib/cron/reconcile-partner-pending-checkouts"
 import {
   healRecentPartnerMarketplaceNotifications,
   type HealPartnerNotificationsResult,
@@ -7,8 +7,18 @@ import {
 type PartnerScope = { supplierId: string } | { affiliateId: string }
 
 export type SyncPartnerMarketplaceAlertsResult = {
-  reconcile: Awaited<ReturnType<typeof reconcilePartnerPendingCheckoutOrders>>
+  reconcile: ReconcilePartnerPendingResult
   heal: HealPartnerNotificationsResult
+}
+
+/** Lazy — avoids bundling stripe fulfill + auto-buy + playwright on notification polls. */
+async function reconcilePartnerPendingCheckoutOrders(
+  scope: PartnerScope
+): Promise<ReconcilePartnerPendingResult> {
+  const { reconcilePartnerPendingCheckoutOrders: reconcile } = await import(
+    "@/lib/cron/reconcile-partner-pending-checkouts"
+  )
+  return reconcile(scope)
 }
 
 /** Avoid Stripe reconcile + inbox heal on every notifications poll (was ~2s every 3s). */
