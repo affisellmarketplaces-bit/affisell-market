@@ -29,7 +29,7 @@ describe("integrations map-canonical-product", () => {
       raw: { id: "gid://shopify/Product/12345" },
     }
 
-    const mapped = canonicalToMappedProduct(canonical, "demo.myshopify.com")
+    const mapped = canonicalToMappedProduct(canonical, "demo.myshopify.com", "SHOPIFY")
     expect(mapped.externalId).toBe("12345")
     expect(mapped.name).toBe("Test Hoodie")
     expect(mapped.basePriceCents).toBe(4999)

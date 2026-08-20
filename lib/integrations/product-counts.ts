@@ -27,7 +27,9 @@ async function legacyIntegrationProductCounts(
       supplierId,
       OR: [
         { importSource: "shopify-sync" },
+        { importSource: "woocommerce-sync" },
         { tags: { has: "shopify-sync" } },
+        { tags: { has: "woocommerce-sync" } },
         { tags: { has: "live-sync" } },
       ],
     },

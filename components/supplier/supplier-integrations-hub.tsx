@@ -77,8 +77,14 @@ export function SupplierIntegrationsHub({
   const [lastWebhookSecret, setLastWebhookSecret] = useState<string | null>(null)
   const [disconnectTarget, setDisconnectTarget] = useState<IntegrationViewModel | null>(null)
 
+  const [wooShop, setWooShop] = useState("")
+  const [wooConsumerKey, setWooConsumerKey] = useState("")
+  const [wooConsumerSecret, setWooConsumerSecret] = useState("")
+
   const shopifyRow = integrations.find((r) => r.platform === "shopify")
   const shopifyConnected = Boolean(shopifyRow?.liveConnected)
+  const wooRow = integrations.find((r) => r.platform === "woocommerce")
+  const wooConnected = Boolean(wooRow?.liveConnected)
 
   const load = useCallback(async () => {
     setListBusy(true)
@@ -142,7 +148,8 @@ export function SupplierIntegrationsHub({
     if (!disconnectTarget) return
     setError(null)
     setBusyId("decouple")
-    const res = await fetch("/api/integrations/shopify/disconnect", {
+    const providerSlug = disconnectTarget.platform === "woocommerce" ? "woo" : "shopify"
+    const res = await fetch(`/api/integrations/${providerSlug}/disconnect`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ integrationId: disconnectTarget.id }),
@@ -162,6 +169,62 @@ export function SupplierIntegrationsHub({
       data.message ??
         `${data.productsDecoupled ?? 0} products kept on Affisell — zero lock-in.`
     )
+    await load()
+  }
+
+  async function connectWooApiKeys() {
+    setError(null)
+    if (!wooShop.trim() || !wooConsumerKey.trim() || !wooConsumerSecret.trim()) {
+      setError("Store URL, consumer key, and consumer secret are required")
+      return
+    }
+    if (!encryptionConfigured) {
+      setError("Add INTEGRATION_ENCRYPTION_KEY or ENCRYPTION_KEY to .env.local")
+      return
+    }
+    setBusyId("woo-connect")
+    const res = await fetch("/api/integrations/woo/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        shopDomain: wooShop.trim(),
+        consumerKey: wooConsumerKey.trim(),
+        consumerSecret: wooConsumerSecret.trim(),
+      }),
+    })
+    const data = (await res.json().catch(() => ({}))) as {
+      error?: string
+      integrationId?: string
+    }
+    setBusyId(null)
+    if (!res.ok) {
+      setError(data.error ?? "WooCommerce connection failed")
+      return
+    }
+    setWooConsumerKey("")
+    setWooConsumerSecret("")
+    toast.success("WooCommerce connected — sync started")
+    await load()
+  }
+
+  async function liveSyncWoo(integrationId?: string) {
+    setError(null)
+    setBusyId("woo-sync")
+    const res = await fetch("/api/integrations/woo/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(integrationId ? { integrationId } : {}),
+    })
+    const data = (await res.json().catch(() => ({}))) as {
+      error?: string
+      syncedCount?: number
+    }
+    setBusyId(null)
+    if (!res.ok) {
+      setError(data.error ?? "Woo sync failed")
+      return
+    }
+    toast.success(`Woo sync complete — ${data.syncedCount ?? 0} products processed`)
     await load()
   }
 
@@ -212,7 +275,7 @@ export function SupplierIntegrationsHub({
 
   async function removeIntegration(id: string) {
     const row = integrations.find((r) => r.id === id)
-    if (row?.liveConnected || row?.platform === "shopify") {
+    if (row?.liveConnected || row?.platform === "shopify" || row?.platform === "woocommerce") {
       setDisconnectTarget(row ?? { id, platform: "shopify", name: "main", enabled: true, config: {}, lastSyncAt: null, lastSyncError: null, syncStats: null, inboundUrl: null, liveConnected: true })
       return
     }
@@ -222,7 +285,8 @@ export function SupplierIntegrationsHub({
     await load()
   }
 
-  const stats = shopifyRow?.syncStats
+  const shopifyStats = shopifyRow?.syncStats
+  const wooStats = wooRow?.syncStats
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -309,13 +373,13 @@ export function SupplierIntegrationsHub({
                 </div>
               </div>
 
-              {stats ? (
+              {shopifyStats ? (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[
-                    { label: "Fetched", value: stats.fetched },
-                    { label: "New", value: stats.created },
-                    { label: "Updated", value: stats.updated },
-                    { label: "Skipped", value: stats.skipped },
+                    { label: "Fetched", value: shopifyStats.fetched },
+                    { label: "New", value: shopifyStats.created },
+                    { label: "Updated", value: shopifyStats.updated },
+                    { label: "Skipped", value: shopifyStats.skipped },
                   ].map((item) => (
                     <div
                       key={item.label}
@@ -489,17 +553,184 @@ export function SupplierIntegrationsHub({
         </Card>
       </div>
 
-      <Card className="mt-6 border-zinc-200/80 p-6 opacity-80 dark:border-zinc-700">
+      <Card className="mt-6 border-zinc-200/80 p-6 dark:border-zinc-700">
         <div className="flex items-center gap-2">
-          <Store className="h-5 w-5 text-zinc-400" aria-hidden />
-          <h2 className="text-lg font-semibold text-zinc-700 dark:text-zinc-300">WooCommerce</h2>
-          <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-[10px] font-bold uppercase text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-            Soon
-          </span>
+          <Store className="h-5 w-5 text-violet-600 dark:text-violet-300" aria-hidden />
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">WooCommerce</h2>
         </div>
-        <p className="mt-2 text-sm text-zinc-500">
-          Same Clone &amp; Own flow — sync once, disconnect, keep selling natively on Affisell.
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+          Clone &amp; Own via REST API keys — sync once, disconnect, keep selling on Affisell.
         </p>
+
+        {wooConnected && wooRow ? (
+          <div className="mt-5 space-y-4">
+            <div className="flex items-start gap-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/70 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/25">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <div className="min-w-0">
+                <p className="font-semibold text-emerald-900 dark:text-emerald-100">
+                  Connected · {wooRow.shopDomain ?? "WooCommerce"}
+                </p>
+                <p className="mt-1 text-xs text-emerald-800/90 dark:text-emerald-200/90">
+                  Last sync {relativeTime(wooRow.lastSyncAt)}
+                </p>
+              </div>
+            </div>
+
+            {wooStats ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[
+                  { label: "Fetched", value: wooStats.fetched },
+                  { label: "New", value: wooStats.created },
+                  { label: "Updated", value: wooStats.updated },
+                  { label: "Skipped", value: wooStats.skipped },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-xl border border-zinc-200/80 bg-zinc-50/80 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900/50"
+                  >
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                      {item.label}
+                    </p>
+                    <p className="mt-1 text-xl font-bold tabular-nums text-zinc-900 dark:text-zinc-50">
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {(wooRow.productCount ?? 0) > 0 ? (
+              <Link
+                href="/dashboard/supplier/products"
+                className="inline-flex items-center gap-2 text-sm font-medium text-violet-700 hover:underline dark:text-violet-300"
+              >
+                <ExternalLink className="h-4 w-4" aria-hidden />
+                View {wooRow.productCount} synced products
+              </Link>
+            ) : null}
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={cn(buttonVariants(), "gap-2")}
+                disabled={busyId === "woo-sync"}
+                onClick={() => void liveSyncWoo(wooRow.id)}
+              >
+                {busyId === "woo-sync" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <RefreshCw className="h-4 w-4" aria-hidden />
+                )}
+                Sync now
+              </button>
+              <button
+                type="button"
+                className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
+                onClick={() => setDisconnectTarget(wooRow)}
+              >
+                <Unplug className="h-4 w-4" aria-hidden />
+                Disconnect
+              </button>
+            </div>
+          </div>
+        ) : wooRow?.status === "DISCONNECTED" ? (
+          <div className="mt-5 space-y-4">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Disconnected — {wooRow.productCount ?? 0} products remain on Affisell. Re-enter API keys
+              to reconnect.
+            </p>
+            <label className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
+              Store URL
+              <input
+                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                placeholder="https://your-store.tastewp.com"
+                value={wooShop}
+                onChange={(e) => setWooShop(e.target.value)}
+              />
+            </label>
+            <label className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
+              Consumer key
+              <input
+                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                type="password"
+                autoComplete="off"
+                value={wooConsumerKey}
+                onChange={(e) => setWooConsumerKey(e.target.value)}
+              />
+            </label>
+            <label className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
+              Consumer secret
+              <input
+                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                type="password"
+                autoComplete="off"
+                value={wooConsumerSecret}
+                onChange={(e) => setWooConsumerSecret(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              className={cn(buttonVariants(), "gap-2")}
+              disabled={busyId === "woo-connect"}
+              onClick={() => void connectWooApiKeys()}
+            >
+              {busyId === "woo-connect" ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Plug className="h-4 w-4" aria-hidden />
+              )}
+              Reconnect WooCommerce
+            </button>
+          </div>
+        ) : (
+          <div className="mt-5 space-y-4">
+            <label className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
+              Store URL
+              <input
+                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                placeholder="https://your-store.tastewp.com"
+                value={wooShop}
+                onChange={(e) => setWooShop(e.target.value)}
+              />
+            </label>
+            <label className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
+              Consumer key (ck_…)
+              <input
+                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                type="password"
+                autoComplete="off"
+                value={wooConsumerKey}
+                onChange={(e) => setWooConsumerKey(e.target.value)}
+              />
+            </label>
+            <label className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
+              Consumer secret (cs_…)
+              <input
+                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                type="password"
+                autoComplete="off"
+                value={wooConsumerSecret}
+                onChange={(e) => setWooConsumerSecret(e.target.value)}
+              />
+            </label>
+            <p className="text-xs text-zinc-500">
+              Find keys: WooCommerce → Settings → Advanced → REST API → Add key (Read permission).
+            </p>
+            <button
+              type="button"
+              className={cn(buttonVariants(), "gap-2")}
+              disabled={busyId === "woo-connect"}
+              onClick={() => void connectWooApiKeys()}
+            >
+              {busyId === "woo-connect" ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Plug className="h-4 w-4" aria-hidden />
+              )}
+              Connect WooCommerce
+            </button>
+          </div>
+        )}
       </Card>
 
       {disconnectTarget ? (
@@ -514,7 +745,8 @@ export function SupplierIntegrationsHub({
               Disconnect {disconnectTarget.shopDomain ?? disconnectTarget.platform}?
             </h3>
             <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
-              Your products will stay active on Affisell. You can keep selling without Shopify.
+              Your products will stay active on Affisell. You can keep selling without{" "}
+              {disconnectTarget.platform === "woocommerce" ? "WooCommerce" : "Shopify"}.
               Stock is frozen at the last sync — edit it manually anytime. Zero lock-in.
             </p>
             <div className="mt-6 flex flex-wrap justify-end gap-2">

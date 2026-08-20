@@ -61,7 +61,7 @@ async function runCatalogSync(args: {
 
   for (const canonical of products) {
     try {
-      const mapped = canonicalToMappedProduct(canonical, shopHost)
+          const mapped = canonicalToMappedProduct(canonical, shopHost, integration.provider)
       const out = await upsertSyncedProduct({
         supplierId: integration.userId,
         provider: integration.provider,
@@ -247,7 +247,10 @@ export class SyncOrchestrator {
               {
                 sourceIntegrationId: null,
                 externalProvider: integration.provider ?? undefined,
-                importSource: "shopify-sync",
+                importSource:
+                  integration.provider === IntegrationProvider.WOOCOMMERCE
+                    ? "woocommerce-sync"
+                    : "shopify-sync",
               },
             ],
           },

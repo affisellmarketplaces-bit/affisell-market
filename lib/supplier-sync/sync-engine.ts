@@ -74,6 +74,13 @@ export async function upsertSyncedProduct(args: {
     return { externalId, action: "skipped" }
   }
 
+  const importSource = provider === IntegrationProvider.WOOCOMMERCE ? "woocommerce-sync" : "shopify-sync"
+  const syncTags =
+    provider === IntegrationProvider.WOOCOMMERCE
+      ? ["woocommerce-sync", "live-sync"]
+      : ["shopify-sync", "live-sync"]
+  const supplierTag = importSource
+
   const productData = {
     name: mapped.name,
     description: mapped.description,
@@ -82,7 +89,7 @@ export async function upsertSyncedProduct(args: {
     stock: mapped.stock,
     supplierSku: mapped.supplierSku,
     sourceUrl: mapped.sourceUrl || undefined,
-    importSource: "shopify-sync",
+    importSource,
     externalId,
     externalProvider: provider,
     externalRaw: mapped.raw as unknown as Prisma.InputJsonValue,
@@ -94,7 +101,7 @@ export async function upsertSyncedProduct(args: {
     isDraft,
     commissionRate: DEFAULT_COMMISSION,
     categories: mapped.categoryLabel ? [mapped.categoryLabel.slice(0, 120)] : [],
-    tags: ["shopify-sync", "live-sync"],
+    tags: syncTags,
   }
 
   if (existing) {
@@ -109,7 +116,7 @@ export async function upsertSyncedProduct(args: {
     data: {
       supplierId,
       ...productData,
-      supplierTag: "shopify-sync",
+      supplierTag,
     },
   })
   return { externalId, action: "created" }

@@ -137,12 +137,22 @@ export function integrationLiveConnected(row: {
   shopDomain?: string | null
   accessTokenEncrypted?: string | null
 }): boolean {
-  if (row.platform !== "shopify" || !row.enabled) return false
+  if (!row.enabled) return false
   if (row.status === "DISCONNECTED") return false
-  if (row.status === "CONNECTED") return true
-  const cfg =
-    row.config && typeof row.config === "object" && !Array.isArray(row.config)
-      ? (row.config as Record<string, unknown>)
-      : null
-  return Boolean(cfg?.oauth || row.shopDomain)
+
+  if (row.platform === "shopify") {
+    if (row.status === "CONNECTED") return true
+    const cfg =
+      row.config && typeof row.config === "object" && !Array.isArray(row.config)
+        ? (row.config as Record<string, unknown>)
+        : null
+    return Boolean(cfg?.oauth || row.shopDomain)
+  }
+
+  if (row.platform === "woocommerce") {
+    if (row.status === "CONNECTED") return true
+    return Boolean(row.accessTokenEncrypted && row.shopDomain)
+  }
+
+  return false
 }

@@ -18,7 +18,7 @@ export {
   INTEGRATION_ENCRYPTION_KEY_MISSING,
 }
 
-export function encrypt(plaintext: string): EncryptedString {
+export function encryptIntegrationSecret(plaintext: string): EncryptedString {
   const key = getIntegrationEncryptionKey()
   const iv = randomBytes(12)
   const cipher = createCipheriv(ALG, key, iv)
@@ -35,7 +35,7 @@ export function encrypt(plaintext: string): EncryptedString {
   return Buffer.from(JSON.stringify(payload), "utf8").toString("base64")
 }
 
-export function decrypt(ciphertext: EncryptedString): string {
+export function decryptIntegrationSecret(ciphertext: EncryptedString): string {
   const key = getIntegrationEncryptionKey()
   const raw = Buffer.from(ciphertext, "base64").toString("utf8")
   const payload = JSON.parse(raw) as {
@@ -54,3 +54,7 @@ export function decrypt(ciphertext: EncryptedString): string {
   const out = Buffer.concat([decipher.update(data), decipher.final()])
   return out.toString("utf8")
 }
+
+/** Alias for routes — same AES-256-GCM payload. */
+export const encrypt = encryptIntegrationSecret
+export const decrypt = decryptIntegrationSecret
