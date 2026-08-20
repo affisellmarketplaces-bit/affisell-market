@@ -8,6 +8,7 @@ import {
   stripBodySecret,
 } from "@/lib/aliexpress-ops-auth"
 import { enqueueOrderPaidJob } from "@/lib/fulfillment/order-paid-queue"
+import { fulfillmentOrchestrator } from "@/lib/fulfillment/orchestrator"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -53,13 +54,25 @@ export async function POST(req: Request, ctx: RouteCtx) {
     return NextResponse.json({ ok: false, error: "missing_order_id" }, { status: 400 })
   }
 
-  const cleaned = stripBodySecret(json) as { async?: boolean } | null
+  const cleaned = stripBodySecret(json) as { async?: boolean; orchestrator?: boolean } | null
   const asyncMode = cleaned?.async === true
+  const orchestratorOnly = cleaned?.orchestrator === true
 
   if (asyncMode) {
     await enqueueOrderPaidJob({ orderId: orderId.trim() })
     console.log("[orders-fulfill]", { result: "enqueued", orderId: orderId.trim() })
     return NextResponse.json({ ok: true, enqueued: true, orderId: orderId.trim() })
+  }
+
+  const orchestratorResult = await fulfillmentOrchestrator.onOrderCreated(orderId.trim())
+  console.log("[orders-fulfill]", {
+    result: "orchestrator",
+    orderId: orderId.trim(),
+    groupIds: orchestratorResult.groupIds,
+  })
+
+  if (orchestratorOnly) {
+    return NextResponse.json({ ok: true, ...orchestratorResult })
   }
 
   const result = await fulfillAffisellOrderWithAliExpress(orderId.trim())

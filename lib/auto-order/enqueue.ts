@@ -3,6 +3,7 @@ import { publishAutoOrderEvent } from "@/lib/auto-order/queue"
 import { logAutoOrder } from "@/lib/auto-order/telemetry"
 import { triggerChinaBuyForPaidOrders } from "@/lib/china-buying/trigger-china-buy-for-order"
 import { enqueueAutoBuyForStripeSession } from "@/lib/fulfillment/auto-buy"
+import { triggerFulfillmentOrchestratorForSession } from "@/lib/fulfillment/orchestrator"
 
 /** Idempotent batch row + async worker (BullMQ when REDIS_URL set, else Inngest). */
 export async function triggerAutoFulfillmentForStripeSession(stripeSessionId: string): Promise<void> {
@@ -26,6 +27,12 @@ export async function triggerAutoFulfillmentForStripeSession(stripeSessionId: st
     await enqueueAutoBuyForStripeSession(stripeSessionId)
   } catch (e) {
     console.error("[auto-buy] enqueue after checkout failed", e)
+  }
+
+  try {
+    await triggerFulfillmentOrchestratorForSession(stripeSessionId)
+  } catch (e) {
+    console.error("[fulfillment-orchestrator] enqueue after checkout failed", e)
   }
 
   try {

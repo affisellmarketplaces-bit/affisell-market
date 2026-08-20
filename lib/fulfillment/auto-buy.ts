@@ -4,7 +4,6 @@ import { captureException } from "@sentry/nextjs"
 import { AliExpressClient } from "@/lib/aliexpress-open-api"
 import { isAeDryRun } from "@/lib/fulfillment/ae-dry-run"
 import { placeAliExpressDsOrder } from "@/lib/fulfillment/ae-ds-order"
-import { runAliExpressBrowserCheckout } from "@/lib/fulfillment/ae-browser-checkout"
 import { enqueueAutoBuyJob } from "@/lib/fulfillment/bullmq/auto-buy.queue"
 import { acquireAutoBuyRateLimit } from "@/lib/fulfillment/rate-limit"
 import {
@@ -408,6 +407,7 @@ export async function processAutoBuyFulfillmentLog(fulfillmentLogId: string): Pr
   if (ds.ok) {
     aeOrderId = ds.aeOrderId
   } else if (virtualCardId && cardNumber) {
+    const { runAliExpressBrowserCheckout } = await import("@/lib/fulfillment/ae-browser-checkout")
     const browser = await runAliExpressBrowserCheckout({
       aeUrl: link.aeUrl,
       aeSkuId,

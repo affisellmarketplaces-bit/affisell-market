@@ -15,6 +15,7 @@ import {
 import { useLocale, useTranslations } from "next-intl"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
+import { UnifiedTrackingTimeline } from "@/components/fulfillment/unified-tracking-timeline"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import type { BuyerOrderDetailDto } from "@/lib/buyer-order-detail-load"
@@ -249,6 +250,14 @@ export function BuyerOrderDetailView({ order, backHref }: Props) {
           </div>
         </div>
       </BentoCard>
+
+      {localOrder.fulfillmentParcels.length > 0 ? (
+        <UnifiedTrackingTimeline
+          parcels={localOrder.fulfillmentParcels}
+          currentOrderId={localOrder.id}
+          parcelCount={localOrder.fulfillmentParcelCount}
+        />
+      ) : null}
 
       {showRefundInitiated ? (
         <BentoCard className="border-emerald-200/80 bg-emerald-50/80 dark:border-emerald-900/50 dark:bg-emerald-950/30">

@@ -15,6 +15,8 @@ import {
 } from "@/lib/order-return-policy"
 import { isTerminalReturnStatus } from "@/lib/order-return-types"
 import { loadOrderTrackingTimeline, type OrderTrackingTimelineItem } from "@/lib/order-tracking-event"
+import { fulfillmentOrchestrator } from "@/lib/fulfillment/orchestrator"
+import type { UnifiedTrackingParcel } from "@/lib/fulfillment/unified-tracking-types"
 import { prisma } from "@/lib/prisma"
 
 export type BuyerOrderDetailDto = {
@@ -44,6 +46,8 @@ export type BuyerOrderDetailDto = {
   } | null
   lastReturn: { id: string; status: string; createdAt: string; terminal: boolean } | null
   trackingTimeline: OrderTrackingTimelineItem[]
+  fulfillmentParcels: UnifiedTrackingParcel[]
+  fulfillmentParcelCount: number
 }
 
 export async function loadBuyerOrderDetail(
@@ -88,6 +92,9 @@ export async function loadBuyerOrderDetail(
     !hasBlockingReturnHistory(order.returns)
 
   const trackingTimeline = await loadOrderTrackingTimeline(order.id)
+  const unified = await fulfillmentOrchestrator.getUnifiedTracking(order.id)
+  const fulfillmentParcels: UnifiedTrackingParcel[] = unified?.groups ?? []
+  const fulfillmentParcelCount = unified?.parcelCount ?? 0
 
   return {
     id: order.id,
@@ -128,5 +135,7 @@ export async function loadBuyerOrderDetail(
         }
       : null,
     trackingTimeline,
+    fulfillmentParcels,
+    fulfillmentParcelCount,
   }
 }

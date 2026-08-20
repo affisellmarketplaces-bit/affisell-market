@@ -513,8 +513,9 @@ model SupplierIntegration {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  webhookEvents SupplierWebhookEvent[]
-  syncJobs      SyncJob[]
+  webhookEvents     SupplierWebhookEvent[]
+  syncJobs          SyncJob[]
+  fulfillmentGroups FulfillmentGroup[]
 
   @@unique([userId, platform, name])
   @@unique([userId, provider, shopDomain])
@@ -2531,6 +2532,7 @@ model Order {
   transferReversals        TransferReversal[]
   transferAttempts         TransferAttempt[]
   autoBuyLog               FulfillmentLog?
+  fulfillmentItem          FulfillmentItem?
   sponsorCampaignCharges   SponsorCampaignCharge[]
 
   @@index([affiliateId])
@@ -3345,6 +3347,62 @@ enum AutoBuyStatus {
   BOUGHT
   FAILED
   REFUNDED
+}
+
+/**
+ * Per-supplier parcel within a checkout session — split order + auto-buy + tracking.
+ */
+enum FulfillmentGroupStatus {
+  PENDING
+  AUTO_BUYING
+  AWAITING_SHIPMENT
+  SHIPPED
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+model FulfillmentGroup {
+  id                    String                 @id @default(cuid())
+  /**
+   * Base Stripe Checkout session id (no `:line:` suffix).
+   */
+  stripeSessionId       String
+  supplierId            String
+  supplierIntegrationId String?
+  supplierIntegration   SupplierIntegration?   @relation(fields: [supplierIntegrationId], references: [id], onDelete: SetNull)
+  status                FulfillmentGroupStatus @default(PENDING)
+  externalOrderId       String?
+  trackingNumber        String?
+  trackingCarrier       String?
+  trackingUrl           String?
+  autoBuyPayload        Json?
+  autoBuyResponse       Json?
+  error                 String?                @db.Text
+  manualNote            String?                @db.Text
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  items FulfillmentItem[]
+
+  @@unique([stripeSessionId, supplierId])
+  @@index([stripeSessionId])
+  @@index([supplierId])
+  @@index([status])
+}
+
+model FulfillmentItem {
+  id                 String           @id @default(cuid())
+  fulfillmentGroupId String
+  /**
+   * Affisell 1 order = 1 line — mirrors FulfillmentLog.orderItemId.
+   */
+  orderId            String           @unique
+  quantity           Int              @default(1)
+  fulfillmentGroup   FulfillmentGroup @relation(fields: [fulfillmentGroupId], references: [id], onDelete: Cascade)
+  order              Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([fulfillmentGroupId])
 }
 
 enum DemoPersona {
