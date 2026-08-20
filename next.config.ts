@@ -78,8 +78,11 @@ const nextConfig: NextConfig = {
   serverExternalPackages: [
     "@imgly/background-removal",
     "onnxruntime-web",
-    /** Optional worker runtime — dynamic import in ae-browser-variant-select */
+    /** Optional worker runtime — dynamic import in ae-browser-launch */
     "playwright",
+    /** Queue workers — not bundled in Next API routes */
+    "bullmq",
+    "ioredis",
   ],
   experimental: {
     /**
@@ -108,10 +111,16 @@ const nextConfig: NextConfig = {
         config.externals.push(
           "@imgly/background-removal",
           "onnxruntime-web",
-          "playwright"
+          "playwright",
+          "bullmq",
+          "ioredis"
         )
       }
     }
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings ?? []),
+      { module: /bullmq/ },
+    ]
     return config
   },
   images: {

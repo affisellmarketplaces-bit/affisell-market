@@ -1,15 +1,13 @@
 import { z } from "zod"
 
 import { auth } from "@/auth"
-import { syncPartnerMarketplaceAlertsBeforeInboxIfDue } from "@/lib/marketplace-order-notification-sync"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import { prisma } from "@/lib/prisma"
 import {
   enrichSupplierNotificationRows,
-  loadSupplierToShipOrderIds,
-  reopenLegacySupplierToShipAlerts,
+  loadSupplierToShipSnapshot,
+  reopenLegacySupplierToShipAlertsIfDue,
 } from "@/lib/supplier-order-alert-inbox"
-import { countSupplierOrdersToShip } from "@/lib/supplier-orders-payload"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -26,11 +24,14 @@ export async function GET(req: Request) {
   const forceSync = new URL(req.url).searchParams.get("sync") === "1"
 
   try {
+    const { syncPartnerMarketplaceAlertsBeforeInboxIfDue } = await import(
+      "@/lib/marketplace-order-notification-sync"
+    )
     await syncPartnerMarketplaceAlertsBeforeInboxIfDue(
       { supplierId: session.user.id },
       { force: forceSync }
     )
-    await reopenLegacySupplierToShipAlerts(session.user.id)
+    await reopenLegacySupplierToShipAlertsIfDue(session.user.id, { force: forceSync })
   } catch (error) {
     console.error("[supplier-notifications]", {
       userId: session.user.id,
@@ -40,11 +41,14 @@ export async function GET(req: Request) {
   }
 
   try {
-    const rows = await prisma.notification.findMany({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-    })
+    const [rows, toShipSnapshot] = await Promise.all([
+      prisma.notification.findMany({
+        where: { userId: session.user.id },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      }),
+      loadSupplierToShipSnapshot(session.user.id),
+    ])
 
     const orderIds = rows.map((n) => n.orderId).filter((id): id is string => Boolean(id))
     const orderImages =
@@ -57,11 +61,11 @@ export async function GET(req: Request) {
     const imageByOrderId = new Map(orderImages.map((o) => [o.id, o.variantImageUrl]))
 
     const deduped = dedupeMerchantNotifications(rows)
-    const toShipOrderIds = await loadSupplierToShipOrderIds(session.user.id)
+    const toShipOrderIds = toShipSnapshot.orderIds
     const enriched = enrichSupplierNotificationRows(deduped, toShipOrderIds)
     const unreadFromDeduped = enriched.filter((n) => !n.read).length
     const actionRequiredCount = enriched.filter((n) => n.actionRequired && !n.read).length
-    const ordersToShipCount = await countSupplierOrdersToShip(session.user.id)
+    const ordersToShipCount = toShipSnapshot.ordersToShipCount
     const badgeCount = Math.max(unreadFromDeduped, ordersToShipCount)
 
     console.log("[supplier-notifications]", {

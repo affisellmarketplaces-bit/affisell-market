@@ -1,7 +1,6 @@
 import { z } from "zod"
 
 import { auth } from "@/auth"
-import { syncPartnerMarketplaceAlertsBeforeInboxIfDue } from "@/lib/marketplace-order-notification-sync"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import { prisma } from "@/lib/prisma"
 
@@ -20,6 +19,9 @@ export async function GET(req: Request) {
   const forceSync = new URL(req.url).searchParams.get("sync") === "1"
 
   try {
+    const { syncPartnerMarketplaceAlertsBeforeInboxIfDue } = await import(
+      "@/lib/marketplace-order-notification-sync"
+    )
     await syncPartnerMarketplaceAlertsBeforeInboxIfDue(
       { affiliateId: session.user.id },
       { force: forceSync }

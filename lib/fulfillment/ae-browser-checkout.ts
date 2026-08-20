@@ -1,9 +1,7 @@
 import type { ShippingAddressPayload } from "@/lib/auto-order/types"
 import { isAeDryRun } from "@/lib/fulfillment/ae-dry-run"
-import {
-  clickAeVariantMappingOnPage,
-  launchAeBrowserPage,
-} from "@/lib/fulfillment/ae-browser-variant-select"
+import { clickAeVariantMappingOnPage } from "@/lib/fulfillment/ae-browser-variant-select"
+import { launchAeBrowserPage } from "@/lib/fulfillment/ae-browser-launch"
 import type { VariantMappingRecord } from "@/lib/sku/variant-mapping"
 
 export type AeBrowserCheckoutInput = {
