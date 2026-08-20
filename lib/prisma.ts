@@ -13,11 +13,13 @@ import {
   isPrismaCircuitOpen,
   notePrismaUnreachable,
 } from "@/lib/prisma-circuit-breaker"
-import { getPrismaDatasourceUrl } from "@/lib/prisma-datasource-url"
+import { getPrismaDatasourceUrl, getPrismaDirectDatasourceUrl } from "@/lib/prisma-datasource-url"
 
 type PrismaGlobal = typeof globalThis & {
   __affisellPrisma?: PrismaClient
   __affisellPrismaUrl?: string
+  __affisellFulfillmentPrisma?: PrismaClient
+  __affisellFulfillmentPrismaUrl?: string
 }
 
 const globalForPrisma = globalThis as PrismaGlobal
@@ -26,10 +28,7 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-function createBasePrismaClient(): PrismaClient {
-  const url = getPrismaDatasourceUrl()
-  globalForPrisma.__affisellPrismaUrl = url
-
+function createBasePrismaClient(url: string, logLabel: "default" | "fulfillment" = "default"): PrismaClient {
   const useEventLogs =
     process.env.PRISMA_LOG !== "1" && process.env.NODE_ENV === "development"
 
@@ -76,12 +75,19 @@ function createBasePrismaClient(): PrismaClient {
       result: "client_created",
       host,
       pooler: /-pooler\./i.test(host),
+      client: logLabel,
     })
   } catch {
     /* ignore bad URL parse — create already has datasources url */
   }
 
   return client
+}
+
+function createDefaultBasePrismaClient(): PrismaClient {
+  const url = getPrismaDatasourceUrl()
+  globalForPrisma.__affisellPrismaUrl = url
+  return createBasePrismaClient(url, "default")
 }
 
 function modelDelegateKey(model: string): string {
@@ -182,8 +188,8 @@ async function executeWithReconnect({
   throw lastError
 }
 
-function createPrismaClient(): PrismaClient {
-  const base = createBasePrismaClient()
+function createPrismaClient(baseFactory: () => PrismaClient): PrismaClient {
+  const base = baseFactory()
   const extended = base.$extends({
     name: "affisell-reconnect",
     query: {
@@ -294,8 +300,31 @@ function getPrismaSingleton(): PrismaClient {
     void cached.$disconnect().catch(() => {})
   }
 
-  const client = createPrismaClient()
+  const client = createPrismaClient(createDefaultBasePrismaClient)
   globalForPrisma.__affisellPrisma = client
+  return client
+}
+
+/** Direct Neon URL for fulfillment writes — falls back to pooled singleton when unset. */
+function getFulfillmentPrismaSingleton(): PrismaClient {
+  assertPrismaServerOnly()
+  const directUrl = getPrismaDirectDatasourceUrl()
+  if (!directUrl) {
+    return getPrismaSingleton()
+  }
+
+  const cached = globalForPrisma.__affisellFulfillmentPrisma
+  if (cached && globalForPrisma.__affisellFulfillmentPrismaUrl === directUrl) {
+    return cached
+  }
+
+  if (cached) {
+    void cached.$disconnect().catch(() => {})
+  }
+
+  globalForPrisma.__affisellFulfillmentPrismaUrl = directUrl
+  const client = createPrismaClient(() => createBasePrismaClient(directUrl, "fulfillment"))
+  globalForPrisma.__affisellFulfillmentPrisma = client
   return client
 }
 
@@ -303,6 +332,18 @@ function getPrismaSingleton(): PrismaClient {
 export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
   get(_target, prop) {
     const client = getPrismaSingleton()
+    const value = Reflect.get(client, prop, client) as unknown
+    if (typeof value === "function") {
+      return (value as (...args: unknown[]) => unknown).bind(client)
+    }
+    return value
+  },
+})
+
+/** FulfillmentGroup / FulfillmentItem writes — prefers DATABASE_URL_UNPOOLED (direct Neon). */
+export const fulfillmentPrisma: PrismaClient = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    const client = getFulfillmentPrismaSingleton()
     const value = Reflect.get(client, prop, client) as unknown
     if (typeof value === "function") {
       return (value as (...args: unknown[]) => unknown).bind(client)

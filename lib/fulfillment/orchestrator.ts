@@ -17,10 +17,62 @@ import {
   stripeSessionOrderWhere,
 } from "@/lib/fulfillment/stripe-session-id"
 import { recordOrderTrackingEvent } from "@/lib/order-tracking-event"
-import { prisma } from "@/lib/prisma"
+import {
+  isNeonEngineNotReadyError,
+  isRetryablePrismaConnectionError,
+  prismaErrorMessage,
+} from "@/lib/prisma-connection-error"
+import { fulfillmentPrisma, prisma } from "@/lib/prisma"
 import { carrierTrackingUrl } from "@/lib/buyer-carrier-tracking"
 
 const MAX_AUTO_BUY_ATTEMPTS = 3
+const FULFILLMENT_TX_TIMEOUT_MS = 10_000
+const FULFILLMENT_WRITE_RETRIES = 3
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function isFulfillmentWriteRetryable(error: unknown): boolean {
+  return isNeonEngineNotReadyError(error) || isRetryablePrismaConnectionError(error)
+}
+
+async function withFulfillmentWriteRetry<T>(
+  label: string,
+  fn: () => Promise<T>,
+  options?: { attempts?: number }
+): Promise<T> {
+  const attempts = options?.attempts ?? FULFILLMENT_WRITE_RETRIES
+  let lastError: unknown
+
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error
+      if (!isFulfillmentWriteRetryable(error) || attempt >= attempts - 1) {
+        throw error
+      }
+
+      const delayMs = isNeonEngineNotReadyError(error) ? 500 * 2 ** attempt : 500 * (attempt + 1)
+      console.warn("[fulfillment] prisma retry", {
+        label,
+        attempt: attempt + 1,
+        maxAttempts: attempts,
+        delayMs,
+        error: prismaErrorMessage(error),
+      })
+      await sleep(delayMs)
+      try {
+        await fulfillmentPrisma.$connect()
+      } catch {
+        /* next attempt */
+      }
+    }
+  }
+
+  throw lastError
+}
 
 type OrderWithProduct = Prisma.OrderGetPayload<{
   include: {
@@ -163,7 +215,10 @@ async function recalcOrderFulfillmentStatus(orderIds: string[]): Promise<void> {
 
 export class FulfillmentOrchestrator {
   /** Idempotent split + queue auto-buy for all paid lines in checkout session. */
-  async onOrderCreated(orderId: string): Promise<{ groupIds: string[] }> {
+  async onOrderCreated(
+    orderId: string,
+    options?: { skipAutoBuy?: boolean }
+  ): Promise<{ groupIds: string[] }> {
     const seed = await prisma.order.findUnique({
       where: { id: orderId },
       select: { stripeSessionId: true, status: true },
@@ -192,7 +247,7 @@ export class FulfillmentOrchestrator {
         supplierId
       )
 
-      const group = await prisma.fulfillmentGroup.upsert({
+      const group = await fulfillmentPrisma.fulfillmentGroup.upsert({
         where: {
           stripeSessionId_supplierId: {
             stripeSessionId: baseSessionId,
@@ -212,7 +267,7 @@ export class FulfillmentOrchestrator {
       groupIds.push(group.id)
 
       for (const order of supplierOrders) {
-        await prisma.fulfillmentItem.upsert({
+        await fulfillmentPrisma.fulfillmentItem.upsert({
           where: { orderId: order.id },
           create: {
             fulfillmentGroupId: group.id,
@@ -234,7 +289,11 @@ export class FulfillmentOrchestrator {
         integrationId: integration?.id ?? null,
       })
 
-      if (group.status === FulfillmentGroupStatus.PENDING || group.status === FulfillmentGroupStatus.FAILED) {
+      if (
+        !options?.skipAutoBuy &&
+        (group.status === FulfillmentGroupStatus.PENDING ||
+          group.status === FulfillmentGroupStatus.FAILED)
+      ) {
         void this.autoBuy(group.id).catch((e) => {
           console.error("[fulfillment-orchestrator] auto_buy_async_failed", {
             groupId: group.id,
@@ -259,7 +318,7 @@ export class FulfillmentOrchestrator {
   }
 
   async autoBuy(groupId: string): Promise<{ ok: boolean; error?: string }> {
-    const group = await prisma.fulfillmentGroup.findUnique({
+    const group = await fulfillmentPrisma.fulfillmentGroup.findUnique({
       where: { id: groupId },
       include: {
         supplierIntegration: true,
@@ -294,10 +353,16 @@ export class FulfillmentOrchestrator {
       return { ok: true }
     }
 
-    await prisma.fulfillmentGroup.update({
-      where: { id: groupId },
-      data: { status: FulfillmentGroupStatus.AUTO_BUYING, error: null },
-    })
+    await withFulfillmentWriteRetry("auto_buy_mark_buying", () =>
+      fulfillmentPrisma.$transaction(
+        async (tx) =>
+          tx.fulfillmentGroup.update({
+            where: { id: groupId },
+            data: { status: FulfillmentGroupStatus.AUTO_BUYING, error: null },
+          }),
+        { timeout: FULFILLMENT_TX_TIMEOUT_MS }
+      )
+    )
 
     const orders = group.items.map((i) => i.order)
     if (orders.length === 0) {
@@ -312,14 +377,23 @@ export class FulfillmentOrchestrator {
       (await resolveIntegrationForProduct(orders[0]!.product, group.supplierId))
 
     if (!integration) {
-      await prisma.fulfillmentGroup.update({
-        where: { id: groupId },
-        data: {
-          status: FulfillmentGroupStatus.AWAITING_SHIPMENT,
-          manualNote: "Manual fulfillment required — no connected integration",
-          supplierIntegrationId: null,
-        },
+      const leadProduct = orders[0]!.product
+      console.log("[fulfillment] no integration", {
+        productId: leadProduct.id,
+        hasSourceIntegrationId: Boolean(leadProduct.sourceIntegrationId),
+        supplierId: group.supplierId,
       })
+
+      await withFulfillmentWriteRetry("auto_buy_manual_required", () =>
+        fulfillmentPrisma.fulfillmentGroup.update({
+          where: { id: groupId },
+          data: {
+            status: FulfillmentGroupStatus.AWAITING_SHIPMENT,
+            manualNote: "Manual fulfillment required — no connected integration",
+            supplierIntegrationId: null,
+          },
+        })
+      )
 
       for (const order of orders) {
         void dispatchMerchantOrderAlerts(order.id)
@@ -366,13 +440,15 @@ export class FulfillmentOrchestrator {
         ? { ok: true, externalOrderId: woo.externalOrderId, raw: woo.raw, payload }
         : { ok: false, error: woo.error, raw: woo.raw, payload }
     } else {
-      await prisma.fulfillmentGroup.update({
-        where: { id: groupId },
-        data: {
-          status: FulfillmentGroupStatus.AWAITING_SHIPMENT,
-          manualNote: `Manual fulfillment — unsupported provider ${provider ?? "unknown"}`,
-        },
-      })
+      await withFulfillmentWriteRetry("auto_buy_unsupported_provider", () =>
+        fulfillmentPrisma.fulfillmentGroup.update({
+          where: { id: groupId },
+          data: {
+            status: FulfillmentGroupStatus.AWAITING_SHIPMENT,
+            manualNote: `Manual fulfillment — unsupported provider ${provider ?? "unknown"}`,
+          },
+        })
+      )
       for (const order of orders) {
         void dispatchMerchantOrderAlerts(order.id)
       }
@@ -387,27 +463,33 @@ export class FulfillmentOrchestrator {
       return { ok: false, error: result.error }
     }
 
-    await prisma.fulfillmentGroup.update({
-      where: { id: groupId },
-      data: {
-        status: FulfillmentGroupStatus.AWAITING_SHIPMENT,
-        externalOrderId: result.externalOrderId,
-        autoBuyPayload: result.payload as Prisma.InputJsonValue,
-        autoBuyResponse: result.raw as Prisma.InputJsonValue,
-        error: null,
-        supplierIntegrationId: integration.id,
-      },
-    })
-
-    await prisma.order.updateMany({
-      where: { id: { in: orders.map((o) => o.id) } },
-      data: {
-        supplierOrderId: result.externalOrderId,
-        status: "preparing",
-        supplierPreparingAt: new Date(),
-        fulfillmentStatus: "ORDERED",
-      },
-    })
+    await withFulfillmentWriteRetry("auto_buy_success", () =>
+      fulfillmentPrisma.$transaction(
+        async (tx) => {
+          await tx.fulfillmentGroup.update({
+            where: { id: groupId },
+            data: {
+              status: FulfillmentGroupStatus.AWAITING_SHIPMENT,
+              externalOrderId: result.externalOrderId,
+              autoBuyPayload: result.payload as Prisma.InputJsonValue,
+              autoBuyResponse: result.raw as Prisma.InputJsonValue,
+              error: null,
+              supplierIntegrationId: integration.id,
+            },
+          })
+          await tx.order.updateMany({
+            where: { id: { in: orders.map((o) => o.id) } },
+            data: {
+              supplierOrderId: result.externalOrderId,
+              status: "preparing",
+              supplierPreparingAt: new Date(),
+              fulfillmentStatus: "ORDERED",
+            },
+          })
+        },
+        { timeout: FULFILLMENT_TX_TIMEOUT_MS }
+      )
+    )
 
     await recalcOrderFulfillmentStatus(orders.map((o) => o.id))
     logFulfillment("auto_buy_success", {
@@ -419,7 +501,7 @@ export class FulfillmentOrchestrator {
   }
 
   async retryAutoBuy(groupId: string): Promise<{ ok: boolean; error?: string }> {
-    const group = await prisma.fulfillmentGroup.findUnique({
+    const group = await fulfillmentPrisma.fulfillmentGroup.findUnique({
       where: { id: groupId },
       select: { status: true },
     })
@@ -428,10 +510,12 @@ export class FulfillmentOrchestrator {
       return { ok: false, error: "not_failed" }
     }
 
-    await prisma.fulfillmentGroup.update({
-      where: { id: groupId },
-      data: { status: FulfillmentGroupStatus.PENDING, error: null },
-    })
+    await withFulfillmentWriteRetry("auto_buy_retry_reset", () =>
+      fulfillmentPrisma.fulfillmentGroup.update({
+        where: { id: groupId },
+        data: { status: FulfillmentGroupStatus.PENDING, error: null },
+      })
+    )
     return this.autoBuy(groupId)
   }
 
@@ -440,15 +524,17 @@ export class FulfillmentOrchestrator {
     error: string,
     extra?: { autoBuyPayload?: unknown; autoBuyResponse?: unknown }
   ) {
-    await prisma.fulfillmentGroup.update({
-      where: { id: groupId },
-      data: {
-        status: FulfillmentGroupStatus.FAILED,
-        error: error.slice(0, 2000),
-        autoBuyPayload: extra?.autoBuyPayload as Prisma.InputJsonValue | undefined,
-        autoBuyResponse: extra?.autoBuyResponse as Prisma.InputJsonValue | undefined,
-      },
-    })
+    await withFulfillmentWriteRetry("auto_buy_failed", () =>
+      fulfillmentPrisma.fulfillmentGroup.update({
+        where: { id: groupId },
+        data: {
+          status: FulfillmentGroupStatus.FAILED,
+          error: error.slice(0, 2000),
+          autoBuyPayload: extra?.autoBuyPayload as Prisma.InputJsonValue | undefined,
+          autoBuyResponse: extra?.autoBuyResponse as Prisma.InputJsonValue | undefined,
+        },
+      })
+    )
     logFulfillment("auto_buy_failed", { groupId, error })
   }
 
@@ -464,7 +550,7 @@ export class FulfillmentOrchestrator {
       return { ok: false, error: "missing_tracking" }
     }
 
-    const group = await prisma.fulfillmentGroup.findUnique({
+    const group = await fulfillmentPrisma.fulfillmentGroup.findUnique({
       where: { id: groupId },
       include: { items: { select: { orderId: true } } },
     })
@@ -477,42 +563,47 @@ export class FulfillmentOrchestrator {
 
     const orderIds = group.items.map((i) => i.orderId)
 
-    await prisma.$transaction(async (tx) => {
-      await tx.fulfillmentGroup.update({
-        where: { id: groupId },
-        data: {
-          status: FulfillmentGroupStatus.SHIPPED,
-          trackingNumber: normalized,
-          trackingCarrier: carrierLabel,
-          trackingUrl,
+    await withFulfillmentWriteRetry("tracking_update", () =>
+      fulfillmentPrisma.$transaction(
+        async (tx) => {
+          await tx.fulfillmentGroup.update({
+            where: { id: groupId },
+            data: {
+              status: FulfillmentGroupStatus.SHIPPED,
+              trackingNumber: normalized,
+              trackingCarrier: carrierLabel,
+              trackingUrl,
+            },
+          })
+
+          for (const orderId of orderIds) {
+            await tx.order.update({
+              where: { id: orderId },
+              data: {
+                status: "shipped",
+                trackingNumber: normalized,
+                trackingCarrier: carrierLabel,
+                shippedAt: new Date(),
+                fulfillmentStatus: "SHIPPED",
+              },
+            })
+
+            await recordOrderTrackingEvent(
+              {
+                orderId,
+                eventType: "TRACKING_REGISTERED",
+                source: options?.source ?? "supplier_fulfillment_webhook",
+                trackingCarrier: carrierLabel,
+                trackingNumber: normalized,
+                fulfillmentStatus: "SHIPPED",
+              },
+              tx
+            )
+          }
         },
-      })
-
-      for (const orderId of orderIds) {
-        await tx.order.update({
-          where: { id: orderId },
-          data: {
-            status: "shipped",
-            trackingNumber: normalized,
-            trackingCarrier: carrierLabel,
-            shippedAt: new Date(),
-            fulfillmentStatus: "SHIPPED",
-          },
-        })
-
-        await recordOrderTrackingEvent(
-          {
-            orderId,
-            eventType: "TRACKING_REGISTERED",
-            source: options?.source ?? "supplier_fulfillment_webhook",
-            trackingCarrier: carrierLabel,
-            trackingNumber: normalized,
-            fulfillmentStatus: "SHIPPED",
-          },
-          tx
-        )
-      }
-    })
+        { timeout: FULFILLMENT_TX_TIMEOUT_MS }
+      )
+    )
 
     await recalcOrderFulfillmentStatus(orderIds)
 

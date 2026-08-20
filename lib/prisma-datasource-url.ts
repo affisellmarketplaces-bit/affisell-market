@@ -138,6 +138,14 @@ export function normalizePrismaRawUrl(rawUrl: string): string {
   return url.toString()
 }
 
+/** Direct Neon host for write-heavy paths (fulfillment) — bypasses pooler when configured. */
+export function getPrismaDirectDatasourceUrl(): string | null {
+  const unpooled =
+    process.env.DATABASE_URL_UNPOOLED?.trim() || process.env.DIRECT_URL?.trim()
+  if (!unpooled) return null
+  return augmentPrismaDatasourceUrl(scrubDirectNeonUrl(unpooled))
+}
+
 export function getPrismaDatasourceUrl(): string {
   const isDev = process.env.NODE_ENV === "development"
   const poolerForced = isDev && process.env.PRISMA_USE_POOLER_DEV === "1"
