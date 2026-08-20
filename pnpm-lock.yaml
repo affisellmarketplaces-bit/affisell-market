@@ -14,6 +14,9 @@ importers:
       '@ai-sdk/react':
         specifier: ^3.0.177
         version: 3.0.198(react@19.2.4)(zod@4.4.3)
+      '@auth/core':
+        specifier: 0.41.2
+        version: 0.41.2
       '@auth/prisma-adapter':
         specifier: ^2.11.2
         version: 2.11.2(@prisma/client@6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3))
