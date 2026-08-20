@@ -179,6 +179,7 @@ export function MerchantNotificationsMenu({
 
     function pollIntervalMs() {
       if (document.visibilityState !== "visible") return 60_000
+      if (process.env.NODE_ENV === "development") return 120_000
       return role === "SUPPLIER" ? 15_000 : 30_000
     }
 

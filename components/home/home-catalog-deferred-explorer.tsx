@@ -20,13 +20,21 @@ const MarketplaceViewSuspense = dynamic(
 type Props = {
   shell: HomeMarketplaceShell
   staticCatalog: ReactNode
+  /** Defaults to home embed (`/` + #explorer). */
+  catalogBasePath?: string
+  embedded?: boolean
 }
 
 /**
  * Static SSR catalog first, full MarketplaceView after idle —
  * cuts main-thread work during LCP (TBT).
  */
-export function HomeCatalogDeferredExplorer({ shell, staticCatalog }: Props) {
+export function HomeCatalogDeferredExplorer({
+  shell,
+  staticCatalog,
+  catalogBasePath = "/",
+  embedded = true,
+}: Props) {
   const interactive = useIdleMount({ idleTimeoutMs: 2400, fallbackDelayMs: 500 })
   const lcpImages = pickHomeLcpImageUrls(shell.products, 4)
 
@@ -36,7 +44,11 @@ export function HomeCatalogDeferredExplorer({ shell, staticCatalog }: Props) {
         <>
           <HomeCatalogImageWarmup imageUrls={lcpImages} />
           <div className="affisell-home-explorer min-w-0">
-            <MarketplaceViewSuspense shell={shell} />
+            <MarketplaceViewSuspense
+              shell={shell}
+              basePath={catalogBasePath}
+              embedded={embedded}
+            />
           </div>
         </>
       ) : (

@@ -1,7 +1,9 @@
 import type { Metadata } from "next"
+import { Suspense } from "react"
 import { redirect } from "next/navigation"
 
-import { CustomerMarketplaceBrowse } from "@/app/shops/browse/customer-marketplace-browse"
+import ShopsBrowseLoading from "@/app/shops/browse/loading"
+import { BrowseCatalogExplorer } from "@/components/shops/browse-catalog-explorer"
 import { prisma } from "@/lib/prisma"
 import { categoryBrowsePath } from "@/lib/seo-category-pages-shared"
 
@@ -26,7 +28,7 @@ function toUrlSearchParams(raw: Record<string, string | string[] | undefined>): 
   return params
 }
 
-/** Public buyer catalog — SEO indexable; category slugs redirect to `/browse/{slug}`. */
+/** Public buyer catalog — SSR grid first, interactive filters after idle. */
 export default async function CustomerMarketplaceBrowsePage({ searchParams }: PageProps) {
   const params = toUrlSearchParams(await searchParams)
 
@@ -46,5 +48,9 @@ export default async function CustomerMarketplaceBrowsePage({ searchParams }: Pa
     }
   }
 
-  return <CustomerMarketplaceBrowse />
+  return (
+    <Suspense fallback={<ShopsBrowseLoading />}>
+      <BrowseCatalogExplorer />
+    </Suspense>
+  )
 }

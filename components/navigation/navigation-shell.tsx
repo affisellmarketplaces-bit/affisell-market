@@ -10,20 +10,29 @@ import { NavigationProgress } from "@/components/navigation/navigation-progress"
 import { NavigationWarmup } from "@/components/navigation/navigation-warmup"
 import { CommandKDeferred } from "@/components/navigation/command-k-deferred"
 import { useIdleMount } from "@/hooks/use-idle-mount"
+import { safeDynamicImport } from "@/lib/safe-dynamic-import"
 
 const MobileBuyerHub = dynamic(
   () =>
-    import("@/components/marketplace/mobile-buyer-hub").then((m) => ({
-      default: m.MobileBuyerHub,
-    })),
+    safeDynamicImport(
+      () =>
+        import("@/components/marketplace/mobile-buyer-hub").then((m) => ({
+          default: m.MobileBuyerHub,
+        })),
+      "MobileBuyerHub"
+    ),
   { ssr: false }
 )
 
 const MobileSearchOverlay = dynamic(
   () =>
-    import("@/components/nav/mobile-search-overlay").then((m) => ({
-      default: m.MobileSearchOverlay,
-    })),
+    safeDynamicImport(
+      () =>
+        import("@/components/nav/mobile-search-overlay").then((m) => ({
+          default: m.MobileSearchOverlay,
+        })),
+      "MobileSearchOverlay"
+    ),
   { ssr: false }
 )
 

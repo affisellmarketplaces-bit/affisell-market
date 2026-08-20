@@ -6,7 +6,6 @@ import { routing } from "@/i18n/routing"
 import {
   AFFILIATE_CATALOG_PATH,
   isMarketplaceListingPath,
-  resolveLegacyMarketplaceIndexPath,
 } from "@/lib/affiliate-routes"
 import { LOCALE_COOKIE, localeCookieMaxAgeSec, resolveAppLocale, isAppLocale } from "@/lib/i18n-locale"
 import { localeFromPathname, pathnameWithoutLocale } from "@/lib/locale-path"
@@ -366,6 +365,10 @@ export async function proxy(req: NextRequest) {
     return withForcedCustomerRole(req)
   }
 
+  if (bare === "/marketplace") {
+    return nextWithPathname(req)
+  }
+
   if (bare.startsWith("/boutique/")) {
     return withForcedCustomerRole(req)
   }
@@ -386,12 +389,6 @@ export async function proxy(req: NextRequest) {
     }
     if (isHome && role === "SUPPLIER") {
       return NextResponse.redirect(new URL("/dashboard/supplier", req.url))
-    }
-
-    if (bare === "/marketplace") {
-      const u = req.nextUrl.clone()
-      u.pathname = resolveLegacyMarketplaceIndexPath(role)
-      return NextResponse.redirect(u, 308)
     }
 
     if (isMarketplaceListingPath(bare)) {

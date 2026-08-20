@@ -36,9 +36,8 @@ test.describe("smoke", () => {
   test("header exposes Cart from catalog", async ({ page }) => {
     await page.goto(PUBLIC_MARKETPLACE_BROWSE_PATH)
     await expect(page).toHaveURL(/\/shops\/browse/)
-    await expect(page.getByRole("heading", { level: 1, name: /Marketplace/i })).toBeVisible({
-      timeout: 30_000,
-    })
+    await expect(page.getByTestId("browse-catalog-static")).toBeVisible({ timeout: 60_000 })
+    await expect(page.getByRole("heading", { level: 1, name: /Marketplace/i })).toBeVisible()
     const cartLink = page.getByRole("link", { name: /Shopping cart|^Cart$/i })
     await expect(cartLink).toBeVisible()
     await cartLink.click()
