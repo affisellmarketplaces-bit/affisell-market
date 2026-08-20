@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   augmentPrismaDatasourceUrl,
   getPrismaDatasourceUrl,
+  getPrismaDirectDatasourceUrl,
   neonDirectHostToPooler,
   normalizePrismaRawUrl,
 } from "@/lib/prisma-datasource-url"
@@ -140,6 +141,38 @@ describe("getPrismaDatasourceUrl", () => {
     const out = getPrismaDatasourceUrl()
     const url = new URL(out)
     expect(url.hostname).toBe("ep-foo.c-3.eu-central-1.aws.neon.tech")
+  })
+})
+
+describe("getPrismaDirectDatasourceUrl", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it("strips pooler from DATABASE_URL_UNPOOLED when misconfigured", () => {
+    vi.stubEnv(
+      "DATABASE_URL_UNPOOLED",
+      "postgresql://user:pass@ep-foo-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require&pgbouncer=true"
+    )
+    const out = getPrismaDirectDatasourceUrl()
+    expect(out).toBeTruthy()
+    const url = new URL(out!)
+    expect(url.hostname).toBe("ep-foo.c-3.eu-central-1.aws.neon.tech")
+    expect(url.searchParams.get("pgbouncer")).toBeNull()
+  })
+
+  it("derives direct URL from pooled DATABASE_URL when unpooled unset", () => {
+    vi.unstubAllEnvs()
+    delete process.env.DATABASE_URL_UNPOOLED
+    delete process.env.DIRECT_URL
+    vi.stubEnv(
+      "DATABASE_URL",
+      "postgresql://user:pass@ep-bar-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+    )
+    const out = getPrismaDirectDatasourceUrl()
+    expect(out).toBeTruthy()
+    const url = new URL(out!)
+    expect(url.hostname).toBe("ep-bar.c-3.eu-central-1.aws.neon.tech")
   })
 })
 

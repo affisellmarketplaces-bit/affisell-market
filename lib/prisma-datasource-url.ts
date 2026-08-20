@@ -1,7 +1,4 @@
-/**
- * Normalize Neon pooler URL for Prisma (avoids P2024 pool exhaustion in Next.js dev).
- * @see https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections
- */
+import { normalizeDirectDatabaseUrl } from "@/lib/ensure-database-url-unpooled"
 
 const POOLER_HOST_RE = /-pooler\./i
 const NEON_HOST_RE = /\.aws\.neon\.tech$/i
@@ -138,12 +135,18 @@ export function normalizePrismaRawUrl(rawUrl: string): string {
   return url.toString()
 }
 
-/** Direct Neon host for write-heavy paths (fulfillment) — bypasses pooler when configured. */
+/** Direct Neon host for write-heavy paths (fulfillment) — always strips `-pooler`. */
 export function getPrismaDirectDatasourceUrl(): string | null {
   const unpooled =
     process.env.DATABASE_URL_UNPOOLED?.trim() || process.env.DIRECT_URL?.trim()
-  if (!unpooled) return null
-  return augmentPrismaDatasourceUrl(scrubDirectNeonUrl(unpooled))
+  const pooled = process.env.DATABASE_URL?.trim()
+  const source = unpooled || pooled
+  if (!source) return null
+
+  const direct = normalizeDirectDatabaseUrl(source)
+  if (!direct) return null
+
+  return augmentPrismaDatasourceUrl(direct)
 }
 
 export function getPrismaDatasourceUrl(): string {

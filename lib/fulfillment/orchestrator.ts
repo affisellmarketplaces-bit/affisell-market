@@ -13,6 +13,11 @@ import { parseShipping } from "@/lib/fulfillment/shipping-address"
 import { createShopifyFulfillmentOrder } from "@/lib/fulfillment/providers/shopify-fulfill.provider"
 import { createWooFulfillmentOrder } from "@/lib/fulfillment/providers/woo-fulfill.provider"
 import {
+  fulfillmentEligibleStatuses,
+  isFulfillmentEligibleStatus,
+  type FulfillmentOrderMode,
+} from "@/lib/fulfillment/order-eligible-statuses"
+import {
   resolveBaseStripeSessionId,
   stripeSessionOrderWhere,
 } from "@/lib/fulfillment/stripe-session-id"
@@ -94,12 +99,16 @@ function logFulfillment(metric: string, payload: Record<string, unknown>) {
   console.log("[fulfillment-orchestrator]", { metric, ...payload })
 }
 
-async function loadPaidSessionOrders(stripeSessionId: string) {
+async function loadSessionOrdersForFulfillment(
+  stripeSessionId: string,
+  mode: FulfillmentOrderMode
+) {
   const base = resolveBaseStripeSessionId(stripeSessionId)
+  const statuses = fulfillmentEligibleStatuses(mode)
   return prisma.order.findMany({
     where: {
       ...stripeSessionOrderWhere(base),
-      status: "paid",
+      status: { in: [...statuses] },
     },
     include: {
       product: {
@@ -217,20 +226,29 @@ export class FulfillmentOrchestrator {
   /** Idempotent split + queue auto-buy for all paid lines in checkout session. */
   async onOrderCreated(
     orderId: string,
-    options?: { skipAutoBuy?: boolean }
+    options?: { skipAutoBuy?: boolean; mode?: FulfillmentOrderMode }
   ): Promise<{ groupIds: string[] }> {
+    const mode = options?.mode ?? "checkout"
     const seed = await prisma.order.findUnique({
       where: { id: orderId },
       select: { stripeSessionId: true, status: true },
     })
-    if (!seed || seed.status !== "paid") {
-      logFulfillment("skip_not_paid", { orderId })
+    if (!seed || !isFulfillmentEligibleStatus(seed.status, mode)) {
+      logFulfillment("skip_not_eligible", {
+        orderId,
+        status: seed?.status ?? null,
+        mode,
+        eligible: fulfillmentEligibleStatuses(mode),
+      })
       return { groupIds: [] }
     }
 
     const baseSessionId = resolveBaseStripeSessionId(seed.stripeSessionId)
-    const orders = await loadPaidSessionOrders(baseSessionId)
-    if (orders.length === 0) return { groupIds: [] }
+    const orders = await loadSessionOrdersForFulfillment(baseSessionId, mode)
+    if (orders.length === 0) {
+      logFulfillment("skip_no_session_lines", { orderId, baseSessionId, mode })
+      return { groupIds: [] }
+    }
 
     const bySupplier = new Map<string, OrderWithProduct[]>()
     for (const order of orders) {
