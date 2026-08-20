@@ -1,17 +1,15 @@
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
-import { Suspense } from "react"
 import { notFound, redirect } from "next/navigation"
 import { getLocale } from "next-intl/server"
 import { headers } from "next/headers"
 
 import { CheckoutRegionComingSoonBanner } from "@/components/marketplace/checkout-region-coming-soon-banner"
 import { GraduatedCheckoutPermanentBanner } from "@/components/marketplace/graduated-checkout-permanent-banner"
-import { PdpCrossSellRailSkeleton } from "@/components/marketplace/pdp-cross-sell-rail-skeleton"
 import {
-  PdpCrossSellCompactStream,
-  PdpCrossSellFooterStream,
-} from "@/components/marketplace/pdp-cross-sell-stream"
+  PdpCompactCrossSellSlot,
+  PdpFooterCrossSellSlot,
+} from "@/components/marketplace/pdp-cross-sell-slots"
 import { RolloutShippingConfirmedBanner } from "@/components/marketplace/rollout-shipping-confirmed-banner"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { filterListingForPromotedVariants } from "@/lib/affiliate-storefront-variants"
@@ -538,16 +536,8 @@ export default async function MarketplaceListingPage({
           retailPriceEur={retailPriceEur}
           has3D={has3D}
           arModel={arModel}
-          compactCrossSellSlot={
-            <Suspense fallback={null}>
-              <PdpCrossSellCompactStream {...crossSellStreamArgs} />
-            </Suspense>
-          }
-          crossSellFooterSlot={
-            <Suspense fallback={<PdpCrossSellRailSkeleton />}>
-              <PdpCrossSellFooterStream {...crossSellStreamArgs} />
-            </Suspense>
-          }
+          compactCrossSellSlot={<PdpCompactCrossSellSlot {...crossSellStreamArgs} />}
+          crossSellFooterSlot={<PdpFooterCrossSellSlot {...crossSellStreamArgs} />}
           initialRewardBalanceCents={
             buyerUserId ? (rewardBalanceRow?.buyerRewardBalanceCents ?? 0) : undefined
           }
