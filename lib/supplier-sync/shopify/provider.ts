@@ -1,5 +1,6 @@
 import { IntegrationProvider } from "@prisma/client"
 
+import { syncOrchestrator } from "@/lib/integrations/orchestrator"
 import { prisma } from "@/lib/prisma"
 import { shopifyAdminFetchJson } from "@/lib/shopify-admin-fetch"
 import { DEFAULT_SHOPIFY_API_VERSION } from "@/lib/shopify-sync-map"
@@ -122,16 +123,8 @@ export class ShopifyProvider implements SupplierProvider {
     }
 
     if (ctx.topic === "app/uninstalled") {
-      await prisma.supplierIntegration.update({
-        where: { id: ctx.integration.id },
-        data: {
-          status: "DISCONNECTED",
-          enabled: false,
-          errorMessage: "Shopify app uninstalled",
-        },
-      })
-      await setSupplierLiveSyncFlag(ctx.integration.userId, false)
-      return { ok: true, topic: ctx.topic, action: "disconnected" }
+      await syncOrchestrator.decouple(ctx.integration.id, ctx.integration.userId)
+      return { ok: true, topic: ctx.topic, action: "decoupled" }
     }
 
     if (ctx.topic === "products/update") {

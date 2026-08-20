@@ -1,6 +1,7 @@
 import { headers } from "next/headers"
 
 import { SupplierIntegrationsHub } from "@/components/supplier/supplier-integrations-hub"
+import { loadIntegrationProductCounts } from "@/lib/integrations/product-counts"
 import { hasEncryptionKey } from "@/lib/encryption"
 import { requireSupplierSession } from "@/lib/dashboard-session"
 import { maskIntegrationConfig } from "@/lib/supplier-integration-config"
@@ -72,8 +73,32 @@ export default async function SupplierIntegrationsPage() {
         config: r.config,
         shopDomain: "shopDomain" in r ? r.shopDomain : null,
       }),
+      productCount: 0,
+      decoupledProductCount: 0,
     }
   })
+
+  if (rows.length > 0) {
+    try {
+      const counts = await loadIntegrationProductCounts(
+        session.user.id,
+        rows.map((r) => r.id)
+      )
+      for (const item of initialIntegrations) {
+        const c = counts[item.id]
+        if (c) {
+          item.productCount = c.total
+          item.decoupledProductCount = c.decoupled
+        }
+      }
+    } catch (e) {
+      console.warn("[supplier-integrations/page]", {
+        userId: session.user.id,
+        result: "product_counts_skipped",
+        error: e instanceof Error ? e.message : String(e),
+      })
+    }
+  }
 
   return (
     <SupplierIntegrationsHub

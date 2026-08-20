@@ -14,6 +14,7 @@ import {
   loadSupplierIntegrationsForUser,
   parseIntegrationSyncSummary,
 } from "@/lib/supplier/load-supplier-integrations"
+import { loadIntegrationProductCounts } from "@/lib/integrations/product-counts"
 import { normalizeShopifyAdminHost } from "@/lib/shopify-sync-map"
 
 export const runtime = "nodejs"
@@ -56,8 +57,28 @@ export async function GET(req: Request) {
           config: r.config,
           shopDomain: "shopDomain" in r ? r.shopDomain : null,
         }),
+        productCount: 0,
+        decoupledProductCount: 0,
       }
     })
+
+    if (rows.length > 0) {
+      try {
+        const counts = await loadIntegrationProductCounts(
+          session.user.id,
+          rows.map((r) => r.id)
+        )
+        for (const item of integrations) {
+          const c = counts[item.id]
+          if (c) {
+            item.productCount = c.total
+            item.decoupledProductCount = c.decoupled
+          }
+        }
+      } catch {
+        /* non-blocking */
+      }
+    }
 
     return NextResponse.json({ integrations, appBaseUrl: base, schemaMode })
   } catch (e) {

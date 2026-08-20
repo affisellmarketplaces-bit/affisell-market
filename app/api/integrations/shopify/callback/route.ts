@@ -11,7 +11,7 @@ import {
   exchangeShopifyOAuthCode,
   parseShopifyOAuthState,
 } from "@/lib/supplier-sync/shopify/oauth"
-import { triggerShopifyFullSyncBackground } from "@/lib/supplier-sync/shopify/provider"
+import { triggerIntegrationSyncBackground } from "@/lib/integrations/orchestrator"
 import { installShopifyWebhooks } from "@/lib/supplier-sync/shopify/webhooks-install"
 import { setSupplierLiveSyncFlag } from "@/lib/supplier-sync/sync-engine"
 
@@ -130,7 +130,7 @@ export async function GET(req: Request) {
   }
 
   await setSupplierLiveSyncFlag(state.userId, true)
-  triggerShopifyFullSyncBackground(integration.id)
+  triggerIntegrationSyncBackground(integration.id, state.userId)
 
   console.log("[integrations/shopify/callback]", {
     supplierId: state.userId,

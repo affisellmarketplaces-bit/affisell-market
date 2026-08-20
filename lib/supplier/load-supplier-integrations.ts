@@ -138,6 +138,7 @@ export function integrationLiveConnected(row: {
   accessTokenEncrypted?: string | null
 }): boolean {
   if (row.platform !== "shopify" || !row.enabled) return false
+  if (row.status === "DISCONNECTED") return false
   if (row.status === "CONNECTED") return true
   const cfg =
     row.config && typeof row.config === "object" && !Array.isArray(row.config)

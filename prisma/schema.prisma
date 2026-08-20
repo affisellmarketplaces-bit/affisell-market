@@ -471,6 +471,13 @@ enum SyncStatus {
   UNPUBLISHED_OOS
 }
 
+enum SyncJobStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
 model SupplierIntegration {
   id              String    @id @default(cuid())
   userId          String
@@ -507,11 +514,29 @@ model SupplierIntegration {
   updatedAt       DateTime  @updatedAt
 
   webhookEvents SupplierWebhookEvent[]
+  syncJobs      SyncJob[]
 
   @@unique([userId, platform, name])
   @@unique([userId, provider, shopDomain])
   @@index([userId])
   @@index([shopDomain])
+}
+
+/**
+ * Idempotent catalog sync runs — one RUNNING job per integration at a time.
+ */
+model SyncJob {
+  id            String              @id @default(cuid())
+  integrationId String
+  integration   SupplierIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  status        SyncJobStatus       @default(QUEUED)
+  stats         Json?
+  error         String?             @db.Text
+  createdAt     DateTime            @default(now())
+  completedAt   DateTime?
+
+  @@index([integrationId, status])
+  @@index([createdAt])
 }
 
 /**
@@ -1117,6 +1142,18 @@ model Product {
    */
   externalContentHash    String?
   /**
+   * FK to SupplierIntegration that last synced this row — set on decouple, never deleted.
+   */
+  sourceIntegrationId    String?
+  /**
+   * True after supplier disconnects — product is 100% native Affisell (Clone & Own).
+   */
+  isDecoupled            Boolean              @default(false)
+  /**
+   * Image provenance: cloned (URL snapshot in DB) | external (live CDN).
+   */
+  imageSource            String?
+  /**
    * Auto-Order Engine: route paid lines to external suppliers without buyer treasury advance.
    */
   autoFulfill            Boolean              @default(true)
@@ -1241,6 +1278,8 @@ model Product {
   @@index([aliexpressProductId])
   @@index([supplierId, isDraft])
   @@index([supplierId, externalProvider, externalId])
+  @@index([sourceIntegrationId])
+  @@index([supplierId, isDecoupled])
   @@index([style])
   @@index([shippingType])
   @@index([basePriceCents])

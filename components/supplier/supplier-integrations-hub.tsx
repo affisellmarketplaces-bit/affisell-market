@@ -5,12 +5,14 @@ import Link from "next/link"
 import {
   ArrowLeft,
   CheckCircle2,
+  ExternalLink,
   Loader2,
   Plug,
   RefreshCw,
   Shield,
   Sparkles,
   Store,
+  Unplug,
   Webhook,
   Zap,
 } from "lucide-react"
@@ -35,6 +37,8 @@ export type IntegrationViewModel = {
   syncStats: IntegrationSyncStats | null
   inboundUrl: string | null
   liveConnected: boolean
+  productCount?: number
+  decoupledProductCount?: number
 }
 
 type Props = {
@@ -69,8 +73,10 @@ export function SupplierIntegrationsHub({
   const [intName, setIntName] = useState("main")
   const [busyId, setBusyId] = useState<string | null>(null)
   const [lastWebhookSecret, setLastWebhookSecret] = useState<string | null>(null)
+  const [disconnectTarget, setDisconnectTarget] = useState<IntegrationViewModel | null>(null)
 
-  const shopifyLive = integrations.find((r) => r.liveConnected)
+  const shopifyRow = integrations.find((r) => r.platform === "shopify")
+  const shopifyConnected = Boolean(shopifyRow?.liveConnected)
 
   const load = useCallback(async () => {
     setListBusy(true)
@@ -108,17 +114,18 @@ export function SupplierIntegrationsHub({
     window.location.href = `/api/integrations/shopify/auth?shop=${encodeURIComponent(host)}`
   }
 
-  async function liveSyncShopify() {
+  async function liveSyncShopify(integrationId?: string) {
     setError(null)
     setBusyId("live-sync")
     const res = await fetch("/api/integrations/shopify/sync", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
+      body: JSON.stringify(integrationId ? { integrationId } : {}),
     })
     const data = (await res.json().catch(() => ({}))) as {
       error?: string
       syncedCount?: number
+      jobId?: string
     }
     setBusyId(null)
     if (!res.ok) {
@@ -126,6 +133,33 @@ export function SupplierIntegrationsHub({
       return
     }
     toast.success(`Sync complete — ${data.syncedCount ?? 0} products processed`)
+    await load()
+  }
+
+  async function confirmDecouple() {
+    if (!disconnectTarget) return
+    setError(null)
+    setBusyId("decouple")
+    const res = await fetch("/api/integrations/shopify/disconnect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ integrationId: disconnectTarget.id }),
+    })
+    const data = (await res.json().catch(() => ({}))) as {
+      error?: string
+      productsDecoupled?: number
+      message?: string
+    }
+    setBusyId(null)
+    setDisconnectTarget(null)
+    if (!res.ok) {
+      setError(data.error ?? "Disconnect failed")
+      return
+    }
+    toast.success(
+      data.message ??
+        `${data.productsDecoupled ?? 0} products kept on Affisell — zero lock-in.`
+    )
     await load()
   }
 
@@ -175,13 +209,18 @@ export function SupplierIntegrationsHub({
   }
 
   async function removeIntegration(id: string) {
+    const row = integrations.find((r) => r.id === id)
+    if (row?.liveConnected || row?.platform === "shopify") {
+      setDisconnectTarget(row ?? { id, platform: "shopify", name: "main", enabled: true, config: {}, lastSyncAt: null, lastSyncError: null, syncStats: null, inboundUrl: null, liveConnected: true })
+      return
+    }
     if (!confirm("Disconnect this integration?")) return
     await fetch(`/api/supplier/integrations/${id}`, { method: "DELETE" })
     toast.success("Integration removed")
     await load()
   }
 
-  const stats = shopifyLive?.syncStats
+  const stats = shopifyRow?.syncStats
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -207,8 +246,8 @@ export function SupplierIntegrationsHub({
               Platform sync
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
-              Connect Shopify once — stock, price, and product updates flow in via encrypted OAuth and
-              webhooks. Zero manual CSV. Review drafts, then publish to Affisell.
+              Connect Shopify once — clone your catalog into Affisell. Disconnect anytime: products
+              stay yours. Zero lock-in. Clone &amp; Own.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -244,20 +283,20 @@ export function SupplierIntegrationsHub({
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Shopify Live Sync</h2>
           </div>
 
-          {shopifyLive ? (
+          {shopifyConnected && shopifyRow ? (
             <div className="mt-5 space-y-4">
               <div className="flex items-start gap-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/70 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/25">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
                 <div className="min-w-0">
                   <p className="font-semibold text-emerald-900 dark:text-emerald-100">
-                    Connected · {shopifyLive.shopDomain ?? "Shopify"}
+                    Connected · {shopifyRow.shopDomain ?? "Shopify"}
                   </p>
                   <p className="mt-1 text-xs text-emerald-800/90 dark:text-emerald-200/90">
-                    Last sync {relativeTime(shopifyLive.lastSyncAt)}
-                    {shopifyLive.status === "ERROR" ? " · needs attention" : " · live"}
+                    Last sync {relativeTime(shopifyRow.lastSyncAt)}
+                    {shopifyRow.status === "ERROR" ? " · needs attention" : " · live"}
                   </p>
-                  {shopifyLive.lastSyncError ? (
-                    <p className="mt-2 text-xs text-red-600 dark:text-red-400">{shopifyLive.lastSyncError}</p>
+                  {shopifyRow.lastSyncError ? (
+                    <p className="mt-2 text-xs text-red-600 dark:text-red-400">{shopifyRow.lastSyncError}</p>
                   ) : null}
                 </div>
               </div>
@@ -285,28 +324,72 @@ export function SupplierIntegrationsHub({
                 </div>
               ) : null}
 
+              {(shopifyRow.productCount ?? 0) > 0 ? (
+                <Link
+                  href="/dashboard/supplier/products"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-violet-700 hover:underline dark:text-violet-300"
+                >
+                  <ExternalLink className="h-4 w-4" aria-hidden />
+                  View {shopifyRow.productCount} synced products
+                  {(shopifyRow.decoupledProductCount ?? 0) > 0
+                    ? ` (${shopifyRow.decoupledProductCount} native)`
+                    : null}
+                </Link>
+              ) : null}
+
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   className={cn(buttonVariants(), "gap-2")}
                   disabled={busyId === "live-sync"}
-                  onClick={() => void liveSyncShopify()}
+                  onClick={() => void liveSyncShopify(shopifyRow.id)}
                 >
                   {busyId === "live-sync" ? (
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                   ) : (
                     <RefreshCw className="h-4 w-4" aria-hidden />
                   )}
-                  Resync catalog
+                  Sync now
                 </button>
                 <button
                   type="button"
-                  className={cn(buttonVariants({ variant: "outline" }))}
-                  onClick={() => void removeIntegration(shopifyLive.id)}
+                  className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
+                  onClick={() => setDisconnectTarget(shopifyRow)}
                 >
+                  <Unplug className="h-4 w-4" aria-hidden />
                   Disconnect
                 </button>
               </div>
+            </div>
+          ) : shopifyRow?.status === "DISCONNECTED" ? (
+            <div className="mt-5 space-y-4">
+              <div className="rounded-2xl border border-zinc-200/80 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-900/40">
+                <p className="font-semibold text-zinc-800 dark:text-zinc-100">
+                  Disconnected · {shopifyRow.shopDomain ?? "Shopify"}
+                </p>
+                <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+                  {shopifyRow.productCount ?? 0} products remain active on Affisell (Clone &amp; Own).
+                  Edit stock and price manually in your catalog.
+                </p>
+              </div>
+              <label className="block text-xs font-medium uppercase tracking-wide text-zinc-500">
+                Reconnect store domain
+                <input
+                  className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm shadow-sm dark:border-zinc-700 dark:bg-zinc-950"
+                  placeholder="your-brand.myshopify.com"
+                  value={shop}
+                  onChange={(e) => setShop(e.target.value)}
+                  autoComplete="off"
+                />
+              </label>
+              <button
+                type="button"
+                className={cn(buttonVariants(), "gap-2")}
+                onClick={connectShopifyOAuth}
+              >
+                <Plug className="h-4 w-4" aria-hidden />
+                Reconnect Shopify
+              </button>
             </div>
           ) : (
             <div className="mt-5 space-y-4">
@@ -397,6 +480,61 @@ export function SupplierIntegrationsHub({
           ) : null}
         </Card>
       </div>
+
+      <Card className="mt-6 border-zinc-200/80 p-6 opacity-80 dark:border-zinc-700">
+        <div className="flex items-center gap-2">
+          <Store className="h-5 w-5 text-zinc-400" aria-hidden />
+          <h2 className="text-lg font-semibold text-zinc-700 dark:text-zinc-300">WooCommerce</h2>
+          <span className="rounded-full bg-zinc-200 px-2 py-0.5 text-[10px] font-bold uppercase text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+            Soon
+          </span>
+        </div>
+        <p className="mt-2 text-sm text-zinc-500">
+          Same Clone &amp; Own flow — sync once, disconnect, keep selling natively on Affisell.
+        </p>
+      </Card>
+
+      {disconnectTarget ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="decouple-title"
+        >
+          <div className="max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-700 dark:bg-zinc-950">
+            <h3 id="decouple-title" className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+              Disconnect {disconnectTarget.shopDomain ?? disconnectTarget.platform}?
+            </h3>
+            <p className="mt-3 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+              Your products will stay active on Affisell. You can keep selling without Shopify.
+              Stock is frozen at the last sync — edit it manually anytime. Zero lock-in.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                className={cn(buttonVariants({ variant: "outline" }))}
+                disabled={busyId === "decouple"}
+                onClick={() => setDisconnectTarget(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={cn(buttonVariants({ variant: "destructive" }), "gap-2")}
+                disabled={busyId === "decouple"}
+                onClick={() => void confirmDecouple()}
+              >
+                {busyId === "decouple" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <Unplug className="h-4 w-4" aria-hidden />
+                )}
+                Confirm disconnect
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-8">
         <div className="mb-4 flex items-center justify-between gap-2">

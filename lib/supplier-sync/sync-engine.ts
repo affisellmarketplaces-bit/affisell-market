@@ -10,9 +10,10 @@ export async function upsertSyncedProduct(args: {
   supplierId: string
   provider: IntegrationProvider
   mapped: MappedAffisellProduct
+  integrationId?: string
   publishLive?: boolean
 }): Promise<SyncProductResult> {
-  const { supplierId, provider, mapped, publishLive = false } = args
+  const { supplierId, provider, mapped, integrationId, publishLive = false } = args
   const externalId = mapped.externalId
 
   const existing = await prisma.product.findFirst({
@@ -22,8 +23,17 @@ export async function upsertSyncedProduct(args: {
       externalContentHash: true,
       active: true,
       isDraft: true,
+      isDecoupled: true,
     },
   })
+
+  if (existing?.isDecoupled) {
+    await prisma.product.update({
+      where: { id: existing.id },
+      data: { lastExternalSyncAt: new Date() },
+    })
+    return { externalId, action: "skipped" }
+  }
 
   const outOfStock = mapped.stock <= 0
   const syncStatus: SyncStatus = outOfStock ? SyncStatus.UNPUBLISHED_OOS : SyncStatus.SYNCED
@@ -66,6 +76,10 @@ export async function upsertSyncedProduct(args: {
     externalContentHash: mapped.contentHash,
     lastExternalSyncAt: new Date(),
     syncStatus,
+    sourceProductId: externalId,
+    sourceIntegrationId: integrationId ?? undefined,
+    isDecoupled: false,
+    imageSource: mapped.images.length > 0 ? "cloned" : undefined,
     active,
     isDraft,
     commissionRate: DEFAULT_COMMISSION,

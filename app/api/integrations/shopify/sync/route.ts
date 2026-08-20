@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { syncOrchestrator, SyncJobConflictError } from "@/lib/integrations/orchestrator"
 import { prisma } from "@/lib/prisma"
-import { getSupplierProviderByPlatform } from "@/lib/supplier-sync/registry"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+/** Legacy path — delegates to SyncOrchestrator (GraphQL + SyncJob). */
 export async function POST(req: Request) {
   const session = await auth()
   const role = (session?.user as { role?: string } | undefined)?.role
@@ -14,9 +15,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  let body: { supplierId?: string }
+  let body: { supplierId?: string; integrationId?: string }
   try {
-    body = (await req.json()) as { supplierId?: string }
+    body = (await req.json()) as { supplierId?: string; integrationId?: string }
   } catch {
     body = {}
   }
@@ -26,29 +27,31 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "supplierId mismatch" }, { status: 403 })
   }
 
-  const integration = await prisma.supplierIntegration.findFirst({
-    where: {
-      userId: supplierId,
-      platform: "shopify",
-      enabled: true,
-    },
-    orderBy: { updatedAt: "desc" },
-  })
+  const integration = body.integrationId
+    ? await prisma.supplierIntegration.findFirst({
+        where: { id: body.integrationId, userId: supplierId, platform: "shopify" },
+      })
+    : await prisma.supplierIntegration.findFirst({
+        where: {
+          userId: supplierId,
+          platform: "shopify",
+          status: { not: "DISCONNECTED" },
+        },
+        orderBy: { updatedAt: "desc" },
+      })
 
   if (!integration) {
     return NextResponse.json({ error: "Shopify integration not found" }, { status: 404 })
   }
 
-  const provider = getSupplierProviderByPlatform("shopify")
-  if (!provider) {
-    return NextResponse.json({ error: "Shopify provider unavailable" }, { status: 503 })
-  }
-
   try {
-    const summary = await provider.fullSync(integration)
-    const syncedCount = summary.created + summary.updated + summary.unpublished
-    return NextResponse.json({ ok: true, syncedCount, summary })
+    const { jobId, stats } = await syncOrchestrator.sync(integration.id, supplierId)
+    const syncedCount = stats.imported + stats.updated + stats.unpublished
+    return NextResponse.json({ ok: true, jobId, syncedCount, summary: stats, stats })
   } catch (e) {
+    if (e instanceof SyncJobConflictError) {
+      return NextResponse.json({ error: e.message, code: e.code }, { status: 409 })
+    }
     const msg = e instanceof Error ? e.message : "Sync failed"
     console.error("[integrations/shopify/sync]", {
       supplierId,
