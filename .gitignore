@@ -23,6 +23,11 @@ apps/affisell-supplier-extension/dist
 # next.js
 /.next/
 /out/
+.open-next/
+.wrangler/
+.dev.vars
+.dev.vars.part*
+tail.log
 
 # production
 /build
