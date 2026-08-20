@@ -1,7 +1,7 @@
 import { headers } from "next/headers"
 
 import { SupplierIntegrationsHub } from "@/components/supplier/supplier-integrations-hub"
-import { loadIntegrationProductCounts } from "@/lib/integrations/product-counts"
+import { loadIntegrationProductCounts, integrationDecoupleSchemaMode } from "@/lib/integrations/product-counts"
 import { hasEncryptionKey } from "@/lib/encryption"
 import { requireSupplierSession } from "@/lib/dashboard-session"
 import { maskIntegrationConfig } from "@/lib/supplier-integration-config"
@@ -100,10 +100,13 @@ export default async function SupplierIntegrationsPage() {
     }
   }
 
+  const decoupleSchemaMode = integrationDecoupleSchemaMode()
+
   return (
     <SupplierIntegrationsHub
       initialIntegrations={initialIntegrations}
       schemaMode={schemaMode}
+      decoupleSchemaMode={decoupleSchemaMode}
       loadError={loadError}
       shopifyOAuthConfigured={shopifyOAuthConfigured()}
       encryptionConfigured={hasEncryptionKey()}

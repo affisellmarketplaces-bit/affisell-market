@@ -1,9 +1,20 @@
 import { IntegrationProvider, Prisma, SyncStatus } from "@prisma/client"
 
+import { productDecoupleFieldsLive } from "@/lib/integrations/schema-capabilities"
 import { prisma } from "@/lib/prisma"
 import type { MappedAffisellProduct, SyncProductResult } from "@/lib/supplier-sync/types"
 
 const DEFAULT_COMMISSION = 15
+
+function decoupleProductFields(integrationId?: string, mapped?: MappedAffisellProduct) {
+  if (!productDecoupleFieldsLive()) return {}
+  return {
+    sourceProductId: mapped?.externalId,
+    sourceIntegrationId: integrationId ?? undefined,
+    isDecoupled: false as const,
+    imageSource: mapped && mapped.images.length > 0 ? "cloned" : undefined,
+  }
+}
 
 /** Upsert one externally synced product — differential hash + OOS unpublish. */
 export async function upsertSyncedProduct(args: {
@@ -16,18 +27,20 @@ export async function upsertSyncedProduct(args: {
   const { supplierId, provider, mapped, integrationId, publishLive = false } = args
   const externalId = mapped.externalId
 
+  const existingSelect = {
+    id: true,
+    externalContentHash: true,
+    active: true,
+    isDraft: true,
+    ...(productDecoupleFieldsLive() ? { isDecoupled: true as const } : {}),
+  }
+
   const existing = await prisma.product.findFirst({
     where: { supplierId, externalProvider: provider, externalId },
-    select: {
-      id: true,
-      externalContentHash: true,
-      active: true,
-      isDraft: true,
-      isDecoupled: true,
-    },
+    select: existingSelect,
   })
 
-  if (existing?.isDecoupled) {
+  if (productDecoupleFieldsLive() && existing && "isDecoupled" in existing && existing.isDecoupled) {
     await prisma.product.update({
       where: { id: existing.id },
       data: { lastExternalSyncAt: new Date() },
@@ -76,10 +89,7 @@ export async function upsertSyncedProduct(args: {
     externalContentHash: mapped.contentHash,
     lastExternalSyncAt: new Date(),
     syncStatus,
-    sourceProductId: externalId,
-    sourceIntegrationId: integrationId ?? undefined,
-    isDecoupled: false,
-    imageSource: mapped.images.length > 0 ? "cloned" : undefined,
+    ...decoupleProductFields(integrationId, mapped),
     active,
     isDraft,
     commissionRate: DEFAULT_COMMISSION,

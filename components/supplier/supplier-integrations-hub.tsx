@@ -44,6 +44,7 @@ export type IntegrationViewModel = {
 type Props = {
   initialIntegrations: IntegrationViewModel[]
   schemaMode: "live" | "legacy"
+  decoupleSchemaMode?: "live" | "legacy"
   loadError?: string | null
   shopifyOAuthConfigured: boolean
   encryptionConfigured: boolean
@@ -61,6 +62,7 @@ function relativeTime(iso: string | null): string {
 export function SupplierIntegrationsHub({
   initialIntegrations,
   schemaMode,
+  decoupleSchemaMode = "live",
   loadError,
   shopifyOAuthConfigured,
   encryptionConfigured,
@@ -266,6 +268,12 @@ export function SupplierIntegrationsHub({
           <p className="relative mt-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100">
             Database schema pending — run <code className="font-mono">npx prisma migrate deploy</code> then{" "}
             <code className="font-mono">npm run dev:restart</code> for full live sync.
+          </p>
+        ) : null}
+        {decoupleSchemaMode === "legacy" ? (
+          <p className="relative mt-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100">
+            Clone &amp; Own schema pending — run{" "}
+            <code className="font-mono">npx prisma generate && npx prisma migrate deploy</code> then restart dev.
           </p>
         ) : null}
       </div>
