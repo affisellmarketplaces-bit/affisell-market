@@ -163,7 +163,11 @@ export function MarketplaceListingDetail(props: ListingDetailProps) {
         </Suspense>
       </section>
 
-      {crossSellFooterSlot}
+      {crossSellFooterSlot ? (
+        <div className="mt-12 max-w-full" data-testid="listing-cross-sell-footer">
+          {crossSellFooterSlot}
+        </div>
+      ) : null}
 
       {showAr ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">

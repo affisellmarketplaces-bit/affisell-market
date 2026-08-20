@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl"
 
-import { FastLink } from "@/components/navigation/fast-link"
+import { ResilientLink } from "@/components/navigation/resilient-link"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import type { PdpCrossSellCard } from "@/lib/marketplace-pdp-cross-sell-shared"
 import { formatStoreCurrency } from "@/lib/market-config"
@@ -69,7 +69,7 @@ export function PdpCrossSellRail({
               compact ? "w-[9.5rem]" : "w-[11rem] sm:w-auto"
             )}
           >
-            <FastLink
+            <ResilientLink
               href={item.href}
               className="group block rounded-xl border border-zinc-200/90 bg-white/90 p-2.5 transition hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950/80 dark:hover:border-violet-800/60"
             >
@@ -90,7 +90,7 @@ export function PdpCrossSellRail({
               <p className="mt-1 text-xs font-semibold tabular-nums text-zinc-700 dark:text-zinc-300">
                 {formatStoreCurrency(item.priceEur)}
               </p>
-            </FastLink>
+            </ResilientLink>
           </li>
         ))}
       </ul>
