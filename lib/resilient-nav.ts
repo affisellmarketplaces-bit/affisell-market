@@ -1,5 +1,5 @@
 export const RESILIENT_NAV_STALL_MS =
-  process.env.NODE_ENV === "development" ? 8000 : 12000
+  process.env.NODE_ENV === "development" ? 4000 : 12000
 
 /** True when soft navigation stalled and a hard assign is warranted. */
 export function shouldHardFallbackNav(targetPath: string, currentPathname: string): boolean {
@@ -9,15 +9,28 @@ export function shouldHardFallbackNav(targetPath: string, currentPathname: strin
 }
 
 let navLock = false
+let navLockHref: string | null = null
 
-export function tryAcquireResilientNavLock(): boolean {
-  if (navLock) return false
-  navLock = true
-  return true
+export type ResilientNavLockResult = "acquired" | "repeat-hard-fallback"
+
+/**
+ * Dedupe rapid double-taps; repeat click on same href while locked → hard fallback.
+ * Different href while locked steals the lock (user changed intent).
+ */
+export function tryAcquireResilientNavLock(href: string): ResilientNavLockResult {
+  if (!navLock) {
+    navLock = true
+    navLockHref = href
+    return "acquired"
+  }
+  if (navLockHref === href) return "repeat-hard-fallback"
+  navLockHref = href
+  return "acquired"
 }
 
 export function releaseResilientNavLock(): void {
   navLock = false
+  navLockHref = null
 }
 
 export function hrefPathFromString(href: string): string {

@@ -2,29 +2,22 @@
 
 import NextLink from "next/link"
 import type { LucideIcon } from "lucide-react"
-import { useCallback } from "react"
 
-import { Link as LocaleLink, useRouter as useLocaleRouter } from "@/i18n/navigation"
-import { normalizePrefetchHref } from "@/lib/prefetch-href.client"
+import { Link as LocaleLink } from "@/i18n/navigation"
+import { useResilientNavClick } from "@/hooks/use-resilient-nav-click"
 import { cn } from "@/lib/utils"
 
 type Props = {
   href: string
   label: string
-  /** Shorter label below `xl` when the bar is tight. */
   shortLabel?: string
   active?: boolean
-  /** Visual treatment when `active` — `brand` is softer (public buyer nav). */
   activeVariant?: "solid" | "brand"
   icon?: LucideIcon
   className?: string
-  /** Prefix with /en or /fr (marketing routes only). */
   localeAware?: boolean
-  /** Optional count badge (e.g. pending booking check-ins). */
   badgeCount?: number
-  /** Pulsing violet NEW pill (discovery features). */
   showNewBadge?: boolean
-  /** Compact status pill (e.g. reseller “PROFIT LIVE”). */
   statusBadge?: string
   statusBadgeClassName?: string
 }
@@ -43,19 +36,10 @@ export function NavPill({
   statusBadge,
   statusBadgeClassName,
 }: Props) {
-  const localeRouter = useLocaleRouter()
-  const warm = useCallback(() => {
-    const path = normalizePrefetchHref(href)
-    if (!path) return
-    try {
-      localeRouter.prefetch(path)
-    } catch {
-      /* ignore */
-    }
-  }, [href, localeRouter])
+  const { onClick, warm } = useResilientNavClick(href, { localeAware })
 
   const classNames = cn(
-    "affisell-fast-link relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition-all duration-200 lg:px-3.5",
+    "affisell-fast-link affisell-resilient-link relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold transition-all duration-200 lg:px-3.5",
     active && activeVariant === "solid"
       ? "bg-zinc-900 text-white shadow-md dark:bg-white dark:text-zinc-900"
       : active && activeVariant === "brand"
@@ -107,9 +91,11 @@ export function NavPill({
 
   const prefetchHandlers = {
     prefetch: true as const,
+    onClick,
     onMouseEnter: warm,
     onFocus: warm,
     onTouchStart: warm,
+    onPointerDown: warm,
   }
 
   if (localeAware) {

@@ -90,7 +90,13 @@ export function MobileDockLink({ href, className, children, ...rest }: Props) {
       if (event.button !== 0) return
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 
-      if (!tryAcquireDockNavLock()) return
+      const lock = tryAcquireDockNavLock(target)
+      if (lock === "repeat-hard-fallback") {
+        event.preventDefault()
+        console.warn("[mobile-dock-link]", { href: target, result: "repeat-hard-fallback" })
+        window.location.assign(target)
+        return
+      }
 
       buyerHaptic("tap")
       signalInstantNavigationStart()
@@ -99,6 +105,11 @@ export function MobileDockLink({ href, className, children, ...rest }: Props) {
         event.preventDefault()
         releaseDockNavLock()
         window.scrollTo({ top: 0, behavior: "smooth" })
+        return
+      }
+
+      if (!mounted) {
+        releaseDockNavLock()
         return
       }
 

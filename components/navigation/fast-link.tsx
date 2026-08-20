@@ -1,9 +1,10 @@
 "use client"
 
 import NextLink from "next/link"
-import { useCallback, type ComponentProps } from "react"
+import { useCallback, type ComponentProps, type MouseEvent } from "react"
 
 import { Link as LocaleLink, useRouter as useLocaleRouter } from "@/i18n/navigation"
+import { useResilientNavClick } from "@/hooks/use-resilient-nav-click"
 import { normalizePrefetchHref } from "@/lib/prefetch-href.client"
 import { cn } from "@/lib/utils"
 
@@ -15,6 +16,7 @@ type SharedProps = {
   className?: string
   children?: React.ReactNode
   prefetch?: boolean
+  resilient?: boolean
 }
 
 type Props =
@@ -29,7 +31,7 @@ function hrefString(href: string | LocaleLinkProps["href"] | NextLinkProps["href
   return "/"
 }
 
-/** Link with hover/touch prefetch + instant press feedback. */
+/** Link with hover prefetch + resilient navigation (dev-safe). */
 export function FastLink(props: Props) {
   const {
     prefetchOnHover = true,
@@ -38,14 +40,24 @@ export function FastLink(props: Props) {
     prefetch,
     href,
     localeAware: localeAwareProp,
+    resilient = true,
+    onClick: userOnClick,
     ...rest
   } = props
   const localeAware = localeAwareProp === true
   const localeRouter = useLocaleRouter()
   const target = hrefString(href)
+  const { onClick: resilientClick, warm: resilientWarm } = useResilientNavClick(target, {
+    prefetch: prefetch ?? true,
+    localeAware,
+  })
 
   const warm = useCallback(() => {
     if (!prefetchOnHover) return
+    if (resilient) {
+      resilientWarm()
+      return
+    }
     const path = normalizePrefetchHref(target)
     if (!path) return
     try {
@@ -53,14 +65,24 @@ export function FastLink(props: Props) {
     } catch {
       /* ignore */
     }
-  }, [localeRouter, target, prefetchOnHover])
+  }, [localeRouter, prefetchOnHover, resilient, resilientWarm, target])
+
+  const onClick = useCallback(
+    (event: MouseEvent<HTMLAnchorElement>) => {
+      if (resilient) resilientClick(event)
+      userOnClick?.(event)
+    },
+    [resilient, resilientClick, userOnClick]
+  )
 
   const shared = {
     prefetch: prefetch ?? true,
+    onClick,
     onMouseEnter: warm,
     onFocus: warm,
     onTouchStart: warm,
-    className: cn("affisell-fast-link", className),
+    onPointerDown: warm,
+    className: cn("affisell-fast-link", resilient && "affisell-resilient-link", className),
   }
 
   if (localeAware) {
@@ -72,7 +94,7 @@ export function FastLink(props: Props) {
     )
   }
 
-  const nextRest = rest as Omit<NextLinkProps, "href" | "children">
+  const nextRest = rest as Omit<NextLinkProps, "href" | "children" | "onClick">
   return (
     <NextLink href={href} {...shared} {...nextRest}>
       {children}

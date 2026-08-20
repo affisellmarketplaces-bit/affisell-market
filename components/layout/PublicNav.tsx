@@ -26,7 +26,7 @@ import { CommandKTriggerDeferred } from "@/components/navigation/command-k-trigg
 import { NavHeaderSearch } from "@/components/nav/nav-header-search"
 import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
-import { Link as LocaleLink, usePathname } from "@/i18n/navigation"
+import { usePathname } from "@/i18n/navigation"
 import { buttonVariants } from "@/components/ui/button"
 import { useBuyerCartCount } from "@/hooks/use-buyer-cart-count"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
@@ -108,11 +108,11 @@ export function PublicNav() {
 
   /** Desktop wordmark — left-aligned in the lg grid. */
   const desktopLogo = (
-    <LocaleLink href="/" className="hidden shrink-0 lg:col-start-1 lg:row-start-1 lg:block">
+    <FastLink href="/" localeAware className="hidden shrink-0 lg:col-start-1 lg:row-start-1 lg:block">
       <span className={cn("text-lg font-bold affisell-logo-text", "affisell-brand-wordmark")}>
         Affisell
       </span>
-    </LocaleLink>
+    </FastLink>
   )
 
   /** Mobile Apple/Linear bar: ☰ · Affisell · actions — grid avoids logo/icon collision. */
@@ -127,14 +127,11 @@ export function PublicNav() {
         <Menu className="size-[18px]" aria-hidden />
       </button>
 
-      <LocaleLink
-        href="/"
-        className="justify-self-center truncate px-1 text-center"
-      >
+      <FastLink href="/" localeAware className="justify-self-center truncate px-1 text-center">
         <span className="affisell-logo-text affisell-brand-wordmark text-[1.05rem] font-black tracking-tight">
           Affisell
         </span>
-      </LocaleLink>
+      </FastLink>
 
       <div className="flex shrink-0 items-center justify-end gap-1 max-[360px]:gap-0.5">
         {mode !== "transaction" ? (
