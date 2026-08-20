@@ -5,6 +5,8 @@ export async function shopifyAdminFetchJson(args: {
   accessToken: string
   apiVersion?: string
   path: string
+  method?: "GET" | "POST" | "PUT" | "DELETE"
+  body?: unknown
 }): Promise<
   | { ok: true; status: number; json: unknown }
   | { ok: false; status: number; message: string }
@@ -12,13 +14,17 @@ export async function shopifyAdminFetchJson(args: {
   const v = args.apiVersion?.trim() || DEFAULT_SHOPIFY_API_VERSION
   const path = args.path.replace(/^\//, "")
   const url = `https://${args.shopHost}/admin/api/${v}/${path}`
+  const method = args.method ?? "GET"
   let res: Response
   try {
     res = await fetch(url, {
+      method,
       headers: {
         "X-Shopify-Access-Token": args.accessToken,
         Accept: "application/json",
+        ...(args.body != null ? { "Content-Type": "application/json" } : {}),
       },
+      body: args.body != null ? JSON.stringify(args.body) : undefined,
       cache: "no-store",
       signal: AbortSignal.timeout(28_000),
     })
@@ -32,6 +38,9 @@ export async function shopifyAdminFetchJson(args: {
   try {
     json = text ? JSON.parse(text) : {}
   } catch {
+    if (method === "DELETE" && res.ok) {
+      return { ok: true, status: res.status, json: {} }
+    }
     return {
       ok: false,
       status: res.status,

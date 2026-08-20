@@ -373,6 +373,10 @@ model SupplierProfile {
    * Admin bypass of trust-score gate for Lightning Payout (founder override).
    */
   lightningAdminOverride Boolean  @default(false)
+  /**
+   * True when a live OAuth sync (Shopify/Woo) is connected and active.
+   */
+  hasLiveSync            Boolean  @default(false)
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 }
@@ -446,6 +450,27 @@ model AuditLog {
 /**
  * Saved connections for supplier catalog sync (Shopify, inbound webhook, …).
  */
+enum IntegrationProvider {
+  SHOPIFY
+  WOOCOMMERCE
+  CUSTOM_API
+}
+
+enum IntegrationStatus {
+  CONNECTED
+  DISCONNECTED
+  ERROR
+  PENDING
+}
+
+enum SyncStatus {
+  MANUAL
+  SYNCED
+  STALE
+  ERROR
+  UNPUBLISHED_OOS
+}
+
 model SupplierIntegration {
   id              String    @id @default(cuid())
   userId          String
@@ -455,22 +480,56 @@ model SupplierIntegration {
    */
   platform        String
   /**
+   * Typed provider — mirrors `platform` for OAuth integrations.
+   */
+  provider        IntegrationProvider?
+  /**
    * User-visible label; unique per user+platform.
    */
   name            String    @default("main")
   enabled         Boolean   @default(true)
   /**
-   * Shopify: { shop, accessToken, apiVersion? }. Webhook: { webhookSecret }.
+   * Shopify: { shop, accessToken?, apiVersion? }. Webhook: { webhookSecret }.
+   * Legacy manual tokens may remain here; OAuth stores encrypted token columns.
    */
   config          Json      @default("{}")
+  shopDomain      String?
+  accessTokenEncrypted  String? @db.Text
+  refreshTokenEncrypted String? @db.Text
+  scopes          String?
+  status          IntegrationStatus @default(CONNECTED)
+  webhookId       String?
+  errorMessage    String?   @db.Text
   lastSyncAt      DateTime?
   lastSyncError   String?
   lastSyncSummary Json?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  webhookEvents SupplierWebhookEvent[]
+
   @@unique([userId, platform, name])
+  @@unique([userId, provider, shopDomain])
   @@index([userId])
+  @@index([shopDomain])
+}
+
+/**
+ * Idempotent Shopify (and future) webhook ingestion — main DB (not Radar).
+ */
+model SupplierWebhookEvent {
+  id               String   @id @default(cuid())
+  shopifyWebhookId String   @unique
+  topic            String?
+  shopDomain       String?
+  integrationId    String?
+  integration      SupplierIntegration? @relation(fields: [integrationId], references: [id], onDelete: SetNull)
+  payload          Json?
+  createdAt        DateTime @default(now())
+
+  @@index([shopDomain])
+  @@index([integrationId])
+  @@index([createdAt])
 }
 
 /**
@@ -1043,6 +1102,21 @@ model Product {
    */
   importSource           String?
   /**
+   * External catalog id (Shopify product id, Woo SKU root, …).
+   */
+  externalId             String?              @db.Text
+  externalProvider       IntegrationProvider?
+  lastExternalSyncAt     DateTime?
+  syncStatus             SyncStatus?          @default(MANUAL)
+  /**
+   * Last raw provider payload (debug + re-map).
+   */
+  externalRaw            Json?
+  /**
+   * SHA-256 of normalized sync fields — skip DB write when unchanged.
+   */
+  externalContentHash    String?
+  /**
    * Auto-Order Engine: route paid lines to external suppliers without buyer treasury advance.
    */
   autoFulfill            Boolean              @default(true)
@@ -1166,6 +1240,7 @@ model Product {
   @@index([categoryId])
   @@index([aliexpressProductId])
   @@index([supplierId, isDraft])
+  @@index([supplierId, externalProvider, externalId])
   @@index([style])
   @@index([shippingType])
   @@index([basePriceCents])

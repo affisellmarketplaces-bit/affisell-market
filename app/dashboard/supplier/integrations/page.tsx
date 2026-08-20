@@ -1,9 +1,10 @@
+import { Suspense } from "react"
 import { headers } from "next/headers"
 import { requireSupplierSession } from "@/lib/dashboard-session"
 import Link from "next/link"
-import { redirect } from "next/navigation"
 import { ArrowLeft, RefreshCw } from "lucide-react"
 
+import { SupplierIntegrationsOAuthToast } from "@/components/supplier/supplier-integrations-oauth-toast"
 import { SupplierIntegrationsPanel } from "@/components/supplier/supplier-integrations-panel"
 import { buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -33,6 +34,8 @@ export default async function SupplierIntegrationsPage() {
       name: true,
       enabled: true,
       config: true,
+      shopDomain: true,
+      status: true,
       lastSyncAt: true,
       lastSyncError: true,
       lastSyncSummary: true,
@@ -45,6 +48,8 @@ export default async function SupplierIntegrationsPage() {
     name: r.name,
     enabled: r.enabled,
     config: maskIntegrationConfig(r.config),
+    shopDomain: r.shopDomain,
+    status: r.status,
     lastSyncAt: r.lastSyncAt?.toISOString() ?? null,
     lastSyncError: r.lastSyncError,
     lastSyncSummary: r.lastSyncSummary,
@@ -81,6 +86,9 @@ export default async function SupplierIntegrationsPage() {
       </Card>
 
       <SupplierIntegrationsPanel initialIntegrations={initialIntegrations} />
+      <Suspense fallback={null}>
+        <SupplierIntegrationsOAuthToast />
+      </Suspense>
     </div>
   )
 }

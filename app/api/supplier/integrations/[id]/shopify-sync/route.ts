@@ -20,7 +20,7 @@ export async function POST(_req: Request, ctx: Ctx) {
 
   const integration = await prisma.supplierIntegration.findFirst({
     where: { id, userId: session.user.id, platform: "shopify", enabled: true },
-    select: { id: true, userId: true, config: true },
+    select: { id: true, userId: true, config: true, shopDomain: true, accessTokenEncrypted: true },
   })
 
   if (!integration) {

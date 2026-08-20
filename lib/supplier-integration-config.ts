@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto"
 
+import { decrypt, hasEncryptionKey } from "@/lib/encryption"
 import { normalizeShopifyAdminHost } from "@/lib/shopify-sync-map"
 
 export function maskIntegrationConfig(config: unknown): Record<string, unknown> {
@@ -35,13 +36,43 @@ export function normalizePlatform(p: unknown): string | null {
 }
 
 export function parseShopifyIntegrationConfig(
-  config: unknown
+  config: unknown,
+  options?: {
+    shopDomain?: string | null
+    accessTokenEncrypted?: string | null
+  }
 ): { shopHost: string; accessToken: string; apiVersion?: string } | null {
+  const shopFromDomain = options?.shopDomain
+    ? normalizeShopifyAdminHost(options.shopDomain)
+    : null
+
+  if (options?.accessTokenEncrypted && hasEncryptionKey()) {
+    try {
+      const accessToken = decrypt(options.accessTokenEncrypted)
+      const c =
+        config && typeof config === "object" && !Array.isArray(config)
+          ? (config as Record<string, unknown>)
+          : {}
+      const shopHost =
+        shopFromDomain ||
+        normalizeShopifyAdminHost(typeof c.shop === "string" ? c.shop : "")
+      const apiVersion =
+        typeof c.apiVersion === "string" && c.apiVersion.trim()
+          ? c.apiVersion.trim()
+          : undefined
+      if (shopHost && accessToken.length >= 16) {
+        return { shopHost, accessToken, apiVersion }
+      }
+    } catch {
+      /* fall through to legacy config token */
+    }
+  }
+
   if (!config || typeof config !== "object" || Array.isArray(config)) return null
   const c = config as Record<string, unknown>
-  const shopHost = normalizeShopifyAdminHost(
-    typeof c.shop === "string" ? c.shop : ""
-  )
+  const shopHost =
+    shopFromDomain ||
+    normalizeShopifyAdminHost(typeof c.shop === "string" ? c.shop : "")
   const accessToken =
     typeof c.accessToken === "string" ? c.accessToken.trim() : ""
   if (!shopHost || accessToken.length < 16) return null

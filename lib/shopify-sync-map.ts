@@ -99,4 +99,4 @@ export function shopifyProductToImportRow(
   }
 }
 
-export const DEFAULT_SHOPIFY_API_VERSION = "2024-07"
+export const DEFAULT_SHOPIFY_API_VERSION = "2024-10"

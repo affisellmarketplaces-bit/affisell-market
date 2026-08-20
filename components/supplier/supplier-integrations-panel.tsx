@@ -1,7 +1,8 @@
 "use client"
 
-import { useCallback, useState } from "react"
-import { Loader2, RefreshCw, Webhook } from "lucide-react"
+import { useCallback, useMemo, useState } from "react"
+import { CheckCircle2, Loader2, Plug, RefreshCw, Webhook } from "lucide-react"
+import { toast } from "sonner"
 
 import { buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -13,6 +14,8 @@ type IntegrationRow = {
   name: string
   enabled: boolean
   config: Record<string, unknown>
+  shopDomain?: string | null
+  status?: string | null
   lastSyncAt: string | null
   lastSyncError: string | null
   lastSyncSummary: unknown
@@ -95,7 +98,53 @@ export function SupplierIntegrationsPanel({ initialIntegrations }: Props) {
     await load()
   }
 
+  const shopifyLive = useMemo(
+    () =>
+      integrations.find(
+        (r) =>
+          r.platform === "shopify" &&
+          r.enabled &&
+          (r.status === "CONNECTED" || Boolean(r.config?.oauth))
+      ),
+    [integrations]
+  )
+
+  function connectShopifyOAuth() {
+    const host = shop.trim()
+    if (!host) {
+      setError("Enter your Shopify store hostname first")
+      return
+    }
+    window.location.href = `/api/integrations/shopify/auth?shop=${encodeURIComponent(host)}`
+  }
+
+  async function liveSyncShopify() {
+    setError(null)
+    setBusyId("live-sync")
+    const res = await fetch("/api/integrations/shopify/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
+    const data = (await res.json().catch(() => ({}))) as {
+      error?: string
+      syncedCount?: number
+      summary?: { created?: number; updated?: number; skipped?: number }
+    }
+    setBusyId(null)
+    if (!res.ok) {
+      setError(data.error ?? "Live sync failed")
+      return
+    }
+    toast.success(`Sync terminée — ${data.syncedCount ?? 0} produit(s) traités`)
+    await load()
+  }
+
   async function syncShopify(id: string) {
+    if (shopifyLive?.id === id && shopifyLive.config?.oauth) {
+      await liveSyncShopify()
+      return
+    }
     setError(null)
     setBusyId(id)
     const res = await fetch(`/api/supplier/integrations/${id}/shopify-sync`, {
@@ -211,43 +260,97 @@ export function SupplierIntegrationsPanel({ initialIntegrations }: Props) {
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <div>
-            <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-50">Shopify</h3>
+            <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-50">Shopify Live Sync</h3>
             <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-              Enter your store hostname (e.g.{" "}
-              <span className="whitespace-nowrap">your-store.myshopify.com</span>) and an Admin API
-              access token with product read access from Shopify admin.
+              OAuth sécurisé — stock & prix miroir en temps réel via webhooks. Tokens chiffrés AES-256.
             </p>
-            <label className="mt-3 block text-xs font-medium text-zinc-500">
-              Store
-              <input
-                className="mt-1 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
-                placeholder="your-store.myshopify.com"
-                value={shop}
-                onChange={(e) => setShop(e.target.value)}
-                autoComplete="off"
-              />
-            </label>
-            <label className="mt-3 block text-xs font-medium text-zinc-500">
-              Access token
-              <input
-                className="mt-1 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
-                type="password"
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                autoComplete="off"
-              />
-            </label>
-            <button
-              type="button"
-              className={cn(buttonVariants(), "mt-3")}
-              disabled={busyId === "new-shopify"}
-              onClick={() => void addShopify()}
-            >
-              {busyId === "new-shopify" ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-              ) : null}
-              Save Shopify
-            </button>
+            {shopifyLive ? (
+              <div className="mt-3 rounded-lg border border-emerald-200/80 bg-emerald-50/80 px-3 py-2 text-sm dark:border-emerald-900/50 dark:bg-emerald-950/30">
+                <p className="flex items-center gap-2 font-medium text-emerald-800 dark:text-emerald-200">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
+                  Connecté — {shopifyLive.shopDomain ?? String(shopifyLive.config.shop ?? "Shopify")}
+                </p>
+                <p className="mt-1 text-xs text-emerald-700/90 dark:text-emerald-300/90">
+                  {shopifyLive.lastSyncAt
+                    ? `Dernière sync ${new Date(shopifyLive.lastSyncAt).toLocaleString()}`
+                    : "Sync initiale en cours…"}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}
+                    disabled={busyId === "live-sync" || busyId === shopifyLive.id}
+                    onClick={() => void liveSyncShopify()}
+                  >
+                    {busyId === "live-sync" ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                    ) : (
+                      <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+                    )}
+                    Resync
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    onClick={() => void removeIntegration(shopifyLive.id)}
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <label className="mt-3 block text-xs font-medium text-zinc-500">
+                  Store domain
+                  <input
+                    className="mt-1 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                    placeholder="your-store.myshopify.com"
+                    value={shop}
+                    onChange={(e) => setShop(e.target.value)}
+                    autoComplete="off"
+                  />
+                </label>
+                <button
+                  type="button"
+                  className={cn(buttonVariants(), "mt-3 gap-2")}
+                  disabled={busyId === "oauth-shopify"}
+                  onClick={connectShopifyOAuth}
+                >
+                  <Plug className="h-4 w-4" aria-hidden />
+                  Connecter Shopify
+                </button>
+              </>
+            )}
+
+            <details className="mt-4 rounded-md border border-zinc-200/80 p-3 dark:border-zinc-700">
+              <summary className="cursor-pointer text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                Advanced — Admin API token (legacy)
+              </summary>
+              <p className="mt-2 text-xs text-zinc-500">
+                Manual token import — use OAuth above for live sync + webhooks.
+              </p>
+              <label className="mt-3 block text-xs font-medium text-zinc-500">
+                Access token
+                <input
+                  className="mt-1 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                  type="password"
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                  autoComplete="off"
+                />
+              </label>
+              <button
+                type="button"
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-3")}
+                disabled={busyId === "new-shopify"}
+                onClick={() => void addShopify()}
+              >
+                {busyId === "new-shopify" ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                ) : null}
+                Save manual token
+              </button>
+            </details>
           </div>
 
           <div>

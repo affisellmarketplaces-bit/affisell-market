@@ -35,6 +35,9 @@ export async function GET(req: Request) {
       name: true,
       enabled: true,
       config: true,
+      shopDomain: true,
+      status: true,
+      accessTokenEncrypted: true,
       lastSyncAt: true,
       lastSyncError: true,
       lastSyncSummary: true,
@@ -43,7 +46,7 @@ export async function GET(req: Request) {
     },
   })
 
-  const integrations = rows.map((r) => ({
+  const integrations = rows.map(({ accessTokenEncrypted: _enc, ...r }) => ({
     ...r,
     config: maskIntegrationConfig(r.config),
     inboundUrl:

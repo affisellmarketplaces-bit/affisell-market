@@ -65,13 +65,19 @@ export async function fetchShopifyProductRows(
 
 /** Import or update supplier catalog from a saved Shopify integration (idempotent SKU). */
 export async function syncShopifyIntegrationRecord(
-  integration: Pick<SupplierIntegration, "id" | "userId" | "config">,
+  integration: Pick<
+    SupplierIntegration,
+    "id" | "userId" | "config" | "shopDomain" | "accessTokenEncrypted"
+  >,
   options?: { bodyDraft?: boolean }
 ): Promise<
   | { ok: true; summary: ShopifySyncSummary }
   | { ok: false; error: string; summary?: ShopifySyncSummary }
 > {
-  const parsed = parseShopifyIntegrationConfig(integration.config)
+  const parsed = parseShopifyIntegrationConfig(integration.config, {
+    shopDomain: integration.shopDomain,
+    accessTokenEncrypted: integration.accessTokenEncrypted,
+  })
   if (!parsed) {
     return { ok: false, error: "Invalid saved Shopify credentials" }
   }
@@ -166,7 +172,7 @@ export async function runShopifyAutoSyncCron(): Promise<{
 }> {
   const rows = await prisma.supplierIntegration.findMany({
     where: { platform: "shopify", enabled: true },
-    select: { id: true, userId: true, config: true },
+    select: { id: true, userId: true, config: true, shopDomain: true, accessTokenEncrypted: true },
   })
 
   const results: Array<{

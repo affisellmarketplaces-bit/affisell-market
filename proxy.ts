@@ -255,6 +255,7 @@ export async function proxy(req: NextRequest) {
   if (
     barePath.startsWith("/api/webhooks/") ||
     barePath.startsWith("/api/cron/") ||
+    barePath === "/api/integrations/shopify/callback" ||
     barePath === "/api/intelli/tiktok/callback" ||
     barePath === "/api/intelli/tiktok/start" ||
     barePath.startsWith("/api/intelli/webhooks/") ||
