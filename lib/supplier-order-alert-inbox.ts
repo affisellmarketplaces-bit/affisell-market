@@ -12,7 +12,8 @@ export type SupplierToShipSnapshot = {
 
 /** Single round-trip for badge count + action-required order ids (notifications poll). */
 export async function loadSupplierToShipSnapshot(
-  supplierId: string
+  supplierId: string,
+  options?: { notificationOrderIds?: string[] }
 ): Promise<SupplierToShipSnapshot> {
   const blindProfile = await prisma.blindDropshipSupplier.findUnique({
     where: { linkedUserId: supplierId },
@@ -20,13 +21,15 @@ export async function loadSupplierToShipSnapshot(
   })
 
   const marketplaceWhere = { supplierId, status: { in: [...TO_SHIP_STATUSES] } }
+  const notifOrderIds = (options?.notificationOrderIds ?? []).filter(Boolean)
 
   const [marketplaceRows, marketplaceCount, blindCount] = await Promise.all([
-    prisma.order.findMany({
-      where: marketplaceWhere,
-      select: { id: true },
-      take: 200,
-    }),
+    notifOrderIds.length > 0
+      ? prisma.order.findMany({
+          where: { ...marketplaceWhere, id: { in: notifOrderIds } },
+          select: { id: true },
+        })
+      : Promise.resolve([]),
     prisma.order.count({ where: marketplaceWhere }),
     blindProfile
       ? prisma.blindDropshipOrder.count({

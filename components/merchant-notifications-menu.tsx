@@ -8,6 +8,7 @@ import { createPortal } from "react-dom"
 import { MerchantNotificationItem } from "@/components/merchant/merchant-notification-item"
 import { buttonVariants } from "@/components/ui/button"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
+import { merchantNotificationsPollMs } from "@/lib/dev-client-timing"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import { isProductRequestNotifType } from "@/lib/product-request-notif-constants"
 import { SUPPLIER_INVITE_NOTIF } from "@/lib/supplier-invite-notif-constants"
@@ -178,8 +179,7 @@ export function MerchantNotificationsMenu({
     const unsub = subscribeMerchantNotifications(cfg.eventName, () => void load())
 
     function pollIntervalMs() {
-      if (document.visibilityState !== "visible") return 60_000
-      return role === "SUPPLIER" ? 15_000 : 30_000
+      return merchantNotificationsPollMs(role)
     }
 
     let intervalId = window.setInterval(() => void load(), pollIntervalMs())

@@ -8,6 +8,11 @@ import {
   loadSupplierToShipSnapshot,
   reopenLegacySupplierToShipAlertsIfDue,
 } from "@/lib/supplier-order-alert-inbox"
+import {
+  invalidateSupplierNotificationsDevCache,
+  readSupplierNotificationsDevCache,
+  writeSupplierNotificationsDevCache,
+} from "@/lib/supplier-notifications-dev-cache"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -22,6 +27,13 @@ export async function GET(req: Request) {
   }
 
   const forceSync = new URL(req.url).searchParams.get("sync") === "1"
+
+  if (!forceSync) {
+    const cached = readSupplierNotificationsDevCache(session.user.id)
+    if (cached) {
+      return Response.json(cached)
+    }
+  }
 
   try {
     const { syncPartnerMarketplaceAlertsBeforeInboxIfDue } = await import(
@@ -41,28 +53,28 @@ export async function GET(req: Request) {
   }
 
   try {
-    const [rows, toShipSnapshot] = await Promise.all([
-      prisma.notification.findMany({
-        where: { userId: session.user.id },
-        orderBy: { createdAt: "desc" },
-        take: 50,
-      }),
-      loadSupplierToShipSnapshot(session.user.id),
-    ])
+    const rows = await prisma.notification.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    })
 
     const orderIds = rows.map((n) => n.orderId).filter((id): id is string => Boolean(id))
-    const orderImages =
+
+    const [toShipSnapshot, orderImages] = await Promise.all([
+      loadSupplierToShipSnapshot(session.user.id, { notificationOrderIds: orderIds }),
       orderIds.length > 0
-        ? await prisma.order.findMany({
+        ? prisma.order.findMany({
             where: { id: { in: orderIds }, supplierId: session.user.id },
             select: { id: true, variantImageUrl: true },
           })
-        : []
+        : Promise.resolve([]),
+    ])
+
     const imageByOrderId = new Map(orderImages.map((o) => [o.id, o.variantImageUrl]))
 
     const deduped = dedupeMerchantNotifications(rows)
-    const toShipOrderIds = toShipSnapshot.orderIds
-    const enriched = enrichSupplierNotificationRows(deduped, toShipOrderIds)
+    const enriched = enrichSupplierNotificationRows(deduped, toShipSnapshot.orderIds)
     const unreadFromDeduped = enriched.filter((n) => !n.read).length
     const actionRequiredCount = enriched.filter((n) => n.actionRequired && !n.read).length
     const ordersToShipCount = toShipSnapshot.ordersToShipCount
@@ -77,7 +89,7 @@ export async function GET(req: Request) {
       notificationRows: enriched.length,
     })
 
-    return Response.json({
+    const payload = {
       unreadCount: unreadFromDeduped,
       actionRequiredCount,
       ordersToShipCount,
@@ -92,7 +104,10 @@ export async function GET(req: Request) {
         actionRequired: n.actionRequired,
         createdAt: n.createdAt instanceof Date ? n.createdAt.toISOString() : n.createdAt,
       })),
-    })
+    }
+
+    writeSupplierNotificationsDevCache(session.user.id, payload)
+    return Response.json(payload)
   } catch (error) {
     console.error("[supplier-notifications]", {
       userId: session.user.id,
@@ -136,6 +151,7 @@ export async function PATCH(req: Request) {
         where: { userId: session.user.id, read: false },
         data: { read: true },
       })
+      invalidateSupplierNotificationsDevCache(session.user.id)
       return Response.json({ ok: true })
     }
 
@@ -148,6 +164,7 @@ export async function PATCH(req: Request) {
       where: { userId: session.user.id, id: { in: ids } },
       data: { read: true },
     })
+    invalidateSupplierNotificationsDevCache(session.user.id)
     return Response.json({ ok: true })
   } catch (error) {
     console.error("[supplier-notifications]", {
