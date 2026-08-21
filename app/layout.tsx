@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer"
 import { AppHeader } from "@/components/nav/app-header"
 import { SiteHeaderChrome } from "@/components/nav/site-header-chrome"
 import { CookieConsentHeadScripts } from "@/components/cookie-consent/cookie-consent-head"
+import { CookieConsentScriptActivator } from "@/components/cookie-consent/cookie-consent-script-activator"
 import { CookieBannerDeferred } from "@/components/CookieBanner-deferred"
 import { RootSessionShell } from "@/app/root-intl-session"
 import { AuthSessionProvider } from "@/components/providers/auth-session-provider"
@@ -70,6 +71,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
       >
         <CookieConsentHeadScripts />
+        <CookieConsentScriptActivator />
         <AuthSessionProvider session={session}>
           <IntlAppProvider locale={locale} messages={clientMessages} now={now}>
             <RootSessionShell leanShell={isDedicatedStorefront}>

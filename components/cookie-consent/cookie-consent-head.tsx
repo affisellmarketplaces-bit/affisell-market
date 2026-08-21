@@ -1,6 +1,4 @@
-import { CookieConsentScriptActivator } from "@/components/cookie-consent/cookie-consent-script-activator"
-
-const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim()
+import Script from "next/script"
 
 const GTAG_CONSENT_DEFAULT = `
 window.dataLayer = window.dataLayer || [];
@@ -13,34 +11,14 @@ gtag('consent', 'default', {
 });
 `.trim()
 
-/** Server-rendered consent + deferred GA placeholders (React 19 — native script, no next/script). */
+/**
+ * Server-only consent bootstrap — React 19 forbids raw `<script>` in component trees
+ * that hydrate on the client. Use next/script + client activator for deferred GA.
+ */
 export function CookieConsentHeadScripts() {
   return (
-    <>
-      <script dangerouslySetInnerHTML={{ __html: GTAG_CONSENT_DEFAULT }} />
-      {GA_ID ? (
-        <>
-          <script
-            id="gtag-js-deferred"
-            type="text/plain"
-            data-category="analytics"
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-            async
-          />
-          <script
-            id="gtag-config-deferred"
-            type="text/plain"
-            data-category="analytics"
-            dangerouslySetInnerHTML={{
-              __html: `
-gtag('js', new Date());
-gtag('config', '${GA_ID}', { anonymize_ip: true });
-              `.trim(),
-            }}
-          />
-        </>
-      ) : null}
-      <CookieConsentScriptActivator />
-    </>
+    <Script id="gtag-consent-default" strategy="beforeInteractive">
+      {GTAG_CONSENT_DEFAULT}
+    </Script>
   )
 }

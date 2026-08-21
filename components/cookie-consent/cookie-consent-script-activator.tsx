@@ -4,19 +4,33 @@ import { useEffect } from "react"
 
 import { COOKIE_CONSENT_GRANTED_EVENT } from "@/lib/legal/cookie-consent-constants"
 
-function activateDeferredAnalyticsScripts() {
-  document.querySelectorAll('script[type="text/plain"][data-category="analytics"]').forEach((node) => {
-    const el = node as HTMLScriptElement
-    const script = document.createElement("script")
-    if (el.src) script.src = el.src
-    if (el.id) script.id = `${el.id}-active`
-    if (el.textContent) script.text = el.textContent
-    script.async = true
-    document.head.appendChild(script)
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim()
+
+function gtagReady(): boolean {
+  return typeof window !== "undefined" && typeof window.gtag === "function"
+}
+
+function loadGoogleAnalytics(): void {
+  if (!GA_ID || document.getElementById("gtag-js-active")) return
+
+  const loader = document.createElement("script")
+  loader.id = "gtag-js-active"
+  loader.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_ID)}`
+  loader.async = true
+  document.head.appendChild(loader)
+
+  loader.addEventListener("load", () => {
+    if (!gtagReady()) return
+    window.gtag!("js", new Date())
+    window.gtag!("config", GA_ID, { anonymize_ip: true })
   })
 }
 
-/** Activates deferred analytics scripts after consent — no inline <script> in React tree. */
+function activateDeferredAnalyticsScripts(): void {
+  loadGoogleAnalytics()
+}
+
+/** Activates GA after cookie consent — injects scripts via DOM APIs (React 19 safe). */
 export function CookieConsentScriptActivator() {
   useEffect(() => {
     const onGranted = () => activateDeferredAnalyticsScripts()
@@ -28,4 +42,11 @@ export function CookieConsentScriptActivator() {
   }, [])
 
   return null
+}
+
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void
+    dataLayer?: unknown[]
+  }
 }

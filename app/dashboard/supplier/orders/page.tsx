@@ -5,6 +5,7 @@ import { Package } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { ShipPulsePolicyBanner } from "@/components/supplier/ship-pulse-policy-banner"
+import { SupplierFulfillmentGroupsBoundary } from "@/components/supplier/supplier-fulfillment-groups-boundary"
 import { SupplierFulfillmentGroupsPanel } from "@/components/supplier/supplier-fulfillment-groups-panel"
 import { SupplierOrdersPanel } from "@/components/supplier/supplier-orders-panel"
 import { buttonVariants } from "@/components/ui/button"
@@ -45,7 +46,9 @@ export default async function SupplierOrdersPage() {
 
         <ShipPulsePolicyBanner />
 
-        <SupplierFulfillmentGroupsPanel />
+        <SupplierFulfillmentGroupsBoundary>
+          <SupplierFulfillmentGroupsPanel />
+        </SupplierFulfillmentGroupsBoundary>
 
         <SupplierOrdersPanel />
       </BentoContainer>
