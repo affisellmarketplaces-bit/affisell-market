@@ -69,7 +69,7 @@ export async function POST(req: Request) {
 
     const coder = new IngCoder()
     const actions =
-      task.type === "BUG"
+      task.autoFixable || task.type === "BUG" || task.type === "BUG_CRITICAL"
         ? await coder.fixBug(task, { dryRun })
         : await coder.implementFeature(task.description)
 

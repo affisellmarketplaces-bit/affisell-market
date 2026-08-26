@@ -128,8 +128,15 @@ export function IngAdminPanel({ initialAnalyze = null, bootstrapError = null }: 
 
   async function fixAll() {
     const fixable = analyze?.tasks.filter((t) => t.autoFixable) ?? []
-    for (const task of fixable) {
-      await runFix(task, false)
+    if (fixable.length === 0) return
+    setFixing("all")
+    setError(null)
+    try {
+      for (const task of fixable) {
+        await runFix(task, false)
+      }
+    } finally {
+      setFixing(null)
     }
   }
 
@@ -207,12 +214,21 @@ export function IngAdminPanel({ initialAnalyze = null, bootstrapError = null }: 
               type="button"
               className={cn(
                 buttonVariants({ size: "sm" }),
-                "gap-1.5 bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500"
+                "gap-1.5 bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 disabled:opacity-40"
               )}
               onClick={() => void fixAll()}
               disabled={loading || fixing !== null || fixableCount === 0}
+              title={
+                fixableCount === 0
+                  ? "Aucune tâche auto-fixable — manual_required nécessite une action ops"
+                  : `Exécuter ${fixableCount} fix(es) Ing`
+              }
             >
-              <Wrench className="size-4" />
+              {fixing === "all" ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Wrench className="size-4" />
+              )}
               Fix All {fixableCount > 0 ? `(${fixableCount})` : ""}
             </button>
           </div>
@@ -299,15 +315,17 @@ export function IngAdminPanel({ initialAnalyze = null, bootstrapError = null }: 
                             buttonVariants({ size: "sm" }),
                             "mt-auto w-full gap-1 bg-violet-700 hover:bg-violet-600"
                           )}
-                          disabled={fixing === task.id}
+                          disabled={fixing === task.id || fixing === "all"}
                           onClick={() => void runFix(task, false)}
                         >
-                          {fixing === task.id ? (
+                          {fixing === task.id || fixing === "all" ? (
                             <Loader2 className="size-4 animate-spin" />
                           ) : (
                             <Play className="size-4" />
                           )}
-                          Auto-fix & ship
+                          {task.id === "manual_required_flood"
+                            ? "Run supplier nudge"
+                            : "Auto-fix & ship"}
                         </button>
                       ) : (
                         <p className="mt-auto text-[10px] text-zinc-600">Manual — connect integrations in supplier hub</p>

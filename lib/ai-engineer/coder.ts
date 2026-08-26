@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process"
 import { auditAdminSessionBridge } from "@/lib/ai-engineer/admin-session-audit"
 import { AFFISELL_CONTEXT } from "@/lib/ai-engineer/context"
 import { buildPoolerStripPatch } from "@/lib/ai-engineer/pooler-audit"
+import { runIngManualNudgeCron } from "@/lib/cron/ing-manual-nudge"
 import type { IngAction, IngTask } from "@/lib/ai-engineer/types"
 
 function runTscCheck(): { ok: boolean; output: string } {
@@ -60,6 +61,29 @@ export class IngCoder {
 
       console.log("[ing]", { result: "fix_bug", taskId: task.id, dryRun, tscOk: check.ok })
       return actions
+    }
+
+    if (task.id === "manual_required_flood") {
+      const nudge = await runIngManualNudgeCron({ dryRun })
+      const supplierCount =
+        typeof nudge.suppliers === "number" ? nudge.suppliers : nudge.suppliers.length
+      console.log("[ing]", {
+        result: "fix_manual_nudge",
+        taskId: task.id,
+        dryRun,
+        sent: nudge.sent,
+        supplierCount,
+      })
+      return [
+        {
+          file: "app/api/cron/ing-manual-nudge/route.ts",
+          change: dryRun
+            ? `dry-run — ${supplierCount} suppliers, ${nudge.groupsCount} groups`
+            : `sent ${nudge.sent} nudges (${nudge.nudgeLogsWritten} logged)`,
+          reason: task.description,
+          test: "curl -s 'http://localhost:3001/api/cron/ing-manual-nudge?dry=1'",
+        },
+      ]
     }
 
     if (task.id === "next_auth_provider_missing") {

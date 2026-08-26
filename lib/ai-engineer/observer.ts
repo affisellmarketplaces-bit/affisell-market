@@ -89,7 +89,7 @@ export class LogObserver {
         logs: pickSample(lines, "manual_required"),
         priority: 70,
         count: manualSignal,
-        autoFixable: false,
+        autoFixable: true,
       })
     }
 
