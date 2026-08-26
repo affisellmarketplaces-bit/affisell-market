@@ -14,6 +14,8 @@ const LEGAL_NAV = [
   { href: "/legal/confidentialite", key: "privacy" },
   { href: "/legal/cookies", key: "cookies" },
   { href: "/legal/retractation", key: "returns" },
+  { href: "/legal/signalement", key: "dsaReport" },
+  { href: "/legal/transparence", key: "transparency" },
   { href: "/contact", key: "contact" },
 ] as const
 

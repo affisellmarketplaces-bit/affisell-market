@@ -2,6 +2,7 @@ import { z } from "zod"
 
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 import { autoFixProduct } from "@/lib/legal/auto-fix"
+import { createProof } from "@/lib/legal/proof"
 import type { LegalIssue } from "@/lib/legal/scan-types"
 import { prisma } from "@/lib/prisma"
 
@@ -156,6 +157,17 @@ export async function PATCH(req: Request) {
           appliedBy: adminId,
         },
       })
+    })
+
+    await createProof({
+      productId: product.id,
+      action: "fix",
+      payload: {
+        scanId: scan.id,
+        appliedBy: adminId,
+        changes: fixed.changes,
+        appliedAt: new Date().toISOString(),
+      },
     })
 
     console.log("[legal:fix]", {

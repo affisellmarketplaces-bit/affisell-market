@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
+import { createProof } from "@/lib/legal/proof"
 import {
   primaryIssueMessage,
   scanProductsBatch,
@@ -104,6 +105,7 @@ export async function runLegalGuardianScan(options?: {
         isOnSale: true,
         supplierTag: true,
         listingKind: true,
+        images: true,
       },
     }),
     prisma.user.findMany({
@@ -141,6 +143,7 @@ export async function runLegalGuardianScan(options?: {
     isOnSale: p.isOnSale,
     supplierTag: p.supplierTag,
     listingKind: p.listingKind,
+    images: p.images,
   }))
 
   const supplierInputs: LegalSupplierScanInput[] = suppliers.map((s) => ({
@@ -175,6 +178,25 @@ export async function runLegalGuardianScan(options?: {
       dryRun,
     })
     if (persisted) scansWritten += 1
+
+    if (!dryRun && scan.riskScore >= LEGAL_GUARDIAN_ALERT_THRESHOLD) {
+      await createProof({
+        productId: product.id,
+        action: "scan",
+        payload: {
+          scanId: persisted?.id,
+          riskScore: scan.riskScore,
+          issues: scan.issues,
+          scannedAt: new Date().toISOString(),
+        },
+      }).catch((error) => {
+        console.error("[legal:guardian]", {
+          result: "proof_failed",
+          productId: product.id,
+          error: error instanceof Error ? error.message : String(error),
+        })
+      })
+    }
 
     if (scan.riskScore > LEGAL_GUARDIAN_ALERT_THRESHOLD) {
       const primary = scan.issues[0]

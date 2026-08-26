@@ -3827,6 +3827,8 @@
       "privacy": "Privacy",
       "cookies": "Cookies",
       "returns": "Returns",
+      "dsaReport": "DSA report",
+      "transparency": "Transparency",
       "contact": "Contact"
     },
     "signupConsent": {

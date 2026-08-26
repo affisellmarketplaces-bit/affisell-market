@@ -1,5 +1,6 @@
 import { hasOpenAiFallback, openaiChatText } from "@/lib/ai/openai-chat-fallback"
 import { AFFISELL_LEGAL_SYSTEM_PROMPT, LEGAL_AI_MODEL } from "@/lib/legal/brain"
+import { checkImageTrademark } from "@/lib/legal/vision"
 import type { LegalIssue, LegalIssueSeverity } from "@/lib/legal/scan-types"
 
 export type { LegalIssue, LegalIssueSeverity } from "@/lib/legal/scan-types"
@@ -20,6 +21,7 @@ export type LegalProductScanInput = {
   isOnSale?: boolean
   supplierTag?: string | null
   listingKind?: string
+  images?: string[]
 }
 
 export type LegalSupplierScanInput = {
@@ -275,11 +277,29 @@ function mergeScanResults(ruleIssues: LegalIssue[], ai?: LegalScanResult): Legal
   return { riskScore, issues }
 }
 
+async function checkProductImageTrademark(product: LegalProductScanInput): Promise<LegalIssue[]> {
+  const imageUrl = product.images?.[0]?.trim()
+  if (!imageUrl || !hasOpenAiFallback()) return []
+
+  const result = await checkImageTrademark(imageUrl)
+  if (!result.hasTrademark || result.risk !== "high") return []
+
+  const brands = result.brands.length > 0 ? result.brands.join(", ") : "marque déposée"
+  return [
+    {
+      code: "CONTREFACON",
+      severity: "critical",
+      message: `Logo/marque détecté(s) sur l'image produit (${brands}, confiance ${result.confidence}%) — risque contrefaçon visuelle`,
+    },
+  ]
+}
+
 export async function scanProduct(product: LegalProductScanInput): Promise<LegalScanResult> {
   const text = corpusFromProduct(product)
   const ruleIssues = dedupeIssues([
     ...runRuleChecksOnText(text),
     ...checkCompareAtAbuse(product),
+    ...(await checkProductImageTrademark(product)),
   ])
 
   if (KNOWN_BRANDS.test(text)) {
@@ -327,6 +347,8 @@ export async function scanProductsBatch(products: LegalProductScanInput[]): Prom
         message: `Marque tierce détectée dans « ${product.name} » — vérifier autorisation`,
       })
     }
+    const visionIssues = await checkProductImageTrademark(product)
+    ruleIssues.push(...visionIssues)
     results.set(product.id, { riskScore: scoreFromIssues(ruleIssues), issues: ruleIssues })
   }
 

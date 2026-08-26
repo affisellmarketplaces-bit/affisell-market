@@ -15,9 +15,15 @@ import {
   Wrench,
   X,
   FolderOpen,
+  ShieldCheck,
+  AlertTriangle,
+  PackageX,
 } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
+import { DsaReportsPanel } from "@/components/admin/dsa-reports-panel"
+import { GpsrRecallsPanel } from "@/components/admin/gpsr-recalls-panel"
+import { KycPanel } from "@/components/admin/kyc-panel"
 import { buttonVariants } from "@/components/ui/button"
 import { countAutoFixableScans, isAutoFixableProductScan } from "@/lib/legal/auto-fix"
 import { LEGAL_MASTERS, type LegalAnalyzeType, type LegalMasterDomain } from "@/lib/legal/brain"
@@ -44,7 +50,7 @@ const MASTER_GLOW: Record<LegalMasterDomain, string> = {
   litigation: "shadow-[0_0_40px_-12px_rgba(168,85,247,0.35)]",
 }
 
-type TabId = "doctrine" | "scans" | "documents"
+type TabId = "doctrine" | "scans" | "documents" | "dsa" | "kyc" | "recalls"
 
 type Props = {
   openAiConfigured: boolean
@@ -429,6 +435,42 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
               <FolderOpen className="size-4" aria-hidden />
               Documents
             </Link>
+            <button
+              type="button"
+              className={cn(
+                buttonVariants({ variant: tab === "dsa" ? "default" : "outline", size: "sm" }),
+                tab === "dsa" && "bg-amber-700 hover:bg-amber-600",
+                tab !== "dsa" && "border-zinc-700 bg-zinc-950/50"
+              )}
+              onClick={() => setTab("dsa")}
+            >
+              <AlertTriangle className="mr-1.5 size-4" aria-hidden />
+              Signalements DSA
+            </button>
+            <button
+              type="button"
+              className={cn(
+                buttonVariants({ variant: tab === "kyc" ? "default" : "outline", size: "sm" }),
+                tab === "kyc" && "bg-amber-700 hover:bg-amber-600",
+                tab !== "kyc" && "border-zinc-700 bg-zinc-950/50"
+              )}
+              onClick={() => setTab("kyc")}
+            >
+              <ShieldCheck className="mr-1.5 size-4" aria-hidden />
+              KYC
+            </button>
+            <button
+              type="button"
+              className={cn(
+                buttonVariants({ variant: tab === "recalls" ? "default" : "outline", size: "sm" }),
+                tab === "recalls" && "bg-amber-700 hover:bg-amber-600",
+                tab !== "recalls" && "border-zinc-700 bg-zinc-950/50"
+              )}
+              onClick={() => setTab("recalls")}
+            >
+              <PackageX className="mr-1.5 size-4" aria-hidden />
+              Rappels GPSR
+            </button>
           </div>
 
           {error ? (
@@ -572,7 +614,9 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                 </BentoCard>
               )}
             </>
-          ) : (
+          ) : null}
+
+          {tab === "scans" ? (
             <BentoCard className="border-amber-500/20 bg-zinc-950/90 p-5 backdrop-blur-xl">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -748,7 +792,11 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                 )}
               </div>
             </BentoCard>
-          )}
+          ) : null}
+
+          {tab === "dsa" ? <DsaReportsPanel /> : null}
+          {tab === "kyc" ? <KycPanel /> : null}
+          {tab === "recalls" ? <GpsrRecallsPanel /> : null}
         </BentoContainer>
       </BentoShell>
 
