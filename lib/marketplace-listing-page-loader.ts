@@ -4,9 +4,13 @@ import { ensureGhostStockSchema } from "@/lib/ghost/ensure-stock-schema"
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { looksLikeAffiliateListingId } from "@/lib/listing-public-url-shared"
 import { loadListingSocialProofCached } from "@/lib/marketplace-listing-social-proof"
-import { isPrismaMissingColumnError } from "@/lib/prisma-missing-column"
+import {
+  isPrismaMissingColumnError,
+  isPrismaSchemaOrColumnError,
+} from "@/lib/prisma-missing-column"
 import { prisma } from "@/lib/prisma"
 import { shopTag } from "@/lib/shop-storefront-cache"
+import { ensureShippingCarrierSchema } from "@/lib/shipping/ensure-shipping-carrier-schema"
 
 const LISTING_REVALIDATE_SEC = 60
 
@@ -119,6 +123,45 @@ export const listingDetailSelect = {
   },
 } as const
 
+function omitProductShippingCarrierIds<T extends Record<string, unknown>>(
+  select: T
+): Omit<T, "shippingCarrierIds"> {
+  const { shippingCarrierIds: _ignored, ...rest } = select
+  return rest
+}
+
+const listingDetailProductSelectWithoutCarriers = omitProductShippingCarrierIds(
+  listingDetailSelect.product.select
+)
+
+const listingDetailSelectWithoutCarriers = {
+  ...listingDetailSelect,
+  product: { select: listingDetailProductSelectWithoutCarriers },
+} as const
+
+const listingDetailSelectWithTrustWithoutCarriers = {
+  ...listingDetailSelect,
+  product: {
+    select: {
+      ...listingDetailProductSelectWithoutCarriers,
+      supplier: {
+        select: {
+          name: true,
+          isVerifiedSupplier: true,
+          supplierTrustTier: true,
+          store: { select: { name: true } },
+          merchantLegalProfile: {
+            select: {
+              tradeName: true,
+              legalEntityName: true,
+            },
+          },
+        },
+      },
+    },
+  },
+} as const
+
 const listingDetailSelectWithTrust = {
   ...listingDetailSelect,
   product: {
@@ -169,7 +212,6 @@ const listingDetailProductSelectWithoutGhost = {
   warehouseType: true,
   warehouseCity: true,
   shippingCountry: true,
-  shippingCarrierIds: true,
   shippingMethods: true,
   deliveryCountryCodes: true,
   shipsFrom: true,
@@ -240,8 +282,13 @@ function isListingOptionalColumnError(error: unknown): boolean {
   return (
     isPrismaMissingColumnError(error, "supplierTrustTier") ||
     isPrismaMissingColumnError(error, "lastStockCheck") ||
-    isPrismaMissingColumnError(error, "lastStockStatus")
+    isPrismaMissingColumnError(error, "lastStockStatus") ||
+    isPrismaSchemaOrColumnError(error, "shippingCarrierIds")
   )
+}
+
+function isShippingCarrierColumnError(error: unknown): boolean {
+  return isPrismaSchemaOrColumnError(error, "shippingCarrierIds")
 }
 
 function isGhostStockColumnError(error: unknown): boolean {
@@ -300,15 +347,20 @@ function normalizeListingDetailRow(row: {
   product: Record<string, unknown> & {
     lastStockCheck?: Date | null
     lastStockStatus?: string | null
+    shippingCarrierIds?: string[]
     supplier: { name: string | null; isVerifiedSupplier: boolean }
   }
 }): ListingDetailRowBase {
+  const carrierIds = Array.isArray(row.product.shippingCarrierIds)
+    ? row.product.shippingCarrierIds.filter((x): x is string => typeof x === "string")
+    : []
   return {
     ...row,
     product: {
       ...row.product,
       lastStockCheck: row.product.lastStockCheck ?? null,
       lastStockStatus: row.product.lastStockStatus ?? null,
+      shippingCarrierIds: carrierIds,
     },
   } as ListingDetailRowBase
 }
@@ -328,8 +380,8 @@ async function findListingDetailRow(where: ListingWhere): Promise<ListingDetailR
     supplierTrustTier: string
   ): ListingDetailRow => withTrustTier(row, supplierTrustTier)
 
-  // Heal Ghost columns before first select — avoids a hard P2022 on cold prod.
-  await ensureGhostStockSchema()
+  // Heal Ghost + shipping-carrier columns before first select — avoids hard P2022 on cold prod.
+  await Promise.all([ensureGhostStockSchema(), ensureShippingCarrierSchema()])
 
   try {
     const row = await prisma.affiliateProduct.findFirst({
@@ -344,6 +396,25 @@ async function findListingDetailRow(where: ListingWhere): Promise<ListingDetailR
         : "NONE"
     return finish(normalizeListingDetailRow(row as ListingDetailRowBase), tier)
   } catch (error: unknown) {
+    if (isShippingCarrierColumnError(error)) {
+      await ensureShippingCarrierSchema({ force: true })
+      try {
+        const row = await prisma.affiliateProduct.findFirst({
+          where: whereClause,
+          select: listingDetailSelectWithTrustWithoutCarriers,
+        })
+        if (!row?.product) return null
+        const tier =
+          "supplierTrustTier" in row.product.supplier &&
+          typeof row.product.supplier.supplierTrustTier === "string"
+            ? row.product.supplier.supplierTrustTier
+            : "NONE"
+        console.log("[marketplace-listing]", { result: "carrier_select_fallback" })
+        return finish(normalizeListingDetailRow(row as ListingDetailRowBase), tier)
+      } catch (carrierFallbackError: unknown) {
+        if (!isListingOptionalColumnError(carrierFallbackError)) throw carrierFallbackError
+      }
+    }
     if (!isListingOptionalColumnError(error)) throw error
     if (isGhostStockColumnError(error)) {
       await ensureGhostStockSchema()
@@ -377,6 +448,15 @@ async function findListingDetailRow(where: ListingWhere): Promise<ListingDetailR
     if (!row?.product) return null
     return finish(normalizeListingDetailRow(row), "NONE")
   } catch (error: unknown) {
+    if (isShippingCarrierColumnError(error)) {
+      const row = await prisma.affiliateProduct.findFirst({
+        where: whereClause,
+        select: listingDetailSelectWithoutCarriers,
+      })
+      if (!row?.product) return null
+      console.log("[marketplace-listing]", { result: "carrier_select_fallback_legacy" })
+      return finish(normalizeListingDetailRow(row), "NONE")
+    }
     if (!isGhostStockColumnError(error)) throw error
     console.log("[marketplace-listing]", {
       result: "legacy_select_without_ghost",

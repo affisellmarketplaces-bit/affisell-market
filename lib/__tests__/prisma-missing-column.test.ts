@@ -16,3 +16,13 @@ describe("isPrismaMissingColumnError", () => {
     expect(isPrismaMissingColumnError(new Error("timeout"), "supplierTrustTier")).toBe(false)
   })
 })
+
+describe("isPrismaUnknownFieldError", () => {
+  it("matches unknown select field", async () => {
+    const { isPrismaUnknownFieldError } = await import("@/lib/prisma-missing-column")
+    const err = new Error(
+      "Unknown field `shippingCarrierIds` for select statement on model `Product`."
+    )
+    expect(isPrismaUnknownFieldError(err, "shippingCarrierIds")).toBe(true)
+  })
+})

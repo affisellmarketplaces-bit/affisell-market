@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client"
 
 import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
+import { isPrismaSchemaOrColumnError } from "@/lib/prisma-missing-column"
 import {
   filterProductsForSupplier,
   requireMerchantUserId,
@@ -64,6 +65,12 @@ const PRODUCT_SCALAR_SELECT_NO_ISDRAFT = {
   reviewSentiment: true,
 } as const satisfies Prisma.ProductSelect
 
+/** Omit shippingCarrierIds when column/client drift. */
+const PRODUCT_SCALAR_SELECT_LEGACY = (() => {
+  const { shippingCarrierIds: _c, ...rest } = PRODUCT_SCALAR_SELECT_NO_ISDRAFT
+  return rest
+})() satisfies Prisma.ProductSelect
+
 const PRODUCT_SCALAR_SELECT_WITH_ISDRAFT = {
   ...PRODUCT_SCALAR_SELECT_NO_ISDRAFT,
   isDraft: true,
@@ -121,6 +128,15 @@ export function isDraftSchemaOrDbError(error: unknown): boolean {
     /isDraft/i.test(msg)
 
   return Boolean(unknownSelect || unknownArg || columnMissing || p2022)
+}
+
+function withDefaultShippingCarriers<T extends Record<string, unknown>>(row: T): T & {
+  shippingCarrierIds: string[]
+} {
+  const ids = Array.isArray(row.shippingCarrierIds)
+    ? row.shippingCarrierIds.filter((x): x is string => typeof x === "string")
+    : []
+  return { ...row, shippingCarrierIds: ids }
 }
 
 export type SupplierDashboardCatalogProduct = Omit<
@@ -184,6 +200,16 @@ export async function findSupplierProductsForOwnerApi(supplierUserId: string) {
     })
     return filterProductsForSupplier(rows, supplierId).map(serializeProductDecimalFields)
   } catch (e: unknown) {
+    if (isPrismaSchemaOrColumnError(e, "shippingCarrierIds")) {
+      const rows = await prisma.product.findMany({
+        where,
+        orderBy: { name: "asc" },
+        select: { ...PRODUCT_SCALAR_SELECT_LEGACY, isDraft: true },
+      })
+      return filterProductsForSupplier(rows, supplierId).map((r) =>
+        serializeProductDecimalFields(withDefaultShippingCarriers(r))
+      )
+    }
     if (!isDraftSchemaOrDbError(e)) throw e
     const rows = await prisma.product.findMany({
       where,
@@ -191,7 +217,7 @@ export async function findSupplierProductsForOwnerApi(supplierUserId: string) {
       select: PRODUCT_SCALAR_SELECT_NO_ISDRAFT,
     })
     return filterProductsForSupplier(rows, supplierId).map((r) =>
-      serializeProductDecimalFields({ ...r, isDraft: false })
+      serializeProductDecimalFields(withDefaultShippingCarriers({ ...r, isDraft: false }))
     )
   }
 }
@@ -207,6 +233,18 @@ export async function findSupplierProductWithAttributesForOwner(id: string, supp
     })
     return row === null ? null : serializeProductDecimalFields(row)
   } catch (e: unknown) {
+    if (isPrismaSchemaOrColumnError(e, "shippingCarrierIds")) {
+      const row = await prisma.product.findFirst({
+        where: { id, supplierId },
+        select: {
+          ...PRODUCT_SCALAR_SELECT_LEGACY,
+          attributes: { orderBy: { key: "asc" } },
+        },
+      })
+      return row === null
+        ? null
+        : serializeProductDecimalFields(withDefaultShippingCarriers({ ...row, isDraft: false }))
+    }
     if (!isDraftSchemaOrDbError(e)) throw e
     const row = await prisma.product.findFirst({
       where: { id, supplierId },
@@ -215,7 +253,9 @@ export async function findSupplierProductWithAttributesForOwner(id: string, supp
         attributes: { orderBy: { key: "asc" } },
       },
     })
-    return row === null ? null : serializeProductDecimalFields({ ...row, isDraft: false })
+    return row === null
+      ? null
+      : serializeProductDecimalFields(withDefaultShippingCarriers({ ...row, isDraft: false }))
   }
 }
 

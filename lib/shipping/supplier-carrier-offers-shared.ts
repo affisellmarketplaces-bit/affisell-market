@@ -26,11 +26,13 @@ export type ResolveSupplierCarrierOffersInput = {
   shippingMethods?: string[]
 }
 
-const SLOT_LABELS: Record<SupplierCarrierOfferSlot, keyof RecommendedCarriers> = {
-  fastest: "fastest",
-  balanced: "balanced",
-  cheapest: "cheapest",
-}
+const slotCarriers = (
+  ranked: RecommendedCarriers
+): Record<SupplierCarrierOfferSlot, Carrier | null> => ({
+  fastest: ranked.fastest,
+  balanced: ranked.balanced,
+  cheapest: ranked.cheapest,
+})
 
 export function parseShippingCarrierIds(raw: unknown): string[] {
   if (!Array.isArray(raw)) return []
@@ -147,13 +149,13 @@ export function resolveSupplierCarrierOffers(
   if (pool.length === 0) return []
 
   const ranked = rankPool(pool)
+  const bySlot = slotCarriers(ranked)
   const slots: SupplierCarrierOfferSlot[] = ["fastest", "balanced", "cheapest"]
   const used = new Set<string>()
   const offers: SupplierCarrierOffer[] = []
 
   for (const slot of slots) {
-    const key = SLOT_LABELS[slot]
-    const carrier = ranked[key]
+    const carrier = bySlot[slot]
     if (!carrier || used.has(carrier.id)) continue
     used.add(carrier.id)
     const window = displayDeliveryWindow(carrier, input.deliveryMin, input.deliveryMax)

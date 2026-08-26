@@ -40,3 +40,20 @@ export function isPrismaMissingColumnError(
   if (col?.includes(column)) return true
   return prismaErrorMessage(error).includes(column)
 }
+
+/** Stale Prisma client or schema drift — field absent from generated client DMMF. */
+export function isPrismaUnknownFieldError(error: unknown, field: string): boolean {
+  const msg = prismaErrorMessage(error)
+  const escaped = field.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  return new RegExp(`Unknown field\\s+\`?${escaped}\`?\\s+for\\s+select`, "i").test(msg)
+}
+
+/** Client validation or DB column missing for a Product scalar. */
+export function isPrismaSchemaOrColumnError(error: unknown, field: string): boolean {
+  return (
+    isPrismaMissingColumnError(error, field) ||
+    isPrismaUnknownFieldError(error, field) ||
+    (prismaErrorMessage(error).includes(field) &&
+      /does not exist|P2022|Unknown field/i.test(prismaErrorMessage(error)))
+  )
+}
