@@ -17,6 +17,7 @@ import {
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { buttonVariants } from "@/components/ui/button"
 import type { IngAnalyzeResult, IngChatPlan, IngTask } from "@/lib/ai-engineer/types"
+import { formatIngObservedAt } from "@/lib/ai-engineer/format-observed-at"
 import { cn } from "@/lib/utils"
 
 const TYPE_STYLE: Record<
@@ -53,9 +54,11 @@ export function IngAdminPanel({ initialAnalyze = null, bootstrapError = null }: 
   const [chatInput, setChatInput] = useState("")
   const [chatLoading, setChatLoading] = useState(false)
   const [chatReply, setChatReply] = useState<IngChatPlan | null>(null)
-  const [pulse, setPulse] = useState(true)
+  const [pulse, setPulse] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const id = window.setInterval(() => setPulse((p) => !p), 1800)
     return () => window.clearInterval(id)
   }, [])
@@ -174,7 +177,7 @@ export function IngAdminPanel({ initialAnalyze = null, bootstrapError = null }: 
             <div
               className={cn(
                 "flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-950/40 px-3 py-1.5 text-xs font-medium text-violet-200 backdrop-blur-md",
-                pulse && "ring-2 ring-violet-400/20"
+                mounted && pulse && "ring-2 ring-violet-400/20"
               )}
             >
               <span className="relative flex size-2">
@@ -229,7 +232,7 @@ export function IngAdminPanel({ initialAnalyze = null, bootstrapError = null }: 
                   {loading
                     ? "Ing parse les logs dev + snapshot DB fulfillment…"
                     : analyze
-                      ? `${analyze.logLinesScanned} lignes · ${analyze.tasks.length} signal(s) · ${new Date(analyze.observedAt).toLocaleTimeString()}`
+                      ? `${analyze.logLinesScanned} lignes · ${analyze.tasks.length} signal(s) · ${formatIngObservedAt(analyze.observedAt)}`
                       : "En attente du premier scan"}
                 </p>
               </div>
