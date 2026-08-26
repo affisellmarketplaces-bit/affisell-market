@@ -73,13 +73,24 @@ export class IngCoder {
         dryRun,
         sent: nudge.sent,
         supplierCount,
+        skipped48h: nudge.skipped48h,
       })
+
+      let change: string
+      if (dryRun) {
+        change = `dry-run — ${supplierCount} suppliers, ${nudge.groupsCount} groups, ${nudge.skipped48h} skipped 48h`
+      } else if (nudge.sent > 0) {
+        change = `sent ${nudge.sent} nudges (${nudge.nudgeLogsWritten} logged), ${nudge.skipped48h} skipped 48h`
+      } else if (nudge.skipped48h > 0) {
+        change = `0 sent — ${nudge.skipped48h} supplier(s) déjà nudgés <48h (anti-spam). ${nudge.groupsCount} groups manual restants.`
+      } else {
+        change = `0 sent — aucun supplier éligible (${nudge.groupsCount} groups manual)`
+      }
+
       return [
         {
           file: "app/api/cron/ing-manual-nudge/route.ts",
-          change: dryRun
-            ? `dry-run — ${supplierCount} suppliers, ${nudge.groupsCount} groups`
-            : `sent ${nudge.sent} nudges (${nudge.nudgeLogsWritten} logged)`,
+          change,
           reason: task.description,
           test: "curl -s 'http://localhost:3001/api/cron/ing-manual-nudge?dry=1'",
         },

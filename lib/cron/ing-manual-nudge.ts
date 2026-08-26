@@ -14,6 +14,7 @@ export type RunIngManualNudgeCronResult = {
   suppliers: ManualSupplierNudgeCandidate[] | number
   sent: number
   skipped: number
+  skipped48h: number
   nudgeLogsWritten: number
   resendConfigured: boolean
   errors: string[]
@@ -31,14 +32,18 @@ export async function runIngManualNudgeCron(options?: {
 
   console.log("[cron:ing-manual-nudge]", { result: "start", dryRun, resendConfigured })
 
-  const { groupsCount, candidates } = await loadManualSupplierNudgeCandidates(fulfillmentPrisma, {
-    enforceCooldown: true,
-  })
+  const [allEligible, cooled] = await Promise.all([
+    loadManualSupplierNudgeCandidates(fulfillmentPrisma, { enforceCooldown: false }),
+    loadManualSupplierNudgeCandidates(fulfillmentPrisma, { enforceCooldown: true }),
+  ])
+  const skipped48h = Math.max(0, allEligible.candidates.length - cooled.candidates.length)
+  const { groupsCount, candidates } = cooled
 
   console.log("[cron:ing-manual-nudge]", {
     result: "candidates_ready",
     groupsCount,
     suppliers: candidates.length,
+    skipped48h,
     dryRun,
   })
 
@@ -49,6 +54,7 @@ export async function runIngManualNudgeCron(options?: {
       suppliers: dryRun ? [] : 0,
       sent: 0,
       skipped: 0,
+      skipped48h,
       nudgeLogsWritten: 0,
       resendConfigured,
       errors: [],
@@ -62,6 +68,7 @@ export async function runIngManualNudgeCron(options?: {
       suppliers: candidates,
       sent: 0,
       skipped: 0,
+      skipped48h,
       nudgeLogsWritten: 0,
       resendConfigured,
       errors: [],
@@ -119,6 +126,7 @@ export async function runIngManualNudgeCron(options?: {
     suppliers: candidates.length,
     sent,
     skipped,
+    skipped48h,
     nudgeLogsWritten,
   })
 
@@ -128,6 +136,7 @@ export async function runIngManualNudgeCron(options?: {
     suppliers: candidates.length,
     sent,
     skipped,
+    skipped48h,
     nudgeLogsWritten,
     resendConfigured,
     errors,
