@@ -16,7 +16,7 @@ import {
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { buttonVariants } from "@/components/ui/button"
-import type { IngAnalyzeResult, IngChatPlan, IngTask } from "@/lib/ai-engineer/types"
+import type { IngAnalyzeResult, IngChatPlan, IngAction, IngTask } from "@/lib/ai-engineer/types"
 import { formatIngObservedAt } from "@/lib/ai-engineer/format-observed-at"
 import { cn } from "@/lib/utils"
 
@@ -108,6 +108,7 @@ export function IngAdminPanel({ initialAnalyze = null, bootstrapError = null }: 
       const data = (await res.json()) as {
         error?: string
         shipped?: { commit: string | null; push: boolean }
+        actions?: IngAction[]
       }
       if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`)
       await load()
@@ -115,8 +116,20 @@ export function IngAdminPanel({ initialAnalyze = null, bootstrapError = null }: 
         setChatReply({
           summary: dryRun ? "Dry-run complete" : "Shipped by Ing",
           tasks: [task],
-          actions: [],
+          actions: data.actions ?? [],
           reply: `Commit \`${data.shipped.commit}\`${data.shipped.push ? " · pushed" : ""}`,
+        })
+      } else if (data.actions?.length) {
+        const opsLine = data.actions.map((a) => `${a.change}`).join(" · ")
+        const manualNote =
+          task.id === "manual_required_flood"
+            ? "\n\nLe signal reste affiché tant que des FulfillmentGroups sont en manual_required (suppliers doivent connecter Shopify/Woo). Le nudge accélère la réponse, il ne vide pas la file."
+            : ""
+        setChatReply({
+          summary: task.id === "manual_required_flood" ? "Supplier nudge exécuté" : "Fix Ing appliqué",
+          tasks: [task],
+          actions: data.actions,
+          reply: `${opsLine}${manualNote}`,
         })
       }
     } catch (e) {
