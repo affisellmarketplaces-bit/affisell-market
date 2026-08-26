@@ -258,7 +258,7 @@ export class ShopifyIntegrationProvider implements IntegrationProviderAdapter {
 
   verifyWebhook(headers: Headers, rawBody: string, secret: string) {
     const hmac = headers.get("x-shopify-hmac-sha256")
-    if (!hmac || !verifyShopifyHmac(rawBody, hmac, secret)) {
+    if (!verifyShopifyHmac({ secret, rawBody, hmacHeader: hmac })) {
       return { ok: false as const, error: "Invalid HMAC" }
     }
     return { ok: true as const }

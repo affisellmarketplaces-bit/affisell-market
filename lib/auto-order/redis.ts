@@ -1,3 +1,4 @@
+import type { ConnectionOptions } from "bullmq"
 import IORedis from "ioredis"
 
 let sharedConnection: IORedis | null = null
@@ -66,6 +67,15 @@ export function getRedisConnection(): IORedis {
     attachRedisErrorHandler(sharedConnection)
   }
   return sharedConnection
+}
+
+/** BullMQ connection — cast bridges duplicate ioredis versions in the dependency tree. */
+export function getBullMqConnection(): ConnectionOptions {
+  return getRedisConnection() as unknown as ConnectionOptions
+}
+
+export function createBullMqConnection(): ConnectionOptions {
+  return createRedisConnection() as unknown as ConnectionOptions
 }
 
 /** Fresh connection for BullMQ workers (blocking commands). */

@@ -4,12 +4,11 @@ import { parseShopifyIntegrationConfig } from "@/lib/supplier-integration-config
 import { encrypt, hasEncryptionKey } from "@/lib/encryption"
 import type { ShopifyCredentials, SupplierIntegrationRow } from "@/lib/supplier-sync/types"
 
-export function resolveShopifyCredentials(
-  integration: Pick<
-    SupplierIntegrationRow,
-    "config" | "shopDomain" | "accessTokenEncrypted"
-  >
-): ShopifyCredentials | null {
+export function resolveShopifyCredentials(integration: {
+  config: SupplierIntegrationRow["config"] | unknown
+  shopDomain: string | null
+  accessTokenEncrypted: string | null
+}): ShopifyCredentials | null {
   return parseShopifyIntegrationConfig(integration.config, {
     shopDomain: integration.shopDomain,
     accessTokenEncrypted: integration.accessTokenEncrypted,

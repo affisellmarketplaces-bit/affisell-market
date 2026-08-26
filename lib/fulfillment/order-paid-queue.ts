@@ -1,7 +1,11 @@
 import { Job, Queue, Worker, type JobsOptions } from "bullmq"
 
 import { fulfillAffisellOrderWithAliExpress } from "@/lib/aliexpress-fulfill-order"
-import { createRedisConnection, getRedisConnection, isAutoOrderQueueEnabled } from "@/lib/auto-order/redis"
+import {
+  createBullMqConnection,
+  getBullMqConnection,
+  isAutoOrderQueueEnabled,
+} from "@/lib/auto-order/redis"
 
 /** BullMQ / Inngest event name for paid → AE DS place. */
 export const ORDER_PAID_QUEUE = "order-paid"
@@ -29,7 +33,7 @@ function defaultJobOptions(delayMs?: number): JobsOptions {
 export function getOrderPaidQueue(): Queue<OrderPaidJobData> {
   if (!queue) {
     queue = new Queue<OrderPaidJobData>(ORDER_PAID_QUEUE, {
-      connection: getRedisConnection(),
+      connection: getBullMqConnection(),
       defaultJobOptions: defaultJobOptions(),
     })
   }
@@ -111,7 +115,7 @@ export function createOrderPaidWorker(): Worker<OrderPaidJobData> {
       })
     },
     {
-      connection: createRedisConnection(),
+      connection: createBullMqConnection(),
       concurrency,
     }
   )

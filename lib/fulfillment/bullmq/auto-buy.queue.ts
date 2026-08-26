@@ -1,7 +1,11 @@
 import { Job, Queue, Worker, type JobsOptions } from "bullmq"
 
 import { processAutoBuyFulfillmentLog } from "@/lib/fulfillment/auto-buy"
-import { createRedisConnection, getRedisConnection, isAutoOrderQueueEnabled } from "@/lib/auto-order/redis"
+import {
+  createBullMqConnection,
+  getBullMqConnection,
+  isAutoOrderQueueEnabled,
+} from "@/lib/auto-order/redis"
 
 export const AUTO_BUY_QUEUE = "auto-buy"
 
@@ -27,7 +31,7 @@ function defaultJobOptions(delayMs?: number): JobsOptions {
 export function getAutoBuyQueue(): Queue<AutoBuyJobData> {
   if (!queue) {
     queue = new Queue<AutoBuyJobData>(AUTO_BUY_QUEUE, {
-      connection: getRedisConnection(),
+      connection: getBullMqConnection(),
       defaultJobOptions: defaultJobOptions(),
     })
   }
@@ -80,7 +84,7 @@ export function createAutoBuyWorker(): Worker<AutoBuyJobData> {
       await processAutoBuyFulfillmentLog(job.data.fulfillmentLogId)
     },
     {
-      connection: createRedisConnection(),
+      connection: createBullMqConnection(),
       concurrency,
     }
   )

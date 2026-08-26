@@ -56,19 +56,28 @@ function isTransientDbError(err: unknown): boolean {
   return err.code === "P1001" || err.code === "P1002" || err.code === "P1017"
 }
 
+function loadLiveIntegrations(userId: string): Promise<SupplierIntegrationRow[]> {
+  return prisma.supplierIntegration.findMany({
+    where: { userId },
+    orderBy: { updatedAt: "desc" },
+    select: LIVE_SELECT,
+  })
+}
+
+function loadLegacyIntegrations(userId: string): Promise<SupplierIntegrationRow[]> {
+  return prisma.supplierIntegration.findMany({
+    where: { userId },
+    orderBy: { updatedAt: "desc" },
+    select: LEGACY_SELECT,
+  }) as Promise<SupplierIntegrationRow[]>
+}
+
 /** Resilient integrations load — legacy schema fallback + one retry on Neon blips. */
 export async function loadSupplierIntegrationsForUser(
   userId: string
 ): Promise<{ rows: SupplierIntegrationRow[]; schemaMode: "live" | "legacy" }> {
-  const run = (select: typeof LIVE_SELECT | typeof LEGACY_SELECT) =>
-    prisma.supplierIntegration.findMany({
-      where: { userId },
-      orderBy: { updatedAt: "desc" },
-      select,
-    })
-
   try {
-    const rows = await run(LIVE_SELECT)
+    const rows = await loadLiveIntegrations(userId)
     return { rows, schemaMode: "live" }
   } catch (first) {
     if (isSchemaDriftError(first)) {
@@ -77,18 +86,18 @@ export async function loadSupplierIntegrationsForUser(
         result: "legacy_schema_fallback",
         hint: "npx prisma migrate deploy",
       })
-      const rows = (await run(LEGACY_SELECT)) as SupplierIntegrationRow[]
+      const rows = await loadLegacyIntegrations(userId)
       return { rows, schemaMode: "legacy" }
     }
 
     if (isTransientDbError(first)) {
       await new Promise((r) => setTimeout(r, 120))
       try {
-        const rows = await run(LIVE_SELECT)
+        const rows = await loadLiveIntegrations(userId)
         return { rows, schemaMode: "live" }
       } catch (retry) {
         if (isSchemaDriftError(retry)) {
-          const rows = (await run(LEGACY_SELECT)) as SupplierIntegrationRow[]
+          const rows = await loadLegacyIntegrations(userId)
           return { rows, schemaMode: "legacy" }
         }
         throw retry

@@ -8,7 +8,7 @@ import {
 } from "@/lib/auto-order/bullmq/names"
 import type { PlaceSupplierOrderJobData } from "@/lib/auto-order/bullmq/place-order.types"
 import { processPlaceSupplierOrderJob } from "@/lib/auto-order/bullmq/place-order.processor"
-import { createRedisConnection, getRedisConnection, isAutoOrderQueueEnabled } from "@/lib/auto-order/redis"
+import { createBullMqConnection, getBullMqConnection, isAutoOrderQueueEnabled } from "@/lib/auto-order/redis"
 import { logAutoOrder } from "@/lib/auto-order/telemetry"
 
 const PLACE_ORDER_ATTEMPTS = 6
@@ -34,7 +34,7 @@ export function placeOrderQueue(): Queue<PlaceSupplierOrderJobData> {
 export function getPlaceSupplierOrderQueue(): Queue<PlaceSupplierOrderJobData> {
   if (!placeQueue) {
     placeQueue = new Queue<PlaceSupplierOrderJobData>(PLACE_SUPPLIER_ORDER_QUEUE, {
-      connection: getRedisConnection(),
+      connection: getBullMqConnection(),
       defaultJobOptions: defaultJobOptions(),
     })
   }
@@ -44,7 +44,7 @@ export function getPlaceSupplierOrderQueue(): Queue<PlaceSupplierOrderJobData> {
 export function getPlaceSupplierOrderDlq(): Queue<PlaceSupplierOrderJobData> {
   if (!dlqQueue) {
     dlqQueue = new Queue<PlaceSupplierOrderJobData>(PLACE_SUPPLIER_ORDER_DLQ, {
-      connection: getRedisConnection(),
+      connection: getBullMqConnection(),
       defaultJobOptions: { removeOnComplete: false, removeOnFail: false },
     })
   }
@@ -90,7 +90,7 @@ async function moveJobToDlq(job: Job<PlaceSupplierOrderJobData>, reason: string)
 }
 
 export function createPlaceSupplierOrderWorker(): Worker<PlaceSupplierOrderJobData> {
-  const connection = createRedisConnection()
+  const connection = createBullMqConnection()
   const worker = new Worker<PlaceSupplierOrderJobData>(
     PLACE_SUPPLIER_ORDER_QUEUE,
     async (job) => {
@@ -121,7 +121,7 @@ let batchQueue: Queue<BatchFulfillJobData> | null = null
 export function getBatchFulfillQueue(): Queue<BatchFulfillJobData> {
   if (!batchQueue) {
     batchQueue = new Queue<BatchFulfillJobData>(BATCH_FULFILL_QUEUE, {
-      connection: getRedisConnection(),
+      connection: getBullMqConnection(),
       defaultJobOptions: {
         attempts: 4,
         backoff: { type: "exponential", delay: 10_000 },
@@ -139,7 +139,7 @@ export async function enqueueBatchFulfillJob(data: BatchFulfillJobData): Promise
 }
 
 export function createBatchFulfillWorker(): Worker<BatchFulfillJobData> {
-  const connection = createRedisConnection()
+  const connection = createBullMqConnection()
   return new Worker<BatchFulfillJobData>(
     BATCH_FULFILL_QUEUE,
     async (job) => {
