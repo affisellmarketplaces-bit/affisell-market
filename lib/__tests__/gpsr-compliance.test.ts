@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { isCompliant, isGpsrCompliant } from "@/lib/legal/gpsr"
+import { isCompliant, isGpsrCompliant } from "@/lib/legal/gpsr-compliance-shared"
 
 describe("isGpsrCompliant", () => {
   it("requires manufacturer name, address, valid email", () => {

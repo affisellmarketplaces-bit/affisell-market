@@ -3,6 +3,7 @@ import { Plus } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { MerchantMyCatalogCue } from "@/components/dashboard/merchant-my-catalog-cue"
+import { GuidedAddProductButton } from "@/components/supplier/guided-add-product-button"
 import {
   missionControlAccentFocusSupplier,
   missionControlAffisellMuted,
@@ -15,6 +16,8 @@ import {
 import { cn } from "@/lib/utils"
 
 type Props = {
+  supplierId: string
+  storeSlug?: string | null
   storeName: string
   publishedSkuCount: number
   draftCount: number
@@ -38,6 +41,8 @@ function buildCatalogMetrics(
 }
 
 export async function SupplierMissionControlHeader({
+  supplierId,
+  storeSlug,
   storeName,
   publishedSkuCount,
   draftCount,
@@ -65,10 +70,16 @@ export async function SupplierMissionControlHeader({
           variant="supplier"
           surface="light"
         />
-        <Link href="/dashboard/supplier/products/new" className={missionControlVioletBandCta}>
-          <Plus className="h-4 w-4" aria-hidden />
-          {t("newProduct")}
-        </Link>
+        <div className="flex flex-col gap-2">
+          <GuidedAddProductButton supplierId={supplierId} shopId={storeSlug ?? supplierId} />
+          <Link
+            href="/dashboard/supplier/products/new"
+            className={cn(missionControlVioletBandCta, "justify-center bg-transparent text-violet-800 ring-1 ring-violet-300/80 hover:bg-violet-50 dark:text-violet-100 dark:ring-violet-700")}
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            {t("newProduct")} (complet)
+          </Link>
+        </div>
       </div>
     </header>
   )

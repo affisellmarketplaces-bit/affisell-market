@@ -185,10 +185,15 @@ export function SupplierDashboardProductsCatalog({
             {guidedAddProductSlot ?? (
               <GuidedAddProductButton supplierId={ownerUserId} shopId={storeId} />
             )}
-            {/* Legacy full form: /dashboard/supplier/products/new — "Nouveau produit" */}
-            {/*
-            <Link href="/dashboard/supplier/products/new" ...>Nouveau produit</Link>
-            */}
+          <Link
+            href="/dashboard/supplier/products/new"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "inline-flex w-full items-center justify-center gap-1.5 rounded-xl border-violet-200/90 bg-white/90 text-violet-800 backdrop-blur hover:bg-violet-50 dark:border-violet-800 dark:bg-zinc-950/80 dark:text-violet-200"
+            )}
+          >
+            Formulaire complet
+          </Link>
             <div className="grid grid-cols-2 gap-2">
               <Link
                 href="/dashboard/supplier/bulk-import"
@@ -258,16 +263,18 @@ export function SupplierDashboardProductsCatalog({
               ? "Créez une fiche — l’enregistrement automatique conserve votre travail."
               : "Publiez votre premier SKU pour apparaître dans Discover et sur votre vitrine fournisseur."}
           </p>
-          <Link
-            href="/dashboard/supplier/products/new"
-            className={cn(
-              buttonVariants({ size: "lg" }),
-              "mt-8 inline-flex gap-2 rounded-2xl bg-violet-600 shadow-md hover:bg-violet-700"
-            )}
-          >
-            <Sparkles className="h-4 w-4" aria-hidden />
-            {draftsOnly ? "Nouvelle fiche" : "Créer un produit"}
-          </Link>
+          <div className="mt-8 flex w-full max-w-xs flex-col items-stretch gap-3">
+            <GuidedAddProductButton supplierId={ownerUserId} shopId={storeId} />
+            <Link
+              href="/dashboard/supplier/products/new"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "inline-flex justify-center gap-2 rounded-xl"
+              )}
+            >
+              Formulaire complet
+            </Link>
+          </div>
         </BentoCard>
       ) : (
         <>

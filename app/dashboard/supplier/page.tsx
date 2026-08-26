@@ -83,6 +83,8 @@ export default async function DashboardSupplierPage() {
         <SupplierMissionControlLive>
           <div className="space-y-3">
             <SupplierMissionControlHeader
+              supplierId={session.user.id}
+              storeSlug={data.storeSlug}
               storeName={data.storeName}
               publishedSkuCount={data.productCount}
               draftCount={data.draftCount}
