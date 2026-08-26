@@ -29,6 +29,7 @@ const LINKS = [
   { href: "/crm", label: "CRM" },
   { href: "/admin/ing", label: "Ing Ops" },
   { href: "/dashboard/admin/ing", label: "Ing AI" },
+  { href: "/dashboard/admin/legal", label: "Avocat" },
   { href: "/dashboard/admin/leads", label: "Leads" },
   { href: "/dashboard/admin/product-funnel", label: "Funnel produit" },
   { href: "/admin/instantscan-performance", label: "InstantScan" },
@@ -68,6 +69,7 @@ export function AdminNav({ session }: { session: AdminNavSession | null }) {
               (link.href === "/crm" && pathname.startsWith("/crm")) ||
               (link.href === "/dashboard/admin/leads" && pathname.startsWith("/dashboard/admin/leads")) ||
               (link.href === "/dashboard/admin/ing" && pathname.startsWith("/dashboard/admin/ing")) ||
+              (link.href === "/dashboard/admin/legal" && pathname.startsWith("/dashboard/admin/legal")) ||
               (link.href === "/admin/ing" && pathname.startsWith("/admin/ing")) ||
               (link.href === "/admin/rgpd-registre" && pathname.startsWith("/admin/rgpd-registre")) ||
               (link.href === "/admin/terms-logs" && pathname.startsWith("/admin/terms-logs"))
