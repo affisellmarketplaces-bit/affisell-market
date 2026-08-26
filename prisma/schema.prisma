@@ -3418,6 +3418,25 @@ model IngNudgeLog {
   @@index([supplierId, createdAt])
 }
 
+/**
+ * Legal Guardian — automated compliance scan (products, suppliers, contracts).
+ */
+model LegalScan {
+  id         String   @id @default(cuid())
+  type       String // product | supplier | contract
+  targetId   String
+  targetName String
+  riskScore  Int // 0-100
+  issues     Json // [{ code, severity, message }]
+  status     String   @default("open") // open | fixed | ignored
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([riskScore])
+  @@index([status])
+  @@index([type, targetId, status])
+}
+
 enum DemoPersona {
   SUPPLIER
   AFFILIATE

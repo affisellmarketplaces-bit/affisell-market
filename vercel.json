@@ -32,6 +32,10 @@
       "schedule": "0 9 * * *"
     },
     {
+      "path": "/api/cron/legal-guardian",
+      "schedule": "0 8 * * *"
+    },
+    {
       "path": "/api/radar/cron/global-scan",
       "schedule": "0 */6 * * *"
     },
