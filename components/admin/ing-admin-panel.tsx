@@ -195,6 +195,7 @@ export function IngAdminPanel({ initialAnalyze = null, bootstrapError = null }: 
         <BentoContainer maxWidth="5xl" className="space-y-8 py-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <BentoPageHeading
+              tone="dark"
               eyebrow="Affisell · Humanoid Ops"
               title="Ing"
               description="Senior engineer — observes logs, patches code, ships fixes. Zero manual triage."

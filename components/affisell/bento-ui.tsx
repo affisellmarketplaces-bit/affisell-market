@@ -7,12 +7,25 @@ import { cn } from "@/lib/utils"
 export function BentoShell({
   children,
   className,
+  tone = "auto",
 }: {
   children: ReactNode
   className?: string
+  /** Explicit contrast when shell bg ignores system color scheme (admin cockpits). */
+  tone?: "light" | "dark" | "auto"
 }) {
   return (
-    <div className={cn("min-h-[calc(100dvh-3.75rem)] text-gray-900 dark:text-zinc-50", className)}>{children}</div>
+    <div
+      className={cn(
+        "min-h-[calc(100dvh-3.75rem)]",
+        tone === "dark" && "text-zinc-100",
+        tone === "light" && "text-gray-900",
+        tone === "auto" && "text-gray-900 dark:text-zinc-50",
+        className
+      )}
+    >
+      {children}
+    </div>
   )
 }
 
@@ -37,12 +50,21 @@ export function BentoContainer({
 }
 
 /** Card shell: glassy white, soft border, generous radius (Bento / Modern SaaS). */
-export function BentoCard({ className, children, ...rest }: ComponentProps<"div">) {
+export function BentoCard({
+  className,
+  children,
+  variant = "default",
+  ...rest
+}: ComponentProps<"div"> & {
+  /** Dark admin cockpit — skips light epoxy surface. */
+  variant?: "default" | "dark"
+}) {
   return (
     <div
       className={cn(
-        affisellBrand.epoxySurfaceLight,
-        "rounded-3xl p-6 md:p-8",
+        variant === "dark"
+          ? "rounded-2xl border border-zinc-700/80 bg-zinc-900/95 p-6 shadow-xl shadow-black/40 ring-1 ring-white/[0.08] backdrop-blur-xl md:p-8"
+          : cn(affisellBrand.epoxySurfaceLight, "rounded-3xl p-6 md:p-8"),
         className
       )}
       {...rest}
@@ -57,22 +79,48 @@ export function BentoPageHeading({
   title,
   description,
   className,
+  tone = "auto",
 }: {
   eyebrow?: string
   title: ReactNode
   description?: ReactNode
   className?: string
+  tone?: "light" | "dark" | "auto"
 }) {
+  const eyebrowClass =
+    tone === "dark"
+      ? "text-violet-300"
+      : tone === "light"
+        ? "text-gray-500"
+        : "text-gray-500 dark:text-violet-300"
+  const titleClass =
+    tone === "dark"
+      ? "text-white drop-shadow-sm"
+      : tone === "light"
+        ? "text-gray-900"
+        : "text-gray-900 dark:text-white"
+  const descriptionClass =
+    tone === "dark"
+      ? "text-zinc-300"
+      : tone === "light"
+        ? "text-gray-600"
+        : "text-gray-600 dark:text-zinc-300"
+
   return (
     <div className={cn("space-y-3", className)}>
       {eyebrow ? (
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-300">{eyebrow}</p>
+        <p className={cn("text-xs font-semibold uppercase tracking-wider", eyebrowClass)}>{eyebrow}</p>
       ) : null}
-      <h1 className="text-balance text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl lg:text-5xl">
+      <h1
+        className={cn(
+          "text-balance text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl",
+          titleClass
+        )}
+      >
         {title}
       </h1>
       {description ? (
-        <div className="max-w-2xl text-base leading-relaxed text-gray-600 dark:text-zinc-300">{description}</div>
+        <div className={cn("max-w-2xl text-base leading-relaxed", descriptionClass)}>{description}</div>
       ) : null}
     </div>
   )

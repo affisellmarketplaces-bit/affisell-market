@@ -5,7 +5,7 @@
 import { brandOrbitPillActive } from "@/lib/affisell-brand-orbit-shared"
 
 export const LEGAL_COCKPIT_SHELL =
-  "min-h-[calc(100dvh-3.75rem)] bg-zinc-950 text-zinc-100"
+  "dark min-h-[calc(100dvh-3.75rem)] bg-zinc-950 text-zinc-100"
 
 export const LEGAL_COCKPIT_CARD =
   "!rounded-2xl border border-zinc-800/90 bg-zinc-900 !p-5 shadow-2xl shadow-black/50 ring-1 ring-white/[0.07] backdrop-blur-xl md:!p-6"
@@ -16,7 +16,7 @@ export const LEGAL_COCKPIT_CARD_ACCENT =
 export const LEGAL_COCKPIT_CARD_HOVER = "transition hover:border-violet-500/40"
 
 export const LEGAL_COCKPIT_HEADING =
-  "[&_h1]:text-white [&_h1]:drop-shadow-sm [&_p.text-xs]:text-violet-400/90 [&_div.text-base]:text-zinc-300"
+  "[&_h1]:text-white [&_h1]:drop-shadow-sm [&_p.text-xs]:text-violet-300 [&_div.text-base]:text-zinc-300"
 
 export const LEGAL_COCKPIT_TAB_IDLE =
   "border-zinc-600 bg-zinc-900/80 text-zinc-200 hover:border-violet-500/40 hover:bg-zinc-800 hover:text-white"
@@ -29,12 +29,12 @@ export const LEGAL_COCKPIT_ATMOSPHERE =
 export const LEGAL_COCKPIT_ATMOSPHERE_COMPACT =
   "pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(109,40,217,0.22),transparent)]"
 
-export const LEGAL_COCKPIT_ICON = "text-violet-400"
+export const LEGAL_COCKPIT_ICON = "text-violet-300"
 export const LEGAL_COCKPIT_EYEBROW =
-  "text-[10px] font-bold uppercase tracking-[0.2em] text-violet-400/90"
-export const LEGAL_COCKPIT_ACCENT_TEXT = "text-violet-200"
-export const LEGAL_COCKPIT_ACCENT_TEXT_SOFT = "text-violet-100/90"
-export const LEGAL_COCKPIT_ACCENT_LABEL = "text-xs font-bold uppercase text-violet-300"
+  "text-[10px] font-bold uppercase tracking-[0.2em] text-violet-300"
+export const LEGAL_COCKPIT_ACCENT_TEXT = "text-violet-100"
+export const LEGAL_COCKPIT_ACCENT_TEXT_SOFT = "text-violet-50/95"
+export const LEGAL_COCKPIT_ACCENT_LABEL = "text-xs font-bold uppercase text-violet-200"
 
 export const LEGAL_COCKPIT_CTA =
   "gap-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 shadow-md shadow-violet-950/40 hover:from-violet-500 hover:to-indigo-500"
@@ -71,7 +71,7 @@ export const LEGAL_COCKPIT_STAT_ICON =
 export const LEGAL_COCKPIT_STAT_ICON_INNER = "size-5 text-violet-50"
 
 export const LEGAL_COCKPIT_STAT_VALUE =
-  "font-mono text-2xl font-bold tabular-nums text-violet-300"
+  "font-mono text-2xl font-bold tabular-nums text-white"
 
 export const LEGAL_COCKPIT_CODE_BLOCK =
   "overflow-auto whitespace-pre-wrap rounded-xl border border-violet-500/30 bg-zinc-950/90 p-4 font-mono text-xs leading-relaxed text-violet-100/95"

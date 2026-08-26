@@ -411,6 +411,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <BentoPageHeading
               className={LEGAL_COCKPIT_HEADING}
+              tone="dark"
               eyebrow="Affisell · Cabinet numérique"
               title="AFFISELL AVOCAT NUMÉRIQUE"
               description="Droit plateformes · L121-1 · L441-1 · RGPD art. 6 · DSA · Cass. com. 2023 — aide à la décision fondateur."
