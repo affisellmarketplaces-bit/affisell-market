@@ -2,6 +2,7 @@ import Link from "next/link"
 import { requireSupplierSession } from "@/lib/dashboard-session"
 
 import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
+import { GuidedAddProductButton } from "@/components/supplier/guided-add-product-button"
 import { SupplierDashboardProductsCatalog } from "@/components/supplier/supplier-dashboard-products-catalog"
 import { SupplierWholesaleImpactPanel } from "@/components/supplier/supplier-wholesale-impact-panel"
 import { findSupplierProductsForDashboardCatalog } from "@/lib/supplier-product-is-draft-fallback"
@@ -104,6 +105,13 @@ export default async function SupplierProductsPage({
 
         <SupplierDashboardProductsCatalog
           ownerUserId={session.user.id}
+          storeId={store?.slug ?? session.user.id}
+          guidedAddProductSlot={
+            <GuidedAddProductButton
+              supplierId={session.user.id}
+              shopId={store?.slug ?? session.user.id}
+            />
+          }
           products={catalogProducts}
           draftsOnly={draftsOnly}
           storefrontHref={storefrontHref}

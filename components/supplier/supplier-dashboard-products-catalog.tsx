@@ -3,14 +3,13 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useState, type ReactNode } from "react"
 import {
   ArrowUpRight,
   Eye,
   FileEdit,
   Package,
   Percent,
-  Plus,
   Sparkles,
   Store,
   Upload,
@@ -20,6 +19,7 @@ import {
 import { toast } from "sonner"
 
 import { BentoCard, BentoPageHeading, BentoStat } from "@/components/affisell/bento-ui"
+import { GuidedAddProductButton } from "@/components/supplier/guided-add-product-button"
 import { SupplierProductRemoveActions } from "@/components/supplier/supplier-product-remove-actions"
 import { SupplierDraftBulkToolbar } from "@/components/supplier/supplier-draft-bulk-toolbar"
 import { useSupplierDraftSelection } from "@/components/supplier/use-supplier-draft-selection"
@@ -69,6 +69,8 @@ function statusMeta(p: CatalogProduct) {
 
 export function SupplierDashboardProductsCatalog({
   ownerUserId,
+  storeId,
+  guidedAddProductSlot,
   products,
   draftsOnly = false,
   storefrontHref,
@@ -77,6 +79,9 @@ export function SupplierDashboardProductsCatalog({
   wholesaleImpactByProductId = {},
 }: {
   ownerUserId: string
+  storeId?: string
+  /** Injected from page — guided wizard CTA (Sprint 6B). */
+  guidedAddProductSlot?: ReactNode
   products: CatalogProduct[]
   draftsOnly?: boolean
   storefrontHref: string
@@ -177,16 +182,13 @@ export function SupplierDashboardProductsCatalog({
             className="max-w-2xl"
           />
           <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:min-w-[14rem]">
-            <Link
-              href="/dashboard/supplier/products/new"
-              className={cn(
-                buttonVariants({ size: "lg" }),
-                "inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg shadow-violet-600/25 hover:from-violet-500 hover:to-indigo-500 sm:w-auto"
-              )}
-            >
-              <Plus className="h-4 w-4" aria-hidden />
-              Nouveau produit
-            </Link>
+            {guidedAddProductSlot ?? (
+              <GuidedAddProductButton supplierId={ownerUserId} shopId={storeId} />
+            )}
+            {/* Legacy full form: /dashboard/supplier/products/new — "Nouveau produit" */}
+            {/*
+            <Link href="/dashboard/supplier/products/new" ...>Nouveau produit</Link>
+            */}
             <div className="grid grid-cols-2 gap-2">
               <Link
                 href="/dashboard/supplier/bulk-import"

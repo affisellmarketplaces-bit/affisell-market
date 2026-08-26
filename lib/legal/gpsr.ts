@@ -2,6 +2,34 @@ import { legalMarkdownToHtml } from "@/lib/legal/markdown-html"
 import { createProof } from "@/lib/legal/proof"
 import { prisma } from "@/lib/prisma"
 
+export type GpsrManufacturerInput = {
+  manufacturerName: string
+  manufacturerAddress: string
+  manufacturerEmail: string
+  safetyWarning?: string
+  notice?: string
+}
+
+export type GpsrComplianceResult = {
+  compliant: boolean
+  missing: string[]
+}
+
+/** Sprint 6B — EU GPSR publish gate (manufacturer traceability, art. 951 Reg. 2023/988). */
+export function isGpsrCompliant(input: GpsrManufacturerInput): GpsrComplianceResult {
+  const missing: string[] = []
+  if (!input.manufacturerName.trim()) missing.push("manufacturerName")
+  if (!input.manufacturerAddress.trim()) missing.push("manufacturerAddress")
+  const email = input.manufacturerEmail.trim()
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    missing.push("manufacturerEmail")
+  }
+  return { compliant: missing.length === 0, missing }
+}
+
+/** Alias Sprint 6B spec */
+export const isCompliant = isGpsrCompliant
+
 export type RecallRiskLevel = "faible" | "grave" | "critique"
 
 export type CreateRecallInput = {
