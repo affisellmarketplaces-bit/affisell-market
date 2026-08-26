@@ -984,7 +984,9 @@
       "warehouseZoneRegional": "Régional (UE / proche)",
       "warehouseZoneInternational": "International (expédition monde)",
       "deliveryCountriesTitle": "Pays de livraison",
-      "deliveryCountriesDescription": "Obligatoire à la publication — les acheteurs hors liste ne pourront pas commander."
+      "deliveryCountriesDescription": "Obligatoire à la publication — les acheteurs hors liste ne pourront pas commander.",
+      "shippingCarriersTitle": "Transporteurs pro",
+      "shippingCarriersDescription": "Affisell met en avant vos options de livraison sur la fiche produit — rapide, recommandé, économique."
     },
     "descriptionField": {
       "label": "Description",
@@ -3794,7 +3796,14 @@
     "verifyFailed": "Vérification impossible — contrôle le numéro et réessaie.",
     "verifyPageTitle": "Vérificateur Tracking Anti-Fake",
     "verifyPageSubtitle": "Détecte les numéros inventés et ouvre le suivi officiel du transporteur.",
-    "pdpOptionsTitle": "Livraison pro"
+    "pdpOptionsTitle": "Livraison pro",
+    "supplierCarriers": {
+      "promoTitle": "Livraison pro Affisell",
+      "promoBody": "Sélectionnez les transporteurs que vous utilisez réellement. Affisell les met en avant sur la fiche produit (rapide, recommandé, économique) pour rassurer les acheteurs.",
+      "catalogHint": "Catalogue disponible depuis {country} — cochez au moins un transporteur.",
+      "pickAtLeastOne": "Choisissez au moins un transporteur pour activer la vitrine Livraison pro.",
+      "selectedCount": "{count} transporteur(s) affiché(s) sur la marketplace"
+    }
   },
   "pages": {
     "trackOrder": {

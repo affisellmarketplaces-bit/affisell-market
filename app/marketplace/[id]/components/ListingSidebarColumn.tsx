@@ -50,6 +50,7 @@ type Props = Pick<
   | "priceReferenceEur"
   | "battleResellerName"
   | "buyerRewardBadge"
+  | "buyerShipToCountry"
   | "salesCount"
   | "reviewSummary"
   | "viewsLast24h"
@@ -87,6 +88,7 @@ export function ListingSidebarColumn({
   priceReferenceEur,
   battleResellerName,
   buyerRewardBadge,
+  buyerShipToCountry,
   salesCount = 0,
   reviewSummary,
   viewsLast24h = 0,
@@ -219,6 +221,12 @@ export function ListingSidebarColumn({
               isBattleWinner={isBattleWinner}
               priceReferenceEur={priceReferenceEur}
               battleResellerName={battleResellerName}
+              buyerShipToCountry={buyerShipToCountry}
+              shippingCarrierIds={shipping.shippingCarrierIds}
+              shipFromCountry={shipping.shippingCountryCode}
+              deliveryMin={shipping.deliveryMin}
+              deliveryMax={shipping.deliveryMax}
+              shippingMethods={shipping.shippingMethods}
               tryOnReady={tryOnReady}
               tryOnVariant={tryOnVariant}
               onTryOnOpen={() => setTryOnOpen(true)}

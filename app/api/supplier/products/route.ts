@@ -14,6 +14,7 @@ import {
 } from "@/lib/supplier-product-offer-mode"
 import { validateOfferModePublish } from "@/lib/product-offer-mode"
 import { parseSupplierProductShippingBody, validateDeliveryCountriesPublish, validateWarehouseTypePublish } from "@/lib/supplier-product-shipping"
+import { suggestCarrierIdsForProduct } from "@/lib/shipping/supplier-carrier-offers-shared"
 import { parseSupplierProductImages, validateSupplierProductImagesForPublish } from "@/lib/supplier-product-images"
 import { parseCompareAtDraftLax, parseCompareAtStrict } from "@/lib/supplier-product-compare-at"
 import { parseDescriptionBullets } from "@/lib/supplier-product-description-bullets"
@@ -369,6 +370,13 @@ export async function POST(req: Request) {
         deliveryMin: ship.deliveryMin,
         deliveryMax: ship.deliveryMax,
         shippingMethods: ship.shippingMethods,
+        shippingCarrierIds:
+          ship.shippingCarrierIds.length > 0
+            ? ship.shippingCarrierIds
+            : suggestCarrierIdsForProduct({
+                shipFromCountry: ship.shippingCountry,
+                shippingMethods: ship.shippingMethods,
+              }),
         freeShippingThreshold: ship.freeShippingThreshold,
         shippingCost: ship.shippingCost,
         shipsFrom: meta.shipsFrom,

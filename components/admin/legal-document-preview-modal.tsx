@@ -13,6 +13,13 @@ import {
 
 import { LegalPreviewFrame, printLegalHtml } from "@/components/admin/legal-preview-frame"
 import {
+  LEGAL_COCKPIT_ACCENT_TEXT_SOFT,
+  LEGAL_COCKPIT_CALLOUT,
+  LEGAL_COCKPIT_CTA_SOLID,
+  LEGAL_COCKPIT_EYEBROW,
+  LEGAL_COCKPIT_ICON,
+  LEGAL_COCKPIT_MODAL_HEADER,
+  LEGAL_COCKPIT_MODAL_SHELL,
   LEGAL_COCKPIT_TEXT_MUTED,
   LEGAL_COCKPIT_TEXT_PRIMARY,
   legalDocStatusBadge,
@@ -101,11 +108,11 @@ export function LegalDocumentPreviewModal({
       aria-modal="true"
       aria-labelledby="legal-doc-preview-title"
     >
-      <div className="flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-none border border-amber-500/20 bg-zinc-950 shadow-2xl shadow-amber-950/20 sm:rounded-2xl sm:max-h-[92vh]">
+      <div className={cn("flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-none sm:rounded-2xl sm:max-h-[92vh]", LEGAL_COCKPIT_MODAL_SHELL)}>
         {/* Header */}
-        <div className="flex shrink-0 flex-wrap items-start justify-between gap-3 border-b border-zinc-800 bg-gradient-to-r from-zinc-950 via-zinc-900 to-amber-950/30 px-4 py-4 sm:px-6">
+        <div className={cn("flex shrink-0 flex-wrap items-start justify-between gap-3 px-4 py-4 sm:px-6", LEGAL_COCKPIT_MODAL_HEADER)}>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400/90">
+            <p className={LEGAL_COCKPIT_EYEBROW}>
               Prévisualisation · {typeLabel(doc.type)}
             </p>
             <h2 id="legal-doc-preview-title" className={cn("mt-1 truncate text-lg font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>
@@ -138,9 +145,9 @@ export function LegalDocumentPreviewModal({
 
         {/* Body */}
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-          <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-500/25 bg-amber-950/25 px-3 py-2.5">
-            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-amber-400" aria-hidden />
-            <p className="text-xs leading-relaxed text-amber-100/90">
+          <div className={cn("mb-4", LEGAL_COCKPIT_CALLOUT)}>
+            <ShieldCheck className={cn("mt-0.5 size-4 shrink-0", LEGAL_COCKPIT_ICON)} aria-hidden />
+            <p className={cn("text-xs leading-relaxed", LEGAL_COCKPIT_ACCENT_TEXT_SOFT)}>
               Vérifiez le rendu final (mise en page A4, clauses, identité société) avant publication ou envoi au
               signataire. Aucune action externe n&apos;est déclenchée tant que vous ne confirmez pas ci-dessous.
             </p>
@@ -208,7 +215,7 @@ export function LegalDocumentPreviewModal({
                     buttonVariants({ size: "sm" }),
                     confirmPublish
                       ? "bg-emerald-600 hover:bg-emerald-500"
-                      : "bg-amber-600 hover:bg-amber-500"
+                      : LEGAL_COCKPIT_CTA_SOLID
                   )}
                   disabled={publishing}
                   onClick={() => void handlePublish()}

@@ -39,6 +39,11 @@ type Props = {
   battleResellerName?: string | null
   /** Buyer ship-to country ISO2 for carrier recommendations (default FR). */
   shippingCountry?: string | null
+  shipFromCountry?: string | null
+  shippingCarrierIds?: string[]
+  deliveryMin?: number
+  deliveryMax?: number
+  shippingMethods?: string[]
 }
 
 export function ListingPriceActionCard({
@@ -66,6 +71,11 @@ export function ListingPriceActionCard({
   priceReferenceEur = null,
   battleResellerName = null,
   shippingCountry = "FR",
+  shipFromCountry = null,
+  shippingCarrierIds = [],
+  deliveryMin = 2,
+  deliveryMax = 5,
+  shippingMethods = ["standard"],
 }: Props) {
   const brand = storefrontPdpBrandClasses(brandedStorefront)
   const t = useTranslations("Product")
@@ -127,7 +137,14 @@ export function ListingPriceActionCard({
             amountCents={buyNowLineSubtotalCents}
             className={cn(denseMobile ? "mt-2" : "mt-2.5")}
           />
-          <ProductShippingOptions country={shippingCountry} />
+          <ProductShippingOptions
+            country={shippingCountry}
+            shipFromCountry={shipFromCountry}
+            carrierIds={shippingCarrierIds}
+            deliveryMin={deliveryMin}
+            deliveryMax={deliveryMax}
+            shippingMethods={shippingMethods}
+          />
         </div>
 
         <div

@@ -26,6 +26,12 @@ type Props = {
   isBattleWinner?: boolean
   priceReferenceEur?: number | null
   battleResellerName?: string | null
+  buyerShipToCountry?: string | null
+  shippingCarrierIds?: string[]
+  shipFromCountry?: string | null
+  deliveryMin?: number
+  deliveryMax?: number
+  shippingMethods?: string[]
   tryOnReady?: boolean
   tryOnVariant?: "default" | "immersive"
   onTryOnOpen?: () => void
@@ -54,6 +60,12 @@ export function PriceBlock({
   isBattleWinner,
   priceReferenceEur,
   battleResellerName,
+  buyerShipToCountry,
+  shippingCarrierIds,
+  shipFromCountry,
+  deliveryMin,
+  deliveryMax,
+  shippingMethods,
   tryOnReady,
   tryOnVariant,
   onTryOnOpen,
@@ -83,6 +95,12 @@ export function PriceBlock({
         isBattleWinner={isBattleWinner}
         priceReferenceEur={priceReferenceEur}
         battleResellerName={battleResellerName}
+        shippingCountry={buyerShipToCountry ?? "FR"}
+        shipFromCountry={shipFromCountry}
+        shippingCarrierIds={shippingCarrierIds}
+        deliveryMin={deliveryMin}
+        deliveryMax={deliveryMax}
+        shippingMethods={shippingMethods}
       />
       {tryOnReady && onTryOnOpen ? (
         <TryOnTrigger

@@ -17,6 +17,8 @@ export type StorefrontInfo = {
 export type ListingShippingBlock = ListingLogisticsInput & {
   processingTime: number
   freeShippingThresholdEUR: number | null
+  shippingCarrierIds: string[]
+  shippingMethods: string[]
 }
 
 export type SpecRow = { label: string; value: string }
@@ -54,6 +56,8 @@ export type ListingDetailProps = {
   colorImages: ProductColorImageRow[]
   /** Affiliate custom labels keyed by stable color name */
   colorDisplayLabels?: Record<string, string> | null
+  /** Buyer ship-to ISO2 for carrier cards (visitor geo). */
+  buyerShipToCountry?: string | null
   shipping: ListingShippingBlock
   listingPriceCents: number
   variantPricing?: AffiliateVariantPricingMap | null

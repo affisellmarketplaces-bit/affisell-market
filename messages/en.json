@@ -984,7 +984,9 @@
       "warehouseZoneRegional": "Regional (EU / nearby)",
       "warehouseZoneInternational": "International (worldwide shipping)",
       "deliveryCountriesTitle": "Delivery countries",
-      "deliveryCountriesDescription": "Required when publishing — buyers outside this list cannot checkout."
+      "deliveryCountriesDescription": "Required when publishing — buyers outside this list cannot checkout.",
+      "shippingCarriersTitle": "Pro carriers",
+      "shippingCarriersDescription": "Affisell highlights your shipping options on the product page — fastest, recommended, best value."
     },
     "descriptionField": {
       "label": "Description",
@@ -3794,7 +3796,14 @@
     "verifyFailed": "Verification failed — check the number and try again.",
     "verifyPageTitle": "Anti-Fake Tracking Verifier",
     "verifyPageSubtitle": "Detect fabricated tracking numbers and open the carrier’s official tracker.",
-    "pdpOptionsTitle": "Pro shipping"
+    "pdpOptionsTitle": "Pro shipping",
+    "supplierCarriers": {
+      "promoTitle": "Affisell Pro shipping",
+      "promoBody": "Pick the carriers you actually use. Affisell highlights them on the product page (fastest, recommended, best value) to boost buyer confidence.",
+      "catalogHint": "Catalog for ship-from {country} — select at least one carrier.",
+      "pickAtLeastOne": "Select at least one carrier to enable Pro shipping on the marketplace.",
+      "selectedCount": "{count} carrier(s) shown on marketplace listings"
+    }
   },
   "pages": {
     "trackOrder": {

@@ -1102,6 +1102,11 @@ model Product {
   deliveryMin           Int      @default(2)
   deliveryMax           Int      @default(5)
   shippingMethods       String[] @default([])
+  /**
+   * Carrier ids from Affisell catalog (`lib/shipping/carriers.ts`) the supplier offers for this SKU.
+   * Shown on PDP « Livraison pro » cards — fastest / recommended / cheapest among this set.
+   */
+  shippingCarrierIds    String[] @default([])
   freeShippingThreshold Decimal?
   shippingCost          Decimal  @default(0)
 

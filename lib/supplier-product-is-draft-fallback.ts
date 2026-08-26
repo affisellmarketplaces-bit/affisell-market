@@ -52,6 +52,7 @@ const PRODUCT_SCALAR_SELECT_NO_ISDRAFT = {
   deliveryMin: true,
   deliveryMax: true,
   shippingMethods: true,
+  shippingCarrierIds: true,
   freeShippingThreshold: true,
   shippingCost: true,
   shipsFrom: true,

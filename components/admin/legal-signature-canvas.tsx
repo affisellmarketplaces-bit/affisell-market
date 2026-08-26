@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Loader2 } from "lucide-react"
 
+import { LEGAL_COCKPIT_ACCENT_TEXT_SOFT, LEGAL_COCKPIT_CALLOUT, LEGAL_COCKPIT_CTA_SOLID } from "@/components/admin/legal-cockpit-ui"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -123,8 +124,8 @@ export function LegalSignatureCanvas({
         />
       </div>
 
-      <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-4">
-        <p className="text-sm font-medium text-amber-100">Signature électronique</p>
+      <div className={LEGAL_COCKPIT_CALLOUT}>
+        <p className={cn("text-sm font-medium", LEGAL_COCKPIT_ACCENT_TEXT_SOFT)}>Signature électronique</p>
         <p className="mt-1 text-xs text-zinc-400">
           Signataire : {signerName ?? signerEmail} · Loi n°2000-230 (signature simple)
         </p>
@@ -144,7 +145,7 @@ export function LegalSignatureCanvas({
           </button>
           <button
             type="button"
-            className={cn(buttonVariants({ size: "sm" }), "bg-amber-700 hover:bg-amber-600")}
+            className={cn(buttonVariants({ size: "sm" }), LEGAL_COCKPIT_CTA_SOLID)}
             disabled={submitting}
             onClick={() => void submitSignature()}
           >

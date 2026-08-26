@@ -1,5 +1,9 @@
 import { Prisma } from "@prisma/client"
 
+import {
+  parseShippingCarrierIds,
+} from "@/lib/shipping/supplier-carrier-offers-shared"
+
 import { EU_MEMBER_SET as EU_COUNTRIES } from "@/lib/eu-market-countries"
 import {
   DELIVERY_COUNTRIES_REQUIRED_ERROR,
@@ -19,6 +23,7 @@ export type ParsedProductShipping = {
   deliveryMin: number
   deliveryMax: number
   shippingMethods: string[]
+  shippingCarrierIds: string[]
   freeShippingThreshold: Prisma.Decimal | null
   shippingCost: Prisma.Decimal
 }
@@ -55,6 +60,8 @@ export function parseSupplierProductShippingBody(body: Record<string, unknown>):
     shippingMethods = ["standard"]
   }
 
+  const shippingCarrierIds = parseShippingCarrierIds(body.shippingCarrierIds)
+
   let freeShippingThreshold: Prisma.Decimal | null = null
   const fst = body.freeShippingThresholdEUR ?? body.freeShippingThreshold
   if (fst != null && fst !== "") {
@@ -82,6 +89,7 @@ export function parseSupplierProductShippingBody(body: Record<string, unknown>):
     deliveryMin: dMin,
     deliveryMax: dMax,
     shippingMethods,
+    shippingCarrierIds,
     freeShippingThreshold,
     shippingCost,
   }

@@ -88,6 +88,8 @@ import {
   type CategoryPickOrigin,
 } from "@/components/supplier/supplier-category-picker"
 import { SupplierDeliveryCountriesPicker } from "@/components/supplier/supplier-delivery-countries-picker"
+import { SupplierShippingCarriersPicker } from "@/components/supplier/supplier-shipping-carriers-picker"
+import { shippingMethodsFromCarrierIds } from "@/lib/shipping/supplier-carrier-offers-shared"
 import { SupplierOfferModePicker } from "@/components/supplier/supplier-offer-mode-picker"
 import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
 import { SupplierWholesalePreSaveModal } from "@/components/supplier/supplier-wholesale-pre-save-modal"
@@ -503,6 +505,7 @@ export function SupplierAddProductForm({
   const [processingTime, setProcessingTime] = useState("1")
   const [deliveryMin, setDeliveryMin] = useState("2")
   const [deliveryMax, setDeliveryMax] = useState("5")
+  const [shippingCarrierIds, setShippingCarrierIds] = useState<string[]>([])
   const [shippingCost, setShippingCost] = useState("0")
   const [shipsFrom, setShipsFrom] = useState("")
   const [deliveryDays, setDeliveryDays] = useState("")
@@ -1063,6 +1066,11 @@ export function SupplierAddProductForm({
       setProcessingTime(String(data.processingTime ?? 1))
       setDeliveryMin(String(data.deliveryMin ?? 2))
       setDeliveryMax(String(data.deliveryMax ?? 5))
+      setShippingCarrierIds(
+        Array.isArray(data.shippingCarrierIds)
+          ? (data.shippingCarrierIds as unknown[]).filter((x): x is string => typeof x === "string")
+          : []
+      )
       const sc = data.shippingCost
       setShippingCost(sc != null ? String(Number(sc)) : "0")
       setShipsFrom(typeof data.shipsFrom === "string" ? data.shipsFrom : "")
@@ -1429,7 +1437,8 @@ export function SupplierAddProductForm({
         deliveryMin: Math.round(Number(deliveryMin) || 2),
         deliveryMax: Math.round(Number(deliveryMax) || 5),
         shippingCostEUR: Number(shippingCost) || 0,
-        shippingMethods: ["standard"],
+        shippingCarrierIds,
+        shippingMethods: shippingMethodsFromCarrierIds(shippingCarrierIds),
         productAttributes,
         shipsFrom: shipsFrom.trim() || undefined,
         deliveryDays:
@@ -3859,6 +3868,20 @@ export function SupplierAddProductForm({
                       {publishBlockers.find((b) => b.field === "deliveryCountries")?.message}
                     </p>
                   ) : null}
+                </SectionCard>
+
+                <SectionCard
+                  id="add-product-shipping-carriers"
+                  icon={Truck}
+                  title={tForm("shippingCarriersTitle")}
+                  description={tForm("shippingCarriersDescription")}
+                >
+                  <SupplierShippingCarriersPicker
+                    shipFromCountry={shippingCountry.trim() || null}
+                    shippingMethods={shippingMethodsFromCarrierIds(shippingCarrierIds)}
+                    value={shippingCarrierIds}
+                    onChange={setShippingCarrierIds}
+                  />
                 </SectionCard>
 
                 <SectionCard

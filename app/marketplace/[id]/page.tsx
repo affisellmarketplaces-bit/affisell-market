@@ -387,6 +387,8 @@ export default async function MarketplaceListingPage({
     }),
     processingTime: p.processingTime ?? 1,
     freeShippingThresholdEUR: freeThresh,
+    shippingCarrierIds: p.shippingCarrierIds ?? [],
+    shippingMethods: p.shippingMethods?.length ? p.shippingMethods : ["standard"],
   }
 
   const crossSellStreamArgs = {
@@ -522,6 +524,7 @@ export default async function MarketplaceListingPage({
           colorImages={colorImages}
           colorDisplayLabels={colorDisplayLabels}
           shipping={shipping}
+          buyerShipToCountry={visitorCountry ?? "FR"}
           listingPriceCents={listing.sellingPriceCents}
           variantPricing={parseAffiliateVariantPricingJson(listing.variantPricing)}
           basePriceCents={p.basePriceCents}

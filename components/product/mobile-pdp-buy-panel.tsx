@@ -86,6 +86,12 @@ export type MobilePdpBuyPanelProps = {
   isBattleWinner?: boolean
   priceReferenceEur?: number | null
   battleResellerName?: string | null
+  buyerShipToCountry?: string | null
+  shippingCarrierIds?: string[]
+  shipFromCountry?: string | null
+  deliveryMin?: number
+  deliveryMax?: number
+  shippingMethods?: string[]
 }
 
 export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>(
@@ -138,6 +144,12 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
       isBattleWinner = false,
       priceReferenceEur = null,
       battleResellerName = null,
+      buyerShipToCountry = null,
+      shippingCarrierIds = [],
+      shipFromCountry = null,
+      deliveryMin = 2,
+      deliveryMax = 5,
+      shippingMethods = ["standard"],
     },
     ref
   ) {
@@ -325,6 +337,12 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
               isBattleWinner={isBattleWinner}
               priceReferenceEur={priceReferenceEur}
               battleResellerName={battleResellerName}
+              shippingCountry={buyerShipToCountry ?? "FR"}
+              shipFromCountry={shipFromCountry}
+              shippingCarrierIds={shippingCarrierIds}
+              deliveryMin={deliveryMin}
+              deliveryMax={deliveryMax}
+              shippingMethods={shippingMethods}
             />
             <div className="grid grid-cols-[minmax(0,7.5rem)_1fr] gap-2">
               <MarketplacePurchaseQuantity

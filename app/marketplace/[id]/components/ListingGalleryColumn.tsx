@@ -48,6 +48,7 @@ type Props = Pick<
   | "isBattleWinner"
   | "priceReferenceEur"
   | "battleResellerName"
+  | "buyerShipToCountry"
   | "buyerRewardBadge"
   | "salesCount"
   | "reviewSummary"
@@ -79,6 +80,7 @@ export function ListingGalleryColumn({
   isBattleWinner,
   priceReferenceEur,
   battleResellerName,
+  buyerShipToCountry,
   buyerRewardBadge,
   salesCount,
   reviewSummary,
@@ -287,6 +289,12 @@ export function ListingGalleryColumn({
           isBattleWinner={isBattleWinner}
           priceReferenceEur={priceReferenceEur}
           battleResellerName={battleResellerName}
+          buyerShipToCountry={buyerShipToCountry}
+          shippingCarrierIds={shipping.shippingCarrierIds}
+          shipFromCountry={shipping.shippingCountryCode}
+          deliveryMin={shipping.deliveryMin}
+          deliveryMax={shipping.deliveryMax}
+          shippingMethods={shipping.shippingMethods}
           formatReviewCount={formatStoreCount}
           labels={{
             colorLabel: productT.colorLabel,

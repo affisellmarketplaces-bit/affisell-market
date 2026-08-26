@@ -5,7 +5,9 @@ import { AlertTriangle, Loader2 } from "lucide-react"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
 import {
+  LEGAL_COCKPIT_ACCENT_LABEL,
   LEGAL_COCKPIT_CARD,
+  LEGAL_COCKPIT_ICON,
   LEGAL_COCKPIT_TAB_ACTIVE,
   LEGAL_COCKPIT_TAB_IDLE,
   LEGAL_COCKPIT_TEXT_MUTED,
@@ -80,7 +82,7 @@ export function DsaReportsPanel() {
     <BentoCard className={LEGAL_COCKPIT_CARD}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="size-4 text-amber-400" aria-hidden />
+          <AlertTriangle className={cn("size-4", LEGAL_COCKPIT_ICON)} aria-hidden />
           <p className={cn("text-sm font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>Signalements DSA</p>
         </div>
         <div className="flex flex-wrap gap-1">
@@ -117,7 +119,7 @@ export function DsaReportsPanel() {
             <li key={r.id} className="rounded-xl border border-zinc-700/80 bg-zinc-950/70 p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <p className="text-xs font-bold uppercase text-amber-300">{r.type}</p>
+                  <p className={LEGAL_COCKPIT_ACCENT_LABEL}>{r.type}</p>
                   <p className={cn("mt-1 text-sm leading-relaxed", LEGAL_COCKPIT_TEXT_SECONDARY)}>
                     {r.description.slice(0, 200)}
                   </p>

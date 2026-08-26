@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 
+import { LEGAL_COCKPIT_CTA_SOLID } from "@/components/admin/legal-cockpit-ui"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -42,7 +43,7 @@ export function LegalLetterPrintView({
             </Link>
             <button
               type="button"
-              className={cn(buttonVariants({ size: "sm" }), "bg-amber-700 hover:bg-amber-600")}
+              className={cn(buttonVariants({ size: "sm" }), LEGAL_COCKPIT_CTA_SOLID)}
               onClick={() => window.print()}
             >
               Imprimer

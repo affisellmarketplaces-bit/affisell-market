@@ -27,10 +27,30 @@ import { GpsrRecallsPanel } from "@/components/admin/gpsr-recalls-panel"
 import { KycPanel } from "@/components/admin/kyc-panel"
 import { LegalPreviewFrame, printLegalHtml } from "@/components/admin/legal-preview-frame"
 import {
+  LEGAL_COCKPIT_ACCENT_TEXT,
+  LEGAL_COCKPIT_ACCENT_TEXT_SOFT,
+  LEGAL_COCKPIT_ACTION_WARN,
+  LEGAL_COCKPIT_ATMOSPHERE,
   LEGAL_COCKPIT_CARD,
   LEGAL_COCKPIT_CARD_ACCENT,
+  LEGAL_COCKPIT_CARD_HOVER,
+  LEGAL_COCKPIT_CODE_BLOCK,
+  LEGAL_COCKPIT_CTA,
+  LEGAL_COCKPIT_CTA_SECONDARY,
+  LEGAL_COCKPIT_CTA_SOLID,
+  LEGAL_COCKPIT_EYEBROW,
   LEGAL_COCKPIT_HEADING,
+  LEGAL_COCKPIT_ICON,
+  LEGAL_COCKPIT_INPUT,
+  LEGAL_COCKPIT_MODAL_HEADER,
+  LEGAL_COCKPIT_MODAL_SHELL,
+  LEGAL_COCKPIT_PULSE_DOT,
+  LEGAL_COCKPIT_PULSE_RING,
   LEGAL_COCKPIT_SHELL,
+  LEGAL_COCKPIT_STAT_ICON,
+  LEGAL_COCKPIT_STAT_ICON_INNER,
+  LEGAL_COCKPIT_STAT_VALUE,
+  LEGAL_COCKPIT_STATUS_BADGE,
   LEGAL_COCKPIT_TAB_ACTIVE,
   LEGAL_COCKPIT_TAB_IDLE,
   LEGAL_COCKPIT_TABLE_HEAD,
@@ -63,7 +83,7 @@ const MASTER_ICON: Record<LegalMasterDomain, typeof Scale> = {
 }
 
 const MASTER_GLOW: Record<LegalMasterDomain, string> = {
-  contract: "shadow-[0_0_40px_-12px_rgba(251,191,36,0.35)]",
+  contract: "shadow-[0_0_40px_-12px_rgba(139,92,246,0.35)]",
   risk: "shadow-[0_0_40px_-12px_rgba(239,68,68,0.35)]",
   compliance: "shadow-[0_0_40px_-12px_rgba(34,211,238,0.3)]",
   litigation: "shadow-[0_0_40px_-12px_rgba(168,85,247,0.35)]",
@@ -77,7 +97,7 @@ type Props = {
 
 function riskBadgeClass(score: number): string {
   if (score >= 80) return "bg-red-500/20 text-red-200 ring-red-400/40"
-  if (score >= 50) return "bg-amber-500/20 text-amber-200 ring-amber-400/40"
+  if (score >= 50) return "bg-violet-500/20 text-violet-200 ring-violet-400/40"
   if (score >= 25) return "bg-yellow-500/15 text-yellow-100 ring-yellow-400/30"
   return "bg-emerald-500/15 text-emerald-200 ring-emerald-400/30"
 }
@@ -380,10 +400,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
 
   return (
     <div className="relative min-h-[80vh] overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_-10%,rgba(245,158,11,0.18),transparent_55%),radial-gradient(ellipse_60%_40%_at_100%_50%,rgba(120,53,15,0.12),transparent)]"
-        aria-hidden
-      />
+      <div className={LEGAL_COCKPIT_ATMOSPHERE} aria-hidden />
       <div
         className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,transparent,rgba(9,9,11,0.4))]"
         aria-hidden
@@ -400,15 +417,15 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
             />
             <div
               className={cn(
-                "flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-950/60 px-3 py-1.5 text-xs font-semibold text-amber-50 shadow-lg shadow-amber-950/40 backdrop-blur-md",
-                mounted && pulse && openAiConfigured && "ring-2 ring-amber-400/30"
+                LEGAL_COCKPIT_STATUS_BADGE,
+                mounted && pulse && openAiConfigured && LEGAL_COCKPIT_PULSE_RING
               )}
             >
               <span className="relative flex size-2">
                 {openAiConfigured ? (
                   <>
-                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-400 opacity-60" />
-                    <span className="relative inline-flex size-2 rounded-full bg-amber-400" />
+                    <span className={cn("absolute inline-flex size-full animate-ping rounded-full opacity-60", LEGAL_COCKPIT_PULSE_DOT)} />
+                    <span className={cn("relative inline-flex size-2 rounded-full", LEGAL_COCKPIT_PULSE_DOT)} />
                   </>
                 ) : (
                   <span className="relative inline-flex size-2 rounded-full bg-red-500" />
@@ -504,16 +521,17 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                       <BentoCard
                         className={cn(
                           LEGAL_COCKPIT_CARD,
-                          "h-full p-4 transition hover:border-amber-500/40",
+                          "h-full p-4",
+                          LEGAL_COCKPIT_CARD_HOVER,
                           score >= 85 && MASTER_GLOW[master.id]
                         )}
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-600 to-amber-900 shadow-lg shadow-amber-950/50">
-                            <Icon className="size-5 text-amber-50" aria-hidden />
+                          <div className={LEGAL_COCKPIT_STAT_ICON}>
+                            <Icon className={LEGAL_COCKPIT_STAT_ICON_INNER} aria-hidden />
                           </div>
                           <div className="text-right">
-                            <p className="font-mono text-2xl font-bold tabular-nums text-amber-300">
+                            <p className={LEGAL_COCKPIT_STAT_VALUE}>
                               {score}
                             </p>
                             <p className={cn("text-[10px] uppercase tracking-wider", LEGAL_COCKPIT_TEXT_MUTED)}>/100</p>
@@ -532,24 +550,21 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
               <div className="grid gap-6 lg:grid-cols-2">
                 <BentoCard className={cn(LEGAL_COCKPIT_CARD, LEGAL_COCKPIT_CARD_ACCENT)}>
                   <div className="flex items-center gap-2">
-                    <BookOpen className="size-4 text-amber-400" aria-hidden />
+                    <BookOpen className={cn("size-4", LEGAL_COCKPIT_ICON)} aria-hidden />
                     <p className={cn("text-sm font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>Chat Doctrine</p>
                   </div>
                   <p className={cn("mt-0.5 text-xs", LEGAL_COCKPIT_TEXT_MUTED)}>
                     Question juridique · références L121-1, RGPD art. 6, DSA
                   </p>
                   <textarea
-                    className="mt-4 min-h-[140px] w-full resize-y rounded-xl border border-zinc-700/80 bg-black/50 px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+                    className={cn("mt-4 min-h-[140px] w-full resize-y", LEGAL_COCKPIT_INPUT)}
                     placeholder="Ex. : Affisell est-elle vendeur ou intermédiaire si le supplier expédie depuis la Chine ?"
                     value={doctrineQuestion}
                     onChange={(e) => setDoctrineQuestion(e.target.value)}
                   />
                   <button
                     type="button"
-                    className={cn(
-                      buttonVariants({ size: "sm" }),
-                      "mt-3 w-full gap-1.5 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500"
-                    )}
+                    className={cn(buttonVariants({ size: "sm" }), "mt-3 w-full", LEGAL_COCKPIT_CTA)}
                     disabled={!doctrineQuestion.trim() || loading !== null || !openAiConfigured}
                     onClick={() =>
                       void runAnalyze("doctrine", { question: doctrineQuestion.trim() })
@@ -566,30 +581,27 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
 
                 <BentoCard className={cn(LEGAL_COCKPIT_CARD, "border-zinc-700/90")}>
                   <div className="flex items-center gap-2">
-                    <FileText className="size-4 text-amber-400" aria-hidden />
+                    <FileText className={cn("size-4", LEGAL_COCKPIT_ICON)} aria-hidden />
                     <p className={cn("text-sm font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>Analyse Contrat</p>
                   </div>
                   <p className={cn("mt-0.5 text-xs", LEGAL_COCKPIT_TEXT_MUTED)}>
                     Collez CGU, CGV, DPA ou clause partenaire — audit clause par clause
                   </p>
                   <textarea
-                    className="mt-4 min-h-[100px] w-full resize-y rounded-xl border border-zinc-700/80 bg-black/50 px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+                    className={cn("mt-4 min-h-[100px] w-full resize-y", LEGAL_COCKPIT_INPUT)}
                     placeholder="Coller le texte contractuel ici…"
                     value={contractContent}
                     onChange={(e) => setContractContent(e.target.value)}
                   />
                   <input
-                    className="mt-2 w-full rounded-xl border border-zinc-700/80 bg-black/50 px-4 py-2 text-sm text-white placeholder:text-zinc-600 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+                    className={cn("mt-2 w-full", LEGAL_COCKPIT_INPUT, "py-2")}
                     placeholder="Question optionnelle (ex. clause limitative de responsabilité)"
                     value={contractQuestion}
                     onChange={(e) => setContractQuestion(e.target.value)}
                   />
                   <button
                     type="button"
-                    className={cn(
-                      buttonVariants({ size: "sm" }),
-                      "mt-3 w-full gap-1.5 bg-gradient-to-r from-zinc-700 to-amber-800 hover:from-zinc-600 hover:to-amber-700"
-                    )}
+                    className={cn(buttonVariants({ size: "sm" }), "mt-3 w-full", LEGAL_COCKPIT_CTA_SECONDARY)}
                     disabled={!contractContent.trim() || loading !== null || !openAiConfigured}
                     onClick={() =>
                       void runAnalyze("contract", {
@@ -611,7 +623,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
               {(analysis || loading) && (
                 <BentoCard className={cn(LEGAL_COCKPIT_CARD, LEGAL_COCKPIT_CARD_ACCENT)}>
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-semibold text-amber-200">
+                    <p className={cn("text-sm font-semibold", LEGAL_COCKPIT_ACCENT_TEXT)}>
                       {loading ? "Analyse en cours…" : "Résultat"}
                       {lastType && !loading ? (
                         <span className={cn("ml-2 font-mono text-[10px] font-normal uppercase", LEGAL_COCKPIT_TEXT_MUTED)}>
@@ -619,10 +631,10 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                         </span>
                       ) : null}
                     </p>
-                    {loading ? <Loader2 className="size-4 animate-spin text-amber-400" /> : null}
+                    {loading ? <Loader2 className={cn("size-4 animate-spin", LEGAL_COCKPIT_ICON)} /> : null}
                   </div>
                   {analysis ? (
-                    <pre className="mt-4 max-h-[min(70vh,520px)] overflow-auto whitespace-pre-wrap rounded-xl border border-amber-500/30 bg-zinc-950/90 p-4 font-mono text-xs leading-relaxed text-amber-100/95">
+                    <pre className={cn("mt-4 max-h-[min(70vh,520px)]", LEGAL_COCKPIT_CODE_BLOCK)}>
                       {analysis}
                     </pre>
                   ) : (
@@ -642,7 +654,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                     Scan 50 produits + 50 fournisseurs · règles L121-1 + GPT-4o JSON · cron 08:00 UTC
                   </p>
                   {lastScanStats ? (
-                    <p className="mt-2 text-xs font-medium text-amber-200/95">
+                    <p className={cn("mt-2 text-xs font-medium", LEGAL_COCKPIT_ACCENT_TEXT_SOFT)}>
                       Dernier scan — {lastScanStats.productsScanned} produits ·{" "}
                       {lastScanStats.suppliersScanned} fournisseurs · {lastScanStats.highRiskCount}{" "}
                       alerte(s) ≥70
@@ -667,10 +679,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                   </button>
                   <button
                     type="button"
-                    className={cn(
-                      buttonVariants({ size: "sm" }),
-                      "gap-1.5 bg-gradient-to-r from-amber-700 to-amber-600"
-                    )}
+                    className={cn(buttonVariants({ size: "sm" }), LEGAL_COCKPIT_CTA)}
                     disabled={scanRunning}
                     onClick={() => void runGuardianScan()}
                   >
@@ -742,7 +751,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                                   type="button"
                                   className={cn(
                                     buttonVariants({ variant: "outline", size: "sm" }),
-                                    "h-8 gap-1 border-amber-500/50 bg-amber-950/40 px-2.5 text-[11px] font-medium text-amber-100 hover:bg-amber-900/60"
+                                    LEGAL_COCKPIT_ACTION_WARN
                                   )}
                                   onClick={() => void openFixModal(row)}
                                 >
@@ -836,10 +845,10 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
 
       {fixModal ? (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-2xl border border-amber-500/30 bg-zinc-950 p-5 shadow-2xl">
+          <div className={cn("max-h-[90vh] w-full max-w-3xl overflow-auto rounded-2xl p-5", LEGAL_COCKPIT_MODAL_SHELL)}>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-amber-200">Auto-fix — {fixModal.scan.targetName}</p>
+                <p className={cn("text-sm font-semibold", LEGAL_COCKPIT_ACCENT_TEXT)}>Auto-fix — {fixModal.scan.targetName}</p>
                 <p className="text-xs text-zinc-500">Preview conforme L121-1 · non persisté tant que non appliqué</p>
               </div>
               <button
@@ -852,7 +861,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
             </div>
             {fixModal.loading ? (
               <div className="flex justify-center py-12">
-                <Loader2 className="size-8 animate-spin text-amber-400" />
+                <Loader2 className={cn("size-8 animate-spin", LEGAL_COCKPIT_ICON)} />
               </div>
             ) : fixModal.preview ? (
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -876,7 +885,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                   <ul className="col-span-full space-y-1 text-xs text-zinc-400">
                     {fixModal.preview.changes.map((c, i) => (
                       <li key={`${c.field}-${i}`}>
-                        <span className="text-amber-400">{c.field}</span> — {c.reason}
+                        <span className={LEGAL_COCKPIT_ICON}>{c.field}</span> — {c.reason}
                       </li>
                     ))}
                   </ul>
@@ -891,7 +900,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                   </button>
                   <button
                     type="button"
-                    className={cn(buttonVariants({ size: "sm" }), "bg-amber-700 hover:bg-amber-600")}
+                    className={cn(buttonVariants({ size: "sm" }), LEGAL_COCKPIT_CTA_SOLID)}
                     disabled={fixModal.applying}
                     onClick={() => void applyFix(fixModal.scan.id)}
                   >
@@ -914,10 +923,10 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
           role="dialog"
           aria-modal="true"
         >
-          <div className="flex h-full w-full max-w-4xl flex-col overflow-hidden rounded-none border border-amber-500/30 bg-zinc-950 shadow-2xl sm:rounded-2xl sm:max-h-[92vh]">
-            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-zinc-800 px-4 py-4 sm:px-6">
+          <div className={cn("flex h-full w-full max-w-4xl flex-col overflow-hidden rounded-none sm:rounded-2xl sm:max-h-[92vh]", LEGAL_COCKPIT_MODAL_SHELL)}>
+            <div className={cn("flex shrink-0 items-start justify-between gap-3 px-4 py-4 sm:px-6", LEGAL_COCKPIT_MODAL_HEADER)}>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400/90">
+                <p className={LEGAL_COCKPIT_EYEBROW}>
                   Prévisualisation · Mise en demeure
                 </p>
                 <p className={cn("mt-1 text-sm font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>
@@ -935,7 +944,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
             </div>
             {letterModal.loading ? (
               <div className="flex flex-1 items-center justify-center py-12">
-                <Loader2 className="size-8 animate-spin text-amber-400" />
+                <Loader2 className={cn("size-8 animate-spin", LEGAL_COCKPIT_ICON)} />
               </div>
             ) : letterModal.result ? (
               <>
@@ -970,7 +979,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                   </button>
                   <Link
                     href={letterModal.result.viewUrl}
-                    className={cn(buttonVariants({ size: "sm" }), "bg-amber-700 hover:bg-amber-600")}
+                    className={cn(buttonVariants({ size: "sm" }), LEGAL_COCKPIT_CTA_SOLID)}
                   >
                     Ouvrir page dédiée
                   </Link>

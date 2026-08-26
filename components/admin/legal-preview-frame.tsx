@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Eye, FileCode2 } from "lucide-react"
 
+import { LEGAL_COCKPIT_PREVIEW_TAB_ACTIVE } from "@/components/admin/legal-cockpit-ui"
 import { cn } from "@/lib/utils"
 
 export type LegalPreviewFrameProps = {
@@ -33,7 +34,7 @@ export function LegalPreviewFrame({
           className={cn(
             "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition",
             mode === "document"
-              ? "bg-amber-600 text-white shadow-md shadow-amber-950/40"
+              ? LEGAL_COCKPIT_PREVIEW_TAB_ACTIVE
               : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
           )}
           onClick={() => setMode("document")}

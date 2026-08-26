@@ -18,8 +18,11 @@ import {
   type LegalDocumentPreviewData,
 } from "@/components/admin/legal-document-preview-modal"
 import {
+  LEGAL_COCKPIT_ATMOSPHERE_COMPACT,
   LEGAL_COCKPIT_CARD,
+  LEGAL_COCKPIT_CTA,
   LEGAL_COCKPIT_HEADING,
+  LEGAL_COCKPIT_ICON,
   LEGAL_COCKPIT_SHELL,
   LEGAL_COCKPIT_TABLE_HEAD,
   LEGAL_COCKPIT_TABLE_ROW,
@@ -274,10 +277,7 @@ export function LegalDocumentsPanel() {
 
   return (
     <div className="relative min-h-[80vh] overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(180,83,9,0.25),transparent)]"
-        aria-hidden
-      />
+      <div className={LEGAL_COCKPIT_ATMOSPHERE_COMPACT} aria-hidden />
       <BentoShell className={cn("relative", LEGAL_COCKPIT_SHELL)}>
         <BentoContainer maxWidth="5xl" className="space-y-8 py-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -315,7 +315,7 @@ export function LegalDocumentsPanel() {
                 <li key={card.type}>
                   <BentoCard className={cn(LEGAL_COCKPIT_CARD, "h-full")}>
                     <div className="flex items-center gap-2">
-                      <Icon className="size-4 text-amber-400" aria-hidden />
+                      <Icon className={cn("size-4", LEGAL_COCKPIT_ICON)} aria-hidden />
                       <p className={cn("font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>{card.label}</p>
                     </div>
                     {card.fields.length > 0 ? (
@@ -345,10 +345,7 @@ export function LegalDocumentsPanel() {
                     )}
                     <button
                       type="button"
-                      className={cn(
-                        buttonVariants({ size: "sm" }),
-                        "mt-4 w-full gap-1.5 bg-gradient-to-r from-amber-700 to-amber-600"
-                      )}
+                      className={cn(buttonVariants({ size: "sm" }), "mt-4 w-full", LEGAL_COCKPIT_CTA)}
                       disabled={generating === card.type}
                       onClick={() => void generate(card.type)}
                     >
