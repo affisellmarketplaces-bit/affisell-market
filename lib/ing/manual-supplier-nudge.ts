@@ -165,7 +165,7 @@ export async function loadManualSupplierNudgeCandidates(
 export async function recordIngNudgeLog(
   prisma: PrismaClient,
   args: { supplierId: string; groupsCount: number; resendId?: string | null }
-): Promise<void> {
+): Promise<boolean> {
   try {
     await prisma.ingNudgeLog.create({
       data: {
@@ -174,12 +174,14 @@ export async function recordIngNudgeLog(
         resendId: args.resendId?.trim() || null,
       },
     })
+    return true
   } catch (error) {
-    console.warn("[cron:ing-manual-nudge]", {
-      result: "nudge_log_write_skipped",
+    console.error("[cron:ing-manual-nudge]", {
+      result: "nudge_log_write_failed",
       supplierId: args.supplierId,
       error: error instanceof Error ? error.message : String(error),
     })
+    return false
   }
 }
 
