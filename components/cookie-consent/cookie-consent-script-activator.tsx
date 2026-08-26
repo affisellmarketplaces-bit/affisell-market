@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 
 import { COOKIE_CONSENT_GRANTED_EVENT } from "@/lib/legal/cookie-consent-constants"
+import { injectGtagConsentDefault } from "@/lib/legal/cookie-consent-gtag-bootstrap"
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim()
 
@@ -30,9 +31,14 @@ function activateDeferredAnalyticsScripts(): void {
   loadGoogleAnalytics()
 }
 
-/** Activates GA after cookie consent — injects scripts via DOM APIs (React 19 safe). */
+/**
+ * React 19 safe — all scripts injected via DOM APIs (no next/script or raw <script> in tree).
+ * Consent default runs synchronously on mount before any GA loader.
+ */
 export function CookieConsentScriptActivator() {
   useEffect(() => {
+    injectGtagConsentDefault()
+
     const onGranted = () => activateDeferredAnalyticsScripts()
     document.addEventListener(COOKIE_CONSENT_GRANTED_EVENT, onGranted)
     if (document.cookie.includes("affisell_cookie_consent=true")) {

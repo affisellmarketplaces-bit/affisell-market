@@ -4,7 +4,6 @@ import { headers } from "next/headers"
 import { Footer } from "@/components/Footer"
 import { AppHeader } from "@/components/nav/app-header"
 import { SiteHeaderChrome } from "@/components/nav/site-header-chrome"
-import { CookieConsentHeadScripts } from "@/components/cookie-consent/cookie-consent-head"
 import { CookieConsentScriptActivator } from "@/components/cookie-consent/cookie-consent-script-activator"
 import { CookieBannerDeferred } from "@/components/CookieBanner-deferred"
 import { RootSessionShell } from "@/app/root-intl-session"
@@ -52,8 +51,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const pathname = hdrs.get("x-affisell-pathname") ?? ""
   const isCustomDomain = isCustomDomainHeaders(hdrs)
   const isLegionStorefront = isLegionStorefrontPathname(pathname)
-  /** Hide platform chrome on custom domains + Légion @username vitrines. */
+  /** Admin ops + custom domains: lean shell without marketplace header/footer noise. */
+  const isAdminOpsSurface =
+    pathname.startsWith("/dashboard/admin") || pathname.startsWith("/admin")
   const isDedicatedStorefront = isCustomDomain || isLegionStorefront
+  const leanPlatformChrome = isDedicatedStorefront || isAdminOpsSurface
   /**
    * Slim i18n only on custom-domain shops (payload). Légion keeps full messages —
    * otherwise residual client UI (gallery, cookies, etc.) throws MISSING_MESSAGE.
@@ -67,21 +69,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body
         className={cn(
           "affisell-mobile-shell affisell-epoxy-atmosphere flex min-h-screen min-h-dvh flex-col text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50",
-          isDedicatedStorefront && "affisell-dedicated-storefront affisell-mobile-dock-off"
+          isDedicatedStorefront && "affisell-dedicated-storefront affisell-mobile-dock-off",
+          isAdminOpsSurface && "affisell-admin-ops-shell"
         )}
       >
-        <CookieConsentHeadScripts />
         <CookieConsentScriptActivator />
         <AuthSessionProvider session={session}>
           <IntlAppProvider locale={locale} messages={clientMessages} now={now}>
-            <RootSessionShell leanShell={isDedicatedStorefront}>
-              {!isDedicatedStorefront ? (
+            <RootSessionShell leanShell={leanPlatformChrome}>
+              {!leanPlatformChrome ? (
                 <SiteHeaderChrome>
                   <AppHeader />
                 </SiteHeaderChrome>
               ) : null}
               {children}
-              {!isDedicatedStorefront ? <Footer /> : null}
+              {!leanPlatformChrome ? <Footer /> : null}
             </RootSessionShell>
             <CookieBannerDeferred />
           </IntlAppProvider>
