@@ -3471,6 +3471,64 @@ model LegalLetter {
   @@index([createdAt])
 }
 
+/**
+ * Avocat Numérique — generated marketplace legal documents (CGV, CGU, etc.).
+ * Distinct from LMS LegalDocument (acceptance / versioning).
+ */
+model AvocatLegalDocument {
+  id          String   @id @default(cuid())
+  type        String // cgv | cgu | mentions | contrat_fournisseur | cgv_supplier
+  title       String
+  contentMd   String   @db.Text
+  contentHtml String   @db.Text
+  version     Int      @default(1)
+  status      String   @default("draft") // draft | published | archived | signed
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  signingTokens AvocatSigningToken[]
+
+  @@index([type, status])
+  @@index([createdAt])
+}
+
+/**
+ * Token de signature électronique (DocuSeal ou canvas interne).
+ */
+model AvocatSigningToken {
+  id            String              @id @default(cuid())
+  token         String              @unique @default(cuid())
+  documentId    String
+  document      AvocatLegalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  supplierId    String?
+  signerEmail   String
+  signerName    String?
+  expiresAt     DateTime
+  signedAt      DateTime?
+  signatureData String?             @db.Text
+  createdAt     DateTime            @default(now())
+
+  @@index([token])
+  @@index([documentId])
+}
+
+/**
+ * Audit trail signatures électroniques Avocat Numérique.
+ */
+model AvocatSignatureLog {
+  id             String   @id @default(cuid())
+  documentId     String
+  signingTokenId String?
+  signerEmail    String
+  signerName     String?
+  signatureData  String   @db.Text
+  createdAt      DateTime @default(now())
+
+  @@index([documentId])
+  @@index([createdAt])
+}
+
 enum DemoPersona {
   SUPPLIER
   AFFILIATE

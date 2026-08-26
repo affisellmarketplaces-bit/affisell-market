@@ -14,6 +14,7 @@ import {
   Sparkles,
   Wrench,
   X,
+  FolderOpen,
 } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
@@ -43,7 +44,7 @@ const MASTER_GLOW: Record<LegalMasterDomain, string> = {
   litigation: "shadow-[0_0_40px_-12px_rgba(168,85,247,0.35)]",
 }
 
-type TabId = "doctrine" | "scans"
+type TabId = "doctrine" | "scans" | "documents"
 
 type Props = {
   openAiConfigured: boolean
@@ -418,6 +419,16 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
               <Radar className="mr-1.5 size-4" aria-hidden />
               Scans
             </button>
+            <Link
+              href="/dashboard/admin/legal/documents"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "gap-1.5 border-zinc-700 bg-zinc-950/50"
+              )}
+            >
+              <FolderOpen className="size-4" aria-hidden />
+              Documents
+            </Link>
           </div>
 
           {error ? (

@@ -1,6 +1,7 @@
 import { hasOpenAiFallback, openaiChatText } from "@/lib/ai/openai-chat-fallback"
 import { AFFISELL_LEGAL_IDENTITY } from "@/lib/legal/auto-entreprise-identity"
 import { AFFISELL_LEGAL_SYSTEM_PROMPT, LEGAL_AI_MODEL } from "@/lib/legal/brain"
+import { legalMarkdownToHtml } from "@/lib/legal/markdown-html"
 import type { LegalIssue } from "@/lib/legal/scan-types"
 
 export type LegalLetterType = "mise_en_demeure" | "avertissement"
@@ -113,49 +114,7 @@ Le présent courrier vaut mise en demeure au sens de l'article 1344 du Code civi
 `
 }
 
-/** Convertit le markdown juridique en HTML print-ready (A4 serif). */
-export function legalMarkdownToHtml(markdown: string): string {
-  const escaped = markdown
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-
-  let html = escaped
-    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
-    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-    .replace(/^---$/gm, "<hr />")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/^(\d+)\. (.+)$/gm, "<li>$2</li>")
-    .replace(/(<li>.*<\/li>\n?)+/g, (block) => `<ol>${block}</ol>`)
-    .replace(/\n\n/g, "</p><p>")
-    .replace(/\n/g, "<br />")
-
-  return `<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <title>Lettre juridique Affisell</title>
-  <style>
-    @page { size: A4; margin: 2.5cm; }
-    body { font-family: "Times New Roman", Georgia, serif; font-size: 12pt; line-height: 1.55; color: #111; max-width: 18cm; margin: 0 auto; padding: 2rem; }
-    h1 { font-size: 16pt; letter-spacing: 0.08em; text-align: center; margin-bottom: 1.5rem; }
-    h2 { font-size: 13pt; margin-top: 1.25rem; border-bottom: 1px solid #ccc; padding-bottom: 0.25rem; }
-    hr { border: none; border-top: 1px solid #999; margin: 1.25rem 0; }
-    strong { font-weight: 700; }
-    ol { padding-left: 1.25rem; }
-    .letter-header { text-align: center; margin-bottom: 2rem; }
-    .letter-logo { font-weight: bold; font-size: 14pt; letter-spacing: 0.12em; color: #92400e; }
-  </style>
-</head>
-<body>
-  <div class="letter-header">
-    <div class="letter-logo">AFFISELL MARKET</div>
-  </div>
-  <p>${html}</p>
-</body>
-</html>`
-}
+export { legalMarkdownToHtml } from "@/lib/legal/markdown-html"
 
 export function generateMiseEnDemeure(
   supplier: LegalLetterSupplier,
