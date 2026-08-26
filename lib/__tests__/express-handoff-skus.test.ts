@@ -24,6 +24,15 @@ const basePatch = (): UrlImportFormPatch => ({
   variants: { mode: "none", sizes: [], simpleColors: [], variantRows: [] },
 })
 
+const variantLogisticsDefaults = {
+  weightGrams: null,
+  ean: null,
+  originCountry: "CN",
+  warehouseCode: null,
+  videoUrl: null,
+  processingDays: 2,
+} as const
+
 describe("express-handoff-skus", () => {
   it("builds advanced rows from skuVariants API payload", () => {
     const rows = advancedSkuRowsFromExpressImport({
@@ -38,6 +47,7 @@ describe("express-handoff-skus", () => {
             publicPrice: 60,
             stock: 10,
             commissionRate: 14,
+            ...variantLogisticsDefaults,
           },
           {
             color: "Pink",
@@ -47,6 +57,7 @@ describe("express-handoff-skus", () => {
             publicPrice: 59,
             stock: 8,
             commissionRate: 14,
+            ...variantLogisticsDefaults,
           },
         ],
       },

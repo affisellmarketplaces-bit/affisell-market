@@ -11,7 +11,7 @@ export async function recordSignupLegalAcceptances(params: {
   role: MerchantRole | "CUSTOMER"
   req: Request
   locale?: string | null
-}): Promise<number[]> {
+}): Promise<string[]> {
   const locale = resolveAppLocale(params.locale ?? params.req.headers.get("accept-language"))
 
   await recordLegalAcceptance({

@@ -22,6 +22,7 @@ describe("import-china-ae-bridge", () => {
       marketplace: {
         id: "aliexpress",
         label: "AliExpress",
+        host: "aliexpress.com",
         scrapePlatform: "aliexpress",
         preferAliExpressApi: true,
       },

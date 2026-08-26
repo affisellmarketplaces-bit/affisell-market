@@ -4,6 +4,10 @@ import { checkPriceWar, checkWinnerRising } from "@/lib/radar/alerts/rules"
 import type { SnapshotLike } from "@/lib/radar/alerts/types"
 import { utcDay } from "@/lib/radar/writers/product-writer"
 
+function price(n: number): SnapshotLike["price"] {
+  return { toString: () => String(n) } as SnapshotLike["price"]
+}
+
 function snap(partial: Partial<SnapshotLike> & Pick<SnapshotLike, "id" | "rank" | "price" | "day" | "crawledAt">): SnapshotLike {
   return {
     marketplaceId: "amazon",
@@ -47,14 +51,14 @@ describe("WINNER_RISING / PRICE_WAR need day history", () => {
     const old = snap({
       id: "a",
       rank: 80,
-      price: 20,
+      price: price(20),
       day: d0,
       crawledAt: d0,
     })
     const current = snap({
       id: "b",
       rank: 20,
-      price: 20,
+      price: price(20),
       day: d1,
       crawledAt: d1,
     })
@@ -73,7 +77,7 @@ describe("WINNER_RISING / PRICE_WAR need day history", () => {
     const current = snap({
       id: "only",
       rank: 10,
-      price: 20,
+      price: price(20),
       day,
       crawledAt: day,
     })
@@ -93,14 +97,14 @@ describe("WINNER_RISING / PRICE_WAR need day history", () => {
     const old = snap({
       id: "a",
       rank: 10,
-      price: 100,
+      price: price(100),
       day: d0,
       crawledAt: d0,
     })
     const current = snap({
       id: "b",
       rank: 10,
-      price: 70,
+      price: price(70),
       day: d1,
       crawledAt: d1,
     })

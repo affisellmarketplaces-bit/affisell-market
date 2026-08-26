@@ -80,7 +80,7 @@ export function MerchantLegalProfileSubmitForm({ role }: Props) {
   const meta = legalStatus ? MERCHANT_LEGAL_STATUS_CATALOG[legalStatus] : null
   const signupFields = legalStatus ? signupFieldsForStatus(legalStatus, role) : []
   const docList = legalStatus ? documentsForSignup(legalStatus, role) : []
-  const stepIndex = steps.indexOf(step as (typeof steps)[number])
+  const stepIndex = (steps as readonly Step[]).indexOf(step)
 
   function resolveError(code: string): string {
     if (code.startsWith("missing_document:")) {

@@ -52,13 +52,23 @@ function storePayload(row: Awaited<ReturnType<PrismaClient["store"]["findMany"]>
 }
 
 function productPayload(row: Awaited<ReturnType<PrismaClient["product"]["findMany"]>>[number]) {
+  const {
+    colorImages,
+    variants,
+    customColumns,
+    variantMapping,
+    bookingSeatLayout,
+    externalRaw,
+    ...rest
+  } = row
   return {
-    ...row,
-    colorImages: jsonOrNull(row.colorImages),
-    variants: jsonOrNull(row.variants),
-    customColumns: jsonOrNull(row.customColumns),
-    variantMapping: jsonOrNull(row.variantMapping),
-    bookingSeatLayout: jsonOrNull(row.bookingSeatLayout),
+    ...rest,
+    colorImages: jsonOrNull(colorImages),
+    variants: jsonOrNull(variants),
+    customColumns: jsonOrNull(customColumns),
+    variantMapping: jsonOrNull(variantMapping),
+    bookingSeatLayout: jsonOrNull(bookingSeatLayout),
+    externalRaw: jsonOrNull(externalRaw),
   } satisfies Prisma.ProductUncheckedCreateInput
 }
 

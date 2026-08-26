@@ -1,5 +1,6 @@
 import type {
   AccountDeletionConfirmPayload,
+  AccountDeletionReasonCode,
   AccountDeletionSource,
 } from "@/lib/account-deletion-shared"
 import {
@@ -12,9 +13,7 @@ import { recordAccountDeletionFeedback } from "@/lib/record-account-deletion-fee
 export type ParsedAccountDeletionRequest =
   | {
       ok: true
-      reasonCode: ReturnType<typeof parseAccountDeletionReason> extends { ok: true; reasonCode: infer R }
-        ? R
-        : never
+      reasonCode: AccountDeletionReasonCode
       reasonDetail: string | null
       locale: string | null
       source: AccountDeletionSource

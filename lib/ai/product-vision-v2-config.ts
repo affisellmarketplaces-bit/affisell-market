@@ -1,7 +1,8 @@
+import type { EnvBag } from "@/lib/env-bag"
 import { isInstantScanServerEnabled } from "@/lib/instantscan/flags"
 
 /** Affisell InstantScan — primary flag (cascade CLIP → mini → GPT-4o). */
-export function isInstantScanEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+export function isInstantScanEnabled(env: EnvBag = process.env): boolean {
   const raw = env.ENABLE_INSTANTSCAN?.trim().toLowerCase()
   return raw === "1" || raw === "true"
 }
@@ -10,14 +11,14 @@ export function isInstantScanEnabled(env: NodeJS.ProcessEnv = process.env): bool
  * GPT-4o vision path — explicit InstantScan or ENABLE_AI_VISION_V2.
  * InstantScan product UI is retired; keep API opt-in for diagnostics.
  */
-export function isAiVisionV2Enabled(env: NodeJS.ProcessEnv = process.env): boolean {
+export function isAiVisionV2Enabled(env: EnvBag = process.env): boolean {
   if (isInstantScanServerEnabled(env)) return true
   const vision = env.ENABLE_AI_VISION_V2?.trim().toLowerCase()
   return vision === "1" || vision === "true"
 }
 
 /** InstantScan cascade — embed fast-path before full GPT vision. */
-export function isAiVisionCascadeEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+export function isAiVisionCascadeEnabled(env: EnvBag = process.env): boolean {
   if (!isAiVisionV2Enabled(env)) return false
   if (isInstantScanEnabled(env)) return true
   const raw = env.ENABLE_AI_VISION_CASCADE?.trim().toLowerCase()
@@ -30,7 +31,7 @@ export const PRODUCT_VISION_CASCADE_MINI_MODEL =
 const INVALID_MODEL_PATTERN = /gpt-4o-\d{4}-\d{2}-\d{2}/i
 
 /** Reject placeholder/future-dated model IDs that 404 on OpenAI. */
-export function resolveProductVisionV2Model(env: NodeJS.ProcessEnv = process.env): string {
+export function resolveProductVisionV2Model(env: EnvBag = process.env): string {
   const raw = env.PRODUCT_VISION_V2_MODEL?.trim()
   if (raw && !INVALID_MODEL_PATTERN.test(raw)) return raw
   if (raw) {

@@ -1,10 +1,12 @@
+import type { EnvBag } from "@/lib/env-bag"
+
 export type ProductWizardVersion = "v1" | "v2"
 
 /** InstantScan (`guided`) retired — v2 ships Express + Pro only. */
 export type WizardV2Mode = "express" | "pro"
 
 /** Server + client: ENABLE_WIZARD_V2=1|true enables v2 by default. */
-export function isWizardV2EnvEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+export function isWizardV2EnvEnabled(env: EnvBag = process.env): boolean {
   const raw = env.ENABLE_WIZARD_V2?.trim().toLowerCase()
   return raw === "1" || raw === "true"
 }
