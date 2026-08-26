@@ -3437,6 +3437,40 @@ model LegalScan {
   @@index([type, targetId, status])
 }
 
+/**
+ * Audit trail when an admin applies an auto-fix on a product listing.
+ */
+model LegalFixLog {
+  id        String   @id @default(cuid())
+  scanId    String
+  productId String
+  changes   Json
+  appliedBy String
+  createdAt DateTime @default(now())
+
+  @@index([scanId])
+  @@index([productId])
+  @@index([createdAt])
+}
+
+/**
+ * Generated legal correspondence (mise en demeure, avertissement).
+ */
+model LegalLetter {
+  id              String   @id @default(cuid())
+  supplierId      String
+  scanId          String?
+  type            String // mise_en_demeure | avertissement
+  contentMarkdown String   @db.Text
+  contentHtml     String   @db.Text
+  status          String   @default("draft") // draft | sent
+  createdAt       DateTime @default(now())
+
+  @@index([supplierId])
+  @@index([scanId])
+  @@index([createdAt])
+}
+
 enum DemoPersona {
   SUPPLIER
   AFFILIATE

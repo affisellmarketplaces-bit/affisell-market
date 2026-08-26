@@ -1,21 +1,32 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 import {
   BookOpen,
   FileText,
   Gavel,
   Loader2,
+  Mail,
   Radar,
   Scale,
   ShieldAlert,
   Sparkles,
+  Wrench,
+  X,
 } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { buttonVariants } from "@/components/ui/button"
+import { countAutoFixableScans, isAutoFixableProductScan } from "@/lib/legal/auto-fix"
 import { LEGAL_MASTERS, type LegalAnalyzeType, type LegalMasterDomain } from "@/lib/legal/brain"
-import type { LegalIssue, LegalScanRow, LegalScanStats } from "@/lib/legal/scan-types"
+import type {
+  LegalFixPreview,
+  LegalIssue,
+  LegalLetterSummary,
+  LegalScanRow,
+  LegalScanStats,
+} from "@/lib/legal/scan-types"
 import { cn } from "@/lib/utils"
 
 const MASTER_ICON: Record<LegalMasterDomain, typeof Scale> = {
@@ -83,6 +94,21 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
   const [scanRunning, setScanRunning] = useState(false)
   const [lastScanStats, setLastScanStats] = useState<LegalScanStats | null>(null)
   const [statusUpdating, setStatusUpdating] = useState<string | null>(null)
+  const [letters, setLetters] = useState<LegalLetterSummary[]>([])
+  const [lettersLoading, setLettersLoading] = useState(false)
+  const [fixModal, setFixModal] = useState<{
+    scan: LegalScanRow
+    preview: LegalFixPreview | null
+    loading: boolean
+    applying: boolean
+  } | null>(null)
+  const [letterModal, setLetterModal] = useState<{
+    scan: LegalScanRow
+    loading: boolean
+    result: { letterId: string; letterMarkdown: string; viewUrl: string } | null
+  } | null>(null)
+
+  const autoFixableCount = useMemo(() => countAutoFixableScans(scans), [scans])
 
   useEffect(() => {
     setMounted(true)
@@ -111,6 +137,23 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
   useEffect(() => {
     if (tab === "scans") void loadScans()
   }, [tab, loadScans])
+
+  const loadLetters = useCallback(async () => {
+    setLettersLoading(true)
+    try {
+      const res = await fetch("/api/legal/letter", { cache: "no-store", credentials: "include" })
+      const data = (await res.json()) as { ok?: boolean; letters?: LegalLetterSummary[] }
+      if (res.ok && data.ok) setLetters(data.letters ?? [])
+    } catch {
+      /* non-blocking */
+    } finally {
+      setLettersLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (tab === "scans") void loadLetters()
+  }, [tab, loadLetters])
 
   const runAnalyze = useCallback(
     async (type: LegalAnalyzeType, payload: { content?: string; question?: string }) => {
@@ -196,6 +239,108 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
       setError(e instanceof Error ? e.message : "status_patch_failed")
     } finally {
       setStatusUpdating(null)
+    }
+  }
+
+  async function openFixModal(scan: LegalScanRow) {
+    setFixModal({ scan, preview: null, loading: true, applying: false })
+    setError(null)
+    try {
+      const res = await fetch("/api/legal/fix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ scanId: scan.id }),
+      })
+      const data = (await res.json()) as {
+        ok?: boolean
+        error?: string
+        original?: LegalFixPreview["original"]
+        fixed?: LegalFixPreview["fixed"]
+        changes?: LegalFixPreview["changes"]
+      }
+      if (!res.ok || !data.ok || !data.original || !data.fixed || !data.changes) {
+        throw new Error(data.error ?? `HTTP ${res.status}`)
+      }
+      setFixModal({
+        scan,
+        preview: {
+          ok: true,
+          original: data.original,
+          fixed: data.fixed,
+          changes: data.changes,
+        },
+        loading: false,
+        applying: false,
+      })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "fix_preview_failed")
+      setFixModal(null)
+    }
+  }
+
+  async function applyFix(scanId: string) {
+    setFixModal((prev) => (prev ? { ...prev, applying: true } : prev))
+    setError(null)
+    try {
+      const res = await fetch("/api/legal/fix", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ scanId, apply: true }),
+      })
+      const data = (await res.json()) as { ok?: boolean; error?: string }
+      if (!res.ok || !data.ok) throw new Error(data.error ?? `HTTP ${res.status}`)
+      setFixModal(null)
+      await loadScans()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "fix_apply_failed")
+      setFixModal((prev) => (prev ? { ...prev, applying: false } : prev))
+    }
+  }
+
+  async function openLetterModal(scan: LegalScanRow) {
+    const supplierId = scan.supplierIdForLetter
+    if (!supplierId) {
+      setError("Fournisseur introuvable pour cette cible")
+      return
+    }
+    setLetterModal({ scan, loading: true, result: null })
+    setError(null)
+    try {
+      const res = await fetch("/api/legal/letter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          supplierId,
+          scanId: scan.id,
+          type: "mise_en_demeure",
+        }),
+      })
+      const data = (await res.json()) as {
+        ok?: boolean
+        letterId?: string
+        letterMarkdown?: string
+        viewUrl?: string
+        error?: string
+      }
+      if (!res.ok || !data.ok || !data.letterId) {
+        throw new Error(data.error ?? `HTTP ${res.status}`)
+      }
+      setLetterModal({
+        scan,
+        loading: false,
+        result: {
+          letterId: data.letterId,
+          letterMarkdown: data.letterMarkdown ?? "",
+          viewUrl: data.viewUrl ?? `/dashboard/admin/legal/lettre/${data.letterId}`,
+        },
+      })
+      await loadLetters()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "letter_failed")
+      setLetterModal(null)
     }
   }
 
@@ -431,6 +576,9 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                       alerte(s) ≥70
                     </p>
                   ) : null}
+                  <p className="mt-1 text-xs font-medium text-emerald-300/90">
+                    Auto-fixables : {autoFixableCount}
+                  </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -510,14 +658,33 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                         <td className="px-3 py-3">
                           {row.status === "open" ? (
                             <div className="flex flex-wrap gap-1">
-                              <button
-                                type="button"
-                                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-7 px-2 text-[10px]")}
-                                disabled={statusUpdating === row.id}
-                                onClick={() => void patchScanStatus(row.id, "fixed")}
-                              >
-                                Corrigé
-                              </button>
+                              {isAutoFixableProductScan(row) ? (
+                                <button
+                                  type="button"
+                                  className={cn(
+                                    buttonVariants({ variant: "outline", size: "sm" }),
+                                    "h-7 gap-1 px-2 text-[10px] border-amber-600/40 text-amber-200"
+                                  )}
+                                  onClick={() => void openFixModal(row)}
+                                >
+                                  <Wrench className="size-3" aria-hidden />
+                                  Voir Fix
+                                </button>
+                              ) : null}
+                              {row.supplierIdForLetter ? (
+                                <button
+                                  type="button"
+                                  className={cn(
+                                    buttonVariants({ variant: "outline", size: "sm" }),
+                                    "h-7 gap-1 px-2 text-[10px]"
+                                  )}
+                                  disabled={letterModal?.loading === true}
+                                  onClick={() => void openLetterModal(row)}
+                                >
+                                  <Mail className="size-3" aria-hidden />
+                                  Générer Lettre
+                                </button>
+                              ) : null}
                               <button
                                 type="button"
                                 className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "h-7 px-2 text-[10px]")}
@@ -536,10 +703,162 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                   </tbody>
                 </table>
               </div>
+
+              <div className="mt-8 border-t border-zinc-800 pt-6">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-white">Lettres générées</p>
+                  {lettersLoading ? <Loader2 className="size-4 animate-spin text-zinc-500" /> : null}
+                </div>
+                {letters.length === 0 ? (
+                  <p className="text-xs text-zinc-500">Aucune lettre — générez une mise en demeure depuis un scan.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {letters.map((letter) => (
+                      <li
+                        key={letter.id}
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-black/30 px-3 py-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-medium text-zinc-200">
+                            {letter.type === "mise_en_demeure" ? "Mise en demeure" : "Avertissement"} ·{" "}
+                            {letter.supplierName}
+                          </p>
+                          <p className="truncate text-[10px] text-zinc-500">{letter.preview}…</p>
+                        </div>
+                        <Link
+                          href={letter.viewUrl}
+                          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-7 shrink-0 text-[10px]")}
+                        >
+                          Ouvrir / Imprimer
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </BentoCard>
           )}
         </BentoContainer>
       </BentoShell>
+
+      {fixModal ? (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-auto rounded-2xl border border-amber-500/30 bg-zinc-950 p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-amber-200">Auto-fix — {fixModal.scan.targetName}</p>
+                <p className="text-xs text-zinc-500">Preview conforme L121-1 · non persisté tant que non appliqué</p>
+              </div>
+              <button
+                type="button"
+                className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                onClick={() => setFixModal(null)}
+              >
+                <X className="size-5" aria-hidden />
+              </button>
+            </div>
+            {fixModal.loading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="size-8 animate-spin text-amber-400" />
+              </div>
+            ) : fixModal.preview ? (
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <div>
+                  <p className="mb-2 text-[10px] uppercase tracking-wider text-zinc-500">Original</p>
+                  <pre className="max-h-64 overflow-auto rounded-xl border border-zinc-800 bg-black/50 p-3 text-xs text-zinc-400 whitespace-pre-wrap">
+                    {fixModal.preview.original.title}
+                    {"\n\n"}
+                    {fixModal.preview.original.description.slice(0, 800)}
+                  </pre>
+                </div>
+                <div>
+                  <p className="mb-2 text-[10px] uppercase tracking-wider text-emerald-500">Corrigé</p>
+                  <pre className="max-h-64 overflow-auto rounded-xl border border-emerald-900/50 bg-emerald-950/20 p-3 text-xs text-emerald-100/90 whitespace-pre-wrap">
+                    {fixModal.preview.fixed.title}
+                    {"\n\n"}
+                    {fixModal.preview.fixed.description.slice(0, 800)}
+                  </pre>
+                </div>
+                {fixModal.preview.changes.length > 0 ? (
+                  <ul className="col-span-full space-y-1 text-xs text-zinc-400">
+                    {fixModal.preview.changes.map((c, i) => (
+                      <li key={`${c.field}-${i}`}>
+                        <span className="text-amber-400">{c.field}</span> — {c.reason}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                <div className="col-span-full flex justify-end gap-2">
+                  <button
+                    type="button"
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    onClick={() => setFixModal(null)}
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(buttonVariants({ size: "sm" }), "bg-amber-700 hover:bg-amber-600")}
+                    disabled={fixModal.applying}
+                    onClick={() => void applyFix(fixModal.scan.id)}
+                  >
+                    {fixModal.applying ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      "Appliquer le fix"
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {letterModal ? (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl border border-amber-500/30 bg-zinc-950 p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-sm font-semibold text-amber-200">
+                Mise en demeure — {letterModal.scan.targetName}
+              </p>
+              <button
+                type="button"
+                className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                onClick={() => setLetterModal(null)}
+              >
+                <X className="size-5" aria-hidden />
+              </button>
+            </div>
+            {letterModal.loading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="size-8 animate-spin text-amber-400" />
+              </div>
+            ) : letterModal.result ? (
+              <div className="mt-4">
+                <pre className="max-h-[50vh] overflow-auto whitespace-pre-wrap rounded-xl border border-amber-500/20 bg-black/50 p-4 text-xs leading-relaxed text-amber-100/90">
+                  {letterModal.result.letterMarkdown}
+                </pre>
+                <div className="mt-4 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    onClick={() => setLetterModal(null)}
+                  >
+                    Fermer
+                  </button>
+                  <Link
+                    href={letterModal.result.viewUrl}
+                    className={cn(buttonVariants({ size: "sm" }), "bg-amber-700 hover:bg-amber-600")}
+                  >
+                    Imprimer / PDF
+                  </Link>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

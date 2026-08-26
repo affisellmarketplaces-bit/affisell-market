@@ -7,6 +7,47 @@ import {
   updateLegalScanStatus,
 } from "@/lib/legal/run-legal-scan"
 import type { LegalIssue } from "@/lib/legal/scan-types"
+import { prisma } from "@/lib/prisma"
+
+async function enrichScansWithSupplierId(
+  scans: Array<{
+    id: string
+    type: string
+    targetId: string
+    targetName: string
+    riskScore: number
+    issues: unknown
+    status: string
+    createdAt: Date
+    updatedAt: Date
+  }>
+) {
+  const productIds = scans.filter((s) => s.type === "product").map((s) => s.targetId)
+  const products =
+    productIds.length > 0
+      ? await prisma.product.findMany({
+          where: { id: { in: productIds } },
+          select: { id: true, supplierId: true },
+        })
+      : []
+  const supplierByProduct = new Map(products.map((p) => [p.id, p.supplierId]))
+
+  return scans.map((row) => ({
+    id: row.id,
+    type: row.type,
+    targetId: row.targetId,
+    targetName: row.targetName,
+    riskScore: row.riskScore,
+    issues: row.issues as LegalIssue[],
+    status: row.status,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    supplierIdForLetter:
+      row.type === "supplier"
+        ? row.targetId
+        : (supplierByProduct.get(row.targetId) ?? null),
+  }))
+}
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -27,19 +68,10 @@ export async function GET() {
 
   try {
     const scans = await listRecentLegalScans(20)
+    const enriched = await enrichScansWithSupplierId(scans)
     return Response.json({
       ok: true,
-      scans: scans.map((row) => ({
-        id: row.id,
-        type: row.type,
-        targetId: row.targetId,
-        targetName: row.targetName,
-        riskScore: row.riskScore,
-        issues: row.issues as LegalIssue[],
-        status: row.status,
-        createdAt: row.createdAt.toISOString(),
-        updatedAt: row.updatedAt.toISOString(),
-      })),
+      scans: enriched,
     })
   } catch (error) {
     console.error("[legal:scan]", {
