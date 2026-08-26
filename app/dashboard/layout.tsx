@@ -1,4 +1,4 @@
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 
 import { DashboardAutoDraft } from "@/components/dashboard/dashboard-auto-draft"
 import { OAuthWelcomeToast } from "@/components/oauth-welcome-toast"
@@ -11,12 +11,15 @@ export const dynamic = "force-dynamic"
 export const revalidate = 0
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const jar = await cookies()
+  const [jar, hdrs] = await Promise.all([cookies(), headers()])
+  const pathname = hdrs.get("x-affisell-pathname") ?? ""
+  const isAdminSurface =
+    pathname.startsWith("/dashboard/admin") || pathname.startsWith("/admin")
   const welcome = jar.get(OAUTH_WELCOME_COOKIE)?.value
 
   return (
     <>
-      <RadarUnlockBanner />
+      {!isAdminSurface ? <RadarUnlockBanner /> : null}
       <DashboardAutoDraft />
       {welcome ? (
         <div className="px-4 pt-6 md:px-8">
