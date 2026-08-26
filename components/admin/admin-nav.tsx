@@ -26,6 +26,7 @@ const LINKS = [
   { href: "/admin/splits", label: "Splits" },
   { href: "/admin/reviews", label: "Avis" },
   { href: "/crm", label: "CRM" },
+  { href: "/dashboard/admin/ing", label: "Ing" },
   { href: "/dashboard/admin/leads", label: "Leads" },
   { href: "/dashboard/admin/product-funnel", label: "Funnel produit" },
   { href: "/admin/instantscan-performance", label: "InstantScan" },
@@ -64,6 +65,7 @@ export function AdminNav() {
                 (pathname.startsWith("/admin/products") || pathname === "/admin/auto-fulfill")) ||
               (link.href === "/crm" && pathname.startsWith("/crm")) ||
               (link.href === "/dashboard/admin/leads" && pathname.startsWith("/dashboard/admin/leads")) ||
+              (link.href === "/dashboard/admin/ing" && pathname.startsWith("/dashboard/admin/ing")) ||
               (link.href === "/admin/rgpd-registre" && pathname.startsWith("/admin/rgpd-registre")) ||
               (link.href === "/admin/terms-logs" && pathname.startsWith("/admin/terms-logs"))
             return (

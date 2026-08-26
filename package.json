@@ -83,6 +83,8 @@
     "sync:category-labels": "tsx scripts/sync-product-category-labels.ts",
     "migrate:category-attributes": "tsx scripts/migrate-category-attributes.ts",
     "migrate:fulfillment-groups": "tsx scripts/migrate-fulfillment-groups.ts",
+    "ing:analyze": "tsx scripts/ing.ts analyze",
+    "ing:fix": "tsx scripts/ing.ts fix",
     "index:marketplace-search": "tsx scripts/fix-category-suggestions.ts",
     "check:discovery": "tsx scripts/check-discovery-health.ts",
     "discovery:bootstrap": "tsx scripts/discovery-bootstrap.ts",
