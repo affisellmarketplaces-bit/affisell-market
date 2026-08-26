@@ -3405,6 +3405,19 @@ model FulfillmentItem {
   @@index([fulfillmentGroupId])
 }
 
+/**
+ * Idempotent log for Ing manual fulfillment nudge emails (48h cooldown per supplier).
+ */
+model IngNudgeLog {
+  id          String   @id @default(cuid())
+  supplierId  String
+  resendId    String?
+  groupsCount Int
+  createdAt   DateTime @default(now())
+
+  @@index([supplierId, createdAt])
+}
+
 enum DemoPersona {
   SUPPLIER
   AFFILIATE

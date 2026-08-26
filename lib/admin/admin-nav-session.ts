@@ -12,13 +12,14 @@ export type AdminNavSession = {
 export function adminNavSessionFromAuth(
   session: { user?: { id?: string; name?: string | null; email?: string | null } } | null | undefined
 ): AdminNavSession | null {
-  const id = session?.user?.id?.trim()
-  if (!id) return null
+  const user = session?.user
+  const id = user?.id?.trim()
+  if (!id || !user) return null
   return {
     user: {
       id,
-      name: session.user?.name ?? null,
-      email: session.user?.email ?? null,
+      name: user.name ?? null,
+      email: user.email ?? null,
     },
   }
 }

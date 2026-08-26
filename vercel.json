@@ -28,6 +28,10 @@
       "schedule": "0 9 * * *"
     },
     {
+      "path": "/api/cron/ing-manual-nudge",
+      "schedule": "0 9 * * *"
+    },
+    {
       "path": "/api/radar/cron/global-scan",
       "schedule": "0 */6 * * *"
     },
