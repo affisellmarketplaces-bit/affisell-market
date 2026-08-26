@@ -4,6 +4,15 @@ import { useCallback, useEffect, useState } from "react"
 import { AlertTriangle, Loader2 } from "lucide-react"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
+import {
+  LEGAL_COCKPIT_CARD,
+  LEGAL_COCKPIT_TAB_ACTIVE,
+  LEGAL_COCKPIT_TAB_IDLE,
+  LEGAL_COCKPIT_TEXT_MUTED,
+  LEGAL_COCKPIT_TEXT_PRIMARY,
+  LEGAL_COCKPIT_TEXT_SECONDARY,
+  legalOutlineButtonClass,
+} from "@/components/admin/legal-cockpit-ui"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -68,11 +77,11 @@ export function DsaReportsPanel() {
   }
 
   return (
-    <BentoCard className="border-zinc-800 bg-zinc-950/90 p-5">
+    <BentoCard className={LEGAL_COCKPIT_CARD}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <AlertTriangle className="size-4 text-amber-400" aria-hidden />
-          <p className="text-sm font-semibold text-white">Signalements DSA</p>
+          <p className={cn("text-sm font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>Signalements DSA</p>
         </div>
         <div className="flex flex-wrap gap-1">
           {STATUS_FILTERS.map((s) => (
@@ -81,8 +90,8 @@ export function DsaReportsPanel() {
               type="button"
               className={cn(
                 buttonVariants({ variant: filter === s ? "default" : "outline", size: "sm" }),
-                "h-7 text-[10px]",
-                filter === s ? "bg-amber-700" : "border-zinc-700"
+                "h-7 text-[10px] capitalize",
+                filter === s ? LEGAL_COCKPIT_TAB_ACTIVE : LEGAL_COCKPIT_TAB_IDLE
               )}
               onClick={() => setFilter(s)}
             >
@@ -101,21 +110,23 @@ export function DsaReportsPanel() {
           <Loader2 className="size-6 animate-spin text-zinc-500" />
         </div>
       ) : reports.length === 0 ? (
-        <p className="mt-6 text-center text-sm text-zinc-500">Aucun signalement.</p>
+        <p className="mt-6 text-center text-sm text-zinc-400">Aucun signalement.</p>
       ) : (
         <ul className="mt-4 space-y-3">
           {reports.map((r) => (
-            <li key={r.id} className="rounded-xl border border-zinc-800 bg-black/40 p-4">
+            <li key={r.id} className="rounded-xl border border-zinc-700/80 bg-zinc-950/70 p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <p className="text-xs font-semibold uppercase text-amber-300">{r.type}</p>
-                  <p className="mt-1 text-sm text-zinc-200">{r.description.slice(0, 200)}</p>
-                  <p className="mt-2 text-[10px] text-zinc-500">
+                  <p className="text-xs font-bold uppercase text-amber-300">{r.type}</p>
+                  <p className={cn("mt-1 text-sm leading-relaxed", LEGAL_COCKPIT_TEXT_SECONDARY)}>
+                    {r.description.slice(0, 200)}
+                  </p>
+                  <p className={cn("mt-2 text-[11px]", LEGAL_COCKPIT_TEXT_MUTED)}>
                     {r.reporterEmail} · {new Date(r.createdAt).toLocaleString("fr-FR")}
                     {r.productId ? ` · Produit ${r.productId}` : ""}
                   </p>
                 </div>
-                <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] uppercase text-zinc-400">
+                <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-200 ring-1 ring-zinc-600">
                   {r.status}
                 </span>
               </div>
@@ -124,7 +135,11 @@ export function DsaReportsPanel() {
                   {r.status === "new" ? (
                     <button
                       type="button"
-                      className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-7 text-[10px]")}
+                      className={cn(
+                        buttonVariants({ variant: "outline", size: "sm" }),
+                        "h-7 text-[10px]",
+                        legalOutlineButtonClass()
+                      )}
                       disabled={processing === r.id}
                       onClick={() => void updateReport(r.id, "reviewing")}
                     >
@@ -133,7 +148,7 @@ export function DsaReportsPanel() {
                   ) : null}
                   <button
                     type="button"
-                    className={cn(buttonVariants({ size: "sm" }), "h-7 text-[10px] bg-emerald-800")}
+                    className={cn(buttonVariants({ size: "sm" }), "h-7 text-[10px] bg-emerald-700 hover:bg-emerald-600")}
                     disabled={processing === r.id}
                     onClick={() =>
                       void updateReport(
@@ -155,7 +170,7 @@ export function DsaReportsPanel() {
                   </button>
                 </div>
               ) : r.actionTaken ? (
-                <p className="mt-2 text-xs text-zinc-400">{r.actionTaken}</p>
+                <p className={cn("mt-2 text-xs", LEGAL_COCKPIT_TEXT_MUTED)}>{r.actionTaken}</p>
               ) : null}
             </li>
           ))}

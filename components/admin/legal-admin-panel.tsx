@@ -24,6 +24,23 @@ import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/compo
 import { DsaReportsPanel } from "@/components/admin/dsa-reports-panel"
 import { GpsrRecallsPanel } from "@/components/admin/gpsr-recalls-panel"
 import { KycPanel } from "@/components/admin/kyc-panel"
+import {
+  LEGAL_COCKPIT_CARD,
+  LEGAL_COCKPIT_CARD_ACCENT,
+  LEGAL_COCKPIT_HEADING,
+  LEGAL_COCKPIT_SHELL,
+  LEGAL_COCKPIT_TAB_ACTIVE,
+  LEGAL_COCKPIT_TAB_IDLE,
+  LEGAL_COCKPIT_TABLE_HEAD,
+  LEGAL_COCKPIT_TABLE_ROW,
+  LEGAL_COCKPIT_TABLE_WRAP,
+  LEGAL_COCKPIT_TEXT_MUTED,
+  LEGAL_COCKPIT_TEXT_PRIMARY,
+  LEGAL_COCKPIT_TEXT_SECONDARY,
+  LEGAL_COCKPIT_TEXT_SUBTLE,
+  legalOutlineButtonClass,
+  legalScanStatusBadge,
+} from "@/components/admin/legal-cockpit-ui"
 import { buttonVariants } from "@/components/ui/button"
 import { countAutoFixableScans, isAutoFixableProductScan } from "@/lib/legal/auto-fix"
 import { LEGAL_MASTERS, type LegalAnalyzeType, type LegalMasterDomain } from "@/lib/legal/brain"
@@ -360,30 +377,27 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
   return (
     <div className="relative min-h-[80vh] overflow-hidden">
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(180,83,9,0.28),transparent)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_-10%,rgba(245,158,11,0.18),transparent_55%),radial-gradient(ellipse_60%_40%_at_100%_50%,rgba(120,53,15,0.12),transparent)]"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -right-32 top-40 size-96 rounded-full bg-amber-600/10 blur-3xl"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -left-24 bottom-0 size-80 rounded-full bg-zinc-700/20 blur-3xl"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,transparent,rgba(9,9,11,0.4))]"
         aria-hidden
       />
 
-      <BentoShell className="relative">
+      <BentoShell className={cn("relative", LEGAL_COCKPIT_SHELL)}>
         <BentoContainer maxWidth="5xl" className="space-y-8 py-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <BentoPageHeading
+              className={LEGAL_COCKPIT_HEADING}
               eyebrow="Affisell · Cabinet numérique"
               title="AFFISELL AVOCAT NUMÉRIQUE"
               description="Droit plateformes · L121-1 · L441-1 · RGPD art. 6 · DSA · Cass. com. 2023 — aide à la décision fondateur."
             />
             <div
               className={cn(
-                "flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-950/40 px-3 py-1.5 text-xs font-medium text-amber-100 backdrop-blur-md",
-                mounted && pulse && openAiConfigured && "ring-2 ring-amber-400/20"
+                "flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-950/60 px-3 py-1.5 text-xs font-semibold text-amber-50 shadow-lg shadow-amber-950/40 backdrop-blur-md",
+                mounted && pulse && openAiConfigured && "ring-2 ring-amber-400/30"
               )}
             >
               <span className="relative flex size-2">
@@ -405,8 +419,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
               type="button"
               className={cn(
                 buttonVariants({ variant: tab === "doctrine" ? "default" : "outline", size: "sm" }),
-                tab === "doctrine" && "bg-amber-700 hover:bg-amber-600",
-                tab !== "doctrine" && "border-zinc-700 bg-zinc-950/50"
+                tab === "doctrine" ? LEGAL_COCKPIT_TAB_ACTIVE : LEGAL_COCKPIT_TAB_IDLE
               )}
               onClick={() => setTab("doctrine")}
             >
@@ -417,8 +430,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
               type="button"
               className={cn(
                 buttonVariants({ variant: tab === "scans" ? "default" : "outline", size: "sm" }),
-                tab === "scans" && "bg-amber-700 hover:bg-amber-600",
-                tab !== "scans" && "border-zinc-700 bg-zinc-950/50"
+                tab === "scans" ? LEGAL_COCKPIT_TAB_ACTIVE : LEGAL_COCKPIT_TAB_IDLE
               )}
               onClick={() => setTab("scans")}
             >
@@ -429,7 +441,8 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
               href="/dashboard/admin/legal/documents"
               className={cn(
                 buttonVariants({ variant: "outline", size: "sm" }),
-                "gap-1.5 border-zinc-700 bg-zinc-950/50"
+                "gap-1.5",
+                LEGAL_COCKPIT_TAB_IDLE
               )}
             >
               <FolderOpen className="size-4" aria-hidden />
@@ -439,8 +452,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
               type="button"
               className={cn(
                 buttonVariants({ variant: tab === "dsa" ? "default" : "outline", size: "sm" }),
-                tab === "dsa" && "bg-amber-700 hover:bg-amber-600",
-                tab !== "dsa" && "border-zinc-700 bg-zinc-950/50"
+                tab === "dsa" ? LEGAL_COCKPIT_TAB_ACTIVE : LEGAL_COCKPIT_TAB_IDLE
               )}
               onClick={() => setTab("dsa")}
             >
@@ -451,8 +463,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
               type="button"
               className={cn(
                 buttonVariants({ variant: tab === "kyc" ? "default" : "outline", size: "sm" }),
-                tab === "kyc" && "bg-amber-700 hover:bg-amber-600",
-                tab !== "kyc" && "border-zinc-700 bg-zinc-950/50"
+                tab === "kyc" ? LEGAL_COCKPIT_TAB_ACTIVE : LEGAL_COCKPIT_TAB_IDLE
               )}
               onClick={() => setTab("kyc")}
             >
@@ -463,8 +474,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
               type="button"
               className={cn(
                 buttonVariants({ variant: tab === "recalls" ? "default" : "outline", size: "sm" }),
-                tab === "recalls" && "bg-amber-700 hover:bg-amber-600",
-                tab !== "recalls" && "border-zinc-700 bg-zinc-950/50"
+                tab === "recalls" ? LEGAL_COCKPIT_TAB_ACTIVE : LEGAL_COCKPIT_TAB_IDLE
               )}
               onClick={() => setTab("recalls")}
             >
@@ -489,23 +499,26 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                     <li key={master.id}>
                       <BentoCard
                         className={cn(
-                          "h-full border-zinc-800/80 bg-zinc-950/75 p-4 backdrop-blur-sm transition hover:border-amber-500/35",
+                          LEGAL_COCKPIT_CARD,
+                          "h-full p-4 transition hover:border-amber-500/40",
                           score >= 85 && MASTER_GLOW[master.id]
                         )}
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-700 to-amber-900 shadow-lg shadow-amber-950/50">
-                            <Icon className="size-5 text-amber-100" aria-hidden />
+                          <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-600 to-amber-900 shadow-lg shadow-amber-950/50">
+                            <Icon className="size-5 text-amber-50" aria-hidden />
                           </div>
                           <div className="text-right">
                             <p className="font-mono text-2xl font-bold tabular-nums text-amber-300">
                               {score}
                             </p>
-                            <p className="text-[10px] uppercase tracking-wider text-zinc-500">/100</p>
+                            <p className={cn("text-[10px] uppercase tracking-wider", LEGAL_COCKPIT_TEXT_MUTED)}>/100</p>
                           </div>
                         </div>
-                        <p className="mt-3 text-sm font-semibold text-white">Maître · {master.label}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-zinc-500">{master.subtitle}</p>
+                        <p className={cn("mt-3 text-sm font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>
+                          Maître · {master.label}
+                        </p>
+                        <p className={cn("mt-1 text-xs leading-relaxed", LEGAL_COCKPIT_TEXT_MUTED)}>{master.subtitle}</p>
                       </BentoCard>
                     </li>
                   )
@@ -513,12 +526,12 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
               </ul>
 
               <div className="grid gap-6 lg:grid-cols-2">
-                <BentoCard className="border-amber-500/20 bg-gradient-to-br from-zinc-950/90 to-amber-950/20 p-5 backdrop-blur-xl">
+                <BentoCard className={cn(LEGAL_COCKPIT_CARD, LEGAL_COCKPIT_CARD_ACCENT)}>
                   <div className="flex items-center gap-2">
                     <BookOpen className="size-4 text-amber-400" aria-hidden />
-                    <p className="text-sm font-semibold text-white">Chat Doctrine</p>
+                    <p className={cn("text-sm font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>Chat Doctrine</p>
                   </div>
-                  <p className="mt-0.5 text-xs text-zinc-500">
+                  <p className={cn("mt-0.5 text-xs", LEGAL_COCKPIT_TEXT_MUTED)}>
                     Question juridique · références L121-1, RGPD art. 6, DSA
                   </p>
                   <textarea
@@ -547,12 +560,12 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                   </button>
                 </BentoCard>
 
-                <BentoCard className="border-amber-500/20 bg-gradient-to-br from-zinc-950/90 to-zinc-900/80 p-5 backdrop-blur-xl">
+                <BentoCard className={cn(LEGAL_COCKPIT_CARD, "border-zinc-700/90")}>
                   <div className="flex items-center gap-2">
                     <FileText className="size-4 text-amber-400" aria-hidden />
-                    <p className="text-sm font-semibold text-white">Analyse Contrat</p>
+                    <p className={cn("text-sm font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>Analyse Contrat</p>
                   </div>
-                  <p className="mt-0.5 text-xs text-zinc-500">
+                  <p className={cn("mt-0.5 text-xs", LEGAL_COCKPIT_TEXT_MUTED)}>
                     Collez CGU, CGV, DPA ou clause partenaire — audit clause par clause
                   </p>
                   <textarea
@@ -592,12 +605,12 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
               </div>
 
               {(analysis || loading) && (
-                <BentoCard className="border-amber-500/25 bg-zinc-950/90 p-5 backdrop-blur-xl">
+                <BentoCard className={cn(LEGAL_COCKPIT_CARD, LEGAL_COCKPIT_CARD_ACCENT)}>
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-semibold text-amber-200">
                       {loading ? "Analyse en cours…" : "Résultat"}
                       {lastType && !loading ? (
-                        <span className="ml-2 font-mono text-[10px] font-normal uppercase text-zinc-500">
+                        <span className={cn("ml-2 font-mono text-[10px] font-normal uppercase", LEGAL_COCKPIT_TEXT_MUTED)}>
                           {lastType}
                         </span>
                       ) : null}
@@ -605,11 +618,11 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                     {loading ? <Loader2 className="size-4 animate-spin text-amber-400" /> : null}
                   </div>
                   {analysis ? (
-                    <pre className="mt-4 max-h-[min(70vh,520px)] overflow-auto whitespace-pre-wrap rounded-xl border border-amber-500/20 bg-black/60 p-4 font-mono text-xs leading-relaxed text-amber-200/95">
+                    <pre className="mt-4 max-h-[min(70vh,520px)] overflow-auto whitespace-pre-wrap rounded-xl border border-amber-500/30 bg-zinc-950/90 p-4 font-mono text-xs leading-relaxed text-amber-100/95">
                       {analysis}
                     </pre>
                   ) : (
-                    <p className="mt-4 text-sm text-zinc-500">GPT-4o structure la réponse…</p>
+                    <p className={cn("mt-4 text-sm", LEGAL_COCKPIT_TEXT_MUTED)}>GPT-4o structure la réponse…</p>
                   )}
                 </BentoCard>
               )}
@@ -617,28 +630,28 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
           ) : null}
 
           {tab === "scans" ? (
-            <BentoCard className="border-amber-500/20 bg-zinc-950/90 p-5 backdrop-blur-xl">
+            <BentoCard className={cn(LEGAL_COCKPIT_CARD, LEGAL_COCKPIT_CARD_ACCENT)}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-white">Gardien automatique</p>
-                  <p className="mt-0.5 text-xs text-zinc-500">
+                  <p className={cn("text-sm font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>Gardien automatique</p>
+                  <p className={cn("mt-0.5 text-xs", LEGAL_COCKPIT_TEXT_MUTED)}>
                     Scan 50 produits + 50 fournisseurs · règles L121-1 + GPT-4o JSON · cron 08:00 UTC
                   </p>
                   {lastScanStats ? (
-                    <p className="mt-2 text-xs text-amber-200/80">
+                    <p className="mt-2 text-xs font-medium text-amber-200/95">
                       Dernier scan — {lastScanStats.productsScanned} produits ·{" "}
                       {lastScanStats.suppliersScanned} fournisseurs · {lastScanStats.highRiskCount}{" "}
                       alerte(s) ≥70
                     </p>
                   ) : null}
-                  <p className="mt-1 text-xs font-medium text-emerald-300/90">
+                  <p className="mt-1 text-xs font-semibold text-emerald-300">
                     Auto-fixables : {autoFixableCount}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-zinc-700")}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), legalOutlineButtonClass())}
                     onClick={() => void loadScans()}
                     disabled={scansLoading || scanRunning}
                   >
@@ -667,58 +680,65 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                 </div>
               </div>
 
-              <div className="mt-5 overflow-x-auto rounded-xl border border-zinc-800">
+              <div className={cn("mt-5", LEGAL_COCKPIT_TABLE_WRAP)}>
                 <table className="w-full min-w-[640px] text-left text-sm">
-                  <thead className="border-b border-zinc-800 bg-black/40 text-[10px] uppercase tracking-wider text-zinc-500">
+                  <thead className={LEGAL_COCKPIT_TABLE_HEAD}>
                     <tr>
-                      <th className="px-3 py-2.5 font-medium">Cible</th>
-                      <th className="px-3 py-2.5 font-medium">Score</th>
-                      <th className="px-3 py-2.5 font-medium">Issue principale</th>
-                      <th className="px-3 py-2.5 font-medium">Status</th>
-                      <th className="px-3 py-2.5 font-medium">Action</th>
+                      <th className="px-4 py-3">Cible</th>
+                      <th className="px-4 py-3">Score</th>
+                      <th className="px-4 py-3">Issue principale</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {scans.length === 0 && !scansLoading ? (
                       <tr>
-                        <td colSpan={5} className="px-3 py-8 text-center text-zinc-500">
+                        <td colSpan={5} className={cn("px-4 py-10 text-center", LEGAL_COCKPIT_TEXT_MUTED)}>
                           Aucun scan — lancez le Gardien pour auditer le catalogue.
                         </td>
                       </tr>
                     ) : null}
                     {scans.map((row) => (
-                      <tr key={row.id} className="border-b border-zinc-800/80 last:border-0">
-                        <td className="px-3 py-3">
-                          <p className="font-medium text-zinc-100">{row.targetName}</p>
-                          <p className="text-[10px] text-zinc-500">
+                      <tr key={row.id} className={LEGAL_COCKPIT_TABLE_ROW}>
+                        <td className="px-4 py-3.5">
+                          <p className={cn("font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>{row.targetName}</p>
+                          <p className={cn("text-[11px]", LEGAL_COCKPIT_TEXT_MUTED)}>
                             {typeLabel(row.type)} · {row.targetId.slice(0, 10)}…
                           </p>
                         </td>
-                        <td className="px-3 py-3">
+                        <td className="px-4 py-3.5">
                           <span
                             className={cn(
-                              "inline-flex rounded-full px-2 py-0.5 font-mono text-xs font-bold ring-1",
+                              "inline-flex rounded-full px-2.5 py-0.5 font-mono text-xs font-bold ring-1",
                               riskBadgeClass(row.riskScore)
                             )}
                           >
                             {row.riskScore}
                           </span>
                         </td>
-                        <td className="max-w-xs px-3 py-3 text-xs leading-relaxed text-zinc-400">
+                        <td className={cn("max-w-sm px-4 py-3.5 text-sm leading-relaxed", LEGAL_COCKPIT_TEXT_SECONDARY)}>
                           {primaryIssue(row.issues)}
                         </td>
-                        <td className="px-3 py-3">
-                          <span className="text-xs uppercase tracking-wide text-zinc-400">{row.status}</span>
+                        <td className="px-4 py-3.5">
+                          <span
+                            className={cn(
+                              "inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                              legalScanStatusBadge(row.status)
+                            )}
+                          >
+                            {row.status}
+                          </span>
                         </td>
-                        <td className="px-3 py-3">
+                        <td className="px-4 py-3.5">
                           {row.status === "open" ? (
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-1.5">
                               {isAutoFixableProductScan(row) ? (
                                 <button
                                   type="button"
                                   className={cn(
                                     buttonVariants({ variant: "outline", size: "sm" }),
-                                    "h-7 gap-1 px-2 text-[10px] border-amber-600/40 text-amber-200"
+                                    "h-8 gap-1 border-amber-500/50 bg-amber-950/40 px-2.5 text-[11px] font-medium text-amber-100 hover:bg-amber-900/60"
                                   )}
                                   onClick={() => void openFixModal(row)}
                                 >
@@ -731,7 +751,8 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                                   type="button"
                                   className={cn(
                                     buttonVariants({ variant: "outline", size: "sm" }),
-                                    "h-7 gap-1 px-2 text-[10px]"
+                                    "h-8 gap-1 px-2.5 text-[11px] font-medium",
+                                    legalOutlineButtonClass()
                                   )}
                                   disabled={letterModal?.loading === true}
                                   onClick={() => void openLetterModal(row)}
@@ -742,7 +763,10 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                               ) : null}
                               <button
                                 type="button"
-                                className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "h-7 px-2 text-[10px]")}
+                                className={cn(
+                                  buttonVariants({ variant: "ghost", size: "sm" }),
+                                  "h-8 px-2.5 text-[11px] text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                                )}
                                 disabled={statusUpdating === row.id}
                                 onClick={() => void patchScanStatus(row.id, "ignored")}
                               >
@@ -750,7 +774,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                               </button>
                             </div>
                           ) : (
-                            <span className="text-[10px] text-zinc-600">—</span>
+                            <span className={LEGAL_COCKPIT_TEXT_SUBTLE}>—</span>
                           )}
                         </td>
                       </tr>
@@ -759,30 +783,36 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
                 </table>
               </div>
 
-              <div className="mt-8 border-t border-zinc-800 pt-6">
+              <div className="mt-8 border-t border-zinc-700/80 pt-6">
                 <div className="mb-3 flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-white">Lettres générées</p>
-                  {lettersLoading ? <Loader2 className="size-4 animate-spin text-zinc-500" /> : null}
+                  <p className={cn("text-sm font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>Lettres générées</p>
+                  {lettersLoading ? <Loader2 className="size-4 animate-spin text-zinc-400" /> : null}
                 </div>
                 {letters.length === 0 ? (
-                  <p className="text-xs text-zinc-500">Aucune lettre — générez une mise en demeure depuis un scan.</p>
+                  <p className={cn("text-xs", LEGAL_COCKPIT_TEXT_MUTED)}>
+                    Aucune lettre — générez une mise en demeure depuis un scan.
+                  </p>
                 ) : (
                   <ul className="space-y-2">
                     {letters.map((letter) => (
                       <li
                         key={letter.id}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-800 bg-black/30 px-3 py-2"
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-700/80 bg-zinc-950/80 px-3 py-2.5"
                       >
                         <div className="min-w-0">
-                          <p className="truncate text-xs font-medium text-zinc-200">
+                          <p className={cn("truncate text-xs font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>
                             {letter.type === "mise_en_demeure" ? "Mise en demeure" : "Avertissement"} ·{" "}
                             {letter.supplierName}
                           </p>
-                          <p className="truncate text-[10px] text-zinc-500">{letter.preview}…</p>
+                          <p className={cn("truncate text-[11px]", LEGAL_COCKPIT_TEXT_MUTED)}>{letter.preview}…</p>
                         </div>
                         <Link
                           href={letter.viewUrl}
-                          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-7 shrink-0 text-[10px]")}
+                          className={cn(
+                            buttonVariants({ variant: "outline", size: "sm" }),
+                            "h-8 shrink-0 text-[11px]",
+                            legalOutlineButtonClass()
+                          )}
                         >
                           Ouvrir / Imprimer
                         </Link>

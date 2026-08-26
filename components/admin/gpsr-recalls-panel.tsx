@@ -4,6 +4,13 @@ import { useCallback, useEffect, useState } from "react"
 import { Loader2, PackageX } from "lucide-react"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
+import {
+  LEGAL_COCKPIT_CARD,
+  LEGAL_COCKPIT_TEXT_MUTED,
+  LEGAL_COCKPIT_TEXT_PRIMARY,
+  LEGAL_COCKPIT_TEXT_SECONDARY,
+  legalOutlineButtonClass,
+} from "@/components/admin/legal-cockpit-ui"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -87,12 +94,12 @@ export function GpsrRecallsPanel() {
   }
 
   return (
-    <BentoCard className="border-zinc-800 bg-zinc-950/90 p-5">
+    <BentoCard className={LEGAL_COCKPIT_CARD}>
       <div className="flex items-center gap-2">
         <PackageX className="size-4 text-red-400" aria-hidden />
-        <p className="text-sm font-semibold text-white">Rappels GPSR</p>
+        <p className={cn("text-sm font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>Rappels GPSR</p>
       </div>
-      <p className="mt-1 text-xs text-zinc-500">Règlement (UE) 2023/988 — blocage produit + notification acheteurs.</p>
+      <p className={cn("mt-1 text-xs", LEGAL_COCKPIT_TEXT_MUTED)}>Règlement (UE) 2023/988 — blocage produit + notification acheteurs.</p>
 
       {error ? (
         <p className="mt-3 rounded-lg border border-red-400/30 bg-red-950/40 px-3 py-2 text-sm text-red-200">{error}</p>
@@ -100,13 +107,13 @@ export function GpsrRecallsPanel() {
 
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
         <input
-          className="rounded-lg border border-zinc-700 bg-black/40 px-3 py-2 text-sm text-white"
+          className="rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500"
           placeholder="Product ID"
           value={productId}
           onChange={(e) => setProductId(e.target.value)}
         />
         <select
-          className="rounded-lg border border-zinc-700 bg-black/40 px-3 py-2 text-sm text-white"
+          className="rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
           value={riskLevel}
           onChange={(e) => setRiskLevel(e.target.value as typeof riskLevel)}
         >
@@ -124,7 +131,7 @@ export function GpsrRecallsPanel() {
         </button>
       </div>
       <textarea
-        className="mt-2 w-full rounded-lg border border-zinc-700 bg-black/40 px-3 py-2 text-sm text-white"
+        className="mt-2 w-full rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500"
         rows={2}
         placeholder="Motif du rappel (défaut sécurité, non-conformité GPSR…)"
         value={reason}
@@ -138,10 +145,10 @@ export function GpsrRecallsPanel() {
       ) : (
         <ul className="mt-4 space-y-2">
           {recalls.map((r) => (
-            <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-800 px-3 py-2 text-sm">
+            <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-700/80 bg-zinc-950/80 px-3 py-2.5 text-sm">
               <div>
-                <p className="text-zinc-200">{r.productId}</p>
-                <p className="text-[10px] text-zinc-500">
+                <p className={LEGAL_COCKPIT_TEXT_PRIMARY}>{r.productId}</p>
+                <p className={cn("text-[11px]", LEGAL_COCKPIT_TEXT_MUTED)}>
                   {r.riskLevel} · {r.status} · {r.notifiedCount} notifié(s)
                 </p>
               </div>
