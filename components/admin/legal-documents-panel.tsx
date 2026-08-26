@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import {
+  Eye,
   FileText,
   Loader2,
   PenLine,
@@ -13,6 +14,10 @@ import {
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import {
+  LegalDocumentPreviewModal,
+  type LegalDocumentPreviewData,
+} from "@/components/admin/legal-document-preview-modal"
+import {
   LEGAL_COCKPIT_CARD,
   LEGAL_COCKPIT_HEADING,
   LEGAL_COCKPIT_SHELL,
@@ -21,6 +26,7 @@ import {
   LEGAL_COCKPIT_TABLE_WRAP,
   LEGAL_COCKPIT_TEXT_MUTED,
   LEGAL_COCKPIT_TEXT_PRIMARY,
+  legalDocStatusBadge,
   legalOutlineButtonClass,
 } from "@/components/admin/legal-cockpit-ui"
 import { buttonVariants } from "@/components/ui/button"
@@ -82,15 +88,32 @@ const DOC_CARDS: DocCard[] = [
   },
 ]
 
+function toPreviewData(doc: LegalDocRow & { markdown?: string; html?: string }): LegalDocumentPreviewData | null {
+  const markdown = doc.markdown ?? doc.preview
+  const html = doc.html
+  if (!markdown || !html) return null
+  return {
+    id: doc.id,
+    type: doc.type,
+    title: doc.title,
+    version: doc.version,
+    status: doc.status,
+    markdown,
+    html,
+  }
+}
+
 export function LegalDocumentsPanel() {
   const [defaults, setDefaults] = useState<Record<string, Record<string, string | number>>>({})
   const [forms, setForms] = useState<Record<string, Record<string, string>>>({})
   const [documents, setDocuments] = useState<LegalDocRow[]>([])
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState<string | null>(null)
-  const [preview, setPreview] = useState<LegalDocRow | null>(null)
+  const [previewDoc, setPreviewDoc] = useState<LegalDocumentPreviewData | null>(null)
+  const [previewLoading, setPreviewLoading] = useState<string | null>(null)
   const [signEmail, setSignEmail] = useState("")
   const [signing, setSigning] = useState(false)
+  const [publishing, setPublishing] = useState(false)
   const [lastSignUrl, setLastSignUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -135,6 +158,27 @@ export function LegalDocumentsPanel() {
     void load()
   }, [load])
 
+  async function fetchAndOpenPreview(docId: string) {
+    setPreviewLoading(docId)
+    setError(null)
+    try {
+      const res = await fetch(`/api/legal/avocat/documents?id=${docId}`, { credentials: "include" })
+      const json = (await res.json()) as {
+        ok?: boolean
+        document?: LegalDocRow & { markdown: string; html: string }
+        error?: string
+      }
+      if (!res.ok || !json.ok || !json.document) throw new Error(json.error ?? "preview_failed")
+      const data = toPreviewData(json.document)
+      if (!data) throw new Error("preview_incomplete")
+      setPreviewDoc(data)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "preview_failed")
+    } finally {
+      setPreviewLoading(null)
+    }
+  }
+
   async function generate(type: DocCard["type"]) {
     setGenerating(type)
     setError(null)
@@ -158,10 +202,8 @@ export function LegalDocumentsPanel() {
         error?: string
       }
       if (!res.ok || !json.ok || !json.document) throw new Error(json.error ?? `HTTP ${res.status}`)
-      setPreview({
-        ...json.document,
-        preview: json.document.markdown?.slice(0, 200) ?? "",
-      })
+      const preview = toPreviewData(json.document)
+      if (preview) setPreviewDoc(preview)
       await load()
     } catch (e) {
       setError(e instanceof Error ? e.message : "generate_failed")
@@ -170,20 +212,29 @@ export function LegalDocumentsPanel() {
     }
   }
 
-  async function publish(id: string) {
+  async function publishFromPreview() {
+    if (!previewDoc) return
+    setPublishing(true)
     setError(null)
-    const res = await fetch("/api/legal/avocat/documents", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ id, action: "publish" }),
-    })
-    if (!res.ok) setError("publish_failed")
-    await load()
+    try {
+      const res = await fetch("/api/legal/avocat/documents", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id: previewDoc.id, action: "publish" }),
+      })
+      if (!res.ok) throw new Error("publish_failed")
+      await load()
+      setPreviewDoc((prev) => (prev ? { ...prev, status: "published" } : null))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "publish_failed")
+    } finally {
+      setPublishing(false)
+    }
   }
 
-  async function requestSign(doc: LegalDocRow) {
-    if (!signEmail.trim()) {
+  async function requestSignFromPreview() {
+    if (!previewDoc || !signEmail.trim()) {
       setError("Email signataire requis")
       return
     }
@@ -195,7 +246,7 @@ export function LegalDocumentsPanel() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          documentId: doc.id,
+          documentId: previewDoc.id,
           email: signEmail.trim(),
           signerName: forms.contrat_fournisseur?.supplierName,
         }),
@@ -203,6 +254,7 @@ export function LegalDocumentsPanel() {
       const data = (await res.json()) as { ok?: boolean; signingUrl?: string; error?: string }
       if (!res.ok || !data.ok) throw new Error(data.error ?? `HTTP ${res.status}`)
       setLastSignUrl(data.signingUrl ?? null)
+      setPreviewDoc(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : "sign_request_failed")
     } finally {
@@ -233,7 +285,7 @@ export function LegalDocumentsPanel() {
               className={LEGAL_COCKPIT_HEADING}
               eyebrow="Affisell · Conformité DSA"
               title="Documents légaux"
-              description="CGV · CGU · Mentions · Contrats fournisseurs — génération GPT-4o + signature électronique."
+              description="Générez · prévisualisez le rendu A4 · publiez ou envoyez en signature — sans surprise."
             />
             <Link
               href="/dashboard/admin/legal"
@@ -287,7 +339,9 @@ export function LegalDocumentsPanel() {
                         ))}
                       </div>
                     ) : (
-                      <p className={cn("mt-2 text-xs", LEGAL_COCKPIT_TEXT_MUTED)}>Génération automatique depuis identité Affisell.</p>
+                      <p className={cn("mt-2 text-xs", LEGAL_COCKPIT_TEXT_MUTED)}>
+                        Génération automatique depuis identité Affisell.
+                      </p>
                     )}
                     <button
                       type="button"
@@ -303,7 +357,7 @@ export function LegalDocumentsPanel() {
                       ) : (
                         <Sparkles className="size-4" />
                       )}
-                      Générer
+                      Générer & prévisualiser
                     </button>
                     {(docsByType.get(card.type) ?? []).slice(0, 2).map((doc) => (
                       <p key={doc.id} className={cn("mt-2 text-[10px]", LEGAL_COCKPIT_TEXT_MUTED)}>
@@ -316,17 +370,11 @@ export function LegalDocumentsPanel() {
             })}
           </ul>
 
-          {preview ? (
-            <BentoCard className={cn(LEGAL_COCKPIT_CARD, "border-amber-500/30")}>
-              <p className="text-sm font-semibold text-amber-200">Preview — {preview.title}</p>
-              <pre className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap rounded-xl border border-amber-500/25 bg-zinc-950/90 p-4 text-xs text-amber-100/95">
-                {preview.markdown ?? preview.preview}
-              </pre>
-            </BentoCard>
-          ) : null}
-
           <BentoCard className={LEGAL_COCKPIT_CARD}>
             <p className={cn("text-sm font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>Versions</p>
+            <p className={cn("mt-1 text-xs", LEGAL_COCKPIT_TEXT_MUTED)}>
+              Prévisualisez toujours avant publication ou envoi signature électronique.
+            </p>
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="size-6 animate-spin text-zinc-500" />
@@ -350,46 +398,34 @@ export function LegalDocumentsPanel() {
                           <p className={cn("text-[11px]", LEGAL_COCKPIT_TEXT_MUTED)}>{doc.type}</p>
                         </td>
                         <td className="px-4 py-3.5 font-mono text-xs text-zinc-300">{doc.version}</td>
-                        <td className="px-4 py-3.5 text-xs font-semibold uppercase text-zinc-300">{doc.status}</td>
                         <td className="px-4 py-3.5">
-                          <div className="flex flex-wrap gap-1">
-                            <button
-                              type="button"
-                              className={cn(
-                                buttonVariants({ variant: "outline", size: "sm" }),
-                                "h-8 text-[11px]",
-                                legalOutlineButtonClass()
-                              )}
-                              onClick={() =>
-                                void fetch(`/api/legal/avocat/documents?id=${doc.id}`, { credentials: "include" })
-                                  .then((r) => r.json())
-                                  .then((j: { document?: LegalDocRow & { markdown: string } }) => {
-                                    if (j.document) setPreview(j.document)
-                                  })
-                              }
-                            >
-                              Voir
-                            </button>
-                            {doc.status === "draft" ? (
-                              <button
-                                type="button"
-                                className={cn(buttonVariants({ size: "sm" }), "h-7 text-[10px] bg-amber-800")}
-                                onClick={() => void publish(doc.id)}
-                              >
-                                Publier
-                              </button>
-                            ) : null}
-                            {doc.type === "contrat_fournisseur" && doc.status === "published" ? (
-                              <button
-                                type="button"
-                                className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "h-7 text-[10px]")}
-                                disabled={signing}
-                                onClick={() => void requestSign(doc)}
-                              >
-                                Signer
-                              </button>
-                            ) : null}
-                          </div>
+                          <span
+                            className={cn(
+                              "inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                              legalDocStatusBadge(doc.status)
+                            )}
+                          >
+                            {doc.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <button
+                            type="button"
+                            className={cn(
+                              buttonVariants({ variant: "outline", size: "sm" }),
+                              "h-8 gap-1.5 text-[11px]",
+                              legalOutlineButtonClass()
+                            )}
+                            disabled={previewLoading === doc.id}
+                            onClick={() => void fetchAndOpenPreview(doc.id)}
+                          >
+                            {previewLoading === doc.id ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <Eye className="size-3.5" aria-hidden />
+                            )}
+                            Prévisualiser
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -397,21 +433,25 @@ export function LegalDocumentsPanel() {
                 </table>
               </div>
             )}
-            <div className="mt-4 flex flex-wrap items-end gap-2 border-t border-zinc-800 pt-4">
-              <label className={cn("text-xs", LEGAL_COCKPIT_TEXT_MUTED)}>
-                Email signataire (contrat fournisseur)
-                <input
-                  className="mt-1 block w-64 rounded-lg border border-zinc-600 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500"
-                  type="email"
-                  placeholder="supplier@example.com"
-                  value={signEmail}
-                  onChange={(e) => setSignEmail(e.target.value)}
-                />
-              </label>
-            </div>
           </BentoCard>
         </BentoContainer>
       </BentoShell>
+
+      <LegalDocumentPreviewModal
+        document={previewDoc}
+        onClose={() => setPreviewDoc(null)}
+        signEmail={signEmail}
+        onSignEmailChange={setSignEmail}
+        signerName={forms.contrat_fournisseur?.supplierName}
+        onPublish={previewDoc?.status === "draft" ? publishFromPreview : undefined}
+        onRequestSign={
+          previewDoc?.type === "contrat_fournisseur" && previewDoc.status === "published"
+            ? requestSignFromPreview
+            : undefined
+        }
+        publishing={publishing}
+        signing={signing}
+      />
     </div>
   )
 }

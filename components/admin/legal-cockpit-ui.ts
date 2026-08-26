@@ -36,6 +36,14 @@ export function legalScanStatusBadge(status: string): string {
   return "bg-zinc-700/50 text-zinc-200 ring-1 ring-zinc-600/50"
 }
 
+export function legalDocStatusBadge(status: string): string {
+  if (status === "draft") return "bg-amber-500/25 text-amber-100 ring-1 ring-amber-400/50"
+  if (status === "published") return "bg-emerald-500/25 text-emerald-100 ring-1 ring-emerald-400/50"
+  if (status === "signed") return "bg-violet-500/25 text-violet-100 ring-1 ring-violet-400/50"
+  if (status === "archived") return "bg-zinc-600/40 text-zinc-300 ring-1 ring-zinc-500/50"
+  return "bg-zinc-700/50 text-zinc-200 ring-1 ring-zinc-600/50"
+}
+
 export function legalOutlineButtonClass(extra?: string): string {
   return `border-zinc-600 bg-zinc-900/80 text-zinc-100 hover:border-amber-500/50 hover:bg-zinc-800 hover:text-white ${extra ?? ""}`
 }

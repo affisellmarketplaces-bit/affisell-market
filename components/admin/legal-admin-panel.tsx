@@ -8,6 +8,7 @@ import {
   Gavel,
   Loader2,
   Mail,
+  Printer,
   Radar,
   Scale,
   ShieldAlert,
@@ -24,6 +25,7 @@ import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/compo
 import { DsaReportsPanel } from "@/components/admin/dsa-reports-panel"
 import { GpsrRecallsPanel } from "@/components/admin/gpsr-recalls-panel"
 import { KycPanel } from "@/components/admin/kyc-panel"
+import { LegalPreviewFrame, printLegalHtml } from "@/components/admin/legal-preview-frame"
 import {
   LEGAL_COCKPIT_CARD,
   LEGAL_COCKPIT_CARD_ACCENT,
@@ -129,7 +131,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
   const [letterModal, setLetterModal] = useState<{
     scan: LegalScanRow
     loading: boolean
-    result: { letterId: string; letterMarkdown: string; viewUrl: string } | null
+    result: { letterId: string; letterMarkdown: string; letterHtml: string; viewUrl: string } | null
   } | null>(null)
 
   const autoFixableCount = useMemo(() => countAutoFixableScans(scans), [scans])
@@ -346,6 +348,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
         ok?: boolean
         letterId?: string
         letterMarkdown?: string
+        letterHtml?: string
         viewUrl?: string
         error?: string
       }
@@ -358,6 +361,7 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
         result: {
           letterId: data.letterId,
           letterMarkdown: data.letterMarkdown ?? "",
+          letterHtml: data.letterHtml ?? "",
           viewUrl: data.viewUrl ?? `/dashboard/admin/legal/lettre/${data.letterId}`,
         },
       })
@@ -905,45 +909,73 @@ export function LegalAdminPanel({ openAiConfigured }: Props) {
       ) : null}
 
       {letterModal ? (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl border border-amber-500/30 bg-zinc-950 p-5 shadow-2xl">
-            <div className="flex items-start justify-between gap-3">
-              <p className="text-sm font-semibold text-amber-200">
-                Mise en demeure — {letterModal.scan.targetName}
-              </p>
+        <div
+          className="fixed inset-0 z-[100] flex items-stretch justify-center bg-black/80 p-0 backdrop-blur-md sm:p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="flex h-full w-full max-w-4xl flex-col overflow-hidden rounded-none border border-amber-500/30 bg-zinc-950 shadow-2xl sm:rounded-2xl sm:max-h-[92vh]">
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-zinc-800 px-4 py-4 sm:px-6">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-400/90">
+                  Prévisualisation · Mise en demeure
+                </p>
+                <p className={cn("mt-1 text-sm font-semibold", LEGAL_COCKPIT_TEXT_PRIMARY)}>
+                  {letterModal.scan.targetName}
+                </p>
+              </div>
               <button
                 type="button"
                 className="rounded-lg p-1 text-zinc-400 hover:bg-zinc-800 hover:text-white"
                 onClick={() => setLetterModal(null)}
+                aria-label="Fermer"
               >
                 <X className="size-5" aria-hidden />
               </button>
             </div>
             {letterModal.loading ? (
-              <div className="flex justify-center py-12">
+              <div className="flex flex-1 items-center justify-center py-12">
                 <Loader2 className="size-8 animate-spin text-amber-400" />
               </div>
             ) : letterModal.result ? (
-              <div className="mt-4">
-                <pre className="max-h-[50vh] overflow-auto whitespace-pre-wrap rounded-xl border border-amber-500/20 bg-black/50 p-4 text-xs leading-relaxed text-amber-100/90">
-                  {letterModal.result.letterMarkdown}
-                </pre>
-                <div className="mt-4 flex justify-end gap-2">
+              <>
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+                  <LegalPreviewFrame
+                    title={`Mise en demeure — ${letterModal.scan.targetName}`}
+                    markdown={letterModal.result.letterMarkdown}
+                    html={letterModal.result.letterHtml}
+                    frameMinHeight="min-h-[min(55vh,600px)]"
+                  />
+                </div>
+                <div className="flex shrink-0 flex-wrap justify-end gap-2 border-t border-zinc-800 px-4 py-4 sm:px-6">
                   <button
                     type="button"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), legalOutlineButtonClass())}
                     onClick={() => setLetterModal(null)}
                   >
                     Fermer
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), legalOutlineButtonClass())}
+                    onClick={() =>
+                      printLegalHtml(
+                        letterModal.result!.letterHtml,
+                        `Mise en demeure — ${letterModal.scan.targetName}`
+                      )
+                    }
+                  >
+                    <Printer className="mr-1.5 size-4" aria-hidden />
+                    Imprimer / PDF
                   </button>
                   <Link
                     href={letterModal.result.viewUrl}
                     className={cn(buttonVariants({ size: "sm" }), "bg-amber-700 hover:bg-amber-600")}
                   >
-                    Imprimer / PDF
+                    Ouvrir page dédiée
                   </Link>
                 </div>
-              </div>
+              </>
             ) : null}
           </div>
         </div>
