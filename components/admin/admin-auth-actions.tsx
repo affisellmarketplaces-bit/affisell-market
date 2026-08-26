@@ -2,24 +2,28 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { signOut, useSession } from "next-auth/react"
+import { signOut } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { LogIn, LogOut } from "lucide-react"
 
+import type { AdminNavSession } from "@/lib/admin/admin-nav-session"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-export function AdminAuthActions() {
+type Props = {
+  session: AdminNavSession | null
+}
+
+/** Admin auth chrome — session from server layout (React 19 safe, no useSession). */
+export function AdminAuthActions({ session }: Props) {
   const pathname = usePathname()
-  const { data: session, status } = useSession()
   const t = useTranslations("auth.adminLogin")
-  const connected = status === "authenticated"
+  const connected = Boolean(session?.user?.id)
   const displayName =
     session?.user?.name?.trim() || session?.user?.email?.trim() || t("fallbackName")
   const userEmail = session?.user?.email ?? null
 
   const callbackUrl = encodeURIComponent(pathname || "/admin/auto-fulfill")
-
   const onAdminLoginPage = pathname?.startsWith("/login/admin")
 
   if (connected) {

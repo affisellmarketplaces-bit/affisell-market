@@ -7,6 +7,8 @@ const LOG_PATTERNS = [
   "auto_buy_async_failed",
   "email_failed",
   "order_confirmation_email_failed",
+  "must be wrapped in a SessionProvider",
+  "useSession",
   "[fulfillment]",
   "[prisma]",
   "[fulfillment-orchestrator]",

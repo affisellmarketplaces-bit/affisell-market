@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 import { AdminAuthActions } from "@/components/admin/admin-auth-actions"
+import type { AdminNavSession } from "@/lib/admin/admin-nav-session"
 import { cn } from "@/lib/utils"
 
 const LINKS = [
@@ -34,7 +35,7 @@ const LINKS = [
   { href: "/admin/terms-logs", label: "Consentements" },
 ] as const
 
-export function AdminNav() {
+export function AdminNav({ session }: { session: AdminNavSession | null }) {
   const pathname = usePathname()
 
   return (
@@ -91,7 +92,7 @@ export function AdminNav() {
           >
             Site public
           </Link>
-          <AdminAuthActions />
+          <AdminAuthActions session={session} />
         </div>
       </div>
     </header>

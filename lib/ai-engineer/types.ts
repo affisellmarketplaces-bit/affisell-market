@@ -1,4 +1,4 @@
-export type IngTaskType = "BUG" | "FEATURE" | "OPTIMIZATION"
+export type IngTaskType = "BUG" | "BUG_CRITICAL" | "FEATURE" | "OPTIMIZATION"
 
 export type IngTaskId =
   | "prisma_engine_empty"
@@ -6,6 +6,7 @@ export type IngTaskId =
   | "auto_buy_async_failed"
   | "email_failed_spike"
   | "fulfillment_pooler_misconfig"
+  | "next_auth_provider_missing"
 
 export interface IngTask {
   id: IngTaskId

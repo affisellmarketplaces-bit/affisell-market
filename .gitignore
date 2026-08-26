@@ -43,6 +43,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# Cloudflare / local dev secrets (never commit)
+.dev.vars*
+
 # Env files with secrets — never commit (.env.local, etc.). Rotate DB keys if they leak.
 .env
 .env.local

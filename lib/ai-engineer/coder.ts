@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { spawnSync } from "node:child_process"
 
+import { auditAdminSessionBridge } from "@/lib/ai-engineer/admin-session-audit"
 import { AFFISELL_CONTEXT } from "@/lib/ai-engineer/context"
 import { buildPoolerStripPatch } from "@/lib/ai-engineer/pooler-audit"
 import type { IngAction, IngTask } from "@/lib/ai-engineer/types"
@@ -58,6 +59,31 @@ export class IngCoder {
       })
 
       console.log("[ing]", { result: "fix_bug", taskId: task.id, dryRun, tscOk: check.ok })
+      return actions
+    }
+
+    if (task.id === "next_auth_provider_missing") {
+      const audit = auditAdminSessionBridge()
+      if (audit.healthy) {
+        console.log("[ing]", { result: "fix_skip", taskId: task.id, reason: "admin_session_bridge_healthy" })
+        return [
+          {
+            file: "app/dashboard/admin/layout.tsx",
+            change: "no-op",
+            reason: "AdminLayoutChrome + server session bridge already in place (no useSession in admin-auth-actions)",
+            test: "auditAdminSessionBridge().healthy === true",
+          },
+        ]
+      }
+
+      actions.push({
+        file: "components/admin/admin-auth-actions.tsx",
+        change: "manual",
+        reason:
+          "Remove useSession(); pass session from app/admin/layout.tsx + app/dashboard/admin/layout.tsx via AdminLayoutChrome",
+        test: "curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/dashboard/admin/ing",
+      })
+      console.log("[ing]", { result: "fix_manual", taskId: task.id, audit })
       return actions
     }
 

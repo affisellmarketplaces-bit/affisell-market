@@ -29,6 +29,11 @@ const TYPE_STYLE: Record<
     glow: "shadow-[0_0_40px_-12px_rgba(239,68,68,0.45)]",
     icon: Zap,
   },
+  BUG_CRITICAL: {
+    badge: "bg-rose-600/20 text-rose-200 ring-rose-500/40",
+    glow: "shadow-[0_0_48px_-10px_rgba(244,63,94,0.55)]",
+    icon: Zap,
+  },
   FEATURE: {
     badge: "bg-violet-500/15 text-violet-200 ring-violet-400/30",
     glow: "shadow-[0_0_40px_-12px_rgba(139,92,246,0.5)]",

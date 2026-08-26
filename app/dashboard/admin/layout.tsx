@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation"
 
-import { AdminNav } from "@/components/admin/admin-nav"
+import { AdminLayoutChrome } from "@/components/admin/admin-layout-chrome"
 import { auth } from "@/auth"
+import { adminNavSessionFromAuth } from "@/lib/admin/admin-nav-session"
 
 export const dynamic = "force-dynamic"
 
@@ -14,10 +15,10 @@ export default async function DashboardAdminLayout({ children }: { children: Rea
     redirect("/")
   }
 
-  return (
-    <>
-      <AdminNav />
-      {children}
-    </>
-  )
+  const navSession = adminNavSessionFromAuth(session)
+  if (!navSession) {
+    redirect("/login/admin?callbackUrl=/dashboard/admin/leads")
+  }
+
+  return <AdminLayoutChrome session={navSession}>{children}</AdminLayoutChrome>
 }

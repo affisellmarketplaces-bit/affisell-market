@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server"
 import { AdminAuthActions } from "@/components/admin/admin-auth-actions"
 import { PortalSignInForm } from "@/components/auth/portal-sign-in-form"
 import { auth } from "@/auth"
+import { adminNavSessionFromAuth } from "@/lib/admin/admin-nav-session"
 import { sanitizeInternalCallbackUrl } from "@/lib/auth-login-portal"
 import { resolvePostLoginRedirect } from "@/lib/login-redirect"
 
@@ -28,7 +29,7 @@ export default async function AdminLoginPage({ searchParams }: Props) {
     <div className="relative min-h-screen">
       <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-3 dark:border-zinc-800 dark:bg-zinc-950">
         <p className="text-sm font-bold text-violet-700 dark:text-violet-300">{tAdmin("brand")}</p>
-        <AdminAuthActions />
+        <AdminAuthActions session={adminNavSessionFromAuth(session)} />
       </header>
       <Suspense
         fallback={

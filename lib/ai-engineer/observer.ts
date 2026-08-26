@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 
+import { auditAdminSessionBridge } from "@/lib/ai-engineer/admin-session-audit"
 import { collectDevLogLines, filterRelevantLogLines } from "@/lib/ai-engineer/log-sources"
 import { auditFulfillmentPoolerConfig } from "@/lib/ai-engineer/pooler-audit"
 import type { IngAnalyzeResult, IngTask, IngTaskId } from "@/lib/ai-engineer/types"
@@ -29,8 +30,13 @@ export class LogObserver {
       lines,
       /email_failed|order_confirmation_email_failed/
     )
+    const sessionProviderErrorCount = countMatches(
+      lines,
+      /useSession.*must be wrapped in.*SessionProvider/
+    )
 
     const poolerAudit = auditFulfillmentPoolerConfig()
+    const adminSessionAudit = auditAdminSessionBridge()
 
     let dbManualGroups = 0
     try {
@@ -111,6 +117,21 @@ export class LogObserver {
       })
     }
 
+    if (sessionProviderErrorCount > 0 || !adminSessionAudit.healthy) {
+      tasks.push({
+        id: "next_auth_provider_missing",
+        type: "BUG_CRITICAL",
+        description:
+          sessionProviderErrorCount > 0
+            ? `useSession sans SessionProvider (${sessionProviderErrorCount}×) — passer session serveur via AdminLayoutChrome`
+            : "Admin nav utilise useSession ou layouts sans session serveur — AdminLayoutChrome + adminNavSessionFromAuth",
+        logs: pickSample(lines, /useSession.*must be wrapped in.*SessionProvider/),
+        priority: 98,
+        count: sessionProviderErrorCount || undefined,
+        autoFixable: adminSessionAudit.healthy,
+      })
+    }
+
     tasks.sort((a, b) => b.priority - a.priority)
 
     console.log("[ing]", {
@@ -119,6 +140,7 @@ export class LogObserver {
       logLinesScanned: lines.length,
       dbManualGroups,
       poolerHealthy: poolerAudit.healthy,
+      adminSessionHealthy: adminSessionAudit.healthy,
     })
 
     return {
@@ -140,6 +162,7 @@ export function taskIdFromCliFlag(raw: string): IngTaskId | null {
     "auto_buy_async_failed",
     "email_failed_spike",
     "fulfillment_pooler_misconfig",
+    "next_auth_provider_missing",
   ]
   return allowed.includes(raw as IngTaskId) ? (raw as IngTaskId) : null
 }
