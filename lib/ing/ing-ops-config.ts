@@ -1,9 +1,9 @@
-/** Humanoid Ops v2 — Slack + /admin/ing dashboard gate. */
-export function isIngDashboardEnabled(): boolean {
-  const raw = process.env.ING_DASHBOARD_ENABLED?.trim().toLowerCase()
+/** Humanoid Ops v2 — Slack + /admin/ing dashboard gate (ADMIN session required on route). */
+export function isIngDashboardEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  const raw = env.ING_DASHBOARD_ENABLED?.trim().toLowerCase()
   if (raw === "0" || raw === "false") return false
-  if (raw === "1" || raw === "true") return true
-  return process.env.NODE_ENV !== "production"
+  // Enabled by default — opt out with ING_DASHBOARD_ENABLED=false on Vercel if needed.
+  return true
 }
 
 /** Daily cron schedule — 09:00 UTC (vercel.json). */

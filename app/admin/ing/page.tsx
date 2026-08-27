@@ -22,7 +22,8 @@ export default async function AdminIngOpsPage() {
   if (!isIngDashboardEnabled()) {
     return (
       <div className="mx-auto max-w-lg px-6 py-24 text-center text-sm text-zinc-500">
-        Ing dashboard disabled — set <code className="text-zinc-300">ING_DASHBOARD_ENABLED=true</code>
+        Ing dashboard disabled — unset <code className="text-zinc-300">ING_DASHBOARD_ENABLED=false</code> on Vercel or set{" "}
+        <code className="text-zinc-300">ING_DASHBOARD_ENABLED=true</code>
       </div>
     )
   }
