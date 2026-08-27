@@ -12,20 +12,20 @@ export function isWizardV2EnvEnabled(env: EnvBag = process.env): boolean {
 }
 
 /**
- * Pro (v1 composer) is the default landing.
- * Express (v2): explicit ?wizard=v2 or ?mode=express only.
+ * v2 hub: ?wizard=v2 (any mode), ?mode=express, or ENABLE_WIZARD_V2 locally.
+ * Legacy v1 composer only: ?wizard=v1 without v2 hub.
  */
 export function resolveProductWizardVersion(args: {
   wizardQuery?: string | null
   modeQuery?: string | null
-  /** @deprecated Pro-first default — kept for call-site compat, ignored. */
   envEnabled?: boolean
 }): ProductWizardVersion {
   const wizard = args.wizardQuery?.trim().toLowerCase()
   const mode = args.modeQuery?.trim().toLowerCase()
 
-  if (wizard === "v1" || mode === "pro") return "v1"
+  if (wizard === "v1") return "v1"
   if (wizard === "v2" || mode === "express") return "v2"
+  if (args.envEnabled) return "v2"
 
   return "v1"
 }

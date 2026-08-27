@@ -11,12 +11,13 @@ describe("product-wizard-v2 feature-flag", () => {
     expect(resolveProductWizardVersion({ envEnabled: false })).toBe("v1")
   })
 
-  it("defaults to v1 (Pro) even when env on", () => {
-    expect(resolveProductWizardVersion({ envEnabled: true })).toBe("v1")
+  it("uses v2 hub when env on (Pro default via shell URL)", () => {
+    expect(resolveProductWizardVersion({ envEnabled: true })).toBe("v2")
   })
 
-  it("uses v2 only with explicit wizard=v2 or mode=express", () => {
+  it("uses v2 with explicit wizard=v2 or mode=express", () => {
     expect(resolveProductWizardVersion({ wizardQuery: "v2" })).toBe("v2")
+    expect(resolveProductWizardVersion({ wizardQuery: "v2", modeQuery: "pro" })).toBe("v2")
     expect(resolveProductWizardVersion({ modeQuery: "express" })).toBe("v2")
   })
 
@@ -24,8 +25,8 @@ describe("product-wizard-v2 feature-flag", () => {
     expect(resolveProductWizardVersion({ wizardQuery: "v1", envEnabled: true })).toBe("v1")
   })
 
-  it("forces v1 with ?mode=pro", () => {
-    expect(resolveProductWizardVersion({ modeQuery: "pro", envEnabled: true })).toBe("v1")
+  it("mode=pro alone stays v1 without wizard=v2", () => {
+    expect(resolveProductWizardVersion({ modeQuery: "pro", envEnabled: false })).toBe("v1")
   })
 
   it("forces v2 with ?wizard=v2 even if env off", () => {

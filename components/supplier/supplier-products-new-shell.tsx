@@ -11,6 +11,7 @@ import { SupplierProductWizardV2 } from "@/components/supplier/wizard-v2/supplie
 import { BentoContainer } from "@/components/affisell/bento-ui"
 import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 import type { ProductWizardVersion } from "@/lib/product-wizard-v2/feature-flag"
+import { normalizeWizardV2SearchParams } from "@/lib/product-wizard-v2/wizard-v2-routes"
 
 /**
  * Single product listing flow by default (`?compose=1`).
@@ -38,11 +39,22 @@ export function SupplierProductsNewShell({
   const useV2 = wizardVersion === "v2" || wizardQs === "v2"
 
   useEffect(() => {
-    if (!mounted || hubQs || editId || composeQs) return
-    const qs = new URLSearchParams(searchParams.toString())
-    qs.set("compose", "1")
-    replace(`/dashboard/supplier/products/new?${qs.toString()}`, { scroll: false })
-  }, [composeQs, editId, hubQs, mounted, replace, searchParams])
+    if (!mounted || hubQs || editId) return
+    if (wizardVersion !== "v2" && wizardQs !== "v2") {
+      if (!composeQs) {
+        const qs = new URLSearchParams(searchParams.toString())
+        qs.set("compose", "1")
+        replace(`/dashboard/supplier/products/new?${qs.toString()}`, { scroll: false })
+      }
+      return
+    }
+    const normalized = normalizeWizardV2SearchParams(searchParams, { defaultMode: "pro" })
+    const next = normalized.toString()
+    const current = new URLSearchParams(searchParams.toString()).toString()
+    if (next !== current) {
+      replace(`/dashboard/supplier/products/new?${next}`, { scroll: false })
+    }
+  }, [composeQs, editId, hubQs, mounted, replace, searchParams, wizardQs, wizardVersion])
 
   useEffect(() => {
     void fetch("/api/supplier/invitation-context", { cache: "no-store" })

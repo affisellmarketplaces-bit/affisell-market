@@ -19,7 +19,7 @@ describe("wizard-v2 dev-url", () => {
   it("quotes URL for zsh-safe shell paste", () => {
     const url = buildWizardV2NewProductUrl()
     expect(quoteShellUrl(url)).toBe(
-      '"http://localhost:3001/dashboard/supplier/products/new?wizard=v2&compose=1"'
+      '"http://localhost:3001/dashboard/supplier/products/new?wizard=v2&mode=pro&compose=1"'
     )
   })
 })

@@ -360,6 +360,19 @@ type SupplierAddProductFormProps = {
   assistShortcuts?: boolean
   /** Pre-fill commission % from affiliate invite pitch. */
   inviteCommissionHint?: number | null
+  /** Render inside Wizard v2 Pro tab — skip outer BentoShell wrapper. */
+  embeddedInWizardV2?: boolean
+}
+
+function ListingWorkspaceShell({
+  embedded,
+  children,
+}: {
+  embedded?: boolean
+  children: ReactNode
+}) {
+  if (embedded) return <div className="min-w-0">{children}</div>
+  return <BentoShell>{children}</BentoShell>
 }
 
 export function SupplierAddProductForm({
@@ -367,6 +380,7 @@ export function SupplierAddProductForm({
   onBackToMethods,
   assistShortcuts = false,
   inviteCommissionHint,
+  embeddedInWizardV2 = false,
 }: SupplierAddProductFormProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -2878,8 +2892,8 @@ export function SupplierAddProductForm({
 
   if (loadingProduct) {
     return (
-      <BentoShell>
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <ListingWorkspaceShell embedded={embeddedInWizardV2}>
+        <div className={embeddedInWizardV2 ? "min-w-0" : "mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8"}>
           <div
             className="relative overflow-hidden rounded-3xl border border-violet-200/50 bg-white/80 p-10 shadow-sm shadow-violet-500/5 ring-1 ring-black/[0.03] backdrop-blur-md dark:border-violet-900/35 dark:bg-zinc-950/70 dark:ring-white/10"
             aria-busy
@@ -2904,13 +2918,13 @@ export function SupplierAddProductForm({
             </div>
           </div>
         </div>
-      </BentoShell>
+      </ListingWorkspaceShell>
     )
   }
 
   return (
     <>
-      <BentoShell>
+      <ListingWorkspaceShell embedded={embeddedInWizardV2}>
         <ProductWizard
           breadcrumb={[
             { label: tForm("breadcrumbCatalog"), href: "/dashboard/supplier/products" },
@@ -4211,7 +4225,7 @@ export function SupplierAddProductForm({
             )}
           </div>
         </ProductWizard>
-      </BentoShell>
+      </ListingWorkspaceShell>
       <SupplierWholesalePreSaveModal
         open={wholesalePreSaveOpen}
         preview={wholesalePreSavePreview}

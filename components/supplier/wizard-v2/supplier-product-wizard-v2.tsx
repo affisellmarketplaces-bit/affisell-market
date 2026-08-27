@@ -10,6 +10,8 @@ import { CategoryAutosuggest } from "@/components/product/CategoryAutosuggest"
 import { SmartMarginAiPanel } from "@/components/supplier/smart-margin-ai-panel"
 import { ProductLivePreview } from "@/components/supplier/product-live-preview"
 import type { BrowsePayload } from "@/components/supplier/supplier-category-picker"
+import { SupplierAddProductForm } from "@/components/supplier/supplier-add-product-form"
+import { WizardV2Chrome } from "@/components/supplier/wizard-v2/wizard-v2-chrome"
 import { WizardV2ZeroWaitUpload } from "@/components/supplier/wizard-v2/wizard-v2-zero-wait-upload"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,7 +31,6 @@ import {
   hasShopifyIntegration,
   shopifyDomainFromIntegrations,
 } from "@/lib/product-wizard-v2/shopify-detect"
-import type { WizardV2Mode } from "@/lib/product-wizard-v2/feature-flag"
 import { resolveWizardV2Mode } from "@/lib/product-wizard-v2/feature-flag"
 import {
   supplierExpressHandoffWizardUrl,
@@ -39,7 +40,6 @@ import {
 import { DELIVERY_WORLDWIDE } from "@/lib/supplier-delivery-countries"
 import { buildUrlImportFormPatch, type UrlImportFormPatch } from "@/lib/url-import-apply"
 import { publishBlockedUploadMessage } from "@/lib/upload/zero-wait-uploader"
-import { cn } from "@/lib/utils"
 import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
 
 type MerchantDefaults = {
@@ -52,11 +52,6 @@ type MerchantDefaults = {
 type Props = {
   ownerUserId: string
 }
-
-const MODES: { id: WizardV2Mode; label: string; hint: string; recommended?: boolean }[] = [
-  { id: "pro", label: "Pro", hint: "Fiche complète · galerie · catégories Affisell", recommended: true },
-  { id: "express", label: "Express", hint: "URL → preview → publish (~15 s)" },
-]
 
 export function SupplierProductWizardV2({ ownerUserId }: Props) {
   const { push, replace, mounted } = useSafeAppRouter()
@@ -97,12 +92,6 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     }
   }, [mode])
 
-  useEffect(() => {
-    if (!mounted || mode !== "pro") return
-    replace("/dashboard/supplier/products/new?wizard=v1&compose=1", { scroll: false })
-  }, [mode, mounted, replace])
-
-  // Legacy InstantScan bookmarks (?mode=guided) → Express
   useEffect(() => {
     if (!mounted) return
     const raw = searchParams.get("mode")?.trim().toLowerCase()
@@ -502,66 +491,19 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
 
   if (mode === "pro") {
     return (
-      <div className="flex min-h-[40vh] items-center justify-center text-sm text-zinc-500">
-        Redirection vers le wizard Pro…
-      </div>
+      <BentoShell>
+        <div className="mx-auto max-w-6xl px-4 py-8 md:px-8">
+          <WizardV2Chrome mode="pro" ownerUserId={ownerUserId} shopifyDomain={shopifyDomain} />
+          <SupplierAddProductForm ownerUserId={ownerUserId} embeddedInWizardV2 />
+        </div>
+      </BentoShell>
     )
   }
 
   return (
     <BentoShell>
       <div className="mx-auto max-w-6xl px-4 py-8 md:px-8">
-        <header className="mb-8">
-          <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-violet-600">Wizard v2</p>
-          <h1 className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">Publier en 1 clic</h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            {mode === "express"
-              ? `Mode Express — import URL · utilisateur ${ownerUserId.slice(0, 8)}…`
-              : "Mode Pro recommandé — fiche marketplace complète"}
-          </p>
-        </header>
-
-        {shopifyDomain ? (
-          <div
-            className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-100"
-            role="status"
-          >
-            Import depuis Shopify en ~10 s — boutique connectée :{" "}
-            <strong>{shopifyDomain}</strong>
-          </div>
-        ) : null}
-
-        <nav className="mb-8 flex flex-wrap gap-2" aria-label="Mode wizard">
-          {MODES.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              className={cn(
-                "rounded-xl border px-4 py-2 text-left text-sm transition",
-                mode === m.id
-                  ? "border-violet-500 bg-violet-50 font-semibold dark:bg-violet-950/50"
-                  : "border-zinc-200 hover:bg-zinc-50 dark:border-zinc-800"
-              )}
-              aria-pressed={mode === m.id}
-              onClick={() => {
-                const qs = new URLSearchParams(searchParams.toString())
-                qs.set("wizard", "v2")
-                qs.set("mode", m.id)
-                replace(`/dashboard/supplier/products/new?${qs.toString()}`, { scroll: false })
-              }}
-            >
-              <span className="flex items-center gap-2">
-                <span>{m.label}</span>
-                {m.recommended ? (
-                  <span className="rounded-full bg-violet-600/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-700 dark:bg-violet-400/15 dark:text-violet-200">
-                    Recommandé
-                  </span>
-                ) : null}
-              </span>
-              <span className="text-xs font-normal text-zinc-500">{m.hint}</span>
-            </button>
-          ))}
-        </nav>
+        <WizardV2Chrome mode="express" ownerUserId={ownerUserId} shopifyDomain={shopifyDomain} />
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,400px)_1fr]">
           <div className="min-w-0 space-y-6">
