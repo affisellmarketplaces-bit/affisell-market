@@ -8,11 +8,13 @@ import {
   EMPTY_GUIDED_AI_SUGGESTION,
   mergeGuidedCategoryScores,
   pickGuidedCategoryFromScores,
+  resolveGuidedOutputSource,
   scoreGuidedCategoriesFromText,
   mapTextToGuidedCategory,
   type GuidedCategoryLabel,
   type GuidedCategoryScore,
   type GuidedProductAiSuggestion,
+  type ListingSuggestSource,
 } from "@/lib/guided-product-ai-shared"
 import { prisma } from "@/lib/prisma"
 import { buildVisionImagePayload } from "@/lib/supplier-generate-description"
@@ -240,7 +242,7 @@ export async function suggestGuidedProduct(input: GuidedSuggestInput): Promise<G
 
   let categoryPath = ""
   let visionUsed = false
-  let listingSource: GuidedProductAiSuggestion["source"] = "none"
+  let listingSource: ListingSuggestSource = "none"
   const taxonomyScores: GuidedCategoryScore[] = []
 
   try {
@@ -250,7 +252,7 @@ export async function suggestGuidedProduct(input: GuidedSuggestInput): Promise<G
     })
 
     visionUsed = Boolean(listing.visionUsed)
-    listingSource = listing.source === "none" || listing.source === "empty" ? "none" : listing.source
+    listingSource = listing.source
 
     const top = listing.suggestions[0]
     if (top?.breadcrumb) {
@@ -397,11 +399,7 @@ export async function suggestGuidedProduct(input: GuidedSuggestInput): Promise<G
     categoryScores,
     attributes,
     visionUsed,
-    source: hasAnySuggestion
-      ? listingSource === "hybrid" || listingSource === "keyword"
-        ? "hybrid"
-        : "ai"
-      : "fallback",
+    source: resolveGuidedOutputSource(listingSource, hasAnySuggestion),
     fallback: !hasAnySuggestion,
   }
 }

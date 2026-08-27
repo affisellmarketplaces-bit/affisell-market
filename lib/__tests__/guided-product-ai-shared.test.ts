@@ -4,6 +4,7 @@ import {
   mapTextToGuidedCategory,
   mergeGuidedCategoryScores,
   pickGuidedCategoryFromScores,
+  resolveGuidedOutputSource,
   scoreGuidedCategoriesFromText,
   scoreGuidedTitleLength,
   formatGuidedPrice,
@@ -77,6 +78,14 @@ describe("scoreGuidedTitleLength", () => {
     expect(scoreGuidedTitleLength(80).tone).toBe("good")
     expect(scoreGuidedTitleLength(20).tone).toBe("bad")
     expect(scoreGuidedTitleLength(120).tone).toBe("bad")
+  })
+})
+
+describe("resolveGuidedOutputSource", () => {
+  it("maps listing catalog/keyword into guided buckets", () => {
+    expect(resolveGuidedOutputSource("catalog", true)).toBe("ai")
+    expect(resolveGuidedOutputSource("keyword", true)).toBe("hybrid")
+    expect(resolveGuidedOutputSource("none", false)).toBe("fallback")
   })
 })
 

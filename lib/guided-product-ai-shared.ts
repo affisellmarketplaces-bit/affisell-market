@@ -42,6 +42,31 @@ export type GuidedProductAiSuggestion = {
   fallback: boolean
 }
 
+/** Listing classifier sources — superset of guided wizard telemetry buckets. */
+export type ListingSuggestSource =
+  | "none"
+  | "empty"
+  | "keyword"
+  | "ai"
+  | "hybrid"
+  | "catalog"
+
+export function mapListingSourceToGuidedSource(
+  source: ListingSuggestSource
+): GuidedProductAiSuggestion["source"] {
+  if (source === "none" || source === "empty") return "none"
+  if (source === "hybrid" || source === "keyword") return "hybrid"
+  return "ai"
+}
+
+export function resolveGuidedOutputSource(
+  listingSource: ListingSuggestSource,
+  hasAnySuggestion: boolean
+): GuidedProductAiSuggestion["source"] {
+  if (!hasAnySuggestion) return "fallback"
+  return mapListingSourceToGuidedSource(listingSource === "empty" ? "none" : listingSource)
+}
+
 export const GUIDED_CATEGORY_LABELS: GuidedCategoryLabel[] = GUIDED_WIZARD_CATEGORIES.map(
   (c) => c.label
 )
