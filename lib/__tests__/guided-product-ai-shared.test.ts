@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest"
 
 import {
   mapTextToGuidedCategory,
+  mergeGuidedCategoryScores,
+  pickGuidedCategoryFromScores,
+  scoreGuidedCategoriesFromText,
   scoreGuidedTitleLength,
   formatGuidedPrice,
+  shouldAutoApplyGuidedCategory,
 } from "@/lib/guided-product-ai-shared"
 
 describe("mapTextToGuidedCategory", () => {
@@ -24,6 +28,47 @@ describe("mapTextToGuidedCategory", () => {
   it("returns null for empty input", () => {
     expect(mapTextToGuidedCategory("")).toBeNull()
     expect(mapTextToGuidedCategory("   ")).toBeNull()
+  })
+})
+
+describe("scoreGuidedCategoriesFromText", () => {
+  it("ranks fashion title highest", () => {
+    const scores = scoreGuidedCategoriesFromText("T-shirt oversize premium coton noir")
+    expect(scores[0]?.label).toBe("Fashion")
+    expect(scores[0]?.confidence).toBeGreaterThan(0.4)
+  })
+
+  it("returns 4 scores always", () => {
+    expect(scoreGuidedCategoriesFromText("lampe design salon").length).toBe(4)
+  })
+})
+
+describe("pickGuidedCategoryFromScores", () => {
+  it("picks clear winner", () => {
+    const pick = pickGuidedCategoryFromScores([
+      { label: "Fashion", confidence: 0.82 },
+      { label: "Home", confidence: 0.12 },
+      { label: "Beauty", confidence: 0.04 },
+      { label: "Food", confidence: 0.02 },
+    ])
+    expect(pick?.category).toBe("Fashion")
+  })
+})
+
+describe("mergeGuidedCategoryScores", () => {
+  it("keeps max confidence per label", () => {
+    const merged = mergeGuidedCategoryScores(
+      [{ label: "Home", confidence: 0.4 }],
+      [{ label: "Home", confidence: 0.7 }, { label: "Fashion", confidence: 0.2 }]
+    )
+    expect(merged.find((s) => s.label === "Home")?.confidence).toBe(0.7)
+  })
+})
+
+describe("shouldAutoApplyGuidedCategory", () => {
+  it("auto-applies with vision at lower threshold", () => {
+    expect(shouldAutoApplyGuidedCategory(0.35, { visionUsed: true })).toBe(true)
+    expect(shouldAutoApplyGuidedCategory(0.35, { visionUsed: false })).toBe(false)
   })
 })
 

@@ -16,8 +16,9 @@ type FetchInput = {
 }
 
 export function useGuidedProductAi(input: FetchInput, enabled: boolean) {
-  const [debouncedTitle] = useDebounce(input.title.trim(), 450)
-  const [debouncedImageUrl] = useDebounce(input.imageUrl ?? "", 400)
+  const [debouncedTitle] = useDebounce(input.title.trim(), 350)
+  const [debouncedImageUrl] = useDebounce(input.imageUrl ?? "", 250)
+  const [debouncedPreview] = useDebounce(input.imagePreview ?? "", 150)
   const [suggestion, setSuggestion] = useState<GuidedProductAiSuggestion>(EMPTY_GUIDED_AI_SUGGESTION)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -26,7 +27,7 @@ export function useGuidedProductAi(input: FetchInput, enabled: boolean) {
   const fetchSuggestions = useCallback(async (signal?: AbortSignal) => {
     const durableImage = isDurableListingImageUrl(debouncedImageUrl) ? debouncedImageUrl.trim() : ""
     const previewDataUrl =
-      !durableImage && input.imagePreview?.startsWith("data:image/") ? input.imagePreview : undefined
+      !durableImage && debouncedPreview.startsWith("data:image/") ? debouncedPreview : undefined
 
     if (!debouncedTitle && !durableImage && !previewDataUrl) {
       setSuggestion(EMPTY_GUIDED_AI_SUGGESTION)
@@ -52,16 +53,23 @@ export function useGuidedProductAi(input: FetchInput, enabled: boolean) {
         }),
       })
 
+      const data = (await res.json().catch(() => ({}))) as GuidedProductAiSuggestion & {
+        error?: string
+        detail?: string
+      }
+
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string; detail?: string }
         if (reqId === requestIdRef.current) {
           setError(data.detail ?? data.error ?? "IA indisponible")
-          setSuggestion({ ...EMPTY_GUIDED_AI_SUGGESTION, fallback: true, source: "fallback" })
+          if (Array.isArray(data.categoryScores) && data.categoryScores.length > 0) {
+            setSuggestion({ ...data, fallback: true, source: "fallback" })
+          } else {
+            setSuggestion({ ...EMPTY_GUIDED_AI_SUGGESTION, fallback: true, source: "fallback" })
+          }
         }
         return
       }
 
-      const data = (await res.json()) as GuidedProductAiSuggestion
       if (reqId === requestIdRef.current) {
         setSuggestion(data)
         setError(null)
@@ -75,7 +83,7 @@ export function useGuidedProductAi(input: FetchInput, enabled: boolean) {
     } finally {
       if (reqId === requestIdRef.current) setLoading(false)
     }
-  }, [debouncedImageUrl, debouncedTitle, input.imagePreview])
+  }, [debouncedImageUrl, debouncedPreview, debouncedTitle])
 
   useEffect(() => {
     if (!enabled) {

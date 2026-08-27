@@ -9,11 +9,16 @@ import { toast } from "sonner"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
 import { GuidedAiCopilotPanel } from "@/components/supplier/guided-ai-copilot-panel"
+import { GuidedCategoryPicker } from "@/components/supplier/guided-category-picker"
 import { useGuidedProductAi } from "@/components/supplier/use-guided-product-ai"
 import { buttonVariants } from "@/components/ui/button"
 import {
   GUIDED_WIZARD_CATEGORIES,
   formatGuidedPrice,
+  mergeGuidedCategoryScores,
+  pickGuidedCategoryFromScores,
+  scoreGuidedCategoriesFromText,
+  shouldAutoApplyGuidedCategory,
   type GuidedCategoryLabel,
   type GuidedProductAiSuggestion,
 } from "@/lib/guided-product-ai-shared"
@@ -155,36 +160,65 @@ export function GuidedAddProductButton({
     setUserEdited(new Set())
   }, [form.imagePreview])
 
+  const categoryScores = useMemo(
+    () =>
+      mergeGuidedCategoryScores(
+        aiSuggestion.categoryScores,
+        scoreGuidedCategoriesFromText(form.title)
+      ),
+    [aiSuggestion.categoryScores, form.title]
+  )
+
+  const recommendedCategory = useMemo(
+    () => pickGuidedCategoryFromScores(categoryScores, { minConfidence: 0.28 })?.category ?? aiSuggestion.category,
+    [aiSuggestion.category, categoryScores]
+  )
+
   const applyAiSuggestion = useCallback(
-    (next: GuidedProductAiSuggestion, edited: Set<FormFieldKey>) => {
+    (next: GuidedProductAiSuggestion, edited: Set<FormFieldKey>, scores = categoryScores) => {
       setForm((prev) => {
         const patch: Partial<FormState> = {}
-        if (
-          !edited.has("title") &&
-          next.recommendedTitle?.trim() &&
-          !prev.title.trim()
-        ) {
+
+        if (!edited.has("title") && next.recommendedTitle?.trim()) {
           patch.title = next.recommendedTitle.trim().slice(0, 120)
         }
+
+        const mergedScores = mergeGuidedCategoryScores(scores, next.categoryScores)
+        const categoryPick =
+          pickGuidedCategoryFromScores(mergedScores, { minConfidence: 0.28 }) ??
+          (next.category ? { category: next.category, confidence: next.categoryConfidence, reason: next.categoryReason } : null)
+
         if (
-          !edited.has("category") &&
-          next.category &&
-          next.categoryConfidence >= 0.62 &&
-          !prev.category
+          categoryPick &&
+          shouldAutoApplyGuidedCategory(categoryPick.confidence, {
+            visionUsed: next.visionUsed || Boolean(prev.imageUrl || prev.imagePreview),
+            userEdited: edited.has("category"),
+            currentCategory: prev.category,
+          })
         ) {
-          patch.category = next.category
+          patch.category = categoryPick.category
         }
+
         if (Object.keys(patch).length === 0) return prev
         return { ...prev, ...patch }
       })
     },
-    []
+    [categoryScores]
   )
 
   useEffect(() => {
-    if (!aiEnabled || aiLoading || aiSuggestion.fallback) return
-    applyAiSuggestion(aiSuggestion, userEdited)
-  }, [aiEnabled, aiLoading, aiSuggestion, applyAiSuggestion, userEdited])
+    if (!aiEnabled || aiLoading) return
+    applyAiSuggestion(aiSuggestion, userEdited, categoryScores)
+  }, [aiEnabled, aiLoading, aiSuggestion, applyAiSuggestion, userEdited, categoryScores])
+
+  useEffect(() => {
+    if (userEdited.has("category") || form.category || aiLoading) return
+    const localPick = pickGuidedCategoryFromScores(scoreGuidedCategoriesFromText(form.title), {
+      minConfidence: 0.42,
+    })
+    if (!localPick || form.title.trim().length < 5) return
+    setForm((prev) => (prev.category ? prev : { ...prev, category: localPick.category }))
+  }, [aiLoading, form.category, form.title, userEdited])
 
   const close = useCallback(() => {
     setOpen(false)
@@ -210,10 +244,6 @@ export function GuidedAddProductButton({
     patchForm({ title: title.trim().slice(0, 120) }, { user: true })
   }
 
-  function applyAiCategory(category: GuidedCategory) {
-    patchForm({ category }, { user: true })
-  }
-
   function applyAiAttribute(key: "material" | "color" | "dimensions" | "price", value: string) {
     patchForm({ [key]: value } as Partial<FormState>, { user: true })
   }
@@ -229,6 +259,7 @@ export function GuidedAddProductButton({
       const blob = await (await fetch(dataUrl)).blob()
       const url = await uploadProcessedBlob(blob, file.name.replace(/\.[^.]+$/, "") || "product")
       patchForm({ imageUrl: url })
+      void refreshAi()
     } catch (e) {
       setStepError(e instanceof Error ? e.message : "upload_failed")
     } finally {
@@ -274,6 +305,9 @@ export function GuidedAddProductButton({
   }
 
   function goNext() {
+    if (step === 0 && !form.category && recommendedCategory && !userEdited.has("category")) {
+      patchForm({ category: recommendedCategory })
+    }
     if (!validateStep(step)) return
     setStep((s) => Math.min(s + 1, STEP_LABELS.length - 1))
   }
@@ -447,9 +481,7 @@ export function GuidedAddProductButton({
                     loading={aiLoading}
                     error={aiError}
                     currentTitle={form.title}
-                    currentCategory={form.category}
                     onApplyTitle={applyAiTitle}
-                    onApplyCategory={applyAiCategory}
                     onApplyAttribute={applyAiAttribute}
                     onRefresh={refreshAi}
                   />
@@ -504,24 +536,15 @@ export function GuidedAddProductButton({
                   />
                 </div>
                 <div>
-                  <label className={labelClass} htmlFor="guided-category">
-                    Catégorie
-                  </label>
-                  <select
-                    id="guided-category"
-                    className={fieldClass}
+                  <label className={labelClass}>Catégorie</label>
+                  <GuidedCategoryPicker
                     value={form.category}
-                    onChange={(e) =>
-                      patchForm({ category: e.target.value as GuidedCategory | "" }, { user: true })
-                    }
-                  >
-                    <option value="">— Choisir —</option>
-                    {GUIDED_WIZARD_CATEGORIES.map((c) => (
-                      <option key={c.label} value={c.label}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(category) => patchForm({ category }, { user: true })}
+                    scores={categoryScores}
+                    recommended={recommendedCategory}
+                    loading={aiLoading && !form.category}
+                    disabled={uploading}
+                  />
                 </div>
               </div>
             )}
@@ -534,9 +557,7 @@ export function GuidedAddProductButton({
                     loading={aiLoading}
                     error={aiError}
                     currentTitle={form.title}
-                    currentCategory={form.category}
                     onApplyTitle={applyAiTitle}
-                    onApplyCategory={applyAiCategory}
                     onApplyAttribute={applyAiAttribute}
                     onRefresh={refreshAi}
                     compact

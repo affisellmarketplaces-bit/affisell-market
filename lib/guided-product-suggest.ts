@@ -1,15 +1,21 @@
 import "server-only"
 
-import { groqChatText, getGroqApiKey, GROQ_TEXT_MODEL } from "@/lib/ai/groq-client"
+import { groqChatText, getGroqApiKey, GROQ_TEXT_MODEL, GROQ_VISION_MODEL } from "@/lib/ai/groq-client"
+import { GROQ_VISION_MAX_IMAGES } from "@/lib/ai/groq-vision"
 import { hasOpenAiFallback } from "@/lib/ai/openai-chat-fallback"
 import {
+  GUIDED_CATEGORY_LABELS,
   EMPTY_GUIDED_AI_SUGGESTION,
-  formatGuidedPrice,
+  mergeGuidedCategoryScores,
+  pickGuidedCategoryFromScores,
+  scoreGuidedCategoriesFromText,
   mapTextToGuidedCategory,
   type GuidedCategoryLabel,
+  type GuidedCategoryScore,
   type GuidedProductAiSuggestion,
 } from "@/lib/guided-product-ai-shared"
 import { prisma } from "@/lib/prisma"
+import { buildVisionImagePayload } from "@/lib/supplier-generate-description"
 import { isDurableListingImageUrl } from "@/lib/supplier-auto-category-policy"
 import { generateSupplierProductTitle } from "@/lib/supplier-generate-title"
 import { suggestListingCategories } from "@/lib/supplier-suggest-listing"
@@ -28,9 +34,127 @@ function stripJsonFence(s: string): string {
   return t
 }
 
+function normalizeDirectCategory(raw: unknown): GuidedCategoryLabel | null {
+  if (typeof raw !== "string") return null
+  const t = raw.trim()
+  return GUIDED_CATEGORY_LABELS.find((l) => l.toLowerCase() === t.toLowerCase()) ?? null
+}
+
+function parseDirectCategoryScores(parsed: Record<string, unknown>): GuidedCategoryScore[] {
+  if (!Array.isArray(parsed.scores)) return []
+  const out: GuidedCategoryScore[] = []
+  for (const row of parsed.scores) {
+    if (!row || typeof row !== "object") continue
+    const o = row as Record<string, unknown>
+    const label = normalizeDirectCategory(o.label)
+    const confidence =
+      typeof o.confidence === "number" && Number.isFinite(o.confidence)
+        ? Math.min(0.98, Math.max(0, o.confidence))
+        : 0
+    const reason = typeof o.reason === "string" ? o.reason.trim() : undefined
+    if (label && confidence > 0) out.push({ label, confidence, reason })
+  }
+  return out
+}
+
+/** Vision/text classifier locked to the 4 wizard buckets — never returns off-list labels. */
+async function classifyGuidedCategoryDirect(input: {
+  title: string
+  imageUrl?: string
+  imageDataUrl?: string
+}): Promise<{ scores: GuidedCategoryScore[]; reason: string | null } | null> {
+  if (!getGroqApiKey()) return null
+
+  const { visionImages } = buildVisionImagePayload({
+    illustrationUrls: [],
+    galleryDataUrls: input.imageDataUrl ? [input.imageDataUrl] : [],
+    galleryUrls: input.imageUrl ? [input.imageUrl] : [],
+  })
+  const useVision = visionImages.length > 0
+
+  const schema = `JSON uniquement:
+{
+  "category": "Fashion" | "Home" | "Beauty" | "Food",
+  "confidence": number (0-1),
+  "reason": string (1 phrase FR),
+  "scores": [
+    { "label": "Fashion" | "Home" | "Beauty" | "Food", "confidence": number, "reason": string }
+  ]
+}
+
+Règles:
+- Fashion = mode, vêtements, chaussures, sacs, bijoux, montres fashion
+- Home = maison, déco, cuisine, électroménager, high-tech, jardin, bricolage
+- Beauty = cosmétiques, soins, maquillage, parfums, hygiène
+- Food = alimentation, boissons, épicerie
+- scores doit contenir les 4 labels exacts, confidences somme ≈ 1`
+
+  const userText = [
+    `Titre fournisseur: ${input.title.trim() || "(vide — la photo prime)"}`,
+    useVision ? "Analyse la photo produit pour classer dans UNE des 4 catégories wizard." : "",
+    schema,
+  ]
+    .filter(Boolean)
+    .join("\n\n")
+
+  const userContent = useVision
+    ? [
+        { type: "text" as const, text: userText },
+        ...visionImages.slice(0, GROQ_VISION_MAX_IMAGES).map((url) => ({
+          type: "image_url" as const,
+          image_url: { url },
+        })),
+      ]
+    : userText
+
+  try {
+    const raw =
+      (await groqChatText({
+        model: useVision ? GROQ_VISION_MODEL : GROQ_TEXT_MODEL,
+        vision: useVision,
+        temperature: 0.2,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "Tu es le classifieur Affisell Wizard. Tu ne peux répondre qu'avec Fashion, Home, Beauty ou Food — jamais d'autre catégorie.",
+          },
+          { role: "user", content: userContent },
+        ],
+      })) ?? "{}"
+
+    const parsed = JSON.parse(stripJsonFence(raw)) as Record<string, unknown>
+    const directLabel = normalizeDirectCategory(parsed.category)
+    const directConf =
+      typeof parsed.confidence === "number" && Number.isFinite(parsed.confidence)
+        ? Math.min(0.98, Math.max(0, parsed.confidence))
+        : 0
+    const reason = typeof parsed.reason === "string" ? parsed.reason.trim() : null
+
+    let scores = parseDirectCategoryScores(parsed)
+    if (directLabel && directConf > 0) {
+      scores = mergeGuidedCategoryScores(scores, [{ label: directLabel, confidence: directConf, reason: reason ?? undefined }])
+    }
+
+    if (scores.length === 0 && directLabel) {
+      scores = [{ label: directLabel, confidence: directConf || 0.72, reason: reason ?? undefined }]
+    }
+
+    return scores.length > 0 ? { scores, reason } : null
+  } catch (err) {
+    console.log("[guided-product-suggest]", {
+      step: "classify_direct",
+      result: "error",
+      message: err instanceof Error ? err.message : String(err),
+    })
+    return null
+  }
+}
+
 async function inferGuidedAttributes(args: {
   title: string
-  categoryPath: string
+  categoryLabel: GuidedCategoryLabel | null
   bulletPoints: string[]
   seoKeywords: string[]
 }): Promise<GuidedProductAiSuggestion["attributes"]> {
@@ -48,7 +172,7 @@ async function inferGuidedAttributes(args: {
 
   const userText = [
     `Produit: ${args.title}`,
-    `Catégorie: ${args.categoryPath || "(non définie)"}`,
+    `Catégorie wizard: ${args.categoryLabel ?? "(non définie)"}`,
     args.bulletPoints.length > 0 ? `Points:\n${args.bulletPoints.map((b) => `- ${b}`).join("\n")}` : "",
     args.seoKeywords.length > 0 ? `Mots-clés: ${args.seoKeywords.join(", ")}` : "",
     schema,
@@ -109,16 +233,15 @@ export async function suggestGuidedProduct(input: GuidedSuggestInput): Promise<G
       : undefined
 
   const hasAiKeys = Boolean(getGroqApiKey() || hasOpenAiFallback())
-  if (!hasAiKeys && !durableImage && title.length < 3) {
+  const hasImageSignal = Boolean(durableImage || imageDataUrl)
+  if (!hasAiKeys && !hasImageSignal && title.length < 3) {
     return { ...EMPTY_GUIDED_AI_SUGGESTION, fallback: true, source: "fallback" }
   }
 
-  let category: GuidedCategoryLabel | null = null
-  let categoryConfidence = 0
-  let categoryReason: string | null = null
   let categoryPath = ""
   let visionUsed = false
   let listingSource: GuidedProductAiSuggestion["source"] = "none"
+  const taxonomyScores: GuidedCategoryScore[] = []
 
   try {
     const listing = await suggestListingCategories(title, "", prisma, {
@@ -132,14 +255,32 @@ export async function suggestGuidedProduct(input: GuidedSuggestInput): Promise<G
     const top = listing.suggestions[0]
     if (top?.breadcrumb) {
       categoryPath = top.breadcrumb
-      category = mapTextToGuidedCategory(top.breadcrumb)
-      categoryConfidence = top.confidence ?? 0
-      categoryReason = top.aiReason ?? null
+      const mapped = mapTextToGuidedCategory(top.breadcrumb)
+      if (mapped) {
+        taxonomyScores.push({
+          label: mapped,
+          confidence: Math.min(0.88, top.confidence ?? 0.55),
+          reason: top.aiReason ?? "Taxonomie Affisell",
+        })
+      }
     }
 
-    if (!category && listing.productInsight?.focusLabel) {
-      category = mapTextToGuidedCategory(listing.productInsight.focusLabel)
-      if (category && categoryConfidence === 0) categoryConfidence = 0.55
+    if (listing.productInsight?.focusLabel) {
+      const mapped = mapTextToGuidedCategory(listing.productInsight.focusLabel)
+      if (mapped) {
+        taxonomyScores.push({
+          label: mapped,
+          confidence: 0.52,
+          reason: "Signal produit",
+        })
+      }
+    }
+
+    if (listing.suggestedProductName) {
+      const mapped = mapTextToGuidedCategory(listing.suggestedProductName)
+      if (mapped) {
+        taxonomyScores.push({ label: mapped, confidence: 0.48, reason: "Nom produit vision" })
+      }
     }
   } catch (err) {
     console.log("[guided-product-suggest]", {
@@ -149,6 +290,30 @@ export async function suggestGuidedProduct(input: GuidedSuggestInput): Promise<G
     })
   }
 
+  const directResult = hasAiKeys
+    ? await classifyGuidedCategoryDirect({
+        title,
+        imageUrl: durableImage,
+        imageDataUrl,
+      })
+    : null
+
+  if (directResult && hasImageSignal) visionUsed = true
+
+  const textScores = scoreGuidedCategoriesFromText(
+    [title, categoryPath, directResult?.reason ?? ""].filter(Boolean).join(" ")
+  )
+
+  const categoryScores = mergeGuidedCategoryScores(
+    directResult?.scores ?? [],
+    taxonomyScores,
+    textScores
+  )
+
+  const picked = pickGuidedCategoryFromScores(categoryScores, {
+    minConfidence: hasImageSignal ? 0.3 : 0.34,
+  })
+
   let recommendedTitle: string | null = null
   let titleVariants: string[] = []
   let subtitle: string | null = null
@@ -156,13 +321,13 @@ export async function suggestGuidedProduct(input: GuidedSuggestInput): Promise<G
   let insight: string | null = null
   let bulletPoints: string[] = []
 
-  if (hasAiKeys && (title.length >= 2 || durableImage || imageDataUrl)) {
+  if (hasAiKeys && (title.length >= 2 || hasImageSignal)) {
     try {
       const copy = await generateSupplierProductTitle({
-        titleDraft: title || listingSuggestedName(title),
+        titleDraft: title || "Produit",
         notes: "",
         bullets: [],
-        categoryPath,
+        categoryPath: picked?.category ?? categoryPath,
         productImageUrls: durableImage ? [durableImage] : [],
         productImageDataUrls: imageDataUrl ? [imageDataUrl] : [],
       })
@@ -172,7 +337,17 @@ export async function suggestGuidedProduct(input: GuidedSuggestInput): Promise<G
       seoKeywords = copy.seoKeywords
       insight = copy.insight || null
       bulletPoints = copy.bulletPoints
-      if (!visionUsed && (durableImage || imageDataUrl)) visionUsed = true
+      if (!visionUsed && hasImageSignal) visionUsed = true
+
+      if (recommendedTitle) {
+        const titleCategoryScores = scoreGuidedCategoriesFromText(recommendedTitle)
+        for (const row of mergeGuidedCategoryScores(categoryScores, titleCategoryScores)) {
+          const idx = categoryScores.findIndex((s) => s.label === row.label)
+          if (idx >= 0) categoryScores[idx] = row
+          else categoryScores.push(row)
+        }
+        categoryScores.sort((a, b) => b.confidence - a.confidence)
+      }
     } catch (err) {
       console.log("[guided-product-suggest]", {
         step: "generate_title",
@@ -182,9 +357,14 @@ export async function suggestGuidedProduct(input: GuidedSuggestInput): Promise<G
     }
   }
 
+  const finalPick =
+    pickGuidedCategoryFromScores(categoryScores, {
+      minConfidence: hasImageSignal ? 0.28 : 0.34,
+    }) ?? picked
+
   const attributes = await inferGuidedAttributes({
     title: recommendedTitle ?? title,
-    categoryPath,
+    categoryLabel: finalPick?.category ?? null,
     bulletPoints,
     seoKeywords,
   })
@@ -192,14 +372,15 @@ export async function suggestGuidedProduct(input: GuidedSuggestInput): Promise<G
   const hasAnySuggestion =
     Boolean(recommendedTitle) ||
     titleVariants.length > 0 ||
-    Boolean(category) ||
+    Boolean(finalPick?.category) ||
+    categoryScores.some((s) => s.confidence > 0) ||
     Boolean(attributes.material) ||
     Boolean(attributes.color)
 
   console.log("[guided-product-suggest]", {
     result: hasAnySuggestion ? "ok" : "empty",
-    category,
-    categoryConfidence,
+    category: finalPick?.category ?? null,
+    categoryConfidence: finalPick?.confidence ?? 0,
     visionUsed,
     titleLen: recommendedTitle?.length ?? title.length,
   })
@@ -210,9 +391,10 @@ export async function suggestGuidedProduct(input: GuidedSuggestInput): Promise<G
     subtitle,
     seoKeywords,
     insight,
-    category,
-    categoryConfidence,
-    categoryReason,
+    category: finalPick?.category ?? null,
+    categoryConfidence: finalPick?.confidence ?? 0,
+    categoryReason: finalPick?.reason ?? directResult?.reason ?? null,
+    categoryScores,
     attributes,
     visionUsed,
     source: hasAnySuggestion
@@ -224,8 +406,4 @@ export async function suggestGuidedProduct(input: GuidedSuggestInput): Promise<G
   }
 }
 
-function listingSuggestedName(title: string): string {
-  return title.trim() || "Produit"
-}
-
-export { formatGuidedPrice }
+export { formatGuidedPrice } from "@/lib/guided-product-ai-shared"

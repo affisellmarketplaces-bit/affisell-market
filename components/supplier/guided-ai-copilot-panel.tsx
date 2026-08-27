@@ -1,11 +1,10 @@
 "use client"
 
-import { Loader2, RefreshCw, Sparkles, Wand2, Zap } from "lucide-react"
+import { Loader2, RefreshCw, Sparkles, Wand2 } from "lucide-react"
 
 import {
   formatGuidedPrice,
   scoreGuidedTitleLength,
-  type GuidedCategoryLabel,
   type GuidedProductAiSuggestion,
 } from "@/lib/guided-product-ai-shared"
 import { cn } from "@/lib/utils"
@@ -15,30 +14,10 @@ type Props = {
   loading: boolean
   error: string | null
   currentTitle: string
-  currentCategory: GuidedCategoryLabel | ""
   onApplyTitle: (title: string) => void
-  onApplyCategory: (category: GuidedCategoryLabel) => void
   onApplyAttribute: (key: "material" | "color" | "dimensions" | "price", value: string) => void
   onRefresh: () => void
   compact?: boolean
-}
-
-function ConfidenceBadge({ value }: { value: number }) {
-  const pct = Math.round(value * 100)
-  return (
-    <span
-      className={cn(
-        "rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums",
-        pct >= 75
-          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-          : pct >= 55
-            ? "bg-amber-100 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200"
-            : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
-      )}
-    >
-      {pct}% confiance
-    </span>
-  )
 }
 
 function SuggestionChip({
@@ -71,9 +50,7 @@ export function GuidedAiCopilotPanel({
   loading,
   error,
   currentTitle,
-  currentCategory,
   onApplyTitle,
-  onApplyCategory,
   onApplyAttribute,
   onRefresh,
   compact = false,
@@ -202,28 +179,11 @@ export function GuidedAiCopilotPanel({
           </div>
         ) : null}
 
-        {suggestion.category ? (
-          <div className="space-y-2">
-            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-              <Zap className="size-3" aria-hidden />
-              Catégorie recommandée
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
-              <SuggestionChip
-                label={suggestion.category}
-                active={currentCategory === suggestion.category}
-                onClick={() => onApplyCategory(suggestion.category!)}
-              />
-              {suggestion.categoryConfidence > 0 ? (
-                <ConfidenceBadge value={suggestion.categoryConfidence} />
-              ) : null}
-            </div>
-            {suggestion.categoryReason ? (
-              <p className="text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                {suggestion.categoryReason}
-              </p>
-            ) : null}
-          </div>
+        {suggestion.categoryReason && !compact ? (
+          <p className="rounded-lg border border-violet-200/60 bg-white/60 px-3 py-2 text-[11px] leading-relaxed text-zinc-600 dark:border-violet-900/40 dark:bg-violet-950/20 dark:text-zinc-400">
+            <span className="font-semibold text-violet-700 dark:text-violet-300">Catégorie IA :</span>{" "}
+            {suggestion.categoryReason}
+          </p>
         ) : null}
 
         {!compact &&
