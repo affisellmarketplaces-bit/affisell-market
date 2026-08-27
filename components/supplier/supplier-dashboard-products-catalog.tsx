@@ -71,6 +71,7 @@ export function SupplierDashboardProductsCatalog({
   ownerUserId,
   storeId,
   guidedAddProductSlot,
+  guidedOpen = false,
   products,
   draftsOnly = false,
   storefrontHref,
@@ -82,6 +83,7 @@ export function SupplierDashboardProductsCatalog({
   storeId?: string
   /** Injected from page — guided wizard CTA (Sprint 6B). */
   guidedAddProductSlot?: ReactNode
+  guidedOpen?: boolean
   products: CatalogProduct[]
   draftsOnly?: boolean
   storefrontHref: string
@@ -183,7 +185,11 @@ export function SupplierDashboardProductsCatalog({
           />
           <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:min-w-[14rem]">
             {guidedAddProductSlot ?? (
-              <GuidedAddProductButton supplierId={ownerUserId} shopId={storeId} />
+              <GuidedAddProductButton
+                supplierId={ownerUserId}
+                shopId={storeId}
+                defaultOpen={guidedOpen}
+              />
             )}
           <Link
             href="/dashboard/supplier/products/new"
@@ -264,7 +270,11 @@ export function SupplierDashboardProductsCatalog({
               : "Publiez votre premier SKU pour apparaître dans Discover et sur votre vitrine fournisseur."}
           </p>
           <div className="mt-8 flex w-full max-w-xs flex-col items-stretch gap-3">
-            <GuidedAddProductButton supplierId={ownerUserId} shopId={storeId} />
+            <GuidedAddProductButton
+              supplierId={ownerUserId}
+              shopId={storeId}
+              defaultOpen={guidedOpen}
+            />
             <Link
               href="/dashboard/supplier/products/new"
               className={cn(

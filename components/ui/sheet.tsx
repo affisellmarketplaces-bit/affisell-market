@@ -41,7 +41,7 @@ export function SheetContent({
 
   const panelClass =
     side === "bottom"
-      ? "affisell-sheet-panel affisell-sheet-panel--bottom left-0 right-0 top-auto max-h-[min(88dvh,720px)] w-full rounded-t-3xl"
+      ? "affisell-sheet-panel affisell-sheet-panel--bottom bottom-0 left-0 right-0 flex max-h-[min(92dvh,820px)] w-full flex-col rounded-t-3xl"
       : cn(
           "affisell-sheet-panel absolute bottom-0 top-0 w-[22rem] max-w-[92vw]",
           side === "left" ? "left-0" : "right-0"
@@ -60,7 +60,12 @@ export function SheetContent({
       <div
         role="dialog"
         aria-modal="true"
-        className={cn("absolute border-border bg-background shadow-2xl", panelClass, className)}
+        className={cn(
+          "absolute border-border bg-background shadow-2xl",
+          side === "bottom" && "bottom-0",
+          panelClass,
+          className
+        )}
       >
         {children}
       </div>

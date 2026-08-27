@@ -20,13 +20,14 @@ export const dynamic = "force-dynamic"
 export default async function SupplierProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ drafts?: string }>
+  searchParams: Promise<{ drafts?: string; guided?: string }>
 }) {
   const session = await requireSupplierSession("/dashboard/supplier/products")
 
 
-  const { drafts: draftsQs } = await searchParams
+  const { drafts: draftsQs, guided: guidedQs } = await searchParams
   const draftsOnly = draftsQs === "1"
+  const guidedOpen = guidedQs === "1"
 
   const [products, store, partnerListingGroups, wholesaleImpact] = await Promise.all([
     findSupplierProductsForDashboardCatalog(session.user.id),
@@ -110,8 +111,10 @@ export default async function SupplierProductsPage({
             <GuidedAddProductButton
               supplierId={session.user.id}
               shopId={store?.slug ?? session.user.id}
+              defaultOpen={guidedOpen}
             />
           }
+          guidedOpen={guidedOpen}
           products={catalogProducts}
           draftsOnly={draftsOnly}
           storefrontHref={storefrontHref}

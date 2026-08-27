@@ -2,28 +2,31 @@
 
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { useCallback, useId, useMemo, useState } from "react"
-import { CheckCircle2, ChevronLeft, ChevronRight, ImagePlus, Loader2, Sparkles, XCircle } from "lucide-react"
+import { useCallback, useEffect, useId, useMemo, useState } from "react"
+import { createPortal } from "react-dom"
+import { CheckCircle2, ChevronLeft, ChevronRight, ImagePlus, Loader2, Sparkles, X, XCircle } from "lucide-react"
 import { toast } from "sonner"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
+import { GuidedAiCopilotPanel } from "@/components/supplier/guided-ai-copilot-panel"
+import { useGuidedProductAi } from "@/components/supplier/use-guided-product-ai"
 import { buttonVariants } from "@/components/ui/button"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import {
+  GUIDED_WIZARD_CATEGORIES,
+  formatGuidedPrice,
+  type GuidedCategoryLabel,
+  type GuidedProductAiSuggestion,
+} from "@/lib/guided-product-ai-shared"
 import { isGpsrCompliant } from "@/lib/legal/gpsr-compliance-shared"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { processProductGalleryImageFile } from "@/lib/product-image-upload"
 import { cn } from "@/lib/utils"
 
-const GUIDED_CATEGORIES = [
-  { label: "Fashion", value: "Clothing, Shoes & Jewelry" },
-  { label: "Home", value: "Home & Kitchen" },
-  { label: "Beauty", value: "Beauty & Personal Care" },
-  { label: "Food", value: "Grocery & Gourmet Food" },
-] as const
-
 const STEP_LABELS = ["Base", "Détails", "GPSR EU", "Preview"] as const
 
-type GuidedCategory = (typeof GUIDED_CATEGORIES)[number]["label"]
+type GuidedCategory = GuidedCategoryLabel
+
+type FormFieldKey = keyof FormState
 
 type FormState = {
   imagePreview: string | null
@@ -62,12 +65,17 @@ const DEFAULT_FORM: FormState = {
 type Props = {
   supplierId: string
   shopId?: string | null
+  /** From ?guided=1 — opens wizard on load. */
+  defaultOpen?: boolean
 }
 
-const fieldClass =
-  "mt-1.5 w-full rounded-xl border border-zinc-200 bg-white/90 px-3 py-2.5 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500"
+/** Lien direct — ouvre le wizard guidé (connexion fournisseur requise). */
+export const GUIDED_ADD_PRODUCT_HREF = "/dashboard/supplier/products?guided=1" as const
 
-const labelClass = "text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
+const fieldClass =
+  "mt-1.5 w-full rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/25 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50"
+
+const labelClass = "text-xs font-bold uppercase tracking-wide text-zinc-700 dark:text-zinc-200"
 
 async function uploadProcessedBlob(blob: Blob, fileName: string): Promise<string> {
   const form = new FormData()
@@ -84,15 +92,44 @@ async function uploadProcessedBlob(blob: Blob, fileName: string): Promise<string
   return url
 }
 
-export function GuidedAddProductButton({ supplierId, shopId: _shopId }: Props) {
+export function GuidedAddProductButton({
+  supplierId,
+  shopId: _shopId,
+  defaultOpen = false,
+}: Props) {
   const router = useRouter()
   const inputId = useId()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(defaultOpen)
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<FormState>(DEFAULT_FORM)
   const [uploading, setUploading] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [stepError, setStepError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+  const [userEdited, setUserEdited] = useState<Set<FormFieldKey>>(() => new Set())
+  const aiEnabled = open && step <= 1
+  const { suggestion: aiSuggestion, loading: aiLoading, error: aiError, refresh: refreshAi } =
+    useGuidedProductAi(
+      { title: form.title, imageUrl: form.imageUrl, imagePreview: form.imagePreview },
+      aiEnabled
+    )
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (defaultOpen) setOpen(true)
+  }, [defaultOpen])
 
   const gpsrCheck = useMemo(
     () =>
@@ -115,16 +152,70 @@ export function GuidedAddProductButton({ supplierId, shopId: _shopId }: Props) {
     setForm(DEFAULT_FORM)
     setStep(0)
     setStepError(null)
+    setUserEdited(new Set())
   }, [form.imagePreview])
+
+  const applyAiSuggestion = useCallback(
+    (next: GuidedProductAiSuggestion, edited: Set<FormFieldKey>) => {
+      setForm((prev) => {
+        const patch: Partial<FormState> = {}
+        if (
+          !edited.has("title") &&
+          next.recommendedTitle?.trim() &&
+          !prev.title.trim()
+        ) {
+          patch.title = next.recommendedTitle.trim().slice(0, 120)
+        }
+        if (
+          !edited.has("category") &&
+          next.category &&
+          next.categoryConfidence >= 0.62 &&
+          !prev.category
+        ) {
+          patch.category = next.category
+        }
+        if (Object.keys(patch).length === 0) return prev
+        return { ...prev, ...patch }
+      })
+    },
+    []
+  )
+
+  useEffect(() => {
+    if (!aiEnabled || aiLoading || aiSuggestion.fallback) return
+    applyAiSuggestion(aiSuggestion, userEdited)
+  }, [aiEnabled, aiLoading, aiSuggestion, applyAiSuggestion, userEdited])
 
   const close = useCallback(() => {
     setOpen(false)
     resetWizard()
-  }, [resetWizard])
+    if (defaultOpen) {
+      router.replace("/dashboard/supplier/products", { scroll: false })
+    }
+  }, [defaultOpen, resetWizard, router])
 
-  function patchForm(patch: Partial<FormState>) {
+  function patchForm(patch: Partial<FormState>, opts?: { user?: boolean }) {
     setForm((prev) => ({ ...prev, ...patch }))
     setStepError(null)
+    if (opts?.user) {
+      setUserEdited((prev) => {
+        const next = new Set(prev)
+        for (const key of Object.keys(patch) as FormFieldKey[]) next.add(key)
+        return next
+      })
+    }
+  }
+
+  function applyAiTitle(title: string) {
+    patchForm({ title: title.trim().slice(0, 120) }, { user: true })
+  }
+
+  function applyAiCategory(category: GuidedCategory) {
+    patchForm({ category }, { user: true })
+  }
+
+  function applyAiAttribute(key: "material" | "color" | "dimensions" | "price", value: string) {
+    patchForm({ [key]: value } as Partial<FormState>, { user: true })
   }
 
   async function handleImagePick(file: File | null) {
@@ -203,7 +294,7 @@ export function GuidedAddProductButton({ supplierId, shopId: _shopId }: Props) {
       return
     }
 
-    const categoryValue = GUIDED_CATEGORIES.find((c) => c.label === form.category)?.value
+    const categoryValue = GUIDED_WIZARD_CATEGORIES.find((c) => c.label === form.category)?.value
     if (!categoryValue || !form.imageUrl) return
 
     setPublishing(true)
@@ -290,57 +381,85 @@ export function GuidedAddProductButton({ supplierId, shopId: _shopId }: Props) {
         ✨ Add Produit Guidé
       </button>
 
-      <Sheet open={open} onOpenChange={(v) => (v ? setOpen(true) : close())}>
-        <SheetContent
-          side="bottom"
-          className="flex max-h-[min(92dvh,780px)] w-full flex-col overflow-hidden rounded-t-3xl border-zinc-200 bg-zinc-50 p-0 dark:border-zinc-800 dark:bg-zinc-950"
-        >
-          <div className="border-b border-zinc-200/80 bg-white/95 px-4 py-4 dark:border-zinc-800 dark:bg-zinc-900/95 sm:px-6">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-600 dark:text-violet-300">
-                  Wizard guidé · sans IA
-                </p>
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Nouveau produit en 4 étapes</h2>
-              </div>
+      {mounted && open
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[500] flex items-end justify-center sm:items-center sm:p-4"
+              role="presentation"
+            >
               <button
                 type="button"
-                aria-label="Fermer"
-                className="rounded-full p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                aria-label="Fermer le wizard"
+                className="absolute inset-0 bg-zinc-950/70 backdrop-blur-[2px]"
                 onClick={close}
+              />
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="guided-wizard-title"
+                className="relative z-10 flex max-h-[min(94dvh,820px)] w-full max-w-xl flex-col overflow-hidden rounded-t-3xl border border-zinc-200 bg-white shadow-2xl shadow-violet-950/20 sm:max-h-[min(88dvh,780px)] sm:rounded-3xl dark:border-zinc-700 dark:bg-zinc-900"
               >
-                ×
-              </button>
-            </div>
-            <ol className="mt-4 flex gap-1">
-              {STEP_LABELS.map((label, i) => (
-                <li key={label} className="flex-1">
-                  <div
-                    className={cn(
-                      "rounded-full py-1 text-center text-[10px] font-semibold uppercase tracking-wide",
-                      i === step
-                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white"
-                        : i < step
-                          ? "bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-200"
-                          : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
-                    )}
-                  >
-                    {i + 1}. {label}
+                <div className="shrink-0 border-b border-zinc-200 bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-4 text-white sm:px-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-100">
+                        Wizard guidé · Copilot IA
+                      </p>
+                      <h2 id="guided-wizard-title" className="text-lg font-bold sm:text-xl">
+                        Nouveau produit en 4 étapes
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Fermer"
+                      className="rounded-full bg-white/15 p-2 text-white transition hover:bg-white/25"
+                      onClick={close}
+                    >
+                      <X className="size-5" />
+                    </button>
                   </div>
-                </li>
-              ))}
-            </ol>
-          </div>
+                  <ol className="mt-4 flex gap-1.5">
+                    {STEP_LABELS.map((label, i) => (
+                      <li key={label} className="flex-1">
+                        <div
+                          className={cn(
+                            "rounded-full py-1.5 text-center text-[10px] font-bold uppercase tracking-wide sm:text-[11px]",
+                            i === step
+                              ? "bg-white text-violet-700 shadow-sm"
+                              : i < step
+                                ? "bg-white/30 text-white"
+                                : "bg-white/10 text-violet-100"
+                          )}
+                        >
+                          {i + 1}. {label}
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
 
-          <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-zinc-50 px-4 py-5 dark:bg-zinc-950 sm:px-6">
             {step === 0 && (
               <div className="space-y-4">
+                {(form.imageUrl || form.imagePreview || form.title.trim() || aiLoading) ? (
+                  <GuidedAiCopilotPanel
+                    suggestion={aiSuggestion}
+                    loading={aiLoading}
+                    error={aiError}
+                    currentTitle={form.title}
+                    currentCategory={form.category}
+                    onApplyTitle={applyAiTitle}
+                    onApplyCategory={applyAiCategory}
+                    onApplyAttribute={applyAiAttribute}
+                    onRefresh={refreshAi}
+                  />
+                ) : null}
                 <div>
                   <p className={labelClass}>Photo produit</p>
                   <label
                     htmlFor={inputId}
                     className={cn(
-                      "mt-1.5 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-violet-300/60 bg-violet-50/50 py-8 transition hover:border-violet-500 dark:border-violet-800 dark:bg-violet-950/20",
+                      "mt-1.5 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-violet-400 bg-violet-50 py-10 transition hover:border-violet-600 hover:bg-violet-100/80 dark:border-violet-600 dark:bg-violet-950/40",
                       uploading && "pointer-events-none opacity-60"
                     )}
                   >
@@ -351,7 +470,7 @@ export function GuidedAddProductButton({ supplierId, shopId: _shopId }: Props) {
                     ) : (
                       <>
                         <ImagePlus className="mb-2 size-8 text-violet-500" />
-                        <span className="text-sm font-medium text-violet-800 dark:text-violet-200">
+                        <span className="text-sm font-semibold text-violet-900 dark:text-violet-100">
                           Glisser ou cliquer — 1 image
                         </span>
                       </>
@@ -379,7 +498,7 @@ export function GuidedAddProductButton({ supplierId, shopId: _shopId }: Props) {
                     id="guided-title"
                     className={fieldClass}
                     value={form.title}
-                    onChange={(e) => patchForm({ title: e.target.value })}
+                    onChange={(e) => patchForm({ title: e.target.value }, { user: true })}
                     placeholder="ex. T-shirt oversize premium"
                     maxLength={120}
                   />
@@ -392,10 +511,12 @@ export function GuidedAddProductButton({ supplierId, shopId: _shopId }: Props) {
                     id="guided-category"
                     className={fieldClass}
                     value={form.category}
-                    onChange={(e) => patchForm({ category: e.target.value as GuidedCategory | "" })}
+                    onChange={(e) =>
+                      patchForm({ category: e.target.value as GuidedCategory | "" }, { user: true })
+                    }
                   >
                     <option value="">— Choisir —</option>
-                    {GUIDED_CATEGORIES.map((c) => (
+                    {GUIDED_WIZARD_CATEGORIES.map((c) => (
                       <option key={c.label} value={c.label}>
                         {c.label}
                       </option>
@@ -407,6 +528,20 @@ export function GuidedAddProductButton({ supplierId, shopId: _shopId }: Props) {
 
             {step === 1 && (
               <div className="grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <GuidedAiCopilotPanel
+                    suggestion={aiSuggestion}
+                    loading={aiLoading}
+                    error={aiError}
+                    currentTitle={form.title}
+                    currentCategory={form.category}
+                    onApplyTitle={applyAiTitle}
+                    onApplyCategory={applyAiCategory}
+                    onApplyAttribute={applyAiAttribute}
+                    onRefresh={refreshAi}
+                    compact
+                  />
+                </div>
                 {(
                   [
                     ["material", "Matériau", form.material],
@@ -424,12 +559,16 @@ export function GuidedAddProductButton({ supplierId, shopId: _shopId }: Props) {
                       id={`guided-${key}`}
                       className={fieldClass}
                       value={value}
-                      onChange={(e) => patchForm({ [key]: e.target.value } as Partial<FormState>)}
+                      onChange={(e) =>
+                        patchForm({ [key]: e.target.value } as Partial<FormState>, { user: true })
+                      }
                     />
                   </div>
                 ))}
                 <p className="sm:col-span-2 text-xs text-zinc-500 dark:text-zinc-400">
-                  Pré-rempli style Bento — ajustez avant publication.
+                  {aiSuggestion.attributes.suggestedPrice && !userEdited.has("price")
+                    ? `Prix IA suggéré · ${formatGuidedPrice(aiSuggestion.attributes.suggestedPrice)} € — ajustez avant publication.`
+                    : "Suggestions IA disponibles — ajustez avant publication."}
                 </p>
               </div>
             )}
@@ -548,7 +687,7 @@ export function GuidedAddProductButton({ supplierId, shopId: _shopId }: Props) {
             ) : null}
           </div>
 
-          <div className="flex gap-2 border-t border-zinc-200 bg-white/95 px-4 py-4 dark:border-zinc-800 dark:bg-zinc-900/95 sm:px-6">
+                <div className="shrink-0 flex gap-2 border-t border-zinc-200 bg-white px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] dark:border-zinc-700 dark:bg-zinc-900 sm:px-6">
             {step > 0 ? (
               <button
                 type="button"
@@ -596,9 +735,12 @@ export function GuidedAddProductButton({ supplierId, shopId: _shopId }: Props) {
                 )}
               </button>
             )}
-          </div>
-        </SheetContent>
-      </Sheet>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </>
   )
 }
