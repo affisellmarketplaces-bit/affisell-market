@@ -14,7 +14,7 @@ function reviewSentiment(rating: number): "positive" | "neutral" | "negative" {
   return "negative"
 }
 
-/** Locale + www candidates — AliExpress often blocks one host but not the other. */
+/** Locale + www + mobile candidates — AliExpress often blocks one host but not the other. */
 export function buildAePageUrlCandidates(aeProductId: string, aeUrl: string): string[] {
   const seen = new Set<string>()
   const out: string[] = []
@@ -24,10 +24,39 @@ export function buildAePageUrlCandidates(aeProductId: string, aeUrl: string): st
     seen.add(t)
     out.push(t)
   }
+  const trimmed = aeUrl.trim().split("#")[0] ?? aeUrl.trim()
+  add(trimmed)
+  try {
+    const u = new URL(trimmed)
+    if (u.hostname.includes("aliexpress")) add(u.toString())
+  } catch {
+    /* ignore */
+  }
   add(normalizeImportUrl(aeUrl, "aliexpress"))
   add(`https://fr.aliexpress.com/item/${aeProductId}.html`)
   add(`https://www.aliexpress.com/item/${aeProductId}.html`)
+  add(`https://m.aliexpress.com/item/${aeProductId}.html`)
+  add(`https://www.aliexpress.us/item/${aeProductId}.html`)
   return out
+}
+
+/** Build supplier product from browser-captured __AER_DATA__ (bookmarklet / relay). */
+export function buildSupplierProductFromAerData(
+  aerData: unknown,
+  url: string
+): SupplierScrapedProduct | null {
+  if (!aerData || typeof aerData !== "object") return null
+  try {
+    const html = `<html><script>window.__AER_DATA__=${JSON.stringify(aerData)};</script></html>`
+    return parseSupplierProductFromAeHtml(html, url)
+  } catch (e) {
+    console.log("[ae-page-import]", {
+      stage: "aer-json",
+      result: "fail",
+      error: e instanceof Error ? e.message.slice(0, 120) : String(e),
+    })
+    return null
+  }
 }
 
 export function buildSupplierProductFromAeParse(

@@ -11,7 +11,9 @@ import {
 } from "@/lib/category-browse"
 import { parseAeProductSkusFromPayload, type AeProductSkuRow } from "@/lib/fulfillment/ae-product-skus"
 import { parseAeCatalogFromHtml } from "@/lib/fulfillment/ae-catalog-from-html"
+import { buildSupplierProductFromAerData } from "@/lib/fulfillment/import-aliexpress-page-product"
 import { fetchAliExpressProductHtml } from "@/lib/fulfillment/fetch-ae-page-html"
+import { parseAeSkusFromPagePayload } from "@/lib/fulfillment/ae-page-skus"
 import { hydrateAeSkuRowImages } from "@/lib/fulfillment/ae-sku-image-hydrate"
 import {
   aeSkusToVariantPersist,
@@ -66,6 +68,8 @@ export type ProductImportAgentError = {
   error: string
   status: number
   useAliExpressApi?: boolean
+  /** Server blocked — open browser relay (wizard Express). */
+  useBrowserCapture?: boolean
   marketplace?: ReturnType<typeof detectMarketplaceFromUrl>
 }
 
@@ -360,7 +364,33 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
   const { isAliExpressApiReady } = await import("@/lib/aliexpress-api-ready.server")
   const aeConfigured = aeId ? await isAliExpressApiReady() : false
 
-  if (aeId && aeConfigured) {
+  if (body.aerData && aeId) {
+    const fromAer = buildSupplierProductFromAerData(body.aerData, rawUrl)
+    if (fromAer?.title?.trim()) {
+      product = fromAer
+      platform = "aliexpress"
+      method = "ae-browser-aer"
+      const parsed = parseAeSkusFromPagePayload(body.aerData, { url: rawUrl })
+      if (parsed.aeSkus.length >= 2) {
+        const persist = aeSkusToVariantPersist(parsed.aeSkus)
+        if (persist.hasVariants) {
+          skuVariants = persist
+          product = applyAeSkuMatrixToScraped(product, persist, markup)
+        }
+      }
+      console.log("[product-import-agent]", {
+        stage: "aer-paste",
+        result: "ok",
+        titleLen: product.title.length,
+        imageCount: product.images.length,
+        skuCount: parsed.aeSkus.length,
+      })
+    } else {
+      warnings.push("Données AE invalides — réessayez depuis la page produit AliExpress.")
+    }
+  }
+
+  if (aeId && aeConfigured && !product) {
     try {
       const client = await createAliExpressClient()
       const raw = await client.getProduct(aeId)
@@ -407,11 +437,16 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
       allowAliExpressScrape: Boolean(aeId),
     })
     if (!scraped.ok) {
+      const browserBlocked =
+        Boolean(aeId) &&
+        !aeConfigured &&
+        (scraped.status === 422 || /serveur|AliExpress|page HTML/i.test(scraped.error))
       return {
         ok: false,
         error: scraped.error,
         status: scraped.status,
         useAliExpressApi: scraped.useAliExpressApi,
+        useBrowserCapture: browserBlocked,
         marketplace,
       }
     }

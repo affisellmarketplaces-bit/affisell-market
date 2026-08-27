@@ -45,6 +45,10 @@ function readCtx(EMBED){
   if(hash.indexOf("affisellAfc|")===0)return parseCtxFromString(hash);
   return null;
 }
+function captureEndpoint(ORIGIN,c,pid){
+  if(c&&c.captureApiPath)return ORIGIN+c.captureApiPath;
+  return ORIGIN+"/api/admin/products/"+pid+"/ae-capture";
+}
 function deliverOpener(ORIGIN,d,c,pid){
   if(!window.opener||window.opener.closed)return false;
   try{
@@ -56,7 +60,7 @@ function deliverOpener(ORIGIN,d,c,pid){
       sessionId:c.sessionId,
       captureToken:c.captureToken
     },ORIGIN);
-    alert("\\u2705 Catalogue envoy\\u00e9 \\u00e0 Affisell ! Retournez sur l\\u2019onglet admin.");
+    alert("\\u2705 Catalogue envoy\\u00e9 \\u00e0 Affisell ! Retournez sur l\\u2019onglet Affisell.");
     return true;
   }catch(e){return false;}
 }
@@ -64,7 +68,7 @@ function postForm(ORIGIN,d,c,pid){
   try{
     var f=document.createElement("form");
     f.method="POST";
-    f.action=ORIGIN+"/api/admin/products/"+pid+"/ae-capture";
+    f.action=captureEndpoint(ORIGIN,c,pid);
     f.target="_blank";
     f.style.display="none";
     var inp=document.createElement("input");
@@ -78,12 +82,12 @@ function postForm(ORIGIN,d,c,pid){
     f.appendChild(inp);
     document.body.appendChild(f);
     f.submit();
-    alert("\\u2705 Envoi Affisell (nouvel onglet). Revenez sur l\\u2019admin.");
+    alert("\\u2705 Envoi Affisell (nouvel onglet). Revenez sur Affisell.");
     return true;
   }catch(e){return false;}
 }
 function postFetch(ORIGIN,d,c,pid){
-  fetch(ORIGIN+"/api/admin/products/"+pid+"/ae-capture",{
+  fetch(captureEndpoint(ORIGIN,c,pid),{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
@@ -135,14 +139,29 @@ export function buildSessionAeImportBookmarklet(
   appOrigin: string,
   productId: string,
   sessionId: string,
-  captureToken: string
+  captureToken: string,
+  opts?: { captureApiPath?: string }
 ): string {
   const origin = appOrigin.replace(/\/$/, "")
   const safePid = productId.replace(/\\/g, "").replace(/"/g, "")
   const safeSid = sessionId.replace(/\\/g, "").replace(/"/g, "")
   const safeTok = captureToken.replace(/\\/g, "").replace(/"/g, "")
-  const code = `(function(){var ORIGIN="${origin}";var EMBED={productId:"${safePid}",sessionId:"${safeSid}",captureToken:"${safeTok}"};${BOOKMARKLET_CORE}run(ORIGIN,EMBED);})();`
+  const capPath = opts?.captureApiPath?.replace(/\\/g, "").replace(/"/g, "") ?? ""
+  const capSnippet = capPath ? `,captureApiPath:"${capPath}"` : ""
+  const code = `(function(){var ORIGIN="${origin}";var EMBED={productId:"${safePid}",sessionId:"${safeSid}",captureToken:"${safeTok}"${capSnippet}};${BOOKMARKLET_CORE}run(ORIGIN,EMBED);})();`
   return toBookmarkletHref(code)
+}
+
+/** Wizard v2 Express — posts to supplier capture API. */
+export function buildWizardV2AeImportBookmarklet(
+  appOrigin: string,
+  relayKey: string,
+  sessionId: string,
+  captureToken: string
+): string {
+  return buildSessionAeImportBookmarklet(appOrigin, relayKey, sessionId, captureToken, {
+    captureApiPath: `/api/supplier/wizard-v2/ae-capture/${relayKey}`,
+  })
 }
 
 /** Append capture context to AE URL (hash survives many SPA navigations). */

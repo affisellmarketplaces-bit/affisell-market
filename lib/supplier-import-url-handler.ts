@@ -380,6 +380,8 @@ function baselineProduct(url: string, platform: Platform): ImportedProduct {
 
 export type SupplierImportUrlBody = {
   url?: string
+  /** Browser bookmarklet capture — skips server fetch when present. */
+  aerData?: unknown
   options?: { markup?: number; aiRewrite?: boolean; /** Skip AI enrich + categorize (DropForge preview). */ fast?: boolean }
 }
 

@@ -11,6 +11,7 @@ import { SmartMarginAiPanel } from "@/components/supplier/smart-margin-ai-panel"
 import { ProductLivePreview } from "@/components/supplier/product-live-preview"
 import type { BrowsePayload } from "@/components/supplier/supplier-category-picker"
 import { SupplierAddProductForm } from "@/components/supplier/supplier-add-product-form"
+import { WizardV2AeBrowserBridge, type WizardV2AeImportData } from "@/components/supplier/wizard-v2/wizard-v2-ae-browser-bridge"
 import { WizardV2Chrome } from "@/components/supplier/wizard-v2/wizard-v2-chrome"
 import { WizardV2ZeroWaitUpload } from "@/components/supplier/wizard-v2/wizard-v2-zero-wait-upload"
 import { Button } from "@/components/ui/button"
@@ -76,6 +77,8 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   const [categoryBreadcrumb, setCategoryBreadcrumb] = useState("")
   const [price, setPrice] = useState("")
   const [expressUrl, setExpressUrl] = useState("")
+  const [showAeBrowserBridge, setShowAeBrowserBridge] = useState(false)
+  const [aeBrowserAutoStart, setAeBrowserAutoStart] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [commissionPct, setCommissionPct] = useState(15)
@@ -284,33 +287,8 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
     skuVariants,
   ])
 
-  const runExpressImport = useCallback(async () => {
-    if (publishing) return
-    const u = expressUrl.trim()
-    if (!/^https?:\/\//i.test(u)) {
-      toast.error("URL invalide")
-      return
-    }
-    setPublishing(true)
-    try {
-      const res = await fetch("/api/import-china", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ url: u, options: { aiRewrite: true, markup: 2.5, fast: true } }),
-      })
-      const data = (await res.json()) as {
-        products?: unknown[]
-        error?: string
-        warnings?: string[]
-        method?: string
-        category?: { leafId?: string | null; breadcrumb?: string } | null
-        skuVariants?: {
-          hasVariants?: boolean
-          variants?: ProductVariantInput[]
-        } | null
-      }
-      if (!res.ok) throw new Error(data.error ?? "import_failed")
+  const applyExpressImportData = useCallback(
+    (data: WizardV2AeImportData) => {
       const raw = Array.isArray(data.products) ? data.products[0] : null
       const p =
         raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>) : null
@@ -350,7 +328,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
       const markup = 2.5
       const commission = defaults?.defaultCommissionPct ?? 15
       if (data.skuVariants?.hasVariants && Array.isArray(data.skuVariants.variants)) {
-        const scaled = data.skuVariants.variants.map((v) => ({
+        const scaled = (data.skuVariants.variants as ProductVariantInput[]).map((v) => ({
           ...v,
           supplierPrice: Math.round(v.supplierPrice * markup * 100) / 100,
           publicPrice: Math.round((v.publicPrice ?? v.supplierPrice) * markup * 100) / 100,
@@ -361,6 +339,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
         setSkuVariants(null)
       }
       setShowAdvanced(true)
+      setShowAeBrowserBridge(false)
       completeStep("express_import")
       const warn = Array.isArray(data.warnings) ? data.warnings.filter(Boolean) : []
       if (warn[0]) toast.message(warn[0], { duration: 5000 })
@@ -370,16 +349,55 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
           ? Object.keys(p.specs as object).length
           : 0
       toast.success(
-        data.method?.includes("aliexpress")
+        data.method?.includes("aliexpress") || data.method?.includes("ae-browser")
           ? `AliExpress importé — ${imgN} photo${imgN > 1 ? "s" : ""}, ${specN} caractéristique${specN > 1 ? "s" : ""}`
           : "Produit importé — vérifiez l'aperçu"
       )
+    },
+    [completeStep, defaults?.defaultCommissionPct]
+  )
+
+  const runExpressImport = useCallback(async () => {
+    if (publishing) return
+    const u = expressUrl.trim()
+    if (!/^https?:\/\//i.test(u)) {
+      toast.error("URL invalide")
+      return
+    }
+    setShowAeBrowserBridge(false)
+    setPublishing(true)
+    try {
+      const res = await fetch("/api/import-china", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ url: u, options: { aiRewrite: true, markup: 2.5, fast: true } }),
+      })
+      const data = (await res.json()) as WizardV2AeImportData & {
+        useBrowserCapture?: boolean
+      }
+      if (!res.ok) {
+        if (data.useBrowserCapture && /aliexpress/i.test(u)) {
+          setShowAeBrowserBridge(true)
+          setAeBrowserAutoStart(true)
+          toast.message("Serveur bloqué — lancement de l’import navigateur…", { duration: 4000 })
+          return
+        }
+        throw new Error(data.error ?? "import_failed")
+      }
+      applyExpressImportData(data)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Import impossible")
+      if (/aliexpress/i.test(u)) {
+        setShowAeBrowserBridge(true)
+        setAeBrowserAutoStart(true)
+        toast.message("Import serveur indisponible — bascule navigateur…", { duration: 4000 })
+      } else {
+        toast.error(err instanceof Error ? err.message : "Import impossible")
+      }
     } finally {
       setPublishing(false)
     }
-  }, [completeStep, defaults?.defaultCommissionPct, expressUrl, publishing])
+  }, [applyExpressImportData, expressUrl, publishing])
 
   const publish = useCallback(async () => {
     if (publishing) return
@@ -524,6 +542,22 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                 {publishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Analyser l&apos;URL
               </Button>
+              {showAeBrowserBridge ? (
+                <WizardV2AeBrowserBridge
+                  aeUrl={expressUrl}
+                  autoStart={aeBrowserAutoStart}
+                  onBusyChange={setPublishing}
+                  onImport={(data) => {
+                    try {
+                      applyExpressImportData(data)
+                    } catch (e) {
+                      toast.error(e instanceof Error ? e.message : "Import navigateur échoué")
+                    } finally {
+                      setPublishing(false)
+                    }
+                  }}
+                />
+              ) : null}
               <p className="text-xs text-zinc-500">
                 AliExpress : API officielle si connectée, sinon analyse directe de la page (fr / www).
                 Shopify et autres marketplaces restent en scrape Express. Mode Pro pour une fiche manuelle.

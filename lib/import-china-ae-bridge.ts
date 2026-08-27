@@ -33,11 +33,13 @@ export async function tryImportChinaViaAgent(
       result: "ae_agent_failed",
       marketplace: market.id,
       error: out.error.slice(0, 160),
+      useBrowserCapture: out.useBrowserCapture ?? false,
     })
     return NextResponse.json(
       {
         error: out.error,
         useAliExpressApi: out.useAliExpressApi ?? true,
+        useBrowserCapture: out.useBrowserCapture ?? false,
         marketplace: out.marketplace ?? market,
       },
       { status: out.status }
