@@ -53,9 +53,9 @@ type Props = {
   ownerUserId: string
 }
 
-const MODES: { id: WizardV2Mode; label: string; hint: string }[] = [
+const MODES: { id: WizardV2Mode; label: string; hint: string; recommended?: boolean }[] = [
+  { id: "pro", label: "Pro", hint: "Fiche complète · galerie · catégories Affisell", recommended: true },
   { id: "express", label: "Express", hint: "URL → preview → publish (~15 s)" },
-  { id: "pro", label: "Pro", hint: "Wizard classique v1" },
 ]
 
 export function SupplierProductWizardV2({ ownerUserId }: Props) {
@@ -84,7 +84,7 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
   const [publishing, setPublishing] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [commissionPct, setCommissionPct] = useState(15)
-  const lastStepRef = useRef("express")
+  const lastStepRef = useRef(mode === "express" ? "express" : "pro")
 
   useEffect(() => {
     trackWizardV2View({ mode, entry_point: "compose" })
@@ -515,7 +515,9 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
           <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-violet-600">Wizard v2</p>
           <h1 className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">Publier en 1 clic</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Mode Express — utilisateur {ownerUserId.slice(0, 8)}…
+            {mode === "express"
+              ? `Mode Express — import URL · utilisateur ${ownerUserId.slice(0, 8)}…`
+              : "Mode Pro recommandé — fiche marketplace complète"}
           </p>
         </header>
 
@@ -548,7 +550,14 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                 replace(`/dashboard/supplier/products/new?${qs.toString()}`, { scroll: false })
               }}
             >
-              <span className="block">{m.label}</span>
+              <span className="flex items-center gap-2">
+                <span>{m.label}</span>
+                {m.recommended ? (
+                  <span className="rounded-full bg-violet-600/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-700 dark:bg-violet-400/15 dark:text-violet-200">
+                    Recommandé
+                  </span>
+                ) : null}
+              </span>
               <span className="text-xs font-normal text-zinc-500">{m.hint}</span>
             </button>
           ))}

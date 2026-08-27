@@ -11,8 +11,13 @@ describe("product-wizard-v2 feature-flag", () => {
     expect(resolveProductWizardVersion({ envEnabled: false })).toBe("v1")
   })
 
-  it("uses v2 when env on", () => {
-    expect(resolveProductWizardVersion({ envEnabled: true })).toBe("v2")
+  it("defaults to v1 (Pro) even when env on", () => {
+    expect(resolveProductWizardVersion({ envEnabled: true })).toBe("v1")
+  })
+
+  it("uses v2 only with explicit wizard=v2 or mode=express", () => {
+    expect(resolveProductWizardVersion({ wizardQuery: "v2" })).toBe("v2")
+    expect(resolveProductWizardVersion({ modeQuery: "express" })).toBe("v2")
   })
 
   it("forces v1 with ?wizard=v1", () => {
@@ -33,11 +38,11 @@ describe("product-wizard-v2 feature-flag", () => {
     expect(isWizardV2EnvEnabled({})).toBe(false)
   })
 
-  it("defaults to express — InstantScan/guided retired", () => {
-    expect(resolveWizardV2Mode(null)).toBe("express")
-    expect(resolveWizardV2Mode("express")).toBe("express")
-    expect(resolveWizardV2Mode("guided")).toBe("express")
-    expect(resolveWizardV2Mode("instantscan")).toBe("express")
+  it("defaults to pro — Express is opt-in", () => {
+    expect(resolveWizardV2Mode(null)).toBe("pro")
     expect(resolveWizardV2Mode("pro")).toBe("pro")
+    expect(resolveWizardV2Mode("express")).toBe("express")
+    expect(resolveWizardV2Mode("guided")).toBe("pro")
+    expect(resolveWizardV2Mode("instantscan")).toBe("pro")
   })
 })

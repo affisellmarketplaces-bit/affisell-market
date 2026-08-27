@@ -19,7 +19,7 @@
     "dev:restart": "node ./scripts/dev-preflight.mjs && node ./scripts/dev-restart.mjs",
     "dev:url": "node scripts/print-dev-url.mjs",
     "boutique:listings": "node scripts/boutique-list-listings.mjs",
-    "dev:open:wizard-v2": "node scripts/open-dev-url.mjs /dashboard/supplier/products/new wizard=v2 compose=1",
+    "dev:open:wizard-v2": "node scripts/open-dev-url.mjs /dashboard/supplier/products/new wizard=v2 mode=express compose=1",
     "dev:open:wizard-v1": "node scripts/open-dev-url.mjs /dashboard/supplier/products/new wizard=v1 compose=1",
     "verify:wizard-v2:dev": "node scripts/verify-wizard-v2-dev.mjs",
     "verify:instantscan": "node scripts/verify-instantscan.mjs",
