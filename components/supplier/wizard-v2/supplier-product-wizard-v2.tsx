@@ -525,8 +525,8 @@ export function SupplierProductWizardV2({ ownerUserId }: Props) {
                 Analyser l&apos;URL
               </Button>
               <p className="text-xs text-zinc-500">
-                AliExpress passe par l&apos;API officielle (titre, prix, photos). Shopify et autres marketplaces
-                restent en scrape Express. Pour une fiche photo manuelle, utilisez le mode Pro.
+                AliExpress : API officielle si connectée, sinon analyse directe de la page (fr / www).
+                Shopify et autres marketplaces restent en scrape Express. Mode Pro pour une fiche manuelle.
               </p>
             </section>
 

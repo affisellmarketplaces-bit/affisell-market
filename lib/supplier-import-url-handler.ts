@@ -13,6 +13,10 @@ import {
   type AliExpressParseInput,
 } from "@/lib/import-url-scrape"
 import { mirrorImportedVideosToR2 } from "@/lib/import-video-r2"
+import {
+  aliExpressExpressImportFailedMessage,
+  scrapeAliExpressViaPageFetch,
+} from "@/lib/fulfillment/import-aliexpress-page-product"
 import { parseAeSkusFromPagePayload } from "@/lib/fulfillment/ae-page-skus"
 import { aeSkusToVariantPersist } from "@/lib/fulfillment/ae-skus-to-product-variants"
 import { extract1688Id, get1688 } from "@/lib/onebound"
@@ -413,6 +417,18 @@ export async function scrapeSupplierProductFromUrl(
       // 1688 bloque le scraping HTML — API OneBound uniquement
       product = await import1688Product(url)
       method = "onebound-api"
+    } else if (platform === "aliexpress" && scrapeOptions?.allowAliExpressScrape) {
+      const fromPage = await scrapeAliExpressViaPageFetch(rawUrl)
+      if (fromPage) {
+        product = fromPage.product
+        method = fromPage.method
+      } else {
+        try {
+          product = await scrapeWithDirectFetch(url, platform)
+        } catch (error) {
+          console.warn("[supplier-import] ae direct fetch failed:", error)
+        }
+      }
     } else {
       try {
         product =
@@ -445,6 +461,9 @@ export async function scrapeSupplierProductFromUrl(
 
     if (!product?.title) {
       if (!scrapingBeeKey) {
+        if (platform === "aliexpress" && scrapeOptions?.allowAliExpressScrape) {
+          throw new Error(aliExpressExpressImportFailedMessage())
+        }
         throw new Error(scrapingBeeMissingMessage(platform))
       }
       throw new Error(

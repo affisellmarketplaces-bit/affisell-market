@@ -102,11 +102,23 @@ async function enrichAeSkusFromPageHtml(
   url: string,
   apiRows: AeProductSkuRow[]
 ): Promise<AeProductSkuRow[]> {
-  if (apiRows.length === 0) return apiRows
   try {
     const fetched = await fetchAliExpressProductHtml(url)
     if (!fetched.ok) return apiRows
     const parsed = parseAeCatalogFromHtml(fetched.html, url)
+    if (parsed.aeSkus.length === 0) return apiRows
+    if (apiRows.length === 0) {
+      console.log("[product-import-agent]", {
+        stage: "ae-html-sku-enrich",
+        result: "page-only",
+        htmlSkuCount: parsed.aeSkus.length,
+      })
+      return hydrateAeSkuRowImages(parsed.aeSkus, {
+        colorSwatches: parsed.aeSkus
+          .filter((s) => s.aeLabel && s.imageUrl)
+          .map((s) => ({ name: s.aeLabel, image: s.imageUrl })),
+      })
+    }
     if (parsed.aeSkus.length <= 1) return apiRows
 
     const apiPersist = aeSkusToVariantPersist(apiRows)
@@ -409,10 +421,17 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
     warnings.push(...scraped.warnings)
   }
 
-  if (!skuVariants && product && (product.variants?.length ?? 0) >= 2) {
-    const aeRows = aeRowsFromScrapedVariants(product)
+  if (!skuVariants && product && aeId) {
+    let aeRows = aeRowsFromScrapedVariants(product)
+    aeRows = await enrichAeSkusFromPageHtml(rawUrl, aeRows)
     if (aeRows.length >= 2) {
       const persist = aeSkusToVariantPersist(aeRows)
+      if (persist.hasVariants) {
+        skuVariants = persist
+        product = applyAeSkuMatrixToScraped(product, persist, markup)
+      }
+    } else if ((product.variants?.length ?? 0) >= 2) {
+      const persist = aeSkusToVariantPersist(aeRowsFromScrapedVariants(product))
       if (persist.hasVariants) {
         skuVariants = persist
         product = applyAeSkuMatrixToScraped(product, persist, markup)
