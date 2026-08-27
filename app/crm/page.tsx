@@ -1,12 +1,10 @@
 import type { Metadata } from "next"
-import { redirect } from "next/navigation"
 
 import { SuppliersPipelineClient } from "@/components/crm/suppliers-pipeline-client"
 import {
   fetchSupplierPipelineFromNotion,
   getSupplierPipelineNotionConfig,
 } from "@/lib/crm/notion-supplier-pipeline"
-import { auth } from "@/auth"
 
 export const dynamic = "force-dynamic"
 
@@ -16,14 +14,6 @@ export const metadata: Metadata = {
 }
 
 export default async function CrmPage() {
-  const session = await auth()
-  if (!session?.user?.id) {
-    redirect("/login/admin?callbackUrl=/crm")
-  }
-  if ((session.user as { role?: string }).role !== "ADMIN") {
-    redirect("/")
-  }
-
   const notion = getSupplierPipelineNotionConfig()
   const { rows, error } = notion.configured
     ? await fetchSupplierPipelineFromNotion()

@@ -476,6 +476,8 @@ export async function proxy(req: NextRequest) {
     const isAdminArea =
       bare === "/admin" ||
       bare.startsWith("/admin/") ||
+      bare === "/crm" ||
+      bare.startsWith("/crm/") ||
       bare === "/dashboard/admin" ||
       bare.startsWith("/dashboard/admin/")
     if (isAdminArea) {
@@ -555,6 +557,8 @@ export const config = {
     "/boutique/:path*",
     "/admin",
     "/admin/:path*",
+    "/crm",
+    "/crm/:path*",
     "/dashboard",
     "/dashboard/:path*",
     "/login/agent",
