@@ -8,6 +8,7 @@ import useSWR from "swr"
 import {
   formatProductRequestCountries,
   PRODUCT_REQUEST_CATEGORIES,
+  productRequestProvenanceChipLabel,
   type ProductRequestDto,
 } from "@/lib/product-request-types"
 import { formatProductRequestRelativeTime } from "@/lib/product-request-i18n"
@@ -39,6 +40,7 @@ export function SupplierRequestsClient() {
   const t = useTranslations("productRequests")
   const tList = useTranslations("productRequests.supplier.list")
   const tCat = useTranslations("productRequests.categories")
+  const tProv = useTranslations("productRequests.provenance")
   const [category, setCategory] = useState("")
   const [tab, setTab] = useState<FilterTab>("open")
 
@@ -115,6 +117,7 @@ export function SupplierRequestsClient() {
                   <p className="font-semibold text-zinc-900">{r.title}</p>
                   <p className="mt-0.5 text-xs text-zinc-500">
                     {formatProductRequestCountries(r.countries)} · {tCat(r.category)} ·{" "}
+                    {productRequestProvenanceChipLabel(r.sourceProvenance)} {tProv(r.sourceProvenance)} ·{" "}
                     {r.quantity} {t("common.pieces")} ·{" "}
                     {formatProductRequestRelativeTime(r.createdAt, locale)}
                     {r.deliverySLA != null

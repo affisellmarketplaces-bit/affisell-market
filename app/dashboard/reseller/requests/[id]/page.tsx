@@ -7,6 +7,8 @@ import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { formatProductRequestRelativeTime } from "@/lib/product-request-i18n"
 import {
   formatProductRequestCountries,
+  parseProductRequestProvenance,
+  productRequestProvenanceChipLabel,
   resolveProductRequestCountries,
   serializeProductQuote,
 } from "@/lib/product-request-types"
@@ -19,11 +21,12 @@ type PageProps = { params: Promise<{ id: string }> }
 export default async function ResellerRequestDetailPage({ params }: PageProps) {
   const session = await requireAffiliateSession("/dashboard/reseller/requests")
   const { id } = await params
-  const [t, tCat, tStatus, tDetail, locale] = await Promise.all([
+  const [t, tCat, tStatus, tDetail, tProv, locale] = await Promise.all([
     getTranslations("productRequests"),
     getTranslations("productRequests.categories"),
     getTranslations("productRequests.status"),
     getTranslations("productRequests.reseller.detail"),
+    getTranslations("productRequests.provenance"),
     getLocale(),
   ])
 
@@ -33,6 +36,7 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
   if (!request) notFound()
 
   const countries = resolveProductRequestCountries(request)
+  const provenance = parseProductRequestProvenance(request.sourceProvenance)
 
   const quotes = await prisma.productQuote.findMany({
     where: { requestId: id },
@@ -78,6 +82,7 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
             <h1 className="mt-2 text-xl font-bold text-zinc-900">{request.title}</h1>
             <p className="mt-1 text-xs text-zinc-500">
               {formatProductRequestCountries(countries)} · {tCat(request.category)} ·{" "}
+              {productRequestProvenanceChipLabel(provenance)} {tProv(provenance)} ·{" "}
               {request.quantity} {t("common.pieces")} ·{" "}
               {formatProductRequestRelativeTime(request.createdAt, locale)}
             </p>

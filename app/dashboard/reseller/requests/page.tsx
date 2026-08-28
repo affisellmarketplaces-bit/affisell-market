@@ -7,6 +7,8 @@ import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { formatProductRequestRelativeTime } from "@/lib/product-request-i18n"
 import {
   formatProductRequestCountries,
+  parseProductRequestProvenance,
+  productRequestProvenanceChipLabel,
   resolveProductRequestCountries,
 } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
@@ -15,11 +17,12 @@ export const dynamic = "force-dynamic"
 
 export default async function ResellerRequestsPage() {
   const session = await requireAffiliateSession("/dashboard/reseller/requests")
-  const [t, tCat, tStatus, tList, locale] = await Promise.all([
+  const [t, tCat, tStatus, tList, tProv, locale] = await Promise.all([
     getTranslations("productRequests"),
     getTranslations("productRequests.categories"),
     getTranslations("productRequests.status"),
     getTranslations("productRequests.reseller.list"),
+    getTranslations("productRequests.provenance"),
     getLocale(),
   ])
 
@@ -63,6 +66,7 @@ export default async function ResellerRequestsPage() {
           <ul className="space-y-3">
             {rows.map((r) => {
               const countries = resolveProductRequestCountries(r)
+              const provenance = parseProductRequestProvenance(r.sourceProvenance)
               const statusKey = r.status === "open" || r.status === "fulfilled" ? r.status : "closed"
               return (
                 <li key={r.id}>
@@ -74,6 +78,7 @@ export default async function ResellerRequestsPage() {
                       <p className="font-semibold text-zinc-900">{r.title}</p>
                       <p className="mt-0.5 text-xs text-zinc-500">
                         {formatProductRequestCountries(countries)} · {tCat(r.category)} ·{" "}
+                        {productRequestProvenanceChipLabel(provenance)} {tProv(provenance)} ·{" "}
                         {r.quantity} {t("common.pieces")} ·{" "}
                         {formatProductRequestRelativeTime(r.createdAt, locale)}
                         {r.quotesCount > 0

@@ -5503,7 +5503,8 @@
       "noDescription": "Pas de description.",
       "targetPrice": "Prix cible",
       "dash": "—",
-      "slaWarning": "hors SLA typique"
+      "slaWarning": "hors SLA typique",
+      "provenanceLabel": "Provenance"
     },
     "sla": {
       "singleMarket": "Pour {code}, délai raisonnable : {idealDays}–{maxDays} j. Au-delà de {maxDays} j, ton taux de retour augmente de ~40%.",
@@ -5519,6 +5520,16 @@
       "daysSpeed": "{days}j",
       "daysBalanced": "{days}j max",
       "daysPrice": "{days}j ok"
+    },
+    "provenance": {
+      "any": "Toute origine",
+      "china": "Chine",
+      "eu": "Europe (UE)",
+      "usa": "États-Unis",
+      "turkey": "Turquie",
+      "india": "Inde",
+      "vietnam": "Vietnam",
+      "local": "Local / domestique"
     },
     "reseller": {
       "globalButton": {
@@ -5559,6 +5570,8 @@
         "titleLabel": "Titre *",
         "titlePlaceholder": "Ex : Babyphone WiFi 1080p",
         "categoryLabel": "Catégorie",
+        "provenanceLabel": "Provenance de fabrication",
+        "provenanceHint": "Où les fournisseurs doivent-ils sourcer ? « Toute origine » laisse toutes les options ouvertes.",
         "countriesLabel": "Pays de promotion *",
         "countriesHint": "{selected} / {total} marchés · un ou plusieurs",
         "selectAll": "Tout sélectionner",

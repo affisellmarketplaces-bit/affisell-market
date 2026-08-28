@@ -17,10 +17,13 @@ import {
 import {
   getProductRequestCountryGroups,
   PRODUCT_REQUEST_CATEGORIES,
+  PRODUCT_REQUEST_PROVENANCE_OPTIONS,
   parseProductRequestCountries,
+  parseProductRequestProvenance,
   PRODUCT_REQUEST_COUNTRIES,
   productRequestCountryChipLabel,
   sortProductRequestCountries,
+  type ProductRequestProvenanceId,
 } from "@/lib/product-request-types"
 import { cn } from "@/lib/utils"
 
@@ -45,6 +48,9 @@ export function ResellerRequestForm() {
       q,
       category: (searchParams.get("category")?.trim().toLowerCase() || "general") as string,
       countries: parseProductRequestCountries(countriesParam),
+      sourceProvenance: parseProductRequestProvenance(
+        searchParams.get("provenance") ?? searchParams.get("sourceProvenance")
+      ),
     }
   }, [searchParams])
 
@@ -62,6 +68,9 @@ export function ResellerRequestForm() {
   const [description, setDescription] = useState("")
   const [imageUrl, setImageUrl] = useState("")
   const [deliveryPriority, setDeliveryPriority] = useState<DeliveryPriority>("balanced")
+  const [sourceProvenance, setSourceProvenance] = useState<ProductRequestProvenanceId>(
+    defaults.sourceProvenance
+  )
 
   const countryGroups = useMemo(() => getProductRequestCountryGroups(), [])
 
@@ -85,7 +94,7 @@ export function ResellerRequestForm() {
 
   const sla = getAggregatedSlaForCountries(countries)
   const slaHint = useMemo(
-    () => buildResellerSlaHint(countries, (key, values) => t(`sla.${key}`, values ?? {})),
+    () => buildResellerSlaHint(countries, (key, values) => t(key, values ?? {})),
     [countries, t]
   )
   const priorityDays = resolveDeliverySLAForCountries(countries, deliveryPriority)
@@ -117,6 +126,7 @@ export function ResellerRequestForm() {
           countries,
           imageUrl: imageUrl.trim() || null,
           deliveryPriority,
+          sourceProvenance,
         }),
       })
       const data = (await res.json().catch(() => ({}))) as { error?: string; id?: string }
@@ -173,8 +183,39 @@ export function ResellerRequestForm() {
             ))}
           </select>
         </div>
-        <div className="sm:col-span-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+      </div>
+
+      <fieldset className="rounded-xl border border-zinc-200 bg-white p-3">
+        <legend className="px-1 text-xs font-semibold text-zinc-700">
+          {tForm("provenanceLabel")}
+        </legend>
+        <p className="mt-0.5 text-[11px] text-zinc-500">{tForm("provenanceHint")}</p>
+        <div className="mt-2 flex flex-wrap gap-1.5" role="radiogroup" aria-label={tForm("provenanceLabel")}>
+          {PRODUCT_REQUEST_PROVENANCE_OPTIONS.map((option) => {
+            const selected = sourceProvenance === option.id
+            return (
+              <button
+                key={option.id}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => setSourceProvenance(option.id)}
+                className={cn(
+                  "rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition",
+                  selected
+                    ? "border-orange-500 bg-orange-50 text-orange-950 shadow-sm ring-1 ring-orange-400/30"
+                    : "border-zinc-200 bg-white text-zinc-600 hover:border-orange-300 hover:bg-orange-50/60"
+                )}
+              >
+                <span aria-hidden>{option.flag}</span> {t(`provenance.${option.id}`)}
+              </button>
+            )
+          })}
+        </div>
+      </fieldset>
+
+      <div>
+        <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-xs font-semibold text-zinc-700" id="req-countries-label">
                 {tForm("countriesLabel")}
@@ -237,7 +278,6 @@ export function ResellerRequestForm() {
               </div>
             ))}
           </div>
-        </div>
       </div>
 
       <fieldset className="rounded-xl border border-zinc-200 bg-white p-3">
@@ -264,7 +304,7 @@ export function ResellerRequestForm() {
               <span className="font-medium text-zinc-900">
                 {t(`priorities.${id}`)}{" "}
                 <span className="text-xs font-normal text-zinc-500">
-                  ({priorityDaysLabel(id, sla, (key, values) => t(`priorities.${key}`, values ?? {}))})
+                  ({priorityDaysLabel(id, sla, (key, values) => t(key, values ?? {}))})
                 </span>
               </span>
             </label>

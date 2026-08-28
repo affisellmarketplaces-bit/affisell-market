@@ -10,6 +10,8 @@ import {
 import { PRODUCT_REQUEST_NOTIF } from "@/lib/product-request-notif-constants"
 import {
   parseProductRequestCountries,
+  parseProductRequestProvenance,
+  PRODUCT_REQUEST_PROVENANCE_NOTIF_FR,
   resolveProductRequestCountries,
   serializeProductRequest,
 } from "@/lib/product-request-types"
@@ -39,6 +41,7 @@ type PostBody = {
   countries?: unknown
   imageUrl?: unknown
   deliveryPriority?: unknown
+  sourceProvenance?: unknown
 }
 
 function parseCategory(raw: unknown): string {
@@ -102,6 +105,7 @@ export async function POST(req: Request) {
       : null
   const deliveryPriority = parseDeliveryPriority(body.deliveryPriority)
   const deliverySLA = resolveDeliverySLAForCountries(countries, deliveryPriority)
+  const sourceProvenance = parseProductRequestProvenance(body.sourceProvenance)
 
   const email = session.user.email?.trim() || `${session.user.id}@affisell.local`
 
@@ -121,6 +125,7 @@ export async function POST(req: Request) {
       quotesCount: 0,
       deliverySLA,
       deliveryPriority,
+      sourceProvenance,
     },
     select: {
       id: true,
@@ -138,6 +143,7 @@ export async function POST(req: Request) {
     country: created.country,
     countries: created.countries,
     category: created.category,
+    sourceProvenance,
     deliverySLA: created.deliverySLA,
     result: "Alert suppliers",
   })
@@ -173,7 +179,7 @@ export async function POST(req: Request) {
         data: uniqueIds.map((userId) => ({
           userId,
           type: PRODUCT_REQUEST_NOTIF.NEW_REQUEST,
-          message: `Nouvelle demande: ${created.title}`,
+          message: `Nouvelle demande: ${created.title} · ${PRODUCT_REQUEST_PROVENANCE_NOTIF_FR[sourceProvenance]}`,
           imageUrl,
           orderId: created.id,
         })),

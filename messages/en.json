@@ -5503,7 +5503,8 @@
       "noDescription": "No description.",
       "targetPrice": "Target price",
       "dash": "—",
-      "slaWarning": "outside typical SLA"
+      "slaWarning": "outside typical SLA",
+      "provenanceLabel": "Origin"
     },
     "sla": {
       "singleMarket": "For {code}, reasonable delivery: {idealDays}–{maxDays} days. Beyond {maxDays} days, your return rate rises ~40%.",
@@ -5519,6 +5520,16 @@
       "daysSpeed": "{days}d",
       "daysBalanced": "{days}d max",
       "daysPrice": "{days}d ok"
+    },
+    "provenance": {
+      "any": "Any origin",
+      "china": "China",
+      "eu": "Europe (EU)",
+      "usa": "United States",
+      "turkey": "Turkey",
+      "india": "India",
+      "vietnam": "Vietnam",
+      "local": "Local / domestic"
     },
     "reseller": {
       "globalButton": {
@@ -5559,6 +5570,8 @@
         "titleLabel": "Title *",
         "titlePlaceholder": "E.g. WiFi baby monitor 1080p",
         "categoryLabel": "Category",
+        "provenanceLabel": "Manufacturing origin",
+        "provenanceHint": "Where should suppliers source this product? « Any » keeps all options open.",
         "countriesLabel": "Promotion countries *",
         "countriesHint": "{selected} / {total} markets · one or more",
         "selectAll": "Select all",

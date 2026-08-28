@@ -9,6 +9,50 @@ import { EU_CHECKOUT_EXTRA_ISO2, EU_MEMBER_ISO2 } from "@/lib/eu-market-countrie
 import { COUNTRY_TO_SLA } from "@/lib/logistics/delivery-sla"
 import { WORLD_RADAR_COUNTRIES, type RadarRegion } from "@/lib/radar/world-countries"
 
+/** Sourcing origin preference — labels via productRequests.provenance.* i18n keys. */
+export const PRODUCT_REQUEST_PROVENANCE_OPTIONS = [
+  { id: "any", flag: "🌍" },
+  { id: "china", flag: "🇨🇳" },
+  { id: "eu", flag: "🇪🇺" },
+  { id: "usa", flag: "🇺🇸" },
+  { id: "turkey", flag: "🇹🇷" },
+  { id: "india", flag: "🇮🇳" },
+  { id: "vietnam", flag: "🇻🇳" },
+  { id: "local", flag: "📍" },
+] as const
+
+export type ProductRequestProvenanceId =
+  (typeof PRODUCT_REQUEST_PROVENANCE_OPTIONS)[number]["id"]
+
+const PRODUCT_REQUEST_PROVENANCE_SET = new Set<string>(
+  PRODUCT_REQUEST_PROVENANCE_OPTIONS.map((o) => o.id)
+)
+
+export function parseProductRequestProvenance(raw: unknown): ProductRequestProvenanceId {
+  const id = typeof raw === "string" ? raw.trim().toLowerCase() : "any"
+  if (PRODUCT_REQUEST_PROVENANCE_SET.has(id)) {
+    return id as ProductRequestProvenanceId
+  }
+  return "any"
+}
+
+export function productRequestProvenanceChipLabel(id: ProductRequestProvenanceId): string {
+  const row = PRODUCT_REQUEST_PROVENANCE_OPTIONS.find((o) => o.id === id)
+  return row ? `${row.flag}` : "🌍"
+}
+
+/** Short FR label for supplier push notifications (server-only copy). */
+export const PRODUCT_REQUEST_PROVENANCE_NOTIF_FR: Record<ProductRequestProvenanceId, string> = {
+  any: "origine flexible",
+  china: "Chine",
+  eu: "UE",
+  usa: "USA",
+  turkey: "Turquie",
+  india: "Inde",
+  vietnam: "Vietnam",
+  local: "local",
+}
+
 export type ProductRequestDto = {
   id: string
   resellerId: string
@@ -21,6 +65,8 @@ export type ProductRequestDto = {
   /** Primary market (countries[0]) — legacy single-country field. */
   country: string
   countries: string[]
+  /** Preferred manufacturing / sourcing origin. */
+  sourceProvenance: ProductRequestProvenanceId
   imageUrl: string | null
   status: string
   quotesCount: number
@@ -249,6 +295,7 @@ export function serializeProductRequest(row: {
   quotesCount: number
   deliverySLA: number | null
   deliveryPriority: string
+  sourceProvenance?: string | null
   createdAt: Date
 }): ProductRequestDto {
   const countries = resolveProductRequestCountries(row)
@@ -263,6 +310,7 @@ export function serializeProductRequest(row: {
     targetPrice: row.targetPrice,
     country: countries[0] ?? row.country,
     countries,
+    sourceProvenance: parseProductRequestProvenance(row.sourceProvenance),
     imageUrl: row.imageUrl,
     status: row.status,
     quotesCount: row.quotesCount,

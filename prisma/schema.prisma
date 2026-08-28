@@ -4195,6 +4195,10 @@ model ProductRequest {
    * Reseller preference: speed | balanced | price
    */
   deliveryPriority  String         @default("balanced")
+  /**
+   * Preferred sourcing origin: any | china | eu | usa | turkey | india | vietnam | local
+   */
+  sourceProvenance    String         @default("any")
   createdAt         DateTime       @default(now())
   quotes            ProductQuote[]
 

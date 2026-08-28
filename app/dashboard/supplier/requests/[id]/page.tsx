@@ -8,6 +8,8 @@ import { requireSupplierSession } from "@/lib/dashboard-session"
 import { formatProductRequestRelativeTime } from "@/lib/product-request-i18n"
 import {
   formatProductRequestCountries,
+  parseProductRequestProvenance,
+  productRequestProvenanceChipLabel,
   resolveProductRequestCountries,
   serializeProductQuote,
 } from "@/lib/product-request-types"
@@ -20,11 +22,12 @@ type PageProps = { params: Promise<{ id: string }> }
 export default async function SupplierRequestDetailPage({ params }: PageProps) {
   const session = await requireSupplierSession("/dashboard/supplier/requests")
   const { id } = await params
-  const [t, tCat, tStatus, tDetail, locale] = await Promise.all([
+  const [t, tCat, tStatus, tDetail, tProv, locale] = await Promise.all([
     getTranslations("productRequests"),
     getTranslations("productRequests.categories"),
     getTranslations("productRequests.status"),
     getTranslations("productRequests.supplier.detail"),
+    getTranslations("productRequests.provenance"),
     getLocale(),
   ])
 
@@ -32,6 +35,7 @@ export default async function SupplierRequestDetailPage({ params }: PageProps) {
   if (!request) notFound()
 
   const countries = resolveProductRequestCountries(request)
+  const provenance = parseProductRequestProvenance(request.sourceProvenance)
 
   const myQuote = await prisma.productQuote.findUnique({
     where: {
@@ -59,6 +63,7 @@ export default async function SupplierRequestDetailPage({ params }: PageProps) {
           <h1 className="mt-2 text-xl font-bold text-zinc-900">{request.title}</h1>
           <p className="mt-1 text-xs text-zinc-500">
             {formatProductRequestCountries(countries)} · {tCat(request.category)} ·{" "}
+            {productRequestProvenanceChipLabel(provenance)} {tProv(provenance)} ·{" "}
             {request.quantity} {t("common.pieces")} ·{" "}
             {formatProductRequestRelativeTime(request.createdAt, locale)} · {tStatus(statusKey)}
             {request.quotesCount > 0
@@ -87,6 +92,12 @@ export default async function SupplierRequestDetailPage({ params }: PageProps) {
                 {request.targetPrice != null
                   ? `${request.targetPrice}€`
                   : t("common.dash")}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-2">
+              <dt>{t("common.provenanceLabel")}</dt>
+              <dd className="font-semibold">
+                {productRequestProvenanceChipLabel(provenance)} {tProv(provenance)}
               </dd>
             </div>
             <div className="flex justify-between gap-2">
