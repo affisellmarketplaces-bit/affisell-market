@@ -32,6 +32,10 @@ import {
   normalizeLegionUsername,
 } from "@/lib/legion/username"
 import { staticAppRewriteTarget, isStaticAppPathname } from "@/lib/reserved-locale-segments"
+import {
+  HumanoidShield,
+  type ShieldAnalyzeResult,
+} from "@/lib/security/humanoid-shield"
 
 const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 const FORCED_CUSTOMER_HEADER = "x-affisell-view-role"
@@ -39,6 +43,42 @@ const intlMiddleware = createIntlMiddleware(routing)
 
 /** Never run next-intl redirects on these — we serve them via `app/page` + `app/[locale]/page`. */
 const HOME_PATHS = new Set(["/", "/fr", "/en"])
+
+function isShieldExemptPath(barePath: string): boolean {
+  return barePath === "/shield-blocked" || barePath === "/api/security/logs"
+}
+
+function applyHumanoidShieldHeaders(
+  res: NextResponse,
+  result: ShieldAnalyzeResult
+): NextResponse {
+  res.headers.set("X-Content-Type-Options", "nosniff")
+  res.headers.set("X-Frame-Options", "DENY")
+  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
+  res.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+  )
+  res.headers.set("x-shield-score", String(result.score))
+  res.headers.set("x-shield-action", result.action)
+  return res
+}
+
+function handleShieldBlock(req: NextRequest, result: ShieldAnalyzeResult): NextResponse {
+  const bare = pathnameWithoutLocale(req.nextUrl.pathname)
+  if (bare.startsWith("/api/") || req.nextUrl.pathname.includes("/api/")) {
+    return NextResponse.json(
+      { error: "Blocked by Affisell Humanoid Shield", threats: result.threats },
+      { status: 403 }
+    )
+  }
+  const url = req.nextUrl.clone()
+  url.pathname = "/shield-blocked"
+  url.search = ""
+  url.searchParams.set("ip", result.ip)
+  url.searchParams.set("score", String(result.score))
+  return NextResponse.rewrite(url)
+}
 
 function secureSessionCookieForRequest(req: NextRequest): boolean {
   return req.nextUrl.protocol === "https:"
@@ -92,23 +132,31 @@ function legacyAuthRedirect(req: NextRequest, pathname: string): NextResponse | 
   return NextResponse.redirect(u)
 }
 
-function nextWithPathname(req: NextRequest, extraHeaders?: Record<string, string>): NextResponse {
+function nextWithPathname(
+  req: NextRequest,
+  extraHeaders?: Record<string, string>,
+  shield?: ShieldAnalyzeResult | null
+): NextResponse {
   const requestHeaders = new Headers(req.headers)
   const pathname = req.nextUrl.pathname
   requestHeaders.set("x-affisell-pathname", pathname)
   for (const [key, value] of Object.entries(extraHeaders ?? {})) {
     requestHeaders.set(key, value)
   }
-  const res = NextResponse.next({ request: { headers: requestHeaders } })
+  let res = NextResponse.next({ request: { headers: requestHeaders } })
   const urlLocale = localeFromPathname(pathname)
   const cookieLocale =
     req.cookies.get(LOCALE_COOKIE)?.value ?? req.cookies.get("NEXT_LOCALE")?.value
   syncLocaleCookies(res, urlLocale ?? resolveAppLocale(cookieLocale ?? routing.defaultLocale))
+  if (shield) res = applyHumanoidShieldHeaders(res, shield)
   return res
 }
 
-function withForcedCustomerRole(req: NextRequest): NextResponse {
-  return nextWithPathname(req, { [FORCED_CUSTOMER_HEADER]: "customer" })
+function withForcedCustomerRole(
+  req: NextRequest,
+  shield?: ShieldAnalyzeResult | null
+): NextResponse {
+  return nextWithPathname(req, { [FORCED_CUSTOMER_HEADER]: "customer" }, shield)
 }
 
 function syncLocaleCookies(res: NextResponse, locale: string) {
@@ -122,7 +170,10 @@ function syncLocaleCookies(res: NextResponse, locale: string) {
 }
 
 /** Home routes: no next-intl middleware (prevents `/` ↔ `/fr` redirect loops). */
-async function handleHomePath(req: NextRequest): Promise<NextResponse> {
+async function handleHomePath(
+  req: NextRequest,
+  shield?: ShieldAnalyzeResult | null
+): Promise<NextResponse> {
   const pathname = req.nextUrl.pathname
 
   if (secret) {
@@ -148,7 +199,7 @@ async function handleHomePath(req: NextRequest): Promise<NextResponse> {
     return res
   }
 
-  const res = nextWithPathname(req)
+  const res = nextWithPathname(req, undefined, shield)
   const urlLocale = localeFromPathname(pathname)
   const cookieLocale =
     req.cookies.get(LOCALE_COOKIE)?.value ?? req.cookies.get("NEXT_LOCALE")?.value
@@ -225,6 +276,15 @@ export async function proxy(req: NextRequest) {
   const barePath = pathnameWithoutLocale(pathname)
   const pathnameLocale = localeFromPathname(pathname)
 
+  let shieldResult: ShieldAnalyzeResult | null = null
+  if (!isShieldExemptPath(barePath)) {
+    shieldResult = HumanoidShield.analyze(req)
+    HumanoidShield.log(shieldResult, req)
+    if (shieldResult.action === "BLOCK") {
+      return handleShieldBlock(req, shieldResult)
+    }
+  }
+
   if (barePath === "/intelli" || barePath.startsWith("/intelli/")) {
     const suffix = barePath.slice("/intelli".length)
     const target = `${pathnameLocale ? `/${pathnameLocale}` : ""}/radar${suffix}`
@@ -247,7 +307,7 @@ export async function proxy(req: NextRequest) {
       if (pathnameLocale) syncLocaleCookies(res, pathnameLocale)
       return res
     }
-    return nextWithPathname(req)
+    return nextWithPathname(req, undefined, shieldResult)
   }
 
   // Public Partner / cron surfaces — bypass auth redirects and radar gate.
@@ -270,7 +330,7 @@ export async function proxy(req: NextRequest) {
       requestHeaders.set("x-affisell-pathname", pathname)
       return NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } })
     }
-    return nextWithPathname(req)
+    return nextWithPathname(req, undefined, shieldResult)
   }
 
   // Keep TikTok OAuth callback + webhooks on /api/intelli/* (Partner Center exact URI — no 301).
@@ -312,11 +372,11 @@ export async function proxy(req: NextRequest) {
       requestHeaders.set("x-affisell-pathname", pathname)
       return NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } })
     }
-    return nextWithPathname(req)
+    return nextWithPathname(req, undefined, shieldResult)
   }
 
   if (HOME_PATHS.has(pathname)) {
-    return handleHomePath(req)
+    return handleHomePath(req, shieldResult)
   }
 
   const legionRewrite = rewriteLegionStorefront(req)
@@ -333,7 +393,7 @@ export async function proxy(req: NextRequest) {
   if (isStaticAppPathname(pathname)) {
     const rewritten = rewriteStaticAppPath(req)
     if (rewritten) return rewritten
-    return nextWithPathname(req)
+    return nextWithPathname(req, undefined, shieldResult)
   }
 
   const bare = pathnameWithoutLocale(pathname)
@@ -364,11 +424,11 @@ export async function proxy(req: NextRequest) {
   }
 
   if (bare === "/shops" || bare.startsWith("/shops/")) {
-    return withForcedCustomerRole(req)
+    return withForcedCustomerRole(req, shieldResult)
   }
 
   if (bare.startsWith("/boutique/")) {
-    return withForcedCustomerRole(req)
+    return withForcedCustomerRole(req, shieldResult)
   }
 
   if (secret) {
@@ -397,7 +457,7 @@ export async function proxy(req: NextRequest) {
     }
 
     if (isMarketplaceListingPath(bare)) {
-      return withForcedCustomerRole(req)
+      return withForcedCustomerRole(req, shieldResult)
     }
 
     if (bare.startsWith("/boutique/") && role === "SUPPLIER") {
@@ -521,7 +581,7 @@ export async function proxy(req: NextRequest) {
 
   const location = intlResponse.headers.get("location")
   if (location && isRedirectLoop(pathname, location)) {
-    const res = nextWithPathname(req)
+    const res = nextWithPathname(req, undefined, shieldResult)
     const urlLocale = localeFromPathname(pathname)
     syncLocaleCookies(res, urlLocale ?? routing.defaultLocale)
     return res
@@ -536,12 +596,12 @@ export async function proxy(req: NextRequest) {
     syncLocaleCookies(intlResponse, cookieLocale ?? routing.defaultLocale)
   }
 
-  return intlResponse
+  return shieldResult ? applyHumanoidShieldHeaders(intlResponse, shieldResult) : intlResponse
 }
 
 export const config = {
   matcher: [
-    "/((?!api|_next|_vercel|.*\\..*).*)",
+    "/((?!_next/static|_next/image|favicon.ico).*)",
     "/",
     "/auth/signin",
     "/auth/signin/:path*",
