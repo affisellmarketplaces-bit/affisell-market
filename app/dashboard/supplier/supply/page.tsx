@@ -15,22 +15,36 @@ import { cn } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
+function sectionError(label: string, error: unknown) {
+  const message = error instanceof Error ? error.message : String(error)
+  console.error("[supply-hub/page]", { section: label, error: message })
+  return (
+    <div
+      role="alert"
+      className="rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100"
+    >
+      <p className="font-medium">{label} — chargement partiel</p>
+      <p className="mt-1 text-xs opacity-80">Réessayez dans un instant. Le reste du hub reste disponible.</p>
+    </div>
+  )
+}
+
 export default async function SupplierSupplyHubPage() {
   const session = await requireSupplierSession("/dashboard/supplier/supply")
+  const supplierId = session.user.id
 
-  let snapshot: Awaited<ReturnType<typeof loadSupplyHubSnapshot>>
-  let pilot: Awaited<ReturnType<typeof loadAutoBuyPilotSnapshot>>
-  let agentNetwork: Awaited<ReturnType<typeof loadAgentNetworkSnapshot>>
-  let chinaBuy: Awaited<ReturnType<typeof loadChinaBuySnapshot>>
-  try {
-    ;[snapshot, pilot, agentNetwork, chinaBuy] = await Promise.all([
-      loadSupplyHubSnapshot(session.user.id),
-      loadAutoBuyPilotSnapshot(session.user.id),
-      loadAgentNetworkSnapshot(session.user.id),
-      loadChinaBuySnapshot(session.user.id),
-    ])
-  } catch (error) {
-    console.error("[supply-hub/page] load failed", { supplierId: session.user.id, error })
+  const [supplyResult, pilotResult, agentResult, chinaResult] = await Promise.allSettled([
+    loadSupplyHubSnapshot(supplierId),
+    loadAutoBuyPilotSnapshot(supplierId),
+    loadAgentNetworkSnapshot(supplierId),
+    loadChinaBuySnapshot(supplierId),
+  ])
+
+  if (supplyResult.status === "rejected") {
+    console.error("[supply-hub/page] core load failed", {
+      supplierId,
+      error: supplyResult.reason,
+    })
     return (
       <main className="mx-auto max-w-5xl px-4 py-16 text-center">
         <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
@@ -60,10 +74,22 @@ export default async function SupplierSupplyHubPage() {
         Tableau de bord
       </Link>
       <div className="space-y-8">
-        <SupplyHubPanel snapshot={snapshot} />
-        <AutoBuyPilotPanel snapshot={pilot} />
-        <AgentNetworkPanel snapshot={agentNetwork} />
-        <ChinaBuyRoutesPanel snapshot={chinaBuy} />
+        <SupplyHubPanel snapshot={supplyResult.value} />
+        {pilotResult.status === "fulfilled" ? (
+          <AutoBuyPilotPanel snapshot={pilotResult.value} />
+        ) : (
+          sectionError("Auto-buy Pilot", pilotResult.reason)
+        )}
+        {agentResult.status === "fulfilled" ? (
+          <AgentNetworkPanel snapshot={agentResult.value} />
+        ) : (
+          sectionError("Agent Network", agentResult.reason)
+        )}
+        {chinaResult.status === "fulfilled" ? (
+          <ChinaBuyRoutesPanel snapshot={chinaResult.value} />
+        ) : (
+          sectionError("China Buy", chinaResult.reason)
+        )}
       </div>
     </div>
   )

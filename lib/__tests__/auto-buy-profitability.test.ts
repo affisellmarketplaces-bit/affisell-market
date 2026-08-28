@@ -71,7 +71,7 @@ describe("auto-buy profitability study", () => {
       sellingPriceCents: 3000,
       cogsCents: 1000,
       affiliateCommissionBps: 2000,
-      realized: { orders: 5, revenueCents: 15_000, marginCents: 300 },
+      realized: { orders: 5, revenueCents: 15_000, supplierNetCents: 300 },
     })
     expect(theoretical.healthScore).toBe(100)
     expect(blended.healthScore).toBeLessThan(100)
@@ -87,7 +87,7 @@ describe("auto-buy profitability study", () => {
           cogsCents: 1000,
           affiliateCommissionBps: 2000,
         }),
-        realized: { orders: 2, revenueCents: 6000, marginCents: 2400 },
+        realized: { orders: 2, revenueCents: 6000, supplierNetCents: 2400 },
       },
       {
         autoBuyEnabled: false,
@@ -104,7 +104,7 @@ describe("auto-buy profitability study", () => {
     expect(summary.autoBuyOnCount).toBe(1)
     expect(summary.lossCount).toBe(1)
     expect(summary.realizedOrders30d).toBe(2)
-    expect(summary.realizedMarginCents30d).toBe(2400)
+    expect(summary.realizedSupplierNetCents30d).toBe(2400)
     expect(summary.avgHealthScore).toBe(50)
   })
 })

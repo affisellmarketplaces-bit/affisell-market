@@ -36,7 +36,8 @@ export type SkuEconomicsInput = {
   realized?: {
     orders: number
     revenueCents: number
-    marginCents: number
+    /** Marge nette fournisseur (supplierMarginCents agrégé) — jamais `marginCents` (retail veil). */
+    supplierNetCents: number
   } | null
   /** Médiane HT des autres fournisseurs Affisell (même catégorie). */
   catalogPeerBenchmark?: CatalogPeerBenchmark | null
@@ -87,7 +88,7 @@ export function computeSkuEconomics(input: SkuEconomicsInput): SkuEconomics {
   const realized = input.realized ?? null
   const realizedNetMarginPct =
     realized && realized.orders > 0 && realized.revenueCents > 0
-      ? (realized.marginCents / realized.revenueCents) * 100
+      ? (realized.supplierNetCents / realized.revenueCents) * 100
       : null
 
   if (input.cogsCents == null || input.cogsCents <= 0 || selling <= 0) {
@@ -169,14 +170,14 @@ export type PilotPortfolioSummary = {
   lossCount: number
   realizedOrders30d: number
   realizedRevenueCents30d: number
-  realizedMarginCents30d: number
+  realizedSupplierNetCents30d: number
 }
 
 export function summarizePilotPortfolio(
   rows: ReadonlyArray<{
     autoBuyEnabled: boolean
     economics: SkuEconomics
-    realized?: { orders: number; revenueCents: number; marginCents: number } | null
+    realized?: { orders: number; revenueCents: number; supplierNetCents: number } | null
   }>
 ): PilotPortfolioSummary {
   const scores = rows
@@ -191,6 +192,6 @@ export function summarizePilotPortfolio(
     lossCount: rows.filter((r) => r.economics.healthBand === "loss").length,
     realizedOrders30d: rows.reduce((a, r) => a + (r.realized?.orders ?? 0), 0),
     realizedRevenueCents30d: rows.reduce((a, r) => a + (r.realized?.revenueCents ?? 0), 0),
-    realizedMarginCents30d: rows.reduce((a, r) => a + (r.realized?.marginCents ?? 0), 0),
+    realizedSupplierNetCents30d: rows.reduce((a, r) => a + (r.realized?.supplierNetCents ?? 0), 0),
   }
 }

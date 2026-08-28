@@ -86,4 +86,32 @@ describe("supplier-retail-veil", () => {
       })
     ).toThrow(/forbidden retail keys/)
   })
+
+  it("accepts auto-buy pilot snapshot with supplierNetCents (not marginCents)", () => {
+    const payload = {
+      skus: [
+        {
+          productId: "p1",
+          economics: { netMarginCents: 500, healthBand: "good" },
+          realized: { orders: 2, revenueCents: 6000, supplierNetCents: 1200 },
+        },
+      ],
+      summary: {
+        totalSkus: 1,
+        realizedOrders30d: 2,
+        realizedSupplierNetCents30d: 1200,
+      },
+      radar: [],
+      windowDays: 30,
+    }
+    expect(() => assertNoSupplierRetailLeak(payload)).not.toThrow()
+  })
+
+  it("rejects legacy marginCents on auto-buy pilot payloads", () => {
+    expect(() =>
+      assertNoSupplierRetailLeak({
+        skus: [{ realized: { orders: 1, revenueCents: 100, marginCents: 50 } }],
+      })
+    ).toThrow(/forbidden retail keys/)
+  })
 })

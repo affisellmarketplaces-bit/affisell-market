@@ -172,7 +172,7 @@ export function AutoBuyPilotPanel({ snapshot }: { snapshot: AutoBuyPilotSnapshot
             {t("kpi.margin", { days: windowDays })}
           </dt>
           <dd className="mt-0.5 text-xl font-bold tabular-nums text-emerald-300">
-            {eur(summary.realizedMarginCents30d)}
+            {eur(summary.realizedSupplierNetCents30d)}
           </dd>
         </div>
         <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">

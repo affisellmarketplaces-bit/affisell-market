@@ -23,7 +23,7 @@ export type AutoBuyPilotSku = {
   aeUrl: string | null
   linkActive: boolean
   autoBuyEnabled: boolean
-  realized: { orders: number; revenueCents: number; marginCents: number } | null
+  realized: { orders: number; revenueCents: number; supplierNetCents: number } | null
   economics: SkuEconomics
 }
 
@@ -113,7 +113,7 @@ export async function loadAutoBuyPilotSnapshot(
         orders: row._count._all,
         revenueCents: row._sum.basePriceCents ?? 0,
         // Never fall back to Order.marginCents (affiliate markup / retail uplift).
-        marginCents: row._sum.supplierMarginCents ?? 0,
+        supplierNetCents: row._sum.supplierMarginCents ?? 0,
       },
     ])
   )
