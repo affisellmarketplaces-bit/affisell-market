@@ -22,6 +22,7 @@ import { useTranslations } from "next-intl"
 import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import { AffiliateCatalogHighlights } from "@/components/affiliate/affiliate-catalog-highlights"
 import { AffiliateOpportunityPulseRail } from "@/components/affiliate/affiliate-opportunity-pulse-rail"
+import { CatalogVitrineFilterBar } from "@/components/affiliate/catalog-vitrine-filter-bar"
 import { DiscoverListingActions } from "@/components/affiliate/discover-listing-actions"
 import {
   ListingBuilderModal,
@@ -45,6 +46,7 @@ import type { AffiliateOpportunityPulseCard } from "@/lib/affiliate-catalog-oppo
 import {
   parseCatalogAddedWindow,
   parseCatalogVitrineFilter,
+  type CatalogVitrineFilter,
   type CatalogAddedWindow,
 } from "@/lib/affiliate-catalog-filters-shared"
 import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
@@ -175,6 +177,7 @@ export function AffiliateCatalogExperience({
 
   const filterKey = searchParams.toString()
   const horsVitrineOn = vitrineFilter === "hors"
+  const enVitrineOn = vitrineFilter === "en"
 
   const hasFilters = Boolean(
     categoryId ||
@@ -183,6 +186,7 @@ export function AffiliateCatalogExperience({
       activeNiche ||
       searchParams.get("highlight") ||
       horsVitrineOn ||
+      enVitrineOn ||
       addedWindow !== "all"
   )
 
@@ -201,10 +205,10 @@ export function AffiliateCatalogExperience({
     })
   }
 
-  function toggleHorsVitrine() {
+  function setVitrineFilter(next: CatalogVitrineFilter) {
     patchCatalogParams((params) => {
-      if (horsVitrineOn) params.delete("vitrine")
-      else params.set("vitrine", "hors")
+      if (next === "all") params.delete("vitrine")
+      else params.set("vitrine", next)
     })
   }
 
@@ -624,6 +628,11 @@ export function AffiliateCatalogExperience({
                             · {tFilters("horsVitrineActive")}
                           </span>
                         ) : null}
+                        {enVitrineOn ? (
+                          <span className="ml-1.5 text-emerald-700 dark:text-emerald-300">
+                            · {tFilters("enVitrineActive")}
+                          </span>
+                        ) : null}
                         {addedWindow !== "all" ? (
                           <span className="ml-1.5 text-violet-700 dark:text-violet-300">
                             · {tFilters("addedActive", { window: tFilters(`added.${addedWindow}`) })}
@@ -667,61 +676,7 @@ export function AffiliateCatalogExperience({
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={horsVitrineOn}
-                  onClick={toggleHorsVitrine}
-                  title={horsVitrineOn ? tFilters("horsVitrineOffHint") : tFilters("horsVitrineOnHint")}
-                  className={cn(
-                    "group relative flex w-full max-w-xl items-center gap-3 overflow-hidden rounded-xl border px-3.5 py-3 text-left transition",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60 focus-visible:ring-offset-2",
-                    horsVitrineOn
-                      ? "border-violet-500/60 bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500 text-white shadow-md shadow-violet-500/25 ring-1 ring-violet-400/40"
-                      : "border-violet-300/70 bg-gradient-to-r from-violet-50 via-white to-fuchsia-50 text-violet-950 hover:border-violet-400 hover:shadow-sm dark:border-violet-700/50 dark:from-violet-950/50 dark:via-zinc-950 dark:to-fuchsia-950/30 dark:text-violet-100"
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-                      horsVitrineOn
-                        ? "bg-white/20 text-white"
-                        : "bg-violet-100 text-violet-700 dark:bg-violet-900/60 dark:text-violet-200"
-                    )}
-                    aria-hidden
-                  >
-                    <Filter className="h-4 w-4" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-bold tracking-tight">
-                      {tFilters("notInStoreYet")}
-                    </span>
-                    <span
-                      className={cn(
-                        "mt-0.5 block text-[11px] leading-snug",
-                        horsVitrineOn
-                          ? "text-violet-100/90"
-                          : "text-violet-700/75 dark:text-violet-300/80"
-                      )}
-                    >
-                      {horsVitrineOn ? tFilters("notInStoreYetOn") : tFilters("notInStoreYetOff")}
-                    </span>
-                  </span>
-                  <span
-                    className={cn(
-                      "relative h-6 w-11 shrink-0 rounded-full transition",
-                      horsVitrineOn ? "bg-white/30" : "bg-violet-200 dark:bg-violet-800"
-                    )}
-                    aria-hidden
-                  >
-                    <span
-                      className={cn(
-                        "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition",
-                        horsVitrineOn ? "left-[1.375rem]" : "left-0.5"
-                      )}
-                    />
-                  </span>
-                </button>
+                <CatalogVitrineFilterBar vitrineFilter={vitrineFilter} onChange={setVitrineFilter} />
               </div>
 
               {initialLoading ? (
