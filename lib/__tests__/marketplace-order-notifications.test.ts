@@ -13,19 +13,21 @@ describe("createMarketplaceOrderNotifications", () => {
       supplierPriceCents: 7_606,
       supplierCommissionRateBps: 1_250,
     })
-    const notificationRows: Array<{ userId: string; type: string; orderId: string }> = []
-    const existingKeys = new Set<string>()
+    const notificationRows: Array<{ userId: string; type: string; orderId: string; message: string }> = []
+    const existingKeys = new Map<string, string>()
 
     const tx = {
       notification: {
         findFirst: vi.fn(async ({ where }: { where: { userId: string; orderId: string; type: string } }) => {
           const key = `${where.userId}:${where.orderId}:${where.type}`
-          return existingKeys.has(key) ? { id: "existing" } : null
+          const message = existingKeys.get(key)
+          return message ? { id: "existing", message } : null
         }),
-        create: vi.fn(async ({ data }: { data: { userId: string; type: string; orderId: string } }) => {
+        create: vi.fn(async ({ data }: { data: { userId: string; type: string; orderId: string; message: string } }) => {
           notificationRows.push(data)
-          existingKeys.add(`${data.userId}:${data.orderId}:${data.type}`)
+          existingKeys.set(`${data.userId}:${data.orderId}:${data.type}`, data.message)
         }),
+        update: vi.fn(async () => undefined),
       },
       order: {
         updateMany: vi.fn(async () => ({ count: 1 })),
@@ -57,8 +59,18 @@ describe("createMarketplaceOrderNotifications", () => {
     const first = await createMarketplaceOrderNotifications(tx as never, args)
     const second = await createMarketplaceOrderNotifications(tx as never, args)
 
-    expect(first).toEqual({ supplierInboxCreated: true, affiliateInboxCreated: true })
-    expect(second).toEqual({ supplierInboxCreated: false, affiliateInboxCreated: false })
+    expect(first).toEqual({
+      supplierInboxCreated: true,
+      affiliateInboxCreated: true,
+      supplierInboxRefreshed: false,
+      affiliateInboxRefreshed: false,
+    })
+    expect(second).toEqual({
+      supplierInboxCreated: false,
+      affiliateInboxCreated: false,
+      supplierInboxRefreshed: false,
+      affiliateInboxRefreshed: false,
+    })
     expect(notificationRows).toHaveLength(2)
     expect(tx.notification.create).toHaveBeenCalledTimes(2)
   })
@@ -73,9 +85,10 @@ describe("createMarketplaceOrderNotifications", () => {
     const tx = {
       notification: {
         findFirst: vi.fn(async ({ where }: { where: { type: string } }) =>
-          where.type === "NEW_SALE" ? { id: "aff_existing" } : null
+          where.type === "NEW_SALE" ? { id: "aff_existing", message: "stale" } : null
         ),
         create: vi.fn(async () => undefined),
+        update: vi.fn(async () => undefined),
       },
       order: {
         updateMany: vi.fn(async () => ({ count: 0 })),
@@ -100,7 +113,12 @@ describe("createMarketplaceOrderNotifications", () => {
       usesAffisellAutoBuy: false,
     })
 
-    expect(result).toEqual({ supplierInboxCreated: true, affiliateInboxCreated: false })
+    expect(result).toEqual({
+      supplierInboxCreated: true,
+      affiliateInboxCreated: false,
+      supplierInboxRefreshed: false,
+      affiliateInboxRefreshed: true,
+    })
     expect(tx.notification.create).toHaveBeenCalledOnce()
   })
 })

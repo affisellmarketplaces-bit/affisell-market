@@ -251,12 +251,17 @@ export function formatSupplierNewOrderNotification(args: {
 export function affiliateSaleNotificationSettlement(
   settlement: MarketplaceOrderSettlement,
   orderAmounts: {
+    affiliateCommissionCents?: number
     affiliateMarginRetainedCents: number
     affiliatePlatformFeeCents: number
   }
 ): MarketplaceOrderSettlement {
   return {
     ...settlement,
+    affiliateCommissionCents:
+      orderAmounts.affiliateCommissionCents != null
+        ? Math.max(0, Math.round(orderAmounts.affiliateCommissionCents))
+        : settlement.affiliateCommissionCents,
     affiliateMarginRetainedCents: Math.max(
       0,
       Math.round(orderAmounts.affiliateMarginRetainedCents)

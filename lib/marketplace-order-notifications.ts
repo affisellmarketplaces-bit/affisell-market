@@ -11,9 +11,16 @@ type Tx = Prisma.TransactionClient
 export type MarketplaceOrderNotificationResult = {
   supplierInboxCreated: boolean
   affiliateInboxCreated: boolean
+  supplierInboxRefreshed: boolean
+  affiliateInboxRefreshed: boolean
 }
 
 type InboxType = "NEW_ORDER" | "NEW_SALE"
+
+export type UpsertMerchantInboxNotificationResult = {
+  created: boolean
+  refreshed: boolean
+}
 
 async function upsertMerchantInboxNotification(
   tx: Tx,
@@ -27,18 +34,34 @@ async function upsertMerchantInboxNotification(
       imageUrl: string | null
     }
   }
-): Promise<boolean> {
+): Promise<UpsertMerchantInboxNotificationResult> {
   const existing = await tx.notification.findFirst({
     where: { userId: args.userId, orderId: args.orderId, type: args.type },
-    select: { id: true },
+    select: { id: true, message: true },
   })
 
   if (existing) {
+    const messageChanged = existing.message !== args.data.message
+    if (messageChanged) {
+      await tx.notification.update({
+        where: { id: existing.id },
+        data: {
+          message: args.data.message,
+          ...(args.data.imageUrl ? { imageUrl: args.data.imageUrl } : {}),
+        },
+      })
+      console.log("[marketplace-order-notifications]", {
+        orderId: args.orderId,
+        type: args.type,
+        result: "message_refreshed",
+      })
+    }
+
     await tx.order.updateMany({
       where: { id: args.orderId, [args.flag]: null },
       data: { [args.flag]: new Date() },
     })
-    return false
+    return { created: false, refreshed: messageChanged }
   }
 
   await tx.notification.create({
@@ -56,7 +79,7 @@ async function upsertMerchantInboxNotification(
     data: { [args.flag]: new Date() },
   })
 
-  return true
+  return { created: true, refreshed: false }
 }
 
 export async function createMarketplaceOrderNotifications(
@@ -81,7 +104,7 @@ export async function createMarketplaceOrderNotifications(
 ): Promise<MarketplaceOrderNotificationResult> {
   const imageUrl = args.imageUrl?.trim() || null
 
-  const supplierInboxCreated = await upsertMerchantInboxNotification(tx, {
+  const supplierInbox = await upsertMerchantInboxNotification(tx, {
     orderId: args.orderId,
     userId: args.supplierId,
     type: "NEW_ORDER",
@@ -103,7 +126,7 @@ export async function createMarketplaceOrderNotifications(
     },
   })
 
-  const affiliateInboxCreated = await upsertMerchantInboxNotification(tx, {
+  const affiliateInbox = await upsertMerchantInboxNotification(tx, {
     orderId: args.orderId,
     userId: args.affiliateId,
     type: "NEW_SALE",
@@ -121,13 +144,22 @@ export async function createMarketplaceOrderNotifications(
     },
   })
 
-  const result = { supplierInboxCreated, affiliateInboxCreated }
+  const result = {
+    supplierInboxCreated: supplierInbox.created,
+    affiliateInboxCreated: affiliateInbox.created,
+    supplierInboxRefreshed: supplierInbox.refreshed,
+    affiliateInboxRefreshed: affiliateInbox.refreshed,
+  }
 
-  if (result.supplierInboxCreated || result.affiliateInboxCreated) {
+  if (
+    result.supplierInboxCreated ||
+    result.affiliateInboxCreated ||
+    result.supplierInboxRefreshed ||
+    result.affiliateInboxRefreshed
+  ) {
     console.log("[marketplace-order-notifications]", {
       orderId: args.orderId,
-      supplierInboxCreated: result.supplierInboxCreated,
-      affiliateInboxCreated: result.affiliateInboxCreated,
+      ...result,
     })
   }
 

@@ -31,6 +31,16 @@ export function resolveAffiliatePlatformFeeBps(bps: number | null | undefined): 
   return clampAffisellCommissionRateBps(bps)
 }
 
+/** Commission leg on order row — `affiliatePayoutCents` wins after Légion / sponsor adjustments. */
+export function resolveOrderAffiliateCommissionCents(order: {
+  commissionCents: number
+  affiliatePayoutCents: number
+}): number {
+  const payout = Math.round(order.affiliatePayoutCents)
+  if (payout > 0) return payout
+  return Math.max(0, Math.round(order.commissionCents))
+}
+
 /** Gross partner gain before Affisell platform fee on affiliate earnings. */
 export function grossAffiliateEarningsCents(
   affiliateCommissionCents: number,

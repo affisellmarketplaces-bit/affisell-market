@@ -114,6 +114,24 @@ export function lookupVariantPricingEntry(
   return null
 }
 
+/** Fixed listing margin for one checkout line (listing or per-variant pricing). */
+export function resolveLineAffiliateFixedMarginCents(args: {
+  listingMarginCents: number
+  qty: number
+  variantPricing?: AffiliateVariantPricingMap | null
+  optionName?: string | null
+}): number | undefined {
+  const qty = Math.max(1, Math.round(args.qty))
+  if (args.listingMarginCents > 0) {
+    return Math.max(0, Math.round(args.listingMarginCents) * qty)
+  }
+  const entry = lookupVariantPricingEntry(args.variantPricing, args.optionName)
+  if (entry?.marginCents != null && entry.marginCents > 0) {
+    return Math.max(0, Math.round(entry.marginCents) * qty)
+  }
+  return undefined
+}
+
 /** Shopper unit price — per-variant override wins, else wholesale delta formula. */
 export function resolveAffiliateSellingPriceCentsForOption(args: {
   listingSellingPriceCents: number

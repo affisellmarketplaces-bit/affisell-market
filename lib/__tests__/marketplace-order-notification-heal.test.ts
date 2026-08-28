@@ -16,6 +16,8 @@ vi.mock("@/lib/marketplace-order-notifications", () => ({
   createMarketplaceOrderNotifications: vi.fn(async () => ({
     supplierInboxCreated: true,
     affiliateInboxCreated: false,
+    supplierInboxRefreshed: false,
+    affiliateInboxRefreshed: false,
   })),
 }))
 

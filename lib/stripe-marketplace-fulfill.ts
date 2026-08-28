@@ -39,6 +39,7 @@ import {
   sendOrderConfirmationEmail,
 } from "@/lib/emails/send-order-confirmation"
 import { createMarketplaceOrderNotifications } from "@/lib/marketplace-order-notifications"
+import { affiliateNotificationSettlementFromOrder } from "@/lib/marketplace-order-notification-heal"
 import { dispatchMerchantOrderAlerts } from "@/lib/emails/dispatch-merchant-order-alerts"
 import { healMarketplaceOrderNotifications } from "@/lib/marketplace-order-notification-heal"
 import { syncMarketplaceOrderToMedusa, syncMarketplaceOrderToMedusaIfNeeded } from "@/lib/medusa/sync-marketplace-order"
@@ -46,6 +47,7 @@ import { prisma } from "@/lib/prisma"
 import {
   parseAffiliateVariantPricingJson,
   resolveAffiliateSellingPriceCentsForOption,
+  resolveLineAffiliateFixedMarginCents,
 } from "@/lib/affiliate-variant-pricing"
 import {
   marketplaceWholesaleCentsForOption,
@@ -247,8 +249,13 @@ async function createPaidMarketplaceOrder(
   const affisellCommissionRateBps = await resolveAffisellCommissionRateBpsForProductId(
     listing.productId
   )
-  const lineAffiliateMarginCents =
-    listing.marginCents > 0 ? listing.marginCents * qty : undefined
+  const variantPricing = parseAffiliateVariantPricingJson(listing.variantPricing)
+  const lineAffiliateMarginCents = resolveLineAffiliateFixedMarginCents({
+    listingMarginCents: listing.marginCents,
+    qty,
+    variantPricing,
+    optionName,
+  })
   const clientLineHtCents = Math.max(0, Math.round(args.paidLineCents))
   const settlement = computeMarketplaceOrderSettlement({
     sellingPriceCents: clientLineHtCents,
@@ -496,6 +503,25 @@ async function createPaidMarketplaceOrder(
   }
 
   const variantBit = args.variantLabel ? ` · ${args.variantLabel}` : ""
+  const orderSnapshot = await tx.order.findUnique({
+    where: { id: order.id },
+    select: {
+      subtotalCents: true,
+      sellingPriceCents: true,
+      totalCents: true,
+      taxCents: true,
+      supplierPriceCents: true,
+      basePriceCents: true,
+      marginCents: true,
+      affisellFeeCents: true,
+      commissionCents: true,
+      affiliatePayoutCents: true,
+      affiliateMarginRetainedCents: true,
+      affiliateFeeCents: true,
+      supplierPayoutCents: true,
+      supplierFeeCents: true,
+    },
+  })
   await createMarketplaceOrderNotifications(tx, {
     orderId: order.id,
     supplierId: listing.product.supplierId,
@@ -505,15 +531,17 @@ async function createPaidMarketplaceOrder(
     qty,
     customerEmail: args.customerEmail,
     partnerListingCode: args.partnerListingCode,
-    settlement: affiliateSaleNotificationSettlement(settlement, {
-      affiliateMarginRetainedCents,
-      affiliatePlatformFeeCents: phase1Fees.affiliateFeeCents,
-    }),
-    supplierNetCents: supplierNetPayoutCents,
-    supplierPlatformFeeCents: phase1Fees.supplierFeeCents,
+    settlement: orderSnapshot
+      ? affiliateNotificationSettlementFromOrder(orderSnapshot)
+      : affiliateSaleNotificationSettlement(settlement, {
+          affiliateMarginRetainedCents,
+          affiliatePlatformFeeCents: phase1Fees.affiliateFeeCents,
+        }),
+    supplierNetCents: orderSnapshot?.supplierPayoutCents ?? supplierNetPayoutCents,
+    supplierPlatformFeeCents: orderSnapshot?.supplierFeeCents ?? phase1Fees.supplierFeeCents,
     usesAffisellAutoBuy,
-    taxCents: lineTaxCents,
-    totalCents: lineTotalCents,
+    taxCents: orderSnapshot?.taxCents ?? lineTaxCents,
+    totalCents: orderSnapshot?.totalCents ?? lineTotalCents,
     imageUrl: variantImageUrl,
   })
 
@@ -934,11 +962,17 @@ export async function fulfillMarketplaceStripeSession(
         variants,
       })
       const clientLineHtCents = Math.max(0, Math.round(paidLineCents))
+      const pendingLineMarginCents = resolveLineAffiliateFixedMarginCents({
+        listingMarginCents: listing.marginCents,
+        qty,
+        variantPricing,
+        optionName,
+      })
       const settlement = computeMarketplaceOrderSettlement({
         sellingPriceCents: clientLineHtCents,
         supplierPriceCents: basePriceCents,
         supplierCommissionRateBps,
-        affiliateMarginCents: listing.marginCents > 0 ? listing.marginCents * qty : undefined,
+        affiliateMarginCents: pendingLineMarginCents,
         affisellCommissionRateBps,
         affisellFeeBaseCents: clientLineHtCents,
       })
@@ -955,9 +989,8 @@ export async function fulfillMarketplaceStripeSession(
           ? dupSupplierLink.aePriceCents * qty
           : null
       const dupGrossMarkup =
-        listing.marginCents > 0
-          ? listing.marginCents * qty
-          : Math.max(0, clientLineHtCents - basePriceCents - settlement.affiliateCommissionCents)
+        pendingLineMarginCents ??
+        Math.max(0, clientLineHtCents - basePriceCents - settlement.affiliateCommissionCents)
       const dupPhase1Fees = buildPhase1FeesForOrderLine({
         usesAffisellAutoBuy: dupUsesAutoBuy,
         supplier: listing.product.supplier,
@@ -982,7 +1015,7 @@ export async function fulfillMarketplaceStripeSession(
         supplierPriceCents: basePriceCents,
         affiliateCommissionCents: settlement.affiliateCommissionCents,
         affiliateFeeCents: dupPhase1Fees.affiliateFeeCents,
-        fixedListingMarginCents: listing.marginCents > 0 ? listing.marginCents * qty : undefined,
+        fixedListingMarginCents: pendingLineMarginCents,
       })
       const lineTaxCents =
         checkoutSubtotalCents > 0 && checkoutTaxCents > 0
@@ -1043,6 +1076,25 @@ export async function fulfillMarketplaceStripeSession(
       })
 
       const variantBit = checkoutVariantLabel ? ` · ${checkoutVariantLabel}` : ""
+      const pendingOrderSnapshot = await tx.order.findUnique({
+        where: { id: pendingOrder.id },
+        select: {
+          subtotalCents: true,
+          sellingPriceCents: true,
+          totalCents: true,
+          taxCents: true,
+          supplierPriceCents: true,
+          basePriceCents: true,
+          marginCents: true,
+          affisellFeeCents: true,
+          commissionCents: true,
+          affiliatePayoutCents: true,
+          affiliateMarginRetainedCents: true,
+          affiliateFeeCents: true,
+          supplierPayoutCents: true,
+          supplierFeeCents: true,
+        },
+      })
       await createMarketplaceOrderNotifications(tx, {
         orderId: pendingOrder.id,
         supplierId: listing.product.supplierId,
@@ -1052,15 +1104,18 @@ export async function fulfillMarketplaceStripeSession(
         qty,
         customerEmail,
         partnerListingCode: listing.affiliate.store?.partnerListingCode ?? null,
-        settlement: affiliateSaleNotificationSettlement(settlement, {
-          affiliateMarginRetainedCents: dupAffiliateMargin,
-          affiliatePlatformFeeCents: dupPhase1Fees.affiliateFeeCents,
-        }),
-        supplierNetCents: dupSupplierNetPayout,
-        supplierPlatformFeeCents: dupPhase1Fees.supplierFeeCents,
+        settlement: pendingOrderSnapshot
+          ? affiliateNotificationSettlementFromOrder(pendingOrderSnapshot)
+          : affiliateSaleNotificationSettlement(settlement, {
+              affiliateMarginRetainedCents: dupAffiliateMargin,
+              affiliatePlatformFeeCents: dupPhase1Fees.affiliateFeeCents,
+            }),
+        supplierNetCents: pendingOrderSnapshot?.supplierPayoutCents ?? dupSupplierNetPayout,
+        supplierPlatformFeeCents:
+          pendingOrderSnapshot?.supplierFeeCents ?? dupPhase1Fees.supplierFeeCents,
         usesAffisellAutoBuy: dupUsesAutoBuy,
-        taxCents: lineTaxCents,
-        totalCents: lineTotalCents,
+        taxCents: pendingOrderSnapshot?.taxCents ?? lineTaxCents,
+        totalCents: pendingOrderSnapshot?.totalCents ?? lineTotalCents,
         imageUrl: variantImageUrl,
       })
 

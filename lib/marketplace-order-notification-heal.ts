@@ -1,12 +1,17 @@
 import type { Prisma } from "@prisma/client"
 
 import { createMarketplaceOrderNotifications } from "@/lib/marketplace-order-notifications"
-import { affiliateSaleNotificationSettlement } from "@/lib/marketplace-order-settlement"
+import {
+  affiliateSaleNotificationSettlement,
+  type MarketplaceOrderSettlement,
+} from "@/lib/marketplace-order-settlement"
+import { resolveOrderAffiliateCommissionCents } from "@/lib/marketplace-phase1-fees"
 import { prisma } from "@/lib/prisma"
 
 const PARTNER_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000
 const HEAL_BATCH_SIZE = 30
 const HEAL_MAX_PASSES = 3
+const STALE_REFRESH_BATCH_SIZE = 12
 
 /** Orders that should have a marketplace inbox alert once checkout is paid. */
 const HEALABLE_ORDER_STATUSES = ["paid", "preparing", "shipped"] as const
@@ -25,15 +30,20 @@ const orderForHealSelect = {
   taxCents: true,
   totalCents: true,
   supplierPriceCents: true,
+  basePriceCents: true,
   supplierPayoutCents: true,
   supplierFeeCents: true,
   commissionCents: true,
+  affiliatePayoutCents: true,
   affiliateMarginRetainedCents: true,
   affiliateFeeCents: true,
   affisellFeeCents: true,
   marginCents: true,
+  affiliateMarginCents: true,
   usesAffisellAutoBuy: true,
   paidAt: true,
+  merchantSupplierInboxNotifiedAt: true,
+  merchantAffiliateInboxNotifiedAt: true,
   product: { select: { name: true } },
   affiliate: { select: { store: { select: { partnerListingCode: true } } } },
   affiliateProduct: {
@@ -48,28 +58,69 @@ type OrderForHeal = Prisma.OrderGetPayload<{ select: typeof orderForHealSelect }
 export type HealMarketplaceOrderNotificationsResult = {
   supplierInboxCreated: boolean
   affiliateInboxCreated: boolean
+  supplierInboxRefreshed: boolean
+  affiliateInboxRefreshed: boolean
 }
 
-function buildHealArgs(order: OrderForHeal) {
-  const lineHtCents = order.subtotalCents ?? order.sellingPriceCents ?? order.totalCents ?? 0
-  const settlement = affiliateSaleNotificationSettlement(
+function resolvePartnerListingCodeForHeal(order: OrderForHeal): string | null {
+  const fromListing = order.affiliateProduct?.affiliate?.store?.partnerListingCode?.trim()
+  if (fromListing) return fromListing
+  return order.affiliate?.store?.partnerListingCode?.trim() || null
+}
+
+/** Build affiliate settlement for inbox copy from persisted order row (source of truth). */
+export function affiliateNotificationSettlementFromOrder(
+  order: Pick<
+    OrderForHeal,
+    | "subtotalCents"
+    | "sellingPriceCents"
+    | "totalCents"
+    | "supplierPriceCents"
+    | "basePriceCents"
+    | "marginCents"
+    | "affisellFeeCents"
+    | "commissionCents"
+    | "affiliatePayoutCents"
+    | "affiliateMarginRetainedCents"
+    | "affiliateFeeCents"
+    | "supplierPayoutCents"
+  >
+): MarketplaceOrderSettlement {
+  const lineHtCents =
+    order.subtotalCents ?? order.sellingPriceCents ?? order.totalCents ?? 0
+  const supplierPriceCents = Math.max(
+    0,
+    Math.round(order.supplierPriceCents ?? order.basePriceCents ?? 0)
+  )
+  const commissionCents = resolveOrderAffiliateCommissionCents({
+    commissionCents: order.commissionCents,
+    affiliatePayoutCents: order.affiliatePayoutCents,
+  })
+  const marginRetainedCents = Math.max(0, Math.round(order.affiliateMarginRetainedCents ?? 0))
+  const affiliateFeeCents = Math.max(0, Math.round(order.affiliateFeeCents ?? 0))
+
+  return affiliateSaleNotificationSettlement(
     {
       sellingPriceCents: lineHtCents,
-      basePriceCents: order.supplierPriceCents,
-      marginCents: order.marginCents,
+      basePriceCents: supplierPriceCents,
+      marginCents: Math.max(0, Math.round(order.marginCents ?? 0)),
       affisellFeeBaseCents: lineHtCents,
-      affisellFeeCents: order.affisellFeeCents,
-      affiliateCommissionCents: order.commissionCents,
-      affiliateMarginRetainedCents: order.affiliateMarginRetainedCents ?? 0,
-      supplierNetCents: order.supplierPayoutCents,
-      affiliatePlatformFeeCents: order.affiliateFeeCents,
+      affisellFeeCents: Math.max(0, Math.round(order.affisellFeeCents ?? 0)),
+      affiliateCommissionCents: commissionCents,
+      affiliateMarginRetainedCents: marginRetainedCents,
+      supplierNetCents: Math.max(0, Math.round(order.supplierPayoutCents ?? 0)),
+      affiliatePlatformFeeCents: affiliateFeeCents,
     },
     {
-      affiliateMarginRetainedCents: order.affiliateMarginRetainedCents ?? 0,
-      affiliatePlatformFeeCents: order.affiliateFeeCents,
+      affiliateCommissionCents: commissionCents,
+      affiliateMarginRetainedCents: marginRetainedCents,
+      affiliatePlatformFeeCents: affiliateFeeCents,
     }
   )
+}
 
+export function buildMarketplaceOrderNotificationArgs(order: OrderForHeal) {
+  const settlement = affiliateNotificationSettlementFromOrder(order)
   const variantBit = order.variantLabel?.trim() ? ` · ${order.variantLabel.trim()}` : ""
 
   return {
@@ -91,13 +142,7 @@ function buildHealArgs(order: OrderForHeal) {
   }
 }
 
-function resolvePartnerListingCodeForHeal(order: OrderForHeal): string | null {
-  const fromListing = order.affiliateProduct?.affiliate?.store?.partnerListingCode?.trim()
-  if (fromListing) return fromListing
-  return order.affiliate?.store?.partnerListingCode?.trim() || null
-}
-
-/** Idempotent heal for one paid marketplace order (fixes missing supplier/affiliate inbox rows). */
+/** Idempotent heal + refresh for one paid marketplace order. */
 export async function healMarketplaceOrderNotifications(
   orderId: string
 ): Promise<HealMarketplaceOrderNotificationsResult> {
@@ -106,20 +151,32 @@ export async function healMarketplaceOrderNotifications(
     select: orderForHealSelect,
   })
 
-  if (!order || !HEALABLE_ORDER_STATUSES.includes(order.status as (typeof HEALABLE_ORDER_STATUSES)[number])) {
-    return { supplierInboxCreated: false, affiliateInboxCreated: false }
+  if (
+    !order ||
+    !HEALABLE_ORDER_STATUSES.includes(order.status as (typeof HEALABLE_ORDER_STATUSES)[number])
+  ) {
+    return {
+      supplierInboxCreated: false,
+      affiliateInboxCreated: false,
+      supplierInboxRefreshed: false,
+      affiliateInboxRefreshed: false,
+    }
   }
 
   try {
     const result = await prisma.$transaction((tx) =>
-      createMarketplaceOrderNotifications(tx, buildHealArgs(order))
+      createMarketplaceOrderNotifications(tx, buildMarketplaceOrderNotificationArgs(order))
     )
 
-    if (result.supplierInboxCreated || result.affiliateInboxCreated) {
+    if (
+      result.supplierInboxCreated ||
+      result.affiliateInboxCreated ||
+      result.supplierInboxRefreshed ||
+      result.affiliateInboxRefreshed
+    ) {
       console.log("[marketplace-order-notification-heal]", {
         orderId,
-        supplierInboxCreated: result.supplierInboxCreated,
-        affiliateInboxCreated: result.affiliateInboxCreated,
+        ...result,
       })
     }
 
@@ -129,13 +186,19 @@ export async function healMarketplaceOrderNotifications(
       orderId,
       error: error instanceof Error ? error.message : String(error),
     })
-    return { supplierInboxCreated: false, affiliateInboxCreated: false }
+    return {
+      supplierInboxCreated: false,
+      affiliateInboxCreated: false,
+      supplierInboxRefreshed: false,
+      affiliateInboxRefreshed: false,
+    }
   }
 }
 
 export type HealPartnerNotificationsResult = {
   scanned: number
   healed: number
+  refreshed: number
 }
 
 type PartnerScope = { supplierId: string } | { affiliateId: string }
@@ -176,11 +239,9 @@ async function healRecentPartnerMarketplaceNotificationsPass(
     take: HEAL_BATCH_SIZE,
   })
 
-  if (missingAlertOrders.length === 0) {
-    return { scanned: 0, healed: 0 }
-  }
-
   let healed = 0
+  let refreshed = 0
+
   for (const row of missingAlertOrders) {
     const result = await healMarketplaceOrderNotifications(row.id)
     if (
@@ -191,7 +252,37 @@ async function healRecentPartnerMarketplaceNotificationsPass(
     }
   }
 
-  return { scanned: missingAlertOrders.length, healed }
+  const notifiedFlag =
+    "supplierId" in scope ? "merchantSupplierInboxNotifiedAt" : "merchantAffiliateInboxNotifiedAt"
+
+  const refreshCandidates = await prisma.order.findMany({
+    where: {
+      ...partnerWhere,
+      status: { in: [...HEALABLE_ORDER_STATUSES] },
+      createdAt: { gte: lookback },
+      [notifiedFlag]: { not: null },
+    },
+    select: { id: true },
+    orderBy: { paidAt: "desc" },
+    take: STALE_REFRESH_BATCH_SIZE,
+  })
+
+  for (const row of refreshCandidates) {
+    const result = await healMarketplaceOrderNotifications(row.id)
+    if (
+      ("supplierId" in scope && result.supplierInboxRefreshed) ||
+      ("affiliateId" in scope && result.affiliateInboxRefreshed)
+    ) {
+      refreshed += 1
+    }
+  }
+
+  const scanned = missingAlertOrders.length + refreshCandidates.length
+  if (scanned === 0) {
+    return { scanned: 0, healed: 0, refreshed: 0 }
+  }
+
+  return { scanned, healed, refreshed }
 }
 
 export async function healRecentPartnerMarketplaceNotifications(
@@ -199,13 +290,15 @@ export async function healRecentPartnerMarketplaceNotifications(
 ): Promise<HealPartnerNotificationsResult> {
   let scanned = 0
   let healed = 0
+  let refreshed = 0
 
   for (let pass = 0; pass < HEAL_MAX_PASSES; pass++) {
     const batch = await healRecentPartnerMarketplaceNotificationsPass(scope)
     scanned += batch.scanned
     healed += batch.healed
-    if (batch.scanned === 0 || batch.healed === 0) break
+    refreshed += batch.refreshed
+    if (batch.scanned === 0 || (batch.healed === 0 && batch.refreshed === 0)) break
   }
 
-  return { scanned, healed }
+  return { scanned, healed, refreshed }
 }

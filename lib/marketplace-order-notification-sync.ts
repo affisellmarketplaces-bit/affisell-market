@@ -42,12 +42,13 @@ export async function syncPartnerMarketplaceAlertsBeforeInbox(
   const reconcile = await reconcilePartnerPendingCheckoutOrders(scope)
   const heal = await healRecentPartnerMarketplaceNotifications(scope)
 
-  if (reconcile.healed > 0 || heal.healed > 0) {
+  if (reconcile.healed > 0 || heal.healed > 0 || heal.refreshed > 0) {
     console.log("[marketplace-order-notification-sync]", {
       scope: "supplierId" in scope ? "supplier" : "affiliate",
       partnerId: "supplierId" in scope ? scope.supplierId : scope.affiliateId,
       reconcileHealed: reconcile.healed,
       inboxHealed: heal.healed,
+      inboxRefreshed: heal.refreshed,
     })
   }
 

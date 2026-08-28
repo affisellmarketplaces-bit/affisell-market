@@ -178,5 +178,14 @@ export async function syncOrderVatFromCheckoutSession(
     updatedOrderIds.push(order.id)
   }
 
+  if (updatedOrderIds.length > 0) {
+    const { healMarketplaceOrderNotifications } = await import(
+      "@/lib/marketplace-order-notification-heal"
+    )
+    for (const orderId of updatedOrderIds) {
+      void healMarketplaceOrderNotifications(orderId)
+    }
+  }
+
   return { updatedOrderIds }
 }

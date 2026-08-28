@@ -34,7 +34,7 @@ describe("syncPartnerMarketplaceAlertsBeforeInbox", () => {
     })
     healRecentPartnerMarketplaceNotifications.mockImplementation(async () => {
       callOrder.push("heal")
-      return { scanned: 2, healed: 1 }
+      return { scanned: 2, healed: 1, refreshed: 0 }
     })
 
     const result = await syncPartnerMarketplaceAlertsBeforeInbox({ supplierId: "sup_1" })
@@ -42,13 +42,13 @@ describe("syncPartnerMarketplaceAlertsBeforeInbox", () => {
     expect(callOrder).toEqual(["reconcile", "heal"])
     expect(result).toEqual({
       reconcile: { scanned: 1, healed: 1 },
-      heal: { scanned: 2, healed: 1 },
+      heal: { scanned: 2, healed: 1, refreshed: 0 },
     })
   })
 
   it("skips heavy sync when polled again within the throttle window", async () => {
     reconcilePartnerPendingCheckoutOrders.mockResolvedValue({ scanned: 0, healed: 0 })
-    healRecentPartnerMarketplaceNotifications.mockResolvedValue({ scanned: 0, healed: 0 })
+    healRecentPartnerMarketplaceNotifications.mockResolvedValue({ scanned: 0, healed: 0, refreshed: 0 })
 
     await syncPartnerMarketplaceAlertsBeforeInboxIfDue({ affiliateId: "aff_1" })
     const skipped = await syncPartnerMarketplaceAlertsBeforeInboxIfDue({ affiliateId: "aff_1" })
@@ -60,7 +60,7 @@ describe("syncPartnerMarketplaceAlertsBeforeInbox", () => {
 
   it("forces sync when requested", async () => {
     reconcilePartnerPendingCheckoutOrders.mockResolvedValue({ scanned: 0, healed: 0 })
-    healRecentPartnerMarketplaceNotifications.mockResolvedValue({ scanned: 0, healed: 0 })
+    healRecentPartnerMarketplaceNotifications.mockResolvedValue({ scanned: 0, healed: 0, refreshed: 0 })
 
     await syncPartnerMarketplaceAlertsBeforeInboxIfDue({ affiliateId: "aff_1" })
     await syncPartnerMarketplaceAlertsBeforeInboxIfDue({ affiliateId: "aff_1" }, { force: true })
