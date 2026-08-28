@@ -15,6 +15,7 @@ import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
 import { slimClientMessagesForDedicatedStorefront } from "@/lib/i18n-slim-client-messages"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { isLegionStorefrontPathname } from "@/lib/legion/username"
+import ClientGuardInit from "@/components/security/client-guard-init"
 import { cn } from "@/lib/utils"
 
 import "./globals.css"
@@ -88,6 +89,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <CookieBannerDeferred />
           </IntlAppProvider>
         </AuthSessionProvider>
+        <ClientGuardInit />
       </body>
     </html>
   )

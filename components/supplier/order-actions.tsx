@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
+import { HoneypotField } from "@/components/security/honeypot-field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -23,6 +24,7 @@ import {
   defaultTrustedCarrierLabel,
   trustedCarrierLabelsForCountry,
 } from "@/lib/trusted-carriers-shared"
+import { blockIfHoneypot } from "@/lib/security/honeypot-client"
 import { resolveShipTrackingPolicy } from "@/lib/ship-tracking-policy.shared"
 import { cn } from "@/lib/utils"
 
@@ -138,7 +140,18 @@ export function OrderActions({ order, className, onShipped }: Props) {
             Commande <span className="font-mono text-xs">{order.id.slice(0, 10)}…</span>
           </p>
 
-          <form className="mt-5 space-y-4" onSubmit={handleSubmit(onSubmit)}>
+          <form
+            className="relative mt-5 space-y-4"
+            onSubmit={(e) => {
+              if (blockIfHoneypot(new FormData(e.currentTarget))) {
+                e.preventDefault()
+                toast.error("Bot detected")
+                return
+              }
+              void handleSubmit(onSubmit)(e)
+            }}
+          >
+            <HoneypotField />
             <div className="space-y-2">
               <Label htmlFor={`tracking-carrier-${order.id}`}>Transporteur ({countryIso2})</Label>
               <Controller

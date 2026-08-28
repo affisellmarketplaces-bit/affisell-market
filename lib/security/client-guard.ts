@@ -1,22 +1,18 @@
 "use client"
 
-type ClientGuardHit = {
-  type: string
-  detail: string
-}
-
 let initialized = false
 let clientScore = 100
 
-function pushClientLog(type: string, data: Record<string, unknown>): void {
+function reportClientBot(reason: string): void {
   void fetch("/api/security/logs", {
     method: "POST",
     credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      type,
-      data,
-      path: typeof window !== "undefined" ? window.location.pathname : "",
+      type: "CLIENT_BOT",
+      ua: navigator.userAgent,
+      path: location.pathname,
+      data: reason,
     }),
   }).catch(() => undefined)
 }
@@ -30,7 +26,7 @@ function registerClientRateLimit(): void {
     while (hits.length > 0 && now - (hits[0] ?? now) > 2000) hits.shift()
     if (hits.length >= 20) {
       clientScore = Math.min(clientScore, 25)
-      pushClientLog("CLIENT_BOT", { reason: "client_rate_burst", count: hits.length })
+      reportClientBot("client_rate_burst")
     }
     return originalFetch(...args)
   }
@@ -45,7 +41,7 @@ function registerCopyPasteGuard(): void {
       const focusedAt = Number(target.dataset.affisellFocusedAt ?? "0")
       if (focusedAt > 0 && Date.now() - focusedAt < 100) {
         clientScore = Math.min(clientScore, 35)
-        pushClientLog("CLIENT_BOT", { reason: "instant_paste", field: target.name || target.id })
+        reportClientBot("instant_paste")
       }
     },
     true
@@ -63,53 +59,94 @@ function registerCopyPasteGuard(): void {
   )
 }
 
-function detectAutomation(): ClientGuardHit[] {
-  const hits: ClientGuardHit[] = []
+function registerAutofillBurstGuard(): void {
+  const filledAt: number[] = []
+
+  document.addEventListener(
+    "input",
+    (event) => {
+      const target = event.target
+      if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) return
+      if (!target.value.trim()) return
+
+      const now = Date.now()
+      filledAt.push(now)
+      while (filledAt.length > 0 && now - (filledAt[0] ?? now) > 500) filledAt.shift()
+
+      if (filledAt.length >= 5) {
+        clientScore = Math.min(clientScore, 20)
+        reportClientBot("autofill_burst")
+        filledAt.length = 0
+      }
+    },
+    true
+  )
+}
+
+function detectAutomation(): string[] {
+  const reasons: string[] = []
   const nav = navigator as Navigator & {
     webdriver?: boolean
     chrome?: { runtime?: unknown }
   }
 
-  if (nav.webdriver) hits.push({ type: "webdriver", detail: "navigator.webdriver" })
+  if (nav.webdriver) reasons.push("navigator.webdriver")
 
-  const w = window as Window & { _phantom?: unknown; callPhantom?: unknown }
-  if (w._phantom || w.callPhantom) hits.push({ type: "phantom", detail: "phantomjs" })
+  const w = window as Window & {
+    _phantom?: unknown
+    __nightmare?: unknown
+    callPhantom?: unknown
+  }
+  if (w._phantom || w.__nightmare || w.callPhantom) reasons.push("phantom_headless")
 
   const ua = navigator.userAgent.toLowerCase()
   if (/headless|puppeteer|selenium|playwright/i.test(ua)) {
-    hits.push({ type: "headless_ua", detail: ua.slice(0, 80) })
+    reasons.push("headless_ua")
   }
 
   if (!nav.chrome && /chrome/i.test(ua)) {
-    hits.push({ type: "headless_chrome", detail: "missing window.chrome" })
+    reasons.push("missing_window.chrome")
   }
 
   if (window.outerWidth - window.innerWidth > 160) {
-    hits.push({ type: "devtools", detail: "devtools_open" })
+    reasons.push("devtools_open")
   }
 
-  return hits
+  return reasons
+}
+
+function runAutomationCheck(): void {
+  const reasons = detectAutomation()
+  if (reasons.length === 0) return
+
+  clientScore = Math.max(0, clientScore - reasons.length * 20)
+  for (const reason of reasons) {
+    reportClientBot(reason)
+  }
+}
+
+function checkDevtoolsOpen(): void {
+  if (window.outerWidth - window.innerWidth > 160) {
+    reportClientBot("devtools_open")
+  }
 }
 
 /** Client-side humanoid heuristics — call once from root layout. */
-export function initClientGuard(): number {
-  if (initialized || typeof window === "undefined") return clientScore
+export function initClientGuard(): void {
+  if (initialized || typeof window === "undefined") return
   initialized = true
 
   registerClientRateLimit()
   registerCopyPasteGuard()
+  registerAutofillBurstGuard()
 
-  const automationHits = detectAutomation()
-  if (automationHits.length > 0) {
-    clientScore = Math.max(0, clientScore - automationHits.length * 20)
-    pushClientLog("CLIENT_BOT", {
-      reason: "automation_signals",
-      hits: automationHits,
-      score: clientScore,
-    })
-  }
+  window.setTimeout(() => {
+    runAutomationCheck()
+  }, 2000)
 
-  return clientScore
+  window.setInterval(() => {
+    checkDevtoolsOpen()
+  }, 10_000)
 }
 
 export function getClientGuardScore(): number {

@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
+import { HoneypotField } from "@/components/security/honeypot-field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { labelToCustomColumnKey } from "@/lib/product-custom-columns"
+import { blockIfHoneypot } from "@/lib/security/honeypot-client"
 import type { CustomColumn, CustomColumnType } from "@/types/product"
 
 const TYPES: { value: CustomColumnType; label: string }[] = [
@@ -50,8 +52,13 @@ export function SupplierCustomColumnModal({
 
   const keyPreview = label.trim() ? labelToCustomColumnKey(label) : ""
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    if (blockIfHoneypot(formData)) {
+      setError("Bot detected")
+      return
+    }
     const trimmed = label.trim()
     if (!trimmed) {
       setError("Libellé requis")
@@ -89,7 +96,8 @@ export function SupplierCustomColumnModal({
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Colonne personnalisée</h2>
           <p className="text-sm text-zinc-500">Définissez un champ métier pour toutes les lignes SKU.</p>
         </div>
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="relative space-y-4" onSubmit={handleSubmit}>
+          <HoneypotField />
           <div>
             <Label htmlFor="cc-label">Libellé</Label>
             <Input

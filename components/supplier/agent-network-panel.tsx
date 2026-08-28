@@ -21,7 +21,9 @@ import {
   type AgentMissionTypeValue,
 } from "@/lib/agents/agent-network-shared"
 import { AgentMissionSupplierCard } from "@/components/supplier/agent-mission-supplier-card"
+import { HoneypotField } from "@/components/security/honeypot-field"
 import type { AgentNetworkSnapshot } from "@/lib/agents/load-agent-network"
+import { blockIfHoneypot } from "@/lib/security/honeypot-client"
 import { cn } from "@/lib/utils"
 
 const TYPE_KEYS: Record<AgentMissionTypeValue, string> = {
@@ -93,8 +95,13 @@ export function AgentNetworkPanel({ snapshot }: { snapshot: AgentNetworkSnapshot
     if (def) setFeeEur((def.listPriceCents / 100).toFixed(2))
   }
 
-  async function createMission(e: React.FormEvent) {
+  async function createMission(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    if (blockIfHoneypot(formData)) {
+      toast.error("Bot detected")
+      return
+    }
     if (!productId) return
     setSubmitting(true)
     try {
@@ -211,8 +218,9 @@ export function AgentNetworkPanel({ snapshot }: { snapshot: AgentNetworkSnapshot
       <div className="relative grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <form
           onSubmit={createMission}
-          className="space-y-5 border-b border-white/10 px-5 py-6 sm:px-7 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto lg:border-b-0 lg:border-r"
+          className="relative space-y-5 border-b border-white/10 px-5 py-6 sm:px-7 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto lg:border-b-0 lg:border-r"
         >
+          <HoneypotField />
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-cyan-300" aria-hidden />
             <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-200">

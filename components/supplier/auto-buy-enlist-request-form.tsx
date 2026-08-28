@@ -6,7 +6,10 @@ import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
 import type { AutoBuyEnlistRequestDto } from "@/lib/auto-buy-enlist-request-types"
+import { blockIfHoneypot } from "@/lib/security/honeypot-client"
 import { cn } from "@/lib/utils"
+
+import { HoneypotField } from "@/components/security/honeypot-field"
 
 const STATUS_TONE: Record<string, string> = {
   PENDING_REVIEW: "border-amber-400/40 bg-amber-500/15 text-amber-200",
@@ -48,8 +51,13 @@ export function AutoBuyEnlistRequestForm() {
     void refresh()
   }, [refresh])
 
-  async function submit(e: FormEvent) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    if (blockIfHoneypot(formData)) {
+      toast.error("Bot detected")
+      return
+    }
     const url = aeUrl.trim()
     if (!url) {
       toast.error(t("urlRequired"))
@@ -119,7 +127,8 @@ export function AutoBuyEnlistRequestForm() {
         </div>
       </div>
 
-      <form onSubmit={(e) => void submit(e)} className="space-y-3">
+      <form onSubmit={(e) => void submit(e)} className="relative space-y-3">
+        <HoneypotField />
         <div>
           <label htmlFor="ae-enlist-url" className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
             {t("urlLabel")}

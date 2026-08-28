@@ -6,6 +6,7 @@ import {
   createAutoBuyEnlistRequest,
   listSupplierAutoBuyEnlistRequests,
 } from "@/lib/auto-buy-enlist-request"
+import { rejectIfHoneypotBody } from "@/lib/security/honeypot-api"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -59,6 +60,9 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 })
   }
+
+  const honeypotBlock = rejectIfHoneypotBody(json, "POST /api/supplier/auto-buy-enlist-requests")
+  if (honeypotBlock) return honeypotBlock
 
   const parsed = postSchema.safeParse(json)
   if (!parsed.success) {

@@ -57,6 +57,7 @@ import {
 import { parseChinaImportFields } from "@/lib/china-buying/china-buying-shared"
 import { routeChinaBuy } from "@/lib/china-buying/route-china-buy"
 import { revalidateSupplierShopfront } from "@/lib/revalidate-supplier-shopfront"
+import { rejectIfHoneypotBody } from "@/lib/security/honeypot-api"
 import type { CustomColumn } from "@/types/product"
 
 export const runtime = "nodejs"
@@ -92,6 +93,9 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json()
+  const honeypotBlock = rejectIfHoneypotBody(body, "POST /api/supplier/products")
+  if (honeypotBlock) return honeypotBlock
+
   const saveAsDraft = Boolean((body as Record<string, unknown>).saveAsDraft)
 
   if (!saveAsDraft) {

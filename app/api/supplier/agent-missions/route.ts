@@ -13,6 +13,7 @@ import {
 import { toMissionRow } from "@/lib/agents/load-agent-network"
 import { dispatchAgentMissionEmails } from "@/lib/agents/send-agent-mission-emails"
 import { prisma } from "@/lib/prisma"
+import { rejectIfHoneypotBody } from "@/lib/security/honeypot-api"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -83,7 +84,17 @@ export async function POST(req: Request) {
   if ("error" in guard) return guard.error
   const supplierId = guard.supplierId
 
-  const parsed = createSchema.safeParse(await req.json().catch(() => null))
+  let json: unknown
+  try {
+    json = await req.json()
+  } catch {
+    return NextResponse.json({ error: "invalid_json" }, { status: 400 })
+  }
+
+  const honeypotBlock = rejectIfHoneypotBody(json, "POST /api/supplier/agent-missions")
+  if (honeypotBlock) return honeypotBlock
+
+  const parsed = createSchema.safeParse(json)
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 })
   }

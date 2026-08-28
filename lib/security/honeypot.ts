@@ -1,6 +1,7 @@
 import { HumanoidShield } from "@/lib/security/humanoid-shield"
+import { HONEYPOT_FIELD } from "@/lib/security/honeypot-constants"
 
-export const HONEYPOT_FIELD = "website_url"
+export { HONEYPOT_FIELD }
 
 /** Honeypot form field — bots often auto-fill hidden inputs. */
 export function isHoneypotFilled(formData: FormData): boolean {
