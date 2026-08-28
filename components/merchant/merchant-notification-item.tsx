@@ -21,6 +21,8 @@ type NotificationRow = {
   read: boolean
   actionRequired?: boolean
   createdAt: string
+  /** Server-resolved ledger when order row is source of truth (affiliate NEW_SALE). */
+  breakdown?: MerchantNotificationBreakdown
 }
 
 type Props = {
@@ -191,15 +193,24 @@ function SupplierWholesaleLedger({
   )
 }
 
-function MoneySurface({ parsed }: { parsed: ParsedMerchantNotification }) {
-  if (parsed.kind === "affiliate_sale" && parsed.breakdown) {
-    return (
-      <AffiliateEarningsLedger
-        breakdown={parsed.breakdown}
-        primaryLabel={parsed.primaryLabel}
-        primaryAmount={parsed.primaryAmount}
-      />
-    )
+function MoneySurface({
+  parsed,
+  breakdownOverride,
+}: {
+  parsed: ParsedMerchantNotification
+  breakdownOverride?: MerchantNotificationBreakdown
+}) {
+  if (parsed.kind === "affiliate_sale") {
+    const breakdown = breakdownOverride ?? parsed.breakdown
+    if (breakdown) {
+      return (
+        <AffiliateEarningsLedger
+          breakdown={breakdown}
+          primaryLabel={parsed.primaryLabel}
+          primaryAmount={breakdown.netEarnings ?? parsed.primaryAmount}
+        />
+      )
+    }
   }
 
   if (parsed.kind === "supplier_order") {
@@ -233,10 +244,11 @@ export function MerchantNotificationItem({ row, role, link, onNavigate, onMarkRe
   const parsed = parseMerchantNotificationMessage(row.message)
   const isOrder = parsed.kind === "supplier_order"
   const isSale = parsed.kind === "affiliate_sale"
+  const saleBreakdown = isSale ? row.breakdown ?? parsed.breakdown : undefined
   const relative = formatNotificationRelativeTime(row.createdAt, locale)
   const showRawDetail =
     Boolean(parsed.detail && parsed.productName) &&
-    !(isSale && parsed.breakdown) &&
+    !(isSale && saleBreakdown) &&
     !(isOrder && parsed.breakdown?.netWholesale)
 
   return (
@@ -356,7 +368,7 @@ export function MerchantNotificationItem({ row, role, link, onNavigate, onMarkRe
             ) : null}
           </div>
 
-          <MoneySurface parsed={parsed} />
+          <MoneySurface parsed={parsed} breakdownOverride={row.breakdown} />
 
           {showRawDetail ? (
             <p className="line-clamp-2 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">

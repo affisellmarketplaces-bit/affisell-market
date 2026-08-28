@@ -2,6 +2,11 @@ import { z } from "zod"
 
 import { auth } from "@/auth"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
+import {
+  resolveAffiliateSaleNotificationBreakdown,
+  type OrderForAffiliateSaleBreakdown,
+} from "@/lib/marketplace-order-notification-breakdown"
+import { parseAffiliateSaleNotification } from "@/lib/merchant-notification-display"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -41,29 +46,67 @@ export async function GET(req: Request) {
   })
 
   const orderIds = rows.map((n) => n.orderId).filter((id): id is string => Boolean(id))
-  const orderImages =
-    orderIds.length > 0
+  const saleOrderIds = rows
+    .filter((n) => n.type === "NEW_SALE" && n.orderId)
+    .map((n) => n.orderId!)
+  const ordersForBreakdown =
+    saleOrderIds.length > 0
       ? await prisma.order.findMany({
-          where: { id: { in: orderIds }, affiliateId: session.user.id },
-          select: { id: true, variantImageUrl: true },
+          where: { id: { in: saleOrderIds }, affiliateId: session.user.id },
+          select: {
+            id: true,
+            variantImageUrl: true,
+            subtotalCents: true,
+            sellingPriceCents: true,
+            totalCents: true,
+            taxCents: true,
+            supplierPriceCents: true,
+            basePriceCents: true,
+            marginCents: true,
+            affisellFeeCents: true,
+            commissionCents: true,
+            affiliatePayoutCents: true,
+            affiliateMarginRetainedCents: true,
+            affiliateFeeCents: true,
+            affiliateMarginCents: true,
+            supplierPayoutCents: true,
+          },
         })
       : []
-  const imageByOrderId = new Map(orderImages.map((o) => [o.id, o.variantImageUrl]))
+  const orderById = new Map(ordersForBreakdown.map((o) => [o.id, o]))
+  const imageByOrderId = new Map(
+    ordersForBreakdown.map((o) => [o.id, o.variantImageUrl])
+  )
 
   const deduped = dedupeMerchantNotifications(rows)
   const unreadFromDeduped = deduped.filter((n) => !n.read).length
 
   return Response.json({
     unreadCount: unreadFromDeduped,
-    notifications: deduped.map((n) => ({
-      id: n.id,
-      type: n.type,
-      message: n.message,
-      imageUrl: n.imageUrl?.trim() || imageByOrderId.get(n.orderId ?? "")?.trim() || null,
-      orderId: n.orderId,
-      read: n.read,
-      createdAt: n.createdAt instanceof Date ? n.createdAt.toISOString() : n.createdAt,
-    })),
+    notifications: deduped.map((n) => {
+      const order =
+        n.type === "NEW_SALE" && n.orderId ? orderById.get(n.orderId) : undefined
+      const parsed =
+        n.type === "NEW_SALE" ? parseAffiliateSaleNotification(n.message) : null
+      const breakdown =
+        order != null
+          ? resolveAffiliateSaleNotificationBreakdown({
+              parsed: parsed?.breakdown,
+              order: order as OrderForAffiliateSaleBreakdown,
+            })
+          : undefined
+
+      return {
+        id: n.id,
+        type: n.type,
+        message: n.message,
+        imageUrl: n.imageUrl?.trim() || imageByOrderId.get(n.orderId ?? "")?.trim() || null,
+        orderId: n.orderId,
+        read: n.read,
+        createdAt: n.createdAt instanceof Date ? n.createdAt.toISOString() : n.createdAt,
+        ...(breakdown && Object.values(breakdown).some(Boolean) ? { breakdown } : {}),
+      }
+    }),
   })
 }
 

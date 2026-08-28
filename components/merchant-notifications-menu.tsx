@@ -25,6 +25,17 @@ type NotificationRow = {
   read: boolean
   actionRequired?: boolean
   createdAt: string
+  breakdown?: {
+    netEarnings?: string
+    commission?: string
+    markup?: string
+    affisellFee?: string
+    earningsBase?: string
+    clientTotal?: string
+    clientHt?: string
+    clientVat?: string
+    lineHt?: string
+  }
 }
 
 type MerchantRole = "SUPPLIER" | "AFFILIATE"

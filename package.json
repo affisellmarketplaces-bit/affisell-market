@@ -114,6 +114,7 @@
     "audit:instantscan": "tsx lib/audit/instantscan-audit.ts",
     "verify:ops": "node scripts/verify-ops-ready.mjs",
     "verify:ltv-ops": "node scripts/verify-ltv-ops-ready.mjs",
+    "verify:affiliate-sale-notifications": "node scripts/verify-affiliate-sale-notifications.mjs",
     "ltv:ops-playbook": "node scripts/ltv-ops-playbook.mjs",
     "verify:notion-crm": "node scripts/verify-notion-crm-ready.mjs",
     "check:client-prisma": "node scripts/check-client-prisma-imports.mjs",
