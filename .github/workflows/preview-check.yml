@@ -30,5 +30,4 @@ jobs:
         env:
           VERCEL_ENV: preview
           DATABASE_URL: postgresql://u:p@ep-misty-sea-al1ne07p.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require
-          AFFISELL_PROD_DB_ENDPOINT: ep-misty-sea-al1ne07p
         continue-on-error: true

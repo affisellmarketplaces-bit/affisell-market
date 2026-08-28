@@ -7,7 +7,13 @@
   },
   "build": {
     "env": {
-      "BUILD_RUN_MIGRATIONS": "1"
+      "BUILD_RUN_MIGRATIONS": "1",
+      "PRISMA_SKIP_POSTINSTALL_GENERATE": "false"
+    }
+  },
+  "functions": {
+    "app/api/**/*": {
+      "maxDuration": 10
     }
   },
   "crons": [

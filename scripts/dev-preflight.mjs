@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Dev preflight — generate Prisma clients quietly, then hand off to next-dev-port.
+ * Dev preflight — env check first, then generate Prisma clients quietly.
  * Keeps Cursor terminal readable: one Affisell banner instead of Prisma tip spam.
  */
 import { spawnSync } from "node:child_process"
 import { createRequire } from "node:module"
 
-import { formatEnvCheckLine, getDbEnvSnapshot, runEnvSecurityChecks } from "./env-shared.mjs"
+import { runEnvCheck } from "./env-check.mjs"
 
 const require = createRequire(import.meta.url)
 const prismaBin = require.resolve("prisma/build/index.js")
@@ -30,13 +30,9 @@ function runPrismaGenerate(schemaPath) {
   }
 }
 
-console.log("\n[affisell dev] Affisell — preparing local dev…")
+runEnvCheck({ exitOnFail: false })
 
-const { ok, snapshot } = runEnvSecurityChecks({ exitOnFail: false })
-console.log(formatEnvCheckLine(snapshot))
-if (!ok) {
-  console.warn("[affisell dev] Environment warnings above — fix before shipping to Preview.\n")
-}
+console.log("\n[affisell dev] Affisell — preparing local dev…")
 
 runPrismaGenerate()
 runPrismaGenerate("prisma/radar.schema.prisma")

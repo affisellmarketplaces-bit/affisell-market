@@ -5,8 +5,11 @@
 
 const NEON_HOST_RE = /\.(?:aws\.)?neon\.tech$/i
 const LOCAL_DB_RE = /^(localhost|127\.0\.0\.1)$/i
+const PROD_NEON_MARKER = "misty-sea"
+const STAGING_NEON_MARKER = "shy-wind"
 
 /** @typedef {'LOCAL' | 'PREVIEW' | 'PRODUCTION'} AffisellEnvLabel */
+/** @typedef {'staging' | 'production' | 'local' | 'unknown'} NeonBranchLabel */
 
 /**
  * @returns {AffisellEnvLabel}
@@ -20,6 +23,55 @@ export function resolveAffisellEnv() {
 }
 
 /**
+ * @returns {string}
+ */
+export function resolveDatabaseUrl() {
+  return (
+    process.env.DATABASE_URL?.trim() ||
+    process.env.DATABASE_URL_STAGING?.trim() ||
+    ""
+  )
+}
+
+/**
+ * @param {string | undefined | null} rawUrl
+ */
+export function extractHostFromDatabaseUrl(rawUrl) {
+  const trimmed = rawUrl?.trim()
+  if (!trimmed) return ""
+
+  const match = trimmed.match(/@([^/?#]+)/)
+  if (match?.[1]) return match[1]
+
+  try {
+    return new URL(trimmed).hostname
+  } catch {
+    return ""
+  }
+}
+
+/**
+ * @param {string} host
+ * @returns {NeonBranchLabel}
+ */
+export function resolveNeonBranchFromHost(host) {
+  const h = host.toLowerCase()
+  if (!h) return "unknown"
+  if (LOCAL_DB_RE.test(h)) return "local"
+  if (h.includes(STAGING_NEON_MARKER)) return "staging"
+  if (h.includes(PROD_NEON_MARKER)) return "production"
+  if (NEON_HOST_RE.test(h)) return "unknown"
+  return "local"
+}
+
+/**
+ * @param {string} host
+ */
+export function isPoolerHost(host) {
+  return /-pooler\./i.test(host)
+}
+
+/**
  * @param {string | undefined | null} rawUrl
  */
 export function parseDatabaseUrl(rawUrl) {
@@ -30,31 +82,34 @@ export function parseDatabaseUrl(rawUrl) {
     endpointId: "",
     isLocalhost: false,
     isNeon: false,
+    pooling: false,
   }
   const trimmed = rawUrl?.trim()
   if (!trimmed) return empty
 
-  try {
-    const url = new URL(trimmed)
-    const host = url.hostname
-    const endpointMatch = host.match(/^(ep-[a-z0-9-]+)/i)
-    const endpointId = endpointMatch?.[1] ?? ""
-    const branch =
-      url.searchParams.get("branch")?.trim() ||
-      url.searchParams.get("options")?.match(/branch=([^&]+)/i)?.[1]?.trim() ||
-      url.pathname.replace(/^\//, "").split("/")[0] ||
-      "main"
+  const host = extractHostFromDatabaseUrl(trimmed)
+  if (!host) return { ...empty, maskedHost: "(invalid url)" }
 
-    return {
-      host,
-      maskedHost: maskDbHost(host),
-      branch,
-      endpointId,
-      isLocalhost: LOCAL_DB_RE.test(host),
-      isNeon: NEON_HOST_RE.test(host),
+  const endpointMatch = host.match(/^(ep-[a-z0-9-]+)/i)
+  const endpointId = endpointMatch?.[1] ?? ""
+  const branch = resolveNeonBranchFromHost(host)
+  let pooling = isPoolerHost(host)
+  if (!pooling) {
+    try {
+      pooling = new URL(trimmed).searchParams.get("pgbouncer") === "true"
+    } catch {
+      /* ignore */
     }
-  } catch {
-    return { ...empty, maskedHost: "(invalid url)" }
+  }
+
+  return {
+    host,
+    maskedHost: maskDbHost(host),
+    branch,
+    endpointId,
+    isLocalhost: LOCAL_DB_RE.test(host),
+    isNeon: NEON_HOST_RE.test(host),
+    pooling,
   }
 }
 
@@ -86,75 +141,58 @@ export function maskDbHost(host) {
 }
 
 /**
- * @param {string | undefined | null} endpointId
- */
-export function getProdDbEndpointId(endpointId) {
-  const fromEnv =
-    process.env.AFFISELL_PROD_DB_ENDPOINT?.trim() ||
-    process.env.DATABASE_URL_PRODUCTION_ENDPOINT?.trim()
-  if (fromEnv) return fromEnv.replace(/^ep-/i, "ep-")
-
-  const prodUrl = process.env.DATABASE_URL_PRODUCTION?.trim()
-  if (prodUrl) {
-    return parseDatabaseUrl(prodUrl).endpointId
-  }
-
-  return endpointId?.trim() ?? ""
-}
-
-/**
  * @returns {boolean}
  */
 export function previewPointsAtProdDb(databaseUrl) {
-  if (resolveAffisellEnv() !== "PREVIEW") return false
-
-  const current = parseDatabaseUrl(databaseUrl)
-  if (current.isLocalhost || !current.isNeon) return false
-
-  const stagingUrl = process.env.DATABASE_URL_STAGING?.trim()
-  if (stagingUrl) {
-    const staging = parseDatabaseUrl(stagingUrl)
-    if (
-      staging.endpointId &&
-      current.endpointId &&
-      staging.endpointId === current.endpointId
-    ) {
-      return false
-    }
-  }
-
-  const prodEndpoint = getProdDbEndpointId(current.endpointId)
-  if (!prodEndpoint || !current.endpointId) return false
-
-  return current.endpointId.toLowerCase() === prodEndpoint.toLowerCase()
+  if (process.env.VERCEL_ENV?.trim().toLowerCase() !== "preview") return false
+  const url = databaseUrl?.trim() || resolveDatabaseUrl()
+  if (!url) return false
+  const host = extractHostFromDatabaseUrl(url).toLowerCase()
+  return host.includes(PROD_NEON_MARKER)
 }
 
 /**
- * @returns {{ env: AffisellEnvLabel, isProd: boolean, isStaging: boolean, isLocal: boolean, dbHost: string, dbBranch: string, endpointId: string }}
+ * @returns {string[]}
  */
-export function getDbEnvSnapshot(databaseUrl = process.env.DATABASE_URL) {
+export function getActiveFeatureFlags() {
+  const active = []
+  for (const [key, value] of Object.entries(process.env)) {
+    if (!key.startsWith("NEXT_PUBLIC_FF_")) continue
+    if (value === "1" || value === "true") {
+      active.push(key.replace(/^NEXT_PUBLIC_FF_/, "").toLowerCase())
+    }
+  }
+  return active.sort()
+}
+
+/**
+ * @param {string | undefined | null} databaseUrl
+ */
+export function getDbEnvSnapshot(databaseUrl) {
   const env = resolveAffisellEnv()
-  const parsed = parseDatabaseUrl(databaseUrl)
+  const url = databaseUrl?.trim() || resolveDatabaseUrl()
+  const parsed = parseDatabaseUrl(url)
 
   return {
     env,
-    isProd: env === "PRODUCTION",
-    isStaging: env === "PREVIEW",
-    isLocal: env === "LOCAL",
+    isProd: parsed.branch === "production",
+    isStaging: parsed.branch === "staging",
+    isLocal: env === "LOCAL" || parsed.branch === "local",
     dbHost: parsed.maskedHost,
     dbBranch: parsed.branch,
     endpointId: parsed.endpointId,
+    pooling: parsed.pooling,
+    featureFlags: getActiveFeatureFlags(),
   }
 }
 
 /**
  * @param {{ exitOnFail?: boolean }} [options]
- * @returns {{ ok: boolean, snapshot: ReturnType<typeof getDbEnvSnapshot> }}
  */
 export function runEnvSecurityChecks(options = {}) {
   const { exitOnFail = false } = options
-  const snapshot = getDbEnvSnapshot()
   const databaseUrl = process.env.DATABASE_URL?.trim() ?? ""
+  const snapshot = getDbEnvSnapshot(databaseUrl || resolveDatabaseUrl())
   const parsed = parseDatabaseUrl(databaseUrl)
   let ok = true
 
@@ -169,10 +207,9 @@ export function runEnvSecurityChecks(options = {}) {
 
   if (previewPointsAtProdDb(databaseUrl)) {
     console.error(
-      "\n\x1b[31m⚠️  PREVIEW pointe sur PROD DB — utilise branch!\x1b[0m\n" +
-        "   Fix: Vercel Preview → DATABASE_URL = Neon branch (DATABASE_URL_STAGING).\n" +
-        "   Neon Dashboard → Branches → Create from main → copy branch connection string.\n" +
-        `   Current: ${parsed.maskedHost} (endpoint ${parsed.endpointId || "?"})\n`
+      "\n\x1b[31m⚠️  PREVIEW POINTE SUR PROD DB! Utilise DATABASE_URL_STAGING\x1b[0m\n" +
+        "   Fix: Vercel Preview → DATABASE_URL = ep-shy-wind-… (Neon staging branch).\n" +
+        `   Current: ${parsed.maskedHost} (branch=production)\n`
     )
     ok = false
   }
@@ -184,5 +221,16 @@ export function runEnvSecurityChecks(options = {}) {
  * @param {ReturnType<typeof getDbEnvSnapshot>} snapshot
  */
 export function formatEnvCheckLine(snapshot) {
-  return `[affisell env] ${snapshot.env} DB=${snapshot.dbHost} branch=${snapshot.dbBranch}`
+  const pooling = snapshot.pooling ? "yes" : "no"
+  return `[affisell env] ${snapshot.env} | DB: ${snapshot.dbHost} | Branch: ${snapshot.dbBranch} | Pooling: ${pooling}`
+}
+
+/**
+ * @param {ReturnType<typeof getDbEnvSnapshot>} snapshot
+ */
+export function formatFeatureFlagsLine(snapshot) {
+  if (snapshot.featureFlags.length === 0) {
+    return "[affisell env] Feature flags: (none active)"
+  }
+  return `[affisell env] Feature flags: ${snapshot.featureFlags.join(", ")}`
 }
