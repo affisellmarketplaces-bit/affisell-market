@@ -14,6 +14,7 @@ import {
   notePrismaUnreachable,
 } from "@/lib/prisma-circuit-breaker"
 import { getPrismaDatasourceUrl, getPrismaDirectDatasourceUrl } from "@/lib/prisma-datasource-url"
+import { logDbEnvBoot } from "@/lib/db-env"
 
 type PrismaGlobal = typeof globalThis & {
   __affisellPrisma?: PrismaClient
@@ -71,6 +72,7 @@ function createBasePrismaClient(url: string, logLabel: "default" | "fulfillment"
 
   try {
     const host = new URL(url).hostname
+    logDbEnvBoot(url)
     console.log("[prisma]", {
       result: "client_created",
       host,

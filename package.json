@@ -17,6 +17,8 @@
     "clean": "rm -rf node_modules package-lock.json && npm cache clean --force",
     "dev": "node ./scripts/dev-preflight.mjs && node ./scripts/next-dev-port.mjs",
     "dev:restart": "node ./scripts/dev-preflight.mjs && node ./scripts/dev-restart.mjs",
+    "env:check": "node scripts/env-check.mjs",
+    "db:branch": "echo 'Crée branch Neon: Vercel Preview env → DATABASE_URL_STAGING | Neon Dashboard → Branches → Create from main'",
     "dev:url": "node scripts/print-dev-url.mjs",
     "boutique:listings": "node scripts/boutique-list-listings.mjs",
     "dev:open:wizard-v2": "node scripts/open-dev-url.mjs /dashboard/supplier/products/new wizard=v2 mode=express compose=1",
