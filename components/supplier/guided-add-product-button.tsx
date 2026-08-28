@@ -2,12 +2,13 @@
 
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useId, useMemo, useState } from "react"
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { CheckCircle2, ChevronLeft, ChevronRight, ImagePlus, Loader2, Sparkles, X, XCircle } from "lucide-react"
 import { toast } from "sonner"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
+import { HoneypotField } from "@/components/security/honeypot-field"
 import { GuidedAiCopilotPanel } from "@/components/supplier/guided-ai-copilot-panel"
 import { GuidedCategoryPicker } from "@/components/supplier/guided-category-picker"
 import { useGuidedProductAi } from "@/components/supplier/use-guided-product-ai"
@@ -23,6 +24,7 @@ import {
   type GuidedProductAiSuggestion,
 } from "@/lib/guided-product-ai-shared"
 import { isGpsrCompliant } from "@/lib/legal/gpsr-compliance-shared"
+import { blockIfHoneypotValue } from "@/lib/security/honeypot-client"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { processProductGalleryImageFile } from "@/lib/product-image-upload"
 import { cn } from "@/lib/utils"
@@ -112,6 +114,7 @@ export function GuidedAddProductButton({
   const [stepError, setStepError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const [userEdited, setUserEdited] = useState<Set<FormFieldKey>>(() => new Set())
+  const honeypotRef = useRef<HTMLInputElement>(null)
   const aiEnabled = open && step <= 1
   const { suggestion: aiSuggestion, loading: aiLoading, error: aiError, refresh: refreshAi } =
     useGuidedProductAi(
@@ -331,6 +334,11 @@ export function GuidedAddProductButton({
     const categoryValue = GUIDED_WIZARD_CATEGORIES.find((c) => c.label === form.category)?.value
     if (!categoryValue || !form.imageUrl) return
 
+    if (blockIfHoneypotValue(honeypotRef.current?.value)) {
+      toast.error("Bot detected")
+      return
+    }
+
     setPublishing(true)
     setStepError(null)
     try {
@@ -433,6 +441,7 @@ export function GuidedAddProductButton({
                 aria-labelledby="guided-wizard-title"
                 className="relative z-10 flex max-h-[min(94dvh,820px)] w-full max-w-xl flex-col overflow-hidden rounded-t-3xl border border-zinc-200 bg-white shadow-2xl shadow-violet-950/20 sm:max-h-[min(88dvh,780px)] sm:rounded-3xl dark:border-zinc-700 dark:bg-zinc-900"
               >
+                <HoneypotField inputRef={honeypotRef} />
                 <div className="shrink-0 border-b border-zinc-200 bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-4 text-white sm:px-6">
                   <div className="flex items-start justify-between gap-3">
                     <div>
