@@ -26,6 +26,22 @@ export type ShieldAnalyzeResult = {
   action: ShieldAction
 }
 
+export type ShieldEventLog = {
+  ts: string
+  ip: string
+  type: string
+  path: string
+  data: unknown
+  score?: number
+  threats?: string[]
+  action?: ShieldAction
+}
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __shieldLogs: ShieldEventLog[] | undefined
+}
+
 type IpHitWindow = {
   count: number
   windowStart: number
@@ -104,6 +120,29 @@ function redisBanKey(ip: string): string {
   return `affisell:shield:ban:${ip}`
 }
 
+const SHIELD_REDIS_LOG_KEY = "affisell:shield:logs"
+const MAX_SHIELD_LOGS = 500
+
+function pushShieldEvent(entry: ShieldEventLog): void {
+  if (!globalThis.__shieldLogs) globalThis.__shieldLogs = []
+  globalThis.__shieldLogs.unshift(entry)
+  if (globalThis.__shieldLogs.length > MAX_SHIELD_LOGS) {
+    globalThis.__shieldLogs.length = MAX_SHIELD_LOGS
+  }
+  void persistShieldEvent(entry)
+}
+
+async function persistShieldEvent(entry: ShieldEventLog): Promise<void> {
+  const redis = await getRedis()
+  if (!redis) return
+  try {
+    await redis.lpush(SHIELD_REDIS_LOG_KEY, JSON.stringify(entry))
+    await redis.ltrim(SHIELD_REDIS_LOG_KEY, 0, MAX_SHIELD_LOGS - 1)
+  } catch {
+    // memory fallback only
+  }
+}
+
 export class HumanoidShield {
   static WHITELIST_IPS = ["127.0.0.1", "::1", "::ffff:127.0.0.1", "10.182.247.98"]
 
@@ -120,6 +159,63 @@ export class HumanoidShield {
 
   private static ipHits = new Map<string, IpHitWindow>()
   private static blockedUntil = new Map<string, number>()
+
+  static getMemoryLogs(limit = 100): ShieldEventLog[] {
+    return (globalThis.__shieldLogs ?? []).slice(0, limit)
+  }
+
+  static getActiveBans(): Array<{ ip: string; blockedUntil: number }> {
+    const now = Date.now()
+    const bans: Array<{ ip: string; blockedUntil: number }> = []
+    for (const [ip, until] of HumanoidShield.blockedUntil.entries()) {
+      if (until > now) bans.push({ ip, blockedUntil: until })
+    }
+    return bans.sort((a, b) => b.blockedUntil - a.blockedUntil)
+  }
+
+  static banIp(ip: string, minutes: number): { ip: string; blockedUntil: number } {
+    const normalized = ip.trim()
+    const safeMinutes = Math.max(1, Math.min(10_080, Math.round(minutes)))
+    const until = Date.now() + safeMinutes * 60_000
+    HumanoidShield.blockedUntil.set(normalized, until)
+    HumanoidShield.ipHits.delete(normalized)
+    void HumanoidShield.persistBan(normalized, until)
+    console.log(`[shield] ${JSON.stringify({ event: "BAN", ip: normalized, minutes: safeMinutes, until })}`)
+    return { ip: normalized, blockedUntil: until }
+  }
+
+  static unbanIp(ip: string): boolean {
+    const normalized = ip.trim()
+    const hadBan = HumanoidShield.blockedUntil.delete(normalized)
+    HumanoidShield.ipHits.delete(normalized)
+    void HumanoidShield.clearRedisBan(normalized)
+    console.log(`[shield] ${JSON.stringify({ event: "UNBAN", ip: normalized, hadBan })}`)
+    return hadBan
+  }
+
+  static async listRedisBans(): Promise<Array<{ ip: string; blockedUntil: number }>> {
+    const redis = await getRedis()
+    if (!redis) return []
+    try {
+      const keys = await redis.keys("affisell:shield:ban:*")
+      if (!Array.isArray(keys) || keys.length === 0) return []
+      const now = Date.now()
+      const bans: Array<{ ip: string; blockedUntil: number }> = []
+      for (const key of keys) {
+        if (typeof key !== "string") continue
+        const raw = await redis.get(key)
+        const until = Number(raw)
+        const ip = key.replace("affisell:shield:ban:", "")
+        if (Number.isFinite(until) && until > now) {
+          bans.push({ ip, blockedUntil: until })
+          HumanoidShield.blockedUntil.set(ip, until)
+        }
+      }
+      return bans
+    } catch {
+      return []
+    }
+  }
 
   static extractIp(req: NextRequest): string {
     const forwarded = req.headers.get("x-forwarded-for")
@@ -231,6 +327,16 @@ export class HumanoidShield {
     }
   }
 
+  private static async clearRedisBan(ip: string): Promise<void> {
+    const redis = await getRedis()
+    if (!redis) return
+    try {
+      await redis.del(redisBanKey(ip))
+    } catch {
+      // ignore
+    }
+  }
+
   private static async persistBan(ip: string, until: number): Promise<void> {
     const redis = await getRedis()
     if (!redis) return
@@ -323,5 +429,21 @@ export class HumanoidShield {
         ua: (req.headers.get("user-agent") ?? "").slice(0, 60),
       })}`
     )
+
+    if (result.action === "BLOCK" || result.action === "CHALLENGE") {
+      pushShieldEvent({
+        ts: new Date().toISOString(),
+        ip: result.ip,
+        type: "SHIELD",
+        path: req.nextUrl.pathname,
+        data: {
+          ua: (req.headers.get("user-agent") ?? "").slice(0, 120),
+          isHuman: result.isHuman,
+        },
+        score: result.score,
+        threats: result.threats.map((t) => t.type),
+        action: result.action,
+      })
+    }
   }
 }

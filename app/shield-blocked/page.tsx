@@ -1,6 +1,7 @@
 import Link from "next/link"
 
 import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
+import { ShieldBlockedHumanButton } from "@/components/security/shield-blocked-human-button"
 
 type PageProps = {
   searchParams: Promise<{ ip?: string; score?: string }>
@@ -34,9 +35,10 @@ export default async function ShieldBlockedPage({ searchParams }: PageProps) {
               <dd className="font-semibold tabular-nums text-zinc-900">{score}/100</dd>
             </div>
           </dl>
+          <ShieldBlockedHumanButton ip={ip} />
           <Link
             href="/"
-            className="mt-8 inline-flex items-center justify-center rounded-full bg-zinc-900 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800"
+            className="mt-3 inline-flex items-center justify-center rounded-full bg-zinc-900 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800"
           >
             Retour à l&apos;accueil
           </Link>
