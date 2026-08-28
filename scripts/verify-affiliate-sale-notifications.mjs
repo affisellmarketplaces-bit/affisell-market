@@ -13,6 +13,7 @@ const ok = (label) => checks.push({ label, pass: true })
 const fail = (label, hint) => checks.push({ label, pass: false, hint })
 
 const required = [
+  "lib/marketplace-order-notification-types.ts",
   "lib/marketplace-order-notification-breakdown.ts",
   "lib/marketplace-order-notification-heal.ts",
   "lib/marketplace-order-notifications.ts",

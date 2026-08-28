@@ -1,15 +1,10 @@
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { affiliateNotificationSettlementFromOrder } from "@/lib/marketplace-order-notification-heal"
-import {
-  grossAffiliateEarningsCents,
-} from "@/lib/marketplace-phase1-fees"
+import type { AffiliateSaleOrderAmounts } from "@/lib/marketplace-order-notification-types"
+import { grossAffiliateEarningsCents } from "@/lib/marketplace-phase1-fees"
 import type { MerchantNotificationBreakdown } from "@/lib/merchant-notification-display"
 
-export type OrderForAffiliateSaleBreakdown = Parameters<
-  typeof affiliateNotificationSettlementFromOrder
->[0] & {
-  affiliateMarginCents?: number | null
-}
+export type OrderForAffiliateSaleBreakdown = AffiliateSaleOrderAmounts
 
 /** Structured ledger rows for affiliate NEW_SALE alerts (server + client-safe display). */
 export function buildAffiliateSaleNotificationBreakdown(

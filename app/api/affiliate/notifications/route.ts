@@ -4,8 +4,8 @@ import { auth } from "@/auth"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import {
   resolveAffiliateSaleNotificationBreakdown,
-  type OrderForAffiliateSaleBreakdown,
 } from "@/lib/marketplace-order-notification-breakdown"
+import type { AffiliateSaleOrderAmounts } from "@/lib/marketplace-order-notification-types"
 import { parseAffiliateSaleNotification } from "@/lib/merchant-notification-display"
 import { prisma } from "@/lib/prisma"
 
@@ -92,7 +92,7 @@ export async function GET(req: Request) {
         order != null
           ? resolveAffiliateSaleNotificationBreakdown({
               parsed: parsed?.breakdown,
-              order: order as OrderForAffiliateSaleBreakdown,
+              order: order satisfies AffiliateSaleOrderAmounts,
             })
           : undefined
 

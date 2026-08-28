@@ -6,6 +6,7 @@ import {
   type MarketplaceOrderSettlement,
 } from "@/lib/marketplace-order-settlement"
 import { resolveOrderAffiliateCommissionCents } from "@/lib/marketplace-phase1-fees"
+import type { AffiliateSaleOrderAmounts } from "@/lib/marketplace-order-notification-types"
 import { prisma } from "@/lib/prisma"
 
 const PARTNER_LOOKBACK_MS = 7 * 24 * 60 * 60 * 1000
@@ -70,21 +71,7 @@ function resolvePartnerListingCodeForHeal(order: OrderForHeal): string | null {
 
 /** Build affiliate settlement for inbox copy from persisted order row (source of truth). */
 export function affiliateNotificationSettlementFromOrder(
-  order: Pick<
-    OrderForHeal,
-    | "subtotalCents"
-    | "sellingPriceCents"
-    | "totalCents"
-    | "supplierPriceCents"
-    | "basePriceCents"
-    | "marginCents"
-    | "affisellFeeCents"
-    | "commissionCents"
-    | "affiliatePayoutCents"
-    | "affiliateMarginRetainedCents"
-    | "affiliateFeeCents"
-    | "supplierPayoutCents"
-  >
+  order: AffiliateSaleOrderAmounts
 ): MarketplaceOrderSettlement {
   const lineHtCents =
     order.subtotalCents ?? order.sellingPriceCents ?? order.totalCents ?? 0

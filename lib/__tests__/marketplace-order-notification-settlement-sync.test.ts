@@ -108,8 +108,8 @@ describe("buildMarketplaceOrderNotificationArgs", () => {
       merchantSupplierInboxNotifiedAt: null,
       merchantAffiliateInboxNotifiedAt: null,
       product: { name: "Widget" },
-      affiliate: { store: { partnerListingCode: undefined } },
-      affiliateProduct: { affiliate: { store: { partnerListingCode: undefined } } },
+      affiliate: { store: { partnerListingCode: "AFS-TEST" } },
+      affiliateProduct: { affiliate: { store: { partnerListingCode: "AFS-TEST" } } },
     })
 
     const msg = formatAffiliateNewSaleNotification({
