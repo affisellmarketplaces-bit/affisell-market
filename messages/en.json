@@ -5504,7 +5504,9 @@
       "targetPrice": "Target price",
       "dash": "—",
       "slaWarning": "outside typical SLA",
-      "provenanceLabel": "Origin"
+      "provenanceLabel": "Origin",
+      "complianceLabel": "Compliance requirements",
+      "complianceCount": "{count, plural, one {# requirement} other {# requirements}}"
     },
     "sla": {
       "singleMarket": "For {code}, reasonable delivery: {idealDays}–{maxDays} days. Beyond {maxDays} days, your return rate rises ~40%.",
@@ -5530,6 +5532,115 @@
       "india": "India",
       "vietnam": "Vietnam",
       "local": "Local / domestic"
+    },
+    "compliance": {
+      "groups": {
+        "legal": "Legal & market access",
+        "quality": "Quality & factory",
+        "product": "Product safety & materials",
+        "sustainability": "Sustainability & ethics",
+        "ip": "Intellectual property"
+      },
+      "ce_marking": {
+        "title": "CE marking (EU)",
+        "hint": "Conformity for sale in the European Union"
+      },
+      "ukca_marking": {
+        "title": "UKCA / UKNI",
+        "hint": "Conformity for Great Britain & Northern Ireland"
+      },
+      "fcc_compliance": {
+        "title": "FCC (USA)",
+        "hint": "Radio / EMC compliance for the US market"
+      },
+      "gpsr": {
+        "title": "GPSR (EU safety)",
+        "hint": "General Product Safety Regulation — EU 2023/988"
+      },
+      "reach": {
+        "title": "REACH",
+        "hint": "EU chemicals registration & restriction"
+      },
+      "rohs": {
+        "title": "RoHS",
+        "hint": "Restriction of hazardous substances (electronics)"
+      },
+      "weee": {
+        "title": "WEEE",
+        "hint": "E-waste take-back & recycling obligations"
+      },
+      "prop65": {
+        "title": "Prop 65 (California)",
+        "hint": "Warning labels for listed chemicals"
+      },
+      "cpc": {
+        "title": "CPC (children)",
+        "hint": "Children's Product Certificate — baby & kids"
+      },
+      "iso9001": {
+        "title": "ISO 9001",
+        "hint": "Certified quality management system"
+      },
+      "iso14001": {
+        "title": "ISO 14001",
+        "hint": "Environmental management certification"
+      },
+      "factory_audit": {
+        "title": "Factory audit",
+        "hint": "Third-party social & technical audit report"
+      },
+      "third_party_lab": {
+        "title": "Independent lab tests",
+        "hint": "Accredited lab test reports supplied"
+      },
+      "batch_traceability": {
+        "title": "Batch traceability",
+        "hint": "Lot / serial tracking from factory to shipment"
+      },
+      "aql_inspection": {
+        "title": "AQL inspection",
+        "hint": "Pre-shipment quality inspection (AQL 2.5 or stricter)"
+      },
+      "food_grade": {
+        "title": "Food contact safe",
+        "hint": "Materials safe for food / mouth contact"
+      },
+      "msds": {
+        "title": "SDS / MSDS",
+        "hint": "Safety data sheet for chemical products"
+      },
+      "bpa_free": {
+        "title": "BPA-free",
+        "hint": "No bisphenol A in plastics"
+      },
+      "oeko_tex": {
+        "title": "OEKO-TEX",
+        "hint": "Textile harmful-substance standard"
+      },
+      "fsc": {
+        "title": "FSC",
+        "hint": "Responsible wood / paper sourcing"
+      },
+      "recyclable_packaging": {
+        "title": "Recyclable packaging",
+        "hint": "Mono-material or widely recyclable pack"
+      },
+      "carbon_neutral": {
+        "title": "Carbon-neutral shipping",
+        "hint": "Offset or low-carbon logistics option"
+      },
+      "fair_trade": {
+        "title": "Fair trade",
+        "hint": "Fair wages & ethical supply chain"
+      },
+      "patent_clear": {
+        "title": "Patent clearance",
+        "hint": "No known active patent infringement"
+      },
+      "trademark_clear": {
+        "title": "Trademark clearance",
+        "hint": "No brand / logo infringement risk"
+      }
     },
     "reseller": {
       "globalButton": {
@@ -5571,7 +5682,14 @@
         "titlePlaceholder": "E.g. WiFi baby monitor 1080p",
         "categoryLabel": "Category",
         "provenanceLabel": "Manufacturing origin",
-        "provenanceHint": "Where should suppliers source this product? « Any » keeps all options open.",
+        "provenanceCountriesLabel": "Preferred manufacturing countries",
+        "provenanceHint": "{selected} / {total} origins · leave empty for any origin",
+        "provenanceAnyOrigin": "🌍 Any origin",
+        "complianceLabel": "Legal & quality requirements",
+        "complianceHint": "Tick only what matters for your market — suppliers must confirm compliance in their quote.",
+        "complianceEuBundle": "✓ EU bundle (CE, GPSR, REACH, RoHS, WEEE)",
+        "complianceClear": "Clear all",
+        "complianceSelected": "{count, plural, one {# requirement selected} other {# requirements selected}}",
         "countriesLabel": "Promotion countries *",
         "countriesHint": "{selected} / {total} markets · one or more",
         "selectAll": "Select all",

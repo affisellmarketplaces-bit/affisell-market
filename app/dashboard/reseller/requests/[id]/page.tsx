@@ -7,8 +7,8 @@ import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { formatProductRequestRelativeTime } from "@/lib/product-request-i18n"
 import {
   formatProductRequestCountries,
-  parseProductRequestProvenance,
-  productRequestProvenanceChipLabel,
+  parseProductRequestComplianceRequirements,
+  productRequestProvenanceDisplay,
   resolveProductRequestCountries,
   serializeProductQuote,
 } from "@/lib/product-request-types"
@@ -21,12 +21,13 @@ type PageProps = { params: Promise<{ id: string }> }
 export default async function ResellerRequestDetailPage({ params }: PageProps) {
   const session = await requireAffiliateSession("/dashboard/reseller/requests")
   const { id } = await params
-  const [t, tCat, tStatus, tDetail, tProv, locale] = await Promise.all([
+  const [t, tCat, tStatus, tDetail, tProv, tCompliance, locale] = await Promise.all([
     getTranslations("productRequests"),
     getTranslations("productRequests.categories"),
     getTranslations("productRequests.status"),
     getTranslations("productRequests.reseller.detail"),
     getTranslations("productRequests.provenance"),
+    getTranslations("productRequests.compliance"),
     getLocale(),
   ])
 
@@ -36,7 +37,10 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
   if (!request) notFound()
 
   const countries = resolveProductRequestCountries(request)
-  const provenance = parseProductRequestProvenance(request.sourceProvenance)
+  const provenanceLabel = productRequestProvenanceDisplay(request, (key) => tProv(key))
+  const complianceIds = parseProductRequestComplianceRequirements(
+    request.complianceRequirements
+  )
 
   const quotes = await prisma.productQuote.findMany({
     where: { requestId: id },
@@ -82,8 +86,7 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
             <h1 className="mt-2 text-xl font-bold text-zinc-900">{request.title}</h1>
             <p className="mt-1 text-xs text-zinc-500">
               {formatProductRequestCountries(countries)} · {tCat(request.category)} ·{" "}
-              {productRequestProvenanceChipLabel(provenance)} {tProv(provenance)} ·{" "}
-              {request.quantity} {t("common.pieces")} ·{" "}
+              {provenanceLabel} · {request.quantity} {t("common.pieces")} ·{" "}
               {formatProductRequestRelativeTime(request.createdAt, locale)}
             </p>
           </div>
@@ -104,6 +107,22 @@ export default async function ResellerRequestDetailPage({ params }: PageProps) {
           <p className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700 whitespace-pre-wrap">
             {request.description}
           </p>
+        ) : null}
+
+        {complianceIds.length > 0 ? (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 px-4 py-3">
+            <p className="text-xs font-semibold text-emerald-950">{t("common.complianceLabel")}</p>
+            <ul className="mt-2 flex flex-wrap gap-1.5">
+              {complianceIds.map((id) => (
+                <li
+                  key={id}
+                  className="rounded-full border border-emerald-200 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-emerald-900"
+                >
+                  {tCompliance(`${id}.title`)}
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : null}
 
         <ResellerQuotesComparator

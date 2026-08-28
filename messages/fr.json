@@ -5504,7 +5504,9 @@
       "targetPrice": "Prix cible",
       "dash": "—",
       "slaWarning": "hors SLA typique",
-      "provenanceLabel": "Provenance"
+      "provenanceLabel": "Provenance",
+      "complianceLabel": "Exigences conformité",
+      "complianceCount": "{count, plural, one {# exigence} other {# exigences}}"
     },
     "sla": {
       "singleMarket": "Pour {code}, délai raisonnable : {idealDays}–{maxDays} j. Au-delà de {maxDays} j, ton taux de retour augmente de ~40%.",
@@ -5530,6 +5532,115 @@
       "india": "Inde",
       "vietnam": "Vietnam",
       "local": "Local / domestique"
+    },
+    "compliance": {
+      "groups": {
+        "legal": "Juridique & accès marché",
+        "quality": "Qualité & usine",
+        "product": "Sécurité produit & matériaux",
+        "sustainability": "Durabilité & éthique",
+        "ip": "Propriété intellectuelle"
+      },
+      "ce_marking": {
+        "title": "Marquage CE (UE)",
+        "hint": "Conformité pour la vente dans l'Union européenne"
+      },
+      "ukca_marking": {
+        "title": "UKCA / UKNI",
+        "hint": "Conformité Grande-Bretagne & Irlande du Nord"
+      },
+      "fcc_compliance": {
+        "title": "FCC (USA)",
+        "hint": "Conformité radio / CEM pour le marché américain"
+      },
+      "gpsr": {
+        "title": "GPSR (sécurité UE)",
+        "hint": "Règlement général sur la sécurité des produits — UE 2023/988"
+      },
+      "reach": {
+        "title": "REACH",
+        "hint": "Enregistrement & restriction des substances chimiques UE"
+      },
+      "rohs": {
+        "title": "RoHS",
+        "hint": "Restriction des substances dangereuses (électronique)"
+      },
+      "weee": {
+        "title": "DEEE / WEEE",
+        "hint": "Reprise & recyclage des déchets d'équipements"
+      },
+      "prop65": {
+        "title": "Prop 65 (Californie)",
+        "hint": "Étiquetage des substances chimiques listées"
+      },
+      "cpc": {
+        "title": "CPC (enfants)",
+        "hint": "Certificat produit enfant — bébé & junior"
+      },
+      "iso9001": {
+        "title": "ISO 9001",
+        "hint": "Système de management qualité certifié"
+      },
+      "iso14001": {
+        "title": "ISO 14001",
+        "hint": "Certification management environnemental"
+      },
+      "factory_audit": {
+        "title": "Audit usine",
+        "hint": "Rapport d'audit social & technique tiers"
+      },
+      "third_party_lab": {
+        "title": "Tests labo indépendants",
+        "hint": "Rapports d'essais d'un laboratoire accrédité"
+      },
+      "batch_traceability": {
+        "title": "Traçabilité lots",
+        "hint": "Suivi lot / série de l'usine à l'expédition"
+      },
+      "aql_inspection": {
+        "title": "Inspection AQL",
+        "hint": "Contrôle qualité pré-expédition (AQL 2,5 ou plus strict)"
+      },
+      "food_grade": {
+        "title": "Contact alimentaire",
+        "hint": "Matériaux sûrs pour contact alimentaire / bouche"
+      },
+      "msds": {
+        "title": "FDS / MSDS",
+        "hint": "Fiche de données de sécurité (produits chimiques)"
+      },
+      "bpa_free": {
+        "title": "Sans BPA",
+        "hint": "Absence de bisphénol A dans les plastiques"
+      },
+      "oeko_tex": {
+        "title": "OEKO-TEX",
+        "hint": "Norme textile substances nocives"
+      },
+      "fsc": {
+        "title": "FSC",
+        "hint": "Bois / papier issus de forêts responsables"
+      },
+      "recyclable_packaging": {
+        "title": "Emballage recyclable",
+        "hint": "Emballage mono-matière ou largement recyclable"
+      },
+      "carbon_neutral": {
+        "title": "Expédition neutre carbone",
+        "hint": "Option logistique bas carbone ou compensée"
+      },
+      "fair_trade": {
+        "title": "Commerce équitable",
+        "hint": "Salaires équitables & chaîne éthique"
+      },
+      "patent_clear": {
+        "title": "Liberté brevets",
+        "hint": "Pas de contrefaçon de brevet actif connue"
+      },
+      "trademark_clear": {
+        "title": "Liberté marques",
+        "hint": "Pas de risque d'usurpation de marque / logo"
+      }
     },
     "reseller": {
       "globalButton": {
@@ -5571,7 +5682,14 @@
         "titlePlaceholder": "Ex : Babyphone WiFi 1080p",
         "categoryLabel": "Catégorie",
         "provenanceLabel": "Provenance de fabrication",
-        "provenanceHint": "Où les fournisseurs doivent-ils sourcer ? « Toute origine » laisse toutes les options ouvertes.",
+        "provenanceCountriesLabel": "Pays de fabrication recherchés",
+        "provenanceHint": "{selected} / {total} origines · laisser vide = toute origine",
+        "provenanceAnyOrigin": "🌍 Toute origine",
+        "complianceLabel": "Exigences juridiques & qualité",
+        "complianceHint": "Coche uniquement ce qui compte pour ton marché — le fournisseur doit confirmer dans son devis.",
+        "complianceEuBundle": "✓ Pack UE (CE, GPSR, REACH, RoHS, DEEE)",
+        "complianceClear": "Tout effacer",
+        "complianceSelected": "{count, plural, one {# exigence cochée} other {# exigences cochées}}",
         "countriesLabel": "Pays de promotion *",
         "countriesHint": "{selected} / {total} marchés · un ou plusieurs",
         "selectAll": "Tout sélectionner",

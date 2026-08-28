@@ -4198,7 +4198,11 @@ model ProductRequest {
   /**
    * Preferred sourcing origin: any | china | eu | usa | turkey | india | vietnam | local
    */
-  sourceProvenance    String         @default("any")
+  sourceProvenance       String         @default("any")
+  /** ISO2 manufacturing origins — empty = flexible / any origin. */
+  provenanceCountries    String[]       @default([])
+  /** Legal, quality & compliance requirements (requirement ids). */
+  complianceRequirements String[]       @default([])
   createdAt         DateTime       @default(now())
   quotes            ProductQuote[]
 

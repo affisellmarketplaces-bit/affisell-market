@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useMemo, useState, type FormEvent } from "react"
+import { useMemo, useState, type FormEvent } from "react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -14,18 +14,17 @@ import {
   type DeliveryPriority,
   resolveDeliverySLAForCountries,
 } from "@/lib/logistics/delivery-sla"
+import { EU_MEMBER_ISO2 } from "@/lib/eu-market-countries"
 import {
-  getProductRequestCountryGroups,
   PRODUCT_REQUEST_CATEGORIES,
-  PRODUCT_REQUEST_PROVENANCE_OPTIONS,
-  parseProductRequestCountries,
-  parseProductRequestProvenance,
   PRODUCT_REQUEST_COUNTRIES,
-  productRequestCountryChipLabel,
-  sortProductRequestCountries,
-  type ProductRequestProvenanceId,
+  parseProductRequestCountries,
+  parseProductRequestProvenanceCountries,
+  type ProductRequestComplianceId,
 } from "@/lib/product-request-types"
-import { cn } from "@/lib/utils"
+
+import { ProductRequestCompliancePicker } from "@/components/requests/ProductRequestCompliancePicker"
+import { ProductRequestCountryPicker } from "@/components/requests/ProductRequestCountryPicker"
 
 const PRIORITY_IDS: DeliveryPriority[] = ["speed", "balanced", "price"]
 
@@ -43,13 +42,17 @@ export function ResellerRequestForm() {
       searchParams.get("countries")?.trim() ||
       searchParams.get("country")?.trim() ||
       "FR"
+    const provenanceParam =
+      searchParams.get("provenanceCountries")?.trim() ||
+      searchParams.get("provenance")?.trim() ||
+      ""
     return {
       title: titleParam || q,
       q,
       category: (searchParams.get("category")?.trim().toLowerCase() || "general") as string,
       countries: parseProductRequestCountries(countriesParam),
-      sourceProvenance: parseProductRequestProvenance(
-        searchParams.get("provenance") ?? searchParams.get("sourceProvenance")
+      provenanceCountries: parseProductRequestProvenanceCountries(
+        provenanceParam.includes(",") ? provenanceParam.split(",") : provenanceParam || []
       ),
     }
   }, [searchParams])
@@ -63,34 +66,22 @@ export function ResellerRequestForm() {
       : "general"
   )
   const [countries, setCountries] = useState<string[]>(defaults.countries)
+  const [provenanceCountries, setProvenanceCountries] = useState<string[]>(
+    defaults.provenanceCountries
+  )
+  const [complianceRequirements, setComplianceRequirements] = useState<
+    ProductRequestComplianceId[]
+  >([])
   const [quantity, setQuantity] = useState(100)
   const [targetPrice, setTargetPrice] = useState("")
   const [description, setDescription] = useState("")
   const [imageUrl, setImageUrl] = useState("")
   const [deliveryPriority, setDeliveryPriority] = useState<DeliveryPriority>("balanced")
-  const [sourceProvenance, setSourceProvenance] = useState<ProductRequestProvenanceId>(
-    defaults.sourceProvenance
+
+  const showEuComplianceBundle = useMemo(
+    () => countries.some((code) => (EU_MEMBER_ISO2 as readonly string[]).includes(code)),
+    [countries]
   )
-
-  const countryGroups = useMemo(() => getProductRequestCountryGroups(), [])
-
-  const toggleCountry = useCallback((code: string) => {
-    setCountries((prev) => {
-      if (prev.includes(code)) {
-        const next = prev.filter((c) => c !== code)
-        return next.length > 0 ? next : prev
-      }
-      return sortProductRequestCountries([...prev, code])
-    })
-  }, [])
-
-  const selectAllCountries = useCallback(() => {
-    setCountries([...PRODUCT_REQUEST_COUNTRIES])
-  }, [])
-
-  const clearCountries = useCallback(() => {
-    setCountries(["FR"])
-  }, [])
 
   const sla = getAggregatedSlaForCountries(countries)
   const slaHint = useMemo(
@@ -124,9 +115,10 @@ export function ResellerRequestForm() {
           quantity,
           targetPrice: priceNum != null && Number.isFinite(priceNum) ? priceNum : null,
           countries,
+          provenanceCountries,
+          complianceRequirements,
           imageUrl: imageUrl.trim() || null,
           deliveryPriority,
-          sourceProvenance,
         }),
       })
       const data = (await res.json().catch(() => ({}))) as { error?: string; id?: string }
@@ -165,120 +157,64 @@ export function ResellerRequestForm() {
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className="text-xs font-semibold text-zinc-700" htmlFor="req-cat">
-            {tForm("categoryLabel")}
-          </label>
-          <select
-            id="req-cat"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-          >
-            {PRODUCT_REQUEST_CATEGORIES.map((c) => (
-              <option key={c.id} value={c.id}>
-                {t(`categories.${c.id}`)}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div>
+        <label className="text-xs font-semibold text-zinc-700" htmlFor="req-cat">
+          {tForm("categoryLabel")}
+        </label>
+        <select
+          id="req-cat"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
+        >
+          {PRODUCT_REQUEST_CATEGORIES.map((c) => (
+            <option key={c.id} value={c.id}>
+              {t(`categories.${c.id}`)}
+            </option>
+          ))}
+        </select>
       </div>
 
       <fieldset className="rounded-xl border border-zinc-200 bg-white p-3">
         <legend className="px-1 text-xs font-semibold text-zinc-700">
           {tForm("provenanceLabel")}
         </legend>
-        <p className="mt-0.5 text-[11px] text-zinc-500">{tForm("provenanceHint")}</p>
-        <div className="mt-2 flex flex-wrap gap-1.5" role="radiogroup" aria-label={tForm("provenanceLabel")}>
-          {PRODUCT_REQUEST_PROVENANCE_OPTIONS.map((option) => {
-            const selected = sourceProvenance === option.id
-            return (
-              <button
-                key={option.id}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() => setSourceProvenance(option.id)}
-                className={cn(
-                  "rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition",
-                  selected
-                    ? "border-orange-500 bg-orange-50 text-orange-950 shadow-sm ring-1 ring-orange-400/30"
-                    : "border-zinc-200 bg-white text-zinc-600 hover:border-orange-300 hover:bg-orange-50/60"
-                )}
-              >
-                <span aria-hidden>{option.flag}</span> {t(`provenance.${option.id}`)}
-              </button>
-            )
+        <ProductRequestCountryPicker
+          variant="orange"
+          labelId="req-provenance-countries"
+          title={tForm("provenanceCountriesLabel")}
+          hint={tForm("provenanceHint", {
+            selected: provenanceCountries.length,
+            total: PRODUCT_REQUEST_COUNTRIES.length,
           })}
-        </div>
+          selectAllLabel={tForm("selectAll")}
+          resetLabel={tForm("reset")}
+          anyOriginLabel={tForm("provenanceAnyOrigin")}
+          selected={provenanceCountries}
+          onChange={setProvenanceCountries}
+          allowEmpty
+        />
       </fieldset>
 
-      <div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="text-xs font-semibold text-zinc-700" id="req-countries-label">
-                {tForm("countriesLabel")}
-              </p>
-              <p className="mt-0.5 text-[11px] text-zinc-500">
-                {tForm("countriesHint", {
-                  selected: countries.length,
-                  total: PRODUCT_REQUEST_COUNTRIES.length,
-                })}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                type="button"
-                onClick={selectAllCountries}
-                className="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-800 hover:bg-violet-100"
-              >
-                {tForm("selectAll")}
-              </button>
-              <button
-                type="button"
-                onClick={clearCountries}
-                className="rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-600 hover:bg-zinc-50"
-              >
-                {tForm("reset")}
-              </button>
-            </div>
-          </div>
-          <div
-            className="mt-2 max-h-56 space-y-3 overflow-y-auto rounded-xl border border-zinc-200 bg-zinc-50/60 p-3"
-            role="group"
-            aria-labelledby="req-countries-label"
-          >
-            {countryGroups.map((group) => (
-              <div key={group.id}>
-                <p className="text-[10px] font-bold uppercase tracking-wide text-zinc-500">
-                  {t(`regions.${group.id}`)}
-                </p>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {group.codes.map((code) => {
-                    const selected = countries.includes(code)
-                    return (
-                      <button
-                        key={code}
-                        type="button"
-                        aria-pressed={selected}
-                        onClick={() => toggleCountry(code)}
-                        className={cn(
-                          "rounded-lg border px-2 py-1 text-xs font-semibold tabular-nums transition",
-                          selected
-                            ? "border-violet-500 bg-violet-600 text-white shadow-sm"
-                            : "border-zinc-200 bg-white text-zinc-600 hover:border-violet-300 hover:bg-violet-50"
-                        )}
-                      >
-                        {productRequestCountryChipLabel(code)}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-      </div>
+      <ProductRequestCountryPicker
+        variant="violet"
+        labelId="req-countries-label"
+        title={tForm("countriesLabel")}
+        hint={tForm("countriesHint", {
+          selected: countries.length,
+          total: PRODUCT_REQUEST_COUNTRIES.length,
+        })}
+        selectAllLabel={tForm("selectAll")}
+        resetLabel={tForm("reset")}
+        selected={countries}
+        onChange={setCountries}
+      />
+
+      <ProductRequestCompliancePicker
+        selected={complianceRequirements}
+        onChange={setComplianceRequirements}
+        showEuBundle={showEuComplianceBundle}
+      />
 
       <fieldset className="rounded-xl border border-zinc-200 bg-white p-3">
         <legend className="px-1 text-xs font-semibold text-zinc-700">

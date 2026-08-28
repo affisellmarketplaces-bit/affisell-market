@@ -8,7 +8,7 @@ import useSWR from "swr"
 import {
   formatProductRequestCountries,
   PRODUCT_REQUEST_CATEGORIES,
-  productRequestProvenanceChipLabel,
+  productRequestProvenanceDisplay,
   type ProductRequestDto,
 } from "@/lib/product-request-types"
 import { formatProductRequestRelativeTime } from "@/lib/product-request-i18n"
@@ -117,8 +117,11 @@ export function SupplierRequestsClient() {
                   <p className="font-semibold text-zinc-900">{r.title}</p>
                   <p className="mt-0.5 text-xs text-zinc-500">
                     {formatProductRequestCountries(r.countries)} · {tCat(r.category)} ·{" "}
-                    {productRequestProvenanceChipLabel(r.sourceProvenance)} {tProv(r.sourceProvenance)} ·{" "}
-                    {r.quantity} {t("common.pieces")} ·{" "}
+                    {productRequestProvenanceDisplay(r, (key) => tProv(key))}
+                    {r.complianceRequirements.length > 0
+                      ? ` · ${t("common.complianceCount", { count: r.complianceRequirements.length })}`
+                      : ""}{" "}
+                    · {r.quantity} {t("common.pieces")} ·{" "}
                     {formatProductRequestRelativeTime(r.createdAt, locale)}
                     {r.deliverySLA != null
                       ? ` · ${tList("slaMax", { days: r.deliverySLA })}`

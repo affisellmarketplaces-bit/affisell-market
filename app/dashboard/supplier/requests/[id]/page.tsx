@@ -8,8 +8,8 @@ import { requireSupplierSession } from "@/lib/dashboard-session"
 import { formatProductRequestRelativeTime } from "@/lib/product-request-i18n"
 import {
   formatProductRequestCountries,
-  parseProductRequestProvenance,
-  productRequestProvenanceChipLabel,
+  parseProductRequestComplianceRequirements,
+  productRequestProvenanceDisplay,
   resolveProductRequestCountries,
   serializeProductQuote,
 } from "@/lib/product-request-types"
@@ -22,12 +22,13 @@ type PageProps = { params: Promise<{ id: string }> }
 export default async function SupplierRequestDetailPage({ params }: PageProps) {
   const session = await requireSupplierSession("/dashboard/supplier/requests")
   const { id } = await params
-  const [t, tCat, tStatus, tDetail, tProv, locale] = await Promise.all([
+  const [t, tCat, tStatus, tDetail, tProv, tCompliance, locale] = await Promise.all([
     getTranslations("productRequests"),
     getTranslations("productRequests.categories"),
     getTranslations("productRequests.status"),
     getTranslations("productRequests.supplier.detail"),
     getTranslations("productRequests.provenance"),
+    getTranslations("productRequests.compliance"),
     getLocale(),
   ])
 
@@ -35,7 +36,10 @@ export default async function SupplierRequestDetailPage({ params }: PageProps) {
   if (!request) notFound()
 
   const countries = resolveProductRequestCountries(request)
-  const provenance = parseProductRequestProvenance(request.sourceProvenance)
+  const provenanceLabel = productRequestProvenanceDisplay(request, (key) => tProv(key))
+  const complianceIds = parseProductRequestComplianceRequirements(
+    request.complianceRequirements
+  )
 
   const myQuote = await prisma.productQuote.findUnique({
     where: {
@@ -63,8 +67,7 @@ export default async function SupplierRequestDetailPage({ params }: PageProps) {
           <h1 className="mt-2 text-xl font-bold text-zinc-900">{request.title}</h1>
           <p className="mt-1 text-xs text-zinc-500">
             {formatProductRequestCountries(countries)} · {tCat(request.category)} ·{" "}
-            {productRequestProvenanceChipLabel(provenance)} {tProv(provenance)} ·{" "}
-            {request.quantity} {t("common.pieces")} ·{" "}
+            {provenanceLabel} · {request.quantity} {t("common.pieces")} ·{" "}
             {formatProductRequestRelativeTime(request.createdAt, locale)} · {tStatus(statusKey)}
             {request.quotesCount > 0
               ? ` · ${t("common.quotesCount", { count: request.quotesCount })}`
@@ -96,10 +99,23 @@ export default async function SupplierRequestDetailPage({ params }: PageProps) {
             </div>
             <div className="flex justify-between gap-2">
               <dt>{t("common.provenanceLabel")}</dt>
-              <dd className="font-semibold">
-                {productRequestProvenanceChipLabel(provenance)} {tProv(provenance)}
-              </dd>
+              <dd className="font-semibold">{provenanceLabel}</dd>
             </div>
+            {complianceIds.length > 0 ? (
+              <div className="sm:col-span-2">
+                <dt className="text-xs font-semibold text-zinc-600">{t("common.complianceLabel")}</dt>
+                <dd className="mt-1.5 flex flex-wrap gap-1.5">
+                  {complianceIds.map((id) => (
+                    <span
+                      key={id}
+                      className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-900"
+                    >
+                      {tCompliance(`${id}.title`)}
+                    </span>
+                  ))}
+                </dd>
+              </div>
+            ) : null}
             <div className="flex justify-between gap-2">
               <dt>{t("common.resellerLabel")}</dt>
               <dd className="truncate font-semibold">{request.resellerEmail}</dd>
