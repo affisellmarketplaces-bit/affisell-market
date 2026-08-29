@@ -9,6 +9,14 @@ import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+function safeDiscoverErrorMessage(e: unknown): string {
+  const message = e instanceof Error ? e.message : String(e ?? "unknown")
+  if (/maximum call stack size exceeded/i.test(message)) {
+    return "Catalog temporarily unavailable — retry in a few seconds"
+  }
+  return message
+}
+
 export async function GET(request: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -26,10 +34,36 @@ export async function GET(request: NextRequest) {
       request.nextUrl.searchParams,
       take
     )
-    const enriched = await enrichCatalogProductsWithOpportunityPulse(products, session.user.id)
+
+    let enriched = products
+    try {
+      enriched = await enrichCatalogProductsWithOpportunityPulse(products, session.user.id)
+    } catch (pulseErr) {
+      console.warn("[affiliate/discover-catalog]", {
+        step: "opportunity_pulse_skipped",
+        affiliateId: session.user.id,
+        message: pulseErr instanceof Error ? pulseErr.message : String(pulseErr),
+      })
+      enriched = products.map((product) => ({
+        ...product,
+        affiliateCreatorsWatching: 0,
+      }))
+    }
+
+    console.log("[affiliate/discover-catalog]", {
+      affiliateId: session.user.id,
+      count: enriched.length,
+    })
+
     return NextResponse.json({ products: enriched })
   } catch (e) {
-    console.error("[affiliate/discover-catalog]", e)
-    return NextResponse.json({ products: [], ...dbUnavailablePayload(e) }, { status: 503 })
+    console.error("[affiliate/discover-catalog]", {
+      affiliateId: session.user.id,
+      message: e instanceof Error ? e.message : String(e),
+    })
+    return NextResponse.json(
+      { products: [], ...dbUnavailablePayload(e), error: safeDiscoverErrorMessage(e) },
+      { status: 503 }
+    )
   }
 }

@@ -9,7 +9,6 @@ import {
   parseCatalogAddedWindow,
   parseCatalogVitrineFilter,
 } from "@/lib/affiliate-catalog-filters-shared"
-import { affiliateCommissionDisplayPct } from "@/lib/affiliate-product-commission-display"
 import { affiliateDiscoverCardSelect } from "@/lib/affiliate-dashboard-data"
 import {
   AFFILIATE_CATALOG_NICHES,
@@ -52,11 +51,10 @@ function normalizeCatalogRow(row: DiscoverRow): AffiliateCatalogProduct {
     colors,
     tags: row.tags ?? [],
     basePriceCents: row.basePriceCents,
-    commissionRate: affiliateCommissionDisplayPct({
-      commissionRate: Number(row.commissionRate) || 0,
-      variants: row.variants,
-      basePriceCents: row.basePriceCents,
-    }),
+    commissionRate: Math.min(
+      100,
+      Math.max(0, Math.round(Number(row.commissionRate) || 0))
+    ),
     deliveryMax: row.deliveryMax,
     createdAt: row.createdAt.toISOString(),
     affiliateProducts: (row.affiliateProducts ?? []).map((a) => ({

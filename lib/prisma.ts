@@ -92,40 +92,11 @@ function createDefaultBasePrismaClient(): PrismaClient {
   return createBasePrismaClient(url, "default")
 }
 
-function modelDelegateKey(model: string): string {
-  if (!model) return ""
-  return model.charAt(0).toLowerCase() + model.slice(1)
-}
-
 type QueryExtensionArgs = {
   model: string
   operation: string
   args: unknown
   query: (args: unknown) => Promise<unknown>
-}
-
-async function runQueryOnFreshClient({
-  model,
-  operation,
-  args,
-}: Omit<QueryExtensionArgs, "query">): Promise<unknown> {
-  const client = getPrismaSingleton() as PrismaClient & Record<string, unknown>
-  const key = modelDelegateKey(model)
-
-  if (!key) {
-    const rootOp = client[operation]
-    if (typeof rootOp === "function") {
-      return (rootOp as (a: unknown) => Promise<unknown>).call(client, args)
-    }
-    throw new Error(`[prisma] unknown root operation ${operation}`)
-  }
-
-  const delegate = client[key] as Record<string, (a: unknown) => Promise<unknown>> | undefined
-  const op = delegate?.[operation]
-  if (!op) {
-    throw new Error(`[prisma] unknown delegate ${key}.${operation}`)
-  }
-  return op.call(delegate, args)
 }
 
 function retryDelayMs(error: unknown, attempt: number): number {
@@ -156,12 +127,9 @@ async function executeWithReconnect({
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      if (attempt === 0) {
-        const result = await query(args)
-        clearPrismaCircuit()
-        return result
-      }
-      const result = await runQueryOnFreshClient({ model, operation, args })
+      // Always use ctx.query — never delegate through the extended client on retry
+      // (that re-enters $allOperations and causes "Maximum call stack size exceeded").
+      const result = await query(args)
       clearPrismaCircuit()
       return result
     } catch (error) {
