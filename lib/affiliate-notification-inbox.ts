@@ -88,6 +88,7 @@ async function readAffiliateNotificationInbox(
             affiliateMarginRetainedCents: true,
             affiliateFeeCents: true,
             affiliateMarginCents: true,
+            supplierCommissionRateBps: true,
             supplierPayoutCents: true,
           },
         })

@@ -2,6 +2,10 @@ import type Stripe from "stripe"
 
 import { phase1AffiliateMarginRetainedCents } from "@/lib/marketplace-phase1-fees"
 import {
+  deriveAffiliateCommissionCentsFromOrder,
+  deriveAffiliateListingMarginGrossCents,
+} from "@/lib/marketplace-order-partner-amounts"
+import {
   buildPhase1FeesForOrderLine,
   netSupplierPayoutCents,
   resolveOrderUsesAffisellAutoBuy,
@@ -70,9 +74,11 @@ export async function syncOrderVatFromCheckoutSession(
       affisellCommissionRateBps: true,
       supplierPriceCents: true,
       basePriceCents: true,
+      commissionCents: true,
       affiliatePayoutCents: true,
       affiliateMarginCents: true,
       affiliateMarginRetainedCents: true,
+      supplierCommissionRateBps: true,
       aeWholesaleCents: true,
       usesAffisellAutoBuy: true,
       supplierFeeCents: true,
@@ -116,11 +122,19 @@ export async function syncOrderVatFromCheckoutSession(
       0,
       Math.round(order.supplierPriceCents ?? order.basePriceCents)
     )
-    const affiliateCommissionCents = Math.max(0, Math.round(order.affiliatePayoutCents ?? 0))
-    const unitListingMargin =
-      order.affiliateMarginCents != null && order.affiliateMarginCents > 0
-        ? order.affiliateMarginCents
-        : undefined
+    const affiliateCommissionCents = deriveAffiliateCommissionCentsFromOrder({
+      commissionCents: order.commissionCents ?? 0,
+      affiliatePayoutCents: order.affiliatePayoutCents ?? 0,
+      supplierPriceCents: order.supplierPriceCents,
+      basePriceCents: order.basePriceCents,
+      supplierCommissionRateBps: order.supplierCommissionRateBps,
+      affiliateMarginRetainedCents: order.affiliateMarginRetainedCents,
+      affiliateMarginCents: order.affiliateMarginCents,
+      affiliateFeeCents: order.affiliateFeeCents,
+      sellingPriceCents: order.sellingPriceCents,
+      subtotalCents: order.subtotalCents,
+    })
+    const unitListingMargin = deriveAffiliateListingMarginGrossCents(order)
 
     const usesAffisellAutoBuy = resolveOrderUsesAffisellAutoBuy({
       usesAffisellAutoBuy: order.usesAffisellAutoBuy,
@@ -129,7 +143,7 @@ export async function syncOrderVatFromCheckoutSession(
     })
 
     const grossAffiliateMarkupCents =
-      unitListingMargin != null
+      unitListingMargin > 0
         ? unitListingMargin
         : Math.max(0, subtotalCents - supplierPriceCents - affiliateCommissionCents)
 
@@ -148,7 +162,7 @@ export async function syncOrderVatFromCheckoutSession(
       supplierPriceCents,
       affiliateCommissionCents,
       affiliateFeeCents: phase1Fees.affiliateFeeCents,
-      fixedListingMarginCents: unitListingMargin,
+      fixedListingMarginCents: unitListingMargin > 0 ? unitListingMargin : undefined,
     })
 
     const supplierPayoutCents = netSupplierPayoutCents({
@@ -164,6 +178,8 @@ export async function syncOrderVatFromCheckoutSession(
         taxCents,
         totalCents,
         sellingPriceCents: subtotalCents,
+        commissionCents: affiliateCommissionCents,
+        affiliatePayoutCents: affiliateCommissionCents,
         affisellFeeCents: phase1Fees.affisellFeeTotalCents,
         supplierFeeCents: phase1Fees.supplierFeeCents,
         affiliateFeeCents: phase1Fees.affiliateFeeCents,

@@ -827,6 +827,19 @@ export async function fulfillMarketplaceStripeSession(
     existing = await prisma.order.findUnique({ where: { id: metaOrderId } })
   }
   if (existing?.status === "paid") {
+    try {
+      const { reconcileMarketplaceOrderPartnerAmounts } = await import(
+        "@/lib/marketplace-order-settlement-reconcile"
+      )
+      await reconcileMarketplaceOrderPartnerAmounts(existing.id)
+    } catch (reconcileErr) {
+      console.error("[marketplace-fulfill]", {
+        sessionId,
+        orderId: existing.id,
+        stage: "settlement_reconcile",
+        error: reconcileErr instanceof Error ? reconcileErr.message : String(reconcileErr),
+      })
+    }
     await syncMarketplaceOrderToMedusaIfNeeded(existing.id)
     scheduleMerchantOrderAlerts([existing.id])
     try {

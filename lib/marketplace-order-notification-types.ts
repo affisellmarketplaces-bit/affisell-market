@@ -14,4 +14,5 @@ export type AffiliateSaleOrderAmounts = {
   affiliateFeeCents: number
   supplierPayoutCents: number
   affiliateMarginCents?: number | null
+  supplierCommissionRateBps?: number | null
 }

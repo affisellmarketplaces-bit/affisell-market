@@ -1,3 +1,10 @@
+import {
+  deriveAffiliateCommissionCentsFromOrder,
+  deriveAffiliateListingMarginGrossCents,
+  deriveAffiliateMarginRetainedCentsFromOrder,
+  deriveAffiliateNetTransferCentsFromOrder,
+  estimateAffiliatePlatformFeeCents,
+} from "@/lib/marketplace-order-partner-amounts"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { affiliateNotificationSettlementFromOrder } from "@/lib/marketplace-order-notification-heal"
 import type { AffiliateSaleOrderAmounts } from "@/lib/marketplace-order-notification-types"
@@ -10,12 +17,30 @@ export type OrderForAffiliateSaleBreakdown = AffiliateSaleOrderAmounts
 export function buildAffiliateSaleNotificationBreakdown(
   order: OrderForAffiliateSaleBreakdown
 ): MerchantNotificationBreakdown {
-  const settlement = affiliateNotificationSettlementFromOrder(order)
-  const commissionCents = settlement.affiliateCommissionCents
-  const markupCents = settlement.affiliateMarginRetainedCents
-  const feeCents = Math.max(0, Math.round(settlement.affiliatePlatformFeeCents ?? 0))
-  const grossCents = grossAffiliateEarningsCents(commissionCents, markupCents)
+  const commissionCents = deriveAffiliateCommissionCentsFromOrder(order)
+  const listingMarginGross = deriveAffiliateListingMarginGrossCents(order)
+  const markupCents = deriveAffiliateMarginRetainedCentsFromOrder(order, commissionCents)
+  const feeCents =
+    Math.max(0, Math.round(order.affiliateFeeCents ?? 0)) ||
+    estimateAffiliatePlatformFeeCents({
+      commissionCents,
+      markupGrossCents: listingMarginGross || markupCents,
+    })
+  const markupForGross = listingMarginGross > 0 ? listingMarginGross : markupCents
+  const grossCents = grossAffiliateEarningsCents(commissionCents, markupForGross)
   const netCents = Math.max(0, grossCents - feeCents)
+
+  const settlement = affiliateNotificationSettlementFromOrder({
+    ...order,
+    affiliatePayoutCents:
+      order.affiliatePayoutCents > 0 ? order.affiliatePayoutCents : commissionCents,
+    commissionCents: order.commissionCents > 0 ? order.commissionCents : commissionCents,
+    affiliateMarginRetainedCents:
+      (order.affiliateMarginRetainedCents ?? 0) > 0
+        ? order.affiliateMarginRetainedCents
+        : markupCents,
+    affiliateFeeCents: feeCents,
+  })
 
   const htCents = settlement.affisellFeeBaseCents
   const taxCents = Math.max(0, Math.round(order.taxCents ?? 0))
@@ -24,7 +49,7 @@ export function buildAffiliateSaleNotificationBreakdown(
   const breakdown: MerchantNotificationBreakdown = {
     netEarnings: formatStoreCurrencyFromCents(netCents),
     commission: formatStoreCurrencyFromCents(commissionCents),
-    markup: formatStoreCurrencyFromCents(markupCents),
+    markup: formatStoreCurrencyFromCents(markupForGross),
   }
 
   if (feeCents > 0) {
@@ -59,7 +84,7 @@ export function resolveAffiliateSaleNotificationBreakdown(args: {
   const parsedNet = parseMoneyCents(args.parsed?.netEarnings)
   const orderNet = parseMoneyCents(fromOrder.netEarnings)
 
-  if (orderNet > 0 && parsedNet === 0) {
+  if (orderNet > 0 && (parsedNet === 0 || parsedNet !== orderNet)) {
     return fromOrder
   }
 

@@ -5,7 +5,10 @@ import {
   affiliateSaleNotificationSettlement,
   type MarketplaceOrderSettlement,
 } from "@/lib/marketplace-order-settlement"
-import { resolveOrderAffiliateCommissionCents } from "@/lib/marketplace-phase1-fees"
+import {
+  deriveAffiliateCommissionCentsFromOrder,
+  deriveAffiliateMarginRetainedCentsFromOrder,
+} from "@/lib/marketplace-order-partner-amounts"
 import type { AffiliateSaleOrderAmounts } from "@/lib/marketplace-order-notification-types"
 import { prisma } from "@/lib/prisma"
 
@@ -41,6 +44,8 @@ const orderForHealSelect = {
   affisellFeeCents: true,
   marginCents: true,
   affiliateMarginCents: true,
+  supplierCommissionRateBps: true,
+  affisellCommissionRateBps: true,
   usesAffisellAutoBuy: true,
   paidAt: true,
   merchantSupplierInboxNotifiedAt: true,
@@ -79,11 +84,11 @@ export function affiliateNotificationSettlementFromOrder(
     0,
     Math.round(order.supplierPriceCents ?? order.basePriceCents ?? 0)
   )
-  const commissionCents = resolveOrderAffiliateCommissionCents({
-    commissionCents: order.commissionCents,
-    affiliatePayoutCents: order.affiliatePayoutCents,
-  })
-  const marginRetainedCents = Math.max(0, Math.round(order.affiliateMarginRetainedCents ?? 0))
+  const commissionCents = deriveAffiliateCommissionCentsFromOrder(order)
+  const marginRetainedCents = deriveAffiliateMarginRetainedCentsFromOrder(
+    order,
+    commissionCents
+  )
   const affiliateFeeCents = Math.max(0, Math.round(order.affiliateFeeCents ?? 0))
 
   return affiliateSaleNotificationSettlement(
@@ -133,6 +138,19 @@ export function buildMarketplaceOrderNotificationArgs(order: OrderForHeal) {
 export async function healMarketplaceOrderNotifications(
   orderId: string
 ): Promise<HealMarketplaceOrderNotificationsResult> {
+  try {
+    const { reconcileMarketplaceOrderPartnerAmounts } = await import(
+      "@/lib/marketplace-order-settlement-reconcile"
+    )
+    await reconcileMarketplaceOrderPartnerAmounts(orderId)
+  } catch (error) {
+    console.error("[marketplace-order-notification-heal]", {
+      orderId,
+      stage: "settlement_reconcile",
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
+
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     select: orderForHealSelect,

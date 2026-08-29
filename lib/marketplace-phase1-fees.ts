@@ -82,9 +82,9 @@ export function netAffiliateTransferCents(args: {
   const listingMarginGross = Math.max(0, Math.round(args.affiliateMarginCents ?? 0))
   const fee = Math.max(0, Math.round(args.affiliateFeeCents ?? 0))
 
-  if (listingMarginGross > 0 && fee > 0) {
+  if (listingMarginGross > 0) {
     const earningsGross = commission + listingMarginGross
-    return Math.max(0, earningsGross - fee)
+    return fee > 0 ? Math.max(0, earningsGross - fee) : Math.max(0, earningsGross)
   }
   return commission + marginRetained
 }
