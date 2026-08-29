@@ -140,18 +140,11 @@ async function executeWithReconnect({
       }
       const delayMs = retryDelayMs(error, attempt)
       console.warn(
-        `[prisma] ${prismaErrorCode(error) || "connection"} — ${shouldResetPrismaEngine(error) ? "reset & " : ""}retry ${attempt + 1}/${maxRetries} in ${delayMs}ms`
+        `[prisma] ${prismaErrorCode(error) || "connection"} — retry ${attempt + 1}/${maxRetries} in ${delayMs}ms`
       )
-      if (shouldResetPrismaEngine(error)) {
-        lastScheduledResetAt = Date.now()
-        await resetPrismaClient()
-      }
+      // Never reset/disconnect the singleton here — ctx.query is bound to this client
+      // instance; tearing it down mid-retry re-enters $allOperations → stack overflow.
       await sleep(delayMs)
-      try {
-        await getPrismaSingleton().$connect()
-      } catch {
-        /* next attempt may still succeed */
-      }
     }
   }
 

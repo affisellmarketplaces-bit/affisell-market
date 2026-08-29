@@ -63,6 +63,7 @@ import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { prismaUnavailableUserMessage } from "@/lib/prisma-db-error"
 import { cn } from "@/lib/utils"
 import { primaryProductImage } from "@/lib/product-images"
 
@@ -254,9 +255,11 @@ function SortableStoreCard(props: {
 
 type Props = {
   storeId: string
+  initialCatalog?: CatalogProduct[]
+  initialCatalogError?: string | null
 }
 
-export function AffiliateDashboard({ storeId }: Props) {
+export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogError }: Props) {
   const tHub = useTranslations("affiliate.hub")
   const tCatalogEconomics = useTranslations("affiliate.catalogEconomics")
   const tAffiliate = useTranslations("affiliate")
@@ -269,9 +272,11 @@ export function AffiliateDashboard({ storeId }: Props) {
   const [storeName, setStoreName] = useState<string | null>(null)
   const [bootstrapLoading, setBootstrapLoading] = useState(true)
   const [bootstrapError, setBootstrapError] = useState<string | null>(null)
-  const [catalog, setCatalog] = useState<CatalogProduct[]>([])
-  const [catalogLoading, setCatalogLoading] = useState(true)
-  const [catalogError, setCatalogError] = useState<string | null>(null)
+  const [catalog, setCatalog] = useState<CatalogProduct[]>(initialCatalog ?? [])
+  const [catalogLoading, setCatalogLoading] = useState(
+    (initialCatalog?.length ?? 0) === 0 && !initialCatalogError
+  )
+  const [catalogError, setCatalogError] = useState<string | null>(initialCatalogError ?? null)
   const [tab, setTab] = useState<"catalog" | "store">("catalog")
   const [listings, setListings] = useState<Listing[]>([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -282,10 +287,13 @@ export function AffiliateDashboard({ storeId }: Props) {
 
   useEffect(() => {
     let cancelled = false
+    const hasInitialCatalog = (initialCatalog?.length ?? 0) > 0
     setBootstrapLoading(true)
     setBootstrapError(null)
-    setCatalogLoading(true)
-    setCatalogError(null)
+    if (!hasInitialCatalog) {
+      setCatalogLoading(true)
+      setCatalogError(null)
+    }
 
     void (async () => {
       try {
@@ -310,17 +318,22 @@ export function AffiliateDashboard({ storeId }: Props) {
         const cat = (await catRes.json()) as { products?: CatalogProduct[]; error?: string }
         if (cancelled) return
         if (!catRes.ok) {
-          setCatalog([])
-          setCatalogError(cat.error ?? "Could not load catalog")
+          if (!hasInitialCatalog) {
+            setCatalog([])
+            setCatalogError(prismaUnavailableUserMessage(new Error(cat.error ?? "Could not load catalog")))
+          }
           return
         }
         setCatalog(Array.isArray(cat.products) ? cat.products : [])
+        setCatalogError(null)
       } catch (e: unknown) {
         if (cancelled) return
-        const message = e instanceof Error ? e.message : "Could not load dashboard data"
+        const message = prismaUnavailableUserMessage(e)
         setBootstrapError(message)
-        setCatalog([])
-        setCatalogError(message)
+        if ((initialCatalog?.length ?? 0) === 0) {
+          setCatalog([])
+          setCatalogError(message)
+        }
       } finally {
         if (!cancelled) {
           setBootstrapLoading(false)
@@ -332,7 +345,7 @@ export function AffiliateDashboard({ storeId }: Props) {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [initialCatalog])
 
   const refreshDashboardData = useCallback(async () => {
     try {
@@ -355,7 +368,7 @@ export function AffiliateDashboard({ storeId }: Props) {
         setCatalog(cat.products)
         setCatalogError(null)
       } else if (!catRes.ok) {
-        setCatalogError(cat.error ?? "Could not load catalog")
+        setCatalogError(prismaUnavailableUserMessage(new Error(cat.error ?? "Could not load catalog")))
       }
     } catch {
       setBootstrapError("Could not refresh dashboard data")
@@ -1048,7 +1061,7 @@ export function AffiliateDashboard({ storeId }: Props) {
                         setCatalog(Array.isArray(data.products) ? data.products : [])
                       })
                       .catch((e: unknown) => {
-                        setCatalogError(e instanceof Error ? e.message : "Could not load catalog")
+                        setCatalogError(prismaUnavailableUserMessage(e))
                       })
                       .finally(() => setCatalogLoading(false))
                   }}

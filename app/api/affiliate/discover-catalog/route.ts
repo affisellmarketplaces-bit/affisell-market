@@ -4,18 +4,10 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { enrichCatalogProductsWithOpportunityPulse } from "@/lib/affiliate-catalog-opportunity-pulse"
 import { loadAffiliateCatalogProducts } from "@/lib/affiliate-catalog-query"
-import { dbUnavailablePayload } from "@/lib/prisma-db-error"
+import { dbUnavailablePayload, prismaUnavailableUserMessage } from "@/lib/prisma-db-error"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
-
-function safeDiscoverErrorMessage(e: unknown): string {
-  const message = e instanceof Error ? e.message : String(e ?? "unknown")
-  if (/maximum call stack size exceeded/i.test(message)) {
-    return "Catalog temporarily unavailable — retry in a few seconds"
-  }
-  return message
-}
 
 export async function GET(request: NextRequest) {
   const session = await auth()
@@ -62,7 +54,7 @@ export async function GET(request: NextRequest) {
       message: e instanceof Error ? e.message : String(e),
     })
     return NextResponse.json(
-      { products: [], ...dbUnavailablePayload(e), error: safeDiscoverErrorMessage(e) },
+      { products: [], ...dbUnavailablePayload(e), error: prismaUnavailableUserMessage(e) },
       { status: 503 }
     )
   }

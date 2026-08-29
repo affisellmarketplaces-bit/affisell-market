@@ -9,10 +9,14 @@ import { ClawbackRiskWidget } from "@/components/dashboard/clawback-risk-widget"
 import { RadarAffiliateDiscoveryCard } from "@/components/radar/radar-discovery-card"
 import { ResellerRequestCtaBanner } from "@/components/reseller/GlobalRequestButton"
 import { loadAffiliateClawbackRisk } from "@/lib/affiliate-clawback-risk"
+import { loadAffiliateCatalogProducts } from "@/lib/affiliate-catalog-query"
+import { enrichCatalogProductsWithOpportunityPulse } from "@/lib/affiliate-catalog-opportunity-pulse"
+import type { AffiliateCatalogProduct } from "@/lib/affiliate-catalog-types"
 import { loadAffiliateDashboardAnalytics } from "@/lib/affiliate-dashboard-analytics"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { loadAffiliateFirstSaleProgress } from "@/lib/merchant-first-sale-progress"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
+import { prismaUnavailableUserMessage } from "@/lib/prisma-db-error"
 import { getUserRadarPlan } from "@/lib/radar/plans"
 import { prisma } from "@/lib/prisma"
 
@@ -43,6 +47,35 @@ export async function AffiliateDashboardHome({ callbackPath }: Props) {
     subscriptionTiers: radarUser?.radarPlan ? [radarUser.radarPlan] : [],
   })
   const isFreePlan = !radarPlan.id || radarPlan.id === "free" || radarPlan.id === "starter"
+
+  let initialCatalog: AffiliateCatalogProduct[] = []
+  let initialCatalogError: string | null = null
+  try {
+    const products = await loadAffiliateCatalogProducts(session.user.id, new URLSearchParams(), 96)
+    try {
+      initialCatalog = await enrichCatalogProductsWithOpportunityPulse(products, session.user.id)
+    } catch (pulseErr) {
+      console.warn("[affiliate/dashboard-home]", {
+        step: "opportunity_pulse_skipped",
+        affiliateId: session.user.id,
+        message: pulseErr instanceof Error ? pulseErr.message : String(pulseErr),
+      })
+      initialCatalog = products.map((product) => ({
+        ...product,
+        affiliateCreatorsWatching: 0,
+      }))
+    }
+    console.log("[affiliate/dashboard-home]", {
+      affiliateId: session.user.id,
+      discoverCount: initialCatalog.length,
+    })
+  } catch (e) {
+    initialCatalogError = prismaUnavailableUserMessage(e)
+    console.error("[affiliate/dashboard-home]", {
+      affiliateId: session.user.id,
+      message: e instanceof Error ? e.message : String(e),
+    })
+  }
 
   return (
     <Suspense
@@ -79,7 +112,11 @@ export async function AffiliateDashboardHome({ callbackPath }: Props) {
           <AffiliateAnalyticsWidget analytics={analytics} />
           <ClawbackRiskWidget riskCents={clawbackRisk.riskCents} />
         </BentoContainer>
-        <AffiliateDashboard storeId={session.user.id} />
+        <AffiliateDashboard
+          storeId={session.user.id}
+          initialCatalog={initialCatalog}
+          initialCatalogError={initialCatalogError}
+        />
       </div>
     </Suspense>
   )
