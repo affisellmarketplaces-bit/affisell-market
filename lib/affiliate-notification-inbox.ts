@@ -127,34 +127,21 @@ export function scheduleAffiliateMarketplaceAlertSync(
 
 /**
  * Read affiliate sale alerts from inbox — optionally sync first when force=true.
- * Default: return persisted rows immediately (SSR + fast poll), heal in background.
+ * Default: return persisted rows immediately (fast poll), heal in background.
+ * forceSync: still returns inbox immediately; Stripe reconcile runs async.
  */
 export async function loadAffiliateNotificationInbox(
   affiliateId: string,
   options?: { forceSync?: boolean; skipBackgroundSync?: boolean }
 ): Promise<AffiliateNotificationInboxPayload> {
   if (options?.forceSync) {
-    try {
-      const { syncPartnerMarketplaceAlertsBeforeInboxIfDue } = await import(
-        "@/lib/marketplace-order-notification-sync"
-      )
-      await syncPartnerMarketplaceAlertsBeforeInboxIfDue(
-        { affiliateId },
-        { force: true }
-      )
-    } catch (error) {
-      console.error("[affiliate-notifications]", {
-        affiliateId,
-        stage: "sync",
-        error: error instanceof Error ? error.message : String(error),
-      })
-    }
     const payload = await readAffiliateNotificationInbox(affiliateId)
+    scheduleAffiliateMarketplaceAlertSync(affiliateId, { force: true })
     console.log("[affiliate-notifications]", {
       affiliateId,
       unreadCount: payload.unreadCount,
       notificationRows: payload.notifications.length,
-      result: "ok_force_sync",
+      result: "ok_force_sync_async",
     })
     return payload
   }

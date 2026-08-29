@@ -6,12 +6,10 @@ import { useSession } from "next-auth/react"
 import { NavAffiliate } from "@/components/nav/nav-affiliate"
 import { NavPublic } from "@/components/nav/nav-public"
 import { NavSupplier } from "@/components/nav/nav-supplier"
-import type { AffiliateNotificationInboxPayload } from "@/lib/affiliate-notification-inbox-types"
 
 type Props = {
   /** SSR hint from `auth()` to avoid affiliate nav flash on public pages. */
   initialRole?: string | null
-  affiliateNotificationInbox?: AffiliateNotificationInboxPayload | null
 }
 
 function normalizeRole(role: string | null | undefined): "AFFILIATE" | "SUPPLIER" | "CUSTOMER" | null {
@@ -31,7 +29,7 @@ function roleFromDashboardPath(pathname: string | null): "AFFILIATE" | "SUPPLIER
   return null
 }
 
-export function SiteNav({ initialRole = null, affiliateNotificationInbox = null }: Props) {
+export function SiteNav({ initialRole = null }: Props) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
 
@@ -54,15 +52,21 @@ export function SiteNav({ initialRole = null, affiliateNotificationInbox = null 
   const sessionRole = normalizeRole(session?.user?.role)
   const hintRole = normalizeRole(initialRole)
   const pathRole = roleFromDashboardPath(pathname)
-  const role =
-    status === "loading" ? (sessionRole ?? pathRole ?? hintRole) : (sessionRole ?? pathRole)
 
-  if (role === "SUPPLIER") {
+  /** Dashboard URL wins over JWT role — avoids supplier bell polling on affiliate routes. */
+  const merchantRole =
+    status === "unauthenticated"
+      ? null
+      : status === "loading"
+        ? (pathRole ?? sessionRole ?? hintRole)
+        : (pathRole ?? sessionRole)
+
+  if (merchantRole === "SUPPLIER") {
     return <NavSupplier />
   }
 
-  if (role === "AFFILIATE") {
-    return <NavAffiliate notificationInbox={affiliateNotificationInbox} />
+  if (merchantRole === "AFFILIATE") {
+    return <NavAffiliate />
   }
 
   return <NavPublic />

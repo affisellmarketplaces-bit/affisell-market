@@ -4,10 +4,10 @@ import Link from "next/link"
 import { Bell } from "lucide-react"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
+import { useSession } from "next-auth/react"
 
 import { MerchantNotificationItem } from "@/components/merchant/merchant-notification-item"
 import { buttonVariants } from "@/components/ui/button"
-import type { AffiliateNotificationInboxPayload } from "@/lib/affiliate-notification-inbox-types"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { merchantNotificationsPollMs } from "@/lib/dev-client-timing"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
@@ -143,28 +143,18 @@ function resolveNotificationLink(
 export function MerchantNotificationsMenu({
   role,
   className,
-  initialSnapshot,
 }: {
   role: MerchantRole
   className?: string
-  /** SSR inbox — badge visible before first client poll (affiliate sale alerts). */
-  initialSnapshot?: AffiliateNotificationInboxPayload | null
 }) {
   const cfg = config[role]
+  const { status: sessionStatus } = useSession()
   const [open, setOpen] = useState(false)
-  const initialRows =
-    role === "AFFILIATE" && initialSnapshot
-      ? dedupeMerchantNotifications(initialSnapshot.notifications)
-      : []
-  const [unreadCount, setUnreadCount] = useState(
-    role === "AFFILIATE" && initialSnapshot ? initialSnapshot.unreadCount : 0
-  )
+  const [unreadCount, setUnreadCount] = useState(0)
   const [actionRequiredCount, setActionRequiredCount] = useState(0)
   const [ordersToShipCount, setOrdersToShipCount] = useState(0)
-  const [badgeCount, setBadgeCount] = useState(
-    role === "AFFILIATE" && initialSnapshot ? initialSnapshot.unreadCount : 0
-  )
-  const [rows, setRows] = useState<NotificationRow[]>(initialRows)
+  const [badgeCount, setBadgeCount] = useState(0)
+  const [rows, setRows] = useState<NotificationRow[]>([])
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [dropdownCoords, setDropdownCoords] = useState<{ top: number; right: number } | null>(null)
@@ -205,6 +195,8 @@ export function MerchantNotificationsMenu({
   }, [cfg.apiPath, role])
 
   useEffect(() => {
+    if (sessionStatus !== "authenticated") return
+
     void load()
     const unsub = subscribeMerchantNotifications(cfg.eventName, () => void load())
 
@@ -233,11 +225,12 @@ export function MerchantNotificationsMenu({
       document.removeEventListener("visibilitychange", onVisibilityChange)
       window.removeEventListener("focus", onFocus)
     }
-  }, [load, cfg.eventName])
+  }, [load, cfg.eventName, sessionStatus])
 
   useEffect(() => {
-    if (open) void load({ forceSync: true })
-  }, [open, load])
+    if (!open || sessionStatus !== "authenticated") return
+    void load({ forceSync: true })
+  }, [open, load, sessionStatus])
 
   useLayoutEffect(() => {
     if (!open) {
