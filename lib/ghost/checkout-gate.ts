@@ -2,12 +2,13 @@ import { NextResponse } from "next/server"
 import { Prisma } from "@prisma/client"
 
 import { checkStock } from "@/lib/ghost/check-stock"
+import { tryCheckoutStockCache } from "@/lib/ghost/checkout-stock-cache"
 import {
   calculateGhostSellPriceEur,
   isGhostPriceDriftCritical,
 } from "@/lib/ghost/price-sync"
 import { getSimilarInStockProducts } from "@/lib/ghost/similar-products"
-import { GHOST_STOCK15_COUPON, type StockResult } from "@/lib/ghost/types"
+import { GHOST_CHECKOUT_PROBE_TIMEOUT_MS, GHOST_STOCK15_COUPON, type StockResult } from "@/lib/ghost/types"
 import { prisma } from "@/lib/prisma"
 
 type GhostProductRow = {
@@ -30,7 +31,22 @@ type GhostProductRow = {
 export async function assertGhostStockForCheckout(
   product: GhostProductRow
 ): Promise<NextResponse | { stock: StockResult; warning?: string }> {
-  const stock = await checkStock(product)
+  const cached = tryCheckoutStockCache(product)
+  const stock =
+    cached ??
+    (await checkStock(product, {
+      timeoutMs: GHOST_CHECKOUT_PROBE_TIMEOUT_MS,
+      persist: true,
+    }))
+
+  if (cached) {
+    console.log("[ghost-checkout]", {
+      productId: product.id,
+      result: "cache_hit",
+      status: cached.status,
+      source: cached.source,
+    })
+  }
 
   if (stock.status === "out_of_stock") {
     const alternatives = await getSimilarInStockProducts(product.id, 3)

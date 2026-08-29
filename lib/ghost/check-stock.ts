@@ -49,7 +49,10 @@ function resolveSource(product: GhostProductInput) {
   return { url, source, supplierProductId }
 }
 
-async function probeSupplier(product: GhostProductInput): Promise<StockResult | null> {
+async function probeSupplier(
+  product: GhostProductInput,
+  timeoutMs: number
+): Promise<StockResult | null> {
   const { url, source, supplierProductId } = resolveSource(product)
   if (!source) return null
 
@@ -69,9 +72,7 @@ async function probeSupplier(product: GhostProductInput): Promise<StockResult | 
   try {
     return await Promise.race([
       run(),
-      new Promise<null>((resolve) =>
-        setTimeout(() => resolve(null), GHOST_CHECK_TIMEOUT_MS + 200)
-      ),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs + 100)),
     ])
   } catch (e) {
     console.log("[ghost-stock]", {
@@ -105,20 +106,62 @@ async function maybeAutoDraft(productId: string, fails: number): Promise<void> {
   )
 }
 
+async function persistStockCheckResult(
+  product: GhostProductInput,
+  result: StockResult,
+  responseTimeMs: number
+): Promise<void> {
+  const sourceMeta = resolveSource(product)
+  await prisma.stockCheckLog.create({
+    data: {
+      productId: product.id,
+      status: result.status,
+      supplierPrice: result.price > 0 ? result.price : null,
+      responseTimeMs,
+      source: result.source,
+    },
+  })
+
+  await prisma.product.update({
+    where: { id: product.id },
+    data: {
+      lastStockCheck: result.checkedAt,
+      lastStockStatus: result.status,
+      ...(result.price > 0
+        ? { lastPriceSupplier: new Prisma.Decimal(result.price.toFixed(2)) }
+        : {}),
+      stockCheckFails: 0,
+      ...(sourceMeta.url && !product.supplierUrl ? { supplierUrl: sourceMeta.url } : {}),
+      ...(sourceMeta.source && !product.supplierSource
+        ? { supplierSource: sourceMeta.source }
+        : {}),
+      ...(sourceMeta.supplierProductId && !product.supplierProductId
+        ? { supplierProductId: sourceMeta.supplierProductId }
+        : {}),
+    },
+  })
+}
+
 /**
  * Live supplier stock probe — never blocks sales on timeout/scrape failure (safe fallback).
- * Idempotent logging + product last* fields update.
+ * Idempotent logging + product last* fields update (async by default at checkout).
  */
-export async function checkStock(product: GhostProductInput): Promise<StockResult> {
+export async function checkStock(
+  product: GhostProductInput,
+  options?: { persist?: boolean; timeoutMs?: number }
+): Promise<StockResult> {
   const start = Date.now()
+  const persist = options?.persist !== false
+  const timeoutMs = options?.timeoutMs ?? GHOST_CHECK_TIMEOUT_MS
   try {
-    let result = await probeSupplier(product)
+    let result = await probeSupplier(product, timeoutMs)
 
     if (!result) {
       console.warn("[ghost-stock]", {
         productId: product.id,
         result: "fallback_in_stock",
         reason: "timeout_or_no_adapter",
+        timeoutMs,
       })
       void opsWebhookAlert(
         `[Ghost] fallback in_stock (timeout/scrape) product=${product.id}`
@@ -126,47 +169,17 @@ export async function checkStock(product: GhostProductInput): Promise<StockResul
       result = fallbackInStock(product, "timeout_or_scrape")
     }
 
-    // Local Affisell stock can still force OOS when we trust inventory
-    if (
-      typeof product.stock === "number" &&
-      product.stock <= 0 &&
-      result.status === "in_stock" &&
-      result.source.startsWith("fallback")
-    ) {
-      // Keep fallback — Affisell vault stock is dropship-style often
-    }
-
     const ms = Date.now() - start
-    await prisma.stockCheckLog.create({
-      data: {
-        productId: product.id,
-        status: result.status,
-        supplierPrice: result.price > 0 ? result.price : null,
-        responseTimeMs: ms,
-        source: result.source,
-      },
-    })
 
-    await prisma.product.update({
-      where: { id: product.id },
-      data: {
-        lastStockCheck: result.checkedAt,
-        lastStockStatus: result.status,
-        ...(result.price > 0
-          ? { lastPriceSupplier: new Prisma.Decimal(result.price.toFixed(2)) }
-          : {}),
-        stockCheckFails: 0,
-        ...(resolveSource(product).url && !product.supplierUrl
-          ? { supplierUrl: resolveSource(product).url }
-          : {}),
-        ...(resolveSource(product).source && !product.supplierSource
-          ? { supplierSource: resolveSource(product).source }
-          : {}),
-        ...(resolveSource(product).supplierProductId && !product.supplierProductId
-          ? { supplierProductId: resolveSource(product).supplierProductId }
-          : {}),
-      },
-    })
+    if (persist) {
+      void persistStockCheckResult(product, result, ms).catch((error: unknown) => {
+        console.warn("[ghost-stock]", {
+          productId: product.id,
+          result: "persist_failed",
+          error: error instanceof Error ? error.message : String(error),
+        })
+      })
+    }
 
     console.log("[ghost-stock]", {
       productId: product.id,
@@ -174,6 +187,7 @@ export async function checkStock(product: GhostProductInput): Promise<StockResul
       source: result.source,
       ms,
       result: "ok",
+      persist,
     })
     return result
   } catch (e) {

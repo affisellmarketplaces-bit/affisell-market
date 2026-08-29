@@ -6,6 +6,7 @@ import {
   CartCheckoutIdentitySheet,
   type CheckoutIdentityPayload,
 } from "@/components/cart/cart-checkout-identity-sheet"
+import { useCheckoutHandoff } from "@/hooks/use-checkout-handoff"
 import { fetchBuyerSessionSnapshot } from "@/lib/buyer-session-client"
 import {
   buyNowWithoutLogin,
@@ -23,10 +24,19 @@ export function useBuyNowWithIdentity() {
   const [identityOpen, setIdentityOpen] = useState(false)
   const [checkoutPayload, setCheckoutPayload] = useState<CheckoutIdentityPayload | null>(null)
   const pendingRef = useRef<PendingBuyNow | null>(null)
+  const { overlay: checkoutHandoff, beginHandoff, endHandoff } = useCheckoutHandoff()
 
-  const runBuyNow = useCallback(async (body: FastCheckoutBody, meta: BuyNowWithoutLoginMeta) => {
-    return buyNowWithoutLogin(body, meta)
-  }, [])
+  const runBuyNow = useCallback(
+    async (body: FastCheckoutBody, meta: BuyNowWithoutLoginMeta) => {
+      beginHandoff("redirecting")
+      const outcome = await buyNowWithoutLogin(body, meta)
+      if (outcome !== "stripe") {
+        endHandoff()
+      }
+      return outcome
+    },
+    [beginHandoff, endHandoff]
+  )
 
   const buyNow = useCallback(
     async (
@@ -65,12 +75,15 @@ export function useBuyNowWithIdentity() {
   }, [])
 
   const identitySheet = (
-    <CartCheckoutIdentitySheet
-      open={identityOpen}
-      onClose={closeIdentity}
-      onIdentified={onIdentified}
-      checkoutPayload={checkoutPayload}
-    />
+    <>
+      {checkoutHandoff}
+      <CartCheckoutIdentitySheet
+        open={identityOpen}
+        onClose={closeIdentity}
+        onIdentified={onIdentified}
+        checkoutPayload={checkoutPayload}
+      />
+    </>
   )
 
   return { buyNow, identitySheet, identityOpen }

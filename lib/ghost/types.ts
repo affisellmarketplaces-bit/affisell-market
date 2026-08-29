@@ -14,6 +14,12 @@ export type StockResult = {
 export type GhostSupplierSource = "aliexpress" | "temu" | "amazon"
 
 export const GHOST_CHECK_TIMEOUT_MS = 3_000
+/** Checkout probe — fail fast to Stripe; fallback in_stock on timeout. */
+export const GHOST_CHECKOUT_PROBE_TIMEOUT_MS = 1_500
+/** Trust recent in_stock / low_stock checks during checkout (skip live scrape). */
+export const GHOST_CHECKOUT_CACHE_MS = 8 * 60 * 1000
+/** Re-verify OOS quickly — shorter cache window. */
+export const GHOST_CHECKOUT_OOS_CACHE_MS = 90 * 1000
 export const GHOST_LOW_STOCK_THRESHOLD = 5
 export const GHOST_PRICE_DRIFT_RATIO = 0.15
 export const GHOST_STOCK15_COUPON = "STOCK15"

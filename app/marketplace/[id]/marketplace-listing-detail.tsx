@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import nextDynamic from "next/dynamic"
 import { ListingBrowseSignalsRecorder } from "@/components/marketplace/listing-browse-signals-recorder"
 import { OutOfStockModal } from "@/components/checkout/OutOfStockModal"
+import { StripeCheckoutWarmup } from "@/components/checkout/stripe-checkout-warmup"
 import { MobilePdpPersistentBuyBar } from "@/components/product/mobile-pdp-persistent-buy-bar"
 import { appMessagesForLocale } from "@/lib/i18n-app-messages"
 import { useLocale } from "next-intl"
@@ -228,6 +229,7 @@ export function MarketplaceListingDetail(props: ListingDetailProps) {
           ariaLabel={t(productT.stickyBuyHint)}
         />
       ) : null}
+      <StripeCheckoutWarmup />
       {identitySheet}
       <OutOfStockModal open={Boolean(ghostOos)} payload={ghostOos} onClose={() => setGhostOos(null)} />
       {tryOnReady ? (

@@ -202,17 +202,28 @@ function withGhostProductDefaults<T extends Record<string, unknown>>(product: T)
 }
 
 async function loadListingSafe(where: Prisma.AffiliateProductWhereInput) {
-  const row = await prisma.affiliateProduct.findFirst({
-    where,
-    include: {
-      affiliate: true,
-      product: { omit: ghostProductOmit },
-    },
-  })
-  if (!row) return null
-  return {
-    ...row,
-    product: withGhostProductDefaults(row.product),
+  try {
+    return await prisma.affiliateProduct.findFirst({
+      where,
+      include: {
+        affiliate: true,
+        product: true,
+      },
+    })
+  } catch (error: unknown) {
+    if (!isPrismaMissingColumnError(error)) throw error
+    const row = await prisma.affiliateProduct.findFirst({
+      where,
+      include: {
+        affiliate: true,
+        product: { omit: ghostProductOmit },
+      },
+    })
+    if (!row) return null
+    return {
+      ...row,
+      product: withGhostProductDefaults(row.product),
+    }
   }
 }
 
@@ -357,8 +368,13 @@ async function checkoutFromItems(
   }
 
   const loaded: LoadedLine[] = []
-  for (const row of normalized) {
-    const listing = await loadListing(row.affiliateProductId)
+  const listings = await Promise.all(
+    normalized.map((row) => loadListing(row.affiliateProductId))
+  )
+
+  for (let index = 0; index < normalized.length; index++) {
+    const row = normalized[index]!
+    const listing = listings[index]
     if (!listing || !listing.product.active || !listing.product.supplierId) {
       return NextResponse.json({ error: "Listing not found or inactive" }, { status: 404 })
     }
@@ -382,10 +398,6 @@ async function checkoutFromItems(
     })
     if (commissionGate) return commissionGate
 
-    // GHOST CHECK — P0 before Stripe
-    const ghostGate = await assertGhostStockForCheckout(listing.product)
-    if (ghostGate instanceof NextResponse) return ghostGate
-
     loaded.push({
       affiliateProductId: row.affiliateProductId,
       qty: row.qty,
@@ -393,6 +405,13 @@ async function checkoutFromItems(
       variantLabel: row.variantLabel,
       listing,
     })
+  }
+
+  const ghostGates = await Promise.all(
+    loaded.map((line) => assertGhostStockForCheckout(line.listing.product))
+  )
+  for (const ghostGate of ghostGates) {
+    if (ghostGate instanceof NextResponse) return ghostGate
   }
 
   const lineSubtotalsCents = loaded.map((l, i) => {
@@ -579,14 +598,34 @@ export async function marketplaceCheckoutPOST(
   })
   if (commissionGate) return commissionGate
 
-  // GHOST CHECK — P0 before Stripe
-  const ghostGate = await assertGhostStockForCheckout(product)
-  if (ghostGate instanceof NextResponse) return ghostGate
-
   const affiliateProduct = listing
   const affiliate = listing.affiliate
+  const variants = variantsFromDb(product.variants)
+  const optionName = checkoutOptionName({
+    selectedColor: body.selectedColor,
+    selectedSize: body.selectedSize,
+  })
 
-  const session = options?.buyerUserId ? null : await auth()
+  const sessionPromise = options?.buyerUserId ? Promise.resolve(null) : auth()
+
+  const [ghostGate, session, allowedCountries, commissionRates] = await Promise.all([
+    assertGhostStockForCheckout(product),
+    sessionPromise,
+    resolveCheckoutShippingCountries([
+      { deliveryCountryCodes: product.deliveryCountryCodes ?? [] },
+    ]),
+    Promise.all([
+      resolveAffisellCommissionRateBpsForProductId(product.id),
+      resolveSupplierCommissionRateBpsForProductId({
+        productId: product.id,
+        optionName,
+        variants,
+      }),
+    ]),
+  ])
+
+  if (ghostGate instanceof NextResponse) return ghostGate
+
   const buyerUserId = options?.buyerUserId?.trim() || session?.user?.id?.trim() || ""
 
   let balanceCents = 0
@@ -596,6 +635,17 @@ export async function marketplaceCheckoutPOST(
       select: { buyerRewardBalanceCents: true },
     })
     balanceCents = u?.buyerRewardBalanceCents ?? 0
+  }
+
+  const [affisellCommissionRateBps, supplierCommissionRateBps] = commissionRates
+
+  if (allowedCountries.length === 0) {
+    console.log("[checkout]", {
+      flow: "single",
+      result: "delivery_destination_unavailable",
+      productId: product.id,
+    })
+    return NextResponse.json({ error: "delivery_destination_unavailable" }, { status: 409 })
   }
 
   let unitSelling = lineSellingPriceCents(listing, {
@@ -701,11 +751,6 @@ export async function marketplaceCheckoutPOST(
   const oneShotVariantSignature = normalizeCartVariantSignature(body.selectedColor, body.selectedSize)
   pushLineItemsForPaidTotal(stripeLineItems, listing, paidLineCents[0]!, checkoutQty, oneShotVariantLabel)
 
-  const variants = variantsFromDb(product.variants)
-  const optionName = checkoutOptionName({
-    selectedColor: body.selectedColor,
-    selectedSize: body.selectedSize,
-  })
   const unitSupplierCents = marketplaceWholesaleCentsForOption({
     productBasePriceCents: product.basePriceCents,
     variants,
@@ -718,12 +763,6 @@ export async function marketplaceCheckoutPOST(
       ? affiliateProduct.marginCents
       : Math.max(0, unitSelling - unitSupplierCents)
   const lineMarginCents = Math.max(0, sellingPriceCents - supplierPriceCents)
-  const affisellCommissionRateBps = await resolveAffisellCommissionRateBpsForProductId(product.id)
-  const supplierCommissionRateBps = await resolveSupplierCommissionRateBpsForProductId({
-    productId: product.id,
-    optionName,
-    variants,
-  })
 
   const order = await prisma.$transaction(async (tx) => {
     const created = await tx.order.create({
@@ -795,17 +834,6 @@ export async function marketplaceCheckoutPOST(
 
   const { baseUrl, cancelPath, successPath } = checkoutBaseUrls(body, request)
 
-  const allowedCountries = await resolveCheckoutShippingCountries([
-    { deliveryCountryCodes: product.deliveryCountryCodes ?? [] },
-  ])
-  if (allowedCountries.length === 0) {
-    console.log("[checkout]", {
-      flow: "single",
-      result: "delivery_destination_unavailable",
-      productId: product.id,
-    })
-    return NextResponse.json({ error: "delivery_destination_unavailable" }, { status: 409 })
-  }
   const paymentMethodTypes =
     marketplaceCheckoutPaymentSessionOptionsForAmount(paidTotalCents).payment_method_types
   const checkoutSession = await stripe.checkout.sessions.create({

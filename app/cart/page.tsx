@@ -31,6 +31,8 @@ import {
   type GuestCartItem,
 } from "@/lib/guest-cart"
 import { CartCheckoutIdentitySheet } from "@/components/cart/cart-checkout-identity-sheet"
+import { StripeCheckoutWarmup } from "@/components/checkout/stripe-checkout-warmup"
+import { useCheckoutHandoff } from "@/hooks/use-checkout-handoff"
 import { dispatchCartUpdated } from "@/lib/buyer-cart-count-client"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/stripe-minimum"
@@ -166,6 +168,7 @@ export default function CartPage() {
   const [rewardBalanceCents, setRewardBalanceCents] = useState(0)
   const [useRewardCents, setUseRewardCents] = useState(0)
   const guestImagesResolvedKey = useRef("")
+  const { overlay: checkoutHandoff, beginHandoff, endHandoff } = useCheckoutHandoff()
   const selectionLabels = useMemo(
     () => ({ color: t("colorLabel"), size: t("sizeLabel") }),
     [t]
@@ -394,6 +397,7 @@ export default function CartPage() {
   async function proceedToStripe() {
     setCheckoutBusy(true)
     setCheckoutError(null)
+    beginHandoff("redirecting")
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -424,6 +428,7 @@ export default function CartPage() {
         window.location.href = data.url
         return
       }
+      endHandoff()
       if (res.status === 409 && data.error === "OUT_OF_STOCK_VERIFIED") {
         setGhostOos({
           productName: data.productName,
@@ -437,6 +442,9 @@ export default function CartPage() {
         return
       }
       setCheckoutError(data.message || t("checkoutFailed"))
+    } catch {
+      endHandoff()
+      setCheckoutError(t("checkoutFailed"))
     } finally {
       setCheckoutBusy(false)
     }
@@ -500,6 +508,7 @@ export default function CartPage() {
 
   return (
     <div className="affisell-cart-page min-h-screen bg-gradient-to-b from-zinc-50 via-white to-violet-50/30 py-8 pb-[calc(var(--affisell-mobile-dock-offset)+5.25rem)] dark:from-zinc-950 dark:via-zinc-950 dark:to-violet-950/15 md:pb-8">
+      <StripeCheckoutWarmup />
       <Suspense fallback={null}>
         <CartCheckoutAutoOpen
           enabled={!loading && !isCustomerBuyer && lines.length > 0}
@@ -761,6 +770,7 @@ export default function CartPage() {
           checkoutPayload={checkoutIdentityPayload}
           guestCartItems={guestCartItemsForIdentity}
         />
+        {checkoutHandoff}
         <OutOfStockModal
           open={Boolean(ghostOos)}
           payload={ghostOos}
