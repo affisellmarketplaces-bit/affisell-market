@@ -29,6 +29,43 @@ describe("healMarketplaceOrderNotifications", () => {
     transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => fn({}))
   })
 
+  it("heals delivered orders missing affiliate inbox rows", async () => {
+    findUnique.mockResolvedValue({
+      id: "ord_delivered",
+      status: "delivered",
+      supplierId: "sup_1",
+      affiliateId: "aff_1",
+      quantity: 1,
+      customerEmail: "buyer@example.com",
+      variantLabel: null,
+      variantImageUrl: null,
+      subtotalCents: 5000,
+      sellingPriceCents: 5000,
+      taxCents: 0,
+      totalCents: 5000,
+      supplierPriceCents: 3000,
+      supplierPayoutCents: 2700,
+      supplierFeeCents: 300,
+      commissionCents: 500,
+      affiliatePayoutCents: 500,
+      affiliateMarginRetainedCents: 500,
+      affiliateFeeCents: 50,
+      affisellFeeCents: 100,
+      marginCents: 0,
+      usesAffisellAutoBuy: false,
+      paidAt: new Date(),
+      merchantSupplierInboxNotifiedAt: null,
+      merchantAffiliateInboxNotifiedAt: null,
+      product: { name: "Stabilisateur" },
+      affiliate: { store: { partnerListingCode: "AFS-ECOM" } },
+      affiliateProduct: { affiliate: { store: { partnerListingCode: "AFS-ECOM" } } },
+    })
+
+    const result = await healMarketplaceOrderNotifications("ord_delivered")
+    expect(transaction).toHaveBeenCalled()
+    expect(result.supplierInboxCreated).toBe(true)
+  })
+
   it("heals preparing orders missing supplier inbox rows", async () => {
     findUnique.mockResolvedValue({
       id: "ord_prep",

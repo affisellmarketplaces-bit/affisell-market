@@ -37,6 +37,7 @@ import {
   PUBLIC_SHOPS_PATH,
 } from "@/lib/affiliate-routes"
 import { MAGIC_SYSTEMS_HREF } from "@/lib/magic-systems-catalog"
+import type { AffiliateNotificationInboxPayload } from "@/lib/affiliate-notification-inbox-types"
 import { cn } from "@/lib/utils"
 
 const navScrollClass =
@@ -76,19 +77,27 @@ function AffiliateInviteSupplierButton({
   )
 }
 
-export function NavAffiliate() {
+export function NavAffiliate({
+  notificationInbox = null,
+}: {
+  notificationInbox?: AffiliateNotificationInboxPayload | null
+}) {
   return (
     <Suspense
       fallback={
         <nav aria-label="Affiliate" className="mx-auto h-14 max-w-7xl animate-pulse px-4" />
       }
     >
-      <NavAffiliateInner />
+      <NavAffiliateInner notificationInbox={notificationInbox} />
     </Suspense>
   )
 }
 
-function NavAffiliateInner() {
+function NavAffiliateInner({
+  notificationInbox = null,
+}: {
+  notificationInbox?: AffiliateNotificationInboxPayload | null
+}) {
   const t = useTranslations("nav.affiliate")
   const tSearch = useTranslations("nav")
   const tPublic = useTranslations("PublicNav")
@@ -272,7 +281,10 @@ function NavAffiliateInner() {
         <LocaleSwitcher />
         <GlobalRequestButton variant="header" className="hidden md:inline-flex" />
         <QuickNav />
-        <MerchantNotificationsMenu role="AFFILIATE" />
+        <MerchantNotificationsMenu
+          role="AFFILIATE"
+          initialSnapshot={notificationInbox}
+        />
         <MerchantAvatarMenu />
       </div>
     </nav>

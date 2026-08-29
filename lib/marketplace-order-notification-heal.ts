@@ -15,7 +15,7 @@ const HEAL_MAX_PASSES = 3
 const STALE_REFRESH_BATCH_SIZE = 12
 
 /** Orders that should have a marketplace inbox alert once checkout is paid. */
-const HEALABLE_ORDER_STATUSES = ["paid", "preparing", "shipped"] as const
+const HEALABLE_ORDER_STATUSES = ["paid", "preparing", "shipped", "delivered"] as const
 
 const orderForHealSelect = {
   id: true,

@@ -6,10 +6,12 @@ import { useSession } from "next-auth/react"
 import { NavAffiliate } from "@/components/nav/nav-affiliate"
 import { NavPublic } from "@/components/nav/nav-public"
 import { NavSupplier } from "@/components/nav/nav-supplier"
+import type { AffiliateNotificationInboxPayload } from "@/lib/affiliate-notification-inbox-types"
 
 type Props = {
   /** SSR hint from `auth()` to avoid affiliate nav flash on public pages. */
   initialRole?: string | null
+  affiliateNotificationInbox?: AffiliateNotificationInboxPayload | null
 }
 
 function normalizeRole(role: string | null | undefined): "AFFILIATE" | "SUPPLIER" | "CUSTOMER" | null {
@@ -29,7 +31,7 @@ function roleFromDashboardPath(pathname: string | null): "AFFILIATE" | "SUPPLIER
   return null
 }
 
-export function SiteNav({ initialRole = null }: Props) {
+export function SiteNav({ initialRole = null, affiliateNotificationInbox = null }: Props) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
 
@@ -60,7 +62,7 @@ export function SiteNav({ initialRole = null }: Props) {
   }
 
   if (role === "AFFILIATE") {
-    return <NavAffiliate />
+    return <NavAffiliate notificationInbox={affiliateNotificationInbox} />
   }
 
   return <NavPublic />

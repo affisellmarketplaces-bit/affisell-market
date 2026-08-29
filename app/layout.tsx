@@ -10,6 +10,8 @@ import { RootSessionShell } from "@/app/root-intl-session"
 import { AuthSessionProvider } from "@/components/providers/auth-session-provider"
 import { IntlAppProvider } from "@/components/providers/intl-app-provider"
 import { getCachedSession } from "@/lib/get-cached-session"
+import { loadAffiliateNotificationInbox } from "@/lib/affiliate-notification-inbox"
+import type { AffiliateNotificationInboxPayload } from "@/lib/affiliate-notification-inbox-types"
 import { PWA_SPLASH_IMAGES } from "@/lib/pwa-splash-images"
 import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
 import { slimClientMessagesForDedicatedStorefront } from "@/lib/i18n-slim-client-messages"
@@ -65,6 +67,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? slimClientMessagesForDedicatedStorefront(messages, pathname)
     : messages
 
+  let affiliateNotificationInbox: AffiliateNotificationInboxPayload | null = null
+  if (
+    !leanPlatformChrome &&
+    session?.user?.id &&
+    (session.user as { role?: string }).role === "AFFILIATE"
+  ) {
+    try {
+      affiliateNotificationInbox = await loadAffiliateNotificationInbox(session.user.id, {
+        skipBackgroundSync: true,
+      })
+    } catch (error) {
+      console.error("[layout]", {
+        stage: "affiliate_notification_inbox",
+        userId: session.user.id,
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
+  }
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <body
@@ -80,7 +101,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <RootSessionShell leanShell={leanPlatformChrome}>
               {!leanPlatformChrome ? (
                 <SiteHeaderChrome>
-                  <AppHeader />
+                  <AppHeader
+                    initialRole={(session?.user as { role?: string } | undefined)?.role ?? null}
+                    affiliateNotificationInbox={affiliateNotificationInbox}
+                  />
                 </SiteHeaderChrome>
               ) : null}
               {children}

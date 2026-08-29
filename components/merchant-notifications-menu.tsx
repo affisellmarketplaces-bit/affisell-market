@@ -7,6 +7,7 @@ import { createPortal } from "react-dom"
 
 import { MerchantNotificationItem } from "@/components/merchant/merchant-notification-item"
 import { buttonVariants } from "@/components/ui/button"
+import type { AffiliateNotificationInboxPayload } from "@/lib/affiliate-notification-inbox-types"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { merchantNotificationsPollMs } from "@/lib/dev-client-timing"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
@@ -142,17 +143,28 @@ function resolveNotificationLink(
 export function MerchantNotificationsMenu({
   role,
   className,
+  initialSnapshot,
 }: {
   role: MerchantRole
   className?: string
+  /** SSR inbox — badge visible before first client poll (affiliate sale alerts). */
+  initialSnapshot?: AffiliateNotificationInboxPayload | null
 }) {
   const cfg = config[role]
   const [open, setOpen] = useState(false)
-  const [unreadCount, setUnreadCount] = useState(0)
+  const initialRows =
+    role === "AFFILIATE" && initialSnapshot
+      ? dedupeMerchantNotifications(initialSnapshot.notifications)
+      : []
+  const [unreadCount, setUnreadCount] = useState(
+    role === "AFFILIATE" && initialSnapshot ? initialSnapshot.unreadCount : 0
+  )
   const [actionRequiredCount, setActionRequiredCount] = useState(0)
   const [ordersToShipCount, setOrdersToShipCount] = useState(0)
-  const [badgeCount, setBadgeCount] = useState(0)
-  const [rows, setRows] = useState<NotificationRow[]>([])
+  const [badgeCount, setBadgeCount] = useState(
+    role === "AFFILIATE" && initialSnapshot ? initialSnapshot.unreadCount : 0
+  )
+  const [rows, setRows] = useState<NotificationRow[]>(initialRows)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [dropdownCoords, setDropdownCoords] = useState<{ top: number; right: number } | null>(null)
@@ -161,7 +173,14 @@ export function MerchantNotificationsMenu({
     try {
       const url = opts?.forceSync ? `${cfg.apiPath}?sync=1` : cfg.apiPath
       const res = await fetch(url, { cache: "no-store" })
-      if (!res.ok) return
+      if (!res.ok) {
+        console.warn("[merchant-notifications]", {
+          role,
+          status: res.status,
+          result: "fetch_failed",
+        })
+        return
+      }
       const j = (await res.json()) as {
         unreadCount: number
         actionRequiredCount?: number
