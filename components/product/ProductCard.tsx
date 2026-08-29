@@ -280,6 +280,7 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
 
   const showBusiness = mode === "affiliate" || mode === "supplier"
   const showMargin = mode === "affiliate"
+  const isBuyer = mode === "customer"
   const LinkComp = mode === "customer" ? FastLink : Link
 
   return (
@@ -287,14 +288,20 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
       href={href}
       prefetch={mode === "customer" ? undefined : false}
       className={cn(
-        "group flex h-full w-full touch-manipulation flex-col rounded-[1.35rem] border p-1.5 outline-none ring-offset-2 backdrop-blur-sm transition-[transform,box-shadow,border-color] duration-200 active:scale-[0.99] sm:rounded-3xl sm:p-2",
+        "group flex h-full w-full touch-manipulation flex-col rounded-[1.35rem] border outline-none ring-offset-2 backdrop-blur-sm transition-[transform,box-shadow,border-color] duration-200 active:scale-[0.99] sm:rounded-3xl",
+        isBuyer ? "p-1 sm:p-1.5" : "p-1.5 sm:p-2",
         "affisell-inp-tap border-[color:var(--affisell-premium-border)] bg-[var(--affisell-premium-glass)] shadow-[var(--affisell-premium-shadow-soft)]",
         "hover:border-violet-200/80 hover:shadow-[var(--affisell-premium-shadow-float)] focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:border-violet-800/60"
       )}
       data-product-card-mode={mode}
       data-show-business-data={showBusiness ? "true" : "false"}
     >
-      <div className="affisell-product-media relative aspect-[4/3] w-full overflow-hidden rounded-[1.1rem] border border-white/50 bg-gradient-to-br from-violet-50/50 via-white to-sky-50/35 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:via-zinc-950/80 dark:to-teal-950/15">
+      <div
+        className={cn(
+          "affisell-product-media relative w-full overflow-hidden rounded-[1.1rem] border border-white/50 bg-gradient-to-br from-violet-50/50 via-white to-sky-50/35 sm:rounded-2xl dark:border-zinc-800/80 dark:from-violet-950/25 dark:via-zinc-950/80 dark:to-teal-950/15",
+          isBuyer ? "affisell-product-media--buyer aspect-square" : "aspect-[4/3]"
+        )}
+      >
         {/* Top bar — flex row, no overlapping absolutes (sales ↔ heart). */}
         <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-2">
           <div className="flex min-w-0 flex-1 flex-wrap items-start gap-1">
@@ -349,9 +356,14 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
         <img
           src={src}
           alt={p.title}
-          width={300}
-          height={225}
-          className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain p-1 transition-transform duration-300 group-hover:scale-[1.02] sm:p-4"
+          width={isBuyer ? 400 : 300}
+          height={isBuyer ? 400 : 225}
+          className={cn(
+            "pointer-events-none absolute inset-0 h-full w-full select-none object-contain transition-transform duration-300",
+            isBuyer
+              ? "affisell-product-media-img--buyer group-hover:scale-[1.05]"
+              : "p-1 group-hover:scale-[1.02] sm:p-4"
+          )}
           loading={imagePriority ? "eager" : "lazy"}
           fetchPriority={imagePriority ? "high" : "low"}
           decoding="async"
