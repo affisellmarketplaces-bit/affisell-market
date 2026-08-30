@@ -14,6 +14,7 @@ import {
   DonaTypingIndicator,
   resolvePublicLocale,
 } from "@/components/dona/dona-chat-ui"
+import { DonaAvatarImage } from "@/components/dona/dona-avatar-image"
 
 type CaptainMeta = {
   env: string
@@ -140,23 +141,33 @@ export function DonaCaptainWidget() {
             aria-label="Dona Capitaine — mode privé"
           >
             <div className="flex shrink-0 items-start justify-between border-b border-violet-500/30 bg-[#1A1A3D] px-4 py-3 md:rounded-t-2xl">
-              <div>
-                <p className="text-sm font-semibold text-white">
-                  Dona Capitaine · Mode Privé · {envLabel}
-                </p>
-                <div className="mt-1 flex flex-wrap gap-1.5">
-                  <span className="rounded-full border border-violet-400/40 bg-violet-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-200">
-                    CAPITAINE
-                  </span>
-                  <span
-                    className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
-                      meta?.isProd
-                        ? "border-red-400/50 bg-red-500/15 text-red-200"
-                        : "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
-                    }`}
-                  >
-                    {envHost}
-                  </span>
+              <div className="flex min-w-0 items-start gap-2.5">
+                <DonaAvatarImage
+                  className="mt-0.5 size-9 shrink-0 rounded-full object-cover ring-2 ring-black/80"
+                  alt="Captain Dona"
+                  loading="eager"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-white">
+                    Captain Dona — AFFISELL AI CAPTAIN
+                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <span className="rounded-full border border-emerald-400/50 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-200">
+                      CAPTAIN ONLINE
+                    </span>
+                    <span className="rounded-full border border-violet-400/40 bg-violet-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-200">
+                      CAPITAINE · {envLabel}
+                    </span>
+                    <span
+                      className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                        meta?.isProd
+                          ? "border-red-400/50 bg-red-500/15 text-red-200"
+                          : "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
+                      }`}
+                    >
+                      {envHost}
+                    </span>
+                  </div>
                 </div>
               </div>
               <button
@@ -171,9 +182,11 @@ export function DonaCaptainWidget() {
 
             <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
               <div className="mr-auto max-w-[90%] rounded-2xl rounded-bl-sm border border-white/10 bg-[#1A1A3D] px-4 py-2.5 text-sm text-white">
-                <span className="mb-1 block text-base" aria-hidden>
-                  💜
-                </span>
+                <DonaAvatarImage
+                  className="mb-2 size-7 rounded-full object-cover ring-1 ring-black/60"
+                  alt=""
+                  loading="lazy"
+                />
                 {welcome}
               </div>
 
@@ -210,9 +223,11 @@ export function DonaCaptainWidget() {
                               key={`${m.id}-t-${idx}`}
                               className="mr-auto max-w-[90%] rounded-2xl rounded-bl-sm border border-white/10 bg-[#1A1A3D] px-4 py-2.5 text-sm text-white"
                             >
-                              <span className="mb-1 block text-base" aria-hidden>
-                                💜
-                              </span>
+                              <DonaAvatarImage
+                                className="mb-2 size-7 rounded-full object-cover ring-1 ring-black/60"
+                                alt=""
+                                loading="lazy"
+                              />
                               {part.text}
                             </div>
                           )
@@ -275,13 +290,21 @@ export function DonaCaptainWidget() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-[109] flex size-14 flex-col items-center justify-center rounded-full border-2 border-violet-500 bg-[#0E0E2C] text-lg shadow-[0_0_18px_rgba(124,58,237,0.35)] transition hover:border-violet-400"
+          className="fixed bottom-6 right-6 z-[109] flex size-14 items-center justify-center overflow-hidden rounded-full border-2 border-black bg-[#0E0E2C] shadow-[0_0_18px_rgba(124,58,237,0.35)] transition hover:border-violet-400"
           aria-label="Ouvrir Dona Capitaine"
         >
-          <span aria-hidden>💜</span>
-          <span className="text-[8px] font-bold uppercase tracking-wide text-violet-300">
-            Capitaine
+          <DonaAvatarImage
+            className="size-full rounded-full object-cover"
+            alt="Captain Dona"
+            loading="lazy"
+          />
+          <span className="absolute -right-1 -top-1 rounded-full bg-black px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white">
+            CAPITAINE
           </span>
+          <span
+            className="absolute bottom-1 right-1 size-3 animate-pulse rounded-full border-2 border-white bg-green-400"
+            aria-hidden
+          />
         </button>
       ) : null}
     </>

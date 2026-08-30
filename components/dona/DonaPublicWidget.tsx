@@ -18,6 +18,7 @@ import {
   formatDonaTime,
   resolvePublicLocale,
 } from "@/components/dona/dona-chat-ui"
+import { DonaAvatarImage } from "@/components/dona/dona-avatar-image"
 import {
   donaPublicBadge,
   donaPublicPlaceholder,
@@ -95,11 +96,18 @@ export function DonaPublicWidget() {
             aria-label="Dona — IA de bord Affisell"
           >
             <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-[#1A1A3D] px-4 py-3 md:rounded-t-2xl">
-              <div>
-                <p className="text-sm font-semibold text-white">Dona · IA de bord · LIVE</p>
-                <span className="mt-0.5 inline-block rounded-full border border-violet-400/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-violet-200">
-                  {badge} · FR/EN
-                </span>
+              <div className="flex min-w-0 items-center gap-2">
+                <DonaAvatarImage
+                  className="size-8 shrink-0 rounded-full object-cover ring-1 ring-violet-400/40"
+                  alt="Dona"
+                  loading="eager"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-white">Dona · IA de bord · LIVE</p>
+                  <span className="mt-0.5 inline-block rounded-full border border-violet-400/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-violet-200">
+                    {badge} · FR/EN
+                  </span>
+                </div>
               </div>
               <button
                 type="button"
@@ -113,9 +121,11 @@ export function DonaPublicWidget() {
 
             <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
               <div className="mr-auto max-w-[85%] rounded-2xl rounded-bl-sm border border-white/10 bg-[#1A1A3D] px-4 py-2.5 text-sm leading-relaxed text-white">
-                <span className="mb-1 block text-base" aria-hidden>
-                  💜
-                </span>
+                <DonaAvatarImage
+                  className="mb-2 size-7 rounded-full object-cover"
+                  alt=""
+                  loading="lazy"
+                />
                 {welcome}
                 <span className="mt-1 block text-[10px] text-white/40">{formatDonaTime(new Date())}</span>
               </div>
@@ -174,11 +184,18 @@ export function DonaPublicWidget() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-[99] flex size-14 items-center justify-center rounded-full bg-[#7C3AED] text-2xl shadow-[0_0_20px_rgba(124,58,237,0.5)] transition hover:scale-105 hover:bg-violet-500"
+          className="fixed bottom-6 right-6 z-[99] flex size-14 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#7C3AED] shadow-xl ring-2 ring-violet-200 transition hover:scale-105 hover:bg-violet-500"
           aria-label="Ouvrir Dona — IA de bord"
         >
-          <span aria-hidden>💜</span>
-          <span className="absolute right-0 top-0 size-3 animate-pulse rounded-full bg-green-400 ring-2 ring-[#0E0E2C]" />
+          <DonaAvatarImage
+            className="size-full rounded-full object-cover"
+            alt="Dona"
+            loading="lazy"
+          />
+          <span
+            className="absolute bottom-1 right-1 size-3 animate-pulse rounded-full border-2 border-white bg-green-400"
+            aria-hidden
+          />
         </button>
       ) : null}
     </>
