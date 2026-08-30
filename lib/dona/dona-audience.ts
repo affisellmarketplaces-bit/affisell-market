@@ -16,6 +16,7 @@ const SUPPLIER_PREFIXES = ["/supplier", "/sell/become-supplier"] as const
 
 /** Buyer-first routes: home, catalogue, checkout, vitrines publiques. */
 const BUYER_PREFIXES = [
+  "/bestsellers",
   "/marketplace",
   "/discover",
   "/shops",
