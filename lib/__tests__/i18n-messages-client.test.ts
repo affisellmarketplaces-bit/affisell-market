@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest"
 
 import { SUPPORTED_LOCALES } from "@/lib/i18n-locale"
-import { CLIENT_MESSAGES, readLocaleFromDocumentCookie } from "@/lib/i18n-messages-client"
+import { CLIENT_MESSAGES } from "@/lib/i18n-messages-client"
+import { readLocaleFromDocumentCookie } from "@/lib/i18n-read-locale-cookie"
 
 describe("i18n messages client", () => {
   it("loads all supported locale bundles", () => {

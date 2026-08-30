@@ -40,13 +40,36 @@ export function loadAppMessages(locale: AppLocale): AbstractIntlMessages {
   return built
 }
 
-export const CLIENT_MESSAGES: Record<AppLocale, AbstractIntlMessages> = {
-  en: buildLocaleMessages("en"),
-  fr: buildLocaleMessages("fr"),
-  de: buildLocaleMessages("de"),
-  es: buildLocaleMessages("es"),
-  it: buildLocaleMessages("it"),
-  nl: buildLocaleMessages("nl"),
-  pl: buildLocaleMessages("pl"),
-  zh: buildLocaleMessages("zh"),
+const CLIENT_MESSAGES_CACHE = new Map<AppLocale, AbstractIntlMessages>()
+
+function getClientMessages(locale: AppLocale): AbstractIntlMessages {
+  const cached = CLIENT_MESSAGES_CACHE.get(locale)
+  if (cached) return cached
+  const built = buildLocaleMessages(locale)
+  CLIENT_MESSAGES_CACHE.set(locale, built)
+  return built
 }
+
+/** Lazy per-locale bundles — avoids 7× deepMerge at module import (client perf + error boundaries). */
+export const CLIENT_MESSAGES: Record<AppLocale, AbstractIntlMessages> = new Proxy(
+  {} as Record<AppLocale, AbstractIntlMessages>,
+  {
+    get(_target, prop) {
+      if (typeof prop !== "string" || !(prop in FULL_BUNDLES)) return undefined
+      return getClientMessages(prop as AppLocale)
+    },
+    ownKeys() {
+      return Object.keys(FULL_BUNDLES)
+    },
+    getOwnPropertyDescriptor(_target, prop) {
+      if (typeof prop === "string" && prop in FULL_BUNDLES) {
+        return {
+          configurable: true,
+          enumerable: true,
+          value: getClientMessages(prop as AppLocale),
+        }
+      }
+      return undefined
+    },
+  }
+)

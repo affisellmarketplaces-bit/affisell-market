@@ -4,9 +4,10 @@ import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport, type UIMessage } from "ai"
 import { AnimatePresence, motion } from "framer-motion"
 import { Send, X } from "lucide-react"
-import { useLocale } from "next-intl"
 import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
+
+import { useAppLocale } from "@/hooks/use-app-locale"
 
 import {
   donaCaptainGenericError,
@@ -15,7 +16,6 @@ import {
   DonaTypingIndicator,
 } from "@/components/dona/dona-chat-ui"
 import { DonaAvatarImage } from "@/components/dona/dona-avatar-image"
-import type { AppLocale } from "@/lib/i18n-locale"
 import { tMessage } from "@/lib/i18n-pick-message"
 
 type CaptainMeta = {
@@ -68,7 +68,7 @@ function assistantHasVisibleParts(m: UIMessage): boolean {
 
 export function DonaCaptainWidget() {
   const pathname = usePathname() ?? ""
-  const locale = useLocale() as AppLocale
+  const locale = useAppLocale()
   const [isOpen, setIsOpen] = useState(false)
   const [meta, setMeta] = useState<CaptainMeta | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)

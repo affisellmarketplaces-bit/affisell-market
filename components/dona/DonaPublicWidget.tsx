@@ -4,9 +4,10 @@ import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { AnimatePresence, motion } from "framer-motion"
 import { Send, X } from "lucide-react"
-import { useLocale } from "next-intl"
 import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
+
+import { useAppLocale } from "@/hooks/use-app-locale"
 
 import {
   DonaAssistantMessage,
@@ -25,7 +26,6 @@ import {
   donaPublicWelcome,
   resolveDonaPublicAudience,
 } from "@/lib/dona/dona-audience"
-import type { AppLocale } from "@/lib/i18n-locale"
 import { tMessage } from "@/lib/i18n-pick-message"
 
 function shouldHideWidget(pathname: string): boolean {
@@ -34,7 +34,7 @@ function shouldHideWidget(pathname: string): boolean {
 
 export function DonaPublicWidget() {
   const pathname = usePathname() ?? ""
-  const locale = useLocale() as AppLocale
+  const locale = useAppLocale()
   const audience = useMemo(() => resolveDonaPublicAudience(pathname), [pathname])
   const [isOpen, setIsOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)

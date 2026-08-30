@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
 import { ChevronDown } from "lucide-react"
 
+import { notifyAppLocaleChanged } from "@/hooks/use-app-locale"
 import { hrefForLocaleSwitch } from "@/lib/client-locale-path"
 import { isDemoLabRoute } from "@/lib/demo/demo-routes"
 import {
@@ -21,6 +22,7 @@ function setLocaleCookie(locale: AppLocale) {
   const maxAge = localeCookieMaxAgeSec()
   document.cookie = `${LOCALE_COOKIE}=${locale};path=/;max-age=${maxAge};SameSite=Lax`
   document.cookie = `NEXT_LOCALE=;path=/;max-age=0;SameSite=Lax`
+  notifyAppLocaleChanged()
 }
 
 const MENU_ESTIMATED_HEIGHT_PX = 92

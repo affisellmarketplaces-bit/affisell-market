@@ -90,10 +90,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {!leanPlatformChrome ? <Footer /> : null}
             </RootSessionShell>
             <CookieBannerDeferred />
+            {!leanPlatformChrome ? <DonaWidgetsDeferred /> : null}
           </IntlAppProvider>
         </AuthSessionProvider>
         <ClientGuardInitDeferred />
-        {!leanPlatformChrome ? <DonaWidgetsDeferred /> : null}
       </body>
     </html>
   )
