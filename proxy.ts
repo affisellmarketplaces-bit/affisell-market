@@ -31,6 +31,7 @@ import {
   isValidLegionUsername,
   normalizeLegionUsername,
 } from "@/lib/legion/username"
+import { isPublicStaticAssetPath } from "@/lib/public-static-asset-path"
 import { staticAppRewriteTarget, isStaticAppPathname } from "@/lib/reserved-locale-segments"
 import {
   HumanoidShield,
@@ -281,6 +282,11 @@ function rewriteLegionStorefront(req: NextRequest): NextResponse | null {
 /** Next.js 16+ proxy (ex-middleware). */
 export async function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname
+
+  if (isPublicStaticAssetPath(pathname)) {
+    return NextResponse.next()
+  }
+
   const barePath = pathnameWithoutLocale(pathname)
   const pathnameLocale = localeFromPathname(pathname)
 
@@ -628,7 +634,7 @@ export async function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/((?!_next/static|_next/image|favicon.ico|[^?]*\\.(?:webp|avif|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|mp4|webm|txt|xml|json|map|pdf)$).*)",
     "/",
     "/auth/signin",
     "/bestsellers",

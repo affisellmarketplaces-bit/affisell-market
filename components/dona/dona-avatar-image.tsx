@@ -4,8 +4,13 @@ import { useState } from "react"
 
 import { cn } from "@/lib/utils"
 
-/** Official Captain Dona bubble crop (256×256, circular alpha). Bump ?v= when portrait changes. */
-export const DONA_AVATAR_CIRCLE_SRC = "/dona-avatar-circle.webp?v=2"
+import donaAvatarCircleAsset from "../../public/dona-avatar-circle.webp"
+
+/** Bundled + public path — works even when proxy skipped static files before fix. */
+export const DONA_AVATAR_CIRCLE_SRC =
+  typeof donaAvatarCircleAsset === "string"
+    ? donaAvatarCircleAsset
+    : donaAvatarCircleAsset.src
 
 type DonaAvatarImageProps = {
   className?: string
@@ -14,10 +19,10 @@ type DonaAvatarImageProps = {
   fallbackClassName?: string
 }
 
-/** Avatar with 💜 fallback when the static asset 404s in prod. */
+/** Avatar with 💜 fallback when the asset fails to load. */
 export function DonaAvatarImage({
   className,
-  alt = "Dona",
+  alt = "",
   loading = "lazy",
   fallbackClassName,
 }: DonaAvatarImageProps) {
@@ -35,7 +40,7 @@ export function DonaAvatarImage({
   }
 
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- static public asset + onError fallback
+    // eslint-disable-next-line @next/next/no-img-element -- bundled static asset + onError fallback
     <img
       src={DONA_AVATAR_CIRCLE_SRC}
       alt={alt}
