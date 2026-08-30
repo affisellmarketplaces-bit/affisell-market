@@ -64,7 +64,16 @@ export function getDatabaseUrl(): string {
 /** Staging branch URL for `npm run dev:staging`. */
 export function resolveStagingDatabaseUrl(): string | null {
   loadEnv()
-  return findStagingDatabaseUrlFromEnv()
+
+  const fromStagingKey = findStagingDatabaseUrlFromEnv()
+  if (fromStagingKey) return fromStagingKey
+
+  const primary = process.env.DATABASE_URL?.trim()
+  if (primary?.includes(STAGING_NEON_MARKER)) {
+    return primary
+  }
+
+  return null
 }
 
 export function applyStagingDevEnv(stagingUrl: string): void {

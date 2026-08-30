@@ -55,6 +55,14 @@ describe("lib/env", () => {
     expect(resolveStagingDatabaseUrl()).toContain("ep-shy-wind")
   })
 
+  it("resolveStagingDatabaseUrl uses DATABASE_URL when it points at shy-wind", () => {
+    delete process.env.DATABASE_URL_STAGING
+    process.env.DATABASE_URL =
+      "postgresql://u:p@ep-shy-wind-aly4bmc7.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+
+    expect(resolveStagingDatabaseUrl()).toContain("ep-shy-wind")
+  })
+
   it("loadEnv is idempotent", () => {
     expect(() => {
       loadEnv()

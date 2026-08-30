@@ -49,7 +49,7 @@ export function getEnvInfo(): DonaEnvInfo {
   const stagingUrl = process.env.DATABASE_URL_STAGING?.trim() || ""
   const resolvedUrl = databaseUrl || stagingUrl || resolveDatabaseUrlOptional() || ""
   const host = extractHostFromDatabaseUrl(resolvedUrl)
-  const env = resolveDonaEnv(databaseUrl, stagingUrl, host)
+  const env = resolveDonaEnv(databaseUrl || resolvedUrl, stagingUrl || resolvedUrl, host)
   const branch = env === "prod" ? "production" : "staging"
 
   return {
