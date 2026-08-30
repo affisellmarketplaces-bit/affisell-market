@@ -4,6 +4,7 @@ import dynamic from "next/dynamic"
 import { Suspense } from "react"
 
 import { ClientNavigateBridge } from "@/components/navigation/client-navigate-bridge"
+import { CommandKDeferred } from "@/components/navigation/command-k-deferred"
 import { InstantNavigationListener } from "@/components/navigation/instant-navigation-listener"
 import { MobileDock } from "@/components/navigation/mobile-dock"
 import { NavigationProgress } from "@/components/navigation/navigation-progress"

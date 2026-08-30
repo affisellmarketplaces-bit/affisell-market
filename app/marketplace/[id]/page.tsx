@@ -6,6 +6,7 @@ import { getLocale, getTranslations } from "next-intl/server"
 import { headers } from "next/headers"
 
 import { BuyerBestsellersPage } from "@/components/buyer/buyer-bestsellers-page"
+import { CheckoutRegionComingSoonBanner } from "@/components/marketplace/checkout-region-coming-soon-banner"
 import { isMarketplaceReservedSegment } from "@/lib/marketplace-reserved-segments"
 import { GraduatedCheckoutPermanentBanner } from "@/components/marketplace/graduated-checkout-permanent-banner"
 import { PdpCrossSellRailSkeleton } from "@/components/marketplace/pdp-cross-sell-rail-skeleton"
