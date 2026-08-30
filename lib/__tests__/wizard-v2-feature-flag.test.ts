@@ -25,8 +25,8 @@ describe("product-wizard-v2 feature-flag", () => {
     expect(resolveProductWizardVersion({ wizardQuery: "v1", envEnabled: true })).toBe("v1")
   })
 
-  it("mode=pro alone stays v1 without wizard=v2", () => {
-    expect(resolveProductWizardVersion({ modeQuery: "pro", envEnabled: false })).toBe("v1")
+  it("mode=pro selects v2 hub (Pro tab) even without wizard=v2 query", () => {
+    expect(resolveProductWizardVersion({ modeQuery: "pro", envEnabled: false })).toBe("v2")
   })
 
   it("forces v2 with ?wizard=v2 even if env off", () => {

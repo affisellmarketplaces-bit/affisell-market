@@ -7,10 +7,10 @@ import { useTranslations } from "next-intl"
 import { SupplierAddProductForm } from "@/components/supplier/supplier-add-product-form"
 import { SupplierInviteContextBanner } from "@/components/supplier/supplier-invite-context-banner"
 import { SupplierProductAddHub } from "@/components/supplier/supplier-product-add-hub"
-import { SupplierProductWizardV2 } from "@/components/supplier/wizard-v2/supplier-product-wizard-v2"
+import { WizardHub } from "@/components/products/wizard/WizardHub"
 import { BentoContainer } from "@/components/affisell/bento-ui"
 import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
-import type { ProductWizardVersion } from "@/lib/product-wizard-v2/feature-flag"
+import type { ProductWizardVersion, WizardV2Mode } from "@/lib/product-wizard-v2/feature-flag"
 import { normalizeWizardV2SearchParams } from "@/lib/product-wizard-v2/wizard-v2-routes"
 
 /**
@@ -20,9 +20,11 @@ import { normalizeWizardV2SearchParams } from "@/lib/product-wizard-v2/wizard-v2
 export function SupplierProductsNewShell({
   ownerUserId,
   wizardVersion,
+  initialMode = "pro",
 }: {
   ownerUserId: string
   wizardVersion: ProductWizardVersion
+  initialMode?: WizardV2Mode
 }) {
   const tForm = useTranslations("supplier.form")
   const { replace, mounted } = useSafeAppRouter()
@@ -94,7 +96,7 @@ export function SupplierProductsNewShell({
           </div>
         }
       >
-        <SupplierProductWizardV2 ownerUserId={ownerUserId} />
+        <WizardHub ownerUserId={ownerUserId} initialMode={initialMode} />
       </Suspense>
     )
   }

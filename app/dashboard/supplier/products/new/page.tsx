@@ -7,7 +7,20 @@ import { SupplierProductsNewShell } from "@/components/supplier/supplier-product
 import {
   isWizardV2EnvEnabled,
   resolveProductWizardVersion,
+  resolveWizardV2Mode,
 } from "@/lib/product-wizard-v2/feature-flag"
+import { normalizeWizardV2SearchParams } from "@/lib/product-wizard-v2/wizard-v2-routes"
+
+function searchParamsToUrlSearchParams(
+  sp: Record<string, string | string[] | undefined>
+): URLSearchParams {
+  const qs = new URLSearchParams()
+  for (const [key, value] of Object.entries(sp)) {
+    if (typeof value === "string") qs.set(key, value)
+    else if (Array.isArray(value)) value.forEach((v) => qs.append(key, v))
+  }
+  return qs
+}
 
 function SupplierNewProductFallback() {
   return (
@@ -43,19 +56,35 @@ function SupplierNewProductFallback() {
 export default async function SupplierNewProductPage({
   searchParams,
 }: {
-  searchParams: Promise<{ wizard?: string; mode?: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const session = await requireSupplierSession("/dashboard/supplier/products/new")
   const sp = await searchParams
+  const qs = searchParamsToUrlSearchParams(sp)
   const wizardVersion = resolveProductWizardVersion({
-    wizardQuery: sp.wizard,
-    modeQuery: sp.mode,
+    wizardQuery: typeof sp.wizard === "string" ? sp.wizard : null,
+    modeQuery: typeof sp.mode === "string" ? sp.mode : null,
     envEnabled: isWizardV2EnvEnabled(),
   })
 
+  const editId = typeof sp.edit === "string" ? sp.edit.trim() : ""
+  if (wizardVersion === "v2" && !editId) {
+    const normalized = normalizeWizardV2SearchParams(qs, { defaultMode: "pro" })
+    const next = normalized.toString()
+    if (next !== qs.toString()) {
+      redirect(`/dashboard/supplier/products/new?${next}`)
+    }
+  }
+
+  const initialMode = resolveWizardV2Mode(typeof sp.mode === "string" ? sp.mode : null)
+
   return (
     <Suspense fallback={<SupplierNewProductFallback />}>
-      <SupplierProductsNewShell ownerUserId={session.user.id} wizardVersion={wizardVersion} />
+      <SupplierProductsNewShell
+        ownerUserId={session.user.id}
+        wizardVersion={wizardVersion}
+        initialMode={initialMode}
+      />
     </Suspense>
   )
 }
