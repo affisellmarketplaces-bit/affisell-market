@@ -10,7 +10,7 @@ import { routeLlmText } from "@/lib/ai/llm-router"
 import { hasOpenAiFallback, openaiChatText } from "@/lib/ai/openai-chat-fallback"
 
 export const GROQ_TEXT_MODEL =
-  process.env.GROQ_TEXT_MODEL?.trim() || "llama-3.1-8b-instant"
+  process.env.GROQ_TEXT_MODEL?.trim() || "openai/gpt-oss-20b"
 
 /** Multimodal vision — Llama 4 Scout shut down 2026-07-17; use Qwen 3.6 vision. */
 export const GROQ_VISION_MODEL_DEFAULT = "qwen/qwen3.6-27b"
@@ -19,6 +19,8 @@ const DEPRECATED_GROQ_MODELS: Record<string, string> = {
   "meta-llama/llama-4-scout-17b-16e-instruct": GROQ_VISION_MODEL_DEFAULT,
   "meta-llama/llama-4-maverick-17b-128e-instruct": GROQ_VISION_MODEL_DEFAULT,
   "qwen/qwen3-32b": GROQ_VISION_MODEL_DEFAULT,
+  "llama-3.1-8b-instant": "openai/gpt-oss-20b",
+  "llama-3.3-70b-versatile": "openai/gpt-oss-120b",
 }
 
 /** Remap shut-down Groq model IDs so env overrides cannot resurrect 404s. */

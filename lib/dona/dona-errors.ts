@@ -21,6 +21,12 @@ export function formatDonaStreamError(error: unknown, locale: "fr" | "en" = "fr"
       : "Too many requests — give the ship 30 s then retry. 💜"
   }
 
+  if (/model_not_found|does not exist|not have access/i.test(msg)) {
+    return locale === "fr"
+      ? "Modèle IA indisponible — bascule auto en cours. Réessaie dans 3 s. 💜"
+      : "AI model unavailable — auto-failover in progress. Retry in 3 s. 💜"
+  }
+
   if (/api key|authentication|invalid.*key|401|403/i.test(msg)) {
     return locale === "fr"
       ? "Clé API IA manquante ou invalide côté serveur. Signale au fondateur. 💜"

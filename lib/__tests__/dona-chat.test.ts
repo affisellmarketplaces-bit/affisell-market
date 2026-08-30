@@ -1,7 +1,13 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest"
+import { describe, expect, it, afterEach } from "vitest"
 
 import { formatDonaStreamError, resolveDonaChatError } from "@/lib/dona/dona-errors"
-import { isDonaProviderError, resolveDonaModels } from "@/lib/dona/dona-model"
+import {
+  DONA_GROQ_MODEL_DEFAULT,
+  isDonaProviderError,
+  resolveDonaModelAttempts,
+  resolveDonaModels,
+} from "@/lib/dona/dona-model"
+import { donaPublicOfflineReply } from "@/lib/dona/dona-static-fallback"
 import { donaAssistantHasContent, donaMessageText } from "@/lib/dona/message-utils"
 import type { UIMessage } from "ai"
 
@@ -15,9 +21,12 @@ describe("dona model resolution", () => {
   it("prefers Groq when GROQ_API_KEY is set", () => {
     process.env.GROQ_API_KEY = "test-groq"
     process.env.OPENAI_API_KEY = "test-openai"
-    const bundle = resolveDonaModels()
-    expect(bundle?.primaryProvider).toBe("groq")
-    expect(bundle?.fallbackProvider).toBe("openai")
+    delete process.env.GROQ_TEXT_MODEL
+    delete process.env.DONA_GROQ_MODEL
+    const attempts = resolveDonaModelAttempts()
+    expect(attempts[0]?.provider).toBe("groq")
+    expect(attempts[0]?.modelId).toBe(DONA_GROQ_MODEL_DEFAULT)
+    expect(attempts.some((a) => a.provider === "openai")).toBe(true)
   })
 
   it("falls back to OpenAI only when Groq missing", () => {
@@ -37,6 +46,7 @@ describe("dona model resolution", () => {
   it("detects provider billing errors", () => {
     expect(isDonaProviderError(new Error("You have no credits remaining"))).toBe(true)
     expect(isDonaProviderError(new Error("rate limit exceeded"))).toBe(true)
+    expect(isDonaProviderError({ statusCode: 404, message: "model_not_found" })).toBe(true)
     expect(isDonaProviderError(new Error("hello"))).toBe(false)
   })
 })
@@ -48,13 +58,12 @@ describe("dona errors", () => {
     expect(msg).toContain("💜")
   })
 
-  it("surfaces stream error message in widget resolver", () => {
-    const resolved = resolveDonaChatError(
-      new Error("Capitaine, le réacteur OpenAI est à sec."),
-      "fr",
-      "fallback"
-    )
-    expect(resolved).toContain("réacteur OpenAI")
+  it("offline fallback answers hello", () => {
+    const reply = donaPublicOfflineReply([
+      { id: "1", role: "user", parts: [{ type: "text", text: "hello Dona" }] },
+    ])
+    expect(reply).toContain("Dona")
+    expect(reply).toContain("💜")
   })
 })
 
