@@ -18,35 +18,48 @@ import {
   formatDonaTime,
   resolvePublicLocale,
 } from "@/components/dona/dona-chat-ui"
+import {
+  donaPublicBadge,
+  donaPublicPlaceholder,
+  donaPublicWelcome,
+  resolveDonaPublicAudience,
+} from "@/lib/dona/dona-audience"
 
 function shouldHideWidget(pathname: string): boolean {
   return pathname.startsWith("/dashboard") || pathname.startsWith("/admin")
 }
 
-function welcomeMessage(locale: "fr" | "en"): string {
-  return locale === "fr"
-    ? "Capitaine, Dona en ligne. Revendeur-first UE — choisis tes produits, fixe ta marge, vends sur ta vitrine. 💜"
-    : "Captain, Dona online. EU reseller-first — pick products, set your margin, sell on your storefront. 💜"
-}
-
 export function DonaPublicWidget() {
   const pathname = usePathname() ?? ""
+  const audience = useMemo(() => resolveDonaPublicAudience(pathname), [pathname])
   const [isOpen, setIsOpen] = useState(false)
   const [locale] = useState(resolvePublicLocale)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [input, setInput] = useState("")
 
   const { messages, sendMessage, status, error, clearError } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/dona/chat-public" }),
+    transport: new DefaultChatTransport({
+      api: "/api/dona/chat-public",
+      prepareSendMessagesRequest: ({ body, messages: msgs, id, trigger, messageId }) => ({
+        body: {
+          ...(typeof body === "object" && body !== null && !Array.isArray(body) ? body : {}),
+          id,
+          messages: msgs,
+          trigger,
+          messageId,
+          audience,
+        },
+      }),
+    }),
     onError: (err) => {
       console.error("[dona-public-widget]", err)
     },
   })
 
   const busy = status === "submitted" || status === "streaming"
-  const placeholder =
-    locale === "fr" ? "Parle à Dona, Capitaine..." : "Talk to Dona, Captain..."
-  const welcome = useMemo(() => welcomeMessage(locale), [locale])
+  const placeholder = useMemo(() => donaPublicPlaceholder(audience, locale), [audience, locale])
+  const welcome = useMemo(() => donaPublicWelcome(audience, locale), [audience, locale])
+  const badge = useMemo(() => donaPublicBadge(audience), [audience])
   const visibleMessages = useMemo(() => filterRenderableMessages(messages), [messages])
   const errorText = donaResolvedError(error, locale, donaGenericError(locale))
 
@@ -85,7 +98,7 @@ export function DonaPublicWidget() {
               <div>
                 <p className="text-sm font-semibold text-white">Dona · IA de bord · LIVE</p>
                 <span className="mt-0.5 inline-block rounded-full border border-violet-400/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-violet-200">
-                  Groq · FR/EN
+                  {badge} · FR/EN
                 </span>
               </div>
               <button
