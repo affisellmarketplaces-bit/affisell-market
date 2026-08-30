@@ -25,8 +25,8 @@ function shouldHideWidget(pathname: string): boolean {
 
 function welcomeMessage(locale: "fr" | "en"): string {
   return locale === "fr"
-    ? "Capitaine, Dona en ligne. Affiliation UE, Pulse LIVE, confiance — pose ta question. 💜"
-    : "Captain, Dona online. EU affiliate model, Pulse LIVE, trust — ask away. 💜"
+    ? "Capitaine, Dona en ligne. Revendeur-first UE — choisis tes produits, fixe ta marge, vends sur ta vitrine. 💜"
+    : "Captain, Dona online. EU reseller-first — pick products, set your margin, sell on your storefront. 💜"
 }
 
 export function DonaPublicWidget() {

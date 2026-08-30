@@ -3,10 +3,10 @@ import type { UIMessage } from "ai"
 
 function detectLocale(text: string): "fr" | "en" {
   const t = text.toLowerCase()
-  if (/\b(bonjour|salut|comment|affili|vendeur|achete|confiance|devenir|inscri)\b/.test(t)) {
+  if (/\b(bonjour|salut|comment|affili|revendeur|vendeur|achete|confiance|devenir|inscri|marge|commission)\b/.test(t)) {
     return "fr"
   }
-  if (/\b(hello|hi|hey|how|what|seller|affiliate|join|trust|buy)\b/.test(t)) {
+  if (/\b(hello|hi|hey|how|what|seller|affiliate|reseller|join|trust|buy|margin|markup)\b/.test(t)) {
     return "en"
   }
   return "fr"
@@ -14,7 +14,7 @@ function detectLocale(text: string): "fr" | "en" {
 
 /**
  * Zero-DB offline replies when all LLM providers fail.
- * Keeps Dona responsive for marketing / affiliation FAQs.
+ * Keeps Dona responsive with accurate revendeur-first facts.
  */
 export function donaPublicOfflineReply(messages: UIMessage[]): string {
   const lastUser = [...messages].reverse().find((m) => m.role === "user")
@@ -24,37 +24,49 @@ export function donaPublicOfflineReply(messages: UIMessage[]): string {
 
   if (!text || /^(hi|hello|salut|bonjour|hey|coucou|yo)\b/.test(t)) {
     return locale === "fr"
-      ? "Capitaine! Dona en ligne — affiliation UE, boutiques vérifiées, Pulse LIVE. Pose ta question. 💜"
-      : "Captain! Dona online — EU affiliates, verified shops, Pulse LIVE. Ask away. 💜"
+      ? "Capitaine! Dona en ligne — marketplace revendeur-first UE : choisis tes produits, fixe ta marge, vends sur ta vitrine. 💜"
+      : "Captain! Dona online — EU reseller-first marketplace: pick products, set your margin, sell on your storefront. 💜"
   }
 
-  if (/affili|devenir|rejoin|seller|vendeur|supplier|inscri|commission|gagner/.test(t)) {
+  if (/marge|markup|margin|prix de vente|selling price|ma propre/.test(t)) {
     return locale === "fr"
-      ? "Modèle Affisell: tu apportes le trafic, on gère boutique + paiement Stripe + confiance UE (pas du dropshipping scam). Inscription → /dashboard/supplier · Pulse → /radar 💜"
-      : "Affisell model: you bring traffic, we handle shop + Stripe + EU trust (no scam dropshipping). Sign up → /dashboard/supplier · Pulse → /radar 💜"
+      ? "Oui Capitaine — tu fixes **ta marge** sur chaque fiche revendeur (prix vitrine = wholesale + ta marge nette + commission fournisseur). Cockpit revenus dans /dashboard/affiliate. 💜"
+      : "Yes Captain — you set **your margin** on each reseller listing (store price = wholesale + your net markup + supplier commission). Earnings cockpit at /dashboard/affiliate. 💜"
+  }
+
+  if (/juste une commission|only commission|commission only/.test(t)) {
+    return locale === "fr"
+      ? "Non — revendeur Affisell = commission fournisseur **+ ta marge nette** que tu configures. Pas de l'affiliation passive Amazon. 💜"
+      : "No — Affisell reseller = supplier commission **+ your net markup** you configure. Not passive Amazon-style affiliation. 💜"
+  }
+
+  if (/affili|revendeur|devenir|rejoin|seller|vendeur|supplier|inscri|commission|gagner/.test(t)) {
+    return locale === "fr"
+      ? "Revendeur : /signup/affiliate → choisis produits sur /discover → fixe tes marges → vitrine /dashboard/affiliate. Fournisseur ≠ revendeur (/login/supplier). 💜"
+      : "Reseller: /signup/affiliate → pick products on /discover → set margins → storefront /dashboard/affiliate. Supplier ≠ reseller (/login/supplier). 💜"
   }
 
   if (/drop|arnaque|scam|trust|confiance|s[eé]cur|stripe|rgpd|3d/.test(t)) {
     return locale === "fr"
-      ? "Affisell = boutiques vérifiées, achat protégé, Stripe + 3D Secure, RGPD, 27 marchés UE. Pas de marketplace fourre-tout. 💜"
-      : "Affisell = verified shops, protected checkout, Stripe + 3D Secure, GDPR, 27 EU markets. Not a junk marketplace. 💜"
+      ? "Affisell = boutiques vérifiées, achat protégé, Stripe + 3D Secure, RGPD, 33+ pays UE. Pas de marketplace fourre-tout. 💜"
+      : "Affisell = verified shops, protected checkout, Stripe + 3D Secure, GDPR, 33+ EU markets. Not a junk marketplace. 💜"
   }
 
   if (/pulse|radar|march[eé]|live|signal/.test(t)) {
     return locale === "fr"
-      ? "Affisell Pulse LIVE — signaux marché en direct sur /radar. Idéal pour choisir quoi promouvoir avant de t'inscrire. 💜"
-      : "Affisell Pulse LIVE — live market signals on /radar. Pick what to promote before you sign up. 💜"
+      ? "Affisell Pulse LIVE — signaux marché sur /radar. Choisis quoi promouvoir avant de fixer tes marges. 💜"
+      : "Affisell Pulse LIVE — market signals on /radar. Pick what to promote before setting margins. 💜"
   }
 
   if (/achet|buy|client|buyer|marketplace/.test(t)) {
     return locale === "fr"
-      ? "Côté acheteur: catalogue premium UE, boutiques à la une, paiement sécurisé. Explore /marketplace ou /discover. 💜"
-      : "Buyers: premium EU catalog, featured shops, secure checkout. Browse /marketplace or /discover. 💜"
+      ? "Côté acheteur: catalogue premium UE, boutiques vérifiées, checkout sécurisé. /marketplace ou /discover. 💜"
+      : "Buyers: premium EU catalog, verified shops, secure checkout. /marketplace or /discover. 💜"
   }
 
   return locale === "fr"
-    ? "Capitaine, réacteurs IA en maintenance — je reste en mode marketing offline. /dashboard/supplier pour vendre, /radar pour Pulse, /sell pour le pitch. 💜"
-    : "Captain, AI reactors in maintenance — marketing offline mode. /dashboard/supplier to sell, /radar for Pulse, /sell for the pitch. 💜"
+    ? "Capitaine, réacteurs IA en maintenance — mode offline. Revendeur → /signup/affiliate · Pulse → /radar · Catalogue → /discover. 💜"
+    : "Captain, AI reactors in maintenance — offline mode. Reseller → /signup/affiliate · Pulse → /radar · Catalog → /discover. 💜"
 }
 
 export function donaCaptainOfflineReply(messages: UIMessage[]): string {

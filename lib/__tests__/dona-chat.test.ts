@@ -58,12 +58,19 @@ describe("dona errors", () => {
     expect(msg).toContain("💜")
   })
 
-  it("offline fallback answers hello", () => {
+  it("offline fallback answers margin question", () => {
     const reply = donaPublicOfflineReply([
-      { id: "1", role: "user", parts: [{ type: "text", text: "hello Dona" }] },
+      { id: "1", role: "user", parts: [{ type: "text", text: "je peux ajouter ma propre marge?" }] },
     ])
-    expect(reply).toContain("Dona")
-    expect(reply).toContain("💜")
+    expect(reply.toLowerCase()).toContain("marge")
+    expect(reply).not.toContain("ne peux pas")
+  })
+
+  it("offline fallback rejects commission-only myth", () => {
+    const reply = donaPublicOfflineReply([
+      { id: "1", role: "user", parts: [{ type: "text", text: "juste une commission?" }] },
+    ])
+    expect(reply.toLowerCase()).toMatch(/marge|markup/)
   })
 })
 
