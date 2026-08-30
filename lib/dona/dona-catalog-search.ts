@@ -10,7 +10,7 @@ import { expandMarketplaceSearchTerms } from "@/lib/marketplace-search"
 import { primaryProductImage } from "@/lib/product-images"
 import { publicPartnerSellerLabel } from "@/lib/public-seller-display"
 
-import type { DonaProductHit, DonaSearchToolResult } from "@/lib/dona/dona-product-types"
+import type { DonaProductHit, DonaProductToolResult } from "@/lib/dona/dona-product-types"
 
 type ListingRow = {
   id: string
@@ -142,10 +142,10 @@ async function findSimilarListings(
 export async function searchCatalogForDona(
   db: PrismaClient,
   rawQuery: string
-): Promise<DonaSearchToolResult> {
+): Promise<DonaProductToolResult> {
   const q = rawQuery.trim()
   if (!q) {
-    return { products: [], similarProducts: [], suggestedCategories: [] }
+    return { products: [], similarProducts: [], suggestedCategories: [], hubUrl: null, hubWindow: null }
   }
 
   const searchTerms = expandMarketplaceSearchTerms(q)
@@ -207,7 +207,7 @@ export async function searchCatalogForDona(
   if (products.length > 0) {
     const main = products.slice(0, 3)
     const similarProducts = await findSimilarListings(db, main, q)
-    return { products: main, similarProducts, suggestedCategories: [] }
+    return { products: main, similarProducts, suggestedCategories: [], hubUrl: null, hubWindow: null }
   }
 
   const sample = await db.affiliateProduct.findMany({
@@ -223,5 +223,5 @@ export async function searchCatalogForDona(
     ),
   ].slice(0, 12)
 
-  return { products: [], similarProducts: [], suggestedCategories }
+  return { products: [], similarProducts: [], suggestedCategories, hubUrl: null, hubWindow: null }
 }

@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest"
 import {
   buildDonaSearchToolLines,
   encodeDonaSearchRow,
-  parseDonaSearchToolOutput,
+  mergeDonaProductToolResults,
+  parseDonaProductToolOutput,
 } from "@/lib/dona/dona-search-tool-lines"
 import type { DonaProductHit } from "@/lib/dona/dona-product-types"
 
@@ -25,15 +26,33 @@ describe("dona search tool lines", () => {
     expect(parsed.listingId).toBe("clisting123")
   })
 
-  it("round-trips tool output", () => {
-    const lines = buildDonaSearchToolLines({
-      products: [sampleHit],
-      similarProducts: [],
-      suggestedCategories: [],
-    })
-    const data = parseDonaSearchToolOutput(lines)
-    expect(data?.products[0]?.url).toBe("/marketplace/clisting123")
-    expect(data?.products[0]?.name).toBe("Montre connectée Pro")
+  it("round-trips tool output with hub metadata", () => {
+    const lines = [
+      JSON.stringify({ t: "hub", url: "/bestsellers", window: "7d" }),
+      encodeDonaSearchRow({ ...sampleHit, rank: 1, soldCount: 12 }, 0),
+    ]
+    const data = parseDonaProductToolOutput(lines)
+    expect(data.hubUrl).toBe("/bestsellers")
+    expect(data.products[0]?.rank).toBe(1)
+    expect(data.products[0]?.soldCount).toBe(12)
+  })
+
+  it("merges duplicate tool calls into one rail", () => {
+    const empty = parseDonaProductToolOutput(
+      buildDonaSearchToolLines({
+        products: [],
+        similarProducts: [],
+        suggestedCategories: ["Fashion"],
+        hubUrl: null,
+        hubWindow: null,
+      })
+    )
+    const hit = parseDonaProductToolOutput([
+      encodeDonaSearchRow({ ...sampleHit, rank: 1 }, 0),
+    ])
+    const merged = mergeDonaProductToolResults([empty, empty, hit])
+    expect(merged.products).toHaveLength(1)
+    expect(merged.suggestedCategories).toContain("Fashion")
   })
 
   it("parses category hints when no hits", () => {
@@ -41,9 +60,11 @@ describe("dona search tool lines", () => {
       products: [],
       similarProducts: [],
       suggestedCategories: ["Electronics", "Fashion"],
+      hubUrl: null,
+      hubWindow: null,
     })
-    const data = parseDonaSearchToolOutput(lines)
-    expect(data?.products).toEqual([])
-    expect(data?.suggestedCategories).toEqual(["Electronics", "Fashion"])
+    const data = parseDonaProductToolOutput(lines)
+    expect(data.products).toEqual([])
+    expect(data.suggestedCategories).toEqual(["Electronics", "Fashion"])
   })
 })

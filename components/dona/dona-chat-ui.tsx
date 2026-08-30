@@ -4,9 +4,10 @@ import type { UIMessage } from "ai"
 
 import { DonaLinkifiedText } from "@/components/dona/dona-linkify-text"
 import {
-  DonaToolSearchProductsPart,
-  type DonaSearchProductsToolPart,
-} from "@/components/dona/dona-tool-search-products"
+  DonaProductToolsRail,
+  isProductToolPart,
+  type DonaProductToolPart,
+} from "@/components/dona/dona-product-tools-rail"
 import { resolveDonaChatError } from "@/lib/dona/dona-errors"
 import {
   donaAssistantHasContent,
@@ -81,7 +82,7 @@ export function DonaAssistantBubble({ text }: { text: string }) {
 export function DonaAssistantMessage({ message }: { message: UIMessage }) {
   const text = donaMessageText(message)
   const hasText = text.trim().length > 0
-  const toolParts = message.parts.filter((p) => p.type === "tool-searchProducts")
+  const toolParts = message.parts.filter(isProductToolPart) as DonaProductToolPart[]
 
   return (
     <div className="mr-auto max-w-[85%] rounded-2xl rounded-bl-sm border border-white/10 bg-[#1A1A3D] px-4 py-2.5 text-sm leading-relaxed text-white">
@@ -89,15 +90,7 @@ export function DonaAssistantMessage({ message }: { message: UIMessage }) {
         💜
       </span>
       {hasText ? <DonaLinkifiedText text={text} /> : null}
-      {toolParts.map((part, idx) => {
-        if (part.type !== "tool-searchProducts") return null
-        return (
-          <DonaToolSearchProductsPart
-            key={`tool-${"toolCallId" in part && typeof part.toolCallId === "string" ? part.toolCallId : idx}`}
-            part={part as DonaSearchProductsToolPart}
-          />
-        )
-      })}
+      {toolParts.length > 0 ? <DonaProductToolsRail parts={toolParts} /> : null}
       <span className="mt-1 block text-[10px] text-white/40">{formatDonaTime(new Date())}</span>
     </div>
   )

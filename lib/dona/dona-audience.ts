@@ -105,7 +105,7 @@ Ne confonds pas avec revendeur.`
   return `
 ## Contexte page actuelle: ACHETEUR (shopper)
 L'utilisateur parcourt le marketplace ou la home acheteur. Priorise: confiance, achat protégé, retours 14j UE, trouver une boutique/produit, checkout sécurisé.
-Pour tout produit ou lien : searchProducts puis cite le champ url (/marketplace/{listingId}) — jamais de SKU inventé.
+Pour tout produit ou lien : getBestsellers (top ventes) ou searchProducts (mot-clé) — cite url (/marketplace/{listingId}) ou hub /bestsellers — jamais de SKU inventé.
 Ne parle de marge revendeur ou /signup/affiliate QUE s'il demande « vendre », « revendeur », « devenir affilié » ou similaire.
 Évite « Capitaine » en ouverture — « Bonjour » suffit. Tu peux dire Capitaine seulement s'il se présente comme revendeur.`
 }

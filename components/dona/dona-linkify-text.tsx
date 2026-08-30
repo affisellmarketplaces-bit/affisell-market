@@ -6,7 +6,8 @@ import type { ReactNode } from "react"
 import type { DonaProductHit } from "@/lib/dona/dona-product-types"
 import { formatStoreCurrency } from "@/lib/market-config"
 
-const INTERNAL_PATH_RE = /^(\/(?:marketplace|product|discover|shops|cart|checkout|signup|login)[^\s]*)/i
+const INTERNAL_PATH_RE =
+  /^(\/(?:marketplace|product|discover|bestsellers|shops|cart|checkout|signup|login)[^\s]*)/i
 const MARKDOWN_LINK_RE = /\[([^\]]+)\]\(([^)]+)\)/g
 const BARE_URL_RE = /(https?:\/\/[^\s]+)/g
 

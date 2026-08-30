@@ -8,10 +8,20 @@ export type DonaProductHit = {
   brand: string
   /** Canonical shopper path — `/marketplace/{listingId}` */
   url: string
+  /** Live 7d rank when from getBestsellers */
+  rank?: number
+  /** Orders in rolling window when from getBestsellers */
+  soldCount?: number
 }
 
-export type DonaSearchToolResult = {
+export type DonaProductToolResult = {
   products: DonaProductHit[]
   similarProducts: DonaProductHit[]
   suggestedCategories: string[]
+  /** Full ranked list hub — `/bestsellers` */
+  hubUrl: string | null
+  hubWindow: string | null
 }
+
+/** @deprecated alias */
+export type DonaSearchToolResult = DonaProductToolResult
