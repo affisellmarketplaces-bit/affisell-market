@@ -3,6 +3,7 @@ import {
   stripeCheckoutAllowedCountries,
 } from "@/lib/eu-market-countries"
 import type { AppLocale } from "@/lib/i18n-locale"
+import { DEFAULT_LOCALE } from "@/lib/i18n-locale"
 import { intlLocaleTag } from "@/lib/i18n-ui-locale"
 import { tMessage } from "@/lib/i18n-pick-message"
 import { visitorCountryDisplayName } from "@/lib/visitor-country"
@@ -112,7 +113,7 @@ export function intersectProductDeliveryCountries(
 
 export function formatDeliveryCountriesSummary(
   codes: string[],
-  locale: AppLocale = "fr"
+  locale: AppLocale = DEFAULT_LOCALE
 ): string {
   if (codes.includes(DELIVERY_WORLDWIDE)) {
     return tMessage(locale, "Product.logistics.deliveryCountries.worldwide", "Worldwide")

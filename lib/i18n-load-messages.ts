@@ -22,6 +22,8 @@ const FULL_BUNDLES: Record<AppLocale, AbstractIntlMessages> = {
   zh: zh as unknown as AbstractIntlMessages,
 }
 
+const MERGED_CACHE = new Map<AppLocale, AbstractIntlMessages>()
+
 function buildLocaleMessages(locale: AppLocale): AbstractIntlMessages {
   if (locale === "en") return FULL_BUNDLES.en
   const override = FULL_BUNDLES[locale]
@@ -31,7 +33,11 @@ function buildLocaleMessages(locale: AppLocale): AbstractIntlMessages {
 
 /** Server + client message bundles — EN base with locale overrides (missing keys fall back to EN). */
 export function loadAppMessages(locale: AppLocale): AbstractIntlMessages {
-  return buildLocaleMessages(locale)
+  const cached = MERGED_CACHE.get(locale)
+  if (cached) return cached
+  const built = buildLocaleMessages(locale)
+  MERGED_CACHE.set(locale, built)
+  return built
 }
 
 export const CLIENT_MESSAGES: Record<AppLocale, AbstractIntlMessages> = {

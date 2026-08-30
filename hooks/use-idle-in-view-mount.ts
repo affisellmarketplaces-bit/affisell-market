@@ -15,8 +15,8 @@ type Options = {
 }
 
 /**
- * Defer heavy client trees until the anchor enters the viewport OR idle elapses.
- * Uses startTransition when flipping ready — keeps home TBT low (no “Page ne répond pas”).
+ * Defer heavy client trees until the anchor is in view **and** idle budget elapsed.
+ * Prevents `/#explorer` from synchronously loading MarketplaceView on first paint (Safari freeze).
  */
 export function useIdleInViewMount(options: Options = {}) {
   const {
@@ -35,7 +35,7 @@ export function useIdleInViewMount(options: Options = {}) {
   }, [idleTimeoutMs, fallbackDelayMs])
 
   useEffect(() => {
-    if (!ready && (inView || idleReady)) {
+    if (!ready && idleReady && inView) {
       startTransition(() => setReady(true))
     }
   }, [inView, idleReady, ready])

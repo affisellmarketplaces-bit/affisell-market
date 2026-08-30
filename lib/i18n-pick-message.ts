@@ -1,6 +1,6 @@
 import type { AbstractIntlMessages } from "next-intl"
 
-import { loadAppMessages } from "@/lib/i18n-load-messages"
+import { CLIENT_MESSAGES } from "@/lib/i18n-load-messages"
 import type { AppLocale } from "@/lib/i18n-locale"
 
 function getNestedValue(messages: AbstractIntlMessages, path: string): unknown {
@@ -13,13 +13,14 @@ function getNestedValue(messages: AbstractIntlMessages, path: string): unknown {
   return cur
 }
 
-/** Resolve a dotted message path from full locale bundles (falls back to EN). */
+/** Resolve a dotted message path from pre-merged locale bundles (falls back to EN). */
 export function tMessage(locale: AppLocale, path: string, fallback?: string): string {
-  const primary = getNestedValue(loadAppMessages(locale), path)
+  const bundle = CLIENT_MESSAGES[locale] ?? CLIENT_MESSAGES.en
+  const primary = getNestedValue(bundle, path)
   if (typeof primary === "string" && primary.trim()) return primary
 
   if (locale !== "en") {
-    const en = getNestedValue(loadAppMessages("en"), path)
+    const en = getNestedValue(CLIENT_MESSAGES.en, path)
     if (typeof en === "string" && en.trim()) return en
   }
 

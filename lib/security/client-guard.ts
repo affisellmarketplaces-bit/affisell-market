@@ -2,8 +2,11 @@
 
 let initialized = false
 let clientScore = 100
+const reportedBotReasons = new Set<string>()
 
 function reportClientBot(reason: string): void {
+  if (reportedBotReasons.has(reason)) return
+  reportedBotReasons.add(reason)
   void fetch("/api/security/logs", {
     method: "POST",
     credentials: "same-origin",

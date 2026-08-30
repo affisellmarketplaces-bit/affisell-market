@@ -28,9 +28,9 @@ type Props = {
  */
 export function HomeCatalogDeferredExplorer({ shell, staticCatalog }: Props) {
   const { ref, ready: interactive } = useIdleInViewMount({
-    idleTimeoutMs: 8000,
-    fallbackDelayMs: 4200,
-    rootMargin: "200px 0px",
+    idleTimeoutMs: 9000,
+    fallbackDelayMs: 4800,
+    rootMargin: "120px 0px",
   })
   const lcpImages = pickHomeLcpImageUrls(shell.products, 4)
 
