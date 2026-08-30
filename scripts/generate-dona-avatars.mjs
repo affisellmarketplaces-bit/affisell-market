@@ -15,13 +15,17 @@ const root = path.join(__dirname, "..")
 const publicDir = path.join(root, "public")
 
 const SOURCE_CANDIDATES = [
+  path.join(root, "assets/dona-avatar-source.jpg"),
   "/mnt/data/gallery/professional_portrait_badge.webp",
   "/mnt/data/french_ceo_headshot.jpg",
   path.join(
     root,
+    "../.cursor/projects/Users-nelson-affisell-market/assets/professional_portrait_badge-77e8a285-a916-457f-9a31-371cc495141d.jpg"
+  ),
+  path.join(
+    root,
     "../.cursor/projects/Users-nelson-affisell-market/assets/professional_portrait_badge-504488a2-38b7-43ef-9fe9-0148430616d7.jpg"
   ),
-  path.join(root, "assets/professional_portrait_badge.jpg"),
 ]
 
 function resolveSource() {
@@ -38,7 +42,7 @@ function circleMask(size) {
   )
 }
 
-async function writeSquareWebp(input, size, dest, position = "top") {
+async function writeSquareWebp(input, size, dest, position = "attention") {
   await sharp(input)
     .rotate()
     .resize(size, size, { fit: "cover", position })
@@ -46,7 +50,7 @@ async function writeSquareWebp(input, size, dest, position = "top") {
     .toFile(dest)
 }
 
-async function writeCircleWebp(input, size, dest, position = "top") {
+async function writeCircleWebp(input, size, dest, position = "attention") {
   const resized = await sharp(input)
     .rotate()
     .resize(size, size, { fit: "cover", position })

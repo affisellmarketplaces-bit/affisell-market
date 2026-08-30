@@ -4,8 +4,8 @@ import { useState } from "react"
 
 import { cn } from "@/lib/utils"
 
-/** Official Captain Dona bubble crop (256×256, circular alpha). */
-export const DONA_AVATAR_CIRCLE_SRC = "/dona-avatar-circle.webp"
+/** Official Captain Dona bubble crop (256×256, circular alpha). Bump ?v= when portrait changes. */
+export const DONA_AVATAR_CIRCLE_SRC = "/dona-avatar-circle.webp?v=2"
 
 type DonaAvatarImageProps = {
   className?: string
