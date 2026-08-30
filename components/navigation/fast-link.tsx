@@ -1,7 +1,7 @@
 "use client"
 
 import NextLink from "next/link"
-import { useCallback, type ComponentProps } from "react"
+import { useCallback, type ComponentProps, type FocusEvent, type MouseEvent, type TouchEvent } from "react"
 
 import { Link as LocaleLink, useRouter as useLocaleRouter } from "@/i18n/navigation"
 import { normalizePrefetchHref } from "@/lib/prefetch-href.client"
@@ -57,24 +57,48 @@ export function FastLink(props: Props) {
 
   const shared = {
     prefetch: prefetch ?? true,
-    onMouseEnter: warm,
-    onFocus: warm,
-    onTouchStart: warm,
     className: cn("affisell-fast-link", className),
   }
 
+  const nextRest = rest as Omit<NextLinkProps, "href" | "children"> & {
+    onMouseEnter?: NextLinkProps["onMouseEnter"]
+    onFocus?: NextLinkProps["onFocus"]
+    onTouchStart?: NextLinkProps["onTouchStart"]
+  }
+  const {
+    onMouseEnter: userMouseEnter,
+    onFocus: userFocus,
+    onTouchStart: userTouchStart,
+    ...linkRest
+  } = nextRest
+
+  const composed = {
+    ...shared,
+    onMouseEnter: (event: MouseEvent<HTMLAnchorElement>) => {
+      warm()
+      userMouseEnter?.(event)
+    },
+    onFocus: (event: FocusEvent<HTMLAnchorElement>) => {
+      warm()
+      userFocus?.(event)
+    },
+    onTouchStart: (event: TouchEvent<HTMLAnchorElement>) => {
+      warm()
+      userTouchStart?.(event)
+    },
+  }
+
   if (localeAware) {
-    const localeRest = rest as Omit<LocaleLinkProps, "href" | "children">
+    const localeRest = linkRest as Omit<LocaleLinkProps, "href" | "children">
     return (
-      <LocaleLink href={href} {...shared} {...localeRest}>
+      <LocaleLink href={href} {...composed} {...localeRest}>
         {children}
       </LocaleLink>
     )
   }
 
-  const nextRest = rest as Omit<NextLinkProps, "href" | "children">
   return (
-    <NextLink href={href} {...shared} {...nextRest}>
+    <NextLink href={href} {...composed} {...linkRest}>
       {children}
     </NextLink>
   )

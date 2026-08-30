@@ -192,9 +192,10 @@ export function HomeBuyerFeaturedShopsDeck({
         href={href}
         className={cn(
           buyerServiceTileClass,
-          "lg:min-h-[7.25rem] lg:pb-3.5",
+          "relative z-[1] lg:min-h-[7.25rem] lg:pb-3.5",
           "max-lg:min-h-[5rem]"
         )}
+        scroll
         aria-label={front ? `${label}: ${front.name}` : label}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
@@ -227,7 +228,7 @@ export function HomeBuyerFeaturedShopsDeck({
         </span>
 
         <div
-          className="relative mx-auto h-[4.2rem] w-[6.25rem] shrink-0 [perspective:900px] max-lg:order-3 max-lg:scale-[0.78] lg:mt-1 lg:h-[5.1rem] lg:w-full lg:max-w-[9.5rem]"
+          className="pointer-events-none relative mx-auto h-[4.2rem] w-[6.25rem] shrink-0 [perspective:900px] max-lg:order-3 max-lg:scale-[0.78] lg:mt-1 lg:h-[5.1rem] lg:w-full lg:max-w-[9.5rem]"
           aria-hidden
         >
           {stack.map((card, depth) => (

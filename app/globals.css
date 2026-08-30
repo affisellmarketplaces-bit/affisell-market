@@ -3046,6 +3046,10 @@ button,
     scroll-snap-type: x mandatory;
     touch-action: pan-x;
   }
+
+  .home-buyer-tiles-rail .affisell-fast-link {
+    touch-action: manipulation;
+  }
 }
 
 /* —— Home embedded catalog — mobile glass shell —— */

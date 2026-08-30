@@ -104,7 +104,7 @@ export async function BuyerHeroBlock() {
             {t("creatorLink")}
           </FastLink>
         </div>
-        <div className="hidden md:block">
+        <div className="mt-2 sm:mt-8">
           <Suspense fallback={<HomeBuyerSmartStripFallback />}>
             <HomeBuyerSmartStrip />
           </Suspense>
