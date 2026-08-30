@@ -7,6 +7,7 @@ import {
   streamText,
   type ToolSet,
   type UIMessage,
+  type UIMessageStreamWriter,
 } from "ai"
 
 import { logBusiness } from "@/lib/business-log"
@@ -26,7 +27,7 @@ export type RunDonaStreamOptions = {
   logPrefix: "dona-public" | "dona-captain"
 }
 
-type StreamWriter = { write: (part: unknown) => void }
+type DonaStreamWriter = UIMessageStreamWriter<UIMessage>
 
 function chunkText(text: string, size: number): string[] {
   const chunks: string[] = []
@@ -36,7 +37,7 @@ function chunkText(text: string, size: number): string[] {
   return chunks
 }
 
-function writeAssistantTextStream(writer: StreamWriter, text: string, messageId: string) {
+function writeAssistantTextStream(writer: DonaStreamWriter, text: string, messageId: string) {
   writer.write({ type: "start", messageId })
   writer.write({ type: "start-step" })
   writer.write({ type: "text-start", id: messageId })
@@ -49,7 +50,7 @@ function writeAssistantTextStream(writer: StreamWriter, text: string, messageId:
 }
 
 function writeOfflineFallback(
-  writer: StreamWriter,
+  writer: DonaStreamWriter,
   opts: RunDonaStreamOptions,
   mode: "public" | "captain"
 ) {
@@ -62,7 +63,7 @@ function writeOfflineFallback(
 }
 
 async function streamWithToolAttempts(
-  writer: StreamWriter,
+  writer: DonaStreamWriter,
   opts: RunDonaStreamOptions,
   modelMessages: Awaited<ReturnType<typeof convertToModelMessages>>,
   attempts: ReturnType<typeof resolveDonaModelAttempts>
@@ -138,7 +139,7 @@ async function streamWithToolAttempts(
 }
 
 async function streamPublicTextAttempts(
-  writer: StreamWriter,
+  writer: DonaStreamWriter,
   opts: RunDonaStreamOptions,
   modelMessages: Awaited<ReturnType<typeof convertToModelMessages>>,
   attempts: ReturnType<typeof resolveDonaModelAttempts>
