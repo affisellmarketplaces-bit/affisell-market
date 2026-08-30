@@ -136,7 +136,7 @@ export function DonaCaptainWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 28, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 34 }}
-            className="fixed inset-0 z-[110] flex flex-col border-2 border-violet-500/60 bg-[#0E0E2C]/98 backdrop-blur-md md:inset-auto md:bottom-24 md:right-6 md:h-[600px] md:w-[420px] md:rounded-2xl md:shadow-2xl"
+            className="affisell-dona-panel-mobile fixed inset-0 z-[110] flex flex-col border-2 border-violet-500/60 bg-[#0E0E2C]/98 backdrop-blur-md md:inset-auto md:bottom-24 md:right-6 md:h-[600px] md:w-[420px] md:rounded-2xl md:shadow-2xl"
             role="dialog"
             aria-label="Dona Capitaine — mode privé"
           >
@@ -290,7 +290,7 @@ export function DonaCaptainWidget() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-[109] flex size-14 items-center justify-center overflow-hidden rounded-full border-2 border-black bg-[#0E0E2C] shadow-[0_0_18px_rgba(124,58,237,0.35)] transition hover:border-violet-400"
+          className="affisell-dona-fab fixed z-[109] flex size-14 items-center justify-center overflow-hidden rounded-full border-2 border-black bg-[#0E0E2C] shadow-[0_0_18px_rgba(124,58,237,0.35)] transition hover:border-violet-400 max-md:active:scale-95"
           aria-label="Ouvrir Dona Capitaine"
         >
           <DonaAvatarImage

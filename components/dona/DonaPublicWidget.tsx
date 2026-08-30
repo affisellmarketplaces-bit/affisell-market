@@ -91,7 +91,7 @@ export function DonaPublicWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
             transition={{ type: "spring", stiffness: 420, damping: 32 }}
-            className="fixed inset-0 z-[100] flex flex-col bg-[#0E0E2C]/95 backdrop-blur-md md:inset-auto md:bottom-24 md:right-6 md:h-[520px] md:w-[380px] md:rounded-2xl md:border md:border-violet-500/20 md:shadow-2xl"
+            className="affisell-dona-panel-mobile fixed inset-0 z-[100] flex flex-col bg-[#0E0E2C]/95 backdrop-blur-md md:inset-auto md:bottom-24 md:right-6 md:h-[520px] md:w-[380px] md:rounded-2xl md:border md:border-violet-500/20 md:shadow-2xl"
             role="dialog"
             aria-label="Dona — IA de bord Affisell"
           >
@@ -184,7 +184,7 @@ export function DonaPublicWidget() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-[99] flex size-14 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#7C3AED] shadow-xl ring-2 ring-violet-200 transition hover:scale-105 hover:bg-violet-500"
+          className="affisell-dona-fab fixed z-[99] flex size-14 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#7C3AED] shadow-xl ring-2 ring-violet-200 transition hover:scale-105 hover:bg-violet-500 max-md:active:scale-95"
           aria-label="Ouvrir Dona — IA de bord"
         >
           <DonaAvatarImage

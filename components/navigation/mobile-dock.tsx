@@ -23,6 +23,7 @@ import { affisellBrand } from "@/lib/affisell-brand"
 import { barePathname, shouldHideMobileDock } from "@/lib/mobile-chrome"
 import { resolveMobileDockItems, type MobileDockItemId } from "@/lib/mobile-dock-config"
 import { resolvePublicNavMode } from "@/lib/public-nav-mode"
+import { scheduleIdleTask } from "@/lib/schedule-idle-task"
 import { cn } from "@/lib/utils"
 
 const DOCK_ICONS: Record<MobileDockItemId, LucideIcon> = {
@@ -49,11 +50,17 @@ export function MobileDock() {
   const [compact, setCompact] = useState(false)
   const [scrollHidden, setScrollHidden] = useState(false)
   const [footerVisible, setFooterVisible] = useState(false)
+  const [scrollFxReady, setScrollFxReady] = useState(false)
   const hidden =
     role === "AFFILIATE" || role === "SUPPLIER" || shouldHideMobileDock(pathname)
 
   useEffect(() => {
     if (hidden) return
+    return scheduleIdleTask(() => setScrollFxReady(true), 2200, 500)
+  }, [hidden])
+
+  useEffect(() => {
+    if (hidden || !scrollFxReady) return
 
     let lastY = window.scrollY
     let ticking = false
@@ -77,10 +84,10 @@ export function MobileDock() {
     syncCompact()
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
-  }, [hidden])
+  }, [hidden, scrollFxReady])
 
   useEffect(() => {
-    if (hidden) return
+    if (hidden || !scrollFxReady) return
 
     const footer = document.querySelector(".affisell-site-footer")
     if (!footer) return
@@ -100,7 +107,7 @@ export function MobileDock() {
 
     observer.observe(footer)
     return () => observer.disconnect()
-  }, [hidden])
+  }, [hidden, scrollFxReady])
 
   if (hidden) return null
 

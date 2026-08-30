@@ -417,6 +417,31 @@ body.affisell-demo-lab .affisell-header-shell {
     body.affisell-mobile-dock-off .affisell-site-footer__pad {
       padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
     }
+
+    /* Dona FAB — sits above thumb dock, respects notch/home indicator */
+    .affisell-dona-fab {
+      bottom: calc(var(--affisell-mobile-dock-offset) + 0.5rem);
+      right: max(0.875rem, env(safe-area-inset-right, 0px));
+    }
+
+    body.affisell-mobile-dock-off .affisell-dona-fab {
+      bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+    }
+
+    .affisell-dona-panel-mobile {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    .affisell-dona-panel-mobile form {
+      padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+    }
+  }
+}
+
+@media (min-width: 768px) {
+  .affisell-dona-fab {
+    bottom: 1.5rem;
+    right: 1.5rem;
   }
 }
 
