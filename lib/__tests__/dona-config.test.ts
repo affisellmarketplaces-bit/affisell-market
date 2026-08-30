@@ -1,6 +1,6 @@
 import { describe, expect, it, afterEach } from "vitest"
 
-import { getEnvInfo } from "@/lib/dona/config"
+import { getEnvInfo } from "@/lib/env"
 
 describe("getEnvInfo", () => {
   const envBackup = { ...process.env }

@@ -3,7 +3,7 @@ import { describe, expect, it, afterEach } from "vitest"
 import {
   findStagingDatabaseUrlFromEnv,
   getDatabaseUrl,
-  loadEnv,
+  normalizePostgresDatabaseUrl,
   resolveDatabaseUrlOptional,
   resolveStagingDatabaseUrl,
 } from "@/lib/env"
@@ -63,10 +63,13 @@ describe("lib/env", () => {
     expect(resolveStagingDatabaseUrl()).toContain("ep-shy-wind")
   })
 
-  it("loadEnv is idempotent", () => {
-    expect(() => {
-      loadEnv()
-      loadEnv()
-    }).not.toThrow()
+  it("normalizePostgresDatabaseUrl fixes double postgresql: scheme", () => {
+    expect(
+      normalizePostgresDatabaseUrl(
+        "postgresql:postgresql://u:p@ep-shy-wind-aly4bmc7.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+      )
+    ).toBe(
+      "postgresql://u:p@ep-shy-wind-aly4bmc7.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+    )
   })
 })

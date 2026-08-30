@@ -5,8 +5,7 @@
  */
 import chalk from "chalk"
 
-import { loadEnv } from "../lib/env.mjs"
-import { getEnvInfo } from "../lib/dona/config.mjs"
+import { getEnvInfo, loadEnv } from "../lib/env.loader.mjs"
 
 loadEnv()
 

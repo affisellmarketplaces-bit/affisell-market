@@ -6,7 +6,11 @@ import { spawnSync } from "node:child_process"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { applyStagingDevEnv, loadEnv, resolveStagingDatabaseUrl } from "../lib/env.mjs"
+import {
+  applyStagingDevEnv,
+  loadEnv,
+  resolveStagingDatabaseUrl,
+} from "../lib/env.loader.mjs"
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)))
 
