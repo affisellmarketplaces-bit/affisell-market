@@ -17,7 +17,7 @@ import { SupplierCategoryPicker, type BrowsePayload } from "@/components/supplie
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { pathFromLeafId, type CategoryPathSegment, type RecentCategoryEntry } from "@/lib/category-browse"
+import { pathFromLeafId, type CategoryPathSegment, type RecentCategoryEntry } from "@/lib/category-browse-shared"
 import type { ParsedBulkProductRow } from "@/lib/supplier-bulk-excel"
 import { errorsToCsv } from "@/lib/supplier-bulk-excel"
 import { cn } from "@/lib/utils"

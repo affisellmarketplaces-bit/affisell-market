@@ -12,7 +12,7 @@ import {
   CORE_SPEC_FIELDS_PRESET,
   mergeCoreCategoryAttrs,
 } from "@/lib/category-attribute-core"
-import type { CategoryAttributeValidationRule } from "@/lib/category-attribute-rules"
+import type { CategoryAttributeValidationRule } from "@/lib/category-attribute-rules-shared"
 import { readJsonResponse } from "@/lib/read-json-response"
 import {
   buildCategorySelectSuggestions,
@@ -20,7 +20,7 @@ import {
   datalistIdForAttribute,
   freeTextSelectPlaceholder,
 } from "@/lib/category-attribute-select-ui"
-import { filterVisibleCategoryAttributes } from "@/lib/category-attribute-rules"
+import { filterVisibleCategoryAttributes } from "@/lib/category-attribute-rules-shared"
 import { cn } from "@/lib/utils"
 
 export { CORE_SPEC_FIELDS_PRESET, mergeCoreCategoryAttrs }

@@ -10,7 +10,7 @@ import type {
   CategoryPathSegment,
   LeafPath,
   RecentCategoryEntry,
-} from "@/lib/category-browse"
+} from "@/lib/category-browse-shared"
 import type { CategoryAlternativeSuggestion } from "@/lib/category-title-match"
 import type { ListingProductInsight } from "@/lib/listing-product-signal"
 import type { ListingCategorySuggestion } from "@/lib/supplier-suggest-listing"

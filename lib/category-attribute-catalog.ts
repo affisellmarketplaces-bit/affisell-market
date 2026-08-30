@@ -1,3 +1,5 @@
+import "server-only"
+
 import type { Attribute, AttributeOption, CategoryAttribute } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"

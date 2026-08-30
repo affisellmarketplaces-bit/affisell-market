@@ -5,7 +5,7 @@ import AsyncSelect from "react-select/async"
 import type { GroupBase, SingleValue, StylesConfig } from "react-select"
 
 import type { BrowsePayload } from "@/components/supplier/supplier-category-picker"
-import { pathFromLeafId, type CategoryPathSegment } from "@/lib/category-browse"
+import { pathFromLeafId, type CategoryPathSegment } from "@/lib/category-browse-shared"
 
 export type CategorySelectOption = {
   value: string

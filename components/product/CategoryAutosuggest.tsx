@@ -4,7 +4,7 @@ import { Loader2, Sparkles } from "lucide-react"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useDebounce } from "use-debounce"
 import type { BrowsePayload } from "@/components/supplier/supplier-category-picker"
-import { pathFromLeafId, type CategoryPathSegment } from "@/lib/category-browse"
+import { pathFromLeafId, type CategoryPathSegment } from "@/lib/category-browse-shared"
 import { cn } from "@/lib/utils"
 
 export type ClassifyApiSuggestion = {

@@ -4,7 +4,7 @@ import { ChevronRight, Loader2, ScanLine, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import type { PendingCategoryConfirmation } from "@/components/supplier/supplier-category-confirm-types"
-import type { CategoryPathSegment } from "@/lib/category-browse"
+import type { CategoryPathSegment } from "@/lib/category-browse-shared"
 import { hasListingClassificationSignal, isDurableListingImageUrl } from "@/lib/supplier-auto-category-policy"
 import type { ListingProductInsight } from "@/lib/listing-product-signal"
 import type { ListingCategorySuggestion } from "@/lib/supplier-suggest-listing"

@@ -1,3 +1,5 @@
+import "server-only"
+
 if (typeof window !== "undefined") {
   throw new Error("PrismaClient cannot be used in the browser")
 }

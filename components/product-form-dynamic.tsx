@@ -12,7 +12,7 @@ import type { CategoryAttributeDto } from "@/lib/category-attribute-api"
 import {
   filterVisibleCategoryAttributes,
   pruneHiddenCategoryAttributeValues,
-} from "@/lib/category-attribute-rules"
+} from "@/lib/category-attribute-rules-shared"
 
 function dtoToRow(d: CategoryAttributeDto): CategoryAttrRow {
   return {

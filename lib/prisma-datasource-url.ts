@@ -1,3 +1,5 @@
+import "server-only"
+
 import { getDatabaseUrl } from "@/lib/env"
 import { normalizeDirectDatabaseUrl } from "@/lib/ensure-database-url-unpooled"
 

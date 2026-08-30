@@ -28,9 +28,24 @@ function resolveLibModule(libImport) {
   return null
 }
 
+const CLIENT_BLOCKED_LIB_IMPORTS = new Set([
+  "category-browse",
+  "category-attribute-rules",
+  "category-attribute-resolution",
+  "category-attribute-catalog",
+  "prisma",
+  "env.loader",
+])
+
 function libFileIsServerOnly(filePath) {
   const src = fs.readFileSync(filePath, "utf8")
   return src.includes('"server-only"') || src.includes("'server-only'")
+}
+
+function libImportIsBlockedForClient(libImport) {
+  if (CLIENT_BLOCKED_LIB_IMPORTS.has(libImport)) return true
+  if (libImport.endsWith(".server") || libImport.includes(".server.")) return true
+  return false
 }
 
 function libImportLoadsPrisma(libImport, seen = new Set()) {
@@ -91,7 +106,7 @@ for (const file of walk(ROOT)) {
   if (!isClientFile(file, src)) continue
 
   for (const libImport of parseLibImports(src)) {
-    if (libImport.endsWith(".server") || libImport.includes(".server.")) {
+    if (libImportIsBlockedForClient(libImport)) {
       violations.push({ client: path.relative(ROOT, file), lib: `@/lib/${libImport}` })
       continue
     }

@@ -1,7 +1,7 @@
 import type { CategoryAttribute } from "@prisma/client"
 
-import type { CategoryAttributeValidationRule } from "@/lib/category-attribute-rules"
-import { parseValidationRule } from "@/lib/category-attribute-rules"
+import type { CategoryAttributeValidationRule } from "@/lib/category-attribute-rules-shared"
+import { parseValidationRule } from "@/lib/category-attribute-rules-shared"
 
 export type CategoryAttributeOptionDto = {
   id: string

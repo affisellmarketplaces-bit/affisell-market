@@ -69,7 +69,7 @@ import {
   pathFromLeafId,
   type CategoryPathSegment,
   type RecentCategoryEntry,
-} from "@/lib/category-browse"
+} from "@/lib/category-browse-shared"
 import {
   DEFAULT_PRODUCT_OFFER_MODE,
   normalizeMinOrderQuantity,

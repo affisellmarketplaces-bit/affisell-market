@@ -1,4 +1,4 @@
-import type { LeafPath } from "@/lib/category-browse"
+import type { LeafPath } from "@/lib/category-browse-shared"
 
 const STOP = new Set([
   "the",

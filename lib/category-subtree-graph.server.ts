@@ -4,7 +4,7 @@ import {
   categorySubtreeGraphFromRows,
   type CategorySubtreeGraph,
   type CategorySubtreeRow,
-} from "@/lib/category-browse"
+} from "@/lib/category-browse-shared"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
 
 /** Taxonomy changes rarely — 10 min cross-request cache avoids 5k-row findMany on every browse hit. */
