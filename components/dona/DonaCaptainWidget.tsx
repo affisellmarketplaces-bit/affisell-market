@@ -7,24 +7,20 @@ import { Send, X } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 
+import {
+  donaCaptainGenericError,
+  donaMessageText,
+  donaResolvedError,
+  DonaTypingIndicator,
+  resolvePublicLocale,
+} from "@/components/dona/dona-chat-ui"
+
 type CaptainMeta = {
   env: string
   branch: string
   dbHost: string
   isProd: boolean
   label: string
-}
-
-function resolveLocale(): "fr" | "en" {
-  if (typeof navigator === "undefined") return "fr"
-  return navigator.language.toLowerCase().startsWith("fr") ? "fr" : "en"
-}
-
-function messageText(m: UIMessage): string {
-  return m.parts
-    .filter((p): p is { type: "text"; text: string } => p.type === "text")
-    .map((p) => p.text)
-    .join("")
 }
 
 function shouldShowCaptain(pathname: string): boolean {
@@ -58,20 +54,33 @@ function isToolPart(part: { type: string }): part is ToolPart {
   return part.type.startsWith("tool-")
 }
 
+function assistantHasVisibleParts(m: UIMessage): boolean {
+  if (m.role !== "assistant") return true
+  return m.parts.some(
+    (p) =>
+      (p.type === "text" && "text" in p && Boolean((p as { text: string }).text?.trim())) ||
+      isToolPart(p)
+  )
+}
+
 export function DonaCaptainWidget() {
   const pathname = usePathname() ?? ""
   const [isOpen, setIsOpen] = useState(false)
-  const [locale] = useState(resolveLocale)
+  const [locale] = useState(resolvePublicLocale)
   const [meta, setMeta] = useState<CaptainMeta | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [input, setInput] = useState("")
 
   const { messages, sendMessage, status, error, clearError } = useChat({
     transport: new DefaultChatTransport({ api: "/api/dona/chat-private" }),
+    onError: (err) => {
+      console.error("[dona-captain-widget]", err)
+    },
   })
 
   const busy = status === "submitted" || status === "streaming"
   const visible = shouldShowCaptain(pathname)
+  const errorText = donaResolvedError(error, locale, donaCaptainGenericError(locale))
 
   const welcome = useMemo(
     () =>
@@ -81,6 +90,11 @@ export function DonaCaptainWidget() {
     [locale]
   )
 
+  const renderableMessages = useMemo(
+    () => messages.filter(assistantHasVisibleParts),
+    [messages]
+  )
+
   useEffect(() => {
     if (!visible || !isOpen) return
     void fetch("/api/dona/captain-meta", { credentials: "same-origin" })
@@ -88,13 +102,15 @@ export function DonaCaptainWidget() {
       .then((data: CaptainMeta | null) => {
         if (data) setMeta(data)
       })
-      .catch(() => {})
+      .catch((e) => {
+        console.warn("[dona-captain-widget] captain-meta", e instanceof Error ? e.message : String(e))
+      })
   }, [visible, isOpen])
 
   useEffect(() => {
     if (!isOpen) return
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
-  }, [messages, status, isOpen, busy])
+  }, [messages, status, isOpen, busy, error])
 
   if (!visible) return null
 
@@ -161,7 +177,7 @@ export function DonaCaptainWidget() {
                 {welcome}
               </div>
 
-              {messages.map((m) => (
+              {renderableMessages.map((m) => (
                 <div key={m.id} className="space-y-2">
                   {m.role === "assistant" ? (
                     <>
@@ -170,8 +186,7 @@ export function DonaCaptainWidget() {
                           const tp = part as ToolPart
                           const name = toolNameFromPartType(tp.type)
                           const hasOutput =
-                            tp.state === "output-available" ||
-                            tp.output !== undefined
+                            tp.state === "output-available" || tp.output !== undefined
                           return (
                             <div
                               key={`${m.id}-tool-${idx}`}
@@ -207,28 +222,19 @@ export function DonaCaptainWidget() {
                     </>
                   ) : (
                     <div className="ml-auto max-w-[90%] rounded-2xl rounded-br-sm bg-[#7C3AED] px-4 py-2.5 text-sm text-white">
-                      {messageText(m)}
+                      {donaMessageText(m)}
                     </div>
                   )}
                 </div>
               ))}
 
               {busy ? (
-                <div className="mr-auto text-xs text-white/50">
-                  <span className="inline-flex gap-1 align-middle">
-                    <span className="size-1.5 animate-bounce rounded-full bg-violet-400" />
-                    <span className="size-1.5 animate-bounce rounded-full bg-violet-400 [animation-delay:120ms]" />
-                    <span className="size-1.5 animate-bounce rounded-full bg-violet-400 [animation-delay:240ms]" />
-                  </span>{" "}
-                  Dona consulte le vaisseau…
-                </div>
+                <DonaTypingIndicator label="Dona consulte le vaisseau…" />
               ) : null}
 
               {error ? (
                 <p className="mr-auto max-w-[90%] rounded-xl border border-red-500/30 bg-red-950/40 px-3 py-2 text-xs text-red-100">
-                  {locale === "fr"
-                    ? "Dona Capitaine: accès refusé ou réacteur froid. Reste sur /dashboard/supplier. 💜"
-                    : "Dona Captain: access denied or cold reactor. Stay on /dashboard/supplier. 💜"}
+                  {errorText}
                 </p>
               ) : null}
             </div>
@@ -258,7 +264,7 @@ export function DonaCaptainWidget() {
                 </button>
               </div>
               <p className="mt-2 text-center text-[10px] text-white/35">
-                Read-only · Achat protégé · Stripe · RGPD
+                Read-only · Groq · Achat protégé · Stripe · RGPD
               </p>
             </form>
           </motion.div>

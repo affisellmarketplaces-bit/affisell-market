@@ -1,42 +1,32 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { DefaultChatTransport, type UIMessage } from "ai"
+import { DefaultChatTransport } from "ai"
 import { AnimatePresence, motion } from "framer-motion"
 import { Send, X } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 
-function resolvePublicLocale(): "fr" | "en" {
-  if (typeof navigator === "undefined") return "fr"
-  return navigator.language.toLowerCase().startsWith("fr") ? "fr" : "en"
-}
+import {
+  DonaAssistantBubble,
+  DonaTypingIndicator,
+  DonaUserBubble,
+  donaGenericError,
+  donaMessageText,
+  donaResolvedError,
+  filterRenderableMessages,
+  formatDonaTime,
+  resolvePublicLocale,
+} from "@/components/dona/dona-chat-ui"
 
-function messageText(m: UIMessage): string {
-  return m.parts
-    .filter((p): p is { type: "text"; text: string } => p.type === "text")
-    .map((p) => p.text)
-    .join("")
-}
-
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+function shouldHideWidget(pathname: string): boolean {
+  return pathname.startsWith("/dashboard") || pathname.startsWith("/admin")
 }
 
 function welcomeMessage(locale: "fr" | "en"): string {
   return locale === "fr"
     ? "Capitaine, Dona en ligne. Affiliation UE, Pulse LIVE, confiance — pose ta question. 💜"
     : "Captain, Dona online. EU affiliate model, Pulse LIVE, trust — ask away. 💜"
-}
-
-function errorMessage(locale: "fr" | "en"): string {
-  return locale === "fr"
-    ? "Dona: le réacteur tousse. Réessaie — ou va voir /sell comme un adulte responsable. 💜"
-    : "Dona: reactor hiccup. Retry — or hit /sell like a responsible adult. 💜"
-}
-
-function shouldHideWidget(pathname: string): boolean {
-  return pathname.startsWith("/dashboard") || pathname.startsWith("/admin")
 }
 
 export function DonaPublicWidget() {
@@ -48,18 +38,22 @@ export function DonaPublicWidget() {
 
   const { messages, sendMessage, status, error, clearError } = useChat({
     transport: new DefaultChatTransport({ api: "/api/dona/chat-public" }),
+    onError: (err) => {
+      console.error("[dona-public-widget]", err)
+    },
   })
 
   const busy = status === "submitted" || status === "streaming"
   const placeholder =
     locale === "fr" ? "Parle à Dona, Capitaine..." : "Talk to Dona, Captain..."
-
   const welcome = useMemo(() => welcomeMessage(locale), [locale])
+  const visibleMessages = useMemo(() => filterRenderableMessages(messages), [messages])
+  const errorText = donaResolvedError(error, locale, donaGenericError(locale))
 
   useEffect(() => {
     if (!isOpen) return
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
-  }, [messages, status, isOpen, busy])
+  }, [messages, status, isOpen, busy, error])
 
   if (shouldHideWidget(pathname)) {
     return null
@@ -91,7 +85,7 @@ export function DonaPublicWidget() {
               <div>
                 <p className="text-sm font-semibold text-white">Dona · IA de bord · LIVE</p>
                 <span className="mt-0.5 inline-block rounded-full border border-violet-400/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-violet-200">
-                  FR/EN
+                  Groq · FR/EN
                 </span>
               </div>
               <button
@@ -110,42 +104,22 @@ export function DonaPublicWidget() {
                   💜
                 </span>
                 {welcome}
-                <span className="mt-1 block text-[10px] text-white/40">{formatTime(new Date())}</span>
+                <span className="mt-1 block text-[10px] text-white/40">{formatDonaTime(new Date())}</span>
               </div>
 
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={
-                    m.role === "user"
-                      ? "ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-[#7C3AED] px-4 py-2.5 text-sm leading-relaxed text-white"
-                      : "mr-auto max-w-[85%] rounded-2xl rounded-bl-sm border border-white/10 bg-[#1A1A3D] px-4 py-2.5 text-sm leading-relaxed text-white"
-                  }
-                >
-                  {m.role === "assistant" ? (
-                    <span className="mb-1 block text-base" aria-hidden>
-                      💜
-                    </span>
-                  ) : null}
-                  {messageText(m)}
-                  <span className="mt-1 block text-[10px] text-white/40">{formatTime(new Date())}</span>
-                </div>
-              ))}
+              {visibleMessages.map((m) =>
+                m.role === "user" ? (
+                  <DonaUserBubble key={m.id} text={donaMessageText(m)} />
+                ) : (
+                  <DonaAssistantBubble key={m.id} text={donaMessageText(m)} />
+                )
+              )}
 
-              {busy ? (
-                <div className="mr-auto flex items-center gap-1.5 text-xs text-white/50">
-                  <span className="inline-flex gap-1">
-                    <span className="size-1.5 animate-bounce rounded-full bg-violet-400 [animation-delay:0ms]" />
-                    <span className="size-1.5 animate-bounce rounded-full bg-violet-400 [animation-delay:150ms]" />
-                    <span className="size-1.5 animate-bounce rounded-full bg-violet-400 [animation-delay:300ms]" />
-                  </span>
-                  Dona tape...
-                </div>
-              ) : null}
+              {busy ? <DonaTypingIndicator label="Dona tape..." /> : null}
 
               {error ? (
                 <p className="mr-auto max-w-[85%] rounded-2xl border border-amber-500/30 bg-amber-950/40 px-4 py-2 text-xs text-amber-100">
-                  {errorMessage(locale)}
+                  {errorText}
                 </p>
               ) : null}
             </div>

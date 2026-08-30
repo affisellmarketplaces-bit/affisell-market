@@ -1,21 +1,17 @@
-import { openai } from "@ai-sdk/openai"
-import { convertToModelMessages, streamText, type UIMessage } from "ai"
+import { type UIMessage } from "ai"
 
 import { validateAgentMessages } from "@/lib/agent-message-bounds"
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { logBusiness } from "@/lib/business-log"
+import { formatDonaUnavailable } from "@/lib/dona/dona-errors"
+import { resolveDonaModels } from "@/lib/dona/dona-model"
+import { donaMessageText } from "@/lib/dona/message-utils"
 import { DONA_PUBLIC_SYSTEM_PROMPT } from "@/lib/dona/prompt-public"
+import { runDonaStreamResponse } from "@/lib/dona/run-dona-stream"
 
 export const runtime = "nodejs"
-export const maxDuration = 15
+export const maxDuration = 30
 export const dynamic = "force-dynamic"
-
-function messageText(m: UIMessage): string {
-  return m.parts
-    .filter((p): p is { type: "text"; text: string } => p.type === "text")
-    .map((p) => p.text)
-    .join(" ")
-}
 
 export async function POST(req: Request) {
   const limited = rateLimitResponse(rateLimitClientKey(req), {
@@ -25,11 +21,11 @@ export async function POST(req: Request) {
   })
   if (limited) return limited
 
-  if (!process.env.OPENAI_API_KEY?.trim()) {
+  if (!resolveDonaModels()) {
     return Response.json(
       {
         error: "dona_unavailable",
-        message: "Dona: OpenAI offline — explore /sell ou /radar en attendant.",
+        message: formatDonaUnavailable("fr"),
       },
       { status: 503 }
     )
@@ -54,16 +50,14 @@ export async function POST(req: Request) {
   }
 
   const lastUser = [...messages].reverse().find((m) => m.role === "user")
-  const queryPreview = lastUser ? messageText(lastUser).slice(0, 100) : ""
+  const queryPreview = lastUser ? donaMessageText(lastUser).slice(0, 100) : ""
 
   logBusiness("dona-public", { result: "request", queryPreview })
 
-  const result = streamText({
-    model: openai("gpt-4o-mini"),
+  return runDonaStreamResponse({
+    logPrefix: "dona-public",
     system: DONA_PUBLIC_SYSTEM_PROMPT,
-    messages: await convertToModelMessages(messages),
+    messages,
     temperature: 0.8,
   })
-
-  return result.toUIMessageStreamResponse()
 }

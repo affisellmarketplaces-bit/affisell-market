@@ -1,15 +1,24 @@
 import "server-only"
 
-/** Dashboard / radar referer gate for Dona Capitaine private APIs. */
+/** Dashboard / radar referer or origin gate for Dona Capitaine private APIs. */
 export function isDonaCaptainReferer(req: Request): boolean {
-  const referer = req.headers.get("referer") ?? req.headers.get("referrer") ?? ""
-  if (!referer.trim()) return false
-  try {
-    const path = new URL(referer).pathname
-    return path.startsWith("/dashboard") || path.startsWith("/radar")
-  } catch {
-    return false
+  const candidates = [
+    req.headers.get("referer"),
+    req.headers.get("referrer"),
+    req.headers.get("origin"),
+  ]
+
+  for (const raw of candidates) {
+    if (!raw?.trim()) continue
+    try {
+      const path = new URL(raw).pathname
+      if (path.startsWith("/dashboard") || path.startsWith("/radar")) return true
+    } catch {
+      // ignore malformed URL
+    }
   }
+
+  return false
 }
 
 export const DONA_CAPTAIN_FORBIDDEN = "Dona Privée: accès Capitaine uniquement"
