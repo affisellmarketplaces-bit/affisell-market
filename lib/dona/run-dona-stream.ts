@@ -135,7 +135,7 @@ async function streamWithToolAttempts(
     result: "all_attempts_failed",
     preview: formatDonaStreamError(lastError).slice(0, 120),
   })
-  writeOfflineFallback(writer, opts, "captain")
+  writeOfflineFallback(writer, opts, opts.logPrefix === "dona-captain" ? "captain" : "public")
 }
 
 async function streamPublicTextAttempts(

@@ -9,6 +9,7 @@ import { resolveDonaModels } from "@/lib/dona/dona-model"
 import { donaMessageText } from "@/lib/dona/message-utils"
 import { DONA_PUBLIC_SYSTEM_PROMPT } from "@/lib/dona/prompt-public"
 import { runDonaStreamResponse } from "@/lib/dona/run-dona-stream"
+import { publicBuyerTools } from "@/lib/dona/tools-public"
 
 export const runtime = "nodejs"
 export const maxDuration = 30
@@ -59,10 +60,23 @@ export async function POST(req: Request) {
 
   logBusiness("dona-public", { result: "request", queryPreview, audience })
 
+  const buyerProductBlock =
+    audience === "buyer"
+      ? `
+
+## Produits acheteur (OBLIGATOIRE)
+- Si l'utilisateur cherche un produit, demande un lien, ou dit « lien » après une recherche : appelle **searchProducts** avec la requête pertinente (mot-clé ou produit cité dans l'historique).
+- Cite **uniquement** les champs \`url\` retournés (format /marketplace/{listingId}). Ce sont les seuls liens valides.
+- **Interdit** d'inventer des SKU, IDs, ou chemins (/product/AF-xxx, codes fictifs).
+- Si aucun résultat : oriente vers /discover ou /marketplace — n'invente pas de fiche.`
+      : ""
+
   return runDonaStreamResponse({
     logPrefix: "dona-public",
-    system: `${DONA_PUBLIC_SYSTEM_PROMPT}${donaPublicAudiencePromptBlock(audience)}`,
+    system: `${DONA_PUBLIC_SYSTEM_PROMPT}${donaPublicAudiencePromptBlock(audience)}${buyerProductBlock}`,
     messages,
-    temperature: 0.8,
+    temperature: audience === "buyer" ? 0.65 : 0.8,
+    tools: audience === "buyer" ? publicBuyerTools : undefined,
+    maxSteps: audience === "buyer" ? 4 : undefined,
   })
 }

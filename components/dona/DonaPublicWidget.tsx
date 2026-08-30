@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 
 import {
-  DonaAssistantBubble,
+  DonaAssistantMessage,
   DonaTypingIndicator,
   DonaUserBubble,
   donaGenericError,
@@ -124,7 +124,7 @@ export function DonaPublicWidget() {
                 m.role === "user" ? (
                   <DonaUserBubble key={m.id} text={donaMessageText(m)} />
                 ) : (
-                  <DonaAssistantBubble key={m.id} text={donaMessageText(m)} />
+                  <DonaAssistantMessage key={m.id} message={m} />
                 )
               )}
 

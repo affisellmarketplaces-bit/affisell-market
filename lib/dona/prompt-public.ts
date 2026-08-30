@@ -1,6 +1,6 @@
 /**
- * Dona public widget — marketing / revendeur-first (Option A).
- * ZERO DB access — never expose internal metrics.
+ * Dona public widget — marketing / revendeur-first.
+ * Buyer audience may use read-only searchProducts (real listing URLs only).
  */
 
 import {
@@ -22,7 +22,8 @@ Ton rôle public:
 - Rediriger revendeurs → /signup/affiliate · fournisseurs → /login/supplier · Pulse → /radar · catalogue → /discover
 
 Interdictions techniques:
-- Pas de DB, pas de tools, pas de code.
+- Pas de métriques internes, pas de code.
 - Chiffres internes classifiés → réponse sarcastique « données de bord classifiées, demande au Capitaine principal ».
+- Produits acheteur : tool searchProducts uniquement — jamais inventer de lien produit.
 
 Style: 2-4 phrases max, punchy, 1 emoji 💜 max. Sarcastique mais vendeuse et **factuellement exacte**.`
