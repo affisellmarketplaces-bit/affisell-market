@@ -19,6 +19,9 @@ export const BUYER_WARM_ROUTES = [
   "/luxe",
 ] as const
 
+/** Mobile buyer — lighter prefetch (bandwidth + CPU during LCP). */
+export const BUYER_MOBILE_WARM_ROUTES = ["/", "/cart", "/marketplace/account", "/login"] as const
+
 /** Hero + tuiles buyer sur `/` — prefetch immédiat au mount. */
 export const HOME_WARM_ROUTES = BUYER_WARM_ROUTES
 

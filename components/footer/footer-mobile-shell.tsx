@@ -8,6 +8,7 @@ import { FooterLegalBar } from "@/components/footer/footer-legal-bar"
 import { FooterSocialOrbit } from "@/components/footer/footer-social-orbit"
 import { FooterTrustBeaconCompact } from "@/components/footer/footer-trust-beacon"
 import { PaymentMethodsStrip } from "@/components/checkout/payment-methods-strip"
+import { FooterNavLink } from "@/components/navigation/footer-nav-link"
 import {
   footerHeroCard,
   footerHeroLink,
@@ -56,9 +57,9 @@ function FooterAccordion({
         <ul id={panelId} role="list" className="space-y-2.5 pb-4 pl-0.5">
           {section.links.map((link) => (
             <li key={link.href + link.label}>
-              <Link href={link.href} className={footerHeroLink}>
+              <FooterNavLink href={link.href} className={footerHeroLink}>
                 {link.label}
-              </Link>
+              </FooterNavLink>
             </li>
           ))}
         </ul>

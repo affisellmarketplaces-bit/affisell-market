@@ -20,10 +20,10 @@ import {
 import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { CartCountBadge } from "@/components/cart/cart-count-badge"
-import { LanguageSwitcher } from "@/components/LanguageSwitcher"
+import { LanguageSwitcherDeferred } from "@/components/language-switcher-deferred"
 import { ThemeToggleDeferred } from "@/components/marketing/theme-toggle-deferred"
+import { NavHeaderSearchDeferred } from "@/components/nav/nav-header-search-deferred"
 import { CommandKTriggerDeferred } from "@/components/navigation/command-k-trigger-deferred"
-import { NavHeaderSearch } from "@/components/nav/nav-header-search"
 import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
 import { Link as LocaleLink, usePathname } from "@/i18n/navigation"
@@ -200,7 +200,7 @@ export function PublicNav() {
           <span className="hidden xl:inline">{t("agentEntry")}</span>
         </FastLink>
       ) : null}
-      <LanguageSwitcher />
+      <LanguageSwitcherDeferred />
       <ThemeToggleDeferred className="shrink-0" />
       <FastLink
         href="/cart"
@@ -316,7 +316,7 @@ export function PublicNav() {
     >
       <div className="hidden min-w-0 items-center gap-2 lg:col-start-3 lg:row-start-1 lg:flex lg:min-w-[17rem] lg:justify-stretch">
         <div className={cn(searchShellClass, searchMaxWidthClass, "relative w-full overflow-visible")}>
-          <NavHeaderSearch
+          <NavHeaderSearchDeferred
             id="public-header-search-q"
             placeholder={t("searchPlaceholder")}
             searchTarget="marketplace"

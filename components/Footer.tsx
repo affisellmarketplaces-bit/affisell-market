@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { FooterDesktopFuture } from "@/components/footer/footer-desktop-future"
+import { FooterDesktopFutureDeferred } from "@/components/footer/footer-desktop-future-deferred"
 import { FooterMobileShell } from "@/components/footer/footer-mobile-shell"
 import { FooterOrbitTrustRibbon } from "@/components/footer/footer-orbit-trust-ribbon"
 import { footerHeroGrid, footerHeroShell } from "@/components/footer/footer-hero-tokens"
@@ -35,7 +35,7 @@ export async function Footer() {
             tagline: t("mobileTagline"),
           }}
         />
-        <FooterDesktopFuture content={footerContent} />
+        <FooterDesktopFutureDeferred content={footerContent} />
       </div>
     </footer>
   )

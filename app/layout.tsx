@@ -15,9 +15,8 @@ import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
 import { slimClientMessagesForDedicatedStorefront } from "@/lib/i18n-slim-client-messages"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { isLegionStorefrontPathname } from "@/lib/legion/username"
-import ClientGuardInit from "@/components/security/client-guard-init"
-import { DonaCaptainWidget } from "@/components/dona/DonaCaptainWidget"
-import { DonaPublicWidget } from "@/components/dona/DonaPublicWidget"
+import ClientGuardInitDeferred from "@/components/security/client-guard-init-deferred"
+import { DonaWidgetsDeferred } from "@/components/dona/dona-widgets-deferred"
 import { cn } from "@/lib/utils"
 
 import "./globals.css"
@@ -93,9 +92,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <CookieBannerDeferred />
           </IntlAppProvider>
         </AuthSessionProvider>
-        <ClientGuardInit />
-        <DonaPublicWidget />
-        <DonaCaptainWidget />
+        <ClientGuardInitDeferred />
+        {!leanPlatformChrome ? <DonaWidgetsDeferred /> : null}
       </body>
     </html>
   )

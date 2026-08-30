@@ -45,6 +45,12 @@ function MobileBuyerHubDeferred() {
   )
 }
 
+function MobileDockDeferred() {
+  const ready = useIdleMount({ idleTimeoutMs: 2200, fallbackDelayMs: 450 })
+  if (!ready) return null
+  return <MobileDock />
+}
+
 /** Global instant-nav affordances (progress, prefetch, ⌘K, mobile dock). */
 export function NavigationShell() {
   return (
@@ -58,7 +64,7 @@ export function NavigationShell() {
       <NavigationWarmupDeferred />
       <CommandKDeferred />
       <MobileBuyerHubDeferred />
-      <MobileDock />
+      <MobileDockDeferred />
     </>
   )
 }

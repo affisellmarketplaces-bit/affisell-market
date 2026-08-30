@@ -99,6 +99,10 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       "lucide-react",
       "framer-motion",
+      "@ai-sdk/react",
+      "ai",
+      "sonner",
+      "use-debounce",
       "@radix-ui/react-dialog",
       "@radix-ui/react-dropdown-menu",
       "@radix-ui/react-popover",

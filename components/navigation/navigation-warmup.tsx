@@ -5,11 +5,18 @@ import { useSession } from "next-auth/react"
 
 import {
   AFFILIATE_WARM_ROUTES,
+  BUYER_MOBILE_WARM_ROUTES,
   BUYER_WARM_ROUTES,
   SUPPLIER_WARM_ROUTES,
 } from "@/lib/nav-routes"
 import { schedulePrefetchRoutes } from "@/lib/prefetch-routes"
 import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
+
+function resolveWarmRoutes(role: string | undefined, mobile: boolean): readonly string[] {
+  if (role === "SUPPLIER") return SUPPLIER_WARM_ROUTES
+  if (role === "AFFILIATE") return AFFILIATE_WARM_ROUTES
+  return mobile ? BUYER_MOBILE_WARM_ROUTES : BUYER_WARM_ROUTES
+}
 
 /** Prefetch key routes once per session so first clicks feel instant. */
 export function NavigationWarmup() {
@@ -19,16 +26,12 @@ export function NavigationWarmup() {
 
   useEffect(() => {
     if (!mounted) return
-    const routes =
-      role === "SUPPLIER"
-        ? SUPPLIER_WARM_ROUTES
-        : role === "AFFILIATE"
-          ? AFFILIATE_WARM_ROUTES
-          : BUYER_WARM_ROUTES
+    const mobile = window.matchMedia("(max-width: 767px)").matches
+    const routes = resolveWarmRoutes(role, mobile)
 
     return schedulePrefetchRoutes((href) => prefetch(href), routes, {
-      idleTimeoutMs: 5500,
-      fallbackDelayMs: 2200,
+      idleTimeoutMs: mobile ? 6500 : 5500,
+      fallbackDelayMs: mobile ? 2800 : 2200,
     })
   }, [mounted, prefetch, role])
 
