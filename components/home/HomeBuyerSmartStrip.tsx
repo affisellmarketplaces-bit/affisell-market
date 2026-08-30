@@ -5,6 +5,7 @@ import { HomeBuyerFeaturedShopsDeck } from "@/components/home/home-buyer-feature
 import { HomeBuyerPremiumRow } from "@/components/home/HomeBuyerPremiumRow"
 import { BuyerGlassTile } from "@/components/home/home-buyer-glass-tile"
 import { PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
+import { BUYER_BESTSELLERS_PATH } from "@/lib/buyer-bestsellers-route"
 import { BUYER_SMART_SERVICES } from "@/lib/buyer-smart-services"
 import { buildBestSellerDeckCards } from "@/lib/home-best-seller-deck-shared"
 import { buildFeaturedShopDeckCards } from "@/lib/home-featured-shops-deck-shared"
@@ -28,7 +29,7 @@ export async function HomeBuyerSmartStrip() {
     label: t("bestSellers"),
     hint: t("bestSellersHint"),
     badgeLabel: t("bestSellersBadge"),
-    fallbackHref: "/#explorer",
+    listHref: BUYER_BESTSELLERS_PATH,
   }
 
   const featuredShopCards = buildFeaturedShopDeckCards(featuredShops.slice(0, 5), {

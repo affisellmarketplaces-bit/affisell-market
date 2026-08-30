@@ -268,7 +268,7 @@
       "luxe": "Affisell Luxe",
       "luxeHint": "Sélection luxe & collections",
       "bestSellers": "Meilleures ventes",
-      "bestSellersHint": "Top 7 jours · jeu de cartes live",
+      "bestSellersHint": "Top 7 jours · tap pour le classement complet",
       "bestSellersBadge": "7j",
       "bestSellersSold": "{count} vendus",
       "battles": "Hub Battles",
@@ -843,6 +843,19 @@
       "networkError": "Réseau indisponible. Réessayez."
     },
     "tryPulse": "Essayer Affisell Pulse"
+  },
+  "buyerBestsellers": {
+    "metaTitle": "Meilleures ventes · 7 jours",
+    "metaDescription": "Classement live des produits les plus vendus sur Affisell cette semaine.",
+    "eyebrow": "Classement live",
+    "title": "Meilleures ventes",
+    "subtitle": "Top 7 jours sur le réseau Affisell — ventes réelles, mis à jour en continu.",
+    "liveWindow": "fenêtre glissante",
+    "rank": "#{rank}",
+    "sold": "{count} vendus",
+    "empty": "Pas encore assez de ventes cette semaine. Revenez très bientôt.",
+    "emptyCta": "Explorer le catalogue",
+    "backHome": "Retour accueil"
   },
   "buyerAccount": {
     "navAria": "Espace client",

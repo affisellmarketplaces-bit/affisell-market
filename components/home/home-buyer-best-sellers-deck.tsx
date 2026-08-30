@@ -10,6 +10,7 @@ import {
   buyerServiceTileItemClass,
 } from "@/components/home/home-buyer-glass-tile"
 import { FastLink } from "@/components/navigation/fast-link"
+import { BUYER_BESTSELLERS_PATH } from "@/lib/buyer-bestsellers-route"
 import { BUYER_TILE_ACCENTS } from "@/lib/home-buyer-accent-palette"
 import type { HomeBestSellerDeckCard } from "@/lib/home-best-seller-deck-shared"
 import { cn } from "@/lib/utils"
@@ -28,7 +29,9 @@ type Props = {
   label: string
   hint: string
   badgeLabel: string
-  fallbackHref: string
+  /** Opens the full ranked list — never the front card product alone. */
+  listHref?: string
+  fallbackHref?: string
 }
 
 function PlayingCard({
@@ -105,7 +108,8 @@ export function HomeBuyerBestSellersDeck({
   label,
   hint,
   badgeLabel,
-  fallbackHref,
+  listHref = BUYER_BESTSELLERS_PATH,
+  fallbackHref = BUYER_BESTSELLERS_PATH,
 }: Props) {
   const reduceMotion = usePrefersReducedMotion()
   const accent = BUYER_TILE_ACCENTS.bestSellers.glow
@@ -132,12 +136,12 @@ export function HomeBuyerBestSellersDeck({
   }, [cards, count, cursor])
 
   const front = stack[stack.length - 1]
-  const href = front ? `/marketplace/${front.listingId}` : fallbackHref
+  const href = listHref || fallbackHref
 
   if (cards.length === 0) {
     return (
       <li className={buyerServiceTileItemClass}>
-        <FastLink href={fallbackHref} className={buyerServiceTileClass}>
+        <FastLink href={href} className={buyerServiceTileClass}>
           <span
             className={cn(
               "pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br opacity-40 blur-2xl transition group-hover:opacity-60",
@@ -179,7 +183,7 @@ export function HomeBuyerBestSellersDeck({
           "lg:min-h-[7.25rem] lg:pb-3.5",
           "max-lg:min-h-[5rem]"
         )}
-        aria-label={front ? `${label}: ${front.name}` : label}
+        aria-label={`${label} — ${hint}`}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onFocus={() => setPaused(true)}
