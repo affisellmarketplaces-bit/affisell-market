@@ -48,7 +48,7 @@ export const AFFILIATE_TAX_RESIDENCE_ROWS: AffiliateTaxResidenceRow[] = [
     code: "BJ",
     labelFr: "Bénin",
     labelEn: "Benin",
-    regimeFr: "ISB 1 % sur les revenus de plateforme numérique (créateurs / affiliés).",
+    regimeFr: "ISB 1 % sur les revenus de plateforme numérique (revendeurs / créateurs affiliés).",
     regimeEn: "1% digital platform income tax (ISB) on platform earnings.",
   },
   {

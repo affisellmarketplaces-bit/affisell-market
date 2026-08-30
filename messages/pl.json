@@ -277,14 +277,14 @@
   },
   "creators": {
     "meta": {
-      "title": "Sprzedawaj na Affisell — Sklep twórcy",
+      "title": "Sprzedawaj na Affisell — Sklep resellera / creatora",
       "description": "Monetyzuj swoją publiczność z zerowym magazynem. Wybierz produkty, my wysyłamy."
     },
     "hero": {
       "title": "Monetyzuj swoją publiczność w 2 minutach",
       "sub": "Zerowy magazyn. Zerowy ryzyko. Wybierz produkty, my wysyłamy.",
       "cta": "Utwórz swój bezpłatny sklep",
-      "badgeCreators": "500+ twórców",
+      "badgeCreators": "500+ resellerów i creatorów",
       "badgeRevenue": "Średnio 2 400 €/miesiąc",
       "badgeSetup": "2-minutowy ustawienie"
     },
@@ -4327,7 +4327,7 @@
       "press": "Pakiet prasowy"
     },
     "stats": {
-      "stores": "Sklepy twórców",
+      "stores": "Sklepy resellerów i creatorów",
       "listings": "Aktywne oferty",
       "catalog": "Katalog SKU",
       "commission": "Średnia prowizja"
@@ -4336,8 +4336,8 @@
       "metaTitle": "O Affisell — rynku twórców",
       "metaDescription": "Affisell łączy weryfikowanych dostawców, sklepy twórców i kupujących z transparentnymi prowizjami i zgodnością z normami UE.",
       "eyebrow": "Firma",
-      "title": "Infrastruktura handlu dla twórców",
-      "description": "Affisell to rynku twórców: dostawcy publikują katalog hurtowy, partnerzy uruchamiają sklepy z marką w ciągu minut, a klienci kupują z pełną przejrzystością opłat.",
+      "title": "Infrastruktura commerce dla resellerów i creatorów",
+      "description": "Affisell to marketplace dla resellerów i creatorów: katalog dostawców, witryny partnerów i pewne zakupy.",
       "mission": {
         "title": "Nasza misja",
         "body": "Uważamy, że twórcy powinni móc monetować swoją publiczność bez przechowywania towarów, zarządzania magazynami lub szacowania marż.",
@@ -4390,7 +4390,7 @@
         "title": "Siedziba"
       },
       "cta": {
-        "creators": "Stań się twórcą",
+        "creators": "Zostań resellerem / creatorem",
         "catalog": "Przegląd katalogu partnerów"
       }
     },
@@ -5137,7 +5137,12 @@
     "supplierCta": "Become a supplier",
     "resellerProgramCta": "Reseller B2B program",
     "supplierFrameworkCta": "Supplier B2B framework",
-    "howItWorks": "How it works"
+    "howItWorks": "How it works",
+    "creator": {
+      "title": "2. Reseller / creator partner",
+      "body": "Pick supplier SKUs, set your price, and publish on your storefront — Affisell handles checkout end to end."
+    },
+    "ctaPartner": "Become a reseller / creator partner"
   },
   "supplierStorefront": {
     "browse": {

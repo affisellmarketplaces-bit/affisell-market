@@ -277,14 +277,14 @@
   },
   "creators": {
     "meta": {
-      "title": "Verkoop op Affisell — Creator storefront",
+      "title": "Verkopen op Affisell — Reseller- & creator-storefront",
       "description": "Monetiseer uw publiek met nul voorraad. Kies producten, wij verzenden."
     },
     "hero": {
       "title": "Monetiseer uw publiek in 2 minuten",
       "sub": "Nul voorraad. Nul risico. Kies producten, wij verzenden.",
       "cta": "Maak uw gratis winkel",
-      "badgeCreators": "500+ creators",
+      "badgeCreators": "500+ resellers & creators",
       "badgeRevenue": "Gemiddeld 2.400 € per maand",
       "badgeSetup": "2-min setup"
     },
@@ -4327,7 +4327,7 @@
       "press": "Persberichten"
     },
     "stats": {
-      "stores": "Winkel van de makers",
+      "stores": "Reseller- & creator-winkels",
       "listings": "Live aanbiedingen",
       "catalog": "Catalogus-artikelen",
       "commission": "Gemiddelde affiliate-commissie"
@@ -4336,8 +4336,8 @@
       "metaTitle": "Over Affisell — Creator-first marketplace",
       "metaDescription": "Affisell verbindt geverifieerde leveranciers, winkels van makers en kopers met transparante commissies en EU-graden toezicht.",
       "eyebrow": "Bedrijf",
-      "title": "Infrastructuur voor commerciële creaties",
-      "description": "Affisell is een creator-first marktplaats: leveranciers lijsten hun wholesale catalogus, affiliates lanceren een merkgebonden webwinkel in slechts een paar minuten, en kopers winkelen met volledige transparantie over de kosten.",
+      "title": "Commerce-infrastructuur voor resellers & creators",
+      "description": "Affisell is een marketplace voor resellers en creators: leveranciers, partner-storefronts en vertrouwd shoppen.",
       "mission": {
         "title": "Onze missie",
         "body": "We geloven dat creaties hun publiek moeten kunnen laten verdienen zonder voorraad te moeten houden, magazijnen te moeten beheren of marges te moeten gokken. Affisell coördineert de volledige cyclus — catalogus synchronisatie, checkout, leveranciersbevrediging, Stripe Connect-uitkeringen en GDPR-compatibele vertrouwensignalen.",
@@ -4390,7 +4390,7 @@
         "title": "Hoofdkantoor"
       },
       "cta": {
-        "creators": "Word creator",
+        "creators": "Word reseller / creator",
         "catalog": "Bekijk affiliatekatalogus"
       }
     },
@@ -5137,7 +5137,12 @@
     "supplierCta": "Become a supplier",
     "resellerProgramCta": "Reseller B2B program",
     "supplierFrameworkCta": "Supplier B2B framework",
-    "howItWorks": "How it works"
+    "howItWorks": "How it works",
+    "creator": {
+      "title": "2. Reseller / creator partner",
+      "body": "Pick supplier SKUs, set your price, and publish on your storefront — Affisell handles checkout end to end."
+    },
+    "ctaPartner": "Become a reseller / creator partner"
   },
   "supplierStorefront": {
     "browse": {

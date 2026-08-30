@@ -1,6 +1,6 @@
 ---
 title: Conditions générales affilié (CGA)
-description: Conditions applicables aux créateurs et partenaires Affisell. Version 1.0.0 conforme Blueprint.
+description: Conditions applicables aux revendeurs, créateurs et partenaires Affisell. Version 1.0.0 conforme Blueprint.
 version: 1.0.0
 locale: fr
 lastUpdated: 2026-07-09
@@ -11,7 +11,7 @@ order: 3
 
 **Version 1.0.0 — Effective au 09/07/2026 — Dernière mise à jour : {{LAST_UPDATED}}**
 
-Les présentes Conditions générales affilié (ci-après les « **CGA** ») complètent les [Conditions générales d'utilisation](/legal/cgu) (CGU), les [CGV](/legal/cgv) et la [Politique de confidentialité](/legal/confidentialite). Elles régissent la relation entre l'entreprise individuelle **{{LEGAL_NAME}}**, exploitant sous le nom commercial **{{COMPANY_NAME}}** (SIRET {{SIRET}}, SIREN {{SIREN}}, NAF {{NAF}}), dont le siège / domiciliation est situé {{ADRESSE}} — {{VAT_REGIME}} (ci-après « **Affisell** »), et tout partenaire inscrit en qualité d'**Affilié** (créateur, influenceur, curateur de vitrine).
+Les présentes Conditions générales affilié (ci-après les « **CGA** ») complètent les [Conditions générales d'utilisation](/legal/cgu) (CGU), les [CGV](/legal/cgv) et la [Politique de confidentialité](/legal/confidentialite). Elles régissent la relation entre l'entreprise individuelle **{{LEGAL_NAME}}**, exploitant sous le nom commercial **{{COMPANY_NAME}}** (SIRET {{SIRET}}, SIREN {{SIREN}}, NAF {{NAF}}), dont le siège / domiciliation est situé {{ADRESSE}} — {{VAT_REGIME}} (ci-après « **Affisell** »), et tout partenaire inscrit en qualité d'**Affilié** (revendeur, créateur, influenceur, curateur de vitrine).
 
 L'acceptation des présentes CGA est requise pour publier une vitrine et percevoir une rémunération partenaire sur la Plateforme.
 

@@ -205,7 +205,7 @@ export function AffiliateInvitationLanding({ invite }: Props) {
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-xs font-bold text-violet-300">
                 1
               </span>
-              Créez votre compte affilié / créateur
+              Créez votre compte affilié revendeur / créateur
             </li>
             <li className="flex gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-xs font-bold text-violet-300">
@@ -337,7 +337,7 @@ export function AffiliateInvitationLanding({ invite }: Props) {
             )}
           </div>
           <p className="mt-4 text-center text-[11px] text-zinc-600">
-            Propulsé par Affisell · fournisseurs × créateurs affiliés
+            Propulsé par Affisell · fournisseurs × revendeurs & créateurs affiliés
           </p>
         </aside>
       </div>

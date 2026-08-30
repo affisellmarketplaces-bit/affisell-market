@@ -277,14 +277,14 @@
   },
   "creators": {
     "meta": {
-      "title": "Sell on Affisell — Creator storefront",
-      "description": "Monetize your audience with zero inventory. Pick products, we ship."
+      "title": "Sell on Affisell — Reseller & creator storefront",
+      "description": "Monetize your audience without inventory. Resellers and creators choose products — we fulfill."
     },
     "hero": {
       "title": "Monetize your audience in 2 minutes",
       "sub": "Zero inventory. Zero risk. Pick products, we ship.",
       "cta": "Create your free store",
-      "badgeCreators": "500+ creators",
+      "badgeCreators": "500+ resellers & creators",
       "badgeRevenue": "Average €2,400/month",
       "badgeSetup": "2-min setup"
     },
@@ -303,7 +303,7 @@
       }
     },
     "social": {
-      "title": "Creators growing with Affisell",
+      "title": "Resellers & creators growing with Affisell",
       "quote1": "I launched in one evening and hit my first sale the same week.",
       "quote2": "No warehouse, no support tickets on shipping — Affisell handles it.",
       "revenueAmount1": "€2.4k",
@@ -311,7 +311,7 @@
       "revenueTag": "{amount}/mo"
     },
     "preview": {
-      "title": "Your creator dashboard",
+      "title": "Your reseller dashboard",
       "hint": "Hover to explore the interface"
     },
     "footerLink": "You're a brand? Partner with us →",
@@ -320,17 +320,17 @@
   "partners": {
     "meta": {
       "title": "Affisell Partners — Supplier distribution",
-      "description": "Distribute through creator partner storefronts."
+      "description": "Distribute through reseller & creator partner storefronts."
     },
     "hero": {
-      "title": "Distribute through 10,000+ creators",
+      "title": "Distribute through 10,000+ resellers & creators",
       "sub": "Partner network. Automated orders. Secure payments.",
       "cta": "Become a partner"
     },
     "features": {
       "reach": {
         "title": "Reach",
-        "description": "Access engaged audiences via creator stores"
+        "description": "Reach engaged audiences via reseller & creator stores"
       },
       "automation": {
         "title": "Automation",
@@ -344,21 +344,21 @@
     "steps": {
       "title": "How it works",
       "step1": "Create your supplier account",
-      "step2": "Creators list your products",
+      "step2": "Resellers & creators list your products",
       "step3": "We send you orders"
     },
     "ctaFinal": "Apply to become a partner",
-    "backCreators": "← Creators",
+    "backCreators": "← Resellers / Creators",
     "enterpriseLink": "Enterprise brand? Dedicated onboarding →"
   },
   "enterprise": {
     "meta": {
       "title": "Enterprise brands — Affisell",
-      "description": "Dedicated onboarding, large-catalog import, custom domains, and creator network for established brands."
+      "description": "Dedicated onboarding, large-catalog import, custom domains, and a reseller & creator network for established brands."
     },
     "hero": {
       "eyebrow": "Affisell Enterprise",
-      "title": "Your brand. Your domain. 10,000+ creators.",
+      "title": "Your brand. Your domain. 10,000+ resellers & creators.",
       "sub": "Catalog import, Brand Studio, fast-track KYC, and a dedicated account manager — without rebuilding your commerce stack.",
       "cta": "Request onboarding",
       "badge1": "1k–10k+ SKU catalog",
@@ -386,7 +386,7 @@
     "program": {
       "eyebrow": "Brand program",
       "title": "White-glove onboarding in 3 steps",
-      "body": "Our team configures your account, prioritizes KYC, and connects your catalog before opening the creator network.",
+      "body": "Our team configures your account, prioritizes KYC, and connects your catalog before opening the reseller & creator network.",
       "step1": "Application + discovery call (30 min)",
       "step2": "Catalog import + Brand Studio + custom domain",
       "step3": "Affiliate network launch + tracking in founder CRM",
@@ -1399,7 +1399,7 @@
       "metaDescription": "Share your link, earn 10% of referrals' net sales, and unlock the UGC bounty.",
       "eyebrow": "Growth",
       "title": "Referrals & UGC bounty",
-      "description": "Invite creators — 10% of their net earnings on every sale. 5% welcome bonus for referrals under 30 days.",
+      "description": "Invite resellers & creators — 10% of their net earnings on every sale. 5% welcome bonus for referrals under 30 days.",
       "stats": {
         "referrals": "Referrals",
         "month": "Earned this month",
@@ -4046,7 +4046,7 @@
       "body": "Pick supplier SKUs, set your customer price, and publish on your storefront — no stock or shipping."
     },
     "creator": {
-      "title": "2. Creator partner",
+      "title": "2. Reseller / creator partner",
       "body": "Pick products, customize your storefront, and share it — Affisell handles checkout end to end."
     },
     "supplier": {
@@ -4056,7 +4056,7 @@
     "ctaBrowse": "Explore catalog",
     "ctaSell": "Sell on Affisell",
     "ctaProgram": "Reseller B2B program",
-    "ctaPartner": "Become a creator partner"
+    "ctaPartner": "Become a reseller / creator partner"
   },
   "supportPage": {
     "metaTitle": "Support assistant | Affisell",
@@ -4327,25 +4327,25 @@
       "press": "Press Kit"
     },
     "stats": {
-      "stores": "Creator stores",
+      "stores": "Reseller & creator stores",
       "listings": "Live listings",
       "catalog": "Catalog SKUs",
       "commission": "Active partners"
     },
     "about": {
-      "metaTitle": "About Affisell — Creator-first marketplace",
+      "metaTitle": "About Affisell — Reseller & creator marketplace",
       "metaDescription": "Affisell connects verified suppliers, partner storefronts and buyers with a protected shopping experience across the EU.",
       "eyebrow": "Company",
-      "title": "Commerce infrastructure for creators",
-      "description": "Affisell is a creator-first marketplace: suppliers list their catalog, partners launch a storefront in minutes, and buyers shop with confidence.",
+      "title": "Commerce infrastructure for resellers & creators",
+      "description": "Affisell is a marketplace built for resellers and creators: suppliers list their catalog, partners launch a storefront in minutes, and buyers shop with confidence.",
       "mission": {
         "title": "Our mission",
-        "body": "Creators should monetize their audience without inventory or logistics. Affisell orchestrates the full loop — catalog, secure checkout, supplier fulfillment and GDPR-compliant trust signals.",
+        "body": "Resellers and creators should monetize their audience without inventory or logistics. Affisell orchestrates the full loop — catalog, secure checkout, supplier fulfillment and GDPR-compliant trust signals.",
         "body2": "Headquartered in Marseille, we ship EU-first with multi-currency checkout and tools built for product discovery and storefront growth."
       },
       "values": {
         "0": {
-          "title": "Creator storefronts",
+          "title": "Reseller & creator storefronts",
           "body": "Each partner gets a branded shop, custom listings and intuitive merchandising — live in minutes."
         },
         "1": {
@@ -4367,7 +4367,7 @@
           "2024": {
             "year": "2024",
             "title": "Affisell founded",
-            "body": "Marketplace launch: supplier catalog and creator partner storefronts."
+            "body": "Marketplace launch: supplier catalog and reseller & creator partner storefronts."
           },
           "2026": {
             "year": "2026",
@@ -4377,7 +4377,7 @@
           "2025a": {
             "year": "2025",
             "title": "Discovery & sourcing",
-            "body": "Product discovery and selection tools for creator partners."
+            "body": "Product discovery and selection tools for reseller & creator partners."
           },
           "2025b": {
             "year": "2025",
@@ -4390,22 +4390,22 @@
         "title": "Headquarters"
       },
       "cta": {
-        "creators": "Become a creator",
+        "creators": "Become a reseller / creator",
         "catalog": "Browse affiliate catalog"
       }
     },
     "blog": {
-      "metaTitle": "Affisell Blog — Product & creator economy",
-      "metaDescription": "Updates on marketplace features, commission transparency and creator tooling from the Affisell team.",
+      "metaTitle": "Affisell Blog — Product & reseller economy",
+      "metaDescription": "Marketplace updates, commission transparency and reseller & creator tooling from the Affisell team.",
       "eyebrow": "Blog",
       "title": "Inside Affisell",
-      "description": "Product launches, marketplace economics and creator playbooks — written by the team building Affisell.",
+      "description": "Product launches, marketplace economics and reseller & creator playbooks — written by the team building Affisell.",
       "readMore": "Read article",
       "backToBlog": "All articles",
       "posts": {
         "swipe-feed-affiliate-hub": {
           "title": "Discover and publish faster",
-          "excerpt": "Creator partners browse the catalog in a mobile flow and publish selections in a few gestures.",
+          "excerpt": "Reseller & creator partners browse the catalog in a mobile flow and publish selections in a few gestures.",
           "date": "2026-05-19",
           "category": "Product",
           "readMin": "4 min",
@@ -4465,18 +4465,18 @@
             },
             "s3": {
               "title": "Why it matters",
-              "body": "Creators operate across the EU. Built-in compliance reassures brand partners and buyers alike."
+              "body": "Resellers and creators operate across the EU. Built-in compliance reassures brand partners and buyers alike."
             }
           }
         },
         "creator-storefront-60s": {
-          "title": "Launch a creator storefront in minutes",
+          "title": "Launch a reseller storefront in minutes",
           "excerpt": "Pick a product, personalize your storefront, publish — Affisell handles the rest.",
           "date": "2026-04-20",
-          "category": "Creators",
+          "category": "Resellers / Creators",
           "readMin": "3 min",
           "sections": {
-            "intro": "Affisell removes the ops burden from creator commerce: no warehouse, no payment setup from scratch.",
+            "intro": "Affisell removes the ops burden from reseller & creator commerce: no warehouse, no payment setup from scratch.",
             "s1": {
               "title": "Catalog → storefront",
               "body": "Browse the catalog by niche or theme, customize title, visuals and presentation before publishing."
@@ -4487,7 +4487,7 @@
             },
             "s3": {
               "title": "Start today",
-              "body": "Create a free partner account and publish your first listing. Most creators see their first sale quickly."
+              "body": "Create a free partner account and publish your first listing. Most resellers & creators see their first sale quickly."
             }
           }
         }
@@ -4495,13 +4495,13 @@
     },
     "careers": {
       "metaTitle": "Careers at Affisell",
-      "metaDescription": "Join the team building the creator-first marketplace — remote-friendly roles in engineering, creator success and supplier partnerships.",
+      "metaDescription": "Join the team building the reseller & creator marketplace — remote-friendly roles in engineering, partner success and supplier partnerships.",
       "eyebrow": "Careers",
-      "title": "Build the creator economy with us",
+      "title": "Build the reseller & creator economy with us",
       "description": "We're a small, product-obsessed team in Marseille (remote-friendly). Help us scale supplier catalog, affiliate tooling and buyer trust.",
       "culture": {
         "title": "How we work",
-        "body": "Affisell is early-stage with production traffic: you'll ship to real merchants weekly, own outcomes end-to-end, and talk directly to creators and suppliers.",
+        "body": "Affisell is early-stage with production traffic: you'll ship to real merchants weekly, own outcomes end-to-end, and talk directly to resellers, creators and suppliers.",
         "perks": {
           "remote": "Remote-friendly across EU time zones",
           "impact": "High ownership — no ticket factory",
@@ -4527,16 +4527,16 @@
           }
         },
         "creator-success": {
-          "title": "Creator Success Manager",
-          "summary": "Onboard creator partners, improve storefront quality and feed product insights back to engineering.",
+          "title": "Partner Success Manager",
+          "summary": "Onboard reseller & creator partners, improve storefront quality and feed product insights back to engineering.",
           "location": "Remote EU",
           "type": "Full-time",
           "team": "Growth",
-          "applySubject": "Application — Creator Success",
+          "applySubject": "Application — Partner Success",
           "requirements": {
-            "r1": "Fluent FR/EN; experience with creator or e-commerce communities",
+            "r1": "Fluent FR/EN; experience with reseller, creator or e-commerce communities",
             "r2": "Comfortable with conversion and retention metrics",
-            "r3": "Empathy for creators balancing audience trust and growth"
+            "r3": "Empathy for resellers & creators balancing audience trust and growth"
           }
         },
         "supplier-partnerships": {
@@ -4556,14 +4556,14 @@
     },
     "press": {
       "metaTitle": "Affisell Press Kit",
-      "metaDescription": "Media resources, company facts and press contact for Affisell — the creator-first marketplace.",
+      "metaDescription": "Media resources, company facts and press contact for Affisell — the reseller & creator marketplace.",
       "eyebrow": "Press",
       "title": "Press Kit",
-      "description": "Facts, boilerplate and assets for journalists covering creator commerce and EU retail tech.",
+      "description": "Facts, boilerplate and assets for journalists covering reseller & creator commerce and EU retail tech.",
       "boilerplate": {
         "title": "Boilerplate",
-        "short": "Affisell is a creator-first marketplace connecting verified suppliers, partner storefronts and buyers — with built-in EU compliance.",
-        "long": "Founded in Marseille, Affisell lets creators launch branded shops in minutes without inventory. Suppliers distribute through a partner network with automated fulfillment. The platform includes discovery tools, GDPR self-service and transparent order tracking."
+        "short": "Affisell is a reseller & creator marketplace connecting verified suppliers, partner storefronts and buyers — with built-in EU compliance.",
+        "long": "Founded in Marseille, Affisell lets resellers and creators launch branded shops in minutes without inventory. Suppliers distribute through a partner network with automated fulfillment. The platform includes discovery tools, GDPR self-service and transparent order tracking."
       },
       "facts": {
         "title": "Company facts",
@@ -4702,7 +4702,7 @@
     "eyebrow": "Private selection",
     "title": "Affisell Luxe",
     "back": "Catalog",
-    "subtitle": "Curated pieces · authenticated creators · limited visibility",
+    "subtitle": "Curated pieces · verified resellers & creators · limited visibility",
     "badgeLuxe": "Luxe",
     "badgeCollection": "Collection",
     "prestige": "Prestige {score}",
@@ -4779,7 +4779,7 @@
         "title": "Buyer journey",
         "subtitle": "Browse the marketplace, checkout trust, and support.",
         "cardTitle": "Buyer",
-        "cardBody": "Shop creator storefronts end to end."
+        "cardBody": "Shop reseller & creator storefronts end to end."
       }
     },
     "steps": {
@@ -4804,7 +4804,7 @@
       "affiliate": {
         "discover": {
           "title": "Discover",
-          "body": "Live shopping feed and creator storefronts."
+          "body": "Live shopping feed and reseller & creator storefronts."
         },
         "catalog": {
           "title": "Marketplace",
@@ -4826,7 +4826,7 @@
         },
         "shop": {
           "title": "Stores",
-          "body": "Creator shop flow and product pages."
+          "body": "Reseller shop flow and product pages."
         },
         "trust": {
           "title": "Trust",
@@ -4870,7 +4870,7 @@
       "subtitle": "Every public storefront experience on Affisell — who it's for, which URL, and one-click live tests. Your reference hub inside Demo Lab.",
       "backToDemo": "Back to Demo Lab",
       "architectureTitle": "Dual-model architecture",
-      "architectureDiagram": "Affiliate merchant\n├── /shops/[slug]     → Brand Studio (buyer chrome, modular sections)\n├── /boutique/[slug]  → Procedural boutique (1024 skins, design studio)\n├── /embed/shops/[slug] → Embeddable widget (Brand Studio toggle)\n└── custom domain CNAME → rewrites to /shops/[slug]\n\nSupplier merchant\n└── /store/supplier/[slug] → Supplier catalog vitrine\n\nCreator (Légion)\n└── /u/[username] → @handle vitrine (parallel to Store slug)",
+      "architectureDiagram": "Affiliate merchant\n├── /shops/[slug]     → Brand Studio (buyer chrome, modular sections)\n├── /boutique/[slug]  → Procedural boutique (1024 skins, design studio)\n├── /embed/shops/[slug] → Embeddable widget (Brand Studio toggle)\n└── custom domain CNAME → rewrites to /shops/[slug]\n\nSupplier merchant\n└── /store/supplier/[slug] → Supplier catalog vitrine\n\nReseller / Creator (Légion)\n└── /u/[username] → @handle vitrine (parallel to Store slug)",
       "formatsGridTitle": "Available formats",
       "stats": {
         "formats": "Public formats",
@@ -4897,7 +4897,7 @@
         "buyer": "Buyer",
         "affiliate": "Affiliate",
         "supplier": "Supplier",
-        "creator": "Creator"
+        "creator": "Reseller / Creator"
       },
       "formats": {
         "brand-studio-shops": {
@@ -4914,7 +4914,7 @@
         },
         "legion-profile": {
           "title": "Légion · /u/[username]",
-          "role": "Creator handle vitrine (@username). Parallel identity to Store slug — optimized for social traffic and Légion referrals."
+          "role": "Reseller / creator handle vitrine (@username). Parallel identity to Store slug — optimized for social traffic and Légion referrals."
         },
         "embed-widget": {
           "title": "Embed widget · /embed/shops/",
@@ -4936,7 +4936,7 @@
         "embedLive": "Open embed URL",
         "embedRequiresEnable": "Enable Embed widget in Brand Studio first — then this URL serves the iframe rail.",
         "brandStudioEmbed": "Brand Studio → Embed panel",
-        "shopsBrowse": "Browse creator shops",
+        "shopsBrowse": "Browse reseller & creator shops",
         "discover": "Discover suppliers"
       },
       "indexCardTitle": "Storefront formats",
@@ -5137,7 +5137,12 @@
     "supplierCta": "Become a supplier",
     "resellerProgramCta": "Reseller B2B program",
     "supplierFrameworkCta": "Supplier B2B framework",
-    "howItWorks": "How it works"
+    "howItWorks": "How it works",
+    "creator": {
+      "title": "2. Reseller / creator partner",
+      "body": "Pick supplier SKUs, set your price, and publish on your storefront — Affisell handles checkout end to end."
+    },
+    "ctaPartner": "Become a reseller / creator partner"
   },
   "supplierStorefront": {
     "browse": {
@@ -5412,7 +5417,7 @@
       "greetingGeneric": "Hello,",
       "body": "You requested a new password. This link is tied to the account below and expires in 1 hour.",
       "accountLabel": "Account",
-      "portalAffiliate": "Creator space",
+      "portalAffiliate": "Reseller space",
       "portalSupplier": "Supplier space",
       "portalAgent": "Agent space",
       "portalDefault": "Affisell account",

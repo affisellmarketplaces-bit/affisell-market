@@ -277,14 +277,14 @@
   },
   "creators": {
     "meta": {
-      "title": "Verkaufen auf Affisell — Creator-Storefront",
+      "title": "Auf Affisell verkaufen — Reseller- & Creator-Storefront",
       "description": "Monetisieren Sie Ihr Publikum ohne Lagerbestand. Wählen Sie Produkte, wir liefern."
     },
     "hero": {
       "title": "Monetisieren Sie Ihr Publikum in 2 Minuten",
       "sub": "Kein Lagerbestand. Kein Risiko. Wählen Sie Produkte, wir liefern.",
       "cta": "Erstellen Sie Ihren kostenlosen Store",
-      "badgeCreators": "500+ Kreative",
+      "badgeCreators": "500+ Reseller & Creator",
       "badgeRevenue": "Durchschnittlich 2.400 €/Monat",
       "badgeSetup": "2-min-Setup"
     },
@@ -303,7 +303,7 @@
       }
     },
     "social": {
-      "title": "Kreative, die mit Affisell wachsen",
+      "title": "Reseller & Creator wachsen mit Affisell",
       "quote1": "Ich habe in einem Abend gestartet und meine erste Verkauf in derselben Woche erzielt.",
       "quote2": "Kein Lager, keine Support-Tickets für den Versand — Affisell übernimmt es.",
       "revenueAmount1": "2,4 k€",
@@ -311,7 +311,7 @@
       "revenueTag": "{amount}/Monat"
     },
     "preview": {
-      "title": "Ihr Creator-Dashboard",
+      "title": "Ihr Reseller-Dashboard",
       "hint": "Überfahren, um die Schnittstelle zu erkunden"
     },
     "footerLink": "Sind Sie eine Marke? Partner mit uns →",
@@ -323,7 +323,7 @@
       "description": "Verteilen Sie über Creator-Storefronts mit API-Automatisierung."
     },
     "hero": {
-      "title": "Verteilen Sie über 10.000+ Kreative",
+      "title": "Vertrieb über 10.000+ Reseller & Creator",
       "sub": "API-Integration. Automatisierte Bestellungen. Sichere Zahlungen.",
       "cta": "Partner werden"
     },
@@ -348,7 +348,7 @@
       "step3": "Wir senden Ihnen Bestellungen"
     },
     "ctaFinal": "Bewerben Sie sich als Partner",
-    "backCreators": "← Kreative",
+    "backCreators": "← Reseller / Creator",
     "enterpriseLink": "Enterprise brand? Dedicated onboarding →"
   },
   "enterprise": {
@@ -4327,17 +4327,17 @@
       "press": "Pressekit"
     },
     "stats": {
-      "stores": "Händlerläden",
+      "stores": "Reseller- & Creator-Shops",
       "listings": "Live-Artikel",
       "catalog": "Katalog-Produkte",
       "commission": "Durchschnittliche Affiliate-Provision"
     },
     "about": {
-      "metaTitle": "Über Affisell — Creator-first-Marktplatz",
+      "metaTitle": "Über Affisell — Reseller- & Creator-Marketplace",
       "metaDescription": "Affisell verbindet verifizierte Lieferanten, Händlerläden und Käufer mit transparenten Provisionen und EU-Grad-Kompliance.",
       "eyebrow": "Firmen",
-      "title": "Handelsinfrastruktur für Kreative",
-      "description": "Affisell ist ein Creator-first-Marktplatz: Lieferanten listen ihr Wholesales-Katalog, Affiliate-Partner starten einen eigenen Händlerladen in Minuten und Käufer kaufen mit voller Transparenz der Provisionen.",
+      "title": "Commerce-Infrastruktur für Reseller & Creator",
+      "description": "Affisell ist eine Marketplace für Reseller und Creator: Lieferanten listen ihren Katalog, Partner starten in Minuten eine Storefront.",
       "mission": {
         "title": "Unsere Mission",
         "body": "Wir glauben, dass Kreative ihre Zielgruppe ohne Lagerbestände, Lagerverwaltung oder Provisionen berechnen sollten. Affisell orchestriert den gesamten Prozess — Katalog-Synchronisierung, Zahlungsabwicklung, Lieferanten-Erfüllung, Stripe-Connect-Payouts und GDPR-konforme Vertrauenssignale.",
@@ -4390,7 +4390,7 @@
         "title": "Hauptsitz"
       },
       "cta": {
-        "creators": "Werde Kreativ",
+        "creators": "Reseller / Creator werden",
         "catalog": "Browsere Affiliate-Katalog"
       }
     },
@@ -5137,7 +5137,12 @@
     "supplierCta": "Become a supplier",
     "resellerProgramCta": "Reseller B2B program",
     "supplierFrameworkCta": "Supplier B2B framework",
-    "howItWorks": "How it works"
+    "howItWorks": "How it works",
+    "creator": {
+      "title": "2. Reseller / creator partner",
+      "body": "Pick supplier SKUs, set your price, and publish on your storefront — Affisell handles checkout end to end."
+    },
+    "ctaPartner": "Become a reseller / creator partner"
   },
   "supplierStorefront": {
     "browse": {
@@ -5412,7 +5417,7 @@
       "greetingGeneric": "Hallo,",
       "body": "Du hast ein neues Passwort angefordert. Dieser Link ist mit dem unten angegebenen Konto verknüpft und läuft in 1 Stunde ab.",
       "accountLabel": "Konto",
-      "portalAffiliate": "Creator-Bereich",
+      "portalAffiliate": "Reseller-Bereich",
       "portalSupplier": "Lieferant-Bereich",
       "portalAgent": "Agent space",
       "portalDefault": "Affisell-Konto",

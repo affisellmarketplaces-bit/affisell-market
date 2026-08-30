@@ -170,7 +170,7 @@ export function SupplierInvitationLanding({ invite }: Props) {
               {
                 icon: Users,
                 title: "Réseau d'affiliés",
-                desc: "Des créateurs prêts à promouvoir vos SKU.",
+                desc: "Des revendeurs & créateurs prêts à promouvoir vos SKU.",
               },
               {
                 icon: BadgePercent,
@@ -343,7 +343,7 @@ export function SupplierInvitationLanding({ invite }: Props) {
             )}
           </div>
           <p className="mt-4 text-center text-[11px] text-zinc-600">
-            Propulsé par Affisell · marketplace créateurs × fournisseurs
+            Propulsé par Affisell · marketplace revendeurs & créateurs × fournisseurs
           </p>
         </aside>
       </div>

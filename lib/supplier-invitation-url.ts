@@ -22,7 +22,7 @@ export function buildSupplierInviteSharePayload(args: {
   affiliateName: string
   headline?: string
 }) {
-  const name = args.affiliateName.trim() || "Un créateur Affisell"
+  const name = args.affiliateName.trim() || "Un revendeur / créateur Affisell"
   const title = args.headline?.trim() || "Rejoignez Affisell — vendez via nos affiliés"
   const body = `${name} vous invite à vendre sur Affisell.\n\n${title}\n\n${args.url}`
 

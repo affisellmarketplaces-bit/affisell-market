@@ -204,7 +204,7 @@ export function AdminKycConsole({ initial }: Props) {
             </p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight">Vérification identité</h1>
             <p className="mt-1 max-w-xl text-sm text-violet-100/75">
-              Dossiers fournisseurs & créateurs — pièces officielles uniquement. Aucune validation sans
+              Dossiers fournisseurs & revendeurs / créateurs — pièces officielles uniquement. Aucune validation sans
               checklist.
             </p>
           </div>

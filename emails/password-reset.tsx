@@ -224,7 +224,7 @@ PasswordResetEmail.PreviewProps = {
     greeting: "Bonjour Nelson,",
     body: "Vous avez demandé un nouveau mot de passe. Ce lien est lié au compte ci-dessous et expire dans 1 heure.",
     accountLabel: "Compte concerné",
-    spaceLabel: "Espace créateur",
+    spaceLabel: "Espace revendeur",
     cta: "Réinitialiser mon mot de passe",
     fallbackLabel: "Si le bouton ne s'ouvre pas, copiez ce lien :",
     footerNote:

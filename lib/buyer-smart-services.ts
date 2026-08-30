@@ -7,7 +7,7 @@ import { BUYER_TILE_ACCENTS } from "@/lib/home-buyer-accent-palette"
 export const FEATURED_SHOPS_TILE = {
   href: PUBLIC_SHOPS_PATH,
   label: "Boutiques à la une",
-  hint: "Sélection créateurs",
+  hint: "Sélection revendeurs & créateurs",
   accent: BUYER_TILE_ACCENTS.stores.glow,
   cardClass: `${BUYER_TILE_ACCENTS.stores.card} text-white shadow-violet-500/25`,
 } as const
@@ -55,7 +55,7 @@ export const BUYER_SMART_SERVICES: BuyerSmartService[] = [
   {
     href: PUBLIC_SHOPS_PATH,
     label: "Boutiques",
-    hint: "Toutes les vitrines créateurs",
+    hint: "Toutes les vitrines revendeurs & créateurs",
     Icon: Store,
     accent: BUYER_TILE_ACCENTS.stores.glow,
     cardClass: `${BUYER_TILE_ACCENTS.stores.card} text-white shadow-violet-500/25`,

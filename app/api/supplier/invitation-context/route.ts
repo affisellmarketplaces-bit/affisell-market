@@ -38,7 +38,7 @@ export async function GET() {
         offeredCommissionPct: invitation.offeredCommissionPct,
         categoryHint: invitation.categoryHint,
         affiliateName:
-          store?.name?.trim() || invitation.affiliate.name?.trim() || "Créateur Affisell",
+          store?.name?.trim() || invitation.affiliate.name?.trim() || "Revendeur / créateur Affisell",
         partnerListingCode: store?.partnerListingCode?.trim() || null,
         affiliateLogoUrl: store?.logoUrl ?? null,
         catalogLive: invitation.status === "CATALOG_LIVE",

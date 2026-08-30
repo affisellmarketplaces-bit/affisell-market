@@ -80,7 +80,7 @@ export function AffiliateMarketingLandingPage() {
               <Sparkles className="size-5" aria-hidden />
             </span>
             <h2 id="compare-heading" className="text-2xl font-bold text-zinc-900 dark:text-white">
-              Pourquoi les créateurs choisissent Affisell
+              Pourquoi les revendeurs & créateurs choisissent Affisell
             </h2>
           </div>
 

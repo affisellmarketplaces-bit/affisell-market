@@ -20,5 +20,5 @@ export function buildPayoutTweetText(args: {
   if (args.locale === "en") {
     return `Just got paid ${args.earningsLabel} on @Affisell 🚀 Creator marketplace with 300% margins. Join me: ${args.referralUrl} #Affisell300`
   }
-  return `Je viens de toucher ${args.earningsLabel} sur @Affisell 🚀 Marketplace créateur, marges jusqu'à 300%. Rejoins-moi : ${args.referralUrl} #Affisell300`
+  return `Je viens de toucher ${args.earningsLabel} sur @Affisell 🚀 Marketplace revendeurs & créateurs, marges jusqu'à 300%. Rejoins-moi : ${args.referralUrl} #Affisell300`
 }

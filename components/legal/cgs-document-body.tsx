@@ -13,7 +13,8 @@ export function CgsDocumentBody() {
       </p>
 
       <p>
-        Les présentes Conditions générales de services — applicables aux <strong>Affiliés</strong> / créateurs
+        Les présentes Conditions générales de services — applicables aux <strong>Affiliés</strong> (revendeurs /
+        créateurs)
         (« <strong>CGS</strong> ») — complètent les <a href="/legal/cgu">CGU</a> d&apos;{c.name} (« Affisell »).
         En activant votre boutique affiliée, vous acceptez les CGS.
       </p>

@@ -277,14 +277,14 @@
   },
   "creators": {
     "meta": {
-      "title": "Vende en Affisell — Tienda de creadores",
+      "title": "Vender en Affisell — Tienda revendedor / creador",
       "description": "Monetiza tu audiencia con cero inventario. Selecciona productos, nosotros enviamos."
     },
     "hero": {
       "title": "Monetiza tu audiencia en 2 minutos",
       "sub": "Cero inventario. Cero riesgo. Selecciona productos, nosotros enviamos.",
       "cta": "Crea tu tienda gratuita",
-      "badgeCreators": "500+ creadores",
+      "badgeCreators": "500+ revendedores y creadores",
       "badgeRevenue": "Ingresos promedio de 2.400 €/mes",
       "badgeSetup": "Configuración en 2 minutos"
     },
@@ -303,7 +303,7 @@
       }
     },
     "social": {
-      "title": "Creadores creciendo con Affisell",
+      "title": "Revendedores y creadores que crecen con Affisell",
       "quote1": "Lancé en una noche y obtuve mi primera venta la misma semana.",
       "quote2": "No almacén, no tickets de soporte para envíos — Affisell se encarga de ello.",
       "revenueAmount1": "2,4 k€",
@@ -4327,7 +4327,7 @@
       "press": "Kit de prensa"
     },
     "stats": {
-      "stores": "Tiendas de creadores",
+      "stores": "Tiendas revendedores y creadores",
       "listings": "Listados en vivo",
       "catalog": "Catálogo de SKU",
       "commission": "Comisión de afiliado promedio"
@@ -4336,8 +4336,8 @@
       "metaTitle": "Acerca de Affisell — Mercado de creadores",
       "metaDescription": "Affisell conecta proveedores verificados, tiendas de creadores y compradores con comisiones transparentes y cumplimiento de la UE.",
       "eyebrow": "Empresa",
-      "title": "Infraestructura comercial para creadores",
-      "description": "Affisell es un mercado de creadores: los proveedores publican un catálogo de wholesale, los afiliados lanzan tiendas de marca en minutos, y los compradores compran con transparencia de tarifas completas.",
+      "title": "Infraestructura comercial para revendedores y creadores",
+      "description": "Affisell es una marketplace para revendedores y creadores: proveedores, vitrinas y compradores con confianza.",
       "mission": {
         "title": "Nuestra misión",
         "body": "Creemos que los creadores deben monetizar su audiencia sin tener inventario, gestionar almacenes ni adivinar márgenes. Affisell coordina el ciclo completo — sincronización de catálogo, pago de Stripe Connect y señales de confianza GDPR.",
@@ -4390,7 +4390,7 @@
         "title": "Sede central"
       },
       "cta": {
-        "creators": "Convertirse en creador",
+        "creators": "Ser revendedor / creador",
         "catalog": "Explorar el catálogo de afiliados"
       }
     },
@@ -5137,7 +5137,12 @@
     "supplierCta": "Become a supplier",
     "resellerProgramCta": "Reseller B2B program",
     "supplierFrameworkCta": "Supplier B2B framework",
-    "howItWorks": "How it works"
+    "howItWorks": "How it works",
+    "creator": {
+      "title": "2. Reseller / creator partner",
+      "body": "Pick supplier SKUs, set your price, and publish on your storefront — Affisell handles checkout end to end."
+    },
+    "ctaPartner": "Become a reseller / creator partner"
   },
   "supplierStorefront": {
     "browse": {

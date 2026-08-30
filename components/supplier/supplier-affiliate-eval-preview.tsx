@@ -217,7 +217,7 @@ export function SupplierAffiliateEvalPreview({
             </div>
             <div className="min-w-0">
               <p className="font-semibold text-zinc-900 dark:text-zinc-50">
-                {isCatalog ? "Ce que voient les créateurs affiliés" : "How partners read your SKU"}
+                {isCatalog ? "Ce que voient les revendeurs & créateurs affiliés" : "How partners read your SKU"}
               </p>
               <p className="mt-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                 {isCatalog ? (
@@ -471,7 +471,7 @@ export function SupplierAffiliateEvalPreview({
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-teal-950 dark:text-teal-50">
-                        {isCatalog ? "Créateurs qui listent" : "Partner listings"}
+                        {isCatalog ? "Revendeurs / créateurs qui listent" : "Partner listings"}
                       </p>
                       <p className="mt-2 text-3xl font-bold tabular-nums text-teal-950 dark:text-teal-50">
                         {listedAffiliateCount}
@@ -479,8 +479,8 @@ export function SupplierAffiliateEvalPreview({
                       <p className="mt-1 text-xs font-medium text-teal-900/95 dark:text-teal-100/95">
                         {isCatalog
                           ? listedAffiliateCount === 1
-                            ? "créateur a ce produit en boutique live"
-                            : "créateurs ont ce produit en boutique live"
+                            ? "revendeur / créateur a ce produit en boutique live"
+                            : "revendeurs / créateurs ont ce produit en boutique live"
                           : listedAffiliateCount === 1
                             ? "affiliate has this product in a live shop listing"
                             : "affiliates have this product in live shop listings"}

@@ -177,7 +177,7 @@ export function SupplierDashboardProductsCatalog({
                   Pilotez vos SKU : prix catalogue, stock, commission partenaires et logistique. Les acheteurs passent par
                   les boutiques affiliées — utilisez{" "}
                   <strong className="font-semibold text-zinc-800 dark:text-zinc-100">Aperçu partenaire</strong> pour
-                  valider la fiche telle que les créateurs la voient dans Discover.
+                  valider la fiche telle que les revendeurs & créateurs la voient dans Discover.
                 </>
               )
             }
@@ -251,7 +251,7 @@ export function SupplierDashboardProductsCatalog({
             label="Listings partenaires"
             value={partnerListedTotal}
             valueClassName="text-violet-600 dark:text-violet-400"
-            hint="Annonces live chez les créateurs"
+            hint="Annonces live chez les revendeurs & créateurs"
           />
         </div>
       ) : null}
@@ -423,7 +423,8 @@ export function SupplierDashboardProductsCatalog({
                       <div className="flex flex-wrap gap-2">
                         <p className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">
                           <Users className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                          {partnersListed} créateur{partnersListed === 1 ? "" : "s"} en boutique live
+                          {partnersListed} partenaire revendeur / créateur
+                          {partnersListed === 1 ? "" : "s"} en boutique live
                         </p>
                         {marginReviewsOpen > 0 ? (
                           <p className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">

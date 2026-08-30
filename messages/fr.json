@@ -277,14 +277,14 @@
   },
   "creators": {
     "meta": {
-      "title": "Vendre sur Affisell — Boutique créateur",
-      "description": "Monétisez votre audience sans stock. Vous choisissez, nous livrons."
+      "title": "Vendre sur Affisell — Boutique revendeur / créateur",
+      "description": "Monétisez votre audience sans stock. Revendeurs et créateurs choisissent — nous livrons."
     },
     "hero": {
       "title": "Monétisez votre audience en 2 minutes",
       "sub": "0 stock, 0 risque. Vous choisissez, nous livrons.",
       "cta": "Créer ma boutique gratuite",
-      "badgeCreators": "500+ créateurs",
+      "badgeCreators": "500+ revendeurs & créateurs",
       "badgeRevenue": "2 400 €/mois en moyenne",
       "badgeSetup": "Mise en ligne 2 min"
     },
@@ -303,7 +303,7 @@
       }
     },
     "social": {
-      "title": "Des créateurs qui grandissent avec Affisell",
+      "title": "Des revendeurs & créateurs qui grandissent avec Affisell",
       "quote1": "Boutique lancée en une soirée, première vente la même semaine.",
       "quote2": "Pas d'entrepôt ni de SAV livraison — Affisell s'en charge.",
       "revenueAmount1": "2,4 k€",
@@ -311,7 +311,7 @@
       "revenueTag": "{amount}/mois"
     },
     "preview": {
-      "title": "Votre tableau de bord créateur",
+      "title": "Votre tableau de bord revendeur",
       "hint": "Survolez pour explorer l'interface"
     },
     "footerLink": "Vous êtes une marque ? Devenez partenaire →",
@@ -320,17 +320,17 @@
   "partners": {
     "meta": {
       "title": "Partenaires Affisell — Distribution fournisseur",
-      "description": "Distribuez via les boutiques partenaires créateurs."
+      "description": "Distribuez via les vitrines partenaires revendeurs & créateurs."
     },
     "hero": {
-      "title": "Distribuez via 10 000+ créateurs",
+      "title": "Distribuez via 10 000+ revendeurs & créateurs",
       "sub": "Réseau de partenaires. Commandes automatisées. Paiements sécurisés.",
       "cta": "Devenir partenaire"
     },
     "features": {
       "reach": {
         "title": "Portée",
-        "description": "Accédez à des audiences engagées via boutiques créateurs"
+        "description": "Accédez à des audiences engagées via boutiques revendeurs & créateurs"
       },
       "automation": {
         "title": "Automatisation",
@@ -344,21 +344,21 @@
     "steps": {
       "title": "Comment ça marche",
       "step1": "Créer votre compte fournisseur",
-      "step2": "Les créateurs listent vos produits",
+      "step2": "Les revendeurs & créateurs listent vos produits",
       "step3": "Nous vous envoyons les commandes"
     },
     "ctaFinal": "Postuler comme partenaire",
-    "backCreators": "← Créateurs",
+    "backCreators": "← Revendeurs / Créateurs",
     "enterpriseLink": "Grande marque ? Parcours enterprise →"
   },
   "enterprise": {
     "meta": {
       "title": "Grandes marques — Affisell Enterprise",
-      "description": "Onboarding dédié, catalogue à grande échelle, domaine custom et réseau créateurs pour les marques établies."
+      "description": "Onboarding dédié, catalogue à grande échelle, domaine custom et réseau revendeurs & créateurs pour les marques établies."
     },
     "hero": {
       "eyebrow": "Affisell Enterprise",
-      "title": "Votre marque. Votre domaine. 10 000+ créateurs.",
+      "title": "Votre marque. Votre domaine. 10 000+ revendeurs & créateurs.",
       "sub": "Import catalogue, Brand Studio, KYC accéléré et account manager dédié — sans refaire votre stack e-commerce.",
       "cta": "Demander un onboarding",
       "badge1": "Catalogue 1k–10k+ SKU",
@@ -386,7 +386,7 @@
     "program": {
       "eyebrow": "Programme marque",
       "title": "Onboarding white-glove en 3 étapes",
-      "body": "Notre équipe configure votre compte, valide votre KYC en priorité et connecte votre catalogue avant l'ouverture du réseau créateurs.",
+      "body": "Notre équipe configure votre compte, valide votre KYC en priorité et connecte votre catalogue avant l'ouverture du réseau revendeurs & créateurs.",
       "step1": "Candidature + call découverte (30 min)",
       "step2": "Import catalogue + Brand Studio + domaine custom",
       "step3": "Activation réseau affiliés + suivi dans votre CRM fondateur",
@@ -1399,7 +1399,7 @@
       "metaDescription": "Partagez votre lien, gagnez 10% des ventes de vos filleuls et débloquez la bounty UGC.",
       "eyebrow": "Growth",
       "title": "Parrainage & bounty UGC",
-      "description": "Invitez des créateurs — 10% de leurs gains nets à chaque vente. Bonus bienvenue 5% pour vos filleuls (< 30j).",
+      "description": "Invitez des revendeurs & créateurs — 10% de leurs gains nets à chaque vente. Bonus bienvenue 5% pour vos filleuls (< 30j).",
       "stats": {
         "referrals": "Filleuls",
         "month": "Gagné ce mois",
@@ -4046,7 +4046,7 @@
       "body": "Sélectionnez des SKU fournisseur, fixez votre prix client et publiez sur votre vitrine — sans stock ni expédition."
     },
     "creator": {
-      "title": "2. Partenaire créateur",
+      "title": "2. Partenaire revendeur / créateur",
       "body": "Sélectionnez des produits, personnalisez votre vitrine et partagez-la — Affisell gère l'expérience d'achat de bout en bout."
     },
     "supplier": {
@@ -4056,7 +4056,7 @@
     "ctaBrowse": "Explorer le catalogue",
     "ctaSell": "Vendre sur Affisell",
     "ctaProgram": "Programme B2B revendeur",
-    "ctaPartner": "Devenir partenaire créateur"
+    "ctaPartner": "Devenir partenaire revendeur / créateur"
   },
   "supportPage": {
     "metaTitle": "Assistant support | Affisell",
@@ -4327,25 +4327,25 @@
       "press": "Press Kit"
     },
     "stats": {
-      "stores": "Boutiques créateurs",
+      "stores": "Boutiques revendeurs & créateurs",
       "listings": "Fiches en direct",
       "catalog": "SKU catalogue",
       "commission": "Partenaires actifs"
     },
     "about": {
-      "metaTitle": "À propos d'Affisell — Marketplace créateur-first",
+      "metaTitle": "À propos d'Affisell — Marketplace revendeurs & créateurs",
       "metaDescription": "Affisell connecte fournisseurs vérifiés, vitrines partenaires et acheteurs avec une expérience d'achat protégée en UE.",
       "eyebrow": "Entreprise",
-      "title": "L'infrastructure commerce des créateurs",
-      "description": "Affisell est une marketplace pensée pour les créateurs : les fournisseurs exposent leur catalogue, les partenaires lancent une vitrine en minutes, les acheteurs achètent en confiance.",
+      "title": "L'infrastructure commerce des revendeurs & créateurs",
+      "description": "Affisell est une marketplace pensée pour les revendeurs et créateurs : les fournisseurs exposent leur catalogue, les partenaires lancent une vitrine en minutes, les acheteurs achètent en confiance.",
       "mission": {
         "title": "Notre mission",
-        "body": "Les créateurs doivent pouvoir monétiser leur audience sans stock ni logistique. Affisell orchestre la boucle complète — catalogue, paiement sécurisé, expédition fournisseur et signaux de confiance conformes RGPD.",
+        "body": "Les revendeurs et créateurs doivent pouvoir monétiser leur audience sans stock ni logistique. Affisell orchestre la boucle complète — catalogue, paiement sécurisé, expédition fournisseur et signaux de confiance conformes RGPD.",
         "body2": "Basés à Marseille, nous privilégions l'Europe avec un checkout multi-devises et des outils pensés pour la découverte produit et la croissance des vitrines."
       },
       "values": {
         "0": {
-          "title": "Vitrines créateurs",
+          "title": "Vitrines revendeurs & créateurs",
           "body": "Chaque partenaire obtient une boutique brandée, des fiches personnalisées et du merchandising intuitif — en ligne en quelques minutes."
         },
         "1": {
@@ -4367,7 +4367,7 @@
           "2024": {
             "year": "2024",
             "title": "Fondation Affisell",
-            "body": "Lancement de la marketplace : catalogue fournisseur et vitrines partenaires créateurs."
+            "body": "Lancement de la marketplace : catalogue fournisseur et vitrines partenaires revendeurs & créateurs."
           },
           "2026": {
             "year": "2026",
@@ -4377,7 +4377,7 @@
           "2025a": {
             "year": "2025",
             "title": "Découverte & sourcing",
-            "body": "Outils de découverte produit et d'aide au choix pour les partenaires créateurs."
+            "body": "Outils de découverte produit et d'aide au choix pour les partenaires revendeurs & créateurs."
           },
           "2025b": {
             "year": "2025",
@@ -4390,22 +4390,22 @@
         "title": "Siège"
       },
       "cta": {
-        "creators": "Devenir créateur",
+        "creators": "Devenir revendeur / créateur",
         "catalog": "Catalogue ambassadeur"
       }
     },
     "blog": {
-      "metaTitle": "Blog Affisell — Produit & creator economy",
-      "metaDescription": "Actualités marketplace, transparence commissions et outils créateurs par l'équipe Affisell.",
+      "metaTitle": "Blog Affisell — Produit & économie revendeurs",
+      "metaDescription": "Actualités marketplace, transparence commissions et outils revendeurs & créateurs par l'équipe Affisell.",
       "eyebrow": "Blog",
       "title": "Les coulisses d'Affisell",
-      "description": "Lancements produit, économie marketplace et playbooks créateurs — rédigés par l'équipe qui construit Affisell.",
+      "description": "Lancements produit, économie marketplace et playbooks revendeurs & créateurs — rédigés par l'équipe qui construit Affisell.",
       "readMore": "Lire l'article",
       "backToBlog": "Tous les articles",
       "posts": {
         "swipe-feed-affiliate-hub": {
           "title": "Découvrir et publier plus vite",
-          "excerpt": "Les partenaires créateurs parcourent le catalogue en flux mobile et publient leurs sélections en quelques gestes.",
+          "excerpt": "Les partenaires revendeurs & créateurs parcourent le catalogue en flux mobile et publissent leurs sélections en quelques gestes.",
           "date": "2026-05-19",
           "category": "Produit",
           "readMin": "4 min",
@@ -4465,18 +4465,18 @@
             },
             "s3": {
               "title": "Pourquoi c'est clé",
-              "body": "Les créateurs opèrent dans toute l'UE. Une conformité intégrée rassure les marques partenaires et les acheteurs."
+              "body": "Les revendeurs et créateurs opèrent dans toute l'UE. Une conformité intégrée rassure les marques partenaires et les acheteurs."
             }
           }
         },
         "creator-storefront-60s": {
-          "title": "Lancer une vitrine créateur en quelques minutes",
+          "title": "Lancer une vitrine revendeur en quelques minutes",
           "excerpt": "Choisissez un produit, personnalisez votre vitrine, publiez — Affisell gère le reste.",
           "date": "2026-04-20",
-          "category": "Créateurs",
+          "category": "Revendeurs / Créateurs",
           "readMin": "3 min",
           "sections": {
-            "intro": "Affisell retire la charge ops du commerce créateur : pas d'entrepôt, pas de configuration paiement from scratch.",
+            "intro": "Affisell retire la charge ops du commerce revendeur & créateur : pas d'entrepôt, pas de configuration paiement from scratch.",
             "s1": {
               "title": "Catalogue → vitrine",
               "body": "Parcourez le catalogue par niche ou thème, personnalisez titre, visuels et présentation avant publication."
@@ -4487,7 +4487,7 @@
             },
             "s3": {
               "title": "Commencer",
-              "body": "Créez un compte partenaire gratuit et publiez votre première fiche. La plupart des créateurs voient leur première vente rapidement."
+              "body": "Créez un compte partenaire gratuit et publiez votre première fiche. La plupart des revendeurs & créateurs voient leur première vente rapidement."
             }
           }
         }
@@ -4495,13 +4495,13 @@
     },
     "careers": {
       "metaTitle": "Carrières chez Affisell",
-      "metaDescription": "Rejoignez l'équipe qui construit la marketplace créateur-first — remote-friendly, Marseille.",
+      "metaDescription": "Rejoignez l'équipe qui construit la marketplace revendeurs & créateurs — remote-friendly, Marseille.",
       "eyebrow": "Carrières",
-      "title": "Construisez la creator economy avec nous",
+      "title": "Construisez l'économie revendeurs & créateurs avec nous",
       "description": "Petite équipe product-obsessed à Marseille (remote-friendly). Scalez catalogue fournisseur, tooling ambassadeur et confiance acheteur.",
       "culture": {
         "title": "Notre façon de travailler",
-        "body": "Affisell est early-stage avec du trafic prod : vous shippez chaque semaine pour de vrais marchands, avec ownership bout-en-bout et contact direct créateurs/fournisseurs.",
+        "body": "Affisell est early-stage avec du trafic prod : vous shippez chaque semaine pour de vrais marchands, avec ownership bout-en-bout et contact direct revendeurs, créateurs et fournisseurs.",
         "perks": {
           "remote": "Remote-friendly fuseaux EU",
           "impact": "Fort ownership — pas de ticket factory",
@@ -4527,16 +4527,16 @@
           }
         },
         "creator-success": {
-          "title": "Creator Success Manager",
-          "summary": "Onboarder les partenaires créateurs, améliorer la qualité des vitrines, remonter les insights produit.",
+          "title": "Partner Success Manager",
+          "summary": "Onboarder les partenaires revendeurs & créateurs, améliorer la qualité des vitrines, remonter les insights produit.",
           "location": "Remote EU",
           "type": "CDI",
           "team": "Growth",
-          "applySubject": "Candidature — Creator Success",
+          "applySubject": "Candidature — Partner Success",
           "requirements": {
-            "r1": "FR/EN courant ; expérience communautés créateurs ou e-commerce",
+            "r1": "FR/EN courant ; expérience communautés revendeurs, créateurs ou e-commerce",
             "r2": "À l'aise avec les métriques conversion et rétention",
-            "r3": "Empathie pour les créateurs entre audience et croissance"
+            "r3": "Empathie pour les revendeurs & créateurs entre audience et croissance"
           }
         },
         "supplier-partnerships": {
@@ -4556,14 +4556,14 @@
     },
     "press": {
       "metaTitle": "Press Kit Affisell",
-      "metaDescription": "Ressources médias, faits société et contact presse Affisell — marketplace créateur-first.",
+      "metaDescription": "Ressources médias, faits société et contact presse Affisell — marketplace revendeurs & créateurs.",
       "eyebrow": "Presse",
       "title": "Press Kit",
-      "description": "Faits, boilerplate et assets pour journalistes couvrant creator commerce et retail tech EU.",
+      "description": "Faits, boilerplate et assets pour journalistes couvrant le commerce revendeurs & créateurs et la retail tech UE.",
       "boilerplate": {
         "title": "Boilerplate",
-        "short": "Affisell est une marketplace créateur-first reliant fournisseurs vérifiés, vitrines partenaires et acheteurs — avec conformité UE intégrée.",
-        "long": "Fondée à Marseille, Affisell permet aux créateurs de lancer une boutique brandée en minutes sans stock. Les fournisseurs distribuent via un réseau de partenaires avec fulfillment automatisé. La plateforme inclut outils de découverte, self-service RGPD et suivi commande transparent."
+        "short": "Affisell est une marketplace revendeurs & créateurs reliant fournisseurs vérifiés, vitrines partenaires et acheteurs — avec conformité UE intégrée.",
+        "long": "Fondée à Marseille, Affisell permet aux revendeurs et créateurs de lancer une boutique brandée en minutes sans stock. Les fournisseurs distribuent via un réseau de partenaires avec fulfillment automatisé. La plateforme inclut outils de découverte, self-service RGPD et suivi commande transparent."
       },
       "facts": {
         "title": "Faits clés",
@@ -4702,7 +4702,7 @@
     "eyebrow": "Sélection privée",
     "title": "Affisell Luxe",
     "back": "Catalogue",
-    "subtitle": "Pièces curatoriales · créateurs authentifiés · visibilité limitée",
+    "subtitle": "Pièces curatoriales · revendeurs & créateurs authentifiés · visibilité limitée",
     "badgeLuxe": "Luxe",
     "badgeCollection": "Collection",
     "prestige": "Prestige {score}",
@@ -4779,7 +4779,7 @@
         "title": "Parcours acheteur",
         "subtitle": "Parcourir le marketplace, la confiance checkout, le support.",
         "cardTitle": "Acheteur",
-        "cardBody": "Expérience d'achat sur les boutiques créateurs."
+        "cardBody": "Expérience d'achat sur les boutiques revendeurs & créateurs."
       }
     },
     "steps": {
@@ -4804,7 +4804,7 @@
       "affiliate": {
         "discover": {
           "title": "Discover",
-          "body": "Flux live shopping et vitrines créateurs."
+          "body": "Flux live shopping et vitrines revendeurs & créateurs."
         },
         "catalog": {
           "title": "Marketplace",
@@ -4826,7 +4826,7 @@
         },
         "shop": {
           "title": "Boutiques",
-          "body": "Parcours shop créateur et fiche produit."
+          "body": "Parcours shop revendeur & fiche produit."
         },
         "trust": {
           "title": "Confiance",
@@ -4870,7 +4870,7 @@
       "subtitle": "Chaque expérience vitrine publique sur Affisell — rôle, URL et tests live en un clic. Votre hub de référence dans le Demo Lab.",
       "backToDemo": "Retour au Demo Lab",
       "architectureTitle": "Architecture dual-model",
-      "architectureDiagram": "Marchand affilié\n├── /shops/[slug]     → Brand Studio (chrome acheteur, sections modulaires)\n├── /boutique/[slug]  → Boutique procédurale (1024 skins, studio design)\n├── /embed/shops/[slug] → Widget embarqué (toggle Brand Studio)\n└── domaine custom CNAME → rewrite vers /shops/[slug]\n\nMarchand fournisseur\n└── /store/supplier/[slug] → Vitrine catalogue supplier\n\nCréateur (Légion)\n└── /u/[username] → Vitrine @handle (parallèle au slug Store)",
+      "architectureDiagram": "Marchand affilié\n├── /shops/[slug]     → Brand Studio (chrome acheteur, sections modulaires)\n├── /boutique/[slug]  → Boutique procédurale (1024 skins, studio design)\n├── /embed/shops/[slug] → Widget embarqué (toggle Brand Studio)\n└── domaine custom CNAME → rewrite vers /shops/[slug]\n\nMarchand fournisseur\n└── /store/supplier/[slug] → Vitrine catalogue supplier\n\nRevendeur / Créateur (Légion)\n└── /u/[username] → Vitrine @handle (parallèle au slug Store)",
       "formatsGridTitle": "Formats disponibles",
       "stats": {
         "formats": "Formats publics",
@@ -4897,7 +4897,7 @@
         "buyer": "Acheteur",
         "affiliate": "Affilié",
         "supplier": "Fournisseur",
-        "creator": "Créateur"
+        "creator": "Revendeur / Créateur"
       },
       "formats": {
         "brand-studio-shops": {
@@ -4914,7 +4914,7 @@
         },
         "legion-profile": {
           "title": "Légion · /u/[username]",
-          "role": "Vitrine handle créateur (@username). Identité parallèle au slug Store — optimisée trafic social et parrainage Légion."
+          "role": "Vitrine handle revendeur / créateur (@username). Identité parallèle au slug Store — optimisée trafic social et parrainage Légion."
         },
         "embed-widget": {
           "title": "Widget embed · /embed/shops/",
@@ -4936,7 +4936,7 @@
         "embedLive": "Ouvrir URL embed",
         "embedRequiresEnable": "Activez Embed widget dans Brand Studio — l'URL sert alors le rail iframe.",
         "brandStudioEmbed": "Brand Studio → panneau Embed",
-        "shopsBrowse": "Parcourir les shops",
+        "shopsBrowse": "Parcourir les boutiques revendeurs & créateurs",
         "discover": "Discover fournisseurs"
       },
       "indexCardTitle": "Formats vitrine",
@@ -5137,7 +5137,12 @@
     "supplierCta": "Devenir fournisseur",
     "resellerProgramCta": "Programme B2B revendeur",
     "supplierFrameworkCta": "Cadre B2B fournisseur",
-    "howItWorks": "Comment ça marche"
+    "howItWorks": "Comment ça marche",
+    "creator": {
+      "title": "2. Partenaire revendeur / créateur",
+      "body": "Sélectionnez des SKU fournisseur, fixez votre prix client et publiez sur votre vitrine — Affisell gère l'expérience d'achat de bout en bout."
+    },
+    "ctaPartner": "Devenir partenaire revendeur / créateur"
   },
   "supplierStorefront": {
     "browse": {
@@ -5412,7 +5417,7 @@
       "greetingGeneric": "Bonjour,",
       "body": "Vous avez demandé un nouveau mot de passe. Ce lien est lié au compte ci-dessous et expire dans 1 heure.",
       "accountLabel": "Compte concerné",
-      "portalAffiliate": "Espace créateur",
+      "portalAffiliate": "Espace revendeur",
       "portalSupplier": "Espace fournisseur",
       "portalAgent": "Espace agent",
       "portalDefault": "Compte Affisell",

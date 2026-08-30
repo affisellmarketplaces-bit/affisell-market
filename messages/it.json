@@ -277,14 +277,14 @@
   },
   "creators": {
     "meta": {
-      "title": "Vendi su Affisell — Negozio del creatore",
+      "title": "Vendi su Affisell — Vetrina rivenditore / creator",
       "description": "Monetizza il tuo pubblico con zero inventario. Scegli i prodotti, noi li spediamo."
     },
     "hero": {
       "title": "Monetizza il tuo pubblico in 2 minuti",
       "sub": "Zero inventario. Zero rischi. Scegli i prodotti, noi li spediamo.",
       "cta": "Crea il tuo negozio gratuito",
-      "badgeCreators": "500+ creatori",
+      "badgeCreators": "500+ rivenditori e creator",
       "badgeRevenue": "Media 2.400 €/mese",
       "badgeSetup": "Impostazione a 2 minuti"
     },
@@ -4327,7 +4327,7 @@
       "press": "Kit stampa"
     },
     "stats": {
-      "stores": "Negozio creator",
+      "stores": "Negozi rivenditori e creator",
       "listings": "Elenco in tempo reale",
       "catalog": "Catalogo SKU",
       "commission": "Commissione media affiliata"
@@ -4336,8 +4336,8 @@
       "metaTitle": "About Affisell — Marketplace per creator",
       "metaDescription": "Affisell collega fornitori verificati, negozi creator e acquirenti con commissioni trasparenti e conformità EU.",
       "eyebrow": "Azienda",
-      "title": "Infrastruttura commerciale per creator",
-      "description": "Affisell è un marketplace per creator: i fornitori elencano il catalogo al dettaglio, gli affiliati lanciano negozi personalizzati in pochi minuti, e gli acquirenti acquistano con piena trasparenza delle commissioni.",
+      "title": "Infrastruttura commerce per rivenditori e creator",
+      "description": "Affisell è una marketplace per rivenditori e creator: catalogo fornitori, vetrine partner e acquisto sicuro.",
       "mission": {
         "title": "La nostra missione",
         "body": "Crediamo che i creator dovrebbero monetizzare il loro pubblico senza tenere l'inventario, gestire magazzini o indovinare i margini. Affisell coordina l'intero ciclo — sincronizzazione catalogo, pagamento, gestione ordini, pagamenti Stripe Connect e segnali di fiducia GDPR conformi.",
@@ -4390,7 +4390,7 @@
         "title": "Sede centrale"
       },
       "cta": {
-        "creators": "Diventa un creatore",
+        "creators": "Diventa rivenditore / creator",
         "catalog": "Esplora il catalogo affiliato"
       }
     },
@@ -5137,7 +5137,12 @@
     "supplierCta": "Become a supplier",
     "resellerProgramCta": "Reseller B2B program",
     "supplierFrameworkCta": "Supplier B2B framework",
-    "howItWorks": "How it works"
+    "howItWorks": "How it works",
+    "creator": {
+      "title": "2. Reseller / creator partner",
+      "body": "Pick supplier SKUs, set your price, and publish on your storefront — Affisell handles checkout end to end."
+    },
+    "ctaPartner": "Become a reseller / creator partner"
   },
   "supplierStorefront": {
     "browse": {

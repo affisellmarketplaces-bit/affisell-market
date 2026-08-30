@@ -277,14 +277,14 @@
   },
   "creators": {
     "meta": {
-      "title": "在 Affisell 上出售 — 个人商店",
+      "title": "在 Affisell 销售 — 经销商/创作者店铺",
       "description": "零库存，零风险。挑选产品，我们运送。"
     },
     "hero": {
       "title": "在 2 分钟内赚取收入",
       "sub": "零库存，零风险。挑选产品，我们运送。",
       "cta": "创建您的免费商店",
-      "badgeCreators": "500+ 个创作者",
+      "badgeCreators": "500+ 经销商与创作者",
       "badgeRevenue": "平均每月 2 400 €",
       "badgeSetup": "2 分钟设置"
     },
@@ -4327,7 +4327,7 @@
       "press": "Press Kit"
     },
     "stats": {
-      "stores": "创作者商店",
+      "stores": "经销商与创作者店铺",
       "listings": "直播商品",
       "catalog": "目录SKU",
       "commission": "平均联盟佣金"
@@ -4336,8 +4336,8 @@
       "metaTitle": "关于 Affisell — 优先创作者的市场",
       "metaDescription": "Affisell连接了经过验证的供应商、创作者商店和买家，透明的佣金和欧盟级的合规性。",
       "eyebrow": "公司",
-      "title": "创作者基础设施",
-      "description": "Affisell 是一个以创作者为中心的市场平台:供应商列出批发目录,合作伙伴在几分钟内启动品牌商店,买家可以透明地查看费用。",
+      "title": "面向经销商与创作者的商业基础设施",
+      "description": "Affisell 是为经销商与创作者打造的 marketplace：供应商目录、伙伴店铺与可信购物。",
       "mission": {
         "title": "我们的使命",
         "body": "我们认为创作者应该在不持有库存,管理仓库,或猜测利润的情况下,通过他们的观众赚钱。Affisellorchestrates整个循环 ——目录同步,结算,供应商履行,Stripe Connect付款和GDPR兼容的信任信号。",
@@ -4390,7 +4390,7 @@
         "title": "总部"
       },
       "cta": {
-        "creators": "成为创作者",
+        "creators": "成为经销商/创作者",
         "catalog": "浏览合作目录"
       }
     },
@@ -5137,7 +5137,12 @@
     "supplierCta": "Become a supplier",
     "resellerProgramCta": "Reseller B2B program",
     "supplierFrameworkCta": "Supplier B2B framework",
-    "howItWorks": "How it works"
+    "howItWorks": "How it works",
+    "creator": {
+      "title": "2. Reseller / creator partner",
+      "body": "Pick supplier SKUs, set your price, and publish on your storefront — Affisell handles checkout end to end."
+    },
+    "ctaPartner": "Become a reseller / creator partner"
   },
   "supplierStorefront": {
     "browse": {

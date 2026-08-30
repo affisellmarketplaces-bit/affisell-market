@@ -29,8 +29,8 @@ export function CguDocumentBody() {
       <h2>Article 1 — Objet et champ d&apos;application</h2>
       <p>
         1.1. Affisell met à disposition une place de marché en ligne permettant à des{" "}
-        <strong>Fournisseurs</strong> de proposer des produits, à des <strong>Affiliés</strong> (créateurs /
-        partenaires) de les commercialiser via une vitrine dédiée, et à des <strong>Acheteurs</strong>{" "}
+        <strong>Fournisseurs</strong> de proposer des produits, à des <strong>Affiliés</strong> (revendeurs /
+        créateurs) de les commercialiser via une vitrine dédiée, et à des <strong>Acheteurs</strong>{" "}
         d&apos;acheter ces produits.
       </p>
       <p>

@@ -52,7 +52,7 @@ export async function createAffiliateSupplierInvitation(
     data: {
       token,
       affiliateId,
-      headline: headline || "Vendez avec nos créateurs affiliés",
+      headline: headline || "Vendez avec nos revendeurs & créateurs affiliés",
       personalMessage,
       offeredCommissionPct,
       categoryHint,

@@ -18,7 +18,7 @@ export function Hero({ stats }: Props) {
         </h1>
         <p className="mt-3 max-w-xl text-pretty text-sm text-zinc-600 dark:text-zinc-400 sm:text-base">
           Parcourez le catalogue Affisell, comparez marges et délais — comme sur une marketplace
-          pro, pensée pour les créateurs affiliés.
+          pro, pensée pour les revendeurs & créateurs affiliés.
         </p>
         <div className="mt-8 w-full">
           <MarketplaceSearchBox className="mx-auto" />

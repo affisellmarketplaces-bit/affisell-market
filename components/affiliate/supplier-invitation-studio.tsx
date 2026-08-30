@@ -45,7 +45,7 @@ export function SupplierInvitationStudio({
   const [activeToken, setActiveToken] = useState<string | null>(null)
   const [activeInvitationId, setActiveInvitationId] = useState<string | null>(null)
 
-  const [headline, setHeadline] = useState("Vendez avec nos créateurs affiliés")
+  const [headline, setHeadline] = useState("Vendez avec nos revendeurs & créateurs affiliés")
   const [personalMessage, setPersonalMessage] = useState(
     "Rejoignez Affisell : je liste vos produits sur ma vitrine et le réseau d'affiliés vous apporte de la visibilité sans gérer la pub vous-même."
   )
