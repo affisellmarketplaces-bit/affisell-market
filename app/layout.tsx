@@ -16,6 +16,7 @@ import { slimClientMessagesForDedicatedStorefront } from "@/lib/i18n-slim-client
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { isLegionStorefrontPathname } from "@/lib/legion/username"
 import ClientGuardInit from "@/components/security/client-guard-init"
+import { DonaPublicWidget } from "@/components/dona/DonaPublicWidget"
 import { cn } from "@/lib/utils"
 
 import "./globals.css"
@@ -92,6 +93,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </IntlAppProvider>
         </AuthSessionProvider>
         <ClientGuardInit />
+        <DonaPublicWidget />
       </body>
     </html>
   )
