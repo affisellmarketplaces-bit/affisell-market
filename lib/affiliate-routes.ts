@@ -55,5 +55,7 @@ export function isMarketplaceListingPath(pathname: string): boolean {
   if (!pathname.startsWith("/marketplace/")) return false
   if (pathname.startsWith("/marketplace/account")) return false
   const rest = pathname.slice("/marketplace/".length)
-  return rest.length > 0 && !rest.includes("/")
+  if (!rest || rest.includes("/")) return false
+  if (rest === "import" || rest === "bestsellers") return false
+  return true
 }

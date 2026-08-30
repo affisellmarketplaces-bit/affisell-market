@@ -2,10 +2,11 @@ import type { Metadata } from "next"
 import type { ReactNode } from "react"
 import { Suspense } from "react"
 import { notFound, redirect } from "next/navigation"
-import { getLocale } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 import { headers } from "next/headers"
 
-import { CheckoutRegionComingSoonBanner } from "@/components/marketplace/checkout-region-coming-soon-banner"
+import { BuyerBestsellersPage } from "@/components/buyer/buyer-bestsellers-page"
+import { isMarketplaceReservedSegment } from "@/lib/marketplace-reserved-segments"
 import { GraduatedCheckoutPermanentBanner } from "@/components/marketplace/graduated-checkout-permanent-banner"
 import { PdpCrossSellRailSkeleton } from "@/components/marketplace/pdp-cross-sell-rail-skeleton"
 import {
@@ -84,6 +85,10 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
   const { id } = await params
+  if (id === "bestsellers") {
+    const t = await getTranslations("buyerBestsellers")
+    return { title: t("metaTitle"), description: t("metaDescription") }
+  }
   return buildListingMetadataForId(id)
 }
 
@@ -106,6 +111,12 @@ export default async function MarketplaceListingPage({
   storeSlug?: string
 }) {
   const [{ id }, sp, requestHeaders] = await Promise.all([params, searchParams, headers()])
+
+  if (id === "bestsellers" || isMarketplaceReservedSegment(id)) {
+    if (id === "bestsellers") return <BuyerBestsellersPage />
+    notFound()
+  }
+
   const visitorCountry = resolveVisitorCountryIso2(requestHeaders)
 
   // Anonymous shell starts immediately — session/checkout run in parallel (was serial waterfall).
