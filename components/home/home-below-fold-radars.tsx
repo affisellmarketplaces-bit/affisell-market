@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic"
 import { useSession } from "next-auth/react"
 
-import { useDeferredMount } from "@/hooks/use-deferred-mount"
+import { useIdleInViewMount } from "@/hooks/use-idle-in-view-mount"
 import { canSeeHomeMerchantRadar } from "@/lib/role-feature-matrix"
 
 /**
@@ -50,7 +50,7 @@ function BelowFoldRadarPlaceholder() {
 
 export function HomeBelowFoldRadars() {
   const { data: session, status } = useSession()
-  const { ref, ready } = useDeferredMount({
+  const { ref, ready } = useIdleInViewMount({
     idleTimeoutMs: 10_000,
     fallbackDelayMs: 5000,
     rootMargin: "120px 0px",

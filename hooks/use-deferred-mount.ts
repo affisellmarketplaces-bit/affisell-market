@@ -1,44 +1,21 @@
 "use client"
 
-import { startTransition, useEffect, useRef, useState } from "react"
-import { useInView } from "framer-motion"
-
-import { scheduleIdleTask } from "@/lib/schedule-idle-task"
-
-type Options = {
-  /** requestIdleCallback timeout — long idle before fallback mount. */
-  idleTimeoutMs?: number
-  /** setTimeout fallback when requestIdleCallback is unavailable. */
-  fallbackDelayMs?: number
-  /** IntersectionObserver root margin (framer-motion `margin`). */
-  rootMargin?: string
-}
+import { useEffect, useState } from "react"
 
 /**
- * Defer heavy client trees until the anchor enters the viewport OR idle elapses.
- * Uses startTransition when flipping ready — keeps home TBT low (no “Page ne répond pas”).
+ * Mount heavy UI one frame after `active` — sheet shell paints first, content on next frame (INP).
  */
-export function useDeferredMount(options: Options = {}) {
-  const {
-    idleTimeoutMs = 5200,
-    fallbackDelayMs = 2800,
-    rootMargin = "160px 0px",
-  } = options
-
-  const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: rootMargin })
-  const [idleReady, setIdleReady] = useState(false)
-  const [ready, setReady] = useState(false)
+export function useDeferredMount(active: boolean): boolean {
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    return scheduleIdleTask(() => setIdleReady(true), idleTimeoutMs, fallbackDelayMs)
-  }, [idleTimeoutMs, fallbackDelayMs])
-
-  useEffect(() => {
-    if (!ready && (inView || idleReady)) {
-      startTransition(() => setReady(true))
+    if (!active) {
+      setMounted(false)
+      return
     }
-  }, [inView, idleReady, ready])
+    const id = requestAnimationFrame(() => setMounted(true))
+    return () => cancelAnimationFrame(id)
+  }, [active])
 
-  return { ref, ready, inView, idleReady }
+  return active && mounted
 }

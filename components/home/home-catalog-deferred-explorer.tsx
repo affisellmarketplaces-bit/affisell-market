@@ -5,7 +5,7 @@ import type { ReactNode } from "react"
 
 import { HomeCatalogErrorBoundary } from "@/components/home/home-catalog-error-boundary"
 import { HomeCatalogImageWarmup } from "@/components/home/home-catalog-image-warmup"
-import { useDeferredMount } from "@/hooks/use-deferred-mount"
+import { useIdleInViewMount } from "@/hooks/use-idle-in-view-mount"
 import type { HomeMarketplaceShell } from "@/lib/home-marketplace-shell"
 import { pickHomeLcpImageUrls } from "@/lib/home-lcp-images"
 
@@ -27,7 +27,7 @@ type Props = {
  * Prevents main-thread freeze when hero + footer hydrate on `/`.
  */
 export function HomeCatalogDeferredExplorer({ shell, staticCatalog }: Props) {
-  const { ref, ready: interactive } = useDeferredMount({
+  const { ref, ready: interactive } = useIdleInViewMount({
     idleTimeoutMs: 8000,
     fallbackDelayMs: 4200,
     rootMargin: "200px 0px",
