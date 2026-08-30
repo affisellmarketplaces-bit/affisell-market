@@ -3,7 +3,6 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { cookies } from "next/headers"
 
-import { BrowseScrollTop } from "@/components/browse/browse-scroll-top"
 import { CategoryBrowseGrid } from "@/components/browse/category-browse-grid"
 import { browseCategoryCopy } from "@/lib/browse-category-copy"
 import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
@@ -79,7 +78,6 @@ export default async function CategoryBrowsePage({ params }: PageProps) {
       id="browse-category-main"
       className="mx-auto max-w-6xl scroll-mt-24 px-4 py-10 sm:px-6"
     >
-      <BrowseScrollTop />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}

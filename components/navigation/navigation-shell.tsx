@@ -8,7 +8,7 @@ import { InstantNavigationListener } from "@/components/navigation/instant-navig
 import { MobileDock } from "@/components/navigation/mobile-dock"
 import { NavigationProgress } from "@/components/navigation/navigation-progress"
 import { NavigationWarmup } from "@/components/navigation/navigation-warmup"
-import { CommandKDeferred } from "@/components/navigation/command-k-deferred"
+import { RouteScrollTop } from "@/components/navigation/route-scroll-top"
 import { useIdleMount } from "@/hooks/use-idle-mount"
 
 const MobileBuyerHub = dynamic(
@@ -50,6 +50,7 @@ export function NavigationShell() {
     <>
       <ClientNavigateBridge />
       <InstantNavigationListener />
+      <RouteScrollTop />
       <Suspense fallback={null}>
         <NavigationProgress />
       </Suspense>

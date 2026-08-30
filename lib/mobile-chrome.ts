@@ -1,5 +1,7 @@
 /** Routes with full-screen buyer UX — suppress duplicate mobile chrome (cookies, global toasts). */
 
+import { isMarketplaceHubPath } from "@/lib/marketplace-reserved-segments"
+
 const LOCALE_PREFIX = /^\/(en|fr)(?=\/|$)/
 
 /** Bottom inset when the floating buyer dock is visible (mobile). Mirrors `--affisell-mobile-dock-offset`. */
@@ -26,7 +28,7 @@ export function isImmersiveBuyerRoute(pathname: string): boolean {
   if (bare.startsWith("/luxe")) return true
   if (bare.startsWith("/auctions")) return true
   if (bare.startsWith("/battles")) return true
-  if (/^\/marketplace\/[^/]+$/.test(bare)) return true
+  if (/^\/marketplace\/[^/]+$/.test(bare) && !isMarketplaceHubPath(bare)) return true
   if (/^\/shops\/[^/]+\/product\//.test(bare)) return true
   return false
 }

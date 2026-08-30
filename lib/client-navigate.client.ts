@@ -15,7 +15,7 @@ export function registerClientNavigate(fn: NavigateFn | null): void {
 /** Client-side navigation without full reload when the bridge is mounted. */
 export function clientNavigate(href: string): boolean {
   if (!navigateFn) return false
-  signalInstantNavigationStart()
+  signalInstantNavigationStart(href)
   startTransition(() => navigateFn!(href))
   return true
 }

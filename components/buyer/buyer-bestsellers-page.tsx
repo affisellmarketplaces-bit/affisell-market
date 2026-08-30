@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 import { ArrowLeft, ArrowUpRight, TrendingUp } from "lucide-react"
 
@@ -39,7 +38,7 @@ export async function BuyerBestsellersPage() {
   })
 
   return (
-    <div className="relative min-h-[100dvh] overflow-hidden bg-[#07060f] text-white">
+    <div className="relative min-h-[calc(100dvh-3.75rem)] overflow-x-clip bg-[#07060f] text-white">
       <div
         className="pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full bg-violet-600/30 blur-[100px]"
         aria-hidden
@@ -93,13 +92,13 @@ export async function BuyerBestsellersPage() {
         {cards.length === 0 ? (
           <div className="mx-auto mt-14 max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-xl">
             <p className="text-sm text-violet-100/85">{t("empty")}</p>
-            <Link
+            <FastLink
               href="/#explorer"
               className="mt-5 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-violet-900/40 transition hover:brightness-110"
             >
               {t("emptyCta")}
               <ArrowUpRight className="size-4" aria-hidden />
-            </Link>
+            </FastLink>
           </div>
         ) : (
           <ul className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:gap-5">
@@ -114,9 +113,9 @@ export async function BuyerBestsellersPage() {
                     index === 0 && "md:col-span-2 md:row-span-2"
                   )}
                 >
-                  <Link
+                  <FastLink
                     href={href}
-                    prefetch
+                    scroll
                     className={cn(
                       "affisell-inp-tap relative flex h-full w-full touch-manipulation flex-col overflow-hidden rounded-[1.35rem] border border-white/10 bg-white/[0.04] p-2 backdrop-blur-xl transition duration-300",
                       "hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.07]",
@@ -174,7 +173,7 @@ export async function BuyerBestsellersPage() {
                         </span>
                       </div>
                     </div>
-                  </Link>
+                  </FastLink>
                 </li>
               )
             })}

@@ -34,7 +34,7 @@ export function InstantNavigationListener() {
       const path = normalizePrefetchHref(anchor.getAttribute("href"))
       if (!path) return
 
-      signalInstantNavigationStart()
+      signalInstantNavigationStart(path)
 
       if (prefetchedOnPress.has(path)) return
       prefetchedOnPress.add(path)
