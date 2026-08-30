@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react"
 import { NavAffiliate } from "@/components/nav/nav-affiliate"
 import { NavPublic } from "@/components/nav/nav-public"
 import { NavSupplier } from "@/components/nav/nav-supplier"
+import { resolveMerchantNavRole } from "@/lib/site-nav-merchant-role"
 
 type Props = {
   /** SSR hint from `auth()` to avoid affiliate nav flash on public pages. */
@@ -16,16 +17,6 @@ function normalizeRole(role: string | null | undefined): "AFFILIATE" | "SUPPLIER
   if (!role) return null
   const r = role.trim().toUpperCase()
   if (r === "AFFILIATE" || r === "SUPPLIER" || r === "CUSTOMER") return r
-  return null
-}
-
-/** Prefer dashboard path while session is loading — avoids wrong nav + notification API. */
-function roleFromDashboardPath(pathname: string | null): "AFFILIATE" | "SUPPLIER" | null {
-  if (!pathname) return null
-  if (pathname.startsWith("/dashboard/affiliate") || pathname.startsWith("/dashboard/reseller")) {
-    return "AFFILIATE"
-  }
-  if (pathname.startsWith("/dashboard/supplier")) return "SUPPLIER"
   return null
 }
 
@@ -51,15 +42,13 @@ export function SiteNav({ initialRole = null }: Props) {
 
   const sessionRole = normalizeRole(session?.user?.role)
   const hintRole = normalizeRole(initialRole)
-  const pathRole = roleFromDashboardPath(pathname)
 
-  /** Dashboard URL wins over JWT role — avoids supplier bell polling on affiliate routes. */
-  const merchantRole =
-    status === "unauthenticated"
-      ? null
-      : status === "loading"
-        ? (pathRole ?? sessionRole ?? hintRole)
-        : (pathRole ?? sessionRole)
+  const merchantRole = resolveMerchantNavRole({
+    pathname,
+    status,
+    sessionRole,
+    hintRole,
+  })
 
   if (merchantRole === "SUPPLIER") {
     return <NavSupplier />

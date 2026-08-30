@@ -26,7 +26,10 @@ export function NavigationWarmup() {
           ? AFFILIATE_WARM_ROUTES
           : BUYER_WARM_ROUTES
 
-    return schedulePrefetchRoutes((href) => prefetch(href), routes)
+    return schedulePrefetchRoutes((href) => prefetch(href), routes, {
+      idleTimeoutMs: 5500,
+      fallbackDelayMs: 2200,
+    })
   }, [mounted, prefetch, role])
 
   return null

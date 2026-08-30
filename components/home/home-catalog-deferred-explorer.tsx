@@ -5,9 +5,9 @@ import type { ReactNode } from "react"
 
 import { HomeCatalogErrorBoundary } from "@/components/home/home-catalog-error-boundary"
 import { HomeCatalogImageWarmup } from "@/components/home/home-catalog-image-warmup"
+import { useDeferredMount } from "@/hooks/use-deferred-mount"
 import type { HomeMarketplaceShell } from "@/lib/home-marketplace-shell"
 import { pickHomeLcpImageUrls } from "@/lib/home-lcp-images"
-import { useIdleMount } from "@/hooks/use-idle-mount"
 
 const MarketplaceViewSuspense = dynamic(
   () =>
@@ -23,25 +23,31 @@ type Props = {
 }
 
 /**
- * Static SSR catalog first, full MarketplaceView after idle —
- * cuts main-thread work during LCP (TBT).
+ * Static SSR catalog first; full MarketplaceView only after scroll-near or idle.
+ * Prevents main-thread freeze when hero + footer hydrate on `/`.
  */
 export function HomeCatalogDeferredExplorer({ shell, staticCatalog }: Props) {
-  const interactive = useIdleMount({ idleTimeoutMs: 2400, fallbackDelayMs: 500 })
+  const { ref, ready: interactive } = useDeferredMount({
+    idleTimeoutMs: 8000,
+    fallbackDelayMs: 4200,
+    rootMargin: "200px 0px",
+  })
   const lcpImages = pickHomeLcpImageUrls(shell.products, 4)
 
   return (
     <HomeCatalogErrorBoundary>
-      {interactive ? (
-        <>
-          <HomeCatalogImageWarmup imageUrls={lcpImages} />
-          <div className="affisell-home-explorer min-w-0">
-            <MarketplaceViewSuspense shell={shell} />
-          </div>
-        </>
-      ) : (
-        staticCatalog
-      )}
+      <div ref={ref} className="min-w-0">
+        {interactive ? (
+          <>
+            <HomeCatalogImageWarmup imageUrls={lcpImages} />
+            <div className="affisell-home-explorer min-w-0">
+              <MarketplaceViewSuspense shell={shell} />
+            </div>
+          </>
+        ) : (
+          staticCatalog
+        )}
+      </div>
     </HomeCatalogErrorBoundary>
   )
 }

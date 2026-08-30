@@ -3,12 +3,12 @@
 import dynamic from "next/dynamic"
 import { useSession } from "next-auth/react"
 
+import { useDeferredMount } from "@/hooks/use-deferred-mount"
 import { canSeeHomeMerchantRadar } from "@/lib/role-feature-matrix"
 
 /**
- * Below-fold Radar marketing blocks — excluded from initial JS/HTML.
- * Cuts TBT + DOM on first paint (World Radar + Producteur/Grossiste).
- * Hidden for logged-in buyers (merchant acquisition only).
+ * Below-fold Radar marketing blocks — mount only in-view or after idle.
+ * Cuts TBT on buyer home (World Radar + Producteur/Grossiste are heavy).
  */
 const WorldRadarPro = dynamic(
   () =>
@@ -39,16 +39,37 @@ const HomeRadarTeaser = dynamic(
   }
 )
 
+function BelowFoldRadarPlaceholder() {
+  return (
+    <div
+      className="mt-4 min-h-[28rem] rounded-3xl border border-white/5 bg-[#080810]/30 sm:mt-8"
+      aria-hidden
+    />
+  )
+}
+
 export function HomeBelowFoldRadars() {
   const { data: session, status } = useSession()
+  const { ref, ready } = useDeferredMount({
+    idleTimeoutMs: 10_000,
+    fallbackDelayMs: 5000,
+    rootMargin: "120px 0px",
+  })
+
   if (status === "authenticated" && !canSeeHomeMerchantRadar(session?.user?.role)) {
     return null
   }
 
   return (
-    <>
-      <WorldRadarPro />
-      <HomeRadarTeaser />
-    </>
+    <div ref={ref} className="min-w-0">
+      {ready ? (
+        <>
+          <WorldRadarPro />
+          <HomeRadarTeaser />
+        </>
+      ) : (
+        <BelowFoldRadarPlaceholder />
+      )}
+    </div>
   )
 }
