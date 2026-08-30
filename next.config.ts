@@ -23,7 +23,9 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      { source: "/legal/privacy-policy", destination: "/legal/confidentialite", permanent: true },
+      { source: "/bestsellers", destination: "/marketplace/bestsellers", permanent: true },
+      { source: "/fr/bestsellers", destination: "/marketplace/bestsellers", permanent: true },
+      { source: "/en/bestsellers", destination: "/marketplace/bestsellers", permanent: true },
       { source: "/legal/terms-of-service", destination: "/legal/cgu", permanent: true },
       { source: "/legal/cookies-policy", destination: "/legal/cookies", permanent: true },
       { source: "/legal/refund-policy", destination: "/legal/retractation", permanent: true },

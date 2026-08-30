@@ -28,11 +28,11 @@ describe("dona search tool lines", () => {
 
   it("round-trips tool output with hub metadata", () => {
     const lines = [
-      JSON.stringify({ t: "hub", url: "/bestsellers", window: "7d" }),
+      JSON.stringify({ t: "hub", url: "/marketplace/bestsellers", window: "7d" }),
       encodeDonaSearchRow({ ...sampleHit, rank: 1, soldCount: 12 }, 0),
     ]
     const data = parseDonaProductToolOutput(lines)
-    expect(data.hubUrl).toBe("/bestsellers")
+    expect(data.hubUrl).toBe("/marketplace/bestsellers")
     expect(data.products[0]?.rank).toBe(1)
     expect(data.products[0]?.soldCount).toBe(12)
   })

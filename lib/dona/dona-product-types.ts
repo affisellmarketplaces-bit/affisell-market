@@ -18,7 +18,7 @@ export type DonaProductToolResult = {
   products: DonaProductHit[]
   similarProducts: DonaProductHit[]
   suggestedCategories: string[]
-  /** Full ranked list hub — `/bestsellers` */
+  /** Full ranked list hub — `/marketplace/bestsellers` */
   hubUrl: string | null
   hubWindow: string | null
 }

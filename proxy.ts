@@ -291,6 +291,25 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL(`${target}${req.nextUrl.search}`, req.url), 301)
   }
 
+  // Buyer bestsellers hub — never let next-intl rewrite (same pattern as /radar).
+  if (
+    barePath === "/bestsellers" ||
+    barePath.startsWith("/bestsellers/") ||
+    barePath === "/marketplace/bestsellers" ||
+    barePath.startsWith("/marketplace/bestsellers/")
+  ) {
+    if (barePath !== pathname) {
+      const rewriteUrl = req.nextUrl.clone()
+      rewriteUrl.pathname = barePath
+      const requestHeaders = new Headers(req.headers)
+      requestHeaders.set("x-affisell-pathname", pathname)
+      const res = NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } })
+      if (pathnameLocale) syncLocaleCookies(res, pathnameLocale)
+      return shieldResult ? applyHumanoidShieldHeaders(res, shieldResult) : res
+    }
+    return withForcedCustomerRole(req, shieldResult)
+  }
+
   // Radar + Pulse Live Battle live outside app/[locale] — never let next-intl rewrite them.
   if (
     barePath === "/radar" ||
@@ -604,7 +623,8 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico).*)",
     "/",
     "/auth/signin",
-    "/auth/signin/:path*",
+    "/bestsellers",
+    "/bestsellers/:path*",
     "/shop",
     "/shop/:path*",
     "/shops",

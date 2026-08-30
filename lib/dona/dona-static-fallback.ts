@@ -60,8 +60,8 @@ export function donaPublicOfflineReply(messages: UIMessage[]): string {
 
   if (/plus\s+vendu|best.?seller|meilleur(?:e)?s?\s+vente|top\s+vente|bestsellers?|most\s+sold/.test(t)) {
     return locale === "fr"
-      ? "Classement live 7 jours sur /bestsellers — ventes réelles réseau Affisell. Le #1 change en continu. 💜"
-      : "Live 7-day ranking at /bestsellers — real network sales on Affisell. #1 updates continuously. 💜"
+      ? "Classement live 7 jours sur /marketplace/bestsellers — ventes réelles réseau Affisell. Le #1 change en continu. 💜"
+      : "Live 7-day ranking at /marketplace/bestsellers — real network sales on Affisell. #1 updates continuously. 💜"
   }
 
   if (/achet|buy|client|buyer|marketplace/.test(t)) {

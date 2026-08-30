@@ -81,6 +81,8 @@ describe("isStaticAppPathname", () => {
     expect(staticAppRewriteTarget("/fr/login/customer")).toBe("/login/customer")
     expect(staticAppRewriteTarget("/en/signup/customer")).toBe("/signup/customer")
     expect(staticAppRewriteTarget("/fr/bestsellers")).toBe("/bestsellers")
+    expect(isStaticAppPathname("/marketplace/bestsellers")).toBe(true)
+    expect(staticAppRewriteTarget("/fr/marketplace/bestsellers")).toBe("/marketplace/bestsellers")
     expect(staticAppRewriteTarget("/login")).toBeNull()
     expect(staticAppRewriteTarget("/fr")).toBeNull()
     expect(staticAppRewriteTarget("/fr/creators")).toBeNull()
