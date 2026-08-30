@@ -5,7 +5,10 @@
  */
 import chalk from "chalk"
 
+import { loadEnv } from "../lib/env.mjs"
 import { getEnvInfo } from "../lib/dona/config.mjs"
+
+loadEnv()
 
 function resolveTerminalLocale() {
   const raw = (

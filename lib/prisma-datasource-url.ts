@@ -1,3 +1,4 @@
+import { getDatabaseUrl } from "@/lib/env"
 import { normalizeDirectDatabaseUrl } from "@/lib/ensure-database-url-unpooled"
 
 const POOLER_HOST_RE = /-pooler\./i
@@ -158,7 +159,11 @@ export function getPrismaDatasourceUrl(): string {
 
   let raw = process.env.DATABASE_URL?.trim()
   if (!raw) {
-    throw new Error("DATABASE_URL is not set")
+    try {
+      raw = getDatabaseUrl()
+    } catch {
+      throw new Error("Capitaine, pas de DB! Lance npm run dona:check")
+    }
   }
 
   if (isDev && !poolerForced) {

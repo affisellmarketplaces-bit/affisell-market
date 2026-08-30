@@ -39,6 +39,21 @@ describe("getEnvInfo", () => {
     process.env.DATABASE_URL_STAGING =
       "postgresql://u:p@ep-shy-wind-aly4bmc7.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
 
+    expect(getEnvInfo()).toMatchObject({
+      env: "staging",
+      branch: "staging",
+      dbHost: "ep-shy-wind-aly4bmc7",
+      isProd: false,
+    })
+  })
+
+  it("reads staging from alternate STAGING env key", () => {
+    delete process.env.DATABASE_URL
+    delete process.env.DATABASE_URL_STAGING
+    process.env.DATABASE__XXXX_STAGING =
+      "postgresql://u:p@ep-shy-wind-aly4bmc7.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+
+    expect(getEnvInfo().dbHost).toBe("ep-shy-wind-aly4bmc7")
     expect(getEnvInfo().env).toBe("staging")
   })
 })

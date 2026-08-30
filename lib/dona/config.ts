@@ -1,9 +1,9 @@
 import {
   extractHostFromDatabaseUrl,
   maskDbHost,
-  resolveDatabaseUrl,
   resolveNeonBranchFromHost,
 } from "@/lib/db-env"
+import { loadEnv, resolveDatabaseUrlOptional } from "@/lib/env"
 
 export type DonaRuntimeEnv = "prod" | "staging"
 
@@ -44,9 +44,10 @@ function resolveDonaEnv(databaseUrl: string, stagingUrl: string, host: string): 
 
 /** Dona terminal + copilot — which Neon branch the Capitaine is wired to. */
 export function getEnvInfo(): DonaEnvInfo {
+  loadEnv()
   const databaseUrl = process.env.DATABASE_URL?.trim() || ""
   const stagingUrl = process.env.DATABASE_URL_STAGING?.trim() || ""
-  const resolvedUrl = databaseUrl || stagingUrl || resolveDatabaseUrl()
+  const resolvedUrl = databaseUrl || stagingUrl || resolveDatabaseUrlOptional() || ""
   const host = extractHostFromDatabaseUrl(resolvedUrl)
   const env = resolveDonaEnv(databaseUrl, stagingUrl, host)
   const branch = env === "prod" ? "production" : "staging"
