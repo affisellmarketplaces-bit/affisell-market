@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client"
 
 import type { AppLocale } from "@/lib/i18n-locale"
+import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 import { buyerListedAffiliateProductWhere, buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { buildMarketplaceScopedProductWhere } from "@/lib/marketplace-attribute-filters.server"
 import {
@@ -62,7 +63,8 @@ const FACET_LABELS: Labels = {
 }
 
 function facetLabel(key: string, locale: AppLocale): string {
-  return (locale === "en" ? FACET_LABELS.en : FACET_LABELS.fr)[key] ?? key
+  const copyLocale = resolveBinaryCopyLocale(locale)
+  return FACET_LABELS[copyLocale][key] ?? key
 }
 
 async function countListingsForProductWhere(

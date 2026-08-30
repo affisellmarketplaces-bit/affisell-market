@@ -5,6 +5,7 @@ import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
 import { logBusiness } from "@/lib/business-log"
 import { formatDonaUnavailable } from "@/lib/dona/dona-errors"
 import { donaPublicAudiencePromptBlock, type DonaPublicAudience } from "@/lib/dona/dona-audience"
+import { resolveAppLocale } from "@/lib/i18n-locale"
 import { resolveDonaModels } from "@/lib/dona/dona-model"
 import { donaMessageText } from "@/lib/dona/message-utils"
 import { DONA_PUBLIC_SYSTEM_PROMPT } from "@/lib/dona/prompt-public"
@@ -25,16 +26,6 @@ export async function POST(req: Request) {
   })
   if (limited) return limited
 
-  if (!resolveDonaModels()) {
-    return Response.json(
-      {
-        error: "dona_unavailable",
-        message: formatDonaUnavailable("fr"),
-      },
-      { status: 503 }
-    )
-  }
-
   let body: unknown
   try {
     body = await req.json()
@@ -42,7 +33,18 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid JSON body" }, { status: 400 })
   }
 
-  const parsed = body as { messages?: unknown; audience?: unknown }
+  const parsed = body as { messages?: unknown; audience?: unknown; locale?: unknown }
+  const locale = resolveAppLocale(typeof parsed.locale === "string" ? parsed.locale : null)
+
+  if (!resolveDonaModels()) {
+    return Response.json(
+      {
+        error: "dona_unavailable",
+        message: formatDonaUnavailable(locale),
+      },
+      { status: 503 }
+    )
+  }
   if (!Array.isArray(parsed.messages)) {
     return Response.json({ error: "Expected { messages: UIMessage[] }" }, { status: 400 })
   }
@@ -90,6 +92,7 @@ L'utilisateur demande le produit le plus vendu / best-sellers. Appelle **getBest
 
   return runDonaStreamResponse({
     logPrefix: "dona-public",
+    locale,
     system: `${DONA_PUBLIC_SYSTEM_PROMPT}${donaPublicAudiencePromptBlock(audience)}${buyerProductBlock}${bestsellerIntentBlock}`,
     messages,
     temperature: audience === "buyer" ? 0.65 : 0.8,

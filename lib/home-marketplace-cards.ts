@@ -1,5 +1,9 @@
 /** Types + mappers for home/marketplace product cards — safe for `"use client"` (no Prisma). */
 
+import type { AppLocale } from "@/lib/i18n-locale"
+import { DEFAULT_LOCALE } from "@/lib/i18n-locale"
+import { deliveryRangeLabel } from "@/lib/listing-logistics-display"
+
 export type HomeProductCard = {
   listingId: string
   productId: string
@@ -48,13 +52,7 @@ export type HomeBarometerData = {
   chartData: { name: string; sales: number }[]
 }
 
-function deliveryRangeLabel(min: number, max: number): string {
-  const lo = Math.max(1, min || 2)
-  const hi = Math.max(lo, max || 7)
-  return `${lo}-${hi}j`
-}
-
-export function homeProductToCardProps(item: HomeProductCard) {
+export function homeProductToCardProps(item: HomeProductCard, locale: AppLocale = DEFAULT_LOCALE) {
   return {
     listingId: item.listingId,
     productId: item.productId,
@@ -66,7 +64,7 @@ export function homeProductToCardProps(item: HomeProductCard) {
     isBestSeller: item.isBestSeller,
     soldCount: item.soldCount,
     marginCents: item.marginCents,
-    deliveryLabel: deliveryRangeLabel(item.deliveryMin, item.deliveryMax),
+    deliveryLabel: deliveryRangeLabel(item.deliveryMin, item.deliveryMax, locale),
     store: item.storeName,
     stock: item.stock,
     freeShipping: item.freeShipping ?? false,

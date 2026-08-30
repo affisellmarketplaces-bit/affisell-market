@@ -44,6 +44,7 @@ describe("listing-logistics-display", () => {
   it("deliveryRangeLabel formats ranges per locale", () => {
     expect(deliveryRangeLabel(2, 5, "en")).toBe("2–5 business days")
     expect(deliveryRangeLabel(3, 3, "fr")).toBe("3 jours ouvrés")
+    expect(deliveryRangeLabel(2, 5, "de")).toBe("2–5 business days")
   })
 
   it("buildListingLogisticsInput normalizes country code and defaults", () => {

@@ -3617,7 +3617,10 @@
         "worldwide": "Worldwide",
         "notSpecified": "Not specified",
         "countryCount": "{count} countries"
-      }
+      },
+      "deliveryRangeSingleOne": "{count} business day",
+      "deliveryRangeSingleMany": "{count} business days",
+      "deliveryRange": "{min}–{max} business days"
     },
     "aiSummary": "AI Summary",
     "reviews": "{count} reviews",
@@ -5028,6 +5031,51 @@
       "messagePlaceholder": "Your message…",
       "accepted": "You accepted the extension.",
       "rejected": "You refused the extension."
+    },
+    "digital": {
+      "title": "Course access",
+      "hint": "Your digital pass is ready — open it to start immediately.",
+      "unlocked": "Unlocked",
+      "cta": "Open my access"
+    },
+    "booking": {
+      "confirmed": "Confirmed",
+      "addToCalendar": "Add to calendar",
+      "freeCancelUntil": "Free cancel until",
+      "cancelling": "Cancelling…",
+      "cancelError": "Could not cancel"
+    },
+    "bookingCard": {
+      "service": {
+        "title": "Appointment confirmed",
+        "hint": "Your pass is ready — show it at salon check-in.",
+        "cta": "Open my pass",
+        "cancelCta": "Cancel appointment"
+      },
+      "experience": {
+        "title": "Screening confirmed",
+        "hint": "Your pass is ready — show it at the cinema or event entrance.",
+        "cta": "Open my pass",
+        "cancelCta": "Cancel screening"
+      },
+      "restaurant": {
+        "title": "Reservation confirmed",
+        "hint": "Your pass is ready — show it at the restaurant host stand.",
+        "cta": "Open my pass",
+        "cancelCta": "Cancel reservation"
+      },
+      "museum": {
+        "title": "Visit confirmed",
+        "hint": "Your pass is ready — show it at the museum entrance.",
+        "cta": "Open my pass",
+        "cancelCta": "Cancel visit"
+      }
+    },
+    "reviewNudge": {
+      "eyebrow": "Your review matters",
+      "title": "How was « {productName} »?",
+      "hint": "30 seconds to help the community.",
+      "cta": "Leave a review"
     }
   },
   "payoutPolicy": {
@@ -5972,5 +6020,61 @@
     "buy": "Buy",
     "alertCta": "Notify me when back",
     "alertToast": "Back-in-stock alert saved — we'll notify you."
+  },
+  "donaWidget": {
+    "public": {
+      "dialogLabel": "Dona — Affisell AI",
+      "headerTitle": "Dona · Onboard AI · LIVE",
+      "typing": "Dona is typing…",
+      "sendAria": "Send",
+      "closeAria": "Close Dona",
+      "openFabAria": "Open Dona — onboard AI",
+      "trustFooter": "Protected checkout · Stripe · 3D Secure · GDPR",
+      "localeBadge": "Multilingual"
+    },
+    "captain": {
+      "dialogLabel": "Captain Dona — private mode",
+      "headerTitle": "Captain Dona — AFFISELL AI CAPTAIN",
+      "captainBadge": "CAPTAIN ONLINE",
+      "captainEnvBadge": "CAPTAIN · {env}",
+      "typing": "Dona is consulting the ship…",
+      "toolConsult": "🔍 Ship consultation: {name}",
+      "placeholder": "Orders, Captain?…",
+      "sendAria": "Send",
+      "closeAria": "Close",
+      "openFabAria": "Open Captain Dona",
+      "fabBadge": "CAPTAIN",
+      "trustFooter": "Read-only · Groq · Protected checkout · Stripe · GDPR",
+      "welcome": "Captain, private console online. Mode A marketing or Mode B DB live — orders?"
+    },
+    "audience": {
+      "buyer": {
+        "welcome": "Hi — Dona here. Verified shops, protected checkout, EU delivery. I help you shop with confidence. 💜",
+        "placeholder": "Product, shop, shipping, returns…",
+        "badge": "Shop"
+      },
+      "reseller": {
+        "welcome": "Captain, reseller mode. Pick products, set your margin, sell on your storefront — ask me anything. 💜",
+        "placeholder": "Margin, reseller signup…",
+        "badge": "Reseller"
+      },
+      "supplier": {
+        "welcome": "Captain, supplier mode. List once, reach resellers in 33 EU countries — fire away. 💜",
+        "placeholder": "Catalog, supplier payout…",
+        "badge": "Supplier"
+      }
+    },
+    "errors": {
+      "genericPublic": "Dona: reactor hiccup. Retry — or hit /sell like a responsible adult. 💜",
+      "genericCaptain": "Dona Captain: access denied or cold reactor. Stay on /dashboard/supplier. 💜"
+    }
+  },
+  "globalError": {
+    "eyebrow": "Error",
+    "title": "This page could not load",
+    "body": "Something went wrong on our side. Try again or return home.",
+    "ref": "Ref. {digest}",
+    "retry": "Try again",
+    "home": "Home"
   }
 }

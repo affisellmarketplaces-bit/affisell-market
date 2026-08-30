@@ -1,4 +1,6 @@
 import type { AppLocale } from "@/lib/i18n-locale"
+import { DEFAULT_LOCALE } from "@/lib/i18n-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
 import { shippingCountryLabel } from "@/lib/product-shipping-display"
 import { formatDeliveryCountriesSummary } from "@/lib/supplier-delivery-countries"
 
@@ -37,13 +39,14 @@ export function listingShipsFromLabel(
 }
 
 export function deliveryRangeLabel(min: number, max: number, locale: AppLocale): string {
-  const isEn = locale === "en"
   if (min === max) {
-    return isEn
-      ? `${min} business day${min === 1 ? "" : "s"}`
-      : `${min} jour${min === 1 ? "" : "s"} ouvré${min === 1 ? "" : "s"}`
+    const key =
+      min === 1 ? "Product.logistics.deliveryRangeSingleOne" : "Product.logistics.deliveryRangeSingleMany"
+    return tMessage(locale, key).replace("{count}", String(min))
   }
-  return isEn ? `${min}–${max} business days` : `${min}–${max} jours ouvrés`
+  return tMessage(locale, "Product.logistics.deliveryRange")
+    .replace("{min}", String(min))
+    .replace("{max}", String(max))
 }
 
 export function buildListingLogisticsInput(input: {
@@ -60,7 +63,7 @@ export function buildListingLogisticsInput(input: {
     typeof input.shippingCountry === "string" && input.shippingCountry.trim()
       ? input.shippingCountry.trim().toUpperCase().slice(0, 2)
       : null
-  const locale = input.locale ?? "fr"
+  const locale = input.locale ?? DEFAULT_LOCALE
   const deliveryCodes = Array.isArray(input.deliveryCountryCodes) ? input.deliveryCountryCodes : []
 
   return {

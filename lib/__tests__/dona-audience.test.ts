@@ -9,6 +9,7 @@ describe("dona audience routing", () => {
   it("home and marketplace = buyer", () => {
     expect(resolveDonaPublicAudience("/")).toBe("buyer")
     expect(resolveDonaPublicAudience("/fr")).toBe("buyer")
+    expect(resolveDonaPublicAudience("/de")).toBe("buyer")
     expect(resolveDonaPublicAudience("/marketplace")).toBe("buyer")
     expect(resolveDonaPublicAudience("/discover")).toBe("buyer")
   })

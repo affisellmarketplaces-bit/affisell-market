@@ -844,6 +844,19 @@
     },
     "tryPulse": "Probeer Affisell Pulse"
   },
+  "buyerBestsellers": {
+    "metaTitle": "Top sellers · 7 days",
+    "metaDescription": "Live ranking of the best-selling products on Affisell this week.",
+    "eyebrow": "Live ranking",
+    "title": "Top sellers",
+    "subtitle": "7-day network bestsellers on Affisell — real sales, refreshed continuously.",
+    "liveWindow": "rolling window",
+    "rank": "#{rank}",
+    "sold": "{count} sold",
+    "empty": "Not enough sales this week yet. Check back soon.",
+    "emptyCta": "Browse catalog",
+    "backHome": "Back to home"
+  },
   "buyerAccount": {
     "navAria": "Klantgebied",
     "overview": "Overzicht",
@@ -984,7 +997,9 @@
       "warehouseZoneRegional": "Regional (EU / nearby)",
       "warehouseZoneInternational": "International (worldwide shipping)",
       "deliveryCountriesTitle": "Delivery countries",
-      "deliveryCountriesDescription": "Required when publishing — buyers outside this list cannot checkout."
+      "deliveryCountriesDescription": "Required when publishing — buyers outside this list cannot checkout.",
+      "shippingCarriersTitle": "Pro carriers",
+      "shippingCarriersDescription": "Affisell highlights your shipping options on the product page — fastest, recommended, best value."
     },
     "descriptionField": {
       "label": "Description",
@@ -1446,13 +1461,20 @@
     },
     "catalogFilters": {
       "groupAria": "Storefront and date-added filters",
+      "vitrineGroupAria": "Filter by storefront listing status",
       "notInStoreYet": "Not in my store yet",
       "notInStoreYetOn": "ON — only products you can still import",
       "notInStoreYetOff": "Tap to hide SKUs already on your storefront",
+      "alreadyInStore": "Already in my store",
+      "alreadyInStoreOn": "ON — only SKUs live on your storefront",
+      "alreadyInStoreOff": "Tap to show only products already listed",
       "horsVitrine": "Not in my store yet",
       "horsVitrineActive": "not in my store yet",
+      "enVitrineActive": "already in my store",
       "horsVitrineOnHint": "Turn on: hide SKUs already on your storefront",
       "horsVitrineOffHint": "Turn off: show the full catalog",
+      "enVitrineOnHint": "Turn on: show only SKUs on your storefront",
+      "enVitrineOffHint": "Turn off: show the full catalog",
       "toggleOn": "ON",
       "toggleOff": "OFF",
       "updating": "Updating…",
@@ -3595,7 +3617,10 @@
         "worldwide": "Worldwide",
         "notSpecified": "Not specified",
         "countryCount": "{count} countries"
-      }
+      },
+      "deliveryRangeSingleOne": "{count} business day",
+      "deliveryRangeSingleMany": "{count} business days",
+      "deliveryRange": "{min}–{max} business days"
     },
     "aiSummary": "AI Samenvatting",
     "reviews": "{count} reviews",
@@ -3794,7 +3819,14 @@
     "verifyFailed": "Verification failed — check the number and try again.",
     "verifyPageTitle": "Anti-Fake Tracking Verifier",
     "verifyPageSubtitle": "Detect fabricated tracking numbers and open the carrier’s official tracker.",
-    "pdpOptionsTitle": "Pro shipping"
+    "pdpOptionsTitle": "Pro shipping",
+    "supplierCarriers": {
+      "promoTitle": "Affisell Pro shipping",
+      "promoBody": "Pick the carriers you actually use. Affisell highlights them on the product page (fastest, recommended, best value) to boost buyer confidence.",
+      "catalogHint": "Catalog for ship-from {country} — select at least one carrier.",
+      "pickAtLeastOne": "Select at least one carrier to enable Pro shipping on the marketplace.",
+      "selectedCount": "{count} carrier(s) shown on marketplace listings"
+    }
   },
   "pages": {
     "trackOrder": {
@@ -3827,6 +3859,8 @@
       "privacy": "Privacy",
       "cookies": "Cookies",
       "returns": "Terugzendingen",
+      "dsaReport": "DSA report",
+      "transparency": "Transparency",
       "contact": "Contact"
     },
     "signupConsent": {
@@ -4997,6 +5031,51 @@
       "messagePlaceholder": "Uw bericht…",
       "accepted": "U heeft de verlenging geaccepteerd.",
       "rejected": "U heeft de verlenging geweigerd."
+    },
+    "digital": {
+      "title": "Course access",
+      "hint": "Your digital pass is ready — open it to start immediately.",
+      "unlocked": "Unlocked",
+      "cta": "Open my access"
+    },
+    "booking": {
+      "confirmed": "Confirmed",
+      "addToCalendar": "Add to calendar",
+      "freeCancelUntil": "Free cancel until",
+      "cancelling": "Cancelling…",
+      "cancelError": "Could not cancel"
+    },
+    "bookingCard": {
+      "service": {
+        "title": "Appointment confirmed",
+        "hint": "Your pass is ready — show it at salon check-in.",
+        "cta": "Open my pass",
+        "cancelCta": "Cancel appointment"
+      },
+      "experience": {
+        "title": "Screening confirmed",
+        "hint": "Your pass is ready — show it at the cinema or event entrance.",
+        "cta": "Open my pass",
+        "cancelCta": "Cancel screening"
+      },
+      "restaurant": {
+        "title": "Reservation confirmed",
+        "hint": "Your pass is ready — show it at the restaurant host stand.",
+        "cta": "Open my pass",
+        "cancelCta": "Cancel reservation"
+      },
+      "museum": {
+        "title": "Visit confirmed",
+        "hint": "Your pass is ready — show it at the museum entrance.",
+        "cta": "Open my pass",
+        "cancelCta": "Cancel visit"
+      }
+    },
+    "reviewNudge": {
+      "eyebrow": "Your review matters",
+      "title": "How was « {productName} »?",
+      "hint": "30 seconds to help the community.",
+      "cta": "Leave a review"
     }
   },
   "payoutPolicy": {
@@ -5485,7 +5564,10 @@
       "noDescription": "No description.",
       "targetPrice": "Target price",
       "dash": "—",
-      "slaWarning": "outside typical SLA"
+      "slaWarning": "outside typical SLA",
+      "provenanceLabel": "Origin",
+      "complianceLabel": "Compliance requirements",
+      "complianceCount": "{count, plural, one {# requirement} other {# requirements}}"
     },
     "sla": {
       "singleMarket": "For {code}, reasonable delivery: {idealDays}–{maxDays} days. Beyond {maxDays} days, your return rate rises ~40%.",
@@ -5501,6 +5583,125 @@
       "daysSpeed": "{days}d",
       "daysBalanced": "{days}d max",
       "daysPrice": "{days}d ok"
+    },
+    "provenance": {
+      "any": "Any origin",
+      "china": "China",
+      "eu": "Europe (EU)",
+      "usa": "United States",
+      "turkey": "Turkey",
+      "india": "India",
+      "vietnam": "Vietnam",
+      "local": "Local / domestic"
+    },
+    "compliance": {
+      "groups": {
+        "legal": "Legal & market access",
+        "quality": "Quality & factory",
+        "product": "Product safety & materials",
+        "sustainability": "Sustainability & ethics",
+        "ip": "Intellectual property"
+      },
+      "ce_marking": {
+        "title": "CE marking (EU)",
+        "hint": "Conformity for sale in the European Union"
+      },
+      "ukca_marking": {
+        "title": "UKCA / UKNI",
+        "hint": "Conformity for Great Britain & Northern Ireland"
+      },
+      "fcc_compliance": {
+        "title": "FCC (USA)",
+        "hint": "Radio / EMC compliance for the US market"
+      },
+      "gpsr": {
+        "title": "GPSR (EU safety)",
+        "hint": "General Product Safety Regulation — EU 2023/988"
+      },
+      "reach": {
+        "title": "REACH",
+        "hint": "EU chemicals registration & restriction"
+      },
+      "rohs": {
+        "title": "RoHS",
+        "hint": "Restriction of hazardous substances (electronics)"
+      },
+      "weee": {
+        "title": "WEEE",
+        "hint": "E-waste take-back & recycling obligations"
+      },
+      "prop65": {
+        "title": "Prop 65 (California)",
+        "hint": "Warning labels for listed chemicals"
+      },
+      "cpc": {
+        "title": "CPC (children)",
+        "hint": "Children's Product Certificate — baby & kids"
+      },
+      "iso9001": {
+        "title": "ISO 9001",
+        "hint": "Certified quality management system"
+      },
+      "iso14001": {
+        "title": "ISO 14001",
+        "hint": "Environmental management certification"
+      },
+      "factory_audit": {
+        "title": "Factory audit",
+        "hint": "Third-party social & technical audit report"
+      },
+      "third_party_lab": {
+        "title": "Independent lab tests",
+        "hint": "Accredited lab test reports supplied"
+      },
+      "batch_traceability": {
+        "title": "Batch traceability",
+        "hint": "Lot / serial tracking from factory to shipment"
+      },
+      "aql_inspection": {
+        "title": "AQL inspection",
+        "hint": "Pre-shipment quality inspection (AQL 2.5 or stricter)"
+      },
+      "food_grade": {
+        "title": "Food contact safe",
+        "hint": "Materials safe for food / mouth contact"
+      },
+      "msds": {
+        "title": "SDS / MSDS",
+        "hint": "Safety data sheet for chemical products"
+      },
+      "bpa_free": {
+        "title": "BPA-free",
+        "hint": "No bisphenol A in plastics"
+      },
+      "oeko_tex": {
+        "title": "OEKO-TEX",
+        "hint": "Textile harmful-substance standard"
+      },
+      "fsc": {
+        "title": "FSC",
+        "hint": "Responsible wood / paper sourcing"
+      },
+      "recyclable_packaging": {
+        "title": "Recyclable packaging",
+        "hint": "Mono-material or widely recyclable pack"
+      },
+      "carbon_neutral": {
+        "title": "Carbon-neutral shipping",
+        "hint": "Offset or low-carbon logistics option"
+      },
+      "fair_trade": {
+        "title": "Fair trade",
+        "hint": "Fair wages & ethical supply chain"
+      },
+      "patent_clear": {
+        "title": "Patent clearance",
+        "hint": "No known active patent infringement"
+      },
+      "trademark_clear": {
+        "title": "Trademark clearance",
+        "hint": "No brand / logo infringement risk"
+      }
     },
     "reseller": {
       "globalButton": {
@@ -5541,6 +5742,15 @@
         "titleLabel": "Title *",
         "titlePlaceholder": "E.g. WiFi baby monitor 1080p",
         "categoryLabel": "Category",
+        "provenanceLabel": "Manufacturing origin",
+        "provenanceCountriesLabel": "Preferred manufacturing countries",
+        "provenanceHint": "{selected} / {total} origins · leave empty for any origin",
+        "provenanceAnyOrigin": "🌍 Any origin",
+        "complianceLabel": "Legal & quality requirements",
+        "complianceHint": "Tick only what matters for your market — suppliers must confirm compliance in their quote.",
+        "complianceEuBundle": "✓ EU bundle (CE, GPSR, REACH, RoHS, WEEE)",
+        "complianceClear": "Clear all",
+        "complianceSelected": "{count, plural, one {# requirement selected} other {# requirements selected}}",
         "countriesLabel": "Promotion countries *",
         "countriesHint": "{selected} / {total} markets · one or more",
         "selectAll": "Select all",
@@ -5810,5 +6020,61 @@
     "buy": "Buy",
     "alertCta": "Notify me when back",
     "alertToast": "Back-in-stock alert saved — we'll notify you."
+  },
+  "donaWidget": {
+    "public": {
+      "dialogLabel": "Dona — Affisell AI",
+      "headerTitle": "Dona · Onboard AI · LIVE",
+      "typing": "Dona is typing…",
+      "sendAria": "Send",
+      "closeAria": "Close Dona",
+      "openFabAria": "Open Dona — onboard AI",
+      "trustFooter": "Protected checkout · Stripe · 3D Secure · GDPR",
+      "localeBadge": "Multilingual"
+    },
+    "captain": {
+      "dialogLabel": "Captain Dona — private mode",
+      "headerTitle": "Captain Dona — AFFISELL AI CAPTAIN",
+      "captainBadge": "CAPTAIN ONLINE",
+      "captainEnvBadge": "CAPTAIN · {env}",
+      "typing": "Dona is consulting the ship…",
+      "toolConsult": "🔍 Ship consultation: {name}",
+      "placeholder": "Orders, Captain?…",
+      "sendAria": "Send",
+      "closeAria": "Close",
+      "openFabAria": "Open Captain Dona",
+      "fabBadge": "CAPTAIN",
+      "trustFooter": "Read-only · Groq · Protected checkout · Stripe · GDPR",
+      "welcome": "Captain, private console online. Mode A marketing or Mode B DB live — orders?"
+    },
+    "audience": {
+      "buyer": {
+        "welcome": "Hi — Dona here. Verified shops, protected checkout, EU delivery. I help you shop with confidence. 💜",
+        "placeholder": "Product, shop, shipping, returns…",
+        "badge": "Shop"
+      },
+      "reseller": {
+        "welcome": "Captain, reseller mode. Pick products, set your margin, sell on your storefront — ask me anything. 💜",
+        "placeholder": "Margin, reseller signup…",
+        "badge": "Reseller"
+      },
+      "supplier": {
+        "welcome": "Captain, supplier mode. List once, reach resellers in 33 EU countries — fire away. 💜",
+        "placeholder": "Catalog, supplier payout…",
+        "badge": "Supplier"
+      }
+    },
+    "errors": {
+      "genericPublic": "Dona: reactor hiccup. Retry — or hit /sell like a responsible adult. 💜",
+      "genericCaptain": "Dona Captain: access denied or cold reactor. Stay on /dashboard/supplier. 💜"
+    }
+  },
+  "globalError": {
+    "eyebrow": "Error",
+    "title": "This page could not load",
+    "body": "Something went wrong on our side. Try again or return home.",
+    "ref": "Ref. {digest}",
+    "retry": "Try again",
+    "home": "Home"
   }
 }

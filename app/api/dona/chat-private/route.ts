@@ -14,6 +14,7 @@ import { DONA_PRIVATE_SYSTEM_PROMPT } from "@/lib/dona/prompt-private"
 import { runDonaStreamResponse } from "@/lib/dona/run-dona-stream"
 import { privateTools } from "@/lib/dona/tools-private"
 import { getEnvInfo } from "@/lib/env"
+import { resolveAppLocale } from "@/lib/i18n-locale"
 
 export const runtime = "nodejs"
 export const maxDuration = 45
@@ -31,16 +32,6 @@ export async function POST(req: Request) {
   })
   if (limited) return limited
 
-  if (!resolveDonaModels()) {
-    return Response.json(
-      {
-        error: "dona_unavailable",
-        message: formatDonaUnavailable("fr"),
-      },
-      { status: 503 }
-    )
-  }
-
   let body: unknown
   try {
     body = await req.json()
@@ -48,7 +39,19 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid JSON body" }, { status: 400 })
   }
 
-  const parsed = body as { messages?: unknown }
+  const parsed = body as { messages?: unknown; locale?: unknown }
+  const locale = resolveAppLocale(typeof parsed.locale === "string" ? parsed.locale : null)
+
+  if (!resolveDonaModels()) {
+    return Response.json(
+      {
+        error: "dona_unavailable",
+        message: formatDonaUnavailable(locale),
+      },
+      { status: 503 }
+    )
+  }
+
   if (!Array.isArray(parsed.messages)) {
     return Response.json({ error: "Expected { messages: UIMessage[] }" }, { status: 400 })
   }
@@ -77,6 +80,7 @@ export async function POST(req: Request) {
 
   return runDonaStreamResponse({
     logPrefix: "dona-captain",
+    locale,
     system: `${DONA_PRIVATE_SYSTEM_PROMPT}${envBlock}`,
     messages,
     tools: privateTools,

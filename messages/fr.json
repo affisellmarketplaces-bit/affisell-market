@@ -3617,7 +3617,10 @@
         "worldwide": "Monde entier",
         "notSpecified": "Non renseigné",
         "countryCount": "{count} pays"
-      }
+      },
+      "deliveryRangeSingleOne": "{count} jour ouvré",
+      "deliveryRangeSingleMany": "{count} jours ouvrés",
+      "deliveryRange": "{min}–{max} jours ouvrés"
     },
     "aiSummary": "Résumé IA",
     "reviews": "{count} avis",
@@ -5028,6 +5031,51 @@
       "messagePlaceholder": "Votre message…",
       "accepted": "Vous avez accepté le délai.",
       "rejected": "Vous avez refusé le délai."
+    },
+    "digital": {
+      "title": "Accès formation",
+      "hint": "Votre passe digital est prêt — ouvrez-le pour démarrer immédiatement.",
+      "unlocked": "Débloqué le",
+      "cta": "Ouvrir mon accès"
+    },
+    "booking": {
+      "confirmed": "Confirmé le",
+      "addToCalendar": "Ajouter au calendrier",
+      "freeCancelUntil": "Annulation gratuite jusqu'au",
+      "cancelling": "Annulation…",
+      "cancelError": "Annulation impossible"
+    },
+    "bookingCard": {
+      "service": {
+        "title": "Rendez-vous confirmé",
+        "hint": "Votre passe est prêt — présentez-le à l'accueil du salon.",
+        "cta": "Ouvrir mon passe",
+        "cancelCta": "Annuler le rendez-vous"
+      },
+      "experience": {
+        "title": "Séance confirmée",
+        "hint": "Votre passe est prêt — présentez-le à l'entrée du cinéma ou de l'événement.",
+        "cta": "Ouvrir mon passe",
+        "cancelCta": "Annuler la séance"
+      },
+      "restaurant": {
+        "title": "Réservation confirmée",
+        "hint": "Votre passe est prêt — présentez-le à l'accueil du restaurant.",
+        "cta": "Ouvrir mon passe",
+        "cancelCta": "Annuler la réservation"
+      },
+      "museum": {
+        "title": "Visite confirmée",
+        "hint": "Votre passe est prêt — présentez-le à l'entrée du musée.",
+        "cta": "Ouvrir mon passe",
+        "cancelCta": "Annuler la visite"
+      }
+    },
+    "reviewNudge": {
+      "eyebrow": "Votre avis compte",
+      "title": "Comment était « {productName} » ?",
+      "hint": "30 secondes pour aider la communauté.",
+      "cta": "Laisser un avis"
     }
   },
   "payoutPolicy": {
@@ -5972,5 +6020,61 @@
     "buy": "Acheter",
     "alertCta": "Être alerté au retour",
     "alertToast": "Alerte retour enregistrée — on te prévient."
+  },
+  "donaWidget": {
+    "public": {
+      "dialogLabel": "Dona — IA Affisell",
+      "headerTitle": "Dona · IA de bord · LIVE",
+      "typing": "Dona tape…",
+      "sendAria": "Envoyer",
+      "closeAria": "Fermer Dona",
+      "openFabAria": "Ouvrir Dona — IA de bord",
+      "trustFooter": "Achat protégé · Stripe · 3D Secure · RGPD",
+      "localeBadge": "Multilingue"
+    },
+    "captain": {
+      "dialogLabel": "Dona Capitaine — mode privé",
+      "headerTitle": "Captain Dona — AFFISELL AI CAPTAIN",
+      "captainBadge": "CAPITAINE EN LIGNE",
+      "captainEnvBadge": "CAPITAINE · {env}",
+      "typing": "Dona consulte le vaisseau…",
+      "toolConsult": "🔍 Consultation du vaisseau : {name}",
+      "placeholder": "Ordres, Capitaine ?…",
+      "sendAria": "Envoyer",
+      "closeAria": "Fermer",
+      "openFabAria": "Ouvrir Dona Capitaine",
+      "fabBadge": "CAPITAINE",
+      "trustFooter": "Lecture seule · Groq · Achat protégé · Stripe · RGPD",
+      "welcome": "Capitaine, console privée ouverte. Mode A marketing ou Mode B DB live — ordres ?"
+    },
+    "audience": {
+      "buyer": {
+        "welcome": "Bonjour — Dona ici. Boutiques vérifiées, achat protégé, livraison UE. Je t'aide à trouver ou acheter en confiance. 💜",
+        "placeholder": "Produit, boutique, livraison, retours…",
+        "badge": "Achat"
+      },
+      "reseller": {
+        "welcome": "Capitaine, mode revendeur. Choisis tes produits, fixe ta marge, vends sur ta vitrine — je t'explique tout. 💜",
+        "placeholder": "Marge, inscription revendeur…",
+        "badge": "Revendeur"
+      },
+      "supplier": {
+        "welcome": "Capitaine, mode fournisseur. Liste une fois, touche des revendeurs dans 33 pays UE — pose tes questions. 💜",
+        "placeholder": "Catalogue, payout fournisseur…",
+        "badge": "Fournisseur"
+      }
+    },
+    "errors": {
+      "genericPublic": "Dona : le réacteur tousse. Réessaie — ou va voir /sell comme un adulte responsable. 💜",
+      "genericCaptain": "Dona Capitaine : accès refusé ou réacteur froid. Reste sur /dashboard/supplier. 💜"
+    }
+  },
+  "globalError": {
+    "eyebrow": "Erreur",
+    "title": "La page n'a pas pu se charger",
+    "body": "Un problème est survenu côté serveur. Réessayez ou revenez à l'accueil.",
+    "ref": "Réf. {digest}",
+    "retry": "Réessayer",
+    "home": "Accueil"
   }
 }

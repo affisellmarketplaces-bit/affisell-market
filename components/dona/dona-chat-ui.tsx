@@ -9,6 +9,8 @@ import {
   isProductToolPart,
   type DonaProductToolPart,
 } from "@/components/dona/dona-product-tools-rail"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
 import { resolveDonaChatError } from "@/lib/dona/dona-errors"
 import {
   donaAssistantHasContent,
@@ -21,26 +23,17 @@ export function formatDonaTime(date: Date): string {
   return date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
 }
 
-export function resolvePublicLocale(): "fr" | "en" {
-  if (typeof navigator === "undefined") return "fr"
-  return navigator.language.toLowerCase().startsWith("fr") ? "fr" : "en"
+export function donaGenericError(locale: AppLocale): string {
+  return tMessage(locale, "donaWidget.errors.genericPublic")
 }
 
-export function donaGenericError(locale: "fr" | "en"): string {
-  return locale === "fr"
-    ? "Dona: le réacteur tousse. Réessaie — ou va voir /sell comme un adulte responsable. 💜"
-    : "Dona: reactor hiccup. Retry — or hit /sell like a responsible adult. 💜"
-}
-
-export function donaCaptainGenericError(locale: "fr" | "en"): string {
-  return locale === "fr"
-    ? "Dona Capitaine: accès refusé ou réacteur froid. Reste sur /dashboard/supplier. 💜"
-    : "Dona Captain: access denied or cold reactor. Stay on /dashboard/supplier. 💜"
+export function donaCaptainGenericError(locale: AppLocale): string {
+  return tMessage(locale, "donaWidget.errors.genericCaptain")
 }
 
 export function donaResolvedError(
   error: Error | undefined,
-  locale: "fr" | "en",
+  locale: AppLocale,
   fallback: string
 ): string {
   return resolveDonaChatError(error, locale, fallback)

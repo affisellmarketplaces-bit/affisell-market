@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useLocale } from "next-intl"
 
 import { ProductCard, type ProductCardDisplayMode } from "@/components/ProductCard"
 import {
@@ -8,6 +9,7 @@ import {
   type HomeHighlightsData,
   type HomeProductCard,
 } from "@/lib/home-marketplace-cards"
+import type { AppLocale } from "@/lib/i18n-locale"
 import { cn } from "@/lib/utils"
 
 type TabId = "bestsellers" | "new" | "margin"
@@ -30,6 +32,7 @@ function itemsForTab(tab: TabId, data: HomeHighlightsData): HomeProductCard[] {
 }
 
 export function HomeHighlights({ data, mode }: Props) {
+  const locale = useLocale() as AppLocale
   const [tab, setTab] = useState<TabId>("bestsellers")
   const items = itemsForTab(tab, data)
 
@@ -75,7 +78,7 @@ export function HomeHighlights({ data, mode }: Props) {
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {items.map((item) => (
             <li key={`${tab}-${item.listingId}`}>
-              <ProductCard product={homeProductToCardProps(item)} mode={mode} />
+              <ProductCard product={homeProductToCardProps(item, locale)} mode={mode} />
             </li>
           ))}
         </ul>

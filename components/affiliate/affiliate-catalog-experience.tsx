@@ -852,7 +852,6 @@ export function AffiliateCatalogExperience({
                           )}
                           <DiscoverListingActions
                             state={listingState}
-                            locale="fr"
                             releasing={
                               listingState.kind !== "none" && releasingListingId === listingState.listingId
                             }

@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport, type UIMessage } from "ai"
 import { AnimatePresence, motion } from "framer-motion"
 import { Send, X } from "lucide-react"
+import { useLocale } from "next-intl"
 import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 
@@ -12,9 +13,10 @@ import {
   donaMessageText,
   donaResolvedError,
   DonaTypingIndicator,
-  resolvePublicLocale,
 } from "@/components/dona/dona-chat-ui"
 import { DonaAvatarImage } from "@/components/dona/dona-avatar-image"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
 
 type CaptainMeta = {
   env: string
@@ -66,14 +68,26 @@ function assistantHasVisibleParts(m: UIMessage): boolean {
 
 export function DonaCaptainWidget() {
   const pathname = usePathname() ?? ""
+  const locale = useLocale() as AppLocale
   const [isOpen, setIsOpen] = useState(false)
-  const [locale] = useState(resolvePublicLocale)
   const [meta, setMeta] = useState<CaptainMeta | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [input, setInput] = useState("")
 
   const { messages, sendMessage, status, error, clearError } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/dona/chat-private" }),
+    transport: new DefaultChatTransport({
+      api: "/api/dona/chat-private",
+      prepareSendMessagesRequest: ({ body, messages: msgs, id, trigger, messageId }) => ({
+        body: {
+          ...(typeof body === "object" && body !== null && !Array.isArray(body) ? body : {}),
+          id,
+          messages: msgs,
+          trigger,
+          messageId,
+          locale,
+        },
+      }),
+    }),
     onError: (err) => {
       console.error("[dona-captain-widget]", err)
     },
@@ -83,13 +97,17 @@ export function DonaCaptainWidget() {
   const visible = shouldShowCaptain(pathname)
   const errorText = donaResolvedError(error, locale, donaCaptainGenericError(locale))
 
-  const welcome = useMemo(
-    () =>
-      locale === "fr"
-        ? "Capitaine, console privée ouverte. Mode A marketing ou Mode B DB live — ordres?"
-        : "Captain, private console online. Mode A marketing or Mode B DB live — orders?",
-    [locale]
-  )
+  const welcome = useMemo(() => tMessage(locale, "donaWidget.captain.welcome"), [locale])
+  const dialogLabel = tMessage(locale, "donaWidget.captain.dialogLabel")
+  const headerTitle = tMessage(locale, "donaWidget.captain.headerTitle")
+  const captainBadge = tMessage(locale, "donaWidget.captain.captainBadge")
+  const typingLabel = tMessage(locale, "donaWidget.captain.typing")
+  const placeholder = tMessage(locale, "donaWidget.captain.placeholder")
+  const sendAria = tMessage(locale, "donaWidget.captain.sendAria")
+  const closeAria = tMessage(locale, "donaWidget.captain.closeAria")
+  const openFabAria = tMessage(locale, "donaWidget.captain.openFabAria")
+  const fabBadge = tMessage(locale, "donaWidget.captain.fabBadge")
+  const trustFooter = tMessage(locale, "donaWidget.captain.trustFooter")
 
   const renderableMessages = useMemo(
     () => messages.filter(assistantHasVisibleParts),
@@ -125,6 +143,10 @@ export function DonaCaptainWidget() {
 
   const envLabel = meta?.label ?? "STAGING"
   const envHost = meta?.dbHost ?? "…"
+  const captainEnvBadge = tMessage(locale, "donaWidget.captain.captainEnvBadge").replace(
+    "{env}",
+    envLabel
+  )
 
   return (
     <>
@@ -138,7 +160,7 @@ export function DonaCaptainWidget() {
             transition={{ type: "spring", stiffness: 400, damping: 34 }}
             className="affisell-dona-panel-mobile fixed inset-0 z-[110] flex flex-col border-2 border-violet-500/60 bg-[#0E0E2C]/98 backdrop-blur-md md:inset-auto md:bottom-24 md:right-6 md:h-[600px] md:w-[420px] md:rounded-2xl md:shadow-2xl"
             role="dialog"
-            aria-label="Dona Capitaine — mode privé"
+            aria-label={dialogLabel}
           >
             <div className="flex shrink-0 items-start justify-between border-b border-violet-500/30 bg-[#1A1A3D] px-4 py-3 md:rounded-t-2xl">
               <div className="flex min-w-0 items-start gap-2.5">
@@ -148,15 +170,13 @@ export function DonaCaptainWidget() {
                   loading="eager"
                 />
                 <div>
-                  <p className="text-sm font-semibold text-white">
-                    Captain Dona — AFFISELL AI CAPTAIN
-                  </p>
+                  <p className="text-sm font-semibold text-white">{headerTitle}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
                     <span className="rounded-full border border-emerald-400/50 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-200">
-                      CAPTAIN ONLINE
+                      {captainBadge}
                     </span>
                     <span className="rounded-full border border-violet-400/40 bg-violet-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-200">
-                      CAPITAINE · {envLabel}
+                      {captainEnvBadge}
                     </span>
                     <span
                       className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
@@ -174,7 +194,7 @@ export function DonaCaptainWidget() {
                 type="button"
                 onClick={() => setIsOpen(false)}
                 className="rounded-lg p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white"
-                aria-label="Fermer"
+                aria-label={closeAria}
               >
                 <X className="size-5" />
               </button>
@@ -206,8 +226,10 @@ export function DonaCaptainWidget() {
                               className="mr-auto max-w-[95%] rounded-xl border border-violet-500/25 bg-violet-950/30 px-3 py-2 text-xs text-violet-100"
                             >
                               <p className="font-medium">
-                                🔍 Consultation du vaisseau: {name}
-                                {!hasOutput ? "…" : ""}
+                                {tMessage(locale, "donaWidget.captain.toolConsult").replace(
+                                  "{name}",
+                                  name + (!hasOutput ? "…" : "")
+                                )}
                               </p>
                               {hasOutput ? (
                                 <pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap break-words text-[10px] text-white/80">
@@ -243,9 +265,7 @@ export function DonaCaptainWidget() {
                 </div>
               ))}
 
-              {busy ? (
-                <DonaTypingIndicator label="Dona consulte le vaisseau…" />
-              ) : null}
+              {busy ? <DonaTypingIndicator label={typingLabel} /> : null}
 
               {error ? (
                 <p className="mr-auto max-w-[90%] rounded-xl border border-red-500/30 bg-red-950/40 px-3 py-2 text-xs text-red-100">
@@ -265,7 +285,7 @@ export function DonaCaptainWidget() {
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ordres, Capitaine?..."
+                  placeholder={placeholder}
                   disabled={busy}
                   className="min-w-0 flex-1 rounded-full border border-white/10 bg-[#1A1A3D] px-4 py-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-violet-500/50"
                 />
@@ -273,14 +293,12 @@ export function DonaCaptainWidget() {
                   type="submit"
                   disabled={busy || !input.trim()}
                   className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#7C3AED] text-white disabled:opacity-40"
-                  aria-label="Envoyer"
+                  aria-label={sendAria}
                 >
                   <Send className="size-4" />
                 </button>
               </div>
-              <p className="mt-2 text-center text-[10px] text-white/35">
-                Read-only · Groq · Achat protégé · Stripe · RGPD
-              </p>
+              <p className="mt-2 text-center text-[10px] text-white/35">{trustFooter}</p>
             </form>
           </motion.div>
         ) : null}
@@ -291,7 +309,7 @@ export function DonaCaptainWidget() {
           type="button"
           onClick={() => setIsOpen(true)}
           className="affisell-dona-fab fixed z-[109] flex size-14 items-center justify-center overflow-hidden rounded-full border-2 border-black bg-[#0E0E2C] shadow-[0_0_18px_rgba(124,58,237,0.35)] transition hover:border-violet-400 max-md:active:scale-95"
-          aria-label="Ouvrir Dona Capitaine"
+          aria-label={openFabAria}
         >
           <DonaAvatarImage
             className="size-full rounded-full object-cover"
@@ -299,7 +317,7 @@ export function DonaCaptainWidget() {
             loading="lazy"
           />
           <span className="absolute -right-1 -top-1 rounded-full bg-black px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white">
-            CAPITAINE
+            {fabBadge}
           </span>
           <span
             className="absolute bottom-1 right-1 size-3 animate-pulse rounded-full border-2 border-white bg-green-400"

@@ -3,6 +3,8 @@ import {
   isMuseumListingKind,
   isRestaurantListingKind,
 } from "@/lib/booking/types"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
 
 export type BookingVerticalCopyFamily = "service" | "experience" | "restaurant" | "museum"
 
@@ -33,70 +35,14 @@ export type BuyerBookingOrderCardCopy = {
 
 export function buyerBookingOrderCardCopy(
   listingKind: string | null | undefined,
-  lang: "fr" | "en"
+  locale: AppLocale
 ): BuyerBookingOrderCardCopy {
   const family = bookingVerticalCopyFamily(listingKind)
-  if (lang === "fr") {
-    if (family === "restaurant") {
-      return {
-        title: "Réservation confirmée",
-        hint: "Votre passe est prêt — présentez-le à l'accueil du restaurant.",
-        cta: "Ouvrir mon passe",
-        cancelCta: "Annuler la réservation",
-      }
-    }
-    if (family === "museum") {
-      return {
-        title: "Visite confirmée",
-        hint: "Votre passe est prêt — présentez-le à l'entrée du musée.",
-        cta: "Ouvrir mon passe",
-        cancelCta: "Annuler la visite",
-      }
-    }
-    if (family === "experience") {
-      return {
-        title: "Séance confirmée",
-        hint: "Votre passe est prêt — présentez-le à l'entrée du cinéma ou de l'événement.",
-        cta: "Ouvrir mon passe",
-        cancelCta: "Annuler la séance",
-      }
-    }
-    return {
-      title: "Rendez-vous confirmé",
-      hint: "Votre passe est prêt — présentez-le à l'accueil du salon.",
-      cta: "Ouvrir mon passe",
-      cancelCta: "Annuler le rendez-vous",
-    }
-  }
-
-  if (family === "restaurant") {
-    return {
-      title: "Reservation confirmed",
-      hint: "Your pass is ready — show it at the restaurant host stand.",
-      cta: "Open my pass",
-      cancelCta: "Cancel reservation",
-    }
-  }
-  if (family === "museum") {
-    return {
-      title: "Visit confirmed",
-      hint: "Your pass is ready — show it at the museum entrance.",
-      cta: "Open my pass",
-      cancelCta: "Cancel visit",
-    }
-  }
-  if (family === "experience") {
-    return {
-      title: "Screening confirmed",
-      hint: "Your pass is ready — show it at the cinema or event entrance.",
-      cta: "Open my pass",
-      cancelCta: "Cancel screening",
-    }
-  }
+  const base = `accountOrders.bookingCard.${family}`
   return {
-    title: "Appointment confirmed",
-    hint: "Your pass is ready — show it at salon check-in.",
-    cta: "Open my pass",
-    cancelCta: "Cancel appointment",
+    title: tMessage(locale, `${base}.title`),
+    hint: tMessage(locale, `${base}.hint`),
+    cta: tMessage(locale, `${base}.cta`),
+    cancelCta: tMessage(locale, `${base}.cancelCta`),
   }
 }

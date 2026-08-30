@@ -4,50 +4,37 @@ import { useCallback, useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
 import type { FulfillmentThreadPublic } from "@/lib/orders/ship-fulfillment-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
   orderId: string
-  lang: "en" | "fr"
+  locale: AppLocale
   className?: string
 }
 
-const copy = {
-  en: {
-    loading: "Loading…",
-    title: "Shipping update",
-    seller: "Seller",
-    buyer: "You",
-    extensionAsk: "The seller requests {days} extra days to ship:",
-    accept: "Accept extra time",
-    reject: "Refuse (order may be cancelled)",
-    notePlaceholder: "Optional note to the seller",
-    reply: "Reply to seller",
-    send: "Send",
-    messagePlaceholder: "Your message…",
-    accepted: "You accepted the extension.",
-    rejected: "You refused the extension.",
-  },
-  fr: {
-    loading: "Chargement…",
-    title: "Suivi expédition",
-    seller: "Vendeur",
-    buyer: "Vous",
-    extensionAsk: "Le vendeur demande {days} jours supplémentaires :",
-    accept: "Accepter le délai",
-    reject: "Refuser (la commande peut être annulée)",
-    notePlaceholder: "Note optionnelle au vendeur",
-    reply: "Répondre au vendeur",
-    send: "Envoyer",
-    messagePlaceholder: "Votre message…",
-    accepted: "Vous avez accepté le délai.",
-    rejected: "Vous avez refusé le délai.",
-  },
-} as const
+function panelCopy(locale: AppLocale, key: string): string {
+  return tMessage(locale, `accountOrders.fulfillmentPanel.${key}`)
+}
 
-export function AccountOrderFulfillmentPanel({ orderId, lang, className }: Props) {
-  const t = copy[lang]
+export function AccountOrderFulfillmentPanel({ orderId, locale, className }: Props) {
+  const t = {
+    loading: panelCopy(locale, "loading"),
+    title: panelCopy(locale, "title"),
+    seller: panelCopy(locale, "seller"),
+    buyer: panelCopy(locale, "buyer"),
+    extensionAsk: panelCopy(locale, "extensionAsk"),
+    accept: panelCopy(locale, "accept"),
+    reject: panelCopy(locale, "reject"),
+    notePlaceholder: panelCopy(locale, "notePlaceholder"),
+    reply: panelCopy(locale, "reply"),
+    send: panelCopy(locale, "send"),
+    messagePlaceholder: panelCopy(locale, "messagePlaceholder"),
+    accepted: panelCopy(locale, "accepted"),
+    rejected: panelCopy(locale, "rejected"),
+  }
   const [thread, setThread] = useState<FulfillmentThreadPublic | null>(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)

@@ -2,6 +2,8 @@ import Link from "next/link"
 import { Star } from "lucide-react"
 
 import { buttonVariants } from "@/components/ui/button"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
 import { buildSuccessReviewHref } from "@/lib/success-review-href"
 import { cn } from "@/lib/utils"
 
@@ -9,10 +11,15 @@ type Props = {
   orderId: string
   affiliateProductId: string
   productName: string
-  lang: "en" | "fr"
+  locale: AppLocale
 }
 
-export function AccountOrderReviewNudge({ orderId, affiliateProductId, productName, lang }: Props) {
+export function AccountOrderReviewNudge({
+  orderId,
+  affiliateProductId,
+  productName,
+  locale,
+}: Props) {
   const href = buildSuccessReviewHref(affiliateProductId, orderId)
 
   return (
@@ -23,15 +30,13 @@ export function AccountOrderReviewNudge({ orderId, affiliateProductId, productNa
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-violet-600 dark:text-violet-300">
-            {lang === "fr" ? "Votre avis compte" : "Your review matters"}
+            {tMessage(locale, "accountOrders.reviewNudge.eyebrow")}
           </p>
           <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-white">
-            {lang === "fr" ? `Comment était « ${productName} » ?` : `How was « ${productName} »?`}
+            {tMessage(locale, "accountOrders.reviewNudge.title").replace("{productName}", productName)}
           </p>
           <p className="mt-0.5 text-xs text-zinc-600 dark:text-zinc-400">
-            {lang === "fr"
-              ? "30 secondes pour aider la communauté."
-              : "30 seconds to help the community."}
+            {tMessage(locale, "accountOrders.reviewNudge.hint")}
           </p>
         </div>
         <Link
@@ -42,7 +47,7 @@ export function AccountOrderReviewNudge({ orderId, affiliateProductId, productNa
           )}
         >
           <Star className="size-4" aria-hidden />
-          {lang === "fr" ? "Laisser un avis" : "Leave a review"}
+          {tMessage(locale, "accountOrders.reviewNudge.cta")}
         </Link>
       </div>
     </div>

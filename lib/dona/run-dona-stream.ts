@@ -17,6 +17,7 @@ import {
   donaCaptainOfflineReply,
   donaPublicOfflineReply,
 } from "@/lib/dona/dona-static-fallback"
+import { DEFAULT_LOCALE, type AppLocale } from "@/lib/i18n-locale"
 
 export type RunDonaStreamOptions = {
   system: string
@@ -25,6 +26,7 @@ export type RunDonaStreamOptions = {
   tools?: ToolSet
   maxSteps?: number
   logPrefix: "dona-public" | "dona-captain"
+  locale?: AppLocale
 }
 
 type DonaStreamWriter = UIMessageStreamWriter<UIMessage>
@@ -116,7 +118,7 @@ async function streamWithToolAttempts(
       if (!isDonaProviderError(lastError)) {
         writer.write({
           type: "error",
-          errorText: formatDonaStreamError(lastError),
+          errorText: formatDonaStreamError(lastError, opts.locale),
         })
         return
       }
@@ -133,7 +135,7 @@ async function streamWithToolAttempts(
 
   logBusiness(opts.logPrefix, {
     result: "all_attempts_failed",
-    preview: formatDonaStreamError(lastError).slice(0, 120),
+    preview: formatDonaStreamError(lastError, opts.locale).slice(0, 120),
   })
   writeOfflineFallback(writer, opts, opts.logPrefix === "dona-captain" ? "captain" : "public")
 }
@@ -180,18 +182,19 @@ async function streamPublicTextAttempts(
 
   logBusiness(opts.logPrefix, {
     result: "all_attempts_failed",
-    preview: formatDonaStreamError(lastError).slice(0, 120),
+    preview: formatDonaStreamError(lastError, opts.locale).slice(0, 120),
   })
   writeOfflineFallback(writer, opts, "public")
 }
 
 export async function runDonaStreamResponse(opts: RunDonaStreamOptions): Promise<Response> {
+  const locale = opts.locale ?? DEFAULT_LOCALE
   const attempts = resolveDonaModelAttempts()
   if (attempts.length === 0) {
     return Response.json(
       {
         error: "dona_unavailable",
-        message: formatDonaStreamError(new Error("missing_api_keys"), "fr"),
+        message: formatDonaStreamError(new Error("missing_api_keys"), locale),
       },
       { status: 503 }
     )
@@ -215,7 +218,7 @@ export async function runDonaStreamResponse(opts: RunDonaStreamOptions): Promise
       }
       await streamPublicTextAttempts(writer, opts, modelMessages, attempts)
     },
-    onError: (error) => formatDonaStreamError(error),
+    onError: (error) => formatDonaStreamError(error, locale),
   })
 
   return createUIMessageStreamResponse({ stream })

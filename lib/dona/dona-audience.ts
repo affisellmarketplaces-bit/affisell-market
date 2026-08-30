@@ -2,6 +2,10 @@
  * Route-aware Dona persona — buyer home ≠ revendeur landing.
  */
 
+import type { AppLocale } from "@/lib/i18n-locale"
+import { SUPPORTED_LOCALES } from "@/lib/i18n-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
+
 export type DonaPublicAudience = "buyer" | "reseller" | "supplier"
 
 const RESELLER_PREFIXES = [
@@ -33,6 +37,8 @@ const BUYER_PREFIXES = [
   "/legion",
 ] as const
 
+const LOCALE_ROOT_PATTERN = new RegExp(`^/(${SUPPORTED_LOCALES.join("|")})(/|$)`)
+
 export function resolveDonaPublicAudience(pathname: string): DonaPublicAudience {
   const path = pathname.split("?")[0]?.trim() || "/"
 
@@ -47,7 +53,7 @@ export function resolveDonaPublicAudience(pathname: string): DonaPublicAudience 
   }
 
   // Home + locale roots = acheteur (hero « boutiques de confiance »)
-  if (path === "/" || /^\/(fr|en)(\/|$)/.test(path)) {
+  if (path === "/" || LOCALE_ROOT_PATTERN.test(path)) {
     return "buyer"
   }
 
@@ -55,38 +61,16 @@ export function resolveDonaPublicAudience(pathname: string): DonaPublicAudience 
   return "buyer"
 }
 
-export function donaPublicWelcome(audience: DonaPublicAudience, locale: "fr" | "en"): string {
-  if (audience === "reseller") {
-    return locale === "fr"
-      ? "Capitaine, mode revendeur. Choisis tes produits, fixe ta marge, vends sur ta vitrine — je t'explique tout. 💜"
-      : "Captain, reseller mode. Pick products, set your margin, sell on your storefront — ask me anything. 💜"
-  }
-  if (audience === "supplier") {
-    return locale === "fr"
-      ? "Capitaine, mode fournisseur. Liste une fois, touche des revendeurs dans 33 pays UE — pose tes questions. 💜"
-      : "Captain, supplier mode. List once, reach resellers in 33 EU countries — fire away. 💜"
-  }
-  return locale === "fr"
-    ? "Bonjour — Dona ici. Boutiques vérifiées, achat protégé, livraison UE. Je t'aide à trouver ou acheter en confiance. 💜"
-    : "Hi — Dona here. Verified shops, protected checkout, EU delivery. I help you shop with confidence. 💜"
+export function donaPublicWelcome(audience: DonaPublicAudience, locale: AppLocale): string {
+  return tMessage(locale, `donaWidget.audience.${audience}.welcome`)
 }
 
-export function donaPublicPlaceholder(audience: DonaPublicAudience, locale: "fr" | "en"): string {
-  if (audience === "reseller") {
-    return locale === "fr" ? "Marge, inscription revendeur…" : "Margin, reseller signup…"
-  }
-  if (audience === "supplier") {
-    return locale === "fr" ? "Catalogue, payout fournisseur…" : "Catalog, supplier payout…"
-  }
-  return locale === "fr"
-    ? "Produit, boutique, livraison, retours…"
-    : "Product, shop, shipping, returns…"
+export function donaPublicPlaceholder(audience: DonaPublicAudience, locale: AppLocale): string {
+  return tMessage(locale, `donaWidget.audience.${audience}.placeholder`)
 }
 
-export function donaPublicBadge(audience: DonaPublicAudience): string {
-  if (audience === "reseller") return "Revendeur"
-  if (audience === "supplier") return "Fournisseur"
-  return "Achat"
+export function donaPublicBadge(audience: DonaPublicAudience, locale: AppLocale): string {
+  return tMessage(locale, `donaWidget.audience.${audience}.badge`)
 }
 
 /** Prioritize audience in LLM system prompt without dropping full product knowledge. */

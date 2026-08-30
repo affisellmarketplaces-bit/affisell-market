@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
+import { useLocale } from "next-intl"
 import { CalendarPlus, Package, Sparkles, CalendarClock, Zap } from "lucide-react"
 
 import { AccountOrderFulfillmentPanel } from "@/components/account/account-order-fulfillment-panel"
@@ -81,29 +82,14 @@ type OrderRow = {
   canWriteReview?: boolean
 }
 
-function statusLabel(status: string) {
-  const map: Record<string, string> = {
-    REQUESTED: "Awaiting seller",
-    AWAITING_SHIPMENT: "Ship item back",
-    IN_TRANSIT: "Return in transit",
-    RECEIVED: "Received — refund pending",
-    REFUNDED: "Refunded",
-    REJECTED: "Rejected",
-    CANCELLED: "Cancelled",
-  }
-  return map[status] ?? status
+function statusLabel(status: string, locale: AppLocale) {
+  return tMessage(locale, `accountOrders.return.status.${status}`, status)
 }
 
-function orderFulfillmentTag(status: string, lang: "en" | "fr") {
-  if (status === "preparing") {
-    return lang === "fr" ? " · Préparation en cours" : " · Preparing your order"
-  }
-  if (status === "shipped") {
-    return lang === "fr" ? " · Expédiée" : " · Shipped"
-  }
-  if (status === "paid") {
-    return lang === "fr" ? " · Confirmée" : " · Confirmed"
-  }
+function orderFulfillmentTag(status: string, locale: AppLocale) {
+  if (status === "preparing") return tMessage(locale, "accountOrders.fulfillmentTag.preparing")
+  if (status === "shipped") return tMessage(locale, "accountOrders.fulfillmentTag.shipped")
+  if (status === "paid") return tMessage(locale, "accountOrders.fulfillmentTag.paid")
   return ""
 }
 
@@ -114,8 +100,8 @@ export function AccountOrdersClient({
   initialOrders: OrderRow[]
   className?: string
 }) {
+  const locale = useLocale() as AppLocale
   const [orders, setOrders] = useState(initialOrders)
-  const [lang, setLang] = useState<"en" | "fr">("fr")
   const [sortBy, setSortBy] = useState<BuyerOrdersSort>(() => defaultBuyerOrdersSort())
   const [busyId, setBusyId] = useState<string | null>(null)
   const [bookingCancelBusyId, setBookingCancelBusyId] = useState<string | null>(null)
@@ -125,9 +111,9 @@ export function AccountOrdersClient({
     () =>
       RETURN_REASON_CODES.map((code) => ({
         code,
-        label: getReturnReasonLabel(code, lang as AppLocale),
+        label: getReturnReasonLabel(code, locale),
       })),
-    [lang]
+    [locale]
   )
 
   const sortedOrders = useMemo(
@@ -135,7 +121,7 @@ export function AccountOrdersClient({
     [orders, sortBy]
   )
 
-  const sortLabel = (key: string) => tMessage(lang as AppLocale, `accountOrders.sort.${key}`)
+  const sortLabel = (key: string) => tMessage(locale, `accountOrders.sort.${key}`)
 
   async function refresh() {
     const res = await fetch("/api/account/orders", { cache: "no-store" })
@@ -154,7 +140,7 @@ export function AccountOrdersClient({
       })
       const json = (await res.json()) as { error?: string; ok?: boolean }
       if (!res.ok) {
-        setError(json.error ?? (lang === "fr" ? "Annulation impossible" : "Could not cancel"))
+        setError(json.error ?? tMessage(locale, "accountOrders.booking.cancelError"))
         return
       }
       await refresh()
@@ -187,23 +173,6 @@ export function AccountOrdersClient({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex justify-end gap-2 text-xs">
-          <button
-            type="button"
-            className={cn(lang === "fr" ? "font-semibold text-[#7C3AED]" : "text-gray-500")}
-            onClick={() => setLang("fr")}
-          >
-            FR
-          </button>
-          <span className="text-zinc-300">|</span>
-          <button
-            type="button"
-            className={cn(lang === "en" ? "font-semibold text-[#7C3AED]" : "text-gray-500")}
-            onClick={() => setLang("en")}
-          >
-            EN
-          </button>
-        </div>
       </div>
 
       {error ? (
@@ -213,7 +182,7 @@ export function AccountOrdersClient({
       ) : null}
 
       {sortedOrders.map((o) => {
-        const bookingCopy = buyerBookingOrderCardCopy(o.bookingListingKind, lang)
+        const bookingCopy = buyerBookingOrderCardCopy(o.bookingListingKind, locale)
         return (
         <BentoCard key={o.id} className="py-5 md:py-6">
           <div className="flex gap-5">
@@ -229,30 +198,28 @@ export function AccountOrdersClient({
               </p>
               <p className="mt-1 text-xs uppercase tracking-wider text-gray-500 dark:text-zinc-400">
                 {new Date(o.createdAt).toLocaleDateString()} · ×{o.quantity} · {formatStoreCurrencyFromCents(o.sellingPriceCents)}
-                {orderFulfillmentTag(o.status, lang)}
+                {orderFulfillmentTag(o.status, locale)}
               </p>
               {o.fulfillmentSource !== "blind_dropship" ? (
                 <Link
                   href={`/marketplace/account/orders/${o.id}`}
                   className="mt-2 inline-block text-xs font-medium text-violet-700 underline-offset-4 hover:underline dark:text-violet-300"
                 >
-                  {lang === "fr" ? "Voir le détail et la facture →" : "View details & invoice →"}
+                  {tMessage(locale, "accountOrders.viewDetails")}
                 </Link>
               ) : null}
               {o.isDigital && o.digitalPassPath ? (
                 <div className="mt-4 overflow-hidden rounded-2xl border border-violet-300/50 bg-gradient-to-br from-violet-950 via-indigo-950 to-cyan-950 p-4 text-white shadow-[0_0_60px_-20px_rgba(124,58,237,0.6)]">
                   <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-violet-300">
                     <Zap className="h-3.5 w-3.5 text-amber-300" aria-hidden />
-                    {lang === "fr" ? "Accès formation" : "Course access"}
+                    {tMessage(locale, "accountOrders.digital.title")}
                   </p>
                   <p className="mt-2 text-sm leading-relaxed text-violet-100/90">
-                    {lang === "fr"
-                      ? "Votre passe digital est prêt — ouvrez-le pour démarrer immédiatement."
-                      : "Your digital pass is ready — open it to start immediately."}
+                    {tMessage(locale, "accountOrders.digital.hint")}
                   </p>
                   {o.digitalDeliveredAt ? (
                     <p className="mt-1 text-[11px] text-violet-300/70">
-                      {lang === "fr" ? "Débloqué le" : "Unlocked"}{" "}
+                      {tMessage(locale, "accountOrders.digital.unlocked")}{" "}
                       {new Date(o.digitalDeliveredAt).toLocaleString()}
                     </p>
                   ) : null}
@@ -261,7 +228,7 @@ export function AccountOrdersClient({
                     className="mt-3 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:from-violet-500 hover:to-indigo-500"
                   >
                     <Sparkles className="h-4 w-4" aria-hidden />
-                    {lang === "fr" ? "Ouvrir mon accès" : "Open my access"}
+                    {tMessage(locale, "accountOrders.digital.cta")}
                   </Link>
                 </div>
               ) : null}
@@ -276,7 +243,7 @@ export function AccountOrdersClient({
                   </p>
                   {o.bookingConfirmedAt ? (
                     <p className="mt-1 text-[11px] text-cyan-300/70">
-                      {lang === "fr" ? "Confirmé le" : "Confirmed"}{" "}
+                      {tMessage(locale, "accountOrders.booking.confirmed")}{" "}
                       {new Date(o.bookingConfirmedAt).toLocaleString()}
                     </p>
                   ) : null}
@@ -294,7 +261,7 @@ export function AccountOrdersClient({
                         className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/40 bg-cyan-500/10 px-4 py-2.5 text-sm font-medium text-cyan-100 transition hover:bg-cyan-500/20"
                       >
                         <CalendarPlus className="h-4 w-4" aria-hidden />
-                        {lang === "fr" ? "Ajouter au calendrier" : "Add to calendar"}
+                        {tMessage(locale, "accountOrders.booking.addToCalendar")}
                       </a>
                     ) : null}
                   </div>
@@ -302,7 +269,7 @@ export function AccountOrdersClient({
                     <div className="mt-3 space-y-2">
                       {o.bookingCancelDeadlineAt ? (
                         <p className="text-[11px] text-cyan-200/70">
-                          {lang === "fr" ? "Annulation gratuite jusqu'au" : "Free cancel until"}{" "}
+                          {tMessage(locale, "accountOrders.booking.freeCancelUntil")}{" "}
                           {new Date(o.bookingCancelDeadlineAt).toLocaleString()}
                         </p>
                       ) : null}
@@ -315,9 +282,7 @@ export function AccountOrdersClient({
                         onClick={() => void cancelBooking(o.id)}
                       >
                         {bookingCancelBusyId === o.id
-                          ? lang === "fr"
-                            ? "Annulation…"
-                            : "Cancelling…"
+                          ? tMessage(locale, "accountOrders.booking.cancelling")
                           : bookingCopy.cancelCta}
                       </Button>
                     </div>
@@ -333,16 +298,14 @@ export function AccountOrdersClient({
                     <div className="min-w-0 space-y-1">
                       <p className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-sky-950 dark:text-sky-50">
                         <Sparkles className="size-3.5 text-sky-600 dark:text-sky-300" aria-hidden />
-                        {lang === "fr" ? "Votre vendeur prépare l’envoi" : "Your seller is preparing shipment"}
+                        {tMessage(locale, "accountOrders.preparing.title")}
                       </p>
                       <p className="text-xs leading-relaxed text-sky-900/85 dark:text-sky-100/80">
-                        {lang === "fr"
-                          ? "Le produit est pris en charge et emballé. Vous recevrez le suivi dès l’expédition."
-                          : "They’ve confirmed your order is being packed. Tracking appears the moment the carrier scans the parcel."}
+                        {tMessage(locale, "accountOrders.preparing.body")}
                       </p>
                       {o.supplierPreparingAt ? (
                         <p className="text-[11px] text-sky-800/70 dark:text-sky-200/70">
-                          {lang === "fr" ? "Mise à jour" : "Since"}{" "}
+                          {tMessage(locale, "accountOrders.preparing.since")}{" "}
                           {new Date(o.supplierPreparingAt).toLocaleString()}
                         </p>
                       ) : null}
@@ -352,20 +315,19 @@ export function AccountOrdersClient({
               ) : null}
               {o.trackingNumber ? (
                 <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
-                  {lang === "fr" ? "Suivi" : "Tracking"}: {o.trackingCarrier ?? (lang === "fr" ? "Transporteur" : "Carrier")}{" "}
-                  {o.trackingNumber}
+                  {tMessage(locale, "accountOrders.trackingLine")
+                    .replace("{carrier}", o.trackingCarrier ?? tMessage(locale, "accountOrders.carrierDefault"))
+                    .replace("{number}", o.trackingNumber ?? "")}
                 </p>
               ) : null}
               {o.fulfillmentSource !== "blind_dropship" &&
               (o.status === "paid" || o.status === "preparing") ? (
-                <AccountOrderFulfillmentPanel orderId={o.id} lang={lang} />
+                <AccountOrderFulfillmentPanel orderId={o.id} locale={locale} />
               ) : null}
               {o.canConfirmDelivery ? (
                 <div className="mt-3 rounded-lg border border-violet-200 bg-violet-50/80 p-3 dark:border-violet-900/50 dark:bg-violet-950/30">
                   <p className="text-sm text-violet-950 dark:text-violet-100">
-                    {lang === "fr"
-                      ? "Reçu et satisfait ? Confirmez la livraison pour clôturer votre commande. Votre droit de rétractation reste ouvert pendant le délai de retour."
-                      : "Received and satisfied? Confirm delivery to close your order. Your statutory withdrawal right remains during the return window."}
+                    {tMessage(locale, "accountOrders.confirmDelivery.body")}
                   </p>
                   <Button
                     type="button"
@@ -381,7 +343,7 @@ export function AccountOrdersClient({
                         })
                         const j = (await res.json().catch(() => ({}))) as { error?: string; message?: string }
                         if (!res.ok) {
-                          setError(j.error ?? "Could not confirm")
+                          setError(j.error ?? tMessage(locale, "accountOrders.confirmDelivery.error"))
                           return
                         }
                         await refresh()
@@ -390,13 +352,15 @@ export function AccountOrdersClient({
                       }
                     }}
                   >
-                    Confirm receipt & satisfaction
+                    {tMessage(locale, "accountOrders.confirmDelivery.cta")}
                   </Button>
                 </div>
               ) : o.deliveryConfirmedAt ? (
                 <p className="mt-2 text-xs text-emerald-800 dark:text-emerald-200">
-                  {lang === "fr" ? "Livraison confirmée · " : "Delivery confirmed · "}
-                  {new Date(o.deliveryConfirmedAt).toLocaleDateString()}
+                  {tMessage(locale, "accountOrders.deliveryConfirmed").replace(
+                    "{date}",
+                    new Date(o.deliveryConfirmedAt).toLocaleDateString()
+                  )}
                 </p>
               ) : null}
               {o.canWriteReview && o.affiliateProductId ? (
@@ -404,18 +368,19 @@ export function AccountOrdersClient({
                   orderId={o.id}
                   affiliateProductId={o.affiliateProductId}
                   productName={o.product.name}
-                  lang={lang}
+                  locale={locale}
                 />
               ) : null}
               {o.activeReturn ? (
                 <div className="mt-2 space-y-1 text-sm">
                   <p>
-                    <span className="text-zinc-500">Return: </span>
-                    <span className="font-medium">{statusLabel(o.activeReturn.status)}</span>
+                    <span className="text-zinc-500">{tMessage(locale, "accountOrders.return.label")}</span>
+                    <span className="font-medium">{statusLabel(o.activeReturn.status, locale)}</span>
                   </p>
                   {o.activeReturn.status === "AWAITING_SHIPMENT" ? (
                     <TrackingForm
                       returnId={o.activeReturn.id}
+                      locale={locale}
                       busyId={busyId}
                       setBusyId={setBusyId}
                       setError={setError}
@@ -440,7 +405,7 @@ export function AccountOrdersClient({
                           })
                           if (!res.ok) {
                             const j = (await res.json().catch(() => ({}))) as { error?: string }
-                            setError(j.error ?? "Could not cancel")
+                            setError(j.error ?? tMessage(locale, "accountOrders.return.cancelError"))
                             return
                           }
                           await refresh()
@@ -449,13 +414,14 @@ export function AccountOrdersClient({
                         }
                       }}
                     >
-                      Cancel request
+                      {tMessage(locale, "accountOrders.return.cancelRequest")}
                     </Button>
                   ) : null}
                 </div>
               ) : o.returnEligible ? (
                 <ReturnRequestForm
                   orderId={o.id}
+                  locale={locale}
                   reasonOptions={reasonOptions}
                   busyId={busyId}
                   setBusyId={setBusyId}
@@ -464,12 +430,16 @@ export function AccountOrdersClient({
                 />
               ) : o.lastReturn && o.lastReturn.terminal ? (
                 <p className="mt-2 text-xs text-zinc-500">
-                  Last return: {statusLabel(o.lastReturn.status)} ·{" "}
-                  {new Date(o.lastReturn.createdAt).toLocaleDateString()}
+                  {tMessage(locale, "accountOrders.return.lastReturn")
+                    .replace("{status}", statusLabel(o.lastReturn.status, locale))
+                    .replace("{date}", new Date(o.lastReturn.createdAt).toLocaleDateString())}
                 </p>
               ) : !o.returnEligible ? (
                 <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">
-                  Return window ended on {new Date(o.returnWindowEndsAt).toLocaleDateString()}.
+                  {tMessage(locale, "accountOrders.return.windowEnded").replace(
+                    "{date}",
+                    new Date(o.returnWindowEndsAt).toLocaleDateString()
+                  )}
                 </p>
               ) : null}
             </div>
@@ -483,6 +453,7 @@ export function AccountOrdersClient({
 
 function ReturnRequestForm({
   orderId,
+  locale,
   reasonOptions,
   busyId,
   setBusyId,
@@ -490,6 +461,7 @@ function ReturnRequestForm({
   onDone,
 }: {
   orderId: string
+  locale: AppLocale
   reasonOptions: { code: string; label: string }[]
   busyId: string | null
   setBusyId: (id: string | null) => void
@@ -501,7 +473,9 @@ function ReturnRequestForm({
 
   return (
     <div className="mt-3 space-y-2 rounded-lg border border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-600 dark:bg-zinc-900/40">
-      <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">Reason</label>
+      <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+        {tMessage(locale, "accountOrders.return.form.reasonLabel")}
+      </label>
       <select
         className="w-full rounded-md border border-zinc-200 bg-white px-2 py-1.5 text-sm dark:border-zinc-600 dark:bg-zinc-950"
         value={reasonCode}
@@ -516,7 +490,7 @@ function ReturnRequestForm({
       <textarea
         className="w-full rounded-md border border-zinc-200 bg-white px-2 py-1.5 text-sm dark:border-zinc-600 dark:bg-zinc-950"
         rows={2}
-        placeholder="Details (optional)"
+        placeholder={tMessage(locale, "accountOrders.return.form.detailsPlaceholder")}
         value={detail}
         onChange={(e) => setDetail(e.target.value)}
       />
@@ -538,7 +512,7 @@ function ReturnRequestForm({
             })
             if (!res.ok) {
               const j = (await res.json().catch(() => ({}))) as { error?: string }
-              setError(j.error ?? "Request failed")
+              setError(j.error ?? tMessage(locale, "accountOrders.return.form.error"))
               return
             }
             await onDone()
@@ -547,7 +521,7 @@ function ReturnRequestForm({
           }
         }}
       >
-        Request return
+        {tMessage(locale, "accountOrders.return.form.submit")}
       </Button>
     </div>
   )
@@ -555,12 +529,14 @@ function ReturnRequestForm({
 
 function TrackingForm({
   returnId,
+  locale,
   busyId,
   setBusyId,
   setError,
   onDone,
 }: {
   returnId: string
+  locale: AppLocale
   busyId: string | null
   setBusyId: (id: string | null) => void
   setError: (s: string | null) => void
@@ -572,17 +548,17 @@ function TrackingForm({
   return (
     <div className="mt-2 space-y-2 rounded-lg border border-violet-200 bg-violet-50/50 p-3 dark:border-violet-900 dark:bg-violet-950/20">
       <p className="text-xs text-zinc-600 dark:text-zinc-400">
-        Ship the item to the address from your order confirmation, then add tracking here.
+        {tMessage(locale, "accountOrders.return.trackingForm.hint")}
       </p>
       <input
         className="w-full rounded-md border border-zinc-200 bg-white px-2 py-1.5 text-sm dark:border-zinc-600 dark:bg-zinc-950"
-        placeholder="Carrier (e.g. Colissimo, Chronopost)"
+        placeholder={tMessage(locale, "accountOrders.return.trackingForm.carrierPlaceholder")}
         value={carrier}
         onChange={(e) => setCarrier(e.target.value)}
       />
       <input
         className="w-full rounded-md border border-zinc-200 bg-white px-2 py-1.5 text-sm dark:border-zinc-600 dark:bg-zinc-950"
-        placeholder="Tracking number"
+        placeholder={tMessage(locale, "accountOrders.return.trackingForm.numberPlaceholder")}
         value={number}
         onChange={(e) => setNumber(e.target.value)}
       />
@@ -605,7 +581,7 @@ function TrackingForm({
             })
             if (!res.ok) {
               const j = (await res.json().catch(() => ({}))) as { error?: string }
-              setError(j.error ?? "Could not save tracking")
+              setError(j.error ?? tMessage(locale, "accountOrders.return.trackingForm.error"))
               return
             }
             await onDone()
@@ -614,7 +590,7 @@ function TrackingForm({
           }
         }}
       >
-        Submit tracking
+        {tMessage(locale, "accountOrders.return.trackingForm.submit")}
       </Button>
     </div>
   )

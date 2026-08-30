@@ -7,12 +7,13 @@ import { useCallback, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import type { CatalogListingState } from "@/lib/affiliate-catalog-listing-state"
+import type { AppLocale } from "@/lib/i18n-locale"
 import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 import { cn } from "@/lib/utils"
 
 type Props = {
   state: CatalogListingState
-  locale?: "fr" | "en"
+  locale?: AppLocale
   releasing?: boolean
   onAdd: () => void
   onEdit: (listingId: string) => void
@@ -63,7 +64,7 @@ export function DiscoverListingActions({
   className,
 }: Props) {
   const localeFromContext = useLocale()
-  const locale = localeProp ?? resolveBinaryCopyLocale(localeFromContext)
+  const locale = resolveBinaryCopyLocale(localeProp ?? localeFromContext)
   const t = copy[locale]
   const [releaseOpen, setReleaseOpen] = useState(false)
   const [pendingId, setPendingId] = useState<string | null>(null)
