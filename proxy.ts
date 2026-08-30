@@ -254,7 +254,15 @@ function rewriteLegionStorefront(req: NextRequest): NextResponse | null {
   const parts = bare.split("/").filter(Boolean)
   if (parts.length !== 1) return null
   const segment = normalizeLegionUsername(parts[0] ?? "")
-  if (!segment || isAppLocale(segment) || !isValidLegionUsername(segment)) return null
+  if (
+    !segment ||
+    isAppLocale(segment) ||
+    isStaticAppPathname(req.nextUrl.pathname) ||
+    isStaticAppPathname(bare) ||
+    !isValidLegionUsername(segment)
+  ) {
+    return null
+  }
 
   const rewriteUrl = req.nextUrl.clone()
   rewriteUrl.pathname = `/u/${segment}`
