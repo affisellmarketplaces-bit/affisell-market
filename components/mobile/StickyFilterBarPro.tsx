@@ -1,10 +1,10 @@
 "use client"
 
 import { useCallback, useState, type ReactNode } from "react"
-import Link from "next/link"
 import { Filter, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { FastLink } from "@/components/navigation/fast-link"
 import { CategoryGlyph } from "@/components/marketplace/CategoryGlyph"
 import { MarketplaceShipsToChip } from "@/components/marketplace/marketplace-ships-to-chip"
 import { MobileSheetBodySkeleton } from "@/components/marketplace/mobile-sheet-body-skeleton"
@@ -12,8 +12,8 @@ import { Sheet, SheetContent } from "@/components/ui/sheet"
 import { useDeferredMount } from "@/hooks/use-deferred-mount"
 import { buyerHaptic } from "@/lib/buyer-haptics"
 import { catalogFilterHref } from "@/lib/marketplace-catalog-nav.client"
+import { categoryRailHref } from "@/lib/marketplace-category-rail-href.client"
 import { MARKETPLACE_OFFER_FACET_KEY } from "@/lib/marketplace-discovery-facets-shared"
-import { categoryBrowsePath } from "@/lib/seo-category-pages-shared"
 import { cn } from "@/lib/utils"
 
 type Cat = { id: string; name: string; icon: string; slug: string; count: number }
@@ -105,7 +105,7 @@ export function StickyFilterBarPro({
               Pan-EU · 33
             </div>
 
-            <Link
+            <FastLink
               href={catalogFilterHref(catalogBasePath)}
               scroll={false}
               className={cn(
@@ -119,15 +119,15 @@ export function StickyFilterBarPro({
               {typeof catalogTotal === "number" ? (
                 <span className="ml-1 opacity-80">({catalogTotal})</span>
               ) : null}
-            </Link>
+            </FastLink>
 
             {topCats.map((c) => {
               const on = activeCategoryId === c.id
               return (
-                <Link
+                <FastLink
                   key={c.id}
-                  href={categoryBrowsePath(c.slug)}
-                  scroll
+                  href={categoryRailHref(catalogBasePath, c)}
+                  scroll={false}
                   className={cn(
                     "inline-flex h-7 w-[7.5rem] shrink-0 items-center justify-center gap-1 truncate rounded-full px-2 text-[11px] font-semibold",
                     on
@@ -140,11 +140,11 @@ export function StickyFilterBarPro({
                     {c.name}
                     {c.count > 0 ? <span className="opacity-70">({c.count})</span> : null}
                   </span>
-                </Link>
+                </FastLink>
               )
             })}
 
-            <Link
+            <FastLink
               href={catalogFilterHref(catalogBasePath, `${MARKETPLACE_OFFER_FACET_KEY}=new`)}
               scroll={false}
               className="inline-flex h-7 shrink-0 items-center rounded-full bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-900 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-100 dark:ring-emerald-800"
@@ -153,7 +153,7 @@ export function StickyFilterBarPro({
               {typeof newCount === "number" ? (
                 <span className="ml-1 opacity-80">({newCount})</span>
               ) : null}
-            </Link>
+            </FastLink>
 
             <MarketplaceShipsToChip
               basePath={catalogBasePath}

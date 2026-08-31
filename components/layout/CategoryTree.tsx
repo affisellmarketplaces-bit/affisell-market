@@ -8,7 +8,6 @@ import useSWR from "swr"
 import { FastLink } from "@/components/navigation/fast-link"
 import { CategoryGlyph } from "@/components/marketplace/CategoryGlyph"
 import { marketplaceCatalogHref } from "@/lib/marketplace-catalog-url"
-import { categoryBrowsePath } from "@/lib/seo-category-pages-shared"
 import { cn } from "@/lib/utils"
 
 type Subcategory = {
@@ -130,7 +129,8 @@ export function CategoryTree({ onNavigate, className }: Props) {
                   ) : null}
                 </button>
                 <FastLink
-                  href={categoryBrowsePath(cat.slug)}
+                  href={marketplaceCatalogHref("/", { category: cat.id })}
+                  scroll={false}
                   onClick={onNavigate}
                   className="mr-1.5 shrink-0 rounded-lg px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-violet-300/90 hover:bg-violet-500/15 hover:text-violet-100"
                   aria-label={t("browseCategory", { name: cat.name })}
@@ -144,14 +144,8 @@ export function CategoryTree({ onNavigate, className }: Props) {
                   {cat.subcategories.map((sub) => (
                     <li key={sub.id}>
                       <FastLink
-                        href={
-                          sub.slug
-                            ? categoryBrowsePath(sub.slug)
-                            : marketplaceCatalogHref("/", {
-                                category: cat.id,
-                                subcategory: sub.id,
-                              })
-                        }
+                        href={marketplaceCatalogHref("/", { category: sub.id })}
+                        scroll={false}
                         onClick={onNavigate}
                         className="flex min-h-10 items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-sm text-zinc-300 transition hover:bg-white/5 hover:text-white"
                       >

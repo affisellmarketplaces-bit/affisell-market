@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { useTranslations } from "next-intl"
 import useSWR from "swr"
 import { Sparkles, Zap } from "lucide-react"
@@ -8,7 +7,8 @@ import { Sparkles, Zap } from "lucide-react"
 import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
 import { catalogFilterHref } from "@/lib/marketplace-catalog-nav.client"
-import { categoryBrowsePath } from "@/lib/seo-category-pages-shared"
+import { categoryRailHref } from "@/lib/marketplace-category-rail-href.client"
+import { FastLink } from "@/components/navigation/fast-link"
 import { CategoryGlyph } from "@/components/marketplace/CategoryGlyph"
 import { InfiniteMarquee } from "@/components/ui/infinite-marquee"
 import { affisellBrand } from "@/lib/affisell-brand"
@@ -34,7 +34,7 @@ function DepartmentRailItems({
   return (
     <>
       <div className="flex shrink-0 items-center gap-1">
-        <Link
+        <FastLink
           href={catalogFilterHref(catalogBasePath)}
           scroll={false}
           className={cn(
@@ -48,8 +48,8 @@ function DepartmentRailItems({
           {typeof data.catalogTotal === "number" ? (
             <span className="ml-1 opacity-80">({data.catalogTotal})</span>
           ) : null}
-        </Link>
-        <Link
+        </FastLink>
+        <FastLink
           href={discoverSwipeHref()}
           title={t("swipeAll")}
           className={cn(
@@ -59,15 +59,15 @@ function DepartmentRailItems({
           aria-label={t("swipeAll")}
         >
           <Zap className="size-3.5" aria-hidden />
-        </Link>
+        </FastLink>
       </div>
       {data.categories.map((c) => {
         const on = activeCategoryId === c.id && !activeSubcategoryId
         return (
           <div key={c.id} className="flex shrink-0 items-center gap-1">
-            <Link
-              href={categoryBrowsePath(c.slug)}
-              scroll
+            <FastLink
+              href={categoryRailHref(catalogBasePath, c)}
+              scroll={false}
               className={cn(
                 affisellBrand.quickLink,
                 "affisell-quick-link--buyer inline-flex min-h-11 shrink-0 items-center !rounded-full !py-2 text-xs",
@@ -79,8 +79,8 @@ function DepartmentRailItems({
                 {c.name}
                 {c.count > 0 ? <span className="ml-1 opacity-70">({c.count})</span> : null}
               </span>
-            </Link>
-            <Link
+            </FastLink>
+            <FastLink
               href={discoverSwipeHref({ category: c.id })}
               title={t("swipeCategory", { name: c.name })}
               className={cn(
@@ -90,7 +90,7 @@ function DepartmentRailItems({
               aria-label={t("swipeCategory", { name: c.name })}
             >
               <Zap className="size-3.5" aria-hidden />
-            </Link>
+            </FastLink>
           </div>
         )
       })}

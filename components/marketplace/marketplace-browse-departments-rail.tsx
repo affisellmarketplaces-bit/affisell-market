@@ -1,10 +1,10 @@
 "use client"
 
-import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
 import useSWR from "swr"
 
+import { FastLink } from "@/components/navigation/fast-link"
 import {
   brandOrbitPillActive,
   brandOrbitPillIdle,
@@ -13,8 +13,11 @@ import {
   brandOrbitRailHint,
   brandOrbitRailShell,
 } from "@/lib/affisell-brand-orbit-shared"
-import { catalogFilterHref, catalogFilterHrefFromParams } from "@/lib/marketplace-catalog-nav.client"
-import { categoryBrowsePath } from "@/lib/seo-category-pages-shared"
+import { catalogFilterHref } from "@/lib/marketplace-catalog-nav.client"
+import {
+  browseDepartmentRailHref,
+  isSoftCategoryCatalogBase,
+} from "@/lib/marketplace-category-rail-href.client"
 import type { ResolvedBrowseDepartment } from "@/lib/taxonomy/browse-departments-shared"
 import { cn } from "@/lib/utils"
 
@@ -60,28 +63,16 @@ export function MarketplaceBrowseDepartmentsRail({
       </div>
       <div className="relative flex gap-2 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {visible.map((dept) => {
-          const href = dept.categorySlug
-            ? categoryBrowsePath(dept.categorySlug)
-            : dept.categoryId
-            ? catalogFilterHrefFromParams(
-                basePath,
-                new URLSearchParams({ category: dept.categoryId })
-              )
-            : (() => {
-                const sp = new URLSearchParams()
-                if (dept.searchQuery) sp.set("q", dept.searchQuery)
-                return catalogFilterHrefFromParams(basePath, sp)
-              })()
+          const href = browseDepartmentRailHref(basePath, dept)
           const active = dept.categoryId
             ? activeCategoryId === dept.categoryId
             : Boolean(dept.searchQuery && activeSearch === dept.searchQuery)
-          // Full page `/browse/{slug}` must scroll to top — scroll={false} lands mid-footer.
-          const isBrowseDoc = Boolean(dept.categorySlug)
+          const softNav = isSoftCategoryCatalogBase(basePath)
           return (
-            <Link
+            <FastLink
               key={dept.id}
               href={href}
-              scroll={isBrowseDoc}
+              scroll={!softNav}
               className={cn(
                 "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition",
                 active ? brandOrbitPillActive : brandOrbitPillIdle
@@ -90,11 +81,11 @@ export function MarketplaceBrowseDepartmentsRail({
             >
               <span aria-hidden>{dept.icon}</span>
               {dept.label}
-            </Link>
+            </FastLink>
           )
         })}
         {hasMore ? (
-          <Link
+          <FastLink
             href={seeAllHref}
             scroll={false}
             className={cn(
@@ -103,7 +94,7 @@ export function MarketplaceBrowseDepartmentsRail({
             )}
           >
             {t("seeAll")}
-          </Link>
+          </FastLink>
         ) : null}
       </div>
     </section>
