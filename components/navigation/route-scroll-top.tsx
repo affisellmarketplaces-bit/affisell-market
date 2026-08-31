@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { useEffect, useRef } from "react"
 
-import { shouldResetBuyerScroll } from "@/lib/buyer-scroll-reset-paths"
+import { shouldPreScrollOnInstantNavStart, shouldResetBuyerScroll } from "@/lib/buyer-scroll-reset-paths"
 import type { InstantNavStartDetail } from "@/lib/instant-navigation-events.client"
 import { INSTANT_NAV_START } from "@/lib/instant-navigation-events.client"
 import { normalizePrefetchHref } from "@/lib/prefetch-href.client"
@@ -37,9 +37,10 @@ export function RouteScrollTop() {
       const href = (event as CustomEvent<InstantNavStartDetail>).detail?.href
       if (!href) return
       const path = normalizePrefetchHref(href)
-      if (path && shouldResetBuyerScroll(path)) {
-        resetWindowScroll()
-      }
+      const currentPath = normalizePrefetchHref(window.location.pathname)
+      if (!path || !currentPath) return
+      if (!shouldPreScrollOnInstantNavStart(currentPath, path)) return
+      resetWindowScroll()
     }
 
     window.addEventListener(INSTANT_NAV_START, onInstantStart)

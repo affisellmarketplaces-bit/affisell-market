@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { shouldResetBuyerScroll } from "@/lib/buyer-scroll-reset-paths"
+import { shouldPreScrollOnInstantNavStart, shouldResetBuyerScroll } from "@/lib/buyer-scroll-reset-paths"
 
 describe("shouldResetBuyerScroll", () => {
   it("resets browse category hops", () => {
@@ -17,5 +17,15 @@ describe("shouldResetBuyerScroll", () => {
     expect(shouldResetBuyerScroll("/marketplace/account")).toBe(false)
     expect(shouldResetBuyerScroll("/marketplace/import")).toBe(false)
     expect(shouldResetBuyerScroll("/")).toBe(false)
+  })
+})
+
+describe("shouldPreScrollOnInstantNavStart", () => {
+  it("pre-scrolls only when leaving an already long catalog surface", () => {
+    expect(shouldPreScrollOnInstantNavStart("/", "/marketplace/bestsellers")).toBe(false)
+    expect(shouldPreScrollOnInstantNavStart("/browse/mode", "/marketplace/cmp123")).toBe(true)
+    expect(shouldPreScrollOnInstantNavStart("/marketplace/bestsellers", "/marketplace/cmp123")).toBe(
+      true
+    )
   })
 })

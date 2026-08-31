@@ -23,3 +23,8 @@ export function shouldResetBuyerScroll(pathname: string): boolean {
 
   return false
 }
+
+/** Pre-scroll only when already on a long catalog/PDP surface — never from home `/`. */
+export function shouldPreScrollOnInstantNavStart(fromPathname: string, toPathname: string): boolean {
+  return shouldResetBuyerScroll(fromPathname) && shouldResetBuyerScroll(toPathname)
+}

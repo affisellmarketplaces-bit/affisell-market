@@ -1,8 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState, type MouseEvent } from "react"
+import { useEffect, useMemo, useState, type MouseEvent, type PointerEvent } from "react"
 import { ArrowUpRight, TrendingUp } from "lucide-react"
-import { useRouter } from "next/navigation"
 
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion"
 
@@ -12,6 +11,7 @@ import {
 } from "@/components/home/home-buyer-glass-tile"
 import { buyerServiceTileLinkClass } from "@/lib/home-buyer-tile-link-shared"
 import { FastLink } from "@/components/navigation/fast-link"
+import { clientNavigateOrAssign } from "@/lib/client-navigate.client"
 import { BUYER_BESTSELLERS_PATH } from "@/lib/buyer-bestsellers-route"
 import { BUYER_TILE_ACCENTS } from "@/lib/home-buyer-accent-palette"
 import type { HomeBestSellerDeckCard } from "@/lib/home-best-seller-deck-shared"
@@ -34,6 +34,16 @@ type Props = {
   /** Opens the full ranked list — never the front card product alone. */
   listHref?: string
   fallbackHref?: string
+}
+
+function isModifiedClick(event: MouseEvent<HTMLAnchorElement>): boolean {
+  return (
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  )
 }
 
 function PlayingCard({
@@ -140,25 +150,31 @@ export function HomeBuyerBestSellersDeck({
 
   const front = stack[stack.length - 1]
   const href = listHref || fallbackHref
-  const router = useRouter()
 
-  const navigateToHub = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (event.defaultPrevented) return
-    if (event.button !== 0) return
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  const openHub = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.defaultPrevented || isModifiedClick(event)) return
     event.preventDefault()
-    router.push(href, { scroll: true })
+    clientNavigateOrAssign(href)
+  }
+
+  const lockRailTap = (event: PointerEvent<HTMLAnchorElement>) => {
+    if (event.pointerType === "touch") {
+      event.stopPropagation()
+    }
+  }
+
+  const linkProps = {
+    href,
+    scroll: true as const,
+    className: cn(buyerServiceTileClass, buyerServiceTileLinkClass, "affisell-inp-tap touch-manipulation"),
+    onClick: openHub,
+    onPointerDown: lockRailTap,
   }
 
   if (cards.length === 0) {
     return (
       <li className={buyerServiceTileItemClass}>
-        <FastLink
-          href={href}
-          className={cn(buyerServiceTileClass, buyerServiceTileLinkClass)}
-          scroll
-          onClick={navigateToHub}
-        >
+        <FastLink {...linkProps}>
           <span
             className={cn(
               "pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br opacity-40 blur-2xl transition group-hover:opacity-60",
@@ -194,16 +210,13 @@ export function HomeBuyerBestSellersDeck({
   return (
     <li className={buyerServiceTileItemClass}>
       <FastLink
-        href={href}
+        {...linkProps}
         className={cn(
-          buyerServiceTileClass,
-          buyerServiceTileLinkClass,
+          linkProps.className,
           "lg:min-h-[7.25rem] lg:pb-3.5",
           "max-lg:min-h-[5rem]"
         )}
-        scroll
         aria-label={`${label} — ${hint}`}
-        onClick={navigateToHub}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onFocus={() => setPaused(true)}
