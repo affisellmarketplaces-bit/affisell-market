@@ -64,7 +64,12 @@ export function DonaUserBubble({ text }: { text: string }) {
 export function DonaAssistantBubble({ text }: { text: string }) {
   return (
     <div className="mr-auto max-w-[85%] rounded-2xl rounded-bl-sm border border-white/10 bg-[#1A1A3D] px-4 py-2.5 text-sm leading-relaxed text-white">
-      <DonaAvatarImage className="mb-2 size-7 rounded-full object-cover" alt="" loading="lazy" />
+      <DonaAvatarImage
+        className="mb-2 size-7 rounded-full object-cover object-top"
+        alt=""
+        loading="lazy"
+        variant="circle"
+      />
       <DonaLinkifiedText text={text} />
       <span className="mt-1 block text-[10px] text-white/40">{formatDonaTime(new Date())}</span>
     </div>
@@ -78,7 +83,12 @@ export function DonaAssistantMessage({ message }: { message: UIMessage }) {
 
   return (
     <div className="mr-auto max-w-[85%] rounded-2xl rounded-bl-sm border border-white/10 bg-[#1A1A3D] px-4 py-2.5 text-sm leading-relaxed text-white">
-      <DonaAvatarImage className="mb-2 size-7 rounded-full object-cover" alt="" loading="lazy" />
+      <DonaAvatarImage
+        className="mb-2 size-7 rounded-full object-cover object-top"
+        alt=""
+        loading="lazy"
+        variant="circle"
+      />
       {hasText ? <DonaLinkifiedText text={text} /> : null}
       {toolParts.length > 0 ? <DonaProductToolsRail parts={toolParts} /> : null}
       <span className="mt-1 block text-[10px] text-white/40">{formatDonaTime(new Date())}</span>

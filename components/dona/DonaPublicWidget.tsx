@@ -115,9 +115,10 @@ export function DonaPublicWidget() {
             <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-[#1A1A3D] px-4 py-3 md:rounded-t-2xl">
               <div className="flex min-w-0 items-center gap-2">
                 <DonaAvatarImage
-                  className="size-8 shrink-0 rounded-full object-cover ring-1 ring-violet-400/40"
+                  className="h-14 w-10 shrink-0 rounded-xl object-cover object-top ring-1 ring-violet-400/40 shadow-[0_0_12px_rgba(124,58,237,0.25)]"
                   alt="Dona"
                   loading="eager"
+                  variant="portrait"
                 />
                 <div>
                   <p className="text-sm font-semibold text-white">{copy.headerTitle}</p>
@@ -139,9 +140,10 @@ export function DonaPublicWidget() {
             <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
               <div className="mr-auto max-w-[85%] rounded-2xl rounded-bl-sm border border-white/10 bg-[#1A1A3D] px-4 py-2.5 text-sm leading-relaxed text-white">
                 <DonaAvatarImage
-                  className="mb-2 size-7 rounded-full object-cover"
+                  className="mb-2 h-11 w-8 rounded-lg object-cover object-top ring-1 ring-violet-400/30"
                   alt=""
                   loading="lazy"
+                  variant="portrait"
                 />
                 {welcome}
                 <span className="mt-1 block text-[10px] text-white/40">{formatDonaTime(new Date())}</span>
@@ -199,13 +201,14 @@ export function DonaPublicWidget() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="affisell-dona-fab fixed z-[99] flex size-14 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#7C3AED] shadow-xl ring-2 ring-violet-200 transition hover:scale-105 hover:bg-violet-500 max-md:active:scale-95"
+          className="affisell-dona-fab affisell-dona-fab-portrait fixed z-[99] flex h-[4.75rem] w-[3.35rem] items-stretch justify-center overflow-hidden rounded-2xl border-2 border-white bg-[#7C3AED] shadow-xl ring-2 ring-violet-200 transition hover:scale-105 hover:bg-violet-500 max-md:active:scale-95"
           aria-label={copy.openFabAria}
         >
           <DonaAvatarImage
-            className="size-full rounded-full object-cover"
+            className="size-full object-cover object-top"
             alt="Dona"
             loading="lazy"
+            variant="portrait"
           />
           <span
             className="absolute bottom-1 right-1 size-3 animate-pulse rounded-full border-2 border-white bg-green-400"

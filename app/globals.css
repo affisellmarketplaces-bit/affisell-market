@@ -443,6 +443,12 @@ body.affisell-demo-lab .affisell-header-shell {
     bottom: 1.5rem;
     right: 1.5rem;
   }
+
+  .affisell-dona-fab-portrait {
+    box-shadow:
+      0 0 0 1px rgb(167 139 250 / 0.35),
+      0 12px 32px rgb(76 29 149 / 0.45);
+  }
 }
 
 @layer components {

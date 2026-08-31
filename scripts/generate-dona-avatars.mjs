@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
  * Generates optimized Captain Dona avatar assets in public/.
+ * Portrait crops keep the Affisell badge in frame — not face-only circles.
  * Idempotent — safe to re-run when the source portrait changes.
  */
 import { existsSync } from "node:fs"
-import { mkdir, writeFile } from "node:fs/promises"
+import { mkdir } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -14,17 +15,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, "..")
 const publicDir = path.join(root, "public")
 
+/** Top-weighted extract — includes headwrap, face, and CAPTAIN DONA badge. */
+const PORTRAIT_HEIGHT_RATIO = 820 / 1024
+
 const SOURCE_CANDIDATES = [
   path.join(root, "assets/dona-avatar-source.jpg"),
-  "/mnt/data/gallery/professional_portrait_badge.webp",
-  "/mnt/data/french_ceo_headshot.jpg",
   path.join(
     root,
-    "../.cursor/projects/Users-nelson-affisell-market/assets/professional_portrait_badge-77e8a285-a916-457f-9a31-371cc495141d.jpg"
-  ),
-  path.join(
-    root,
-    "../.cursor/projects/Users-nelson-affisell-market/assets/professional_portrait_badge-504488a2-38b7-43ef-9fe9-0148430616d7.jpg"
+    "../.cursor/projects/Users-nelson-affisell-market/assets/Dona_Affisell-e1c45420-ca0e-4286-9b71-22aabeb92b3c.jpg"
   ),
 ]
 
@@ -42,18 +40,44 @@ function circleMask(size) {
   )
 }
 
-async function writeSquareWebp(input, size, dest, position = "attention") {
-  await sharp(input)
+async function portraitExtract(input) {
+  const meta = await sharp(input).rotate().metadata()
+  const srcW = meta.width ?? 468
+  const srcH = meta.height ?? 1024
+  const cropH = Math.min(Math.round(srcH * PORTRAIT_HEIGHT_RATIO), srcH)
+  return { srcW, cropH }
+}
+
+async function portraitBuffer(input) {
+  const { srcW, cropH } = await portraitExtract(input)
+  return sharp(input)
     .rotate()
-    .resize(size, size, { fit: "cover", position })
+    .extract({ left: 0, top: 0, width: srcW, height: cropH })
+    .png()
+    .toBuffer()
+}
+
+async function writePortraitWebp(input, outWidth, dest) {
+  const { srcW, cropH } = await portraitExtract(input)
+  const outHeight = Math.round(outWidth * (cropH / srcW))
+  await sharp(await portraitBuffer(input))
+    .resize(outWidth, outHeight, { fit: "fill" })
+    .webp({ quality: 88, effort: 4 })
+    .toFile(dest)
+}
+
+async function writeSquareWebp(input, size, dest) {
+  const { srcW, cropH } = await portraitExtract(input)
+  await sharp(await portraitBuffer(input))
+    .resize(size, size, { fit: "cover", position: "top" })
     .webp({ quality: 86, effort: 4 })
     .toFile(dest)
 }
 
-async function writeCircleWebp(input, size, dest, position = "attention") {
-  const resized = await sharp(input)
-    .rotate()
-    .resize(size, size, { fit: "cover", position })
+async function writeCircleWebp(input, size, dest) {
+  const { srcW, cropH } = await portraitExtract(input)
+  const resized = await sharp(await portraitBuffer(input))
+    .resize(size, size, { fit: "cover", position: "top" })
     .ensureAlpha()
     .png()
     .toBuffer()
@@ -85,6 +109,8 @@ async function main() {
       ["dona-avatar.webp", 256],
       ["dona-avatar@2x.webp", 512],
       ["dona-avatar-hd.webp", 1024],
+      ["dona-avatar-portrait.webp", 240],
+      ["dona-avatar-portrait@2x.webp", 480],
       ["dona-avatar-circle.webp", 256],
       ["dona-avatar-circle@2x.webp", 512],
     ]) {
@@ -93,9 +119,11 @@ async function main() {
     return
   }
 
-  console.log("[dona-avatar]", { source, result: "generating" })
+  console.log("[dona-avatar]", { source, result: "generating", portraitHeightRatio: PORTRAIT_HEIGHT_RATIO })
 
   await Promise.all([
+    writePortraitWebp(source, 240, path.join(publicDir, "dona-avatar-portrait.webp")),
+    writePortraitWebp(source, 480, path.join(publicDir, "dona-avatar-portrait@2x.webp")),
     writeSquareWebp(source, 256, path.join(publicDir, "dona-avatar.webp")),
     writeSquareWebp(source, 512, path.join(publicDir, "dona-avatar@2x.webp")),
     writeSquareWebp(source, 1024, path.join(publicDir, "dona-avatar-hd.webp")),

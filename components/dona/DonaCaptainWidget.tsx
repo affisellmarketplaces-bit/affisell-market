@@ -165,9 +165,10 @@ export function DonaCaptainWidget() {
             <div className="flex shrink-0 items-start justify-between border-b border-violet-500/30 bg-[#1A1A3D] px-4 py-3 md:rounded-t-2xl">
               <div className="flex min-w-0 items-start gap-2.5">
                 <DonaAvatarImage
-                  className="mt-0.5 size-9 shrink-0 rounded-full object-cover ring-2 ring-black/80"
+                  className="mt-0.5 h-[3.75rem] w-[2.65rem] shrink-0 rounded-xl object-cover object-top ring-2 ring-violet-400/50 shadow-[0_0_14px_rgba(124,58,237,0.3)]"
                   alt="Captain Dona"
                   loading="eager"
+                  variant="portrait"
                 />
                 <div>
                   <p className="text-sm font-semibold text-white">{headerTitle}</p>
@@ -203,9 +204,10 @@ export function DonaCaptainWidget() {
             <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
               <div className="mr-auto max-w-[90%] rounded-2xl rounded-bl-sm border border-white/10 bg-[#1A1A3D] px-4 py-2.5 text-sm text-white">
                 <DonaAvatarImage
-                  className="mb-2 size-7 rounded-full object-cover ring-1 ring-black/60"
+                  className="mb-2 h-11 w-8 rounded-lg object-cover object-top ring-1 ring-violet-400/40"
                   alt=""
                   loading="lazy"
+                  variant="portrait"
                 />
                 {welcome}
               </div>
@@ -246,9 +248,10 @@ export function DonaCaptainWidget() {
                               className="mr-auto max-w-[90%] rounded-2xl rounded-bl-sm border border-white/10 bg-[#1A1A3D] px-4 py-2.5 text-sm text-white"
                             >
                               <DonaAvatarImage
-                                className="mb-2 size-7 rounded-full object-cover ring-1 ring-black/60"
+                                className="mb-2 size-7 rounded-full object-cover object-top ring-1 ring-violet-400/30"
                                 alt=""
                                 loading="lazy"
+                                variant="circle"
                               />
                               {part.text}
                             </div>
@@ -308,13 +311,14 @@ export function DonaCaptainWidget() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="affisell-dona-fab fixed z-[109] flex size-14 items-center justify-center overflow-hidden rounded-full border-2 border-black bg-[#0E0E2C] shadow-[0_0_18px_rgba(124,58,237,0.35)] transition hover:border-violet-400 max-md:active:scale-95"
+          className="affisell-dona-fab affisell-dona-fab-portrait fixed z-[109] flex h-[4.75rem] w-[3.35rem] items-stretch justify-center overflow-hidden rounded-2xl border-2 border-violet-400/70 bg-[#0E0E2C] shadow-[0_0_22px_rgba(124,58,237,0.45)] transition hover:border-violet-300 max-md:active:scale-95"
           aria-label={openFabAria}
         >
           <DonaAvatarImage
-            className="size-full rounded-full object-cover"
+            className="size-full object-cover object-top"
             alt="Captain Dona"
             loading="lazy"
+            variant="portrait"
           />
           <span className="absolute -right-1 -top-1 rounded-full bg-black px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white">
             {fabBadge}

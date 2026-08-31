@@ -5,6 +5,7 @@ import { isPublicStaticAssetPath } from "@/lib/public-static-asset-path"
 describe("isPublicStaticAssetPath", () => {
   it("detects public root assets", () => {
     expect(isPublicStaticAssetPath("/dona-avatar-circle.webp")).toBe(true)
+    expect(isPublicStaticAssetPath("/dona-avatar-portrait.webp")).toBe(true)
     expect(isPublicStaticAssetPath("/favicon-32.png")).toBe(true)
     expect(isPublicStaticAssetPath("/icons/pwa-192.png")).toBe(true)
   })
