@@ -656,9 +656,20 @@
       "continue": "Continue",
       "back": "Back",
       "submit": "Create my reseller account",
+      "signingIn": "Secure sign-in…",
       "hasAccount": "Already a reseller?",
       "signIn": "Sign in",
       "kycDeferredNote": "Identity verification is only required before your first live listing — explore and save drafts freely until then.",
+      "success": {
+        "badge": "Account activated",
+        "titleNamed": "Welcome, {name}!",
+        "titleFallback": "Account created successfully",
+        "subtitle": "Your reseller storefront is ready. Browse the catalog and save your first listing in a few swipes.",
+        "storeReady": "Reseller storefront created and secured",
+        "emailConfirmed": "Signed in as {email}",
+        "cta": "Enter my storefront",
+        "redirectHint": "Automatic redirect in {seconds}s…"
+      },
       "trust": {
         "noStock": "Zero inventory",
         "noShipping": "Zero shipping",

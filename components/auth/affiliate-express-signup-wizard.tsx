@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 
 import { LegalSignupConsent } from "@/components/legal/legal-signup-consent"
+import { AffiliateExpressSignupSuccess } from "@/components/auth/affiliate-express-signup-success"
 import { credentialsSignInErrorMessage } from "@/lib/auth-portal-signin-messages"
 import { cn } from "@/lib/utils"
 
@@ -24,7 +25,7 @@ type Props = {
   afterLoginPath: string
 }
 
-type Step = "profile" | "account"
+type Step = "profile" | "account" | "success"
 
 const TRUST_PILLS = [
   { icon: PackageX, key: "noStock" as const },
@@ -45,6 +46,8 @@ export function AffiliateExpressSignupWizard({ afterLoginPath }: Props) {
   const [roleTermsChecked, setRoleTermsChecked] = useState(false)
   const [privacyChecked, setPrivacyChecked] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [loadingPhase, setLoadingPhase] = useState<"creating" | "signingIn">("creating")
+  const [successDisplayName, setSuccessDisplayName] = useState("")
   const [error, setError] = useState<string | null>(null)
 
   const profileReady = displayName.trim().length >= 2 || socialHandle.trim().length >= 2
@@ -53,15 +56,17 @@ export function AffiliateExpressSignupWizard({ afterLoginPath }: Props) {
     e.preventDefault()
     if (!cguChecked || !roleTermsChecked || !privacyChecked) return
     setLoading(true)
+    setLoadingPhase("creating")
     setError(null)
 
     const handle = socialHandle.trim().replace(/^@/, "")
+    const resolvedName = (handle || displayName.trim()).slice(0, 120)
     const signupPayload = {
       email,
       password,
       role: "AFFILIATE",
       affiliateExpress: true,
-      name: (handle || displayName.trim()).slice(0, 120),
+      name: resolvedName,
       tiktok: handle || undefined,
       acceptCgu: true,
       acceptRoleTerms: true,
@@ -86,6 +91,7 @@ export function AffiliateExpressSignupWizard({ afterLoginPath }: Props) {
         return
       }
 
+      setLoadingPhase("signingIn")
       const login = await signIn("credentials", {
         email,
         password,
@@ -97,7 +103,9 @@ export function AffiliateExpressSignupWizard({ afterLoginPath }: Props) {
         setLoading(false)
         return
       }
-      window.location.assign(afterLoginPath)
+      setSuccessDisplayName(resolvedName)
+      setStep("success")
+      setLoading(false)
     } catch (err) {
       console.log("[affiliate-express-signup]", {
         result: "submit_failed",
@@ -115,38 +123,49 @@ export function AffiliateExpressSignupWizard({ afterLoginPath }: Props) {
       </div>
 
       <div className="relative mx-auto w-full max-w-xl">
-        <div className="mb-8 text-center">
-          <p className="inline-flex items-center gap-2 rounded-full border border-violet-300/25 bg-violet-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-100/90">
-            <Sparkles className="size-3.5" aria-hidden />
-            {tExpress("badge")}
-          </p>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            {tExpress("title")}
-          </h1>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-violet-100/80">
-            {tExpress("subtitle")}
-          </p>
-        </div>
+        {step !== "success" ? (
+          <div className="mb-8 text-center">
+            <p className="inline-flex items-center gap-2 rounded-full border border-violet-300/25 bg-violet-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-100/90">
+              <Sparkles className="size-3.5" aria-hidden />
+              {tExpress("badge")}
+            </p>
+            <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              {tExpress("title")}
+            </h1>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-violet-100/80">
+              {tExpress("subtitle")}
+            </p>
+          </div>
+        ) : (
+          <div className="mb-6" aria-hidden />
+        )}
 
-        <ul className="mb-6 flex flex-wrap justify-center gap-2">
-          {TRUST_PILLS.map(({ icon: Icon, key }) => (
-            <li
-              key={key}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-medium text-violet-50/90 backdrop-blur-sm"
-            >
-              <Icon className="size-3.5 shrink-0 text-emerald-300" aria-hidden />
-              {tExpress(`trust.${key}`)}
-            </li>
-          ))}
-        </ul>
+        {step !== "success" ? (
+          <ul className="mb-6 flex flex-wrap justify-center gap-2">
+            {TRUST_PILLS.map(({ icon: Icon, key }) => (
+              <li
+                key={key}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[11px] font-medium text-violet-50/90 backdrop-blur-sm"
+              >
+                <Icon className="size-3.5 shrink-0 text-emerald-300" aria-hidden />
+                {tExpress(`trust.${key}`)}
+              </li>
+            ))}
+          </ul>
+        ) : null}
 
         <div className="mb-5 flex justify-center gap-2">
-          {(["profile", "account"] as const).map((s, i) => (
+          {(["profile", "account", "success"] as const).map((s) => (
             <div
               key={s}
               className={cn(
-                "h-1.5 w-16 rounded-full transition",
-                (step === "account" && s === "profile") || step === s ? "bg-white/90" : "bg-white/15"
+                "h-1.5 w-12 rounded-full transition sm:w-14",
+                step === s
+                  ? "bg-white/90"
+                  : (step === "account" && s === "profile") ||
+                      (step === "success" && (s === "profile" || s === "account"))
+                    ? "bg-emerald-400/80"
+                    : "bg-white/15"
               )}
               aria-hidden
             />
@@ -155,7 +174,13 @@ export function AffiliateExpressSignupWizard({ afterLoginPath }: Props) {
 
         <div className="overflow-hidden rounded-3xl border border-white/15 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
           <AnimatePresence mode="wait">
-            {step === "profile" ? (
+            {step === "success" ? (
+              <AffiliateExpressSignupSuccess
+                displayName={successDisplayName}
+                email={email}
+                afterLoginPath={afterLoginPath}
+              />
+            ) : step === "profile" ? (
               <motion.div
                 key="profile"
                 initial={{ opacity: 0, x: 12 }}
@@ -240,7 +265,11 @@ export function AffiliateExpressSignupWizard({ afterLoginPath }: Props) {
                   disabled={loading || !cguChecked || !roleTermsChecked || !privacyChecked}
                   className="w-full rounded-xl bg-violet-600 py-2.5 text-sm font-semibold text-white hover:bg-violet-500 disabled:opacity-60"
                 >
-                  {loading ? t("creating") : tExpress("submit")}
+                  {loading
+                    ? loadingPhase === "signingIn"
+                      ? tExpress("signingIn")
+                      : t("creating")
+                    : tExpress("submit")}
                 </button>
                 {error ? <p className="text-center text-sm text-rose-300">{error}</p> : null}
                 <button
@@ -256,10 +285,14 @@ export function AffiliateExpressSignupWizard({ afterLoginPath }: Props) {
         </div>
 
         <p className="mt-6 text-center text-sm text-violet-100/70">
-          {tExpress("hasAccount")}{" "}
-          <Link href="/login/affiliate" className="font-medium text-white underline-offset-2 hover:underline">
-            {tExpress("signIn")}
-          </Link>
+          {step === "success" ? null : (
+            <>
+              {tExpress("hasAccount")}{" "}
+              <Link href="/login/affiliate" className="font-medium text-white underline-offset-2 hover:underline">
+                {tExpress("signIn")}
+              </Link>
+            </>
+          )}
         </p>
       </div>
     </div>

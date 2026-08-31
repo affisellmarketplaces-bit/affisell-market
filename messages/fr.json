@@ -656,9 +656,20 @@
       "continue": "Continuer",
       "back": "Retour",
       "submit": "Créer mon compte revendeur",
+      "signingIn": "Connexion sécurisée…",
       "hasAccount": "Déjà revendeur ?",
       "signIn": "Se connecter",
       "kycDeferredNote": "La vérification d’identité n’est requise qu’avant votre première mise en ligne — explorez et enregistrez des brouillons librement.",
+      "success": {
+        "badge": "Compte activé",
+        "titleNamed": "Bienvenue, {name} !",
+        "titleFallback": "Compte créé avec succès",
+        "subtitle": "Votre vitrine revendeur est prête. Explorez le catalogue et enregistrez votre première annonce en quelques swipes.",
+        "storeReady": "Vitrine revendeur créée et sécurisée",
+        "emailConfirmed": "Connecté en tant que {email}",
+        "cta": "Accéder à ma vitrine",
+        "redirectHint": "Redirection automatique dans {seconds} s…"
+      },
       "trust": {
         "noStock": "Zéro stock",
         "noShipping": "Zéro expédition",
