@@ -35,6 +35,8 @@ type Props = {
   inSheet?: boolean
   /** Same base as MarketplaceView (e.g. `/` on home embed, `/shops/browse` on browse page). */
   catalogBasePath?: string
+  /** Let product grid paint before facet counts refetch. */
+  deferFacets?: boolean
 }
 
 const PRICE_KEYS = ["under25", "25-100", "over100"] as const
@@ -83,6 +85,7 @@ export function MarketplaceFilters({
   className,
   inSheet = false,
   catalogBasePath,
+  deferFacets = false,
 }: Props) {
   const t = useTranslations("marketplace.browse")
   const tAuth = useTranslations("auth")
@@ -105,9 +108,13 @@ export function MarketplaceFilters({
   const facetsUrl = `/api/marketplace/facets?${qs.toString()}`
 
   const { data, isLoading } = useSWR<MarketplaceFacet[] | { facets?: MarketplaceFacet[] }>(
-    facetsUrl,
+    deferFacets ? null : facetsUrl,
     fetcher,
-    { keepPreviousData: true }
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+      dedupingInterval: 60_000,
+    }
   )
 
   const facets: MarketplaceFacet[] = Array.isArray(data) ? data : Array.isArray(data?.facets) ? data.facets : []

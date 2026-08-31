@@ -1,8 +1,8 @@
 "use client"
 
-import { Fragment, useCallback, useMemo, useState } from "react"
+import { Fragment, useCallback, useMemo, useState, type TransitionStartFunction } from "react"
 import { useTranslations } from "next-intl"
-import useSWR from "swr"
+import useSWR, { preload } from "swr"
 
 import { ChevronDown, ChevronRight, Grid3x3, LayoutGrid, Loader2 } from "lucide-react"
 
@@ -13,6 +13,14 @@ import { chunkCategoryRoots } from "@/lib/category-tree-tiers"
 import { cn } from "@/lib/utils"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
+function branchKey(parentId: string): string {
+  return `/api/categories/branch?parentId=${encodeURIComponent(parentId)}`
+}
+
+function prefetchBranch(parentId: string): void {
+  void preload(branchKey(parentId), fetcher)
+}
 
 export type CategoryTreeRoot = {
   id: string
@@ -42,6 +50,7 @@ type BranchNode = {
 
 type Props = {
   onCategoryClick?: (categoryNodeId: string) => void
+  onPrefetchCategory?: (categoryNodeId: string) => void
   onShowFullCatalog?: () => void
   activeCategoryId?: string | null
   catalogTotal?: number
@@ -51,6 +60,7 @@ type Props = {
   }
   /** Mobile bottom sheet — dark glass theme for readable contrast. */
   inSheet?: boolean
+  startCategoryTransition?: TransitionStartFunction
 }
 
 function BranchChildren({
@@ -60,25 +70,30 @@ function BranchChildren({
   expandedIds,
   onToggle,
   onSelect,
+  onPrefetchCategory,
   inSheet,
 }: {
   parentId: string
   depth: number
   activeCategoryId?: string | null
-  expandedIds: string[]
+  expandedIds: ReadonlySet<string>
   onToggle: (id: string) => void
   onSelect: (id: string) => void
+  onPrefetchCategory?: (id: string) => void
   inSheet: boolean
 }) {
-  const { data, isLoading } = useSWR<{ nodes: BranchNode[] }>(
-    `/api/categories/branch?parentId=${encodeURIComponent(parentId)}`,
-    fetcher,
-    { revalidateOnFocus: false, dedupingInterval: 120_000 }
-  )
+  const { data, isLoading } = useSWR<{ nodes: BranchNode[] }>(branchKey(parentId), fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 300_000,
+    keepPreviousData: true,
+  })
 
-  if (isLoading) {
+  if (isLoading && !data?.nodes?.length) {
     return (
-      <div className={cn("flex items-center gap-2 py-2 pl-4 text-xs", inSheet ? "text-zinc-400" : "text-zinc-500")} style={{ paddingLeft: 12 + depth * 12 }}>
+      <div
+        className={cn("flex items-center gap-2 py-2 pl-4 text-xs", inSheet ? "text-zinc-400" : "text-zinc-500")}
+        style={{ paddingLeft: 12 + depth * 12 }}
+      >
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
       </div>
     )
@@ -98,6 +113,7 @@ function BranchChildren({
           expandedIds={expandedIds}
           onToggle={onToggle}
           onSelect={onSelect}
+          onPrefetchCategory={onPrefetchCategory}
           inSheet={inSheet}
         />
       ))}
@@ -112,17 +128,19 @@ function CategoryTreeNodeRow({
   expandedIds,
   onToggle,
   onSelect,
+  onPrefetchCategory,
   inSheet,
 }: {
   node: BranchNode
   depth: number
   activeCategoryId?: string | null
-  expandedIds: string[]
+  expandedIds: ReadonlySet<string>
   onToggle: (id: string) => void
   onSelect: (id: string) => void
+  onPrefetchCategory?: (id: string) => void
   inSheet: boolean
 }) {
-  const expanded = expandedIds.includes(node.id)
+  const expanded = expandedIds.has(node.id)
   const active = activeCategoryId === node.id
   const pl = 12 + depth * 12
 
@@ -134,6 +152,8 @@ function CategoryTreeNodeRow({
             type="button"
             aria-expanded={expanded}
             onClick={() => onToggle(node.id)}
+            onMouseEnter={() => prefetchBranch(node.id)}
+            onFocus={() => prefetchBranch(node.id)}
             className={cn("flex shrink-0 items-center py-2 pr-1", inSheet ? "text-violet-400" : "text-zinc-400")}
           >
             {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
@@ -145,6 +165,8 @@ function CategoryTreeNodeRow({
           type="button"
           title={node.fullPath}
           onClick={() => onSelect(node.id)}
+          onMouseEnter={() => onPrefetchCategory?.(node.id)}
+          onFocus={() => onPrefetchCategory?.(node.id)}
           className={cn(
             "flex min-w-0 flex-1 flex-col border-l-2 py-2 pr-3 text-left text-sm transition",
             active
@@ -159,12 +181,22 @@ function CategoryTreeNodeRow({
           <span className="flex items-center justify-between gap-2">
             <span className="truncate">{node.name}</span>
             {node.count > 0 ? (
-              <span className={cn("shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold", inSheet ? "bg-violet-500/20 text-violet-200" : "bg-brand-muted text-brand")}>
+              <span
+                className={cn(
+                  "shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold",
+                  inSheet ? "bg-violet-500/20 text-violet-200" : "bg-brand-muted text-brand"
+                )}
+              >
                 {node.count}
               </span>
             ) : null}
           </span>
-          <span className={cn("mt-0.5 line-clamp-2 text-[10px] font-normal leading-snug", inSheet ? "text-zinc-500" : "text-zinc-500")}>
+          <span
+            className={cn(
+              "mt-0.5 line-clamp-2 text-[10px] font-normal leading-snug",
+              inSheet ? "text-zinc-500" : "text-zinc-500"
+            )}
+          >
             {node.fullPath}
           </span>
         </button>
@@ -177,6 +209,7 @@ function CategoryTreeNodeRow({
           expandedIds={expandedIds}
           onToggle={onToggle}
           onSelect={onSelect}
+          onPrefetchCategory={onPrefetchCategory}
           inSheet={inSheet}
         />
       ) : null}
@@ -191,19 +224,21 @@ function CategoryTreeRootBlock({
   expandedIds,
   toggle,
   onSelect,
+  onPrefetchCategory,
   inSheet,
   t,
 }: {
   root: CategoryTreeRoot
   activeCategoryId?: string | null
   activeRoot?: CategoryTreeRoot
-  expandedIds: string[]
+  expandedIds: ReadonlySet<string>
   toggle: (id: string) => void
   onSelect: (id: string) => void
+  onPrefetchCategory?: (id: string) => void
   inSheet: boolean
   t: ReturnType<typeof useTranslations<"marketplace.sidebar">>
 }) {
-  const rootExpanded = expandedIds.includes(root.id) || activeRoot?.id === root.id
+  const rootExpanded = expandedIds.has(root.id) || activeRoot?.id === root.id
   const rootActive = activeCategoryId === root.id
 
   return (
@@ -213,6 +248,11 @@ function CategoryTreeRootBlock({
           type="button"
           aria-expanded={rootExpanded}
           onClick={() => toggle(root.id)}
+          onMouseEnter={() => {
+            prefetchBranch(root.id)
+            for (const sub of root.subcategories) prefetchBranch(sub.id)
+          }}
+          onFocus={() => prefetchBranch(root.id)}
           className={cn("shrink-0 p-2", inSheet ? "text-violet-400" : "text-zinc-400")}
         >
           {rootExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -221,6 +261,8 @@ function CategoryTreeRootBlock({
           type="button"
           title={root.fullPath ?? root.name}
           onClick={() => onSelect(root.id)}
+          onMouseEnter={() => onPrefetchCategory?.(root.id)}
+          onFocus={() => onPrefetchCategory?.(root.id)}
           className={cn(
             "flex min-w-0 flex-1 items-center justify-between py-3 pr-3 text-left text-sm font-semibold transition",
             rootActive
@@ -259,7 +301,7 @@ function CategoryTreeRootBlock({
       {rootExpanded ? (
         <div className="pb-1">
           {root.subcategories.map((sub) => {
-            const subExpanded = expandedIds.includes(sub.id)
+            const subExpanded = expandedIds.has(sub.id)
             const subActive = activeCategoryId === sub.id
             return (
               <div key={sub.id}>
@@ -267,6 +309,8 @@ function CategoryTreeRootBlock({
                   <button
                     type="button"
                     onClick={() => toggle(sub.id)}
+                    onMouseEnter={() => prefetchBranch(sub.id)}
+                    onFocus={() => prefetchBranch(sub.id)}
                     className={cn("shrink-0 py-2 pr-1", inSheet ? "text-violet-400" : "text-zinc-400")}
                     aria-label={t("expandBranch")}
                   >
@@ -276,6 +320,8 @@ function CategoryTreeRootBlock({
                     type="button"
                     title={sub.fullPath ?? `${root.name} > ${sub.name}`}
                     onClick={() => onSelect(sub.id)}
+                    onMouseEnter={() => onPrefetchCategory?.(sub.id)}
+                    onFocus={() => onPrefetchCategory?.(sub.id)}
                     className={cn(
                       "flex min-w-0 flex-1 flex-col border-l-2 py-2 pr-3 text-left text-sm transition",
                       subActive
@@ -303,6 +349,7 @@ function CategoryTreeRootBlock({
                     expandedIds={expandedIds}
                     onToggle={toggle}
                     onSelect={onSelect}
+                    onPrefetchCategory={onPrefetchCategory}
                     inSheet={inSheet}
                   />
                 ) : null}
@@ -317,6 +364,7 @@ function CategoryTreeRootBlock({
               expandedIds={expandedIds}
               onToggle={toggle}
               onSelect={onSelect}
+              onPrefetchCategory={onPrefetchCategory}
               inSheet={inSheet}
             />
           ) : null}
@@ -328,24 +376,40 @@ function CategoryTreeRootBlock({
 
 export function CategoryTreeExplorer({
   onCategoryClick,
+  onPrefetchCategory,
   onShowFullCatalog,
   activeCategoryId,
   catalogTotal,
   categoriesPayload,
   inSheet = false,
+  startCategoryTransition,
 }: Props) {
   const t = useTranslations("marketplace.sidebar")
-  const [expandedIds, setExpandedIds] = useState<string[]>([])
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set())
 
   const toggle = useCallback((id: string) => {
-    setExpandedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+    setExpandedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+        prefetchBranch(id)
+      }
+      return next
+    })
   }, [])
 
   const onSelect = useCallback(
     (id: string) => {
-      onCategoryClick?.(id)
+      const run = () => onCategoryClick?.(id)
+      if (startCategoryTransition) {
+        startCategoryTransition(run)
+      } else {
+        run()
+      }
     },
-    [onCategoryClick]
+    [onCategoryClick, startCategoryTransition]
   )
 
   const roots = categoriesPayload?.categories ?? []
@@ -437,6 +501,7 @@ export function CategoryTreeExplorer({
               expandedIds={expandedIds}
               toggle={toggle}
               onSelect={onSelect}
+              onPrefetchCategory={onPrefetchCategory}
               inSheet={inSheet}
               t={t}
             />

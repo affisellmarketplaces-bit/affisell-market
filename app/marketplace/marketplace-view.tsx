@@ -1,12 +1,12 @@
 "use client"
 
-import { useMemo, Fragment } from "react"
+import { useCallback, useDeferredValue, useMemo, Fragment, useTransition } from "react"
 
 import Link from "next/link"
 import { Search, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
-import useSWR from "swr"
+import useSWR, { preload } from "swr"
 
 import { ProductCard, type ProductCardDisplayMode } from "@/components/ProductCard"
 import { ProductCardPreviewToggle } from "@/components/product/ProductCardPreviewToggle"
@@ -31,6 +31,7 @@ import { BuyerBrowseSignalsRecorder } from "@/components/home/buyer-browse-signa
 import { HomePersonalizedPicksRailLive } from "@/components/home/home-personalized-picks-rail-live"
 import { CategoryTreeExplorer } from "@/components/marketplace/CategoryTreeExplorer"
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox"
+import { marketplaceCategorySearchParams } from "@/lib/marketplace-category-nav-params.client"
 import { MARKETPLACE_QUERY_RESERVED } from "@/lib/marketplace-query-params"
 import { MARKETPLACE_OFFER_FACET_KEY } from "@/lib/marketplace-discovery-facets-shared"
 import { offerModeFilterLabel, parseOfferFacetValue } from "@/lib/product-offer-mode"
@@ -116,6 +117,7 @@ export function MarketplaceView({
   const locale = useLocale()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [categoryTransitionPending, startCategoryTransition] = useTransition()
   const categoryFallback = initialBrowse
     ? { categories: initialBrowse.categories as CategoryNode[], catalogTotal: initialBrowse.catalogTotal }
     : undefined
@@ -204,19 +206,30 @@ export function MarketplaceView({
     return keys
   }, [searchParams])
 
-  const handleCategoryClick = (nodeId: string) => {
-    const params = new URLSearchParams(searchParams.toString())
-    for (const key of [...params.keys()]) {
-      if (!MARKETPLACE_QUERY_RESERVED.has(key)) params.delete(key)
-    }
-    params.delete("category")
-    params.delete("subcategory")
-    params.delete("categoryId")
-    params.delete("subcategoryId")
-    params.delete("dept")
-    params.set("category", nodeId)
-    navigateMarketplaceCatalog(router, catalogFilterHrefFromParams(basePath, params))
-  }
+  const handleCategoryClick = useCallback(
+    (nodeId: string) => {
+      const params = marketplaceCategorySearchParams(searchParams, nodeId)
+      navigateMarketplaceCatalog(router, catalogFilterHrefFromParams(basePath, params))
+    },
+    [router, searchParams, basePath]
+  )
+
+  const prefetchCategory = useCallback(
+    (nodeId: string) => {
+      const params = marketplaceCategorySearchParams(searchParams, nodeId)
+      const href = catalogFilterHrefFromParams(basePath, params)
+      try {
+        router.prefetch(href)
+      } catch {
+        /* ignore */
+      }
+      const productParams = new URLSearchParams(params)
+      if (embedded && isCustomerBrowse) productParams.set("lite", "1")
+      const productsUrl = `/api/marketplace/products?${productParams.toString()}`
+      void preload(productsUrl, catalogFetcher)
+    },
+    [router, searchParams, basePath, embedded, isCustomerBrowse]
+  )
 
   const offerFilter = searchParams.get(MARKETPLACE_OFFER_FACET_KEY)
   const priceFilter = searchParams.get("price")
@@ -235,9 +248,12 @@ export function MarketplaceView({
   )
 
   const scopeNodeId = subcategoryId ?? categoryId
+  const deferredScopeNodeId = useDeferredValue(scopeNodeId)
 
   const { data: breadcrumbData } = useSWR<{ path: Array<{ id: string; name: string; fullPath: string }> }>(
-    scopeNodeId ? `/api/categories/breadcrumb?id=${encodeURIComponent(scopeNodeId)}` : null,
+    deferredScopeNodeId
+      ? `/api/categories/breadcrumb?id=${encodeURIComponent(deferredScopeNodeId)}`
+      : null,
     (url: string) => fetch(url).then((r) => r.json()),
     { revalidateOnFocus: false }
   )
@@ -509,15 +525,18 @@ export function MarketplaceView({
           <aside className="hidden w-full shrink-0 flex-col gap-4 lg:sticky lg:top-[5.25rem] lg:flex lg:w-[min(19rem,100%)] lg:max-w-[19rem] lg:self-start">
             <CategoryTreeExplorer
               onCategoryClick={handleCategoryClick}
+              onPrefetchCategory={prefetchCategory}
               onShowFullCatalog={clearFilters}
               activeCategoryId={scopeNodeId}
               catalogTotal={categoriesPayload?.catalogTotal}
               categoriesPayload={categoriesPayload}
+              startCategoryTransition={startCategoryTransition}
             />
             <MarketplaceFilters
               categoryId={categoryId}
               subcategoryId={subcategoryId}
               catalogBasePath={basePath}
+              deferFacets={categoryTransitionPending}
               departmentNames={
                 categoriesPayload?.categories
                   ? Object.fromEntries(categoriesPayload.categories.map((c) => [c.id, c.name]))

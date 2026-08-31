@@ -1,48 +1,14 @@
-import type { Prisma } from "@prisma/client"
-
-import {
-  collectCategorySubtreeIdsFromGraph,
-  labelsForCategoryScopeRows,
-  type CategorySubtreeGraph,
-} from "@/lib/category-browse"
 import { getCategorySubtreeGraph } from "@/lib/category-subtree-graph.server"
-import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
+import {
+  buildScopeIndexFromGraph,
+  type ScopeIndex,
+} from "@/lib/marketplace-category-scope-index"
+import {
+  countMarketplaceListingsForScopes,
+  getMarketplaceListingCategoryRows,
+} from "@/lib/marketplace-listing-category-index.server"
 import { buildMarketplaceAffiliateWhereFromUrl } from "@/lib/marketplace-listings-query"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
-
-const listedListingWhere: Prisma.AffiliateProductWhereInput = {
-  ...buyerListedAffiliateProductWhere,
-  affiliate: { store: { isNot: null } },
-}
-
-type ScopeIndex = {
-  idSet: Set<string>
-  labels: Set<string>
-}
-
-function buildScopeIndexFromGraph(graph: CategorySubtreeGraph, scopeRootId: string): ScopeIndex {
-  const scopeIds = collectCategorySubtreeIdsFromGraph(graph, scopeRootId)
-  const rows = scopeIds
-    .map((id) => graph.byId.get(id))
-    .filter((r): r is NonNullable<typeof r> => Boolean(r))
-  return {
-    idSet: new Set(scopeIds),
-    labels: labelsForCategoryScopeRows(rows),
-  }
-}
-
-function productInScope(
-  product: { categoryId: string | null; categories: string[] },
-  scope: ScopeIndex
-): boolean {
-  if (product.categoryId && scope.idSet.has(product.categoryId)) return true
-  for (const raw of product.categories ?? []) {
-    const label = raw.trim().toLowerCase()
-    if (!label) continue
-    if (scope.labels.has(label)) return true
-  }
-  return false
-}
 
 export type CategoryTreeCountInput = {
   id: string
@@ -71,14 +37,8 @@ export async function computeMarketplaceCategoryTreeCounts(
     scopeById.set(id, buildScopeIndexFromGraph(graph, id))
   }
 
-  const listings = await withPrismaReconnect(() =>
-    prisma.affiliateProduct.findMany({
-      where: listedListingWhere,
-      select: {
-        product: { select: { categoryId: true, categories: true } },
-      },
-    })
-  )
+  const listings = await getMarketplaceListingCategoryRows()
+  const counts = countMarketplaceListingsForScopes(listings, scopeById)
 
   const byRootId: Record<string, number> = Object.fromEntries(roots.map((r) => [r.id, 0]))
   const bySubId: Record<string, number> = {}
@@ -86,19 +46,10 @@ export async function computeMarketplaceCategoryTreeCounts(
     for (const sub of root.children) bySubId[sub.id] = 0
   }
 
-  for (const row of listings) {
-    const product = row.product
-    for (const root of roots) {
-      const rootScope = scopeById.get(root.id)
-      if (rootScope && productInScope(product, rootScope)) {
-        byRootId[root.id] = (byRootId[root.id] ?? 0) + 1
-      }
-      for (const sub of root.children) {
-        const subScope = scopeById.get(sub.id)
-        if (subScope && productInScope(product, subScope)) {
-          bySubId[sub.id] = (bySubId[sub.id] ?? 0) + 1
-        }
-      }
+  for (const root of roots) {
+    byRootId[root.id] = counts.get(root.id) ?? 0
+    for (const sub of root.children) {
+      bySubId[sub.id] = counts.get(sub.id) ?? 0
     }
   }
 

@@ -1,11 +1,11 @@
 import { localizeCategoryTree } from "@/lib/google-taxonomy-locale"
 import type { AppLocale } from "@/lib/i18n-locale"
+import { getCategorySubtreeGraph } from "@/lib/category-subtree-graph.server"
+import { buildScopeIndexFromGraph } from "@/lib/marketplace-category-scope-index"
 import {
-  buildCategorySubtreeGraph,
-  collectCategorySubtreeIdsFromGraph,
-  labelsForCategoryScopeRows,
-} from "@/lib/category-browse"
-import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
+  countMarketplaceListingsForScopes,
+  getMarketplaceListingCategoryRows,
+} from "@/lib/marketplace-listing-category-index.server"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
 
 export type CategoryBranchNode = {
@@ -19,55 +19,15 @@ export type CategoryBranchNode = {
   isLeaf: boolean
 }
 
-function productInScope(
-  product: { categoryId: string | null; categories: string[] },
-  scopeIds: Set<string>,
-  labels: Set<string>
-): boolean {
-  if (product.categoryId && scopeIds.has(product.categoryId)) return true
-  for (const raw of product.categories ?? []) {
-    const label = raw.trim().toLowerCase()
-    if (label && labels.has(label)) return true
-  }
-  return false
-}
-
-async function countListingsForCategoryScopes(
-  scopeByNodeId: Map<string, { idSet: Set<string>; labels: Set<string> }>
-): Promise<Map<string, number>> {
-  const listings = await withPrismaReconnect(() =>
-    prisma.affiliateProduct.findMany({
-      where: {
-        ...buyerListedAffiliateProductWhere,
-        affiliate: { store: { isNot: null } },
-      },
-      select: {
-        product: { select: { categoryId: true, categories: true } },
-      },
-    })
-  )
-
-  const counts = new Map<string, number>()
-  for (const nodeId of scopeByNodeId.keys()) counts.set(nodeId, 0)
-
-  for (const row of listings) {
-    const product = row.product
-    for (const [nodeId, scope] of scopeByNodeId) {
-      if (productInScope(product, scope.idSet, scope.labels)) {
-        counts.set(nodeId, (counts.get(nodeId) ?? 0) + 1)
-      }
-    }
-  }
-
-  return counts
-}
-
 /** Direct children of a category node (or L1 roots when parentId omitted). */
 export async function loadCategoryBranch(
   parentId: string | null,
   locale: AppLocale
 ): Promise<CategoryBranchNode[]> {
-  const graph = await withPrismaReconnect(() => buildCategorySubtreeGraph(prisma))
+  const [graph, listings] = await Promise.all([
+    getCategorySubtreeGraph(),
+    getMarketplaceListingCategoryRows(),
+  ])
 
   const childIds =
     parentId === null
@@ -78,34 +38,29 @@ export async function loadCategoryBranch(
 
   if (childIds.length === 0) return []
 
-  const childRows = await prisma.category.findMany({
-    where: { id: { in: childIds } },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      fullPath: true,
-      googleId: true,
-      isLeaf: true,
-      order: true,
-      _count: { select: { children: true } },
-    },
-    orderBy: [{ order: "asc" }, { name: "asc" }],
-  })
-
-  const scopeByNodeId = new Map<string, { idSet: Set<string>; labels: Set<string> }>()
-  for (const row of childRows) {
-    const scopeIds = collectCategorySubtreeIdsFromGraph(graph, row.id)
-    const scopeRows = scopeIds
-      .map((id) => graph.byId.get(id))
-      .filter((r): r is NonNullable<typeof r> => Boolean(r))
-    scopeByNodeId.set(row.id, {
-      idSet: new Set(scopeIds),
-      labels: labelsForCategoryScopeRows(scopeRows),
+  const childRows = await withPrismaReconnect(() =>
+    prisma.category.findMany({
+      where: { id: { in: childIds } },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        fullPath: true,
+        googleId: true,
+        isLeaf: true,
+        order: true,
+        _count: { select: { children: true } },
+      },
+      orderBy: [{ order: "asc" }, { name: "asc" }],
     })
+  )
+
+  const scopeByNodeId = new Map<string, ReturnType<typeof buildScopeIndexFromGraph>>()
+  for (const row of childRows) {
+    scopeByNodeId.set(row.id, buildScopeIndexFromGraph(graph, row.id))
   }
 
-  const counts = await countListingsForCategoryScopes(scopeByNodeId)
+  const counts = countMarketplaceListingsForScopes(listings, scopeByNodeId)
 
   const nodes: CategoryBranchNode[] = childRows.map((row) => ({
     id: row.id,
@@ -138,8 +93,9 @@ export async function loadCategoryBreadcrumb(
   categoryId: string,
   locale: AppLocale
 ): Promise<Array<{ id: string; name: string; fullPath: string }>> {
-  const graph = await withPrismaReconnect(() => buildCategorySubtreeGraph(prisma))
-  const segments: Array<{ id: string; name: string; fullPath: string; googleId: number | null }> = []
+  const graph = await getCategorySubtreeGraph()
+  const segments: Array<{ id: string; name: string; fullPath: string; googleId: number | null }> =
+    []
   let cur: string | undefined = categoryId.trim()
   const guard = new Set<string>()
 
