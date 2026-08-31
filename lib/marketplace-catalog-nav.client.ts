@@ -30,16 +30,21 @@ export function catalogFilterHrefFromParams(
 export function navigateMarketplaceCatalog(
   router: AppRouterInstance,
   href: string,
-  options?: { method?: "push" | "replace" }
+  options?: { method?: "push" | "replace"; alreadyTransitioning?: boolean }
 ): void {
   const method = options?.method ?? "push"
-  startTransition(() => {
+  const navigate = () => {
     if (method === "replace") {
       router.replace(href, NO_SCROLL)
     } else {
       router.push(href, NO_SCROLL)
     }
-  })
+  }
+  if (options?.alreadyTransitioning) {
+    navigate()
+    return
+  }
+  startTransition(navigate)
 }
 
 /** Buyer home catalog from hero/search — scrolls to #explorer once. */

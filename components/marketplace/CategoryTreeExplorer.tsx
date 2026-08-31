@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type TransitionStartFunction } from "react"
+import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { useTranslations } from "next-intl"
 import useSWR, { preload } from "swr"
 
@@ -124,7 +124,6 @@ type Props = {
   }
   /** Mobile bottom sheet — dark glass theme for readable contrast. */
   inSheet?: boolean
-  startCategoryTransition?: TransitionStartFunction
   /** Router transition in flight — keeps pending row highlighted. */
   isNavigating?: boolean
 }
@@ -253,7 +252,8 @@ function CategoryTreeNodeRow({
             )}
           >
             <ChevronRight
-              className={cn("h-3.5 w-3.5 transition-transform duration-200 ease-out", expanded && "rotate-90")}
+              className={cn(
+              "h-3.5 w-3.5 transition-transform duration-100 ease-out", expanded && "rotate-90")}
             />
           </button>
         ) : (
@@ -317,11 +317,12 @@ function CategoryTreeNodeRow({
   )
 }
 
-function CategoryTreeRootBlock({
+const CategoryTreeRootBlock = memo(function CategoryTreeRootBlock({
   root,
   activeCategoryId,
   activeRoot,
   pendingCategoryId,
+  rootExpanded,
   expandedIds,
   toggle,
   onSelect,
@@ -334,6 +335,7 @@ function CategoryTreeRootBlock({
   /** Root containing the active category — styling only, never forces expand. */
   activeRoot?: CategoryTreeRoot
   pendingCategoryId: string | null
+  rootExpanded: boolean
   expandedIds: ReadonlySet<string>
   toggle: (id: string) => void
   onSelect: (id: string) => void
@@ -341,7 +343,6 @@ function CategoryTreeRootBlock({
   inSheet: boolean
   t: ReturnType<typeof useTranslations<"marketplace.sidebar">>
 }) {
-  const rootExpanded = expandedIds.has(root.id)
   const containsActive = activeRoot?.id === root.id
   const visual = rowVisualState(root.id, activeCategoryId, pendingCategoryId)
 
@@ -368,7 +369,8 @@ function CategoryTreeRootBlock({
           )}
         >
           <ChevronRight
-            className={cn("h-4 w-4 transition-transform duration-200 ease-out", rootExpanded && "rotate-90")}
+            className={cn(
+              "h-4 w-4 transition-transform duration-100 ease-out", rootExpanded && "rotate-90")}
           />
         </button>
         <button
@@ -440,7 +442,12 @@ function CategoryTreeRootBlock({
                       inSheet ? "text-violet-400" : "text-zinc-400"
                     )}
                   >
-                    <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", subExpanded && "rotate-90")} />
+                    <ChevronRight
+                      className={cn(
+                        "h-3.5 w-3.5 transition-transform duration-100 ease-out",
+                        subExpanded && "rotate-90"
+                      )}
+                    />
                   </button>
                   <button
                     type="button"
@@ -498,6 +505,30 @@ function CategoryTreeRootBlock({
       ) : null}
     </div>
   )
+}, categoryRootBlockEqual)
+
+function categoryRootBlockEqual(
+  prev: {
+    root: CategoryTreeRoot
+    activeCategoryId?: string | null
+    activeRoot?: CategoryTreeRoot
+    pendingCategoryId: string | null
+    rootExpanded: boolean
+    expandedIds: ReadonlySet<string>
+    inSheet: boolean
+  },
+  next: typeof prev
+): boolean {
+  if (prev.root !== next.root) return false
+  if (prev.activeCategoryId !== next.activeCategoryId) return false
+  if (prev.pendingCategoryId !== next.pendingCategoryId) return false
+  if (prev.inSheet !== next.inSheet) return false
+  if (prev.rootExpanded !== next.rootExpanded) return false
+  if (prev.activeRoot?.id !== next.activeRoot?.id) return false
+  for (const sub of prev.root.subcategories) {
+    if (prev.expandedIds.has(sub.id) !== next.expandedIds.has(sub.id)) return false
+  }
+  return true
 }
 
 export function CategoryTreeExplorer({
@@ -508,82 +539,74 @@ export function CategoryTreeExplorer({
   catalogTotal,
   categoriesPayload,
   inSheet = false,
-  startCategoryTransition,
   isNavigating = false,
 }: Props) {
   const t = useTranslations("marketplace.sidebar")
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set())
   const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(null)
+  const [, startToggleTransition] = useTransition()
   const lastTreeSyncKeyRef = useRef("")
+  const rootsByIdRef = useRef(new Map<string, CategoryTreeRoot>())
 
   const roots = categoriesPayload?.categories ?? []
 
-  const toggle = useCallback(
-    (id: string) => {
+  useEffect(() => {
+    rootsByIdRef.current = new Map(roots.map((root) => [root.id, root]))
+  }, [roots])
+
+  const toggle = useCallback((id: string) => {
+    startToggleTransition(() => {
       setExpandedIds((prev) => {
         const next = new Set(prev)
         if (next.has(id)) {
           next.delete(id)
-          const root = roots.find((candidate) => candidate.id === id)
+          const root = rootsByIdRef.current.get(id)
           if (root) {
             for (const subId of collectRootDescendantIds(root)) next.delete(subId)
           }
         } else {
           next.add(id)
-          prefetchBranch(id)
+          scheduleIdle(() => prefetchBranch(id))
         }
         return next
       })
-    },
-    [roots]
-  )
+    })
+  }, [startToggleTransition])
 
-  const expandForCategory = useCallback(
-    (nodeId: string, roots: CategoryTreeRoot[]) => {
-      setExpandedIds((prev) => {
-        const next = new Set(prev)
-        for (const root of roots) {
-          if (root.id === nodeId) {
-            next.add(root.id)
-            prefetchBranch(root.id)
-            return next
-          }
-          const sub = root.subcategories.find((s) => s.id === nodeId)
-          if (sub) {
-            next.add(root.id)
-            next.add(sub.id)
+  const expandForCategory = useCallback((nodeId: string, treeRoots: CategoryTreeRoot[]) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev)
+      for (const root of treeRoots) {
+        if (root.id === nodeId) {
+          next.add(root.id)
+          scheduleIdle(() => prefetchBranch(root.id))
+          return next
+        }
+        const sub = root.subcategories.find((s) => s.id === nodeId)
+        if (sub) {
+          next.add(root.id)
+          next.add(sub.id)
+          scheduleIdle(() => {
             prefetchBranch(root.id)
             prefetchBranch(sub.id)
-            return next
-          }
+          })
+          return next
         }
-        return next
-      })
-    },
-    []
-  )
+      }
+      return next
+    })
+  }, [])
 
   const onSelect = useCallback(
     (id: string) => {
       setPendingCategoryId(id)
-      onPrefetchCategory?.(id)
-      expandForCategory(id, categoriesPayload?.categories ?? [])
-      setExpandedIds((prev) => {
-        if (prev.has(id)) return prev
-        const next = new Set(prev)
-        next.add(id)
-        prefetchBranch(id)
-        return next
+      onCategoryClick?.(id)
+      scheduleIdle(() => {
+        onPrefetchCategory?.(id)
+        expandForCategory(id, categoriesPayload?.categories ?? [])
       })
-
-      const run = () => onCategoryClick?.(id)
-      if (startCategoryTransition) {
-        startCategoryTransition(run)
-      } else {
-        run()
-      }
     },
-    [onCategoryClick, onPrefetchCategory, startCategoryTransition, expandForCategory, categoriesPayload?.categories]
+    [onCategoryClick, onPrefetchCategory, expandForCategory, categoriesPayload?.categories]
   )
 
   const treeSyncKey = useMemo(
@@ -715,6 +738,7 @@ export function CategoryTreeExplorer({
               activeCategoryId={activeCategoryId}
               activeRoot={activeRoot}
               pendingCategoryId={pendingCategoryId}
+              rootExpanded={expandedIds.has(root.id)}
               expandedIds={expandedIds}
               toggle={toggle}
               onSelect={onSelect}

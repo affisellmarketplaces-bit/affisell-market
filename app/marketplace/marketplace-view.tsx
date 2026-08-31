@@ -209,9 +209,15 @@ export function MarketplaceView({
   const handleCategoryClick = useCallback(
     (nodeId: string) => {
       const params = marketplaceCategorySearchParams(searchParams, nodeId)
-      navigateMarketplaceCatalog(router, catalogFilterHrefFromParams(basePath, params))
+      const href = catalogFilterHrefFromParams(basePath, params)
+      startCategoryTransition(() => {
+        navigateMarketplaceCatalog(router, href, {
+          method: "replace",
+          alreadyTransitioning: true,
+        })
+      })
     },
-    [router, searchParams, basePath]
+    [router, searchParams, basePath, startCategoryTransition]
   )
 
   const prefetchCategory = useCallback(
@@ -530,7 +536,6 @@ export function MarketplaceView({
               activeCategoryId={scopeNodeId}
               catalogTotal={categoriesPayload?.catalogTotal}
               categoriesPayload={categoriesPayload}
-              startCategoryTransition={startCategoryTransition}
               isNavigating={categoryTransitionPending}
             />
             <MarketplaceFilters
