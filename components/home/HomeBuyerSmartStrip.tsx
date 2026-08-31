@@ -62,7 +62,7 @@ export async function HomeBuyerSmartStrip() {
 
   return (
     <div
-      className="relative mt-6 border-t border-white/20 pt-6 sm:mt-10 sm:pt-8 lg:mt-12 lg:pt-10"
+      className="affisell-home-hero-shortcuts relative mt-6 border-t border-white/20 pt-6 sm:mt-10 sm:pt-8 lg:mt-12 lg:pt-10"
       aria-labelledby="buyer-smart-strip-heading"
     >
       <p

@@ -9,6 +9,7 @@ import {
   buyerServiceTileClass,
   buyerServiceTileItemClass,
 } from "@/components/home/home-buyer-glass-tile"
+import { buyerServiceTileLinkClass } from "@/lib/home-buyer-tile-link-shared"
 import { FastLink } from "@/components/navigation/fast-link"
 import { PUBLIC_SHOPS_PATH } from "@/lib/affiliate-routes"
 import { BUYER_TILE_ACCENTS } from "@/lib/home-buyer-accent-palette"
@@ -150,7 +151,7 @@ export function HomeBuyerFeaturedShopsDeck({
   if (cards.length === 0) {
     return (
       <li className={buyerServiceTileItemClass}>
-        <FastLink href={fallbackHref} className={buyerServiceTileClass}>
+        <FastLink href={fallbackHref} className={cn(buyerServiceTileClass, buyerServiceTileLinkClass)}>
           <span
             className={cn(
               "pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br opacity-40 blur-2xl transition group-hover:opacity-60",
@@ -192,7 +193,8 @@ export function HomeBuyerFeaturedShopsDeck({
         href={href}
         className={cn(
           buyerServiceTileClass,
-          "relative z-[1] lg:min-h-[7.25rem] lg:pb-3.5",
+          buyerServiceTileLinkClass,
+          "lg:min-h-[7.25rem] lg:pb-3.5",
           "max-lg:min-h-[5rem]"
         )}
         scroll

@@ -451,6 +451,12 @@ body.affisell-demo-lab .affisell-header-shell {
   }
 }
 
+@media (min-width: 1024px) {
+  .affisell-home-hero-shortcuts {
+    padding-right: 4.75rem;
+  }
+}
+
 @layer components {
   .affisell-gradient-bar {
     background: var(--affisell-gradient);

@@ -2,10 +2,13 @@ import type { LucideIcon } from "lucide-react"
 import { ArrowUpRight } from "lucide-react"
 
 import { FastLink } from "@/components/navigation/fast-link"
+import { buyerServiceTileLinkClass } from "@/lib/home-buyer-tile-link-shared"
 import { cn } from "@/lib/utils"
 
 export const buyerServiceTileClass =
   "group relative flex h-full min-h-[4.75rem] flex-col justify-between overflow-hidden rounded-2xl border border-white/25 bg-white/10 p-3 shadow-lg shadow-violet-950/20 backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:border-white/40 hover:bg-white/15 hover:shadow-xl hover:shadow-violet-950/30 active:scale-[0.99] max-lg:min-h-[4.25rem] max-lg:flex-row max-lg:items-center max-lg:gap-2.5 max-lg:p-3 sm:min-h-[6rem] sm:p-4 lg:min-h-[5.5rem] lg:flex-col lg:justify-between"
+
+export { buyerServiceTileLinkClass }
 
 export const buyerServiceTileItemClass =
   "min-w-0 max-lg:w-[min(11.5rem,78vw)] max-lg:shrink-0 max-lg:snap-start lg:w-auto"
@@ -31,7 +34,7 @@ export function BuyerGlassTile({
 }: BuyerGlassTileProps) {
   return (
     <li className={buyerServiceTileItemClass}>
-      <FastLink href={href} className={buyerServiceTileClass}>
+      <FastLink href={href} className={cn(buyerServiceTileClass, buyerServiceTileLinkClass)}>
         <span
           className={cn(
             "pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br opacity-40 blur-2xl transition group-hover:opacity-60",

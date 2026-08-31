@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, type MouseEvent } from "react"
 import { ArrowUpRight, TrendingUp } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion"
 
@@ -9,6 +10,7 @@ import {
   buyerServiceTileClass,
   buyerServiceTileItemClass,
 } from "@/components/home/home-buyer-glass-tile"
+import { buyerServiceTileLinkClass } from "@/lib/home-buyer-tile-link-shared"
 import { FastLink } from "@/components/navigation/fast-link"
 import { BUYER_BESTSELLERS_PATH } from "@/lib/buyer-bestsellers-route"
 import { BUYER_TILE_ACCENTS } from "@/lib/home-buyer-accent-palette"
@@ -63,6 +65,7 @@ function PlayingCard({
       <div
         className={cn(
           "relative h-full w-full overflow-hidden rounded-[0.65rem] border bg-gradient-to-br from-white/25 via-violet-950/20 to-indigo-950/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] backdrop-blur-sm",
+          "pointer-events-none",
           isFront
             ? "border-amber-200/70 ring-1 ring-amber-300/40"
             : "border-white/35"
@@ -77,7 +80,7 @@ function PlayingCard({
           <img
             src={card.imageUrl}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
             loading="lazy"
             decoding="async"
           />
@@ -137,11 +140,25 @@ export function HomeBuyerBestSellersDeck({
 
   const front = stack[stack.length - 1]
   const href = listHref || fallbackHref
+  const router = useRouter()
+
+  const navigateToHub = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.defaultPrevented) return
+    if (event.button !== 0) return
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    router.push(href, { scroll: true })
+  }
 
   if (cards.length === 0) {
     return (
       <li className={buyerServiceTileItemClass}>
-        <FastLink href={href} className={cn(buyerServiceTileClass, "relative z-[1]")} scroll>
+        <FastLink
+          href={href}
+          className={cn(buyerServiceTileClass, buyerServiceTileLinkClass)}
+          scroll
+          onClick={navigateToHub}
+        >
           <span
             className={cn(
               "pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br opacity-40 blur-2xl transition group-hover:opacity-60",
@@ -180,11 +197,13 @@ export function HomeBuyerBestSellersDeck({
         href={href}
         className={cn(
           buyerServiceTileClass,
-          "relative z-[1] lg:min-h-[7.25rem] lg:pb-3.5",
+          buyerServiceTileLinkClass,
+          "lg:min-h-[7.25rem] lg:pb-3.5",
           "max-lg:min-h-[5rem]"
         )}
         scroll
         aria-label={`${label} — ${hint}`}
+        onClick={navigateToHub}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onFocus={() => setPaused(true)}
