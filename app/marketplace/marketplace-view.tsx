@@ -188,7 +188,7 @@ export function MarketplaceView({
   })
 
   const loading = isLoading && products.length === 0
-  const refreshing = isValidating && products.length > 0
+  const refreshing = (isValidating || categoryTransitionPending) && products.length > 0
   const dbUnavailable =
     catalogData?.dbUnavailable && catalogData.error
       ? catalogData.error
@@ -531,6 +531,7 @@ export function MarketplaceView({
               catalogTotal={categoriesPayload?.catalogTotal}
               categoriesPayload={categoriesPayload}
               startCategoryTransition={startCategoryTransition}
+              isNavigating={categoryTransitionPending}
             />
             <MarketplaceFilters
               categoryId={categoryId}
@@ -702,7 +703,11 @@ export function MarketplaceView({
                   ) : null}
                 </p>
                 {refreshing ? (
-                  <span className="text-xs font-medium text-violet-600 dark:text-violet-300" aria-live="polite">
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full bg-violet-500/10 px-2 py-0.5 text-xs font-medium text-violet-600 dark:text-violet-300"
+                    aria-live="polite"
+                  >
+                    <span className="affisell-category-tree-nav-progress inline-block h-0.5 w-8 rounded-full align-middle" aria-hidden />
                     …
                   </span>
                 ) : null}
