@@ -1,9 +1,9 @@
-import { AFFILIATE_FIRST_LISTING_HUB_HREF } from "@/lib/affiliate-onboarding-shared"
+import { AFFILIATE_FIRST_LISTING_HUB_HREF, AFFILIATE_PAYOUT_SETTINGS_HREF } from "@/lib/affiliate-onboarding-shared"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { affiliateListingsWhere, supplierDraftProductsWhere, supplierPublishedProductsWhere } from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
 
-export type MerchantOnboardingStepId = "kyc" | "create" | "publish" | "share"
+export type MerchantOnboardingStepId = "kyc" | "connect" | "create" | "publish" | "share"
 
 export type MerchantOnboardingStep = {
   id: MerchantOnboardingStepId
@@ -91,6 +91,7 @@ export function buildSupplierFirstSaleProgress(args: {
 export function buildAffiliateFirstSaleProgress(args: {
   kycApproved: boolean
   kycReason?: string | null
+  connectOnboarded: boolean
   listingCount: number
   liveListingCount: number
   draftListingCount: number
@@ -108,6 +109,11 @@ export function buildAffiliateFirstSaleProgress(args: {
       id: "kyc",
       done: args.kycApproved,
       href: "/dashboard/verification",
+    },
+    {
+      id: "connect",
+      done: args.connectOnboarded,
+      href: AFFILIATE_PAYOUT_SETTINGS_HREF,
     },
     {
       id: "create",
@@ -135,7 +141,9 @@ export function buildAffiliateFirstSaleProgress(args: {
   const nextStep = steps.find((s) => !s.done) ?? null
 
   let postKycHref = "/dashboard/affiliate"
-  if (!createDone) {
+  if (!args.connectOnboarded && args.kycApproved) {
+    postKycHref = AFFILIATE_PAYOUT_SETTINGS_HREF
+  } else if (!createDone) {
     postKycHref = hubHref
   } else if (!publishDone) {
     postKycHref = draftPublishHref
@@ -176,7 +184,7 @@ export async function loadSupplierFirstSaleProgress(
 export async function loadAffiliateFirstSaleProgress(
   affiliateId: string
 ): Promise<MerchantFirstSaleProgress> {
-  const [gate, listingCount, liveListingCount, store, latestDraft] = await Promise.all([
+  const [gate, listingCount, liveListingCount, store, latestDraft, merchantUser] = await Promise.all([
     merchantVerificationGate(affiliateId),
     prisma.affiliateProduct.count({ where: affiliateListingsWhere(affiliateId) }),
     prisma.affiliateProduct.count({
@@ -188,11 +196,16 @@ export async function loadAffiliateFirstSaleProgress(
       select: { id: true },
       orderBy: { updatedAt: "desc" },
     }),
+    prisma.user.findUnique({
+      where: { id: affiliateId },
+      select: { stripeOnboardedAt: true },
+    }),
   ])
 
   return buildAffiliateFirstSaleProgress({
     kycApproved: gate.allowed,
     kycReason: gate.reason ?? null,
+    connectOnboarded: Boolean(merchantUser?.stripeOnboardedAt),
     listingCount,
     liveListingCount,
     draftListingCount: listingCount - liveListingCount,

@@ -1,5 +1,6 @@
-import { requireAffiliateSession } from "@/lib/dashboard-session"
+import Link from "next/link"
 import { Suspense } from "react"
+import { ArrowRight } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { PartnerTaxCompliancePanel } from "@/components/affiliate/partner-tax-compliance-panel"
@@ -9,6 +10,7 @@ import { AffiliatePushNotificationsCard } from "@/components/affiliate/affiliate
 import { AffiliateVariantMarginAnalyticsPanel } from "@/components/affiliate/affiliate-variant-margin-analytics-panel"
 import { MerchantPulseHub } from "@/components/merchant/merchant-pulse-hub"
 import { MerchantStripeConnectPanel } from "@/components/merchant/merchant-stripe-connect-panel"
+import { buttonVariants } from "@/components/ui/button"
 import {
   emptyAffiliateEarningsPulse,
   loadAffiliateEarningsPulse,
@@ -19,12 +21,16 @@ import {
 } from "@/lib/load-affiliate-variant-margin-analytics"
 import { prisma } from "@/lib/prisma"
 import { loadOrFallback } from "@/lib/safe-server-data"
+import { AFFILIATE_PAYOUT_SETTINGS_HREF } from "@/lib/affiliate-onboarding-shared"
+import { requireAffiliateSession } from "@/lib/dashboard-session"
+import { cn } from "@/lib/utils"
 
 export const dynamic = "force-dynamic"
 
 export default async function AffiliateEarningsPage() {
   const session = await requireAffiliateSession("/dashboard/affiliate/earnings")
   const t = await getTranslations("affiliate.earnings.cockpit")
+  const tPayouts = await getTranslations("affiliate.settings.payouts")
 
   const [data, marginAnalytics, marginReviewOpenCount, merchantUser, kycProfile] = await Promise.all([
     loadOrFallback(
@@ -56,12 +62,27 @@ export default async function AffiliateEarningsPage() {
 
   const connectSlot = (
     <div className="space-y-4">
+      <div className="rounded-2xl border border-violet-200/70 bg-violet-50/50 p-4 dark:border-violet-900/40 dark:bg-violet-950/20">
+        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{tPayouts("earningsCardTitle")}</p>
+        <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+          {tPayouts("earningsCardBody")}
+        </p>
+        <Link
+          href={AFFILIATE_PAYOUT_SETTINGS_HREF}
+          className={cn(buttonVariants({ size: "sm" }), "mt-3 gap-1.5 bg-violet-600 text-white hover:bg-violet-700")}
+        >
+          {tPayouts("earningsCardCta")}
+          <ArrowRight className="size-4" aria-hidden />
+        </Link>
+      </div>
       <Suspense fallback={null}>
         <MerchantStripeConnectPanel
           role="AFFILIATE"
           connectOnboarded={Boolean(merchantUser?.stripeOnboardedAt)}
           stripeAccountId={merchantUser?.stripeAccountId ?? null}
           verificationApproved={kycProfile?.verificationStatus === "APPROVED"}
+          syncRedirectPath={AFFILIATE_PAYOUT_SETTINGS_HREF}
+          showUpdateWhenOnboarded
         />
       </Suspense>
       <Suspense fallback={null}>

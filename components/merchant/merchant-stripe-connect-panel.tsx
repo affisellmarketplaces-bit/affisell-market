@@ -17,6 +17,10 @@ type Props = {
   connectOnboarded: boolean
   stripeAccountId: string | null
   verificationApproved: boolean
+  /** After Stripe return sync, replace URL (defaults by role). */
+  syncRedirectPath?: string
+  /** Show CTA to update bank details when Connect is already active. */
+  showUpdateWhenOnboarded?: boolean
 }
 
 export function MerchantStripeConnectPanel({
@@ -24,6 +28,8 @@ export function MerchantStripeConnectPanel({
   connectOnboarded,
   stripeAccountId,
   verificationApproved,
+  syncRedirectPath,
+  showUpdateWhenOnboarded = false,
 }: Props) {
   const t = useTranslations("payoutPolicy.connect")
   const { replace, refresh, mounted } = useSafeAppRouter()
@@ -39,6 +45,9 @@ export function MerchantStripeConnectPanel({
     role === "SUPPLIER" ? t("supplierKycHint") : t("affiliateKycHint")
 
   const stripeReturn = searchParams.get("stripe") === "return"
+  const redirectAfterSync =
+    syncRedirectPath ??
+    (role === "SUPPLIER" ? "/dashboard/supplier/balance" : "/dashboard/affiliate/settings/payouts")
 
   useEffect(() => {
     if (!mounted || !stripeReturn || !stripeAccountId) return
@@ -52,10 +61,7 @@ export function MerchantStripeConnectPanel({
     })
       .then(() => {
         if (cancelled) return
-        replace(
-          role === "SUPPLIER" ? "/dashboard/supplier/balance" : "/dashboard/affiliate/earnings",
-          { scroll: false }
-        )
+        replace(redirectAfterSync, { scroll: false })
         refresh()
       })
       .catch(() => {
@@ -67,7 +73,7 @@ export function MerchantStripeConnectPanel({
     return () => {
       cancelled = true
     }
-  }, [mounted, refresh, replace, role, stripeAccountId, stripeReturn])
+  }, [mounted, refresh, replace, redirectAfterSync, stripeAccountId, stripeReturn])
 
   async function startConnect() {
     setLoading(true)
@@ -111,10 +117,25 @@ export function MerchantStripeConnectPanel({
             Compléter la vérification KYC
           </Link>
         ) : connectOnboarded ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
-            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-            Stripe Connect actif
-          </span>
+          <>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+              {t("activeBadge")}
+            </span>
+            {showUpdateWhenOnboarded ? (
+              <button
+                type="button"
+                disabled={loading || syncing}
+                onClick={() => void startConnect()}
+                className={cn(
+                  buttonVariants({ size: "sm", variant: "outline" }),
+                  "border-violet-300 text-violet-800 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-200 dark:hover:bg-violet-950/40"
+                )}
+              >
+                {loading ? t("redirecting") : syncing ? t("syncing") : t("updateBankCta")}
+              </button>
+            ) : null}
+          </>
         ) : (
           <button
             type="button"
@@ -122,7 +143,7 @@ export function MerchantStripeConnectPanel({
             onClick={() => void startConnect()}
             className={cn(buttonVariants({ size: "sm" }), "bg-violet-600 text-white hover:bg-violet-700")}
           >
-            {loading ? "Redirection…" : syncing ? "Synchronisation…" : cta}
+            {loading ? t("redirecting") : syncing ? t("syncing") : cta}
           </button>
         )}
       </div>

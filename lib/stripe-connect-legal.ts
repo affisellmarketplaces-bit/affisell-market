@@ -1,3 +1,4 @@
+import { AFFILIATE_PAYOUT_SETTINGS_HREF } from "@/lib/affiliate-onboarding-shared"
 import { resolvePublicAppUrl } from "@/lib/public-app-url"
 
 function connectAppBase(): string {
@@ -23,7 +24,7 @@ export function stripeConnectReturnUrls(role: string): { refresh_url: string; re
       ? "/dashboard/supplier/balance"
       : role === "AGENT"
         ? "/dashboard/agent"
-        : "/dashboard/affiliate/earnings"
+        : AFFILIATE_PAYOUT_SETTINGS_HREF
   return {
     refresh_url: `${base}${path}?stripe=refresh`,
     return_url: `${base}${path}?stripe=return`,

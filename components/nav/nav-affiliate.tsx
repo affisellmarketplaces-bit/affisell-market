@@ -103,7 +103,9 @@ function NavAffiliateInner() {
     pathname === AFFILIATE_CATALOG_PATH || pathname.startsWith(`${AFFILIATE_CATALOG_PATH}/`)
   const onBattle = onHubPath && hubMode === "battle"
   const onSwipe = onHubPath && hubMode === "swipe"
-  const onEarnings = pathname.startsWith("/dashboard/affiliate/earnings")
+  const onEarnings =
+    pathname.startsWith("/dashboard/affiliate/earnings") ||
+    pathname.startsWith("/dashboard/affiliate/settings/payouts")
   const onInviteSupplier = pathname.startsWith("/dashboard/affiliate/invite-supplier")
   const onReferral = pathname.startsWith("/dashboard/affiliate/referral")
   const onBrandStudio = pathname.startsWith("/dashboard/affiliate/brand-studio")

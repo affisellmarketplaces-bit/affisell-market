@@ -43,21 +43,39 @@ describe("merchant first sale progress", () => {
   it("affiliate routes new merchants to swipe hub", () => {
     const progress = buildAffiliateFirstSaleProgress({
       kycApproved: false,
+      connectOnboarded: false,
       listingCount: 0,
       liveListingCount: 0,
       draftListingCount: 0,
       storeSlug: "creator",
     })
     expect(progress.nextStepId).toBe("kyc")
+    expect(progress.steps.find((s) => s.id === "connect")?.href).toBe(
+      "/dashboard/affiliate/settings/payouts"
+    )
     expect(progress.steps.find((s) => s.id === "create")?.href).toBe(
       "/dashboard/affiliate/hub?mode=swipe&onboarding=1"
     )
     expect(progress.postKycHref).toBe("/dashboard/affiliate/hub?mode=swipe&onboarding=1")
   })
 
+  it("affiliate post-KYC sends to payout settings when Connect missing", () => {
+    const progress = buildAffiliateFirstSaleProgress({
+      kycApproved: true,
+      connectOnboarded: false,
+      listingCount: 0,
+      liveListingCount: 0,
+      draftListingCount: 0,
+      storeSlug: "creator",
+    })
+    expect(progress.nextStepId).toBe("connect")
+    expect(progress.postKycHref).toBe("/dashboard/affiliate/settings/payouts")
+  })
+
   it("affiliate post-KYC sends to dashboard when draft exists", () => {
     const progress = buildAffiliateFirstSaleProgress({
       kycApproved: true,
+      connectOnboarded: true,
       listingCount: 1,
       liveListingCount: 0,
       draftListingCount: 1,
@@ -74,6 +92,7 @@ describe("merchant first sale progress", () => {
   it("affiliate share step deep-links to brand studio share panel", () => {
     const progress = buildAffiliateFirstSaleProgress({
       kycApproved: true,
+      connectOnboarded: true,
       listingCount: 1,
       liveListingCount: 1,
       draftListingCount: 0,

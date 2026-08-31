@@ -4,6 +4,9 @@ export const AFFILIATE_FIRST_LISTING_HUB_HREF =
   "/dashboard/affiliate/hub?mode=swipe&onboarding=1" as const
 
 export const AFFILIATE_RESELLER_SIGNUP_HREF = "/signup/affiliate" as const
+
+/** Stripe Connect bank setup — affiliate payout settings. */
+export const AFFILIATE_PAYOUT_SETTINGS_HREF = "/dashboard/affiliate/settings/payouts" as const
 export const SUPPLIER_SIGNUP_HREF = "/signup/supplier" as const
 
 /**

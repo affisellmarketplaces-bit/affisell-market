@@ -1556,6 +1556,44 @@
         "disableFailed": "Could not disable push on this device."
       }
     },
+    "settings": {
+      "payouts": {
+        "badge": "Payout Rail · Stripe Connect",
+        "title": "Reseller payment methods",
+        "description": "Connect your bank account via Stripe to receive margin and supplier commission payouts. Bank details are encrypted and hosted by Stripe — Affisell never stores your IBAN.",
+        "backEarnings": "Earnings cockpit",
+        "ledgerTeaserTitle": "Track your payouts",
+        "ledgerTeaserBody": "The detailed ledger (orders, amounts, clawbacks) lives in the earnings cockpit.",
+        "ledgerCta": "Open ledger",
+        "earningsCardTitle": "Set up your payout bank account",
+        "earningsCardBody": "Stripe Connect is required to collect reseller margin after delivery confirmation.",
+        "earningsCardCta": "Open payment settings",
+        "storeCardTitle": "Payouts & bank account",
+        "storeCardBody": "Link your IBAN via Stripe Connect to receive reseller earnings automatically.",
+        "storeCardCta": "Configure payments",
+        "bankStatus": {
+          "eyebrow": "Bank status",
+          "titleReady": "Bank account connected",
+          "titlePending": "Stripe setup in progress",
+          "titleMissing": "No bank account configured",
+          "bodyReady": "Affisell payouts will be sent to this account once an order becomes eligible.",
+          "bodyPending": "Stripe needs additional information — complete onboarding to enable transfers.",
+          "bodyMissing": "Enable Stripe Connect to receive reseller margin on your bank account.",
+          "accountLabel": "Payout account",
+          "requirementsHint": "Information required by Stripe — click Update to finalize."
+        },
+        "timeline": {
+          "title": "How you get paid",
+          "subtitle": "Affisell rail for resellers — transparent, automated, no monthly batch.",
+          "stepConnectTitle": "Bank account connected",
+          "stepConnectBody": "Stripe Connect Express securely stores your IBAN.",
+          "stepDeliveryTitle": "Delivery confirmed",
+          "stepDeliveryBody": "The buyer confirms receipt or carrier tracking validates delivery.",
+          "stepReleaseTitle": "Payout released",
+          "stepReleaseBody": "D+{confirmDays} after buyer confirmation (or auto at D+{autoDays} after carrier delivery)."
+        }
+      }
+    },
     "dac7Export": {
       "cta": "Download DAC7 recap (CSV)",
       "downloading": "Exporting…",
@@ -2063,11 +2101,13 @@
       "subtitle": "Discover a SKU, set your customer price, publish — first listing in about 5 minutes.",
       "kycHint": "KYC is required to go live — you can save drafts while your dossier is reviewed.",
       "stepKyc": "Verify your business (KYC)",
+      "stepConnect": "Set up payment methods (Stripe)",
       "stepCreate": "Create your first product listing",
       "stepPublish": "Publish on the marketplace",
       "stepShare": "Share your shop link",
       "start": "Continue",
       "ctaKyc": "Complete verification",
+      "ctaConnect": "Set up my bank account",
       "ctaCreate": "Open swipe hub",
       "ctaPublish": "Open publish flow",
       "ctaShare": "Open my shop",
@@ -5113,7 +5153,11 @@
       "supplierCta": "Set up payouts",
       "affiliateCta": "Enable payouts",
       "supplierKycHint": "Your KYC profile must be approved before catalogue publish.",
-      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront."
+      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront.",
+      "activeBadge": "Stripe Connect active",
+      "updateBankCta": "Update bank details",
+      "redirecting": "Redirecting…",
+      "syncing": "Syncing…"
     },
     "pulseHub": {
       "paidOutFootnote": "Net of recorded payouts and any clawbacks — see activity below.",

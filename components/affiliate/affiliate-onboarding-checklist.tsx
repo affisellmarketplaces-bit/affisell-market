@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { CheckCircle2, Circle, Compass, Share2, ShieldCheck, Store } from "lucide-react"
+import { CheckCircle2, Circle, Compass, Landmark, Share2, ShieldCheck, Store } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
@@ -13,6 +13,7 @@ type Props = {
 
 const stepIcons: Record<MerchantOnboardingStepId, typeof Compass> = {
   kyc: ShieldCheck,
+  connect: Landmark,
   create: Compass,
   publish: Store,
   share: Share2,
@@ -20,6 +21,7 @@ const stepIcons: Record<MerchantOnboardingStepId, typeof Compass> = {
 
 const stepLabelKeys: Record<MerchantOnboardingStepId, string> = {
   kyc: "stepKyc",
+  connect: "stepConnect",
   create: "stepCreate",
   publish: "stepPublish",
   share: "stepShare",
@@ -27,6 +29,7 @@ const stepLabelKeys: Record<MerchantOnboardingStepId, string> = {
 
 const stepCtaKeys: Record<MerchantOnboardingStepId, string> = {
   kyc: "ctaKyc",
+  connect: "ctaConnect",
   create: "ctaCreate",
   publish: "ctaPublish",
   share: "ctaShare",

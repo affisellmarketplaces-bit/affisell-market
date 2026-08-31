@@ -1556,6 +1556,44 @@
         "disableFailed": "Impossible de désactiver le push sur cet appareil."
       }
     },
+    "settings": {
+      "payouts": {
+        "badge": "Payout Rail · Stripe Connect",
+        "title": "Moyens de paiement revendeur",
+        "description": "Connectez votre compte bancaire via Stripe pour recevoir vos marges et commissions fournisseur. Données bancaires chiffrées et hébergées par Stripe — Affisell ne stocke jamais votre IBAN.",
+        "backEarnings": "Cockpit revenus",
+        "ledgerTeaserTitle": "Suivre vos versements",
+        "ledgerTeaserBody": "Le journal détaillé (commandes, montants, clawbacks) est dans le cockpit revenus.",
+        "ledgerCta": "Ouvrir le journal",
+        "earningsCardTitle": "Configurer votre banque de paiement",
+        "earningsCardBody": "Stripe Connect est requis pour encaisser vos marges revendeur après confirmation de livraison.",
+        "earningsCardCta": "Ouvrir les moyens de paiement",
+        "storeCardTitle": "Reversements & compte bancaire",
+        "storeCardBody": "Liez votre IBAN via Stripe Connect pour recevoir vos gains revendeur automatiquement.",
+        "storeCardCta": "Configurer mes paiements",
+        "bankStatus": {
+          "eyebrow": "Statut bancaire",
+          "titleReady": "Compte bancaire connecté",
+          "titlePending": "Configuration Stripe en cours",
+          "titleMissing": "Aucun compte bancaire configuré",
+          "bodyReady": "Vos reversements Affisell seront virés sur ce compte dès qu'une commande devient éligible.",
+          "bodyPending": "Stripe demande des informations complémentaires — finalisez l'onboarding pour activer les virements.",
+          "bodyMissing": "Activez Stripe Connect pour recevoir vos marges revendeur sur votre compte bancaire.",
+          "accountLabel": "Compte de versement",
+          "requirementsHint": "Informations requises par Stripe — cliquez sur « Mettre à jour » pour finaliser."
+        },
+        "timeline": {
+          "title": "Comment vous êtes payé",
+          "subtitle": "Rail Affisell pour les revendeurs — transparent, automatisé, sans batch mensuel.",
+          "stepConnectTitle": "Compte bancaire connecté",
+          "stepConnectBody": "Stripe Connect Express enregistre votre IBAN de façon sécurisée.",
+          "stepDeliveryTitle": "Livraison confirmée",
+          "stepDeliveryBody": "L'acheteur confirme la réception ou le suivi transporteur valide la livraison.",
+          "stepReleaseTitle": "Versement libéré",
+          "stepReleaseBody": "D+{confirmDays} après confirmation acheteur (ou auto à J+{autoDays} après livraison transporteur)."
+        }
+      }
+    },
     "dac7Export": {
       "cta": "Télécharger récap DAC7 (CSV)",
       "downloading": "Export…",
@@ -2063,11 +2101,13 @@
       "subtitle": "Découvrez un SKU, fixez votre prix client, publiez — première fiche en ~5 minutes.",
       "kycHint": "Le KYC est requis pour publier — vous pouvez enregistrer des brouillons pendant la revue.",
       "stepKyc": "Vérifier votre entreprise (KYC)",
+      "stepConnect": "Configurer vos moyens de paiement (Stripe)",
       "stepCreate": "Créer votre première fiche produit",
       "stepPublish": "Publier sur le marketplace",
       "stepShare": "Partager le lien de votre shop",
       "start": "Continuer",
       "ctaKyc": "Compléter la vérification",
+      "ctaConnect": "Configurer ma banque",
       "ctaCreate": "Ouvrir le swipe hub",
       "ctaPublish": "Ouvrir la publication",
       "ctaShare": "Ouvrir mon shop",
@@ -5113,7 +5153,11 @@
       "supplierCta": "Configurer mes paiements",
       "affiliateCta": "Activer mes reversements",
       "supplierKycHint": "Votre dossier KYC doit être approuvé avant la publication catalogue.",
-      "affiliateKycHint": "Votre dossier KYC doit être approuvé avant de publier sur votre vitrine."
+      "affiliateKycHint": "Votre dossier KYC doit être approuvé avant de publier sur votre vitrine.",
+      "activeBadge": "Stripe Connect actif",
+      "updateBankCta": "Mettre à jour mes coordonnées bancaires",
+      "redirecting": "Redirection…",
+      "syncing": "Synchronisation…"
     },
     "pulseHub": {
       "paidOutFootnote": "Net des versements enregistrés et clawbacks éventuels — voir l'activité ci-dessous.",
