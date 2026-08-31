@@ -4,7 +4,6 @@ import type { FormEvent } from "react"
 import { useState } from "react"
 import { signIn } from "next-auth/react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { AnimatePresence, motion } from "framer-motion"
 import {
@@ -36,7 +35,6 @@ const TRUST_PILLS = [
 export function AffiliateExpressSignupWizard({ afterLoginPath }: Props) {
   const t = useTranslations("auth")
   const tExpress = useTranslations("auth.affiliateExpress")
-  const router = useRouter()
 
   const [step, setStep] = useState<Step>("profile")
   const [displayName, setDisplayName] = useState("")
@@ -58,40 +56,56 @@ export function AffiliateExpressSignupWizard({ afterLoginPath }: Props) {
     setError(null)
 
     const handle = socialHandle.trim().replace(/^@/, "")
-    const res = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        password,
-        role: "AFFILIATE",
-        affiliateExpress: true,
-        name: (handle || displayName.trim()).slice(0, 120),
-        tiktok: handle || undefined,
-        acceptCgu: true,
-        acceptRoleTerms: true,
-        acceptPrivacy: true,
-      }),
-    })
-    const data = (await res.json()) as { error?: string }
-    if (!res.ok) {
-      setLoading(false)
-      setError(data.error ?? t("signupFail"))
-      return
-    }
-
-    const login = await signIn("credentials", {
+    const signupPayload = {
       email,
       password,
-      redirect: false,
-      callbackUrl: afterLoginPath,
-    })
-    setLoading(false)
-    if (login?.error) {
-      setError(credentialsSignInErrorMessage(login.code, t) ?? t("signupLoginFail"))
-      return
+      role: "AFFILIATE",
+      affiliateExpress: true,
+      name: (handle || displayName.trim()).slice(0, 120),
+      tiktok: handle || undefined,
+      acceptCgu: true,
+      acceptRoleTerms: true,
+      acceptPrivacy: true,
     }
-    router.push(afterLoginPath)
+
+    try {
+      const controller = new AbortController()
+      const timeoutId = window.setTimeout(() => controller.abort(), 30_000)
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(signupPayload),
+        signal: controller.signal,
+      })
+      window.clearTimeout(timeoutId)
+
+      const data = (await res.json()) as { error?: string }
+      if (!res.ok) {
+        setError(data.error ?? t("signupFail"))
+        setLoading(false)
+        return
+      }
+
+      const login = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: afterLoginPath,
+      })
+      if (login?.error) {
+        setError(credentialsSignInErrorMessage(login.code, t) ?? t("signupLoginFail"))
+        setLoading(false)
+        return
+      }
+      window.location.assign(afterLoginPath)
+    } catch (err) {
+      console.log("[affiliate-express-signup]", {
+        result: "submit_failed",
+        error: err instanceof Error ? err.message : String(err),
+      })
+      setError(t("signupFail"))
+      setLoading(false)
+    }
   }
 
   return (

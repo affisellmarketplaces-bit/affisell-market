@@ -38,8 +38,20 @@ export function isLogtailConfigured(): boolean {
   return Boolean(token && url)
 }
 
+/** Never block user-facing responses on Logtail ingest (Vercel cold paths). */
+const FLUSH_LOGS_TIMEOUT_MS = 750
+
 export async function flushLogs(): Promise<void> {
-  await logger.flush()
+  try {
+    await Promise.race([
+      logger.flush(),
+      new Promise<void>((resolve) => {
+        setTimeout(resolve, FLUSH_LOGS_TIMEOUT_MS)
+      }),
+    ])
+  } catch (e) {
+    console.warn("[logger]", { result: "flush_failed", error: errorMessage(e) })
+  }
 }
 
 export function clientIpFromRequest(req: Request): string {

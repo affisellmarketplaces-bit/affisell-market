@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/nextjs"
-import { NextResponse } from "next/server"
+import { after, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 
 import { rateLimitClientKey, rateLimitResponse } from "@/lib/api-rate-limit"
@@ -207,6 +207,8 @@ export async function POST(req: Request) {
     const displayName =
       typeof nameRaw === "string" && nameRaw.trim() ? nameRaw.trim().slice(0, 120) : null
 
+    const expressAffiliate = resolvedRole === "AFFILIATE" && affiliateExpress === true
+
     const user = await prisma.user.create({
       data: {
         email: emailNormalized,
@@ -217,35 +219,6 @@ export async function POST(req: Request) {
         ...consent,
       },
     })
-
-    if (cguOk) {
-      await logTermsAcceptanceFromRequest(req, user.id, "cgu")
-    }
-    if (
-      (resolvedRole === "SUPPLIER" || resolvedRole === "AFFILIATE") &&
-      roleTermsOk
-    ) {
-      await logTermsAcceptanceFromRequest(req, user.id, termsLogTypeForRole(resolvedRole))
-    }
-
-    if (resolvedRole === "SUPPLIER" || resolvedRole === "AFFILIATE") {
-      const { recordSignupLegalAcceptances } = await import(
-        "@/lib/legal/record-signup-legal-acceptances.server"
-      )
-      await recordSignupLegalAcceptances({
-        userId: user.id,
-        role: resolvedRole,
-        req,
-        locale: localeRaw,
-      }).catch((err: unknown) => {
-        console.log("[signup]", {
-          userId: user.id,
-          role: resolvedRole,
-          result: "legal_acceptance_failed",
-          error: err instanceof Error ? err.message : String(err),
-        })
-      })
-    }
 
     let store = null
     if (resolvedRole === "AFFILIATE" || resolvedRole === "SUPPLIER") {
@@ -293,42 +266,90 @@ export async function POST(req: Request) {
       })
     }
 
-    if (resolvedRole === "SUPPLIER" && typeof inviteToken === "string" && inviteToken.trim()) {
-      await claimSupplierInvitationForUser(inviteToken.trim(), user.id).catch((e) => {
-        console.error("[signup] supplier invite claim failed", e)
-      })
-    }
+    const runPostSignupCompliance = async () => {
+      if (cguOk) {
+        await logTermsAcceptanceFromRequest(req, user.id, "cgu")
+      }
+      if (
+        (resolvedRole === "SUPPLIER" || resolvedRole === "AFFILIATE") &&
+        roleTermsOk
+      ) {
+        await logTermsAcceptanceFromRequest(req, user.id, termsLogTypeForRole(resolvedRole))
+      }
 
-    if (resolvedRole === "AFFILIATE" && typeof inviteToken === "string" && inviteToken.trim()) {
-      await claimAffiliateInvitationForUser(inviteToken.trim(), user.id).catch((e) => {
-        console.error("[signup] affiliate invite claim failed", e)
-      })
-    }
+      if (resolvedRole === "SUPPLIER" || resolvedRole === "AFFILIATE") {
+        const { recordSignupLegalAcceptances } = await import(
+          "@/lib/legal/record-signup-legal-acceptances.server"
+        )
+        await recordSignupLegalAcceptances({
+          userId: user.id,
+          role: resolvedRole,
+          req,
+          locale: localeRaw,
+        }).catch((err: unknown) => {
+          console.log("[signup]", {
+            userId: user.id,
+            role: resolvedRole,
+            result: "legal_acceptance_failed",
+            error: err instanceof Error ? err.message : String(err),
+          })
+        })
+      }
 
-    if (resolvedRole === "AFFILIATE") {
-      const { consumeReferralCodeCookie } = await import("@/lib/referral-cookie")
-      const { claimReferralCodeForUser } = await import("@/lib/referral")
-      const cookieRef = await consumeReferralCodeCookie()
-      const code =
-        (typeof referralCode === "string" && referralCode.trim()) || cookieRef || ""
-      if (code) {
-        await claimReferralCodeForUser(code, user.id).catch((e) => {
-          console.error("[signup] referral claim failed", e)
+      if (resolvedRole === "SUPPLIER" && typeof inviteToken === "string" && inviteToken.trim()) {
+        await claimSupplierInvitationForUser(inviteToken.trim(), user.id).catch((e) => {
+          console.error("[signup] supplier invite claim failed", e)
+        })
+      }
+
+      if (resolvedRole === "AFFILIATE" && typeof inviteToken === "string" && inviteToken.trim()) {
+        await claimAffiliateInvitationForUser(inviteToken.trim(), user.id).catch((e) => {
+          console.error("[signup] affiliate invite claim failed", e)
+        })
+      }
+
+      if (resolvedRole === "AFFILIATE") {
+        const { consumeReferralCodeCookie } = await import("@/lib/referral-cookie")
+        const { claimReferralCodeForUser } = await import("@/lib/referral")
+        const cookieRef = await consumeReferralCodeCookie()
+        const code =
+          (typeof referralCode === "string" && referralCode.trim()) || cookieRef || ""
+        if (code) {
+          await claimReferralCodeForUser(code, user.id).catch((e) => {
+            console.error("[signup] referral claim failed", e)
+          })
+        }
+      }
+
+      if (resolvedRole === "SUPPLIER" || resolvedRole === "AFFILIATE") {
+        const { sendWelcomeLegalEmail } = await import("@/lib/emails/send-welcome-legal-email")
+        await sendWelcomeLegalEmail(user.id).catch((err: unknown) => {
+          console.log("[signup]", {
+            userId: user.id,
+            role: resolvedRole,
+            result: "welcome_legal_email_failed",
+            error: err instanceof Error ? err.message : String(err),
+          })
         })
       }
     }
 
-    if (resolvedRole === "SUPPLIER" || resolvedRole === "AFFILIATE") {
-      const { sendWelcomeLegalEmail } = await import("@/lib/emails/send-welcome-legal-email")
-      void sendWelcomeLegalEmail(user.id).catch((err: unknown) => {
-        console.log("[signup]", {
-          userId: user.id,
-          role: resolvedRole,
-          result: "welcome_legal_email_failed",
-          error: err instanceof Error ? err.message : String(err),
+    if (expressAffiliate) {
+      after(() => {
+        void runPostSignupCompliance().catch((err: unknown) => {
+          console.log("[signup]", {
+            userId: user.id,
+            role: resolvedRole,
+            result: "post_signup_compliance_failed",
+            error: err instanceof Error ? err.message : String(err),
+          })
         })
       })
+      await logger.info("Signup success", { route: ROUTE, ip, role: resolvedRole, express: true })
+      return NextResponse.json({ ok: true }, { status: 201 })
     }
+
+    await runPostSignupCompliance()
 
     await logger.info("Signup success", { route: ROUTE, ip, role: resolvedRole })
     return NextResponse.json({ ok: true }, { status: 201 })
