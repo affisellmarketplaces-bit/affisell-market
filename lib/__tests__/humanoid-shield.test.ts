@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest"
 import { NextRequest } from "next/server"
 
+import {
+  createHumanPassToken,
+  sanitizeShieldReturnTo,
+  verifyHumanPassToken,
+} from "@/lib/security/human-pass"
 import { HumanoidShield } from "@/lib/security/humanoid-shield"
+
+process.env.AUTH_SECRET = process.env.AUTH_SECRET ?? "vitest-human-pass-secret"
 
 function mockReq(
   path: string,
@@ -43,5 +50,46 @@ describe("HumanoidShield", () => {
     expect(HumanoidShield.getActiveBans().some((b) => b.ip === "203.0.113.9")).toBe(true)
     HumanoidShield.unbanIp("203.0.113.9")
     expect(HumanoidShield.getActiveBans().some((b) => b.ip === "203.0.113.9")).toBe(false)
+  })
+
+  it("prefers cf-connecting-ip over x-forwarded-for", () => {
+    const req = mockReq("/", {
+      headers: {
+        "cf-connecting-ip": "203.0.113.44",
+        "x-forwarded-for": "172.71.127.104, 203.0.113.44",
+      },
+    })
+    expect(HumanoidShield.extractIp(req)).toBe("203.0.113.44")
+  })
+
+  it("allows rate-limited traffic when a valid human pass cookie is present", () => {
+    const ip = "203.0.113.55"
+    HumanoidShield.banIp(ip, 5)
+    const token = createHumanPassToken(ip)
+    const req = mockReq("/?category=cmp123", {
+      headers: {
+        "user-agent": "Mozilla/5.0 Chrome/120",
+        "cf-connecting-ip": ip,
+        cookie: `affisell_human_pass=${token}`,
+      },
+    })
+    const result = HumanoidShield.analyze(req)
+    expect(result.action).toBe("ALLOW")
+    HumanoidShield.unbanIp(ip)
+  })
+})
+
+describe("human-pass", () => {
+  it("sanitizes open redirects", () => {
+    expect(sanitizeShieldReturnTo("/?category=cmp1")).toBe("/?category=cmp1")
+    expect(sanitizeShieldReturnTo("//evil.com")).toBe("/")
+    expect(sanitizeShieldReturnTo("https://evil.com")).toBe("/")
+  })
+
+  it("verifies signed human pass tokens", () => {
+    const ip = "198.51.100.2"
+    const token = createHumanPassToken(ip)
+    expect(verifyHumanPassToken(token, ip)).toBe(true)
+    expect(verifyHumanPassToken(token, "198.51.100.3")).toBe(false)
   })
 })

@@ -46,7 +46,11 @@ const intlMiddleware = createIntlMiddleware(routing)
 const HOME_PATHS = new Set(["/", "/fr", "/en"])
 
 function isShieldExemptPath(barePath: string): boolean {
-  return barePath === "/shield-blocked" || barePath === "/api/security/logs"
+  return (
+    barePath === "/shield-blocked" ||
+    barePath === "/api/security/logs" ||
+    barePath === "/api/security/verify-human"
+  )
 }
 
 function applyHumanoidShieldHeaders(
@@ -78,6 +82,11 @@ function handleShieldBlock(req: NextRequest, result: ShieldAnalyzeResult): NextR
   url.search = ""
   url.searchParams.set("ip", result.ip)
   url.searchParams.set("score", String(result.score))
+  url.searchParams.set("action", result.action)
+  const returnTo = `${bare}${req.nextUrl.search}`.slice(0, 512)
+  if (returnTo && returnTo !== "/shield-blocked") {
+    url.searchParams.set("returnTo", returnTo)
+  }
   return NextResponse.rewrite(url)
 }
 
@@ -294,7 +303,7 @@ export async function proxy(req: NextRequest) {
   if (!isShieldExemptPath(barePath)) {
     shieldResult = HumanoidShield.analyze(req)
     HumanoidShield.log(shieldResult, req)
-    if (shieldResult.action === "BLOCK") {
+    if (shieldResult.action === "BLOCK" || shieldResult.action === "CHALLENGE") {
       return handleShieldBlock(req, shieldResult)
     }
   }

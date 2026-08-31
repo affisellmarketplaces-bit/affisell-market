@@ -60,11 +60,17 @@ export function DonaAvatarImage({
 }: DonaAvatarImageProps) {
   const [failed, setFailed] = useState(false)
   const assets = VARIANT_ASSETS[variant]
+  const frameClass = variant === "portrait" ? "dona-avatar-brand-frame" : undefined
 
   if (failed) {
     return (
       <span
-        className={cn("flex items-center justify-center text-2xl", fallbackClassName, className)}
+        className={cn(
+          "flex items-center justify-center text-2xl",
+          frameClass,
+          fallbackClassName,
+          className
+        )}
         aria-hidden
       >
         💜
@@ -80,7 +86,7 @@ export function DonaAvatarImage({
       alt={alt}
       loading={loading}
       decoding="async"
-      className={className}
+      className={cn(frameClass, className)}
       onError={() => {
         console.warn("[dona-avatar]", assets.warnLabel)
         setFailed(true)

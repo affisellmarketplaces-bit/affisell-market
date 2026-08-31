@@ -201,7 +201,7 @@ export function DonaPublicWidget() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="affisell-dona-fab affisell-dona-fab-portrait fixed z-[99] flex h-[4.75rem] w-[3.35rem] items-stretch justify-center overflow-hidden rounded-2xl border-2 border-white bg-[#7C3AED] shadow-xl ring-2 ring-violet-200 transition hover:scale-105 hover:bg-violet-500 max-md:active:scale-95"
+          className="affisell-dona-fab affisell-dona-fab-portrait fixed z-[99] flex h-[4.75rem] w-[3.35rem] items-stretch justify-center overflow-hidden rounded-2xl border-2 border-violet-300/80 bg-gradient-to-br from-violet-600 via-indigo-700 to-blue-900 shadow-xl ring-2 ring-violet-200/80 transition hover:scale-105 hover:border-violet-200 max-md:active:scale-95"
           aria-label={copy.openFabAria}
         >
           <DonaAvatarImage

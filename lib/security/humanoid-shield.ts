@@ -1,5 +1,10 @@
 import type { NextRequest } from "next/server"
 
+import {
+  HUMAN_PASS_COOKIE,
+  verifyHumanPassToken,
+} from "@/lib/security/human-pass"
+
 export type ShieldAction = "ALLOW" | "CHALLENGE" | "BLOCK"
 
 export type ShieldThreatType =
@@ -86,6 +91,9 @@ const RCE_PATTERNS: PatternRule[] = [
   { type: "RCE", severity: 10, pattern: /`[^`]+`/, label: "`...`" },
   { type: "RCE", severity: 10, pattern: /\$\([^)]+\)/, label: "$(...)" },
 ]
+
+const FORCE_BLOCK_TYPES = new Set<ShieldThreatType>(["HONEYPOT", "LFI", "RCE"])
+const HUMAN_PASS_SOFT_TYPES = new Set<ShieldThreatType>(["RATE_LIMIT", "BOT_UA"])
 
 const ALL_PATTERNS = [...XSS_PATTERNS, ...SQLI_PATTERNS, ...LFI_PATTERNS, ...RCE_PATTERNS]
 
@@ -218,6 +226,10 @@ export class HumanoidShield {
   }
 
   static extractIp(req: NextRequest): string {
+    const cfIp = req.headers.get("cf-connecting-ip")?.trim()
+    if (cfIp) return cfIp
+    const trueClient = req.headers.get("true-client-ip")?.trim()
+    if (trueClient) return trueClient
     const forwarded = req.headers.get("x-forwarded-for")
     if (forwarded) {
       const first = forwarded.split(",")[0]?.trim()
@@ -225,9 +237,13 @@ export class HumanoidShield {
     }
     const realIp = req.headers.get("x-real-ip")?.trim()
     if (realIp) return realIp
-    const cfIp = req.headers.get("cf-connecting-ip")?.trim()
-    if (cfIp) return cfIp
     return "127.0.0.1"
+  }
+
+  static hasValidHumanPass(req: NextRequest, ip: string): boolean {
+    const token = req.cookies.get(HUMAN_PASS_COOKIE)?.value
+    if (!token) return false
+    return verifyHumanPassToken(token, ip)
   }
 
   static isWhitelisted(ip: string): boolean {
@@ -380,14 +396,21 @@ export class HumanoidShield {
   private static resolveAction(
     ip: string,
     score: number,
-    threats: ShieldThreat[]
+    threats: ShieldThreat[],
+    humanPass: boolean
   ): ShieldAction {
     const maxSeverity = threats.reduce((m, t) => Math.max(m, t.severity), 0)
     const whitelisted = HumanoidShield.isWhitelisted(ip)
-    const forceBlockTypes = new Set<ShieldThreatType>(["HONEYPOT", "LFI", "RCE"])
+
+    if (
+      humanPass &&
+      (threats.length === 0 || threats.every((t) => HUMAN_PASS_SOFT_TYPES.has(t.type)))
+    ) {
+      return "ALLOW"
+    }
 
     if (maxSeverity >= 9) {
-      if (whitelisted && !threats.some((t) => forceBlockTypes.has(t.type))) {
+      if (whitelisted && !threats.some((t) => FORCE_BLOCK_TYPES.has(t.type))) {
         return maxSeverity >= 6 || score < 40 ? "CHALLENGE" : "ALLOW"
       }
       return "BLOCK"
@@ -401,10 +424,13 @@ export class HumanoidShield {
     const pathname = req.nextUrl.pathname
     const ua = req.headers.get("user-agent") ?? ""
     const threats: ShieldThreat[] = []
+    const humanPass = HumanoidShield.hasValidHumanPass(req, ip)
 
     void HumanoidShield.hydrateBanFromRedis(ip)
 
-    HumanoidShield.trackRateLimit(ip, pathname, threats)
+    if (!humanPass) {
+      HumanoidShield.trackRateLimit(ip, pathname, threats)
+    }
     HumanoidShield.checkHoneypotPath(pathname, threats)
     HumanoidShield.checkBotUa(ua, threats)
 
@@ -412,8 +438,11 @@ export class HumanoidShield {
     HumanoidShield.scanPayload(scanTarget, threats)
 
     const score = HumanoidShield.computeScore(threats)
-    const action = HumanoidShield.resolveAction(ip, score, threats)
-    const isHuman = action === "ALLOW" && score >= 60 && !threats.some((t) => t.type === "BOT_UA")
+    const action = HumanoidShield.resolveAction(ip, score, threats, humanPass)
+    const isHuman =
+      (action === "ALLOW" || humanPass) &&
+      score >= 60 &&
+      !threats.some((t) => t.type === "BOT_UA")
 
     return { ip, score, isHuman, threats, action }
   }

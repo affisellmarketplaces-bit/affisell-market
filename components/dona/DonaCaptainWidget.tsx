@@ -311,7 +311,7 @@ export function DonaCaptainWidget() {
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="affisell-dona-fab affisell-dona-fab-portrait fixed z-[109] flex h-[4.75rem] w-[3.35rem] items-stretch justify-center overflow-hidden rounded-2xl border-2 border-violet-400/70 bg-[#0E0E2C] shadow-[0_0_22px_rgba(124,58,237,0.45)] transition hover:border-violet-300 max-md:active:scale-95"
+          className="affisell-dona-fab affisell-dona-fab-portrait fixed z-[109] flex h-[4.75rem] w-[3.35rem] items-stretch justify-center overflow-hidden rounded-2xl border-2 border-violet-400/80 bg-gradient-to-br from-violet-950 via-indigo-900 to-blue-950 shadow-[0_0_22px_rgba(124,58,237,0.45)] transition hover:border-violet-300 max-md:active:scale-95"
           aria-label={openFabAria}
         >
           <DonaAvatarImage

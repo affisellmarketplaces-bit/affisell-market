@@ -449,6 +449,10 @@ body.affisell-demo-lab .affisell-header-shell {
       0 0 0 1px rgb(167 139 250 / 0.35),
       0 12px 32px rgb(76 29 149 / 0.45);
   }
+
+  .dona-avatar-brand-frame {
+    background: linear-gradient(145deg, #7c3aed 0%, #4338ca 42%, #312e81 72%, #1e3a8a 100%);
+  }
 }
 
 @media (min-width: 1024px) {
