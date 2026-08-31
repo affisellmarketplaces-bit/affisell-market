@@ -21,6 +21,7 @@
     "db:check": "node scripts/env-check.mjs && npx prisma db pull --print | head -20",
     "dev:staging": "node scripts/run-with-staging.mjs",
     "dona": "node scripts/dona.mjs",
+    "dona:avatars": "node scripts/generate-dona-avatars.mjs",
     "dona:check": "node scripts/dona.mjs",
     "db:branch": "echo 'Crée branch Neon: Vercel Preview env → DATABASE_URL_STAGING | Neon Dashboard → Branches → Create from main'",
     "dev:url": "node scripts/print-dev-url.mjs",

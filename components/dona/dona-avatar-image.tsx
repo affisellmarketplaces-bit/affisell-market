@@ -5,12 +5,16 @@ import { useState } from "react"
 import { cn } from "@/lib/utils"
 
 import donaAvatarCircleAsset from "../../public/dona-avatar-circle.webp"
+import donaAvatarCircle2xAsset from "../../public/dona-avatar-circle@2x.webp"
+
+function bundledAssetSrc(asset: string | { src: string }): string {
+  return typeof asset === "string" ? asset : asset.src
+}
 
 /** Bundled + public path — works even when proxy skipped static files before fix. */
-export const DONA_AVATAR_CIRCLE_SRC =
-  typeof donaAvatarCircleAsset === "string"
-    ? donaAvatarCircleAsset
-    : donaAvatarCircleAsset.src
+export const DONA_AVATAR_CIRCLE_SRC = bundledAssetSrc(donaAvatarCircleAsset)
+export const DONA_AVATAR_CIRCLE_2X_SRC = bundledAssetSrc(donaAvatarCircle2xAsset)
+export const DONA_AVATAR_CIRCLE_SRCSET = `${DONA_AVATAR_CIRCLE_SRC} 1x, ${DONA_AVATAR_CIRCLE_2X_SRC} 2x`
 
 type DonaAvatarImageProps = {
   className?: string
@@ -43,6 +47,7 @@ export function DonaAvatarImage({
     // eslint-disable-next-line @next/next/no-img-element -- bundled static asset + onError fallback
     <img
       src={DONA_AVATAR_CIRCLE_SRC}
+      srcSet={DONA_AVATAR_CIRCLE_SRCSET}
       alt={alt}
       loading={loading}
       decoding="async"

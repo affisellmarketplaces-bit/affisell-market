@@ -86,6 +86,7 @@ async function main() {
       ["dona-avatar@2x.webp", 512],
       ["dona-avatar-hd.webp", 1024],
       ["dona-avatar-circle.webp", 256],
+      ["dona-avatar-circle@2x.webp", 512],
     ]) {
       await writePlaceholder(path.join(publicDir, name), size, "D")
     }
@@ -99,6 +100,7 @@ async function main() {
     writeSquareWebp(source, 512, path.join(publicDir, "dona-avatar@2x.webp")),
     writeSquareWebp(source, 1024, path.join(publicDir, "dona-avatar-hd.webp")),
     writeCircleWebp(source, 256, path.join(publicDir, "dona-avatar-circle.webp")),
+    writeCircleWebp(source, 512, path.join(publicDir, "dona-avatar-circle@2x.webp")),
   ])
 
   console.log("[dona-avatar]", { result: "ok" })
