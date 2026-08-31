@@ -1657,6 +1657,7 @@
       "subtitle": "Browse by department",
       "genealogyHint": "Full Google tree — expand any branch",
       "expandBranch": "Expand branch",
+      "collapseBranch": "Collapse branch",
       "allCatalog": "All Catalog",
       "offlineHint": "Offline taxonomy — connect DB for live counts",
       "unavailable": "Categories unavailable",

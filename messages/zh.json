@@ -1657,6 +1657,7 @@
       "subtitle": "按部门浏览",
       "genealogyHint": "全 Google 树 — 展开任何分支",
       "expandBranch": "展开分支",
+      "collapseBranch": "收起分支",
       "allCatalog": "所有目录",
       "offlineHint": "离线分类 — 连接数据库获取实时统计",
       "unavailable": "分类不可用",

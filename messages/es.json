@@ -1657,6 +1657,7 @@
       "subtitle": "Navegar por departamento",
       "genealogyHint": "Arbol de Google completo — expandir cualquier rama",
       "expandBranch": "Expandir rama",
+      "collapseBranch": "Contraer rama",
       "allCatalog": "Todo el Catálogo",
       "offlineHint": "Taxonomía offline — conectar DB para contar en vivo",
       "unavailable": "Categorías no disponibles",

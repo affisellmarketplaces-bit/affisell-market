@@ -1657,6 +1657,7 @@
       "subtitle": "Parcourir par rayon",
       "genealogyHint": "Arbre Google complet — développez chaque branche",
       "expandBranch": "Développer la branche",
+      "collapseBranch": "Replier la branche",
       "allCatalog": "Tout le catalogue",
       "offlineHint": "Taxonomie hors ligne — connectez la base pour les compteurs",
       "unavailable": "Catégories indisponibles",

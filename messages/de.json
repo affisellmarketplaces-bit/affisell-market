@@ -1657,6 +1657,7 @@
       "subtitle": "Durchsuchen nach Abteilung",
       "genealogyHint": "Vollständiger Google-Baum — erweitern Sie jeden Zweig",
       "expandBranch": "Zweig erweitern",
+      "collapseBranch": "Zweig einklappen",
       "allCatalog": "Gesamtkatalog",
       "offlineHint": "Offline-Taxonomie — verbinden Sie die Datenbank für Live-Zählungen",
       "unavailable": "Kategorien nicht verfügbar",

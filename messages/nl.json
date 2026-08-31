@@ -1657,6 +1657,7 @@
       "subtitle": "Door afdeling browsen",
       "genealogyHint": "Volledige Google boom — elke tak uitvouwen",
       "expandBranch": "Tak uitvouwen",
+      "collapseBranch": "Tak inklappen",
       "allCatalog": "Alles in het katalogus",
       "offlineHint": "Offline taxonomie — verbinding met DB voor live tellen",
       "unavailable": "Categorieën niet beschikbaar",

@@ -1657,6 +1657,7 @@
       "subtitle": "Naviga per dipartimento",
       "genealogyHint": "Albero Google completo — espandi qualsiasi ramo",
       "expandBranch": "Espandi ramo",
+      "collapseBranch": "Comprimi ramo",
       "allCatalog": "Tutto il catalogo",
       "offlineHint": "Taxonomia offline — connetti DB per conti vivi",
       "unavailable": "Categorie non disponibili",
