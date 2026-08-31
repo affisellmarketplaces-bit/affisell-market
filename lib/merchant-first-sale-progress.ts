@@ -3,7 +3,10 @@ import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-
 import { affiliateListingsWhere, supplierDraftProductsWhere, supplierPublishedProductsWhere } from "@/lib/merchant-tenant-scope"
 import { prisma } from "@/lib/prisma"
 
-export type MerchantOnboardingStepId = "kyc" | "connect" | "create" | "publish" | "share"
+export type SupplierOnboardingStepId = "kyc" | "create" | "publish" | "share"
+export type AffiliateOnboardingStepId = SupplierOnboardingStepId | "connect"
+/** All onboarding step ids (affiliate includes Connect bank setup). */
+export type MerchantOnboardingStepId = AffiliateOnboardingStepId
 
 export type MerchantOnboardingStep = {
   id: MerchantOnboardingStepId

@@ -9,21 +9,21 @@ import {
   missionControlPanel,
 } from "@/components/supplier/mission-control/mission-control-affisell-shell"
 import { buttonVariants } from "@/components/ui/button"
-import type { MerchantFirstSaleProgress, MerchantOnboardingStepId } from "@/lib/merchant-first-sale-progress"
+import type { MerchantFirstSaleProgress, SupplierOnboardingStepId } from "@/lib/merchant-first-sale-progress"
 import { cn } from "@/lib/utils"
 
 type Props = {
   progress: MerchantFirstSaleProgress
 }
 
-const stepIcons: Record<MerchantOnboardingStepId, typeof Package> = {
+const stepIcons: Record<SupplierOnboardingStepId, typeof Package> = {
   kyc: ShieldCheck,
   create: Package,
   publish: Store,
   share: Share2,
 }
 
-const stepLabelKeys: Record<MerchantOnboardingStepId, string> = {
+const stepLabelKeys: Record<SupplierOnboardingStepId, string> = {
   kyc: "stepKyc",
   create: "stepCreate",
   publish: "stepPublish",
@@ -51,6 +51,7 @@ export async function SupplierOnboardingChecklist({ progress }: Props) {
       </p>
       <ol className="mt-5 space-y-3">
         {progress.steps.map((step, index) => {
+          if (step.id === "connect") return null
           const Icon = stepIcons[step.id]
           const isNext = progress.nextStepId === step.id
           const labelKey = stepLabelKeys[step.id]
