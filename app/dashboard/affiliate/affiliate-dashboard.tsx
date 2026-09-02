@@ -50,15 +50,10 @@ import {
   ListingBuilderModal,
   type SerializedListing,
 } from "@/components/affiliate/listing-builder-modal"
-import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
 import {
-  optimisticAffiliateListingRow,
-  patchCatalogProductListing,
-  publishBlockedToast,
-  quickAddResultToast,
-  requestPublishAffiliateListing,
-  requestQuickAddAffiliateListing,
-} from "@/lib/affiliate-catalog-quick-add-client"
+  resolveCatalogListingState,
+} from "@/lib/affiliate-catalog-listing-state"
+import { publishBlockedToast } from "@/lib/affiliate-catalog-quick-add-client"
 import {
   buildAffiliateCatalogCardEconomicsFromProduct,
   estimateTotalPartnerGainCents,
@@ -128,8 +123,9 @@ function SortableStoreCard(props: {
   onSelect: () => void
   onToggleList: () => void
   onToggleAuction: () => void
+  onEditListing: () => void
 }) {
-  const { listing, selected, storeSlug, storeName, onSelect, onToggleList, onToggleAuction } = props
+  const { listing, selected, storeSlug, storeName, onSelect, onToggleList, onToggleAuction, onEditListing } = props
   const p = listing.product
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -173,6 +169,11 @@ function SortableStoreCard(props: {
         {listing.isFeatured ? (
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900 dark:bg-amber-950/70 dark:text-amber-200">
             Featured
+          </span>
+        ) : null}
+        {!listing.isListed ? (
+          <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-900 dark:bg-violet-950/70 dark:text-violet-200">
+            Draft
           </span>
         ) : null}
         {listing.marginReviewNeeded ? (
@@ -251,12 +252,14 @@ function SortableStoreCard(props: {
             variant="compact"
             className="w-full"
           />
-          <Link
-            href={`/dashboard/affiliate/products/${listing.id}/edit`}
+          <button
+            type="button"
+            onClick={onEditListing}
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
           >
-            <Pencil className="h-4 w-4" aria-hidden /> Edit
-          </Link>
+            <Pencil className="h-4 w-4" aria-hidden />
+            {listing.isListed ? "Edit listing" : "Set price & publish"}
+          </button>
         </div>
       </div>
     </article>
@@ -294,8 +297,6 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
   const [modalProduct, setModalProduct] = useState<CatalogProduct | null>(null)
   const [modalListing, setModalListing] = useState<SerializedListing | null>(null)
   const [releasingListingId, setReleasingListingId] = useState<string | null>(null)
-  const [addingProductId, setAddingProductId] = useState<string | null>(null)
-  const [publishingListingId, setPublishingListingId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -530,90 +531,6 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
     }
   }
 
-  async function publishListing(productId: string, listingId: string) {
-    if (publishingListingId === listingId) return
-    setPublishingListingId(listingId)
-    try {
-      const result = await requestPublishAffiliateListing(listingId)
-      if (!result.isListed) {
-        setToast(publishBlockedToast(result.publishBlocked ?? "pending", "en"))
-        return
-      }
-      setCatalog((prev) =>
-        patchCatalogProductListing(prev, productId, {
-          id: listingId,
-          isListed: true,
-          sellingPriceCents:
-            catalog.find((x) => x.id === productId)?.affiliateProducts?.[0]?.sellingPriceCents ?? 0,
-          clicks: 0,
-          conversions: 0,
-        })
-      )
-      setListings((prev) =>
-        prev.map((l) => (l.id === listingId ? { ...l, isListed: true } : l)).sort(sortAffiliateListingByPosition)
-      )
-      setToast("Live on your storefront!")
-    } catch (e) {
-      setToast(e instanceof Error ? e.message : "Could not publish listing")
-    } finally {
-      setPublishingListingId(null)
-    }
-  }
-
-  async function quickAddToStore(p: CatalogProduct) {
-    if (addingProductId === p.id) return
-    const prior = catalog.find((x) => x.id === p.id)?.affiliateProducts ?? []
-    const optimisticId = `optimistic-${p.id}`
-    setAddingProductId(p.id)
-    setCatalog((prev) =>
-      patchCatalogProductListing(prev, p.id, optimisticAffiliateListingRow(p, optimisticId))
-    )
-
-    try {
-      const row = await requestQuickAddAffiliateListing(p.id)
-      setCatalog((prev) =>
-        patchCatalogProductListing(prev, p.id, {
-          id: row.id,
-          isListed: row.isListed,
-          sellingPriceCents: row.sellingPriceCents,
-          clicks: 0,
-          conversions: 0,
-        })
-      )
-      if (row.created) {
-        setListings((prev) => {
-          if (prev.some((l) => l.productId === p.id)) return prev
-          const position = prev.reduce((max, l) => Math.max(max, l.position ?? 0), -1) + 1
-          return [
-            ...prev,
-            {
-              id: row.id,
-              productId: p.id,
-              sellingPriceCents: row.sellingPriceCents,
-              customImages: [],
-              collections: [],
-              isListed: row.isListed,
-              clicks: 0,
-              conversions: 0,
-              position,
-              product: p,
-            },
-          ].sort(sortAffiliateListingByPosition)
-        })
-      } else {
-        setListings((prev) =>
-          prev.map((l) => (l.id === row.id ? { ...l, isListed: row.isListed } : l)).sort(sortAffiliateListingByPosition)
-        )
-      }
-      setToast(quickAddResultToast(row, "en"))
-    } catch (e) {
-      setCatalog((prev) => prev.map((item) => (item.id === p.id ? { ...item, affiliateProducts: prior } : item)))
-      setToast(e instanceof Error ? e.message : "Could not add product")
-    } finally {
-      setAddingProductId(null)
-    }
-  }
-
   async function openCreate(p: CatalogProduct) {
     const full = await loadProductForModal(p.id)
     if (!full) return
@@ -711,7 +628,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
     })
 
   const listingState = resolveCatalogListingState(p.affiliateProducts)
-  void (listingState.kind === "none" ? quickAddToStore(p) : openEditModal(pid))
+  void (listingState.kind === "none" ? openCreate(p) : openEditModal(pid))
 
     router.replace("/dashboard/affiliate", { scroll: false })
     // One-shot deep link — handlers intentionally omitted from deps
@@ -722,8 +639,9 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
     Boolean(l.product)
   )
   const storefrontListings = listingsWithProduct.filter((l) => l.isListed)
+  const draftListings = listingsWithProduct.filter((l) => !l.isListed)
   const listedLiveCount = storefrontListings.length
-  const ids = storefrontListings.map((l) => l.id)
+  const ids = listingsWithProduct.map((l) => l.id)
 
   useEffect(() => {
     if (editListingDeepLinkConsumed.current || bootstrapLoading) return
@@ -767,11 +685,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
     })
 
     const listingState = resolveCatalogListingState(preferredProduct.affiliateProducts)
-    void (
-      listingState.kind === "none"
-        ? quickAddToStore(preferredProduct)
-        : openEditModal(preferredProduct.id)
-    )
+    void (listingState.kind === "none" ? openCreate(preferredProduct) : openEditModal(preferredProduct.id))
 
     router.replace("/dashboard/affiliate", { scroll: false })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot openCreate deep link
@@ -1304,16 +1218,11 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                   <DiscoverListingActions
                     state={listingState}
                     locale="en"
-                    adding={addingProductId === p.id}
-                    publishing={
-                      listingState.kind !== "none" && publishingListingId === listingState.listingId
-                    }
                     releasing={
                       listingState.kind !== "none" && releasingListingId === listingState.listingId
                     }
-                    onAdd={() => void quickAddToStore(p)}
+                    onAdd={() => void openCreate(p)}
                     onEdit={(listingId) => openEditByListingId(p.id, listingId)}
-                    onPublish={(listingId) => void publishListing(p.id, listingId)}
                     onRelease={releaseDiscoverListing}
                   />
                 </div>
@@ -1353,9 +1262,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
           <div className="mb-6 flex flex-wrap items-center gap-3">
             <p className="text-sm font-medium text-gray-700 dark:text-zinc-200">
               {storefrontListings.length} live on storefront
-              {listingsWithProduct.length > storefrontListings.length
-                ? ` · ${listingsWithProduct.length - storefrontListings.length} hidden`
-                : ""}
+              {draftListings.length > 0 ? ` · ${draftListings.length} draft${draftListings.length > 1 ? "s" : ""} waiting` : ""}
             </p>
             <button
               type="button"
@@ -1375,7 +1282,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
             </button>
           </div>
 
-          {!storefrontListings.length ? (
+          {!listingsWithProduct.length ? (
             <p className="rounded-2xl border border-dashed border-gray-200 bg-white p-10 text-center text-gray-500 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300">
               No listings yet — add SKUs from <strong className="font-medium text-gray-700 dark:text-zinc-100">Discover</strong>.
             </p>
@@ -1383,7 +1290,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
               <SortableContext items={ids} strategy={rectSortingStrategy}>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {[...storefrontListings].sort(sortAffiliateListingByPosition).map((l) => (
+                  {[...listingsWithProduct].sort(sortAffiliateListingByPosition).map((l) => (
                       <SortableStoreCard
                         key={l.id}
                         listing={l}
@@ -1400,6 +1307,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                         }
                         onToggleList={() => void toggleList(l.id, l.isListed)}
                         onToggleAuction={() => void toggleAuction(l.id, Boolean(l.auctionEligible))}
+                        onEditListing={() => openEditByListingId(l.productId, l.id)}
                       />
                     ))}
                 </div>
@@ -1419,7 +1327,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
             setModalListing(null)
           }}
           onSaved={() => {
-            setToast("Saved.")
+            setToast("Listing saved.")
             void refreshDashboardData()
           }}
         />

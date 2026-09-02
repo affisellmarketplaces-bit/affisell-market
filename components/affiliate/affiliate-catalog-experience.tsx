@@ -17,7 +17,7 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useTranslations, useLocale } from "next-intl"
+import { useTranslations } from "next-intl"
 
 import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import { AffiliateCatalogHighlights } from "@/components/affiliate/affiliate-catalog-highlights"
@@ -50,16 +50,9 @@ import {
   type CatalogVitrineFilter,
   type CatalogAddedWindow,
 } from "@/lib/affiliate-catalog-filters-shared"
-import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
 import {
-  optimisticAffiliateListingRow,
-  patchCatalogProductListing,
-  publishBlockedToast,
-  quickAddResultToast,
-  requestPublishAffiliateListing,
-  requestQuickAddAffiliateListing,
-} from "@/lib/affiliate-catalog-quick-add-client"
-import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
+  resolveCatalogListingState,
+} from "@/lib/affiliate-catalog-listing-state"
 import {
   AFFILIATE_CATALOG_NICHES,
   type AffiliateCatalogHighlights as HighlightsData,
@@ -161,8 +154,6 @@ export function AffiliateCatalogExperience({
   const tOpportunity = useTranslations("affiliate.opportunityPulse")
   const tCatalog = useTranslations("affiliate.catalogEconomics")
   const tFilters = useTranslations("affiliate.catalogFilters")
-  const localeFromContext = useLocale()
-  const copyLocale = resolveBinaryCopyLocale(localeFromContext)
   const router = useRouter()
   const searchParams = useSearchParams()
   const categoryId = searchParams.get("category")
@@ -182,8 +173,6 @@ export function AffiliateCatalogExperience({
   const [modalProduct, setModalProduct] = useState<CatalogProduct | null>(null)
   const [modalListing, setModalListing] = useState<SerializedListing | null>(null)
   const [releasingListingId, setReleasingListingId] = useState<string | null>(null)
-  const [addingProductId, setAddingProductId] = useState<string | null>(null)
-  const [publishingListingId, setPublishingListingId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<number | null>(null)
   const productDeepLinkConsumed = useRef(false)
@@ -357,66 +346,6 @@ export function AffiliateCatalogExperience({
     }
   }
 
-  async function publishListing(productId: string, listingId: string) {
-    if (publishingListingId === listingId) return
-    setPublishingListingId(listingId)
-    try {
-      const result = await requestPublishAffiliateListing(listingId)
-      if (!result.isListed) {
-        showToast(publishBlockedToast(result.publishBlocked ?? "pending", copyLocale))
-        return
-      }
-      setProducts((prev) =>
-        patchCatalogProductListing(prev, productId, {
-          id: listingId,
-          isListed: true,
-          sellingPriceCents:
-            products.find((x) => x.id === productId)?.affiliateProducts?.[0]?.sellingPriceCents ?? 0,
-          clicks: 0,
-          conversions: 0,
-        })
-      )
-      showToast(copyLocale === "fr" ? "En ligne sur votre vitrine !" : "Live on your storefront!")
-    } catch (e) {
-      showToast(e instanceof Error ? e.message : "Impossible de publier la fiche")
-    } finally {
-      setPublishingListingId(null)
-    }
-  }
-
-  async function quickAddToStore(productId: string) {
-    if (addingProductId === productId) return
-    const p = products.find((x) => x.id === productId)
-    if (!p) return
-    const prior = p.affiliateProducts ?? []
-    const optimisticId = `optimistic-${productId}`
-    setAddingProductId(productId)
-    setProducts((prev) =>
-      patchCatalogProductListing(prev, productId, optimisticAffiliateListingRow(p, optimisticId))
-    )
-
-    try {
-      const row = await requestQuickAddAffiliateListing(productId)
-      setProducts((prev) =>
-        patchCatalogProductListing(prev, productId, {
-          id: row.id,
-          isListed: row.isListed,
-          sellingPriceCents: row.sellingPriceCents,
-          clicks: 0,
-          conversions: 0,
-        })
-      )
-      showToast(quickAddResultToast(row, copyLocale))
-    } catch (e) {
-      setProducts((prev) =>
-        prev.map((item) => (item.id === productId ? { ...item, affiliateProducts: prior } : item))
-      )
-      showToast(e instanceof Error ? e.message : "Impossible d'ajouter le produit")
-    } finally {
-      setAddingProductId(null)
-    }
-  }
-
   async function openCreate(productId: string) {
     const full = await loadProductForModal(productId)
     if (!full) return
@@ -474,9 +403,9 @@ export function AffiliateCatalogExperience({
   const onPickProduct = useCallback(
     (productId: string, listingId: string | null) => {
       if (listingId) void openEdit(productId, listingId)
-      else void quickAddToStore(productId)
+      else void openCreate(productId)
     },
-    [openEdit, quickAddToStore]
+    [openEdit, openCreate]
   )
 
   useEffect(() => {
@@ -488,7 +417,7 @@ export function AffiliateCatalogExperience({
     productDeepLinkConsumed.current = true
     const listingState = resolveCatalogListingState(row.affiliateProducts)
     const listingId = listingState.kind !== "none" ? listingState.listingId : null
-    void (listingId ? openEdit(pid, listingId) : quickAddToStore(pid))
+    void (listingId ? openEdit(pid, listingId) : openCreate(pid))
     const params = new URLSearchParams(searchParams.toString())
     params.delete("productId")
     const s = params.toString()
@@ -947,13 +876,8 @@ export function AffiliateCatalogExperience({
                             releasing={
                               listingState.kind !== "none" && releasingListingId === listingState.listingId
                             }
-                            onAdd={() => void quickAddToStore(p.id)}
-                            adding={addingProductId === p.id}
-                            publishing={
-                              listingState.kind !== "none" && publishingListingId === listingState.listingId
-                            }
+                            onAdd={() => void openCreate(p.id)}
                             onEdit={(id) => void openEdit(p.id, id)}
-                            onPublish={(id) => void publishListing(p.id, id)}
                             onRelease={releaseFromStorefront}
                           />
                         </div>

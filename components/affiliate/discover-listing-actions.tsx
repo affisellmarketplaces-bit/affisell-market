@@ -18,8 +18,6 @@ type Props = {
   adding?: boolean
   onAdd: () => void
   onEdit: (listingId: string) => void
-  onPublish?: (listingId: string) => void | Promise<void>
-  publishing?: boolean
   onRelease: (listingId: string) => void | Promise<void>
   className?: string
 }
@@ -27,9 +25,9 @@ type Props = {
 const copy = {
   fr: {
     add: "Ajouter à ma vitrine",
-    launch: "Mettre en vitrine",
+    launch: "Configurer & publier",
     edit: "Modifier ma fiche",
-    relist: "Remettre en vitrine",
+    relist: "Reconfigurer & republier",
     release: "Libérer du flux",
     releaseTitle: "Libérer ce SKU ?",
     releaseBody:
@@ -43,9 +41,9 @@ const copy = {
   },
   en: {
     add: "Add to my store",
-    launch: "Publish to storefront",
+    launch: "Set price & publish",
     edit: "Edit listing",
-    relist: "Add back to storefront",
+    relist: "Reconfigure & republish",
     release: "Release from store",
     releaseTitle: "Release this SKU?",
     releaseBody:
@@ -66,8 +64,6 @@ export function DiscoverListingActions({
   adding = false,
   onAdd,
   onEdit,
-  onPublish,
-  publishing = false,
   onRelease,
   className,
 }: Props) {
@@ -123,10 +119,9 @@ export function DiscoverListingActions({
               type="button"
               variant="bentoAccent"
               className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500"
-              disabled={publishing}
-              onClick={() => void (onPublish ? onPublish(state.listingId) : onEdit(state.listingId))}
+              onClick={() => onEdit(state.listingId)}
             >
-              {publishing ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Rocket className="size-4" aria-hidden />}
+              <Rocket className="size-4" aria-hidden />
               {t.launch}
             </Button>
           </>
@@ -142,10 +137,9 @@ export function DiscoverListingActions({
               type="button"
               variant="bentoAccent"
               className="w-full"
-              disabled={publishing}
-              onClick={() => void (onPublish ? onPublish(state.listingId) : onEdit(state.listingId))}
+              onClick={() => onEdit(state.listingId)}
             >
-              {publishing ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Sparkles className="size-4" aria-hidden />}
+              <Sparkles className="size-4" aria-hidden />
               {t.relist}
             </Button>
           </>

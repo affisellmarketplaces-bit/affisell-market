@@ -1,8 +1,6 @@
 import { isDisplayableListingImageUrl } from "@/lib/affiliate-listing-display"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { suggestedSellingPriceCents } from "@/lib/affiliate-catalog-margin-display"
-import { publishAffiliateListingIfAllowed } from "@/lib/affiliate-publish-listing.server"
-import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
 
 export type QuickAddAffiliateListingInput = {
@@ -15,8 +13,6 @@ export type QuickAddAffiliateListingResult =
       ok: true
       listing: { id: string; productId: string; sellingPriceCents: number; isListed: boolean }
       created: boolean
-      published: boolean
-      publishBlocked?: "no_profile" | "pending" | "rejected" | "needs_info"
     }
   | { ok: false; status: number; error: string }
 
@@ -29,7 +25,7 @@ function listingImagesFromProduct(images: unknown): string[] {
     .slice(0, 20)
 }
 
-/** Idempotent add — publishes live immediately when KYC allows. */
+/** Idempotent draft listing — public only after Listing Builder publish. */
 export async function quickAddAffiliateListing(
   input: QuickAddAffiliateListingInput
 ): Promise<QuickAddAffiliateListingResult> {
@@ -42,46 +38,9 @@ export async function quickAddAffiliateListing(
     where: { affiliateId_productId: { affiliateId: input.affiliateId, productId } },
     select: { id: true, productId: true, sellingPriceCents: true, isListed: true },
   })
-
   if (existing) {
-    if (existing.isListed) {
-      return {
-        ok: true,
-        listing: existing,
-        created: false,
-        published: true,
-      }
-    }
-
-    const publish = await publishAffiliateListingIfAllowed({
-      affiliateId: input.affiliateId,
-      listingId: existing.id,
-    })
-
-    if (publish.ok) {
-      return {
-        ok: true,
-        listing: { ...existing, isListed: true },
-        created: false,
-        published: true,
-      }
-    }
-
-    if (publish.reason === "kyc") {
-      return {
-        ok: true,
-        listing: existing,
-        created: false,
-        published: false,
-        publishBlocked: publish.gate.reason,
-      }
-    }
-
-    return { ok: false, status: 404, error: "Listing not found" }
+    return { ok: true, listing: existing, created: false }
   }
-
-  const gate = await merchantVerificationGate(input.affiliateId)
-  const canPublish = gate.allowed
 
   const [product, maxPos] = await Promise.all([
     prisma.product.findFirst({
@@ -109,7 +68,7 @@ export async function quickAddAffiliateListing(
       sellingPriceCents,
       marginCents,
       customImages,
-      isListed: canPublish,
+      isListed: false,
       isFeatured: false,
       collections: [],
       buyerRewardKind: "NONE",
@@ -124,15 +83,8 @@ export async function quickAddAffiliateListing(
     productId: product.id,
     listingId: row.id,
     sellingPriceCents,
-    isListed: row.isListed,
-    result: "created",
+    result: "draft_created",
   })
 
-  return {
-    ok: true,
-    listing: row,
-    created: true,
-    published: row.isListed,
-    publishBlocked: canPublish ? undefined : gate.reason,
-  }
+  return { ok: true, listing: row, created: true }
 }
