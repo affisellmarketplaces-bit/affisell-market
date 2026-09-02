@@ -118,25 +118,23 @@ function sortAffiliateListingByPosition(a: Listing, b: Listing) {
 function SortableStoreCard(props: {
   listing: Listing
   selected: boolean
-  readyToPublishLabel: string
-  setPriceAndPublishLabel: string
-  editListingLabel: string
+  storeSlug: string | null
+  labels: {
+    inStorefront: string
+    liveCheckout: string
+    checkoutPaused: string
+    visibilityToggle: string
+    visibilityOnHint: string
+    visibilityOffHint: string
+    manageListing: string
+    previewListing: string
+  }
   onSelect: () => void
   onToggleList: () => void
   onToggleAuction: () => void
   onEditListing: () => void
 }) {
-  const {
-    listing,
-    selected,
-    readyToPublishLabel,
-    setPriceAndPublishLabel,
-    editListingLabel,
-    onSelect,
-    onToggleList,
-    onToggleAuction,
-    onEditListing,
-  } = props
+  const { listing, selected, storeSlug, labels, onSelect, onToggleList, onToggleAuction, onEditListing } = props
   const p = listing.product
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -163,15 +161,41 @@ function SortableStoreCard(props: {
     opacity: isDragging ? 0.9 : undefined,
   }
 
+  const previewHref = affiliateListingPreviewHref({
+    storeSlug,
+    listingId: listing.id,
+    productId: listing.productId,
+  })
+
   return (
     <article
       ref={setNodeRef}
       style={style}
-      className={`relative flex flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white/90 shadow-sm backdrop-blur-sm transition dark:border-zinc-800 dark:bg-zinc-950/80 ${
+      className={cn(
+        "relative flex flex-col overflow-hidden rounded-3xl border bg-white/90 shadow-sm backdrop-blur-sm transition dark:bg-zinc-950/80",
+        listing.isListed
+          ? "border-emerald-200/90 ring-1 ring-emerald-200/60 dark:border-emerald-900/50 dark:ring-emerald-900/40"
+          : "border-gray-100 dark:border-zinc-800",
         selected ? "ring-2 ring-[#10B981]" : "hover:shadow-md"
-      }`}
+      )}
     >
       <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1">
+        <span className="rounded-full bg-zinc-900/90 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm dark:bg-zinc-100 dark:text-zinc-900">
+          {labels.inStorefront}
+        </span>
+        {listing.isListed ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/70 dark:text-emerald-200">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-600" />
+            </span>
+            {labels.liveCheckout}
+          </span>
+        ) : (
+          <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+            {labels.checkoutPaused}
+          </span>
+        )}
         {(listing.product?.deliveryMax ?? 99) <= 3 ? (
           <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/70 dark:text-emerald-200">
             Fast Shipping
@@ -182,15 +206,6 @@ function SortableStoreCard(props: {
             Featured
           </span>
         ) : null}
-        {!listing.isListed ? (
-          <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-900 dark:bg-violet-950/70 dark:text-violet-200">
-            {readyToPublishLabel}
-          </span>
-        ) : (
-          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/70 dark:text-emerald-200">
-            Live
-          </span>
-        )}
         {listing.marginReviewNeeded ? (
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-950 dark:bg-amber-950/70 dark:text-amber-200">
             Marge à revoir
@@ -245,10 +260,34 @@ function SortableStoreCard(props: {
         <p className="text-xs text-gray-500 dark:text-zinc-300">
           {listing.clicks ?? 0} clicks · {listing.conversions ?? 0} sales
         </p>
-        <label className="mt-2 flex items-center gap-2 text-xs text-gray-600 dark:text-zinc-300">
-          <input type="checkbox" checked={listing.isListed} onChange={() => void onToggleList()} className="accent-emerald-600 dark:accent-emerald-400" />
-          Listed
-        </label>
+        <div className="mt-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/80 px-3 py-2.5 dark:border-zinc-700 dark:bg-zinc-900/60">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-100">{labels.visibilityToggle}</p>
+              <p className="mt-0.5 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
+                {listing.isListed ? labels.visibilityOnHint : labels.visibilityOffHint}
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={listing.isListed}
+              aria-label={labels.visibilityToggle}
+              onClick={() => void onToggleList()}
+              className={cn(
+                "relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40",
+                listing.isListed ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-600"
+              )}
+            >
+              <span
+                className={cn(
+                  "inline-block h-6 w-6 transform rounded-full bg-white shadow transition",
+                  listing.isListed ? "translate-x-7" : "translate-x-1"
+                )}
+              />
+            </button>
+          </div>
+        </div>
         <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-zinc-300">
           <input
             type="checkbox"
@@ -259,19 +298,24 @@ function SortableStoreCard(props: {
           />
           Auction Arena
         </label>
-        <div className="mt-3 flex flex-col gap-2">
+        <div className="mt-1 flex flex-col gap-2 sm:flex-row">
           <button
             type="button"
             onClick={onEditListing}
-            className={
-              listing.isListed
-                ? "inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
-                : "inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 via-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:from-violet-500 hover:to-indigo-500"
-            }
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:from-zinc-800 hover:to-zinc-700 dark:from-zinc-100 dark:via-white dark:to-zinc-100 dark:text-zinc-900"
           >
             <Pencil className="h-4 w-4" aria-hidden />
-            {listing.isListed ? editListingLabel : setPriceAndPublishLabel}
+            {labels.manageListing}
           </button>
+          <Link
+            href={previewHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+          >
+            <ExternalLink className="h-4 w-4" aria-hidden />
+            {labels.previewListing}
+          </Link>
         </div>
       </div>
     </article>
@@ -932,7 +976,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                 className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
                 label={tHub("yourListings")}
                 value={listingsWithProduct.length}
-                hint="Curated resale rows in builder & store"
+                hint="SKUs curated in your storefront — toggle checkout visibility per row"
               />
               <BentoStat
                 className="border-0 bg-transparent p-0 shadow-none backdrop-blur-none dark:bg-transparent"
@@ -1253,11 +1297,12 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                   Storefront pulse
                 </p>
                 <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-200">
-                  Shoppers interacted with{" "}
-                  <strong className="font-semibold text-zinc-900 dark:text-white">{insightClicks}</strong> listing views
-                  and closed{" "}
-                  <strong className="font-semibold text-teal-800 dark:text-teal-200">{insightSales}</strong> conversions
-                  on your live SKU rows (all time shown here).
+                  {tHub("storefrontPulseBody", {
+                    clicks: insightClicks,
+                    sales: insightSales,
+                    live: storefrontListings.length,
+                    total: listingsWithProduct.length,
+                  })}
                 </p>
               </div>
               <div className="mt-4 flex shrink-0 flex-wrap gap-2 sm:mt-0">
@@ -1272,12 +1317,17 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
             </div>
           ) : null}
           <div className="mb-6 flex flex-wrap items-center gap-3">
-            <p className="text-sm font-medium text-gray-700 dark:text-zinc-200">
-              {tHub("storeTabStatusLive", { live: storefrontListings.length })}
-              {draftListings.length > 0
-                ? ` · ${tHub("storeTabStatusReady", { count: draftListings.length })}`
-                : ""}
-            </p>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-gray-900 dark:text-zinc-50">
+                {tHub("storeTabSummary", { total: listingsWithProduct.length })}
+              </p>
+              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                {tHub("storeTabVisibility", {
+                  live: storefrontListings.length,
+                  hidden: draftListings.length,
+                })}
+              </p>
+            </div>
             <button
               type="button"
               disabled={selected.size === 0}
@@ -1308,9 +1358,17 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                       <SortableStoreCard
                         key={l.id}
                         listing={l}
-                        readyToPublishLabel={tHub("readyToPublishBadge")}
-                        setPriceAndPublishLabel={tHub("setPriceAndPublish")}
-                        editListingLabel={tHub("editListing")}
+                        storeSlug={storeSlug}
+                        labels={{
+                          inStorefront: tHub("inStorefrontBadge"),
+                          liveCheckout: tHub("liveCheckoutBadge"),
+                          checkoutPaused: tHub("checkoutPausedBadge"),
+                          visibilityToggle: tHub("visibilityToggle"),
+                          visibilityOnHint: tHub("visibilityOnHint"),
+                          visibilityOffHint: tHub("visibilityOffHint"),
+                          manageListing: tHub("manageListing"),
+                          previewListing: tHub("previewListing"),
+                        }}
                         selected={selected.has(l.id)}
                         onSelect={() =>
                           setSelected((prev) => {
