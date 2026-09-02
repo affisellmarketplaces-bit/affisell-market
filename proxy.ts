@@ -652,6 +652,8 @@ export const config = {
     "/shop/:path*",
     "/shops",
     "/shops/:path*",
+    "/s",
+    "/s/:path*",
     "/marketplace",
     "/marketplace/:path*",
     "/store",

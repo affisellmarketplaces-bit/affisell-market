@@ -68,6 +68,25 @@ export function formatRelativeMinutesAgo(
   return locale === "fr" ? `il y a ${d} j` : `${d} d ago`
 }
 
+/** Show FOMO badge when avg margin is below 60% of top reseller margin. */
+export const MARGIN_LEAVE_TABLE_TOP_RATIO = 0.6
+
+export function shouldShowMarginLeaveOnTableTrigger(data: ProductSocialProofData): boolean {
+  if (data.topMarginCents <= 0 || data.avgMarginCents <= 0) return false
+  return data.avgMarginCents < data.topMarginCents * MARGIN_LEAVE_TABLE_TOP_RATIO
+}
+
+export function resolveMarginLeaveOnTableTrigger(
+  data: ProductSocialProofData
+): { leftOnTableEur: number; topMarginEur: number } | null {
+  if (!shouldShowMarginLeaveOnTableTrigger(data)) return null
+  const leftCents = data.topMarginCents - data.avgMarginCents
+  return {
+    leftOnTableEur: Math.round(leftCents / 100),
+    topMarginEur: Math.round(data.topMarginCents / 100),
+  }
+}
+
 export function formatLastSaleAgoLine(
   data: ProductSocialProofData,
   locale: "fr" | "en"

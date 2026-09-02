@@ -4,6 +4,8 @@ import { anonymizeDisplayName } from "@/lib/anonymize-display-name"
 import {
   formatLastSaleAgoLine,
   formatRelativeMinutesAgo,
+  resolveMarginLeaveOnTableTrigger,
+  shouldShowMarginLeaveOnTableTrigger,
   shouldShowProductCrossSocialProof,
 } from "@/lib/product-social-proof-shared"
 
@@ -63,5 +65,44 @@ describe("product-social-proof-shared", () => {
   it("formats relative minutes", () => {
     const recent = new Date(Date.now() - 5 * 60_000).toISOString()
     expect(formatRelativeMinutesAgo(recent, "en")).toBe("5 min ago")
+  })
+
+  it("triggers margin leave-on-table when avg is below 60% of top", () => {
+    const hot = {
+      activeResellersCount: 5,
+      avgMarginCents: 4000,
+      topMarginCents: 6700,
+      lastSaleAt: null,
+      lastSaleResellerLabel: null,
+    }
+    expect(shouldShowMarginLeaveOnTableTrigger(hot)).toBe(true)
+    expect(resolveMarginLeaveOnTableTrigger(hot)).toEqual({
+      leftOnTableEur: 27,
+      topMarginEur: 67,
+    })
+  })
+
+  it("skips margin leave-on-table when avg is healthy vs top", () => {
+    const ok = {
+      activeResellersCount: 5,
+      avgMarginCents: 4380,
+      topMarginCents: 6700,
+      lastSaleAt: null,
+      lastSaleResellerLabel: null,
+    }
+    expect(shouldShowMarginLeaveOnTableTrigger(ok)).toBe(false)
+    expect(resolveMarginLeaveOnTableTrigger(ok)).toBeNull()
+  })
+
+  it("formats leave-on-table amounts for seed demo SKU", () => {
+    const demo = {
+      activeResellersCount: 5,
+      avgMarginCents: 4380,
+      topMarginCents: 6700,
+      lastSaleAt: null,
+      lastSaleResellerLabel: null,
+    }
+    expect(Math.round((demo.topMarginCents - demo.avgMarginCents) / 100)).toBe(23)
+    expect(Math.round(demo.topMarginCents / 100)).toBe(67)
   })
 })

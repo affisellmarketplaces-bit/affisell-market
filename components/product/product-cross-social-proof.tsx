@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl"
 
 import {
   formatLastSaleAgoLine,
+  resolveMarginLeaveOnTableTrigger,
   shouldShowProductCrossSocialProof,
   type ProductSocialProofData,
 } from "@/lib/product-social-proof-shared"
@@ -75,6 +76,21 @@ export function ProductCrossSocialProof({
 
         {showMargins ? (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-zinc-700 dark:text-zinc-300">
+            {(() => {
+              const marginTrigger = resolveMarginLeaveOnTableTrigger(data)
+              if (!marginTrigger) return null
+              return (
+                <span
+                  title={t("marginLeaveTableTooltip", {
+                    left: marginTrigger.leftOnTableEur,
+                    top: marginTrigger.topMarginEur,
+                  })}
+                  className="inline-flex animate-pulse items-center gap-1 rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-orange-900 dark:text-orange-100"
+                >
+                  {t("marginLeaveTableBadge", { amount: marginTrigger.leftOnTableEur })}
+                </span>
+              )
+            })()}
             {data.avgMarginCents > 0 ? (
               <span className="inline-flex items-center gap-1 tabular-nums">
                 <TrendingUp className="size-3 text-emerald-600 dark:text-emerald-400" aria-hidden />
