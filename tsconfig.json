@@ -36,11 +36,6 @@
     "prisma/seed*.ts",
     "apps",
     "packages",
-    "medusa-backend",
-    "e2e",
-    "playwright-report",
-    "test-results",
-    "coverage",
-    ".next/cache"
+    "medusa-backend"
   ]
 }
