@@ -54,6 +54,9 @@ import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-stat
 import {
   optimisticAffiliateListingRow,
   patchCatalogProductListing,
+  publishBlockedToast,
+  quickAddResultToast,
+  requestPublishAffiliateListing,
   requestQuickAddAffiliateListing,
 } from "@/lib/affiliate-catalog-quick-add-client"
 import {
@@ -292,6 +295,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
   const [modalListing, setModalListing] = useState<SerializedListing | null>(null)
   const [releasingListingId, setReleasingListingId] = useState<string | null>(null)
   const [addingProductId, setAddingProductId] = useState<string | null>(null)
+  const [publishingListingId, setPublishingListingId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -418,12 +422,21 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
   )
 
   async function toggleList(listingId: string, cur: boolean) {
-    await fetch(`/api/affiliate/listings/${listingId}`, {
+    const res = await fetch(`/api/affiliate/listings/${listingId}`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isListed: !cur }),
     })
+    const data = (await res.json().catch(() => ({}))) as { error?: string; reason?: string }
+    if (!res.ok) {
+      if (data.error === "merchant_verification_pending") {
+        setToast(publishBlockedToast(data.reason as "no_profile" | "pending" | "rejected" | "needs_info" | null, "en"))
+      } else {
+        setToast(data.error ?? "Could not update listing visibility")
+      }
+      return
+    }
     setListings((prev) =>
       prev
         .map((l) =>
@@ -431,6 +444,8 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
         )
         .sort(sortAffiliateListingByPosition)
     )
+    if (!cur) setToast("Live on your storefront")
+    else setToast("Hidden from storefront (still in your account)")
   }
 
   async function toggleAuction(listingId: string, cur: boolean) {
@@ -515,6 +530,36 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
     }
   }
 
+  async function publishListing(productId: string, listingId: string) {
+    if (publishingListingId === listingId) return
+    setPublishingListingId(listingId)
+    try {
+      const result = await requestPublishAffiliateListing(listingId)
+      if (!result.isListed) {
+        setToast(publishBlockedToast(result.publishBlocked ?? "pending", "en"))
+        return
+      }
+      setCatalog((prev) =>
+        patchCatalogProductListing(prev, productId, {
+          id: listingId,
+          isListed: true,
+          sellingPriceCents:
+            catalog.find((x) => x.id === productId)?.affiliateProducts?.[0]?.sellingPriceCents ?? 0,
+          clicks: 0,
+          conversions: 0,
+        })
+      )
+      setListings((prev) =>
+        prev.map((l) => (l.id === listingId ? { ...l, isListed: true } : l)).sort(sortAffiliateListingByPosition)
+      )
+      setToast("Live on your storefront!")
+    } catch (e) {
+      setToast(e instanceof Error ? e.message : "Could not publish listing")
+    } finally {
+      setPublishingListingId(null)
+    }
+  }
+
   async function quickAddToStore(p: CatalogProduct) {
     if (addingProductId === p.id) return
     const prior = catalog.find((x) => x.id === p.id)?.affiliateProducts ?? []
@@ -529,7 +574,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
       setCatalog((prev) =>
         patchCatalogProductListing(prev, p.id, {
           id: row.id,
-          isListed: false,
+          isListed: row.isListed,
           sellingPriceCents: row.sellingPriceCents,
           clicks: 0,
           conversions: 0,
@@ -547,7 +592,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
               sellingPriceCents: row.sellingPriceCents,
               customImages: [],
               collections: [],
-              isListed: false,
+              isListed: row.isListed,
               clicks: 0,
               conversions: 0,
               position,
@@ -555,8 +600,12 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
             },
           ].sort(sortAffiliateListingByPosition)
         })
+      } else {
+        setListings((prev) =>
+          prev.map((l) => (l.id === row.id ? { ...l, isListed: row.isListed } : l)).sort(sortAffiliateListingByPosition)
+        )
       }
-      setToast(row.created ? "Added — ready to publish" : "Already in your store — ready to publish")
+      setToast(quickAddResultToast(row, "en"))
     } catch (e) {
       setCatalog((prev) => prev.map((item) => (item.id === p.id ? { ...item, affiliateProducts: prior } : item)))
       setToast(e instanceof Error ? e.message : "Could not add product")
@@ -1256,11 +1305,15 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                     state={listingState}
                     locale="en"
                     adding={addingProductId === p.id}
+                    publishing={
+                      listingState.kind !== "none" && publishingListingId === listingState.listingId
+                    }
                     releasing={
                       listingState.kind !== "none" && releasingListingId === listingState.listingId
                     }
                     onAdd={() => void quickAddToStore(p)}
                     onEdit={(listingId) => openEditByListingId(p.id, listingId)}
+                    onPublish={(listingId) => void publishListing(p.id, listingId)}
                     onRelease={releaseDiscoverListing}
                   />
                 </div>

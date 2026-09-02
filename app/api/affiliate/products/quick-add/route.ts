@@ -2,11 +2,12 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { quickAddAffiliateListing } from "@/lib/affiliate-quick-add-listing.server"
+import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-/** Lightning draft add — idempotent, no modal, ready for publish. */
+/** Lightning add — idempotent, auto-publishes when KYC allows. */
 export async function POST(request: Request) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -28,8 +29,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: result.error }, { status: result.status })
   }
 
+  if (result.published) {
+    await revalidateAffiliateShopfront(session.user.id)
+  }
+
   return NextResponse.json(
-    { ...result.listing, created: result.created },
+    {
+      ...result.listing,
+      created: result.created,
+      published: result.published,
+      publishBlocked: result.publishBlocked ?? null,
+    },
     { status: result.created ? 201 : 200 }
   )
 }

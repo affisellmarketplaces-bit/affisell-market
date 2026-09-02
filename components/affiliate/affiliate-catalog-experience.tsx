@@ -17,7 +17,7 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 
 import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import { AffiliateCatalogHighlights } from "@/components/affiliate/affiliate-catalog-highlights"
@@ -54,8 +54,12 @@ import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-stat
 import {
   optimisticAffiliateListingRow,
   patchCatalogProductListing,
+  publishBlockedToast,
+  quickAddResultToast,
+  requestPublishAffiliateListing,
   requestQuickAddAffiliateListing,
 } from "@/lib/affiliate-catalog-quick-add-client"
+import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 import {
   AFFILIATE_CATALOG_NICHES,
   type AffiliateCatalogHighlights as HighlightsData,
@@ -157,6 +161,8 @@ export function AffiliateCatalogExperience({
   const tOpportunity = useTranslations("affiliate.opportunityPulse")
   const tCatalog = useTranslations("affiliate.catalogEconomics")
   const tFilters = useTranslations("affiliate.catalogFilters")
+  const localeFromContext = useLocale()
+  const copyLocale = resolveBinaryCopyLocale(localeFromContext)
   const router = useRouter()
   const searchParams = useSearchParams()
   const categoryId = searchParams.get("category")
@@ -177,6 +183,7 @@ export function AffiliateCatalogExperience({
   const [modalListing, setModalListing] = useState<SerializedListing | null>(null)
   const [releasingListingId, setReleasingListingId] = useState<string | null>(null)
   const [addingProductId, setAddingProductId] = useState<string | null>(null)
+  const [publishingListingId, setPublishingListingId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<number | null>(null)
   const productDeepLinkConsumed = useRef(false)
@@ -350,6 +357,33 @@ export function AffiliateCatalogExperience({
     }
   }
 
+  async function publishListing(productId: string, listingId: string) {
+    if (publishingListingId === listingId) return
+    setPublishingListingId(listingId)
+    try {
+      const result = await requestPublishAffiliateListing(listingId)
+      if (!result.isListed) {
+        showToast(publishBlockedToast(result.publishBlocked ?? "pending", copyLocale))
+        return
+      }
+      setProducts((prev) =>
+        patchCatalogProductListing(prev, productId, {
+          id: listingId,
+          isListed: true,
+          sellingPriceCents:
+            products.find((x) => x.id === productId)?.affiliateProducts?.[0]?.sellingPriceCents ?? 0,
+          clicks: 0,
+          conversions: 0,
+        })
+      )
+      showToast(copyLocale === "fr" ? "En ligne sur votre vitrine !" : "Live on your storefront!")
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Impossible de publier la fiche")
+    } finally {
+      setPublishingListingId(null)
+    }
+  }
+
   async function quickAddToStore(productId: string) {
     if (addingProductId === productId) return
     const p = products.find((x) => x.id === productId)
@@ -366,17 +400,13 @@ export function AffiliateCatalogExperience({
       setProducts((prev) =>
         patchCatalogProductListing(prev, productId, {
           id: row.id,
-          isListed: false,
+          isListed: row.isListed,
           sellingPriceCents: row.sellingPriceCents,
           clicks: 0,
           conversions: 0,
         })
       )
-      showToast(
-        row.created
-          ? "Ajouté à votre vitrine — prêt à publier"
-          : "Déjà dans votre vitrine — prêt à publier"
-      )
+      showToast(quickAddResultToast(row, copyLocale))
     } catch (e) {
       setProducts((prev) =>
         prev.map((item) => (item.id === productId ? { ...item, affiliateProducts: prior } : item))
@@ -919,7 +949,11 @@ export function AffiliateCatalogExperience({
                             }
                             onAdd={() => void quickAddToStore(p.id)}
                             adding={addingProductId === p.id}
+                            publishing={
+                              listingState.kind !== "none" && publishingListingId === listingState.listingId
+                            }
                             onEdit={(id) => void openEdit(p.id, id)}
+                            onPublish={(id) => void publishListing(p.id, id)}
                             onRelease={releaseFromStorefront}
                           />
                         </div>

@@ -20,6 +20,8 @@ export async function revalidateAffiliateShopfront(
   revalidatePath(`/shops/${slug}`)
   revalidatePath(`/shops/${slug}`, "layout")
   revalidatePath(`/shops/${slug}/product`, "layout")
+  revalidatePath(`/boutique/${encodeURIComponent(slug)}`)
+  revalidatePath(`/boutique/${encodeURIComponent(slug)}`, "layout")
   bustShopCategoriesResponseCache(slug)
   console.log("[shop-revalidate]", { slug, affiliateUserId })
   return slug

@@ -18,6 +18,8 @@ type Props = {
   adding?: boolean
   onAdd: () => void
   onEdit: (listingId: string) => void
+  onPublish?: (listingId: string) => void | Promise<void>
+  publishing?: boolean
   onRelease: (listingId: string) => void | Promise<void>
   className?: string
 }
@@ -64,6 +66,8 @@ export function DiscoverListingActions({
   adding = false,
   onAdd,
   onEdit,
+  onPublish,
+  publishing = false,
   onRelease,
   className,
 }: Props) {
@@ -119,9 +123,10 @@ export function DiscoverListingActions({
               type="button"
               variant="bentoAccent"
               className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500"
-              onClick={() => onEdit(state.listingId)}
+              disabled={publishing}
+              onClick={() => void (onPublish ? onPublish(state.listingId) : onEdit(state.listingId))}
             >
-              <Rocket className="size-4" aria-hidden />
+              {publishing ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Rocket className="size-4" aria-hidden />}
               {t.launch}
             </Button>
           </>
@@ -137,9 +142,10 @@ export function DiscoverListingActions({
               type="button"
               variant="bentoAccent"
               className="w-full"
-              onClick={() => onEdit(state.listingId)}
+              disabled={publishing}
+              onClick={() => void (onPublish ? onPublish(state.listingId) : onEdit(state.listingId))}
             >
-              <Sparkles className="size-4" aria-hidden />
+              {publishing ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Sparkles className="size-4" aria-hidden />}
               {t.relist}
             </Button>
           </>
