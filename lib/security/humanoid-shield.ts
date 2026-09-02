@@ -259,6 +259,24 @@ export class HumanoidShield {
     )
   }
 
+  /** Public SEO / dev probes — skip bot UA heuristics only (rate limit + payload scans stay on). */
+  static isBotUaExemptPath(pathname: string): boolean {
+    const p = pathname.toLowerCase()
+    return (
+      p.startsWith("/api/product-social-proof") ||
+      p === "/sitemap-affilies.xml" ||
+      p.endsWith("/sitemap-affilies.xml")
+    )
+  }
+
+  /** Localhost dev — curl without UA for API smoke tests. */
+  static isLocalDevIp(ip: string): boolean {
+    const isProd =
+      process.env.NODE_ENV === "production" && process.env.VERCEL_ENV === "production"
+    if (isProd) return false
+    return ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1"
+  }
+
   private static scanPayload(payload: string, threats: ShieldThreat[]): void {
     const sample = payload.slice(0, 2048)
     for (const rule of ALL_PATTERNS) {
@@ -432,7 +450,11 @@ export class HumanoidShield {
       HumanoidShield.trackRateLimit(ip, pathname, threats)
     }
     HumanoidShield.checkHoneypotPath(pathname, threats)
-    HumanoidShield.checkBotUa(ua, threats)
+    const skipBotUa =
+      HumanoidShield.isBotUaExemptPath(pathname) || HumanoidShield.isLocalDevIp(ip)
+    if (!skipBotUa) {
+      HumanoidShield.checkBotUa(ua, threats)
+    }
 
     const scanTarget = `${pathname}${req.nextUrl.search}`
     HumanoidShield.scanPayload(scanTarget, threats)

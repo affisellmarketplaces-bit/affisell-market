@@ -30,6 +30,21 @@ describe("HumanoidShield", () => {
     expect(result.threats.some((t) => t.type === "HONEYPOT")).toBe(true)
   })
 
+  it("allows curl without UA on product-social-proof API path", () => {
+    const result = HumanoidShield.analyze(mockReq("/api/product-social-proof?productId=abc"))
+    expect(result.threats.some((t) => t.type === "BOT_UA")).toBe(false)
+    expect(result.action).not.toBe("BLOCK")
+  })
+
+  it("allows curl without UA from localhost in non-prod", () => {
+    const result = HumanoidShield.analyze(
+      mockReq("/dashboard/affiliate", {
+        headers: { "x-forwarded-for": "127.0.0.1" },
+      })
+    )
+    expect(result.threats.some((t) => t.type === "BOT_UA")).toBe(false)
+  })
+
   it("allows normal marketplace paths for localhost", () => {
     const result = HumanoidShield.analyze(
       mockReq("/dashboard/reseller/requests/new", {
