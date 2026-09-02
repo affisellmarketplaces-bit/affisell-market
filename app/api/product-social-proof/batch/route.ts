@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import type { ProductSocialProofData } from "@/lib/product-social-proof-shared"
 import { toProductSocialProofApiResponse, formatLastSaleAgoLine } from "@/lib/product-social-proof-shared"
 import { loadProductCrossSocialProofBatch } from "@/lib/product-social-proof-batch.server"
-import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
+import { resolveProductSocialProofApiLocale } from "@/lib/product-social-proof-api-locale"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -20,9 +20,7 @@ export async function POST(request: Request) {
   }
 
   const url = new URL(request.url)
-  const localeParam = url.searchParams.get("locale")
-  const accept = request.headers.get("accept-language")?.toLowerCase() ?? ""
-  const locale = resolveBinaryCopyLocale(localeParam ?? (accept.includes("fr") ? "fr" : "en"))
+  const locale = resolveProductSocialProofApiLocale(request, url.searchParams.get("locale"))
 
   try {
     const map = await loadProductCrossSocialProofBatch(productIds)

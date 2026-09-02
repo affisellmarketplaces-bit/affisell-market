@@ -6,6 +6,8 @@ import { useLocale, useTranslations } from "next-intl"
 
 import {
   formatLastSaleAgoLine,
+  formatMarginLeaveEurFromCents,
+  formatMarginTopEurFromCents,
   resolveMarginLeaveOnTableTrigger,
   shouldShowProductCrossSocialProof,
   type ProductSocialProofData,
@@ -79,15 +81,20 @@ export function ProductCrossSocialProof({
             {(() => {
               const marginTrigger = resolveMarginLeaveOnTableTrigger(data)
               if (!marginTrigger) return null
+              const leftAmount = formatMarginLeaveEurFromCents(
+                marginTrigger.leftOnTableCents,
+                locale
+              )
+              const topAmount = formatMarginTopEurFromCents(marginTrigger.topMarginCents, locale)
               return (
                 <span
                   title={t("marginLeaveTableTooltip", {
-                    left: marginTrigger.leftOnTableEur,
-                    top: marginTrigger.topMarginEur,
+                    left: leftAmount,
+                    top: topAmount,
                   })}
-                  className="inline-flex animate-pulse items-center gap-1 rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-orange-900 dark:text-orange-100"
+                  className="inline-flex animate-pulse items-center gap-1 rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-bold normal-case tracking-normal text-orange-900 dark:text-orange-100"
                 >
-                  {t("marginLeaveTableBadge", { amount: marginTrigger.leftOnTableEur })}
+                  {t("marginLeaveTableBadge", { amount: leftAmount })}
                 </span>
               )
             })()}

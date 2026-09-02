@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest"
 import { anonymizeDisplayName } from "@/lib/anonymize-display-name"
 import {
   formatLastSaleAgoLine,
+  formatMarginLeaveEurFromCents,
+  formatMarginTopEurFromCents,
   formatRelativeMinutesAgo,
   resolveMarginLeaveOnTableTrigger,
   shouldShowMarginLeaveOnTableTrigger,
@@ -47,8 +49,8 @@ describe("product-social-proof-shared", () => {
     ).toBe(true)
   })
 
-  it("formats last sale line in FR", () => {
-    const recent = new Date(Date.now() - 12 * 60_000).toISOString()
+  it("formats last sale line in FR with reseller", () => {
+    const recent = new Date(Date.now() - 5 * 60_000).toISOString()
     const line = formatLastSaleAgoLine(
       {
         activeResellersCount: 3,
@@ -59,7 +61,7 @@ describe("product-social-proof-shared", () => {
       },
       "fr"
     )
-    expect(line).toMatch(/^Vendu il y a \d+ min par Marc D\.$/)
+    expect(line).toBe("Vendu il y a 5 min par Marc D.")
   })
 
   it("formats relative minutes", () => {
@@ -67,42 +69,32 @@ describe("product-social-proof-shared", () => {
     expect(formatRelativeMinutesAgo(recent, "en")).toBe("5 min ago")
   })
 
-  it("triggers margin leave-on-table when avg is below 60% of top", () => {
-    const hot = {
+  it("triggers margin leave-on-table when avg is below 80% of top", () => {
+    const seedDemo = {
       activeResellersCount: 5,
-      avgMarginCents: 4000,
+      avgMarginCents: 4380,
       topMarginCents: 6700,
       lastSaleAt: null,
       lastSaleResellerLabel: null,
     }
-    expect(shouldShowMarginLeaveOnTableTrigger(hot)).toBe(true)
-    expect(resolveMarginLeaveOnTableTrigger(hot)).toEqual({
-      leftOnTableEur: 27,
-      topMarginEur: 67,
+    expect(shouldShowMarginLeaveOnTableTrigger(seedDemo)).toBe(true)
+    expect(resolveMarginLeaveOnTableTrigger(seedDemo)).toEqual({
+      leftOnTableCents: 2320,
+      topMarginCents: 6700,
     })
+    expect(formatMarginLeaveEurFromCents(2320, "fr")).toBe("23,20€")
+    expect(formatMarginTopEurFromCents(6700, "fr")).toBe("67€")
   })
 
-  it("skips margin leave-on-table when avg is healthy vs top", () => {
+  it("skips margin leave-on-table when avg is close to top", () => {
     const ok = {
       activeResellersCount: 5,
-      avgMarginCents: 4380,
+      avgMarginCents: 5500,
       topMarginCents: 6700,
       lastSaleAt: null,
       lastSaleResellerLabel: null,
     }
     expect(shouldShowMarginLeaveOnTableTrigger(ok)).toBe(false)
     expect(resolveMarginLeaveOnTableTrigger(ok)).toBeNull()
-  })
-
-  it("formats leave-on-table amounts for seed demo SKU", () => {
-    const demo = {
-      activeResellersCount: 5,
-      avgMarginCents: 4380,
-      topMarginCents: 6700,
-      lastSaleAt: null,
-      lastSaleResellerLabel: null,
-    }
-    expect(Math.round((demo.topMarginCents - demo.avgMarginCents) / 100)).toBe(23)
-    expect(Math.round(demo.topMarginCents / 100)).toBe(67)
   })
 })

@@ -3725,8 +3725,8 @@
       "activeResellers": "{count, plural, one {# revendeur actif (30j)} other {# revendeurs actifs (30j)}}",
       "avgMargin": "Marge moy. {amount}",
       "topMargin": "Top {amount}",
-      "marginLeaveTableBadge": "−{amount} € sur la table",
-      "marginLeaveTableTooltip": "Tu laisses {left}€ sur la table. Les meilleurs le vendent à {top}€ de marge",
+      "marginLeaveTableBadge": "🔥 Tu laisses {amount} sur la table",
+      "marginLeaveTableTooltip": "Les meilleurs le vendent à {top} de marge - augmente ton prix de {left}",
       "fomoHint": "Les affiliés se battent sur ce SKU — publie vite pour capter la demande.",
       "lastSaleShort": "Vente récente · {name}"
     }

@@ -3725,8 +3725,8 @@
       "activeResellers": "{count, plural, one {# active reseller (30d)} other {# active resellers (30d)}}",
       "avgMargin": "Avg. margin {amount}",
       "topMargin": "Top {amount}",
-      "marginLeaveTableBadge": "−{amount} € left on the table",
-      "marginLeaveTableTooltip": "You're leaving {left}€ on the table. Top resellers sell at {top}€ margin",
+      "marginLeaveTableBadge": "🔥 You're leaving {amount} on the table",
+      "marginLeaveTableTooltip": "Top resellers sell at {top} margin — raise your price by {left}",
       "fomoHint": "Affiliates compete on this SKU — publish fast to capture demand.",
       "lastSaleShort": "Recent sale by {name}"
     }

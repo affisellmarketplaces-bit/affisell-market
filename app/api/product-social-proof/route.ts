@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
 
-import { resolveBinaryCopyLocale } from "@/lib/i18n-ui-locale"
 import {
   formatLastSaleAgoLine,
   toProductSocialProofApiResponse,
 } from "@/lib/product-social-proof-shared"
+import { resolveProductSocialProofApiLocale } from "@/lib/product-social-proof-api-locale"
 import { loadProductCrossSocialProofCached } from "@/lib/product-social-proof.server"
 
 export const runtime = "nodejs"
@@ -17,11 +17,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing productId" }, { status: 400 })
   }
 
-  const localeParam = url.searchParams.get("locale")
-  const accept = request.headers.get("accept-language")?.toLowerCase() ?? ""
-  const locale = resolveBinaryCopyLocale(
-    localeParam ?? (accept.includes("fr") ? "fr" : "en")
-  )
+  const locale = resolveProductSocialProofApiLocale(request, url.searchParams.get("locale"))
 
   try {
     const data = await loadProductCrossSocialProofCached(productId)

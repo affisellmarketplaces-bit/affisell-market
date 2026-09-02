@@ -68,8 +68,13 @@ export function formatRelativeMinutesAgo(
   return locale === "fr" ? `il y a ${d} j` : `${d} d ago`
 }
 
-/** Show FOMO badge when avg margin is below 60% of top reseller margin. */
-export const MARGIN_LEAVE_TABLE_TOP_RATIO = 0.6
+/** Show FOMO badge when avg margin is below 80% of top reseller margin. */
+export const MARGIN_LEAVE_TABLE_TOP_RATIO = 0.8
+
+export type MarginLeaveOnTableTrigger = {
+  leftOnTableCents: number
+  topMarginCents: number
+}
 
 export function shouldShowMarginLeaveOnTableTrigger(data: ProductSocialProofData): boolean {
   if (data.topMarginCents <= 0 || data.avgMarginCents <= 0) return false
@@ -78,13 +83,27 @@ export function shouldShowMarginLeaveOnTableTrigger(data: ProductSocialProofData
 
 export function resolveMarginLeaveOnTableTrigger(
   data: ProductSocialProofData
-): { leftOnTableEur: number; topMarginEur: number } | null {
+): MarginLeaveOnTableTrigger | null {
   if (!shouldShowMarginLeaveOnTableTrigger(data)) return null
-  const leftCents = data.topMarginCents - data.avgMarginCents
   return {
-    leftOnTableEur: Math.round(leftCents / 100),
-    topMarginEur: Math.round(data.topMarginCents / 100),
+    leftOnTableCents: data.topMarginCents - data.avgMarginCents,
+    topMarginCents: data.topMarginCents,
   }
+}
+
+/** FOMO margin gap — 2 decimals (e.g. 23,20€ in FR). */
+export function formatMarginLeaveEurFromCents(cents: number, locale: "fr" | "en"): string {
+  const value = (cents / 100).toFixed(2)
+  if (locale === "fr") return `${value.replace(".", ",")}€`
+  return `€${value}`
+}
+
+/** Top margin in tooltip — whole euros when exact (e.g. 67€). */
+export function formatMarginTopEurFromCents(cents: number, locale: "fr" | "en"): string {
+  const whole = cents % 100 === 0
+  const value = whole ? String(cents / 100) : (cents / 100).toFixed(2)
+  const formatted = locale === "fr" && !whole ? value.replace(".", ",") : value
+  return locale === "fr" ? `${formatted}€` : `€${formatted}`
 }
 
 export function formatLastSaleAgoLine(
