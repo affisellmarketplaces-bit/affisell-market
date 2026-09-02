@@ -549,7 +549,7 @@ function ListingBuilderModalBody({
           customSlug: form.customSlug.trim(),
           seoTitle: form.seoTitle.trim(),
           seoDescription: form.seoDesc.trim(),
-          isListed: saveDraft ? false : form.listInStore,
+          isListed: saveDraft ? false : true,
           isFeatured: collections.includes("Featured"),
           buyerRewardKind: form.buyerRewardKind,
           buyerRewardPercent: form.buyerRewardPercent,

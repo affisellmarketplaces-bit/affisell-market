@@ -1,7 +1,10 @@
 import { isDisplayableListingImageUrl } from "@/lib/affiliate-listing-display"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { suggestedSellingPriceCents } from "@/lib/affiliate-catalog-margin-display"
+import { publishAffiliateListingIfAllowed } from "@/lib/affiliate-publish-listing.server"
+import type { MerchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
+import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export type QuickAddAffiliateListingInput = {
   affiliateId: string
@@ -13,6 +16,7 @@ export type QuickAddAffiliateListingResult =
       ok: true
       listing: { id: string; productId: string; sellingPriceCents: number; isListed: boolean }
       created: boolean
+      publishBlocked: MerchantVerificationGate["reason"] | null
     }
   | { ok: false; status: number; error: string }
 
@@ -25,7 +29,24 @@ function listingImagesFromProduct(images: unknown): string[] {
     .slice(0, 20)
 }
 
-/** Idempotent draft listing — public only after Listing Builder publish. */
+async function autoLiveAfterImport(args: {
+  affiliateId: string
+  listingId: string
+}): Promise<{ isListed: boolean; publishBlocked: MerchantVerificationGate["reason"] | null }> {
+  const published = await publishAffiliateListingIfAllowed(args)
+  if (published.ok) {
+    if (!published.alreadyLive) {
+      await revalidateAffiliateShopfront(args.affiliateId)
+    }
+    return { isListed: true, publishBlocked: null }
+  }
+  if (published.reason === "kyc") {
+    return { isListed: false, publishBlocked: published.gate.reason ?? "pending" }
+  }
+  return { isListed: false, publishBlocked: null }
+}
+
+/** Idempotent import + auto-live when KYC allows — vitrine = checkout open. */
 export async function quickAddAffiliateListing(
   input: QuickAddAffiliateListingInput
 ): Promise<QuickAddAffiliateListingResult> {
@@ -39,7 +60,24 @@ export async function quickAddAffiliateListing(
     select: { id: true, productId: true, sellingPriceCents: true, isListed: true },
   })
   if (existing) {
-    return { ok: true, listing: existing, created: false }
+    if (existing.isListed) {
+      return {
+        ok: true,
+        listing: existing,
+        created: false,
+        publishBlocked: null,
+      }
+    }
+    const live = await autoLiveAfterImport({
+      affiliateId: input.affiliateId,
+      listingId: existing.id,
+    })
+    return {
+      ok: true,
+      listing: { ...existing, isListed: live.isListed },
+      created: false,
+      publishBlocked: live.publishBlocked,
+    }
   }
 
   const [product, maxPos] = await Promise.all([
@@ -78,13 +116,25 @@ export async function quickAddAffiliateListing(
     select: { id: true, productId: true, sellingPriceCents: true, isListed: true },
   })
 
+  const live = await autoLiveAfterImport({
+    affiliateId: input.affiliateId,
+    listingId: row.id,
+  })
+
   console.log("[affiliate-quick-add]", {
     affiliateId: input.affiliateId,
     productId: product.id,
     listingId: row.id,
     sellingPriceCents,
-    result: "draft_created",
+    isListed: live.isListed,
+    publishBlocked: live.publishBlocked,
+    result: live.isListed ? "imported_live" : "imported_kyc_blocked",
   })
 
-  return { ok: true, listing: row, created: true }
+  return {
+    ok: true,
+    listing: { ...row, isListed: live.isListed },
+    created: true,
+    publishBlocked: live.publishBlocked,
+  }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { loadAffiliateDashboardListings } from "@/lib/affiliate-dashboard-data"
+import { syncAffiliateStorefrontListingsLive } from "@/lib/affiliate-publish-listing.server"
 import { dbUnavailablePayload } from "@/lib/prisma-db-error"
 import { prisma } from "@/lib/prisma"
 
@@ -18,6 +19,7 @@ export async function GET() {
   }
 
   try {
+    const autoLive = await syncAffiliateStorefrontListingsLive(session.user.id)
     const [listings, store] = await Promise.all([
       loadAffiliateDashboardListings(session.user.id),
       prisma.store.findUnique({
@@ -29,6 +31,8 @@ export async function GET() {
       listings,
       storeSlug: store?.slug ?? null,
       storeName: store?.name?.trim() || null,
+      autoLivePublished: autoLive.publishedCount,
+      autoLiveKycBlocked: autoLive.kycBlocked,
     })
   } catch (e) {
     console.error("[affiliate/bootstrap]", e)

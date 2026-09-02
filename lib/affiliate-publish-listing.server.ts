@@ -1,10 +1,17 @@
 import { merchantVerificationGate, type MerchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { prisma } from "@/lib/prisma"
+import { revalidateAffiliateShopfront } from "@/lib/revalidate-affiliate-shopfront"
 
 export type PublishAffiliateListingResult =
   | { ok: true; listingId: string; alreadyLive: boolean }
   | { ok: false; reason: "not_found" | "forbidden" }
   | { ok: false; reason: "kyc"; gate: MerchantVerificationGate }
+
+export type StorefrontAutoLiveSyncResult = {
+  publishedCount: number
+  kycBlocked: boolean
+  kycReason?: MerchantVerificationGate["reason"]
+}
 
 /** Flip a draft listing live when merchant KYC allows public publish. */
 export async function publishAffiliateListingIfAllowed(args: {
@@ -43,4 +50,37 @@ export async function publishAffiliateListingIfAllowed(args: {
   })
 
   return { ok: true, listingId: row.id, alreadyLive: false }
+}
+
+/** Idempotent — every vitrine row goes live when KYC allows (fixes legacy drafts). */
+export async function syncAffiliateStorefrontListingsLive(
+  affiliateId: string
+): Promise<StorefrontAutoLiveSyncResult> {
+  const gate = await merchantVerificationGate(affiliateId)
+  if (!gate.allowed) {
+    return { publishedCount: 0, kycBlocked: true, kycReason: gate.reason }
+  }
+
+  const pending = await prisma.affiliateProduct.count({
+    where: { affiliateId, isListed: false },
+  })
+  if (pending === 0) {
+    return { publishedCount: 0, kycBlocked: false }
+  }
+
+  const updated = await prisma.affiliateProduct.updateMany({
+    where: { affiliateId, isListed: false },
+    data: { isListed: true },
+  })
+
+  if (updated.count > 0) {
+    await revalidateAffiliateShopfront(affiliateId)
+    console.log("[affiliate-storefront-auto-live]", {
+      affiliateId,
+      publishedCount: updated.count,
+      result: "synced",
+    })
+  }
+
+  return { publishedCount: updated.count, kycBlocked: false }
 }

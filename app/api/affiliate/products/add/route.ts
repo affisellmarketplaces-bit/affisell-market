@@ -138,27 +138,9 @@ export async function POST(request: Request) {
   if (!luxuryRes.ok) {
     return NextResponse.json({ error: luxuryRes.error }, { status: luxuryRes.status })
   }
-  const listToggle =
-    typeof body.listInStore === "boolean"
-      ? body.listInStore
-      : typeof body.isListed === "boolean"
-        ? body.isListed
-        : true
+  const wantsPublicListing = !saveDraft
 
-  const publishExplicit =
-    typeof body.publish === "boolean"
-      ? body.publish
-      : typeof body.publishToStore === "boolean"
-        ? body.publishToStore
-        : undefined
-
-  const wantsPublicListing = saveDraft
-    ? false
-    : typeof publishExplicit === "boolean"
-      ? publishExplicit
-      : true
-
-  const isListed = wantsPublicListing && listToggle
+  const isListed = wantsPublicListing
 
   if (isListed && !saveDraft) {
     const kycBlocked = await requireMerchantVerifiedForPublish(session.user.id)

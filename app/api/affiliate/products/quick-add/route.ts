@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       ...result.listing,
       created: result.created,
       published: result.listing.isListed,
-      publishBlocked: null,
+      publishBlocked: result.publishBlocked,
     },
     { status: result.created ? 201 : 200 }
   )

@@ -122,19 +122,15 @@ function SortableStoreCard(props: {
   labels: {
     inStorefront: string
     liveCheckout: string
-    checkoutPaused: string
-    visibilityToggle: string
-    visibilityOnHint: string
-    visibilityOffHint: string
+    verificationRequired: string
     manageListing: string
     previewListing: string
   }
   onSelect: () => void
-  onToggleList: () => void
   onToggleAuction: () => void
   onEditListing: () => void
 }) {
-  const { listing, selected, storeSlug, labels, onSelect, onToggleList, onToggleAuction, onEditListing } = props
+  const { listing, selected, storeSlug, labels, onSelect, onToggleAuction, onEditListing } = props
   const p = listing.product
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -172,30 +168,18 @@ function SortableStoreCard(props: {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "relative flex flex-col overflow-hidden rounded-3xl border bg-white/90 shadow-sm backdrop-blur-sm transition dark:bg-zinc-950/80",
-        listing.isListed
-          ? "border-emerald-200/90 ring-1 ring-emerald-200/60 dark:border-emerald-900/50 dark:ring-emerald-900/40"
-          : "border-gray-100 dark:border-zinc-800",
+        "relative flex flex-col overflow-hidden rounded-3xl border border-emerald-200/90 bg-white/90 shadow-sm ring-1 ring-emerald-200/60 backdrop-blur-sm transition dark:border-emerald-900/50 dark:bg-zinc-950/80 dark:ring-emerald-900/40",
         selected ? "ring-2 ring-[#10B981]" : "hover:shadow-md"
       )}
     >
       <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1">
-        <span className="rounded-full bg-zinc-900/90 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm dark:bg-zinc-100 dark:text-zinc-900">
-          {labels.inStorefront}
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/70 dark:text-emerald-200">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-600" />
+          </span>
+          {listing.isListed ? labels.liveCheckout : labels.verificationRequired}
         </span>
-        {listing.isListed ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/70 dark:text-emerald-200">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-600" />
-            </span>
-            {labels.liveCheckout}
-          </span>
-        ) : (
-          <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-            {labels.checkoutPaused}
-          </span>
-        )}
         {(listing.product?.deliveryMax ?? 99) <= 3 ? (
           <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/70 dark:text-emerald-200">
             Fast Shipping
@@ -260,35 +244,7 @@ function SortableStoreCard(props: {
         <p className="text-xs text-gray-500 dark:text-zinc-300">
           {listing.clicks ?? 0} clicks · {listing.conversions ?? 0} sales
         </p>
-        <div className="mt-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/80 px-3 py-2.5 dark:border-zinc-700 dark:bg-zinc-900/60">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-100">{labels.visibilityToggle}</p>
-              <p className="mt-0.5 text-[11px] leading-snug text-zinc-500 dark:text-zinc-400">
-                {listing.isListed ? labels.visibilityOnHint : labels.visibilityOffHint}
-              </p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={listing.isListed}
-              aria-label={labels.visibilityToggle}
-              onClick={() => void onToggleList()}
-              className={cn(
-                "relative inline-flex h-8 w-14 shrink-0 items-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40",
-                listing.isListed ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-600"
-              )}
-            >
-              <span
-                className={cn(
-                  "inline-block h-6 w-6 transform rounded-full bg-white shadow transition",
-                  listing.isListed ? "translate-x-7" : "translate-x-1"
-                )}
-              />
-            </button>
-          </div>
-        </div>
-        <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-zinc-300">
+        <label className="mt-2 flex items-center gap-2 text-xs text-gray-600 dark:text-zinc-300">
           <input
             type="checkbox"
             checked={Boolean(listing.auctionEligible)}
@@ -1322,10 +1278,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                 {tHub("storeTabSummary", { total: listingsWithProduct.length })}
               </p>
               <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                {tHub("storeTabVisibility", {
-                  live: storefrontListings.length,
-                  hidden: draftListings.length,
-                })}
+                {tHub("storeTabLiveOnly", { live: storefrontListings.length })}
               </p>
             </div>
             <button
@@ -1362,10 +1315,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                         labels={{
                           inStorefront: tHub("inStorefrontBadge"),
                           liveCheckout: tHub("liveCheckoutBadge"),
-                          checkoutPaused: tHub("checkoutPausedBadge"),
-                          visibilityToggle: tHub("visibilityToggle"),
-                          visibilityOnHint: tHub("visibilityOnHint"),
-                          visibilityOffHint: tHub("visibilityOffHint"),
+                          verificationRequired: tHub("verificationRequiredBadge"),
                           manageListing: tHub("manageListing"),
                           previewListing: tHub("previewListing"),
                         }}
@@ -1378,7 +1328,6 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                             return n
                           })
                         }
-                        onToggleList={() => void toggleList(l.id, l.isListed)}
                         onToggleAuction={() => void toggleAuction(l.id, Boolean(l.auctionEligible))}
                         onEditListing={() => openEditByListingId(l.productId, l.id)}
                       />
