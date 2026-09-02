@@ -40,7 +40,6 @@ import type { CSSProperties } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 
-import { CreateStoreButton } from "@/components/store/CreateStoreButton"
 import AffiliateLiveStore from "@/components/affiliate/affiliate-live-store"
 import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import { DiscoverListingActions } from "@/components/affiliate/discover-listing-actions"
@@ -119,14 +118,25 @@ function sortAffiliateListingByPosition(a: Listing, b: Listing) {
 function SortableStoreCard(props: {
   listing: Listing
   selected: boolean
-  storeSlug: string | null
-  storeName: string | null
+  readyToPublishLabel: string
+  setPriceAndPublishLabel: string
+  editListingLabel: string
   onSelect: () => void
   onToggleList: () => void
   onToggleAuction: () => void
   onEditListing: () => void
 }) {
-  const { listing, selected, storeSlug, storeName, onSelect, onToggleList, onToggleAuction, onEditListing } = props
+  const {
+    listing,
+    selected,
+    readyToPublishLabel,
+    setPriceAndPublishLabel,
+    editListingLabel,
+    onSelect,
+    onToggleList,
+    onToggleAuction,
+    onEditListing,
+  } = props
   const p = listing.product
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -174,9 +184,13 @@ function SortableStoreCard(props: {
         ) : null}
         {!listing.isListed ? (
           <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-900 dark:bg-violet-950/70 dark:text-violet-200">
-            Draft
+            {readyToPublishLabel}
           </span>
-        ) : null}
+        ) : (
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/70 dark:text-emerald-200">
+            Live
+          </span>
+        )}
         {listing.marginReviewNeeded ? (
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-950 dark:bg-amber-950/70 dark:text-amber-200">
             Marge à revoir
@@ -246,20 +260,17 @@ function SortableStoreCard(props: {
           Auction Arena
         </label>
         <div className="mt-3 flex flex-col gap-2">
-          <CreateStoreButton
-            productId={listing.id}
-            defaultSlug={storeSlug}
-            defaultStoreName={storeName}
-            variant="compact"
-            className="w-full"
-          />
           <button
             type="button"
             onClick={onEditListing}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
+            className={
+              listing.isListed
+                ? "inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
+                : "inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 via-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:from-violet-500 hover:to-indigo-500"
+            }
           >
             <Pencil className="h-4 w-4" aria-hidden />
-            {listing.isListed ? "Edit listing" : "Set price & publish"}
+            {listing.isListed ? editListingLabel : setPriceAndPublishLabel}
           </button>
         </div>
       </div>
@@ -1262,8 +1273,10 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
           ) : null}
           <div className="mb-6 flex flex-wrap items-center gap-3">
             <p className="text-sm font-medium text-gray-700 dark:text-zinc-200">
-              {storefrontListings.length} live on storefront
-              {draftListings.length > 0 ? ` · ${draftListings.length} draft${draftListings.length > 1 ? "s" : ""} waiting` : ""}
+              {tHub("storeTabStatusLive", { live: storefrontListings.length })}
+              {draftListings.length > 0
+                ? ` · ${tHub("storeTabStatusReady", { count: draftListings.length })}`
+                : ""}
             </p>
             <button
               type="button"
@@ -1295,8 +1308,9 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                       <SortableStoreCard
                         key={l.id}
                         listing={l}
-                        storeSlug={storeSlug}
-                        storeName={storeName}
+                        readyToPublishLabel={tHub("readyToPublishBadge")}
+                        setPriceAndPublishLabel={tHub("setPriceAndPublish")}
+                        editListingLabel={tHub("editListing")}
                         selected={selected.has(l.id)}
                         onSelect={() =>
                           setSelected((prev) => {
