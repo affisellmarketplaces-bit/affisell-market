@@ -42,7 +42,8 @@ export function MerchantStripeConnectPanel({
   const body = role === "SUPPLIER" ? t("supplierBody") : t("affiliateBody")
   const cta = role === "SUPPLIER" ? t("supplierCta") : t("affiliateCta")
   const verificationHint =
-    role === "SUPPLIER" ? t("supplierKycHint") : t("affiliateKycHint")
+    role === "SUPPLIER" ? t("supplierKycHint") : t("affiliateKycDeferredHint")
+  const requireVerificationForConnect = role === "SUPPLIER"
 
   const stripeReturn = searchParams.get("stripe") === "return"
   const redirectAfterSync =
@@ -109,12 +110,12 @@ export function MerchantStripeConnectPanel({
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        {!verificationApproved ? (
+        {requireVerificationForConnect && !verificationApproved ? (
           <Link
             href="/dashboard/verification"
             className={cn(buttonVariants({ size: "sm" }), "bg-amber-600 text-white hover:bg-amber-700")}
           >
-            Compléter la vérification KYC
+            {t("completeKycCta")}
           </Link>
         ) : connectOnboarded ? (
           <>
@@ -148,8 +149,10 @@ export function MerchantStripeConnectPanel({
         )}
       </div>
 
-      {!verificationApproved ? (
+      {requireVerificationForConnect && !verificationApproved ? (
         <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{verificationHint}</p>
+      ) : role === "AFFILIATE" && !verificationApproved ? (
+        <p className="mt-2 text-xs text-violet-700 dark:text-violet-300">{verificationHint}</p>
       ) : null}
       {error ? <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p> : null}
     </section>

@@ -2100,6 +2100,7 @@
       "title": "Lancez votre boutique revendeur",
       "subtitle": "Découvrez un SKU, fixez votre prix client, publiez — première fiche en ~5 minutes.",
       "kycHint": "Le KYC est requis pour publier — vous pouvez enregistrer des brouillons pendant la revue.",
+      "kycDeferredHint": "Aucun justificatif à l'inscription — la vérification d'identité n'est demandée qu'avant votre première mise en ligne.",
       "stepKyc": "Vérifier votre entreprise (KYC)",
       "stepConnect": "Configurer vos moyens de paiement (Stripe)",
       "stepCreate": "Créer votre première fiche produit",
@@ -2127,7 +2128,7 @@
       "badge": "Publication bloquée",
       "title": "Vérification d'identité requise",
       "body": {
-        "noProfile": "Complétez votre dossier KYC avant de mettre vos fiches en ligne.",
+        "noProfile": "Quand vous publierez votre première fiche, vous compléterez un court dossier d'identité — explorez et enregistrez des brouillons librement d'ici là.",
         "pending": "Dossier en revue — enregistrez des brouillons et publiez après validation.",
         "rejected": "Dossier refusé — mettez à jour vos documents pour publier.",
         "needsInfo": "Documents complémentaires demandés — finalisez votre dossier."
@@ -5154,6 +5155,8 @@
       "affiliateCta": "Activer mes reversements",
       "supplierKycHint": "Votre dossier KYC doit être approuvé avant la publication catalogue.",
       "affiliateKycHint": "Votre dossier KYC doit être approuvé avant de publier sur votre vitrine.",
+      "affiliateKycDeferredHint": "Configurez Stripe dès maintenant — les justificatifs Affisell ne sont demandés qu'avant votre première publication.",
+      "completeKycCta": "Compléter la vérification KYC",
       "activeBadge": "Stripe Connect actif",
       "updateBankCta": "Mettre à jour mes coordonnées bancaires",
       "redirecting": "Redirection…",

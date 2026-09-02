@@ -109,9 +109,9 @@ export function buildAffiliateFirstSaleProgress(args: {
 
   const steps: MerchantOnboardingStep[] = [
     {
-      id: "kyc",
-      done: args.kycApproved,
-      href: "/dashboard/verification",
+      id: "create",
+      done: createDone,
+      href: hubHref,
     },
     {
       id: "connect",
@@ -119,18 +119,9 @@ export function buildAffiliateFirstSaleProgress(args: {
       href: AFFILIATE_PAYOUT_SETTINGS_HREF,
     },
     {
-      id: "create",
-      done: createDone,
-      href: hubHref,
-    },
-    {
       id: "publish",
       done: publishDone,
-      href: args.kycApproved
-        ? draftPublishHref
-        : args.draftListingCount > 0
-          ? "/dashboard/verification"
-          : hubHref,
+      href: draftPublishHref,
     },
     {
       id: "share",
@@ -144,10 +135,10 @@ export function buildAffiliateFirstSaleProgress(args: {
   const nextStep = steps.find((s) => !s.done) ?? null
 
   let postKycHref = "/dashboard/affiliate"
-  if (!args.connectOnboarded && args.kycApproved) {
-    postKycHref = AFFILIATE_PAYOUT_SETTINGS_HREF
-  } else if (!createDone) {
+  if (!createDone) {
     postKycHref = hubHref
+  } else if (!args.connectOnboarded) {
+    postKycHref = AFFILIATE_PAYOUT_SETTINGS_HREF
   } else if (!publishDone) {
     postKycHref = draftPublishHref
   }

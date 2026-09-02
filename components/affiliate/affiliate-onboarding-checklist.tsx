@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { CheckCircle2, Circle, Compass, Landmark, Share2, ShieldCheck, Store } from "lucide-react"
+import { CheckCircle2, Circle, Compass, Landmark, Share2, Store } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
@@ -11,24 +11,21 @@ type Props = {
   progress: MerchantFirstSaleProgress
 }
 
-const stepIcons: Record<MerchantOnboardingStepId, typeof Compass> = {
-  kyc: ShieldCheck,
+const stepIcons: Record<Exclude<MerchantOnboardingStepId, "kyc">, typeof Compass> = {
   connect: Landmark,
   create: Compass,
   publish: Store,
   share: Share2,
 }
 
-const stepLabelKeys: Record<MerchantOnboardingStepId, string> = {
-  kyc: "stepKyc",
+const stepLabelKeys: Record<Exclude<MerchantOnboardingStepId, "kyc">, string> = {
   connect: "stepConnect",
   create: "stepCreate",
   publish: "stepPublish",
   share: "stepShare",
 }
 
-const stepCtaKeys: Record<MerchantOnboardingStepId, string> = {
-  kyc: "ctaKyc",
+const stepCtaKeys: Record<Exclude<MerchantOnboardingStepId, "kyc">, string> = {
   connect: "ctaConnect",
   create: "ctaCreate",
   publish: "ctaPublish",
@@ -52,14 +49,16 @@ export async function AffiliateOnboardingChecklist({ progress }: Props) {
       </div>
       <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t("subtitle")}</p>
       {!progress.kycApproved ? (
-        <p className="mt-3 rounded-lg border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs leading-relaxed text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
-          {t("kycHint")}
+        <p className="mt-3 rounded-lg border border-violet-200/80 bg-violet-50/90 px-3 py-2 text-xs leading-relaxed text-violet-950 dark:border-violet-900/50 dark:bg-violet-950/40 dark:text-violet-100">
+          {t("kycDeferredHint")}
           {progress.draftListingCount > 0 ? ` ${t("draftReadyHint", { count: progress.draftListingCount })}` : ""}
         </p>
       ) : null}
       <ol className="mt-5 space-y-3">
         {progress.steps.map((step, index) => {
-          const Icon = stepIcons[step.id]
+          if (step.id === "kyc") return null
+          const stepId = step.id as Exclude<MerchantOnboardingStepId, "kyc">
+          const Icon = stepIcons[stepId]
           const isNext = progress.nextStepId === step.id
           const hasDraftToResume =
             step.id === "publish" && progress.draftListingCount > 0 && Boolean(progress.latestDraftHref)
@@ -84,7 +83,7 @@ export async function AffiliateOnboardingChecklist({ progress }: Props) {
                   )}
                 >
                   <span className="text-zinc-400">{index + 1}. </span>
-                  {t(stepLabelKeys[step.id])}
+                  {t(stepLabelKeys[stepId])}
                 </p>
                 {!step.done && isNext ? (
                   <>
@@ -93,7 +92,7 @@ export async function AffiliateOnboardingChecklist({ progress }: Props) {
                       className={cn(buttonVariants({ size: "sm" }), "mt-2 gap-1.5 bg-violet-600 hover:bg-violet-700")}
                     >
                       <Icon className="h-3.5 w-3.5" aria-hidden />
-                      {t(hasDraftToResume ? "ctaResumeDraft" : stepCtaKeys[step.id])}
+                      {t(hasDraftToResume ? "ctaResumeDraft" : stepCtaKeys[stepId])}
                     </Link>
                     {hasDraftToResume ? (
                       <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">

@@ -2100,6 +2100,7 @@
       "title": "Launch your reseller storefront",
       "subtitle": "Discover a SKU, set your customer price, publish — first listing in about 5 minutes.",
       "kycHint": "KYC is required to go live — you can save drafts while your dossier is reviewed.",
+      "kycDeferredHint": "No documents at signup — identity verification is only required before your first live listing.",
       "stepKyc": "Verify your business (KYC)",
       "stepConnect": "Set up payment methods (Stripe)",
       "stepCreate": "Create your first product listing",
@@ -2127,7 +2128,7 @@
       "badge": "Publish blocked",
       "title": "Identity verification required",
       "body": {
-        "noProfile": "Complete your KYC dossier before listings go live on Affisell.",
+        "noProfile": "When you publish your first listing, you'll complete a short identity dossier — explore and save drafts freely until then.",
         "pending": "Your dossier is under review — save drafts and publish once approved.",
         "rejected": "Your dossier was rejected — update your documents to publish.",
         "needsInfo": "We need additional documents — complete your dossier to publish."
@@ -5154,6 +5155,8 @@
       "affiliateCta": "Enable payouts",
       "supplierKycHint": "Your KYC profile must be approved before catalogue publish.",
       "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront.",
+      "affiliateKycDeferredHint": "Set up Stripe now — Affisell identity documents are only required before your first live listing.",
+      "completeKycCta": "Complete KYC verification",
       "activeBadge": "Stripe Connect active",
       "updateBankCta": "Update bank details",
       "redirecting": "Redirecting…",

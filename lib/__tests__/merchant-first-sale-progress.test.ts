@@ -40,7 +40,7 @@ describe("merchant first sale progress", () => {
     expect(progress.allComplete).toBe(true)
   })
 
-  it("affiliate routes new merchants to swipe hub", () => {
+  it("affiliate routes new merchants to swipe hub without KYC step", () => {
     const progress = buildAffiliateFirstSaleProgress({
       kycApproved: false,
       connectOnboarded: false,
@@ -49,7 +49,8 @@ describe("merchant first sale progress", () => {
       draftListingCount: 0,
       storeSlug: "creator",
     })
-    expect(progress.nextStepId).toBe("kyc")
+    expect(progress.nextStepId).toBe("create")
+    expect(progress.steps.some((s) => s.id === "kyc")).toBe(false)
     expect(progress.steps.find((s) => s.id === "connect")?.href).toBe(
       "/dashboard/affiliate/settings/payouts"
     )
@@ -59,20 +60,36 @@ describe("merchant first sale progress", () => {
     expect(progress.postKycHref).toBe("/dashboard/affiliate/hub?mode=swipe&onboarding=1")
   })
 
-  it("affiliate post-KYC sends to payout settings when Connect missing", () => {
+  it("affiliate sends to payout settings after first listing when Connect missing", () => {
     const progress = buildAffiliateFirstSaleProgress({
-      kycApproved: true,
+      kycApproved: false,
       connectOnboarded: false,
-      listingCount: 0,
+      listingCount: 1,
       liveListingCount: 0,
-      draftListingCount: 0,
+      draftListingCount: 1,
       storeSlug: "creator",
+      latestDraftHref: "/dashboard/affiliate/products/listing-1/edit",
     })
     expect(progress.nextStepId).toBe("connect")
     expect(progress.postKycHref).toBe("/dashboard/affiliate/settings/payouts")
   })
 
-  it("affiliate post-KYC sends to dashboard when draft exists", () => {
+  it("affiliate publish step never routes to verification dossier", () => {
+    const progress = buildAffiliateFirstSaleProgress({
+      kycApproved: false,
+      connectOnboarded: true,
+      listingCount: 1,
+      liveListingCount: 0,
+      draftListingCount: 1,
+      storeSlug: "creator",
+      latestDraftHref: "/dashboard/affiliate/products/listing-1/edit",
+    })
+    expect(progress.steps.find((s) => s.id === "publish")?.href).toBe(
+      "/dashboard/affiliate/products/listing-1/edit"
+    )
+  })
+
+  it("affiliate post-connect sends to publish when draft exists", () => {
     const progress = buildAffiliateFirstSaleProgress({
       kycApproved: true,
       connectOnboarded: true,
