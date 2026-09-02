@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  hasAffiliateCatalogListing,
   listingWasEverStorefrontLive,
   resolveCatalogListingState,
 } from "@/lib/affiliate-catalog-listing-state"
@@ -44,5 +45,13 @@ describe("listingWasEverStorefrontLive", () => {
   it("is true with clicks or conversions", () => {
     expect(listingWasEverStorefrontLive({ id: "x", isListed: false, clicks: 1 })).toBe(true)
     expect(listingWasEverStorefrontLive({ id: "x", isListed: false, conversions: 1 })).toBe(true)
+  })
+})
+
+describe("hasAffiliateCatalogListing", () => {
+  it("is true for draft or live imports", () => {
+    expect(hasAffiliateCatalogListing([])).toBe(false)
+    expect(hasAffiliateCatalogListing([{ id: "d", isListed: false }])).toBe(true)
+    expect(hasAffiliateCatalogListing([{ id: "l", isListed: true }])).toBe(true)
   })
 })

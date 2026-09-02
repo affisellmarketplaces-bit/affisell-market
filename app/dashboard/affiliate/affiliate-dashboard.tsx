@@ -51,6 +51,7 @@ import {
   type SerializedListing,
 } from "@/components/affiliate/listing-builder-modal"
 import {
+  hasAffiliateCatalogListing,
   resolveCatalogListingState,
 } from "@/lib/affiliate-catalog-listing-state"
 import { publishBlockedToast } from "@/lib/affiliate-catalog-quick-add-client"
@@ -692,7 +693,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
   }, [catalog, catalogLoading, router, searchParams])
 
   const discoverSkuCount = catalog.length
-  const addableSkuCount = catalog.filter((p) => !(p.affiliateProducts?.length ?? 0)).length
+  const addableSkuCount = catalog.filter((p) => !hasAffiliateCatalogListing(p.affiliateProducts)).length
 
   const [discoverQ, setDiscoverQ] = useState("")
   const [discoverSort, setDiscoverSort] = useState<DiscoverSortKey>("new")
@@ -712,7 +713,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
   const filteredDiscover = useMemo(() => {
     let rows = [...catalog]
     if (discoverUnlistedOnly) {
-      rows = rows.filter((p) => resolveCatalogListingState(p.affiliateProducts).kind !== "live")
+      rows = rows.filter((p) => !hasAffiliateCatalogListing(p.affiliateProducts))
     }
     const q = discoverQ.trim().toLowerCase()
     if (q) {
@@ -1014,7 +1015,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                       >
                         {discoverUnlistedOnly
                           ? "ON — only products you can still import"
-                          : "Tap to hide SKUs already on your storefront"}
+                          : "Tap to hide SKUs already imported (draft or live)"}
                       </span>
                     </span>
                     <span

@@ -33,3 +33,10 @@ export function resolveCatalogListingState(
   }
   return { kind: "ready", listingId: draft.id }
 }
+
+/** Any import (draft, hidden, or live) — used for catalog vitrine filters. */
+export function hasAffiliateCatalogListing(
+  affiliateProducts?: CatalogAffiliateListingRow[] | null
+): boolean {
+  return Boolean(affiliateProducts?.length)
+}

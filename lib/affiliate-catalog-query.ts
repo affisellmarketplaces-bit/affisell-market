@@ -154,14 +154,14 @@ export async function buildAffiliateCatalogProductWhere(
     andParts.push({
       NOT: {
         affiliateProducts: {
-          some: { affiliateId, isListed: true },
+          some: { affiliateId },
         },
       },
     })
   } else if (affiliateId && vitrine === "en") {
     andParts.push({
       affiliateProducts: {
-        some: { affiliateId, isListed: true },
+        some: { affiliateId },
       },
     })
   }
