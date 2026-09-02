@@ -9,21 +9,24 @@ order: 0
 
 **Last updated: {{LAST_UPDATED}}**
 
-## 1. Seller, curator partner and Affisell's role
+## 1. Apparent seller (Affiliate-Commission Agent), Supplier and Affisell's role
 
 **{{COMPANY_NAME}}** ({{ADRESSE}}, SIRET {{SIRET}}) operates the Affisell platform.
 
-For each order:
+For each marketplace order:
 
-- the **product sales contract** is between you (the customer) and the **Supplier** identified on the product page;
-- any **Affiliate / creator partner** acts as a **commercial curator** (product selection and presentation via their storefront) and **is not the seller** of the goods;
-- **Affisell** acts as **agent and technical intermediary** (payment, invoicing, mediation).
+- the **sales contract** is between you (the customer) and the **Affiliate-Commission Agent** identified on the product page (apparent seller);
+- the **Supplier** performs **direct delivery on behalf of** the Affiliate-Commission Agent;
+- the Agent acts **in its own name and on behalf of the supplier, without holding inventory**;
+- **Affisell** acts as a **technical intermediary** (checkout, Stripe payment, mediation).
+
+The customer invoice is issued by the **Affiliate-Commission Agent** at the final price. Footer: "Sale as affiliate-commission agent — Direct supplier delivery".
 
 **Affisell is not the seller** of the goods unless explicitly stated otherwise.
 
 ## 2. Prices, VAT and invoicing
 
-Prices displayed include applicable VAT at the time of order when the "VAT included" notice appears on the product page. VAT is calculated according to the buyer's country (Stripe Tax or equivalent). The **selling Supplier** remains responsible for tax obligations. The invoice is issued in the name of {{COMPANY_NAME}} as billing intermediary or according to the tax rules applicable to the Supplier. Delivery charges, where applicable, are indicated before payment validation.
+Prices displayed include applicable VAT at checkout when collected via Stripe Tax or equivalent, based on the **final price** paid by the customer. The **Affiliate-Commission Agent** (apparent seller) and **Supplier** remain responsible for their respective tax obligations. Delivery charges, where applicable, are indicated before payment validation.
 
 ## 3. Payment
 

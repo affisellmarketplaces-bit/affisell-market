@@ -3785,7 +3785,7 @@
     "sectionPayment": "Paiement",
     "sectionAccount": "Compte",
     "sellerQ": "Qui est le vendeur ?",
-    "sellerA": "Le contrat de vente est conclu avec le fournisseur identifié sur la fiche produit (mention « Fournisseur »). Le revendeur Affisell agit comme curateur de vitrine. Affisell sécurise le paiement et facilite le service après-vente.",
+    "sellerA": "Le contrat de vente est conclu avec l'Affilié-Commissionnaire identifié sur la fiche (vendeur apparent). Il vous facture au prix final. Le Fournisseur livre pour son compte (livraison directe, sans stock détenu par l'affilié). Affisell sécurise le paiement et facilite le service après-vente.",
     "trackQ": "Où est ma commande ?",
     "trackA": "Connectez-vous avec l'e-mail utilisé au paiement, puis ouvrez Mes commandes. Vous y voyez le statut, le numéro de suivi et la possibilité d'ouvrir un retour. Des e-mails vous informent à chaque étape.",
     "confirmQ": "Je n'ai pas reçu l'e-mail de confirmation",

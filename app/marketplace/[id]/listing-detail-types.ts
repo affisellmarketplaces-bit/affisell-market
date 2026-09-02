@@ -39,9 +39,9 @@ export type ListingDetailProps = {
   descriptionIllustrationImages?: string[]
   descriptionIllustrationVideos?: string[]
   productSpecs?: SpecRow[]
-  /** Legal vendeur (fournisseur). */
+  /** Supplier fulfiller (direct delivery for the Agent). */
   sellerLabel: string
-  /** Boutique affilié / curateur (optionnel). */
+  /** Affiliate-Commission Agent storefront (apparent seller). */
   partnerLabel?: string
   isVerifiedSupplier?: boolean
   supplierTrustTier?: string | null

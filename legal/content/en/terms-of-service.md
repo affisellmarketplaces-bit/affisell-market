@@ -22,10 +22,10 @@ These General Terms of Use ("**GTU**") govern access to and use of the **Affisel
 ## Article 2 — Definitions
 
 - **Buyer**: natural or legal person placing an order via the Platform.
-- **Affiliate**: curator partner marketing a Supplier's products via an Affisell listing; **they are not the seller** of the goods.
-- **Supplier**: professional offering products on the Platform.
-- **Listing**: product page customized by an Affiliate (price, media, description).
-- **Order**: sales contract concluded between the Buyer and the Supplier, facilitated by Affisell.
+- **Affiliate-Commission Agent**: non-transparent commission agent (L132-1) marketing a Supplier's products via an Affisell listing; **apparent seller** to the Buyer, acting **in its own name and on behalf of the Supplier, without holding inventory**.
+- **Supplier**: professional offering products on the Platform and performing **direct delivery** on behalf of the Affiliate-Commission Agent.
+- **Listing**: product page customized by an Affiliate-Commission Agent (price, media, description).
+- **Order**: sales contract concluded between the Buyer and the **Affiliate-Commission Agent** (apparent seller), facilitated by Affisell; delivery by the Supplier on the Agent's behalf. **One Order = one product**.
 
 ## Article 3 — Registration and account
 
@@ -37,7 +37,7 @@ These General Terms of Use ("**GTU**") govern access to and use of the **Affisel
 
 ## Article 4 — Affisell's role and tripartite relationship
 
-4.1. The product sales contract is concluded **directly between the Buyer and the Supplier**. The Affiliate acts as a **curator partner** (storefront, selection, markup) and **is not the seller** of the goods. They receive **partner remuneration** (commission and/or margin) to be declared under their country of residence rules; seller obligations (including VAT on the product sale to the consumer) rest with the Supplier.
+4.1. The product sales contract is concluded between the **Buyer** and the **Affiliate-Commission Agent** (apparent seller). The Supplier performs delivery **on behalf of** the Agent. The Agent sets **margin freely** and receives a separate **commission**; it bears **commercial pricing risk**. VAT on the end-customer sale is calculated on the **final price** at checkout.
 
 4.2. Affisell receives a **platform commission** calculated on the **net amount excluding VAT** of the order line (excluding VAT), according to the applicable scale (default rate **10%**, variable by category or product).
 
@@ -47,7 +47,7 @@ These General Terms of Use ("**GTU**") govern access to and use of the **Affisel
 
 5.1. Prices displayed to the Buyer may be shown inclusive of tax when VAT is collected via Stripe Tax or an equivalent mechanism, based on the **Buyer's delivery or consumption country**.
 
-5.2. The Supplier remains responsible for tax obligations on the product sale (VAT, consumer invoicing). The Affiliate declares partner remuneration under their country of residence. Affisell provides transaction data to facilitate accounting.
+5.2. The **Affiliate-Commission Agent** issues the **customer invoice** at the **final price** (incl. VAT where applicable). The **Supplier** issues a **wholesale HT invoice** to the Agent. Affisell provides transaction data to facilitate accounting.
 
 ## Article 6 — Payments and payouts
 

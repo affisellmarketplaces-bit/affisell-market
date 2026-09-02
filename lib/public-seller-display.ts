@@ -9,7 +9,7 @@ function isUsablePublicName(raw: string | null | undefined): string | null {
   return value
 }
 
-/** Partner / reseller storefront (curator) — not the legal seller of goods. */
+/** Partner storefront — Affiliate-Commission Agent (apparent seller on marketplace). */
 export function publicPartnerSellerLabel(opts: {
   storeName: string | null | undefined
   affiliateDisplayName: string | null | undefined
@@ -18,11 +18,11 @@ export function publicPartnerSellerLabel(opts: {
   if (store) return store
   const name = isUsablePublicName(opts.affiliateDisplayName)
   if (name) return name
-  return "Creator partner"
+  return "Affiliate-Commission Agent"
 }
 
 /**
- * Legal vendeur on the PDP / cart — supplier (fournisseur), per CGV.
+ * Supplier fulfiller label on PDP / checkout — executes direct delivery for the Agent.
  * Prefer KYC trade / legal entity / supplier storefront brand — never raw User.name on buyer UI.
  */
 export function publicSupplierVendorLabel(opts: {

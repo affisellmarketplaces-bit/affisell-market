@@ -3785,7 +3785,7 @@
     "sectionPayment": "Payment",
     "sectionAccount": "Account",
     "sellerQ": "Who is the seller?",
-    "sellerA": "The sales contract is with the supplier named on the product page (\"Supplier\" line). The Affisell reseller is a storefront curator only. Affisell secures payment and helps with after-sales support.",
+    "sellerA": "Your sales contract is with the Affiliate-Commission Agent shown on the product page (apparent seller). They invoice you at the final price. The Supplier delivers on their behalf (direct delivery, no stock held by the Agent). Affisell secures payment and helps with after-sales support.",
     "trackQ": "Where is my order?",
     "trackA": "Sign in with the email used at checkout, then open My orders. You'll see status, tracking and return options. We email you at each key step.",
     "confirmQ": "I didn't receive a confirmation email",
@@ -5225,7 +5225,7 @@
       "description": "B2B page: independence, net commissions, payouts, prohibited conduct and DAC7."
     },
     "eyebrow": "Partner program · B2B",
-    "title": "Affisell curator partner",
+    "title": "Affisell Affiliate-Commission Agent",
     "hero": {
       "subtitle": "Earnings on catalogue net price — no salary. {days}-day attribution cookie. Typical {min}–{max}% per listing.",
       "commission": "{min}–{max}% of catalogue net price",
@@ -5242,11 +5242,11 @@
     "catalog": {
       "title": "Catalogue by vertical",
       "body": "Browse listings by category — supplier identities are never exposed (trade secrecy & GDPR).",
-      "noSuppliers": "Warehouse and supplier brand names are never shown to curator partners."
+      "noSuppliers": "Warehouse and supplier brand names are never shown to Affiliate-Commission Agents on catalogue browse."
     },
     "tax": {
       "title": "Tax by country of residence",
-      "body": "Declare partner earnings (commission + net markup) in your country. Affisell does not withhold unless legally required.",
+      "body": "Declare commission and free margin separately in your country. Affisell does not withhold unless legally required.",
       "tableCaption": "Indicative regimes by country",
       "colCountry": "Country",
       "colRegime": "Indicative regime",
