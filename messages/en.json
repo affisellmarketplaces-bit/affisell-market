@@ -698,15 +698,15 @@
       "fieldSocial": "TikTok / Instagram handle",
       "fieldPassword": "Password",
       "vatNotice": "Suppliers remain liable for VAT on sales. Affisell fees apply to net amounts excl. VAT.",
-      "vatNoticeAffiliate": "You are a curator partner, not the seller: declare your remuneration under your country of residence rules. VAT on buyer purchases is collected at checkout based on delivery country and is the selling supplier's obligation.",
-      "affiliateStatusCardSub": "Curator partner — identity only; tax filings under your country of residence",
+      "vatNoticeAffiliate": "Affiliate-Commission Agent (L132-1): you invoice the customer at the final price and receive commission + free margin. Customer VAT is calculated on the final price at checkout.",
+      "affiliateStatusCardSub": "Affiliate-Commission Agent — apparent seller, no stock; declare under your country",
       "affiliateKycIdentityTitle": "Quick identity check",
       "affiliateKycIdentityHint": "Resellers curate products — suppliers ship. ID only, no business registry.",
       "hasAccountSupplier": "Already a partner?",
       "hasAccountAffiliate": "Already a reseller?",
       "signIn": "Sign in",
       "statusParticulierTitle": "Individual",
-      "statusParticulierSub": "Reseller without registered business — curator partner, not product seller",
+      "statusParticulierSub": "Affiliate-Commission Agent without registered business — non-transparent mandate L132-1",
       "statusAutoEntrepreneurTitle": "Sole trader / micro-business",
       "statusAutoEntrepreneurSub": "Auto-entrepreneur · URSSAF / INSEE proof",
       "statusEiTitle": "Professional (sole proprietorship)",
@@ -1502,17 +1502,17 @@
     },
     "earnings": {
       "cockpit": {
-        "eyebrow": "Partner commerce",
+        "eyebrow": "Affiliate-Commission Agent",
         "title": "Earnings cockpit",
-        "description": "Reseller remuneration: supplier commission + net markup on each sale, minus Affisell platform fee. You are a curator reseller, not the product seller — declare under your country of residence.",
+        "description": "Dual remuneration: My Commission (supplier/platform) + My Margin (free) on each sale. You invoice the customer at the final price (supplier price + your margin) — non-transparent commission agent, no stock.",
         "paidOutLabel": "Paid out (ledger)"
       },
       "taxCompliance": {
-        "title": "Curator partner tax framework",
-        "body": "You are not the product seller. You receive partner remuneration (supplier commission + net markup) for curation and promotion — declare it under the tax and social rules of your country of residence.",
-        "nonSeller": "Professional seller obligations (retail VAT, legal warranties, withdrawal rights against the seller) rest with the supplier, not your curator storefront.",
-        "buyerVat": "VAT on customer purchases is calculated at checkout based on the buyer's delivery or consumption country and is exclusively the selling supplier's obligation.",
-        "records": "Keep your Affisell statements and payment notifications as an accounting baseline for your filings.",
+        "title": "Affiliate-Commission Agent tax framework",
+        "body": "You sell and invoice the end customer as an affiliate-commission agent. You receive commission and free margin separately — declare under your country's tax rules.",
+        "nonSeller": "Acting in your own name and on behalf of the supplier, without holding inventory. The supplier delivers on your behalf; you remain responsible for the sale to the customer.",
+        "buyerVat": "Customer VAT is calculated at checkout on the final price, not on commission alone.",
+        "records": "Keep customer invoices, supplier wholesale invoices, and Affisell statements.",
         "dac7": "Affisell may report your platform earnings to competent authorities (DAC7 / digital platform reporting) as required by law.",
         "advice": "Affisell does not provide tax advice. Consult an accountant or tax adviser in your country if needed."
       },
@@ -3678,8 +3678,8 @@
     "aiSummary": "AI Summary",
     "reviews": "{count} reviews",
     "byStore": "by {store}",
-    "soldBy": "Sold by {seller} · supplier",
-    "curatedByPartner": "Creator partner",
+    "soldBy": "Sold and invoiced by {seller} (Affiliate-Commission Agent)",
+    "curatedByPartner": "Affiliate-commission agent",
     "verifiedPartnerStorefront": "Verified partner storefront",
     "fulfilledBySupplier": "Fulfilled by a verified Affisell partner",
     "viewInAR": "View in AR",
@@ -5166,7 +5166,9 @@
       "paidOutFootnote": "Net of recorded payouts and any clawbacks — see activity below.",
       "supplierBandHint": "Wholesale value of units sold in this window (before platform payout timing).",
       "emptyLedger": "No payout entries yet — they appear when orders pass shipment / delivery steps.",
-      "ledgerTitle": "Payout ledger"
+      "ledgerTitle": "Payout ledger",
+      "commissionLabel": "My Commission",
+      "marginLabel": "My Margin (free)"
     }
   },
   "browseCategory": {

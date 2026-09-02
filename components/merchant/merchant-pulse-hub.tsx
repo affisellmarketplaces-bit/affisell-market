@@ -194,11 +194,11 @@ export function MerchantPulseHub({
                   <ul className="grid grid-cols-2 gap-2 text-[11px] text-zinc-600 dark:text-zinc-400">
                     <li className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-ai" />
-                      Commission {formatStoreCurrencyFromCents(b.commissionCents)}
+                      {tPulse("commissionLabel")} {formatStoreCurrencyFromCents(b.commissionCents)}
                     </li>
                     <li className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-brand" />
-                      Markup {formatStoreCurrencyFromCents(b.markupCents)}
+                      {tPulse("marginLabel")} {formatStoreCurrencyFromCents(b.markupCents)}
                     </li>
                   </ul>
                 </div>

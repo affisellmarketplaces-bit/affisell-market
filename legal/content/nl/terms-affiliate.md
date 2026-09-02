@@ -11,9 +11,17 @@ order: 3
 
 Deze Algemene Voorwaarden Affiliate («**AVA**») vullen de [AGV](/legal/terms-of-service) aan en regelen de relatie tussen **Affisell SAS** en elke partner geregistreerd als **Affiliate** (creator, influencer, wederverkoper).
 
-## Artikel 1 — Status
+## Artikel 1 — Affiliate-commission agent (L132-1)
 
-1.1. De Affiliate handelt als **professional of niet-professional** volgens zijn verklaring. Hij is als enige verantwoordelijk voor zijn fiscale en sociale verplichtingen (URSSAF, btw, inkomstenbelastingaangifte).
+1.1. De Affiliate is **affiliate-commission agent**: handelt **op eigen naam en voor rekening van de Leverancier**, **zonder voorraad**, met **directe levering** door de Leverancier.
+
+1.2. Is **schijnbaar verkoper** tegenover de eindklant: **stelt de klantfactuur uit** en sluit de verkoop af. De Leverancier levert in zijn opdracht.
+
+1.3. **Geen handelsagent**: stelt **vrij de marge** vast en draagt het **commerciële risico**.
+
+1.4. **Handelend op eigen naam en voor rekening van de leverancier, zonder voorraad.**
+
+1.5. Btw op eindklantverkoop wordt berekend op de **eindprijs** bij checkout.
 
 ### Artikel 1.2 — Terminologie «Ambassador»
 

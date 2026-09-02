@@ -25,15 +25,15 @@ Au sens des présentes CGU :
 
 - **Acheteur** ou **Customer** : toute personne physique ou morale passant commande via la Plateforme, qu'elle dispose ou non d'un compte utilisateur.
 
-- **Affilié** ou **Affiliate Seller** : partenaire commercial indépendant (créateur, influenceur, curateur de vitrine) qui sélectionne des produits de Fournisseurs, les présente via une vitrine Affisell et fixe le **prix public** de revente dans les bornes définies aux présentes CGU. **L'Affilié n'est pas le vendeur** des marchandises.
+- **Affilié-Commissionnaire** ou **Affiliate-Commission Agent** : mandataire non transparent (L132-1) qui commercialise les produits d'un Fournisseur via une vitrine Affisell, agissant **en son nom propre et pour le compte du Fournisseur, sans détention de stock** ; **vendeur apparent** vis-à-vis de l'Acheteur.
 
-- **Fournisseur** ou **Supplier** : professionnel proposant des produits sur la Plateforme, fixant le prix fournisseur (wholesale), assurant l'expédition et la conformité des produits.
+- **Fournisseur** ou **Supplier** : professionnel proposant des produits sur la Plateforme, exécutant la **livraison directe** pour le compte de l'Affilié-Commissionnaire.
 
 - **Utilisateur** : toute personne accédant à la Plateforme, qu'elle soit Acheteur, Affilié, Fournisseur ou visiteur.
 
 - **Listing** : fiche produit personnalisée par un Affilié (prix public, médias, description, vitrine).
 
-- **Commande** : contrat de vente conclu **entre l'Acheteur et le Fournisseur** pour un produit déterminé, facilité par Affisell. **Une Commande correspond à un seul produit** (pas de panier multi-produits contractuel standard).
+- **Commande** : contrat de vente conclu **entre l'Acheteur et l'Affilié-Commissionnaire** (vendeur apparent) pour un produit déterminé, facilité par Affisell ; livraison par le Fournisseur pour le compte du Commissionnaire. **Une Commande correspond à un seul produit** (pas de panier multi-produits contractuel standard).
 
 - **Prix fournisseur** ou **wholesale** : prix hors taxes fixé par le Fournisseur pour un produit, servant de base au calcul de la marge de l'Affilié.
 
@@ -41,7 +41,7 @@ Au sens des présentes CGU :
 
 - **Commission plateforme** : rémunération d'Affisell pour la mise à disposition de l'infrastructure, calculée selon le barème en vigueur sur le montant hors taxes de la Commande.
 
-- **Rémunération partenaire** : somme perçue par l'Affilié au titre d'une vente (commission catalogue et/ou marge nette), à déclarer selon la réglementation fiscale applicable dans son pays de résidence.
+- **Rémunération partenaire** : somme perçue par l'Affilié-Commissionnaire au titre d'une vente, séparée en **commission** (`commission_amount`) et **marge libre** (`margin_amount`), à déclarer selon la réglementation fiscale applicable dans son pays de résidence.
 
 - **Confirmation de livraison** : acte par lequel l'Acheteur confirme la réception conforme du produit, ou confirmation automatique selon les délais prévus aux présentes CGU.
 
@@ -61,7 +61,7 @@ Au sens des présentes CGU :
 
 2.3. **Statut d'Affisell.** Affisell agit en qualité d'**hébergeur** et d'**intermédiaire technique**. **Affisell n'est pas le vendeur** des produits proposés sur la Plateforme, sauf mention expresse contraire sur une fiche produit (stock Affisell ou mécanisme auto-buy documenté).
 
-2.4. **Relation tripartite.** Le contrat de vente du produit est conclu **directement entre l'Acheteur et le Fournisseur**. L'Affilié intervient en qualité de **partenaire curateur** (sélection, présentation, prix public) et perçoit une rémunération partenaire. Les obligations de vendeur au sens du Code de la consommation (conformité, garanties légales, information précontractuelle sur le produit) incombent au **Fournisseur**.
+2.4. **Relation tripartite (L132-1).** Le contrat de vente du produit est conclu entre l'**Acheteur** et l'**Affilié-Commissionnaire** (vendeur apparent). Le Fournisseur exécute la livraison **pour le compte** du Commissionnaire. L'Affilié-Commissionnaire fixe **librement sa marge** et perçoit une **commission** distincte. Les obligations de conformité produit et d'expédition incombent au **Fournisseur** ; la facturation client au **prix final** incombe à l'**Affilié-Commissionnaire**.
 
 2.5. **Conditions spécifiques.** Les Fournisseurs et Affiliés sont en outre soumis à leurs conditions particulières respectives ([CGS](/legal/terms-supplier), [CGA](/legal/terms-affiliate)), qui complètent les présentes CGU. En cas de contradiction sur un point spécifique à leur activité marchande, les conditions particulières prévalent pour les parties concernées.
 

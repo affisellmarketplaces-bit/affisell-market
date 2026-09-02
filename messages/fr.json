@@ -698,15 +698,15 @@
       "fieldSocial": "Pseudo TikTok / Instagram",
       "fieldPassword": "Mot de passe",
       "vatNotice": "Le fournisseur est seul responsable de la TVA sur les ventes. Affisell prélève sa commission sur le HT.",
-      "vatNoticeAffiliate": "Vous êtes partenaire curateur, pas vendeur : déclarez votre rémunération selon les règles de votre pays de résidence. La TVA sur les ventes aux acheteurs est collectée au checkout selon le pays de livraison et relève du fournisseur vendeur.",
-      "affiliateStatusCardSub": "Partenaire curateur — identité uniquement ; déclarations fiscales selon votre pays",
+      "vatNoticeAffiliate": "Affilié-Commissionnaire (L132-1) : vous facturez le client au prix final et percevez commission + marge libre. TVA client calculée sur le prix final au checkout.",
+      "affiliateStatusCardSub": "Affilié-Commissionnaire — vendeur apparent, sans stock ; déclarations selon votre pays",
       "affiliateKycIdentityTitle": "Vérification d’identité rapide",
       "affiliateKycIdentityHint": "Les revendeurs curatent — les fournisseurs livrent. Pièce d’identité uniquement, pas de KBIS.",
       "hasAccountSupplier": "Déjà partenaire ?",
       "hasAccountAffiliate": "Déjà revendeur ?",
       "signIn": "Se connecter",
       "statusParticulierTitle": "Particulier",
-      "statusParticulierSub": "Revendeur sans structure enregistrée — partenaire curateur, pas vendeur des produits",
+      "statusParticulierSub": "Affilié-Commissionnaire sans structure enregistrée — mandat non transparent L132-1",
       "statusAutoEntrepreneurTitle": "Auto-entrepreneur",
       "statusAutoEntrepreneurSub": "Micro-entreprise · attestation URSSAF / INSEE",
       "statusEiTitle": "Professionnel (EI / EIRL)",
@@ -1502,17 +1502,17 @@
     },
     "earnings": {
       "cockpit": {
-        "eyebrow": "Commerce partenaire",
+        "eyebrow": "Affilié-Commissionnaire",
         "title": "Cockpit revenus",
-        "description": "Rémunération revendeur : commission fournisseur + marge nette sur chaque vente, moins les frais plateforme Affisell. Vous êtes curateur revendeur, pas le vendeur produit — déclarez selon votre pays de résidence.",
+        "description": "Double rémunération : Ma Commission (fournisseur/plateforme) + Ma Marge (libre) sur chaque vente. Vous facturez le client au prix final (prix fournisseur + votre marge) — mandataire non transparent L132-1, sans stock.",
         "paidOutLabel": "Versé (journal)"
       },
       "taxCompliance": {
-        "title": "Cadre fiscal partenaire curateur",
-        "body": "Vous n'êtes pas le vendeur des produits. Vous percevez une rémunération partenaire (commission fournisseur + marge nette) pour vos activités de curation et de mise en avant — à déclarer selon le droit fiscal et social de votre pays de résidence.",
-        "nonSeller": "Les obligations du vendeur professionnel (TVA vente au détail, garanties légales, droit de rétractation vis-à-vis du vendeur) incombent au fournisseur, pas à votre vitrine curateur.",
-        "buyerVat": "La TVA sur les achats clients est calculée au checkout selon le pays de livraison ou de consommation de l'acheteur et relève exclusivement du fournisseur vendeur.",
-        "records": "Conservez vos relevés Affisell et notifications de paiement comme base comptable pour vos déclarations.",
+        "title": "Cadre fiscal Affilié-Commissionnaire",
+        "body": "Vous vendez et facturez le client final en qualité de commissionnaire-affilié. Vous percevez séparément votre commission et votre marge libre — à déclarer selon le droit fiscal de votre pays.",
+        "nonSeller": "Agissant en votre nom propre et pour le compte du fournisseur, sans détention de stock. Le fournisseur livre pour votre compte ; vous restez responsable de la vente vis-à-vis du client.",
+        "buyerVat": "La TVA client est calculée au checkout sur le prix final TTC, pas sur la seule commission.",
+        "records": "Conservez vos factures client, factures wholesale fournisseur et relevés Affisell.",
         "dac7": "Affisell peut transmettre vos revenus plateforme aux autorités compétentes (DAC7 / reporting plateformes numériques) selon la réglementation applicable.",
         "advice": "Affisell ne fournit pas de conseil fiscal. Consultez un expert-comptable ou conseil fiscal dans votre pays si nécessaire."
       },
@@ -3678,8 +3678,8 @@
     "aiSummary": "Résumé IA",
     "reviews": "{count} avis",
     "byStore": "par {store}",
-    "soldBy": "Vendu par {seller} · fournisseur",
-    "curatedByPartner": "Sélection partenaire",
+    "soldBy": "Vendu et facturé par {seller} (Affilié-Commissionnaire)",
+    "curatedByPartner": "Commissionnaire-affilié",
     "verifiedPartnerStorefront": "Vitrine partenaire vérifiée",
     "fulfilledBySupplier": "Expédié par un partenaire Affisell vérifié",
     "viewInAR": "Voir en RA",
@@ -5166,7 +5166,9 @@
       "paidOutFootnote": "Net des versements enregistrés et clawbacks éventuels — voir l'activité ci-dessous.",
       "supplierBandHint": "Valeur wholesale des unités vendues sur la période (avant timing plateforme).",
       "emptyLedger": "Aucune ligne de versement pour l'instant — elles apparaissent quand les commandes passent les étapes expédition / livraison.",
-      "ledgerTitle": "Journal des versements"
+      "ledgerTitle": "Journal des versements",
+      "commissionLabel": "Ma Commission",
+      "marginLabel": "Ma Marge (libre)"
     }
   },
   "browseCategory": {

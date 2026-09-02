@@ -8,6 +8,7 @@ import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/bu
 import { ensureBuyerUserIdFromStripeCheckout } from "@/lib/ensure-buyer-from-stripe-checkout"
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
 import { resolveAffisellCommissionRateBpsForProductId } from "@/lib/affisell-platform-commission.server"
+import { recordAffiliateSaleFromOrder } from "@/lib/legal/affiliate-commissionnaire.server"
 import {
   AFFILIATE_COMMISSION_REQUIRED_ERROR,
   productHasExplicitSupplierCommission,
@@ -388,6 +389,7 @@ async function createPaidMarketplaceOrder(
         supplierCommissionRateBps,
         supplierPayoutCents: supplierNetPayoutCents,
         affiliateMarginCents: affiliateMarginCents * qty,
+        pricingFreedom: true,
         affisellCommissionRateBps,
         status: "paid",
         paidAt: new Date(),
@@ -426,6 +428,16 @@ async function createPaidMarketplaceOrder(
     }
     throw err
   }
+
+  await recordAffiliateSaleFromOrder(tx, {
+    id: order.id,
+    affiliateId: listing.affiliateId,
+    supplierId: listing.product.supplierId,
+    supplierPriceCents: unitSupplierCents * qty,
+    affiliateMarginCents: affiliateMarginCents * qty,
+    affiliatePayoutCents: settlement.affiliateCommissionCents,
+    sellingPriceCents: settlement.sellingPriceCents,
+  })
 
   await syncMarketplaceOrderToMedusa(tx, {
     orderId: order.id,
@@ -1069,6 +1081,7 @@ export async function fulfillMarketplaceStripeSession(
           supplierPayoutCents: dupSupplierNetPayout,
           affiliateMarginCents:
             listing.marginCents > 0 ? listing.marginCents * qty : settlement.affiliateMarginRetainedCents,
+          pricingFreedom: true,
           affisellCommissionRateBps,
           status: "paid",
           paidAt: new Date(),
@@ -1086,6 +1099,17 @@ export async function fulfillMarketplaceStripeSession(
       await tx.affiliateProduct.update({
         where: { id: listing.id },
         data: { conversions: { increment: qty } },
+      })
+
+      await recordAffiliateSaleFromOrder(tx, {
+        id: pendingOrder.id,
+        affiliateId: listing.affiliateId,
+        supplierId: listing.product.supplierId,
+        supplierPriceCents: basePriceCents,
+        affiliateMarginCents:
+          listing.marginCents > 0 ? listing.marginCents * qty : settlement.affiliateMarginRetainedCents,
+        affiliatePayoutCents: settlement.affiliateCommissionCents,
+        sellingPriceCents: settlement.sellingPriceCents,
       })
 
       const variantBit = checkoutVariantLabel ? ` · ${checkoutVariantLabel}` : ""

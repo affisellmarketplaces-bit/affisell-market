@@ -2447,6 +2447,10 @@ model Order {
    * Affiliate markup above supplier price (HT).
    */
   affiliateMarginCents             Int                          @default(0)
+  /**
+   * L132-1 anti-requalification — affiliate freely set margin at checkout (snapshot).
+   */
+  pricingFreedom                   Boolean                      @default(true)
   affisellCommissionRateBps        Int                          @default(1200)
   /**
    * Connect payout to supplier (three-way split).
@@ -2539,6 +2543,7 @@ model Order {
   autoBuyLog               FulfillmentLog?
   fulfillmentItem          FulfillmentItem?
   sponsorCampaignCharges   SponsorCampaignCharge[]
+  affiliateSale            AffiliateSale?
 
   @@index([affiliateId])
   @@index([storeProfileId])
@@ -2551,6 +2556,34 @@ model Order {
    * idx_orders_leaderboard (productId, paidAt, storeProfileId) WHERE payoutStatus <> FAILED
    */
   @@index([productId, paidAt, storeProfileId])
+}
+
+/**
+ * L132-1 legal snapshot — separates commission (platform/supplier) vs free margin (affiliate).
+ * 1:1 with marketplace Order; idempotent upsert at fulfill.
+ */
+model AffiliateSale {
+  id                    String   @id @default(cuid())
+  orderId               String   @unique
+  order                 Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  affiliateId           String
+  supplierId            String
+  /** Prix fournisseur HT (centimes). */
+  supplierPriceCents    Int
+  /** Marge librement fixée par l'Affilié-Commissionnaire (centimes). */
+  marginAmountCents     Int
+  /** Commission versée à l'affilié (centimes). */
+  commissionAmountCents Int
+  /** supplierPriceCents + marginAmountCents (HT revente). */
+  resalePriceCents      Int
+  /** Preuve liberté de prix — anti-requalification agent commercial (L134-1). */
+  pricingFreedom        Boolean  @default(true)
+  legalQualification    String   @default("COMMISSIONNAIRE_AFFILIE_L132-1")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([affiliateId])
+  @@index([supplierId])
 }
 
 model TransferAttempt {

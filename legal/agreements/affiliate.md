@@ -17,11 +17,15 @@ L'acceptation des présentes CGA est requise pour publier une vitrine et percevo
 
 ---
 
-## 1. Mandat commercial indépendant
+## 1. Independent affiliate-commission agent (Commercial Code Art. L132-1 equivalent)
 
-**1.1** L'**Affilié** est **mandataire commercial indépendant** : il sélectionne, présente et commercialise des produits de Fournisseurs via sa vitrine Affisell. **Il n'est pas salarié** d'Affisell ni des Fournisseurs. **Aucun contrat de travail** n'est conclu. L'Affilié **n'est pas le vendeur** des marchandises : le contrat de vente est conclu entre l'**Acheteur** et le **Fournisseur**, conformément aux [CGU](/legal/cgu) et aux [CGV](/legal/cgv).
+**1.1** The **Affiliate-Commission Agent** acts as a **non-transparent commission agent**: **in its own name** and **on behalf of the Supplier**, **without purchasing or holding inventory**, with **direct delivery** by the Supplier. This is **not** a commercial agent (no fixed resale price — free margin).
 
-**1.2** **Affisell** fournit une **plateforme technique d'affiliation** : hébergement de vitrine, checkout, paiement Stripe Connect, outils de pricing, notifications et modération. Affisell n'expédie pas les produits, ne détient pas le stock et n'émet pas la facture de vente du bien au consommateur final.
+**1.2** The Affiliate-Commission Agent is the **apparent seller** to the end customer: it **issues the customer invoice** and concludes the sale. The Supplier fulfils shipment on its behalf.
+
+**1.3** **Affisell** provides the **technical affiliation platform** (storefront, checkout, Stripe Connect, pricing tools). Affisell does not ship products or hold stock.
+
+**1.4** Acting in its own name and on behalf of the supplier, without holding inventory.
 
 ---
 
@@ -67,7 +71,7 @@ Le **taux de commission** (`commissionRate`) est fixé par le Fournisseur sur la
 
 ## 5. Interdictions
 
-**5.1** Sont **interdits** : **spam**, **brand bidding** (achat de mots-clés sur les marques Fournisseur ou Affisell sans autorisation écrite), **publicité trompeuse**, **cookie stuffing**, fausses réductions, présentation de l'Affilié comme vendeur du produit, contrefaçon et contenus illicites.
+**5.1** Sont **interdits** : **spam**, **brand bidding** (achat de mots-clés sur les marques Fournisseur ou Affisell sans autorisation écrite), **publicité trompeuse**, **cookie stuffing**, fausses réductions, qualification erronée du modèle (agent commercial, apporteur d'affaires), contrefaçon et contenus illicites.
 
 **5.2** L'**Affilié est seul responsable** du contenu de ses promotions (textes, vidéos, embeds, réseaux sociaux). Si l'Affilié **collecte des adresses email** ou données prospects, il respecte le **RGPD** et la [Politique de confidentialité](/legal/confidentialite) : base légale, information, droits des personnes, sécurité et durée de conservation.
 

@@ -11,9 +11,17 @@ order: 3
 
 Niniejsze Ogólne Warunki Partnera Afiliacyjnego («**OWPA**») uzupełniają [OWU](/legal/terms-of-service) i regulują relację między **Affisell SAS** a każdym partnerem zarejestrowanym jako **Partner afiliacyjny** (twórca, influencer, odsprzedawca).
 
-## Artykuł 1 — Status
+## Artykuł 1 — Agent afiliacyjno-komisowy (L132-1)
 
-1.1. Partner afiliacyjny działa jako **profesjonalista lub nieprofesjonalista** zgodnie ze swoją deklaracją. Jest wyłącznie odpowiedzialny za swoje zobowiązania podatkowe i społeczne (URSSAF, VAT, deklaracja podatku dochodowego).
+1.1. Partner afiliacyjny jest **agentem afiliacyjno-komisowym**: działa **we własnym imieniu i na rzecz Dostawcy**, **bez magazynowania**, z **bezpośrednią dostawą** przez Dostawcę.
+
+1.2. Jest **pozornym sprzedawcą** wobec klienta końcowego: **wystawia fakturę klientowi** i zawiera umowę sprzedaży. Dostawca realizuje dostawę w jego imieniu.
+
+1.3. **Nie jest agentem handlowym**: ustala **swobodnie marżę** i ponosi **ryzyko handlowe**.
+
+1.4. **Działając we własnym imieniu i na rzecz dostawcy, bez posiadania stocku.**
+
+1.5. VAT od klienta końcowego jest liczony od **ceny końcowej** przy checkout.
 
 ### Artykuł 1.2 — Terminologia «Ambassador»
 

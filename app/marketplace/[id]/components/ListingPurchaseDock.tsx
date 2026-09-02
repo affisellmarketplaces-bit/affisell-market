@@ -12,6 +12,7 @@ import {
 import type { ReactNode, RefObject } from "react"
 import nextDynamic from "next/dynamic"
 import { MarketplacePurchaseQuantity } from "@/components/marketplace/marketplace-purchase-quantity"
+import { CommissionnaireCheckoutDisclaimer } from "@/components/checkout/commissionnaire-checkout-disclaimer"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import {
   formatStoreCurrency,
@@ -106,6 +107,8 @@ type Props = {
   onSavePriceAlert: () => void
   compactCrossSellSlot?: ReactNode
   wishlistTitle: string
+  affiliateCommissionnaireName: string
+  supplierName: string
 }
 
 export function ListingPurchaseDock({
@@ -152,6 +155,8 @@ export function ListingPurchaseDock({
   onSavePriceAlert,
   compactCrossSellSlot,
   wishlistTitle,
+  affiliateCommissionnaireName,
+  supplierName,
 }: Props) {
   return (
     <motion.div
@@ -309,6 +314,12 @@ export function ListingPurchaseDock({
               <span className="relative">{buyBusy ? "Redirecting…" : productT.buyNowShort}</span>
               <ArrowRight className={cn("hidden h-5 w-5 shrink-0 lg:block", brand.accentIcon)} aria-hidden />
             </motion.button>
+
+            <CommissionnaireCheckoutDisclaimer
+              affiliateName={affiliateCommissionnaireName}
+              supplierName={supplierName}
+              className="mt-1"
+            />
 
             <button
               type="button"

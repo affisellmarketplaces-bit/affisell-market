@@ -11,17 +11,17 @@ order: 3
 
 Las presentes Condiciones Generales del Afiliado («**CGA**») complementan las [CGU](/legal/terms-of-service) y rigen la relación entre **Affisell SAS** y todo socio registrado como **Afiliado** (creador, influencer, curador de vitrina).
 
-## Artículo 1 — Estatuto de socio curador (no vendedor)
+## Artículo 1 — Agente afiliado-comisionista (L132-1)
 
-1.1. El Afiliado es un **socio comercial independiente** que selecciona, presenta y promociona productos de Proveedores mediante una vitrina Affisell. **No es el vendedor** de las mercancías: el contrato de venta se celebra entre el Comprador y el **Proveedor**.
+1.1. El Afiliado es **agente afiliado-comisionista**: actúa **en su propio nombre y por cuenta del Proveedor**, **sin stock**, con **entrega directa** por el Proveedor.
 
-1.2. El Afiliado no envía productos, no tiene stock y no asume las obligaciones del vendedor (conformidad, entrega, garantías legales), salvo sus deberes de comunicación leal.
+1.2. Es **vendedor aparente** ante el cliente final: **emite la factura al cliente** y celebra la venta. El Proveedor ejecuta la entrega por su cuenta.
 
-1.3. Las **normas del vendedor profesional en el país del Comprador** no se aplican al Afiliado como curador, sino al **Proveedor vendedor**.
+1.3. **No es agente comercial**: fija **libremente su margen** y asume el **riesgo comercial**.
 
-1.4. El Afiliado declara su **remuneración de socio** según las normas fiscales y sociales de su **país de residencia**.
+1.4. **Actuando en su propio nombre y por cuenta del proveedor, sin detención de stock.**
 
-1.5. El **IVA sobre ventas a Compradores** se calcula según el **país de entrega o consumo del Comprador** en el checkout y es obligación del **Proveedor vendedor**, no del Afiliado.
+1.5. El **IVA al cliente** se calcula sobre el **precio final** en el checkout.
 
 ### Artículo 1.6 — Terminología «Embajador»
 

@@ -9,15 +9,18 @@ order: 0
 
 **Dernière mise à jour : {{LAST_UPDATED}}**
 
-## 1. Identité du vendeur, du partenaire curateur et rôle d'Affisell
+## 1. Identité du vendeur (Affilié-Commissionnaire), du Fournisseur et rôle d'Affisell
 
 **{{COMPANY_NAME}}** ({{ADRESSE}}, SIRET {{SIRET}}) exploite la plateforme Affisell.
 
-Pour chaque commande :
+Pour chaque commande marketplace :
 
-- le **contrat de vente du produit** est conclu entre vous (le client) et le **fournisseur (Supplier)** identifié sur la fiche produit ;
-- l'**affilié / partenaire créateur** éventuel agit en qualité de **curateur commercial** (sélection et présentation des produits via sa vitrine) et **n'est pas le vendeur** des marchandises ;
-- **Affisell** agit en qualité de **mandataire et intermédiaire technique** (paiement, facturation, médiation).
+- le **contrat de vente** est conclu entre vous (le client) et l'**Affilié-Commissionnaire** identifié sur la fiche (vendeur apparent) ;
+- le **Fournisseur** exécute la **livraison directe pour le compte** de l'Affilié-Commissionnaire, sans que vous ayez à contracter directement avec lui pour la vente ;
+- l'Affilié-Commissionnaire agit **en son nom propre et pour le compte du fournisseur, sans détention de stock** ;
+- **Affisell** agit en qualité d'**intermédiaire technique** (checkout, paiement Stripe, médiation).
+
+La facture client est émise par l'**Affilié-Commissionnaire** au prix final. Mention : « Vente en qualité de commissionnaire-affilié — Livraison directe fournisseur ».
 
 **Affisell n'est pas le vendeur** des marchandises, sauf mention contraire explicite.
 

@@ -11,9 +11,17 @@ order: 3
 
 Le presenti Condizioni Generali dell'Affiliato («**CGA**») integrano le [CGU](/legal/terms-of-service) e regolano il rapporto tra **Affisell SAS** e qualsiasi partner registrato come **Affiliato** (creatore, influencer, rivenditore).
 
-## Articolo 1 — Status
+## Articolo 1 — Agente affiliato-commissionario (L132-1)
 
-1.1. L'Affiliato agisce come **professionista o non professionista** secondo la propria dichiarazione. È l'unico responsabile dei propri obblighi fiscali e sociali (URSSAF, IVA, dichiarazione dei redditi).
+1.1. L'Affiliato è **agente affiliato-commissionario**: agisce **in proprio nome e per conto del Fornitore**, **senza stock**, con **consegna diretta** da parte del Fornitore.
+
+1.2. È **venditore apparente** verso il cliente finale: **emette la fattura al cliente** e conclude la vendita. Il Fornitore esegue la consegna per suo conto.
+
+1.3. **Non è agente commerciale**: fissa **liberamente il margine** e sopporta il **rischio commerciale**.
+
+1.4. **Agendo in proprio nome e per conto del fornitore, senza detenzione di stock.**
+
+1.5. L'IVA al cliente finale è calcolata sul **prezzo finale** al checkout.
 
 ### Articolo 1.2 — Terminologia «Ambassador»
 

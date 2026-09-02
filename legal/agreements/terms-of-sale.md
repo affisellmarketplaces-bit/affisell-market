@@ -19,11 +19,11 @@ Les CGV complètent les [Conditions générales d'utilisation](/legal/cgu) (CGU)
 
 ## 1. Préambule — Rôle des parties
 
-**1.1** Le **Vendeur** est le **Fournisseur** identifié sur la fiche produit et la confirmation de commande. L'**Acheteur** est le **Client** (consommateur ou professionnel) qui passe commande via la Plateforme.
+**1.1** Le **Vendeur apparent** est l'**Affilié-Commissionnaire** identifié sur la fiche produit et la confirmation de commande. L'**Acheteur** est le **Client** (consommateur ou professionnel) qui passe commande via la Plateforme.
 
-**1.2** **Affisell** agit en qualité de **mandataire technique** et **opérateur de place de marché** : hébergement de la vitrine, checkout, encaissement via Stripe, facilitation des retours et remboursements, médiation entre les parties. **Affisell n'est pas vendeur** ni partie au contrat de vente conclu entre l'Acheteur et le Fournisseur, sauf mention expresse contraire sur la fiche produit.
+**1.2** **Affisell** agit en qualité d'**intermédiaire technique** : checkout, encaissement via Stripe, médiation. **Affisell n'est pas vendeur**, sauf mention expresse contraire.
 
-**1.3** L'**Affilié** (partenaire curateur) sélectionne le produit, le présente via sa vitrine et fixe le prix public. Il **n'est pas le vendeur** des marchandises et n'est pas partie au contrat de vente.
+**1.3** Le **Fournisseur** exécute la **livraison directe pour le compte** de l'Affilié-Commissionnaire (mandat non transparent, sans stock). L'Affilié-Commissionnaire **émet la facture client** au prix final. Mention : « Vente en qualité de commissionnaire-affilié — Livraison directe fournisseur ».
 
 ---
 

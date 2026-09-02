@@ -11,17 +11,17 @@ order: 3
 
 Diese Allgemeinen Partnerbedingungen („**APB**“) ergänzen die [ANB](/legal/terms-of-service) und regeln das Verhältnis zwischen **Affisell SAS** und jedem als **Partner (Affiliate)** registrierten Partner (Creator, Influencer, Kurator).
 
-## Artikel 1 — Status als Kurator-Partner (kein Verkäufer)
+## Artikel 1 — Status als Affiliate-Commission Agent (L132-1)
 
-1.1. Der Partner ist ein **unabhängiger Handelspartner**, der Produkte von Lieferanten über eine Affisell-Vitrine auswählt, präsentiert und bewirbt. **Er ist nicht Verkäufer** der Waren: Der Kaufvertrag kommt zwischen dem Käufer und dem **Lieferanten** zustande.
+1.1. Der Partner ist **Affiliate-Commission Agent**: handelt **eigenständig im eigenen Namen und im Auftrag des Lieferanten**, **ohne Lagerbestand**, mit **direkter Lieferung** durch den Lieferanten.
 
-1.2. Der Partner versendet keine Produkte, hält keinen Lagerbestand und trägt nicht die Verkäuferpflichten (Konformität, Lieferung, gesetzliche Gewährleistung) — vorbehaltlich seiner Pflichten zu ehrlicher Kommunikation.
+1.2. Der Partner ist **scheinbarer Verkäufer** gegenüber dem Endkunden: er **stellt die Kundenrechnung** aus und schließt den Kaufvertrag ab. Der Lieferant liefert in seinem Auftrag.
 
-1.3. **Verkäufernormen im Land des Käufers** gelten nicht für den Partner als Kurator, sondern für den **verkaufenden Lieferanten**.
+1.3. Der Partner ist **kein Handelsvertreter**: er legt **frei seine Marge** fest und trägt das **kommerzielle Risiko**.
 
-1.4. Der Partner erklärt seine **Partnervergütung** nach den Steuer- und Sozialregeln seines **Wohnsitzlandes**.
+1.4. **Im eigenen Namen und im Auftrag des Lieferanten, ohne Lagerbestand.**
 
-1.5. **MwSt. auf Produktverkäufe an Käufer** wird nach dem **Liefer- oder Verbrauchsland des Käufers** beim Checkout erhoben und ist Pflicht des **verkaufenden Lieferanten**, nicht des Partners.
+1.5. **MwSt. auf Endkundenverkäufe** wird auf den **Endpreis** beim Checkout berechnet.
 
 ### Artikel 1.6 — Begriff „Ambassador“
 

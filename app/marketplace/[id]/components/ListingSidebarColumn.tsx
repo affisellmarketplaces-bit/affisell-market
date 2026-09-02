@@ -31,6 +31,7 @@ type Props = Pick<
   | "listingKind"
   | "name"
   | "partnerLabel"
+  | "sellerLabel"
   | "isVerifiedSupplier"
   | "supplierTrustTier"
   | "offerBadge"
@@ -69,6 +70,7 @@ export function ListingSidebarColumn({
   listingKind = "PHYSICAL",
   name,
   partnerLabel,
+  sellerLabel,
   isVerifiedSupplier = false,
   supplierTrustTier,
   offerBadge,
@@ -343,6 +345,8 @@ export function ListingSidebarColumn({
           onSavePriceAlert={savePriceAlert}
           compactCrossSellSlot={compactCrossSellSlot}
           wishlistTitle={messages.wishlist.title}
+          affiliateCommissionnaireName={partnerLabel ?? storefront?.name ?? ""}
+          supplierName={sellerLabel}
         />
       </div>
 
