@@ -2,6 +2,7 @@
 export type CatalogAffiliateListingRow = {
   id: string
   isListed: boolean
+  sellingPriceCents?: number
   /** Storefront engagement — used to distinguish draft vs previously live. */
   clicks?: number
   conversions?: number

@@ -5,6 +5,7 @@ import type { ProductColorImageRow } from "@/lib/product-color-images"
 import type { AffiliateVariantPricingMap } from "@/lib/affiliate-variant-pricing"
 import type { ProductVariantsJson } from "@/lib/product-variants"
 import type { ProductSocialProofData } from "@/lib/product-social-proof-shared"
+import type { CustomColumn } from "@/types/product"
 
 export type StorefrontInfo = {
   name: string

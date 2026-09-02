@@ -10,7 +10,7 @@ import {
 import { prisma } from "@/lib/prisma"
 
 const REVALIDATE_SEC = 120
-const COUNTABLE_ORDER_STATUSES = ["paid", "preparing", "shipped"] as const
+const COUNTABLE_ORDER_STATUSES = ["paid", "preparing", "shipped"]
 
 function thirtyDaysAgo(): Date {
   const d = new Date()
@@ -22,9 +22,9 @@ function paidOrderWhere(productId: string, since: Date) {
   return {
     productId,
     paidAt: { gte: since, not: null },
-    status: { in: [...COUNTABLE_ORDER_STATUSES] },
+    status: { in: COUNTABLE_ORDER_STATUSES },
     affiliateId: { not: "" },
-  } as const
+  }
 }
 
 async function loadProductCrossSocialProof(productId: string): Promise<ProductSocialProofData> {
@@ -62,13 +62,11 @@ async function loadProductCrossSocialProof(productId: string): Promise<ProductSo
   ])
 
   const avgMarginCents = Math.round(
-    marginFromSales._avg.marginAmountCents ??
-      marginFromOrders._avg.marginCents ??
-      0
+    marginFromSales._avg?.marginAmountCents ?? marginFromOrders._avg?.marginCents ?? 0
   )
   const topMarginCents = Math.max(
-    marginFromSales._max.marginAmountCents ?? 0,
-    marginFromOrders._max.marginCents ?? 0
+    marginFromSales._max?.marginAmountCents ?? 0,
+    marginFromOrders._max?.marginCents ?? 0
   )
 
   const lastSaleAt = lastOrder?.paidAt?.toISOString() ?? null

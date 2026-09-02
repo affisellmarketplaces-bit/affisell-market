@@ -28,7 +28,7 @@ function scheduleCatalogProductEnrichment(product: CatalogProductEnrichment): vo
   void (async () => {
     try {
       const normalized = normalizeProductDescriptionFields({
-        description: product.description,
+        description: product.description ?? "",
         descriptionIllustrationImages: product.descriptionIllustrationImages ?? [],
       })
       if (normalized.changed) {

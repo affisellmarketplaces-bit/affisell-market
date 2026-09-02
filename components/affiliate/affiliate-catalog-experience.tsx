@@ -334,8 +334,6 @@ export function AffiliateCatalogExperience({
 
   async function loadProductForModal(productId: string): Promise<CatalogProduct | null> {
     const cached = products.find((x) => x.id === productId)
-    if (cached?.description != null && cached.variants !== undefined) return cached
-
     try {
       const r = await fetch(`/api/affiliate/catalog-product/${encodeURIComponent(productId)}`, {
         credentials: "include",
