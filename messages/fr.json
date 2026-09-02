@@ -3717,7 +3717,17 @@
     "storeOffer": "Offre boutique · {offer}",
     "cashbackPct": "{pct}% de cashback",
     "storeBonusPct": "{pct}% de bonus boutique",
-    "optionLabel": "Option"
+    "optionLabel": "Option",
+    "crossSocialProof": {
+      "ariaLabel": "Activité revendeurs sur ce produit",
+      "badgeAffiliate": "Pulse live",
+      "badgeStorefront": "Activité partenaires",
+      "activeResellers": "{count, plural, one {# revendeur actif (30j)} other {# revendeurs actifs (30j)}}",
+      "avgMargin": "Marge moy. {amount}",
+      "topMargin": "Top {amount}",
+      "fomoHint": "Les affiliés se battent sur ce SKU — publie vite pour capter la demande.",
+      "lastSaleShort": "Vente récente · {name}"
+    }
   },
   "Filters": {
     "smartFilters": "Filtres intelligents",

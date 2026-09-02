@@ -52,6 +52,7 @@ type Props = Pick<
   | "buyerRewardBadge"
   | "salesCount"
   | "reviewSummary"
+  | "crossSocialProof"
   | "arModel"
 > & {
   ctrl: ListingDetailController
@@ -84,6 +85,7 @@ export function ListingGalleryColumn({
   buyerRewardBadge,
   salesCount,
   reviewSummary,
+  crossSocialProof = null,
   arModel,
   shipping,
   customColumns,
@@ -295,6 +297,7 @@ export function ListingGalleryColumn({
           deliveryMin={shipping.deliveryMin}
           deliveryMax={shipping.deliveryMax}
           shippingMethods={shipping.shippingMethods}
+          crossSocialProof={crossSocialProof}
           formatReviewCount={formatStoreCount}
           labels={{
             colorLabel: productT.colorLabel,

@@ -51,6 +51,7 @@ import { variantsFromDb } from "@/lib/product-variants"
 import { parseAffiliateVariantPricingJson } from "@/lib/affiliate-variant-pricing"
 import { buildAggregateRatingJsonLd } from "@/lib/reviews/json-ld"
 import { buildProductOfferJsonLd } from "@/lib/product-listing-seo"
+import { appendCrossSocialProofJsonLd } from "@/lib/product-social-proof-seo"
 import { resolveTryOnFeatureEnabled } from "@/lib/flags/try-on"
 import { resolveGalleryListingVideoUrl } from "@/lib/product-playable-video"
 import type { AppLocale } from "@/lib/i18n-locale"
@@ -183,7 +184,7 @@ export default async function MarketplaceListingPage({
     redirect(`/marketplace/${canonicalId}${previewQs}`)
   }
 
-  const { listing, viewsLast24h, affiliateCreatorsWatching, writeReviewOrderId } = loaded
+  const { listing, viewsLast24h, affiliateCreatorsWatching, crossSocialProof, writeReviewOrderId } = loaded
   const useE2eLtv = shouldUseE2eLtvLoopFixtures({ e2eFixtures: sp.e2eFixtures })
   const creatorsWatchingOverride = parseE2eCreatorsWatchingOverride(
     sp.e2eCreatorsWatching,
@@ -469,13 +470,16 @@ export default async function MarketplaceListingPage({
         .map(([k, v]) => [k, String(v)])
     )
   )
-  const productJsonLd = buildProductOfferJsonLd({
-    name: displayName,
-    imageUrl: seoImage,
-    priceCents: listing.sellingPriceCents,
-    inStock: listing.product.stock > 0,
-    customerFacing: true,
-  })
+  const productJsonLd = appendCrossSocialProofJsonLd(
+    buildProductOfferJsonLd({
+      name: displayName,
+      imageUrl: seoImage,
+      priceCents: listing.sellingPriceCents,
+      inStock: listing.product.stock > 0,
+      customerFacing: true,
+    }),
+    crossSocialProof
+  )
   const aggregateRating = buildAggregateRatingJsonLd({
     productName: displayName,
     averageRating: listing.product.averageRating,
@@ -578,6 +582,7 @@ export default async function MarketplaceListingPage({
           openWriteReview={sp.writeReview === "true" && Boolean(writeReviewOrderId)}
           viewsLast24h={viewsLast24h}
           affiliateCreatorsWatching={displayAffiliateCreatorsWatching}
+          crossSocialProof={crossSocialProof}
           salesCount={listing.conversions}
           galleryListingVideoUrl={resolveGalleryListingVideoUrl({
             videoAdUrl: p.videoAdUrl,

@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { SupplierAffiliateEvalPreview } from "@/components/supplier/supplier-affiliate-eval-preview"
+import { loadProductCrossSocialProofCached } from "@/lib/product-social-proof.server"
 import { loadSupplierStorefrontCatalogProductCached } from "@/lib/supplier-storefront-cache"
 
 export const revalidate = 60
@@ -37,6 +38,8 @@ export default async function SupplierStorefrontProductCatalogPage({
   const loaded = await loadSupplierStorefrontCatalogProductCached(storeSlug, productId)
   if (!loaded) notFound()
 
+  const crossSocialProof = await loadProductCrossSocialProofCached(productId)
+
   const catalogHref = `/store/supplier/${encodeURIComponent(loaded.store.slug)}`
 
   return (
@@ -44,6 +47,7 @@ export default async function SupplierStorefrontProductCatalogPage({
       product={loaded.product}
       catalogHref={catalogHref}
       listedAffiliateCount={loaded.listedAffiliateCount}
+      crossSocialProof={crossSocialProof}
       example={null}
       presentation="storefront-catalog"
       storeName={loaded.store.name}

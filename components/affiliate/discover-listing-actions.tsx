@@ -15,6 +15,7 @@ type Props = {
   state: CatalogListingState
   locale?: AppLocale
   releasing?: boolean
+  adding?: boolean
   onAdd: () => void
   onEdit: (listingId: string) => void
   onRelease: (listingId: string) => void | Promise<void>
@@ -36,6 +37,7 @@ const copy = {
     confirm: "Libérer",
     readyBadge: "Nouveau — prêt à publier",
     hiddenBadge: "Retiré de la vitrine — republier possible",
+    adding: "Ajout en cours…",
   },
   en: {
     add: "Add to my store",
@@ -51,6 +53,7 @@ const copy = {
     confirm: "Release",
     readyBadge: "New — ready to publish",
     hiddenBadge: "Removed from storefront — publish again anytime",
+    adding: "Adding…",
   },
 } as const
 
@@ -58,6 +61,7 @@ export function DiscoverListingActions({
   state,
   locale: localeProp,
   releasing = false,
+  adding = false,
   onAdd,
   onEdit,
   onRelease,
@@ -87,15 +91,20 @@ export function DiscoverListingActions({
         {state.kind === "none" ? (
           <motion.button
             type="button"
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
+            whileHover={adding ? undefined : { scale: 1.01 }}
+            whileTap={adding ? undefined : { scale: 0.99 }}
+            disabled={adding}
             onClick={onAdd}
-            className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 py-3 text-sm font-semibold text-white shadow-[0_8px_28px_rgba(124,58,237,0.35)] transition hover:brightness-105"
+            className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 py-3 text-sm font-semibold text-white shadow-[0_8px_28px_rgba(124,58,237,0.35)] transition hover:brightness-105 disabled:cursor-wait disabled:opacity-80"
           >
             <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(105deg,transparent_40%,rgba(255,255,255,0.18)_50%,transparent_60%)] opacity-0 transition group-hover:opacity-100" />
             <span className="relative inline-flex items-center justify-center gap-2">
-              <Rocket className="size-4" aria-hidden />
-              {t.add}
+              {adding ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+              ) : (
+                <Rocket className="size-4" aria-hidden />
+              )}
+              {adding ? t.adding : t.add}
             </span>
           </motion.button>
         ) : null}

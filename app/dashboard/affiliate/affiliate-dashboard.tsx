@@ -52,12 +52,18 @@ import {
 } from "@/components/affiliate/listing-builder-modal"
 import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
 import {
+  optimisticAffiliateListingRow,
+  patchCatalogProductListing,
+  requestQuickAddAffiliateListing,
+} from "@/lib/affiliate-catalog-quick-add-client"
+import {
   buildAffiliateCatalogCardEconomicsFromProduct,
   estimateTotalPartnerGainCents,
   listedSellingPriceFromAffiliateProducts,
 } from "@/lib/affiliate-catalog-margin-display"
 import { affiliateListingPreviewHref } from "@/lib/affiliate-store-preview-access"
 import { ProductColorSwatchDots } from "@/components/product/product-color-swatch-dots"
+import { ProductCrossSocialProofCompact } from "@/components/product/product-cross-social-proof-compact"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
@@ -65,6 +71,7 @@ import { affisellBrand } from "@/lib/affisell-brand"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { prismaUnavailableUserMessage } from "@/lib/prisma-db-error"
 import { cn } from "@/lib/utils"
+import { useAffiliateCatalogSocialProof } from "@/lib/use-affiliate-catalog-social-proof"
 import { primaryProductImage } from "@/lib/product-images"
 
 type CatalogProduct = {
@@ -284,6 +291,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
   const [modalProduct, setModalProduct] = useState<CatalogProduct | null>(null)
   const [modalListing, setModalListing] = useState<SerializedListing | null>(null)
   const [releasingListingId, setReleasingListingId] = useState<string | null>(null)
+  const [addingProductId, setAddingProductId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -507,6 +515,56 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
     }
   }
 
+  async function quickAddToStore(p: CatalogProduct) {
+    if (addingProductId === p.id) return
+    const prior = catalog.find((x) => x.id === p.id)?.affiliateProducts ?? []
+    const optimisticId = `optimistic-${p.id}`
+    setAddingProductId(p.id)
+    setCatalog((prev) =>
+      patchCatalogProductListing(prev, p.id, optimisticAffiliateListingRow(p, optimisticId))
+    )
+
+    try {
+      const row = await requestQuickAddAffiliateListing(p.id)
+      setCatalog((prev) =>
+        patchCatalogProductListing(prev, p.id, {
+          id: row.id,
+          isListed: false,
+          sellingPriceCents: row.sellingPriceCents,
+          clicks: 0,
+          conversions: 0,
+        })
+      )
+      if (row.created) {
+        setListings((prev) => {
+          if (prev.some((l) => l.productId === p.id)) return prev
+          const position = prev.reduce((max, l) => Math.max(max, l.position ?? 0), -1) + 1
+          return [
+            ...prev,
+            {
+              id: row.id,
+              productId: p.id,
+              sellingPriceCents: row.sellingPriceCents,
+              customImages: [],
+              collections: [],
+              isListed: false,
+              clicks: 0,
+              conversions: 0,
+              position,
+              product: p,
+            },
+          ].sort(sortAffiliateListingByPosition)
+        })
+      }
+      setToast(row.created ? "Added — ready to publish" : "Already in your store — ready to publish")
+    } catch (e) {
+      setCatalog((prev) => prev.map((item) => (item.id === p.id ? { ...item, affiliateProducts: prior } : item)))
+      setToast(e instanceof Error ? e.message : "Could not add product")
+    } finally {
+      setAddingProductId(null)
+    }
+  }
+
   async function openCreate(p: CatalogProduct) {
     const full = await loadProductForModal(p.id)
     if (!full) return
@@ -541,8 +599,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
   }
 
   async function openEdit(listing: Listing, p: CatalogProduct) {
-    const full = (await loadProductForModal(p.id)) ?? p
-    setModalProduct(full)
+    setModalProduct(p)
     setModalListing({
       id: listing.id,
       productId: listing.productId,
@@ -569,6 +626,9 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
       marginReviewVariantKeys: listing.marginReviewVariantKeys ?? [],
       showWarranty: listing.showWarranty ?? false,
     })
+
+    const full = await loadProductForModal(p.id)
+    if (full) setModalProduct(full)
   }
 
   function viewStore() {
@@ -602,7 +662,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
     })
 
   const listingState = resolveCatalogListingState(p.affiliateProducts)
-  void (listingState.kind === "none" ? openCreate(p) : openEditModal(pid))
+  void (listingState.kind === "none" ? quickAddToStore(p) : openEditModal(pid))
 
     router.replace("/dashboard/affiliate", { scroll: false })
     // One-shot deep link — handlers intentionally omitted from deps
@@ -660,7 +720,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
     const listingState = resolveCatalogListingState(preferredProduct.affiliateProducts)
     void (
       listingState.kind === "none"
-        ? openCreate(preferredProduct)
+        ? quickAddToStore(preferredProduct)
         : openEditModal(preferredProduct.id)
     )
 
@@ -728,6 +788,9 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
     })
     return rows
   }, [catalog, discoverQ, discoverSort, discoverUnlistedOnly])
+
+  const discoverProductIds = useMemo(() => filteredDiscover.map((p) => p.id), [filteredDiscover])
+  const { socialProofByProductId } = useAffiliateCatalogSocialProof(discoverProductIds)
 
   return (
     <main className="min-h-[calc(100dvh-3.75rem)] text-zinc-900 dark:text-zinc-50">
@@ -1188,13 +1251,15 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                   ) : (
                     <p className="-mt-1 truncate text-xs text-zinc-400 dark:text-zinc-500">{supplierBrand}</p>
                   )}
+                  <ProductCrossSocialProofCompact data={socialProofByProductId[p.id]} />
                   <DiscoverListingActions
                     state={listingState}
                     locale="en"
+                    adding={addingProductId === p.id}
                     releasing={
                       listingState.kind !== "none" && releasingListingId === listingState.listingId
                     }
-                    onAdd={() => void openCreate(p)}
+                    onAdd={() => void quickAddToStore(p)}
                     onEdit={(listingId) => openEditByListingId(p.id, listingId)}
                     onRelease={releaseDiscoverListing}
                   />

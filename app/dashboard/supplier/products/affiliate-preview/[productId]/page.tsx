@@ -3,6 +3,7 @@ import { requireSupplierSession } from "@/lib/dashboard-session"
 import type { Metadata } from "next"
 
 import { SupplierAffiliateEvalPreview } from "@/components/supplier/supplier-affiliate-eval-preview"
+import { loadProductCrossSocialProofCached } from "@/lib/product-social-proof.server"
 import { prisma } from "@/lib/prisma"
 import { loadSupplierStorefrontCatalogProduct } from "@/lib/supplier-storefront-product-preview"
 import { supplierFacingPartnerListingRef } from "@/lib/supplier-partner-listing-ref"
@@ -77,12 +78,15 @@ export default async function SupplierAffiliatePreviewPage({
       ? { partnerListingRef: supplierFacingPartnerListingRef(exampleListing.id) }
       : null
 
+  const crossSocialProof = await loadProductCrossSocialProofCached(id)
+
   return (
     <SupplierAffiliateEvalPreview
       product={product}
       editHref={editHref}
       catalogHref="/dashboard/supplier/products"
       listedAffiliateCount={loaded.listedAffiliateCount}
+      crossSocialProof={crossSocialProof}
       example={exampleRow}
       presentation="supplier-dashboard"
     />

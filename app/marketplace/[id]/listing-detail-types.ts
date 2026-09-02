@@ -4,7 +4,7 @@ import type { OfferModeBadge } from "@/lib/product-offer-mode"
 import type { ProductColorImageRow } from "@/lib/product-color-images"
 import type { AffiliateVariantPricingMap } from "@/lib/affiliate-variant-pricing"
 import type { ProductVariantsJson } from "@/lib/product-variants"
-import type { CustomColumn } from "@/types/product"
+import type { ProductSocialProofData } from "@/lib/product-social-proof-shared"
 
 export type StorefrontInfo = {
   name: string
@@ -100,6 +100,8 @@ export type ListingDetailProps = {
   affiliateCreatorsWatching?: number
   /** Paid units on this listing (AffiliateProduct.conversions). */
   salesCount?: number
+  /** Cross-affiliate sales FOMO (30d, product-scoped). */
+  crossSocialProof?: ProductSocialProofData | null
   /** Supplier listing clip shown under the photo gallery (9:16). */
   galleryListingVideoUrl?: string | null
   /** Affiliate shop PDP (`/shops/:slug`) — use Brand Studio colors instead of Affisell violet. */

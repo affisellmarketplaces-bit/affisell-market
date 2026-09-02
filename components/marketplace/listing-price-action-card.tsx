@@ -7,9 +7,11 @@ import { useTranslations } from "next-intl"
 import { FlexiblePaymentBadge } from "@/components/checkout/flexible-payment-badge"
 import { GhostStockBadge } from "@/components/checkout/GhostStockBadge"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
+import { ProductCrossSocialProof } from "@/components/product/product-cross-social-proof"
 import { ProductShippingOptions } from "@/components/shipping/ProductShippingOptions"
 import { cn } from "@/lib/utils"
 import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
+import type { ProductSocialProofData } from "@/lib/product-social-proof-shared"
 
 type Props = {
   priceLabel: string
@@ -44,6 +46,7 @@ type Props = {
   deliveryMin?: number
   deliveryMax?: number
   shippingMethods?: string[]
+  crossSocialProof?: ProductSocialProofData | null
 }
 
 export function ListingPriceActionCard({
@@ -76,6 +79,7 @@ export function ListingPriceActionCard({
   deliveryMin = 2,
   deliveryMax = 5,
   shippingMethods = ["standard"],
+  crossSocialProof = null,
 }: Props) {
   const brand = storefrontPdpBrandClasses(brandedStorefront)
   const t = useTranslations("Product")
@@ -117,6 +121,12 @@ export function ListingPriceActionCard({
               battleResellerName={battleResellerName}
             />
           </div>
+          <ProductCrossSocialProof
+            data={crossSocialProof}
+            variant="storefront"
+            dense={denseMobile}
+            className="mt-2"
+          />
           <div className="mt-2">
             <GhostStockBadge
               lastStockCheck={lastStockCheck}

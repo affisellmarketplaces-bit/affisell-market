@@ -13,6 +13,7 @@ import { WishlistHeart } from "@/components/wishlist-heart"
 import { shopperColorLabelsMatch } from "@/lib/marketplace-color-meta"
 import { storefrontPdpBrandClasses } from "@/lib/storefront-pdp-brand"
 import { cn } from "@/lib/utils"
+import type { ProductSocialProofData } from "@/lib/product-social-proof-shared"
 
 export type MobilePdpColorMeta = {
   /** Stable supplier color key (selection / cart matching) */
@@ -92,6 +93,7 @@ export type MobilePdpBuyPanelProps = {
   deliveryMin?: number
   deliveryMax?: number
   shippingMethods?: string[]
+  crossSocialProof?: ProductSocialProofData | null
 }
 
 export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>(
@@ -150,6 +152,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
       deliveryMin = 2,
       deliveryMax = 5,
       shippingMethods = ["standard"],
+      crossSocialProof = null,
     },
     ref
   ) {
@@ -343,6 +346,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
               deliveryMin={deliveryMin}
               deliveryMax={deliveryMax}
               shippingMethods={shippingMethods}
+              crossSocialProof={crossSocialProof}
             />
             <div className="grid grid-cols-[minmax(0,7.5rem)_1fr] gap-2">
               <MarketplacePurchaseQuantity

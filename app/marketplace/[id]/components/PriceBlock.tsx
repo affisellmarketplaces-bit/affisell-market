@@ -2,6 +2,7 @@
 
 import { ListingPriceActionCard } from "@/components/marketplace/listing-price-action-card"
 import { TryOnTrigger } from "@/components/try-on/TryOnEntry"
+import type { ProductSocialProofData } from "@/lib/product-social-proof-shared"
 
 type Props = {
   className?: string
@@ -35,6 +36,7 @@ type Props = {
   tryOnReady?: boolean
   tryOnVariant?: "default" | "immersive"
   onTryOnOpen?: () => void
+  crossSocialProof?: ProductSocialProofData | null
 }
 
 export function PriceBlock({
@@ -69,6 +71,7 @@ export function PriceBlock({
   tryOnReady,
   tryOnVariant,
   onTryOnOpen,
+  crossSocialProof = null,
 }: Props) {
   return (
     <>
@@ -101,6 +104,7 @@ export function PriceBlock({
         deliveryMin={deliveryMin}
         deliveryMax={deliveryMax}
         shippingMethods={shippingMethods}
+        crossSocialProof={crossSocialProof}
       />
       {tryOnReady && onTryOnOpen ? (
         <TryOnTrigger

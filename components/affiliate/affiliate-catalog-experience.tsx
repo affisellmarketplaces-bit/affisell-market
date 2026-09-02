@@ -31,6 +31,7 @@ import {
 import { AffiliateHero } from "@/components/marketplace/AffiliateHero"
 import { MarketplaceDepartmentRail } from "@/components/marketplace/MarketplaceDepartmentRail"
 import { ProfitBadge } from "@/components/product/ProfitBadge"
+import { ProductCrossSocialProofCompact } from "@/components/product/product-cross-social-proof-compact"
 import { Sidebar } from "@/components/marketplace/Sidebar"
 import { GlobalRequestButton } from "@/components/reseller/GlobalRequestButton"
 import { Button } from "@/components/ui/button"
@@ -51,6 +52,11 @@ import {
 } from "@/lib/affiliate-catalog-filters-shared"
 import { resolveCatalogListingState } from "@/lib/affiliate-catalog-listing-state"
 import {
+  optimisticAffiliateListingRow,
+  patchCatalogProductListing,
+  requestQuickAddAffiliateListing,
+} from "@/lib/affiliate-catalog-quick-add-client"
+import {
   AFFILIATE_CATALOG_NICHES,
   type AffiliateCatalogHighlights as HighlightsData,
   type AffiliateCatalogProduct,
@@ -58,6 +64,7 @@ import {
 import type { HomeMarketplaceStats } from "@/lib/home-marketplace-cards"
 import { primaryProductImage } from "@/lib/product-images"
 import { cn } from "@/lib/utils"
+import { useAffiliateCatalogSocialProof } from "@/lib/use-affiliate-catalog-social-proof"
 
 type CatalogProduct = {
   id: string
@@ -169,6 +176,7 @@ export function AffiliateCatalogExperience({
   const [modalProduct, setModalProduct] = useState<CatalogProduct | null>(null)
   const [modalListing, setModalListing] = useState<SerializedListing | null>(null)
   const [releasingListingId, setReleasingListingId] = useState<string | null>(null)
+  const [addingProductId, setAddingProductId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const toastTimer = useRef<number | null>(null)
   const productDeepLinkConsumed = useRef(false)
@@ -326,6 +334,8 @@ export function AffiliateCatalogExperience({
 
   async function loadProductForModal(productId: string): Promise<CatalogProduct | null> {
     const cached = products.find((x) => x.id === productId)
+    if (cached?.description != null && cached.variants !== undefined) return cached
+
     try {
       const r = await fetch(`/api/affiliate/catalog-product/${encodeURIComponent(productId)}`, {
         credentials: "include",
@@ -342,6 +352,43 @@ export function AffiliateCatalogExperience({
     }
   }
 
+  async function quickAddToStore(productId: string) {
+    if (addingProductId === productId) return
+    const p = products.find((x) => x.id === productId)
+    if (!p) return
+    const prior = p.affiliateProducts ?? []
+    const optimisticId = `optimistic-${productId}`
+    setAddingProductId(productId)
+    setProducts((prev) =>
+      patchCatalogProductListing(prev, productId, optimisticAffiliateListingRow(p, optimisticId))
+    )
+
+    try {
+      const row = await requestQuickAddAffiliateListing(productId)
+      setProducts((prev) =>
+        patchCatalogProductListing(prev, productId, {
+          id: row.id,
+          isListed: false,
+          sellingPriceCents: row.sellingPriceCents,
+          clicks: 0,
+          conversions: 0,
+        })
+      )
+      showToast(
+        row.created
+          ? "Ajouté à votre vitrine — prêt à publier"
+          : "Déjà dans votre vitrine — prêt à publier"
+      )
+    } catch (e) {
+      setProducts((prev) =>
+        prev.map((item) => (item.id === productId ? { ...item, affiliateProducts: prior } : item))
+      )
+      showToast(e instanceof Error ? e.message : "Impossible d'ajouter le produit")
+    } finally {
+      setAddingProductId(null)
+    }
+  }
+
   async function openCreate(productId: string) {
     const full = await loadProductForModal(productId)
     if (!full) return
@@ -350,6 +397,20 @@ export function AffiliateCatalogExperience({
   }
 
   async function openEdit(productId: string, listingId: string) {
+    const cached = products.find((x) => x.id === productId)
+    if (cached) {
+      setModalProduct(cached)
+      setModalListing({
+        id: listingId,
+        productId,
+        sellingPriceCents: cached.basePriceCents,
+        customImages: [],
+        collections: [],
+        isListed: false,
+        promotedVariantKeys: [],
+      })
+    }
+
     const full = await loadProductForModal(productId)
     if (!full) return
     try {
@@ -385,9 +446,9 @@ export function AffiliateCatalogExperience({
   const onPickProduct = useCallback(
     (productId: string, listingId: string | null) => {
       if (listingId) void openEdit(productId, listingId)
-      else void openCreate(productId)
+      else void quickAddToStore(productId)
     },
-    [openCreate, openEdit]
+    [openEdit, quickAddToStore]
   )
 
   useEffect(() => {
@@ -399,7 +460,7 @@ export function AffiliateCatalogExperience({
     productDeepLinkConsumed.current = true
     const listingState = resolveCatalogListingState(row.affiliateProducts)
     const listingId = listingState.kind !== "none" ? listingState.listingId : null
-    void (listingId ? openEdit(pid, listingId) : openCreate(pid))
+    void (listingId ? openEdit(pid, listingId) : quickAddToStore(pid))
     const params = new URLSearchParams(searchParams.toString())
     params.delete("productId")
     const s = params.toString()
@@ -430,6 +491,8 @@ export function AffiliateCatalogExperience({
   }
 
   const filteredCount = products.length
+  const catalogProductIds = useMemo(() => products.map((p) => p.id), [products])
+  const { socialProofByProductId } = useAffiliateCatalogSocialProof(catalogProductIds)
 
   const activeCategoryLabel = useMemo(() => {
     if (subcategoryId) return "Sous-catégorie active"
@@ -850,12 +913,14 @@ export function AffiliateCatalogExperience({
                           ) : (
                             <p className="truncate text-xs text-zinc-400">{supplierLabel(p)}</p>
                           )}
+                          <ProductCrossSocialProofCompact data={socialProofByProductId[p.id]} />
                           <DiscoverListingActions
                             state={listingState}
                             releasing={
                               listingState.kind !== "none" && releasingListingId === listingState.listingId
                             }
-                            onAdd={() => void openCreate(p.id)}
+                            onAdd={() => void quickAddToStore(p.id)}
+                            adding={addingProductId === p.id}
                             onEdit={(id) => void openEdit(p.id, id)}
                             onRelease={releaseFromStorefront}
                           />

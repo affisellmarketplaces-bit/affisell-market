@@ -32,6 +32,8 @@ import {
   variantsFromDb,
 } from "@/lib/product-variants"
 import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
+import type { ProductSocialProofData } from "@/lib/product-social-proof-shared"
+import { ProductCrossSocialProof } from "@/components/product/product-cross-social-proof"
 import { cn } from "@/lib/utils"
 
 const KIND_LABEL_EN: Record<string, string> = {
@@ -64,6 +66,7 @@ export function SupplierAffiliateEvalPreview({
   editHref,
   catalogHref,
   listedAffiliateCount,
+  crossSocialProof = null,
   example,
   presentation = "supplier-dashboard",
   storeName,
@@ -73,6 +76,7 @@ export function SupplierAffiliateEvalPreview({
   catalogHref: string
   /** Distinct affiliates with a live listed offer for this SKU (AFFILIATE role). */
   listedAffiliateCount: number
+  crossSocialProof?: ProductSocialProofData | null
   example: AffiliateEvalExampleRow | null
   presentation?: SupplierAffiliatePreviewPresentation
   storeName?: string
@@ -393,6 +397,11 @@ export function SupplierAffiliateEvalPreview({
                       {formatStoreCurrency(compareNum)}
                     </p>
                   ) : null}
+                  <ProductCrossSocialProof
+                    data={crossSocialProof}
+                    variant="affiliate"
+                    className="mt-3"
+                  />
                 </div>
                 <div className="rounded-xl border border-violet-200/90 bg-violet-50/80 p-4 dark:border-violet-900/60 dark:bg-violet-950/40">
                   <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">

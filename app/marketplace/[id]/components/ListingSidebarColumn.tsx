@@ -56,6 +56,7 @@ type Props = Pick<
   | "reviewSummary"
   | "viewsLast24h"
   | "affiliateCreatorsWatching"
+  | "crossSocialProof"
   | "compactCrossSellSlot"
 > & {
   ctrl: ListingDetailController
@@ -95,6 +96,7 @@ export function ListingSidebarColumn({
   reviewSummary,
   viewsLast24h = 0,
   affiliateCreatorsWatching = 0,
+  crossSocialProof = null,
   compactCrossSellSlot,
   shipping,
   storefront,
@@ -232,6 +234,7 @@ export function ListingSidebarColumn({
               tryOnReady={tryOnReady}
               tryOnVariant={tryOnVariant}
               onTryOnOpen={() => setTryOnOpen(true)}
+              crossSocialProof={crossSocialProof}
             />
           ) : null}
         </div>

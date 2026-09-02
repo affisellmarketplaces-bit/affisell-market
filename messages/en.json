@@ -3717,7 +3717,17 @@
     "storeOffer": "Store offer · {offer}",
     "cashbackPct": "{pct}% cashback",
     "storeBonusPct": "{pct}% store bonus",
-    "optionLabel": "Option"
+    "optionLabel": "Option",
+    "crossSocialProof": {
+      "ariaLabel": "Partner sales activity on this product",
+      "badgeAffiliate": "Live pulse",
+      "badgeStorefront": "Partner activity",
+      "activeResellers": "{count, plural, one {# active reseller (30d)} other {# active resellers (30d)}}",
+      "avgMargin": "Avg. margin {amount}",
+      "topMargin": "Top {amount}",
+      "fomoHint": "Affiliates compete on this SKU — publish fast to capture demand.",
+      "lastSaleShort": "Recent sale by {name}"
+    }
   },
   "Filters": {
     "smartFilters": "Smart Filters",
