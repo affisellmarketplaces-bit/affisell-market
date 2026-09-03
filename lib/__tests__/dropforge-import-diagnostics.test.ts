@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, afterEach } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 describe("getAliExpressApiReadyStatus", () => {
   afterEach(() => {
@@ -43,6 +43,17 @@ describe("getAliExpressApiReadyStatus", () => {
 })
 
 describe("dropForgeImportFailureHints", () => {
+  beforeEach(() => {
+    vi.stubEnv("ALIEXPRESS_REFRESH_TOKEN", "")
+    vi.stubEnv("ALIEXPRESS_ACCESS_TOKEN", "")
+    vi.resetModules()
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.resetModules()
+  })
+
   it("mentions OAuth DB session when API is ready via DB", async () => {
     vi.stubEnv("ALIEXPRESS_APP_KEY", "534690")
     vi.stubEnv("ALIEXPRESS_APP_SECRET", "secret_test_value")
