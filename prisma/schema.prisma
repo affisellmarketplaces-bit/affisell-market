@@ -226,6 +226,9 @@ model User {
    */
   affiliateProfile AffiliateProfile?
 
+  /** Encrypted off-Stripe payout methods (bank, PayPal, mobile money). */
+  affiliatePayoutMethods AffiliatePayoutMethod[]
+
   termsAcceptanceLogs TermsAcceptanceLog[]
   legalAcceptances    LegalAcceptance[]
 
@@ -4356,4 +4359,38 @@ model MarginLock {
   @@index([resellerId, status])
   @@index([expiresAt])
   @@index([productId])
+}
+
+enum PayoutMethodType {
+  BANK
+  PAYPAL
+  WISE
+  PAYONEER
+  MOBILE_MONEY_WAVE
+  MOBILE_MONEY_ORANGE
+  MOBILE_MONEY_MTN
+}
+
+enum PayoutMethodStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  FAILED
+}
+
+model AffiliatePayoutMethod {
+  id               String             @id @default(cuid())
+  affiliateId      String
+  type             PayoutMethodType
+  country          String             @db.VarChar(2)
+  isDefault        Boolean            @default(false)
+  status           PayoutMethodStatus @default(PENDING_VERIFICATION)
+  encryptedDetails String             @db.Text
+  last4            String?            @db.VarChar(10)
+  fingerprint      String             @unique
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  affiliate        User               @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId, isDefault])
+  @@index([affiliateId, status])
 }
