@@ -1,5 +1,6 @@
 export type SupplierWholesalePreview = {
   hasIncrease: boolean
+  blocked?: boolean
   affiliateListingsLive: number
   listingsAtRisk: number
   atLossCount: number
@@ -26,7 +27,14 @@ export async function fetchSupplierWholesalePreview(
   }
 }
 
-export function wholesalePreSaveNeedsConfirm(preview: SupplierWholesalePreview | null): boolean {
+/** Price Shield — wholesale increase blocked while partners list live. */
+export function wholesalePreSaveIsBlocked(preview: SupplierWholesalePreview | null): boolean {
   if (!preview || preview.skipped) return false
+  if (preview.blocked === true) return true
   return preview.hasIncrease && preview.affiliateListingsLive > 0
+}
+
+/** @deprecated use wholesalePreSaveIsBlocked */
+export function wholesalePreSaveNeedsConfirm(preview: SupplierWholesalePreview | null): boolean {
+  return wholesalePreSaveIsBlocked(preview)
 }

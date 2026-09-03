@@ -20,6 +20,10 @@ import {
   loadSupplierProductWholesaleRow,
   wholesaleSnapshotFromSupplierProductRow,
 } from "@/lib/supplier-product-wholesale-snapshot"
+import {
+  countListedAffiliatesForProduct,
+  evaluateSupplierWholesaleIncreaseBlock,
+} from "@/lib/supplier-wholesale-increase-guard.server"
 
 export const SUPPLIER_IMPORT_MAX_BATCH = 30
 
@@ -472,10 +476,35 @@ export async function executeSupplierProductsImport(args: {
 
       if (existing) {
         let wholesaleBefore = null
+        let wholesaleRow: Awaited<ReturnType<typeof loadSupplierProductWholesaleRow>> = null
         if (isSupplierProductLiveForWholesaleGuard(existing)) {
-          const wholesaleRow = await loadSupplierProductWholesaleRow(existing.id)
+          wholesaleRow = await loadSupplierProductWholesaleRow(existing.id)
           if (wholesaleRow) {
             wholesaleBefore = wholesaleSnapshotFromSupplierProductRow(wholesaleRow)
+            const after = wholesaleSnapshotFromSupplierProductRow({
+              basePriceCents: productData.basePriceCents,
+              variants: productData.variants ?? wholesaleRow.variants,
+              colors: productData.colors,
+              hasVariants: productData.hasVariants,
+              productVariants: wholesaleRow.productVariants,
+            })
+            const listedAffiliateCount = await countListedAffiliatesForProduct(existing.id)
+            const block = evaluateSupplierWholesaleIncreaseBlock({
+              isLive: true,
+              before: wholesaleBefore,
+              after,
+              listedAffiliateCount,
+            })
+            if (block) {
+              console.log("[supplier-wholesale-increase-guard]", {
+                productId: existing.id,
+                source: importSource,
+                listedAffiliateCount: block.listedAffiliateCount,
+                result: "import_price_skipped",
+              })
+              productData.basePriceCents = wholesaleRow.basePriceCents
+              wholesaleBefore = null
+            }
           }
         }
 

@@ -2269,6 +2269,16 @@
       "confirming": "Enregistrement…",
       "cancel": "Revoir les prix"
     },
+    "priceShield": {
+      "title": "Hausse wholesale verrouillée",
+      "body": "{partners, plural, one {# revendeur affiche ce SKU en vitrine. Pour augmenter le prix, rappelez le produit du réseau puis republiez.} other {# revendeurs affichent ce SKU en vitrine. Pour augmenter le prix, rappelez le produit du réseau puis republiez.}}",
+      "decreaseHint": "Les baisses de prix sont autorisées immédiatement — vos partenaires en profitent sans action de votre part.",
+      "atLoss": "{count, plural, one {# fiche partenaire serait en vente à perte avec cette hausse.} other {# fiches partenaires seraient en vente à perte avec cette hausse.}}",
+      "recallCta": "Rappeler du réseau",
+      "recalling": "Rappel en cours…",
+      "cancel": "Annuler",
+      "bannerBody": "{count, plural, one {Price Shield actif — # revendeur en vitrine : hausse bloquée, baisse autorisée.} other {Price Shield actif — # revendeurs en vitrine : hausse bloquée, baisse autorisée.}}"
+    },
     "publishReadiness": {
       "eyebrow": "Pipeline publication",
       "title": "Prêt à publier ?",

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
+import { SupplierPriceShieldBanner } from "@/components/supplier/supplier-price-shield-banner"
 import { SupplierVariantTable, type EditableVariantRow } from "@/components/supplier/supplier-variant-table"
 import { SupplierWholesalePreSaveModal } from "@/components/supplier/supplier-wholesale-pre-save-modal"
 import { Button } from "@/components/ui/button"
@@ -19,11 +20,13 @@ import {
   skuTableRowsToProductVariantLines,
 } from "@/lib/supplier-sku-builder"
 import { parseSkuHiddenColumns, type SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
+import { recallSupplierProductClient } from "@/lib/supplier-product-recall-client"
 import {
   fetchSupplierWholesalePreview,
-  wholesalePreSaveNeedsConfirm,
+  wholesalePreSaveIsBlocked,
   type SupplierWholesalePreview,
 } from "@/lib/supplier-wholesale-pre-save-client"
+import { SUPPLIER_WHOLESALE_INCREASE_BLOCKED_CODE } from "@/lib/supplier-wholesale-increase-guard-shared"
 
 type ProductPricingPayload = {
   id: string
@@ -65,7 +68,8 @@ export function SupplierProductPricingPanel({ productId }: Props) {
   const [skuHiddenColumns, setSkuHiddenColumns] = useState<SkuOptionalColumnKey[]>([])
   const [preSaveOpen, setPreSaveOpen] = useState(false)
   const [preSavePreview, setPreSavePreview] = useState<SupplierWholesalePreview | null>(null)
-  const [pendingBody, setPendingBody] = useState<Record<string, unknown> | null>(null)
+  const [recallBusy, setRecallBusy] = useState(false)
+  const [shieldBannerKey, setShieldBannerKey] = useState(0)
 
   const catalogCompareAtEur = useMemo(() => {
     const c = Number(compareAt)
@@ -150,6 +154,7 @@ export function SupplierProductPricingPanel({ productId }: Props) {
   const performSave = useCallback(
     async (body: Record<string, unknown>) => {
       setSaving(true)
+      let blockedByPriceShield = false
       try {
         const res = await fetch(`/api/supplier/products/${productId}`, {
           method: "PATCH",
@@ -157,27 +162,67 @@ export function SupplierProductPricingPanel({ productId }: Props) {
           credentials: "include",
           body: JSON.stringify(body),
         })
-        const data = (await res.json()) as { error?: string }
+        const data = (await res.json()) as {
+          error?: string
+          code?: string
+          listedAffiliateCount?: number
+        }
+        if (res.status === 409 && data.code === SUPPLIER_WHOLESALE_INCREASE_BLOCKED_CODE) {
+          blockedByPriceShield = true
+          setPreSavePreview({
+            hasIncrease: true,
+            blocked: true,
+            affiliateListingsLive: data.listedAffiliateCount ?? 1,
+            listingsAtRisk: 0,
+            atLossCount: 0,
+            increaseCount: 1,
+          })
+          setPreSaveOpen(true)
+          return
+        }
         if (!res.ok) throw new Error(data.error ?? "Enregistrement impossible")
         toast.success("Tarification enregistrée")
         await load()
+        setShieldBannerKey((k) => k + 1)
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Erreur")
       } finally {
         setSaving(false)
-        setPreSaveOpen(false)
-        setPendingBody(null)
-        setPreSavePreview(null)
+        if (!blockedByPriceShield) {
+          setPreSaveOpen(false)
+          setPreSavePreview(null)
+        }
       }
     },
     [productId, load]
   )
 
+  const handleRecallForPriceIncrease = useCallback(async () => {
+    setRecallBusy(true)
+    try {
+      const result = await recallSupplierProductClient(productId)
+      if (!result.ok) {
+        toast.error(result.error)
+        return
+      }
+      toast.success(
+        result.listedAffiliatesUnlisted > 0
+          ? `Produit rappelé — ${result.listedAffiliatesUnlisted} vitrine(s) retirée(s). Vous pouvez augmenter le prix puis republier.`
+          : "Produit rappelé — vous pouvez augmenter le prix puis republier."
+      )
+      setPreSaveOpen(false)
+      setPreSavePreview(null)
+      setShieldBannerKey((k) => k + 1)
+      await load()
+    } finally {
+      setRecallBusy(false)
+    }
+  }, [productId, load])
+
   const save = useCallback(async () => {
     const body = buildSaveBody()
     const preview = await fetchSupplierWholesalePreview(productId, body)
-    if (wholesalePreSaveNeedsConfirm(preview)) {
-      setPendingBody(body)
+    if (wholesalePreSaveIsBlocked(preview)) {
       setPreSavePreview(preview)
       setPreSaveOpen(true)
       return
@@ -196,6 +241,7 @@ export function SupplierProductPricingPanel({ productId }: Props) {
 
   return (
     <section className="mt-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <SupplierPriceShieldBanner key={shieldBannerKey} productId={productId} />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Tarification</h2>
@@ -316,14 +362,13 @@ export function SupplierProductPricingPanel({ productId }: Props) {
       <SupplierWholesalePreSaveModal
         open={preSaveOpen}
         preview={preSavePreview}
+        productId={productId}
         busy={saving}
+        recallBusy={recallBusy}
+        onRecall={() => void handleRecallForPriceIncrease()}
         onCancel={() => {
           setPreSaveOpen(false)
-          setPendingBody(null)
           setPreSavePreview(null)
-        }}
-        onConfirm={() => {
-          if (pendingBody) void performSave(pendingBody)
         }}
       />
     </section>

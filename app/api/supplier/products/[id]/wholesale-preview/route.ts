@@ -46,6 +46,7 @@ export async function POST(
   if (existing.isDraft || !existing.active) {
     return Response.json({
       hasIncrease: false,
+      blocked: false,
       affiliateListingsLive: 0,
       listingsAtRisk: 0,
       atLossCount: 0,

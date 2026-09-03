@@ -2269,6 +2269,16 @@
       "confirming": "Saving…",
       "cancel": "Review prices"
     },
+    "priceShield": {
+      "title": "Wholesale increase locked",
+      "body": "{partners, plural, one {# reseller is live with this SKU. Recall the product from the network, then republish to raise wholesale.} other {# resellers are live with this SKU. Recall the product from the network, then republish to raise wholesale.}}",
+      "decreaseHint": "Price decreases apply immediately — partners benefit with no action required.",
+      "atLoss": "{count, plural, one {# partner listing would sell at a loss with this increase.} other {# partner listings would sell at a loss with this increase.}}",
+      "recallCta": "Recall from network",
+      "recalling": "Recalling…",
+      "cancel": "Cancel",
+      "bannerBody": "{count, plural, one {Price Shield active — # live reseller: increases blocked, decreases allowed.} other {Price Shield active — # live resellers: increases blocked, decreases allowed.}}"
+    },
     "publishReadiness": {
       "eyebrow": "Publish pipeline",
       "title": "Ready to go live?",

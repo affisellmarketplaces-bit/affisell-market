@@ -77,6 +77,10 @@ import {
 } from "@/lib/affiliate-wholesale-change-notify"
 import { deleteSupplierProduct } from "@/lib/supplier-product-remove.server"
 import { SUPPLIER_PRODUCT_REMOVE_CODE } from "@/lib/supplier-product-remove-shared"
+import {
+  assertSupplierWholesaleIncreaseAllowed,
+  SUPPLIER_WHOLESALE_INCREASE_BLOCKED_CODE,
+} from "@/lib/supplier-wholesale-increase-guard.server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -162,6 +166,25 @@ export async function PUT(
   const existingOfferRow = putLoad.offerRow
 
   const rawBody = (await req.json()) as Record<string, unknown>
+  const wholesaleIncreaseBlock = await assertSupplierWholesaleIncreaseAllowed(id, rawBody)
+  if (wholesaleIncreaseBlock) {
+    console.log("[supplier-wholesale-increase-guard]", {
+      productId: id,
+      method: "PUT",
+      listedAffiliateCount: wholesaleIncreaseBlock.listedAffiliateCount,
+      increaseCount: wholesaleIncreaseBlock.increaseCount,
+      result: "blocked",
+    })
+    return Response.json(
+      {
+        error: wholesaleIncreaseBlock.message,
+        code: SUPPLIER_WHOLESALE_INCREASE_BLOCKED_CODE,
+        listedAffiliateCount: wholesaleIncreaseBlock.listedAffiliateCount,
+      },
+      { status: 409 }
+    )
+  }
+
   const publish = Boolean(rawBody.publish)
   const saveAsDraftReq = Boolean(rawBody.saveAsDraft)
   /** Ignore stale client autosaves that still send saveAsDraft after the listing went live. */
@@ -824,6 +847,25 @@ export async function PATCH(
   })
   if (!existingRow) {
     return Response.json({ error: "Not found" }, { status: 404 })
+  }
+
+  const wholesaleIncreaseBlock = await assertSupplierWholesaleIncreaseAllowed(id, rawBody)
+  if (wholesaleIncreaseBlock) {
+    console.log("[supplier-wholesale-increase-guard]", {
+      productId: id,
+      method: "PATCH",
+      listedAffiliateCount: wholesaleIncreaseBlock.listedAffiliateCount,
+      increaseCount: wholesaleIncreaseBlock.increaseCount,
+      result: "blocked",
+    })
+    return Response.json(
+      {
+        error: wholesaleIncreaseBlock.message,
+        code: SUPPLIER_WHOLESALE_INCREASE_BLOCKED_CODE,
+        listedAffiliateCount: wholesaleIncreaseBlock.listedAffiliateCount,
+      },
+      { status: 409 }
+    )
   }
 
   const wholesaleBeforeSnapshot = captureWholesaleSnapshotFromProductRow(existingRow)

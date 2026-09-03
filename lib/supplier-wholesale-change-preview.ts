@@ -11,6 +11,8 @@ import { parseVariantsPayload } from "@/lib/product-variants"
 
 export type SupplierWholesaleChangePreview = {
   hasIncrease: boolean
+  /** True when live partners block wholesale increases (Price Shield). */
+  blocked: boolean
   affiliateListingsLive: number
   listingsAtRisk: number
   atLossCount: number
@@ -101,6 +103,7 @@ export function previewWholesaleChangeFromSnapshots(args: {
   if (increases.length === 0) {
     return {
       hasIncrease: false,
+      blocked: false,
       affiliateListingsLive: args.listings.length,
       listingsAtRisk: 0,
       atLossCount: 0,
@@ -121,9 +124,11 @@ export function previewWholesaleChangeFromSnapshots(args: {
     if (review.atLoss) atLossCount += 1
   }
 
+  const affiliateListingsLive = args.listings.length
   return {
     hasIncrease: true,
-    affiliateListingsLive: args.listings.length,
+    blocked: affiliateListingsLive > 0,
+    affiliateListingsLive,
     listingsAtRisk,
     atLossCount,
     increaseCount: increases.length,

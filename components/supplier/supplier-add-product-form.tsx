@@ -160,9 +160,11 @@ import {
 } from "@/lib/supplier-publish-blockers"
 import {
   fetchSupplierWholesalePreview,
-  wholesalePreSaveNeedsConfirm,
+  wholesalePreSaveIsBlocked,
   type SupplierWholesalePreview,
 } from "@/lib/supplier-wholesale-pre-save-client"
+import { recallSupplierProductClient } from "@/lib/supplier-product-recall-client"
+import { SUPPLIER_WHOLESALE_INCREASE_BLOCKED_CODE } from "@/lib/supplier-wholesale-increase-guard-shared"
 import {
   applySimpleColorsToVariantRowsIfChanged,
   extractOrderedColorNames,
@@ -529,7 +531,7 @@ export function SupplierAddProductForm({
   const [wholesalePreSavePreview, setWholesalePreSavePreview] = useState<SupplierWholesalePreview | null>(
     null
   )
-  const [pendingSubmitPayload, setPendingSubmitPayload] = useState<Record<string, unknown> | null>(null)
+  const [priceShieldRecallBusy, setPriceShieldRecallBusy] = useState(false)
   const [merchantGate, setMerchantGate] = useState<{
     allowed: boolean
     reason?: string | null
@@ -2249,6 +2251,7 @@ export function SupplierAddProductForm({
     autosaveGenerationRef.current += 1
     publishInFlightRef.current = true
     setSaving(true)
+    let blockedByPriceShield = false
     try {
       const publishDraftListing = Boolean(
         serverId &&
@@ -2291,11 +2294,26 @@ export function SupplierAddProductForm({
       }
       const json = await readJsonResponse<{
         error?: string
+        code?: string
+        listedAffiliateCount?: number
         id?: string
         errors?: string[]
         isDraft?: boolean
         active?: boolean
       }>(res)
+      if (res.status === 409 && json.code === SUPPLIER_WHOLESALE_INCREASE_BLOCKED_CODE) {
+        blockedByPriceShield = true
+        setWholesalePreSavePreview({
+          hasIncrease: true,
+          blocked: true,
+          affiliateListingsLive: json.listedAffiliateCount ?? 1,
+          listingsAtRisk: 0,
+          atLossCount: 0,
+          increaseCount: 1,
+        })
+        setWholesalePreSaveOpen(true)
+        return
+      }
       if (!res.ok) {
         const serverBlockers = mapServerPublishBlockers(
           json as { error?: string; errors?: string[]; issues?: unknown }
@@ -2360,9 +2378,35 @@ export function SupplierAddProductForm({
     } finally {
       publishInFlightRef.current = false
       setSaving(false)
+      if (!blockedByPriceShield) {
+        setWholesalePreSaveOpen(false)
+        setWholesalePreSavePreview(null)
+      }
+    }
+  }
+
+  async function handlePriceShieldRecall() {
+    const serverId = autosaveListingId
+    if (!serverId) return
+    setPriceShieldRecallBusy(true)
+    try {
+      const result = await recallSupplierProductClient(serverId)
+      if (!result.ok) {
+        toast.error(result.error)
+        return
+      }
+      toast.success(
+        result.listedAffiliatesUnlisted > 0
+          ? `Produit rappelé — ${result.listedAffiliatesUnlisted} vitrine(s) retirée(s). Augmentez le prix puis republiez.`
+          : "Produit rappelé — augmentez le prix puis republiez."
+      )
       setWholesalePreSaveOpen(false)
       setWholesalePreSavePreview(null)
-      setPendingSubmitPayload(null)
+      serverListingIsDraftRef.current = true
+      setProductIsDraft(true)
+      router.refresh()
+    } finally {
+      setPriceShieldRecallBusy(false)
     }
   }
 
@@ -2433,9 +2477,8 @@ export function SupplierAddProductForm({
 
     if (isLiveCatalogEdit && serverId) {
       const preview = await fetchSupplierWholesalePreview(serverId, payload)
-      if (wholesalePreSaveNeedsConfirm(preview)) {
+      if (wholesalePreSaveIsBlocked(preview)) {
         setWholesalePreSavePreview(preview)
-        setPendingSubmitPayload(payload)
         setWholesalePreSaveOpen(true)
         return
       }
@@ -4209,16 +4252,13 @@ export function SupplierAddProductForm({
       <SupplierWholesalePreSaveModal
         open={wholesalePreSaveOpen}
         preview={wholesalePreSavePreview}
+        productId={autosaveListingId ?? undefined}
         busy={saving}
+        recallBusy={priceShieldRecallBusy}
+        onRecall={() => void handlePriceShieldRecall()}
         onCancel={() => {
           setWholesalePreSaveOpen(false)
           setWholesalePreSavePreview(null)
-          setPendingSubmitPayload(null)
-        }}
-        onConfirm={() => {
-          if (pendingSubmitPayload) {
-            void executeListingSubmit(pendingSubmitPayload, autosaveListingId)
-          }
         }}
       />
     </>
