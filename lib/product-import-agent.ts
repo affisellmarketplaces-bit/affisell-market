@@ -1,4 +1,9 @@
 import { AliExpressApiError, createAliExpressClient } from "@/lib/aliexpress-open-api"
+import {
+  classifyAliExpressTokenError,
+  extractAliExpressApiErrorFromWarnings,
+  isAliExpressIllegalAccessTokenError,
+} from "@/lib/aliexpress-token-errors"
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
 import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
@@ -71,6 +76,9 @@ export type ProductImportAgentError = {
   /** Server blocked — open browser relay (wizard Express). */
   useBrowserCapture?: boolean
   marketplace?: ReturnType<typeof detectMarketplaceFromUrl>
+  /** AliExpress Open API error (when scrape masked it). */
+  apiError?: string
+  warnings?: string[]
 }
 
 function aeRowsFromScrapedVariants(product: SupplierScrapedProduct): AeProductSkuRow[] {
@@ -425,6 +433,17 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
         result: "fallback",
         error: msg.slice(0, 160),
       })
+      if (isAliExpressIllegalAccessTokenError(msg) || classifyAliExpressTokenError(msg)) {
+        return {
+          ok: false,
+          error: msg,
+          status: 502,
+          apiError: msg,
+          useBrowserCapture: true,
+          marketplace,
+          warnings,
+        }
+      }
     }
   } else if (aeId && !aeConfigured) {
     warnings.push(
@@ -437,17 +456,23 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
       allowAliExpressScrape: Boolean(aeId),
     })
     if (!scraped.ok) {
+      const apiError = extractAliExpressApiErrorFromWarnings(warnings)
+      const tokenKind = classifyAliExpressTokenError(apiError ?? "")
       const browserBlocked =
         Boolean(aeId) &&
-        !aeConfigured &&
-        (scraped.status === 422 || /serveur|AliExpress|page HTML/i.test(scraped.error))
+        (tokenKind != null ||
+          !aeConfigured ||
+          scraped.status === 422 ||
+          /serveur|AliExpress|page HTML/i.test(scraped.error))
       return {
         ok: false,
-        error: scraped.error,
-        status: scraped.status,
+        error: tokenKind && apiError ? apiError : scraped.error,
+        status: tokenKind ? 502 : scraped.status,
         useAliExpressApi: scraped.useAliExpressApi,
         useBrowserCapture: browserBlocked,
         marketplace,
+        apiError: apiError ?? undefined,
+        warnings,
       }
     }
     product = scraped.product

@@ -18,11 +18,11 @@ import {
 } from "@/lib/dropforge-complete-import"
 import {
   dropForgeImportFailureMessage,
-  extractAliExpressApiErrorFromWarnings,
 } from "@/lib/dropforge-import-diagnostics"
 import {
   ALIEXPRESS_OAUTH_START_PATH,
   classifyAliExpressTokenError,
+  resolveDropForgeApiError,
 } from "@/lib/aliexpress-token-errors"
 import {
   catalogProductHasActiveSupplierLink,
@@ -556,10 +556,14 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
 
   if (!product) {
     const useBrowserCapture =
-      market.preferAliExpressApi && Boolean(parseAliExpressProductId(url))
-    const apiError = agent.ok
-      ? extractAliExpressApiErrorFromWarnings(agent.warnings)
-      : agent.error
+      Boolean(!agent.ok && agent.useBrowserCapture) ||
+      (market.preferAliExpressApi && Boolean(parseAliExpressProductId(url)))
+    const apiError = resolveDropForgeApiError({
+      agentOk: agent.ok,
+      agentError: agent.ok ? null : agent.error,
+      agentApiError: agent.ok ? null : agent.apiError,
+      warnings: agent.ok ? agent.warnings : agent.warnings,
+    })
     const tokenKind = classifyAliExpressTokenError(apiError ?? "")
     console.log("[affiliate-url-import]", {
       stage: "preview",
@@ -606,7 +610,10 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
   }
 
   if (!isDropForgeImportComplete(preview)) {
-    const apiError = extractAliExpressApiErrorFromWarnings(preview.warnings)
+    const apiError = resolveDropForgeApiError({
+      agentOk: true,
+      warnings: preview.warnings,
+    })
     const tokenKind = classifyAliExpressTokenError(apiError ?? "")
     console.log("[affiliate-url-import]", {
       stage: "preview",

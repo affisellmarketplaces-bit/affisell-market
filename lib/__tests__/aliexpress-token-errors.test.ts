@@ -22,12 +22,24 @@ describe("aliexpress-token-errors", () => {
 describe("extractAliExpressApiErrorFromWarnings", () => {
   it("pulls API message from agent warnings", async () => {
     const { extractAliExpressApiErrorFromWarnings } = await import(
-      "@/lib/dropforge-import-diagnostics"
+      "@/lib/aliexpress-token-errors"
     )
     expect(
       extractAliExpressApiErrorFromWarnings([
         "API AliExpress : The specified access token is invalid or expired — tentative scraping.",
       ])
+    ).toContain("invalid or expired")
+  })
+
+  it("resolves token error when scrape masked API failure", async () => {
+    const { resolveDropForgeApiError } = await import("@/lib/aliexpress-token-errors")
+    expect(
+      resolveDropForgeApiError({
+        agentOk: false,
+        agentError: "Import AliExpress impossible depuis le serveur pour cette URL.",
+        agentApiError: "The specified access token is invalid or expired",
+        warnings: [],
+      })
     ).toContain("invalid or expired")
   })
 })

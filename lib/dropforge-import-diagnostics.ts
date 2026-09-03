@@ -87,11 +87,3 @@ export async function dropForgeImportFailureMessage(
     })
   )
 }
-
-export function extractAliExpressApiErrorFromWarnings(warnings: string[]): string | null {
-  for (const w of warnings) {
-    const m = w.match(/^API AliExpress\s*:\s*(.+)/i)
-    if (m?.[1]?.trim()) return m[1].trim()
-  }
-  return null
-}

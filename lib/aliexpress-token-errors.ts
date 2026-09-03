@@ -45,3 +45,29 @@ export function aliExpressOAuthReconnectHint(kind: AliExpressTokenErrorKind): st
       return ""
   }
 }
+
+export function extractAliExpressApiErrorFromWarnings(warnings: string[]): string | null {
+  for (const w of warnings) {
+    const m = w.match(/^API AliExpress\s*:\s*(.+)/i)
+    if (!m?.[1]?.trim()) continue
+    const msg = m[1].trim().replace(/\s*—\s*tentative scraping.*$/i, "").trim()
+    if (msg) return msg
+  }
+  return null
+}
+
+export function resolveDropForgeApiError(args: {
+  agentOk: boolean
+  agentError?: string | null
+  agentApiError?: string | null
+  warnings?: string[]
+}): string | null {
+  if (args.agentApiError?.trim()) return args.agentApiError.trim()
+  const fromWarnings = extractAliExpressApiErrorFromWarnings(args.warnings ?? [])
+  if (fromWarnings) return fromWarnings
+  if (!args.agentOk && args.agentError?.trim()) {
+    const err = args.agentError.trim()
+    if (classifyAliExpressTokenError(err)) return err
+  }
+  return null
+}
