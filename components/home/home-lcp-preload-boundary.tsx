@@ -14,11 +14,14 @@ type Props = {
  */
 export async function HomeLcpPreloadBoundary({ locale }: Props) {
   const shell = await loadHomeMarketplaceShellSafe(locale)
-  const urls = pickHomeLcpImageUrls(shell.products, 4)
+  const urls = pickHomeLcpImageUrls(shell.products, 2)
 
-  for (const href of urls) {
+  for (const [index, href] of urls.entries()) {
     try {
-      preload(href, { as: "image", fetchPriority: "high" })
+      preload(href, {
+        as: "image",
+        fetchPriority: index === 0 ? "high" : "low",
+      })
     } catch (error) {
       console.log("[home-lcp-preload]", { href, error })
     }

@@ -58,7 +58,7 @@ export async function HomeCatalogStaticGrid({ shell, limit = 20 }: Props) {
                     src={item.image}
                     fallbackSrc={item.fallbackImage}
                     alt={item.title}
-                    priority={index < 2}
+                    priority={index === 0}
                   />
                 </div>
                 <div className="mt-1.5 px-0.5 pb-0.5 sm:mt-3 sm:px-1 sm:pb-1">

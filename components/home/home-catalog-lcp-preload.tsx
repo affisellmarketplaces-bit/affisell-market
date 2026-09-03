@@ -4,16 +4,19 @@ type Props = {
   products: unknown[]
 }
 
-/** Hoisted `<link rel="preload">` for first catalog images — faster mobile LCP. */
+/** Hoisted `<link rel="preload">` for the LCP catalog image (+ one sibling). */
 export function HomeCatalogLcpPreload({ products }: Props) {
-  const urls = pickHomeLcpImageUrls(products, 4)
+  const urls = pickHomeLcpImageUrls(products, 2)
   if (urls.length === 0) return null
+
+  const [primary, secondary] = urls
 
   return (
     <>
-      {urls.map((href) => (
-        <link key={href} rel="preload" as="image" href={href} fetchPriority="high" />
-      ))}
+      <link rel="preload" as="image" href={primary} fetchPriority="high" />
+      {secondary ? (
+        <link rel="preload" as="image" href={secondary} fetchPriority="low" />
+      ) : null}
     </>
   )
 }

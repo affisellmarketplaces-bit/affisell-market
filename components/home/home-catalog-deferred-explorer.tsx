@@ -32,7 +32,7 @@ export function HomeCatalogDeferredExplorer({ shell, staticCatalog }: Props) {
     fallbackDelayMs: 4800,
     rootMargin: "120px 0px",
   })
-  const lcpImages = pickHomeLcpImageUrls(shell.products, 4)
+  const lcpImages = pickHomeLcpImageUrls(shell.products, 2)
 
   return (
     <HomeCatalogErrorBoundary>

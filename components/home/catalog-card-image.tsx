@@ -35,8 +35,9 @@ export function CatalogCardImage({
           : "pointer-events-none absolute inset-0 h-full w-full select-none object-contain p-1 sm:p-4"
       }
       loading={priority ? "eager" : "lazy"}
-      fetchPriority={priority ? "high" : "low"}
-      decoding="async"
+      fetchPriority={priority ? "high" : "auto"}
+      decoding={priority ? "sync" : "async"}
+      sizes={isBuyer ? "(max-width: 768px) 50vw, 25vw" : undefined}
       draggable={false}
       onError={(e) => {
         const failed = e.currentTarget.src
