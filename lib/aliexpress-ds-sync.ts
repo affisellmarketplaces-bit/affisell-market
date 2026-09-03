@@ -1,10 +1,13 @@
 import {
   AliExpressApiError,
   encodeAliExpressQuery,
+  getAliExpressTimestamp,
   getAliExpressTimestampMs,
+  signAliExpressParams,
   signAliExpressTopHmacSha256,
   unwrapAliExpressMethodResponse,
 } from "@/lib/aliexpress-open-api"
+import { isAliExpressIllegalAccessTokenError } from "@/lib/aliexpress-token-errors"
 
 /** DS Open Platform sync hosts — SG first (App 534690 / ae_sdk). */
 export const ALIEXPRESS_DS_SYNC_HOSTS = [
@@ -55,11 +58,50 @@ function isRetryableDsError(message: string): boolean {
     m.includes("api not exist") ||
     m.includes("invalid-method") ||
     m.includes("method not support") ||
-    m.includes("illegalaccess") ||
+    (m.includes("illegalaccess") && !isAliExpressIllegalAccessTokenError(message)) ||
     m.includes("sign") ||
     m.includes("timestamp")
   )
 }
+
+type DsSyncStrategy = {
+  label: string
+  signMethod: "sha256" | "md5"
+  timestamp: () => string
+  transport: "query-empty" | "post-form"
+  simplify: boolean
+}
+
+const DS_PRODUCT_STRATEGIES: DsSyncStrategy[] = [
+  {
+    label: "sha256-query",
+    signMethod: "sha256",
+    timestamp: getAliExpressTimestampMs,
+    transport: "query-empty",
+    simplify: true,
+  },
+  {
+    label: "sha256-form",
+    signMethod: "sha256",
+    timestamp: getAliExpressTimestampMs,
+    transport: "post-form",
+    simplify: true,
+  },
+  {
+    label: "sha256-full",
+    signMethod: "sha256",
+    timestamp: getAliExpressTimestampMs,
+    transport: "query-empty",
+    simplify: false,
+  },
+  {
+    label: "md5-form",
+    signMethod: "md5",
+    timestamp: getAliExpressTimestamp,
+    transport: "post-form",
+    simplify: false,
+  },
+]
 
 /**
  * TOP/OP sync call (ae_sdk): sha256 HMAC, epoch-ms timestamp, query on URL, POST body empty.
@@ -71,37 +113,54 @@ export async function callAliExpressSyncMethod(args: {
   appSecret: string
   accessToken: string
   host: string
+  strategy?: DsSyncStrategy
 }): Promise<unknown> {
+  const strategy = args.strategy ?? DS_PRODUCT_STRATEGIES[0]!
   const params: Record<string, string> = {
     method: args.method,
     app_key: args.appKey,
     session: args.accessToken,
     access_token: args.accessToken,
-    sign_method: "sha256",
-    timestamp: getAliExpressTimestampMs(),
+    sign_method: strategy.signMethod,
+    timestamp: strategy.timestamp(),
     format: "json",
     v: "2.0",
-    simplify: "true",
     ...args.bizParams,
   }
-  params.sign = signAliExpressTopHmacSha256(params, args.appSecret)
+  if (strategy.simplify) params.simplify = "true"
+  params.sign =
+    strategy.signMethod === "md5"
+      ? signAliExpressParams(params, args.appSecret)
+      : signAliExpressTopHmacSha256(params, args.appSecret)
 
-  const url = `${args.host}?${encodeAliExpressQuery(params)}`
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
 
   let res: Response
   try {
-    res = await fetch(url, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-      },
-      body: "",
-      signal: controller.signal,
-      cache: "no-store",
-    })
+    if (strategy.transport === "query-empty") {
+      res = await fetch(`${args.host}?${encodeAliExpressQuery(params)}`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+        },
+        body: "",
+        signal: controller.signal,
+        cache: "no-store",
+      })
+    } else {
+      res = await fetch(args.host, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+        },
+        body: encodeAliExpressQuery(params),
+        signal: controller.signal,
+        cache: "no-store",
+      })
+    }
   } catch (e) {
     if (e instanceof Error && e.name === "AbortError") {
       throw new AliExpressApiError("AliExpress API request timed out")
@@ -153,8 +212,7 @@ function dsProductHasPayload(payload: unknown): boolean {
   return subject.length >= 2
 }
 
-/** Fetch product via official DS API (multi-host + sha256 — required for App 534690). */
-export async function getAliExpressDsProduct(args: {
+async function getAliExpressDsProductOnce(args: {
   productId: string
   appKey: string
   appSecret: string
@@ -171,43 +229,90 @@ export async function getAliExpressDsProduct(args: {
   let lastError = "aliexpress_ds_product_get_failed"
   for (const host of ALIEXPRESS_DS_SYNC_HOSTS) {
     const hostLabel = host.includes("api-sg") ? "sg" : "global"
-    const methodLabel = `aliexpress.ds.product.get@${hostLabel}`
-    try {
-      const payload = await callAliExpressSyncMethod({
-        method: "aliexpress.ds.product.get",
-        bizParams,
-        appKey: args.appKey,
-        appSecret: args.appSecret,
-        accessToken: args.accessToken,
-        host,
-      })
-      if (!dsProductHasPayload(payload)) {
-        lastError = "AliExpress DS product response empty"
-        console.log("[aliexpress-ds-sync]", { methodLabel, result: "empty_payload" })
-        continue
-      }
-      console.log("[aliexpress-ds-sync]", { methodLabel, productId, result: "ok" })
-      return { payload, methodLabel }
-    } catch (e) {
-      const message =
-        e instanceof AliExpressApiError
-          ? e.message
-          : e instanceof Error
+    for (const strategy of DS_PRODUCT_STRATEGIES) {
+      const methodLabel = `aliexpress.ds.product.get@${hostLabel}/${strategy.label}`
+      try {
+        const payload = await callAliExpressSyncMethod({
+          method: "aliexpress.ds.product.get",
+          bizParams,
+          appKey: args.appKey,
+          appSecret: args.appSecret,
+          accessToken: args.accessToken,
+          host,
+          strategy,
+        })
+        if (!dsProductHasPayload(payload)) {
+          lastError = "AliExpress DS product response empty"
+          console.log("[aliexpress-ds-sync]", { methodLabel, result: "empty_payload" })
+          continue
+        }
+        console.log("[aliexpress-ds-sync]", { methodLabel, productId, result: "ok" })
+        return { payload, methodLabel }
+      } catch (e) {
+        const message =
+          e instanceof AliExpressApiError
             ? e.message
-            : String(e)
-      lastError = message
-      console.log("[aliexpress-ds-sync]", {
-        methodLabel,
-        productId,
-        result: "fail",
-        error: message.slice(0, 160),
-        retry: isRetryableDsError(message),
-      })
-      if (!isRetryableDsError(message)) {
-        throw e instanceof AliExpressApiError ? e : new AliExpressApiError(message)
+            : e instanceof Error
+              ? e.message
+              : String(e)
+        lastError = message
+        console.log("[aliexpress-ds-sync]", {
+          methodLabel,
+          productId,
+          result: "fail",
+          error: message.slice(0, 160),
+          retry: isRetryableDsError(message),
+        })
+        if (isAliExpressIllegalAccessTokenError(message)) {
+          throw e instanceof AliExpressApiError ? e : new AliExpressApiError(message)
+        }
+        if (!isRetryableDsError(message)) {
+          throw e instanceof AliExpressApiError ? e : new AliExpressApiError(message)
+        }
       }
     }
   }
 
   throw new AliExpressApiError(lastError)
+}
+
+/** Fetch product via official DS API (multi-host + multi-sign strategies). */
+export async function getAliExpressDsProduct(args: {
+  productId: string
+  appKey: string
+  appSecret: string
+  accessToken: string
+}): Promise<{ payload: unknown; methodLabel: string }> {
+  try {
+    return await getAliExpressDsProductOnce(args)
+  } catch (e) {
+    const message =
+      e instanceof AliExpressApiError ? e.message : e instanceof Error ? e.message : String(e)
+    if (!isAliExpressIllegalAccessTokenError(message)) throw e
+
+    const { getValidAccessToken } = await import("@/lib/aliexpress-oauth")
+    let freshToken: string
+    try {
+      freshToken = await getValidAccessToken({ forceRefresh: true })
+    } catch (refreshErr) {
+      const refreshMsg =
+        refreshErr instanceof Error ? refreshErr.message : String(refreshErr)
+      throw new AliExpressApiError(
+        `${message} — refresh échoué : ${refreshMsg}`
+      )
+    }
+
+    if (freshToken === args.accessToken) {
+      throw new AliExpressApiError(
+        `${message} — reconnectez OAuth via /api/aliexpress/oauth/start`
+      )
+    }
+
+    console.log("[aliexpress-ds-sync]", {
+      productId: args.productId,
+      result: "token_refresh_retry",
+      tokenTail: freshToken.slice(-4),
+    })
+    return getAliExpressDsProductOnce({ ...args, accessToken: freshToken })
+  }
 }

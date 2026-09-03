@@ -131,6 +131,7 @@ export function DropForgeImportClient() {
   const [loading, setLoading] = useState(false)
   const [committing, setCommitting] = useState(false)
   const [scanError, setScanError] = useState<string | null>(null)
+  const [oauthReconnectUrl, setOauthReconnectUrl] = useState<string | null>(null)
   const [showBrowserBridge, setShowBrowserBridge] = useState(false)
   const [bridgeBusy, setBridgeBusy] = useState(false)
   const [done, setDone] = useState<{
@@ -176,6 +177,7 @@ export function DropForgeImportClient() {
     setDone(null)
     setPreview(null)
     setScanError(null)
+    setOauthReconnectUrl(null)
     setShowBrowserBridge(false)
     try {
       window.sessionStorage.setItem(PENDING_KEY, validated.url)
@@ -192,13 +194,16 @@ export function DropForgeImportClient() {
         error?: string
         preview?: Preview
         useBrowserCapture?: boolean
+        oauthReconnectUrl?: string | null
       }
       if (!res.ok || !data.preview) {
+        setOauthReconnectUrl(data.oauthReconnectUrl ?? null)
         if (data.useBrowserCapture && validated.url.includes("aliexpress")) {
           setShowBrowserBridge(true)
         }
         throw new Error(data.error ?? t("errPreview"))
       }
+      setOauthReconnectUrl(null)
       setPreview(data.preview)
       setWholesalePrice(String(defaultWholesaleEur(data.preview.costPrice)))
       if (validated.url !== trimmed) {
@@ -401,6 +406,19 @@ export function DropForgeImportClient() {
           className="mt-4 rounded-2xl border border-amber-400/35 bg-amber-500/10 px-4 py-3 text-sm text-amber-50"
         >
           {scanError}
+          {oauthReconnectUrl ? (
+            <p className="mt-3">
+              <a
+                href={oauthReconnectUrl}
+                className={cn(
+                  buttonVariants({ size: "sm" }),
+                  "inline-flex rounded-full bg-violet-600 hover:bg-violet-500"
+                )}
+              >
+                Reconnecter AliExpress OAuth
+              </a>
+            </p>
+          ) : null}
         </div>
       ) : null}
 
@@ -409,7 +427,7 @@ export function DropForgeImportClient() {
           aeUrl={url.trim()}
           onPreview={applyBridgePreview}
           onBusyChange={setBridgeBusy}
-          autoStart
+          autoStart={!oauthReconnectUrl}
         />
       ) : null}
 

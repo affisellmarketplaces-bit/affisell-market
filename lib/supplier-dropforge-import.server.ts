@@ -116,6 +116,7 @@ export async function previewDropForgeImport(
       status: number
       marketplaceLabel?: string
       useBrowserCapture?: boolean
+      oauthReconnectUrl?: string
     }
 > {
   const result = await previewResellerUrlImport(rawUrl)

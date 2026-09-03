@@ -1,6 +1,7 @@
 import "server-only"
 
 import { getAliExpressConfigStatus, readAliExpressConfig } from "@/lib/aliexpress-config"
+import { ALIEXPRESS_OAUTH_START_PATH } from "@/lib/aliexpress-token-errors"
 import { loadAliExpressTokensFromDb } from "@/lib/aliexpress-token-store"
 
 export type AliExpressApiReadyStatus = {
@@ -54,7 +55,7 @@ export async function getAliExpressApiReadyStatus(): Promise<AliExpressApiReadyS
   }
 
   missing.push(
-    "Session OAuth — GET /api/aliexpress/oauth/start ou ALIEXPRESS_REFRESH_TOKEN sur Vercel"
+    `Session OAuth — ${ALIEXPRESS_OAUTH_START_PATH} ou ALIEXPRESS_REFRESH_TOKEN sur Vercel`
   )
 
   return {

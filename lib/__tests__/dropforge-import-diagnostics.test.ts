@@ -54,22 +54,19 @@ describe("dropForgeImportFailureHints", () => {
     vi.resetModules()
   })
 
-  it("mentions OAuth DB session when API is ready via DB", async () => {
+  it("mentions OAuth reconnect when token error is known", async () => {
     vi.stubEnv("ALIEXPRESS_APP_KEY", "534690")
     vi.stubEnv("ALIEXPRESS_APP_SECRET", "secret_test_value")
+    vi.stubEnv("ALIEXPRESS_REFRESH_TOKEN", "refresh_env")
     vi.doMock("@/lib/aliexpress-token-store", () => ({
-      loadAliExpressTokensFromDb: vi.fn(async () => ({
-        accessToken: "a",
-        refreshToken: "r",
-        accessExpiresAt: null,
-        refreshExpiresAt: null,
-        accountHint: "test@affisell.com",
-        source: "db" as const,
-      })),
+      loadAliExpressTokensFromDb: vi.fn(async () => null),
     }))
 
     const { dropForgeImportFailureHints } = await import("@/lib/dropforge-import-diagnostics")
-    const hints = await dropForgeImportFailureHints("AliExpress")
-    expect(hints.some((h) => /OAuth/i.test(h))).toBe(true)
+    const hints = await dropForgeImportFailureHints("AliExpress", {
+      apiError: "The specified access token is invalid or expired",
+    })
+    expect(hints.some((h) => /oauth\/start/i.test(h))).toBe(true)
+    expect(hints.some((h) => /Session OAuth expirée/i.test(h))).toBe(true)
   })
 })

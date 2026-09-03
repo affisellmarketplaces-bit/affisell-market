@@ -35,12 +35,14 @@ export async function POST(req: Request) {
       status: result.status,
       marketplaceLabel: result.marketplaceLabel,
       useBrowserCapture: result.useBrowserCapture,
+      oauthReconnect: Boolean(result.oauthReconnectUrl),
     })
     return NextResponse.json(
       {
         error: result.error,
         marketplaceLabel: result.marketplaceLabel,
         useBrowserCapture: result.useBrowserCapture === true,
+        oauthReconnectUrl: result.oauthReconnectUrl ?? null,
       },
       { status: result.status }
     )

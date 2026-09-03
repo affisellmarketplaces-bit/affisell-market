@@ -16,7 +16,14 @@ import {
   type DropForgeCompletePreview,
   type DropForgeSkuVariantsPayload,
 } from "@/lib/dropforge-complete-import"
-import { dropForgeImportFailureMessage } from "@/lib/dropforge-import-diagnostics"
+import {
+  dropForgeImportFailureMessage,
+  extractAliExpressApiErrorFromWarnings,
+} from "@/lib/dropforge-import-diagnostics"
+import {
+  ALIEXPRESS_OAUTH_START_PATH,
+  classifyAliExpressTokenError,
+} from "@/lib/aliexpress-token-errors"
 import {
   catalogProductHasActiveSupplierLink,
   ensureDropForgeSupplierLink,
@@ -384,7 +391,14 @@ async function scrapeOpenGraphPreview(url: string): Promise<SupplierScrapedProdu
 
 export async function previewResellerUrlImport(rawUrl: string): Promise<
   | { ok: true; preview: ResellerImportPreview }
-  | { ok: false; error: string; status: number; marketplaceLabel?: string; useBrowserCapture?: boolean }
+  | {
+      ok: false
+      error: string
+      status: number
+      marketplaceLabel?: string
+      useBrowserCapture?: boolean
+      oauthReconnectUrl?: string
+    }
 > {
   const validated = validateDropForgeProductUrl(rawUrl)
   if (!validated.ok) {
@@ -543,19 +557,29 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
   if (!product) {
     const useBrowserCapture =
       market.preferAliExpressApi && Boolean(parseAliExpressProductId(url))
+    const apiError = agent.ok
+      ? extractAliExpressApiErrorFromWarnings(agent.warnings)
+      : agent.error
+    const tokenKind = classifyAliExpressTokenError(apiError ?? "")
     console.log("[affiliate-url-import]", {
       stage: "preview",
       result: "incomplete",
       marketplaceLabel: market.label,
       error: agent.ok ? "no_product" : agent.error.slice(0, 160),
       useBrowserCapture,
+      tokenKind,
     })
     return {
       ok: false,
-      error: await dropForgeImportFailureMessage(market.label, useBrowserCapture),
+      error: await dropForgeImportFailureMessage(
+        market.label,
+        useBrowserCapture,
+        apiError
+      ),
       status: 422,
       marketplaceLabel: market.label,
       useBrowserCapture,
+      ...(tokenKind ? { oauthReconnectUrl: ALIEXPRESS_OAUTH_START_PATH } : {}),
     }
   }
 
@@ -582,23 +606,28 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
   }
 
   if (!isDropForgeImportComplete(preview)) {
+    const apiError = extractAliExpressApiErrorFromWarnings(preview.warnings)
+    const tokenKind = classifyAliExpressTokenError(apiError ?? "")
     console.log("[affiliate-url-import]", {
       stage: "preview",
       result: "incomplete_fields",
       method,
       images: preview.images.length,
       costPrice: preview.costPrice,
+      tokenKind,
     })
     return {
       ok: false,
       error: await dropForgeImportFailureMessage(
         market.label,
-        market.preferAliExpressApi && Boolean(parseAliExpressProductId(url))
+        market.preferAliExpressApi && Boolean(parseAliExpressProductId(url)),
+        apiError
       ),
       status: 422,
       marketplaceLabel: market.label,
       useBrowserCapture:
         market.preferAliExpressApi && Boolean(parseAliExpressProductId(url)),
+      ...(tokenKind ? { oauthReconnectUrl: ALIEXPRESS_OAUTH_START_PATH } : {}),
     }
   }
 
