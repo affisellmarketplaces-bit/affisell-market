@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Menu, ShoppingBag } from "lucide-react"
+import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 
 import { CartCountBadge } from "@/components/cart/cart-count-badge"
@@ -128,6 +129,7 @@ export function ResellerBoutiqueBuyerHeader({
   trust,
   ownerDashboardHref,
 }: Props) {
+  const tNav = useTranslations("boutique.merchantHeader")
   const displayName = storeName.trim() || "Store"
   const hasLogo = Boolean(logoUrl?.trim())
 

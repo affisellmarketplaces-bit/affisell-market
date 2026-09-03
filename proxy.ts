@@ -49,7 +49,11 @@ function isShieldExemptPath(barePath: string): boolean {
   return (
     barePath === "/shield-blocked" ||
     barePath === "/api/security/logs" ||
-    barePath === "/api/security/verify-human"
+    barePath === "/api/security/verify-human" ||
+    barePath.startsWith("/api/cron/") ||
+    barePath.startsWith("/api/jobs/") ||
+    barePath.startsWith("/api/webhooks/") ||
+    barePath.startsWith("/api/radar/cron/")
   )
 }
 
@@ -357,6 +361,7 @@ export async function proxy(req: NextRequest) {
   if (
     barePath.startsWith("/api/webhooks/") ||
     barePath.startsWith("/api/cron/") ||
+    barePath.startsWith("/api/jobs/") ||
     barePath === "/api/integrations/shopify/callback" ||
     barePath === "/api/intelli/tiktok/callback" ||
     barePath === "/api/intelli/tiktok/start" ||

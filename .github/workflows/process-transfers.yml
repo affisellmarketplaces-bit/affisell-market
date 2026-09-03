@@ -19,5 +19,7 @@ jobs:
             echo "Set GitHub secrets CRON_SECRET and VERCEL_APP_URL (e.g. https://affisell-market.vercel.app)"
             exit 1
           fi
-          curl -fsS -H "Authorization: Bearer ${CRON_SECRET}" \
+          curl -fsS \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "x-cron-secret: ${CRON_SECRET}" \
             "${VERCEL_APP_URL%/}/api/jobs/process-transfers"
