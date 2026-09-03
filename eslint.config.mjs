@@ -55,6 +55,7 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    ".vercel/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
@@ -63,6 +64,8 @@ const eslintConfig = defineConfig([
     "lighthouse-budgets.cjs",
     /** Medusa sub-app — own lint/tsconfig; generated .medusa/types must not block Affisell CI */
     "medusa-backend/**",
+    /** Legacy CLI helper — CommonJS */
+    "scripts/get-aliexpress-token.js",
   ]),
 ]);
 

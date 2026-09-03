@@ -87,18 +87,19 @@ export function ProductPriceOffer({
   }
 
   if (showBattleFlash && validatedFlashPrice != null) {
+    const referenceEur =
+      typeof priceReferenceEur === "number" &&
+      Number.isFinite(priceReferenceEur) &&
+      priceReferenceEur > 0
+        ? priceReferenceEur
+        : price
+    const reseller =
+      typeof battleResellerName === "string" && battleResellerName.trim()
+        ? battleResellerName.trim()
+        : "Affisell"
+    let endsLabel: string | null = null
     try {
-      const referenceEur =
-        typeof priceReferenceEur === "number" &&
-        Number.isFinite(priceReferenceEur) &&
-        priceReferenceEur > 0
-          ? priceReferenceEur
-          : price
-      const reseller =
-        typeof battleResellerName === "string" && battleResellerName.trim()
-          ? battleResellerName.trim()
-          : "Affisell"
-      const endsLabel = flashEndsAtIso
+      endsLabel = flashEndsAtIso
         ? new Date(flashEndsAtIso).toLocaleString(intlLocaleTag(locale), {
             day: "2-digit",
             month: "short",
@@ -106,6 +107,13 @@ export function ProductPriceOffer({
             minute: "2-digit",
           })
         : null
+    } catch (e) {
+      console.error("[product-price-offer]", {
+        result: "battle_legal_render_failed",
+        error: e instanceof Error ? e.message : String(e),
+      })
+    }
+    if (endsLabel !== null || flashEndsAtIso === null) {
       const promoLine =
         flashPct != null
           ? tOffer("promoByPct", { pct: flashPct, reseller })
@@ -154,12 +162,6 @@ export function ProductPriceOffer({
           ) : null}
         </div>
       )
-    } catch (e) {
-      console.error("[product-price-offer]", {
-        result: "battle_legal_render_failed",
-        error: e instanceof Error ? e.message : String(e),
-      })
-      // Fall through to standard price UI — never blank the PDP.
     }
   }
 

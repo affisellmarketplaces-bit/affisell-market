@@ -182,9 +182,14 @@ function ArcLine({ event }: { event: LiveEvent }) {
   }, [event])
 
   const particle = useRef<THREE.Mesh>(null)
-  const t = useRef(Math.random())
+  const t = useRef(0)
+  const seeded = useRef(false)
 
   useFrame((_, delta) => {
+    if (!seeded.current) {
+      t.current = Math.random()
+      seeded.current = true
+    }
     t.current = (t.current + delta * 0.12) % 1
     if (particle.current) {
       const p = curve.getPoint(t.current)

@@ -1,3 +1,5 @@
+import type { IncomingMessage, ServerResponse } from "node:http"
+
 import { NestFactory } from "@nestjs/core"
 import { json } from "express"
 
@@ -11,7 +13,7 @@ async function bootstrap() {
   // Capture raw body for TikTok webhook signature verification.
   app.use(
     json({
-      verify: (req: any, _res, buf) => {
+      verify: (req: IncomingMessage & { rawBody?: string }, _res: ServerResponse, buf: Buffer) => {
         req.rawBody = buf?.toString("utf8") ?? ""
       },
     })

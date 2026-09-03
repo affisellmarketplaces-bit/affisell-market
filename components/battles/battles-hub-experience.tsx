@@ -319,13 +319,20 @@ export function BattlesHubExperience({ initial }: Props) {
     }
   }, [])
 
+  const [tick, setTick] = useState(0)
+  const [nowMs, setNowMs] = useState(0)
+
   useEffect(() => {
     const id = window.setInterval(() => void refresh(), POLL_MS)
     return () => window.clearInterval(id)
   }, [refresh])
 
   useEffect(() => {
-    const id = window.setInterval(() => setTick((n) => n + 1), 1000)
+    setNowMs(Date.now())
+    const id = window.setInterval(() => {
+      setTick((n) => n + 1)
+      setNowMs(Date.now())
+    }, 1000)
     return () => window.clearInterval(id)
   }, [])
 
@@ -334,13 +341,13 @@ export function BattlesHubExperience({ initial }: Props) {
     if (!payload.live) return null
     const b = { ...payload.live }
     if (b.status === "live" && b.endedAt) {
-      b.timeLeftMs = Math.max(0, new Date(b.endedAt).getTime() - Date.now())
+      b.timeLeftMs = Math.max(0, new Date(b.endedAt).getTime() - nowMs)
     }
     if (b.flashEndsAt) {
-      b.flashTimeLeftMs = Math.max(0, new Date(b.flashEndsAt).getTime() - Date.now())
+      b.flashTimeLeftMs = Math.max(0, new Date(b.flashEndsAt).getTime() - nowMs)
     }
     return b
-  }, [payload.live, tick])
+  }, [payload.live, tick, nowMs])
 
   const tickerItems = useMemo(() => {
     const items: string[] = []

@@ -5,7 +5,7 @@ export function legalMarkdownToHtml(markdown: string, title = "Document juridiqu
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
 
-  let body = escaped
+  const body = escaped
     .replace(/^# (.+)$/gm, "<h1>$1</h1>")
     .replace(/^## (.+)$/gm, "<h2>$1</h2>")
     .replace(/^### (.+)$/gm, "<h3>$1</h3>")

@@ -40,6 +40,14 @@ type Props = {
 
 const TRAFFIC_POLL_MS = 15_000
 
+function StorefrontRecommendedBadge({ label }: { label: string }) {
+  return (
+    <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+      {label}
+    </span>
+  )
+}
+
 export function StorefrontShareGrowPanel({
   slug,
   storeName,
@@ -241,14 +249,6 @@ export function StorefrontShareGrowPanel({
   const whatsAppUrl = buildStorefrontWhatsAppShareUrl(shopUrl, shareMessage)
   const twitterUrl = buildStorefrontTwitterShareUrl(shopUrl, shareMessage)
 
-  function RecommendedBadge() {
-    return (
-      <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-        {t("recommended")}
-      </span>
-    )
-  }
-
   function SocialButton({
     channel,
     href,
@@ -275,7 +275,7 @@ export function StorefrontShareGrowPanel({
       >
         {recommended ? (
           <span className="absolute -top-2 right-2">
-            <RecommendedBadge />
+            <StorefrontRecommendedBadge label={t("recommended")} />
           </span>
         ) : null}
         {isWhatsApp ? (
@@ -355,7 +355,7 @@ export function StorefrontShareGrowPanel({
               {copied ? t("copied") : t("copyLink")}
               {recommendedChannel === "clipboard" ? (
                 <span className="ml-1">
-                  <RecommendedBadge />
+                  <StorefrontRecommendedBadge label={t("recommended")} />
                 </span>
               ) : null}
             </Button>
@@ -375,7 +375,7 @@ export function StorefrontShareGrowPanel({
                 {t("nativeShare")}
                 {recommendedChannel === "native" ? (
                   <span className="ml-1">
-                    <RecommendedBadge />
+                    <StorefrontRecommendedBadge label={t("recommended")} />
                   </span>
                 ) : null}
               </Button>
@@ -471,7 +471,7 @@ export function StorefrontShareGrowPanel({
           >
             {recommendedChannel === "embed" ? (
               <span className="mb-1 inline-flex">
-                <RecommendedBadge />
+                <StorefrontRecommendedBadge label={t("recommended")} />
               </span>
             ) : null}
             <span className="block">{t("enableEmbedHint")}</span>

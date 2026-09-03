@@ -1753,21 +1753,29 @@ export function SupplierAddProductForm({
     [assembleListingPayload, variantFormMode, advancedSkuRows, simpleColorRows, variantSizesText]
   )
 
+  const syncDraftToServerRef = useRef<
+    (opts?: {
+      silent?: boolean
+      force?: boolean
+      stepOverride?: WizardStep
+      afterGallery?: boolean
+      imagesOverride?: string[]
+      _queued?: boolean
+    }) => Promise<boolean>
+  >(() => Promise.resolve(false))
+
   const syncDraftToServer = useCallback(
     async (opts?: {
       silent?: boolean
       force?: boolean
       stepOverride?: WizardStep
-      /** Flush right after gallery CDN upload (galleryBusy may still be true). */
       afterGallery?: boolean
-      /** Bypass stale React state — use fresh CDN URLs from upload callback. */
       imagesOverride?: string[]
-      /** Internal: already inside serial queue (avoid double-enqueue on retry). */
       _queued?: boolean
     }): Promise<boolean> => {
       if (!opts?._queued) {
         return autosaveQueueRef.current.enqueue(() =>
-          syncDraftToServer({ ...opts, _queued: true })
+          syncDraftToServerRef.current({ ...opts, _queued: true })
         )
       }
 
@@ -1981,6 +1989,7 @@ export function SupplierAddProductForm({
       tImages,
     ]
   )
+  syncDraftToServerRef.current = syncDraftToServer
 
   const autosaveFingerprint = useMemo(
     () => JSON.stringify(buildDraftSyncBody(step)) + String(step),

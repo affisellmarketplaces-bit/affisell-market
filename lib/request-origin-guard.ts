@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { mustEnforceProductionSecrets } from "@/lib/require-production-secret"
 import { resolvePublicAppUrl } from "@/lib/public-app-url"
+import { devLocalhostOrigin, resolveDevPort } from "@/lib/dev-localhost-url"
 import { isAffisellStoreSubdomainHost } from "@/lib/store-host-suffix"
 import { isLocalhostUrl } from "@/lib/localhost-host"
 
@@ -34,10 +35,11 @@ export function collectAllowedRequestOrigins(): Set<string> {
   if (vercel) add(`https://${vercel.replace(/^https?:\/\//i, "")}`)
 
   if (!mustEnforceProductionSecrets()) {
-    add("http://localhost:3001")
-    add("http://localhost:3000")
-    add("http://127.0.0.1:3001")
-    add("http://127.0.0.1:3000")
+    add(devLocalhostOrigin())
+    const port = resolveDevPort()
+    add(`http://127.0.0.1:${port}`)
+    const altPort = port === 3001 ? 3000 : 3001
+    add(`http://127.0.0.1:${altPort}`)
   }
 
   return allowed

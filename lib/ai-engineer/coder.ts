@@ -3,6 +3,7 @@ import { join } from "node:path"
 import { spawnSync } from "node:child_process"
 
 import { auditAdminSessionBridge } from "@/lib/ai-engineer/admin-session-audit"
+import { devLocalhostUrl } from "@/lib/dev-localhost-url"
 import { AFFISELL_CONTEXT } from "@/lib/ai-engineer/context"
 import { buildPoolerStripPatch } from "@/lib/ai-engineer/pooler-audit"
 import { runIngManualNudgeCron } from "@/lib/cron/ing-manual-nudge"
@@ -92,7 +93,7 @@ export class IngCoder {
           file: "app/api/cron/ing-manual-nudge/route.ts",
           change,
           reason: task.description,
-          test: "curl -s 'http://localhost:3001/api/cron/ing-manual-nudge?dry=1'",
+          test: `curl -s '${devLocalhostUrl("/api/cron/ing-manual-nudge?dry=1")}'`,
         },
       ]
     }
@@ -116,7 +117,7 @@ export class IngCoder {
         change: "manual",
         reason:
           "Remove useSession(); pass session from app/admin/layout.tsx + app/dashboard/admin/layout.tsx via AdminLayoutChrome",
-        test: "curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/dashboard/admin/ing",
+        test: `curl -s -o /dev/null -w '%{http_code}' ${devLocalhostUrl("/dashboard/admin/ing")}`,
       })
       console.log("[ing]", { result: "fix_manual", taskId: task.id, audit })
       return actions

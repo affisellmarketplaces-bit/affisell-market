@@ -135,7 +135,7 @@ export function autoFixProduct(
 ): AutoFixProductResult {
   const changes: AutoFixChange[] = []
 
-  let fixedTitle = applyCompliantReplacements(product.name, changes, "name")
+  const fixedTitle = applyCompliantReplacements(product.name, changes, "name")
   let fixedDesc = applyCompliantReplacements(product.description, changes, "description")
 
   const fixedBullets = (product.descriptionBullets ?? []).map((bullet, idx) =>

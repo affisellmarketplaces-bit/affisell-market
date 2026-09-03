@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto"
 import { redirect } from "next/navigation"
 
 import { WizardV2AeRelayClient } from "@/components/supplier/wizard-v2/wizard-v2-ae-relay-client"
@@ -32,7 +33,8 @@ export default async function WizardV2AeRelayPage({ searchParams }: Props) {
     redirect("/dashboard/supplier/products/new?wizard=v2&mode=express")
   }
 
-  const relayKey = sp.relayKey?.trim() || `wzv2_${session.user.id.slice(-8)}_${Date.now().toString(36)}`
+  const relayKey =
+    sp.relayKey?.trim() || `wzv2_${session.user.id.slice(-8)}_${randomBytes(4).toString("hex")}`
   const sessionId = sp.sessionId?.trim() || (await createAeCaptureSession(relayKey))
   const captureToken = sp.captureToken?.trim() || createAeCaptureToken(sessionId, relayKey)
   const appOrigin =

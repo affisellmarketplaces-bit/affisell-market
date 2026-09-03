@@ -13,6 +13,19 @@ import { cn } from "@/lib/utils"
 
 const PLACEHOLDER = "/placeholder-product.jpg"
 
+type GalleryTapStart = { x: number; y: number; t: number }
+
+function recordGalleryTapStart(start: { current: GalleryTapStart | null }, e: ReactPointerEvent<HTMLElement>) {
+  start.current = { x: e.clientX, y: e.clientY, t: Date.now() }
+}
+
+function isGalleryStationaryTap(start: GalleryTapStart, e: ReactPointerEvent<HTMLElement>): boolean {
+  const dx = Math.abs(e.clientX - start.x)
+  const dy = Math.abs(e.clientY - start.y)
+  const dt = Date.now() - start.t
+  return dx <= 14 && dy <= 14 && dt <= 420
+}
+
 function comparableSlideUrl(url: string): string {
   const t = url.trim()
   if (t.startsWith("data:")) return t.toLowerCase()
@@ -146,18 +159,13 @@ export function MobileProductGalleryCarousel({
 
   function onImagePointerDown(e: ReactPointerEvent<HTMLElement>) {
     if (e.pointerType === "mouse" && e.button !== 0) return
-    tapRef.current = { x: e.clientX, y: e.clientY, t: Date.now() }
+    recordGalleryTapStart(tapRef, e)
   }
 
   function onImagePointerUp(e: ReactPointerEvent<HTMLElement>, slide: Extract<Slide, { kind: "image" }>) {
     const start = tapRef.current
     tapRef.current = null
-    if (!start) return
-    const dx = Math.abs(e.clientX - start.x)
-    const dy = Math.abs(e.clientY - start.y)
-    const dt = Date.now() - start.t
-    // Short stationary tap → lightbox; horizontal swipe keeps carousel scroll.
-    if (dx > 14 || dy > 14 || dt > 420) return
+    if (!start || !isGalleryStationaryTap(start, e)) return
     onOpenLightbox(slide.index)
   }
 

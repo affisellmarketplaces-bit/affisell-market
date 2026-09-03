@@ -7,7 +7,7 @@ export function isNumericOnlyVariantToken(raw: string): boolean {
 
 /** Strip AE sku_attr noise: `14:771#55mm Blue` → `55mm Blue`. */
 export function stripAeSkuTechnicalLabel(raw: string): string {
-  let s = raw.trim()
+  const s = raw.trim()
   if (!s) return s
 
   const hashParts = s.split("#").map((p) => p.trim()).filter(Boolean)

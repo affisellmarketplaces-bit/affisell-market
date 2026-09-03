@@ -39,7 +39,7 @@ export function CreateStoreButton({
       return
     }
 
-    let slug = defaultSlug?.trim() || null
+    const slug = defaultSlug?.trim() || null
     let storeName: string | undefined
     if (!slug) {
       const suggested = defaultStoreName?.trim() || "ma-boutique"

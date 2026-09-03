@@ -35,6 +35,10 @@ type Props = {
 
 const RADAR_CARDS = buildRadarPricingCards()
 
+function redirectBrowserTo(url: string) {
+  window.location.assign(url)
+}
+
 export default function PricingPageClient({
   highlightFeature,
   currentRadarPlan,
@@ -58,7 +62,7 @@ export default function PricingPageClient({
   async function startCheckout(plan: RadarCheckoutPlanId) {
     trackPricingCta(plan)
     if (status !== "authenticated" && !isAuthenticated) {
-      window.location.href = `/login?callbackUrl=${encodeURIComponent(`/pricing?feature=radar&plan=${plan}`)}`
+      redirectBrowserTo(`/login?callbackUrl=${encodeURIComponent(`/pricing?feature=radar&plan=${plan}`)}`)
       return
     }
 
@@ -84,7 +88,7 @@ export default function PricingPageClient({
       if (!res.ok || !data.url) {
         throw new Error(data.message ?? data.error ?? "Impossible de démarrer le paiement")
       }
-      window.location.href = data.url
+      redirectBrowserTo(data.url)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Échec du checkout Radar")
       setLoadingPlan(null)

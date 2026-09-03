@@ -401,8 +401,13 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
   const { push, replace, mounted } = useSafeAppRouter()
   const searchParams = useSearchParams()
   const mode = resolveWizardV2Mode(searchParams.get("mode") ?? initialMode)
-  const startedAt = useRef(Date.now())
-  const stepStartedAt = useRef(Date.now())
+  const startedAt = useRef(0)
+  const stepStartedAt = useRef(0)
+  useEffect(() => {
+    const now = Date.now()
+    startedAt.current = now
+    stepStartedAt.current = now
+  }, [])
 
   const [defaults, setDefaults] = useState<MerchantDefaults | null>(null)
   const [shopifyDomain, setShopifyDomain] = useState<string | null>(null)

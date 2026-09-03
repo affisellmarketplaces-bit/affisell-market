@@ -53,7 +53,7 @@ function renderPlainWithLinks(text: string, keyPrefix: string): ReactNode[] {
       continue
     }
 
-    let chunk = segment.value
+    const chunk = segment.value
     let lastIndex = 0
     const mdRe = new RegExp(MARKDOWN_LINK_RE.source, "g")
     for (const match of chunk.matchAll(mdRe)) {

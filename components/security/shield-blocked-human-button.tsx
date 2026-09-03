@@ -11,13 +11,12 @@ type VerifyPhase = "idle" | "scanning" | "success" | "error"
 const VERIFY_TIMEOUT_MS = 12_000
 
 export function ShieldBlockedHumanButton({ returnTo }: ShieldBlockedHumanButtonProps) {
-  const startedAtRef = useRef(Date.now())
-  const [phase, setPhase] = useState<VerifyPhase>("idle")
-  const [message, setMessage] = useState<string | null>(null)
-
+  const startedAtRef = useRef(0)
   useEffect(() => {
     startedAtRef.current = Date.now()
   }, [])
+  const [phase, setPhase] = useState<VerifyPhase>("idle")
+  const [message, setMessage] = useState<string | null>(null)
 
   async function handleHumanClaim() {
     if (phase === "scanning" || phase === "success") return

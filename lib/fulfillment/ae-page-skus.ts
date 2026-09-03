@@ -135,7 +135,7 @@ export function parseAeSkusFromPagePayload(
           imageUrl: null as string | null,
         }
     const aeLabel = preferHumanAeLabel(parsedAttr.parts, skuAttr || null)
-    let imageUrl =
+    const imageUrl =
       parsedAttr.imageUrl ||
       pickImageFromSkuRow(row, skuVal) ||
       findImageByDisplayNameInLookup(lookup, aeLabel)

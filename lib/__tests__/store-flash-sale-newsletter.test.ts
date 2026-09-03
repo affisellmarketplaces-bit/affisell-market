@@ -41,6 +41,7 @@ describe("runFlashSaleNewsletterBlast", () => {
     }))
     vi.doMock("@/lib/store-public-url", () => ({
       storePublicUrl: () => "https://affisell.com/shops/marie",
+      storePublicUrlInputFromStore: (input: { slug: string }) => input,
     }))
 
     const { runFlashSaleNewsletterBlast } = await import("@/lib/store-flash-sale-newsletter")

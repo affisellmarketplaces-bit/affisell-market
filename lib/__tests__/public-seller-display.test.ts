@@ -19,7 +19,7 @@ describe("publicPartnerSellerLabel", () => {
 
   it("uses generic label when nothing usable", () => {
     expect(publicPartnerSellerLabel({ storeName: "   ", affiliateDisplayName: null })).toBe(
-      "Creator partner"
+      "Affiliate-Commission Agent"
     )
   })
 
@@ -29,7 +29,7 @@ describe("publicPartnerSellerLabel", () => {
         storeName: "alice@example.com",
         affiliateDisplayName: "alice@example.com",
       })
-    ).toBe("Creator partner")
+    ).toBe("Affiliate-Commission Agent")
   })
 })
 

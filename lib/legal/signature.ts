@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { resolvePublicAppUrl } from "@/lib/public-app-url"
 
 export type SignatureField = {
   name: string
@@ -23,11 +24,7 @@ export type SigningLinkResult = {
 const SIGNING_TTL_DAYS = 14
 
 function resolveAppOrigin(): string {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    process.env.NEXTAUTH_URL?.trim() ||
-    "http://localhost:3001"
-  ).replace(/\/$/, "")
+  return resolvePublicAppUrl()
 }
 
 /** DocuSeal API placeholder — retourne null si non configuré ou échec. */
