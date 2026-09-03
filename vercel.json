@@ -14,6 +14,9 @@
   "functions": {
     "app/api/**/*": {
       "maxDuration": 10
+    },
+    "app/api/jobs/process-transfers/route.ts": {
+      "maxDuration": 60
     }
   },
   "crons": [
