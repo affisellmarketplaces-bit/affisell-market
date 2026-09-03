@@ -26,6 +26,7 @@ jobs:
         run: npm ci
 
       - name: Production build
+        id: build
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
@@ -33,10 +34,12 @@ jobs:
           CI: "true"
 
       - name: Verify PWA shell wiring
+        if: steps.build.outcome == 'success'
         run: npm run verify:pwa-shell
 
       - name: Lighthouse mobile (home)
         id: lighthouse
+        if: steps.build.outcome == 'success'
         continue-on-error: true
         run: npm run lighthouse:mobile
         env:
@@ -46,12 +49,12 @@ jobs:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
 
       - name: Publish Lighthouse summary
-        if: always() && steps.lighthouse.outcome == 'success'
+        if: steps.build.outcome == 'success' && steps.lighthouse.outcome == 'success'
         run: node scripts/lighthouse-ci-summary.mjs
 
-      - name: Publish Lighthouse build-failure note
-        if: always() && steps.lighthouse.outcome != 'success'
-        run: echo "Lighthouse skipped — production build failed before LHCI collect."
+      - name: Note skipped Lighthouse (build failed)
+        if: always() && steps.build.outcome != 'success'
+        run: echo "::warning::Production build failed — Lighthouse not run."
 
       - name: Comment Lighthouse on PR
         if: github.event_name == 'pull_request' && always()
@@ -85,7 +88,7 @@ jobs:
             }
 
       - name: Fail on severe Lighthouse regression
-        if: steps.lighthouse.outcome == 'failure'
+        if: steps.build.outcome == 'success' && steps.lighthouse.outcome == 'failure'
         run: |
           echo "Severe Lighthouse regression — see summary / PR comment."
           exit 1
