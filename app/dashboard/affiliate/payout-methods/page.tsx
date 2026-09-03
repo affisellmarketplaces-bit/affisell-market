@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 
-import { AddPayoutMethodDrawer } from "@/components/affiliate/AddPayoutMethodDrawer"
 import { PayoutMethodsGrid } from "@/components/affiliate/PayoutMethodsGrid"
+import { PayoutMethodsPageClient } from "@/components/affiliate/payout-methods-page-client"
 import PayoutMethodsSkeleton from "@/components/skeletons/PayoutMethodsSkeleton"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
 import { FLAGS } from "@/lib/flags"
@@ -36,13 +36,13 @@ async function PayoutMethodsList() {
           Ajoute PayPal, virement ou Wave pour recevoir tes commissions.
         </p>
         <div className="mt-6 flex justify-center">
-          <AddPayoutMethodDrawer />
+          <PayoutMethodsPageClient />
         </div>
       </div>
     )
   }
 
-  return <PayoutMethodsGrid methods={methods} />
+  return <PayoutMethodsGrid methods={methods} showAddDrawer />
 }
 
 export default async function AffiliatePayoutMethodsPage() {
@@ -61,7 +61,7 @@ export default async function AffiliatePayoutMethodsPage() {
             Gère comment tu reçois tes commissions d&apos;affilié. Chiffré de bout en bout.
           </p>
         </div>
-        <AddPayoutMethodDrawer />
+        <PayoutMethodsPageClient />
       </div>
       <Suspense fallback={<PayoutMethodsSkeleton />}>
         <PayoutMethodsList />
