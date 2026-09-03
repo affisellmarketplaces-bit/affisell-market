@@ -319,7 +319,6 @@ export function BattlesHubExperience({ initial }: Props) {
     }
   }, [])
 
-  const [tick, setTick] = useState(0)
   const [nowMs, setNowMs] = useState(0)
 
   useEffect(() => {
