@@ -55,7 +55,7 @@ describe("requireMerchantVerifiedForPublish", () => {
     expect(blocked).toBeNull()
   })
 
-  it("returns 403 when KYC is pending for new accounts", async () => {
+  it("returns 403 when KYC is pending for new supplier accounts", async () => {
     vi.mocked(prisma.merchantLegalProfile.findUnique).mockResolvedValue({
       verificationStatus: "PENDING_REVIEW",
     } as never)
@@ -69,5 +69,20 @@ describe("requireMerchantVerifiedForPublish", () => {
     expect(blocked?.status).toBe(403)
     const json = (await blocked?.json()) as { error?: string }
     expect(json.error).toBe("merchant_verification_pending")
+  })
+
+  it("returns allowed for affiliates without KYC profile (storefront exempt)", async () => {
+    vi.mocked(prisma.merchantLegalProfile.findUnique).mockResolvedValue(null)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      role: "AFFILIATE",
+      createdAt: new Date("2026-06-20T00:00:00.000Z"),
+    } as never)
+
+    const gate = await merchantVerificationGate("aff-new")
+    expect(gate.allowed).toBe(true)
+    expect(gate.status).toBe("AFFILIATE_STOREFRONT_EXEMPT")
+
+    const blocked = await requireMerchantVerifiedForPublish("aff-new")
+    expect(blocked).toBeNull()
   })
 })

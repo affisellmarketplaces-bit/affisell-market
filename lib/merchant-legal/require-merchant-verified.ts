@@ -7,18 +7,26 @@ export type MerchantVerificationGate = {
   reason?: "no_profile" | "pending" | "rejected" | "needs_info"
 }
 
-/** Suppliers / affiliates need APPROVED KYC before publishing catalog. */
+/** Suppliers need APPROVED KYC before publishing catalog. Affiliates resell — storefront publish is open. */
 export async function merchantVerificationGate(userId: string): Promise<MerchantVerificationGate> {
-  const [profile, user] = await Promise.all([
-    prisma.merchantLegalProfile.findUnique({
-      where: { userId },
-      select: { verificationStatus: true },
-    }),
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: { createdAt: true, role: true },
-    }),
-  ])
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { createdAt: true, role: true },
+  })
+
+  if (user?.role === "AFFILIATE") {
+    console.log("[merchant-kyc-gate]", {
+      userId,
+      allowed: true,
+      affiliateStorefrontExempt: true,
+    })
+    return { allowed: true, status: "AFFILIATE_STOREFRONT_EXEMPT" }
+  }
+
+  const profile = await prisma.merchantLegalProfile.findUnique({
+    where: { userId },
+    select: { verificationStatus: true },
+  })
 
   if (
     user &&

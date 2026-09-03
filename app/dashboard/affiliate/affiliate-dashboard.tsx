@@ -120,9 +120,7 @@ function SortableStoreCard(props: {
   selected: boolean
   storeSlug: string | null
   labels: {
-    inStorefront: string
     liveCheckout: string
-    verificationRequired: string
     manageListing: string
     previewListing: string
   }
@@ -178,7 +176,7 @@ function SortableStoreCard(props: {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-600" />
           </span>
-          {listing.isListed ? labels.liveCheckout : labels.verificationRequired}
+          {labels.liveCheckout}
         </span>
         {(listing.product?.deliveryMax ?? 99) <= 3 ? (
           <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-900 dark:bg-emerald-950/70 dark:text-emerald-200">
@@ -1313,9 +1311,7 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
                         listing={l}
                         storeSlug={storeSlug}
                         labels={{
-                          inStorefront: tHub("inStorefrontBadge"),
                           liveCheckout: tHub("liveCheckoutBadge"),
-                          verificationRequired: tHub("verificationRequiredBadge"),
                           manageListing: tHub("manageListing"),
                           previewListing: tHub("previewListing"),
                         }}
