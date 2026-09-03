@@ -13,10 +13,11 @@ import {
   Store,
   Zap,
 } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { toast } from "sonner"
 
 import { DropForgeAeBrowserBridge } from "@/components/import/dropforge-ae-browser-bridge"
+import { DropForgeRefinePanel } from "@/components/import/dropforge-refine-panel"
 import { buttonVariants } from "@/components/ui/button"
 import { detectMarketplaceFromUrl } from "@/lib/import-marketplace"
 import { validateDropForgeProductUrl } from "@/lib/dropforge-product-url"
@@ -126,6 +127,7 @@ function fulfillmentStatusTone(p: Preview): string {
 /** DropForge B2B — suppliers forge catalog SKUs; resellers relist later. */
 export function DropForgeImportClient() {
   const t = useTranslations("importPage")
+  const locale = useLocale() === "en" ? "en" : "fr"
   const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -248,6 +250,24 @@ export function DropForgeImportClient() {
       toast.success(t("previewOk", { market: p.marketplaceLabel ?? "AliExpress" }))
     },
     [t]
+  )
+
+  const applyRefinedPreview = useCallback(
+    (raw: Record<string, unknown>, meta?: { applied?: string[] }) => {
+      const p = raw as unknown as Preview
+      if (!p.title || !p.sourceUrl) return
+      setPreview(p)
+      saveDropForgePendingCommit({
+        sourceUrl: p.sourceUrl,
+        preview: raw,
+        wholesalePrice,
+        publishLive: false,
+      })
+      if (meta?.applied?.length) {
+        toast.success(t("refineOk", { count: meta.applied.length }))
+      }
+    },
+    [t, wholesalePrice]
   )
 
   const commit = useCallback(
@@ -550,6 +570,12 @@ export function DropForgeImportClient() {
               >
                 {fulfillmentStatusMessage(preview, t)}
               </div>
+
+              <DropForgeRefinePanel
+                preview={preview as unknown as Record<string, unknown>}
+                onPreviewUpdate={applyRefinedPreview}
+                locale={locale}
+              />
             </div>
           </div>
 

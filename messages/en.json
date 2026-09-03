@@ -5600,6 +5600,7 @@
     "autoCommitDraft": "Account ready — creating DropForge draft…",
     "autoCommitLive": "Account ready — publishing to catalog…",
     "affiliateBecomeSupplier": "Become a supplier & publish",
+    "refineOk": "Co-Pilot: {count} update(s) applied",
     "commitLiveOk": "Published to Affisell catalog",
     "commitDraftOk": "Draft created in your catalog",
     "doneLive": "Your SKU is live for resellers.",

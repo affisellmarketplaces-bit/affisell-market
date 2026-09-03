@@ -5600,6 +5600,7 @@
     "autoCommitDraft": "Compte prêt — création du brouillon DropForge…",
     "autoCommitLive": "Compte prêt — publication au catalogue…",
     "affiliateBecomeSupplier": "Passer fournisseur & publier",
+    "refineOk": "Co-Pilot : {count} mise(s) à jour appliquée(s)",
     "commitLiveOk": "Publié au catalogue Affisell",
     "commitDraftOk": "Brouillon créé dans ton catalogue",
     "doneLive": "Ton SKU est live pour les resellers.",
