@@ -5,7 +5,7 @@ import { runProcessTransfersJob } from "@/lib/transfers/process-transfers"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
-export const maxDuration = 60
+export const maxDuration = 300
 
 /**
  * Vercel Cron (every 2 min) + internal enqueue after checkout webhook.

@@ -16,7 +16,7 @@
       "maxDuration": 10
     },
     "app/api/jobs/process-transfers/route.ts": {
-      "maxDuration": 60
+      "maxDuration": 300
     }
   },
   "crons": [
