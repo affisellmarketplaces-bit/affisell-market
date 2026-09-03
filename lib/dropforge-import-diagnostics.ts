@@ -23,7 +23,7 @@ export async function dropForgeImportFailureHints(
           : "Session OAuth active en base chiffrée."
       )
     } else {
-      hints.push("API AliExpress configurée — vérifie ALIEXPRESS_ENV=production sur Vercel (pas sandbox).")
+      hints.push("API AliExpress DS active — import via aliexpress.ds.product.get (api-sg).")
     }
 
     if (opts?.suggestBrowserBridge) {

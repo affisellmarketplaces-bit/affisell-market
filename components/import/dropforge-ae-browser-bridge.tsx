@@ -41,8 +41,6 @@ export function DropForgeAeBrowserBridge({
     const u = aeUrl.trim()
     if (!/^https?:\/\//i.test(u) || !u.includes("aliexpress")) return
 
-    setPhase("running")
-    onBusyChange?.(true)
     setHint("Préparation du pont Express Bridge…")
 
     try {
@@ -75,6 +73,8 @@ export function DropForgeAeBrowserBridge({
         throw new Error("Autorisez les popups pour affisell.com")
       }
 
+      setPhase("running")
+      onBusyChange?.(true)
       setHint("Fenêtre AliExpress ouverte — capture en cours…")
     } catch (e) {
       setPhase("error")
@@ -104,6 +104,51 @@ export function DropForgeAeBrowserBridge({
     window.addEventListener("message", onMessage)
     return () => window.removeEventListener("message", onMessage)
   }, [onBusyChange, onPreview])
+
+  useEffect(() => {
+    if (phase !== "running") return
+    const sess = sessionRef.current
+    if (!sess) return
+
+    let attempts = 0
+    const maxAttempts = 320
+    const interval = window.setInterval(() => {
+      attempts += 1
+      if (attempts > maxAttempts) {
+        window.clearInterval(interval)
+        setPhase("error")
+        onBusyChange?.(false)
+        setHint(
+          "Capture expirée — rouvrez le pont ou cliquez le favori « Import AE » sur la page produit."
+        )
+        return
+      }
+
+      void fetch(
+        `/api/dropforge/ae-capture/${encodeURIComponent(sess.relayKey)}/poll?consume=1`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: sess.sessionId,
+            captureToken: sess.captureToken,
+          }),
+        }
+      )
+        .then((r) => r.json())
+        .then((data: { ready?: boolean; preview?: Preview }) => {
+          if (!data.ready || !data.preview) return
+          window.clearInterval(interval)
+          setPhase("idle")
+          onBusyChange?.(false)
+          setHint(null)
+          onPreview(data.preview)
+        })
+        .catch(() => {})
+    }, 450)
+
+    return () => window.clearInterval(interval)
+  }, [phase, onBusyChange, onPreview])
 
   useEffect(() => {
     if (!autoStart || startedAuto.current) return

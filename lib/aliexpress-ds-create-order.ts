@@ -12,10 +12,11 @@ import { getValidAccessToken } from "@/lib/aliexpress-oauth"
 import {
   AliExpressApiError,
   AliExpressClient,
-  encodeAliExpressQuery,
-  getAliExpressTimestampMs,
-  signAliExpressTopHmacSha256,
 } from "@/lib/aliexpress-open-api"
+import {
+  ALIEXPRESS_DS_SYNC_HOSTS,
+  callAliExpressSyncMethod,
+} from "@/lib/aliexpress-ds-sync"
 import { readAliExpressConfig } from "@/lib/aliexpress-config"
 
 export type CreateAliExpressDsOrderInput = {
@@ -48,13 +49,6 @@ const DS_ORDER_METHODS = [
   "aliexpress.ds.order.create",
   "aliexpress.trade.buy.placeorder",
 ] as const
-
-const SYNC_HOSTS = [
-  "https://api-sg.aliexpress.com/sync",
-  "https://api.aliexpress.com/sync",
-] as const
-
-const REQUEST_TIMEOUT_MS = 20_000
 
 function asRecord(v: unknown): Record<string, unknown> | null {
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null
@@ -200,92 +194,6 @@ function buildPlaceOrderBizParams(args: {
   }
 }
 
-function parseGatewayError(json: unknown): string | null {
-  const root = asRecord(json)
-  if (!root) return null
-  if (root.type === "ISV" || root.type === "ISP") {
-    return (
-      pickString(root, ["message", "msg", "sub_msg", "error"]) ||
-      "AliExpress ISV error"
-    )
-  }
-  const err = asRecord(root.error_response)
-  if (err) {
-    return (
-      pickString(err, ["sub_msg", "msg", "message", "error"]) ||
-      "AliExpress API error"
-    )
-  }
-  return null
-}
-
-/**
- * TOP/OP sync call matching ae_sdk: sha256 HMAC, epoch-ms timestamp, query on URL, POST.
- * Avoids URLSearchParams (`+` for spaces) — uses encodeAliExpressQuery.
- */
-async function callAliExpressSyncMethod(args: {
-  method: string
-  bizParams: Record<string, string>
-  appKey: string
-  appSecret: string
-  accessToken: string
-  host: string
-}): Promise<unknown> {
-  const params: Record<string, string> = {
-    method: args.method,
-    app_key: args.appKey,
-    session: args.accessToken,
-    access_token: args.accessToken,
-    sign_method: "sha256",
-    timestamp: getAliExpressTimestampMs(),
-    format: "json",
-    v: "2.0",
-    simplify: "true",
-    ...args.bizParams,
-  }
-  params.sign = signAliExpressTopHmacSha256(params, args.appSecret)
-
-  const url = `${args.host}?${encodeAliExpressQuery(params)}`
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
-
-  let res: Response
-  try {
-    res = await fetch(url, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-      },
-      body: "",
-      signal: controller.signal,
-      cache: "no-store",
-    })
-  } catch (e) {
-    if (e instanceof Error && e.name === "AbortError") {
-      throw new AliExpressApiError("AliExpress API request timed out")
-    }
-    throw e
-  } finally {
-    clearTimeout(timeout)
-  }
-
-  const text = await res.text()
-  let json: unknown
-  try {
-    json = text ? JSON.parse(text) : null
-  } catch {
-    throw new AliExpressApiError(`AliExpress non-JSON (HTTP ${res.status})`)
-  }
-
-  const gatewayError = parseGatewayError(json)
-  if (gatewayError) {
-    throw new AliExpressApiError(gatewayError)
-  }
-
-  return json
-}
-
 /**
  * Place AliExpress DS order with official place-order DTO + method/host fallbacks.
  */
@@ -361,7 +269,7 @@ export async function createAliExpressDsOrder(
 
   const maxAttempts = 2
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    for (const host of SYNC_HOSTS) {
+    for (const host of ALIEXPRESS_DS_SYNC_HOSTS) {
       const hostLabel = host.includes("api-sg") ? "sg" : "global"
       for (const method of DS_ORDER_METHODS) {
         const label = `${method}@${hostLabel}#${attempt}`

@@ -301,7 +301,14 @@ export class AliExpressClient {
   async getProduct(productId: string): Promise<unknown> {
     const id = String(productId).trim()
     if (!id) throw new AliExpressApiError("product_id is required")
-    return this.request("aliexpress.ds.product.get", { product_id: id })
+    const { getAliExpressDsProduct } = await import("@/lib/aliexpress-ds-sync")
+    const { payload } = await getAliExpressDsProduct({
+      productId: id,
+      appKey: this.appKey,
+      appSecret: this.appSecret,
+      accessToken: this.accessToken,
+    })
+    return payload
   }
 }
 
