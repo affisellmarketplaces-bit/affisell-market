@@ -10,6 +10,8 @@ import {
   type DropForgePreviewGap,
   type DropForgeRefineQuickAction,
 } from "@/lib/dropforge-refine-audit"
+import { dropforgeHttpErrorMessage } from "@/lib/dropforge-fetch-error"
+import { readJsonResponse } from "@/lib/read-json-response"
 import { cn } from "@/lib/utils"
 
 type RefineMessage = {
@@ -76,6 +78,7 @@ export function DropForgeRefinePanel({ preview, onPreviewUpdate, locale = "fr" }
         const res = await fetch("/api/dropforge/refine", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             preview,
             instruction: trimmed,
@@ -83,17 +86,17 @@ export function DropForgeRefinePanel({ preview, onPreviewUpdate, locale = "fr" }
             locale,
           }),
         })
-        const data = (await res.json()) as {
+        const data = await readJsonResponse<{
           error?: string
           preview?: Record<string, unknown>
           message?: string
           applied?: string[]
           gaps?: DropForgePreviewGap[]
           warnings?: string[]
-        }
+        }>(res)
 
         if (!res.ok || !data.preview) {
-          throw new Error(data.error ?? "Co-Pilot indisponible")
+          throw new Error(dropforgeHttpErrorMessage(res, data, locale))
         }
 
         onPreviewUpdate(data.preview, { applied: data.applied })

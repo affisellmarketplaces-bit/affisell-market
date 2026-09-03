@@ -19,6 +19,8 @@ import { toast } from "sonner"
 import { DropForgeAeBrowserBridge } from "@/components/import/dropforge-ae-browser-bridge"
 import { DropForgeRefinePanel } from "@/components/import/dropforge-refine-panel"
 import { buttonVariants } from "@/components/ui/button"
+import { dropforgeHttpErrorMessage } from "@/lib/dropforge-fetch-error"
+import { readJsonResponse } from "@/lib/read-json-response"
 import { detectMarketplaceFromUrl } from "@/lib/import-marketplace"
 import { validateDropForgeProductUrl } from "@/lib/dropforge-product-url"
 import {
@@ -200,20 +202,21 @@ export function DropForgeImportClient() {
       const res = await fetch("/api/dropforge/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ url: validated.url }),
       })
-      const data = (await res.json()) as {
+      const data = await readJsonResponse<{
         error?: string
         preview?: Preview
         useBrowserCapture?: boolean
         oauthReconnectUrl?: string | null
-      }
+      }>(res)
       if (!res.ok || !data.preview) {
         setOauthReconnectUrl(data.oauthReconnectUrl ?? null)
         if (data.useBrowserCapture && validated.url.includes("aliexpress")) {
           setShowBrowserBridge(true)
         }
-        throw new Error(data.error ?? t("errPreview"))
+        throw new Error(dropforgeHttpErrorMessage(res, data, locale))
       }
       setOauthReconnectUrl(null)
       setPreview(data.preview)
@@ -234,7 +237,7 @@ export function DropForgeImportClient() {
     } finally {
       setLoading(false)
     }
-  }, [t, url])
+  }, [t, url, locale])
 
   const applyBridgePreview = useCallback(
     (raw: Record<string, unknown>) => {
@@ -308,13 +311,13 @@ export function DropForgeImportClient() {
             snapshot: preview,
           }),
         })
-        const data = (await res.json()) as {
+        const data = await readJsonResponse<{
           error?: string
           code?: string
           catalogHref?: string
           editHref?: string
           isPublished?: boolean
-        }
+        }>(res)
         if (res.status === 401) {
           const intent: DropForgeCommitIntent = publishLive ? "live" : "draft"
           saveDropForgePendingCommit({
@@ -330,7 +333,7 @@ export function DropForgeImportClient() {
           )
           return
         }
-        if (!res.ok) throw new Error(data.error ?? t("errCommit"))
+        if (!res.ok) throw new Error(dropforgeHttpErrorMessage(res, data, locale))
         setDone({
           catalogHref: data.catalogHref ?? "/dashboard/supplier/products",
           editHref: data.editHref ?? "/dashboard/supplier/products",
@@ -350,7 +353,7 @@ export function DropForgeImportClient() {
         setGuestRedirecting(null)
       }
     },
-    [isSupplier, preview, router, wholesalePrice, status, t]
+    [isSupplier, preview, router, wholesalePrice, status, t, locale]
   )
 
   useEffect(() => {
