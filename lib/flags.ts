@@ -39,4 +39,6 @@ export function isFlagEnabledInStaging(flagName: AffisellFlagName): boolean {
 export const FLAGS = {
   INSTANT_NAV_CACHE: process.env.NEXT_PUBLIC_INSTANT_NAV_CACHE !== "0", // default ON — set 0 to rollback
   SPECULATIVE_PREFETCH: process.env.NEXT_PUBLIC_SPEC_PREFETCH === "1", // default OFF — safe
+  /** Off-Stripe affiliate payout methods (bank / PayPal / mobile money). */
+  AFFILIATE_MULTI_PAYOUT: process.env.NEXT_PUBLIC_AFFILIATE_MULTI_PAYOUT !== "0",
 } as const
