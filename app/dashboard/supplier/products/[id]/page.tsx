@@ -1,7 +1,7 @@
 import Image from "next/image"
 import { requireSupplierSession } from "@/lib/dashboard-session"
 import Link from "next/link"
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 
 import { GenerateVideoButton } from "@/components/GenerateVideoButton"
 import { BoostButton } from "@/components/supplier/BoostButton"

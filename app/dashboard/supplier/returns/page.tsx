@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { requireSupplierSession } from "@/lib/dashboard-session"
-import { redirect } from "next/navigation"
 import { Undo2 } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
@@ -11,7 +10,7 @@ import { cn } from "@/lib/utils"
 export const dynamic = "force-dynamic"
 
 export default async function SupplierReturnsPage() {
-  const session = await requireSupplierSession("/dashboard/supplier/returns")
+  await requireSupplierSession("/dashboard/supplier/returns")
 
 
   return (

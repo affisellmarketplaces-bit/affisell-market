@@ -1,4 +1,3 @@
-import { render } from "@react-email/render"
 
 import { AffiliateReferralBonusEmail } from "@/emails/affiliate-referral-bonus"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"

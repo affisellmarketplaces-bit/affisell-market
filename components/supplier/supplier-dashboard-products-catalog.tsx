@@ -10,7 +10,6 @@ import {
   FileEdit,
   Package,
   Percent,
-  Sparkles,
   Store,
   Upload,
   Users,

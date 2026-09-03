@@ -6,7 +6,7 @@ import {
   toggleGuestWishlist,
 } from "@/lib/guest-wishlist-server"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
-import { countProductLikes, countProductLikesSingle } from "@/lib/product-like-count"
+import { countProductLikesSingle } from "@/lib/product-like-count"
 import { prisma } from "@/lib/prisma"
 import { resolveWishlistCardStatuses } from "@/lib/wishlist-card-status.server"
 

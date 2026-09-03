@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation"
 
 import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
 import { SupplierInvitationStudio } from "@/components/affiliate/supplier-invitation-studio"

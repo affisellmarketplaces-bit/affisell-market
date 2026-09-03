@@ -5,7 +5,6 @@ import { Download } from "lucide-react"
 import {
   RGPD_REGISTRE_COLUMNS,
   RGPD_REGISTRE_FILENAME,
-  RGPD_REGISTRE_ROWS,
   buildRgpdRegistreCsv,
   type RgpdRegistreRow,
 } from "@/lib/admin/rgpd-registre-data"

@@ -1,4 +1,4 @@
-import type { Prisma, TransferRole } from "@prisma/client"
+import type { Prisma } from "@prisma/client"
 
 import {
   isLedgerPayoutRealized,

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
-import { absolutizeCdnImageUrl, collectAbsolutizedImageUrls } from "@/lib/cdn-image-url"
+import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
 
 describe("absolutizeCdnImageUrl", () => {
   it("turns protocol-relative AE CDN into https", () => {

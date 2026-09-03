@@ -106,8 +106,10 @@ function toPreviewData(doc: LegalDocRow & { markdown?: string; html?: string }):
   }
 }
 
+type LegalDocDefaults = Record<string, Record<string, string | number>>
+
 export function LegalDocumentsPanel() {
-  const [defaults, setDefaults] = useState<Record<string, Record<string, string | number>>>({})
+  const [, setDefaults] = useState<LegalDocDefaults>({})
   const [forms, setForms] = useState<Record<string, Record<string, string>>>({})
   const [documents, setDocuments] = useState<LegalDocRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -127,7 +129,7 @@ export function LegalDocumentsPanel() {
       const res = await fetch("/api/legal/avocat/documents", { cache: "no-store", credentials: "include" })
       const data = (await res.json()) as {
         ok?: boolean
-        defaults?: typeof defaults
+        defaults?: LegalDocDefaults
         documents?: LegalDocRow[]
         error?: string
       }

@@ -2,7 +2,6 @@ import Link from "next/link"
 
 import type { AdminOrderDetail } from "@/lib/admin/orders/types"
 import { Badge } from "@/components/ui/badge"
-import { buttonVariants } from "@/components/ui/button"
 
 function money(cents: number) {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(cents / 100)

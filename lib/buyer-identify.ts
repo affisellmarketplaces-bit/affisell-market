@@ -1,6 +1,5 @@
 import {
   buyerEmailAliasesFromPhone,
-  buyerEmailFromPhone,
   formatBuyerPhoneDisplay,
   normalizeBuyerPhone,
 } from "@/lib/buyer-phone"

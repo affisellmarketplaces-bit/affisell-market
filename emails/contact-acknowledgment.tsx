@@ -23,7 +23,7 @@ export interface ContactAcknowledgmentEmailProps {
 export const ContactAcknowledgmentEmail = ({
   faqUrl,
   ordersUrl,
-  supportEmail,
+  supportEmail: _supportEmail,
   copy,
 }: ContactAcknowledgmentEmailProps) => {
   return (

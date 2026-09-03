@@ -28,7 +28,7 @@ export function PremiumMarketplaceCard({
   imageUrl,
   name,
   sellerDisplay,
-  priceDisplay,
+  priceDisplay: _priceDisplay,
   priceValue,
   compareAt,
   showPremiumBadge = false,

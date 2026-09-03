@@ -9,7 +9,6 @@ import {
   Globe2,
   Lock,
   ShieldCheck,
-  Sparkles,
   Zap,
 } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"

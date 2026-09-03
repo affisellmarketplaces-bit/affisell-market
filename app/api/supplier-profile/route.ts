@@ -11,7 +11,6 @@ import {
   getSupplierKindDisplaySlug,
   parseSupplierKind,
   SUPPLIER_KIND_SET_VALUES,
-  type SupplierKind,
   type SupplierKindSetValue,
 } from "@/lib/supplier-kind"
 

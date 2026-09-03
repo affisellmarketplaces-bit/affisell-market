@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(_req: Request) {
   const gate = await requireAdminSession()
   if (!gate.ok) {
     return Response.json({ error: gate.error }, { status: gate.status })

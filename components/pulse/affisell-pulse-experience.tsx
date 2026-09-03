@@ -31,7 +31,7 @@ import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { useBuyNowWithIdentity } from "@/hooks/use-buy-now-with-identity"
 import { useSafeAppRouter } from "@/hooks/use-safe-app-router"
-import { formatStoreCount, formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { formatStoreCount } from "@/lib/market-config"
 import { affisellBrand } from "@/lib/affisell-brand"
 import { notifyBuyerPersonalizationRefresh } from "@/lib/buyer-personalization-refresh.client"
 import { discoverSwipeHref } from "@/lib/discover-swipe-url"
@@ -430,7 +430,7 @@ export function AffisellPulseExperience({ items, viewerLoggedIn = false }: Props
   const t = useTranslations("pulse")
   const tScroll = useTranslations("pulse.scrollCoach")
   const pathname = usePathname()
-  const { push, replace, mounted } = useSafeAppRouter()
+  const { replace, mounted } = useSafeAppRouter()
   const searchParams = useSearchParams()
   const forceCoach = searchParams.get("coach") === "1"
   const suppressCoach =

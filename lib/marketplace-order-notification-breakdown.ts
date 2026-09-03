@@ -2,7 +2,6 @@ import {
   deriveAffiliateCommissionCentsFromOrder,
   deriveAffiliateListingMarginGrossCents,
   deriveAffiliateMarginRetainedCentsFromOrder,
-  deriveAffiliateNetTransferCentsFromOrder,
   estimateAffiliatePlatformFeeCents,
 } from "@/lib/marketplace-order-partner-amounts"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"

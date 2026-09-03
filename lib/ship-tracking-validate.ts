@@ -5,7 +5,6 @@ import {
 } from "@/lib/ship-tracking-policy.shared"
 import {
   validateShipTrackingFormat,
-  type ShipTrackingFormatResult,
 } from "@/lib/ship-tracking-validate.shared"
 
 export type { ShipTrackingFormatResult } from "@/lib/ship-tracking-validate.shared"

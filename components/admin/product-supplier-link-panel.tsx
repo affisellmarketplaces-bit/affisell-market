@@ -16,7 +16,6 @@ import { Label } from "@/components/ui/label"
 import type { AdminProductSupplierLinkRow } from "@/lib/admin/products/load-product-supplier-link"
 import { applyImportedAeCatalogToVariantRows } from "@/lib/fulfillment/apply-ae-catalog-to-rows"
 import {
-  applyAeVariantSuggestions,
   type AeVariantMappingRowInput,
 } from "@/lib/fulfillment/apply-ae-variant-suggestions"
 import { suggestVariantMappings } from "@/lib/fulfillment/resolve-supplier-sku"

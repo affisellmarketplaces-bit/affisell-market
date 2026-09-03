@@ -19,7 +19,7 @@ import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { resolveProductDiscount } from "@/lib/product-discount-display"
 import { Badge } from "@/components/ui/badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
-import { formatStoreCurrency, formatStoreCurrencyFromCents } from "@/lib/market-config"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { calcMarginCents } from "@/lib/product-card-margin"
 import { cn } from "@/lib/utils"
 

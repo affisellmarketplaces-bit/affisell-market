@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { requireMerchantSession } from "@/lib/dashboard-session"
 import { notFound } from "next/navigation"
 

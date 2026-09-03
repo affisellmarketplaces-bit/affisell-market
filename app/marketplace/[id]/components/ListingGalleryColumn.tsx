@@ -10,8 +10,6 @@ import { ProductListingColorPicker } from "@/components/product/product-listing-
 import { ListingLogisticsStrip } from "@/components/product/listing-logistics-strip"
 import { TryOnTrigger } from "@/components/try-on/TryOnEntry"
 import { findVariantRowForShopperSelection } from "@/lib/marketplace-variant-dimensions"
-import type { AffiliateVariantPricingMap } from "@/lib/affiliate-variant-pricing"
-import type { ProductVariantsJson } from "@/lib/product-variants"
 import type { CustomColumn } from "@/types/product"
 import { formatStoreCount } from "@/lib/market-config"
 import type { ListingDetailController } from "../use-listing-detail-controller"

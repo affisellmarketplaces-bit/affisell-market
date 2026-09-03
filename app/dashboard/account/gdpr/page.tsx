@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { requireMerchantSession } from "@/lib/dashboard-session"
-import { redirect } from "next/navigation"
 
 import { BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { GdprAccountPanel } from "@/components/legal/gdpr-account-panel"
@@ -10,7 +9,7 @@ export const metadata = {
 }
 
 export default async function GdprAccountPage() {
-  const session = await requireMerchantSession("/dashboard/account/gdpr")
+  await requireMerchantSession("/dashboard/account/gdpr")
 
 
   return (

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { resolveSeatLayoutConfig } from "@/lib/booking/seat-layout"
-import { listPublicBookingSlots } from "@/lib/booking/slot-availability"
 import { isBookableListingKind } from "@/lib/booking/types"
 import { bookingVerticalPreset, isSingleGuestBookingKind } from "@/lib/booking/vertical-presets"
 import { prisma } from "@/lib/prisma"

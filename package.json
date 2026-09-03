@@ -302,6 +302,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-unused-imports": "^4.4.1",
     "react-email": "^5.2.11",
     "tailwindcss": "^4",
     "tsx": "^4.22.3",

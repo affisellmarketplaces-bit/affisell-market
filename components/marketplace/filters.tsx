@@ -94,9 +94,6 @@ export function MarketplaceFilters({
   const pathname = usePathname() ?? ""
   const catalogBase = catalogBaseFromPath(pathname, catalogBasePath)
   const searchParams = useSearchParams()
-  const deptParam = searchParams.get("dept")
-  const scopeId = subcategoryId ?? categoryId ?? deptParam
-
   const qs = facetParams(categoryId, subcategoryId)
   for (const [key, value] of searchParams.entries()) {
     if (key === "category" || key === "categoryId" || key === "subcategory" || key === "subcategoryId") {

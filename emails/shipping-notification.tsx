@@ -11,7 +11,6 @@ import {
   Text,
   Section,
   Hr,
-  Link,
   Row,
 } from "@react-email/components"
 

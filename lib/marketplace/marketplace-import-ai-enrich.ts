@@ -4,10 +4,6 @@ import type { SupplierScrapedProduct } from "@/lib/supplier-import-url-handler"
 const SHOE_KEYWORD_RE =
   /\b(shoe|shoes|sneaker|sneakers|boot|boots|botte|bottes|basket|baskets|chaussure|chaussures|pointure|sandale|mocassin|escarpin|running\s+shoe)\b/i
 
-function asRec(v: unknown): Record<string, unknown> {
-  return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {}
-}
-
 function parseJsonObject(raw: string): Record<string, unknown> | null {
   const trimmed = raw.trim()
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1]?.trim()

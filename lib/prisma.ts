@@ -115,8 +115,8 @@ function shouldResetPrismaEngine(error: unknown): boolean {
 }
 
 async function executeWithReconnect({
-  model,
-  operation,
+  model: _model,
+  operation: _operation,
   args,
   query,
 }: QueryExtensionArgs): Promise<unknown> {

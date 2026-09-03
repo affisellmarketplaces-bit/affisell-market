@@ -67,7 +67,10 @@ export async function GET(req: Request) {
   try {
     accessTokenEncrypted = encryptShopifyAccessToken(tokenOut.accessToken)
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Encryption failed"
+    console.warn("[shopify-callback]", {
+      result: "encryption_failed",
+      message: e instanceof Error ? e.message : "Encryption failed",
+    })
     return NextResponse.redirect(
       `${appBaseUrl(req)}/dashboard/supplier/integrations?error=encryption`,
       302

@@ -1,5 +1,4 @@
 import type { EnvBag } from "@/lib/env-bag"
-import { INSTANTSCAN_NAME, INSTANTSCAN_PRODUCT_NAME } from "@/lib/instantscan/brand"
 
 export { INSTANTSCAN_NAME, INSTANTSCAN_PRODUCT_NAME, getInstantScanDisplayName } from "@/lib/instantscan/brand"
 

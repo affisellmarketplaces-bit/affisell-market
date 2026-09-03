@@ -2,9 +2,6 @@ import "server-only"
 
 import {
   AFFILIATE_BOUTIQUE_OWNER_ROLE,
-  affiliateBoutiquePublicPath,
-  isAffiliateBoutiqueApiRole,
-  supplierCatalogPublicPath,
 } from "@/lib/boutique/reseller-boutique-access-shared"
 import { prisma } from "@/lib/prisma"
 

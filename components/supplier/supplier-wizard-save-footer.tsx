@@ -3,7 +3,6 @@
 import type { ReactNode } from "react"
 import { Check, Cloud, Loader2, RefreshCw } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 export type WizardAutosaveStatus = "idle" | "dirty" | "saving" | "saved" | "error"

@@ -2,18 +2,13 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useDebounce } from "use-debounce"
-import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertCircle,
-  ArrowLeft,
-  CheckCircle2,
   ChevronRight,
-  CircleHelp,
   Image as ImageIcon,
   Loader2,
-  LogOut,
   Plus,
   Recycle,
   Trash2,
@@ -22,14 +17,11 @@ import {
   ScanLine,
   Globe2,
   Layers,
-  Store,
   Tag,
   Truck,
-  UserRound,
   Wallet,
   Zap,
 } from "lucide-react"
-import { signOut } from "next-auth/react"
 import { useTranslations, useLocale } from "next-intl"
 import { toast } from "sonner"
 
@@ -174,7 +166,6 @@ import {
 import {
   applySimpleColorsToVariantRowsIfChanged,
   extractOrderedColorNames,
-  syncVariantRowsFromSimpleColors,
 } from "@/lib/supplier-variant-row-sync"
 import {
   createCoalescingSerialAsyncQueue,
@@ -194,7 +185,6 @@ import {
   type SkuCustomColumnDef,
   type VariantRowValidationIssue,
 } from "@/lib/supplier-sku-builder"
-import { formatAffiliateCatalogPreviewLine } from "@/lib/supplier-sku-affiliate-earning"
 import { parseSkuHiddenColumns, type SkuOptionalColumnKey } from "@/lib/supplier-sku-columns"
 import {
   legacySkuCustomColumnsToDefinitions,
@@ -202,7 +192,6 @@ import {
   parseCustomColumnsFromDb,
 } from "@/lib/product-custom-columns"
 import {
-  validateSimpleColorName,
   validateSimpleColorRows,
   type SimpleColorValidationIssue,
 } from "@/lib/supplier-simple-color-validation"
@@ -547,7 +536,7 @@ export function SupplierAddProductForm({
     status?: string | null
     draftCount?: number
   } | null>(null)
-  const [attrsLoading, setAttrsLoading] = useState(false)
+  const [, setAttrsLoading] = useState(false)
   const mergedCategoryAttrs = useMemo(() => mergeCoreCategoryAttrs(categoryAttrs), [categoryAttrs])
 
   const commissionMax = affiliateCommissionMaxPct(listingKind)
@@ -627,24 +616,6 @@ export function SupplierAddProductForm({
     if (!Number.isFinite(p) || !Number.isFinite(c) || c <= p) return 0
     return Math.round(((c - p) / c) * 100)
   }, [catalogPriceEur, price, compareAt])
-
-  const affiliateCatalogPreviewLine = useMemo(() => {
-    const priceN = catalogPriceEur ?? Number(price)
-    if (!Number.isFinite(priceN) || priceN <= 0) return null
-    const firstSku = advancedSkuRows.find((r) => r.color.trim() && r.supplierPrice > 0)
-    const comm = firstSku?.commissionRate ?? Math.round(Number(commission) || 0)
-    const dd = deliveryDays.trim() ? Number(deliveryDays) : null
-    return formatAffiliateCatalogPreviewLine({
-      supplierPriceEur: priceN,
-      commissionRate: comm,
-      compareAtEur: compareAt.trim() ? Number(compareAt) : null,
-      weightGrams: firstSku?.weightGrams ?? null,
-      processingDays: firstSku?.processingDays ?? (dd != null && Number.isFinite(dd) ? dd : null),
-      warehouseCode: firstSku?.warehouseCode ?? null,
-      shipsFrom: shipsFrom.trim() || undefined,
-      deliveryDays: dd,
-    })
-  }, [catalogPriceEur, price, commission, compareAt, advancedSkuRows, deliveryDays, shipsFrom])
 
   const priceError = useMemo(() => {
     if (variantSkuPricingActive) return null
@@ -2510,7 +2481,7 @@ export function SupplierAddProductForm({
   }, [])
 
   const handleVariantComposerApply = useCallback(
-    (patch: VariantComposerFormPatch, meta: VariantComposerApplyMeta) => {
+    (patch: VariantComposerFormPatch, _meta: VariantComposerApplyMeta) => {
       if (Object.keys(patch.specValuesPatch).length > 0) {
         setSpecValues((prev) => ({ ...prev, ...patch.specValuesPatch }))
       }

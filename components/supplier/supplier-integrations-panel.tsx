@@ -203,19 +203,6 @@ export function SupplierIntegrationsPanel({ initialIntegrations }: Props) {
     await load()
   }
 
-  function formatSyncSummary(summary: unknown): string | null {
-    if (!summary || typeof summary !== "object" || Array.isArray(summary)) return null
-    const s = summary as Record<string, unknown>
-    const fetched = Number(s.fetched)
-    const created = Number(s.created)
-    const updated = Number(s.updated)
-    if (!Number.isFinite(fetched)) return null
-    const parts = [`${fetched} fetched`]
-    if (Number.isFinite(created) && created > 0) parts.push(`${created} new`)
-    if (Number.isFinite(updated) && updated > 0) parts.push(`${updated} updated`)
-    return parts.join(" · ")
-  }
-
   async function removeIntegration(id: string) {
     if (!confirm("Remove this integration?")) return
     await fetch(`/api/supplier/integrations/${id}`, { method: "DELETE" })

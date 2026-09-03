@@ -8,8 +8,6 @@ import {
   LEGAL_COCKPIT_CARD,
   LEGAL_COCKPIT_TEXT_MUTED,
   LEGAL_COCKPIT_TEXT_PRIMARY,
-  LEGAL_COCKPIT_TEXT_SECONDARY,
-  legalOutlineButtonClass,
 } from "@/components/admin/legal-cockpit-ui"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"

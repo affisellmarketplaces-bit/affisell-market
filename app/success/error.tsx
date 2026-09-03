@@ -6,7 +6,7 @@ import { PaymentSuccessScreen } from "@/components/checkout/payment-success-scre
 
 export default function SuccessError({
   error,
-  reset,
+  reset: _reset,
 }: {
   error: Error & { digest?: string }
   reset: () => void

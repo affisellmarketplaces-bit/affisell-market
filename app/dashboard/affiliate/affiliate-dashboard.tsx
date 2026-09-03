@@ -53,7 +53,6 @@ import {
   hasAffiliateCatalogListing,
   resolveCatalogListingState,
 } from "@/lib/affiliate-catalog-listing-state"
-import { publishBlockedToast } from "@/lib/affiliate-catalog-quick-add-client"
 import {
   buildAffiliateCatalogCardEconomicsFromProduct,
   estimateTotalPartnerGainCents,
@@ -432,33 +431,6 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
     [reorderPersist]
   )
 
-  async function toggleList(listingId: string, cur: boolean) {
-    const res = await fetch(`/api/affiliate/listings/${listingId}`, {
-      method: "PATCH",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isListed: !cur }),
-    })
-    const data = (await res.json().catch(() => ({}))) as { error?: string; reason?: string }
-    if (!res.ok) {
-      if (data.error === "merchant_verification_pending") {
-        setToast(publishBlockedToast(data.reason as "no_profile" | "pending" | "rejected" | "needs_info" | null, "en"))
-      } else {
-        setToast(data.error ?? "Could not update listing visibility")
-      }
-      return
-    }
-    setListings((prev) =>
-      prev
-        .map((l) =>
-          l.id === listingId ? { ...l, isListed: !cur, auctionEligible: !cur ? false : l.auctionEligible } : l
-        )
-        .sort(sortAffiliateListingByPosition)
-    )
-    if (!cur) setToast("Live on your storefront")
-    else setToast("Hidden from storefront (still in your account)")
-  }
-
   async function toggleAuction(listingId: string, cur: boolean) {
     await fetch(`/api/affiliate/listings/${listingId}`, {
       method: "PATCH",
@@ -649,7 +621,6 @@ export function AffiliateDashboard({ storeId, initialCatalog, initialCatalogErro
     Boolean(l.product)
   )
   const storefrontListings = listingsWithProduct.filter((l) => l.isListed)
-  const draftListings = listingsWithProduct.filter((l) => !l.isListed)
   const listedLiveCount = storefrontListings.length
   const ids = listingsWithProduct.map((l) => l.id)
 

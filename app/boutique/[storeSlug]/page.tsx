@@ -11,18 +11,15 @@ import {
   loadResellerBoutiqueStoreContext,
   loadResellerStorefrontList,
 } from "@/lib/boutique/load-reseller-storefront.server"
-import { serializeResellerBoutiqueTheme } from "@/lib/boutique/reseller-boutique-theme-shared"
 import { formatResellerStoreLabel } from "@/lib/boutique/reseller-storefront-shared"
 import {
   DEFAULT_BOUTIQUE_TITLE_TYPOGRAPHY,
-  parseBoutiqueTitleTypography,
 } from "@/lib/boutique/boutique-title-typography-shared"
 import {
   DEFAULT_STOREFRONT_THEME_ID,
   parseStorefrontThemeId,
 } from "@/lib/boutique/storefront-themes"
 import { resolveBoutiqueVisitorVisualTheme } from "@/lib/boutique/boutique-affisell-chrome-shared"
-import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 import { loadAffiliateStorefrontTrustCached } from "@/lib/shop-storefront-cache"
 
 import { ResellerBoutiquePageShell } from "@/components/boutique/reseller-boutique-page-shell"
@@ -37,7 +34,6 @@ type PageProps = {
   searchParams: Promise<{ productId?: string; theme?: string; vibe?: string }>
 }
 
-const defaultTheme = serializeResellerBoutiqueTheme(parseStorefrontTheme(null))
 
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const [{ storeSlug }, sp] = await Promise.all([params, searchParams])

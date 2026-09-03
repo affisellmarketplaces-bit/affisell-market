@@ -4,7 +4,6 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import {
   affiliateBoutiquePublicPath,
-  isAffiliateBoutiqueApiRole,
   supplierCatalogPublicPath,
 } from "@/lib/boutique/reseller-boutique-access.server"
 import { generateStoreBrandTheme } from "@/lib/storefront-brand-ai-theme.server"

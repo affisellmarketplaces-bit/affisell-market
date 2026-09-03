@@ -38,7 +38,6 @@ import {
 import { stripeCheckoutMinimumNotMetResponse } from "@/lib/stripe-minimum.server"
 import { prisma } from "@/lib/prisma"
 import {
-  marketplaceSellingPriceCentsForOption,
   marketplaceWholesaleCentsForOption,
   variantsFromDb,
 } from "@/lib/product-variants"

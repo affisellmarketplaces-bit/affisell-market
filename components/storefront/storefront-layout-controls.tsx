@@ -31,7 +31,7 @@ type Props = {
   }
 }
 
-function OptionChip<T extends string>({
+function OptionChip<_T extends string>({
   label,
   selected,
   onClick,

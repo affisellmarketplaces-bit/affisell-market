@@ -6,7 +6,6 @@ import {
   type Prisma,
 } from "@prisma/client"
 
-import type { ShippingAddressPayload } from "@/lib/auto-order/types"
 import { dispatchMerchantOrderAlerts } from "@/lib/emails/dispatch-merchant-order-alerts"
 import { notifyMarketplaceOrderShipped } from "@/lib/emails/notify-order-shipped"
 import { parseShipping } from "@/lib/fulfillment/shipping-address"

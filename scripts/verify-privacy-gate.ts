@@ -46,7 +46,7 @@ ORDER BY la."acceptedAt" DESC
 `
 }
 
-async function findMissingSlug(userId: string, role: string): Promise<string | null> {
+async function findMissingSlug(userId: string, _role: string): Promise<string | null> {
   const slugs = ["customer", "privacy"]
   for (const slug of slugs) {
     const versionId = await getCurrentVersionId(slug)

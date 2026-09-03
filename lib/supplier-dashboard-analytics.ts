@@ -109,7 +109,7 @@ export async function getSupplierAnalytics(
     refundCount,
     totalOrderCount,
     affiliateGroups,
-    productGroups,
+    _productGroups,
     pendingPayoutOrders,
     chargebackAgg,
     publishedProducts,

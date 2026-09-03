@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import nextDynamic from "next/dynamic"
 import { RotateCcw, ShieldCheck } from "lucide-react"
 import { ListingLogisticsStrip } from "@/components/product/listing-logistics-strip"

@@ -1,6 +1,6 @@
 import Link from "next/link"
 
-import { BentoCard, BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
+import { BentoCard } from "@/components/affisell/bento-ui"
 import { CopyHashButton } from "@/components/legal/copy-hash-button"
 import {
   PUBLIC_LEGAL_READ_PATHS,

@@ -37,10 +37,6 @@ const pass = (label, detail) => checks.push({ ok: true, label, detail })
 const fail = (label, detail) => checks.push({ ok: false, label, detail })
 const warn = (label, detail) => checks.push({ ok: null, label, detail })
 
-function present(key) {
-  return Boolean(process.env[key]?.trim())
-}
-
 // --- Redis (distributed rate limits on Vercel) ---
 const redis = process.env.REDIS_URL?.trim() ?? ""
 if (redis && /^rediss?:\/\//i.test(redis)) {

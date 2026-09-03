@@ -4,7 +4,6 @@ import {
   findStagingDatabaseUrlFromEnv,
   getDatabaseUrl,
   normalizePostgresDatabaseUrl,
-  resolveDatabaseUrlOptional,
   resolveStagingDatabaseUrl,
 } from "@/lib/env"
 

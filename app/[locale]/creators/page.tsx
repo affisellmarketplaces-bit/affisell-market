@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 import { Layers, RefreshCw, Wallet } from "lucide-react"
 
-import { FeatureCard } from "@/components/FeatureCard"
 import { GlowCtaLink } from "@/components/GlowCtaLink"
 import { PersonaLandingHero } from "@/components/marketing/PersonaLandingHero"
 import { TestimonialCarousel } from "@/components/TestimonialCarousel"

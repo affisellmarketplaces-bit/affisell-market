@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { isAliExpressImportInput, parseAliExpressProductId } from "@/lib/aliexpress-product-id"
+import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
 
 describe("parseAliExpressProductId", () => {
   it("parses bare id", () => {

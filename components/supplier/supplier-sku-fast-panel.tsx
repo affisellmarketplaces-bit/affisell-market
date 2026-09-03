@@ -79,7 +79,6 @@ export function SupplierSkuFastPanel({
   const showPhoto = isSkuColumnVisible(hiddenColumns, "photo")
   const showSize = isSkuColumnVisible(hiddenColumns, "size")
   const showSupplierPrice = isSkuColumnVisible(hiddenColumns, "supplierPrice")
-  const showSku = isSkuColumnVisible(hiddenColumns, "sku")
   const showCompareAt = isSkuColumnVisible(hiddenColumns, "compareAt")
   const showStock = isSkuColumnVisible(hiddenColumns, "stock")
   const showCommission = isSkuColumnVisible(hiddenColumns, "commission")

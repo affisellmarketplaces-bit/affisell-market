@@ -8,7 +8,6 @@ import { config } from "dotenv"
 import {
   formatEnvCheckLine,
   formatFeatureFlagsLine,
-  getDbEnvSnapshot,
   resolveDatabaseUrl,
   runEnvSecurityChecks,
 } from "./env-shared.mjs"

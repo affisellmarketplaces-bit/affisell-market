@@ -1,6 +1,5 @@
 import { ensureMerchantStore } from "@/lib/ensure-store"
 import {
-  AFFISELL_AUTOBUY_IMPORT_SOURCE,
   AFFISELL_AUTOBUY_SUPPLIER_EMAIL,
   AFFISELL_AUTOBUY_SUPPLIER_NAME,
 } from "@/lib/auto-buy-platform-supplier-shared"

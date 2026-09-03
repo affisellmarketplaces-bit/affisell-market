@@ -1,5 +1,4 @@
 import type { TransferRole } from "@prisma/client"
-import type Stripe from "stripe"
 
 import {
   incrementTransferAttemptReversedCents,

@@ -33,9 +33,9 @@ export interface OrderConfirmationEmailProps {
 export const OrderConfirmationEmail = ({
   productName,
   productImageUrl,
-  quantity,
-  total,
-  currency,
+  quantity: _quantity,
+  total: _total,
+  currency: _currency,
   orderUrl,
   trackingUrl,
   copy,

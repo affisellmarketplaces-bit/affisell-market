@@ -5,7 +5,6 @@ import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/compo
 import { buildNormativeRichTags, NormativeExternalLink } from "@/components/legal/normative-rich-tags"
 import { readCompanyLegal } from "@/lib/legal/company-env"
 import {
-  EU_CONSUMER_ODR_URL,
   formatVatIntracommunautaire,
   VERCEL_HOST_LEGAL,
 } from "@/lib/legal/mentions-constants"

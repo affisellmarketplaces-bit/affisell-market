@@ -5,7 +5,6 @@ import {
   BadgePercent,
   Check,
   Copy,
-  ExternalLink,
   Link2,
   Loader2,
   Mail,

@@ -40,7 +40,6 @@ function buildStaticLetterMarkdown(input: GenerateLetterInput): string {
     month: "long",
     year: "numeric",
   })
-  const primaryIssue = input.issues[0]
   const refs = [...new Set(input.issues.map((i) => i.code))].join(", ") || "L121-1"
 
   const facts = input.issues

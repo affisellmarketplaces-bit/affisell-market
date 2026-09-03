@@ -3,7 +3,6 @@ import { z } from "zod"
 
 import {
   enableCheckoutCountryRollout,
-  notifyCheckoutCountryWaitlist,
 } from "@/lib/admin/checkout-country-rollout-actions"
 import { requireAdminSession } from "@/lib/admin/require-admin-session"
 

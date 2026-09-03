@@ -1,6 +1,6 @@
 import { describe, expect, it, afterEach } from "vitest"
 
-import { formatDonaStreamError, resolveDonaChatError } from "@/lib/dona/dona-errors"
+import { formatDonaStreamError } from "@/lib/dona/dona-errors"
 import {
   DONA_GROQ_MODEL_DEFAULT,
   isDonaProviderError,

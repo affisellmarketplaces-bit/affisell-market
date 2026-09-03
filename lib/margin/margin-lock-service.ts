@@ -3,7 +3,6 @@ import "server-only"
 import type { MarginLock } from "@prisma/client"
 
 import {
-  getMarginLockStatus,
   MARGIN_LOCK_DAYS,
   MARGIN_LOCK_MAX_INCREASE,
   type MarginLockDto,

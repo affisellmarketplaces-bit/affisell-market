@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 
-import type { AdminOrderDetail, AdminSupplierFulfillmentView } from "@/lib/admin/orders/types"
+import type { AdminSupplierFulfillmentView } from "@/lib/admin/orders/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

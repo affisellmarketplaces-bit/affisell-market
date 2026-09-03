@@ -1,13 +1,12 @@
 import Link from "next/link"
 import { requireSupplierSession } from "@/lib/dashboard-session"
-import { redirect } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 
 import { BentoShell } from "@/components/affisell/bento-ui"
 import { SupplierExtensionConnect } from "@/components/supplier/supplier-extension-connect"
 
 export default async function SupplierExtensionPage() {
-  const session = await requireSupplierSession("/dashboard/supplier/extension")
+  await requireSupplierSession("/dashboard/supplier/extension")
 
 
   return (

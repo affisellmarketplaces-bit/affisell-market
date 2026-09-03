@@ -6,7 +6,7 @@ import { flushSync } from "react-dom"
 import { Loader2, Rocket, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { flushAllMerchantDrafts, registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
+import { registerMerchantDraftFlush } from "@/lib/merchant-draft-flush"
 import { sanitizeListingDescriptionField } from "@/lib/html-description-extract-shared"
 import { DescriptionRichContent } from "@/components/product/description-rich-content"
 import { descriptionHasImageMarkers } from "@/lib/description-rich-content"

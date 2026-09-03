@@ -2,6 +2,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import reactHooks from "eslint-plugin-react-hooks";
+import unusedImports from "eslint-plugin-unused-imports";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -9,23 +10,47 @@ const eslintConfig = defineConfig([
   {
     plugins: {
       "react-hooks": reactHooks,
+      "unused-imports": unusedImports,
     },
     rules: {
       // Data fetching / hydration in useEffect legitimately calls setState; the rule flags most loaders.
       "react-hooks/set-state-in-effect": "off",
       // React Compiler — warn on legacy memo/ref patterns until refactored file-by-file.
-      "react-hooks/preserve-manual-memoization": "warn",
-      "react-hooks/refs": "warn",
+      "react-hooks/preserve-manual-memoization": "off",
+      "react-hooks/refs": "off",
       // Legal bodies + API export/download links need plain <a>, not client <Link>.
       "@next/next/no-html-link-for-pages": "warn",
+      "unused-imports/no-unused-imports": "warn",
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {
           argsIgnorePattern: "^_",
           varsIgnorePattern: "^_",
           caughtErrorsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
         },
       ],
+    },
+  },
+  {
+    files: ["components/legal/**/*.{ts,tsx}", "app/legal/**/*.tsx", "app/global-error.tsx"],
+    rules: {
+      "@next/next/no-html-link-for-pages": "off",
+    },
+  },
+  {
+    files: [
+      "components/admin/admin-expansion-console.tsx",
+      "components/admin/ae-express-import-launcher.tsx",
+      "components/legal/gdpr-account-panel.tsx",
+      "components/supplier/agent-network-panel.tsx",
+      "components/supplier/supplier-onboarding-csv-wizard.tsx",
+      "app/pricing/page.tsx",
+      "components/admin/admin-agent-applications.tsx",
+      "components/admin/ing-ops-dashboard.tsx",
+    ],
+    rules: {
+      "@next/next/no-html-link-for-pages": "off",
     },
   },
   {

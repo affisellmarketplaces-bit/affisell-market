@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Map, ShieldCheck, Sparkles, TrendingUp, Truck, Users, Zap } from "lucide-react"
+import { Map, ShieldCheck, Sparkles, TrendingUp, Truck, Users } from "lucide-react"
 import type { ReactNode } from "react"
 
 import { Button } from "@/components/ui/button"

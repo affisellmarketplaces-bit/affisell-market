@@ -2,7 +2,7 @@ import { auth } from "@/auth"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import { resolveCartLineImageUrl } from "@/lib/cart-line-image"
 import { prisma } from "@/lib/prisma"
-import { marketplaceSellingPriceCentsForOption, variantsFromDb } from "@/lib/product-variants"
+import { variantsFromDb } from "@/lib/product-variants"
 import {
   parseAffiliateVariantPricingJson,
   resolveAffiliateSellingPriceCentsForOption,

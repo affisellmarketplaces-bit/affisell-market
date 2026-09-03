@@ -3,7 +3,7 @@
  * Build Affisell_Audit_Package.zip — code + auto-generated audit docs, no secrets.
  * Run: node scripts/build-audit-package.mjs
  */
-import { execSync, spawnSync } from "node:child_process"
+import { execSync } from "node:child_process"
 import {
   cpSync,
   existsSync,
@@ -231,9 +231,6 @@ function writeDocs(stats) {
   const models = stats.models
   const apiGroups = stats.apiGroups
   const pkg = stats.pkg
-
-  const deps = Object.keys(pkg.dependencies || {})
-  const devDeps = Object.keys(pkg.devDependencies || {})
 
   writeFileSync(
     join(docsDir, "PROJECT_OVERVIEW.md"),

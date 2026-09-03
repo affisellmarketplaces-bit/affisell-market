@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { Menu, ShoppingBag } from "lucide-react"
-import { useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 
 import { CartCountBadge } from "@/components/cart/cart-count-badge"
@@ -75,7 +74,7 @@ function BuyerIconControl({
   )
 }
 
-function StoreLogoMark({ logoUrl, storeName }: { logoUrl: string; storeName: string }) {
+function StoreLogoMark({ logoUrl, storeName: _storeName }: { logoUrl: string; storeName: string }) {
   return (
     <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full sm:size-11">
       <span
@@ -129,8 +128,6 @@ export function ResellerBoutiqueBuyerHeader({
   trust,
   ownerDashboardHref,
 }: Props) {
-  const t = useTranslations("boutique.trust")
-  const tNav = useTranslations("boutique.merchantHeader")
   const displayName = storeName.trim() || "Store"
   const hasLogo = Boolean(logoUrl?.trim())
 

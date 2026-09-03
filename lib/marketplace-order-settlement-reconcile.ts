@@ -3,7 +3,6 @@ import "server-only"
 import type { Prisma } from "@prisma/client"
 
 import {
-  deriveAffiliateCommissionCentsFromOrder,
   deriveAffiliateListingMarginGrossCents,
   orderPartnerAmountsIncomplete,
 } from "@/lib/marketplace-order-partner-amounts"

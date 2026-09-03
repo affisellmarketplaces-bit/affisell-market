@@ -109,7 +109,7 @@ export async function loadIngOpsStats(prisma: PrismaClient): Promise<IngOpsStats
   const lastRunAt = recentLogs[0]?.createdAt.toISOString() ?? null
   const supplierIds = [...new Set(recentLogs.map((l) => l.supplierId))]
 
-  const [users, nudgeCounts, manualBySupplier] = await Promise.all([
+  const [users, nudgeCounts] = await Promise.all([
     prisma.user.findMany({
       where: { id: { in: supplierIds } },
       select: { id: true, email: true, name: true },
@@ -120,15 +120,6 @@ export async function loadIngOpsStats(prisma: PrismaClient): Promise<IngOpsStats
       _count: { _all: true },
       _max: { createdAt: true },
     }),
-    prisma.fulfillmentGroup.groupBy({
-      by: ["supplierId"],
-      where: {
-        ...MANUAL_REQUIRED_GROUP_WHERE,
-        supplierId: { in: supplierIds },
-        createdAt: { gte: lookbackCutoff },
-      },
-      _count: { _all: true },
-    }),
   ])
 
   const userById = new Map(users.map((u) => [u.id, u]))
@@ -138,7 +129,6 @@ export async function loadIngOpsStats(prisma: PrismaClient): Promise<IngOpsStats
       { count: n._count._all, last: n._max.createdAt?.toISOString() ?? null },
     ])
   )
-  const manualMap = new Map(manualBySupplier.map((m) => [m.supplierId, m._count._all]))
   const escalatedIds = new Set(escalationCandidates.map((e) => e.supplierId))
 
   const supplierRows: IngOpsSupplierRow[] = cooledEligible.candidates.map((c) => {

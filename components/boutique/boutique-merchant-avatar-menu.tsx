@@ -30,7 +30,7 @@ export function BoutiqueMerchantAvatarMenu({
   className,
 }: Props) {
   const t = useTranslations("boutique.merchantHeader.avatar")
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const [open, setOpen] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
   const [coords, setCoords] = useState({ top: 0, left: 0 })

@@ -13,7 +13,6 @@ import {
   isExperienceListingKind,
   isMuseumListingKind,
   isRestaurantListingKind,
-  isServiceListingKind,
 } from "@/lib/booking/types"
 import { cn } from "@/lib/utils"
 

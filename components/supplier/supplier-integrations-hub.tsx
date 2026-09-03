@@ -273,18 +273,6 @@ export function SupplierIntegrationsHub({
     await load()
   }
 
-  async function removeIntegration(id: string) {
-    const row = integrations.find((r) => r.id === id)
-    if (row?.liveConnected || row?.platform === "shopify" || row?.platform === "woocommerce") {
-      setDisconnectTarget(row ?? { id, platform: "shopify", name: "main", enabled: true, config: {}, lastSyncAt: null, lastSyncError: null, syncStats: null, inboundUrl: null, liveConnected: true })
-      return
-    }
-    if (!confirm("Disconnect this integration?")) return
-    await fetch(`/api/supplier/integrations/${id}`, { method: "DELETE" })
-    toast.success("Integration removed")
-    await load()
-  }
-
   const shopifyStats = shopifyRow?.syncStats
   const wooStats = wooRow?.syncStats
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl"
+import { NextIntlClientProvider } from "next-intl"
 
 import { APP_TIME_ZONE, resolveAppLocale, type AppLocale } from "@/lib/i18n-locale"
 import { CLIENT_MESSAGES, readLocaleFromDocumentCookie } from "@/lib/i18n-messages-client"

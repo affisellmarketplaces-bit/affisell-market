@@ -422,7 +422,7 @@ export function AffiliateCatalogExperience({
     params.delete("productId")
     const s = params.toString()
     router.replace(`${AFFILIATE_CATALOG_PATH}${s ? `?${s}` : ""}`, { scroll: false })
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot deep link from agent cards
+     
   }, [initialLoading, products, searchParams, openCreate, openEdit, router])
 
   const handleCategoryClick = (catId: string, subId?: string) => {

@@ -37,7 +37,7 @@ export function parseShopeePrice(raw: unknown): number {
   return 0
 }
 
-function imageUrlFromHash(hash: string | null | undefined, host: string): string | null {
+function imageUrlFromHash(hash: string | null | undefined, _host: string): string | null {
   const h = (hash ?? "").trim()
   if (!h) return null
   if (h.startsWith("http")) return h

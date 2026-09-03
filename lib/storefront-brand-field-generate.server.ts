@@ -38,7 +38,6 @@ import { generateStoreBrandStaticPages } from "@/lib/storefront-brand-static-pag
 import { buildDefaultEmbedWidget } from "@/lib/storefront-embed-shared"
 import {
   updateHomepageSectionContent,
-  type HomepageSection,
   type HomepageSectionContent,
   type HomepageSectionType,
 } from "@/lib/storefront-sections-shared"
