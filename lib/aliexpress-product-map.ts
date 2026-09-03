@@ -205,8 +205,16 @@ export function mapAliExpressGetProductResponse(
   )
   const firstSku = skus[0] ?? {}
 
-  const priceEur = parsePriceEur(firstSku, result)
-  const stock = parseStock(firstSku, result)
+  const skuPrices = skus
+    .map((sku) => parsePriceEur(sku, result))
+    .filter((p) => p > 0)
+  const priceEur =
+    skuPrices.length > 0 ? Math.min(...skuPrices) : parsePriceEur(firstSku, result)
+  const stock =
+    skus.length > 0
+      ? Math.max(...skus.map((sku) => parseStock(sku, result)).filter((s) => s > 0), 0) ||
+        parseStock(firstSku, result)
+      : parseStock(firstSku, result)
 
   const descriptionRaw =
     pickString(base, ["detail", "product_description", "description"]) ||

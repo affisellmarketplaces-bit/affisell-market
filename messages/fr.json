@@ -1560,7 +1560,7 @@
       "payouts": {
         "badge": "Payout Rail · Stripe Connect",
         "title": "Moyens de paiement revendeur",
-        "description": "Connectez votre compte bancaire via Stripe pour recevoir vos marges et commissions fournisseur. Données bancaires chiffrées et hébergées par Stripe — Affisell ne stocke jamais votre IBAN.",
+        "description": "Stripe Connect pour les virements automatiques, ou PayPal / Wave / virement selon votre pays. Coordonnées chiffrées — Affisell ne stocke jamais votre IBAN en clair.",
         "backEarnings": "Cockpit revenus",
         "ledgerTeaserTitle": "Suivre vos versements",
         "ledgerTeaserBody": "Le journal détaillé (commandes, montants, clawbacks) est dans le cockpit revenus.",
@@ -1591,6 +1591,13 @@
           "stepDeliveryBody": "L'acheteur confirme la réception ou le suivi transporteur valide la livraison.",
           "stepReleaseTitle": "Versement libéré",
           "stepReleaseBody": "D+{confirmDays} après confirmation acheteur (ou auto à J+{autoDays} après livraison transporteur)."
+        },
+        "multiPayout": {
+          "badge": "Méthodes alternatives",
+          "title": "PayPal, Wave & virement bancaire",
+          "description": "Complétez ou remplacez Stripe selon votre pays. Chaque méthode est chiffrée et validée par l'équipe Affisell avant le premier versement.",
+          "emptyTitle": "Aucune méthode alternative",
+          "emptyBody": "Ajoute PayPal, virement IBAN ou Wave pour recevoir tes commissions hors Stripe Connect."
         }
       }
     },
@@ -5559,6 +5566,7 @@
     "errHttps": "L’URL doit commencer par http:// ou https://",
     "errProductUrl": "Colle le lien d’un produit précis, pas la page d’accueil.",
     "errPreview": "Impossible de lire cette page. Réessaie ou change d’URL.",
+    "bridgeBusy": "Pont Express Bridge actif — finalisez la capture sur AliExpress…",
     "errIncomplete": "DropForge exige une fiche complète (titre, images, prix). Vérifie l’URL ou la config API.",
     "errCommit": "Import impossible pour le moment.",
     "previewOk": "Fiche {market} complète — tout importé",

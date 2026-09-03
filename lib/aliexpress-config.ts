@@ -28,12 +28,15 @@ function readFirstEnv(keys: readonly string[]): string {
 
 export function readAliExpressConfig(): AliExpressEnvConfig {
   const env = process.env.ALIEXPRESS_ENV?.trim().toLowerCase()
+  // Production by default — sandbox only when explicitly ALIEXPRESS_ENV=sandbox.
+  // Previously `env !== "production"` forced sandbox on Vercel prod and broke DropForge imports.
+  const sandbox = env === "sandbox"
   return {
     appKey: readFirstEnv(ENV_ALIASES.appKey),
     appSecret: readFirstEnv(ENV_ALIASES.appSecret),
     accessToken: readFirstEnv(ENV_ALIASES.accessToken),
     refreshToken: readFirstEnv(ENV_ALIASES.refreshToken),
-    sandbox: env !== "production",
+    sandbox,
   }
 }
 

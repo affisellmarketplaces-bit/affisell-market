@@ -3,6 +3,7 @@ import { Suspense } from "react"
 import { ArrowRight, Wallet } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
+import { AffiliateMultiPayoutSection } from "@/components/affiliate/affiliate-multi-payout-section"
 import { AffiliatePayoutBankStatus } from "@/components/affiliate/affiliate-payout-bank-status"
 import { AffiliatePayoutRailTimeline } from "@/components/affiliate/affiliate-payout-rail-timeline"
 import { PartnerTaxCompliancePanel } from "@/components/affiliate/partner-tax-compliance-panel"
@@ -11,6 +12,7 @@ import { MerchantStripeConnectPanel } from "@/components/merchant/merchant-strip
 import { PayoutPolicyDisclaimer } from "@/components/merchant/payout-policy-disclaimer"
 import { buttonVariants } from "@/components/ui/button"
 import { requireAffiliateSession } from "@/lib/dashboard-session"
+import { FLAGS } from "@/lib/flags"
 import { prisma } from "@/lib/prisma"
 import { loadStripeConnectStatusForUser } from "@/lib/stripe-connect-status.server"
 import { cn } from "@/lib/utils"
@@ -72,6 +74,12 @@ export default async function AffiliatePayoutSettingsPage() {
             showUpdateWhenOnboarded
           />
         </Suspense>
+
+        {FLAGS.AFFILIATE_MULTI_PAYOUT ? (
+          <Suspense fallback={null}>
+            <AffiliateMultiPayoutSection affiliateId={session.user.id} />
+          </Suspense>
+        ) : null}
 
         <AffiliatePayoutRailTimeline />
 

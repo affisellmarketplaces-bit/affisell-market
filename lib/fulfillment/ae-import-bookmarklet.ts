@@ -152,6 +152,18 @@ export function buildSessionAeImportBookmarklet(
   return toBookmarkletHref(code)
 }
 
+/** DropForge Express Bridge bookmarklet — posts to public capture API. */
+export function buildDropForgeAeImportBookmarklet(
+  appOrigin: string,
+  relayKey: string,
+  sessionId: string,
+  captureToken: string
+): string {
+  return buildSessionAeImportBookmarklet(appOrigin, relayKey, sessionId, captureToken, {
+    captureApiPath: `/api/dropforge/ae-capture/${relayKey}`,
+  })
+}
+
 /** Wizard v2 Express — posts to supplier capture API. */
 export function buildWizardV2AeImportBookmarklet(
   appOrigin: string,

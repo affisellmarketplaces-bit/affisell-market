@@ -16,6 +16,7 @@ import {
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
+import { DropForgeAeBrowserBridge } from "@/components/import/dropforge-ae-browser-bridge"
 import { buttonVariants } from "@/components/ui/button"
 import { detectMarketplaceFromUrl } from "@/lib/import-marketplace"
 import { validateDropForgeProductUrl } from "@/lib/dropforge-product-url"
@@ -130,6 +131,8 @@ export function DropForgeImportClient() {
   const [loading, setLoading] = useState(false)
   const [committing, setCommitting] = useState(false)
   const [scanError, setScanError] = useState<string | null>(null)
+  const [showBrowserBridge, setShowBrowserBridge] = useState(false)
+  const [bridgeBusy, setBridgeBusy] = useState(false)
   const [done, setDone] = useState<{
     catalogHref: string
     editHref: string
@@ -173,6 +176,7 @@ export function DropForgeImportClient() {
     setDone(null)
     setPreview(null)
     setScanError(null)
+    setShowBrowserBridge(false)
     try {
       window.sessionStorage.setItem(PENDING_KEY, validated.url)
     } catch {
@@ -184,8 +188,15 @@ export function DropForgeImportClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: validated.url }),
       })
-      const data = (await res.json()) as { error?: string; preview?: Preview }
+      const data = (await res.json()) as {
+        error?: string
+        preview?: Preview
+        useBrowserCapture?: boolean
+      }
       if (!res.ok || !data.preview) {
+        if (data.useBrowserCapture && validated.url.includes("aliexpress")) {
+          setShowBrowserBridge(true)
+        }
         throw new Error(data.error ?? t("errPreview"))
       }
       setPreview(data.preview)
@@ -207,6 +218,22 @@ export function DropForgeImportClient() {
       setLoading(false)
     }
   }, [t, url])
+
+  const applyBridgePreview = useCallback(
+    (raw: Record<string, unknown>) => {
+      const p = raw as unknown as Preview
+      if (!p.title || !p.sourceUrl) {
+        toast.error(t("errPreview"))
+        return
+      }
+      setPreview(p)
+      setWholesalePrice(String(defaultWholesaleEur(p.costPrice)))
+      setScanError(null)
+      setShowBrowserBridge(false)
+      toast.success(t("previewOk", { market: p.marketplaceLabel ?? "AliExpress" }))
+    },
+    [t]
+  )
 
   const commit = useCallback(
     async (publishLive: boolean) => {
@@ -341,7 +368,7 @@ export function DropForgeImportClient() {
           </div>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || bridgeBusy}
             className={cn(
               buttonVariants({ size: "lg" }),
               "h-11 shrink-0 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 font-semibold text-white shadow-lg shadow-violet-600/30 hover:from-violet-500 hover:to-fuchsia-500"
@@ -375,6 +402,19 @@ export function DropForgeImportClient() {
         >
           {scanError}
         </div>
+      ) : null}
+
+      {showBrowserBridge && url.trim().includes("aliexpress") ? (
+        <DropForgeAeBrowserBridge
+          aeUrl={url.trim()}
+          onPreview={applyBridgePreview}
+          onBusyChange={setBridgeBusy}
+          autoStart
+        />
+      ) : null}
+
+      {bridgeBusy ? (
+        <p className="mt-2 text-center text-xs text-violet-200/80">{t("bridgeBusy")}</p>
       ) : null}
 
       {preview ? (

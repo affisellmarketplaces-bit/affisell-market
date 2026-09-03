@@ -105,7 +105,8 @@ function NavAffiliateInner() {
   const onSwipe = onHubPath && hubMode === "swipe"
   const onEarnings =
     pathname.startsWith("/dashboard/affiliate/earnings") ||
-    pathname.startsWith("/dashboard/affiliate/settings/payouts")
+    pathname.startsWith("/dashboard/affiliate/settings/payouts") ||
+    pathname.startsWith("/dashboard/affiliate/payout-methods")
   const onInviteSupplier = pathname.startsWith("/dashboard/affiliate/invite-supplier")
   const onReferral = pathname.startsWith("/dashboard/affiliate/referral")
   const onBrandStudio = pathname.startsWith("/dashboard/affiliate/brand-studio")

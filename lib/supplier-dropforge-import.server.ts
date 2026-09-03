@@ -110,7 +110,13 @@ export async function previewDropForgeImport(
   rawUrl: string
 ): Promise<
   | { ok: true; preview: ResellerImportPreview }
-  | { ok: false; error: string; status: number; marketplaceLabel?: string }
+  | {
+      ok: false
+      error: string
+      status: number
+      marketplaceLabel?: string
+      useBrowserCapture?: boolean
+    }
 > {
   const result = await previewResellerUrlImport(rawUrl)
   if (!result.ok) return result

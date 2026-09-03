@@ -4,7 +4,8 @@ import { getScrapingBeeApiKey } from "@/lib/import-url-scrape"
 
 /** Actionable hints for ops / suppliers when DropForge completeness gate fails. */
 export async function dropForgeImportFailureHints(
-  marketplaceLabel: string
+  marketplaceLabel: string,
+  opts?: { suggestBrowserBridge?: boolean }
 ): Promise<string[]> {
   const hints: string[] = []
 
@@ -12,39 +13,50 @@ export async function dropForgeImportFailureHints(
     const ae = await getAliExpressApiReadyStatus()
     if (!ae.configured) {
       hints.push(ae.message)
+      hints.push(
+        "Reconnecte l’API : GET /api/aliexpress/oauth/start puis tokens sur Vercel (ALIEXPRESS_REFRESH_TOKEN)."
+      )
     } else if (ae.tokenSource === "db") {
       hints.push(
         ae.accountHint
           ? `Session OAuth active (${ae.accountHint}).`
           : "Session OAuth active en base chiffrée."
       )
+    } else {
+      hints.push("API AliExpress configurée — vérifie ALIEXPRESS_ENV=production sur Vercel (pas sandbox).")
     }
-    if (!getScrapingBeeApiKey()) {
+
+    if (opts?.suggestBrowserBridge) {
       hints.push(
-        "SCRAPINGBEE_API_KEY absente — le scrape AliExpress de secours est indisponible."
+        "Utilise le pont Express Bridge ci-dessous : votre navigateur lit la page AliExpress (100 % fiable, sans ScrapingBee)."
+      )
+    } else if (!getScrapingBeeApiKey()) {
+      hints.push(
+        "Scrape serveur limité sans SCRAPINGBEE_API_KEY — préférez l’API AliExpress ou le pont navigateur."
       )
     }
+
     hints.push(
-      "Colle l’URL canonique https://www.aliexpress.com/item/{id}.html ou un lien de tracking AliExpress avec ID produit."
+      "Colle l’URL canonique https://www.aliexpress.com/item/{id}.html ou un lien de tracking avec ID produit."
     )
-    if (!ae.configured) {
-      hints.push(
-        "Reconnecte l’API AliExpress : GET /api/aliexpress/oauth/start puis ajoute ALIEXPRESS_REFRESH_TOKEN sur Vercel."
-      )
-    }
     return hints
   }
 
   hints.push("Vérifie l’URL produit (page fiche, pas l’accueil du site).")
   if (!getScrapingBeeApiKey()) {
-    hints.push("SCRAPINGBEE_API_KEY absente — configure-la sur Vercel pour les imports scrape.")
+    hints.push("SCRAPINGBEE_API_KEY absente — configure-la sur Vercel pour les imports scrape non-AE.")
   }
   return hints
 }
 
-export async function dropForgeImportFailureMessage(marketplaceLabel: string): Promise<string> {
+export async function dropForgeImportFailureMessage(
+  marketplaceLabel: string,
+  suggestBrowserBridge?: boolean
+): Promise<string> {
   return dropForgeIncompleteError(
     marketplaceLabel,
-    await dropForgeImportFailureHints(marketplaceLabel)
+    await dropForgeImportFailureHints(marketplaceLabel, {
+      suggestBrowserBridge: suggestBrowserBridge === true,
+    })
   )
 }

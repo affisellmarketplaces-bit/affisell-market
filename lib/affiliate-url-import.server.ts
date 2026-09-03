@@ -4,6 +4,7 @@ import * as cheerio from "cheerio"
 import { computeAffiliateListingMarginCents } from "@/lib/affiliate-listing-margin"
 import { shopListingPath } from "@/lib/affiliate-routes"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
+import { scrapeAliExpressViaPageFetch } from "@/lib/fulfillment/import-aliexpress-page-product"
 import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
 import {
   DROPFORGE_MAX_DESC,
@@ -28,7 +29,7 @@ import { psychologicalPrice } from "@/lib/import/smart-import-enricher"
 import { detectMarketplaceFromUrl } from "@/lib/import-marketplace"
 import { merchantVerificationGate } from "@/lib/merchant-legal/require-merchant-verified"
 import { syncProductVariants } from "@/lib/product-variant-sku"
-import { runProductImportAgent } from "@/lib/product-import-agent"
+import { runProductImportAgent, type ProductImportAgentResult } from "@/lib/product-import-agent"
 import { prisma } from "@/lib/prisma"
 import type { SupplierScrapedProduct } from "@/lib/supplier-import-url-handler"
 import { normalizeImportBrand } from "@/lib/url-import-apply"
@@ -37,6 +38,54 @@ export const RESELLER_IMPORT_VAULT_EMAIL = "import-vault@affisell.internal"
 export const RESELLER_URL_IMPORT_SOURCE = "reseller_url_import"
 
 export type ResellerImportPreview = DropForgeCompletePreview
+
+/** Map import-agent output → DropForge preview (shared by URL import + AE browser bridge). */
+export function buildResellerPreviewFromAgent(
+  agent: Extract<ProductImportAgentResult, { ok: true }>,
+  sourceUrl: string,
+  marketplaceLabel: string
+): ResellerImportPreview {
+  const basePreview = asPreview(agent.product, {
+    platform: agent.platform,
+    method: agent.method,
+    sourceUrl,
+    marketplaceLabel,
+    warnings: agent.warnings,
+  })
+  if (agent.category?.leafId) {
+    basePreview.categoryId = agent.category.leafId
+    if (agent.category.breadcrumb) {
+      basePreview.category = agent.category.breadcrumb.slice(0, 120)
+    }
+  }
+  if (agent.skuVariants) {
+    const payload: DropForgeSkuVariantsPayload = {
+      hasVariants: agent.skuVariants.hasVariants,
+      variants: agent.skuVariants.variantInputs,
+      colors: agent.skuVariants.colors,
+      colorImages: agent.skuVariants.colorImages.map((c) => ({
+        color: c.color,
+        hex: c.hex,
+        image: c.image
+          ? absolutizeCdnImageUrl(c.image) ?? (/^https?:\/\//i.test(c.image) ? c.image : "")
+          : "",
+      })),
+      totalStock: agent.skuVariants.totalStock,
+    }
+    basePreview.skuVariants = payload
+    if (basePreview.colors.length === 0 && payload.colorImages.length > 0) {
+      basePreview.colors = payload.colorImages.map((c) => ({
+        name: c.color,
+        image: c.image,
+        hex: c.hex,
+      }))
+    }
+  }
+  return withDropForgeFulfillment(
+    basePreview,
+    resolveDropForgeFulfillmentMeta({ sourceUrl })
+  )
+}
 
 function asPreview(
   product: SupplierScrapedProduct,
@@ -335,7 +384,7 @@ async function scrapeOpenGraphPreview(url: string): Promise<SupplierScrapedProdu
 
 export async function previewResellerUrlImport(rawUrl: string): Promise<
   | { ok: true; preview: ResellerImportPreview }
-  | { ok: false; error: string; status: number; marketplaceLabel?: string }
+  | { ok: false; error: string; status: number; marketplaceLabel?: string; useBrowserCapture?: boolean }
 > {
   const validated = validateDropForgeProductUrl(rawUrl)
   if (!validated.ok) {
@@ -452,6 +501,7 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
   })
 
   const og = await scrapeOpenGraphPreview(url)
+  const agentError = agent.ok ? null : agent.error
 
   let product: SupplierScrapedProduct | null = null
   let method = "agent"
@@ -468,61 +518,68 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
     method = agent.method
     platform = agent.platform
     warnings.push(...agent.warnings)
-  } else if (og) {
+  } else if (market.preferAliExpressApi && parseAliExpressProductId(url)) {
+    const fromPage = await scrapeAliExpressViaPageFetch(url)
+    if (fromPage?.product?.title?.trim()) {
+      product = fromPage.product
+      method = fromPage.method
+      platform = "aliexpress"
+      warnings.push(`Scan principal : ${agentError ?? "échec"}`)
+      console.log("[affiliate-url-import]", {
+        stage: "preview",
+        result: "ae_page_rescue",
+        method,
+        titleLen: product.title.length,
+      })
+    }
+  }
+
+  if (!product && og) {
     product = og
     method = "open-graph"
-    warnings.push(`Scan principal : ${agent.error}`)
-  } else {
+    warnings.push(`Scan principal : ${agentError ?? "échec"}`)
+  }
+
+  if (!product) {
+    const useBrowserCapture =
+      market.preferAliExpressApi && Boolean(parseAliExpressProductId(url))
     console.log("[affiliate-url-import]", {
       stage: "preview",
       result: "incomplete",
       marketplaceLabel: market.label,
-      error: agent.error.slice(0, 160),
+      error: agent.ok ? "no_product" : agent.error.slice(0, 160),
+      useBrowserCapture,
     })
     return {
       ok: false,
-      error: await dropForgeImportFailureMessage(market.label),
+      error: await dropForgeImportFailureMessage(market.label, useBrowserCapture),
       status: 422,
       marketplaceLabel: market.label,
+      useBrowserCapture,
     }
   }
 
-  const basePreview = asPreview(product, {
-    platform,
-    method,
-    sourceUrl: url,
-    marketplaceLabel: market.label,
-    warnings,
-  })
-  if (agent.ok && agent.category?.leafId) {
-    basePreview.categoryId = agent.category.leafId
-    if (agent.category.breadcrumb) basePreview.category = agent.category.breadcrumb.slice(0, 120)
+  const agentLike = agent.ok
+    ? agent
+    : {
+        ok: true as const,
+        product: product!,
+        platform,
+        method,
+        warnings,
+        marketplace: market,
+        steps: ["fetch" as const],
+        aiEnriched: false,
+        category: null,
+        skuVariants: null,
+      }
+
+  const preview = buildResellerPreviewFromAgent(agentLike, url, market.label)
+  if (!agent.ok) {
+    preview.method = method
+    preview.platform = platform
+    preview.warnings = warnings
   }
-  if (agent.ok && agent.skuVariants) {
-    const payload: DropForgeSkuVariantsPayload = {
-      hasVariants: agent.skuVariants.hasVariants,
-      variants: agent.skuVariants.variantInputs,
-      colors: agent.skuVariants.colors,
-      colorImages: agent.skuVariants.colorImages.map((c) => ({
-        color: c.color,
-        hex: c.hex,
-        image: c.image
-          ? absolutizeCdnImageUrl(c.image) ?? (/^https?:\/\//i.test(c.image) ? c.image : "")
-          : "",
-      })),
-      totalStock: agent.skuVariants.totalStock,
-    }
-    basePreview.skuVariants = payload
-    if (basePreview.colors.length === 0 && payload.colorImages.length > 0) {
-      basePreview.colors = payload.colorImages.map((c) => ({
-        name: c.color,
-        image: c.image,
-        hex: c.hex,
-      }))
-    }
-  }
-  const fulfillment = resolveDropForgeFulfillmentMeta({ sourceUrl: url })
-  const preview = withDropForgeFulfillment(basePreview, fulfillment)
 
   if (!isDropForgeImportComplete(preview)) {
     console.log("[affiliate-url-import]", {
@@ -534,9 +591,14 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
     })
     return {
       ok: false,
-      error: await dropForgeImportFailureMessage(market.label),
+      error: await dropForgeImportFailureMessage(
+        market.label,
+        market.preferAliExpressApi && Boolean(parseAliExpressProductId(url))
+      ),
       status: 422,
       marketplaceLabel: market.label,
+      useBrowserCapture:
+        market.preferAliExpressApi && Boolean(parseAliExpressProductId(url)),
     }
   }
 

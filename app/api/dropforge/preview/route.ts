@@ -34,9 +34,14 @@ export async function POST(req: Request) {
       result: "error",
       status: result.status,
       marketplaceLabel: result.marketplaceLabel,
+      useBrowserCapture: result.useBrowserCapture,
     })
     return NextResponse.json(
-      { error: result.error, marketplaceLabel: result.marketplaceLabel },
+      {
+        error: result.error,
+        marketplaceLabel: result.marketplaceLabel,
+        useBrowserCapture: result.useBrowserCapture === true,
+      },
       { status: result.status }
     )
   }

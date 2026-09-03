@@ -1560,7 +1560,7 @@
       "payouts": {
         "badge": "Payout Rail · Stripe Connect",
         "title": "Reseller payment methods",
-        "description": "Connect your bank account via Stripe to receive margin and supplier commission payouts. Bank details are encrypted and hosted by Stripe — Affisell never stores your IBAN.",
+        "description": "Stripe Connect for automatic bank transfers, or PayPal / Wave / bank transfer by country. Details are encrypted — Affisell never stores your IBAN in plain text.",
         "backEarnings": "Earnings cockpit",
         "ledgerTeaserTitle": "Track your payouts",
         "ledgerTeaserBody": "The detailed ledger (orders, amounts, clawbacks) lives in the earnings cockpit.",
@@ -1591,6 +1591,13 @@
           "stepDeliveryBody": "The buyer confirms receipt or carrier tracking validates delivery.",
           "stepReleaseTitle": "Payout released",
           "stepReleaseBody": "D+{confirmDays} after buyer confirmation (or auto at D+{autoDays} after carrier delivery)."
+        },
+        "multiPayout": {
+          "badge": "Alternative methods",
+          "title": "PayPal, Wave & bank transfer",
+          "description": "Complement or replace Stripe depending on your country. Each method is encrypted and validated by Affisell before the first payout.",
+          "emptyTitle": "No alternative method yet",
+          "emptyBody": "Add PayPal, IBAN transfer or Wave to receive commissions outside Stripe Connect."
         }
       }
     },
@@ -5559,6 +5566,7 @@
     "errHttps": "URL must start with http:// or https://",
     "errProductUrl": "Paste a specific product link, not the homepage.",
     "errPreview": "Could not read this page. Try again or another URL.",
+    "bridgeBusy": "Express Bridge active — complete capture on AliExpress…",
     "errIncomplete": "DropForge requires a complete listing (title, images, price). Check the URL or API config.",
     "errCommit": "Import failed for now.",
     "previewOk": "{market} listing complete — everything imported",
