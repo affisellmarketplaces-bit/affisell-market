@@ -1,7 +1,10 @@
+import { Suspense } from "react"
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server"
 
 import { HomeLcpPreloadBoundary } from "@/components/home/home-lcp-preload-boundary"
 import { HomePage } from "@/components/home/HomePage"
+import { FLAGS } from "@/lib/flags"
+import { preloadHomeMarketplaceShell } from "@/lib/home-marketplace-shell"
 import { resolveAppLocale } from "@/lib/i18n-locale"
 
 /**
@@ -24,6 +27,10 @@ export default async function Page() {
   const locale = await getLocale()
   setRequestLocale(locale)
   const appLocale = resolveAppLocale(locale)
+
+  if (FLAGS.INSTANT_NAV_CACHE) {
+    preloadHomeMarketplaceShell(appLocale)
+  }
 
   return (
     <>

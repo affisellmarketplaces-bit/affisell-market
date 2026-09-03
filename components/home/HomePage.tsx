@@ -4,14 +4,14 @@ import { getTranslations } from "next-intl/server"
 import { BuyerHeroBlock } from "@/components/BuyerHeroBlock"
 import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExplorer"
 import { HomeBelowFoldRadars } from "@/components/home/home-below-fold-radars"
-import { HomeCatalogSkeleton } from "@/components/home/home-catalog-skeleton"
 import { HomePageWarmup } from "@/components/home/home-page-warmup"
+import { CatalogSkeleton } from "@/components/skeletons/CatalogSkeleton"
 
 async function CatalogFallback() {
   const t = await getTranslations("home")
   return (
     <div className="space-y-2">
-      <HomeCatalogSkeleton count={8} />
+      <CatalogSkeleton />
       <p className="text-center text-xs text-zinc-500 sm:text-sm">{t("loadingCatalog")}</p>
     </div>
   )

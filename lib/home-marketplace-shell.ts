@@ -1,6 +1,8 @@
 import { cache } from "react"
 
 import type { AppLocale } from "@/lib/i18n-locale"
+import { getCachedHomeProducts } from "@/lib/cache/home-products"
+import { FLAGS } from "@/lib/flags"
 import { withHomeCatalogFallback } from "@/lib/home-catalog-fallback"
 import { loadMarketplaceCategoryTreeCached } from "@/lib/marketplace-category-tree"
 import { loadOfferModeRailCounts } from "@/lib/marketplace-discovery-facets"
@@ -24,9 +26,13 @@ const EMPTY_HOME_SHELL: Omit<HomeMarketplaceShell, "personalizedPicks"> = {
 }
 
 /** Per-request dedupe — Next `unstable_cache` rejects payloads >2MB (taxonomy / fat image URLs). */
-const loadHomeMarketplaceListings = cache(() =>
-  fetchMarketplaceListingsForHome(new URLSearchParams())
-)
+const loadHomeMarketplaceListings = cache(async () => {
+  if (FLAGS.INSTANT_NAV_CACHE) {
+    return getCachedHomeProducts()
+  }
+  // LEGACY - rollback: NEXT_PUBLIC_INSTANT_NAV_CACHE=0
+  return fetchMarketplaceListingsForHome(new URLSearchParams())
+})
 
 const loadHomeOfferRailCounts = cache(() => loadOfferModeRailCounts())
 

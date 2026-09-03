@@ -1,7 +1,7 @@
 import { Fragment } from "react"
-import Link from "next/link"
 import { getTranslations } from "next-intl/server"
 
+import { CatalogCard } from "@/components/catalog-card"
 import { CatalogGridPrefetch } from "@/components/navigation/catalog-grid-prefetch"
 import { CatalogCardImage } from "@/components/home/catalog-card-image"
 import { HomeWorldRadarInlineLazy } from "@/components/home/home-world-radar-inline-lazy"
@@ -48,7 +48,7 @@ export async function HomeCatalogStaticGrid({ shell, limit = 20 }: Props) {
         {items.map((item, index) => (
           <Fragment key={item.id}>
             <li className="flex h-full">
-              <Link
+              <CatalogCard
                 href={item.href}
                 prefetch
                 className="affisell-inp-tap affisell-home-static-card group flex h-full w-full touch-manipulation flex-col rounded-[1.35rem] border border-[color:var(--affisell-premium-border)] bg-[var(--affisell-premium-glass)] p-1 shadow-[var(--affisell-premium-shadow-soft)] transition-transform duration-200 active:scale-[0.99] sm:rounded-3xl sm:p-1.5"
@@ -69,7 +69,7 @@ export async function HomeCatalogStaticGrid({ shell, limit = 20 }: Props) {
                     {item.priceLabel}
                   </p>
                 </div>
-              </Link>
+              </CatalogCard>
             </li>
             {index === 3 ? (
               <li className="col-span-2 md:hidden">
