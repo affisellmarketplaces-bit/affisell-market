@@ -11,7 +11,7 @@ import {
 describe("dropforgeSupplierSignupHref", () => {
   it("returns supplier signup with next=/dropforge when no url", () => {
     expect(dropforgeSupplierSignupHref()).toBe(
-      `${SUPPLIER_SIGNUP_HREF}?next=${encodeURIComponent(DROPFORGE_HREF)}`
+      `${SUPPLIER_SIGNUP_HREF}?next=${encodeURIComponent(`${DROPFORGE_HREF}?auto=1`)}`
     )
     expect(AFFILIATE_URL_IMPORT_HREF).toBe("/dropforge")
   })
@@ -27,6 +27,15 @@ describe("dropforgeSupplierSignupHref", () => {
     expect(next).toContain(
       encodeURIComponent("https://www.aliexpress.com/item/1005008719608144.html")
     )
+  })
+
+  it("preserves publish vs draft intent for auto-commit", () => {
+    const href = dropforgeSupplierSignupHref(
+      "https://www.aliexpress.com/item/1005008719608144.html",
+      { commit: "live" }
+    )
+    const next = decodeURIComponent(href.split("next=")[1] ?? "")
+    expect(next).toContain("commit=live")
   })
 
   it("legacy affiliateUrlImportSignupHref aliases to supplier signup", () => {

@@ -28,13 +28,20 @@ export function affiliateUrlImportSignupHref(productUrl?: string | null): string
   return dropforgeSupplierSignupHref(productUrl)
 }
 
-/** Signup supplier that returns to DropForge with the pasted URL for auto-preview. */
-export function dropforgeSupplierSignupHref(productUrl?: string | null): string {
-  const next = productUrl?.trim()
-    ? `${DROPFORGE_HREF}?url=${encodeURIComponent(productUrl.trim())}&auto=1`
-    : DROPFORGE_HREF
+/** Signup supplier that returns to DropForge with the pasted URL for auto-preview / auto-commit. */
+export function dropforgeSupplierSignupHref(
+  productUrl?: string | null,
+  opts?: { commit?: DropForgeCommitIntent }
+): string {
+  const params = new URLSearchParams()
+  if (productUrl?.trim()) params.set("url", productUrl.trim())
+  params.set("auto", "1")
+  if (opts?.commit) params.set("commit", opts.commit)
+  const next = params.toString() ? `${DROPFORGE_HREF}?${params.toString()}` : DROPFORGE_HREF
   return `${SUPPLIER_SIGNUP_HREF}?next=${encodeURIComponent(next)}`
 }
+
+export type DropForgeCommitIntent = "draft" | "live"
 
 export function affiliateDraftListingCount(
   listingCount: number,

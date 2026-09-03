@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -25,11 +25,19 @@ import {
   DROPFORGE_HREF,
   SUPPLIER_SIGNUP_HREF,
   dropforgeSupplierSignupHref,
+  type DropForgeCommitIntent,
 } from "@/lib/affiliate-onboarding-shared"
+import {
+  clearDropForgePendingCommit,
+  DROPFORGE_PENDING_URL_KEY,
+  loadDropForgePendingCommit,
+  parseDropForgeCommitIntent,
+  saveDropForgePendingCommit,
+} from "@/lib/dropforge-pending-commit.shared"
 import { loginSupplierPath } from "@/lib/login-redirect"
 import { cn } from "@/lib/utils"
 
-const PENDING_KEY = "affisell_dropforge_pending_url"
+const PENDING_KEY = DROPFORGE_PENDING_URL_KEY
 
 /** Prefer AliExpress / 1688 — primary B2B sourcing paths. */
 const EXAMPLE_URLS = [
@@ -134,6 +142,8 @@ export function DropForgeImportClient() {
   const [oauthReconnectUrl, setOauthReconnectUrl] = useState<string | null>(null)
   const [showBrowserBridge, setShowBrowserBridge] = useState(false)
   const [bridgeBusy, setBridgeBusy] = useState(false)
+  const [guestRedirecting, setGuestRedirecting] = useState<DropForgeCommitIntent | null>(null)
+  const autoCommitStarted = useRef(false)
   const [done, setDone] = useState<{
     catalogHref: string
     editHref: string
@@ -246,12 +256,15 @@ export function DropForgeImportClient() {
       if (status === "loading") return
 
       if (!isSupplier) {
-        try {
-          window.sessionStorage.setItem(PENDING_KEY, preview.sourceUrl)
-        } catch {
-          /* ignore */
-        }
-        router.push(dropforgeSupplierSignupHref(preview.sourceUrl))
+        const intent: DropForgeCommitIntent = publishLive ? "live" : "draft"
+        setGuestRedirecting(intent)
+        saveDropForgePendingCommit({
+          sourceUrl: preview.sourceUrl,
+          preview: preview as unknown as Record<string, unknown>,
+          wholesalePrice,
+          publishLive,
+        })
+        router.push(dropforgeSupplierSignupHref(preview.sourceUrl, { commit: intent }))
         return
       }
 
@@ -283,9 +296,16 @@ export function DropForgeImportClient() {
           isPublished?: boolean
         }
         if (res.status === 401) {
+          const intent: DropForgeCommitIntent = publishLive ? "live" : "draft"
+          saveDropForgePendingCommit({
+            sourceUrl: preview.sourceUrl,
+            preview: preview as unknown as Record<string, unknown>,
+            wholesalePrice,
+            publishLive,
+          })
           router.push(
             loginSupplierPath(
-              `${DROPFORGE_HREF}?url=${encodeURIComponent(preview.sourceUrl)}&auto=1`
+              `${DROPFORGE_HREF}?url=${encodeURIComponent(preview.sourceUrl)}&auto=1&commit=${intent}`
             )
           )
           return
@@ -296,6 +316,7 @@ export function DropForgeImportClient() {
           editHref: data.editHref ?? "/dashboard/supplier/products",
           isPublished: data.isPublished === true,
         })
+        clearDropForgePendingCommit()
         try {
           window.sessionStorage.removeItem(PENDING_KEY)
         } catch {
@@ -306,6 +327,7 @@ export function DropForgeImportClient() {
         toast.error(e instanceof Error ? e.message : t("errCommit"))
       } finally {
         setCommitting(false)
+        setGuestRedirecting(null)
       }
     },
     [isSupplier, preview, router, wholesalePrice, status, t]
@@ -314,9 +336,31 @@ export function DropForgeImportClient() {
   useEffect(() => {
     const auto = searchParams.get("auto") === "1"
     const q = searchParams.get("url")?.trim()
-    if (!auto || !q || loading || preview) return
+    if (!auto || loading || preview) return
+
+    const pending = loadDropForgePendingCommit()
+    if (pending?.sourceUrl) {
+      setUrl(pending.sourceUrl)
+      setPreview(pending.preview as unknown as Preview)
+      setWholesalePrice(String(pending.wholesalePriceEur))
+      return
+    }
+
+    if (!q) return
     void runPreview()
   }, [searchParams, loading, preview, runPreview])
+
+  useEffect(() => {
+    const commitIntent = parseDropForgeCommitIntent(searchParams.get("commit"))
+    if (!commitIntent || status === "loading" || !isSupplier || !preview || done) return
+    if (autoCommitStarted.current || committing) return
+    autoCommitStarted.current = true
+    toast.message(
+      commitIntent === "live" ? t("autoCommitLive") : t("autoCommitDraft"),
+      { description: preview.title.slice(0, 80) }
+    )
+    void commit(commitIntent === "live")
+  }, [commit, committing, done, isSupplier, preview, searchParams, status, t])
 
   return (
     <div className="mx-auto w-full max-w-3xl">
@@ -522,32 +566,58 @@ export function DropForgeImportClient() {
                     : preview.fulfillmentReady
                       ? t("readySupplier")
                       : t("readyNoFulfillment")
-                : t("readyGuest")}
+                : guestRedirecting
+                  ? guestRedirecting === "live"
+                    ? t("guestRedirectLive")
+                    : t("guestRedirectDraft")
+                  : t("readyGuest")}
             </p>
+            {isAffiliate ? (
+              <Link
+                href={dropforgeSupplierSignupHref(preview.sourceUrl, { commit: "live" })}
+                onClick={() => {
+                  saveDropForgePendingCommit({
+                    sourceUrl: preview.sourceUrl,
+                    preview: preview as unknown as Record<string, unknown>,
+                    wholesalePrice,
+                    publishLive: true,
+                  })
+                }}
+                className={cn(
+                  buttonVariants(),
+                  "rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white"
+                )}
+              >
+                {t("affiliateBecomeSupplier")}
+                <ArrowRight className="size-4" aria-hidden />
+              </Link>
+            ) : (
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                disabled={committing || isAffiliate}
+                disabled={committing || Boolean(guestRedirecting)}
                 onClick={() => void commit(false)}
                 className={cn(
                   buttonVariants({ variant: "outline" }),
-                  "rounded-full border-white/25 bg-transparent text-white hover:bg-white/10 disabled:opacity-50"
+                  "rounded-full border-white/25 bg-transparent text-white transition hover:bg-white/10 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
                 )}
               >
-                {committing ? <Loader2 className="size-4 animate-spin" /> : null}
+                {committing || guestRedirecting === "draft" ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                ) : null}
                 {isSupplier ? t("saveDraft") : t("signupDraft")}
               </button>
               <button
                 type="button"
                 disabled={
                   committing ||
-                  isAffiliate ||
+                  Boolean(guestRedirecting) ||
                   (isSupplier && !isSupplierPublishable(preview))
                 }
                 onClick={() => void commit(true)}
                 className={cn(
                   buttonVariants(),
-                  "rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white disabled:opacity-50"
+                  "rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-600/25 transition hover:from-violet-500 hover:to-fuchsia-500 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
                 )}
                 title={
                   isSupplier && !isSupplierPublishable(preview)
@@ -557,10 +627,14 @@ export function DropForgeImportClient() {
                     : undefined
                 }
               >
+                {committing || guestRedirecting === "live" ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                ) : null}
                 {isSupplier ? t("publishLive") : t("signupLive")}
                 <ArrowRight className="size-4" aria-hidden />
               </button>
             </div>
+            )}
           </div>
         </div>
       ) : (
