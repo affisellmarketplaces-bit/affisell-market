@@ -22,10 +22,9 @@ export function BuyerDiscoverCard({ card, className }: Props) {
   const Icon = ICONS[card.icon]
 
   return (
-    <Link
-      href={card.href}
+    <article
       className={cn(
-        "group block rounded-2xl p-5 transition hover:-translate-y-0.5 dark:bg-slate-950",
+        "group rounded-2xl p-5 transition hover:-translate-y-0.5 dark:bg-slate-950",
         className
       )}
       style={{
@@ -36,8 +35,9 @@ export function BuyerDiscoverCard({ card, className }: Props) {
         boxShadow: BUYER_PREMIUM.discover.cardShadow,
       }}
     >
-      <div
-        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
+      <Link
+        href={card.href}
+        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition hover:opacity-90"
         style={{
           backgroundColor: BUYER_PREMIUM.badge.cardBg,
           color: BUYER_PREMIUM.badge.cardText,
@@ -45,11 +45,15 @@ export function BuyerDiscoverCard({ card, className }: Props) {
       >
         <Icon className="size-3.5 shrink-0" aria-hidden />
         {card.title}
-      </div>
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      </Link>
+      <div
+        className="mt-4 grid gap-2"
+        style={{ gridTemplateColumns: `repeat(${Math.min(card.images.length, 3)}, minmax(0, 1fr))` }}
+      >
         {card.images.map((img) => (
-          <div
-            key={img.src}
+          <Link
+            key={img.href}
+            href={img.href}
             className="relative aspect-square overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900"
           >
             <Image
@@ -59,15 +63,16 @@ export function BuyerDiscoverCard({ card, className }: Props) {
               sizes="(max-width: 768px) 28vw, 140px"
               className="object-cover transition duration-300 group-hover:scale-[1.03]"
             />
-          </div>
+          </Link>
         ))}
       </div>
-      <p
-        className="mt-4 text-xs leading-relaxed dark:text-slate-400"
+      <Link
+        href={card.href}
+        className="mt-4 block text-xs leading-relaxed transition hover:opacity-80 dark:text-slate-400"
         style={{ color: BUYER_PREMIUM.text.muted }}
       >
         {card.subtitle}
-      </p>
-    </Link>
+      </Link>
+    </article>
   )
 }

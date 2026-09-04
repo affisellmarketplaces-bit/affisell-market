@@ -3,6 +3,10 @@ import {
   homeProductToCardProps,
   loadHomeBestSellers7d,
   loadHomeMarketplaceStats,
+  loadHomeNewArrivals,
+  loadHomeNewArrivalsCount7d,
+  loadHomeTopRated,
+  loadHomeTrustedProducts,
   type HomeMarketplaceStats,
   type HomeProductCard,
 } from "@/lib/home-marketplace-data"
@@ -108,6 +112,40 @@ export async function loadHomeBestSellers7dSafe(limit = 12): Promise<HomeProduct
   } catch (err) {
     console.error("[public-home] loadHomeBestSellers7d failed:", err)
     return []
+  }
+}
+
+async function loadHomeProductsSafe(
+  label: string,
+  loader: (limit: number) => Promise<HomeProductCard[]>,
+  limit: number
+): Promise<HomeProductCard[]> {
+  try {
+    return await loader(limit)
+  } catch (err) {
+    console.error(`[public-home] ${label} failed:`, err)
+    return []
+  }
+}
+
+export function loadHomeNewArrivalsSafe(limit = 12): Promise<HomeProductCard[]> {
+  return loadHomeProductsSafe("loadHomeNewArrivals", loadHomeNewArrivals, limit)
+}
+
+export function loadHomeTopRatedSafe(limit = 12): Promise<HomeProductCard[]> {
+  return loadHomeProductsSafe("loadHomeTopRated", loadHomeTopRated, limit)
+}
+
+export function loadHomeTrustedProductsSafe(limit = 12): Promise<HomeProductCard[]> {
+  return loadHomeProductsSafe("loadHomeTrustedProducts", loadHomeTrustedProducts, limit)
+}
+
+export async function loadHomeNewArrivalsCount7dSafe(): Promise<number> {
+  try {
+    return await loadHomeNewArrivalsCount7d()
+  } catch (err) {
+    console.error("[public-home] loadHomeNewArrivalsCount7d failed:", err)
+    return 0
   }
 }
 

@@ -1,5 +1,7 @@
 import { unstable_cache } from "next/cache"
 
+import type { BuyerDiscoverCard } from "@/lib/buyer-premium-home-content"
+import { loadBuyerDiscoverCards } from "@/lib/buyer-premium-discover.server"
 import type { HomeMarketplaceStats, HomeProductCard } from "@/lib/home-marketplace-data"
 import {
   loadFeaturedShopsSafe,
@@ -32,4 +34,10 @@ export function loadHomeBestSellers7dCached(limit = 4) {
   )()
 }
 
-export type { HomeMarketplaceStats, HomeProductCard, PublicShopDirectoryEntry }
+export const loadBuyerDiscoverCardsCached = unstable_cache(
+  loadBuyerDiscoverCards,
+  ["buyer-discover-cards"],
+  { revalidate: HOME_BENTO_REVALIDATE_SEC, tags: ["home-bento"] }
+)
+
+export type { BuyerDiscoverCard, HomeMarketplaceStats, HomeProductCard, PublicShopDirectoryEntry }

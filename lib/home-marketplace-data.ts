@@ -186,6 +186,23 @@ export async function loadHomeBestSellers7d(limit = 12): Promise<HomeProductCard
     .filter((x): x is HomeProductCard => x != null)
 }
 
+function dedupeListingsToHomeCards(
+  listings: ListingRow[],
+  limit: number,
+  soldCountFor: (productId: string) => number = () => 0
+): HomeProductCard[] {
+  const seen = new Set<string>()
+  const cards: HomeProductCard[] = []
+  for (const row of listings) {
+    if (seen.has(row.productId)) continue
+    if (!primaryProductImage(row.product.images)) continue
+    seen.add(row.productId)
+    cards.push(mapListingToHomeCard(row, soldCountFor(row.productId), storeLabel(row)))
+    if (cards.length >= limit) break
+  }
+  return cards
+}
+
 export async function loadHomeNewArrivals(limit = 12): Promise<HomeProductCard[]> {
   const listings = await prisma.affiliateProduct.findMany({
     where: buyerListedAffiliateProductWhere,
@@ -193,16 +210,40 @@ export async function loadHomeNewArrivals(limit = 12): Promise<HomeProductCard[]
     orderBy: { product: { createdAt: "desc" } },
     take: 48,
   })
+  return dedupeListingsToHomeCards(listings as ListingRow[], limit)
+}
 
-  const seen = new Set<string>()
-  const cards: HomeProductCard[] = []
-  for (const row of listings) {
-    if (seen.has(row.productId)) continue
-    seen.add(row.productId)
-    cards.push(mapListingToHomeCard(row as ListingRow, 0, storeLabel(row as ListingRow)))
-    if (cards.length >= limit) break
-  }
-  return cards
+export async function loadHomeNewArrivalsCount7d(): Promise<number> {
+  const sevenDaysAgo = new Date(Date.now() - 7 * MS_DAY)
+  return prisma.product.count({
+    where: { ...buyerMarketplaceProductWhere, createdAt: { gte: sevenDaysAgo } },
+  })
+}
+
+export async function loadHomeTopRated(limit = 12): Promise<HomeProductCard[]> {
+  const listings = await prisma.affiliateProduct.findMany({
+    where: {
+      ...buyerListedAffiliateProductWhere,
+      product: { reviewCount: { gte: 1 }, averageRating: { gte: 4 } },
+    },
+    select: listingSelect,
+    orderBy: [{ product: { reviewCount: "desc" } }, { product: { averageRating: "desc" } }],
+    take: 48,
+  })
+  return dedupeListingsToHomeCards(listings as ListingRow[], limit)
+}
+
+export async function loadHomeTrustedProducts(limit = 12): Promise<HomeProductCard[]> {
+  const listings = await prisma.affiliateProduct.findMany({
+    where: {
+      ...buyerListedAffiliateProductWhere,
+      product: { reviewCount: { gte: 1 }, averageRating: { gte: 4.8 } },
+    },
+    select: listingSelect,
+    orderBy: [{ product: { averageRating: "desc" } }, { product: { reviewCount: "desc" } }],
+    take: 48,
+  })
+  return dedupeListingsToHomeCards(listings as ListingRow[], limit)
 }
 
 export async function loadHomeHighMargin(limit = 12): Promise<HomeProductCard[]> {
