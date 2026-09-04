@@ -8,6 +8,7 @@ import { BuyerPremiumLogo } from "@/components/home/buyer-premium-logo"
 import { FastLink } from "@/components/navigation/fast-link"
 import { Link as LocaleLink } from "@/i18n/navigation"
 import { BUYER_PREMIUM_NAV_BADGE } from "@/lib/buyer-premium-home-content"
+import { BUYER_PREMIUM, buyerPremiumCtaClass } from "@/lib/buyer-premium-home-tokens"
 import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-redirect"
 import { cn } from "@/lib/utils"
 
@@ -36,18 +37,30 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
         <LocaleLink href="/" className="shrink-0">
           <BuyerPremiumLogo />
         </LocaleLink>
-        <span className="hidden max-w-[14rem] truncate rounded-full border border-violet-200/80 bg-violet-50 px-2.5 py-1 text-[10px] font-medium leading-tight text-violet-800 xl:inline xl:max-w-none xl:text-[11px] dark:border-violet-800/50 dark:bg-violet-950/40 dark:text-violet-200">
+        <span
+          className="hidden max-w-[14rem] truncate rounded-full px-2.5 py-1 text-[10px] font-medium leading-tight xl:inline xl:max-w-none xl:text-[11px]"
+          style={{
+            backgroundColor: BUYER_PREMIUM.badge.navBg,
+            borderWidth: 1,
+            borderStyle: "solid",
+            borderColor: BUYER_PREMIUM.badge.navBorder,
+            color: BUYER_PREMIUM.badge.navText,
+          }}
+        >
           {BUYER_PREMIUM_NAV_BADGE}
         </span>
       </div>
 
-      <div className="flex items-center gap-6 text-sm font-medium text-slate-700 dark:text-slate-200">
+      <div
+        className="flex items-center gap-6 text-sm font-medium dark:text-slate-200"
+        style={{ color: BUYER_PREMIUM.text.nav }}
+      >
         {NAV_LINKS.map((link) => (
           <FastLink
             key={link.href}
             href={link.href}
             localeAware={link.href !== "/#explorer"}
-            className="transition hover:text-indigo-600 dark:hover:text-indigo-400"
+            className="transition hover:text-[#4338ca] dark:hover:text-indigo-400"
           >
             {link.label}
           </FastLink>
@@ -73,7 +86,8 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
             <Link
               href="/signup"
               className={cn(
-                "inline-flex h-9 items-center rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-4 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 transition hover:from-indigo-500 hover:to-violet-500"
+                "inline-flex h-9 items-center rounded-full px-4 text-sm font-semibold",
+                buyerPremiumCtaClass
               )}
             >
               Join Premium

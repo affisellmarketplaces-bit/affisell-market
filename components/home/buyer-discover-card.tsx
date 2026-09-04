@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Shield, Sparkles, Star, TrendingUp } from "lucide-react"
 
 import type { BuyerDiscoverCard } from "@/lib/buyer-premium-home-content"
+import { BUYER_PREMIUM } from "@/lib/buyer-premium-home-tokens"
 import { cn } from "@/lib/utils"
 
 const ICONS = {
@@ -24,11 +25,24 @@ export function BuyerDiscoverCard({ card, className }: Props) {
     <Link
       href={card.href}
       className={cn(
-        "group block rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-950",
+        "group block rounded-2xl p-5 transition hover:-translate-y-0.5 dark:bg-slate-950",
         className
       )}
+      style={{
+        backgroundColor: BUYER_PREMIUM.discover.cardBg,
+        borderWidth: 1,
+        borderStyle: "solid",
+        borderColor: BUYER_PREMIUM.discover.cardBorder,
+        boxShadow: BUYER_PREMIUM.discover.cardShadow,
+      }}
     >
-      <div className="inline-flex items-center gap-1.5 rounded-full bg-violet-100 px-2.5 py-1 text-xs font-semibold text-violet-800 dark:bg-violet-950/60 dark:text-violet-200">
+      <div
+        className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
+        style={{
+          backgroundColor: BUYER_PREMIUM.badge.cardBg,
+          color: BUYER_PREMIUM.badge.cardText,
+        }}
+      >
         <Icon className="size-3.5 shrink-0" aria-hidden />
         {card.title}
       </div>
@@ -48,7 +62,12 @@ export function BuyerDiscoverCard({ card, className }: Props) {
           </div>
         ))}
       </div>
-      <p className="mt-4 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{card.subtitle}</p>
+      <p
+        className="mt-4 text-xs leading-relaxed dark:text-slate-400"
+        style={{ color: BUYER_PREMIUM.text.muted }}
+      >
+        {card.subtitle}
+      </p>
     </Link>
   )
 }

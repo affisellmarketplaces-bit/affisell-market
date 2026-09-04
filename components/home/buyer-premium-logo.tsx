@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import { BUYER_PREMIUM } from "@/lib/buyer-premium-home-tokens"
 
 type Props = {
   className?: string
@@ -10,13 +11,22 @@ export function BuyerPremiumLogo({ className, showWordmark = true }: Props) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
       <span
-        className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 via-indigo-500 to-blue-600 text-sm font-black text-white shadow-md shadow-indigo-500/25"
+        className="flex size-9 shrink-0 items-center justify-center rounded-xl text-sm font-black text-white"
+        style={{
+          background: BUYER_PREMIUM.logo.gradient,
+          boxShadow: BUYER_PREMIUM.logo.shadow,
+        }}
         aria-hidden
       >
         A
       </span>
       {showWordmark ? (
-        <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Affisell</span>
+        <span
+          className="text-lg font-bold tracking-tight dark:text-white"
+          style={{ color: BUYER_PREMIUM.text.heading }}
+        >
+          Affisell
+        </span>
       ) : null}
     </span>
   )

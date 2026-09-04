@@ -7,6 +7,7 @@ import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExpl
 import { HomeBelowFoldRadars } from "@/components/home/home-below-fold-radars"
 import { HomePageWarmup } from "@/components/home/home-page-warmup"
 import { CatalogSkeleton } from "@/components/skeletons/CatalogSkeleton"
+import { BUYER_PREMIUM } from "@/lib/buyer-premium-home-tokens"
 
 async function CatalogFallback() {
   const t = await getTranslations("home")
@@ -25,7 +26,10 @@ function HeroFallback() {
 /** Buyer home — hero + catalogue load in parallel Suspense (no serial waterfall). */
 export async function HomePage() {
   return (
-    <main className="mx-auto w-full min-w-0 max-w-7xl space-y-4 overflow-x-clip px-3 py-3 pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] sm:space-y-6 sm:px-6 sm:py-6 md:pb-8">
+    <main
+      className="mx-auto w-full min-w-0 max-w-7xl space-y-4 overflow-x-clip px-3 py-3 pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] sm:space-y-6 sm:px-6 sm:py-6 md:pb-8"
+      style={{ backgroundColor: BUYER_PREMIUM.pageBg }}
+    >
       <HomePageWarmup />
       <Suspense fallback={<HeroFallback />}>
         <BuyerHeroBlock />

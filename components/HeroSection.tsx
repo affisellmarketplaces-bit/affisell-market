@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { BuyerHeroSearch } from "@/components/BuyerHeroSearch"
 import { fadeSlideUp, motionTransition } from "@/lib/motion-presets"
 import { BUYER_PREMIUM_TRUST_PILLS } from "@/lib/buyer-premium-home-content"
+import { BUYER_PREMIUM } from "@/lib/buyer-premium-home-tokens"
 import { cn } from "@/lib/utils"
 
 type Variant = "buyer" | "creators" | "partners"
@@ -22,14 +23,33 @@ function BuyerPremiumHero() {
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-[1.75rem] border border-violet-300/30 px-4 py-10 sm:px-8 sm:py-14 md:py-16",
-        "bg-gradient-to-br from-[#ddd6fe] via-[#c4b5fd] to-[#a5b4fc]"
+        "relative overflow-hidden rounded-[1.75rem] px-4 py-10 sm:px-8 sm:py-14 md:py-16"
       )}
+      style={{
+        background: BUYER_PREMIUM.hero.gradient,
+        borderWidth: 1,
+        borderStyle: "solid",
+        borderColor: BUYER_PREMIUM.hero.border,
+        boxShadow: "0 20px 50px rgba(124, 58, 237, 0.18)",
+      }}
     >
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <div className="absolute -left-20 top-0 h-64 w-64 rounded-full bg-fuchsia-400/30 blur-3xl" />
-        <div className="absolute -right-16 bottom-0 h-72 w-72 rounded-full bg-indigo-500/25 blur-3xl" />
-        <div className="absolute left-1/2 top-8 h-40 w-[80%] -translate-x-1/2 rounded-full bg-white/25 blur-2xl" />
+        <div
+          className="absolute -left-24 -top-10 h-[22rem] w-[22rem] rounded-full blur-3xl"
+          style={{ backgroundColor: BUYER_PREMIUM.hero.orbLeft }}
+        />
+        <div
+          className="absolute -bottom-20 -right-20 h-[24rem] w-[24rem] rounded-full blur-3xl"
+          style={{ backgroundColor: BUYER_PREMIUM.hero.orbRight }}
+        />
+        <div
+          className="absolute left-1/2 top-[18%] h-56 w-[min(92%,36rem)] -translate-x-1/2 rounded-full blur-3xl"
+          style={{ backgroundColor: BUYER_PREMIUM.hero.orbCenter }}
+        />
+        <div
+          className="absolute left-1/2 top-6 h-32 w-[70%] -translate-x-1/2 rounded-full blur-2xl"
+          style={{ backgroundColor: BUYER_PREMIUM.hero.shine }}
+        />
       </div>
 
       <motion.div
@@ -39,15 +59,30 @@ function BuyerPremiumHero() {
         animate="visible"
         transition={motionTransition}
       >
-        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/70 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm backdrop-blur-md">
-          <Shield className="size-3.5 text-indigo-600" aria-hidden />
+        <div
+          className="mb-5 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-md"
+          style={{
+            backgroundColor: BUYER_PREMIUM.badge.heroBg,
+            borderWidth: 1,
+            borderStyle: "solid",
+            borderColor: BUYER_PREMIUM.badge.heroBorder,
+            color: BUYER_PREMIUM.badge.heroText,
+          }}
+        >
+          <Shield className="size-3.5" style={{ color: BUYER_PREMIUM.cta.bg }} aria-hidden />
           {t("badge")}
         </div>
 
-        <h1 className="text-balance text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl md:text-[2.65rem] md:leading-[1.12]">
+        <h1
+          className="text-balance text-3xl font-bold tracking-tight sm:text-4xl md:text-[2.65rem] md:leading-[1.12]"
+          style={{ color: BUYER_PREMIUM.text.heading }}
+        >
           {t("titlePremium")}
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-pretty text-sm leading-relaxed text-slate-700 sm:text-base">
+        <p
+          className="mx-auto mt-4 max-w-2xl text-pretty text-sm leading-relaxed sm:text-base"
+          style={{ color: BUYER_PREMIUM.text.body }}
+        >
           {t("subPremium")}
         </p>
 
@@ -59,9 +94,19 @@ function BuyerPremiumHero() {
           {BUYER_PREMIUM_TRUST_PILLS.map((label) => (
             <li
               key={label}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm backdrop-blur-sm"
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-sm"
+              style={{
+                backgroundColor: BUYER_PREMIUM.trust.pillBg,
+                borderWidth: 1,
+                borderStyle: "solid",
+                borderColor: BUYER_PREMIUM.trust.pillBorder,
+                color: BUYER_PREMIUM.trust.pillText,
+              }}
             >
-              <span className="flex size-4 items-center justify-center rounded-full bg-emerald-500 text-white">
+              <span
+                className="flex size-4 items-center justify-center rounded-full text-white"
+                style={{ backgroundColor: BUYER_PREMIUM.trust.check }}
+              >
                 <Check className="size-2.5" strokeWidth={3} aria-hidden />
               </span>
               {label}
