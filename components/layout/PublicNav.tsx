@@ -26,6 +26,10 @@ import { NavHeaderSearchDeferred } from "@/components/nav/nav-header-search-defe
 import { CommandKTriggerDeferred } from "@/components/navigation/command-k-trigger-deferred"
 import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
+import {
+  BuyerPremiumPublicNav,
+  resolveBuyerPremiumSignInHref,
+} from "@/components/home/buyer-premium-public-nav"
 import { Link as LocaleLink, usePathname } from "@/i18n/navigation"
 import { buttonVariants } from "@/components/ui/button"
 import { useBuyerCartCount } from "@/hooks/use-buyer-cart-count"
@@ -343,6 +347,9 @@ export function PublicNav() {
 
   return (
     <>
+      {onHome && mode !== "transaction" && mode !== "account" ? (
+        <BuyerPremiumPublicNav signInHref={resolveBuyerPremiumSignInHref(isBuyerContext)} />
+      ) : null}
       {mode === "transaction" ? (
         <nav
           aria-label="Main"
@@ -369,7 +376,10 @@ export function PublicNav() {
       ) : (
         <nav
           aria-label="Main"
-          className="affisell-public-nav mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_minmax(17rem,1.15fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
+          className={cn(
+            "affisell-public-nav mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_minmax(17rem,1.15fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2",
+            onHome && "lg:hidden"
+          )}
         >
           {mobileMinimalBar}
           {desktopLogo}

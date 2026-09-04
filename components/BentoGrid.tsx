@@ -1,69 +1,34 @@
-import { getTranslations } from "next-intl/server"
-import { Bot } from "lucide-react"
+import Link from "next/link"
+import { ArrowUpRight } from "lucide-react"
 
-import { AnimatedCounter } from "@/components/AnimatedCounter"
-import { BentoCard } from "@/components/marketing/bento-card"
-import { StaggerIn, StaggerItem } from "@/components/marketing/stagger-in"
-import { FeaturedStoresCarousel } from "@/components/FeaturedStoresCarousel"
-import { TrendingSparkline } from "@/components/TrendingSparkline"
-import { Link } from "@/i18n/navigation"
-import {
-  loadFeaturedShopsCached,
-  loadHomeBestSellers7dCached,
-  loadHomeMarketplaceStatsCached,
-} from "@/lib/public-home-cache"
+import { BuyerDiscoverCard } from "@/components/home/buyer-discover-card"
+import { BUYER_DISCOVER_CARDS } from "@/lib/buyer-premium-home-content"
+import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 
+/** Buyer premium Discover bento — 4 cards per mockup audit. */
 export async function BentoGrid() {
-  const t = await getTranslations("home.bento")
-  const [stats, shops, trending] = await Promise.all([
-    loadHomeMarketplaceStatsCached(),
-    loadFeaturedShopsCached(6),
-    loadHomeBestSellers7dCached(4),
-  ])
-
   return (
-    <StaggerIn className="grid gap-3 md:grid-cols-2 lg:grid-cols-4 md:gap-4">
-      <StaggerItem>
-        <BentoCard
-          variant="glass-indigo"
-          title={t("agentShopping.title")}
-          description={t("agentShopping.description")}
+    <section
+      className="rounded-[1.75rem] border border-slate-200/80 bg-white px-4 py-6 shadow-sm sm:px-6 sm:py-8 dark:border-slate-800 dark:bg-slate-950"
+      aria-labelledby="buyer-discover-heading"
+    >
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <h2 id="buyer-discover-heading" className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+          Discover
+        </h2>
+        <Link
+          href={PUBLIC_MARKETPLACE_BROWSE_PATH}
+          className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 transition hover:text-indigo-700 dark:text-indigo-400"
         >
-          <Link
-            href="/agent"
-            className="relative inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-violet-100 backdrop-blur-md transition hover:bg-white/15 hover:text-white"
-          >
-            <Bot className="h-4 w-4" aria-hidden />
-            AI
-          </Link>
-        </BentoCard>
-      </StaggerItem>
-      <StaggerItem className="md:col-span-2 lg:col-span-1">
-        <BentoCard
-          variant="glass-indigo"
-          title={t("featuredStores.title")}
-          description={t("featuredStores.description")}
-          colSpan="wide"
-        >
-          <FeaturedStoresCarousel shops={shops} />
-        </BentoCard>
-      </StaggerItem>
-      <StaggerItem>
-        <BentoCard
-          variant="glass-indigo"
-          title={t("liveCatalog.title")}
-          description={t("liveCatalog.description")}
-        >
-          <p className="relative text-3xl font-bold text-violet-200">
-            <AnimatedCounter end={stats.productCount} suffix={t("liveCatalog.counterSuffix")} />
-          </p>
-        </BentoCard>
-      </StaggerItem>
-      <StaggerItem>
-        <BentoCard variant="glass-indigo" title={t("trending.title")} description={t("trending.description")}>
-          <TrendingSparkline items={trending} />
-        </BentoCard>
-      </StaggerItem>
-    </StaggerIn>
+          View all
+          <ArrowUpRight className="size-4" aria-hidden />
+        </Link>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {BUYER_DISCOVER_CARDS.map((card) => (
+          <BuyerDiscoverCard key={card.id} card={card} />
+        ))}
+      </div>
+    </section>
   )
 }

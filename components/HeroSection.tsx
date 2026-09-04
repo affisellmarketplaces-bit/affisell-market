@@ -1,10 +1,12 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { Check, Shield } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import NextLink from "next/link"
+import { BuyerHeroSearch } from "@/components/BuyerHeroSearch"
 import { fadeSlideUp, motionTransition } from "@/lib/motion-presets"
+import { BUYER_PREMIUM_TRUST_PILLS } from "@/lib/buyer-premium-home-content"
 import { cn } from "@/lib/utils"
 
 type Variant = "buyer" | "creators" | "partners"
@@ -14,9 +16,74 @@ type Props = {
   className?: string
 }
 
+function BuyerPremiumHero() {
+  const t = useTranslations("home.hero")
+
+  return (
+    <section
+      className={cn(
+        "relative overflow-hidden rounded-[1.75rem] border border-violet-300/30 px-4 py-10 sm:px-8 sm:py-14 md:py-16",
+        "bg-gradient-to-br from-[#ddd6fe] via-[#c4b5fd] to-[#a5b4fc]"
+      )}
+    >
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="absolute -left-20 top-0 h-64 w-64 rounded-full bg-fuchsia-400/30 blur-3xl" />
+        <div className="absolute -right-16 bottom-0 h-72 w-72 rounded-full bg-indigo-500/25 blur-3xl" />
+        <div className="absolute left-1/2 top-8 h-40 w-[80%] -translate-x-1/2 rounded-full bg-white/25 blur-2xl" />
+      </div>
+
+      <motion.div
+        className="relative mx-auto max-w-3xl text-center"
+        variants={fadeSlideUp}
+        initial="hidden"
+        animate="visible"
+        transition={motionTransition}
+      >
+        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/70 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm backdrop-blur-md">
+          <Shield className="size-3.5 text-indigo-600" aria-hidden />
+          {t("badge")}
+        </div>
+
+        <h1 className="text-balance text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl md:text-[2.65rem] md:leading-[1.12]">
+          {t("titlePremium")}
+        </h1>
+        <p className="mx-auto mt-4 max-w-2xl text-pretty text-sm leading-relaxed text-slate-700 sm:text-base">
+          {t("subPremium")}
+        </p>
+
+        <div className="mx-auto mt-8 max-w-2xl">
+          <BuyerHeroSearch premium />
+        </div>
+
+        <ul className="mt-6 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+          {BUYER_PREMIUM_TRUST_PILLS.map((label) => (
+            <li
+              key={label}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm backdrop-blur-sm"
+            >
+              <span className="flex size-4 items-center justify-center rounded-full bg-emerald-500 text-white">
+                <Check className="size-2.5" strokeWidth={3} aria-hidden />
+              </span>
+              {label}
+            </li>
+          ))}
+        </ul>
+      </motion.div>
+    </section>
+  )
+}
+
 export function HeroSection({ variant, className }: Props) {
   const ns = variant === "buyer" ? "home.hero" : `${variant}.hero`
   const t = useTranslations(ns)
+
+  if (variant === "buyer") {
+    return (
+      <div className={className}>
+        <BuyerPremiumHero />
+      </div>
+    )
+  }
 
   const gradient =
     variant === "partners"
@@ -46,33 +113,21 @@ export function HeroSection({ variant, className }: Props) {
         transition={motionTransition}
       >
         <h1 className="text-4xl font-black tracking-tighter leading-[0.95] sm:text-5xl md:text-6xl">
-          {variant === "buyer" ? (
-            <>
-              <span className="block">{t("title")}</span>
-              <span className="block bg-gradient-to-r from-violet-200 via-fuchsia-200 to-sky-200 bg-[length:200%_auto] bg-clip-text text-transparent animate-[gradient-shift_6s_ease_infinite]">
-                {t("titleLine2Prefix")}
-                {t("titleHighlight")}
-              </span>
-            </>
-          ) : (
-            t("title")
-          )}
+          {t("title")}
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-sm text-violet-100/95 sm:text-base">{t("sub")}</p>
-        {variant !== "buyer" ? (
-          <div className="mt-8">
-            <NextLink
-              href={
-                variant === "creators"
-                  ? "/signup/affiliate?role=creator"
-                  : "/signup/supplier?role=supplier"
-              }
-              className="inline-flex rounded-2xl bg-[#6366F1] px-8 py-3.5 text-base font-semibold shadow-lg transition-all duration-200 hover:scale-[1.02] hover:bg-[#5558E3] hover:shadow-xl"
-            >
-              {t("cta")}
-            </NextLink>
-          </div>
-        ) : null}
+        <div className="mt-8">
+          <a
+            href={
+              variant === "creators"
+                ? "/signup/affiliate?role=creator"
+                : "/signup/supplier?role=supplier"
+            }
+            className="inline-flex rounded-2xl bg-[#6366F1] px-8 py-3.5 text-base font-semibold shadow-lg transition-all duration-200 hover:scale-[1.02] hover:bg-[#5558E3] hover:shadow-xl"
+          >
+            {t("cta")}
+          </a>
+        </div>
       </motion.div>
     </section>
   )

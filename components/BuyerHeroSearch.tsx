@@ -6,8 +6,13 @@ import { Search } from "lucide-react"
 import { type FormEvent, useState } from "react"
 
 import { navigateBuyerHomeCatalog } from "@/lib/marketplace-catalog-nav.client"
+import { cn } from "@/lib/utils"
 
-export function BuyerHeroSearch() {
+type Props = {
+  premium?: boolean
+}
+
+export function BuyerHeroSearch({ premium = false }: Props) {
   const t = useTranslations("home.hero")
   const router = useRouter()
   const [q, setQ] = useState("")
@@ -23,7 +28,10 @@ export function BuyerHeroSearch() {
       <label htmlFor="buyer-hero-search" className="sr-only">
         {t("searchLabel")}
       </label>
-      <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400" aria-hidden />
+      <Search
+        className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400"
+        aria-hidden
+      />
       <input
         id="buyer-hero-search"
         name="q"
@@ -31,19 +39,35 @@ export function BuyerHeroSearch() {
         enterKeyHint="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder={t("searchPlaceholder")}
-        className="affisell-premium-input h-10 w-full min-w-0 rounded-[1.35rem] pl-11 pr-[4.75rem] text-sm text-zinc-900 shadow-lg outline-none focus:ring-4 focus:ring-[#6366F1]/30 sm:h-14 sm:pl-12 sm:pr-28 sm:text-base dark:text-zinc-50"
+        placeholder={premium ? t("searchPlaceholderPremium") : t("searchPlaceholder")}
+        className={cn(
+          "h-12 w-full min-w-0 rounded-full border border-white/80 bg-white pl-11 text-sm text-zinc-900 shadow-lg outline-none placeholder:text-zinc-400 focus:ring-4 focus:ring-indigo-500/20 sm:h-14 sm:text-base dark:text-zinc-50",
+          premium ? "pr-[9.5rem] sm:pr-[11.5rem]" : "pr-[4.75rem] sm:pr-28"
+        )}
       />
-      <kbd className="pointer-events-none absolute right-[4.25rem] top-1/2 hidden -translate-y-1/2 rounded border bg-zinc-50 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 md:inline">
-        ⌘K
-      </kbd>
+      {!premium ? (
+        <kbd className="pointer-events-none absolute right-[4.25rem] top-1/2 hidden -translate-y-1/2 rounded border bg-zinc-50 px-1.5 py-0.5 font-mono text-[10px] text-zinc-500 md:inline">
+          ⌘K
+        </kbd>
+      ) : null}
       <button
         type="submit"
-        className="affisell-premium-cta absolute right-1.5 top-1/2 flex h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-[1.05rem] px-3 text-sm font-semibold text-white transition-all duration-200 active:scale-95 sm:right-2 sm:h-10 sm:min-w-0 sm:px-5"
-        aria-label={t("searchSubmit")}
+        className={cn(
+          "absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full font-semibold text-white transition-all duration-200 active:scale-95",
+          premium
+            ? "h-10 bg-gradient-to-r from-indigo-600 to-violet-600 px-4 text-xs shadow-md hover:from-indigo-500 hover:to-violet-500 sm:h-11 sm:px-5 sm:text-sm"
+            : "affisell-premium-cta h-11 min-w-11 rounded-[1.05rem] px-3 text-sm sm:right-2 sm:h-10 sm:min-w-0 sm:px-5"
+        )}
+        aria-label={premium ? t("searchSubmitPremium") : t("searchSubmit")}
       >
-        <Search className="h-4 w-4 sm:hidden" aria-hidden />
-        <span className="hidden sm:inline">{t("searchSubmit")}</span>
+        {premium ? (
+          <span>{t("searchSubmitPremium")}</span>
+        ) : (
+          <>
+            <Search className="h-4 w-4 sm:hidden" aria-hidden />
+            <span className="hidden sm:inline">{t("searchSubmit")}</span>
+          </>
+        )}
       </button>
     </form>
   )
