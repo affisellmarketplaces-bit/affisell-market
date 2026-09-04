@@ -14,9 +14,8 @@ export function resolvePublicNavActive(
   explorerHash: boolean
 ): PublicNavActiveState {
   const bare = pathname.split("?")[0] ?? pathname
-  const onHomeRoute = bare === "/" || bare === "/fr"
-  const onExplorerSection = onHomeRoute && explorerHash
-  const onHome = onHomeRoute && !onExplorerSection
+  const onExplorerSection = pathname === "/" && explorerHash
+  const onHome = pathname === "/" && !onExplorerSection
   const onMarketplaceBrowse =
     pathname === PUBLIC_MARKETPLACE_BROWSE_PATH ||
     pathname === "/marketplace" ||

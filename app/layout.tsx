@@ -14,7 +14,6 @@ import { PWA_SPLASH_IMAGES } from "@/lib/pwa-splash-images"
 import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
 import { slimClientMessagesForDedicatedStorefront } from "@/lib/i18n-slim-client-messages"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
-import { isBuyerPremiumHomePathname } from "@/lib/buyer-premium-home-route"
 import { isLegionStorefrontPathname } from "@/lib/legion/username"
 import ClientGuardInitDeferred from "@/components/security/client-guard-init-deferred"
 import { DonaWidgetsDeferred } from "@/components/dona/dona-widgets-deferred"
@@ -59,7 +58,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     pathname.startsWith("/dashboard/admin") || pathname.startsWith("/admin")
   const isDedicatedStorefront = isCustomDomain || isLegionStorefront
   const leanPlatformChrome = isDedicatedStorefront || isAdminOpsSurface
-  const buyerPremiumHome = !leanPlatformChrome && isBuyerPremiumHomePathname(pathname)
   /**
    * Slim i18n only on custom-domain shops (payload). Légion keeps full messages —
    * otherwise residual client UI (gallery, cookies, etc.) throws MISSING_MESSAGE.
@@ -73,7 +71,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body
         className={cn(
           "affisell-mobile-shell affisell-epoxy-atmosphere flex min-h-screen min-h-dvh flex-col text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50",
-          buyerPremiumHome && "affisell-buyer-premium-home",
           isDedicatedStorefront && "affisell-dedicated-storefront affisell-mobile-dock-off",
           isAdminOpsSurface && "affisell-admin-ops-shell"
         )}

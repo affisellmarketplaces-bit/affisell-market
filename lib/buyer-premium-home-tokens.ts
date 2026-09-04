@@ -12,17 +12,14 @@ export const BUYER_PREMIUM = {
     nav: "#334155",
   },
   hero: {
-    /** Document canvas — edge-to-edge Affisell violet (nav + hero zone) */
-    pageAtmosphere:
-      "radial-gradient(120% 95% at 100% 0%, rgba(147, 51, 234, 0.72) 0%, transparent 55%), radial-gradient(110% 85% at 0% 0%, rgba(240, 171, 252, 0.65) 0%, transparent 52%), radial-gradient(95% 75% at 50% 18%, rgba(167, 139, 250, 0.85) 0%, transparent 58%), linear-gradient(180deg, #ede9fe 0%, #ddd6fe 14%, #c4b5fd 30%, #a78bfa 46%, #9333ea 58%, #7e22ce 64%, #f8fafc 74%, #f8fafc 100%)",
-    /** Base mesh — lavender → saturated violet (mockup full-bleed intensity) */
+    /** Base mesh — lavender → saturated violet (mockup intensity) */
     gradient:
-      "linear-gradient(128deg, #f5f3ff 0%, #ede9fe 10%, #ddd6fe 24%, #c4b5fd 42%, #a78bfa 62%, #9333ea 88%, #7e22ce 100%)",
+      "linear-gradient(128deg, #f5f3ff 0%, #ede9fe 12%, #ddd6fe 28%, #c4b5fd 48%, #a78bfa 68%, #9333ea 92%)",
     border: "rgba(167, 139, 250, 0.55)",
-    orbLeft: "rgba(217, 70, 239, 0.48)",
-    orbRight: "rgba(79, 70, 229, 0.44)",
-    orbCenter: "rgba(67, 56, 202, 0.28)",
-    shine: "rgba(255, 255, 255, 0.38)",
+    orbLeft: "rgba(217, 70, 239, 0.42)",
+    orbRight: "rgba(79, 70, 229, 0.38)",
+    orbCenter: "rgba(67, 56, 202, 0.22)",
+    shine: "rgba(255, 255, 255, 0.35)",
   },
   badge: {
     heroBg: "rgba(255, 255, 255, 0.78)",

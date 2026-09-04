@@ -21,7 +21,37 @@ function BuyerPremiumHero() {
   const t = useTranslations("home.hero")
 
   return (
-    <section className="relative px-0 py-8 sm:py-10 md:py-12">
+    <section
+      className={cn(
+        "relative overflow-hidden rounded-[1.75rem] px-4 py-10 sm:px-8 sm:py-14 md:py-16"
+      )}
+      style={{
+        background: BUYER_PREMIUM.hero.gradient,
+        borderWidth: 1,
+        borderStyle: "solid",
+        borderColor: BUYER_PREMIUM.hero.border,
+        boxShadow: "0 20px 50px rgba(124, 58, 237, 0.18)",
+      }}
+    >
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div
+          className="absolute -left-24 -top-10 h-[22rem] w-[22rem] rounded-full blur-3xl"
+          style={{ backgroundColor: BUYER_PREMIUM.hero.orbLeft }}
+        />
+        <div
+          className="absolute -bottom-20 -right-20 h-[24rem] w-[24rem] rounded-full blur-3xl"
+          style={{ backgroundColor: BUYER_PREMIUM.hero.orbRight }}
+        />
+        <div
+          className="absolute left-1/2 top-[18%] h-56 w-[min(92%,36rem)] -translate-x-1/2 rounded-full blur-3xl"
+          style={{ backgroundColor: BUYER_PREMIUM.hero.orbCenter }}
+        />
+        <div
+          className="absolute left-1/2 top-6 h-32 w-[70%] -translate-x-1/2 rounded-full blur-2xl"
+          style={{ backgroundColor: BUYER_PREMIUM.hero.shine }}
+        />
+      </div>
+
       <motion.div
         className="relative mx-auto max-w-3xl text-center"
         variants={fadeSlideUp}
