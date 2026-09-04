@@ -7,7 +7,6 @@ import { useTranslations } from "next-intl"
 import { BuyerPremiumLogo } from "@/components/home/buyer-premium-logo"
 import { FastLink } from "@/components/navigation/fast-link"
 import { Link as LocaleLink } from "@/i18n/navigation"
-import { BUYER_PREMIUM_NAV_BADGE } from "@/lib/buyer-premium-home-content"
 import { BUYER_PREMIUM, buyerPremiumCtaClass } from "@/lib/buyer-premium-home-tokens"
 import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-redirect"
 import { cn } from "@/lib/utils"
@@ -37,18 +36,6 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
         <LocaleLink href="/" className="shrink-0">
           <BuyerPremiumLogo />
         </LocaleLink>
-        <span
-          className="hidden max-w-[14rem] truncate rounded-full px-2.5 py-1 text-[10px] font-medium leading-tight xl:inline xl:max-w-none xl:text-[11px]"
-          style={{
-            backgroundColor: BUYER_PREMIUM.badge.navBg,
-            borderWidth: 1,
-            borderStyle: "solid",
-            borderColor: BUYER_PREMIUM.badge.navBorder,
-            color: BUYER_PREMIUM.badge.navText,
-          }}
-        >
-          {BUYER_PREMIUM_NAV_BADGE}
-        </span>
       </div>
 
       <div

@@ -1,7 +1,4 @@
-/** Static copy + imagery — buyer premium home (audit ChatGPT mockup). */
-
-export const BUYER_PREMIUM_NAV_BADGE =
-  "Buyer • Premium version • corrigée selon audit ChatGPT" as const
+/** Static copy + imagery — buyer premium home (audit mockup). */
 
 export type BuyerDiscoverCard = {
   id: string
