@@ -103,6 +103,8 @@ type MarketplaceViewProps = {
   audience?: "affiliate" | "customer"
   /** Home embed: hide page header (hero is above). */
   embedded?: boolean
+  /** Premium home: chrome rendered above — catalog grid only. */
+  premiumHomeChrome?: boolean
   /** Home SSR: skip first client fetch for default catalog + categories. */
   initialBrowse?: HomeMarketplaceShell
 }
@@ -111,6 +113,7 @@ export function MarketplaceView({
   basePath = "/shops/browse",
   audience = "customer",
   embedded = false,
+  premiumHomeChrome = false,
   initialBrowse,
 }: MarketplaceViewProps = {}) {
   const t = useTranslations("marketplace.browse")
@@ -347,7 +350,7 @@ export function MarketplaceView({
 
   return (
     <Shell
-      id={embedded ? "explorer" : undefined}
+      id={embedded && !premiumHomeChrome ? "explorer" : undefined}
       aria-label={embedded ? t("ariaEmbedded") : undefined}
       className={cn(
         "text-zinc-900 dark:text-zinc-50",
@@ -360,7 +363,12 @@ export function MarketplaceView({
         basePath={basePath}
         enabled={audience === "customer"}
       />
-      <div className={cn("mx-auto max-w-7xl", embedded ? "py-2 md:py-3" : "px-4 py-8 md:px-8 md:py-10")}>
+      <div
+        className={cn(
+          "mx-auto max-w-7xl",
+          embedded ? (premiumHomeChrome ? "py-0" : "py-2 md:py-3") : "px-4 py-8 md:px-8 md:py-10"
+        )}
+      >
         {!embedded ? (
         <header className={affisellBrand.headerShell}>
           <div className={affisellBrand.headerMesh} aria-hidden />
@@ -466,6 +474,7 @@ export function MarketplaceView({
           </div>
         ) : null}
 
+        {!(embedded && isCustomerBrowse && premiumHomeChrome) ? (
         <div className={embedded && isCustomerBrowse ? "hidden md:block" : undefined}>
           <MarketplaceDepartmentRail
             activeCategoryId={categoryId}
@@ -474,7 +483,8 @@ export function MarketplaceView({
             categoriesPayload={categoriesPayload}
           />
         </div>
-        {isCustomerBrowse ? (
+        ) : null}
+        {isCustomerBrowse && !premiumHomeChrome ? (
           <MarketplaceBrowseDepartmentsRail
             activeCategoryId={categoryId}
             catalogBasePath={basePath}
@@ -528,7 +538,12 @@ export function MarketplaceView({
             embedded ? "mt-2 md:mt-4" : "mt-4 md:mt-8"
           )}
         >
-          <aside className="hidden w-full shrink-0 flex-col gap-4 lg:sticky lg:top-[5.25rem] lg:flex lg:w-[min(19rem,100%)] lg:max-w-[19rem] lg:self-start">
+          <aside
+            className={cn(
+              "hidden w-full shrink-0 flex-col gap-4 lg:sticky lg:top-[5.25rem] lg:flex lg:w-[min(19rem,100%)] lg:max-w-[19rem] lg:self-start",
+              premiumHomeChrome && "!hidden"
+            )}
+          >
             <CategoryTreeExplorer
               onCategoryClick={handleCategoryClick}
               onPrefetchCategory={prefetchCategory}
@@ -552,7 +567,7 @@ export function MarketplaceView({
           </aside>
 
           <div className="min-w-0 flex-1">
-            {embedded && isCustomerBrowse ? (
+            {embedded && isCustomerBrowse && !premiumHomeChrome ? (
               <div className="hidden md:block">
                 <BuyerRegionBanner className="mb-2 sm:mb-4" variant="compact" />
                 <div className="mb-2 sm:mb-4">
@@ -565,7 +580,7 @@ export function MarketplaceView({
                 />
               </div>
             ) : null}
-            {mobileCatalogShell ? (
+            {mobileCatalogShell && !premiumHomeChrome ? (
               <StickyFilterBarPro
                 catalogBasePath={basePath}
                 activeCategoryId={categoryId}

@@ -3,8 +3,8 @@
  * Keep in sync when adjusting hero / nav / discover intensity.
  */
 export const BUYER_PREMIUM = {
-  /** Page canvas behind hero + discover */
-  pageBg: "#f8fafc",
+  /** Page canvas — saturated Affisell violet (ref-full-decoupage) */
+  pageBg: "#6B4EFF",
   text: {
     heading: "#0f172a",
     body: "#475569",
@@ -12,9 +12,8 @@ export const BUYER_PREMIUM = {
     nav: "#334155",
   },
   hero: {
-    /** Base mesh — lavender → saturated violet (mockup intensity) */
-    gradient:
-      "linear-gradient(128deg, #f5f3ff 0%, #ede9fe 12%, #ddd6fe 28%, #c4b5fd 48%, #a78bfa 68%, #9333ea 92%)",
+    /** Saturated violet → indigo (ref-full-decoupage hero) */
+    gradient: "linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)",
     border: "rgba(167, 139, 250, 0.55)",
     orbLeft: "rgba(217, 70, 239, 0.42)",
     orbRight: "rgba(79, 70, 229, 0.38)",

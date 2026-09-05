@@ -15,7 +15,7 @@ export function MarketplaceViewSuspense({ shell }: Props) {
   const hasProducts = shell.products.length > 0
   return (
     <Suspense fallback={hasProducts ? null : <HomeCatalogSkeleton />}>
-      <MarketplaceView basePath="/" audience="customer" embedded initialBrowse={shell} />
+      <MarketplaceView basePath="/" audience="customer" embedded premiumHomeChrome initialBrowse={shell} />
     </Suspense>
   )
 }
