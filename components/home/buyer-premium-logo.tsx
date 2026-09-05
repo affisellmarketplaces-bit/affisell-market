@@ -21,7 +21,10 @@ export function BuyerPremiumLogo({ className, showWordmark = true }: Props) {
         A
       </span>
       {showWordmark ? (
-        <span className="text-lg font-bold tracking-tight text-[#1E1B4B]">
+        <span
+          className="text-lg font-bold tracking-tight dark:text-white"
+          style={{ color: BUYER_PREMIUM.text.heading }}
+        >
           Affisell
         </span>
       ) : null}

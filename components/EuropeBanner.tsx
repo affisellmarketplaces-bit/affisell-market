@@ -23,7 +23,7 @@ function Badge({
   return (
     <div className="flex min-w-[3rem] flex-col items-center rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5">
       <span className="text-base font-bold tabular-nums leading-none text-white">{value}</span>
-      <span className="mt-0.5 text-[8px] font-semibold uppercase tracking-[0.18em] text-cyan-100">
+      <span className="mt-0.5 text-[8px] font-semibold uppercase tracking-[0.18em] text-cyan-200/80">
         {label}
       </span>
     </div>
@@ -54,13 +54,9 @@ export function EuropeBanner({ className }: Props) {
           <div>
             <p className="text-sm font-bold text-white">{t("title")}</p>
             {!usMarket ? (
-              <p className="text-xs" style={{ color: PREMIUM_MARKETPLACE_HOME.europeSubtitle }}>
-                {t("subtitle", { count: countryCount })}
-              </p>
+              <p className="text-xs text-violet-200/90">{t("subtitle", { count: countryCount })}</p>
             ) : (
-              <p className="text-xs" style={{ color: PREMIUM_MARKETPLACE_HOME.europeSubtitle }}>
-                {t("footnote")}
-              </p>
+              <p className="text-xs text-violet-200/90">{t("footnote")}</p>
             )}
           </div>
         </div>

@@ -60,10 +60,7 @@ function PremiumMarketplaceBody({
         <div className="min-w-0 flex-1 space-y-4">
           <EuropeBanner />
           <div className="flex flex-wrap items-center gap-2">
-            <MarketplaceShipsToChip
-              basePath="/"
-              className="!bg-[#EDE9FE] !text-[#5B21B6] !ring-violet-300"
-            />
+            <MarketplaceShipsToChip basePath="/" className="!bg-[#EDE9FE] !text-violet-900 !ring-violet-200" />
           </div>
           <ProductConditionFilterBar initialCounts={shell.offerRailCounts} />
           {discoverSlot}

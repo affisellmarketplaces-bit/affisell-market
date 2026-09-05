@@ -48,16 +48,9 @@ export function CategorySidebar({
           scroll={false}
           className={cn(
             "flex items-center gap-2 rounded-xl px-2 py-2.5 text-sm font-semibold transition",
-            allActive ? "" : "text-violet-50 hover:bg-white/10"
+            allActive ? "text-violet-900" : "text-violet-100 hover:bg-white/5"
           )}
-          style={
-            allActive
-              ? {
-                  backgroundColor: PREMIUM_MARKETPLACE_HOME.sidebarActive,
-                  color: PREMIUM_MARKETPLACE_HOME.sidebarActiveText,
-                }
-              : undefined
-          }
+          style={allActive ? { backgroundColor: PREMIUM_MARKETPLACE_HOME.sidebarActive } : undefined}
         >
           <span className="flex size-8 items-center justify-center rounded-full bg-violet-600 text-white">
             <LayoutGrid className="size-4" aria-hidden />
@@ -76,16 +69,9 @@ export function CategorySidebar({
               scroll={false}
               className={cn(
                 "flex items-center gap-2 rounded-xl px-2 py-2.5 text-sm font-semibold transition",
-                active ? "" : "text-violet-50 hover:bg-white/10"
+                active ? "text-violet-900" : "text-violet-100 hover:bg-white/5"
               )}
-              style={
-                active
-                  ? {
-                      backgroundColor: PREMIUM_MARKETPLACE_HOME.sidebarActive,
-                      color: PREMIUM_MARKETPLACE_HOME.sidebarActiveText,
-                    }
-                  : undefined
-              }
+              style={active ? { backgroundColor: PREMIUM_MARKETPLACE_HOME.sidebarActive } : undefined}
             >
               <CategoryGlyph name={cat.name} slug={cat.slug} icon={cat.icon} size="sm" inSheet />
               <span className="min-w-0 flex-1 truncate">{cat.name}</span>

@@ -26,7 +26,6 @@ import { NavHeaderSearchDeferred } from "@/components/nav/nav-header-search-defe
 import { CommandKTriggerDeferred } from "@/components/navigation/command-k-trigger-deferred"
 import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
-import { BuyerPremiumLogo } from "@/components/home/buyer-premium-logo"
 import {
   BuyerPremiumPublicNav,
   resolveBuyerPremiumSignInHref,
@@ -136,13 +135,9 @@ export function PublicNav() {
         href="/"
         className="justify-self-center truncate px-1 text-center"
       >
-        {onHome ? (
-          <BuyerPremiumLogo className="justify-center" />
-        ) : (
-          <span className="affisell-logo-text affisell-brand-wordmark text-[1.05rem] font-black tracking-tight">
-            Affisell
-          </span>
-        )}
+        <span className="affisell-logo-text affisell-brand-wordmark text-[1.05rem] font-black tracking-tight">
+          Affisell
+        </span>
       </LocaleLink>
 
       <div className="flex shrink-0 items-center justify-end gap-1 max-[360px]:gap-0.5">
