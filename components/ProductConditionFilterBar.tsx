@@ -80,10 +80,13 @@ export function ProductConditionFilterBar({ basePath = "/", initialCounts, class
 
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
+      <div
+        className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-bold uppercase tracking-[0.16em]"
+        style={{ color: PREMIUM_MARKETPLACE_HOME.conditionLabel }}
+      >
         <span>Product condition</span>
-        <span className="hidden h-3 w-px bg-slate-200 sm:inline" aria-hidden />
-        <span className="text-slate-400">Filter by condition</span>
+        <span className="hidden h-3 w-px bg-slate-300 sm:inline" aria-hidden />
+        <span style={{ color: PREMIUM_MARKETPLACE_HOME.panelMuted }}>Filter by condition</span>
       </div>
       <div className="flex flex-wrap gap-2">
         {RAIL_MODES.map((mode) => {
@@ -109,7 +112,7 @@ export function ProductConditionFilterBar({ basePath = "/", initialCounts, class
                 disabled && "cursor-not-allowed opacity-45",
                 active
                   ? "text-white shadow-md"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200/90"
+                  : "bg-slate-100 text-slate-900 hover:bg-slate-200"
               )}
               style={active ? { backgroundColor: PREMIUM_MARKETPLACE_HOME.conditionActive } : undefined}
             >

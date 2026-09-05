@@ -11,14 +11,20 @@ export const BUYER_PREMIUM = {
     muted: "#64748b",
     nav: "#334155",
   },
+  /** Copy on saturated violet hero gradient — light text + shadow for WCAG on orbs */
+  heroText: {
+    heading: "#ffffff",
+    body: "rgba(255, 255, 255, 0.94)",
+    shadow: "0 1px 3px rgba(30, 27, 75, 0.45)",
+  },
   hero: {
     /** Saturated violet → indigo (ref-full-decoupage hero) */
     gradient: "linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)",
     border: "rgba(167, 139, 250, 0.55)",
-    orbLeft: "rgba(217, 70, 239, 0.42)",
-    orbRight: "rgba(79, 70, 229, 0.38)",
-    orbCenter: "rgba(67, 56, 202, 0.22)",
-    shine: "rgba(255, 255, 255, 0.35)",
+    orbLeft: "rgba(217, 70, 239, 0.28)",
+    orbRight: "rgba(79, 70, 229, 0.24)",
+    orbCenter: "rgba(67, 56, 202, 0.14)",
+    shine: "rgba(255, 255, 255, 0.12)",
   },
   badge: {
     heroBg: "rgba(255, 255, 255, 0.78)",

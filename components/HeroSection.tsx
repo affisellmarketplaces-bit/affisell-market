@@ -75,13 +75,19 @@ function BuyerPremiumHero() {
 
         <h1
           className="text-balance text-3xl font-bold tracking-tight sm:text-4xl md:text-[2.65rem] md:leading-[1.12]"
-          style={{ color: BUYER_PREMIUM.text.heading }}
+          style={{
+            color: BUYER_PREMIUM.heroText.heading,
+            textShadow: BUYER_PREMIUM.heroText.shadow,
+          }}
         >
           {t("titlePremium")}
         </h1>
         <p
           className="mx-auto mt-4 max-w-2xl text-pretty text-sm leading-relaxed sm:text-base"
-          style={{ color: BUYER_PREMIUM.text.body }}
+          style={{
+            color: BUYER_PREMIUM.heroText.body,
+            textShadow: BUYER_PREMIUM.heroText.shadow,
+          }}
         >
           {t("subPremium")}
         </p>

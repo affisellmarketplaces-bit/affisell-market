@@ -81,8 +81,8 @@ export function PopularDepartmentsBar({
               className={cn(
                 "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold transition",
                 active
-                  ? "bg-violet-100 text-violet-800 ring-1 ring-violet-300"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200/90"
+                  ? "bg-violet-100 text-violet-950 ring-1 ring-violet-400"
+                  : "bg-slate-100 text-slate-900 hover:bg-slate-200"
               )}
               lang={locale}
             >
