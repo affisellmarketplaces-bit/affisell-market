@@ -12,10 +12,10 @@ import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-re
 import { cn } from "@/lib/utils"
 
 const NAV_LINKS = [
-  { href: "/shops", label: "Stores" },
-  { href: "/#explorer", label: "Products" },
-  { href: "/legal/transparence", label: "Protection" },
-  { href: "/help/faq", label: "Help" },
+  { href: "/shops", label: "Stores", emphasis: "secondary" as const },
+  { href: "/#explorer", label: "Products", emphasis: "primary" as const },
+  { href: "/legal/transparence", label: "Protection", emphasis: "primary" as const },
+  { href: "/help/faq", label: "Help", emphasis: "secondary" as const },
 ] as const
 
 type Props = {
@@ -38,13 +38,18 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
         </LocaleLink>
       </div>
 
-      <div className="flex items-center gap-6 text-sm font-semibold">
+      <div className="flex items-center gap-6 text-sm">
         {NAV_LINKS.map((link) => (
           <FastLink
             key={link.href}
             href={link.href}
             localeAware={link.href !== "/#explorer"}
-            className="text-[#1E1B4B] transition hover:text-[#4338ca] dark:text-[#1E1B4B] dark:hover:text-[#4338ca]"
+            className={cn(
+              "buyer-premium-nav-link transition",
+              link.emphasis === "primary"
+                ? "buyer-premium-nav-link--primary"
+                : "buyer-premium-nav-link--secondary"
+            )}
           >
             {link.label}
           </FastLink>
@@ -68,7 +73,7 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
           <>
             <FastLink
               href={signInHref}
-              className="inline-flex h-9 items-center rounded-full border border-[#1E1B4B]/20 bg-white/90 px-4 text-sm font-semibold text-[#1E1B4B] transition hover:bg-white dark:border-[#1E1B4B]/20 dark:bg-white/90 dark:text-[#1E1B4B]"
+              className="inline-flex h-9 items-center rounded-full border border-[#1E1B4B]/20 bg-white/90 px-4 text-sm font-semibold text-[#1E1B4B] transition hover:bg-white"
             >
               Sign in
             </FastLink>
