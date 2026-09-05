@@ -19,6 +19,9 @@ export const BUYER_PREMIUM = {
     orbRight: "rgba(79, 70, 229, 0.38)",
     orbCenter: "rgba(67, 56, 202, 0.22)",
     shine: "rgba(255, 255, 255, 0.35)",
+    /** Subtitle on gradient — white + soft depth (title stays dark) */
+    subline: "rgba(255, 255, 255, 0.94)",
+    sublineShadow: "0 1px 3px rgba(30, 27, 75, 0.42), 0 0 20px rgba(79, 70, 229, 0.1)",
   },
   badge: {
     heroBg: "rgba(255, 255, 255, 0.78)",
