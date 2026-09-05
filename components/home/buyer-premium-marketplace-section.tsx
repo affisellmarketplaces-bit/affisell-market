@@ -1,6 +1,7 @@
 import { Suspense } from "react"
 import { getLocale } from "next-intl/server"
 
+import { BentoGrid } from "@/components/BentoGrid"
 import { BuyerPremiumMarketplaceLayoutClient } from "@/components/home/buyer-premium-marketplace-layout"
 import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExplorer"
 import { resolveAppLocale } from "@/lib/i18n-locale"
@@ -20,6 +21,11 @@ async function PremiumMarketplaceSection() {
     <BuyerPremiumMarketplaceLayoutClient
       shell={shell}
       browseDepartments={browseDepartments}
+      discoverSlot={
+        <Suspense fallback={<div className="min-h-[18rem] animate-pulse rounded-2xl bg-slate-100" aria-hidden />}>
+          <BentoGrid />
+        </Suspense>
+      }
       catalogExplorer={
         <Suspense fallback={<div className="min-h-[12rem] animate-pulse rounded-xl bg-slate-50" aria-hidden />}>
           <BuyerMarketplaceExplorer />

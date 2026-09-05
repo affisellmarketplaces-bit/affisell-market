@@ -3,7 +3,6 @@
 import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 
-import { BentoGrid } from "@/components/BentoGrid"
 import { CategorySidebar } from "@/components/CategorySidebar"
 import { DepartmentBar } from "@/components/DepartmentBar"
 import { EuropeBanner } from "@/components/EuropeBanner"
@@ -17,12 +16,14 @@ import type { ResolvedBrowseDepartment } from "@/lib/taxonomy/browse-departments
 type Props = {
   shell: HomeMarketplaceShell
   browseDepartments: ResolvedBrowseDepartment[]
+  discoverSlot: React.ReactNode
   catalogExplorer: React.ReactNode
 }
 
 function PremiumMarketplaceBody({
   shell,
   browseDepartments,
+  discoverSlot,
   catalogExplorer,
 }: Props) {
   const searchParams = useSearchParams()
@@ -62,13 +63,7 @@ function PremiumMarketplaceBody({
             <MarketplaceShipsToChip basePath="/" className="!bg-[#EDE9FE] !text-violet-900 !ring-violet-200" />
           </div>
           <ProductConditionFilterBar initialCounts={shell.offerRailCounts} />
-          <Suspense
-            fallback={
-              <div className="min-h-[18rem] animate-pulse rounded-2xl bg-slate-100" aria-hidden />
-            }
-          >
-            <BentoGrid />
-          </Suspense>
+          {discoverSlot}
           <div id="explorer" className="min-w-0 scroll-mt-24">
             {catalogExplorer}
           </div>

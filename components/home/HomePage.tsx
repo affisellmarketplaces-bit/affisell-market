@@ -1,5 +1,4 @@
 import { Suspense } from "react"
-import { getTranslations } from "next-intl/server"
 
 import { BuyerHeroBlock } from "@/components/BuyerHeroBlock"
 import { BuyerPremiumMarketplaceSection } from "@/components/home/buyer-premium-marketplace-section"
