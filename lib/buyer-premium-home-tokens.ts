@@ -15,13 +15,13 @@ export const BUYER_PREMIUM = {
     /** Saturated violet → indigo (ref-full-decoupage hero) */
     gradient: "linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)",
     border: "rgba(167, 139, 250, 0.55)",
-    orbLeft: "rgba(217, 70, 239, 0.42)",
-    orbRight: "rgba(79, 70, 229, 0.38)",
-    orbCenter: "rgba(67, 56, 202, 0.22)",
-    shine: "rgba(255, 255, 255, 0.35)",
-    /** Subtitle on gradient — white + soft depth (title stays dark) */
-    subline: "rgba(255, 255, 255, 0.94)",
-    sublineShadow: "0 1px 3px rgba(30, 27, 75, 0.42), 0 0 20px rgba(79, 70, 229, 0.1)",
+    orbLeft: "rgba(217, 70, 239, 0.32)",
+    orbRight: "rgba(79, 70, 229, 0.28)",
+    orbCenter: "rgba(67, 56, 202, 0.12)",
+    shine: "rgba(255, 255, 255, 0.14)",
+    /** Subtitle on gradient — pure white + depth shadow (title stays dark) */
+    subline: "#FFFFFF",
+    sublineShadow: "0 1px 2px rgba(15, 23, 42, 0.55), 0 2px 10px rgba(30, 27, 75, 0.35)",
   },
   badge: {
     heroBg: "rgba(255, 255, 255, 0.78)",
