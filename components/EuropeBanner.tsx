@@ -1,11 +1,11 @@
 "use client"
 
-import { Euro, Globe2, ShieldCheck } from "lucide-react"
+import { DollarSign, Euro, Globe2, ShieldCheck } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { EU_MEMBER_COUNT } from "@/lib/eu-market-countries"
 import { useLiveCheckoutStats } from "@/hooks/use-live-checkout-stats"
-import { isUsMarket } from "@/lib/market-config"
+import { isUsMarket, STOREFRONT_CURRENCY } from "@/lib/market-config"
 import { PREMIUM_MARKETPLACE_HOME } from "@/lib/marketplace-premium-home-shared"
 import { cn } from "@/lib/utils"
 
@@ -35,6 +35,8 @@ export function EuropeBanner({ className }: Props) {
   const usMarket = isUsMarket()
   const t = useTranslations(usMarket ? "marketplace.usCoverage" : "marketplace.euCoverage")
   const { checkoutCountryCount } = useLiveCheckoutStats()
+  const countryCount = checkoutCountryCount ?? 33
+  const CurrencyIcon = STOREFRONT_CURRENCY === "USD" ? DollarSign : Euro
 
   return (
     <section
@@ -50,20 +52,24 @@ export function EuropeBanner({ className }: Props) {
         <div className="flex items-start gap-2">
           <ShieldCheck className="mt-0.5 size-5 shrink-0 text-cyan-300" aria-hidden />
           <div>
-            <p className="text-sm font-bold text-white">Europe • one checkout</p>
-            <p className="text-xs text-violet-200/90">{t("subtitle")}</p>
+            <p className="text-sm font-bold text-white">{t("title")}</p>
+            {!usMarket ? (
+              <p className="text-xs text-violet-200/90">{t("subtitle", { count: countryCount })}</p>
+            ) : (
+              <p className="text-xs text-violet-200/90">{t("footnote")}</p>
+            )}
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge value={EU_MEMBER_COUNT} label="EU" />
-          <Badge value={checkoutCountryCount ?? 33} label="Countries" />
+          {!usMarket ? <Badge value={EU_MEMBER_COUNT} label={t("metricEu")} /> : null}
+          <Badge value={countryCount} label={t("metricCountries")} />
           <div className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white">
-            <Euro className="size-3.5 text-cyan-200" aria-hidden />
-            EUR
+            <CurrencyIcon className="size-3.5 text-cyan-200" aria-hidden />
+            {STOREFRONT_CURRENCY}
           </div>
           <div className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white">
             <Globe2 className="size-3.5 text-cyan-200" aria-hidden />
-            VAT
+            {t("stripeTax")}
           </div>
         </div>
       </div>
