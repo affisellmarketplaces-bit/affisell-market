@@ -12,10 +12,10 @@ import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-re
 import { cn } from "@/lib/utils"
 
 const NAV_LINKS = [
-  { href: "/shops", label: "Stores", emphasis: "secondary" },
-  { href: "/#explorer", label: "Products", emphasis: "primary" },
-  { href: "/legal/transparence", label: "Protection", emphasis: "primary" },
-  { href: "/help/faq", label: "Help", emphasis: "secondary" },
+  { href: "/shops", label: "Stores" },
+  { href: "/#explorer", label: "Products" },
+  { href: "/legal/transparence", label: "Protection" },
+  { href: "/help/faq", label: "Help" },
 ] as const
 
 type Props = {
@@ -38,26 +38,17 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
         </LocaleLink>
       </div>
 
-      <div className="flex items-center gap-6 text-sm">
-        {NAV_LINKS.map((link) => {
-          const primary = link.emphasis === "primary"
-          return (
-            <FastLink
-              key={link.href}
-              href={link.href}
-              localeAware={link.href !== "/#explorer"}
-              className={cn(
-                "transition hover:text-[#4338ca]",
-                primary ? "font-semibold" : "font-medium"
-              )}
-              style={{
-                color: primary ? BUYER_PREMIUM.text.navPrimary : BUYER_PREMIUM.text.navSecondary,
-              }}
-            >
-              {link.label}
-            </FastLink>
-          )
-        })}
+      <div className="flex items-center gap-6 text-sm font-semibold">
+        {NAV_LINKS.map((link) => (
+          <FastLink
+            key={link.href}
+            href={link.href}
+            localeAware={link.href !== "/#explorer"}
+            className="text-[#1E1B4B] transition hover:text-[#4338ca] dark:text-[#1E1B4B] dark:hover:text-[#4338ca]"
+          >
+            {link.label}
+          </FastLink>
+        ))}
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
@@ -77,11 +68,7 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
           <>
             <FastLink
               href={signInHref}
-              className="inline-flex h-9 items-center rounded-full border bg-white/90 px-4 text-sm font-semibold transition hover:bg-white"
-              style={{
-                borderColor: "rgba(30, 27, 75, 0.22)",
-                color: BUYER_PREMIUM.text.navPrimary,
-              }}
+              className="inline-flex h-9 items-center rounded-full border border-[#1E1B4B]/20 bg-white/90 px-4 text-sm font-semibold text-[#1E1B4B] transition hover:bg-white dark:border-[#1E1B4B]/20 dark:bg-white/90 dark:text-[#1E1B4B]"
             >
               Sign in
             </FastLink>
