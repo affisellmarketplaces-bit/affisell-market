@@ -1661,7 +1661,14 @@
       "allCatalog": "Todo el Catálogo",
       "offlineHint": "Taxonomía offline — conectar DB para contar en vivo",
       "unavailable": "Categorías no disponibles",
-      "empty": "Sin categorías"
+      "empty": "Sin categorías",
+      "hideCategories": "Ocultar categorías",
+      "showCategories": "Mostrar categorías",
+      "closeAll": "Cerrar todo",
+      "aislesHidden": "Pasillos ocultos — toca las tres rayas para explorar",
+      "tierToggleHide": "Ocultar este grupo de pasillos",
+      "tierToggleShow": "Mostrar este grupo de pasillos",
+      "showCategoryColumn": "Mostrar categorías — vista de productos"
     },
     "search": {
       "label": "Buscar el catálogo",

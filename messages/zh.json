@@ -1661,7 +1661,14 @@
       "allCatalog": "所有目录",
       "offlineHint": "离线分类 — 连接数据库获取实时统计",
       "unavailable": "分类不可用",
-      "empty": "没有分类"
+      "empty": "没有分类",
+      "hideCategories": "隐藏分类",
+      "showCategories": "显示分类",
+      "closeAll": "全部关闭",
+      "aislesHidden": "货架已隐藏 — 点三道横线即可浏览",
+      "tierToggleHide": "隐藏本组货架",
+      "tierToggleShow": "显示本组货架",
+      "showCategoryColumn": "显示分类 — 商品视图"
     },
     "search": {
       "label": "在目录中搜索",

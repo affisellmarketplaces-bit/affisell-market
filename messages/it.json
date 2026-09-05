@@ -1661,7 +1661,14 @@
       "allCatalog": "Tutto il catalogo",
       "offlineHint": "Taxonomia offline — connetti DB per conti vivi",
       "unavailable": "Categorie non disponibili",
-      "empty": "Nessuna categoria"
+      "empty": "Nessuna categoria",
+      "hideCategories": "Nascondi categorie",
+      "showCategories": "Mostra categorie",
+      "closeAll": "Chiudi tutto",
+      "aislesHidden": "Reparti nascosti — tocca i tre trattini per esplorare",
+      "tierToggleHide": "Nascondi questo gruppo di reparti",
+      "tierToggleShow": "Mostra questo gruppo di reparti",
+      "showCategoryColumn": "Mostra categorie — vista prodotti"
     },
     "search": {
       "label": "Cerca il catalogo",

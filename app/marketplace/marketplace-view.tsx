@@ -30,6 +30,7 @@ import { HomeWorldRadarInlineLazy } from "@/components/home/home-world-radar-inl
 import { BuyerBrowseSignalsRecorder } from "@/components/home/buyer-browse-signals-recorder"
 import { HomePersonalizedPicksRailLive } from "@/components/home/home-personalized-picks-rail-live"
 import { CategoryTreeExplorer } from "@/components/marketplace/CategoryTreeExplorer"
+import { CatalogCategoryDockRail } from "@/components/marketplace/catalog-category-dock-rail"
 import { MarketplaceSearchBox } from "@/components/marketplace/MarketplaceSearchBox"
 import { marketplaceCategorySearchParams } from "@/lib/marketplace-category-nav-params.client"
 import { MARKETPLACE_QUERY_RESERVED } from "@/lib/marketplace-query-params"
@@ -45,6 +46,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 import { affisellBrand } from "@/lib/affisell-brand"
 import type { HomeMarketplaceShell } from "@/lib/home-marketplace-shell"
 import { cn } from "@/lib/utils"
+import { useCatalogCategoryChrome } from "@/hooks/use-catalog-category-chrome"
 
 type ProductRow = Record<string, unknown>
 
@@ -121,6 +123,16 @@ export function MarketplaceView({
   const router = useRouter()
   const searchParams = useSearchParams()
   const [categoryTransitionPending, startCategoryTransition] = useTransition()
+  const {
+    chrome: categoryChrome,
+    toggleTier: toggleCategoryTier,
+    foldAllAisles,
+    unfoldAllAisles,
+    revealTier,
+    dockForProducts,
+    undock: undockCategoryColumn,
+  } = useCatalogCategoryChrome()
+  const categoryColumnDocked = categoryChrome.docked && !premiumHomeChrome
   const categoryFallback = initialBrowse
     ? { categories: initialBrowse.categories as CategoryNode[], catalogTotal: initialBrowse.catalogTotal }
     : undefined
@@ -538,33 +550,43 @@ export function MarketplaceView({
             embedded ? "mt-2 md:mt-4" : "mt-4 md:mt-8"
           )}
         >
-          <aside
-            className={cn(
-              "hidden w-full shrink-0 flex-col gap-4 lg:sticky lg:top-[5.25rem] lg:flex lg:w-[min(19rem,100%)] lg:max-w-[19rem] lg:self-start",
-              premiumHomeChrome && "!hidden"
-            )}
-          >
-            <CategoryTreeExplorer
-              onCategoryClick={handleCategoryClick}
-              onPrefetchCategory={prefetchCategory}
-              onShowFullCatalog={clearFilters}
-              activeCategoryId={scopeNodeId}
-              catalogTotal={categoriesPayload?.catalogTotal}
-              categoriesPayload={categoriesPayload}
-              isNavigating={categoryTransitionPending}
-            />
-            <MarketplaceFilters
-              categoryId={categoryId}
-              subcategoryId={subcategoryId}
-              catalogBasePath={basePath}
-              deferFacets={categoryTransitionPending}
-              departmentNames={
-                categoriesPayload?.categories
-                  ? Object.fromEntries(categoriesPayload.categories.map((c) => [c.id, c.name]))
-                  : undefined
-              }
-            />
-          </aside>
+          {categoryColumnDocked ? (
+            <CatalogCategoryDockRail onOpen={undockCategoryColumn} />
+          ) : (
+            <aside
+              className={cn(
+                "hidden w-full shrink-0 flex-col gap-4 lg:sticky lg:top-[5.25rem] lg:flex lg:w-[min(19rem,100%)] lg:max-w-[19rem] lg:self-start",
+                premiumHomeChrome && "!hidden"
+              )}
+            >
+              <CategoryTreeExplorer
+                onCategoryClick={handleCategoryClick}
+                onPrefetchCategory={prefetchCategory}
+                onShowFullCatalog={clearFilters}
+                activeCategoryId={scopeNodeId}
+                catalogTotal={categoriesPayload?.catalogTotal}
+                categoriesPayload={categoriesPayload}
+                isNavigating={categoryTransitionPending}
+                collapsedTiers={categoryChrome.collapsedTiers}
+                onToggleTier={toggleCategoryTier}
+                onFoldAllAisles={foldAllAisles}
+                onUnfoldAllAisles={unfoldAllAisles}
+                onRevealTier={revealTier}
+                onProductFocus={dockForProducts}
+              />
+              <MarketplaceFilters
+                categoryId={categoryId}
+                subcategoryId={subcategoryId}
+                catalogBasePath={basePath}
+                deferFacets={categoryTransitionPending}
+                departmentNames={
+                  categoriesPayload?.categories
+                    ? Object.fromEntries(categoriesPayload.categories.map((c) => [c.id, c.name]))
+                    : undefined
+                }
+              />
+            </aside>
+          )}
 
           <div className="min-w-0 flex-1">
             {embedded && isCustomerBrowse && !premiumHomeChrome ? (
@@ -618,7 +640,10 @@ export function MarketplaceView({
               </div>
             ) : null}
             {loading ? (
-              <ul className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+              <ul className={cn(
+                "grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4",
+                categoryColumnDocked ? "lg:grid-cols-4 xl:grid-cols-5" : "lg:grid-cols-4"
+              )}>
                 {Array.from({ length: 6 }).map((_, i) => (
                   <li key={i} className="animate-pulse">
                     <div className="aspect-square rounded-3xl border border-zinc-100 bg-zinc-100/80 dark:border-zinc-800 dark:bg-zinc-800/50" />
@@ -739,8 +764,15 @@ export function MarketplaceView({
                 className={cn(
                   "affisell-product-grid grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 md:gap-4",
                   isCustomerBrowse
-                    ? "affisell-product-grid--buyer lg:grid-cols-3 xl:grid-cols-4"
-                    : "lg:grid-cols-4",
+                    ? cn(
+                        "affisell-product-grid--buyer",
+                        categoryColumnDocked
+                          ? "lg:grid-cols-4 xl:grid-cols-5"
+                          : "lg:grid-cols-3 xl:grid-cols-4"
+                      )
+                    : categoryColumnDocked
+                      ? "lg:grid-cols-5"
+                      : "lg:grid-cols-4",
                   refreshing && "opacity-75 transition-opacity duration-150"
                 )}
               >

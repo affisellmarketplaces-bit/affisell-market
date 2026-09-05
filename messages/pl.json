@@ -1661,7 +1661,14 @@
       "allCatalog": "Wszystkie katalogi",
       "offlineHint": "Offline taksonomia — połącz bazę danych, aby uzyskać żywe dane",
       "unavailable": "Kategorie niedostępne",
-      "empty": "Brak kategorii"
+      "empty": "Brak kategorii",
+      "hideCategories": "Ukryj kategorie",
+      "showCategories": "Pokaż kategorie",
+      "closeAll": "Zamknij wszystko",
+      "aislesHidden": "Alejki ukryte — stuknij trzy kreski, aby przeglądać",
+      "tierToggleHide": "Ukryj tę grupę alejek",
+      "tierToggleShow": "Pokaż tę grupę alejek",
+      "showCategoryColumn": "Pokaż kategorie — widok produktów"
     },
     "search": {
       "label": "Szukaj w katalogu",

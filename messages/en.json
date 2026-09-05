@@ -1730,7 +1730,14 @@
       "allCatalog": "All Catalog",
       "offlineHint": "Offline taxonomy — connect DB for live counts",
       "unavailable": "Categories unavailable",
-      "empty": "No categories"
+      "empty": "No categories",
+      "hideCategories": "Hide categories",
+      "showCategories": "Show categories",
+      "closeAll": "Close all",
+      "aislesHidden": "Aisles hidden — tap the three dashes to browse",
+      "tierToggleHide": "Hide this aisle group",
+      "tierToggleShow": "Show this aisle group",
+      "showCategoryColumn": "Show categories — product view"
     },
     "search": {
       "label": "Search the catalog",

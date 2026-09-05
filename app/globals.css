@@ -3475,6 +3475,29 @@ button,
   }
 }
 
+.affisell-tri-dash-handle__bar {
+  transform-origin: center;
+  transition: transform 180ms ease, width 180ms ease, opacity 180ms ease;
+}
+
+.affisell-tri-dash-handle--folded {
+  gap: 3px;
+}
+
+.affisell-tri-dash-handle--folded .affisell-tri-dash-handle__bar {
+  opacity: 0.78;
+}
+
+.affisell-category-dock-rail {
+  box-shadow: 0 0 24px rgb(109 40 217 / 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .affisell-tri-dash-handle__bar {
+    transition: none;
+  }
+}
+
 /* —— Storefront integrated trust rail (header) —— */
 .affisell-storefront-trust-rail__scan {
   background: linear-gradient(

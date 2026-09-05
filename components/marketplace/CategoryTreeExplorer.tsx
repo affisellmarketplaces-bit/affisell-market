@@ -7,8 +7,11 @@ import useSWR, { preload } from "swr"
 import { ChevronRight, Grid3x3, LayoutGrid, Loader2 } from "lucide-react"
 
 import { CategoryGlyph } from "@/components/marketplace/CategoryGlyph"
+import { TriDashHandle } from "@/components/ui/tri-dash-handle"
 import { TriDashSeparator } from "@/components/ui/tri-dash-separator"
 import { affisellBrand } from "@/lib/affisell-brand"
+import { buyerHaptic } from "@/lib/buyer-haptics"
+import { allTiersCollapsed } from "@/lib/catalog-category-chrome"
 import { chunkCategoryRoots } from "@/lib/category-tree-tiers"
 import { cn } from "@/lib/utils"
 
@@ -126,6 +129,13 @@ type Props = {
   inSheet?: boolean
   /** Router transition in flight — keeps pending row highlighted. */
   isNavigating?: boolean
+  collapsedTiers?: readonly boolean[]
+  onToggleTier?: (index: number) => void
+  onFoldAllAisles?: () => void
+  onUnfoldAllAisles?: () => void
+  onRevealTier?: (index: number) => void
+  /** Desktop: dock the category column for a product-only grid. */
+  onProductFocus?: () => void
 }
 
 function isNodeUnderRoot(root: CategoryTreeRoot, nodeId: string): boolean {
@@ -540,9 +550,21 @@ export function CategoryTreeExplorer({
   categoriesPayload,
   inSheet = false,
   isNavigating = false,
+  collapsedTiers: collapsedTiersProp,
+  onToggleTier,
+  onFoldAllAisles,
+  onUnfoldAllAisles,
+  onRevealTier,
+  onProductFocus,
 }: Props) {
   const t = useTranslations("marketplace.sidebar")
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set())
+  const [localCollapsedTiers, setLocalCollapsedTiers] = useState<[boolean, boolean, boolean]>([
+    false,
+    false,
+    false,
+  ])
+  const collapsedTiers = collapsedTiersProp ?? localCollapsedTiers
   const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(null)
   const [, startToggleTransition] = useTransition()
   const lastTreeSyncKeyRef = useRef("")
@@ -553,6 +575,22 @@ export function CategoryTreeExplorer({
   useEffect(() => {
     rootsByIdRef.current = new Map(roots.map((root) => [root.id, root]))
   }, [roots])
+
+  const toggleTier = useCallback(
+    (index: number) => {
+      buyerHaptic("tap")
+      if (onToggleTier) {
+        onToggleTier(index)
+        return
+      }
+      setLocalCollapsedTiers((prev) => {
+        const next: [boolean, boolean, boolean] = [prev[0], prev[1], prev[2]]
+        next[index] = !next[index]
+        return next
+      })
+    },
+    [onToggleTier]
+  )
 
   const toggle = useCallback((id: string) => {
     startToggleTransition(() => {
@@ -597,16 +635,39 @@ export function CategoryTreeExplorer({
     })
   }, [])
 
+  const revealTierForNode = useCallback(
+    (nodeId: string, treeRoots: CategoryTreeRoot[]) => {
+      const tiers = chunkCategoryRoots(treeRoots)
+      const idx = tiers.findIndex((tier) =>
+        tier.some((root) => isNodeUnderRoot(root, nodeId) || root.id === nodeId)
+      )
+      if (idx < 0) return
+      if (onRevealTier) {
+        onRevealTier(idx)
+        return
+      }
+      setLocalCollapsedTiers((prev) => {
+        if (!prev[idx]) return prev
+        const next: [boolean, boolean, boolean] = [prev[0], prev[1], prev[2]]
+        next[idx] = false
+        return next
+      })
+    },
+    [onRevealTier]
+  )
+
   const onSelect = useCallback(
     (id: string) => {
       setPendingCategoryId(id)
       onCategoryClick?.(id)
       scheduleIdle(() => {
         onPrefetchCategory?.(id)
-        expandForCategory(id, categoriesPayload?.categories ?? [])
+        const treeRoots = categoriesPayload?.categories ?? []
+        expandForCategory(id, treeRoots)
+        revealTierForNode(id, treeRoots)
       })
     },
-    [onCategoryClick, onPrefetchCategory, expandForCategory, categoriesPayload?.categories]
+    [onCategoryClick, onPrefetchCategory, expandForCategory, revealTierForNode, categoriesPayload?.categories]
   )
 
   const treeSyncKey = useMemo(
@@ -620,7 +681,8 @@ export function CategoryTreeExplorer({
     if (lastTreeSyncKeyRef.current === treeSyncKey) return
     lastTreeSyncKeyRef.current = treeSyncKey
     expandForCategory(activeCategoryId, roots)
-  }, [activeCategoryId, treeSyncKey, roots, expandForCategory])
+    revealTierForNode(activeCategoryId, roots)
+  }, [activeCategoryId, treeSyncKey, roots, expandForCategory, revealTierForNode])
 
   useEffect(() => {
     if (!pendingCategoryId) return
@@ -637,6 +699,31 @@ export function CategoryTreeExplorer({
   )
 
   const rootTiers = useMemo(() => chunkCategoryRoots(roots), [roots])
+  const aislesFolded = allTiersCollapsed(collapsedTiers, rootTiers.length)
+
+  const onToggleAllAisles = useCallback(() => {
+    buyerHaptic("tap")
+    if (aislesFolded) {
+      if (onUnfoldAllAisles) onUnfoldAllAisles()
+      else setLocalCollapsedTiers([false, false, false])
+      return
+    }
+    setExpandedIds(new Set())
+    if (onFoldAllAisles) onFoldAllAisles()
+    else setLocalCollapsedTiers([true, true, true])
+  }, [aislesFolded, onFoldAllAisles, onUnfoldAllAisles])
+
+  const onCloseAll = useCallback(() => {
+    buyerHaptic("success")
+    setExpandedIds(new Set())
+    if (inSheet || !onProductFocus) {
+      if (onFoldAllAisles) onFoldAllAisles()
+      else setLocalCollapsedTiers([true, true, true])
+      return
+    }
+    onProductFocus()
+  }, [inSheet, onFoldAllAisles, onProductFocus])
+
   const showNavProgress = Boolean(isNavigating || pendingCategoryId)
   const prefetchedTreeKeyRef = useRef("")
 
@@ -683,17 +770,37 @@ export function CategoryTreeExplorer({
       ) : null}
       <div
         className={cn(
-          "sticky top-0 z-10 px-4 py-4",
+          "sticky top-0 z-10 px-3 py-3 sm:px-4 sm:py-4",
           inSheet
             ? "rounded-t-xl border-b border-white/10 bg-gradient-to-r from-violet-950/90 via-indigo-950/90 to-violet-950/90"
             : affisellBrand.gradientBar
         )}
       >
-        <h2 className="flex items-center gap-2 text-lg font-black uppercase tracking-wider text-white drop-shadow-sm">
-          <Grid3x3 className="h-5 w-5" strokeWidth={3} />
-          {t("title")}
-        </h2>
-        <p className="mt-1 text-[11px] font-medium text-violet-100/80">{t("genealogyHint")}</p>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <h2 className="flex items-center gap-2 text-lg font-black uppercase tracking-wider text-white drop-shadow-sm">
+              <Grid3x3 className="h-5 w-5 shrink-0" strokeWidth={3} />
+              {t("title")}
+            </h2>
+            <p className="mt-1 text-[11px] font-medium text-violet-100/80">{t("genealogyHint")}</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={onCloseAll}
+              aria-label={t("closeAll")}
+              className="rounded-full border border-white/25 bg-white/10 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white transition hover:bg-white/20 active:scale-95"
+            >
+              {t("closeAll")}
+            </button>
+            <TriDashHandle
+              expanded={!aislesFolded}
+              onClick={onToggleAllAisles}
+              label={aislesFolded ? t("showCategories") : t("hideCategories")}
+              inSheet={inSheet}
+            />
+          </div>
+        </div>
       </div>
 
       <button
@@ -726,29 +833,52 @@ export function CategoryTreeExplorer({
         ) : null}
       </button>
 
-      {rootTiers.map((tier, tierIndex) => (
-        <Fragment key={`tier-${tierIndex}`}>
-          {tierIndex > 0 ? (
-            <TriDashSeparator compact inSheet={inSheet} className={cn(inSheet ? "px-3" : "px-2")} />
-          ) : null}
-          {tier.map((root) => (
-            <CategoryTreeRootBlock
-              key={root.id}
-              root={root}
-              activeCategoryId={activeCategoryId}
-              activeRoot={activeRoot}
-              pendingCategoryId={pendingCategoryId}
-              rootExpanded={expandedIds.has(root.id)}
-              expandedIds={expandedIds}
-              toggle={toggle}
-              onSelect={onSelect}
-              onPrefetchCategory={onPrefetchCategory}
-              inSheet={inSheet}
-              t={t}
-            />
-          ))}
-        </Fragment>
-      ))}
+      {aislesFolded ? (
+        <p
+          className={cn(
+            "px-4 py-3 text-center text-[11px] font-medium",
+            inSheet ? "text-zinc-400" : "text-zinc-500"
+          )}
+        >
+          {t("aislesHidden")}
+        </p>
+      ) : (
+        rootTiers.map((tier, tierIndex) => {
+          const collapsed = collapsedTiers[tierIndex] === true
+          const panelId = `affisell-aisle-tier-${tierIndex}`
+          return (
+            <Fragment key={`tier-${tierIndex}`}>
+              <TriDashSeparator
+                compact
+                inSheet={inSheet}
+                collapsed={collapsed}
+                onToggle={() => toggleTier(tierIndex)}
+                toggleLabel={collapsed ? t("tierToggleShow") : t("tierToggleHide")}
+                controlsId={panelId}
+                className={cn(inSheet ? "px-3" : "px-2")}
+              />
+              <div id={panelId} hidden={collapsed} className={cn(collapsed && "hidden")}>
+                {tier.map((root) => (
+                  <CategoryTreeRootBlock
+                    key={root.id}
+                    root={root}
+                    activeCategoryId={activeCategoryId}
+                    activeRoot={activeRoot}
+                    pendingCategoryId={pendingCategoryId}
+                    rootExpanded={expandedIds.has(root.id)}
+                    expandedIds={expandedIds}
+                    toggle={toggle}
+                    onSelect={onSelect}
+                    onPrefetchCategory={onPrefetchCategory}
+                    inSheet={inSheet}
+                    t={t}
+                  />
+                ))}
+              </div>
+            </Fragment>
+          )
+        })
+      )}
     </aside>
   )
 }

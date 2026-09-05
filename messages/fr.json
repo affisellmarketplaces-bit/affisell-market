@@ -1730,7 +1730,14 @@
       "allCatalog": "Tout le catalogue",
       "offlineHint": "Taxonomie hors ligne — connectez la base pour les compteurs",
       "unavailable": "Catégories indisponibles",
-      "empty": "Aucune catégorie"
+      "empty": "Aucune catégorie",
+      "hideCategories": "Masquer les catégories",
+      "showCategories": "Afficher les catégories",
+      "closeAll": "Fermer tout",
+      "aislesHidden": "Rayons masqués — touchez les trois tirets pour parcourir",
+      "tierToggleHide": "Masquer ce groupe de rayons",
+      "tierToggleShow": "Afficher ce groupe de rayons",
+      "showCategoryColumn": "Afficher les catégories — vue produits"
     },
     "search": {
       "label": "Rechercher dans le catalogue",

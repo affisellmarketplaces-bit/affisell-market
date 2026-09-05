@@ -1661,7 +1661,14 @@
       "allCatalog": "Alles in het katalogus",
       "offlineHint": "Offline taxonomie — verbinding met DB voor live tellen",
       "unavailable": "Categorieën niet beschikbaar",
-      "empty": "Geen categorieën"
+      "empty": "Geen categorieën",
+      "hideCategories": "Categorieën verbergen",
+      "showCategories": "Categorieën tonen",
+      "closeAll": "Alles sluiten",
+      "aislesHidden": "Gangen verborgen — tik op de drie streepjes om te bladeren",
+      "tierToggleHide": "Deze gangengroep verbergen",
+      "tierToggleShow": "Deze gangengroep tonen",
+      "showCategoryColumn": "Categorieën tonen — productweergave"
     },
     "search": {
       "label": "Zoek in het katalogus",

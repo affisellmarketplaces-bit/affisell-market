@@ -1661,7 +1661,14 @@
       "allCatalog": "Gesamtkatalog",
       "offlineHint": "Offline-Taxonomie — verbinden Sie die Datenbank für Live-Zählungen",
       "unavailable": "Kategorien nicht verfügbar",
-      "empty": "Keine Kategorien"
+      "empty": "Keine Kategorien",
+      "hideCategories": "Kategorien ausblenden",
+      "showCategories": "Kategorien anzeigen",
+      "closeAll": "Alles schließen",
+      "aislesHidden": "Gänge ausgeblendet — drei Striche antippen zum Stöbern",
+      "tierToggleHide": "Diese Ganggruppe ausblenden",
+      "tierToggleShow": "Diese Ganggruppe anzeigen",
+      "showCategoryColumn": "Kategorien anzeigen — Produktansicht"
     },
     "search": {
       "label": "Durchsuchen Sie den Katalog",
