@@ -175,13 +175,13 @@ export function AffisellCarouselCard({
             </div>
           )}
 
-          <div className="pointer-events-none absolute bottom-1 left-1 right-1 z-20 rounded border border-violet-100 bg-white/95 px-1.5 py-1 text-[9px] leading-tight text-zinc-700 opacity-0 shadow-md backdrop-blur-sm transition-opacity duration-200 group-hover/card:opacity-100">
+          <div className="pointer-events-none absolute bottom-1 left-1 right-1 z-20 rounded border border-violet-100 bg-white/95 px-1.5 py-1 text-[9px] leading-tight text-zinc-700 opacity-100 shadow-md backdrop-blur-sm transition-opacity duration-200 group-hover/card:opacity-100">
             {tooltip}
           </div>
 
           <button
             type="button"
-            className="absolute bottom-10 left-1/2 z-10 -translate-x-1/2 rounded-full bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg transition-opacity group-hover/card:opacity-100"
+            className="absolute bottom-10 left-1/2 z-10 -translate-x-1/2 rounded-full bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white opacity-100 shadow-lg transition-opacity group-hover/card:opacity-100"
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
