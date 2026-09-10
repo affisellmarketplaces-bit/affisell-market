@@ -29,7 +29,7 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
   return (
     <nav
       aria-label="Main"
-      className="mx-auto hidden w-full min-w-0 max-w-7xl items-center justify-between gap-4 rounded-full bg-[#DDD6FE] px-6 py-3 shadow-[0_8px_32px_rgba(99,84,255,0.15)] lg:flex"
+      className="mx-auto hidden w-full min-w-0 max-w-7xl items-center justify-between gap-4 rounded-full bg-[#C4B5FD] px-6 py-3 shadow-[0_8px_32px_rgba(99,84,255,0.22)] lg:flex"
       data-testid="buyer-premium-nav"
     >
       <div className="flex min-w-0 items-center gap-3">
