@@ -39,7 +39,7 @@ function PremiumMarketplaceBody({
   }))
 
   return (
-    <div className="space-y-3 p-3 sm:p-4">
+    <div className="min-w-0 space-y-3 p-3 sm:p-4">
       <DepartmentBar
         categories={categories}
         catalogTotal={shell.catalogTotal}
@@ -50,22 +50,28 @@ function PremiumMarketplaceBody({
         initialDepartments={browseDepartments}
       />
 
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-        <CategorySidebar
-          categories={categories}
-          catalogTotal={shell.catalogTotal}
-          activeCategoryId={activeCategoryId}
-        />
+      <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start">
+        <div className="min-w-0 shrink-0 lg:w- xl:w-">
+          <CategorySidebar
+            categories={categories}
+            catalogTotal={shell.catalogTotal}
+            activeCategoryId={activeCategoryId}
+          />
+        </div>
 
-        <div className="min-w-0 flex-1 space-y-4">
-          <EuropeBanner />
-          <div className="flex flex-wrap items-center gap-2">
-            <MarketplaceShipsToChip basePath="/" className="!bg-[#EDE9FE] !text-violet-900 !ring-violet-200" />
-          </div>
-          <ProductConditionFilterBar initialCounts={shell.offerRailCounts} />
-          {discoverSlot}
-          <div id="explorer" className="min-w-0 scroll-mt-24">
-            {catalogExplorer}
+        <div className="min-w-0 flex-1 overflow-clip">
+          <div className="min-w-0 space-y-4">
+            <EuropeBanner />
+            <div className="flex flex-wrap items-center gap-2">
+              <MarketplaceShipsToChip basePath="/" className="!bg-[#EDE9FE]!text-violet-900!ring-violet-200" />
+            </div>
+            <ProductConditionFilterBar initialCounts={shell.offerRailCounts} />
+            <div className="min-w-0">
+              {discoverSlot}
+            </div>
+            <div id="explorer" className="min-w-0 scroll-mt-24">
+              {catalogExplorer}
+            </div>
           </div>
         </div>
       </div>
@@ -75,7 +81,7 @@ function PremiumMarketplaceBody({
 
 export function BuyerPremiumMarketplaceLayoutClient(props: Props) {
   return (
-    <Suspense fallback={<div className="min-h-[24rem] animate-pulse rounded-2xl bg-white/80 p-6" aria-hidden />}>
+    <Suspense fallback={<div className="min-h- animate-pulse rounded-2xl bg-white/80 p-6" aria-hidden />}>
       <PremiumMarketplaceBody {...props} />
     </Suspense>
   )
