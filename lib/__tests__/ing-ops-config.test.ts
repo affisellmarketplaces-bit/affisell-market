@@ -20,7 +20,7 @@ describe("isIngDashboardEnabled", () => {
     ).toBe(false)
     expect(
       isIngDashboardEnabled({
-        ING_DASHBOARD_ENABLED: "0",
+        NODE_ENV: "test", ING_DASHBOARD_ENABLED: "0",
       } as NodeJS.ProcessEnv)
     ).toBe(false)
   })
@@ -28,7 +28,7 @@ describe("isIngDashboardEnabled", () => {
   it("accepts explicit true", () => {
     expect(
       isIngDashboardEnabled({
-        ING_DASHBOARD_ENABLED: "true",
+        NODE_ENV: "test", ING_DASHBOARD_ENABLED: "true",
       } as NodeJS.ProcessEnv)
     ).toBe(true)
   })

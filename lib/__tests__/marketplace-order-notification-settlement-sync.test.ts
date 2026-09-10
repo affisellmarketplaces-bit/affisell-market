@@ -81,6 +81,8 @@ describe("buildMarketplaceOrderNotificationArgs", () => {
   it("formats affiliate inbox copy from order row", () => {
     const args = buildMarketplaceOrderNotificationArgs({
       id: "ord_1",
+ supplierCommissionRateBps: 1000,
+ affisellCommissionRateBps: 1000,
       status: "paid",
       supplierId: "sup_1",
       affiliateId: "aff_1",

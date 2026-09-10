@@ -34,7 +34,7 @@ describe("applyDropForgeRefinePatch", () => {
     expect(applied).toContain("addImages")
     expect(applied).toContain("specs")
     expect(preview.images).toHaveLength(2)
-    expect(preview.specs.Semelle).toBe("EVA")
+    expect((preview.specs as any).Semelle).toBe("EVA")
     expect(preview.specs.Matière).toBe("Cuir")
   })
 })
