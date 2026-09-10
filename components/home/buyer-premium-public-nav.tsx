@@ -29,25 +29,23 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
   return (
     <nav
       aria-label="Main"
-      className="mx-auto hidden w-full min-w-0 max-w-7xl items-center justify-between gap-4 rounded-full bg-[#C4B5FD] px-6 py-3 shadow-[0_8px_32px_rgba(99,84,255,0.22)] lg:flex"
+      className="mx-auto hidden w-full min-w-0 max-w-7xl items-center justify-between gap-4 rounded-full bg-[#C4B5FD] px-3 py-2 lg:flex"
       data-testid="buyer-premium-nav"
     >
-      <div className="flex min-w-0 items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3 pl-2">
         <LocaleLink href="/" className="shrink-0">
           <BuyerPremiumLogo />
         </LocaleLink>
       </div>
 
-      <div
-        className="flex items-center gap-6 text-sm font-medium dark:text-slate-200"
-        style={{ color: BUYER_PREMIUM.text.nav }}
-      >
+      {/* BANDE BLANCHE CENTRALE */}
+      <div className="flex items-center rounded-full bg-white px-1.5 py-1 shadow-sm">
         {NAV_LINKS.map((link) => (
           <FastLink
             key={link.href}
             href={link.href}
             localeAware={link.href !== "/#explorer"}
-            className="transition hover:text-[#4338ca] dark:hover:text-indigo-400"
+            className="rounded-full px-4 py-2 text-sm font-bold text-zinc-900 transition hover:bg-zinc-100"
           >
             {link.label}
           </FastLink>
@@ -66,7 +64,7 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
           <>
             <FastLink
               href={signInHref}
-              className="inline-flex h-9 items-center rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50"
+              className="inline-flex h-9 items-center rounded-full bg-white px-5 text-sm font-bold text-zinc-900 shadow-sm transition hover:bg-zinc-50"
             >
               Sign in
             </FastLink>
