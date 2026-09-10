@@ -40,11 +40,15 @@ function PremiumMarketplaceBody({
 
   return (
     <div className="min-w-0 space-y-3 p-3 sm:p-4">
-      <DepartmentBar
-        categories={categories}
-        catalogTotal={shell.catalogTotal}
-        activeCategoryId={activeCategoryId}
-      />
+      {/* PREMIERE BANDE - maintenant en #DDD6FE */}
+      <div className="rounded-full bg-[#DDD6FE] px-2 py-2 shadow-sm">
+        <DepartmentBar
+          categories={categories}
+          catalogTotal={shell.catalogTotal}
+          activeCategoryId={activeCategoryId}
+        />
+      </div>
+
       <PopularDepartmentsBar
         activeCategoryId={activeCategoryId}
         initialDepartments={browseDepartments}
@@ -63,7 +67,8 @@ function PremiumMarketplaceBody({
           <div className="min-w-0 space-y-4">
             <EuropeBanner />
             <div className="flex flex-wrap items-center gap-2">
-              <MarketplaceShipsToChip basePath="/" className="!bg-[#EDE9FE]!text-violet-900!ring-violet-200" />
+              {/* CHIP - un peu plus soutenu */}
+              <MarketplaceShipsToChip basePath="/" className="!bg-[#DDD6FE]!text-violet-900!ring-violet-300" />
             </div>
             <ProductConditionFilterBar initialCounts={shell.offerRailCounts} />
             <div className="min-w-0">
