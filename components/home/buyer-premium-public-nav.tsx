@@ -29,16 +29,16 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
   return (
     <nav
       aria-label="Main"
-      className="mx-auto hidden w-[calc(100%-16px)] min-w-0 max-w-7xl items-center justify-between gap-4 rounded- border border-white/40 bg-[#C4B5FD] px-4 py-2.5 shadow-[0_8px_32px_rgba(99,84,255,0.18)] lg:flex"
+      className="mx-auto hidden w-[calc(100%-32px)] max-w-7xl items-center justify-between gap-4 rounded- bg-[#C4B5FD] px-4 py-2.5 lg:flex"
       data-testid="buyer-premium-nav"
     >
-      <div className="flex min-w-0 items-center gap-3 pl-2">
+      <div className="flex min-w-0 items-center gap-3 pl-1">
         <LocaleLink href="/" className="shrink-0">
           <BuyerPremiumLogo />
         </LocaleLink>
       </div>
 
-      {/* UNE SEULE BANDE BLANCHE GROUPÉE */}
+      {/* BANDE BLANCHE GROUPÉE - même arrondi que le hero */}
       <div className="flex items-center rounded-full bg-white px-1.5 py-1.5 shadow-sm">
         {NAV_LINKS.map((link) => (
           <FastLink
@@ -56,7 +56,7 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
         {status === "authenticated"? (
           <FastLink
             href="/marketplace/account"
-            className="inline-flex h-9 items-center rounded-full bg-white px-5 text-sm font-bold text-zinc-900 shadow-sm transition hover:bg-zinc-50"
+            className="inline-flex h-9 items-center rounded-full bg-white px-5 text-sm font-bold text-zinc-900 shadow-sm"
           >
             {t("myAccount")}
           </FastLink>
@@ -64,13 +64,13 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
           <>
             <FastLink
               href={signInHref}
-              className="inline-flex h-9 items-center rounded-full bg-white px-5 text-sm font-bold text-zinc-900 shadow-sm transition hover:bg-zinc-50"
+              className="inline-flex h-9 items-center rounded-full bg-white px-5 text-sm font-bold text-zinc-900 shadow-sm"
             >
               Sign in
             </FastLink>
             <Link
               href="/signup"
-              className="inline-flex h-9 items-center rounded-full bg-[#6354FF] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#5544e6]"
+              className="inline-flex h-9 items-center rounded-full bg-[#6354FF] px-5 text-sm font-semibold text-white shadow-sm"
             >
               Join Premium
             </Link>
