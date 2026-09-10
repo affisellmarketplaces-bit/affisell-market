@@ -29,7 +29,7 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
   return (
     <nav
       aria-label="Main"
-      className="mx-auto hidden w-full min-w-0 max-w-7xl items-center justify-between gap-4 rounded-full bg-[#C4B5FD] px-3 py-2 shadow-[0_8px_32px_rgba(99,84,255,0.18)] lg:flex"
+      className="mx-auto hidden w-[calc(100%-16px)] min-w-0 max-w-7xl items-center justify-between gap-4 rounded- border border-white/40 bg-[#C4B5FD] px-4 py-2.5 shadow-[0_8px_32px_rgba(99,84,255,0.18)] lg:flex"
       data-testid="buyer-premium-nav"
     >
       <div className="flex min-w-0 items-center gap-3 pl-2">
@@ -38,13 +38,13 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
         </LocaleLink>
       </div>
 
-      {/* RECOMMANDÉ: UNE SEULE BANDE BLANCHE GROUPÉE */}
+      {/* UNE SEULE BANDE BLANCHE GROUPÉE */}
       <div className="flex items-center rounded-full bg-white px-1.5 py-1.5 shadow-sm">
         {NAV_LINKS.map((link) => (
           <FastLink
             key={link.href}
             href={link.href}
-            localeAware={link.href !== "/#explorer"}
+            localeAware={link.href!== "/#explorer"}
             className="rounded-full px-5 py-2 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100"
           >
             {link.label}
@@ -53,7 +53,7 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        {status === "authenticated" ? (
+        {status === "authenticated"? (
           <FastLink
             href="/marketplace/account"
             className="inline-flex h-9 items-center rounded-full bg-white px-5 text-sm font-bold text-zinc-900 shadow-sm transition hover:bg-zinc-50"
@@ -82,5 +82,5 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
 }
 
 export function resolveBuyerPremiumSignInHref(isBuyerContext: boolean): string {
-  return isBuyerContext ? loginCustomerPath(MARKETPLACE_BUYER_ORDERS_PATH) : "/login"
+  return isBuyerContext? loginCustomerPath(MARKETPLACE_BUYER_ORDERS_PATH) : "/login"
 }
