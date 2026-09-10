@@ -29,7 +29,7 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
   return (
     <nav
       aria-label="Main"
-      className="mx-auto hidden w-full min-w-0 max-w-7xl items-center justify-between gap-4 px-4 py-3 lg:flex"
+      className="mx-auto hidden w-full min-w-0 max-w-7xl items-center justify-between gap-4 rounded-full bg-[#DDD6FE] px-6 py-3 shadow-[0_8px_32px_rgba(99,84,255,0.15)] lg:flex"
       data-testid="buyer-premium-nav"
     >
       <div className="flex min-w-0 items-center gap-3">
@@ -66,16 +66,13 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
           <>
             <FastLink
               href={signInHref}
-              className="inline-flex h-9 items-center rounded-full border border-slate-900/15 bg-white px-4 text-sm font-semibold text-slate-900 transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-950 dark:text-white"
+              className="inline-flex h-9 items-center rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50"
             >
               Sign in
             </FastLink>
             <Link
               href="/signup"
-              className={cn(
-                "inline-flex h-9 items-center rounded-full px-4 text-sm font-semibold",
-                buyerPremiumCtaClass
-              )}
+              className="inline-flex h-9 items-center rounded-full bg-[#6354FF] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#5544e6]"
             >
               Join Premium
             </Link>
