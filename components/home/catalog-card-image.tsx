@@ -5,15 +5,11 @@ import { PRODUCT_CARD_IMAGE_FALLBACK } from "@/lib/affiliate-listing-display"
 type Props = {
   src: string
   alt: string
-  /** First 2 grid cards — eager + high priority for LCP. */
   priority?: boolean
-  /** Raw gallery URL (e.g. base64) when card `src` is the listing thumbnail proxy. */
   fallbackSrc?: string | null
-  /** Buyer home grid uses square hero frame (matches ProductCard customer mode). */
   variant?: "buyer" | "legacy"
 }
 
-/** Grid card image with CDN-safe referrer + lightweight fallback on load error. */
 export function CatalogCardImage({
   src,
   alt,
@@ -27,23 +23,24 @@ export function CatalogCardImage({
     <img
       src={src}
       alt={alt}
-      width={isBuyer ? 400 : 300}
-      height={isBuyer ? 400 : 225}
+      width={isBuyer? 400 : 300}
+      height={isBuyer? 400 : 225}
       className={
         isBuyer
-          ? "affisell-product-media-img--buyer pointer-events-none absolute inset-0 z-[1] h-full w-full select-none object-contain transition-transform duration-300 group-hover:scale-[1.05]"
-          : "pointer-events-none absolute inset-0 h-full w-full select-none object-contain p-1 sm:p-4"
+         ? "pointer-events-none relative z-[1] h-full w-full select-none object-contain p-2 transition-transform duration-300 group-hover:scale-[1.05]"
+          : "pointer-events-none relative h-full w-full select-none object-contain p-1 sm:p-4"
       }
-      loading={priority ? "eager" : "lazy"}
-      fetchPriority={priority ? "high" : "auto"}
-      decoding={priority ? "sync" : "async"}
-      sizes={isBuyer ? "(max-width: 768px) 50vw, 25vw" : undefined}
+      loading={priority? "eager" : "lazy"}
+      fetchPriority={priority? "high" : "auto"}
+      decoding="async"
+      sizes={isBuyer? "(max-width: 768px) 50vw, 25vw" : undefined}
       draggable={false}
+      style={{ display: "block" }}
       onError={(e) => {
         const failed = e.currentTarget.src
         if (failed.endsWith(PRODUCT_CARD_IMAGE_FALLBACK)) return
         const fb = fallbackSrc?.trim()
-        if (fb && failed !== fb) {
+        if (fb && failed!== fb) {
           e.currentTarget.src = fb
           return
         }
