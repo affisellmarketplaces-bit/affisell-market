@@ -7,7 +7,7 @@ import { HomePageWarmup } from "@/components/home/home-page-warmup"
 import { PREMIUM_MARKETPLACE_HOME } from "@/lib/marketplace-premium-home-shared"
 
 function HeroFallback() {
-  return <div className="min-h-[5.5rem] sm:min-h-[10rem]" aria-hidden />
+  return <div className="min-h-[5.5rem] sm:min-h-" aria-hidden />
 }
 
 /** Buyer premium home — ref-full-decoupage layout. */
@@ -25,7 +25,7 @@ export async function HomePage() {
       </div>
 
       <div className="mx-auto w-full min-w-0 max-w-7xl px-3 sm:px-6">
-        <div className="overflow-hidden rounded-t-[1.75rem] rounded-b-2xl bg-white shadow-xl shadow-indigo-950/20">
+        <div className="relative isolate overflow-clip rounded-t-[1.75rem] rounded-b-2xl bg-white shadow-xl shadow-indigo-950/20">
           <BuyerPremiumMarketplaceSection />
         </div>
       </div>
