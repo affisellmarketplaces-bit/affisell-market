@@ -38,14 +38,14 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
         </LocaleLink>
       </div>
 
-      {/* BANDE BLANCHE CENTRALE */}
-      <div className="flex items-center rounded-full bg-white px-1.5 py-1 shadow-sm">
+      {/* CHAQUE LIEN = SA PROPRE BANDE BLANCHE */}
+      <div className="flex items-center gap-2">
         {NAV_LINKS.map((link) => (
           <FastLink
             key={link.href}
             href={link.href}
-            localeAware={link.href !== "/#explorer"}
-            className="rounded-full px-4 py-2 text-sm font-bold text-zinc-900 transition hover:bg-zinc-100"
+            localeAware={link.href!== "/#explorer"}
+            className="inline-flex h-9 items-center justify-center rounded-full bg-white px-5 text-sm font-bold text-zinc-900 shadow-sm transition hover:bg-zinc-50"
           >
             {link.label}
           </FastLink>
@@ -53,10 +53,10 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        {status === "authenticated" ? (
+        {status === "authenticated"? (
           <FastLink
             href="/marketplace/account"
-            className="inline-flex h-9 items-center rounded-full border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+            className="inline-flex h-9 items-center rounded-full bg-white px-5 text-sm font-bold text-zinc-900 shadow-sm"
           >
             {t("myAccount")}
           </FastLink>
@@ -82,5 +82,5 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
 }
 
 export function resolveBuyerPremiumSignInHref(isBuyerContext: boolean): string {
-  return isBuyerContext ? loginCustomerPath(MARKETPLACE_BUYER_ORDERS_PATH) : "/login"
+  return isBuyerContext? loginCustomerPath(MARKETPLACE_BUYER_ORDERS_PATH) : "/login"
 }
