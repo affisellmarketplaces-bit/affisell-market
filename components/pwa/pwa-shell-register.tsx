@@ -16,7 +16,7 @@ function scheduleIdleTask(run: () => void, idleTimeoutMs = 2500, fallbackDelayMs
 /** Registers buyer PWA shell SW after hydration — push + offline catalog cache. */
 export function PwaShellRegister() {
   useEffect(() => {
-    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return
+    if (typeof window === "undefined" || !("serviceWorker" in navigator) || process.env.NODE_ENV !== 'production') return
 
     return scheduleIdleTask(() => {
       void navigator.serviceWorker.register(PWA_SW_PATH, { scope: "/" }).catch((error) => {
