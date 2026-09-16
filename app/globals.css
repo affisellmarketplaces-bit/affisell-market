@@ -1412,6 +1412,15 @@ body.affisell-demo-lab .affisell-header-shell {
       var(--affisell-premium-shadow-soft);
   }
 
+  /*
+   * Product card surface — MUST use `background` (not background-color).
+   * Tailwind `bg-[var(--affisell-premium-glass)]` sets background-color, which
+   * ignores linear-gradient values → transparent shells / purple bleed-through.
+   */
+  .affisell-product-card-surface {
+    background: var(--affisell-premium-glass);
+  }
+
   .affisell-premium-chip {
     border: 1px solid color-mix(in srgb, var(--brand) 14%, white 70%);
     background: linear-gradient(
