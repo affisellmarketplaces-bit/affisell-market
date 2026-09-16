@@ -2,12 +2,10 @@ import { Suspense } from "react"
 
 import { BuyerHeroBlock } from "@/components/BuyerHeroBlock"
 import { BuyerPremiumMarketplaceSection } from "@/components/home/buyer-premium-marketplace-section"
-import {
-  BuyerPremiumPublicNav,
-  resolveBuyerPremiumSignInHref,
-} from "@/components/home/buyer-premium-public-nav"
+import { BuyerPremiumPublicNav } from "@/components/home/buyer-premium-public-nav"
 import { HomeBelowFoldRadars } from "@/components/home/home-below-fold-radars"
 import { HomePageWarmup } from "@/components/home/home-page-warmup"
+import { resolveBuyerPremiumSignInHref } from "@/lib/buyer-premium-sign-in-href"
 import { PREMIUM_MARKETPLACE_HOME } from "@/lib/marketplace-premium-home-shared"
 
 function HeroFallback() {
@@ -18,7 +16,7 @@ function HeroFallback() {
 export async function HomePage() {
   return (
     <main
-      className="mx-auto w-full min-w-0 overflow-x-clip pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:pb-8"
+      className="mx-auto w-full min-w-0 flex-1 overflow-x-clip pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:pb-8"
       style={{ backgroundColor: PREMIUM_MARKETPLACE_HOME.pageBg }}
     >
       <HomePageWarmup />
@@ -30,18 +28,18 @@ export async function HomePage() {
         <BuyerPremiumPublicNav signInHref={resolveBuyerPremiumSignInHref(false)} />
       </div>
 
-      <div className="mx-auto w-full min-w-0 max-w-7xl space-y-4 px-3 py-3 sm:space-y-5 sm:px-6 sm:py-5">
+      {/* One continuous column: hero → catalog sheet (no nested “app window”). */}
+      <div className="mx-auto w-full min-w-0 max-w-7xl space-y-0 px-3 pt-3 sm:px-6 sm:pt-5">
         <Suspense fallback={<HeroFallback />}>
           <BuyerHeroBlock />
         </Suspense>
-      </div>
 
-      <div className="mx-auto w-full min-w-0 max-w-7xl px-3 sm:px-6">
         {/*
-          overflow-x-clip only: vertical overflow-clip was clipping the first catalog
-          row against the purple page canvas (ghost slots / “missing” articles).
+          Catalog sheet sits flush under the hero (negative pull + shared radius)
+          so Departments→products read as one surface, not a second floating page.
+          overflow-x-clip only — vertical clip was cutting the first product row.
         */}
-        <div className="relative isolate min-h-[32rem] overflow-x-clip rounded-t-[1.75rem] rounded-b-2xl bg-white shadow-xl shadow-indigo-950/20">
+        <div className="relative z-[1] -mt-3 min-h-[32rem] overflow-x-clip rounded-t-[1.75rem] rounded-b-2xl bg-white shadow-[0_-8px_40px_rgba(49,26,120,0.18)] sm:-mt-4">
           <BuyerPremiumMarketplaceSection />
         </div>
       </div>

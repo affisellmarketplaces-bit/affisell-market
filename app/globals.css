@@ -295,6 +295,28 @@ body.affisell-demo-lab .affisell-header-shell {
       radial-gradient(ellipse 60% 45% at 100% 100%, rgb(6 182 212 / 0.1), transparent 50%),
       linear-gradient(180deg, #151b2e 0%, #0b0f1a 42%, #0b0f1a 100%);
   }
+
+  /*
+   * Buyer premium `/` — one full-bleed purple canvas.
+   * Epoxy lavender frame around purple main looked like "a page layered on another".
+   */
+  body.affisell-buyer-premium-home.affisell-epoxy-atmosphere,
+  body.affisell-buyer-premium-home {
+    background-color: #6b4eff;
+    background-image: none;
+  }
+
+  .dark body.affisell-buyer-premium-home.affisell-epoxy-atmosphere,
+  .dark body.affisell-buyer-premium-home {
+    background-color: #6b4eff;
+    background-image: none;
+  }
+
+  /* Soften footer on the purple canvas so it doesn't read as a second app chrome. */
+  body.affisell-buyer-premium-home footer {
+    background: transparent;
+    border-top-color: rgb(255 255 255 / 0.12);
+  }
   html {
     @apply font-sans;
     -webkit-tap-highlight-color: transparent;

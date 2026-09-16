@@ -7,7 +7,6 @@ import { useTranslations } from "next-intl"
 import { BuyerPremiumLogo } from "@/components/home/buyer-premium-logo"
 import { FastLink } from "@/components/navigation/fast-link"
 import { Link as LocaleLink } from "@/i18n/navigation"
-import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-redirect"
 
 const NAV_LINKS = [
   { href: "/shops", label: "Stores" },
@@ -43,7 +42,7 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
             <FastLink
               key={link.href}
               href={link.href}
-              localeAware={link.href!== "/#explorer"}
+              localeAware={link.href !== "/#explorer"}
               className="rounded-full px-5 py-2 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100"
             >
               {link.label}
@@ -52,7 +51,7 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          {status === "authenticated"? (
+          {status === "authenticated" ? (
             <FastLink
               href="/marketplace/account"
               className="inline-flex h-9 items-center rounded-full bg-white px-5 text-sm font-bold text-zinc-900 shadow-sm"
@@ -79,8 +78,4 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
       </nav>
     </div>
   )
-}
-
-export function resolveBuyerPremiumSignInHref(isBuyerContext: boolean): string {
-  return isBuyerContext? loginCustomerPath(MARKETPLACE_BUYER_ORDERS_PATH) : "/login"
 }
