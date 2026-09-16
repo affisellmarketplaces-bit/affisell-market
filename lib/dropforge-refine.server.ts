@@ -145,7 +145,7 @@ export async function topUpDropForgePreviewFromAliExpressApi(
     const mapped = mapAliExpressGetProductResponse(raw, aeId)
     const aeSkus = parseAeProductSkusFromPayload(raw, aeId)
 
-    let patch: DropForgeRefinePatch = {}
+    const patch: DropForgeRefinePatch = {}
 
     const newImages = mapped.images.filter((u) => !preview.images.includes(u))
     if (newImages.length > 0) {
