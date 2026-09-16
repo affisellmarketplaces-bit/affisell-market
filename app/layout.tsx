@@ -54,14 +54,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const pathname = hdrs.get("x-affisell-pathname") ?? ""
   const isCustomDomain = isCustomDomainHeaders(hdrs)
   const isLegionStorefront = isLegionStorefrontPathname(pathname)
-  /** Admin ops + custom domains: lean shell without marketplace header/footer noise. */
+  /** Dedicated storefront / admin: lean shell without marketplace header/footer noise. */
   const isAdminOpsSurface =
     pathname.startsWith("/dashboard/admin") || pathname.startsWith("/admin")
   const isDedicatedStorefront = isCustomDomain || isLegionStorefront
-  /** Buyer premium `/` owns BuyerPremiumPublicNav inside HomePage — no global sticky chrome. */
+  /** Body class for home canvas styling — header is always PublicNav via SiteHeaderChrome. */
   const isBuyerPremiumHome = isBuyerPremiumHomePath(pathname)
   const leanPlatformChrome = isDedicatedStorefront || isAdminOpsSurface
-  const hideGlobalSiteHeader = leanPlatformChrome || isBuyerPremiumHome
+  const hideGlobalSiteHeader = leanPlatformChrome
   /**
    * Slim i18n only on custom-domain shops (payload). Légion keeps full messages —
    * otherwise residual client UI (gallery, cookies, etc.) throws MISSING_MESSAGE.

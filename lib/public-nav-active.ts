@@ -10,8 +10,8 @@ export type PublicNavActiveState = {
 
 /**
  * Pure active-state logic for buyer public header pills.
- * `#explorer` on `/` must NOT flip chrome to the global marketplace header —
- * buyer premium home keeps `onHome` and owns BuyerPremiumPublicNav only.
+ * `#explorer` on `/` must NOT flip chrome to marketplace —
+ * home stays `onHome` while sharing the same PublicNav browse chrome.
  */
 export function resolvePublicNavActive(
   pathname: string,

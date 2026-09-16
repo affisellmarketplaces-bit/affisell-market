@@ -188,7 +188,7 @@ export function PublicNav() {
     </div>
   )
 
-  const desktopUtilities = (options?: { showAgent?: boolean }) => (
+  const desktopUtilities = (options?: { showAgent?: boolean; showPartnerCta?: boolean }) => (
     <div className="relative z-20 hidden min-w-0 items-center justify-end gap-1 sm:gap-2 lg:col-start-4 lg:row-start-1 lg:flex">
       {options?.showAgent ? (
         <FastLink
@@ -223,13 +223,27 @@ export function PublicNav() {
           <span className="hidden md:inline">{t("myAccount")}</span>
         </FastLink>
       ) : (
-        <FastLink
-          href={signInHref}
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 shrink-0 px-3")}
-        >
-          <User className="size-4 shrink-0" aria-hidden />
-          <span className="hidden sm:inline">{t("signIn")}</span>
-        </FastLink>
+        <>
+          <FastLink
+            href={signInHref}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 shrink-0 px-3")}
+          >
+            <User className="size-4 shrink-0" aria-hidden />
+            <span className="hidden sm:inline">{t("signIn")}</span>
+          </FastLink>
+          {options?.showPartnerCta ? (
+            <FastLink
+              href="/signup"
+              className={cn(
+                buttonVariants({ size: "sm" }),
+                "h-9 shrink-0 border-0 bg-gradient-to-r from-indigo-600 to-violet-600 px-3 text-white shadow-md shadow-violet-500/25 hover:from-indigo-500 hover:to-violet-500"
+              )}
+            >
+              <span className="hidden sm:inline">{t("becomePartner")}</span>
+              <span className="sm:hidden">{t("becomePartnerShort")}</span>
+            </FastLink>
+          ) : null}
+        </>
       )}
     </div>
   )
@@ -342,12 +356,9 @@ export function PublicNav() {
   )
 
   /**
-   * Buyer premium `/` renders BuyerPremiumPublicNav inside HomePage and suppresses
-   * SiteHeaderChrome in root layout — never mount global browse chrome here on home.
+   * Unified buyer chrome: PublicNav browse mode on `/` too (search + pills).
+   * Home no longer mounts a separate BuyerPremiumPublicNav.
    */
-  if (onHome && mode !== "transaction" && mode !== "account") {
-    return null
-  }
 
   return (
     <>
@@ -378,12 +389,13 @@ export function PublicNav() {
         <nav
           aria-label="Main"
           className="affisell-public-nav mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_minmax(17rem,1.15fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
+          data-testid="affisell-public-nav-browse"
         >
           {mobileMinimalBar}
           {desktopLogo}
           {browsePills}
           {searchBlock({ suggestions: true })}
-          {desktopUtilities({ showAgent: true })}
+          {desktopUtilities({ showAgent: true, showPartnerCta: true })}
         </nav>
       )}
     </>
