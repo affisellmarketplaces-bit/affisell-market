@@ -1,7 +1,7 @@
-import Image from "next/image"
 import Link from "next/link"
 import { Shield, Sparkles, Star, TrendingUp } from "lucide-react"
 
+import { BuyerDiscoverTileImage } from "@/components/home/buyer-discover-tile-image"
 import type { BuyerDiscoverCard as BuyerDiscoverCardModel } from "@/lib/buyer-premium-home-content"
 import { BUYER_PREMIUM } from "@/lib/buyer-premium-home-tokens"
 import { cn } from "@/lib/utils"
@@ -58,17 +58,12 @@ export function BuyerDiscoverCard({ card, className }: Props) {
       >
         {images.slice(0, 3).map((img) => (
           <Link
-            key={img.href}
+            key={`${img.href}-${img.src}`}
             href={img.href}
-            className="relative aspect-square overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900"
+            aria-label={img.alt || card.title}
+            className="group relative aspect-square overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900"
           >
-            <Image
-              src={img.src}
-              alt={img.alt || card.title}
-              fill
-              sizes="(max-width: 768px) 28vw, 140px"
-              className="object-cover transition duration-300 group-hover:scale-[1.03]"
-            />
+            <BuyerDiscoverTileImage src={img.src} label={img.alt || card.title} />
           </Link>
         ))}
       </div>
