@@ -725,20 +725,6 @@ export function CategoryTreeExplorer({
   }, [inSheet, onFoldAllAisles, onProductFocus])
 
   const showNavProgress = Boolean(isNavigating || pendingCategoryId)
-  const prefetchedTreeKeyRef = useRef("")
-
-  useEffect(() => {
-    if (!roots.length) return
-    const key = roots.map((r) => r.id).join("|")
-    if (prefetchedTreeKeyRef.current === key) return
-    prefetchedTreeKeyRef.current = key
-    scheduleIdle(() => {
-      for (const root of roots) {
-        prefetchBranch(root.id)
-        for (const sub of root.subcategories.slice(0, 12)) prefetchBranch(sub.id)
-      }
-    })
-  }, [roots])
 
   if (!roots.length) {
     return (
