@@ -15,9 +15,9 @@ export const BUYER_PREMIUM = {
     /** Full-bleed mesh — content sits on canvas, no inset card chrome. */
     gradient: "transparent",
     border: "transparent",
-    orbLeft: "rgba(167, 139, 250, 0.5)",
-    orbRight: "rgba(125, 211, 252, 0.4)",
-    orbCenter: "rgba(196, 181, 253, 0.35)",
+    orbLeft: "rgba(79, 70, 229, 0.62)",
+    orbRight: "rgba(192, 38, 211, 0.4)",
+    orbCenter: "rgba(255, 255, 255, 0.62)",
     shine: "rgba(255, 255, 255, 0.55)",
     /** Subtitle on soft mesh — slate grey (mockup). */
     subline: "#475569",
