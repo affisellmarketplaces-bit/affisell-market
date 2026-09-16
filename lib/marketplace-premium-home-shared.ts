@@ -52,3 +52,32 @@ export function resolveDepartmentPillStyle(name: string): DepartmentPillStyle {
   if (n.includes("meuble") || n.includes("furniture")) return { bg: "#FFEDD5", text: "#9A3412" }
   return { bg: "#F3E8FF", text: "#6D28D9" }
 }
+
+/** Pastel pill colors for the curated "Popular departments" rail, keyed by department id. */
+const BROWSE_DEPARTMENT_PILL_STYLE: Record<string, DepartmentPillStyle> = {
+  "auto-moto": { bg: "#E2E8F0", text: "#334155" },
+  "high-tech": { bg: "#EDE9FE", text: "#6D28D9" },
+  informatique: { bg: "#DBEAFE", text: "#1E40AF" },
+  telephonie: { bg: "#EDE9FE", text: "#6D28D9" },
+  "jeux-video": { bg: "#FEF9C3", text: "#854D0E" },
+  jouets: { bg: "#FEF3C7", text: "#92400E" },
+  collection: { bg: "#FCE7F3", text: "#9D174D" },
+  vetements: { bg: "#FCE7F3", text: "#9D174D" },
+  bijoux: { bg: "#FCE7F3", text: "#9D174D" },
+  "art-antiques": { bg: "#F3E8FF", text: "#6D28D9" },
+  monnaies: { bg: "#FEF3C7", text: "#92400E" },
+  sports: { bg: "#D1FAE5", text: "#065F46" },
+  maison: { bg: "#E0E7FF", text: "#3730A3" },
+  beaute: { bg: "#FCE7F3", text: "#9D174D" },
+  bricolage: { bg: "#FFEDD5", text: "#9A3412" },
+  medias: { bg: "#E0E7FF", text: "#3730A3" },
+  bebe: { bg: "#FEF3C7", text: "#92400E" },
+  animaux: { bg: "#D1FAE5", text: "#065F46" },
+  alimentation: { bg: "#FFEDD5", text: "#9A3412" },
+  photo: { bg: "#DBEAFE", text: "#1E40AF" },
+}
+
+/** Map a curated browse-department id → mockup pill colors (falls back to the default violet). */
+export function resolveBrowseDepartmentPillStyle(id: string): DepartmentPillStyle {
+  return BROWSE_DEPARTMENT_PILL_STYLE[id] ?? { bg: "#F3E8FF", text: "#6D28D9" }
+}
