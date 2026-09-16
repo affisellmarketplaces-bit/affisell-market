@@ -7,7 +7,7 @@ type Translator = (key: string) => string
 
 /**
  * Rangée 2 desktop (hors hero purple primary band) — auctions / luxe / trust.
- * Hub Battles lives in PublicNav (2ᵉ bande chrome), not here.
+ * Hub Battles lives in PublicNav browse chrome (not landing `/` pills).
  */
 export function buildPremiumBuyerTiles(
   t: Translator,

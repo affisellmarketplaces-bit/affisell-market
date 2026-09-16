@@ -33,6 +33,7 @@ import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { openMobileBuyerHub, openMobileSearch } from "@/lib/buyer-hub-events"
 import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-redirect"
 import { resolvePublicNavActive } from "@/lib/public-nav-active"
+import { resolvePublicNavBrowsePillVisibility } from "@/lib/public-nav-landing-pills"
 import {
   PUBLIC_NAV_ACCOUNT_LINKS,
   resolvePublicNavBackHref,
@@ -58,13 +59,29 @@ function isAccountNavActive(pathname: string, href: string, exact?: boolean): bo
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-export function PublicNav() {
+export type PublicNavProps = {
+  /**
+   * Landing `/` only — primary pills = Accueil · Marketplace · Affisell Pulse.
+   * Battles / Magic Lab / Trusted stores stay on marketplace + other browse routes.
+   */
+  landingPills?: boolean
+}
+
+export function PublicNav({ landingPills = false }: PublicNavProps) {
   const t = useTranslations("PublicNav")
   const tHub = useTranslations("marketplace.mobileHub")
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const isCustomer = session?.user?.role === "CUSTOMER"
-  const showMagicLab = canSeeMagicLabChrome(session?.user?.role)
+  const showMagicLabChrome = canSeeMagicLabChrome(session?.user?.role)
+  const {
+    showBattles: showBattlesPill,
+    showMagicLab: showMagicLabPill,
+    showTrustedStores: showTrustedStoresPill,
+  } = resolvePublicNavBrowsePillVisibility({
+    landingPills,
+    showMagicLab: showMagicLabChrome,
+  })
   const isResellerStoresNav = isResellerStoresNavContext(session?.user?.role, pathname)
   const cartCount = useBuyerCartCount({ deferSync: true })
   const [explorerHash, setExplorerHash] = useState(false)
@@ -151,17 +168,19 @@ export function PublicNav() {
             >
               <Sparkles className="size-[18px]" aria-hidden />
             </FastLink>
-            <FastLink
-              href="/battles"
-              className={cn(
-                mobileIconBtn,
-                onBattles &&
-                  "border-fuchsia-300 bg-fuchsia-100 text-fuchsia-900 dark:border-fuchsia-500/50 dark:bg-fuchsia-950/80 dark:text-fuchsia-100"
-              )}
-              aria-label={t("battlesEntry")}
-            >
-              <Swords className="size-[18px]" aria-hidden />
-            </FastLink>
+            {showBattlesPill ? (
+              <FastLink
+                href="/battles"
+                className={cn(
+                  mobileIconBtn,
+                  onBattles &&
+                    "border-fuchsia-300 bg-fuchsia-100 text-fuchsia-900 dark:border-fuchsia-500/50 dark:bg-fuchsia-950/80 dark:text-fuchsia-100"
+                )}
+                aria-label={t("battlesEntry")}
+              >
+                <Swords className="size-[18px]" aria-hidden />
+              </FastLink>
+            ) : null}
             <button
               type="button"
               onClick={openMobileSearch}
@@ -274,15 +293,17 @@ export function PublicNav() {
         activeVariant="brand"
         showNewBadge
       />
-      <NavPill
-        href="/battles"
-        label={t("battlesEntry")}
-        shortLabel={t("battlesEntryShort")}
-        icon={Swords}
-        active={onBattles}
-        activeVariant="brand"
-      />
-      {showMagicLab ? (
+      {showBattlesPill ? (
+        <NavPill
+          href="/battles"
+          label={t("battlesEntry")}
+          shortLabel={t("battlesEntryShort")}
+          icon={Swords}
+          active={onBattles}
+          activeVariant="brand"
+        />
+      ) : null}
+      {showMagicLabPill ? (
         <NavPill
           href="/lab"
           label={t("magicLab")}
@@ -292,15 +313,17 @@ export function PublicNav() {
           activeVariant="brand"
         />
       ) : null}
-      <NavPill
-        href="/shops"
-        label={isResellerStoresNav ? t("resellerStores") : t("trustedStores")}
-        shortLabel={isResellerStoresNav ? t("resellerStoresShort") : t("trustedStoresShort")}
-        icon={isResellerStoresNav ? TrendingUp : ShieldCheck}
-        active={onShops}
-        activeVariant="brand"
-        statusBadge={isResellerStoresNav ? t("resellerStoresBadge") : undefined}
-      />
+      {showTrustedStoresPill ? (
+        <NavPill
+          href="/shops"
+          label={isResellerStoresNav ? t("resellerStores") : t("trustedStores")}
+          shortLabel={isResellerStoresNav ? t("resellerStoresShort") : t("trustedStoresShort")}
+          icon={isResellerStoresNav ? TrendingUp : ShieldCheck}
+          active={onShops}
+          activeVariant="brand"
+          statusBadge={isResellerStoresNav ? t("resellerStoresBadge") : undefined}
+        />
+      ) : null}
     </div>
   )
 

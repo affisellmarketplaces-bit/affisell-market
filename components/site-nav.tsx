@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react"
 import { NavAffiliate } from "@/components/nav/nav-affiliate"
 import { NavPublic } from "@/components/nav/nav-public"
 import { NavSupplier } from "@/components/nav/nav-supplier"
+import { isBuyerPremiumHomePath } from "@/lib/buyer-premium-home-path"
 import { resolveMerchantNavRole } from "@/lib/site-nav-merchant-role"
 
 type Props = {
@@ -58,5 +59,6 @@ export function SiteNav({ initialRole = null }: Props) {
     return <NavAffiliate />
   }
 
-  return <NavPublic />
+  /** `/` landing (incl. `/fr`) — lean primary pills; full browse chrome elsewhere. */
+  return <NavPublic landingPills={isBuyerPremiumHomePath(pathname)} />
 }
