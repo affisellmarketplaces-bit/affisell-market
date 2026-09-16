@@ -43,14 +43,14 @@ export function BuyerHeroSearch({ premium = false }: Props) {
         placeholder={premium ? t("searchPlaceholderPremium") : t("searchPlaceholder")}
         className={cn(
           "h-12 w-full min-w-0 rounded-full border border-white bg-white pl-11 text-sm outline-none placeholder:text-zinc-400 focus:ring-4 focus:ring-[rgba(67,56,202,0.18)] sm:h-14 sm:text-base dark:text-zinc-50",
-          premium ? "pr-[9.5rem] sm:pr-[11.5rem]" : "pr-[4.75rem] sm:pr-28"
+          premium
+            ? "pr-[9.5rem] shadow-[0_12px_40px_rgba(79,70,229,0.14)] sm:pr-[11.5rem]"
+            : "pr-[4.75rem] sm:pr-28"
         )}
         style={
           premium
             ? {
                 color: BUYER_PREMIUM.text.heading,
-                boxShadow: BUYER_PREMIUM.search.shadow,
-                // focus ring via CSS variable on parent form would be heavy — ring class below
               }
             : undefined
         }

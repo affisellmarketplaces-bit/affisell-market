@@ -297,25 +297,25 @@ body.affisell-demo-lab .affisell-header-shell {
   }
 
   /*
-   * Buyer premium `/` — one full-bleed purple canvas.
-   * Epoxy lavender frame around purple main looked like "a page layered on another".
+   * Buyer premium `/` — soft mesh canvas (mockup lavender → sky).
+   * Hero content sits on BuyerHomeMeshCanvas; white panel hosts categories + Discover.
    */
   body.affisell-buyer-premium-home.affisell-epoxy-atmosphere,
   body.affisell-buyer-premium-home {
-    background-color: #6b4eff;
+    background-color: #ede9fe;
     background-image: none;
   }
 
   .dark body.affisell-buyer-premium-home.affisell-epoxy-atmosphere,
   .dark body.affisell-buyer-premium-home {
-    background-color: #6b4eff;
+    background-color: #ede9fe;
     background-image: none;
   }
 
-  /* Soften footer on the purple canvas so it doesn't read as a second app chrome. */
+  /* Soften footer on the mesh canvas so it doesn't read as a second app chrome. */
   body.affisell-buyer-premium-home footer {
     background: transparent;
-    border-top-color: rgb(255 255 255 / 0.12);
+    border-top-color: rgb(99 102 241 / 0.12);
   }
   html {
     @apply font-sans;

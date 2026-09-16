@@ -23,35 +23,10 @@ function BuyerPremiumHero() {
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-[1.75rem] px-4 py-10 sm:px-8 sm:py-14 md:py-16"
+        "relative overflow-visible px-1 pb-10 pt-6 sm:px-2 sm:pb-12 sm:pt-8 md:pb-14 md:pt-10"
       )}
-      style={{
-        background: BUYER_PREMIUM.hero.gradient,
-        borderWidth: 1,
-        borderStyle: "solid",
-        borderColor: BUYER_PREMIUM.hero.border,
-        boxShadow: "0 20px 50px rgba(124, 58, 237, 0.18)",
-      }}
+      data-testid="buyer-premium-hero"
     >
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <div
-          className="absolute -left-24 -top-10 h-[22rem] w-[22rem] rounded-full blur-3xl"
-          style={{ backgroundColor: BUYER_PREMIUM.hero.orbLeft }}
-        />
-        <div
-          className="absolute -bottom-20 -right-20 h-[24rem] w-[24rem] rounded-full blur-3xl"
-          style={{ backgroundColor: BUYER_PREMIUM.hero.orbRight }}
-        />
-        <div
-          className="absolute left-1/2 top-[18%] h-56 w-[min(92%,36rem)] -translate-x-1/2 rounded-full blur-3xl"
-          style={{ backgroundColor: BUYER_PREMIUM.hero.orbCenter }}
-        />
-        <div
-          className="absolute left-1/2 top-6 h-32 w-[70%] -translate-x-1/2 rounded-full blur-2xl"
-          style={{ backgroundColor: BUYER_PREMIUM.hero.shine }}
-        />
-      </div>
-
       <motion.div
         className="relative mx-auto max-w-3xl text-center"
         variants={fadeSlideUp}
@@ -98,9 +73,8 @@ function BuyerPremiumHero() {
           {BUYER_PREMIUM_TRUST_PILLS.map((label) => (
             <li
               key={label}
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-sm"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-medium shadow-sm"
               style={{
-                backgroundColor: BUYER_PREMIUM.trust.pillBg,
                 borderWidth: 1,
                 borderStyle: "solid",
                 borderColor: BUYER_PREMIUM.trust.pillBorder,

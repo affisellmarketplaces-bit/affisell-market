@@ -1,8 +1,10 @@
 /** Premium marketplace home — tokens + department pill styling (ref-full-decoupage). */
 
 export const PREMIUM_MARKETPLACE_HOME = {
-  pageBg: "#6B4EFF",
-  heroGradient: "linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)",
+  /** Matches BUYER_PREMIUM.pageBg — soft mesh, not saturated violet. */
+  pageBg: "#EDE9FE",
+  heroGradient:
+    "linear-gradient(165deg, #F5F3FF 0%, #EDE9FE 28%, #DDD6FE 52%, #C7D2FE 78%, #E0F2FE 100%)",
   panelBg: "#ffffff",
   departmentsLabel: "#7C3AED",
   departmentsHint: "#64748B",

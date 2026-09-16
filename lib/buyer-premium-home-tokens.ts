@@ -3,8 +3,8 @@
  * Keep in sync when adjusting hero / nav / discover intensity.
  */
 export const BUYER_PREMIUM = {
-  /** Page canvas — saturated Affisell violet (ref-full-decoupage) */
-  pageBg: "#6B4EFF",
+  /** Soft mesh canvas under glass header (mockup lavender → sky). */
+  pageBg: "#EDE9FE",
   text: {
     heading: "#0f172a",
     body: "#475569",
@@ -12,16 +12,16 @@ export const BUYER_PREMIUM = {
     nav: "#334155",
   },
   hero: {
-    /** Saturated violet → indigo (ref-full-decoupage hero) */
-    gradient: "linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)",
-    border: "rgba(167, 139, 250, 0.55)",
-    orbLeft: "rgba(217, 70, 239, 0.32)",
-    orbRight: "rgba(79, 70, 229, 0.28)",
-    orbCenter: "rgba(67, 56, 202, 0.12)",
-    shine: "rgba(255, 255, 255, 0.14)",
-    /** Subtitle on gradient — pure white + depth shadow (title stays dark) */
-    subline: "#FFFFFF",
-    sublineShadow: "0 1px 2px rgba(15, 23, 42, 0.55), 0 2px 10px rgba(30, 27, 75, 0.35)",
+    /** Full-bleed mesh — content sits on canvas, no inset card chrome. */
+    gradient: "transparent",
+    border: "transparent",
+    orbLeft: "rgba(167, 139, 250, 0.5)",
+    orbRight: "rgba(125, 211, 252, 0.4)",
+    orbCenter: "rgba(196, 181, 253, 0.35)",
+    shine: "rgba(255, 255, 255, 0.55)",
+    /** Subtitle on soft mesh — slate grey (mockup). */
+    subline: "#475569",
+    sublineShadow: "none",
   },
   badge: {
     heroBg: "rgba(255, 255, 255, 0.78)",
@@ -51,7 +51,7 @@ export const BUYER_PREMIUM = {
   discover: {
     cardBg: "#ffffff",
     cardBorder: "#e2e8f0",
-    cardShadow: "0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04)",
+    cardShadow: "0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(79, 70, 229, 0.08)",
     link: "#4338ca",
     linkHover: "#3730a3",
   },

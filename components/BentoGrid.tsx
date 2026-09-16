@@ -11,8 +11,8 @@ export async function BentoGrid() {
   if (cards.length === 0) return null
 
   return (
-    <section className="min-w-0 px-0 py-2 sm:py-3" aria-labelledby="buyer-discover-heading">
-      <div className="mb-5 flex min-w-0 items-center justify-between gap-3">
+    <section className="min-w-0 px-0 py-1 sm:py-2" aria-labelledby="buyer-discover-heading">
+      <div className="mb-4 flex min-w-0 items-center justify-between gap-3 sm:mb-5">
         <h2
           id="buyer-discover-heading"
           className="min-w-0 text-xl font-bold tracking-tight dark:text-white"
@@ -22,7 +22,7 @@ export async function BentoGrid() {
         </h2>
         <Link
           href={PUBLIC_MARKETPLACE_BROWSE_PATH}
-          className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold transition hover:text-[#3730a3] dark:text-indigo-400"
+          className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold transition hover:opacity-80 dark:text-indigo-400"
           style={{ color: BUYER_PREMIUM.discover.link }}
         >
           View all
