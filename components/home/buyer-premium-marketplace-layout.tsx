@@ -3,7 +3,6 @@
 import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 
-import { CategorySidebar } from "@/components/CategorySidebar"
 import { DepartmentBar } from "@/components/DepartmentBar"
 import { EuropeBanner } from "@/components/EuropeBanner"
 import { PopularDepartmentsBar } from "@/components/PopularDepartmentsBar"
@@ -56,30 +55,18 @@ function PremiumMarketplaceBody({
         initialDepartments={browseDepartments}
       />
 
-      <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start">
-        <div className="min-w-0 shrink-0">
-          <CategorySidebar
-            categories={categories}
-            catalogTotal={shell.catalogTotal}
-            activeCategoryId={activeCategoryId}
+      <div className="min-w-0 space-y-4">
+        <EuropeBanner />
+        <div className="flex flex-wrap items-center gap-2">
+          <MarketplaceShipsToChip
+            basePath="/"
+            className="!bg-[#EDE9FE] !text-violet-900 !ring-violet-200"
           />
         </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="min-w-0 space-y-4">
-            <EuropeBanner />
-            <div className="flex flex-wrap items-center gap-2">
-              <MarketplaceShipsToChip
-                basePath="/"
-                className="!bg-[#EDE9FE] !text-violet-900 !ring-violet-200"
-              />
-            </div>
-            <ProductConditionFilterBar initialCounts={shell.offerRailCounts} />
-            {/* Single #explorer anchor — sticky PublicNav; avoid void under hash scroll. */}
-            <div id="explorer" className="min-h-[16rem] min-w-0 scroll-mt-28">
-              {catalogExplorer}
-            </div>
-          </div>
+        <ProductConditionFilterBar initialCounts={shell.offerRailCounts} />
+        {/* Single #explorer anchor — sticky PublicNav; avoid void under hash scroll. */}
+        <div id="explorer" className="min-h-[16rem] min-w-0 scroll-mt-28">
+          {catalogExplorer}
         </div>
       </div>
     </div>
