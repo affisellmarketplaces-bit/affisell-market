@@ -7,8 +7,8 @@ describe("resolvePublicNavSearchContext", () => {
     expect(resolvePublicNavSearchContext("/", false)).toBe("home")
   })
 
-  it("returns marketplace on explorer hash", () => {
-    expect(resolvePublicNavSearchContext("/", true)).toBe("marketplace")
+  it("stays home on explorer hash (premium home owns chrome)", () => {
+    expect(resolvePublicNavSearchContext("/", true)).toBe("home")
   })
 
   it("returns creatorStores on /shops slug", () => {

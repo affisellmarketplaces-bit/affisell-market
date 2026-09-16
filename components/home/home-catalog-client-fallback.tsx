@@ -12,10 +12,7 @@ export function HomeCatalogClientFallback({ message, onRetry }: Props) {
   const t = useTranslations("home.catalogError")
 
   return (
-    <section
-      id="explorer"
-      className="scroll-mt-24 rounded-3xl border border-dashed border-violet-300/40 bg-violet-50/50 px-6 py-10 text-center dark:border-violet-500/30 dark:bg-violet-950/20"
-    >
+    <section className="rounded-3xl border border-dashed border-violet-300/40 bg-violet-50/50 px-6 py-10 text-center dark:border-violet-500/30 dark:bg-violet-950/20">
       <p className="text-xs font-semibold uppercase tracking-widest text-violet-600 dark:text-violet-400">
         {t("eyebrow")}
       </p>

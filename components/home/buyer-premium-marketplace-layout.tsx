@@ -73,7 +73,8 @@ function PremiumMarketplaceBody({
             </div>
             <ProductConditionFilterBar initialCounts={shell.offerRailCounts} />
             <div className="min-w-0">{discoverSlot}</div>
-            <div id="explorer" className="min-w-0 scroll-mt-24">
+            {/* Single #explorer anchor — sticky premium nav ~4.5rem; avoid purple void under hash scroll. */}
+            <div id="explorer" className="min-h-[16rem] min-w-0 scroll-mt-28">
               {catalogExplorer}
             </div>
           </div>

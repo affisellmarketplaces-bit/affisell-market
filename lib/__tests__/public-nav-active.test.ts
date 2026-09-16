@@ -13,10 +13,10 @@ describe("resolvePublicNavActive", () => {
     })
   })
 
-  it("marks marketplace when home explorer hash is set", () => {
+  it("keeps home chrome when explorer hash is set (no global header flip)", () => {
     expect(resolvePublicNavActive("/", true)).toEqual({
-      onHome: false,
-      onMarketplace: true,
+      onHome: true,
+      onMarketplace: false,
       onShops: false,
       onDiscover: false,
       onBattles: false,

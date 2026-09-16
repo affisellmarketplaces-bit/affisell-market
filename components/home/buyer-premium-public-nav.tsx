@@ -25,11 +25,11 @@ export function BuyerPremiumPublicNav({ signInHref }: Props) {
   const t = useTranslations("PublicNav")
 
   return (
-    // WRAPPER = transparent, c'est lui qui aligne avec le hero
-    <div className="w-full px-4 pt-4">
+    // Transparent wrapper aligns with hero; sticky shell lives in HomePage.
+    <div className="w-full px-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] sm:px-4 sm:pt-4">
       <nav
         aria-label="Main"
-        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 overflow-hidden rounded-2xl bg-[#C4B5FD] px-4 py-2.5 lg:flex"
+        className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 overflow-x-auto overflow-y-hidden rounded-2xl bg-[#C4B5FD] px-3 py-2.5 sm:gap-4 sm:px-4"
         data-testid="buyer-premium-nav"
       >
         <div className="flex min-w-0 items-center gap-3 pl-1">
