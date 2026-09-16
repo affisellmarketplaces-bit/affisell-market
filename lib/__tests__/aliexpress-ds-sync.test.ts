@@ -13,7 +13,7 @@ describe("aliexpress-ds-sync", () => {
   })
 
   it("builds sha256 sync query with epoch-ms timestamp", () => {
-    const params: any = {
+    const params: Record<string, string> = {
       method: "aliexpress.ds.product.get",
       app_key: "534690",
       session: "token",
@@ -27,11 +27,11 @@ describe("aliexpress-ds-sync", () => {
       target_currency: "EUR",
       ship_to_country: "FR",
       target_language: "FR",
-    };
-    (params as any).sign = signAliExpressTopHmacSha256(params, "secret")
+    }
+    params.sign = signAliExpressTopHmacSha256(params, "secret")
     const q = encodeAliExpressQuery(params)
     expect(q).toContain("sign_method=sha256")
     expect(q).toContain("product_id=1005012130287204")
-    expect((params as any).sign).toMatch(/^[A-F0-9]{64}$/)
+    expect(params.sign).toMatch(/^[A-F0-9]{64}$/)
   })
 })
