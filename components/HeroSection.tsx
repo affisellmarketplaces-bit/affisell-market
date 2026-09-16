@@ -30,7 +30,7 @@ function BuyerPremiumHero() {
       <motion.div
         className="relative mx-auto max-w-3xl text-center"
         variants={fadeSlideUp}
-        initial="hidden"
+        initial={false}
         animate="visible"
         transition={motionTransition}
       >
