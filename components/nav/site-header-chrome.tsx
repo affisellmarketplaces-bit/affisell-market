@@ -2,6 +2,8 @@
 
 import { useEffect, useState, type ReactNode } from "react"
 
+import { usePathname } from "@/i18n/navigation"
+import { isBuyerPremiumHomePath } from "@/lib/buyer-premium-home-path"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -11,8 +13,11 @@ type Props = {
 /**
  * Sticky public header — Apple-like minimal on mobile (no trust band);
  * desktop keeps the epoxy shell + scroll glass.
+ * On buyer home `/`: glass at top of hero, opaque white when scrolled.
  */
 export function SiteHeaderChrome({ children }: Props) {
+  const pathname = usePathname()
+  const onBuyerHome = isBuyerPremiumHomePath(pathname)
   const [compact, setCompact] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
@@ -35,8 +40,11 @@ export function SiteHeaderChrome({ children }: Props) {
         "md:border-b-0 md:bg-transparent md:px-4 md:pt-3 md:backdrop-blur-none dark:md:bg-transparent",
         "transition-[padding,background,backdrop-filter] duration-300",
         compact && "affisell-global-site-header--compact md:pt-2",
-        scrolled && "affisell-global-site-header--scrolled"
+        scrolled && "affisell-global-site-header--scrolled",
+        onBuyerHome && !scrolled && "affisell-global-site-header--home-glass",
+        onBuyerHome && scrolled && "affisell-global-site-header--home-solid"
       )}
+      data-home-chrome={onBuyerHome ? "true" : undefined}
     >
       <div className="mx-auto max-w-7xl min-w-0 px-3 md:px-0">
         <div
@@ -44,7 +52,9 @@ export function SiteHeaderChrome({ children }: Props) {
             "affisell-header-shell relative min-w-0 overflow-x-hidden overflow-y-visible md:overflow-visible",
             "max-md:rounded-none max-md:border-0 max-md:bg-transparent max-md:shadow-none max-md:backdrop-blur-none",
             compact && "affisell-header-shell--compact",
-            scrolled && "affisell-header-shell--scrolled"
+            scrolled && "affisell-header-shell--scrolled",
+            onBuyerHome && !scrolled && "affisell-header-shell--home-glass",
+            onBuyerHome && scrolled && "affisell-header-shell--home-solid"
           )}
         >
           <div className="affisell-header-mesh pointer-events-none absolute inset-0 max-md:hidden" aria-hidden />

@@ -26,10 +26,6 @@ import { NavHeaderSearchDeferred } from "@/components/nav/nav-header-search-defe
 import { CommandKTriggerDeferred } from "@/components/navigation/command-k-trigger-deferred"
 import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
-import {
-  BuyerPremiumPublicNav,
-  resolveBuyerPremiumSignInHref,
-} from "@/components/home/buyer-premium-public-nav"
 import { Link as LocaleLink, usePathname } from "@/i18n/navigation"
 import { buttonVariants } from "@/components/ui/button"
 import { useBuyerCartCount } from "@/hooks/use-buyer-cart-count"
@@ -37,6 +33,7 @@ import { PUBLIC_MARKETPLACE_BROWSE_PATH } from "@/lib/affiliate-routes"
 import { openMobileBuyerHub, openMobileSearch } from "@/lib/buyer-hub-events"
 import { loginCustomerPath, MARKETPLACE_BUYER_ORDERS_PATH } from "@/lib/login-redirect"
 import { resolvePublicNavActive } from "@/lib/public-nav-active"
+import { resolvePublicNavBrowsePillVisibility } from "@/lib/public-nav-landing-pills"
 import {
   PUBLIC_NAV_ACCOUNT_LINKS,
   resolvePublicNavBackHref,
@@ -62,13 +59,29 @@ function isAccountNavActive(pathname: string, href: string, exact?: boolean): bo
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-export function PublicNav() {
+export type PublicNavProps = {
+  /**
+   * Landing `/` only — primary pills = Accueil · Marketplace · Affisell Pulse.
+   * Battles / Magic Lab / Trusted stores stay on marketplace + other browse routes.
+   */
+  landingPills?: boolean
+}
+
+export function PublicNav({ landingPills = false }: PublicNavProps) {
   const t = useTranslations("PublicNav")
   const tHub = useTranslations("marketplace.mobileHub")
   const pathname = usePathname()
   const { data: session, status } = useSession()
   const isCustomer = session?.user?.role === "CUSTOMER"
-  const showMagicLab = canSeeMagicLabChrome(session?.user?.role)
+  const showMagicLabChrome = canSeeMagicLabChrome(session?.user?.role)
+  const {
+    showBattles: showBattlesPill,
+    showMagicLab: showMagicLabPill,
+    showTrustedStores: showTrustedStoresPill,
+  } = resolvePublicNavBrowsePillVisibility({
+    landingPills,
+    showMagicLab: showMagicLabChrome,
+  })
   const isResellerStoresNav = isResellerStoresNavContext(session?.user?.role, pathname)
   const cartCount = useBuyerCartCount({ deferSync: true })
   const [explorerHash, setExplorerHash] = useState(false)
@@ -155,17 +168,19 @@ export function PublicNav() {
             >
               <Sparkles className="size-[18px]" aria-hidden />
             </FastLink>
-            <FastLink
-              href="/battles"
-              className={cn(
-                mobileIconBtn,
-                onBattles &&
-                  "border-fuchsia-300 bg-fuchsia-100 text-fuchsia-900 dark:border-fuchsia-500/50 dark:bg-fuchsia-950/80 dark:text-fuchsia-100"
-              )}
-              aria-label={t("battlesEntry")}
-            >
-              <Swords className="size-[18px]" aria-hidden />
-            </FastLink>
+            {showBattlesPill ? (
+              <FastLink
+                href="/battles"
+                className={cn(
+                  mobileIconBtn,
+                  onBattles &&
+                    "border-fuchsia-300 bg-fuchsia-100 text-fuchsia-900 dark:border-fuchsia-500/50 dark:bg-fuchsia-950/80 dark:text-fuchsia-100"
+                )}
+                aria-label={t("battlesEntry")}
+              >
+                <Swords className="size-[18px]" aria-hidden />
+              </FastLink>
+            ) : null}
             <button
               type="button"
               onClick={openMobileSearch}
@@ -192,7 +207,7 @@ export function PublicNav() {
     </div>
   )
 
-  const desktopUtilities = (options?: { showAgent?: boolean }) => (
+  const desktopUtilities = (options?: { showAgent?: boolean; showPartnerCta?: boolean }) => (
     <div className="relative z-20 hidden min-w-0 items-center justify-end gap-1 sm:gap-2 lg:col-start-4 lg:row-start-1 lg:flex">
       {options?.showAgent ? (
         <FastLink
@@ -227,13 +242,27 @@ export function PublicNav() {
           <span className="hidden md:inline">{t("myAccount")}</span>
         </FastLink>
       ) : (
-        <FastLink
-          href={signInHref}
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 shrink-0 px-3")}
-        >
-          <User className="size-4 shrink-0" aria-hidden />
-          <span className="hidden sm:inline">{t("signIn")}</span>
-        </FastLink>
+        <>
+          <FastLink
+            href={signInHref}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 shrink-0 px-3")}
+          >
+            <User className="size-4 shrink-0" aria-hidden />
+            <span className="hidden sm:inline">{t("signIn")}</span>
+          </FastLink>
+          {options?.showPartnerCta ? (
+            <FastLink
+              href="/signup"
+              className={cn(
+                buttonVariants({ size: "sm" }),
+                "h-9 shrink-0 border-0 bg-gradient-to-r from-indigo-600 to-violet-600 px-3 text-white shadow-md shadow-violet-500/25 hover:from-indigo-500 hover:to-violet-500"
+              )}
+            >
+              <span className="hidden sm:inline">{t("becomePartner")}</span>
+              <span className="sm:hidden">{t("becomePartnerShort")}</span>
+            </FastLink>
+          ) : null}
+        </>
       )}
     </div>
   )
@@ -264,15 +293,17 @@ export function PublicNav() {
         activeVariant="brand"
         showNewBadge
       />
-      <NavPill
-        href="/battles"
-        label={t("battlesEntry")}
-        shortLabel={t("battlesEntryShort")}
-        icon={Swords}
-        active={onBattles}
-        activeVariant="brand"
-      />
-      {showMagicLab ? (
+      {showBattlesPill ? (
+        <NavPill
+          href="/battles"
+          label={t("battlesEntry")}
+          shortLabel={t("battlesEntryShort")}
+          icon={Swords}
+          active={onBattles}
+          activeVariant="brand"
+        />
+      ) : null}
+      {showMagicLabPill ? (
         <NavPill
           href="/lab"
           label={t("magicLab")}
@@ -282,15 +313,17 @@ export function PublicNav() {
           activeVariant="brand"
         />
       ) : null}
-      <NavPill
-        href="/shops"
-        label={isResellerStoresNav ? t("resellerStores") : t("trustedStores")}
-        shortLabel={isResellerStoresNav ? t("resellerStoresShort") : t("trustedStoresShort")}
-        icon={isResellerStoresNav ? TrendingUp : ShieldCheck}
-        active={onShops}
-        activeVariant="brand"
-        statusBadge={isResellerStoresNav ? t("resellerStoresBadge") : undefined}
-      />
+      {showTrustedStoresPill ? (
+        <NavPill
+          href="/shops"
+          label={isResellerStoresNav ? t("resellerStores") : t("trustedStores")}
+          shortLabel={isResellerStoresNav ? t("resellerStoresShort") : t("trustedStoresShort")}
+          icon={isResellerStoresNav ? TrendingUp : ShieldCheck}
+          active={onShops}
+          activeVariant="brand"
+          statusBadge={isResellerStoresNav ? t("resellerStoresBadge") : undefined}
+        />
+      ) : null}
     </div>
   )
 
@@ -345,11 +378,13 @@ export function PublicNav() {
     </FastLink>
   )
 
+  /**
+   * Unified buyer chrome: PublicNav browse mode on `/` too (search + pills).
+   * Home no longer mounts a separate BuyerPremiumPublicNav.
+   */
+
   return (
     <>
-      {onHome && mode !== "transaction" && mode !== "account" ? (
-        <BuyerPremiumPublicNav signInHref={resolveBuyerPremiumSignInHref(isBuyerContext)} />
-      ) : null}
       {mode === "transaction" ? (
         <nav
           aria-label="Main"
@@ -376,16 +411,14 @@ export function PublicNav() {
       ) : (
         <nav
           aria-label="Main"
-          className={cn(
-            "affisell-public-nav mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_minmax(17rem,1.15fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2",
-            onHome && "lg:hidden"
-          )}
+          className="affisell-public-nav mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-1 px-1 py-1 text-sm sm:px-2 lg:grid lg:grid-cols-[auto_minmax(0,1fr)_minmax(17rem,1.15fr)_auto] lg:items-center lg:gap-x-3 lg:gap-y-0 lg:py-2"
+          data-testid="affisell-public-nav-browse"
         >
           {mobileMinimalBar}
           {desktopLogo}
           {browsePills}
           {searchBlock({ suggestions: true })}
-          {desktopUtilities({ showAgent: true })}
+          {desktopUtilities({ showAgent: true, showPartnerCta: true })}
         </nav>
       )}
     </>

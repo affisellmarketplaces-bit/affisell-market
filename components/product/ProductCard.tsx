@@ -51,6 +51,16 @@ export type ProductCardProduct = {
   offerBadge?: { label: string; shortLabel: string; tone: string; icon: string } | null
 }
 
+/** True when a listing has enough data to paint a non-empty catalog card. */
+export function isRenderableCatalogProduct(
+  product: ProductCardProduct | Record<string, unknown> | null | undefined
+): boolean {
+  if (!product || typeof product !== "object") return false
+  const o = product as Record<string, unknown>
+  const title = String(o.title ?? o.name ?? "").trim()
+  return title.length > 0
+}
+
 type ProductCardProps = {
   product: ProductCardProduct | Record<string, unknown>
   /** Parent decides buyer vs merchant context. Defaults to customer (RGPD-safe). */
@@ -283,14 +293,17 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
   const isBuyer = mode === "customer"
   const LinkComp = mode === "customer" ? FastLink : Link
 
+  // Ghost guard: never leave an empty grid slot (no title → invisible article).
+  if (!p.title.trim()) return null
+
   return (
     <LinkComp
       href={href}
       prefetch={mode === "customer" ? undefined : false}
       className={cn(
-        "group flex h-full w-full touch-manipulation flex-col rounded-[1.35rem] border outline-none ring-offset-2 backdrop-blur-sm transition-[transform,box-shadow,border-color] duration-200 active:scale-[0.99] sm:rounded-3xl",
+        "affisell-product-card-surface group flex h-full w-full touch-manipulation flex-col rounded-[1.35rem] border outline-none ring-offset-2 backdrop-blur-sm transition-[transform,box-shadow,border-color] duration-200 active:scale-[0.99] sm:rounded-3xl",
         isBuyer ? "p-1 sm:p-1.5" : "p-1.5 sm:p-2",
-        "affisell-inp-tap border-[color:var(--affisell-premium-border)] bg-[var(--affisell-premium-glass)] shadow-[var(--affisell-premium-shadow-soft)]",
+        "affisell-inp-tap border-[color:var(--affisell-premium-border)] shadow-[var(--affisell-premium-shadow-soft)]",
         "hover:border-violet-200/80 hover:shadow-[var(--affisell-premium-shadow-float)] focus-visible:ring-2 focus-visible:ring-violet-500 dark:hover:border-violet-800/60"
       )}
       data-product-card-mode={mode}

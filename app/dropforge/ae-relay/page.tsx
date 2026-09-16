@@ -24,7 +24,9 @@ export default async function DropForgeAeRelayPage({ searchParams }: Props) {
     redirect(DROPFORGE_HREF)
   }
 
-  const relayKey = sp.relayKey?.trim() || `df_${Date.now().toString(36)}`
+  // force-dynamic server page: request-scoped id when extension omits relayKey
+  const relayKey =
+    sp.relayKey?.trim() || `df_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`
   const sessionId = sp.sessionId?.trim() || (await createAeCaptureSession(relayKey))
   const captureToken = sp.captureToken?.trim() || createAeCaptureToken(sessionId, relayKey)
   const appOrigin =

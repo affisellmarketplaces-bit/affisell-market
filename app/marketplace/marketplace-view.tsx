@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
 import useSWR, { preload } from "swr"
 
-import { ProductCard, type ProductCardDisplayMode } from "@/components/ProductCard"
+import { ProductCard, type ProductCardDisplayMode, isRenderableCatalogProduct } from "@/components/ProductCard"
 import { ProductCardPreviewToggle } from "@/components/product/ProductCardPreviewToggle"
 import { AFFILIATE_CATALOG_PATH } from "@/lib/affiliate-routes"
 import { usePreviewAsCustomer } from "@/hooks/usePreviewAsCustomer"
@@ -776,9 +776,11 @@ export function MarketplaceView({
                   refreshing && "opacity-75 transition-opacity duration-150"
                 )}
               >
-                {products.map((product, index) => (
+                {products.map((product, index) => {
+                  if (!isRenderableCatalogProduct(product)) return null
+                  return (
                   <Fragment key={String(product.listingId ?? product.id)}>
-                    <li className="flex h-full">
+                    <li className="flex h-full min-w-0">
                       <ProductCard
                         product={product}
                         mode={productCardMode}
@@ -791,7 +793,8 @@ export function MarketplaceView({
                       </li>
                     ) : null}
                   </Fragment>
-                ))}
+                  )
+                })}
               </ul>
             ) : null}
           </div>

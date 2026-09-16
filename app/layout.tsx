@@ -13,6 +13,7 @@ import { getCachedSession } from "@/lib/get-cached-session"
 import { PWA_SPLASH_IMAGES } from "@/lib/pwa-splash-images"
 import { bootstrapRootShell } from "@/lib/safe-root-bootstrap"
 import { slimClientMessagesForDedicatedStorefront } from "@/lib/i18n-slim-client-messages"
+import { isBuyerPremiumHomePath } from "@/lib/buyer-premium-home-path"
 import { isCustomDomainHeaders } from "@/lib/storefront-request-headers"
 import { isLegionStorefrontPathname } from "@/lib/legion/username"
 import ClientGuardInitDeferred from "@/components/security/client-guard-init-deferred"
@@ -53,11 +54,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const pathname = hdrs.get("x-affisell-pathname") ?? ""
   const isCustomDomain = isCustomDomainHeaders(hdrs)
   const isLegionStorefront = isLegionStorefrontPathname(pathname)
-  /** Admin ops + custom domains: lean shell without marketplace header/footer noise. */
+  /** Dedicated storefront / admin: lean shell without marketplace header/footer noise. */
   const isAdminOpsSurface =
     pathname.startsWith("/dashboard/admin") || pathname.startsWith("/admin")
   const isDedicatedStorefront = isCustomDomain || isLegionStorefront
+  /** Body class for home canvas styling — header is always PublicNav via SiteHeaderChrome. */
+  const isBuyerPremiumHome = isBuyerPremiumHomePath(pathname)
   const leanPlatformChrome = isDedicatedStorefront || isAdminOpsSurface
+  const hideGlobalSiteHeader = leanPlatformChrome
   /**
    * Slim i18n only on custom-domain shops (payload). Légion keeps full messages —
    * otherwise residual client UI (gallery, cookies, etc.) throws MISSING_MESSAGE.
@@ -72,14 +76,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         className={cn(
           "affisell-mobile-shell affisell-epoxy-atmosphere flex min-h-screen min-h-dvh flex-col text-gray-900 [font-family:Inter,system-ui] dark:text-zinc-50",
           isDedicatedStorefront && "affisell-dedicated-storefront affisell-mobile-dock-off",
-          isAdminOpsSurface && "affisell-admin-ops-shell"
+          isAdminOpsSurface && "affisell-admin-ops-shell",
+          isBuyerPremiumHome && "affisell-buyer-premium-home"
         )}
       >
         <CookieConsentScriptActivator />
         <AuthSessionProvider session={session}>
           <IntlAppProvider locale={locale} messages={clientMessages} now={now}>
             <RootSessionShell leanShell={leanPlatformChrome}>
-              {!leanPlatformChrome ? (
+              {!hideGlobalSiteHeader ? (
                 <SiteHeaderChrome>
                   <AppHeader
                     initialRole={(session?.user as { role?: string } | undefined)?.role ?? null}

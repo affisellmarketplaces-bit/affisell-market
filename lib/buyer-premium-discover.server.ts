@@ -4,6 +4,7 @@ import {
   type BuyerDiscoverImage,
 } from "@/lib/buyer-premium-home-content"
 import type { HomeProductCard } from "@/lib/home-marketplace-cards"
+import { resolveBuyerCardImageHref } from "@/lib/listing-card-image-shared"
 import {
   loadHomeBestSellers7dSafe,
   loadHomeNewArrivalsSafe,
@@ -13,25 +14,28 @@ import {
 } from "@/lib/public-home-data"
 
 const TILES_PER_CARD = 3
-const FETCH_POOL = 12
+/** Oversample — skip listings without a displayable thumb so Discover never ships empty tiles. */
+const FETCH_POOL = 24
 
 function formatCompactCount(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k`
   return n.toLocaleString("en-US")
 }
 
-function productsToImages(products: HomeProductCard[]): BuyerDiscoverImage[] {
-  return products.slice(0, TILES_PER_CARD).flatMap((p) => {
-    const src = p.imageUrl?.trim()
-    if (!src) return []
-    return [
-      {
-        src,
-        alt: p.name,
-        href: `/marketplace/${encodeURIComponent(p.listingId)}`,
-      },
-    ]
-  })
+/** Pure — exported for unit tests. Prefer proxy/CDN href via listing id. */
+export function productsToImages(products: HomeProductCard[]): BuyerDiscoverImage[] {
+  const out: BuyerDiscoverImage[] = []
+  for (const p of products) {
+    if (out.length >= TILES_PER_CARD) break
+    const src = resolveBuyerCardImageHref(p.imageUrl, p.listingId)
+    if (!src.trim()) continue
+    out.push({
+      src,
+      alt: p.name,
+      href: `/marketplace/${encodeURIComponent(p.listingId)}`,
+    })
+  }
+  return out
 }
 
 function metaById(id: BuyerDiscoverCard["id"]) {

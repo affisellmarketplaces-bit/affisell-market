@@ -8,19 +8,24 @@ export type PublicNavActiveState = {
   onBattles: boolean
 }
 
-/** Pure active-state logic for buyer public header pills. */
+/**
+ * Pure active-state logic for buyer public header pills.
+ * `#explorer` on `/` must NOT flip chrome to marketplace —
+ * home stays `onHome` while sharing the same PublicNav browse chrome.
+ */
 export function resolvePublicNavActive(
   pathname: string,
   explorerHash: boolean
 ): PublicNavActiveState {
   const bare = pathname.split("?")[0] ?? pathname
-  const onExplorerSection = pathname === "/" && explorerHash
-  const onHome = pathname === "/" && !onExplorerSection
+  // explorerHash kept for API stability / future in-page accents; chrome stays home.
+  void explorerHash
+  const onHome = pathname === "/"
   const onMarketplaceBrowse =
     pathname === PUBLIC_MARKETPLACE_BROWSE_PATH ||
     pathname === "/marketplace" ||
     pathname.startsWith("/marketplace/")
-  const onMarketplace = onMarketplaceBrowse || onExplorerSection
+  const onMarketplace = onMarketplaceBrowse
   const onShops =
     pathname === "/shops" ||
     (pathname.startsWith("/shops/") && !pathname.startsWith(PUBLIC_MARKETPLACE_BROWSE_PATH))

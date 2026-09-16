@@ -39,15 +39,17 @@ function PremiumMarketplaceBody({
   }))
 
   return (
-    <div className="min-w-0 space-y-3 p-3 sm:p-4">
-      {/* PREMIERE BANDE - maintenant en #DDD6FE */}
-      <div className="rounded-full bg-[#DDD6FE] px-2 py-2 shadow-sm">
-        <DepartmentBar
-          categories={categories}
-          catalogTotal={shell.catalogTotal}
-          activeCategoryId={activeCategoryId}
-        />
-      </div>
+    <div className="min-w-0 space-y-5 p-3 sm:p-5">
+      {/* Primary category rail — e36f03f64 pill styling, white/95 mockup shell */}
+      <DepartmentBar
+        categories={categories}
+        catalogTotal={shell.catalogTotal}
+        activeCategoryId={activeCategoryId}
+        className="bg-white/95 shadow-md shadow-indigo-950/8 ring-1 ring-violet-100/80"
+      />
+
+      {/* Discover 2×2 — immediately under categories (mockup structure) */}
+      <div className="min-w-0">{discoverSlot}</div>
 
       <PopularDepartmentsBar
         activeCategoryId={activeCategoryId}
@@ -55,7 +57,7 @@ function PremiumMarketplaceBody({
       />
 
       <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start">
-        <div className="min-w-0 shrink-0 lg:w- xl:w-">
+        <div className="min-w-0 shrink-0">
           <CategorySidebar
             categories={categories}
             catalogTotal={shell.catalogTotal}
@@ -63,18 +65,18 @@ function PremiumMarketplaceBody({
           />
         </div>
 
-        <div className="min-w-0 flex-1 overflow-clip">
+        <div className="min-w-0 flex-1">
           <div className="min-w-0 space-y-4">
             <EuropeBanner />
             <div className="flex flex-wrap items-center gap-2">
-              {/* CHIP - un peu plus soutenu */}
-              <MarketplaceShipsToChip basePath="/" className="!bg-[#DDD6FE]!text-violet-900!ring-violet-300" />
+              <MarketplaceShipsToChip
+                basePath="/"
+                className="!bg-[#EDE9FE] !text-violet-900 !ring-violet-200"
+              />
             </div>
             <ProductConditionFilterBar initialCounts={shell.offerRailCounts} />
-            <div className="min-w-0">
-              {discoverSlot}
-            </div>
-            <div id="explorer" className="min-w-0 scroll-mt-24">
+            {/* Single #explorer anchor — sticky PublicNav; avoid void under hash scroll. */}
+            <div id="explorer" className="min-h-[16rem] min-w-0 scroll-mt-28">
               {catalogExplorer}
             </div>
           </div>
@@ -86,7 +88,11 @@ function PremiumMarketplaceBody({
 
 export function BuyerPremiumMarketplaceLayoutClient(props: Props) {
   return (
-    <Suspense fallback={<div className="min-h- animate-pulse rounded-2xl bg-white/80 p-6" aria-hidden />}>
+    <Suspense
+      fallback={
+        <div className="min-h-[24rem] animate-pulse rounded-2xl bg-white/80 p-6" aria-hidden />
+      }
+    >
       <PremiumMarketplaceBody {...props} />
     </Suspense>
   )
