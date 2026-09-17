@@ -427,6 +427,12 @@ export class HumanoidShield {
       return "ALLOW"
     }
 
+    /** Trusted infra (localhost, CI, office IP) — request-volume/UA noise alone shouldn't
+     *  challenge it; the whitelist otherwise only downgraded BLOCK to CHALLENGE. */
+    if (whitelisted && threats.every((t) => HUMAN_PASS_SOFT_TYPES.has(t.type))) {
+      return "ALLOW"
+    }
+
     if (maxSeverity >= 9) {
       if (whitelisted && !threats.some((t) => FORCE_BLOCK_TYPES.has(t.type))) {
         return maxSeverity >= 6 || score < 40 ? "CHALLENGE" : "ALLOW"
