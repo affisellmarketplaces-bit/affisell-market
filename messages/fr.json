@@ -179,6 +179,7 @@
       "titlePremium": "Discover stores you'll want to come back to.",
       "subPremium": "Explore products from trusted stores. Verified products, protected payments and EU buyer protection.",
       "badge": "Buyer protection enabled • Premium",
+      "badgeLabel": "Protection acheteur activée",
       "sub": "Paiement sécurisé · {count} pays · Achat protégé · Retours 14 jours UE · Boutiques vérifiées",
       "subUs": "Checkout US & Canada · {count} pays · Achat protégé · Paiement sécurisé · Retours 14 jours · Boutiques vérifiées",
       "searchPlaceholder": "Rechercher produits, boutiques de confiance…",

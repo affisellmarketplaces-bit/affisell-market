@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Check, Shield } from "lucide-react"
+import { Check, ShieldCheck, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { BuyerHeroSearch } from "@/components/BuyerHeroSearch"
@@ -38,7 +38,7 @@ function BuyerPremiumHero() {
         transition={motionTransition}
       >
         <div
-          className="mb-5 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-md"
+          className="mb-5 inline-flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 text-xs font-semibold shadow-sm backdrop-blur-md"
           style={{
             backgroundColor: BUYER_PREMIUM.badge.heroBg,
             borderWidth: 1,
@@ -47,8 +47,14 @@ function BuyerPremiumHero() {
             color: BUYER_PREMIUM.badge.heroText,
           }}
         >
-          <Shield className="size-3.5" style={{ color: BUYER_PREMIUM.cta.bg }} aria-hidden />
-          {t("badge")}
+          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 shadow-sm shadow-violet-600/40">
+            <ShieldCheck className="size-3 text-white" strokeWidth={2.5} aria-hidden />
+          </span>
+          {t("badgeLabel")}
+          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
+            <Sparkles className="size-2.5" aria-hidden />
+            Premium
+          </span>
         </div>
 
         <RotatingSloganPro
