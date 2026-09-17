@@ -2821,23 +2821,23 @@
         }
       },
       "liveStore": {
-        "title": "Your store is live",
-        "subtitle": "Your branded address on {suffix} — same catalog as your listings, Ads-ready and Affisell-verified.",
-        "subdomainLabel": "Dedicated storefront URL",
-        "customDomainLabel": "Custom domain",
-        "platformLabel": "Affisell path (backup)",
-        "openPrimary": "Open storefront",
-        "subdomainPending": "HTTPS is provisioning on your subdomain — the primary link uses affisell.com as backup. Refresh in 1–2 min after opening Brand Studio.",
-        "subdomainActive": "HTTPS active — your dedicated URL is ready for Google Ads."
+        "title": "Il tuo negozio è live",
+        "subtitle": "Il tuo indirizzo brandizzato su {suffix} — stesso catalogo delle tue inserzioni, pronto per Ads e verificato Affisell.",
+        "subdomainLabel": "URL dedicato del negozio",
+        "customDomainLabel": "Dominio personalizzato",
+        "platformLabel": "Percorso Affisell (backup)",
+        "openPrimary": "Apri negozio",
+        "subdomainPending": "HTTPS in fase di provisioning sul tuo sottodominio — il link principale usa affisell.com come backup. Aggiorna dopo 1–2 min dall'apertura di Brand Studio.",
+        "subdomainActive": "HTTPS attivo — il tuo URL dedicato è pronto per Google Ads."
       },
       "storeName": "Nome del negozio",
       "heroBanner": "Banner eroe (HTTPS URL)",
       "tagline": "Slogan / descrizione",
-      "headerColor": "Header color",
-      "headerColorHint": "One click to style your storefront top bar — buyers see it on every page.",
-      "headerColorPreview": "Live header",
-      "headerColorCustom": "Custom color",
-      "headerColorSwatchesAria": "Choose a header color",
+      "headerColor": "Colore dell'intestazione",
+      "headerColorHint": "Un clic per personalizzare la barra superiore del tuo negozio — gli acquirenti la vedono in ogni pagina.",
+      "headerColorPreview": "Intestazione live",
+      "headerColorCustom": "Colore personalizzato",
+      "headerColorSwatchesAria": "Scegli un colore per l'intestazione",
       "primary": "Primario",
       "accent": "Accento",
       "trustRailText": "Testo barra fiducia",
@@ -2846,58 +2846,58 @@
       "saveBrand": "Salva marchio",
       "saving": "Salvataggio…",
       "saved": "Marchio salvato — il tuo negozio pubblico è stato aggiornato.",
-      "trustPagesAutofilled": "Trust pages prefilled — review and save to publish them on your storefront.",
-      "trustPagesPublished": "Trust pages prefilled and published — your storefront now shows buyer reassurance blocks.",
+      "trustPagesAutofilled": "Pagine di fiducia precompilate — rivedi e salva per pubblicarle nel tuo negozio.",
+      "trustPagesPublished": "Pagine di fiducia precompilate e pubblicate — il tuo negozio ora mostra blocchi di rassicurazione per l'acquirente.",
       "embedWidgetPublished": "Widget di incorporamento pubblicato — copia lo snippet per amplificare il canale già in conversione.",
-      "unsavedChanges": "Unsaved changes",
-      "saveHint": "Save to publish on your live storefront.",
+      "unsavedChanges": "Modifiche non salvate",
+      "saveHint": "Salva per pubblicare nel tuo negozio live.",
       "loadFailed": "Caricamento fallito",
       "saveFailed": "Salvataggio non riuscito",
       "logoLogisticsTitle": "Logo & logistica",
       "logoLogisticsBody": "Carica logo, avatar AI, indirizzo di spedizione e slug nel {profileLink}.",
       "presets": {
-        "title": "Futuristic presets",
+        "title": "Preset futuristici",
         "hint": "One click to apply palette, layout, and mood — then fine-tune.",
         "items": {
           "violet-pulse": {
             "name": "Violet Pulse",
-            "desc": "Dark immersive, neon violet gradient."
+            "desc": "Immersivo scuro, gradiente viola neon."
           },
           "emerald-luxe": {
             "name": "Emerald Luxe",
-            "desc": "Premium glass, airy grid, emerald accent."
+            "desc": "Vetro premium, griglia ariosa, accento smeraldo."
           },
           "midnight-orbit": {
             "name": "Midnight Orbit",
-            "desc": "Cyber cyan on midnight, compact grid."
+            "desc": "Ciano cyber su blu notte, griglia compatta."
           },
           "rose-editorial": {
             "name": "Rose Editorial",
-            "desc": "Warm editorial, classic banner hero."
+            "desc": "Editoriale caldo, hero banner classico."
           },
           "clean-minimal": {
             "name": "Clean Minimal",
-            "desc": "Minimal, no hero, product-first."
+            "desc": "Minimale, senza hero, incentrato sul prodotto."
           },
           "quantum-glow": {
             "name": "Quantum Glow",
-            "desc": "Quantum glass violet, luminous gradient."
+            "desc": "Viola vetro quantico, gradiente luminoso."
           },
           "nebula-aurora": {
             "name": "Nebula Aurora",
-            "desc": "Deep violet → neon cyan — premium dark boutique."
+            "desc": "Viola intenso → ciano neon — boutique scura premium."
           },
           "solar-flare": {
             "name": "Solar Flare",
-            "desc": "Copper & gold solar mood, high conversion."
+            "desc": "Atmosfera solare rame e oro, alta conversione."
           },
           "ocean-depth": {
             "name": "Ocean Depth",
-            "desc": "Abyss blue & electric cyan, tech trust."
+            "desc": "Blu abissale e ciano elettrico, fiducia tech."
           },
           "crimson-nova": {
             "name": "Crimson Nova",
-            "desc": "Magma rose on dark, fashion editorial."
+            "desc": "Rosa magma su sfondo scuro, editoriale di moda."
           }
         }
       },
@@ -2907,7 +2907,7 @@
         "cta": "Lancia il mio negozio",
         "launching": "Avvio…",
         "saved": "Negozio lanciato — preset, sezioni e tagline sono online.",
-        "veoSaved": "Veo hero video generated — your cinematic loop is live.",
+        "veoSaved": "Video hero Veo generato — il tuo loop cinematografico è live.",
         "defaultStoreName": "Il mio negozio",
         "niches": {
           "fashion": {
@@ -2933,46 +2933,46 @@
         }
       },
       "shareGrow": {
-        "title": "Share & grow",
-        "subtitle": "Send traffic to your live storefront — copy link or share in one tap.",
-        "primaryLink": "Live shop link",
-        "copyLink": "Copy link",
-        "copied": "Copied",
-        "nativeShare": "Share…",
-        "shareMessage": "Discover {name} — curated products on Affisell",
-        "enableEmbedHint": "Enable embed widget to show your shop on your blog or site →",
-        "recommended": "Best for you",
-        "postSharePrompt": "Your listing is live — share your shop link to get your first visitors.",
-        "awaitingFirstClick": "Link shared — waiting for your first shop visit.",
-        "firstTraffic": "{count, plural, one {# visit on your listings} other {# visits on your listings}}",
-        "firstSale": "{count, plural, one {# sale — keep sharing!} other {# sales — keep sharing!}}",
+        "title": "Condividi e cresci",
+        "subtitle": "Invia traffico al tuo negozio live — copia il link o condividi con un tocco.",
+        "primaryLink": "Link negozio live",
+        "copyLink": "Copia link",
+        "copied": "Copiato",
+        "nativeShare": "Condividi…",
+        "shareMessage": "Scopri {name} — prodotti selezionati su Affisell",
+        "enableEmbedHint": "Attiva il widget di incorporamento per mostrare il tuo negozio nel tuo blog o sito →",
+        "recommended": "Il migliore per te",
+        "postSharePrompt": "La tua inserzione è live — condividi il link del tuo negozio per ottenere i tuoi primi visitatori.",
+        "awaitingFirstClick": "Link condiviso — in attesa della tua prima visita al negozio.",
+        "firstTraffic": "{count, plural, one {# visita alle tue inserzioni} other {# visite alle tue inserzioni}}",
+        "firstSale": "{count, plural, one {# vendita — continua a condividere!} other {# vendite — continua a condividere!}}",
         "amplify": {
-          "title": "Amplify the channel already converting",
-          "subtitle": "Reuse the same message on your bio, blog, or profile so more buyers land on the shop that is already selling.",
-          "creatorBio": "Creator bio block",
-          "blogIntro": "Blog intro block",
-          "copy": "Copy block",
-          "creatorBioSnippet": "Shop my curated picks from {name} on Affisell: {url}",
-          "blogIntroSnippet": "These are the products my audience is clicking and buying right now from {name}. Browse the full selection here: {url}"
+          "title": "Amplifica il canale già in conversione",
+          "subtitle": "Riutilizza lo stesso messaggio nella tua bio, blog o profilo affinché più acquirenti arrivino al negozio che sta già vendendo.",
+          "creatorBio": "Blocco bio creator",
+          "blogIntro": "Blocco introduttivo blog",
+          "copy": "Copia blocco",
+          "creatorBioSnippet": "Acquista la mia selezione curata di {name} su Affisell: {url}",
+          "blogIntroSnippet": "Questi sono i prodotti che il mio pubblico sta cliccando e acquistando in questo momento da {name}. Sfoglia l'intera selezione qui: {url}"
         }
       },
       "pulse": {
         "title": "Brand Pulse",
-        "subtitle": "Complete the checklist to maximize trust and conversion on your storefront.",
-        "readySubtitle": "Your storefront is launch-ready — share your link and drive traffic.",
+        "subtitle": "Completa la checklist per massimizzare fiducia e conversione nel tuo negozio.",
+        "readySubtitle": "Il tuo negozio è pronto al lancio — condividi il tuo link e genera traffico.",
         "checks": {
-          "identity": "Store name set",
-          "description": "Tagline describes your niche (24+ chars)",
-          "logo": "Logo uploaded",
-          "heroVisual": "Banner, gradient, or Veo video hero",
-          "preset": "Theme preset selected",
-          "premiumLayout": "Immersive, glass, or dark surface",
-          "sections": "3+ homepage sections enabled",
-          "staticPages": "At least one static page (About, FAQ, Returns)",
-          "embed": "Embed widget enabled for your site",
-          "liveListings": "At least one product live on storefront",
-          "liveCatalog": "At least one published product in catalog",
-          "customDomain": "Custom domain verified"
+          "identity": "Nome del negozio impostato",
+          "description": "Lo slogan descrive la tua nicchia (24+ caratteri)",
+          "logo": "Logo caricato",
+          "heroVisual": "Hero banner, gradiente o video Veo",
+          "preset": "Preset del tema selezionato",
+          "premiumLayout": "Superficie immersiva, vetro o scura",
+          "sections": "3+ sezioni homepage attivate",
+          "staticPages": "Almeno una pagina statica (Chi siamo, FAQ, Resi)",
+          "embed": "Widget di incorporamento attivato per il tuo sito",
+          "liveListings": "Almeno un prodotto live nel negozio",
+          "liveCatalog": "Almeno un prodotto pubblicato nel catalogo",
+          "customDomain": "Dominio personalizzato verificato"
         }
       },
       "aiBanner": {
@@ -2988,18 +2988,18 @@
         "failed": "Pagine IA non disponibili — controlla GROQ_API_KEY o riprova."
       },
       "presetOptimizer": {
-        "title": "Preset optimizer",
-        "cta": "Apply recommended preset",
-        "suggestedPreset": "Suggested: {preset}",
-        "stagnationHint": "Brand Pulse is flat at {score}/100 (was {lastScore}/100) — test a challenger preset without guessing.",
-        "stagnationAbPreset": "A/B challenger: {preset}",
-        "stagnationAbCta": "Start A/B test (50/50)",
-        "abStarting": "Starting experiment…",
-        "abStartFailed": "Could not start A/B experiment.",
+        "title": "Ottimizzatore preset",
+        "cta": "Applica il preset consigliato",
+        "suggestedPreset": "Suggerito: {preset}",
+        "stagnationHint": "Brand Pulse è stabile a {score}/100 (era {lastScore}/100) — testa un preset sfidante senza tirare a indovinare.",
+        "stagnationAbPreset": "Sfidante A/B: {preset}",
+        "stagnationAbCta": "Avvia test A/B (50/50)",
+        "abStarting": "Avvio dell'esperimento…",
+        "abStartFailed": "Impossibile avviare l'esperimento A/B.",
         "reasons": {
-          "missing_preset": "Pick a premium preset to unlock Brand Pulse points.",
-          "missing_hero": "Switch to a banner-hero preset for a stronger first impression.",
-          "missing_premium_layout": "Try an immersive preset to boost trust and conversion."
+          "missing_preset": "Scegli un preset premium per sbloccare punti Brand Pulse.",
+          "missing_hero": "Passa a un preset hero con banner per una prima impressione più forte.",
+          "missing_premium_layout": "Prova un preset immersivo per aumentare fiducia e conversione."
         },
         "presets": {
           "violet-pulse": "Violet Pulse",
@@ -3008,18 +3008,18 @@
         }
       },
       "presetAb": {
-        "title": "Preset A/B test",
-        "subtitle": "50/50 traffic split — auto-applies the winner after 7 days in PostHog funnel.",
-        "challenger": "Challenger preset",
-        "start": "Start experiment",
-        "stop": "Stop experiment",
-        "stats": "Live views — control: {control} · challenger: {challenger}",
-        "openPosthog": "View A/B in PostHog",
-        "applyWinner": "Apply winner now",
-        "applyWinnerFailed": "Could not apply A/B winner.",
-        "winnerApplied": "Winner applied — {winner}",
-        "needPreset": "Select a control preset first.",
-        "failed": "Could not update A/B experiment."
+        "title": "Test A/B preset",
+        "subtitle": "Divisione del traffico 50/50 — applica automaticamente il vincitore dopo 7 giorni nel funnel PostHog.",
+        "challenger": "Preset sfidante",
+        "start": "Avvia esperimento",
+        "stop": "Interrompi esperimento",
+        "stats": "Visualizzazioni live — controllo: {control} · sfidante: {challenger}",
+        "openPosthog": "Vedi A/B in PostHog",
+        "applyWinner": "Applica il vincitore ora",
+        "applyWinnerFailed": "Impossibile applicare il vincitore A/B.",
+        "winnerApplied": "Vincitore applicato — {winner}",
+        "needPreset": "Seleziona prima un preset di controllo.",
+        "failed": "Impossibile aggiornare l'esperimento A/B."
       },
       "aiFaqOrders": {
         "cta": "Genera FAQ dai miei ordini",
@@ -3140,117 +3140,117 @@
         }
       },
       "layoutControls": {
-        "title": "Structure & mood",
-        "headerBrand": "Store name in header",
-        "headerBrandHint": "Dedicated storefront bar — menu stays left, cart stays right.",
+        "title": "Struttura e atmosfera",
+        "headerBrand": "Nome del negozio nell'intestazione",
+        "headerBrandHint": "Barra negozio dedicata — il menu resta a sinistra, il carrello a destra.",
         "headerBrandOptions": {
-          "left": "Left",
-          "center": "Center",
-          "right": "Right"
+          "left": "Sinistra",
+          "center": "Centro",
+          "right": "Destra"
         },
         "layout": "Layout",
         "layoutOptions": {
-          "classic": "Classic",
-          "immersive": "Immersive",
-          "minimal": "Minimal"
+          "classic": "Classico",
+          "immersive": "Immersivo",
+          "minimal": "Minimale"
         },
-        "layoutImmersiveHint": "Cinematic hero, glass product cards, and AI try-on styled with your brand colors.",
+        "layoutImmersiveHint": "Hero cinematografico, schede prodotto in vetro e prova virtuale IA con i colori del tuo brand.",
         "hero": "Hero",
         "heroOptions": {
           "banner": "Banner",
-          "gradient": "Gradient",
-          "video": "Veo video",
-          "none": "None"
+          "gradient": "Gradiente",
+          "video": "Video Veo",
+          "none": "Nessuno"
         },
-        "grid": "Product grid",
+        "grid": "Griglia prodotti",
         "gridOptions": {
-          "cozy": "Cozy",
-          "compact": "Compact",
-          "spacious": "Spacious"
+          "cozy": "Accogliente",
+          "compact": "Compatto",
+          "spacious": "Spazioso"
         },
-        "surface": "Surface",
+        "surface": "Superficie",
         "surfaceOptions": {
-          "light": "Light",
-          "dark": "Dark",
-          "glass": "Glass"
+          "light": "Chiaro",
+          "dark": "Scuro",
+          "glass": "Vetro"
         }
       },
       "sections": {
-        "title": "Homepage sections",
+        "title": "Sezioni homepage",
         "hint": "Toggle and reorder blocks on your public storefront — publish-ready sections, no free-form builder.",
         "phase3Hint": "Tocca la matita per personalizzare il testo di ogni sezione attiva.",
-        "dragHint": "Drag the handle to reorder sections — buyers see enabled blocks top to bottom.",
-        "dragHandle": "Drag {section} — position {position}",
+        "dragHint": "Trascina la maniglia per riordinare le sezioni — gli acquirenti vedono i blocchi attivati dall'alto verso il basso.",
+        "dragHandle": "Trascina {section} — posizione {position}",
         "editContent": "Modifica contenuto {section}",
-        "moveUp": "Move up",
-        "moveDown": "Move down",
-        "enable": "Enable {section}",
-        "disable": "Disable {section}",
-        "orderHint": "{count} section types — order controls what buyers see first.",
+        "moveUp": "Sposta su",
+        "moveDown": "Sposta giù",
+        "enable": "Attiva {section}",
+        "disable": "Disattiva {section}",
+        "orderHint": "{count} tipi di sezione — l'ordine controlla cosa vedono per primo gli acquirenti.",
         "content": {
           "title": "Testo sezione",
           "resetHint": "Lascia vuoto per i testi predefiniti.",
           "fields": {
-            "eyebrow": "Eyebrow",
-            "title": "Title",
-            "body": "Body",
-            "buttonLabel": "Button label",
-            "buttonHref": "Button link",
-            "placeholder": "Email placeholder",
-            "quote": "Quote",
-            "author": "Author",
-            "stat": "Stat line",
-            "productLimit": "Product count (4–8)"
+            "eyebrow": "Sopratitolo",
+            "title": "Titolo",
+            "body": "Testo",
+            "buttonLabel": "Etichetta del pulsante",
+            "buttonHref": "Link del pulsante",
+            "placeholder": "Segnaposto email",
+            "quote": "Citazione",
+            "author": "Autore",
+            "stat": "Riga statistica",
+            "productLimit": "Numero di prodotti (4–8)"
           },
           "placeholders": {
-            "eyebrow": "Optional label above title",
-            "title": "Headline",
-            "body": "Paragraph text",
-            "buttonLabel": "Shop now",
+            "eyebrow": "Etichetta facoltativa sopra il titolo",
+            "title": "Titolo",
+            "body": "Testo del paragrafo",
+            "buttonLabel": "Acquista ora",
             "buttonHref": "/discover",
-            "placeholder": "you@example.com",
-            "quote": "What buyers say about this store",
-            "author": "Happy customer",
-            "stat": "500+ orders",
+            "placeholder": "tu@esempio.com",
+            "quote": "Cosa dicono gli acquirenti di questo negozio",
+            "author": "Cliente soddisfatto",
+            "stat": "500+ ordini",
             "productLimit": "4"
           }
         },
         "types": {
           "hero": {
             "label": "Hero",
-            "desc": "Banner or gradient above the catalog."
+            "desc": "Banner o gradiente sopra il catalogo."
           },
           "story": {
-            "label": "Story",
-            "desc": "Your tagline and brand pitch."
+            "label": "Storia",
+            "desc": "Il tuo slogan e la presentazione del brand."
           },
           "bestsellers": {
             "label": "Best seller",
             "desc": "Rail orizzontale dei prodotti più venduti."
           },
           "products": {
-            "label": "Products",
-            "desc": "Your live product grid."
+            "label": "Prodotti",
+            "desc": "La tua griglia prodotti live."
           },
           "social-proof": {
             "label": "Prova sociale",
             "desc": "Testimonial e statistica di fiducia."
           },
           "trust": {
-            "label": "Trust",
-            "desc": "Affisell verification strip."
+            "label": "Fiducia",
+            "desc": "Fascia di verifica Affisell."
           },
           "newsletter": {
             "label": "Newsletter",
             "desc": "Capture email per drop e restock."
           },
           "cta": {
-            "label": "Discover CTA",
-            "desc": "Invite buyers to explore Affisell."
+            "label": "CTA Scopri",
+            "desc": "Invita gli acquirenti a esplorare Affisell."
           },
           "flash-sale": {
-            "label": "Flash sale",
-            "desc": "Countdown timer + limited-time product rail."
+            "label": "Offerta flash",
+            "desc": "Timer countdown + carosello prodotti a tempo limitato."
           }
         }
       },
@@ -3269,49 +3269,49 @@
         "loadFailed": "Impossibile caricare il tuo catalogo."
       },
       "staticPages": {
-        "title": "Store pages",
-        "hint": "About, FAQ, and Returns — linked in your storefront footer when enabled.",
-        "enable": "Published",
-        "addFaq": "Add question",
-        "removeFaq": "Remove",
+        "title": "Pagine del negozio",
+        "hint": "Chi siamo, FAQ e Resi — collegati nel footer del tuo negozio quando attivati.",
+        "enable": "Pubblicato",
+        "addFaq": "Aggiungi domanda",
+        "removeFaq": "Rimuovi",
         "fields": {
-          "title": "Page title",
-          "body": "Content",
-          "faq": "Questions & answers",
-          "question": "Question",
-          "answer": "Answer"
+          "title": "Titolo della pagina",
+          "body": "Contenuto",
+          "faq": "Domande e risposte",
+          "question": "Domanda",
+          "answer": "Risposta"
         },
         "kinds": {
           "about": {
-            "label": "About",
-            "hint": "Your brand story and who you are.",
-            "titlePlaceholder": "About My Store",
-            "bodyPlaceholder": "Tell buyers why they should trust your catalog."
+            "label": "Chi siamo",
+            "hint": "La storia del tuo brand e chi sei.",
+            "titlePlaceholder": "Chi siamo — il mio negozio",
+            "bodyPlaceholder": "Racconta agli acquirenti perché dovrebbero fidarsi del tuo catalogo."
           },
           "faq": {
             "label": "FAQ",
-            "hint": "Shipping, payment, and common questions.",
+            "hint": "Spedizioni, pagamenti e domande frequenti.",
             "titlePlaceholder": "FAQ",
-            "bodyPlaceholder": "Fallback text if no Q&A items are filled in."
+            "bodyPlaceholder": "Testo di riserva se non vengono compilate domande e risposte."
           },
           "returns": {
-            "label": "Returns",
-            "hint": "Return window and refund policy.",
-            "titlePlaceholder": "Returns & refunds",
-            "bodyPlaceholder": "14-day return window, contact support with your order number…"
+            "label": "Resi",
+            "hint": "Finestra di reso e politica di rimborso.",
+            "titlePlaceholder": "Resi e rimborsi",
+            "bodyPlaceholder": "Finestra di reso di 14 giorni, contatta l'assistenza con il tuo numero d'ordine…"
           }
         }
       },
       "heroVideo": {
-        "title": "Veo hero loop",
-        "hint": "Cinematic autoplay video on your storefront — generate with Veo or paste an HTTPS URL.",
-        "urlLabel": "Video URL (HTTPS)",
-        "generate": "Generate with Veo",
-        "generating": "Generating…",
-        "generateFailed": "Could not generate hero video",
-        "useAsHero": "Use as hero",
-        "showStoreName": "Show store name on video",
-        "showStoreNameHint": "Uses your Brand Studio name badge — crisp overlay, not burned into Veo."
+        "title": "Loop hero Veo",
+        "hint": "Video cinematografico ad avvio automatico nel tuo negozio — generalo con Veo o incolla un URL HTTPS.",
+        "urlLabel": "URL video (HTTPS)",
+        "generate": "Genera con Veo",
+        "generating": "Generazione…",
+        "generateFailed": "Impossibile generare il video hero",
+        "useAsHero": "Usa come hero",
+        "showStoreName": "Mostra il nome del negozio nel video",
+        "showStoreNameHint": "Utilizza il badge del nome di Brand Studio — sovrapposizione nitida, non incorporata in Veo."
       },
       "embedWidget": {
         "title": "Widget di incorporamento",
@@ -3327,17 +3327,17 @@
         "copied": "Copiato"
       },
       "logo": {
-        "title": "Store logo",
-        "upload": "Upload image",
-        "hint": "PNG or JPEG — 512×512 recommended. Shown on your public storefront."
+        "title": "Logo del negozio",
+        "upload": "Carica immagine",
+        "hint": "PNG o JPEG — consigliato 512×512. Mostrato nel tuo negozio pubblico."
       },
       "preview": {
-        "title": "Live preview",
-        "hint": "Updates instantly — save to publish on your live URL.",
-        "draftHint": "Draft mode — save to refresh the live storefront iframe.",
-        "liveHint": "Pixel-perfect preview of your published storefront.",
-        "iframeTitle": "Storefront live preview",
-        "sampleName": "My Store",
+        "title": "Anteprima live",
+        "hint": "Si aggiorna istantaneamente — salva per pubblicare sul tuo URL live.",
+        "draftHint": "Modalità bozza — salva per aggiornare l'iframe del negozio live.",
+        "liveHint": "Anteprima pixel-perfect del tuo negozio pubblicato.",
+        "iframeTitle": "Anteprima live del negozio",
+        "sampleName": "Il mio negozio",
         "sampleTagline": "Premium picks from your favorite creator."
       },
       "nameBadges": {
@@ -3360,10 +3360,10 @@
       }
     },
     "embedWidget": {
-      "defaultTitle": "Shop curated picks from {name}",
-      "emptyCatalog": "Products coming soon — check back shortly.",
-      "shopCta": "Shop {name}",
-      "poweredBy": "Secure checkout · Powered by Affisell"
+      "defaultTitle": "Acquista le selezioni curate di {name}",
+      "emptyCatalog": "Prodotti in arrivo — torna a breve.",
+      "shopCta": "Acquista su {name}",
+      "poweredBy": "Checkout sicuro · Offerto da Affisell"
     },
     "staticPages": {
       "stripAria": "{name} — pagine informative",

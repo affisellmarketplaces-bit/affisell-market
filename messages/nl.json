@@ -2821,23 +2821,23 @@
         }
       },
       "liveStore": {
-        "title": "Your store is live",
-        "subtitle": "Your branded address on {suffix} — same catalog as your listings, Ads-ready and Affisell-verified.",
-        "subdomainLabel": "Dedicated storefront URL",
-        "customDomainLabel": "Custom domain",
-        "platformLabel": "Affisell path (backup)",
-        "openPrimary": "Open storefront",
-        "subdomainPending": "HTTPS is provisioning on your subdomain — the primary link uses affisell.com as backup. Refresh in 1–2 min after opening Brand Studio.",
-        "subdomainActive": "HTTPS active — your dedicated URL is ready for Google Ads."
+        "title": "Jouw winkel is live",
+        "subtitle": "Jouw merkadres op {suffix} — dezelfde catalogus als je listings, Ads-klaar en Affisell-geverifieerd.",
+        "subdomainLabel": "Eigen storefront-URL",
+        "customDomainLabel": "Aangepast domein",
+        "platformLabel": "Affisell-pad (backup)",
+        "openPrimary": "Storefront openen",
+        "subdomainPending": "HTTPS wordt ingericht op jouw subdomein — de primaire link gebruikt affisell.com als backup. Ververs na 1–2 min na het openen van Brand Studio.",
+        "subdomainActive": "HTTPS actief — jouw eigen URL is klaar voor Google Ads."
       },
       "storeName": "Winkelnaam",
       "heroBanner": "Hero banner (HTTPS URL)",
       "tagline": "Tagline / beschrijving",
-      "headerColor": "Header color",
-      "headerColorHint": "One click to style your storefront top bar — buyers see it on every page.",
+      "headerColor": "Headerkleur",
+      "headerColorHint": "Eén klik om de bovenbalk van jouw storefront te stylen — kopers zien deze op elke pagina.",
       "headerColorPreview": "Live header",
-      "headerColorCustom": "Custom color",
-      "headerColorSwatchesAria": "Choose a header color",
+      "headerColorCustom": "Aangepaste kleur",
+      "headerColorSwatchesAria": "Kies een headerkleur",
       "primary": "Primair",
       "accent": "Accent",
       "trustRailText": "Trust rail tekst",
@@ -2846,58 +2846,58 @@
       "saveBrand": "Merken opslaan",
       "saving": "Bewaar…",
       "saved": "Merken opgeslagen — uw openbare storefront is bijgewerkt.",
-      "trustPagesAutofilled": "Trust pages prefilled — review and save to publish them on your storefront.",
-      "trustPagesPublished": "Trust pages prefilled and published — your storefront now shows buyer reassurance blocks.",
+      "trustPagesAutofilled": "Vertrouwenspagina's vooraf ingevuld — controleer en sla op om ze te publiceren in jouw storefront.",
+      "trustPagesPublished": "Vertrouwenspagina's vooraf ingevuld en gepubliceerd — jouw storefront toont nu geruststellingsblokken voor kopers.",
       "embedWidgetPublished": "Embed-widget gepubliceerd — kopieer de snippet om het reeds converterende kanaal te versterken.",
-      "unsavedChanges": "Unsaved changes",
-      "saveHint": "Save to publish on your live storefront.",
+      "unsavedChanges": "Niet-opgeslagen wijzigingen",
+      "saveHint": "Opslaan om te publiceren in jouw live storefront.",
       "loadFailed": "Het laden van de winkel is mislukt",
       "saveFailed": "Kan niet worden opgeslagen",
       "logoLogisticsTitle": "Logo & logistiek",
       "logoLogisticsBody": "Upload logo, AI-avatar, verzendadres en slug in {profileLink}.",
       "presets": {
-        "title": "Futuristic presets",
+        "title": "Futuristische presets",
         "hint": "One click to apply palette, layout, and mood — then fine-tune.",
         "items": {
           "violet-pulse": {
             "name": "Violet Pulse",
-            "desc": "Dark immersive, neon violet gradient."
+            "desc": "Donker immersief, neon violet verloop."
           },
           "emerald-luxe": {
             "name": "Emerald Luxe",
-            "desc": "Premium glass, airy grid, emerald accent."
+            "desc": "Premium glas, luchtig raster, smaragdgroen accent."
           },
           "midnight-orbit": {
             "name": "Midnight Orbit",
-            "desc": "Cyber cyan on midnight, compact grid."
+            "desc": "Cybercyaan op middernacht, compact raster."
           },
           "rose-editorial": {
             "name": "Rose Editorial",
-            "desc": "Warm editorial, classic banner hero."
+            "desc": "Warme editorial, klassieke banner-hero."
           },
           "clean-minimal": {
             "name": "Clean Minimal",
-            "desc": "Minimal, no hero, product-first."
+            "desc": "Minimaal, geen hero, productgericht."
           },
           "quantum-glow": {
             "name": "Quantum Glow",
-            "desc": "Quantum glass violet, luminous gradient."
+            "desc": "Kwantumglas violet, lichtgevend verloop."
           },
           "nebula-aurora": {
             "name": "Nebula Aurora",
-            "desc": "Deep violet → neon cyan — premium dark boutique."
+            "desc": "Diep violet → neon cyaan — premium donkere boutique."
           },
           "solar-flare": {
             "name": "Solar Flare",
-            "desc": "Copper & gold solar mood, high conversion."
+            "desc": "Koper- & goud zonachtige sfeer, hoge conversie."
           },
           "ocean-depth": {
             "name": "Ocean Depth",
-            "desc": "Abyss blue & electric cyan, tech trust."
+            "desc": "Diepzeeblauw & elektrisch cyaan, tech-vertrouwen."
           },
           "crimson-nova": {
             "name": "Crimson Nova",
-            "desc": "Magma rose on dark, fashion editorial."
+            "desc": "Magmaroze op donker, mode-editorial."
           }
         }
       },
@@ -2907,7 +2907,7 @@
         "cta": "Start mijn winkel",
         "launching": "Starten…",
         "saved": "Winkel gelanceerd — preset, secties en tagline staan live.",
-        "veoSaved": "Veo hero video generated — your cinematic loop is live.",
+        "veoSaved": "Veo hero-video gegenereerd — jouw cinematische loop is live.",
         "defaultStoreName": "Mijn winkel",
         "niches": {
           "fashion": {
@@ -2933,46 +2933,46 @@
         }
       },
       "shareGrow": {
-        "title": "Share & grow",
-        "subtitle": "Send traffic to your live storefront — copy link or share in one tap.",
-        "primaryLink": "Live shop link",
-        "copyLink": "Copy link",
-        "copied": "Copied",
-        "nativeShare": "Share…",
-        "shareMessage": "Discover {name} — curated products on Affisell",
-        "enableEmbedHint": "Enable embed widget to show your shop on your blog or site →",
-        "recommended": "Best for you",
-        "postSharePrompt": "Your listing is live — share your shop link to get your first visitors.",
-        "awaitingFirstClick": "Link shared — waiting for your first shop visit.",
-        "firstTraffic": "{count, plural, one {# visit on your listings} other {# visits on your listings}}",
-        "firstSale": "{count, plural, one {# sale — keep sharing!} other {# sales — keep sharing!}}",
+        "title": "Delen & groeien",
+        "subtitle": "Stuur verkeer naar jouw live storefront — kopieer de link of deel met één tik.",
+        "primaryLink": "Live winkellink",
+        "copyLink": "Link kopiëren",
+        "copied": "Gekopieerd",
+        "nativeShare": "Delen…",
+        "shareMessage": "Ontdek {name} — uitgekozen producten op Affisell",
+        "enableEmbedHint": "Schakel de embed-widget in om jouw winkel op je blog of site te tonen →",
+        "recommended": "Beste voor jou",
+        "postSharePrompt": "Jouw listing is live — deel je winkellink om je eerste bezoekers te krijgen.",
+        "awaitingFirstClick": "Link gedeeld — wachten op je eerste winkelbezoek.",
+        "firstTraffic": "{count, plural, one {# bezoek op je listings} other {# bezoeken op je listings}}",
+        "firstSale": "{count, plural, one {# verkoop — blijf delen!} other {# verkopen — blijf delen!}}",
         "amplify": {
-          "title": "Amplify the channel already converting",
-          "subtitle": "Reuse the same message on your bio, blog, or profile so more buyers land on the shop that is already selling.",
-          "creatorBio": "Creator bio block",
-          "blogIntro": "Blog intro block",
-          "copy": "Copy block",
-          "creatorBioSnippet": "Shop my curated picks from {name} on Affisell: {url}",
-          "blogIntroSnippet": "These are the products my audience is clicking and buying right now from {name}. Browse the full selection here: {url}"
+          "title": "Versterk het reeds converterende kanaal",
+          "subtitle": "Hergebruik hetzelfde bericht in je bio, blog of profiel zodat meer kopers bij de al verkopende winkel terechtkomen.",
+          "creatorBio": "Creator-bioblok",
+          "blogIntro": "Blog-introblok",
+          "copy": "Blok kopiëren",
+          "creatorBioSnippet": "Shop mijn uitgekozen selectie van {name} op Affisell: {url}",
+          "blogIntroSnippet": "Dit zijn de producten die mijn publiek nu koopt bij {name}. Bekijk de volledige selectie hier: {url}"
         }
       },
       "pulse": {
         "title": "Brand Pulse",
-        "subtitle": "Complete the checklist to maximize trust and conversion on your storefront.",
-        "readySubtitle": "Your storefront is launch-ready — share your link and drive traffic.",
+        "subtitle": "Voltooi de checklist om vertrouwen en conversie in jouw storefront te maximaliseren.",
+        "readySubtitle": "Jouw storefront is klaar om te lanceren — deel je link en genereer verkeer.",
         "checks": {
-          "identity": "Store name set",
-          "description": "Tagline describes your niche (24+ chars)",
-          "logo": "Logo uploaded",
-          "heroVisual": "Banner, gradient, or Veo video hero",
-          "preset": "Theme preset selected",
-          "premiumLayout": "Immersive, glass, or dark surface",
-          "sections": "3+ homepage sections enabled",
-          "staticPages": "At least one static page (About, FAQ, Returns)",
-          "embed": "Embed widget enabled for your site",
-          "liveListings": "At least one product live on storefront",
-          "liveCatalog": "At least one published product in catalog",
-          "customDomain": "Custom domain verified"
+          "identity": "Winkelnaam ingesteld",
+          "description": "Tagline beschrijft jouw niche (24+ tekens)",
+          "logo": "Logo geüpload",
+          "heroVisual": "Banner-, verloop- of Veo-videohero",
+          "preset": "Thema-preset geselecteerd",
+          "premiumLayout": "Immersief, glas of donker oppervlak",
+          "sections": "3+ homepage-secties ingeschakeld",
+          "staticPages": "Minstens één statische pagina (Over ons, FAQ, Retouren)",
+          "embed": "Embed-widget ingeschakeld voor jouw site",
+          "liveListings": "Minstens één product live in storefront",
+          "liveCatalog": "Minstens één gepubliceerd product in catalogus",
+          "customDomain": "Aangepast domein geverifieerd"
         }
       },
       "aiBanner": {
@@ -2988,18 +2988,18 @@
         "failed": "AI-pagina's niet beschikbaar — controleer GROQ_API_KEY of probeer opnieuw."
       },
       "presetOptimizer": {
-        "title": "Preset optimizer",
-        "cta": "Apply recommended preset",
-        "suggestedPreset": "Suggested: {preset}",
-        "stagnationHint": "Brand Pulse is flat at {score}/100 (was {lastScore}/100) — test a challenger preset without guessing.",
-        "stagnationAbPreset": "A/B challenger: {preset}",
-        "stagnationAbCta": "Start A/B test (50/50)",
-        "abStarting": "Starting experiment…",
-        "abStartFailed": "Could not start A/B experiment.",
+        "title": "Preset-optimalisatie",
+        "cta": "Aanbevolen preset toepassen",
+        "suggestedPreset": "Voorgesteld: {preset}",
+        "stagnationHint": "Brand Pulse blijft vlak op {score}/100 (was {lastScore}/100) — test een uitdager-preset zonder gokken.",
+        "stagnationAbPreset": "A/B-uitdager: {preset}",
+        "stagnationAbCta": "A/B-test starten (50/50)",
+        "abStarting": "Experiment starten…",
+        "abStartFailed": "Kon A/B-experiment niet starten.",
         "reasons": {
-          "missing_preset": "Pick a premium preset to unlock Brand Pulse points.",
-          "missing_hero": "Switch to a banner-hero preset for a stronger first impression.",
-          "missing_premium_layout": "Try an immersive preset to boost trust and conversion."
+          "missing_preset": "Kies een premium preset om Brand Pulse-punten te ontgrendelen.",
+          "missing_hero": "Schakel over naar een banner-hero preset voor een sterkere eerste indruk.",
+          "missing_premium_layout": "Probeer een immersieve preset om vertrouwen en conversie te verhogen."
         },
         "presets": {
           "violet-pulse": "Violet Pulse",
@@ -3008,18 +3008,18 @@
         }
       },
       "presetAb": {
-        "title": "Preset A/B test",
-        "subtitle": "50/50 traffic split — auto-applies the winner after 7 days in PostHog funnel.",
-        "challenger": "Challenger preset",
-        "start": "Start experiment",
-        "stop": "Stop experiment",
-        "stats": "Live views — control: {control} · challenger: {challenger}",
-        "openPosthog": "View A/B in PostHog",
-        "applyWinner": "Apply winner now",
-        "applyWinnerFailed": "Could not apply A/B winner.",
-        "winnerApplied": "Winner applied — {winner}",
-        "needPreset": "Select a control preset first.",
-        "failed": "Could not update A/B experiment."
+        "title": "Preset A/B-test",
+        "subtitle": "50/50 verkeersverdeling — past de winnaar automatisch toe na 7 dagen in de PostHog-trechter.",
+        "challenger": "Uitdager-preset",
+        "start": "Experiment starten",
+        "stop": "Experiment stoppen",
+        "stats": "Live weergaven — controle: {control} · uitdager: {challenger}",
+        "openPosthog": "A/B bekijken in PostHog",
+        "applyWinner": "Winnaar nu toepassen",
+        "applyWinnerFailed": "Kon A/B-winnaar niet toepassen.",
+        "winnerApplied": "Winnaar toegepast — {winner}",
+        "needPreset": "Selecteer eerst een controle-preset.",
+        "failed": "Kon A/B-experiment niet bijwerken."
       },
       "aiFaqOrders": {
         "cta": "FAQ genereren op basis van mijn bestellingen",
@@ -3140,117 +3140,117 @@
         }
       },
       "layoutControls": {
-        "title": "Structure & mood",
-        "headerBrand": "Store name in header",
-        "headerBrandHint": "Dedicated storefront bar — menu stays left, cart stays right.",
+        "title": "Structuur & sfeer",
+        "headerBrand": "Winkelnaam in header",
+        "headerBrandHint": "Speciale storefront-balk — menu blijft links, winkelwagen blijft rechts.",
         "headerBrandOptions": {
-          "left": "Left",
-          "center": "Center",
-          "right": "Right"
+          "left": "Links",
+          "center": "Midden",
+          "right": "Rechts"
         },
         "layout": "Layout",
         "layoutOptions": {
-          "classic": "Classic",
-          "immersive": "Immersive",
-          "minimal": "Minimal"
+          "classic": "Klassiek",
+          "immersive": "Immersief",
+          "minimal": "Minimaal"
         },
-        "layoutImmersiveHint": "Cinematic hero, glass product cards, and AI try-on styled with your brand colors.",
+        "layoutImmersiveHint": "Cinematische hero, glazen productkaarten en AI-pasfunctie gestyled met jouw merkkleuren.",
         "hero": "Hero",
         "heroOptions": {
           "banner": "Banner",
-          "gradient": "Gradient",
-          "video": "Veo video",
-          "none": "None"
+          "gradient": "Verloop",
+          "video": "Veo-video",
+          "none": "Geen"
         },
-        "grid": "Product grid",
+        "grid": "Productraster",
         "gridOptions": {
-          "cozy": "Cozy",
+          "cozy": "Behaaglijk",
           "compact": "Compact",
-          "spacious": "Spacious"
+          "spacious": "Ruim"
         },
-        "surface": "Surface",
+        "surface": "Oppervlak",
         "surfaceOptions": {
-          "light": "Light",
-          "dark": "Dark",
-          "glass": "Glass"
+          "light": "Licht",
+          "dark": "Donker",
+          "glass": "Glas"
         }
       },
       "sections": {
-        "title": "Homepage sections",
+        "title": "Homepage-secties",
         "hint": "Toggle and reorder blocks on your public storefront — publish-ready sections, no free-form builder.",
         "phase3Hint": "Tik op het potlood om tekst per actieve sectie aan te passen.",
-        "dragHint": "Drag the handle to reorder sections — buyers see enabled blocks top to bottom.",
-        "dragHandle": "Drag {section} — position {position}",
+        "dragHint": "Sleep de handgreep om secties opnieuw te ordenen — kopers zien ingeschakelde blokken van boven naar beneden.",
+        "dragHandle": "{section} slepen — positie {position}",
         "editContent": "Inhoud {section} bewerken",
-        "moveUp": "Move up",
-        "moveDown": "Move down",
-        "enable": "Enable {section}",
-        "disable": "Disable {section}",
-        "orderHint": "{count} section types — order controls what buyers see first.",
+        "moveUp": "Naar boven verplaatsen",
+        "moveDown": "Naar beneden verplaatsen",
+        "enable": "{section} inschakelen",
+        "disable": "{section} uitschakelen",
+        "orderHint": "{count} sectietypen — de volgorde bepaalt wat kopers als eerste zien.",
         "content": {
           "title": "Sectietekst",
           "resetHint": "Leeg laten voor standaardteksten.",
           "fields": {
             "eyebrow": "Eyebrow",
-            "title": "Title",
-            "body": "Body",
-            "buttonLabel": "Button label",
-            "buttonHref": "Button link",
-            "placeholder": "Email placeholder",
-            "quote": "Quote",
-            "author": "Author",
-            "stat": "Stat line",
-            "productLimit": "Product count (4–8)"
+            "title": "Titel",
+            "body": "Inhoud",
+            "buttonLabel": "Knoplabel",
+            "buttonHref": "Knoplink",
+            "placeholder": "E-mail placeholder",
+            "quote": "Citaat",
+            "author": "Auteur",
+            "stat": "Statistiekregel",
+            "productLimit": "Aantal producten (4–8)"
           },
           "placeholders": {
-            "eyebrow": "Optional label above title",
-            "title": "Headline",
-            "body": "Paragraph text",
-            "buttonLabel": "Shop now",
+            "eyebrow": "Optioneel label boven titel",
+            "title": "Kop",
+            "body": "Alineatekst",
+            "buttonLabel": "Nu winkelen",
             "buttonHref": "/discover",
-            "placeholder": "you@example.com",
-            "quote": "What buyers say about this store",
-            "author": "Happy customer",
-            "stat": "500+ orders",
+            "placeholder": "jij@voorbeeld.nl",
+            "quote": "Wat kopers zeggen over deze winkel",
+            "author": "Tevreden klant",
+            "stat": "500+ bestellingen",
             "productLimit": "4"
           }
         },
         "types": {
           "hero": {
             "label": "Hero",
-            "desc": "Banner or gradient above the catalog."
+            "desc": "Banner of verloop boven de catalogus."
           },
           "story": {
             "label": "Story",
-            "desc": "Your tagline and brand pitch."
+            "desc": "Jouw tagline en merkpitch."
           },
           "bestsellers": {
             "label": "Bestsellers",
             "desc": "Horizontale rail van topproducten."
           },
           "products": {
-            "label": "Products",
-            "desc": "Your live product grid."
+            "label": "Producten",
+            "desc": "Jouw live productraster."
           },
           "social-proof": {
             "label": "Social proof",
             "desc": "Getuigenis en vertrouwensstat."
           },
           "trust": {
-            "label": "Trust",
-            "desc": "Affisell verification strip."
+            "label": "Vertrouwen",
+            "desc": "Affisell-verificatiestrip."
           },
           "newsletter": {
             "label": "Nieuwsbrief",
             "desc": "E-mail capture voor drops."
           },
           "cta": {
-            "label": "Discover CTA",
-            "desc": "Invite buyers to explore Affisell."
+            "label": "Ontdek-CTA",
+            "desc": "Nodig kopers uit om Affisell te ontdekken."
           },
           "flash-sale": {
-            "label": "Flash sale",
-            "desc": "Countdown timer + limited-time product rail."
+            "label": "Flitsverkoop",
+            "desc": "Aftelklok + tijdelijke productrail."
           }
         }
       },
@@ -3269,49 +3269,49 @@
         "loadFailed": "Kon je catalogus niet laden."
       },
       "staticPages": {
-        "title": "Store pages",
-        "hint": "About, FAQ, and Returns — linked in your storefront footer when enabled.",
-        "enable": "Published",
-        "addFaq": "Add question",
-        "removeFaq": "Remove",
+        "title": "Winkelpagina's",
+        "hint": "Over ons, FAQ en Retouren — gelinkt in jouw storefront-footer indien ingeschakeld.",
+        "enable": "Gepubliceerd",
+        "addFaq": "Vraag toevoegen",
+        "removeFaq": "Verwijderen",
         "fields": {
-          "title": "Page title",
-          "body": "Content",
-          "faq": "Questions & answers",
-          "question": "Question",
-          "answer": "Answer"
+          "title": "Paginatitel",
+          "body": "Inhoud",
+          "faq": "Vragen & antwoorden",
+          "question": "Vraag",
+          "answer": "Antwoord"
         },
         "kinds": {
           "about": {
-            "label": "About",
-            "hint": "Your brand story and who you are.",
-            "titlePlaceholder": "About My Store",
-            "bodyPlaceholder": "Tell buyers why they should trust your catalog."
+            "label": "Over ons",
+            "hint": "Jouw merkverhaal en wie je bent.",
+            "titlePlaceholder": "Over mijn winkel",
+            "bodyPlaceholder": "Vertel kopers waarom ze jouw catalogus kunnen vertrouwen."
           },
           "faq": {
             "label": "FAQ",
-            "hint": "Shipping, payment, and common questions.",
+            "hint": "Verzending, betaling en veelgestelde vragen.",
             "titlePlaceholder": "FAQ",
-            "bodyPlaceholder": "Fallback text if no Q&A items are filled in."
+            "bodyPlaceholder": "Terugvaltekst als er geen vraag- en antwoorditems zijn ingevuld."
           },
           "returns": {
-            "label": "Returns",
-            "hint": "Return window and refund policy.",
-            "titlePlaceholder": "Returns & refunds",
-            "bodyPlaceholder": "14-day return window, contact support with your order number…"
+            "label": "Retouren",
+            "hint": "Retourtermijn en terugbetalingsbeleid.",
+            "titlePlaceholder": "Retouren & terugbetalingen",
+            "bodyPlaceholder": "14 dagen retourtermijn, neem contact op met support met je bestelnummer…"
           }
         }
       },
       "heroVideo": {
-        "title": "Veo hero loop",
-        "hint": "Cinematic autoplay video on your storefront — generate with Veo or paste an HTTPS URL.",
-        "urlLabel": "Video URL (HTTPS)",
-        "generate": "Generate with Veo",
-        "generating": "Generating…",
-        "generateFailed": "Could not generate hero video",
-        "useAsHero": "Use as hero",
-        "showStoreName": "Show store name on video",
-        "showStoreNameHint": "Uses your Brand Studio name badge — crisp overlay, not burned into Veo."
+        "title": "Veo hero-loop",
+        "hint": "Cinematische autoplay-video op jouw storefront — genereer met Veo of plak een HTTPS-URL.",
+        "urlLabel": "Video-URL (HTTPS)",
+        "generate": "Genereren met Veo",
+        "generating": "Genereren…",
+        "generateFailed": "Kon hero-video niet genereren",
+        "useAsHero": "Gebruiken als hero",
+        "showStoreName": "Winkelnaam tonen op video",
+        "showStoreNameHint": "Gebruikt jouw Brand Studio-naambadge — scherpe overlay, niet ingebrand in Veo."
       },
       "embedWidget": {
         "title": "Embed-widget",
@@ -3327,17 +3327,17 @@
         "copied": "Gekopieerd"
       },
       "logo": {
-        "title": "Store logo",
-        "upload": "Upload image",
-        "hint": "PNG or JPEG — 512×512 recommended. Shown on your public storefront."
+        "title": "Winkellogo",
+        "upload": "Afbeelding uploaden",
+        "hint": "PNG of JPEG — 512×512 aanbevolen. Wordt getoond op jouw publieke storefront."
       },
       "preview": {
-        "title": "Live preview",
-        "hint": "Updates instantly — save to publish on your live URL.",
-        "draftHint": "Draft mode — save to refresh the live storefront iframe.",
-        "liveHint": "Pixel-perfect preview of your published storefront.",
-        "iframeTitle": "Storefront live preview",
-        "sampleName": "My Store",
+        "title": "Live voorbeeld",
+        "hint": "Wordt direct bijgewerkt — opslaan om te publiceren op jouw live URL.",
+        "draftHint": "Conceptmodus — opslaan om de live storefront-iframe te vernieuwen.",
+        "liveHint": "Pixel-perfecte preview van jouw gepubliceerde storefront.",
+        "iframeTitle": "Live storefront-voorbeeld",
+        "sampleName": "Mijn winkel",
         "sampleTagline": "Premium picks from your favorite creator."
       },
       "nameBadges": {
@@ -3360,10 +3360,10 @@
       }
     },
     "embedWidget": {
-      "defaultTitle": "Shop curated picks from {name}",
-      "emptyCatalog": "Products coming soon — check back shortly.",
+      "defaultTitle": "Shop uitgekozen items van {name}",
+      "emptyCatalog": "Producten komen binnenkort — kom snel terug.",
       "shopCta": "Shop {name}",
-      "poweredBy": "Secure checkout · Powered by Affisell"
+      "poweredBy": "Beveiligde checkout · Mogelijk gemaakt door Affisell"
     },
     "staticPages": {
       "stripAria": "{name} — infopagina's",
