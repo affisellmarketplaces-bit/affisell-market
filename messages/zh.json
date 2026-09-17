@@ -2766,58 +2766,58 @@
       "supplierDescription": "买家看到您的供应商商店的方式: banner、品牌颜色和自定义域名。",
       "liveUrl": "实时 URL",
       "previewAffisell": "在 Affisell 上预览",
-      "boutiquePreview": "Boutique grid /boutique",
-      "formatsCatalog": "All vitrine formats",
+      "boutiquePreview": "精品店网格 /boutique",
+      "formatsCatalog": "所有展示店面格式",
       "aiTheme": {
-        "badge": "AI · Auto personalization",
-        "title": "Futuristic storefront in 1 click",
-        "subtitle": "AI reads your catalog, picks a wow preset (Nebula Aurora, Solar Flare…), applies colors + copy, and publishes to /boutique and /shops.",
-        "cta": "Personalize my store with AI",
-        "generating": "Crafting your brand universe…",
-        "hint": "Preset + palette + tagline — synced to boutique & storefront.",
-        "failed": "AI personalization unavailable — try again.",
-        "saveFailed": "Theme generated but save failed.",
-        "saved": "Store personalized — live wow storefront ✨",
-        "viewBoutique": "View my /boutique vitrine"
+        "badge": "AI · 自动个性化",
+        "title": "一键打造未来风格店面",
+        "subtitle": "AI 分析你的目录，挑选惊艳预设（Nebula Aurora、Solar Flare 等），应用配色与文案，并发布至 /boutique 与 /shops。",
+        "cta": "使用 AI 个性化我的店铺",
+        "generating": "正在打造你的品牌世界…",
+        "hint": "预设 + 配色 + 标语 —— 与精品店及店面同步。",
+        "failed": "AI 个性化暂不可用 —— 请重试。",
+        "saveFailed": "主题已生成，但保存失败。",
+        "saved": "店铺已个性化 —— 惊艳店面已上线 ✨",
+        "viewBoutique": "查看我的 /boutique 展示店面"
       },
       "aiBoutique": {
-        "badge": "AI · 1024 designs",
-        "title": "Describe your boutique universe",
-        "subtitle": "Describe the vibe you want — AI picks a palette from 1024 futuristic themes, writes your hero tagline, and publishes to /boutique for every visitor.",
-        "supplierHint": "As a supplier, your /boutique palette is ready if you also sell as an affiliate — same slug, unified experience.",
-        "vibeLabel": "Describe your brand",
-        "vibePlaceholder": "e.g. minimalist luxury tech creator store, neon cyberpunk gaming vibe…",
-        "vibeHint": "Catalog + vibe → harmonized palette, hero tagline, and automatic save.",
-        "vibeRequired": "Describe your universe before generating.",
-        "cta": "Personalize with AI ✨",
-        "generating": "Composing your storefront…",
-        "designing": "Designing your universe…",
-        "saved": "Design saved ✨",
-        "buyerTaglineLabel": "Live on /boutique (buyers)",
-        "merchantTaglineLabel": "Your brief (Brand Studio only)",
-        "failed": "Boutique personalization unavailable — try again.",
-        "viewBoutique": "View live /boutique"
+        "badge": "AI · 1024 种设计",
+        "title": "描述你的精品店风格",
+        "subtitle": "描述你想要的风格 —— AI 将从1024种未来主义主题中挑选配色方案，撰写你的主视觉标语，并发布至 /boutique 供所有访客查看。",
+        "supplierHint": "作为供应商，若你同时以分销商身份销售，你的 /boutique 配色方案已就绪 —— 相同网址标识，统一体验。",
+        "vibeLabel": "描述你的品牌",
+        "vibePlaceholder": "例如：极简奢华科技创作者店铺、霓虹赛博朋克游戏风……",
+        "vibeHint": "目录 + 风格 → 协调配色、主视觉标语，并自动保存。",
+        "vibeRequired": "生成前请先描述你的风格。",
+        "cta": "使用 AI 个性化 ✨",
+        "generating": "正在生成你的店面…",
+        "designing": "正在设计你的专属风格…",
+        "saved": "设计已保存 ✨",
+        "buyerTaglineLabel": "已在 /boutique 上线（买家可见）",
+        "merchantTaglineLabel": "你的简介（仅品牌工作室可见）",
+        "failed": "精品店个性化功能暂不可用 —— 请重试。",
+        "viewBoutique": "查看实时 /boutique"
       },
       "boutiqueTitle": {
-        "badge": "Typography · /boutique",
-        "title": "Fonts & special characters",
-        "subtitle": "Customize your storefront hero title — 10 premium fonts, ✦◈★ ornaments, and free-form titles with symbols.",
-        "preview": "Live preview",
-        "fonts": "Fonts",
-        "ornaments": "Ornaments",
-        "specialChars": "Special characters",
-        "customTitle": "Custom title",
-        "customPlaceholder": "e.g. ✦ {name} ✦",
-        "save": "Publish title",
-        "saving": "Publishing…",
-        "saved": "Title published — live on /boutique for all visitors.",
-        "failed": "Could not publish title — try again.",
-        "viewBoutique": "View /boutique",
+        "badge": "字体 · /boutique",
+        "title": "字体与特殊字符",
+        "subtitle": "自定义你的店面主视觉标题 —— 10种高级字体、✦◈★ 装饰符号，以及带符号的自由格式标题。",
+        "preview": "实时预览",
+        "fonts": "字体",
+        "ornaments": "装饰符号",
+        "specialChars": "特殊字符",
+        "customTitle": "自定义标题",
+        "customPlaceholder": "例如：✦ {name} ✦",
+        "save": "发布标题",
+        "saving": "发布中…",
+        "saved": "标题已发布 —— 所有访客均可在 /boutique 上查看。",
+        "failed": "标题发布失败 —— 请重试。",
+        "viewBoutique": "查看 /boutique",
         "layout": {
-          "boutique-accent": "Boutique + accent",
-          "full-gradient": "Full gradient",
-          "name-only": "Name only",
-          "custom-only": "Custom only"
+          "boutique-accent": "精品店 + 强调色",
+          "full-gradient": "全渐变",
+          "name-only": "仅名称",
+          "custom-only": "仅自定义"
         }
       },
       "liveStore": {
@@ -2848,7 +2848,7 @@
       "saved": "品牌已保存 — 您的公共商店已更新。",
       "trustPagesAutofilled": "Trust pages prefilled — review and save to publish them on your storefront.",
       "trustPagesPublished": "Trust pages prefilled and published — your storefront now shows buyer reassurance blocks.",
-      "embedWidgetPublished": "Embed widget published — copy the snippet to amplify the channel already converting.",
+      "embedWidgetPublished": "嵌入组件已发布 —— 复制代码片段以扩大已产生转化的渠道效果。",
       "unsavedChanges": "Unsaved changes",
       "saveHint": "Save to publish on your live storefront.",
       "loadFailed": "加载商店失败",
@@ -2976,16 +2976,16 @@
         }
       },
       "aiBanner": {
-        "cta": "Generate banner with AI",
-        "generating": "Creating…",
+        "cta": "使用 AI 生成横幅",
+        "generating": "创建中…",
         "hint": "Wide hero image from your colors + niche. Sets hero to banner mode — save to publish.",
         "failed": "AI banner unavailable — check HF_TOKEN or try again."
       },
       "aiStaticPages": {
-        "cta": "Generate About, FAQ & Returns with AI",
-        "generating": "Writing pages…",
-        "hint": "Fills all three static pages (EU-friendly). Review before publishing.",
-        "failed": "AI pages unavailable — check GROQ_API_KEY or try again."
+        "cta": "使用 AI 生成「关于我们」「常见问题」与「退货」页面",
+        "generating": "正在撰写页面…",
+        "hint": "自动填充全部三个静态页面（符合欧盟规范）。发布前请审核。",
+        "failed": "AI 页面暂不可用 —— 请检查 GROQ_API_KEY 或重试。"
       },
       "presetOptimizer": {
         "title": "Preset optimizer",
@@ -3022,121 +3022,121 @@
         "failed": "Could not update A/B experiment."
       },
       "aiFaqOrders": {
-        "cta": "Generate FAQ from my orders",
-        "generating": "Analyzing orders…",
-        "hint": "Uses your last 30 days of orders to write shipping & returns FAQ.",
-        "failed": "AI FAQ unavailable — check GROQ_API_KEY or try again."
+        "cta": "根据我的订单生成常见问题",
+        "generating": "正在分析订单…",
+        "hint": "根据你近30天的订单撰写配送与退货常见问题。",
+        "failed": "AI 常见问题暂不可用 —— 请检查 GROQ_API_KEY 或重试。"
       },
       "analytics": {
-        "title": "Growth analytics",
-        "subtitle": "Preset → launch → share funnel tracked in PostHog for Metabase.",
-        "activePreset": "Active preset: {preset}",
-        "openPosthog": "Open funnel in PostHog",
-        "openPresetInsight": "Preset views",
-        "posthogUnset": "Set NEXT_PUBLIC_POSTHOG_PROJECT_ID to open live insights.",
+        "title": "增长分析",
+        "subtitle": "预设 → 启动 → 分享 转化漏斗，通过 PostHog 追踪并同步至 Metabase。",
+        "activePreset": "当前预设：{preset}",
+        "openPosthog": "在 PostHog 中打开转化漏斗",
+        "openPresetInsight": "预设浏览量",
+        "posthogUnset": "请设置 NEXT_PUBLIC_POSTHOG_PROJECT_ID 以查看实时数据分析。",
         "stats": {
-          "listings": "Live listings",
-          "clicks": "Clicks",
-          "sales": "Sales"
+          "listings": "已上线商品",
+          "clicks": "点击量",
+          "sales": "销量"
         },
         "coach": {
           "publish_first_listing": {
-            "title": "Publish your first listing",
-            "body": "Traffic cannot start until at least one product is live on your storefront.",
-            "next": "Next action: publish one listing, then come back here.",
-            "cta": "Open listing dashboard"
+            "title": "发布你的第一件商品",
+            "body": "至少有一件商品在你的店面上线后，才能开始产生流量。",
+            "next": "下一步操作：发布一件商品，然后返回此处。",
+            "cta": "打开商品控制台"
           },
           "drive_first_visit": {
-            "title": "Drive your first visit",
-            "body": "Your store is live, but no one has clicked yet. Share your link on the channel recommended in Share & Grow.",
-            "next": "Next action: copy or share your storefront link now.",
-            "cta": "Open share panel"
+            "title": "获取你的第一次访问",
+            "body": "你的店铺已上线，但尚无人点击。请在「分享与增长」推荐的渠道分享你的链接。",
+            "next": "下一步操作：立即复制或分享你的店面链接。",
+            "cta": "打开分享面板"
           },
           "traffic_no_sales": {
-            "title": "Traffic is coming in",
-            "body": "You already have visitors. Tighten your logo, tagline, and trust blocks to turn those clicks into orders.",
-            "next": "Next action: refine the storefront and keep sharing the same winning channel.",
-            "cta": "Open trust pages"
+            "title": "流量正在增长",
+            "body": "你已经有访客了。请优化你的标志、标语与信任模块，将点击转化为订单。",
+            "next": "下一步操作：优化店面，并持续分享同一成功渠道。",
+            "cta": "打开信任页面"
           },
           "first_sales": {
-            "title": "First sales unlocked",
-            "body": "You have proof of conversion. Double down on the share channel that brought the first orders.",
-            "next": "Next action: reuse that channel and publish another high-intent listing.",
-            "cta": "Open embed widget"
+            "title": "已解锁首批销售",
+            "body": "你已有转化证明。请加倍投入带来首批订单的分享渠道。",
+            "next": "下一步操作：重复使用该渠道，并发布另一件高潜力商品。",
+            "cta": "打开嵌入组件"
           },
           "scale_winning_channel": {
-            "title": "Scale the winning channel",
-            "body": "Your embed is live and orders are coming in. Reuse the same traffic source with ready-to-copy bio and blog blocks.",
-            "next": "Next action: copy one amplification block and post it where your first buyers came from.",
-            "cta": "Open amplification kit"
+            "title": "扩大成功渠道的影响力",
+            "body": "你的嵌入组件已上线，订单持续涌入。请复用相同的流量来源，搭配可直接复制的简介与博客文案模块。",
+            "next": "下一步操作：复制一个推广模块，并发布到首批买家的来源渠道。",
+            "cta": "打开推广工具包"
           },
           "publish_second_listing": {
-            "title": "Add your second winner",
-            "body": "You amplified your shop — now give buyers another high-intent product to click while the channel is still warm.",
-            "next": "Next action: publish one more listing, then share the same storefront link again.",
-            "cta": "Open listing builder"
+            "title": "添加你的第二件爆款商品",
+            "body": "你已扩大店铺影响力 —— 趁渠道热度未减，为买家提供另一件值得点击的高潜力商品。",
+            "next": "下一步操作：再发布一件商品，然后再次分享相同的店面链接。",
+            "cta": "打开商品编辑器"
           }
         },
         "funnel": {
           "preset": {
-            "title": "Preset selected",
-            "hint": "Merchant picks a theme — buyers see storefront_preset_viewed."
+            "title": "预设已选择",
+            "hint": "商家选择主题 —— 买家会看到 storefront_preset_viewed 事件。"
           },
           "launch": {
-            "title": "Smart Launch",
-            "hint": "One-click niche launch applies immersive layout + sections."
+            "title": "智能启动",
+            "hint": "一键细分启动即应用沉浸式布局 + 模块。"
           },
           "share": {
-            "title": "Share & grow",
-            "hint": "Copy link, native share, WhatsApp, or X — organic traffic."
+            "title": "分享与增长",
+            "hint": "复制链接、原生分享、WhatsApp 或 X —— 自然流量。"
           },
           "immersive": {
-            "title": "Immersive viewed",
-            "hint": "Buyer lands on premium layout — conversion signal."
+            "title": "沉浸式已浏览",
+            "hint": "买家进入高级布局 —— 转化信号。"
           }
         }
       },
       "aiCopy": {
-        "cta": "Generate copy with AI",
-        "generating": "Writing…",
-        "hint": "Fills tagline + Story + CTA sections. Review before publishing.",
-        "failed": "AI copy unavailable — check GROQ_API_KEY or try again."
+        "cta": "使用 AI 生成文案",
+        "generating": "撰写中…",
+        "hint": "自动填充标语 + 故事 + CTA 区块。发布前请审核。",
+        "failed": "AI 文案暂不可用 —— 请检查 GROQ_API_KEY 或重试。"
       },
       "generate": {
-        "cta": "Generate",
-        "generating": "Generating…",
-        "failed": "Generation failed — try again.",
+        "cta": "生成",
+        "generating": "生成中…",
+        "failed": "生成失败 —— 请重试。",
         "fields": {
-          "preset": "Generate",
-          "name": "Generate",
-          "logo": "Generate",
-          "banner": "Generate",
-          "copy": "Generate",
-          "colors": "Generate",
-          "layout": "Generate",
-          "nameBadge": "Generate",
-          "sections": "Generate",
-          "embed": "Generate",
-          "boutiqueTitle": "Generate",
-          "staticPages": "Generate",
-          "faqOrders": "Generate",
-          "sectionContent": "Generate"
+          "preset": "生成",
+          "name": "生成",
+          "logo": "生成",
+          "banner": "生成",
+          "copy": "生成",
+          "colors": "生成",
+          "layout": "生成",
+          "nameBadge": "生成",
+          "sections": "生成",
+          "embed": "生成",
+          "boutiqueTitle": "生成",
+          "staticPages": "生成",
+          "faqOrders": "生成",
+          "sectionContent": "生成"
         },
         "hints": {
-          "preset": "AI-matched preset, palette, layout & tagline from your catalog.",
-          "name": "Brand name from niche + catalog keywords.",
-          "logo": "Gradient monogram from your store name & colors.",
-          "banner": "Cinematic hero — HF image or gradient fallback.",
-          "copy": "Tagline + Story + CTA sections.",
-          "colors": "Primary, accent & trust rail from catalog AI.",
-          "layout": "Layout, hero, grid & surface tuned to your niche.",
-          "nameBadge": "Badge style matched to your surface & preset.",
-          "sections": "Enable & copy homepage blocks for your niche.",
-          "embed": "Ready-to-copy embed widget with headline.",
-          "boutiqueTitle": "Font & ornament paired to your preset.",
-          "staticPages": "About, FAQ & Returns (EU-friendly).",
-          "faqOrders": "FAQ from your last 30 days of orders.",
-          "sectionContent": "Fill this section with niche-aware copy."
+          "preset": "AI 根据你的目录匹配的预设、配色、布局与标语。",
+          "name": "根据细分市场与目录关键词生成的品牌名称。",
+          "logo": "根据你的店铺名称与配色生成的渐变字母标志。",
+          "banner": "电影级主视觉 —— HF 图像或渐变备用方案。",
+          "copy": "标语 + 故事 + CTA 区块。",
+          "colors": "由目录 AI 生成的主色、强调色与信任栏。",
+          "layout": "根据你的细分市场定制的布局、主视觉、网格与界面。",
+          "nameBadge": "与你的界面和预设相匹配的徽章样式。",
+          "sections": "为你的细分市场启用并填充主页模块。",
+          "embed": "带标题的可直接复制嵌入组件。",
+          "boutiqueTitle": "与你的预设相匹配的字体与装饰符号。",
+          "staticPages": "关于我们、常见问题与退货（符合欧盟规范）。",
+          "faqOrders": "根据你近30天订单生成的常见问题。",
+          "sectionContent": "以贴合细分市场的文案填充此区块。"
         }
       },
       "layoutControls": {
@@ -3255,18 +3255,18 @@
         }
       },
       "flashSale": {
-        "title": "Flash sale setup",
-        "hint": "Pick products and end time — the section hides automatically when the timer hits zero.",
-        "eyebrow": "Eyebrow",
-        "eyebrowPlaceholder": "Limited offer",
-        "headline": "Promo headline",
-        "headlinePlaceholder": "Up to 30% off — ends soon",
-        "duration": "Sale ends",
-        "presetHours": "{hours}h",
-        "products": "Products ({count}/{max})",
-        "loadingCatalog": "Loading catalog…",
-        "emptyCatalog": "List at least one product to run a flash sale.",
-        "loadFailed": "Could not load your catalog."
+        "title": "限时抢购设置",
+        "hint": "选择商品与结束时间 —— 倒计时归零后该模块将自动隐藏。",
+        "eyebrow": "顶部标签",
+        "eyebrowPlaceholder": "限时优惠",
+        "headline": "促销标题",
+        "headlinePlaceholder": "最高立减30% —— 即将结束",
+        "duration": "活动结束时间",
+        "presetHours": "{hours}小时",
+        "products": "商品（{count}/{max}）",
+        "loadingCatalog": "正在加载目录…",
+        "emptyCatalog": "请至少上架一件商品才能开展限时抢购。",
+        "loadFailed": "无法加载你的目录。"
       },
       "staticPages": {
         "title": "Store pages",
@@ -3314,17 +3314,17 @@
         "showStoreNameHint": "Uses your Brand Studio name badge — crisp overlay, not burned into Veo."
       },
       "embedWidget": {
-        "title": "Embed widget",
-        "hint": "Paste this iframe on your blog, link-in-bio, or site — buyers shop without leaving your page.",
-        "enable": "Published",
-        "headline": "Widget headline",
-        "headlinePlaceholder": "Shop curated picks from {name}",
-        "productCount": "Products shown",
-        "preview": "Live preview",
-        "previewTitle": "{name} — Affisell embed",
-        "snippet": "Embed code",
-        "copy": "Copy iframe code",
-        "copied": "Copied"
+        "title": "嵌入组件",
+        "hint": "将此 iframe 粘贴到你的博客、个人简介链接或网站中 —— 买家无需离开你的页面即可购物。",
+        "enable": "已发布",
+        "headline": "组件标题",
+        "headlinePlaceholder": "选购来自 {name} 的精选商品",
+        "productCount": "展示商品数",
+        "preview": "实时预览",
+        "previewTitle": "{name} — Affisell 嵌入",
+        "snippet": "嵌入代码",
+        "copy": "复制 iframe 代码",
+        "copied": "已复制"
       },
       "logo": {
         "title": "Store logo",

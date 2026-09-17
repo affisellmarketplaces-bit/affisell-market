@@ -2766,58 +2766,58 @@
       "supplierDescription": "Hoe kopers uw leverancierswinkel zien: banner, merkkleuren en een custom domein.",
       "liveUrl": "Live URL",
       "previewAffisell": "Voorbeeld op Affisell",
-      "boutiquePreview": "Boutique grid /boutique",
-      "formatsCatalog": "All vitrine formats",
+      "boutiquePreview": "Boutique-raster /boutique",
+      "formatsCatalog": "Alle vitrine-formaten",
       "aiTheme": {
-        "badge": "AI · Auto personalization",
-        "title": "Futuristic storefront in 1 click",
-        "subtitle": "AI reads your catalog, picks a wow preset (Nebula Aurora, Solar Flare…), applies colors + copy, and publishes to /boutique and /shops.",
-        "cta": "Personalize my store with AI",
-        "generating": "Crafting your brand universe…",
-        "hint": "Preset + palette + tagline — synced to boutique & storefront.",
-        "failed": "AI personalization unavailable — try again.",
-        "saveFailed": "Theme generated but save failed.",
-        "saved": "Store personalized — live wow storefront ✨",
-        "viewBoutique": "View my /boutique vitrine"
+        "badge": "AI · Automatische personalisatie",
+        "title": "Futuristische storefront in 1 klik",
+        "subtitle": "AI leest je catalogus, kiest een indrukwekkende preset (Nebula Aurora, Solar Flare…), past kleuren + tekst toe en publiceert op /boutique en /shops.",
+        "cta": "Mijn winkel personaliseren met AI",
+        "generating": "Jouw merkuniversum creëren…",
+        "hint": "Preset + palet + tagline — gesynchroniseerd met boutique & storefront.",
+        "failed": "AI-personalisatie niet beschikbaar — probeer opnieuw.",
+        "saveFailed": "Thema gegenereerd, maar opslaan is mislukt.",
+        "saved": "Winkel gepersonaliseerd — indrukwekkende storefront live ✨",
+        "viewBoutique": "Mijn /boutique-vitrine bekijken"
       },
       "aiBoutique": {
-        "badge": "AI · 1024 designs",
-        "title": "Describe your boutique universe",
-        "subtitle": "Describe the vibe you want — AI picks a palette from 1024 futuristic themes, writes your hero tagline, and publishes to /boutique for every visitor.",
-        "supplierHint": "As a supplier, your /boutique palette is ready if you also sell as an affiliate — same slug, unified experience.",
-        "vibeLabel": "Describe your brand",
-        "vibePlaceholder": "e.g. minimalist luxury tech creator store, neon cyberpunk gaming vibe…",
-        "vibeHint": "Catalog + vibe → harmonized palette, hero tagline, and automatic save.",
-        "vibeRequired": "Describe your universe before generating.",
-        "cta": "Personalize with AI ✨",
-        "generating": "Composing your storefront…",
-        "designing": "Designing your universe…",
-        "saved": "Design saved ✨",
-        "buyerTaglineLabel": "Live on /boutique (buyers)",
-        "merchantTaglineLabel": "Your brief (Brand Studio only)",
-        "failed": "Boutique personalization unavailable — try again.",
-        "viewBoutique": "View live /boutique"
+        "badge": "AI · 1024 ontwerpen",
+        "title": "Beschrijf jouw boutique-universum",
+        "subtitle": "Beschrijf de sfeer die je wilt — AI kiest een palet uit 1024 futuristische thema's, schrijft jouw hero-tagline en publiceert deze op /boutique voor elke bezoeker.",
+        "supplierHint": "Als leverancier is jouw /boutique-palet klaar als je ook als reseller verkoopt — dezelfde slug, uniforme ervaring.",
+        "vibeLabel": "Beschrijf jouw merk",
+        "vibePlaceholder": "bijv. minimalistische luxe tech-creator-shop, neon cyberpunk gaming-sfeer…",
+        "vibeHint": "Catalogus + sfeer → harmonieus palet, hero-tagline en automatisch opslaan.",
+        "vibeRequired": "Beschrijf jouw universum voordat je genereert.",
+        "cta": "Personaliseren met AI ✨",
+        "generating": "Jouw storefront samenstellen…",
+        "designing": "Jouw universum ontwerpen…",
+        "saved": "Ontwerp opgeslagen ✨",
+        "buyerTaglineLabel": "Live op /boutique (kopers)",
+        "merchantTaglineLabel": "Jouw briefing (alleen Brand Studio)",
+        "failed": "Boutique-personalisatie niet beschikbaar — probeer opnieuw.",
+        "viewBoutique": "Live /boutique bekijken"
       },
       "boutiqueTitle": {
-        "badge": "Typography · /boutique",
-        "title": "Fonts & special characters",
-        "subtitle": "Customize your storefront hero title — 10 premium fonts, ✦◈★ ornaments, and free-form titles with symbols.",
-        "preview": "Live preview",
-        "fonts": "Fonts",
-        "ornaments": "Ornaments",
-        "specialChars": "Special characters",
-        "customTitle": "Custom title",
-        "customPlaceholder": "e.g. ✦ {name} ✦",
-        "save": "Publish title",
-        "saving": "Publishing…",
-        "saved": "Title published — live on /boutique for all visitors.",
-        "failed": "Could not publish title — try again.",
-        "viewBoutique": "View /boutique",
+        "badge": "Typografie · /boutique",
+        "title": "Lettertypen & speciale tekens",
+        "subtitle": "Pas de hero-titel van jouw storefront aan — 10 premium lettertypen, ✦◈★-ornamenten en vrije titels met symbolen.",
+        "preview": "Live voorbeeld",
+        "fonts": "Lettertypen",
+        "ornaments": "Ornamenten",
+        "specialChars": "Speciale tekens",
+        "customTitle": "Aangepaste titel",
+        "customPlaceholder": "bijv. ✦ {name} ✦",
+        "save": "Titel publiceren",
+        "saving": "Publiceren…",
+        "saved": "Titel gepubliceerd — live op /boutique voor alle bezoekers.",
+        "failed": "Kon titel niet publiceren — probeer opnieuw.",
+        "viewBoutique": "/boutique bekijken",
         "layout": {
           "boutique-accent": "Boutique + accent",
-          "full-gradient": "Full gradient",
-          "name-only": "Name only",
-          "custom-only": "Custom only"
+          "full-gradient": "Volledig verloop",
+          "name-only": "Alleen naam",
+          "custom-only": "Alleen aangepast"
         }
       },
       "liveStore": {
@@ -2848,7 +2848,7 @@
       "saved": "Merken opgeslagen — uw openbare storefront is bijgewerkt.",
       "trustPagesAutofilled": "Trust pages prefilled — review and save to publish them on your storefront.",
       "trustPagesPublished": "Trust pages prefilled and published — your storefront now shows buyer reassurance blocks.",
-      "embedWidgetPublished": "Embed widget published — copy the snippet to amplify the channel already converting.",
+      "embedWidgetPublished": "Embed-widget gepubliceerd — kopieer de snippet om het reeds converterende kanaal te versterken.",
       "unsavedChanges": "Unsaved changes",
       "saveHint": "Save to publish on your live storefront.",
       "loadFailed": "Het laden van de winkel is mislukt",
@@ -2976,16 +2976,16 @@
         }
       },
       "aiBanner": {
-        "cta": "Generate banner with AI",
-        "generating": "Creating…",
+        "cta": "Banner genereren met AI",
+        "generating": "Maken…",
         "hint": "Wide hero image from your colors + niche. Sets hero to banner mode — save to publish.",
         "failed": "AI banner unavailable — check HF_TOKEN or try again."
       },
       "aiStaticPages": {
-        "cta": "Generate About, FAQ & Returns with AI",
-        "generating": "Writing pages…",
-        "hint": "Fills all three static pages (EU-friendly). Review before publishing.",
-        "failed": "AI pages unavailable — check GROQ_API_KEY or try again."
+        "cta": "Over ons, FAQ & Retouren genereren met AI",
+        "generating": "Pagina's schrijven…",
+        "hint": "Vult alle drie statische pagina's in (EU-vriendelijk). Controleer voor publicatie.",
+        "failed": "AI-pagina's niet beschikbaar — controleer GROQ_API_KEY of probeer opnieuw."
       },
       "presetOptimizer": {
         "title": "Preset optimizer",
@@ -3022,121 +3022,121 @@
         "failed": "Could not update A/B experiment."
       },
       "aiFaqOrders": {
-        "cta": "Generate FAQ from my orders",
-        "generating": "Analyzing orders…",
-        "hint": "Uses your last 30 days of orders to write shipping & returns FAQ.",
-        "failed": "AI FAQ unavailable — check GROQ_API_KEY or try again."
+        "cta": "FAQ genereren op basis van mijn bestellingen",
+        "generating": "Bestellingen analyseren…",
+        "hint": "Gebruikt je bestellingen van de afgelopen 30 dagen om FAQ over verzending & retouren te schrijven.",
+        "failed": "AI-FAQ niet beschikbaar — controleer GROQ_API_KEY of probeer opnieuw."
       },
       "analytics": {
-        "title": "Growth analytics",
-        "subtitle": "Preset → launch → share funnel tracked in PostHog for Metabase.",
-        "activePreset": "Active preset: {preset}",
-        "openPosthog": "Open funnel in PostHog",
-        "openPresetInsight": "Preset views",
-        "posthogUnset": "Set NEXT_PUBLIC_POSTHOG_PROJECT_ID to open live insights.",
+        "title": "Groeianalyse",
+        "subtitle": "Preset → lancering → delen-trechter bijgehouden in PostHog voor Metabase.",
+        "activePreset": "Actieve preset: {preset}",
+        "openPosthog": "Trechter openen in PostHog",
+        "openPresetInsight": "Preset-weergaven",
+        "posthogUnset": "Stel NEXT_PUBLIC_POSTHOG_PROJECT_ID in om live inzichten te openen.",
         "stats": {
           "listings": "Live listings",
-          "clicks": "Clicks",
-          "sales": "Sales"
+          "clicks": "Kliks",
+          "sales": "Verkopen"
         },
         "coach": {
           "publish_first_listing": {
-            "title": "Publish your first listing",
-            "body": "Traffic cannot start until at least one product is live on your storefront.",
-            "next": "Next action: publish one listing, then come back here.",
-            "cta": "Open listing dashboard"
+            "title": "Publiceer je eerste listing",
+            "body": "Verkeer kan pas beginnen zodra minstens één product live staat in jouw storefront.",
+            "next": "Volgende actie: publiceer een listing en kom dan hier terug.",
+            "cta": "Listingdashboard openen"
           },
           "drive_first_visit": {
-            "title": "Drive your first visit",
-            "body": "Your store is live, but no one has clicked yet. Share your link on the channel recommended in Share & Grow.",
-            "next": "Next action: copy or share your storefront link now.",
-            "cta": "Open share panel"
+            "title": "Krijg je eerste bezoek",
+            "body": "Jouw winkel is live, maar niemand heeft nog geklikt. Deel je link op het kanaal dat wordt aanbevolen in Delen & groeien.",
+            "next": "Volgende actie: kopieer of deel nu je storefront-link.",
+            "cta": "Deelpaneel openen"
           },
           "traffic_no_sales": {
-            "title": "Traffic is coming in",
-            "body": "You already have visitors. Tighten your logo, tagline, and trust blocks to turn those clicks into orders.",
-            "next": "Next action: refine the storefront and keep sharing the same winning channel.",
-            "cta": "Open trust pages"
+            "title": "Er komt verkeer binnen",
+            "body": "Je hebt al bezoekers. Verbeter je logo, tagline en vertrouwensblokken om die kliks in bestellingen om te zetten.",
+            "next": "Volgende actie: verfijn de storefront en blijf hetzelfde succesvolle kanaal delen.",
+            "cta": "Vertrouwenspagina's openen"
           },
           "first_sales": {
-            "title": "First sales unlocked",
-            "body": "You have proof of conversion. Double down on the share channel that brought the first orders.",
-            "next": "Next action: reuse that channel and publish another high-intent listing.",
-            "cta": "Open embed widget"
+            "title": "Eerste verkopen ontgrendeld",
+            "body": "Je hebt bewijs van conversie. Verdubbel de inzet op het kanaal dat de eerste bestellingen opleverde.",
+            "next": "Volgende actie: hergebruik dat kanaal en publiceer nog een veelbelovende listing.",
+            "cta": "Embed-widget openen"
           },
           "scale_winning_channel": {
-            "title": "Scale the winning channel",
-            "body": "Your embed is live and orders are coming in. Reuse the same traffic source with ready-to-copy bio and blog blocks.",
-            "next": "Next action: copy one amplification block and post it where your first buyers came from.",
-            "cta": "Open amplification kit"
+            "title": "Schaal het succesvolle kanaal op",
+            "body": "Jouw embed is live en bestellingen komen binnen. Hergebruik dezelfde verkeersbron met kant-en-klare bio- en blogblokken.",
+            "next": "Volgende actie: kopieer een versterkingsblok en plaats het waar je eerste kopers vandaan kwamen.",
+            "cta": "Versterkingskit openen"
           },
           "publish_second_listing": {
-            "title": "Add your second winner",
-            "body": "You amplified your shop — now give buyers another high-intent product to click while the channel is still warm.",
-            "next": "Next action: publish one more listing, then share the same storefront link again.",
-            "cta": "Open listing builder"
+            "title": "Voeg je tweede topper toe",
+            "body": "Je hebt je winkel versterkt — geef kopers nu nog een veelbelovend product om op te klikken terwijl het kanaal nog warm is.",
+            "next": "Volgende actie: publiceer nog een listing en deel daarna opnieuw dezelfde storefront-link.",
+            "cta": "Listingbuilder openen"
           }
         },
         "funnel": {
           "preset": {
-            "title": "Preset selected",
-            "hint": "Merchant picks a theme — buyers see storefront_preset_viewed."
+            "title": "Preset geselecteerd",
+            "hint": "Handelaar kiest een thema — kopers zien storefront_preset_viewed."
           },
           "launch": {
             "title": "Smart Launch",
-            "hint": "One-click niche launch applies immersive layout + sections."
+            "hint": "Één-klik niche-lancering past immersieve layout + secties toe."
           },
           "share": {
-            "title": "Share & grow",
-            "hint": "Copy link, native share, WhatsApp, or X — organic traffic."
+            "title": "Delen & groeien",
+            "hint": "Link kopiëren, native delen, WhatsApp of X — organisch verkeer."
           },
           "immersive": {
-            "title": "Immersive viewed",
-            "hint": "Buyer lands on premium layout — conversion signal."
+            "title": "Immersief bekeken",
+            "hint": "Koper komt op premium layout terecht — conversiesignaal."
           }
         }
       },
       "aiCopy": {
-        "cta": "Generate copy with AI",
-        "generating": "Writing…",
-        "hint": "Fills tagline + Story + CTA sections. Review before publishing.",
-        "failed": "AI copy unavailable — check GROQ_API_KEY or try again."
+        "cta": "Tekst genereren met AI",
+        "generating": "Schrijven…",
+        "hint": "Vult tagline + Story- + CTA-secties in. Controleer voor publicatie.",
+        "failed": "AI-tekst niet beschikbaar — controleer GROQ_API_KEY of probeer opnieuw."
       },
       "generate": {
-        "cta": "Generate",
-        "generating": "Generating…",
-        "failed": "Generation failed — try again.",
+        "cta": "Genereren",
+        "generating": "Genereren…",
+        "failed": "Genereren mislukt — probeer opnieuw.",
         "fields": {
-          "preset": "Generate",
-          "name": "Generate",
-          "logo": "Generate",
-          "banner": "Generate",
-          "copy": "Generate",
-          "colors": "Generate",
-          "layout": "Generate",
-          "nameBadge": "Generate",
-          "sections": "Generate",
-          "embed": "Generate",
-          "boutiqueTitle": "Generate",
-          "staticPages": "Generate",
-          "faqOrders": "Generate",
-          "sectionContent": "Generate"
+          "preset": "Genereren",
+          "name": "Genereren",
+          "logo": "Genereren",
+          "banner": "Genereren",
+          "copy": "Genereren",
+          "colors": "Genereren",
+          "layout": "Genereren",
+          "nameBadge": "Genereren",
+          "sections": "Genereren",
+          "embed": "Genereren",
+          "boutiqueTitle": "Genereren",
+          "staticPages": "Genereren",
+          "faqOrders": "Genereren",
+          "sectionContent": "Genereren"
         },
         "hints": {
-          "preset": "AI-matched preset, palette, layout & tagline from your catalog.",
-          "name": "Brand name from niche + catalog keywords.",
-          "logo": "Gradient monogram from your store name & colors.",
-          "banner": "Cinematic hero — HF image or gradient fallback.",
-          "copy": "Tagline + Story + CTA sections.",
-          "colors": "Primary, accent & trust rail from catalog AI.",
-          "layout": "Layout, hero, grid & surface tuned to your niche.",
-          "nameBadge": "Badge style matched to your surface & preset.",
-          "sections": "Enable & copy homepage blocks for your niche.",
-          "embed": "Ready-to-copy embed widget with headline.",
-          "boutiqueTitle": "Font & ornament paired to your preset.",
-          "staticPages": "About, FAQ & Returns (EU-friendly).",
-          "faqOrders": "FAQ from your last 30 days of orders.",
-          "sectionContent": "Fill this section with niche-aware copy."
+          "preset": "AI-afgestemde preset, palet, layout & tagline op basis van jouw catalogus.",
+          "name": "Merknaam op basis van niche + catalogus-trefwoorden.",
+          "logo": "Verloopmonogram op basis van je winkelnaam & kleuren.",
+          "banner": "Cinematische hero — HF-afbeelding of verloop als fallback.",
+          "copy": "Tagline + Story + CTA-secties.",
+          "colors": "Primaire, accent- en vertrouwensbalk van catalogus-AI.",
+          "layout": "Layout, hero, raster & oppervlak afgestemd op jouw niche.",
+          "nameBadge": "Badge-stijl passend bij jouw oppervlak & preset.",
+          "sections": "Schakel homepage-blokken voor jouw niche in & kopieer ze.",
+          "embed": "Kant-en-klare embed-widget met kop.",
+          "boutiqueTitle": "Lettertype & ornament passend bij jouw preset.",
+          "staticPages": "Over ons, FAQ & Retouren (EU-vriendelijk).",
+          "faqOrders": "FAQ op basis van je bestellingen van de afgelopen 30 dagen.",
+          "sectionContent": "Vul deze sectie met niche-bewuste tekst."
         }
       },
       "layoutControls": {
@@ -3255,18 +3255,18 @@
         }
       },
       "flashSale": {
-        "title": "Flash sale setup",
-        "hint": "Pick products and end time — the section hides automatically when the timer hits zero.",
+        "title": "Flitsverkoop instellen",
+        "hint": "Kies producten en eindtijd — de sectie wordt automatisch verborgen wanneer de timer nul bereikt.",
         "eyebrow": "Eyebrow",
-        "eyebrowPlaceholder": "Limited offer",
-        "headline": "Promo headline",
-        "headlinePlaceholder": "Up to 30% off — ends soon",
-        "duration": "Sale ends",
-        "presetHours": "{hours}h",
-        "products": "Products ({count}/{max})",
-        "loadingCatalog": "Loading catalog…",
-        "emptyCatalog": "List at least one product to run a flash sale.",
-        "loadFailed": "Could not load your catalog."
+        "eyebrowPlaceholder": "Beperkt aanbod",
+        "headline": "Promotiekop",
+        "headlinePlaceholder": "Tot 30% korting — eindigt binnenkort",
+        "duration": "Aanbieding eindigt",
+        "presetHours": "{hours}u",
+        "products": "Producten ({count}/{max})",
+        "loadingCatalog": "Catalogus laden…",
+        "emptyCatalog": "Plaats minstens één product om een flitsverkoop te starten.",
+        "loadFailed": "Kon je catalogus niet laden."
       },
       "staticPages": {
         "title": "Store pages",
@@ -3314,17 +3314,17 @@
         "showStoreNameHint": "Uses your Brand Studio name badge — crisp overlay, not burned into Veo."
       },
       "embedWidget": {
-        "title": "Embed widget",
-        "hint": "Paste this iframe on your blog, link-in-bio, or site — buyers shop without leaving your page.",
-        "enable": "Published",
-        "headline": "Widget headline",
-        "headlinePlaceholder": "Shop curated picks from {name}",
-        "productCount": "Products shown",
-        "preview": "Live preview",
+        "title": "Embed-widget",
+        "hint": "Plak deze iframe op je blog, link-in-bio of site — kopers winkelen zonder je pagina te verlaten.",
+        "enable": "Gepubliceerd",
+        "headline": "Widget-kop",
+        "headlinePlaceholder": "Shop uitgekozen items van {name}",
+        "productCount": "Getoonde producten",
+        "preview": "Live voorbeeld",
         "previewTitle": "{name} — Affisell embed",
-        "snippet": "Embed code",
-        "copy": "Copy iframe code",
-        "copied": "Copied"
+        "snippet": "Embed-code",
+        "copy": "iFrame-code kopiëren",
+        "copied": "Gekopieerd"
       },
       "logo": {
         "title": "Store logo",

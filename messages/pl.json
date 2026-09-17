@@ -2766,58 +2766,58 @@
       "supplierDescription": "Jak widzą Twój sklep dostawcy: baner, kolory marki i domena niestandardowa.",
       "liveUrl": "Adres URL żywy",
       "previewAffisell": "Podgląd na Affisell",
-      "boutiquePreview": "Boutique grid /boutique",
-      "formatsCatalog": "All vitrine formats",
+      "boutiquePreview": "Siatka butiku /boutique",
+      "formatsCatalog": "Wszystkie formaty witryn",
       "aiTheme": {
-        "badge": "AI · Auto personalization",
-        "title": "Futuristic storefront in 1 click",
-        "subtitle": "AI reads your catalog, picks a wow preset (Nebula Aurora, Solar Flare…), applies colors + copy, and publishes to /boutique and /shops.",
-        "cta": "Personalize my store with AI",
-        "generating": "Crafting your brand universe…",
-        "hint": "Preset + palette + tagline — synced to boutique & storefront.",
-        "failed": "AI personalization unavailable — try again.",
-        "saveFailed": "Theme generated but save failed.",
-        "saved": "Store personalized — live wow storefront ✨",
-        "viewBoutique": "View my /boutique vitrine"
+        "badge": "AI · Automatyczna personalizacja",
+        "title": "Futurystyczny sklep w 1 kliknięcie",
+        "subtitle": "AI analizuje Twój katalog, wybiera imponujące ustawienie wstępne (Nebula Aurora, Solar Flare…), stosuje kolory + teksty i publikuje na /boutique i /shops.",
+        "cta": "Personalizuj mój sklep z AI",
+        "generating": "Tworzenie uniwersum Twojej marki…",
+        "hint": "Ustawienie wstępne + paleta + hasło — zsynchronizowane z butikiem i sklepem.",
+        "failed": "Personalizacja AI niedostępna — spróbuj ponownie.",
+        "saveFailed": "Motyw wygenerowany, ale zapis się nie powiódł.",
+        "saved": "Sklep spersonalizowany — imponujący sklep na żywo ✨",
+        "viewBoutique": "Zobacz moją witrynę /boutique"
       },
       "aiBoutique": {
-        "badge": "AI · 1024 designs",
-        "title": "Describe your boutique universe",
-        "subtitle": "Describe the vibe you want — AI picks a palette from 1024 futuristic themes, writes your hero tagline, and publishes to /boutique for every visitor.",
-        "supplierHint": "As a supplier, your /boutique palette is ready if you also sell as an affiliate — same slug, unified experience.",
-        "vibeLabel": "Describe your brand",
-        "vibePlaceholder": "e.g. minimalist luxury tech creator store, neon cyberpunk gaming vibe…",
-        "vibeHint": "Catalog + vibe → harmonized palette, hero tagline, and automatic save.",
-        "vibeRequired": "Describe your universe before generating.",
-        "cta": "Personalize with AI ✨",
-        "generating": "Composing your storefront…",
-        "designing": "Designing your universe…",
-        "saved": "Design saved ✨",
-        "buyerTaglineLabel": "Live on /boutique (buyers)",
-        "merchantTaglineLabel": "Your brief (Brand Studio only)",
-        "failed": "Boutique personalization unavailable — try again.",
-        "viewBoutique": "View live /boutique"
+        "badge": "AI · 1024 projekty",
+        "title": "Opisz uniwersum swojego butiku",
+        "subtitle": "Opisz styl, jaki chcesz uzyskać — AI wybiera paletę spośród 1024 futurystycznych motywów, tworzy hasło hero i publikuje je na /boutique dla każdego odwiedzającego.",
+        "supplierHint": "Jako dostawca, Twoja paleta /boutique jest gotowa, jeśli sprzedajesz również jako reseller — ten sam slug, spójne doświadczenie.",
+        "vibeLabel": "Opisz swoją markę",
+        "vibePlaceholder": "np. minimalistyczny luksusowy sklep tech twórcy, neonowy klimat gamingowy cyberpunk…",
+        "vibeHint": "Katalog + styl → spójna paleta, hasło hero i automatyczny zapis.",
+        "vibeRequired": "Opisz swoje uniwersum przed wygenerowaniem.",
+        "cta": "Personalizuj z AI ✨",
+        "generating": "Tworzenie Twojego sklepu…",
+        "designing": "Projektowanie Twojego uniwersum…",
+        "saved": "Projekt zapisany ✨",
+        "buyerTaglineLabel": "Na żywo na /boutique (kupujący)",
+        "merchantTaglineLabel": "Twój brief (tylko Brand Studio)",
+        "failed": "Personalizacja butiku niedostępna — spróbuj ponownie.",
+        "viewBoutique": "Zobacz /boutique na żywo"
       },
       "boutiqueTitle": {
-        "badge": "Typography · /boutique",
-        "title": "Fonts & special characters",
-        "subtitle": "Customize your storefront hero title — 10 premium fonts, ✦◈★ ornaments, and free-form titles with symbols.",
-        "preview": "Live preview",
-        "fonts": "Fonts",
-        "ornaments": "Ornaments",
-        "specialChars": "Special characters",
-        "customTitle": "Custom title",
-        "customPlaceholder": "e.g. ✦ {name} ✦",
-        "save": "Publish title",
-        "saving": "Publishing…",
-        "saved": "Title published — live on /boutique for all visitors.",
-        "failed": "Could not publish title — try again.",
-        "viewBoutique": "View /boutique",
+        "badge": "Typografia · /boutique",
+        "title": "Czcionki i znaki specjalne",
+        "subtitle": "Dostosuj tytuł hero swojego sklepu — 10 czcionek premium, ozdobniki ✦◈★ i dowolne tytuły z symbolami.",
+        "preview": "Podgląd na żywo",
+        "fonts": "Czcionki",
+        "ornaments": "Ozdobniki",
+        "specialChars": "Znaki specjalne",
+        "customTitle": "Niestandardowy tytuł",
+        "customPlaceholder": "np. ✦ {name} ✦",
+        "save": "Opublikuj tytuł",
+        "saving": "Publikowanie…",
+        "saved": "Tytuł opublikowany — aktywny na /boutique dla wszystkich odwiedzających.",
+        "failed": "Nie udało się opublikować tytułu — spróbuj ponownie.",
+        "viewBoutique": "Zobacz /boutique",
         "layout": {
-          "boutique-accent": "Boutique + accent",
-          "full-gradient": "Full gradient",
-          "name-only": "Name only",
-          "custom-only": "Custom only"
+          "boutique-accent": "Butik + akcent",
+          "full-gradient": "Pełny gradient",
+          "name-only": "Tylko nazwa",
+          "custom-only": "Tylko niestandardowe"
         }
       },
       "liveStore": {
@@ -2848,7 +2848,7 @@
       "saved": "Marka zapisana — Twoja publiczna strona sklepu została zaktualizowana.",
       "trustPagesAutofilled": "Trust pages prefilled — review and save to publish them on your storefront.",
       "trustPagesPublished": "Trust pages prefilled and published — your storefront now shows buyer reassurance blocks.",
-      "embedWidgetPublished": "Embed widget published — copy the snippet to amplify the channel already converting.",
+      "embedWidgetPublished": "Widżet osadzania opublikowany — skopiuj fragment kodu, aby wzmocnić kanał, który już konwertuje.",
       "unsavedChanges": "Unsaved changes",
       "saveHint": "Save to publish on your live storefront.",
       "loadFailed": "Nie udało się załadować sklepu",
@@ -2976,16 +2976,16 @@
         }
       },
       "aiBanner": {
-        "cta": "Generate banner with AI",
-        "generating": "Creating…",
+        "cta": "Generuj baner z AI",
+        "generating": "Tworzenie…",
         "hint": "Wide hero image from your colors + niche. Sets hero to banner mode — save to publish.",
         "failed": "AI banner unavailable — check HF_TOKEN or try again."
       },
       "aiStaticPages": {
-        "cta": "Generate About, FAQ & Returns with AI",
-        "generating": "Writing pages…",
-        "hint": "Fills all three static pages (EU-friendly). Review before publishing.",
-        "failed": "AI pages unavailable — check GROQ_API_KEY or try again."
+        "cta": "Generuj O nas, FAQ i Zwroty z AI",
+        "generating": "Pisanie stron…",
+        "hint": "Wypełnia wszystkie trzy strony statyczne (zgodne z UE). Sprawdź przed publikacją.",
+        "failed": "Strony AI niedostępne — sprawdź GROQ_API_KEY lub spróbuj ponownie."
       },
       "presetOptimizer": {
         "title": "Preset optimizer",
@@ -3022,121 +3022,121 @@
         "failed": "Could not update A/B experiment."
       },
       "aiFaqOrders": {
-        "cta": "Generate FAQ from my orders",
-        "generating": "Analyzing orders…",
-        "hint": "Uses your last 30 days of orders to write shipping & returns FAQ.",
-        "failed": "AI FAQ unavailable — check GROQ_API_KEY or try again."
+        "cta": "Generuj FAQ na podstawie moich zamówień",
+        "generating": "Analizowanie zamówień…",
+        "hint": "Wykorzystuje Twoje zamówienia z ostatnich 30 dni, aby napisać FAQ dotyczące wysyłki i zwrotów.",
+        "failed": "FAQ AI niedostępne — sprawdź GROQ_API_KEY lub spróbuj ponownie."
       },
       "analytics": {
-        "title": "Growth analytics",
-        "subtitle": "Preset → launch → share funnel tracked in PostHog for Metabase.",
-        "activePreset": "Active preset: {preset}",
-        "openPosthog": "Open funnel in PostHog",
-        "openPresetInsight": "Preset views",
-        "posthogUnset": "Set NEXT_PUBLIC_POSTHOG_PROJECT_ID to open live insights.",
+        "title": "Analiza wzrostu",
+        "subtitle": "Lejek ustawienie → uruchomienie → udostępnianie, śledzony w PostHog dla Metabase.",
+        "activePreset": "Aktywne ustawienie: {preset}",
+        "openPosthog": "Otwórz lejek w PostHog",
+        "openPresetInsight": "Wyświetlenia ustawienia",
+        "posthogUnset": "Ustaw NEXT_PUBLIC_POSTHOG_PROJECT_ID, aby otworzyć statystyki na żywo.",
         "stats": {
-          "listings": "Live listings",
-          "clicks": "Clicks",
-          "sales": "Sales"
+          "listings": "Aktywne ogłoszenia",
+          "clicks": "Kliknięcia",
+          "sales": "Sprzedaż"
         },
         "coach": {
           "publish_first_listing": {
-            "title": "Publish your first listing",
-            "body": "Traffic cannot start until at least one product is live on your storefront.",
-            "next": "Next action: publish one listing, then come back here.",
-            "cta": "Open listing dashboard"
+            "title": "Opublikuj swoje pierwsze ogłoszenie",
+            "body": "Ruch nie może się rozpocząć, dopóki co najmniej jeden produkt nie jest aktywny w Twoim sklepie.",
+            "next": "Następna akcja: opublikuj jedno ogłoszenie, a następnie wróć tutaj.",
+            "cta": "Otwórz panel ogłoszeń"
           },
           "drive_first_visit": {
-            "title": "Drive your first visit",
-            "body": "Your store is live, but no one has clicked yet. Share your link on the channel recommended in Share & Grow.",
-            "next": "Next action: copy or share your storefront link now.",
-            "cta": "Open share panel"
+            "title": "Zdobądź pierwszą wizytę",
+            "body": "Twój sklep jest aktywny, ale nikt jeszcze nie kliknął. Udostępnij swój link na kanale zalecanym w sekcji Udostępnij i rozwijaj.",
+            "next": "Następna akcja: skopiuj lub udostępnij teraz link do swojego sklepu.",
+            "cta": "Otwórz panel udostępniania"
           },
           "traffic_no_sales": {
-            "title": "Traffic is coming in",
-            "body": "You already have visitors. Tighten your logo, tagline, and trust blocks to turn those clicks into orders.",
-            "next": "Next action: refine the storefront and keep sharing the same winning channel.",
-            "cta": "Open trust pages"
+            "title": "Napływa ruch",
+            "body": "Masz już odwiedzających. Popraw logo, hasło i bloki zaufania, aby zamienić te kliknięcia w zamówienia.",
+            "next": "Następna akcja: dopracuj sklep i nadal udostępniaj ten sam zwycięski kanał.",
+            "cta": "Otwórz strony zaufania"
           },
           "first_sales": {
-            "title": "First sales unlocked",
-            "body": "You have proof of conversion. Double down on the share channel that brought the first orders.",
-            "next": "Next action: reuse that channel and publish another high-intent listing.",
-            "cta": "Open embed widget"
+            "title": "Odblokowano pierwszą sprzedaż",
+            "body": "Masz dowód konwersji. Postaw mocniej na kanał, który przyniósł pierwsze zamówienia.",
+            "next": "Następna akcja: wykorzystaj ten kanał ponownie i opublikuj kolejne obiecujące ogłoszenie.",
+            "cta": "Otwórz widżet osadzania"
           },
           "scale_winning_channel": {
-            "title": "Scale the winning channel",
-            "body": "Your embed is live and orders are coming in. Reuse the same traffic source with ready-to-copy bio and blog blocks.",
-            "next": "Next action: copy one amplification block and post it where your first buyers came from.",
-            "cta": "Open amplification kit"
+            "title": "Skaluj zwycięski kanał",
+            "body": "Twój widżet jest aktywny i napływają zamówienia. Wykorzystaj ponownie to samo źródło ruchu za pomocą gotowych do skopiowania bloków bio i bloga.",
+            "next": "Następna akcja: skopiuj jeden blok wzmacniający i opublikuj go tam, skąd przyszli Twoi pierwsi kupujący.",
+            "cta": "Otwórz zestaw wzmacniający"
           },
           "publish_second_listing": {
-            "title": "Add your second winner",
-            "body": "You amplified your shop — now give buyers another high-intent product to click while the channel is still warm.",
-            "next": "Next action: publish one more listing, then share the same storefront link again.",
-            "cta": "Open listing builder"
+            "title": "Dodaj swój drugi zwycięski produkt",
+            "body": "Wzmocniłeś swój sklep — teraz daj kupującym kolejny obiecujący produkt do kliknięcia, dopóki kanał jest jeszcze aktywny.",
+            "next": "Następna akcja: opublikuj kolejne ogłoszenie, a następnie ponownie udostępnij ten sam link do sklepu.",
+            "cta": "Otwórz kreator ogłoszeń"
           }
         },
         "funnel": {
           "preset": {
-            "title": "Preset selected",
-            "hint": "Merchant picks a theme — buyers see storefront_preset_viewed."
+            "title": "Wybrano ustawienie",
+            "hint": "Sprzedawca wybiera motyw — kupujący widzą storefront_preset_viewed."
           },
           "launch": {
-            "title": "Smart Launch",
-            "hint": "One-click niche launch applies immersive layout + sections."
+            "title": "Inteligentne uruchomienie",
+            "hint": "Uruchomienie niszy jednym kliknięciem stosuje immersyjny układ + sekcje."
           },
           "share": {
-            "title": "Share & grow",
-            "hint": "Copy link, native share, WhatsApp, or X — organic traffic."
+            "title": "Udostępnij i rozwijaj",
+            "hint": "Kopiuj link, natywne udostępnianie, WhatsApp lub X — ruch organiczny."
           },
           "immersive": {
-            "title": "Immersive viewed",
-            "hint": "Buyer lands on premium layout — conversion signal."
+            "title": "Wyświetlono immersyjny",
+            "hint": "Kupujący trafia na układ premium — sygnał konwersji."
           }
         }
       },
       "aiCopy": {
-        "cta": "Generate copy with AI",
-        "generating": "Writing…",
-        "hint": "Fills tagline + Story + CTA sections. Review before publishing.",
-        "failed": "AI copy unavailable — check GROQ_API_KEY or try again."
+        "cta": "Generuj tekst z AI",
+        "generating": "Pisanie…",
+        "hint": "Wypełnia hasło + sekcje Historia + CTA. Sprawdź przed publikacją.",
+        "failed": "Tekst AI niedostępny — sprawdź GROQ_API_KEY lub spróbuj ponownie."
       },
       "generate": {
-        "cta": "Generate",
-        "generating": "Generating…",
-        "failed": "Generation failed — try again.",
+        "cta": "Generuj",
+        "generating": "Generowanie…",
+        "failed": "Generowanie nie powiodło się — spróbuj ponownie.",
         "fields": {
-          "preset": "Generate",
-          "name": "Generate",
-          "logo": "Generate",
-          "banner": "Generate",
-          "copy": "Generate",
-          "colors": "Generate",
-          "layout": "Generate",
-          "nameBadge": "Generate",
-          "sections": "Generate",
-          "embed": "Generate",
-          "boutiqueTitle": "Generate",
-          "staticPages": "Generate",
-          "faqOrders": "Generate",
-          "sectionContent": "Generate"
+          "preset": "Generuj",
+          "name": "Generuj",
+          "logo": "Generuj",
+          "banner": "Generuj",
+          "copy": "Generuj",
+          "colors": "Generuj",
+          "layout": "Generuj",
+          "nameBadge": "Generuj",
+          "sections": "Generuj",
+          "embed": "Generuj",
+          "boutiqueTitle": "Generuj",
+          "staticPages": "Generuj",
+          "faqOrders": "Generuj",
+          "sectionContent": "Generuj"
         },
         "hints": {
-          "preset": "AI-matched preset, palette, layout & tagline from your catalog.",
-          "name": "Brand name from niche + catalog keywords.",
-          "logo": "Gradient monogram from your store name & colors.",
-          "banner": "Cinematic hero — HF image or gradient fallback.",
-          "copy": "Tagline + Story + CTA sections.",
-          "colors": "Primary, accent & trust rail from catalog AI.",
-          "layout": "Layout, hero, grid & surface tuned to your niche.",
-          "nameBadge": "Badge style matched to your surface & preset.",
-          "sections": "Enable & copy homepage blocks for your niche.",
-          "embed": "Ready-to-copy embed widget with headline.",
-          "boutiqueTitle": "Font & ornament paired to your preset.",
-          "staticPages": "About, FAQ & Returns (EU-friendly).",
-          "faqOrders": "FAQ from your last 30 days of orders.",
-          "sectionContent": "Fill this section with niche-aware copy."
+          "preset": "Dopasowane przez AI ustawienie, paleta, układ i hasło na podstawie Twojego katalogu.",
+          "name": "Nazwa marki na podstawie niszy + słów kluczowych z katalogu.",
+          "logo": "Gradientowy monogram na podstawie nazwy i kolorów Twojego sklepu.",
+          "banner": "Kinowy hero — obraz HF lub gradient zapasowy.",
+          "copy": "Sekcje hasła + Historia + CTA.",
+          "colors": "Pasek podstawowy, akcentowy i zaufania z AI katalogu.",
+          "layout": "Układ, hero, siatka i powierzchnia dopasowane do Twojej niszy.",
+          "nameBadge": "Styl odznaki dopasowany do Twojej powierzchni i ustawienia.",
+          "sections": "Włącz i skopiuj bloki strony głównej dla Twojej niszy.",
+          "embed": "Gotowy do skopiowania widżet osadzania z nagłówkiem.",
+          "boutiqueTitle": "Czcionka i ozdobnik dopasowane do Twojego ustawienia.",
+          "staticPages": "O nas, FAQ i Zwroty (zgodne z UE).",
+          "faqOrders": "FAQ na podstawie Twoich zamówień z ostatnich 30 dni.",
+          "sectionContent": "Wypełnij tę sekcję tekstem dopasowanym do niszy."
         }
       },
       "layoutControls": {
@@ -3255,18 +3255,18 @@
         }
       },
       "flashSale": {
-        "title": "Flash sale setup",
-        "hint": "Pick products and end time — the section hides automatically when the timer hits zero.",
-        "eyebrow": "Eyebrow",
-        "eyebrowPlaceholder": "Limited offer",
-        "headline": "Promo headline",
-        "headlinePlaceholder": "Up to 30% off — ends soon",
-        "duration": "Sale ends",
+        "title": "Konfiguracja wyprzedaży błyskawicznej",
+        "hint": "Wybierz produkty i czas zakończenia — sekcja ukrywa się automatycznie, gdy licznik osiągnie zero.",
+        "eyebrow": "Nadtytuł",
+        "eyebrowPlaceholder": "Oferta ograniczona",
+        "headline": "Nagłówek promocji",
+        "headlinePlaceholder": "Do 30% zniżki — wkrótce się kończy",
+        "duration": "Promocja kończy się",
         "presetHours": "{hours}h",
-        "products": "Products ({count}/{max})",
-        "loadingCatalog": "Loading catalog…",
-        "emptyCatalog": "List at least one product to run a flash sale.",
-        "loadFailed": "Could not load your catalog."
+        "products": "Produkty ({count}/{max})",
+        "loadingCatalog": "Ładowanie katalogu…",
+        "emptyCatalog": "Wystaw co najmniej jeden produkt, aby uruchomić wyprzedaż błyskawiczną.",
+        "loadFailed": "Nie udało się załadować Twojego katalogu."
       },
       "staticPages": {
         "title": "Store pages",
@@ -3314,17 +3314,17 @@
         "showStoreNameHint": "Uses your Brand Studio name badge — crisp overlay, not burned into Veo."
       },
       "embedWidget": {
-        "title": "Embed widget",
-        "hint": "Paste this iframe on your blog, link-in-bio, or site — buyers shop without leaving your page.",
-        "enable": "Published",
-        "headline": "Widget headline",
-        "headlinePlaceholder": "Shop curated picks from {name}",
-        "productCount": "Products shown",
-        "preview": "Live preview",
+        "title": "Widżet osadzania",
+        "hint": "Wklej ten iframe na swoim blogu, link-in-bio lub stronie — kupujący robią zakupy bez opuszczania Twojej strony.",
+        "enable": "Opublikowane",
+        "headline": "Nagłówek widżetu",
+        "headlinePlaceholder": "Kup wyselekcjonowane produkty od {name}",
+        "productCount": "Wyświetlane produkty",
+        "preview": "Podgląd na żywo",
         "previewTitle": "{name} — Affisell embed",
-        "snippet": "Embed code",
-        "copy": "Copy iframe code",
-        "copied": "Copied"
+        "snippet": "Kod osadzania",
+        "copy": "Kopiuj kod iframe",
+        "copied": "Skopiowano"
       },
       "logo": {
         "title": "Store logo",
