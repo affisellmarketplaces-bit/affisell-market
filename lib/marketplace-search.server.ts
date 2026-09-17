@@ -40,17 +40,17 @@ async function findSearchCandidateListingIds(
         AND p.active = true
         AND p."isDraft" = false
         AND (
-          p.name % ${q}
-          OR COALESCE(ap."customTitle", '') % ${q}
-          OR p.description % ${q}
-          OR p.name ILIKE ${`%${q}%`}
-          OR COALESCE(ap."customTitle", '') ILIKE ${`%${q}%`}
-          OR COALESCE(c."fullPath", '') ILIKE ${`%${q}%`}
-          OR COALESCE(c.name, '') ILIKE ${`%${q}%`}
+          unaccent(p.name) % unaccent(${q})
+          OR unaccent(COALESCE(ap."customTitle", '')) % unaccent(${q})
+          OR unaccent(COALESCE(p.description, '')) % unaccent(${q})
+          OR unaccent(p.name) ILIKE unaccent(${`%${q}%`})
+          OR unaccent(COALESCE(ap."customTitle", '')) ILIKE unaccent(${`%${q}%`})
+          OR unaccent(COALESCE(c."fullPath", '')) ILIKE unaccent(${`%${q}%`})
+          OR unaccent(COALESCE(c.name, '')) ILIKE unaccent(${`%${q}%`})
         )
       ORDER BY GREATEST(
-        similarity(p.name, ${q}),
-        similarity(COALESCE(ap."customTitle", ''), ${q})
+        similarity(unaccent(p.name), unaccent(${q})),
+        similarity(unaccent(COALESCE(ap."customTitle", '')), unaccent(${q}))
       ) DESC
       LIMIT ${SEARCH_CANDIDATE_TAKE}
     `
