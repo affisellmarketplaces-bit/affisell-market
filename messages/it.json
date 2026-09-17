@@ -2693,52 +2693,52 @@
       "all": "Tutti"
     },
     "sort": {
-      "label": "Sort",
-      "urgency": "Ship Pulse priority",
-      "dateDesc": "Newest first",
-      "dateAsc": "Oldest first"
+      "label": "Ordina",
+      "urgency": "Priorità di spedizione Pulse",
+      "dateDesc": "Prima i più recenti",
+      "dateAsc": "Prima i più vecchi"
     },
     "emptyToShip": "Nessun ordine in attesa — nuovi pagamenti appaiono qui dopo il checkout.",
     "emptyTab": "Nessun ordine in questa vista.",
     "loading": "Caricamento…",
     "loadError": "Impossibile caricare gli ordini",
     "trackingRequired": "Inserisci un numero di tracciamento prima di segnalare come spedito.",
-    "trackingInvalid": "This tracking number is not recognized by the carrier.",
-    "trackingValidating": "Verifying tracking number with the carrier…",
-    "trackingVerified": "Tracking verified — real-time updates enabled for the buyer.",
-    "trackingLocked": "Locked",
-    "trackingLockedHint": "Carrier-validated tracking — cannot be changed. Contact support if incorrect.",
-    "trackingHint": "Paste the exact label number. Random values are rejected.",
-    "carrierRequired": "Choose an approved carrier for the delivery country.",
+    "trackingInvalid": "Questo numero di tracciamento non è riconosciuto dal corriere.",
+    "trackingValidating": "Verifica del numero di tracciamento con il corriere…",
+    "trackingVerified": "Tracciamento verificato — aggiornamenti in tempo reale abilitati per l'acquirente.",
+    "trackingLocked": "Bloccato",
+    "trackingLockedHint": "Tracciamento convalidato dal corriere — non può essere modificato. Contatta l'assistenza se errato.",
+    "trackingHint": "Incolla il numero esatto dell'etichetta. I valori casuali vengono rifiutati.",
+    "carrierRequired": "Scegli un corriere approvato per il paese di consegna.",
     "updateFailed": "Aggiornamento fallito",
     "page": {
       "eyebrow": "Fulfillment",
-      "title": "Orders to ship",
-      "description": "Paid orders queue here — confirm prep, then add tracking when the parcel leaves.",
-      "back": "Back to dashboard",
-      "awaitingShipment": "{count} awaiting shipment"
+      "title": "Ordini da spedire",
+      "description": "Gli ordini pagati si accumulano qui — conferma la preparazione, poi aggiungi il tracciamento quando il pacco parte.",
+      "back": "Torna alla dashboard",
+      "awaitingShipment": "{count} in attesa di spedizione"
     },
     "status": {
-      "paid": "Awaiting packing",
-      "preparing": "Preparing",
-      "shipped": "Shipped"
+      "paid": "In attesa di imballaggio",
+      "preparing": "In preparazione",
+      "shipped": "Spedito"
     },
     "actions": {
-      "markPreparing": "Mark preparing",
-      "markShipped": "Mark shipped",
-      "shipTo": "Ship to",
-      "carrier": "Carrier",
-      "carrierCountryHint": "Approved carriers for {country}",
-      "trackingNumber": "Tracking number *",
-      "splitDetail": "View payout split →",
-      "verifyTracking": "Verify tracking"
+      "markPreparing": "Segna come in preparazione",
+      "markShipped": "Segna come spedito",
+      "shipTo": "Spedisci a",
+      "carrier": "Corriere",
+      "carrierCountryHint": "Corrieri approvati per {country}",
+      "trackingNumber": "Numero di tracciamento *",
+      "splitDetail": "Vedi ripartizione pagamento →",
+      "verifyTracking": "Verifica tracciamento"
     },
     "fulfillmentRail": {
-      "ariaLabel": "Fulfillment progress",
-      "paid": "Paid",
-      "preparing": "Prep",
-      "shipped": "Shipped",
-      "preparingConfirmed": "Preparing confirmed {date}"
+      "ariaLabel": "Avanzamento fulfillment",
+      "paid": "Pagato",
+      "preparing": "Preparazione",
+      "shipped": "Spedito",
+      "preparingConfirmed": "Preparazione confermata il {date}"
     },
     "payout": {
       "yourPayout": "Il tuo pagamento",
@@ -5274,108 +5274,108 @@
   },
   "sellAffiliateProgram": {
     "meta": {
-      "title": "Partner program — status & tax",
-      "description": "B2B page: independence, net commissions, payouts, prohibited conduct and DAC7."
+      "title": "Programma partner — status e tasse",
+      "description": "Pagina B2B: indipendenza, commissioni nette, pagamenti, condotte vietate e DAC7."
     },
-    "eyebrow": "Partner program · B2B",
+    "eyebrow": "Programma partner · B2B",
     "title": "Affisell curator partner",
     "hero": {
-      "subtitle": "Earnings on catalogue net price — no salary. {days}-day attribution cookie. Typical {min}–{max}% per listing.",
-      "commission": "{min}–{max}% of catalogue net price",
-      "cookie": "{days}-day attribution cookie (last click)"
+      "subtitle": "Guadagni sul prezzo netto di catalogo — nessuno stipendio. Cookie di attribuzione di {days} giorni. Tipicamente {min}–{max}% per inserzione.",
+      "commission": "{min}–{max}% del prezzo netto di catalogo",
+      "cookie": "Cookie di attribuzione di {days} giorni (ultimo clic)"
     },
-    "ctaSignup": "Create partner account",
-    "ctaCgs": "Read partner terms (CGS)",
-    "ctaLogin": "Partner login",
+    "ctaSignup": "Crea account partner",
+    "ctaCgs": "Leggi i termini partner (CGS)",
+    "ctaLogin": "Accesso partner",
     "status": {
-      "title": "Legal status",
-      "warning": "You are self-employed. No fixed salary. Declare your earnings. Affisell is not your employer.",
-      "legalRef": "Anti-disguised employment framework — French Labour Code art. L8221-6. No subordination, fixed hours or guaranteed pay."
+      "title": "Status legale",
+      "warning": "Sei un lavoratore autonomo. Nessuno stipendio fisso. Dichiara i tuoi guadagni. Affisell non è il tuo datore di lavoro.",
+      "legalRef": "Quadro anti-lavoro dissimulato — Codice del lavoro francese art. L8221-6. Nessuna subordinazione, orario fisso o retribuzione garantita."
     },
     "catalog": {
-      "title": "Catalogue by vertical",
-      "body": "Browse listings by category — supplier identities are never exposed (trade secrecy & GDPR).",
+      "title": "Catalogo per settore",
+      "body": "Sfoglia le inserzioni per categoria — le identità dei fornitori non vengono mai rivelate (segreto commerciale e GDPR).",
       "noSuppliers": "Warehouse and supplier brand names are never shown to curator partners."
     },
     "tax": {
-      "title": "Tax by country of residence",
+      "title": "Tasse in base al paese di residenza",
       "body": "Declare partner earnings (commission + net markup) in your country. Affisell does not withhold unless legally required.",
-      "tableCaption": "Indicative regimes by country",
-      "colCountry": "Country",
-      "colRegime": "Indicative regime",
-      "dac7Dashboard": "Annual CSV export available in your earnings cockpit (DAC7).",
-      "dac7Cta": "Open earnings cockpit"
+      "tableCaption": "Regimi indicativi per paese",
+      "colCountry": "Paese",
+      "colRegime": "Regime indicativo",
+      "dac7Dashboard": "Esportazione CSV annuale disponibile nel tuo cruscotto guadagni (DAC7).",
+      "dac7Cta": "Apri cruscotto guadagni"
     },
     "payout": {
-      "title": "Payouts",
+      "title": "Pagamenti",
       "body": "Minimum threshold {min}. Payout J+{days} after calendar month-end (Stripe Connect batch).",
       "clawback": "If the buyer returns the order, commission is cancelled — even if already paid: clawback on your next earnings."
     },
     "prohibited": {
-      "title": "Prohibited practices",
-      "body": "Any breach triggers a compliance review.",
+      "title": "Pratiche vietate",
+      "body": "Qualsiasi violazione attiva una verifica di conformità.",
       "items": {
-        "spam": "Spam, unsolicited messages or purchased lists",
-        "brandMisuse": "Unauthorized use of third-party brands or supplier logos",
-        "fakeReviews": "Fake reviews, astroturfing or misleading incentives",
-        "googleAdsOnAffisellName": "Google Ads / SEA on the name “Affisell” or Affisell trademarks"
+        "spam": "Spam, messaggi non richiesti o liste acquistate",
+        "brandMisuse": "Uso non autorizzato di marchi di terzi o loghi dei fornitori",
+        "fakeReviews": "Recensioni false, astroturfing o incentivi ingannevoli",
+        "googleAdsOnAffisellName": "Google Ads / SEA sul nome «Affisell» o marchi Affisell"
       },
-      "sanction": "Sanction: program ban + forfeiture of earnings from the last {days} days pending settlement."
+      "sanction": "Sanzione: esclusione dal programma + perdita dei guadagni degli ultimi {days} giorni in attesa di liquidazione."
     },
-    "footerLegal": "B2B information only — partner terms (CGS) and your local legal status prevail. No income promises."
+    "footerLegal": "Solo informazioni B2B — prevalgono i termini partner (CGS) e il tuo status legale locale. Nessuna promessa di reddito."
   },
   "sellBecomeSupplier": {
     "meta": {
-      "title": "Become a supplier — tax & payouts",
-      "description": "B2B page: OSS VAT, Stripe Connect payouts, return clawback and DAC7. Professionals only."
+      "title": "Diventa fornitore — tasse e pagamenti",
+      "description": "Pagina B2B: IVA OSS, pagamenti Stripe Connect, recupero resi e DAC7. Solo professionisti."
     },
-    "eyebrow": "Supplier space · B2B",
-    "title": "Supplier tax & payout framework",
-    "description": "Accountant-ready summary: OSS VAT, payout flow, returns and DAC7 reporting. No income promises — contractual mechanics only.",
-    "ctaSignup": "Open supplier account",
-    "ctaCga": "Read supplier terms (CGA)",
-    "ctaLogin": "Supplier login",
-    "b2bNotice": "For business users only (B2B). Not tax or legal advice. Consult your accountant for filing decisions.",
+    "eyebrow": "Area fornitore · B2B",
+    "title": "Quadro fiscale e di pagamento per i fornitori",
+    "description": "Riepilogo pronto per il commercialista: IVA OSS, flusso dei pagamenti, resi e dichiarazione DAC7. Nessuna promessa di reddito — solo meccanismi contrattuali.",
+    "ctaSignup": "Apri account fornitore",
+    "ctaCga": "Leggi i termini fornitore (CGA)",
+    "ctaLogin": "Accesso fornitore",
+    "b2bNotice": "Solo per utenti professionali (B2B). Non costituisce consulenza fiscale o legale. Consulta il tuo commercialista per le decisioni di dichiarazione.",
     "tax": {
-      "title": "Tax & OSS scheme",
-      "body": "You invoice catalogue sales ex-VAT (net wholesale). Affisell collects VAT at the buyer's delivery-country rate via the EU OSS scheme and remits to the relevant authorities.",
-      "ossExampleTitle": "Example: delivery to Germany",
-      "ossExampleBody": "If the buyer is delivered in Germany, Affisell applies the German rate (19%) on the line net amount at checkout. You issue your supplier invoice ex-VAT; VAT collected for the consumption country is not part of your wholesale payout.",
-      "bulletHt": "Your catalogue price = ex-VAT (wholesale).",
-      "bulletVat": "Delivery-country VAT = collected by Affisell (Stripe Tax + OSS reporting).",
-      "bulletInvoice": "Buyer VAT invoice: issued through Affisell under the facilitated sale.",
-      "tableCaption": "Standard VAT rates by EU delivery country",
-      "colCountry": "Country",
+      "title": "Tasse e regime OSS",
+      "body": "Fatturi le vendite del catalogo IVA esclusa (prezzo all'ingrosso netto). Affisell riscuote l'IVA all'aliquota del paese di consegna dell'acquirente tramite il regime OSS UE e la versa alle autorità competenti.",
+      "ossExampleTitle": "Esempio: consegna in Germania",
+      "ossExampleBody": "Se l'acquirente riceve la consegna in Germania, Affisell applica l'aliquota tedesca (19%) sull'importo netto della riga al checkout. Emetti la tua fattura fornitore IVA esclusa; l'IVA riscossa per il paese di consumo non fa parte del tuo pagamento all'ingrosso.",
+      "bulletHt": "Il tuo prezzo di catalogo = IVA esclusa (all'ingrosso).",
+      "bulletVat": "IVA del paese di consegna = riscossa da Affisell (Stripe Tax + dichiarazione OSS).",
+      "bulletInvoice": "Fattura IVA per l'acquirente: emessa tramite Affisell nell'ambito della vendita facilitata.",
+      "tableCaption": "Aliquote IVA standard per paese di consegna UE",
+      "colCountry": "Paese",
       "colCode": "ISO",
-      "colRate": "Standard VAT",
-      "tableFootnote": "Standard B2C rates as of {date} — {count} member states. Reduced/special rates not listed; verify before filing."
+      "colRate": "IVA standard",
+      "tableFootnote": "Aliquote B2C standard al {date} — {count} stati membri. Aliquote ridotte/speciali non elencate; verifica prima della dichiarazione."
     },
     "payout": {
-      "title": "Payouts (Stripe Connect)",
+      "title": "Pagamenti (Stripe Connect)",
       "body": "Supplier transfer to Stripe Connect after delivery confirmation + {days} business days (auto-confirmation if the buyer stays silent). Contract catalogue fee: {fee} of ex-VAT wholesale.",
-      "stepClient": "1 · Buyer pays",
-      "stepClientHint": "Gross amount (VAT per delivery country)",
-      "stepAffisell": "2 · Affisell retains",
-      "stepAffisellHint": "Illustrative example — contractual {fee} on net wholesale",
-      "stepStripe": "3 · Stripe fees",
-      "stepStripeHint": "EU card ~1.5% + fixed (varies by payment method)",
-      "stepYou": "4 · You receive",
+      "stepClient": "1 · L'acquirente paga",
+      "stepClientHint": "Importo lordo (IVA per paese di consegna)",
+      "stepAffisell": "2 · Affisell trattiene",
+      "stepAffisellHint": "Esempio illustrativo — {fee} contrattuale sul prezzo all'ingrosso netto",
+      "stepStripe": "3 · Commissioni Stripe",
+      "stepStripeHint": "Carta UE ~1,5% + fissa (varia in base al metodo di pagamento)",
+      "stepYou": "4 · Ricevi",
       "stepYouHint": "Net ex-VAT wholesale · within J+{days} after confirmed delivery",
       "disclaimer": "Rounded illustrative example (€100 gross). Actual amounts depend on catalogue net price, creator partner commission and payment fees. Collected VAT is not paid out to your Connect account."
     },
     "clawback": {
-      "title": "Returns & clawback",
-      "body": "Buyers have a {days}-day withdrawal right from delivery (EU distance selling). If a return is accepted and refunded, amounts already paid or provisioned are recovered.",
-      "debit": "On an approved statutory return: debit of your Stripe Connect balance for ex-VAT wholesale + refunded VAT share per order settlement.",
-      "provision": "If your rolling return rate exceeds {threshold}% over 90 days, a {reserve}% reserve may be held on upcoming payouts until the rate normalises.",
-      "policyLink": "Affisell refund policy"
+      "title": "Resi e recupero",
+      "body": "Gli acquirenti hanno un diritto di recesso di {days} giorni dalla consegna (vendita a distanza UE). Se un reso viene accettato e rimborsato, gli importi già pagati o accantonati vengono recuperati.",
+      "debit": "In caso di reso legale approvato: addebito sul tuo saldo Stripe Connect per il prezzo all'ingrosso IVA esclusa + la quota IVA rimborsata per ogni liquidazione dell'ordine.",
+      "provision": "Se il tuo tasso di reso mobile supera il {threshold}% in 90 giorni, potrebbe essere trattenuta una riserva del {reserve}% sui prossimi pagamenti fino alla normalizzazione del tasso.",
+      "policyLink": "Politica di rimborso Affisell"
     },
     "dac7": {
-      "title": "DAC7 & reporting",
-      "body": "If you exceed €{eur} platform revenue per year or {tx} sales per year, Affisell reports your platform earnings to the French tax authority (DGFiP) under DAC7.",
-      "csv": "A CSV summary (identity, platform revenue, countries) is available in your dashboard before each filing."
+      "title": "DAC7 e dichiarazione",
+      "body": "Se superi {eur} € di ricavi sulla piattaforma all'anno o {tx} vendite all'anno, Affisell comunica i tuoi guadagni sulla piattaforma all'autorità fiscale francese (DGFiP) ai sensi del DAC7.",
+      "csv": "Un riepilogo CSV (identità, ricavi sulla piattaforma, paesi) è disponibile nella tua dashboard prima di ogni dichiarazione."
     },
-    "footerLegal": "Affisell is a technical intermediary and host. You remain the seller and are responsible for your accounting, social and tax obligations. Figures may change; supplier terms (CGA) prevail."
+    "footerLegal": "Affisell è un intermediario tecnico e host. Rimani il venditore e sei responsabile dei tuoi obblighi contabili, previdenziali e fiscali. Le cifre possono cambiare; prevalgono i termini fornitore (CGA)."
   },
   "buyerOrderDetail": {
     "back": "← Torna ai miei ordini",

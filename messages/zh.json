@@ -2693,52 +2693,52 @@
       "all": "全部"
     },
     "sort": {
-      "label": "Sort",
-      "urgency": "Ship Pulse priority",
-      "dateDesc": "Newest first",
-      "dateAsc": "Oldest first"
+      "label": "排序",
+      "urgency": "Pulse 优先发货",
+      "dateDesc": "从最新开始",
+      "dateAsc": "从最早开始"
     },
     "emptyToShip": "无待发货订单 — 购买后付款将出现在此处。",
     "emptyTab": "此视图中无订单。",
     "loading": "加载中…",
     "loadError": "无法加载订单",
     "trackingRequired": "在标记为已发货之前，请输入跟踪号。",
-    "trackingInvalid": "This tracking number is not recognized by the carrier.",
-    "trackingValidating": "Verifying tracking number with the carrier…",
-    "trackingVerified": "Tracking verified — real-time updates enabled for the buyer.",
-    "trackingLocked": "Locked",
-    "trackingLockedHint": "Carrier-validated tracking — cannot be changed. Contact support if incorrect.",
-    "trackingHint": "Paste the exact label number. Random values are rejected.",
-    "carrierRequired": "Choose an approved carrier for the delivery country.",
+    "trackingInvalid": "承运商无法识别此物流单号。",
+    "trackingValidating": "正在向承运商核实物流单号…",
+    "trackingVerified": "物流单号已验证 —— 已为买家启用实时更新。",
+    "trackingLocked": "已锁定",
+    "trackingLockedHint": "已通过承运商验证的物流单号 —— 无法修改。如有误，请联系客服。",
+    "trackingHint": "请粘贴准确的运单号。随机数值将被拒绝。",
+    "carrierRequired": "请为送达国家选择一个认可的承运商。",
     "updateFailed": "更新失败",
     "page": {
-      "eyebrow": "Fulfillment",
-      "title": "Orders to ship",
-      "description": "Paid orders queue here — confirm prep, then add tracking when the parcel leaves.",
-      "back": "Back to dashboard",
-      "awaitingShipment": "{count} awaiting shipment"
+      "eyebrow": "履约",
+      "title": "待发货订单",
+      "description": "已支付订单将在此排队 —— 请先确认备货，包裹寄出后再添加物流单号。",
+      "back": "返回控制台",
+      "awaitingShipment": "{count} 个待发货"
     },
     "status": {
-      "paid": "Awaiting packing",
-      "preparing": "Preparing",
-      "shipped": "Shipped"
+      "paid": "待打包",
+      "preparing": "备货中",
+      "shipped": "已发货"
     },
     "actions": {
-      "markPreparing": "Mark preparing",
-      "markShipped": "Mark shipped",
-      "shipTo": "Ship to",
-      "carrier": "Carrier",
-      "carrierCountryHint": "Approved carriers for {country}",
-      "trackingNumber": "Tracking number *",
-      "splitDetail": "View payout split →",
-      "verifyTracking": "Verify tracking"
+      "markPreparing": "标记为备货中",
+      "markShipped": "标记为已发货",
+      "shipTo": "发货至",
+      "carrier": "承运商",
+      "carrierCountryHint": "适用于 {country} 的认可承运商",
+      "trackingNumber": "物流单号 *",
+      "splitDetail": "查看结算分成 →",
+      "verifyTracking": "验证物流单号"
     },
     "fulfillmentRail": {
-      "ariaLabel": "Fulfillment progress",
-      "paid": "Paid",
-      "preparing": "Prep",
-      "shipped": "Shipped",
-      "preparingConfirmed": "Preparing confirmed {date}"
+      "ariaLabel": "履约进度",
+      "paid": "已支付",
+      "preparing": "备货",
+      "shipped": "已发货",
+      "preparingConfirmed": "备货已于 {date} 确认"
     },
     "payout": {
       "yourPayout": "您的付款",
@@ -5274,108 +5274,108 @@
   },
   "sellAffiliateProgram": {
     "meta": {
-      "title": "Partner program — status & tax",
-      "description": "B2B page: independence, net commissions, payouts, prohibited conduct and DAC7."
+      "title": "合作伙伴计划 —— 身份与税务",
+      "description": "B2B 页面：独立身份、净佣金、结算、禁止行为与 DAC7。"
     },
-    "eyebrow": "Partner program · B2B",
+    "eyebrow": "合作伙伴计划 · B2B",
     "title": "Affisell curator partner",
     "hero": {
-      "subtitle": "Earnings on catalogue net price — no salary. {days}-day attribution cookie. Typical {min}–{max}% per listing.",
-      "commission": "{min}–{max}% of catalogue net price",
-      "cookie": "{days}-day attribution cookie (last click)"
+      "subtitle": "按目录净价计酬 —— 无固定工资。{days} 天归因 Cookie。每件商品通常可获得 {min}–{max}% 的佣金。",
+      "commission": "目录净价的 {min}–{max}%",
+      "cookie": "{days} 天归因 Cookie（末次点击）"
     },
-    "ctaSignup": "Create partner account",
-    "ctaCgs": "Read partner terms (CGS)",
-    "ctaLogin": "Partner login",
+    "ctaSignup": "创建合作伙伴账户",
+    "ctaCgs": "阅读合作伙伴条款（CGS）",
+    "ctaLogin": "合作伙伴登录",
     "status": {
-      "title": "Legal status",
-      "warning": "You are self-employed. No fixed salary. Declare your earnings. Affisell is not your employer.",
-      "legalRef": "Anti-disguised employment framework — French Labour Code art. L8221-6. No subordination, fixed hours or guaranteed pay."
+      "title": "法律身份",
+      "warning": "你是自雇人士，没有固定薪资。请自行申报收入。Affisell 并非你的雇主。",
+      "legalRef": "反伪装雇佣框架 —— 法国劳动法典第 L8221-6 条。不存在从属关系、固定工时或保证薪酬。"
     },
     "catalog": {
-      "title": "Catalogue by vertical",
-      "body": "Browse listings by category — supplier identities are never exposed (trade secrecy & GDPR).",
+      "title": "按行业分类的目录",
+      "body": "按类目浏览商品 —— 供应商身份信息绝不会被披露（商业机密与 GDPR）。",
       "noSuppliers": "Warehouse and supplier brand names are never shown to curator partners."
     },
     "tax": {
-      "title": "Tax by country of residence",
+      "title": "按居住国划分的税务规则",
       "body": "Declare partner earnings (commission + net markup) in your country. Affisell does not withhold unless legally required.",
-      "tableCaption": "Indicative regimes by country",
-      "colCountry": "Country",
-      "colRegime": "Indicative regime",
-      "dac7Dashboard": "Annual CSV export available in your earnings cockpit (DAC7).",
-      "dac7Cta": "Open earnings cockpit"
+      "tableCaption": "按国家划分的参考税制",
+      "colCountry": "国家",
+      "colRegime": "参考税制",
+      "dac7Dashboard": "你可在收益看板中获取年度 CSV 导出文件（DAC7）。",
+      "dac7Cta": "打开收益看板"
     },
     "payout": {
-      "title": "Payouts",
+      "title": "结算",
       "body": "Minimum threshold {min}. Payout J+{days} after calendar month-end (Stripe Connect batch).",
       "clawback": "If the buyer returns the order, commission is cancelled — even if already paid: clawback on your next earnings."
     },
     "prohibited": {
-      "title": "Prohibited practices",
-      "body": "Any breach triggers a compliance review.",
+      "title": "禁止行为",
+      "body": "任何违规行为都将触发合规审查。",
       "items": {
-        "spam": "Spam, unsolicited messages or purchased lists",
-        "brandMisuse": "Unauthorized use of third-party brands or supplier logos",
-        "fakeReviews": "Fake reviews, astroturfing or misleading incentives",
-        "googleAdsOnAffisellName": "Google Ads / SEA on the name “Affisell” or Affisell trademarks"
+        "spam": "垃圾信息、未经请求的消息或购买的联系人列表",
+        "brandMisuse": "未经授权使用第三方品牌或供应商标志",
+        "fakeReviews": "虚假评论、水军操控或误导性激励",
+        "googleAdsOnAffisellName": "针对「Affisell」名称或 Affisell 商标投放 Google Ads / SEA 广告"
       },
-      "sanction": "Sanction: program ban + forfeiture of earnings from the last {days} days pending settlement."
+      "sanction": "处罚：取消计划资格 + 没收最近 {days} 天内待结算的收益。"
     },
-    "footerLegal": "B2B information only — partner terms (CGS) and your local legal status prevail. No income promises."
+    "footerLegal": "仅供 B2B 参考 —— 以合作伙伴条款（CGS）及你所在地的法律地位为准。不承诺任何收入。"
   },
   "sellBecomeSupplier": {
     "meta": {
-      "title": "Become a supplier — tax & payouts",
-      "description": "B2B page: OSS VAT, Stripe Connect payouts, return clawback and DAC7. Professionals only."
+      "title": "成为供应商 —— 税务与结算",
+      "description": "B2B 页面：OSS 增值税、Stripe Connect 结算、退货追回与 DAC7。仅限专业用户。"
     },
-    "eyebrow": "Supplier space · B2B",
-    "title": "Supplier tax & payout framework",
-    "description": "Accountant-ready summary: OSS VAT, payout flow, returns and DAC7 reporting. No income promises — contractual mechanics only.",
-    "ctaSignup": "Open supplier account",
-    "ctaCga": "Read supplier terms (CGA)",
-    "ctaLogin": "Supplier login",
-    "b2bNotice": "For business users only (B2B). Not tax or legal advice. Consult your accountant for filing decisions.",
+    "eyebrow": "供应商专区 · B2B",
+    "title": "供应商税务与结算框架",
+    "description": "适合直接交给会计的摘要：OSS 增值税、结算流程、退货与 DAC7 申报。不承诺任何收入 —— 仅说明合同机制。",
+    "ctaSignup": "开通供应商账户",
+    "ctaCga": "阅读供应商条款（CGA）",
+    "ctaLogin": "供应商登录",
+    "b2bNotice": "仅面向企业用户（B2B）。不构成税务或法律建议。申报相关决策请咨询你的会计师。",
     "tax": {
-      "title": "Tax & OSS scheme",
-      "body": "You invoice catalogue sales ex-VAT (net wholesale). Affisell collects VAT at the buyer's delivery-country rate via the EU OSS scheme and remits to the relevant authorities.",
-      "ossExampleTitle": "Example: delivery to Germany",
-      "ossExampleBody": "If the buyer is delivered in Germany, Affisell applies the German rate (19%) on the line net amount at checkout. You issue your supplier invoice ex-VAT; VAT collected for the consumption country is not part of your wholesale payout.",
-      "bulletHt": "Your catalogue price = ex-VAT (wholesale).",
-      "bulletVat": "Delivery-country VAT = collected by Affisell (Stripe Tax + OSS reporting).",
-      "bulletInvoice": "Buyer VAT invoice: issued through Affisell under the facilitated sale.",
-      "tableCaption": "Standard VAT rates by EU delivery country",
-      "colCountry": "Country",
+      "title": "税务与 OSS 机制",
+      "body": "你按不含税批发价开具目录销售发票。Affisell 通过欧盟 OSS 机制，按买家送达国家的税率代收增值税并上缴相关税务机关。",
+      "ossExampleTitle": "示例：送达德国",
+      "ossExampleBody": "如买家收货地为德国，Affisell 将在结账时对该行净额适用德国税率（19%）。你开具的供应商发票不含税；为消费国代收的增值税不计入你的批发结算款。",
+      "bulletHt": "你的目录价格 = 不含税（批发价）。",
+      "bulletVat": "送达国家增值税 = 由 Affisell 代收（Stripe Tax + OSS 申报）。",
+      "bulletInvoice": "买家增值税发票：由 Affisell 在促成交易框架下开具。",
+      "tableCaption": "按欧盟送达国家划分的标准增值税率",
+      "colCountry": "国家",
       "colCode": "ISO",
-      "colRate": "Standard VAT",
-      "tableFootnote": "Standard B2C rates as of {date} — {count} member states. Reduced/special rates not listed; verify before filing."
+      "colRate": "标准增值税率",
+      "tableFootnote": "截至 {date} 的标准 B2C 税率 —— 涵盖 {count} 个成员国。未列出优惠/特殊税率；申报前请自行核实。"
     },
     "payout": {
-      "title": "Payouts (Stripe Connect)",
+      "title": "结算方式（Stripe Connect）",
       "body": "Supplier transfer to Stripe Connect after delivery confirmation + {days} business days (auto-confirmation if the buyer stays silent). Contract catalogue fee: {fee} of ex-VAT wholesale.",
-      "stepClient": "1 · Buyer pays",
-      "stepClientHint": "Gross amount (VAT per delivery country)",
-      "stepAffisell": "2 · Affisell retains",
-      "stepAffisellHint": "Illustrative example — contractual {fee} on net wholesale",
-      "stepStripe": "3 · Stripe fees",
-      "stepStripeHint": "EU card ~1.5% + fixed (varies by payment method)",
-      "stepYou": "4 · You receive",
+      "stepClient": "1 · 买家付款",
+      "stepClientHint": "总金额（按送达国家计算增值税）",
+      "stepAffisell": "2 · Affisell 扣留",
+      "stepAffisellHint": "示例说明 —— 按净批发价收取合同约定的 {fee}",
+      "stepStripe": "3 · Stripe 手续费",
+      "stepStripeHint": "欧盟银行卡约1.5% + 固定费用（因支付方式而异）",
+      "stepYou": "4 · 你收到",
       "stepYouHint": "Net ex-VAT wholesale · within J+{days} after confirmed delivery",
       "disclaimer": "Rounded illustrative example (€100 gross). Actual amounts depend on catalogue net price, creator partner commission and payment fees. Collected VAT is not paid out to your Connect account."
     },
     "clawback": {
-      "title": "Returns & clawback",
-      "body": "Buyers have a {days}-day withdrawal right from delivery (EU distance selling). If a return is accepted and refunded, amounts already paid or provisioned are recovered.",
-      "debit": "On an approved statutory return: debit of your Stripe Connect balance for ex-VAT wholesale + refunded VAT share per order settlement.",
-      "provision": "If your rolling return rate exceeds {threshold}% over 90 days, a {reserve}% reserve may be held on upcoming payouts until the rate normalises.",
-      "policyLink": "Affisell refund policy"
+      "title": "退货与追回",
+      "body": "买家自收货起享有 {days} 天的撤销权（欧盟远程销售）。若退货被接受并退款，已支付或预留的款项将被追回。",
+      "debit": "在获批的法定退货情形下：将从你的 Stripe Connect 余额中扣除不含税批发价及已退还的增值税部分（按每笔订单结算）。",
+      "provision": "若你90天内的滚动退货率超过 {threshold}%，后续结算中可能会预留 {reserve}% 作为保证金，直至该比率恢复正常。",
+      "policyLink": "Affisell 退款政策"
     },
     "dac7": {
-      "title": "DAC7 & reporting",
-      "body": "If you exceed €{eur} platform revenue per year or {tx} sales per year, Affisell reports your platform earnings to the French tax authority (DGFiP) under DAC7.",
-      "csv": "A CSV summary (identity, platform revenue, countries) is available in your dashboard before each filing."
+      "title": "DAC7 与申报",
+      "body": "若你的平台年收入超过 {eur} 欧元或年销售笔数超过 {tx} 笔，Affisell 将根据 DAC7 规定向法国税务机关（DGFiP）报告你的平台收入。",
+      "csv": "在每次申报前，你可在控制台中获取 CSV 摘要（身份信息、平台收入、涉及国家）。"
     },
-    "footerLegal": "Affisell is a technical intermediary and host. You remain the seller and are responsible for your accounting, social and tax obligations. Figures may change; supplier terms (CGA) prevail."
+    "footerLegal": "Affisell 是技术中介与托管方。你仍是卖家，需自行负责会计、社保与税务义务。相关数字可能变动；以供应商条款（CGA）为准。"
   },
   "buyerOrderDetail": {
     "back": "← 返回我的订单",
