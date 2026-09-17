@@ -2753,7 +2753,7 @@
   },
   "storefront": {
     "flashSale": {
-      "countdownAria": "Time remaining until the sale ends",
+      "countdownAria": "Resterende tijd tot het einde van de aanbieding",
       "days": "d"
     },
     "brandStudio": {
@@ -3366,31 +3366,31 @@
       "poweredBy": "Secure checkout · Powered by Affisell"
     },
     "staticPages": {
-      "stripAria": "{name} — info pages",
-      "backToStore": "Back to {name}",
-      "siblingNavAria": "Other info pages",
+      "stripAria": "{name} — infopagina's",
+      "backToStore": "Terug naar {name}",
+      "siblingNavAria": "Andere infopagina's",
       "nav": {
-        "about": "About",
+        "about": "Over ons",
         "faq": "FAQ",
-        "returns": "Returns"
+        "returns": "Retouren"
       },
       "defaults": {
         "about": {
-          "title": "About {name}",
+          "title": "Over {name}",
           "body": "{name} — curated products from your favorite creator."
         },
         "faq": {
           "title": "FAQ",
-          "body": "Common questions about orders, shipping, and returns at {name}."
+          "body": "Veelgestelde vragen over bestellingen, verzending en retouren bij {name}."
         },
         "returns": {
-          "title": "Returns & refunds",
-          "body": "You have 14 days after delivery to request a return on eligible items. Contact support with your order number."
+          "title": "Retourneren & terugbetalingen",
+          "body": "Je hebt na levering 14 dagen om een retour aan te vragen voor in aanmerking komende artikelen. Neem contact op met support met je bestelnummer."
         }
       }
     },
     "homeSections": {
-      "storyEyebrow": "Our story",
+      "storyEyebrow": "Ons verhaal",
       "bestsellersEyebrow": "Bestsellers",
       "bestsellersTitle": "Klantfavorieten",
       "bestsellersHint": "Populairste producten van deze winkel.",
@@ -3402,30 +3402,30 @@
       "newsletterPlaceholder": "jij@voorbeeld.nl",
       "newsletterButton": "Inschrijven",
       "newsletterSuccess": "Je staat op de lijst.",
-      "newsletterSubmitting": "Subscribing…",
-      "newsletterInvalidEmail": "Enter a valid email address.",
-      "newsletterError": "Could not subscribe. Try again in a moment.",
+      "newsletterSubmitting": "Aanmelden…",
+      "newsletterInvalidEmail": "Voer een geldig e-mailadres in.",
+      "newsletterError": "Kon je niet aanmelden. Probeer het zo opnieuw.",
       "newsletterDisclaimer": "Geen spam — altijd uitschrijven.",
-      "trustTitle": "Affisell verified partner storefront",
+      "trustTitle": "Geverifieerde Affisell-partnerwinkel",
       "trustBody": "Partner code {code} — curated by this creator, sold by the supplier, Affisell secure checkout.",
-      "verified": "Verified partner",
-      "ctaEyebrow": "Explore Affisell",
+      "verified": "Geverifieerde partner",
+      "ctaEyebrow": "Ontdek Affisell",
       "ctaTitle": "Discover more creators",
-      "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
-      "ctaButton": "Browse marketplace",
-      "flashSaleEyebrow": "Limited offer",
-      "flashSaleTitle": "Flash sale — ending soon",
+      "ctaBody": "Blader door de volledige Affisell-marktplaats voor meer producten en vertrouwde winkels.",
+      "ctaButton": "Marktplaats bekijken",
+      "flashSaleEyebrow": "Beperkt aanbod",
+      "flashSaleTitle": "Flitsverkoop — eindigt binnenkort",
       "flashSaleLive": "LIVE"
     },
     "buyerChrome": {
-      "openCategories": "Browse categories",
-      "closeCategories": "Close menu",
-      "categoriesAria": "Store categories",
-      "drawerEyebrow": "Catalog",
-      "allProducts": "All products",
-      "otherCategory": "Other",
-      "cart": "Cart",
-      "showingCategory": "{category} · {count, plural, one {# product} other {# products}}"
+      "openCategories": "Categorieën bekijken",
+      "closeCategories": "Menu sluiten",
+      "categoriesAria": "Winkelcategorieën",
+      "drawerEyebrow": "Catalogus",
+      "allProducts": "Alle producten",
+      "otherCategory": "Overig",
+      "cart": "Winkelwagen",
+      "showingCategory": "{category} · {count, plural, one {# product} other {# producten}}"
     },
     "domain": {
       "title": "Eigen domein",
@@ -3453,7 +3453,7 @@
       "vercelUnknown": "Hosting nog niet geregistreerd",
       "vercelAuto": " · Auto-geïnregistreerd op hosting",
       "vercelManual": " · Voeg hostname toe in Domeinen als HTTPS niet live is",
-      "cronHint": "Tip: once CNAME is set, activation runs automatically every 30 minutes — or click Activate above."
+      "cronHint": "Tip: zodra CNAME is ingesteld, wordt activering elke 30 minuten automatisch uitgevoerd — of klik hierboven op Activeren."
     }
   },
   "pwa": {

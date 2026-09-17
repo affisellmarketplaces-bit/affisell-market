@@ -2753,7 +2753,7 @@
   },
   "storefront": {
     "flashSale": {
-      "countdownAria": "Time remaining until the sale ends",
+      "countdownAria": "Tiempo restante hasta que termine la oferta",
       "days": "d"
     },
     "brandStudio": {
@@ -3366,31 +3366,31 @@
       "poweredBy": "Secure checkout · Powered by Affisell"
     },
     "staticPages": {
-      "stripAria": "{name} — info pages",
-      "backToStore": "Back to {name}",
-      "siblingNavAria": "Other info pages",
+      "stripAria": "{name} — páginas informativas",
+      "backToStore": "Volver a {name}",
+      "siblingNavAria": "Otras páginas informativas",
       "nav": {
-        "about": "About",
+        "about": "Sobre nosotros",
         "faq": "FAQ",
-        "returns": "Returns"
+        "returns": "Devoluciones"
       },
       "defaults": {
         "about": {
-          "title": "About {name}",
+          "title": "Sobre {name}",
           "body": "{name} — curated products from your favorite creator."
         },
         "faq": {
           "title": "FAQ",
-          "body": "Common questions about orders, shipping, and returns at {name}."
+          "body": "Preguntas frecuentes sobre pedidos, envíos y devoluciones en {name}."
         },
         "returns": {
-          "title": "Returns & refunds",
-          "body": "You have 14 days after delivery to request a return on eligible items. Contact support with your order number."
+          "title": "Devoluciones y reembolsos",
+          "body": "Tienes 14 días tras la entrega para solicitar una devolución en artículos elegibles. Contacta con soporte indicando tu número de pedido."
         }
       }
     },
     "homeSections": {
-      "storyEyebrow": "Our story",
+      "storyEyebrow": "Nuestra historia",
       "bestsellersEyebrow": "Más vendidos",
       "bestsellersTitle": "Favoritos de clientes",
       "bestsellersHint": "Los productos más populares de esta tienda.",
@@ -3402,30 +3402,30 @@
       "newsletterPlaceholder": "tu@ejemplo.com",
       "newsletterButton": "Suscribirse",
       "newsletterSuccess": "Estás en la lista — revisa tu bandeja.",
-      "newsletterSubmitting": "Subscribing…",
-      "newsletterInvalidEmail": "Enter a valid email address.",
-      "newsletterError": "Could not subscribe. Try again in a moment.",
+      "newsletterSubmitting": "Suscribiendo…",
+      "newsletterInvalidEmail": "Introduce una dirección de correo válida.",
+      "newsletterError": "No se pudo suscribir. Inténtalo de nuevo en un momento.",
       "newsletterDisclaimer": "Sin spam — cancela cuando quieras.",
-      "trustTitle": "Affisell verified partner storefront",
+      "trustTitle": "Tienda de socio verificado de Affisell",
       "trustBody": "Partner code {code} — curated by this creator, sold by the supplier, Affisell secure checkout.",
-      "verified": "Verified partner",
-      "ctaEyebrow": "Explore Affisell",
+      "verified": "Socio verificado",
+      "ctaEyebrow": "Explora Affisell",
       "ctaTitle": "Discover more creators",
-      "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
-      "ctaButton": "Browse marketplace",
-      "flashSaleEyebrow": "Limited offer",
-      "flashSaleTitle": "Flash sale — ending soon",
+      "ctaBody": "Explora todo el marketplace de Affisell para más productos y tiendas de confianza.",
+      "ctaButton": "Explorar marketplace",
+      "flashSaleEyebrow": "Oferta limitada",
+      "flashSaleTitle": "Oferta flash — termina pronto",
       "flashSaleLive": "LIVE"
     },
     "buyerChrome": {
-      "openCategories": "Browse categories",
-      "closeCategories": "Close menu",
-      "categoriesAria": "Store categories",
-      "drawerEyebrow": "Catalog",
-      "allProducts": "All products",
-      "otherCategory": "Other",
-      "cart": "Cart",
-      "showingCategory": "{category} · {count, plural, one {# product} other {# products}}"
+      "openCategories": "Explorar categorías",
+      "closeCategories": "Cerrar menú",
+      "categoriesAria": "Categorías de la tienda",
+      "drawerEyebrow": "Catálogo",
+      "allProducts": "Todos los productos",
+      "otherCategory": "Otros",
+      "cart": "Carrito",
+      "showingCategory": "{category} · {count, plural, one {# producto} other {# productos}}"
     },
     "domain": {
       "title": "Tu propio dominio",
@@ -3453,7 +3453,7 @@
       "vercelUnknown": "Alojamiento no registrado aún",
       "vercelAuto": " · Registrado automáticamente en alojamiento",
       "vercelManual": " · Agrega el nombre de host en Dominios si HTTPS no está vivo",
-      "cronHint": "Tip: once CNAME is set, activation runs automatically every 30 minutes — or click Activate above."
+      "cronHint": "Consejo: una vez configurado el CNAME, la activación se ejecuta automáticamente cada 30 minutos — o haz clic en Activar arriba."
     }
   },
   "pwa": {

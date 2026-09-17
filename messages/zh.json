@@ -2753,7 +2753,7 @@
   },
   "storefront": {
     "flashSale": {
-      "countdownAria": "Time remaining until the sale ends",
+      "countdownAria": "距活动结束剩余时间",
       "days": "d"
     },
     "brandStudio": {
@@ -3366,31 +3366,31 @@
       "poweredBy": "Secure checkout · Powered by Affisell"
     },
     "staticPages": {
-      "stripAria": "{name} — info pages",
-      "backToStore": "Back to {name}",
-      "siblingNavAria": "Other info pages",
+      "stripAria": "{name} —— 信息页面",
+      "backToStore": "返回 {name}",
+      "siblingNavAria": "其他信息页面",
       "nav": {
-        "about": "About",
+        "about": "关于我们",
         "faq": "FAQ",
-        "returns": "Returns"
+        "returns": "退货"
       },
       "defaults": {
         "about": {
-          "title": "About {name}",
+          "title": "关于 {name}",
           "body": "{name} — curated products from your favorite creator."
         },
         "faq": {
           "title": "FAQ",
-          "body": "Common questions about orders, shipping, and returns at {name}."
+          "body": "关于 {name} 的订单、配送与退货常见问题。"
         },
         "returns": {
-          "title": "Returns & refunds",
-          "body": "You have 14 days after delivery to request a return on eligible items. Contact support with your order number."
+          "title": "退货与退款",
+          "body": "送达后14天内，你可以对符合条件的商品申请退货。请联系客服并提供订单号。"
         }
       }
     },
     "homeSections": {
-      "storyEyebrow": "Our story",
+      "storyEyebrow": "我们的故事",
       "bestsellersEyebrow": "畅销榜",
       "bestsellersTitle": "顾客最爱",
       "bestsellersHint": "本店最受欢迎的商品。",
@@ -3402,30 +3402,30 @@
       "newsletterPlaceholder": "you@example.com",
       "newsletterButton": "订阅",
       "newsletterSuccess": "订阅成功——请留意收件箱。",
-      "newsletterSubmitting": "Subscribing…",
-      "newsletterInvalidEmail": "Enter a valid email address.",
-      "newsletterError": "Could not subscribe. Try again in a moment.",
+      "newsletterSubmitting": "订阅中…",
+      "newsletterInvalidEmail": "请输入有效的邮箱地址。",
+      "newsletterError": "订阅失败，请稍后重试。",
       "newsletterDisclaimer": "无垃圾邮件——随时可退订。",
-      "trustTitle": "Affisell verified partner storefront",
+      "trustTitle": "Affisell 已验证合作伙伴店铺",
       "trustBody": "Partner code {code} — curated by this creator, sold by the supplier, Affisell secure checkout.",
-      "verified": "Verified partner",
-      "ctaEyebrow": "Explore Affisell",
+      "verified": "已验证合作伙伴",
+      "ctaEyebrow": "探索 Affisell",
       "ctaTitle": "Discover more creators",
-      "ctaBody": "Browse the full Affisell marketplace for more products and trusted stores.",
-      "ctaButton": "Browse marketplace",
-      "flashSaleEyebrow": "Limited offer",
-      "flashSaleTitle": "Flash sale — ending soon",
+      "ctaBody": "浏览完整的 Affisell 市场，发现更多商品和可信店铺。",
+      "ctaButton": "浏览市场",
+      "flashSaleEyebrow": "限时优惠",
+      "flashSaleTitle": "限时闪购 —— 即将结束",
       "flashSaleLive": "LIVE"
     },
     "buyerChrome": {
-      "openCategories": "Browse categories",
-      "closeCategories": "Close menu",
-      "categoriesAria": "Store categories",
-      "drawerEyebrow": "Catalog",
-      "allProducts": "All products",
-      "otherCategory": "Other",
-      "cart": "Cart",
-      "showingCategory": "{category} · {count, plural, one {# product} other {# products}}"
+      "openCategories": "浏览分类",
+      "closeCategories": "关闭菜单",
+      "categoriesAria": "店铺分类",
+      "drawerEyebrow": "目录",
+      "allProducts": "全部商品",
+      "otherCategory": "其他",
+      "cart": "购物车",
+      "showingCategory": "{category} · {count, plural, other {# 件商品}}"
     },
     "domain": {
       "title": "您的个人域名",
@@ -3453,7 +3453,7 @@
       "vercelUnknown": "主机尚未注册",
       "vercelAuto": " · 在 Vercel 自动注册",
       "vercelManual": " · 在域名中添加主机名，如果 HTTPS 未启用，请在域名中添加",
-      "cronHint": "Tip: once CNAME is set, activation runs automatically every 30 minutes — or click Activate above."
+      "cronHint": "提示：设置 CNAME 后，系统将每30分钟自动激活一次 —— 你也可以点击上方的“激活”按钮。"
     }
   },
   "pwa": {
