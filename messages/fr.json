@@ -113,12 +113,12 @@
     "buyer": {
       "base": "Des boutiques de confiance.",
       "rotatifs": [
-        "Products verified.",
-        "Makers verified.",
-        "Payments protected.",
-        "Returns guaranteed.",
-        "Shops curated.",
-        "Quality assured."
+        "Produits vérifiés.",
+        "Vendeurs vérifiés.",
+        "Paiements protégés.",
+        "Retours garantis.",
+        "Boutiques sélectionnées.",
+        "Qualité garantie."
       ],
       "canonical": "Des boutiques de confiance. Produits vérifiés."
     },

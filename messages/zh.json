@@ -113,12 +113,12 @@
     "buyer": {
       "base": "值得信赖的店铺。",
       "rotatifs": [
-        "Products verified.",
-        "Makers verified.",
-        "Payments protected.",
-        "Returns guaranteed.",
-        "Shops curated.",
-        "Quality assured."
+        "产品已验证。",
+        "商家已验证。",
+        "支付有保障。",
+        "退货有保障。",
+        "店铺精选。",
+        "品质保证。"
       ],
       "canonical": "值得信赖的店铺。产品已验证。"
     },

@@ -5,6 +5,7 @@ import { Check, Shield } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { BuyerHeroSearch } from "@/components/BuyerHeroSearch"
+import { RotatingSloganPro } from "@/components/ui/RotatingSloganPro"
 import { fadeSlideUp, motionTransition } from "@/lib/motion-presets"
 import { BUYER_PREMIUM_TRUST_PILLS } from "@/lib/buyer-premium-home-content"
 import { BUYER_PREMIUM } from "@/lib/buyer-premium-home-tokens"
@@ -19,6 +20,8 @@ type Props = {
 
 function BuyerPremiumHero() {
   const t = useTranslations("home.hero")
+  const tSlogan = useTranslations("slogans.buyer")
+  const rotatifs = tSlogan.raw("rotatifs") as string[]
 
   return (
     <section
@@ -48,12 +51,14 @@ function BuyerPremiumHero() {
           {t("badge")}
         </div>
 
-        <h1
-          className="text-balance text-3xl font-bold tracking-tight sm:text-4xl md:text-[2.65rem] md:leading-[1.12]"
-          style={{ color: BUYER_PREMIUM.text.heading }}
-        >
-          {t("titlePremium")}
-        </h1>
+        <RotatingSloganPro
+          persona="buyer"
+          base={t("titlePremium")}
+          phrases={rotatifs}
+          fixedSuffix={null}
+          canonical={`${t("titlePremium")} ${rotatifs[0] ?? ""}`}
+          className="text-balance text-3xl font-bold leading-[1.12] tracking-tight sm:text-4xl md:text-[2.65rem] lg:text-[2.65rem]"
+        />
         <p
           data-testid="buyer-hero-subtitle"
           className="mx-auto mt-4 max-w-2xl text-pretty text-sm font-medium leading-relaxed tracking-[0.01em] sm:text-base sm:leading-7"
