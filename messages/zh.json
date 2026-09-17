@@ -4504,7 +4504,7 @@
       "metaTitle": "Affisell Blog — 产品 & 创作者经济",
       "metaDescription": "市场平台功能、佣金透明度和创作者工具的更新信息。",
       "eyebrow": "博客",
-      "title": "Affisell内部",
+      "title": "走进 Affisell",
       "description": "产品发布、市场经济和创作者指南 — 由Affisell团队撰写。",
       "readMore": "阅读文章",
       "backToBlog": "所有文章",
@@ -4514,7 +4514,7 @@
           "excerpt": "Affiliates现在可以用Tinder风格的方式发现目录SKU，通过右滑增加+30%的标记，并且再也不用看到跳过的产品了。",
           "date": "2026-05-19",
           "category": "Product",
-          "readMin": "4 min",
+          "readMin": "4 分钟",
           "sections": {
             "intro": "之前的创作者发现方式意味着无尽的网格滚动。Swipe Feed 将推广来源转变为专注的、移动本土流程——具有撤销、佣金过滤器和三张卡preload堆栈。",
             "s1": {
@@ -4536,7 +4536,7 @@
           "excerpt": "供应商、推广商和买家现在可以看到每一笔订单上的olesale、加价、平台费用和VAT的分配情况。",
           "date": "2026-05-12",
           "category": "信任",
-          "readMin": "5 min",
+          "readMin": "5 分钟",
           "sections": {
             "intro": "不透明的市场中，谁赚了多少钱都是秘密。Affisell 在商家订单页面、买家收据和 PDF 发票中全面披露结算分成细节。",
             "s1": {
@@ -4558,7 +4558,7 @@
           "excerpt": "导出、删除、cookie偏好和法律同意版本控制 — native到Affisell账户，而不是附加的PDF。",
           "date": "2026-05-05",
           "category": "合规",
-          "readMin": "4 min",
+          "readMin": "4 分钟",
           "sections": {
             "intro": "信任是一个产品功能。Affisell 提供了一个完整的 GDPR 栈：注册同意捕获、cookie 宣传栏与分析门控、数据导出 JSON 和账户删除流程。",
             "s1": {
@@ -4580,7 +4580,7 @@
           "excerpt": "选择供应商 SKU、设置您的利润率、发布 — Affisell 将处理结算、履约通知和每周付款。",
           "date": "2026-04-20",
           "category": "创作者",
-          "readMin": "3 min",
+          "readMin": "3 分钟",
           "sections": {
             "intro": "Affisell 将创作者商业中的运营负担从中去除：无仓库，无手动库存更新，无从头设置付款网关。",
             "s1": {
@@ -4622,9 +4622,9 @@
         "fullstack-engineer": {
           "title": "全栈工程师",
           "summary": "从 Prisma schema 到精美 UI — 检查结算，推广工具，供应商控制台。",
-          "location": "马赛/远程EU",
+          "location": "马赛 / 欧盟远程",
           "type": "全职",
-          "team": "工程团队",
+          "team": "工程",
           "applySubject": "申请——全栈工程师",
           "requirements": {
             "r1": "强大的TypeScript、React和SQL（PostgreSQL）",
@@ -4635,7 +4635,7 @@
         "creator-success": {
           "title": "创作者成功经理",
           "summary": "接纳合作伙伴，提高列表质量，反馈产品洞察给工程团队。",
-          "location": "远程 EU",
+          "location": "欧盟远程",
           "type": "全职",
           "team": "增长",
           "applySubject": "申请 — 成功创作者",
@@ -4648,7 +4648,7 @@
         "supplier-partnerships": {
           "title": "供应商合作伙伴 (B2B)",
           "summary": "获取品牌、通过 API 或批量导入 onboard 目录，并与我们合作设计佣金结构。",
-          "location": "远程 EU",
+          "location": "欧盟远程",
           "type": "全职 / 合同",
           "team": "供应商合作伙伴团队",
           "applySubject": "供应商合作伙伴申请",
@@ -4661,13 +4661,13 @@
       }
     },
     "press": {
-      "metaTitle": "Affisell Press Kit",
+      "metaTitle": "Affisell 新闻资料包",
       "metaDescription": "媒体资源、公司事实和联系方式为Affisell — 一个以创作者为首的市场平台。",
       "eyebrow": "Press",
       "title": "Press Kit",
       "description": "Facts, boilerplate and assets for journalists covering creator commerce, marketplace infrastructure and EU retail tech.",
       "boilerplate": {
-        "title": "Boilerplate",
+        "title": "公司简介",
         "short": "Affisell 是一个优先考虑创作者的市场平台，连接了验证的供应商、affiliate 商店和买家 —— 以透明的佣金和内置的 EU 合规为特色。",
         "long": "在马赛成立，Affisell让创作者在几分钟内启动品牌商店，无需库存。供应商通过自动化的配送和Stripe Connect付款通过affiliate网络分发目录。该平台包括AI采购工具、Swipe Feed发现、Pulse垂直购物、GDPR自助服务和每笔订单的详细佣金分解。"
       },
@@ -4690,7 +4690,7 @@
           "value": "Next.js, PostgreSQL, Stripe Connect, Vercel"
         },
         "compliance": {
-          "label": "合规性",
+          "label": "合规",
           "value": "GDPR中心, 版本化法律文件, 发票PDF"
         }
       },
@@ -5186,28 +5186,28 @@
   },
   "payoutPolicy": {
     "shared": {
-      "stripePerOrder": "Stripe Connect transfers — per order, not a monthly batch.",
-      "dashboardDisclaimer": "Amounts shown are indicative until the Connect transfer succeeds. Timing depends on shipment, delivery confirmation, returns and KYC.",
-      "returnsBlock": "Transfer blocked while a return is open on the order.",
-      "clawback": "Approved return: cancellation or clawback on amounts already transferred."
+      "stripePerOrder": "Stripe Connect 转账按订单逐笔结算，而非按月批量处理。",
+      "dashboardDisclaimer": "显示金额仅供参考，以 Connect 转账成功为准。具体时间取决于发货、送达确认、退货与 KYC 审核。",
+      "returnsBlock": "订单存在未结退货时，转账将被暂停。",
+      "clawback": "已批准的退货：将对已转账金额进行取消或追回。"
     },
     "supplier": {
-      "standard": "Supplier (standard): payout after shipment with valid tracking, once upstream purchase is funded when applicable (auto-buy). Typically within 48h of shipment when Connect is active.",
-      "lightning": "Lightning Payout (eligible suppliers): supplier and reseller transfers may run at shipment."
+      "standard": "供应商（标准）：发货并具备有效物流单号后结算，如适用则需上游采购已完成付款（自动采购）。启用 Connect 时通常在发货后48小时内到账。",
+      "lightning": "闪电结算（符合条件的供应商）：供应商与分销商的转账可在发货时即完成。"
     },
     "affiliate": {
-      "standard": "Affisell reseller: payout after buyer confirms delivery, then {days} calendar days.",
-      "autoConfirm": "If the buyer stays silent: auto-confirmation at J+{days} after carrier delivery, then transfer."
+      "standard": "Affisell 分销商：买家确认收货后，再经过 {days} 个自然日结算。",
+      "autoConfirm": "如买家未作回应：将在承运商送达后第 J+{days} 天自动确认，随后进行转账。"
     },
     "connect": {
-      "supplierTitle": "Stripe Connect payouts",
-      "supplierBody": "Set up your bank account to receive wholesale sales after shipment (valid tracking), per Affisell rules.",
-      "affiliateTitle": "Stripe Connect payouts",
-      "affiliateBody": "Enable Stripe Connect to collect reseller margin and supplier commission after delivery confirmation.",
-      "supplierCta": "Set up payouts",
-      "affiliateCta": "Enable payouts",
-      "supplierKycHint": "Your KYC profile must be approved before catalogue publish.",
-      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront.",
+      "supplierTitle": "Stripe Connect 结算",
+      "supplierBody": "根据 Affisell 规则，设置你的银行账户，以在发货（含有效物流单号）后接收批发销售款项。",
+      "affiliateTitle": "Stripe Connect 结算",
+      "affiliateBody": "启用 Stripe Connect，在确认送达后收取分销利润与供应商佣金。",
+      "supplierCta": "设置结算",
+      "affiliateCta": "启用结算",
+      "supplierKycHint": "在发布目录之前，你的 KYC 身份认证必须先通过审核。",
+      "affiliateKycHint": "在你的店面发布之前，你的 KYC 身份认证必须先通过审核。",
       "activeBadge": "Stripe Connect 已启用",
       "affiliateKycDeferredHint": "现在就设置 Stripe——Affisell 身份证明文件只有在首次上架前才需要提交。",
       "completeKycCta": "完成身份验证（KYC）",
@@ -5216,10 +5216,10 @@
       "updateBankCta": "更新银行信息"
     },
     "pulseHub": {
-      "paidOutFootnote": "Net of recorded payouts and any clawbacks — see activity below.",
-      "supplierBandHint": "Wholesale value of units sold in this window (before platform payout timing).",
-      "emptyLedger": "No payout entries yet — they appear when orders pass shipment / delivery steps.",
-      "ledgerTitle": "Payout ledger",
+      "paidOutFootnote": "已扣除已记录的结算与任何追回款项 —— 详见下方动态。",
+      "supplierBandHint": "该时段内售出商品的批发价值（早于平台结算时间）。",
+      "emptyLedger": "暂无结算记录 —— 订单进入发货/送达阶段后将在此显示。",
+      "ledgerTitle": "结算账本",
       "commissionLabel": "我的佣金",
       "marginLabel": "我的利润（自定）"
     }

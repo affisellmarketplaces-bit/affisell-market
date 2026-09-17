@@ -4504,7 +4504,7 @@
       "metaTitle": "Blog de Affisell — Productos y economía de creadores",
       "metaDescription": "Actualizaciones sobre características del mercado, transparencia de comisiones y herramientas para creadores desde el equipo de Affisell.",
       "eyebrow": "Blog",
-      "title": "Dentro de Affisell",
+      "title": "Por dentro de Affisell",
       "description": "Lanzamientos de productos, economía del mercado y planes de juego para creadores — escritos por el equipo que construye Affisell.",
       "readMore": "Leer el artículo",
       "backToBlog": "Todos los artículos",
@@ -4622,7 +4622,7 @@
         "fullstack-engineer": {
           "title": "Ingeniero Full-stack",
           "summary": "Propietario de características de mercado desde el esquema de Prisma hasta la interfaz de usuario pulida — verificación de pagos, herramientas de afiliados, paneles de proveedores.",
-          "location": "Marsella / Remoto EU",
+          "location": "Marsella / Remoto UE",
           "type": "Tiempo completo",
           "team": "Ingeniería",
           "applySubject": "Solicitud — Ingeniero Full-stack",
@@ -4635,7 +4635,7 @@
         "creator-success": {
           "title": "Gerente de Éxito del Creador",
           "summary": "Incorpora a afiliados, mejora la calidad de las listas y alimenta las pautas de productos de vuelta a la ingeniería.",
-          "location": "Remoto EU",
+          "location": "Remoto UE",
           "type": "Tiempo completo",
           "team": "Crecimiento",
           "applySubject": "Solicitud — Éxito del Creador",
@@ -4648,7 +4648,7 @@
         "supplier-partnerships": {
           "title": "Alianzas con Proveedores (B2B)",
           "summary": "Fuente de marcas, incorpora catálogo mediante API o importación en masa y co-diseña estructuras de comisiones.",
-          "location": "Remoto EU",
+          "location": "Remoto UE",
           "type": "Tiempo completo / Contrato",
           "team": "Alianzas",
           "applySubject": "Solicitud — Alianzas con Proveedores",
@@ -4661,13 +4661,13 @@
       }
     },
     "press": {
-      "metaTitle": "Kit de Prensa de Affisell",
+      "metaTitle": "Kit de prensa de Affisell",
       "metaDescription": "Recursos de medios, hechos de la empresa y contacto de prensa para Affisell — el mercado de creadores.",
       "eyebrow": "Prensa",
       "title": "Press Kit",
       "description": "Facts, boilerplate and assets for journalists covering creator commerce, marketplace infrastructure and EU retail tech.",
       "boilerplate": {
-        "title": "Boilerplate",
+        "title": "Sobre la empresa",
         "short": "Affisell es una plataforma de mercado para creadores que conecta proveedores verificados, tiendas de afiliados y compradores — con comisiones transparentes y cumplimiento de la UE integrado.",
         "long": "Fundada en Marsella, Affisell permite a los creadores lanzar tiendas con marca en minutos sin inventario. Los proveedores distribuyen catálogo a través de redes de afiliados con cumplimiento automático y pagos de Stripe Connect. La plataforma incluye herramientas de búsqueda AI, Swipe Feed de descubrimiento, Pulse de compras verticales, servicio de autoatención de GDPR y desglose de comisiones detallado en cada pedido."
       },
@@ -5186,28 +5186,28 @@
   },
   "payoutPolicy": {
     "shared": {
-      "stripePerOrder": "Stripe Connect transfers — per order, not a monthly batch.",
-      "dashboardDisclaimer": "Amounts shown are indicative until the Connect transfer succeeds. Timing depends on shipment, delivery confirmation, returns and KYC.",
-      "returnsBlock": "Transfer blocked while a return is open on the order.",
-      "clawback": "Approved return: cancellation or clawback on amounts already transferred."
+      "stripePerOrder": "Transferencias de Stripe Connect — por pedido, no en un lote mensual.",
+      "dashboardDisclaimer": "Los importes mostrados son orientativos hasta que la transferencia de Connect se realice con éxito. El momento depende del envío, la confirmación de entrega, las devoluciones y el KYC.",
+      "returnsBlock": "Transferencia bloqueada mientras haya una devolución abierta en el pedido.",
+      "clawback": "Devolución aprobada: cancelación o recuperación de importes ya transferidos."
     },
     "supplier": {
-      "standard": "Supplier (standard): payout after shipment with valid tracking, once upstream purchase is funded when applicable (auto-buy). Typically within 48h of shipment when Connect is active.",
-      "lightning": "Lightning Payout (eligible suppliers): supplier and reseller transfers may run at shipment."
+      "standard": "Proveedor (estándar): pago tras el envío con seguimiento válido, una vez financiada la compra previa cuando corresponda (compra automática). Normalmente en 48h desde el envío cuando Connect está activo.",
+      "lightning": "Pago Lightning (proveedores elegibles): las transferencias a proveedor y reseller pueden realizarse en el envío."
     },
     "affiliate": {
-      "standard": "Affisell reseller: payout after buyer confirms delivery, then {days} calendar days.",
-      "autoConfirm": "If the buyer stays silent: auto-confirmation at J+{days} after carrier delivery, then transfer."
+      "standard": "Reseller de Affisell: pago tras la confirmación de entrega del comprador, luego {days} días naturales.",
+      "autoConfirm": "Si el comprador no responde: confirmación automática en J+{days} tras la entrega del transportista, luego transferencia."
     },
     "connect": {
-      "supplierTitle": "Stripe Connect payouts",
-      "supplierBody": "Set up your bank account to receive wholesale sales after shipment (valid tracking), per Affisell rules.",
-      "affiliateTitle": "Stripe Connect payouts",
-      "affiliateBody": "Enable Stripe Connect to collect reseller margin and supplier commission after delivery confirmation.",
-      "supplierCta": "Set up payouts",
-      "affiliateCta": "Enable payouts",
-      "supplierKycHint": "Your KYC profile must be approved before catalogue publish.",
-      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront.",
+      "supplierTitle": "Pagos con Stripe Connect",
+      "supplierBody": "Configura tu cuenta bancaria para recibir ventas al por mayor tras el envío (con seguimiento válido), según las reglas de Affisell.",
+      "affiliateTitle": "Pagos con Stripe Connect",
+      "affiliateBody": "Activa Stripe Connect para cobrar el margen de reseller y la comisión de proveedor tras la confirmación de entrega.",
+      "supplierCta": "Configurar pagos",
+      "affiliateCta": "Activar pagos",
+      "supplierKycHint": "Tu perfil KYC debe estar aprobado antes de publicar el catálogo.",
+      "affiliateKycHint": "Tu perfil KYC debe estar aprobado antes de publicar en tu tienda.",
       "activeBadge": "Stripe Connect activo",
       "affiliateKycDeferredHint": "Configura Stripe ahora: los documentos de identidad de Affisell solo son necesarios antes de tu primer anuncio activo.",
       "completeKycCta": "Completar verificación KYC",
@@ -5216,10 +5216,10 @@
       "updateBankCta": "Actualizar datos bancarios"
     },
     "pulseHub": {
-      "paidOutFootnote": "Net of recorded payouts and any clawbacks — see activity below.",
-      "supplierBandHint": "Wholesale value of units sold in this window (before platform payout timing).",
-      "emptyLedger": "No payout entries yet — they appear when orders pass shipment / delivery steps.",
-      "ledgerTitle": "Payout ledger",
+      "paidOutFootnote": "Neto de pagos registrados y posibles recuperaciones — consulta la actividad a continuación.",
+      "supplierBandHint": "Valor mayorista de las unidades vendidas en este periodo (antes del calendario de pagos de la plataforma).",
+      "emptyLedger": "Aún no hay entradas de pago — aparecerán cuando los pedidos pasen por los pasos de envío/entrega.",
+      "ledgerTitle": "Libro de pagos",
       "commissionLabel": "Mi comisión",
       "marginLabel": "Mi margen (libre)"
     }

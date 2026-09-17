@@ -4504,7 +4504,7 @@
       "metaTitle": "Affisell Blog — Product & creator economy",
       "metaDescription": "Updates over marktplaatsfuncties, commissietransparantie en creatorhulpmiddelen van de Affisell-team.",
       "eyebrow": "Blog",
-      "title": "Binnen Affisell",
+      "title": "Achter de schermen bij Affisell",
       "description": "Productlaunches, marktplaats-economie en creator-handboeken — geschreven door het team dat Affisell bouwt.",
       "readMore": "Lees artikel",
       "backToBlog": "Alle artikelen",
@@ -4661,13 +4661,13 @@
       }
     },
     "press": {
-      "metaTitle": "Affisell Press Kit",
+      "metaTitle": "Affisell Perskit",
       "metaDescription": "Mediaresources, bedrijfsfeiten en perscontact voor Affisell — de creator-first marktplaats.",
       "eyebrow": "Pers",
       "title": "Press Kit",
       "description": "Facts, boilerplate en assets voor journalisten die creator commerce, marktplaatsinfrastructuur en EU retail tech behandelen.",
       "boilerplate": {
-        "title": "Boilerplate",
+        "title": "Bedrijfsprofiel",
         "short": "Affisell is een creator-first marktplaats die geverifieerde leveranciers, affiliate storefronts en kopers verbindt — met transparante commissies en ingebouwde EU-compliance.",
         "long": "Opgericht in Marseille, Affisell laat creators in minuten hun eigen winkels opstarten zonder voorraad. Leveranciers distribueren hun catalogus via affiliate-netwerken met geautomatiseerde afhandeling en Stripe Connect-uitkeringen. Het platform bevat AI-sourcingtools, Swipe Feed ontdekking, Pulse horizontale winkelen, GDPR zelfbediening en een itemiserende commissieafspraak op elke bestelling."
       },
@@ -5186,28 +5186,28 @@
   },
   "payoutPolicy": {
     "shared": {
-      "stripePerOrder": "Stripe Connect transfers — per order, not a monthly batch.",
-      "dashboardDisclaimer": "Amounts shown are indicative until the Connect transfer succeeds. Timing depends on shipment, delivery confirmation, returns and KYC.",
-      "returnsBlock": "Transfer blocked while a return is open on the order.",
-      "clawback": "Approved return: cancellation or clawback on amounts already transferred."
+      "stripePerOrder": "Stripe Connect-overboekingen — per bestelling, geen maandelijkse batch.",
+      "dashboardDisclaimer": "Getoonde bedragen zijn indicatief totdat de Connect-overboeking is geslaagd. De timing hangt af van verzending, leveringsbevestiging, retouren en KYC.",
+      "returnsBlock": "Overboeking geblokkeerd zolang er een openstaande retour is op de bestelling.",
+      "clawback": "Goedgekeurde retour: annulering of terugvordering van reeds overgemaakte bedragen."
     },
     "supplier": {
-      "standard": "Supplier (standard): payout after shipment with valid tracking, once upstream purchase is funded when applicable (auto-buy). Typically within 48h of shipment when Connect is active.",
-      "lightning": "Lightning Payout (eligible suppliers): supplier and reseller transfers may run at shipment."
+      "standard": "Leverancier (standaard): uitbetaling na verzending met geldige tracking, zodra de bovenliggende aankoop is gefinancierd indien van toepassing (auto-buy). Doorgaans binnen 48u na verzending wanneer Connect actief is.",
+      "lightning": "Lightning Payout (in aanmerking komende leveranciers): leverancier- en reseller-overboekingen kunnen al bij verzending plaatsvinden."
     },
     "affiliate": {
-      "standard": "Affisell reseller: payout after buyer confirms delivery, then {days} calendar days.",
-      "autoConfirm": "If the buyer stays silent: auto-confirmation at J+{days} after carrier delivery, then transfer."
+      "standard": "Affisell-reseller: uitbetaling na bevestiging van levering door de koper, daarna {days} kalenderdagen.",
+      "autoConfirm": "Als de koper niets laat weten: automatische bevestiging op J+{days} na levering door de vervoerder, daarna overboeking."
     },
     "connect": {
-      "supplierTitle": "Stripe Connect payouts",
-      "supplierBody": "Set up your bank account to receive wholesale sales after shipment (valid tracking), per Affisell rules.",
-      "affiliateTitle": "Stripe Connect payouts",
-      "affiliateBody": "Enable Stripe Connect to collect reseller margin and supplier commission after delivery confirmation.",
-      "supplierCta": "Set up payouts",
-      "affiliateCta": "Enable payouts",
-      "supplierKycHint": "Your KYC profile must be approved before catalogue publish.",
-      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront.",
+      "supplierTitle": "Stripe Connect-uitbetalingen",
+      "supplierBody": "Stel je bankrekening in om groothandelsverkopen te ontvangen na verzending (met geldige tracking), volgens de Affisell-regels.",
+      "affiliateTitle": "Stripe Connect-uitbetalingen",
+      "affiliateBody": "Schakel Stripe Connect in om reseller-marge en leverancierscommissie te ontvangen na bevestiging van levering.",
+      "supplierCta": "Uitbetalingen instellen",
+      "affiliateCta": "Uitbetalingen inschakelen",
+      "supplierKycHint": "Je KYC-profiel moet zijn goedgekeurd voordat je de catalogus kunt publiceren.",
+      "affiliateKycHint": "Je KYC-profiel moet zijn goedgekeurd voordat je in jouw storefront kunt publiceren.",
       "activeBadge": "Stripe Connect actief",
       "affiliateKycDeferredHint": "Stel Stripe nu in — Affisell-identiteitsdocumenten zijn pas vereist vóór je eerste live vermelding.",
       "completeKycCta": "KYC-verificatie voltooien",
@@ -5216,10 +5216,10 @@
       "updateBankCta": "Bankgegevens bijwerken"
     },
     "pulseHub": {
-      "paidOutFootnote": "Net of recorded payouts and any clawbacks — see activity below.",
-      "supplierBandHint": "Wholesale value of units sold in this window (before platform payout timing).",
-      "emptyLedger": "No payout entries yet — they appear when orders pass shipment / delivery steps.",
-      "ledgerTitle": "Payout ledger",
+      "paidOutFootnote": "Netto na geregistreerde uitbetalingen en eventuele terugvorderingen — zie activiteit hieronder.",
+      "supplierBandHint": "Groothandelswaarde van verkochte eenheden in deze periode (vóór het uitbetalingsmoment van het platform).",
+      "emptyLedger": "Nog geen uitbetalingsvermeldingen — ze verschijnen zodra bestellingen de verzend-/leveringsstappen doorlopen.",
+      "ledgerTitle": "Uitbetalingsoverzicht",
       "commissionLabel": "Mijn commissie",
       "marginLabel": "Mijn marge (vrij)"
     }

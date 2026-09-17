@@ -4504,7 +4504,7 @@
       "metaTitle": "Affisell Blog — Produkt- & Kreativwirtschaft",
       "metaDescription": "Aktualisierungen zu Markt-Features, Kommissionstransparenz und Kreativwerkzeugen von der Affisell-Team.",
       "eyebrow": "Blog",
-      "title": "Inside Affisell",
+      "title": "Affisell von innen",
       "description": "Produktstarts, Marktökonomie und Kreativ-Playbooks — geschrieben vom Team, das Affisell baut.",
       "readMore": "Lese Artikel",
       "backToBlog": "Alle Artikel",
@@ -4514,7 +4514,7 @@
           "excerpt": "Affiliates können nun den Katalog-SKUs Tinder-Style entdecken, bei einem Rechtsdreh um +30% Markup verkaufen und keine Produkte mehr überspringen.",
           "date": "2026-05-19",
           "category": "Produkt",
-          "readMin": "4 min",
+          "readMin": "4 Min.",
           "sections": {
             "intro": "Kreativ-Entdeckung bedeutete früher endlose Grid-Scrolling. Swipe Feed wandelt Affiliate-Sourcing in einen fokussierten, mobilen-Nativen-Flow um — mit Undo, Kommissionsfiltern und einer drei-Karten-Präloader-Stack.",
             "s1": {
@@ -4536,7 +4536,7 @@
           "excerpt": "Anbieter, Affiliates und Käufer sehen jetzt genau, wie sich Großhandelspreis, Markup, Plattformgebühren und MwSt. auf jeder Zeile aufteilen.",
           "date": "2026-05-12",
           "category": "Vertrauen",
-          "readMin": "5 min",
+          "readMin": "5 Min.",
           "sections": {
             "intro": "Unklare Märkte verbergen, wer was verdient. Affisell offenbart die vollständige Abrechnung auf Verkäufer-Auftragsseiten, Käufer-Belegen und PDF-Rechnungen.",
             "s1": {
@@ -4558,7 +4558,7 @@
           "excerpt": "Exportieren, löschen, Cookie-Einstellungen und Versionsverwaltung von rechtlichen Zustimmungen — native in Affisell-Konten, keine nachträglich eingebauten PDFs.",
           "date": "2026-05-05",
           "category": "Kontrollen",
-          "readMin": "4 min",
+          "readMin": "4 Min.",
           "sections": {
             "intro": "Vertrauen ist ein Produktfeature. Affisell liefert ein vollständiges GDPR-Set: Registrierungs-Zustimmungserfassung, Cookie-Banner mit Analytics-Gating, Datenexport-JSON und Konto-Löschungsflows.",
             "s1": {
@@ -4580,7 +4580,7 @@
           "excerpt": "Wählen Sie einen Lieferanten-SKU, setzen Sie Ihren Gewinnmargen, veröffentlichen Sie — Affisell handhabt die Zahlungsabwicklung, die Bestellbestätigungsbenachrichtigungen und die wöchentlichen Zahlungen.",
           "date": "2026-04-20",
           "category": "Kreative",
-          "readMin": "3 min",
+          "readMin": "3 Min.",
           "sections": {
             "intro": "Affisell entfernt die Betriebslast von kreativen Handel: keine Lager, keine manuelle Lagerbestandsaktualisierungen, keine Zahlungsgateway-Einrichtung von Grund auf.",
             "s1": {
@@ -4661,13 +4661,13 @@
       }
     },
     "press": {
-      "metaTitle": "Affisell Press Kit",
+      "metaTitle": "Affisell Pressemappe",
       "metaDescription": "Medienressourcen, Unternehmensfakten und Pressekontakt für Affisell — der Kreativitätsmarkt.",
       "eyebrow": "Presse",
       "title": "Pressekit",
       "description": "Fakten, Boilerplate und Assets für Journalisten, die über den Creator-Commerce, die Marketplace-Infrastruktur und die EU-Retail-Tech berichten.",
       "boilerplate": {
-        "title": "Boilerplate",
+        "title": "Unternehmensprofil",
         "short": "Affisell ist ein von Kreativen geführter Marketplace, der verifizierte Anbieter, Affiliate-Fachgeschäfte und Käufer miteinander verbindet – mit transparenten Provisionen und integrierten EU-Kompliance.",
         "long": "Gegründet in Marseille, ermöglicht Affisell es Kreativen, in Minuten eigene Marken-Shops zu starten, ohne Inventar. Anbieter verteilen ihr Katalog über Affiliate-Netzwerke mit automatisierter Lieferung und Stripe-Connect-Payouts. Die Plattform umfasst AI-gestützte Sourcing-Tools, Swipe-Feed-Entdeckung, Pulse-Vertikale-Shopping, GDPR-Selbstdienst und itemisierte Provisionen auf jedem Auftrag."
       },
@@ -5186,28 +5186,28 @@
   },
   "payoutPolicy": {
     "shared": {
-      "stripePerOrder": "Stripe Connect transfers — per order, not a monthly batch.",
-      "dashboardDisclaimer": "Amounts shown are indicative until the Connect transfer succeeds. Timing depends on shipment, delivery confirmation, returns and KYC.",
-      "returnsBlock": "Transfer blocked while a return is open on the order.",
-      "clawback": "Approved return: cancellation or clawback on amounts already transferred."
+      "stripePerOrder": "Stripe Connect Überweisungen — pro Bestellung, nicht als monatliche Sammelzahlung.",
+      "dashboardDisclaimer": "Angezeigte Beträge sind vorläufig, bis die Connect-Überweisung erfolgreich ist. Der Zeitpunkt hängt von Versand, Zustellbestätigung, Rückgaben und KYC ab.",
+      "returnsBlock": "Überweisung blockiert, solange eine Rückgabe zur Bestellung offen ist.",
+      "clawback": "Genehmigte Rückgabe: Stornierung oder Rückbuchung bereits überwiesener Beträge."
     },
     "supplier": {
-      "standard": "Supplier (standard): payout after shipment with valid tracking, once upstream purchase is funded when applicable (auto-buy). Typically within 48h of shipment when Connect is active.",
-      "lightning": "Lightning Payout (eligible suppliers): supplier and reseller transfers may run at shipment."
+      "standard": "Lieferant (Standard): Auszahlung nach Versand mit gültigem Tracking, sobald der vorgelagerte Einkauf finanziert ist, sofern zutreffend (Auto-Buy). In der Regel innerhalb von 48 Std. nach Versand, wenn Connect aktiv ist.",
+      "lightning": "Lightning Payout (berechtigte Lieferanten): Lieferanten- und Reseller-Überweisungen können bereits beim Versand erfolgen."
     },
     "affiliate": {
-      "standard": "Affisell reseller: payout after buyer confirms delivery, then {days} calendar days.",
-      "autoConfirm": "If the buyer stays silent: auto-confirmation at J+{days} after carrier delivery, then transfer."
+      "standard": "Affisell-Reseller: Auszahlung nach Zustellbestätigung durch den Käufer, dann {days} Kalendertage.",
+      "autoConfirm": "Wenn der Käufer nicht reagiert: automatische Bestätigung an Tag J+{days} nach Zustellung durch den Spediteur, danach Überweisung."
     },
     "connect": {
-      "supplierTitle": "Stripe Connect payouts",
-      "supplierBody": "Set up your bank account to receive wholesale sales after shipment (valid tracking), per Affisell rules.",
-      "affiliateTitle": "Stripe Connect payouts",
-      "affiliateBody": "Enable Stripe Connect to collect reseller margin and supplier commission after delivery confirmation.",
-      "supplierCta": "Set up payouts",
-      "affiliateCta": "Enable payouts",
-      "supplierKycHint": "Your KYC profile must be approved before catalogue publish.",
-      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront.",
+      "supplierTitle": "Stripe Connect Auszahlungen",
+      "supplierBody": "Richte dein Bankkonto ein, um Großhandelsverkäufe nach Versand (mit gültigem Tracking) gemäß den Affisell-Regeln zu erhalten.",
+      "affiliateTitle": "Stripe Connect Auszahlungen",
+      "affiliateBody": "Aktiviere Stripe Connect, um Reseller-Marge und Lieferantenprovision nach Zustellbestätigung zu erhalten.",
+      "supplierCta": "Auszahlungen einrichten",
+      "affiliateCta": "Auszahlungen aktivieren",
+      "supplierKycHint": "Dein KYC-Profil muss genehmigt sein, bevor du den Katalog veröffentlichen kannst.",
+      "affiliateKycHint": "Dein KYC-Profil muss genehmigt sein, bevor du in deinem Storefront veröffentlichen kannst.",
       "activeBadge": "Stripe Connect aktiv",
       "affiliateKycDeferredHint": "Richte Stripe jetzt ein — Affisell-Identitätsdokumente sind erst vor deinem ersten Live-Angebot erforderlich.",
       "completeKycCta": "KYC-Verifizierung abschließen",
@@ -5216,10 +5216,10 @@
       "updateBankCta": "Bankdaten aktualisieren"
     },
     "pulseHub": {
-      "paidOutFootnote": "Net of recorded payouts and any clawbacks — see activity below.",
-      "supplierBandHint": "Wholesale value of units sold in this window (before platform payout timing).",
-      "emptyLedger": "No payout entries yet — they appear when orders pass shipment / delivery steps.",
-      "ledgerTitle": "Payout ledger",
+      "paidOutFootnote": "Netto nach erfassten Auszahlungen und etwaigen Rückbuchungen — siehe Aktivität unten.",
+      "supplierBandHint": "Großhandelswert der in diesem Zeitraum verkauften Einheiten (vor dem Auszahlungszeitpunkt der Plattform).",
+      "emptyLedger": "Noch keine Auszahlungseinträge — sie erscheinen, sobald Bestellungen die Versand-/Zustellschritte durchlaufen.",
+      "ledgerTitle": "Auszahlungsjournal",
       "commissionLabel": "Meine Provision",
       "marginLabel": "Meine Marge (frei)"
     }
