@@ -3458,11 +3458,11 @@
   },
   "pwa": {
     "install": {
-      "title": "Install Affisell",
-      "body": "Faster checkout, price alerts, and orders — like a native app.",
-      "cta": "Install",
-      "later": "Not now",
-      "dismiss": "Dismiss install banner"
+      "title": "Installa Affisell",
+      "body": "Checkout più veloce, avvisi di prezzo e ordini — come un'app nativa.",
+      "cta": "Installa",
+      "later": "Non ora",
+      "dismiss": "Chiudi banner di installazione"
     }
   },
   "boutique": {
@@ -3904,8 +3904,8 @@
     "empty": "Nessun vettore elencato per questa rotta. Il fornitore potrebbe utilizzare un servizio locale equivalente tracciato.",
     "tierPremium": "Premium",
     "tierStandard": "Standard",
-    "tierEconomy": "Economico",
-    "tagExpress": "Espresso",
+    "tierEconomy": "Economy",
+    "tagExpress": "Express",
     "tagTracked": "Tracciato",
     "tagPickup": "Punto di ritiro",
     "tagInternational": "Internazionale",
@@ -3963,16 +3963,16 @@
       "affiliate": "Affiliato",
       "legalNotice": "Nota legale",
       "privacy": "Privacy",
-      "cookies": "Cookies",
+      "cookies": "Cookie",
       "returns": "Resi",
-      "dsaReport": "DSA report",
-      "transparency": "Transparency",
+      "dsaReport": "Rapporto DSA",
+      "transparency": "Trasparenza",
       "contact": "Contatti"
     },
     "signupConsent": {
-      "acceptCgu": "I accept the <cgu>Terms of use</cgu>",
-      "acceptRoleTerms": "I accept the <terms>{roleTerms}</terms>",
-      "acceptPrivacy": "I accept the <privacy>Privacy policy</privacy>"
+      "acceptCgu": "Accetto i <cgu>termini di utilizzo</cgu>",
+      "acceptRoleTerms": "Accetto <terms>{roleTerms}</terms>",
+      "acceptPrivacy": "Accetto l'<privacy>informativa sulla privacy</privacy>"
     }
   },
   "legalPages": {
@@ -4213,14 +4213,14 @@
     "heroTitle": "Trova. Confronta. Acquista.",
     "heroSub": "Il tuo consigliatore di acquisto AI — cerca il mercato in tempo reale",
     "coach": {
-      "eyebrow": "Shopping agent",
-      "title": "Ask like a pro",
-      "body": "Describe need, budget, and delivery country. Try a starter prompt below.",
-      "cta": "Start chatting",
-      "dismiss": "Close",
-      "p1": "Find me a gift under €50 delivered in France",
-      "p2": "Compare two trending home products",
-      "p3": "What should I buy for a small apartment?"
+      "eyebrow": "Assistente di shopping",
+      "title": "Chiedi come un professionista",
+      "body": "Descrivi esigenza, budget e paese di consegna. Prova un suggerimento iniziale qui sotto.",
+      "cta": "Inizia a chattare",
+      "dismiss": "Chiudi",
+      "p1": "Trovami un regalo sotto i 50€ consegnato in Francia",
+      "p2": "Confronta due prodotti per la casa di tendenza",
+      "p3": "Cosa dovrei comprare per un piccolo appartamento?"
     }
   },
   "marketplacePulse": {
@@ -4274,7 +4274,7 @@
       "listProduct": "Elenco prodotto",
       "mySales": "Vendite mie",
       "becomeSeller": "Diventa creator",
-      "sellOnAffisell": "Sell on Affisell",
+      "sellOnAffisell": "Vendi su Affisell",
       "becomePartner": "Diventa partner",
       "analytics": "Analitiche",
       "payouts": "Payouts",
@@ -4283,8 +4283,8 @@
       "settings": "Impostazioni",
       "signOut": "Esci",
       "dropforge": "DropForge",
-      "magicLab": "Magic Systems",
-      "affisellStock": "Affisell stock",
+      "magicLab": "Sistemi Magici",
+      "affisellStock": "Magazzino Affisell",
       "battles": "Battles Hub"
     }
   },
@@ -6121,12 +6121,12 @@
     "leaderboardSalesOne": "{count} vendita"
   },
   "cookieBanner": {
-    "aria": "Cookie consent",
-    "body": "We use essential cookies to run Affisell, and audience cookies only with your consent.",
-    "learnMore": "Learn more",
-    "accept": "Accept",
-    "refuse": "Refuse",
-    "configure": "Settings"
+    "aria": "Consenso ai cookie",
+    "body": "Utilizziamo cookie essenziali per il funzionamento di Affisell e cookie di audience solo con il tuo consenso.",
+    "learnMore": "Scopri di più",
+    "accept": "Accetta",
+    "refuse": "Rifiuta",
+    "configure": "Impostazioni"
   },
   "ghostCheckout": {
     "badgeFresh": "Stock verificato {minutes} min fa",
@@ -6196,11 +6196,11 @@
     }
   },
   "globalError": {
-    "eyebrow": "Error",
-    "title": "This page could not load",
-    "body": "Something went wrong on our side. Try again or return home.",
-    "ref": "Ref. {digest}",
-    "retry": "Try again",
+    "eyebrow": "Errore",
+    "title": "Impossibile caricare questa pagina",
+    "body": "Qualcosa è andato storto da parte nostra. Riprova o torna alla home.",
+    "ref": "Rif. {digest}",
+    "retry": "Riprova",
     "home": "Home"
   }
 }

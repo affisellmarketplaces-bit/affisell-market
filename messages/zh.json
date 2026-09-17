@@ -3458,11 +3458,11 @@
   },
   "pwa": {
     "install": {
-      "title": "Install Affisell",
-      "body": "Faster checkout, price alerts, and orders — like a native app.",
-      "cta": "Install",
-      "later": "Not now",
-      "dismiss": "Dismiss install banner"
+      "title": "安装 Affisell",
+      "body": "更快的结账、价格提醒与订单管理 —— 如同原生应用般流畅。",
+      "cta": "安装",
+      "later": "暂不安装",
+      "dismiss": "关闭安装横幅"
     }
   },
   "boutique": {
@@ -3905,7 +3905,7 @@
     "tierPremium": "高级",
     "tierStandard": "标准",
     "tierEconomy": "经济型",
-    "tagExpress": "快递",
+    "tagExpress": "极速",
     "tagTracked": "跟踪",
     "tagPickup": "取货点",
     "tagInternational": "国际",
@@ -3965,14 +3965,14 @@
       "privacy": "隐私",
       "cookies": "Cookie",
       "returns": "退货",
-      "dsaReport": "DSA report",
-      "transparency": "Transparency",
+      "dsaReport": "DSA 报告",
+      "transparency": "透明度",
       "contact": "联系我们"
     },
     "signupConsent": {
-      "acceptCgu": "I accept the <cgu>Terms of use</cgu>",
-      "acceptRoleTerms": "I accept the <terms>{roleTerms}</terms>",
-      "acceptPrivacy": "I accept the <privacy>Privacy policy</privacy>"
+      "acceptCgu": "我接受<cgu>使用条款</cgu>",
+      "acceptRoleTerms": "我接受<terms>{roleTerms}</terms>",
+      "acceptPrivacy": "我接受<privacy>隐私政策</privacy>"
     }
   },
   "legalPages": {
@@ -4213,14 +4213,14 @@
     "heroTitle": "找到。比较。购买。",
     "heroSub": "您的 AI 购物顾问 — 实时搜索市场",
     "coach": {
-      "eyebrow": "Shopping agent",
-      "title": "Ask like a pro",
-      "body": "Describe need, budget, and delivery country. Try a starter prompt below.",
-      "cta": "Start chatting",
-      "dismiss": "Close",
-      "p1": "Find me a gift under €50 delivered in France",
-      "p2": "Compare two trending home products",
-      "p3": "What should I buy for a small apartment?"
+      "eyebrow": "购物助手",
+      "title": "像专业人士一样提问",
+      "body": "描述你的需求、预算与送达国家。试试下方的示例提示。",
+      "cta": "开始聊天",
+      "dismiss": "关闭",
+      "p1": "帮我找一份50欧元以下、可送达法国的礼物",
+      "p2": "对比两款热门家居商品",
+      "p3": "小公寓应该买些什么？"
     }
   },
   "marketplacePulse": {
@@ -4274,7 +4274,7 @@
       "listProduct": "上架产品",
       "mySales": "我的销售",
       "becomeSeller": "成为创作者",
-      "sellOnAffisell": "Sell on Affisell",
+      "sellOnAffisell": "在 Affisell 上销售",
       "becomePartner": "成为合作伙伴",
       "analytics": "分析",
       "payouts": "结算",
@@ -4283,9 +4283,9 @@
       "settings": "设置",
       "signOut": "注销",
       "dropforge": "DropForge",
-      "magicLab": "Magic Systems",
-      "affisellStock": "Affisell stock",
-      "battles": "Battles Hub"
+      "magicLab": "魔法系统",
+      "affisellStock": "Affisell 仓储",
+      "battles": "对战中心"
     }
   },
   "footer": {
@@ -6121,12 +6121,12 @@
     "leaderboardSalesOne": "{count} 笔销售"
   },
   "cookieBanner": {
-    "aria": "Cookie consent",
-    "body": "We use essential cookies to run Affisell, and audience cookies only with your consent.",
-    "learnMore": "Learn more",
-    "accept": "Accept",
-    "refuse": "Refuse",
-    "configure": "Settings"
+    "aria": "Cookie 同意",
+    "body": "我们使用必要的 Cookie 以确保 Affisell 正常运行，受众类 Cookie 仅在获得你同意后使用。",
+    "learnMore": "了解更多",
+    "accept": "接受",
+    "refuse": "拒绝",
+    "configure": "设置"
   },
   "ghostCheckout": {
     "badgeFresh": "库存已于 {minutes} 分钟前核实",
@@ -6196,11 +6196,11 @@
     }
   },
   "globalError": {
-    "eyebrow": "Error",
-    "title": "This page could not load",
-    "body": "Something went wrong on our side. Try again or return home.",
-    "ref": "Ref. {digest}",
-    "retry": "Try again",
-    "home": "Home"
+    "eyebrow": "错误",
+    "title": "此页面无法加载",
+    "body": "我们这边出了点问题。请重试或返回首页。",
+    "ref": "编号 {digest}",
+    "retry": "重试",
+    "home": "首页"
   }
 }

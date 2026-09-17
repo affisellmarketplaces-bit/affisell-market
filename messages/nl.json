@@ -3458,11 +3458,11 @@
   },
   "pwa": {
     "install": {
-      "title": "Install Affisell",
-      "body": "Faster checkout, price alerts, and orders — like a native app.",
-      "cta": "Install",
-      "later": "Not now",
-      "dismiss": "Dismiss install banner"
+      "title": "Affisell installeren",
+      "body": "Snellere checkout, prijswaarschuwingen en bestellingen — als een native app.",
+      "cta": "Installeren",
+      "later": "Niet nu",
+      "dismiss": "Installatiebanner sluiten"
     }
   },
   "boutique": {
@@ -3965,14 +3965,14 @@
       "privacy": "Privacy",
       "cookies": "Cookies",
       "returns": "Terugzendingen",
-      "dsaReport": "DSA report",
-      "transparency": "Transparency",
+      "dsaReport": "DSA-rapport",
+      "transparency": "Transparantie",
       "contact": "Contact"
     },
     "signupConsent": {
-      "acceptCgu": "I accept the <cgu>Terms of use</cgu>",
-      "acceptRoleTerms": "I accept the <terms>{roleTerms}</terms>",
-      "acceptPrivacy": "I accept the <privacy>Privacy policy</privacy>"
+      "acceptCgu": "Ik accepteer de <cgu>gebruiksvoorwaarden</cgu>",
+      "acceptRoleTerms": "Ik accepteer <terms>{roleTerms}</terms>",
+      "acceptPrivacy": "Ik accepteer het <privacy>privacybeleid</privacy>"
     }
   },
   "legalPages": {
@@ -4213,14 +4213,14 @@
     "heroTitle": "Zoek. Vergelijk. Koop.",
     "heroSub": "Uw AI winkeladviseur — zoek de live marktplaats in real-time",
     "coach": {
-      "eyebrow": "Shopping agent",
-      "title": "Ask like a pro",
-      "body": "Describe need, budget, and delivery country. Try a starter prompt below.",
-      "cta": "Start chatting",
-      "dismiss": "Close",
-      "p1": "Find me a gift under €50 delivered in France",
-      "p2": "Compare two trending home products",
-      "p3": "What should I buy for a small apartment?"
+      "eyebrow": "Winkelassistent",
+      "title": "Vraag als een pro",
+      "body": "Beschrijf behoefte, budget en leveringsland. Probeer hieronder een startprompt.",
+      "cta": "Begin met chatten",
+      "dismiss": "Sluiten",
+      "p1": "Zoek een cadeau onder €50 geleverd in Frankrijk",
+      "p2": "Vergelijk twee trending woonproducten",
+      "p3": "Wat moet ik kopen voor een klein appartement?"
     }
   },
   "marketplacePulse": {
@@ -4274,7 +4274,7 @@
       "listProduct": "Een product toevoegen",
       "mySales": "Mijn verkoop",
       "becomeSeller": "Word creator",
-      "sellOnAffisell": "Sell on Affisell",
+      "sellOnAffisell": "Verkopen op Affisell",
       "becomePartner": "Word partner",
       "analytics": "Analyse",
       "payouts": "Uitkeringen",
@@ -4283,8 +4283,8 @@
       "settings": "Instellingen",
       "signOut": "Afmelden",
       "dropforge": "DropForge",
-      "magicLab": "Magic Systems",
-      "affisellStock": "Affisell stock",
+      "magicLab": "Magische Systemen",
+      "affisellStock": "Affisell voorraad",
       "battles": "Battles Hub"
     }
   },
@@ -6121,12 +6121,12 @@
     "leaderboardSalesOne": "{count} verkoop"
   },
   "cookieBanner": {
-    "aria": "Cookie consent",
-    "body": "We use essential cookies to run Affisell, and audience cookies only with your consent.",
-    "learnMore": "Learn more",
-    "accept": "Accept",
-    "refuse": "Refuse",
-    "configure": "Settings"
+    "aria": "Cookietoestemming",
+    "body": "We gebruiken essentiële cookies om Affisell te laten werken, en doelgroepcookies alleen met jouw toestemming.",
+    "learnMore": "Meer informatie",
+    "accept": "Accepteren",
+    "refuse": "Weigeren",
+    "configure": "Instellingen"
   },
   "ghostCheckout": {
     "badgeFresh": "Voorraad {minutes} min geleden gecontroleerd",
@@ -6196,11 +6196,11 @@
     }
   },
   "globalError": {
-    "eyebrow": "Error",
-    "title": "This page could not load",
-    "body": "Something went wrong on our side. Try again or return home.",
+    "eyebrow": "Fout",
+    "title": "Deze pagina kon niet worden geladen",
+    "body": "Er is iets misgegaan aan onze kant. Probeer opnieuw of ga terug naar home.",
     "ref": "Ref. {digest}",
-    "retry": "Try again",
+    "retry": "Opnieuw proberen",
     "home": "Home"
   }
 }

@@ -3458,11 +3458,11 @@
   },
   "pwa": {
     "install": {
-      "title": "Install Affisell",
-      "body": "Faster checkout, price alerts, and orders — like a native app.",
-      "cta": "Install",
-      "later": "Not now",
-      "dismiss": "Dismiss install banner"
+      "title": "Zainstaluj Affisell",
+      "body": "Szybszy checkout, alerty cenowe i zamówienia — jak w natywnej aplikacji.",
+      "cta": "Zainstaluj",
+      "later": "Nie teraz",
+      "dismiss": "Zamknij baner instalacji"
     }
   },
   "boutique": {
@@ -3905,7 +3905,7 @@
     "tierPremium": "Premium",
     "tierStandard": "Standardowa",
     "tierEconomy": "Ekonomiczna",
-    "tagExpress": "Ekspres",
+    "tagExpress": "Ekspresowa",
     "tagTracked": "Śledzony",
     "tagPickup": "Punkt odbioru",
     "tagInternational": "Międzynarodowa",
@@ -3963,16 +3963,16 @@
       "affiliate": "Partner",
       "legalNotice": "Ogłoszenie prawne",
       "privacy": "Ochrona prywatności",
-      "cookies": "Ciasteczka",
+      "cookies": "Pliki cookie",
       "returns": "Zwroty",
-      "dsaReport": "DSA report",
-      "transparency": "Transparency",
+      "dsaReport": "Raport DSA",
+      "transparency": "Przejrzystość",
       "contact": "Kontakt"
     },
     "signupConsent": {
-      "acceptCgu": "I accept the <cgu>Terms of use</cgu>",
-      "acceptRoleTerms": "I accept the <terms>{roleTerms}</terms>",
-      "acceptPrivacy": "I accept the <privacy>Privacy policy</privacy>"
+      "acceptCgu": "Akceptuję <cgu>warunki korzystania</cgu>",
+      "acceptRoleTerms": "Akceptuję <terms>{roleTerms}</terms>",
+      "acceptPrivacy": "Akceptuję <privacy>politykę prywatności</privacy>"
     }
   },
   "legalPages": {
@@ -4213,14 +4213,14 @@
     "heroTitle": "Znajdź. Porównaj. Kup.",
     "heroSub": "Twój AI doradca zakupowy — szukaj żywego marketplace w czasie rzeczywistym",
     "coach": {
-      "eyebrow": "Shopping agent",
-      "title": "Ask like a pro",
-      "body": "Describe need, budget, and delivery country. Try a starter prompt below.",
-      "cta": "Start chatting",
-      "dismiss": "Close",
-      "p1": "Find me a gift under €50 delivered in France",
-      "p2": "Compare two trending home products",
-      "p3": "What should I buy for a small apartment?"
+      "eyebrow": "Asystent zakupowy",
+      "title": "Pytaj jak profesjonalista",
+      "body": "Opisz potrzebę, budżet i kraj dostawy. Wypróbuj poniższą podpowiedź startową.",
+      "cta": "Rozpocznij czat",
+      "dismiss": "Zamknij",
+      "p1": "Znajdź mi prezent poniżej 50€ z dostawą do Francji",
+      "p2": "Porównaj dwa popularne produkty do domu",
+      "p3": "Co powinienem kupić do małego mieszkania?"
     }
   },
   "marketplacePulse": {
@@ -4274,7 +4274,7 @@
       "listProduct": "Dodaj produkt",
       "mySales": "Moje sprzedaże",
       "becomeSeller": "Stań się twórcą",
-      "sellOnAffisell": "Sell on Affisell",
+      "sellOnAffisell": "Sprzedawaj na Affisell",
       "becomePartner": "Stań się partnerem",
       "analytics": "Analiza",
       "payouts": "Płatności",
@@ -4283,8 +4283,8 @@
       "settings": "Ustawienia",
       "signOut": "Wyloguj się",
       "dropforge": "DropForge",
-      "magicLab": "Magic Systems",
-      "affisellStock": "Affisell stock",
+      "magicLab": "Magiczne Systemy",
+      "affisellStock": "Magazyn Affisell",
       "battles": "Battles Hub"
     }
   },
@@ -6121,12 +6121,12 @@
     "leaderboardSalesOne": "{count} sprzedaż"
   },
   "cookieBanner": {
-    "aria": "Cookie consent",
-    "body": "We use essential cookies to run Affisell, and audience cookies only with your consent.",
-    "learnMore": "Learn more",
-    "accept": "Accept",
-    "refuse": "Refuse",
-    "configure": "Settings"
+    "aria": "Zgoda na pliki cookie",
+    "body": "Używamy niezbędnych plików cookie do działania Affisell oraz plików cookie dotyczących odbiorców wyłącznie za Twoją zgodą.",
+    "learnMore": "Dowiedz się więcej",
+    "accept": "Akceptuj",
+    "refuse": "Odrzuć",
+    "configure": "Ustawienia"
   },
   "ghostCheckout": {
     "badgeFresh": "Stan magazynowy sprawdzony {minutes} min temu",
@@ -6196,11 +6196,11 @@
     }
   },
   "globalError": {
-    "eyebrow": "Error",
-    "title": "This page could not load",
-    "body": "Something went wrong on our side. Try again or return home.",
-    "ref": "Ref. {digest}",
-    "retry": "Try again",
-    "home": "Home"
+    "eyebrow": "Błąd",
+    "title": "Nie udało się załadować tej strony",
+    "body": "Coś poszło nie tak po naszej stronie. Spróbuj ponownie lub wróć na stronę główną.",
+    "ref": "Nr ref. {digest}",
+    "retry": "Spróbuj ponownie",
+    "home": "Strona główna"
   }
 }

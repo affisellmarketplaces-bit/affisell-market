@@ -3458,11 +3458,11 @@
   },
   "pwa": {
     "install": {
-      "title": "Install Affisell",
-      "body": "Faster checkout, price alerts, and orders — like a native app.",
-      "cta": "Install",
-      "later": "Not now",
-      "dismiss": "Dismiss install banner"
+      "title": "Affisell installieren",
+      "body": "Schnellerer Checkout, Preisalarme und Bestellungen — wie eine native App.",
+      "cta": "Installieren",
+      "later": "Nicht jetzt",
+      "dismiss": "Installationsbanner schließen"
     }
   },
   "boutique": {
@@ -3965,14 +3965,14 @@
       "privacy": "Datenschutz",
       "cookies": "Cookies",
       "returns": "Rückgaben",
-      "dsaReport": "DSA report",
-      "transparency": "Transparency",
+      "dsaReport": "DSA-Bericht",
+      "transparency": "Transparenz",
       "contact": "Kontakt"
     },
     "signupConsent": {
-      "acceptCgu": "I accept the <cgu>Terms of use</cgu>",
-      "acceptRoleTerms": "I accept the <terms>{roleTerms}</terms>",
-      "acceptPrivacy": "I accept the <privacy>Privacy policy</privacy>"
+      "acceptCgu": "Ich akzeptiere die <cgu>Nutzungsbedingungen</cgu>",
+      "acceptRoleTerms": "Ich akzeptiere die <terms>{roleTerms}</terms>",
+      "acceptPrivacy": "Ich akzeptiere die <privacy>Datenschutzerklärung</privacy>"
     }
   },
   "legalPages": {
@@ -4213,14 +4213,14 @@
     "heroTitle": "Finden. Vergleichen. Kaufen.",
     "heroSub": "Ihr KI-Einkaufsberater — durchsuchen Sie den Live-Marktplatz in Echtzeit",
     "coach": {
-      "eyebrow": "Shopping agent",
-      "title": "Ask like a pro",
-      "body": "Describe need, budget, and delivery country. Try a starter prompt below.",
-      "cta": "Start chatting",
-      "dismiss": "Close",
-      "p1": "Find me a gift under €50 delivered in France",
-      "p2": "Compare two trending home products",
-      "p3": "What should I buy for a small apartment?"
+      "eyebrow": "Einkaufsassistent",
+      "title": "Frag wie ein Profi",
+      "body": "Beschreibe Bedarf, Budget und Lieferland. Probiere unten einen Starter-Prompt.",
+      "cta": "Chat starten",
+      "dismiss": "Schließen",
+      "p1": "Finde mir ein Geschenk unter 50 €, geliefert nach Frankreich",
+      "p2": "Vergleiche zwei angesagte Wohnprodukte",
+      "p3": "Was sollte ich für eine kleine Wohnung kaufen?"
     }
   },
   "marketplacePulse": {
@@ -4274,7 +4274,7 @@
       "listProduct": "Produkt eintragen",
       "mySales": "Meine Verkäufe",
       "becomeSeller": "Werde Kreativ",
-      "sellOnAffisell": "Sell on Affisell",
+      "sellOnAffisell": "Verkaufen auf Affisell",
       "becomePartner": "Werde Partner",
       "analytics": "Analyse",
       "payouts": "Auszahlungen",
@@ -4283,8 +4283,8 @@
       "settings": "Einstellungen",
       "signOut": "Abmelden",
       "dropforge": "DropForge",
-      "magicLab": "Magic Systems",
-      "affisellStock": "Affisell stock",
+      "magicLab": "Magische Systeme",
+      "affisellStock": "Affisell Lager",
       "battles": "Battles Hub"
     }
   },
@@ -6121,12 +6121,12 @@
     "leaderboardSalesOne": "{count} Verkauf"
   },
   "cookieBanner": {
-    "aria": "Cookie consent",
-    "body": "We use essential cookies to run Affisell, and audience cookies only with your consent.",
-    "learnMore": "Learn more",
-    "accept": "Accept",
-    "refuse": "Refuse",
-    "configure": "Settings"
+    "aria": "Cookie-Einwilligung",
+    "body": "Wir verwenden essenzielle Cookies, um Affisell zu betreiben, und Zielgruppen-Cookies nur mit deiner Einwilligung.",
+    "learnMore": "Mehr erfahren",
+    "accept": "Akzeptieren",
+    "refuse": "Ablehnen",
+    "configure": "Einstellungen"
   },
   "ghostCheckout": {
     "badgeFresh": "Bestand vor {minutes} Min. geprüft",
@@ -6196,11 +6196,11 @@
     }
   },
   "globalError": {
-    "eyebrow": "Error",
-    "title": "This page could not load",
-    "body": "Something went wrong on our side. Try again or return home.",
+    "eyebrow": "Fehler",
+    "title": "Diese Seite konnte nicht geladen werden",
+    "body": "Auf unserer Seite ist etwas schiefgelaufen. Versuche es erneut oder kehre zur Startseite zurück.",
     "ref": "Ref. {digest}",
-    "retry": "Try again",
-    "home": "Home"
+    "retry": "Erneut versuchen",
+    "home": "Startseite"
   }
 }
