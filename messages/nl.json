@@ -21,7 +21,7 @@
       "wishlist": "Verlanglijst"
     },
     "affiliate": {
-      "agent": "Sourcing agent",
+      "agent": "Sourcing-agent",
       "agentShort": "Agent",
       "catalog": "Catalogus",
       "dashboard": "Dashboard",
@@ -33,7 +33,7 @@
       "referral": "Verwijzingen",
       "referralShort": "Verwijzen",
       "brandStudio": "Brand Studio",
-      "brandStudioShort": "Brand",
+      "brandStudioShort": "Merk",
       "magicLab": "Magische Systemen",
       "magicLabShort": "Lab"
     },
@@ -65,7 +65,7 @@
     "marketplace": "Marktplaats",
     "trustedStores": "Vertrouwde winkels",
     "trustedStoresShort": "Trust",
-    "resellerStores": "Reseller stores",
+    "resellerStores": "Reseller-winkels",
     "resellerStoresShort": "Reseller",
     "resellerStoresBadge": "WINST LIVE",
     "creatorStores": "Vertrouwde winkels",
@@ -201,7 +201,7 @@
         "description": "Geselecteerde makerwinkels"
       },
       "liveCatalog": {
-        "title": "Live Catalog",
+        "title": "Live catalogus",
         "description": "Producten beschikbaar nu",
         "counterSuffix": "+ producten"
       },
@@ -237,7 +237,7 @@
       "subtitle": "Live veilingen en gecureerde luxe — twee premium werelden."
     },
     "trustHandoff": {
-      "eyebrow": "Premium verticals",
+      "eyebrow": "Premium sectoren",
       "title": "Buiten het standaard catalogus",
       "trustTitle": "Beschermd checkout",
       "trustBody": "Stripe betalingen · verkoper escrow · 14-daagse EU retourneren.",
@@ -249,7 +249,7 @@
     "buyerServices": {
       "sectionBuyer": "Slimmer winkelen op Affisell",
       "sectionDefault": "Meer dan een marktplaats — de Affisell laag",
-      "aria": "Affisell services",
+      "aria": "Affisell-diensten",
       "featuredBadge": "Top",
       "agent": "Winkelagent",
       "agentHint": "AI-adviseur om het juiste product te vinden",
@@ -295,7 +295,7 @@
       "cta": "Maak uw gratis winkel",
       "badgeCreators": "500+ resellers & creators",
       "badgeRevenue": "Gemiddeld 2.400 € per maand",
-      "badgeSetup": "2-min setup"
+      "badgeSetup": "2-min installatie"
     },
     "features": {
       "pick": {
@@ -303,7 +303,7 @@
         "description": "Kies uit 1M+ producten van geverifieerde leveranciers"
       },
       "sync": {
-        "title": "Auto-sync",
+        "title": "Automatische synchronisatie",
         "description": "Prijzen, voorraad, orders worden automatisch gesynchroniseerd"
       },
       "paid": {
@@ -464,7 +464,7 @@
     "account_not_found": "Geen Affisell-account gevonden met deze e-mail.",
     "password_login_unavailable": "Dit account gebruikt sociale aanmelding. Gebruik Google of stel een wachtwoord in via “Wachtwoord vergeten”.",
     "passwordReset": {
-      "secureBadge": "Affisell secure access",
+      "secureBadge": "Beveiligde Affisell-toegang",
       "forgotLink": "Wachtwoord vergeten?",
       "forgotTitle": "Reset uw wachtwoord",
       "forgotSubtitle": "Voer uw account-e-mail in. We sturen een link die geldig is voor 1 uur.",
@@ -959,7 +959,7 @@
     "nichesLabel": "Niche's",
     "categoriesLabel": "Categorieën",
     "allCatalog": "Volledig assortiment",
-    "productCount": "{count, plural, one {# product} other {# products}}",
+    "productCount": "{count, plural, one {# product} other {# producten}}",
     "atStore": " bij ",
     "thisCreator": "deze maker",
     "viewStore": "Winkel bekijken",
@@ -1586,7 +1586,7 @@
       "sendDiscount": "Verstuur 10% korting",
       "sendDiscountLabel": "Korting versturen",
       "customPctPlaceholder": "% invoeren",
-      "startChat": "Start chat",
+      "startChat": "Chat starten",
       "messagePlaceholder": "Typ een bericht…",
       "send": "Verstuur",
       "today": "Vandaag",
@@ -1637,7 +1637,7 @@
       "storefrontUnavailable": "Merkstoregegevens niet beschikbaar",
       "welcomeTitle": "Welkom bij jouw reseller hub",
       "welcomeBody": "Stel hieronder jouw storefront in en verken vervolgens de <catalog>reseller-catalogus</catalog> om je eerste producten toe te voegen.",
-      "metaTitle": "Reseller hub — Swipe | Affisell",
+      "metaTitle": "Reseller-hub — Swipe | Affisell",
       "metaDescription": "Ontdek leveranciers-SKU's, schat marges in en plaats listings in swipe-modus.",
       "hubLoading": "Hub laden…",
       "inStorefrontBadge": "In winkel",
@@ -1913,21 +1913,21 @@
       "categories": "Categorieën",
       "filters": "Filters",
       "categoriesTitle": "Categorieën",
-      "filtersTitle": "Product filters",
+      "filtersTitle": "Productfilters",
       "loading": "Laden…",
       "listingShort": "{count, plural, one {# artikel} other {# artikelen}}",
       "desktopHintTitle": "Op desktop",
       "desktopHintBody": "Gefeatureerde kaarten en trends blijven zichtbaar boven de catalogus.",
       "drawerTitle": "Menu",
-      "tabsAria": "Menu navigation",
-      "tabCategories": "Categories",
+      "tabsAria": "Menunavigatie",
+      "tabCategories": "Categorieën",
       "tabHub": "Affisell Hub",
-      "categoriesEmpty": "Categories unavailable right now.",
-      "browseCategory": "Browse {name}",
-      "seeAllAisles": "See all aisles →",
+      "categoriesEmpty": "Categorieën momenteel niet beschikbaar.",
+      "browseCategory": "{name} bekijken",
+      "seeAllAisles": "Bekijk alle gangpaden →",
       "searchHistory": "Recent",
-      "searchSuggestions": "Suggestions",
-      "searchSwipeHint": "Swipe down to close"
+      "searchSuggestions": "Suggesties",
+      "searchSwipeHint": "Veeg omlaag om te sluiten"
     },
     "departmentRail": {
       "ariaLabel": "Affisell afdelingen",
@@ -1966,7 +1966,7 @@
   "pulse": {
     "brand": "Affisell Pulse",
     "beta": "LIVE",
-    "exit": "Catalog",
+    "exit": "Catalogus",
     "swipeMode": "Swipe",
     "forYou": "Picked for jou",
     "share": "Deel",
@@ -1974,7 +1974,7 @@
     "following": "Volgend",
     "add": "Tas",
     "buyNow": "Nu kopen",
-    "mute": "Mute",
+    "mute": "Dempen",
     "unmute": "Geluid aan",
     "hint": "Swipe · Dubbel-tap om te liken · Shop in één tik",
     "emptyTitle": "Pulse laadt",
@@ -2008,7 +2008,7 @@
       "buyFailed": "Afrekenen mislukt — probeer opnieuw",
       "outOfStock": "Niet op voorraad",
       "coach": {
-        "eyebrow": "Command brief",
+        "eyebrow": "Snelle briefing",
         "title": "Shop Pulse in 5 gebaren",
         "body": "Elke knop doet één ding. Leer één keer — swipe daarna.",
         "padPass": "Door — dit product overslaan",
@@ -2117,7 +2117,7 @@
     "cookiesBody": "Beheer analytics- en marketingcategorieën.",
     "cookiesPolicy": "Cookiebeleid",
     "essentialCookies": "Essentieel (vereist)",
-    "analyticsCookies": "Analytics",
+    "analyticsCookies": "Analyse",
     "marketingCookies": "Marketing",
     "consentSaved": "Voorkeuren opgeslagen.",
     "consentFailed": "Voorkeuren konden niet worden opgeslagen.",
@@ -2322,8 +2322,8 @@
       "autoCancelConsequence": "Verlenging geweigerd of verlopen — annulering + terugbetaling mag doorlopen",
       "ctaShip": "Verzend nu",
       "stockTitleOne": "1 SKU uit voorraad",
-      "stockTitleMany": "{count} SKU stockouts",
-      "stockTitleIdle": "SKU stockouts",
+      "stockTitleMany": "{count} SKU-voorraadtekorten",
+      "stockTitleIdle": "SKU-voorraadtekorten",
       "stockOk": "Voorraad gezond",
       "stockZero": "0 in voorraad",
       "stockRemainingOne": "{count} over",
@@ -2347,7 +2347,7 @@
       "netMargin": "Net winstmarge (schatting)",
       "netMarginTooltip": "Omzet − productkosten − affiliatecommissies",
       "affiliateCommissions": "Affiliatecommissies",
-      "topSku": "Top SKU 7d",
+      "topSku": "Top-SKU 7d",
       "stockoutIn3d": "Op voorraad in 3d",
       "unitsSoldOne": "{count} eenheid verkocht",
       "unitsSoldMany": "{count} eenheden verkocht",
@@ -2575,7 +2575,7 @@
       "subtitle": "Sluit je leverketens aan, volg je catalogus en automatisch kopen — zonder je bestaande orderstromen te wijzigen.",
       "connectorsTitle": "Connectoren",
       "capabilitiesAria": "Connectoren mogelijkheden",
-      "openChannel": "Open",
+      "openChannel": "Openen",
       "footerNote": "Fase 2–3 kanalen worden geactiveerd wanneer API-partnerschappen live gaan. Er wordt geen automatisch kopen uitgelokt vanaf deze pagina.",
       "featured": {
         "eyebrow": "Primair kanaal · Fase 1",
@@ -2593,20 +2593,20 @@
       "status": {
         "live": "Live",
         "connected": "Verbonden",
-        "setup": "Setup",
+        "setup": "Instellen",
         "native": "In-house",
-        "roadmap": "Soon"
+        "roadmap": "Binnenkort"
       },
       "capabilities": {
-        "catalog": "Catalog",
-        "orders": "Orders",
+        "catalog": "Catalogus",
+        "orders": "Bestellingen",
         "negotiate": "RFQ",
         "packaging": "Verpakking"
       },
       "capState": {
         "live": "Beschikbaar",
         "beta": "Beta",
-        "soon": "Soon",
+        "soon": "Binnenkort",
         "off": "—"
       },
       "stats": {
@@ -2622,7 +2622,7 @@
       },
       "channels": {
         "native": {
-          "name": "Affisell stock"
+          "name": "Affisell voorraad"
         },
         "aliexpress": {
           "name": "AliExpress"
@@ -2743,7 +2743,7 @@
     "payout": {
       "yourPayout": "Jouw uitkering",
       "netWholesaleHint": "Katalognetto (partnercommissie al afgetrokken)",
-      "platformFee": "Platform fee −{amount}",
+      "platformFee": "Platformkosten −{amount}",
       "platformFeeTitle": "Affisell fee op de klantregel (ex-BTW) — afkomstig van de betaling van de koper, niet van uw uitbetaling aan de leverancier",
       "partnerCommission": "Partnercommissie −{amount}",
       "partnerCommissionTitle": "Affiliatecommissie op uw catalogusprijs — al afgetrokken van “Uw uitbetaling”",
@@ -2759,9 +2759,9 @@
     "brandStudio": {
       "loading": "Belasting…",
       "affiliateEyebrow": "Creator brand",
-      "supplierEyebrow": "Supplier brand",
+      "supplierEyebrow": "Leveranciersmerk",
       "affiliateTitle": "Brand Studio",
-      "supplierTitle": "Storefront studio",
+      "supplierTitle": "Storefront-studio",
       "affiliateDescription": "Uw openbare winkel op Affisell en op uw eigen domein — banner, kleuren en koppen in één plek.",
       "supplierDescription": "Hoe kopers uw leverancierswinkel zien: banner, merkkleuren en een custom domein.",
       "liveUrl": "Live URL",
@@ -2831,7 +2831,7 @@
         "subdomainActive": "HTTPS actief — jouw eigen URL is klaar voor Google Ads."
       },
       "storeName": "Winkelnaam",
-      "heroBanner": "Hero banner (HTTPS URL)",
+      "heroBanner": "Hero-banner (HTTPS-URL)",
       "tagline": "Tagline / beschrijving",
       "headerColor": "Headerkleur",
       "headerColorHint": "Eén klik om de bovenbalk van jouw storefront te stylen — kopers zien deze op elke pagina.",
@@ -2926,7 +2926,7 @@
             "description": "{name} — performance gear en wellness essentials, dagelijks gecureerd."
           },
           "beauty": {
-            "label": "Beauty & skincare",
+            "label": "Beauty & huidverzorging",
             "hint": "Violet preset, bestsellers + discover CTA",
             "description": "{name} — clean beauty en skincare favorieten voor een stralende huid."
           }
@@ -3233,7 +3233,7 @@
             "desc": "Jouw live productraster."
           },
           "social-proof": {
-            "label": "Social proof",
+            "label": "Sociaal bewijs",
             "desc": "Getuigenis en vertrouwensstat."
           },
           "trust": {
@@ -3343,7 +3343,7 @@
       "nameBadges": {
         "sectionTitle": "Winkelnaam weergeven",
         "sectionHint": "Futuristisch bandje op uw openbare storefront (parallelogram, neon, holografisch, en meer).",
-        "parallelogram": "Parallelogram",
+        "parallelogram": "Parallellogram",
         "parallelogramDesc": "Handtekening scheef band — standaard Affisell uiterlijk.",
         "neonSlab": "Neon slab",
         "neonSlabDesc": "Gloeien parallelogram met accent halo.",
@@ -3351,7 +3351,7 @@
         "holoRibbonDesc": "Animatie cyan / violet gradient.",
         "quantumFold": "Quantum vouw",
         "quantumFoldDesc": "Laagde toekomstige diepte.",
-        "orbitRing": "Orbit ring",
+        "orbitRing": "Orbitring",
         "orbitRingDesc": "Pill vorm met draaiende ring.",
         "chromeBeam": "Chrome straal",
         "chromeBeamDesc": "Metaal scheef, premium contrast.",
@@ -3466,8 +3466,8 @@
     }
   },
   "boutique": {
-    "tagline": "Affiliate storefront",
-    "customDomainTagline": "Official store",
+    "tagline": "Reseller-storefront",
+    "customDomainTagline": "Officiële winkel",
     "subtitle": "Gekochte producten van deze promoter.",
     "empty": "Dit winkel heeft geen actieve producten.",
     "buy": "Nu kopen",
@@ -3667,7 +3667,7 @@
       "waitlistPhoneHint": "Optioneel — ontvang ook een sms zodra er een plek vrijkomt.",
       "waitlistPhoneInvalid": "Voer een geldig mobiel nummer in (bijv. +33 6 12 34 56 78)."
     },
-    "view360": "360° View",
+    "view360": "360°-weergave",
     "premium": "Premium",
     "addToCart": "Toevoegen aan winkelwagen",
     "buyNowOneClick": "Nu met 1-klik kopen",
@@ -3717,7 +3717,7 @@
       "deliveryRange": "{min}–{max} werkdagen"
     },
     "aiSummary": "AI Samenvatting",
-    "reviews": "{count} reviews",
+    "reviews": "{count} beoordelingen",
     "byStore": "van {store}",
     "soldBy": "Verkocht door {seller} · leverancier",
     "curatedByPartner": "Creator partner",
@@ -3731,7 +3731,7 @@
     "storageLabel": "Opslagcapaciteit",
     "priceFluidityNote": "Getoonde prijs kan veranderen voor aankoop.",
     "gallery": {
-      "thumbRail": "Product media",
+      "thumbRail": "Productmedia",
       "fullView": "Volledig overzicht",
       "video": "Video",
       "more": "+{count}",
@@ -3830,7 +3830,7 @@
   },
   "faq": {
     "metaTitle": "Veelgestelde vragen — Affisell",
-    "eyebrow": "Help",
+    "eyebrow": "Hulp",
     "title": "Veelgestelde vragen",
     "description": "Bestellingen, verzending, retourneren en betalen — instant antwoorden voordat u contact opneemt met de support.",
     "sectionOrders": "Bestellingen",
@@ -3955,12 +3955,12 @@
   "legal": {
     "nav": {
       "ariaLabel": "Rechtelijke documenten",
-      "eyebrow": "Affisell — EU marketplace",
+      "eyebrow": "Affisell — EU-marktplaats",
       "lastUpdated": "Laatst bijgewerkt: {date}",
       "cgv": "Verkoopvoorwaarden",
       "cgu": "Gebruiksvoorwaarden",
       "supplier": "Levertijd",
-      "affiliate": "Affiliate",
+      "affiliate": "Reseller",
       "legalNotice": "Rechtelijke kennisgeving",
       "privacy": "Privacy",
       "cookies": "Cookies",
@@ -4117,7 +4117,7 @@
   "contact": {
     "metaTitle": "Contact — Affisell",
     "eyebrow": "Ondersteuning",
-    "title": "Contact Affisell",
+    "title": "Contact met Affisell",
     "description": "Vragen over een bestelling, een retour, of uw cashback-wallet? Stuur ons een e-mail — we antwoorden binnen 2 werkdagen.",
     "emailLabel": "E-mail:",
     "backAccount": "← Terug naar mijn account",
@@ -4233,9 +4233,9 @@
     "becomeCreator": "Word maker"
   },
   "AI": {
-    "pickedForYou": "Picked for you by Affisell AI",
+    "pickedForYou": "Voor jou uitgekozen door Affisell AI",
     "trending": "Trending",
-    "views": "{count} views",
+    "views": "{count} weergaven",
     "add": "Toevoegen",
     "whyRecommended": "Waarom aanbevolen? Affisell AI selectie gebaseerd op trends en uw activiteit.",
     "offerEndsIn": "Aanbod eindigt in {time}"
@@ -4264,7 +4264,7 @@
       "home": "Home",
       "marketplace": "Marktplaats",
       "creatorStores": "Vertrouwde winkels",
-      "resellerStores": "Reseller stores",
+      "resellerStores": "Reseller-winkels",
       "cart": "Winkelwagen",
       "wishlist": "Wensenlijst",
       "auctions": "Veiling Arena",
@@ -4348,7 +4348,7 @@
       "vatNotice": "BTW wordt ingezameld en aangegeven in overeenstemming met toepasselijke regelgeving.",
       "stripeNotice": "Betalingen worden beveiligd door Stripe (kaart, 3D Secure wanneer vereist).",
       "copyright": "© {year} Affisell — {name} — SIRET {siret} —",
-      "odrLink": "EU online dispute resolution",
+      "odrLink": "EU-onlinegeschillenbeslechting",
       "social": {
         "x": "Affisell op X",
         "instagram": "Affisell op Instagram",
@@ -4366,7 +4366,7 @@
     "becomeReseller": "Resellersaccount aanmaken",
     "sellOnAffisell": "Verkopen op Affisell",
     "becomePartner": "Word partner",
-    "helpTitle": "Help",
+    "helpTitle": "Hulp",
     "faq": "FAQ",
     "shipping": "Verzendkosten",
     "returns": "Terugzendingen",
@@ -4395,7 +4395,7 @@
       "exploreCatalog": "Ontdek de catalogus",
       "topCreators": "Top Creators",
       "sellOnAffisell": "Verkopen op Affisell",
-      "liveShopping": "Live Shopping",
+      "liveShopping": "Live shoppen",
       "affiliateProgram": "Affiliate Program",
       "magicSystems": "Magische Systemen"
     },
@@ -4620,7 +4620,7 @@
       "spontaneous": "Zie je je rol niet? Stuur een notitie met wat je zou willen bouwen bij Affisell.",
       "roles": {
         "fullstack-engineer": {
-          "title": "Full-stack Engineer",
+          "title": "Full-stack engineer",
           "summary": "Eigende marketplace-functionaliteiten van Prisma-schema tot gepolijste UI — checkout splits, affiliate tooling, supplier dashboards.",
           "location": "Marseille / Remote EU",
           "type": "Volledig-tijds",
@@ -4646,7 +4646,7 @@
           }
         },
         "supplier-partnerships": {
-          "title": "Supplier Partnerships (B2B)",
+          "title": "Leverancierspartnerschappen (B2B)",
           "summary": "Merken vinden, catalogus opboarden via API of bulk importeren en commissiestructuren co-ontwerpen.",
           "location": "Remote EU",
           "type": "Volledig-tijdse / Contract",
@@ -4664,7 +4664,7 @@
       "metaTitle": "Affisell Perskit",
       "metaDescription": "Mediaresources, bedrijfsfeiten en perscontact voor Affisell — de creator-first marktplaats.",
       "eyebrow": "Pers",
-      "title": "Press Kit",
+      "title": "Perskit",
       "description": "Facts, boilerplate en assets voor journalisten die creator commerce, marktplaatsinfrastructuur en EU retail tech behandelen.",
       "boilerplate": {
         "title": "Bedrijfsprofiel",
@@ -4695,7 +4695,7 @@
         }
       },
       "assets": {
-        "title": "Brand assets",
+        "title": "Merkmateriaal",
         "description": "Stuur een e-mail naar press@affisell.com voor vectorlogos, UI-schermafdrukken en executive bios.",
         "items": {
           "logo": {
@@ -4787,7 +4787,7 @@
     "eyebrow": "Live protocol",
     "title": "Affisell Arena",
     "live": "Live",
-    "back": "Catalog",
+    "back": "Catalogus",
     "subtitle": "Neurale-verkoopvenster · winnaar controleert uit bij hamerprijs",
     "currentBid": "Huidige bod",
     "bids": "Bodden",
@@ -4829,14 +4829,14 @@
     "liveScore": "Plaatsingsscore",
     "target": "Doel",
     "selectedSku": "Actieve SKU",
-    "htPrice": "Wholesale {price}",
+    "htPrice": "Groothandel {price}",
     "noProducts": "Geen geschikte producten.",
     "investment": "Succesfee-aandeel (excl. btw)",
     "successFeeHint": "Wordt alleen in rekening gebracht wanneer een koper betaalt — nooit als abonnement of aanbetaling.",
     "duration": "Promotievenster",
     "placement": {
       "label": "Plaatsing",
-      "HOME_SPOTLIGHT": "Home spotlight",
+      "HOME_SPOTLIGHT": "Homepage-spotlight",
       "CATEGORY_TOP": "Categorie top",
       "SEARCH_BOOST": "Zoekboost"
     },
@@ -4899,7 +4899,7 @@
           "body": "URL, extensie, of API — een ontwerp maken voordat u publiceert."
         },
         "preview": {
-          "title": "Affiliate preview",
+          "title": "Reseller-voorbeeld",
           "body": "Zie de commissie en de controlelijst zoals uw partners dat doen."
         },
         "publish": {
@@ -4917,7 +4917,7 @@
           "body": "Bekijk de lijstbare aanbiedingen en de indicatieve marges."
         },
         "hub": {
-          "title": "Affiliate hub",
+          "title": "Reseller-hub",
           "body": "Inkomsten, lijsten en promotietools."
         },
         "join": {
@@ -4961,7 +4961,7 @@
           "hint": "Supply Hub, importeren, sandbox SKU"
         },
         "affiliate": {
-          "title": "Demo affiliate",
+          "title": "Demo-reseller",
           "hint": "Hub, lijsten, marges op lab SKU"
         },
         "buyer": {
@@ -5087,7 +5087,7 @@
     },
     "trackingLine": "Tracking: {carrier} {number}",
     "carrierDefault": "Vervoerder",
-    "blindBadge": "Blind",
+    "blindBadge": "Anoniem",
     "confirmDelivery": {
       "body": "Ontvangen en tevreden? Bevestig de levering — uitbetalingen aan de verkoper volgen na {confirmDays} dagen. Zonder bevestiging kunnen uitbetalingen nog steeds na {autoDays} dagen na verzending worden vrijgegeven. Uw wettelijk herroepingsrecht blijft gelden tijdens het retourvenster.",
       "cta": "Ontvangst & tevredenheid bevestigen",
@@ -5843,16 +5843,16 @@
         "button": "+ Product aanvragen"
       },
       "new": {
-        "title": "Request a missing product",
-        "subtitle": "Affisell suppliers are alerted instantly.",
-        "backLink": "My requests →",
-        "loading": "Loading…"
+        "title": "Ontbrekend product aanvragen",
+        "subtitle": "Affisell-leveranciers worden direct gewaarschuwd.",
+        "backLink": "Mijn aanvragen →",
+        "loading": "Laden…"
       },
       "list": {
-        "title": "My product requests",
-        "newButton": "New request",
-        "emptyTitle": "No requests yet — create your first",
-        "howItWorks": "How it works",
+        "title": "Mijn productaanvragen",
+        "newButton": "Nieuwe aanvraag",
+        "emptyTitle": "Nog geen aanvragen — maak je eerste aan",
+        "howItWorks": "Zo werkt het",
         "step1": "Je vraagt een product aan dat niet in de catalogus staat",
         "step2": "Leveranciers brengen binnen 2 uur een offerte uit",
         "step3": "Jij vergelijkt en kiest",

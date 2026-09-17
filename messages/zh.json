@@ -63,13 +63,13 @@
     "home": "首页",
     "categoriesEntry": "分类",
     "marketplace": "市场",
-    "trustedStores": "Trusted stores",
-    "trustedStoresShort": "Trusted",
-    "resellerStores": "Reseller stores",
-    "resellerStoresShort": "Resellers",
+    "trustedStores": "可信店铺",
+    "trustedStoresShort": "可信",
+    "resellerStores": "分销商店铺",
+    "resellerStoresShort": "分销商",
     "resellerStoresBadge": "实时利润",
-    "creatorStores": "Trusted stores",
-    "creatorStoresShort": "Trusted",
+    "creatorStores": "可信店铺",
+    "creatorStoresShort": "可信",
     "searchPlaceholder": "搜索产品…",
     "searchLabel": "搜索",
     "cmdKBadge": "⌘K",
@@ -169,21 +169,21 @@
   },
   "home": {
     "meta": {
-      "title": "Trusted stores. Verified products. | Affisell - EU Marketplace",
-      "description": "Shop trusted verified stores. Pan-EU checkout, 33 countries, protected purchase, 14-day EU returns."
+      "title": "可信店铺。已验证商品。| Affisell - 欧盟市场",
+      "description": "在可信的已验证店铺购物。泛欧盟结账，覆盖33个国家，购物保障，欧盟14天退货。"
     },
     "hero": {
-      "title": "Stores you trust.",
-      "titleLine2Prefix": "Products ",
-      "titleHighlight": "verified.",
-      "sub": "Pan-EU checkout · {count} countries · Protected purchase · Secure payment · 14-day EU returns · Verified stores",
-      "subUs": "US & Canada checkout · {count} countries · Protected purchase · Secure payment · 14-day returns · Verified stores",
-      "searchPlaceholder": "Search products, trusted stores…",
-      "searchLabel": "Search products",
-      "searchSubmit": "Search",
-      "cmdKHint": "Quick nav",
-      "ctaPrimary": "Explore trusted stores",
-      "creatorLink": "Are you a reseller? Sell on Affisell →",
+      "title": "值得信赖的店铺。",
+      "titleLine2Prefix": "商品",
+      "titleHighlight": "已验证。",
+      "sub": "泛欧盟结账 · {count} 个国家 · 购物保障 · 安全支付 · 欧盟14天退货 · 已验证店铺",
+      "subUs": "美国与加拿大结账 · {count} 个国家 · 购物保障 · 安全支付 · 14天退货 · 已验证店铺",
+      "searchPlaceholder": "搜索商品、可信店铺……",
+      "searchLabel": "搜索商品",
+      "searchSubmit": "搜索",
+      "cmdKHint": "快速导航",
+      "ctaPrimary": "探索可信店铺",
+      "creatorLink": "你是分销商吗？在 Affisell 上销售 →",
       "badge": "买家保障已启用 • 尊享版",
       "badgeLabel": "买家保障已启用",
       "titlePremium": "发现你会一再光顾的店铺。",
@@ -193,7 +193,7 @@
     },
     "bento": {
       "agentShopping": {
-        "title": "Agent Shopping",
+        "title": "AI 购物代理",
         "description": "AI 为你找到产品"
       },
       "featuredStores": {
@@ -464,7 +464,7 @@
     "account_not_found": "未找到与此邮箱相关的Affisell账户。",
     "password_login_unavailable": "此账户使用社交登录。使用 Google 或通过“忘记密码”设置密码。",
     "passwordReset": {
-      "secureBadge": "Affisell secure access",
+      "secureBadge": "Affisell 安全访问",
       "forgotLink": "忘记密码？",
       "forgotTitle": "重置密码",
       "forgotSubtitle": "输入您的账户邮箱。我们将发送一个有效期为 1 小时的链接。",
@@ -577,7 +577,7 @@
       "signupTitle": "创建客户账户",
       "loginHint": "使用您在 Affisell 购物时使用的电子邮件登录。",
       "signupHint": "创建账户以跟踪订单和管理退货。",
-      "email": "Email",
+      "email": "邮箱",
       "password": "密码",
       "submitLogin": "登录",
       "submitSignup": "创建我的账户",
@@ -634,7 +634,7 @@
       "createTitle": "创建我的Affisell创作者空间",
       "title": "创作者空间",
       "subtitle": "在5分钟内访问目录并启动您的商店",
-      "socialLabel": "TikTok / Instagram handle",
+      "socialLabel": "TikTok / Instagram 账号",
       "socialPlaceholder": "@你的账号",
       "createButton": "创建我的空间",
       "hasAccount": "已经是创作者了吗?",
@@ -648,7 +648,7 @@
       "subtitle": "数千个创作者可以出售你的产品",
       "createButton": "创建我的账户",
       "hasAccount": "已经是合作伙伴了吗?",
-      "signIn": "Sign in",
+      "signIn": "登录",
       "inviteBanner": "本次注册已关联 Affisell 合作伙伴邀请。"
     },
     "affiliateExpress": {
@@ -686,17 +686,17 @@
       }
     },
     "merchantLegal": {
-      "badge": "Affisell verification · Trust Layer",
-      "titleSupplier": "Secure supplier onboarding",
+      "badge": "Affisell 认证 · 信任层",
+      "titleSupplier": "安全的供应商入驻",
       "titleAffiliate": "Secure creator onboarding",
-      "subtitle": "Pick your legal status, upload required documents — activation within 24–48h.",
-      "stepStatus": "Legal status",
-      "stepIdentity": "Identity & business",
-      "stepDocuments": "Required documents",
-      "stepAccount": "Account access",
-      "continue": "Continue",
-      "back": "Back",
-      "submit": "Submit my application",
+      "subtitle": "选择你的法律地位，上传所需文件 —— 24-48小时内完成激活。",
+      "stepStatus": "法律地位",
+      "stepIdentity": "身份与企业信息",
+      "stepDocuments": "所需文件",
+      "stepAccount": "账户访问",
+      "continue": "继续",
+      "back": "返回",
+      "submit": "提交我的申请",
       "documentsHint": "在传输过程中加密 · PDF 或图像 · 最大 8 MB。",
       "required": "必填",
       "optional": "选填",
@@ -713,7 +713,7 @@
       "affiliateKycIdentityHint": "分销商负责精选商品 —— 供应商负责发货。仅需身份证件，无需企业注册信息。",
       "hasAccountSupplier": "已经是合作伙伴吗?",
       "hasAccountAffiliate": "已经是创作者吗?",
-      "signIn": "Sign in",
+      "signIn": "登录",
       "statusParticulierTitle": "个人",
       "statusParticulierSub": "无注册主体的创作者 — 策展合作伙伴，非商品卖方",
       "statusAutoEntrepreneurTitle": "个体工商户",
@@ -794,7 +794,7 @@
     "flexiblePayment": {
       "aria": "在 {count} 次免息分期中支付 {amount} — Klarna 或卡",
       "zeroApr": "0%",
-      "methods": "Klarna · Card"
+      "methods": "Klarna · 银行卡"
     }
   },
   "cart": {
@@ -810,20 +810,20 @@
     "guestAdded": "已添加到购物车",
     "guestAddedBody": "继续购物或在您准备时结账。",
     "colorLabel": "颜色",
-    "sizeLabel": "Size",
+    "sizeLabel": "尺码",
     "verifiedSeller": "Verified Seller",
     "verifiedPartner": "已验证合作伙伴",
     "bySeller": "by {seller}",
     "byPartnerStore": "由 {store} 精选",
-    "view": "View",
-    "yourSelection": "Your selection",
-    "noColorSize": "No color or size recorded for this line — pick options on the product page when you add to cart.",
-    "remove": "Remove",
-    "cashbackAvailable": "Cashback available",
+    "view": "查看",
+    "yourSelection": "你的选择",
+    "noColorSize": "此商品行未记录颜色或尺码 —— 请在加入购物车时于商品页选择选项。",
+    "remove": "移除",
+    "cashbackAvailable": "可获返现",
     "balanceUpToUsable": "余额 {balance} · 可用至 {usable} (€{minCard} 最低卡费将留在订单上).",
-    "applyAtCheckout": "Apply at checkout (EUR)",
-    "max": "Max",
-    "none": "None",
+    "applyAtCheckout": "结账时使用（欧元）",
+    "max": "最大",
+    "none": "无",
     "emailOrPhoneBeforePayment": "Email 或手机需要在付款前 · 购买者账户和返现自动创建",
     "redirecting": "正在重定向…",
     "validatePurchase": "完成购买",
@@ -844,7 +844,7 @@
       "title": "继续使用您的身份",
       "subtitle": "购买者账户自动创建以跟踪订单和返现。",
       "close": "关闭",
-      "emailTab": "Email",
+      "emailTab": "邮箱",
       "phoneTab": "手机",
       "emailLabel": "电子邮件地址",
       "emailPlaceholder": "你@example.com",
@@ -915,7 +915,7 @@
     "cartEmptyBody": "从市场添加项目并结算",
     "startShopping": "开始购物",
     "cartTitle": "您的购物车",
-    "cartPending": "{count, plural, one {# item waiting} other {# items waiting}}",
+    "cartPending": "{count, plural, other {# 件商品待处理}}",
     "backMarketplace": "← 回到市场",
     "push": {
       "title": "推送通知",
@@ -931,10 +931,10 @@
     }
   },
   "shops": {
-    "metaTitle": "Trusted stores — Affisell",
+    "metaTitle": "可信店铺 — Affisell",
     "metaDescription": "浏览Affisell由affiliate创作者创建的商店。",
-    "title": "Trusted stores",
-    "subtitle": "Shop directly from stores you trust",
+    "title": "可信店铺",
+    "subtitle": "直接从你信任的店铺购物",
     "filterAll": "全部",
     "emptyCategory": "该类别下尚无商店。",
     "storeMetaTitle": "{name} — {niche} 商店",
@@ -948,7 +948,7 @@
     "browseCta": "所有商店"
   },
   "discovery": {
-    "eyebrow": "Explore",
+    "eyebrow": "探索",
     "title": "找到你的创作者，然后找到你的产品",
     "subtitle": "每个项目都由认证的合作商店出售 — 根据专长、类别或最喜欢的创作者进行过滤。",
     "fullMarketplace": "全市场",
@@ -959,7 +959,7 @@
     "nichesLabel": "专长",
     "categoriesLabel": "类别",
     "allCatalog": "整个目录",
-    "productCount": "{count, plural, one {# product} other {# products}}",
+    "productCount": "{count, plural, other {# 件商品}}",
     "atStore": " 在 ",
     "thisCreator": "这个创作者",
     "viewStore": "查看商店",
@@ -1581,13 +1581,13 @@
       "title": "访客",
       "close": "关闭",
       "activeNow": "当前活跃",
-      "demoNote": "Demo visitors (preview data)",
-      "cartLeft": "{time} left",
+      "demoNote": "演示访客（预览数据）",
+      "cartLeft": "剩余 {time}",
       "sendDiscount": "发送 10% 折扣",
       "sendDiscountLabel": "发送折扣",
       "customPctPlaceholder": "自定义 %",
       "startChat": "开始聊天",
-      "messagePlaceholder": "Type a message…",
+      "messagePlaceholder": "输入消息…",
       "send": "发送",
       "today": "今天",
       "visitorsToday": "{count, plural, one {# 位访客} other {# 位访客}}",
@@ -1759,11 +1759,11 @@
       "badge": "覆盖全欧盟",
       "eyebrow": "{euCount} 个欧盟市场",
       "title": "欧洲 · one checkout",
-      "subtitle": "Checkout to {count} countries · prices in EUR · VAT calculated at payment",
+      "subtitle": "支持 {count} 个国家结账 · 以欧元计价 · 支付时计算增值税",
       "metricEu": "EU",
-      "metricCountries": "countries",
-      "stripeTax": "VAT",
-      "footnote": "Shipping depends on supplier zone. Filter « European Union » in the sidebar."
+      "metricCountries": "个国家",
+      "stripeTax": "增值税",
+      "footnote": "配送取决于供应商区域。请在侧边栏筛选「欧盟」。"
     },
     "usCoverage": {
       "aria": "北美市场",
@@ -1808,11 +1808,11 @@
       }
     },
     "browse": {
-      "ariaEmbedded": "Explore and shop",
-      "eyebrowBuyer": "Discover · Shop",
-      "eyebrowCatalog": "Catalog · Resell",
-      "titleBuyer": "Marketplace",
-      "titleCatalog": "Product catalog",
+      "ariaEmbedded": "探索与购物",
+      "eyebrowBuyer": "发现 · 购物",
+      "eyebrowCatalog": "目录 · 转售",
+      "titleBuyer": "市场",
+      "titleCatalog": "商品目录",
       "subtitleBuyer": "Live listings from creator stores — search, filter by department, and open a product page.",
       "subtitleCatalog": "浏览供应商清单，比较利润率和交货时间，然后将SKU添加到您的商店。",
       "resetFilters": "重置",
@@ -1898,7 +1898,7 @@
       "graduatedShipsToToastBody": "正在显示可配送至你的商品 —— 可随时在筛选中更改。",
       "viewStores": "浏览商店",
       "listingCount": "{count, plural, one {# 件} other {# 件}}",
-      "listingCountForQuery": " for « {query} »",
+      "listingCountForQuery": " 搜索「{query}」的结果",
       "dbEmptyTitle": "数据库暂时不可用",
       "dbDevHint": "本地开发: 运行 npm run db:local:setup 并在 .env.local 中设置 DATABASE_URL 为 postgresql://affisell:affisell@localhost:5433/affisell",
       "tryPulse": "用 Pulse 购物",
@@ -1919,15 +1919,15 @@
       "desktopHintTitle": "在桌面上",
       "desktopHintBody": "推荐卡片和趋势将始终在目录上方可见。",
       "drawerTitle": "Menu",
-      "tabsAria": "Menu navigation",
-      "tabCategories": "Categories",
+      "tabsAria": "菜单导航",
+      "tabCategories": "分类",
       "tabHub": "Affisell Hub",
-      "categoriesEmpty": "Categories unavailable right now.",
-      "browseCategory": "Browse {name}",
-      "seeAllAisles": "See all aisles →",
-      "searchHistory": "Recent",
-      "searchSuggestions": "Suggestions",
-      "searchSwipeHint": "Swipe down to close"
+      "categoriesEmpty": "分类暂不可用。",
+      "browseCategory": "浏览 {name}",
+      "seeAllAisles": "查看全部分区 →",
+      "searchHistory": "最近",
+      "searchSuggestions": "建议",
+      "searchSwipeHint": "下滑关闭"
     },
     "departmentRail": {
       "ariaLabel": "Affisell 部门",
@@ -1945,7 +1945,7 @@
     "sales": {
       "eyebrowSold": "销售",
       "eyebrowPopular": "热卖",
-      "count": "{count, plural, one {# sale} other {# sales}}",
+      "count": "{count, plural, other {# 笔销售}}",
       "popular": "热门 · {compact}售出"
     },
     "discount": {
@@ -1966,13 +1966,13 @@
   "pulse": {
     "brand": "Affisell Pulse",
     "beta": "LIVE",
-    "exit": "Catalog",
+    "exit": "目录",
     "swipeMode": "Swipe",
     "forYou": "为你精选",
-    "share": "Share",
+    "share": "分享",
     "follow": "关注",
     "following": "正在关注",
-    "add": "Bag",
+    "add": "购物袋",
     "buyNow": "立即购买",
     "mute": "静音",
     "unmute": "声音开启",
@@ -1990,16 +1990,16 @@
       "buyShort": "购买",
       "skip": "下一件商品",
       "skipShort": "跳过",
-      "saveDrop": "Save Drop — wishlist + price alert",
+      "saveDrop": "保存新品 —— 心愿单 + 降价提醒",
       "saveDropPushEnabled": "已开启降价推送提醒",
       "saveDropLoginForPush": "Sign in to get price-drop alerts on this product",
       "saveDropShort": "收藏",
-      "undo": "Product back in stack",
+      "undo": "商品已返回卡片堆",
       "undoShort": "撤回",
-      "rewindOn": "New arrivals done — Rewind mode on",
+      "rewindOn": "新品已浏览完毕 —— 回退模式已开启",
       "rewindBadge": "Rewind",
-      "scrollMode": "Vertical scroll mode",
-      "scrollModeShort": "Scroll",
+      "scrollMode": "垂直滚动模式",
+      "scrollModeShort": "滚动",
       "emptyCategory": "当前{name}分类中暂无商品。",
       "feedLoadFailed": "无法加载feed",
       "genericError": "出现错误",
@@ -2312,17 +2312,17 @@
       "hoursLeftUnder": "< {hours}小时",
       "hoursLeftMinutes": "{minutes} 分钟",
       "hoursLeftUnderOne": "< 1小时",
-      "metricNonePending": "None pending",
-      "metricPaidLate": "Paid · late",
-      "metricPaidSlaIn": "Paid · SLA in {countdown}",
-      "metricPaidWaiting": "Paid · awaiting shipment",
-      "penaltyPerOrder": "Estimated penalty: −{amount}/order",
-      "buyerRatingRisk": "Buyer rating at risk if delayed",
-      "autoCancelRisk": "After 10 days: message buyer or request an extension",
-      "autoCancelConsequence": "Extension refused or expired — cancellation + refund may run",
-      "ctaShip": "Ship now",
-      "stockTitleOne": "1 SKU out of stock",
-      "stockTitleMany": "{count} SKU stockouts",
+      "metricNonePending": "无待处理",
+      "metricPaidLate": "已支付 · 已延误",
+      "metricPaidSlaIn": "已支付 · SLA 剩余 {countdown}",
+      "metricPaidWaiting": "已支付 · 待发货",
+      "penaltyPerOrder": "预估罚金：每单 −{amount}",
+      "buyerRatingRisk": "延误可能影响买家评价",
+      "autoCancelRisk": "10天后：请联系买家或申请延期",
+      "autoCancelConsequence": "延期被拒或已过期 —— 可能触发取消订单并退款",
+      "ctaShip": "立即发货",
+      "stockTitleOne": "1 个 SKU 缺货",
+      "stockTitleMany": "{count} 个 SKU 缺货",
       "stockTitleIdle": "SKU 库存不足",
       "stockOk": "库存健康",
       "stockZero": "0 在库",
@@ -2352,9 +2352,9 @@
       "unitsSoldOne": "{count} 个单位已售",
       "unitsSoldMany": "{count} 个单位已售",
       "stockRemaining": "{stock} 在库存 (~{days}d 左)",
-      "vsPrior": "vs prior 7d",
+      "vsPrior": "对比前7天",
       "stable": "稳定",
-      "naVsPrior": "n/a vs prior 7d"
+      "naVsPrior": "无数据（对比前7天）"
     },
     "weeklyGoal": {
       "revenueLabel": "收入",
@@ -2575,7 +2575,7 @@
       "subtitle": "连接您的供应链，跟踪目录和自动购买——无需更改当前订单流程。",
       "connectorsTitle": "连接器",
       "capabilitiesAria": "供应商中心功能",
-      "openChannel": "Open",
+      "openChannel": "打开",
       "footerNote": "阶段 2–3 通道解锁时 API 合作伙伴上线。从此页面不会触发自动购买。",
       "featured": {
         "eyebrow": "主要渠道 · 第一阶段",
@@ -2598,31 +2598,31 @@
         "roadmap": "即将推出"
       },
       "capabilities": {
-        "catalog": "Catalog",
-        "orders": "Orders",
+        "catalog": "目录",
+        "orders": "订单",
         "negotiate": "RFQ",
-        "packaging": "Pack"
+        "packaging": "打包"
       },
       "capState": {
-        "live": "Available",
+        "live": "可用",
         "beta": "测试版",
-        "soon": "Soon",
+        "soon": "即将推出",
         "off": "—"
       },
       "stats": {
-        "linked": "{count} linked SKUs",
-        "autoBuy": "{count} auto-buy"
+        "linked": "{count} 个已关联 SKU",
+        "autoBuy": "{count} 个自动采购"
       },
       "hints": {
-        "aliexpressPlatform": "Open Platform keys must be configured on the platform (API import).",
-        "aliexpressAutoBuy": "Link listings and enable auto-buy per SKU.",
+        "aliexpressPlatform": "需在平台上配置 Open Platform 密钥（API 导入）。",
+        "aliexpressAutoBuy": "关联商品并为每个 SKU 启用自动采购。",
         "factoryRest": "连接一个工厂/批发商REST API (整合或盲目合作伙伴).",
         "alibaba1688Import": "在「新建商品 → 从链接导入」中粘贴 detail.1688.com 链接 —— 一键生成预填商品信息（OneBound API）。",
         "alibaba1688Key": "添加 ONEBOUND_KEY（环境变量）以启用一键1688导入。"
       },
       "channels": {
         "native": {
-          "name": "Affisell stock"
+          "name": "Affisell 仓储"
         },
         "aliexpress": {
           "name": "AliExpress"
@@ -2660,20 +2660,20 @@
   },
   "supplierOrders": {
     "shipPulse": {
-      "label": "Ship Pulse",
-      "safe": "On track",
-      "urgent": "Ship soon",
-      "critical": "Last hours",
-      "breached": "Deadline passed",
-      "policyTitle": "Ship Pulse™ — 10-day window",
+      "label": "发货脉动",
+      "safe": "进度正常",
+      "urgent": "请尽快发货",
+      "critical": "最后几小时",
+      "breached": "已超过截止时间",
+      "policyTitle": "发货脉动™ —— 10天窗口期",
       "policyBody": "您有 {days} 天的时间添加跟踪信息或与买家联系。如果超过该时间，需要解释延迟并请求额外时间 — 买家同意或拒绝。如果他们拒绝（或在 3 天内未回复），订单可能会被取消并退款。",
-      "policyBadge": "Buyer-approved extensions",
-      "pendingExtension": "Awaiting buyer"
+      "policyBadge": "买家批准的延期",
+      "pendingExtension": "等待买家回应"
     },
     "fulfillment": {
-      "loading": "Loading conversation…",
-      "title": "Buyer conversation",
-      "seller": "You",
+      "loading": "正在加载对话…",
+      "title": "买家对话",
+      "seller": "你",
       "buyer": "买家",
       "noMessages": "暂无消息 — 如果延迟，请与买家联系。",
       "messageLabel": "给买家留言",
@@ -3667,18 +3667,18 @@
       "waitlistPhoneHint": "可选 —— 有空位时额外通过短信通知你。",
       "waitlistPhoneInvalid": "请输入有效的手机号码（如 +33 6 12 34 56 78）。"
     },
-    "view360": "360° View",
+    "view360": "360° 视图",
     "premium": "高级",
-    "addToCart": "Add to Cart",
-    "buyNowOneClick": "Buy Now with 1-Click",
-    "buyNowItem": "Buy this item",
-    "inStock": "In stock",
-    "outOfStock": "Out of stock",
-    "quantity": "Quantity",
-    "quantityOption": "Qty: {count}",
-    "quantityAria": "Select quantity",
-    "howToWear": "How to style",
-    "howToStyleSub": "AI ideas for this pick",
+    "addToCart": "加入购物车",
+    "buyNowOneClick": "一键立即购买",
+    "buyNowItem": "购买此商品",
+    "inStock": "有货",
+    "outOfStock": "缺货",
+    "quantity": "数量",
+    "quantityOption": "数量：{count}",
+    "quantityAria": "选择数量",
+    "howToWear": "搭配方式",
+    "howToStyleSub": "关于此商品的 AI 搭配建议",
     "alertPriceDrop": "价格下降提醒",
     "priceAlertSub": "当价格下降时发送邮件",
     "priceAlertSavedSub": "您已加入价格下降通知列表。",
@@ -3716,7 +3716,7 @@
       "deliveryRangeSingleMany": "{count} 个工作日",
       "deliveryRange": "{min}–{max} 个工作日"
     },
-    "aiSummary": "AI Summary",
+    "aiSummary": "AI 摘要",
     "reviews": "{count} 个评论",
     "byStore": "由 {store}",
     "soldBy": "由 {seller} 销售 · 供应商",
@@ -3745,7 +3745,7 @@
       "desktopHint": "选择缩略图 · 鼠标悬停主图像以放大",
       "colorPreviewHint": "点按颜色以更新预览",
       "hoverZoomHint": "鼠标悬停以放大",
-      "zoomDetailLevel": "{level}% · detail view",
+      "zoomDetailLevel": "{level}% · 细节视图",
       "lightbox": "全屏画廊",
       "close": "关闭",
       "prev": "上一张",
@@ -3830,7 +3830,7 @@
   },
   "faq": {
     "metaTitle": "常见问题 — Affisell",
-    "eyebrow": "Help",
+    "eyebrow": "帮助",
     "title": "常见问题",
     "description": "订单、发货、退货、支付 — 即时答案，避免联系客服。",
     "sectionOrders": "订单",
@@ -3874,8 +3874,8 @@
     "backMarketplace": "← 返回目录"
   },
   "shipping": {
-    "metaTitle": "Shipping — Affisell",
-    "eyebrow": "Shipping",
+    "metaTitle": "配送 — Affisell",
+    "eyebrow": "配送",
     "title": "配送 & 跟踪",
     "description": "由我们的供应商伙伴发货 — 每个步骤都会自动发送跟踪通知。",
     "delaysTitle": "预计交货时间",
@@ -3936,15 +3936,15 @@
   },
   "pages": {
     "trackOrder": {
-      "metaTitle": "Track my order | Affisell",
-      "metaDescription": "Affisell order tracking — status and carrier updates in your customer account.",
-      "eyebrow": "Delivery",
-      "title": "Track my order",
-      "description": "Sign in with your Affisell customer account (same email as checkout) to see status, tracking, and manage a return.",
-      "stepLogin": "Sign in or create a customer account with the email used at checkout.",
-      "stepOrders": "Open “My orders” for details and carrier tracking.",
-      "stepEmail": "A confirmation email is sent at each key step.",
-      "signIn": "Sign in",
+      "metaTitle": "追踪我的订单 | Affisell",
+      "metaDescription": "Affisell 订单追踪 —— 在你的客户账户中查看状态与承运商更新。",
+      "eyebrow": "配送",
+      "title": "追踪我的订单",
+      "description": "使用你的 Affisell 客户账户登录（与结账时相同的邮箱），即可查看状态、物流追踪并管理退货。",
+      "stepLogin": "使用结账时所用的邮箱登录或创建客户账户。",
+      "stepOrders": "打开「我的订单」查看详情与物流追踪。",
+      "stepEmail": "每个关键环节都会发送确认邮件。",
+      "signIn": "登录",
       "createAccount": "创建客户账户",
       "myOrders": "我的订单",
       "contactSupport": "联系支持",
@@ -3955,7 +3955,7 @@
   "legal": {
     "nav": {
       "ariaLabel": "法律文件",
-      "eyebrow": "Affisell — EU marketplace",
+      "eyebrow": "Affisell —— 欧盟市场",
       "lastUpdated": "最后更新: {date}",
       "cgv": "销售条款",
       "cgu": "使用条款",
@@ -3984,16 +3984,16 @@
       "lastUpdated": "最后更新：{date}"
     },
     "accessibility": {
-      "metaTitle": "Accessibility — Affisell",
-      "metaDescription": "Affisell accessibility commitment — keyboard navigation, contrast, user feedback.",
-      "eyebrow": "Accessibility",
-      "title": "Affisell for everyone",
-      "description": "We continuously improve the experience for people with disabilities — on mobile and desktop web.",
-      "commitmentTitle": "Our WCAG commitments",
+      "metaTitle": "无障碍 — Affisell",
+      "metaDescription": "Affisell 无障碍承诺 —— 键盘导航、对比度、用户反馈。",
+      "eyebrow": "无障碍",
+      "title": "人人可用的 Affisell",
+      "description": "我们不断改善残障人士的使用体验 —— 涵盖移动端与桌面端网页。",
+      "commitmentTitle": "我们的 WCAG 承诺",
       "commitments": {
         "perceivable": {
-          "title": "Perceivable",
-          "body": "Stronger contrast, resizable text, visual alternatives on key elements."
+          "title": "可感知性",
+          "body": "更强对比度、可调整文字大小、关键元素的视觉替代方案。"
         },
         "operable": {
           "title": "可操作",
@@ -4263,8 +4263,8 @@
     "items": {
       "home": "首页",
       "marketplace": "市场",
-      "creatorStores": "Trusted stores",
-      "resellerStores": "Reseller stores",
+      "creatorStores": "可信店铺",
+      "resellerStores": "分销商店铺",
       "cart": "购物车",
       "wishlist": "心愿单",
       "auctions": "拍卖场",
@@ -4348,12 +4348,12 @@
       "vatNotice": "根据适用的法规收集和返还 VAT。",
       "stripeNotice": "通过 Stripe 保证支付安全 (卡, 3D Secure 如需)",
       "copyright": "© {year} Affisell — {name} — SIRET {siret} —",
-      "odrLink": "EU online dispute resolution",
+      "odrLink": "欧盟在线争议解决",
       "social": {
-        "x": "Affisell on X",
-        "instagram": "Affisell on Instagram",
-        "tiktok": "Affisell on TikTok",
-        "discord": "Affisell on Discord"
+        "x": "Affisell 的 X",
+        "instagram": "Affisell 的 Instagram",
+        "tiktok": "Affisell 的 TikTok",
+        "discord": "Affisell 的 Discord"
       }
     },
     "about": "本当",
@@ -4368,8 +4368,8 @@
     "becomePartner": "成为合作伙伴",
     "helpTitle": "帮助",
     "faq": "常见问题",
-    "shipping": "Shipping",
-    "returns": "Returns",
+    "shipping": "配送",
+    "returns": "退货",
     "cta": {
       "creator": {
         "title": "成为创作者",
@@ -4418,10 +4418,10 @@
       "copyright": "  {year} 年 Affisell, Inc.  由马赛制作 🇫🇷"
     },
     "social": {
-      "x": "Affisell on X",
-      "instagram": "Affisell on Instagram",
-      "tiktok": "Affisell on TikTok",
-      "discord": "Affisell on Discord"
+      "x": "Affisell 的 X",
+      "instagram": "Affisell 的 Instagram",
+      "tiktok": "Affisell 的 TikTok",
+      "discord": "Affisell 的 Discord"
     }
   },
   "companyPages": {
@@ -4430,7 +4430,7 @@
       "about": "关于",
       "blog": "博客",
       "careers": "职业",
-      "press": "Press Kit"
+      "press": "新闻资料包"
     },
     "stats": {
       "stores": "经销商与创作者店铺",
@@ -4513,7 +4513,7 @@
           "title": "Swipe Feed: 在一个手势中列出产品",
           "excerpt": "Affiliates现在可以用Tinder风格的方式发现目录SKU，通过右滑增加+30%的标记，并且再也不用看到跳过的产品了。",
           "date": "2026-05-19",
-          "category": "Product",
+          "category": "商品",
           "readMin": "4 分钟",
           "sections": {
             "intro": "之前的创作者发现方式意味着无尽的网格滚动。Swipe Feed 将推广来源转变为专注的、移动本土流程——具有撤销、佣金过滤器和三张卡preload堆栈。",
@@ -4584,7 +4584,7 @@
           "sections": {
             "intro": "Affisell 将创作者商业中的运营负担从中去除：无仓库，无手动库存更新，无从头设置付款网关。",
             "s1": {
-              "title": "Catalog → storefront",
+              "title": "目录 → 店面",
               "body": "浏览按专题、佣金或利润率过滤的推广发现目录。Listing Builder 让您自定义标题、图片、SEO slug 和买家现金返利奖励。"
             },
             "s2": {
@@ -4663,8 +4663,8 @@
     "press": {
       "metaTitle": "Affisell 新闻资料包",
       "metaDescription": "媒体资源、公司事实和联系方式为Affisell — 一个以创作者为首的市场平台。",
-      "eyebrow": "Press",
-      "title": "Press Kit",
+      "eyebrow": "新闻",
+      "title": "新闻资料包",
       "description": "Facts, boilerplate and assets for journalists covering creator commerce, marketplace infrastructure and EU retail tech.",
       "boilerplate": {
         "title": "公司简介",
@@ -4810,7 +4810,7 @@
     "back": "目录",
     "subtitle": "精选作品 · 认证创作者 · 有限可见性",
     "badgeLuxe": "Luxe",
-    "badgeCollection": "Collection",
+    "badgeCollection": "系列",
     "prestige": "豪华 {score}",
     "acquire": "获取",
     "viewPiece": "查看作品",
@@ -4845,7 +4845,7 @@
     "quoteMeta": "评分 {score} · {rate}%（不含税） · {days}天",
     "quoteMetaSuccess": "评分 {score} · {rate}%（不含税） · 上线 {days}天 · 按销售付费",
     "payOnSaleBadge": "按销售付费",
-    "boostPower": "Power",
+    "boostPower": "力度",
     "boostPowerAria": "推广评分 {score}",
     "cta": "激活推广位",
     "checkoutError": "无法激活推广位",
@@ -4951,7 +4951,7 @@
       "badge": "沙盒环境运行中",
       "enter": "进入演示",
       "entering": "正在签入…",
-      "disabled": "Demo Lab is off (production without DEMO_LAB_ENABLED=1, or DEMO_LAB_ENABLED=0).",
+      "disabled": "Demo Lab 已关闭（生产环境未设置 DEMO_LAB_ENABLED=1，或 DEMO_LAB_ENABLED=0）。",
       "notConfigured": "在 Vercel → Environment Variables → Preview (并且 Production 如果需要) 中添加 DEMO_LAB_PASSWORD，重新部署后即可启用 Demo Lab。",
       "rateLimited": "尝试次数过多 — 试试几分钟后再试。",
       "signinFailed": "登录失败。检查 demo 配置或重试。",
@@ -5843,16 +5843,16 @@
         "button": "+ 请求商品"
       },
       "new": {
-        "title": "Request a missing product",
-        "subtitle": "Affisell suppliers are alerted instantly.",
-        "backLink": "My requests →",
-        "loading": "Loading…"
+        "title": "请求缺失商品",
+        "subtitle": "Affisell 供应商将立即收到通知。",
+        "backLink": "我的请求 →",
+        "loading": "加载中…"
       },
       "list": {
-        "title": "My product requests",
-        "newButton": "New request",
-        "emptyTitle": "No requests yet — create your first",
-        "howItWorks": "How it works",
+        "title": "我的商品请求",
+        "newButton": "新建请求",
+        "emptyTitle": "暂无请求 —— 创建你的第一个请求",
+        "howItWorks": "运作方式",
         "step1": "你请求目录中没有的商品",
         "step2": "供应商在2小时内提供报价",
         "step3": "你进行比较并做出选择",

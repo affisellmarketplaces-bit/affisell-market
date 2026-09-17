@@ -272,10 +272,10 @@
       "wishlistHint": "Alert di prezzo & favoriti",
       "support": "Assistente del supporto",
       "supportHint": "Ordini, spedizione, resi · 24/7",
-      "auctions": "Auction Arena",
-      "auctionsHint": "Live bids · futuristic drops",
+      "auctions": "Arena delle aste",
+      "auctionsHint": "Offerte live · drop futuristici",
       "luxe": "Affisell Luxe",
-      "luxeHint": "Curated luxury & collections",
+      "luxeHint": "Lusso e collezioni curati",
       "bestSellers": "Più venduti",
       "bestSellersHint": "Top 7 giorni · mazzo live",
       "bestSellersBadge": "7g",
@@ -937,7 +937,7 @@
     "subtitle": "Acquista direttamente da negozi affidabili",
     "filterAll": "Tutti",
     "emptyCategory": "Ancora nessun negozio in questa categoria.",
-    "storeMetaTitle": "{name} — {niche} store",
+    "storeMetaTitle": "{name} — negozio {niche}",
     "storeMetaDescription": "Scopri la selezione {name} di {niche}.",
     "filterAria": "Filtra per nicchia",
     "featuredEmpty": "I creatori stanno aprendo i loro negozi. Controlla di nuovo presto.",
@@ -972,7 +972,7 @@
     "niches": {
       "all": "Tutti",
       "fitness": "Fitness",
-      "tech": "Tech",
+      "tech": "Tecnologia",
       "beauty": "Bellezza",
       "home": "Casa",
       "lifestyle": "Stile di vita"
@@ -1814,8 +1814,8 @@
       "titleBuyer": "Mercato",
       "titleCatalog": "Catalogo di prodotti",
       "subtitleBuyer": "Live listings from creator stores — search, filter by department, and open a product page.",
-      "subtitleCatalog": "Browse supplier listings, compare margins and lead times, then add SKUs to your store.",
-      "resetFilters": "Reset",
+      "subtitleCatalog": "Sfoglia le inserzioni dei fornitori, confronta margini e tempi di consegna, poi aggiungi SKU al tuo negozio.",
+      "resetFilters": "Reimposta",
       "searchCatalog": "Cerca catalogo",
       "searchProduct": "Cerca un prodotto",
       "placeholderCatalog": "Cerca prodotti, marche…",
@@ -1974,7 +1974,7 @@
     "following": "Stai seguendo",
     "add": "Borsa",
     "buyNow": "Acquista ora",
-    "mute": "Mute",
+    "mute": "Muto",
     "unmute": "Suono attivo",
     "hint": "Swipe · Doppio-tocco per piacere · Acquista in un solo tocco",
     "emptyTitle": "Pulse si sta riscaldando",
@@ -1985,7 +1985,7 @@
       "cart": "Aggiungi al carrello",
       "cartShort": "Carrello",
       "cartAdded": "Aggiunto al carrello",
-      "hotBadge": "Hot",
+      "hotBadge": "Di tendenza",
       "buy": "Acquista ora",
       "buyShort": "Acquista",
       "skip": "Prossimo prodotto",
@@ -2008,7 +2008,7 @@
       "buyFailed": "Checkout non riuscito — riprova",
       "outOfStock": "Esaurito",
       "coach": {
-        "eyebrow": "Command brief",
+        "eyebrow": "Istruzioni rapide",
         "title": "Acquista su Pulse in 5 gesti",
         "body": "Ogni pad ha un solo compito. Impara una volta — poi swipe.",
         "padPass": "Passa — salta questo prodotto",
@@ -2325,7 +2325,7 @@
       "stockTitleMany": "{count} SKU stockout",
       "stockTitleIdle": "Stockout SKU",
       "stockOk": "Stock sano",
-      "stockZero": "0 in stock",
+      "stockZero": "0 disponibili",
       "stockRemainingOne": "{count} rimanenti",
       "stockRemainingMany": "{count} rimanenti",
       "ctaRestock": "Ristocca",
@@ -2347,7 +2347,7 @@
       "netMargin": "Margine netto (stima)",
       "netMarginTooltip": "Ricavi − costo dei prodotti − commissioni affiliate",
       "affiliateCommissions": "Commissioni affiliate",
-      "topSku": "Top SKU 7d",
+      "topSku": "Top SKU 7g",
       "stockoutIn3d": "Ritiro in 3d",
       "unitsSoldOne": "{count} unità vendute",
       "unitsSoldMany": "{count} unità vendute",
@@ -2593,9 +2593,9 @@
       "status": {
         "live": "Live",
         "connected": "Connesso",
-        "setup": "Setup",
-        "native": "In-house",
-        "roadmap": "Soon"
+        "setup": "Configurazione",
+        "native": "Interno",
+        "roadmap": "Prossimamente"
       },
       "capabilities": {
         "catalog": "Catalogo",
@@ -2622,7 +2622,7 @@
       },
       "channels": {
         "native": {
-          "name": "Affisell stock"
+          "name": "Magazzino Affisell"
         },
         "aliexpress": {
           "name": "AliExpress"
@@ -3467,7 +3467,7 @@
   },
   "boutique": {
     "tagline": "Affisell storefront",
-    "customDomainTagline": "Official store",
+    "customDomainTagline": "Negozio ufficiale",
     "subtitle": "Prodotti selezionati da questo promotore.",
     "empty": "Questo negozio non ha prodotti attivi.",
     "buy": "Acquista ora",
@@ -3672,7 +3672,7 @@
     "addToCart": "Aggiungi al carrello",
     "buyNowOneClick": "Acquista ora con 1-click",
     "buyNowItem": "Acquista questo articolo",
-    "inStock": "In stock",
+    "inStock": "Disponibile",
     "outOfStock": "Fuori stock",
     "quantity": "Quantità",
     "quantityOption": "Qtà: {count}",
@@ -4267,7 +4267,7 @@
       "resellerStores": "Negozi reseller",
       "cart": "Carrello",
       "wishlist": "Lista desideri",
-      "auctions": "Auction Arena",
+      "auctions": "Arena delle aste",
       "luxe": "Affisell Luxe",
       "myOrders": "Ordini miei",
       "sellerDashboard": "Pannello del venditore",
@@ -4277,7 +4277,7 @@
       "sellOnAffisell": "Vendi su Affisell",
       "becomePartner": "Diventa partner",
       "analytics": "Analitiche",
-      "payouts": "Payouts",
+      "payouts": "Pagamenti",
       "signIn": "Accedi",
       "createBuyerAccount": "Crea account acquirente",
       "settings": "Impostazioni",
@@ -4307,7 +4307,7 @@
       "howSellingWorks": "Come vendere",
       "browseCatalog": "Esplora catalogo",
       "affisellPulse": "Affisell Pulse",
-      "auctions": "Auction Arena",
+      "auctions": "Arena delle aste",
       "battles": "Arena Battles",
       "luxe": "Affisell Luxe",
       "buyerProtection": "Checkout protetto · resi",
@@ -4426,8 +4426,8 @@
   },
   "companyPages": {
     "nav": {
-      "aria": "Company",
-      "about": "About",
+      "aria": "Azienda",
+      "about": "Chi siamo",
       "blog": "Blog",
       "careers": "Carriera",
       "press": "Kit stampa"
@@ -4535,7 +4535,7 @@
           "title": "Trasparenza delle commissioni su ogni ordine",
           "excerpt": "Fornitori, affiliati e acquirenti vedono ora esattamente come si suddividono i prezzi di acquisto al dettaglio, moltiplicazione, tariffe di piattaforma e IVA su ogni riga.",
           "date": "2026-05-12",
-          "category": "Trust",
+          "category": "Fiducia",
           "readMin": "5 min",
           "sections": {
             "intro": "I marketplace opachi nascondono chi guadagna cosa. Affisell esporre il completo breakdown di risoluzione su pagine degli ordini dei fornitori, ricevute degli acquirenti e fatture PDF.",
@@ -4554,19 +4554,19 @@
           }
         },
         "gdpr-marketplace-trust": {
-          "title": "GDPR hub for merchants and buyers",
+          "title": "Hub GDPR per commercianti e acquirenti",
           "excerpt": "Export, delete, cookie preferences and legal consent versioning — native to Affisell accounts, not bolted-on PDFs.",
           "date": "2026-05-05",
-          "category": "Compliance",
+          "category": "Conformità",
           "readMin": "4 min",
           "sections": {
             "intro": "Trust is a product feature. Affisell ships a full GDPR stack: signup consent capture, cookie banner with analytics gating, data export JSON and account deletion flows.",
             "s1": {
-              "title": "Legal document hub",
+              "title": "Hub documenti legali",
               "body": "Terms for buyers, suppliers and affiliates, privacy policy, refund rules and legal notices — all versioned and linked from signup and footer."
             },
             "s2": {
-              "title": "Self-service rights",
+              "title": "Diritti self-service",
               "body": "Merchants and marketplace buyers access /dashboard/account/gdpr or /marketplace/account/gdpr to export their data or request deletion, subject to financial record retention."
             },
             "s3": {
@@ -4600,9 +4600,9 @@
       }
     },
     "careers": {
-      "metaTitle": "Careers at Affisell",
+      "metaTitle": "Carriere in Affisell",
       "metaDescription": "Unisciti al team che sta costruendo il marketplace per creatori — ruoli remoti-friendly in ingegneria, successo dei creatori e partenariati con i fornitori.",
-      "eyebrow": "Careers",
+      "eyebrow": "Carriere",
       "title": "Costruisci l'economia dei creatori con noi",
       "description": "Siamo un piccolo team ossessionato dal prodotto a Marsiglia (ruoli remoti-friendly). Aiutaci a scalare il catalogo dei fornitori, gli strumenti degli affiliati e la fiducia degli acquirenti.",
       "culture": {
@@ -4827,7 +4827,7 @@
     "subtitleSupplier": "Posizionamento premium su tutti i negozi affiliati. Paghi solo una % IVA escl. dopo la chiusura di una vendita — nessun budget anticipato. (Diverso da Légion Battle 2h.)",
     "subtitleAffiliate": "Fai salire il tuo annuncio. La percentuale viene addebitata solo quando un ordine viene pagato. Punteggio di posizionamento in tempo reale.",
     "liveScore": "Punteggio di posizionamento",
-    "target": "Target",
+    "target": "Obiettivo",
     "selectedSku": "SKU attivo",
     "htPrice": "Investimento al dettaglio {price}",
     "noProducts": "Nessun prodotto idoneo.",
@@ -4935,7 +4935,7 @@
           "body": "Flusso di negozio del creatore e pagine dei prodotti."
         },
         "trust": {
-          "title": "Trust",
+          "title": "Fiducia",
           "body": "FAQ sui trasporti, le restituzioni e il pagamento sicuro."
         },
         "account": {

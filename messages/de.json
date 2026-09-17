@@ -966,7 +966,7 @@
     "emptyTitle": "Keine Produkte für diese Filter",
     "emptyBody": "Erweitern Sie Ihre Suche oder browsen Sie den vollständigen Marktplatz.",
     "viewAllProducts": "Alle Produkte anzeigen",
-    "storesSection": "Stores",
+    "storesSection": "Shops",
     "storesTitle": "Ihre Creators auf Affisell",
     "allStores": "Alle Stores →",
     "niches": {
@@ -5087,7 +5087,7 @@
     },
     "trackingLine": "Sendungsverfolgung: {carrier} {number}",
     "carrierDefault": "Spediteur",
-    "blindBadge": "Blind",
+    "blindBadge": "Anonym",
     "confirmDelivery": {
       "body": "Erhalten und zufrieden? Lieferung bestätigen — Auszahlungen an den Verkäufer erfolgen nach {confirmDays} Tagen. Ohne Bestätigung können Auszahlungen dennoch nach {autoDays} Tagen nach Versand freigegeben werden. Ihr gesetzliches Widerrufsrecht bleibt während des Rückgabefensters bestehen.",
       "cta": "Erhalt und Zufriedenheit bestätigen",
@@ -5447,7 +5447,7 @@
       "REFUNDED": "Erstattet (nicht vorrätig)",
       "DEFAULT": "Lieferant"
     },
-    "trackingLabel": "Tracking"
+    "trackingLabel": "Sendungsverfolgung"
   },
   "emails": {
     "shared": {

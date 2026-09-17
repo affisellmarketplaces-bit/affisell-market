@@ -33,7 +33,7 @@
       "referral": "Polecenia",
       "referralShort": "Poleć",
       "brandStudio": "Brand Studio",
-      "brandStudioShort": "Brand",
+      "brandStudioShort": "Marka",
       "magicLab": "Magiczne Systemy",
       "magicLabShort": "Lab"
     },
@@ -193,7 +193,7 @@
     },
     "bento": {
       "agentShopping": {
-        "title": "Agent Shopping",
+        "title": "Zakupy z agentem",
         "description": "AI znajduje produkty dla Ciebie"
       },
       "featuredStores": {
@@ -303,7 +303,7 @@
         "description": "Wybierz z 1M+ produktów od zaufanych dostawców"
       },
       "sync": {
-        "title": "Auto-sync",
+        "title": "Automatyczna synchronizacja",
         "description": "Ceny, magazyn, zamówienia zsynchronizowane automatycznie"
       },
       "paid": {
@@ -577,7 +577,7 @@
       "signupTitle": "Utwórz konto klienta",
       "loginHint": "Zaloguj się za pomocą adresu e-mail, który używałeś przy zakupach na Affisell.",
       "signupHint": "Utwórz konto, aby śledzić zamówienia i zarządzać zwrotem.",
-      "email": "Email",
+      "email": "E-mail",
       "password": "Hasło",
       "submitLogin": "Zaloguj się",
       "submitSignup": "Utwórz konto",
@@ -634,7 +634,7 @@
       "createTitle": "Utwórz moje miejsce twórcy Affisell",
       "title": "Miejsce twórcy",
       "subtitle": "Dostęp do katalogu i uruchomienie sklepu w 5 minut",
-      "socialLabel": "TikTok / Instagram handle",
+      "socialLabel": "Nazwa użytkownika TikTok / Instagram",
       "socialPlaceholder": "@twoj_uzytkownik",
       "createButton": "Utwórz moje miejsce",
       "hasAccount": "Już twórca?",
@@ -915,7 +915,7 @@
     "cartEmptyBody": "Dodaj produkty z rynku do koszyka",
     "startShopping": "Zacznij kupować",
     "cartTitle": "Twoja koszyk",
-    "cartPending": "{count, plural, one {# item waiting} other {# items waiting}}",
+    "cartPending": "{count, plural, one {# przedmiot oczekuje} few {# przedmioty oczekują} many {# przedmiotów oczekuje} other {# przedmiotu oczekuje}}",
     "backMarketplace": "← Powrót do sklepu",
     "push": {
       "title": "Powiadomienia push",
@@ -1582,7 +1582,7 @@
       "close": "Zamknij",
       "activeNow": "Aktywny teraz",
       "demoNote": "Wizualizacja demonstracyjna (dane w wersji próbnej)",
-      "cartLeft": "{time} left",
+      "cartLeft": "Pozostało {time}",
       "sendDiscount": "Wyślij 10% zniżki",
       "sendDiscountLabel": "Wyślij zniżkę",
       "customPctPlaceholder": "% niestandardowy",
@@ -1919,15 +1919,15 @@
       "desktopHintTitle": "Na komputerze",
       "desktopHintBody": "Karty i trendy pozostają widoczne powyżej katalogu.",
       "drawerTitle": "Menu",
-      "tabsAria": "Menu navigation",
-      "tabCategories": "Categories",
+      "tabsAria": "Nawigacja menu",
+      "tabCategories": "Kategorie",
       "tabHub": "Affisell Hub",
-      "categoriesEmpty": "Categories unavailable right now.",
-      "browseCategory": "Browse {name}",
-      "seeAllAisles": "See all aisles →",
-      "searchHistory": "Recent",
-      "searchSuggestions": "Suggestions",
-      "searchSwipeHint": "Swipe down to close"
+      "categoriesEmpty": "Kategorie obecnie niedostępne.",
+      "browseCategory": "Przeglądaj {name}",
+      "seeAllAisles": "Zobacz wszystkie działy →",
+      "searchHistory": "Ostatnie",
+      "searchSuggestions": "Sugestie",
+      "searchSwipeHint": "Przesuń w dół, aby zamknąć"
     },
     "departmentRail": {
       "ariaLabel": "Działy Affisell",
@@ -2008,7 +2008,7 @@
       "buyFailed": "Płatność nieudana — spróbuj ponownie",
       "outOfStock": "Brak w magazynie",
       "coach": {
-        "eyebrow": "Command brief",
+        "eyebrow": "Krótki przewodnik",
         "title": "Kupuj na Pulse w 5 gestach",
         "body": "Każdy przycisk ma jedno zadanie. Naucz się raz — potem swipe.",
         "padPass": "Pomiń — pomiń ten produkt",
@@ -4382,7 +4382,7 @@
         "cta": "Importuj produkty →"
       },
       "agent": {
-        "title": "Agent Shopping",
+        "title": "Zakupy z agentem",
         "text": "Daj AI znaleźć najlepsze oferty",
         "cta": "Spróbuj Agenta →"
       }
@@ -4395,7 +4395,7 @@
       "exploreCatalog": "Odkryj katalog",
       "topCreators": "Najlepsi Twórcy",
       "sellOnAffisell": "Sprzedawaj na Affisell",
-      "liveShopping": "Live Shopping",
+      "liveShopping": "Zakupy na żywo",
       "affiliateProgram": "Program partnerski",
       "magicSystems": "Magiczne Systemy"
     },
@@ -4945,7 +4945,7 @@
       }
     },
     "demoAccounts": {
-      "eyebrow": "Neural access",
+      "eyebrow": "Dostęp neuronowy",
       "title": "Wejdź do sandboxa — jeden przycisk",
       "subtitle": "Pre-built konta demo z katalogiem, zatwierdzonymi procedurami KYC oraz pełnymi panelami sterowania. Brak potrzeby podania karty.",
       "badge": "Sandbox aktywny",
@@ -4958,7 +4958,7 @@
       "personas": {
         "supplier": {
           "title": "Demo dostawca",
-          "hint": "Supply Hub, import, sandbox SKU"
+          "hint": "Supply Hub, import, testowe SKU"
         },
         "affiliate": {
           "title": "Demo partner",
@@ -5843,16 +5843,16 @@
         "button": "+ Poproś o produkt"
       },
       "new": {
-        "title": "Request a missing product",
-        "subtitle": "Affisell suppliers are alerted instantly.",
-        "backLink": "My requests →",
-        "loading": "Loading…"
+        "title": "Poproś o brakujący produkt",
+        "subtitle": "Dostawcy Affisell są natychmiast powiadamiani.",
+        "backLink": "Moje zapytania →",
+        "loading": "Ładowanie…"
       },
       "list": {
-        "title": "My product requests",
-        "newButton": "New request",
-        "emptyTitle": "No requests yet — create your first",
-        "howItWorks": "How it works",
+        "title": "Moje zapytania o produkty",
+        "newButton": "Nowe zapytanie",
+        "emptyTitle": "Jeszcze brak zapytań — utwórz pierwsze",
+        "howItWorks": "Jak to działa",
         "step1": "Prosisz o produkt, którego nie ma w katalogu",
         "step2": "Dostawcy przesyłają ofertę w ciągu 2 godzin",
         "step3": "Porównujesz i wybierasz",

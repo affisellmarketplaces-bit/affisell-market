@@ -272,10 +272,10 @@
       "wishlistHint": "Alertas de precio y favoritos",
       "support": "Asistente de soporte",
       "supportHint": "Pedidos, envío, devoluciones · 24/7",
-      "auctions": "Auction Arena",
-      "auctionsHint": "Live bids · futuristic drops",
+      "auctions": "Arena de subastas",
+      "auctionsHint": "Pujas en vivo · lanzamientos futuristas",
       "luxe": "Affisell Luxe",
-      "luxeHint": "Curated luxury & collections",
+      "luxeHint": "Lujo y colecciones curados",
       "bestSellers": "Más vendidos",
       "bestSellersHint": "Top 7 días · mazo en vivo",
       "bestSellersBadge": "7d",
@@ -595,7 +595,7 @@
       "heroTitle": "Compra y obtén hasta un 20% de devolución",
       "heroSubtitle": "Obtén hasta un 20% de devolución en cada compra",
       "accountTypeLabel": "Tipo de cuenta",
-      "individual": "Individual",
+      "individual": "Particular",
       "professional": "Negocio",
       "companyName": "Nombre de la empresa",
       "siret": "SIRET (Francia)",
@@ -714,7 +714,7 @@
       "hasAccountSupplier": "¿Ya eres un socio?",
       "hasAccountAffiliate": "¿Ya eres un creador?",
       "signIn": "Iniciar sesión",
-      "statusParticulierTitle": "Individual",
+      "statusParticulierTitle": "Particular",
       "statusParticulierSub": "Creador sin negocio registrado — socio curador, no vendedor del producto",
       "statusAutoEntrepreneurTitle": "Autónomo / pequeña empresa",
       "statusAutoEntrepreneurSub": "Autónomo · prueba de URSSAF / INSEE",
@@ -805,7 +805,7 @@
     "explore": "← Explora",
     "itemCount": "{count, plural, one {# item} other {# items}}",
     "itemCountHint": "{count, plural, one {# item} other {# items}} · tus opciones (color, tamaño) están guardadas",
-    "subtotal": "Subtotal ({count, plural, one {# item} other {# items}})",
+    "subtotal": "Subtotal ({count, plural, one {# artículo} other {# artículos}})",
     "guestCheckoutHint": "No se necesita cuenta para agregar items. Al realizar el pago, ingresa tu correo electrónico o móvil — se crea automáticamente tu cuenta de comprador de Affisell.",
     "guestAdded": "Agregado al carrito",
     "guestAddedBody": "Sigue comprando o realiza el pago cuando estés listo.",
@@ -915,7 +915,7 @@
     "cartEmptyBody": "Añade artículos de la plataforma para realizar el pago",
     "startShopping": "Comienza a comprar",
     "cartTitle": "Tu carrito",
-    "cartPending": "{count, plural, one {# item waiting} other {# items waiting}}",
+    "cartPending": "{count, plural, one {# artículo pendiente} other {# artículos pendientes}}",
     "backMarketplace": "← Volver a la tienda",
     "push": {
       "title": "Notificaciones push",
@@ -1940,7 +1940,7 @@
     }
   },
   "product": {
-    "noDescription": "No description.",
+    "noDescription": "Sin descripción.",
     "soldBy": "Vendido a través de la lista · Proveedor: {seller}",
     "sales": {
       "eyebrowSold": "Ventas",
@@ -3667,7 +3667,7 @@
       "waitlistPhoneHint": "Opcional — recibe también un SMS cuando se libere un hueco.",
       "waitlistPhoneInvalid": "Introduce un número de móvil válido (p. ej. +33 6 12 34 56 78)."
     },
-    "view360": "360° View",
+    "view360": "Vista 360°",
     "premium": "Premium",
     "addToCart": "Agregar al carrito",
     "buyNowOneClick": "Comprar ahora con 1-haz clic",
@@ -3936,10 +3936,10 @@
   },
   "pages": {
     "trackOrder": {
-      "metaTitle": "Track my order | Affisell",
-      "metaDescription": "Affisell order tracking — status and carrier updates in your customer account.",
-      "eyebrow": "Delivery",
-      "title": "Track my order",
+      "metaTitle": "Rastrear mi pedido | Affisell",
+      "metaDescription": "Seguimiento de pedidos de Affisell — actualizaciones de estado y transportista en tu cuenta de cliente.",
+      "eyebrow": "Entrega",
+      "title": "Rastrear mi pedido",
       "description": "Inicie sesión con su cuenta de cliente de Affisell (el mismo correo electrónico que en el pago) para ver el estado, el seguimiento y gestionar un reembolso.",
       "stepLogin": "Inicie sesión o cree una cuenta de cliente con el correo electrónico utilizado en el pago.",
       "stepOrders": "Abra “Mis órdenes” para detalles y seguimiento del transportista.",
@@ -4554,23 +4554,23 @@
           }
         },
         "gdpr-marketplace-trust": {
-          "title": "GDPR hub for merchants and buyers",
+          "title": "Centro RGPD para comerciantes y compradores",
           "excerpt": "Export, delete, cookie preferences and legal consent versioning — native to Affisell accounts, not bolted-on PDFs.",
           "date": "2026-05-05",
-          "category": "Compliance",
+          "category": "Cumplimiento",
           "readMin": "4 min",
           "sections": {
             "intro": "Trust is a product feature. Affisell ships a full GDPR stack: signup consent capture, cookie banner with analytics gating, data export JSON and account deletion flows.",
             "s1": {
-              "title": "Legal document hub",
+              "title": "Centro de documentos legales",
               "body": "Terms for buyers, suppliers and affiliates, privacy policy, refund rules and legal notices — all versioned and linked from signup and footer."
             },
             "s2": {
-              "title": "Self-service rights",
+              "title": "Derechos de autoservicio",
               "body": "Merchants and marketplace buyers access /dashboard/account/gdpr or /marketplace/account/gdpr to export their data or request deletion, subject to financial record retention."
             },
             "s3": {
-              "title": "Why it matters",
+              "title": "Por qué es importante",
               "body": "Creator businesses operate across EU markets. Built-in compliance reduces legal risk and signals professionalism to brand partners evaluating your storefront."
             }
           }
@@ -4584,7 +4584,7 @@
           "sections": {
             "intro": "Affisell removes the ops burden from creator commerce: no warehouse, no manual stock updates, no payment gateway setup from scratch.",
             "s1": {
-              "title": "Catalog → storefront",
+              "title": "Catálogo → tienda",
               "body": "Browse the affiliate discovery catalog filtered by niche, commission or margin. Listing Builder lets you customize title, images, SEO slug and buyer cashback rewards."
             },
             "s2": {
@@ -4592,7 +4592,7 @@
               "body": "Custom domains, theme studio, featured collections and live store preview — while Stripe Connect routes supplier wholesale and your markup automatically."
             },
             "s3": {
-              "title": "Start today",
+              "title": "Empieza hoy",
               "body": "Create a free affiliate account, connect payouts, and publish your first listing. Most creators see their first sale within the first week."
             }
           }
@@ -4600,17 +4600,17 @@
       }
     },
     "careers": {
-      "metaTitle": "Careers at Affisell",
+      "metaTitle": "Empleo en Affisell",
       "metaDescription": "Join the team building the creator-first marketplace — remote-friendly roles in engineering, creator success and supplier partnerships.",
-      "eyebrow": "Careers",
+      "eyebrow": "Empleo",
       "title": "Build the creator economy with us",
-      "description": "We're a small, product-obsessed team in Marseille (remote-friendly). Help us scale supplier catalog, affiliate tooling and buyer trust.",
+      "description": "Somos un equipo pequeño y obsesionado con el producto en Marsella (compatible con teletrabajo). Ayúdanos a escalar el catálogo de proveedores, las herramientas de reseller y la confianza del comprador.",
       "culture": {
-        "title": "How we work",
+        "title": "Cómo trabajamos",
         "body": "Affisell is early-stage with production traffic: you'll ship to real merchants weekly, own outcomes end-to-end, and talk directly to creators and suppliers.",
         "perks": {
-          "remote": "Remote-friendly across EU time zones",
-          "impact": "High ownership — no ticket factory",
+          "remote": "Compatible con teletrabajo en todas las zonas horarias de la UE",
+          "impact": "Alta autonomía — nada de fábrica de tickets",
           "stack": "Next.js 16, Prisma, Stripe Connect, Vercel",
           "equity": "Equidad temprana en la empresa"
         }
@@ -4664,7 +4664,7 @@
       "metaTitle": "Kit de prensa de Affisell",
       "metaDescription": "Recursos de medios, hechos de la empresa y contacto de prensa para Affisell — el mercado de creadores.",
       "eyebrow": "Prensa",
-      "title": "Press Kit",
+      "title": "Kit de prensa",
       "description": "Facts, boilerplate and assets for journalists covering creator commerce, marketplace infrastructure and EU retail tech.",
       "boilerplate": {
         "title": "Sobre la empresa",
@@ -4859,7 +4859,7 @@
   },
   "demoLab": {
     "eyebrow": "Affisell Demo Lab",
-    "title": "Try Affisell",
+    "title": "Prueba Affisell",
     "heroSubtitle": "Tres caminos guiados — proveedor, afiliado, comprador. Sin pagos reales. Su retroalimentación moldea lo que enviamos a continuación.",
     "startJourney": "Comienza el viaje",
     "sandboxNotice": "Modo de arena — las órdenes y los pagos no se ejecutan en los raíles de producción en vivo.",
