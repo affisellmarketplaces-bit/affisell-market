@@ -111,16 +111,16 @@
   },
   "slogans": {
     "buyer": {
-      "base": "Stores you trust.",
+      "base": "Winkels die je vertrouwt.",
       "rotatifs": [
-        "Products verified.",
-        "Makers verified.",
-        "Payments protected.",
-        "Returns guaranteed.",
-        "Shops curated.",
-        "Quality assured."
+        "Producten geverifieerd.",
+        "Verkopers geverifieerd.",
+        "Betalingen beschermd.",
+        "Retourneren gegarandeerd.",
+        "Winkels samengesteld.",
+        "Kwaliteit gegarandeerd."
       ],
-      "canonical": "Stores you trust. Products verified."
+      "canonical": "Winkels die je vertrouwt. Producten geverifieerd."
     },
     "reseller": {
       "base": "Turn",
@@ -183,7 +183,13 @@
       "searchSubmit": "Zoeken",
       "cmdKHint": "Snelle navigatie",
       "ctaPrimary": "Ontdek vertrouwde winkels",
-      "creatorLink": "Ben je reseller? Verkoop op Affisell →"
+      "creatorLink": "Ben je reseller? Verkoop op Affisell →",
+      "badge": "Kopersbescherming actief • Premium",
+      "badgeLabel": "Kopersbescherming actief",
+      "titlePremium": "Ontdek winkels waar je graag terugkomt.",
+      "subPremium": "Ontdek producten van vertrouwde winkels. Geverifieerde producten, beveiligde betalingen en EU-kopersbescherming.",
+      "searchPlaceholderPremium": "Zoek winkels, producten, merken...",
+      "searchSubmitPremium": "Producten ontdekken →"
     },
     "bento": {
       "agentShopping": {
@@ -666,6 +672,17 @@
         "noStock": "Zero inventory",
         "noShipping": "Zero shipping",
         "verifyLater": "Verify to publish"
+      },
+      "signingIn": "Veilig aanmelden…",
+      "success": {
+        "badge": "Account geactiveerd",
+        "cta": "Naar mijn winkel",
+        "emailConfirmed": "Aangemeld als {email}",
+        "redirectHint": "Automatische doorverwijzing over {seconds}s…",
+        "storeReady": "Resellerwinkel aangemaakt en beveiligd",
+        "subtitle": "Je resellerwinkel is klaar. Blader door de catalogus en sla je eerste vermelding op in een paar swipes.",
+        "titleFallback": "Account succesvol aangemaakt",
+        "titleNamed": "Welkom, {name}!"
       }
     },
     "merchantLegal": {
@@ -1622,7 +1639,15 @@
       "welcomeBody": "Set up your storefront below, then explore the <catalog>reseller catalog</catalog> to add your first products.",
       "metaTitle": "Reseller hub — Swipe | Affisell",
       "metaDescription": "Discover supplier SKUs, estimate margins, and list in swipe mode.",
-      "hubLoading": "Loading hub…"
+      "hubLoading": "Loading hub…",
+      "inStorefrontBadge": "In winkel",
+      "liveCheckoutBadge": "Live · checkout open",
+      "manageListing": "Vermelding beheren",
+      "previewListing": "Voorbeeld",
+      "storeTabLiveOnly": "Automatisch gepubliceerd bij toevoegen — shoppers kunnen direct afrekenen",
+      "storeTabSummary": "{total, plural, one {# SKU live in je winkel} other {# SKU's live in je winkel}}",
+      "storefrontPulseBody": "{total} SKU's in je winkel · {live} checkout-klaar · {clicks} weergaven · {sales} verkopen (totaal)",
+      "verificationRequiredBadge": "Verificatie vereist"
     },
     "mySelection": "Mijn winkelvermeldingen",
     "selectionHint": "Selecteer producten uit het catalogus en stel je verkoopprijs in.",
@@ -1640,7 +1665,52 @@
     "orderSnippet": "Bestelling {id}",
     "revenueSubtitle": "Afgelopen 30 dagen — geschatte uitkeringen (EUR centen)",
     "revenueLabel": "Uitkering",
-    "revenue30": "Uitkeringsontwikkeling"
+    "revenue30": "Uitkeringsontwikkeling",
+    "settings": {
+      "payouts": {
+        "backEarnings": "Verdienstencockpit",
+        "badge": "Uitbetalingskanaal · Stripe Connect",
+        "bankStatus": {
+          "accountLabel": "Uitbetalingsrekening",
+          "bodyMissing": "Schakel Stripe Connect in om resellermarge op je bankrekening te ontvangen.",
+          "bodyPending": "Stripe heeft aanvullende informatie nodig — voltooi onboarding om overschrijvingen mogelijk te maken.",
+          "bodyReady": "Affisell-uitbetalingen worden naar deze rekening gestuurd zodra een bestelling in aanmerking komt.",
+          "eyebrow": "Bankstatus",
+          "requirementsHint": "Informatie vereist door Stripe — klik op Bijwerken om af te ronden.",
+          "titleMissing": "Geen bankrekening ingesteld",
+          "titlePending": "Stripe-installatie loopt",
+          "titleReady": "Bankrekening gekoppeld"
+        },
+        "description": "Stripe Connect voor automatische bankoverschrijvingen, of PayPal / Wave / bankoverschrijving per land. Gegevens zijn versleuteld — Affisell slaat je IBAN nooit onversleuteld op.",
+        "earningsCardBody": "Stripe Connect is vereist om resellermarge te ontvangen na bevestigde levering.",
+        "earningsCardCta": "Betaalinstellingen openen",
+        "earningsCardTitle": "Stel je uitbetalingsrekening in",
+        "ledgerCta": "Grootboek openen",
+        "ledgerTeaserBody": "Het gedetailleerde grootboek (bestellingen, bedragen, terugvorderingen) staat in het verdienstencockpit.",
+        "ledgerTeaserTitle": "Volg je uitbetalingen",
+        "multiPayout": {
+          "badge": "Alternatieve methoden",
+          "description": "Vul Stripe aan of vervang het, afhankelijk van je land. Elke methode wordt versleuteld en gevalideerd door Affisell vóór de eerste uitbetaling.",
+          "emptyBody": "Voeg PayPal, IBAN-overschrijving of Wave toe om commissies buiten Stripe Connect te ontvangen.",
+          "emptyTitle": "Nog geen alternatieve methode",
+          "title": "PayPal, Wave & bankoverschrijving"
+        },
+        "storeCardBody": "Koppel je IBAN via Stripe Connect om resellerinkomsten automatisch te ontvangen.",
+        "storeCardCta": "Betalingen configureren",
+        "storeCardTitle": "Uitbetalingen & bankrekening",
+        "timeline": {
+          "stepConnectBody": "Stripe Connect Express slaat je IBAN veilig op.",
+          "stepConnectTitle": "Bankrekening gekoppeld",
+          "stepDeliveryBody": "De koper bevestigt ontvangst of vervoerder-tracking bevestigt de levering.",
+          "stepDeliveryTitle": "Levering bevestigd",
+          "stepReleaseBody": "D+{confirmDays} na koperbevestiging (of automatisch D+{autoDays} na bezorging).",
+          "stepReleaseTitle": "Uitbetaling vrijgegeven",
+          "subtitle": "Affisell-uitbetalingskanaal voor resellers — transparant, geautomatiseerd, geen maandelijkse batch.",
+          "title": "Zo word je betaald"
+        },
+        "title": "Betaalmethoden reseller"
+      }
+    }
   },
   "marketplace": {
     "title": "Marktplaats",
@@ -2080,7 +2150,10 @@
       "cgsTitle": "Partner terms (CGS)",
       "cgsBody": "20% commission, influencer law, fair advertising and €5,000/year threshold — required acceptance.",
       "backSignup": "Back to signup",
-      "readCgs": "Read partner terms"
+      "readCgs": "Read partner terms",
+      "ctaConnect": "Mijn bankrekening instellen",
+      "kycDeferredHint": "Geen documenten nodig bij aanmelding — identiteitsverificatie is pas vereist vóór je eerste live vermelding.",
+      "stepConnect": "Betaalmethoden instellen (Stripe)"
     },
     "kycPublish": {
       "badge": "Publish blocked",
@@ -2573,6 +2646,16 @@
           "name": "Handmatig"
         }
       }
+    },
+    "priceShield": {
+      "atLoss": "{count, plural, one {# partnervermelding zou met dit verhoging verlies draaien.} other {# partnervermeldingen zouden met deze verhoging verlies draaien.}}",
+      "bannerBody": "{count, plural, one {Prijsbescherming actief — # actieve reseller: verhogingen geblokkeerd, verlagingen toegestaan.} other {Prijsbescherming actief — # actieve resellers: verhogingen geblokkeerd, verlagingen toegestaan.}}",
+      "body": "{partners, plural, one {# reseller heeft deze SKU live. Roep het product terug uit het netwerk en publiceer het opnieuw om de groothandelsprijs te verhogen.} other {# resellers hebben deze SKU live. Roep het product terug uit het netwerk en publiceer het opnieuw om de groothandelsprijs te verhogen.}}",
+      "cancel": "Annuleren",
+      "decreaseHint": "Prijsverlagingen gelden direct — partners profiteren zonder actie te ondernemen.",
+      "recallCta": "Terugroepen uit netwerk",
+      "recalling": "Terugroepen…",
+      "title": "Groothandelsverhoging geblokkeerd"
     }
   },
   "supplierOrders": {
@@ -3675,7 +3758,19 @@
     "storeOffer": "Winkelaanbieding · {offer}",
     "cashbackPct": "{pct}% cashback",
     "storeBonusPct": "{pct}% winkelbonus",
-    "optionLabel": "Optie"
+    "optionLabel": "Optie",
+    "crossSocialProof": {
+      "activeResellers": "{count, plural, one {# actieve reseller (30d)} other {# actieve resellers (30d)}}",
+      "ariaLabel": "Partnerverkoopactiviteit voor dit product",
+      "avgMargin": "Gem. marge {amount}",
+      "badgeAffiliate": "Live pulse",
+      "badgeStorefront": "Partneractiviteit",
+      "fomoHint": "Affiliates strijden om deze SKU — publiceer snel om vraag te vangen.",
+      "lastSaleShort": "Recente verkoop door {name}",
+      "marginLeaveTableBadge": "🔥 Je laat {amount} liggen",
+      "marginLeaveTableTooltip": "Topresellers verkopen met {top} marge — verhoog je prijs met {left}",
+      "topMargin": "Top {amount}"
+    }
   },
   "Filters": {
     "smartFilters": "Slimme filters",
@@ -5112,13 +5207,21 @@
       "supplierCta": "Set up payouts",
       "affiliateCta": "Enable payouts",
       "supplierKycHint": "Your KYC profile must be approved before catalogue publish.",
-      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront."
+      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront.",
+      "activeBadge": "Stripe Connect actief",
+      "affiliateKycDeferredHint": "Stel Stripe nu in — Affisell-identiteitsdocumenten zijn pas vereist vóór je eerste live vermelding.",
+      "completeKycCta": "KYC-verificatie voltooien",
+      "redirecting": "Doorverwijzen…",
+      "syncing": "Synchroniseren…",
+      "updateBankCta": "Bankgegevens bijwerken"
     },
     "pulseHub": {
       "paidOutFootnote": "Net of recorded payouts and any clawbacks — see activity below.",
       "supplierBandHint": "Wholesale value of units sold in this window (before platform payout timing).",
       "emptyLedger": "No payout entries yet — they appear when orders pass shipment / delivery steps.",
-      "ledgerTitle": "Payout ledger"
+      "ledgerTitle": "Payout ledger",
+      "commissionLabel": "Mijn commissie",
+      "marginLabel": "Mijn marge (vrij)"
     }
   },
   "browseCategory": {
@@ -5540,7 +5643,14 @@
     "emptyTitle": "Paste a URL — DropForge builds the preview here",
     "emptyBody": "Title, images, source cost and sell price appear after Forge. Create your reseller account in one click to push it to your shop.",
     "productName": "DropForge",
-    "productTag": "Affisell · DropForge"
+    "productTag": "Affisell · DropForge",
+    "affiliateBecomeSupplier": "Word leverancier & publiceer",
+    "autoCommitDraft": "Account gereed — DropForge-concept wordt aangemaakt…",
+    "autoCommitLive": "Account gereed — publiceren in catalogus…",
+    "bridgeBusy": "Express Bridge actief — voltooi opname op AliExpress…",
+    "guestRedirectDraft": "Doorverwijzen naar leveranciersregistratie — concept in wachtrij…",
+    "guestRedirectLive": "Doorverwijzen naar leveranciersregistratie — publicatie in wachtrij…",
+    "refineOk": "Co-Pilot: {count} update(s) toegepast"
   },
   "productRequests": {
     "categories": {

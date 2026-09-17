@@ -111,16 +111,16 @@
   },
   "slogans": {
     "buyer": {
-      "base": "Stores you trust.",
+      "base": "Sklepy, którym ufasz.",
       "rotatifs": [
-        "Products verified.",
-        "Makers verified.",
-        "Payments protected.",
-        "Returns guaranteed.",
-        "Shops curated.",
-        "Quality assured."
+        "Produkty zweryfikowane.",
+        "Sprzedawcy zweryfikowani.",
+        "Płatności chronione.",
+        "Zwroty gwarantowane.",
+        "Sklepy wyselekcjonowane.",
+        "Jakość gwarantowana."
       ],
-      "canonical": "Stores you trust. Products verified."
+      "canonical": "Sklepy, którym ufasz. Produkty zweryfikowane."
     },
     "reseller": {
       "base": "Turn",
@@ -183,7 +183,13 @@
       "searchSubmit": "Szukaj",
       "cmdKHint": "Szybka nawigacja",
       "ctaPrimary": "Przeglądaj zaufane sklepy",
-      "creatorLink": "Jesteś resellerem? Sprzedawaj na Affisell →"
+      "creatorLink": "Jesteś resellerem? Sprzedawaj na Affisell →",
+      "badge": "Ochrona kupującego włączona • Premium",
+      "badgeLabel": "Ochrona kupującego włączona",
+      "titlePremium": "Odkryj sklepy, do których będziesz wracać.",
+      "subPremium": "Odkrywaj produkty ze sprawdzonych sklepów. Zweryfikowane produkty, chronione płatności i ochrona kupującego w UE.",
+      "searchPlaceholderPremium": "Szukaj sklepów, produktów, marek...",
+      "searchSubmitPremium": "Odkryj produkty →"
     },
     "bento": {
       "agentShopping": {
@@ -666,6 +672,17 @@
         "noStock": "Zero inventory",
         "noShipping": "Zero shipping",
         "verifyLater": "Verify to publish"
+      },
+      "signingIn": "Bezpieczne logowanie…",
+      "success": {
+        "badge": "Konto aktywowane",
+        "cta": "Przejdź do mojego sklepu",
+        "emailConfirmed": "Zalogowano jako {email}",
+        "redirectHint": "Automatyczne przekierowanie za {seconds}s…",
+        "storeReady": "Sklep resellera utworzony i zabezpieczony",
+        "subtitle": "Twój sklep resellera jest gotowy. Przeglądaj katalog i zapisz swoją pierwszą ofertę w kilku ruchach.",
+        "titleFallback": "Konto zostało utworzone",
+        "titleNamed": "Witaj, {name}!"
       }
     },
     "merchantLegal": {
@@ -1622,7 +1639,15 @@
       "welcomeBody": "Set up your storefront below, then explore the <catalog>reseller catalog</catalog> to add your first products.",
       "metaTitle": "Reseller hub — Swipe | Affisell",
       "metaDescription": "Discover supplier SKUs, estimate margins, and list in swipe mode.",
-      "hubLoading": "Loading hub…"
+      "hubLoading": "Loading hub…",
+      "inStorefrontBadge": "W sklepie",
+      "liveCheckoutBadge": "Na żywo · płatność dostępna",
+      "manageListing": "Zarządzaj ofertą",
+      "previewListing": "Podgląd",
+      "storeTabLiveOnly": "Publikowane automatycznie po dodaniu — kupujący mogą od razu dokonać zakupu",
+      "storeTabSummary": "{total, plural, one {# SKU aktywne w Twoim sklepie} other {# SKU aktywnych w Twoim sklepie}}",
+      "storefrontPulseBody": "{total} SKU w Twoim sklepie · {live} gotowych do zakupu · {clicks} wyświetleń · {sales} sprzedaży (łącznie)",
+      "verificationRequiredBadge": "Wymagana weryfikacja"
     },
     "mySelection": "Moje oferty na stronie sklepu",
     "selectionHint": "Wybierz produkty z katalogu i ustal cenę detaliczną.",
@@ -1640,7 +1665,52 @@
     "orderSnippet": "Zamówienie {id}",
     "revenueSubtitle": "Ostatnie 30 dni — szacunkowa wypłata (EUR centy)",
     "revenueLabel": "Płatność",
-    "revenue30": "Trend płatności"
+    "revenue30": "Trend płatności",
+    "settings": {
+      "payouts": {
+        "backEarnings": "Panel zarobków",
+        "badge": "Kanał wypłat · Stripe Connect",
+        "bankStatus": {
+          "accountLabel": "Konto wypłat",
+          "bodyMissing": "Włącz Stripe Connect, aby otrzymywać marżę resellera na swoje konto bankowe.",
+          "bodyPending": "Stripe wymaga dodatkowych informacji — dokończ onboarding, aby włączyć przelewy.",
+          "bodyReady": "Wypłaty Affisell trafią na to konto, gdy zamówienie będzie kwalifikować się do wypłaty.",
+          "eyebrow": "Status konta bankowego",
+          "requirementsHint": "Informacje wymagane przez Stripe — kliknij Aktualizuj, aby zakończyć.",
+          "titleMissing": "Brak skonfigurowanego konta bankowego",
+          "titlePending": "Konfiguracja Stripe w toku",
+          "titleReady": "Konto bankowe połączone"
+        },
+        "description": "Stripe Connect do automatycznych przelewów bankowych lub PayPal / Wave / przelew bankowy w zależności od kraju. Dane są szyfrowane — Affisell nigdy nie przechowuje Twojego IBAN jawnym tekstem.",
+        "earningsCardBody": "Stripe Connect jest wymagany, aby otrzymać marżę resellera po potwierdzeniu dostawy.",
+        "earningsCardCta": "Otwórz ustawienia płatności",
+        "earningsCardTitle": "Skonfiguruj konto wypłat",
+        "ledgerCta": "Otwórz rejestr",
+        "ledgerTeaserBody": "Szczegółowy rejestr (zamówienia, kwoty, zwroty) znajduje się w panelu zarobków.",
+        "ledgerTeaserTitle": "Śledź swoje wypłaty",
+        "multiPayout": {
+          "badge": "Metody alternatywne",
+          "description": "Uzupełnij lub zastąp Stripe w zależności od kraju. Każda metoda jest szyfrowana i weryfikowana przez Affisell przed pierwszą wypłatą.",
+          "emptyBody": "Dodaj PayPal, przelew IBAN lub Wave, aby otrzymywać prowizje poza Stripe Connect.",
+          "emptyTitle": "Brak metody alternatywnej",
+          "title": "PayPal, Wave i przelew bankowy"
+        },
+        "storeCardBody": "Połącz swój IBAN przez Stripe Connect, aby automatycznie otrzymywać zarobki resellera.",
+        "storeCardCta": "Skonfiguruj płatności",
+        "storeCardTitle": "Wypłaty i konto bankowe",
+        "timeline": {
+          "stepConnectBody": "Stripe Connect Express bezpiecznie przechowuje Twój IBAN.",
+          "stepConnectTitle": "Konto bankowe połączone",
+          "stepDeliveryBody": "Kupujący potwierdza odbiór lub śledzenie przesyłki potwierdza dostawę.",
+          "stepDeliveryTitle": "Dostawa potwierdzona",
+          "stepReleaseBody": "D+{confirmDays} po potwierdzeniu przez kupującego (lub automatycznie D+{autoDays} po dostawie).",
+          "stepReleaseTitle": "Wypłata uwolniona",
+          "subtitle": "Kanał wypłat Affisell dla resellerów — przejrzysty, zautomatyzowany, bez comiesięcznych zbiorczych wypłat.",
+          "title": "Jak otrzymujesz wypłatę"
+        },
+        "title": "Metody płatności resellera"
+      }
+    }
   },
   "marketplace": {
     "title": "Rynek",
@@ -2080,7 +2150,10 @@
       "cgsTitle": "Partner terms (CGS)",
       "cgsBody": "20% commission, influencer law, fair advertising and €5,000/year threshold — required acceptance.",
       "backSignup": "Back to signup",
-      "readCgs": "Read partner terms"
+      "readCgs": "Read partner terms",
+      "ctaConnect": "Skonfiguruj moje konto bankowe",
+      "kycDeferredHint": "Brak dokumentów przy rejestracji — weryfikacja tożsamości jest wymagana dopiero przed pierwszą aktywną ofertą.",
+      "stepConnect": "Skonfiguruj metody płatności (Stripe)"
     },
     "kycPublish": {
       "badge": "Publish blocked",
@@ -2573,6 +2646,16 @@
           "name": "Ręczne"
         }
       }
+    },
+    "priceShield": {
+      "atLoss": "{count, plural, one {# oferta partnera sprzedawałaby się ze stratą przy tej podwyżce.} other {# ofert partnerów sprzedawałoby się ze stratą przy tej podwyżce.}}",
+      "bannerBody": "{count, plural, one {Ochrona ceny aktywna — # aktywny reseller: podwyżki zablokowane, obniżki dozwolone.} other {Ochrona ceny aktywna — # aktywnych resellerów: podwyżki zablokowane, obniżki dozwolone.}}",
+      "body": "{partners, plural, one {# reseller aktywnie sprzedaje ten SKU. Wycofaj produkt z sieci, a następnie opublikuj go ponownie, aby podnieść cenę hurtową.} other {# resellerów aktywnie sprzedaje ten SKU. Wycofaj produkt z sieci, a następnie opublikuj go ponownie, aby podnieść cenę hurtową.}}",
+      "cancel": "Anuluj",
+      "decreaseHint": "Obniżki cen obowiązują natychmiast — partnerzy korzystają na tym bez żadnych działań.",
+      "recallCta": "Wycofaj z sieci",
+      "recalling": "Wycofywanie…",
+      "title": "Podwyżka hurtowa zablokowana"
     }
   },
   "supplierOrders": {
@@ -3675,7 +3758,19 @@
     "storeOffer": "Oferta sklepu · {offer}",
     "cashbackPct": "{pct}% cashback",
     "storeBonusPct": "{pct}% bonus sklepu",
-    "optionLabel": "Opcja"
+    "optionLabel": "Opcja",
+    "crossSocialProof": {
+      "activeResellers": "{count, plural, one {# aktywny reseller (30d)} other {# aktywnych resellerów (30d)}}",
+      "ariaLabel": "Aktywność sprzedażowa partnerów dla tego produktu",
+      "avgMargin": "Śr. marża {amount}",
+      "badgeAffiliate": "Puls na żywo",
+      "badgeStorefront": "Aktywność partnerów",
+      "fomoHint": "Afilianci rywalizują o ten produkt — publikuj szybko, aby uchwycić popyt.",
+      "lastSaleShort": "Ostatnia sprzedaż: {name}",
+      "marginLeaveTableBadge": "🔥 Zostawiasz {amount} na stole",
+      "marginLeaveTableTooltip": "Najlepsi resellerzy sprzedają z marżą {top} — podnieś cenę o {left}",
+      "topMargin": "Top {amount}"
+    }
   },
   "Filters": {
     "smartFilters": "Smart Filtry",
@@ -5112,13 +5207,21 @@
       "supplierCta": "Set up payouts",
       "affiliateCta": "Enable payouts",
       "supplierKycHint": "Your KYC profile must be approved before catalogue publish.",
-      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront."
+      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront.",
+      "activeBadge": "Stripe Connect aktywny",
+      "affiliateKycDeferredHint": "Skonfiguruj Stripe teraz — dokumenty tożsamości Affisell są wymagane dopiero przed pierwszą aktywną ofertą.",
+      "completeKycCta": "Zakończ weryfikację KYC",
+      "redirecting": "Przekierowywanie…",
+      "syncing": "Synchronizacja…",
+      "updateBankCta": "Zaktualizuj dane bankowe"
     },
     "pulseHub": {
       "paidOutFootnote": "Net of recorded payouts and any clawbacks — see activity below.",
       "supplierBandHint": "Wholesale value of units sold in this window (before platform payout timing).",
       "emptyLedger": "No payout entries yet — they appear when orders pass shipment / delivery steps.",
-      "ledgerTitle": "Payout ledger"
+      "ledgerTitle": "Payout ledger",
+      "commissionLabel": "Moja prowizja",
+      "marginLabel": "Moja marża (dowolna)"
     }
   },
   "browseCategory": {
@@ -5540,7 +5643,14 @@
     "emptyTitle": "Paste a URL — DropForge builds the preview here",
     "emptyBody": "Title, images, source cost and sell price appear after Forge. Create your reseller account in one click to push it to your shop.",
     "productName": "DropForge",
-    "productTag": "Affisell · DropForge"
+    "productTag": "Affisell · DropForge",
+    "affiliateBecomeSupplier": "Zostań dostawcą i publikuj",
+    "autoCommitDraft": "Konto gotowe — tworzenie szkicu DropForge…",
+    "autoCommitLive": "Konto gotowe — publikowanie w katalogu…",
+    "bridgeBusy": "Express Bridge aktywny — dokończ przechwytywanie na AliExpress…",
+    "guestRedirectDraft": "Przekierowanie do rejestracji dostawcy — szkic w kolejce…",
+    "guestRedirectLive": "Przekierowanie do rejestracji dostawcy — publikacja w kolejce…",
+    "refineOk": "Co-Pilot: zastosowano {count} aktualizacj(e/i)"
   },
   "productRequests": {
     "categories": {

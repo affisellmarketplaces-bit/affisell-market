@@ -183,7 +183,13 @@
       "searchSubmit": "Search",
       "cmdKHint": "Quick nav",
       "ctaPrimary": "Explore trusted stores",
-      "creatorLink": "Are you a reseller? Sell on Affisell →"
+      "creatorLink": "Are you a reseller? Sell on Affisell →",
+      "badge": "买家保障已启用 • 尊享版",
+      "badgeLabel": "买家保障已启用",
+      "titlePremium": "发现你会一再光顾的店铺。",
+      "subPremium": "探索来自可信店铺的商品。商品已验证，支付有保障，享受欧盟买家保护。",
+      "searchPlaceholderPremium": "搜索店铺、商品、品牌...",
+      "searchSubmitPremium": "探索商品 →"
     },
     "bento": {
       "agentShopping": {
@@ -666,6 +672,17 @@
         "noStock": "Zero inventory",
         "noShipping": "Zero shipping",
         "verifyLater": "Verify to publish"
+      },
+      "signingIn": "正在安全登录…",
+      "success": {
+        "badge": "账户已激活",
+        "cta": "进入我的店铺",
+        "emailConfirmed": "已以 {email} 身份登录",
+        "redirectHint": "{seconds} 秒后自动跳转…",
+        "storeReady": "分销商店铺已创建并完成安全保护",
+        "subtitle": "你的分销店铺已就绪。浏览商品目录，几步滑动即可保存你的第一个商品。",
+        "titleFallback": "账户创建成功",
+        "titleNamed": "欢迎你，{name}！"
       }
     },
     "merchantLegal": {
@@ -1622,7 +1639,15 @@
       "welcomeBody": "Set up your storefront below, then explore the <catalog>reseller catalog</catalog> to add your first products.",
       "metaTitle": "Reseller hub — Swipe | Affisell",
       "metaDescription": "Discover supplier SKUs, estimate margins, and list in swipe mode.",
-      "hubLoading": "Loading hub…"
+      "hubLoading": "Loading hub…",
+      "inStorefrontBadge": "已上架店铺",
+      "liveCheckoutBadge": "已上线 · 可结账",
+      "manageListing": "管理商品",
+      "previewListing": "预览",
+      "storeTabLiveOnly": "添加后自动上架——买家可立即结账",
+      "storeTabSummary": "{total, plural, other {店铺内已上架 # 个商品}}",
+      "storefrontPulseBody": "店铺共 {total} 个商品 · {live} 个可结账 · {clicks} 次浏览 · 累计 {sales} 笔销售",
+      "verificationRequiredBadge": "需要验证"
     },
     "mySelection": "我的商店前台商品",
     "selectionHint": "从商品目录中选择商品并设置您的零售价格。",
@@ -1640,7 +1665,52 @@
     "orderSnippet": "订单{id}",
     "revenueSubtitle": "最近 30 天 — 预估付款 (欧元分)",
     "revenueLabel": "佣金",
-    "revenue30": "佣金趋势"
+    "revenue30": "佣金趋势",
+    "settings": {
+      "payouts": {
+        "backEarnings": "收益控制台",
+        "badge": "付款渠道 · Stripe Connect",
+        "bankStatus": {
+          "accountLabel": "收款账户",
+          "bodyMissing": "启用 Stripe Connect 以将分销利润存入你的银行账户。",
+          "bodyPending": "Stripe 需要更多信息——请完成入驻流程以启用转账。",
+          "bodyReady": "订单符合条件后，Affisell 会将款项发送到此账户。",
+          "eyebrow": "银行状态",
+          "requirementsHint": "Stripe 要求补充信息——点击「更新」以完成。",
+          "titleMissing": "尚未设置银行账户",
+          "titlePending": "Stripe 设置进行中",
+          "titleReady": "银行账户已连接"
+        },
+        "description": "可使用 Stripe Connect 自动银行转账，或根据所在国家选择 PayPal / Wave / 银行转账。信息均已加密——Affisell 绝不会以明文存储你的 IBAN。",
+        "earningsCardBody": "需要启用 Stripe Connect 才能在确认收货后收取分销利润。",
+        "earningsCardCta": "打开支付设置",
+        "earningsCardTitle": "设置你的收款账户",
+        "ledgerCta": "打开账本",
+        "ledgerTeaserBody": "详细账本（订单、金额、追回记录）位于收益控制台中。",
+        "ledgerTeaserTitle": "追踪你的收款",
+        "multiPayout": {
+          "badge": "其他收款方式",
+          "description": "可根据所在国家补充或替代 Stripe。每种方式在首次付款前都会经过 Affisell 加密与验证。",
+          "emptyBody": "添加 PayPal、IBAN 转账或 Wave，即可在 Stripe Connect 之外收取佣金。",
+          "emptyTitle": "尚未添加其他收款方式",
+          "title": "PayPal、Wave 与银行转账"
+        },
+        "storeCardBody": "通过 Stripe Connect 绑定你的 IBAN，即可自动收取分销收益。",
+        "storeCardCta": "配置付款",
+        "storeCardTitle": "收款与银行账户",
+        "timeline": {
+          "stepConnectBody": "Stripe Connect Express 会安全存储你的 IBAN。",
+          "stepConnectTitle": "银行账户已连接",
+          "stepDeliveryBody": "买家确认收货，或物流轨迹确认已送达。",
+          "stepDeliveryTitle": "已确认送达",
+          "stepReleaseBody": "买家确认后 {confirmDays} 天内发放（或送达后 {autoDays} 天自动发放）。",
+          "stepReleaseTitle": "款项已发放",
+          "subtitle": "Affisell 分销商专属付款通道——透明、自动化，无需月度批量结算。",
+          "title": "付款流程说明"
+        },
+        "title": "分销商收款方式"
+      }
+    }
   },
   "marketplace": {
     "title": "市场",
@@ -2080,7 +2150,10 @@
       "cgsTitle": "Partner terms (CGS)",
       "cgsBody": "20% commission, influencer law, fair advertising and €5,000/year threshold — required acceptance.",
       "backSignup": "Back to signup",
-      "readCgs": "Read partner terms"
+      "readCgs": "Read partner terms",
+      "ctaConnect": "设置我的银行账户",
+      "kycDeferredHint": "注册时无需提交文件——只有在首次上架商品前才需要身份验证。",
+      "stepConnect": "设置付款方式（Stripe）"
     },
     "kycPublish": {
       "badge": "Publish blocked",
@@ -2573,6 +2646,16 @@
           "name": "手动"
         }
       }
+    },
+    "priceShield": {
+      "atLoss": "{count, plural, other {此次涨价将导致 # 个合作伙伴商品亏本出售。}}",
+      "bannerBody": "{count, plural, other {价格保护已启用 —— # 位活跃分销商：禁止涨价，允许降价。}}",
+      "body": "{partners, plural, other {已有 # 位分销商在售此商品。请先从网络中撤回该商品，再重新发布以提高批发价。}}",
+      "cancel": "取消",
+      "decreaseHint": "降价立即生效——合作伙伴无需操作即可受益。",
+      "recallCta": "从网络中撤回",
+      "recalling": "撤回中…",
+      "title": "批发价上调已锁定"
     }
   },
   "supplierOrders": {
@@ -3675,7 +3758,19 @@
     "storeOffer": "店铺优惠 · {offer}",
     "cashbackPct": "{pct}% 返现",
     "storeBonusPct": "{pct}% 店铺奖励",
-    "optionLabel": "选项"
+    "optionLabel": "选项",
+    "crossSocialProof": {
+      "activeResellers": "{count, plural, other {# 位活跃分销商（30天）}}",
+      "ariaLabel": "该商品的合作伙伴销售动态",
+      "avgMargin": "平均利润 {amount}",
+      "badgeAffiliate": "实时动态",
+      "badgeStorefront": "合作伙伴动态",
+      "fomoHint": "多个分销商正在争夺该商品——尽快上架以抢占需求。",
+      "lastSaleShort": "{name} 最近售出",
+      "marginLeaveTableBadge": "🔥 你正在错失 {amount} 的利润",
+      "marginLeaveTableTooltip": "顶级分销商以 {top} 的利润出售——建议加价 {left}",
+      "topMargin": "最高 {amount}"
+    }
   },
   "Filters": {
     "smartFilters": "智能过滤器",
@@ -5112,13 +5207,21 @@
       "supplierCta": "Set up payouts",
       "affiliateCta": "Enable payouts",
       "supplierKycHint": "Your KYC profile must be approved before catalogue publish.",
-      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront."
+      "affiliateKycHint": "Your KYC profile must be approved before publishing on your storefront.",
+      "activeBadge": "Stripe Connect 已启用",
+      "affiliateKycDeferredHint": "现在就设置 Stripe——Affisell 身份证明文件只有在首次上架前才需要提交。",
+      "completeKycCta": "完成身份验证（KYC）",
+      "redirecting": "跳转中…",
+      "syncing": "同步中…",
+      "updateBankCta": "更新银行信息"
     },
     "pulseHub": {
       "paidOutFootnote": "Net of recorded payouts and any clawbacks — see activity below.",
       "supplierBandHint": "Wholesale value of units sold in this window (before platform payout timing).",
       "emptyLedger": "No payout entries yet — they appear when orders pass shipment / delivery steps.",
-      "ledgerTitle": "Payout ledger"
+      "ledgerTitle": "Payout ledger",
+      "commissionLabel": "我的佣金",
+      "marginLabel": "我的利润（自定）"
     }
   },
   "browseCategory": {
@@ -5540,7 +5643,14 @@
     "emptyTitle": "Paste a URL — DropForge builds the preview here",
     "emptyBody": "Title, images, source cost and sell price appear after Forge. Create your reseller account in one click to push it to your shop.",
     "productName": "DropForge",
-    "productTag": "Affisell · DropForge"
+    "productTag": "Affisell · DropForge",
+    "affiliateBecomeSupplier": "成为供应商并发布",
+    "autoCommitDraft": "账户就绪——正在创建 DropForge 草稿…",
+    "autoCommitLive": "账户就绪——正在发布至商品目录…",
+    "bridgeBusy": "Express Bridge 运行中——请在 AliExpress 完成采集…",
+    "guestRedirectDraft": "正在跳转至供应商注册——草稿已排队…",
+    "guestRedirectLive": "正在跳转至供应商注册——发布已排队…",
+    "refineOk": "Co-Pilot：已应用 {count} 项更新"
   },
   "productRequests": {
     "categories": {
