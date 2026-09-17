@@ -32,13 +32,22 @@ describe("category subtree graph", () => {
     expect(collectCategorySubtreeIdsFromGraph(graph, "root").sort()).toEqual(["a", "b", "root"])
   })
 
-  it("labelsForCategoryScopeRows includes path segments", () => {
+  it("labelsForCategoryScopeRows matches the row's own name and full path only", () => {
     const labels = labelsForCategoryScopeRows([
       { name: "Leaf", fullPath: "Root Dept > Leaf Aisle" },
     ])
     expect(labels.has("leaf")).toBe(true)
     expect(labels.has("root dept > leaf aisle")).toBe(true)
-    expect(labels.has("root dept")).toBe(true)
-    expect(labels.has("leaf aisle")).toBe(true)
+  })
+
+  it("labelsForCategoryScopeRows does not leak ancestor segments into a child scope", () => {
+    // A product tagged only at the ancestor ("Root Dept") must not match a
+    // narrower descendant scope ("Leaf Aisle") — that inflated counts and
+    // caused the live catalog filter to return nothing for a category the
+    // sidebar claimed had listings.
+    const labels = labelsForCategoryScopeRows([
+      { name: "Leaf Aisle", fullPath: "Root Dept > Leaf Aisle" },
+    ])
+    expect(labels.has("root dept")).toBe(false)
   })
 })

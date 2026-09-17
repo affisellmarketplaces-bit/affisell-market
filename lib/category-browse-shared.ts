@@ -193,18 +193,24 @@ export function collectCategorySubtreeIdsFromGraph(graph: CategorySubtreeGraph, 
   return [...out]
 }
 
+/**
+ * Label variants for matching a product's flat `categories` string array
+ * against a resolved category scope (root + its own descendants only).
+ *
+ * Only the row's own name and its full breadcrumb are used — NOT the
+ * individual segments of that breadcrumb. Splitting `fullPath` by ">" also
+ * yields every ANCESTOR's name (e.g. "Apparel & Accessories" is a segment
+ * of every descendant's path), which leaked broad parent-level labels into
+ * every unrelated child scope: a product tagged only at the root level
+ * would incorrectly count/appear under any of that root's subcategories.
+ */
 export function labelsForCategoryScopeRows(rows: Array<{ name: string; fullPath: string }>): Set<string> {
   const labels = new Set<string>()
   for (const row of rows) {
     const name = row.name.trim()
     if (name) labels.add(name.toLowerCase())
     const path = row.fullPath.trim()
-    if (!path) continue
-    labels.add(path.toLowerCase())
-    for (const segment of path.split(">")) {
-      const part = segment.trim().toLowerCase()
-      if (part) labels.add(part)
-    }
+    if (path) labels.add(path.toLowerCase())
   }
   return labels
 }
