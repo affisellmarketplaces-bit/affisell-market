@@ -98,7 +98,7 @@ export function PopularDepartmentsBar({
               }
               lang={locale}
             >
-              <CategoryGlyph name={dept.label} icon={dept.icon} size="xs" />
+              <CategoryGlyph name={dept.label} icon={dept.icon} size="md" />
               {dept.label}
             </FastLink>
           )

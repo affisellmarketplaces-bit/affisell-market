@@ -92,7 +92,7 @@ export function DepartmentBar({
               )}
               style={{ backgroundColor: style.bg, color: style.text }}
             >
-              <CategoryGlyph name={cat.name} slug={cat.slug} icon={cat.icon} size="xs" />
+              <CategoryGlyph name={cat.name} slug={cat.slug} icon={cat.icon} size="md" />
               {cat.name}
               {cat.count > 0 ? <span className="opacity-75">({cat.count})</span> : null}
             </FastLink>
