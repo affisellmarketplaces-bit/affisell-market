@@ -358,7 +358,7 @@
     },
     "ctaFinal": "申请成为我们的合作伙伴",
     "backCreators": "← 创作者",
-    "enterpriseLink": "Enterprise brand? Dedicated onboarding →"
+    "enterpriseLink": "企业品牌？专属入驻服务 →"
   },
   "enterprise": {
     "meta": {
@@ -790,7 +790,7 @@
     }
   },
   "checkout": {
-    "checkoutError": "Payment error",
+    "checkoutError": "支付错误",
     "flexiblePayment": {
       "aria": "在 {count} 次免息分期中支付 {amount} — Klarna 或卡",
       "zeroApr": "0%",
@@ -1954,13 +1954,13 @@
     },
     "offer": {
       "free": "免费",
-      "battlePrice": "Battle price: {price}",
-      "usualPrice": "Usual Affisell price: {price}",
-      "promoByPct": "−{pct}% by {reseller}",
-      "promoBy": "Promo by {reseller}",
-      "until": " — until {date}",
-      "lowest30d": "Lowest price 30d: {price} — DGCCRF compliant",
-      "flash": "Flash"
+      "battlePrice": "对战价：{price}",
+      "usualPrice": "Affisell 常规价：{price}",
+      "promoByPct": "由 {reseller} 提供 −{pct}%",
+      "promoBy": "由 {reseller} 提供的促销",
+      "until": " —— 截止 {date}",
+      "lowest30d": "30天最低价：{price} —— 符合 DGCCRF 规定",
+      "flash": "限时"
     }
   },
   "pulse": {
@@ -3668,7 +3668,7 @@
       "waitlistPhoneInvalid": "请输入有效的手机号码（如 +33 6 12 34 56 78）。"
     },
     "view360": "360° View",
-    "premium": "尊享版",
+    "premium": "高级",
     "addToCart": "Add to Cart",
     "buyNowOneClick": "Buy Now with 1-Click",
     "buyNowItem": "Buy this item",
@@ -3703,7 +3703,7 @@
       "zone": {
         "local": "本地",
         "regional": "区域 · 欧盟",
-        "regionalUs": "区域 · 美国和加拿大",
+        "regionalUs": "区域 · 美国与加拿大",
         "international": "国际",
         "unknown": "详见商品页面"
       },
@@ -4234,7 +4234,7 @@
   },
   "AI": {
     "pickedForYou": "由 Affisell AI 选中",
-    "trending": "趋势",
+    "trending": "热门",
     "views": "{count} 次浏览",
     "add": "添加",
     "whyRecommended": "为什么推荐? Affisell AI 根据趋势和您的活动进行选择。",
@@ -5225,13 +5225,13 @@
     }
   },
   "browseCategory": {
-    "metaTitle": "{category} — Shop on Affisell",
-    "metaDescription": "Discover {count, plural, one {# product} other {# products}} in {category} on Affisell.",
-    "breadcrumbHome": "Home",
-    "subcategories": "Subcategories",
-    "listingCount": "{count, plural, one {# product} other {# products}}",
-    "seeAll": "Browse full catalog",
-    "empty": "No products yet."
+    "metaTitle": "{category} — 在 Affisell 购物",
+    "metaDescription": "在 Affisell 探索 {category} 类目下的 {count} 件商品。",
+    "breadcrumbHome": "首页",
+    "subcategories": "子类目",
+    "listingCount": "{count, plural, other {# 件商品}}",
+    "seeAll": "浏览完整目录",
+    "empty": "暂无商品。"
   },
   "sellPage": {
     "meta": {
@@ -5260,16 +5260,16 @@
   },
   "supplierStorefront": {
     "browse": {
-      "partnerListingsOne": "{count} active reseller",
-      "partnerListingsMany": "{count} active resellers"
+      "partnerListingsOne": "{count} 位活跃分销商",
+      "partnerListingsMany": "{count} 位活跃分销商"
     },
     "trust": {
-      "subtitle": "Affisell trust signals for this supplier",
-      "ordersFulfilled": "Orders fulfilled",
-      "ordersCount": "{count, plural, one {# order} other {# orders}}",
-      "avgRating": "Average rating",
-      "fastShip": "Ships within 48h",
-      "disputeRate": "Dispute rate"
+      "subtitle": "该供应商的 Affisell 信任标识",
+      "ordersFulfilled": "已完成订单",
+      "ordersCount": "{count, plural, other {# 笔订单}}",
+      "avgRating": "平均评分",
+      "fastShip": "48小时内发货",
+      "disputeRate": "争议率"
     }
   },
   "sellAffiliateProgram": {
@@ -5506,13 +5506,13 @@
       "footerNote": "您只会收到这封邮件一次。感谢您帮助Affisell成长。"
     },
     "repurchaseReminder": {
-      "preview": "Ready to reorder {productName}?",
-      "subject": "Time to restock · {productName}",
-      "heading": "Need a refill?",
-      "body": "It's been a while since order #{orderId}. {productName} is still available — reorder in one click.",
-      "ctaTitle": "Buy again before it sells out",
-      "ctaRepurchase": "Buy again",
-      "footerNote": "One email per order. Unsubscribe from marketing in your account settings."
+      "preview": "准备好再次购买 {productName} 了吗？",
+      "subject": "补货时间到 · {productName}",
+      "heading": "需要补货吗？",
+      "body": "距离订单 #{orderId} 已有一段时间。{productName} 仍有货 —— 一键即可再次购买。",
+      "ctaTitle": "趁未售罄，再次购买",
+      "ctaRepurchase": "再次购买",
+      "footerNote": "每笔订单仅发送一封邮件。可在账户设置中取消订阅营销邮件。"
     },
     "paymentFailed": {
       "preview": "需要行动：支付失败#{orderId}",
@@ -5533,7 +5533,7 @@
       "accountLabel": "帐户",
       "portalAffiliate": "创作者空间",
       "portalSupplier": "供应商空间",
-      "portalAgent": "Agent space",
+      "portalAgent": "代理专区",
       "portalDefault": "Affisell帐户",
       "cta": "重置我的密码",
       "fallbackLabel": "如果按钮无法打开，请复制此链接：",

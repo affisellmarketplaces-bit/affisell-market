@@ -358,7 +358,7 @@
     },
     "ctaFinal": "Solliciteer om partner te worden",
     "backCreators": "← Creators",
-    "enterpriseLink": "Enterprise brand? Dedicated onboarding →"
+    "enterpriseLink": "Enterprise-merk? Toegewijde onboarding →"
   },
   "enterprise": {
     "meta": {
@@ -790,7 +790,7 @@
     }
   },
   "checkout": {
-    "checkoutError": "Payment error",
+    "checkoutError": "Betalingsfout",
     "flexiblePayment": {
       "aria": "Betaal in {count} interest-vrije afbetalingen van {amount} — Klarna of kaart",
       "zeroApr": "0%",
@@ -1954,13 +1954,13 @@
     },
     "offer": {
       "free": "Gratis",
-      "battlePrice": "Battle price: {price}",
-      "usualPrice": "Usual Affisell price: {price}",
-      "promoByPct": "−{pct}% by {reseller}",
-      "promoBy": "Promo by {reseller}",
-      "until": " — until {date}",
-      "lowest30d": "Lowest price 30d: {price} — DGCCRF compliant",
-      "flash": "Flash"
+      "battlePrice": "Battle-prijs: {price}",
+      "usualPrice": "Gebruikelijke Affisell-prijs: {price}",
+      "promoByPct": "−{pct}% door {reseller}",
+      "promoBy": "Promotie door {reseller}",
+      "until": " — tot {date}",
+      "lowest30d": "Laagste prijs 30d: {price} — DGCCRF-conform",
+      "flash": "flits"
     }
   },
   "pulse": {
@@ -3703,7 +3703,7 @@
       "zone": {
         "local": "Lokaal",
         "regional": "Regionaal · EU",
-        "regionalUs": "Regionaal · VS & CA",
+        "regionalUs": "Regionaal · VS & Canada",
         "international": "Internationaal",
         "unknown": "Zie productpagina"
       },
@@ -5225,13 +5225,13 @@
     }
   },
   "browseCategory": {
-    "metaTitle": "{category} — Shop on Affisell",
-    "metaDescription": "Discover {count, plural, one {# product} other {# products}} in {category} on Affisell.",
+    "metaTitle": "{category} — Winkelen op Affisell",
+    "metaDescription": "Ontdek {count, plural, one {# product} other {# producten}} in {category} op Affisell.",
     "breadcrumbHome": "Home",
-    "subcategories": "Subcategories",
-    "listingCount": "{count, plural, one {# product} other {# products}}",
-    "seeAll": "Browse full catalog",
-    "empty": "No products yet."
+    "subcategories": "Subcategorieën",
+    "listingCount": "{count, plural, one {# product} other {# producten}}",
+    "seeAll": "Volledige catalogus bekijken",
+    "empty": "Nog geen producten."
   },
   "sellPage": {
     "meta": {
@@ -5260,16 +5260,16 @@
   },
   "supplierStorefront": {
     "browse": {
-      "partnerListingsOne": "{count} active reseller",
-      "partnerListingsMany": "{count} active resellers"
+      "partnerListingsOne": "{count} actieve reseller",
+      "partnerListingsMany": "{count} actieve resellers"
     },
     "trust": {
-      "subtitle": "Affisell trust signals for this supplier",
-      "ordersFulfilled": "Orders fulfilled",
-      "ordersCount": "{count, plural, one {# order} other {# orders}}",
-      "avgRating": "Average rating",
-      "fastShip": "Ships within 48h",
-      "disputeRate": "Dispute rate"
+      "subtitle": "Affisell-vertrouwenssignalen voor deze leverancier",
+      "ordersFulfilled": "Vervulde bestellingen",
+      "ordersCount": "{count, plural, one {# bestelling} other {# bestellingen}}",
+      "avgRating": "Gemiddelde beoordeling",
+      "fastShip": "Verzending binnen 48u",
+      "disputeRate": "Geschillenpercentage"
     }
   },
   "sellAffiliateProgram": {
@@ -5506,13 +5506,13 @@
       "footerNote": "U ontvangt deze e-mail eenmalig. Bedankt voor het helpen van Affisell groeien."
     },
     "repurchaseReminder": {
-      "preview": "Ready to reorder {productName}?",
-      "subject": "Time to restock · {productName}",
-      "heading": "Need a refill?",
-      "body": "It's been a while since order #{orderId}. {productName} is still available — reorder in one click.",
-      "ctaTitle": "Buy again before it sells out",
-      "ctaRepurchase": "Buy again",
-      "footerNote": "One email per order. Unsubscribe from marketing in your account settings."
+      "preview": "Klaar om {productName} opnieuw te bestellen?",
+      "subject": "Tijd om aan te vullen · {productName}",
+      "heading": "Nieuwe voorraad nodig?",
+      "body": "Het is even geleden sinds bestelling #{orderId}. {productName} is nog steeds beschikbaar — bestel opnieuw met één klik.",
+      "ctaTitle": "Koop opnieuw voordat het uitverkocht is",
+      "ctaRepurchase": "Opnieuw kopen",
+      "footerNote": "Eén e-mail per bestelling. Uitschrijven voor marketing kan in je accountinstellingen."
     },
     "paymentFailed": {
       "preview": "Actie vereist: betaling mislukt voor #{orderId}",
@@ -5533,7 +5533,7 @@
       "accountLabel": "Account",
       "portalAffiliate": "Creator-ruimte",
       "portalSupplier": "Leveranciersruimte",
-      "portalAgent": "Agent space",
+      "portalAgent": "Agentruimte",
       "portalDefault": "Affisell-account",
       "cta": "Reset mijn wachtwoord",
       "fallbackLabel": "Als de knop niet opent, kopieer deze link:",

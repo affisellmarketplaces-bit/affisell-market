@@ -358,7 +358,7 @@
     },
     "ctaFinal": "Zastosuj się, aby zostać partnerem",
     "backCreators": "← Twórcy",
-    "enterpriseLink": "Enterprise brand? Dedicated onboarding →"
+    "enterpriseLink": "Marka Enterprise? Dedykowane wdrożenie →"
   },
   "enterprise": {
     "meta": {
@@ -790,7 +790,7 @@
     }
   },
   "checkout": {
-    "checkoutError": "Payment error",
+    "checkoutError": "Błąd płatności",
     "flexiblePayment": {
       "aria": "Płac w {count} ratach bez odsetek o wartości {amount} — Klarna lub karta",
       "zeroApr": "0%",
@@ -1954,13 +1954,13 @@
     },
     "offer": {
       "free": "Darmowy",
-      "battlePrice": "Battle price: {price}",
-      "usualPrice": "Usual Affisell price: {price}",
-      "promoByPct": "−{pct}% by {reseller}",
-      "promoBy": "Promo by {reseller}",
-      "until": " — until {date}",
-      "lowest30d": "Lowest price 30d: {price} — DGCCRF compliant",
-      "flash": "Flash"
+      "battlePrice": "Cena battle: {price}",
+      "usualPrice": "Zwykła cena Affisell: {price}",
+      "promoByPct": "−{pct}% od {reseller}",
+      "promoBy": "Promocja od {reseller}",
+      "until": " — do {date}",
+      "lowest30d": "Najniższa cena z 30 dni: {price} — zgodnie z DGCCRF",
+      "flash": "flash"
     }
   },
   "pulse": {
@@ -4234,7 +4234,7 @@
   },
   "AI": {
     "pickedForYou": "Wybrane dla Ciebie przez Affisell AI",
-    "trending": "Trending",
+    "trending": "Popularne",
     "views": "{count} wyświetleń",
     "add": "Dodaj",
     "whyRecommended": "Dlaczego polecamy? Wybór Affisell AI oparty na trendach i Twojej aktywności.",
@@ -5225,13 +5225,13 @@
     }
   },
   "browseCategory": {
-    "metaTitle": "{category} — Shop on Affisell",
-    "metaDescription": "Discover {count, plural, one {# product} other {# products}} in {category} on Affisell.",
-    "breadcrumbHome": "Home",
-    "subcategories": "Subcategories",
-    "listingCount": "{count, plural, one {# product} other {# products}}",
-    "seeAll": "Browse full catalog",
-    "empty": "No products yet."
+    "metaTitle": "{category} — Kupuj na Affisell",
+    "metaDescription": "Odkryj {count, plural, one {# produkt} few {# produkty} many {# produktów} other {# produktu}} w kategorii {category} na Affisell.",
+    "breadcrumbHome": "Strona główna",
+    "subcategories": "Podkategorie",
+    "listingCount": "{count, plural, one {# produkt} few {# produkty} many {# produktów} other {# produktu}}",
+    "seeAll": "Przeglądaj pełny katalog",
+    "empty": "Jeszcze brak produktów."
   },
   "sellPage": {
     "meta": {
@@ -5260,16 +5260,16 @@
   },
   "supplierStorefront": {
     "browse": {
-      "partnerListingsOne": "{count} active reseller",
-      "partnerListingsMany": "{count} active resellers"
+      "partnerListingsOne": "{count} aktywny reseller",
+      "partnerListingsMany": "{count} aktywnych resellerów"
     },
     "trust": {
-      "subtitle": "Affisell trust signals for this supplier",
-      "ordersFulfilled": "Orders fulfilled",
-      "ordersCount": "{count, plural, one {# order} other {# orders}}",
-      "avgRating": "Average rating",
-      "fastShip": "Ships within 48h",
-      "disputeRate": "Dispute rate"
+      "subtitle": "Sygnały zaufania Affisell dla tego dostawcy",
+      "ordersFulfilled": "Zrealizowane zamówienia",
+      "ordersCount": "{count, plural, one {# zamówienie} few {# zamówienia} many {# zamówień} other {# zamówienia}}",
+      "avgRating": "Średnia ocena",
+      "fastShip": "Wysyłka w 48h",
+      "disputeRate": "Wskaźnik sporów"
     }
   },
   "sellAffiliateProgram": {
@@ -5506,13 +5506,13 @@
       "footerNote": "Otrzymujesz ten email tylko raz. Dziękujemy za pomoc w rozwoju Affisell."
     },
     "repurchaseReminder": {
-      "preview": "Ready to reorder {productName}?",
-      "subject": "Time to restock · {productName}",
-      "heading": "Need a refill?",
-      "body": "It's been a while since order #{orderId}. {productName} is still available — reorder in one click.",
-      "ctaTitle": "Buy again before it sells out",
-      "ctaRepurchase": "Buy again",
-      "footerNote": "One email per order. Unsubscribe from marketing in your account settings."
+      "preview": "Gotowy na ponowne zamówienie {productName}?",
+      "subject": "Czas na uzupełnienie zapasów · {productName}",
+      "heading": "Potrzebujesz uzupełnienia?",
+      "body": "Trochę czasu minęło od zamówienia #{orderId}. {productName} jest nadal dostępny — zamów ponownie jednym kliknięciem.",
+      "ctaTitle": "Kup ponownie, zanim się wyprzeda",
+      "ctaRepurchase": "Kup ponownie",
+      "footerNote": "Jeden e-mail na zamówienie. Zrezygnuj z e-maili marketingowych w ustawieniach konta."
     },
     "paymentFailed": {
       "preview": "Wymagana akcja: nieudana płatność #{orderId}",
@@ -5533,7 +5533,7 @@
       "accountLabel": "Konto",
       "portalAffiliate": "Przestrzeń twórcy",
       "portalSupplier": "Przestrzeń dostawcy",
-      "portalAgent": "Agent space",
+      "portalAgent": "Przestrzeń agenta",
       "portalDefault": "Konto Affisell",
       "cta": "Zresetuj moje hasło",
       "fallbackLabel": "Jeśli przycisk nie otwiera, skopiuj to połączenie:",
