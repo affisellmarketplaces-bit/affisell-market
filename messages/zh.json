@@ -5975,150 +5975,150 @@
     }
   },
   "magicSystems": {
-    "metaTitle": "Magic Systems — Affisell Lab",
-    "metaDescription": "All Affisell signature systems in one place: DropForge, Pulse, Radar, Supply Hub, Demo Lab and more.",
+    "metaTitle": "魔法系统 — Affisell Lab",
+    "metaDescription": "Affisell 的所有标志性系统尽在一处：DropForge、Pulse、Radar、Supply Hub、Demo Lab 等。",
     "eyebrow": "Affisell Lab",
-    "title": "Magic Systems",
-    "subtitle": "The revolutionary Affisell stack — supplier sourcing, reseller commerce, and platform engines — in one command center.",
+    "title": "魔法系统",
+    "subtitle": "革命性的 Affisell 技术栈 —— 供应商寻源、分销商交易与平台引擎，尽在一个指挥中心。",
     "backHome": "Affisell",
-    "filtersAria": "Filter systems by persona",
+    "filtersAria": "按角色筛选系统",
     "filters": {
       "all": "All",
-      "supplier": "Supplier",
-      "affiliate": "Reseller",
-      "platform": "Platform",
-      "buyer": "Buyer"
+      "supplier": "供应商",
+      "affiliate": "分销商",
+      "platform": "平台",
+      "buyer": "买家"
     },
     "status": {
-      "live": "Live",
-      "beta": "Beta",
+      "live": "已上线",
+      "beta": "测试版",
       "new": "New"
     },
-    "open": "Open",
-    "empty": "No systems in this filter yet.",
-    "footerHint": "{count} systems in the Affisell stack",
+    "open": "打开",
+    "empty": "此筛选条件下暂无系统。",
+    "footerHint": "Affisell 技术栈中有 {count} 个系统",
     "entries": {
       "affisellStock": {
-        "title": "Affisell stock",
-        "blurb": "Your native warehouse channel — catalog, fulfillment and orders on-platform."
+        "title": "Affisell 仓储",
+        "blurb": "你的原生仓储渠道 —— 目录、履约与订单均在平台内完成。"
       },
       "dropforge": {
         "title": "DropForge",
-        "blurb": "URL → wholesale catalog. AliExpress / 1688 forge + auto-fulfill wiring."
+        "blurb": "网址 → 批发目录。AliExpress / 1688 抓取 + 自动履约对接。"
       },
       "supplyHub": {
-        "title": "Supply Hub",
-        "blurb": "Channel connectors and supply ops for your warehouse network."
+        "title": "供应中心",
+        "blurb": "面向你仓储网络的渠道连接器与供应链运营。"
       },
       "supplierImport": {
-        "title": "Import Suite",
-        "blurb": "CSV, URL and extension imports into your supplier catalog."
+        "title": "导入套件",
+        "blurb": "支持 CSV、网址与插件导入至供应商目录。"
       },
       "radar": {
         "title": "Radar",
-        "blurb": "Demand & arbitrage signals across markets — globe-ready intelligence."
+        "blurb": "跨市场的需求与套利信号 —— 全球化的商业情报。"
       },
       "pulse": {
-        "title": "Pulse / Discover",
-        "blurb": "Swipe commerce feed. Mobile deck + desktop detail panel."
+        "title": "Pulse / 发现",
+        "blurb": "滑动式购物信息流。移动端卡片 + 桌面端详情面板。"
       },
       "battle": {
-        "title": "Pulse Battle",
-        "blurb": "Legal flash discounts with 30-day reference pricing."
+        "title": "Pulse 对战",
+        "blurb": "合规限时折扣，采用30天参考价。"
       },
       "swipeHub": {
-        "title": "Swipe Hub",
-        "blurb": "Reseller first-listing & swipe feed control center."
+        "title": "滑动中心",
+        "blurb": "分销商首发上架与滑动信息流控制中心。"
       },
       "brandStudio": {
-        "title": "Brand Studio",
-        "blurb": "Storefront theme for your reseller shop."
+        "title": "品牌工作室",
+        "blurb": "为你的分销店铺打造的店面主题。"
       },
       "demoLab": {
-        "title": "Demo Lab",
-        "blurb": "Try Affisell flows without a production account."
+        "title": "演示实验室",
+        "blurb": "无需生产环境账号，即可体验 Affisell 流程。"
       },
       "auctions": {
-        "title": "Auctions",
-        "blurb": "Live bidding arena for buyers."
+        "title": "拍卖",
+        "blurb": "面向买家的实时竞拍竞技场。"
       },
       "luxe": {
-        "title": "Luxe",
-        "blurb": "Premium collection surface."
+        "title": "臻选",
+        "blurb": "高端精选展示空间。"
       },
       "pricingRadar": {
-        "title": "Radar Pricing",
-        "blurb": "Subscription value props for Radar growth."
+        "title": "Radar 定价",
+        "blurb": "面向 Radar 增长的订阅价值主张。"
       },
       "battlesHub": {
-        "title": "Battles Hub",
-        "blurb": "Discover Pulse duels and vote for the flash."
+        "title": "对战中心",
+        "blurb": "探索 Pulse 对决，为限时优惠投票。"
       }
     }
   },
   "battles": {
-    "metaTitle": "Battles Hub — Affisell",
-    "metaDescription": "Discover live Pulse Battles, vote, and unlock flash discounts.",
-    "eyebrow": "Pulse Arena",
-    "title": "Battles Hub",
-    "subtitle": "Vote for your favorite. The winner unlocks a real flash discount at checkout.",
-    "back": "Catalog",
-    "live": "LIVE",
-    "flash": "flash",
-    "upcoming": "Upcoming",
-    "ended": "Ended",
-    "votes": "{count} votes",
-    "sectionLive": "Live duel",
-    "sectionFlash": "Winner flash live",
-    "sectionUpcoming": "Upcoming duels",
-    "sectionRecent": "Recent battles",
-    "enterArena": "Enter the arena",
-    "shopFlash": "Shop the flash",
-    "watchArena": "Watch arena",
-    "seeWinner": "See the winner",
-    "viewA": "Product A",
-    "viewB": "Product B",
-    "winner": "Winner",
-    "empty": "No battles yet — check back soon or explore Pulse.",
-    "goPulse": "Open Pulse",
-    "tickerEmpty": "Battles Hub — vote, flash, win",
-    "voteCta": "VOTE",
-    "detailsCta": "Details",
-    "winnerBadge": "Winner −{pct}%",
-    "soonPulse": "Soon 6pm Pulse",
-    "voters": "{count} voters"
+    "metaTitle": "对战中心 — Affisell",
+    "metaDescription": "探索实时 Pulse 对战，投票解锁限时折扣。",
+    "eyebrow": "Pulse 竞技场",
+    "title": "对战中心",
+    "subtitle": "为你喜欢的选手投票。获胜者将在结账时解锁真实的限时折扣。",
+    "back": "目录",
+    "live": "直播中",
+    "flash": "限时",
+    "upcoming": "即将开始",
+    "ended": "已结束",
+    "votes": "{count} 票",
+    "sectionLive": "实时对决",
+    "sectionFlash": "获胜者限时优惠进行中",
+    "sectionUpcoming": "即将开始的对决",
+    "sectionRecent": "近期对战",
+    "enterArena": "进入竞技场",
+    "shopFlash": "抢购限时优惠",
+    "watchArena": "观看竞技场",
+    "seeWinner": "查看获胜者",
+    "viewA": "商品 A",
+    "viewB": "商品 B",
+    "winner": "获胜者",
+    "empty": "暂无对战 —— 请稍后再来，或去探索 Pulse。",
+    "goPulse": "打开 Pulse",
+    "tickerEmpty": "对战中心 —— 投票、限时、获胜",
+    "voteCta": "投票",
+    "detailsCta": "详情",
+    "winnerBadge": "获胜者 −{pct}%",
+    "soonPulse": "Pulse 即将于18点开始",
+    "voters": "{count} 人投票"
   },
   "legion": {
-    "copyLink": "Copy link",
-    "copied": "Copied",
-    "shop": "Shop",
-    "payout24h": "24h payout",
-    "salesOne": "{count} sale",
-    "salesMany": "{count} sales",
-    "invitedBy": "Invited by @{username} — create your Affisell shop.",
-    "join": "Join",
-    "selection": "Picks",
-    "emptyProducts": "No products listed yet.",
+    "copyLink": "复制链接",
+    "copied": "已复制",
+    "shop": "店铺",
+    "payout24h": "24小时内结算",
+    "salesOne": "{count} 笔销售",
+    "salesMany": "{count} 笔销售",
+    "invitedBy": "由 @{username} 邀请 —— 创建你的 Affisell 店铺。",
+    "join": "加入",
+    "selection": "精选",
+    "emptyProducts": "暂无已上架商品。",
     "battleRoyale": "Battle Royale",
-    "minutesLeft": "{minutes} min",
-    "sellNow": "Sell now",
-    "battleActive": "Battle live",
-    "battleActiveHint": "Affiliate commission applied at checkout during the window. Ends: {time}",
-    "armyLabel": "active resellers in the army",
-    "commissionLabel": "Affiliate commission (2h)",
-    "battleHint": "For {hours}h: Battle Royale banner + real affiliate commission at checkout (does not change the permanent catalog rate). Distinct from pay-per-sale Placement.",
-    "launching": "Launching…",
-    "launchBattle": "Launch Battle",
-    "eyebrow": "Légion Battle",
-    "errorBoostFailed": "Could not start the battle",
-    "errorNetwork": "Network error",
-    "productFallback": "Product",
-    "boostEnded": "BATTLE ended — {title}",
-    "boostLive": "BATTLE ROYALE — {title} at {pct}% · {minutes} min left",
-    "leaderboardEmpty": "No sales yet during this Battle… Be the first.",
-    "leaderboardLive": "LIVE",
-    "leaderboardSales": "{count} sales",
-    "leaderboardSalesOne": "{count} sale"
+    "minutesLeft": "{minutes} 分钟",
+    "sellNow": "立即销售",
+    "battleActive": "对战进行中",
+    "battleActiveHint": "在此时段内结账将应用推广佣金。结束时间：{time}",
+    "armyLabel": "军团中的活跃分销商",
+    "commissionLabel": "推广佣金（2小时）",
+    "battleHint": "在 {hours} 小时内：Battle Royale 横幅 + 结账时的真实推广佣金（不改变永久目录费率）。与按销售付费的 Placement 不同。",
+    "launching": "启动中…",
+    "launchBattle": "发起对战",
+    "eyebrow": "军团对战",
+    "errorBoostFailed": "无法开始对战",
+    "errorNetwork": "网络错误",
+    "productFallback": "商品",
+    "boostEnded": "对战已结束 —— {title}",
+    "boostLive": "大逃杀对战 —— {title} {pct}% 折扣 · 剩余 {minutes} 分钟",
+    "leaderboardEmpty": "本场对战暂无销售…… 快来抢占第一。",
+    "leaderboardLive": "直播中",
+    "leaderboardSales": "{count} 笔销售",
+    "leaderboardSalesOne": "{count} 笔销售"
   },
   "cookieBanner": {
     "aria": "Cookie consent",
@@ -6149,50 +6149,50 @@
   },
   "donaWidget": {
     "public": {
-      "dialogLabel": "Dona — Affisell AI",
-      "headerTitle": "Dona · Onboard AI · LIVE",
-      "typing": "Dona is typing…",
-      "sendAria": "Send",
-      "closeAria": "Close Dona",
-      "openFabAria": "Open Dona — onboard AI",
-      "trustFooter": "Protected checkout · Stripe · 3D Secure · GDPR",
-      "localeBadge": "Multilingual"
+      "dialogLabel": "Dona —— Affisell AI",
+      "headerTitle": "Dona · 引导式 AI · 实时在线",
+      "typing": "Dona 正在输入…",
+      "sendAria": "发送",
+      "closeAria": "关闭 Dona",
+      "openFabAria": "打开 Dona —— 引导式 AI",
+      "trustFooter": "受保护的结账 · Stripe · 3D Secure · GDPR",
+      "localeBadge": "多语言"
     },
     "captain": {
-      "dialogLabel": "Captain Dona — private mode",
-      "headerTitle": "Captain Dona — AFFISELL AI CAPTAIN",
-      "captainBadge": "CAPTAIN ONLINE",
-      "captainEnvBadge": "CAPTAIN · {env}",
-      "typing": "Dona is consulting the ship…",
-      "toolConsult": "🔍 Ship consultation: {name}",
-      "placeholder": "Orders, Captain?…",
-      "sendAria": "Send",
-      "closeAria": "Close",
-      "openFabAria": "Open Captain Dona",
-      "fabBadge": "CAPTAIN",
-      "trustFooter": "Read-only · Groq · Protected checkout · Stripe · GDPR",
-      "welcome": "Captain, private console online. Mode A marketing or Mode B DB live — orders?"
+      "dialogLabel": "船长 Dona —— 私密模式",
+      "headerTitle": "船长 Dona —— AFFISELL AI 船长",
+      "captainBadge": "船长在线",
+      "captainEnvBadge": "船长 · {env}",
+      "typing": "Dona 正在与舰船核实…",
+      "toolConsult": "🔍 舰船咨询：{name}",
+      "placeholder": "船长，要查订单吗？…",
+      "sendAria": "发送",
+      "closeAria": "关闭",
+      "openFabAria": "打开船长 Dona",
+      "fabBadge": "船长",
+      "trustFooter": "只读 · Groq · 受保护的结账 · Stripe · GDPR",
+      "welcome": "船长，私密控制台已上线。A 模式营销或 B 模式数据库实时 —— 查订单吗？"
     },
     "audience": {
       "buyer": {
-        "welcome": "Hi — Dona here. Verified shops, protected checkout, EU delivery. I help you shop with confidence. 💜",
-        "placeholder": "Product, shop, shipping, returns…",
-        "badge": "Shop"
+        "welcome": "你好，我是 Dona。已验证店铺、受保护的结账流程、欧盟配送。我帮你放心购物。💜",
+        "placeholder": "商品、店铺、配送、退货…",
+        "badge": "购物"
       },
       "reseller": {
-        "welcome": "Captain, reseller mode. Pick products, set your margin, sell on your storefront — ask me anything. 💜",
-        "placeholder": "Margin, reseller signup…",
-        "badge": "Reseller"
+        "welcome": "船长，分销模式已开启。挑选商品、设置利润、在你的店面售卖 —— 有问题尽管问我。💜",
+        "placeholder": "利润、分销商注册…",
+        "badge": "分销商"
       },
       "supplier": {
-        "welcome": "Captain, supplier mode. List once, reach resellers in 33 EU countries — fire away. 💜",
-        "placeholder": "Catalog, supplier payout…",
-        "badge": "Supplier"
+        "welcome": "船长，供应商模式已开启。一次上架，触达33个欧盟国家的分销商 —— 尽管问我。💜",
+        "placeholder": "目录、供应商结算…",
+        "badge": "供应商"
       }
     },
     "errors": {
-      "genericPublic": "Dona: reactor hiccup. Retry — or hit /sell like a responsible adult. 💜",
-      "genericCaptain": "Dona Captain: access denied or cold reactor. Stay on /dashboard/supplier. 💜"
+      "genericPublic": "Dona：反应堆出了点小故障。请重试 —— 或者像个负责任的大人一样去 /sell。💜",
+      "genericCaptain": "Dona 船长：访问被拒或反应堆冷却中。请留在 /dashboard/supplier。💜"
     }
   },
   "globalError": {

@@ -5975,150 +5975,150 @@
     }
   },
   "magicSystems": {
-    "metaTitle": "Magic Systems — Affisell Lab",
-    "metaDescription": "All Affisell signature systems in one place: DropForge, Pulse, Radar, Supply Hub, Demo Lab and more.",
+    "metaTitle": "Sistemi Magici — Affisell Lab",
+    "metaDescription": "Tutti i sistemi distintivi di Affisell in un unico posto: DropForge, Pulse, Radar, Supply Hub, Demo Lab e altro.",
     "eyebrow": "Affisell Lab",
-    "title": "Magic Systems",
-    "subtitle": "The revolutionary Affisell stack — supplier sourcing, reseller commerce, and platform engines — in one command center.",
+    "title": "Sistemi Magici",
+    "subtitle": "Il rivoluzionario stack Affisell — sourcing dei fornitori, commercio dei rivenditori e motori della piattaforma — in un unico centro di comando.",
     "backHome": "Affisell",
-    "filtersAria": "Filter systems by persona",
+    "filtersAria": "Filtra i sistemi per profilo",
     "filters": {
       "all": "All",
-      "supplier": "Supplier",
-      "affiliate": "Reseller",
-      "platform": "Platform",
-      "buyer": "Buyer"
+      "supplier": "Fornitore",
+      "affiliate": "Rivenditore",
+      "platform": "Piattaforma",
+      "buyer": "Acquirente"
     },
     "status": {
-      "live": "Live",
+      "live": "Attivo",
       "beta": "Beta",
       "new": "New"
     },
-    "open": "Open",
-    "empty": "No systems in this filter yet.",
-    "footerHint": "{count} systems in the Affisell stack",
+    "open": "Apri",
+    "empty": "Ancora nessun sistema in questo filtro.",
+    "footerHint": "{count} sistemi nello stack Affisell",
     "entries": {
       "affisellStock": {
-        "title": "Affisell stock",
-        "blurb": "Your native warehouse channel — catalog, fulfillment and orders on-platform."
+        "title": "Magazzino Affisell",
+        "blurb": "Il tuo canale di magazzino nativo — catalogo, fulfillment e ordini sulla piattaforma."
       },
       "dropforge": {
         "title": "DropForge",
-        "blurb": "URL → wholesale catalog. AliExpress / 1688 forge + auto-fulfill wiring."
+        "blurb": "URL → catalogo all'ingrosso. Importazione AliExpress/1688 + collegamento auto-fulfillment."
       },
       "supplyHub": {
         "title": "Supply Hub",
-        "blurb": "Channel connectors and supply ops for your warehouse network."
+        "blurb": "Connettori di canale e operazioni di supply per la tua rete di magazzini."
       },
       "supplierImport": {
-        "title": "Import Suite",
-        "blurb": "CSV, URL and extension imports into your supplier catalog."
+        "title": "Suite di importazione",
+        "blurb": "Importazioni CSV, URL ed estensione nel tuo catalogo fornitore."
       },
       "radar": {
         "title": "Radar",
-        "blurb": "Demand & arbitrage signals across markets — globe-ready intelligence."
+        "blurb": "Segnali di domanda e arbitraggio tra i mercati — intelligence pronta per il mondo."
       },
       "pulse": {
-        "title": "Pulse / Discover",
-        "blurb": "Swipe commerce feed. Mobile deck + desktop detail panel."
+        "title": "Pulse / Scopri",
+        "blurb": "Feed di commercio a scorrimento. Deck mobile + pannello dettagli desktop."
       },
       "battle": {
         "title": "Pulse Battle",
-        "blurb": "Legal flash discounts with 30-day reference pricing."
+        "blurb": "Sconti flash legali con prezzo di riferimento di 30 giorni."
       },
       "swipeHub": {
         "title": "Swipe Hub",
-        "blurb": "Reseller first-listing & swipe feed control center."
+        "blurb": "Centro di controllo per le prime inserzioni rivenditore e feed a scorrimento."
       },
       "brandStudio": {
         "title": "Brand Studio",
-        "blurb": "Storefront theme for your reseller shop."
+        "blurb": "Tema del negozio per il tuo shop da rivenditore."
       },
       "demoLab": {
         "title": "Demo Lab",
-        "blurb": "Try Affisell flows without a production account."
+        "blurb": "Prova i flussi Affisell senza un account di produzione."
       },
       "auctions": {
-        "title": "Auctions",
-        "blurb": "Live bidding arena for buyers."
+        "title": "Aste",
+        "blurb": "Arena di aste dal vivo per gli acquirenti."
       },
       "luxe": {
         "title": "Luxe",
-        "blurb": "Premium collection surface."
+        "blurb": "Vetrina di collezioni premium."
       },
       "pricingRadar": {
-        "title": "Radar Pricing",
-        "blurb": "Subscription value props for Radar growth."
+        "title": "Prezzi Radar",
+        "blurb": "Proposte di valore in abbonamento per la crescita di Radar."
       },
       "battlesHub": {
         "title": "Battles Hub",
-        "blurb": "Discover Pulse duels and vote for the flash."
+        "blurb": "Scopri i duelli Pulse e vota per il flash."
       }
     }
   },
   "battles": {
     "metaTitle": "Battles Hub — Affisell",
-    "metaDescription": "Discover live Pulse Battles, vote, and unlock flash discounts.",
+    "metaDescription": "Scopri le Pulse Battle dal vivo, vota e sblocca sconti flash.",
     "eyebrow": "Pulse Arena",
     "title": "Battles Hub",
-    "subtitle": "Vote for your favorite. The winner unlocks a real flash discount at checkout.",
-    "back": "Catalog",
+    "subtitle": "Vota il tuo preferito. Il vincitore sblocca uno sconto flash reale al checkout.",
+    "back": "Catalogo",
     "live": "LIVE",
     "flash": "flash",
-    "upcoming": "Upcoming",
-    "ended": "Ended",
-    "votes": "{count} votes",
-    "sectionLive": "Live duel",
-    "sectionFlash": "Winner flash live",
-    "sectionUpcoming": "Upcoming duels",
-    "sectionRecent": "Recent battles",
-    "enterArena": "Enter the arena",
-    "shopFlash": "Shop the flash",
-    "watchArena": "Watch arena",
-    "seeWinner": "See the winner",
-    "viewA": "Product A",
-    "viewB": "Product B",
-    "winner": "Winner",
-    "empty": "No battles yet — check back soon or explore Pulse.",
-    "goPulse": "Open Pulse",
-    "tickerEmpty": "Battles Hub — vote, flash, win",
-    "voteCta": "VOTE",
-    "detailsCta": "Details",
-    "winnerBadge": "Winner −{pct}%",
-    "soonPulse": "Soon 6pm Pulse",
-    "voters": "{count} voters"
+    "upcoming": "In arrivo",
+    "ended": "Terminata",
+    "votes": "{count} voti",
+    "sectionLive": "Duello live",
+    "sectionFlash": "Flash del vincitore live",
+    "sectionUpcoming": "Duelli in arrivo",
+    "sectionRecent": "Battle recenti",
+    "enterArena": "Entra nell'arena",
+    "shopFlash": "Acquista il flash",
+    "watchArena": "Guarda l'arena",
+    "seeWinner": "Vedi il vincitore",
+    "viewA": "Prodotto A",
+    "viewB": "Prodotto B",
+    "winner": "Vincitore",
+    "empty": "Ancora nessuna battle — torna presto o esplora Pulse.",
+    "goPulse": "Apri Pulse",
+    "tickerEmpty": "Battles Hub — vota, flash, vinci",
+    "voteCta": "VOTA",
+    "detailsCta": "Dettagli",
+    "winnerBadge": "Vincitore −{pct}%",
+    "soonPulse": "A breve 18:00 Pulse",
+    "voters": "{count} votanti"
   },
   "legion": {
-    "copyLink": "Copy link",
-    "copied": "Copied",
-    "shop": "Shop",
-    "payout24h": "24h payout",
-    "salesOne": "{count} sale",
-    "salesMany": "{count} sales",
-    "invitedBy": "Invited by @{username} — create your Affisell shop.",
-    "join": "Join",
-    "selection": "Picks",
-    "emptyProducts": "No products listed yet.",
+    "copyLink": "Copia link",
+    "copied": "Copiato",
+    "shop": "Negozio",
+    "payout24h": "Pagamento in 24h",
+    "salesOne": "{count} vendita",
+    "salesMany": "{count} vendite",
+    "invitedBy": "Invitato da @{username} — crea il tuo negozio Affisell.",
+    "join": "Unisciti",
+    "selection": "Selezione",
+    "emptyProducts": "Nessun prodotto ancora elencato.",
     "battleRoyale": "Battle Royale",
     "minutesLeft": "{minutes} min",
-    "sellNow": "Sell now",
+    "sellNow": "Vendi ora",
     "battleActive": "Battle live",
-    "battleActiveHint": "Affiliate commission applied at checkout during the window. Ends: {time}",
-    "armyLabel": "active resellers in the army",
-    "commissionLabel": "Affiliate commission (2h)",
-    "battleHint": "For {hours}h: Battle Royale banner + real affiliate commission at checkout (does not change the permanent catalog rate). Distinct from pay-per-sale Placement.",
-    "launching": "Launching…",
-    "launchBattle": "Launch Battle",
+    "battleActiveHint": "Commissione affiliato applicata al checkout durante la finestra. Termina: {time}",
+    "armyLabel": "rivenditori attivi nell'esercito",
+    "commissionLabel": "Commissione affiliato (2h)",
+    "battleHint": "Per {hours}h: banner Battle Royale + commissione affiliato reale al checkout (non modifica la tariffa permanente del catalogo). Diverso dal Placement a pagamento per vendita.",
+    "launching": "Avvio in corso…",
+    "launchBattle": "Avvia battle",
     "eyebrow": "Légion Battle",
-    "errorBoostFailed": "Could not start the battle",
-    "errorNetwork": "Network error",
-    "productFallback": "Product",
-    "boostEnded": "BATTLE ended — {title}",
-    "boostLive": "BATTLE ROYALE — {title} at {pct}% · {minutes} min left",
-    "leaderboardEmpty": "No sales yet during this Battle… Be the first.",
+    "errorBoostFailed": "Impossibile avviare la battle",
+    "errorNetwork": "Errore di rete",
+    "productFallback": "Prodotto",
+    "boostEnded": "BATTLE terminata — {title}",
+    "boostLive": "BATTLE ROYALE — {title} al {pct}% · mancano {minutes} min",
+    "leaderboardEmpty": "Ancora nessuna vendita in questa battle… Sii il primo.",
     "leaderboardLive": "LIVE",
-    "leaderboardSales": "{count} sales",
-    "leaderboardSalesOne": "{count} sale"
+    "leaderboardSales": "{count} vendite",
+    "leaderboardSalesOne": "{count} vendita"
   },
   "cookieBanner": {
     "aria": "Cookie consent",
@@ -6149,50 +6149,50 @@
   },
   "donaWidget": {
     "public": {
-      "dialogLabel": "Dona — Affisell AI",
-      "headerTitle": "Dona · Onboard AI · LIVE",
-      "typing": "Dona is typing…",
-      "sendAria": "Send",
-      "closeAria": "Close Dona",
-      "openFabAria": "Open Dona — onboard AI",
-      "trustFooter": "Protected checkout · Stripe · 3D Secure · GDPR",
-      "localeBadge": "Multilingual"
+      "dialogLabel": "Dona — IA Affisell",
+      "headerTitle": "Dona · IA di onboarding · LIVE",
+      "typing": "Dona sta scrivendo…",
+      "sendAria": "Invia",
+      "closeAria": "Chiudi Dona",
+      "openFabAria": "Apri Dona — IA di onboarding",
+      "trustFooter": "Checkout protetto · Stripe · 3D Secure · GDPR",
+      "localeBadge": "Multilingue"
     },
     "captain": {
-      "dialogLabel": "Captain Dona — private mode",
-      "headerTitle": "Captain Dona — AFFISELL AI CAPTAIN",
-      "captainBadge": "CAPTAIN ONLINE",
-      "captainEnvBadge": "CAPTAIN · {env}",
-      "typing": "Dona is consulting the ship…",
-      "toolConsult": "🔍 Ship consultation: {name}",
-      "placeholder": "Orders, Captain?…",
-      "sendAria": "Send",
-      "closeAria": "Close",
-      "openFabAria": "Open Captain Dona",
-      "fabBadge": "CAPTAIN",
-      "trustFooter": "Read-only · Groq · Protected checkout · Stripe · GDPR",
-      "welcome": "Captain, private console online. Mode A marketing or Mode B DB live — orders?"
+      "dialogLabel": "Capitano Dona — modalità privata",
+      "headerTitle": "Capitano Dona — CAPITANO IA AFFISELL",
+      "captainBadge": "CAPITANO ONLINE",
+      "captainEnvBadge": "CAPITANO · {env}",
+      "typing": "Dona sta consultando la nave…",
+      "toolConsult": "🔍 Consultazione della nave: {name}",
+      "placeholder": "Ordini, Capitano?…",
+      "sendAria": "Invia",
+      "closeAria": "Chiudi",
+      "openFabAria": "Apri Capitano Dona",
+      "fabBadge": "CAPITANO",
+      "trustFooter": "Sola lettura · Groq · Checkout protetto · Stripe · GDPR",
+      "welcome": "Capitano, console privata online. Modalità A marketing o Modalità B DB live — ordini?"
     },
     "audience": {
       "buyer": {
-        "welcome": "Hi — Dona here. Verified shops, protected checkout, EU delivery. I help you shop with confidence. 💜",
-        "placeholder": "Product, shop, shipping, returns…",
-        "badge": "Shop"
+        "welcome": "Ciao — sono Dona. Negozi verificati, checkout protetto, consegna UE. Ti aiuto a fare acquisti con fiducia. 💜",
+        "placeholder": "Prodotto, negozio, spedizione, resi…",
+        "badge": "Negozio"
       },
       "reseller": {
-        "welcome": "Captain, reseller mode. Pick products, set your margin, sell on your storefront — ask me anything. 💜",
-        "placeholder": "Margin, reseller signup…",
+        "welcome": "Capitano, modalità rivenditore. Scegli i prodotti, imposta il tuo margine, vendi nel tuo negozio — chiedimi pure. 💜",
+        "placeholder": "Margine, iscrizione rivenditore…",
         "badge": "Reseller"
       },
       "supplier": {
-        "welcome": "Captain, supplier mode. List once, reach resellers in 33 EU countries — fire away. 💜",
-        "placeholder": "Catalog, supplier payout…",
-        "badge": "Supplier"
+        "welcome": "Capitano, modalità fornitore. Elenca una volta, raggiungi rivenditori in 33 paesi UE — chiedi pure. 💜",
+        "placeholder": "Catalogo, pagamento fornitore…",
+        "badge": "Fornitore"
       }
     },
     "errors": {
-      "genericPublic": "Dona: reactor hiccup. Retry — or hit /sell like a responsible adult. 💜",
-      "genericCaptain": "Dona Captain: access denied or cold reactor. Stay on /dashboard/supplier. 💜"
+      "genericPublic": "Dona: intoppo al reattore. Riprova — oppure vai su /sell come un adulto responsabile. 💜",
+      "genericCaptain": "Dona Capitano: accesso negato o reattore freddo. Resta su /dashboard/supplier. 💜"
     }
   },
   "globalError": {
