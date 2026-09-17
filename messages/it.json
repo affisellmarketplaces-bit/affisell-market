@@ -34,7 +34,7 @@
       "referralShort": "Invita",
       "brandStudio": "Studio del marchio",
       "brandStudioShort": "Marchio",
-      "magicLab": "Magic Systems",
+      "magicLab": "Sistemi Magici",
       "magicLabShort": "Lab"
     },
     "supplier": {
@@ -49,7 +49,7 @@
       "dropforgeShort": "Forge",
       "supply": "Magazzino Affisell",
       "supplyShort": "Magazzino",
-      "magicLab": "Magic Systems",
+      "magicLab": "Sistemi Magici",
       "magicLabShort": "Lab"
     },
     "accountMenu": {
@@ -103,7 +103,7 @@
     "agentEntry": "Agente",
     "pulseEntry": "Affisell Pulse",
     "pulseEntryShort": "Pulse",
-    "magicLab": "Magic Systems",
+    "magicLab": "Sistemi Magici",
     "magicLabShort": "Lab",
     "searchQuickBattles": "Battles",
     "battlesEntry": "Arena Battles",
@@ -243,7 +243,7 @@
       "trustBody": "Pagamenti Stripe · deposito del venditore · 14 giorni di reso in UE.",
       "trustReturns": "Resi",
       "trustShipping": "Spedizione",
-      "trustSupport": "Supporto",
+      "trustSupport": "Assistenza",
       "trustFootnote": "Pan-UE · Tasse Stripe · mediazione ODR UE"
     },
     "buyerServices": {
@@ -281,7 +281,7 @@
       "bestSellersBadge": "7g",
       "bestSellersSold": "{count} venduti",
       "battles": "Battles Hub",
-      "battlesHint": "Live duels · flash discounts"
+      "battlesHint": "Duelli live · sconti flash"
     }
   },
   "creators": {
@@ -865,17 +865,17 @@
     "tryPulse": "Prova Affisell Pulse"
   },
   "buyerBestsellers": {
-    "metaTitle": "Top sellers · 7 days",
-    "metaDescription": "Live ranking of the best-selling products on Affisell this week.",
-    "eyebrow": "Live ranking",
-    "title": "Top sellers",
-    "subtitle": "7-day network bestsellers on Affisell — real sales, refreshed continuously.",
-    "liveWindow": "rolling window",
+    "metaTitle": "Più venduti · 7 giorni",
+    "metaDescription": "Classifica live dei prodotti più venduti su Affisell questa settimana.",
+    "eyebrow": "Classifica live",
+    "title": "Più venduti",
+    "subtitle": "I più venduti della rete su Affisell negli ultimi 7 giorni — vendite reali, aggiornate continuamente.",
+    "liveWindow": "finestra mobile",
     "rank": "#{rank}",
-    "sold": "{count} sold",
-    "empty": "Not enough sales this week yet. Check back soon.",
-    "emptyCta": "Browse catalog",
-    "backHome": "Back to home"
+    "sold": "{count} venduti",
+    "empty": "Non ci sono ancora abbastanza vendite questa settimana. Torna presto.",
+    "emptyCta": "Sfoglia catalogo",
+    "backHome": "Torna alla home"
   },
   "buyerAccount": {
     "navAria": "Area del cliente",
@@ -894,7 +894,7 @@
     "walletPromo": "Sconti esclusivi",
     "walletPromoHint": "Fino al 70% di sconto sugli articoli selezionati",
     "walletPromoCta": "Vedi offerte →",
-    "supportTitle": "Supporto",
+    "supportTitle": "Assistenza",
     "supportBody": "Domande? Contattaci",
     "contactCta": "Contattaci →",
     "gdprTitle": "Dati personali",
@@ -918,16 +918,16 @@
     "cartPending": "{count, plural, one {# item in attesa} other {# items in attesa}}",
     "backMarketplace": "← Torna al mercato",
     "push": {
-      "title": "Push notifications",
-      "body": "Price drops on saved products, shipping updates, and delivery alerts.",
-      "enable": "Enable notifications",
-      "disable": "Turn off notifications",
-      "loading": "Loading…",
-      "enabledToast": "Notifications enabled on this device",
-      "disabledToast": "Notifications turned off",
-      "deniedToast": "Permission denied — enable in browser settings",
-      "unsupportedToast": "Push not available on this browser",
-      "disableFailed": "Could not disable notifications"
+      "title": "Notifiche push",
+      "body": "Cali di prezzo sui prodotti salvati, aggiornamenti di spedizione e avvisi di consegna.",
+      "enable": "Attiva notifiche",
+      "disable": "Disattiva notifiche",
+      "loading": "Caricamento…",
+      "enabledToast": "Notifiche attivate su questo dispositivo",
+      "disabledToast": "Notifiche disattivate",
+      "deniedToast": "Autorizzazione negata — attivala nelle impostazioni del browser",
+      "unsupportedToast": "Push non disponibile su questo browser",
+      "disableFailed": "Impossibile disattivare le notifiche"
     }
   },
   "shops": {
@@ -3837,7 +3837,7 @@
     "sectionReturns": "Resi e rimborso",
     "sectionPayment": "Pagamento",
     "sectionAccount": "Account",
-    "sellerQ": "Who is the seller?",
+    "sellerQ": "Chi è il venditore?",
     "sellerA": "The product is sold by a verified professional partner. Affisell secures payment and customer support. We do not disclose the seller's name — your legal rights and warranties are unchanged.",
     "trackQ": "Dov'è il mio ordine?",
     "trackA": "Accedi con l'indirizzo email utilizzato al checkout, poi apri i miei ordini. Vedrai lo stato, le tracce e le opzioni di reso. Vengono inviate automaticamente email a ogni passaggio (conferma, spedizione, consegna).",
@@ -3851,8 +3851,8 @@
     "lateA": "Controlla le tracce del carrier nei miei ordini prima. Se non appaiono tracce dopo il termine previsto, il nostro sistema può annullare e rimborsare automaticamente. Altrimenti utilizza l'assistente di supporto o il modulo di contatto.",
     "returnQ": "Come faccio a restituire un prodotto?",
     "returnA": "Hai 14 giorni dopo la consegna (UE). Apri una richiesta da miei ordini o leggi la nostra politica sui resi. L'articolo deve essere inutilizzato, nella confezione originale.",
-    "returnRefusedQ": "Why can't I return some products?",
-    "returnRefusedA": "Law excludes certain products from the 14-day withdrawal right: custom-made items, sealed hygiene products once opened, perishables, etc. (see <l22128>French Consumer Code article L221-28</l22128>). This isn't someone \"refusing\" your return — those categories simply aren't eligible for no-reason returns.",
+    "returnRefusedQ": "Perché non posso restituire alcuni prodotti?",
+    "returnRefusedA": "La legge esclude alcuni prodotti dal diritto di recesso di 14 giorni: articoli personalizzati, prodotti igienici sigillati una volta aperti, deperibili, ecc. (vedi <l22128>articolo L221-28 del Codice del Consumo francese</l22128>). Nessuno sta «rifiutando» il tuo reso — quelle categorie semplicemente non sono idonee ai resi senza motivo.",
     "refundQ": "Quando riceverò il rimborso?",
     "refundA": "Dopo che riceviamo e ispezioniamo la restituzione: 5–10 giorni lavorativi al metodo di pagamento originale. L'annullamento automatico (non-spedito) attiva un rimborso Stripe entro 48 ore.",
     "defectQ": "Prodotto difettoso o articolo sbagliato",
@@ -3861,10 +3861,10 @@
     "methodsA": "Checkout sicuro di Stripe: carta (3D Secure), e Klarna (rate di pagamento senza interessi) quando è eleggibile. Affisell non memorizza i dettagli della carta.",
     "failedQ": "Il mio pagamento è stato rifiutato",
     "failedA": "Prova con un'altra carta o contatta la tua banca. Assicurati che l'indirizzo di fatturazione corrisponda alla carta. Nessuna transazione viene effettuata se il pagamento fallisce.",
-    "cashbackQ": "What is wallet / cashback?",
-    "cashbackA": "On some products, part of the price may be credited to your Affisell wallet after purchase. Sign in before checkout — balance applies on your next eligible order.",
-    "loginQ": "How do I access my account?",
-    "loginA": "Use the same email as at checkout on the customer sign-in page. You'll find orders, returns and your wallet there.",
+    "cashbackQ": "Cos'è il wallet / cashback?",
+    "cashbackA": "Su alcuni prodotti, parte del prezzo può essere accreditata sul tuo wallet Affisell dopo l'acquisto. Accedi prima del checkout — il saldo si applica al tuo prossimo ordine idoneo.",
+    "loginQ": "Come accedo al mio account?",
+    "loginA": "Usa la stessa email del checkout nella pagina di accesso clienti. Lì troverai ordini, resi e il tuo wallet.",
     "stillNeedHelp": "Ancora ho bisogno di aiuto?",
     "stillNeedHelpBody": "L'assistente di supporto risponde 24/7. Per dispute complesse, il nostro team risponde entro 2 giorni lavorativi.",
     "supportAgentCta": "Assistente di supporto",
@@ -4360,7 +4360,7 @@
     "contact": "Contattaci",
     "terms": "Termini",
     "privacy": "Privacy",
-    "cookies": "Cookies",
+    "cookies": "Cookie",
     "sellTitle": "Vendi",
     "becomeCreator": "Diventa un creatore",
     "becomeReseller": "Crea account rivenditore",
@@ -4397,7 +4397,7 @@
       "sellOnAffisell": "Vendi su Affisell",
       "liveShopping": "Shopping in diretta",
       "affiliateProgram": "Programma di affiliazione",
-      "magicSystems": "Magic Systems"
+      "magicSystems": "Sistemi Magici"
     },
     "company": {
       "title": "Azienda",

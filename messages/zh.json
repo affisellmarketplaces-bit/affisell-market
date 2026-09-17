@@ -34,7 +34,7 @@
       "referralShort": "推荐",
       "brandStudio": "品牌工作室",
       "brandStudioShort": "品牌",
-      "magicLab": "Magic Systems",
+      "magicLab": "魔法系统",
       "magicLabShort": "Lab"
     },
     "supplier": {
@@ -46,10 +46,10 @@
       "inviteAffiliate": "邀请合作伙伴",
       "inviteAffiliateShort": "邀请",
       "dropforge": "DropForge",
-      "dropforgeShort": "Forge",
+      "dropforgeShort": "铸造",
       "supply": "Affisell 库存",
       "supplyShort": "库存",
-      "magicLab": "Magic Systems",
+      "magicLab": "魔法系统",
       "magicLabShort": "Lab"
     },
     "accountMenu": {
@@ -100,10 +100,10 @@
     "trustStripText": "购买保障 · 安全支付 · 欧盟14天退货",
     "trustStripCta": "了解更多",
     "trustStripDismiss": "关闭",
-    "agentEntry": "智能助手",
+    "agentEntry": "代理",
     "pulseEntry": "Affisell Pulse",
     "pulseEntryShort": "Pulse",
-    "magicLab": "Magic Systems",
+    "magicLab": "魔法系统",
     "magicLabShort": "Lab",
     "searchQuickBattles": "对战",
     "battlesEntry": "对战竞技场",
@@ -280,8 +280,8 @@
       "bestSellersHint": "7 日热卖 · 动态卡牌",
       "bestSellersBadge": "7天",
       "bestSellersSold": "已售 {count}",
-      "battles": "Battles Hub",
-      "battlesHint": "Live duels · flash discounts"
+      "battles": "对战中心",
+      "battlesHint": "实时对决 · 限时折扣"
     }
   },
   "creators": {
@@ -865,17 +865,17 @@
     "tryPulse": "试试 Affisell Pulse"
   },
   "buyerBestsellers": {
-    "metaTitle": "Top sellers · 7 days",
-    "metaDescription": "Live ranking of the best-selling products on Affisell this week.",
-    "eyebrow": "Live ranking",
-    "title": "Top sellers",
-    "subtitle": "7-day network bestsellers on Affisell — real sales, refreshed continuously.",
-    "liveWindow": "rolling window",
+    "metaTitle": "畅销榜 · 7天",
+    "metaDescription": "Affisell 本周热销商品实时排行榜。",
+    "eyebrow": "实时排行",
+    "title": "畅销商品",
+    "subtitle": "Affisell 平台7天网络畅销榜 —— 真实销量，持续更新。",
+    "liveWindow": "滚动周期",
     "rank": "#{rank}",
-    "sold": "{count} sold",
-    "empty": "Not enough sales this week yet. Check back soon.",
-    "emptyCta": "Browse catalog",
-    "backHome": "Back to home"
+    "sold": "已售 {count} 件",
+    "empty": "本周销售数据尚不足，请稍后再来查看。",
+    "emptyCta": "浏览目录",
+    "backHome": "返回首页"
   },
   "buyerAccount": {
     "navAria": "客户区域",
@@ -918,16 +918,16 @@
     "cartPending": "{count, plural, one {# item waiting} other {# items waiting}}",
     "backMarketplace": "← 回到市场",
     "push": {
-      "title": "Push notifications",
-      "body": "Price drops on saved products, shipping updates, and delivery alerts.",
-      "enable": "Enable notifications",
-      "disable": "Turn off notifications",
-      "loading": "Loading…",
-      "enabledToast": "Notifications enabled on this device",
-      "disabledToast": "Notifications turned off",
-      "deniedToast": "Permission denied — enable in browser settings",
-      "unsupportedToast": "Push not available on this browser",
-      "disableFailed": "Could not disable notifications"
+      "title": "推送通知",
+      "body": "已收藏商品降价、配送更新与送达提醒。",
+      "enable": "启用通知",
+      "disable": "关闭通知",
+      "loading": "加载中…",
+      "enabledToast": "已在此设备上启用通知",
+      "disabledToast": "通知已关闭",
+      "deniedToast": "权限被拒 —— 请在浏览器设置中启用",
+      "unsupportedToast": "此浏览器不支持推送",
+      "disableFailed": "无法关闭通知"
     }
   },
   "shops": {
@@ -3829,15 +3829,15 @@
     }
   },
   "faq": {
-    "metaTitle": "FAQ — Affisell",
+    "metaTitle": "常见问题 — Affisell",
     "eyebrow": "Help",
     "title": "常见问题",
     "description": "订单、发货、退货、支付 — 即时答案，避免联系客服。",
     "sectionOrders": "订单",
     "sectionReturns": "退货与退款",
     "sectionPayment": "支付",
-    "sectionAccount": "Account",
-    "sellerQ": "Who is the seller?",
+    "sectionAccount": "账户",
+    "sellerQ": "谁是卖家？",
     "sellerA": "The product is sold by a verified professional partner. Affisell secures payment and customer support. We do not disclose the seller's name — your legal rights and warranties are unchanged.",
     "trackQ": "我的订单在哪里?",
     "trackA": "使用checkout时的邮箱登录，打开我的订单。您会看到状态、跟踪信息和退货选项。每个步骤都会自动发送确认邮件（确认、发货、送达）。",
@@ -3851,8 +3851,8 @@
     "lateA": "首先检查 My 订单中的运输跟踪。如果在预期的截止日期后没有跟踪信息，我们的系统可能会自动取消并退款。否则，请使用支持助手或联系表格。",
     "returnQ": "如何退回商品?",
     "returnA": "您有 14 天的退货期限（EU）。从 My 订单中打开一个请求或阅读我们的退货政策。商品必须未使用，原包装完整。",
-    "returnRefusedQ": "Why can't I return some products?",
-    "returnRefusedA": "Law excludes certain products from the 14-day withdrawal right: custom-made items, sealed hygiene products once opened, perishables, etc. (see <l22128>French Consumer Code article L221-28</l22128>). This isn't someone \"refusing\" your return — those categories simply aren't eligible for no-reason returns.",
+    "returnRefusedQ": "为什么某些商品无法退货？",
+    "returnRefusedA": "法律规定某些商品不适用14天撤销权：定制商品、已拆封的密封卫生用品、易腐商品等（参见<l22128>法国消费者法典第 L221-28 条</l22128>）。这并非有人「拒绝」你的退货 —— 这些类别本身就不适用于无理由退货。",
     "refundQ": "何时会退款给我?",
     "refundA": "我们收到并检查退货后：5–10 个工作日退回到您的原始付款方式。非发货（自动取消）将在 48 小时内通过 Stripe 进行退款。",
     "defectQ": "商品有缺陷或错误",
@@ -3861,10 +3861,10 @@
     "methodsA": "安全的Stripe支付：卡（3D安全），并且在符合条件时，Klarna（无息分期付款）。Affisell从未存储卡详细信息。",
     "failedQ": "我的付款被拒绝",
     "failedA": "尝试另一个卡或联系您的银行。确保账单地址与卡匹配。付款失败时不会产生任何费用。",
-    "cashbackQ": "What is wallet / cashback?",
-    "cashbackA": "On some products, part of the price may be credited to your Affisell wallet after purchase. Sign in before checkout — balance applies on your next eligible order.",
-    "loginQ": "How do I access my account?",
-    "loginA": "Use the same email as at checkout on the customer sign-in page. You'll find orders, returns and your wallet there.",
+    "cashbackQ": "什么是钱包/返现？",
+    "cashbackA": "部分商品购买后，部分金额可能返还至你的 Affisell 钱包。请在结账前登录 —— 余额将在你下次符合条件的订单中生效。",
+    "loginQ": "如何访问我的账户？",
+    "loginA": "在客户登录页面使用与结账时相同的邮箱。你可以在那里查看订单、退货与钱包。",
     "stillNeedHelp": "还需要帮助吗?",
     "stillNeedHelpBody": "支持助手24/7响应。对于复杂的争议，我们的团队在2个工作日内回复。",
     "supportAgentCta": "支持助手",
@@ -4300,7 +4300,7 @@
       "paymentTitle": "安全支付",
       "paymentMethodsAriaLabel": "支持的支付方式",
       "paymentProcessorHint": "Stripe · 3D Secure",
-      "paymentProcessorSecure": "3D Secure",
+      "paymentProcessorSecure": "3D 安全验证",
       "paymentMethodsComplianceNote": "若你的设备及订单金额符合条件，将显示钱包支付及 Klarna 选项。由 Stripe 提供支持。",
       "about": "关于",
       "howItWorks": "如何工作",
@@ -4319,7 +4319,7 @@
       "affiliateProgram": "推广计划",
       "becomeSupplier": "成为供应商",
       "enterpriseBrands": "企业品牌",
-      "demoLab": "演示实验室",
+      "demoLab": "Demo Lab",
       "blog": "博客",
       "careers": "职业发展",
       "press": "媒体报道",
@@ -4397,7 +4397,7 @@
       "sellOnAffisell": "在 Affisell 上销售",
       "liveShopping": "直播购物",
       "affiliateProgram": "推广计划",
-      "magicSystems": "Magic Systems"
+      "magicSystems": "魔法系统"
     },
     "company": {
       "title": "公司",

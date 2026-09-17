@@ -34,7 +34,7 @@
       "referralShort": "Referir",
       "brandStudio": "Estudio de marcas",
       "brandStudioShort": "Marca",
-      "magicLab": "Magic Systems",
+      "magicLab": "Sistemas Mágicos",
       "magicLabShort": "Lab"
     },
     "supplier": {
@@ -49,7 +49,7 @@
       "dropforgeShort": "Forge",
       "supply": "Stock de Affisell",
       "supplyShort": "Stock",
-      "magicLab": "Magic Systems",
+      "magicLab": "Sistemas Mágicos",
       "magicLabShort": "Lab"
     },
     "accountMenu": {
@@ -103,7 +103,7 @@
     "agentEntry": "Agente",
     "pulseEntry": "Affisell Pulse",
     "pulseEntryShort": "Pulse",
-    "magicLab": "Magic Systems",
+    "magicLab": "Sistemas Mágicos",
     "magicLabShort": "Lab",
     "searchQuickBattles": "Battles",
     "battlesEntry": "Arena de Battles",
@@ -281,7 +281,7 @@
       "bestSellersBadge": "7d",
       "bestSellersSold": "{count} vendidos",
       "battles": "Battles Hub",
-      "battlesHint": "Live duels · flash discounts"
+      "battlesHint": "Duelos en vivo · descuentos flash"
     }
   },
   "creators": {
@@ -865,17 +865,17 @@
     "tryPulse": "Probar Affisell Pulse"
   },
   "buyerBestsellers": {
-    "metaTitle": "Top sellers · 7 days",
-    "metaDescription": "Live ranking of the best-selling products on Affisell this week.",
-    "eyebrow": "Live ranking",
-    "title": "Top sellers",
-    "subtitle": "7-day network bestsellers on Affisell — real sales, refreshed continuously.",
-    "liveWindow": "rolling window",
+    "metaTitle": "Más vendidos · 7 días",
+    "metaDescription": "Ranking en vivo de los productos más vendidos en Affisell esta semana.",
+    "eyebrow": "Ranking en vivo",
+    "title": "Más vendidos",
+    "subtitle": "Los más vendidos de la red en Affisell durante 7 días — ventas reales, actualizadas continuamente.",
+    "liveWindow": "ventana móvil",
     "rank": "#{rank}",
-    "sold": "{count} sold",
-    "empty": "Not enough sales this week yet. Check back soon.",
-    "emptyCta": "Browse catalog",
-    "backHome": "Back to home"
+    "sold": "{count} vendidos",
+    "empty": "Aún no hay suficientes ventas esta semana. Vuelve pronto.",
+    "emptyCta": "Explorar catálogo",
+    "backHome": "Volver al inicio"
   },
   "buyerAccount": {
     "navAria": "Área del cliente",
@@ -918,16 +918,16 @@
     "cartPending": "{count, plural, one {# item waiting} other {# items waiting}}",
     "backMarketplace": "← Volver a la tienda",
     "push": {
-      "title": "Push notifications",
-      "body": "Price drops on saved products, shipping updates, and delivery alerts.",
-      "enable": "Enable notifications",
-      "disable": "Turn off notifications",
-      "loading": "Loading…",
-      "enabledToast": "Notifications enabled on this device",
-      "disabledToast": "Notifications turned off",
-      "deniedToast": "Permission denied — enable in browser settings",
-      "unsupportedToast": "Push not available on this browser",
-      "disableFailed": "Could not disable notifications"
+      "title": "Notificaciones push",
+      "body": "Bajadas de precio en productos guardados, actualizaciones de envío y alertas de entrega.",
+      "enable": "Activar notificaciones",
+      "disable": "Desactivar notificaciones",
+      "loading": "Cargando…",
+      "enabledToast": "Notificaciones activadas en este dispositivo",
+      "disabledToast": "Notificaciones desactivadas",
+      "deniedToast": "Permiso denegado — actívalo en la configuración del navegador",
+      "unsupportedToast": "Push no disponible en este navegador",
+      "disableFailed": "No se pudieron desactivar las notificaciones"
     }
   },
   "shops": {
@@ -3836,8 +3836,8 @@
     "sectionOrders": "Pedidos",
     "sectionReturns": "Devoluciones y reembolsos",
     "sectionPayment": "Pago",
-    "sectionAccount": "Account",
-    "sellerQ": "Who is the seller?",
+    "sectionAccount": "Cuenta",
+    "sellerQ": "¿Quién es el vendedor?",
     "sellerA": "The product is sold by a verified professional partner. Affisell secures payment and customer support. We do not disclose the seller's name — your legal rights and warranties are unchanged.",
     "trackQ": "¿Dónde está mi pedido?",
     "trackA": "Inicie sesión con el correo electrónico utilizado en el pago, luego abra Mis pedidos. Verá el estado, el seguimiento y las opciones de devolución. Se envían correos electrónicos automáticos en cada paso (confirmación, envío, entrega).",
@@ -3851,8 +3851,8 @@
     "lateA": "Verifique el seguimiento del transportista en Mis pedidos primero. Si no aparece el seguimiento después del plazo establecido, nuestro sistema puede cancelar automáticamente y reembolsar. De lo contrario, utilice el asistente de soporte o el formulario de contacto.",
     "returnQ": "¿Cómo devuelvo un producto?",
     "returnA": "Tiene 14 días después de la entrega (UE). Abra una solicitud desde Mis pedidos o lea nuestra política de devoluciones. El artículo debe estar sin usar, en su embalaje original.",
-    "returnRefusedQ": "Why can't I return some products?",
-    "returnRefusedA": "Law excludes certain products from the 14-day withdrawal right: custom-made items, sealed hygiene products once opened, perishables, etc. (see <l22128>French Consumer Code article L221-28</l22128>). This isn't someone \"refusing\" your return — those categories simply aren't eligible for no-reason returns.",
+    "returnRefusedQ": "¿Por qué no puedo devolver algunos productos?",
+    "returnRefusedA": "La ley excluye ciertos productos del derecho de desistimiento de 14 días: artículos personalizados, productos de higiene sellados una vez abiertos, perecederos, etc. (ver <l22128>artículo L221-28 del Código de Consumo francés</l22128>). Esto no significa que alguien «rechace» tu devolución — esas categorías simplemente no son elegibles para devoluciones sin motivo.",
     "refundQ": "¿Cuándo recibiré el reembolso?",
     "refundA": "Después de que recibamos e inspeccionemos la devolución: 5-10 días laborables a su método de pago original. La cancelación automática (sin envío) desencadena un reembolso de Stripe dentro de 48 horas.",
     "defectQ": "¿El producto es defectuoso o es el artículo incorrecto?",
@@ -3861,10 +3861,10 @@
     "methodsA": "Pago seguro con Stripe: tarjeta (3D Secure) y Klarna (instalmentes sin intereses) cuando sea elegible. Affisell nunca almacena detalles de la tarjeta.",
     "failedQ": "Mi pago fue rechazado",
     "failedA": "Intente con otra tarjeta o contáctese con su banco. Asegúrese de que la dirección de facturación coincida con la tarjeta. No se realiza cargo si el pago falla.",
-    "cashbackQ": "What is wallet / cashback?",
-    "cashbackA": "On some products, part of the price may be credited to your Affisell wallet after purchase. Sign in before checkout — balance applies on your next eligible order.",
-    "loginQ": "How do I access my account?",
-    "loginA": "Use the same email as at checkout on the customer sign-in page. You'll find orders, returns and your wallet there.",
+    "cashbackQ": "¿Qué es el monedero / cashback?",
+    "cashbackA": "En algunos productos, parte del precio puede acreditarse en tu monedero Affisell tras la compra. Inicia sesión antes de pagar — el saldo se aplica en tu próximo pedido elegible.",
+    "loginQ": "¿Cómo accedo a mi cuenta?",
+    "loginA": "Usa el mismo email que en el checkout en la página de acceso de clientes. Allí encontrarás tus pedidos, devoluciones y tu monedero.",
     "stillNeedHelp": "¿Necesita ayuda adicional?",
     "stillNeedHelpBody": "El asistente de soporte responde las 24 horas del día. Para disputas complejas, nuestro equipo responde dentro de 2 días laborables.",
     "supportAgentCta": "Asistente de soporte",
@@ -4319,7 +4319,7 @@
       "affiliateProgram": "Programa de afiliados",
       "becomeSupplier": "Convertirse en proveedor",
       "enterpriseBrands": "Marcas Enterprise",
-      "demoLab": "Laboratorio de demostración",
+      "demoLab": "Demo Lab",
       "blog": "Blog",
       "careers": "Carreras",
       "press": "Prensa",
@@ -4397,7 +4397,7 @@
       "sellOnAffisell": "Vender en Affisell",
       "liveShopping": "Tienda en vivo",
       "affiliateProgram": "Programa de afiliados",
-      "magicSystems": "Magic Systems"
+      "magicSystems": "Sistemas Mágicos"
     },
     "company": {
       "title": "Compañía",

@@ -34,7 +34,7 @@
       "referralShort": "Verwijzen",
       "brandStudio": "Brand Studio",
       "brandStudioShort": "Brand",
-      "magicLab": "Magic Systems",
+      "magicLab": "Magische Systemen",
       "magicLabShort": "Lab"
     },
     "supplier": {
@@ -49,7 +49,7 @@
       "dropforgeShort": "Forge",
       "supply": "Affisell-voorraad",
       "supplyShort": "Voorraad",
-      "magicLab": "Magic Systems",
+      "magicLab": "Magische Systemen",
       "magicLabShort": "Lab"
     },
     "accountMenu": {
@@ -81,7 +81,7 @@
     "cartAria": "Winkelwagen",
     "themeToggle": "Sjabloonknop",
     "contextHome": "Home",
-    "contextMarketplace": "Marketplace",
+    "contextMarketplace": "Marktplaats",
     "contextCreatorStores": "Winkels",
     "searchQuickTitle": "Ontdekken",
     "searchProductsTitle": "Producten",
@@ -103,7 +103,7 @@
     "agentEntry": "Agent",
     "pulseEntry": "Affisell Pulse",
     "pulseEntryShort": "Pulse",
-    "magicLab": "Magic Systems",
+    "magicLab": "Magische Systemen",
     "magicLabShort": "Lab",
     "searchQuickBattles": "Battles",
     "battlesEntry": "Battles-arena",
@@ -281,7 +281,7 @@
       "bestSellersBadge": "7d",
       "bestSellersSold": "{count} verkocht",
       "battles": "Battles Hub",
-      "battlesHint": "Live duels · flash discounts"
+      "battlesHint": "Live duels · flitskortingen"
     }
   },
   "creators": {
@@ -865,17 +865,17 @@
     "tryPulse": "Probeer Affisell Pulse"
   },
   "buyerBestsellers": {
-    "metaTitle": "Top sellers · 7 days",
-    "metaDescription": "Live ranking of the best-selling products on Affisell this week.",
-    "eyebrow": "Live ranking",
-    "title": "Top sellers",
-    "subtitle": "7-day network bestsellers on Affisell — real sales, refreshed continuously.",
-    "liveWindow": "rolling window",
+    "metaTitle": "Bestverkocht · 7 dagen",
+    "metaDescription": "Live ranglijst van de best verkochte producten op Affisell deze week.",
+    "eyebrow": "Live ranglijst",
+    "title": "Bestverkocht",
+    "subtitle": "7-daagse netwerkbestsellers op Affisell — echte verkopen, continu bijgewerkt.",
+    "liveWindow": "voortschrijdend venster",
     "rank": "#{rank}",
-    "sold": "{count} sold",
-    "empty": "Not enough sales this week yet. Check back soon.",
-    "emptyCta": "Browse catalog",
-    "backHome": "Back to home"
+    "sold": "{count} verkocht",
+    "empty": "Nog niet genoeg verkopen deze week. Kom snel terug.",
+    "emptyCta": "Catalogus bekijken",
+    "backHome": "Terug naar home"
   },
   "buyerAccount": {
     "navAria": "Klantgebied",
@@ -918,16 +918,16 @@
     "cartPending": "{count, plural, one {# item wacht} other {# items wachten}}",
     "backMarketplace": "← Terug naar marktplaats",
     "push": {
-      "title": "Push notifications",
-      "body": "Price drops on saved products, shipping updates, and delivery alerts.",
-      "enable": "Enable notifications",
-      "disable": "Turn off notifications",
-      "loading": "Loading…",
-      "enabledToast": "Notifications enabled on this device",
-      "disabledToast": "Notifications turned off",
-      "deniedToast": "Permission denied — enable in browser settings",
-      "unsupportedToast": "Push not available on this browser",
-      "disableFailed": "Could not disable notifications"
+      "title": "Pushmeldingen",
+      "body": "Prijsdalingen op opgeslagen producten, verzendupdates en bezorgmeldingen.",
+      "enable": "Meldingen inschakelen",
+      "disable": "Meldingen uitschakelen",
+      "loading": "Laden…",
+      "enabledToast": "Meldingen ingeschakeld op dit apparaat",
+      "disabledToast": "Meldingen uitgeschakeld",
+      "deniedToast": "Toestemming geweigerd — schakel in via browserinstellingen",
+      "unsupportedToast": "Push niet beschikbaar in deze browser",
+      "disableFailed": "Kon meldingen niet uitschakelen"
     }
   },
   "shops": {
@@ -3829,7 +3829,7 @@
     }
   },
   "faq": {
-    "metaTitle": "FAQ — Affisell",
+    "metaTitle": "Veelgestelde vragen — Affisell",
     "eyebrow": "Help",
     "title": "Veelgestelde vragen",
     "description": "Bestellingen, verzending, retourneren en betalen — instant antwoorden voordat u contact opneemt met de support.",
@@ -3837,7 +3837,7 @@
     "sectionReturns": "Retourneren & restitutie",
     "sectionPayment": "Betaling",
     "sectionAccount": "Account",
-    "sellerQ": "Who is the seller?",
+    "sellerQ": "Wie is de verkoper?",
     "sellerA": "The product is sold by a verified professional partner. Affisell secures payment and customer support. We do not disclose the seller's name — your legal rights and warranties are unchanged.",
     "trackQ": "Waar is mijn bestelling?",
     "trackA": "Meld u aan met het e-mailadres dat u bij de aankoop hebt gebruikt, en open vervolgens Mijn bestellingen. U ziet de status, tracking en retouropties. Automatische e-mails worden gestuurd bij elke stap (bevestiging, verzending, levering).",
@@ -3851,8 +3851,8 @@
     "lateA": "Controleer eerst de verzendvolg bij Mijn bestellingen. Als geen tracking verschijnt na de gestelde deadline, kan onze systeem automatisch annuleren en een restitutie uitvoeren. Anders gebruik de ondersteuning-assistent of de contactformulier.",
     "returnQ": "Hoe retourneer ik een product?",
     "returnA": "Je hebt 14 dagen na aflevering (EU). Open een verzoek vanuit Mijn bestellingen of lees onze retourbeleid. Het artikel moet ongebruikt zijn, in originele verpakking.",
-    "returnRefusedQ": "Why can't I return some products?",
-    "returnRefusedA": "Law excludes certain products from the 14-day withdrawal right: custom-made items, sealed hygiene products once opened, perishables, etc. (see <l22128>French Consumer Code article L221-28</l22128>). This isn't someone \"refusing\" your return — those categories simply aren't eligible for no-reason returns.",
+    "returnRefusedQ": "Waarom kan ik sommige producten niet retourneren?",
+    "returnRefusedA": "De wet sluit bepaalde producten uit van het 14-dagen herroepingsrecht: op maat gemaakte artikelen, verzegelde hygiëneproducten eenmaal geopend, bederfelijke waren, enz. (zie <l22128>artikel L221-28 van het Franse Consumentenwetboek</l22128>). Niemand 'weigert' je retour — die categorieën komen simpelweg niet in aanmerking voor retouren zonder reden.",
     "refundQ": "Wanneer word ik gerestitueerd?",
     "refundA": "Na ontvangst en inspectie van de retour: 5–10 werkdagen naar je oorspronkelijke betaalmethode. Automatische annulering (geen verzending) activeert een Stripe-restitutie binnen 48 uur.",
     "defectQ": "Defect product of verkeerd artikel",
@@ -3861,10 +3861,10 @@
     "methodsA": "Sekurere Stripe checkout: kaart (3D Secure), en Klarna (interest-vrije afbetalingen) wanneer in aanmerking komt. Affisell opslaat nooit kaartgegevens.",
     "failedQ": "Mijn betaling is afgewezen",
     "failedA": "Probeer een andere kaart of neem contact op met uw bank. Zorg ervoor dat de factuuradres overeenkomt met de kaart. Er wordt geen kosten gemaakt als de betaling faalt.",
-    "cashbackQ": "What is wallet / cashback?",
-    "cashbackA": "On some products, part of the price may be credited to your Affisell wallet after purchase. Sign in before checkout — balance applies on your next eligible order.",
-    "loginQ": "How do I access my account?",
-    "loginA": "Use the same email as at checkout on the customer sign-in page. You'll find orders, returns and your wallet there.",
+    "cashbackQ": "Wat is wallet / cashback?",
+    "cashbackA": "Bij sommige producten kan een deel van de prijs na aankoop worden bijgeschreven op je Affisell-wallet. Log in vóór het afrekenen — het saldo geldt voor je volgende in aanmerking komende bestelling.",
+    "loginQ": "Hoe krijg ik toegang tot mijn account?",
+    "loginA": "Gebruik hetzelfde e-mailadres als bij het afrekenen op de klantinlogpagina. Daar vind je bestellingen, retouren en je wallet.",
     "stillNeedHelp": "Hebt u nog steeds hulp nodig?",
     "stillNeedHelpBody": "De ondersteuningsassistent antwoordt 24/7. Voor complexe geschillen antwoordt onze team binnen 2 werkdagen.",
     "supportAgentCta": "Ondersteuningsassistent",
@@ -4397,7 +4397,7 @@
       "sellOnAffisell": "Verkopen op Affisell",
       "liveShopping": "Live Shopping",
       "affiliateProgram": "Affiliate Program",
-      "magicSystems": "Magic Systems"
+      "magicSystems": "Magische Systemen"
     },
     "company": {
       "title": "Bedrijf",
