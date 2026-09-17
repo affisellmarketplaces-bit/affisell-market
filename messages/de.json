@@ -5658,189 +5658,189 @@
       "auto": "Auto",
       "fitness": "Fitness",
       "beauty": "Beauty",
-      "tech": "Tech",
-      "home": "Home",
-      "fashion": "Fashion",
-      "general": "General"
+      "tech": "Technik",
+      "home": "Wohnen",
+      "fashion": "Mode",
+      "general": "Allgemein"
     },
     "regions": {
-      "Europe": "Europe",
-      "America": "Americas",
-      "Asia": "Asia",
-      "Africa": "Africa & Middle East",
-      "Oceania": "Oceania",
-      "other": "Other markets"
+      "Europe": "Europa",
+      "America": "Amerika",
+      "Asia": "Asien",
+      "Africa": "Afrika & Naher Osten",
+      "Oceania": "Ozeanien",
+      "other": "Andere Märkte"
     },
     "status": {
-      "open": "Open",
-      "fulfilled": "Fulfilled",
-      "closed": "Closed",
-      "other": "Closed",
-      "pending": "Pending",
-      "accepted": "Accepted",
-      "rejected": "Rejected"
+      "open": "Offen",
+      "fulfilled": "Erfüllt",
+      "closed": "Geschlossen",
+      "other": "Geschlossen",
+      "pending": "Ausstehend",
+      "accepted": "Angenommen",
+      "rejected": "Abgelehnt"
     },
     "common": {
       "pieces": "pcs",
-      "quotesCount": "{count, plural, one {# quote} other {# quotes}}",
-      "networkError": "Network error",
-      "loading": "Loading…",
-      "supplierFallback": "Supplier",
+      "quotesCount": "{count, plural, one {# Angebot} other {# Angebote}}",
+      "networkError": "Netzwerkfehler",
+      "loading": "Wird geladen…",
+      "supplierFallback": "Lieferant",
       "resellerLabel": "Reseller",
-      "noDescription": "No description.",
-      "targetPrice": "Target price",
+      "noDescription": "Keine Beschreibung.",
+      "targetPrice": "Zielpreis",
       "dash": "—",
-      "slaWarning": "outside typical SLA",
-      "provenanceLabel": "Origin",
-      "complianceLabel": "Compliance requirements",
-      "complianceCount": "{count, plural, one {# requirement} other {# requirements}}"
+      "slaWarning": "außerhalb der üblichen SLA",
+      "provenanceLabel": "Herkunft",
+      "complianceLabel": "Compliance-Anforderungen",
+      "complianceCount": "{count, plural, one {# Anforderung} other {# Anforderungen}}"
     },
     "sla": {
-      "singleMarket": "For {code}, reasonable delivery: {idealDays}–{maxDays} days. Beyond {maxDays} days, your return rate rises ~40%.",
-      "perMarketLine": "{code} {idealDays}–{maxDays}d",
-      "multiMarket": "Markets {codes} — reasonable delivery: {perMarket}. Combined SLA max {maxDays} days. Beyond that, your return rate rises ~40%.",
-      "registered": "Recorded SLA: {days} days ({label})"
+      "singleMarket": "Für {code} ist eine angemessene Lieferzeit {idealDays}–{maxDays} Tage. Über {maxDays} Tage hinaus steigt deine Rückgabequote um ca. 40%.",
+      "perMarketLine": "{code} {idealDays}–{maxDays} T.",
+      "multiMarket": "Märkte {codes} — angemessene Lieferzeit: {perMarket}. Kombiniertes SLA max. {maxDays} Tage. Danach steigt deine Rückgabequote um ca. 40%.",
+      "registered": "Erfasstes SLA: {days} Tage ({label})"
     },
     "priorities": {
-      "legend": "Shipping priority",
-      "speed": "⚡ Max speed",
-      "balanced": "⚖️ Balanced",
-      "price": "💰 Lowest price",
-      "daysSpeed": "{days}d",
-      "daysBalanced": "{days}d max",
-      "daysPrice": "{days}d ok"
+      "legend": "Versandpriorität",
+      "speed": "⚡ Maximale Geschwindigkeit",
+      "balanced": "⚖️ Ausgewogen",
+      "price": "💰 Niedrigster Preis",
+      "daysSpeed": "{days} T.",
+      "daysBalanced": "max. {days} T.",
+      "daysPrice": "{days} T. ok"
     },
     "provenance": {
-      "any": "Any origin",
+      "any": "Beliebige Herkunft",
       "china": "China",
-      "eu": "Europe (EU)",
-      "usa": "United States",
-      "turkey": "Turkey",
-      "india": "India",
+      "eu": "Europa (EU)",
+      "usa": "USA",
+      "turkey": "Türkei",
+      "india": "Indien",
       "vietnam": "Vietnam",
-      "local": "Local / domestic"
+      "local": "Lokal / inländisch"
     },
     "compliance": {
       "groups": {
-        "legal": "Legal & market access",
-        "quality": "Quality & factory",
-        "product": "Product safety & materials",
-        "sustainability": "Sustainability & ethics",
-        "ip": "Intellectual property"
+        "legal": "Recht & Marktzugang",
+        "quality": "Qualität & Fabrik",
+        "product": "Produktsicherheit & Materialien",
+        "sustainability": "Nachhaltigkeit & Ethik",
+        "ip": "Geistiges Eigentum"
       },
       "ce_marking": {
-        "title": "CE marking (EU)",
-        "hint": "Conformity for sale in the European Union"
+        "title": "CE-Kennzeichnung (EU)",
+        "hint": "Konformität für den Verkauf in der Europäischen Union"
       },
       "ukca_marking": {
         "title": "UKCA / UKNI",
-        "hint": "Conformity for Great Britain & Northern Ireland"
+        "hint": "Konformität für Großbritannien & Nordirland"
       },
       "fcc_compliance": {
         "title": "FCC (USA)",
-        "hint": "Radio / EMC compliance for the US market"
+        "hint": "Funk-/EMV-Konformität für den US-Markt"
       },
       "gpsr": {
-        "title": "GPSR (EU safety)",
-        "hint": "General Product Safety Regulation — EU 2023/988"
+        "title": "GPSR (EU-Sicherheit)",
+        "hint": "Allgemeine Produktsicherheitsverordnung — EU 2023/988"
       },
       "reach": {
         "title": "REACH",
-        "hint": "EU chemicals registration & restriction"
+        "hint": "EU-Registrierung und -Beschränkung von Chemikalien"
       },
       "rohs": {
         "title": "RoHS",
-        "hint": "Restriction of hazardous substances (electronics)"
+        "hint": "Beschränkung gefährlicher Stoffe (Elektronik)"
       },
       "weee": {
         "title": "WEEE",
-        "hint": "E-waste take-back & recycling obligations"
+        "hint": "Rücknahme- und Recyclingpflichten für Elektroschrott"
       },
       "prop65": {
-        "title": "Prop 65 (California)",
-        "hint": "Warning labels for listed chemicals"
+        "title": "Prop 65 (Kalifornien)",
+        "hint": "Warnhinweise für gelistete Chemikalien"
       },
       "cpc": {
-        "title": "CPC (children)",
-        "hint": "Children's Product Certificate — baby & kids"
+        "title": "CPC (Kinder)",
+        "hint": "Kinderprodukt-Zertifikat — Baby & Kinder"
       },
       "iso9001": {
         "title": "ISO 9001",
-        "hint": "Certified quality management system"
+        "hint": "Zertifiziertes Qualitätsmanagementsystem"
       },
       "iso14001": {
         "title": "ISO 14001",
-        "hint": "Environmental management certification"
+        "hint": "Zertifizierung für Umweltmanagement"
       },
       "factory_audit": {
-        "title": "Factory audit",
-        "hint": "Third-party social & technical audit report"
+        "title": "Fabrikaudit",
+        "hint": "Unabhängiger Sozial- und Technikprüfbericht"
       },
       "third_party_lab": {
-        "title": "Independent lab tests",
-        "hint": "Accredited lab test reports supplied"
+        "title": "Unabhängige Labortests",
+        "hint": "Bereitstellung akkreditierter Labortestberichte"
       },
       "batch_traceability": {
-        "title": "Batch traceability",
-        "hint": "Lot / serial tracking from factory to shipment"
+        "title": "Chargenrückverfolgbarkeit",
+        "hint": "Chargen-/Seriennummerverfolgung von der Fabrik bis zum Versand"
       },
       "aql_inspection": {
-        "title": "AQL inspection",
-        "hint": "Pre-shipment quality inspection (AQL 2.5 or stricter)"
+        "title": "AQL-Prüfung",
+        "hint": "Qualitätskontrolle vor Versand (AQL 2,5 oder strenger)"
       },
       "food_grade": {
-        "title": "Food contact safe",
-        "hint": "Materials safe for food / mouth contact"
+        "title": "Lebensmittelecht",
+        "hint": "Für Lebensmittel-/Mundkontakt sichere Materialien"
       },
       "msds": {
-        "title": "SDS / MSDS",
-        "hint": "Safety data sheet for chemical products"
+        "title": "SDB / MSDS",
+        "hint": "Sicherheitsdatenblatt für Chemieprodukte"
       },
       "bpa_free": {
-        "title": "BPA-free",
-        "hint": "No bisphenol A in plastics"
+        "title": "BPA-frei",
+        "hint": "Kein Bisphenol A in Kunststoffen"
       },
       "oeko_tex": {
         "title": "OEKO-TEX",
-        "hint": "Textile harmful-substance standard"
+        "hint": "Textilstandard für Schadstoffe"
       },
       "fsc": {
         "title": "FSC",
-        "hint": "Responsible wood / paper sourcing"
+        "hint": "Verantwortungsvolle Holz-/Papierbeschaffung"
       },
       "recyclable_packaging": {
-        "title": "Recyclable packaging",
-        "hint": "Mono-material or widely recyclable pack"
+        "title": "Recycelbare Verpackung",
+        "hint": "Mono-Material- oder weitgehend recycelbare Verpackung"
       },
       "carbon_neutral": {
-        "title": "Carbon-neutral shipping",
-        "hint": "Offset or low-carbon logistics option"
+        "title": "CO2-neutraler Versand",
+        "hint": "Kompensations- oder emissionsarme Logistikoption"
       },
       "fair_trade": {
-        "title": "Fair trade",
-        "hint": "Fair wages & ethical supply chain"
+        "title": "Fairer Handel",
+        "hint": "Faire Löhne & ethische Lieferkette"
       },
       "patent_clear": {
-        "title": "Patent clearance",
-        "hint": "No known active patent infringement"
+        "title": "Patentfreiheit",
+        "hint": "Keine bekannte aktive Patentverletzung"
       },
       "trademark_clear": {
-        "title": "Trademark clearance",
-        "hint": "No brand / logo infringement risk"
+        "title": "Markenfreiheit",
+        "hint": "Kein Risiko einer Marken-/Logo-Verletzung"
       }
     },
     "reseller": {
       "globalButton": {
-        "ariaFab": "Request a product",
-        "titleHeader": "Request a product",
-        "labelHeader": "Request",
-        "labelPrimary": "+ Request a missing product",
-        "labelShort": "New request"
+        "ariaFab": "Produkt anfragen",
+        "titleHeader": "Produkt anfragen",
+        "labelHeader": "Anfrage",
+        "labelPrimary": "+ Fehlendes Produkt anfragen",
+        "labelShort": "Neue Anfrage"
       },
       "cta": {
-        "title": "Can't find a product?",
-        "body": "Describe it — our suppliers respond in under 2 hours",
-        "button": "+ Request a product"
+        "title": "Kein passendes Produkt gefunden?",
+        "body": "Beschreibe es — unsere Lieferanten antworten in unter 2 Stunden",
+        "button": "+ Produkt anfragen"
       },
       "new": {
         "title": "Fehlendes Produkt anfragen",
@@ -5853,125 +5853,125 @@
         "newButton": "Neue Anfrage",
         "emptyTitle": "Noch keine Anfragen — erstelle deine erste",
         "howItWorks": "So funktioniert's",
-        "step1": "You request a product not in the catalog",
-        "step2": "Suppliers quote within 2 hours",
-        "step3": "You compare and choose",
-        "step4": "Product auto-created in your catalog",
-        "emptyCta": "+ Request a product",
-        "metaQuotes": "{count, plural, one {# quote} other {# quotes}}"
+        "step1": "Du fragst ein Produkt an, das nicht im Katalog ist",
+        "step2": "Lieferanten machen innerhalb von 2 Stunden ein Angebot",
+        "step3": "Du vergleichst und wählst aus",
+        "step4": "Produkt wird automatisch in deinem Katalog erstellt",
+        "emptyCta": "+ Produkt anfragen",
+        "metaQuotes": "{count, plural, one {# Angebot} other {# Angebote}}"
       },
       "detail": {
-        "backLink": "← My requests"
+        "backLink": "← Meine Anfragen"
       },
       "form": {
-        "catalogHint": "You searched for « {query} » in the catalog — we alert suppliers.",
-        "titleLabel": "Title *",
-        "titlePlaceholder": "E.g. WiFi baby monitor 1080p",
-        "categoryLabel": "Category",
-        "provenanceLabel": "Manufacturing origin",
-        "provenanceCountriesLabel": "Preferred manufacturing countries",
-        "provenanceHint": "{selected} / {total} origins · leave empty for any origin",
-        "provenanceAnyOrigin": "🌍 Any origin",
-        "complianceLabel": "Legal & quality requirements",
-        "complianceHint": "Tick only what matters for your market — suppliers must confirm compliance in their quote.",
-        "complianceEuBundle": "✓ EU bundle (CE, GPSR, REACH, RoHS, WEEE)",
-        "complianceClear": "Clear all",
-        "complianceSelected": "{count, plural, one {# requirement selected} other {# requirements selected}}",
-        "countriesLabel": "Promotion countries *",
-        "countriesHint": "{selected} / {total} markets · one or more",
-        "selectAll": "Select all",
-        "reset": "Reset",
-        "quantityLabel": "Quantity",
-        "targetPriceLabel": "Target price (€)",
-        "targetPricePlaceholder": "e.g. 14.95",
-        "descriptionLabel": "Description",
-        "descriptionPlaceholder": "Specs, colors, lead times…",
-        "imageLabel": "Image URL (optional)",
+        "catalogHint": "Du hast im Katalog nach „{query}“ gesucht — wir benachrichtigen die Lieferanten.",
+        "titleLabel": "Titel *",
+        "titlePlaceholder": "z. B. WLAN-Babyphone 1080p",
+        "categoryLabel": "Kategorie",
+        "provenanceLabel": "Herstellungsland",
+        "provenanceCountriesLabel": "Bevorzugte Herstellungsländer",
+        "provenanceHint": "{selected} / {total} Herkunftsländer · leer lassen für beliebige Herkunft",
+        "provenanceAnyOrigin": "🌍 Beliebige Herkunft",
+        "complianceLabel": "Rechtliche & qualitative Anforderungen",
+        "complianceHint": "Wähle nur aus, was für deinen Markt relevant ist — Lieferanten müssen die Konformität in ihrem Angebot bestätigen.",
+        "complianceEuBundle": "✓ EU-Paket (CE, GPSR, REACH, RoHS, WEEE)",
+        "complianceClear": "Alle löschen",
+        "complianceSelected": "{count, plural, one {# Anforderung ausgewählt} other {# Anforderungen ausgewählt}}",
+        "countriesLabel": "Vertriebsländer *",
+        "countriesHint": "{selected} / {total} Märkte · einer oder mehrere",
+        "selectAll": "Alle auswählen",
+        "reset": "Zurücksetzen",
+        "quantityLabel": "Menge",
+        "targetPriceLabel": "Zielpreis (€)",
+        "targetPricePlaceholder": "z. B. 14,95",
+        "descriptionLabel": "Beschreibung",
+        "descriptionPlaceholder": "Spezifikationen, Farben, Lieferzeiten…",
+        "imageLabel": "Bild-URL (optional)",
         "imagePlaceholder": "https://",
-        "submit": "Send request → Alert suppliers",
-        "submitting": "Sending…",
-        "toastTitleRequired": "Title required",
-        "toastCountryRequired": "Select at least one country",
-        "toastSubmitFailed": "Could not send request",
-        "toastSubmitSuccess": "Request sent — suppliers alerted"
+        "submit": "Anfrage senden → Lieferanten benachrichtigen",
+        "submitting": "Wird gesendet…",
+        "toastTitleRequired": "Titel erforderlich",
+        "toastCountryRequired": "Wähle mindestens ein Land aus",
+        "toastSubmitFailed": "Anfrage konnte nicht gesendet werden",
+        "toastSubmitSuccess": "Anfrage gesendet — Lieferanten benachrichtigt"
       },
       "quotes": {
-        "title": "Quotes received ({count})",
-        "rateDelivery": "Rate delivery →",
-        "viewCatalog": "View product in catalog →",
-        "winner": "Winner:",
-        "noQuotes": "No quotes yet — suppliers have been notified.",
-        "colSupplier": "Supplier",
-        "colPrice": "Price",
+        "title": "Erhaltene Angebote ({count})",
+        "rateDelivery": "Lieferung bewerten →",
+        "viewCatalog": "Produkt im Katalog ansehen →",
+        "winner": "Gewinner:",
+        "noQuotes": "Noch keine Angebote — Lieferanten wurden benachrichtigt.",
+        "colSupplier": "Lieferant",
+        "colPrice": "Preis",
         "colMoq": "MOQ",
-        "colDelivery": "Lead time",
-        "colTrust": "Trust",
-        "colMessage": "Message",
-        "colAction": "Action",
+        "colDelivery": "Lieferzeit",
+        "colTrust": "Vertrauen",
+        "colMessage": "Nachricht",
+        "colAction": "Aktion",
         "boostTop": "Boost +30%",
-        "accept": "Accept",
+        "accept": "Annehmen",
         "accepting": "…",
-        "accepted": "Accepted",
-        "toastAcceptFailed": "Could not accept quote",
-        "toastAcceptSuccess": "Quote accepted — catalog draft created"
+        "accepted": "Angenommen",
+        "toastAcceptFailed": "Angebot konnte nicht angenommen werden",
+        "toastAcceptSuccess": "Angebot angenommen — Katalogentwurf erstellt"
       },
       "home": {
-        "title": "Reseller space",
-        "subtitle": "Product requests, catalog and Radar — all in one place.",
-        "myRequests": "My requests →",
-        "catalog": "Catalog →",
+        "title": "Reseller-Bereich",
+        "subtitle": "Produktanfragen, Katalog und Radar — alles an einem Ort.",
+        "myRequests": "Meine Anfragen →",
+        "catalog": "Katalog →",
         "dashboard": "Dashboard →",
         "radar": "World Radar →"
       }
     },
     "supplier": {
       "list": {
-        "title": "Reseller requests",
-        "categoryFilter": "Category",
+        "title": "Reseller-Anfragen",
+        "categoryFilter": "Kategorie",
         "categoryAll": "All",
-        "tabOpen": "Open",
-        "tabMine": "My quotes",
-        "tabFulfilled": "Fulfilled",
-        "loading": "Loading…",
-        "empty": "No requests in this filter.",
-        "slaMax": "SLA ≤{days}d",
-        "myQuote": "my quote: {status}",
-        "viewQuote": "View my quote →",
-        "quoteCta": "Quote →"
+        "tabOpen": "Offen",
+        "tabMine": "Meine Angebote",
+        "tabFulfilled": "Erfüllt",
+        "loading": "Wird geladen…",
+        "empty": "Keine Anfragen in diesem Filter.",
+        "slaMax": "SLA ≤{days} T.",
+        "myQuote": "mein Angebot: {status}",
+        "viewQuote": "Mein Angebot ansehen →",
+        "quoteCta": "Angebot abgeben →"
       },
       "detail": {
-        "backLink": "← Requests",
-        "closed": "This request is no longer open ({status})."
+        "backLink": "← Anfragen",
+        "closed": "Diese Anfrage ist nicht mehr offen ({status})."
       },
       "quoteForm": {
-        "titleNew": "Submit a quote",
-        "titleExisting": "Your quote",
-        "priceLabel": "Unit price (€)*",
+        "titleNew": "Angebot einreichen",
+        "titleExisting": "Dein Angebot",
+        "priceLabel": "Stückpreis (€)*",
         "moqLabel": "MOQ*",
-        "deliveryLabel": "Lead time (days)*",
-        "messageLabel": "Message",
-        "messagePlaceholder": "EU stock, ships in 48h…",
-        "submit": "Send my quote →",
-        "submitting": "Sending…",
-        "backLink": "← Back to requests",
-        "toastPriceRequired": "Unit price required",
-        "toastMoqRequired": "MOQ required",
-        "toastDeliveryRequired": "Lead time required",
-        "toastAlreadyQuoted": "You already quoted",
-        "toastSubmitFailed": "Could not send quote",
-        "toastSubmitSuccess": "Quote sent — reseller notified"
+        "deliveryLabel": "Lieferzeit (Tage)*",
+        "messageLabel": "Nachricht",
+        "messagePlaceholder": "EU-Lagerbestand, Versand innerhalb von 48 Std…",
+        "submit": "Mein Angebot senden →",
+        "submitting": "Wird gesendet…",
+        "backLink": "← Zurück zu den Anfragen",
+        "toastPriceRequired": "Stückpreis erforderlich",
+        "toastMoqRequired": "MOQ erforderlich",
+        "toastDeliveryRequired": "Lieferzeit erforderlich",
+        "toastAlreadyQuoted": "Du hast bereits ein Angebot abgegeben",
+        "toastSubmitFailed": "Angebot konnte nicht gesendet werden",
+        "toastSubmitSuccess": "Angebot gesendet — Reseller benachrichtigt"
       },
       "teaser": {
-        "title": "🔥 Reseller requests — {count, plural, one {# open} other {# open}}",
-        "viewAll": "View all requests →",
-        "empty": "No open requests right now."
+        "title": "🔥 Reseller-Anfragen — {count, plural, one {# offen} other {# offen}}",
+        "viewAll": "Alle Anfragen ansehen →",
+        "empty": "Derzeit keine offenen Anfragen."
       }
     },
     "supplierFeedback": {
-      "boost": "For {code}, max reasonable = {maxDays}d. You propose {days}d → 🟢 +30% visibility boost",
-      "ok": "For {code}, max reasonable = {maxDays}d. You propose {days}d → ✅ Acceptable zone",
-      "warn": "You propose {days}d → 🔴 -50% visibility — reseller may reject (max {maxDays}d for {code})",
-      "allMarkets": "{detail} (all markets: {codes})"
+      "boost": "Für {code} beträgt das angemessene Maximum {maxDays} T. Du schlägst {days} T. vor → 🟢 +30% Sichtbarkeitsboost",
+      "ok": "Für {code} beträgt das angemessene Maximum {maxDays} T. Du schlägst {days} T. vor → ✅ Akzeptabler Bereich",
+      "warn": "Du schlägst {days} T. vor → 🔴 -50% Sichtbarkeit — Reseller könnte ablehnen (max. {maxDays} T. für {code})",
+      "allMarkets": "{detail} (alle Märkte: {codes})"
     }
   },
   "magicSystems": {

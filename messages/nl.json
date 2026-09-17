@@ -5659,188 +5659,188 @@
       "fitness": "Fitness",
       "beauty": "Beauty",
       "tech": "Tech",
-      "home": "Home",
-      "fashion": "Fashion",
-      "general": "General"
+      "home": "Wonen",
+      "fashion": "Mode",
+      "general": "Algemeen"
     },
     "regions": {
-      "Europe": "Europe",
-      "America": "Americas",
-      "Asia": "Asia",
-      "Africa": "Africa & Middle East",
-      "Oceania": "Oceania",
-      "other": "Other markets"
+      "Europe": "Europa",
+      "America": "Amerika",
+      "Asia": "Azië",
+      "Africa": "Afrika & Midden-Oosten",
+      "Oceania": "Oceanië",
+      "other": "Andere markten"
     },
     "status": {
       "open": "Open",
-      "fulfilled": "Fulfilled",
-      "closed": "Closed",
-      "other": "Closed",
-      "pending": "Pending",
-      "accepted": "Accepted",
-      "rejected": "Rejected"
+      "fulfilled": "Vervuld",
+      "closed": "Gesloten",
+      "other": "Gesloten",
+      "pending": "In behandeling",
+      "accepted": "Geaccepteerd",
+      "rejected": "Afgewezen"
     },
     "common": {
       "pieces": "pcs",
-      "quotesCount": "{count, plural, one {# quote} other {# quotes}}",
-      "networkError": "Network error",
-      "loading": "Loading…",
-      "supplierFallback": "Supplier",
+      "quotesCount": "{count, plural, one {# offerte} other {# offertes}}",
+      "networkError": "Netwerkfout",
+      "loading": "Laden…",
+      "supplierFallback": "Leverancier",
       "resellerLabel": "Reseller",
-      "noDescription": "No description.",
-      "targetPrice": "Target price",
+      "noDescription": "Geen beschrijving.",
+      "targetPrice": "Doelprijs",
       "dash": "—",
-      "slaWarning": "outside typical SLA",
-      "provenanceLabel": "Origin",
-      "complianceLabel": "Compliance requirements",
-      "complianceCount": "{count, plural, one {# requirement} other {# requirements}}"
+      "slaWarning": "buiten de gebruikelijke SLA",
+      "provenanceLabel": "Herkomst",
+      "complianceLabel": "Compliance-vereisten",
+      "complianceCount": "{count, plural, one {# vereiste} other {# vereisten}}"
     },
     "sla": {
-      "singleMarket": "For {code}, reasonable delivery: {idealDays}–{maxDays} days. Beyond {maxDays} days, your return rate rises ~40%.",
+      "singleMarket": "Voor {code}, redelijke levering: {idealDays}–{maxDays} dagen. Na {maxDays} dagen stijgt je retourpercentage met ~40%.",
       "perMarketLine": "{code} {idealDays}–{maxDays}d",
-      "multiMarket": "Markets {codes} — reasonable delivery: {perMarket}. Combined SLA max {maxDays} days. Beyond that, your return rate rises ~40%.",
-      "registered": "Recorded SLA: {days} days ({label})"
+      "multiMarket": "Markten {codes} — redelijke levering: {perMarket}. Gecombineerde SLA max {maxDays} dagen. Daarna stijgt je retourpercentage met ~40%.",
+      "registered": "Geregistreerde SLA: {days} dagen ({label})"
     },
     "priorities": {
-      "legend": "Shipping priority",
-      "speed": "⚡ Max speed",
-      "balanced": "⚖️ Balanced",
-      "price": "💰 Lowest price",
+      "legend": "Verzendprioriteit",
+      "speed": "⚡ Maximale snelheid",
+      "balanced": "⚖️ Gebalanceerd",
+      "price": "💰 Laagste prijs",
       "daysSpeed": "{days}d",
-      "daysBalanced": "{days}d max",
+      "daysBalanced": "max {days}d",
       "daysPrice": "{days}d ok"
     },
     "provenance": {
-      "any": "Any origin",
+      "any": "Elke herkomst",
       "china": "China",
-      "eu": "Europe (EU)",
-      "usa": "United States",
-      "turkey": "Turkey",
+      "eu": "Europa (EU)",
+      "usa": "Verenigde Staten",
+      "turkey": "Turkije",
       "india": "India",
       "vietnam": "Vietnam",
-      "local": "Local / domestic"
+      "local": "Lokaal / binnenlands"
     },
     "compliance": {
       "groups": {
-        "legal": "Legal & market access",
-        "quality": "Quality & factory",
-        "product": "Product safety & materials",
-        "sustainability": "Sustainability & ethics",
-        "ip": "Intellectual property"
+        "legal": "Juridisch & marktoegang",
+        "quality": "Kwaliteit & fabriek",
+        "product": "Productveiligheid & materialen",
+        "sustainability": "Duurzaamheid & ethiek",
+        "ip": "Intellectueel eigendom"
       },
       "ce_marking": {
-        "title": "CE marking (EU)",
-        "hint": "Conformity for sale in the European Union"
+        "title": "CE-markering (EU)",
+        "hint": "Conformiteit voor verkoop in de Europese Unie"
       },
       "ukca_marking": {
         "title": "UKCA / UKNI",
-        "hint": "Conformity for Great Britain & Northern Ireland"
+        "hint": "Conformiteit voor Groot-Brittannië & Noord-Ierland"
       },
       "fcc_compliance": {
-        "title": "FCC (USA)",
-        "hint": "Radio / EMC compliance for the US market"
+        "title": "FCC (VS)",
+        "hint": "Radio-/EMC-conformiteit voor de Amerikaanse markt"
       },
       "gpsr": {
-        "title": "GPSR (EU safety)",
-        "hint": "General Product Safety Regulation — EU 2023/988"
+        "title": "GPSR (EU-veiligheid)",
+        "hint": "Algemene productveiligheidsverordening — EU 2023/988"
       },
       "reach": {
         "title": "REACH",
-        "hint": "EU chemicals registration & restriction"
+        "hint": "EU-registratie en -beperking van chemicaliën"
       },
       "rohs": {
         "title": "RoHS",
-        "hint": "Restriction of hazardous substances (electronics)"
+        "hint": "Beperking van gevaarlijke stoffen (elektronica)"
       },
       "weee": {
         "title": "WEEE",
-        "hint": "E-waste take-back & recycling obligations"
+        "hint": "Terugname- en recyclingverplichtingen voor e-waste"
       },
       "prop65": {
-        "title": "Prop 65 (California)",
-        "hint": "Warning labels for listed chemicals"
+        "title": "Prop 65 (Californië)",
+        "hint": "Waarschuwingslabels voor vermelde chemicaliën"
       },
       "cpc": {
-        "title": "CPC (children)",
-        "hint": "Children's Product Certificate — baby & kids"
+        "title": "CPC (kinderen)",
+        "hint": "Kinderproductcertificaat — baby & kinderen"
       },
       "iso9001": {
         "title": "ISO 9001",
-        "hint": "Certified quality management system"
+        "hint": "Gecertificeerd kwaliteitsmanagementsysteem"
       },
       "iso14001": {
         "title": "ISO 14001",
-        "hint": "Environmental management certification"
+        "hint": "Certificering milieubeheer"
       },
       "factory_audit": {
-        "title": "Factory audit",
-        "hint": "Third-party social & technical audit report"
+        "title": "Fabrieksaudit",
+        "hint": "Onafhankelijk sociaal en technisch auditrapport"
       },
       "third_party_lab": {
-        "title": "Independent lab tests",
-        "hint": "Accredited lab test reports supplied"
+        "title": "Onafhankelijke laboratoriumtests",
+        "hint": "Geaccrediteerde laboratoriumtestrapporten geleverd"
       },
       "batch_traceability": {
-        "title": "Batch traceability",
-        "hint": "Lot / serial tracking from factory to shipment"
+        "title": "Batch-traceerbaarheid",
+        "hint": "Batch-/serienummertracking van fabriek tot verzending"
       },
       "aql_inspection": {
-        "title": "AQL inspection",
-        "hint": "Pre-shipment quality inspection (AQL 2.5 or stricter)"
+        "title": "AQL-inspectie",
+        "hint": "Kwaliteitsinspectie vóór verzending (AQL 2,5 of strenger)"
       },
       "food_grade": {
-        "title": "Food contact safe",
-        "hint": "Materials safe for food / mouth contact"
+        "title": "Voedselveilig",
+        "hint": "Materialen veilig voor contact met voedsel/mond"
       },
       "msds": {
-        "title": "SDS / MSDS",
-        "hint": "Safety data sheet for chemical products"
+        "title": "VIB / MSDS",
+        "hint": "Veiligheidsinformatieblad voor chemische producten"
       },
       "bpa_free": {
-        "title": "BPA-free",
-        "hint": "No bisphenol A in plastics"
+        "title": "BPA-vrij",
+        "hint": "Geen bisfenol A in kunststoffen"
       },
       "oeko_tex": {
         "title": "OEKO-TEX",
-        "hint": "Textile harmful-substance standard"
+        "hint": "Textielnorm voor schadelijke stoffen"
       },
       "fsc": {
         "title": "FSC",
-        "hint": "Responsible wood / paper sourcing"
+        "hint": "Verantwoorde hout-/papierinkoop"
       },
       "recyclable_packaging": {
-        "title": "Recyclable packaging",
-        "hint": "Mono-material or widely recyclable pack"
+        "title": "Recyclebare verpakking",
+        "hint": "Mono-materiaal of breed recyclebare verpakking"
       },
       "carbon_neutral": {
-        "title": "Carbon-neutral shipping",
-        "hint": "Offset or low-carbon logistics option"
+        "title": "Klimaatneutrale verzending",
+        "hint": "Compensatie- of koolstofarme logistiekoptie"
       },
       "fair_trade": {
         "title": "Fair trade",
-        "hint": "Fair wages & ethical supply chain"
+        "hint": "Eerlijke lonen & ethische toeleveringsketen"
       },
       "patent_clear": {
-        "title": "Patent clearance",
-        "hint": "No known active patent infringement"
+        "title": "Octrooivrijgave",
+        "hint": "Geen bekende actieve octrooi-inbreuk"
       },
       "trademark_clear": {
-        "title": "Trademark clearance",
-        "hint": "No brand / logo infringement risk"
+        "title": "Merkvrijgave",
+        "hint": "Geen risico op merk-/logo-inbreuk"
       }
     },
     "reseller": {
       "globalButton": {
-        "ariaFab": "Request a product",
-        "titleHeader": "Request a product",
-        "labelHeader": "Request",
-        "labelPrimary": "+ Request a missing product",
-        "labelShort": "New request"
+        "ariaFab": "Product aanvragen",
+        "titleHeader": "Product aanvragen",
+        "labelHeader": "Aanvraag",
+        "labelPrimary": "+ Ontbrekend product aanvragen",
+        "labelShort": "Nieuwe aanvraag"
       },
       "cta": {
-        "title": "Can't find a product?",
-        "body": "Describe it — our suppliers respond in under 2 hours",
-        "button": "+ Request a product"
+        "title": "Kun je een product niet vinden?",
+        "body": "Beschrijf het — onze leveranciers reageren binnen 2 uur",
+        "button": "+ Product aanvragen"
       },
       "new": {
         "title": "Request a missing product",
@@ -5853,125 +5853,125 @@
         "newButton": "New request",
         "emptyTitle": "No requests yet — create your first",
         "howItWorks": "How it works",
-        "step1": "You request a product not in the catalog",
-        "step2": "Suppliers quote within 2 hours",
-        "step3": "You compare and choose",
-        "step4": "Product auto-created in your catalog",
-        "emptyCta": "+ Request a product",
-        "metaQuotes": "{count, plural, one {# quote} other {# quotes}}"
+        "step1": "Je vraagt een product aan dat niet in de catalogus staat",
+        "step2": "Leveranciers brengen binnen 2 uur een offerte uit",
+        "step3": "Jij vergelijkt en kiest",
+        "step4": "Product wordt automatisch aangemaakt in jouw catalogus",
+        "emptyCta": "+ Product aanvragen",
+        "metaQuotes": "{count, plural, one {# offerte} other {# offertes}}"
       },
       "detail": {
-        "backLink": "← My requests"
+        "backLink": "← Mijn aanvragen"
       },
       "form": {
-        "catalogHint": "You searched for « {query} » in the catalog — we alert suppliers.",
-        "titleLabel": "Title *",
-        "titlePlaceholder": "E.g. WiFi baby monitor 1080p",
-        "categoryLabel": "Category",
-        "provenanceLabel": "Manufacturing origin",
-        "provenanceCountriesLabel": "Preferred manufacturing countries",
-        "provenanceHint": "{selected} / {total} origins · leave empty for any origin",
-        "provenanceAnyOrigin": "🌍 Any origin",
-        "complianceLabel": "Legal & quality requirements",
-        "complianceHint": "Tick only what matters for your market — suppliers must confirm compliance in their quote.",
-        "complianceEuBundle": "✓ EU bundle (CE, GPSR, REACH, RoHS, WEEE)",
-        "complianceClear": "Clear all",
-        "complianceSelected": "{count, plural, one {# requirement selected} other {# requirements selected}}",
-        "countriesLabel": "Promotion countries *",
-        "countriesHint": "{selected} / {total} markets · one or more",
-        "selectAll": "Select all",
-        "reset": "Reset",
-        "quantityLabel": "Quantity",
-        "targetPriceLabel": "Target price (€)",
-        "targetPricePlaceholder": "e.g. 14.95",
-        "descriptionLabel": "Description",
-        "descriptionPlaceholder": "Specs, colors, lead times…",
-        "imageLabel": "Image URL (optional)",
+        "catalogHint": "Je hebt gezocht naar '{query}' in de catalogus — we waarschuwen leveranciers.",
+        "titleLabel": "Titel *",
+        "titlePlaceholder": "Bijv. WiFi babyfoon 1080p",
+        "categoryLabel": "Categorie",
+        "provenanceLabel": "Productieherkomst",
+        "provenanceCountriesLabel": "Voorkeurslanden voor productie",
+        "provenanceHint": "{selected} / {total} herkomsten · leeg laten voor elke herkomst",
+        "provenanceAnyOrigin": "🌍 Elke herkomst",
+        "complianceLabel": "Juridische & kwaliteitsvereisten",
+        "complianceHint": "Vink alleen aan wat relevant is voor jouw markt — leveranciers moeten conformiteit bevestigen in hun offerte.",
+        "complianceEuBundle": "✓ EU-bundel (CE, GPSR, REACH, RoHS, WEEE)",
+        "complianceClear": "Alles wissen",
+        "complianceSelected": "{count, plural, one {# vereiste geselecteerd} other {# vereisten geselecteerd}}",
+        "countriesLabel": "Promotielanden *",
+        "countriesHint": "{selected} / {total} markten · één of meer",
+        "selectAll": "Alles selecteren",
+        "reset": "Resetten",
+        "quantityLabel": "Aantal",
+        "targetPriceLabel": "Doelprijs (€)",
+        "targetPricePlaceholder": "bijv. 14,95",
+        "descriptionLabel": "Beschrijving",
+        "descriptionPlaceholder": "Specificaties, kleuren, levertijden…",
+        "imageLabel": "Afbeeldings-URL (optioneel)",
         "imagePlaceholder": "https://",
-        "submit": "Send request → Alert suppliers",
-        "submitting": "Sending…",
-        "toastTitleRequired": "Title required",
-        "toastCountryRequired": "Select at least one country",
-        "toastSubmitFailed": "Could not send request",
-        "toastSubmitSuccess": "Request sent — suppliers alerted"
+        "submit": "Aanvraag verzenden → Leveranciers waarschuwen",
+        "submitting": "Verzenden…",
+        "toastTitleRequired": "Titel vereist",
+        "toastCountryRequired": "Selecteer minstens één land",
+        "toastSubmitFailed": "Kon de aanvraag niet verzenden",
+        "toastSubmitSuccess": "Aanvraag verzonden — leveranciers gewaarschuwd"
       },
       "quotes": {
-        "title": "Quotes received ({count})",
-        "rateDelivery": "Rate delivery →",
-        "viewCatalog": "View product in catalog →",
-        "winner": "Winner:",
-        "noQuotes": "No quotes yet — suppliers have been notified.",
-        "colSupplier": "Supplier",
-        "colPrice": "Price",
+        "title": "Ontvangen offertes ({count})",
+        "rateDelivery": "Levering beoordelen →",
+        "viewCatalog": "Product bekijken in catalogus →",
+        "winner": "Winnaar:",
+        "noQuotes": "Nog geen offertes — leveranciers zijn op de hoogte gebracht.",
+        "colSupplier": "Leverancier",
+        "colPrice": "Prijs",
         "colMoq": "MOQ",
-        "colDelivery": "Lead time",
-        "colTrust": "Trust",
-        "colMessage": "Message",
-        "colAction": "Action",
+        "colDelivery": "Levertijd",
+        "colTrust": "Vertrouwen",
+        "colMessage": "Bericht",
+        "colAction": "Actie",
         "boostTop": "Boost +30%",
-        "accept": "Accept",
+        "accept": "Accepteren",
         "accepting": "…",
-        "accepted": "Accepted",
-        "toastAcceptFailed": "Could not accept quote",
-        "toastAcceptSuccess": "Quote accepted — catalog draft created"
+        "accepted": "Geaccepteerd",
+        "toastAcceptFailed": "Kon offerte niet accepteren",
+        "toastAcceptSuccess": "Offerte geaccepteerd — catalogusconcept aangemaakt"
       },
       "home": {
-        "title": "Reseller space",
-        "subtitle": "Product requests, catalog and Radar — all in one place.",
-        "myRequests": "My requests →",
-        "catalog": "Catalog →",
+        "title": "Reseller-ruimte",
+        "subtitle": "Productaanvragen, catalogus en Radar — allemaal op één plek.",
+        "myRequests": "Mijn aanvragen →",
+        "catalog": "Catalogus →",
         "dashboard": "Dashboard →",
         "radar": "World Radar →"
       }
     },
     "supplier": {
       "list": {
-        "title": "Reseller requests",
-        "categoryFilter": "Category",
+        "title": "Reseller-aanvragen",
+        "categoryFilter": "Categorie",
         "categoryAll": "All",
         "tabOpen": "Open",
-        "tabMine": "My quotes",
-        "tabFulfilled": "Fulfilled",
-        "loading": "Loading…",
-        "empty": "No requests in this filter.",
+        "tabMine": "Mijn offertes",
+        "tabFulfilled": "Vervuld",
+        "loading": "Laden…",
+        "empty": "Geen aanvragen in dit filter.",
         "slaMax": "SLA ≤{days}d",
-        "myQuote": "my quote: {status}",
-        "viewQuote": "View my quote →",
-        "quoteCta": "Quote →"
+        "myQuote": "mijn offerte: {status}",
+        "viewQuote": "Mijn offerte bekijken →",
+        "quoteCta": "Offerte uitbrengen →"
       },
       "detail": {
-        "backLink": "← Requests",
-        "closed": "This request is no longer open ({status})."
+        "backLink": "← Aanvragen",
+        "closed": "Deze aanvraag staat niet meer open ({status})."
       },
       "quoteForm": {
-        "titleNew": "Submit a quote",
-        "titleExisting": "Your quote",
-        "priceLabel": "Unit price (€)*",
+        "titleNew": "Offerte indienen",
+        "titleExisting": "Jouw offerte",
+        "priceLabel": "Stukprijs (€)*",
         "moqLabel": "MOQ*",
-        "deliveryLabel": "Lead time (days)*",
-        "messageLabel": "Message",
-        "messagePlaceholder": "EU stock, ships in 48h…",
-        "submit": "Send my quote →",
-        "submitting": "Sending…",
-        "backLink": "← Back to requests",
-        "toastPriceRequired": "Unit price required",
-        "toastMoqRequired": "MOQ required",
-        "toastDeliveryRequired": "Lead time required",
-        "toastAlreadyQuoted": "You already quoted",
-        "toastSubmitFailed": "Could not send quote",
-        "toastSubmitSuccess": "Quote sent — reseller notified"
+        "deliveryLabel": "Levertijd (dagen)*",
+        "messageLabel": "Bericht",
+        "messagePlaceholder": "EU-voorraad, verzending binnen 48u…",
+        "submit": "Mijn offerte verzenden →",
+        "submitting": "Verzenden…",
+        "backLink": "← Terug naar aanvragen",
+        "toastPriceRequired": "Stukprijs vereist",
+        "toastMoqRequired": "MOQ vereist",
+        "toastDeliveryRequired": "Levertijd vereist",
+        "toastAlreadyQuoted": "Je hebt al een offerte uitgebracht",
+        "toastSubmitFailed": "Kon offerte niet verzenden",
+        "toastSubmitSuccess": "Offerte verzonden — reseller op de hoogte gebracht"
       },
       "teaser": {
-        "title": "🔥 Reseller requests — {count, plural, one {# open} other {# open}}",
-        "viewAll": "View all requests →",
-        "empty": "No open requests right now."
+        "title": "🔥 Reseller-aanvragen — {count, plural, one {# open} other {# open}}",
+        "viewAll": "Alle aanvragen bekijken →",
+        "empty": "Momenteel geen openstaande aanvragen."
       }
     },
     "supplierFeedback": {
-      "boost": "For {code}, max reasonable = {maxDays}d. You propose {days}d → 🟢 +30% visibility boost",
-      "ok": "For {code}, max reasonable = {maxDays}d. You propose {days}d → ✅ Acceptable zone",
-      "warn": "You propose {days}d → 🔴 -50% visibility — reseller may reject (max {maxDays}d for {code})",
-      "allMarkets": "{detail} (all markets: {codes})"
+      "boost": "Voor {code}, redelijk maximum = {maxDays}d. Je stelt {days}d voor → 🟢 +30% zichtbaarheidsboost",
+      "ok": "Voor {code}, redelijk maximum = {maxDays}d. Je stelt {days}d voor → ✅ Acceptabele zone",
+      "warn": "Je stelt {days}d voor → 🔴 -50% zichtbaarheid — reseller kan afwijzen (max {maxDays}d voor {code})",
+      "allMarkets": "{detail} (alle markten: {codes})"
     }
   },
   "magicSystems": {

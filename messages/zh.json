@@ -5654,193 +5654,193 @@
   },
   "productRequests": {
     "categories": {
-      "baby": "Baby",
-      "auto": "Auto",
-      "fitness": "Fitness",
-      "beauty": "Beauty",
-      "tech": "Tech",
-      "home": "Home",
-      "fashion": "Fashion",
-      "general": "General"
+      "baby": "母婴",
+      "auto": "汽车",
+      "fitness": "健身",
+      "beauty": "美妆",
+      "tech": "科技",
+      "home": "家居",
+      "fashion": "时尚",
+      "general": "综合"
     },
     "regions": {
-      "Europe": "Europe",
-      "America": "Americas",
-      "Asia": "Asia",
-      "Africa": "Africa & Middle East",
-      "Oceania": "Oceania",
-      "other": "Other markets"
+      "Europe": "欧洲",
+      "America": "美洲",
+      "Asia": "亚洲",
+      "Africa": "非洲与中东",
+      "Oceania": "大洋洲",
+      "other": "其他市场"
     },
     "status": {
-      "open": "Open",
-      "fulfilled": "Fulfilled",
-      "closed": "Closed",
-      "other": "Closed",
-      "pending": "Pending",
-      "accepted": "Accepted",
-      "rejected": "Rejected"
+      "open": "进行中",
+      "fulfilled": "已完成",
+      "closed": "已关闭",
+      "other": "已关闭",
+      "pending": "待处理",
+      "accepted": "已接受",
+      "rejected": "已拒绝"
     },
     "common": {
       "pieces": "pcs",
-      "quotesCount": "{count, plural, one {# quote} other {# quotes}}",
-      "networkError": "Network error",
-      "loading": "Loading…",
-      "supplierFallback": "Supplier",
-      "resellerLabel": "Reseller",
-      "noDescription": "No description.",
-      "targetPrice": "Target price",
+      "quotesCount": "{count, plural, other {# 份报价}}",
+      "networkError": "网络错误",
+      "loading": "加载中…",
+      "supplierFallback": "供应商",
+      "resellerLabel": "分销商",
+      "noDescription": "暂无描述。",
+      "targetPrice": "目标价格",
       "dash": "—",
-      "slaWarning": "outside typical SLA",
-      "provenanceLabel": "Origin",
-      "complianceLabel": "Compliance requirements",
-      "complianceCount": "{count, plural, one {# requirement} other {# requirements}}"
+      "slaWarning": "超出常规 SLA 时限",
+      "provenanceLabel": "产地",
+      "complianceLabel": "合规要求",
+      "complianceCount": "{count, plural, other {# 项要求}}"
     },
     "sla": {
-      "singleMarket": "For {code}, reasonable delivery: {idealDays}–{maxDays} days. Beyond {maxDays} days, your return rate rises ~40%.",
-      "perMarketLine": "{code} {idealDays}–{maxDays}d",
-      "multiMarket": "Markets {codes} — reasonable delivery: {perMarket}. Combined SLA max {maxDays} days. Beyond that, your return rate rises ~40%.",
-      "registered": "Recorded SLA: {days} days ({label})"
+      "singleMarket": "对于 {code}，合理配送时长为 {idealDays}–{maxDays} 天。超过 {maxDays} 天，退货率将上升约40%。",
+      "perMarketLine": "{code} {idealDays}–{maxDays}天",
+      "multiMarket": "市场 {codes} —— 合理配送时长：{perMarket}。综合 SLA 最长 {maxDays} 天。超出该时长，退货率将上升约40%。",
+      "registered": "已记录 SLA：{days} 天（{label}）"
     },
     "priorities": {
-      "legend": "Shipping priority",
-      "speed": "⚡ Max speed",
-      "balanced": "⚖️ Balanced",
-      "price": "💰 Lowest price",
-      "daysSpeed": "{days}d",
-      "daysBalanced": "{days}d max",
-      "daysPrice": "{days}d ok"
+      "legend": "配送优先级",
+      "speed": "⚡ 最快速度",
+      "balanced": "⚖️ 均衡",
+      "price": "💰 最低价格",
+      "daysSpeed": "{days}天",
+      "daysBalanced": "最长{days}天",
+      "daysPrice": "{days}天可接受"
     },
     "provenance": {
-      "any": "Any origin",
-      "china": "China",
-      "eu": "Europe (EU)",
-      "usa": "United States",
-      "turkey": "Turkey",
-      "india": "India",
-      "vietnam": "Vietnam",
-      "local": "Local / domestic"
+      "any": "任意产地",
+      "china": "中国",
+      "eu": "欧洲（欧盟）",
+      "usa": "美国",
+      "turkey": "土耳其",
+      "india": "印度",
+      "vietnam": "越南",
+      "local": "本地/国内"
     },
     "compliance": {
       "groups": {
-        "legal": "Legal & market access",
-        "quality": "Quality & factory",
-        "product": "Product safety & materials",
-        "sustainability": "Sustainability & ethics",
-        "ip": "Intellectual property"
+        "legal": "法律与市场准入",
+        "quality": "质量与工厂",
+        "product": "产品安全与材料",
+        "sustainability": "可持续发展与道德规范",
+        "ip": "知识产权"
       },
       "ce_marking": {
-        "title": "CE marking (EU)",
-        "hint": "Conformity for sale in the European Union"
+        "title": "CE 认证（欧盟）",
+        "hint": "符合欧盟销售合规要求"
       },
       "ukca_marking": {
         "title": "UKCA / UKNI",
-        "hint": "Conformity for Great Britain & Northern Ireland"
+        "hint": "英国及北爱尔兰合规认证"
       },
       "fcc_compliance": {
-        "title": "FCC (USA)",
-        "hint": "Radio / EMC compliance for the US market"
+        "title": "FCC（美国）",
+        "hint": "美国市场无线电/电磁兼容合规"
       },
       "gpsr": {
-        "title": "GPSR (EU safety)",
-        "hint": "General Product Safety Regulation — EU 2023/988"
+        "title": "GPSR（欧盟安全）",
+        "hint": "通用产品安全法规 —— 欧盟 2023/988"
       },
       "reach": {
         "title": "REACH",
-        "hint": "EU chemicals registration & restriction"
+        "hint": "欧盟化学品注册与限制"
       },
       "rohs": {
         "title": "RoHS",
-        "hint": "Restriction of hazardous substances (electronics)"
+        "hint": "限制有害物质使用（电子产品）"
       },
       "weee": {
         "title": "WEEE",
-        "hint": "E-waste take-back & recycling obligations"
+        "hint": "电子废弃物回收与循环利用义务"
       },
       "prop65": {
-        "title": "Prop 65 (California)",
-        "hint": "Warning labels for listed chemicals"
+        "title": "65号提案（加利福尼亚）",
+        "hint": "受管制化学品警示标签"
       },
       "cpc": {
-        "title": "CPC (children)",
-        "hint": "Children's Product Certificate — baby & kids"
+        "title": "CPC（儿童产品）",
+        "hint": "儿童产品认证 —— 婴幼儿及儿童用品"
       },
       "iso9001": {
         "title": "ISO 9001",
-        "hint": "Certified quality management system"
+        "hint": "认证质量管理体系"
       },
       "iso14001": {
         "title": "ISO 14001",
-        "hint": "Environmental management certification"
+        "hint": "环境管理体系认证"
       },
       "factory_audit": {
-        "title": "Factory audit",
-        "hint": "Third-party social & technical audit report"
+        "title": "工厂审核",
+        "hint": "第三方社会与技术审核报告"
       },
       "third_party_lab": {
-        "title": "Independent lab tests",
-        "hint": "Accredited lab test reports supplied"
+        "title": "独立实验室检测",
+        "hint": "提供经认可实验室的检测报告"
       },
       "batch_traceability": {
-        "title": "Batch traceability",
-        "hint": "Lot / serial tracking from factory to shipment"
+        "title": "批次追溯",
+        "hint": "从工厂到发货的批次/序列号追溯"
       },
       "aql_inspection": {
-        "title": "AQL inspection",
-        "hint": "Pre-shipment quality inspection (AQL 2.5 or stricter)"
+        "title": "AQL 检验",
+        "hint": "发货前质量检验（AQL 2.5 或更严格标准）"
       },
       "food_grade": {
-        "title": "Food contact safe",
-        "hint": "Materials safe for food / mouth contact"
+        "title": "食品接触安全",
+        "hint": "适用于食品/口部接触的安全材质"
       },
       "msds": {
-        "title": "SDS / MSDS",
-        "hint": "Safety data sheet for chemical products"
+        "title": "安全数据表 / MSDS",
+        "hint": "化学品安全数据表"
       },
       "bpa_free": {
-        "title": "BPA-free",
-        "hint": "No bisphenol A in plastics"
+        "title": "无双酚A",
+        "hint": "塑料中不含双酚A"
       },
       "oeko_tex": {
         "title": "OEKO-TEX",
-        "hint": "Textile harmful-substance standard"
+        "hint": "纺织品有害物质标准"
       },
       "fsc": {
         "title": "FSC",
-        "hint": "Responsible wood / paper sourcing"
+        "hint": "负责任的木材/纸张采购"
       },
       "recyclable_packaging": {
-        "title": "Recyclable packaging",
-        "hint": "Mono-material or widely recyclable pack"
+        "title": "可回收包装",
+        "hint": "单一材质或广泛可回收包装"
       },
       "carbon_neutral": {
-        "title": "Carbon-neutral shipping",
-        "hint": "Offset or low-carbon logistics option"
+        "title": "碳中和配送",
+        "hint": "碳抵消或低碳物流选项"
       },
       "fair_trade": {
-        "title": "Fair trade",
-        "hint": "Fair wages & ethical supply chain"
+        "title": "公平贸易",
+        "hint": "公平薪酬与道德供应链"
       },
       "patent_clear": {
-        "title": "Patent clearance",
-        "hint": "No known active patent infringement"
+        "title": "专利清查",
+        "hint": "无已知有效专利侵权"
       },
       "trademark_clear": {
-        "title": "Trademark clearance",
-        "hint": "No brand / logo infringement risk"
+        "title": "商标清查",
+        "hint": "无品牌/标志侵权风险"
       }
     },
     "reseller": {
       "globalButton": {
-        "ariaFab": "Request a product",
-        "titleHeader": "Request a product",
-        "labelHeader": "Request",
-        "labelPrimary": "+ Request a missing product",
-        "labelShort": "New request"
+        "ariaFab": "请求商品",
+        "titleHeader": "请求商品",
+        "labelHeader": "请求",
+        "labelPrimary": "+ 请求缺失商品",
+        "labelShort": "新建请求"
       },
       "cta": {
-        "title": "Can't find a product?",
-        "body": "Describe it — our suppliers respond in under 2 hours",
-        "button": "+ Request a product"
+        "title": "找不到你想要的商品？",
+        "body": "描述一下 —— 我们的供应商将在2小时内回复",
+        "button": "+ 请求商品"
       },
       "new": {
         "title": "Request a missing product",
@@ -5853,125 +5853,125 @@
         "newButton": "New request",
         "emptyTitle": "No requests yet — create your first",
         "howItWorks": "How it works",
-        "step1": "You request a product not in the catalog",
-        "step2": "Suppliers quote within 2 hours",
-        "step3": "You compare and choose",
-        "step4": "Product auto-created in your catalog",
-        "emptyCta": "+ Request a product",
-        "metaQuotes": "{count, plural, one {# quote} other {# quotes}}"
+        "step1": "你请求目录中没有的商品",
+        "step2": "供应商在2小时内提供报价",
+        "step3": "你进行比较并做出选择",
+        "step4": "商品将自动创建至你的目录中",
+        "emptyCta": "+ 请求商品",
+        "metaQuotes": "{count, plural, other {# 份报价}}"
       },
       "detail": {
-        "backLink": "← My requests"
+        "backLink": "← 我的请求"
       },
       "form": {
-        "catalogHint": "You searched for « {query} » in the catalog — we alert suppliers.",
-        "titleLabel": "Title *",
-        "titlePlaceholder": "E.g. WiFi baby monitor 1080p",
-        "categoryLabel": "Category",
-        "provenanceLabel": "Manufacturing origin",
-        "provenanceCountriesLabel": "Preferred manufacturing countries",
-        "provenanceHint": "{selected} / {total} origins · leave empty for any origin",
-        "provenanceAnyOrigin": "🌍 Any origin",
-        "complianceLabel": "Legal & quality requirements",
-        "complianceHint": "Tick only what matters for your market — suppliers must confirm compliance in their quote.",
-        "complianceEuBundle": "✓ EU bundle (CE, GPSR, REACH, RoHS, WEEE)",
-        "complianceClear": "Clear all",
-        "complianceSelected": "{count, plural, one {# requirement selected} other {# requirements selected}}",
-        "countriesLabel": "Promotion countries *",
-        "countriesHint": "{selected} / {total} markets · one or more",
-        "selectAll": "Select all",
-        "reset": "Reset",
-        "quantityLabel": "Quantity",
-        "targetPriceLabel": "Target price (€)",
-        "targetPricePlaceholder": "e.g. 14.95",
-        "descriptionLabel": "Description",
-        "descriptionPlaceholder": "Specs, colors, lead times…",
-        "imageLabel": "Image URL (optional)",
+        "catalogHint": "你在目录中搜索了「{query}」—— 我们将通知供应商。",
+        "titleLabel": "标题 *",
+        "titlePlaceholder": "例如：1080p WiFi 婴儿监视器",
+        "categoryLabel": "类目",
+        "provenanceLabel": "生产地",
+        "provenanceCountriesLabel": "首选生产国",
+        "provenanceHint": "{selected} / {total} 个产地 · 留空表示不限产地",
+        "provenanceAnyOrigin": "🌍 任意产地",
+        "complianceLabel": "法律与质量要求",
+        "complianceHint": "仅勾选与你所在市场相关的选项 —— 供应商需在报价中确认合规。",
+        "complianceEuBundle": "✓ 欧盟合规包（CE、GPSR、REACH、RoHS、WEEE）",
+        "complianceClear": "全部清除",
+        "complianceSelected": "{count, plural, other {已选择 # 项要求}}",
+        "countriesLabel": "推广国家 *",
+        "countriesHint": "{selected} / {total} 个市场 · 可多选",
+        "selectAll": "全选",
+        "reset": "重置",
+        "quantityLabel": "数量",
+        "targetPriceLabel": "目标价格（€）",
+        "targetPricePlaceholder": "例如：14.95",
+        "descriptionLabel": "描述",
+        "descriptionPlaceholder": "规格、颜色、交货期……",
+        "imageLabel": "图片链接（选填）",
         "imagePlaceholder": "https://",
-        "submit": "Send request → Alert suppliers",
-        "submitting": "Sending…",
-        "toastTitleRequired": "Title required",
-        "toastCountryRequired": "Select at least one country",
-        "toastSubmitFailed": "Could not send request",
-        "toastSubmitSuccess": "Request sent — suppliers alerted"
+        "submit": "发送请求 → 通知供应商",
+        "submitting": "发送中…",
+        "toastTitleRequired": "标题为必填项",
+        "toastCountryRequired": "请至少选择一个国家",
+        "toastSubmitFailed": "请求发送失败",
+        "toastSubmitSuccess": "请求已发送 —— 供应商已收到通知"
       },
       "quotes": {
-        "title": "Quotes received ({count})",
-        "rateDelivery": "Rate delivery →",
-        "viewCatalog": "View product in catalog →",
-        "winner": "Winner:",
-        "noQuotes": "No quotes yet — suppliers have been notified.",
-        "colSupplier": "Supplier",
-        "colPrice": "Price",
+        "title": "已收到报价（{count}）",
+        "rateDelivery": "评价配送 →",
+        "viewCatalog": "在目录中查看商品 →",
+        "winner": "获胜者：",
+        "noQuotes": "暂无报价 —— 供应商已收到通知。",
+        "colSupplier": "供应商",
+        "colPrice": "价格",
         "colMoq": "MOQ",
-        "colDelivery": "Lead time",
-        "colTrust": "Trust",
-        "colMessage": "Message",
-        "colAction": "Action",
-        "boostTop": "Boost +30%",
-        "accept": "Accept",
+        "colDelivery": "交货期",
+        "colTrust": "信任度",
+        "colMessage": "留言",
+        "colAction": "操作",
+        "boostTop": "曝光加成 +30%",
+        "accept": "接受",
         "accepting": "…",
-        "accepted": "Accepted",
-        "toastAcceptFailed": "Could not accept quote",
-        "toastAcceptSuccess": "Quote accepted — catalog draft created"
+        "accepted": "已接受",
+        "toastAcceptFailed": "无法接受报价",
+        "toastAcceptSuccess": "报价已接受 —— 目录草稿已创建"
       },
       "home": {
-        "title": "Reseller space",
-        "subtitle": "Product requests, catalog and Radar — all in one place.",
-        "myRequests": "My requests →",
-        "catalog": "Catalog →",
-        "dashboard": "Dashboard →",
-        "radar": "World Radar →"
+        "title": "分销商专区",
+        "subtitle": "商品请求、目录与雷达 —— 尽在一处。",
+        "myRequests": "我的请求 →",
+        "catalog": "目录 →",
+        "dashboard": "控制台 →",
+        "radar": "全球雷达 →"
       }
     },
     "supplier": {
       "list": {
-        "title": "Reseller requests",
-        "categoryFilter": "Category",
+        "title": "分销商请求",
+        "categoryFilter": "类目",
         "categoryAll": "All",
-        "tabOpen": "Open",
-        "tabMine": "My quotes",
-        "tabFulfilled": "Fulfilled",
-        "loading": "Loading…",
-        "empty": "No requests in this filter.",
-        "slaMax": "SLA ≤{days}d",
-        "myQuote": "my quote: {status}",
-        "viewQuote": "View my quote →",
-        "quoteCta": "Quote →"
+        "tabOpen": "进行中",
+        "tabMine": "我的报价",
+        "tabFulfilled": "已完成",
+        "loading": "加载中…",
+        "empty": "此筛选条件下暂无请求。",
+        "slaMax": "SLA ≤{days}天",
+        "myQuote": "我的报价：{status}",
+        "viewQuote": "查看我的报价 →",
+        "quoteCta": "报价 →"
       },
       "detail": {
-        "backLink": "← Requests",
-        "closed": "This request is no longer open ({status})."
+        "backLink": "← 请求",
+        "closed": "此请求已不再开放（{status}）。"
       },
       "quoteForm": {
-        "titleNew": "Submit a quote",
-        "titleExisting": "Your quote",
-        "priceLabel": "Unit price (€)*",
+        "titleNew": "提交报价",
+        "titleExisting": "你的报价",
+        "priceLabel": "单价（€）*",
         "moqLabel": "MOQ*",
-        "deliveryLabel": "Lead time (days)*",
-        "messageLabel": "Message",
-        "messagePlaceholder": "EU stock, ships in 48h…",
-        "submit": "Send my quote →",
-        "submitting": "Sending…",
-        "backLink": "← Back to requests",
-        "toastPriceRequired": "Unit price required",
-        "toastMoqRequired": "MOQ required",
-        "toastDeliveryRequired": "Lead time required",
-        "toastAlreadyQuoted": "You already quoted",
-        "toastSubmitFailed": "Could not send quote",
-        "toastSubmitSuccess": "Quote sent — reseller notified"
+        "deliveryLabel": "交货期（天）*",
+        "messageLabel": "留言",
+        "messagePlaceholder": "欧盟现货，48小时内发货……",
+        "submit": "发送我的报价 →",
+        "submitting": "发送中…",
+        "backLink": "← 返回请求列表",
+        "toastPriceRequired": "单价为必填项",
+        "toastMoqRequired": "MOQ 为必填项",
+        "toastDeliveryRequired": "交货期为必填项",
+        "toastAlreadyQuoted": "你已提交过报价",
+        "toastSubmitFailed": "报价发送失败",
+        "toastSubmitSuccess": "报价已发送 —— 分销商已收到通知"
       },
       "teaser": {
-        "title": "🔥 Reseller requests — {count, plural, one {# open} other {# open}}",
-        "viewAll": "View all requests →",
-        "empty": "No open requests right now."
+        "title": "🔥 分销商请求 —— {count, plural, other {# 项待处理}}",
+        "viewAll": "查看全部请求 →",
+        "empty": "当前没有待处理的请求。"
       }
     },
     "supplierFeedback": {
-      "boost": "For {code}, max reasonable = {maxDays}d. You propose {days}d → 🟢 +30% visibility boost",
-      "ok": "For {code}, max reasonable = {maxDays}d. You propose {days}d → ✅ Acceptable zone",
-      "warn": "You propose {days}d → 🔴 -50% visibility — reseller may reject (max {maxDays}d for {code})",
-      "allMarkets": "{detail} (all markets: {codes})"
+      "boost": "对于 {code}，合理最长时限为 {maxDays} 天。你提出 {days} 天 → 🟢 曝光加成 +30%",
+      "ok": "对于 {code}，合理最长时限为 {maxDays} 天。你提出 {days} 天 → ✅ 可接受范围",
+      "warn": "你提出 {days} 天 → 🔴 曝光度 -50% —— 分销商可能拒绝（{code} 最长为 {maxDays} 天）",
+      "allMarkets": "{detail}（所有市场：{codes}）"
     }
   },
   "magicSystems": {
