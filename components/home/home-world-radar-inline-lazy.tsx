@@ -20,7 +20,15 @@ const HomeWorldRadarInlineInner = dynamic(
   }
 )
 
-/** Mobile catalog teaser — deferred so it stays out of the initial home chunk. */
+/**
+ * Mobile catalog teaser — deferred so it stays out of the initial home chunk.
+ * min-h reserves the loading placeholder's space server-side (ssr:false would
+ * otherwise render nothing until hydration, shifting the grid below it).
+ */
 export function HomeWorldRadarInlineLazy({ className }: { className?: string }) {
-  return <HomeWorldRadarInlineInner className={cn(className)} />
+  return (
+    <div className="min-h-[4.5rem]">
+      <HomeWorldRadarInlineInner className={cn(className)} />
+    </div>
+  )
 }

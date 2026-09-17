@@ -3,6 +3,7 @@ import { getLocale } from "next-intl/server"
 
 import { BentoGrid } from "@/components/BentoGrid"
 import { BuyerPremiumMarketplaceLayoutClient } from "@/components/home/buyer-premium-marketplace-layout"
+import { BuyerPremiumMarketplaceSkeleton } from "@/components/home/buyer-premium-marketplace-skeleton"
 import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExplorer"
 import { resolveAppLocale } from "@/lib/i18n-locale"
 import { loadHomeMarketplaceShellSafe } from "@/lib/home-marketplace-shell"
@@ -37,7 +38,7 @@ async function PremiumMarketplaceSection() {
 
 export function BuyerPremiumMarketplaceSection() {
   return (
-    <Suspense fallback={<div className="min-h-[28rem] animate-pulse rounded-2xl bg-white/90" aria-hidden />}>
+    <Suspense fallback={<BuyerPremiumMarketplaceSkeleton />}>
       <PremiumMarketplaceSection />
     </Suspense>
   )
