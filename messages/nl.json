@@ -4015,102 +4015,102 @@
       "faqCta": "Blader door FAQ"
     },
     "protectedCheckout": {
-      "metaTitle": "Protected checkout — Affisell",
-      "metaDescription": "Secure payment, 14-day EU returns and legal warranties — what every buyer needs to know in 30 seconds.",
-      "eyebrow": "Protected checkout",
-      "title": "Shop with confidence",
-      "description": "Secure payment, European right of withdrawal (<dir201183>EU Directive 2011/83</dir201183>) and legal warranties — zero jargon.",
-      "badgeReturns": "14-day EU returns",
+      "metaTitle": "Beveiligde checkout — Affisell",
+      "metaDescription": "Veilig betalen, 14 dagen EU-retour en wettelijke garanties — wat elke koper in 30 seconden moet weten.",
+      "eyebrow": "Beveiligde checkout",
+      "title": "Winkel met vertrouwen",
+      "description": "Veilig betalen, Europees herroepingsrecht (<dir201183>EU-richtlijn 2011/83</dir201183>) en wettelijke garanties — zonder jargon.",
+      "badgeReturns": "14 dagen EU-retour",
       "badge3ds": "3D Secure",
-      "paymentTitle": "Payment",
-      "paymentBody": "Secure payment powered by Stripe. Your card details never pass through Affisell.",
-      "paymentHint": "Strong Customer Authentication (3D Secure) may be required by your bank under the <psd2>EU Directive 2015/2366 (PSD2)</psd2>.",
-      "returnsTitle": "Returns & refunds",
-      "returnsIntro": "Changed your mind or received a faulty item? Here is who pays for what and when you get refunded, under the <l22118>French Consumer Code</l22118> and <dir201183>EU Directive 2011/83</dir201183>.",
+      "paymentTitle": "Betaling",
+      "paymentBody": "Veilig betalen via Stripe. Jouw kaartgegevens gaan nooit via Affisell.",
+      "paymentHint": "Jouw bank kan sterke klantauthenticatie (3D Secure) vereisen onder <psd2>EU-richtlijn 2015/2366 (PSD2)</psd2>.",
+      "returnsTitle": "Retouren & terugbetalingen",
+      "returnsIntro": "Van gedachten veranderd of een defect artikel ontvangen? Hier lees je wie wat betaalt en wanneer je wordt terugbetaald, volgens het <l22118>Franse Consumentenwetboek</l22118> en <dir201183>EU-richtlijn 2011/83</dir201183>.",
       "returnsTable": {
-        "situation": "Situation",
-        "returnCost": "Who pays return shipping",
-        "refundDelay": "Refund timeline"
+        "situation": "Situatie",
+        "returnCost": "Wie betaalt de retourverzending",
+        "refundDelay": "Terugbetalingstermijn"
       },
       "returnsRows": {
         "changeMind": {
-          "situation": "I changed my mind (14 days)",
+          "situation": "Ik heb me bedacht (14 dagen)",
           "returnCost": "You",
-          "refundDelay": "14 days after we receive the return"
+          "refundDelay": "14 dagen na ontvangst van de retour"
         },
         "defective": {
-          "situation": "Faulty or non-conforming product",
-          "returnCost": "Supplier",
-          "refundDelay": "14 days after we receive the return"
+          "situation": "Defect of niet-conform product",
+          "returnCost": "Leverancier",
+          "refundDelay": "14 dagen na ontvangst van de retour"
         }
       },
-      "returnsHowTitle": "How do I request a return?",
-      "returnsHowBody": "From your order account or via our support team — state the reason and follow the return shipping instructions.",
-      "returnsExceptions": "Some products are excluded from the right of withdrawal (<l22128>art. L221-28</l22128>; <dir201183>Directive 2011/83/EU, art. 16</dir201183>): custom-made, sealed hygiene goods, perishables…",
-      "warrantyTitle": "Legal warranties",
-      "warrantyBody": "Your purchases are covered by the legal conformity warranty — 2 years (<l2174>art. L217-4</l2174>; <dir201183>EU Directive 2011/83</dir201183>) — and the hidden-defect warranty (French Civil Code). An issue? Contact us.",
-      "mediationTitle": "Consumer mediation",
-      "mediationBody": "If a dispute is not resolved with our support, you can contact a consumer mediator free of charge (<l6121>art. L612-1</l6121> et seq.) or the <odr>EU ODR platform (Reg. 524/2013)</odr>:",
-      "mediationLinkLabel": "CM2C — French consumer mediation centre",
-      "odrPlatformLabel": "EU online dispute resolution platform",
-      "contactCta": "Contact us",
-      "trackCta": "Track my order",
-      "legalCta": "Terms of sale",
+      "returnsHowTitle": "Hoe vraag ik een retour aan?",
+      "returnsHowBody": "Vanuit je bestelaccount of via ons supportteam — geef de reden op en volg de instructies voor het retourneren.",
+      "returnsExceptions": "Sommige producten zijn uitgesloten van het herroepingsrecht (<l22128>art. L221-28</l22128>; <dir201183>Richtlijn 2011/83/EU, art. 16</dir201183>): op maat gemaakte producten, verzegelde hygiëneartikelen, bederfelijke waren…",
+      "warrantyTitle": "Wettelijke garanties",
+      "warrantyBody": "Jouw aankopen zijn gedekt door de wettelijke conformiteitsgarantie — 2 jaar (<l2174>art. L217-4</l2174>; <dir201183>EU-richtlijn 2011/83</dir201183>) — en de garantie voor verborgen gebreken (Frans Burgerlijk Wetboek). Een probleem? Neem contact met ons op.",
+      "mediationTitle": "Consumentenbemiddeling",
+      "mediationBody": "Als een geschil niet wordt opgelost met onze support, kun je gratis contact opnemen met een consumentenbemiddelaar (<l6121>art. L612-1</l6121> e.v.) of het <odr>EU ODR-platform (Verordening 524/2013)</odr>:",
+      "mediationLinkLabel": "CM2C — Frans centrum voor consumentenbemiddeling",
+      "odrPlatformLabel": "EU-platform voor onlinegeschillenbeslechting",
+      "contactCta": "Neem contact op",
+      "trackCta": "Mijn bestelling volgen",
+      "legalCta": "Verkoopvoorwaarden",
       "footerHost": "Hosting: Vercel Inc."
     },
     "mentions": {
-      "metaTitle": "Legal notice — Affisell",
-      "metaDescription": "Publisher, registered office, host, DPO and mediation — LCEN information.",
-      "eyebrow": "Legal information",
-      "title": "Legal notice",
-      "description": "Structured document under the <lcen>LCEN Act 2004-575, art. 6 III</lcen>.",
-      "lastUpdated": "Last updated:",
+      "metaTitle": "Juridische kennisgeving — Affisell",
+      "metaDescription": "Beheerder, statutaire zetel, hosting, FG en bemiddeling — LCEN-informatie.",
+      "eyebrow": "Juridische informatie",
+      "title": "Juridische kennisgeving",
+      "description": "Gestructureerd document conform de <lcen>LCEN-wet 2004-575, art. 6 III</lcen>.",
+      "lastUpdated": "Laatst bijgewerkt:",
       "editor": {
-        "title": "1. Site publisher",
-        "denomination": "Company name",
-        "form": "Legal form",
-        "capital": "Share capital",
+        "title": "1. Sitebeheerder",
+        "denomination": "Bedrijfsnaam",
+        "form": "Rechtsvorm",
+        "capital": "Aandelenkapitaal",
         "siren": "SIREN",
-        "rcs": "Trade register (RCS)",
-        "vat": "EU VAT number",
-        "seat": "Registered office (domiciliation)",
-        "domiciliationNote": "Commercial domiciliation address filed with the trade register — not the director's home address."
+        "rcs": "Handelsregister (RCS)",
+        "vat": "EU btw-nummer",
+        "seat": "Statutaire zetel (domiciliëring)",
+        "domiciliationNote": "Bij het handelsregister geregistreerd commercieel vestigingsadres — niet het privéadres van de directeur."
       },
       "publisher": {
-        "title": "2. Publication director",
-        "director": "Publication director",
-        "email": "Editorial contact (email)",
-        "noPhone": "Affisell does not offer phone support — please contact us by email."
+        "title": "2. Publicatiedirecteur",
+        "director": "Publicatiedirecteur",
+        "email": "Redactioneel contact (e-mail)",
+        "noPhone": "Affisell biedt geen telefonische ondersteuning — neem contact met ons op via e-mail."
       },
       "dpo": {
-        "title": "3. Data protection officer (DPO)",
-        "label": "DPO email"
+        "title": "3. Functionaris gegevensbescherming (FG)",
+        "label": "FG-e-mail"
       },
       "host": {
-        "title": "4. Hosting provider",
-        "name": "Company name",
-        "address": "Address",
+        "title": "4. Hostingprovider",
+        "name": "Bedrijfsnaam",
+        "address": "Adres",
         "website": "Website"
       },
       "mediation": {
-        "title": "5. Mediation & disputes",
-        "mediator": "Consumer mediator",
-        "site": "Mediator website",
-        "odr": "EU ODR platform",
-        "body": "Under <l6121>French Consumer Code articles L612-1 et seq.</l6121> and <odr>EU Regulation 524/2013</odr>, consumers may use a free mediator. EU consumers may also use the online dispute resolution platform."
+        "title": "5. Bemiddeling & geschillen",
+        "mediator": "Consumentenbemiddelaar",
+        "site": "Website van de bemiddelaar",
+        "odr": "EU ODR-platform",
+        "body": "Op grond van <l6121>artikel L612-1 e.v. van het Franse Consumentenwetboek</l6121> en <odr>EU-verordening 524/2013</odr> kunnen consumenten gebruikmaken van een gratis bemiddelaar. EU-consumenten kunnen ook het onlineplatform voor geschillenbeslechting gebruiken."
       },
       "ip": {
-        "title": "6. Intellectual property",
-        "body": "The entire Affisell site (structure, text, graphics, logo, databases) is protected under the <cpi>French Intellectual Property Code</cpi>. Unauthorized reproduction constitutes infringement."
+        "title": "6. Intellectueel eigendom",
+        "body": "De volledige Affisell-site (structuur, tekst, afbeeldingen, logo, databases) is beschermd onder het <cpi>Franse Wetboek van Intellectuele Eigendom</cpi>. Ongeoorloofde reproductie vormt een inbreuk."
       },
       "docs": {
-        "title": "7. Contractual documents",
-        "cgu": "Platform terms",
-        "supplier": "Supplier terms",
-        "affiliate": "Partner terms",
-        "privacy": "Privacy policy",
-        "returns": "Protected checkout & returns",
-        "cookies": "Cookies policy"
+        "title": "7. Contractuele documenten",
+        "cgu": "Platformvoorwaarden",
+        "supplier": "Leveranciersvoorwaarden",
+        "affiliate": "Partnervoorwaarden",
+        "privacy": "Privacybeleid",
+        "returns": "Beveiligde checkout & retouren",
+        "cookies": "Cookiebeleid"
       }
     }
   },

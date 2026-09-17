@@ -4015,102 +4015,102 @@
       "faqCta": "Explorar FAQ"
     },
     "protectedCheckout": {
-      "metaTitle": "Protected checkout — Affisell",
-      "metaDescription": "Secure payment, 14-day EU returns and legal warranties — what every buyer needs to know in 30 seconds.",
-      "eyebrow": "Protected checkout",
-      "title": "Shop with confidence",
-      "description": "Secure payment, European right of withdrawal (<dir201183>EU Directive 2011/83</dir201183>) and legal warranties — zero jargon.",
-      "badgeReturns": "14-day EU returns",
+      "metaTitle": "Checkout protegido — Affisell",
+      "metaDescription": "Pago seguro, devoluciones UE en 14 días y garantías legales — lo que todo comprador debe saber en 30 segundos.",
+      "eyebrow": "Checkout protegido",
+      "title": "Compra con confianza",
+      "description": "Pago seguro, derecho de desistimiento europeo (<dir201183>Directiva UE 2011/83</dir201183>) y garantías legales — sin jerga.",
+      "badgeReturns": "Devoluciones UE en 14 días",
       "badge3ds": "3D Secure",
-      "paymentTitle": "Payment",
-      "paymentBody": "Secure payment powered by Stripe. Your card details never pass through Affisell.",
-      "paymentHint": "Strong Customer Authentication (3D Secure) may be required by your bank under the <psd2>EU Directive 2015/2366 (PSD2)</psd2>.",
-      "returnsTitle": "Returns & refunds",
-      "returnsIntro": "Changed your mind or received a faulty item? Here is who pays for what and when you get refunded, under the <l22118>French Consumer Code</l22118> and <dir201183>EU Directive 2011/83</dir201183>.",
+      "paymentTitle": "Pago",
+      "paymentBody": "Pago seguro con Stripe. Los datos de tu tarjeta nunca pasan por Affisell.",
+      "paymentHint": "Tu banco puede exigir la autenticación reforzada del cliente (3D Secure) conforme a la <psd2>Directiva UE 2015/2366 (PSD2)</psd2>.",
+      "returnsTitle": "Devoluciones y reembolsos",
+      "returnsIntro": "¿Cambiaste de opinión o recibiste un artículo defectuoso? Aquí te explicamos quién paga qué y cuándo recibirás el reembolso, conforme al <l22118>Código de Consumo francés</l22118> y la <dir201183>Directiva UE 2011/83</dir201183>.",
       "returnsTable": {
-        "situation": "Situation",
-        "returnCost": "Who pays return shipping",
-        "refundDelay": "Refund timeline"
+        "situation": "Situación",
+        "returnCost": "Quién paga el envío de devolución",
+        "refundDelay": "Plazo de reembolso"
       },
       "returnsRows": {
         "changeMind": {
-          "situation": "I changed my mind (14 days)",
+          "situation": "Cambié de opinión (14 días)",
           "returnCost": "You",
-          "refundDelay": "14 days after we receive the return"
+          "refundDelay": "14 días tras recibir la devolución"
         },
         "defective": {
-          "situation": "Faulty or non-conforming product",
-          "returnCost": "Supplier",
-          "refundDelay": "14 days after we receive the return"
+          "situation": "Producto defectuoso o no conforme",
+          "returnCost": "Proveedor",
+          "refundDelay": "14 días tras recibir la devolución"
         }
       },
-      "returnsHowTitle": "How do I request a return?",
-      "returnsHowBody": "From your order account or via our support team — state the reason and follow the return shipping instructions.",
-      "returnsExceptions": "Some products are excluded from the right of withdrawal (<l22128>art. L221-28</l22128>; <dir201183>Directive 2011/83/EU, art. 16</dir201183>): custom-made, sealed hygiene goods, perishables…",
-      "warrantyTitle": "Legal warranties",
-      "warrantyBody": "Your purchases are covered by the legal conformity warranty — 2 years (<l2174>art. L217-4</l2174>; <dir201183>EU Directive 2011/83</dir201183>) — and the hidden-defect warranty (French Civil Code). An issue? Contact us.",
-      "mediationTitle": "Consumer mediation",
-      "mediationBody": "If a dispute is not resolved with our support, you can contact a consumer mediator free of charge (<l6121>art. L612-1</l6121> et seq.) or the <odr>EU ODR platform (Reg. 524/2013)</odr>:",
-      "mediationLinkLabel": "CM2C — French consumer mediation centre",
-      "odrPlatformLabel": "EU online dispute resolution platform",
-      "contactCta": "Contact us",
-      "trackCta": "Track my order",
-      "legalCta": "Terms of sale",
-      "footerHost": "Hosting: Vercel Inc."
+      "returnsHowTitle": "¿Cómo solicito una devolución?",
+      "returnsHowBody": "Desde tu cuenta de pedidos o a través de nuestro equipo de soporte — indica el motivo y sigue las instrucciones de envío de devolución.",
+      "returnsExceptions": "Algunos productos están excluidos del derecho de desistimiento (<l22128>art. L221-28</l22128>; <dir201183>Directiva 2011/83/UE, art. 16</dir201183>): productos personalizados, artículos de higiene sellados, perecederos…",
+      "warrantyTitle": "Garantías legales",
+      "warrantyBody": "Tus compras están cubiertas por la garantía legal de conformidad — 2 años (<l2174>art. L217-4</l2174>; <dir201183>Directiva UE 2011/83</dir201183>) — y la garantía por vicios ocultos (Código Civil francés). ¿Algún problema? Contáctanos.",
+      "mediationTitle": "Mediación de consumo",
+      "mediationBody": "Si un litigio no se resuelve con nuestro soporte, puedes contactar gratuitamente a un mediador de consumo (<l6121>art. L612-1</l6121> y siguientes) o la <odr>plataforma UE de resolución de litigios en línea (Reg. 524/2013)</odr>:",
+      "mediationLinkLabel": "CM2C — Centro francés de mediación de consumo",
+      "odrPlatformLabel": "Plataforma de resolución de litigios en línea de la UE",
+      "contactCta": "Contáctanos",
+      "trackCta": "Rastrear mi pedido",
+      "legalCta": "Condiciones de venta",
+      "footerHost": "Alojamiento: Vercel Inc."
     },
     "mentions": {
-      "metaTitle": "Legal notice — Affisell",
-      "metaDescription": "Publisher, registered office, host, DPO and mediation — LCEN information.",
-      "eyebrow": "Legal information",
-      "title": "Legal notice",
-      "description": "Structured document under the <lcen>LCEN Act 2004-575, art. 6 III</lcen>.",
-      "lastUpdated": "Last updated:",
+      "metaTitle": "Aviso legal — Affisell",
+      "metaDescription": "Editor, domicilio social, alojamiento, DPO y mediación — información LCEN.",
+      "eyebrow": "Información legal",
+      "title": "Aviso legal",
+      "description": "Documento estructurado conforme a la <lcen>Ley LCEN 2004-575, art. 6 III</lcen>.",
+      "lastUpdated": "Última actualización:",
       "editor": {
-        "title": "1. Site publisher",
-        "denomination": "Company name",
-        "form": "Legal form",
-        "capital": "Share capital",
+        "title": "1. Editor del sitio",
+        "denomination": "Razón social",
+        "form": "Forma jurídica",
+        "capital": "Capital social",
         "siren": "SIREN",
-        "rcs": "Trade register (RCS)",
-        "vat": "EU VAT number",
-        "seat": "Registered office (domiciliation)",
-        "domiciliationNote": "Commercial domiciliation address filed with the trade register — not the director's home address."
+        "rcs": "Registro mercantil (RCS)",
+        "vat": "Número de IVA de la UE",
+        "seat": "Domicilio social (domiciliación)",
+        "domiciliationNote": "Domicilio comercial inscrito en el registro mercantil — no es el domicilio particular del director."
       },
       "publisher": {
-        "title": "2. Publication director",
-        "director": "Publication director",
-        "email": "Editorial contact (email)",
-        "noPhone": "Affisell does not offer phone support — please contact us by email."
+        "title": "2. Director de publicación",
+        "director": "Director de publicación",
+        "email": "Contacto editorial (email)",
+        "noPhone": "Affisell no ofrece soporte telefónico — contáctanos por email."
       },
       "dpo": {
-        "title": "3. Data protection officer (DPO)",
-        "label": "DPO email"
+        "title": "3. Delegado de protección de datos (DPO)",
+        "label": "Email del DPO"
       },
       "host": {
-        "title": "4. Hosting provider",
-        "name": "Company name",
-        "address": "Address",
-        "website": "Website"
+        "title": "4. Proveedor de alojamiento",
+        "name": "Razón social",
+        "address": "Dirección",
+        "website": "Sitio web"
       },
       "mediation": {
-        "title": "5. Mediation & disputes",
-        "mediator": "Consumer mediator",
-        "site": "Mediator website",
-        "odr": "EU ODR platform",
-        "body": "Under <l6121>French Consumer Code articles L612-1 et seq.</l6121> and <odr>EU Regulation 524/2013</odr>, consumers may use a free mediator. EU consumers may also use the online dispute resolution platform."
+        "title": "5. Mediación y litigios",
+        "mediator": "Mediador de consumo",
+        "site": "Sitio web del mediador",
+        "odr": "Plataforma UE de resolución de litigios en línea",
+        "body": "En virtud de los <l6121>artículos L612-1 y siguientes del Código de Consumo francés</l6121> y del <odr>Reglamento UE 524/2013</odr>, los consumidores pueden recurrir a un mediador gratuito. Los consumidores de la UE también pueden utilizar la plataforma de resolución de litigios en línea."
       },
       "ip": {
-        "title": "6. Intellectual property",
-        "body": "The entire Affisell site (structure, text, graphics, logo, databases) is protected under the <cpi>French Intellectual Property Code</cpi>. Unauthorized reproduction constitutes infringement."
+        "title": "6. Propiedad intelectual",
+        "body": "Todo el sitio Affisell (estructura, textos, gráficos, logotipo, bases de datos) está protegido por el <cpi>Código de Propiedad Intelectual francés</cpi>. La reproducción no autorizada constituye una infracción."
       },
       "docs": {
-        "title": "7. Contractual documents",
-        "cgu": "Platform terms",
-        "supplier": "Supplier terms",
-        "affiliate": "Partner terms",
-        "privacy": "Privacy policy",
-        "returns": "Protected checkout & returns",
-        "cookies": "Cookies policy"
+        "title": "7. Documentos contractuales",
+        "cgu": "Condiciones de la plataforma",
+        "supplier": "Condiciones de proveedores",
+        "affiliate": "Condiciones de socios",
+        "privacy": "Política de privacidad",
+        "returns": "Checkout protegido y devoluciones",
+        "cookies": "Política de cookies"
       }
     }
   },
