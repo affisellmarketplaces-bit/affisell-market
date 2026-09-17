@@ -5061,18 +5061,18 @@
   },
   "accountOrders": {
     "empty": "No hay pedidos aún para esta cuenta.",
-    "emptyHint": "Explore personalized picks on the home catalog or swipe products in Pulse.",
-    "emptyPostCheckoutHint": "Your order is being confirmed. While you wait, discover more picks tailored to you.",
-    "emptyCtaDiscover": "Discover products",
-    "emptyCtaPulse": "Open Pulse",
-    "continueShopping": "Continue shopping",
+    "emptyHint": "Explora selecciones personalizadas en el catálogo o desliza productos en Pulse.",
+    "emptyPostCheckoutHint": "Tu pedido se está confirmando. Mientras esperas, descubre más selecciones para ti.",
+    "emptyCtaDiscover": "Descubrir productos",
+    "emptyCtaPulse": "Abrir Pulse",
+    "continueShopping": "Seguir comprando",
     "sort": {
-      "label": "Sort",
-      "actionNeeded": "Needs your action",
-      "dateDesc": "Newest first",
-      "dateAsc": "Oldest first",
-      "amountDesc": "Highest amount",
-      "amountAsc": "Lowest amount"
+      "label": "Ordenar",
+      "actionNeeded": "Requiere tu acción",
+      "dateDesc": "Más recientes primero",
+      "dateAsc": "Más antiguos primero",
+      "amountDesc": "Importe más alto",
+      "amountAsc": "Importe más bajo"
     },
     "fulfillmentTag": {
       "preparing": " · Preparando tu pedido",
@@ -5139,49 +5139,49 @@
       "rejected": "Rechazaste la prórroga."
     },
     "digital": {
-      "title": "Course access",
-      "hint": "Your digital pass is ready — open it to start immediately.",
-      "unlocked": "Unlocked",
-      "cta": "Open my access"
+      "title": "Acceso al curso",
+      "hint": "Tu pase digital está listo — ábrelo para empezar de inmediato.",
+      "unlocked": "Desbloqueado",
+      "cta": "Abrir mi acceso"
     },
     "booking": {
-      "confirmed": "Confirmed",
-      "addToCalendar": "Add to calendar",
-      "freeCancelUntil": "Free cancel until",
-      "cancelling": "Cancelling…",
-      "cancelError": "Could not cancel"
+      "confirmed": "Confirmado",
+      "addToCalendar": "Añadir al calendario",
+      "freeCancelUntil": "Cancelación gratuita hasta",
+      "cancelling": "Cancelando…",
+      "cancelError": "No se pudo cancelar"
     },
     "bookingCard": {
       "service": {
-        "title": "Appointment confirmed",
-        "hint": "Your pass is ready — show it at salon check-in.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel appointment"
+        "title": "Cita confirmada",
+        "hint": "Tu pase está listo — muéstralo al registrarte en el salón.",
+        "cta": "Abrir mi pase",
+        "cancelCta": "Cancelar cita"
       },
       "experience": {
-        "title": "Screening confirmed",
-        "hint": "Your pass is ready — show it at the cinema or event entrance.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel screening"
+        "title": "Función confirmada",
+        "hint": "Tu pase está listo — muéstralo en la entrada del cine o del evento.",
+        "cta": "Abrir mi pase",
+        "cancelCta": "Cancelar función"
       },
       "restaurant": {
-        "title": "Reservation confirmed",
-        "hint": "Your pass is ready — show it at the restaurant host stand.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel reservation"
+        "title": "Reserva confirmada",
+        "hint": "Tu pase está listo — muéstralo en la recepción del restaurante.",
+        "cta": "Abrir mi pase",
+        "cancelCta": "Cancelar reserva"
       },
       "museum": {
-        "title": "Visit confirmed",
-        "hint": "Your pass is ready — show it at the museum entrance.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel visit"
+        "title": "Visita confirmada",
+        "hint": "Tu pase está listo — muéstralo en la entrada del museo.",
+        "cta": "Abrir mi pase",
+        "cancelCta": "Cancelar visita"
       }
     },
     "reviewNudge": {
-      "eyebrow": "Your review matters",
-      "title": "How was « {productName} »?",
-      "hint": "30 seconds to help the community.",
-      "cta": "Leave a review"
+      "eyebrow": "Tu opinión importa",
+      "title": "¿Qué te pareció « {productName} »?",
+      "hint": "30 segundos para ayudar a la comunidad.",
+      "cta": "Dejar una reseña"
     }
   },
   "payoutPolicy": {

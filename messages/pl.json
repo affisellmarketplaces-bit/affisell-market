@@ -5061,18 +5061,18 @@
   },
   "accountOrders": {
     "empty": "Brak zamówień dla tego konta.",
-    "emptyHint": "Explore personalized picks on the home catalog or swipe products in Pulse.",
-    "emptyPostCheckoutHint": "Your order is being confirmed. While you wait, discover more picks tailored to you.",
-    "emptyCtaDiscover": "Discover products",
-    "emptyCtaPulse": "Open Pulse",
-    "continueShopping": "Continue shopping",
+    "emptyHint": "Odkryj spersonalizowane propozycje w katalogu lub przesuwaj produkty w Pulse.",
+    "emptyPostCheckoutHint": "Twoje zamówienie jest potwierdzane. W międzyczasie odkryj więcej propozycji dopasowanych do Ciebie.",
+    "emptyCtaDiscover": "Odkryj produkty",
+    "emptyCtaPulse": "Otwórz Pulse",
+    "continueShopping": "Kontynuuj zakupy",
     "sort": {
-      "label": "Sort",
-      "actionNeeded": "Needs your action",
-      "dateDesc": "Newest first",
-      "dateAsc": "Oldest first",
-      "amountDesc": "Highest amount",
-      "amountAsc": "Lowest amount"
+      "label": "Sortuj",
+      "actionNeeded": "Wymaga Twojej akcji",
+      "dateDesc": "Od najnowszych",
+      "dateAsc": "Od najstarszych",
+      "amountDesc": "Najwyższa kwota",
+      "amountAsc": "Najniższa kwota"
     },
     "fulfillmentTag": {
       "preparing": " · Przygotowywanie zamówienia",
@@ -5087,7 +5087,7 @@
     },
     "trackingLine": "Śledzenie: {carrier} {number}",
     "carrierDefault": "Przewoźnik",
-    "blindBadge": "Blind",
+    "blindBadge": "Ukryty",
     "confirmDelivery": {
       "body": "Otrzymano i jesteś zadowolony? Potwierdź dostawę — wypłaty dla sprzedawcy po {confirmDays} dniach. Bez potwierdzenia wypłaty mogą zostać zwolnione po {autoDays} dniach od wysyłki. Twoje ustawowe prawo odstąpienia obowiązuje w okresie zwrotu.",
       "cta": "Potwierdź odbiór i satysfakcję",
@@ -5139,49 +5139,49 @@
       "rejected": "Odrzuciłeś przedłużenie."
     },
     "digital": {
-      "title": "Course access",
-      "hint": "Your digital pass is ready — open it to start immediately.",
-      "unlocked": "Unlocked",
-      "cta": "Open my access"
+      "title": "Dostęp do kursu",
+      "hint": "Twój cyfrowy dostęp jest gotowy — otwórz go, aby zacząć od razu.",
+      "unlocked": "Odblokowane",
+      "cta": "Otwórz mój dostęp"
     },
     "booking": {
-      "confirmed": "Confirmed",
-      "addToCalendar": "Add to calendar",
-      "freeCancelUntil": "Free cancel until",
-      "cancelling": "Cancelling…",
-      "cancelError": "Could not cancel"
+      "confirmed": "Potwierdzone",
+      "addToCalendar": "Dodaj do kalendarza",
+      "freeCancelUntil": "Bezpłatna anulacja do",
+      "cancelling": "Anulowanie…",
+      "cancelError": "Nie udało się anulować"
     },
     "bookingCard": {
       "service": {
-        "title": "Appointment confirmed",
-        "hint": "Your pass is ready — show it at salon check-in.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel appointment"
+        "title": "Wizyta potwierdzona",
+        "hint": "Twój bilet jest gotowy — pokaż go przy zameldowaniu w salonie.",
+        "cta": "Otwórz mój bilet",
+        "cancelCta": "Anuluj wizytę"
       },
       "experience": {
-        "title": "Screening confirmed",
-        "hint": "Your pass is ready — show it at the cinema or event entrance.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel screening"
+        "title": "Seans potwierdzony",
+        "hint": "Twój bilet jest gotowy — pokaż go przy wejściu do kina lub na wydarzenie.",
+        "cta": "Otwórz mój bilet",
+        "cancelCta": "Anuluj seans"
       },
       "restaurant": {
-        "title": "Reservation confirmed",
-        "hint": "Your pass is ready — show it at the restaurant host stand.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel reservation"
+        "title": "Rezerwacja potwierdzona",
+        "hint": "Twój bilet jest gotowy — pokaż go przy recepcji restauracji.",
+        "cta": "Otwórz mój bilet",
+        "cancelCta": "Anuluj rezerwację"
       },
       "museum": {
-        "title": "Visit confirmed",
-        "hint": "Your pass is ready — show it at the museum entrance.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel visit"
+        "title": "Wizyta potwierdzona",
+        "hint": "Twój bilet jest gotowy — pokaż go przy wejściu do muzeum.",
+        "cta": "Otwórz mój bilet",
+        "cancelCta": "Anuluj wizytę"
       }
     },
     "reviewNudge": {
-      "eyebrow": "Your review matters",
-      "title": "How was « {productName} »?",
-      "hint": "30 seconds to help the community.",
-      "cta": "Leave a review"
+      "eyebrow": "Twoja opinia się liczy",
+      "title": "Jak podobał się « {productName} »?",
+      "hint": "30 sekund, aby pomóc społeczności.",
+      "cta": "Zostaw opinię"
     }
   },
   "payoutPolicy": {

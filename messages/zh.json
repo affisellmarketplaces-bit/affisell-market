@@ -5061,18 +5061,18 @@
   },
   "accountOrders": {
     "empty": "此账户暂无订单。",
-    "emptyHint": "Explore personalized picks on the home catalog or swipe products in Pulse.",
-    "emptyPostCheckoutHint": "Your order is being confirmed. While you wait, discover more picks tailored to you.",
-    "emptyCtaDiscover": "Discover products",
-    "emptyCtaPulse": "Open Pulse",
-    "continueShopping": "Continue shopping",
+    "emptyHint": "在首页目录中探索个性化推荐，或在 Pulse 中滑动浏览商品。",
+    "emptyPostCheckoutHint": "你的订单正在确认中。趁此时间，发现更多为你精选的商品。",
+    "emptyCtaDiscover": "发现商品",
+    "emptyCtaPulse": "打开 Pulse",
+    "continueShopping": "继续购物",
     "sort": {
-      "label": "Sort",
-      "actionNeeded": "Needs your action",
-      "dateDesc": "Newest first",
-      "dateAsc": "Oldest first",
-      "amountDesc": "Highest amount",
-      "amountAsc": "Lowest amount"
+      "label": "排序",
+      "actionNeeded": "需要你处理",
+      "dateDesc": "从新到旧",
+      "dateAsc": "从旧到新",
+      "amountDesc": "金额从高到低",
+      "amountAsc": "金额从低到高"
     },
     "fulfillmentTag": {
       "preparing": " · 正在准备您的订单",
@@ -5087,7 +5087,7 @@
     },
     "trackingLine": "物流：{carrier} {number}",
     "carrierDefault": "承运商",
-    "blindBadge": "盲发",
+    "blindBadge": "隐匿发货",
     "confirmDelivery": {
       "body": "已收到且满意？确认收货 — 卖家款项将在 {confirmDays} 天后结算。未确认时，发货后 {autoDays} 天仍可能释放款项。法定退货权在退货期内仍然有效。",
       "cta": "确认收货与满意",
@@ -5111,7 +5111,7 @@
       "windowEnded": "退货窗口已于 {date} 结束。",
       "form": {
         "reasonLabel": "原因",
-        "detailsPlaceholder": "详情（可选）",
+        "detailsPlaceholder": "详情（选填）",
         "submit": "申请退货",
         "error": "申请失败"
       },
@@ -5139,49 +5139,49 @@
       "rejected": "您已拒绝延期。"
     },
     "digital": {
-      "title": "Course access",
-      "hint": "Your digital pass is ready — open it to start immediately.",
-      "unlocked": "Unlocked",
-      "cta": "Open my access"
+      "title": "课程访问权限",
+      "hint": "你的数字通行证已就绪 —— 打开即可立即开始。",
+      "unlocked": "已解锁",
+      "cta": "打开我的权限"
     },
     "booking": {
-      "confirmed": "Confirmed",
-      "addToCalendar": "Add to calendar",
-      "freeCancelUntil": "Free cancel until",
-      "cancelling": "Cancelling…",
-      "cancelError": "Could not cancel"
+      "confirmed": "已确认",
+      "addToCalendar": "添加到日历",
+      "freeCancelUntil": "免费取消截止",
+      "cancelling": "取消中…",
+      "cancelError": "取消失败"
     },
     "bookingCard": {
       "service": {
-        "title": "Appointment confirmed",
-        "hint": "Your pass is ready — show it at salon check-in.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel appointment"
+        "title": "预约已确认",
+        "hint": "你的通行证已就绪 —— 请在门店办理入场时出示。",
+        "cta": "打开我的通行证",
+        "cancelCta": "取消预约"
       },
       "experience": {
-        "title": "Screening confirmed",
-        "hint": "Your pass is ready — show it at the cinema or event entrance.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel screening"
+        "title": "场次已确认",
+        "hint": "你的通行证已就绪 —— 请在影院或活动入口出示。",
+        "cta": "打开我的通行证",
+        "cancelCta": "取消场次"
       },
       "restaurant": {
-        "title": "Reservation confirmed",
-        "hint": "Your pass is ready — show it at the restaurant host stand.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel reservation"
+        "title": "预订已确认",
+        "hint": "你的通行证已就绪 —— 请在餐厅前台出示。",
+        "cta": "打开我的通行证",
+        "cancelCta": "取消预订"
       },
       "museum": {
-        "title": "Visit confirmed",
-        "hint": "Your pass is ready — show it at the museum entrance.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel visit"
+        "title": "参观已确认",
+        "hint": "你的通行证已就绪 —— 请在博物馆入口出示。",
+        "cta": "打开我的通行证",
+        "cancelCta": "取消参观"
       }
     },
     "reviewNudge": {
-      "eyebrow": "Your review matters",
-      "title": "How was « {productName} »?",
-      "hint": "30 seconds to help the community.",
-      "cta": "Leave a review"
+      "eyebrow": "你的评价很重要",
+      "title": "「{productName}」怎么样？",
+      "hint": "只需30秒即可帮助社区。",
+      "cta": "发表评价"
     }
   },
   "payoutPolicy": {

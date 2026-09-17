@@ -5061,18 +5061,18 @@
   },
   "accountOrders": {
     "empty": "Noch keine Bestellungen für dieses Konto.",
-    "emptyHint": "Explore personalized picks on the home catalog or swipe products in Pulse.",
-    "emptyPostCheckoutHint": "Your order is being confirmed. While you wait, discover more picks tailored to you.",
-    "emptyCtaDiscover": "Discover products",
-    "emptyCtaPulse": "Open Pulse",
-    "continueShopping": "Continue shopping",
+    "emptyHint": "Entdecke personalisierte Empfehlungen im Katalog oder swipe Produkte in Pulse.",
+    "emptyPostCheckoutHint": "Deine Bestellung wird bestätigt. Entdecke in der Zwischenzeit weitere Empfehlungen für dich.",
+    "emptyCtaDiscover": "Produkte entdecken",
+    "emptyCtaPulse": "Pulse öffnen",
+    "continueShopping": "Weiter einkaufen",
     "sort": {
-      "label": "Sort",
-      "actionNeeded": "Needs your action",
-      "dateDesc": "Newest first",
-      "dateAsc": "Oldest first",
-      "amountDesc": "Highest amount",
-      "amountAsc": "Lowest amount"
+      "label": "Sortieren",
+      "actionNeeded": "Erfordert deine Aktion",
+      "dateDesc": "Neueste zuerst",
+      "dateAsc": "Älteste zuerst",
+      "amountDesc": "Höchster Betrag",
+      "amountAsc": "Niedrigster Betrag"
     },
     "fulfillmentTag": {
       "preparing": " · Vorbereitung Ihrer Bestellung",
@@ -5085,7 +5085,7 @@
       "body": "Er hat bestätigt, dass Ihre Bestellung verpackt wird. Die Tracking-Informationen erscheinen, sobald der Spediteur das Paket scannet.",
       "since": "Seit"
     },
-    "trackingLine": "Tracking: {carrier} {number}",
+    "trackingLine": "Sendungsverfolgung: {carrier} {number}",
     "carrierDefault": "Spediteur",
     "blindBadge": "Blind",
     "confirmDelivery": {
@@ -5139,49 +5139,49 @@
       "rejected": "Sie haben die Verlängerung abgelehnt."
     },
     "digital": {
-      "title": "Course access",
-      "hint": "Your digital pass is ready — open it to start immediately.",
-      "unlocked": "Unlocked",
-      "cta": "Open my access"
+      "title": "Kurszugang",
+      "hint": "Dein digitaler Pass ist bereit — öffne ihn, um sofort zu starten.",
+      "unlocked": "Freigeschaltet",
+      "cta": "Meinen Zugang öffnen"
     },
     "booking": {
-      "confirmed": "Confirmed",
-      "addToCalendar": "Add to calendar",
-      "freeCancelUntil": "Free cancel until",
-      "cancelling": "Cancelling…",
-      "cancelError": "Could not cancel"
+      "confirmed": "Bestätigt",
+      "addToCalendar": "Zum Kalender hinzufügen",
+      "freeCancelUntil": "Kostenlos stornierbar bis",
+      "cancelling": "Wird storniert…",
+      "cancelError": "Stornierung fehlgeschlagen"
     },
     "bookingCard": {
       "service": {
-        "title": "Appointment confirmed",
-        "hint": "Your pass is ready — show it at salon check-in.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel appointment"
+        "title": "Termin bestätigt",
+        "hint": "Dein Pass ist bereit — zeige ihn beim Check-in im Salon.",
+        "cta": "Meinen Pass öffnen",
+        "cancelCta": "Termin stornieren"
       },
       "experience": {
-        "title": "Screening confirmed",
-        "hint": "Your pass is ready — show it at the cinema or event entrance.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel screening"
+        "title": "Vorstellung bestätigt",
+        "hint": "Dein Pass ist bereit — zeige ihn am Kino- oder Veranstaltungseingang.",
+        "cta": "Meinen Pass öffnen",
+        "cancelCta": "Vorstellung stornieren"
       },
       "restaurant": {
-        "title": "Reservation confirmed",
-        "hint": "Your pass is ready — show it at the restaurant host stand.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel reservation"
+        "title": "Reservierung bestätigt",
+        "hint": "Dein Pass ist bereit — zeige ihn am Empfang des Restaurants.",
+        "cta": "Meinen Pass öffnen",
+        "cancelCta": "Reservierung stornieren"
       },
       "museum": {
-        "title": "Visit confirmed",
-        "hint": "Your pass is ready — show it at the museum entrance.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel visit"
+        "title": "Besuch bestätigt",
+        "hint": "Dein Pass ist bereit — zeige ihn am Museumseingang.",
+        "cta": "Meinen Pass öffnen",
+        "cancelCta": "Besuch stornieren"
       }
     },
     "reviewNudge": {
-      "eyebrow": "Your review matters",
-      "title": "How was « {productName} »?",
-      "hint": "30 seconds to help the community.",
-      "cta": "Leave a review"
+      "eyebrow": "Deine Bewertung zählt",
+      "title": "Wie war « {productName} »?",
+      "hint": "30 Sekunden, um der Community zu helfen.",
+      "cta": "Bewertung abgeben"
     }
   },
   "payoutPolicy": {

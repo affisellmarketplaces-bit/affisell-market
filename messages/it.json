@@ -5061,18 +5061,18 @@
   },
   "accountOrders": {
     "empty": "Nessun ordine ancora per questo account.",
-    "emptyHint": "Explore personalized picks on the home catalog or swipe products in Pulse.",
-    "emptyPostCheckoutHint": "Your order is being confirmed. While you wait, discover more picks tailored to you.",
-    "emptyCtaDiscover": "Discover products",
-    "emptyCtaPulse": "Open Pulse",
-    "continueShopping": "Continue shopping",
+    "emptyHint": "Scopri selezioni personalizzate nel catalogo o scorri i prodotti in Pulse.",
+    "emptyPostCheckoutHint": "Il tuo ordine è in fase di conferma. Nel frattempo, scopri altre selezioni pensate per te.",
+    "emptyCtaDiscover": "Scopri prodotti",
+    "emptyCtaPulse": "Apri Pulse",
+    "continueShopping": "Continua lo shopping",
     "sort": {
-      "label": "Sort",
-      "actionNeeded": "Needs your action",
-      "dateDesc": "Newest first",
-      "dateAsc": "Oldest first",
-      "amountDesc": "Highest amount",
-      "amountAsc": "Lowest amount"
+      "label": "Ordina",
+      "actionNeeded": "Richiede la tua azione",
+      "dateDesc": "Più recenti prima",
+      "dateAsc": "Meno recenti prima",
+      "amountDesc": "Importo più alto",
+      "amountAsc": "Importo più basso"
     },
     "fulfillmentTag": {
       "preparing": " · Preparazione dell'ordine",
@@ -5085,9 +5085,9 @@
       "body": "Hanno confermato che il tuo ordine è in fase di imballaggio. Il tracking apparirà non appena il corriere scansionerà il pacco.",
       "since": "Dal"
     },
-    "trackingLine": "Tracking: {carrier} {number}",
+    "trackingLine": "Tracciamento: {carrier} {number}",
     "carrierDefault": "Corriere",
-    "blindBadge": "Non visibile",
+    "blindBadge": "Cieco",
     "confirmDelivery": {
       "body": "Ricevuto e soddisfatto? Conferma la consegna — i pagamenti ai venditori vengono eseguiti dopo {confirmDays} giorni. Senza conferma, i pagamenti potrebbero comunque essere rilasciati dopo {autoDays} giorni dalla spedizione. Il tuo diritto di recesso legale rimane valido durante la finestra di reso.",
       "cta": "Conferma ricezione e soddisfazione",
@@ -5111,7 +5111,7 @@
       "windowEnded": "La finestra di reso è scaduta il {date}.",
       "form": {
         "reasonLabel": "Motivo",
-        "detailsPlaceholder": "Dettagli (opzionale)",
+        "detailsPlaceholder": "Dettagli (facoltativo)",
         "submit": "Richiedi reso",
         "error": "Richiesta fallita"
       },
@@ -5139,49 +5139,49 @@
       "rejected": "Hai rifiutato la proroga."
     },
     "digital": {
-      "title": "Course access",
-      "hint": "Your digital pass is ready — open it to start immediately.",
-      "unlocked": "Unlocked",
-      "cta": "Open my access"
+      "title": "Accesso al corso",
+      "hint": "Il tuo pass digitale è pronto — aprilo per iniziare subito.",
+      "unlocked": "Sbloccato",
+      "cta": "Apri il mio accesso"
     },
     "booking": {
-      "confirmed": "Confirmed",
-      "addToCalendar": "Add to calendar",
-      "freeCancelUntil": "Free cancel until",
-      "cancelling": "Cancelling…",
-      "cancelError": "Could not cancel"
+      "confirmed": "Confermato",
+      "addToCalendar": "Aggiungi al calendario",
+      "freeCancelUntil": "Cancellazione gratuita entro",
+      "cancelling": "Annullamento in corso…",
+      "cancelError": "Impossibile annullare"
     },
     "bookingCard": {
       "service": {
-        "title": "Appointment confirmed",
-        "hint": "Your pass is ready — show it at salon check-in.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel appointment"
+        "title": "Appuntamento confermato",
+        "hint": "Il tuo pass è pronto — mostralo al check-in del salone.",
+        "cta": "Apri il mio pass",
+        "cancelCta": "Annulla appuntamento"
       },
       "experience": {
-        "title": "Screening confirmed",
-        "hint": "Your pass is ready — show it at the cinema or event entrance.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel screening"
+        "title": "Proiezione confermata",
+        "hint": "Il tuo pass è pronto — mostralo all'ingresso del cinema o dell'evento.",
+        "cta": "Apri il mio pass",
+        "cancelCta": "Annulla proiezione"
       },
       "restaurant": {
-        "title": "Reservation confirmed",
-        "hint": "Your pass is ready — show it at the restaurant host stand.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel reservation"
+        "title": "Prenotazione confermata",
+        "hint": "Il tuo pass è pronto — mostralo alla reception del ristorante.",
+        "cta": "Apri il mio pass",
+        "cancelCta": "Annulla prenotazione"
       },
       "museum": {
-        "title": "Visit confirmed",
-        "hint": "Your pass is ready — show it at the museum entrance.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel visit"
+        "title": "Visita confermata",
+        "hint": "Il tuo pass è pronto — mostralo all'ingresso del museo.",
+        "cta": "Apri il mio pass",
+        "cancelCta": "Annulla visita"
       }
     },
     "reviewNudge": {
-      "eyebrow": "Your review matters",
-      "title": "How was « {productName} »?",
-      "hint": "30 seconds to help the community.",
-      "cta": "Leave a review"
+      "eyebrow": "La tua recensione conta",
+      "title": "Com'era « {productName} »?",
+      "hint": "30 secondi per aiutare la community.",
+      "cta": "Lascia una recensione"
     }
   },
   "payoutPolicy": {

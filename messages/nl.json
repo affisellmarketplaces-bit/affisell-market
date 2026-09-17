@@ -5061,18 +5061,18 @@
   },
   "accountOrders": {
     "empty": "Nog geen bestellingen voor dit account.",
-    "emptyHint": "Explore personalized picks on the home catalog or swipe products in Pulse.",
-    "emptyPostCheckoutHint": "Your order is being confirmed. While you wait, discover more picks tailored to you.",
-    "emptyCtaDiscover": "Discover products",
-    "emptyCtaPulse": "Open Pulse",
-    "continueShopping": "Continue shopping",
+    "emptyHint": "Ontdek gepersonaliseerde aanbevelingen in de catalogus of swipe producten in Pulse.",
+    "emptyPostCheckoutHint": "Je bestelling wordt bevestigd. Ontdek intussen meer aanbevelingen speciaal voor jou.",
+    "emptyCtaDiscover": "Producten ontdekken",
+    "emptyCtaPulse": "Pulse openen",
+    "continueShopping": "Verder winkelen",
     "sort": {
-      "label": "Sort",
-      "actionNeeded": "Needs your action",
-      "dateDesc": "Newest first",
-      "dateAsc": "Oldest first",
-      "amountDesc": "Highest amount",
-      "amountAsc": "Lowest amount"
+      "label": "Sorteren",
+      "actionNeeded": "Vereist jouw actie",
+      "dateDesc": "Nieuwste eerst",
+      "dateAsc": "Oudste eerst",
+      "amountDesc": "Hoogste bedrag",
+      "amountAsc": "Laagste bedrag"
     },
     "fulfillmentTag": {
       "preparing": " · Uw bestelling wordt voorbereid",
@@ -5139,49 +5139,49 @@
       "rejected": "U heeft de verlenging geweigerd."
     },
     "digital": {
-      "title": "Course access",
-      "hint": "Your digital pass is ready — open it to start immediately.",
-      "unlocked": "Unlocked",
-      "cta": "Open my access"
+      "title": "Cursustoegang",
+      "hint": "Je digitale pas is klaar — open deze om direct te starten.",
+      "unlocked": "Ontgrendeld",
+      "cta": "Mijn toegang openen"
     },
     "booking": {
-      "confirmed": "Confirmed",
-      "addToCalendar": "Add to calendar",
-      "freeCancelUntil": "Free cancel until",
-      "cancelling": "Cancelling…",
-      "cancelError": "Could not cancel"
+      "confirmed": "Bevestigd",
+      "addToCalendar": "Toevoegen aan agenda",
+      "freeCancelUntil": "Gratis annuleren tot",
+      "cancelling": "Annuleren…",
+      "cancelError": "Kon niet annuleren"
     },
     "bookingCard": {
       "service": {
-        "title": "Appointment confirmed",
-        "hint": "Your pass is ready — show it at salon check-in.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel appointment"
+        "title": "Afspraak bevestigd",
+        "hint": "Je pas is klaar — toon deze bij het inchecken in de salon.",
+        "cta": "Mijn pas openen",
+        "cancelCta": "Afspraak annuleren"
       },
       "experience": {
-        "title": "Screening confirmed",
-        "hint": "Your pass is ready — show it at the cinema or event entrance.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel screening"
+        "title": "Voorstelling bevestigd",
+        "hint": "Je pas is klaar — toon deze bij de ingang van de bioscoop of het evenement.",
+        "cta": "Mijn pas openen",
+        "cancelCta": "Voorstelling annuleren"
       },
       "restaurant": {
-        "title": "Reservation confirmed",
-        "hint": "Your pass is ready — show it at the restaurant host stand.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel reservation"
+        "title": "Reservering bevestigd",
+        "hint": "Je pas is klaar — toon deze bij de ontvangst van het restaurant.",
+        "cta": "Mijn pas openen",
+        "cancelCta": "Reservering annuleren"
       },
       "museum": {
-        "title": "Visit confirmed",
-        "hint": "Your pass is ready — show it at the museum entrance.",
-        "cta": "Open my pass",
-        "cancelCta": "Cancel visit"
+        "title": "Bezoek bevestigd",
+        "hint": "Je pas is klaar — toon deze bij de ingang van het museum.",
+        "cta": "Mijn pas openen",
+        "cancelCta": "Bezoek annuleren"
       }
     },
     "reviewNudge": {
-      "eyebrow": "Your review matters",
-      "title": "How was « {productName} »?",
-      "hint": "30 seconds to help the community.",
-      "cta": "Leave a review"
+      "eyebrow": "Jouw beoordeling telt",
+      "title": "Hoe was « {productName} »?",
+      "hint": "30 seconden om de community te helpen.",
+      "cta": "Beoordeling achterlaten"
     }
   },
   "payoutPolicy": {
