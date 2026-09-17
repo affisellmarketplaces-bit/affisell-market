@@ -1614,6 +1614,24 @@ body.affisell-demo-lab .affisell-header-shell {
     --affisell-rail-fade-r: var(--affisell-rail-fade);
   }
 
+  /** Generic chip/pill scroll rows (category bars) — same edge-fade technique. */
+  .affisell-scroll-fade-row {
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 var(--affisell-scroll-fade-l, 0px),
+      #000 calc(100% - var(--affisell-scroll-fade-r, 0px)),
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 var(--affisell-scroll-fade-l, 0px),
+      #000 calc(100% - var(--affisell-scroll-fade-r, 0px)),
+      transparent 100%
+    );
+  }
+
   .dark .affisell-mobile-dock-epoxy {
     border-color: color-mix(in srgb, var(--brand-light) 22%, white 8%);
     background:

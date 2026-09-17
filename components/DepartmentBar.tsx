@@ -4,6 +4,7 @@ import { LayoutGrid } from "lucide-react"
 
 import { CategoryGlyph } from "@/components/marketplace/CategoryGlyph"
 import { FastLink } from "@/components/navigation/fast-link"
+import { ScrollFadeRow } from "@/components/ui/scroll-fade-row"
 import { catalogFilterHref } from "@/lib/marketplace-catalog-nav.client"
 import { categoryRailHref } from "@/lib/marketplace-category-rail-href.client"
 import {
@@ -45,10 +46,16 @@ export function DepartmentBar({
           </span>
           <div>
             <p
-              className="text-xs font-bold uppercase tracking-[0.14em]"
+              className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em]"
               style={{ color: PREMIUM_MARKETPLACE_HOME.departmentsLabel }}
             >
               Departments
+              <span
+                className="rounded-full px-1.5 py-0.5 text-[10px] normal-case tracking-normal"
+                style={{ backgroundColor: "#F3E8FF", color: PREMIUM_MARKETPLACE_HOME.departmentsLabel }}
+              >
+                {categories.length}
+              </span>
             </p>
             <p className="text-xs leading-snug" style={{ color: PREMIUM_MARKETPLACE_HOME.departmentsHint }}>
               Department-store navigation — each department opens its aisles in the left column.
@@ -57,7 +64,7 @@ export function DepartmentBar({
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <ScrollFadeRow ariaLabel="Departments">
         <FastLink
           href={catalogFilterHref(catalogBasePath)}
           scroll={false}
@@ -91,7 +98,7 @@ export function DepartmentBar({
             </FastLink>
           )
         })}
-      </div>
+      </ScrollFadeRow>
     </section>
   )
 }
