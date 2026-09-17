@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Check, ShieldCheck, Sparkles } from "lucide-react"
+import { Check, ShieldCheck } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { BuyerHeroSearch } from "@/components/BuyerHeroSearch"
@@ -51,10 +51,6 @@ function BuyerPremiumHero() {
             <ShieldCheck className="size-3 text-white" strokeWidth={2.5} aria-hidden />
           </span>
           {t("badgeLabel")}
-          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
-            <Sparkles className="size-2.5" aria-hidden />
-            Premium
-          </span>
         </div>
 
         <RotatingSloganPro
