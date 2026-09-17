@@ -61,6 +61,7 @@
   },
   "PublicNav": {
     "home": "首页",
+    "categoriesEntry": "分类",
     "marketplace": "市场",
     "trustedStores": "Trusted stores",
     "trustedStoresShort": "Trusted",

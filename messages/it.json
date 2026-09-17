@@ -61,6 +61,7 @@
   },
   "PublicNav": {
     "home": "Home",
+    "categoriesEntry": "Categorie",
     "marketplace": "Mercato",
     "trustedStores": "Negozi affidabili",
     "trustedStoresShort": "Trust",

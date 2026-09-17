@@ -20,6 +20,7 @@ import {
 import { useSession } from "next-auth/react"
 import { useTranslations } from "next-intl"
 import { CartCountBadge } from "@/components/cart/cart-count-badge"
+import { DesktopCategoriesDrawer } from "@/components/layout/DesktopCategoriesDrawer"
 import { LanguageSwitcherDeferred } from "@/components/language-switcher-deferred"
 import { ThemeToggleDeferred } from "@/components/marketing/theme-toggle-deferred"
 import { NavHeaderSearchDeferred } from "@/components/nav/nav-header-search-deferred"
@@ -85,6 +86,7 @@ export function PublicNav({ landingPills = false }: PublicNavProps) {
   const isResellerStoresNav = isResellerStoresNavContext(session?.user?.role, pathname)
   const cartCount = useBuyerCartCount({ deferSync: true })
   const [explorerHash, setExplorerHash] = useState(false)
+  const [categoriesOpen, setCategoriesOpen] = useState(false)
 
   useEffect(() => {
     const syncHash = () => {
@@ -274,6 +276,16 @@ export function PublicNav({ landingPills = false }: PublicNavProps) {
 
   const browsePills = (
     <div className="affisell-public-nav-pills hidden min-w-0 max-w-full items-center gap-0.5 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] lg:col-start-2 lg:row-start-1 lg:flex [&::-webkit-scrollbar]:hidden">
+      <button
+        type="button"
+        onClick={() => setCategoriesOpen(true)}
+        className="mr-1 inline-flex shrink-0 items-center gap-1.5 rounded-full border border-zinc-200/90 bg-white px-3 py-1.5 text-sm font-semibold text-zinc-700 shadow-sm transition hover:border-violet-300 hover:text-violet-800 dark:border-zinc-700/90 dark:bg-zinc-900/90 dark:text-zinc-200 dark:hover:border-violet-500/50"
+        aria-haspopup="dialog"
+        aria-expanded={categoriesOpen}
+      >
+        <Menu className="size-4" aria-hidden />
+        {t("categoriesEntry")}
+      </button>
       <NavPill
         href="/"
         label={t("home")}
@@ -426,6 +438,7 @@ export function PublicNav({ landingPills = false }: PublicNavProps) {
           {desktopUtilities({ showAgent: true, showPartnerCta: true })}
         </nav>
       )}
+      <DesktopCategoriesDrawer open={categoriesOpen} onOpenChange={setCategoriesOpen} />
     </>
   )
 }

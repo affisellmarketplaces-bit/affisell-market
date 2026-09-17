@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { createPortal } from "react-dom"
 
 import { cn } from "@/lib/utils"
 
@@ -38,6 +39,7 @@ export function SheetContent({
 }) {
   const ctx = React.useContext(SheetContext)
   if (!ctx || !ctx.open) return null
+  if (typeof document === "undefined") return null
 
   const panelClass =
     side === "bottom"
@@ -49,7 +51,7 @@ export function SheetContent({
 
   const close = () => ctx.onOpenChange(false)
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[320]" role="presentation">
       <button
         type="button"
@@ -69,6 +71,7 @@ export function SheetContent({
       >
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

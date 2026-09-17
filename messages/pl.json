@@ -61,6 +61,7 @@
   },
   "PublicNav": {
     "home": "Strona główna",
+    "categoriesEntry": "Kategorie",
     "marketplace": "Rynek",
     "trustedStores": "Zaufane sklepy",
     "trustedStoresShort": "Trust",
