@@ -362,74 +362,74 @@
   },
   "enterprise": {
     "meta": {
-      "title": "Enterprise brands — Affisell",
+      "title": "Marki Enterprise — Affisell",
       "description": "Dedicated onboarding, large-catalog import, custom domains, and creator network for established brands."
     },
     "hero": {
       "eyebrow": "Affisell Enterprise",
       "title": "Your brand. Your domain. 10,000+ creators.",
-      "sub": "Catalog import, Brand Studio, fast-track KYC, and a dedicated account manager — without rebuilding your commerce stack.",
-      "cta": "Request onboarding",
-      "badge1": "1k–10k+ SKU catalog",
+      "sub": "Import katalogu, Brand Studio, przyspieszony KYC i dedykowany opiekun klienta — bez przebudowy Twojego stosu e-commerce.",
+      "cta": "Poproś o wdrożenie",
+      "badge1": "Katalog 1k–10k+ SKU",
       "badge2": "shop.brand.com",
-      "badge3": "Fast-track KYC"
+      "badge3": "Przyspieszony KYC"
     },
     "features": {
       "catalog": {
-        "title": "Catalog at scale",
-        "description": "Shopify, CSV, webhooks — dedicated support for high-volume catalogs."
+        "title": "Katalog na dużą skalę",
+        "description": "Shopify, CSV, webhooki — dedykowane wsparcie dla katalogów o dużej skali."
       },
       "brand": {
         "title": "Brand Studio",
-        "description": "Branded storefront, homepage sections, custom SSL domain in one click."
+        "description": "Sklep z marką, sekcje strony głównej, niestandardowa domena SSL jednym kliknięciem."
       },
       "trust": {
-        "title": "Verified Brand",
-        "description": "Verified brand program, negotiated fees, accelerated payouts."
+        "title": "Zweryfikowana marka",
+        "description": "Program zweryfikowanej marki, negocjowane opłaty, przyspieszone wypłaty."
       },
       "global": {
-        "title": "EU · one checkout",
-        "description": "PAN-EU, VAT, multi-country shipping — one unified buyer experience."
+        "title": "UE · jedna płatność",
+        "description": "Pan-UE, VAT, wysyłka do wielu krajów — jedno spójne doświadczenie kupującego."
       }
     },
     "program": {
-      "eyebrow": "Brand program",
-      "title": "White-glove onboarding in 3 steps",
+      "eyebrow": "Program marki",
+      "title": "Wdrożenie na najwyższym poziomie w 3 krokach",
       "body": "Our team configures your account, prioritizes KYC, and connects your catalog before opening the creator network.",
-      "step1": "Application + discovery call (30 min)",
-      "step2": "Catalog import + Brand Studio + custom domain",
-      "step3": "Affiliate network launch + tracking in founder CRM",
-      "smbHint": "SMB or first-time distribution?",
-      "smbLink": "Standard partner path"
+      "step1": "Zgłoszenie + rozmowa wstępna (30 min)",
+      "step2": "Import katalogu + Brand Studio + domena niestandardowa",
+      "step3": "Uruchomienie sieci resellerów + śledzenie w CRM dla founderów",
+      "smbHint": "MŚP lub pierwsza dystrybucja?",
+      "smbLink": "Standardowa ścieżka partnera"
     },
     "form": {
-      "eyebrow": "Application",
-      "title": "Talk to the Enterprise team",
-      "subtitle": "Reply within 2 business days. Your lead is created automatically in our CRM pipeline.",
-      "brandName": "Brand name",
+      "eyebrow": "Zgłoszenie",
+      "title": "Porozmawiaj z zespołem Enterprise",
+      "subtitle": "Odpowiedź w ciągu 2 dni roboczych. Twój lead jest automatycznie tworzony w naszym pipeline CRM.",
+      "brandName": "Nazwa marki",
       "brandNamePlaceholder": "e.g. Maison Dupont",
-      "website": "Website",
-      "contactName": "Contact name",
-      "contactEmail": "Work email",
-      "catalogSize": "Catalog size",
-      "category": "Category",
-      "commerceStack": "Commerce stack",
-      "message": "Context (optional)",
-      "messagePlaceholder": "Target countries, launch timeline, ERP/PIM integrations…",
-      "selectPlaceholder": "Select…",
+      "website": "Strona internetowa",
+      "contactName": "Imię i nazwisko kontaktu",
+      "contactEmail": "Służbowy e-mail",
+      "catalogSize": "Wielkość katalogu",
+      "category": "Kategoria",
+      "commerceStack": "Stos e-commerce",
+      "message": "Kontekst (opcjonalnie)",
+      "messagePlaceholder": "Kraje docelowe, harmonogram uruchomienia, integracje ERP/PIM…",
+      "selectPlaceholder": "Wybierz…",
       "catalogSizeOptions": {
-        "under_100": "< 100 SKUs",
-        "100_1000": "100 – 1,000 SKUs",
-        "1000_10000": "1,000 – 10,000 SKUs",
-        "over_10000": "10,000+ SKUs"
+        "under_100": "< 100 SKU",
+        "100_1000": "100 – 1000 SKU",
+        "1000_10000": "1000 – 10 000 SKU",
+        "over_10000": "Ponad 10 000 SKU"
       },
       "categoryOptions": {
-        "fashion": "Fashion",
-        "beauty": "Beauty",
-        "tech": "Tech",
-        "home": "Home",
-        "luxury": "Luxury",
-        "other": "Other"
+        "fashion": "Moda",
+        "beauty": "Uroda",
+        "tech": "Technologia",
+        "home": "Dom",
+        "luxury": "Luksus",
+        "other": "Inne"
       },
       "commerceStackOptions": {
         "shopify": "Shopify",
@@ -437,16 +437,16 @@
         "sap": "SAP / ERP",
         "pim": "PIM (Akeneo, Salsify…)",
         "csv": "CSV / Excel",
-        "other": "Other"
+        "other": "Inne"
       },
-      "submit": "Submit application",
-      "privacyNote": "Data used only for your Affisell onboarding — never resold.",
-      "requiredFields": "Please complete all required fields.",
-      "sendError": "Could not submit. Try again shortly.",
-      "networkError": "Network error.",
-      "crmError": "CRM temporarily unavailable — email partners@affisell.com.",
-      "successTitle": "Application received",
-      "successBody": "Our Enterprise team will reach out within 2 business days to plan onboarding."
+      "submit": "Wyślij zgłoszenie",
+      "privacyNote": "Dane wykorzystywane wyłącznie do procesu wdrożenia w Affisell — nigdy nie są odsprzedawane.",
+      "requiredFields": "Wypełnij wszystkie wymagane pola.",
+      "sendError": "Nie udało się wysłać. Spróbuj ponownie za chwilę.",
+      "networkError": "Błąd sieci.",
+      "crmError": "CRM tymczasowo niedostępny — napisz na partners@affisell.com.",
+      "successTitle": "Zgłoszenie otrzymane",
+      "successBody": "Nasz zespół Enterprise skontaktuje się w ciągu 2 dni roboczych, aby zaplanować wdrożenie."
     }
   },
   "auth": {

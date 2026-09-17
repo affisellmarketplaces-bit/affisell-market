@@ -362,91 +362,91 @@
   },
   "enterprise": {
     "meta": {
-      "title": "Enterprise brands — Affisell",
+      "title": "企业品牌 — Affisell",
       "description": "Dedicated onboarding, large-catalog import, custom domains, and creator network for established brands."
     },
     "hero": {
-      "eyebrow": "Affisell Enterprise",
+      "eyebrow": "Affisell 企业版",
       "title": "Your brand. Your domain. 10,000+ creators.",
-      "sub": "Catalog import, Brand Studio, fast-track KYC, and a dedicated account manager — without rebuilding your commerce stack.",
-      "cta": "Request onboarding",
-      "badge1": "1k–10k+ SKU catalog",
+      "sub": "目录导入、品牌工作室、快速 KYC 通道与专属客户经理 —— 无需重建你现有的电商技术栈。",
+      "cta": "申请入驻",
+      "badge1": "1千–1万+ SKU 目录",
       "badge2": "shop.brand.com",
-      "badge3": "Fast-track KYC"
+      "badge3": "快速 KYC 通道"
     },
     "features": {
       "catalog": {
-        "title": "Catalog at scale",
-        "description": "Shopify, CSV, webhooks — dedicated support for high-volume catalogs."
+        "title": "规模化目录管理",
+        "description": "支持 Shopify、CSV、Webhook —— 为大规模商品目录提供专属支持。"
       },
       "brand": {
-        "title": "Brand Studio",
-        "description": "Branded storefront, homepage sections, custom SSL domain in one click."
+        "title": "品牌工作室",
+        "description": "品牌店面、主页模块与自定义 SSL 域名，一键搞定。"
       },
       "trust": {
-        "title": "Verified Brand",
-        "description": "Verified brand program, negotiated fees, accelerated payouts."
+        "title": "已验证品牌",
+        "description": "已验证品牌计划、协商费率、加速结算。"
       },
       "global": {
-        "title": "EU · one checkout",
-        "description": "PAN-EU, VAT, multi-country shipping — one unified buyer experience."
+        "title": "欧盟 · 统一结账",
+        "description": "泛欧盟、增值税、多国配送 —— 打造统一的买家体验。"
       }
     },
     "program": {
-      "eyebrow": "Brand program",
-      "title": "White-glove onboarding in 3 steps",
+      "eyebrow": "品牌计划",
+      "title": "三步尊享式入驻",
       "body": "Our team configures your account, prioritizes KYC, and connects your catalog before opening the creator network.",
-      "step1": "Application + discovery call (30 min)",
-      "step2": "Catalog import + Brand Studio + custom domain",
-      "step3": "Affiliate network launch + tracking in founder CRM",
-      "smbHint": "SMB or first-time distribution?",
-      "smbLink": "Standard partner path"
+      "step1": "申请 + 需求沟通电话（30分钟）",
+      "step2": "目录导入 + 品牌工作室 + 自定义域名",
+      "step3": "分销网络上线 + 在创始人 CRM 中追踪",
+      "smbHint": "中小企业或首次分销？",
+      "smbLink": "标准合作伙伴通道"
     },
     "form": {
-      "eyebrow": "Application",
-      "title": "Talk to the Enterprise team",
-      "subtitle": "Reply within 2 business days. Your lead is created automatically in our CRM pipeline.",
-      "brandName": "Brand name",
+      "eyebrow": "申请",
+      "title": "联系企业团队",
+      "subtitle": "2个工作日内回复。你的信息将自动录入我们的 CRM 系统。",
+      "brandName": "品牌名称",
       "brandNamePlaceholder": "e.g. Maison Dupont",
-      "website": "Website",
-      "contactName": "Contact name",
-      "contactEmail": "Work email",
-      "catalogSize": "Catalog size",
-      "category": "Category",
-      "commerceStack": "Commerce stack",
-      "message": "Context (optional)",
-      "messagePlaceholder": "Target countries, launch timeline, ERP/PIM integrations…",
-      "selectPlaceholder": "Select…",
+      "website": "官网",
+      "contactName": "联系人姓名",
+      "contactEmail": "工作邮箱",
+      "catalogSize": "目录规模",
+      "category": "类目",
+      "commerceStack": "电商技术栈",
+      "message": "补充说明（选填）",
+      "messagePlaceholder": "目标国家、上线时间表、ERP/PIM 系统对接需求……",
+      "selectPlaceholder": "请选择…",
       "catalogSizeOptions": {
-        "under_100": "< 100 SKUs",
-        "100_1000": "100 – 1,000 SKUs",
-        "1000_10000": "1,000 – 10,000 SKUs",
-        "over_10000": "10,000+ SKUs"
+        "under_100": "少于 100 个 SKU",
+        "100_1000": "100 – 1,000 个 SKU",
+        "1000_10000": "1,000 – 10,000 个 SKU",
+        "over_10000": "10,000+ 个 SKU"
       },
       "categoryOptions": {
-        "fashion": "Fashion",
-        "beauty": "Beauty",
-        "tech": "Tech",
-        "home": "Home",
-        "luxury": "Luxury",
-        "other": "Other"
+        "fashion": "时尚",
+        "beauty": "美妆",
+        "tech": "科技",
+        "home": "家居",
+        "luxury": "奢侈品",
+        "other": "其他"
       },
       "commerceStackOptions": {
         "shopify": "Shopify",
         "magento": "Magento / Adobe",
         "sap": "SAP / ERP",
-        "pim": "PIM (Akeneo, Salsify…)",
+        "pim": "PIM（Akeneo、Salsify 等）",
         "csv": "CSV / Excel",
-        "other": "Other"
+        "other": "其他"
       },
-      "submit": "Submit application",
-      "privacyNote": "Data used only for your Affisell onboarding — never resold.",
-      "requiredFields": "Please complete all required fields.",
-      "sendError": "Could not submit. Try again shortly.",
-      "networkError": "Network error.",
-      "crmError": "CRM temporarily unavailable — email partners@affisell.com.",
-      "successTitle": "Application received",
-      "successBody": "Our Enterprise team will reach out within 2 business days to plan onboarding."
+      "submit": "提交申请",
+      "privacyNote": "数据仅用于你的 Affisell 入驻流程 —— 绝不转售。",
+      "requiredFields": "请填写所有必填字段。",
+      "sendError": "提交失败，请稍后重试。",
+      "networkError": "网络错误。",
+      "crmError": "CRM 暂时不可用 —— 请发邮件至 partners@affisell.com。",
+      "successTitle": "申请已收到",
+      "successBody": "我们的企业团队将在2个工作日内与你联系，安排入驻计划。"
     }
   },
   "auth": {
