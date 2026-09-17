@@ -4122,19 +4122,19 @@
     "emailLabel": "电子邮件：",
     "backAccount": "← 返回我的账户",
     "form": {
-      "directEmail": "Direct email",
-      "name": "Name",
-      "email": "Email",
-      "subject": "Subject",
-      "message": "Message",
-      "submit": "Send",
-      "sendError": "Could not send message",
-      "networkError": "Network error",
-      "successBeforeRef": "Message sent",
-      "successAfterRef": ". A confirmation email is on its way. We usually reply within 2 business days. See also the",
-      "successOr": "or the",
+      "directEmail": "直接邮箱",
+      "name": "姓名",
+      "email": "邮箱",
+      "subject": "主题",
+      "message": "留言",
+      "submit": "发送",
+      "sendError": "消息发送失败",
+      "networkError": "网络错误",
+      "successBeforeRef": "消息已发送",
+      "successAfterRef": "。确认邮件正在发送中。我们通常会在2个工作日内回复。另请参阅",
+      "successOr": "或",
       "successFaq": "FAQ",
-      "successSupport": "support assistant"
+      "successSupport": "支持助手"
     }
   },
   "howItWorks": {
@@ -4165,45 +4165,45 @@
     "ctaPartner": "Become a creator partner"
   },
   "supportPage": {
-    "metaTitle": "Support assistant | Affisell",
-    "metaDescription": "Affisell support assistant — orders, shipping, returns, and refunds.",
-    "eyebrow": "Support",
-    "title": "Affisell Support Assistant",
-    "description": "Instant answers about orders, shipping, and returns — before contacting human support.",
-    "chatTitle": "Affisell Support Assistant",
-    "chatSubtitle": "Orders · shipping · returns · 24/7",
-    "emptyHint": "Ask a question — I'll point you to the FAQ, your orders, or the right contact.",
-    "thinking": "Thinking…",
-    "errorBeforeFaq": "Assistant unavailable — see the",
+    "metaTitle": "智能客服助手 | Affisell",
+    "metaDescription": "Affisell 智能客服助手 —— 订单、配送、退货与退款。",
+    "eyebrow": "支持",
+    "title": "Affisell 智能客服助手",
+    "description": "关于订单、配送与退货的即时解答 —— 在联系人工客服之前先试试这里。",
+    "chatTitle": "Affisell 智能客服助手",
+    "chatSubtitle": "订单 · 配送 · 退货 · 全天候",
+    "emptyHint": "提出你的问题 —— 我会为你指引常见问题解答、订单信息或合适的联系方式。",
+    "thinking": "思考中…",
+    "errorBeforeFaq": "助手暂不可用 —— 请查看",
     "errorFaq": "FAQ",
     "errorBeforeContact": "or",
-    "errorContact": "contact us",
-    "inputPlaceholder": "e.g. Where is my order?",
-    "inputAria": "Your support question",
-    "send": "Send",
-    "stop": "Stop",
+    "errorContact": "联系我们",
+    "inputPlaceholder": "例如：我的订单在哪里？",
+    "inputAria": "你的问题",
+    "send": "发送",
+    "stop": "停止",
     "cards": {
       "faq": {
         "title": "FAQ",
-        "body": "10+ answers on orders, shipping, and cashback.",
-        "link": "Open →"
+        "body": "10+ 条关于订单、配送与返现的解答。",
+        "link": "打开 →"
       },
       "orders": {
-        "title": "My orders",
-        "body": "Tracking, returns, and delivery confirmation.",
-        "link": "Go →"
+        "title": "我的订单",
+        "body": "物流追踪、退货与配送确认。",
+        "link": "前往 →"
       },
       "contact": {
-        "title": "Human contact",
-        "body": "Reply within 2 business days if the assistant is not enough.",
-        "link": "Write →"
+        "title": "人工客服",
+        "body": "如助手无法解决，我们将在2个工作日内回复。",
+        "link": "写信 →"
       }
     },
     "starterPrompts": {
-      "order": "Where is my order?",
-      "return": "How do I return a product?",
-      "refund": "Refund timeline?",
-      "payment": "Payment declined at checkout"
+      "order": "我的订单在哪里？",
+      "return": "如何退货？",
+      "refund": "退款需要多久？",
+      "payment": "结账时支付被拒"
     }
   },
   "agent": {

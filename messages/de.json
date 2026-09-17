@@ -4122,19 +4122,19 @@
     "emailLabel": "E-Mail:",
     "backAccount": "← Zurück zu meinem Konto",
     "form": {
-      "directEmail": "Direct email",
+      "directEmail": "Direkte E-Mail",
       "name": "Name",
-      "email": "Email",
-      "subject": "Subject",
-      "message": "Message",
-      "submit": "Send",
-      "sendError": "Could not send message",
-      "networkError": "Network error",
-      "successBeforeRef": "Message sent",
-      "successAfterRef": ". A confirmation email is on its way. We usually reply within 2 business days. See also the",
-      "successOr": "or the",
+      "email": "E-Mail",
+      "subject": "Betreff",
+      "message": "Nachricht",
+      "submit": "Senden",
+      "sendError": "Nachricht konnte nicht gesendet werden",
+      "networkError": "Netzwerkfehler",
+      "successBeforeRef": "Nachricht gesendet",
+      "successAfterRef": ". Eine Bestätigungs-E-Mail ist unterwegs. Wir antworten normalerweise innerhalb von 2 Werktagen. Siehe auch den",
+      "successOr": "oder den",
       "successFaq": "FAQ",
-      "successSupport": "support assistant"
+      "successSupport": "Support-Assistenten"
     }
   },
   "howItWorks": {
@@ -4165,45 +4165,45 @@
     "ctaPartner": "Become a creator partner"
   },
   "supportPage": {
-    "metaTitle": "Support assistant | Affisell",
-    "metaDescription": "Affisell support assistant — orders, shipping, returns, and refunds.",
+    "metaTitle": "Support-Assistent | Affisell",
+    "metaDescription": "Affisell Support-Assistent — Bestellungen, Versand, Rückgaben und Erstattungen.",
     "eyebrow": "Support",
-    "title": "Affisell Support Assistant",
-    "description": "Instant answers about orders, shipping, and returns — before contacting human support.",
-    "chatTitle": "Affisell Support Assistant",
-    "chatSubtitle": "Orders · shipping · returns · 24/7",
-    "emptyHint": "Ask a question — I'll point you to the FAQ, your orders, or the right contact.",
-    "thinking": "Thinking…",
-    "errorBeforeFaq": "Assistant unavailable — see the",
+    "title": "Affisell Support-Assistent",
+    "description": "Sofortige Antworten zu Bestellungen, Versand und Rückgaben — bevor du den menschlichen Support kontaktierst.",
+    "chatTitle": "Affisell Support-Assistent",
+    "chatSubtitle": "Bestellungen · Versand · Rückgaben · 24/7",
+    "emptyHint": "Stelle eine Frage — ich verweise dich auf die FAQ, deine Bestellungen oder den richtigen Ansprechpartner.",
+    "thinking": "Denkt nach…",
+    "errorBeforeFaq": "Assistent nicht verfügbar — siehe die",
     "errorFaq": "FAQ",
     "errorBeforeContact": "or",
-    "errorContact": "contact us",
-    "inputPlaceholder": "e.g. Where is my order?",
-    "inputAria": "Your support question",
-    "send": "Send",
-    "stop": "Stop",
+    "errorContact": "kontaktiere uns",
+    "inputPlaceholder": "z. B. Wo ist meine Bestellung?",
+    "inputAria": "Deine Support-Frage",
+    "send": "Senden",
+    "stop": "Stopp",
     "cards": {
       "faq": {
         "title": "FAQ",
-        "body": "10+ answers on orders, shipping, and cashback.",
-        "link": "Open →"
+        "body": "10+ Antworten zu Bestellungen, Versand und Cashback.",
+        "link": "Öffnen →"
       },
       "orders": {
-        "title": "My orders",
-        "body": "Tracking, returns, and delivery confirmation.",
-        "link": "Go →"
+        "title": "Meine Bestellungen",
+        "body": "Sendungsverfolgung, Rückgaben und Zustellbestätigung.",
+        "link": "Los →"
       },
       "contact": {
-        "title": "Human contact",
-        "body": "Reply within 2 business days if the assistant is not enough.",
-        "link": "Write →"
+        "title": "Persönlicher Kontakt",
+        "body": "Antwort innerhalb von 2 Werktagen, falls der Assistent nicht ausreicht.",
+        "link": "Schreiben →"
       }
     },
     "starterPrompts": {
-      "order": "Where is my order?",
-      "return": "How do I return a product?",
-      "refund": "Refund timeline?",
-      "payment": "Payment declined at checkout"
+      "order": "Wo ist meine Bestellung?",
+      "return": "Wie gebe ich ein Produkt zurück?",
+      "refund": "Wie lange dauert die Rückerstattung?",
+      "payment": "Zahlung beim Checkout abgelehnt"
     }
   },
   "agent": {

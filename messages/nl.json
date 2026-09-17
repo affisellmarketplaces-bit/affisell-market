@@ -4122,19 +4122,19 @@
     "emailLabel": "E-mail:",
     "backAccount": "← Terug naar mijn account",
     "form": {
-      "directEmail": "Direct email",
-      "name": "Name",
-      "email": "Email",
-      "subject": "Subject",
-      "message": "Message",
-      "submit": "Send",
-      "sendError": "Could not send message",
-      "networkError": "Network error",
-      "successBeforeRef": "Message sent",
-      "successAfterRef": ". A confirmation email is on its way. We usually reply within 2 business days. See also the",
-      "successOr": "or the",
+      "directEmail": "Directe e-mail",
+      "name": "Naam",
+      "email": "E-mail",
+      "subject": "Onderwerp",
+      "message": "Bericht",
+      "submit": "Verzenden",
+      "sendError": "Bericht kon niet worden verzonden",
+      "networkError": "Netwerkfout",
+      "successBeforeRef": "Bericht verzonden",
+      "successAfterRef": ". Een bevestigingsmail is onderweg. We reageren meestal binnen 2 werkdagen. Zie ook de",
+      "successOr": "of de",
       "successFaq": "FAQ",
-      "successSupport": "support assistant"
+      "successSupport": "supportassistent"
     }
   },
   "howItWorks": {
@@ -4165,45 +4165,45 @@
     "ctaPartner": "Become a creator partner"
   },
   "supportPage": {
-    "metaTitle": "Support assistant | Affisell",
-    "metaDescription": "Affisell support assistant — orders, shipping, returns, and refunds.",
-    "eyebrow": "Support",
-    "title": "Affisell Support Assistant",
-    "description": "Instant answers about orders, shipping, and returns — before contacting human support.",
-    "chatTitle": "Affisell Support Assistant",
-    "chatSubtitle": "Orders · shipping · returns · 24/7",
-    "emptyHint": "Ask a question — I'll point you to the FAQ, your orders, or the right contact.",
-    "thinking": "Thinking…",
-    "errorBeforeFaq": "Assistant unavailable — see the",
+    "metaTitle": "Supportassistent | Affisell",
+    "metaDescription": "Affisell supportassistent — bestellingen, verzending, retouren en terugbetalingen.",
+    "eyebrow": "Ondersteuning",
+    "title": "Affisell Supportassistent",
+    "description": "Directe antwoorden over bestellingen, verzending en retouren — voordat je contact opneemt met menselijke support.",
+    "chatTitle": "Affisell Supportassistent",
+    "chatSubtitle": "Bestellingen · verzending · retouren · 24/7",
+    "emptyHint": "Stel een vraag — ik verwijs je naar de FAQ, je bestellingen of het juiste contact.",
+    "thinking": "Aan het denken…",
+    "errorBeforeFaq": "Assistent niet beschikbaar — zie de",
     "errorFaq": "FAQ",
     "errorBeforeContact": "or",
-    "errorContact": "contact us",
-    "inputPlaceholder": "e.g. Where is my order?",
-    "inputAria": "Your support question",
-    "send": "Send",
+    "errorContact": "neem contact met ons op",
+    "inputPlaceholder": "bijv. Waar is mijn bestelling?",
+    "inputAria": "Jouw supportvraag",
+    "send": "Verzenden",
     "stop": "Stop",
     "cards": {
       "faq": {
         "title": "FAQ",
-        "body": "10+ answers on orders, shipping, and cashback.",
-        "link": "Open →"
+        "body": "10+ antwoorden over bestellingen, verzending en cashback.",
+        "link": "Openen →"
       },
       "orders": {
-        "title": "My orders",
-        "body": "Tracking, returns, and delivery confirmation.",
-        "link": "Go →"
+        "title": "Mijn bestellingen",
+        "body": "Tracking, retouren en leveringsbevestiging.",
+        "link": "Ga →"
       },
       "contact": {
-        "title": "Human contact",
-        "body": "Reply within 2 business days if the assistant is not enough.",
-        "link": "Write →"
+        "title": "Menselijk contact",
+        "body": "Reactie binnen 2 werkdagen als de assistent niet voldoende is.",
+        "link": "Schrijven →"
       }
     },
     "starterPrompts": {
-      "order": "Where is my order?",
-      "return": "How do I return a product?",
-      "refund": "Refund timeline?",
-      "payment": "Payment declined at checkout"
+      "order": "Waar is mijn bestelling?",
+      "return": "Hoe retourneer ik een product?",
+      "refund": "Hoelang duurt de terugbetaling?",
+      "payment": "Betaling geweigerd bij checkout"
     }
   },
   "agent": {

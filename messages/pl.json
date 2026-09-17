@@ -4122,19 +4122,19 @@
     "emailLabel": "Adres e-mail:",
     "backAccount": "← Powrót do mojego konta",
     "form": {
-      "directEmail": "Direct email",
-      "name": "Name",
-      "email": "Email",
-      "subject": "Subject",
-      "message": "Message",
-      "submit": "Send",
-      "sendError": "Could not send message",
-      "networkError": "Network error",
-      "successBeforeRef": "Message sent",
-      "successAfterRef": ". A confirmation email is on its way. We usually reply within 2 business days. See also the",
-      "successOr": "or the",
+      "directEmail": "Bezpośredni e-mail",
+      "name": "Imię",
+      "email": "E-mail",
+      "subject": "Temat",
+      "message": "Wiadomość",
+      "submit": "Wyślij",
+      "sendError": "Nie udało się wysłać wiadomości",
+      "networkError": "Błąd sieci",
+      "successBeforeRef": "Wiadomość wysłana",
+      "successAfterRef": ". E-mail potwierdzający jest w drodze. Zwykle odpowiadamy w ciągu 2 dni roboczych. Zobacz także",
+      "successOr": "lub",
       "successFaq": "FAQ",
-      "successSupport": "support assistant"
+      "successSupport": "asystenta wsparcia"
     }
   },
   "howItWorks": {
@@ -4165,45 +4165,45 @@
     "ctaPartner": "Become a creator partner"
   },
   "supportPage": {
-    "metaTitle": "Support assistant | Affisell",
-    "metaDescription": "Affisell support assistant — orders, shipping, returns, and refunds.",
-    "eyebrow": "Support",
-    "title": "Affisell Support Assistant",
-    "description": "Instant answers about orders, shipping, and returns — before contacting human support.",
-    "chatTitle": "Affisell Support Assistant",
-    "chatSubtitle": "Orders · shipping · returns · 24/7",
-    "emptyHint": "Ask a question — I'll point you to the FAQ, your orders, or the right contact.",
-    "thinking": "Thinking…",
-    "errorBeforeFaq": "Assistant unavailable — see the",
+    "metaTitle": "Asystent wsparcia | Affisell",
+    "metaDescription": "Asystent wsparcia Affisell — zamówienia, wysyłka, zwroty i refundacje.",
+    "eyebrow": "Wsparcie",
+    "title": "Asystent wsparcia Affisell",
+    "description": "Natychmiastowe odpowiedzi na temat zamówień, wysyłki i zwrotów — zanim skontaktujesz się z konsultantem.",
+    "chatTitle": "Asystent wsparcia Affisell",
+    "chatSubtitle": "Zamówienia · wysyłka · zwroty · 24/7",
+    "emptyHint": "Zadaj pytanie — wskażę Ci FAQ, Twoje zamówienia lub odpowiedni kontakt.",
+    "thinking": "Myślę…",
+    "errorBeforeFaq": "Asystent niedostępny — zobacz",
     "errorFaq": "FAQ",
     "errorBeforeContact": "or",
-    "errorContact": "contact us",
-    "inputPlaceholder": "e.g. Where is my order?",
-    "inputAria": "Your support question",
-    "send": "Send",
-    "stop": "Stop",
+    "errorContact": "skontaktuj się z nami",
+    "inputPlaceholder": "np. Gdzie jest moje zamówienie?",
+    "inputAria": "Twoje pytanie do wsparcia",
+    "send": "Wyślij",
+    "stop": "Zatrzymaj",
     "cards": {
       "faq": {
         "title": "FAQ",
-        "body": "10+ answers on orders, shipping, and cashback.",
-        "link": "Open →"
+        "body": "Ponad 10 odpowiedzi na temat zamówień, wysyłki i cashbacku.",
+        "link": "Otwórz →"
       },
       "orders": {
-        "title": "My orders",
-        "body": "Tracking, returns, and delivery confirmation.",
-        "link": "Go →"
+        "title": "Moje zamówienia",
+        "body": "Śledzenie, zwroty i potwierdzenie dostawy.",
+        "link": "Przejdź →"
       },
       "contact": {
-        "title": "Human contact",
-        "body": "Reply within 2 business days if the assistant is not enough.",
-        "link": "Write →"
+        "title": "Kontakt z człowiekiem",
+        "body": "Odpowiedź w ciągu 2 dni roboczych, jeśli asystent nie wystarczy.",
+        "link": "Napisz →"
       }
     },
     "starterPrompts": {
-      "order": "Where is my order?",
-      "return": "How do I return a product?",
-      "refund": "Refund timeline?",
-      "payment": "Payment declined at checkout"
+      "order": "Gdzie jest moje zamówienie?",
+      "return": "Jak zwrócić produkt?",
+      "refund": "Ile trwa zwrot środków?",
+      "payment": "Płatność odrzucona przy kasie"
     }
   },
   "agent": {
