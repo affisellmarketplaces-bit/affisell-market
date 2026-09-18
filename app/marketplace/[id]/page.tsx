@@ -558,12 +558,12 @@ export default async function MarketplaceListingPage({
           has3D={has3D}
           arModel={arModel}
           compactCrossSellSlot={
-            <Suspense fallback={null}>
+            <Suspense key="pdp-cross-sell-compact" fallback={null}>
               <PdpCrossSellCompactStream {...crossSellStreamArgs} />
             </Suspense>
           }
           crossSellFooterSlot={
-            <Suspense fallback={<PdpCrossSellRailSkeleton />}>
+            <Suspense key="pdp-cross-sell-footer" fallback={<PdpCrossSellRailSkeleton />}>
               <PdpCrossSellFooterStream {...crossSellStreamArgs} />
             </Suspense>
           }
