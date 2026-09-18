@@ -1,5 +1,8 @@
 /** User-facing copy for TikTok Shop OAuth failures on /radar/connect. */
 
+import type { AppLocale } from "@/lib/i18n-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
+
 export type TikTokConnectErrorCopy = {
   title: string
   body: string
@@ -7,13 +10,16 @@ export type TikTokConnectErrorCopy = {
 }
 
 /**
- * Map OAuth / Partner error codes to actionable FR guidance.
- * "Aucune boutique disponible" on seller-fr with is_draft=true is Partner draft
- * whitelist — not an Affisell bug.
+ * Map OAuth / Partner error codes to actionable guidance.
+ * "No shop available" with is_draft=true is the Partner draft whitelist — not an Affisell bug.
  */
-export function resolveTikTokConnectError(error: string | null): TikTokConnectErrorCopy | null {
+export function resolveTikTokConnectError(
+  error: string | null,
+  locale: AppLocale = "fr"
+): TikTokConnectErrorCopy | null {
   if (!error?.trim()) return null
   const key = error.trim().toLowerCase()
+  const t = (k: string) => tMessage(locale, `radarConnect.${k}`)
 
   if (
     key === "no_shop" ||
@@ -23,42 +29,31 @@ export function resolveTikTokConnectError(error: string | null): TikTokConnectEr
     key === "access_denied"
   ) {
     return {
-      title: "TikTok : aucune boutique disponible (app draft)",
-      body: "L’app Affisell Analytics Connector est encore en brouillon (is_draft=true). TikTok n’autorise que les shops whitelistés en Partner Center — même si ta boutique FR existe déjà.",
-      steps: [
-        "Ouvre Partner Center → ton app → Test / Authorized shops",
-        "Ajoute le seller ID / shop de DesyStore (FR) comme boutique de test",
-        "Reconnecte-toi avec le compte admin Seller Center FR (pas un staff limité)",
-        "Ou soumets l’app en review / publish pour autoriser tous les shops du marché",
-      ],
+      title: t("errNoShopTitle"),
+      body: t("errNoShopBody"),
+      steps: [t("errNoShopStep1"), t("errNoShopStep2"), t("errNoShopStep3"), t("errNoShopStep4")],
     }
   }
 
   if (key === "redis_not_configured") {
     return {
-      title: "Redis requis pour OAuth TikTok",
-      body: "RADAR_ENABLED=true exige REDIS_URL (state CSRF multi-instance).",
-      steps: ["Ajoute REDIS_URL sur Vercel / .env.local", "Relance Connecter TikTok Shop"],
+      title: t("errRedisTitle"),
+      body: t("errRedisBody"),
+      steps: [t("errRedisStep1"), t("errRedisStep2")],
     }
   }
 
   if (key === "oauth_start") {
     return {
-      title: "Impossible de démarrer OAuth TikTok",
-      body: "Credentials Partner manquants ou invalides (APP_ID / APP_KEY / SECRET).",
-      steps: [
-        "Vérifie TIKTOK_SHOP_APP_ID, TIKTOK_SHOP_APP_KEY, TIKTOK_SHOP_APP_SECRET",
-        "Redirect URI exacte : /api/intelli/tiktok/callback",
-      ],
+      title: t("errStartTitle"),
+      body: t("errStartBody"),
+      steps: [t("errStartStep1"), t("errStartStep2")],
     }
   }
 
   return {
-    title: "Connexion TikTok échouée",
-    body: `Code retourné : ${error}`,
-    steps: [
-      "Réessaie depuis /radar/connect",
-      "Si l’écran Seller dit « Aucune boutique disponible », whitelist le shop en Partner Center (app draft)",
-    ],
+    title: t("errGenericTitle"),
+    body: t("errGenericBody").replace("{code}", error),
+    steps: [t("errGenericStep1"), t("errGenericStep2")],
   }
 }

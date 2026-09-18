@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { Radar, Rocket, Shield } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -7,6 +8,8 @@ import { cn } from "@/lib/utils"
 
 type SupplierCardProps = {
   supplierKind: string | null | undefined
+  /** Real count of resellers listing this supplier's products (producer kind). */
+  resellerReach?: number | null
   className?: string
 }
 
@@ -26,7 +29,12 @@ function glassCard(className?: string) {
 /**
  * Supplier dashboard Radar discovery card — kind-aware CTAs.
  */
-export function RadarSupplierDiscoveryCard({ supplierKind, className }: SupplierCardProps) {
+export function RadarSupplierDiscoveryCard({
+  supplierKind,
+  resellerReach = null,
+  className,
+}: SupplierCardProps) {
+  const t = useTranslations("radarDiscovery")
   const kind = parseSupplierKind(supplierKind)
 
   if (kind === "producer") {
@@ -46,15 +54,17 @@ export function RadarSupplierDiscoveryCard({ supplierKind, className }: Supplier
             </span>
             <div>
               <p className="text-base font-semibold tracking-tight text-zinc-900 dark:text-white">
-                🛡️ Radar Producteur: 3 annonces utilisent tes mots-clés de marque cette semaine
+                {resellerReach != null && resellerReach > 0
+                  ? t("producerTitle", { n: resellerReach })
+                  : t("producerTitleNone")}
               </p>
               <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Cartographie empire GMC — vois qui monopolise tes requêtes de marque.
+                {t("producerBody")}
               </p>
             </div>
           </div>
           <Button asChild variant="bentoAccent" className="shrink-0">
-            <Link href="/radar">Contrôler mon empire →</Link>
+            <Link href="/radar">{t("producerCta")}</Link>
           </Button>
         </div>
       </div>
@@ -78,15 +88,15 @@ export function RadarSupplierDiscoveryCard({ supplierKind, className }: Supplier
             </span>
             <div>
               <p className="text-base font-semibold tracking-tight text-zinc-900 dark:text-white">
-                🔥 Radar Grossiste - Sourcing: 12 produits à sourcer avec &gt;10k recherches
+                {t("stockerTitle")}
               </p>
               <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Opportunités GMC à faible concurrence — priorisées pour grossistes.
+                {t("stockerBody")}
               </p>
             </div>
           </div>
           <Button asChild variant="bentoAccent" className="shrink-0">
-            <Link href="/radar">Voir les opportunités →</Link>
+            <Link href="/radar">{t("stockerCta")}</Link>
           </Button>
         </div>
       </div>
@@ -110,15 +120,15 @@ export function RadarSupplierDiscoveryCard({ supplierKind, className }: Supplier
           </span>
           <div>
             <p className="text-base font-semibold tracking-tight text-zinc-900 dark:text-white">
-              🚀 Nouveau: Affisell Radar - Producteur vs Grossiste
+              {t("unsetTitle")}
             </p>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Choisis Producteur ou Grossiste pour débloquer ton cockpit adapté.
+              {t("unsetBody")}
             </p>
           </div>
         </div>
         <Button asChild variant="bentoAccent" className="shrink-0">
-          <Link href="/dashboard/supplier/onboarding/kind">Choisir mon type et débloquer →</Link>
+          <Link href="/dashboard/supplier/onboarding/kind">{t("unsetCta")}</Link>
         </Button>
       </div>
     </div>
@@ -132,6 +142,7 @@ export function RadarAffiliateDiscoveryCard({
   isFreePlan = true,
   className,
 }: AffiliateCardProps) {
+  const t = useTranslations("radarDiscovery")
   return (
     <div
       className={glassCard(
@@ -148,21 +159,21 @@ export function RadarAffiliateDiscoveryCard({
           </span>
           <div>
             <p className="text-base font-semibold tracking-tight text-zinc-900 dark:text-white">
-              📡 Radar: 50 produits chauds cette semaine avec stock FR vérifié
+              {t("affiliateTitle")}
             </p>
             {isFreePlan ? (
               <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                0/50 produits vus — Passe Pro pour tout voir
+                {t("affiliateBodyFree")}
               </p>
             ) : (
               <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Opportunités prêtes à importer dans ta boutique.
+                {t("affiliateBodyPaid")}
               </p>
             )}
           </div>
         </div>
         <Button asChild variant="bentoAccent" className="shrink-0">
-          <Link href="/radar">Ouvrir le Radar →</Link>
+          <Link href="/radar">{t("affiliateCta")}</Link>
         </Button>
       </div>
     </div>

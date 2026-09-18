@@ -50,15 +50,22 @@ export function buildCategorySelectSuggestions(attr: CategoryAttrRow): string[] 
   return out
 }
 
+export type FreeTextPlaceholderKind = "phBrand" | "phRam" | "phStorage" | "phFree"
+
+const FREE_TEXT_PLACEHOLDER_FR: Record<FreeTextPlaceholderKind, string> = {
+  phBrand: "Ex. Générique, marque maison, Dell…",
+  phRam: "Ex. 8, 16, 32…",
+  phStorage: "Ex. 256, 512, 1 To…",
+  phFree: "Saisie libre ou choisir une suggestion",
+}
+
+export function freeTextSelectPlaceholderKind(attr: CategoryAttrRow): FreeTextPlaceholderKind {
+  if (isBrandCategoryAttribute(attr)) return "phBrand"
+  if (/ram|mémoire|memory/i.test(`${attr.key} ${attr.label}`)) return "phRam"
+  if (/stockage|storage|capacity|capacité/i.test(`${attr.key} ${attr.label}`)) return "phStorage"
+  return "phFree"
+}
+
 export function freeTextSelectPlaceholder(attr: CategoryAttrRow): string {
-  if (isBrandCategoryAttribute(attr)) {
-    return "Ex. Générique, marque maison, Dell…"
-  }
-  if (/ram|mémoire|memory/i.test(`${attr.key} ${attr.label}`)) {
-    return "Ex. 8, 16, 32…"
-  }
-  if (/stockage|storage|capacity|capacité/i.test(`${attr.key} ${attr.label}`)) {
-    return "Ex. 256, 512, 1 To…"
-  }
-  return "Saisie libre ou choisir une suggestion"
+  return FREE_TEXT_PLACEHOLDER_FR[freeTextSelectPlaceholderKind(attr)]
 }

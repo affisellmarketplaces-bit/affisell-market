@@ -74,8 +74,16 @@ const COUNTRY_NAMES: Record<string, string> = {
   CN: "China",
 }
 
-export function countryCodeToName(code: string): string {
+export function countryCodeToName(code: string, locale?: string): string {
   const c = code.trim().toUpperCase()
+  if (locale) {
+    try {
+      const localized = new Intl.DisplayNames([locale], { type: "region" }).of(c === "UK" ? "GB" : c)
+      if (localized && localized !== c) return localized
+    } catch {
+      /* fall back to the static English name */
+    }
+  }
   return COUNTRY_NAMES[c] ?? c
 }
 

@@ -1,8 +1,10 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { getLocale, getTranslations } from "next-intl/server"
 
 import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
 import { auth } from "@/lib/auth"
+import type { AppLocale } from "@/lib/i18n-locale"
 import { getRadarDb } from "@/lib/prisma-radar"
 import { getConnectorById } from "@/lib/radar/connectors/registry"
 import { resolveRadarDashboardCountry } from "@/lib/radar/dashboard-country.server"
@@ -20,8 +22,15 @@ type Props = {
   searchParams: Promise<{ country?: string; productId?: string }>
 }
 
+const NUMBER_LOCALE: Record<AppLocale, string> = {
+  fr: "fr-FR", en: "en-US", de: "de-DE", es: "es-ES", it: "it-IT", nl: "nl-NL", pl: "pl-PL", zh: "zh-CN",
+}
+
 export default async function RadarWinnersPage({ searchParams }: Props) {
   if (!isRadarEnabled()) redirect("/404")
+  const t = await getTranslations("radarPages")
+  const locale = (await getLocale()) as AppLocale
+  const numLocale = NUMBER_LOCALE[locale] ?? "en-US"
 
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
@@ -43,8 +52,8 @@ export default async function RadarWinnersPage({ searchParams }: Props) {
     return (
       <RadarPaywallPanel
         plan={plan}
-        title="Winners — Radar Pro"
-        reason="Débloque le top 20 mondial avec Radar Pro ou Global."
+        title={t("winnersPaywallTitle")}
+        reason={t("winnersPaywallReason")}
       />
     )
   }
@@ -104,8 +113,8 @@ export default async function RadarWinnersPage({ searchParams }: Props) {
 
   const highlightId = productId?.trim() || null
   const title = countryFilter
-    ? `🏆 Winners — ${countryCodeToName(countryFilter)} (${countryFilter})`
-    : "🏆 Winners — Top rank ≤ 20"
+    ? t("winnersTitleCountry", { country: countryCodeToName(countryFilter, locale), code: countryFilter })
+    : t("winnersTitleGlobal")
 
   return (
     <div className="space-y-6">
@@ -115,21 +124,20 @@ export default async function RadarWinnersPage({ searchParams }: Props) {
           <p className="mt-1 text-sm text-zinc-500">
             {countryFilter ? (
               <>
-                Snapshots Radar 24h
+                {t("winnersSnapshots24")}
                 {totalCount != null ? (
                   <>
                     {" "}
                     —{" "}
                     <span className="font-semibold text-zinc-800">
-                      {totalCount.toLocaleString("fr-FR")} produits
-                    </span>{" "}
-                    (même compteur que la Map)
+                      {t("winnersProductsSameAsMap", { n: totalCount.toLocaleString(numLocale) })}
+                    </span>
                   </>
                 ) : null}
-                {demoMode ? " (mode demo)" : ""}.
+                {demoMode ? ` ${t("winnersDemoSuffix")}` : ""}
               </>
             ) : (
-              <>Snapshots globaux Radar{demoMode ? " (mode demo)" : ""}.</>
+              <>{t("winnersGlobalSnapshots")}{demoMode ? ` ${t("winnersDemoSuffix")}` : ""}</>
             )}
           </p>
         </div>
@@ -139,34 +147,36 @@ export default async function RadarWinnersPage({ searchParams }: Props) {
               href="/radar/winners"
               className="text-sm font-medium text-zinc-500 hover:text-zinc-800"
             >
-              Tous les pays
+              {t("winnersAllCountries")}
             </Link>
           ) : null}
           <Link
             href="/radar/map"
             className="text-sm font-medium text-violet-600 hover:text-violet-700"
           >
-            ← Map
+            {t("winnersBackToMap")}
           </Link>
         </div>
       </div>
 
       {demoMode && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Radar DB offline ou pays vide — mode demo
+          {t("winnersDemoBanner")}
         </div>
       )}
 
       {countryFilter && totalCount != null && winners.length < totalCount ? (
         <p className="text-xs text-zinc-500">
-          Affichage des {winners.length.toLocaleString("fr-FR")} plus demandés sur{" "}
-          {totalCount.toLocaleString("fr-FR")}.
+          {t("winnersShowingTop", {
+            shown: winners.length.toLocaleString(numLocale),
+            total: totalCount.toLocaleString(numLocale),
+          })}
         </p>
       ) : null}
 
       {winners.length === 0 ? (
         <p className="rounded-xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600">
-          Aucun winner encore. Lance un scan global ou configure les clés crawler.
+          {t("winnersEmpty")}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
@@ -174,13 +184,13 @@ export default async function RadarWinnersPage({ searchParams }: Props) {
             <thead className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
               <tr>
                 <th className="px-3 py-2">#</th>
-                <th className="px-3 py-2">Title</th>
-                <th className="px-3 py-2">Marketplace</th>
+                <th className="px-3 py-2">{t("winnersColTitle")}</th>
+                <th className="px-3 py-2">{t("winnersColMarketplace")}</th>
                 <th className="px-3 py-2">
-                  {canViewResellerMarketPrice(session.user.role) ? "Price" : "Signal"}
+                  {canViewResellerMarketPrice(session.user.role) ? t("winnersColPrice") : t("winnersColSignal")}
                 </th>
-                <th className="px-3 py-2">Country</th>
-                <th className="px-3 py-2">Sales est.</th>
+                <th className="px-3 py-2">{t("winnersColCountry")}</th>
+                <th className="px-3 py-2">{t("winnersColSales")}</th>
               </tr>
             </thead>
             <tbody>
@@ -220,11 +230,11 @@ export default async function RadarWinnersPage({ searchParams }: Props) {
                     <td className="px-3 py-2 tabular-nums">
                       {canViewResellerMarketPrice(session.user.role)
                         ? formatRadarPriceDisplay(row.price, row.currency)
-                        : "◈ Demande"}
+                        : t("winnersDemandChip")}
                     </td>
                     <td className="px-3 py-2">{row.country}</td>
                     <td className="px-3 py-2 tabular-nums">
-                      {row.salesEst != null ? row.salesEst.toLocaleString("fr-FR") : "—"}
+                      {row.salesEst != null ? row.salesEst.toLocaleString(numLocale) : "—"}
                     </td>
                   </tr>
                 )

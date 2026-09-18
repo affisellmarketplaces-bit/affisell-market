@@ -25,6 +25,7 @@ import { loadSupplierMissionControl } from "@/lib/supplier-mission-control"
 import { getSupplierAnalytics } from "@/lib/supplier-dashboard-analytics"
 import { SupplierKycPublishBanner } from "@/components/supplier/supplier-kyc-publish-banner"
 import { SupplierPublishReadinessCard } from "@/components/supplier/mission-control/supplier-publish-readiness-card"
+import { countResellersListingSupplier } from "@/lib/radar/supplier-reach.server"
 import { RadarSupplierDiscoveryCard } from "@/components/radar/radar-discovery-card"
 import { SupplierProductRequestsTeaser } from "@/components/requests/SupplierProductRequestsTeaser"
 import { resolveAppLocale } from "@/lib/i18n-locale"
@@ -73,6 +74,11 @@ export default async function DashboardSupplierPage() {
     getSupplierAnalytics(session.user.id),
   ])
 
+  const resellerReach =
+    feeUser?.supplierKind === "producer"
+      ? await countResellersListingSupplier(session.user.id).catch(() => null)
+      : null
+
   const trustTier = coerceSupplierTrustTier(feeUser?.supplierTrustTier, false)
   const displayTier = trustTier !== "NONE" ? trustTier : trustSnapshot.tier
 
@@ -91,7 +97,10 @@ export default async function DashboardSupplierPage() {
             />
             <SupplierInviteContextBanner />
 
-            <RadarSupplierDiscoveryCard supplierKind={feeUser?.supplierKind} />
+            <RadarSupplierDiscoveryCard
+              supplierKind={feeUser?.supplierKind}
+              resellerReach={resellerReach}
+            />
 
             <SupplierProductRequestsTeaser />
 

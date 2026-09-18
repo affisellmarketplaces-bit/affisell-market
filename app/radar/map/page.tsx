@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { getLocale, getTranslations } from "next-intl/server"
 
 import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
 import RadarWorldMap from "@/lib/radar/map/RadarWorldMap"
@@ -10,6 +11,7 @@ import {
   type CountryMapStat,
 } from "@/lib/radar/map/geo"
 import { auth } from "@/lib/auth"
+import type { AppLocale } from "@/lib/i18n-locale"
 import {
   DEFAULT_RADAR_COUNTRIES,
   parseRadarCountries,
@@ -98,7 +100,14 @@ async function loadCountryStats(): Promise<{
   }
 }
 
+const NUMBER_LOCALE: Record<AppLocale, string> = {
+  fr: "fr-FR", en: "en-US", de: "de-DE", es: "es-ES", it: "it-IT", nl: "nl-NL", pl: "pl-PL", zh: "zh-CN",
+}
+
 export default async function RadarMapPage() {
+  const t = await getTranslations("radarMap")
+  const tPages = await getTranslations("radarPages")
+  const locale = (await getLocale()) as AppLocale
   if (!isRadarEnabled()) redirect("/404")
 
   const session = await auth()
@@ -121,11 +130,11 @@ export default async function RadarMapPage() {
   if (!mapAccess.allowed) {
     return (
       <div className="space-y-6">
-        <h2 className="text-base font-semibold text-zinc-900">🗺️ Map Monde</h2>
+        <h2 className="text-base font-semibold text-zinc-900">{t("title")}</h2>
         <RadarPaywallPanel
           plan={plan}
-          title="Map Monde — Radar Pro"
-          reason={mapAccess.reason ?? "Upgrade to Pro for Map"}
+          title={t("paywallTitle")}
+          reason={t("paywallReason")}
         >
           <div className="p-2">
             <RadarWorldMap
@@ -142,11 +151,10 @@ export default async function RadarMapPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-zinc-900">🗺️ Map Monde — Winners (analyse quotidienne)</h2>
+          <h2 className="text-base font-semibold text-zinc-900">{t("heading")}</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            {stats.length} pays couverts · {activeStats.length} actifs (24h)
-            {pendingCount > 0 ? ` · ${pendingCount} en attente du prochain scan` : ""}. Clique un pays
-            pour voir les winners.
+            {t("summary", { covered: stats.length, active: activeStats.length })}
+            {pendingCount > 0 ? t("pending", { n: pendingCount }) : ""}. {t("clickCountry")}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -154,14 +162,14 @@ export default async function RadarMapPage() {
             href="/radar/globe"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-violet-600 hover:text-violet-700"
           >
-            Globe LIVE
+            {tPages("navGlobe")}
             <span className="relative flex h-2 w-2" aria-hidden>
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
             </span>
           </Link>
           <Link href="/radar" className="text-sm font-medium text-violet-600 hover:text-violet-700">
-            ← Dashboard
+            {t("back")}
           </Link>
         </div>
       </div>
@@ -169,10 +177,10 @@ export default async function RadarMapPage() {
       <RadarWorldMap stats={stats} demo={demo} />
 
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-zinc-900">Top pays actifs (24h)</h3>
+        <h3 className="text-sm font-semibold text-zinc-900">{t("topCountries")}</h3>
         <p className="mt-1 text-xs text-zinc-500">
-          Scan attendu : {expected.join(", ")}
-          {demo ? " · mode demo" : ""}
+          {t("expectedScan", { list: expected.join(", ") })}
+          {demo ? t("demoSuffix") : ""}
         </p>
         <ol className="mt-3 space-y-2">
           {topCountries.map((s, i) => (
@@ -181,19 +189,18 @@ export default async function RadarMapPage() {
                 href={`/radar/winners?country=${encodeURIComponent(s.country)}`}
                 className="font-medium text-zinc-800 hover:text-violet-700"
               >
-                {i + 1}. {countryCodeToName(s.country)}{" "}
+                {i + 1}. {countryCodeToName(s.country, locale)}{" "}
                 <span className="text-zinc-400">({s.country})</span>
               </Link>
               <span className="tabular-nums text-zinc-600">
-                {s.count} produits · score demande {Math.round(s.avgSales).toLocaleString("fr-FR")}
+                {t("countryStats", { n: s.count, score: Math.round(s.avgSales).toLocaleString(NUMBER_LOCALE[locale] ?? "en-US") })}
               </span>
             </li>
           ))}
         </ol>
         {topCountries.length === 0 ? (
           <p className="mt-3 text-sm text-zinc-500">
-            Aucun snapshot 24h encore — lance un Force Scan (admin) ou attends le cron 6h. Les{" "}
-            {stats.length} markers sur la carte restent visibles.
+            {t("noSnapshots", { n: stats.length })}
           </p>
         ) : null}
       </section>

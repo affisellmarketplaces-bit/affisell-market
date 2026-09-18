@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useEffect, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { toast } from "sonner"
@@ -114,6 +115,7 @@ export function RadarPaywallCheckoutButton({
   className,
   surface,
 }: CheckoutButtonProps) {
+  const t = useTranslations("radarShell")
   const [loading, setLoading] = useState(false)
 
   async function startCheckout() {
@@ -128,16 +130,16 @@ export function RadarPaywallCheckoutButton({
       })
       const data = (await res.json()) as { url?: string; error?: string; message?: string }
       if (res.status === 503 && data.error?.includes("NOT_CONFIGURED")) {
-        toast.error("Paiement Radar indisponible — contacte le support Affisell")
+        toast.error(t("checkoutUnavailable"))
         setLoading(false)
         return
       }
       if (!res.ok || !data.url) {
-        throw new Error(data.message ?? data.error ?? "Impossible de démarrer le paiement")
+        throw new Error(data.message ?? data.error ?? t("checkoutStartFailed"))
       }
       window.location.href = data.url
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Échec du checkout Radar")
+      toast.error(e instanceof Error ? e.message : t("checkoutFailed"))
       setLoading(false)
     }
   }
@@ -151,7 +153,7 @@ export function RadarPaywallCheckoutButton({
       disabled={loading}
       onClick={() => void startCheckout()}
     >
-      {loading ? "Redirection…" : children}
+      {loading ? t("redirecting") : children}
     </Button>
   )
 }

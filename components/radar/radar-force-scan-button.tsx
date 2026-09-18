@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 
 /**
@@ -10,11 +11,12 @@ import { useState, useTransition } from "react"
  */
 export default function RadarForceScanButton({
   disabled = false,
-  label = "Forcer Scan",
+  label,
 }: {
   disabled?: boolean
   label?: string
 }) {
+  const t = useTranslations("radarShell")
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [message, setMessage] = useState<string | null>(null)
@@ -37,22 +39,24 @@ export default function RadarForceScanButton({
           error?: string
         }
         if (!res.ok) {
-          setError(json.error ?? `Erreur ${res.status}`)
+          setError(json.error ?? t("scanErrorHttp", { status: res.status }))
           return
         }
         if (json.skipped) {
-          setMessage(`Scan ignoré (${json.reason ?? "skipped"})`)
+          setMessage(t("scanSkipped", { reason: json.reason ?? "skipped" }))
           return
         }
         const degradedNote = json.degraded
-          ? ` · mode dégradé (${(json.missingOptional ?? []).join(", ") || "clés P1 absentes"})`
+          ? t("scanDegradedNote", {
+              missing: (json.missingOptional ?? []).join(", ") || t("scanMissingP1"),
+            })
           : ""
         setMessage(
-          `Scan OK — ${json.scanned ?? 0} lus, ${json.new ?? 0} nouveaux${degradedNote}`
+          t("scanOk", { scanned: json.scanned ?? 0, fresh: json.new ?? 0, note: degradedNote })
         )
         router.refresh()
       } catch {
-        setError("Scan impossible (réseau)")
+        setError(t("scanNetworkError"))
       }
     })
   }
@@ -65,12 +69,12 @@ export default function RadarForceScanButton({
         disabled={pending}
         title={
           disabled
-            ? "Mode dégradé disponible : Amazon/local sans TikTok/Serper"
+            ? t("scanDegradedHint")
             : undefined
         }
         className="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? "Scan en cours…" : label}
+        {pending ? t("scanRunning") : (label ?? t("scanForce"))}
       </button>
       {message && <p className="text-xs text-emerald-700">{message}</p>}
       {error && <p className="text-xs text-red-700">{error}</p>}

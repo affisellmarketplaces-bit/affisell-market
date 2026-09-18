@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import type { LiveEvent } from "@/lib/radar/live-types"
 
 type Props = {
@@ -15,6 +17,7 @@ function minutesAgo(iso: string): number {
  * Bottom marquee of live winner signals.
  */
 export function GlobeTicker({ events }: Props) {
+  const t = useTranslations("radarGlobe")
   const items = events.slice(0, 10)
   if (items.length === 0) return null
 
@@ -24,9 +27,8 @@ export function GlobeTicker({ events }: Props) {
       {e.product.title.slice(0, 30)}
       {" — "}
       {e.location.city}
-      {" — il y a "}
-      {minutesAgo(e.timestamp)}
-      min
+      {" — "}
+      {t("tickerAgo", { n: minutesAgo(e.timestamp) })}
     </span>
   ))
 

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 /**
@@ -10,6 +11,7 @@ import { toast } from "sonner"
  * Webhook may lag — verify + refresh JWT so the paywall lifts without re-login.
  */
 export function RadarCheckoutActivator() {
+  const t = useTranslations("radarShell")
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const router = useRouter()
@@ -26,7 +28,7 @@ export function RadarCheckoutActivator() {
     const cleanPath = pathname.split("?")[0] ?? "/radar"
 
     if (upgrade === "cancelled") {
-      toast.message("Upgrade Radar annulé")
+      toast.message(t("upgradeCancelled"))
       router.replace(cleanPath)
       return
     }
@@ -50,13 +52,13 @@ export function RadarCheckoutActivator() {
           error?: string
         }
         if (!res.ok) {
-          throw new Error(data.error ?? "Activation Radar impossible")
+          throw new Error(data.error ?? t("activationFailed"))
         }
 
         toast.success(
           data.radarPlan === "global"
-            ? "Radar Global activé — accès débloqué"
-            : "Radar Pro activé — accès débloqué"
+            ? t("activatedGlobal")
+            : t("activatedPro")
         )
         await update()
         router.replace(cleanPath)
@@ -65,13 +67,13 @@ export function RadarCheckoutActivator() {
         toast.error(
           e instanceof Error
             ? e.message
-            : "Paiement reçu — l’activation peut prendre quelques secondes. Recharge la page."
+            : t("paymentPending")
         )
         router.replace(cleanPath)
         router.refresh()
       }
     })()
-  }, [pathname, router, searchParams, update])
+  }, [pathname, router, searchParams, update, t])
 
   return null
 }

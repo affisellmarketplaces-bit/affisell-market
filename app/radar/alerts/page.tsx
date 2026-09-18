@@ -1,10 +1,12 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { getLocale, getTranslations } from "next-intl/server"
 import type { Prisma } from ".prisma/client-mi"
 
 import RadarAlertsClient from "@/app/radar/alerts/alerts-client"
 import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
 import { auth } from "@/lib/auth"
+import type { AppLocale } from "@/lib/i18n-locale"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
@@ -18,6 +20,8 @@ export default async function RadarAlertsPage({
   searchParams: Promise<{ severity?: string; type?: string }>
 }) {
   if (!isRadarEnabled()) redirect("/404")
+  const t = await getTranslations("radarAlerts")
+  const locale = (await getLocale()) as AppLocale
 
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
@@ -35,11 +39,11 @@ export default async function RadarAlertsPage({
   if (!alertsAccess.allowed) {
     return (
       <div className="space-y-6">
-        <h2 className="text-base font-semibold text-zinc-900">🚨 Alertes Radar</h2>
+        <h2 className="text-base font-semibold text-zinc-900">{t("pageTitle")}</h2>
         <RadarPaywallPanel
           plan={plan}
-          title="Alertes réservées Pro+"
-          reason={alertsAccess.reason ?? "Upgrade to Pro for Radar alerts"}
+          title={t("paywallTitle")}
+          reason={t("paywallReason")}
         />
       </div>
     )
@@ -54,9 +58,9 @@ export default async function RadarAlertsPage({
       <div className="space-y-4">
         {!slackAccess.allowed && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-            Slack dispo en Global {formatRadarPlanPrice("global")} —{" "}
+            {t("slackHint", { price: formatRadarPlanPrice("global", undefined, locale) })}{" "}
             <Link href="/pricing?feature=radar" className="font-semibold underline">
-              upgrade
+              {t("upgrade")}
             </Link>
           </div>
         )}
@@ -95,13 +99,13 @@ export default async function RadarAlertsPage({
     <div className="space-y-4">
       {!slackAccess.allowed && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Slack dispo en Global {formatRadarPlanPrice("global")} —{" "}
+          {t("slackHint", { price: formatRadarPlanPrice("global", undefined, locale) })}{" "}
           <Link href="/pricing?feature=radar" className="font-semibold underline">
-            upgrade
+            {t("upgrade")}
           </Link>
           {" · "}
           <Link href="/radar/alerts/settings" className="underline">
-            settings
+            {t("settingsLink")}
           </Link>
         </div>
       )}

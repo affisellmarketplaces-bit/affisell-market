@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { prisma } from "@/lib/prisma"
+import { getCategoryDisplayLocalizer } from "@/lib/category-display-locale.server"
+import { resolveRequestLocale } from "@/lib/resolve-request-locale"
 import { buildCategoryBrowse, fetchAllCategoriesForBrowse } from "@/lib/category-browse"
 
 export const dynamic = "force-dynamic"
@@ -10,7 +12,12 @@ export const revalidate = 0
 export async function GET(req: Request) {
   const lite = new URL(req.url).searchParams.get("lite") === "1"
   try {
-    const rows = await fetchAllCategoriesForBrowse(prisma)
+    const locale = await resolveRequestLocale(undefined)
+    const display = await getCategoryDisplayLocalizer(prisma, locale)
+    const rows = (await fetchAllCategoriesForBrowse(prisma)).map((r) => ({
+      ...r,
+      name: display.name(r.id, r.name),
+    }))
     const built = buildCategoryBrowse(rows)
     const version = rows.length
     if (lite) {

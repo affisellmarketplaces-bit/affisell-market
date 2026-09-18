@@ -835,6 +835,7 @@ export function SupplierAddProductForm({
             id: d.id,
             key: d.key,
             label: d.label,
+            displayLabel: d.displayLabel,
             type: d.type,
             unit: d.unit ?? null,
             options: d.options ?? [],

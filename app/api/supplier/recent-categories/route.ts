@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { getCategoryDisplayLocalizer } from "@/lib/category-display-locale.server"
+import { resolveRequestLocale } from "@/lib/resolve-request-locale"
 import {
   parseRecentCategoriesJson,
   pushRecentCategory,
@@ -25,7 +27,11 @@ export async function GET() {
     where: { id: session.user.id },
     select: { supplierRecentCategories: true },
   })
-  const recent = parseRecentCategoriesJson(user?.supplierRecentCategories ?? [])
+  const display = await getCategoryDisplayLocalizer(prisma, await resolveRequestLocale(undefined))
+  const recent = parseRecentCategoriesJson(user?.supplierRecentCategories ?? []).map((entry) => ({
+    ...entry,
+    path: display.segments(entry.path),
+  }))
   return NextResponse.json({ recent })
 }
 

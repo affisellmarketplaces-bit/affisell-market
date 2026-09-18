@@ -4,7 +4,7 @@ import { resolveTikTokConnectError } from "@/lib/radar/tiktok-connect-errors"
 
 describe("resolveTikTokConnectError", () => {
   it("explains draft-app no-shop failures", () => {
-    const copy = resolveTikTokConnectError("no_shop_available")
+    const copy = resolveTikTokConnectError("no_shop_available", "en")
     expect(copy?.title).toMatch(/draft/i)
     expect(copy?.steps.some((s) => /Partner Center/i.test(s))).toBe(true)
   })

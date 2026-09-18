@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react"
 import { Loader2, Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -18,7 +19,7 @@ import {
   buildCategorySelectSuggestions,
   categorySelectAllowsFreeText,
   datalistIdForAttribute,
-  freeTextSelectPlaceholder,
+  freeTextSelectPlaceholderKind,
 } from "@/lib/category-attribute-select-ui"
 import { filterVisibleCategoryAttributes } from "@/lib/category-attribute-rules-shared"
 import { cn } from "@/lib/utils"
@@ -31,6 +32,8 @@ export type CategoryAttrRow = {
   id: string
   key: string
   label: string
+  /** Localized display label; `label` stays canonical for validation matching. */
+  displayLabel?: string
   type: string
   unit: string | null
   options: string[]
@@ -98,13 +101,15 @@ export function CategoryAttributeFields({
   errors,
   optimizeContext,
 }: Props) {
+  const t = useTranslations("supplier.attributeFields")
   const [optimizingKey, setOptimizingKey] = useState<string | null>(null)
 
   const setKey = (key: string, v: string) => {
     onChange({ ...values, [key]: v })
   }
 
-  const isPointureEUField = (label: string) => label.trim().toLowerCase() === "pointure eu"
+  const isPointureEUField = (attr: CategoryAttrRow) =>
+    attr.key === "eu_size" || attr.label.trim().toLowerCase() === "pointure eu"
 
   const handleSelectShoeSize = (key: string, eu: number) => {
     onChange({ ...values, [key]: String(eu), Taille: String(eu) })
@@ -113,7 +118,7 @@ export function CategoryAttributeFields({
   const handleOptimize = useCallback(
     async (attr: CategoryAttrRow) => {
       if (!optimizeContext) {
-        toast.error("Ajoutez un titre ou une description produit d'abord.")
+        toast.error(t("addTitleFirst"))
         return
       }
       setOptimizingKey(attr.key)
@@ -133,17 +138,17 @@ export function CategoryAttributeFields({
           }),
         })
         const data = await readJsonResponse<{ text?: string; error?: string }>(res)
-        if (!res.ok) throw new Error(data.error ?? "Optimisation impossible")
-        if (!data.text?.trim()) throw new Error("Réponse vide")
+        if (!res.ok) throw new Error(data.error ?? t("optimizeFailed"))
+        if (!data.text?.trim()) throw new Error(t("emptyResponse"))
         onChange({ ...values, [attr.key]: data.text.trim() })
-        toast.success(`${attr.label} optimisé`)
+        toast.success(t("optimized", { label: attr.displayLabel ?? attr.label }))
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Service indisponible")
+        toast.error(e instanceof Error ? e.message : t("serviceUnavailable"))
       } finally {
         setOptimizingKey(null)
       }
     },
-    [optimizeContext, values, onChange]
+    [optimizeContext, values, onChange, t]
   )
 
   const sorted = [...attributes].sort((a, b) => a.order - b.order || a.label.localeCompare(b.label))
@@ -151,19 +156,19 @@ export function CategoryAttributeFields({
   if (attributes.length === 0) {
     return (
       <p className="text-xs text-amber-800 dark:text-amber-200">
-        Add fields failed to load. Refresh the page or pick a category again.
+        {t("loadFailed")}
       </p>
     )
   }
 
   return (
     <div className="rounded-lg border border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-700 dark:bg-zinc-900/40 sm:p-4">
-      <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Technical specifications</h3>
+      <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{t("title")}</h3>
       <p className="mt-0.5 text-xs leading-snug text-zinc-500 dark:text-zinc-400">
-        <span className="text-red-600">*</span> Required fields · multi-select = pill toggles.
+        <span className="text-red-600">*</span> {t("requiredLegend")}
       </p>
       {loading ? (
-        <p className="mt-2 text-xs text-violet-600 dark:text-violet-400">Loading extra fields for this aisle…</p>
+        <p className="mt-2 text-xs text-violet-600 dark:text-violet-400">{t("loadingExtra")}</p>
       ) : null}
       <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {sorted.map((attr) => {
@@ -185,7 +190,7 @@ export function CategoryAttributeFields({
             : "border-zinc-200 dark:border-zinc-700"
 
           const isOptimizable = Boolean(attr.recommended && isTextarea && optimizeContext)
-          const showShoeSizeGuide = isPointureEUField(attr.label)
+          const showShoeSizeGuide = isPointureEUField(attr)
           const shoeGuideBrand = values.Marque || values.brand
           const isOptimizing = optimizingKey === attr.key
 
@@ -195,7 +200,7 @@ export function CategoryAttributeFields({
                 <Label className="flex flex-wrap items-baseline gap-x-1.5 text-sm font-medium text-zinc-800 dark:text-zinc-200">
                   {attr.required ? <span className="text-red-600">*</span> : null}
                   <span>
-                    {attr.label}
+                    {attr.displayLabel ?? attr.label}
                     {labelSuffix}
                   </span>
                   {!attr.required ? (
@@ -216,13 +221,13 @@ export function CategoryAttributeFields({
                     ) : (
                       <Sparkles className="size-3.5" aria-hidden />
                     )}
-                    {isOptimizing ? "Optimisation…" : "Optimise"}
+                    {isOptimizing ? t("optimising") : t("optimise")}
                   </Button>
                 ) : null}
               </div>
               {attr.recommended && !attr.required ? (
                 <p className="mt-0.5 text-[11px] font-medium text-sky-700 dark:text-sky-300">
-                  Recommandé — améliore la visibilité sur la marketplace
+                  {t("recommendedHint")}
                 </p>
               ) : null}
               {attr.helpText ? (
@@ -264,8 +269,8 @@ export function CategoryAttributeFields({
                   onChange={(e) => setKey(attr.key, e.target.value)}
                 >
                   <option value="">—</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
+                  <option value="Yes">{t("yes")}</option>
+                  <option value="No">{t("no")}</option>
                 </select>
               ) : null}
 
@@ -277,7 +282,7 @@ export function CategoryAttributeFields({
                     list={datalistId}
                     value={v}
                     onChange={(e) => setKey(attr.key, e.target.value)}
-                    placeholder={freeTextSelectPlaceholder(attr)}
+                    placeholder={t(freeTextSelectPlaceholderKind(attr))}
                     autoComplete="off"
                   />
                   <datalist id={datalistId}>
@@ -286,7 +291,7 @@ export function CategoryAttributeFields({
                     ))}
                   </datalist>
                   <p className="mt-1 text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">
-                    Saisie libre — suggestions cliquables sous le champ (marque, RAM, stockage, etc.).
+                    {t("freeTextHint")}
                   </p>
                 </>
               ) : null}
@@ -321,7 +326,7 @@ export function CategoryAttributeFields({
                   )}
                   value={v}
                   onChange={(e) => setKey(attr.key, e.target.value)}
-                  placeholder={attr.options?.length ? attr.options.join(", ") : attr.label}
+                  placeholder={attr.options?.length ? attr.options.join(", ") : (attr.displayLabel ?? attr.label)}
                 />
               ) : null}
 
@@ -344,7 +349,7 @@ export function CategoryAttributeFields({
                   maxLength={attr.validationRule?.maxLength}
                   pattern={tp === "NUMBER" || tp === "DECIMAL" ? undefined : attr.validationRule?.pattern}
                   onChange={(e) => setKey(attr.key, e.target.value)}
-                  placeholder={attr.options?.length ? attr.options.join(", ") : attr.label}
+                  placeholder={attr.options?.length ? attr.options.join(", ") : (attr.displayLabel ?? attr.label)}
                 />
               ) : null}
               {showShoeSizeGuide ? (

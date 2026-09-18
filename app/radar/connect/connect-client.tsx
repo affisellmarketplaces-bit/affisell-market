@@ -2,14 +2,15 @@
 
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { useLocale, useTranslations } from "next-intl"
 
 import {
   GOOGLE_CONNECTORS,
   REGION_FLAGS,
-  REGION_LABELS,
   groupMarketplacesByRegion,
   isConnectorLive,
 } from "@/lib/radar/connectors/registry"
+import type { AppLocale } from "@/lib/i18n-locale"
 import type { MarketplaceConnector } from "@/lib/radar/connectors/types"
 import { resolveTikTokConnectError } from "@/lib/radar/tiktok-connect-errors"
 
@@ -17,13 +18,14 @@ function ConnectorCard({
   connector,
   href,
   enabled,
-  ctaLabel = "Connect",
+  ctaLabel,
 }: {
   connector: { id: string; name: string; logo: string; region?: string }
   href: string
   enabled: boolean
   ctaLabel?: string
 }) {
+  const t = useTranslations("radarConnect")
   return (
     <article className="flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
       <div className="flex items-start gap-3">
@@ -36,7 +38,7 @@ function ConnectorCard({
             <p className="mt-0.5 text-xs text-zinc-500">{connector.region}</p>
           )}
           {enabled ? (
-            <p className="mt-1 text-[11px] font-medium text-emerald-700">🟢 Live</p>
+            <p className="mt-1 text-[11px] font-medium text-emerald-700">{t("live")}</p>
           ) : null}
         </div>
       </div>
@@ -45,7 +47,7 @@ function ConnectorCard({
           href={href}
           className="mt-4 inline-flex justify-center rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800"
         >
-          {ctaLabel}
+          {ctaLabel ?? t("connect")}
         </Link>
       ) : (
         <button
@@ -53,9 +55,9 @@ function ConnectorCard({
           disabled
           className="mt-4 inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-md bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-400"
         >
-          Connect
+          {t("connect")}
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
-            Bientôt
+            {t("soon")}
           </span>
         </button>
       )}
@@ -73,18 +75,19 @@ export default function RadarConnectClient({
     expiresAt: string | null
   }>
 }) {
+  const t = useTranslations("radarConnect")
+  const locale = useLocale() as AppLocale
   const searchParams = useSearchParams()
   const error = searchParams.get("error")
-  const tiktokError = resolveTikTokConnectError(error)
+  const tiktokError = resolveTikTokConnectError(error, locale)
   const byRegion = groupMarketplacesByRegion()
 
   return (
     <div className="space-y-8">
       <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-zinc-900">Connecter une source au Radar</h2>
+        <h2 className="text-base font-semibold text-zinc-900">{t("title")}</h2>
         <p className="mt-2 text-sm text-zinc-600">
-          App Partner <strong>Affisell Analytics Connector</strong> — TikTok Shop OAuth + webhooks
-          order/product. Amazon SP-API et Google Merchant aussi disponibles.
+          {t.rich("intro", { strong: (chunks) => <strong>{chunks}</strong> })}
         </p>
         {tiktokError ? (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
@@ -98,12 +101,12 @@ export default function RadarConnectClient({
           </div>
         ) : null}
         <div className="mt-4 rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3 text-xs text-zinc-600">
-          <p className="font-medium text-zinc-800">Si Seller Center affiche « Aucune boutique disponible »</p>
+          <p className="font-medium text-zinc-800">{t("noShopHelpTitle")}</p>
           <p className="mt-1">
-            L’URL TikTok contient souvent <code className="rounded bg-white px-1">is_draft=true</code>{" "}
-            : l’app Partner est en brouillon. Ajoute ta boutique FR comme{" "}
-            <strong>test shop</strong> dans Partner Center, ou publie l’app — Affisell ne peut pas
-            forcer TikTok à lister un shop non whitelisté.
+            {t.rich("noShopHelpBody", {
+              code: (chunks) => <code className="rounded bg-white px-1">{chunks}</code>,
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </p>
         </div>
         <div className="mt-4">
@@ -111,14 +114,14 @@ export default function RadarConnectClient({
             href="/api/intelli/tiktok/start"
             className="inline-flex rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
           >
-            Connecter TikTok Shop
+            {t("connectTikTok")}
           </Link>
         </div>
       </section>
 
       {tiktokShops.length > 0 && (
         <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-zinc-900">Shops TikTok connectés</h3>
+          <h3 className="text-sm font-semibold text-zinc-900">{t("connectedShops")}</h3>
           <ul className="mt-3 space-y-2">
             {tiktokShops.map((s) => (
               <li
@@ -146,7 +149,7 @@ export default function RadarConnectClient({
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-          Google — Où on te trouve
+          {t("googleHeading")}
         </h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {GOOGLE_CONNECTORS.map((c) => {
@@ -169,13 +172,13 @@ export default function RadarConnectClient({
 
       <section className="space-y-6">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-          Marketplaces — Où tu vends
+          {t("marketplacesHeading")}
         </h2>
         {Array.from(byRegion.entries()).map(([region, connectors]) => (
           <div key={region} className="space-y-3">
             <h3 className="flex items-center gap-2 text-sm font-medium text-zinc-800">
               <span aria-hidden>{REGION_FLAGS[region] ?? "🌍"}</span>
-              {REGION_LABELS[region]}
+              {t(`region${region}`)}
             </h3>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {connectors.map((c: MarketplaceConnector) => {
@@ -196,11 +199,11 @@ export default function RadarConnectClient({
                       id: c.id,
                       name: c.name,
                       logo: c.logo,
-                      region: REGION_LABELS[c.region],
+                      region: t(`region${c.region}`),
                     }}
                     href={href}
                     enabled={live}
-                    ctaLabel={publicCrawl ? "Live · SEA crawl" : "Connect"}
+                    ctaLabel={publicCrawl ? t("liveSea") : t("connect")}
                   />
                 )
               })}

@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Lock, Radar, Rocket, Shield } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import type { ReactNode } from "react"
 
 import {
@@ -9,11 +10,11 @@ import {
 } from "@/components/radar/radar-paywall-tracker"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import type { AppLocale } from "@/lib/i18n-locale"
 import type { RadarCheckoutPlanId, RadarPlanId } from "@/lib/radar/plans"
 import { radarCheckoutCtaLabel } from "@/lib/radar/pricing-display"
 import {
   getRadarCockpit,
-  getSupplierKindLabel,
   needsSupplierKindOnboarding,
   type SupplierKind,
 } from "@/lib/supplier-kind"
@@ -30,6 +31,8 @@ type Props = {
   role?: string | null
   /** When false (e.g. non-SUPPLIER chrome), still allow affiliate free blur. */
   enabled?: boolean
+  /** Real count of resellers listing this supplier's products (producer cockpit). */
+  resellerReach?: number | null
   children: ReactNode
 }
 
@@ -46,8 +49,11 @@ export function RadarKindCockpit({
   radarPlanId = "free",
   role = null,
   enabled = true,
+  resellerReach = null,
   children,
 }: Props) {
+  const t = useTranslations("radarShell")
+  const locale = useLocale() as AppLocale
   if (!RADAR_KIND_ENABLED || !enabled) {
     return <>{children}</>
   }
@@ -68,18 +74,18 @@ export function RadarKindCockpit({
     isReseller || supplierKind === "stocker" ? "pro" : "global"
 
   const paywallTitle = isReseller
-    ? "Débloque les opportunités Radar Pro"
+    ? t("cockpitTitleReseller")
     : supplierKind === "producer"
-      ? "Débloque la veille défense Radar Global"
-      : "Débloque les opportunités sourcing Radar Pro"
+      ? t("cockpitTitleProducer")
+      : t("cockpitTitleStocker")
 
   const paywallBody = isReseller
-    ? "Les Resellers Radar Pro voient 50 produits/semaine. Tu n'en vois que 3."
+    ? t("cockpitBodyReseller")
     : supplierKind === "producer"
-      ? "Radar Global : map mondiale, alertes Slack, police des prix sur GMC."
-      : "Radar Pro : winners live, map, 10 alertes — avant tes concurrents."
+      ? t("cockpitBodyProducer")
+      : t("cockpitBodyStocker")
 
-  const paywallCta = radarCheckoutCtaLabel(checkoutPlan)
+  const paywallCta = radarCheckoutCtaLabel(checkoutPlan, locale)
 
   return (
     <div className="space-y-6">
@@ -91,18 +97,16 @@ export function RadarKindCockpit({
         <div className="space-y-4">
           <CockpitBadge
             icon={<Shield className="size-4" />}
-            label={`Mode: ${getSupplierKindLabel("producer")} — Cockpit Défense`}
+            label={t("modeProducer", { kind: t("kindProducer") })}
             tone="defense"
           />
           <div className="grid gap-3 sm:grid-cols-2">
-            <KpiCard
-              title="Tes produits listés par X resellers"
-              hint="Réseau affiliate — métrique live à brancher"
-            />
-            <KpiCard
-              title="Police des prix: 2 revendeurs sous ton plancher détectés sur GMC"
-              hint="Veille empire — mock UI"
-            />
+            {resellerReach != null ? (
+              <KpiCard
+                title={t("kpiListedTitle", { n: resellerReach })}
+                hint={t("kpiListedHint")}
+              />
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -112,26 +116,19 @@ export function RadarKindCockpit({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <CockpitBadge
               icon={<Rocket className="size-4" />}
-              label={`Mode: ${getSupplierKindLabel("stocker")} — Radar Grossiste - Sourcing`}
+              label={t("modeStocker", { kind: t("kindStocker") })}
               tone="attaque"
             />
             <Button asChild variant="bentoAccent" size="sm">
-              <Link href="/supplier/products/new">Sourcer un produit</Link>
+              <Link href="/supplier/products/new">{t("sourceProduct")}</Link>
             </Button>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <KpiCard
-              title="Opportunités GMC > 10k recherches / <5 concurrents: 12 produits"
-              hint="Grossiste — mock UI"
-            />
-            <KpiCard title="Marge moyenne potentielle: 68%" hint="Estimateur — mock UI" />
           </div>
         </div>
       ) : null}
 
       {!needsOnboarding && cockpit && isSupplier ? (
         <p className="text-[11px] uppercase tracking-wide text-zinc-500">
-          Contexte Radar · cockpit {cockpit} · plan {radarPlanId ?? "free"}
+          {t("cockpitContext", { cockpit, plan: radarPlanId ?? "free" })}
         </p>
       ) : null}
 
@@ -198,6 +195,7 @@ function RadarKindOnboardingBanner({
   supplierKind: SupplierKind
   cockpit: ReturnType<typeof getRadarCockpit>
 }) {
+  const t = useTranslations("radarShell")
   return (
     <div className="relative overflow-hidden rounded-2xl border border-violet-400/40 bg-gradient-to-br from-[#7C3AED] via-violet-600 to-indigo-700 p-5 text-white shadow-[0_0_40px_rgba(124,58,237,0.35)]">
       <RadarPaywallViewTracker
@@ -216,9 +214,9 @@ function RadarKindOnboardingBanner({
             <Radar className="size-5" />
           </span>
           <div>
-            <p className="text-base font-semibold tracking-tight">Débloque ton Radar adapté</p>
+            <p className="text-base font-semibold tracking-tight">{t("onboardTitle")}</p>
             <p className="mt-1 max-w-xl text-sm text-white/85">
-              Tu es Producteur ou Grossiste? Configure ton profil pour voir les bonnes opportunités.
+              {t("onboardBody")}
             </p>
           </div>
         </div>
@@ -230,7 +228,7 @@ function RadarKindOnboardingBanner({
           size="default"
           className="shrink-0 border-0 bg-white text-[#7C3AED] hover:bg-white/90"
         >
-          Configurer mon profil →
+          {t("onboardCta")}
         </RadarPaywallCtaButton>
       </div>
     </div>

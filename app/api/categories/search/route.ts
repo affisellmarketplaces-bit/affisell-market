@@ -4,6 +4,9 @@ import type { LeafPath } from "@/lib/category-browse"
 import { resolveCategoryPathSegmentsMap } from "@/lib/category-path"
 import { scoreProductTextAgainstBreadcrumb } from "@/lib/category-title-match"
 import { prisma } from "@/lib/prisma"
+import { getCategoryDisplayLocalizer } from "@/lib/category-display-locale.server"
+import { googleTaxonomyNameMap } from "@/lib/google-taxonomy-locale"
+import { resolveRequestLocale } from "@/lib/resolve-request-locale"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -23,12 +26,24 @@ export async function GET(req: Request) {
   }
 
   try {
+    const locale = await resolveRequestLocale(undefined)
+    const display = await getCategoryDisplayLocalizer(prisma, locale)
+    // DB names are French: for other UI languages also match the localized taxonomy names.
+    const localizedGoogleIds: number[] = []
+    if (locale !== "fr") {
+      const needle = q.toLowerCase()
+      for (const [googleId, label] of googleTaxonomyNameMap(locale)) {
+        if (label.toLowerCase().includes(needle)) localizedGoogleIds.push(googleId)
+        if (localizedGoogleIds.length >= 300) break
+      }
+    }
     const rows = await prisma.category.findMany({
       where: {
         isLeaf: true,
         OR: [
           { fullPath: { contains: q, mode: "insensitive" } },
           { name: { contains: q, mode: "insensitive" } },
+          ...(localizedGoogleIds.length ? [{ googleId: { in: localizedGoogleIds } }] : []),
         ],
       },
       select: { id: true, fullPath: true, name: true },
@@ -50,13 +65,23 @@ export async function GET(req: Request) {
         : scoreProductTextAgainstBreadcrumb(q, breadcrumb)
       results.push({
         leafId: row.id,
-        breadcrumb,
-        path,
+        breadcrumb: locale === "fr" ? breadcrumb : display.breadcrumb(path),
+        path: display.segments(path),
         relevanceScore,
       })
     }
 
-    results.sort((a, b) => (b.relevanceScore ?? 0) - (a.relevanceScore ?? 0))
+    // Score uses French intent rules; for other UI languages rank the localized leaf name first.
+    const leafRank = (r: LeafPath): number => {
+      if (locale === "fr") return 0
+      const leaf = (r.path[r.path.length - 1]?.name ?? "").toLowerCase()
+      const needle = q.toLowerCase()
+      return leaf === needle ? 0 : leaf.startsWith(needle) ? 1 : leaf.includes(needle) ? 2 : 3
+    }
+    results.sort(
+      (a, b) =>
+        leafRank(a) - leafRank(b) || (b.relevanceScore ?? 0) - (a.relevanceScore ?? 0)
+    )
 
     return NextResponse.json({
       results: results.slice(0, MAX_RESULTS).map(({ relevanceScore: _rs, ...lp }) => lp),

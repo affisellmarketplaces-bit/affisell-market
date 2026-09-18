@@ -1,4 +1,7 @@
 import Link from "next/link"
+import { useLocale, useTranslations } from "next-intl"
+
+import type { AppLocale } from "@/lib/i18n-locale"
 
 import type { RadarPlan } from "@/lib/radar/plans"
 import { radarGlobalUnlockLabel } from "@/lib/radar/pricing-display"
@@ -14,7 +17,10 @@ export default function RadarPaywallPanel({
   reason: string
   children?: React.ReactNode
 }) {
-  const headline = title ?? radarGlobalUnlockLabel({ short: true })
+  const t = useTranslations("radarShell")
+  const locale = useLocale() as AppLocale
+  const unlock = radarGlobalUnlockLabel({ short: true }, locale)
+  const headline = title ?? unlock
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-amber-200 bg-amber-50">
@@ -26,7 +32,7 @@ export default function RadarPaywallPanel({
       <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/40 p-6">
         <div className="max-w-md rounded-xl border border-zinc-700 bg-zinc-950 p-6 text-center shadow-xl">
           <p className="text-xs font-medium uppercase tracking-wide text-amber-300">
-            Plan {plan.name}
+            {t("planLabel", { name: plan.name })}
           </p>
           <h3 className="mt-2 text-lg font-semibold text-white">{headline}</h3>
           <p className="mt-2 text-sm text-zinc-300">{reason}</p>
@@ -34,9 +40,9 @@ export default function RadarPaywallPanel({
             href="/pricing?feature=radar&plan=global"
             className="mt-5 inline-flex rounded-md bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400"
           >
-            {radarGlobalUnlockLabel({ short: true })}
+            {unlock}
           </Link>
-          <p className="mt-2 text-[11px] text-zinc-500">Voir winners BR avant tes concurrents</p>
+          <p className="mt-2 text-[11px] text-zinc-500">{t("paywallFooter")}</p>
         </div>
       </div>
     </div>

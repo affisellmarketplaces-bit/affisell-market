@@ -1,8 +1,11 @@
 import { redirect } from "next/navigation"
+import { getLocale, getTranslations } from "next-intl/server"
 
 import RadarAlertSettingsClient from "@/app/radar/alerts/settings/settings-client"
 import RadarPaywallPanel from "@/components/radar/radar-paywall-panel"
 import { auth } from "@/lib/auth"
+import type { AppLocale } from "@/lib/i18n-locale"
+import { formatRadarPlanPrice } from "@/lib/radar/pricing-display"
 import { resolveRadarDatabaseUrl } from "@/lib/radar/env"
 import { checkRadarAccess } from "@/lib/radar/gate-with-plan"
 import { isRadarEnabled } from "@/lib/radar/gate"
@@ -11,6 +14,8 @@ import { getRadarDb } from "@/lib/prisma-radar"
 
 export default async function RadarAlertSettingsPage() {
   if (!isRadarEnabled()) redirect("/404")
+  const t = await getTranslations("radarAlerts")
+  const locale = (await getLocale()) as AppLocale
 
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
@@ -27,10 +32,10 @@ export default async function RadarAlertSettingsPage() {
   if (!slackAccess.allowed) {
     return (
       <div className="space-y-6">
-        <h2 className="text-base font-semibold text-zinc-900">⚙️ Alertes — Slack</h2>
+        <h2 className="text-base font-semibold text-zinc-900">{t("settingsTitle")}</h2>
         <RadarPaywallPanel
           plan={plan}
-          reason={slackAccess.reason ?? "Slack alerts disponibles sur Radar Global"}
+          reason={t("slackPaywallReason", { price: formatRadarPlanPrice("global", undefined, locale) })}
         />
       </div>
     )

@@ -1,6 +1,7 @@
 "use client"
 
 import { geoMercator, geoPath } from "d3-geo"
+import { useLocale, useTranslations } from "next-intl"
 import { useMemo, useState, useEffect } from "react"
 import { feature } from "topojson-client"
 import type { Topology } from "topojson-specification"
@@ -16,7 +17,12 @@ import {
   salesToHeatColor,
   type CountryMapStat,
 } from "@/lib/radar/map/geo"
+import type { AppLocale } from "@/lib/i18n-locale"
 import { cn } from "@/lib/utils"
+
+const NUMBER_LOCALE: Record<AppLocale, string> = {
+  fr: "fr-FR", en: "en-US", de: "de-DE", es: "es-ES", it: "it-IT", nl: "nl-NL", pl: "pl-PL", zh: "zh-CN",
+}
 
 const WIDTH = 960
 const HEIGHT = 480
@@ -42,6 +48,9 @@ export default function RadarWorldMap({
   demo?: boolean
   className?: string
 }) {
+  const t = useTranslations("radarMap")
+  const locale = useLocale()
+  const numLocale = NUMBER_LOCALE[locale as AppLocale] ?? "en-US"
   const [geographies, setGeographies] = useState<FeatureCollection<Geometry> | null>(null)
   const [tooltip, setTooltip] = useState<TooltipState>(null)
   const [loadError, setLoadError] = useState(false)
@@ -196,20 +205,23 @@ export default function RadarWorldMap({
             }}
           >
             <p className="font-semibold">
-              {countryCodeToName(tooltip.stat.country)} ({tooltip.stat.country})
+              {countryCodeToName(tooltip.stat.country, locale)} ({tooltip.stat.country})
             </p>
             <p className="mt-1 text-zinc-300">
               {tooltip.stat.pending || tooltip.stat.count <= 0
-                ? "En attente du prochain scan global"
-                : `${tooltip.stat.count} produits — score demande ${Math.round(tooltip.stat.avgSales).toLocaleString("fr-FR")}`}
+                ? t("tipPending")
+                : t("tipCount", {
+                    n: tooltip.stat.count,
+                    score: Math.round(tooltip.stat.avgSales).toLocaleString(numLocale),
+                  })}
             </p>
             {tooltip.stat.topProductTitle && (
-              <p className="mt-1 text-emerald-300">Top: {tooltip.stat.topProductTitle}</p>
+              <p className="mt-1 text-emerald-300">{t("tipTop", { title: tooltip.stat.topProductTitle })}</p>
             )}
             <p className="mt-1.5 text-[10px] font-medium text-cyan-300/90">
               {tooltip.stat.pending || tooltip.stat.count <= 0
-                ? "Clic → ouvrir (données après scan)"
-                : "Clic → winners du pays"}
+                ? t("tipClickPending")
+                : t("tipClickWinners")}
             </p>
           </div>
         )}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { Radar } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { NavPill } from "@/components/navigation/nav-pill"
 import { parseSupplierKind, type SupplierKind } from "@/lib/supplier-kind"
@@ -13,16 +14,17 @@ type Props = {
   variant: Variant
 }
 
-function supplierRadarLabel(kind: SupplierKind): { label: string; shortLabel: string } {
-  if (kind === "stocker") return { label: "Radar Grossiste - Sourcing", shortLabel: "Grossiste" }
-  if (kind === "producer") return { label: "Radar - Défense", shortLabel: "Défense" }
-  return { label: "Radar - Débloquer", shortLabel: "Radar" }
+function supplierRadarKeys(kind: SupplierKind): { label: string; shortLabel: string } {
+  if (kind === "stocker") return { label: "navWholesale", shortLabel: "navWholesaleShort" }
+  if (kind === "producer") return { label: "navDefense", shortLabel: "navDefenseShort" }
+  return { label: "navUnlock", shortLabel: "navUnlockShort" }
 }
 
 /**
  * Discovery nav entry — 2nd after Dashboard. Safe if kind/API missing.
  */
 export function RadarNavPill({ variant }: Props) {
+  const t = useTranslations("radarShell")
   const pathname = usePathname() ?? ""
   const onRadar = pathname === "/radar" || pathname.startsWith("/radar/")
   const [kind, setKind] = useState<SupplierKind>("unset")
@@ -48,8 +50,8 @@ export function RadarNavPill({ variant }: Props) {
     return (
       <NavPill
         href="/radar"
-        label="Radar Produits Chauds"
-        shortLabel="Radar"
+        label={t("navHot")}
+        shortLabel={t("navUnlockShort")}
         icon={Radar}
         active={onRadar}
         showNewBadge
@@ -57,12 +59,12 @@ export function RadarNavPill({ variant }: Props) {
     )
   }
 
-  const { label, shortLabel } = supplierRadarLabel(kind)
+  const keys = supplierRadarKeys(kind)
   return (
     <NavPill
       href="/radar"
-      label={label}
-      shortLabel={shortLabel}
+      label={t(keys.label)}
+      shortLabel={t(keys.shortLabel)}
       icon={Radar}
       active={onRadar}
       showNewBadge

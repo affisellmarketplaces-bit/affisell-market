@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
+import { useLocale, useTranslations } from "next-intl"
 import {
   BellRing,
   Check,
@@ -14,13 +15,14 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
+import type { AppLocale } from "@/lib/i18n-locale"
 import { track } from "@/lib/analytics"
 import type { RadarCheckoutPlanId } from "@/lib/radar/plans"
 import { RADAR_PLANS } from "@/lib/radar/plans"
 import {
   buildRadarPricingCards,
-  RADAR_PRICING_PROOF,
-  RADAR_PRICING_TRUST,
+  radarPricingProof,
+  radarPricingTrust,
 } from "@/lib/radar/pricing-copy"
 import { formatRadarPlanPrice } from "@/lib/radar/pricing-display"
 import { cn } from "@/lib/utils"
@@ -33,8 +35,6 @@ type Props = {
   currentSupplierKind?: string | null
 }
 
-const RADAR_CARDS = buildRadarPricingCards()
-
 function redirectBrowserTo(url: string) {
   window.location.assign(url)
 }
@@ -46,6 +46,10 @@ export default function PricingPageClient({
   kindHint = null,
   currentSupplierKind = null,
 }: Props) {
+  const locale = useLocale() as AppLocale
+  const t = useTranslations("radarPricingPage")
+  const tShell = useTranslations("radarShell")
+  const tLanding = useTranslations("radarLanding")
   const { status } = useSession()
   const [loadingPlan, setLoadingPlan] = useState<RadarCheckoutPlanId | null>(null)
   const radarFocus = highlightFeature === "radar"
@@ -76,21 +80,21 @@ export default function PricingPageClient({
       })
       const data = (await res.json()) as { url?: string; error?: string; message?: string }
       if (res.status === 503 && data.error === "STRIPE_GLOBAL_NOT_CONFIGURED") {
-        toast.error("Plan Global non configuré - voir docs/STRIPE_RADAR_SETUP.md")
+        toast.error(t("globalNotConfigured"))
         setLoadingPlan(null)
         return
       }
       if (res.status === 503 && data.error === "STRIPE_PRO_NOT_CONFIGURED") {
-        toast.error("Plan Pro non configuré - lance npm run stripe:ensure-radar")
+        toast.error(t("proNotConfigured"))
         setLoadingPlan(null)
         return
       }
       if (!res.ok || !data.url) {
-        throw new Error(data.message ?? data.error ?? "Impossible de démarrer le paiement")
+        throw new Error(data.message ?? data.error ?? tShell("checkoutStartFailed"))
       }
       redirectBrowserTo(data.url)
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Échec du checkout Radar")
+      toast.error(e instanceof Error ? e.message : tShell("checkoutFailed"))
       setLoadingPlan(null)
     }
   }
@@ -112,17 +116,17 @@ export default function PricingPageClient({
           Affisell Radar
         </p>
         <h1 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-zinc-900 dark:text-white sm:text-5xl">
-          {radarFocus ? "Le signal avant le marché" : "Plans Affisell"}
+          {radarFocus ? tLanding("subscriptionTitle") : t("plans")}
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-pretty text-sm text-zinc-600 dark:text-zinc-400 sm:text-base">
           {radarFocus
-            ? "Crawl mondial, winners <30j, map live, Slack à 3h — tu agis pendant que tes concurrents scrollent encore TikTok."
-            : "Choisis le plan qui maximise ta conversion et ta LTV."}
+            ? t("radarSub")
+            : t("defaultSub")}
         </p>
       </div>
 
       <div className="mx-auto mt-8 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4">
-        {RADAR_PRICING_TRUST.map((item) => (
+        {radarPricingTrust(locale).map((item) => (
           <div
             key={item.label}
             className="rounded-2xl border border-zinc-200/80 bg-white/70 px-3 py-3 text-center backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/60"
@@ -149,15 +153,15 @@ export default function PricingPageClient({
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
-              Choisis ta couverture Radar
+              {t("chooseCoverage")}
             </h2>
             <p className="mt-1 max-w-xl text-sm text-zinc-600 dark:text-zinc-400">
-              Plan actuel :{" "}
+              {t("currentPlanLine")}{" "}
               <span className="font-medium text-zinc-900 dark:text-zinc-100">
                 {currentRadarPlan}
               </span>
               {" · "}
-              chaque upgrade débloque immédiatement winners, map et alertes.
+              {t("upgradeNote")}
             </p>
           </div>
           <Link
@@ -165,12 +169,12 @@ export default function PricingPageClient({
             className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:underline dark:text-emerald-400"
           >
             <Globe2 className="size-4" aria-hidden />
-            Ouvrir Radar →
+            {t("openRadar")}
           </Link>
         </div>
 
         <div className="mt-8 grid items-stretch gap-4 lg:grid-cols-3">
-          {RADAR_CARDS.map((card) => {
+          {buildRadarPricingCards(locale).map((card) => {
             const plan = RADAR_PLANS[card.planId]
             const checkoutPlan = card.checkoutPlan
             const isCurrent = currentRadarPlan === plan.id
@@ -242,7 +246,7 @@ export default function PricingPageClient({
                       featured ? "text-white" : "text-zinc-900 dark:text-white"
                     )}
                   >
-                    {plan.price === 0 ? "Gratuit" : formatRadarPlanPrice(plan.id, { includeSuffix: false })}
+                    {plan.price === 0 ? tShell("free") : formatRadarPlanPrice(plan.id, { includeSuffix: false }, locale)}
                   </p>
                   {plan.price > 0 ? (
                     <span
@@ -346,13 +350,13 @@ export default function PricingPageClient({
                     )}
                   >
                     {owned ? (
-                      "Plan actif"
+                      t("planActive")
                     ) : loadingPlan === checkoutPlan ? (
-                      "Redirection…"
+                      tShell("redirecting")
                     ) : (
                       <>
                         {featured ? <BellRing className="size-4" aria-hidden /> : null}
-                        Activer {plan.name}
+                        {tLanding("activateNamed", { name: plan.name })}
                       </>
                     )}
                   </button>
@@ -367,7 +371,7 @@ export default function PricingPageClient({
                         : "border-zinc-300 text-zinc-800 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-900"
                     )}
                   >
-                    {isAuthenticated ? "Continuer gratuit" : "Créer un compte"}
+                    {isAuthenticated ? t("continueFree") : t("createAccount")}
                   </Link>
                 )}
 
@@ -383,7 +387,7 @@ export default function PricingPageClient({
                 ) : null}
                 {isCurrent ? (
                   <p className="relative mt-2 text-center text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                    Votre plan actuel
+                    {t("yourCurrentPlan")}
                   </p>
                 ) : null}
               </article>
@@ -392,7 +396,7 @@ export default function PricingPageClient({
         </div>
 
         <ul className="mt-8 grid gap-2 sm:grid-cols-3">
-          {RADAR_PRICING_PROOF.map((line) => (
+          {radarPricingProof(locale).map((line) => (
             <li
               key={line}
               className="flex items-start gap-2 rounded-xl border border-zinc-200/70 bg-white/60 px-3 py-2.5 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-zinc-400"
@@ -407,13 +411,13 @@ export default function PricingPageClient({
       <section className="mt-10 rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950 sm:p-8">
         <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Video Pro</h2>
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Générations vidéo illimitées pour fournisseurs — disponible depuis le dashboard produit.
+          {t("videoProBody")}
         </p>
         <Link
           href="/dashboard/supplier"
           className="mt-4 inline-flex text-sm font-medium text-violet-700 hover:underline dark:text-violet-300"
         >
-          Ouvrir le dashboard fournisseur →
+          {t("openSupplierDash")}
         </Link>
       </section>
     </main>

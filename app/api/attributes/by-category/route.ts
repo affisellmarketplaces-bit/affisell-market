@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
-import { categoryAttributesToDto } from "@/lib/category-attribute-api"
+import { resolveRequestLocale } from "@/lib/resolve-request-locale"
+import { categoryAttributesToDto, withDisplayLabels } from "@/lib/category-attribute-api"
 import { resolveCategoryAttributesForFormV2 } from "@/lib/category-attribute-catalog"
 import { genericFallbackRows } from "@/lib/category-attribute-resolution"
 import { mergeMarketplaceStyleSupplements } from "@/lib/marketplace-style-spec-supplements"
@@ -11,6 +12,7 @@ export const dynamic = "force-dynamic"
 const UNCLASSIFIED_STUB_ID = "__aff_universal_specs__"
 
 export async function GET(req: Request) {
+  const locale = await resolveRequestLocale(undefined)
   const { searchParams } = new URL(req.url)
   const categoryId = searchParams.get("categoryId")?.trim()
 
@@ -22,7 +24,7 @@ export async function GET(req: Request) {
       genericFallbackRows(UNCLASSIFIED_STUB_ID)
     )
     return NextResponse.json({
-      attributes: categoryAttributesToDto(rows),
+      attributes: withDisplayLabels(categoryAttributesToDto(rows), locale),
       mode: "unclassified" as const,
       schemaVersion: 2 as const,
     })
@@ -31,7 +33,7 @@ export async function GET(req: Request) {
   try {
     const attributes = await resolveCategoryAttributesForFormV2(categoryId)
     return NextResponse.json({
-      attributes,
+      attributes: withDisplayLabels(attributes, locale),
       mode: "taxonomy" as const,
       schemaVersion: 2 as const,
     })
@@ -39,7 +41,7 @@ export async function GET(req: Request) {
     console.error("[api/attributes/by-category]", e)
     const fallback = mergeMarketplaceStyleSupplements(categoryId, [], genericFallbackRows(categoryId))
     return NextResponse.json({
-      attributes: categoryAttributesToDto(fallback),
+      attributes: withDisplayLabels(categoryAttributesToDto(fallback), locale),
       warning: "taxonomy_db_error",
       schemaVersion: 2 as const,
     })

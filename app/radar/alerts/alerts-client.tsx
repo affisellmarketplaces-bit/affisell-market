@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { useState, useTransition } from "react"
 
 import type { AlertType, Severity } from "@/lib/radar/alerts/types"
@@ -36,26 +37,43 @@ const SEVERITY_CLASS: Record<string, string> = {
   low: "bg-zinc-100 text-zinc-700 border-zinc-200",
 }
 
-function timeAgo(d: string | Date): string {
-  const t = typeof d === "string" ? new Date(d).getTime() : d.getTime()
-  const mins = Math.floor((Date.now() - t) / 60000)
-  if (mins < 1) return "à l’instant"
-  if (mins < 60) return `il y a ${mins} min`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `il y a ${hours}h`
-  const days = Math.floor(hours / 24)
-  return `il y a ${days}j`
+type TFn = (key: string, values?: Record<string, string | number>) => string
+
+const TYPE_KEY: Record<string, string> = {
+  WINNER_NEW: "typeWinnerNew",
+  WINNER_RISING: "typeWinnerRising",
+  PRICE_WAR: "typePriceWar",
+  SATURATION_RISK: "typeSaturationRisk",
+  NEW_LISTING: "typeNewListing",
+  TRENDING_KEYWORD: "typeTrendingKeyword",
 }
 
-function metaBadges(meta: unknown): string[] {
+const SEVERITY_KEY: Record<string, string> = {
+  critical: "sevCritical",
+  high: "sevHigh",
+  medium: "sevMedium",
+  low: "sevLow",
+}
+
+function timeAgo(d: string | Date, t: TFn): string {
+  const ts = typeof d === "string" ? new Date(d).getTime() : d.getTime()
+  const mins = Math.floor((Date.now() - ts) / 60000)
+  if (mins < 1) return t("justNow")
+  if (mins < 60) return t("minAgo", { n: mins })
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return t("hoursAgo", { n: hours })
+  return t("daysAgo", { n: Math.floor(hours / 24) })
+}
+
+function metaBadges(meta: unknown, t: TFn): string[] {
   if (!meta || typeof meta !== "object") return []
   const m = meta as Record<string, unknown>
   const badges: string[] = []
   if (typeof m.rank === "number") badges.push(`#${m.rank}`)
-  if (typeof m.salesEst === "number") badges.push(`${m.salesEst} ventes`)
+  if (typeof m.salesEst === "number") badges.push(t("badgeSales", { n: m.salesEst }))
   if (typeof m.priceDropPct === "number") badges.push(`-${m.priceDropPct}%`)
-  if (typeof m.rankGain === "number") badges.push(`+${m.rankGain} places`)
-  if (typeof m.competitorCount === "number") badges.push(`${m.competitorCount} sellers`)
+  if (typeof m.rankGain === "number") badges.push(t("badgeRankGain", { n: m.rankGain }))
+  if (typeof m.competitorCount === "number") badges.push(t("badgeSellers", { n: m.competitorCount }))
   return badges
 }
 
@@ -70,6 +88,7 @@ export default function RadarAlertsClient({
   severityFilter: string
   typeFilter: string
 }) {
+  const t = useTranslations("radarAlerts")
   const router = useRouter()
   const [alerts, setAlerts] = useState(initialAlerts)
   const [pending, startTransition] = useTransition()
@@ -94,7 +113,7 @@ export default function RadarAlertsClient({
         body: JSON.stringify({ id, read: true }),
       })
       if (!res.ok) {
-        setError("Impossible de marquer comme lu")
+        setError(t("markReadFailed"))
         return
       }
       setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, read: true } : a)))
@@ -107,17 +126,17 @@ export default function RadarAlertsClient({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold text-zinc-900">
-            🚨 Alertes Radar — {unreadCount} non lues
+            {t("heading", { n: unreadCount })}
           </h2>
           <p className="mt-1 text-sm text-zinc-500">
-            WINNER DETECTED avant tes concurrents — scan alertes toutes les 4h.
+            {t("subtitle")}
           </p>
         </div>
         <Link
           href="/radar/alerts/settings"
           className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-50"
         >
-          Intégrations Slack
+          {t("slackIntegrations")}
         </Link>
       </div>
 
@@ -127,18 +146,18 @@ export default function RadarAlertsClient({
           value={severityFilter || "all"}
           onChange={(e) => applyFilters({ severity: e.target.value })}
         >
-          <option value="all">Severity: all</option>
-          <option value="critical">critical</option>
-          <option value="high">high</option>
-          <option value="medium">medium</option>
-          <option value="low">low</option>
+          <option value="all">{t("sevAll")}</option>
+          <option value="critical">{t("sevCritical")}</option>
+          <option value="high">{t("sevHigh")}</option>
+          <option value="medium">{t("sevMedium")}</option>
+          <option value="low">{t("sevLow")}</option>
         </select>
         <select
           className="rounded-md border border-zinc-200 bg-white px-2 py-1.5 text-sm"
           value={typeFilter || "all"}
           onChange={(e) => applyFilters({ type: e.target.value })}
         >
-          <option value="all">Type: all</option>
+          <option value="all">{t("typeAll")}</option>
           {(
             [
               "WINNER_NEW",
@@ -147,9 +166,9 @@ export default function RadarAlertsClient({
               "SATURATION_RISK",
               "NEW_LISTING",
             ] as AlertType[]
-          ).map((t) => (
-            <option key={t} value={t}>
-              {t}
+          ).map((ty) => (
+            <option key={ty} value={ty}>
+              {t(TYPE_KEY[ty] ?? "typeAll")}
             </option>
           ))}
         </select>
@@ -163,14 +182,13 @@ export default function RadarAlertsClient({
 
       {alerts.length === 0 ? (
         <div className="rounded-xl border border-zinc-200 bg-white p-8 text-sm text-zinc-600">
-          Aucune alerte. Radar scanne toutes les 4h. Ajoute une intégration Slack pour ne rien
-          rater.
+          {t("empty")}
         </div>
       ) : (
         <ul className="space-y-3">
           {alerts.map((alert) => {
             const sev = alert.severity as Severity
-            const badges = metaBadges(alert.meta)
+            const badges = metaBadges(alert.meta, t)
             return (
               <li
                 key={alert.id}
@@ -186,15 +204,15 @@ export default function RadarAlertsClient({
                           SEVERITY_CLASS[sev] ?? SEVERITY_CLASS.low
                         }`}
                       >
-                        {alert.severity}
+                        {SEVERITY_KEY[alert.severity] ? t(SEVERITY_KEY[alert.severity]!) : alert.severity}
                       </span>
                       <span className="text-sm" aria-hidden>
                         {TYPE_ICON[alert.type] ?? "🚨"}
                       </span>
                       <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                        {alert.type}
+                        {TYPE_KEY[alert.type] ? t(TYPE_KEY[alert.type]!) : alert.type}
                       </span>
-                      <span className="text-xs text-zinc-400">{timeAgo(alert.createdAt)}</span>
+                      <span className="text-xs text-zinc-400">{timeAgo(alert.createdAt, t)}</span>
                     </div>
                     <h3 className="mt-2 text-sm font-semibold text-zinc-900">{alert.title}</h3>
                     <p className="mt-1 text-sm text-zinc-600">{alert.message}</p>
@@ -222,14 +240,14 @@ export default function RadarAlertsClient({
                         onClick={() => markRead(alert.id)}
                         className="rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
                       >
-                        Marquer lu
+                        {t("markRead")}
                       </button>
                     )}
                     <Link
                       href={`/radar/winners?productId=${encodeURIComponent(alert.productId ?? "")}`}
                       className="rounded-md bg-zinc-900 px-3 py-1.5 text-center text-xs font-medium text-white hover:bg-zinc-800"
                     >
-                      Voir produit
+                      {t("viewProduct")}
                     </Link>
                   </div>
                 </div>

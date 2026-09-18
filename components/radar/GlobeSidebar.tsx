@@ -2,7 +2,9 @@
 
 import Link from "next/link"
 import { X } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
+import type { AppLocale } from "@/lib/i18n-locale"
 import type { LiveEvent } from "@/lib/radar/live-types"
 
 type Props = {
@@ -10,14 +12,20 @@ type Props = {
   onClose: () => void
 }
 
-function money(price: number) {
-  return price.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })
+const NUMBER_LOCALE: Record<AppLocale, string> = {
+  fr: "fr-FR", en: "en-US", de: "de-DE", es: "es-ES", it: "it-IT", nl: "nl-NL", pl: "pl-PL", zh: "zh-CN",
+}
+
+function money(price: number, numLocale: string) {
+  return price.toLocaleString(numLocale, { style: "currency", currency: "EUR" })
 }
 
 /**
  * Product detail drawer for a selected Globe pin.
  */
 export function GlobeSidebar({ event, onClose }: Props) {
+  const t = useTranslations("radarGlobe")
+  const numLocale = NUMBER_LOCALE[useLocale() as AppLocale] ?? "en-US"
   const { product, location, salesPerHour, growth, videoUrl, sparkline } = event
   const importUrl = product.supplierUrl?.trim()
     ? `/import?url=${encodeURIComponent(product.supplierUrl.trim())}&auto=1`
@@ -37,7 +45,7 @@ export function GlobeSidebar({ event, onClose }: Props) {
         type="button"
         onClick={onClose}
         className="absolute right-4 top-4 rounded-full p-2 text-zinc-400 hover:bg-white/10 hover:text-white"
-        aria-label="Fermer"
+        aria-label={t("close")}
       >
         <X className="size-4" />
       </button>
@@ -48,19 +56,19 @@ export function GlobeSidebar({ event, onClose }: Props) {
           <img src={product.image} alt="" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-white/40">
-            Pas d&apos;image
+            {t("noImage")}
           </div>
         )}
       </div>
 
       <h2 className="mt-4 pr-8 text-lg font-bold leading-snug text-white">{product.title}</h2>
       <p className="mt-1 text-sm text-white/50">
-        {money(product.price)} · {product.category}
+        {money(product.price, numLocale)} · {product.category}
       </p>
 
       <div className="mt-3 flex flex-wrap gap-2">
         <span className="rounded-full bg-green-500/20 px-2 py-1 text-xs text-green-400">
-          {salesPerHour} ventes/h
+          {t("salesPerHour", { n: salesPerHour })}
         </span>
         <span className="rounded-full bg-violet-500/20 px-2 py-1 text-xs text-violet-400">
           +{Math.round(growth)}%
@@ -86,7 +94,7 @@ export function GlobeSidebar({ event, onClose }: Props) {
 
       <div className="mt-4">
         <div className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
-          Courbe 24h
+          {t("curve24")}
         </div>
         <div className="mt-2 flex h-16 items-end gap-1">
           {sparkline.map((v, i) => (
@@ -104,13 +112,13 @@ export function GlobeSidebar({ event, onClose }: Props) {
           href={importUrl}
           className="flex h-12 w-full items-center justify-center rounded-full bg-white text-sm font-bold text-black transition hover:bg-zinc-100"
         >
-          Copier ce winner → Import 10s
+          {t("copyWinner")}
         </Link>
         <Link
           href={productHref}
           className="flex h-11 w-full items-center justify-center rounded-full bg-white/10 text-sm text-white transition hover:bg-white/15"
         >
-          Voir fiche complète
+          {t("fullPage")}
         </Link>
       </div>
     </aside>

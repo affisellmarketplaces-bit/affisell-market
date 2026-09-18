@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 import type { RadarImportJobProduct } from "@/lib/radar/radar-import-types"
 
@@ -10,6 +11,7 @@ import type { RadarImportJobProduct } from "@/lib/radar/radar-import-types"
  * Does not modify supplier product forms — surfaces Radar ImportJob data above the wizard.
  */
 export function RadarImportPrefillBanner() {
+  const t = useTranslations("radarShell")
   const searchParams = useSearchParams()
   const jobId = searchParams.get("prefill")?.trim() ?? ""
   const [products, setProducts] = useState<RadarImportJobProduct[]>([])
@@ -61,14 +63,14 @@ export function RadarImportPrefillBanner() {
     <div className="border-b border-violet-200 bg-violet-50/90 px-4 py-3">
       <div className="mx-auto max-w-6xl">
         <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
-          Import Radar · job {jobId.slice(0, 8)}…
+          {t("prefillTitle", { id: jobId.slice(0, 8) })}
         </p>
         {loading ? (
-          <p className="mt-1 text-sm text-violet-900">Chargement des winners…</p>
+          <p className="mt-1 text-sm text-violet-900">{t("prefillLoading")}</p>
         ) : error ? (
-          <p className="mt-1 text-sm text-amber-800">Impossible de charger le job ({error}).</p>
+          <p className="mt-1 text-sm text-amber-800">{t("prefillError", { error })}</p>
         ) : products.length === 0 ? (
-          <p className="mt-1 text-sm text-violet-900">Aucun produit dans ce job.</p>
+          <p className="mt-1 text-sm text-violet-900">{t("prefillEmpty")}</p>
         ) : (
           <ul className="mt-2 flex flex-wrap gap-2">
             {products.slice(0, 6).map((p) => (
@@ -86,12 +88,12 @@ export function RadarImportPrefillBanner() {
               </li>
             ))}
             {products.length > 6 ? (
-              <li className="self-center text-xs text-violet-700">+{products.length - 6} autres</li>
+              <li className="self-center text-xs text-violet-700">{t("prefillMore", { n: products.length - 6 })}</li>
             ) : null}
           </ul>
         )}
         <p className="mt-2 text-[11px] text-violet-800">
-          Données pré-remplies depuis World Radar — complétez le formulaire ci-dessous.
+          {t("prefillNote")}
         </p>
       </div>
     </div>

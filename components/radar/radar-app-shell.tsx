@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { useTranslations } from "next-intl"
 import { Suspense, useEffect } from "react"
 
 import { RadarCheckoutActivator } from "@/components/radar/radar-checkout-activator"
@@ -22,6 +23,7 @@ export default function RadarAppShell({
   children: React.ReactNode
   unreadCount?: number
 }) {
+  const t = useTranslations("radarPages")
   const { data: session, status } = useSession()
   const router = useRouter()
   const pathname = usePathname()
@@ -30,15 +32,15 @@ export default function RadarAppShell({
     pathname === "/radar" || pathname === "/radar/public" || isGlobePage
 
   const nav = [
-    { href: "/radar", label: "Dashboard" },
-    { href: "/radar/connect", label: "Connect" },
-    { href: "/radar/winners", label: "Winners" },
+    { href: "/radar", label: t("navDashboard") },
+    { href: "/radar/connect", label: t("navConnect") },
+    { href: "/radar/winners", label: t("navWinners") },
     {
       href: "/radar/alerts",
-      label: unreadCount > 0 ? `🚨 Alertes ${unreadCount}` : "🚨 Alertes",
+      label: unreadCount > 0 ? t("navAlertsCount", { n: unreadCount }) : t("navAlerts"),
     },
-    { href: "/radar/map", label: "🗺️ Map" },
-    { href: "/radar/globe", label: "Globe LIVE", live: true as const },
+    { href: "/radar/map", label: t("navMap") },
+    { href: "/radar/globe", label: t("navGlobe"), live: true as const },
   ]
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export default function RadarAppShell({
   }, [session, status, router, isPublicRadarHome])
 
   if (status === "loading") {
-    return <div className="mx-auto max-w-5xl px-4 py-16 text-sm text-zinc-500">Chargement…</div>
+    return <div className="mx-auto max-w-5xl px-4 py-16 text-sm text-zinc-500">{t("shellLoading")}</div>
   }
 
   // Public marketing landing OR immersive globe — no app chrome
@@ -73,13 +75,13 @@ export default function RadarAppShell({
               Affisell Radar
             </p>
             <h1 className="text-lg font-semibold text-zinc-900">
-              📡 Affisell Radar — Vois les winners avant tout le monde
+              {t("shellTitle")}
             </h1>
             {showUpgradeHint && (
               <p className="mt-1 text-xs text-amber-700">
-                Mode teaser —{" "}
+                {t("shellTeaser")}{" "}
                 <Link href="/pricing?feature=radar" className="font-semibold underline">
-                  passer Pro
+                  {t("shellGoPro")}
                 </Link>
               </p>
             )}

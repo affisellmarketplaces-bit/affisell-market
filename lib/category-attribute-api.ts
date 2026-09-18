@@ -1,5 +1,8 @@
 import type { CategoryAttribute } from "@prisma/client"
 
+import type { AppLocale } from "@/lib/i18n-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
+
 import type { CategoryAttributeValidationRule } from "@/lib/category-attribute-rules-shared"
 import { parseValidationRule } from "@/lib/category-attribute-rules-shared"
 
@@ -17,6 +20,8 @@ export type CategoryAttributeDto = {
   categoryId: string
   key: string
   label: string
+  /** Localized label for display only; `label` stays canonical (validation, persistence). */
+  displayLabel?: string
   type: string
   unit: string | null
   options: string[]
@@ -60,6 +65,17 @@ export function categoryAttributeToDto(row: CategoryAttribute): CategoryAttribut
     isFilterable: row.isFilterable ?? row.showInFilter,
     appliesToDescendants: row.appliesToDescendants,
   }
+}
+
+/** Adds `displayLabel` from the `categoryAttributes.labels.<key>` catalog; unknown keys keep `label`. */
+export function withDisplayLabels(
+  attrs: CategoryAttributeDto[],
+  locale: AppLocale
+): CategoryAttributeDto[] {
+  return attrs.map((a) => {
+    const localized = tMessage(locale, `categoryAttributes.labels.${a.key}`, "")
+    return localized ? { ...a, displayLabel: localized } : a
+  })
 }
 
 export function categoryAttributesToDto(rows: CategoryAttribute[]): CategoryAttributeDto[] {

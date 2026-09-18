@@ -2,19 +2,25 @@
 
 import dynamic from "next/dynamic"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useState } from "react"
 
 import { GlobeSidebar } from "@/components/radar/GlobeSidebar"
 import { GlobeTicker } from "@/components/radar/GlobeTicker"
 import type { LiveEvent } from "@/lib/radar/live-types"
 
+function GlobeLoading() {
+  const t = useTranslations("radarGlobe")
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-[#050507] text-sm text-white/50">
+      {t("loading")}
+    </div>
+  )
+}
+
 const Globe3D = dynamic(() => import("@/components/radar/Globe3D"), {
   ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 flex items-center justify-center bg-[#050507] text-sm text-white/50">
-      Chargement du globe…
-    </div>
-  ),
+  loading: () => <GlobeLoading />,
 })
 
 function webglSupported(): boolean {
@@ -40,6 +46,7 @@ type LivePayload = {
  * Immersive Trust Radar Globe — client shell (poll /api/radar/live every 10s).
  */
 export function GlobePageClient() {
+  const t = useTranslations("radarGlobe")
   const [events, setEvents] = useState<LiveEvent[]>([])
   const [countries, setCountries] = useState(0)
   const [selected, setSelected] = useState<LiveEvent | null>(null)
@@ -77,15 +84,15 @@ export function GlobePageClient() {
   if (webgl === false) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#050507] px-6 text-center text-white">
-        <p className="text-lg font-semibold">WebGL non supporté sur cet appareil</p>
+        <p className="text-lg font-semibold">{t("noWebgl")}</p>
         <p className="max-w-md text-sm text-white/50">
-          Ouvre la vue tableau Radar pour continuer à tracker les winners.
+          {t("noWebglHint")}
         </p>
         <Link
           href="/radar/map"
           className="rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black"
         >
-          Vue Map / tableau →
+          {t("mapCta")}
         </Link>
       </div>
     )
@@ -109,8 +116,8 @@ export function GlobePageClient() {
               </span>
             </div>
             <p className="mt-1 text-xs text-white/50">
-              {events.length} winners trackés · Refresh 10s · {countries || "—"} pays
-              {error ? " · signal dégradé" : ""}
+              {t("status", { n: events.length, countries: countries || "—" })}
+              {error ? t("degraded") : ""}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -118,19 +125,19 @@ export function GlobePageClient() {
               href="/radar"
               className="rounded-full bg-white/10 px-4 py-2 text-xs text-white hover:bg-white/15"
             >
-              Vue tableau
+              {t("tableView")}
             </Link>
             <Link
               href="/radar/map"
               className="rounded-full bg-white/10 px-4 py-2 text-xs text-white hover:bg-white/15"
             >
-              Map 2D
+              {t("map2d")}
             </Link>
             <Link
               href="/dropforge"
               className="rounded-full bg-white px-4 py-2 text-xs font-bold text-black"
             >
-              Importer un winner →
+              {t("importWinner")}
             </Link>
           </div>
         </div>

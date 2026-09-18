@@ -1,11 +1,17 @@
 import Link from "next/link"
+import { useLocale, useTranslations } from "next-intl"
 
 import RadarTikTokRevenueChart from "@/components/radar/radar-tiktok-revenue-chart"
+import type { AppLocale } from "@/lib/i18n-locale"
 import type { TikTokSalesDashboard } from "@/lib/radar/aggregators/tiktok"
 
-function money(amount: number, currency: string): string {
+const NUMBER_LOCALE: Record<AppLocale, string> = {
+  fr: "fr-FR", en: "en-US", de: "de-DE", es: "es-ES", it: "it-IT", nl: "nl-NL", pl: "pl-PL", zh: "zh-CN",
+}
+
+function money(amount: number, currency: string, numLocale: string): string {
   try {
-    return new Intl.NumberFormat("fr-FR", {
+    return new Intl.NumberFormat(numLocale, {
       style: "currency",
       currency: currency.length === 3 ? currency : "USD",
       maximumFractionDigits: 0,
@@ -15,10 +21,10 @@ function money(amount: number, currency: string): string {
   }
 }
 
-function deltaLabel(pct: number | null): string {
-  if (pct == null) return "n/a vs période préc."
+function deltaLabel(pct: number | null, t: (k: string, v?: Record<string, string>) => string): string {
+  if (pct == null) return t("deltaNa")
   const sign = pct > 0 ? "+" : ""
-  return `${sign}${pct.toFixed(1)}% vs période préc.`
+  return t("deltaVs", { pct: `${sign}${pct.toFixed(1)}%` })
 }
 
 function deltaClass(pct: number | null): string {
@@ -35,18 +41,22 @@ export default function RadarTikTokSalesSection({
   dashboard: TikTokSalesDashboard | null
   hasConnection: boolean
 }) {
+  const t = useTranslations("radarPages")
+  const locale = useLocale() as AppLocale
+  const numLocale = NUMBER_LOCALE[locale] ?? "en-US"
+  const m = (amount: number, currency: string) => money(amount, currency, numLocale)
   if (!hasConnection) {
     return (
       <section className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-6">
-        <h2 className="text-base font-semibold text-zinc-900">Ventes TikTok Shop</h2>
+        <h2 className="text-base font-semibold text-zinc-900">{t("tiktokTitle")}</h2>
         <p className="mt-2 text-sm text-zinc-600">
-          Connecte ton shop TikTok pour voir CA, commandes, frais et top produits dans Radar.
+          {t("tiktokConnectPrompt")}
         </p>
         <Link
           href="/radar/connect"
           className="mt-4 inline-flex rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
         >
-          Connecter TikTok Shop
+          {t("tiktokConnectCta")}
         </Link>
       </section>
     )
@@ -55,8 +65,8 @@ export default function RadarTikTokSalesSection({
   if (!dashboard) {
     return (
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-zinc-900">Ventes TikTok Shop</h2>
-        <p className="mt-2 text-sm text-zinc-600">Chargement des métriques indisponible.</p>
+        <h2 className="text-base font-semibold text-zinc-900">{t("tiktokTitle")}</h2>
+        <p className="mt-2 text-sm text-zinc-600">{t("tiktokMetricsUnavailable")}</p>
       </section>
     )
   }
@@ -68,75 +78,77 @@ export default function RadarTikTokSalesSection({
     <section className="space-y-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-zinc-900">Ventes TikTok Shop (30j)</h2>
+          <h2 className="text-base font-semibold text-zinc-900">{t("tiktokTitle30")}</h2>
           <p className="mt-0.5 text-xs text-zinc-500">
-            Sync auto toutes les 15 min · full sync quotidien 02:00 UTC
+            {t("tiktokSyncNote")}
           </p>
         </div>
         <Link href="/radar/connect" className="text-sm font-medium text-violet-600 hover:text-violet-700">
-          Gérer connexions
+          {t("tiktokManage")}
         </Link>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">CA TikTok</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t("tiktokRevenue")}</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-zinc-900">
-            {money(revenue.amount, currency)}
+            {m(revenue.amount, currency)}
           </p>
           <p className={`mt-1 text-xs ${deltaClass(revenue.deltaPct)}`}>
-            {deltaLabel(revenue.deltaPct)}
+            {deltaLabel(revenue.deltaPct, t)}
           </p>
         </div>
         <div className="rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Commandes</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t("tiktokOrders")}</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-zinc-900">
-            {orders.count.toLocaleString("fr-FR")}
+            {orders.count.toLocaleString(numLocale)}
           </p>
           <p className={`mt-1 text-xs ${deltaClass(orders.deltaPct)}`}>
-            {deltaLabel(orders.deltaPct)}
+            {deltaLabel(orders.deltaPct, t)}
           </p>
         </div>
         <div className="rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Panier moyen</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t("tiktokAov")}</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-zinc-900">
-            {money(aov, currency)}
+            {m(aov, currency)}
           </p>
-          <p className="mt-1 text-xs text-zinc-500">CA / commandes</p>
+          <p className="mt-1 text-xs text-zinc-500">{t("tiktokRevenueOverOrders")}</p>
         </div>
         <div className="rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Frais TikTok</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{t("tiktokFees")}</p>
           <p className="mt-1 text-xl font-semibold tabular-nums text-zinc-900">
-            {money(fees.total, currency)}
+            {m(fees.total, currency)}
           </p>
           <p className="mt-1 text-xs text-zinc-500">
-            plateforme {money(fees.platformFee, currency)} · ship{" "}
-            {money(fees.shippingFee, currency)}
+            {t("tiktokFeesDetail", {
+              platform: m(fees.platformFee, currency),
+              shipping: m(fees.shippingFee, currency),
+            })}
           </p>
         </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-zinc-800">CA TikTok par jour</h3>
+        <h3 className="text-sm font-semibold text-zinc-800">{t("tiktokDaily")}</h3>
         <RadarTikTokRevenueChart data={daily} currency={currency} />
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-zinc-800">Top produits TikTok</h3>
+        <h3 className="text-sm font-semibold text-zinc-800">{t("tiktokTopProducts")}</h3>
         {topProducts.length === 0 ? (
           <p className="mt-3 text-sm text-zinc-600">
-            Aucune commande synchronisée — le cron 15 min ou un webhook peuplera cette table.
+            {t("tiktokNoOrders")}
           </p>
         ) : (
           <div className="mt-3 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
                 <tr>
-                  <th className="px-2 py-2">Image</th>
+                  <th className="px-2 py-2">{t("tiktokColImage")}</th>
                   <th className="px-2 py-2">SKU</th>
-                  <th className="px-2 py-2">Produit</th>
-                  <th className="px-2 py-2">Qty</th>
-                  <th className="px-2 py-2">CA</th>
+                  <th className="px-2 py-2">{t("tiktokColProduct")}</th>
+                  <th className="px-2 py-2">{t("tiktokColQty")}</th>
+                  <th className="px-2 py-2">{t("tiktokColRevenue")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -164,10 +176,10 @@ export default function RadarTikTokSalesSection({
                       </span>
                     </td>
                     <td className="px-2 py-2 tabular-nums text-zinc-700">
-                      {p.qty.toLocaleString("fr-FR")}
+                      {p.qty.toLocaleString(numLocale)}
                     </td>
                     <td className="px-2 py-2 tabular-nums text-zinc-900">
-                      {money(p.revenue, currency)}
+                      {m(p.revenue, currency)}
                     </td>
                   </tr>
                 ))}

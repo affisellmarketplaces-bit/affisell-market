@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 
 import { RadarKindCockpit } from "@/components/radar/radar-kind-cockpit"
 import RadarMarketingLanding from "@/components/radar/radar-marketing-landing"
@@ -12,6 +13,7 @@ import { prisma } from "@/lib/prisma"
 import { getRadarDb } from "@/lib/prisma-radar"
 import { getTikTokSalesDashboard } from "@/lib/radar/aggregators/tiktok"
 import type { TikTokSalesDashboard } from "@/lib/radar/aggregators/tiktok"
+import { countResellersListingSupplier } from "@/lib/radar/supplier-reach.server"
 import { countSupplierFrRadarProducts } from "@/lib/radar/affisell-fr-catalog.server"
 import { resolveRadarDashboardCountry } from "@/lib/radar/dashboard-country.server"
 import { RADAR_DEMO_WINNERS } from "@/lib/radar/demo-data"
@@ -39,6 +41,7 @@ export default async function RadarDashboardPage({
     redirect("/404")
   }
 
+  const t = await getTranslations("radarShell")
   const session = await auth()
   if (!session?.user?.id) {
     return <RadarMarketingLanding />
@@ -57,6 +60,11 @@ export default async function RadarDashboardPage({
     brandName = profile?.name ?? null
   }
 
+  const resellerReach =
+    supplierKind === "producer" && session.user.role === "SUPPLIER"
+      ? await countResellersListingSupplier(session.user.id).catch(() => null)
+      : null
+
   const { planUser, plan } = await loadRadarPlanContext({
     id: session.user.id,
     email: session.user.email,
@@ -74,14 +82,15 @@ export default async function RadarDashboardPage({
         radarPlanId={plan.id}
         role={session.user.role}
         enabled={kindChromeEnabled}
+        resellerReach={resellerReach}
       >
         <div className="space-y-6">
           <RadarPaywallPanel
             plan={plan}
-            reason="Voir winners BR avant tes concurrents — Map, alertes Slack, crawl mondial."
+            reason={t("teaserReason")}
           >
             <div className="p-6">
-              <p className="text-sm font-medium text-zinc-800">Aperçu winners (teaser)</p>
+              <p className="text-sm font-medium text-zinc-800">{t("teaserTitle")}</p>
               <ul className="mt-3 space-y-2">
                 {teaser.map((w) => (
                   <li key={w.id} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm">
@@ -92,9 +101,9 @@ export default async function RadarDashboardPage({
             </div>
           </RadarPaywallPanel>
           <p className="text-center text-sm text-zinc-500">
-            Déjà Pro ?{" "}
+            {t("alreadyPro")}{" "}
             <Link href="/pricing?feature=radar" className="font-medium text-violet-600">
-              Activer Radar
+              {t("activateRadar")}
             </Link>
           </p>
         </div>
@@ -194,11 +203,12 @@ export default async function RadarDashboardPage({
       radarPlanId={plan.id}
       role={session.user.role}
       enabled={kindChromeEnabled}
+      resellerReach={resellerReach}
     >
       <div className="space-y-8">
         {justConnected ? (
           <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            Source connectée avec succès.
+            {t("connectedOk")}
           </div>
         ) : null}
 
@@ -217,18 +227,18 @@ export default async function RadarDashboardPage({
 
         {isSupplierRole && !showDebug ? (
           <section className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-5 shadow-sm">
-            <h2 className="text-base font-semibold text-zinc-900">📦 Tes produits en Radar</h2>
+            <h2 className="text-base font-semibold text-zinc-900">📦 {t("supplierProductsTitle")}</h2>
             <p className="mt-2 text-sm text-zinc-700">
               {supplierFrProductCount > 0
-                ? `${supplierFrProductCount} produit${supplierFrProductCount > 1 ? "s" : ""} actif${supplierFrProductCount > 1 ? "s" : ""} avec Stock FR — Badge 24/48h activé.`
-                : "Publie ton premier produit Stock FR pour apparaître dans le Radar Grossiste."}
+                ? t("supplierProductsActive", { n: supplierFrProductCount })
+                : t("supplierProductsEmpty")}
             </p>
             {supplierFrProductCount === 0 ? (
               <Link
                 href="/supplier/products/new"
                 className="mt-4 inline-flex text-sm font-semibold text-emerald-800 hover:underline"
               >
-                Ajouter un produit Stock FR →
+                {t("addFrProduct")}
               </Link>
             ) : null}
           </section>
@@ -237,14 +247,14 @@ export default async function RadarDashboardPage({
         {showShopsSection ? (
           <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-base font-semibold text-zinc-900">Shops connectés</h2>
+              <h2 className="text-base font-semibold text-zinc-900">{t("shopsTitle")}</h2>
               <Link href="/radar/connect" className="text-sm font-medium text-violet-600">
-                Scanner un marketplace
+                {t("scanMarketplace")}
               </Link>
             </div>
             {shopConnections.length === 0 ? (
               <p className="mt-3 text-sm text-zinc-600">
-                Aucun shop — connecte TikTok, Amazon ou Google Merchant.
+                {t("noShops")}
               </p>
             ) : (
               <ul className="mt-3 flex flex-wrap gap-2">
@@ -263,7 +273,7 @@ export default async function RadarDashboardPage({
 
         {supplierKind === "producer" && brandName ? (
           <p className="text-center text-xs text-violet-600">
-            Mode Producteur — highlight marque « {brandName} » dans les winners FR Affisell.
+            {t("producerNote", { brand: brandName })}
           </p>
         ) : null}
 

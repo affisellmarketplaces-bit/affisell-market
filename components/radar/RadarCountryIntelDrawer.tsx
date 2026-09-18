@@ -3,8 +3,10 @@
 import Image from "next/image"
 import Link from "next/link"
 import { ExternalLink, Radar, X } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { useEffect, useId, useMemo, useState } from "react"
 
+import type { AppLocale } from "@/lib/i18n-locale"
 import { getConnectorById } from "@/lib/radar/connectors/registry"
 import { countryCodeToName, type CountryMapStat } from "@/lib/radar/map/geo"
 import { cn } from "@/lib/utils"
@@ -36,7 +38,14 @@ type Props = {
   onClose: () => void
 }
 
+const NUMBER_LOCALE: Record<AppLocale, string> = {
+  fr: "fr-FR", en: "en-US", de: "de-DE", es: "es-ES", it: "it-IT", nl: "nl-NL", pl: "pl-PL", zh: "zh-CN",
+}
+
 export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
+  const t = useTranslations("radarShell")
+  const locale = useLocale() as AppLocale
+  const numLocale = NUMBER_LOCALE[locale] ?? "en-US"
   const titleId = useId()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -124,13 +133,13 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
   if (!open || !stat) return null
 
   const displayCount = intel?.count ?? stat.count
-  const name = countryCodeToName(stat.country)
+  const name = countryCodeToName(stat.country, locale)
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" role="presentation">
       <button
         type="button"
-        aria-label="Fermer"
+        aria-label={t("drawerClose")}
         className="absolute inset-0 bg-zinc-950/60 backdrop-blur-[2px]"
         onClick={onClose}
       />
@@ -150,17 +159,14 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
           <div>
             <p className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400">
               <Radar className="size-3.5" aria-hidden />
-              Country Intel · 24h
+              {t("drawerEyebrow")}
             </p>
             <h2 id={titleId} className="mt-1 text-xl font-black tracking-tight text-white">
               {name}{" "}
               <span className="font-mono text-sm font-semibold text-zinc-400">({stat.country})</span>
             </h2>
             <p className="mt-1 text-sm text-zinc-400">
-              <span className="font-semibold tabular-nums text-emerald-300">
-                {displayCount.toLocaleString("fr-FR")}
-              </span>{" "}
-              produits Radar (snapshots) — pas le catalogue Affisell
+              {t("drawerCount", { n: displayCount.toLocaleString(numLocale) })}
             </p>
           </div>
           <button
@@ -174,7 +180,7 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
 
         {stat.topProductTitle ? (
           <div className="relative z-10 mx-5 mt-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2.5 text-xs">
-            <p className="font-semibold uppercase tracking-wide text-emerald-300">Top signal</p>
+            <p className="font-semibold uppercase tracking-wide text-emerald-300">{t("drawerTopSignal")}</p>
             <p className="mt-1 line-clamp-2 text-zinc-100">{stat.topProductTitle}</p>
           </div>
         ) : null}
@@ -190,7 +196,7 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
 
           {error ? (
             <p className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-3 text-sm text-red-200">
-              Impossible de charger les winners Radar ({error}).
+              {t("drawerLoadError", { error })}
             </p>
           ) : null}
 
@@ -198,7 +204,7 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
             <>
               {intel.demo ? (
                 <p className="mb-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-[11px] text-amber-100">
-                  Mode demo — échantillon. Le compteur map reste la référence 24h.
+                  {t("drawerDemo")}
                 </p>
               ) : null}
               {marketMix.length > 0 ? (
@@ -213,7 +219,7 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
                         : "bg-white/5 text-zinc-400 ring-1 ring-white/10 hover:text-zinc-200"
                     )}
                   >
-                    All · {intel.products.length}
+                    {t("drawerAll", { n: intel.products.length })}
                   </button>
                   {marketMix.map((m) => (
                     <button
@@ -233,11 +239,12 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
                 </div>
               ) : null}
               <p className="mb-3 text-[11px] text-zinc-500">
-                Affichage {visibleProducts.length.toLocaleString("fr-FR")}
                 {marketFilter === "all"
-                  ? ` / ${displayCount.toLocaleString("fr-FR")}`
-                  : ""}{" "}
-                · mix multi-market (cap Amazon) · tri demande
+                  ? t("drawerShowingOf", {
+                      shown: visibleProducts.length.toLocaleString(numLocale),
+                      total: displayCount.toLocaleString(numLocale),
+                    })
+                  : t("drawerShowing", { shown: visibleProducts.length.toLocaleString(numLocale) })}
               </p>
               <ul className="space-y-2">
                 {visibleProducts.map((p, idx) => {
@@ -263,11 +270,11 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
                         <p className="line-clamp-2 text-sm font-semibold text-zinc-50">{p.title}</p>
                         <p className="mt-0.5 text-[11px] text-zinc-500">
                           #{idx + 1}
-                          {p.rank != null ? ` · rank ${p.rank}` : ""}
+                          {p.rank != null ? ` · ${t("drawerRank", { n: p.rank })}` : ""}
                           {" · "}
                           {connector?.name ?? p.marketplaceId}
                           {p.salesEst != null
-                            ? ` · demande ${p.salesEst.toLocaleString("fr-FR")}`
+                            ? ` · ${t("drawerDemand", { n: p.salesEst.toLocaleString(numLocale) })}`
                             : ""}
                         </p>
                       </div>
@@ -298,7 +305,7 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
                 })}
               </ul>
               {visibleProducts.length === 0 ? (
-                <p className="text-sm text-zinc-400">Aucun snapshot 24h pour ce filtre.</p>
+                <p className="text-sm text-zinc-400">{t("drawerNoSnapshots")}</p>
               ) : null}
             </>
           ) : null}
@@ -310,10 +317,10 @@ export function RadarCountryIntelDrawer({ open, stat, onClose }: Props) {
             className="flex w-full items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-cyan-500 px-4 py-2.5 text-sm font-bold text-zinc-950 shadow-lg shadow-emerald-500/20"
             onClick={onClose}
           >
-            Voir la liste complète ({displayCount.toLocaleString("fr-FR")})
+            {t("drawerViewAll", { n: displayCount.toLocaleString(numLocale) })}
           </Link>
           <p className="mt-2 text-center text-[10px] text-zinc-500">
-            Liens externes = marketplaces crawlées · marge Affisell jamais exposée ici
+            {t("drawerFooter")}
           </p>
         </footer>
       </aside>
