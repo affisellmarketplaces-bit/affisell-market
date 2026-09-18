@@ -5,7 +5,8 @@ import { PrismaClient } from "@prisma/client"
 import { syncVariantAttributeValues } from "@/lib/variant-attribute-values"
 
 const prisma = new PrismaClient()
-const RUN_DB = Boolean(process.env.DATABASE_URL?.trim())
+// Writes real rows: opt in explicitly, never just because DATABASE_URL is set.
+const RUN_DB = process.env.RUN_DB_TESTS === "1" && Boolean(process.env.DATABASE_URL?.trim())
 
 describe.skipIf(!RUN_DB)("category attribute v2 — parent product + 6 variants", () => {
   const cleanup: {
