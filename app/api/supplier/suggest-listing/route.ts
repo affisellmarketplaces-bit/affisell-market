@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { suggestListingCategories } from "@/lib/supplier-suggest-listing"
 import { isDurableListingImageUrl } from "@/lib/supplier-auto-category-policy"
 import { prisma } from "@/lib/prisma"
+import { resolveRequestLocale } from "@/lib/resolve-request-locale"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -34,10 +35,12 @@ export async function POST(req: Request) {
       ? body.imageUrl.trim()
       : undefined
 
+  const locale = await resolveRequestLocale(undefined)
   const result = await suggestListingCategories(title, description, prisma, {
     imageUrl,
     supplierId: session.user.id,
     bullets,
+    locale,
   })
   return NextResponse.json(result)
 }

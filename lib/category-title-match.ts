@@ -337,7 +337,20 @@ const PRODUCT_INTENTS: ProductIntent[] = [
     id: "headphones",
     match: /\b(ecouteurs?|casque|airpods|earbuds|headphones)\b/i,
     boost: [/ecouteurs?/i, /casques?/i, /audio/i],
-    penalize: [/connecteur/i, /composant/i],
+    /** Parts/accessories share the "écouteurs/casques" wording but aren't the product itself. */
+    penalize: [
+      /connecteur/i,
+      /composant/i,
+      /embouts?/i,
+      /mousses?/i,
+      /housses?/i,
+      /etuis?/i,
+      /coques?/i,
+      /pieces?\s+detach/i,
+      /cables?/i,
+      /chargeurs?/i,
+      /supports?/i,
+    ],
   },
   {
     id: "car_infotainment",

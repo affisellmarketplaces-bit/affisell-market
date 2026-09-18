@@ -43,11 +43,14 @@ function newVariantId(): string {
   return `tv-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
 }
 
-function titleScore(len: number): { label: string; tone: "good" | "warn" | "bad" } {
-  if (len >= 45 && len <= 110) return { label: "Longueur optimale SEO", tone: "good" }
-  if (len >= 25 && len < 45) return { label: "Un peu court — enrichir le bénéfice", tone: "warn" }
-  if (len > 110) return { label: "Trop long — risque de troncature", tone: "bad" }
-  return { label: "Titre trop court", tone: "bad" }
+function titleScore(
+  len: number,
+  t: ReturnType<typeof useTranslations>
+): { label: string; tone: "good" | "warn" | "bad" } {
+  if (len >= 45 && len <= 110) return { label: t("scoreOptimalSeo"), tone: "good" }
+  if (len >= 25 && len < 45) return { label: t("scoreTooShortEnrich"), tone: "warn" }
+  if (len > 110) return { label: t("scoreTooLong"), tone: "bad" }
+  return { label: t("scoreTitleTooShort"), tone: "bad" }
 }
 
 export function SupplierTitleOptimizer({
@@ -70,7 +73,7 @@ export function SupplierTitleOptimizer({
   const [insight, setInsight] = useState("")
   const [keywords, setKeywords] = useState<string[]>([])
 
-  const score = useMemo(() => titleScore(title.trim().length), [title])
+  const score = useMemo(() => titleScore(title.trim().length, t), [title, t])
 
   const updateVariantText = useCallback((id: string, text: string) => {
     setVariantRows((prev) => prev.map((row) => (row.id === id ? { ...row, text } : row)))
@@ -123,10 +126,10 @@ export function SupplierTitleOptimizer({
         insight?: string
       }
       if (!res.ok) {
-        const raw = typeof data.error === "string" ? data.error : "Génération impossible"
+        const raw = typeof data.error === "string" ? data.error : t("generationFailedError")
         const safe =
           raw.startsWith("{") || /model_not_found|llama-4-scout|"error"/i.test(raw)
-            ? "Optimisation IA indisponible — réessayez."
+            ? t("aiUnavailableError")
             : raw
         throw new Error(safe)
       }

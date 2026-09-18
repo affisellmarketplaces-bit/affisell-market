@@ -88,11 +88,12 @@ export function ResellerQuotesComparator({
         })
       }
 
-      toast.success(tQuotes("toastAcceptSuccess"))
       const listingId = json.affiliateProductId
       if (listingId) {
+        toast.success(tQuotes("toastAcceptSuccess"))
         router.push(`${AFFILIATE_CATALOG_PATH}?editListing=${encodeURIComponent(listingId)}`)
       } else {
+        toast.success(tQuotes("toastAcceptSuccessDraftPending"))
         router.refresh()
       }
     } catch {

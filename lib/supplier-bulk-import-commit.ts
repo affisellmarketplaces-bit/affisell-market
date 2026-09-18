@@ -7,19 +7,27 @@ import { parseProductAttributesBody } from "@/lib/supplier-product-attributes"
 import { parseSupplierProductShippingBody } from "@/lib/supplier-product-shipping"
 import type { ParsedBulkProductRow } from "@/lib/supplier-bulk-excel"
 import { normalizeAffiliateCommissionRatePct } from "@/lib/supplier-commission"
+import { tMessage } from "@/lib/i18n-pick-message"
+import type { AppLocale } from "@/lib/i18n-locale"
 
-export function assertParsedBulkProductRow(row: ParsedBulkProductRow): string | null {
-  if (!row.name.trim()) return "Missing name"
-  if (!Number.isFinite(row.priceEur) || row.priceEur <= 0) return "Invalid price"
-  if (!row.images.length) return "Missing images"
+const BV = "supplier.bulkExcelValidation"
+
+export function assertParsedBulkProductRow(
+  row: ParsedBulkProductRow,
+  locale: AppLocale = "en"
+): string | null {
+  const t = (key: string) => tMessage(locale, `${BV}.${key}`)
+  if (!row.name.trim()) return t("missingNameShort")
+  if (!Number.isFinite(row.priceEur) || row.priceEur <= 0) return t("invalidPriceShort")
+  if (!row.images.length) return t("missingImagesShort")
   const comm = normalizeAffiliateCommissionRatePct(row.commissionPct, row.listingKind)
   if (!comm.ok) return comm.error
   if (row.compareAtEur != null && row.compareAtEur > 0) {
     const pc = Math.round(row.priceEur * 100)
     const cc = Math.round(row.compareAtEur * 100)
-    if (cc <= pc) return "Compare-at must exceed price"
+    if (cc <= pc) return t("compareAtMustExceedShort")
     const discountPct = ((cc - pc) / cc) * 100
-    if (discountPct > 70) return "Compare-at discount over 70%"
+    if (discountPct > 70) return t("compareAtDiscountOverShort")
   }
   return null
 }
@@ -27,9 +35,11 @@ export function assertParsedBulkProductRow(row: ParsedBulkProductRow): string | 
 export async function insertBulkParsedProduct(
   supplierId: string,
   categoryId: string,
-  row: ParsedBulkProductRow
+  row: ParsedBulkProductRow,
+  source: "csv-import" | "excel-bulk" = "excel-bulk",
+  locale: AppLocale = "en"
 ): Promise<{ id: string; name: string }> {
-  const err = assertParsedBulkProductRow(row)
+  const err = assertParsedBulkProductRow(row, locale)
   if (err) throw new Error(err)
 
   const normalizedPriceCents = Math.max(100, Math.round(row.priceEur * 100))
@@ -49,7 +59,7 @@ export async function insertBulkParsedProduct(
   const attr = parseProductAttributesBody({
     categories: [],
     colors: [],
-    tags: ["excel-bulk"],
+    tags: [source],
   })
 
   const product = await prisma.$transaction(async (tx) => {
@@ -86,7 +96,7 @@ export async function insertBulkParsedProduct(
         shippingMethods: ship.shippingMethods,
         freeShippingThreshold: ship.freeShippingThreshold,
         shippingCost: ship.shippingCost,
-        supplierTag: "excel-bulk",
+        supplierTag: source,
       },
     })
 

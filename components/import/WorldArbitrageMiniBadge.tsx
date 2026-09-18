@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 
 import { formatEnrichEuro } from "@/lib/import/smart-import-enricher"
 import { canViewResellerMargin } from "@/lib/radar/radar-price-veil"
@@ -19,6 +20,7 @@ export function WorldArbitrageMiniBadge({
   row: WorldRadarWinnerDto
   userRole?: string | null
 }) {
+  const t = useTranslations("importPage")
   const [open, setOpen] = useState(false)
   const showResellerEconomics = canViewResellerMargin(userRole) && !row.priceVeiled
 
@@ -33,11 +35,11 @@ export function WorldArbitrageMiniBadge({
     return (
       <span
         className="mt-1.5 inline-flex flex-wrap items-center gap-1 rounded border border-violet-700/30 bg-zinc-950 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-violet-200"
-        title="Score demande mondiale — prix vitrine masqué (réservé revendeurs)"
+        title={t("arbWorldDemandTip")}
       >
         <span>{score}/100</span>
         <span className="text-zinc-500">·</span>
-        <span>Demande mondiale</span>
+        <span>{t("arbWorldDemand")}</span>
       </span>
     )
   }
@@ -52,7 +54,10 @@ export function WorldArbitrageMiniBadge({
   const us = scan.bestTargets.find((t) => t.country === "US")
   const sa = scan.bestTargets.find((t) => t.country === "SA")
 
-  const tip = `Meilleur arbitrage: Vendre en ${scan.bestOpportunity.country} pour +${formatEnrichEuro(scan.bestOpportunity.margin)}€`
+  const tip = t("arbBestTip", {
+    country: scan.bestOpportunity.country,
+    margin: formatEnrichEuro(scan.bestOpportunity.margin),
+  })
 
   return (
     <button

@@ -14,6 +14,7 @@ import {
   type PanInfo,
 } from "framer-motion"
 import { Heart, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { AffiliatePromoProductCard } from "@/components/affiliate/affiliate-promo-product-card"
 import type { SwipeFeedProduct } from "@/lib/affiliate-swipe-feed-types"
@@ -41,6 +42,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
   { product, stackIndex, isTop, markupRate, onSwipeComplete, onDragProgress },
   ref
 ) {
+  const t = useTranslations("affiliate.swipeFeed")
   const x = useMotionValue(0)
   const exitingRef = useRef(false)
 
@@ -205,7 +207,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
               <div className="flex items-center gap-2 rounded-2xl border-2 border-emerald-500 bg-white/95 px-3.5 py-2 shadow-lg shadow-emerald-500/20 backdrop-blur-sm dark:bg-zinc-950/95">
                 <Heart className="size-5 fill-emerald-500 text-emerald-500" aria-hidden />
                 <span className="text-sm font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
-                  Éditer
+                  {t("stampEdit")}
                 </span>
               </div>
             </motion.div>
@@ -217,7 +219,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
               <div className="flex items-center gap-2 rounded-2xl border-2 border-rose-500 bg-white/95 px-3.5 py-2 shadow-lg shadow-rose-500/20 backdrop-blur-sm dark:bg-zinc-950/95">
                 <X className="size-5 text-rose-500" aria-hidden />
                 <span className="text-sm font-black uppercase tracking-wider text-rose-700 dark:text-rose-300">
-                  Passer
+                  {t("stampPass")}
                 </span>
               </div>
             </motion.div>

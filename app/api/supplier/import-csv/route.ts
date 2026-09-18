@@ -26,22 +26,37 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
+/**
+ * Resolves a free-text category name to a leaf category id, preferring precision over recall:
+ * exact (case-insensitive) leaf match first, then the shortest fuzzy leaf match (closest to the
+ * literal name rather than an arbitrary DB-order pick), falling back to any category as a last
+ * resort so an odd label still lands somewhere instead of failing outright.
+ */
 async function resolveCategoryIdByName(name: string): Promise<string | null> {
   const trimmed = name.trim()
   if (!trimmed) return null
 
-  const candidates = await prisma.category.findMany({
-    where: { name: { contains: trimmed, mode: "insensitive" } },
+  const exact = await prisma.category.findFirst({
+    where: { name: { equals: trimmed, mode: "insensitive" }, isLeaf: true },
+    select: { id: true },
+  })
+  if (exact) return exact.id
+
+  const fuzzyLeaves = await prisma.category.findMany({
+    where: { name: { contains: trimmed, mode: "insensitive" }, isLeaf: true },
     take: 20,
     select: { id: true, name: true },
   })
-  if (candidates.length === 0) return null
-
-  for (const c of candidates) {
-    const childCount = await prisma.category.count({ where: { parentId: c.id } })
-    if (childCount === 0) return c.id
+  if (fuzzyLeaves.length > 0) {
+    fuzzyLeaves.sort((a, b) => a.name.length - b.name.length)
+    return fuzzyLeaves[0]!.id
   }
-  return candidates[0]?.id ?? null
+
+  const anyMatch = await prisma.category.findFirst({
+    where: { name: { contains: trimmed, mode: "insensitive" } },
+    select: { id: true },
+  })
+  return anyMatch?.id ?? null
 }
 
 async function requireSupplier() {
@@ -198,6 +213,18 @@ export async function POST(req: Request) {
 
   const mapped = mapSupplierCsvRows(rawRows, mapping)
 
+  /** Resolve each distinct category name once so a bad label surfaces before publish, not after. */
+  const categoryIdByName = new Map<string, string | null>()
+  for (const row of mapped) {
+    if (!row.categoryName || categoryIdByName.has(row.categoryName)) continue
+    categoryIdByName.set(row.categoryName, await resolveCategoryIdByName(row.categoryName))
+  }
+  for (const row of mapped) {
+    if (row.categoryName && categoryIdByName.get(row.categoryName) == null) {
+      row.errors.push("category_not_found")
+    }
+  }
+
   if (action === "preview") {
     const preview = mapped.slice(0, SUPPLIER_CSV_PREVIEW_COUNT)
     const valid = mapped.filter((r) => r.errors.length === 0).length
@@ -224,14 +251,19 @@ export async function POST(req: Request) {
       continue
     }
 
-    const categoryId = await resolveCategoryIdByName(row.categoryName)
+    const categoryId = categoryIdByName.get(row.categoryName)
     if (!categoryId) {
       failed.push({ index: row.index, error: "category_not_found" })
       continue
     }
 
     try {
-      const product = await insertBulkParsedProduct(supplierId, categoryId, toBulkProductRow(row))
+      const product = await insertBulkParsedProduct(
+        supplierId,
+        categoryId,
+        toBulkProductRow(row),
+        "csv-import"
+      )
       created.push(product)
     } catch (e) {
       failed.push({

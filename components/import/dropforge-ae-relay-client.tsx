@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { CheckCircle2, Loader2, Sparkles, Zap } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { buildAeCaptureWindowName } from "@/lib/fulfillment/ae-capture-token"
 import {
@@ -32,8 +33,9 @@ export function DropForgeAeRelayClient({
   aeUrl,
   appOrigin,
 }: Props) {
+  const t = useTranslations("importPage")
   const [status, setStatus] = useState<"opening" | "waiting" | "done" | "error">("opening")
-  const [detail, setDetail] = useState<string | null>("Ouverture AliExpress dans votre navigateur…")
+  const [detail, setDetail] = useState<string | null>(t("relayOpening"))
   const pollRef = useRef<number | null>(null)
   const doneRef = useRef(false)
   const aeWinRef = useRef<Window | null>(null)
@@ -77,10 +79,10 @@ export function DropForgeAeRelayClient({
         )
       }
       setStatus("done")
-      setDetail("Produit capturé — retour à DropForge…")
+      setDetail(t("relayDone"))
       window.setTimeout(() => window.close(), 800)
     },
-    [appOrigin, relayKey, sessionId, stopPolling]
+    [appOrigin, relayKey, sessionId, stopPolling, t]
   )
 
   const startPolling = useCallback(() => {
@@ -91,9 +93,7 @@ export function DropForgeAeRelayClient({
       if (attempts > POLL_MAX) {
         stopPolling()
         setStatus("error")
-        setDetail(
-          "Délai dépassé — sur AliExpress, cliquez le favori « Affisell Import AE » ou réouvrez la page."
-        )
+        setDetail(t("relayTimeout"))
         return
       }
       void fetch(`/api/dropforge/ae-capture/${encodeURIComponent(relayKey)}/poll?consume=1`, {
@@ -108,26 +108,24 @@ export function DropForgeAeRelayClient({
         })
         .catch(() => {})
     }, POLL_MS)
-  }, [captureToken, notifyOpenerAndClose, relayKey, sessionId, stopPolling])
+  }, [captureToken, notifyOpenerAndClose, relayKey, sessionId, stopPolling, t])
 
   const tryAutoCapture = useCallback(() => {
     const win = aeWinRef.current
     if (!win || win.closed) return
     try {
       win.location.href = bookmarkletHref
-      setDetail("Capture automatique en cours sur AliExpress…")
+      setDetail(t("relayAuto"))
     } catch {
-      setDetail(
-        "Page AliExpress ouverte — si rien ne se passe, cliquez le favori « Affisell Import AE »."
-      )
+      setDetail(t("relayAutoBlocked"))
     }
-  }, [bookmarkletHref])
+  }, [bookmarkletHref, t])
 
   const openAliExpress = useCallback(() => {
     const aeWin = window.open("about:blank", "affisellDropForgeAe")
     if (!aeWin) {
       setStatus("error")
-      setDetail("Popup bloquée — autorisez les popups pour affisell.com.")
+      setDetail(t("relayPopupBlocked"))
       return false
     }
     aeWinRef.current = aeWin
@@ -139,15 +137,15 @@ export function DropForgeAeRelayClient({
     }
     window.setTimeout(() => tryAutoCapture(), AUTO_RUN_MS)
     return true
-  }, [aeTarget, tryAutoCapture, windowName])
+  }, [aeTarget, t, tryAutoCapture, windowName])
 
   useEffect(() => {
     startPolling()
     if (!openAliExpress()) return () => stopPolling()
     setStatus("waiting")
-    setDetail("AliExpress s’ouvre — la capture démarre automatiquement (~6 s).")
+    setDetail(t("relayWaitAuto"))
     return () => stopPolling()
-  }, [openAliExpress, startPolling, stopPolling])
+  }, [openAliExpress, startPolling, stopPolling, t])
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-zinc-950 px-6 text-center text-white">
@@ -164,7 +162,7 @@ export function DropForgeAeRelayClient({
           <Sparkles className="h-4 w-4" aria-hidden />
           DropForge Express Bridge
         </p>
-        <h1 className="mt-2 text-xl font-bold tracking-tight">Import AliExpress navigateur</h1>
+        <h1 className="mt-2 text-xl font-bold tracking-tight">{t("relayTitle")}</h1>
         <p className="mt-3 text-sm text-zinc-400">{detail}</p>
         {status === "waiting" || status === "opening" ? (
           <Loader2 className="mx-auto mt-8 h-10 w-10 animate-spin text-violet-400" aria-hidden />
@@ -183,25 +181,25 @@ export function DropForgeAeRelayClient({
                 startPolling()
                 if (openAliExpress()) {
                   setStatus("waiting")
-                  setDetail("Réessayez — favori Import AE sur la page produit si besoin.")
+                  setDetail(t("relayRetryHint"))
                 }
               }}
             >
-              Rouvrir AliExpress
+              {t("relayReopen")}
             </button>
             <p className="text-xs text-zinc-500">
-              Installez le favori{" "}
+              {t("relayInstallPrefix")}{" "}
               <a href={bookmarkletHref} className="text-violet-300 underline">
                 Affisell Import AE
               </a>{" "}
-              pour capturer manuellement.
+              {t("relayInstallSuffix")}
             </p>
           </div>
         ) : null}
         {status === "waiting" ? (
           <p className="mx-auto mt-6 flex max-w-xs items-center justify-center gap-1.5 text-[11px] text-violet-300/80">
             <Zap className="h-3.5 w-3.5" aria-hidden />
-            Votre navigateur lit la page — Affisell ne peut pas scraper AliExpress côté serveur.
+            {t("relayBrowserReads")}
           </p>
         ) : null}
       </div>

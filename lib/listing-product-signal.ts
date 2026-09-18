@@ -2,6 +2,8 @@ import {
   extractProductTitleTokens,
   scoreProductTextAgainstBreadcrumb,
 } from "@/lib/category-title-match"
+import { tMessage } from "@/lib/i18n-pick-message"
+import type { AppLocale } from "@/lib/i18n-locale"
 
 /** Marketing / logistics noise — must not drive taxonomy. */
 const TITLE_NOISE = new RegExp(
@@ -297,19 +299,24 @@ export function buildListingProductContext(
 }
 
 export function listingProductInsight(
-  ctx: ListingProductContext & { descriptionExcluded?: boolean }
+  ctx: ListingProductContext & { descriptionExcluded?: boolean },
+  locale: AppLocale = "fr"
 ): ListingProductInsight | null {
   if (ctx.title.length < 3) return null
   const name = ctx.productName || ctx.title
+  const ns = "supplier.expressTaxonomy"
   const base =
     ctx.productName.length >= 3 && ctx.productName !== ctx.title
-      ? `Analyse centrée sur « ${name} » (nom extrait du titre)`
-      : `Analyse centrée sur le titre : « ${ctx.title.slice(0, 72)}${ctx.title.length > 72 ? "…" : ""} »`
+      ? tMessage(locale, `${ns}.insightFocusName`).replace("{name}", name)
+      : tMessage(locale, `${ns}.insightFocusTitle`).replace(
+          "{title}",
+          `${ctx.title.slice(0, 72)}${ctx.title.length > 72 ? "…" : ""}`
+        )
 
   return {
     productName: name,
     focusLabel: ctx.descriptionExcluded
-      ? `${base} — description marketing exclue (ne modifie pas les suggestions)`
+      ? `${base}${tMessage(locale, `${ns}.insightDescriptionExcludedSuffix`)}`
       : base,
     descriptionExcluded: Boolean(ctx.descriptionExcluded),
   }

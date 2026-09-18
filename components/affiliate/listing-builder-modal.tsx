@@ -1050,6 +1050,8 @@ function ListingBuilderModalBody({
                 ) : null}
 
                 <AiPricingOptimizer
+                  productId={product.id}
+                  affiliateProductId={listing?.id}
                   supplierPriceEUR={baseEUR}
                   currentPriceEUR={form.priceEUR}
                   onPriceChange={(nextEUR) =>

@@ -29,6 +29,8 @@ import {
   isDurableListingImageUrl,
   shouldAutoApplyCategorySuggestion,
 } from "@/lib/supplier-auto-category-policy"
+import { tMessage } from "@/lib/i18n-pick-message"
+import type { AppLocale } from "@/lib/i18n-locale"
 
 export type ListingCategorySuggestion = LeafPath & {
   confidence?: number
@@ -125,12 +127,14 @@ export async function suggestListingCategories(
     imageUrl?: string | null
     supplierId?: string
     bullets?: string[]
+    locale?: AppLocale
   }
 ): Promise<SuggestListingCategoriesResult> {
   const t = title.trim()
   const rawImage = options?.imageUrl?.trim() || null
   const imageUrl = isDurableListingImageUrl(rawImage) ? rawImage : null
   const visionUsed = Boolean(imageUrl)
+  const locale: AppLocale = options?.locale ?? "fr"
 
   if (!hasListingClassificationSignal(t, imageUrl)) {
     return {
@@ -145,12 +149,17 @@ export async function suggestListingCategories(
     }
   }
 
-  const titleForCtx = t.length >= 2 ? t : visionUsed ? "Produit" : t
+  const titleForCtx =
+    t.length >= 2
+      ? t
+      : visionUsed
+        ? tMessage(locale, "supplier.expressTaxonomy.genericProductFallback")
+        : t
   let ctx = buildListingProductContext(titleForCtx, {
     description: description.trim(),
     bullets: options?.bullets,
   })
-  const insight = listingProductInsight(ctx)
+  const insight = listingProductInsight(ctx, locale)
 
   const rows = await fetchAllCategoriesForBrowse(client)
   const { leafPaths } = buildCategoryBrowse(rows)
@@ -326,7 +335,7 @@ export async function suggestListingCategories(
           /** Cap low — soft rescue must never auto-apply. */
           confidence: Math.min(0.55, 0.28 + score / 50),
           suggestionSource: "keyword" as const,
-          aiReason: "Suggestion de secours — vérifiez avant de publier",
+          aiReason: tMessage(locale, "supplier.expressTaxonomy.insightSoftRescueReason"),
         }
       })
       finalTopScore = soft[0]
@@ -366,14 +375,17 @@ export async function suggestListingCategories(
       ? top.leafId
       : null
 
-  const baseInsight = listingProductInsight(ctx) ?? insight
+  const baseInsight = listingProductInsight(ctx, locale) ?? insight
   const productInsightOut: ListingProductInsight | null = baseInsight
     ? {
         ...baseInsight,
         focusLabel: softRescueUsed
-          ? `${baseInsight.focusLabel} — suggestion de secours (à confirmer)`
+          ? `${baseInsight.focusLabel}${tMessage(locale, "supplier.expressTaxonomy.insightSoftRescueSuffix")}`
           : visionUsed
-            ? `Scan photo + titre → ${baseInsight.productName}`
+            ? tMessage(locale, "supplier.expressTaxonomy.insightVisionScan").replace(
+                "{productName}",
+                baseInsight.productName
+              )
             : baseInsight.focusLabel,
       }
     : null

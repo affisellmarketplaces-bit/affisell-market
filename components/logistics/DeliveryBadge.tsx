@@ -1,3 +1,6 @@
+import { useLocale, useTranslations } from "next-intl"
+
+import type { AppLocale } from "@/lib/i18n-locale"
 import {
   formatQuoteDeliveryCell,
   getDeliveryScore,
@@ -33,18 +36,20 @@ function resolveDeliveryCountries(args: {
 
 /** Visual SLA badge — green boost / orange ok / red penalty. */
 export function DeliveryBadge({ days, country, countries, className, variant = "compact" }: Props) {
+  const locale = useLocale() as AppLocale
+  const t = useTranslations("radarTerminal")
   const marketCodes = resolveDeliveryCountries({ country, countries })
   const scored =
     marketCodes.length > 1
-      ? getDeliveryScoreForCountries(days, marketCodes)
-      : getDeliveryScore(days, marketCodes[0] ?? "FR")
+      ? getDeliveryScoreForCountries(days, marketCodes, locale)
+      : getDeliveryScore(days, marketCodes[0] ?? "FR", locale)
   const primaryCountry = marketCodes[0] ?? "FR"
   const text =
     variant === "full"
       ? marketCodes.length > 1
-        ? `${formatQuoteDeliveryCell(days, primaryCountry)} · ${marketCodes.join(", ")}`
-        : formatQuoteDeliveryCell(days, primaryCountry)
-      : `${days}j ${scored.label}`
+        ? `${formatQuoteDeliveryCell(days, primaryCountry, locale)} · ${marketCodes.join(", ")}`
+        : formatQuoteDeliveryCell(days, primaryCountry, locale)
+      : `${t("dayShort", { n: days })} ${scored.label}`
 
   return (
     <span
@@ -55,8 +60,8 @@ export function DeliveryBadge({ days, country, countries, className, variant = "
       )}
       title={
         marketCodes.length > 1
-          ? `${formatQuoteDeliveryCell(days, primaryCountry)} (${marketCodes.join(", ")})`
-          : formatQuoteDeliveryCell(days, primaryCountry)
+          ? `${formatQuoteDeliveryCell(days, primaryCountry, locale)} (${marketCodes.join(", ")})`
+          : formatQuoteDeliveryCell(days, primaryCountry, locale)
       }
     >
       {variant === "full" ? text : `${scored.emoji} ${text}`}

@@ -5,6 +5,10 @@ import {
   normalizeAffiliateCommissionRatePct,
   parseListingKind,
 } from "@/lib/supplier-commission"
+import { tMessage } from "@/lib/i18n-pick-message"
+import type { AppLocale } from "@/lib/i18n-locale"
+
+const BV = "supplier.bulkExcelValidation"
 
 export const BULK_SHEET_PRODUCTS = "Products"
 export const BULK_SHEET_INSTRUCTIONS = "Instructions"
@@ -106,51 +110,55 @@ export type BulkRowParseResult = {
 
 function parsePositiveDecimal(
   raw: string,
-  field: string
+  field: string,
+  locale: AppLocale
 ): { ok: true; n: number } | { ok: false; error: string } {
   const t = raw.replace(/\s+/g, "").replace(",", ".")
-  if (!t) return { ok: false, error: `${field} is required` }
+  if (!t) return { ok: false, error: tMessage(locale, `${BV}.fieldRequired`).replace("{field}", field) }
   const n = Number(t)
-  if (!Number.isFinite(n) || n <= 0) return { ok: false, error: `${field} must be a positive number` }
+  if (!Number.isFinite(n) || n <= 0)
+    return { ok: false, error: tMessage(locale, `${BV}.fieldMustBePositive`).replace("{field}", field) }
   return { ok: true, n }
 }
 
 export function validateAndParseBulkRow(
   rowNumber: number,
   cells: Record<string, string>,
-  attrDefs: BulkCategoryAttrDef[]
+  attrDefs: BulkCategoryAttrDef[],
+  locale: AppLocale = "en"
 ): BulkRowParseResult {
   const errors: string[] = []
   const warnings: string[] = []
+  const t = (key: string) => tMessage(locale, `${BV}.${key}`)
 
   const name = (cells.name ?? "").trim()
   if (!name) {
-    return { rowNumber, errors: ["Missing name"], warnings: [], data: null }
+    return { rowNumber, errors: [t("missingName")], warnings: [], data: null }
   }
 
   const desc = (cells.description ?? "").trim()
 
   const priceCell = (cells.price_eur ?? cells.price_usd ?? "").trim()
-  const priceR = parsePositiveDecimal(priceCell, "price")
+  const priceR = parsePositiveDecimal(priceCell, "price", locale)
   if (!priceR.ok) errors.push(priceR.error)
 
   let compareAtEur: number | null = null
   const cmpRaw = (cells.compare_at_eur ?? cells.compare_at_usd ?? "").trim()
   if (cmpRaw) {
     const c = Number(cmpRaw.replace(",", "."))
-    if (!Number.isFinite(c) || c <= 0) errors.push("compare_at is invalid")
+    if (!Number.isFinite(c) || c <= 0) errors.push(t("compareAtInvalid"))
     else compareAtEur = c
   }
 
   const stockRaw = (cells.stock ?? "").trim()
   const stock = stockRaw ? Math.max(0, Math.round(Number(stockRaw))) : 0
-  if (stockRaw && !Number.isFinite(Number(stockRaw))) errors.push("stock must be a number")
+  if (stockRaw && !Number.isFinite(Number(stockRaw))) errors.push(t("stockMustBeNumber"))
 
   const listingKind = parseListingKind(cells.listing_kind)
 
   const commRaw = (cells.commission_pct ?? "").trim()
   const commN = commRaw ? Number(commRaw) : defaultAffiliateCommissionPct()
-  if (commRaw && !Number.isFinite(commN)) errors.push("commission_pct invalid")
+  if (commRaw && !Number.isFinite(commN)) errors.push(t("commissionInvalid"))
   const normalizedComm = normalizeAffiliateCommissionRatePct(
     Number.isFinite(commN) ? commN : defaultAffiliateCommissionPct(),
     listingKind
@@ -158,21 +166,21 @@ export function validateAndParseBulkRow(
   if (!normalizedComm.ok) errors.push(normalizedComm.error)
 
   const images = parseImageUrlsCell(cells.images ?? "")
-  if (images.length === 0) errors.push("At least one http(s) image URL is required in images")
+  if (images.length === 0) errors.push(t("imageRequired"))
 
   let priceEur = 0
   if (priceR.ok) priceEur = priceR.n
 
   if (compareAtEur != null && priceEur > 0) {
-    if (compareAtEur <= priceEur) errors.push("compare_at must be greater than base price")
+    if (compareAtEur <= priceEur) errors.push(t("compareAtMustExceedPrice"))
     const discountPct = ((compareAtEur - priceEur) / compareAtEur) * 100
-    if (discountPct > 70) errors.push("compare_at discount cannot exceed 70%")
+    if (discountPct > 70) errors.push(t("compareAtDiscountTooHigh"))
   }
 
   const shippingBody: Record<string, unknown> = {}
   const cc = (cells.shipping_country ?? "").trim().toUpperCase()
   if (cc.length === 2) shippingBody.shippingCountry = cc
-  else if ((cells.shipping_country ?? "").trim()) warnings.push("shipping_country ignored (use ISO-2)")
+  else if ((cells.shipping_country ?? "").trim()) warnings.push(t("shippingCountryIgnored"))
 
   const wt = (cells.warehouse_type ?? "").trim().toLowerCase()
   if (wt === "local" || wt === "regional" || wt === "international") shippingBody.warehouseType = wt
@@ -203,18 +211,21 @@ export function validateAndParseBulkRow(
     const col = attrColumnKey(def.key)
     const raw = (cells[col] ?? "").trim()
     if (!raw) {
-      if (def.required) errors.push(`Required characteristic: ${def.label} (${def.key})`)
+      if (def.required)
+        errors.push(t("requiredCharacteristic").replace("{label}", def.label).replace("{key}", def.key))
       continue
     }
-    const t = def.type?.toUpperCase() ?? "TEXT"
-    if (t === "NUMBER") {
+    const attrType = def.type?.toUpperCase() ?? "TEXT"
+    if (attrType === "NUMBER") {
       const n = Number(raw.replace(",", "."))
-      if (!Number.isFinite(n)) errors.push(`${def.label}: invalid number`)
+      if (!Number.isFinite(n)) errors.push(t("invalidNumberAttr").replace("{label}", def.label))
     }
-    if (t === "SELECT" && def.options.length > 0) {
+    if (attrType === "SELECT" && def.options.length > 0) {
       const ok = def.options.some((o) => o.toLowerCase() === raw.toLowerCase())
       if (!ok) {
-        errors.push(`${def.label}: must be one of: ${def.options.join(", ")}`)
+        errors.push(
+          t("invalidOptionAttr").replace("{label}", def.label).replace("{options}", def.options.join(", "))
+        )
       }
     }
     productAttributes.push({
@@ -374,7 +385,8 @@ export async function buildBulkImportTemplateBuffer(params: {
 
 export async function parseBulkImportWorkbookBuffer(
   buffer: ArrayBuffer,
-  attrDefs: BulkCategoryAttrDef[]
+  attrDefs: BulkCategoryAttrDef[],
+  locale: AppLocale = "en"
 ): Promise<BulkRowParseResult[]> {
   const ExcelJS = (await import("exceljs")).default
   const wb = new ExcelJS.Workbook()
@@ -396,7 +408,7 @@ export async function parseBulkImportWorkbookBuffer(
       continue
     }
     emptyStreak = 0
-    results.push(validateAndParseBulkRow(r, cells, attrDefs))
+    results.push(validateAndParseBulkRow(r, cells, attrDefs, locale))
   }
   return results
 }

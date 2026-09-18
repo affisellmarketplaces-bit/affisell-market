@@ -3,6 +3,7 @@
 import { Film, Loader2, Upload } from "lucide-react"
 import type { ChangeEvent } from "react"
 import { useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -28,6 +29,7 @@ export function SupplierVariantVideoField({
   inputClassName,
   compact = false,
 }: Props) {
+  const t = useTranslations("supplier.descriptionField")
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
 
@@ -39,9 +41,9 @@ export function SupplierVariantVideoField({
     try {
       const url = await uploadSupplierVideoFile(file)
       onChange(url)
-      toast.success("Vidéo importée")
+      toast.success(t("videoImportedToast"))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Import impossible")
+      toast.error(err instanceof Error ? err.message : t("videoImportFailedGeneric"))
     } finally {
       setUploading(false)
     }
@@ -65,7 +67,7 @@ export function SupplierVariantVideoField({
           )}
           value={value ?? ""}
           disabled={disabled || uploading}
-          placeholder="https://… ou fichier"
+          placeholder={t("videoUrlPlaceholder")}
           onChange={(e) => onChange(e.target.value.trim() || null)}
         />
         <input
@@ -83,8 +85,8 @@ export function SupplierVariantVideoField({
           className={cn("shrink-0", compact ? "h-9 w-9" : "h-10 w-10")}
           disabled={disabled || uploading}
           onClick={() => fileRef.current?.click()}
-          aria-label="Importer un fichier vidéo"
-          title="Importer MP4, WebM ou MOV (max 48 Mo)"
+          aria-label={t("importVideoFileAriaLabel")}
+          title={t("importVideoFileTitle")}
         >
           {uploading ? (
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -95,7 +97,7 @@ export function SupplierVariantVideoField({
       </div>
       {!compact ? (
         <p className="text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">
-          Lien YouTube / Vimeo / MP4, ou importez un fichier.
+          {t("videoLinkHint")}
         </p>
       ) : null}
     </div>

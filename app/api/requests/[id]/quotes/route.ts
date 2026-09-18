@@ -4,6 +4,8 @@ import { auth } from "@/auth"
 import { PRODUCT_REQUEST_NOTIF } from "@/lib/product-request-notif-constants"
 import { serializeProductQuote } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
+import { resolveRequestLocale } from "@/lib/resolve-request-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -113,11 +115,15 @@ export async function POST(req: Request, ctx: RouteCtx) {
   })
 
   try {
+    const locale = await resolveRequestLocale(undefined)
+    const message = tMessage(locale, "productRequests.notifications.newQuote")
+      .replace("{price}", String(price))
+      .replace("{title}", request.title)
     await prisma.notification.create({
       data: {
         userId: request.resellerId,
         type: PRODUCT_REQUEST_NOTIF.NEW_QUOTE,
-        message: `Nouveau devis ${price}€ pour ${request.title}`,
+        message,
         imageUrl: request.imageUrl,
         orderId: requestId,
       },

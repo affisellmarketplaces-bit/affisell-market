@@ -9,19 +9,28 @@ import {
 import { BULK_MAX_ROWS_COMMIT } from "@/lib/supplier-bulk-excel"
 import { prisma } from "@/lib/prisma"
 import { parseListingKind } from "@/lib/supplier-commission"
+import { resolveRequestLocale } from "@/lib/resolve-request-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
+import type { AppLocale } from "@/lib/i18n-locale"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-function attrsSatisfyDefs(row: ParsedBulkProductRow, defs: BulkCategoryAttrDef[]): string | null {
+const V = "supplier.bulkExcelValidation"
+
+function attrsSatisfyDefs(
+  row: ParsedBulkProductRow,
+  defs: BulkCategoryAttrDef[],
+  locale: AppLocale
+): string | null {
   const byKey = new Map(row.productAttributes.map((a) => [a.key, a.value.trim()]))
   for (const d of defs) {
     if (!d.required) continue
     const v = byKey.get(d.key) ?? ""
-    if (!v) return `Missing required characteristic: ${d.label}`
+    if (!v) return tMessage(locale, `${V}.missingRequiredCharacteristic`).replace("{label}", d.label)
     if (d.type?.toUpperCase() === "SELECT" && d.options.length > 0) {
       const ok = d.options.some((o) => o.toLowerCase() === v.toLowerCase())
-      if (!ok) return `Invalid option for ${d.label}`
+      if (!ok) return tMessage(locale, `${V}.invalidOptionForLabel`).replace("{label}", d.label)
     }
   }
   return null
@@ -35,6 +44,8 @@ export async function POST(req: Request) {
   if ((session.user as { role?: string }).role !== "SUPPLIER") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
+
+  const locale = await resolveRequestLocale(undefined)
 
   let body: { categoryId?: unknown; rows?: unknown; skipInvalid?: unknown }
   try {
@@ -151,8 +162,8 @@ export async function POST(req: Request) {
 
   for (let i = 0; i < parsedRows.length; i++) {
     const row = parsedRows[i]!
-    const baseErr = assertParsedBulkProductRow(row)
-    const attrErr = attrsSatisfyDefs(row, defs)
+    const baseErr = assertParsedBulkProductRow(row, locale)
+    const attrErr = attrsSatisfyDefs(row, defs, locale)
     const errMsg = baseErr ?? attrErr
     if (errMsg) {
       if (skipInvalid) {
@@ -166,7 +177,7 @@ export async function POST(req: Request) {
     }
 
     try {
-      const p = await insertBulkParsedProduct(supplierId, categoryId, row)
+      const p = await insertBulkParsedProduct(supplierId, categoryId, row, "excel-bulk", locale)
       created.push(p)
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Create failed"

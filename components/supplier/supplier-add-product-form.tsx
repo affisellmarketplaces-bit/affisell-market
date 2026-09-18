@@ -622,7 +622,7 @@ export function SupplierAddProductForm({
   const priceError = useMemo(() => {
     if (variantSkuPricingActive) return null
     const p = Number(price)
-    if (!Number.isFinite(p) || p <= 0) return "Indiquez un prix catalogue valide (EUR)."
+    if (!Number.isFinite(p) || p <= 0) return tForm("priceInvalid")
     return null
   }, [price, variantSkuPricingActive])
 
@@ -630,13 +630,13 @@ export function SupplierAddProductForm({
     if (!compareAt.trim()) return null
     const p = catalogPriceEur ?? Number(price)
     const c = Number(compareAt)
-    if (!Number.isFinite(c) || c <= 0) return "Prix barré invalide."
+    if (!Number.isFinite(c) || c <= 0) return tForm("compareAtInvalid")
     if (Number.isFinite(p) && p > 0 && c <= p) {
-      return "Le prix barré doit être supérieur au prix catalogue."
+      return tForm("compareAtMustExceedPrice")
     }
-    if (discountPct > 70) return "La réduction sur prix barré ne peut pas dépasser 70 %."
+    if (discountPct > 70) return tForm("compareAtDiscountTooHigh")
     return null
-  }, [compareAt, discountPct, catalogPriceEur, price])
+  }, [compareAt, discountPct, catalogPriceEur, price, tForm])
 
   const unitPriceFromVolumeHint = useMemo(() => {
     const raw = specValues.item_volume_ml?.trim().replace(",", ".")
@@ -658,31 +658,31 @@ export function SupplierAddProductForm({
           .filter((r) => r.color.trim())
           .filter((r) => !(Number(r.commissionRate) > 0))
         if (missing.length > 0) {
-          return "Chaque ligne SKU doit avoir une commission affilié > 0 %."
+          return tForm("commissionSkuLineRequired")
         }
       }
-      return "Indiquez la commission offerte aux affiliés sur chaque vente (> 0 %)."
+      return tForm("commissionRequiredHint")
     }
     const n = Number(commission)
-    if (!Number.isFinite(n)) return "Saisissez un pourcentage valide."
+    if (!Number.isFinite(n)) return tForm("commissionInvalidPercent")
     if (n <= 0) {
-      return "La commission affilié doit être supérieure à 0 % sur chaque vente."
+      return tForm("commissionMustBePositive")
     }
     if (n > commissionMax) {
       return listingKind === "PHYSICAL"
-        ? `Produit physique : commission entre 1 % et ${commissionMax} %.`
-        : `La commission doit être entre 1 % et ${commissionMax} %.`
+        ? tForm("commissionPhysicalRange", { max: commissionMax })
+        : tForm("commissionRange", { max: commissionMax })
     }
     if (variantFormMode === "advanced" && hasSkuLines) {
       const missing = advancedSkuRows
         .filter((r) => r.color.trim())
         .filter((r) => !(Number(r.commissionRate) > 0))
       if (missing.length > 0) {
-        return "Chaque ligne SKU doit avoir une commission affilié > 0 %."
+        return tForm("commissionSkuLineRequired")
       }
     }
     return null
-  }, [commission, commissionMax, listingKind, variantFormMode, advancedSkuRows, offerMode])
+  }, [commission, commissionMax, listingKind, variantFormMode, advancedSkuRows, offerMode, tForm])
 
   useEffect(() => {
     if (variantFormMode !== "simple") {
@@ -697,14 +697,17 @@ export function SupplierAddProductForm({
     const filled = advancedSkuRows.filter((r) => r.color.trim())
     if (filled.length === 0) return null
     const sum = sumSkuTableStock(filled)
-    return `Avec les lignes SKU, le stock enregistré est la somme des quantités (${sum} sur ${filled.length} ligne${filled.length > 1 ? "s" : ""}).`
-  }, [variantFormMode, advancedSkuRows])
+    return tForm("variantStockSkuHint", { sum, count: filled.length })
+  }, [variantFormMode, advancedSkuRows, tForm])
 
   const {
     suggestions: categorySuggestions,
     alternatives: categoryAlternativeSuggestions,
     productInsight: categoryProductInsight,
     loading: categorySuggestionsLoading,
+    slow: categorySuggestionsSlow,
+    timedOut: categorySuggestionsTimedOut,
+    retry: retryCategorySuggestions,
     meta: categorySuggestMeta,
   } = useSupplierCategorySuggestions(
     debouncedName,
@@ -744,8 +747,8 @@ export function SupplierAddProductForm({
     if (lastSuggestedTitleRef.current === suggested) return
     lastSuggestedTitleRef.current = suggested
     setName(suggested)
-    toast.info("Nom produit suggéré depuis la photo", { description: suggested })
-  }, [categorySuggestMeta.suggestedProductName, name])
+    toast.info(tForm("titleSuggestedFromPhoto"), { description: suggested })
+  }, [categorySuggestMeta.suggestedProductName, name, tForm])
 
   useEffect(() => {
     const title = debouncedName.trim()
@@ -772,9 +775,9 @@ export function SupplierAddProductForm({
         return changed ? next : prev
       })
       lastTitleParserKeyRef.current = attrKey
-      if (attrs.brand) toast.info(`Marque détectée : ${attrs.brand}`)
+      if (attrs.brand) toast.info(tForm("brandDetected", { brand: attrs.brand }))
     })()
-  }, [debouncedName, browse])
+  }, [debouncedName, browse, tForm])
 
   useEffect(() => {
     let cancelled = false
@@ -980,7 +983,7 @@ export function SupplierAddProductForm({
           qs.delete("edit")
         })
         if (composeQs) setProductIsDraft(true)
-        toast.message("Brouillon introuvable — un nouveau sera créé à la prochaine sauvegarde.")
+        toast.message(tForm("draftNotFoundNewWillBeCreated"))
         return
       }
       if (!res.ok) {
@@ -988,7 +991,7 @@ export function SupplierAddProductForm({
       }
       const rowSupplierId = typeof data.supplierId === "string" ? data.supplierId : ""
       if (rowSupplierId && rowSupplierId !== ownerUserId) {
-        throw new Error("Ce produit n’appartient pas à votre compte fournisseur.")
+        throw new Error(tForm("productNotOwnedError"))
       }
       setName(String(data.name ?? ""))
       setDescription(String(data.description ?? ""))
@@ -1661,7 +1664,7 @@ export function SupplierAddProductForm({
     const cached = readExpressImportDraftCache(ownerUserId)
     if (cached) {
       applyDraftCache(cached, {
-        toastMessage: "Import Express — fiche préremplie dans le wizard Pro",
+        toastMessage: tForm("expressImportPrefilledToast"),
       })
       draftIdRef.current = ""
       setPendingDraftListingId("")
@@ -1792,7 +1795,7 @@ export function SupplierAddProductForm({
             setDraftSync("saved")
             setDraftSyncError(null)
             draftSyncErrorRef.current = null
-            if (!opts?.silent) toast.success("Brouillon déjà à jour")
+            if (!opts?.silent) toast.success(tForm("draftAlreadyUpToDate"))
           }
           return true
         }
@@ -1824,7 +1827,7 @@ export function SupplierAddProductForm({
             })
             const json = await readJsonResponse<{ id?: string; error?: string }>(res)
             if (!res.ok) {
-              throw new Error(typeof json.error === "string" ? json.error : "Échec de l'enregistrement")
+              throw new Error(typeof json.error === "string" ? json.error : tForm("autosaveGenericError"))
             }
             if (json.id) {
               skipServerHydrationForIdRef.current = json.id
@@ -1862,7 +1865,7 @@ export function SupplierAddProductForm({
               })
               await saveViaPost()
             } else if (!res.ok) {
-              throw new Error(typeof json.error === "string" ? json.error : "Échec de l'enregistrement")
+              throw new Error(typeof json.error === "string" ? json.error : tForm("autosaveGenericError"))
             }
           } else {
             await saveViaPost()
@@ -1888,7 +1891,7 @@ export function SupplierAddProductForm({
           })
           if (!productIsDraft && !editId) setProductIsDraft(true)
           if (!opts?.silent) {
-            toast.success(editId && !productIsDraft ? "Modifications enregistrées" : "Brouillon sauvegardé")
+            toast.success(editId && !productIsDraft ? tForm("changesSavedToast") : tForm("draftSavedToast"))
           }
           return true
         } catch (e) {
@@ -1905,7 +1908,7 @@ export function SupplierAddProductForm({
             ? tImages("errDraftSaveTimeout")
             : e instanceof Error
               ? e.message
-              : "Impossible d'enregistrer le brouillon"
+              : tForm("autosaveGenericError")
 
           if (!isLatestAutosaveGeneration(generation, autosaveGenerationRef.current)) {
             console.log("[supplier-product-autosave]", {
@@ -2316,14 +2319,15 @@ export function SupplierAddProductForm({
       }
       if (!res.ok) {
         const serverBlockers = mapServerPublishBlockers(
-          json as { error?: string; errors?: string[]; issues?: unknown }
+          json as { error?: string; errors?: string[]; issues?: unknown },
+          locale
         )
         if (serverBlockers.length > 0) {
           applyPublishBlockers(serverBlockers)
           return
         }
         applyPublishBlockers([
-          { field: "specs", message: json.error ?? "Publication impossible. Vérifiez le formulaire." },
+          { field: "specs", message: json.error ?? tForm("publishFailedCheckForm") },
         ])
         return
       }
@@ -2335,11 +2339,10 @@ export function SupplierAddProductForm({
         applyPublishBlockers([
           {
             field: "specs",
-            message:
-              "Publication incomplete — le produit est resté en brouillon. Réessayez dans quelques secondes.",
+            message: tForm("publishIncompleteStayedDraft"),
           },
         ])
-        toast.error("Publication incomplete — le produit est resté en brouillon.")
+        toast.error(tForm("publishIncompleteStayedDraft"))
         return
       }
 
@@ -2373,7 +2376,7 @@ export function SupplierAddProductForm({
       router.push("/dashboard/supplier/products")
       router.refresh()
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Publication impossible"
+      const msg = e instanceof Error ? e.message : tForm("publishFailedGeneric")
       applyPublishBlockers([{ field: "specs", message: msg }])
     } finally {
       publishInFlightRef.current = false
@@ -2397,8 +2400,8 @@ export function SupplierAddProductForm({
       }
       toast.success(
         result.listedAffiliatesUnlisted > 0
-          ? `Produit rappelé — ${result.listedAffiliatesUnlisted} vitrine(s) retirée(s). Augmentez le prix puis republiez.`
-          : "Produit rappelé — augmentez le prix puis republiez."
+          ? tForm("recallSuccess", { count: result.listedAffiliatesUnlisted })
+          : tForm("recallSuccessNoListings")
       )
       setWholesalePreSaveOpen(false)
       setWholesalePreSavePreview(null)
@@ -2415,12 +2418,10 @@ export function SupplierAddProductForm({
       applyPublishBlockers([
         {
           field: "variants",
-          message: `${simpleColorIssues.length} erreur${simpleColorIssues.length > 1 ? "s" : ""} sur les noms de couleur.`,
+          message: tForm("simpleColorNameErrorsBlocker", { count: simpleColorIssues.length }),
         },
       ])
-      toast.error(
-        `${simpleColorIssues.length} erreur${simpleColorIssues.length > 1 ? "s" : ""} sur les couleurs — corrigez les lignes encadrées.`
-      )
+      toast.error(tForm("simpleColorErrorsToast", { count: simpleColorIssues.length }))
       return
     }
 
@@ -2428,12 +2429,10 @@ export function SupplierAddProductForm({
       applyPublishBlockers([
         {
           field: "variants",
-          message: `${skuValidationIssues.length} erreur${skuValidationIssues.length > 1 ? "s" : ""} à corriger dans le tableau SKU.`,
+          message: tForm("skuTableErrors", { count: skuValidationIssues.length }),
         },
       ])
-      toast.error(
-        `${skuValidationIssues.length} erreur${skuValidationIssues.length > 1 ? "s" : ""} à corriger dans le tableau SKU.`
-      )
+      toast.error(tForm("skuTableErrors", { count: skuValidationIssues.length }))
       return
     }
 
@@ -2456,7 +2455,7 @@ export function SupplierAddProductForm({
       return
     }
 
-    const clientBlockers = collectClientPublishBlockers(publishValidationContext)
+    const clientBlockers = collectClientPublishBlockers(publishValidationContext, locale)
     if (clientBlockers.length > 0) {
       applyPublishBlockers(clientBlockers)
       return
@@ -2618,7 +2617,7 @@ export function SupplierAddProductForm({
 
   const handleOptimizeSimpleVariants = useCallback(async () => {
     if (simpleColorRows.every((row) => !row.name.trim())) {
-      toast.error("Ajoutez au moins une couleur à optimiser.")
+      toast.error(tForm("addColorToOptimizeError"))
       return
     }
     setSimpleVariantsOptimizing(true)
@@ -2641,9 +2640,9 @@ export function SupplierAddProductForm({
         }),
       })
       const data = await readJsonResponse<OptimizeVariantsResult & { error?: string }>(res)
-      if (!res.ok) throw new Error(data.error ?? "Optimisation impossible")
+      if (!res.ok) throw new Error(data.error ?? tForm("optimizeVariantsFailedGeneric"))
       if (!data.simpleColors?.length && !data.sizesText?.trim()) {
-        throw new Error("Réponse vide")
+        throw new Error(tForm("emptyResponseError"))
       }
 
       if (data.simpleColors?.length) {
@@ -2653,9 +2652,9 @@ export function SupplierAddProductForm({
         setVariantSizesText(data.sizesText.trim())
       }
       clearPublishFieldError("variants")
-      toast.success("Variantes optimisées")
+      toast.success(tForm("variantsOptimizedToast"))
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Service indisponible")
+      toast.error(e instanceof Error ? e.message : tForm("serviceUnavailableError"))
     } finally {
       setSimpleVariantsOptimizing(false)
     }
@@ -2664,6 +2663,7 @@ export function SupplierAddProductForm({
     simpleColorRows,
     variantOptimizeContext,
     variantSizesText,
+    tForm,
   ])
 
   useEffect(() => {
@@ -2745,10 +2745,10 @@ export function SupplierAddProductForm({
       input?.focus()
       input?.scrollIntoView({ behavior: "smooth", block: "center" })
     }, 350)
-    toast.info("Recherche manuelle", {
-      description: "Utilisez la recherche ou l’arbre catalogue dans la section Classification.",
+    toast.info(tForm("manualSearchToast"), {
+      description: tForm("manualSearchDescription"),
     })
-  }, [dismissPendingCategory, scrollToSection])
+  }, [dismissPendingCategory, scrollToSection, tForm])
 
   const selectExpressCategory = useCallback(
     (suggestion: ListingCategorySuggestion) => {
@@ -2762,9 +2762,9 @@ export function SupplierAddProductForm({
       if (pendingCategoryConfirm) {
         dismissedCategoryFingerprintsRef.current.add(pendingCategoryConfirm.fingerprint)
       }
-      toast.success("Catégorie sélectionnée", { description: suggestion.breadcrumb })
+      toast.success(tForm("categorySelectedToast"), { description: suggestion.breadcrumb })
     },
-    [applyCategory, browse, clearPublishFieldError, pendingCategoryConfirm]
+    [applyCategory, browse, clearPublishFieldError, pendingCategoryConfirm, tForm]
   )
 
   const applyPublishBlockers = useCallback(
@@ -2788,10 +2788,10 @@ export function SupplierAddProductForm({
       toast.error(
         blockers.length === 1
           ? blockers[0]!.message
-          : `Publication impossible : ${blockers.length} point${blockers.length > 1 ? "s" : ""} à corriger (zones encadrées en rouge).`
+          : tForm("publishBlockersMulti", { count: blockers.length })
       )
     },
-    [step, trySetStep]
+    [step, trySetStep, tForm]
   )
 
   const step1Complete = useMemo(
@@ -3137,6 +3137,9 @@ export function SupplierAddProductForm({
                         categoryId={categoryId}
                         categoryAiTag={categoryAiTag}
                         loading={categorySuggestionsLoading}
+                        slow={categorySuggestionsSlow}
+                        timedOut={categorySuggestionsTimedOut}
+                        onRetry={retryCategorySuggestions}
                         meta={categorySuggestMeta}
                         suggestions={categorySuggestions}
                         topSuggestion={topCategorySuggestion}
@@ -3157,8 +3160,8 @@ export function SupplierAddProductForm({
                     <SectionCard
                       id="add-product-story"
                       icon={Package}
-                      title="Product story"
-                      description="Nom optimisé et description pour les affiliés et votre boutique."
+                      title={tForm("sectionStoryTitle")}
+                      description={tForm("sectionStoryDescription")}
                       hasError={hasPublishFieldError("name")}
                     >
                       <SupplierTitleOptimizer
@@ -3318,8 +3321,8 @@ export function SupplierAddProductForm({
                       <SectionCard
                         id="add-product-media-extra"
                         icon={ImageIcon}
-                        title="Vidéo produit"
-                        description="Optionnel — vidéo attachée au listing."
+                        title={tForm("sectionVideoTitle")}
+                        description={tForm("sectionVideoDescription")}
                       >
                         <AttachProductVideoActions
                           productId={editId}
@@ -3350,12 +3353,15 @@ export function SupplierAddProductForm({
                       disabled={wizardNavBusy}
                       className="w-full shrink-0 gap-2 border-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600 text-white shadow-lg shadow-violet-500/25 hover:opacity-95 disabled:opacity-50 sm:w-auto"
                       onClick={() => {
-                        const step1Blockers = collectClientPublishBlockers({
-                          ...publishValidationContext,
-                          priceError: null,
-                          compareError: null,
-                          commissionError: null,
-                        })
+                        const step1Blockers = collectClientPublishBlockers(
+                          {
+                            ...publishValidationContext,
+                            priceError: null,
+                            compareError: null,
+                            commissionError: null,
+                          },
+                          locale
+                        )
                         if (step1Blockers.length > 0) {
                           applyPublishBlockers(step1Blockers)
                           return
@@ -3382,16 +3388,16 @@ export function SupplierAddProductForm({
                 <SectionCard
                   id="add-product-pricing"
                   icon={Wallet}
-                  title="Prix & stock"
-                  description="Votre prix catalogue, stock et prix barré optionnel. Les affiliés fixent le prix client ; vous définissez la commission sur leur marge."
+                  title={tForm("sectionPricingTitle")}
+                  description={tForm("sectionPricingDescription")}
                   hasError={hasPublishFieldError("price") || hasPublishFieldError("compareAt")}
                 >
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div className="sm:col-span-2">
                       <Label htmlFor="p-price">
                         {variantSkuPricingActive
-                          ? "Prix catalogue affiché (EUR)"
-                          : "Votre prix (EUR)"}
+                          ? tForm("catalogPriceDisplayedLabel")
+                          : tForm("yourPriceLabel")}
                       </Label>
                       <Input
                         id="p-price"
@@ -3420,8 +3426,7 @@ export function SupplierAddProductForm({
                       />
                       {variantSkuPricingActive ? (
                         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                          Prix le plus bas parmi vos variantes (tableau ci-dessous). Saisissez le prix sur
-                          chaque ligne SKU.
+                          {tForm("variantSkuPriceHint")}
                         </p>
                       ) : null}
                       {priceError || hasPublishFieldError("price") ? (
@@ -3431,7 +3436,7 @@ export function SupplierAddProductForm({
                       ) : null}
                     </div>
                     <div>
-                      <Label htmlFor="p-compare">Prix barré (optionnel)</Label>
+                      <Label htmlFor="p-compare">{tForm("compareAtLabel")}</Label>
                       <Input
                         id="p-compare"
                         type="number"
@@ -3485,8 +3490,8 @@ export function SupplierAddProductForm({
                 <SectionCard
                   id="add-product-variants"
                   icon={Layers}
-                  title="Variantes"
-                  description="Un seul article ou plusieurs déclinaisons — le stock total se calcule automatiquement."
+                  title={tForm("sectionVariantsTitle")}
+                  description={tForm("sectionVariantsDescription")}
                   hasError={hasPublishFieldError("variants")}
                 >
                   {hasPublishFieldError("variants") ? (
@@ -3519,7 +3524,7 @@ export function SupplierAddProductForm({
                           : "border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
                       )}
                     >
-                      Produit simple
+                      {tForm("simpleProductButton")}
                     </button>
                     <button
                       type="button"
@@ -3540,12 +3545,12 @@ export function SupplierAddProductForm({
                           : "border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
                       )}
                     >
-                      Plusieurs déclinaisons
+                      {tForm("multipleVariationsButton")}
                     </button>
                   </div>
                   {hasVariants ? (
                     <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400">Mode :</span>
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">{tForm("modeColonLabel")}</span>
                       <button
                         type="button"
                         onClick={() => setVariantFormMode("simple")}
@@ -3556,7 +3561,7 @@ export function SupplierAddProductForm({
                             : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400"
                         )}
                       >
-                        Couleurs & tailles
+                        {tForm("colorsAndSizesTab")}
                       </button>
                       <button
                         type="button"
@@ -3600,7 +3605,7 @@ export function SupplierAddProductForm({
                             : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400"
                         )}
                       >
-                        Tableau SKU détaillé
+                        {tForm("detailedSkuTableTab")}
                       </button>
                     </div>
                   ) : null}
@@ -3619,15 +3624,13 @@ export function SupplierAddProductForm({
                       <div className="sm:col-span-2">
                         <div className="flex flex-wrap items-end justify-between gap-3">
                           <div>
-                            <Label>Couleurs</Label>
+                            <Label>{tForm("colorsLabel")}</Label>
                             <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                              Une ligne = une couleur (ex. <span className="font-medium">Noir/Rouge</span>). Pas de
-                              virgule ni « + » — pour plusieurs axes, utilisez le tableau SKU.
+                              {tForm("colorRowHint")}
                             </p>
                             {simpleColorIssues.length > 0 ? (
                               <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
-                                {simpleColorIssues.length} erreur
-                                {simpleColorIssues.length > 1 ? "s" : ""} à corriger ci-dessous.
+                                {tForm("colorErrorsBelow", { count: simpleColorIssues.length })}
                               </p>
                             ) : null}
                           </div>
@@ -3645,7 +3648,9 @@ export function SupplierAddProductForm({
                               ) : (
                                 <Sparkles className="h-4 w-4" aria-hidden />
                               )}
-                              {simpleVariantsOptimizing ? "Optimisation…" : "Optimise"}
+                              {simpleVariantsOptimizing
+                                ? tForm("simpleVariantsOptimizing")
+                                : tForm("simpleVariantsOptimizeCta")}
                             </Button>
                             <Button
                               type="button"
@@ -3660,7 +3665,7 @@ export function SupplierAddProductForm({
                               }
                             >
                               <Plus className="h-4 w-4" aria-hidden />
-                              Ajouter une couleur
+                              {tForm("addColorButton")}
                             </Button>
                           </div>
                         </div>
@@ -3679,7 +3684,7 @@ export function SupplierAddProductForm({
                             >
                               <div className="min-w-0 flex-1">
                                 <Label htmlFor={`v-color-name-${row.id}`} className="text-xs">
-                                  Nom
+                                  {tForm("colorNameLabel")}
                                 </Label>
                                 <Input
                                   id={`v-color-name-${row.id}`}
@@ -3722,7 +3727,7 @@ export function SupplierAddProductForm({
                                 onClick={() =>
                                   setSimpleColorRows((prev) => prev.filter((_, j) => j !== i))
                                 }
-                                aria-label="Supprimer cette couleur"
+                                aria-label={tForm("removeColorAriaLabel")}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -3794,7 +3799,7 @@ export function SupplierAddProductForm({
                   syncing={savingChanges}
                   back={
                     <Button type="button" variant="outline" size="lg" onClick={prevWizardStep}>
-                      Retour à la fiche
+                      {tForm("backToStoryButton")}
                     </Button>
                   }
                   continueButton={
@@ -3809,7 +3814,7 @@ export function SupplierAddProductForm({
                       }
                       className="w-full gap-2 border-0 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-cyan-600 text-white shadow-lg shadow-violet-500/25 hover:opacity-95 disabled:opacity-50 sm:w-auto"
                       onClick={() => {
-                        const blockers = collectClientPublishBlockers(publishValidationContext)
+                        const blockers = collectClientPublishBlockers(publishValidationContext, locale)
                         const step2Only = blockers.filter((b) =>
                           ["price", "compareAt", "variants"].includes(b.field)
                         )
@@ -3923,8 +3928,8 @@ export function SupplierAddProductForm({
 
                 <SectionCard
                   icon={Globe2}
-                  title="Marketplace delivery"
-                  description="Region label, delivery window, and free-shipping help buyers find your listing. Optional catalog tag for your own grouping."
+                  title={tForm("sectionMarketplaceDeliveryTitle")}
+                  description={tForm("sectionMarketplaceDeliveryDescription")}
                 >
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -3980,9 +3985,8 @@ export function SupplierAddProductForm({
                           Affisell Luxe
                         </Label>
                         <p className="mt-1 text-sm font-normal leading-snug text-amber-900/80 dark:text-amber-200/80">
-                          Cochez pour afficher ce produit dans la vitrine premium{" "}
-                          <span className="whitespace-nowrap">/luxe</span> une fois qu’un affilié l’a listé.
-                          Sans cette case, il n’y apparaît pas.
+                          {tForm("luxeCheckboxHintPrefix")}{" "}
+                          <span className="whitespace-nowrap">/luxe</span> {tForm("luxeCheckboxHintSuffix")}
                         </p>
                       </div>
                     </div>
@@ -4015,18 +4019,18 @@ export function SupplierAddProductForm({
                     </div>
                     <div>
                       <h2 className="text-lg font-semibold text-violet-950 dark:text-violet-100">
-                        Affiliate commission
+                        {tForm("affiliateCommissionHeading")}
                       </h2>
                       <p className="mt-1 text-sm text-violet-900/85 dark:text-violet-200/90">
                         {variantFormMode === "advanced" && advancedSkuRows.length > 0
-                          ? "Par défaut pour les nouvelles lignes SKU. La commission par choix est définie dans le tableau SKU."
-                          : "Part de la marge affiliée (leur prix de vente moins votre coût) à chaque vente."}
+                          ? tForm("commissionDefaultHintAdvanced")
+                          : tForm("commissionDefaultHintSimple")}
                       </p>
                     </div>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <Label htmlFor="p-kind">Listing type</Label>
+                      <Label htmlFor="p-kind">{tForm("listingTypeLabel")}</Label>
                       <select
                         id="p-kind"
                         className="mt-1.5 flex h-11 w-full rounded-xl border border-violet-200 bg-white px-3 text-sm dark:border-violet-800 dark:bg-zinc-950"
@@ -4048,16 +4052,15 @@ export function SupplierAddProductForm({
                         ))}
                       </select>
                       <p className="mt-1.5 text-xs text-violet-900/75 dark:text-violet-300/85">
-                        Up to {commissionMax}% for this listing type. 100% allowed for digital, service and
-                        experience listings.
+                        {tForm("listingTypeCommissionHint", { max: commissionMax })}
                       </p>
                     </div>
                     <div>
                       <Label htmlFor="p-comm">
-                        Commission proposée (%)
+                        {tForm("commissionProposedLabel")}
                         {variantFormMode === "advanced" && advancedSkuRows.some((r) => r.color.trim())
-                          ? " — défaut nouvelles lignes"
-                          : " — obligatoire"}
+                          ? tForm("commissionDefaultNewRowsSuffix")
+                          : tForm("commissionMandatorySuffix")}
                       </Label>
                       <Input
                         id="p-comm"
@@ -4116,8 +4119,8 @@ export function SupplierAddProductForm({
 
                 <SectionCard
                   icon={Truck}
-                  title="Shipping profile"
-                  description="Optional—helps affiliates and filters set buyer expectations."
+                  title={tForm("sectionShippingProfileTitle")}
+                  description={tForm("sectionShippingProfileDescription")}
                 >
                   <details className="group">
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-zinc-50/60 px-4 py-3 text-sm font-medium text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-200">
@@ -4239,8 +4242,8 @@ export function SupplierAddProductForm({
                       {saving
                         ? tWizard("saveChangesSaving")
                         : editId && !productIsDraft
-                          ? "Enregistrer et fermer"
-                          : "Publier le produit"}
+                          ? tForm("saveAndCloseButton")
+                          : tForm("publishProductButton")}
                     </Button>
                   }
                 />

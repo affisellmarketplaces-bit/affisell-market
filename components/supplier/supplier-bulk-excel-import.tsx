@@ -11,6 +11,7 @@ import {
   Upload,
   AlertTriangle,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { SupplierCategoryPicker, type BrowsePayload } from "@/components/supplier/supplier-category-picker"
@@ -42,6 +43,8 @@ function downloadTextFile(filename: string, content: string, mime: string) {
 }
 
 export function SupplierBulkExcelImport() {
+  const t = useTranslations("supplier.bulkExcelImport")
+
   const [browse, setBrowse] = useState<BrowsePayload | null>(null)
   const [recentCategories, setRecentCategories] = useState<RecentCategoryEntry[]>([])
   const [loadingBrowse, setLoadingBrowse] = useState(true)
@@ -76,7 +79,7 @@ export function SupplierBulkExcelImport() {
         setRecentCategories(Array.isArray(rec?.recent) ? rec.recent : [])
       })
       .catch(() => {
-        if (!cancelled) toast.error("Could not load categories")
+        if (!cancelled) toast.error(t("couldNotLoadCategoriesError"))
       })
       .finally(() => {
         if (!cancelled) setLoadingBrowse(false)
@@ -84,6 +87,7 @@ export function SupplierBulkExcelImport() {
     return () => {
       cancelled = true
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -96,7 +100,7 @@ export function SupplierBulkExcelImport() {
 
   const downloadTemplate = useCallback(async () => {
     if (!categoryId.trim()) {
-      toast.error("Select a leaf category first.")
+      toast.error(t("selectCategoryFirstError"))
       return
     }
     const url = `/api/supplier/bulk-import/template?categoryId=${encodeURIComponent(categoryId)}`
@@ -104,7 +108,7 @@ export function SupplierBulkExcelImport() {
       const res = await fetch(url, { credentials: "include" })
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string }
-        throw new Error(j.error ?? "Download failed")
+        throw new Error(j.error ?? t("downloadFailedError"))
       }
       const blob = await res.blob()
       const u = URL.createObjectURL(blob)
@@ -113,10 +117,11 @@ export function SupplierBulkExcelImport() {
       a.download = "affisell-bulk-template.xlsx"
       a.click()
       URL.revokeObjectURL(u)
-      toast.success("Template downloaded.")
+      toast.success(t("templateDownloadedToast"))
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Download failed")
+      toast.error(e instanceof Error ? e.message : t("downloadFailedError"))
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId])
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,7 +129,7 @@ export function SupplierBulkExcelImport() {
     e.target.value = ""
     if (!file) return
     if (!categoryId.trim()) {
-      toast.error("Select a category that matches your spreadsheet.")
+      toast.error(t("selectMatchingCategoryError"))
       return
     }
     const fd = new FormData()
@@ -146,13 +151,13 @@ export function SupplierBulkExcelImport() {
         summary?: { total: number; valid: number; invalid: number }
       }
       if (!res.ok) {
-        throw new Error(j.error ?? "Parse failed")
+        throw new Error(j.error ?? t("parseFailedError"))
       }
       setParseRows(j.rows ?? [])
       setParseSummary(j.summary ?? null)
-      toast.success(`Parsed ${j.summary?.total ?? 0} row(s).`)
+      toast.success(t("parsedRowsToast", { count: j.summary?.total ?? 0 }))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Parse failed")
+      toast.error(err instanceof Error ? err.message : t("parseFailedError"))
     } finally {
       setParsing(false)
     }
@@ -169,7 +174,7 @@ export function SupplierBulkExcelImport() {
 
   const commit = async () => {
     if (!categoryId.trim() || validDataRows.length === 0) {
-      toast.error("Nothing valid to publish.")
+      toast.error(t("nothingValidError"))
       return
     }
     setCommitting(true)
@@ -198,7 +203,7 @@ export function SupplierBulkExcelImport() {
           failures?: Array<{ index: number; error: string }>
         }
         if (!res.ok) {
-          throw new Error(j.error ?? "Commit failed")
+          throw new Error(j.error ?? t("commitFailedError"))
         }
         created += j.created ?? 0
         failed += j.failed ?? 0
@@ -208,11 +213,11 @@ export function SupplierBulkExcelImport() {
       }
       setProgress(100)
       setLastCommit({ created, failed })
-      toast.success(`Created ${created} product(s)${failed ? `, ${failed} skipped` : ""}.`)
+      toast.success(t("createdCountToast", { count: created }) + (failed > 0 ? t("skippedSuffix", { count: failed }) : ""))
       setParseRows(null)
       setParseSummary(null)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Commit failed")
+      toast.error(err instanceof Error ? err.message : t("commitFailedError"))
     } finally {
       setCommitting(false)
       setProgress(0)
@@ -227,17 +232,15 @@ export function SupplierBulkExcelImport() {
           className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "inline-flex gap-1")}
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
-          Dashboard
+          {t("dashboardLink")}
         </Link>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          Bulk Excel import
+          {t("pageTitle")}
         </h1>
       </div>
 
       <p className="mb-8 max-w-3xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-        Download a category-specific <strong>.xlsx</strong> template (including <strong>Characteristics</strong>{" "}
-        columns), fill rows, validate in-browser, then publish in batches with a progress bar. Invalid rows can be
-        exported as a CSV error report.
+        {t("pageDescription")}
       </p>
 
       <div className="space-y-6">
@@ -246,13 +249,11 @@ export function SupplierBulkExcelImport() {
             <FileSpreadsheet className="mt-0.5 h-6 w-6 shrink-0 text-violet-600" aria-hidden />
             <div className="min-w-0 flex-1 space-y-4">
               <div>
-                <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">1. Leaf category</h2>
-                <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                  The template includes dynamic columns for that category&apos;s required and optional attributes.
-                </p>
+                <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">{t("step1Heading")}</h2>
+                <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t("step1Description")}</p>
               </div>
               <div>
-                <Label className="text-zinc-800 dark:text-zinc-200">Category</Label>
+                <Label className="text-zinc-800 dark:text-zinc-200">{t("categoryLabel")}</Label>
                 <div className="mt-1.5">
                   <SupplierCategoryPicker
                     browse={browse}
@@ -274,11 +275,8 @@ export function SupplierBulkExcelImport() {
         </Card>
 
         <Card className="border-zinc-200 p-6 dark:border-zinc-700">
-          <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">2. Download template</h2>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Sheets: <code className="text-xs">Meta</code>, <code className="text-xs">Instructions</code>,{" "}
-            <code className="text-xs">Products</code> (your data), <code className="text-xs">Column_hints</code>.
-          </p>
+          <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">{t("step2Heading")}</h2>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t("step2Description")}</p>
           <Button
             type="button"
             className="mt-4 gap-2"
@@ -286,15 +284,13 @@ export function SupplierBulkExcelImport() {
             onClick={() => void downloadTemplate()}
           >
             <Download className="h-4 w-4" aria-hidden />
-            Download .xlsx
+            {t("downloadXlsxCta")}
           </Button>
         </Card>
 
         <Card className="border-zinc-200 p-6 dark:border-zinc-700">
-          <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">3. Upload &amp; validate</h2>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Use the same leaf category as when you downloaded the file.
-          </p>
+          <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">{t("step3Heading")}</h2>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{t("step3Description")}</p>
           <div className="mt-4">
             <Label htmlFor="bulk-xlsx" className="cursor-pointer">
               <span className="inline-flex items-center gap-2 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-4 py-6 text-sm text-zinc-700 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200">
@@ -303,7 +299,7 @@ export function SupplierBulkExcelImport() {
                 ) : (
                   <Upload className="h-5 w-5 text-violet-600" aria-hidden />
                 )}
-                {parsing ? "Reading workbook…" : "Choose .xlsx file"}
+                {parsing ? t("readingWorkbook") : t("chooseXlsxCta")}
               </span>
             </Label>
             <input
@@ -320,12 +316,12 @@ export function SupplierBulkExcelImport() {
             <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
               <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 dark:bg-zinc-800">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-hidden />
-                Valid: {parseSummary.valid}
+                {t("validCountLabel", { count: parseSummary.valid })}
               </span>
               {parseSummary.invalid > 0 ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
                   <AlertTriangle className="h-4 w-4" aria-hidden />
-                  Invalid: {parseSummary.invalid}
+                  {t("invalidCountLabel", { count: parseSummary.invalid })}
                 </span>
               ) : null}
             </div>
@@ -334,7 +330,7 @@ export function SupplierBulkExcelImport() {
           {parseRows && parseRows.some((r) => r.errors.length > 0) ? (
             <div className="mt-4">
               <Button type="button" variant="outline" size="sm" onClick={downloadErrorReport}>
-                Download error report (CSV)
+                {t("downloadErrorReportCta")}
               </Button>
             </div>
           ) : null}
@@ -344,9 +340,9 @@ export function SupplierBulkExcelImport() {
               <table className="w-full min-w-[640px] text-left text-xs">
                 <thead className="sticky top-0 bg-zinc-50 dark:bg-zinc-900">
                   <tr>
-                    <th className="px-2 py-2 font-medium">#</th>
-                    <th className="px-2 py-2 font-medium">Name</th>
-                    <th className="px-2 py-2 font-medium">Status</th>
+                    <th className="px-2 py-2 font-medium">{t("colIndex")}</th>
+                    <th className="px-2 py-2 font-medium">{t("colName")}</th>
+                    <th className="px-2 py-2 font-medium">{t("colStatus")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -361,7 +357,7 @@ export function SupplierBulkExcelImport() {
                       <td className="px-2 py-1.5 text-zinc-500">{r.rowNumber}</td>
                       <td className="max-w-[240px] truncate px-2 py-1.5">{r.data?.name ?? "—"}</td>
                       <td className="px-2 py-1.5 text-zinc-600 dark:text-zinc-400">
-                        {r.errors.length ? r.errors.join("; ") : "OK"}
+                        {r.errors.length ? r.errors.join("; ") : t("rowOkLabel")}
                       </td>
                     </tr>
                   ))}
@@ -372,7 +368,7 @@ export function SupplierBulkExcelImport() {
         </Card>
 
         <Card className="border-zinc-200 p-6 dark:border-zinc-700">
-          <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">4. Publish</h2>
+          <h2 className="font-semibold text-zinc-900 dark:text-zinc-50">{t("step4Heading")}</h2>
           <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
             <input
               type="checkbox"
@@ -380,7 +376,7 @@ export function SupplierBulkExcelImport() {
               onChange={(e) => setSkipInvalid(e.target.checked)}
               className="rounded border-zinc-300"
             />
-            Skip invalid rows on server (recommended if you mix good and bad lines).
+            {t("skipInvalidLabel")}
           </label>
           {committing ? (
             <div className="mt-4">
@@ -390,12 +386,12 @@ export function SupplierBulkExcelImport() {
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <p className="mt-2 text-xs text-zinc-500">Publishing… {progress}%</p>
+              <p className="mt-2 text-xs text-zinc-500">{t("publishingProgress", { progress })}</p>
             </div>
           ) : null}
           {lastCommit ? (
             <p className="mt-2 text-sm text-emerald-700 dark:text-emerald-400">
-              Last run: {lastCommit.created} created, {lastCommit.failed} failed/skipped.
+              {t("lastRunSummary", { created: lastCommit.created, failed: lastCommit.failed })}
             </p>
           ) : null}
           <Button
@@ -404,16 +400,15 @@ export function SupplierBulkExcelImport() {
             disabled={committing || validDataRows.length === 0}
             onClick={() => void commit()}
           >
-            {committing ? "Publishing…" : `Publish ${validDataRows.length} valid row(s)`}
+            {committing ? t("publishingLabel") : t("publishCta", { count: validDataRows.length })}
           </Button>
-          <p className="mt-3 text-xs text-zinc-500">
-            Batched requests ({COMMIT_CHUNK} rows each) so large imports stay responsive.
-          </p>
+          <p className="mt-3 text-xs text-zinc-500">{t("batchHint", { size: COMMIT_CHUNK })}</p>
         </Card>
 
         {categoryPath.length ? (
           <p className="text-xs text-zinc-500">
-            Selected: {categoryPath.map((s) => s.name).join(" → ")} · <code>{categoryId}</code>
+            {t("selectedCategoryLabel", { path: categoryPath.map((s) => s.name).join(" → ") })} ·{" "}
+            <code>{categoryId}</code>
           </p>
         ) : null}
       </div>

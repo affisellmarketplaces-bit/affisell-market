@@ -5,6 +5,14 @@
 
 import type { WorldRadarWinnerDto } from "@/lib/radar/world-radar-types"
 import { isRadarSupplierRole } from "@/lib/radar/radar-copy"
+import { tMessage } from "@/lib/i18n-pick-message"
+import type { AppLocale } from "@/lib/i18n-locale"
+
+function tr(locale: AppLocale, key: string, vars: Record<string, string | number> = {}): string {
+  let out = tMessage(locale, `radarTerminal.${key}`)
+  for (const [k, v] of Object.entries(vars)) out = out.replaceAll(`{${k}}`, String(v))
+  return out
+}
 
 export type RadarPriceAudience = "reseller" | "supplier" | "public"
 
@@ -23,39 +31,48 @@ export function canViewResellerMargin(role: string | null | undefined): boolean 
   return canViewResellerMarketPrice(role)
 }
 
-export function radarPriceColumnLabel(role: string | null | undefined): string {
-  return canViewResellerMarketPrice(role) ? "Prix" : "Signal"
+export function radarPriceColumnLabel(
+  role: string | null | undefined,
+  locale: AppLocale = "fr"
+): string {
+  return tr(locale, canViewResellerMarketPrice(role) ? "priceCol" : "signalCol")
 }
 
-function formatSearchesShort(searches: number | null | undefined): string {
-  if (searches == null || !Number.isFinite(searches) || searches <= 0) return "Demande"
+function formatSearchesShort(searches: number | null | undefined, locale: AppLocale): string {
+  if (searches == null || !Number.isFinite(searches) || searches <= 0) return tr(locale, "demandWord")
   if (searches >= 1_000_000) return `${(searches / 1_000_000).toFixed(1)}M`
   if (searches >= 1_000) return `${Math.round(searches / 1_000)}k`
   return String(Math.round(searches))
 }
 
 /** Compact demand chip replacing market € for suppliers. */
-export function formatSupplierDemandSignal(row: {
-  searches?: number | null
-  growthRate?: number | null
-  competition?: number | null
-}): string {
-  const vol = formatSearchesShort(row.searches)
+export function formatSupplierDemandSignal(
+  row: {
+    searches?: number | null
+    growthRate?: number | null
+    competition?: number | null
+  },
+  locale: AppLocale = "fr"
+): string {
+  const vol = formatSearchesShort(row.searches, locale)
   const hot = row.growthRate != null && row.growthRate > 40
   const open = row.competition != null && row.competition < 5
-  if (hot && open) return `🔥 ${vol} · Zone ouverte`
-  if (hot) return `⚡ ${vol} recherches`
-  if (open) return `◈ ${vol} · Peu saturé`
-  return `◈ ${vol} · Demande`
+  if (hot && open) return `🔥 ${vol} · ${tr(locale, "demandOpen")}`
+  if (hot) return `⚡ ${tr(locale, "demandSearches", { vol })}`
+  if (open) return `◈ ${vol} · ${tr(locale, "demandLow")}`
+  return `◈ ${vol} · ${tr(locale, "demandWord")}`
 }
 
-export function supplierDemandTooltip(row: {
-  searches?: number | null
-  countryCode?: string | null
-}): string {
+export function supplierDemandTooltip(
+  row: {
+    searches?: number | null
+    countryCode?: string | null
+  },
+  locale: AppLocale = "fr"
+): string {
   const code = row.countryCode?.trim().toUpperCase() || "FR"
-  const vol = formatSearchesShort(row.searches)
-  return `Prix vitrine réservé aux revendeurs Affisell. Signal fournisseur: ${vol} recherches/mois (${code}) — positionne ton stock exclusif.`
+  const vol = formatSearchesShort(row.searches, locale)
+  return tr(locale, "demandTooltip", { vol, code })
 }
 
 /**

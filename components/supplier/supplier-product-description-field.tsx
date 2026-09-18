@@ -24,7 +24,7 @@ import {
 } from "@/lib/description-rich-content"
 import {
   type DescriptionImagePlacement,
-  IMAGE_ROLE_LABELS,
+  type ImagePlacementRole,
   parseDescriptionSections,
 } from "@/lib/description-structure"
 import {
@@ -37,10 +37,13 @@ import { readJsonResponse } from "@/lib/read-json-response"
 const MAX_GALLERY_FOR_AI = 2
 const MAX_ILLUSTRATIONS_FOR_AI = 3
 
-function parseGenerateDescriptionError(raw: string): string {
+function parseGenerateDescriptionError(
+  raw: string,
+  messages: { aiQuotaReached: string; tooManyImages: string }
+): string {
   const trimmed = raw.trim()
   if (/rate limit|rate_limit|429|tokens per day|tokens per minute|quota ia/i.test(trimmed)) {
-    return "Quota IA atteint pour aujourd'hui. Réessayez demain — vos textes et images sont conservés."
+    return messages.aiQuotaReached
   }
   try {
     const outer = JSON.parse(trimmed) as { error?: { message?: string } | string; message?: string }
@@ -50,12 +53,12 @@ function parseGenerateDescriptionError(raw: string): string {
         : typeof outer.error === "string"
           ? outer.error
           : outer.message
-    if (inner) return parseGenerateDescriptionError(inner)
+    if (inner) return parseGenerateDescriptionError(inner, messages)
   } catch {
     /* plain text */
   }
   if (/too many images/i.test(trimmed)) {
-    return "Trop d'images pour la génération (max. 4). Gardez au plus 3 illustrations, ou retirez des photos galerie."
+    return messages.tooManyImages
   }
   return trimmed.length > 200 ? `${trimmed.slice(0, 200)}…` : trimmed
 }
@@ -86,6 +89,7 @@ function isHttpsImageUrl(u: string): boolean {
 }
 
 function DescriptionStructurePreview({ text }: { text: string }) {
+  const t = useTranslations("supplier.descriptionField")
   const sections = useMemo(() => parseDescriptionSections(text), [text])
   if (sections.length === 0) return null
 
@@ -93,7 +97,7 @@ function DescriptionStructurePreview({ text }: { text: string }) {
     <div className="space-y-2">
       <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-cyan-700/90 dark:text-cyan-300">
         <Layers className="size-3.5" aria-hidden />
-        Structure SEO
+        {t("structureSeoLabel")}
       </p>
       <div className="grid gap-1.5 sm:grid-cols-2">
         {sections.map((s) => (
@@ -119,6 +123,8 @@ function DescriptionStructurePreview({ text }: { text: string }) {
   )
 }
 
+const IMAGE_PLACEMENT_ROLES: ImagePlacementRole[] = ["hero", "lifestyle", "detail", "scale", "packaging"]
+
 function ImageStrategyBoard({
   images,
   placements,
@@ -126,17 +132,27 @@ function ImageStrategyBoard({
   images: string[]
   placements: DescriptionImagePlacement[]
 }) {
+  const t = useTranslations("supplier.descriptionField")
+  const imageRoleLabels: Record<ImagePlacementRole, string> = {
+    hero: t("imageRoleHero"),
+    lifestyle: t("imageRoleLifestyle"),
+    detail: t("imageRoleDetail"),
+    scale: t("imageRoleScale"),
+    packaging: t("imageRolePackaging"),
+  }
+
   if (images.length === 0) return null
 
   return (
     <div className="space-y-2 border-t border-violet-200/40 pt-3 dark:border-violet-900/40">
       <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-fuchsia-700/90 dark:text-fuchsia-300">
-        Placement stratégique des visuels
+        {t("imagePlacementTitle")}
       </p>
       <div className="flex flex-wrap gap-2">
         {images.map((url, index) => {
           const placement = placements.find((p) => p.imageIndex === index)
-          const role = placement?.role && placement.role in IMAGE_ROLE_LABELS ? placement.role : "detail"
+          const role =
+            placement?.role && IMAGE_PLACEMENT_ROLES.includes(placement.role) ? placement.role : "detail"
           return (
             <div
               key={`${index}-${url.slice(0, 24)}`}
@@ -146,7 +162,7 @@ function ImageStrategyBoard({
               <img src={url} alt="" className="aspect-[4/3] w-full object-cover opacity-95" />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-2">
                 <p className="text-[9px] font-bold uppercase tracking-wider text-cyan-200">
-                  {IMAGE_ROLE_LABELS[role]}
+                  {imageRoleLabels[role]}
                 </p>
                 {placement?.section ? (
                   <p className="text-[10px] font-medium text-white">{placement.section}</p>
@@ -208,7 +224,7 @@ export function SupplierProductDescriptionField({
 
       const remaining = DESCRIPTION_ILLUSTRATION_SERVER_MAX - illustrationImages.length
       if (remaining <= 0) {
-        toast.error(`Maximum ${DESCRIPTION_ILLUSTRATION_SERVER_MAX} images dans la description.`)
+        toast.error(t("maxImagesInDescriptionError", { max: DESCRIPTION_ILLUSTRATION_SERVER_MAX }))
         return
       }
 
@@ -221,19 +237,17 @@ export function SupplierProductDescriptionField({
           } catch (e) {
             if (e instanceof DescriptionIllustrationSizeError) {
               toast.error(
-                `${e.fileName} : image trop petite (min. ${e.minW}×${e.minH} px).`
+                t("imageTooSmallInlineError", { fileName: e.fileName, minW: e.minW, minH: e.minH })
               )
             } else {
-              toast.error(`Impossible de traiter ${file.name}.`)
+              toast.error(t("imageProcessFailedNamed", { fileName: file.name }))
             }
           }
         }
         if (added.length > 0) {
           const nextImages = [...illustrationImages, ...added]
           onIllustrationImagesChange(nextImages)
-          toast.success(
-            added.length === 1 ? "Image ajoutée à la description" : `${added.length} images ajoutées`
-          )
+          toast.success(t("imagesAddedToast", { count: added.length }))
         }
       } finally {
         setImageBusy(false)
@@ -246,6 +260,7 @@ export function SupplierProductDescriptionField({
       imageBusy,
       onIllustrationImagesChange,
       optimizeLoading,
+      t,
     ]
   )
 
@@ -329,7 +344,7 @@ export function SupplierProductDescriptionField({
       productGalleryImages.length === 0 &&
       illustrationImages.length === 0
     ) {
-      toast.error("Ajoutez un titre, des specs, des points clés ou des photos produit.")
+      toast.error(t("addTitleOrSpecsError"))
       return
     }
 
@@ -368,7 +383,12 @@ export function SupplierProductDescriptionField({
       }>(res)
 
       if (!res.ok) {
-        throw new Error(parseGenerateDescriptionError(data.error ?? "Génération impossible"))
+        throw new Error(
+          parseGenerateDescriptionError(data.error ?? t("generateFailedGeneric"), {
+            aiQuotaReached: t("aiQuotaReached"),
+            tooManyImages: t("tooManyImagesForGeneration"),
+          })
+        )
       }
 
       if (data.description?.trim()) {
@@ -390,20 +410,20 @@ export function SupplierProductDescriptionField({
       const source = data.illustrationSource ?? "none"
       const sourceLabel =
         source === "kept_user"
-          ? "vos images"
+          ? t("sourceKeptUser")
           : source === "from_gallery"
-            ? "galerie produit"
+            ? t("sourceFromGallery")
             : source === "generated_hf"
-              ? "visuel généré"
+              ? t("sourceGeneratedHf")
               : null
 
       toast.success(
         sourceLabel
-          ? `Description structurée · visuels : ${sourceLabel}`
-          : "Description structurée générée"
+          ? t("structuredDescriptionWithVisuals", { source: sourceLabel })
+          : t("structuredDescriptionGenerated")
       )
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Service indisponible")
+      toast.error(e instanceof Error ? e.message : t("serviceUnavailableError"))
     } finally {
       setAiLoading(false)
     }
@@ -418,13 +438,14 @@ export function SupplierProductDescriptionField({
     productGalleryImages,
     productSpecs,
     productTitle,
+    t,
   ])
 
   const handleOptimizeDescription = useCallback(async () => {
     const title = productTitle.trim()
     const current = description.trim()
     if (current.length < 8 && title.length < 2 && descriptionBullets.length === 0) {
-      toast.error("Ajoutez du texte ou un titre pour guider l'optimisation.")
+      toast.error(t("addTextOrTitleError"))
       return
     }
 
@@ -445,12 +466,12 @@ export function SupplierProductDescriptionField({
         }),
       })
       const data = await readJsonResponse<{ text?: string; error?: string }>(res)
-      if (!res.ok) throw new Error(data.error ?? "Optimisation impossible")
-      if (!data.text?.trim()) throw new Error("Réponse vide")
+      if (!res.ok) throw new Error(data.error ?? t("optimizeFailedGeneric"))
+      if (!data.text?.trim()) throw new Error(t("emptyResponseError"))
       onDescriptionChange(data.text.trim())
-      toast.success("Description optimisée")
+      toast.success(t("descriptionOptimizedToast"))
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Service indisponible")
+      toast.error(e instanceof Error ? e.message : t("serviceUnavailableError"))
     } finally {
       setOptimizeLoading(false)
     }
@@ -460,6 +481,7 @@ export function SupplierProductDescriptionField({
     descriptionBullets,
     onDescriptionChange,
     productTitle,
+    t,
   ])
 
   const composerDisabled = disabled || aiLoading || optimizeLoading || imageBusy
@@ -562,7 +584,7 @@ export function SupplierProductDescriptionField({
                         disabled={composerDisabled}
                         onClick={() => removeIllustrationAt(index)}
                         className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white shadow"
-                        aria-label="Retirer"
+                        aria-label={t("removeAriaLabel")}
                       >
                         <X className="h-3 w-3" aria-hidden />
                       </button>
@@ -584,7 +606,7 @@ export function SupplierProductDescriptionField({
               onPaste={handlePaste}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
-              placeholder={`ACCROCHE\n…\n\nPOINTS FORTS\n…\n\n(Ctrl+V ou glissez une image — affichée au-dessus, sans marqueur dans le texte)`}
+              placeholder={t("composerPlaceholder")}
               disabled={composerDisabled}
             />
 
@@ -607,10 +629,13 @@ export function SupplierProductDescriptionField({
                 className="inline-flex items-center gap-1 rounded-md font-medium text-violet-600 hover:bg-violet-50 dark:text-violet-400 dark:hover:bg-violet-950/50"
               >
                 <ImagePlus className="h-3.5 w-3.5" aria-hidden />
-                Parcourir
+                {t("browseCta")}
               </button>
               <span>
-                · Ctrl+V · min. {DESCRIPTION_ILLUSTRATION_MIN_W}×{DESCRIPTION_ILLUSTRATION_MIN_H} px · photos illimitées
+                {t("composerHintSuffix", {
+                  minW: DESCRIPTION_ILLUSTRATION_MIN_W,
+                  minH: DESCRIPTION_ILLUSTRATION_MIN_H,
+                })}
               </span>
             </p>
           </div>

@@ -37,6 +37,7 @@ import {
   parseDropForgeCommitIntent,
   saveDropForgePendingCommit,
 } from "@/lib/dropforge-pending-commit.shared"
+import type { AppLocale } from "@/lib/i18n-locale"
 import { loginSupplierPath } from "@/lib/login-redirect"
 import { cn } from "@/lib/utils"
 
@@ -129,7 +130,7 @@ function fulfillmentStatusTone(p: Preview): string {
 /** DropForge B2B — suppliers forge catalog SKUs; resellers relist later. */
 export function DropForgeImportClient() {
   const t = useTranslations("importPage")
-  const locale = useLocale() === "en" ? "en" : "fr"
+  const locale = useLocale() as AppLocale
   const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -577,7 +578,6 @@ export function DropForgeImportClient() {
               <DropForgeRefinePanel
                 preview={preview as unknown as Record<string, unknown>}
                 onPreviewUpdate={applyRefinedPreview}
-                locale={locale}
               />
             </div>
           </div>

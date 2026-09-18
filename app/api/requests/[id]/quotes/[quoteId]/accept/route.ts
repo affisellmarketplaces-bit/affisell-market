@@ -5,6 +5,8 @@ import { createProductRequestCommissionDraft } from "@/lib/product-request-commi
 import { PRODUCT_REQUEST_NOTIF } from "@/lib/product-request-notif-constants"
 import { serializeProductQuote } from "@/lib/product-request-types"
 import { prisma } from "@/lib/prisma"
+import { resolveRequestLocale } from "@/lib/resolve-request-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -87,46 +89,65 @@ export async function POST(_req: Request, ctx: RouteCtx) {
     where: { id: quoteId },
   })
 
+  const locale = await resolveRequestLocale(undefined)
+
   let affiliateProductId: string | null = null
-  try {
-    const draft = await createProductRequestCommissionDraft({
-      requestId: request.id,
-      title: request.title,
-      description: request.description,
-      category: request.category,
-      imageUrl: request.imageUrl,
-      resellerId: request.resellerId,
-      supplierId: quote.supplierId,
-      unitPrice: quote.price,
-      moq: quote.moq,
-      deliveryDays: quote.deliveryDays,
-    })
-    affiliateProductId = draft?.affiliateProductId ?? null
-  } catch (err) {
-    console.warn("[api/requests/accept]", {
-      step: "commission_draft_failed",
-      message: err instanceof Error ? err.message : "unknown",
-      requestId,
-    })
+  let draftCreationFailed = false
+  const draftArgs = {
+    requestId: request.id,
+    title: request.title,
+    description: request.description,
+    category: request.category,
+    imageUrl: request.imageUrl,
+    resellerId: request.resellerId,
+    supplierId: quote.supplierId,
+    unitPrice: quote.price,
+    moq: quote.moq,
+    deliveryDays: quote.deliveryDays,
+  }
+  /** Idempotent (tagged on requestId) — safe to retry once before giving up. */
+  for (let attempt = 0; attempt < 2 && affiliateProductId == null; attempt++) {
+    try {
+      const draft = await createProductRequestCommissionDraft(draftArgs)
+      affiliateProductId = draft?.affiliateProductId ?? null
+    } catch (err) {
+      console.warn("[api/requests/accept]", {
+        step: "commission_draft_failed",
+        attempt,
+        message: err instanceof Error ? err.message : "unknown",
+        requestId,
+      })
+    }
+  }
+  if (affiliateProductId == null) {
+    draftCreationFailed = true
   }
 
   try {
+    const quoteAcceptedMessage = tMessage(
+      locale,
+      "productRequests.notifications.quoteAccepted"
+    ).replace("{title}", request.title)
     await prisma.notification.create({
       data: {
         userId: quote.supplierId,
         type: PRODUCT_REQUEST_NOTIF.QUOTE_ACCEPTED,
-        message: `Ton devis pour ${request.title} a été accepté!`,
+        message: quoteAcceptedMessage,
         imageUrl: request.imageUrl,
         orderId: requestId,
       },
     })
     const loserIds = [...new Set(otherQuotes.map((q) => q.supplierId))]
     if (loserIds.length > 0) {
+      const requestFulfilledMessage = tMessage(
+        locale,
+        "productRequests.notifications.requestFulfilled"
+      ).replace("{title}", request.title)
       await prisma.notification.createMany({
         data: loserIds.map((userId) => ({
           userId,
           type: PRODUCT_REQUEST_NOTIF.REQUEST_FULFILLED,
-          message: `Demande ${request.title} pourvue`,
+          message: requestFulfilledMessage,
           imageUrl: request.imageUrl,
           orderId: requestId,
         })),
@@ -143,12 +164,14 @@ export async function POST(_req: Request, ctx: RouteCtx) {
     requestId,
     quoteId,
     affiliateProductId,
+    draftCreationFailed,
     result: "accepted",
   })
 
   return NextResponse.json({
     quote: serializeProductQuote(updatedQuote),
     affiliateProductId,
+    draftCreationFailed,
     requestStatus: "fulfilled",
   })
 }

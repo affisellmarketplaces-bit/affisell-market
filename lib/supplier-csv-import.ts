@@ -170,6 +170,8 @@ export function toBulkProductRow(mapped: MappedSupplierCsvRow): ParsedBulkProduc
       deliveryMin,
       deliveryMax: mapped.shippingDays,
       shippingCostEUR: 0,
+      /** CSV has no logistics-zone column — default to the most permissive zone so the listing isn't left unset. */
+      warehouseType: "international",
     },
     productAttributes: [],
   }

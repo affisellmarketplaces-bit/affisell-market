@@ -1,5 +1,8 @@
 "use client"
 
+import { useLocale } from "next-intl"
+
+import type { AppLocale } from "@/lib/i18n-locale"
 import {
   formatSupplierDemandSignal,
   canViewResellerMarketPrice,
@@ -19,6 +22,7 @@ type Props = {
  * Reseller: market €. Supplier: demand signal veil (never invents a list price).
  */
 export function RadarPriceCell({ row, userRole, className }: Props) {
+  const locale = useLocale() as AppLocale
   if (!canViewResellerMarketPrice(userRole) || row.priceVeiled) {
     return (
       <span
@@ -26,16 +30,19 @@ export function RadarPriceCell({ row, userRole, className }: Props) {
           "inline-flex max-w-[11rem] items-center gap-1.5 rounded-full border border-violet-200/70 bg-gradient-to-r from-violet-50/90 via-white to-cyan-50/80 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-violet-900 shadow-[0_0_0_1px_rgba(139,92,246,0.08)]",
           className
         )}
-        title={supplierDemandTooltip({
-          searches: row.searches,
-          countryCode: row.countryCode,
-        })}
+        title={supplierDemandTooltip(
+          {
+            searches: row.searches,
+            countryCode: row.countryCode,
+          },
+          locale
+        )}
       >
         <span
           className="inline-block size-1.5 shrink-0 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.8)]"
           aria-hidden
         />
-        <span className="truncate">{formatSupplierDemandSignal(row)}</span>
+        <span className="truncate">{formatSupplierDemandSignal(row, locale)}</span>
       </span>
     )
   }

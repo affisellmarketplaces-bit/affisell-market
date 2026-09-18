@@ -1,17 +1,18 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Loader2, MessageSquarePlus, Sparkles, Wand2 } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import {
   auditDropForgePreview,
-  dropForgeRefineQuickPrompt,
   type DropForgePreviewGap,
   type DropForgeRefineQuickAction,
 } from "@/lib/dropforge-refine-audit"
 import { dropforgeHttpErrorMessage } from "@/lib/dropforge-fetch-error"
 import { readJsonResponse } from "@/lib/read-json-response"
+import type { AppLocale } from "@/lib/i18n-locale"
 import { cn } from "@/lib/utils"
 
 type RefineMessage = {
@@ -22,7 +23,6 @@ type RefineMessage = {
 type Props = {
   preview: Record<string, unknown>
   onPreviewUpdate: (next: Record<string, unknown>, meta?: { applied?: string[] }) => void
-  locale?: "fr" | "en"
 }
 
 const QUICK_CHIPS: DropForgeRefineQuickAction[] = [
@@ -33,26 +33,37 @@ const QUICK_CHIPS: DropForgeRefineQuickAction[] = [
   "category",
 ]
 
-export function DropForgeRefinePanel({ preview, onPreviewUpdate, locale = "fr" }: Props) {
+const CHIP_KEY: Record<string, string> = {
+  images: "Images",
+  description: "Description",
+  variants: "Variants",
+  specs: "Specs",
+  category: "Category",
+}
+
+const GAP_KEY: Record<string, string> = {
+  title: "Title",
+  description: "Description",
+  images: "Images",
+  gallery: "Gallery",
+  cost: "Cost",
+  variants: "Variants",
+  specs: "Specs",
+  category: "Category",
+  brand: "Brand",
+}
+
+export function DropForgeRefinePanel({ preview, onPreviewUpdate }: Props) {
+  const t = useTranslations("importPage")
+  const uiLocale = useLocale() as AppLocale
+  /** The refine API writes catalog copy in FR or EN only; the UI language is independent. */
+  const contentLocale = uiLocale === "en" ? "en" : "fr"
+  const imageCount = Array.isArray(preview.images) ? preview.images.length : 0
   const [instruction, setInstruction] = useState("")
   const [busy, setBusy] = useState(false)
   const [messages, setMessages] = useState<RefineMessage[]>([])
   const [gaps, setGaps] = useState<DropForgePreviewGap[]>([])
   const scrollRef = useRef<HTMLDivElement>(null)
-
-  const gapLabels = useMemo(() => {
-    const fr: Record<DropForgeRefineQuickAction, string> = {
-      images: "Images",
-      description: "Description",
-      variants: "Variantes",
-      specs: "Specs",
-      category: "Catégorie",
-      brand: "Marque",
-      title: "Titre",
-      cost: "Prix",
-    }
-    return fr
-  }, [])
 
   useEffect(() => {
     setGaps(auditDropForgePreview(preview))
@@ -69,7 +80,7 @@ export function DropForgeRefinePanel({ preview, onPreviewUpdate, locale = "fr" }
 
       const userText =
         trimmed ||
-        (quickAction ? dropForgeRefineQuickPrompt(quickAction, locale) : "")
+        (quickAction ? t(`quick${CHIP_KEY[quickAction] ?? "Images"}`) : "")
 
       setMessages((m) => [...m, { role: "user", text: userText }])
       setBusy(true)
@@ -83,7 +94,7 @@ export function DropForgeRefinePanel({ preview, onPreviewUpdate, locale = "fr" }
             preview,
             instruction: trimmed,
             quickAction,
-            locale,
+            locale: contentLocale,
           }),
         })
         const data = await readJsonResponse<{
@@ -96,19 +107,15 @@ export function DropForgeRefinePanel({ preview, onPreviewUpdate, locale = "fr" }
         }>(res)
 
         if (!res.ok || !data.preview) {
-          throw new Error(dropforgeHttpErrorMessage(res, data, locale))
+          throw new Error(dropforgeHttpErrorMessage(res, data, uiLocale))
         }
 
         onPreviewUpdate(data.preview, { applied: data.applied })
         setGaps(data.gaps ?? auditDropForgePreview(data.preview))
 
-        const assistantParts = [data.message ?? "Fiche mise à jour."]
+        const assistantParts = [data.message ?? t("refineDone")]
         if (data.applied?.length) {
-          assistantParts.push(
-            locale === "en"
-              ? `Applied: ${data.applied.join(", ")}`
-              : `Appliqué : ${data.applied.join(", ")}`
-          )
+          assistantParts.push(t("refineApplied", { list: data.applied.join(", ") }))
         }
         if (data.warnings?.length) {
           assistantParts.push(...data.warnings)
@@ -120,13 +127,13 @@ export function DropForgeRefinePanel({ preview, onPreviewUpdate, locale = "fr" }
         ])
         setInstruction("")
       } catch (e) {
-        const err = e instanceof Error ? e.message : "Erreur Co-Pilot"
+        const err = e instanceof Error ? e.message : t("refineError")
         setMessages((m) => [...m, { role: "assistant", text: err }])
       } finally {
         setBusy(false)
       }
     },
-    [locale, onPreviewUpdate, preview]
+    [contentLocale, onPreviewUpdate, preview, t, uiLocale]
   )
 
   return (
@@ -140,9 +147,7 @@ export function DropForgeRefinePanel({ preview, onPreviewUpdate, locale = "fr" }
           DropForge Co-Pilot
         </p>
         <p className="mt-1 text-xs text-zinc-400">
-          {locale === "en"
-            ? "Explain what’s missing — DropForge patches the preview without re-importing."
-            : "Expliquez ce qui manque — DropForge complète la fiche sans tout réimporter."}
+          {t("refineIntro")}
         </p>
         {gaps.length > 0 ? (
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -157,15 +162,15 @@ export function DropForgeRefinePanel({ preview, onPreviewUpdate, locale = "fr" }
                       ? "bg-amber-500/15 text-amber-100"
                       : "bg-white/10 text-zinc-300"
                 )}
-                title={g.hint}
+                title={t(`gapHint${GAP_KEY[g.id] ?? "Title"}`, { count: imageCount })}
               >
-                {g.label}
+                {t(`gap${GAP_KEY[g.id] ?? "Title"}`)}
               </span>
             ))}
           </div>
         ) : (
           <p className="mt-2 text-[11px] text-emerald-300/90">
-            {locale === "en" ? "Listing looks complete — refine anytime." : "Fiche complète — affinez si besoin."}
+            {t("refineComplete")}
           </p>
         )}
       </div>
@@ -201,7 +206,7 @@ export function DropForgeRefinePanel({ preview, onPreviewUpdate, locale = "fr" }
             className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 text-[10px] font-semibold text-cyan-100 transition hover:bg-cyan-500/20 disabled:opacity-50"
           >
             <Wand2 className="mr-1 inline size-3 opacity-70" aria-hidden />
-            {gapLabels[action]}
+            {t(`chip${CHIP_KEY[action]}`)}
           </button>
         ))}
       </div>
@@ -214,18 +219,14 @@ export function DropForgeRefinePanel({ preview, onPreviewUpdate, locale = "fr" }
         }}
       >
         <label className="sr-only" htmlFor="dropforge-refine-input">
-          Instruction Co-Pilot
+          {t("refineInputLabel")}
         </label>
         <input
           id="dropforge-refine-input"
           value={instruction}
           onChange={(e) => setInstruction(e.target.value)}
           disabled={busy}
-          placeholder={
-            locale === "en"
-              ? "e.g. Add size 42, fix FR description, paste image URL…"
-              : "ex. Ajoute la taille 42, corrige la description FR, colle une URL image…"
-          }
+          placeholder={t("refinePlaceholder")}
           className="min-w-0 flex-1 rounded-xl border border-white/15 bg-black/40 px-3 py-2.5 text-sm text-white outline-none placeholder:text-zinc-500 focus:border-cyan-400/40"
         />
         <Button
@@ -240,7 +241,7 @@ export function DropForgeRefinePanel({ preview, onPreviewUpdate, locale = "fr" }
             <MessageSquarePlus className="size-4" aria-hidden />
           )}
           <span className="ml-1.5 hidden sm:inline">
-            {locale === "en" ? "Patch" : "Compléter"}
+            {t("refinePatch")}
           </span>
         </Button>
       </form>

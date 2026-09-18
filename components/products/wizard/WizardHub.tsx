@@ -1,12 +1,9 @@
 "use client"
 
-// TEST: /new?wizard=v2&mode=pro&compose=1 -> Pro visible
-// TEST: /new?wizard=v2&mode=express&compose=1 -> Express visible
-// TEST: click tab -> URL change sans reload complet
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Loader2, Zap } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { BentoShell } from "@/components/affisell/bento-ui"
@@ -57,16 +54,6 @@ type MerchantDefaults = {
   defaultCommissionPct: number | null
 }
 
-const HUB_MODES: {
-  id: WizardV2Mode
-  label: string
-  hint: string
-  recommended?: boolean
-}[] = [
-  { id: "pro", label: "Pro", hint: "Fiche complète · galerie · catégories Affisell", recommended: true },
-  { id: "express", label: "Express", hint: "URL → preview → publish (~15 s)" },
-]
-
 type Props = {
   ownerUserId: string
   initialMode?: WizardV2Mode
@@ -83,15 +70,26 @@ function WizardHubTabs({
   shopifyDomain: string | null
   onModeChange: (next: WizardV2Mode) => void
 }) {
+  const t = useTranslations("supplier.wizardV2")
+  const hubModes: {
+    id: WizardV2Mode
+    label: string
+    hint: string
+    recommended?: boolean
+  }[] = [
+    { id: "pro", label: "Pro", hint: t("modeProHint"), recommended: true },
+    { id: "express", label: "Express", hint: t("modeExpressHint") },
+  ]
+
   return (
     <>
       <header className="mb-8">
         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#7C3AED]">Wizard v2</p>
-        <h1 className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">Publier en 1 clic</h1>
+        <h1 className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-50">{t("headline")}</h1>
         <p className="mt-1 text-sm text-zinc-500">
           {mode === "express"
-            ? `Mode Express — import URL · utilisateur ${ownerUserId.slice(0, 8)}…`
-            : "Mode Pro — fiche marketplace complète (recommandé)"}
+            ? t("subtitleExpress", { userId: ownerUserId.slice(0, 8) })
+            : t("subtitlePro")}
         </p>
       </header>
 
@@ -100,12 +98,12 @@ function WizardHubTabs({
           className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-100"
           role="status"
         >
-          Import depuis Shopify en ~10 s — boutique connectée : <strong>{shopifyDomain}</strong>
+          {t("shopifyConnectedPrefix")} <strong>{shopifyDomain}</strong>
         </div>
       ) : null}
 
-      <nav className="mb-8 flex flex-wrap gap-2" aria-label="Mode wizard">
-        {HUB_MODES.map((m) => (
+      <nav className="mb-8 flex flex-wrap gap-2" aria-label={t("modeNavAriaLabel")}>
+        {hubModes.map((m) => (
           <button
             key={m.id}
             type="button"
@@ -122,7 +120,7 @@ function WizardHubTabs({
               <span>{m.label}</span>
               {m.recommended ? (
                 <span className="rounded-full bg-[#7C3AED]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#7C3AED] dark:bg-violet-400/15 dark:text-violet-200">
-                  Recommandé
+                  {t("recommendedBadge")}
                 </span>
               ) : null}
             </span>
@@ -176,6 +174,7 @@ type ExpressTabProps = {
 }
 
 function WizardExpressTab(props: ExpressTabProps) {
+  const t = useTranslations("supplier.wizardV2")
   const {
     expressUrl,
     setExpressUrl,
@@ -219,19 +218,19 @@ function WizardExpressTab(props: ExpressTabProps) {
         <section aria-labelledby="express-heading" className="space-y-4">
           <h2 id="express-heading" className="flex items-center gap-2 text-lg font-semibold">
             <Zap className="h-5 w-5 text-amber-500" aria-hidden />
-            Express — collez une URL
+            {t("expressHeading")}
           </h2>
-          <Label htmlFor="express-url">URL produit (AliExpress, Shopify, marketplace…)</Label>
+          <Label htmlFor="express-url">{t("expressUrlLabel")}</Label>
           <Input
             id="express-url"
             value={expressUrl}
             onChange={(e) => setExpressUrl(e.target.value)}
-            placeholder="https://www.aliexpress.com/item/… ou Shopify"
+            placeholder={t("expressUrlPlaceholder")}
             className="h-11"
           />
           <Button type="button" disabled={publishing} onClick={() => void runExpressImport()}>
             {publishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Analyser l&apos;URL
+            {t("analyzeUrlCta")}
           </Button>
           {showAeBrowserBridge ? (
             <WizardV2AeBrowserBridge
@@ -242,17 +241,14 @@ function WizardExpressTab(props: ExpressTabProps) {
                 try {
                   applyExpressImportData(data)
                 } catch (e) {
-                  toast.error(e instanceof Error ? e.message : "Import navigateur échoué")
+                  toast.error(e instanceof Error ? e.message : t("browserImportFailedError"))
                 } finally {
                   setPublishing(false)
                 }
               }}
             />
           ) : null}
-          <p className="text-xs text-zinc-500">
-            AliExpress : API officielle si connectée, sinon analyse directe de la page (fr / www). Shopify
-            et autres marketplaces restent en scrape Express. Mode Pro pour une fiche manuelle.
-          </p>
+          <p className="text-xs text-zinc-500">{t("expressSourceHint")}</p>
         </section>
 
         <div className="space-y-4 border-t border-zinc-200 pt-6 dark:border-zinc-800">
@@ -275,7 +271,7 @@ function WizardExpressTab(props: ExpressTabProps) {
             </div>
           )}
           <div>
-            <Label htmlFor="v2-express-name">Titre</Label>
+            <Label htmlFor="v2-express-name">{t("titleLabel")}</Label>
             <Input
               id="v2-express-name"
               value={name}
@@ -284,7 +280,7 @@ function WizardExpressTab(props: ExpressTabProps) {
             />
           </div>
           <div>
-            <Label htmlFor="v2-express-desc">Description & caractéristiques</Label>
+            <Label htmlFor="v2-express-desc">{t("descriptionLabel")}</Label>
             <textarea
               id="v2-express-desc"
               className="mt-1 min-h-[120px] w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
@@ -293,13 +289,12 @@ function WizardExpressTab(props: ExpressTabProps) {
             />
             {images.length > 1 ? (
               <p className="text-xs text-zinc-500">
-                {images.length} photos dans la galerie — elles s&apos;affichent dans l&apos;aperçu et à la
-                publication (plus de balises [[img:N]]).
+                {t("galleryPhotosHint", { count: images.length })}
               </p>
             ) : null}
           </div>
           <div>
-            <Label htmlFor="v2-express-price">Prix (EUR)</Label>
+            <Label htmlFor="v2-express-price">{t("priceLabel")}</Label>
             <Input
               id="v2-express-price"
               type="number"
@@ -309,7 +304,7 @@ function WizardExpressTab(props: ExpressTabProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label>Catégorie</Label>
+            <Label>{t("categoryLabel")}</Label>
             {categoryId && categoryBreadcrumb ? (
               <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
                 {categoryBreadcrumb}
@@ -329,7 +324,7 @@ function WizardExpressTab(props: ExpressTabProps) {
           </div>
           {skuVariants?.hasVariants ? (
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              {skuVariants.variants.length} variantes SKU importées — synchronisées à la publication
+              {t("skuVariantsImportedHint", { count: skuVariants.variants.length })}
             </p>
           ) : null}
 
@@ -349,16 +344,16 @@ function WizardExpressTab(props: ExpressTabProps) {
             aria-expanded={showAdvanced}
             onClick={() => setShowAdvanced((v) => !v)}
           >
-            Avancé — logistique & commission
+            {t("advancedToggle")}
           </button>
           {showAdvanced && defaults ? (
             <div className="grid gap-3 rounded-xl border border-zinc-200 p-4 text-sm dark:border-zinc-800">
-              <p>Pays : {defaults.countryCode}</p>
-              <p>Zone : {defaults.warehouseType}</p>
-              <p>Commission affiliés : {commissionPct} %</p>
+              <p>{t("countryLabel", { country: defaults.countryCode ?? "" })}</p>
+              <p>{t("zoneLabel", { zone: defaults.warehouseType ?? "" })}</p>
+              <p>{t("commissionLabel", { pct: commissionPct })}</p>
               {expressImportPatch ? (
                 <Button type="button" variant="outline" onClick={openFullWizardPrefilled}>
-                  Ouvrir tous les détails préremplis
+                  {t("openPrefilledCta")}
                 </Button>
               ) : null}
             </div>
@@ -372,7 +367,7 @@ function WizardExpressTab(props: ExpressTabProps) {
             onClick={() => void publish()}
           >
             {publishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Publier le produit
+            {t("publishCta")}
           </Button>
           <p className="text-xs text-zinc-500">
             {expressImportPatch ? (
@@ -381,11 +376,11 @@ function WizardExpressTab(props: ExpressTabProps) {
                 className="mb-2 block text-left font-medium text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
                 onClick={openFullWizardPrefilled}
               >
-                Compléter automatiquement le reste des détails dans le wizard complet
+                {t("completeInFullWizardCta")}
               </button>
             ) : null}
             <a href="?wizard=v1&compose=1" className="underline">
-              Ouvrir le wizard classique (v1)
+              {t("openLegacyWizardLink")}
             </a>
           </p>
         </div>
@@ -398,6 +393,7 @@ function WizardExpressTab(props: ExpressTabProps) {
 }
 
 export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
+  const t = useTranslations("supplier.wizardV2")
   const { push, replace, mounted } = useSafeAppRouter()
   const searchParams = useSearchParams()
   const mode = resolveWizardV2Mode(searchParams.get("mode") ?? initialMode)
@@ -550,7 +546,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
 
   const openFullWizardPrefilled = useCallback(() => {
     if (!name.trim()) {
-      toast.error("Importez d'abord un produit")
+      toast.error(t("importFirstError"))
       return
     }
 
@@ -642,6 +638,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
     price,
     push,
     skuVariants,
+    t,
   ])
 
   const applyExpressImportData = useCallback(
@@ -660,7 +657,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
         patch.name.trim() ||
         (typeof p.ai_title === "string" ? p.ai_title.trim() : "") ||
         (typeof p.title === "string" ? p.title.trim() : "")
-      if (!title) throw new Error("Titre introuvable — réessayez ou passez en mode Pro")
+      if (!title) throw new Error(t("titleNotFoundError"))
       setName(title.slice(0, 500))
       setDescription(
         stripImportOptionsFromDescription(stripDescriptionImageMarkers(patch.description))
@@ -707,18 +704,18 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
           : 0
       toast.success(
         data.method?.includes("aliexpress") || data.method?.includes("ae-browser")
-          ? `AliExpress importé — ${imgN} photo${imgN > 1 ? "s" : ""}, ${specN} caractéristique${specN > 1 ? "s" : ""}`
-          : "Produit importé — vérifiez l'aperçu"
+          ? t("aliexpressImportedToast", { imgCount: imgN, specCount: specN })
+          : t("productImportedToast")
       )
     },
-    [completeStep, defaults?.defaultCommissionPct]
+    [completeStep, defaults?.defaultCommissionPct, t]
   )
 
   const runExpressImport = useCallback(async () => {
     if (publishing) return
     const u = expressUrl.trim()
     if (!/^https?:\/\//i.test(u)) {
-      toast.error("URL invalide")
+      toast.error(t("invalidUrlError"))
       return
     }
     setShowAeBrowserBridge(false)
@@ -737,7 +734,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
         if (data.useBrowserCapture && /aliexpress/i.test(u)) {
           setShowAeBrowserBridge(true)
           setAeBrowserAutoStart(true)
-          toast.message("Serveur bloqué — lancement de l’import navigateur…", { duration: 4000 })
+          toast.message(t("serverBlockedBrowserImport"), { duration: 4000 })
           return
         }
         throw new Error(data.error ?? "import_failed")
@@ -747,19 +744,19 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
       if (/aliexpress/i.test(u)) {
         setShowAeBrowserBridge(true)
         setAeBrowserAutoStart(true)
-        toast.message("Import serveur indisponible — bascule navigateur…", { duration: 4000 })
+        toast.message(t("serverUnavailableBrowserFallback"), { duration: 4000 })
       } else {
-        toast.error(err instanceof Error ? err.message : "Import impossible")
+        toast.error(err instanceof Error ? err.message : t("importImpossibleError"))
       }
     } finally {
       setPublishing(false)
     }
-  }, [applyExpressImportData, expressUrl, publishing])
+  }, [applyExpressImportData, expressUrl, publishing, t])
 
   const publish = useCallback(async () => {
     if (publishing) return
     if (!defaults) {
-      toast.error("Chargement des préférences…")
+      toast.error(t("loadingPreferencesError"))
       return
     }
     if (uploadBusy) {
@@ -775,28 +772,28 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
         }))
       )
       trackWizardV2PublishBlocked({ mode, reason: msg ?? "upload_busy", field: "images" })
-      toast.error(msg ?? "Upload en cours")
+      toast.error(msg ?? t("uploadInProgressError"))
       return
     }
     if (!name.trim()) {
       trackWizardV2PublishBlocked({ mode, reason: "missing_name", field: "name" })
-      toast.error("Titre requis")
+      toast.error(t("titleRequiredError"))
       return
     }
     if (!categoryId.trim()) {
       trackWizardV2PublishBlocked({ mode, reason: "missing_category", field: "category" })
-      toast.error("Catégorie requise — choisissez une catégorie ou passez en mode Pro")
+      toast.error(t("categoryRequiredError"))
       return
     }
     if (images.length === 0 || !images[0]?.startsWith("http")) {
       trackWizardV2PublishBlocked({ mode, reason: "images_not_ready", field: "images" })
-      toast.error("Photo CDN requise")
+      toast.error(t("cdnPhotoRequiredError"))
       return
     }
     const priceN = Number(price)
     if (!Number.isFinite(priceN) || priceN <= 0) {
       trackWizardV2PublishBlocked({ mode, reason: "invalid_price", field: "price" })
-      toast.error("Prix catalogue invalide")
+      toast.error(t("invalidPriceError"))
       return
     }
 
@@ -839,7 +836,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
         image_count: images.length,
       })
 
-      toast.success("🎉 Produit publié — +10 XP")
+      toast.success(t("publishSuccessToast"))
       push("/dashboard/supplier/products")
     } catch (err) {
       const reason = err instanceof Error ? err.message : "publish_failed"
@@ -861,6 +858,7 @@ export function WizardHub({ ownerUserId, initialMode = "pro" }: Props) {
     publishing,
     push,
     skuVariants,
+    t,
     uploadBusy,
   ])
 

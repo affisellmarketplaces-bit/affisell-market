@@ -5,6 +5,8 @@ import {
   type SupplierSkuTableRow,
 } from "@/lib/supplier-sku-builder"
 import { validateSimpleColorRows } from "@/lib/supplier-simple-color-validation"
+import { tMessage } from "@/lib/i18n-pick-message"
+import type { AppLocale } from "@/lib/i18n-locale"
 
 export type PublishFieldKey =
   | "name"
@@ -71,20 +73,26 @@ export type CollectPublishContext = {
   deliveryCountryCodes?: string[]
 }
 
-export function collectClientPublishBlockers(ctx: CollectPublishContext): PublishBlocker[] {
+const PB = "supplier.publishBlockers"
+
+export function collectClientPublishBlockers(
+  ctx: CollectPublishContext,
+  locale: AppLocale = "fr"
+): PublishBlocker[] {
   const out: PublishBlocker[] = []
+  const t = (key: string) => tMessage(locale, `${PB}.${key}`)
 
   if (!ctx.name.trim()) {
-    out.push({ field: "name", message: "Le titre du produit est obligatoire." })
+    out.push({ field: "name", message: t("nameRequired") })
   }
   if (ctx.imagesCount === 0) {
-    out.push({ field: "images", message: "Ajoutez au moins une photo produit." })
+    out.push({ field: "images", message: t("imagesRequired") })
   }
   if (!ctx.categoryId.trim()) {
-    out.push({ field: "category", message: "Sélectionnez une catégorie." })
+    out.push({ field: "category", message: t("categoryRequired") })
   }
   for (const m of ctx.missingSpecs) {
-    out.push({ field: "specs", message: `${m.label} est requis` })
+    out.push({ field: "specs", message: t("specRequired").replace("{label}", m.label) })
   }
   if (ctx.priceError) {
     out.push({ field: "price", message: ctx.priceError })
@@ -98,23 +106,20 @@ export function collectClientPublishBlockers(ctx: CollectPublishContext): Publis
   if (ctx.offerModeAcknowledged === false) {
     out.push({
       field: "offerMode",
-      message:
-        "Indiquez l'état du produit (neuf, reconditionné, seconde main, gros ou don) — champ obligatoire.",
+      message: t("offerModeRequired"),
     })
   }
   const wt = ctx.warehouseType
   if (!wt || (wt !== "local" && wt !== "regional" && wt !== "international")) {
     out.push({
       field: "warehouseType",
-      message:
-        "Indiquez la zone logistique (local, régional ou international) — obligatoire pour la publication.",
+      message: t("warehouseTypeRequired"),
     })
   }
   if (!ctx.deliveryCountryCodes?.length) {
     out.push({
       field: "deliveryCountries",
-      message:
-        "Sélectionnez au moins un pays de livraison (ou « Monde entier ») — obligatoire pour la publication.",
+      message: t("deliveryCountriesRequired"),
     })
   }
   if (ctx.variantFormMode === "advanced") {
@@ -123,8 +128,7 @@ export function collectClientPublishBlockers(ctx: CollectPublishContext): Publis
     if (filled.length === 0) {
       out.push({
         field: "variants",
-        message:
-          "Ajoutez au moins une variante SKU (mode rapide ou ligne du tableau), ou repassez en produit simple.",
+        message: t("skuVariantRequired"),
       })
     } else {
       const issues = validateSupplierSkuTableRows(filled, [], { requirePositiveCommission: true })
@@ -135,7 +139,10 @@ export function collectClientPublishBlockers(ctx: CollectPublishContext): Publis
       if (issues.length > uniqueMessages.length) {
         out.push({
           field: "variants",
-          message: `${issues.length} erreurs à corriger dans le tableau SKU.`,
+          message: formatPluralCount(
+            tMessage(locale, "supplier.form.skuTableErrors"),
+            issues.length
+          ),
         })
       }
     }
@@ -145,7 +152,7 @@ export function collectClientPublishBlockers(ctx: CollectPublishContext): Publis
     if (filled.length === 0) {
       out.push({
         field: "variants",
-        message: "Ajoutez au moins une couleur, ou repassez en produit simple.",
+        message: t("colorRequired"),
       })
     } else {
       const issues = validateSimpleColorRows(ctx.simpleColorRows)
@@ -156,13 +163,25 @@ export function collectClientPublishBlockers(ctx: CollectPublishContext): Publis
       if (issues.length > uniqueMessages.length) {
         out.push({
           field: "variants",
-          message: `${issues.length} erreurs sur les noms de couleur.`,
+          message: formatPluralCount(
+            tMessage(locale, "supplier.form.simpleColorNameErrorsBlocker"),
+            issues.length
+          ),
         })
       }
     }
   }
 
   return out
+}
+
+/** Minimal ICU plural resolver for our own ` {count, plural, one {...} other {...}}` messages. */
+function formatPluralCount(icuMessage: string, count: number): string {
+  const match = icuMessage.match(/\{count,\s*plural,\s*one\s*\{([^}]*)\}\s*other\s*\{([^}]*)\}\}/)
+  if (!match) return icuMessage.replace(/\{count\}/g, String(count))
+  const [, one, other] = match
+  const chosen = (count === 1 ? one : other) ?? ""
+  return icuMessage.replace(match[0], chosen.replace(/#/g, String(count)))
 }
 
 function blockerFromMessage(message: string): PublishBlocker | null {
@@ -203,12 +222,26 @@ function blockerFromMessage(message: string): PublishBlocker | null {
   return null
 }
 
+/** Known API error codes → their field + translated display message (routed on the locale-independent code). */
+const KNOWN_ERROR_CODES: Record<string, { field: PublishFieldKey; key: string }> = {
+  "Invalid variants payload": { field: "variants", key: "invalidVariantsPayload" },
+  booking_slots_required: { field: "specs", key: "bookingSlotsRequired" },
+  merchant_verification_pending: { field: "specs", key: "merchantVerificationPending" },
+  warehouse_type_required: { field: "warehouseType", key: "warehouseTypeRequired" },
+  delivery_countries_required: { field: "deliveryCountries", key: "deliveryCountriesRequired" },
+  affiliate_commission_required: { field: "commission", key: "affiliateCommissionRequired" },
+  product_images_required: { field: "images", key: "productImagesRequiredHosted" },
+}
+
 /** Map API 400 responses to field blockers for highlighting. */
-export function mapServerPublishBlockers(json: {
-  error?: string
-  errors?: string[]
-  issues?: unknown
-}): PublishBlocker[] {
+export function mapServerPublishBlockers(
+  json: {
+    error?: string
+    errors?: string[]
+    issues?: unknown
+  },
+  locale: AppLocale = "fr"
+): PublishBlocker[] {
   const out: PublishBlocker[] = []
 
   if (Array.isArray(json.errors) && json.errors.length > 0) {
@@ -218,36 +251,28 @@ export function mapServerPublishBlockers(json: {
   }
 
   if (typeof json.error === "string" && json.error.trim()) {
-    const normalizedError =
-      json.error === "Invalid variants payload"
-        ? "Format des variantes incorrect : en mode couleurs, n’utilisez pas la clé SKU ; en mode tableau SKU, vérifiez chaque ligne."
-        : json.error === "booking_slots_required"
-          ? "Ajoutez au moins un créneau de rendez-vous futur avant de publier (Booking Hub)."
-          : json.error === "merchant_verification_pending"
-            ? "Vérification marchand requise — complétez votre dossier KYC sur /dashboard/verification avant de publier."
-            : json.error === "warehouse_type_required"
-              ? "Indiquez la zone logistique (local, régional ou international) — obligatoire pour la publication."
-              : json.error === "delivery_countries_required"
-                ? "Sélectionnez au moins un pays de livraison (ou « Monde entier ») — obligatoire pour la publication."
-              : json.error === "affiliate_commission_required"
-                ? "Définissez la commission offerte aux affiliés sur chaque vente (> 0 %). La grille catégorie est indicative uniquement."
-              : json.error === "product_images_required"
-                ? "Ajoutez au moins une photo produit hébergée (upload terminé) avant de publier."
-              : json.error
-    const mapped = blockerFromMessage(normalizedError)
-    if (mapped) {
-      if (!out.some((b) => b.field === mapped.field && b.message === mapped.message)) {
-        out.push({ ...mapped, message: normalizedError })
+    const known = KNOWN_ERROR_CODES[json.error]
+    if (known) {
+      const message = tMessage(locale, `${PB}.${known.key}`)
+      if (!out.some((b) => b.field === known.field && b.message === message)) {
+        out.push({ field: known.field, message })
       }
-    } else if (out.length === 0) {
-      out.push({ field: "specs", message: normalizedError })
+    } else {
+      const mapped = blockerFromMessage(json.error)
+      if (mapped) {
+        if (!out.some((b) => b.field === mapped.field && b.message === mapped.message)) {
+          out.push(mapped)
+        }
+      } else if (out.length === 0) {
+        out.push({ field: "specs", message: json.error })
+      }
     }
   }
 
   if (Array.isArray(json.issues) && json.issues.length > 0 && out.length === 0) {
     out.push({
       field: "variants",
-      message: "Corrigez les variantes / lignes SKU (champs invalides).",
+      message: tMessage(locale, `${PB}.variantsInvalidGeneric`),
     })
   }
 

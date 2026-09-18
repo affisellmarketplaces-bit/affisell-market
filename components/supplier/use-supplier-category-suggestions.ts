@@ -18,6 +18,11 @@ export type SupplierCategorySuggestMeta = {
   source: string
 }
 
+/** Photo-based scans call an AI classifier and can legitimately take several seconds. */
+const SLOW_HINT_MS = 6000
+/** Past this, stop waiting and let the supplier retry rather than spin forever. */
+const HARD_TIMEOUT_MS = 25000
+
 /** Title + main photo → live taxonomy suggestions (vision-first when both are set). */
 export function useSupplierCategorySuggestions(
   title: string,
@@ -41,6 +46,11 @@ export function useSupplierCategorySuggestions(
     source: "none",
   })
   const [loading, setLoading] = useState(false)
+  const [slow, setSlow] = useState(false)
+  const [timedOut, setTimedOut] = useState(false)
+  const [retryNonce, setRetryNonce] = useState(0)
+
+  const retry = () => setRetryNonce((n) => n + 1)
 
   useEffect(() => {
     const rawImage = debouncedImageUrl.trim()
@@ -57,11 +67,22 @@ export function useSupplierCategorySuggestions(
         source: "none",
       })
       setLoading(false)
+      setSlow(false)
+      setTimedOut(false)
       return
     }
 
     const ac = new AbortController()
     setLoading(true)
+    setSlow(false)
+    setTimedOut(false)
+
+    const slowTimer = setTimeout(() => setSlow(true), SLOW_HINT_MS)
+    const hardTimer = setTimeout(() => {
+      setTimedOut(true)
+      setLoading(false)
+      ac.abort()
+    }, HARD_TIMEOUT_MS)
 
     void (async () => {
       try {
@@ -125,12 +146,18 @@ export function useSupplierCategorySuggestions(
           })
         }
       } finally {
+        clearTimeout(slowTimer)
+        clearTimeout(hardTimer)
         if (!ac.signal.aborted) setLoading(false)
       }
     })()
 
-    return () => ac.abort()
-  }, [browse, debouncedTitle, debouncedDescription, debouncedBullets, debouncedImageUrl])
+    return () => {
+      clearTimeout(slowTimer)
+      clearTimeout(hardTimer)
+      ac.abort()
+    }
+  }, [browse, debouncedTitle, debouncedDescription, debouncedBullets, debouncedImageUrl, retryNonce])
 
-  return { suggestions, alternatives, productInsight, loading, meta }
+  return { suggestions, alternatives, productInsight, loading, slow, timedOut, retry, meta }
 }

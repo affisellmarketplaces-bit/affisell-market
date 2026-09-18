@@ -8,6 +8,18 @@ import {
   formatEnrichEuro,
 } from "@/lib/import/smart-import-enricher"
 import { formatRadarSupplierDeliveryLine } from "@/lib/logistics/delivery-sla"
+import { tMessage } from "@/lib/i18n-pick-message"
+import type { AppLocale } from "@/lib/i18n-locale"
+
+function tr(locale: AppLocale, key: string, vars: Record<string, string | number> = {}): string {
+  let out = tMessage(locale, `radarTerminal.${key}`)
+  for (const [k, v] of Object.entries(vars)) out = out.replaceAll(`{${k}}`, String(v))
+  return out
+}
+
+const NUMBER_LOCALE: Record<AppLocale, string> = {
+  fr: "fr-FR", en: "en-US", de: "de-DE", es: "es-ES", it: "it-IT", nl: "nl-NL", pl: "pl-PL", zh: "zh-CN",
+}
 
 /** @deprecated Prefer getRadarCopyForAffiliate().tooltip — kept for tests / tooltips. */
 export const RADAR_NO_STOCK_TOOLTIP =
@@ -98,51 +110,60 @@ function resolveSupplierCount(winner: RadarCopyWinnerInput): number {
 
 export function getRadarCopyForAffiliate(
   winner: RadarCopyWinnerInput,
-  country: string
+  country: string,
+  locale: AppLocale = "fr"
 ): RadarPersonaCopy {
   const code = country.trim().toUpperCase() || "FR"
   const score = resolveScore(winner)
   const { salePrice, costPrice, margin } = resolveEconomics(winner)
   const count = resolveSupplierCount(winner)
+  const emptyLabel = tr(locale, "oppEmpty", { code })
+  const line = (days: number) =>
+    formatRadarSupplierDeliveryLine({ count, marketCountry: code, origin: "EU", days, locale })
 
   return {
-    arbitrageLabel: `🔥 ${score}/100 - Marché Vierge ${code} - Tu vends à ${salePrice}€ = +${margin}€ sans stock`,
+    arbitrageLabel: tr(locale, "affArbitrage", { score, code, sale: salePrice, margin }),
     opportunityLabel:
       count > 0
-        ? `💜 ${count} signal${count > 1 ? "s" : ""} FR — liste sans stock →`
-        : `💜 Marché Vierge ${code} - 0 concurrent - Lancement 1er sans stock →`,
-    supplierLabel:
-      count >= 3
-        ? formatRadarSupplierDeliveryLine({ count, marketCountry: code, origin: "EU", days: 3 })
-        : count > 0
-          ? formatRadarSupplierDeliveryLine({ count, marketCountry: code, origin: "EU", days: 4 })
-          : `💜 Marché Vierge ${code} - 0 concurrent - Lancement 1er sans stock →`,
-    ctaLabel: `Lister sans stock →`,
-    tooltip: `Tu listes à ${salePrice}€. Quand tu vends, Affisell achète à ${costPrice}€ et livre. Tu touches ${margin}€. 0 stock.`,
+        ? tr(locale, count > 1 ? "oppSignalMany" : "oppSignalOne", { count, code })
+        : emptyLabel,
+    supplierLabel: count >= 3 ? line(3) : count > 0 ? line(4) : emptyLabel,
+    ctaLabel: tr(locale, "affCta"),
+    tooltip: tr(locale, "affTooltip", { sale: salePrice, cost: costPrice, margin }),
     ctaHref: () => "/dashboard/affiliate/catalog?filter=draft",
   }
 }
 
 export function getRadarCopyForSupplier(
   winner: RadarCopyWinnerInput,
-  country: string
+  country: string,
+  locale: AppLocale = "fr"
 ): RadarPersonaCopy {
   const code = country.trim().toUpperCase() || "FR"
   const score = resolveScore(winner)
   const searches = resolveSearches(winner)
-  const searchesLabel = searches.toLocaleString("fr-FR")
+  const searchesLabel = searches.toLocaleString(NUMBER_LOCALE[locale] ?? "fr-FR")
   const count = resolveSupplierCount(winner)
   const winnerId = winner.id?.trim() ?? ""
+  const opportunity = tr(locale, "supOpportunity", { code })
 
   return {
-    arbitrageLabel: `🔥 ${score}/100 - ${searchesLabel} recherches/mois - Stock exclusif demandé`,
-    opportunityLabel: `📦 Opportunité Grossiste ${code} - 0 fournisseur local - Devenir le seul →`,
+    arbitrageLabel: tr(locale, "supArbitrage", { score, searches: searchesLabel }),
+    opportunityLabel: opportunity,
     supplierLabel:
       count > 0
-        ? `${formatRadarSupplierDeliveryLine({ count, marketCountry: code, origin: "EU", days: 4 })} - Rupture imminente`
-        : `📦 Opportunité Grossiste ${code} - 0 fournisseur local - Devenir le seul →`,
-    ctaLabel: `Devenir fournisseur →`,
-    tooltip: `${searchesLabel} recherches/mois en ${code}. Le prix vitrine est réservé aux revendeurs — toi tu captres le volume en stock exclusif.`,
+        ? tr(locale, "supImminent", {
+            line: formatRadarSupplierDeliveryLine({
+              count,
+              marketCountry: code,
+              origin: "EU",
+              days: 4,
+              locale,
+            }),
+          })
+        : opportunity,
+    ctaLabel: tr(locale, "supCta"),
+    tooltip: tr(locale, "supTooltip", { searches: searchesLabel, code }),
     ctaHref: (c) => {
       const qs = new URLSearchParams({
         from: "radar",
@@ -158,10 +179,11 @@ export function getRadarCopyForSupplier(
 export function getRadarCopyForRole(
   role: string | null | undefined,
   winner: RadarCopyWinnerInput,
-  country: string
+  country: string,
+  locale: AppLocale = "fr"
 ): RadarPersonaCopy {
-  if (role === "SUPPLIER") return getRadarCopyForSupplier(winner, country)
-  return getRadarCopyForAffiliate(winner, country)
+  if (role === "SUPPLIER") return getRadarCopyForSupplier(winner, country, locale)
+  return getRadarCopyForAffiliate(winner, country, locale)
 }
 
 export function isRadarSupplierRole(role: string | null | undefined): boolean {
@@ -173,14 +195,14 @@ export function radarBulkBarLabel(args: {
   role: string | null | undefined
   count: number
   marginEuro?: number
+  locale?: AppLocale
 }): string {
   const n = args.count
-  if (isRadarSupplierRole(args.role)) {
-    return `⚡ Proposer ces ${n} produits comme fournisseur exclusif FR`
-  }
+  const locale = args.locale ?? "fr"
+  if (isRadarSupplierRole(args.role)) return tr(locale, "bulkSupplier", { n })
   const margin =
     args.marginEuro != null ? formatEnrichEuro(args.marginEuro) : "215,00"
-  return `⚡ Lister les ${n} sans stock (Marge +${margin}€)`
+  return tr(locale, "bulkAffiliate", { n, margin })
 }
 
 /* ── Legacy helpers (affiliate no-stock) — keep tests / older imports green ── */

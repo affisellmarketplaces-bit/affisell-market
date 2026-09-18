@@ -2,6 +2,7 @@
 
 import { Filter, X } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
@@ -13,10 +14,10 @@ import type { SwipeFeedFilters } from "@/lib/affiliate-swipe-feed-types"
 import { cn } from "@/lib/utils"
 
 const NICHE_OPTIONS = [
-  { id: "" as const, label: "Tous" },
-  { id: "fitness" as const, label: "Fitness" },
-  { id: "tech" as const, label: "Tech" },
-  { id: "maison" as const, label: "Maison" },
+  { id: "" as const, labelKey: "nicheAll" },
+  { id: "fitness" as const, labelKey: "nicheFitness" },
+  { id: "tech" as const, labelKey: "nicheTech" },
+  { id: "maison" as const, labelKey: "nicheHome" },
 ] as const
 
 const COMMISSION_PRESETS = [0, 10, 15, 20, 25] as const
@@ -29,6 +30,7 @@ type Props = {
 }
 
 export function SwipeFiltersSheet({ open, filters, onClose, onApply }: Props) {
+  const t = useTranslations("affiliate.swipeFeed")
   const [draft, setDraft] = useState<SwipeFeedFilters>(filters)
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export function SwipeFiltersSheet({ open, filters, onClose, onApply }: Props) {
         <>
           <motion.button
             type="button"
-            aria-label="Fermer les filtres"
+            aria-label={t("closeFilters")}
             className="fixed inset-0 z-40 bg-zinc-950/70 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -66,13 +68,13 @@ export function SwipeFiltersSheet({ open, filters, onClose, onApply }: Props) {
             <div className="mb-4 flex items-center justify-between">
               <h2 id="swipe-filters-title" className="flex items-center gap-2 text-lg font-semibold text-white">
                 <Filter className="size-5 text-violet-400" aria-hidden />
-                Filtres Swipe
+                {t("filtersTitle")}
               </h2>
               <button
                 type="button"
                 onClick={onClose}
                 className="rounded-full p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white"
-                aria-label="Fermer"
+                aria-label={t("close")}
               >
                 <X className="size-5" />
               </button>
@@ -80,7 +82,7 @@ export function SwipeFiltersSheet({ open, filters, onClose, onApply }: Props) {
 
             <div className="space-y-5">
               <div>
-                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">Niche</p>
+                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">{t("nicheLabel")}</p>
                 <div className="flex flex-wrap gap-2">
                   {NICHE_OPTIONS.map((opt) => (
                     <button
@@ -99,7 +101,7 @@ export function SwipeFiltersSheet({ open, filters, onClose, onApply }: Props) {
                           : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
                       )}
                     >
-                      {opt.label}
+                      {t(opt.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -107,7 +109,7 @@ export function SwipeFiltersSheet({ open, filters, onClose, onApply }: Props) {
 
               <div>
                 <p className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
-                  Commission minimum
+                  {t("commissionMinLabel")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {COMMISSION_PRESETS.map((pct) => (
@@ -127,14 +129,14 @@ export function SwipeFiltersSheet({ open, filters, onClose, onApply }: Props) {
                           : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
                       )}
                     >
-                      {pct === 0 ? "Toutes" : `≥ ${pct}%`}
+                      {pct === 0 ? t("commissionAll") : `≥ ${pct}%`}
                     </button>
                   ))}
                 </div>
               </div>
 
               <div>
-                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">Recherche</p>
+                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">{t("searchLabel")}</p>
                 <input
                   type="search"
                   value={draft.q ?? ""}
@@ -144,7 +146,7 @@ export function SwipeFiltersSheet({ open, filters, onClose, onApply }: Props) {
                       q: e.target.value.trim() || undefined,
                     }))
                   }
-                  placeholder="Nom, catégorie, tag…"
+                  placeholder={t("searchPlaceholder")}
                   className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30"
                 />
               </div>
@@ -161,7 +163,7 @@ export function SwipeFiltersSheet({ open, filters, onClose, onApply }: Props) {
                   onClose()
                 }}
               >
-                Réinitialiser
+                {t("reset")}
               </Button>
               <Button
                 type="button"
@@ -171,14 +173,18 @@ export function SwipeFiltersSheet({ open, filters, onClose, onApply }: Props) {
                   onClose()
                 }}
               >
-                Appliquer{activeCount > 0 ? ` (${activeCount})` : ""}
+                {t("apply")}{activeCount > 0 ? ` (${activeCount})` : ""}
               </Button>
             </div>
 
             {draft.niche && draft.niche in AFFILIATE_CATALOG_NICHES && (
               <p className="mt-3 text-center text-[11px] text-zinc-500">
-                Niche « {draft.niche} » —{" "}
-                {AFFILIATE_CATALOG_NICHES[draft.niche as AffiliateCatalogNiche].slice(0, 3).join(", ")}…
+                {t("nicheHint", {
+                  niche: draft.niche,
+                  examples: AFFILIATE_CATALOG_NICHES[draft.niche as AffiliateCatalogNiche]
+                    .slice(0, 3)
+                    .join(", "),
+                })}
               </p>
             )}
           </motion.div>

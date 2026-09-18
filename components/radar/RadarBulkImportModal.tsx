@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useEffect, useMemo, useState } from "react"
 
 import {
@@ -38,6 +39,7 @@ export function RadarBulkImportModal({
   onClose,
   onConfirm,
 }: Props) {
+  const t = useTranslations("radarTerminal")
   const [destination, setDestination] = useState<RadarImportDestination>(defaultDestination)
   const showResellerEconomics = canViewResellerMargin(userRole)
 
@@ -69,13 +71,13 @@ export function RadarBulkImportModal({
         <div className="border-b border-zinc-100 px-5 py-4">
           <h2 id="radar-bulk-import-title" className="text-lg font-bold text-zinc-900">
             {showResellerEconomics
-              ? `Importer ${count} winners ${country} ?`
-              : `Proposer ${count} stocks exclusifs ${country} ?`}
+              ? t("modalTitleReseller", { count, country })
+              : t("modalTitleSupplier", { count, country })}
           </h2>
           <p className="mt-1 text-xs text-zinc-500">
             {showResellerEconomics
-              ? `Import bulk Radar → catalogue (max ${RADAR_BULK_IMPORT_MAX})`
-              : `Radar → brouillons fournisseur (max ${RADAR_BULK_IMPORT_MAX}) · prix vitrine masqué`}
+              ? t("modalSubReseller", { max: RADAR_BULK_IMPORT_MAX })
+              : t("modalSubSupplier", { max: RADAR_BULK_IMPORT_MAX })}
           </p>
         </div>
 
@@ -95,7 +97,7 @@ export function RadarBulkImportModal({
                   </span>
                 ) : (
                   <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-violet-600">
-                    Signal
+                    {t("signalCol")}
                   </span>
                 )}
               </li>
@@ -106,19 +108,21 @@ export function RadarBulkImportModal({
         <div className="space-y-3 border-t border-zinc-100 px-5 py-4">
           {showResellerEconomics ? (
             <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-900">
-              Total: Coût {formatEnrichEuro(totals.costTotal)}€ | Vente{" "}
-              {formatEnrichEuro(totals.saleTotal)}€ | Marge +{formatEnrichEuro(totals.marginTotal)}€
-              (x{totals.multiplier.toFixed(1)})
+              {t("modalTotal", {
+                cost: formatEnrichEuro(totals.costTotal),
+                sale: formatEnrichEuro(totals.saleTotal),
+                margin: formatEnrichEuro(totals.marginTotal),
+                mult: totals.multiplier.toFixed(1),
+              })}
             </p>
           ) : (
             <p className="rounded-xl border border-violet-100 bg-violet-50 px-3 py-2 text-xs font-medium text-violet-900">
-              ◈ {count} opportunité{count > 1 ? "s" : ""} stock — les prix revendeurs restent
-              confidentiels. Toi tu captres le volume wholesale.
+              {t("modalSupplierNote", { count })}
             </p>
           )}
 
           <label className="flex flex-col gap-1 text-xs text-zinc-600">
-            <span className="font-semibold">Destination</span>
+            <span className="font-semibold">{t("destination")}</span>
             <select
               value={destination}
               disabled={loading}
@@ -126,9 +130,9 @@ export function RadarBulkImportModal({
               className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-900"
             >
               {showResellerEconomics ? (
-                <option value="affisell_catalog">Affisell Catalogue (draft)</option>
+                <option value="affisell_catalog">{t("destCatalogDraft")}</option>
               ) : null}
-              <option value="supplier_draft">Supplier Draft</option>
+              <option value="supplier_draft">{t("destSupplierDraft")}</option>
             </select>
           </label>
 
@@ -139,7 +143,7 @@ export function RadarBulkImportModal({
               onClick={onClose}
               className="rounded-xl px-4 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
             >
-              Annuler
+              {t("cancel")}
             </button>
             <button
               type="button"
@@ -148,10 +152,10 @@ export function RadarBulkImportModal({
               className="rounded-xl bg-[#6D28D9] px-4 py-2 text-sm font-semibold text-white hover:bg-[#5B21B6] disabled:opacity-60"
             >
               {loading && progress
-                ? `Import en cours... ${progress.current}/${progress.total}`
+                ? t("importing", { current: progress.current, total: progress.total })
                 : showResellerEconomics
-                  ? `Confirmer — Importer ${count} produits`
-                  : `Confirmer — Proposer ${count} stocks`}
+                  ? t("confirmReseller", { count })
+                  : t("confirmSupplier", { count })}
             </button>
           </div>
         </div>

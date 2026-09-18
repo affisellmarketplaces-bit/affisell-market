@@ -3,6 +3,7 @@
 import { Loader2, Sparkles } from "lucide-react"
 import { AnimatePresence, motion } from "framer-motion"
 import { useCallback, useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 
 import {
   ListingBuilderModal,
@@ -46,6 +47,7 @@ export function SwipeListingStudio({
   onClose,
   onPublished,
 }: Props) {
+  const t = useTranslations("affiliate.swipeFeed")
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [catalogProduct, setCatalogProduct] = useState<CatalogProduct | null>(null)
@@ -68,17 +70,17 @@ export function SwipeListingStudio({
       const boot = (await bootRes.json()) as { storeSlug?: string | null }
 
       if (!detailRes.ok || !detail.product) {
-        throw new Error(detail.error ?? "Impossible de charger le produit")
+        throw new Error(detail.error ?? t("studioLoadFailed"))
       }
 
       setCatalogProduct(detail.product)
       setStoreSlug(typeof boot.storeSlug === "string" ? boot.storeSlug : null)
     } catch (e) {
-      setLoadError(e instanceof Error ? e.message : "Chargement impossible")
+      setLoadError(e instanceof Error ? e.message : t("studioLoadGeneric"))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     if (!open || !product) {
@@ -123,10 +125,10 @@ export function SwipeListingStudio({
                 <div className="text-center">
                   <p className="flex items-center justify-center gap-2 text-sm font-semibold text-white">
                     <Sparkles className="size-4 text-violet-400" aria-hidden />
-                    Studio vitrine
+                    {t("studioTitle")}
                   </p>
                   <p className="mt-1 max-w-[220px] text-xs text-zinc-400">
-                    Préparation marge, titre et SEO…
+                    {t("studioPreparing")}
                   </p>
                 </div>
               </div>
@@ -144,7 +146,7 @@ export function SwipeListingStudio({
               onClick={onClose}
               className="mt-4 rounded-xl bg-zinc-800 px-4 py-2 text-sm text-zinc-100 hover:bg-zinc-700"
             >
-              Fermer
+              {t("close")}
             </button>
           </div>
         </div>

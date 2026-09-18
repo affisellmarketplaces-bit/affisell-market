@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Radar, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { parseSupplierKind } from "@/lib/supplier-kind"
 import { cn } from "@/lib/utils"
@@ -16,6 +17,7 @@ export const RADAR_UNLOCK_BANNER_DISMISS_KEY = "affisell_radar_unlock_banner_dis
  * Never shown for Admin / Affiliate / already dismissed.
  */
 export function RadarUnlockBanner() {
+  const t = useTranslations("supplier.radarUnlockBanner")
   const { data: session, status } = useSession()
   const pathname = usePathname() ?? ""
   const [visible, setVisible] = useState(false)
@@ -90,14 +92,14 @@ export function RadarUnlockBanner() {
         >
           <Radar className="size-4 shrink-0 opacity-90" aria-hidden />
           <span className="truncate">
-            Nouveau: Débloque ton Radar adapté Producteur vs Grossiste →
+            {t("bannerText")}
           </span>
         </Link>
         <button
           type="button"
           onClick={dismiss}
           className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-white/15 hover:bg-white/25"
-          aria-label="Fermer"
+          aria-label={t("closeAriaLabel")}
         >
           <X className="size-4" />
         </button>

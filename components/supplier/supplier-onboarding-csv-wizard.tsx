@@ -4,6 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import {
+  AlertTriangle,
   ArrowRight,
   CheckCircle2,
   Download,
@@ -11,6 +12,7 @@ import {
   Loader2,
   Upload,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { BentoCard, BentoPageHeading } from "@/components/affisell/bento-ui"
@@ -36,21 +38,14 @@ type MappedPreviewRow = {
   errors: string[]
 }
 
-const STEPS = [
-  { id: 1, label: "Upload CSV" },
-  { id: 2, label: "Mapper colonnes" },
-  { id: 3, label: "Aperçu" },
-  { id: 4, label: "Publier" },
-] as const
+type RowFailure = { index: number; error: string }
 
-const FIELD_LABELS: Record<SupplierCsvFieldKey, string> = {
-  title: "Titre",
-  description: "Description",
-  price_eur: "Prix EUR",
-  stock: "Stock",
-  image_url: "Image URL",
-  category: "Catégorie",
-  shipping_days: "Jours livraison",
+const ROW_ERROR_KEYS: Record<string, string> = {
+  missing_title: "errorMissingTitle",
+  invalid_price: "errorInvalidPrice",
+  invalid_image_url: "errorInvalidImageUrl",
+  missing_category: "errorMissingCategory",
+  category_not_found: "errorCategoryNotFound",
 }
 
 export function SupplierOnboardingCsvWizard({
@@ -60,6 +55,30 @@ export function SupplierOnboardingCsvWizard({
   kycReady: boolean
   affiliateCount: number
 }) {
+  const t = useTranslations("supplier.csvImport")
+
+  const STEPS = [
+    { id: 1, label: t("step1Label") },
+    { id: 2, label: t("step2Label") },
+    { id: 3, label: t("step3Label") },
+    { id: 4, label: t("step4Label") },
+  ] as const
+
+  const FIELD_LABELS: Record<SupplierCsvFieldKey, string> = {
+    title: t("fieldTitle"),
+    description: t("fieldDescription"),
+    price_eur: t("fieldPriceEur"),
+    stock: t("fieldStock"),
+    image_url: t("fieldImageUrl"),
+    category: t("fieldCategory"),
+    shipping_days: t("fieldShippingDays"),
+  }
+
+  function rowErrorLabel(code: string): string {
+    const key = ROW_ERROR_KEYS[code]
+    return key ? t(key) : code
+  }
+
   const [step, setStep] = useState(1)
   const [headers, setHeaders] = useState<string[]>([])
   const [rows, setRows] = useState<SupplierCsvRawRow[]>([])
@@ -74,6 +93,7 @@ export function SupplierOnboardingCsvWizard({
   const [published, setPublished] = useState<{ created: number; affiliateCount: number } | null>(
     null
   )
+  const [failures, setFailures] = useState<RowFailure[]>([])
 
   const mappingOptions = useMemo(() => ["", ...headers], [headers])
 
@@ -104,14 +124,14 @@ export function SupplierOnboardingCsvWizard({
         suggestedMapping?: SupplierCsvColumnMapping
       }
       if (!res.ok) {
-        toast.error(j.error ?? "Import impossible")
+        toast.error(j.error ?? t("importFailedError"))
         return
       }
       setHeaders(j.headers ?? [])
       setRows(j.rows ?? [])
       setMapping(j.suggestedMapping ?? {})
       setStep(2)
-      toast.success(`${j.rows?.length ?? 0} lignes chargées`)
+      toast.success(t("rowsLoadedToast", { count: j.rows?.length ?? 0 }))
     } finally {
       setUploading(false)
     }
@@ -131,7 +151,7 @@ export function SupplierOnboardingCsvWizard({
         summary?: { total: number; valid: number; invalid: number }
       }
       if (!res.ok) {
-        toast.error(j.error ?? "Aperçu impossible")
+        toast.error(j.error ?? t("previewFailedError"))
         return
       }
       setPreview(j.preview ?? [])
@@ -154,17 +174,24 @@ export function SupplierOnboardingCsvWizard({
         error?: string
         created?: number
         affiliateCount?: number
+        failures?: RowFailure[]
       }
       if (!res.ok) {
-        toast.error(j.error ?? "Publication impossible")
+        toast.error(j.error ?? t("publishFailedError"))
         return
       }
+      const rowFailures = j.failures ?? []
+      setFailures(rowFailures)
       setPublished({
         created: j.created ?? 0,
         affiliateCount: j.affiliateCount ?? affiliateCount,
       })
       setStep(4)
-      toast.success(`${j.created ?? 0} produit(s) publié(s)`)
+      if (rowFailures.length > 0) {
+        toast.warning(t("failuresHeading", { count: rowFailures.length }))
+      } else {
+        toast.success(t("publishedToast", { count: j.created ?? 0 }))
+      }
     } finally {
       setPublishing(false)
     }
@@ -173,12 +200,12 @@ export function SupplierOnboardingCsvWizard({
   return (
     <div className="space-y-8 pb-16">
       <BentoPageHeading
-        eyebrow="Onboarding fournisseur"
-        title="Importe ton catalogue"
+        eyebrow={t("onboardingEyebrow")}
+        title={t("pageTitle")}
         description={
           kycReady
-            ? `KYC validé — publie pour ${affiliateCount.toLocaleString("fr-FR")}+ affiliés.`
-            : "Connecte Stripe Connect pour encaisser, puis importe ton CSV."
+            ? t("kycReadyDescription", { count: affiliateCount.toLocaleString() })
+            : t("kycPendingDescription")
         }
       />
 
@@ -204,22 +231,20 @@ export function SupplierOnboardingCsvWizard({
         <BentoCard className="space-y-6 p-6">
           <div className="flex items-center gap-3 text-emerald-600">
             <FileSpreadsheet className="size-6" />
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Étape 1 — CSV</h2>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{t("step1Heading")}</h2>
           </div>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Template : title, description, price_eur, stock, image_url, category, shipping_days
-          </p>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">{t("templateColumnsHint")}</p>
           <div className="flex flex-wrap gap-3">
             <a
               href="/api/supplier/import-csv?download=template"
               className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
             >
               <Download className="size-4" />
-              Télécharger le template
+              {t("downloadTemplateCta")}
             </a>
             <label className={cn(buttonVariants(), "cursor-pointer gap-2")}>
               {uploading ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
-              Charger mon CSV
+              {t("uploadCsvCta")}
               <input
                 type="file"
                 accept=".csv,text/csv"
@@ -237,9 +262,7 @@ export function SupplierOnboardingCsvWizard({
 
       {step === 2 && (
         <BentoCard className="space-y-6 p-6">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-            Étape 2 — Mapper les colonnes
-          </h2>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{t("step2Heading")}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {SUPPLIER_CSV_CANONICAL_FIELDS.map((field) => (
               <div key={field} className="space-y-1.5">
@@ -263,7 +286,7 @@ export function SupplierOnboardingCsvWizard({
           </div>
           <Button type="button" onClick={() => void runPreview()} disabled={previewing} className="gap-2">
             {previewing ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
-            Aperçu 5 produits
+            {t("previewCta")}
           </Button>
         </BentoCard>
       )}
@@ -271,7 +294,7 @@ export function SupplierOnboardingCsvWizard({
       {step === 3 && (
         <BentoCard className="space-y-6 p-6">
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-            Étape 3 — Aperçu ({summary?.valid ?? 0}/{summary?.total ?? 0} valides)
+            {t("step3Heading", { valid: summary?.valid ?? 0, total: summary?.total ?? 0 })}
           </h2>
           <ul className="space-y-4">
             {preview.map((row) => (
@@ -297,7 +320,9 @@ export function SupplierOnboardingCsvWizard({
                     {row.priceEur.toFixed(2)} € · stock {row.stock} · {row.categoryName}
                   </p>
                   {row.errors.length > 0 ? (
-                    <p className="text-xs text-red-600">{row.errors.join(", ")}</p>
+                    <p className="text-xs text-red-600">
+                      {row.errors.map((e) => rowErrorLabel(e)).join(", ")}
+                    </p>
                   ) : null}
                 </div>
               </li>
@@ -310,21 +335,48 @@ export function SupplierOnboardingCsvWizard({
             className="gap-2"
           >
             {publishing ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
-            Publier — live pour {affiliateCount.toLocaleString("fr-FR")}+ affiliés
+            {t("publishCta", { count: affiliateCount.toLocaleString() })}
           </Button>
+          {(summary?.valid ?? 0) === 0 ? (
+            <p className="text-sm text-red-600">{t("noValidRowsError")}</p>
+          ) : null}
         </BentoCard>
       )}
 
       {step === 4 && published && (
         <BentoCard className="space-y-4 p-6 text-center">
           <CheckCircle2 className="mx-auto size-12 text-emerald-600" />
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">Catalogue publié</h2>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">{t("publishedHeading")}</h2>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {published.created} produit(s) visible(s) par {published.affiliateCount.toLocaleString("fr-FR")}+
-            affiliés.
+            {t("publishedSummary", {
+              created: published.created,
+              count: published.affiliateCount.toLocaleString(),
+            })}
           </p>
+
+          {failures.length > 0 ? (
+            <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-left dark:border-amber-800 dark:bg-amber-950/30">
+              <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                <AlertTriangle className="size-5 shrink-0" />
+                <p className="font-semibold">{t("failuresHeading", { count: failures.length })}</p>
+              </div>
+              <p className="mt-1 text-sm text-amber-800/90 dark:text-amber-200/90">{t("failuresHint")}</p>
+              <ul className="mt-3 space-y-1.5">
+                {failures.map((f) => (
+                  <li key={f.index} className="text-sm text-amber-900 dark:text-amber-100">
+                    <span className="font-medium">{t("rowLabel", { index: f.index + 1 })}</span> —{" "}
+                    {f.error
+                      .split(",")
+                      .map((code) => rowErrorLabel(code))
+                      .join(", ")}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           <Link href="/dashboard/supplier/products" className={buttonVariants()}>
-            Voir mes produits
+            {t("viewProductsCta")}
           </Link>
         </BentoCard>
       )}

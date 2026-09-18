@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { ExternalLink, Loader2, Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { buildUniversalAeImportBookmarklet } from "@/lib/fulfillment/ae-import-bookmarklet"
@@ -21,6 +22,7 @@ export function DropForgeAeBrowserBridge({
   onBusyChange,
   autoStart = false,
 }: Props) {
+  const t = useTranslations("importPage")
   const [phase, setPhase] = useState<"idle" | "running" | "error">("idle")
   const [hint, setHint] = useState<string | null>(null)
   const sessionRef = useRef<{
@@ -41,7 +43,7 @@ export function DropForgeAeBrowserBridge({
     const u = aeUrl.trim()
     if (!/^https?:\/\//i.test(u) || !u.includes("aliexpress")) return
 
-    setHint("Préparation du pont Express Bridge…")
+    setHint(t("bridgePreparing"))
 
     try {
       const res = await fetch("/api/dropforge/ae-capture/session", { method: "POST" })
@@ -52,7 +54,7 @@ export function DropForgeAeBrowserBridge({
         error?: string
       }
       if (!res.ok || !data.relayKey || !data.sessionId || !data.captureToken) {
-        throw new Error(data.error ?? "session_failed")
+        throw new Error(t("bridgeUnavailable"))
       }
 
       sessionRef.current = {
@@ -70,18 +72,18 @@ export function DropForgeAeBrowserBridge({
       const relayUrl = `/dropforge/ae-relay?${relayQs.toString()}`
       const popup = window.open(relayUrl, "affisellDropForgeAeRelay", "width=520,height=640")
       if (!popup) {
-        throw new Error("Autorisez les popups pour affisell.com")
+        throw new Error(t("bridgePopupBlocked"))
       }
 
       setPhase("running")
       onBusyChange?.(true)
-      setHint("Fenêtre AliExpress ouverte — capture en cours…")
+      setHint(t("bridgeOpened"))
     } catch (e) {
       setPhase("error")
       onBusyChange?.(false)
-      setHint(e instanceof Error ? e.message : "Pont indisponible")
+      setHint(e instanceof Error ? e.message : t("bridgeUnavailable"))
     }
-  }, [aeUrl, onBusyChange])
+  }, [aeUrl, onBusyChange, t])
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -118,9 +120,7 @@ export function DropForgeAeBrowserBridge({
         window.clearInterval(interval)
         setPhase("error")
         onBusyChange?.(false)
-        setHint(
-          "Capture expirée — rouvrez le pont ou cliquez le favori « Import AE » sur la page produit."
-        )
+        setHint(t("bridgeExpired"))
         return
       }
 
@@ -148,7 +148,7 @@ export function DropForgeAeBrowserBridge({
     }, 450)
 
     return () => window.clearInterval(interval)
-  }, [phase, onBusyChange, onPreview])
+  }, [phase, onBusyChange, onPreview, t])
 
   useEffect(() => {
     if (!autoStart || startedAuto.current) return
@@ -164,8 +164,7 @@ export function DropForgeAeBrowserBridge({
         Express Bridge · AliExpress
       </p>
       <p className="mt-2 text-sm leading-relaxed text-violet-50/95">
-        AliExpress bloque le scrape serveur. Le pont ouvre la page dans votre navigateur et importe
-        la fiche complète (variantes, images, prix) — sans ScrapingBee.
+        {t("bridgeIntro")}
       </p>
       {hint ? <p className="mt-2 text-xs text-violet-200/80">{hint}</p> : null}
       <div className="mt-4 flex flex-wrap gap-2">
@@ -181,13 +180,13 @@ export function DropForgeAeBrowserBridge({
           ) : (
             <ExternalLink className="mr-1.5 size-4" aria-hidden />
           )}
-          Lancer le pont navigateur
+          {t("bridgeLaunch")}
         </Button>
         <a
           href={bookmarkletHref}
           className="inline-flex items-center rounded-full border border-white/20 px-3 py-1.5 text-xs text-violet-100 hover:bg-white/10"
         >
-          Favori Import AE
+          {t("bridgeBookmark")}
         </a>
       </div>
       {phase === "error" && hint ? (

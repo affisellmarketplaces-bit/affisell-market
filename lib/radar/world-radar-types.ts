@@ -1,4 +1,7 @@
 /** Shared types for World Radar — safe to import from client components. */
+import { tMessage } from "@/lib/i18n-pick-message"
+import type { AppLocale } from "@/lib/i18n-locale"
+
 export type SupplierMatchDto = {
   count: number
   sampleNames: string[]
@@ -100,13 +103,18 @@ export function isCountryScanLive(lastScanAt: Date | string | null | undefined):
   return Date.now() - ts < 60 * 60 * 1000
 }
 
-export function formatRelativeScanFr(lastScanAt: Date | string | null | undefined): string {
-  if (!lastScanAt) return "jamais"
+export function formatRelativeScan(
+  lastScanAt: Date | string | null | undefined,
+  locale: AppLocale = "fr"
+): string {
+  const tr = (key: string, n?: number) =>
+    tMessage(locale, `radarTerminal.${key}`).replace("{n}", String(n ?? ""))
+  if (!lastScanAt) return tr("scanNever")
   const ts = typeof lastScanAt === "string" ? new Date(lastScanAt).getTime() : lastScanAt.getTime()
   const diffMin = Math.max(0, Math.floor((Date.now() - ts) / 60_000))
-  if (diffMin < 1) return "à l'instant"
-  if (diffMin < 60) return `il y a ${diffMin} min`
+  if (diffMin < 1) return tr("scanNow")
+  if (diffMin < 60) return tr("scanMin", diffMin)
   const h = Math.floor(diffMin / 60)
-  if (h < 24) return `il y a ${h} h`
-  return `il y a ${Math.floor(h / 24)} j`
+  if (h < 24) return tr("scanHours", h)
+  return tr("scanDays", Math.floor(h / 24))
 }

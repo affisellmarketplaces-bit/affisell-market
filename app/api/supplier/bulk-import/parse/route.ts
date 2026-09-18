@@ -7,6 +7,8 @@ import {
   parseBulkImportWorkbookBuffer,
 } from "@/lib/supplier-bulk-excel"
 import { prisma } from "@/lib/prisma"
+import { resolveRequestLocale } from "@/lib/resolve-request-locale"
+import { tMessage } from "@/lib/i18n-pick-message"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -71,33 +73,36 @@ export async function POST(req: Request) {
     required: r.required,
   }))
 
+  const locale = await resolveRequestLocale(undefined)
+  const V = "supplier.bulkExcelValidation"
+
   const name = (file as File).name?.toLowerCase() ?? ""
   if (!name.endsWith(".xlsx")) {
-    return NextResponse.json({ error: "Upload an .xlsx file" }, { status: 400 })
+    return NextResponse.json({ error: tMessage(locale, `${V}.uploadXlsxOnly`) }, { status: 400 })
   }
 
   const ab = await (file as File).arrayBuffer()
   if (ab.byteLength > 6 * 1024 * 1024) {
-    return NextResponse.json({ error: "File too large (max 6 MB)" }, { status: 400 })
+    return NextResponse.json({ error: tMessage(locale, `${V}.fileTooLarge`) }, { status: 400 })
   }
 
   let results: Awaited<ReturnType<typeof parseBulkImportWorkbookBuffer>>
   try {
-    results = await parseBulkImportWorkbookBuffer(ab, attrDefs)
+    results = await parseBulkImportWorkbookBuffer(ab, attrDefs, locale)
   } catch {
-    return NextResponse.json({ error: "Could not read Excel file" }, { status: 400 })
+    return NextResponse.json({ error: tMessage(locale, `${V}.couldNotReadExcel`) }, { status: 400 })
   }
 
   if (results.length === 0) {
     return NextResponse.json(
-      { error: "No data rows found. Use the template «Products» sheet from row 2." },
+      { error: tMessage(locale, `${V}.noDataRowsFound`) },
       { status: 400 }
     )
   }
 
   if (results.length > BULK_MAX_ROWS_PARSE) {
     return NextResponse.json(
-      { error: `At most ${BULK_MAX_ROWS_PARSE} data rows per file` },
+      { error: tMessage(locale, `${V}.tooManyRows`).replace("{max}", String(BULK_MAX_ROWS_PARSE)) },
       { status: 400 }
     )
   }

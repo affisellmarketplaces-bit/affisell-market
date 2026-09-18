@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { ArbitrageBadge } from "@/components/import/ArbitrageBadge"
@@ -24,6 +25,7 @@ export function ImportJobResultClient({
   destination,
   products,
 }: Props) {
+  const t = useTranslations("importPage")
   const [listing, setListing] = useState(false)
 
   const rows = useMemo(() => {
@@ -71,7 +73,7 @@ export function ImportJobResultClient({
     a.download = `affisell-import-${jobId.slice(0, 8)}.csv`
     a.click()
     URL.revokeObjectURL(url)
-    toast.success("CSV exporté")
+    toast.success(t("jobToastCsv"))
   }
 
   async function listAll() {
@@ -81,7 +83,7 @@ export function ImportJobResultClient({
         .map((r) => r.p.importedListingId)
         .filter((id): id is string => typeof id === "string" && id.length > 0)
       if (ids.length === 0) {
-        toast.error("Aucun draft catalogue à lister")
+        toast.error(t("jobToastNoDraft"))
         return
       }
       let ok = 0
@@ -94,9 +96,9 @@ export function ImportJobResultClient({
         })
         if (res.ok) ok += 1
       }
-      toast.success(`${ok}/${ids.length} produits listés sur la vitrine`)
+      toast.success(t("jobToastListed", { ok, total: ids.length }))
     } catch {
-      toast.error("Échec listing bulk")
+      toast.error(t("jobToastListFailed"))
     } finally {
       setListing(false)
     }
@@ -109,11 +111,14 @@ export function ImportJobResultClient({
           World Arbitrage · Import Job
         </p>
         <h1 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">
-          Import #{jobId.slice(0, 10)} — {rows.length} produits — Marge totale +
-          {formatEnrichEuro(totals.margin)}€
+          {t("jobHeading", {
+            id: jobId.slice(0, 10),
+            count: rows.length,
+            margin: formatEnrichEuro(totals.margin),
+          })}
         </h1>
         <p className="mt-2 text-xs text-zinc-400">
-          Pays source {country} · destination {destination} · status {status}
+          {t("jobMeta", { country, destination, status })}
         </p>
       </header>
 
@@ -121,14 +126,14 @@ export function ImportJobResultClient({
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-zinc-200 bg-zinc-50 text-[10px] uppercase tracking-wide text-zinc-500">
             <tr>
-              <th className="px-3 py-2">Image</th>
-              <th className="px-3 py-2">Titre</th>
-              <th className="px-3 py-2">Coût</th>
-              <th className="px-3 py-2">Vente</th>
-              <th className="px-3 py-2">Marge</th>
-              <th className="px-3 py-2">Multiplicateur</th>
-              <th className="px-3 py-2">Score</th>
-              <th className="px-3 py-2">Status</th>
+              <th className="px-3 py-2">{t("colImage")}</th>
+              <th className="px-3 py-2">{t("colTitle")}</th>
+              <th className="px-3 py-2">{t("colCost")}</th>
+              <th className="px-3 py-2">{t("colSale")}</th>
+              <th className="px-3 py-2">{t("colMargin")}</th>
+              <th className="px-3 py-2">{t("colMultiplier")}</th>
+              <th className="px-3 py-2">{t("colScore")}</th>
+              <th className="px-3 py-2">{t("colStatus")}</th>
             </tr>
           </thead>
           <tbody>
@@ -151,8 +156,10 @@ export function ImportJobResultClient({
                 <td className="max-w-xs px-3 py-2">
                   <p className="line-clamp-2 font-medium text-zinc-900">{r.p.title}</p>
                   <p className="mt-1 text-[10px] text-zinc-500">
-                    Best: {r.scan.bestOpportunity.country} +
-                    {formatEnrichEuro(r.scan.bestOpportunity.margin)}€
+                    {t("jobBest", {
+                      country: r.scan.bestOpportunity.country,
+                      margin: formatEnrichEuro(r.scan.bestOpportunity.margin),
+                    })}
                   </p>
                 </td>
                 <td className="px-3 py-2 tabular-nums">{formatEnrichEuro(r.cost)}€</td>
@@ -173,11 +180,11 @@ export function ImportJobResultClient({
                 <td className="px-3 py-2 text-xs">
                   {r.p.importedListingId ? (
                     <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700">
-                      draft
+                      {t("jobStatusDraft")}
                     </span>
                   ) : (
                     <span className="rounded-full bg-amber-50 px-2 py-0.5 text-amber-800">
-                      {r.p.importError ?? "ok"}
+                      {r.p.importError ?? t("jobStatusOk")}
                     </span>
                   )}
                 </td>
@@ -189,8 +196,11 @@ export function ImportJobResultClient({
 
       <footer className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-4">
         <p className="text-sm font-semibold text-zinc-900">
-          Totaux — Coût {formatEnrichEuro(totals.cost)}€ · Vente {formatEnrichEuro(totals.sale)}€ ·
-          Marge +{formatEnrichEuro(totals.margin)}€
+          {t("jobTotals", {
+            cost: formatEnrichEuro(totals.cost),
+            sale: formatEnrichEuro(totals.sale),
+            margin: formatEnrichEuro(totals.margin),
+          })}
         </p>
         <div className="flex flex-wrap gap-2">
           <button
@@ -198,7 +208,7 @@ export function ImportJobResultClient({
             onClick={exportCsv}
             className="rounded-xl border border-zinc-300 bg-white px-4 py-2 text-xs font-semibold text-zinc-800 hover:bg-zinc-100"
           >
-            Exporter CSV
+            {t("jobExportCsv")}
           </button>
           <button
             type="button"
@@ -206,13 +216,13 @@ export function ImportJobResultClient({
             onClick={() => void listAll()}
             className="rounded-xl bg-[#6D28D9] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5B21B6] disabled:opacity-50"
           >
-            {listing ? "Listing…" : "Tout lister"}
+            {listing ? t("jobListing") : t("jobListAll")}
           </button>
           <Link
             href="/dashboard/affiliate/catalog?filter=draft"
             className="rounded-xl px-4 py-2 text-xs font-semibold text-violet-700 hover:bg-violet-50"
           >
-            Catalogue draft →
+            {t("jobCatalogDraft")}
           </Link>
         </div>
       </footer>

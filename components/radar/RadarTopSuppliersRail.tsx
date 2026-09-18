@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import useSWR from "swr"
 
 import { SupplierTrustBadge } from "@/components/logistics/SupplierTrustBadge"
@@ -21,6 +22,7 @@ const fetcher = async (url: string) => {
 
 /** Additive radar rail: Top suppliers by delivery trust. */
 export function RadarTopSuppliersRail() {
+  const t = useTranslations("radarTerminal")
   const { data } = useSWR("/api/suppliers/ranking?limit=5", fetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 120_000,
@@ -32,12 +34,12 @@ export function RadarTopSuppliersRail() {
   return (
     <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2">
       <p className="text-[11px] font-bold uppercase tracking-wide text-amber-900">
-        Trust fournisseurs Affisell
+        {t("trustTitle")}
       </p>
       <ul className="mt-1.5 flex flex-wrap gap-2">
         {rows.map((s) => {
           const onTime =
-            s.onTimeRate != null ? `${Math.round(s.onTimeRate * 100)}% à l'heure` : "nouveau"
+            s.onTimeRate != null ? t("onTimePct", { pct: Math.round(s.onTimeRate * 100) }) : t("newSupplier")
           const dimmed = s.trustScore < 40
           return (
             <li
@@ -52,8 +54,8 @@ export function RadarTopSuppliersRail() {
             >
               <SupplierTrustBadge trustScore={s.trustScore} showScore />
               <span className="text-[10px] text-zinc-600">
-                {s.name || "Fournisseur"} · {onTime}
-                {s.badge.boost > 0 ? ` · Boost +${s.badge.boost}%` : ""}
+                {s.name || t("supplierFallback")} · {onTime}
+                {s.badge.boost > 0 ? ` · ${t("boostPct", { pct: s.badge.boost })}` : ""}
               </span>
             </li>
           )

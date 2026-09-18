@@ -3,6 +3,17 @@
  * Used by Product Requests, Radar copy, and supplier quote UX.
  */
 
+import { tMessage } from "@/lib/i18n-pick-message"
+import type { AppLocale } from "@/lib/i18n-locale"
+
+const RT = "radarTerminal"
+
+function tr(locale: AppLocale, key: string, vars: Record<string, string | number> = {}): string {
+  let out = tMessage(locale, `${RT}.${key}`)
+  for (const [k, v] of Object.entries(vars)) out = out.replaceAll(`{${k}}`, String(v))
+  return out
+}
+
 export type DeliverySlaColor = "green" | "orange" | "red"
 
 export type DeliverySlaBand = {
@@ -133,18 +144,22 @@ export function getSLAForCountry(countryCode: string): DeliverySlaBand {
   return DELIVERY_SLA_BY_CONTINENT[getSlaKeyForCountry(countryCode)]
 }
 
-export function getDeliveryScore(deliveryDays: number, countryCode: string): DeliveryScore {
+export function getDeliveryScore(
+  deliveryDays: number,
+  countryCode: string,
+  locale: AppLocale = "fr"
+): DeliveryScore {
   const slaKey = getSlaKeyForCountry(countryCode)
   const sla = DELIVERY_SLA_BY_CONTINENT[slaKey]
   const days = Number.isFinite(deliveryDays) ? Math.max(0, Math.round(deliveryDays)) : 999
 
   if (days <= sla.idealDays) {
-    return { score: 100, label: "⚡ Idéal", color: "green", slaKey, sla, emoji: "🟢" }
+    return { score: 100, label: tr(locale, "deliveryIdeal"), color: "green", slaKey, sla, emoji: "🟢" }
   }
   if (days <= sla.maxDays) {
-    return { score: 70, label: "✅ Raisonnable", color: "orange", slaKey, sla, emoji: "🟠" }
+    return { score: 70, label: tr(locale, "deliveryReasonable"), color: "orange", slaKey, sla, emoji: "🟠" }
   }
-  return { score: 30, label: "⚠️ Trop lent", color: "red", slaKey, sla, emoji: "🔴" }
+  return { score: 30, label: tr(locale, "deliveryTooSlow"), color: "red", slaKey, sla, emoji: "🔴" }
 }
 
 export function isDeliveryAcceptable(deliveryDays: number, countryCode: string): boolean {
@@ -235,14 +250,15 @@ export function isDeliveryAcceptableForCountries(
 
 export function getDeliveryScoreForCountries(
   deliveryDays: number,
-  countryCodes: readonly string[]
+  countryCodes: readonly string[],
+  locale: AppLocale = "fr"
 ): DeliveryScore {
   const codes =
     countryCodes.length > 0
       ? countryCodes.map((c) => normalizeCountryCode(c))
       : ["FR"]
   return codes
-    .map((c) => getDeliveryScore(deliveryDays, c))
+    .map((c) => getDeliveryScore(deliveryDays, c, locale))
     .reduce((worst, scored) => (scored.score < worst.score ? scored : worst))
 }
 
@@ -291,16 +307,24 @@ export function getSupplierDeliveryFeedback(
 }
 
 /** Quote table cell: "🟢 3j ⚡ Idéal (EU)" / "🔴 12j ⚠️ Trop lent pour FR (max 5j)" */
-export function formatQuoteDeliveryCell(deliveryDays: number, countryCode: string): string {
+export function formatQuoteDeliveryCell(
+  deliveryDays: number,
+  countryCode: string,
+  locale: AppLocale = "fr"
+): string {
   const code = normalizeCountryCode(countryCode)
-  const scored = getDeliveryScore(deliveryDays, code)
-  if (scored.score >= 100) {
-    return `${scored.emoji} ${deliveryDays}j ${scored.label} (${scored.slaKey})`
-  }
+  const scored = getDeliveryScore(deliveryDays, code, locale)
+  const days = tr(locale, "dayShort", { n: deliveryDays })
   if (scored.score >= 70) {
-    return `${scored.emoji} ${deliveryDays}j ${scored.label} (${scored.slaKey})`
+    return `${scored.emoji} ${days} ${scored.label} (${scored.slaKey})`
   }
-  return `${scored.emoji} ${deliveryDays}j ${scored.label} pour ${code} (max ${scored.sla.maxDays}j)`
+  return tr(locale, "quoteTooSlow", {
+    emoji: scored.emoji,
+    days,
+    label: scored.label,
+    code,
+    max: tr(locale, "dayShort", { n: scored.sla.maxDays }),
+  })
 }
 
 /**
@@ -312,20 +336,27 @@ export function formatRadarSupplierDeliveryLine(args: {
   marketCountry: string
   origin?: "EU" | "CN"
   days?: number
+  locale?: AppLocale
 }): string {
+  const locale = args.locale ?? "fr"
   const code = normalizeCountryCode(args.marketCountry)
   const count = Math.max(0, args.count)
   const origin = args.origin ?? "EU"
   const days =
     args.days ??
     (origin === "EU" ? getSLAForCountry(code).idealDays : getSLAForCountry("CN").maxDays)
-  const scored = getDeliveryScore(days, code)
-  const plural = count > 1 ? "s" : ""
-
-  if (origin === "CN" || scored.score < 70) {
-    return `⚠️ ${count} fournisseur${plural} ${origin} - ${days}j ${scored.label} pour ${code} (max ${scored.sla.maxDays}j)`
+  const scored = getDeliveryScore(days, code, locale)
+  const vars = {
+    count,
+    noun: tr(locale, count > 1 ? "supplierMany" : "supplierOne"),
+    origin,
+    days: tr(locale, "dayShort", { n: days }),
+    label: scored.label,
+    code,
+    max: tr(locale, "dayShort", { n: scored.sla.maxDays }),
   }
-  return `✅ ${count} fournisseur${plural} ${origin} - ${days}j ${scored.label} pour ${code}`
+  if (origin === "CN" || scored.score < 70) return tr(locale, "deliveryLineWarn", vars)
+  return tr(locale, "deliveryLineOk", vars)
 }
 
 export function sortQuotesByDeliveryThenPrice<T extends { deliveryDays: number; price: number }>(

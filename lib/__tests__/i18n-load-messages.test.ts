@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest"
 import { loadAppMessages } from "@/lib/i18n-load-messages"
 
 describe("loadAppMessages", () => {
-  it("falls back to EN keys missing in partial locale bundles", () => {
+  it("serves fully translated locale bundles (no EN leakage for translated keys)", () => {
     const de = loadAppMessages("de")
     const success = de.success as Record<string, string>
-    expect(success.paymentSuccessful).toBe("Payment Successful")
+    expect(success.paymentSuccessful).toBe("Zahlung erfolgreich")
     expect(success.title).toBe("Vielen Dank!")
   })
 })

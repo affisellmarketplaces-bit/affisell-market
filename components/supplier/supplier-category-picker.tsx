@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { ChevronRight, Database, Loader2, ScanLine, Sparkles, Terminal, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { CategoryAutocomplete } from "@/components/supplier/category-autocomplete"
 import { Button } from "@/components/ui/button"
@@ -55,6 +56,7 @@ export function SupplierCategoryPicker({
   suggestionsLoading,
   loading,
 }: Props) {
+  const t = useTranslations("supplier.categoryPicker")
   const [showRecentBox, setShowRecentBox] = useState(true)
   const [chain, setChain] = useState<string[]>([])
 
@@ -117,10 +119,10 @@ export function SupplierCategoryPicker({
   )
 
   const breadcrumbTrail = useMemo(() => {
-    if (!browse || chain.length === 0) return "Toutes les catégories"
+    if (!browse || chain.length === 0) return t("allCategoriesLabel")
     const parts = chain.map((id) => browse.nodes[id]?.name ?? id)
-    return ["Toutes les catégories", ...parts].join(" > ")
-  }, [browse, chain])
+    return [t("allCategoriesLabel"), ...parts].join(" > ")
+  }, [browse, chain, t])
 
   const applyLeaf = (
     lp: LeafPath | RecentCategoryEntry,
@@ -134,7 +136,7 @@ export function SupplierCategoryPicker({
   if (loading || !browse) {
     return (
       <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">
-        Chargement des catégories…
+        {t("loading")}
       </div>
     )
   }
@@ -154,14 +156,14 @@ export function SupplierCategoryPicker({
           <div className="min-w-0 flex-1 space-y-4">
             <div>
               <h3 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-                Taxonomie non chargée
+                {t("taxonomyNotLoadedTitle")}
               </h3>
               <p className="mt-1.5 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Exécutez le seed des catégories depuis la racine du projet (
+                {t("taxonomyNotLoadedHintPrefix")}
                 <code className="rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono text-[11px] text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
                   DATABASE_URL
                 </code>
-                ).
+                {t("taxonomyNotLoadedHintSuffix")}
               </p>
             </div>
             <pre className="overflow-x-auto rounded-lg border border-zinc-200 bg-zinc-950 px-3 py-2 text-[11px] text-zinc-100 dark:border-zinc-700">
@@ -177,9 +179,9 @@ export function SupplierCategoryPicker({
     suggestionsLoading || suggestions.length > 0 || alternativeSuggestions.length > 0
 
   const sourceLabel = (src?: ListingCategorySuggestion["suggestionSource"]) => {
-    if (src === "catalog") return "Catalogue"
-    if (src === "ai") return "Photo"
-    if (src === "keyword") return "Mot-clé"
+    if (src === "catalog") return t("sourceCatalog")
+    if (src === "ai") return t("sourcePhoto")
+    if (src === "keyword") return t("sourceKeyword")
     return null
   }
 
@@ -187,13 +189,13 @@ export function SupplierCategoryPicker({
     <div className="space-y-4">
       <div>
         <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-          Catégorie sélectionnée
+          {t("selectedCategoryLabel")}
         </p>
         <CategoryAutocomplete
           browse={browse}
           value={value}
           disabled={loading}
-          placeholder="Rechercher dans le catalogue Affisell…"
+          placeholder={t("searchPlaceholder")}
           onChange={(leafId, path) => onChange(leafId, path, "manual")}
         />
       </div>
@@ -203,8 +205,7 @@ export function SupplierCategoryPicker({
           className="rounded-lg border border-amber-200/90 bg-amber-50/90 px-3 py-2 text-xs text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100"
           role="status"
         >
-          Aucune catégorie n’est sélectionnée — choisissez une proposition ci-dessous, une catégorie récente, ou
-          parcourez l’arbre.
+          {t("noCategorySelectedHint")}
         </p>
       ) : null}
 
@@ -217,12 +218,12 @@ export function SupplierCategoryPicker({
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-violet-950 dark:text-violet-100">
-                Suggestions intelligentes
+                {t("smartSuggestionsTitle")}
               </p>
               <p className="mt-0.5 text-xs leading-relaxed text-violet-900/85 dark:text-violet-200/85">
-                Le moteur analyse la <strong className="font-semibold">photo</strong> et le{" "}
-                <strong className="font-semibold">nom</strong> sur l’arbre Affisell. La description longue
-                est ignorée pour la taxonomie.
+                {t.rich("smartSuggestionsHint", {
+                  strong: (chunks) => <strong className="font-semibold">{chunks}</strong>,
+                })}
               </p>
             </div>
           </div>
@@ -247,7 +248,7 @@ export function SupplierCategoryPicker({
                   className="flex items-center gap-2 rounded-md border border-violet-100/80 bg-white/60 px-3 py-3 dark:border-violet-900/40 dark:bg-zinc-950/50"
                 >
                   <Loader2 className="h-4 w-4 animate-spin text-violet-600" aria-hidden />
-                  <span className="text-xs text-violet-800/70 dark:text-violet-200/70">Analyse en cours…</span>
+                  <span className="text-xs text-violet-800/70 dark:text-violet-200/70">{t("suggestionsLoadingLabel")}</span>
                 </li>
               ))}
             </ul>
@@ -291,7 +292,7 @@ export function SupplierCategoryPicker({
                     disabled={value === lp.leafId}
                     onClick={() => applyLeaf(lp, "suggested")}
                   >
-                    {value === lp.leafId ? "Sélectionnée" : "Choisir"}
+                    {value === lp.leafId ? t("selectedButtonLabel") : t("chooseButtonLabel")}
                   </Button>
                 </li>
               )})}
@@ -300,10 +301,10 @@ export function SupplierCategoryPicker({
           {!suggestionsLoading && alternativeSuggestions.length > 0 ? (
             <div className="mt-4 border-t border-amber-200/80 pt-4 dark:border-amber-900/50">
               <p className="text-xs font-semibold text-amber-950 dark:text-amber-100">
-                Interprétation alternative
+                {t("alternativeInterpretationTitle")}
               </p>
               <p className="mt-0.5 text-[11px] text-amber-900/85 dark:text-amber-200/80">
-                Si votre produit correspond plutôt à ce rayon — non recommandé pour les bracelets connectés.
+                {t("alternativeInterpretationHint")}
               </p>
               <ul className="mt-2 space-y-2">
                 {alternativeSuggestions.map((alt) => (
@@ -318,7 +319,7 @@ export function SupplierCategoryPicker({
                   >
                     <div className="min-w-0 flex-1">
                       <span className="mr-1.5 rounded bg-amber-600 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
-                        Alternative
+                        {t("alternativeBadge")}
                       </span>
                       <span className="text-zinc-800 dark:text-zinc-200">{alt.breadcrumb}</span>
                       <p className="mt-1 text-[10px] leading-snug text-amber-900/90 dark:text-amber-200/75">
@@ -333,7 +334,7 @@ export function SupplierCategoryPicker({
                       disabled={value === alt.leafId}
                       onClick={() => applyLeaf(alt, "suggested")}
                     >
-                      {value === alt.leafId ? "Sélectionnée" : "Choisir"}
+                      {value === alt.leafId ? t("selectedButtonLabel") : t("chooseButtonLabel")}
                     </Button>
                   </li>
                 ))}
@@ -349,11 +350,11 @@ export function SupplierCategoryPicker({
             type="button"
             className="absolute right-2 top-2 rounded p-1 text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800"
             onClick={() => setShowRecentBox(false)}
-            aria-label="Masquer les catégories récentes"
+            aria-label={t("hideRecentCategoriesAriaLabel")}
           >
             <X className="h-4 w-4" />
           </button>
-          <p className="pr-8 text-sm font-medium text-zinc-800 dark:text-zinc-100">Récemment utilisées</p>
+          <p className="pr-8 text-sm font-medium text-zinc-800 dark:text-zinc-100">{t("recentlyUsedLabel")}</p>
           <ul className="mt-3 space-y-2">
             {recent.map((r) => (
               <li
@@ -364,7 +365,7 @@ export function SupplierCategoryPicker({
                   {breadcrumbFromPath(r.path)}
                 </span>
                 <Button type="button" size="xs" variant="outline" className="shrink-0" onClick={() => applyLeaf(r)}>
-                  Choisir
+                  {t("chooseButtonLabel")}
                 </Button>
               </li>
             ))}
@@ -374,7 +375,7 @@ export function SupplierCategoryPicker({
 
       <div>
         <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-          Parcourir l’arbre
+          {t("browseTreeLabel")}
         </p>
         <p
           className="truncate rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-[11px] font-medium text-zinc-800 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200"
@@ -390,12 +391,12 @@ export function SupplierCategoryPicker({
                 className="min-w-[11rem] max-w-[14rem] shrink-0 border-r border-zinc-200 last:border-r-0 dark:border-zinc-800"
               >
                 <p className="border-b border-zinc-100 bg-zinc-50 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-400">
-                  Niveau {colIdx + 1}
+                  {t("levelLabel", { level: colIdx + 1 })}
                 </p>
                 <ul className="max-h-[min(42vh,14rem)] min-h-[7rem] overflow-y-auto py-0.5">
                   {ids.length === 0 ? (
                     <li className="px-2 py-4 text-center text-[11px] text-zinc-400 dark:text-zinc-500">
-                      {colIdx === 0 ? "Aucune catégorie" : "—"}
+                      {colIdx === 0 ? t("noCategoriesLabel") : "—"}
                     </li>
                   ) : (
                     ids.map((id) => {
@@ -438,11 +439,11 @@ export function SupplierCategoryPicker({
 
       {value && browse.nodes[value] ? (
         <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-          Catégorie feuille appliquée — les champs spécifiques se chargent ci-dessous.
+          {t("leafCategoryAppliedHint")}
         </p>
       ) : (
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          Choisissez une suggestion, recherchez ou parcourez l’arbre jusqu’à une catégorie feuille.
+          {t("chooseSuggestionHint")}
         </p>
       )}
     </div>

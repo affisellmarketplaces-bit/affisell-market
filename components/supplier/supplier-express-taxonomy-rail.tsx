@@ -19,6 +19,9 @@ type Props = {
   categoryId: string
   categoryAiTag: boolean
   loading: boolean
+  slow?: boolean
+  timedOut?: boolean
+  onRetry?: () => void
   meta: SupplierCategorySuggestMeta
   suggestions: ListingCategorySuggestion[]
   topSuggestion: ListingCategorySuggestion | null
@@ -42,6 +45,9 @@ export function SupplierExpressTaxonomyRail({
   categoryId,
   categoryAiTag,
   loading,
+  slow = false,
+  timedOut = false,
+  onRetry,
   meta,
   suggestions,
   topSuggestion,
@@ -118,8 +124,29 @@ export function SupplierExpressTaxonomyRail({
             <div>
               <p className="font-medium">{t("analyzingTitle")}</p>
               <p className="text-xs text-violet-800/80 dark:text-violet-200/80">
-                {meta.visionUsed ? t("analyzingVision") : t("analyzingTitleOnly")}
+                {slow
+                  ? t("analyzingSlowHint")
+                  : meta.visionUsed
+                    ? t("analyzingVision")
+                    : t("analyzingTitleOnly")}
               </p>
+            </div>
+          </div>
+        ) : timedOut && !confirmed && readyToScan ? (
+          <div className="flex items-start gap-3 text-sm text-amber-900 dark:text-amber-100">
+            <ScanLine className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden />
+            <div className="flex-1">
+              <p className="font-medium">{t("timeoutTitle")}</p>
+              <p className="text-xs text-amber-800/80 dark:text-amber-200/80">{t("timeoutHint")}</p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="mt-2 border-amber-400/80 bg-white/90 text-amber-900 hover:bg-amber-50 dark:border-amber-700 dark:bg-zinc-950/80 dark:text-amber-100"
+                onClick={onRetry}
+              >
+                {t("timeoutRetry")}
+              </Button>
             </div>
           </div>
         ) : confirmed && pathLabel ? (

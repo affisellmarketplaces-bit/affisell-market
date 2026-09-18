@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useLocale, useTranslations } from "next-intl"
 import useSWR from "swr"
 import { useCallback, useMemo, useState } from "react"
 
@@ -16,11 +17,12 @@ import {
   formatEnrichEuro,
   RADAR_BULK_IMPORT_MAX,
 } from "@/lib/import/smart-import-enricher"
+import type { AppLocale } from "@/lib/i18n-locale"
 import type { RadarImportDestination } from "@/lib/radar/radar-import-types"
 import { canViewResellerMargin, radarPriceColumnLabel } from "@/lib/radar/radar-price-veil"
 import type { SupplierKind } from "@/lib/supplier-kind"
 import {
-  formatRelativeScanFr,
+  formatRelativeScan,
   type WorldRadarCountriesPayload,
   type WorldRadarPayload,
   type WorldRadarWinnerDto,
@@ -34,14 +36,18 @@ import { toast } from "sonner"
 
 type RegionTab = "all" | "Europe" | "America" | "Asia" | "Africa" | "Oceania"
 
-const REGION_TABS: Array<{ id: RegionTab; label: string }> = [
-  { id: "all", label: "🌍 Tous" },
-  { id: "Europe", label: "🇪🇺 Europe" },
-  { id: "America", label: "🌎 Amérique" },
-  { id: "Asia", label: "🌏 Asie" },
-  { id: "Africa", label: "🌍 Afrique" },
-  { id: "Oceania", label: "🏝 Océanie" },
+const REGION_TABS: Array<{ id: RegionTab; emoji: string; key: string }> = [
+  { id: "all", emoji: "🌍", key: "tabAll" },
+  { id: "Europe", emoji: "🇪🇺", key: "tabEurope" },
+  { id: "America", emoji: "🌎", key: "tabAmerica" },
+  { id: "Asia", emoji: "🌏", key: "tabAsia" },
+  { id: "Africa", emoji: "🌍", key: "tabAfrica" },
+  { id: "Oceania", emoji: "🏝", key: "tabOceania" },
 ]
+
+const NUMBER_LOCALE: Record<AppLocale, string> = {
+  fr: "fr-FR", en: "en-US", de: "de-DE", es: "es-ES", it: "it-IT", nl: "nl-NL", pl: "pl-PL", zh: "zh-CN",
+}
 
 const fetcher = async (url: string) => {
   const res = await fetch(url, { credentials: "same-origin" })
@@ -49,31 +55,27 @@ const fetcher = async (url: string) => {
   return res.json()
 }
 
-function formatSearches(n: number | null): string {
-  if (n == null) return "—"
-  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(".0", "")}k recherches`
-  return `${n.toLocaleString("fr-FR")} recherches`
-}
+type TFn = (key: string, values?: Record<string, string | number>) => string
 
-function competitionLabel(n: number | null, country: string): string {
+function formatSearches(n: number | null, t: TFn, locale: AppLocale): string {
   if (n == null) return "—"
-  const suffix = ` vendeurs ${country}`
-  if (n < 5) return `${n}${suffix}`
-  return `${n}${suffix}`
+  if (n >= 1000) return t("searchesK", { n: (n / 1000).toFixed(1).replace(".0", "") })
+  return t("searches", { n: n.toLocaleString(NUMBER_LOCALE[locale]) })
 }
 
 function RankDelta({ row }: { row: WorldRadarWinnerDto }) {
+  const t = useTranslations("radarTerminal")
   if (row.lastWeekRank == null) return null
   const delta = row.lastWeekRank - row.rank
   if (delta === 0) return <span className="ml-1 text-[10px] text-zinc-400">→</span>
   if (delta > 0)
     return (
-      <span className="ml-1 text-[10px] font-semibold text-emerald-600" title={`était #${row.lastWeekRank}`}>
+      <span className="ml-1 text-[10px] font-semibold text-emerald-600" title={t("rankWas", { n: row.lastWeekRank })}>
         ↑{delta}
       </span>
     )
   return (
-    <span className="ml-1 text-[10px] font-semibold text-amber-600" title={`était #${row.lastWeekRank}`}>
+    <span className="ml-1 text-[10px] font-semibold text-amber-600" title={t("rankWas", { n: row.lastWeekRank })}>
       ↓{Math.abs(delta)}
     </span>
   )
@@ -88,6 +90,8 @@ function V2Badges({
   userRole?: string | null
   country: string
 }) {
+  const t = useTranslations("radarTerminal")
+  const locale = useLocale() as AppLocale
   const copy = getRadarCopyForRole(
     userRole,
     {
@@ -97,7 +101,8 @@ function V2Badges({
       price: row.price,
       supplierCount: row.supplierMatch?.count ?? (row.supplierLabel ? 3 : 0),
     },
-    country
+    country,
+    locale
   )
   const supplierChip = row.supplierLabel || row.supplierMatch ? copy.supplierLabel : null
 
@@ -105,7 +110,7 @@ function V2Badges({
     <div className="mt-1.5 flex flex-wrap gap-1">
       {row.isNew ? (
         <span className="inline-flex animate-pulse rounded-full border border-violet-300 bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-800">
-          🔥 Nouveau cette semaine
+          🔥 {t("badgeNew")}
         </span>
       ) : null}
       {row.isHot && row.growthRate != null ? (
@@ -115,7 +120,7 @@ function V2Badges({
       ) : null}
       {row.isLocalWinner ? (
         <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-          📍 Local Winner
+          📍 {t("badgeLocal")}
         </span>
       ) : null}
       {supplierChip ? (
@@ -136,6 +141,7 @@ function ArbitrageBadge({
   userRole?: string | null
   country: string
 }) {
+  const locale = useLocale() as AppLocale
   const a = row.arbitrage
   if (!a || a.tier === "none") return null
   const copy = getRadarCopyForRole(
@@ -147,7 +153,8 @@ function ArbitrageBadge({
       price: row.price,
       supplierCount: row.supplierMatch?.count ?? 0,
     },
-    country
+    country,
+    locale
   )
   return (
     <span
@@ -160,6 +167,7 @@ function ArbitrageBadge({
 }
 
 function SaturationCell({ row }: { row: WorldRadarWinnerDto }) {
+  const t = useTranslations("radarTerminal")
   const s = row.saturation
   if (!s) return <span className="text-zinc-400">—</span>
   const barColor =
@@ -168,14 +176,22 @@ function SaturationCell({ row }: { row: WorldRadarWinnerDto }) {
       : s.tier === "tot"
         ? "bg-amber-400"
         : "bg-red-500"
+  const tierLabel =
+    s.tier === "vierge" ? t("satVierge") : s.tier === "tot" ? t("satTot") : t("satSature")
+  const prediction =
+    s.daysUntilSaturation != null
+      ? t("satSoon", { days: s.daysUntilSaturation })
+      : s.tier === "sature"
+        ? t("satAlready")
+        : undefined
   return (
-    <div className="min-w-[7rem]" title={s.prediction ?? undefined}>
+    <div className="min-w-[7rem]" title={prediction}>
       <div className="flex items-center justify-between gap-1 text-[10px] font-semibold">
         <span>
-          {s.emoji} {s.label}
+          {s.emoji} {tierLabel}
         </span>
         {s.daysUntilSaturation != null ? (
-          <span className="text-zinc-500">~{s.daysUntilSaturation}j</span>
+          <span className="text-zinc-500">{t("daysShort", { n: s.daysUntilSaturation })}</span>
         ) : null}
       </div>
       <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-100">
@@ -210,6 +226,8 @@ export default function WorldRadarTerminal({
   supplierKind: SupplierKind
   userRole?: string | null
 }) {
+  const t = useTranslations("radarTerminal")
+  const locale = useLocale() as AppLocale
   const [country, setCountry] = useState(initialCountry.toUpperCase())
   const [regionTab, setRegionTab] = useState<RegionTab>("all")
   const [search, setSearch] = useState("")
@@ -290,7 +308,7 @@ export default function WorldRadarTerminal({
 
   const bulkTotals = useMemo(() => estimateBulkCatalogTotals(bulkWinners), [bulkWinners])
 
-  const lastScanLabel = formatRelativeScanFr(data?.lastScanAt)
+  const lastScanLabel = formatRelativeScan(data?.lastScanAt, locale)
   const isLive = data?.isLive ?? false
 
   async function listOneWithoutStock(winnerId: string) {
@@ -312,20 +330,20 @@ export default function WorldRadarTerminal({
         totalMargin?: number
       }
       if (!res.ok) {
-        toast.error(dataJson.error ?? "Import impossible")
+        toast.error(dataJson.error ?? t("toastImportFailed"))
         return
       }
       const jobUrl =
         dataJson.redirectUrl ??
         (dataJson.jobId ? `/dashboard/imports/${dataJson.jobId}` : "/dashboard/affiliate/catalog?filter=draft")
-      toast.success("🎉 Produit listé sans stock")
+      toast.success(t("toastListedNoStock"))
       window.location.href = jobUrl
     } catch (err) {
       console.error("[WorldRadarTerminal]", {
         step: "list_one",
         message: err instanceof Error ? err.message : "unknown",
       })
-      toast.error("Erreur réseau")
+      toast.error(t("toastNetworkError"))
     }
   }
 
@@ -367,7 +385,7 @@ export default function WorldRadarTerminal({
       setBulkProgress({ current: total, total })
 
       if (!res.ok) {
-        toast.error(dataJson.error ?? "Import bulk impossible")
+        toast.error(dataJson.error ?? t("toastBulkFailed"))
         return
       }
 
@@ -378,7 +396,7 @@ export default function WorldRadarTerminal({
         (dataJson.jobId ? `/dashboard/imports/${dataJson.jobId}` : null)
 
       if (destination === "supplier_draft" && jobUrl) {
-        toast.success(`🎉 ${imported} produits prêts — ouverture assistant…`)
+        toast.success(t("toastReadySupplier", { n: imported }))
         setBulkModalOpen(false)
         window.location.href = jobUrl
         return
@@ -386,18 +404,18 @@ export default function WorldRadarTerminal({
 
       toast.success(
         canViewResellerMargin(userRole)
-          ? `🎉 ${imported} produits importés → Marge +${formatEnrichEuro(margin)}€`
-          : `🎉 ${imported} opportunités stock prêtes — catalogue fournisseur`,
+          ? t("toastImportedReseller", { n: imported, margin: formatEnrichEuro(margin) })
+          : t("toastImportedSupplier", { n: imported }),
         {
           action: canViewResellerMargin(userRole)
             ? {
-                label: "Voir arbitrage",
+                label: t("viewArbitrage"),
                 onClick: () => {
                   window.location.href = jobUrl ?? "/dashboard/affiliate/catalog?filter=draft"
                 },
               }
             : {
-                label: "Voir brouillons",
+                label: t("viewDrafts"),
                 onClick: () => {
                   window.location.href = jobUrl ?? "/dashboard/supplier/products"
                 },
@@ -417,7 +435,7 @@ export default function WorldRadarTerminal({
         step: "bulk_import",
         message: err instanceof Error ? err.message : "unknown",
       })
-      toast.error("Erreur réseau — réessayez")
+      toast.error(t("toastNetworkRetry"))
     } finally {
       setBulkLoading(false)
       setBulkProgress(null)
@@ -435,7 +453,7 @@ export default function WorldRadarTerminal({
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                WORLD RADAR — Analyse quotidienne des marchés
+                {t("title")}
               </h1>
               {bulkWinners.length > 0 ? (
                 <button
@@ -445,11 +463,12 @@ export default function WorldRadarTerminal({
                   className="shrink-0 rounded-xl bg-[#6D28D9] px-3.5 py-2 text-xs font-semibold text-white shadow-lg shadow-violet-900/40 transition hover:bg-[#5B21B6] disabled:opacity-60 sm:text-sm"
                 >
                   {bulkLoading && bulkProgress
-                    ? `Import en cours... ${bulkProgress.current}/${bulkProgress.total}`
+                    ? t("importing", { current: bulkProgress.current, total: bulkProgress.total })
                     : radarBulkBarLabel({
                         role: userRole,
                         count: bulkWinners.length,
                         marginEuro: bulkTotals.marginTotal,
+                        locale,
                       })}
                 </button>
               ) : null}
@@ -464,27 +483,27 @@ export default function WorldRadarTerminal({
                   className={`size-2 rounded-full ${isLive ? "animate-pulse bg-emerald-400" : "bg-zinc-500"}`}
                   aria-hidden
                 />
-                {isLive ? "MAJ 6h" : "CACHE"}
-                {lastScanLabel !== "jamais" ? ` · Dernière analyse ${lastScanLabel}` : ""}
+                {isLive ? t("live") : t("cache")}
+                {data?.lastScanAt ? ` · ${t("lastAnalysis", { when: lastScanLabel })}` : ""}
               </span>
               {isValidating ? (
-                <span className="text-xs text-violet-300">Actualisation…</span>
+                <span className="text-xs text-violet-300">{t("refreshing")}</span>
               ) : null}
             </p>
             <p className="mt-2 text-[11px] text-zinc-400">
-              Signaux e-commerce · Arbitrage Score™ · Saturation · Supplier Match Affisell
+              {t("tagline")}
             </p>
           </div>
           <div className="w-full max-w-sm">
             <label className="sr-only" htmlFor="world-radar-search">
-              Rechercher
+              {t("searchLabel")}
             </label>
             <input
               id="world-radar-search"
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher un produit, pays…"
+              placeholder={t("searchPlaceholder")}
               className="w-full rounded-xl border border-zinc-700 bg-zinc-900/80 px-4 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
             />
           </div>
@@ -506,7 +525,7 @@ export default function WorldRadarTerminal({
                   : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
               }`}
             >
-              {tab.label}
+              {tab.emoji} {t(tab.key)}
             </button>
           ))}
         </div>
@@ -520,7 +539,7 @@ export default function WorldRadarTerminal({
                 <div
                   key={c.code}
                   className="relative overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50/80 px-3 py-2.5 text-left opacity-50"
-                  aria-label={`${c.name} — bientôt disponible`}
+                  aria-label={t("comingSoonAria", { name: c.name })}
                 >
                   <div className="pointer-events-none absolute inset-0 backdrop-blur-[1px]" aria-hidden />
                   <span className="relative text-lg blur-[0.5px]" aria-hidden>
@@ -528,15 +547,15 @@ export default function WorldRadarTerminal({
                   </span>
                   <p className="relative mt-0.5 text-xs font-semibold text-zinc-700">{c.name}</p>
                   <span className="relative mt-1 inline-flex rounded-full bg-zinc-200/90 px-2 py-0.5 text-[10px] font-semibold text-zinc-600">
-                    🔒 Bientôt disponible
+                    🔒 {t("comingSoon")}
                   </span>
-                  <p className="relative mt-1 text-[10px] text-zinc-500">Analyse en cours</p>
+                  <p className="relative mt-1 text-[10px] text-zinc-500">{t("analysisRunning")}</p>
                   <button
                     type="button"
                     disabled
                     className="relative mt-1.5 cursor-not-allowed text-[10px] font-medium text-zinc-400"
                   >
-                    Être alerté →
+                    {t("notifyMe")}
                   </button>
                 </div>
               )
@@ -556,13 +575,13 @@ export default function WorldRadarTerminal({
                 {c.isLive ? (
                   <span
                     className="absolute right-2 top-2 size-2 rounded-full bg-emerald-500"
-                    title="Scan récent"
+                    title={t("recentScan")}
                     aria-hidden
                   />
                 ) : (
                   <span
                     className="absolute right-2 top-2 size-2 rounded-full bg-emerald-400/70"
-                    title="Données disponibles"
+                    title={t("dataAvailable")}
                     aria-hidden
                   />
                 )}
@@ -571,7 +590,7 @@ export default function WorldRadarTerminal({
                 </span>
                 <p className="mt-0.5 text-xs font-semibold text-zinc-900">{c.name}</p>
                 <p className="text-[10px] font-medium text-emerald-700">
-                  {c.productCount} winners
+                  {t("winnersCount", { n: c.productCount ?? 0 })}
                 </p>
               </button>
             )
@@ -582,13 +601,13 @@ export default function WorldRadarTerminal({
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-base font-semibold text-zinc-900">
-            {data?.country.flag ?? "🌍"} Top winners {country}
+            {data?.country.flag ?? "🌍"} {t("topWinners", { country })}
             {error ? (
-              <span className="ml-2 text-xs font-normal text-amber-600">mode dégradé</span>
+              <span className="ml-2 text-xs font-normal text-amber-600">{t("degraded")}</span>
             ) : null}
           </h2>
           <span className="text-xs text-zinc-500">
-            Tri: trending score · {filteredWinners.length} produits
+            {t("sortLine", { n: filteredWinners.length })}
           </span>
         </div>
 
@@ -600,17 +619,17 @@ export default function WorldRadarTerminal({
               <thead className="border-b border-zinc-200 text-xs uppercase tracking-wide text-zinc-500">
                 <tr>
                   <th className="px-2 py-2">
-                    <span className="sr-only">Sélection</span>
+                    <span className="sr-only">{t("thSelect")}</span>
                   </th>
-                  <th className="px-2 py-2">Rank</th>
-                  <th className="px-2 py-2">Produit</th>
-                  <th className="px-2 py-2">Source</th>
-                  <th className="px-2 py-2">Growth</th>
-                  <th className="px-2 py-2">Saturation</th>
-                  <th className="px-2 py-2">Recherches</th>
-                  <th className="px-2 py-2">Concurrence</th>
-                  <th className="px-2 py-2">{radarPriceColumnLabel(userRole)}</th>
-                  <th className="px-2 py-2">Action</th>
+                  <th className="px-2 py-2">{t("thRank")}</th>
+                  <th className="px-2 py-2">{t("thProduct")}</th>
+                  <th className="px-2 py-2">{t("thSource")}</th>
+                  <th className="px-2 py-2">{t("thGrowth")}</th>
+                  <th className="px-2 py-2">{t("thSaturation")}</th>
+                  <th className="px-2 py-2">{t("thSearches")}</th>
+                  <th className="px-2 py-2">{t("thCompetition")}</th>
+                  <th className="px-2 py-2">{radarPriceColumnLabel(userRole, locale)}</th>
+                  <th className="px-2 py-2">{t("thAction")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -626,7 +645,8 @@ export default function WorldRadarTerminal({
                       price: row.price,
                       supplierCount: row.supplierMatch?.count ?? 0,
                     },
-                    country
+                    country,
+                    locale
                   )
                   return (
                     <tr key={row.id} className="border-b border-zinc-100 align-middle">
@@ -635,7 +655,7 @@ export default function WorldRadarTerminal({
                           type="checkbox"
                           checked={selectedIds.includes(row.id)}
                           onChange={() => toggleWinnerSelection(row.id)}
-                          aria-label={`Sélectionner ${row.title}`}
+                          aria-label={t("selectAria", { title: row.title })}
                           className="size-4 rounded border-zinc-300 accent-violet-600"
                         />
                       </td>
@@ -704,7 +724,7 @@ export default function WorldRadarTerminal({
                         <SaturationCell row={row} />
                       </td>
                       <td className="px-2 py-3 text-xs text-zinc-600">
-                        {formatSearches(row.searches)}
+                        {formatSearches(row.searches, t, locale)}
                       </td>
                       <td className="px-2 py-3 text-xs">
                         <span
@@ -712,7 +732,7 @@ export default function WorldRadarTerminal({
                             lowCompetition ? "font-medium text-emerald-700" : "text-red-600"
                           }
                         >
-                          {competitionLabel(row.competition, country)}
+                          {row.competition == null ? "—" : t("competition", { n: row.competition, country })}
                         </span>
                       </td>
                       <td className="px-2 py-3">
@@ -741,7 +761,7 @@ export default function WorldRadarTerminal({
                               href={`/dashboard/reseller/requests/new?title=${encodeURIComponent(row.title)}&category=${encodeURIComponent(row.category ?? "general")}&country=${encodeURIComponent(country)}`}
                               className="text-xs font-medium text-zinc-500 hover:text-zinc-800"
                             >
-                              Demander
+                              {t("request")}
                             </Link>
                           ) : null}
                         </div>
@@ -752,7 +772,7 @@ export default function WorldRadarTerminal({
               </tbody>
             </table>
             {filteredWinners.length === 0 ? (
-              <p className="py-8 text-center text-sm text-zinc-500">Aucun winner pour ce filtre.</p>
+              <p className="py-8 text-center text-sm text-zinc-500">{t("noWinners")}</p>
             ) : null}
           </div>
         )}
@@ -760,32 +780,32 @@ export default function WorldRadarTerminal({
 
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <h2 className="text-base font-semibold text-zinc-900">
-          📈 Trending Keywords — {country}
+          📈 {t("trendingTitle", { country })}
         </h2>
         <p className="mt-1 text-xs text-zinc-500">
-          Mots-clés en forte croissance — mis à jour toutes les 6h.
+          {t("trendingSubtitle")}
         </p>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {(data?.trendingKeywords ?? []).map((t) => (
+          {(data?.trendingKeywords ?? []).map((kw) => (
             <li
-              key={t.id}
+              key={kw.id}
               className="rounded-xl border border-zinc-200 bg-gradient-to-br from-zinc-50 to-white px-3 py-3"
             >
-              <p className="text-sm font-medium text-zinc-900">{t.keyword}</p>
+              <p className="text-sm font-medium text-zinc-900">{kw.keyword}</p>
               <div className="mt-2 flex items-end justify-between gap-2">
                 <span className="text-xs font-semibold text-emerald-700">
-                  +{Math.round(t.growthRate)}% ↗
+                  +{Math.round(kw.growthRate)}% ↗
                 </span>
-                {t.volume != null ? (
+                {kw.volume != null ? (
                   <span className="text-[10px] text-zinc-500">
-                    {t.volume.toLocaleString("fr-FR")}/mois
+                    {t("perMonth", { n: kw.volume.toLocaleString(NUMBER_LOCALE[locale]) })}
                   </span>
                 ) : null}
               </div>
               <div className="mt-2 h-1 overflow-hidden rounded-full bg-zinc-200">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-violet-500"
-                  style={{ width: `${Math.min(100, t.growthRate)}%` }}
+                  style={{ width: `${Math.min(100, kw.growthRate)}%` }}
                 />
               </div>
             </li>

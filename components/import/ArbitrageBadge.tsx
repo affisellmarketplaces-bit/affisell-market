@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import { formatEnrichEuro } from "@/lib/import/smart-import-enricher"
 import { cn } from "@/lib/utils"
 
@@ -29,6 +31,7 @@ export function ArbitrageBadge({
   size = "sm",
   tooltip,
 }: ArbitrageBadgeProps) {
+  const t = useTranslations("importPage")
   const marginPercent = costPrice > 0 ? (margin / costPrice) * 100 : 0
   const tone =
     marginPercent > 200
@@ -39,9 +42,12 @@ export function ArbitrageBadge({
 
   const tip =
     tooltip ??
-    `Acheté ${formatEnrichEuro(costPrice)}€ → Vendu ${formatEnrichEuro(salePrice)}€ = +${formatEnrichEuro(margin)}€${
-      score != null ? ` | Score ${score}/100` : ""
-    }`
+    t(score != null ? "arbTipScore" : "arbTip", {
+      cost: formatEnrichEuro(costPrice),
+      sale: formatEnrichEuro(salePrice),
+      margin: formatEnrichEuro(margin),
+      score: score ?? 0,
+    })
 
   return (
     <span
@@ -58,7 +64,7 @@ export function ArbitrageBadge({
       <span className="opacity-40">|</span>
       <span>+{formatEnrichEuro(margin)}€</span>
       <span className="opacity-40">|</span>
-      <span>{Math.round(marginPercent)}% marge</span>
+      <span>{t("arbMarginPct", { pct: Math.round(marginPercent) })}</span>
     </span>
   )
 }

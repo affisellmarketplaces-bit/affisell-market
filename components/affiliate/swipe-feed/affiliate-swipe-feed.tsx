@@ -128,6 +128,13 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
           setReplayMode(false)
         }
 
+        const known = new Set(deckRef.current.map((p) => p.id))
+        const hasNew = incoming.some((p) => !known.has(p.id))
+        if (!replace && !hasNew) {
+          // Only cards already in the deck came back — the feed is drained; stop prefetching.
+          setFeedExhausted(true)
+        }
+
         setDeck((prev) => {
           if (replace) return incoming
           if (incoming.length === 0) return prev
@@ -173,7 +180,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
     setFeedExhausted(false)
     setDeck(shuffleProducts(skippedReplayPool))
     showToast(tSwipe("rewindOn"))
-  }, [mode, loading, busy, studioOpen, feedExhausted, deck.length, skippedReplayPool, showToast])
+  }, [mode, loading, busy, studioOpen, feedExhausted, deck.length, skippedReplayPool, showToast, tSwipe])
 
   const visibleStack = useMemo(() => deck.slice(0, STACK_VISIBLE), [deck])
 
@@ -207,7 +214,7 @@ export function AffiliateSwipeFeed({ initialMode = "hub", listingContext = "swip
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ productId: product.id, action: "skip" }),
         })
-        if (!res.ok) throw new Error("Skip failed")
+        if (!res.ok) throw new Error(tSwipe("networkError"))
         setHistory((h) => [{ product, action: "skip" }, ...h.slice(0, 19)])
         setSessionStats((s) => ({ ...s, skipped: s.skipped + 1 }))
         setSkippedReplayPool((pool) => {

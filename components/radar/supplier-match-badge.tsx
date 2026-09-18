@@ -1,5 +1,7 @@
 import Link from "next/link"
+import { useLocale } from "next-intl"
 
+import type { AppLocale } from "@/lib/i18n-locale"
 import { getRadarCopyForRole } from "@/lib/radar/radar-copy"
 import type { SupplierMatchDto } from "@/lib/radar/world-radar-types"
 import { cn } from "@/lib/utils"
@@ -15,13 +17,10 @@ type Props = {
  * Supplier Match badge — affiliate = no-stock · supplier = grossiste opportunity.
  */
 export function SupplierMatchBadge({ match, className, userRole, country = "FR" }: Props) {
+  const locale = useLocale() as AppLocale
   if (!match) return null
 
-  const copy = getRadarCopyForRole(
-    userRole,
-    { supplierCount: match.count },
-    country
-  )
+  const copy = getRadarCopyForRole(userRole, { supplierCount: match.count }, country, locale)
 
   const href =
     userRole === "SUPPLIER"
