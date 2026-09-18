@@ -102,7 +102,7 @@ export function MobileDock() {
           ticking = false
         })
       },
-      { rootMargin: "0px 0px 96px 0px", threshold: 0.02 }
+      { rootMargin: "0px 0px -72px 0px", threshold: 0.02 }
     )
 
     observer.observe(footer)

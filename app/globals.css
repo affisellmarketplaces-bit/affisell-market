@@ -4057,3 +4057,10 @@ button,
   }
 }
 
+
+/* Product pages: the persistent buy bar owns the bottom edge — lift the Dona FAB above it. */
+@media (max-width: 1023px) {
+  body:has([data-affisell-mobile-buy="dock"]) .affisell-dona-fab {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 5.75rem);
+  }
+}
