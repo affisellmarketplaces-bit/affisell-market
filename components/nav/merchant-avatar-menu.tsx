@@ -38,7 +38,7 @@ export function MerchantAvatarMenu({ className }: Props) {
         aria-label={t("aria")}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex size-9 items-center justify-center overflow-hidden rounded-full border border-violet-200/80 bg-violet-100 text-sm font-semibold text-violet-900 ring-offset-2 transition hover:ring-2 hover:ring-violet-400/50 dark:border-violet-800/60 dark:bg-violet-950 dark:text-violet-100"
+        className="flex size-10 items-center justify-center overflow-hidden rounded-full border border-violet-200/80 md:size-9 bg-violet-100 text-sm font-semibold text-violet-900 ring-offset-2 transition hover:ring-2 hover:ring-violet-400/50 dark:border-violet-800/60 dark:bg-violet-950 dark:text-violet-100"
       >
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element

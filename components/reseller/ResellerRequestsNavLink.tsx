@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import useSWR from "swr"
 
 import { cn } from "@/lib/utils"
@@ -19,6 +20,7 @@ export function ResellerRequestsNavLink({
   active: boolean
   className?: string
 }) {
+  const t = useTranslations("partnerDock")
   const { data } = useSWR("/api/requests?status=open&limit=1", fetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 60_000,
@@ -37,7 +39,7 @@ export function ResellerRequestsNavLink({
       )}
       aria-current={active ? "page" : undefined}
     >
-      Demandes
+      {t("requests")}
       {count > 0 ? (
         <span className="ml-0.5 inline-flex min-w-[1.1rem] items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-white">
           {count > 9 ? "9+" : count}

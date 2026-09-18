@@ -4034,3 +4034,26 @@ button,
     animation: none !important;
   }
 }
+
+/* Partner (supplier / reseller) thumb dock: reserve space, lift floating widgets.
+   Unlayered on purpose so it wins over the layered dock-off rules. */
+@media (max-width: 767px) {
+  body.affisell-partner-dock.affisell-mobile-shell {
+    --affisell-mobile-dock-offset: calc(4.1rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--affisell-mobile-dock-offset);
+  }
+
+  body.affisell-partner-dock .affisell-dona-fab {
+    bottom: calc(var(--affisell-mobile-dock-offset) + 0.75rem);
+  }
+}
+
+/* Phones: 16px minimum on text fields stops iOS Safari from zooming the page on focus. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+

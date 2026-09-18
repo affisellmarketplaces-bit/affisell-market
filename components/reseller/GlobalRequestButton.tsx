@@ -2,8 +2,11 @@
 
 import Link from "next/link"
 import { Plus } from "lucide-react"
+import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
+import { useEffect, useState } from "react"
 
+import { isPartnerDockSuppressed } from "@/lib/partner-mobile-nav"
 import { cn } from "@/lib/utils"
 
 const NEW_REQUEST_HREF = "/dashboard/reseller/requests/new"
@@ -28,14 +31,20 @@ export function GlobalRequestButton({
   label,
 }: Props) {
   const t = useTranslations("productRequests.reseller.globalButton")
+  const pathname = usePathname() ?? ""
+  const [immersive, setImmersive] = useState(false)
+  useEffect(() => {
+    setImmersive(isPartnerDockSuppressed(pathname, new URLSearchParams(window.location.search)))
+  }, [pathname])
 
   if (variant === "fab") {
+    if (immersive) return null
     return (
       <Link
         href={href}
         aria-label={label ?? t("ariaFab")}
         className={cn(
-          "fixed bottom-6 right-6 z-40 flex size-14 items-center justify-center rounded-full",
+          "fixed bottom-[calc(var(--affisell-mobile-dock-offset,1.5rem)+0.75rem)] right-4 z-40 flex size-14 items-center justify-center rounded-full",
           "bg-orange-500 text-white shadow-lg shadow-orange-900/30",
           "transition hover:bg-orange-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500",
           "md:hidden",

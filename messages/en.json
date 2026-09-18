@@ -7336,5 +7336,20 @@
     "tipTop": "Top: {title}",
     "tipClickPending": "Click → open (data after the scan)",
     "tipClickWinners": "Click → country winners"
+  },
+  "partnerDock": {
+    "aria": "Main navigation",
+    "more": "More",
+    "moreTitle": "All tools",
+    "close": "Close",
+    "add": "Add",
+    "addProduct": "Add a product",
+    "promote": "Promote",
+    "requests": "Requests",
+    "radar": "Radar",
+    "account": "Account",
+    "shops": "Reseller stores",
+    "swipe": "Swipe Feed",
+    "battle": "Pulse Battle"
   }
 }

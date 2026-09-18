@@ -136,7 +136,7 @@ export function MobileDock() {
               <FastLink
                 href={href}
                 className={cn(
-                  "relative flex min-h-11 w-full min-w-0 max-w-[4.1rem] flex-col items-center justify-center gap-0.5 rounded-[1rem] px-1 py-1.5 text-[9px] font-bold uppercase tracking-[0.08em] transition-all duration-200 active:scale-95 sm:px-1.5",
+                  "relative flex min-h-11 w-full min-w-0 max-w-[4.75rem] flex-col items-center justify-center gap-0.5 rounded-[1rem] px-1 py-1.5 text-[10px] font-semibold leading-tight tracking-normal transition-all duration-200 active:scale-95 sm:px-1.5",
                   featured &&
                     !active &&
                     "rounded-[1rem] bg-gradient-to-br from-violet-600 via-fuchsia-600 to-violet-700 text-white shadow-lg shadow-violet-600/35 ring-2 ring-white/50 dark:ring-zinc-900/80",

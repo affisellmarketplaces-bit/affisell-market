@@ -36,6 +36,7 @@ import {
   parseAffiliateHubMode,
   PUBLIC_SHOPS_PATH,
 } from "@/lib/affiliate-routes"
+import { isPartnerDockRoute, isPartnerDockSuppressed } from "@/lib/partner-mobile-nav"
 import { MAGIC_SYSTEMS_HREF } from "@/lib/magic-systems-catalog"
 import { cn } from "@/lib/utils"
 
@@ -90,6 +91,7 @@ export function NavAffiliate() {
 
 function NavAffiliateInner() {
   const t = useTranslations("nav.affiliate")
+  const tDock = useTranslations("partnerDock")
   const tSearch = useTranslations("nav")
   const tPublic = useTranslations("PublicNav")
   const pathname = usePathname() ?? ""
@@ -98,6 +100,8 @@ function NavAffiliateInner() {
   const onHubPath =
     pathname === AFFILIATE_HUB_PATH || pathname.startsWith(`${AFFILIATE_HUB_PATH}/`)
 
+  const dockRoute = isPartnerDockRoute(pathname)
+  const dockSuppressed = isPartnerDockSuppressed(pathname, searchParams)
   const onAgent = pathname.startsWith(AFFILIATE_AGENT_PATH)
   const onCatalog =
     pathname === AFFILIATE_CATALOG_PATH || pathname.startsWith(`${AFFILIATE_CATALOG_PATH}/`)
@@ -134,7 +138,7 @@ function NavAffiliateInner() {
     <nav
       aria-label="Affiliate"
       className={cn(
-        "mx-auto grid w-full max-w-7xl items-center gap-x-2 gap-y-2 px-1 py-1 text-sm",
+        "mx-auto grid w-full max-w-7xl items-center gap-x-2 gap-y-0 px-1 py-1 text-sm lg:gap-y-2",
         "grid-cols-[auto_1fr_auto]",
         "md:gap-x-3",
         "lg:grid-cols-[auto_minmax(0,1fr)_auto_minmax(9rem,13rem)_auto]",
@@ -152,7 +156,8 @@ function NavAffiliateInner() {
       <div
         className={cn(
           navScrollClass,
-          "col-span-3 col-start-1 row-start-2",
+          "col-span-3 col-start-1 row-start-2 mt-2 lg:mt-0",
+          dockRoute && "max-md:hidden",
           "lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:max-w-full lg:pr-1"
         )}
       >
@@ -194,7 +199,7 @@ function NavAffiliateInner() {
         />
         <NavPill
           href="/dashboard/affiliate/promote"
-          label="Promote"
+          label={tDock("promote")}
           shortLabel="Boost"
           icon={Rocket}
           active={onPromote}
@@ -247,7 +252,8 @@ function NavAffiliateInner() {
       >
         <div
           className={cn(
-            "col-span-3 col-start-1 row-start-3 flex min-w-0",
+            "col-span-3 col-start-1 row-start-3 mt-2 flex min-w-0 lg:mt-0",
+            dockRoute && dockSuppressed && "max-md:hidden",
             "lg:col-span-1 lg:col-start-4 lg:row-start-1 lg:justify-stretch"
           )}
         >
@@ -274,7 +280,9 @@ function NavAffiliateInner() {
         />
         <LocaleSwitcher />
         <GlobalRequestButton variant="header" className="hidden md:inline-flex" />
-        <QuickNav />
+        <span className="hidden md:inline-flex">
+          <QuickNav />
+        </span>
         <MerchantNotificationsMenu role="AFFILIATE" />
         <MerchantAvatarMenu />
       </div>

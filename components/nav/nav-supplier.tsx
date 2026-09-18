@@ -9,9 +9,11 @@ import { FastLink } from "@/components/navigation/fast-link"
 import { NavPill } from "@/components/navigation/nav-pill"
 import { QuickNav } from "@/components/navigation/quick-nav"
 import { MerchantAccountNavActions } from "@/components/merchant-account-nav-actions"
+import { MerchantAvatarMenu } from "@/components/nav/merchant-avatar-menu"
 import { RadarNavPill } from "@/components/radar/radar-nav-pill"
 import { SupplierBookingNavBadge } from "@/components/supplier/supplier-booking-nav-badge"
 import { SupplierNotificationsMenu } from "@/components/supplier/supplier-notifications-menu"
+import { isPartnerDockRoute } from "@/lib/partner-mobile-nav"
 import { DROPFORGE_HREF } from "@/lib/affiliate-onboarding-shared"
 import { MAGIC_SYSTEMS_HREF } from "@/lib/magic-systems-catalog"
 import { cn } from "@/lib/utils"
@@ -21,8 +23,10 @@ const navScrollClass =
 
 export function NavSupplier() {
   const t = useTranslations("nav.supplier")
+  const tDock = useTranslations("partnerDock")
   const pathname = usePathname() ?? ""
 
+  const dockActive = isPartnerDockRoute(pathname)
   const onDashboard =
     pathname === "/dashboard/supplier" || pathname.startsWith("/dashboard/supplier?")
   const onOrders = pathname.startsWith("/dashboard/supplier/orders")
@@ -48,7 +52,13 @@ export function NavSupplier() {
         {t("badge")}
       </span>
 
-      <div className={cn(navScrollClass, "order-4 w-full md:order-none md:min-w-0 md:flex-1")}>
+      <div
+        className={cn(
+          navScrollClass,
+          "order-4 w-full md:order-none md:min-w-0 md:flex-1",
+          dockActive && "max-md:hidden"
+        )}
+      >
         <NavPill href="/dashboard/supplier" label={t("dashboard")} icon={LayoutDashboard} active={onDashboard} />
         <NavPill
           href="/dashboard/supplier/supply#affisell-stock"
@@ -87,7 +97,7 @@ export function NavSupplier() {
         <NavPill href="/dashboard/supplier/products" label={t("products")} icon={Package} active={onProducts} />
         <NavPill
           href="/dashboard/supplier/promote"
-          label="Promote"
+          label={tDock("promote")}
           shortLabel="Boost"
           icon={Rocket}
           active={onPromote}
@@ -103,15 +113,18 @@ export function NavSupplier() {
 
       <div
         className={cn(
-          "order-3 flex w-full shrink-0 items-center justify-end gap-2 sm:gap-2.5",
-          "border-zinc-200/90 pl-2 md:order-none md:ml-1 md:w-auto md:border-l md:pl-3",
+          "order-3 ml-auto flex shrink-0 items-center justify-end gap-2 sm:gap-2.5",
+          "border-zinc-200/90 pl-2 md:order-none md:ml-1 md:border-l md:pl-3",
           "dark:border-zinc-700/80"
         )}
       >
         <LocaleSwitcher className="shrink-0" />
-        <QuickNav />
+        <span className="hidden md:inline-flex">
+          <QuickNav />
+        </span>
         <SupplierNotificationsMenu />
-        <MerchantAccountNavActions />
+        <MerchantAccountNavActions className="hidden md:flex" />
+        <MerchantAvatarMenu className="md:hidden" />
       </div>
     </nav>
   )

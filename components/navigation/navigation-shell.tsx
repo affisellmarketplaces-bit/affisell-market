@@ -7,6 +7,7 @@ import { ClientNavigateBridge } from "@/components/navigation/client-navigate-br
 import { CommandKDeferred } from "@/components/navigation/command-k-deferred"
 import { InstantNavigationListener } from "@/components/navigation/instant-navigation-listener"
 import { MobileDock } from "@/components/navigation/mobile-dock"
+import { PartnerMobileDock } from "@/components/navigation/partner-mobile-dock"
 import { NavigationProgress } from "@/components/navigation/navigation-progress"
 import { NavigationWarmup } from "@/components/navigation/navigation-warmup"
 import { RouteScrollTop } from "@/components/navigation/route-scroll-top"
@@ -59,6 +60,7 @@ export function NavigationShell() {
       <CommandKDeferred />
       <MobileBuyerHubDeferred />
       <MobileDock />
+      <PartnerMobileDock />
     </>
   )
 }

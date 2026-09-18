@@ -63,7 +63,7 @@ export function MobilePdpPersistentBuyBar({
       data-affisell-mobile-buy={placement}
     >
       <div className={cn(brand.stickyBar, placement === "inline" && "shadow-md")}>
-        <div className="min-w-0 flex-[0.85]">
+        <div className={cn("min-w-0 shrink-0", placement === "dock" ? "max-w-[30%]" : "max-w-[36%]")}>
           {placement === "dock" ? (
             <p className="truncate text-[11px] font-semibold leading-tight text-zinc-900 dark:text-zinc-50">
               {titleHeadline}
@@ -71,7 +71,7 @@ export function MobilePdpPersistentBuyBar({
           ) : null}
           <p className={cn(brand.stickyPrice, placement === "inline" && "text-base")}>{priceDisplay}</p>
         </div>
-        <div className="flex min-w-0 flex-[1.5] items-center gap-1.5">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
           <Button
             type="button"
             disabled={buyDisabled || buyBusy}

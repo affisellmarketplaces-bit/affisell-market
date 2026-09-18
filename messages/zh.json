@@ -7336,5 +7336,20 @@
     "tipTop": "热门：{title}",
     "tipClickPending": "点击 → 打开（扫描后有数据）",
     "tipClickWinners": "点击 → 该国爆款"
+  },
+  "partnerDock": {
+    "aria": "主导航",
+    "more": "更多",
+    "moreTitle": "全部工具",
+    "close": "关闭",
+    "add": "添加",
+    "addProduct": "添加商品",
+    "promote": "推广",
+    "requests": "需求",
+    "radar": "Radar",
+    "account": "账户",
+    "shops": "分销商店铺",
+    "swipe": "Swipe Feed",
+    "battle": "Pulse Battle"
   }
 }

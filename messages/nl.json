@@ -7336,5 +7336,20 @@
     "tipTop": "Top: {title}",
     "tipClickPending": "Klik → openen (gegevens na de scan)",
     "tipClickWinners": "Klik → winners van het land"
+  },
+  "partnerDock": {
+    "aria": "Hoofdnavigatie",
+    "more": "Meer",
+    "moreTitle": "Alle tools",
+    "close": "Sluiten",
+    "add": "Toevoegen",
+    "addProduct": "Product toevoegen",
+    "promote": "Promoten",
+    "requests": "Aanvragen",
+    "radar": "Radar",
+    "account": "Account",
+    "shops": "Wederverkopersshops",
+    "swipe": "Swipe Feed",
+    "battle": "Pulse Battle"
   }
 }
