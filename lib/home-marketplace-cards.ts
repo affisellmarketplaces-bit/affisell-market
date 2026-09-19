@@ -13,8 +13,11 @@ export type HomeProductCard = {
   compareAtCents: number | null
   soldCount: number
   marginCents: number
-  deliveryMin: number
-  deliveryMax: number
+  /** Supplier-defined (shop shipping profile) window; null = not displayed. */
+  deliveryMin: number | null
+  deliveryMax: number | null
+  /** Server-only hint consumed by applyShopDeliveryWindows. */
+  supplierId?: string
   stock: number
   freeShipping: boolean
   commissionPct: number
@@ -64,7 +67,10 @@ export function homeProductToCardProps(item: HomeProductCard, locale: AppLocale 
     isBestSeller: item.isBestSeller,
     soldCount: item.soldCount,
     marginCents: item.marginCents,
-    deliveryLabel: deliveryRangeLabel(item.deliveryMin, item.deliveryMax, locale),
+    deliveryLabel:
+      item.deliveryMin != null && item.deliveryMax != null
+        ? deliveryRangeLabel(item.deliveryMin, item.deliveryMax, locale)
+        : undefined,
     store: item.storeName,
     stock: item.stock,
     freeShipping: item.freeShipping ?? false,

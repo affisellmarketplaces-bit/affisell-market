@@ -1,3 +1,4 @@
+import { applyShopDeliveryWindows } from "@/lib/shipping/apply-shop-delivery-windows.server"
 import {
   type HomeBarometerCategory,
   type HomeBarometerData,
@@ -40,6 +41,7 @@ type ListingRow = {
     images: string[]
     basePriceCents: number
     commissionRate: number
+    supplierId: string
     deliveryMin: number
     deliveryMax: number
     deliveryDays: number | null
@@ -58,8 +60,6 @@ function mapListingToHomeCard(
   storeName: string
 ): HomeProductCard {
   const p = row.product
-  const deliveryMin = p.deliveryMin ?? 2
-  const deliveryMax = p.deliveryMax ?? p.deliveryDays ?? 7
   const stock = p.stock
   return {
     listingId: row.id,
@@ -70,8 +70,9 @@ function mapListingToHomeCard(
     compareAtCents: p.basePriceCents > row.sellingPriceCents ? p.basePriceCents : null,
     soldCount,
     marginCents: estimateMarginCents(row.sellingPriceCents, p.basePriceCents),
-    deliveryMin,
-    deliveryMax,
+    deliveryMin: null,
+    deliveryMax: null,
+    supplierId: p.supplierId,
     stock,
     freeShipping: p.freeShipping,
     commissionPct: Math.round(Number(p.commissionRate) || 0),
@@ -93,6 +94,7 @@ const listingSelect = {
       images: true,
       basePriceCents: true,
       commissionRate: true,
+      supplierId: true,
       deliveryMin: true,
       deliveryMax: true,
       deliveryDays: true,
@@ -160,6 +162,10 @@ export async function loadHomeMarketplaceStats(): Promise<HomeMarketplaceStats> 
 }
 
 export async function loadHomeBestSellers7d(limit = 12): Promise<HomeProductCard[]> {
+  return applyShopDeliveryWindows(await loadHomeBestSellers7dRaw(limit))
+}
+
+async function loadHomeBestSellers7dRaw(limit = 12): Promise<HomeProductCard[]> {
   const sevenDaysAgo = new Date(Date.now() - 7 * MS_DAY)
   const ranked = await prisma.$queryRaw<{ productId: string; c: bigint }[]>`
     SELECT o."productId", COUNT(*)::bigint AS c
@@ -204,6 +210,10 @@ function dedupeListingsToHomeCards(
 }
 
 export async function loadHomeNewArrivals(limit = 12): Promise<HomeProductCard[]> {
+  return applyShopDeliveryWindows(await loadHomeNewArrivalsRaw(limit))
+}
+
+async function loadHomeNewArrivalsRaw(limit = 12): Promise<HomeProductCard[]> {
   const listings = await prisma.affiliateProduct.findMany({
     where: buyerListedAffiliateProductWhere,
     select: listingSelect,
@@ -221,6 +231,10 @@ export async function loadHomeNewArrivalsCount7d(): Promise<number> {
 }
 
 export async function loadHomeTopRated(limit = 12): Promise<HomeProductCard[]> {
+  return applyShopDeliveryWindows(await loadHomeTopRatedRaw(limit))
+}
+
+async function loadHomeTopRatedRaw(limit = 12): Promise<HomeProductCard[]> {
   const listings = await prisma.affiliateProduct.findMany({
     where: {
       ...buyerListedAffiliateProductWhere,
@@ -234,6 +248,10 @@ export async function loadHomeTopRated(limit = 12): Promise<HomeProductCard[]> {
 }
 
 export async function loadHomeTrustedProducts(limit = 12): Promise<HomeProductCard[]> {
+  return applyShopDeliveryWindows(await loadHomeTrustedProductsRaw(limit))
+}
+
+async function loadHomeTrustedProductsRaw(limit = 12): Promise<HomeProductCard[]> {
   const listings = await prisma.affiliateProduct.findMany({
     where: {
       ...buyerListedAffiliateProductWhere,
@@ -247,6 +265,10 @@ export async function loadHomeTrustedProducts(limit = 12): Promise<HomeProductCa
 }
 
 export async function loadHomeHighMargin(limit = 12): Promise<HomeProductCard[]> {
+  return applyShopDeliveryWindows(await loadHomeHighMarginRaw(limit))
+}
+
+async function loadHomeHighMarginRaw(limit = 12): Promise<HomeProductCard[]> {
   const listings = await prisma.affiliateProduct.findMany({
     where: buyerListedAffiliateProductWhere,
     select: listingSelect,

@@ -8,7 +8,6 @@ import { trackAffisellEvent } from "@/lib/affisell-track-client"
 import type { CarouselItemJson } from "@/lib/carousel-types"
 import { addToBuyerCart } from "@/lib/cart-add-client"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
-import { cn } from "@/lib/utils"
 import { WishlistHeart } from "@/components/wishlist-heart"
 
 type Props = {
@@ -25,7 +24,6 @@ export function AffisellCarouselCard({
   recommendationQuery,
 }: Props) {
   const tAI = useTranslations("AI")
-  const tProduct = useTranslations("ProductCommon")
   const [now, setNow] = useState(() => Date.now())
   const hoverStart = useRef<number | null>(null)
   const hoverSent = useRef(false)
@@ -100,12 +98,8 @@ export function AffisellCarouselCard({
       ? formatStoreCurrencyFromCents(item.compareAtCents)
       : null
 
-  const subline =
-    item.stock <= 3
-      ? `Only ${item.stock} left`
-      : item.deliveryMax <= 1
-        ? "Delivery tomorrow"
-        : tProduct("delivery", { days: `${item.deliveryMin}-${item.deliveryMax}` })
+  // Delivery windows are only ever stated from the supplier's shop shipping profile (not available here).
+  const subline = item.stock <= 3 ? `Only ${item.stock} left` : null
 
   const tooltip = recommendationQuery
     ? `Why recommended? You searched for "${recommendationQuery}"`
@@ -208,14 +202,9 @@ export function AffisellCarouselCard({
                 <span className="text-compare-at text-xs tabular-nums line-through">{oldEur}</span>
               ) : null}
             </div>
-            <p
-              className={cn(
-                "text-[11px] font-medium",
-                item.stock <= 3 ? "text-orange-600" : "text-emerald-600"
-              )}
-            >
-              {subline}
-            </p>
+            {subline ? (
+              <p className="text-[11px] font-medium text-orange-600">{subline}</p>
+            ) : null}
           </div>
         </div>
       </Link>
