@@ -1,3 +1,4 @@
+import { anthropicChatText, hasAnthropicApiKey } from "@/lib/ai/anthropic-client"
 import { groqChatText } from "@/lib/ai/groq-client"
 import {
   fillMissingVariantSkus,
@@ -181,6 +182,9 @@ export function buildPrompt(input: OptimizeVariantsInput): { system: string; use
 Règles couleurs: une couleur par ligne, max 48 caractères, caractères autorisés lettres/chiffres/espaces - / & ' ( ) .
 Pas de virgule ni + dans un nom de couleur. Style clair type Amazon/AliExpress (ex. "X1 (7.8Ah 25KM)", "ES80 (10.5Ah)").
 Ne change pas le nombre de lignes. Ne invente pas de specs absentes du contexte.
+Garde la langue d'origine de chaque nom de couleur (ne traduis pas): "czarny" reste "czarny", "schwarz" reste "schwarz". Corrige seulement la casse, les espaces et les caractères interdits.
+Si un nom dépasse 48 caractères, raccourcis-le en gardant la couleur et les specs essentielles (jamais plus de 48 caractères).
+Tailles: abréviations standard séparées par des virgules (S, M, L, XL, XXL); garde telles quelles les tailles numériques (38, 42, 128 cm).
 
 Tailles actuelles: ${input.sizesText?.trim() || "(aucune)"}
 Couleurs actuelles (index: nom):
@@ -206,8 +210,10 @@ JSON attendu:
     user: `Optimise les lignes SKU (mode tableau).
 Règles:
 - Couleur: lisible, max 48 car., caractères autorisés lettres/chiffres/espaces - / & ' ( ) .
-- Taille: standardiser si pertinent (vide si N/A).
-- SKU: format court MAJUSCULES avec préfixe ${input.skuPrefix ?? "PRD"} (ex. PRD-M365-X1-78AH).
+- Taille: abréviations standard (S, M, L, XL, XXL); tailles numériques inchangées; null si non applicable.
+- SKU: format court en MAJUSCULES qui commence EXACTEMENT par "${input.skuPrefix ?? "PRD"}-" (ex. ${input.skuPrefix ?? "PRD"}-NOIR-M), sans espace.
+- Garde la langue d'origine de chaque nom de couleur (ne traduis pas); corrige seulement la casse et les caractères interdits.
+- Si un nom de couleur dépasse 48 caractères, raccourcis-le en gardant l'essentiel (jamais plus de 48).
 - Conserver le même nombre de lignes et les mêmes index.
 - Ne pas inventer de specs absentes du contexte.
 
@@ -226,16 +232,30 @@ JSON attendu:
 export async function optimizeSupplierVariants(input: OptimizeVariantsInput): Promise<OptimizeVariantsResult> {
   const { system, user } = buildPrompt(input)
 
-  const raw = await groqChatText({
-    vision: false,
-    temperature: 0.25,
-    max_tokens: 900,
-    reasoning_effort: "low",
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
-  })
+  // Claude first when configured (measured 95% vs 88% strict pass on 60 runs, see scripts/llm-eval); Groq is the fallback.
+  let raw: string | null = null
+  if (hasAnthropicApiKey()) {
+    try {
+      raw = await anthropicChatText({ system, user, maxTokens: 900, temperature: 0.25 })
+    } catch (error) {
+      console.warn("[supplier-optimize-variants]", {
+        event: "claude_failed_fallback_groq",
+        message: error instanceof Error ? error.message.slice(0, 160) : String(error),
+      })
+    }
+  }
+  if (!raw?.trim()) {
+    raw = await groqChatText({
+      vision: false,
+      temperature: 0.25,
+      max_tokens: 900,
+      reasoning_effort: "low",
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+    })
+  }
 
   if (!raw?.trim()) {
     throw new Error("L'IA n'a pas renvoyé de texte.")

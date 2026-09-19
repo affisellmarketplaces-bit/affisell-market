@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { hasAnthropicApiKey } from "@/lib/ai/anthropic-client"
 import { hasGeminiApiKey } from "@/lib/ai/gemini-client"
 import {
   optimizeSupplierVariants,
@@ -38,8 +39,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  if (!hasGeminiApiKey() && !process.env.GROQ_API_KEY?.trim()) {
-    return NextResponse.json({ error: "IA indisponible (GEMINI_API_KEY ou GROQ_API_KEY manquante)." }, { status: 503 })
+  if (!hasAnthropicApiKey() && !hasGeminiApiKey() && !process.env.GROQ_API_KEY?.trim()) {
+    return NextResponse.json({ error: "IA indisponible (ANTHROPIC_API_KEY, GEMINI_API_KEY ou GROQ_API_KEY manquante)." }, { status: 503 })
   }
 
   let body: Record<string, unknown>

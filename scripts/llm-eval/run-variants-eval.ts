@@ -131,7 +131,9 @@ async function main() {
   for (const p of active) {
     results[p.id] = { cases: 0, pass: 0, checks: {}, ms: [], inTok: 0, outTok: 0, failures: [] }
   }
-  for (const c of CASES) {
+  const REPEAT = process.argv.includes("--repeat") ? Number(process.argv[process.argv.indexOf("--repeat") + 1]) || 1 : 1
+  const runs = Array.from({ length: REPEAT }, () => CASES).flat()
+  for (const c of runs) {
     const { system, user } = buildPrompt(c.input)
     for (const p of active) {
       const agg = results[p.id]!
@@ -166,7 +168,7 @@ async function main() {
   console.log("\n")
   const pct = (a: number, b: number) => (b ? `${Math.round((100 * a) / b)}%` : "—")
   const med = (xs: number[]) => (xs.length ? [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)]! : 0)
-  console.log(`Cases: ${CASES.length}  |  strict pass = all checks of the case OK\n`)
+  console.log(`Cases: ${CASES.length} x ${REPEAT} run(s)  |  strict pass = all checks of the case OK\n`)
   for (const p of active) {
     const a = results[p.id]!
     console.log(`== ${p.label}`)
