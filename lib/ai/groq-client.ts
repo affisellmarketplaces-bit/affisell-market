@@ -58,6 +58,8 @@ export type GroqChatOptions = {
   temperature?: number
   max_tokens?: number
   response_format?: { type: "json_object" }
+  /** Reasoning models (gpt-oss): lower it for simple formatting tasks (faster, fewer hidden tokens). */
+  reasoning_effort?: "low" | "medium" | "high"
   /** When true, defaults to {@link GROQ_VISION_MODEL}. */
   vision?: boolean
 }
@@ -70,6 +72,14 @@ function prepareMessages(
     : options.messages
 }
 
+/**
+ * Reasoning models (openai/gpt-oss-*) spend part of `max_tokens` on hidden reasoning. With a tight limit the
+ * budget can be exhausted before any answer is written (finish_reason "length", empty content). Reserve
+ * headroom for it so a caller's `max_tokens` keeps meaning "tokens of visible answer".
+ */
+export const GROQ_REASONING_HEADROOM_TOKENS = 2000
+const isGroqReasoningModel = (model: string) => /gpt-oss/i.test(model)
+
 async function groqChatTextDirect(
   groq: Groq,
   options: GroqChatOptions
@@ -80,14 +90,24 @@ async function groqChatTextDirect(
     vision
   )
   const messages = prepareMessages({ ...options, model, vision })
+  const reasoning = isGroqReasoningModel(model)
   const completion = await groq.chat.completions.create({
     model,
     messages,
     temperature: options.temperature ?? 0.2,
-    max_tokens: options.max_tokens,
+    max_tokens:
+      reasoning && options.max_tokens != null
+        ? options.max_tokens + GROQ_REASONING_HEADROOM_TOKENS
+        : options.max_tokens,
     response_format: options.response_format,
+    ...(reasoning && options.reasoning_effort ? { reasoning_effort: options.reasoning_effort } : {}),
   })
-  return completion.choices[0]?.message?.content?.trim() ?? null
+  const choice = completion.choices[0]
+  const content = choice?.message?.content?.trim() ?? null
+  if (!content && choice?.finish_reason === "length") {
+    console.warn("[groq-client]", { event: "empty_completion_length", model, max_tokens: options.max_tokens })
+  }
+  return content
 }
 
 function shouldFallbackToOpenAi(err: unknown): boolean {

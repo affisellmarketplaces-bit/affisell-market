@@ -41,7 +41,7 @@ type AiVariantsPayload = {
   rows?: Array<{ index?: number; color?: string; size?: string | null; sku?: string | null }>
 }
 
-function extractJsonObject(raw: string): unknown {
+export function extractJsonObject(raw: string): unknown {
   const trimmed = raw.trim()
   try {
     return JSON.parse(trimmed) as unknown
@@ -122,7 +122,7 @@ export function applyOptimizedSkuRows(
   return fillMissingVariantSkus(merged, skuPrefix).rows
 }
 
-function normalizeAiPayload(
+export function normalizeAiPayload(
   input: OptimizeVariantsInput,
   raw: unknown
 ): OptimizeVariantsResult {
@@ -159,7 +159,7 @@ function normalizeAiPayload(
   return result
 }
 
-function buildPrompt(input: OptimizeVariantsInput): { system: string; user: string } {
+export function buildPrompt(input: OptimizeVariantsInput): { system: string; user: string } {
   const bullets = input.bullets.map((b) => b.trim()).filter(Boolean)
   const context = [
     input.title.trim() ? `Titre: ${input.title.trim()}` : "",
@@ -230,6 +230,7 @@ export async function optimizeSupplierVariants(input: OptimizeVariantsInput): Pr
     vision: false,
     temperature: 0.25,
     max_tokens: 900,
+    reasoning_effort: "low",
     messages: [
       { role: "system", content: system },
       { role: "user", content: user },
