@@ -55,7 +55,10 @@ export function readEnvFile(file: string): Record<string, string> {
   }
 }
 
-const PROTECTED_KEYS = ["DATABASE_URL", "DIRECT_URL", "DATABASE_URL_STAGING", "POSTGRES_URL", "POSTGRES_PRISMA_URL"]
+/** Always protected: production. */
+const PROTECTED_KEYS = ["DATABASE_URL", "DIRECT_URL", "POSTGRES_URL", "POSTGRES_PRISMA_URL"]
+/** Protected unless `.env.test.local` explicitly sets DB_TEST_ALLOW_STAGING=1 (staging branch used as the test DB). */
+const STAGING_KEY = "DATABASE_URL_STAGING"
 
 /**
  * Point this process at the test database, or throw. Call BEFORE anything imports `@/lib/prisma`.
@@ -63,12 +66,14 @@ const PROTECTED_KEYS = ["DATABASE_URL", "DIRECT_URL", "DATABASE_URL_STAGING", "P
  */
 export function useTestDatabase(root = process.cwd()): string {
   const testEnv = readEnvFile(path.join(root, ".env.test.local"))
+  const allowStaging = testEnv.DB_TEST_ALLOW_STAGING === "1"
+  const keys = allowStaging ? PROTECTED_KEYS : [...PROTECTED_KEYS, STAGING_KEY]
   const protectedUrls: Array<string | undefined> = []
   for (const f of [".env", ".env.local", ".env.production.local", ".env.development.local"]) {
     const env = readEnvFile(path.join(root, f))
-    for (const k of PROTECTED_KEYS) protectedUrls.push(env[k])
+    for (const k of keys) protectedUrls.push(env[k])
   }
-  for (const k of PROTECTED_KEYS) protectedUrls.push(process.env[k])
+  for (const k of keys) protectedUrls.push(process.env[k])
 
   const verdict = assessTestDatabaseUrl(testEnv.DATABASE_URL_TEST, protectedUrls)
   if (!verdict.ok) {
@@ -78,7 +83,7 @@ export function useTestDatabase(root = process.cwd()): string {
     )
   }
   const url = testEnv.DATABASE_URL_TEST!.trim()
-  for (const k of PROTECTED_KEYS) delete process.env[k]
+  for (const k of [...PROTECTED_KEYS, STAGING_KEY]) delete process.env[k]
   process.env.DATABASE_URL = url
   process.env.DIRECT_URL = testEnv.DIRECT_URL_TEST?.trim() || url
   return verdict.endpoint

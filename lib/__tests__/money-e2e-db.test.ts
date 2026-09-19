@@ -24,7 +24,8 @@ vi.mock("@/lib/transfers/split-slack-alert", () => ({ alertSplitTransferFailed: 
 vi.mock("@/lib/order-transfer-gating", () => ({ evaluateTransferReleaseForRole: () => ({ eligible: true }) }))
 vi.mock("@/lib/stripe", () => ({
   getStripeClient: () => ({
-    paymentIntents: { retrieve: async () => ({ latest_charge: "ch_e2e" }) },
+    // One charge per payment intent (Order.stripeChargeId is unique in the schema).
+    paymentIntents: { retrieve: async (id: string) => ({ latest_charge: `ch_${id}` }) },
     accounts: { retrieve: async () => ({ capabilities: { transfers: "active" } }) },
     transfers: { create: transfersCreate },
   }),
@@ -35,7 +36,8 @@ const session = (id: string) => ({ id, payment_intent: `pi_${id}` }) as never
 
 type Scenario = { name: string; wholesale: number; commissionBps: number; markup: number; categoryBps: number }
 
-describe.skipIf(!RUN_DB)("money e2e — real DB, mocked Stripe", () => {
+// Remote database: every query is a network round-trip, so allow generous per-test timeouts.
+describe.skipIf(!RUN_DB)("money e2e — real DB, mocked Stripe", { timeout: 180_000 }, () => {
   let prisma: (typeof import("@/lib/prisma"))["prisma"]
   let schedule: (typeof import("@/lib/transfers/schedule-from-checkout"))["scheduleMarketplaceTransferAttempts"]
   let processJob: (typeof import("@/lib/transfers/process-transfers"))["runProcessTransfersJob"]
@@ -64,10 +66,25 @@ describe.skipIf(!RUN_DB)("money e2e — real DB, mocked Stripe", () => {
 
   afterAll(async () => {
     if (!prisma) return
-    await prisma.order.deleteMany({ where: { id: { in: ids.orders } } })
-    if (ids.listing) await prisma.affiliateProduct.deleteMany({ where: { id: ids.listing } })
-    if (ids.product) await prisma.product.deleteMany({ where: { id: ids.product } })
-    await prisma.user.deleteMany({ where: { id: { in: [ids.supplier, ids.affiliate].filter(Boolean) } } })
+    // Also sweeps leftovers of earlier interrupted runs (same email prefix, test database only).
+    const users = await prisma.user.findMany({
+      where: { email: { startsWith: "money-e2e-", endsWith: "@affisell.test" } },
+      select: { id: true },
+    })
+    const userIds = users.map((u) => u.id)
+    if (userIds.length > 0) {
+      const orderIds = (
+        await prisma.order.findMany({
+          where: { OR: [{ supplierId: { in: userIds } }, { affiliateId: { in: userIds } }] },
+          select: { id: true },
+        })
+      ).map((o) => o.id)
+      await prisma.order.deleteMany({ where: { id: { in: orderIds } } })
+      await prisma.notification.deleteMany({ where: { userId: { in: userIds } } })
+      await prisma.affiliateProduct.deleteMany({ where: { affiliateId: { in: userIds } } })
+      await prisma.product.deleteMany({ where: { supplierId: { in: userIds } } })
+      await prisma.user.deleteMany({ where: { id: { in: userIds } } })
+    }
     await prisma.$disconnect()
   }, 60_000)
 
