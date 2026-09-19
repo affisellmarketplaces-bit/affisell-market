@@ -929,7 +929,10 @@
       "deniedToast": "Permission denied — enable in browser settings",
       "unsupportedToast": "Push not available on this browser",
       "disableFailed": "Could not disable notifications"
-    }
+    },
+    "dbUnavailableTitle": "Your account is taking a moment to load",
+    "dbUnavailableBody": "Our database is waking up. We're retrying automatically — this only takes a few seconds.",
+    "dbUnavailableRetry": "Retry now"
   },
   "shops": {
     "metaTitle": "Trusted stores — Affisell",

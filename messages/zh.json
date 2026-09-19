@@ -929,7 +929,10 @@
       "deniedToast": "权限被拒 —— 请在浏览器设置中启用",
       "unsupportedToast": "此浏览器不支持推送",
       "disableFailed": "无法关闭通知"
-    }
+    },
+    "dbUnavailableTitle": "账户加载稍慢",
+    "dbUnavailableBody": "我们的数据库正在唤醒，正在自动重试，只需几秒钟。",
+    "dbUnavailableRetry": "立即重试"
   },
   "shops": {
     "metaTitle": "可信店铺 — Affisell",

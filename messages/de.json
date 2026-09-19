@@ -929,7 +929,10 @@
       "deniedToast": "Berechtigung verweigert — in den Browsereinstellungen aktivieren",
       "unsupportedToast": "Push in diesem Browser nicht verfügbar",
       "disableFailed": "Benachrichtigungen konnten nicht deaktiviert werden"
-    }
+    },
+    "dbUnavailableTitle": "Ihr Konto lädt gerade",
+    "dbUnavailableBody": "Unsere Datenbank wacht gerade auf. Wir versuchen es automatisch erneut – das dauert nur wenige Sekunden.",
+    "dbUnavailableRetry": "Erneut versuchen"
   },
   "shops": {
     "metaTitle": "Vertrauenswürdige Shops — Affisell",

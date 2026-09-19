@@ -929,7 +929,10 @@
       "deniedToast": "Permission refusée — activez-les dans les réglages du navigateur",
       "unsupportedToast": "Push non disponible sur ce navigateur",
       "disableFailed": "Impossible de désactiver les notifications"
-    }
+    },
+    "dbUnavailableTitle": "Votre espace met un instant à se charger",
+    "dbUnavailableBody": "Notre base de données se réveille. Nouvelle tentative automatique — cela ne prend que quelques secondes.",
+    "dbUnavailableRetry": "Réessayer"
   },
   "shops": {
     "metaTitle": "Boutiques de confiance - Affisell",

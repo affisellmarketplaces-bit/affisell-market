@@ -4,6 +4,7 @@ import { CreditCard, ShoppingCart } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading } from "@/components/affisell/bento-ui"
 import { auth } from "@/auth"
+import { BuyerAccountDbNotice } from "@/components/buyer/buyer-account-db-notice"
 import { buttonVariants } from "@/components/ui/button"
 import { prisma } from "@/lib/prisma"
 import { STRIPE_CHECKOUT_MIN_CARD_CHARGE_CENTS } from "@/lib/stripe-minimum"
@@ -30,7 +31,7 @@ export default async function MarketplaceBuyerWalletPage({ searchParams }: Props
   const sp = searchParams instanceof Promise ? await searchParams : searchParams
   const showWelcome = sp?.welcome === "1"
 
-  const [user, entries] = await Promise.all([
+  const loaded = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: { buyerRewardBalanceCents: true },
@@ -40,7 +41,21 @@ export default async function MarketplaceBuyerWalletPage({ searchParams }: Props
       orderBy: { createdAt: "desc" },
       take: 100,
     }),
-  ])
+  ]).then(
+    (rows) => ({ ok: true as const, rows }),
+    (error: unknown) => {
+      console.error("[buyer-wallet-page]", error instanceof Error ? error.message : String(error))
+      return { ok: false as const }
+    }
+  )
+  if (!loaded.ok) {
+    return (
+      <BentoContainer maxWidth="4xl" className="space-y-8">
+        <BuyerAccountDbNotice />
+      </BentoContainer>
+    )
+  }
+  const [user, entries] = loaded.rows
 
   if (!user) {
     redirect("/login/customer?callbackUrl=/marketplace/account/wallet")

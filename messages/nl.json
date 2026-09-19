@@ -929,7 +929,10 @@
       "deniedToast": "Toestemming geweigerd — schakel in via browserinstellingen",
       "unsupportedToast": "Push niet beschikbaar in deze browser",
       "disableFailed": "Kon meldingen niet uitschakelen"
-    }
+    },
+    "dbUnavailableTitle": "Je account laadt even",
+    "dbUnavailableBody": "Onze database wordt wakker. We proberen het automatisch opnieuw – dat duurt maar een paar seconden.",
+    "dbUnavailableRetry": "Opnieuw proberen"
   },
   "shops": {
     "metaTitle": "Vertrouwde winkels — Affisell",

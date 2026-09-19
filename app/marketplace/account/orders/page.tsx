@@ -4,6 +4,7 @@ import { CreditCard } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading } from "@/components/affisell/bento-ui"
 import { auth } from "@/auth"
+import { BuyerAccountDbNotice } from "@/components/buyer/buyer-account-db-notice"
 import { AccountOrdersContinueShoppingLink } from "@/components/account/account-orders-continue-shopping-link"
 import { AccountOrdersClient } from "@/components/account/account-orders-client"
 import { buttonVariants } from "@/components/ui/button"
@@ -19,13 +20,24 @@ export default async function MarketplaceBuyerOrdersPage() {
   }
 
   let payload: Awaited<ReturnType<typeof buildBuyerOrdersPayloadForEmail>> = []
+  let loadFailed = false
   try {
     payload = await buildBuyerOrdersPayloadForEmail(session.user.email)
   } catch (error) {
+    loadFailed = true
     console.error("[marketplace-account-orders]", {
       email: session.user.email,
       error: error instanceof Error ? error.message : String(error),
     })
+  }
+
+  // Never present a failed load as "no orders" — say it is loading and retry by itself.
+  if (loadFailed) {
+    return (
+      <BentoContainer maxWidth="4xl" className="space-y-8">
+        <BuyerAccountDbNotice />
+      </BentoContainer>
+    )
   }
 
   return (

@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server"
 import { ArrowRight, CreditCard, Package, ShoppingCart } from "lucide-react"
 
 import { BentoCard, BentoContainer, BentoPageHeading } from "@/components/affisell/bento-ui"
+import { BuyerAccountDbNotice } from "@/components/buyer/buyer-account-db-notice"
 import { BuyerPushNotificationsCard } from "@/components/buyer/buyer-push-notifications-card"
 import { auth } from "@/auth"
 import { buttonVariants } from "@/components/ui/button"
@@ -20,7 +21,31 @@ export default async function MarketplaceBuyerAccountHomePage() {
     redirect("/login/customer?callbackUrl=/marketplace/account")
   }
 
-  const overview = await loadBuyerAccountOverview(session.user.id, session.user.email)
+  // A momentarily unreachable database (Neon cold start) must degrade, not crash the whole page.
+  const loaded = await loadBuyerAccountOverview(session.user.id, session.user.email).then(
+    (overview) => ({ ok: true as const, overview }),
+    (error: unknown) => {
+      console.error("[buyer-account-page]", {
+        userId: session.user.id,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      return { ok: false as const }
+    }
+  )
+  if (!loaded.ok) {
+    return (
+      <BentoContainer maxWidth="4xl" className="space-y-8">
+        <BentoPageHeading
+          eyebrow={t("welcomeEyebrow")}
+          title={t("hubTitle")}
+          description={t("hubSubtitle")}
+          className="max-w-2xl"
+        />
+        <BuyerAccountDbNotice />
+      </BentoContainer>
+    )
+  }
+  const { overview } = loaded
   const walletLabel = formatStoreCurrencyFromCents(overview.walletCents)
 
   return (

@@ -929,7 +929,10 @@
       "deniedToast": "Odmowa uprawnień — włącz w ustawieniach przeglądarki",
       "unsupportedToast": "Powiadomienia push niedostępne w tej przeglądarce",
       "disableFailed": "Nie udało się wyłączyć powiadomień"
-    }
+    },
+    "dbUnavailableTitle": "Twoje konto ładuje się chwilę",
+    "dbUnavailableBody": "Nasza baza danych się wybudza. Ponawiamy próbę automatycznie – to potrwa tylko kilka sekund.",
+    "dbUnavailableRetry": "Spróbuj ponownie"
   },
   "shops": {
     "metaTitle": "Zaufane sklepy — Affisell",

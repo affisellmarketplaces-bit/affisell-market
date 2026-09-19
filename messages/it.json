@@ -929,7 +929,10 @@
       "deniedToast": "Autorizzazione negata — attivala nelle impostazioni del browser",
       "unsupportedToast": "Push non disponibile su questo browser",
       "disableFailed": "Impossibile disattivare le notifiche"
-    }
+    },
+    "dbUnavailableTitle": "Il tuo account ci mette un attimo a caricarsi",
+    "dbUnavailableBody": "Il nostro database si sta risvegliando. Riproviamo automaticamente: bastano pochi secondi.",
+    "dbUnavailableRetry": "Riprova"
   },
   "shops": {
     "metaTitle": "Negozi affidabili — Affisell",
