@@ -64,7 +64,7 @@ export function StripeHealthPageClient({ initialOrders, counts }: Props) {
     () => [
       {
         accessorKey: "orderNumber",
-        header: "Order",
+        header: "Commande",
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="font-mono text-xs font-medium">{row.original.orderNumber}</span>
@@ -79,7 +79,7 @@ export function StripeHealthPageClient({ initialOrders, counts }: Props) {
       },
       {
         accessorKey: "stripeHealthStatus",
-        header: "Stripe health",
+        header: "Santé Stripe",
         cell: ({ row }) => (
           <Badge variant={STATUS_VARIANT[row.original.stripeHealthStatus]} className="w-fit text-xs">
             {STATUS_LABEL[row.original.stripeHealthStatus]}
@@ -111,7 +111,7 @@ export function StripeHealthPageClient({ initialOrders, counts }: Props) {
       },
       {
         id: "failure",
-        header: "Error",
+        header: "Erreur",
         cell: ({ row }) => {
           const f = row.original.failure
           if (!f) return <span className="text-xs text-zinc-400">—</span>

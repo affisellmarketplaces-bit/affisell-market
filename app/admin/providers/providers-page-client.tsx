@@ -79,7 +79,7 @@ export function ProvidersPageClient() {
       },
       {
         accessorKey: "status",
-        header: "Status",
+        header: "Statut",
         cell: ({ row }) => (
           <HealthBadge status={row.original.status} latency={row.original.latencyMs} />
         ),

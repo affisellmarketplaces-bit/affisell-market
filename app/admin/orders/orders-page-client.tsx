@@ -98,13 +98,13 @@ export function OrdersPageClient() {
     () => [
       {
         accessorKey: "orderNumber",
-        header: "Order ID",
+        header: "N° commande",
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="font-mono text-xs font-medium">{row.original.orderNumber}</span>
             <Link
               href={`/admin/orders/${row.original.id}`}
-              className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+              className="inline-flex min-h-9 items-center text-xs font-medium text-blue-600 hover:underline dark:text-blue-400 md:min-h-0"
             >
               Détail
             </Link>
@@ -120,7 +120,7 @@ export function OrdersPageClient() {
       },
       {
         id: "supplier",
-        header: "Supplier",
+        header: "Fournisseur",
         cell: ({ row }) => (
           <span className="text-xs text-zinc-600 dark:text-zinc-400">
             {transferLabel("S", row.original.supplierTransfer)}
@@ -129,7 +129,7 @@ export function OrdersPageClient() {
       },
       {
         id: "affiliate",
-        header: "Affiliate",
+        header: "Affilié",
         cell: ({ row }) => {
           const a = row.original.affiliateTransfer
           return (
@@ -148,7 +148,7 @@ export function OrdersPageClient() {
       },
       {
         accessorKey: "splitStatus",
-        header: "SplitStatus",
+        header: "Statut split",
         cell: ({ row }) => (
           <Badge variant={SPLIT_BADGE[row.original.splitStatus]} className="w-fit text-xs">
             {row.original.splitStatus}
@@ -157,7 +157,7 @@ export function OrdersPageClient() {
       },
       {
         id: "transfers",
-        header: "Transfers",
+        header: "Transferts",
         cell: ({ row }) => (
           <span className="font-mono text-[10px] text-zinc-500">
             {row.original.supplierTransfer?.status ?? "—"} /{" "}
@@ -319,7 +319,7 @@ export function OrdersPageClient() {
             id="orders-fulfillment"
             value={fulfillmentStatus}
             onChange={(e) => setFulfillmentStatus(e.target.value as "" | FulfillmentStatus)}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
+            className="h-11 w-full rounded-lg border border-input bg-background px-3 text-base md:h-9 md:text-sm"
           >
             {FULFILLMENT_OPTIONS.map((o) => (
               <option key={o.label} value={o.value}>
@@ -337,7 +337,7 @@ export function OrdersPageClient() {
             id="orders-payment"
             value={paymentStatus}
             onChange={(e) => setPaymentStatus(e.target.value)}
-            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"
+            className="h-11 w-full rounded-lg border border-input bg-background px-3 text-base md:h-9 md:text-sm"
           >
             {PAYMENT_OPTIONS.map((o) => (
               <option key={o.label} value={o.value}>

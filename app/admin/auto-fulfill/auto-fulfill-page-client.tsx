@@ -516,7 +516,7 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
         {stats ? (
           <div className="mb-8 space-y-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Couverture catalogue</p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <AutoFulfillMetricTile
                 label="Liens AE actifs"
                 value={stats.productsWithLink}
@@ -549,7 +549,7 @@ export function AutoFulfillPageClient({ killSwitch = false }: { killSwitch?: boo
             <p className="pt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
               Pipeline fulfillment
             </p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-5 [&>*:last-child:nth-child(odd)]:col-span-2 lg:[&>*:last-child:nth-child(odd)]:col-span-1">
               <AutoFulfillMetricTile
                 label="En attente"
                 value={stats.logsPending}

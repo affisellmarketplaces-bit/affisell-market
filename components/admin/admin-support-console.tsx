@@ -158,7 +158,7 @@ export function AdminSupportConsole({ initial }: Props) {
           </Button>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile label="Ouverts" value={stats.open} tone="text-sky-300" />
           <StatTile label="En cours" value={stats.inProgress} tone="text-violet-300" />
           <StatTile label="Résolus" value={stats.resolved} tone="text-emerald-300" />

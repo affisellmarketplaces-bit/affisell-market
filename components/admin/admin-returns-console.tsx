@@ -143,7 +143,7 @@ export function AdminReturnsConsole({ initial }: Props) {
           </Button>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-5">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1">
           <StatTile label="Demandés" value={stats.requested} tone="text-amber-300" />
           <StatTile label="Expédition" value={stats.awaitingShipment} tone="text-sky-300" />
           <StatTile label="Transit" value={stats.inTransit} tone="text-violet-300" />

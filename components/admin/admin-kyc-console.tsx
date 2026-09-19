@@ -221,7 +221,7 @@ export function AdminKycConsole({ initial }: Props) {
           </Button>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <StatTile label="En attente" value={stats.pending} tone="text-amber-400" />
           <StatTile label="Compléments" value={stats.needsInfo} tone="text-sky-400" />
           <StatTile label="Refusés" value={stats.rejected} tone="text-rose-400" />
@@ -235,7 +235,7 @@ export function AdminKycConsole({ initial }: Props) {
               type="button"
               onClick={() => changeFilter(tab.id)}
               className={cn(
-                "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+                "rounded-full border px-3 py-1.5 text-xs font-semibold transition max-md:min-h-10",
                 filter === tab.id
                   ? "border-violet-400/60 bg-violet-500/20 text-white"
                   : "border-white/10 bg-white/5 text-violet-200/80 hover:border-white/25"

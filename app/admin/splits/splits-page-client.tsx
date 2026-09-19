@@ -64,7 +64,7 @@ export function SplitsPageClient({ rows, summary, initialFilters }: Props) {
     () => [
       {
         accessorKey: "orderNumber",
-        header: "Order",
+        header: "Commande",
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             <span className="font-mono text-xs font-semibold">{row.original.orderNumber}</span>
@@ -93,7 +93,7 @@ export function SplitsPageClient({ rows, summary, initialFilters }: Props) {
       },
       {
         id: "supplier",
-        header: "Supplier",
+        header: "Fournisseur",
         cell: ({ row }) => (
           <span className="text-xs text-zinc-600 dark:text-zinc-400">
             {cellTransfer("S", row.original.supplier)}
@@ -102,7 +102,7 @@ export function SplitsPageClient({ rows, summary, initialFilters }: Props) {
       },
       {
         id: "affiliate",
-        header: "Affiliate",
+        header: "Affilié",
         cell: ({ row }) => (
           <div className="space-y-1">
             <span className="text-xs text-zinc-600 dark:text-zinc-400">
@@ -125,7 +125,7 @@ export function SplitsPageClient({ rows, summary, initialFilters }: Props) {
       },
       {
         accessorKey: "splitStatus",
-        header: "Status",
+        header: "Statut",
         cell: ({ row }) => (
           <Badge variant={STATUS_VARIANT[row.original.splitStatus]} className="w-fit text-xs">
             {row.original.splitStatus}
