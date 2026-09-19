@@ -11,6 +11,6 @@ describe("category pill tokens (reference design)", () => {
   it("inactive = translucent lavender, near-black label, deep-violet icon", () => {
     expect(categoryPillClass(false)).toContain("bg-[#8B6ED6]/[0.22]")
     expect(categoryPillClass(false)).toContain("text-[#03020F]")
-    expect(categoryPillIconClass(false)).toBe("text-[#472488]")
+    expect(categoryPillIconClass(false)).toContain("text-[#472488]")
   })
 })

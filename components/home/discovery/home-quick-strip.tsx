@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { ScrollFadeRow } from "@/components/ui/scroll-fade-row"
 import { useVisitorCheckoutRegion } from "@/hooks/use-visitor-checkout-region"
 import { categoryPillClass } from "@/lib/category-pill-style"
+import { cn } from "@/lib/utils"
 import { catalogFilterHref } from "@/lib/marketplace-catalog-nav.client"
 import { visitorCountryDisplayName } from "@/lib/visitor-country"
 
@@ -47,8 +48,8 @@ export function HomeQuickStrip() {
   return (
     <div className="flex min-w-0 items-center gap-2" role="region" aria-label={t("aria")}>
       {!loading && country ? (
-        <span className="hidden shrink-0 items-center gap-1.5 rounded-full bg-white/60 px-3.5 py-2 text-sm font-medium text-[#14103a] ring-1 ring-white/70 backdrop-blur sm:inline-flex">
-          <MapPin className="size-4 text-[#472488]" aria-hidden />
+        <span className="hidden shrink-0 items-center gap-1.5 rounded-full bg-white/60 dark:bg-white/10 px-3.5 py-2 text-sm font-medium text-[color:var(--glass-text)] ring-1 ring-white/70 backdrop-blur sm:inline-flex">
+          <MapPin className="size-4 text-[color:var(--glass-accent)]" aria-hidden />
           {t("deliveringTo", { country: visitorCountryDisplayName(country, locale) })}
         </span>
       ) : null}
@@ -61,7 +62,8 @@ export function HomeQuickStrip() {
               type="button"
               aria-pressed={active}
               onClick={() => toggle(q)}
-              className={categoryPillClass(active)}
+              // 44px touch target on phones and tablets, compact on desktop.
+              className={cn(categoryPillClass(active), "max-lg:min-h-11")}
             >
               {q.label}
             </button>

@@ -4256,3 +4256,21 @@ button,
   outline: 3px solid #c4b5fd;
   outline-offset: 2px;
 }
+
+/* ── Glass catalog tokens (light + dark) ───────────────────────────────────────────────────── */
+:root {
+  --glass-text: #14103a;
+  --glass-muted: #52525b;
+  --glass-accent: #4c2fb8;
+  --glass-tile: #f3f0fc;
+  --glass-card: #ffffff;
+  --glass-row-active: #d8cff6;
+}
+.dark {
+  --glass-text: #f5f3ff;
+  --glass-muted: #a1a1aa;
+  --glass-accent: #c4b5fd;
+  --glass-tile: #1f1b3d;
+  --glass-card: #17142e;
+  --glass-row-active: #3b2f7a;
+}

@@ -37,7 +37,7 @@ type Props = {
 
 const PRICE_MAX = 500
 const PANEL =
-  "rounded-3xl border border-white/60 bg-white/45 shadow-[0_10px_40px_-16px_rgba(76,29,149,0.28),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xl backdrop-saturate-150"
+  "rounded-3xl border border-white/60 bg-white/45 dark:border-white/10 dark:bg-zinc-900/55 shadow-[0_10px_40px_-16px_rgba(76,29,149,0.28),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xl backdrop-saturate-150"
 
 function scrollToExplorer() {
   window.setTimeout(() => document.getElementById("explorer")?.scrollIntoView({ behavior: "smooth", block: "start" }), 60)
@@ -49,14 +49,14 @@ function CategoriesPanel({ categories, activeId }: { categories: GlassCategory[]
   return (
     <aside className={cn(PANEL, "p-5 lg:sticky lg:top-24")} aria-label={t("categories")}>
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-xl font-bold tracking-tight text-[#14103a]">{t("categories")}</h2>
+        <h2 className="text-xl font-bold tracking-tight text-[color:var(--glass-text)]">{t("categories")}</h2>
         <FastLink
           href={catalogFilterHref("/")}
           scroll={false}
           onClick={scrollToExplorer}
           aria-label={t("openCatalog")}
           title={t("allCatalog")}
-          className="flex size-9 items-center justify-center rounded-xl text-[#3b2a8c] transition hover:bg-white/70"
+          className="flex size-9 items-center justify-center rounded-xl text-[color:var(--glass-accent)] transition hover:bg-white/70 dark:hover:bg-white/10"
         >
           <LayoutGrid className="size-5" aria-hidden />
         </FastLink>
@@ -72,8 +72,8 @@ function CategoriesPanel({ categories, activeId }: { categories: GlassCategory[]
                 onClick={scrollToExplorer}
                 aria-current={active ? "true" : undefined}
                 className={cn(
-                  "group flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[15px] font-medium transition",
-                  active ? "bg-[#D8CFF6] text-[#14103a] shadow-sm" : "text-[#14103a] hover:bg-white/60"
+                  "group flex items-center gap-3 rounded-2xl px-3 py-2.5 text-[15px] font-medium outline-none transition focus-visible:ring-2 focus-visible:ring-[#6D45E0]/70",
+                  active ? "bg-[var(--glass-row-active)] text-[color:var(--glass-text)] shadow-sm" : "text-[color:var(--glass-text)] hover:bg-white/60 dark:hover:bg-white/10"
                 )}
               >
                 <CategoryGlyph name={c.name} slug={c.slug} icon={c.icon} fullPath={c.fullPath} size="lg" tone="bare" />
@@ -92,9 +92,9 @@ function Rating({ rating, reviews }: { rating: number; reviews: number }) {
   const t = useTranslations("homeGlass")
   if (reviews <= 0 || rating <= 0) return <p className="h-4" aria-hidden />
   return (
-    <p className="flex items-center justify-center gap-1 text-xs text-zinc-600" aria-label={t("rating", { rating, count: reviews })}>
+    <p className="flex items-center justify-center gap-1 text-xs text-[color:var(--glass-muted)]" aria-label={t("rating", { rating, count: reviews })}>
       <span className="tabular-nums">{rating.toFixed(1)}</span>
-      <Star className="size-3 fill-current text-zinc-500" aria-hidden />
+      <Star className="size-3 fill-current text-[color:var(--glass-muted)]" aria-hidden />
       <span className="tabular-nums">({reviews})</span>
     </p>
   )
@@ -106,35 +106,35 @@ function FeaturedGrid({ products, catalogTotal }: { products: GlassProduct[]; ca
     <section aria-labelledby="glass-featured-heading" className="min-w-0">
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
-          <h2 id="glass-featured-heading" className="text-3xl font-bold tracking-tight text-[#14103a]">
+          <h2 id="glass-featured-heading" className="text-2xl font-bold tracking-tight xl:text-3xl text-[color:var(--glass-text)]">
             {t("featuredTitle")}
           </h2>
-          <p className="mt-1 text-[15px] text-zinc-600">{t("results", { count: catalogTotal || products.length })}</p>
+          <p className="mt-1 text-[15px] text-[color:var(--glass-muted)]">{t("results", { count: catalogTotal || products.length })}</p>
         </div>
         <FastLink
           href={catalogFilterHref("/")}
           scroll={false}
           onClick={scrollToExplorer}
-          className="shrink-0 text-sm font-semibold text-[#4C2FB8] hover:underline"
+          className="shrink-0 rounded-md text-sm font-semibold text-[color:var(--glass-accent)] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-[#6D45E0]/70"
         >
           {t("seeAll")}
         </FastLink>
       </div>
-      <ul className="grid grid-cols-3 gap-4 2xl:grid-cols-4 2xl:[&>li:nth-child(n+9)]:hidden">
+      <ul className="grid grid-cols-2 gap-4 xl:grid-cols-3 [&>li:nth-child(n+9)]:hidden xl:[&>li:nth-child(n+9)]:list-item">
         {products.map((p, i) => (
           <li key={p.id} className="min-w-0">
-            <div className="group relative flex h-full flex-col rounded-2xl bg-white p-3 shadow-[0_4px_18px_-8px_rgba(76,29,149,0.25)] ring-1 ring-white/70 transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-12px_rgba(76,29,149,0.35)]">
+            <div className="group relative flex h-full flex-col rounded-2xl bg-[var(--glass-card)] p-3 shadow-[0_4px_18px_-8px_rgba(76,29,149,0.25)] ring-1 ring-white/70 transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-12px_rgba(76,29,149,0.35)] motion-reduce:transform-none motion-reduce:transition-none">
               <div className="absolute right-3.5 top-3.5 z-10">
                 <WishlistHeart productId={p.productId} hideCount />
               </div>
               <FastLink href={p.href} prefetch className="flex flex-1 flex-col">
-                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-[#F6F4FC]">
+                <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-[var(--glass-tile)]">
                   <CatalogCardImage src={p.image} fallbackSrc={p.fallbackImage} alt={p.title} priority={i < 4} />
                 </div>
-                <h3 className="mt-3 line-clamp-2 min-h-[2.4rem] text-center text-[14px] font-semibold leading-snug text-[#14103a]">
+                <h3 className="mt-3 line-clamp-2 min-h-[2.4rem] text-center text-[14px] font-semibold leading-snug text-[color:var(--glass-text)]">
                   {p.title}
                 </h3>
-                <p className="mt-1 text-center text-[17px] font-bold tracking-tight text-[#4C2FB8]">
+                <p className="mt-1 text-center text-[17px] font-bold tracking-tight text-[color:var(--glass-accent)]">
                   {formatStoreCurrency(p.price)}
                 </p>
                 <Rating rating={p.rating} reviews={p.reviews} />
@@ -197,9 +197,9 @@ function FiltersPanel({ trending }: { trending: GlassTrend[] }) {
 
   return (
     <aside className={cn(PANEL, "p-5 lg:sticky lg:top-24")} aria-label={t("filtersTitle")}>
-      <h2 className="text-xl font-bold tracking-tight text-[#14103a]">{t("filtersTitle")}</h2>
+      <h2 className="text-xl font-bold tracking-tight text-[color:var(--glass-text)]">{t("filtersTitle")}</h2>
 
-      <h3 className="mt-5 text-[15px] font-semibold text-[#14103a]">{t("priceRange")}</h3>
+      <h3 className="mt-5 text-[15px] font-semibold text-[color:var(--glass-text)]">{t("priceRange")}</h3>
       <div className="relative mt-3 h-6">
         <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-violet-200/80" />
         <div
@@ -227,21 +227,21 @@ function FiltersPanel({ trending }: { trending: GlassTrend[] }) {
           className="glass-dual-range absolute inset-0 w-full"
         />
       </div>
-      <div className="mt-1 flex justify-between text-sm tabular-nums text-zinc-700">
+      <div className="mt-1 flex justify-between text-sm tabular-nums text-[color:var(--glass-muted)]">
         <span>{label(0)}</span>
         <span>{label(PRICE_MAX)}</span>
       </div>
-      <p className="mt-1 text-sm text-[#14103a]" role="status">
+      <p className="mt-1 text-sm text-[color:var(--glass-text)]" role="status">
         {anyPrice ? t("anyPrice") : t("selected", { min: label(lo), max: label(hi) })}
       </p>
 
-      <h3 className="mt-6 text-lg font-bold tracking-tight text-[#14103a]">{t("refine")}</h3>
+      <h3 className="mt-6 text-lg font-bold tracking-tight text-[color:var(--glass-text)]">{t("refine")}</h3>
       <div className="mt-2 space-y-2.5">
         {[
           { id: "free", text: t("freeShipping"), on: freeShipping, set: setFreeShipping },
           { id: "new", text: t("newArrivals"), on: fresh, set: setFresh },
         ].map((o) => (
-          <label key={o.id} className="flex cursor-pointer items-center gap-3 text-[15px] text-[#14103a]">
+          <label key={o.id} className="flex cursor-pointer items-center gap-3 text-[15px] text-[color:var(--glass-text)]">
             <input
               type="checkbox"
               checked={o.on}
@@ -256,11 +256,11 @@ function FiltersPanel({ trending }: { trending: GlassTrend[] }) {
       {trending.length > 0 ? (
         <>
           <hr className="my-5 border-white/70" />
-          <h3 className="text-lg font-bold tracking-tight text-[#14103a]">{t("trendingTitle")}</h3>
+          <h3 className="text-lg font-bold tracking-tight text-[color:var(--glass-text)]">{t("trendingTitle")}</h3>
           <ul className="mt-3 space-y-3">
             {trending.map((it, i) => (
               <li key={it.id}>
-                <FastLink href={it.href} className="flex items-center gap-3 rounded-xl transition hover:bg-white/50">
+                <FastLink href={it.href} className="flex items-center gap-3 rounded-xl transition hover:bg-white/50 dark:hover:bg-white/10">
                   <span className="relative size-12 shrink-0 overflow-hidden rounded-xl bg-white shadow-sm">
                     {it.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -270,11 +270,11 @@ function FiltersPanel({ trending }: { trending: GlassTrend[] }) {
                     )}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[13px] font-semibold text-[#14103a]">
+                    <span className="block text-[13px] font-semibold text-[color:var(--glass-text)]">
                       {i === 0 ? t("topSold") : t("rankThisWeek", { rank: i + 1 })}
                     </span>
-                    <span className="block truncate text-[13px] text-zinc-700">{it.name}</span>
-                    <span className="block text-[11px] tabular-nums text-zinc-500">{t("soldThisWeek", { count: it.sold })}</span>
+                    <span className="block truncate text-[13px] text-[color:var(--glass-muted)]">{it.name}</span>
+                    <span className="block text-[11px] tabular-nums text-[color:var(--glass-muted)]">{t("soldThisWeek", { count: it.sold })}</span>
                   </span>
                 </FastLink>
               </li>
@@ -287,11 +287,11 @@ function FiltersPanel({ trending }: { trending: GlassTrend[] }) {
         <button
           type="button"
           onClick={apply}
-          className="min-h-11 rounded-full bg-gradient-to-r from-[#7C4DF0] to-[#5B35D8] px-6 text-[15px] font-semibold text-white shadow-[0_8px_20px_-8px_rgba(91,53,216,0.7)] transition hover:brightness-110 active:scale-[0.98]"
+          className="min-h-11 rounded-full bg-gradient-to-r from-[#7C4DF0] to-[#5B35D8] px-6 text-[15px] font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-[#c4b5fd] focus-visible:ring-offset-2 shadow-[0_8px_20px_-8px_rgba(91,53,216,0.7)] transition hover:brightness-110 active:scale-[0.98]"
         >
           {t("apply")}
         </button>
-        <button type="button" onClick={reset} className="text-sm font-medium text-[#4C2FB8] hover:underline">
+        <button type="button" onClick={reset} className="text-sm font-medium text-[color:var(--glass-accent)] hover:underline">
           {t("reset")}
         </button>
       </div>
@@ -306,7 +306,7 @@ export function GlassCatalogShell({ categories, products, catalogTotal, trending
   if (products.length === 0 && categories.length === 0) return null
 
   return (
-    <section className="hidden lg:grid lg:grid-cols-[15.5rem_minmax(0,1fr)_16.5rem] lg:items-start lg:gap-5 xl:grid-cols-[16rem_minmax(0,1fr)_17rem]">
+    <section className="hidden lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)_15rem] lg:items-start lg:gap-4 xl:grid-cols-[15.5rem_minmax(0,1fr)_16.5rem] xl:gap-5">
       <CategoriesPanel categories={categories.slice(0, 9)} activeId={activeId} />
       <FeaturedGrid products={products} catalogTotal={catalogTotal} />
       <FiltersPanel trending={trending} />

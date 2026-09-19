@@ -16,7 +16,7 @@ export type DiscoveryEntry = { id: string; label: string; icon: string; category
 export type DiscoveryGroup = { theme: BrowseDepartmentTheme; entries: DiscoveryEntry[] }
 
 const PANEL =
-  "rounded-3xl border border-white/60 bg-white/50 shadow-[0_10px_40px_-16px_rgba(76,29,149,0.25),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xl backdrop-saturate-150"
+  "rounded-3xl border border-white/60 bg-white/50 dark:border-white/10 dark:bg-zinc-900/55 shadow-[0_10px_40px_-16px_rgba(76,29,149,0.25),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-xl backdrop-saturate-150"
 
 function scrollToExplorer() {
   window.setTimeout(() => document.getElementById("explorer")?.scrollIntoView({ behavior: "smooth", block: "start" }), 60)
@@ -34,13 +34,13 @@ function CollectionCard({ collection }: { collection: HomeCollection }) {
   return (
     <article className={cn(PANEL, "flex min-w-0 flex-col p-4")}>
       <div className="mb-3 flex items-start justify-between gap-2">
-        <h3 className="line-clamp-2 text-[17px] font-bold leading-snug tracking-tight text-[#14103a]">{title}</h3>
+        <h3 className="line-clamp-2 text-[17px] font-bold leading-snug tracking-tight text-[color:var(--glass-text)]">{title}</h3>
         <FastLink
           href={href}
           scroll={false}
           onClick={scrollToExplorer}
           aria-label={t("seeAllIn", { name: title })}
-          className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full text-[#472488] transition hover:bg-white/70"
+          className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full text-[color:var(--glass-accent)] transition hover:bg-white/70 dark:hover:bg-white/10"
         >
           <ArrowRight className="size-[18px]" aria-hidden />
         </FastLink>
@@ -49,7 +49,7 @@ function CollectionCard({ collection }: { collection: HomeCollection }) {
         {collection.tiles.map((tile) => (
           <li key={tile.id} className="min-w-0">
             <FastLink href={tile.href} prefetch={false} className="group block">
-              <span className="relative block aspect-square overflow-hidden rounded-xl bg-[#F3F0FC] ring-1 ring-white/70">
+              <span className="relative block aspect-square overflow-hidden rounded-xl bg-[var(--glass-tile)] ring-1 ring-white/70">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={tile.image}
@@ -59,8 +59,8 @@ function CollectionCard({ collection }: { collection: HomeCollection }) {
                   className="absolute inset-0 size-full object-contain p-2 transition-transform duration-300 group-hover:scale-105"
                 />
               </span>
-              <span className="mt-1.5 block truncate text-[13px] text-zinc-800">{tile.title}</span>
-              <span className="block text-[13px] font-semibold tabular-nums text-[#4C2FB8]">
+              <span className="mt-1.5 block truncate text-[13px] text-[color:var(--glass-muted)]">{tile.title}</span>
+              <span className="block text-[13px] font-semibold tabular-nums text-[color:var(--glass-accent)]">
                 {formatStoreCurrencyFromCents(tile.priceCents)}
               </span>
             </FastLink>
@@ -82,17 +82,17 @@ function Directory({ groups }: { groups: DiscoveryGroup[] }) {
   return (
     <section aria-labelledby="home-directory-heading" className="min-w-0">
       <div className="mb-4">
-        <h2 id="home-directory-heading" className="text-2xl font-bold tracking-tight text-[#14103a]">
+        <h2 id="home-directory-heading" className="text-2xl font-bold tracking-tight text-[color:var(--glass-text)]">
           {t("directoryTitle")}
         </h2>
-        <p className="mt-1 text-[15px] text-zinc-600">{t("directorySub")}</p>
+        <p className="mt-1 text-[15px] text-[color:var(--glass-muted)]">{t("directorySub")}</p>
       </div>
 
       {stocked.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {stocked.map((g) => (
             <div key={g.theme} className={cn(PANEL, "p-4")}>
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-[#472488]">{t(`themes.${g.theme}`)}</h3>
+              <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-[color:var(--glass-accent)]">{t(`themes.${g.theme}`)}</h3>
               <ul className="space-y-0.5">
                 {g.entries.map((e) => (
                   <li key={e.id}>
@@ -100,11 +100,11 @@ function Directory({ groups }: { groups: DiscoveryGroup[] }) {
                       href={categoryRailHref("/", { id: e.categoryId, slug: e.categorySlug })}
                       scroll={false}
                       onClick={scrollToExplorer}
-                      className="flex items-center gap-2.5 rounded-xl px-2 py-2 text-[15px] text-[#14103a] transition hover:bg-white/70"
+                      className="flex min-h-11 items-center gap-2.5 rounded-xl px-2 py-2 text-[15px] outline-none focus-visible:ring-2 focus-visible:ring-[#6D45E0]/70 text-[color:var(--glass-text)] transition hover:bg-white/70 dark:hover:bg-white/10"
                     >
                       <span className="w-6 text-center text-lg leading-none" aria-hidden>{e.icon}</span>
                       <span className="min-w-0 flex-1 truncate">{e.label}</span>
-                      <span className="text-xs tabular-nums text-zinc-500">{e.count}</span>
+                      <span className="text-xs tabular-nums text-[color:var(--glass-muted)]">{e.count}</span>
                     </FastLink>
                   </li>
                 ))}
@@ -116,14 +116,14 @@ function Directory({ groups }: { groups: DiscoveryGroup[] }) {
 
       {empty.length > 0 ? (
         <details className={cn(PANEL, "group mt-4 p-4")}>
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[15px] font-semibold text-[#14103a]">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-xl text-[15px] outline-none focus-visible:ring-2 focus-visible:ring-[#6D45E0]/70 font-semibold text-[color:var(--glass-text)]">
             <span>{t("emptyTitle", { count: empty.length })}</span>
             <ChevronDown className="size-5 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
           </summary>
-          <p className="mt-2 text-sm text-zinc-600">{t("emptyBody")}</p>
+          <p className="mt-2 text-sm text-[color:var(--glass-muted)]">{t("emptyBody")}</p>
           <ul className="mt-3 flex flex-wrap gap-2">
             {empty.map((e) => (
-              <li key={e.id} className="inline-flex items-center gap-1.5 rounded-full bg-[#8B6ED6]/[0.14] px-3 py-1.5 text-sm text-[#14103a]/80">
+              <li key={e.id} className="inline-flex items-center gap-1.5 rounded-full bg-[#8B6ED6]/[0.14] px-3 py-1.5 text-sm text-[color:var(--glass-text)]/80">
                 <span aria-hidden>{e.icon}</span>
                 {e.label}
               </li>
@@ -131,7 +131,7 @@ function Directory({ groups }: { groups: DiscoveryGroup[] }) {
           </ul>
           <Link
             href="/signup/supplier"
-            className="mt-4 inline-flex min-h-11 items-center rounded-full bg-gradient-to-r from-[#7C4DF0] to-[#5B35D8] px-5 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(91,53,216,0.7)] transition hover:brightness-110"
+            className="mt-4 inline-flex min-h-11 items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[#c4b5fd] focus-visible:ring-offset-2 bg-gradient-to-r from-[#7C4DF0] to-[#5B35D8] px-5 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(91,53,216,0.7)] transition hover:brightness-110"
           >
             {t("sellCta")}
           </Link>
@@ -152,10 +152,10 @@ export function HomeDiscoverySection({ collections, directory }: { collections: 
       {collections.length > 0 ? (
         <section aria-labelledby="home-collections-heading" className="min-w-0">
           <div className="mb-4">
-            <h2 id="home-collections-heading" className="text-2xl font-bold tracking-tight text-[#14103a]">
+            <h2 id="home-collections-heading" className="text-2xl font-bold tracking-tight text-[color:var(--glass-text)]">
               {hasDepartments ? t("collectionsTitle") : t("budgetTitle")}
             </h2>
-            <p className="mt-1 text-[15px] text-zinc-600">{hasDepartments ? t("collectionsSub") : t("budgetSub")}</p>
+            <p className="mt-1 text-[15px] text-[color:var(--glass-muted)]">{hasDepartments ? t("collectionsSub") : t("budgetSub")}</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {collections.map((c) => (
