@@ -1,5 +1,6 @@
 "use client"
 
+import type { ShopShippingOffer } from "@/lib/shipping/supplier-carrier-offers-shared"
 import { motion } from "framer-motion"
 import { Clock, MousePointerClick, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -43,6 +44,7 @@ type Props = {
   shippingCountry?: string | null
   shipFromCountry?: string | null
   shippingCarrierIds?: string[]
+  shopShippingOffers?: ShopShippingOffer[]
   deliveryMin?: number
   deliveryMax?: number
   shippingMethods?: string[]
@@ -76,6 +78,7 @@ export function ListingPriceActionCard({
   shippingCountry = "FR",
   shipFromCountry = null,
   shippingCarrierIds = [],
+  shopShippingOffers = [],
   deliveryMin = 2,
   deliveryMax = 5,
   shippingMethods = ["standard"],
@@ -149,11 +152,8 @@ export function ListingPriceActionCard({
           />
           <ProductShippingOptions
             country={shippingCountry}
-            shipFromCountry={shipFromCountry}
+            shopOffers={shopShippingOffers}
             carrierIds={shippingCarrierIds}
-            deliveryMin={deliveryMin}
-            deliveryMax={deliveryMax}
-            shippingMethods={shippingMethods}
           />
         </div>
 

@@ -10,8 +10,8 @@ import {
 } from "@/lib/shipping/track-anti-fake"
 
 describe("shipping carriers catalog", () => {
-  it("ships at least 28 carriers", () => {
-    expect(CARRIERS.length).toBeGreaterThanOrEqual(28)
+  it("ships the full European catalog (100+ carriers)", () => {
+    expect(CARRIERS.length).toBeGreaterThanOrEqual(100)
     expect(carriersCatalogSize()).toBe(CARRIERS.length)
   })
 
@@ -20,7 +20,7 @@ describe("shipping carriers catalog", () => {
     expect(rec.all.length).toBeGreaterThan(0)
     expect(rec.fastest?.type).toBe("express")
     expect(rec.cheapest).toBeTruthy()
-    expect(rec.cheapest && rec.cheapest.reliability >= 80).toBe(true)
+    expect(rec.cheapest && (rec.cheapest.reliability ?? 0) >= 80).toBe(true)
     expect(rec.balanced).toBeTruthy()
   })
 
@@ -28,7 +28,7 @@ describe("shipping carriers catalog", () => {
     const list = getCarriersByCountry("DE")
     expect(list.length).toBeGreaterThan(0)
     for (let i = 1; i < list.length; i++) {
-      expect(list[i - 1]!.reliability).toBeGreaterThanOrEqual(list[i]!.reliability)
+      expect(list[i - 1]!.reliability ?? 0).toBeGreaterThanOrEqual(list[i]!.reliability ?? 0)
     }
   })
 })

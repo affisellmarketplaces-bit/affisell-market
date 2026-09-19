@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { CalendarCheck, Flame, Handshake, Layers, LayoutDashboard, Package, Rocket, ShoppingCart, Sparkles } from "lucide-react"
+import { CalendarCheck, Flame, Handshake, Layers, LayoutDashboard, Package, Rocket, ShoppingCart, Sparkles, Truck } from "lucide-react"
 
 import { LocaleSwitcher } from "@/components/locale-switcher"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -33,6 +33,7 @@ export function NavSupplier() {
   const onBookings = pathname.startsWith("/dashboard/supplier/bookings")
   const onProducts = pathname.startsWith("/dashboard/supplier/products")
   const onInviteAffiliate = pathname.startsWith("/dashboard/supplier/invite-affiliate")
+  const onShipping = pathname.startsWith("/dashboard/supplier/settings/shipping")
   const onPromote = pathname.startsWith("/dashboard/supplier/promote")
   const onDropForge = pathname === DROPFORGE_HREF || pathname.startsWith(`${DROPFORGE_HREF}?`)
   const onSupply =
@@ -95,6 +96,7 @@ export function NavSupplier() {
           )}
         </SupplierBookingNavBadge>
         <NavPill href="/dashboard/supplier/products" label={t("products")} icon={Package} active={onProducts} />
+        <NavPill href="/dashboard/supplier/settings/shipping" label={t("shipping")} icon={Truck} active={onShipping} />
         <NavPill
           href="/dashboard/supplier/promote"
           label={tDock("promote")}

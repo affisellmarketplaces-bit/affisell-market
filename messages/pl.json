@@ -50,7 +50,8 @@
       "supply": "Magazyn Affisell",
       "supplyShort": "Magazyn",
       "magicLab": "Magiczne Systemy",
-      "magicLabShort": "Lab"
+      "magicLabShort": "Lab",
+      "shipping": "Wysyłka"
     },
     "accountMenu": {
       "aria": "Menu konta",
@@ -4460,6 +4461,14 @@
       "catalogHint": "Katalog dla wysyłki z {country} — wybierz co najmniej jednego przewoźnika.",
       "pickAtLeastOne": "Wybierz co najmniej jednego przewoźnika, aby włączyć wysyłkę Pro na marketplace.",
       "selectedCount": "{count} przewoźnik(ów) widocznych w ofertach marketplace"
+    },
+    "deliveryDays": "{min}–{max} dni",
+    "deliveryDaysExact": "{count, plural, one {# dzień} few {# dni} other {# dni}}",
+    "carrierType": {
+      "express": "Ekspres",
+      "standard": "Standard",
+      "economy": "Ekonomiczna",
+      "pickup": "Punkt odbioru"
     }
   },
   "pages": {
@@ -7609,5 +7618,42 @@
     "soldToday": "{count} kupiono dziś",
     "soldWeek": "{count} sprzedano w tym tygodniu",
     "lastSale": "Ostatni zakup {time}"
+  },
+  "supplierShipping": {
+    "title": "Wysyłka i przewoźnicy",
+    "subtitle": "Wybierz przewoźników, z których korzystasz, i czas dostawy, do którego się zobowiązujesz. Kupujący widzą tylko to, co tu zdefiniujesz.",
+    "emptyTitle": "Nie zdefiniowano jeszcze przewoźnika",
+    "emptyBody": "Dopóki nie dodasz przynajmniej jednego przewoźnika, na kartach produktów nie będzie wyświetlany blok wysyłki.",
+    "yourCarriers": "Twoi przewoźnicy",
+    "yourCarriersCount": "{count, plural, one {# przewoźnik} few {# przewoźnicy} other {# przewoźników}}",
+    "catalogTitle": "Katalog europejskich przewoźników",
+    "catalogCount": "{count, plural, one {# przewoźnik} few {# przewoźnicy} other {# przewoźników}}",
+    "searchPlaceholder": "Szukaj przewoźnika lub kraju…",
+    "allCountries": "Wszystkie kraje europejskie",
+    "allTypes": "Wszystkie typy",
+    "add": "Dodaj",
+    "remove": "Usuń",
+    "daysMin": "Min.",
+    "daysMax": "Maks.",
+    "daysUnit": "dni",
+    "destinations": "Kierunki",
+    "allDestinations": "Wszystkie kierunki",
+    "nDestinations": "{count, plural, one {# kraj} few {# kraje} other {# krajów}}",
+    "destSearch": "Filtruj kraje…",
+    "destClear": "Wyczyść (wszystkie kierunki)",
+    "save": "Zapisz profil wysyłki",
+    "saving": "Zapisywanie…",
+    "saved": "Profil wysyłki zapisany",
+    "saveError": "Nie udało się zapisać — spróbuj ponownie",
+    "unsaved": "Niezapisane zmiany",
+    "noResults": "Żaden przewoźnik nie pasuje do wyszukiwania.",
+    "buyerNote": "Wyświetlane na kartach produktów dokładnie tak, jak tu zdefiniowano: nazwa przewoźnika, typ usługi i Twój czas dostawy. Affisell nie dodaje ocen ani rankingów.",
+    "navLabel": "Wysyłka",
+    "limitReached": "Osiągnięto maksimum {count} przewoźników.",
+    "invalidWindow": "Minimum nie może przekraczać maksimum.",
+    "dismiss": "Zamknij",
+    "configureCta": "Skonfiguruj wysyłkę sklepu",
+    "pickerHint": "Wyświetlani są tylko przewoźnicy wybrani dla tego produktu (brak wyboru = wszyscy przewoźnicy sklepu).",
+    "pickerAll": "Wszyscy przewoźnicy sklepu są oferowani dla tego produktu."
   }
 }

@@ -17,6 +17,7 @@ import {
   Store,
   Swords,
   TrendingUp,
+  Truck,
   Wallet,
 } from "lucide-react"
 
@@ -109,6 +110,7 @@ const SUPPLIER_MORE: PartnerNavItem[] = [
   { id: "lab", href: MAGIC_SYSTEMS_HREF, label: "nav.supplier.magicLab", icon: Sparkles, match: (p) => p.startsWith(MAGIC_SYSTEMS_HREF) },
   { id: "radar", href: "/radar", label: "partnerDock.radar", icon: Radar, match: (p) => p.startsWith("/radar") },
   { id: "bookings", href: "/dashboard/supplier/bookings", label: "nav.supplier.bookings", icon: CalendarCheck, match: startsWith("/dashboard/supplier/bookings") },
+  { id: "shipping", href: "/dashboard/supplier/settings/shipping", label: "nav.supplier.shipping", icon: Truck, match: startsWith("/dashboard/supplier/settings/shipping") },
   { id: "promote", href: "/dashboard/supplier/promote", label: "partnerDock.promote", icon: Rocket, match: startsWith("/dashboard/supplier/promote") },
   { id: "invite", href: "/dashboard/supplier/invite-affiliate", label: "nav.supplier.inviteAffiliate", icon: Handshake, match: startsWith("/dashboard/supplier/invite-affiliate") },
 ]

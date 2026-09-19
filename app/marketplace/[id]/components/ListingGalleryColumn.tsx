@@ -305,6 +305,7 @@ export function ListingGalleryColumn({
           battleResellerName={battleResellerName}
           buyerShipToCountry={buyerShipToCountry}
           shippingCarrierIds={shipping.shippingCarrierIds}
+          shopShippingOffers={shipping.shopShippingOffers}
           shipFromCountry={shipping.shippingCountryCode}
           deliveryMin={shipping.deliveryMin}
           deliveryMax={shipping.deliveryMax}

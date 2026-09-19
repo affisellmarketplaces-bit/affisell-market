@@ -50,7 +50,8 @@
       "supply": "Affisell 库存",
       "supplyShort": "库存",
       "magicLab": "魔法系统",
-      "magicLabShort": "Lab"
+      "magicLabShort": "Lab",
+      "shipping": "配送"
     },
     "accountMenu": {
       "aria": "账户菜单",
@@ -4460,6 +4461,14 @@
       "catalogHint": "发货地为 {country} 的商品目录 —— 请至少选择一家承运商。",
       "pickAtLeastOne": "请至少选择一家承运商，以在市场上启用 Pro 配送。",
       "selectedCount": "市场商品页面显示 {count} 家承运商"
+    },
+    "deliveryDays": "{min}–{max} 天",
+    "deliveryDaysExact": "{count, plural, other {# 天}}",
+    "carrierType": {
+      "express": "特快",
+      "standard": "标准",
+      "economy": "经济",
+      "pickup": "自提点"
     }
   },
   "pages": {
@@ -7609,5 +7618,42 @@
     "soldToday": "今日已售 {count}",
     "soldWeek": "本周已售 {count}",
     "lastSale": "最近一笔购买 {time}"
+  },
+  "supplierShipping": {
+    "title": "配送与承运商",
+    "subtitle": "选择您使用的承运商以及您承诺的送达时间。买家只会看到您在此设置的内容。",
+    "emptyTitle": "尚未设置承运商",
+    "emptyBody": "在您添加至少一个承运商之前，商品页不会显示配送模块。",
+    "yourCarriers": "您的承运商",
+    "yourCarriersCount": "{count, plural, other {# 家承运商}}",
+    "catalogTitle": "欧洲承运商目录",
+    "catalogCount": "{count, plural, other {# 家承运商}}",
+    "searchPlaceholder": "搜索承运商或国家…",
+    "allCountries": "所有欧洲国家",
+    "allTypes": "所有类型",
+    "add": "添加",
+    "remove": "移除",
+    "daysMin": "最短",
+    "daysMax": "最长",
+    "daysUnit": "天",
+    "destinations": "目的地",
+    "allDestinations": "所有目的地",
+    "nDestinations": "{count, plural, other {# 个国家}}",
+    "destSearch": "筛选国家…",
+    "destClear": "清除（所有目的地）",
+    "save": "保存配送设置",
+    "saving": "保存中…",
+    "saved": "配送设置已保存",
+    "saveError": "保存失败，请重试",
+    "unsaved": "有未保存的更改",
+    "noResults": "没有符合搜索的承运商。",
+    "buyerNote": "在商品页上完全按此处设置显示：承运商名称、服务类型和您的送达时间。Affisell 不会添加任何评分或排名。",
+    "navLabel": "配送",
+    "limitReached": "已达到 {count} 家承运商的上限。",
+    "invalidWindow": "最短天数不能大于最长天数。",
+    "dismiss": "关闭",
+    "configureCta": "设置店铺配送",
+    "pickerHint": "仅显示为该商品选择的承运商（未选择 = 店铺全部承运商）。",
+    "pickerAll": "该商品提供店铺的全部承运商。"
   }
 }

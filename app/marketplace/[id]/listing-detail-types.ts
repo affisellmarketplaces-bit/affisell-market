@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import type { ShopShippingOffer } from "@/lib/shipping/supplier-carrier-offers-shared"
 import type { ListingLogisticsInput } from "@/lib/listing-logistics-display"
 import type { OfferModeBadge } from "@/lib/product-offer-mode"
 import type { ProductColorImageRow } from "@/lib/product-color-images"
@@ -18,7 +19,10 @@ export type StorefrontInfo = {
 export type ListingShippingBlock = ListingLogisticsInput & {
   processingTime: number
   freeShippingThresholdEUR: number | null
+  /** Product-level subset of the shop carriers (may be empty). */
   shippingCarrierIds: string[]
+  /** The supplier's shop shipping profile — the ONLY source of the "Pro shipping" block. */
+  shopShippingOffers: ShopShippingOffer[]
   shippingMethods: string[]
 }
 

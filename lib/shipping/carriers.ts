@@ -3,6 +3,8 @@
  * Client-safe (no Prisma). Distinct from `carrier-directory.ts` (legal/checkout taxonomy).
  */
 
+import { EUROPE_CARRIERS, isEuMemberCountry, isEuropeanCountry } from "@/lib/shipping/carriers-europe"
+
 export type CarrierType = "express" | "standard" | "economy" | "pickup"
 
 export type Carrier = {
@@ -13,8 +15,11 @@ export type Carrier = {
   type: CarrierType
   delivery_min: number
   delivery_max: number
-  /** 0–100 */
-  reliability: number
+  /**
+   * 0–100 internal ranking hint for legacy entries. NEVER shown to buyers or suppliers (it was an
+   * Affisell-invented metric); new European entries omit it.
+   */
+  reliability?: number
   /** Official tracking URL with `{tracking}` placeholder */
   tracking_url: string
   logo: string
@@ -22,7 +27,7 @@ export type Carrier = {
   color: string
 }
 
-export const CARRIERS: Carrier[] = [
+const LEGACY_CARRIERS: Carrier[] = [
   // FRANCE 5
   {
     id: "fr_colissimo",
@@ -409,12 +414,30 @@ export const CARRIERS: Carrier[] = [
   },
 ]
 
+/** Full catalog: legacy entries + every European national operator and pan-European network. */
+export const CARRIERS: Carrier[] = [...LEGACY_CARRIERS, ...EUROPE_CARRIERS]
+
+/**
+ * Does the carrier serve `cc`? Explicit code, `WORLD` (anywhere), `EU` (EU-27 member) or `EUROPE`
+ * (any European country / territory).
+ */
+export function carrierCoversCountry(carrier: Carrier, cc: string): boolean {
+  const code = cc.trim().toUpperCase()
+  if (!code) return false
+  return (
+    carrier.country.includes(code) ||
+    carrier.country.includes("WORLD") ||
+    (carrier.country.includes("EU") && isEuMemberCountry(code)) ||
+    (carrier.country.includes("EUROPE") && isEuropeanCountry(code))
+  )
+}
+
 export function getCarriersByCountry(cc: string): Carrier[] {
   const code = cc.trim().toUpperCase()
   if (!code) return []
-  return CARRIERS.filter(
-    (c) => c.country.includes(code) || c.country.includes("EU") || c.country.includes("WORLD")
-  ).sort((a, b) => b.reliability - a.reliability)
+  return CARRIERS.filter((c) => carrierCoversCountry(c, code)).sort(
+    (a, b) => (b.reliability ?? 0) - (a.reliability ?? 0) || a.name.localeCompare(b.name)
+  )
 }
 
 export type RecommendedCarriers = {
@@ -425,7 +448,7 @@ export type RecommendedCarriers = {
 }
 
 function balancedScore(c: Carrier): number {
-  return c.reliability * 2 - c.delivery_max
+  return (c.reliability ?? 0) * 2 - c.delivery_max
 }
 
 /**
@@ -440,22 +463,22 @@ export function getRecommended(country: string): RecommendedCarriers {
       (a, b) =>
         a.delivery_max - b.delivery_max ||
         a.delivery_min - b.delivery_min ||
-        b.reliability - a.reliability
+        (b.reliability ?? 0) - (a.reliability ?? 0)
     )[0] ?? null
 
   const cheapPool = all.filter(
-    (c) => (c.type === "economy" || c.type === "pickup") && c.reliability >= 80
+    (c) => (c.type === "economy" || c.type === "pickup") && (c.reliability ?? 0) >= 80
   )
   const cheapest =
     [...cheapPool].sort(
       (a, b) =>
         b.delivery_max - a.delivery_max ||
-        a.reliability - b.reliability ||
+        (a.reliability ?? 0) - (b.reliability ?? 0) ||
         (a.type === "economy" ? -1 : 1) - (b.type === "economy" ? -1 : 1)
     )[0] ?? null
 
   const balanced =
-    [...all].sort((a, b) => balancedScore(b) - balancedScore(a) || b.reliability - a.reliability)[0] ??
+    [...all].sort((a, b) => balancedScore(b) - balancedScore(a) || (b.reliability ?? 0) - (a.reliability ?? 0))[0] ??
     null
 
   return { fastest, cheapest, balanced, all }

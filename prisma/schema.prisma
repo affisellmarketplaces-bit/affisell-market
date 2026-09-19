@@ -262,6 +262,7 @@ model User {
    * Wizard v2 smart defaults (logistics, commission) per merchant.
    */
   merchantDefault MerchantDefault?
+  supplierShippingProfile SupplierShippingProfile?
 
   /**
    * Reseller Margin Lock 7j — protected supplier cost windows.
@@ -342,6 +343,20 @@ model MerchantDefault {
   defaultCommissionPct Int?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+}
+
+/**
+ * Shop-level shipping profile: the carriers a supplier offers, with the delivery window they commit to.
+ * The ONLY source of the "Pro shipping" block on product pages — nothing is shown without it.
+ * `offers` = validated ShopShippingOffer[] (lib/shipping/supplier-carrier-offers-shared.ts).
+ */
+model SupplierShippingProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offers    Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model MerchantLegalDocument {

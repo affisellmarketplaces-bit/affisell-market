@@ -1,5 +1,6 @@
 "use client"
 
+import type { ShopShippingOffer } from "@/lib/shipping/supplier-carrier-offers-shared"
 import { ListingPriceActionCard } from "@/components/marketplace/listing-price-action-card"
 import { TryOnTrigger } from "@/components/try-on/TryOnEntry"
 import type { ProductSocialProofData } from "@/lib/product-social-proof-shared"
@@ -29,6 +30,7 @@ type Props = {
   battleResellerName?: string | null
   buyerShipToCountry?: string | null
   shippingCarrierIds?: string[]
+  shopShippingOffers?: ShopShippingOffer[]
   shipFromCountry?: string | null
   deliveryMin?: number
   deliveryMax?: number
@@ -64,6 +66,7 @@ export function PriceBlock({
   battleResellerName,
   buyerShipToCountry,
   shippingCarrierIds,
+  shopShippingOffers,
   shipFromCountry,
   deliveryMin,
   deliveryMax,
@@ -101,6 +104,7 @@ export function PriceBlock({
         shippingCountry={buyerShipToCountry ?? "FR"}
         shipFromCountry={shipFromCountry}
         shippingCarrierIds={shippingCarrierIds}
+        shopShippingOffers={shopShippingOffers}
         deliveryMin={deliveryMin}
         deliveryMax={deliveryMax}
         shippingMethods={shippingMethods}

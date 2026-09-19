@@ -50,7 +50,8 @@
       "supply": "Magazzino Affisell",
       "supplyShort": "Magazzino",
       "magicLab": "Sistemi Magici",
-      "magicLabShort": "Lab"
+      "magicLabShort": "Lab",
+      "shipping": "Spedizioni"
     },
     "accountMenu": {
       "aria": "Menu del profilo",
@@ -4460,6 +4461,14 @@
       "catalogHint": "Catalogo per spedizioni da {country} — seleziona almeno un corriere.",
       "pickAtLeastOne": "Seleziona almeno un corriere per attivare la spedizione Pro sul marketplace.",
       "selectedCount": "{count} corriere/i mostrati negli annunci del marketplace"
+    },
+    "deliveryDays": "{min}–{max} giorni",
+    "deliveryDaysExact": "{count, plural, one {# giorno} other {# giorni}}",
+    "carrierType": {
+      "express": "Express",
+      "standard": "Standard",
+      "economy": "Economico",
+      "pickup": "Punto di ritiro"
     }
   },
   "pages": {
@@ -7609,5 +7618,42 @@
     "soldToday": "{count} acquistati oggi",
     "soldWeek": "{count} venduti questa settimana",
     "lastSale": "Ultimo acquisto {time}"
+  },
+  "supplierShipping": {
+    "title": "Spedizioni e corrieri",
+    "subtitle": "Scegli i corrieri che usi e il tempo di consegna che ti impegni a rispettare. Gli acquirenti vedono solo ciò che definisci qui.",
+    "emptyTitle": "Nessun corriere definito",
+    "emptyBody": "Finché non aggiungi almeno un corriere, nessun blocco spedizione viene mostrato nelle schede prodotto.",
+    "yourCarriers": "I tuoi corrieri",
+    "yourCarriersCount": "{count, plural, one {# corriere} other {# corrieri}}",
+    "catalogTitle": "Catalogo dei corrieri europei",
+    "catalogCount": "{count, plural, one {# corriere} other {# corrieri}}",
+    "searchPlaceholder": "Cerca un corriere o un paese…",
+    "allCountries": "Tutti i paesi europei",
+    "allTypes": "Tutti i tipi",
+    "add": "Aggiungi",
+    "remove": "Rimuovi",
+    "daysMin": "Min",
+    "daysMax": "Max",
+    "daysUnit": "giorni",
+    "destinations": "Destinazioni",
+    "allDestinations": "Tutte le destinazioni",
+    "nDestinations": "{count, plural, one {# paese} other {# paesi}}",
+    "destSearch": "Filtra i paesi…",
+    "destClear": "Cancella (tutte le destinazioni)",
+    "save": "Salva profilo di spedizione",
+    "saving": "Salvataggio…",
+    "saved": "Profilo di spedizione salvato",
+    "saveError": "Impossibile salvare — riprova",
+    "unsaved": "Modifiche non salvate",
+    "noResults": "Nessun corriere corrisponde alla ricerca.",
+    "buyerNote": "Mostrato nelle schede prodotto esattamente come definito qui: nome del corriere, tipo di servizio e il tuo tempo di consegna. Affisell non aggiunge valutazioni né classifiche.",
+    "navLabel": "Spedizioni",
+    "limitReached": "Hai raggiunto il massimo di {count} corrieri.",
+    "invalidWindow": "Il minimo non può superare il massimo.",
+    "dismiss": "Chiudi",
+    "configureCta": "Configura le spedizioni del negozio",
+    "pickerHint": "Vengono mostrati solo i corrieri scelti per questo prodotto (nessuno = tutti quelli del tuo negozio).",
+    "pickerAll": "Tutti i corrieri del tuo negozio sono offerti per questo prodotto."
   }
 }

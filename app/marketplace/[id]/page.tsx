@@ -1,3 +1,4 @@
+import { loadSupplierShopShippingOffers } from "@/lib/shipping/supplier-shipping-profile.server"
 import { loadListingConfirmedUnits } from "@/lib/listing-sales-stats"
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
@@ -390,6 +391,9 @@ export default async function MarketplaceListingPage({
       ? Number(p.freeShippingThreshold)
       : null
 
+  // Shop-level carriers the supplier committed to. Empty (or unavailable) → no shipping block is shown.
+  const shopShippingOffers = await loadSupplierShopShippingOffers(p.supplierId)
+
   const shipping = {
     ...buildListingLogisticsInput({
       shippingCountry: p.shippingCountry,
@@ -404,6 +408,7 @@ export default async function MarketplaceListingPage({
     processingTime: p.processingTime ?? 1,
     freeShippingThresholdEUR: freeThresh,
     shippingCarrierIds: p.shippingCarrierIds ?? [],
+    shopShippingOffers,
     shippingMethods: p.shippingMethods?.length ? p.shippingMethods : ["standard"],
   }
 

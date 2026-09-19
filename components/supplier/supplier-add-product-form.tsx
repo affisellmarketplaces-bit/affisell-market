@@ -3920,8 +3920,6 @@ export function SupplierAddProductForm({
                   description={tForm("shippingCarriersDescription")}
                 >
                   <SupplierShippingCarriersPicker
-                    shipFromCountry={shippingCountry.trim() || null}
-                    shippingMethods={shippingMethodsFromCarrierIds(shippingCarrierIds)}
                     value={shippingCarrierIds}
                     onChange={setShippingCarrierIds}
                   />

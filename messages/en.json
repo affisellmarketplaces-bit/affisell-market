@@ -50,7 +50,8 @@
       "supply": "Affisell stock",
       "supplyShort": "Stock",
       "magicLab": "Magic Systems",
-      "magicLabShort": "Lab"
+      "magicLabShort": "Lab",
+      "shipping": "Shipping"
     },
     "accountMenu": {
       "aria": "Account menu",
@@ -4460,6 +4461,14 @@
       "catalogHint": "Catalog for ship-from {country} — select at least one carrier.",
       "pickAtLeastOne": "Select at least one carrier to enable Pro shipping on the marketplace.",
       "selectedCount": "{count} carrier(s) shown on marketplace listings"
+    },
+    "deliveryDays": "{min}–{max} days",
+    "deliveryDaysExact": "{count, plural, one {# day} other {# days}}",
+    "carrierType": {
+      "express": "Express",
+      "standard": "Standard",
+      "economy": "Economy",
+      "pickup": "Pickup point"
     }
   },
   "pages": {
@@ -7609,5 +7618,42 @@
     "soldToday": "{count} bought today",
     "soldWeek": "{count} sold this week",
     "lastSale": "Last purchase {time}"
+  },
+  "supplierShipping": {
+    "title": "Shipping & carriers",
+    "subtitle": "Choose the carriers you use and the delivery window you commit to. Buyers only ever see what you define here.",
+    "emptyTitle": "No carrier defined yet",
+    "emptyBody": "Until you add at least one carrier, no shipping block is shown on your product pages.",
+    "yourCarriers": "Your carriers",
+    "yourCarriersCount": "{count, plural, one {# carrier} other {# carriers}}",
+    "catalogTitle": "European carrier catalog",
+    "catalogCount": "{count, plural, one {# carrier} other {# carriers}}",
+    "searchPlaceholder": "Search a carrier or a country…",
+    "allCountries": "All European countries",
+    "allTypes": "All types",
+    "add": "Add",
+    "remove": "Remove",
+    "daysMin": "Min",
+    "daysMax": "Max",
+    "daysUnit": "days",
+    "destinations": "Destinations",
+    "allDestinations": "All destinations",
+    "nDestinations": "{count, plural, one {# country} other {# countries}}",
+    "destSearch": "Filter countries…",
+    "destClear": "Clear (all destinations)",
+    "save": "Save shipping profile",
+    "saving": "Saving…",
+    "saved": "Shipping profile saved",
+    "saveError": "Could not save — please retry",
+    "unsaved": "Unsaved changes",
+    "noResults": "No carrier matches your search.",
+    "buyerNote": "Shown on your product pages exactly as defined here: carrier name, service type and your delivery window. No ratings or rankings are added by Affisell.",
+    "navLabel": "Shipping",
+    "limitReached": "You reached the maximum of {count} carriers.",
+    "invalidWindow": "Minimum cannot exceed maximum.",
+    "dismiss": "Dismiss",
+    "configureCta": "Set up your shop shipping",
+    "pickerHint": "Only the carriers you selected for this product are shown (none selected = all your shop carriers).",
+    "pickerAll": "All your shop carriers are offered on this product."
   }
 }

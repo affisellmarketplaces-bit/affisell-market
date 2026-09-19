@@ -1,5 +1,6 @@
 "use client"
 
+import type { ShopShippingOffer } from "@/lib/shipping/supplier-carrier-offers-shared"
 import { motion } from "framer-motion"
 import { ShoppingBag, Star } from "lucide-react"
 import Link from "next/link"
@@ -89,6 +90,7 @@ export type MobilePdpBuyPanelProps = {
   battleResellerName?: string | null
   buyerShipToCountry?: string | null
   shippingCarrierIds?: string[]
+  shopShippingOffers?: ShopShippingOffer[]
   shipFromCountry?: string | null
   deliveryMin?: number
   deliveryMax?: number
@@ -148,6 +150,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
       battleResellerName = null,
       buyerShipToCountry = null,
       shippingCarrierIds = [],
+      shopShippingOffers = [],
       shipFromCountry = null,
       deliveryMin = 2,
       deliveryMax = 5,
@@ -343,6 +346,7 @@ export const MobilePdpBuyPanel = forwardRef<HTMLElement, MobilePdpBuyPanelProps>
               shippingCountry={buyerShipToCountry ?? "FR"}
               shipFromCountry={shipFromCountry}
               shippingCarrierIds={shippingCarrierIds}
+              shopShippingOffers={shopShippingOffers}
               deliveryMin={deliveryMin}
               deliveryMax={deliveryMax}
               shippingMethods={shippingMethods}

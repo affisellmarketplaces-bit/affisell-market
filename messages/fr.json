@@ -50,7 +50,8 @@
       "supply": "Stock Affisell",
       "supplyShort": "Stock",
       "magicLab": "Magic Systems",
-      "magicLabShort": "Lab"
+      "magicLabShort": "Lab",
+      "shipping": "Livraison"
     },
     "accountMenu": {
       "aria": "Menu compte",
@@ -4460,6 +4461,14 @@
       "catalogHint": "Catalogue disponible depuis {country} — cochez au moins un transporteur.",
       "pickAtLeastOne": "Choisissez au moins un transporteur pour activer la vitrine Livraison pro.",
       "selectedCount": "{count} transporteur(s) affiché(s) sur la marketplace"
+    },
+    "deliveryDays": "{min}–{max} jours",
+    "deliveryDaysExact": "{count, plural, one {# jour} other {# jours}}",
+    "carrierType": {
+      "express": "Express",
+      "standard": "Standard",
+      "economy": "Économique",
+      "pickup": "Point relais"
     }
   },
   "pages": {
@@ -7609,5 +7618,42 @@
     "soldToday": "{count} achetés aujourd'hui",
     "soldWeek": "{count} vendus cette semaine",
     "lastSale": "Dernier achat {time}"
+  },
+  "supplierShipping": {
+    "title": "Livraison & transporteurs",
+    "subtitle": "Choisissez les transporteurs que vous utilisez et le délai de livraison que vous vous engagez à tenir. Les acheteurs ne voient que ce que vous définissez ici.",
+    "emptyTitle": "Aucun transporteur défini",
+    "emptyBody": "Tant que vous n'ajoutez pas au moins un transporteur, aucun bloc de livraison n'est affiché sur vos fiches produit.",
+    "yourCarriers": "Vos transporteurs",
+    "yourCarriersCount": "{count, plural, one {# transporteur} other {# transporteurs}}",
+    "catalogTitle": "Catalogue des transporteurs européens",
+    "catalogCount": "{count, plural, one {# transporteur} other {# transporteurs}}",
+    "searchPlaceholder": "Rechercher un transporteur ou un pays…",
+    "allCountries": "Tous les pays européens",
+    "allTypes": "Tous les types",
+    "add": "Ajouter",
+    "remove": "Retirer",
+    "daysMin": "Min",
+    "daysMax": "Max",
+    "daysUnit": "jours",
+    "destinations": "Destinations",
+    "allDestinations": "Toutes les destinations",
+    "nDestinations": "{count, plural, one {# pays} other {# pays}}",
+    "destSearch": "Filtrer les pays…",
+    "destClear": "Effacer (toutes les destinations)",
+    "save": "Enregistrer le profil d'expédition",
+    "saving": "Enregistrement…",
+    "saved": "Profil d'expédition enregistré",
+    "saveError": "Enregistrement impossible — réessayez",
+    "unsaved": "Modifications non enregistrées",
+    "noResults": "Aucun transporteur ne correspond à votre recherche.",
+    "buyerNote": "Affiché sur vos fiches produit exactement tel que défini ici : nom du transporteur, type de service et votre délai. Affisell n'ajoute ni note ni classement.",
+    "navLabel": "Livraison",
+    "limitReached": "Vous avez atteint le maximum de {count} transporteurs.",
+    "invalidWindow": "Le minimum ne peut pas dépasser le maximum.",
+    "dismiss": "Fermer",
+    "configureCta": "Configurer la livraison de la boutique",
+    "pickerHint": "Seuls les transporteurs choisis pour ce produit sont affichés (aucun = tous ceux de votre boutique).",
+    "pickerAll": "Tous les transporteurs de votre boutique sont proposés sur ce produit."
   }
 }

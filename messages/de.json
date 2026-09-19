@@ -50,7 +50,8 @@
       "supply": "Affisell-Lager",
       "supplyShort": "Lager",
       "magicLab": "Magische Systeme",
-      "magicLabShort": "Lab"
+      "magicLabShort": "Lab",
+      "shipping": "Versand"
     },
     "accountMenu": {
       "aria": "Kontomenü",
@@ -4460,6 +4461,14 @@
       "catalogHint": "Katalog für Versand aus {country} — wähle mindestens einen Spediteur.",
       "pickAtLeastOne": "Wähle mindestens einen Spediteur, um Pro-Versand im Marketplace zu aktivieren.",
       "selectedCount": "{count} Spediteur(e) auf Marketplace-Angeboten angezeigt"
+    },
+    "deliveryDays": "{min}–{max} Tage",
+    "deliveryDaysExact": "{count, plural, one {# Tag} other {# Tage}}",
+    "carrierType": {
+      "express": "Express",
+      "standard": "Standard",
+      "economy": "Economy",
+      "pickup": "Abholpunkt"
     }
   },
   "pages": {
@@ -7609,5 +7618,42 @@
     "soldToday": "{count} heute gekauft",
     "soldWeek": "{count} diese Woche verkauft",
     "lastSale": "Letzter Kauf {time}"
+  },
+  "supplierShipping": {
+    "title": "Versand & Carrier",
+    "subtitle": "Wählen Sie die Carrier, die Sie nutzen, und die Lieferzeit, zu der Sie sich verpflichten. Käufer sehen nur, was Sie hier festlegen.",
+    "emptyTitle": "Noch kein Carrier festgelegt",
+    "emptyBody": "Solange Sie keinen Carrier hinzufügen, wird auf Ihren Produktseiten kein Versandblock angezeigt.",
+    "yourCarriers": "Ihre Carrier",
+    "yourCarriersCount": "{count, plural, one {# Carrier} other {# Carrier}}",
+    "catalogTitle": "Katalog europäischer Carrier",
+    "catalogCount": "{count, plural, one {# Carrier} other {# Carrier}}",
+    "searchPlaceholder": "Carrier oder Land suchen…",
+    "allCountries": "Alle europäischen Länder",
+    "allTypes": "Alle Typen",
+    "add": "Hinzufügen",
+    "remove": "Entfernen",
+    "daysMin": "Min.",
+    "daysMax": "Max.",
+    "daysUnit": "Tage",
+    "destinations": "Zielländer",
+    "allDestinations": "Alle Zielländer",
+    "nDestinations": "{count, plural, one {# Land} other {# Länder}}",
+    "destSearch": "Länder filtern…",
+    "destClear": "Zurücksetzen (alle Zielländer)",
+    "save": "Versandprofil speichern",
+    "saving": "Wird gespeichert…",
+    "saved": "Versandprofil gespeichert",
+    "saveError": "Speichern nicht möglich — bitte erneut versuchen",
+    "unsaved": "Ungespeicherte Änderungen",
+    "noResults": "Kein Carrier passt zu Ihrer Suche.",
+    "buyerNote": "Wird auf Ihren Produktseiten genau so angezeigt, wie hier festgelegt: Carrier-Name, Serviceart und Ihre Lieferzeit. Affisell fügt keine Bewertungen oder Rankings hinzu.",
+    "navLabel": "Versand",
+    "limitReached": "Sie haben das Maximum von {count} Carriern erreicht.",
+    "invalidWindow": "Das Minimum darf das Maximum nicht überschreiten.",
+    "dismiss": "Schließen",
+    "configureCta": "Versand des Shops einrichten",
+    "pickerHint": "Nur die für dieses Produkt gewählten Versanddienstleister werden angezeigt (keine Auswahl = alle Ihres Shops).",
+    "pickerAll": "Alle Versanddienstleister Ihres Shops werden für dieses Produkt angeboten."
   }
 }

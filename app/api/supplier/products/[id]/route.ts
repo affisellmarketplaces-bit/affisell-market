@@ -34,7 +34,6 @@ import {
 } from "@/lib/supplier-product-offer-mode"
 import { validateOfferModePublish } from "@/lib/product-offer-mode"
 import { parseSupplierProductShippingBody, validateDeliveryCountriesPublish, validateWarehouseTypePublish } from "@/lib/supplier-product-shipping"
-import { suggestCarrierIdsForProduct } from "@/lib/shipping/supplier-carrier-offers-shared"
 import {
   resolveSupplierProductImagesForSave,
   validateSupplierProductImagesForPublish,
@@ -525,17 +524,8 @@ export async function PUT(
         ...("deliveryMin" in rawBody ? { deliveryMin: ship.deliveryMin } : {}),
         ...("deliveryMax" in rawBody ? { deliveryMax: ship.deliveryMax } : {}),
         ...("shippingMethods" in rawBody ? { shippingMethods: ship.shippingMethods } : {}),
-        ...("shippingCarrierIds" in rawBody
-          ? {
-              shippingCarrierIds:
-                ship.shippingCarrierIds.length > 0
-                  ? ship.shippingCarrierIds
-                  : suggestCarrierIdsForProduct({
-                      shipFromCountry: ship.shippingCountry,
-                      shippingMethods: ship.shippingMethods,
-                    }),
-            }
-          : {}),
+        // Exactly what the supplier chose — never auto-filled with Affisell suggestions.
+        ...("shippingCarrierIds" in rawBody ? { shippingCarrierIds: ship.shippingCarrierIds } : {}),
         ...("freeShippingThresholdEUR" in rawBody || "freeShippingThreshold" in rawBody
           ? { freeShippingThreshold: ship.freeShippingThreshold }
           : {}),
