@@ -1,4 +1,5 @@
 import { netAffiliateTransferCents } from "@/lib/marketplace-phase1-fees"
+import { stableAffiliateCommissionCents } from "@/lib/money/split-guard"
 import {
   resolveSupplierPayoutCentsFromOrder,
   type MarketplaceOrderSettlement,
@@ -29,8 +30,16 @@ function estimateStripeFeeCents(lineTotalCents: number): number {
   return Math.round(lineTotalCents * 0.029 + 25)
 }
 
-/** Map persisted Order row → split input (catalog vs auto-buy fees). */
-export function orderSplitInputFromOrder(order: {
+/**
+ * Map persisted Order row → split input (catalog vs auto-buy fees).
+ *
+ * When the row carries `commissionCents`, the commission leg is derived once from
+ * immutable checkout facts (see `stableAffiliateCommissionCents`) so that re-running the
+ * scheduler can never compound the net transfer stored back into `affiliatePayoutCents`,
+ * and the supplier and affiliate legs always use the same commission.
+ */
+export function orderSplitInputFromOrder(
+  order: {
   basePriceCents: number
   sellingPriceCents: number
   subtotalCents?: number | null
@@ -46,11 +55,18 @@ export function orderSplitInputFromOrder(order: {
   supplierCommissionRateBps: number
   affisellCommissionRateBps: number
   supplierPayoutCents?: number | null
-}): OrderSplitInput {
+  commissionCents?: number | null
+},
+  opts: { firstSchedule?: boolean } = {}
+): OrderSplitInput {
+  const commissionAware = order.commissionCents !== undefined
+  const affiliatePayoutCents = commissionAware
+    ? stableAffiliateCommissionCents(order, { allowPayoutFieldFallback: opts.firstSchedule ?? false })
+    : order.affiliatePayoutCents
   return {
     basePriceCents: order.basePriceCents,
     sellingPriceCents: order.sellingPriceCents,
-    affiliatePayoutCents: order.affiliatePayoutCents,
+    affiliatePayoutCents,
     affiliateMarginRetainedCents: order.affiliateMarginRetainedCents,
     affisellFeeCents: order.affisellFeeCents,
     affiliateFeeCents: order.affiliateFeeCents,

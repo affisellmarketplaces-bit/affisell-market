@@ -15,6 +15,7 @@ import {
 } from "@/lib/order-return-policy"
 import { isTerminalReturnStatus } from "@/lib/order-return-types"
 import { loadOrderTrackingTimeline, type OrderTrackingTimelineItem } from "@/lib/order-tracking-event"
+import { orderChargedTotalCents } from "@/lib/money/split-guard"
 import { fulfillmentOrchestrator } from "@/lib/fulfillment/orchestrator"
 import type { UnifiedTrackingParcel } from "@/lib/fulfillment/unified-tracking-types"
 import { prisma } from "@/lib/prisma"
@@ -101,7 +102,7 @@ export async function loadBuyerOrderDetail(
     status: order.status,
     createdAt: order.createdAt.toISOString(),
     quantity: order.quantity,
-    totalPaidCents: order.totalCents ?? order.sellingPriceCents,
+    totalPaidCents: orderChargedTotalCents(order),
     product: {
       name: order.product.name,
       imageUrl: order.product.images[0] ?? null,

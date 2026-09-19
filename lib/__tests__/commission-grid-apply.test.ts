@@ -29,7 +29,7 @@ describe("resolveGridAffisellBpsForCategory", () => {
       googleIdToSlugPath,
       entries,
     })
-    expect(bps).toBe(500)
+    expect(bps).toBe(COMMISSION_GRID_MAP.telephonie!.affisellBps)
   })
 
   it("lets hygiene override the broader beauty branch", () => {
@@ -40,7 +40,8 @@ describe("resolveGridAffisellBpsForCategory", () => {
       googleIdToSlugPath,
       entries,
     })
-    expect(bps).toBe(800)
+    expect(bps).toBe(COMMISSION_GRID_MAP.hygiene!.affisellBps)
+    expect(bps).not.toBe(COMMISSION_GRID_MAP.beaute!.affisellBps)
   })
 
   it("matches Affisell extension fullPath without googleId", () => {
@@ -53,14 +54,14 @@ describe("resolveGridAffisellBpsForCategory", () => {
     expect(bps).toBe(1000)
   })
 
-  it("defaults unmapped categories to 10%", () => {
+  it("resolves a lone occasion entry to its own grid rate", () => {
     const bps = resolveGridAffisellBpsForCategory({
       googleId: null,
       fullPath: "Occasion et reconditionné",
       googleIdToSlugPath,
       entries: [["occasion", COMMISSION_GRID_MAP.occasion!]],
     })
-    expect(bps).toBe(1000)
+    expect(bps).toBe(COMMISSION_GRID_MAP.occasion!.affisellBps)
   })
 })
 

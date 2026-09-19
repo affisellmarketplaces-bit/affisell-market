@@ -1,5 +1,6 @@
 import type Stripe from "stripe"
 
+import { resolveLineMarkupCents } from "@/lib/money/sale-split"
 import { phase1AffiliateMarginRetainedCents } from "@/lib/marketplace-phase1-fees"
 import {
   deriveAffiliateCommissionCentsFromOrder,
@@ -142,10 +143,11 @@ export async function syncOrderVatFromCheckoutSession(
       productAutoBuyEnabled: order.product.autoBuyEnabled,
     })
 
-    const grossAffiliateMarkupCents =
-      unitListingMargin > 0
-        ? unitListingMargin
-        : Math.max(0, subtotalCents - supplierPriceCents - affiliateCommissionCents)
+    const grossAffiliateMarkupCents = resolveLineMarkupCents({
+      collectedHtCents: subtotalCents,
+      wholesaleCents: supplierPriceCents,
+      fixedListingMarginCents: unitListingMargin,
+    })
 
     const phase1Fees = buildPhase1FeesForOrderLine({
       usesAffisellAutoBuy,
@@ -155,6 +157,7 @@ export async function syncOrderVatFromCheckoutSession(
       affiliateCommissionCents,
       affiliateMarginRetainedCents: grossAffiliateMarkupCents,
       affiliatePlatformFeeBps: order.affiliate.affiliatePlatformFeeBps,
+      categoryFeeBps: order.affisellCommissionRateBps,
     })
 
     const affiliateMarginRetainedCents = phase1AffiliateMarginRetainedCents({

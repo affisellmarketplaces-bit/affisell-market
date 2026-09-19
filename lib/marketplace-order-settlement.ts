@@ -99,13 +99,12 @@ export function computeMarketplaceOrderSettlement(
 
   const marginCents = Math.max(0, sellingPriceCents - supplierPriceCents)
 
+  // Markup = fixed listing margin, else the HT collected above wholesale. The commission is
+  // funded from the supplier's wholesale and Affisell's fees are applied to each side separately.
   const affiliateMarginRetainedCents =
     input.affiliateMarginCents != null
       ? Math.max(0, Math.round(input.affiliateMarginCents))
-      : Math.max(
-          0,
-          sellingPriceCents - supplierPriceCents - affisellFeeCents - affiliateCommissionCents
-        )
+      : Math.max(0, sellingPriceCents - supplierPriceCents)
 
   return {
     sellingPriceCents,
@@ -130,13 +129,7 @@ export function recomputeAffiliateMarginRetainedCents(args: {
   if (args.fixedListingMarginCents != null && args.fixedListingMarginCents > 0) {
     return Math.max(0, Math.round(args.fixedListingMarginCents))
   }
-  return Math.max(
-    0,
-    Math.round(args.clientLineHtCents) -
-      Math.round(args.supplierPriceCents) -
-      Math.round(args.affisellFeeCents) -
-      Math.round(args.affiliateCommissionCents)
-  )
+  return Math.max(0, Math.round(args.clientLineHtCents) - Math.round(args.supplierPriceCents))
 }
 
 /** Recompute supplier Connect payout (catalog vs auto-buy fee, legacy rows included). */

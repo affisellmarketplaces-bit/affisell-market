@@ -1,6 +1,11 @@
 import type Stripe from "stripe"
 
 import { calculateRefundSplit, orderToCommissionRefundSlice } from "@/lib/commission"
+import {
+  attributeRefundToOrder,
+  isOrderFullyRefunded,
+  orderChargedTotalCents,
+} from "@/lib/money/split-guard"
 import { notifyOrderCancelled } from "@/lib/emails/notify-order-cancelled"
 import {
   clawbackOrderPayoutsOnPartialRefund,
@@ -61,6 +66,7 @@ export async function handleStripeChargeRefundedWithCommission(
       select: {
         id: true,
         totalCents: true,
+        subtotalCents: true,
         sellingPriceCents: true,
         platformCommissionCents: true,
         taxCents: true,
@@ -70,11 +76,28 @@ export async function handleStripeChargeRefundedWithCommission(
     if (!order) continue
 
     const slice = orderToCommissionRefundSlice(order)
-    const totalCents = slice.totalCents ?? order.sellingPriceCents
+    const totalCents = orderChargedTotalCents(order)
     let refundedSum = 0
     let lastStripeRefundId: string | null = null
 
     for (const refund of fullCharge.refunds?.data ?? []) {
+      const attribution = attributeRefundToOrder({
+        chargeOrderCount: orderIds.length,
+        orderId: order.id,
+        refundMetadataOrderId: refund.metadata?.orderId,
+      })
+      if (attribution !== "apply") {
+        if (attribution === "ambiguous") {
+          console.error("[commission_refund]", {
+            metric: "refund_unattributed_multi_order",
+            orderId: order.id,
+            stripeRefundId: refund.id,
+            chargeId: fullCharge.id,
+            orderCount: orderIds.length,
+          })
+        }
+        continue
+      }
       const existing = await prisma.orderStripeRefund.findUnique({
         where: { stripeRefundId: refund.id },
       })
@@ -84,8 +107,12 @@ export async function handleStripeChargeRefundedWithCommission(
       }
 
       const amountCents = refund.amount ?? 0
-      const chargeRefundedAfter = fullCharge.amount_refunded ?? refundedSum + amountCents
-      const isFullRefund = chargeRefundedAfter >= totalCents - 1
+      const isFullRefund = isOrderFullyRefunded({
+        chargeOrderCount: orderIds.length,
+        chargeAmountRefundedCents: fullCharge.amount_refunded,
+        orderRefundedSumCents: refundedSum + amountCents,
+        orderChargedTotalCents: totalCents,
+      })
       lastStripeRefundId = refund.id
 
       await reverseConnectTransfersForRefund({
@@ -137,8 +164,14 @@ export async function handleStripeChargeRefundedWithCommission(
       }
     }
 
-    const chargeRefunded = fullCharge.amount_refunded ?? refundedSum
-    const isFullRefund = chargeRefunded >= totalCents - 1
+    const chargeRefunded =
+      orderIds.length <= 1 ? (fullCharge.amount_refunded ?? refundedSum) : refundedSum
+    const isFullRefund = isOrderFullyRefunded({
+      chargeOrderCount: orderIds.length,
+      chargeAmountRefundedCents: fullCharge.amount_refunded,
+      orderRefundedSumCents: refundedSum,
+      orderChargedTotalCents: totalCents,
+    })
 
     let settlementStatus: "REFUNDED" | "PARTIALLY_REFUNDED" | "REFUND_PENDING_CLAWBACK" =
       isFullRefund ? "REFUNDED" : "PARTIALLY_REFUNDED"

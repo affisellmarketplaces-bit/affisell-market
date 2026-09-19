@@ -1,5 +1,6 @@
 import "server-only"
 
+import { resolveLineMarkupCents } from "@/lib/money/sale-split"
 import type { Prisma } from "@prisma/client"
 
 import {
@@ -85,9 +86,11 @@ function computeReconciledPartnerAmounts(order: OrderForReconcile) {
   })
 
   const usesAffisellAutoBuy = order.usesAffisellAutoBuy ?? false
-  const grossMarkup =
-    fixedListingMargin ??
-    Math.max(0, clientLineHtCents - supplierPriceCents - settlement.affiliateCommissionCents)
+  const grossMarkup = resolveLineMarkupCents({
+    collectedHtCents: clientLineHtCents,
+    wholesaleCents: supplierPriceCents,
+    fixedListingMarginCents: fixedListingMargin,
+  })
 
   const phase1Fees = buildPhase1FeesForOrderLine({
     usesAffisellAutoBuy,
@@ -97,6 +100,7 @@ function computeReconciledPartnerAmounts(order: OrderForReconcile) {
     affiliateCommissionCents: settlement.affiliateCommissionCents,
     affiliateMarginRetainedCents: grossMarkup,
     affiliatePlatformFeeBps: order.affiliate.affiliatePlatformFeeBps,
+    categoryFeeBps: order.affisellCommissionRateBps,
   })
 
   const affiliateMarginRetainedCents = phase1AffiliateMarginRetainedCents({

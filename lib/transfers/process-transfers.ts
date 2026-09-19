@@ -1,6 +1,12 @@
 import type { Prisma, TransferRole } from "@prisma/client"
 import Stripe from "stripe"
 
+import {
+  checkTransferBudget,
+  moneyGuardMode,
+  orderTransferCeilingCents,
+  PAYOUT_EXCEEDS_LINE_ERROR,
+} from "@/lib/money/split-guard"
 import { evaluateTransferReleaseForRole } from "@/lib/order-transfer-gating"
 import {
   marketplaceRoleAlreadySettled,
@@ -209,6 +215,49 @@ async function processOneAttempt(
       })
       await applyOrderSettlement(attempt.orderId)
       return "failed"
+    }
+
+    // Last line of defence before money leaves: total paid + this transfer ≤ line HT.
+    const alreadyPaid = await prisma.transferAttempt.findMany({
+      where: { orderId: attempt.orderId, status: "SUCCESS", NOT: { id: attempt.id } },
+      select: { amountCents: true },
+    })
+    const budget = checkTransferBudget({
+      lineHtCents: orderTransferCeilingCents(attempt.order),
+      transferCents: [attempt.amountCents],
+      alreadyPaidCents: alreadyPaid.reduce((s, a) => s + a.amountCents, 0),
+    })
+    if (!budget.ok) {
+      logStripeWebhookError({
+        level: "error",
+        metric: "transfer_blocked_exceeds_line",
+        orderId: attempt.orderId,
+        role: attempt.role,
+        amount: attempt.amountCents,
+        excessCents: budget.excessCents,
+        mode: moneyGuardMode(),
+      })
+      if (moneyGuardMode() === "enforce") {
+        await prisma.transferAttempt.update({
+          where: { id: attempt.id },
+          data: {
+            status: "FAILED",
+            errorCode: PAYOUT_EXCEEDS_LINE_ERROR,
+            errorMessage: `Transfer would exceed the line total by ${budget.excessCents} cents`,
+            attempts: MAX_ATTEMPTS,
+            lastAttemptAt: now,
+          },
+        })
+        await notifyTerminalFailure({
+          orderId: attempt.orderId,
+          role: attempt.role,
+          errorCode: PAYOUT_EXCEEDS_LINE_ERROR,
+          attempts: MAX_ATTEMPTS,
+          status: "FAILED",
+        })
+        await applyOrderSettlement(attempt.orderId)
+        return "failed"
+      }
     }
 
     const sourceTransaction = attempt.order.stripeChargeId ?? undefined

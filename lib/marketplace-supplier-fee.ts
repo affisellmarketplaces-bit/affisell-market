@@ -1,3 +1,4 @@
+import { supplierFeeBpsForCategory } from "@/lib/money/sale-split"
 import {
   DEFAULT_SUPPLIER_FEE_BPS_AUTO_BUY,
   DEFAULT_SUPPLIER_FEE_BPS_CATALOG,
@@ -55,6 +56,11 @@ export function resolveOrderUsesAffisellAutoBuy(input: {
 export function resolveSupplierFeeBpsForOrder(input: {
   usesAffisellAutoBuy: boolean
   supplier: SupplierFeeUserOverrides
+  /**
+   * Affisell commission of the product's category (product override → category grid).
+   * When provided it drives the supplier-side fee; a negotiated per-supplier override still wins.
+   */
+  categoryFeeBps?: number | null
 }): number {
   const { supplier, usesAffisellAutoBuy } = input
 
@@ -68,6 +74,13 @@ export function resolveSupplierFeeBpsForOrder(input: {
 
   if (!usesAffisellAutoBuy && supplier.supplierFeeBpsCatalog != null) {
     return resolveSupplierFeeBps(supplier.supplierFeeBpsCatalog)
+  }
+
+  if (input.categoryFeeBps != null) {
+    return supplierFeeBpsForCategory({
+      categoryBps: input.categoryFeeBps,
+      usesAffisellAutoBuy,
+    })
   }
 
   return usesAffisellAutoBuy
@@ -108,6 +121,8 @@ export type ResolveOrderSupplierSettlementInput = {
   supplierFeeCents?: number | null
   supplierPayoutCents?: number | null
   supplierCommissionRateBps?: number | null
+  /** Category commission snapshot stored on the order (drives the supplier fee when not frozen). */
+  affisellCommissionRateBps?: number | null
 }
 
 export type OrderSupplierSettlement = {
@@ -140,12 +155,13 @@ export function resolveOrderSupplierSettlement(
     aeWholesaleCents: input.aeWholesaleCents,
   })
 
+  const hasFrozenMode = input.usesAffisellAutoBuy === true || input.usesAffisellAutoBuy === false
+  // Legacy rows without a frozen channel keep the historical flat rates (no retroactive change).
   const supplierFeeBps = resolveSupplierFeeBpsForOrder({
     usesAffisellAutoBuy,
     supplier,
+    categoryFeeBps: hasFrozenMode ? input.affisellCommissionRateBps : null,
   })
-
-  const hasFrozenMode = input.usesAffisellAutoBuy === true || input.usesAffisellAutoBuy === false
   const storedFee = Math.max(0, Math.round(input.supplierFeeCents ?? 0))
   const supplierFeeCents =
     hasFrozenMode && storedFee > 0
@@ -175,6 +191,8 @@ export type BuildPhase1FeesForLineInput = {
   affiliateCommissionCents: number
   affiliateMarginRetainedCents: number
   affiliatePlatformFeeBps?: number | null
+  /** Affisell commission of the product's category (see `resolveSupplierFeeBpsForOrder`). */
+  categoryFeeBps?: number | null
 }
 
 /** Phase-1 fees after resolving catalog vs auto-buy channel. */
@@ -182,6 +200,7 @@ export function buildPhase1FeesForOrderLine(input: BuildPhase1FeesForLineInput) 
   const supplierFeeBps = resolveSupplierFeeBpsForOrder({
     usesAffisellAutoBuy: input.usesAffisellAutoBuy,
     supplier: input.supplier,
+    categoryFeeBps: input.categoryFeeBps,
   })
   const wholesaleForFees = wholesaleCentsForSupplierPlatformFee({
     usesAffisellAutoBuy: input.usesAffisellAutoBuy,

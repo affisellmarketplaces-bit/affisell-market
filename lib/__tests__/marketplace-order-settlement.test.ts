@@ -37,7 +37,7 @@ describe("marketplace order settlement", () => {
     expect(s.affisellFeeCents).toBe(1_200)
   })
 
-  it("commode-like HT line: fee on client HT, markup is residual", () => {
+  it("commode-like HT line: markup is the HT collected above wholesale", () => {
     const ht = 35_736
     const supplier = 27_489
     const s = computeMarketplaceOrderSettlement({
@@ -49,10 +49,9 @@ describe("marketplace order settlement", () => {
     })
     expect(s.affiliateCommissionCents).toBe(3_024)
     expect(s.affisellFeeCents).toBe(3_573)
-    expect(s.affiliateMarginRetainedCents).toBe(1_650)
-    expect(
-      s.basePriceCents + s.affiliateCommissionCents + s.affiliateMarginRetainedCents + s.affisellFeeCents
-    ).toBe(ht)
+    // The commission is funded from the supplier's wholesale, not carved out of the markup.
+    expect(s.affiliateMarginRetainedCents).toBe(ht - supplier)
+    expect(s.basePriceCents + s.affiliateMarginRetainedCents).toBe(ht)
   })
 
   it("affiliate notification shows earnings base for platform fee", () => {
@@ -88,7 +87,7 @@ describe("marketplace order settlement", () => {
         affisellFeeCents: 3_573,
         affiliateCommissionCents: 3_024,
       })
-    ).toBe(1_650)
+    ).toBe(35_736 - 27_489)
   })
 
   it("supplier notification shows net after partner and platform fee", () => {

@@ -1,5 +1,6 @@
 import type Stripe from "stripe"
 
+import { orderChargedTotalCents } from "@/lib/money/split-guard"
 import { getStripeClient } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
 
@@ -50,6 +51,8 @@ export async function initiateMarketplaceOrderRefund(
       stripeChargeId: true,
       stripeSessionId: true,
       totalCents: true,
+      subtotalCents: true,
+      taxCents: true,
       sellingPriceCents: true,
       paymentSettlementStatus: true,
     },
@@ -66,7 +69,7 @@ export async function initiateMarketplaceOrderRefund(
   if (!chargeId) return { ok: false, error: "no_stripe_charge" }
 
   const stripe = getStripeClient()
-  const orderTotalCents = order.totalCents ?? order.sellingPriceCents
+  const orderTotalCents = orderChargedTotalCents(order)
   const requestedCents =
     options?.amountCents != null && options.amountCents > 0
       ? Math.min(Math.round(options.amountCents), orderTotalCents)

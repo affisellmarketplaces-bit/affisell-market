@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client"
+import { resolveLineMarkupCents } from "@/lib/money/sale-split"
 import type Stripe from "stripe"
 
 import { resolveMarketplaceOrderLineImageUrl } from "@/lib/cart-line-image"
@@ -280,9 +281,11 @@ async function createPaidMarketplaceOrder(
       ? supplierLink.aePriceCents * qty
       : null
 
-  const grossAffiliateMarkupCents =
-    lineAffiliateMarginCents ??
-    Math.max(0, clientLineHtCents - basePriceCents - settlement.affiliateCommissionCents)
+  const grossAffiliateMarkupCents = resolveLineMarkupCents({
+    collectedHtCents: clientLineHtCents,
+    wholesaleCents: basePriceCents,
+    fixedListingMarginCents: lineAffiliateMarginCents,
+  })
 
   const phase1Fees = buildPhase1FeesForOrderLine({
     usesAffisellAutoBuy,
@@ -292,6 +295,7 @@ async function createPaidMarketplaceOrder(
     affiliateCommissionCents: settlement.affiliateCommissionCents,
     affiliateMarginRetainedCents: grossAffiliateMarkupCents,
     affiliatePlatformFeeBps: listing.affiliate.affiliatePlatformFeeBps,
+    categoryFeeBps: affisellCommissionRateBps,
   })
 
   console.log("[marketplace-fees]", {
@@ -329,10 +333,8 @@ async function createPaidMarketplaceOrder(
       : 0
   const lineTotalCents = clientLineHtCents + lineTaxCents
   const unitSupplierCents = Math.round(basePriceCents / qty)
-  const affiliateMarginCents =
-    listing.marginCents > 0
-      ? listing.marginCents
-      : Math.max(0, unitSupplierCents > 0 ? Math.round(affiliateMarginRetainedCents / qty) : 0)
+  // Total gross markup of the line (exact — no per-unit rounding × qty).
+  const affiliateMarginTotalCents = affiliateMarginRetainedCents
 
   let order
   const existingBeforeCreate = await tx.order.findUnique({
@@ -388,7 +390,7 @@ async function createPaidMarketplaceOrder(
         supplierPriceCents: unitSupplierCents * qty,
         supplierCommissionRateBps,
         supplierPayoutCents: supplierNetPayoutCents,
-        affiliateMarginCents: affiliateMarginCents * qty,
+        affiliateMarginCents: affiliateMarginTotalCents,
         pricingFreedom: true,
         affisellCommissionRateBps,
         status: "paid",
@@ -434,7 +436,7 @@ async function createPaidMarketplaceOrder(
     affiliateId: listing.affiliateId,
     supplierId: listing.product.supplierId,
     supplierPriceCents: unitSupplierCents * qty,
-    affiliateMarginCents: affiliateMarginCents * qty,
+    affiliateMarginCents: affiliateMarginTotalCents,
     affiliatePayoutCents: settlement.affiliateCommissionCents,
     sellingPriceCents: settlement.sellingPriceCents,
   })
@@ -1013,9 +1015,11 @@ export async function fulfillMarketplaceStripeSession(
         dupUsesAutoBuy && dupSupplierLink?.aePriceCents
           ? dupSupplierLink.aePriceCents * qty
           : null
-      const dupGrossMarkup =
-        pendingLineMarginCents ??
-        Math.max(0, clientLineHtCents - basePriceCents - settlement.affiliateCommissionCents)
+      const dupGrossMarkup = resolveLineMarkupCents({
+        collectedHtCents: clientLineHtCents,
+        wholesaleCents: basePriceCents,
+        fixedListingMarginCents: pendingLineMarginCents,
+      })
       const dupPhase1Fees = buildPhase1FeesForOrderLine({
         usesAffisellAutoBuy: dupUsesAutoBuy,
         supplier: listing.product.supplier,
@@ -1024,6 +1028,7 @@ export async function fulfillMarketplaceStripeSession(
         affiliateCommissionCents: settlement.affiliateCommissionCents,
         affiliateMarginRetainedCents: dupGrossMarkup,
         affiliatePlatformFeeBps: listing.affiliate.affiliatePlatformFeeBps,
+        categoryFeeBps: affisellCommissionRateBps,
       })
       const dupSupplierNetPayout = netSupplierPayoutCents({
         supplierPriceCents: basePriceCents,
@@ -1079,8 +1084,7 @@ export async function fulfillMarketplaceStripeSession(
           supplierPriceCents: basePriceCents,
           supplierCommissionRateBps,
           supplierPayoutCents: dupSupplierNetPayout,
-          affiliateMarginCents:
-            listing.marginCents > 0 ? listing.marginCents * qty : settlement.affiliateMarginRetainedCents,
+          affiliateMarginCents: dupAffiliateMargin,
           pricingFreedom: true,
           affisellCommissionRateBps,
           status: "paid",
@@ -1106,8 +1110,7 @@ export async function fulfillMarketplaceStripeSession(
         affiliateId: listing.affiliateId,
         supplierId: listing.product.supplierId,
         supplierPriceCents: basePriceCents,
-        affiliateMarginCents:
-          listing.marginCents > 0 ? listing.marginCents * qty : settlement.affiliateMarginRetainedCents,
+        affiliateMarginCents: dupAffiliateMargin,
         affiliatePayoutCents: settlement.affiliateCommissionCents,
         sellingPriceCents: settlement.sellingPriceCents,
       })

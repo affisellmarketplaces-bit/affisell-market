@@ -10,7 +10,17 @@ import {
   logPhase1SplitCheck,
   orderSplitInputFromOrder,
 } from "@/lib/marketplace-split-amounts"
-import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
+import {
+  checkTransferBudget,
+  moneyGuardMode,
+  orderLineHtCents,
+  orderTransferCeilingCents,
+  PAYOUT_EXCEEDS_LINE_ERROR,
+  platformSubsidyCents,
+} from "@/lib/money/split-guard"
+import { computeSplitStatusFromAttempts } from "@/lib/transfers/compute-split-status"
+import { alertSplitTransferFailed } from "@/lib/transfers/split-slack-alert"
+import { logStripeWebhookError, logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 import { prisma } from "@/lib/prisma"
 import { getStripeClient } from "@/lib/stripe"
 import { computeShipDeadlineAt } from "@/lib/supplier-ship-sla-shared"
@@ -79,7 +89,9 @@ export async function scheduleMarketplaceTransferAttempts(
     return { orderId, scheduled: false, reason: "missing_connect_account" }
   }
 
-  const splitInput = orderSplitInputFromOrder(order)
+  const splitInput = orderSplitInputFromOrder(order, {
+    firstSchedule: order.transferAttempts.length === 0,
+  })
   const amounts = computeTransferAmountsFromOrder(splitInput)
   const escrow =
     order.supplierMarginCents != null
@@ -99,6 +111,85 @@ export async function scheduleMarketplaceTransferAttempts(
     affiliateFeeCents: amounts.affiliateFeeCents,
     usesAffisellAutoBuy: order.usesAffisellAutoBuy,
   })
+
+  // Money guard: never plan to pay out more than the line was sold for.
+  const supplierPlanned =
+    supplierDestination && amounts.supplierPayoutCents > 0 ? escrow.supplierMarginCents : 0
+  const affiliatePlanned =
+    affiliateDestination && amounts.affiliateTransferCents > 0 ? amounts.affiliateTransferCents : 0
+  const successByRole = (role: "SUPPLIER" | "AFFILIATE") =>
+    order.transferAttempts.find((a) => a.role === role && a.status === "SUCCESS")
+  const budget = checkTransferBudget({
+    lineHtCents: orderTransferCeilingCents(order),
+    transferCents: [
+      successByRole("SUPPLIER") ? 0 : supplierPlanned,
+      successByRole("AFFILIATE") ? 0 : affiliatePlanned,
+    ],
+    alreadyPaidCents:
+      (successByRole("SUPPLIER")?.amountCents ?? 0) + (successByRole("AFFILIATE")?.amountCents ?? 0),
+  })
+  if (!budget.ok) {
+    logStripeWebhookError({
+      level: "error",
+      metric: "split_payout_exceeds_line",
+      orderId,
+      ceilingCents: orderTransferCeilingCents(order),
+      plannedTotalCents: budget.totalCents,
+      excessCents: budget.excessCents,
+      mode: moneyGuardMode(),
+    })
+    if (moneyGuardMode() === "enforce") {
+      const failRole = async (role: "SUPPLIER" | "AFFILIATE", amount: number, destination: string | null) => {
+        if (!destination || amount <= 0 || successByRole(role)) return
+        await db.transferAttempt.upsert({
+          where: { orderId_role: { orderId, role } },
+          create: {
+            orderId,
+            role,
+            amountCents: amount,
+            destination,
+            status: "FAILED",
+            attempts: 3,
+            errorCode: PAYOUT_EXCEEDS_LINE_ERROR,
+            errorMessage: `Planned payouts exceed the line total by ${budget.excessCents} cents`,
+          },
+          update: {
+            amountCents: amount,
+            destination,
+            status: "FAILED",
+            attempts: 3,
+            errorCode: PAYOUT_EXCEEDS_LINE_ERROR,
+            errorMessage: `Planned payouts exceed the line total by ${budget.excessCents} cents`,
+            stripeTransferId: null,
+          },
+        })
+        void alertSplitTransferFailed({ orderId, role, errorCode: PAYOUT_EXCEEDS_LINE_ERROR, attempts: 3 })
+      }
+      await failRole("SUPPLIER", supplierPlanned, supplierDestination)
+      await failRole("AFFILIATE", affiliatePlanned, affiliateDestination)
+      const after = await db.transferAttempt.findMany({ where: { orderId } })
+      await db.order.update({
+        where: { id: orderId },
+        data: { splitStatus: computeSplitStatusFromAttempts(after) },
+      })
+      return { orderId, scheduled: false, reason: "payout_exceeds_line" }
+    }
+  }
+
+  const subsidy = platformSubsidyCents({
+    lineHtCents: orderLineHtCents(order),
+    payoutsCents: supplierPlanned + affiliatePlanned,
+  })
+  if (subsidy > 0) {
+    logStripeWebhookInfo({
+      level: "warn",
+      metric: "split_platform_subsidy",
+      orderId,
+      subsidyCents: subsidy,
+      collectedCents: orderLineHtCents(order),
+      payoutsCents: supplierPlanned + affiliatePlanned,
+    })
+  }
 
   const chargeId = await resolveChargeId(stripe, session)
 
@@ -158,7 +249,8 @@ export async function scheduleMarketplaceTransferAttempts(
   await db.order.update({
     where: { id: orderId },
     data: {
-      totalCents: amounts.lineTotalCents,
+      // Keep the VAT-inclusive charge: only backfill when it was never recorded.
+      ...(order.totalCents && order.totalCents > 0 ? {} : { totalCents: amounts.lineTotalCents }),
       supplierPayoutCents: amounts.supplierPayoutCents,
       affiliatePayoutCents: amounts.affiliateTransferCents,
       upstreamCogsCents: escrow.upstreamCogsCents,

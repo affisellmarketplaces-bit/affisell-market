@@ -1,3 +1,4 @@
+import { stableAffiliateCommissionCents } from "@/lib/money/split-guard"
 import {
   DEFAULT_AFFILIATE_PLATFORM_FEE_BPS,
   netAffiliateTransferCents,
@@ -19,25 +20,15 @@ export type OrderPartnerAmountsInput = {
   subtotalCents?: number | null
 }
 
-/** Commission leg — falls back to supplier wholesale × bps when payout row was never persisted. */
+/**
+ * Commission leg — wholesale × bps when known (immutable), else the stored commission, else the
+ * legacy payout field. Never trusts `affiliatePayoutCents` first: after the transfer scheduler
+ * ran it holds the NET Connect transfer, not the commission.
+ */
 export function deriveAffiliateCommissionCentsFromOrder(
   order: OrderPartnerAmountsInput
 ): number {
-  const fromRow = resolveOrderAffiliateCommissionCents({
-    commissionCents: order.commissionCents,
-    affiliatePayoutCents: order.affiliatePayoutCents,
-  })
-  if (fromRow > 0) return fromRow
-
-  const bps = Math.max(0, Math.round(order.supplierCommissionRateBps ?? 0))
-  const supplierPrice = Math.max(
-    0,
-    Math.round(order.supplierPriceCents ?? order.basePriceCents)
-  )
-  if (bps > 0 && supplierPrice > 0) {
-    return Math.round((supplierPrice * bps) / 10_000)
-  }
-  return 0
+  return stableAffiliateCommissionCents(order, { allowPayoutFieldFallback: true })
 }
 
 export function deriveAffiliateListingMarginGrossCents(

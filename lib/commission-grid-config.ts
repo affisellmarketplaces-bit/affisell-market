@@ -1,7 +1,10 @@
 /**
  * Grille métier Affisell — 26 branches mappées sur taxonomie Google (slug EN) + extensions FR.
- * Phase 1 : affisellCommissionRateBps (fee plateforme sur ligne client HT).
- * Phase 2 : supplierCommissionRateBps (commission fournisseur → affilié sur wholesale).
+ * Phase 1 : affisellBps = commission Affisell côté fournisseur, par catégorie, appliquée sur le
+ *   prix de gros HT du fournisseur (côté revendeur : 20 % fixe sur son net HT, hors grille).
+ *   Taux alignés sur la médiane des grandes places de marché FR (Amazon.fr, Cdiscount, Fnac,
+ *   eBay.fr, ManoMano) — barèmes 2026 relevés en septembre 2026.
+ * Phase 2 : supplierBps (commission fournisseur → affilié sur wholesale).
  */
 
 export type CommissionGridEntry = {
@@ -36,21 +39,21 @@ export const COMMISSION_GRID_MAP: Record<string, CommissionGridEntry> = {
       "health_beauty > cosmetics",
     ],
     affisellFullPaths: [],
-    affisellBps: 1200,
+    affisellBps: 1500,
     supplierBps: 1500,
   },
   hygiene: {
     label: "Hygiène & Parapharmacie",
     googleSlugs: ["health_beauty > health_care"],
     affisellFullPaths: [],
-    affisellBps: 800,
+    affisellBps: 1200,
     supplierBps: 1000,
   },
   bijoux: {
     label: "Bijoux < 500€",
     googleSlugs: ["apparel_accessories > jewelry"],
     affisellFullPaths: [],
-    affisellBps: 1500,
+    affisellBps: 2000,
     supplierBps: 1500,
   },
   bijoux_luxe: {
@@ -64,7 +67,7 @@ export const COMMISSION_GRID_MAP: Record<string, CommissionGridEntry> = {
     label: "Électronique grand public",
     googleSlugs: ["electronics"],
     affisellFullPaths: [],
-    affisellBps: 800,
+    affisellBps: 700,
     supplierBps: 1000,
   },
   telephonie: {
@@ -74,7 +77,7 @@ export const COMMISSION_GRID_MAP: Record<string, CommissionGridEntry> = {
       "electronics > computers",
     ],
     affisellFullPaths: [],
-    affisellBps: 500,
+    affisellBps: 700,
     supplierBps: 800,
   },
   accessoires_elec: {
@@ -95,21 +98,21 @@ export const COMMISSION_GRID_MAP: Record<string, CommissionGridEntry> = {
     label: "Mobilier & Literie",
     googleSlugs: ["furniture", "home_garden > furniture"],
     affisellFullPaths: [],
-    affisellBps: 1200,
+    affisellBps: 1500,
     supplierBps: 1500,
   },
   bricolage: {
     label: "Bricolage & Outils",
     googleSlugs: ["hardware", "hardware > tools"],
     affisellFullPaths: [],
-    affisellBps: 1200,
+    affisellBps: 1500,
     supplierBps: 1500,
   },
   jardin: {
     label: "Jardin & Extérieur",
     googleSlugs: ["home_garden > lawn_garden"],
     affisellFullPaths: [],
-    affisellBps: 1200,
+    affisellBps: 1500,
     supplierBps: 1500,
   },
   jouets: {
@@ -123,14 +126,14 @@ export const COMMISSION_GRID_MAP: Record<string, CommissionGridEntry> = {
     label: "Puériculture",
     googleSlugs: ["baby_toddler"],
     affisellFullPaths: [],
-    affisellBps: 800,
+    affisellBps: 1500,
     supplierBps: 1200,
   },
   alimentation: {
     label: "Alimentation épicerie",
     googleSlugs: ["food_beverages_tobacco", "food_beverages_tobacco > food_items"],
     affisellFullPaths: [],
-    affisellBps: 1000,
+    affisellBps: 1200,
     supplierBps: 1200,
   },
   vins: {
@@ -144,14 +147,14 @@ export const COMMISSION_GRID_MAP: Record<string, CommissionGridEntry> = {
     label: "Animalerie",
     googleSlugs: ["animals_pet_supplies"],
     affisellFullPaths: [],
-    affisellBps: 1200,
+    affisellBps: 1500,
     supplierBps: 1500,
   },
   sport: {
     label: "Sport & Fitness",
     googleSlugs: ["sporting_goods"],
     affisellFullPaths: [],
-    affisellBps: 1200,
+    affisellBps: 1500,
     supplierBps: 1500,
   },
   auto: {
@@ -172,7 +175,7 @@ export const COMMISSION_GRID_MAP: Record<string, CommissionGridEntry> = {
     label: "Livres & Média physique",
     googleSlugs: ["media", "media > books"],
     affisellFullPaths: [],
-    affisellBps: 1500,
+    affisellBps: 1400,
     supplierBps: 1500,
   },
   digital: {
@@ -193,7 +196,7 @@ export const COMMISSION_GRID_MAP: Record<string, CommissionGridEntry> = {
     label: "Occasion & Reconditionné",
     googleSlugs: [],
     affisellFullPaths: ["Occasion et reconditionné"],
-    affisellBps: 1000,
+    affisellBps: 1200,
     supplierBps: 1200,
   },
   autre: {

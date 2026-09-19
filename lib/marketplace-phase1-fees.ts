@@ -1,6 +1,7 @@
 /** Phase 1 AE auto-buy: split platform fees (supplier wholesale + affiliate earnings). */
 
 import { clampAffisellCommissionRateBps } from "@/lib/affisell-platform-commission"
+import { resolveLineMarkupCents } from "@/lib/money/sale-split"
 
 /** @deprecated Use {@link DEFAULT_SUPPLIER_FEE_BPS_CATALOG} or {@link DEFAULT_SUPPLIER_FEE_BPS_AUTO_BUY}. */
 export const DEFAULT_SUPPLIER_FEE_BPS = 1200
@@ -86,7 +87,11 @@ export function netAffiliateTransferCents(args: {
     const earningsGross = commission + listingMarginGross
     return fee > 0 ? Math.max(0, earningsGross - fee) : Math.max(0, earningsGross)
   }
-  return commission + marginRetained
+  // Legacy residual rows: `affiliateMarginRetainedCents` was stored already net of the fee.
+  if (marginRetained > 0) return commission + marginRetained
+  // No markup on the row: the reseller earns the offered commission only — and Affisell's
+  // flat fee on the reseller's HT net still applies to it.
+  return Math.max(0, commission - fee)
 }
 
 export function computePhase1OrderFees(opts: {
@@ -116,22 +121,22 @@ export function computePhase1OrderFees(opts: {
   return { supplierFeeCents, affiliateFeeCents, affisellFeeTotalCents }
 }
 
-/** Affiliate markup after Phase 1 fee on earnings (supplier fee is on wholesale side). */
+/**
+ * Reseller markup for the line (gross, HT): the fixed listing margin, otherwise the HT collected
+ * above wholesale. The offered commission is funded from the supplier's wholesale — it is NOT
+ * carved out of the markup — and Affisell's fee is applied afterwards on commission + markup.
+ * (`affiliateCommissionCents` / `affiliateFeeCents` are kept in the signature for callers.)
+ */
 export function phase1AffiliateMarginRetainedCents(opts: {
   clientLineHtCents: number
   supplierPriceCents: number
-  affiliateCommissionCents: number
-  affiliateFeeCents: number
+  affiliateCommissionCents?: number
+  affiliateFeeCents?: number
   fixedListingMarginCents?: number
 }): number {
-  if (opts.fixedListingMarginCents != null && opts.fixedListingMarginCents > 0) {
-    return Math.max(0, Math.round(opts.fixedListingMarginCents))
-  }
-  return Math.max(
-    0,
-    Math.round(opts.clientLineHtCents) -
-      Math.round(opts.supplierPriceCents) -
-      Math.round(opts.affiliateCommissionCents) -
-      Math.round(opts.affiliateFeeCents)
-  )
+  return resolveLineMarkupCents({
+    collectedHtCents: opts.clientLineHtCents,
+    wholesaleCents: opts.supplierPriceCents,
+    fixedListingMarginCents: opts.fixedListingMarginCents,
+  })
 }
