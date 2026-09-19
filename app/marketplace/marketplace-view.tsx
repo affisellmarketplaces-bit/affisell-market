@@ -44,6 +44,7 @@ import {
 } from "@/lib/marketplace-catalog-nav.client"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { affisellBrand } from "@/lib/affisell-brand"
+import { isCatalogLoading, shouldRevalidateCatalogOnMount } from "@/lib/home-catalog-hydration"
 import type { HomeMarketplaceShell } from "@/lib/home-marketplace-shell"
 import { cn } from "@/lib/utils"
 import { useCatalogCategoryChrome } from "@/hooks/use-catalog-category-chrome"
@@ -186,7 +187,10 @@ export function MarketplaceView({
       keepPreviousData: true,
       revalidateOnFocus: false,
       dedupingInterval: 3_000,
-      revalidateOnMount: !useInitialFallback,
+      revalidateOnMount: shouldRevalidateCatalogOnMount({
+        useInitialFallback,
+        initialProductCount: initialBrowse?.products.length ?? 0,
+      }),
       fallbackData: useInitialFallback ? { products: initialBrowse!.products } : undefined,
     }
   )
@@ -202,7 +206,12 @@ export function MarketplaceView({
     deps: [products.length],
   })
 
-  const loading = isLoading && products.length === 0
+  const loading = isCatalogLoading({
+    productCount: products.length,
+    isLoading,
+    isValidating,
+    initialListWasEmpty: useInitialFallback && (initialBrowse?.products.length ?? 0) === 0,
+  })
   const refreshing = (isValidating || categoryTransitionPending) && products.length > 0
   const dbUnavailable =
     catalogData?.dbUnavailable && catalogData.error
