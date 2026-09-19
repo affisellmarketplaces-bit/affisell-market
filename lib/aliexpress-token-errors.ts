@@ -19,7 +19,9 @@ export function isAliExpressRefreshTokenError(message: string): boolean {
     m.includes("refresh_token") ||
     m.includes("refresh token") ||
     m.includes("invalid refresh") ||
-    m.includes("refresh token expired")
+    m.includes("refresh token expired") ||
+    m.includes("refresh token rejected") ||
+    m.includes("refresh token invalide")
   )
 }
 
@@ -28,7 +30,7 @@ export type AliExpressTokenErrorKind = "expired_access" | "refresh_failed" | "mi
 export function classifyAliExpressTokenError(message: string): AliExpressTokenErrorKind {
   if (!message.trim()) return null
   // Outage / timeout on our side or AliExpress's — the session itself is fine, never ask to reconnect.
-  if (/token store temporarily unavailable|refresh timed out|non-json/i.test(message)) return "unavailable"
+  if (/token store temporarily unavailable|refresh timed out|refresh échoué/i.test(message)) return "unavailable"
   if (/tokens missing|refresh_token required|no refresh_token/i.test(message)) return "missing"
   if (isAliExpressRefreshTokenError(message)) return "refresh_failed"
   if (isAliExpressIllegalAccessTokenError(message)) return "expired_access"

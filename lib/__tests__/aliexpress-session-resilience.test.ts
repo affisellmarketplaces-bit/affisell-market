@@ -106,3 +106,35 @@ describe("getValidAccessToken: transient trouble never invalidates the session",
     await expect(getValidAccessToken({ forceRefresh: true })).resolves.toBe("access_new")
   })
 })
+
+describe("the exact production failure is classified as a dead session, not an outage", () => {
+  it("SG rejection wrapped by ds-sync → refresh_failed (reconnect)", () => {
+    expect(
+      classifyAliExpressTokenError(
+        "The specified access token is invalid or expired — refresh token invalide : AliExpress refresh token rejected — did not return an access_token (x)"
+      )
+    ).toBe("refresh_failed")
+  })
+  it("a real transient refresh failure stays 'unavailable'", () => {
+    expect(
+      classifyAliExpressTokenError("The specified access token is invalid or expired — refresh échoué : AliExpress token refresh timed out")
+    ).toBe("unavailable")
+  })
+  it("HTML from the global host never masks the DS host's verdict", async () => {
+    vi.resetModules()
+    vi.stubEnv("ALIEXPRESS_APP_KEY", "k")
+    vi.stubEnv("ALIEXPRESS_APP_SECRET", "s")
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) =>
+        String(url).includes("api-sg")
+          ? { ok: true, status: 200, text: async () => JSON.stringify({ code: "IllegalRefreshToken", message: "invalid refresh token" }) }
+          : { ok: true, status: 200, text: async () => "<html>gateway</html>" }
+      )
+    )
+    const { refreshAliExpressAccessToken } = await import("@/lib/aliexpress-oauth")
+    await expect(refreshAliExpressAccessToken({ refreshToken: "dead" })).rejects.toThrow(/refresh token rejected/i)
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+  })
+})

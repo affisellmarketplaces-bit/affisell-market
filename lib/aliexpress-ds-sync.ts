@@ -290,7 +290,7 @@ export async function getAliExpressDsProduct(args: {
       e instanceof AliExpressApiError ? e.message : e instanceof Error ? e.message : String(e)
     if (!isAliExpressIllegalAccessTokenError(message)) throw e
 
-    const { getValidAccessToken } = await import("@/lib/aliexpress-oauth")
+    const { getValidAccessToken, isTransientAliExpressFailure } = await import("@/lib/aliexpress-oauth")
     let freshToken: string
     try {
       freshToken = await getValidAccessToken({ forceRefresh: true })
@@ -298,7 +298,8 @@ export async function getAliExpressDsProduct(args: {
       const refreshMsg =
         refreshErr instanceof Error ? refreshErr.message : String(refreshErr)
       throw new AliExpressApiError(
-        `${message} — refresh échoué : ${refreshMsg}`
+        // "refresh token invalide" lets the UI tell a dead session (reconnect) from a passing outage (retry).
+        `${message} — ${isTransientAliExpressFailure(refreshErr) ? "refresh échoué" : "refresh token invalide"} : ${refreshMsg}`
       )
     }
 

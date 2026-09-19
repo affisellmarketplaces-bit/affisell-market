@@ -151,7 +151,12 @@ function parseRefreshResponse(
 
   const accessToken = pickString(tokenNode, ["access_token", "accessToken"])
   if (!accessToken) {
-    throw new AliExpressApiError("AliExpress token refresh did not return an access_token")
+    // A structured answer without a token = AliExpress REJECTED the refresh token (expired / revoked / rotated).
+    const reason =
+      pickString(tokenNode, ["message", "msg", "error_description", "sub_msg", "error", "code"]) ||
+      pickString(root, ["message", "msg", "error_description", "error", "code"]) ||
+      `keys: ${Object.keys(tokenNode).slice(0, 6).join(",") || "none"}`
+    throw new AliExpressApiError(`AliExpress refresh token rejected — did not return an access_token (${reason.slice(0, 120)})`)
   }
   const refreshToken =
     pickString(tokenNode, ["refresh_token", "refreshToken"]) || fallbackRefresh
@@ -246,6 +251,7 @@ export async function refreshAliExpressAccessToken(args?: {
   }
 
   let lastError: unknown = null
+  const failures: unknown[] = []
   for (const step of attempts) {
     try {
       const json = await step.run()
@@ -259,6 +265,7 @@ export async function refreshAliExpressAccessToken(args?: {
       return parsed
     } catch (err) {
       lastError = err
+      failures.push(err)
       console.log("[aliexpress-oauth]", {
         result: "refresh_attempt_failed",
         method: step.label,
@@ -267,6 +274,13 @@ export async function refreshAliExpressAccessToken(args?: {
     }
   }
 
+  // Report the MOST INFORMATIVE failure, not merely the last one: the global host answering with HTML or a
+  // wrong-sign attempt is noise, while "refresh token rejected" from the DS host is the real verdict.
+  const messageOf = (e: unknown) => (e instanceof Error ? e.message : String(e))
+  const rejected = failures.find((e) => /refresh token rejected/i.test(messageOf(e)))
+  if (rejected instanceof Error) throw rejected
+  const informative = failures.find((e) => !/non-json|timestamp is invalid/i.test(messageOf(e)))
+  if (informative instanceof Error) throw informative
   throw lastError instanceof Error
     ? lastError
     : new AliExpressApiError("AliExpress token refresh failed")
@@ -288,7 +302,8 @@ type RefreshedTokens = {
 export function isTransientAliExpressFailure(err: unknown): boolean {
   if (err instanceof AliExpressTokenStoreUnavailableError) return true
   const m = (err instanceof Error ? err.message : String(err)).toLowerCase()
-  return /timed out|timeout|non-json|http 5\d\d|fetch failed|econnreset|enotfound|etimedout|network|temporar|unavailable|rate limit|too many/.test(m)
+  // NOT "non-json": a gateway/HTML answer says nothing about the network, and must never mask a rejected token.
+  return /timed out|timeout|http 5\d\d|fetch failed|econnreset|enotfound|etimedout|network|temporar|unavailable/.test(m)
 }
 
 /** One refresh at a time per instance — parallel refreshes would rotate the refresh token under each other. */
