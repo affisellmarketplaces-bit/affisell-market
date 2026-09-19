@@ -2,6 +2,7 @@ import { z } from "zod"
 
 import { auth } from "@/auth"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
+import { loadNotificationOrderSummaries } from "@/lib/merchant-notification-order-summary"
 import { prisma } from "@/lib/prisma"
 import {
   enrichSupplierNotificationRows,
@@ -61,7 +62,7 @@ export async function GET(req: Request) {
 
     const orderIds = rows.map((n) => n.orderId).filter((id): id is string => Boolean(id))
 
-    const [toShipSnapshot, orderImages] = await Promise.all([
+    const [toShipSnapshot, orderImages, summaries] = await Promise.all([
       loadSupplierToShipSnapshot(session.user.id, { notificationOrderIds: orderIds }),
       orderIds.length > 0
         ? prisma.order.findMany({
@@ -69,6 +70,7 @@ export async function GET(req: Request) {
             select: { id: true, variantImageUrl: true },
           })
         : Promise.resolve([]),
+      loadNotificationOrderSummaries(session.user.id, orderIds),
     ])
 
     const imageByOrderId = new Map(orderImages.map((o) => [o.id, o.variantImageUrl]))
@@ -98,7 +100,12 @@ export async function GET(req: Request) {
         id: n.id,
         type: n.type,
         message: n.message,
-        imageUrl: n.imageUrl?.trim() || imageByOrderId.get(n.orderId ?? "")?.trim() || null,
+        imageUrl:
+          n.imageUrl?.trim() ||
+          imageByOrderId.get(n.orderId ?? "")?.trim() ||
+          summaries.get(n.orderId ?? "")?.imageUrl ||
+          null,
+        ...(n.orderId && summaries.has(n.orderId) ? { order: summaries.get(n.orderId) } : {}),
         orderId: n.orderId,
         read: n.read,
         actionRequired: n.actionRequired,

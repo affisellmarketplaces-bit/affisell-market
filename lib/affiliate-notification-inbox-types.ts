@@ -1,5 +1,7 @@
 /** Client-safe affiliate alerts inbox — no server imports. */
 
+import type { MerchantNotificationOrderSummary } from "@/lib/merchant-notification-order-summary-types"
+
 export type AffiliateNotificationBreakdown = {
   netEarnings?: string
   commission?: string
@@ -21,6 +23,7 @@ export type AffiliateNotificationInboxRow = {
   read: boolean
   createdAt: string
   breakdown?: AffiliateNotificationBreakdown
+  order?: MerchantNotificationOrderSummary
 }
 
 export type AffiliateNotificationInboxPayload = {

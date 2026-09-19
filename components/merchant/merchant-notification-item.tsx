@@ -10,6 +10,8 @@ import {
   type MerchantNotificationBreakdown,
   type ParsedMerchantNotification,
 } from "@/lib/merchant-notification-display"
+import { formatStoreCurrencyFromCents } from "@/lib/market-config"
+import type { MerchantNotificationOrderSummary } from "@/lib/merchant-notification-order-summary-types"
 import { cn } from "@/lib/utils"
 
 type NotificationRow = {
@@ -21,6 +23,8 @@ type NotificationRow = {
   read: boolean
   actionRequired?: boolean
   createdAt: string
+  /** Product + order facts behind the alert. */
+  order?: MerchantNotificationOrderSummary
   /** Server-resolved ledger when order row is source of truth (affiliate NEW_SALE). */
   breakdown?: MerchantNotificationBreakdown
 }
@@ -239,6 +243,52 @@ function MoneySurface({
   return null
 }
 
+const CANCELLED_STATUSES = new Set(["cancelled", "canceled", "refunded", "failed", "expired"])
+
+/** Product facts behind an alert: name (when the message doesn't carry it), variant, quantity, amount, status, ref. */
+function OrderProductLine({
+  order,
+  showName,
+}: {
+  order: MerchantNotificationOrderSummary
+  showName: boolean
+}) {
+  const cancelled = CANCELLED_STATUSES.has(order.status.trim().toLowerCase())
+  return (
+    <div className="space-y-1">
+      {showName ? (
+        <p className="line-clamp-2 text-sm font-semibold leading-snug text-zinc-900 dark:text-zinc-50">
+          {order.productName}
+        </p>
+      ) : null}
+      <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-600 dark:text-zinc-300">
+        {order.variantLabel ? (
+          <span className="rounded-md bg-zinc-100 px-1.5 py-0.5 font-medium dark:bg-zinc-800">
+            {order.variantLabel}
+          </span>
+        ) : null}
+        <span className="tabular-nums">×{order.quantity}</span>
+        <span aria-hidden>·</span>
+        <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+          {formatStoreCurrencyFromCents(order.totalCents)}
+        </span>
+        <span aria-hidden>·</span>
+        <span className="tabular-nums text-zinc-500">#{order.ref}</span>
+        <span
+          className={cn(
+            "rounded-full px-1.5 py-0.5 text-[10px] font-semibold capitalize",
+            cancelled
+              ? "bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300"
+              : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
+          )}
+        >
+          {order.status.replace(/_/g, " ").toLowerCase()}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export function MerchantNotificationItem({ row, role, link, onNavigate, onMarkRead }: Props) {
   const locale = useLocale()
   const parsed = parseMerchantNotificationMessage(row.message)
@@ -342,6 +392,8 @@ export function MerchantNotificationItem({ row, role, link, onNavigate, onMarkRe
               </button>
             ) : null}
           </div>
+
+          {row.order ? <OrderProductLine order={row.order} showName={!parsed.productName} /> : null}
 
           {parsed.productName ? (
             <p className="line-clamp-2 text-sm font-semibold leading-snug text-zinc-900 dark:text-zinc-50">

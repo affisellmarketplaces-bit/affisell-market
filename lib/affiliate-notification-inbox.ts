@@ -10,6 +10,8 @@ import type {
   AffiliateNotificationInboxPayload,
   AffiliateNotificationInboxRow,
 } from "@/lib/affiliate-notification-inbox-types"
+import { loadNotificationOrderSummaries } from "@/lib/merchant-notification-order-summary"
+import type { MerchantNotificationOrderSummary } from "@/lib/merchant-notification-order-summary-types"
 import { prisma } from "@/lib/prisma"
 
 function mapAffiliateNotificationRows(
@@ -23,7 +25,8 @@ function mapAffiliateNotificationRows(
     read: boolean
     createdAt: Date
   }>,
-  orderById: Map<string, AffiliateSaleOrderAmounts & { variantImageUrl: string | null }>
+  orderById: Map<string, AffiliateSaleOrderAmounts & { variantImageUrl: string | null }>,
+  summaries: Map<string, MerchantNotificationOrderSummary>
 ): AffiliateNotificationInboxRow[] {
   const imageByOrderId = new Map(
     [...orderById.entries()].map(([id, o]) => [id, o.variantImageUrl])
@@ -46,7 +49,12 @@ function mapAffiliateNotificationRows(
       id: n.id,
       type: n.type,
       message: n.message,
-      imageUrl: n.imageUrl?.trim() || imageByOrderId.get(n.orderId ?? "")?.trim() || null,
+      imageUrl:
+        n.imageUrl?.trim() ||
+        imageByOrderId.get(n.orderId ?? "")?.trim() ||
+        summaries.get(n.orderId ?? "")?.imageUrl ||
+        null,
+      ...(n.orderId && summaries.has(n.orderId) ? { order: summaries.get(n.orderId) } : {}),
       orderId: n.orderId,
       read: n.read,
       createdAt: n.createdAt instanceof Date ? n.createdAt.toISOString() : String(n.createdAt),
@@ -95,7 +103,11 @@ async function readAffiliateNotificationInbox(
       : []
 
   const orderById = new Map(ordersForBreakdown.map((o) => [o.id, o]))
-  const notifications = mapAffiliateNotificationRows(affiliateId, rows, orderById)
+  const summaries = await loadNotificationOrderSummaries(
+    affiliateId,
+    rows.map((n) => n.orderId).filter((id): id is string => Boolean(id))
+  )
+  const notifications = mapAffiliateNotificationRows(affiliateId, rows, orderById, summaries)
   const unreadCount = notifications.filter((n) => !n.read).length
 
   return { unreadCount, notifications }
