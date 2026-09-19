@@ -1,3 +1,4 @@
+import { loadListingSalesStats } from "@/lib/listing-sales-stats"
 import { listingDisplayTitle, listingGalleryUrls, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
@@ -178,6 +179,8 @@ export async function loadPulseFeedItems(opts?: {
     ...videoProducts.map((prod) => prod.id),
   ]
   const listingByProductId = await resolveBestListingsMap(listingProductIds)
+  // Displayed sales = confirmed sales (paid, not cancelled/refunded); the raw counter only feeds ranking.
+  const salesStats = await loadListingSalesStats([...listingByProductId.values()].map((l) => l.id))
 
   function upsert(item: PulseFeedItem, score: number) {
     const key = `${item.source}:${item.id}`
@@ -240,7 +243,7 @@ export async function loadPulseFeedItems(opts?: {
           caption: row.content.slice(0, 280),
           priceCents,
           compareAtCents,
-          soldCount: normalizeListingSalesCount(listing?.conversions),
+          soldCount: normalizeListingSalesCount(listing ? salesStats.get(listing.id)?.units : 0),
           mediaUrl: primary.url,
           isVideo: primary.isVideo,
           likes: row.likes,
@@ -307,7 +310,7 @@ export async function loadPulseFeedItems(opts?: {
           caption: null,
           priceCents,
           compareAtCents,
-          soldCount: normalizeListingSalesCount(listing.conversions),
+          soldCount: normalizeListingSalesCount(salesStats.get(listing.id)?.units),
           mediaUrl: primary.url,
           isVideo: true,
           likes: 0,
@@ -365,6 +368,7 @@ export async function loadPulseFeedItems(opts?: {
       },
     })
 
+    const fallbackStats = await loadListingSalesStats(fallback.map((row) => row.id))
     for (const row of fallback) {
       if (byKey.size >= limit) break
       const p = row.product
@@ -404,7 +408,7 @@ export async function loadPulseFeedItems(opts?: {
             caption: null,
             priceCents,
             compareAtCents,
-            soldCount: normalizeListingSalesCount(row.conversions),
+            soldCount: normalizeListingSalesCount(fallbackStats.get(row.id)?.units),
             mediaUrl:
               (primary && !primary.isVideo ? primary.url : null) ||
               listingPrimaryImageUrl(row.customImages, p.images) ||

@@ -1,3 +1,4 @@
+import { loadListingSalesStats } from "@/lib/listing-sales-stats"
 import "server-only"
 
 import { unstable_cache } from "next/cache"
@@ -88,6 +89,7 @@ async function loadBuyerSwipeFeedItemsUncached(
     },
   })
 
+  const salesStats = await loadListingSalesStats(rows.map((row) => row.id))
   const items: PulseFeedItem[] = []
 
   for (const row of rows) {
@@ -126,7 +128,7 @@ async function loadBuyerSwipeFeedItemsUncached(
       caption: null,
       priceCents,
       compareAtCents: compareAtCents(priceCents, p.basePriceCents, p.compareAt),
-      soldCount: normalizeListingSalesCount(row.conversions),
+      soldCount: normalizeListingSalesCount(salesStats.get(row.id)?.units),
       mediaUrl,
       isVideo,
       mediaGallery:

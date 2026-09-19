@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client"
 import { cache } from "react"
 
 import { listingDisplayTitle, listingGalleryUrls, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { loadListingSalesStats } from "@/lib/listing-sales-stats"
 import { deriveProductHighlights } from "@/lib/product-highlights"
 import { listingWarrantyBadgeLabel, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import {
@@ -89,7 +90,7 @@ export async function loadAffiliateShopProducts(
     select: {
       id: true,
       sellingPriceCents: true,
-      conversions: true,
+      createdAt: true,
       customTitle: true,
       customImages: true,
       showWarranty: true,
@@ -126,6 +127,9 @@ export async function loadAffiliateShopProducts(
     orderBy: [{ position: "asc" }, { id: "asc" }],
     take: limit,
   })
+
+  const salesStats = await loadListingSalesStats(listings.map((l) => l.id))
+  const newSince = Date.now() - 14 * 24 * 3600 * 1000
 
   const variantProductIds = [
     ...new Set(listings.filter((l) => l.product?.hasVariants).map((l) => l.product!.id)),
@@ -178,7 +182,10 @@ export async function loadAffiliateShopProducts(
           : null,
         warrantyMonths: l.showWarranty && warrantyMonths != null && warrantyMonths > 0 ? warrantyMonths : null,
         warrantyLabel: listingWarrantyBadgeLabel(l.showWarranty, warrantyMonths),
-        soldCount: l.conversions,
+        // Confirmed sales only (paid, not cancelled/refunded) — never the raw `conversions` counter.
+        soldCount: salesStats.get(l.id)?.units ?? 0,
+        sales: salesStats.get(l.id) ?? { units: 0 },
+        isNew: l.createdAt.getTime() >= newSince,
         galleryUrls: listingGalleryUrls(l.customImages, p.images).slice(0, 6),
         highlights: deriveProductHighlights({ bullets: p.descriptionBullets }),
         verified: p.supplier.isVerifiedSupplier === true,

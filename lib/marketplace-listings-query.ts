@@ -23,7 +23,8 @@ import { parsePriceFacet } from "@/lib/marketplace-discovery-facets"
 import type { MarketplaceSearchHit } from "@/lib/marketplace-search"
 import { orderByListingSearchHits, searchMarketplaceListingHits } from "@/lib/marketplace-search.server"
 import { prisma } from "@/lib/prisma"
-import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
+import { normalizeListingSalesCount, type SalesStats } from "@/lib/listing-sales-count"
+import { loadListingSalesStats } from "@/lib/listing-sales-stats"
 import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
 import { marketplaceProductFilterFromSearchParams } from "@/lib/marketplace-listing-filters"
 import { DEFAULT_LOCALE, type AppLocale } from "@/lib/i18n-locale"
@@ -126,7 +127,7 @@ export type MarketplaceListingRowLite = Prisma.AffiliateProductGetPayload<{
 
 export function serializeMarketplaceListing(
   row: MarketplaceListingRow | MarketplaceListingRowLite,
-  options?: { warrantyMonths?: number | null; locale?: string; lite?: boolean }
+  options?: { warrantyMonths?: number | null; locale?: string; lite?: boolean; sales?: SalesStats }
 ) {
   const p = row.product
   const compareNum = p.compareAt != null ? Number(p.compareAt) : null
@@ -184,7 +185,8 @@ export function serializeMarketplaceListing(
       warrantyMonths,
       copyLocale
     ),
-    soldCount: normalizeListingSalesCount(row.conversions),
+    // Confirmed sales only (paid, not cancelled/refunded) — never the raw `conversions` counter.
+    soldCount: normalizeListingSalesCount(options?.sales?.units),
     isSponsored: false,
     sponsorPlacement: null as string | null,
   }
@@ -341,11 +343,12 @@ export async function fetchMarketplaceListings(
 
   const sponsorBoostMap = await loadActiveSponsorBoostByListingId()
   const rankedRows = sortListingsBySponsorBoost(rows, sponsorBoostMap)
+  const salesStats = await loadListingSalesStats(rankedRows.map((row) => row.id))
 
   if (lite) {
     return (rankedRows as MarketplaceListingRowLite[]).map((row) => {
       const boost = sponsorBoostMap.get(row.id)
-      const serialized = serializeMarketplaceListing(row, { lite: true })
+      const serialized = serializeMarketplaceListing(row, { lite: true, sales: salesStats.get(row.id) })
       if (!boost) return serialized
       return {
         ...serialized,
@@ -380,7 +383,7 @@ export async function fetchMarketplaceListings(
       hasVariants: row.product.hasVariants,
       productVariants,
     })
-    const serialized = serializeMarketplaceListing(row, { warrantyMonths })
+    const serialized = serializeMarketplaceListing(row, { warrantyMonths, sales: salesStats.get(row.id) })
     const boost = sponsorBoostMap.get(row.id)
     if (!boost) return serialized
     return {

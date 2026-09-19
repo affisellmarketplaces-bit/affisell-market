@@ -1,3 +1,4 @@
+import { loadListingSalesStats } from "@/lib/listing-sales-stats"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -103,6 +104,8 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
       include: { product: true },
       orderBy: [{ position: "asc" }, { id: "asc" }],
     })
+    // Confirmed sales only (paid, not cancelled/refunded) — never the raw `conversions` counter.
+    const salesStats = await loadListingSalesStats(listings.map((l) => l.id))
 
     return (
       <main className="mx-auto max-w-6xl px-4 py-10 md:px-8">
@@ -179,7 +182,7 @@ export default async function PublicStorefrontPage({ params }: { params: Promise
                       item.buyerRewardPercent ?? 0
                     )}
                     product={{ id: item.id }}
-                    soldCount={item.conversions}
+                    soldCount={salesStats.get(item.id)?.units ?? 0}
                   />
                 </li>
               ))

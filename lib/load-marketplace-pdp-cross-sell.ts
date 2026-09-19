@@ -1,3 +1,4 @@
+import { loadListingSalesStats } from "@/lib/listing-sales-stats"
 import {
   buyerListedAffiliateProductWhere,
   buyerMarketplaceProductWhere,
@@ -204,6 +205,13 @@ export async function loadPdpCrossSellBundle(args: {
     })
     alsoViewed = [...alsoViewed, ...fallbackRows]
   }
+
+  // Replace the raw counter with confirmed sales so rails never overstate.
+  const salesStats = await loadListingSalesStats([...boughtTogether, ...alsoViewed].map((row) => row.id))
+  const confirmed = <T extends { id: string; conversions: number }>(rows: T[]): T[] =>
+    rows.map((row) => ({ ...row, conversions: salesStats.get(row.id)?.units ?? 0 }))
+  boughtTogether = confirmed(boughtTogether)
+  alsoViewed = confirmed(alsoViewed)
 
   console.log("[pdp-cross-sell]", {
     listingId: args.listingId,

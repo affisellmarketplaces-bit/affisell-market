@@ -64,7 +64,7 @@ const STAGING_KEY = "DATABASE_URL_STAGING"
  * Point this process at the test database, or throw. Call BEFORE anything imports `@/lib/prisma`.
  * Returns the endpoint used (for logging).
  */
-export function useTestDatabase(root = process.cwd()): string {
+export function pointAtTestDatabase(root = process.cwd()): string {
   const testEnv = readEnvFile(path.join(root, ".env.test.local"))
   const allowStaging = testEnv.DB_TEST_ALLOW_STAGING === "1"
   const keys = allowStaging ? PROTECTED_KEYS : [...PROTECTED_KEYS, STAGING_KEY]

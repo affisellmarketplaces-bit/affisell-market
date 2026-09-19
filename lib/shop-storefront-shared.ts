@@ -1,6 +1,7 @@
 /** Shop directory + product card types/mappers — safe for `"use client"` (no Prisma). */
 
 import { splitListingTitle } from "@/lib/listing-title"
+import type { SalesStats } from "@/lib/listing-sales-count"
 import type { ProductHighlight } from "@/lib/product-highlights"
 import type { ProductShowcaseData } from "@/lib/product-showcase-types"
 import type { StoreNameBadgeStyle } from "@/lib/store-name-badge-styles"
@@ -57,6 +58,10 @@ export type ShopProductCard = {
   verified?: boolean
   /** Has size / colour variants → buying starts on the product page. */
   needsOptions?: boolean
+  /** Confirmed-sales breakdown (all time / 7 d / 24 h / last sale). */
+  sales?: SalesStats
+  /** Listed in the last 14 days. */
+  isNew?: boolean
 }
 
 export type NicheKey = "beauty" | "fitness" | "tech" | "home" | "lifestyle"
@@ -134,6 +139,8 @@ export function shopProductToShowcase(
     price: item.priceCents / 100,
     compareAt: item.compareAtCents != null ? item.compareAtCents / 100 : null,
     soldCount: item.soldCount ?? null,
+    sales: item.sales ?? (item.soldCount != null ? { units: item.soldCount } : undefined),
+    isNew: item.isNew === true,
     averageRating: item.averageRating,
     reviewCount: item.reviewCount,
     highlights: item.highlights ?? [],

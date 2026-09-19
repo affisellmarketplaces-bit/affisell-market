@@ -7,7 +7,7 @@ import path from "node:path"
 
 import { PrismaClient } from "@prisma/client"
 
-import { assessTestDatabaseUrl, readEnvFile, useTestDatabase } from "../lib/testing/db-test-guard"
+import { assessTestDatabaseUrl, readEnvFile, pointAtTestDatabase } from "../lib/testing/db-test-guard"
 
 function fail(msg: string): never {
   console.error(`✗ ${msg}`)
@@ -28,7 +28,7 @@ async function main() {
 
   let endpoint: string
   try {
-    endpoint = useTestDatabase(root) // throws if it matches DATABASE_URL / DIRECT_URL / STAGING / …
+    endpoint = pointAtTestDatabase(root) // throws if it matches DATABASE_URL / DIRECT_URL / STAGING / …
   } catch (e) {
     fail(e instanceof Error ? e.message : String(e))
   }

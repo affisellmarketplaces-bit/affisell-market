@@ -2462,7 +2462,9 @@
       "eyebrowSold": "销售",
       "eyebrowPopular": "热卖",
       "count": "{count, plural, other {# 笔销售}}",
-      "popular": "热门 · {compact}售出"
+      "popular": "热门 · {compact}售出",
+      "countPlus": "已售 {count}+",
+      "verifiedNote": "已确认销量：已收到付款，不含取消和退款。"
     },
     "discount": {
       "save": "节省{amount}",
@@ -7603,6 +7605,9 @@
     "thumbAria": "显示第 {n} 张图片",
     "moreImages": "+{count}",
     "gallery": "商品图片",
-    "noReviews": "新品"
+    "newBadge": "新品",
+    "soldToday": "今日已售 {count}",
+    "soldWeek": "本周已售 {count}",
+    "lastSale": "最近一笔购买 {time}"
   }
 }

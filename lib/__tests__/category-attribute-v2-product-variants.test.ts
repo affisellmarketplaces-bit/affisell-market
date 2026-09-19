@@ -2,13 +2,13 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
 import { PrismaClient } from "@prisma/client"
 
-import { dbTestsRequested, useTestDatabase } from "@/lib/testing/db-test-guard"
+import { dbTestsRequested, pointAtTestDatabase } from "@/lib/testing/db-test-guard"
 import { syncVariantAttributeValues } from "@/lib/variant-attribute-values"
 
 // Writes real rows: opt in explicitly AND only ever against the dedicated test database
-// (.env.test.local → DATABASE_URL_TEST). `useTestDatabase` throws if it is a protected URL.
+// (.env.test.local → DATABASE_URL_TEST). `pointAtTestDatabase` throws if it is a protected URL.
 const RUN_DB = dbTestsRequested()
-if (RUN_DB) useTestDatabase()
+if (RUN_DB) pointAtTestDatabase()
 const prisma = new PrismaClient()
 
 describe.skipIf(!RUN_DB)("category attribute v2 — parent product + 6 variants", () => {

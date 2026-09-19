@@ -2462,7 +2462,9 @@
       "eyebrowSold": "Verkäufe",
       "eyebrowPopular": "Bestseller",
       "count": "{count, plural, one {# Verkauf} other {# Verkäufe}}",
-      "popular": "Beliebt · {compact} verkauft"
+      "popular": "Beliebt · {compact} verkauft",
+      "countPlus": "{count}+ Verkäufe",
+      "verifiedNote": "Bestätigte Verkäufe: Zahlung erhalten, ohne Stornierungen und Erstattungen."
     },
     "discount": {
       "save": "Sparen Sie {amount}",
@@ -7603,6 +7605,9 @@
     "thumbAria": "Foto {n} anzeigen",
     "moreImages": "+{count}",
     "gallery": "Produktfotos",
-    "noReviews": "Neu"
+    "newBadge": "Neu",
+    "soldToday": "{count} heute gekauft",
+    "soldWeek": "{count} diese Woche verkauft",
+    "lastSale": "Letzter Kauf {time}"
   }
 }

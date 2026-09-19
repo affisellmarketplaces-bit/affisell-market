@@ -2,14 +2,14 @@
 
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { BadgeCheck, Flame, Loader2, ShoppingBag, ShieldCheck, Star, Truck, ChevronRight } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { BadgeCheck, ChevronRight, Flame, Loader2, ShieldCheck, ShoppingBag, Sparkles, Star, TrendingUp, Truck } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { ProductHighlightChips } from "@/components/product/product-highlight-chips"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
-import { normalizeListingSalesCount, shouldShowBuyerSalesCount } from "@/lib/listing-sales-count"
+import { lastSaleAgo, normalizeListingSalesCount, resolveSalesDisplay } from "@/lib/listing-sales-count"
 import { formatStoreCurrency } from "@/lib/market-config"
 import { resolveProductDiscount } from "@/lib/product-discount-display"
 import { isShowcasePopular } from "@/lib/product-highlights"
@@ -57,6 +57,7 @@ export function ProductShowcaseCard({ product, className, imagePriority = false 
   const t = useTranslations("productShowcase")
   const tSales = useTranslations("product.sales")
   const tCard = useTranslations("boutique.productCard")
+  const locale = useLocale()
 
   const images = useMemo(() => {
     const seen = new Set<string>()
@@ -79,7 +80,31 @@ export function ProductShowcaseCard({ product, className, imagePriority = false 
     return () => window.clearTimeout(id)
   }, [added])
 
-  const sold = normalizeListingSalesCount(product.soldCount)
+  const stats = useMemo(
+    () => product.sales ?? { units: normalizeListingSalesCount(product.soldCount) },
+    [product.sales, product.soldCount]
+  )
+  const sold = stats.units
+  const salesDisplay = resolveSalesDisplay(stats)
+  const salesLabel = salesDisplay
+    ? salesDisplay.kind === "day"
+      ? t("soldToday", { count: salesDisplay.count })
+      : salesDisplay.kind === "week"
+        ? t("soldWeek", { count: salesDisplay.count })
+        : salesDisplay.plus
+          ? tSales("countPlus", { count: salesDisplay.count })
+          : tSales("count", { count: salesDisplay.count })
+    : null
+
+  // "Last purchase 12 min ago": computed after mount so server and client HTML never disagree.
+  const [lastSale, setLastSale] = useState<string | null>(null)
+  useEffect(() => {
+    const ago = lastSaleAgo(stats.lastPaidAt)
+    if (!ago) return setLastSale(null)
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" })
+    setLastSale(t("lastSale", { time: rtf.format(-ago.value, ago.unit) }))
+  }, [stats.lastPaidAt, locale, t])
+
   const popular = isShowcasePopular({
     soldCount: sold,
     averageRating: product.averageRating,
@@ -125,7 +150,7 @@ export function ProductShowcaseCard({ product, className, imagePriority = false 
   }, [busy, images, product.listingId, product.price, product.sellerName, product.title, soldOut, t])
 
   const ctaClass = cn(
-    "group/cta relative inline-flex min-h-12 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full px-6 text-[15px] font-semibold text-white shadow-[0_14px_30px_-12px_rgba(67,56,202,0.65)] transition duration-200",
+    "group/cta relative inline-flex min-h-12 w-full items-center justify-center gap-2.5 overflow-hidden whitespace-nowrap rounded-full px-6 text-[15px] font-semibold text-white shadow-[0_14px_30px_-12px_rgba(67,56,202,0.65)] transition duration-200",
     "bg-gradient-to-r from-indigo-600 via-indigo-600 to-violet-600 hover:brightness-110 active:scale-[0.985]",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-55"
   )
@@ -134,7 +159,7 @@ export function ProductShowcaseCard({ product, className, imagePriority = false 
     <article
       aria-labelledby={`showcase-${product.listingId}`}
       className={cn(
-        "group relative flex w-full flex-col overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 p-2.5 shadow-[0_34px_90px_-42px_rgba(91,33,217,0.45)] backdrop-blur-xl sm:p-3",
+        "group @container relative flex w-full flex-col overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 p-2.5 shadow-[0_34px_90px_-42px_rgba(91,33,217,0.45)] backdrop-blur-xl sm:p-3",
         "dark:border-white/10 dark:bg-zinc-950/80",
         className
       )}
@@ -164,11 +189,24 @@ export function ProductShowcaseCard({ product, className, imagePriority = false 
 
         {/* Top-left live badges */}
         <div className="pointer-events-none absolute left-3 top-3 z-10 flex flex-wrap items-center gap-2">
-          {shouldShowBuyerSalesCount(sold) ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-3 py-1.5 text-[12px] font-semibold text-white shadow-md">
-              <Truck className="size-3.5" aria-hidden />
-              {tSales("count", { count: sold })}
-              <span className="size-1.5 rounded-full bg-emerald-400" aria-hidden />
+          {salesLabel ? (
+            <span
+              title={tSales("verifiedNote")}
+              className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-3 py-1.5 text-[12px] font-semibold text-white shadow-md"
+            >
+              {salesDisplay!.kind === "total" ? (
+                <Truck className="size-3.5" aria-hidden />
+              ) : (
+                <TrendingUp className="size-3.5 text-emerald-300" aria-hidden />
+              )}
+              {salesLabel}
+              <span className="size-1.5 rounded-full bg-emerald-400 motion-safe:animate-pulse" aria-hidden />
+            </span>
+          ) : null}
+          {product.isNew ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-3 py-1.5 text-[12px] font-semibold text-white shadow-md">
+              <Sparkles className="size-3.5" aria-hidden />
+              {t("newBadge")}
             </span>
           ) : null}
           {popular ? (
@@ -272,7 +310,17 @@ export function ProductShowcaseCard({ product, className, imagePriority = false 
           </div>
         ) : null}
 
-        <div className="mt-5 grid items-center gap-3 sm:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+        {lastSale ? (
+          <p className="mt-3 flex items-center gap-2 text-[13px] font-medium text-emerald-700 dark:text-emerald-300" role="status">
+            <span className="relative flex size-2" aria-hidden>
+              <span className="absolute inline-flex size-full rounded-full bg-emerald-400 opacity-60 motion-safe:animate-ping" />
+              <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+            </span>
+            {lastSale}
+          </p>
+        ) : null}
+
+        <div className="mt-5 grid items-center gap-3 @[34rem]:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
           <div className="relative flex min-h-14 items-center gap-3 rounded-full bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-500 py-2 pl-4 pr-5 text-white shadow-[0_16px_34px_-16px_rgba(109,40,217,0.75)]">
             {discount ? (
               <span className="-ml-1 shrink-0 rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 px-2.5 py-1 text-[13px] font-bold shadow-md ring-2 ring-white/30">

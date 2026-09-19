@@ -8,10 +8,10 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest"
 
 import { computeSaleSplit, RESELLER_PLATFORM_FEE_BPS } from "@/lib/money/sale-split"
-import { dbTestsRequested, useTestDatabase } from "@/lib/testing/db-test-guard"
+import { dbTestsRequested, pointAtTestDatabase } from "@/lib/testing/db-test-guard"
 
 const RUN_DB = dbTestsRequested()
-if (RUN_DB) useTestDatabase() // throws unless DATABASE_URL_TEST is a dedicated, non-protected database
+if (RUN_DB) pointAtTestDatabase() // throws unless DATABASE_URL_TEST is a dedicated, non-protected database
 
 const transfersCreate = vi.fn(async (args: { amount: number; destination: string }) => ({
   id: `tr_${Math.random().toString(36).slice(2, 10)}`,

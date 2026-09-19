@@ -4,6 +4,7 @@ import { ShoppingBag, Sparkles } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
 import {
+  bucketSalesCount,
   formatSalesCountCompact,
   isPopularSalesCount,
   normalizeListingSalesCount,
@@ -27,12 +28,20 @@ export function ProductSalesBadge({ count, variant = "overlay", className }: Pro
   if (!shouldShowBuyerSalesCount(n)) return null
 
   const popular = isPopularSalesCount(n)
-  const compact = formatSalesCountCompact(n, locale)
-  const label = popular ? t("popular", { compact }) : t("count", { count: n })
+  const bucket = bucketSalesCount(n)
+  const compact = formatSalesCountCompact(bucket.value, locale)
+  // Rounded down ("50+", "250+") so the number stays truthful; exact below 50.
+  const label = popular
+    ? t("popular", { compact: bucket.plus ? `${compact}+` : compact })
+    : bucket.plus
+      ? t("countPlus", { count: bucket.value })
+      : t("count", { count: n })
+  const note = t("verifiedNote")
 
   if (variant === "inline") {
     return (
       <span
+        title={note}
         className={cn(
           "inline-flex max-w-full items-center gap-1.5 rounded-full border border-violet-200/80 bg-violet-50/90 px-2.5 py-1 text-[11px] font-semibold leading-none text-violet-950 shadow-sm dark:border-violet-800/60 dark:bg-violet-950/50 dark:text-violet-100",
           className
@@ -47,6 +56,7 @@ export function ProductSalesBadge({ count, variant = "overlay", className }: Pro
   if (variant === "detail") {
     return (
       <div
+        title={note}
         className={cn(
           "inline-flex items-center gap-2 rounded-2xl border border-violet-200/70 bg-gradient-to-r from-violet-50/95 via-white/90 to-fuchsia-50/80 px-3.5 py-2 shadow-sm shadow-violet-500/10 dark:border-violet-800/50 dark:from-violet-950/60 dark:via-zinc-950/80 dark:to-fuchsia-950/40",
           popular && "border-amber-300/70 from-amber-50/90 via-white/90 to-violet-50/80 dark:border-amber-800/50 dark:from-amber-950/50",
@@ -75,6 +85,7 @@ export function ProductSalesBadge({ count, variant = "overlay", className }: Pro
 
   return (
     <span
+      title={note}
       className={cn(
         "pointer-events-none absolute left-2 top-2 z-[15] inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full border border-white/40 bg-zinc-900/70 px-2 py-1 text-[9px] font-semibold text-white shadow-lg shadow-black/20 backdrop-blur-md sm:left-2.5 sm:top-2.5 sm:max-w-[calc(100%-1.25rem)] sm:text-[10px]",
         popular &&

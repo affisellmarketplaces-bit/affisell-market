@@ -1,3 +1,4 @@
+import { loadListingConfirmedUnits } from "@/lib/listing-sales-stats"
 import type { Metadata } from "next"
 import type { ReactNode } from "react"
 import { Suspense } from "react"
@@ -185,6 +186,8 @@ export default async function MarketplaceListingPage({
   }
 
   const { listing, viewsLast24h, affiliateCreatorsWatching, crossSocialProof, writeReviewOrderId } = loaded
+  // Confirmed sales only (paid, not cancelled/refunded) — never the raw `conversions` counter.
+  const confirmedSales = await loadListingConfirmedUnits(listing.id)
   const useE2eLtv = shouldUseE2eLtvLoopFixtures({ e2eFixtures: sp.e2eFixtures })
   const creatorsWatchingOverride = parseE2eCreatorsWatchingOverride(
     sp.e2eCreatorsWatching,
@@ -583,7 +586,7 @@ export default async function MarketplaceListingPage({
           viewsLast24h={viewsLast24h}
           affiliateCreatorsWatching={displayAffiliateCreatorsWatching}
           crossSocialProof={crossSocialProof}
-          salesCount={listing.conversions}
+          salesCount={confirmedSales}
           galleryListingVideoUrl={resolveGalleryListingVideoUrl({
             videoAdUrl: p.videoAdUrl,
             productVideoUrl: p.videos?.[0]?.videoUrl ?? null,

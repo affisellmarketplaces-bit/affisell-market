@@ -2462,7 +2462,9 @@
       "eyebrowSold": "Verkopen",
       "eyebrowPopular": "Best-verkoper",
       "count": "{count, plural, one {# verkoop} other {# verkoop}}",
-      "popular": "Populair · {compact} verkocht"
+      "popular": "Populair · {compact} verkocht",
+      "countPlus": "{count}+ verkocht",
+      "verifiedNote": "Bevestigde verkopen: betaling ontvangen, exclusief annuleringen en terugbetalingen."
     },
     "discount": {
       "save": "Bespaar {amount}",
@@ -7603,6 +7605,9 @@
     "thumbAria": "Toon foto {n}",
     "moreImages": "+{count}",
     "gallery": "Productfoto's",
-    "noReviews": "Nieuw"
+    "newBadge": "Nieuw",
+    "soldToday": "{count} vandaag gekocht",
+    "soldWeek": "{count} deze week verkocht",
+    "lastSale": "Laatste aankoop {time}"
   }
 }

@@ -6,6 +6,7 @@ import {
 } from "@/lib/buyer-discovery-types"
 import { sortListingRowsByDeliveryCountryBoost } from "@/lib/buyer-listing-country-boost"
 import { loadHomeBestSellers7d, loadHomeNewArrivals } from "@/lib/home-marketplace-data"
+import { loadListingSalesStats } from "@/lib/listing-sales-stats"
 import { prisma } from "@/lib/prisma"
 import { primaryProductImage } from "@/lib/product-images"
 import { normalizeListingSalesCount } from "@/lib/listing-sales-count"
@@ -122,12 +123,13 @@ export async function loadBuyerListedProducts(limit = 48): Promise<BuyerListingC
     take: Math.min(limit * 2, 120),
   })
 
+  const salesStats = await loadListingSalesStats(listings.map((row) => row.id))
   const seen = new Set<string>()
   const cards: BuyerListingCard[] = []
   for (const row of listings) {
     if (seen.has(row.productId)) continue
     seen.add(row.productId)
-    const card = mapRow(row, normalizeListingSalesCount(row.conversions))
+    const card = mapRow(row, normalizeListingSalesCount(salesStats.get(row.id)?.units))
     if (card) cards.push(card)
     if (cards.length >= limit) break
   }
@@ -166,9 +168,10 @@ export async function loadBuyerListingsByListingIds(
     ? sortListingRowsByDeliveryCountryBoost(orderedRows, visitorCountry)
     : orderedRows
 
+  const salesStats = await loadListingSalesStats(rankedRows.map((row) => row.id))
   const cards: BuyerListingCard[] = []
   for (const row of rankedRows) {
-    const card = mapRow(row, normalizeListingSalesCount(row.conversions))
+    const card = mapRow(row, normalizeListingSalesCount(salesStats.get(row.id)?.units))
     if (card) cards.push(card)
     if (cards.length >= limit) break
   }
@@ -205,12 +208,13 @@ export async function loadBuyerListingsByCategoryHints(
     ? sortListingRowsByDeliveryCountryBoost(listings, visitorCountry)
     : listings
 
+  const salesStats = await loadListingSalesStats(rankedRows.map((row) => row.id))
   const seen = new Set<string>()
   const cards: BuyerListingCard[] = []
   for (const row of rankedRows) {
     if (seen.has(row.productId)) continue
     seen.add(row.productId)
-    const card = mapRow(row, normalizeListingSalesCount(row.conversions))
+    const card = mapRow(row, normalizeListingSalesCount(salesStats.get(row.id)?.units))
     if (card) cards.push(card)
     if (cards.length >= limit) break
   }
