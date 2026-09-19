@@ -7698,7 +7698,7 @@
     "anyPrice": "任意价格",
     "refine": "精选条件",
     "freeShipping": "免运费",
-    "newArrivals": "新品上架",
+    "newArrivals": "全新",
     "trendingTitle": "热门趋势",
     "topSold": "销量第一",
     "rankThisWeek": "本周第 {rank} 名",
@@ -7709,5 +7709,38 @@
     "priceMax": "最高价格",
     "openCatalog": "打开完整目录",
     "rating": "{rating} 分（满分 5），{count} 条评价"
+  },
+  "homeDiscovery": {
+    "collectionsTitle": "按分类选购",
+    "collectionsSub": "真实商品，按真实销量排序。",
+    "priceTitle": "{amount} 以下",
+    "seeAllIn": "查看 {name} 全部商品",
+    "directoryTitle": "全部分类",
+    "directorySub": "从科技到家居，市场的每一个货架。",
+    "emptyTitle": "另有 {count} 个分类——暂无商品",
+    "emptyBody": "这些分类已开放但暂时为空。在此上架的供应商将最先被看到。",
+    "sellCta": "成为供应商",
+    "themes": {
+      "tech": "科技与游戏",
+      "home": "家居与五金",
+      "fashion": "时尚与美妆",
+      "sport": "运动与户外",
+      "culture": "文化与爱好",
+      "family": "家庭与宠物",
+      "food": "食品饮料",
+      "auto-pro": "汽车与专业",
+      "other": "更多"
+    },
+    "budgetTitle": "按预算选购",
+    "budgetSub": "各价位真实商品，按真实销量排序。"
+  },
+  "homeQuick": {
+    "aria": "快速筛选",
+    "deliveringTo": "配送至：{country}",
+    "freeShipping": "免运费",
+    "brandNew": "全新",
+    "refurbished": "翻新",
+    "secondHand": "二手",
+    "under": "{amount} 以下"
   }
 }

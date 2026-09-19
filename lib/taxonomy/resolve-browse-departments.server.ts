@@ -3,7 +3,6 @@ import { unstable_cache } from "next/cache"
 import {
   AFFISELL_BROWSE_DEPARTMENTS,
   type BrowseDepartmentDef,
-  type BrowseDepartmentTarget,
   type ResolvedBrowseDepartment,
 } from "@/lib/taxonomy/browse-departments-shared"
 import { localizeCategoryName } from "@/lib/google-taxonomy-locale"
@@ -14,50 +13,6 @@ import { prisma, withPrismaReconnect } from "@/lib/prisma"
 export type BrowseDepartmentsPayload = {
   departments: ResolvedBrowseDepartment[]
   locale: AppLocale
-}
-
-async function resolveTarget(
-  target: BrowseDepartmentTarget
-): Promise<{
-  categoryId: string | null
-  categorySlug: string | null
-  searchQuery: string | null
-  googleId: number | null
-  name: string | null
-}> {
-  if (target.kind === "search") {
-    return { categoryId: null, categorySlug: null, searchQuery: target.queryFr, googleId: null, name: null }
-  }
-
-  if (target.kind === "googleRoot") {
-    const row = await withPrismaReconnect(() =>
-      prisma.category.findFirst({
-        where: { parentId: null, name: target.rootNameFr },
-        select: { id: true, slug: true, googleId: true, name: true },
-      })
-    )
-    return {
-      categoryId: row?.id ?? null,
-      categorySlug: row?.slug ?? null,
-      searchQuery: null,
-      googleId: row?.googleId ?? null,
-      name: row?.name ?? null,
-    }
-  }
-
-  const row = await withPrismaReconnect(() =>
-    prisma.category.findFirst({
-      where: { fullPath: target.fullPathFr },
-      select: { id: true, slug: true, googleId: true, name: true },
-    })
-  )
-  return {
-    categoryId: row?.id ?? null,
-    categorySlug: row?.slug ?? null,
-    searchQuery: null,
-    googleId: row?.googleId ?? null,
-    name: row?.name ?? null,
-  }
 }
 
 function marketingLabel(def: BrowseDepartmentDef, locale: AppLocale): string {
@@ -76,21 +31,46 @@ function departmentLabel(
   return marketingLabel(def, locale)
 }
 
-async function loadBrowseDepartmentsUncached(locale: AppLocale): Promise<BrowseDepartmentsPayload> {
-  const departments: ResolvedBrowseDepartment[] = []
+type ResolvedRow = { id: string; slug: string; googleId: number | null; name: string }
 
-  for (const def of AFFISELL_BROWSE_DEPARTMENTS) {
-    const resolved = await resolveTarget(def.target)
-    departments.push({
+/** Two queries for ALL departments (was one per department — 50 sequential round-trips on a cold database). */
+async function loadBrowseDepartmentsUncached(locale: AppLocale): Promise<BrowseDepartmentsPayload> {
+  const rootNames = AFFISELL_BROWSE_DEPARTMENTS.flatMap((d) => (d.target.kind === "googleRoot" ? [d.target.rootNameFr] : []))
+  const fullPaths = AFFISELL_BROWSE_DEPARTMENTS.flatMap((d) => (d.target.kind === "googleFullPath" ? [d.target.fullPathFr] : []))
+
+  const [rootRows, pathRows] = await Promise.all([
+    withPrismaReconnect(() =>
+      prisma.category.findMany({
+        where: { parentId: null, name: { in: rootNames } },
+        select: { id: true, slug: true, googleId: true, name: true },
+      })
+    ),
+    withPrismaReconnect(() =>
+      prisma.category.findMany({
+        where: { fullPath: { in: fullPaths } },
+        select: { id: true, slug: true, googleId: true, name: true, fullPath: true },
+      })
+    ),
+  ])
+  const byRootName = new Map<string, ResolvedRow>(rootRows.map((r) => [r.name, r]))
+  const byFullPath = new Map<string, ResolvedRow>(pathRows.map((r) => [r.fullPath, r]))
+
+  const departments: ResolvedBrowseDepartment[] = AFFISELL_BROWSE_DEPARTMENTS.map((def) => {
+    const t = def.target
+    const row: ResolvedRow | undefined =
+      t.kind === "googleRoot" ? byRootName.get(t.rootNameFr) : t.kind === "googleFullPath" ? byFullPath.get(t.fullPathFr) : undefined
+    const searchQuery = t.kind === "search" ? t.queryFr : null
+    const resolved = { googleId: row?.googleId ?? null, name: row?.name ?? null, searchQuery }
+    return {
       id: def.id,
       icon: def.icon,
       label: departmentLabel(def, locale, resolved),
-      categoryId: resolved.categoryId,
-      categorySlug: resolved.categorySlug,
-      searchQuery: resolved.searchQuery,
-      resolved: Boolean(resolved.categoryId || resolved.searchQuery),
-    })
-  }
+      categoryId: row?.id ?? null,
+      categorySlug: row?.slug ?? null,
+      searchQuery,
+      resolved: Boolean(row?.id || searchQuery),
+    }
+  })
 
   const unresolved = departments.filter((d) => !d.resolved).map((d) => d.id)
   if (unresolved.length > 0) {

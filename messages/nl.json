@@ -7698,7 +7698,7 @@
     "anyPrice": "Elke prijs",
     "refine": "Verfijnen",
     "freeShipping": "Gratis verzending",
-    "newArrivals": "Nieuw binnen",
+    "newArrivals": "Nieuw",
     "trendingTitle": "Trending",
     "topSold": "Meest verkocht",
     "rankThisWeek": "Nr. {rank} deze week",
@@ -7709,5 +7709,38 @@
     "priceMax": "Maximumprijs",
     "openCatalog": "Volledige catalogus openen",
     "rating": "{rating} van 5, {count} reviews"
+  },
+  "homeDiscovery": {
+    "collectionsTitle": "Shop per afdeling",
+    "collectionsSub": "Echte producten, gerangschikt op echte verkopen.",
+    "priceTitle": "Onder {amount}",
+    "seeAllIn": "Alles in {name} bekijken",
+    "directoryTitle": "Alle afdelingen",
+    "directorySub": "Elk gangpad van de marktplaats, van tech tot wonen.",
+    "emptyTitle": "{count} andere afdelingen — nog geen producten",
+    "emptyBody": "Deze afdelingen zijn open maar leeg. Leveranciers die hier plaatsen worden als eerste gezien.",
+    "sellCta": "Word leverancier",
+    "themes": {
+      "tech": "Tech & gaming",
+      "home": "Wonen & klussen",
+      "fashion": "Mode & beauty",
+      "sport": "Sport & outdoor",
+      "culture": "Cultuur & hobby",
+      "family": "Gezin & huisdieren",
+      "food": "Eten & drinken",
+      "auto-pro": "Auto & zakelijk",
+      "other": "Meer"
+    },
+    "budgetTitle": "Shop op budget",
+    "budgetSub": "Echte producten voor elk budget, gerangschikt op echte verkopen."
+  },
+  "homeQuick": {
+    "aria": "Snelfilters",
+    "deliveringTo": "Levering naar: {country}",
+    "freeShipping": "Gratis verzending",
+    "brandNew": "Nieuw",
+    "refurbished": "Refurbished",
+    "secondHand": "Tweedehands",
+    "under": "Onder {amount}"
   }
 }

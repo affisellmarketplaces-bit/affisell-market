@@ -7698,7 +7698,7 @@
     "anyPrice": "Any price",
     "refine": "Refine",
     "freeShipping": "Free shipping",
-    "newArrivals": "New arrivals",
+    "newArrivals": "Brand new",
     "trendingTitle": "Trending",
     "topSold": "Top sold",
     "rankThisWeek": "#{rank} this week",
@@ -7709,5 +7709,38 @@
     "priceMax": "Maximum price",
     "openCatalog": "Open the full catalog",
     "rating": "{rating} out of 5, {count} reviews"
+  },
+  "homeDiscovery": {
+    "collectionsTitle": "Shop by department",
+    "collectionsSub": "Real products, ranked by real sales.",
+    "priceTitle": "Under {amount}",
+    "seeAllIn": "See everything in {name}",
+    "directoryTitle": "All departments",
+    "directorySub": "Every aisle of the marketplace, from tech to home.",
+    "emptyTitle": "{count} more departments — no products yet",
+    "emptyBody": "These aisles are open but empty. Suppliers who list here are seen first.",
+    "sellCta": "Become a supplier",
+    "themes": {
+      "tech": "Tech & gaming",
+      "home": "Home & DIY",
+      "fashion": "Fashion & beauty",
+      "sport": "Sports & outdoors",
+      "culture": "Culture & hobbies",
+      "family": "Family & pets",
+      "food": "Food & drink",
+      "auto-pro": "Auto & professional",
+      "other": "More"
+    },
+    "budgetTitle": "Shop by budget",
+    "budgetSub": "Real products at every price, ranked by real sales."
+  },
+  "homeQuick": {
+    "aria": "Quick filters",
+    "deliveringTo": "Delivering to {country}",
+    "freeShipping": "Free shipping",
+    "brandNew": "Brand new",
+    "refurbished": "Refurbished",
+    "secondHand": "Second-hand",
+    "under": "Under {amount}"
   }
 }

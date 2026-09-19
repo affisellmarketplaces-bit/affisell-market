@@ -7698,7 +7698,7 @@
     "anyPrice": "Qualsiasi prezzo",
     "refine": "Affina",
     "freeShipping": "Spedizione gratuita",
-    "newArrivals": "Novità",
+    "newArrivals": "Nuovo",
     "trendingTitle": "Tendenze",
     "topSold": "Più venduto",
     "rankThisWeek": "N.{rank} questa settimana",
@@ -7709,5 +7709,38 @@
     "priceMax": "Prezzo massimo",
     "openCatalog": "Apri tutto il catalogo",
     "rating": "{rating} su 5, {count} recensioni"
+  },
+  "homeDiscovery": {
+    "collectionsTitle": "Esplora per reparto",
+    "collectionsSub": "Prodotti reali, ordinati per vendite reali.",
+    "priceTitle": "Sotto {amount}",
+    "seeAllIn": "Vedi tutto in {name}",
+    "directoryTitle": "Tutti i reparti",
+    "directorySub": "Ogni corsia del marketplace, dalla tecnologia alla casa.",
+    "emptyTitle": "Altri {count} reparti — ancora senza prodotti",
+    "emptyBody": "Questi reparti sono aperti ma vuoti. I fornitori che pubblicano qui vengono visti per primi.",
+    "sellCta": "Diventa fornitore",
+    "themes": {
+      "tech": "Tech e gaming",
+      "home": "Casa e fai da te",
+      "fashion": "Moda e bellezza",
+      "sport": "Sport e outdoor",
+      "culture": "Cultura e hobby",
+      "family": "Famiglia e animali",
+      "food": "Alimentari",
+      "auto-pro": "Auto e professionisti",
+      "other": "Altro"
+    },
+    "budgetTitle": "Acquista per budget",
+    "budgetSub": "Prodotti reali a ogni prezzo, ordinati per vendite reali."
+  },
+  "homeQuick": {
+    "aria": "Filtri rapidi",
+    "deliveringTo": "Consegna in: {country}",
+    "freeShipping": "Spedizione gratuita",
+    "brandNew": "Nuovo",
+    "refurbished": "Ricondizionato",
+    "secondHand": "Usato",
+    "under": "Sotto {amount}"
   }
 }
