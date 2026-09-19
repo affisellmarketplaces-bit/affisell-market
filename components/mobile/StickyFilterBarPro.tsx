@@ -135,7 +135,7 @@ export function StickyFilterBarPro({
                       : "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100"
                   )}
                 >
-                  <CategoryGlyph name={c.name} slug={c.slug} icon={c.icon} size="xs" />
+                  <CategoryGlyph name={c.name} slug={c.slug} icon={c.icon} size="xs" tone="soft" />
                   <span className="truncate">
                     {c.name}
                     {c.count > 0 ? <span className="opacity-70">({c.count})</span> : null}

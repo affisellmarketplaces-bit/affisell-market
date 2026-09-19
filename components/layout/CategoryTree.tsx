@@ -113,11 +113,11 @@ export function CategoryTree({ onNavigate, className }: Props) {
                         <ChevronRight className="size-3.5" />
                       )
                     ) : (
-                      <CategoryGlyph name={cat.name} slug={cat.slug} icon={cat.icon} size="xs" />
+                      <CategoryGlyph name={cat.name} slug={cat.slug} icon={cat.icon} size="xs" tone="soft" inSheet />
                     )}
                   </span>
                   {hasKids ? (
-                    <CategoryGlyph name={cat.name} slug={cat.slug} icon={cat.icon} size="xs" />
+                    <CategoryGlyph name={cat.name} slug={cat.slug} icon={cat.icon} size="xs" tone="soft" inSheet />
                   ) : null}
                   <span className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-100">
                     {cat.name}

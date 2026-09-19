@@ -74,7 +74,7 @@ function DepartmentRailItems({
                 on ? "ring-2 ring-violet-400 ring-offset-1 ring-offset-violet-50 dark:ring-offset-zinc-950" : ""
               )}
             >
-              <CategoryGlyph name={c.name} slug={c.slug} icon={c.icon} size="xs" />
+              <CategoryGlyph name={c.name} slug={c.slug} icon={c.icon} size="xs" tone="soft" />
               <span className="max-w-[10rem] truncate">
                 {c.name}
                 {c.count > 0 ? <span className="ml-1 opacity-70">({c.count})</span> : null}

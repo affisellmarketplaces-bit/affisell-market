@@ -41,8 +41,10 @@ export function CategoryGlyph({
     return (
       <span
         className={cn(
-          "inline-flex shrink-0 items-center justify-center bg-violet-100/80 text-violet-700 ring-1 ring-violet-200/70",
-          "transition-transform duration-200 group-hover:scale-105 dark:bg-violet-950/50 dark:text-violet-200 dark:ring-violet-800/60",
+          "inline-flex shrink-0 items-center justify-center ring-1 transition-transform duration-200 group-hover:scale-105",
+          inSheet
+            ? "bg-white/10 text-violet-200 ring-white/15"
+            : "bg-violet-100/80 text-violet-700 ring-violet-200/70 dark:bg-violet-950/50 dark:text-violet-200 dark:ring-violet-800/60",
           s.box,
           className
         )}

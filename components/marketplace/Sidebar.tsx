@@ -152,7 +152,7 @@ export function Sidebar({
                 )}
               >
                 <span className="flex min-w-0 items-center gap-2.5">
-                  <CategoryGlyph name={cat.name} slug={cat.slug} fullPath={cat.fullPath} icon={cat.icon} size="sm" />
+                  <CategoryGlyph name={cat.name} slug={cat.slug} fullPath={cat.fullPath} icon={cat.icon} size="sm" tone="soft" />
                   <span className="font-semibold">{cat.name}</span>
                 </span>
                 <span className="flex shrink-0 items-center gap-2">
