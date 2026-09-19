@@ -4,7 +4,7 @@ import { getLocale } from "next-intl/server"
 import { BentoContainer } from "@/components/affisell/bento-ui"
 import { SupplierAnalyticsWidget } from "@/components/dashboard/supplier-analytics-widget"
 import { missionControlCanvas } from "@/components/supplier/mission-control/mission-control-affisell-shell"
-import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
+import { SupplierFeeGridCard } from "@/components/supplier/supplier-fee-grid-card"
 import { SupplierEscrowPulseCard } from "@/components/supplier/mission-control/supplier-escrow-pulse-card"
 import { SupplierGrowthSection } from "@/components/supplier/mission-control/supplier-growth-section"
 import { prisma } from "@/lib/prisma"
@@ -113,7 +113,7 @@ export default async function DashboardSupplierPage() {
               />
             ) : null}
 
-            <AffisellPlatformFeesExplainer variant="compact" supplierOverrides={feeUser} />
+            <SupplierFeeGridCard variant="compact" />
           </div>
 
           <div className="space-y-6">

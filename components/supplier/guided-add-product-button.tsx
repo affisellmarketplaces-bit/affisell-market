@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { CheckCircle2, ChevronLeft, ChevronRight, ImagePlus, Loader2, Sparkles, X, XCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
@@ -105,6 +106,7 @@ export function GuidedAddProductButton({
   defaultOpen = false,
 }: Props) {
   const router = useRouter()
+  const tFee = useTranslations("supplier.feeGrid")
   const inputId = useId()
   const [open, setOpen] = useState(defaultOpen)
   const [step, setStep] = useState(0)
@@ -420,7 +422,7 @@ export function GuidedAddProductButton({
         onClick={() => setOpen(true)}
       >
         <Sparkles className="h-4 w-4" aria-hidden />
-        ✨ Add Produit Guidé
+        {tFee("guidedAddProduct")}
       </button>
 
       {mounted && open

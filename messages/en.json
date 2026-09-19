@@ -1707,6 +1707,22 @@
       "body": "Taken on every sale, by category. It is separate from the commission you offer resellers.",
       "loading": "Loading the rate…",
       "unavailable": "Rate unavailable for this category."
+    },
+    "feeGrid": {
+      "compactTitle": "Affisell fees",
+      "range": "{min}–{max}%",
+      "autoBuyShort": "Auto-buy +{pts} pts",
+      "details": "Details",
+      "title": "Your Affisell fee grid",
+      "subtitle": "Affisell takes a commission on your wholesale price (excl. VAT) that depends on the product category. Resellers pay their own fee separately.",
+      "catalogTitle": "Category commission",
+      "catalogDetail": "Taken from your wholesale price on every sale. The exact rate is shown when you pick a category.",
+      "autoBuyTitle": "Auto-buy service",
+      "autoBuyDetail": "Extra points added to the category rate when Affisell buys and ships for you.",
+      "resellerTitle": "Reseller fee",
+      "resellerDetail": "Flat rate on the reseller's net (offered commission + margin). Never taken from your wholesale.",
+      "footer": "Amounts are calculated automatically on every sale.",
+      "guidedAddProduct": "Guided add product"
     }
   },
   "affiliate": {

@@ -943,7 +943,7 @@
     "featuredEmpty": "Ersteller öffnen ihre Shops. Bitte kommen Sie bald zurück.",
     "visitStore": "Shop besuchen",
     "startingPrice": "From {price}",
-    "priceInEur": "Prices in euros · VAT included",
+    "priceInEur": "Preise in Euro · inkl. MwSt.",
     "ordersCount": "{count, plural, one {# Bestellung} other {# Bestellungen}}",
     "browseCta": "Alle Shops"
   },
@@ -1707,6 +1707,22 @@
       "body": "Wird bei jedem Verkauf je nach Kategorie abgezogen. Sie ist getrennt von der Provision, die du Wiederverkäufern anbietest.",
       "loading": "Satz wird geladen…",
       "unavailable": "Satz für diese Kategorie nicht verfügbar."
+    },
+    "feeGrid": {
+      "compactTitle": "Affisell-Gebühren",
+      "range": "{min}–{max} %",
+      "autoBuyShort": "Auto-Buy +{pts} Pkt.",
+      "details": "Details",
+      "title": "Ihre Affisell-Gebührentabelle",
+      "subtitle": "Affisell erhebt je nach Produktkategorie eine Provision auf Ihren Großhandelspreis (ohne MwSt.). Wiederverkäufer zahlen ihre eigene Gebühr separat.",
+      "catalogTitle": "Kategorieprovision",
+      "catalogDetail": "Wird bei jedem Verkauf von Ihrem Großhandelspreis abgezogen. Der genaue Satz erscheint bei der Kategorieauswahl.",
+      "autoBuyTitle": "Auto-Buy-Service",
+      "autoBuyDetail": "Zusätzliche Punkte auf den Kategoriesatz, wenn Affisell für Sie einkauft und versendet.",
+      "resellerTitle": "Wiederverkäufer-Gebühr",
+      "resellerDetail": "Fester Satz auf den Nettoertrag des Wiederverkäufers (angebotene Provision + Marge). Wird nie von Ihrem Großhandelspreis abgezogen.",
+      "footer": "Beträge werden bei jedem Verkauf automatisch berechnet.",
+      "guidedAddProduct": "Produkt geführt hinzufügen"
     }
   },
   "affiliate": {

@@ -1707,6 +1707,22 @@
       "body": "Prélevée sur chaque vente, selon la catégorie. Elle est distincte de la commission que vous offrez aux revendeurs.",
       "loading": "Calcul du taux…",
       "unavailable": "Taux indisponible pour cette catégorie."
+    },
+    "feeGrid": {
+      "compactTitle": "Frais Affisell",
+      "range": "{min}–{max} %",
+      "autoBuyShort": "Auto-buy +{pts} pts",
+      "details": "Détails",
+      "title": "Votre grille de frais Affisell",
+      "subtitle": "Affisell prélève une commission sur votre prix de gros (HT) selon la catégorie du produit. Les revendeurs paient leur propre frais séparément.",
+      "catalogTitle": "Commission par catégorie",
+      "catalogDetail": "Prélevée sur votre prix de gros à chaque vente. Le taux exact s'affiche quand vous choisissez une catégorie.",
+      "autoBuyTitle": "Service auto-buy",
+      "autoBuyDetail": "Points ajoutés au taux de la catégorie quand Affisell achète et expédie pour vous.",
+      "resellerTitle": "Frais revendeur",
+      "resellerDetail": "Taux fixe sur le net du revendeur (commission offerte + marge). Jamais prélevé sur votre prix de gros.",
+      "footer": "Les montants sont calculés automatiquement à chaque vente.",
+      "guidedAddProduct": "Ajout guidé de produit"
     }
   },
   "affiliate": {

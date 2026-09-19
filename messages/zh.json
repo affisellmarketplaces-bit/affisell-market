@@ -1707,6 +1707,22 @@
       "body": "每笔销售按类目扣除，与你提供给分销商的佣金相互独立。",
       "loading": "正在加载费率…",
       "unavailable": "该类目暂无费率。"
+    },
+    "feeGrid": {
+      "compactTitle": "Affisell 费用",
+      "range": "{min}–{max}%",
+      "autoBuyShort": "自动采购 +{pts} 个百分点",
+      "details": "详情",
+      "title": "您的 Affisell 费率表",
+      "subtitle": "Affisell 按商品类别对您的批发价（不含增值税）收取佣金。经销商另行支付自己的费用。",
+      "catalogTitle": "类别佣金",
+      "catalogDetail": "每笔销售从您的批发价中扣除。选择类别时会显示确切费率。",
+      "autoBuyTitle": "自动采购服务",
+      "autoBuyDetail": "当 Affisell 为您采购并发货时，在类别费率基础上增加的百分点。",
+      "resellerTitle": "经销商费用",
+      "resellerDetail": "按经销商净收入（提供的佣金 + 加价）收取固定费率，绝不从您的批发价中扣除。",
+      "footer": "每笔销售的金额均自动计算。",
+      "guidedAddProduct": "引导式添加商品"
     }
   },
   "affiliate": {

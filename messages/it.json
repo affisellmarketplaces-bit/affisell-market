@@ -1707,6 +1707,22 @@
       "body": "Trattenuta su ogni vendita, in base alla categoria. È distinta dalla commissione che offri ai rivenditori.",
       "loading": "Calcolo del tasso…",
       "unavailable": "Tasso non disponibile per questa categoria."
+    },
+    "feeGrid": {
+      "compactTitle": "Commissioni Affisell",
+      "range": "{min}–{max}%",
+      "autoBuyShort": "Auto-buy +{pts} pt",
+      "details": "Dettagli",
+      "title": "La tua tabella commissioni Affisell",
+      "subtitle": "Affisell applica una commissione sul tuo prezzo all'ingrosso (IVA esclusa) in base alla categoria del prodotto. I rivenditori pagano la loro commissione separatamente.",
+      "catalogTitle": "Commissione per categoria",
+      "catalogDetail": "Trattenuta dal tuo prezzo all'ingrosso a ogni vendita. Il tasso esatto appare quando scegli una categoria.",
+      "autoBuyTitle": "Servizio auto-buy",
+      "autoBuyDetail": "Punti aggiunti al tasso della categoria quando Affisell acquista e spedisce per te.",
+      "resellerTitle": "Commissione rivenditore",
+      "resellerDetail": "Tasso fisso sul netto del rivenditore (commissione offerta + margine). Mai trattenuta dal tuo prezzo all'ingrosso.",
+      "footer": "Gli importi vengono calcolati automaticamente a ogni vendita.",
+      "guidedAddProduct": "Aggiungi prodotto (guidato)"
     }
   },
   "affiliate": {

@@ -1707,6 +1707,22 @@
       "body": "Wordt bij elke verkoop ingehouden, per categorie. Los van de commissie die je aan wederverkopers biedt.",
       "loading": "Tarief laden…",
       "unavailable": "Tarief niet beschikbaar voor deze categorie."
+    },
+    "feeGrid": {
+      "compactTitle": "Affisell-tarieven",
+      "range": "{min}–{max}%",
+      "autoBuyShort": "Auto-buy +{pts} pt",
+      "details": "Details",
+      "title": "Uw Affisell-tarieventabel",
+      "subtitle": "Affisell rekent een commissie op uw groothandelsprijs (excl. btw) op basis van de productcategorie. Wederverkopers betalen hun eigen tarief apart.",
+      "catalogTitle": "Categoriecommissie",
+      "catalogDetail": "Wordt bij elke verkoop van uw groothandelsprijs afgetrokken. Het exacte tarief ziet u bij het kiezen van een categorie.",
+      "autoBuyTitle": "Auto-buy-service",
+      "autoBuyDetail": "Extra punten bovenop het categorietarief wanneer Affisell voor u inkoopt en verzendt.",
+      "resellerTitle": "Wederverkopertarief",
+      "resellerDetail": "Vast tarief op het nettobedrag van de wederverkoper (aangeboden commissie + marge). Nooit afgetrokken van uw groothandelsprijs.",
+      "footer": "Bedragen worden bij elke verkoop automatisch berekend.",
+      "guidedAddProduct": "Product toevoegen (begeleid)"
     }
   },
   "affiliate": {

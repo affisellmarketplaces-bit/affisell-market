@@ -1,6 +1,6 @@
 import { requireSupplierSession } from "@/lib/dashboard-session"
 
-import { AffisellPlatformFeesExplainer } from "@/components/shared/affisell-platform-fees-explainer"
+import { SupplierFeeGridCard } from "@/components/supplier/supplier-fee-grid-card"
 import { MerchantPulseHub } from "@/components/merchant/merchant-pulse-hub"
 import { MerchantStripeConnectPanel } from "@/components/merchant/merchant-stripe-connect-panel"
 import { PayoutPolicyDisclaimer } from "@/components/merchant/payout-policy-disclaimer"
@@ -65,7 +65,7 @@ export default async function SupplierBalancePage() {
       leadingSlot={
         <>
           {connectSlot}
-          <AffisellPlatformFeesExplainer variant="supplier" supplierOverrides={merchantUser} />
+          <SupplierFeeGridCard />
           <PayoutPolicyDisclaimer role="SUPPLIER" />
         </>
       }
