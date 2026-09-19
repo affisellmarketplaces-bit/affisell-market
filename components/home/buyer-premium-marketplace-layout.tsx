@@ -5,13 +5,10 @@ import { useSearchParams } from "next/navigation"
 
 import { DepartmentBar } from "@/components/DepartmentBar"
 import { PopularDepartmentsBar } from "@/components/PopularDepartmentsBar"
-import { HomeDiscoverySection, type DiscoveryGroup } from "@/components/home/discovery/home-discovery-section"
 import { HomeQuickStrip } from "@/components/home/discovery/home-quick-strip"
 import { GlassCatalogShell, type GlassProduct, type GlassTrend } from "@/components/home/glass/glass-catalog-shell"
 import { ProductConditionFilterBar } from "@/components/ProductConditionFilterBar"
 import { normalizeHomeCatalogProduct } from "@/lib/home-catalog-product-href"
-import type { HomeCollection } from "@/lib/home-collections"
-import type { FlashDeal, HomeShop } from "@/lib/home-flash-shops.server"
 import type { HomeMarketplaceShell } from "@/lib/home-marketplace-shell"
 import type { PremiumCategoryItem } from "@/lib/marketplace-premium-home-shared"
 import type { ResolvedBrowseDepartment } from "@/lib/taxonomy/browse-departments-shared"
@@ -23,8 +20,8 @@ type Props = {
   catalogExplorer: React.ReactNode
   /** Confirmed best sellers of the week (server-loaded, may be empty). */
   trending?: GlassTrend[]
-  /** Real-product mosaics, budget collections and the department directory (may be empty). */
-  discovery?: { collections: HomeCollection[]; directory: DiscoveryGroup[]; flash: FlashDeal[]; shops: HomeShop[] }
+  /** Streamed server slot: flash sales, collections, shops, department directory (may render nothing). */
+  discoverySlot?: React.ReactNode
 }
 
 function PremiumMarketplaceBody({
@@ -33,7 +30,7 @@ function PremiumMarketplaceBody({
   discoverSlot,
   catalogExplorer,
   trending = [],
-  discovery,
+  discoverySlot,
 }: Props) {
   const searchParams = useSearchParams()
   const activeCategoryId = searchParams.get("category")
@@ -92,14 +89,7 @@ function PremiumMarketplaceBody({
       {/* Discover 2×2 — immediately under categories (mockup structure) */}
       <div className="min-w-0">{discoverSlot}</div>
 
-      {discovery ? (
-        <HomeDiscoverySection
-          collections={discovery.collections}
-          directory={discovery.directory}
-          flash={discovery.flash}
-          shops={discovery.shops}
-        />
-      ) : null}
+      {discoverySlot}
 
       <PopularDepartmentsBar
         activeCategoryId={activeCategoryId}

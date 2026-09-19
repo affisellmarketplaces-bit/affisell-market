@@ -5,7 +5,6 @@ import Link from "next/link"
 import { useTranslations } from "next-intl"
 
 import { FastLink } from "@/components/navigation/fast-link"
-import { BattleTimer } from "@/components/pulse/BattleTimer"
 import { ScrollFadeRow } from "@/components/ui/scroll-fade-row"
 import type { FlashDeal, HomeShop } from "@/lib/home-flash-shops.server"
 import { bucketSalesCount, shouldShowBuyerSalesCount } from "@/lib/listing-sales-count"
@@ -14,7 +13,7 @@ import { catalogFilterHref } from "@/lib/marketplace-catalog-nav.client"
 import { categoryRailHref } from "@/lib/marketplace-category-rail-href.client"
 import type { HomeCollection } from "@/lib/home-collections"
 import type { BrowseDepartmentTheme } from "@/lib/taxonomy/browse-departments-shared"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -147,6 +146,41 @@ function Directory({ groups }: { groups: DiscoveryGroup[] }) {
   )
 }
 
+/**
+ * mm:ss countdown that is safe to server-render: the server (and first client render) show a fixed placeholder,
+ * the real time only exists after mount — so hydration can never mismatch by a second.
+ */
+export function FlashCountdown({ endsAt, onEnd }: { endsAt: string; onEnd: () => void }) {
+  const [left, setLeft] = useState<number | null>(null)
+  useEffect(() => {
+    const end = new Date(endsAt).getTime()
+    const tick = () => {
+      const ms = end - Date.now()
+      if (ms <= 0) {
+        setLeft(0)
+        onEnd()
+        return false
+      }
+      setLeft(ms)
+      return true
+    }
+    if (!tick()) return
+    const id = window.setInterval(() => {
+      if (!tick()) window.clearInterval(id)
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [endsAt, onEnd])
+
+  const total = left == null ? null : Math.max(0, Math.floor(left / 1000))
+  const text =
+    total == null ? "--:--" : `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`
+  return (
+    <span className={cn("tabular-nums font-black tracking-wider", total != null && total < 60 && "animate-pulse")} data-testid="flash-countdown">
+      {text}
+    </span>
+  )
+}
+
 /* ── Flash sales: live Pulse-battle winners, same legal presentation as the product page ───────────────── */
 function FlashCard({ deal, onExpire }: { deal: FlashDeal; onExpire: () => void }) {
   const t = useTranslations("homeFlash")
@@ -177,7 +211,7 @@ function FlashCard({ deal, onExpire }: { deal: FlashDeal; onExpire: () => void }
       <span className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-red-600 dark:text-red-400">
         <Zap className="size-3.5" aria-hidden />
         <span>{t("endsIn")}</span>
-        <BattleTimer endsAt={deal.endsAt} onEnd={onExpire} className="text-red-600 dark:text-red-400" />
+        <FlashCountdown endsAt={deal.endsAt} onEnd={onExpire} />
       </span>
     </FastLink>
   )
