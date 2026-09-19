@@ -166,7 +166,8 @@
     "mi:dev": "turbo run dev --filter=@affisell/mi-web --filter=@affisell/mi-api",
     "mi:build": "turbo run build --filter=@affisell/mi-web --filter=@affisell/mi-api",
     "mi:typecheck": "turbo run typecheck --filter=@affisell/mi-web --filter=@affisell/mi-api",
-    "audit:money": "node --env-file=.env.local scripts/audit-money-splits.mjs"
+    "audit:money": "node --env-file=.env.local scripts/audit-money-splits.mjs",
+    "test:db": "RUN_DB_TESTS=1 vitest run lib/__tests__/money-e2e-db.test.ts lib/__tests__/category-attribute-v2-product-variants.test.ts"
   },
   "dependencies": {
     "@ai-sdk/groq": "^3.0.38",
