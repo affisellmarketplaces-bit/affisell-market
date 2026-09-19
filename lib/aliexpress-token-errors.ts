@@ -23,16 +23,39 @@ export function isAliExpressRefreshTokenError(message: string): boolean {
   )
 }
 
-export type AliExpressTokenErrorKind = "expired_access" | "refresh_failed" | "missing" | "unavailable" | null
+/**
+ * Network / gateway / DB outage — session tokens themselves are fine.
+ * Keep in sync with `isTransientAliExpressFailure` (oauth server).
+ */
+export function isAliExpressTransientErrorMessage(message: string): boolean {
+  const m = message.toLowerCase()
+  return /token store temporarily unavailable|refresh timed out|non-json|http 5\d\d|fetch failed|econnreset|enotfound|etimedout|network|temporar|unavailable|rate limit|too many|timed out|timeout/.test(
+    m
+  )
+}
+
+export type AliExpressTokenErrorKind =
+  | "expired_access"
+  | "refresh_failed"
+  | "missing"
+  | "unavailable"
+  | null
 
 export function classifyAliExpressTokenError(message: string): AliExpressTokenErrorKind {
   if (!message.trim()) return null
   // Outage / timeout on our side or AliExpress's — the session itself is fine, never ask to reconnect.
-  if (/token store temporarily unavailable|refresh timed out|non-json/i.test(message)) return "unavailable"
+  if (isAliExpressTransientErrorMessage(message)) return "unavailable"
   if (/tokens missing|refresh_token required|no refresh_token/i.test(message)) return "missing"
   if (isAliExpressRefreshTokenError(message)) return "refresh_failed"
   if (isAliExpressIllegalAccessTokenError(message)) return "expired_access"
   return null
+}
+
+/** Only real auth failures — never for transient `unavailable`. */
+export function shouldOfferAliExpressOAuthReconnect(
+  kind: AliExpressTokenErrorKind
+): boolean {
+  return kind === "expired_access" || kind === "refresh_failed" || kind === "missing"
 }
 
 export function aliExpressOAuthReconnectHint(kind: AliExpressTokenErrorKind): string {

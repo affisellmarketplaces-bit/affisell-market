@@ -3,6 +3,7 @@ import {
   classifyAliExpressTokenError,
   extractAliExpressApiErrorFromWarnings,
   isAliExpressIllegalAccessTokenError,
+  shouldOfferAliExpressOAuthReconnect,
 } from "@/lib/aliexpress-token-errors"
 import { mapAliExpressGetProductResponse } from "@/lib/aliexpress-product-map"
 import { parseAliExpressProductId } from "@/lib/aliexpress-product-id"
@@ -458,6 +459,7 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
     if (!scraped.ok) {
       const apiError = extractAliExpressApiErrorFromWarnings(warnings)
       const tokenKind = classifyAliExpressTokenError(apiError ?? "")
+      const oauthAuthFailure = shouldOfferAliExpressOAuthReconnect(tokenKind)
       const browserBlocked =
         Boolean(aeId) &&
         (tokenKind != null ||
@@ -467,7 +469,7 @@ export async function runProductImportAgent(body: SupplierImportUrlBody): Promis
       return {
         ok: false,
         error: tokenKind && apiError ? apiError : scraped.error,
-        status: tokenKind ? 502 : scraped.status,
+        status: oauthAuthFailure || tokenKind === "unavailable" ? 502 : scraped.status,
         useAliExpressApi: scraped.useAliExpressApi,
         useBrowserCapture: browserBlocked,
         marketplace,
