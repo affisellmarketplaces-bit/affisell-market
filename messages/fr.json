@@ -788,7 +788,8 @@
         "subtitle": "Contrôles qualité, conformité et relais express — missions assignées par le réseau.",
         "signup": "Candidater comme agent"
       }
-    }
+    },
+    "service_unavailable": "Impossible de joindre le serveur pour le moment. Vos identifiants ne sont pas en cause — réessayez dans quelques secondes."
   },
   "checkout": {
     "checkoutError": "Erreur paiement",

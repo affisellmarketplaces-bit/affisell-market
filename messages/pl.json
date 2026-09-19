@@ -788,7 +788,8 @@
         "subtitle": "Kontrole jakości, zgodność i sztafeta ekspresowa — misje przydzielane przez sieć.",
         "signup": "Aplikuj jako agent"
       }
-    }
+    },
+    "service_unavailable": "Nie możemy teraz połączyć się z serwerem. Twoje dane logowania nie są przyczyną — spróbuj ponownie za kilka sekund."
   },
   "checkout": {
     "checkoutError": "Błąd płatności",

@@ -13,6 +13,7 @@ import Twitter from "next-auth/providers/twitter"
 
 import {
   AccountNotFound,
+  AuthServiceUnavailable,
   AffiliateBlockedOnSupplierPortal,
   EmailIdentifierRequired,
   InvalidPassword,
@@ -237,7 +238,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!isValidEmailIdentifier(emailRaw)) {
           throw new EmailIdentifierRequired()
         }
-        const userRow = await prisma.user.findUnique({ where: { email: emailRaw } })
+        // A slow / unreachable database must never look like a wrong password.
+        const userRow = await prisma.user.findUnique({ where: { email: emailRaw } }).catch((error: unknown) => {
+          console.error("[auth] authorize lookup failed", error instanceof Error ? error.message : String(error))
+          throw new AuthServiceUnavailable()
+        })
         if (!userRow) throw new AccountNotFound()
         if (!userRow.password) throw new PasswordLoginNotAvailable()
         const ok = await bcrypt.compare(passwordRaw, userRow.password)

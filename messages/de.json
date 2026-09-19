@@ -788,7 +788,8 @@
         "subtitle": "Qualitätsprüfungen, Compliance und Express-Relais — netzwerkweit zugewiesene Missionen.",
         "signup": "Als Agent bewerben"
       }
-    }
+    },
+    "service_unavailable": "Der Server ist gerade nicht erreichbar. Ihre Zugangsdaten sind nicht das Problem – bitte versuchen Sie es in einigen Sekunden erneut."
   },
   "checkout": {
     "checkoutError": "Zahlungsfehler",

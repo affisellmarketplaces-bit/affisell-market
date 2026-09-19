@@ -39,6 +39,11 @@ export class AccountNotFound extends CredentialsSignin {
   code = "account_not_found"
 }
 
+/** Database / upstream momentarily unavailable — NOT a wrong password. */
+export class AuthServiceUnavailable extends CredentialsSignin {
+  code = "service_unavailable"
+}
+
 /** Password does not match the hash on file. */
 export class InvalidPassword extends CredentialsSignin {
   code = "invalid_password"

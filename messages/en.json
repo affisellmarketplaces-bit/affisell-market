@@ -788,7 +788,8 @@
         "subtitle": "Quality checks, compliance and express relay — network-assigned missions.",
         "signup": "Apply as an agent"
       }
-    }
+    },
+    "service_unavailable": "We can't reach the server right now. Your credentials are fine — please try again in a few seconds."
   },
   "checkout": {
     "checkoutError": "Payment error",

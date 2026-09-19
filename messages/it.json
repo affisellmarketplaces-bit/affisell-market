@@ -788,7 +788,8 @@
         "subtitle": "Controlli di qualità, conformità e staffetta express — missioni assegnate dalla rete.",
         "signup": "Candidati come agente"
       }
-    }
+    },
+    "service_unavailable": "Al momento non riusciamo a raggiungere il server. Le tue credenziali non c'entrano: riprova tra qualche secondo."
   },
   "checkout": {
     "checkoutError": "Errore di pagamento",

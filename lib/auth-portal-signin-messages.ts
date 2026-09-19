@@ -9,6 +9,7 @@ const AUTH_ERROR_KEYS = [
   "invalid_password",
   "account_not_found",
   "password_login_unavailable",
+  "service_unavailable",
 ] as const
 
 type AuthErrorKey = (typeof AUTH_ERROR_KEYS)[number]
@@ -65,6 +66,7 @@ export function credentialsSignInErrorMessage(
     case "invalid_password":
     case "account_not_found":
     case "password_login_unavailable":
+    case "service_unavailable":
     case "non_customer_on_customer_portal":
       return translate(errKey)
   }

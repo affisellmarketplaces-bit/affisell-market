@@ -788,7 +788,8 @@
         "subtitle": "Controles de calidad, cumplimiento y relevo exprés — misiones asignadas por la red.",
         "signup": "Solicitar como agente"
       }
-    }
+    },
+    "service_unavailable": "No podemos conectar con el servidor ahora mismo. Tus credenciales no son el problema; inténtalo de nuevo en unos segundos."
   },
   "checkout": {
     "checkoutError": "Error de pago",

@@ -788,7 +788,8 @@
         "subtitle": "质量检查、合规与快速中转 —— 由网络统一分配任务。",
         "signup": "申请成为代理"
       }
-    }
+    },
+    "service_unavailable": "目前无法连接服务器，与您的凭据无关，请几秒后重试。"
   },
   "checkout": {
     "checkoutError": "支付错误",

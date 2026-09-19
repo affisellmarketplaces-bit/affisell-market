@@ -788,7 +788,8 @@
         "subtitle": "Kwaliteitscontroles, compliance en expresrelais — door het netwerk toegewezen missies.",
         "signup": "Aanmelden als agent"
       }
-    }
+    },
+    "service_unavailable": "We kunnen de server nu niet bereiken. Je inloggegevens zijn niet het probleem — probeer het over een paar seconden opnieuw."
   },
   "checkout": {
     "checkoutError": "Betalingsfout",

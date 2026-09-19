@@ -116,7 +116,8 @@ export function PortalSignInForm({
         portal,
         message: err instanceof Error ? err.message : "unknown",
       })
-      setError(t("invalidCredentials"))
+      // A network error / gateway timeout is not a wrong password.
+      setError(t("service_unavailable"))
     } finally {
       setLoading(false)
     }
