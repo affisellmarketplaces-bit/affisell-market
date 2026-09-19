@@ -82,3 +82,6 @@ medusa-backend/.medusa-dev.lock
 
 # Backups written by scripts/rotate-db-password.mjs (contain the OLD password)
 .env*.bak-before-rotate
+
+# Files written by `vercel env pull`
+.env.vercel*
