@@ -4295,7 +4295,8 @@
       "marginLeaveTableBadge": "🔥 Stai lasciando {amount} sul tavolo",
       "marginLeaveTableTooltip": "I migliori rivenditori vendono con margine {top}: aumenta il prezzo di {left}",
       "topMargin": "Top {amount}"
-    }
+    },
+    "highlightsAria": "Punti di forza"
   },
   "Filters": {
     "smartFilters": "Filtri intelligenti",
@@ -7587,5 +7588,21 @@
         "Report Empire per crescere senza diluizione"
       ]
     }
+  },
+  "productShowcase": {
+    "popular": "Popolare",
+    "verified": "Negozio verificato",
+    "reviews": "{count, plural, one {# recensione} other {# recensioni}}",
+    "ratingAria": "Valutato {rating} su 5",
+    "addToCart": "Aggiungi al carrello",
+    "adding": "Aggiunta…",
+    "added": "Aggiunto al carrello",
+    "chooseOptions": "Scegli le opzioni",
+    "soldOut": "Esaurito",
+    "viewProduct": "Vedi {title}",
+    "thumbAria": "Mostra foto {n}",
+    "moreImages": "+{count}",
+    "gallery": "Foto del prodotto",
+    "noReviews": "Nuovo"
   }
 }

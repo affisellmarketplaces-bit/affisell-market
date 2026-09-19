@@ -4295,7 +4295,8 @@
       "marginLeaveTableTooltip": "Les meilleurs le vendent à {top} de marge - augmente ton prix de {left}",
       "fomoHint": "Les affiliés se battent sur ce SKU — publie vite pour capter la demande.",
       "lastSaleShort": "Vente récente · {name}"
-    }
+    },
+    "highlightsAria": "Points forts"
   },
   "Filters": {
     "smartFilters": "Filtres intelligents",
@@ -7587,5 +7588,21 @@
         "Reporting empire pour scaler sans dilution"
       ]
     }
+  },
+  "productShowcase": {
+    "popular": "Populaire",
+    "verified": "Boutique vérifiée",
+    "reviews": "{count, plural, one {# avis} other {# avis}}",
+    "ratingAria": "Noté {rating} sur 5",
+    "addToCart": "Ajouter au panier",
+    "adding": "Ajout…",
+    "added": "Ajouté au panier",
+    "chooseOptions": "Choisir les options",
+    "soldOut": "Épuisé",
+    "viewProduct": "Voir {title}",
+    "thumbAria": "Afficher la photo {n}",
+    "moreImages": "+{count}",
+    "gallery": "Photos du produit",
+    "noReviews": "Nouveau"
   }
 }

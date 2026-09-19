@@ -1,5 +1,6 @@
 import { TrendingUp } from "lucide-react"
 
+import { ProductShowcaseCard } from "@/components/product/product-showcase-card"
 import { StorefrontProductCard } from "@/components/storefront/product-card"
 import { pickStoreBestsellerProducts } from "@/lib/store-bestsellers-shared"
 import {
@@ -7,7 +8,7 @@ import {
   sectionProductLimit,
   type HomepageSectionContent,
 } from "@/lib/storefront-sections-shared"
-import type { ShopProductCard } from "@/lib/shop-storefront-shared"
+import { shopProductToShowcase, type ShopProductCard } from "@/lib/shop-storefront-shared"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -35,6 +36,7 @@ export function StorefrontBestsellersSection({
   const picks = pickStoreBestsellerProducts(products, limit)
   if (picks.length < 2) return null
 
+  const [lead, ...rest] = picks
   const title = sectionCopyString(content, "title", labels.title)
   const hint = sectionCopyString(content, "body", labels.hint)
 
@@ -51,18 +53,26 @@ export function StorefrontBestsellersSection({
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{hint}</p>
           </div>
         </div>
-        <ul className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {picks.map((item) => (
-            <li key={item.listingId} className="w-[11rem] shrink-0 snap-start sm:w-[12.5rem]">
-              <StorefrontProductCard
-                product={item}
-                storeSlug={storeSlug}
-                mode="customer"
-                dedicatedHost={dedicatedHost}
-              />
-            </li>
-          ))}
-        </ul>
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,27rem)_minmax(0,1fr)] lg:items-start">
+          {lead ? (
+            <ProductShowcaseCard
+              product={shopProductToShowcase(lead, storeSlug, { dedicatedHost })}
+              className="mx-auto max-w-[30rem] lg:mx-0 lg:max-w-none"
+            />
+          ) : null}
+          <ul className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] lg:grid lg:grid-cols-3 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
+            {rest.map((item) => (
+              <li key={item.listingId} className="w-[11rem] shrink-0 snap-start sm:w-[12.5rem] lg:w-auto">
+                <StorefrontProductCard
+                  product={item}
+                  storeSlug={storeSlug}
+                  mode="customer"
+                  dedicatedHost={dedicatedHost}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   )

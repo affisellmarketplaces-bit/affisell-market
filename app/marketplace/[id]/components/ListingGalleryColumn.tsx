@@ -2,12 +2,15 @@
 
 import { motion } from "framer-motion"
 import nextDynamic from "next/dynamic"
-import type { RefObject } from "react"
+import { useMemo, type RefObject } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { MobilePdpBuyPanel } from "@/components/product/mobile-pdp-buy-panel"
 import { MobilePdpPersistentBuyBar } from "@/components/product/mobile-pdp-persistent-buy-bar"
 import { ProductListingColorPicker } from "@/components/product/product-listing-color-picker"
 import { ListingLogisticsStrip } from "@/components/product/listing-logistics-strip"
+import { ProductHighlightChips } from "@/components/product/product-highlight-chips"
+import { deriveProductHighlights } from "@/lib/product-highlights"
 import { TryOnTrigger } from "@/components/try-on/TryOnEntry"
 import { findVariantRowForShopperSelection } from "@/lib/marketplace-variant-dimensions"
 import type { CustomColumn } from "@/types/product"
@@ -52,6 +55,8 @@ type Props = Pick<
   | "reviewSummary"
   | "crossSocialProof"
   | "arModel"
+  | "descriptionBullets"
+  | "productSpecs"
 > & {
   ctrl: ListingDetailController
   shipping: ListingShippingBlock
@@ -85,6 +90,8 @@ export function ListingGalleryColumn({
   reviewSummary,
   crossSocialProof = null,
   arModel,
+  descriptionBullets,
+  productSpecs,
   shipping,
   customColumns,
   mobilePurchaseRef,
@@ -145,6 +152,12 @@ export function ListingGalleryColumn({
     bookingCheckoutLabels,
   } = ctrl
 
+  const tHighlights = useTranslations("Product")
+  const highlights = useMemo(
+    () => deriveProductHighlights({ bullets: descriptionBullets, specs: productSpecs }),
+    [descriptionBullets, productSpecs]
+  )
+
   return (
     <motion.div
       className="order-2 flex min-w-0 flex-col gap-2 sm:gap-3 lg:order-none lg:col-span-7 lg:row-start-2 lg:gap-8 lg:overflow-visible"
@@ -165,7 +178,17 @@ export function ListingGalleryColumn({
             offerBadge={offerBadge}
             has3D={has3D}
             view360Label={productT.view360}
+            highlights={highlights}
+            highlightsAriaLabel={tHighlights("highlightsAria")}
           />
+          {highlights.length > 0 ? (
+            <ProductHighlightChips
+              highlights={highlights}
+              layout="row"
+              ariaLabel={tHighlights("highlightsAria")}
+              className="mx-1 mt-2 lg:hidden"
+            />
+          ) : null}
 
           {!bookingCheckoutLive && availableStock > 0 && !showAr ? (
             <MobilePdpPersistentBuyBar

@@ -1,7 +1,8 @@
 import { Prisma } from "@prisma/client"
 import { cache } from "react"
 
-import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { listingDisplayTitle, listingGalleryUrls, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
+import { deriveProductHighlights } from "@/lib/product-highlights"
 import { listingWarrantyBadgeLabel, resolveProductWarrantyMonths } from "@/lib/product-warranty"
 import {
   inferNicheLabel,
@@ -104,11 +105,13 @@ export async function loadAffiliateShopProducts(
           reviewCount: true,
           variants: true,
           hasVariants: true,
+          descriptionBullets: true,
           category: {
             select: { id: true, name: true, slug: true, icon: true },
           },
           supplier: {
             select: {
+              isVerifiedSupplier: true,
               supplierProfile: {
                 select: { lightningEnabled: true, trustScore: true },
               },
@@ -176,6 +179,10 @@ export async function loadAffiliateShopProducts(
         warrantyMonths: l.showWarranty && warrantyMonths != null && warrantyMonths > 0 ? warrantyMonths : null,
         warrantyLabel: listingWarrantyBadgeLabel(l.showWarranty, warrantyMonths),
         soldCount: l.conversions,
+        galleryUrls: listingGalleryUrls(l.customImages, p.images).slice(0, 6),
+        highlights: deriveProductHighlights({ bullets: p.descriptionBullets }),
+        verified: p.supplier.isVerifiedSupplier === true,
+        needsOptions: p.hasVariants === true,
         supplier: p.supplier.supplierProfile
           ? {
               lightningEnabled: p.supplier.supplierProfile.lightningEnabled,

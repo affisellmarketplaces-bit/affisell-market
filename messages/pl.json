@@ -4295,7 +4295,8 @@
       "marginLeaveTableBadge": "🔥 Zostawiasz {amount} na stole",
       "marginLeaveTableTooltip": "Najlepsi resellerzy sprzedają z marżą {top} — podnieś cenę o {left}",
       "topMargin": "Top {amount}"
-    }
+    },
+    "highlightsAria": "Najważniejsze zalety"
   },
   "Filters": {
     "smartFilters": "Smart Filtry",
@@ -7587,5 +7588,21 @@
         "Raporty Empire do skalowania bez rozmycia"
       ]
     }
+  },
+  "productShowcase": {
+    "popular": "Popularne",
+    "verified": "Zweryfikowany sklep",
+    "reviews": "{count, plural, one {# opinia} few {# opinie} other {# opinii}}",
+    "ratingAria": "Oceniono {rating} na 5",
+    "addToCart": "Dodaj do koszyka",
+    "adding": "Dodawanie…",
+    "added": "Dodano do koszyka",
+    "chooseOptions": "Wybierz opcje",
+    "soldOut": "Wyprzedane",
+    "viewProduct": "Zobacz {title}",
+    "thumbAria": "Pokaż zdjęcie {n}",
+    "moreImages": "+{count}",
+    "gallery": "Zdjęcia produktu",
+    "noReviews": "Nowość"
   }
 }

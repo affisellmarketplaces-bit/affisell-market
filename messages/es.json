@@ -4295,7 +4295,8 @@
       "marginLeaveTableBadge": "🔥 Estás dejando {amount} sobre la mesa",
       "marginLeaveTableTooltip": "Los mejores revendedores venden con {top} de margen: sube tu precio en {left}",
       "topMargin": "Top {amount}"
-    }
+    },
+    "highlightsAria": "Puntos fuertes"
   },
   "Filters": {
     "smartFilters": "Filtros inteligentes",
@@ -7587,5 +7588,21 @@
         "Informes Empire para escalar sin dilución"
       ]
     }
+  },
+  "productShowcase": {
+    "popular": "Popular",
+    "verified": "Tienda verificada",
+    "reviews": "{count, plural, one {# opinión} other {# opiniones}}",
+    "ratingAria": "Valorado {rating} de 5",
+    "addToCart": "Añadir al carrito",
+    "adding": "Añadiendo…",
+    "added": "Añadido al carrito",
+    "chooseOptions": "Elegir opciones",
+    "soldOut": "Agotado",
+    "viewProduct": "Ver {title}",
+    "thumbAria": "Mostrar foto {n}",
+    "moreImages": "+{count}",
+    "gallery": "Fotos del producto",
+    "noReviews": "Nuevo"
   }
 }

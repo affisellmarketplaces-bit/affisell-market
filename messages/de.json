@@ -4295,7 +4295,8 @@
       "marginLeaveTableBadge": "🔥 Du lässt {amount} liegen",
       "marginLeaveTableTooltip": "Top-Reseller verkaufen mit {top} Marge — erhöhe deinen Preis um {left}",
       "topMargin": "Top {amount}"
-    }
+    },
+    "highlightsAria": "Highlights"
   },
   "Filters": {
     "smartFilters": "Intelligente Filter",
@@ -7587,5 +7588,21 @@
         "Empire-Reporting für Wachstum ohne Verwässerung"
       ]
     }
+  },
+  "productShowcase": {
+    "popular": "Beliebt",
+    "verified": "Geprüfter Shop",
+    "reviews": "{count, plural, one {# Bewertung} other {# Bewertungen}}",
+    "ratingAria": "Bewertet mit {rating} von 5",
+    "addToCart": "In den Warenkorb",
+    "adding": "Wird hinzugefügt…",
+    "added": "Zum Warenkorb hinzugefügt",
+    "chooseOptions": "Optionen wählen",
+    "soldOut": "Ausverkauft",
+    "viewProduct": "{title} ansehen",
+    "thumbAria": "Foto {n} anzeigen",
+    "moreImages": "+{count}",
+    "gallery": "Produktfotos",
+    "noReviews": "Neu"
   }
 }

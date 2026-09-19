@@ -4295,7 +4295,8 @@
       "marginLeaveTableTooltip": "Top resellers sell at {top} margin — raise your price by {left}",
       "fomoHint": "Affiliates compete on this SKU — publish fast to capture demand.",
       "lastSaleShort": "Recent sale by {name}"
-    }
+    },
+    "highlightsAria": "Key benefits"
   },
   "Filters": {
     "smartFilters": "Smart Filters",
@@ -7587,5 +7588,21 @@
         "Empire reporting to scale without dilution"
       ]
     }
+  },
+  "productShowcase": {
+    "popular": "Popular",
+    "verified": "Verified store",
+    "reviews": "{count, plural, one {# review} other {# reviews}}",
+    "ratingAria": "Rated {rating} out of 5",
+    "addToCart": "Add to cart",
+    "adding": "Adding…",
+    "added": "Added to cart",
+    "chooseOptions": "Choose options",
+    "soldOut": "Sold out",
+    "viewProduct": "View {title}",
+    "thumbAria": "Show photo {n}",
+    "moreImages": "+{count}",
+    "gallery": "Product photos",
+    "noReviews": "New"
   }
 }

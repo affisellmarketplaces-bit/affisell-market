@@ -4295,7 +4295,8 @@
       "marginLeaveTableBadge": "🔥 你正在错失 {amount} 的利润",
       "marginLeaveTableTooltip": "顶级分销商以 {top} 的利润出售——建议加价 {left}",
       "topMargin": "最高 {amount}"
-    }
+    },
+    "highlightsAria": "核心优势"
   },
   "Filters": {
     "smartFilters": "智能过滤器",
@@ -7587,5 +7588,21 @@
         "Empire 报告助你无稀释扩张"
       ]
     }
+  },
+  "productShowcase": {
+    "popular": "热门",
+    "verified": "已验证店铺",
+    "reviews": "{count, plural, other {# 条评价}}",
+    "ratingAria": "评分 {rating}（满分 5）",
+    "addToCart": "加入购物车",
+    "adding": "正在添加…",
+    "added": "已加入购物车",
+    "chooseOptions": "选择规格",
+    "soldOut": "已售罄",
+    "viewProduct": "查看 {title}",
+    "thumbAria": "显示第 {n} 张图片",
+    "moreImages": "+{count}",
+    "gallery": "商品图片",
+    "noReviews": "新品"
   }
 }

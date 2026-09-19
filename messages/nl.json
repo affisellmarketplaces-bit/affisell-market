@@ -4295,7 +4295,8 @@
       "marginLeaveTableBadge": "🔥 Je laat {amount} liggen",
       "marginLeaveTableTooltip": "Topresellers verkopen met {top} marge — verhoog je prijs met {left}",
       "topMargin": "Top {amount}"
-    }
+    },
+    "highlightsAria": "Belangrijkste voordelen"
   },
   "Filters": {
     "smartFilters": "Slimme filters",
@@ -7587,5 +7588,21 @@
         "Empire-rapportage om te schalen zonder verwatering"
       ]
     }
+  },
+  "productShowcase": {
+    "popular": "Populair",
+    "verified": "Geverifieerde winkel",
+    "reviews": "{count, plural, one {# beoordeling} other {# beoordelingen}}",
+    "ratingAria": "Beoordeeld met {rating} van 5",
+    "addToCart": "In winkelwagen",
+    "adding": "Toevoegen…",
+    "added": "Toegevoegd aan winkelwagen",
+    "chooseOptions": "Kies opties",
+    "soldOut": "Uitverkocht",
+    "viewProduct": "Bekijk {title}",
+    "thumbAria": "Toon foto {n}",
+    "moreImages": "+{count}",
+    "gallery": "Productfoto's",
+    "noReviews": "Nieuw"
   }
 }
