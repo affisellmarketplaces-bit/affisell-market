@@ -36,6 +36,12 @@
 - **Production**: `DEMO_LAB_ENABLED=1` + `DEMO_LAB_PASSWORD`, ou `DEMO_LAB_ENABLED=0` pour couper.
 - Seed idempotent: `npm run demo:ensure` (même `DATABASE_URL` que le déploiement).
 
+## Tests that write to a database
+
+- Never run them against production. They only run with `RUN_DB_TESTS=1` **and** a dedicated test database in `.env.test.local` (`DATABASE_URL_TEST`, e.g. a Neon branch — template: `.env.test.local.example`).
+- `lib/testing/db-test-guard.ts` refuses any URL that shares an endpoint with `DATABASE_URL` / `DIRECT_URL` / `DATABASE_URL_STAGING` in the repo env files.
+- `npm run test:db:check` (read-only preflight: file, safety, connection, migrations) then `npm run test:db` (money e2e + variants).
+
 ## Git push
 
 - Never put real API keys in `.env.example` — use empty placeholders only (`GROQ_API_KEY=""`).
