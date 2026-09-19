@@ -81,7 +81,7 @@
       "schedule": "0 6 * * *"
     },
     {
-      "path": "/api/aliexpress/refresh",
+      "path": "/api/cron/aliexpress-refresh",
       "schedule": "0 */6 * * *"
     },
     {

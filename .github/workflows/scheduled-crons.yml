@@ -160,4 +160,4 @@ jobs:
           BASE="${VERCEL_APP_URL%/}"
           # Retry through cold starts / brief DB wake-ups before declaring failure.
           curl -fsS --retry 4 --retry-delay 30 --retry-all-errors --max-time 90 \
-            -H "Authorization: Bearer ${CRON_SECRET}" "${BASE}/api/aliexpress/refresh"
+            -H "Authorization: Bearer ${CRON_SECRET}" "${BASE}/api/cron/aliexpress-refresh"
