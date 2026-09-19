@@ -89,7 +89,8 @@ function PremiumMarketplaceBody({
       {/* Discover 2×2 — immediately under categories (mockup structure) */}
       <div className="min-w-0">{discoverSlot}</div>
 
-      {discoverySlot}
+      {/* Wrapped: a bare server-created <Suspense> among siblings trips React's list-key warning. Empty → hidden. */}
+      <div className="min-w-0 empty:hidden">{discoverySlot}</div>
 
       <PopularDepartmentsBar
         activeCategoryId={activeCategoryId}
