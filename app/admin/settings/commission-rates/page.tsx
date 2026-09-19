@@ -34,7 +34,7 @@ export default async function AdminCommissionRatesPage({
   })
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
+    <main className="mx-auto w-full min-w-0 max-w-5xl px-4 py-8">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-violet-600">Admin</p>
@@ -42,17 +42,19 @@ export default async function AdminCommissionRatesPage({
             Grilles commission par catégorie
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-            <span className="font-medium text-violet-700 dark:text-violet-400">Affisell</span> — fee
-            plateforme (défaut {DEFAULT_AFFISELL_COMMISSION_BPS / 100}%).{" "}
+            <span className="font-medium text-violet-700 dark:text-violet-400">Affisell</span> — commission
+            côté fournisseur, prélevée sur le prix de gros HT selon la catégorie (défaut{" "}
+            {DEFAULT_AFFISELL_COMMISSION_BPS / 100}% si aucun taux n’est défini). Côté revendeur : 20 % fixe
+            sur son net HT (commission + marge), non modifiable ici.{" "}
             <span className="font-medium text-emerald-700 dark:text-emerald-400">Fournisseur → affilié</span>{" "}
             — commission catalogue quand le produit est à 0 % (défaut{" "}
-            {DEFAULT_SUPPLIER_COMMISSION_BPS / 100}%). Les overrides produit restent prioritaires au
-            checkout.
+            {DEFAULT_SUPPLIER_COMMISSION_BPS / 100}%). Les overrides produit posés par l’admin restent
+            prioritaires au checkout.
           </p>
         </div>
         <Link
           href="/admin/splits"
-          className="text-sm font-medium text-violet-700 hover:underline dark:text-violet-400"
+          className="inline-flex min-h-11 items-center text-sm font-medium text-violet-700 hover:underline dark:text-violet-400 md:min-h-0"
         >
           Voir les splits →
         </Link>

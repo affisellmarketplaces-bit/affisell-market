@@ -18,7 +18,7 @@ export function OrderHeader({ order, actions }: Props) {
       <div>
         <Link
           href="/admin/orders"
-          className="text-xs font-medium text-violet-600 hover:underline dark:text-violet-400"
+          className="inline-flex min-h-11 items-center text-xs font-medium text-violet-600 hover:underline dark:text-violet-400 md:min-h-0"
         >
           ← Commandes
         </Link>

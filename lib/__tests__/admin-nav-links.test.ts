@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest"
 import { ADMIN_NAV_GROUPS, ADMIN_NAV_LINKS, adminNavCurrent, isAdminNavActive } from "@/lib/admin/admin-nav-links"
 
 describe("admin nav", () => {
-  it("keeps all 27 pages, unique, each in a known group", () => {
-    expect(ADMIN_NAV_LINKS).toHaveLength(27)
-    expect(new Set(ADMIN_NAV_LINKS.map((l) => l.href)).size).toBe(27)
+  it("keeps all 28 pages, unique, each in a known group", () => {
+    expect(ADMIN_NAV_LINKS).toHaveLength(28)
+    expect(new Set(ADMIN_NAV_LINKS.map((l) => l.href)).size).toBe(28)
     const groups = new Set(ADMIN_NAV_GROUPS.map((g) => g.id))
     for (const l of ADMIN_NAV_LINKS) expect(groups.has(l.group)).toBe(true)
   })

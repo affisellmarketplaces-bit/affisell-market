@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
+import { toast } from "sonner"
 
 import type { CategoryCommissionRow } from "@/lib/admin/commission-rates/types"
 import { affisellCommissionRateBpsToPercent } from "@/lib/affisell-platform-commission"
@@ -93,7 +94,7 @@ export function CategoryCommissionRatesClient({
       })
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string }
-        alert(j.error ?? "Save failed")
+        toast.error(j.error ?? "Échec de l’enregistrement")
         return
       }
 
@@ -129,6 +130,7 @@ export function CategoryCommissionRatesClient({
           setSupplierDrafts((d) => ({ ...d, [categoryId]: "" }))
         }
       }
+      toast.success("Taux enregistré")
       router.refresh()
     } finally {
       setSavingId(null)
@@ -151,10 +153,10 @@ export function CategoryCommissionRatesClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Nom ou chemin…"
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+            className="mt-1 h-11 w-full rounded-lg border border-zinc-300 px-3 text-base dark:border-zinc-600 dark:bg-zinc-900 md:h-auto md:py-2 md:text-sm"
           />
         </label>
-        <label className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+        <label className="flex min-h-11 items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300 md:min-h-0">
           <input
             type="checkbox"
             checked={leafOnly}
@@ -165,13 +167,96 @@ export function CategoryCommissionRatesClient({
         </label>
         <button
           type="submit"
-          className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500"
+          className="min-h-11 rounded-lg bg-violet-600 px-4 text-sm font-semibold text-white hover:bg-violet-500 max-md:w-full md:min-h-0 md:py-2"
         >
           Filtrer
         </button>
       </form>
 
-      <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+      <ul className="space-y-3 md:hidden" role="list">
+        {sorted.map((row) => (
+          <li
+            key={row.id}
+            className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-semibold text-zinc-900 dark:text-zinc-100">{row.name}</p>
+                <p className="mt-0.5 break-words text-xs text-zinc-500">{row.fullPath}</p>
+              </div>
+              <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium tabular-nums text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                {row.productCount} produit{row.productCount > 1 ? "s" : ""}
+              </span>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <label className="block text-xs">
+                <span className="font-semibold text-violet-700 dark:text-violet-400">Affisell %</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  max={50}
+                  step={0.1}
+                  placeholder="Hériter"
+                  value={affisellDrafts[row.id] ?? ""}
+                  onChange={(e) => setAffisellDrafts((d) => ({ ...d, [row.id]: e.target.value }))}
+                  className="mt-1 h-11 w-full rounded-lg border border-zinc-300 px-3 text-base dark:border-zinc-600 dark:bg-zinc-900"
+                />
+                <span className="mt-1 block tabular-nums text-zinc-500">
+                  Effectif : {row.effectivePercent.toFixed(1)}%
+                </span>
+              </label>
+              <label className="block text-xs">
+                <span className="font-semibold text-emerald-700 dark:text-emerald-400">Fourn.→Aff. %</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  max={100}
+                  step={0.1}
+                  placeholder="Hériter"
+                  value={supplierDrafts[row.id] ?? ""}
+                  onChange={(e) => setSupplierDrafts((d) => ({ ...d, [row.id]: e.target.value }))}
+                  className="mt-1 h-11 w-full rounded-lg border border-zinc-300 px-3 text-base dark:border-zinc-600 dark:bg-zinc-900"
+                />
+                <span className="mt-1 block tabular-nums text-zinc-500">
+                  Effectif : {row.supplierEffectivePercent.toFixed(1)}%
+                </span>
+              </label>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                disabled={savingId === row.id}
+                onClick={() => void saveRow(row.id, "both", false)}
+                className={cn(
+                  "min-h-11 rounded-xl px-3 text-sm font-semibold text-white active:scale-[0.98]",
+                  savingId === row.id ? "bg-zinc-400" : "bg-violet-600 hover:bg-violet-500"
+                )}
+              >
+                Enregistrer
+              </button>
+              <button
+                type="button"
+                disabled={savingId === row.id}
+                onClick={() => void saveRow(row.id, "both", true)}
+                className="min-h-11 rounded-xl border border-zinc-300 px-3 text-sm font-medium active:scale-[0.98] dark:border-zinc-600"
+              >
+                Hériter
+              </button>
+            </div>
+          </li>
+        ))}
+        {sorted.length === 0 ? (
+          <li className="rounded-2xl border border-zinc-200 bg-white p-6 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950">
+            Aucune catégorie trouvée.
+          </li>
+        ) : null}
+      </ul>
+
+      <div className="hidden overflow-x-auto rounded-xl border md:block border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
         <table className="min-w-[56rem] w-full text-left text-sm">
           <thead className="border-b border-zinc-200 bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/80">
             <tr>
