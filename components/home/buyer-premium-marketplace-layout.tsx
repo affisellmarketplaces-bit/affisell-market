@@ -4,7 +4,6 @@ import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 
 import { DepartmentBar } from "@/components/DepartmentBar"
-import { EuropeBanner } from "@/components/EuropeBanner"
 import { PopularDepartmentsBar } from "@/components/PopularDepartmentsBar"
 import { ProductConditionFilterBar } from "@/components/ProductConditionFilterBar"
 import { MarketplaceShipsToChip } from "@/components/marketplace/marketplace-ships-to-chip"
@@ -55,7 +54,6 @@ function PremiumMarketplaceBody({
       />
 
       <div className="min-w-0 space-y-4">
-        <EuropeBanner />
         <div className="flex flex-wrap items-center gap-2">
           <MarketplaceShipsToChip
             basePath="/"
