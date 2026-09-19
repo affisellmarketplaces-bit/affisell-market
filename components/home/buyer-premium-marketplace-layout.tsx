@@ -39,12 +39,11 @@ function PremiumMarketplaceBody({
 
   return (
     <div className="min-w-0 space-y-5 p-3 sm:p-5">
-      {/* Primary category rail — e36f03f64 pill styling, white/95 mockup shell */}
+      {/* Primary category rail — e36f03f64 pill styling, frosted-glass shell */}
       <DepartmentBar
         categories={categories}
         catalogTotal={shell.catalogTotal}
         activeCategoryId={activeCategoryId}
-        className="bg-white/95 shadow-md shadow-indigo-950/8 ring-1 ring-violet-100/80"
       />
 
       {/* Discover 2×2 — immediately under categories (mockup structure) */}

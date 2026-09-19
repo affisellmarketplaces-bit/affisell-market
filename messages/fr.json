@@ -2454,6 +2454,14 @@
       "swipeAll": "Swipe tout le catalogue",
       "swipeCategory": "Swipe {name}",
       "marqueeHint": "Survolez pour parcourir"
+    },
+    "departmentsBar": {
+      "title": "Rayons",
+      "hint": "Choisissez un rayon pour filtrer le catalogue.",
+      "all": "Tout le catalogue",
+      "popularTitle": "Rayons populaires",
+      "popularHint": "Accès rapide aux rayons les plus consultés.",
+      "seeAll": "Tout voir"
     }
   },
   "product": {

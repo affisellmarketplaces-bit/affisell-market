@@ -2454,6 +2454,14 @@
       "swipeAll": "滑动浏览全部目录",
       "swipeCategory": "滑动浏览 {name}",
       "marqueeHint": "鼠标悬停浏览"
+    },
+    "departmentsBar": {
+      "title": "分类",
+      "hint": "选择一个分类来筛选商品目录。",
+      "all": "全部商品",
+      "popularTitle": "热门分类",
+      "popularHint": "快速进入浏览最多的分类。",
+      "seeAll": "查看全部"
     }
   },
   "product": {

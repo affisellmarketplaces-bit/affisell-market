@@ -2454,6 +2454,14 @@
       "swipeAll": "Gesamtkatalog durchblättern",
       "swipeCategory": "Durchblättern {name}",
       "marqueeHint": "Bewegen Sie den Mauszeiger, um zu durchsuchen"
+    },
+    "departmentsBar": {
+      "title": "Abteilungen",
+      "hint": "Wählen Sie eine Abteilung, um den Katalog zu filtern.",
+      "all": "Gesamter Katalog",
+      "popularTitle": "Beliebte Abteilungen",
+      "popularHint": "Schnellzugriff auf die meistbesuchten Bereiche.",
+      "seeAll": "Alle ansehen"
     }
   },
   "product": {

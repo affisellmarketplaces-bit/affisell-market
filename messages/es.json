@@ -2454,6 +2454,14 @@
       "swipeAll": "Desliza todo el catálogo",
       "swipeCategory": "Desliza {name}",
       "marqueeHint": "Pasa el ratón para explorar"
+    },
+    "departmentsBar": {
+      "title": "Departamentos",
+      "hint": "Elige un departamento para filtrar el catálogo.",
+      "all": "Todo el catálogo",
+      "popularTitle": "Departamentos populares",
+      "popularHint": "Acceso rápido a los pasillos más visitados.",
+      "seeAll": "Ver todo"
     }
   },
   "product": {

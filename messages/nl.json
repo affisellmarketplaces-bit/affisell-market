@@ -2454,6 +2454,14 @@
       "swipeAll": "Alle catalogus",
       "swipeCategory": "Swipe {name}",
       "marqueeHint": "Hover om te bladeren"
+    },
+    "departmentsBar": {
+      "title": "Afdelingen",
+      "hint": "Kies een afdeling om de catalogus te filteren.",
+      "all": "Hele catalogus",
+      "popularTitle": "Populaire afdelingen",
+      "popularHint": "Snelle toegang tot de meest bezochte afdelingen.",
+      "seeAll": "Alles bekijken"
     }
   },
   "product": {

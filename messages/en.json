@@ -2454,6 +2454,14 @@
       "swipeAll": "Swipe full catalog",
       "swipeCategory": "Swipe {name}",
       "marqueeHint": "Hover to browse"
+    },
+    "departmentsBar": {
+      "title": "Departments",
+      "hint": "Pick a department to filter the catalog.",
+      "all": "All catalog",
+      "popularTitle": "Popular departments",
+      "popularHint": "Quick access to the most browsed aisles.",
+      "seeAll": "See all"
     }
   },
   "product": {

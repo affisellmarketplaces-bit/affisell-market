@@ -2454,6 +2454,14 @@
       "swipeAll": "Przeczuj cały katalog",
       "swipeCategory": "Przeczuj {name}",
       "marqueeHint": "Przejdź aby przeglądnąć"
+    },
+    "departmentsBar": {
+      "title": "Działy",
+      "hint": "Wybierz dział, aby przefiltrować katalog.",
+      "all": "Cały katalog",
+      "popularTitle": "Popularne działy",
+      "popularHint": "Szybki dostęp do najczęściej przeglądanych działów.",
+      "seeAll": "Zobacz wszystko"
     }
   },
   "product": {

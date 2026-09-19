@@ -1,6 +1,7 @@
 "use client"
 
 import { LayoutGrid } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { CategoryGlyph } from "@/components/marketplace/CategoryGlyph"
 import { FastLink } from "@/components/navigation/fast-link"
@@ -29,12 +30,16 @@ export function DepartmentBar({
   catalogBasePath = "/",
   className,
 }: Props) {
+  const t = useTranslations("marketplace.departmentsBar")
   const allActive = !activeCategoryId
 
   return (
     <section
-      className={cn("rounded-2xl bg-white p-3 shadow-md shadow-indigo-950/10", className)}
-      aria-label="Departments"
+      className={cn(
+        "rounded-2xl border border-white/70 bg-white/55 p-3 shadow-[0_8px_32px_-12px_rgba(76,29,149,0.25),inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl backdrop-saturate-150",
+        className
+      )}
+      aria-label={t("title")}
     >
       <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-2">
@@ -49,7 +54,7 @@ export function DepartmentBar({
               className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em]"
               style={{ color: PREMIUM_MARKETPLACE_HOME.departmentsLabel }}
             >
-              Departments
+              {t("title")}
               <span
                 className="rounded-full px-1.5 py-0.5 text-[10px] normal-case tracking-normal"
                 style={{ backgroundColor: "#F3E8FF", color: PREMIUM_MARKETPLACE_HOME.departmentsLabel }}
@@ -58,13 +63,13 @@ export function DepartmentBar({
               </span>
             </p>
             <p className="text-xs leading-snug" style={{ color: PREMIUM_MARKETPLACE_HOME.departmentsHint }}>
-              Department-store navigation — each department opens its aisles in the left column.
+              {t("hint")}
             </p>
           </div>
         </div>
       </div>
 
-      <ScrollFadeRow ariaLabel="Departments">
+      <ScrollFadeRow ariaLabel={t("title")}>
         <FastLink
           href={catalogFilterHref(catalogBasePath)}
           scroll={false}
@@ -74,7 +79,7 @@ export function DepartmentBar({
           )}
           style={{ backgroundColor: PREMIUM_MARKETPLACE_HOME.conditionActive }}
         >
-          All Catalog
+          {t("all")}
           <span className="opacity-90">({catalogTotal})</span>
         </FastLink>
 
@@ -87,10 +92,10 @@ export function DepartmentBar({
               href={categoryRailHref(catalogBasePath, cat)}
               scroll={false}
               className={cn(
-                "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition",
+                "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold ring-1 ring-white/70 transition hover:-translate-y-px hover:shadow-md",
                 active && "ring-2 ring-violet-400 ring-offset-1"
               )}
-              style={{ backgroundColor: style.bg, color: style.text }}
+              style={{ backgroundColor: `color-mix(in srgb, ${style.bg} 70%, transparent)`, color: style.text }}
             >
               <CategoryGlyph name={cat.name} slug={cat.slug} icon={cat.icon} size="md" />
               {cat.name}

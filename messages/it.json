@@ -2454,6 +2454,14 @@
       "swipeAll": "Scorri tutto il catalogo",
       "swipeCategory": "Scorri {name}",
       "marqueeHint": "Passa sopra per esplorare"
+    },
+    "departmentsBar": {
+      "title": "Reparti",
+      "hint": "Scegli un reparto per filtrare il catalogo.",
+      "all": "Tutto il catalogo",
+      "popularTitle": "Reparti popolari",
+      "popularHint": "Accesso rapido ai reparti più visitati.",
+      "seeAll": "Vedi tutto"
     }
   },
   "product": {
