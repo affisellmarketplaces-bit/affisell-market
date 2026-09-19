@@ -423,7 +423,6 @@ export function resolveCarriersForRoute(originCode: string, destinationCode: str
 
   return matched.sort((a, b) => {
     if (a.popular !== b.popular) return a.popular ? -1 : 1
-    if (b.reliabilityScore !== a.reliabilityScore) return b.reliabilityScore - a.reliabilityScore
     return a.etaDaysMin - b.etaDaysMin
   })
 }

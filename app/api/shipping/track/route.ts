@@ -51,7 +51,6 @@ export async function GET(req: Request) {
             type: result.detectedCarrier.type,
             delivery_min: result.detectedCarrier.delivery_min,
             delivery_max: result.detectedCarrier.delivery_max,
-            reliability: result.detectedCarrier.reliability,
             logo: result.detectedCarrier.logo,
             color: result.detectedCarrier.color,
             tracking_url: result.detectedCarrier.tracking_url,

@@ -1,6 +1,6 @@
 "use client"
 
-import { Package, ShieldCheck, Sparkles, Truck } from "lucide-react"
+import { Package, Sparkles, Truck } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import { BentoCard } from "@/components/affisell/bento-ui"
@@ -23,7 +23,6 @@ type Props = {
     subtitle: string
     originLabel: string
     destinationLabel: string
-    reliability: string
     popular: string
     eta: string
     etaUnit: string
@@ -117,20 +116,10 @@ function CarrierRow({
           </div>
         </div>
         <div className="shrink-0 text-right">
-          <div className="flex items-center justify-end gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-            <ShieldCheck className="size-3.5" aria-hidden />
-            {labels.reliability} {carrier.reliabilityScore}%
-          </div>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
             {labels.eta} {carrier.etaDaysMin}–{carrier.etaDaysMax} {labels.etaUnit}
           </p>
         </div>
-      </div>
-      <div className="mt-3 h-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all"
-          style={{ width: `${carrier.reliabilityScore}%` }}
-        />
       </div>
     </li>
   )

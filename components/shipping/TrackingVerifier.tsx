@@ -15,7 +15,7 @@ type TrackCarrier = {
   type: string
   delivery_min: number
   delivery_max: number
-  reliability: number
+  reliability?: number
   logo: string
   color: string
   tracking_url: string
@@ -189,7 +189,7 @@ export function TrackingVerifier({ className }: { className?: string }) {
                   </p>
                   <p className="text-xs text-zinc-500">
                     {result.detectedCarrier.delivery_min}–{result.detectedCarrier.delivery_max}{" "}
-                    {t("etaUnit")} · {t("reliability")} {result.detectedCarrier.reliability}%
+                    {t("etaUnit")}
                   </p>
                 </div>
               </div>

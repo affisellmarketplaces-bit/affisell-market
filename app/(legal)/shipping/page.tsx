@@ -22,7 +22,7 @@ export default async function ShippingPage() {
     subtitle: t("carriersSubtitle"),
     originLabel: t("originLabel"),
     destinationLabel: t("destinationLabel"),
-    reliability: t("reliability"),
+  
     popular: t("popular"),
     eta: t("eta"),
     etaUnit: t("etaUnit"),
