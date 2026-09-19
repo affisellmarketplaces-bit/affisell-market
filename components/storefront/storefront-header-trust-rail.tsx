@@ -44,7 +44,6 @@ function QuantumChip({
   icon,
   label,
   sublabel,
-  live = false,
   delayMs = 0,
 }: {
   tone: TrustRailChipTone
@@ -52,7 +51,6 @@ function QuantumChip({
   icon: ReactNode
   label: ReactNode
   sublabel?: ReactNode
-  live?: boolean
   delayMs?: number
 }) {
   const palette = trustRailChipPalette(tone, colors)
@@ -63,7 +61,7 @@ function QuantumChip({
       style={{ animationDelay: `${delayMs}ms` }}
     >
       <span
-        className="affisell-trust-quantum-chip__halo pointer-events-none absolute -inset-1 rounded-full opacity-60 blur-md transition-opacity duration-500 group-hover:opacity-90"
+        className="affisell-trust-quantum-chip__halo pointer-events-none absolute -inset-0.5 rounded-full opacity-30 blur-sm transition-opacity duration-300 group-hover:opacity-60"
         style={{ background: palette.glow }}
         aria-hidden
       />
@@ -87,21 +85,15 @@ function QuantumChip({
           {icon}
         </span>
         <span className="flex min-w-0 flex-col leading-tight">
-          <span className="truncate text-[10px] font-bold uppercase tracking-[0.12em] sm:text-[11px] sm:tracking-[0.14em]">
+          <span className="truncate text-[11px] font-semibold tracking-[0.01em] sm:text-[13px]">
             {label}
           </span>
           {sublabel ? (
-            <span className="hidden truncate text-[9px] font-medium tracking-[0.08em] text-current/65 sm:block">
+            <span className="hidden truncate text-[11px] font-normal tracking-normal text-current/70 sm:block">
               {sublabel}
             </span>
           ) : null}
         </span>
-        {live ? (
-          <span className="affisell-trust-live-signal ml-0.5 hidden shrink-0 sm:inline-flex" aria-hidden>
-            <span className="affisell-trust-live-signal__ping" />
-            <span className="affisell-trust-live-signal__core" />
-          </span>
-        ) : null}
       </span>
     </span>
   )
@@ -217,7 +209,7 @@ export function StorefrontHeaderTrustRail({
         className={cn(
           "relative mx-auto flex max-w-6xl items-center overflow-x-auto overscroll-x-contain",
           quantum
-            ? "min-h-10 gap-0.5 px-4 py-2 sm:min-h-11 sm:gap-1 sm:px-6 sm:py-2.5"
+            ? "min-h-10 gap-1 [&>*:first-child]:ml-auto [&>*:last-child]:mr-auto px-4 py-2 sm:min-h-11 sm:gap-2 sm:px-6 sm:py-2.5"
             : "gap-1.5 px-4 py-1.5 sm:gap-2 sm:px-6 sm:py-2",
           "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         )}
@@ -231,7 +223,6 @@ export function StorefrontHeaderTrustRail({
                 <QuantumChip
                   tone="orbit"
                   colors={colors}
-                  live
                   delayMs={0}
                   icon={<Sparkles className="size-3.5 sm:size-4" aria-hidden />}
                   label={t("poweredBy")}
@@ -265,7 +256,6 @@ export function StorefrontHeaderTrustRail({
                 <QuantumChip
                   tone="secure"
                   colors={colors}
-                  live
                   delayMs={80}
                   icon={<ShieldCheck className="size-3.5 sm:size-4" aria-hidden />}
                   label={
