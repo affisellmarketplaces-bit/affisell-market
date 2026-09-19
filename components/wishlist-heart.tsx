@@ -16,6 +16,8 @@ type Props = {
   className?: string
   ariaLabelAdd?: string
   ariaLabelRemove?: string
+  /** Clean round heart (no like-count pill) — used on the glass catalog cards. */
+  hideCount?: boolean
 }
 
 function formatLikeCount(n: number): string {
@@ -29,6 +31,7 @@ export function WishlistHeart({
   className,
   ariaLabelAdd,
   ariaLabelRemove,
+  hideCount = false,
 }: Props) {
   const t = useTranslations("wishlist.heart")
   const [wished, setWished] = useState(false)
@@ -74,7 +77,7 @@ export function WishlistHeart({
     }
   }
 
-  const showCount = likeCount > 0
+  const showCount = !hideCount && likeCount > 0
 
   return (
     <div className={cn("flex flex-col items-end gap-1", className)}>
@@ -89,7 +92,7 @@ export function WishlistHeart({
         }}
         disabled={busy}
         className={cn(
-          "inline-flex min-h-9 items-center gap-1 rounded-full px-2.5 py-1.5 shadow-md backdrop-blur-md transition-all duration-200 active:scale-95",
+          hideCount ? "inline-flex size-9 items-center justify-center rounded-full shadow-sm backdrop-blur-md transition-all duration-200 active:scale-95" : "inline-flex min-h-9 items-center gap-1 rounded-full px-2.5 py-1.5 shadow-md backdrop-blur-md transition-all duration-200 active:scale-95",
           wished
             ? "bg-rose-500/95 text-white ring-2 ring-rose-300/60"
             : "bg-white/92 text-zinc-700 ring-1 ring-black/8 hover:bg-white dark:bg-zinc-900/88 dark:text-zinc-200 dark:ring-white/10"

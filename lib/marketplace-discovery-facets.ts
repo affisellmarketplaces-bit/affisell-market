@@ -309,3 +309,23 @@ export function parsePriceFacet(value: string | null): Prisma.ProductWhereInput 
   }
 }
 
+/**
+ * Free price range in whole euros ("40-300", "under80", "over250") from the glass filter panel.
+ * Applied at LISTING level (the price the buyer actually sees), unlike the legacy buckets above which match a
+ * product when ANY of its listings fits. Legacy bucket names ("under25", "25-100", "over100") keep their behaviour.
+ */
+export function parsePriceRangeCents(value: string | null): { gte?: number; gt?: number; lte?: number } | null {
+  if (!value || parsePriceFacet(value)) return null
+  const range = /^(\d{1,6})-(\d{1,6})$/.exec(value)
+  if (range) {
+    const a = Number(range[1]) * 100
+    const b = Number(range[2]) * 100
+    return { gte: Math.min(a, b), lte: Math.max(a, b) }
+  }
+  const under = /^under(\d{1,6})$/.exec(value)
+  if (under) return { lte: Number(under[1]) * 100 }
+  const over = /^over(\d{1,6})$/.exec(value)
+  if (over) return { gt: Number(over[1]) * 100 }
+  return null
+}
+

@@ -25,6 +25,8 @@ export function homeCatalogFallbackProducts(count = 8): HomeListing[] {
     compareAt: null,
     image: HOME_CATALOG_FALLBACK_IMAGE,
     stock: 12,
+    averageRating: 0,
+    reviewCount: 0,
     store: "Affisell",
     isBestSeller: index === 0,
     storeSlug: null,

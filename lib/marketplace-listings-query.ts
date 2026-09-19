@@ -19,7 +19,7 @@ import {
   resolveProductWarrantyMonths,
 } from "@/lib/product-warranty"
 import { parseDeptFacetValue } from "@/lib/marketplace-discovery-facets-shared"
-import { parsePriceFacet } from "@/lib/marketplace-discovery-facets"
+import { parsePriceFacet, parsePriceRangeCents } from "@/lib/marketplace-discovery-facets"
 import type { MarketplaceSearchHit } from "@/lib/marketplace-search"
 import { orderByListingSearchHits, searchMarketplaceListingHits } from "@/lib/marketplace-search.server"
 import { prisma } from "@/lib/prisma"
@@ -49,6 +49,8 @@ export const listingMarketplaceInclude = {
       hasVariants: true,
       offerMode: true,
       minOrderQuantity: true,
+      averageRating: true,
+      reviewCount: true,
     },
   },
   affiliate: {
@@ -88,6 +90,8 @@ export const listingMarketplaceSelectLite = {
       hasVariants: true,
       offerMode: true,
       minOrderQuantity: true,
+      averageRating: true,
+      reviewCount: true,
     },
   },
   affiliate: {
@@ -171,6 +175,8 @@ export function serializeMarketplaceListing(
       row.id
     ),
     stock: p.stock,
+    averageRating: Number.isFinite(p.averageRating) ? Math.round(p.averageRating * 10) / 10 : 0,
+    reviewCount: p.reviewCount ?? 0,
     store: publicStoreLabelFromAffiliateRow(row.affiliate),
     isBestSeller: row.isFeatured,
     storeSlug: row.affiliate.store?.slug ?? null,
@@ -234,6 +240,7 @@ export async function buildMarketplaceAffiliateWhereFromUrl(
     Object.fromEntries(searchParams.entries())
   )
   const priceFilter = parsePriceFacet(searchParams.get("price"))
+  const listingPriceRange = parsePriceRangeCents(searchParams.get("price"))
 
   const productAnd: Prisma.ProductWhereInput[] = [productWhere]
   if (legacyFilter) productAnd.push(legacyFilter)
@@ -247,6 +254,7 @@ export async function buildMarketplaceAffiliateWhereFromUrl(
     buyerListedAffiliateProductWhere,
     { affiliate: { store: { isNot: null } } },
     { product: productWhereWithCustom },
+    ...(listingPriceRange ? [{ sellingPriceCents: listingPriceRange }] : []),
   ]
 
   if (q.length >= 2) {

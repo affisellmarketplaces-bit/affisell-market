@@ -7685,5 +7685,29 @@
       "newCount": "Deze week • {count}+ nieuwe producten",
       "newDefault": "Verse selectie • Net toegevoegd"
     }
+  },
+  "homeGlass": {
+    "categories": "Categorieën",
+    "allCatalog": "Hele catalogus",
+    "featuredTitle": "Uitgelichte producten",
+    "results": "{count} producten",
+    "seeAll": "Alle producten bekijken",
+    "filtersTitle": "Filters & trends",
+    "priceRange": "Prijsklasse",
+    "selected": "Geselecteerd: {min} – {max}",
+    "anyPrice": "Elke prijs",
+    "refine": "Verfijnen",
+    "freeShipping": "Gratis verzending",
+    "newArrivals": "Nieuw binnen",
+    "trendingTitle": "Trending",
+    "topSold": "Meest verkocht",
+    "rankThisWeek": "Nr. {rank} deze week",
+    "soldThisWeek": "{count} verkocht deze week",
+    "apply": "Filters toepassen",
+    "reset": "Resetten",
+    "priceMin": "Minimumprijs",
+    "priceMax": "Maximumprijs",
+    "openCatalog": "Volledige catalogus openen",
+    "rating": "{rating} van 5, {count} reviews"
   }
 }

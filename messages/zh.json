@@ -7685,5 +7685,29 @@
       "newCount": "本周 • 新增 {count}+ 件商品",
       "newDefault": "新鲜精选 • 刚刚上架"
     }
+  },
+  "homeGlass": {
+    "categories": "分类",
+    "allCatalog": "全部商品",
+    "featuredTitle": "精选商品",
+    "results": "{count} 件商品",
+    "seeAll": "查看全部商品",
+    "filtersTitle": "筛选与趋势",
+    "priceRange": "价格区间",
+    "selected": "已选：{min} – {max}",
+    "anyPrice": "任意价格",
+    "refine": "精选条件",
+    "freeShipping": "免运费",
+    "newArrivals": "新品上架",
+    "trendingTitle": "热门趋势",
+    "topSold": "销量第一",
+    "rankThisWeek": "本周第 {rank} 名",
+    "soldThisWeek": "本周售出 {count} 件",
+    "apply": "应用筛选",
+    "reset": "重置",
+    "priceMin": "最低价格",
+    "priceMax": "最高价格",
+    "openCatalog": "打开完整目录",
+    "rating": "{rating} 分（满分 5），{count} 条评价"
   }
 }

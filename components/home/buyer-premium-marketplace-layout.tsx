@@ -5,8 +5,10 @@ import { useSearchParams } from "next/navigation"
 
 import { DepartmentBar } from "@/components/DepartmentBar"
 import { PopularDepartmentsBar } from "@/components/PopularDepartmentsBar"
+import { GlassCatalogShell, type GlassProduct, type GlassTrend } from "@/components/home/glass/glass-catalog-shell"
 import { ProductConditionFilterBar } from "@/components/ProductConditionFilterBar"
 import { MarketplaceShipsToChip } from "@/components/marketplace/marketplace-ships-to-chip"
+import { normalizeHomeCatalogProduct } from "@/lib/home-catalog-product-href"
 import type { HomeMarketplaceShell } from "@/lib/home-marketplace-shell"
 import type { PremiumCategoryItem } from "@/lib/marketplace-premium-home-shared"
 import type { ResolvedBrowseDepartment } from "@/lib/taxonomy/browse-departments-shared"
@@ -16,6 +18,8 @@ type Props = {
   browseDepartments: ResolvedBrowseDepartment[]
   discoverSlot: React.ReactNode
   catalogExplorer: React.ReactNode
+  /** Confirmed best sellers of the week (server-loaded, may be empty). */
+  trending?: GlassTrend[]
 }
 
 function PremiumMarketplaceBody({
@@ -23,6 +27,7 @@ function PremiumMarketplaceBody({
   browseDepartments,
   discoverSlot,
   catalogExplorer,
+  trending = [],
 }: Props) {
   const searchParams = useSearchParams()
   const activeCategoryId = searchParams.get("category")
@@ -36,13 +41,44 @@ function PremiumMarketplaceBody({
     fullPath: c.fullPath,
   }))
 
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0)
+  const glassProducts: GlassProduct[] = shell.products
+    .flatMap((raw) => {
+      const n = normalizeHomeCatalogProduct(raw)
+      if (!n || !n.title.trim()) return []
+      const o = raw as Record<string, unknown>
+      return [
+        {
+          id: n.id,
+          productId: typeof o.productId === "string" ? o.productId : n.id,
+          title: n.title,
+          image: n.image,
+          fallbackImage: n.fallbackImage,
+          href: n.href,
+          price: num(o.price),
+          rating: num(o.averageRating),
+          reviews: num(o.reviewCount),
+        },
+      ]
+    })
+    .slice(0, 9)
+
   return (
     <div className="min-w-0 space-y-5 p-3 sm:p-5">
+      {/* Desktop: Categories · Featured products · Filters & Trending (mobile keeps the rails below). */}
+      <GlassCatalogShell
+        categories={categories}
+        products={glassProducts}
+        catalogTotal={shell.catalogTotal}
+        trending={trending}
+      />
+
       {/* Primary category rail — e36f03f64 pill styling, frosted-glass shell */}
       <DepartmentBar
         categories={categories}
         catalogTotal={shell.catalogTotal}
         activeCategoryId={activeCategoryId}
+        className="lg:hidden"
       />
 
       {/* Discover 2×2 — immediately under categories (mockup structure) */}
@@ -51,6 +87,7 @@ function PremiumMarketplaceBody({
       <PopularDepartmentsBar
         activeCategoryId={activeCategoryId}
         initialDepartments={browseDepartments}
+        className="lg:hidden"
       />
 
       <div className="min-w-0 space-y-4">

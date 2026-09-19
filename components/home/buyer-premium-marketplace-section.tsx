@@ -7,14 +7,28 @@ import { BuyerPremiumMarketplaceSkeleton } from "@/components/home/buyer-premium
 import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExplorer"
 import { resolveAppLocale } from "@/lib/i18n-locale"
 import { loadHomeMarketplaceShellSafe } from "@/lib/home-marketplace-shell"
+import { loadHomeBestSellers7dSafe } from "@/lib/public-home-data"
+import { resolveBuyerCardImageHref } from "@/lib/listing-card-image-shared"
 import { loadBrowseDepartmentsCached } from "@/lib/taxonomy/resolve-browse-departments.server"
 
 async function PremiumMarketplaceSection() {
   const locale = resolveAppLocale(await getLocale())
-  const [shell, browsePayload] = await Promise.all([
+  const [shell, browsePayload, trendingRaw] = await Promise.all([
     loadHomeMarketplaceShellSafe(locale),
     loadBrowseDepartmentsCached(locale),
+    // Best sellers of the week (confirmed sales). Never allowed to delay the home: 2.5s cap, empty on failure.
+    Promise.race([
+      loadHomeBestSellers7dSafe(3),
+      new Promise<[]>((resolve) => setTimeout(() => resolve([]), 2500)),
+    ]),
   ])
+  const trending = trendingRaw.map((p) => ({
+    id: p.listingId,
+    name: p.name,
+    image: p.imageUrl ? resolveBuyerCardImageHref(p.imageUrl, p.listingId) : null,
+    href: `/marketplace/${encodeURIComponent(p.listingId)}`,
+    sold: p.soldCount,
+  }))
 
   const browseDepartments = browsePayload.departments.filter((d) => d.resolved)
 
@@ -22,6 +36,7 @@ async function PremiumMarketplaceSection() {
     <BuyerPremiumMarketplaceLayoutClient
       shell={shell}
       browseDepartments={browseDepartments}
+      trending={trending}
       discoverSlot={
         <Suspense fallback={<div className="min-h-[18rem] animate-pulse rounded-2xl bg-slate-100" aria-hidden />}>
           <BentoGrid />

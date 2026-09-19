@@ -7685,5 +7685,29 @@
       "newCount": "This week • {count}+ new products",
       "newDefault": "Fresh picks • Just added"
     }
+  },
+  "homeGlass": {
+    "categories": "Categories",
+    "allCatalog": "All catalog",
+    "featuredTitle": "Featured products",
+    "results": "{count} products",
+    "seeAll": "See all products",
+    "filtersTitle": "Filters & Trending",
+    "priceRange": "Price range",
+    "selected": "Selected: {min} – {max}",
+    "anyPrice": "Any price",
+    "refine": "Refine",
+    "freeShipping": "Free shipping",
+    "newArrivals": "New arrivals",
+    "trendingTitle": "Trending",
+    "topSold": "Top sold",
+    "rankThisWeek": "#{rank} this week",
+    "soldThisWeek": "{count} sold this week",
+    "apply": "Apply filters",
+    "reset": "Reset",
+    "priceMin": "Minimum price",
+    "priceMax": "Maximum price",
+    "openCatalog": "Open the full catalog",
+    "rating": "{rating} out of 5, {count} reviews"
   }
 }

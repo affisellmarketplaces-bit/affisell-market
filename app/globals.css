@@ -4212,3 +4212,47 @@ button,
 @media (prefers-reduced-motion: reduce) {
   .dona-orb, .dona-orb__halo, .dona-orb__status::after { animation: none; transition: none; }
 }
+
+/* ── Glass catalog: dual-thumb price range ─────────────────────────────────────────────────── */
+.glass-dual-range {
+  height: 1.5rem;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.glass-dual-range::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 1.5rem;
+}
+.glass-dual-range::-moz-range-track {
+  background: transparent;
+}
+.glass-dual-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.175rem;
+  border-radius: 9999px;
+  background: #fff;
+  border: 3px solid #6d45e0;
+  box-shadow: 0 2px 8px rgb(76 29 149 / 0.35);
+  cursor: grab;
+}
+.glass-dual-range::-moz-range-thumb {
+  pointer-events: auto;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 9999px;
+  background: #fff;
+  border: 3px solid #6d45e0;
+  box-shadow: 0 2px 8px rgb(76 29 149 / 0.35);
+  cursor: grab;
+}
+.glass-dual-range:focus-visible::-webkit-slider-thumb {
+  outline: 3px solid #c4b5fd;
+  outline-offset: 2px;
+}

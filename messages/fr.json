@@ -7685,5 +7685,29 @@
       "newCount": "Cette semaine • {count}+ nouveaux produits",
       "newDefault": "Sélection fraîche • Tout juste ajoutés"
     }
+  },
+  "homeGlass": {
+    "categories": "Catégories",
+    "allCatalog": "Tout le catalogue",
+    "featuredTitle": "Produits à la une",
+    "results": "{count} produits",
+    "seeAll": "Voir tous les produits",
+    "filtersTitle": "Filtres & Tendances",
+    "priceRange": "Fourchette de prix",
+    "selected": "Sélection : {min} – {max}",
+    "anyPrice": "Tous les prix",
+    "refine": "Affiner",
+    "freeShipping": "Livraison offerte",
+    "newArrivals": "Nouveautés",
+    "trendingTitle": "Tendances",
+    "topSold": "Top ventes",
+    "rankThisWeek": "N°{rank} cette semaine",
+    "soldThisWeek": "{count} vendus cette semaine",
+    "apply": "Appliquer les filtres",
+    "reset": "Réinitialiser",
+    "priceMin": "Prix minimum",
+    "priceMax": "Prix maximum",
+    "openCatalog": "Ouvrir tout le catalogue",
+    "rating": "{rating} sur 5, {count} avis"
   }
 }
