@@ -7741,6 +7741,21 @@
     "brandNew": "全新",
     "refurbished": "翻新",
     "secondHand": "二手",
-    "under": "{amount} 以下"
+    "under": "{amount} 以下",
+    "flash": "限时闪购"
+  },
+  "homeFlash": {
+    "title": "限时闪购",
+    "sub": "由对战获胜者解锁的价格——仅在倒计时内有效。",
+    "seeBattles": "查看对战",
+    "endsIn": "剩余"
+  },
+  "homeShops": {
+    "title": "发现好店",
+    "sub": "独立创作者与转售商，按真实销量排序。",
+    "allShops": "全部店铺",
+    "verified": "已验证商家",
+    "products": "{count} 件商品",
+    "sold": "已售 {count}"
   }
 }

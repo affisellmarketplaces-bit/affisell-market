@@ -7741,6 +7741,21 @@
     "brandNew": "Nieuw",
     "refurbished": "Refurbished",
     "secondHand": "Tweedehands",
-    "under": "Onder {amount}"
+    "under": "Onder {amount}",
+    "flash": "Flash-deals"
+  },
+  "homeFlash": {
+    "title": "Flash-deals",
+    "sub": "Prijzen ontgrendeld door Battle-winnaars — alleen zolang de timer loopt.",
+    "seeBattles": "Battles bekijken",
+    "endsIn": "Eindigt over"
+  },
+  "homeShops": {
+    "title": "Shops om te ontdekken",
+    "sub": "Onafhankelijke creators en wederverkopers, gerangschikt op echte verkopen.",
+    "allShops": "Alle shops",
+    "verified": "Geverifieerde verkoper",
+    "products": "{count, plural, one {# product} other {# producten}}",
+    "sold": "{count} verkocht"
   }
 }

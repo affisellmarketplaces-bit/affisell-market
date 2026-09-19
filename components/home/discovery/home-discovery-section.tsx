@@ -1,15 +1,21 @@
 "use client"
 
-import { ArrowRight, ChevronDown } from "lucide-react"
+import { ArrowRight, BadgeCheck, ChevronDown, Store, Zap } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 
 import { FastLink } from "@/components/navigation/fast-link"
+import { BattleTimer } from "@/components/pulse/BattleTimer"
+import { ScrollFadeRow } from "@/components/ui/scroll-fade-row"
+import type { FlashDeal, HomeShop } from "@/lib/home-flash-shops.server"
+import { bucketSalesCount, shouldShowBuyerSalesCount } from "@/lib/listing-sales-count"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { catalogFilterHref } from "@/lib/marketplace-catalog-nav.client"
 import { categoryRailHref } from "@/lib/marketplace-category-rail-href.client"
 import type { HomeCollection } from "@/lib/home-collections"
 import type { BrowseDepartmentTheme } from "@/lib/taxonomy/browse-departments-shared"
+import { useState } from "react"
+
 import { cn } from "@/lib/utils"
 
 export type DiscoveryEntry = { id: string; label: string; icon: string; categoryId: string; categorySlug: string; count: number }
@@ -141,14 +147,155 @@ function Directory({ groups }: { groups: DiscoveryGroup[] }) {
   )
 }
 
+/* ── Flash sales: live Pulse-battle winners, same legal presentation as the product page ───────────────── */
+function FlashCard({ deal, onExpire }: { deal: FlashDeal; onExpire: () => void }) {
+  const t = useTranslations("homeFlash")
+  const tOffer = useTranslations("product.offer")
+  return (
+    <FastLink
+      href={deal.href}
+      prefetch={false}
+      className="group block w-[15.5rem] shrink-0 snap-start rounded-2xl bg-[var(--glass-card)] p-3 shadow-[0_4px_18px_-8px_rgba(76,29,149,0.25)] ring-1 ring-white/70 outline-none transition hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-[#6D45E0]/70 motion-reduce:transform-none dark:ring-white/10"
+    >
+      <span className="relative block aspect-square overflow-hidden rounded-xl bg-[var(--glass-tile)]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={deal.image} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-contain p-2" />
+        <span className="absolute left-2 top-2 rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-black text-white">−{deal.pct}%</span>
+      </span>
+      <span className="mt-2 block line-clamp-2 min-h-[2.4rem] text-[14px] font-semibold leading-snug text-[color:var(--glass-text)]">{deal.title}</span>
+      <span className="mt-1 block text-xl font-black tabular-nums tracking-tight text-red-600 dark:text-red-400">
+        {formatStoreCurrencyFromCents(deal.flashPriceCents)}
+      </span>
+      <span className="block text-[11px] tabular-nums text-zinc-400 line-through">
+        {tOffer("usualPrice", { price: formatStoreCurrencyFromCents(deal.usualPriceCents) })}
+      </span>
+      {deal.referenceCents ? (
+        <span className="block text-[10px] leading-snug text-zinc-500">
+          {tOffer("lowest30d", { price: formatStoreCurrencyFromCents(deal.referenceCents) })}
+        </span>
+      ) : null}
+      <span className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-red-600 dark:text-red-400">
+        <Zap className="size-3.5" aria-hidden />
+        <span>{t("endsIn")}</span>
+        <BattleTimer endsAt={deal.endsAt} onEnd={onExpire} className="text-red-600 dark:text-red-400" />
+      </span>
+    </FastLink>
+  )
+}
+
+function FlashRail({ deals }: { deals: FlashDeal[] }) {
+  const t = useTranslations("homeFlash")
+  const [gone, setGone] = useState<Set<string>>(new Set())
+  const live = deals.filter((d) => !gone.has(d.key))
+  if (live.length === 0) return null
+  return (
+    <section aria-labelledby="home-flash-heading" className="min-w-0">
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div>
+          <h2 id="home-flash-heading" className="flex items-center gap-2 text-2xl font-bold tracking-tight text-[color:var(--glass-text)]">
+            <Zap className="size-6 fill-red-500 text-red-500" aria-hidden />
+            {t("title")}
+          </h2>
+          <p className="mt-1 text-[15px] text-[color:var(--glass-muted)]">{t("sub")}</p>
+        </div>
+        <FastLink href="/battles" className="shrink-0 rounded-md text-sm font-semibold text-[color:var(--glass-accent)] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-[#6D45E0]/70">
+          {t("seeBattles")}
+        </FastLink>
+      </div>
+      <div className={cn(PANEL, "p-3")}>
+        <ScrollFadeRow ariaLabel={t("title")} className="snap-x gap-4">
+          {live.map((d) => (
+            <FlashCard key={d.key} deal={d} onExpire={() => setGone((prev) => new Set(prev).add(d.key))} />
+          ))}
+        </ScrollFadeRow>
+      </div>
+    </section>
+  )
+}
+
+/* ── Shops to discover ─────────────────────────────────────────────────────────────────────────── */
+function ShopCard({ shop }: { shop: HomeShop }) {
+  const t = useTranslations("homeShops")
+  const sales = shouldShowBuyerSalesCount(shop.soldUnits) ? bucketSalesCount(shop.soldUnits) : null
+  return (
+    <FastLink
+      href={`/shops/${encodeURIComponent(shop.slug)}`}
+      className={cn(PANEL, "group flex min-w-0 items-center gap-3.5 p-4 outline-none transition hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-[#6D45E0]/70 motion-reduce:transform-none")}
+    >
+      <span
+        className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-xl font-bold text-white shadow-sm ring-1 ring-white/70"
+        style={{ backgroundColor: shop.accent }}
+        aria-hidden
+      >
+        {shop.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={shop.logoUrl} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" />
+        ) : (
+          shop.name.trim().charAt(0).toUpperCase()
+        )}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-1.5">
+          <span className="truncate text-[16px] font-bold text-[color:var(--glass-text)]">{shop.name}</span>
+          {shop.verified ? <BadgeCheck className="size-4 shrink-0 text-emerald-600" aria-label={t("verified")} /> : null}
+        </span>
+        <span className="mt-0.5 block text-[13px] text-[color:var(--glass-muted)]">
+          {t("products", { count: shop.listedCount })}
+          {sales ? ` · ${t("sold", { count: sales.plus ? `${sales.value}+` : sales.value })}` : ""}
+        </span>
+      </span>
+      <ArrowRight className="size-5 shrink-0 text-[color:var(--glass-accent)] transition-transform group-hover:translate-x-0.5" aria-hidden />
+    </FastLink>
+  )
+}
+
+function ShopsRail({ shops }: { shops: HomeShop[] }) {
+  const t = useTranslations("homeShops")
+  if (shops.length === 0) return null
+  return (
+    <section aria-labelledby="home-shops-heading" className="min-w-0">
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div>
+          <h2 id="home-shops-heading" className="flex items-center gap-2 text-2xl font-bold tracking-tight text-[color:var(--glass-text)]">
+            <Store className="size-6 text-[color:var(--glass-accent)]" aria-hidden />
+            {t("title")}
+          </h2>
+          <p className="mt-1 text-[15px] text-[color:var(--glass-muted)]">{t("sub")}</p>
+        </div>
+        <FastLink href="/shops" className="shrink-0 rounded-md text-sm font-semibold text-[color:var(--glass-accent)] outline-none hover:underline focus-visible:ring-2 focus-visible:ring-[#6D45E0]/70">
+          {t("allShops")}
+        </FastLink>
+      </div>
+      <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {shops.map((s) => (
+          <li key={s.slug} className="min-w-0">
+            <ShopCard shop={s} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 /** Below the fold of the glass catalog: real-product mosaics, budget collections and the full department directory. */
-export function HomeDiscoverySection({ collections, directory }: { collections: HomeCollection[]; directory: DiscoveryGroup[] }) {
+export function HomeDiscoverySection({
+  collections,
+  directory,
+  flash = [],
+  shops = [],
+}: {
+  collections: HomeCollection[]
+  directory: DiscoveryGroup[]
+  flash?: FlashDeal[]
+  shops?: HomeShop[]
+}) {
   const t = useTranslations("homeDiscovery")
-  if (collections.length === 0 && directory.length === 0) return null
+  if (collections.length === 0 && directory.length === 0 && flash.length === 0 && shops.length === 0) return null
   // Only claim "by department" when department mosaics actually exist; otherwise this is the budget section.
   const hasDepartments = collections.some((c) => c.kind === "category")
   return (
     <div className="min-w-0 space-y-8">
+      <FlashRail deals={flash} />
       {collections.length > 0 ? (
         <section aria-labelledby="home-collections-heading" className="min-w-0">
           <div className="mb-4">
@@ -164,6 +311,7 @@ export function HomeDiscoverySection({ collections, directory }: { collections: 
           </div>
         </section>
       ) : null}
+      <ShopsRail shops={shops} />
       <Directory groups={directory} />
     </div>
   )

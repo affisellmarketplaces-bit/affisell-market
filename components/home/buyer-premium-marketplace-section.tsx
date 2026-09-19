@@ -8,13 +8,14 @@ import { BuyerMarketplaceExplorer } from "@/components/home/BuyerMarketplaceExpl
 import { resolveAppLocale } from "@/lib/i18n-locale"
 import { loadHomeMarketplaceShellSafe } from "@/lib/home-marketplace-shell"
 import { loadHomeDiscoverySafe } from "@/lib/home-discovery.server"
+import { loadHomeFlashDealsSafe, loadHomeShopsSafe } from "@/lib/home-flash-shops.server"
 import { loadHomeBestSellers7dSafe } from "@/lib/public-home-data"
 import { resolveBuyerCardImageHref } from "@/lib/listing-card-image-shared"
 import { loadBrowseDepartmentsCached } from "@/lib/taxonomy/resolve-browse-departments.server"
 
 async function PremiumMarketplaceSection() {
   const locale = resolveAppLocale(await getLocale())
-  const [shell, browsePayload, trendingRaw, discovery] = await Promise.all([
+  const [shell, browsePayload, trendingRaw, discovery, flash, shops] = await Promise.all([
     loadHomeMarketplaceShellSafe(locale),
     loadBrowseDepartmentsCached(locale),
     // Best sellers of the week (confirmed sales). Never allowed to delay the home: 2.5s cap, empty on failure.
@@ -24,6 +25,9 @@ async function PremiumMarketplaceSection() {
     ]),
     // Cached 120s; capped at 3s and empty on failure — the section simply hides, it never blocks the home.
     loadHomeDiscoverySafe(locale),
+    // Live flash sales (15s cache) and shops (5min cache): both capped, both empty on failure.
+    loadHomeFlashDealsSafe(),
+    loadHomeShopsSafe(6),
   ])
   const trending = trendingRaw.map((p) => ({
     id: p.listingId,
@@ -40,7 +44,7 @@ async function PremiumMarketplaceSection() {
       shell={shell}
       browseDepartments={browseDepartments}
       trending={trending}
-      discovery={discovery}
+      discovery={{ ...discovery, flash, shops }}
       discoverSlot={
         <Suspense fallback={<div className="min-h-[18rem] animate-pulse rounded-2xl bg-slate-100" aria-hidden />}>
           <BentoGrid />

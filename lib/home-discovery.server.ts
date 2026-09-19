@@ -105,11 +105,11 @@ async function loadCollections(locale: AppLocale): Promise<HomeCollection[]> {
   const detailed: CollectionListing[] = ranked.flatMap((r) => {
     const row = byId.get(r.id)
     if (!row) return []
-    const image = resolveListingCardImageHref(
+    // No real source image → empty string, so the collection builder drops the tile (never a placeholder).
+    const rawImage =
       pickListingCardImageUrl(row.customImages ?? [], row.product.images ?? []) ??
-        (listingPrimaryImageUrl(row.customImages ?? [], row.product.images ?? []) || null),
-      row.id
-    )
+      (listingPrimaryImageUrl(row.customImages ?? [], row.product.images ?? []) || null)
+    const image = rawImage ? resolveListingCardImageHref(rawImage, row.id) : ""
     const slug = row.affiliate.store?.slug
     return [
       {

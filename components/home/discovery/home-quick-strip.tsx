@@ -2,6 +2,7 @@
 
 import { MapPin } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
+import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { ScrollFadeRow } from "@/components/ui/scroll-fade-row"
@@ -54,6 +55,9 @@ export function HomeQuickStrip() {
         </span>
       ) : null}
       <ScrollFadeRow ariaLabel={t("aria")} className="min-w-0 flex-1">
+        <Link href="/battles" className={cn(categoryPillClass(false), "max-lg:min-h-11")}>
+          ⚡ {t("flash")}
+        </Link>
         {quick.map((q) => {
           const active = sp.get(q.key) === q.value
           return (

@@ -7741,6 +7741,21 @@
     "brandNew": "Brand new",
     "refurbished": "Refurbished",
     "secondHand": "Second-hand",
-    "under": "Under {amount}"
+    "under": "Under {amount}",
+    "flash": "Flash deals"
+  },
+  "homeFlash": {
+    "title": "Flash sales",
+    "sub": "Prices unlocked by Battle winners — only while the timer runs.",
+    "seeBattles": "See Battles",
+    "endsIn": "Ends in"
+  },
+  "homeShops": {
+    "title": "Shops to discover",
+    "sub": "Independent creators and resellers, ranked by real sales.",
+    "allShops": "All shops",
+    "verified": "Verified merchant",
+    "products": "{count, plural, one {# product} other {# products}}",
+    "sold": "{count} sold"
   }
 }

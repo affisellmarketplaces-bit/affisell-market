@@ -12,6 +12,7 @@ import { ProductConditionFilterBar } from "@/components/ProductConditionFilterBa
 import { MarketplaceShipsToChip } from "@/components/marketplace/marketplace-ships-to-chip"
 import { normalizeHomeCatalogProduct } from "@/lib/home-catalog-product-href"
 import type { HomeCollection } from "@/lib/home-collections"
+import type { FlashDeal, HomeShop } from "@/lib/home-flash-shops.server"
 import type { HomeMarketplaceShell } from "@/lib/home-marketplace-shell"
 import type { PremiumCategoryItem } from "@/lib/marketplace-premium-home-shared"
 import type { ResolvedBrowseDepartment } from "@/lib/taxonomy/browse-departments-shared"
@@ -24,7 +25,7 @@ type Props = {
   /** Confirmed best sellers of the week (server-loaded, may be empty). */
   trending?: GlassTrend[]
   /** Real-product mosaics, budget collections and the department directory (may be empty). */
-  discovery?: { collections: HomeCollection[]; directory: DiscoveryGroup[] }
+  discovery?: { collections: HomeCollection[]; directory: DiscoveryGroup[]; flash: FlashDeal[]; shops: HomeShop[] }
 }
 
 function PremiumMarketplaceBody({
@@ -93,7 +94,12 @@ function PremiumMarketplaceBody({
       <div className="min-w-0">{discoverSlot}</div>
 
       {discovery ? (
-        <HomeDiscoverySection collections={discovery.collections} directory={discovery.directory} />
+        <HomeDiscoverySection
+          collections={discovery.collections}
+          directory={discovery.directory}
+          flash={discovery.flash}
+          shops={discovery.shops}
+        />
       ) : null}
 
       <PopularDepartmentsBar
