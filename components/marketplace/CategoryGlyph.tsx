@@ -20,8 +20,8 @@ type Props = {
   className?: string
   /** Dark glass sheet (mobile category drawer). */
   inSheet?: boolean
-  /** "soft": calm brand-tinted tile (no per-category rainbow) — used on light rails. */
-  tone?: "vivid" | "soft"
+  /** "soft": calm brand-tinted tile; "bare": outline icon only (category pills). */
+  tone?: "vivid" | "soft" | "bare"
 }
 
 export function CategoryGlyph({
@@ -36,6 +36,11 @@ export function CategoryGlyph({
   const meta = resolveCategoryGlyphMeta({ name, slug, fullPath })
   const Icon = meta.icon
   const s = SIZE_CLASS[size]
+
+  if (tone === "bare") {
+    // Outline icon only — colour comes from the parent (`currentColor`).
+    return <Icon className={cn("shrink-0", s.icon, className)} strokeWidth={1.75} aria-hidden />
+  }
 
   if (tone === "soft") {
     return (

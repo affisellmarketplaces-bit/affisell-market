@@ -12,6 +12,7 @@ import { FastLink } from "@/components/navigation/fast-link"
 import { CategoryGlyph } from "@/components/marketplace/CategoryGlyph"
 import { InfiniteMarquee } from "@/components/ui/infinite-marquee"
 import { affisellBrand } from "@/lib/affisell-brand"
+import { categoryPillClass, categoryPillIconClass } from "@/lib/category-pill-style"
 import { cn } from "@/lib/utils"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
@@ -38,15 +39,13 @@ function DepartmentRailItems({
           href={catalogFilterHref(catalogBasePath)}
           scroll={false}
           className={cn(
-            "inline-flex min-h-11 items-center rounded-full border px-3.5 py-2 text-xs font-semibold transition",
-            !activeCategoryId && !activeSubcategoryId
-              ? "border-violet-500 bg-violet-600 text-white shadow-md shadow-violet-500/25"
-              : "border-zinc-200/80 bg-white/90 text-zinc-700 hover:border-violet-300 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-200"
+            categoryPillClass(!activeCategoryId && !activeSubcategoryId),
+            "min-h-11"
           )}
         >
           {t("allCatalog")}
           {typeof data.catalogTotal === "number" ? (
-            <span className="ml-1 opacity-80">({data.catalogTotal})</span>
+            <span className="opacity-70">{data.catalogTotal}</span>
           ) : null}
         </FastLink>
         <FastLink
@@ -68,17 +67,17 @@ function DepartmentRailItems({
             <FastLink
               href={categoryRailHref(catalogBasePath, c)}
               scroll={false}
-              className={cn(
-                affisellBrand.quickLink,
-                "affisell-quick-link--buyer inline-flex min-h-11 shrink-0 items-center !rounded-full !py-2 text-xs",
-                on ? "ring-2 ring-violet-400 ring-offset-1 ring-offset-violet-50 dark:ring-offset-zinc-950" : ""
-              )}
+              className={cn(categoryPillClass(on), "min-h-11")}
             >
-              <CategoryGlyph name={c.name} slug={c.slug} icon={c.icon} size="xs" tone="soft" />
-              <span className="max-w-[10rem] truncate">
-                {c.name}
-                {c.count > 0 ? <span className="ml-1 opacity-70">({c.count})</span> : null}
-              </span>
+              <CategoryGlyph
+                name={c.name}
+                slug={c.slug}
+                icon={c.icon}
+                size="lg"
+                tone="bare"
+                className={categoryPillIconClass(on)}
+              />
+              <span className="max-w-[10rem] truncate">{c.name}</span>
             </FastLink>
             <FastLink
               href={discoverSwipeHref({ category: c.id })}

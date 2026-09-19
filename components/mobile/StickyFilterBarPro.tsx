@@ -14,6 +14,7 @@ import { buyerHaptic } from "@/lib/buyer-haptics"
 import { catalogFilterHref } from "@/lib/marketplace-catalog-nav.client"
 import { categoryRailHref } from "@/lib/marketplace-category-rail-href.client"
 import { MARKETPLACE_OFFER_FACET_KEY } from "@/lib/marketplace-discovery-facets-shared"
+import { categoryPillIconClass } from "@/lib/category-pill-style"
 import { cn } from "@/lib/utils"
 
 type Cat = { id: string; name: string; icon: string; slug: string; count: number }
@@ -130,16 +131,18 @@ export function StickyFilterBarPro({
                   scroll={false}
                   className={cn(
                     "inline-flex h-7 w-[7.5rem] shrink-0 items-center justify-center gap-1 truncate rounded-full px-2 text-[11px] font-semibold",
-                    on
-                      ? "bg-violet-600 text-white"
-                      : "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100"
+                    on ? "bg-[#6728E8] text-white" : "bg-[#8B6ED6]/[0.22] text-[#03020F]"
                   )}
                 >
-                  <CategoryGlyph name={c.name} slug={c.slug} icon={c.icon} size="xs" tone="soft" />
-                  <span className="truncate">
-                    {c.name}
-                    {c.count > 0 ? <span className="opacity-70">({c.count})</span> : null}
-                  </span>
+                  <CategoryGlyph
+                    name={c.name}
+                    slug={c.slug}
+                    icon={c.icon}
+                    size="xs"
+                    tone="bare"
+                    className={categoryPillIconClass(on)}
+                  />
+                  <span className="truncate">{c.name}</span>
                 </FastLink>
               )
             })}

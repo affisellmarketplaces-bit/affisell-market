@@ -14,6 +14,7 @@ import {
 } from "@/lib/marketplace-category-rail-href.client"
 import { PREMIUM_MARKETPLACE_HOME } from "@/lib/marketplace-premium-home-shared"
 import type { ResolvedBrowseDepartment } from "@/lib/taxonomy/browse-departments-shared"
+import { CATEGORY_PILL_BAND, categoryPillClass, categoryPillIconClass } from "@/lib/category-pill-style"
 import { cn } from "@/lib/utils"
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json())
@@ -50,7 +51,8 @@ export function PopularDepartmentsBar({
 
   return (
     <section className={cn(
-        "rounded-2xl border border-white/70 bg-white/55 px-3 py-3 shadow-[0_8px_32px_-12px_rgba(76,29,149,0.22),inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl backdrop-saturate-150",
+        CATEGORY_PILL_BAND,
+        "rounded-2xl border border-white/60 px-3 py-3 shadow-[0_8px_32px_-12px_rgba(76,29,149,0.22)]",
         className
       )}
       aria-label={t("popularTitle")}>
@@ -91,16 +93,16 @@ export function PopularDepartmentsBar({
               key={dept.id}
               href={browseDepartmentRailHref(catalogBasePath, dept)}
               scroll={!softNav}
-              className={cn(
-                "group inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full py-1.5 pl-1.5 pr-3.5 text-xs font-semibold backdrop-blur-md transition hover:-translate-y-px hover:shadow-md",
-                active
-                  ? "text-white ring-2 ring-violet-400 ring-offset-1"
-                  : "bg-white/70 text-zinc-800 ring-1 ring-violet-200/60 hover:bg-white/90 hover:ring-violet-300"
-              )}
-              style={active ? { backgroundImage: PREMIUM_MARKETPLACE_HOME.heroGradient } : undefined}
+              className={categoryPillClass(active)}
               lang={locale}
             >
-              <CategoryGlyph name={dept.label} icon={dept.icon} size="md" tone="soft" />
+              <CategoryGlyph
+                name={dept.label}
+                icon={dept.icon}
+                size="lg"
+                tone="bare"
+                className={categoryPillIconClass(active)}
+              />
               {dept.label}
             </FastLink>
           )

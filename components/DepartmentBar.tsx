@@ -12,6 +12,7 @@ import {
   PREMIUM_MARKETPLACE_HOME,
   type PremiumCategoryItem,
 } from "@/lib/marketplace-premium-home-shared"
+import { CATEGORY_PILL_BAND, categoryPillClass, categoryPillIconClass } from "@/lib/category-pill-style"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -35,7 +36,8 @@ export function DepartmentBar({
   return (
     <section
       className={cn(
-        "rounded-2xl border border-white/70 bg-white/55 p-3 shadow-[0_8px_32px_-12px_rgba(76,29,149,0.25),inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-xl backdrop-saturate-150",
+        CATEGORY_PILL_BAND,
+        "rounded-2xl border border-white/60 p-3 shadow-[0_8px_32px_-12px_rgba(76,29,149,0.22)]",
         className
       )}
       aria-label={t("title")}
@@ -72,14 +74,10 @@ export function DepartmentBar({
         <FastLink
           href={catalogFilterHref(catalogBasePath)}
           scroll={false}
-          className={cn(
-            "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold text-white transition",
-            allActive ? "shadow-md" : "opacity-90 hover:opacity-100"
-          )}
-          style={{ backgroundColor: PREMIUM_MARKETPLACE_HOME.conditionActive }}
+          className={categoryPillClass(allActive)}
         >
           {t("all")}
-          <span className="opacity-90">({catalogTotal})</span>
+          <span className={allActive ? "text-white/80" : "text-[#03020F]/55"}>{catalogTotal}</span>
         </FastLink>
 
         {categories.map((cat) => {
@@ -89,18 +87,17 @@ export function DepartmentBar({
               key={cat.id}
               href={categoryRailHref(catalogBasePath, cat)}
               scroll={false}
-              className={cn(
-                "group inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full py-1.5 pl-1.5 pr-3.5 text-xs font-semibold text-zinc-800 backdrop-blur-md transition hover:-translate-y-px hover:shadow-md",
-                active
-                  ? "bg-violet-50/90 ring-2 ring-violet-500"
-                  : "bg-white/70 ring-1 ring-violet-200/60 hover:bg-white/90 hover:ring-violet-300"
-              )}
+              className={categoryPillClass(active)}
             >
-              <CategoryGlyph name={cat.name} slug={cat.slug} icon={cat.icon} size="md" tone="soft" />
+              <CategoryGlyph
+                name={cat.name}
+                slug={cat.slug}
+                icon={cat.icon}
+                size="lg"
+                tone="bare"
+                className={categoryPillIconClass(active)}
+              />
               {cat.name}
-              {cat.count > 0 ? (
-                <span className="text-[11px] font-medium tabular-nums text-zinc-500">{cat.count}</span>
-              ) : null}
             </FastLink>
           )
         })}
