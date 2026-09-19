@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest"
 
 import {
   ALIEXPRESS_OAUTH_START_PATH,
+  aliExpressOAuthReconnectHint,
   classifyAliExpressTokenError,
   isAliExpressIllegalAccessTokenError,
+  shouldOfferAliExpressOAuthReconnect,
 } from "@/lib/aliexpress-token-errors"
 
 describe("aliexpress-token-errors", () => {
@@ -16,6 +18,24 @@ describe("aliexpress-token-errors", () => {
 
   it("exposes oauth start path", () => {
     expect(ALIEXPRESS_OAUTH_START_PATH).toBe("/api/aliexpress/oauth/start")
+  })
+
+  it("classifies transient outages as unavailable — no OAuth reconnect CTA", () => {
+    expect(classifyAliExpressTokenError("AliExpress token store temporarily unavailable: x")).toBe(
+      "unavailable"
+    )
+    expect(classifyAliExpressTokenError("AliExpress token refresh timed out")).toBe("unavailable")
+    expect(classifyAliExpressTokenError("HTTP 503 from gateway")).toBe("unavailable")
+    expect(classifyAliExpressTokenError("fetch failed")).toBe("unavailable")
+    expect(shouldOfferAliExpressOAuthReconnect("unavailable")).toBe(false)
+    expect(aliExpressOAuthReconnectHint("unavailable")).toMatch(/aucune reconnexion nécessaire/i)
+  })
+
+  it("still offers OAuth reconnect for real auth failures", () => {
+    expect(shouldOfferAliExpressOAuthReconnect("expired_access")).toBe(true)
+    expect(shouldOfferAliExpressOAuthReconnect("refresh_failed")).toBe(true)
+    expect(shouldOfferAliExpressOAuthReconnect("missing")).toBe(true)
+    expect(shouldOfferAliExpressOAuthReconnect(null)).toBe(false)
   })
 })
 

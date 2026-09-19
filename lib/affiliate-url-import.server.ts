@@ -23,6 +23,7 @@ import {
   ALIEXPRESS_OAUTH_START_PATH,
   classifyAliExpressTokenError,
   resolveDropForgeApiError,
+  shouldOfferAliExpressOAuthReconnect,
 } from "@/lib/aliexpress-token-errors"
 import {
   catalogProductHasActiveSupplierLink,
@@ -583,7 +584,9 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
       status: 422,
       marketplaceLabel: market.label,
       useBrowserCapture,
-      ...(tokenKind ? { oauthReconnectUrl: ALIEXPRESS_OAUTH_START_PATH } : {}),
+      ...(shouldOfferAliExpressOAuthReconnect(tokenKind)
+        ? { oauthReconnectUrl: ALIEXPRESS_OAUTH_START_PATH }
+        : {}),
     }
   }
 
@@ -634,7 +637,9 @@ export async function previewResellerUrlImport(rawUrl: string): Promise<
       marketplaceLabel: market.label,
       useBrowserCapture:
         market.preferAliExpressApi && Boolean(parseAliExpressProductId(url)),
-      ...(tokenKind ? { oauthReconnectUrl: ALIEXPRESS_OAUTH_START_PATH } : {}),
+      ...(shouldOfferAliExpressOAuthReconnect(tokenKind)
+        ? { oauthReconnectUrl: ALIEXPRESS_OAUTH_START_PATH }
+        : {}),
     }
   }
 

@@ -10,6 +10,7 @@ import {
   ALIEXPRESS_OAUTH_START_PATH,
   aliExpressOAuthReconnectHint,
   classifyAliExpressTokenError,
+  shouldOfferAliExpressOAuthReconnect,
 } from "@/lib/aliexpress-token-errors"
 
 const DEFAULT_PROBE_PRODUCT_ID = "1005008719608144"
@@ -23,7 +24,8 @@ export type AliExpressDsProbeResult = {
   productId: string
   error: string | null
   tokenErrorKind: ReturnType<typeof classifyAliExpressTokenError>
-  oauthReconnectUrl: string
+  /** Present only when OAuth reconnect is the right action (never for transient outages). */
+  oauthReconnectUrl: string | null
   hint: string | null
 }
 
@@ -32,7 +34,6 @@ export async function probeAliExpressDsConnection(
   productId: string = DEFAULT_PROBE_PRODUCT_ID
 ): Promise<AliExpressDsProbeResult> {
   const id = parseAliExpressProductId(productId) ?? productId.trim()
-  const oauthReconnectUrl = ALIEXPRESS_OAUTH_START_PATH
   const status = await getAliExpressApiReadyStatus()
 
   if (!status.configured) {
@@ -45,7 +46,7 @@ export async function probeAliExpressDsConnection(
       productId: id,
       error: status.message,
       tokenErrorKind: "missing",
-      oauthReconnectUrl,
+      oauthReconnectUrl: ALIEXPRESS_OAUTH_START_PATH,
       hint: aliExpressOAuthReconnectHint("missing"),
     }
   }
@@ -68,7 +69,7 @@ export async function probeAliExpressDsConnection(
       productId: id,
       error: null,
       tokenErrorKind: null,
-      oauthReconnectUrl,
+      oauthReconnectUrl: null,
       hint: null,
     }
   } catch (e) {
@@ -89,7 +90,9 @@ export async function probeAliExpressDsConnection(
       productId: id,
       error: message,
       tokenErrorKind,
-      oauthReconnectUrl,
+      oauthReconnectUrl: shouldOfferAliExpressOAuthReconnect(tokenErrorKind)
+        ? ALIEXPRESS_OAUTH_START_PATH
+        : null,
       hint: aliExpressOAuthReconnectHint(tokenErrorKind) || message.slice(0, 240),
     }
   }
