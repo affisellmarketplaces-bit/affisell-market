@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { dedupeMerchantNotifications } from "@/lib/merchant-notifications-dedupe"
 import { loadNotificationOrderSummaries } from "@/lib/merchant-notification-order-summary"
 import { prisma } from "@/lib/prisma"
+import { assertNoSupplierRetailLeak } from "@/lib/supplier-retail-veil"
 import {
   enrichSupplierNotificationRows,
   loadSupplierToShipSnapshot,
@@ -113,6 +114,8 @@ export async function GET(req: Request) {
       })),
     }
 
+    // Fail closed: reseller / buyer retail never crosses to a supplier client.
+    assertNoSupplierRetailLeak(payload)
     writeSupplierNotificationsDevCache(session.user.id, payload)
     return Response.json(payload)
   } catch (error) {

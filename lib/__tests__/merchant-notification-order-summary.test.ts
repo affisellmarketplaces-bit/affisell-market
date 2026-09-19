@@ -5,6 +5,7 @@ vi.mock("server-only", () => ({}))
 const findMany = vi.hoisted(() => vi.fn())
 vi.mock("@/lib/prisma", () => ({ prisma: { order: { findMany } } }))
 
+import { collectSupplierRetailLeaks } from "@/lib/supplier-retail-veil"
 import { loadNotificationOrderSummaries } from "@/lib/merchant-notification-order-summary"
 
 const row = {
@@ -22,7 +23,8 @@ describe("loadNotificationOrderSummaries — resale price stays private", () => 
   it("never exposes the buyer-paid amount to a supplier, and scopes to supplierId", async () => {
     findMany.mockResolvedValueOnce([row])
     const out = await loadNotificationOrderSummaries("sup1", [row.id], "SUPPLIER")
-    expect(out.get(row.id)?.totalCents).toBeNull()
+    expect(out.get(row.id)).not.toHaveProperty("totalCents")
+    expect(collectSupplierRetailLeaks([...out.values()])).toEqual([])
     expect(findMany.mock.calls[0][0].where).toMatchObject({ supplierId: "sup1" })
     expect(findMany.mock.calls[0][0].where.affiliateId).toBeUndefined()
   })

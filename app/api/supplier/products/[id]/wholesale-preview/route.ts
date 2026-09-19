@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { previewWholesaleChangeFromDraft } from "@/lib/supplier-wholesale-change-preview"
 import { prisma } from "@/lib/prisma"
+import { assertNoSupplierRetailLeak } from "@/lib/supplier-retail-veil"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -79,5 +80,6 @@ export async function POST(
     affiliateListingsLive: preview.affiliateListingsLive,
   })
 
+  assertNoSupplierRetailLeak(preview)
   return Response.json(preview)
 }

@@ -268,7 +268,7 @@ function OrderProductLine({
           </span>
         ) : null}
         <span className="tabular-nums">×{order.quantity}</span>
-        {order.totalCents != null ? (
+        {order.totalCents !== undefined ? (
           <>
             <span aria-hidden>·</span>
             <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">

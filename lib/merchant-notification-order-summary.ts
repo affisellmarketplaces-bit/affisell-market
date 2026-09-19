@@ -37,16 +37,17 @@ export async function loadNotificationOrderSummaries(
       },
     })
     for (const o of rows) {
-      out.set(o.id, {
+      const summary: MerchantNotificationOrderSummary = {
         productName: o.product.name,
         imageUrl: lightImage(o.variantImageUrl) ?? lightImage(primaryProductImage(o.product.images)),
         quantity: o.quantity,
         variantLabel: o.variantLabel?.trim() || null,
-        // Suppliers never see the reseller's resale price / what the buyer paid.
-        totalCents: role === "SUPPLIER" ? null : (o.totalCents ?? o.sellingPriceCents * o.quantity),
         status: o.status,
         ref: o.id.slice(-6).toUpperCase(),
-      })
+      }
+      // Suppliers never see the reseller's resale price / what the buyer paid — the key must not exist at all.
+      if (role === "AFFILIATE") summary.totalCents = o.totalCents ?? o.sellingPriceCents * o.quantity
+      out.set(o.id, summary)
     }
   } catch (error) {
     console.error("[notification-order-summary]", error instanceof Error ? error.message : error)
