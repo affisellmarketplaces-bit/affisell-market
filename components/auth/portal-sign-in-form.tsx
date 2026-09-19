@@ -223,13 +223,13 @@ export function PortalSignInForm({
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-600 dark:text-zinc-400">
-          <Link href={signupHref} className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
+          <Link href={signupHref} className="touch-hit-y font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
             {resolvedSignupLabel}
           </Link>
           {signInHref && signInLabel ? (
             <>
               {" · "}
-              <Link href={signInHref} className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
+              <Link href={signInHref} className="touch-hit-y font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
                 {signInLabel}
               </Link>
             </>

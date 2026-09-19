@@ -44,7 +44,7 @@ export function BuyerHeroSearch({ premium = false }: Props) {
         className={cn(
           "h-12 w-full min-w-0 rounded-full border border-white bg-white pl-11 text-sm outline-none placeholder:text-zinc-400 focus:ring-4 focus:ring-[rgba(67,56,202,0.18)] sm:h-14 sm:text-base dark:text-zinc-50",
           premium
-            ? "pr-[9.5rem] shadow-[0_12px_40px_rgba(79,70,229,0.14)] sm:pr-[11.5rem]"
+            ? "pr-14 shadow-[0_12px_40px_rgba(79,70,229,0.14)] sm:pr-[11.5rem]"
             : "pr-[4.75rem] sm:pr-28"
         )}
         style={
@@ -65,13 +65,16 @@ export function BuyerHeroSearch({ premium = false }: Props) {
         className={cn(
           "absolute right-1.5 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full font-semibold text-white transition-all duration-200 active:scale-95",
           premium
-            ? cn("h-10 rounded-full px-4 text-xs sm:h-11 sm:px-5 sm:text-sm", buyerPremiumCtaClass)
+            ? cn("h-11 w-11 rounded-full px-0 text-xs sm:h-11 sm:w-auto sm:px-5 sm:text-sm", buyerPremiumCtaClass)
             : "affisell-premium-cta h-11 min-w-11 rounded-[1.05rem] px-3 text-sm sm:right-2 sm:h-10 sm:min-w-0 sm:px-5"
         )}
         aria-label={premium ? t("searchSubmitPremium") : t("searchSubmit")}
       >
         {premium ? (
-          <span>{t("searchSubmitPremium")}</span>
+          <>
+            <Search className="h-5 w-5 sm:hidden" aria-hidden />
+            <span className="hidden sm:inline">{t("searchSubmitPremium")}</span>
+          </>
         ) : (
           <>
             <Search className="h-4 w-4 sm:hidden" aria-hidden />

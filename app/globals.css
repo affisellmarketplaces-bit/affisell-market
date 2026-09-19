@@ -4063,4 +4063,44 @@ button,
   body:has([data-affisell-mobile-buy="dock"]) .affisell-dona-fab {
     bottom: calc(env(safe-area-inset-bottom, 0px) + 5.75rem);
   }
+  /* Cart: the sticky checkout bar sits above the dock — lift the FAB above both. */
+  body:has([data-affisell-mobile-checkout-bar]) .affisell-dona-fab {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 10.5rem);
+  }
+}
+
+/* Touch targets: keep the compact visuals, enlarge only the hit area to ≥44px (WCAG 2.5.5 / HIG). */
+.touch-hit,
+.touch-hit-y {
+  position: relative;
+}
+.touch-hit::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+}
+.touch-hit-y::after {
+  content: "";
+  position: absolute;
+  inset: -12px -4px;
+}
+@media (min-width: 768px) {
+  .touch-hit::after,
+  .touch-hit-y::after {
+    content: none;
+  }
+}
+
+/* Phones: stacked footer links and legal chips need real tap room. */
+@media (max-width: 767px) {
+  .affisell-site-footer a {
+    min-height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .affisell-site-footer .affisell-premium-legal-chip {
+    min-height: 2.25rem;
+    font-size: 11px;
+  }
 }

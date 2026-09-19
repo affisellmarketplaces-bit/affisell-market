@@ -35,7 +35,7 @@ function FooterAccordion({
 }) {
   const panelId = `footer-panel-${section.id}`
   return (
-    <div className="border-b border-white/10 last:border-b-0">
+    <div className="border-b border-white/10 px-4 last:border-b-0">
       <button
         type="button"
         id={`footer-trigger-${section.id}`}

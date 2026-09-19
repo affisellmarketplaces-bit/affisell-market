@@ -34,7 +34,7 @@ export function PasswordResetForgotLink({ portal = null, className, variant = "i
     <Link
       href={forgotPasswordHref(portal)}
       className={cn(
-        "text-sm font-medium text-violet-400 underline-offset-4 transition hover:text-violet-300 hover:underline",
+        "touch-hit-y text-sm font-medium text-violet-400 underline-offset-4 transition hover:text-violet-300 hover:underline",
         className
       )}
     >

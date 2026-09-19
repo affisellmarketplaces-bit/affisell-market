@@ -27,6 +27,7 @@ export function MobileCartCheckoutBar({
 }: Props) {
   return (
     <div
+      data-affisell-mobile-checkout-bar
       className={cn(
         "fixed inset-x-0 z-[90] md:hidden",
         "border-t border-violet-500/25 bg-white/95 backdrop-blur-xl dark:bg-zinc-950/95",

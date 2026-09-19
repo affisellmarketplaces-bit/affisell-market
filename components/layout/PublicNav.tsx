@@ -53,7 +53,7 @@ const ACCOUNT_ICONS = {
 } as const
 
 const mobileIconBtn =
-  "inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-zinc-200/80 bg-zinc-100/90 text-zinc-800 shadow-sm transition active:scale-95 dark:border-zinc-700/80 dark:bg-zinc-900/90 dark:text-zinc-100"
+  "touch-hit inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-zinc-200/80 bg-zinc-100/90 text-zinc-800 shadow-sm transition active:scale-95 dark:border-zinc-700/80 dark:bg-zinc-900/90 dark:text-zinc-100"
 
 function isAccountNavActive(pathname: string, href: string, exact?: boolean): boolean {
   if (exact) return pathname === href
@@ -200,7 +200,7 @@ export function PublicNav({ landingPills = false }: PublicNavProps) {
         ) : null}
         <FastLink
           href="/cart"
-          className="relative inline-flex size-9 items-center justify-center rounded-full bg-violet-600 text-white shadow-md shadow-violet-500/30 transition active:scale-95 hover:bg-violet-700"
+          className="touch-hit relative inline-flex size-9 items-center justify-center rounded-full bg-violet-600 text-white shadow-md shadow-violet-500/30 transition active:scale-95 hover:bg-violet-700"
           aria-label={cartAria}
         >
           <ShoppingCart className="size-[18px] shrink-0" aria-hidden />
