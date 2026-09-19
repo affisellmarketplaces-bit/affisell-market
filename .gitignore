@@ -79,3 +79,6 @@ medusa-backend/.medusa-dev.lock
 
 # Turborepo
 .turbo/
+
+# Backups written by scripts/rotate-db-password.mjs (contain the OLD password)
+.env*.bak-before-rotate
