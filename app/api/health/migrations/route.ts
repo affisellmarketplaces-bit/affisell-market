@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
+/** `to_regclass` returns the `regclass` type, which Prisma cannot deserialize: always cast to text. */
 type RegclassRow = { to_regclass: string | null }
 
 /**
@@ -14,8 +15,8 @@ type RegclassRow = { to_regclass: string | null }
 export async function GET() {
   try {
     const checks = await Promise.all([
-      prisma.$queryRaw<RegclassRow[]>`SELECT to_regclass('public."PulseBattle"')`,
-      prisma.$queryRaw<RegclassRow[]>`SELECT to_regclass('public."StockCheckLog"')`,
+      prisma.$queryRaw<RegclassRow[]>`SELECT to_regclass('public."PulseBattle"')::text AS to_regclass`,
+      prisma.$queryRaw<RegclassRow[]>`SELECT to_regclass('public."StockCheckLog"')::text AS to_regclass`,
     ])
 
     return NextResponse.json({
