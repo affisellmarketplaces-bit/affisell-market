@@ -1876,7 +1876,7 @@
       }
     },
     "opportunityPulse": {
-      "eyebrow": "Opportunity Pulse",
+      "eyebrow": "Chancen-Puls",
       "title": "Angesagte SKUs zum Listen",
       "hint": "Andere Reseller sehen sich diese Produkte an — liste sie, bevor sie es tun.",
       "watchingOne": "{count} Reseller sieht sich dieses SKU an",
@@ -2421,7 +2421,7 @@
       "emptyCategory": "Keine gelisteten Produkte in {name} vorhanden.",
       "feedLoadFailed": "Konnte die Feed nicht laden",
       "genericError": "Etwas ist schiefgelaufen",
-      "viewDetails": "View product details",
+      "viewDetails": "Produktdetails ansehen",
       "saveDropRemoved": "Von der Wunschliste entfernt",
       "buyFailed": "Checkout fehlgeschlagen — erneut versuchen",
       "outOfStock": "Nicht auf Lager",
@@ -2669,7 +2669,7 @@
       "greetingHello": "Hallo",
       "myCatalog": "Mein Katalog",
       "myCatalogHint": "SKUs, Lager & Partner-Listings",
-      "myCatalogSkuCount": "{count, plural, one {# SKU} other {# SKUs}}",
+      "myCatalogSkuCount": "{count, plural, one {# Artikel} other {# Artikel}}",
       "myCatalogDraftCount": "{count, plural, one {# Entwurf} other {# Entwürfe}}",
       "myCatalogLowStock": "{count, plural, one {# niedriger Bestand} other {# niedrige Bestände}}",
       "myCatalogOpen": "Öffnen",
@@ -4037,15 +4037,15 @@
     "title": "Reservierung bestätigt",
     "titleService": "Termin bestätigt",
     "titleExperience": "Tickets bestätigt",
-    "titleRestaurant": "Reservation confirmed",
-    "titleMuseum": "Visit confirmed",
+    "titleRestaurant": "Reservierung bestätigt",
+    "titleMuseum": "Besuch bestätigt",
     "subtitle": "Zeigen Sie diesen Pass beim Check-in — persönlicher QR, nicht öffentlich teilen.",
     "orderRef": "Bestellung {id}… · ×{qty}",
     "seatsLabel": "Plätze",
     "confirmedAt": "Bestätigt · {date}",
     "myOrders": "Meine Bestellungen",
     "qrAlt": "QR-Code Buchungspass",
-    "addToCalendar": "Add to calendar"
+    "addToCalendar": "Zum Kalender hinzufügen"
   },
   "Product": {
     "booking": {
@@ -5249,7 +5249,7 @@
     "curationNote": "Nur Produkte mit Affisell Luxe aktiviert durch den Lieferanten erscheinen hier (sobald sie von einem Affiliate aufgeführt werden)."
   },
   "sponsorBoost": {
-    "eyebrow": "Affisell Placement",
+    "eyebrow": "Affisell-Platzierung",
     "title": "Intelligente Werbung",
     "subtitleSupplier": "Premium-Platzierung auf allen Affiliate-Storefronts. Du zahlst nur einen Prozentsatz (netto), nachdem ein Verkauf abgeschlossen ist — kein Vorabbudget. (Unterscheidet sich von Légion Battle 2h.)",
     "subtitleAffiliate": "Bring dein Angebot nach oben. Der Prozentsatz wird nur berechnet, wenn eine Bestellung bezahlt wird. Live-Platzierungswert.",
@@ -6668,7 +6668,7 @@
     "title": "Gerade als nicht vorrätig bestätigt",
     "bodyNamed": "Wir haben gerade beim Lieferanten nachgefragt — {name} ist nicht mehr vorrätig. Dir wurde nichts berechnet.",
     "bodyGeneric": "Wir haben gerade beim Lieferanten nachgefragt: Dieses Produkt ist nicht mehr vorrätig. Dir wurde nichts berechnet.",
-    "couponLabel": "Code {coupon} (−15%)",
+    "couponLabel": "Code {coupon} (−15 %)",
     "copied": "Kopiert",
     "copy": "Kopieren",
     "copySuccess": "Code {coupon} kopiert",
@@ -6694,7 +6694,7 @@
       "dialogLabel": "Captain Dona — privater Modus",
       "headerTitle": "Captain Dona — AFFISELL KI-CAPTAIN",
       "captainBadge": "CAPTAIN ONLINE",
-      "captainEnvBadge": "CAPTAIN · {env}",
+      "captainEnvBadge": "KAPITÄN · {env}",
       "typing": "Dona berät sich mit dem Schiff…",
       "toolConsult": "🔍 Schiffsberatung: {name}",
       "placeholder": "Bestellungen, Captain?…",
@@ -6796,7 +6796,7 @@
     "selectAria": "{title} auswählen",
     "request": "Anfragen",
     "noWinners": "Keine Winner für diesen Filter.",
-    "trendingTitle": "Trending Keywords — {country}",
+    "trendingTitle": "Trend-Keywords — {country}",
     "trendingSubtitle": "Stark wachsende Keywords — alle 6 Std. aktualisiert.",
     "perMonth": "{n}/Monat",
     "scanNever": "nie",
@@ -7377,5 +7377,54 @@
     "shops": "Wiederverkäufer-Shops",
     "swipe": "Swipe Feed",
     "battle": "Pulse Battle"
+  },
+  "pricingGrowth": {
+    "monthly": "Monatlich",
+    "annual": "Jährlich",
+    "perMonth": "Monat",
+    "perYear": "Jahr",
+    "mostChosen": "Am beliebtesten",
+    "recommendedForYou": "Für dich empfohlen",
+    "wholesaleRadar": "Großhandels-Radar",
+    "wholesaleRadarRecommended": "Großhandels-Radar - Für dich empfohlen",
+    "profileDetected": "Profil erkannt:",
+    "producer": "Hersteller",
+    "recommendedPlanHighlighted": "empfohlener Plan hervorgehoben.",
+    "lanceur": {
+      "audience": "Für Wiederverkäufer",
+      "cta": "Mit dem Verkauf starten",
+      "f": [
+        "50 Gewinnerprodukte / Woche (FR · ES)",
+        "Katalogimport mit 1 Klick in deinen Shop",
+        "Bis zu 100 Bestellungen / Monat reibungslos",
+        "Affisell-Scoring: Marge, Sättigung, Tempo",
+        "Discord-Support der Wiederverkäufer-Community",
+        "Perfekt, um eine Nische in 7 Tagen zu validieren"
+      ]
+    },
+    "dominator": {
+      "audience": "Für Großhändler",
+      "cta": "Dominator werden",
+      "f": [
+        "Alles aus Lanceur, ohne Bestelllimit",
+        "Großhandels-Radar — GMC-Sourcing & Heißlager",
+        "FR-Lager + zertifizierte Lieferung in 24/48 h",
+        "Algorithmus-Priorität: mehr Wiederverkäufer-Views",
+        "Unbegrenzter Katalog + Bestandssync",
+        "Priorisierter Support (Business-SLA)"
+      ]
+    },
+    "empire": {
+      "audience": "Für Marken",
+      "cta": "Mein Empire aufbauen",
+      "f": [
+        "Alles aus Dominator inklusive",
+        "Defense-Cockpit — Preiskontrolle & MAP",
+        "Markenschutz auf Marktplätzen",
+        "Zugang zu Affisells Top-20-Wiederverkäufern",
+        "1 Std. strategisches Coaching / Monat",
+        "Empire-Reporting für Wachstum ohne Verwässerung"
+      ]
+    }
   }
 }

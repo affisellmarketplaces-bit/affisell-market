@@ -1457,7 +1457,7 @@
         "pageTitle": "Elenco ospiti e check-in",
         "pageDescription": "Scansiona o incolla il pass di un acquirente per convalidare l'ingresso. Vedi chi ha prenotato ogni fascia e segna gli arrivi.",
         "backToDashboard": "Torna alla dashboard",
-        "awaitingCheckIn": "{count} awaiting check-in",
+        "awaitingCheckIn": "{count} in attesa di check-in",
         "checkInTitle": "Scanner di check-in",
         "checkInHint": "Scansiona il pass QR dell'acquirente con la fotocamera o incolla l'URL qui sotto.",
         "cameraScanCta": "Scansiona QR",
@@ -1876,7 +1876,7 @@
       }
     },
     "opportunityPulse": {
-      "eyebrow": "Opportunity Pulse",
+      "eyebrow": "Polso delle opportunità",
       "title": "SKU di tendenza da pubblicare",
       "hint": "Altri rivenditori stanno visualizzando questi prodotti — pubblicali prima di loro.",
       "watchingOne": "{count} rivenditore sta visualizzando questo SKU",
@@ -4064,7 +4064,7 @@
       "loadError": "Impossibile caricare le fasce. Ricarica la pagina.",
       "noSlots": "Nessuna fascia disponibile al momento — riprova presto.",
       "seatsLeft": "{count, plural, one {# posto rimasto} other {# posti rimasti}}",
-      "capacityTotal": "{count} seats total",
+      "capacityTotal": "{count} posti in totale",
       "selectSlotRequired": "Scegli prima una fascia per l'appuntamento.",
       "seatMapTitle": "Seat map",
       "seatMapHint": "Verde = disponibile · ambra = i tuoi biglietti · grigio = occupato o trattenuto.",
@@ -4072,14 +4072,14 @@
       "seatMapYours": "Your selection",
       "seatMapTaken": "Taken / held",
       "seatMapTruncated": "Visualizzati i primi {total} posti — il selettore di quantità imposta i tuoi biglietti.",
-      "seatMapAria": "{free} seats free of {total}",
+      "seatMapAria": "{free} posti liberi su {total}",
       "seatMapNamedHint": "Tocca i posti per selezionarli — etichette come A12 compaiono sul tuo pass.",
       "seatMapCinemaHint": "Scegli i tuoi posti — file VIP in viola, corridoi al centro.",
       "seatMapScreen": "Schermo",
       "seatMapVip": "VIP",
       "loadingSeatMap": "Caricamento mappa dei posti…",
       "selectSeatsRequired": "Scegli almeno un posto sulla mappa.",
-      "selectedSeats": "{count} seat(s): {labels}",
+      "selectedSeats": "{count} posto/i: {labels}",
       "seatLabelAria": "Posto {label} — {status}",
       "waitlistTitle": "Lista d'attesa — orari al completo",
       "waitlistHint": "Ricevi un'email quando si libera un posto. Ti invieremo un link diretto per prenotare.",
@@ -4183,7 +4183,7 @@
     "liveListing": "Offerta live",
     "redirecting": "Reindirizzamento…",
     "storeOffer": "Offerta negozio · {offer}",
-    "cashbackPct": "{pct}% cashback",
+    "cashbackPct": "{pct}% di cashback",
     "storeBonusPct": "{pct}% bonus negozio",
     "optionLabel": "Opzione",
     "crossSocialProof": {
@@ -5249,7 +5249,7 @@
     "curationNote": "Sono visibili solo i prodotti con Affisell Luxe abilitati dal fornitore (una volta eliminali tramite un affiliato)."
   },
   "sponsorBoost": {
-    "eyebrow": "Affisell Placement",
+    "eyebrow": "Posizionamento Affisell",
     "title": "Promozione intelligente",
     "subtitleSupplier": "Posizionamento premium su tutti i negozi affiliati. Paghi solo una % IVA escl. dopo la chiusura di una vendita — nessun budget anticipato. (Diverso da Légion Battle 2h.)",
     "subtitleAffiliate": "Fai salire il tuo annuncio. La percentuale viene addebitata solo quando un ordine viene pagato. Punteggio di posizionamento in tempo reale.",
@@ -6796,7 +6796,7 @@
     "selectAria": "Seleziona {title}",
     "request": "Richiedi",
     "noWinners": "Nessun winner per questo filtro.",
-    "trendingTitle": "Trending Keywords — {country}",
+    "trendingTitle": "Parole chiave di tendenza — {country}",
     "trendingSubtitle": "Parole chiave in forte crescita — aggiornate ogni 6 h.",
     "perMonth": "{n}/mese",
     "scanNever": "mai",
@@ -7032,7 +7032,7 @@
     "prefillMore": "+{n} altri",
     "prefillNote": "Dati precompilati da World Radar — completa il modulo qui sotto.",
     "drawerClose": "Chiudi",
-    "drawerEyebrow": "Country Intel · 24h",
+    "drawerEyebrow": "Intelligence paese · 24h",
     "drawerCount": "Prodotti Radar (snapshot): {n} — non il catalogo Affisell",
     "drawerTopSignal": "Segnale principale",
     "drawerLoadError": "Impossibile caricare i winner Radar ({error}).",
@@ -7377,5 +7377,54 @@
     "shops": "Negozi rivenditori",
     "swipe": "Swipe Feed",
     "battle": "Pulse Battle"
+  },
+  "pricingGrowth": {
+    "monthly": "Mensile",
+    "annual": "Annuale",
+    "perMonth": "mese",
+    "perYear": "anno",
+    "mostChosen": "Il più scelto",
+    "recommendedForYou": "Consigliato per te",
+    "wholesaleRadar": "Radar Grossisti",
+    "wholesaleRadarRecommended": "Radar Grossisti - Consigliato per te",
+    "profileDetected": "Profilo rilevato:",
+    "producer": "Produttore",
+    "recommendedPlanHighlighted": "piano consigliato in evidenza.",
+    "lanceur": {
+      "audience": "Per rivenditori",
+      "cta": "Inizia a rivendere",
+      "f": [
+        "50 prodotti vincenti / settimana (FR · ES)",
+        "Importazione catalogo in 1 clic nel tuo negozio",
+        "Fino a 100 ordini / mese senza attriti",
+        "Scoring Affisell: margine, saturazione, velocità",
+        "Supporto Discord della community di rivenditori",
+        "Perfetto per validare una nicchia in 7 giorni"
+      ]
+    },
+    "dominator": {
+      "audience": "Per grossisti",
+      "cta": "Diventa Dominator",
+      "f": [
+        "Tutto Lanceur, senza limite di ordini",
+        "Radar Grossisti — sourcing GMC e stock caldo",
+        "Stock FR + consegna certificata 24/48 h",
+        "Priorità nell'algoritmo: più visualizzazioni dai rivenditori",
+        "Catalogo illimitato + sincronizzazione inventario",
+        "Supporto prioritario (SLA business)"
+      ]
+    },
+    "empire": {
+      "audience": "Per brand",
+      "cta": "Costruisci il mio Empire",
+      "f": [
+        "Tutto Dominator incluso",
+        "Cockpit Difesa — controllo prezzi e MAP",
+        "Protezione del marchio sui marketplace",
+        "Accesso ai Top 20 rivenditori Affisell",
+        "1 h di coaching strategico / mese",
+        "Report Empire per crescere senza diluizione"
+      ]
+    }
   }
 }

@@ -1457,7 +1457,7 @@
         "pageTitle": "Lista de invitados y registro",
         "pageDescription": "Escanea o pega el pase de un comprador para validar la entrada. Consulta quién reservó cada franja y marca las llegadas.",
         "backToDashboard": "Volver al panel",
-        "awaitingCheckIn": "{count} awaiting check-in",
+        "awaitingCheckIn": "{count} pendientes de check-in",
         "checkInTitle": "Escáner de registro",
         "checkInHint": "Escanea el pase QR del comprador con la cámara o pega la URL abajo.",
         "cameraScanCta": "Escanear QR",
@@ -1876,7 +1876,7 @@
       }
     },
     "opportunityPulse": {
-      "eyebrow": "Opportunity Pulse",
+      "eyebrow": "Pulso de oportunidades",
       "title": "SKU populares para publicar",
       "hint": "Otros resellers están viendo estos productos — publícalos antes que ellos.",
       "watchingOne": "{count} reseller está viendo este SKU",
@@ -4064,7 +4064,7 @@
       "loadError": "No se pudieron cargar las franjas. Recarga la página.",
       "noSlots": "No hay franjas disponibles ahora — vuelve pronto.",
       "seatsLeft": "{count, plural, one {Queda # plaza} other {Quedan # plazas}}",
-      "capacityTotal": "{count} seats total",
+      "capacityTotal": "{count} plazas en total",
       "selectSlotRequired": "Elige primero una franja de cita.",
       "seatMapTitle": "Seat map",
       "seatMapHint": "Verde = disponible · ámbar = tus entradas · gris = ocupado o retenido.",
@@ -4072,14 +4072,14 @@
       "seatMapYours": "Your selection",
       "seatMapTaken": "Taken / held",
       "seatMapTruncated": "Mostrando los primeros {total} asientos — el selector de cantidad define tus entradas.",
-      "seatMapAria": "{free} seats free of {total}",
+      "seatMapAria": "{free} plazas libres de {total}",
       "seatMapNamedHint": "Toca los asientos para seleccionarlos — etiquetas como A12 aparecen en tu pase.",
       "seatMapCinemaHint": "Elige tus asientos — filas VIP en violeta, pasillos en el centro.",
       "seatMapScreen": "Pantalla",
       "seatMapVip": "VIP",
       "loadingSeatMap": "Cargando mapa de asientos…",
       "selectSeatsRequired": "Elige al menos un asiento en el mapa.",
-      "selectedSeats": "{count} seat(s): {labels}",
+      "selectedSeats": "{count} plaza(s): {labels}",
       "seatLabelAria": "Asiento {label} — {status}",
       "waitlistTitle": "Lista de espera — horarios completos",
       "waitlistHint": "Recibe un email cuando se libere un hueco. Te enviaremos un enlace directo para reservar.",
@@ -4183,7 +4183,7 @@
     "liveListing": "Oferta en vivo",
     "redirecting": "Redirigiendo…",
     "storeOffer": "Oferta de tienda · {offer}",
-    "cashbackPct": "{pct}% cashback",
+    "cashbackPct": "{pct}% de cashback",
     "storeBonusPct": "{pct}% bonus tienda",
     "optionLabel": "Opción",
     "crossSocialProof": {
@@ -5249,7 +5249,7 @@
     "curationNote": "Solo aparecen aquí los productos con Affisell Luxe habilitados por el proveedor (una vez listados por un afiliado)."
   },
   "sponsorBoost": {
-    "eyebrow": "Affisell Placement",
+    "eyebrow": "Ubicación Affisell",
     "title": "Promoción inteligente",
     "subtitleSupplier": "Posicionamiento premium en todas las tiendas de resellers. Solo pagas un % sin IVA cuando se cierra una venta — sin presupuesto inicial. (Distinto de Légion Battle 2h.)",
     "subtitleAffiliate": "Impulsa tu anuncio hacia arriba. El % se cobra solo cuando se paga un pedido. Puntuación de posicionamiento en vivo.",
@@ -6781,7 +6781,7 @@
     "recentScan": "Escaneo reciente",
     "dataAvailable": "Datos disponibles",
     "winnersCount": "{n} winners",
-    "topWinners": "Top winners {country}",
+    "topWinners": "Top ganadores {country}",
     "degraded": "modo degradado",
     "sortLine": "Orden: trending score · {n} productos",
     "thSelect": "Selección",
@@ -6796,7 +6796,7 @@
     "selectAria": "Seleccionar {title}",
     "request": "Solicitar",
     "noWinners": "Ningún winner para este filtro.",
-    "trendingTitle": "Trending Keywords — {country}",
+    "trendingTitle": "Palabras clave en tendencia — {country}",
     "trendingSubtitle": "Palabras clave en fuerte crecimiento — actualizadas cada 6 h.",
     "perMonth": "{n}/mes",
     "scanNever": "nunca",
@@ -7076,9 +7076,9 @@
     "shellTitle": "📡 Affisell Radar — Ve los winners antes que nadie",
     "shellTeaser": "Modo teaser —",
     "shellGoPro": "pasar a Pro",
-    "winnersPaywallTitle": "Winners — Radar Pro",
+    "winnersPaywallTitle": "Ganadores — Radar Pro",
     "winnersPaywallReason": "Desbloquea el top 20 mundial con Radar Pro o Global.",
-    "winnersTitleCountry": "🏆 Winners — {country} ({code})",
+    "winnersTitleCountry": "🏆 Ganadores — {country} ({code})",
     "winnersTitleGlobal": "🏆 Winners — Top puesto ≤ 20",
     "winnersSnapshots24": "Instantáneas Radar de 24 h",
     "winnersProductsSameAsMap": "{n} productos (mismo contador que el mapa)",
@@ -7377,5 +7377,54 @@
     "shops": "Tiendas de revendedores",
     "swipe": "Swipe Feed",
     "battle": "Pulse Battle"
+  },
+  "pricingGrowth": {
+    "monthly": "Mensual",
+    "annual": "Anual",
+    "perMonth": "mes",
+    "perYear": "año",
+    "mostChosen": "El más elegido",
+    "recommendedForYou": "Recomendado para ti",
+    "wholesaleRadar": "Radar Mayorista",
+    "wholesaleRadarRecommended": "Radar Mayorista - Recomendado para ti",
+    "profileDetected": "Perfil detectado:",
+    "producer": "Productor",
+    "recommendedPlanHighlighted": "plan recomendado destacado.",
+    "lanceur": {
+      "audience": "Para revendedores",
+      "cta": "Empezar a revender",
+      "f": [
+        "50 productos ganadores / semana (FR · ES)",
+        "Importación de catálogo en 1 clic a tu tienda",
+        "Hasta 100 pedidos / mes sin fricción",
+        "Scoring Affisell: margen, saturación, velocidad",
+        "Soporte en Discord de la comunidad de revendedores",
+        "Perfecto para validar un nicho en 7 días"
+      ]
+    },
+    "dominator": {
+      "audience": "Para mayoristas",
+      "cta": "Ser Dominator",
+      "f": [
+        "Todo Lanceur, sin límite de pedidos",
+        "Radar Mayorista — sourcing GMC y stock caliente",
+        "Stock FR + entrega certificada 24/48 h",
+        "Prioridad en el algoritmo: más vistas de revendedores",
+        "Catálogo ilimitado + sincronización de inventario",
+        "Soporte prioritario (SLA empresarial)"
+      ]
+    },
+    "empire": {
+      "audience": "Para marcas",
+      "cta": "Construir mi Empire",
+      "f": [
+        "Todo Dominator incluido",
+        "Cockpit de defensa — control de precios y MAP",
+        "Protección de marca en marketplaces",
+        "Acceso al Top 20 de revendedores Affisell",
+        "1 h de coaching estratégico / mes",
+        "Informes Empire para escalar sin dilución"
+      ]
+    }
   }
 }

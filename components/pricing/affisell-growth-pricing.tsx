@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { Check, Crown, Rocket } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -17,73 +18,17 @@ type TierId = "lanceur" | "dominator" | "empire"
 
 type Tier = {
   id: TierId
-  name: string
-  audience: string
   monthly: number
   annual: number
   icon: "rocket" | "crown" | null
-  features: string[]
-  cta: string
   href: string
   popular?: boolean
 }
 
 const TIERS: Tier[] = [
-  {
-    id: "lanceur",
-    name: "Lanceur",
-    audience: "Pour Resellers",
-    monthly: 29,
-    annual: 290,
-    icon: "rocket",
-    features: [
-      "50 produits winners / semaine (FR · ES)",
-      "Import catalogue 1-clic vers ta boutique",
-      "Jusqu’à 100 commandes / mois sans friction",
-      "Scoring Affisell : marge, saturation, vitesse",
-      "Support Discord communauté revendeurs",
-      "Parfait pour valider une niche en 7 jours",
-    ],
-    cta: "Commencer à revendre",
-    href: "/signup?role=reseller&plan=lanceur",
-  },
-  {
-    id: "dominator",
-    name: "Dominator",
-    audience: "Pour Grossistes",
-    monthly: 79,
-    annual: 790,
-    icon: null,
-    popular: true,
-    features: [
-      "Tout Lanceur, sans plafond commande",
-      "Radar Grossiste — sourcing GMC & stock chaud",
-      "Stock FR + livraison 24/48h certifiée",
-      "Priorité algo : plus de vues reseller",
-      "Catalogue illimité + sync inventaire",
-      "Support prioritaire (SLA business)",
-    ],
-    cta: "Devenir Dominator",
-    href: "/signup?role=supplier&plan=dominator",
-  },
-  {
-    id: "empire",
-    name: "Empire",
-    audience: "Pour Marques",
-    monthly: 149,
-    annual: 990,
-    icon: "crown",
-    features: [
-      "Tout Dominator inclus",
-      "Cockpit Défense — police des prix & MAP",
-      "Protection marque sur marketplaces",
-      "Accès Top 20 Resellers Affisell",
-      "Coaching stratégique 1h / mois",
-      "Reporting empire pour scaler sans dilution",
-    ],
-    cta: "Bâtir mon Empire",
-    href: "/signup?role=supplier&plan=empire",
-  },
+  { id: "lanceur", monthly: 29, annual: 290, icon: "rocket", href: "/signup?role=reseller&plan=lanceur" },
+  { id: "dominator", monthly: 79, annual: 790, icon: null, popular: true, href: "/signup?role=supplier&plan=dominator" },
+  { id: "empire", monthly: 149, annual: 990, icon: "crown", href: "/signup?role=supplier&plan=empire" },
 ]
 
 type Props = {
@@ -91,6 +36,7 @@ type Props = {
 }
 
 export function AffisellGrowthPricing({ kindHint = null }: Props) {
+  const t = useTranslations("pricingGrowth")
   const [billing, setBilling] = useState<Billing>("monthly")
 
   const recommendedId: TierId | null = useMemo(() => {
@@ -113,7 +59,7 @@ export function AffisellGrowthPricing({ kindHint = null }: Props) {
                 : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400"
             )}
           >
-            Mensuel
+            {t("monthly")}
           </button>
           <button
             type="button"
@@ -125,7 +71,7 @@ export function AffisellGrowthPricing({ kindHint = null }: Props) {
                 : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400"
             )}
           >
-            Annuel
+            {t("annual")}
             <span className="ml-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
               −20%
             </span>
@@ -136,14 +82,13 @@ export function AffisellGrowthPricing({ kindHint = null }: Props) {
             {kindHint === "stocker" ? (
               <>
                 <span className="font-semibold text-[#7C3AED]">
-                  Radar Grossiste - Recommandé pour toi
+                  {t("wholesaleRadarRecommended")}
                 </span>
               </>
             ) : (
               <>
-                Profil détecté :{" "}
-                <span className="font-semibold text-[#7C3AED]">Producteur</span> — plan recommandé
-                mis en avant.
+                {t("profileDetected")}{" "}
+                <span className="font-semibold text-[#7C3AED]">{t("producer")}</span> — {t("recommendedPlanHighlighted")}
               </>
             )}
           </p>
@@ -170,20 +115,20 @@ export function AffisellGrowthPricing({ kindHint = null }: Props) {
             >
               {isDominator ? (
                 <span className="absolute -top-3 left-1/2 z-[2] -translate-x-1/2 animate-pulse rounded-full bg-[#7C3AED] px-3 py-1 text-[10px] font-bold tracking-wide text-white uppercase shadow-lg shadow-violet-500/40">
-                  Le plus choisi
+                  {t("mostChosen")}
                 </span>
               ) : null}
               {isRecommended ? (
                 <span className="absolute -top-3 right-4 z-[2] rounded-full border border-violet-300 bg-white px-2.5 py-1 text-[10px] font-bold tracking-wide text-[#7C3AED] uppercase dark:border-violet-700 dark:bg-zinc-950">
-                  {kindHint === "stocker" ? "Radar Grossiste" : "Recommandé pour toi"}
+                  {kindHint === "stocker" ? t("wholesaleRadar") : t("recommendedForYou")}
                 </span>
               ) : null}
 
               <CardHeader className="gap-3 pt-6">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <CardTitle className="text-lg text-zinc-900 dark:text-white">{tier.name}</CardTitle>
-                    <CardDescription>{tier.audience}</CardDescription>
+                    <CardTitle className="text-lg text-zinc-900 dark:text-white">{tier.id === "lanceur" ? "Lanceur" : tier.id === "dominator" ? "Dominator" : "Empire"}</CardTitle>
+                    <CardDescription>{t(`${tier.id}.audience`)}</CardDescription>
                   </div>
                   {tier.icon === "rocket" ? (
                     <span className="inline-flex size-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
@@ -199,14 +144,14 @@ export function AffisellGrowthPricing({ kindHint = null }: Props) {
                 <p className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-white">
                   {price}€
                   <span className="text-sm font-normal text-zinc-500">
-                    /{billing === "monthly" ? "mois" : "an"}
+                    /{billing === "monthly" ? t("perMonth") : t("perYear")}
                   </span>
                 </p>
               </CardHeader>
 
               <CardContent className="flex-1">
                 <ul className="space-y-2.5 text-sm text-zinc-600 dark:text-zinc-300">
-                  {tier.features.map((f) => (
+                  {(t.raw(`${tier.id}.f`) as string[]).map((f) => (
                     <li key={f} className="flex items-start gap-2">
                       <Check className="mt-0.5 size-4 shrink-0 text-[#7C3AED]" />
                       <span>{f}</span>
@@ -233,7 +178,7 @@ export function AffisellGrowthPricing({ kindHint = null }: Props) {
                       })
                     }
                   >
-                    {tier.cta}
+                    {t(`${tier.id}.cta`)}
                   </Link>
                 </Button>
               </CardFooter>

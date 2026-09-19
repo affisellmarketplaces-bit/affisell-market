@@ -293,7 +293,7 @@
       "title": "Monetiseer uw publiek in 2 minuten",
       "sub": "Nul voorraad. Nul risico. Kies producten, wij verzenden.",
       "cta": "Maak uw gratis winkel",
-      "badgeCreators": "500+ resellers & creators",
+      "badgeCreators": "500+ wederverkopers & creators",
       "badgeRevenue": "Gemiddeld 2.400 € per maand",
       "badgeSetup": "2-min installatie"
     },
@@ -1457,7 +1457,7 @@
         "pageTitle": "Gastenlijst en check-in",
         "pageDescription": "Scan of plak de pas van een koper om de toegang te valideren. Zie wie elk slot boekte en markeer aankomsten.",
         "backToDashboard": "Terug naar dashboard",
-        "awaitingCheckIn": "{count} awaiting check-in",
+        "awaitingCheckIn": "{count} wachten op check-in",
         "checkInTitle": "Check-inscanner",
         "checkInHint": "Scan de QR-pas van de koper met je camera of plak de URL hieronder.",
         "cameraScanCta": "QR scannen",
@@ -1876,7 +1876,7 @@
       }
     },
     "opportunityPulse": {
-      "eyebrow": "Opportunity Pulse",
+      "eyebrow": "Kansenpuls",
       "title": "Populaire SKU's om te plaatsen",
       "hint": "Andere resellers bekijken deze producten — plaats ze voordat zij dat doen.",
       "watchingOne": "{count} reseller bekijkt deze SKU",
@@ -2059,7 +2059,7 @@
       "metaDescription": "Ontdek leveranciers-SKU's, schat marges in en plaats listings in swipe-modus.",
       "hubLoading": "Hub laden…",
       "inStorefrontBadge": "In winkel",
-      "liveCheckoutBadge": "Live · checkout open",
+      "liveCheckoutBadge": "Live · checkout geopend",
       "manageListing": "Vermelding beheren",
       "previewListing": "Voorbeeld",
       "storeTabLiveOnly": "Automatisch gepubliceerd bij toevoegen — shoppers kunnen direct afrekenen",
@@ -3345,7 +3345,7 @@
             "description": "{name} — premium tech en accessoires voor je community."
           },
           "fitness": {
-            "label": "Fitness & wellness",
+            "label": "Fitness & welzijn",
             "hint": "Emerald preset, newsletter + story",
             "description": "{name} — performance gear en wellness essentials, dagelijks gecureerd."
           },
@@ -4064,7 +4064,7 @@
       "loadError": "Kon de slots niet laden. Vernieuw de pagina.",
       "noSlots": "Momenteel geen slots beschikbaar — kom snel terug.",
       "seatsLeft": "{count, plural, one {# plek over} other {# plekken over}}",
-      "capacityTotal": "{count} seats total",
+      "capacityTotal": "{count} plaatsen in totaal",
       "selectSlotRequired": "Kies eerst een afspraakslot.",
       "seatMapTitle": "Seat map",
       "seatMapHint": "Groen = beschikbaar · amber = jouw tickets · grijs = bezet of vastgehouden.",
@@ -4072,14 +4072,14 @@
       "seatMapYours": "Your selection",
       "seatMapTaken": "Taken / held",
       "seatMapTruncated": "Eerste {total} stoelen getoond — de aantalkiezer bepaalt je tickets.",
-      "seatMapAria": "{free} seats free of {total}",
+      "seatMapAria": "{free} van {total} plaatsen vrij",
       "seatMapNamedHint": "Tik op stoelen om te selecteren — labels zoals A12 staan op je pas.",
       "seatMapCinemaHint": "Kies je stoelen — VIP-rijen in violet, gangpaden in het midden.",
       "seatMapScreen": "Scherm",
       "seatMapVip": "VIP",
       "loadingSeatMap": "Zitplaatskaart laden…",
       "selectSeatsRequired": "Kies minstens één stoel op de kaart.",
-      "selectedSeats": "{count} seat(s): {labels}",
+      "selectedSeats": "{count} plaats(en): {labels}",
       "seatLabelAria": "Stoel {label} — {status}",
       "waitlistTitle": "Wachtlijst — volle tijdslots",
       "waitlistHint": "Ontvang een e-mail zodra er een plek vrijkomt. We sturen je een directe boekingslink.",
@@ -5249,7 +5249,7 @@
     "curationNote": "Alleen producten die door de leverancier zijn ingeschakeld voor Affisell Luxe, verschijnen hier (naar aanleiding van een affiliate)."
   },
   "sponsorBoost": {
-    "eyebrow": "Affisell Placement",
+    "eyebrow": "Affisell-plaatsing",
     "title": "Slimme promotie",
     "subtitleSupplier": "Premium plaatsing op alle affiliate-storefronts. Je betaalt alleen een % excl. btw nadat een verkoop is afgerond — geen budget vooraf. (Anders dan Légion Battle 2u.)",
     "subtitleAffiliate": "Til je vermelding omhoog. Het percentage wordt alleen in rekening gebracht wanneer een bestelling wordt betaald. Live plaatsingsscore.",
@@ -6781,7 +6781,7 @@
     "recentScan": "Recente scan",
     "dataAvailable": "Gegevens beschikbaar",
     "winnersCount": "{n} winners",
-    "topWinners": "Top winners {country}",
+    "topWinners": "Topwinnaars {country}",
     "degraded": "beperkte modus",
     "sortLine": "Sortering: trending score · {n} producten",
     "thSelect": "Selectie",
@@ -6796,7 +6796,7 @@
     "selectAria": "{title} selecteren",
     "request": "Aanvragen",
     "noWinners": "Geen winners voor dit filter.",
-    "trendingTitle": "Trending Keywords — {country}",
+    "trendingTitle": "Trending zoekwoorden — {country}",
     "trendingSubtitle": "Snel groeiende zoekwoorden — elke 6 uur bijgewerkt.",
     "perMonth": "{n}/maand",
     "scanNever": "nooit",
@@ -7076,9 +7076,9 @@
     "shellTitle": "📡 Affisell Radar — Zie winners vóór iedereen",
     "shellTeaser": "Teasermodus —",
     "shellGoPro": "upgraden naar Pro",
-    "winnersPaywallTitle": "Winners — Radar Pro",
+    "winnersPaywallTitle": "Winnaars — Radar Pro",
     "winnersPaywallReason": "Ontgrendel de wereldwijde top 20 met Radar Pro of Global.",
-    "winnersTitleCountry": "🏆 Winners — {country} ({code})",
+    "winnersTitleCountry": "🏆 Winnaars — {country} ({code})",
     "winnersTitleGlobal": "🏆 Winners — Top rang ≤ 20",
     "winnersSnapshots24": "Radar 24u-snapshots",
     "winnersProductsSameAsMap": "{n} producten (zelfde teller als de kaart)",
@@ -7377,5 +7377,54 @@
     "shops": "Wederverkopersshops",
     "swipe": "Swipe Feed",
     "battle": "Pulse Battle"
+  },
+  "pricingGrowth": {
+    "monthly": "Maandelijks",
+    "annual": "Jaarlijks",
+    "perMonth": "maand",
+    "perYear": "jaar",
+    "mostChosen": "Meest gekozen",
+    "recommendedForYou": "Aanbevolen voor jou",
+    "wholesaleRadar": "Groothandelsradar",
+    "wholesaleRadarRecommended": "Groothandelsradar - Aanbevolen voor jou",
+    "profileDetected": "Profiel gedetecteerd:",
+    "producer": "Producent",
+    "recommendedPlanHighlighted": "aanbevolen plan uitgelicht.",
+    "lanceur": {
+      "audience": "Voor wederverkopers",
+      "cta": "Begin met verkopen",
+      "f": [
+        "50 winnende producten / week (FR · ES)",
+        "Catalogusimport met 1 klik naar je winkel",
+        "Tot 100 bestellingen / maand zonder wrijving",
+        "Affisell-scoring: marge, verzadiging, snelheid",
+        "Discord-support van de wederverkopersgemeenschap",
+        "Perfect om een niche in 7 dagen te valideren"
+      ]
+    },
+    "dominator": {
+      "audience": "Voor groothandelaren",
+      "cta": "Word Dominator",
+      "f": [
+        "Alles van Lanceur, zonder bestellimiet",
+        "Groothandelsradar — GMC-sourcing & hete voorraad",
+        "FR-voorraad + gecertificeerde levering in 24/48 u",
+        "Algoritmeprioriteit: meer weergaven van wederverkopers",
+        "Onbeperkte catalogus + voorraadsynchronisatie",
+        "Prioritaire support (zakelijke SLA)"
+      ]
+    },
+    "empire": {
+      "audience": "Voor merken",
+      "cta": "Bouw mijn Empire",
+      "f": [
+        "Alles van Dominator inbegrepen",
+        "Defensiecockpit — prijscontrole & MAP",
+        "Merkbescherming op marktplaatsen",
+        "Toegang tot de Top 20 wederverkopers van Affisell",
+        "1 u strategische coaching / maand",
+        "Empire-rapportage om te schalen zonder verwatering"
+      ]
+    }
   }
 }

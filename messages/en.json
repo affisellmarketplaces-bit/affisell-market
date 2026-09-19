@@ -7377,5 +7377,54 @@
     "shops": "Reseller stores",
     "swipe": "Swipe Feed",
     "battle": "Pulse Battle"
+  },
+  "pricingGrowth": {
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "perMonth": "mo",
+    "perYear": "yr",
+    "mostChosen": "Most popular",
+    "recommendedForYou": "Recommended for you",
+    "wholesaleRadar": "Wholesale Radar",
+    "wholesaleRadarRecommended": "Wholesale Radar - Recommended for you",
+    "profileDetected": "Profile detected:",
+    "producer": "Producer",
+    "recommendedPlanHighlighted": "recommended plan highlighted.",
+    "lanceur": {
+      "audience": "For Resellers",
+      "cta": "Start reselling",
+      "f": [
+        "50 winning products / week (FR · ES)",
+        "1-click catalog import to your store",
+        "Up to 100 orders / month, frictionless",
+        "Affisell scoring: margin, saturation, velocity",
+        "Reseller community Discord support",
+        "Perfect to validate a niche in 7 days"
+      ]
+    },
+    "dominator": {
+      "audience": "For Wholesalers",
+      "cta": "Become Dominator",
+      "f": [
+        "Everything in Lanceur, no order cap",
+        "Wholesale Radar — GMC sourcing & hot stock",
+        "FR stock + certified 24/48h delivery",
+        "Algorithm priority: more reseller views",
+        "Unlimited catalog + inventory sync",
+        "Priority support (business SLA)"
+      ]
+    },
+    "empire": {
+      "audience": "For Brands",
+      "cta": "Build my Empire",
+      "f": [
+        "Everything in Dominator",
+        "Defense cockpit — price policing & MAP",
+        "Brand protection on marketplaces",
+        "Access to Affisell's Top 20 Resellers",
+        "1h strategic coaching / month",
+        "Empire reporting to scale without dilution"
+      ]
+    }
   }
 }

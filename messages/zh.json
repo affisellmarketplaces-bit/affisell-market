@@ -1457,7 +1457,7 @@
         "pageTitle": "宾客名单与签到",
         "pageDescription": "扫描或粘贴买家通行证以验证入场。查看每个时段的预订者并标记到场。",
         "backToDashboard": "返回控制台",
-        "awaitingCheckIn": "{count} awaiting check-in",
+        "awaitingCheckIn": "{count} 位待签到",
         "checkInTitle": "签到扫描",
         "checkInHint": "用摄像头扫描买家的二维码通行证,或在下方粘贴链接。",
         "cameraScanCta": "扫描二维码",
@@ -4064,7 +4064,7 @@
       "loadError": "无法加载时段,请刷新页面。",
       "noSlots": "目前没有可用时段——请稍后再来。",
       "seatsLeft": "剩余 {count} 个名额",
-      "capacityTotal": "{count} seats total",
+      "capacityTotal": "共 {count} 个座位",
       "selectSlotRequired": "请先选择预约时段。",
       "seatMapTitle": "Seat map",
       "seatMapHint": "绿色=可选 · 琥珀色=您的票 · 灰色=已占用或已保留。",
@@ -4072,14 +4072,14 @@
       "seatMapYours": "Your selection",
       "seatMapTaken": "Taken / held",
       "seatMapTruncated": "显示前 {total} 个座位——数量选择器决定您的票数。",
-      "seatMapAria": "{free} seats free of {total}",
+      "seatMapAria": "共 {total} 个座位，{free} 个空闲",
       "seatMapNamedHint": "点击座位进行选择——A12 等标签会显示在您的通行证上。",
       "seatMapCinemaHint": "选择座位 —— 紫色为VIP排，中间为过道。",
       "seatMapScreen": "银幕",
       "seatMapVip": "VIP",
       "loadingSeatMap": "正在加载座位图……",
       "selectSeatsRequired": "请在座位图上至少选择一个座位。",
-      "selectedSeats": "{count} seat(s): {labels}",
+      "selectedSeats": "{count} 个座位：{labels}",
       "seatLabelAria": "座位 {label} —— {status}",
       "waitlistTitle": "候补名单 —— 已满时段",
       "waitlistHint": "有空位时我们会邮件通知你，并附上直接预订链接。",
@@ -7377,5 +7377,54 @@
     "shops": "分销商店铺",
     "swipe": "Swipe Feed",
     "battle": "Pulse Battle"
+  },
+  "pricingGrowth": {
+    "monthly": "按月",
+    "annual": "按年",
+    "perMonth": "月",
+    "perYear": "年",
+    "mostChosen": "最受欢迎",
+    "recommendedForYou": "为你推荐",
+    "wholesaleRadar": "批发雷达",
+    "wholesaleRadarRecommended": "批发雷达 - 为你推荐",
+    "profileDetected": "检测到的身份：",
+    "producer": "生产商",
+    "recommendedPlanHighlighted": "已突出显示推荐方案。",
+    "lanceur": {
+      "audience": "适合经销商",
+      "cta": "开始转售",
+      "f": [
+        "每周 50 款爆品（FR · ES）",
+        "一键将商品目录导入你的店铺",
+        "每月最多 100 单，顺畅无阻",
+        "Affisell 评分：利润、饱和度、速度",
+        "经销商社区 Discord 支持",
+        "7 天内验证细分市场的理想之选"
+      ]
+    },
+    "dominator": {
+      "audience": "适合批发商",
+      "cta": "成为 Dominator",
+      "f": [
+        "包含 Lanceur 全部功能，订单不设上限",
+        "批发雷达 — GMC 选品与热销库存",
+        "法国库存 + 认证 24/48 小时送达",
+        "算法优先：获得更多经销商浏览",
+        "无限商品目录 + 库存同步",
+        "优先支持（商业级 SLA）"
+      ]
+    },
+    "empire": {
+      "audience": "适合品牌",
+      "cta": "打造我的 Empire",
+      "f": [
+        "包含 Dominator 全部功能",
+        "防御驾驶舱 — 价格监管与 MAP",
+        "市场平台品牌保护",
+        "可接触 Affisell 前 20 名经销商",
+        "每月 1 小时战略辅导",
+        "Empire 报告助你无稀释扩张"
+      ]
+    }
   }
 }

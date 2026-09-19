@@ -1457,7 +1457,7 @@
         "pageTitle": "Lista gości i odprawa",
         "pageDescription": "Zeskanuj lub wklej przepustkę kupującego, aby zatwierdzić wejście. Zobacz, kto zarezerwował każdy termin, i oznacz przybycia.",
         "backToDashboard": "Wróć do panelu",
-        "awaitingCheckIn": "{count} awaiting check-in",
+        "awaitingCheckIn": "{count} oczekuje na check-in",
         "checkInTitle": "Skaner odprawy",
         "checkInHint": "Zeskanuj kod QR przepustki kupującego aparatem lub wklej adres URL poniżej.",
         "cameraScanCta": "Skanuj QR",
@@ -1876,7 +1876,7 @@
       }
     },
     "opportunityPulse": {
-      "eyebrow": "Opportunity Pulse",
+      "eyebrow": "Puls okazji",
       "title": "Popularne SKU do wystawienia",
       "hint": "Inni resellerzy oglądają te produkty — wystaw je, zanim oni to zrobią.",
       "watchingOne": "{count} reseller ogląda ten SKU",
@@ -4064,7 +4064,7 @@
       "loadError": "Nie udało się wczytać terminów. Odśwież stronę.",
       "noSlots": "Brak dostępnych terminów — zajrzyj wkrótce.",
       "seatsLeft": "{count, plural, one {Zostało # miejsce} few {Zostały # miejsca} many {Zostało # miejsc} other {Zostało # miejsca}}",
-      "capacityTotal": "{count} seats total",
+      "capacityTotal": "{count} miejsc łącznie",
       "selectSlotRequired": "Najpierw wybierz termin wizyty.",
       "seatMapTitle": "Seat map",
       "seatMapHint": "Zielony = dostępne · bursztynowy = Twoje bilety · szary = zajęte lub zablokowane.",
@@ -4072,14 +4072,14 @@
       "seatMapYours": "Your selection",
       "seatMapTaken": "Taken / held",
       "seatMapTruncated": "Wyświetlono pierwsze {total} miejsc — selektor ilości ustala liczbę biletów.",
-      "seatMapAria": "{free} seats free of {total}",
+      "seatMapAria": "{free} wolnych miejsc z {total}",
       "seatMapNamedHint": "Dotknij miejsc, aby je wybrać — oznaczenia takie jak A12 znajdują się na przepustce.",
       "seatMapCinemaHint": "Wybierz swoje miejsca — rzędy VIP na fioletowo, przejścia na środku.",
       "seatMapScreen": "Ekran",
       "seatMapVip": "VIP",
       "loadingSeatMap": "Ładowanie mapy miejsc…",
       "selectSeatsRequired": "Wybierz co najmniej jedno miejsce na mapie.",
-      "selectedSeats": "{count} seat(s): {labels}",
+      "selectedSeats": "Miejsca ({count}): {labels}",
       "seatLabelAria": "Miejsce {label} — {status}",
       "waitlistTitle": "Lista oczekujących — pełne terminy",
       "waitlistHint": "Otrzymasz e-mail, gdy zwolni się miejsce. Wyślemy bezpośredni link do rezerwacji.",
@@ -4183,7 +4183,7 @@
     "liveListing": "Oferta na żywo",
     "redirecting": "Przekierowanie…",
     "storeOffer": "Oferta sklepu · {offer}",
-    "cashbackPct": "{pct}% cashback",
+    "cashbackPct": "{pct}% cashbacku",
     "storeBonusPct": "{pct}% bonus sklepu",
     "optionLabel": "Opcja",
     "crossSocialProof": {
@@ -5249,7 +5249,7 @@
     "curationNote": "Tylko produkty z włączoną funkcją Affisell Luxe dostarczane przez dostawców pojawiają się tutaj (po zarejestrowaniu przez partnera)."
   },
   "sponsorBoost": {
-    "eyebrow": "Affisell Placement",
+    "eyebrow": "Miejsce w Affisell",
     "title": "Mądra promocja",
     "subtitleSupplier": "Premium pozycjonowanie we wszystkich sklepach partnerskich. Płacisz tylko % netto po zamknięciu sprzedaży — bez budżetu z góry. (Różni się od Légion Battle 2h.)",
     "subtitleAffiliate": "Podnieś swoją ofertę wyżej. Procent naliczany jest tylko wtedy, gdy zamówienie zostanie opłacone. Wynik pozycjonowania na żywo.",
@@ -6796,7 +6796,7 @@
     "selectAria": "Wybierz {title}",
     "request": "Zapytaj",
     "noWinners": "Brak winnerów dla tego filtra.",
-    "trendingTitle": "Trending Keywords — {country}",
+    "trendingTitle": "Popularne słowa kluczowe — {country}",
     "trendingSubtitle": "Szybko rosnące słowa kluczowe — aktualizacja co 6 godz.",
     "perMonth": "{n}/mies.",
     "scanNever": "nigdy",
@@ -7377,5 +7377,54 @@
     "shops": "Sklepy resellerów",
     "swipe": "Swipe Feed",
     "battle": "Pulse Battle"
+  },
+  "pricingGrowth": {
+    "monthly": "Miesięcznie",
+    "annual": "Rocznie",
+    "perMonth": "mies.",
+    "perYear": "rok",
+    "mostChosen": "Najczęściej wybierany",
+    "recommendedForYou": "Polecany dla Ciebie",
+    "wholesaleRadar": "Radar hurtowy",
+    "wholesaleRadarRecommended": "Radar hurtowy - Polecany dla Ciebie",
+    "profileDetected": "Wykryty profil:",
+    "producer": "Producent",
+    "recommendedPlanHighlighted": "polecany plan wyróżniony.",
+    "lanceur": {
+      "audience": "Dla odsprzedawców",
+      "cta": "Zacznij odsprzedawać",
+      "f": [
+        "50 produktów-zwycięzców / tydzień (FR · ES)",
+        "Import katalogu jednym kliknięciem do Twojego sklepu",
+        "Do 100 zamówień / miesiąc bez tarcia",
+        "Scoring Affisell: marża, nasycenie, tempo",
+        "Wsparcie na Discordzie społeczności odsprzedawców",
+        "Idealny do zwalidowania niszy w 7 dni"
+      ]
+    },
+    "dominator": {
+      "audience": "Dla hurtowników",
+      "cta": "Zostań Dominatorem",
+      "f": [
+        "Wszystko z Lanceur, bez limitu zamówień",
+        "Radar hurtowy — sourcing GMC i gorące zapasy",
+        "Magazyn FR + certyfikowana dostawa 24/48 h",
+        "Priorytet w algorytmie: więcej wyświetleń od odsprzedawców",
+        "Nieograniczony katalog + synchronizacja stanów",
+        "Priorytetowe wsparcie (SLA biznesowe)"
+      ]
+    },
+    "empire": {
+      "audience": "Dla marek",
+      "cta": "Zbuduj mój Empire",
+      "f": [
+        "Wszystko z Dominator w pakiecie",
+        "Kokpit obrony — kontrola cen i MAP",
+        "Ochrona marki na marketplace'ach",
+        "Dostęp do Top 20 odsprzedawców Affisell",
+        "1 godz. coachingu strategicznego / miesiąc",
+        "Raporty Empire do skalowania bez rozmycia"
+      ]
+    }
   }
 }

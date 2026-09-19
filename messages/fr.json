@@ -7377,5 +7377,54 @@
     "shops": "Boutiques revendeurs",
     "swipe": "Swipe Feed",
     "battle": "Pulse Battle"
+  },
+  "pricingGrowth": {
+    "monthly": "Mensuel",
+    "annual": "Annuel",
+    "perMonth": "mois",
+    "perYear": "an",
+    "mostChosen": "Le plus choisi",
+    "recommendedForYou": "Recommandé pour toi",
+    "wholesaleRadar": "Radar Grossiste",
+    "wholesaleRadarRecommended": "Radar Grossiste - Recommandé pour toi",
+    "profileDetected": "Profil détecté :",
+    "producer": "Producteur",
+    "recommendedPlanHighlighted": "plan recommandé mis en avant.",
+    "lanceur": {
+      "audience": "Pour Resellers",
+      "cta": "Commencer à revendre",
+      "f": [
+        "50 produits winners / semaine (FR · ES)",
+        "Import catalogue 1-clic vers ta boutique",
+        "Jusqu’à 100 commandes / mois sans friction",
+        "Scoring Affisell : marge, saturation, vitesse",
+        "Support Discord communauté revendeurs",
+        "Parfait pour valider une niche en 7 jours"
+      ]
+    },
+    "dominator": {
+      "audience": "Pour Grossistes",
+      "cta": "Devenir Dominator",
+      "f": [
+        "Tout Lanceur, sans plafond commande",
+        "Radar Grossiste — sourcing GMC & stock chaud",
+        "Stock FR + livraison 24/48h certifiée",
+        "Priorité algo : plus de vues reseller",
+        "Catalogue illimité + sync inventaire",
+        "Support prioritaire (SLA business)"
+      ]
+    },
+    "empire": {
+      "audience": "Pour Marques",
+      "cta": "Bâtir mon Empire",
+      "f": [
+        "Tout Dominator inclus",
+        "Cockpit Défense — police des prix & MAP",
+        "Protection marque sur marketplaces",
+        "Accès Top 20 Resellers Affisell",
+        "Coaching stratégique 1h / mois",
+        "Reporting empire pour scaler sans dilution"
+      ]
+    }
   }
 }
