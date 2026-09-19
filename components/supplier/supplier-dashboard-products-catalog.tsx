@@ -15,6 +15,7 @@ import {
   Users,
   Video,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { BentoCard, BentoPageHeading, BentoStat } from "@/components/affisell/bento-ui"
@@ -37,30 +38,30 @@ import type { SupplierDashboardCatalogProduct } from "@/lib/supplier-product-is-
 
 type CatalogProduct = SupplierDashboardCatalogProduct
 
-const LISTING_LABEL: Record<string, string> = {
-  PHYSICAL: "Physique",
-  SOFTWARE: "Digital",
-  SUBSCRIPTION: "Abonnement",
-  SERVICE: "Service",
-  EXPERIENCE: "Expérience",
-}
+const LISTING_LABEL_KEY = {
+  PHYSICAL: "kindPhysical",
+  SOFTWARE: "kindDigital",
+  SUBSCRIPTION: "kindSubscription",
+  SERVICE: "kindService",
+  EXPERIENCE: "kindExperience",
+} as const
 
 function statusMeta(p: CatalogProduct) {
   if (p.isDraft) {
     return {
-      label: "Brouillon",
+      label: "statusDraft" as const,
       className:
         "border-amber-200/90 bg-amber-500/95 text-white shadow-sm shadow-amber-500/20 dark:border-amber-800/60",
     }
   }
   if (!p.active) {
     return {
-      label: "En pause",
+      label: "statusPaused" as const,
       className: "border-zinc-300/80 bg-zinc-800/90 text-white backdrop-blur-sm dark:border-zinc-600",
     }
   }
   return {
-    label: "En ligne",
+    label: "statusLive" as const,
     className:
       "border-emerald-200/90 bg-emerald-600/95 text-white shadow-sm shadow-emerald-600/25 dark:border-emerald-800/60",
   }
@@ -94,6 +95,7 @@ export function SupplierDashboardProductsCatalog({
   >
 }) {
   const router = useRouter()
+  const t = useTranslations("supplier.productsCatalog")
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const draftProducts = useMemo(() => products.filter((p) => p.isDraft), [products])
   const draftIds = useMemo(() => draftProducts.map((p) => p.id), [draftProducts])
@@ -113,8 +115,8 @@ export function SupplierDashboardProductsCatalog({
 
     const label =
       ids.length === 1
-        ? "Supprimer ce brouillon ? Cette action est irréversible."
-        : `Supprimer ${ids.length} brouillons ? Cette action est irréversible.`
+        ? t("confirmOne")
+        : t("confirmMany", { count: ids.length })
     if (!window.confirm(label)) return
 
     setBulkDeleting(true)
@@ -129,23 +131,19 @@ export function SupplierDashboardProductsCatalog({
         clearSupplierAddProductDraftCache(ownerUserId)
         removeFromSelection(result.deleted)
         toast.success(
-          result.deleted.length === 1
-            ? "1 brouillon supprimé."
-            : `${result.deleted.length} brouillons supprimés.`
+          result.deleted.length === 1 ? t("deletedOne") : t("deletedMany", { count: result.deleted.length })
         )
       }
 
       if (result.skipped.length > 0) {
-        toast.message(
-          `${result.skipped.length} brouillon${result.skipped.length > 1 ? "s" : ""} ignoré${result.skipped.length > 1 ? "s" : ""}.`
-        )
+        toast.message(t("skipped", { count: result.skipped.length }))
       }
 
       router.refresh()
     } finally {
       setBulkDeleting(false)
     }
-  }, [draftIds, ownerUserId, removeFromSelection, router, selectedIds])
+  }, [draftIds, ownerUserId, removeFromSelection, router, selectedIds, t])
 
   const liveCount = products.filter((p) => !p.isDraft && p.active).length
   const draftCount = products.filter((p) => p.isDraft).length
@@ -157,28 +155,23 @@ export function SupplierDashboardProductsCatalog({
         <div className={affisellBrand.headerMesh} aria-hidden />
         <div className="relative flex flex-col gap-8 p-6 sm:p-8 lg:flex-row lg:items-end lg:justify-between">
           <BentoPageHeading
-            eyebrow={draftsOnly ? "Catalogue · Brouillons" : "Catalogue fournisseur"}
-            title={draftsOnly ? "Brouillons" : "Produits"}
+            eyebrow={draftsOnly ? t("eyebrowDrafts") : t("eyebrowCatalog")}
+            title={draftsOnly ? t("titleDrafts") : t("titleProducts")}
             description={
-              draftsOnly ? (
-                <>
-                  Reprenez un brouillon ou{" "}
-                  <Link
-                    href="/dashboard/supplier/products"
-                    className="font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
-                  >
-                    retournez au catalogue complet
-                  </Link>
-                  .
-                </>
-              ) : (
-                <>
-                  Pilotez vos SKU : prix catalogue, stock, commission partenaires et logistique. Les acheteurs passent par
-                  les boutiques affiliées — utilisez{" "}
-                  <strong className="font-semibold text-zinc-800 dark:text-zinc-100">Aperçu partenaire</strong> pour
-                  valider la fiche telle que les revendeurs & créateurs la voient dans Discover.
-                </>
-              )
+              draftsOnly
+                ? t.rich("descDrafts", {
+                    link: (chunks) => (
+                      <Link
+                        href="/dashboard/supplier/products"
+                        className="font-semibold text-violet-700 underline-offset-2 hover:underline dark:text-violet-300"
+                      >
+                        {chunks}
+                      </Link>
+                    ),
+                  })
+                : t.rich("descCatalog", {
+                    b: (chunks) => <strong className="font-semibold text-zinc-800 dark:text-zinc-100">{chunks}</strong>,
+                  })
             }
             className="max-w-2xl"
           />
@@ -197,7 +190,7 @@ export function SupplierDashboardProductsCatalog({
               "inline-flex w-full items-center justify-center gap-1.5 rounded-xl border-violet-200/90 bg-white/90 text-violet-800 backdrop-blur hover:bg-violet-50 dark:border-violet-800 dark:bg-zinc-950/80 dark:text-violet-200"
             )}
           >
-            Formulaire complet
+            {t("fullForm")}
           </Link>
             <div className="grid grid-cols-2 gap-2">
               <Link
@@ -208,7 +201,7 @@ export function SupplierDashboardProductsCatalog({
                 )}
               >
                 <Upload className="h-3.5 w-3.5 opacity-70" aria-hidden />
-                Import
+                {t("import")}
               </Link>
               <Link
                 href={storefrontHref}
@@ -220,7 +213,7 @@ export function SupplierDashboardProductsCatalog({
                 )}
               >
                 <Store className="h-3.5 w-3.5" aria-hidden />
-                Vitrine
+                {t("storefront")}
                 <ArrowUpRight className="h-3 w-3 opacity-60" aria-hidden />
               </Link>
             </div>
@@ -233,24 +226,24 @@ export function SupplierDashboardProductsCatalog({
 
       {!draftsOnly ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <BentoStat label="SKUs" value={products.length} hint="Total dans ce catalogue" />
+          <BentoStat label={t("statSkus")} value={products.length} hint={t("statSkusHint")} />
           <BentoStat
-            label="En ligne"
+            label={t("statLive")}
             value={liveCount}
             valueClassName="text-emerald-600 dark:text-emerald-400"
-            hint="Visibles dans Discover"
+            hint={t("statLiveHint")}
           />
           <BentoStat
-            label="Brouillons"
+            label={t("statDrafts")}
             value={draftCount}
             valueClassName={draftCount > 0 ? "text-amber-600 dark:text-amber-400" : undefined}
-            hint={draftCount > 0 ? "À publier" : "Aucun brouillon"}
+            hint={draftCount > 0 ? t("statDraftsPublish") : t("statDraftsNone")}
           />
           <BentoStat
-            label="Listings partenaires"
+            label={t("statPartners")}
             value={partnerListedTotal}
             valueClassName="text-violet-600 dark:text-violet-400"
-            hint="Annonces live chez les revendeurs & créateurs"
+            hint={t("statPartnersHint")}
           />
         </div>
       ) : null}
@@ -261,12 +254,12 @@ export function SupplierDashboardProductsCatalog({
             <Package className="h-7 w-7" aria-hidden />
           </div>
           <p className="mt-6 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-            {draftsOnly ? "Aucun brouillon" : "Votre catalogue est vide"}
+            {draftsOnly ? t("emptyDrafts") : t("emptyCatalog")}
           </p>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
             {draftsOnly
-              ? "Créez une fiche — l’enregistrement automatique conserve votre travail."
-              : "Publiez votre premier SKU pour apparaître dans Discover et sur votre vitrine fournisseur."}
+              ? t("emptyDraftsBody")
+              : t("emptyCatalogBody")}
           </p>
           <div className="mt-8 flex w-full max-w-xs flex-col items-stretch gap-3">
             <GuidedAddProductButton
@@ -281,7 +274,7 @@ export function SupplierDashboardProductsCatalog({
                 "inline-flex justify-center gap-2 rounded-xl"
               )}
             >
-              Formulaire complet
+              {t("fullForm")}
             </Link>
           </div>
         </BentoCard>
@@ -313,7 +306,10 @@ export function SupplierDashboardProductsCatalog({
             const hasDeal = compareNum != null && compareNum > baseNum
             const discountPct = supplierListingDiscountPct(p.basePriceCents, compareNum)
             const kindKey = String(p.listingKind ?? "").toUpperCase()
-            const kindShort = LISTING_LABEL[kindKey] ?? kindKey.replace(/_/g, " ").toLowerCase()
+            const kindShort =
+              kindKey in LISTING_LABEL_KEY
+                ? t(LISTING_LABEL_KEY[kindKey as keyof typeof LISTING_LABEL_KEY])
+                : kindKey.replace(/_/g, " ").toLowerCase()
             const status = statusMeta(p)
             const editHref = `/dashboard/supplier/products/${p.id}/edit`
             const previewHref = `/dashboard/supplier/products/affiliate-preview/${p.id}`
@@ -341,7 +337,7 @@ export function SupplierDashboardProductsCatalog({
                         checked={isSelected}
                         onChange={() => toggle(p.id)}
                         className="size-4 rounded border-zinc-300 text-violet-600 focus:ring-violet-500/40 dark:border-zinc-600"
-                        aria-label={`Sélectionner ${p.name}`}
+                        aria-label={t("selectAria", { name: p.name })}
                       />
                     </label>
                   ) : null}
@@ -373,7 +369,7 @@ export function SupplierDashboardProductsCatalog({
                           status.className
                         )}
                       >
-                        {status.label}
+                        {t(status.label)}
                       </span>
                       {hasDeal ? (
                         <span className="rounded-full border border-rose-200/80 bg-rose-600 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
@@ -402,7 +398,7 @@ export function SupplierDashboardProductsCatalog({
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="rounded-2xl border border-zinc-100 bg-zinc-50/80 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Type · Stock</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">{t("typeStock")}</p>
                         <p className="mt-0.5 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                           {kindShort} · {p.stock}
                         </p>
@@ -410,7 +406,7 @@ export function SupplierDashboardProductsCatalog({
                       <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-white px-3 py-2.5 dark:border-violet-900/50 dark:from-violet-950/40 dark:to-zinc-950">
                         <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-400">
                           <Percent className="h-3 w-3" aria-hidden />
-                          Commission
+                          {t("commission")}
                         </p>
                         <p className="mt-0.5 text-sm font-bold tabular-nums text-violet-950 dark:text-violet-100">
                           {p.displayCommissionRate}%
@@ -422,12 +418,11 @@ export function SupplierDashboardProductsCatalog({
                       <div className="flex flex-wrap gap-2">
                         <p className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200">
                           <Users className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                          {partnersListed} partenaire revendeur / créateur
-                          {partnersListed === 1 ? "" : "s"} en boutique live
+                          {t("partnersLive", { count: partnersListed })}
                         </p>
                         {marginReviewsOpen > 0 ? (
                           <p className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
-                            {marginReviewsOpen} marge{marginReviewsOpen === 1 ? "" : "s"} à revoir
+                            {t("marginsToReview", { count: marginReviewsOpen })}
                           </p>
                         ) : null}
                       </div>
@@ -442,7 +437,7 @@ export function SupplierDashboardProductsCatalog({
                         )}
                       >
                         <Eye className="h-4 w-4" aria-hidden />
-                        Aperçu partenaire
+                        {t("partnerPreview")}
                       </Link>
                       <div className={cn("grid gap-2", p.isDraft ? "grid-cols-2" : "grid-cols-3")}>
                         <Link
@@ -453,7 +448,7 @@ export function SupplierDashboardProductsCatalog({
                           )}
                         >
                           <FileEdit className="h-3.5 w-3.5 opacity-70" aria-hidden />
-                          {p.isDraft ? "Reprendre" : "Modifier"}
+                          {p.isDraft ? t("resume") : t("edit")}
                         </Link>
                         {!p.isDraft ? (
                           <>
@@ -465,7 +460,7 @@ export function SupplierDashboardProductsCatalog({
                               )}
                             >
                               <Video className="h-3.5 w-3.5 opacity-70" aria-hidden />
-                              Vidéo
+                              {t("video")}
                             </Link>
                             <SupplierProductRemoveActions
                               ownerUserId={ownerUserId}

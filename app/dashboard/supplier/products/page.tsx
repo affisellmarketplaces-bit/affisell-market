@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { requireSupplierSession } from "@/lib/dashboard-session"
 
 import { BentoContainer, BentoShell } from "@/components/affisell/bento-ui"
@@ -23,7 +24,7 @@ export default async function SupplierProductsPage({
   searchParams: Promise<{ drafts?: string; guided?: string }>
 }) {
   const session = await requireSupplierSession("/dashboard/supplier/products")
-
+  const t = await getTranslations("supplier.productsCatalog")
 
   const { drafts: draftsQs, guided: guidedQs } = await searchParams
   const draftsOnly = draftsQs === "1"
@@ -68,13 +69,13 @@ export default async function SupplierProductsPage({
       <BentoContainer maxWidth="7xl">
         <nav
           className="mb-6 flex flex-wrap items-center gap-2 text-sm"
-          aria-label="Navigation catalogue"
+          aria-label={t("navAria")}
         >
           <Link
             href="/dashboard/supplier"
             className="rounded-full px-3 py-1.5 font-medium text-zinc-600 transition hover:bg-white hover:text-zinc-900 hover:shadow-sm dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
           >
-            ← Mission control
+            {t("backToMission")}
           </Link>
           <span className="text-zinc-300 dark:text-zinc-700" aria-hidden>
             /
@@ -85,14 +86,14 @@ export default async function SupplierProductsPage({
               draftsOnly && "bg-amber-50 text-amber-950 ring-amber-200/80 dark:bg-amber-950/40 dark:text-amber-100"
             )}
           >
-            {draftsOnly ? "Brouillons" : "Produits"}
+            {draftsOnly ? t("titleDrafts") : t("titleProducts")}
           </span>
           {!draftsOnly && draftCount(products) > 0 ? (
             <Link
               href="/dashboard/supplier/products?drafts=1"
               className="rounded-full border border-amber-200/80 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900 transition hover:bg-amber-100 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100"
             >
-              {draftCount(products)} brouillon{draftCount(products) === 1 ? "" : "s"}
+              {t("draftCountBadge", { count: draftCount(products) })}
             </Link>
           ) : null}
         </nav>
