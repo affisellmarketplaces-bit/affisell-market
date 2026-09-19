@@ -37,6 +37,35 @@ function run(command, options = {}) {
   }
 }
 
+/**
+ * Best-effort command: retries transient DB errors (Neon cold start, network blip), then warns and
+ * continues. Never fails the build — for optional housekeeping such as releasing stuck migration locks.
+ */
+async function runWarnOnly(command, label = command) {
+  console.log(`\n> ${command} (warn-only)`)
+  const maxAttempts = RETRY_DELAYS_MS.length + 1
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const out = execSync(command, { encoding: "utf8", env: process.env, stdio: ["ignore", "pipe", "pipe"] })
+      if (out.trim()) console.log(out.trim())
+      console.log(`✓ ${label}`)
+      return true
+    } catch (error) {
+      const output = `${error?.stdout?.toString?.() ?? ""}\n${error?.stderr?.toString?.() ?? ""}`.trim()
+      if (isTransientDbError(output) && attempt < maxAttempts) {
+        const wait = RETRY_DELAYS_MS[attempt - 1] ?? 10_000
+        console.log(`\n⚠ ${label}: DB unreachable, retry ${attempt}/${maxAttempts - 1} in ${wait / 1000}s…`)
+        await setTimeout(wait)
+        continue
+      }
+      console.warn(`\n⚠ ${label} failed — continuing build`)
+      if (output) console.warn(output)
+      return false
+    }
+  }
+  return false
+}
+
 function maskUrl(url) {
   if (!url?.trim()) return "(unset)"
   try {
@@ -196,7 +225,7 @@ async function runMigrations() {
     console.log("[vercel-build] BUILD_RUN_MIGRATIONS=1")
   }
 
-  run("npm run db:unlock")
+  await runWarnOnly("npm run db:unlock", "db:unlock (release stuck migration locks)")
 
   await healMigrationHistory()
 
