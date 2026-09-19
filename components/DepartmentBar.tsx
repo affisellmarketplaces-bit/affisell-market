@@ -10,7 +10,6 @@ import { catalogFilterHref } from "@/lib/marketplace-catalog-nav.client"
 import { categoryRailHref } from "@/lib/marketplace-category-rail-href.client"
 import {
   PREMIUM_MARKETPLACE_HOME,
-  resolveDepartmentPillStyle,
   type PremiumCategoryItem,
 } from "@/lib/marketplace-premium-home-shared"
 import { cn } from "@/lib/utils"
@@ -84,7 +83,6 @@ export function DepartmentBar({
         </FastLink>
 
         {categories.map((cat) => {
-          const style = resolveDepartmentPillStyle(cat.name)
           const active = activeCategoryId === cat.id
           return (
             <FastLink
@@ -92,14 +90,17 @@ export function DepartmentBar({
               href={categoryRailHref(catalogBasePath, cat)}
               scroll={false}
               className={cn(
-                "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold ring-1 ring-white/70 transition hover:-translate-y-px hover:shadow-md",
-                active && "ring-2 ring-violet-400 ring-offset-1"
+                "group inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full py-1.5 pl-1.5 pr-3.5 text-xs font-semibold text-zinc-800 backdrop-blur-md transition hover:-translate-y-px hover:shadow-md",
+                active
+                  ? "bg-violet-50/90 ring-2 ring-violet-500"
+                  : "bg-white/70 ring-1 ring-violet-200/60 hover:bg-white/90 hover:ring-violet-300"
               )}
-              style={{ backgroundColor: `color-mix(in srgb, ${style.bg} 70%, transparent)`, color: style.text }}
             >
-              <CategoryGlyph name={cat.name} slug={cat.slug} icon={cat.icon} size="md" />
+              <CategoryGlyph name={cat.name} slug={cat.slug} icon={cat.icon} size="md" tone="soft" />
               {cat.name}
-              {cat.count > 0 ? <span className="opacity-75">({cat.count})</span> : null}
+              {cat.count > 0 ? (
+                <span className="text-[11px] font-medium tabular-nums text-zinc-500">{cat.count}</span>
+              ) : null}
             </FastLink>
           )
         })}

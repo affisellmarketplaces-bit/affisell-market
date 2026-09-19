@@ -12,7 +12,7 @@ import {
   browseDepartmentRailHref,
   isSoftCategoryCatalogBase,
 } from "@/lib/marketplace-category-rail-href.client"
-import { PREMIUM_MARKETPLACE_HOME, resolveBrowseDepartmentPillStyle } from "@/lib/marketplace-premium-home-shared"
+import { PREMIUM_MARKETPLACE_HOME } from "@/lib/marketplace-premium-home-shared"
 import type { ResolvedBrowseDepartment } from "@/lib/taxonomy/browse-departments-shared"
 import { cn } from "@/lib/utils"
 
@@ -86,24 +86,21 @@ export function PopularDepartmentsBar({
       <ScrollFadeRow ariaLabel={t("popularTitle")}>
         {visible.map((dept) => {
           const active = dept.categoryId ? activeCategoryId === dept.categoryId : false
-          const style = resolveBrowseDepartmentPillStyle(dept.id)
           return (
             <FastLink
               key={dept.id}
               href={browseDepartmentRailHref(catalogBasePath, dept)}
               scroll={!softNav}
               className={cn(
-                "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-semibold ring-1 ring-white/70 transition hover:-translate-y-px hover:shadow-md",
-                active && "ring-2 ring-violet-400 ring-offset-1"
-              )}
-              style={
+                "group inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full py-1.5 pl-1.5 pr-3.5 text-xs font-semibold backdrop-blur-md transition hover:-translate-y-px hover:shadow-md",
                 active
-                  ? { backgroundImage: PREMIUM_MARKETPLACE_HOME.heroGradient, color: "#fff" }
-                  : { backgroundColor: `color-mix(in srgb, ${style.bg} 70%, transparent)`, color: style.text }
-              }
+                  ? "text-white ring-2 ring-violet-400 ring-offset-1"
+                  : "bg-white/70 text-zinc-800 ring-1 ring-violet-200/60 hover:bg-white/90 hover:ring-violet-300"
+              )}
+              style={active ? { backgroundImage: PREMIUM_MARKETPLACE_HOME.heroGradient } : undefined}
               lang={locale}
             >
-              <CategoryGlyph name={dept.label} icon={dept.icon} size="md" />
+              <CategoryGlyph name={dept.label} icon={dept.icon} size="md" tone="soft" />
               {dept.label}
             </FastLink>
           )

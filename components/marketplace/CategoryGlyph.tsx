@@ -20,6 +20,8 @@ type Props = {
   className?: string
   /** Dark glass sheet (mobile category drawer). */
   inSheet?: boolean
+  /** "soft": calm brand-tinted tile (no per-category rainbow) — used on light rails. */
+  tone?: "vivid" | "soft"
 }
 
 export function CategoryGlyph({
@@ -29,10 +31,27 @@ export function CategoryGlyph({
   size = "sm",
   className,
   inSheet = false,
+  tone = "vivid",
 }: Props) {
   const meta = resolveCategoryGlyphMeta({ name, slug, fullPath })
   const Icon = meta.icon
   const s = SIZE_CLASS[size]
+
+  if (tone === "soft") {
+    return (
+      <span
+        className={cn(
+          "inline-flex shrink-0 items-center justify-center bg-violet-100/80 text-violet-700 ring-1 ring-violet-200/70",
+          "transition-transform duration-200 group-hover:scale-105 dark:bg-violet-950/50 dark:text-violet-200 dark:ring-violet-800/60",
+          s.box,
+          className
+        )}
+        aria-hidden
+      >
+        <Icon className={s.icon} strokeWidth={s.stroke} />
+      </span>
+    )
+  }
 
   return (
     <span
