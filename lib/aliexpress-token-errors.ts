@@ -23,10 +23,12 @@ export function isAliExpressRefreshTokenError(message: string): boolean {
   )
 }
 
-export type AliExpressTokenErrorKind = "expired_access" | "refresh_failed" | "missing" | null
+export type AliExpressTokenErrorKind = "expired_access" | "refresh_failed" | "missing" | "unavailable" | null
 
 export function classifyAliExpressTokenError(message: string): AliExpressTokenErrorKind {
   if (!message.trim()) return null
+  // Outage / timeout on our side or AliExpress's — the session itself is fine, never ask to reconnect.
+  if (/token store temporarily unavailable|refresh timed out|non-json/i.test(message)) return "unavailable"
   if (/tokens missing|refresh_token required|no refresh_token/i.test(message)) return "missing"
   if (isAliExpressRefreshTokenError(message)) return "refresh_failed"
   if (isAliExpressIllegalAccessTokenError(message)) return "expired_access"
@@ -39,6 +41,8 @@ export function aliExpressOAuthReconnectHint(kind: AliExpressTokenErrorKind): st
       return `Session OAuth expirée — reconnectez AliExpress : ${ALIEXPRESS_OAUTH_START_PATH}`
     case "refresh_failed":
       return `Refresh token invalide — relancez OAuth : ${ALIEXPRESS_OAUTH_START_PATH}`
+    case "unavailable":
+      return "Connexion AliExpress momentanément indisponible — aucune reconnexion nécessaire, réessayez dans quelques instants."
     case "missing":
       return `Aucune session OAuth — autorisez l’app : ${ALIEXPRESS_OAUTH_START_PATH}`
     default:

@@ -3,7 +3,7 @@ import "server-only"
 import type { Prisma } from "@prisma/client"
 
 import { decryptString, encryptString, hasEncryptionKey } from "@/lib/crypto"
-import { prisma } from "@/lib/prisma"
+import { fulfillmentPrisma, prisma } from "@/lib/prisma"
 
 export const ALIEXPRESS_OAUTH_PROVIDER = "aliexpress" as const
 
@@ -44,65 +44,85 @@ export async function saveAliExpressTokens(args: {
   }
 
   const metaJson = (args.meta ?? undefined) as Prisma.InputJsonValue | undefined
-
-  try {
-    await prisma.platformOAuthCredential.upsert({
-      where: { provider: ALIEXPRESS_OAUTH_PROVIDER },
-      create: {
-        provider: ALIEXPRESS_OAUTH_PROVIDER,
-        accessTokenEncrypted: encryptString(args.accessToken.trim()),
-        refreshTokenEncrypted: encryptString(args.refreshToken.trim()),
-        accessExpiresAt: args.accessExpiresAt ?? null,
-        refreshExpiresAt: args.refreshExpiresAt ?? null,
-        accountHint: args.accountHint ?? null,
-        meta: metaJson,
-      },
-      update: {
-        accessTokenEncrypted: encryptString(args.accessToken.trim()),
-        refreshTokenEncrypted: encryptString(args.refreshToken.trim()),
-        accessExpiresAt: args.accessExpiresAt ?? null,
-        refreshExpiresAt: args.refreshExpiresAt ?? null,
-        accountHint: args.accountHint ?? null,
-        meta: metaJson,
-      },
-    })
-    console.log("[aliexpress-token-store]", {
-      result: "saved",
-      access: maskTail(args.accessToken),
-      refresh: maskTail(args.refreshToken),
-      accessExpiresAt: args.accessExpiresAt?.toISOString() ?? null,
-    })
-    return { ok: true }
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    console.error("[aliexpress-token-store]", { result: "save_error", message })
-    return { ok: false, error: message }
+  const data = {
+    accessTokenEncrypted: encryptString(args.accessToken.trim()),
+    refreshTokenEncrypted: encryptString(args.refreshToken.trim()),
+    accessExpiresAt: args.accessExpiresAt ?? null,
+    refreshExpiresAt: args.refreshExpiresAt ?? null,
+    accountHint: args.accountHint ?? null,
+    meta: metaJson,
   }
+
+  // AliExpress ROTATES the refresh token on every refresh: losing this write means the session is dead for good.
+  // So: retry on the pooled client, then once more on the direct (unpooled) connection.
+  let lastMessage = "unknown"
+  const clients = [prisma, prisma, prisma, fulfillmentPrisma]
+  for (let attempt = 0; attempt < clients.length; attempt++) {
+    try {
+      await clients[attempt].platformOAuthCredential.upsert({
+        where: { provider: ALIEXPRESS_OAUTH_PROVIDER },
+        create: { provider: ALIEXPRESS_OAUTH_PROVIDER, ...data },
+        update: data,
+      })
+      console.log("[aliexpress-token-store]", {
+        result: "saved",
+        attempt: attempt + 1,
+        access: maskTail(args.accessToken),
+        refresh: maskTail(args.refreshToken),
+        accessExpiresAt: args.accessExpiresAt?.toISOString() ?? null,
+      })
+      return { ok: true }
+    } catch (err) {
+      lastMessage = err instanceof Error ? err.message : String(err)
+      console.error("[aliexpress-token-store]", { result: "save_error", attempt: attempt + 1, message: lastMessage })
+      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)))
+    }
+  }
+  return { ok: false, error: lastMessage }
 }
 
-/** Load decrypted tokens from DB, or null. */
-export async function loadAliExpressTokensFromDb(): Promise<AliExpressStoredTokens | null> {
-  if (!hasEncryptionKey()) return null
-  try {
-    const row = await prisma.platformOAuthCredential.findUnique({
-      where: { provider: ALIEXPRESS_OAUTH_PROVIDER },
-    })
-    if (!row) return null
-    return {
-      accessToken: decryptString(row.accessTokenEncrypted),
-      refreshToken: decryptString(row.refreshTokenEncrypted),
-      accessExpiresAt: row.accessExpiresAt,
-      refreshExpiresAt: row.refreshExpiresAt,
-      accountHint: row.accountHint,
-      source: "db",
+export type AliExpressDbTokenState =
+  | { status: "ok"; tokens: AliExpressStoredTokens }
+  | { status: "missing" }
+  | { status: "error"; message: string }
+
+/**
+ * Load decrypted tokens from DB. Distinguishes "no row" from "database unreachable": callers must NEVER treat an
+ * outage as "no session" (that used to fall through to stale env tokens and kill the refresh chain).
+ */
+export async function loadAliExpressTokenState(): Promise<AliExpressDbTokenState> {
+  if (!hasEncryptionKey()) return { status: "missing" }
+  let lastMessage = "unknown"
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const row = await prisma.platformOAuthCredential.findUnique({
+        where: { provider: ALIEXPRESS_OAUTH_PROVIDER },
+      })
+      if (!row) return { status: "missing" }
+      return {
+        status: "ok",
+        tokens: {
+          accessToken: decryptString(row.accessTokenEncrypted),
+          refreshToken: decryptString(row.refreshTokenEncrypted),
+          accessExpiresAt: row.accessExpiresAt,
+          refreshExpiresAt: row.refreshExpiresAt,
+          accountHint: row.accountHint,
+          source: "db",
+        },
+      }
+    } catch (err) {
+      lastMessage = err instanceof Error ? err.message : String(err)
+      console.error("[aliexpress-token-store]", { result: "load_error", attempt: attempt + 1, message: lastMessage })
+      await new Promise((r) => setTimeout(r, 300 * (attempt + 1)))
     }
-  } catch (err) {
-    console.error("[aliexpress-token-store]", {
-      result: "load_error",
-      message: err instanceof Error ? err.message : String(err),
-    })
-    return null
   }
+  return { status: "error", message: lastMessage }
+}
+
+/** Load decrypted tokens from DB, or null (missing OR error — prefer loadAliExpressTokenState). */
+export async function loadAliExpressTokensFromDb(): Promise<AliExpressStoredTokens | null> {
+  const state = await loadAliExpressTokenState()
+  return state.status === "ok" ? state.tokens : null
 }
 
 /** Env bootstrap (Vercel) — no expiry metadata unless ALIEXPRESS_ACCESS_EXPIRES_AT set. */
@@ -133,9 +153,19 @@ export function loadAliExpressTokensFromEnv(): AliExpressStoredTokens | null {
   }
 }
 
+/** Raised when the token store cannot be read (DB outage) — transient, never "reconnect OAuth". */
+export class AliExpressTokenStoreUnavailableError extends Error {
+  constructor(message: string) {
+    super(`AliExpress token store temporarily unavailable: ${message}`)
+    this.name = "AliExpressTokenStoreUnavailableError"
+  }
+}
+
 export async function loadAliExpressTokens(): Promise<AliExpressStoredTokens | null> {
-  const fromDb = await loadAliExpressTokensFromDb()
-  if (fromDb?.accessToken || fromDb?.refreshToken) return fromDb
+  const state = await loadAliExpressTokenState()
+  if (state.status === "ok" && (state.tokens.accessToken || state.tokens.refreshToken)) return state.tokens
+  // Env tokens are a one-time bootstrap only: with a DB outage they are stale (already rotated) — do not use them.
+  if (state.status === "error") throw new AliExpressTokenStoreUnavailableError(state.message)
   return loadAliExpressTokensFromEnv()
 }
 

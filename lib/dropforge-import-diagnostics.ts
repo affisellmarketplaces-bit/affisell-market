@@ -20,13 +20,14 @@ export async function dropForgeImportFailureHints(
     if (!ae.configured) {
       hints.push(ae.message)
       hints.push(
-        `Reconnecte l’API : ${ALIEXPRESS_OAUTH_START_PATH} puis tokens sur Vercel (ALIEXPRESS_REFRESH_TOKEN).`
+        `Reconnecte l’API : ${ALIEXPRESS_OAUTH_START_PATH} (la session est enregistrée automatiquement).`
       )
     } else if (tokenKind) {
       hints.push(aliExpressOAuthReconnectHint(tokenKind))
-      hints.push(
-        "Après autorisation, copie ALIEXPRESS_REFRESH_TOKEN sur Vercel → redéploie, ou laisse la session chiffrée en base."
-      )
+      if (tokenKind !== "unavailable") {
+        // The session is stored encrypted in the database and renewed automatically — never copy tokens to env.
+        hints.push("Après autorisation, la session est enregistrée automatiquement (chiffrée en base) et renouvelée toute seule.")
+      }
     } else if (ae.tokenSource === "db") {
       hints.push(
         ae.accountHint
@@ -47,7 +48,7 @@ export async function dropForgeImportFailureHints(
       }
     }
 
-    if (opts?.suggestBrowserBridge && !tokenKind) {
+    if (opts?.suggestBrowserBridge && (!tokenKind || tokenKind === "unavailable")) {
       hints.push(
         "Utilise le pont Express Bridge ci-dessous : votre navigateur lit la page AliExpress (100 % fiable, sans ScrapingBee)."
       )

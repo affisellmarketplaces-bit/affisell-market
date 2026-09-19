@@ -10,15 +10,20 @@ import {
   signAliExpressParams,
 } from "@/lib/aliexpress-open-api"
 import {
+  AliExpressTokenStoreUnavailableError,
   expiresWithinMs,
   loadAliExpressTokens,
+  loadAliExpressTokenState,
   saveAliExpressTokens,
   type AliExpressStoredTokens,
 } from "@/lib/aliexpress-token-store"
 
 const REFRESH_TIMEOUT_MS = 15_000
-/** Refresh when access token expires within this window. */
-export const ALIEXPRESS_REFRESH_SKEW_MS = 60 * 60 * 1000
+/**
+ * Refresh when the access token expires within this window. Wide on purpose: the cron runs every 6h, so a token is
+ * always renewed well before it dies, even if one cron run is lost to a database / network hiccup.
+ */
+export const ALIEXPRESS_REFRESH_SKEW_MS = 8 * 60 * 60 * 1000
 
 let memoryCache: {
   accessToken: string
@@ -272,8 +277,92 @@ function tokensNeedRefresh(stored: AliExpressStoredTokens): boolean {
   return expiresWithinMs(stored.accessExpiresAt, ALIEXPRESS_REFRESH_SKEW_MS)
 }
 
+type RefreshedTokens = {
+  accessToken: string
+  refreshToken: string
+  expiresAtMs: number
+  refreshExpiresAt: Date | null
+}
+
+/** Network / gateway / DB trouble — says nothing about the validity of the session. */
+export function isTransientAliExpressFailure(err: unknown): boolean {
+  if (err instanceof AliExpressTokenStoreUnavailableError) return true
+  const m = (err instanceof Error ? err.message : String(err)).toLowerCase()
+  return /timed out|timeout|non-json|http 5\d\d|fetch failed|econnreset|enotfound|etimedout|network|temporar|unavailable|rate limit|too many/.test(m)
+}
+
+/** One refresh at a time per instance — parallel refreshes would rotate the refresh token under each other. */
+let refreshInFlight: Promise<RefreshedTokens> | null = null
+
+async function refreshRotateAndPersist(
+  stored: AliExpressStoredTokens,
+  meta: Record<string, unknown>
+): Promise<RefreshedTokens & { persisted: boolean }> {
+  if (refreshInFlight) {
+    const shared = await refreshInFlight
+    return { ...shared, persisted: true }
+  }
+
+  const run = (async (): Promise<RefreshedTokens & { persisted: boolean }> => {
+    let refreshed: RefreshedTokens
+    try {
+      refreshed = await refreshAliExpressAccessToken({ refreshToken: stored.refreshToken })
+    } catch (err) {
+      // Another instance may have rotated the token first (AliExpress invalidates the previous one):
+      // adopt what it stored instead of declaring the session dead.
+      const latest = await loadAliExpressTokenState()
+      if (latest.status === "ok" && latest.tokens.refreshToken && latest.tokens.refreshToken !== stored.refreshToken) {
+        const t = latest.tokens
+        if (t.accessToken && t.accessExpiresAt && !expiresWithinMs(t.accessExpiresAt, 5 * 60 * 1000)) {
+          console.log("[aliexpress-oauth]", { result: "adopted_tokens_rotated_elsewhere" })
+          return {
+            accessToken: t.accessToken,
+            refreshToken: t.refreshToken,
+            expiresAtMs: t.accessExpiresAt.getTime(),
+            refreshExpiresAt: t.refreshExpiresAt,
+            persisted: true,
+          }
+        }
+        refreshed = await refreshAliExpressAccessToken({ refreshToken: t.refreshToken })
+      } else {
+        throw err
+      }
+    }
+
+    memoryCache = {
+      accessToken: refreshed.accessToken,
+      refreshToken: refreshed.refreshToken,
+      accessExpiresAtMs: refreshed.expiresAtMs,
+    }
+
+    const saved = await saveAliExpressTokens({
+      accessToken: refreshed.accessToken,
+      refreshToken: refreshed.refreshToken,
+      accessExpiresAt: new Date(refreshed.expiresAtMs),
+      refreshExpiresAt: refreshed.refreshExpiresAt,
+      accountHint: stored.accountHint,
+      meta: { ...meta, refreshedAt: new Date().toISOString(), source: stored.source },
+    })
+    if (!saved.ok) {
+      console.error("[aliexpress-oauth]", {
+        result: "CRITICAL_rotated_tokens_not_persisted",
+        error: saved.error,
+      })
+    }
+    return { ...refreshed, persisted: saved.ok }
+  })()
+
+  refreshInFlight = run
+  try {
+    return await run
+  } finally {
+    refreshInFlight = null
+  }
+}
+
 /**
- * Returns a non-expired access token (DB → env → refresh). Persists refreshed tokens.
+ * Returns a non-expired access token (DB → env bootstrap → refresh). Persists refreshed tokens.
+ * A transient failure (network, DB) never invalidates the session: the current access token is reused while it lives.
  */
 export async function getValidAccessToken(options?: {
   forceRefresh?: boolean
@@ -289,7 +378,14 @@ export async function getValidAccessToken(options?: {
     return memoryCache.accessToken
   }
 
-  const stored = await loadAliExpressTokens()
+  let stored: AliExpressStoredTokens | null
+  try {
+    stored = await loadAliExpressTokens()
+  } catch (err) {
+    // Database outage: keep serving from memory while that token is still valid.
+    if (memoryCache && memoryCache.accessExpiresAtMs - Date.now() > 60_000) return memoryCache.accessToken
+    throw err
+  }
   if (!stored?.refreshToken && !stored?.accessToken) {
     throw new AliExpressApiError(
       "AliExpress tokens missing — run OAuth callback or set ALIEXPRESS_ACCESS_TOKEN / ALIEXPRESS_REFRESH_TOKEN"
@@ -310,26 +406,20 @@ export async function getValidAccessToken(options?: {
     throw new AliExpressApiError("ALIEXPRESS_REFRESH_TOKEN required to renew access token")
   }
 
-  const refreshed = await refreshAliExpressAccessToken({
-    refreshToken: stored.refreshToken,
-  })
-
-  memoryCache = {
-    accessToken: refreshed.accessToken,
-    refreshToken: refreshed.refreshToken,
-    accessExpiresAtMs: refreshed.expiresAtMs,
+  try {
+    const refreshed = await refreshRotateAndPersist(stored, {})
+    return refreshed.accessToken
+  } catch (err) {
+    const stillLive =
+      stored.accessToken &&
+      stored.accessExpiresAt &&
+      stored.accessExpiresAt.getTime() - Date.now() > 60_000
+    if (!force && stillLive && isTransientAliExpressFailure(err)) {
+      console.warn("[aliexpress-oauth]", { result: "refresh_transient_failure_reusing_access_token" })
+      return stored.accessToken
+    }
+    throw err
   }
-
-  await saveAliExpressTokens({
-    accessToken: refreshed.accessToken,
-    refreshToken: refreshed.refreshToken,
-    accessExpiresAt: new Date(refreshed.expiresAtMs),
-    refreshExpiresAt: refreshed.refreshExpiresAt,
-    accountHint: stored.accountHint,
-    meta: { refreshedAt: new Date().toISOString(), source: stored.source },
-  })
-
-  return refreshed.accessToken
 }
 
 /** Force refresh + persist — used by cron. */
@@ -337,6 +427,7 @@ export async function forceRefreshAndPersistAliExpressTokens(): Promise<{
   ok: true
   expiresIn: number
   accessExpiresAt: string
+  refreshExpiresAt: string | null
   persisted: boolean
 }> {
   const stored = await loadAliExpressTokens()
@@ -344,32 +435,15 @@ export async function forceRefreshAndPersistAliExpressTokens(): Promise<{
     throw new AliExpressApiError("No refresh_token available (DB or env)")
   }
 
-  const refreshed = await refreshAliExpressAccessToken({
-    refreshToken: stored.refreshToken,
-  })
-
-  memoryCache = {
-    accessToken: refreshed.accessToken,
-    refreshToken: refreshed.refreshToken,
-    accessExpiresAtMs: refreshed.expiresAtMs,
-  }
-
-  const saved = await saveAliExpressTokens({
-    accessToken: refreshed.accessToken,
-    refreshToken: refreshed.refreshToken,
-    accessExpiresAt: new Date(refreshed.expiresAtMs),
-    refreshExpiresAt: refreshed.refreshExpiresAt,
-    accountHint: stored.accountHint,
-    meta: { refreshedAt: new Date().toISOString(), via: "force_refresh" },
-  })
-
+  const refreshed = await refreshRotateAndPersist(stored, { via: "force_refresh" })
   const expiresIn = Math.max(0, Math.round((refreshed.expiresAtMs - Date.now()) / 1000))
 
   return {
     ok: true,
     expiresIn,
     accessExpiresAt: new Date(refreshed.expiresAtMs).toISOString(),
-    persisted: saved.ok,
+    refreshExpiresAt: refreshed.refreshExpiresAt?.toISOString() ?? null,
+    persisted: refreshed.persisted,
   }
 }
 
