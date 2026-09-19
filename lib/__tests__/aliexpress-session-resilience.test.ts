@@ -138,3 +138,14 @@ describe("the exact production failure is classified as a dead session, not an o
     vi.unstubAllGlobals()
   })
 })
+
+describe("token logging", () => {
+  it("masks access/refresh tokens in logged response bodies", async () => {
+    const { redactTokensForLog } = await import("@/lib/aliexpress-oauth-token-exchange")
+    const out = redactTokensForLog('{"access_token":"50000201017SECRETSECRETABCD","refresh_token":"50001200f17ANOTHERSECRET1234","user_nick":"x"}')
+    expect(out).not.toContain("SECRET")
+    expect(out).toContain("…ABCD")
+    expect(out).toContain("…1234")
+    expect(out).toContain("user_nick")
+  })
+})

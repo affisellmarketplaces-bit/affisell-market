@@ -67,6 +67,14 @@ export type AliExpressTokenExchangeResult =
       attempts: AliExpressTokenAttempt[]
     }
 
+/** Masks `"access_token":"…"` / `"refresh_token":"…"` values (keeps the last 4 chars) for safe logging. */
+export function redactTokensForLog(text: string): string {
+  return text.replace(
+    /("(?:access_token|refresh_token|accessToken|refreshToken)"\s*:\s*")([^"]+)(")/g,
+    (_m, a: string, token: string, c: string) => `${a}…${token.slice(-4)}${c}`
+  )
+}
+
 function asRecord(v: unknown): Record<string, unknown> | null {
   return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null
 }
@@ -268,7 +276,8 @@ async function runAttempt(
     method,
     url: url.split("?")[0],
     httpStatus: res.status,
-    bodyText: bodyText.slice(0, 4000),
+    // Never write live tokens to logs: mask every access/refresh token value.
+    bodyText: redactTokensForLog(bodyText).slice(0, 4000),
   })
   return {
     method,

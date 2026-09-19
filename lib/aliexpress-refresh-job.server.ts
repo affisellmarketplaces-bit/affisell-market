@@ -4,7 +4,11 @@ import { forceRefreshAndPersistAliExpressTokens, isTransientAliExpressFailure } 
 import { AliExpressApiError } from "@/lib/aliexpress-open-api"
 import { alertAdminsAliExpressSession } from "@/lib/aliexpress-session-alert.server"
 
-const EXPIRING_SOON_MS = 7 * 24 * 60 * 60 * 1000
+/**
+ * AliExpress refresh tokens live only 48h (refresh_expires_in = 172800) and each successful refresh renews them.
+ * A healthy job therefore always sees ~48h left; alert only when a run was clearly missed (<12h left).
+ */
+const EXPIRING_SOON_MS = 12 * 60 * 60 * 1000
 
 /** Shared by both refresh endpoints: refresh, verify it was persisted, and alert BEFORE the session dies. */
 export async function runAliExpressRefreshJob(label: string): Promise<{ status: number; body: Record<string, unknown> }> {
