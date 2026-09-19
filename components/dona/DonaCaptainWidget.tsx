@@ -16,6 +16,7 @@ import {
   DonaTypingIndicator,
 } from "@/components/dona/dona-chat-ui"
 import { DonaAvatarImage } from "@/components/dona/dona-avatar-image"
+import { DonaFabOrb } from "@/components/dona/dona-fab-orb"
 import { tMessage } from "@/lib/i18n-pick-message"
 
 type CaptainMeta = {
@@ -308,26 +309,13 @@ export function DonaCaptainWidget() {
       </AnimatePresence>
 
       {!isOpen ? (
-        <button
-          type="button"
+        <DonaFabOrb
           onClick={() => setIsOpen(true)}
-          className="affisell-dona-fab affisell-dona-fab-portrait fixed z-[109] flex h-[4.75rem] w-[3.35rem] items-stretch justify-center overflow-hidden rounded-2xl border-2 border-violet-400/80 bg-gradient-to-br from-violet-950 via-indigo-900 to-blue-950 shadow-[0_0_22px_rgba(124,58,237,0.45)] transition hover:border-violet-300 max-md:active:scale-95"
-          aria-label={openFabAria}
-        >
-          <DonaAvatarImage
-            className="size-full object-cover object-top"
-            alt="Captain Dona"
-            loading="lazy"
-            variant="portrait"
-          />
-          <span className="absolute -right-1 -top-1 rounded-full bg-black px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white">
-            {fabBadge}
-          </span>
-          <span
-            className="absolute bottom-1 right-1 size-3 animate-pulse rounded-full border-2 border-white bg-green-400"
-            aria-hidden
-          />
-        </button>
+          ariaLabel={openFabAria}
+          alt="Captain Dona"
+          zClassName="z-[109]"
+          badge={fabBadge}
+        />
       ) : null}
     </>
   )
