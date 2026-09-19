@@ -7736,13 +7736,17 @@
   },
   "homeQuick": {
     "aria": "快速筛选",
-    "deliveringTo": "配送至：{country}",
     "freeShipping": "免运费",
-    "brandNew": "全新",
-    "refurbished": "翻新",
-    "secondHand": "二手",
     "under": "{amount} 以下",
-    "flash": "限时闪购"
+    "flash": "限时闪购",
+    "conditionTitle": "成色",
+    "condition": {
+      "standard": "全新",
+      "refurbished": "翻新",
+      "second_hand": "二手",
+      "wholesale": "批发",
+      "donation": "捐赠"
+    }
   },
   "homeFlash": {
     "title": "限时闪购",

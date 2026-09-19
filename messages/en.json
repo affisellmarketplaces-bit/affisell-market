@@ -7736,13 +7736,17 @@
   },
   "homeQuick": {
     "aria": "Quick filters",
-    "deliveringTo": "Delivering to {country}",
     "freeShipping": "Free shipping",
-    "brandNew": "Brand new",
-    "refurbished": "Refurbished",
-    "secondHand": "Second-hand",
     "under": "Under {amount}",
-    "flash": "Flash deals"
+    "flash": "Flash deals",
+    "conditionTitle": "Condition",
+    "condition": {
+      "standard": "New",
+      "refurbished": "Refurbished",
+      "second_hand": "Pre-owned",
+      "wholesale": "Bulk",
+      "donation": "Donation"
+    }
   },
   "homeFlash": {
     "title": "Flash sales",

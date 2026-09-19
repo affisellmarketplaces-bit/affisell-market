@@ -7736,13 +7736,17 @@
   },
   "homeQuick": {
     "aria": "Szybkie filtry",
-    "deliveringTo": "Dostawa do: {country}",
     "freeShipping": "Darmowa dostawa",
-    "brandNew": "Nowe",
-    "refurbished": "Odnowione",
-    "secondHand": "Używane",
     "under": "Poniżej {amount}",
-    "flash": "Wyprzedaże flash"
+    "flash": "Wyprzedaże flash",
+    "conditionTitle": "Stan",
+    "condition": {
+      "standard": "Nowe",
+      "refurbished": "Odnowione",
+      "second_hand": "Używane",
+      "wholesale": "Hurt",
+      "donation": "Dar"
+    }
   },
   "homeFlash": {
     "title": "Wyprzedaże flash",

@@ -7736,13 +7736,17 @@
   },
   "homeQuick": {
     "aria": "Filtros rápidos",
-    "deliveringTo": "Entrega en: {country}",
     "freeShipping": "Envío gratis",
-    "brandNew": "Nuevo",
-    "refurbished": "Reacondicionado",
-    "secondHand": "Segunda mano",
     "under": "Menos de {amount}",
-    "flash": "Ventas flash"
+    "flash": "Ventas flash",
+    "conditionTitle": "Estado",
+    "condition": {
+      "standard": "Nuevo",
+      "refurbished": "Reacondicionado",
+      "second_hand": "Segunda mano",
+      "wholesale": "Mayorista",
+      "donation": "Donación"
+    }
   },
   "homeFlash": {
     "title": "Ventas flash",

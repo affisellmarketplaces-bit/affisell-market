@@ -749,7 +749,12 @@ export function MarketplaceView({
               <div className="mb-4 hidden items-center gap-3 md:flex">
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   <strong className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {t("listingCount", { count: products.length })}
+                    {t("listingCount", {
+                      count:
+                        !hasFilters && !searchQuery.trim() && (categoriesPayload?.catalogTotal ?? 0) > products.length
+                          ? (categoriesPayload?.catalogTotal ?? products.length)
+                          : products.length,
+                    })}
                   </strong>
                   {searchQuery.trim() ? t("listingCountForQuery", { query: searchQuery.trim() }) : null}
                   {hasFilters && !searchQuery.trim() ? (

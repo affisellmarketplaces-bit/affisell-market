@@ -1,16 +1,14 @@
 "use client"
 
-import { MapPin } from "lucide-react"
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 
+import { MarketplaceShipsToChip } from "@/components/marketplace/marketplace-ships-to-chip"
 import { ScrollFadeRow } from "@/components/ui/scroll-fade-row"
-import { useVisitorCheckoutRegion } from "@/hooks/use-visitor-checkout-region"
 import { categoryPillClass } from "@/lib/category-pill-style"
 import { cn } from "@/lib/utils"
 import { catalogFilterHref } from "@/lib/marketplace-catalog-nav.client"
-import { visitorCountryDisplayName } from "@/lib/visitor-country"
 
 type Quick = { id: string; label: string; key: string; value: string }
 
@@ -19,21 +17,16 @@ function scrollToExplorer() {
 }
 
 /**
- * Amazon-style utility line — but honest: where we deliver (from the visitor's real checkout region) plus
- * one-tap filters that map 1:1 to real catalog facets. Each pill toggles its URL param; the explorer below reacts.
+ * Amazon-style utility line — but honest: a "Ships to <country>" filter from the visitor's real checkout region plus
+ * one-tap filters that map 1:1 to real catalog facets. Condition filters live in the counted condition bar below.
  */
 export function HomeQuickStrip() {
   const t = useTranslations("homeQuick")
-  const locale = useLocale()
   const router = useRouter()
   const sp = useSearchParams()
-  const { country, loading } = useVisitorCheckoutRegion()
 
   const quick: Quick[] = [
     { id: "free", label: t("freeShipping"), key: "freeShipping", value: "1" },
-    { id: "new", label: t("brandNew"), key: "offer", value: "new" },
-    { id: "refurb", label: t("refurbished"), key: "offer", value: "refurbished" },
-    { id: "used", label: t("secondHand"), key: "offer", value: "second_hand" },
     { id: "u20", label: t("under", { amount: "20 €" }), key: "price", value: "under20" },
     { id: "u50", label: t("under", { amount: "50 €" }), key: "price", value: "under50" },
   ]
@@ -48,12 +41,11 @@ export function HomeQuickStrip() {
 
   return (
     <div className="flex min-w-0 items-center gap-2" role="region" aria-label={t("aria")}>
-      {!loading && country ? (
-        <span className="hidden shrink-0 items-center gap-1.5 rounded-full bg-white/60 dark:bg-white/10 px-3.5 py-2 text-sm font-medium text-[color:var(--glass-text)] ring-1 ring-white/70 backdrop-blur sm:inline-flex">
-          <MapPin className="size-4 text-[color:var(--glass-accent)]" aria-hidden />
-          {t("deliveringTo", { country: visitorCountryDisplayName(country, locale) })}
-        </span>
-      ) : null}
+      {/* Interactive "Ships to <country>" filter (hidden until the visitor's checkout region is known). */}
+      <MarketplaceShipsToChip
+        basePath="/"
+        className="shrink-0 !bg-white/60 !py-2 !text-sm !text-[color:var(--glass-text)] !ring-white/70 max-lg:min-h-11 dark:!bg-white/10"
+      />
       <ScrollFadeRow ariaLabel={t("aria")} className="min-w-0 flex-1">
         <Link href="/battles" className={cn(categoryPillClass(false), "max-lg:min-h-11")}>
           ⚡ {t("flash")}

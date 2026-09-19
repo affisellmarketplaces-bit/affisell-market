@@ -7736,13 +7736,17 @@
   },
   "homeQuick": {
     "aria": "Filtres rapides",
-    "deliveringTo": "Livraison vers : {country}",
     "freeShipping": "Livraison offerte",
-    "brandNew": "Neuf",
-    "refurbished": "Reconditionné",
-    "secondHand": "Occasion",
     "under": "Moins de {amount}",
-    "flash": "Ventes flash"
+    "flash": "Ventes flash",
+    "conditionTitle": "État",
+    "condition": {
+      "standard": "Neuf",
+      "refurbished": "Reconditionné",
+      "second_hand": "Occasion",
+      "wholesale": "Gros",
+      "donation": "Don"
+    }
   },
   "homeFlash": {
     "title": "Ventes flash",

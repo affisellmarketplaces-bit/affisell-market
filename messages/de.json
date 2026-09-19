@@ -7736,13 +7736,17 @@
   },
   "homeQuick": {
     "aria": "Schnellfilter",
-    "deliveringTo": "Lieferung nach: {country}",
     "freeShipping": "Kostenloser Versand",
-    "brandNew": "Neu",
-    "refurbished": "Generalüberholt",
-    "secondHand": "Gebraucht",
     "under": "Unter {amount}",
-    "flash": "Flash-Angebote"
+    "flash": "Flash-Angebote",
+    "conditionTitle": "Zustand",
+    "condition": {
+      "standard": "Neu",
+      "refurbished": "Generalüberholt",
+      "second_hand": "Gebraucht",
+      "wholesale": "Großhandel",
+      "donation": "Spende"
+    }
   },
   "homeFlash": {
     "title": "Flash-Angebote",

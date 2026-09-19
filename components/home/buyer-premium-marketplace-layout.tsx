@@ -9,7 +9,6 @@ import { HomeDiscoverySection, type DiscoveryGroup } from "@/components/home/dis
 import { HomeQuickStrip } from "@/components/home/discovery/home-quick-strip"
 import { GlassCatalogShell, type GlassProduct, type GlassTrend } from "@/components/home/glass/glass-catalog-shell"
 import { ProductConditionFilterBar } from "@/components/ProductConditionFilterBar"
-import { MarketplaceShipsToChip } from "@/components/marketplace/marketplace-ships-to-chip"
 import { normalizeHomeCatalogProduct } from "@/lib/home-catalog-product-href"
 import type { HomeCollection } from "@/lib/home-collections"
 import type { FlashDeal, HomeShop } from "@/lib/home-flash-shops.server"
@@ -109,12 +108,6 @@ function PremiumMarketplaceBody({
       />
 
       <div className="min-w-0 space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <MarketplaceShipsToChip
-            basePath="/"
-            className="!bg-[#EDE9FE] !text-violet-900 !ring-violet-200"
-          />
-        </div>
         <ProductConditionFilterBar initialCounts={shell.offerRailCounts} />
         {/* Single #explorer anchor — sticky PublicNav; avoid void under hash scroll. */}
         <div id="explorer" className="min-h-[16rem] min-w-0 scroll-mt-28">

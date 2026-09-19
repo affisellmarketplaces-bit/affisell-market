@@ -7736,13 +7736,17 @@
   },
   "homeQuick": {
     "aria": "Snelfilters",
-    "deliveringTo": "Levering naar: {country}",
     "freeShipping": "Gratis verzending",
-    "brandNew": "Nieuw",
-    "refurbished": "Refurbished",
-    "secondHand": "Tweedehands",
     "under": "Onder {amount}",
-    "flash": "Flash-deals"
+    "flash": "Flash-deals",
+    "conditionTitle": "Staat",
+    "condition": {
+      "standard": "Nieuw",
+      "refurbished": "Refurbished",
+      "second_hand": "Tweedehands",
+      "wholesale": "Groothandel",
+      "donation": "Donatie"
+    }
   },
   "homeFlash": {
     "title": "Flash-deals",
