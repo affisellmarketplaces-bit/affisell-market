@@ -149,3 +149,75 @@ describe("token logging", () => {
     expect(out).toContain("user_nick")
   })
 })
+
+describe("refresh job is idempotent across redundant triggers", () => {
+  beforeEach(() => {
+    vi.resetModules()
+    findUnique.mockReset()
+    upsert.mockReset()
+  })
+
+  it("skips (no rotation) when the stored token was refreshed recently", async () => {
+    findUnique.mockResolvedValue(
+      row({
+        accessExpiresAt: new Date(Date.now() + 23 * 3600_000),
+        refreshExpiresAt: new Date(Date.now() + 47 * 3600_000),
+      })
+    )
+    const fetchMock = vi.fn()
+    vi.stubGlobal("fetch", fetchMock)
+    const { runAliExpressRefreshJob } = await import("@/lib/aliexpress-refresh-job.server")
+    const res = await runAliExpressRefreshJob("[test]")
+    expect(res.status).toBe(200)
+    expect(res.body.skipped).toBe("fresh")
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(upsert).not.toHaveBeenCalled()
+    vi.unstubAllGlobals()
+  })
+
+  it("refreshes and persists when the token is getting old", async () => {
+    findUnique.mockResolvedValue(
+      row({
+        accessExpiresAt: new Date(Date.now() + 15 * 3600_000),
+        refreshExpiresAt: new Date(Date.now() + 39 * 3600_000),
+      })
+    )
+    upsert.mockResolvedValue({})
+    vi.stubEnv("ALIEXPRESS_APP_KEY", "k")
+    vi.stubEnv("ALIEXPRESS_APP_SECRET", "s")
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({
+        ok: true,
+        status: 200,
+        text: async () =>
+          JSON.stringify({ access_token: "new_a", refresh_token: "new_r", expires_in: 86400, refresh_expires_in: 172800 }),
+      }))
+    )
+    const { runAliExpressRefreshJob } = await import("@/lib/aliexpress-refresh-job.server")
+    const res = await runAliExpressRefreshJob("[test]")
+    expect(res.status).toBe(200)
+    expect(res.body.persisted).toBe(true)
+    expect(upsert).toHaveBeenCalled()
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+  })
+
+  it("fails loudly (500) when the rotated tokens cannot be persisted", async () => {
+    findUnique.mockResolvedValue(row({ accessExpiresAt: new Date(Date.now() + 2 * 3600_000) }))
+    upsert.mockRejectedValue(new Error("db down"))
+    vi.stubEnv("ALIEXPRESS_APP_KEY", "k")
+    vi.stubEnv("ALIEXPRESS_APP_SECRET", "s")
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, status: 200, text: async () => JSON.stringify({ access_token: "a2", refresh_token: "r2", expires_in: 86400 }) }))
+    )
+    vi.doMock("@/lib/aliexpress-session-alert.server", () => ({ alertAdminsAliExpressSession: vi.fn() }))
+    const { runAliExpressRefreshJob } = await import("@/lib/aliexpress-refresh-job.server")
+    const res = await runAliExpressRefreshJob("[test]")
+    expect(res.status).toBe(500)
+    expect(res.body.persisted).toBe(false)
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+  })
+})

@@ -12,6 +12,7 @@ export async function GET(req: Request) {
   const denied = authorizeCronRequest(req)
   if (denied) return denied
 
-  const { status, body } = await runAliExpressRefreshJob("[cron/aliexpress-refresh]")
+  const force = new URL(req.url).searchParams.get("force") === "1"
+  const { status, body } = await runAliExpressRefreshJob("[cron/aliexpress-refresh]", { force })
   return NextResponse.json(body, { status })
 }

@@ -13,6 +13,7 @@ export async function GET(req: Request) {
   const denied = authorizeAliExpressOps(req)
   if (denied) return denied
 
-  const { status, body } = await runAliExpressRefreshJob("[aliexpress-refresh]")
+  const force = new URL(req.url).searchParams.get("force") === "1"
+  const { status, body } = await runAliExpressRefreshJob("[aliexpress-refresh]", { force })
   return NextResponse.json(body, { status })
 }

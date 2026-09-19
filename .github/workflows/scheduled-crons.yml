@@ -8,6 +8,7 @@ on:
     - cron: "0 9 * * *"
     - cron: "0 9 * * 1"
     - cron: "0 */6 * * *"
+    - cron: "17 */3 * * *"
   workflow_dispatch:
 
 jobs:
@@ -139,3 +140,24 @@ jobs:
             echo "→ GET ${path}"
             curl -fsS -H "$AUTH" "${BASE}${path}" || echo "WARN: ${path} failed"
           done
+
+  # AliExpress refresh tokens live only 48h and every refresh renews them. This is the PRIMARY trigger
+  # (every 3h, off-peak minute); the Vercel cron is a redundant second one. The endpoint is idempotent
+  # (skips when the token is fresh), so overlapping triggers are safe. A failure here emails the repo owner.
+  aliexpress-refresh:
+    if: github.event.schedule == '17 */3 * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Renew AliExpress session
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: ${{ secrets.VERCEL_APP_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ] || [ -z "$VERCEL_APP_URL" ]; then
+            echo "Set GitHub secrets CRON_SECRET and VERCEL_APP_URL"
+            exit 1
+          fi
+          BASE="${VERCEL_APP_URL%/}"
+          # Retry through cold starts / brief DB wake-ups before declaring failure.
+          curl -fsS --retry 4 --retry-delay 30 --retry-all-errors --max-time 90 \
+            -H "Authorization: Bearer ${CRON_SECRET}" "${BASE}/api/aliexpress/refresh"
