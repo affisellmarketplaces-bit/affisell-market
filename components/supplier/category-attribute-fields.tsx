@@ -19,6 +19,7 @@ import {
   buildCategorySelectSuggestions,
   categorySelectAllowsFreeText,
   datalistIdForAttribute,
+  optionValueLabel,
   freeTextSelectPlaceholderKind,
 } from "@/lib/category-attribute-select-ui"
 import { filterVisibleCategoryAttributes } from "@/lib/category-attribute-rules-shared"
@@ -102,6 +103,7 @@ export function CategoryAttributeFields({
   optimizeContext,
 }: Props) {
   const t = useTranslations("supplier.attributeFields")
+  const tVal = useTranslations("categoryAttributes.optionValues")
   const [optimizingKey, setOptimizingKey] = useState<string | null>(null)
 
   const setKey = (key: string, v: string) => {
@@ -251,7 +253,7 @@ export function CategoryAttributeFields({
                             : "border-zinc-200 bg-white text-zinc-700 hover:border-violet-300 dark:border-zinc-600 dark:bg-zinc-950 dark:text-zinc-200"
                         )}
                       >
-                        {opt}
+                        {optionValueLabel(opt, tVal)}
                       </button>
                     )
                   })}
@@ -287,7 +289,7 @@ export function CategoryAttributeFields({
                   />
                   <datalist id={datalistId}>
                     {selectSuggestions.map((opt) => (
-                      <option key={opt} value={opt} />
+                      <option key={opt} value={opt} label={optionValueLabel(opt, tVal)} />
                     ))}
                   </datalist>
                   <p className="mt-1 text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">
@@ -309,7 +311,7 @@ export function CategoryAttributeFields({
                   <option value="">—</option>
                   {attr.options.map((opt) => (
                     <option key={opt} value={opt}>
-                      {opt}
+                      {optionValueLabel(opt, tVal)}
                     </option>
                   ))}
                 </select>
@@ -326,7 +328,7 @@ export function CategoryAttributeFields({
                   )}
                   value={v}
                   onChange={(e) => setKey(attr.key, e.target.value)}
-                  placeholder={attr.options?.length ? attr.options.join(", ") : (attr.displayLabel ?? attr.label)}
+                  placeholder={attr.options?.length ? attr.options.map((o) => optionValueLabel(o, tVal)).join(", ") : (attr.displayLabel ?? attr.label)}
                 />
               ) : null}
 
@@ -349,7 +351,7 @@ export function CategoryAttributeFields({
                   maxLength={attr.validationRule?.maxLength}
                   pattern={tp === "NUMBER" || tp === "DECIMAL" ? undefined : attr.validationRule?.pattern}
                   onChange={(e) => setKey(attr.key, e.target.value)}
-                  placeholder={attr.options?.length ? attr.options.join(", ") : (attr.displayLabel ?? attr.label)}
+                  placeholder={attr.options?.length ? attr.options.map((o) => optionValueLabel(o, tVal)).join(", ") : (attr.displayLabel ?? attr.label)}
                 />
               ) : null}
               {showShoeSizeGuide ? (

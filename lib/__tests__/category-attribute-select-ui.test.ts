@@ -47,3 +47,21 @@ describe("category-attribute-select-ui", () => {
     expect(categorySelectAllowsFreeText(ramAttr)).toBe(true)
   })
 })
+
+describe("optionValueLabel", () => {
+  const dict: Record<string, string> = { salle_de_bain: "Bathroom", noir: "Black" }
+  const t = Object.assign((k: string) => dict[k], { has: (k: string) => k in dict })
+
+  it("slugifies accents and spaces", async () => {
+    const { optionValueSlug } = await import("@/lib/category-attribute-select-ui")
+    expect(optionValueSlug("Salle de bain")).toBe("salle_de_bain")
+    expect(optionValueSlug("Crème")).toBe("creme")
+  })
+
+  it("localises known values and leaves unknown ones untouched", async () => {
+    const { optionValueLabel } = await import("@/lib/category-attribute-select-ui")
+    expect(optionValueLabel("Noir", t)).toBe("Black")
+    expect(optionValueLabel("Samsung", t)).toBe("Samsung")
+    expect(optionValueLabel("64", t)).toBe("64")
+  })
+})

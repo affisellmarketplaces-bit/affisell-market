@@ -14,6 +14,7 @@ import { catalogFilterHrefFromParams, navigateMarketplaceCatalog } from "@/lib/m
 import { GraduatedCountriesFilterSection } from "@/components/marketplace/graduated-countries-filter-section"
 import { offerModeFilterLabel, parseOfferFacetValue } from "@/lib/product-offer-mode"
 import type { AppLocale } from "@/lib/i18n-locale"
+import { optionValueLabel } from "@/lib/category-attribute-select-ui"
 import type { MarketplaceFacet } from "@/lib/marketplace-facet-types"
 import { cn } from "@/lib/utils"
 
@@ -89,6 +90,7 @@ export function MarketplaceFilters({
 }: Props) {
   const t = useTranslations("marketplace.browse")
   const tAuth = useTranslations("auth")
+  const tVal = useTranslations("categoryAttributes.optionValues")
   const locale = useLocale()
   const router = useRouter()
   const pathname = usePathname() ?? ""
@@ -223,7 +225,7 @@ export function MarketplaceFilters({
                       >
                         {DISCOVERY_FACET_KEYS.has(facet.key)
                           ? facetValueLabel(facet.key, row.value)
-                          : row.value}
+                          : optionValueLabel(row.value, tVal)}
                         <span className={inSheet ? "text-zinc-500" : "text-zinc-400 dark:text-zinc-500"}>
                           {" "}
                           ({row.count})

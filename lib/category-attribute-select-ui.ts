@@ -69,3 +69,25 @@ export function freeTextSelectPlaceholderKind(attr: CategoryAttrRow): FreeTextPl
 export function freeTextSelectPlaceholder(attr: CategoryAttrRow): string {
   return FREE_TEXT_PLACEHOLDER_FR[freeTextSelectPlaceholderKind(attr)]
 }
+
+/** Message-key slug for a stored option value ("Salle de bain" → "salle_de_bain"). */
+export function optionValueSlug(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+}
+
+/**
+ * Display label of a stored option value. Stored values never change (filters, variants and
+ * listings match on them); only what the user reads is localised. Unknown values are shown as-is.
+ */
+export function optionValueLabel(
+  value: string,
+  t: { has: (key: string) => boolean; (key: string): string }
+): string {
+  const key = optionValueSlug(value)
+  return key && t.has(key) ? t(key) : value
+}
