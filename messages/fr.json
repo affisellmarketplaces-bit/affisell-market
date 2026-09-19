@@ -1700,6 +1700,13 @@
       "optimized": "{label} optimisé",
       "serviceUnavailable": "Service indisponible",
       "loadFailed": "Impossible de charger les champs. Actualisez la page ou choisissez de nouveau une catégorie."
+    },
+    "platformFee": {
+      "title": "Commission Affisell (plateforme)",
+      "rate": "Taux appliqué à cette catégorie : {pct} % du prix de gros HT",
+      "body": "Prélevée sur chaque vente, selon la catégorie. Elle est distincte de la commission que vous offrez aux revendeurs.",
+      "loading": "Calcul du taux…",
+      "unavailable": "Taux indisponible pour cette catégorie."
     }
   },
   "affiliate": {

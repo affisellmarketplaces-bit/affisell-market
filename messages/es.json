@@ -1700,6 +1700,13 @@
       "optimized": "{label} optimizado",
       "serviceUnavailable": "Servicio no disponible",
       "loadFailed": "No se pudieron cargar los campos. Actualiza la página o elige de nuevo una categoría."
+    },
+    "platformFee": {
+      "title": "Comisión de Affisell (plataforma)",
+      "rate": "Tasa aplicada a esta categoría: {pct} % de tu precio mayorista (sin IVA)",
+      "body": "Se aplica en cada venta, según la categoría. Es independiente de la comisión que ofreces a los revendedores.",
+      "loading": "Calculando la tasa…",
+      "unavailable": "Tasa no disponible para esta categoría."
     }
   },
   "affiliate": {

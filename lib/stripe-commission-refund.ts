@@ -75,8 +75,8 @@ export async function handleStripeChargeRefundedWithCommission(
     })
     if (!order) continue
 
-    const slice = orderToCommissionRefundSlice(order)
     const totalCents = orderChargedTotalCents(order)
+    const slice = orderToCommissionRefundSlice({ ...order, totalCents })
     let refundedSum = 0
     let lastStripeRefundId: string | null = null
 
@@ -163,6 +163,9 @@ export async function handleStripeChargeRefundedWithCommission(
         }
       }
     }
+
+    // Multi-order charge and no refund attributed to this order: leave it untouched.
+    if (orderIds.length > 1 && refundedSum === 0) continue
 
     const chargeRefunded =
       orderIds.length <= 1 ? (fullCharge.amount_refunded ?? refundedSum) : refundedSum

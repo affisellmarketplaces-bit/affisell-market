@@ -1700,6 +1700,13 @@
       "optimized": "已优化：{label}",
       "serviceUnavailable": "服务不可用",
       "loadFailed": "字段加载失败。请刷新页面或重新选择类目。"
+    },
+    "platformFee": {
+      "title": "Affisell 佣金（平台）",
+      "rate": "此类目适用费率：批发价（不含税）的 {pct}%",
+      "body": "每笔销售按类目扣除，与你提供给分销商的佣金相互独立。",
+      "loading": "正在加载费率…",
+      "unavailable": "该类目暂无费率。"
     }
   },
   "affiliate": {

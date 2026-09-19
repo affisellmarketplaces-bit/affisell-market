@@ -1700,6 +1700,13 @@
       "optimized": "{label} optimized",
       "serviceUnavailable": "Service unavailable",
       "loadFailed": "Fields failed to load. Refresh the page or pick a category again."
+    },
+    "platformFee": {
+      "title": "Affisell commission (platform)",
+      "rate": "Rate applied to this category: {pct}% of your wholesale price (excl. VAT)",
+      "body": "Taken on every sale, by category. It is separate from the commission you offer resellers.",
+      "loading": "Loading the rate…",
+      "unavailable": "Rate unavailable for this category."
     }
   },
   "affiliate": {

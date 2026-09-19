@@ -1700,6 +1700,13 @@
       "optimized": "{label} optimiert",
       "serviceUnavailable": "Dienst nicht verfügbar",
       "loadFailed": "Felder konnten nicht geladen werden. Seite aktualisieren oder Kategorie erneut wählen."
+    },
+    "platformFee": {
+      "title": "Affisell-Provision (Plattform)",
+      "rate": "Für diese Kategorie gilt: {pct} % deines Großhandelspreises (ohne MwSt.)",
+      "body": "Wird bei jedem Verkauf je nach Kategorie abgezogen. Sie ist getrennt von der Provision, die du Wiederverkäufern anbietest.",
+      "loading": "Satz wird geladen…",
+      "unavailable": "Satz für diese Kategorie nicht verfügbar."
     }
   },
   "affiliate": {

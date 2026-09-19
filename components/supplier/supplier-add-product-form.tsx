@@ -27,6 +27,7 @@ import { toast } from "sonner"
 
 import { BentoShell } from "@/components/affisell/bento-ui"
 import { SupplierCategoryCommissionInsight } from "@/components/supplier/supplier-category-commission-insight"
+import { SupplierPlatformFeeNote } from "@/components/supplier/supplier-platform-fee-note"
 import { isDonationOfferMode } from "@/lib/supplier-explicit-commission"
 import { AttachProductVideoActions } from "@/components/attach-product-video-actions"
 import { SupplierProductDescriptionField } from "@/components/supplier/supplier-product-description-field"
@@ -3150,7 +3151,10 @@ export function SupplierAddProductForm({
                         onBrowseCatalogManually={browseCatalogManually}
                       />
                       {categoryId.trim() ? (
-                        <SupplierCategoryCommissionInsight categoryId={categoryId} />
+                        <>
+                          <SupplierCategoryCommissionInsight categoryId={categoryId} />
+                          <SupplierPlatformFeeNote categoryId={categoryId} className="mt-2" />
+                        </>
                       ) : null}
                     </div>
                   </div>

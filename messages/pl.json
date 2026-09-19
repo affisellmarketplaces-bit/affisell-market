@@ -1700,6 +1700,13 @@
       "optimized": "Zoptymalizowano: {label}",
       "serviceUnavailable": "Usługa niedostępna",
       "loadFailed": "Nie udało się załadować pól. Odśwież stronę lub ponownie wybierz kategorię."
+    },
+    "platformFee": {
+      "title": "Prowizja Affisell (platforma)",
+      "rate": "Stawka dla tej kategorii: {pct}% Twojej ceny hurtowej (bez VAT)",
+      "body": "Pobierana od każdej sprzedaży, zależnie od kategorii. Jest niezależna od prowizji oferowanej resellerom.",
+      "loading": "Ładowanie stawki…",
+      "unavailable": "Stawka niedostępna dla tej kategorii."
     }
   },
   "affiliate": {

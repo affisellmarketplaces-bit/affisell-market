@@ -1700,6 +1700,13 @@
       "optimized": "{label} geoptimaliseerd",
       "serviceUnavailable": "Dienst niet beschikbaar",
       "loadFailed": "Velden konden niet worden geladen. Vernieuw de pagina of kies opnieuw een categorie."
+    },
+    "platformFee": {
+      "title": "Affisell-commissie (platform)",
+      "rate": "Tarief voor deze categorie: {pct}% van je groothandelsprijs (excl. btw)",
+      "body": "Wordt bij elke verkoop ingehouden, per categorie. Los van de commissie die je aan wederverkopers biedt.",
+      "loading": "Tarief laden…",
+      "unavailable": "Tarief niet beschikbaar voor deze categorie."
     }
   },
   "affiliate": {

@@ -50,7 +50,6 @@ import {
   isBookableListingKind,
   isBookingCheckoutLiveForKind,
 } from "@/lib/booking/types"
-import { parseAffisellCommissionOverrideFromBody } from "@/lib/supplier-product-affisell-commission-override"
 import {
   AFFILIATE_COMMISSION_REQUIRED_ERROR,
   validateExplicitSupplierCommissionForPublish,
@@ -381,9 +380,7 @@ export async function PUT(
       throw e
     }
   }
-  const affisellOverridePatch = parseAffisellCommissionOverrideFromBody(
-    rawBody.affisellCommissionRateOverridePercent ?? rawBody.affisellCommissionRateOverrideBps
-  )
+  // The platform commission (category grid / admin override) is never set by suppliers.
   const productAttributes = normalizeProductAttributesFromBody(body.productAttributes)
 
   let customColumnsUpdate: CustomColumn[] | undefined
@@ -518,9 +515,6 @@ export async function PUT(
         listingKind,
         stock,
         ...("categoryId" in rawBody ? { categoryId } : {}),
-        ...(affisellOverridePatch !== undefined
-          ? { affisellCommissionRateOverrideBps: affisellOverridePatch }
-          : {}),
         ...("shippingCountry" in rawBody ? { shippingCountry: ship.shippingCountry } : {}),
         ...("warehouseType" in rawBody ? { warehouseType: ship.warehouseType } : {}),
         ...("warehouseCity" in rawBody ? { warehouseCity: ship.warehouseCity } : {}),
