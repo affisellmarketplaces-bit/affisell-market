@@ -7663,5 +7663,23 @@
     "configureCta": "Verzending van de winkel instellen",
     "pickerHint": "Alleen de voor dit product gekozen vervoerders worden getoond (geen keuze = alle vervoerders van je winkel).",
     "pickerAll": "Alle vervoerders van je winkel worden voor dit product aangeboden."
+  },
+  "homeDiscover": {
+    "heading": "Ontdek",
+    "viewAll": "Alles bekijken",
+    "title": {
+      "trending": "Trending",
+      "recommended": "Best beoordeeld",
+      "trusted": "Beoordeeld 4,8+",
+      "new": "Nieuw binnen"
+    },
+    "subtitle": {
+      "trendingSold": "Populair deze week • +{count} verkocht",
+      "trendingDefault": "Populair deze week • Bestsellers",
+      "recommended": "Best beoordeeld • {count}+ reviews",
+      "trusted": "Door kopers beoordeeld met 4,8★ of hoger",
+      "newCount": "Deze week • {count}+ nieuwe producten",
+      "newDefault": "Verse selectie • Net toegevoegd"
+    }
   }
 }

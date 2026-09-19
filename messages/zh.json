@@ -7663,5 +7663,23 @@
     "configureCta": "设置店铺配送",
     "pickerHint": "仅显示为该商品选择的承运商（未选择 = 店铺全部承运商）。",
     "pickerAll": "该商品提供店铺的全部承运商。"
+  },
+  "homeDiscover": {
+    "heading": "发现",
+    "viewAll": "查看全部",
+    "title": {
+      "trending": "热门趋势",
+      "recommended": "高评分商品",
+      "trusted": "评分 4.8 及以上",
+      "new": "新品上架"
+    },
+    "subtitle": {
+      "trendingSold": "本周热卖 • 已售 +{count}",
+      "trendingDefault": "本周热卖 • 畅销商品",
+      "recommended": "高评分 • {count}+ 条评价",
+      "trusted": "买家评分 4.8★ 及以上",
+      "newCount": "本周 • 新增 {count}+ 件商品",
+      "newDefault": "新鲜精选 • 刚刚上架"
+    }
   }
 }

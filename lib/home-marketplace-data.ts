@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client"
+
 import { applyShopDeliveryWindows } from "@/lib/shipping/apply-shop-delivery-windows.server"
 import {
   type HomeBarometerCategory,
@@ -127,14 +129,18 @@ async function firstListingsByProductIds(productIds: string[]): Promise<Map<stri
   return map
 }
 
+/** Confirmed units only (paid, not cancelled/refunded) — same rule as every buyer-facing sales figure. */
 async function soldCountsSince(since: Date, productIds: string[]): Promise<Map<string, number>> {
   if (productIds.length === 0) return new Map()
-  const rows = await prisma.order.groupBy({
-    by: ["productId"],
-    where: { productId: { in: productIds }, createdAt: { gte: since } },
-    _count: { id: true },
-  })
-  return new Map(rows.map((r) => [r.productId, r._count.id]))
+  const rows = await prisma.$queryRaw<{ productId: string; c: bigint }[]>`
+    SELECT "productId", COALESCE(SUM("quantity"), 0)::bigint AS c
+    FROM "Order"
+    WHERE "productId" IN (${Prisma.join(productIds)})
+      AND "paidAt" >= ${since}
+      AND lower("status") NOT IN ('cancelled', 'canceled', 'refunded', 'pending', 'failed', 'expired')
+    GROUP BY "productId"
+  `
+  return new Map(rows.map((r) => [r.productId, Number(r.c)]))
 }
 
 function storeLabel(row: ListingRow): string {
@@ -168,10 +174,11 @@ export async function loadHomeBestSellers7d(limit = 12): Promise<HomeProductCard
 async function loadHomeBestSellers7dRaw(limit = 12): Promise<HomeProductCard[]> {
   const sevenDaysAgo = new Date(Date.now() - 7 * MS_DAY)
   const ranked = await prisma.$queryRaw<{ productId: string; c: bigint }[]>`
-    SELECT o."productId", COUNT(*)::bigint AS c
+    SELECT o."productId", COALESCE(SUM(o."quantity"), 0)::bigint AS c
     FROM "Order" o
     INNER JOIN "Product" p ON p.id = o."productId"
-    WHERE o."createdAt" >= ${sevenDaysAgo}
+    WHERE o."paidAt" >= ${sevenDaysAgo}
+      AND lower(o."status") NOT IN ('cancelled', 'canceled', 'refunded', 'pending', 'failed', 'expired')
       AND p.active = true
     GROUP BY o."productId"
     ORDER BY c DESC

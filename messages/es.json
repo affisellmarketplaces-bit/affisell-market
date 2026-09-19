@@ -7663,5 +7663,23 @@
     "configureCta": "Configurar los envíos de la tienda",
     "pickerHint": "Solo se muestran los transportistas elegidos para este producto (ninguno = todos los de tu tienda).",
     "pickerAll": "Todos los transportistas de tu tienda se ofrecen en este producto."
+  },
+  "homeDiscover": {
+    "heading": "Descubre",
+    "viewAll": "Ver todo",
+    "title": {
+      "trending": "Tendencias",
+      "recommended": "Mejor valorados",
+      "trusted": "Valorados 4,8 o más",
+      "new": "Novedades"
+    },
+    "subtitle": {
+      "trendingSold": "Lo más popular esta semana • +{count} vendidos",
+      "trendingDefault": "Lo más popular esta semana • Más vendidos",
+      "recommended": "Mejor valorados • {count}+ opiniones",
+      "trusted": "Valorados 4,8★ o más por los compradores",
+      "newCount": "Esta semana • {count}+ productos nuevos",
+      "newDefault": "Selección reciente • Recién añadidos"
+    }
   }
 }

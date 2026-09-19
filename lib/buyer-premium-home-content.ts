@@ -10,8 +10,11 @@ export type BuyerDiscoverImage = {
 
 export type BuyerDiscoverCard = {
   id: string
-  title: string
-  subtitle: string
+  /** Key under `homeDiscover.title.*` (translated at render — this payload is cached, locale-agnostic). */
+  titleKey: string
+  /** Key under `homeDiscover.subtitle.*` + ICU values. */
+  subtitleKey: string
+  subtitleValues?: Record<string, string | number>
   icon: BuyerDiscoverIcon
   images: BuyerDiscoverImage[]
   href: string
@@ -19,7 +22,7 @@ export type BuyerDiscoverCard = {
 
 export type BuyerDiscoverCardMeta = {
   id: BuyerDiscoverCard["id"]
-  title: string
+  titleKey: string
   icon: BuyerDiscoverIcon
   href: string
 }
@@ -28,25 +31,25 @@ export type BuyerDiscoverCardMeta = {
 export const BUYER_DISCOVER_CARD_META: BuyerDiscoverCardMeta[] = [
   {
     id: "trending",
-    title: "Trending now",
+    titleKey: "trending",
     icon: "trending",
     href: "/#explorer",
   },
   {
     id: "recommended",
-    title: "Recommended for you",
+    titleKey: "recommended",
     icon: "sparkles",
     href: "/discover",
   },
   {
     id: "trusted",
-    title: "From trusted stores",
+    titleKey: "trusted",
     icon: "shield",
     href: "/shops",
   },
   {
     id: "new",
-    title: "New arrivals",
+    titleKey: "new",
     icon: "stars",
     href: "/#explorer",
   },

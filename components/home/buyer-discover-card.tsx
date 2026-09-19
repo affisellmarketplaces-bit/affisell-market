@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { Shield, Sparkles, Star, TrendingUp } from "lucide-react"
 
 import { BuyerDiscoverTileImage } from "@/components/home/buyer-discover-tile-image"
@@ -19,6 +20,7 @@ type Props = {
 }
 
 export function BuyerDiscoverCard({ card, className }: Props) {
+  const t = useTranslations("homeDiscover")
   const Icon = ICONS[card.icon]
   const images = Array.isArray(card.images) ? card.images.filter((img) => img?.src?.trim()) : []
 
@@ -48,7 +50,7 @@ export function BuyerDiscoverCard({ card, className }: Props) {
         }}
       >
         <Icon className="size-3.5 shrink-0" aria-hidden />
-        {card.title}
+        {t(`title.${card.titleKey}`)}
       </Link>
       <div
         className="mt-4 grid gap-2"
@@ -60,10 +62,10 @@ export function BuyerDiscoverCard({ card, className }: Props) {
           <Link
             key={`${img.href}-${img.src}`}
             href={img.href}
-            aria-label={img.alt || card.title}
+            aria-label={img.alt || t(`title.${card.titleKey}`)}
             className="group relative aspect-square overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900"
           >
-            <BuyerDiscoverTileImage src={img.src} label={img.alt || card.title} />
+            <BuyerDiscoverTileImage src={img.src} label={img.alt || t(`title.${card.titleKey}`)} />
           </Link>
         ))}
       </div>
@@ -72,7 +74,7 @@ export function BuyerDiscoverCard({ card, className }: Props) {
         className="mt-4 block text-xs leading-relaxed transition hover:opacity-80 dark:text-slate-400"
         style={{ color: BUYER_PREMIUM.text.muted }}
       >
-        {card.subtitle}
+        {t(`subtitle.${card.subtitleKey}`, card.subtitleValues)}
       </Link>
     </article>
   )

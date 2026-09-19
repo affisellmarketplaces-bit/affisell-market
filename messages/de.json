@@ -7663,5 +7663,23 @@
     "configureCta": "Versand des Shops einrichten",
     "pickerHint": "Nur die für dieses Produkt gewählten Versanddienstleister werden angezeigt (keine Auswahl = alle Ihres Shops).",
     "pickerAll": "Alle Versanddienstleister Ihres Shops werden für dieses Produkt angeboten."
+  },
+  "homeDiscover": {
+    "heading": "Entdecken",
+    "viewAll": "Alle ansehen",
+    "title": {
+      "trending": "Im Trend",
+      "recommended": "Bestbewertet",
+      "trusted": "Bewertet ab 4,8",
+      "new": "Neuheiten"
+    },
+    "subtitle": {
+      "trendingSold": "Diese Woche beliebt • +{count} verkauft",
+      "trendingDefault": "Diese Woche beliebt • Bestseller",
+      "recommended": "Bestbewertet • {count}+ Bewertungen",
+      "trusted": "Von Käufern mit 4,8★ und mehr bewertet",
+      "newCount": "Diese Woche • {count}+ neue Produkte",
+      "newDefault": "Frische Auswahl • Gerade hinzugefügt"
+    }
   }
 }

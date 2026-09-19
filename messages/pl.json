@@ -7663,5 +7663,23 @@
     "configureCta": "Skonfiguruj wysyłkę sklepu",
     "pickerHint": "Wyświetlani są tylko przewoźnicy wybrani dla tego produktu (brak wyboru = wszyscy przewoźnicy sklepu).",
     "pickerAll": "Wszyscy przewoźnicy sklepu są oferowani dla tego produktu."
+  },
+  "homeDiscover": {
+    "heading": "Odkrywaj",
+    "viewAll": "Zobacz wszystko",
+    "title": {
+      "trending": "Na czasie",
+      "recommended": "Najwyżej oceniane",
+      "trusted": "Ocena 4,8 i więcej",
+      "new": "Nowości"
+    },
+    "subtitle": {
+      "trendingSold": "Hit tygodnia • +{count} sprzedanych",
+      "trendingDefault": "Hit tygodnia • Bestsellery",
+      "recommended": "Najwyżej oceniane • {count}+ opinii",
+      "trusted": "Oceniane przez kupujących na 4,8★ i więcej",
+      "newCount": "W tym tygodniu • {count}+ nowych produktów",
+      "newDefault": "Świeży wybór • Dopiero dodane"
+    }
   }
 }

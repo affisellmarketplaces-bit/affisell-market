@@ -7663,5 +7663,23 @@
     "configureCta": "Set up your shop shipping",
     "pickerHint": "Only the carriers you selected for this product are shown (none selected = all your shop carriers).",
     "pickerAll": "All your shop carriers are offered on this product."
+  },
+  "homeDiscover": {
+    "heading": "Discover",
+    "viewAll": "View all",
+    "title": {
+      "trending": "Trending now",
+      "recommended": "Top rated",
+      "trusted": "Rated 4.8 & up",
+      "new": "New arrivals"
+    },
+    "subtitle": {
+      "trendingSold": "Hot this week • +{count} sold",
+      "trendingDefault": "Hot this week • Best sellers",
+      "recommended": "Top rated • {count}+ reviews",
+      "trusted": "Rated 4.8★ and above by buyers",
+      "newCount": "This week • {count}+ new products",
+      "newDefault": "Fresh picks • Just added"
+    }
   }
 }

@@ -7663,5 +7663,23 @@
     "configureCta": "Configura le spedizioni del negozio",
     "pickerHint": "Vengono mostrati solo i corrieri scelti per questo prodotto (nessuno = tutti quelli del tuo negozio).",
     "pickerAll": "Tutti i corrieri del tuo negozio sono offerti per questo prodotto."
+  },
+  "homeDiscover": {
+    "heading": "Scopri",
+    "viewAll": "Vedi tutto",
+    "title": {
+      "trending": "Di tendenza",
+      "recommended": "I più votati",
+      "trusted": "Voto 4,8 e oltre",
+      "new": "Novità"
+    },
+    "subtitle": {
+      "trendingSold": "Popolari questa settimana • +{count} venduti",
+      "trendingDefault": "Popolari questa settimana • Più venduti",
+      "recommended": "I più votati • {count}+ recensioni",
+      "trusted": "Valutati 4,8★ e oltre dagli acquirenti",
+      "newCount": "Questa settimana • {count}+ nuovi prodotti",
+      "newDefault": "Selezione fresca • Appena aggiunti"
+    }
   }
 }

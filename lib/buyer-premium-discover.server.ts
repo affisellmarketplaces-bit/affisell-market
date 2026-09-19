@@ -46,13 +46,14 @@ function metaById(id: BuyerDiscoverCard["id"]) {
 
 function buildCard(
   id: BuyerDiscoverCard["id"],
-  subtitle: string,
+  subtitleKey: string,
+  subtitleValues: Record<string, string | number> | undefined,
   products: HomeProductCard[]
 ): BuyerDiscoverCard | null {
   const images = productsToImages(products)
   if (images.length === 0) return null
   const meta = metaById(id)
-  return { ...meta, subtitle, images }
+  return { ...meta, subtitleKey, subtitleValues, images }
 }
 
 export async function loadBuyerDiscoverCards(): Promise<BuyerDiscoverCard[]> {
@@ -66,29 +67,16 @@ export async function loadBuyerDiscoverCards(): Promise<BuyerDiscoverCard[]> {
 
   const sold7d = trending.reduce((sum, p) => sum + p.soldCount, 0)
 
+  // Every claim below is computed from data: confirmed (paid, not cancelled/refunded) sales, real ratings, real counts.
   const cards = [
-    buildCard(
-      "trending",
-      sold7d > 0
-        ? `Hot this week • +${formatCompactCount(sold7d)} sold`
-        : "Hot this week • Best sellers",
-      trending
-    ),
-    buildCard(
-      "recommended",
-      recommended.length > 0
-        ? `Top rated • ${recommended[0]?.reviewCount ?? 0}+ reviews`
-        : "Based on your interests • Personalized for you",
-      recommended
-    ),
-    buildCard("trusted", "Vetted sellers • High rating 4.8+ • EU based", trusted),
-    buildCard(
-      "new",
-      newCount7d > 0
-        ? `This week • ${formatCompactCount(newCount7d)}+ new products`
-        : "Fresh picks • Just added",
-      newArrivals
-    ),
+    sold7d > 0
+      ? buildCard("trending", "trendingSold", { count: formatCompactCount(sold7d) }, trending)
+      : buildCard("trending", "trendingDefault", undefined, trending),
+    buildCard("recommended", "recommended", { count: recommended[0]?.reviewCount ?? 0 }, recommended),
+    buildCard("trusted", "trusted", undefined, trusted),
+    newCount7d > 0
+      ? buildCard("new", "newCount", { count: formatCompactCount(newCount7d) }, newArrivals)
+      : buildCard("new", "newDefault", undefined, newArrivals),
   ].filter((c): c is BuyerDiscoverCard => c != null)
 
   console.log("[buyer-discover]", {
