@@ -105,8 +105,8 @@ export function StorefrontCategoryDrawerNav({
                 name={cat.id === STOREFRONT_OTHER_CATEGORY_ID ? t("otherCategory") : cat.name}
                 slug={cat.slug}
                 size="sm"
-                tone="soft"
-                className={activeCategoryId === cat.id ? "ring-white/40" : undefined}
+                tone="bare"
+                className={activeCategoryId === cat.id ? "text-white" : undefined}
               />
               <span className="min-w-0 flex-1 truncate">
                 {cat.id === STOREFRONT_OTHER_CATEGORY_ID ? t("otherCategory") : cat.name}

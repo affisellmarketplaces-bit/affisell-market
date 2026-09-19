@@ -39,7 +39,18 @@ export function CategoryGlyph({
 
   if (tone === "bare") {
     // Outline icon only — colour comes from the parent (`currentColor`).
-    return <Icon className={cn("shrink-0", s.icon, className)} strokeWidth={1.75} aria-hidden />
+    return (
+      <Icon
+        className={cn(
+          "shrink-0",
+          inSheet ? "text-violet-200" : "text-[#472488] dark:text-violet-300",
+          s.icon,
+          className
+        )}
+        strokeWidth={1.75}
+        aria-hidden
+      />
+    )
   }
 
   if (tone === "soft") {

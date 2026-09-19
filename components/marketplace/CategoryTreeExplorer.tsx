@@ -403,7 +403,7 @@ const CategoryTreeRootBlock = memo(function CategoryTreeRootBlock({
               fullPath={root.fullPath}
               icon={root.icon}
               size="sm"
-              tone="soft"
+              tone="bare"
               inSheet={inSheet}
             />
             <span className="truncate">{root.name}</span>
