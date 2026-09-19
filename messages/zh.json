@@ -1722,7 +1722,14 @@
       "resellerTitle": "经销商费用",
       "resellerDetail": "按经销商净收入（提供的佣金 + 加价）收取固定费率，绝不从您的批发价中扣除。",
       "footer": "每笔销售的金额均自动计算。",
-      "guidedAddProduct": "引导式添加商品"
+      "guidedAddProduct": "引导式添加商品",
+      "productTitle": "平台费率 · 批发价（不含增值税）",
+      "productMode": "该商品适用的模式",
+      "productAutoBuy": "Affisell 自动采购 — 类别费率 + {pts} 个百分点",
+      "productCatalog": "目录 — 类别费率（由您发货）",
+      "productFoot": "按批发价收取类别费率（{range}）· 经销商：按其净收入收取固定 {pct}%。",
+      "badgeAutoBuy": "自动采购",
+      "badgeCatalog": "目录"
     }
   },
   "affiliate": {

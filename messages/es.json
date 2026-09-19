@@ -1722,7 +1722,14 @@
       "resellerTitle": "Tarifa del revendedor",
       "resellerDetail": "Tasa fija sobre el neto del revendedor (comisión ofrecida + margen). Nunca se descuenta de su precio mayorista.",
       "footer": "Los importes se calculan automáticamente en cada venta.",
-      "guidedAddProduct": "Añadir producto (guiado)"
+      "guidedAddProduct": "Añadir producto (guiado)",
+      "productTitle": "Tarifa de plataforma · mayorista sin IVA",
+      "productMode": "Modo aplicado a este producto",
+      "productAutoBuy": "Auto-buy Affisell — tasa de categoría + {pts} pts",
+      "productCatalog": "Catálogo — tasa de categoría (usted envía)",
+      "productFoot": "Tasa de categoría ({range}) sobre el mayorista · revendedores: {pct} % fijo sobre su neto.",
+      "badgeAutoBuy": "auto-buy",
+      "badgeCatalog": "catálogo"
     }
   },
   "affiliate": {

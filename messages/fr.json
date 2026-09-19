@@ -1722,7 +1722,14 @@
       "resellerTitle": "Frais revendeur",
       "resellerDetail": "Taux fixe sur le net du revendeur (commission offerte + marge). Jamais prélevé sur votre prix de gros.",
       "footer": "Les montants sont calculés automatiquement à chaque vente.",
-      "guidedAddProduct": "Ajout guidé de produit"
+      "guidedAddProduct": "Ajout guidé de produit",
+      "productTitle": "Taux plateforme · gros HT",
+      "productMode": "Mode appliqué à ce produit",
+      "productAutoBuy": "Auto-buy Affisell — taux catégorie + {pts} pts",
+      "productCatalog": "Catalogue — taux catégorie (vous expédiez)",
+      "productFoot": "Taux catégorie ({range}) sur le prix de gros · revendeurs : {pct} % fixe sur leur net.",
+      "badgeAutoBuy": "auto-buy",
+      "badgeCatalog": "catalogue"
     }
   },
   "affiliate": {

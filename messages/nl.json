@@ -1722,7 +1722,14 @@
       "resellerTitle": "Wederverkopertarief",
       "resellerDetail": "Vast tarief op het nettobedrag van de wederverkoper (aangeboden commissie + marge). Nooit afgetrokken van uw groothandelsprijs.",
       "footer": "Bedragen worden bij elke verkoop automatisch berekend.",
-      "guidedAddProduct": "Product toevoegen (begeleid)"
+      "guidedAddProduct": "Product toevoegen (begeleid)",
+      "productTitle": "Platformtarief · groothandel excl. btw",
+      "productMode": "Modus voor dit product",
+      "productAutoBuy": "Affisell auto-buy — categorietarief + {pts} pt",
+      "productCatalog": "Catalogus — categorietarief (u verzendt)",
+      "productFoot": "Categorietarief ({range}) op groothandelsprijs · wederverkopers: {pct}% vast op hun netto.",
+      "badgeAutoBuy": "auto-buy",
+      "badgeCatalog": "catalogus"
     }
   },
   "affiliate": {

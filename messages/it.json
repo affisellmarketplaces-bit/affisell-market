@@ -1722,7 +1722,14 @@
       "resellerTitle": "Commissione rivenditore",
       "resellerDetail": "Tasso fisso sul netto del rivenditore (commissione offerta + margine). Mai trattenuta dal tuo prezzo all'ingrosso.",
       "footer": "Gli importi vengono calcolati automaticamente a ogni vendita.",
-      "guidedAddProduct": "Aggiungi prodotto (guidato)"
+      "guidedAddProduct": "Aggiungi prodotto (guidato)",
+      "productTitle": "Tasso piattaforma · ingrosso IVA esclusa",
+      "productMode": "Modalità applicata a questo prodotto",
+      "productAutoBuy": "Auto-buy Affisell — tasso categoria + {pts} pt",
+      "productCatalog": "Catalogo — tasso categoria (spedisci tu)",
+      "productFoot": "Tasso categoria ({range}) sul prezzo all'ingrosso · rivenditori: {pct}% fisso sul loro netto.",
+      "badgeAutoBuy": "auto-buy",
+      "badgeCatalog": "catalogo"
     }
   },
   "affiliate": {

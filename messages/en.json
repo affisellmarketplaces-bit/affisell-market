@@ -1722,7 +1722,14 @@
       "resellerTitle": "Reseller fee",
       "resellerDetail": "Flat rate on the reseller's net (offered commission + margin). Never taken from your wholesale.",
       "footer": "Amounts are calculated automatically on every sale.",
-      "guidedAddProduct": "Guided add product"
+      "guidedAddProduct": "Guided add product",
+      "productTitle": "Platform rate · wholesale excl. VAT",
+      "productMode": "Mode applied to this product",
+      "productAutoBuy": "Affisell auto-buy — category rate + {pts} pts",
+      "productCatalog": "Catalog — category rate (you ship)",
+      "productFoot": "Category rate ({range}) on wholesale · resellers: {pct}% flat on their net.",
+      "badgeAutoBuy": "auto-buy",
+      "badgeCatalog": "catalog"
     }
   },
   "affiliate": {

@@ -1722,7 +1722,14 @@
       "resellerTitle": "Wiederverkäufer-Gebühr",
       "resellerDetail": "Fester Satz auf den Nettoertrag des Wiederverkäufers (angebotene Provision + Marge). Wird nie von Ihrem Großhandelspreis abgezogen.",
       "footer": "Beträge werden bei jedem Verkauf automatisch berechnet.",
-      "guidedAddProduct": "Produkt geführt hinzufügen"
+      "guidedAddProduct": "Produkt geführt hinzufügen",
+      "productTitle": "Plattformsatz · Großhandel ohne MwSt.",
+      "productMode": "Für dieses Produkt geltender Modus",
+      "productAutoBuy": "Affisell Auto-Buy — Kategoriesatz + {pts} Pkt.",
+      "productCatalog": "Katalog — Kategoriesatz (Sie versenden)",
+      "productFoot": "Kategoriesatz ({range}) auf den Großhandelspreis · Wiederverkäufer: {pct} % fix auf ihren Nettoertrag.",
+      "badgeAutoBuy": "Auto-Buy",
+      "badgeCatalog": "Katalog"
     }
   },
   "affiliate": {

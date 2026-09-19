@@ -1722,7 +1722,14 @@
       "resellerTitle": "Opłata odsprzedawcy",
       "resellerDetail": "Stała stawka od kwoty netto odsprzedawcy (oferowana prowizja + marża). Nigdy nie jest potrącana z Twojej ceny hurtowej.",
       "footer": "Kwoty są obliczane automatycznie przy każdej sprzedaży.",
-      "guidedAddProduct": "Dodaj produkt (z przewodnikiem)"
+      "guidedAddProduct": "Dodaj produkt (z przewodnikiem)",
+      "productTitle": "Stawka platformy · hurt bez VAT",
+      "productMode": "Tryb stosowany dla tego produktu",
+      "productAutoBuy": "Auto-buy Affisell — stawka kategorii + {pts} pkt",
+      "productCatalog": "Katalog — stawka kategorii (wysyłasz Ty)",
+      "productFoot": "Stawka kategorii ({range}) od ceny hurtowej · odsprzedawcy: stałe {pct}% od ich kwoty netto.",
+      "badgeAutoBuy": "auto-buy",
+      "badgeCatalog": "katalog"
     }
   },
   "affiliate": {
