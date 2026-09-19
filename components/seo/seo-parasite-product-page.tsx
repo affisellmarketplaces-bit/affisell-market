@@ -1,6 +1,5 @@
 import Link from "next/link"
 
-import { ProductCrossSocialProof } from "@/components/product/product-cross-social-proof"
 import { shopListingPath } from "@/lib/affiliate-routes"
 import { commissionnaireCheckoutDisclaimer } from "@/lib/legal/affiliate-commissionnaire-shared"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
@@ -55,10 +54,6 @@ export function SeoParasiteProductPage({ data, locale }: Props) {
             {data.productDescription.slice(0, 1200)}
           </p>
         ) : null}
-
-        <div className="mt-8">
-          <ProductCrossSocialProof data={data.socialProof} variant="storefront" />
-        </div>
 
         <div className="mt-10">
           <Link

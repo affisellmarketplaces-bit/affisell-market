@@ -4,7 +4,6 @@ import { ensureGhostStockSchema } from "@/lib/ghost/ensure-stock-schema"
 import { buyerMarketplaceProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { looksLikeAffiliateListingId } from "@/lib/listing-public-url-shared"
 import { loadListingSocialProofCached } from "@/lib/marketplace-listing-social-proof"
-import { loadProductCrossSocialProofCached } from "@/lib/product-social-proof.server"
 import {
   isPrismaMissingColumnError,
   isPrismaSchemaOrColumnError,
@@ -663,9 +662,8 @@ async function loadMarketplaceListingPageDataUncached(args: {
         })
       : Promise.resolve(null)
 
-  const [social, crossSocialProof, orderRow] = await Promise.all([
+  const [social, orderRow] = await Promise.all([
     loadListingSocialProofCached(listing.product.id),
-    loadProductCrossSocialProofCached(listing.product.id),
     orderPromise,
   ])
 
@@ -677,7 +675,8 @@ async function loadMarketplaceListingPageDataUncached(args: {
     ownerPreviewUnlisted,
     viewsLast24h: social.viewsLast24h,
     affiliateCreatorsWatching: social.affiliateCreatorsWatching,
-    crossSocialProof,
+    // Reseller-only economics (margins, active resellers) are never shown to buyers.
+    crossSocialProof: null,
     writeReviewOrderId: orderRow?.id ?? null,
   }
 }
