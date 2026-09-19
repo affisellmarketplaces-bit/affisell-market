@@ -104,32 +104,32 @@ const PULSE_LINKS = [
   {
     href: AFFILIATE_HUB_SWIPE_HREF,
     label: "Swipe Feed",
-    hint: "Lister en 1 geste",
+    hint: "swipeHint",
     className: "from-violet-600 to-fuchsia-600",
   },
   {
     href: AFFILIATE_HUB_BATTLE_HREF,
-    label: "Pulse Battle",
-    hint: "Duel vitrine · flash",
+    label: "battleLabel",
+    hint: "battleHint",
     className: "from-amber-600 to-orange-600",
   },
   {
     href: AFFILIATE_AGENT_PATH,
-    label: "Agent sourcing",
-    hint: "Analyser & choisir vos SKU",
+    label: "agentLabel",
+    hint: "agentHint",
     className: "from-violet-600 to-indigo-600",
   },
-  { href: "/discover", label: "Discover", hint: "Signaux marché", className: "from-fuchsia-600 to-pink-600" },
+  { href: "/discover", label: "Discover", hint: "discoverHint", className: "from-fuchsia-600 to-pink-600" },
   {
     href: `${AFFILIATE_CATALOG_PATH}?highlight=margin`,
     label: "High margin",
-    hint: "Marges partenaires",
+    hint: "marginHint",
     className: "from-emerald-600 to-teal-600",
   },
   {
     href: "/dashboard/affiliate",
-    label: "Ma vitrine",
-    hint: "Gérer les fiches live",
+    label: "showcaseLabel",
+    hint: "showcaseHint",
     className: "from-amber-600 to-orange-600",
   },
 ] as const
@@ -154,6 +154,7 @@ export function AffiliateCatalogExperience({
   const tOpportunity = useTranslations("affiliate.opportunityPulse")
   const tCatalog = useTranslations("affiliate.catalogEconomics")
   const tFilters = useTranslations("affiliate.catalogFilters")
+  const tLive = useTranslations("affiliate.catalogLive")
   const router = useRouter()
   const searchParams = useSearchParams()
   const categoryId = searchParams.get("category")
@@ -261,7 +262,7 @@ export function AffiliateCatalogExperience({
     })
       .then(async (r) => {
         const data = (await r.json()) as { products?: AffiliateCatalogProduct[]; error?: string }
-        if (!r.ok) throw new Error(data.error ?? "Impossible de charger le catalogue")
+        if (!r.ok) throw new Error(data.error ?? tLive("loadError"))
         if (controller.signal.aborted) return
         setProducts(Array.isArray(data.products) ? data.products : [])
         hasLoadedOnce.current = true
@@ -269,7 +270,7 @@ export function AffiliateCatalogExperience({
       .catch((e: unknown) => {
         if (controller.signal.aborted) return
         setProducts([])
-        setError(e instanceof Error ? e.message : "Impossible de charger le catalogue")
+        setError(e instanceof Error ? e.message : tLive("loadError"))
       })
       .finally(() => {
         if (controller.signal.aborted) return
@@ -314,14 +315,14 @@ export function AffiliateCatalogExperience({
         error?: string
       }
       if (!res.ok) {
-        showToast(data.error ?? "Impossible de libérer la fiche")
+        showToast(data.error ?? tLive("releaseError"))
         return
       }
       const hidden = data.hiddenIds?.length ?? 0
       const deleted = data.deletedIds?.length ?? 0
-      if (hidden > 0) showToast("Retiré de la vitrine — vous pourrez le publier à nouveau")
-      else if (deleted > 0) showToast("Produit libéré — de nouveau dans Discover")
-      else showToast("Fiche retirée de la vitrine")
+      if (hidden > 0) showToast(tLive("hiddenToast"))
+      else if (deleted > 0) showToast(tLive("releasedToast"))
+      else showToast(tLive("removedToast"))
       await refreshCatalogProducts()
     } finally {
       setReleasingListingId(null)
@@ -336,12 +337,12 @@ export function AffiliateCatalogExperience({
       })
       const data = (await r.json()) as { product?: CatalogProduct; error?: string }
       if (!r.ok || !data.product) {
-        showToast(data.error ?? "Détails produit indisponibles")
+        showToast(data.error ?? tLive("detailsUnavailable"))
         return cached ? (cached as CatalogProduct) : null
       }
       return data.product
     } catch {
-      showToast("Détails produit indisponibles")
+      showToast(tLive("detailsUnavailable"))
       return cached ? (cached as CatalogProduct) : null
     }
   }
@@ -452,8 +453,8 @@ export function AffiliateCatalogExperience({
   const { socialProofByProductId } = useAffiliateCatalogSocialProof(catalogProductIds)
 
   const activeCategoryLabel = useMemo(() => {
-    if (subcategoryId) return "Sous-catégorie active"
-    if (categoryId) return "Rayon actif"
+    if (subcategoryId) return tLive("activeSubcategory")
+    if (categoryId) return tLive("activeAisle")
     if (activeNiche && activeNiche in AFFILIATE_CATALOG_NICHES) {
       return NICHE_PILLS.find((n) => n.id === activeNiche)?.label ?? activeNiche
     }
@@ -488,7 +489,7 @@ export function AffiliateCatalogExperience({
               {hasFilters ? (
                 <Button type="button" variant="outline" size="sm" onClick={clearFilters} className="gap-1.5">
                   <X className="h-4 w-4" aria-hidden />
-                  Réinitialiser
+                  {tLive("reset")}
                 </Button>
               ) : null}
               <div className="relative">
@@ -504,9 +505,9 @@ export function AffiliateCatalogExperience({
                 >
                   <option value="new">{tFilters("sortNewest")}</option>
                   <option value="commission-desc">{tCatalog("sortRevenueDesc")}</option>
-                  <option value="price-asc">Prix fournisseur ↑</option>
-                  <option value="price-desc">Prix fournisseur ↓</option>
-                  <option value="name">Titre A–Z</option>
+                  <option value="price-asc">{tLive("sortPriceAsc")}</option>
+                  <option value="price-desc">{tLive("sortPriceDesc")}</option>
+                  <option value="name">{tLive("sortName")}</option>
                 </select>
               </div>
             </div>
@@ -536,9 +537,9 @@ export function AffiliateCatalogExperience({
 
           <section
             className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-zinc-50/90 p-4 dark:border-zinc-800 dark:bg-zinc-900/50"
-            aria-label="Raccourcis affilié"
+            aria-label={tLive("shortcutsAria")}
           >
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Couche Affisell</p>
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">{tLive("layerTitle")}</p>
             <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               {PULSE_LINKS.map(({ href, label, hint, className }) => (
                 <li key={href}>
@@ -551,9 +552,9 @@ export function AffiliateCatalogExperience({
                   >
                     <span className="flex items-center gap-2">
                       <Sparkles className="size-4 shrink-0 opacity-90" aria-hidden />
-                      {label}
+                      {label === "Swipe Feed" || label === "Discover" || label === "High margin" ? label : tLive(label)}
                     </span>
-                    <span className="text-[11px] font-normal opacity-90">{hint}</span>
+                    <span className="text-[11px] font-normal opacity-90">{tLive(hint)}</span>
                   </Link>
                 </li>
               ))}
@@ -604,7 +605,7 @@ export function AffiliateCatalogExperience({
                       name="localQ"
                       type="search"
                       defaultValue={searchQuery}
-                      placeholder="Nom produit, marque, niche…"
+                      placeholder={tLive("searchPlaceholder")}
                       className="h-11 w-full rounded-xl border border-zinc-200/90 bg-white/95 py-2 pl-10 pr-3 text-sm shadow-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 dark:border-zinc-700 dark:bg-zinc-900/80"
                     />
                   </div>
@@ -710,10 +711,10 @@ export function AffiliateCatalogExperience({
                   {searchQuery.trim() ? (
                     <>
                       <p className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-                        0 produit pour « {searchQuery.trim()} »
+                        {tLive("noProductFor", { query: searchQuery.trim() })}
                       </p>
                       <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-                        Nos fournisseurs peuvent te le sourcer — réponses en &lt; 2h.
+                        {tLive("sourceHint")}
                       </p>
                       <div className="mt-6 flex flex-col items-center gap-3">
                         <GlobalRequestButton
@@ -731,10 +732,10 @@ export function AffiliateCatalogExperience({
                   ) : (
                     <>
                       <p className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-                        Aucun SKU pour ces filtres
+                        {tLive("noSku")}
                       </p>
                       <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600 dark:text-zinc-400">
-                        Changez de rayon, ou demandez un produit introuvable à nos fournisseurs.
+                        {tLive("noSkuHint")}
                       </p>
                       <div className="mt-6 flex flex-col items-center gap-3">
                         <GlobalRequestButton variant="primary" />
@@ -781,11 +782,11 @@ export function AffiliateCatalogExperience({
                         {isLive ? (
                           <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-1 text-xs text-white shadow">
                             <Check className="h-3 w-3" aria-hidden />
-                            En vitrine
+                            {tLive("inShowcase")}
                           </div>
                         ) : isHidden ? (
                           <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-orange-500 px-2 py-1 text-xs font-medium text-white shadow">
-                            Retiré
+                            {tLive("removed")}
                           </div>
                         ) : (
                           <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-violet-600 px-2 py-1 text-xs font-medium text-white shadow">
@@ -903,7 +904,7 @@ export function AffiliateCatalogExperience({
         onSaved={() => {
           setModalProduct(null)
           setModalListing(null)
-          showToast("Fiche enregistrée sur votre vitrine")
+          showToast(tLive("savedToast"))
           void refreshCatalogProducts()
         }}
       />

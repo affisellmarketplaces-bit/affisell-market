@@ -4,6 +4,7 @@ import Image from "next/image"
 import { Check, Sparkles, Store, TrendingUp, Zap } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 import { AffiliateCatalogEconomicsPanel } from "@/components/affiliate/affiliate-catalog-economics-panel"
 import type { AffiliateCatalogHighlightCard, AffiliateCatalogHighlights } from "@/lib/affiliate-catalog-types"
@@ -12,10 +13,10 @@ import { cn } from "@/lib/utils"
 
 type TabId = "bestsellers" | "new" | "margin"
 
-const TABS: { id: TabId; label: string; icon: typeof TrendingUp }[] = [
-  { id: "bestsellers", label: "Best Sellers 7j", icon: TrendingUp },
-  { id: "new", label: "New Arrivals", icon: Sparkles },
-  { id: "margin", label: "High Margin", icon: Zap },
+const TABS: { id: TabId; label: "tabBest" | "tabNew" | "tabMargin"; icon: typeof TrendingUp }[] = [
+  { id: "bestsellers", label: "tabBest", icon: TrendingUp },
+  { id: "new", label: "tabNew", icon: Sparkles },
+  { id: "margin", label: "tabMargin", icon: Zap },
 ]
 
 type Props = {
@@ -31,6 +32,7 @@ function itemsForTab(tab: TabId, data: AffiliateCatalogHighlights): AffiliateCat
 
 export function AffiliateCatalogHighlights({ initial, onPickProduct }: Props) {
   const router = useRouter()
+  const t = useTranslations("affiliate.catalogLive")
   const searchParams = useSearchParams()
   const [tab, setTab] = useState<TabId>("bestsellers")
   const [data, setData] = useState(initial)
@@ -77,35 +79,35 @@ export function AffiliateCatalogHighlights({ initial, onPickProduct }: Props) {
             id="affiliate-highlights-heading"
             className="mt-1 text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-3xl"
           >
-            À la une sur Affisell
+            {t("featuredTitle")}
           </h2>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Sélection intelligente — cliquez pour ajouter à votre vitrine
+            {t("featuredSub")}
           </p>
         </div>
         <div
           className="flex flex-wrap gap-1 rounded-2xl border border-zinc-200/90 bg-zinc-50/80 p-1 shadow-inner dark:border-zinc-800 dark:bg-zinc-900/50"
           role="tablist"
-          aria-label="Filtres tendances"
+          aria-label={t("trendsAria")}
         >
-          {TABS.map((t) => {
-            const Icon = t.icon
+          {TABS.map((tabDef) => {
+            const Icon = tabDef.icon
             return (
               <button
-                key={t.id}
+                key={tabDef.id}
                 type="button"
                 role="tab"
-                aria-selected={tab === t.id}
-                onClick={() => selectTab(t.id)}
+                aria-selected={tab === tabDef.id}
+                onClick={() => selectTab(tabDef.id)}
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition sm:text-sm",
-                  tab === t.id
+                  tab === tabDef.id
                     ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-md shadow-violet-500/25"
                     : "text-zinc-600 hover:bg-white hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-950 dark:hover:text-zinc-100"
                 )}
               >
                 <Icon className="h-3.5 w-3.5 shrink-0 opacity-90" aria-hidden />
-                {t.label}
+                {t(tabDef.label)}
               </button>
             )
           })}
@@ -120,7 +122,7 @@ export function AffiliateCatalogHighlights({ initial, onPickProduct }: Props) {
         </ul>
       ) : items.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-violet-200/80 bg-violet-50/40 px-6 py-10 text-center text-sm text-zinc-600 dark:border-violet-900/50 dark:bg-violet-950/20 dark:text-zinc-400">
-          Aucun produit pour ces filtres. Élargissez le rayon ou changez de domaine d&apos;activité.
+          {t("noItems")}
         </p>
       ) : (
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
@@ -140,11 +142,11 @@ export function AffiliateCatalogHighlights({ initial, onPickProduct }: Props) {
                   {item.isInStore ? (
                     <span className="absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white shadow">
                       <Check className="h-3 w-3" aria-hidden />
-                      En vitrine
+                      {t("inShowcase")}
                     </span>
                   ) : (
                     <span className="absolute left-2 top-2 z-10 rounded-full bg-violet-600 px-2 py-0.5 text-[10px] font-bold text-white shadow">
-                      + Vitrine
+                      {t("addToShowcase")}
                     </span>
                   )}
                   <Image
@@ -172,7 +174,7 @@ export function AffiliateCatalogHighlights({ initial, onPickProduct }: Props) {
                     {item.soldCount > 0 ? (
                       <li>
                         <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
-                          {item.soldCount} vente{item.soldCount > 1 ? "s" : ""}
+                          {t("sold", { count: item.soldCount })}
                         </span>
                       </li>
                     ) : null}
