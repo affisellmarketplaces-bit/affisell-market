@@ -3903,7 +3903,10 @@
       "cta": "Virtueel passen"
     },
     "productCard": {
-      "trustLine": "Beveiligde checkout · Veilige levering"
+      "trustLine": "Beveiligde checkout · Veilige levering",
+      "freeShipping": "Gratis levering",
+      "warrantyYears": "{count, plural, one {# jaar garantie} other {# jaar garantie}}",
+      "warrantyMonths": "{count, plural, one {# maand garantie} other {# maanden garantie}}"
     },
     "merchantHeader": {
       "aria": "Reseller-boutique navigatie",

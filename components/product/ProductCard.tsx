@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Heart, Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { FastLink } from "@/components/navigation/fast-link"
 import {
@@ -41,6 +42,7 @@ export type ProductCardProduct = {
   deliveryLabel?: string
   freeShipping?: boolean
   warrantyLabel?: string | null
+  warrantyMonths?: number | null
   stock?: number
   averageRating?: number
   reviewCount?: number
@@ -125,6 +127,10 @@ function coerceProduct(p: ProductCardProps["product"]) {
     typeof o.warrantyLabel === "string" && o.warrantyLabel.trim()
       ? o.warrantyLabel.trim()
       : null
+  const warrantyMonths =
+    typeof o.warrantyMonths === "number" && Number.isFinite(o.warrantyMonths) && o.warrantyMonths > 0
+      ? Math.round(o.warrantyMonths)
+      : null
   const stockRaw = o.stock
   const stock =
     typeof stockRaw === "number" && Number.isFinite(stockRaw) ? stockRaw : null
@@ -146,6 +152,7 @@ function coerceProduct(p: ProductCardProps["product"]) {
     deliveryLabel,
     freeShipping,
     warrantyLabel,
+    warrantyMonths,
     stock,
     averageRating,
     reviewCount,
@@ -217,25 +224,34 @@ function BusinessBadges({
 function CustomerConversionBadges({
   freeShipping,
   warrantyLabel,
+  warrantyMonths,
 }: {
   freeShipping: boolean
   warrantyLabel: string | null
+  warrantyMonths: number | null
 }) {
-  const hasAny = freeShipping || warrantyLabel
+  const t = useTranslations("boutique.productCard")
+  const localWarranty =
+    warrantyMonths != null
+      ? warrantyMonths >= 12 && warrantyMonths % 12 === 0
+        ? t("warrantyYears", { count: warrantyMonths / 12 })
+        : t("warrantyMonths", { count: warrantyMonths })
+      : warrantyLabel
+  const hasAny = freeShipping || localWarranty
   if (!hasAny) return null
   return (
     <ul className="mt-1.5 flex flex-wrap gap-1 sm:mt-2 sm:gap-1.5">
       {freeShipping ? (
         <li>
           <span className="inline-flex rounded-full bg-sky-100 px-1.5 py-px text-[9px] font-semibold text-sky-900 sm:px-2 sm:py-0.5 sm:text-[10px] dark:bg-sky-950/60 dark:text-sky-200">
-            Livraison offerte
+            {t("freeShipping")}
           </span>
         </li>
       ) : null}
-      {warrantyLabel ? (
+      {localWarranty ? (
         <li>
           <span className="inline-flex rounded-full bg-emerald-100 px-1.5 py-px text-[9px] font-semibold text-emerald-900 sm:px-2 sm:py-0.5 sm:text-[10px] dark:bg-emerald-950/60 dark:text-emerald-200">
-            {warrantyLabel}
+            {localWarranty}
           </span>
         </li>
       ) : null}
@@ -437,7 +453,9 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
             ) : null}
           </>
         ) : (
-          <CustomerConversionBadges freeShipping={p.freeShipping} warrantyLabel={p.warrantyLabel} />
+          <CustomerConversionBadges freeShipping={p.freeShipping} warrantyLabel={p.warrantyLabel}
+            warrantyMonths={p.warrantyMonths}
+          />
         )}
       </div>
     </LinkComp>

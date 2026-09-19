@@ -3903,7 +3903,10 @@
       "cta": "虚拟试穿"
     },
     "productCard": {
-      "trustLine": "安全结账 · 安全配送"
+      "trustLine": "安全结账 · 安全配送",
+      "freeShipping": "免运费",
+      "warrantyYears": "{count}年质保",
+      "warrantyMonths": "{count}个月质保"
     },
     "merchantHeader": {
       "aria": "分销商精品店导航",

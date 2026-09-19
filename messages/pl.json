@@ -3903,7 +3903,10 @@
       "cta": "Wirtualna przymiarka"
     },
     "productCard": {
-      "trustLine": "Bezpieczna płatność · Bezpieczna dostawa"
+      "trustLine": "Bezpieczna płatność · Bezpieczna dostawa",
+      "freeShipping": "Darmowa dostawa",
+      "warrantyYears": "{count, plural, one {# rok gwarancji} few {# lata gwarancji} other {# lat gwarancji}}",
+      "warrantyMonths": "{count, plural, one {# miesiąc gwarancji} few {# miesiące gwarancji} other {# miesięcy gwarancji}}"
     },
     "merchantHeader": {
       "aria": "Nawigacja butiku resellera",

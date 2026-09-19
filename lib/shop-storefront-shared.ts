@@ -41,6 +41,7 @@ export type ShopProductCard = {
   reviewCount: number
   category?: ShopProductCategory | null
   warrantyLabel?: string | null
+  warrantyMonths?: number | null
   marginCents?: number
   commissionPct?: number
   soldCount?: number
@@ -92,6 +93,7 @@ export function shopProductToCardProps(
     compareAt: item.compareAtCents != null ? item.compareAtCents / 100 : null,
     freeShipping: item.freeShipping,
     warrantyLabel: item.warrantyLabel ?? null,
+    warrantyMonths: item.warrantyMonths ?? null,
     stock: item.stock,
     averageRating: item.averageRating,
     reviewCount: item.reviewCount,

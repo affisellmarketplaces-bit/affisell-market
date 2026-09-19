@@ -3903,7 +3903,10 @@
       "cta": "Virtuell anprobieren"
     },
     "productCard": {
-      "trustLine": "Sicherer Checkout · Sichere Lieferung"
+      "trustLine": "Sicherer Checkout · Sichere Lieferung",
+      "freeShipping": "Kostenloser Versand",
+      "warrantyYears": "{count, plural, one {# Jahr Garantie} other {# Jahre Garantie}}",
+      "warrantyMonths": "{count, plural, one {# Monat Garantie} other {# Monate Garantie}}"
     },
     "merchantHeader": {
       "aria": "Reseller-Boutique-Navigation",

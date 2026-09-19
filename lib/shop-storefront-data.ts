@@ -173,6 +173,7 @@ export async function loadAffiliateShopProducts(
               icon: p.category.icon || "📦",
             }
           : null,
+        warrantyMonths: l.showWarranty && warrantyMonths != null && warrantyMonths > 0 ? warrantyMonths : null,
         warrantyLabel: listingWarrantyBadgeLabel(l.showWarranty, warrantyMonths),
         soldCount: l.conversions,
         supplier: p.supplier.supplierProfile

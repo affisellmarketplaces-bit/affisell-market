@@ -31,6 +31,7 @@ export function homeCatalogFallbackProducts(count = 8): HomeListing[] {
     customSlug: null,
     buyerRewardBadge: null,
     warrantyLabel: null,
+    warrantyMonths: null,
     soldCount: 0,
     isSponsored: false,
     sponsorPlacement: null,

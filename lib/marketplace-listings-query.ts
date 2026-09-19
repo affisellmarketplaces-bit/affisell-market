@@ -178,6 +178,7 @@ export function serializeMarketplaceListing(
       normalizeBuyerRewardKind(row.buyerRewardKind),
       row.buyerRewardPercent ?? 0
     ),
+    warrantyMonths: row.showWarranty && warrantyMonths != null && warrantyMonths > 0 ? warrantyMonths : null,
     warrantyLabel: listingWarrantyBadgeLabel(
       row.showWarranty,
       warrantyMonths,
