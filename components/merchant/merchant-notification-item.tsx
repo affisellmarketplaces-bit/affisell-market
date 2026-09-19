@@ -268,10 +268,14 @@ function OrderProductLine({
           </span>
         ) : null}
         <span className="tabular-nums">×{order.quantity}</span>
-        <span aria-hidden>·</span>
-        <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-          {formatStoreCurrencyFromCents(order.totalCents)}
-        </span>
+        {order.totalCents != null ? (
+          <>
+            <span aria-hidden>·</span>
+            <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+              {formatStoreCurrencyFromCents(order.totalCents)}
+            </span>
+          </>
+        ) : null}
         <span aria-hidden>·</span>
         <span className="tabular-nums text-zinc-500">#{order.ref}</span>
         <span

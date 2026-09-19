@@ -16,14 +16,15 @@ function lightImage(url: string | null | undefined): string | null {
  */
 export async function loadNotificationOrderSummaries(
   userId: string,
-  orderIds: readonly string[]
+  orderIds: readonly string[],
+  role: "SUPPLIER" | "AFFILIATE"
 ): Promise<Map<string, MerchantNotificationOrderSummary>> {
   const ids = [...new Set(orderIds.filter(Boolean))]
   const out = new Map<string, MerchantNotificationOrderSummary>()
   if (ids.length === 0) return out
   try {
     const rows = await prisma.order.findMany({
-      where: { id: { in: ids }, OR: [{ supplierId: userId }, { affiliateId: userId }] },
+      where: { id: { in: ids }, ...(role === "SUPPLIER" ? { supplierId: userId } : { affiliateId: userId }) },
       select: {
         id: true,
         quantity: true,
@@ -41,7 +42,8 @@ export async function loadNotificationOrderSummaries(
         imageUrl: lightImage(o.variantImageUrl) ?? lightImage(primaryProductImage(o.product.images)),
         quantity: o.quantity,
         variantLabel: o.variantLabel?.trim() || null,
-        totalCents: o.totalCents ?? o.sellingPriceCents * o.quantity,
+        // Suppliers never see the reseller's resale price / what the buyer paid.
+        totalCents: role === "SUPPLIER" ? null : (o.totalCents ?? o.sellingPriceCents * o.quantity),
         status: o.status,
         ref: o.id.slice(-6).toUpperCase(),
       })

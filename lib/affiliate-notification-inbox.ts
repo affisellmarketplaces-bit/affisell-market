@@ -105,7 +105,8 @@ async function readAffiliateNotificationInbox(
   const orderById = new Map(ordersForBreakdown.map((o) => [o.id, o]))
   const summaries = await loadNotificationOrderSummaries(
     affiliateId,
-    rows.map((n) => n.orderId).filter((id): id is string => Boolean(id))
+    rows.map((n) => n.orderId).filter((id): id is string => Boolean(id)),
+    "AFFILIATE"
   )
   const notifications = mapAffiliateNotificationRows(affiliateId, rows, orderById, summaries)
   const unreadCount = notifications.filter((n) => !n.read).length

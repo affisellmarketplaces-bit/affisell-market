@@ -4,7 +4,8 @@ export type MerchantNotificationOrderSummary = {
   imageUrl: string | null
   quantity: number
   variantLabel: string | null
-  totalCents: number
+  /** Buyer-paid amount — ONLY for the affiliate/reseller who set that price; always null for suppliers. */
+  totalCents: number | null
   status: string
   /** Short human reference (last 6 chars of the order id). */
   ref: string

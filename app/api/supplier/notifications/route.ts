@@ -70,7 +70,7 @@ export async function GET(req: Request) {
             select: { id: true, variantImageUrl: true },
           })
         : Promise.resolve([]),
-      loadNotificationOrderSummaries(session.user.id, orderIds),
+      loadNotificationOrderSummaries(session.user.id, orderIds, "SUPPLIER"),
     ])
 
     const imageByOrderId = new Map(orderImages.map((o) => [o.id, o.variantImageUrl]))
