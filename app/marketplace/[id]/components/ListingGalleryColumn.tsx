@@ -9,7 +9,6 @@ import { MobilePdpBuyPanel } from "@/components/product/mobile-pdp-buy-panel"
 import { MobilePdpPersistentBuyBar } from "@/components/product/mobile-pdp-persistent-buy-bar"
 import { ProductListingColorPicker } from "@/components/product/product-listing-color-picker"
 import { ListingLogisticsStrip } from "@/components/product/listing-logistics-strip"
-import { ProductHighlightChips } from "@/components/product/product-highlight-chips"
 import { deriveProductHighlights } from "@/lib/product-highlights"
 import { TryOnTrigger } from "@/components/try-on/TryOnEntry"
 import { findVariantRowForShopperSelection } from "@/lib/marketplace-variant-dimensions"
@@ -181,14 +180,6 @@ export function ListingGalleryColumn({
             highlights={highlights}
             highlightsAriaLabel={tHighlights("highlightsAria")}
           />
-          {highlights.length > 0 ? (
-            <ProductHighlightChips
-              highlights={highlights}
-              layout="row"
-              ariaLabel={tHighlights("highlightsAria")}
-              className="mx-1 mt-2 lg:hidden"
-            />
-          ) : null}
 
           {!bookingCheckoutLive && availableStock > 0 && !showAr ? (
             <MobilePdpPersistentBuyBar

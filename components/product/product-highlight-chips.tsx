@@ -42,24 +42,22 @@ const ICONS: Record<HighlightIcon, LucideIcon> = {
 
 type Props = {
   highlights: readonly ProductHighlight[]
-  /** `overlay`: stacked glass chips on top of a photo. `row`: wrapping/scrolling row (mobile, cards). */
-  layout?: "overlay" | "row"
   className?: string
   ariaLabel?: string
 }
 
-/** Icon chips for the 2–4 key benefits of a product. Purely presentational (no interaction). */
-export function ProductHighlightChips({ highlights, layout = "row", className, ariaLabel }: Props) {
+/**
+ * Icon chips for the 2–4 key benefits of a product. Purely presentational.
+ * Photo rule: these live in a row UNDER the photo — there is deliberately no overlay layout.
+ */
+export function ProductHighlightChips({ highlights, className, ariaLabel }: Props) {
   if (highlights.length === 0) return null
-  const overlay = layout === "overlay"
 
   return (
     <ul
       aria-label={ariaLabel}
       className={cn(
-        overlay
-          ? "pointer-events-none flex flex-col items-start gap-2"
-          : "flex snap-x gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        "flex snap-x gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className
       )}
     >

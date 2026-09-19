@@ -24,7 +24,14 @@ export type ProductMediaGalleryProps = {
   /** Enables ♥ on gallery video (wishlist + like count). */
   productId?: string
   alt: string
-  overlay?: ReactNode
+  /**
+   * Text badges (offer mode, 3D…). They live in a reserved band ABOVE the photo, never on it:
+   * nothing written may ever hide the product.
+   */
+  badges?: ReactNode
+  badgesClassName?: string
+  /** Extra content under the photo stage (e.g. key-benefit chips). */
+  below?: ReactNode
   className?: string
 }
 
@@ -45,7 +52,9 @@ export function ProductMediaGallery({
   videoUrl,
   productId,
   alt,
-  overlay,
+  badges,
+  badgesClassName,
+  below,
   className,
 }: ProductMediaGalleryProps) {
   const t = useTranslations("Product.gallery")
@@ -204,6 +213,11 @@ export function ProductMediaGallery({
 
         {/* Main stage */}
         <div className="min-w-0 flex-1 space-y-2 lg:overflow-visible">
+          {badges ? (
+            <div className={cn("flex min-h-0 flex-wrap items-center gap-2 px-1", badgesClassName)} data-photo-band="top">
+              {badges}
+            </div>
+          ) : null}
           <div className="lg:hidden">
             <MobileProductGalleryCarousel
               images={safeImages}
@@ -213,7 +227,6 @@ export function ProductMediaGallery({
               videoUrl={hasVideo ? videoUrl : null}
               productId={productId}
               alt={alt}
-              overlay={overlay}
               onOpenLightbox={openLightbox}
               onVideoActive={() => setMediaMode("video")}
               onImageActive={() => setMediaMode("image")}
@@ -231,36 +244,32 @@ export function ProductMediaGallery({
                   url={videoUrl!}
                   className="h-full w-full object-contain"
                 />
-                <div className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-black/50 to-transparent px-3 py-2 pr-16">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/90">
-                    {t("video")}
-                  </p>
-                </div>
               </ProductVideoWishlistOverlay>
             ) : (
               <div className="relative z-10 overflow-visible">
                 <ProductImageHoverZoom
                   src={heroSrc}
                   alt={alt}
-                  overlay={overlay}
                   className="overflow-visible rounded-[1.35rem] border-zinc-200/55 bg-white/90 shadow-[0_28px_70px_-34px_rgba(91,33,217,0.28)] ring-1 ring-violet-500/[0.07] dark:border-zinc-700/80 dark:bg-zinc-950/70"
                   frameClassName="rounded-[1.1rem] aspect-[4/3] bg-gradient-to-b from-zinc-50/95 to-white dark:from-zinc-900/90 dark:to-zinc-950"
                 />
-                <button
-                  type="button"
-                  onClick={() => openLightbox(activeThumbIndex >= 0 ? activeThumbIndex : 0)}
-                  className="pointer-events-auto absolute bottom-4 left-4 z-20 flex items-center gap-1.5 rounded-full border border-sky-200/80 bg-white/95 px-3 py-1.5 text-xs font-semibold text-sky-800 shadow-sm backdrop-blur-sm transition hover:bg-sky-50 dark:border-sky-800/60 dark:bg-zinc-950/90 dark:text-sky-200 dark:hover:bg-sky-950/50"
-                >
-                  <Maximize2 className="size-3.5 shrink-0" aria-hidden />
-                  {t("fullView")}
-                </button>
               </div>
             )}
           </div>
 
-          <p className="hidden text-center text-[11px] text-zinc-500 lg:block dark:text-zinc-400">
-            {t("desktopHint")}
-          </p>
+          {/* Controls live UNDER the photo, never on it. */}
+          <div className="hidden items-center justify-between gap-3 px-1 lg:flex" data-photo-band="bottom">
+            <button
+              type="button"
+              onClick={() => openLightbox(activeThumbIndex >= 0 ? activeThumbIndex : 0)}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-sky-200/80 bg-white px-3 py-1.5 text-xs font-semibold text-sky-800 shadow-sm transition hover:bg-sky-50 dark:border-sky-800/60 dark:bg-zinc-950 dark:text-sky-200 dark:hover:bg-sky-950/50"
+            >
+              <Maximize2 className="size-3.5 shrink-0" aria-hidden />
+              {t("fullView")}
+            </button>
+            <p className="min-w-0 text-right text-[11px] text-zinc-500 dark:text-zinc-400">{t("desktopHint")}</p>
+          </div>
+          {below}
         </div>
       </div>
 

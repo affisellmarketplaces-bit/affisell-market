@@ -4,7 +4,6 @@ import Image from "next/image"
 import { Eye } from "lucide-react"
 
 import { ProductColorSwatchDots } from "@/components/product/product-color-swatch-dots"
-import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
@@ -12,7 +11,6 @@ import { Badge } from "@/components/ui/badge"
 import type { ResellerStorefrontListProduct } from "@/lib/boutique/reseller-storefront-shared"
 import { formatResellerVariantOptionsLabel } from "@/lib/boutique/reseller-listing-variants-shared"
 import { resolveBuyerCardImageHref } from "@/lib/listing-card-image-shared"
-import { resolveProductDiscount } from "@/lib/product-discount-display"
 import { cn } from "@/lib/utils"
 
 type Props = {
@@ -31,7 +29,6 @@ export function ResellerBoutiqueProductCard({
     product.compareAtCents != null && product.compareAtCents > product.priceCents
       ? product.compareAtCents / 100
       : null
-  const discountOffer = resolveProductDiscount(priceEur, compareAtEur)
   const imageSrc = resolveBuyerCardImageHref(product.image, product.id)
   const optionsLabel = formatResellerVariantOptionsLabel(product.variantSummary)
   const showFromPrice =
@@ -51,35 +48,9 @@ export function ResellerBoutiqueProductCard({
       }}
     >
       <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-white">
-        <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-2">
-          <div className="min-w-0 flex-1">
-            <ProductSalesBadge
-              count={product.soldCount}
-              variant="overlay"
-              className="!static left-auto top-auto max-w-full"
-            />
-          </div>
-          <div className="pointer-events-auto shrink-0">
-            <WishlistHeart productId={product.productId} className="relative" />
-          </div>
-        </div>
-
-        <div className="absolute inset-x-0 bottom-0 z-20 flex items-end justify-between gap-2 p-2">
-          <div className="min-w-0">
-            {discountOffer ? (
-              <ProductDiscountTag
-                percent={discountOffer.percent}
-                className="!static relative bottom-auto left-auto"
-              />
-            ) : null}
-          </div>
-          <div className="shrink-0">
-            {product.isBestSeller ? (
-              <Badge className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-amber-500">
-                Best Seller
-              </Badge>
-            ) : null}
-          </div>
+        {/* Photo rule: nothing written sits on the product photo. Only the like-heart (a control) stays. */}
+        <div className="pointer-events-auto absolute right-2 top-2 z-20 shrink-0">
+          <WishlistHeart productId={product.productId} className="relative" />
         </div>
 
         <Image
@@ -91,14 +62,20 @@ export function ResellerBoutiqueProductCard({
           unoptimized={imageSrc.startsWith("http") || imageSrc.startsWith("/uploads")}
         />
 
-        {product.isOutOfStock ? (
-          <span className="absolute left-3 top-12 z-10 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
-            Out of stock
-          </span>
-        ) : null}
       </div>
 
       <div className="p-4 pt-4">
+        <div className="mb-2 flex flex-wrap items-center gap-1.5 empty:hidden">
+          {product.isOutOfStock ? (
+            <span className="rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white shadow-sm">Out of stock</span>
+          ) : null}
+          <ProductSalesBadge count={product.soldCount} variant="inline" />
+          {product.isBestSeller ? (
+            <Badge className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm hover:bg-amber-500">
+              Best Seller
+            </Badge>
+          ) : null}
+        </div>
         <h2
           className="text-lg font-medium leading-tight tracking-tight"
           style={{ color: "var(--boutique-card-title)" }}

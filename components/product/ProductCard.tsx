@@ -13,11 +13,9 @@ import {
 import { resolveBuyerCardImageHref, isListingCardImageProxyUrl } from "@/lib/listing-card-image-shared"
 import { isUsableProductImageUrl } from "@/lib/product-image-url"
 
-import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { ProductOfferBadge } from "@/components/product/product-offer-badge"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { ProductSalesBadge } from "@/components/product/product-sales-badge"
-import { resolveProductDiscount } from "@/lib/product-discount-display"
 import { Badge } from "@/components/ui/badge"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
@@ -295,8 +293,6 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
             : "/marketplace")
   const priceN = p.price
   const compareN = p.compareAt
-  const discountOffer = resolveProductDiscount(priceN, compareN)
-  const hasDiscount = discountOffer != null
   const remoteImage = typeof p.image === "string" ? p.image.trim() : ""
   const src =
     mode === "customer"
@@ -331,55 +327,16 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
           isBuyer ? "affisell-product-media--buyer aspect-square" : "aspect-[4/3]"
         )}
       >
-        {/* Top bar — flex row, no overlapping absolutes (sales ↔ heart). */}
-        <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-2">
-          <div className="flex min-w-0 flex-1 flex-wrap items-start gap-1">
-            {p.offerBadge ? (
-              <ProductOfferBadge
-                badge={p.offerBadge}
-                className="!static left-auto top-auto max-w-full"
-              />
-            ) : null}
-            {!showBusiness && p.soldCount != null ? (
-              <ProductSalesBadge
-                count={p.soldCount}
-                variant="overlay"
-                className="!static left-auto top-auto max-w-full"
-              />
-            ) : null}
-          </div>
-          <div className="pointer-events-auto shrink-0">
-            {productIdStr ? (
-              <WishlistHeart productId={productIdStr} className="relative" />
-            ) : (
-              <span className="flex size-8 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur">
-                <Heart className="h-4 w-4 text-gray-700" aria-hidden />
-              </span>
-            )}
-          </div>
-        </div>
-        {/* Bottom bar — discount left, promo right, 8px gap via justify-between. */}
-        <div className="absolute inset-x-0 bottom-0 z-20 flex items-end justify-between gap-2 p-2">
-          <div className="min-w-0">
-            {hasDiscount ? (
-              <ProductDiscountTag
-                percent={discountOffer.percent}
-                className="!static relative bottom-auto left-auto right-auto top-auto"
-              />
-            ) : null}
-          </div>
-          <div className="shrink-0">
-            {p.isSponsored ? (
-              <Badge className="gap-1 rounded-full border-0 bg-gradient-to-r from-violet-600 to-cyan-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg shadow-violet-900/40 hover:from-violet-500 hover:to-cyan-400 sm:px-2 sm:text-[10px]">
-                <Sparkles className="size-3" aria-hidden />
-                Promote
-              </Badge>
-            ) : p.isBestSeller ? (
-              <Badge className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm hover:bg-amber-500 sm:px-2 sm:text-[10px]">
-                Best Seller
-              </Badge>
-            ) : null}
-          </div>
+        {/* Photo rule: nothing written sits on the product photo — badges live in the info area below.
+            Only the like-heart (a control) stays on the photo, top-right. */}
+        <div className="pointer-events-auto absolute right-2 top-2 z-20 shrink-0">
+          {productIdStr ? (
+            <WishlistHeart productId={productIdStr} className="relative" />
+          ) : (
+            <span className="flex size-8 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur">
+              <Heart className="h-4 w-4 text-gray-700" aria-hidden />
+            </span>
+          )}
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element -- remote URLs + placeholder */}
         <img
@@ -415,6 +372,22 @@ export function ProductCard({ product, mode = "customer", href: hrefProp, imageP
       </div>
 
       <div className="mt-1.5 px-0.5 pb-0.5 sm:mt-3 sm:px-1 sm:pb-1">
+        {p.offerBadge || (!showBusiness && p.soldCount != null) || p.isSponsored || p.isBestSeller ? (
+          <div className="mb-1.5 flex flex-wrap items-center gap-1">
+            {p.offerBadge ? <ProductOfferBadge badge={p.offerBadge} variant="inline" /> : null}
+            {!showBusiness && p.soldCount != null ? <ProductSalesBadge count={p.soldCount} variant="inline" /> : null}
+            {p.isSponsored ? (
+              <Badge className="gap-1 rounded-full border-0 bg-gradient-to-r from-violet-600 to-cyan-500 px-1.5 py-0.5 text-[9px] font-bold text-white hover:from-violet-500 hover:to-cyan-400 sm:px-2 sm:text-[10px]">
+                <Sparkles className="size-3" aria-hidden />
+                Promote
+              </Badge>
+            ) : p.isBestSeller ? (
+              <Badge className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[9px] font-bold text-white hover:bg-amber-500 sm:px-2 sm:text-[10px]">
+                Best Seller
+              </Badge>
+            ) : null}
+          </div>
+        ) : null}
         <h3 className="line-clamp-2 min-h-[2.1rem] text-[12px] font-semibold leading-snug text-gray-900 sm:min-h-[2.5rem] sm:text-sm dark:text-zinc-100">
           {p.title}
         </h3>

@@ -33,7 +33,7 @@ export function loadAffiliateShopProductsForUserCached(
   const userId = affiliateUserId.trim()
   return unstable_cache(
     () => loadAffiliateShopProducts(userId),
-    ["affiliate-shop-products", key, userId],
+    ["affiliate-shop-products-v2", key, userId],
     { revalidate: SHOP_REVALIDATE_SEC, tags: [shopTag(key)] }
   )()
 }
@@ -46,7 +46,7 @@ export function loadAffiliateShopProductsCached(slug: string): Promise<ShopProdu
       if (!store) return []
       return loadAffiliateShopProducts(store.userId)
     },
-    ["affiliate-shop-products", key],
+    ["affiliate-shop-products-v2", key],
     { revalidate: SHOP_REVALIDATE_SEC, tags: [shopTag(key)] }
   )()
 }

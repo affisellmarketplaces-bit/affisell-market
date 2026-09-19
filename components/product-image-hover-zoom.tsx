@@ -1,7 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
-import { useTranslations } from "next-intl"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 import {
   computeObjectContainRect,
@@ -18,7 +17,6 @@ const PLACEHOLDER_SRC = "/placeholder-product.jpg"
 type Props = {
   src: string
   alt: string
-  overlay?: ReactNode
   className?: string
   frameClassName?: string
 }
@@ -28,8 +26,7 @@ type PointerPct = { x: number; y: number }
 /**
  * Desktop: loupe + zoom pane overlaid on the gallery (layout never shrinks — no jitter).
  */
-export function ProductImageHoverZoom({ src, alt, overlay, className, frameClassName }: Props) {
-  const t = useTranslations("Product.gallery")
+export function ProductImageHoverZoom({ src, alt, className, frameClassName }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
   const heroRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
@@ -235,16 +232,7 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
           aria-hidden
         />
 
-        {finePointer && pointerInHero && !zoomEngaged ? (
-          <p
-            className="pointer-events-none absolute inset-x-0 bottom-10 z-[2] mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-full border border-zinc-200/80 bg-white/92 px-3 py-1.5 text-center text-[11px] font-medium text-zinc-600 shadow-sm backdrop-blur-sm dark:border-zinc-600/80 dark:bg-zinc-950/90 dark:text-zinc-300"
-            aria-live="polite"
-          >
-            {t("hoverZoomHint")}
-          </p>
-        ) : null}
 
-        {overlay ? <div className="pointer-events-none absolute inset-0 z-[3]">{overlay}</div> : null}
 
         {zoomActive ? (
           <div
@@ -266,9 +254,6 @@ export function ProductImageHoverZoom({ src, alt, overlay, className, frameClass
               className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.025)_1px,transparent_1px)] bg-[size:14px_14px] opacity-50"
               aria-hidden
             />
-            <p className="absolute bottom-2 left-2 right-2 rounded-md bg-black/45 px-2 py-1 text-center text-[10px] font-medium tracking-wide text-white/95">
-              {t("zoomDetailLevel", { level: Math.round(ZOOM * 100) })}
-            </p>
           </div>
         ) : null}
       </div>

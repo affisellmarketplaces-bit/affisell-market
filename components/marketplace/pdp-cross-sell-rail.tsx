@@ -74,9 +74,6 @@ export function PdpCrossSellRail({
               className="group block rounded-xl border border-zinc-200/90 bg-white/90 p-2.5 transition hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950/80 dark:hover:border-violet-800/60"
             >
               <div className="relative aspect-square overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
-                {item.soldCount ? (
-                  <ProductSalesBadge count={item.soldCount} variant="overlay" />
-                ) : null}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={item.image}
@@ -84,6 +81,11 @@ export function PdpCrossSellRail({
                   className="h-full w-full object-cover transition group-hover:scale-[1.03]"
                 />
               </div>
+              {item.soldCount ? (
+                <div className="mt-2">
+                  <ProductSalesBadge count={item.soldCount} variant="inline" />
+                </div>
+              ) : null}
               <p className="mt-2 line-clamp-2 text-xs font-medium text-zinc-900 dark:text-zinc-100">
                 {item.title}
               </p>

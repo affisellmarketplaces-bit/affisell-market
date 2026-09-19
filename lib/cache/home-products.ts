@@ -5,6 +5,6 @@ import { fetchMarketplaceListingsForHome } from "@/lib/marketplace-listings-quer
 /** Cross-request cache for buyer home listings — exact same query as legacy path. */
 export const getCachedHomeProducts = unstable_cache(
   async () => fetchMarketplaceListingsForHome(new URLSearchParams()),
-  ["home-products-v1"],
+  ["home-products-v2"],
   { revalidate: 60, tags: ["products", "home"] }
 )

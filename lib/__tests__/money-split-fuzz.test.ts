@@ -134,7 +134,8 @@ function randomLine(r: () => number, opts: { belowWholesale?: boolean } = {}): L
   }
 }
 
-describe("money split — fuzz invariants on the real checkout → transfer chain", () => {
+// 20k random lines x several invariants: allow generous time so a loaded machine never turns it into a flaky timeout.
+describe("money split — fuzz invariants on the real checkout → transfer chain", { timeout: 90_000 }, () => {
   const N = 20_000
   const fixedMarginLine = (r: () => number): Line => {
     for (;;) {

@@ -1,8 +1,8 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Film, Maximize2, Play } from "lucide-react"
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react"
+import { Maximize2 } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 import { useTranslations } from "next-intl"
 
 import { ProductVideoPlayer } from "@/components/product/product-video-player"
@@ -41,7 +41,6 @@ export type MobileProductGalleryCarouselProps = {
   videoUrl?: string | null
   productId?: string
   alt: string
-  overlay?: ReactNode
   onOpenLightbox: (index: number) => void
   onVideoActive?: () => void
   onImageActive?: () => void
@@ -60,7 +59,6 @@ export function MobileProductGalleryCarousel({
   videoUrl,
   productId,
   alt,
-  overlay,
   onOpenLightbox,
   onVideoActive,
   onImageActive,
@@ -206,12 +204,6 @@ export function MobileProductGalleryCarousel({
               {slide.kind === "video" ? (
                 <ProductVideoWishlistOverlay productId={productId ?? ""} className="h-full w-full">
                   <ProductVideoPlayer url={videoUrl!} className="h-full w-full object-contain" />
-                  <div className="pointer-events-none absolute inset-x-0 top-0 z-[1] flex items-center gap-1.5 bg-gradient-to-b from-black/55 to-transparent px-3 py-2.5 pr-14">
-                    <Film className="size-3.5 text-white/90" aria-hidden />
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/95">
-                      {t("video")}
-                    </p>
-                  </div>
                 </ProductVideoWishlistOverlay>
               ) : (
                 <>
@@ -233,7 +225,6 @@ export function MobileProductGalleryCarousel({
                       e.currentTarget.src = PLACEHOLDER
                     }}
                   />
-                  {i === scrollIndex && !isVideoSlide ? overlay : null}
                 </>
               )}
             </div>
@@ -241,31 +232,26 @@ export function MobileProductGalleryCarousel({
         ))}
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 top-3 flex items-start justify-between px-3">
-        <span className="rounded-full border border-white/25 bg-zinc-900/55 px-2.5 py-1 text-[11px] font-semibold tabular-nums text-white shadow-lg backdrop-blur-md">
-          {displayCounter}
-        </span>
-        {!isVideoSlide && currentSlide?.kind === "image" ? (
-          <button
-            type="button"
-            onClick={() => onOpenLightbox(currentSlide.index)}
-            className="pointer-events-auto flex size-9 items-center justify-center rounded-full border border-white/30 bg-black/45 text-white shadow-lg backdrop-blur-md active:scale-95"
-            aria-label={t("fullView")}
-            title={t("tapToZoom")}
-          >
-            <Maximize2 className="size-4" aria-hidden />
-          </button>
-        ) : isVideoSlide ? (
-          <span className="flex items-center gap-1 rounded-full border border-white/25 bg-violet-600/80 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-lg">
-            <Play className="size-3 fill-current" aria-hidden />
-            {t("video")}
-          </span>
-        ) : null}
-      </div>
+      {/* Icon-only action on the photo (no text). The counter lives in the row under it. */}
+      {!isVideoSlide && currentSlide?.kind === "image" ? (
+        <button
+          type="button"
+          onClick={() => onOpenLightbox(currentSlide.index)}
+          className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full border border-white/30 bg-black/45 text-white shadow-lg backdrop-blur-md active:scale-95"
+          aria-label={t("fullView")}
+          title={t("tapToZoom")}
+        >
+          <Maximize2 className="size-4" aria-hidden />
+        </button>
+      ) : null}
 
       {totalSlides > 1 ? (
+        <div className="mt-3 flex items-center justify-center gap-3">
+          <span className="text-[11px] font-semibold tabular-nums text-zinc-500 dark:text-zinc-400" aria-hidden>
+            {displayCounter}
+          </span>
         <div
-          className="mt-3 flex items-center justify-center gap-1.5"
+          className="flex items-center justify-center gap-1.5"
           role="tablist"
           aria-label={t("thumbRail")}
         >
@@ -297,6 +283,7 @@ export function MobileProductGalleryCarousel({
               </button>
             )
           })}
+        </div>
         </div>
       ) : null}
     </div>

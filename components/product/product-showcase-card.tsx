@@ -176,7 +176,7 @@ export function ProductShowcaseCard({ product, className, imagePriority = false 
           <img
             src={heroSrc}
             alt={product.title}
-            className="absolute inset-0 h-full w-full select-none object-contain p-5 pb-24 transition-transform duration-500 group-hover:scale-[1.02] sm:p-8 sm:pb-24"
+            className="absolute inset-0 h-full w-full select-none object-contain px-5 pb-24 pt-16 transition-transform duration-500 group-hover:scale-[1.02] sm:px-8"
             loading={imagePriority ? "eager" : "lazy"}
             fetchPriority={imagePriority ? "high" : "auto"}
             decoding="async"
@@ -224,12 +224,6 @@ export function ProductShowcaseCard({ product, className, imagePriority = false 
           </div>
         </div>
 
-        {/* Key benefits over the photo (sm+); on phones they sit under the media so the product stays visible */}
-        {highlights.length > 0 ? (
-          <div className="absolute left-3 top-[3.9rem] z-10 hidden max-w-[58%] sm:block">
-            <ProductHighlightChips highlights={highlights} layout="overlay" ariaLabel={t("gallery")} />
-          </div>
-        ) : null}
 
         {/* Thumbnail rail */}
         {images.length > 1 ? (
@@ -276,8 +270,9 @@ export function ProductShowcaseCard({ product, className, imagePriority = false 
         ) : null}
       </div>
 
+      {/* Photo rule: key benefits live UNDER the photo, never on it. */}
       {highlights.length > 0 ? (
-        <ProductHighlightChips highlights={highlights} layout="row" ariaLabel={t("gallery")} className="mt-2 px-1 sm:hidden" />
+        <ProductHighlightChips highlights={highlights} ariaLabel={t("gallery")} className="mt-2.5 px-1 sm:flex-wrap sm:overflow-visible" />
       ) : null}
 
       {/* Info */}

@@ -97,20 +97,12 @@ export function MarketplaceListingCard({
               e.currentTarget.src = PRODUCT_CARD_IMAGE_FALLBACK
             }}
           />
-          <ProductSalesBadge count={soldCount} variant="overlay" />
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              void addToCart(listing.id)
-            }}
-            className="absolute bottom-2 left-2 right-2 z-10 rounded-full bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-lg transition-opacity hover:bg-violet-700 group-hover:opacity-100"
-          >
-            Add to cart
-          </button>
         </div>
         <div className="p-4">
+          {/* Photo rule: nothing written on the photo. "Add to cart" / "Buy" are the buttons below. */}
+          <div className="mb-2 empty:hidden">
+            <ProductSalesBadge count={soldCount} variant="inline" />
+          </div>
           <div className="min-w-0 flex-1">
             <h3 className="line-clamp-3 h-[4.125rem] break-words font-semibold leading-snug text-zinc-900 dark:text-zinc-100">
               {name}

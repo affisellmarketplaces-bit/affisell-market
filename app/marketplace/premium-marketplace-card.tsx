@@ -1,8 +1,8 @@
 "use client"
 
+import { ShoppingBag } from "lucide-react"
 import { FastLink } from "@/components/navigation/fast-link"
 
-import { ProductDiscountTag } from "@/components/product-discount-tag"
 import { ProductPriceOffer } from "@/components/product/product-price-offer"
 import { WishlistHeart } from "@/components/wishlist-heart"
 import { addToBuyerCart } from "@/lib/cart-add-client"
@@ -42,7 +42,6 @@ export function PremiumMarketplaceCard({
       className="group flex h-full w-full flex-col rounded-3xl border border-gray-100/90 bg-white/85 p-2 shadow-sm backdrop-blur-sm transition-shadow hover:border-violet-200/80 hover:shadow-lg hover:shadow-violet-500/5 dark:border-zinc-800 dark:bg-zinc-950/60 dark:hover:border-violet-800/50"
     >
       <div className="relative mb-3 aspect-square w-full shrink-0 overflow-hidden rounded-2xl border border-white/50 bg-gradient-to-br from-violet-50/40 to-teal-50/25 dark:border-zinc-800/80 dark:from-violet-950/25 dark:to-teal-950/15">
-        {hasDiscount ? <ProductDiscountTag percent={discountOffer.percent} /> : null}
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -56,14 +55,7 @@ export function PremiumMarketplaceCard({
         )}
 
         <WishlistHeart productId={productId} className="absolute right-3 top-3 z-20" />
-        {showPremiumBadge ? (
-          <span
-            className="absolute bottom-2 left-2 z-[19] rounded-full bg-gradient-to-r from-violet-500 to-pink-500 px-2.5 py-1 text-[11px] font-semibold text-white shadow"
-          >
-            Premium
-          </span>
-        ) : null}
-
+        {/* Photo rule: nothing written on the photo — the quick-add is an icon-only control. */}
         <button
           type="button"
           onClick={(e) => {
@@ -78,13 +70,29 @@ export function PremiumMarketplaceCard({
               sellerName: sellerDisplay,
             })
           }}
-          className="absolute bottom-2 left-2 right-2 z-20 rounded-xl bg-white py-2.5 text-sm font-medium text-black opacity-0 shadow-lg transition-opacity hover:bg-zinc-100 group-hover:opacity-100"
+          aria-label="Quick add"
+          title="Quick add"
+          className="absolute bottom-2 right-2 z-20 flex size-10 items-center justify-center rounded-full bg-white text-zinc-900 opacity-0 shadow-lg ring-1 ring-black/5 transition-opacity hover:bg-zinc-100 focus-visible:opacity-100 group-hover:opacity-100 max-md:opacity-100"
         >
-          Quick add
+          <ShoppingBag className="size-[18px]" aria-hidden />
         </button>
       </div>
 
       <div className="flex flex-1 flex-col pb-1 pt-0">
+        {hasDiscount || showPremiumBadge ? (
+          <div className="mb-2 flex flex-wrap items-center gap-1.5">
+            {hasDiscount ? (
+              <span className="rounded-full bg-gradient-to-r from-rose-500 to-fuchsia-500 px-2 py-0.5 text-[11px] font-bold text-white">
+                −{discountOffer.percent}%
+              </span>
+            ) : null}
+            {showPremiumBadge ? (
+              <span className="rounded-full bg-gradient-to-r from-violet-500 to-pink-500 px-2.5 py-0.5 text-[11px] font-semibold text-white">
+                Premium
+              </span>
+            ) : null}
+          </div>
+        ) : null}
         <div className="flex items-start justify-between gap-3">
           <div className="min-h-0 min-w-0 flex-1">
             <h3 className="line-clamp-3 h-[4.125rem] break-words font-semibold leading-snug text-zinc-900 dark:text-zinc-100">
