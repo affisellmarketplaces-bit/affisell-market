@@ -400,8 +400,9 @@ export default async function MarketplaceListingPage({
       warehouseType: p.warehouseType,
       warehouseCity: p.warehouseCity,
       shipsFrom: p.shipsFrom,
-      deliveryMin: p.deliveryMin,
-      deliveryMax: p.deliveryMax,
+      // Only the supplier's shop shipping profile may state a delivery window.
+      deliveryMin: shopShippingOffers.length ? Math.min(...shopShippingOffers.map((o) => o.deliveryMin)) : null,
+      deliveryMax: shopShippingOffers.length ? Math.max(...shopShippingOffers.map((o) => o.deliveryMax)) : null,
       deliveryCountryCodes: p.deliveryCountryCodes,
       locale: locale as AppLocale,
     }),

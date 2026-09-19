@@ -207,7 +207,10 @@ export function ListingPurchaseDock({
             <p className="text-xs leading-snug text-zinc-600 dark:text-zinc-400">
               <span className="font-semibold text-zinc-900 dark:text-zinc-100">{productT.actionStackHint}</span>
               <span className="mt-0.5 block text-[11px] text-zinc-500 dark:text-zinc-500">
-                {productT.securePayment} · {shipping.deliveryMin}–{shipping.deliveryMax} day delivery
+                {productT.securePayment}
+                {shipping.deliveryMin != null && shipping.deliveryMax != null
+                  ? ` · ${shipping.deliveryMin}–${shipping.deliveryMax} day delivery`
+                  : ""}
               </span>
             </p>
           </div>

@@ -228,8 +228,8 @@ export function ListingSidebarColumn({
               shippingCarrierIds={shipping.shippingCarrierIds}
               shopShippingOffers={shipping.shopShippingOffers}
               shipFromCountry={shipping.shippingCountryCode}
-              deliveryMin={shipping.deliveryMin}
-              deliveryMax={shipping.deliveryMax}
+              deliveryMin={shipping.deliveryMin ?? undefined}
+              deliveryMax={shipping.deliveryMax ?? undefined}
               shippingMethods={shipping.shippingMethods}
               tryOnReady={tryOnReady}
               tryOnVariant={tryOnVariant}
@@ -263,12 +263,14 @@ export function ListingSidebarColumn({
               <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100">{productT.securePayment}</span>
             </div>
           </div>
-          <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400 lg:-mt-3 lg:text-xs">
-            {t(productT.deliveryTo, {
-              city: deliveryPlace,
-              date: etaDate,
-            })}
-          </p>
+          {etaDate ? (
+            <p className="text-[11px] leading-snug text-zinc-500 dark:text-zinc-400 lg:-mt-3 lg:text-xs">
+              {t(productT.deliveryTo, {
+                city: deliveryPlace,
+                date: etaDate,
+              })}
+            </p>
+          ) : null}
         </div>
 
         <div className="hidden space-y-3 px-4 py-3 lg:block lg:space-y-4 lg:px-0 lg:py-0">

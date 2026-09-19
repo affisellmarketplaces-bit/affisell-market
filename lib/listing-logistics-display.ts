@@ -10,8 +10,9 @@ export type ListingLogisticsInput = {
   warehouseType: string | null
   warehouseCity: string | null
   shipsFromDisplay: string | null
-  deliveryMin: number
-  deliveryMax: number
+  /** Supplier-defined window (shop shipping profile); null = nothing to show. */
+  deliveryMin: number | null
+  deliveryMax: number | null
   deliveryCountriesSummary: string
 }
 
@@ -72,8 +73,8 @@ export function buildListingLogisticsInput(input: {
     warehouseType: input.warehouseType ?? null,
     warehouseCity: input.warehouseCity ?? null,
     shipsFromDisplay: input.shipsFrom ?? null,
-    deliveryMin: input.deliveryMin ?? 2,
-    deliveryMax: input.deliveryMax ?? 5,
+    deliveryMin: input.deliveryMin ?? null,
+    deliveryMax: input.deliveryMax ?? null,
     deliveryCountriesSummary: formatDeliveryCountriesSummary(deliveryCodes, locale),
   }
 }

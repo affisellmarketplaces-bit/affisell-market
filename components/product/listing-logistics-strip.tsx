@@ -24,11 +24,10 @@ export function ListingLogisticsStrip({ logistics, className, compact = false }:
   const t = useTranslations("Product.logistics")
   const shipsFrom = listingShipsFromLabel(logistics)
   const zone = warehouseZoneKey(logistics.warehouseType)
-  const delivery = deliveryRangeLabel(
-    logistics.deliveryMin,
-    logistics.deliveryMax,
-    locale as AppLocale
-  )
+  const delivery =
+    logistics.deliveryMin != null && logistics.deliveryMax != null
+      ? deliveryRangeLabel(logistics.deliveryMin, logistics.deliveryMax, locale as AppLocale)
+      : null
 
   const zoneLabel = zone
     ? t(zone === "regional" && isUsMarket() ? "zone.regionalUs" : `zone.${zone}`)
@@ -66,20 +65,22 @@ export function ListingLogisticsStrip({ logistics, className, compact = false }:
           </span>
           <span className="text-xs font-medium leading-snug text-zinc-900 dark:text-zinc-100">{zoneLabel}</span>
         </div>
+        {delivery ? (
         <div
-          className={cn(
-            "flex min-w-0 flex-col gap-1",
-            compact
-              ? "col-span-2 border-t border-zinc-200/80 pt-2 dark:border-zinc-700"
-              : "border-l border-zinc-200/80 pl-2 dark:border-zinc-700 max-sm:col-span-2 max-sm:border-l-0 max-sm:border-t max-sm:pt-2 max-sm:pl-0"
-          )}
-        >
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-            <Truck className="size-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
-            {t("delivery")}
-          </span>
-          <span className="text-xs font-medium leading-snug text-zinc-900 dark:text-zinc-100">{delivery}</span>
-        </div>
+            className={cn(
+              "flex min-w-0 flex-col gap-1",
+              compact
+                ? "col-span-2 border-t border-zinc-200/80 pt-2 dark:border-zinc-700"
+                : "border-l border-zinc-200/80 pl-2 dark:border-zinc-700 max-sm:col-span-2 max-sm:border-l-0 max-sm:border-t max-sm:pt-2 max-sm:pl-0"
+            )}
+          >
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              <Truck className="size-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+              {t("delivery")}
+            </span>
+            <span className="text-xs font-medium leading-snug text-zinc-900 dark:text-zinc-100">{delivery}</span>
+          </div>
+        ) : null}
       </div>
     </div>
   )

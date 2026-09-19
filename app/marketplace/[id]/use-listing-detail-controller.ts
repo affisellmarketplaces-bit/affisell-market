@@ -462,6 +462,7 @@ export function useListingDetailController(props: ListingDetailProps) {
   }, [maxApplicableReward])
 
   const etaDate = useMemo(() => {
+    if (shipping.deliveryMax == null) return null
     const d = new Date()
     d.setDate(d.getDate() + Math.max(shipping.deliveryMax, 1))
     return formatStoreDate(d)

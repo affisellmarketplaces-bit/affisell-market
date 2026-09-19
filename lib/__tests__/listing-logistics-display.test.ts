@@ -47,7 +47,7 @@ describe("listing-logistics-display", () => {
     expect(deliveryRangeLabel(2, 5, "de")).toBe("2–5 Werktage")
   })
 
-  it("buildListingLogisticsInput normalizes country code and defaults", () => {
+  it("buildListingLogisticsInput normalizes country code and never invents a delivery window", () => {
     const input = buildListingLogisticsInput({
       shippingCountry: "fr",
       warehouseType: "regional",
@@ -59,7 +59,7 @@ describe("listing-logistics-display", () => {
     })
     expect(input.shippingCountryCode).toBe("FR")
     expect(input.shippingCountryLabel).toBe("France")
-    expect(input.deliveryMin).toBe(2)
+    expect(input.deliveryMin).toBeNull() // no invented default window
     expect(input.deliveryMax).toBe(7)
     expect(input.deliveryCountriesSummary).toBe("France")
     expect(input.shipsFromDisplay).toBe("EU")

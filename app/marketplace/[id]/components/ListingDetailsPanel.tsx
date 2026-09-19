@@ -111,8 +111,10 @@ export function ListingDetailsPanel({
             <ChevronDown className="h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200 group-open:rotate-180" aria-hidden />
           </summary>
           <p className="border-t border-zinc-100/80 bg-zinc-50/40 px-4 py-3 text-xs leading-relaxed text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900/30 dark:text-zinc-300">
-            Delivery {shipping.deliveryMin}-{shipping.deliveryMax} business days. Processing in{" "}
-            {shipping.processingTime} day(s).
+            {shipping.deliveryMin != null && shipping.deliveryMax != null
+              ? `Delivery ${shipping.deliveryMin}-${shipping.deliveryMax} business days. `
+              : ""}
+            Processing in {shipping.processingTime} day(s).
           </p>
         </details>
         <details

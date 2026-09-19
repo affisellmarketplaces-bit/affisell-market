@@ -307,8 +307,8 @@ export function ListingGalleryColumn({
           shippingCarrierIds={shipping.shippingCarrierIds}
           shopShippingOffers={shipping.shopShippingOffers}
           shipFromCountry={shipping.shippingCountryCode}
-          deliveryMin={shipping.deliveryMin}
-          deliveryMax={shipping.deliveryMax}
+          deliveryMin={shipping.deliveryMin ?? undefined}
+          deliveryMax={shipping.deliveryMax ?? undefined}
           shippingMethods={shipping.shippingMethods}
           crossSocialProof={crossSocialProof}
           formatReviewCount={formatStoreCount}
