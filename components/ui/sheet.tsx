@@ -31,10 +31,13 @@ export function Sheet({
 export function SheetContent({
   side = "right",
   className,
+  overlayClassName,
   children,
 }: {
   side?: "left" | "right" | "bottom"
   className?: string
+  /** Extra classes for the backdrop (e.g. a blurred veil behind a glass panel). */
+  overlayClassName?: string
   children: React.ReactNode
 }) {
   const ctx = React.useContext(SheetContext)
@@ -56,7 +59,7 @@ export function SheetContent({
       <button
         type="button"
         aria-label="Close drawer"
-        className="affisell-sheet-overlay absolute inset-0 bg-black/40"
+        className={cn("affisell-sheet-overlay absolute inset-0 bg-black/40", overlayClassName)}
         onClick={close}
       />
       <div

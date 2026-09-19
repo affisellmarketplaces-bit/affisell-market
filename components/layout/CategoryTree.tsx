@@ -86,8 +86,8 @@ export function CategoryTree({ onNavigate, className }: Props) {
             <li key={cat.id}>
               <div
                 className={cn(
-                  "flex items-center gap-1 rounded-xl border border-transparent transition",
-                  open && "border-white/10 bg-white/[0.04]"
+                  "flex items-center gap-1 rounded-xl border border-transparent transition hover:bg-white/[0.06]",
+                  open && "border-white/15 bg-white/[0.08]"
                 )}
               >
                 <button
@@ -123,7 +123,7 @@ export function CategoryTree({ onNavigate, className }: Props) {
                     {cat.name}
                   </span>
                   {cat.count > 0 ? (
-                    <span className="shrink-0 tabular-nums text-[10px] font-medium text-zinc-500">
+                    <span className="shrink-0 tabular-nums text-[11px] font-medium text-zinc-300/80">
                       {cat.count}
                     </span>
                   ) : null}

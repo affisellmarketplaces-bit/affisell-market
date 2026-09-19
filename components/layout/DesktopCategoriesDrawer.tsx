@@ -1,6 +1,7 @@
 "use client"
 
 import { LayoutGrid, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { CategoryTree } from "@/components/layout/CategoryTree"
 import { Sheet, SheetContent } from "@/components/ui/sheet"
@@ -17,29 +18,36 @@ type Props = {
  * the viewport.
  */
 export function DesktopCategoriesDrawer({ open, onOpenChange }: Props) {
+  const t = useTranslations("marketplace.mobileHub")
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="left"
-        className="z-[300] hidden w-[22rem] flex-col border-white/10 bg-zinc-950 p-0 text-zinc-100 lg:flex"
+        overlayClassName="bg-zinc-950/30 backdrop-blur-[3px]"
+        className={
+          "z-[300] hidden w-[22rem] flex-col overflow-hidden border-r border-white/15 text-zinc-100 lg:flex " +
+          // Frosted glass: 80% tint keeps white text legible even where backdrop-filter is unsupported.
+          "bg-zinc-950/80 p-0 shadow-[0_0_60px_-10px_rgba(0,0,0,0.6),inset_-1px_0_0_rgba(255,255,255,0.06)] " +
+          "backdrop-blur-2xl backdrop-saturate-150"
+        }
       >
-        <div className="relative shrink-0 overflow-hidden border-b border-white/10 bg-gradient-to-br from-violet-950 via-zinc-950 to-indigo-950 px-5 py-4">
+        <div className="relative shrink-0 overflow-hidden border-b border-white/10 bg-gradient-to-b from-white/[0.07] to-transparent px-5 py-4">
           <div
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_0%_0%,rgba(139,92,246,0.35),transparent)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_70%_at_0%_0%,rgba(139,92,246,0.28),transparent)]"
             aria-hidden
           />
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-2">
               <LayoutGrid className="size-4 text-violet-300" aria-hidden />
-              <span className="text-sm font-bold uppercase tracking-[0.14em] text-white">
-                Categories
+              <span className="text-sm font-semibold uppercase tracking-[0.14em] text-white">
+                {t("categoriesTitle")}
               </span>
             </div>
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              aria-label="Close categories"
-              className="affisell-inp-tap rounded-full border border-white/10 p-2 text-zinc-400 transition hover:bg-white/5 hover:text-white"
+              aria-label={t("close")}
+              className="affisell-inp-tap rounded-full border border-white/15 bg-white/5 p-2 text-zinc-300 transition hover:bg-white/10 hover:text-white"
             >
               <X className="size-4" aria-hidden />
             </button>
