@@ -5,6 +5,7 @@ import type Stripe from "stripe"
 import { resolveMarketplaceOrderLineImageUrl } from "@/lib/cart-line-image"
 import { formatCartVariantLabel, parseCartVariantSignature } from "@/lib/cart-variant"
 import { buyerEarnCentsForLinePaid } from "@/lib/buyer-reward-earn"
+import { runAfterResponse } from "@/lib/after-response"
 import { earnBuyerRewardIdempotent, redeemBuyerRewardIdempotent } from "@/lib/buyer-reward-ledger"
 import { ensureBuyerUserIdFromStripeCheckout } from "@/lib/ensure-buyer-from-stripe-checkout"
 import { resolveBuyerUserIdForEarn } from "@/lib/buyer-reward-resolve-user"
@@ -621,10 +622,12 @@ async function createPaidMarketplaceOrder(
 }
 
 function scheduleMerchantOrderAlerts(orderIds: string[]): void {
-  for (const orderId of new Set(orderIds)) {
-    void dispatchMerchantOrderAlerts(orderId)
-    void healMarketplaceOrderNotifications(orderId)
-  }
+  const ids = [...new Set(orderIds)]
+  if (ids.length === 0) return
+  // After the response (kept alive by the platform) — a floating promise could be cut once the response is sent.
+  void runAfterResponse("merchant_order_alerts", () =>
+    Promise.allSettled(ids.flatMap((id) => [dispatchMerchantOrderAlerts(id), healMarketplaceOrderNotifications(id)]))
+  )
 }
 
 async function redeemBuyerRewardOrSkip(
@@ -813,25 +816,29 @@ export async function fulfillMarketplaceStripeSession(
     }, MARKETPLACE_FULFILL_TX_OPTIONS)
 
     if (alreadyFulfilled) {
-      for (const orderId of fulfilledOrderIds) {
-        await syncMarketplaceOrderToMedusaIfNeeded(orderId)
-      }
       scheduleMerchantOrderAlerts(fulfilledOrderIds)
+      await runAfterResponse("medusa_sync_already_fulfilled", async () => {
+        for (const orderId of fulfilledOrderIds) {
+          await syncMarketplaceOrderToMedusaIfNeeded(orderId)
+        }
+      })
       return
     }
 
     scheduleMerchantOrderAlerts(fulfilledOrderIds)
 
-    try {
-      await triggerAutoFulfillmentForStripeSession(sessionId)
-    } catch (e) {
-      console.error("[auto-order] trigger after cart fulfill failed", e)
-    }
-    try {
-      await triggerAutoDsForStripeSession(sessionId)
-    } catch (e) {
-      console.error("[autods] trigger after cart fulfill failed", e)
-    }
+    await runAfterResponse("auto_fulfillment_cart", async () => {
+      try {
+        await triggerAutoFulfillmentForStripeSession(sessionId)
+      } catch (e) {
+        console.error("[auto-order] trigger after cart fulfill failed", e)
+      }
+      try {
+        await triggerAutoDsForStripeSession(sessionId)
+      } catch (e) {
+        console.error("[autods] trigger after cart fulfill failed", e)
+      }
+    })
     return
   }
 
@@ -854,13 +861,15 @@ export async function fulfillMarketplaceStripeSession(
         error: reconcileErr instanceof Error ? reconcileErr.message : String(reconcileErr),
       })
     }
-    await syncMarketplaceOrderToMedusaIfNeeded(existing.id)
     scheduleMerchantOrderAlerts([existing.id])
-    try {
-      await triggerAutoDsForStripeSession(sessionId)
-    } catch (e) {
-      console.error("[autods] trigger after existing paid order failed", e)
-    }
+    await runAfterResponse("existing_paid_followups", async () => {
+      await syncMarketplaceOrderToMedusaIfNeeded(existing.id)
+      try {
+        await triggerAutoDsForStripeSession(sessionId)
+      } catch (e) {
+        console.error("[autods] trigger after existing paid order failed", e)
+      }
+    })
     return
   }
 
@@ -1271,27 +1280,29 @@ export async function fulfillMarketplaceStripeSession(
 
   scheduleMerchantOrderAlerts(fulfilledOrderIds)
 
-  if (deferred.confirmation) {
-    const confirmationPayload = deferred.confirmation
-    try {
-      await sendOrderConfirmationEmail(confirmationPayload)
-    } catch (e) {
-      logStripeWebhookError({
-        metric: "order_confirmation_email_failed",
-        orderId: confirmationPayload.orderId,
-        error: e instanceof Error ? e.message : String(e),
-      })
+  await runAfterResponse("post_fulfill_effects", async () => {
+    if (deferred.confirmation) {
+      const confirmationPayload = deferred.confirmation
+      try {
+        await sendOrderConfirmationEmail(confirmationPayload)
+      } catch (e) {
+        logStripeWebhookError({
+          metric: "order_confirmation_email_failed",
+          orderId: confirmationPayload.orderId,
+          error: e instanceof Error ? e.message : String(e),
+        })
+      }
     }
-  }
 
-  try {
-    await triggerAutoFulfillmentForStripeSession(sessionId)
-  } catch (e) {
-    console.error("[auto-order] trigger after fulfill failed", e)
-  }
-  try {
-    await triggerAutoDsForStripeSession(sessionId)
-  } catch (e) {
-    console.error("[autods] trigger after fulfill failed", e)
-  }
+    try {
+      await triggerAutoFulfillmentForStripeSession(sessionId)
+    } catch (e) {
+      console.error("[auto-order] trigger after fulfill failed", e)
+    }
+    try {
+      await triggerAutoDsForStripeSession(sessionId)
+    } catch (e) {
+      console.error("[autods] trigger after fulfill failed", e)
+    }
+  })
 }

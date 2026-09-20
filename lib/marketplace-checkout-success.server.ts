@@ -7,6 +7,7 @@ import {
 import { resolveCheckoutSuccessDisplay } from "@/lib/marketplace-checkout-success-display"
 import { prisma } from "@/lib/prisma"
 import { findOrderIdsForCheckoutSession } from "@/lib/stripe-marketplace-commission-split"
+import { runAfterResponse } from "@/lib/after-response"
 import { getStripeClient } from "@/lib/stripe"
 import { logStripeWebhookInfo } from "@/lib/stripe-webhook-observability"
 import { scheduleMarketplaceTransferAttempts } from "@/lib/transfers/schedule-from-checkout"
@@ -41,18 +42,21 @@ export async function fulfillPaidCheckoutSession(
     await ensureMarketplaceCheckoutFulfilled(session)
     orderIds = await findOrderIdsForCheckoutSession(sessionId)
 
-    for (const orderId of orderIds) {
-      try {
-        await scheduleMarketplaceTransferAttempts(session, orderId)
-      } catch (error) {
-        logStripeWebhookInfo({
-          metric: "checkout_transfer_schedule_skipped",
-          sessionId,
-          orderId,
-          error: error instanceof Error ? error.message : String(error),
-        })
+    // Transfer scheduling is idempotent and also done by the webhook: never make the buyer's confirmation wait for it.
+    await runAfterResponse("success_transfer_schedule", async () => {
+      for (const orderId of orderIds) {
+        try {
+          await scheduleMarketplaceTransferAttempts(session, orderId)
+        } catch (error) {
+          logStripeWebhookInfo({
+            metric: "checkout_transfer_schedule_skipped",
+            sessionId,
+            orderId,
+            error: error instanceof Error ? error.message : String(error),
+          })
+        }
       }
-    }
+    })
 
     console.log("[checkout-success]", {
       sessionId,

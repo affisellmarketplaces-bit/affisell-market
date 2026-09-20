@@ -4,6 +4,7 @@ import { SPONSOR_FLOW_METADATA } from "@/lib/sponsor/sponsor-constants"
 import { extractMarketplaceCheckoutCustomer } from "@/lib/marketplace-checkout-session"
 import { ghostReverifyBeforeFulfill } from "@/lib/ghost/post-pay-reverify"
 import { clearPurchasedCartItems } from "@/lib/marketplace-checkout-cart-clear.server"
+import { runAfterResponse } from "@/lib/after-response"
 import { prisma } from "@/lib/prisma"
 import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
 import { findOrderIdsForCheckoutSession } from "@/lib/stripe-marketplace-commission-split"
@@ -64,20 +65,23 @@ export async function ensureMarketplaceCheckoutFulfilled(
     })
   }
 
-  try {
-    const { updatedOrderIds } = await syncOrderVatFromCheckoutSession(session.id)
-    if (updatedOrderIds.length > 0) {
+  // VAT rows come from a Stripe API round-trip: not needed for the buyer's confirmation, so after the response.
+  await runAfterResponse("checkout_vat_sync", async () => {
+    try {
+      const { updatedOrderIds } = await syncOrderVatFromCheckoutSession(session.id)
+      if (updatedOrderIds.length > 0) {
+        logStripeWebhookInfo({
+          metric: "checkout_vat_synced",
+          sessionId: session.id,
+          orderCount: updatedOrderIds.length,
+        })
+      }
+    } catch (error) {
       logStripeWebhookInfo({
-        metric: "checkout_vat_synced",
+        metric: "checkout_vat_sync_skipped",
         sessionId: session.id,
-        orderCount: updatedOrderIds.length,
+        error: error instanceof Error ? error.message : String(error),
       })
     }
-  } catch (error) {
-    logStripeWebhookInfo({
-      metric: "checkout_vat_sync_skipped",
-      sessionId: session.id,
-      error: error instanceof Error ? error.message : String(error),
-    })
-  }
+  })
 }
