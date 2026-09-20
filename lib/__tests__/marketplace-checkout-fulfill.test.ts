@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const { count, findOrderIdsForCheckoutSession } = vi.hoisted(() => ({
+const { count, findMany, findOrderIdsForCheckoutSession } = vi.hoisted(() => ({
   count: vi.fn(),
+  findMany: vi.fn(),
   findOrderIdsForCheckoutSession: vi.fn(),
 }))
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    order: { count },
+    order: { count, findMany },
   },
 }))
 
@@ -37,10 +38,18 @@ describe("marketplace checkout fulfillment guards", () => {
     await expect(marketplaceCheckoutNeedsFulfillment("cs_test_2")).resolves.toBe(true)
   })
 
-  it("does not need fulfillment when all rows are paid", async () => {
+  it("does not need fulfillment when all rows are paid with buyer email", async () => {
     vi.mocked(findOrderIdsForCheckoutSession).mockResolvedValue(["order_paid"])
     count.mockResolvedValue(0)
+    findMany.mockResolvedValue([{ customerEmail: "buyer@example.com" }])
     await expect(marketplaceCheckoutNeedsFulfillment("cs_test_3")).resolves.toBe(false)
+  })
+
+  it("needs fulfillment when paid rows still miss buyer email", async () => {
+    vi.mocked(findOrderIdsForCheckoutSession).mockResolvedValue(["order_paid"])
+    count.mockResolvedValue(0)
+    findMany.mockResolvedValue([{ customerEmail: "" }])
+    await expect(marketplaceCheckoutNeedsFulfillment("cs_test_3b")).resolves.toBe(true)
   })
 
   it("is fulfilled only when rows exist and none are unpaid", async () => {

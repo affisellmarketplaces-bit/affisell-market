@@ -54,8 +54,9 @@ export async function sendResendEmail(args: {
   subject: string
   html: string
   replyTo?: string
-}): Promise<{ ok: true; resendId?: string } | { ok: false; error: string }> {
-  const { context, config, intendedTo, subject, html, replyTo } = args
+  tags?: Array<{ name: string; value: string }>
+}): Promise<{ ok: true; resendId: string } | { ok: false; error: string }> {
+  const { context, config, intendedTo, subject, html, replyTo, tags } = args
   const resend = new Resend(config.apiKey)
 
   let recipient: ResolveResendRecipientResult
@@ -72,17 +73,18 @@ export async function sendResendEmail(args: {
       subject,
       html,
       ...(replyTo?.trim() ? { reply_to: replyTo.trim() } : {}),
+      ...(tags && tags.length > 0 ? { tags } : {}),
     })
     return { data: data ?? null, error: error ?? null }
   }
 
   let result = await attempt(recipient.to)
-  if (!result.error) {
-    console.log(`[${context}]`, { result: "email_sent", resendId: result.data?.id })
-    return { ok: true, resendId: result.data?.id }
+  if (!result.error && result.data?.id) {
+    console.log(`[${context}]`, { result: "email_sent", resendId: result.data.id })
+    return { ok: true, resendId: result.data.id }
   }
 
-  const errMsg = result.error.message
+  const errMsg = result.error?.message ?? (result.data?.id ? "unknown" : "no_resend_id")
   const testTo = config.testEmailTo.trim().toLowerCase()
   const canFallback =
     !isProductionEmailDelivery() &&
@@ -97,9 +99,9 @@ export async function sendResendEmail(args: {
       intendedTo: intendedTo.trim().toLowerCase(),
     })
     result = await attempt(testTo)
-    if (!result.error) {
-      console.log(`[${context}]`, { result: "email_sent_test_inbox", resendId: result.data?.id })
-      return { ok: true, resendId: result.data?.id }
+    if (!result.error && result.data?.id) {
+      console.log(`[${context}]`, { result: "email_sent_test_inbox", resendId: result.data.id })
+      return { ok: true, resendId: result.data.id }
     }
   }
 
@@ -119,7 +121,7 @@ export async function sendResendReactEmail<TProps>(args: {
   subject: string
   template: (props: TProps) => ReactElement
   props: TProps
-}): Promise<{ ok: true; resendId?: string } | { ok: false; error: string }> {
+}): Promise<{ ok: true; resendId: string } | { ok: false; error: string }> {
   const config = readResendDeliveryConfig()
   if (!config) {
     console.error(`[${args.context}]`, { result: "no_resend_key" })
