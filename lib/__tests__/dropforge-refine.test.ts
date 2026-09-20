@@ -24,7 +24,7 @@ describe("applyDropForgeRefinePatch", () => {
       description: "Desc courte",
       images: ["https://cdn.example/a.jpg"],
       costPrice: 29.99,
-      specs: { Matière: "Cuir" },
+      specs: { Matière: "Cuir" } as Record<string, string>,
     }
     const { preview, applied } = applyDropForgeRefinePatch(base, {
       addImages: ["https://cdn.example/a.jpg", "https://cdn.example/b.jpg"],
