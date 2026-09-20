@@ -7761,5 +7761,28 @@
     "verified": "Verified merchant",
     "products": "{count, plural, one {# product} other {# products}}",
     "sold": "{count} sold"
+  },
+  "pdpTrust": {
+    "aria": "Trust guarantees",
+    "verified": "Verified merchant",
+    "verifiedNamed": "Verified merchant — {name} · {country}",
+    "returns": "14-day returns",
+    "payment": "Protected payment"
+  },
+  "homeSelection": {
+    "title": "Affisell selection",
+    "sub": "Chosen on verifiable facts: verified merchants, delivery declared by the supplier, real reviews.",
+    "verified": "Verified"
+  },
+  "supplierQuality": {
+    "titleHeading": "This title reads like a copied marketplace feed",
+    "apply": "Apply cleaned title",
+    "title": {
+      "too_short": "Too short — add the brand and the product type",
+      "too_long": "Too long — buyers scan a title in one line",
+      "shouting": "ALL CAPS reads as spam",
+      "decorations": "Remove emoji, symbols and [tags] — they look like a pasted listing",
+      "keyword_stuffing": "Looks stuffed with keywords — keep brand, model and type; put the rest in the description"
+    }
   }
 }

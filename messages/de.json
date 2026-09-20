@@ -7761,5 +7761,28 @@
     "verified": "Verifizierter Händler",
     "products": "{count, plural, one {# Produkt} other {# Produkte}}",
     "sold": "{count} verkauft"
+  },
+  "pdpTrust": {
+    "aria": "Vertrauensgarantien",
+    "verified": "Verifizierter Händler",
+    "verifiedNamed": "Verifizierter Händler — {name} · {country}",
+    "returns": "14 Tage Rückgabe",
+    "payment": "Geschützte Zahlung"
+  },
+  "homeSelection": {
+    "title": "Affisell-Auswahl",
+    "sub": "Nach überprüfbaren Fakten gewählt: verifizierte Händler, vom Lieferanten angegebene Lieferzeit, echte Bewertungen.",
+    "verified": "Verifiziert"
+  },
+  "supplierQuality": {
+    "titleHeading": "Dieser Titel wirkt wie ein kopierter Marktplatz-Feed",
+    "apply": "Bereinigten Titel übernehmen",
+    "title": {
+      "too_short": "Zu kurz — Marke und Produkttyp ergänzen",
+      "too_long": "Zu lang — Käufer lesen einen Titel in einer Zeile",
+      "shouting": "GROSSBUCHSTABEN wirken wie Spam",
+      "decorations": "Emoji, Symbole und [Tags] entfernen — sie wirken wie eingefügte Anzeigen",
+      "keyword_stuffing": "Wirkt mit Schlagwörtern überladen — Marke, Modell und Typ behalten, Rest in die Beschreibung"
+    }
   }
 }

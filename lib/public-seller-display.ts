@@ -2,10 +2,16 @@
  * Labels shown to marketplace shoppers — never expose emails or login identifiers.
  */
 
+import { assessStoreName } from "@/lib/store-name-quality"
+
 function isUsablePublicName(raw: string | null | undefined): string | null {
   const value = raw?.trim()
   if (!value) return null
   if (value.includes("@")) return null
+  // A pasted link / handle / e-mail is not a brand — never show it on a product card. (A merely generic name such
+  // as "My Shop" is the merchant's own choice and stays.)
+  const quality = assessStoreName(value)
+  if (!quality.ok && (quality.problem === "link" || quality.problem === "handle" || quality.problem === "email")) return null
   return value
 }
 

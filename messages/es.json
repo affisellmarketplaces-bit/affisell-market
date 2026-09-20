@@ -7761,5 +7761,28 @@
     "verified": "Comerciante verificado",
     "products": "{count, plural, one {# producto} other {# productos}}",
     "sold": "{count} vendidos"
+  },
+  "pdpTrust": {
+    "aria": "Garantías de confianza",
+    "verified": "Comerciante verificado",
+    "verifiedNamed": "Comerciante verificado — {name} · {country}",
+    "returns": "Devoluciones en 14 días",
+    "payment": "Pago protegido"
+  },
+  "homeSelection": {
+    "title": "Selección Affisell",
+    "sub": "Elegida con hechos verificables: comerciantes verificados, entrega declarada por el proveedor, opiniones reales.",
+    "verified": "Verificado"
+  },
+  "supplierQuality": {
+    "titleHeading": "Este título parece un feed de marketplace copiado",
+    "apply": "Aplicar título limpio",
+    "title": {
+      "too_short": "Muy corto — añade la marca y el tipo de producto",
+      "too_long": "Muy largo — el comprador lee un título en una línea",
+      "shouting": "Todo en mayúsculas parece spam",
+      "decorations": "Quita emojis, símbolos y [etiquetas] — parecen un anuncio pegado",
+      "keyword_stuffing": "Parece lleno de palabras clave — deja marca, modelo y tipo; el resto a la descripción"
+    }
   }
 }

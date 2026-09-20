@@ -1,3 +1,4 @@
+import { loadListingSellerTrust } from "@/lib/listing-seller-trust.server"
 import { loadSupplierShopShippingOffers } from "@/lib/shipping/supplier-shipping-profile.server"
 import { loadListingConfirmedUnits } from "@/lib/listing-sales-stats"
 import type { Metadata } from "next"
@@ -392,7 +393,10 @@ export default async function MarketplaceListingPage({
       : null
 
   // Shop-level carriers the supplier committed to. Empty (or unavailable) → no shipping block is shown.
-  const shopShippingOffers = await loadSupplierShopShippingOffers(p.supplierId)
+  const [shopShippingOffers, sellerTrust] = await Promise.all([
+    loadSupplierShopShippingOffers(p.supplierId),
+    loadListingSellerTrust(listing.affiliateId),
+  ])
 
   const shipping = {
     ...buildListingLogisticsInput({
@@ -410,6 +414,7 @@ export default async function MarketplaceListingPage({
     freeShippingThresholdEUR: freeThresh,
     shippingCarrierIds: p.shippingCarrierIds ?? [],
     shopShippingOffers,
+    sellerTrust,
     shippingMethods: p.shippingMethods?.length ? p.shippingMethods : ["standard"],
   }
 

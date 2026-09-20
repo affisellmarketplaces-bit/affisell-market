@@ -20,6 +20,9 @@ type Props = {
   hideCount?: boolean
 }
 
+/** Below this the like count is hidden from the public (the heart itself still works). */
+const MIN_PUBLIC_LIKE_COUNT = 10
+
 function formatLikeCount(n: number): string {
   if (n >= 10_000) return `${Math.floor(n / 1000)}k`
   if (n >= 1_000) return `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k`
@@ -77,7 +80,8 @@ export function WishlistHeart({
     }
   }
 
-  const showCount = !hideCount && likeCount > 0
+  // A public "1" or "3" reads as an empty shop — only show the count once it carries social proof.
+  const showCount = !hideCount && likeCount >= MIN_PUBLIC_LIKE_COUNT
 
   return (
     <div className={cn("flex flex-col items-end gap-1", className)}>

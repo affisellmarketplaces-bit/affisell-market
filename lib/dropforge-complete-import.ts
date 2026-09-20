@@ -1,3 +1,4 @@
+import { cleanListingTitle } from "@/lib/listing-quality"
 import { Prisma } from "@prisma/client"
 
 import { absolutizeCdnImageUrl } from "@/lib/cdn-image-url"
@@ -431,7 +432,7 @@ export function buildDropForgeProductPersistFields(preview: DropForgeCompletePre
       : null
 
   return {
-    name: preview.title.slice(0, 200),
+    name: (cleanListingTitle(preview.title) || preview.title).slice(0, 200),
     description: preview.description.slice(0, DROPFORGE_MAX_DESC),
     descriptionBullets: bullets,
     descriptionIllustrationVideos: videos,

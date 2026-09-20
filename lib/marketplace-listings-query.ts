@@ -23,7 +23,7 @@ import { parsePriceFacet, parsePriceRangeCents } from "@/lib/marketplace-discove
 import type { MarketplaceSearchHit } from "@/lib/marketplace-search"
 import { orderByListingSearchHits, searchMarketplaceListingHits } from "@/lib/marketplace-search.server"
 import { prisma } from "@/lib/prisma"
-import { normalizeListingSalesCount, type SalesStats } from "@/lib/listing-sales-count"
+import { normalizeListingSalesCount, shouldShowBuyerSalesCount, type SalesStats } from "@/lib/listing-sales-count"
 import { loadListingSalesStats } from "@/lib/listing-sales-stats"
 import { publicStoreLabelFromAffiliateRow } from "@/lib/public-seller-display"
 import { marketplaceProductFilterFromSearchParams } from "@/lib/marketplace-listing-filters"
@@ -178,7 +178,8 @@ export function serializeMarketplaceListing(
     averageRating: Number.isFinite(p.averageRating) ? Math.round(p.averageRating * 10) / 10 : 0,
     reviewCount: p.reviewCount ?? 0,
     store: publicStoreLabelFromAffiliateRow(row.affiliate),
-    isBestSeller: row.isFeatured,
+    // "Best Seller" is a claim: the manual featured flag alone is not evidence — confirmed sales must back it.
+    isBestSeller: row.isFeatured && shouldShowBuyerSalesCount(normalizeListingSalesCount(options?.sales?.units)),
     storeSlug: row.affiliate.store?.slug ?? null,
     customSlug: row.customSlug ?? null,
     buyerRewardBadge: buyerRewardBadgeText(

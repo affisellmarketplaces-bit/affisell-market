@@ -1,3 +1,4 @@
+import { assessStoreName } from "@/lib/store-name-quality"
 import { NextResponse } from "next/server"
 
 import { loadResellerStorefrontProduct } from "@/lib/boutique/load-reseller-storefront.server"

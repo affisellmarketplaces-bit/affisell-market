@@ -80,6 +80,7 @@ import {
   type CategoryPickOrigin,
 } from "@/components/supplier/supplier-category-picker"
 import { SupplierDeliveryCountriesPicker } from "@/components/supplier/supplier-delivery-countries-picker"
+import { SupplierTitleQualityHint } from "@/components/supplier/supplier-title-quality-hint"
 import { SupplierShippingCarriersPicker } from "@/components/supplier/supplier-shipping-carriers-picker"
 import { shippingMethodsFromCarrierIds } from "@/lib/shipping/supplier-carrier-offers-shared"
 import { SupplierOfferModePicker } from "@/components/supplier/supplier-offer-mode-picker"
@@ -3180,6 +3181,13 @@ export function SupplierAddProductForm({
                         }
                         hasError={hasPublishFieldError("name")}
                         errorMessage={publishBlockers.find((b) => b.field === "name")?.message}
+                      />
+                      <SupplierTitleQualityHint
+                        title={name}
+                        onApply={(cleaned) => {
+                          setName(cleaned)
+                          clearPublishFieldError("name")
+                        }}
                       />
                       <SupplierProductDescriptionField
                         description={description}

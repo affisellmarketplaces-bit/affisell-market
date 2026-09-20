@@ -1,3 +1,4 @@
+import { shouldShowBuyerSalesCount } from "@/lib/listing-sales-count"
 import { Prisma } from "@prisma/client"
 
 import { applyShopDeliveryWindows } from "@/lib/shipping/apply-shop-delivery-windows.server"
@@ -81,7 +82,7 @@ function mapListingToHomeCard(
     averageRating: p.averageRating,
     reviewCount: p.reviewCount,
     storeName,
-    isBestSeller: p.isBestSeller,
+    isBestSeller: p.isBestSeller && shouldShowBuyerSalesCount(soldCount),
   }
 }
 

@@ -7761,5 +7761,28 @@
     "verified": "已验证商家",
     "products": "{count} 件商品",
     "sold": "已售 {count}"
+  },
+  "pdpTrust": {
+    "aria": "信任保障",
+    "verified": "已验证商家",
+    "verifiedNamed": "已验证商家 — {name} · {country}",
+    "returns": "14 天退货",
+    "payment": "支付受保护"
+  },
+  "homeSelection": {
+    "title": "Affisell 甄选",
+    "sub": "基于可验证事实甄选：已验证商家、供应商声明的配送时间、真实评价。",
+    "verified": "已验证"
+  },
+  "supplierQuality": {
+    "titleHeading": "此标题看起来像复制的平台数据",
+    "apply": "应用清理后的标题",
+    "title": {
+      "too_short": "太短——请加入品牌和产品类型",
+      "too_long": "太长——买家一行内读完标题",
+      "shouting": "全大写像垃圾信息",
+      "decorations": "移除表情、符号和 [标签]——它们像粘贴的商品信息",
+      "keyword_stuffing": "像堆砌关键词——保留品牌、型号和类型，其余放入描述"
+    }
   }
 }

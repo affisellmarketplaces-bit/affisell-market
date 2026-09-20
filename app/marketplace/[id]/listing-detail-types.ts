@@ -1,3 +1,4 @@
+import type { ListingSellerTrust } from "@/lib/listing-seller-trust.server"
 import type { ReactNode } from "react"
 import type { ShopShippingOffer } from "@/lib/shipping/supplier-carrier-offers-shared"
 import type { ListingLogisticsInput } from "@/lib/listing-logistics-display"
@@ -24,6 +25,8 @@ export type ListingShippingBlock = ListingLogisticsInput & {
   /** The supplier's shop shipping profile — the ONLY source of the "Pro shipping" block. */
   shopShippingOffers: ShopShippingOffer[]
   shippingMethods: string[]
+  /** Public facts about the merchant behind the listing (verified identity). */
+  sellerTrust: ListingSellerTrust
 }
 
 export type SpecRow = { label: string; value: string }

@@ -246,7 +246,7 @@ export function ListingSidebarColumn({
             </p>
           ) : null}
 
-          <ListingLogisticsStrip logistics={shipping} className="lg:rounded-2xl" />
+          <ListingLogisticsStrip logistics={shipping} className="lg:rounded-2xl" trust={shipping.sellerTrust} />
           <div className="grid grid-cols-2 gap-2 rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-2.5 text-center dark:border-zinc-800 dark:bg-zinc-900/40 lg:rounded-2xl lg:p-3">
             <div className="flex flex-col items-center gap-1 px-1">
               <RotateCcw className="h-4 w-4 text-violet-600 dark:text-violet-400" aria-hidden />

@@ -7761,5 +7761,28 @@
     "verified": "Geverifieerde verkoper",
     "products": "{count, plural, one {# product} other {# producten}}",
     "sold": "{count} verkocht"
+  },
+  "pdpTrust": {
+    "aria": "Vertrouwensgaranties",
+    "verified": "Geverifieerde verkoper",
+    "verifiedNamed": "Geverifieerde verkoper — {name} · {country}",
+    "returns": "14 dagen retour",
+    "payment": "Beschermde betaling"
+  },
+  "homeSelection": {
+    "title": "Affisell-selectie",
+    "sub": "Gekozen op controleerbare feiten: geverifieerde verkopers, door de leverancier opgegeven levertijd, echte reviews.",
+    "verified": "Geverifieerd"
+  },
+  "supplierQuality": {
+    "titleHeading": "Deze titel lijkt op een gekopieerde marktplaatsfeed",
+    "apply": "Opgeschoonde titel toepassen",
+    "title": {
+      "too_short": "Te kort — voeg merk en producttype toe",
+      "too_long": "Te lang — kopers lezen een titel in één regel",
+      "shouting": "HOOFDLETTERS lijken op spam",
+      "decorations": "Verwijder emoji, symbolen en [tags] — ze lijken op een geplakte advertentie",
+      "keyword_stuffing": "Lijkt volgepropt met zoekwoorden — houd merk, model en type; de rest in de beschrijving"
+    }
   }
 }

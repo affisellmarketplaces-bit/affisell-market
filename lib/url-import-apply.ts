@@ -1,3 +1,4 @@
+import { cleanListingTitle } from "@/lib/listing-quality"
 import type { SupplierSimpleColorRow } from "@/lib/supplier-add-product-draft-cache"
 import { resolveColorSwatchMeta } from "@/lib/color-name-hex"
 import { stripDescriptionImageMarkers, stripImportOptionsFromDescription } from "@/lib/description-rich-content"
@@ -488,7 +489,7 @@ export function buildUrlImportFormPatch(
   const categoryBreadcrumb = txt((p as { categoryBreadcrumb?: unknown }).categoryBreadcrumb)
 
   return {
-    name: title.slice(0, 500),
+    name: (cleanListingTitle(title) || title).slice(0, 500),
     description,
     images,
     illustrationImages: illustrationImages.filter((u) => !galleryImages.includes(u)).slice(0, 40),

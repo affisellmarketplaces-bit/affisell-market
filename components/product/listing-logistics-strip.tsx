@@ -1,6 +1,6 @@
 "use client"
 
-import { Globe2, MapPin, PackageCheck, Truck } from "lucide-react"
+import { BadgeCheck, Globe2, MapPin, PackageCheck, RotateCcw, ShieldCheck, Truck } from "lucide-react"
 import { isUsMarket } from "@/lib/market-config"
 import { useLocale, useTranslations } from "next-intl"
 
@@ -11,15 +11,20 @@ import {
   listingShipsFromLabel,
   warehouseZoneKey,
 } from "@/lib/listing-logistics-display"
+import type { ListingSellerTrust } from "@/lib/listing-seller-trust.server"
+import { visitorCountryDisplayName } from "@/lib/visitor-country"
 import { cn } from "@/lib/utils"
 
 type Props = {
   logistics: ListingLogisticsInput
   className?: string
   compact?: boolean
+  /** Verified-merchant facts; omit to hide the trust row. */
+  trust?: ListingSellerTrust
 }
 
-export function ListingLogisticsStrip({ logistics, className, compact = false }: Props) {
+export function ListingLogisticsStrip({ logistics, className, compact = false, trust }: Props) {
+  const tTrust = useTranslations("pdpTrust")
   const locale = useLocale()
   const t = useTranslations("Product.logistics")
   const shipsFrom = listingShipsFromLabel(logistics)
@@ -82,6 +87,31 @@ export function ListingLogisticsStrip({ logistics, className, compact = false }:
           </div>
         ) : null}
       </div>
+      {/* Trust row: only facts we can stand behind — verified identity (KYC) and site-wide buyer policies. */}
+      <ul
+        className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-zinc-200/80 pt-2.5 text-[11px] font-medium text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
+        aria-label={tTrust("aria")}
+      >
+        {trust?.verified ? (
+          <li className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
+            <BadgeCheck className="size-3.5 shrink-0" aria-hidden />
+            {trust.legalName
+              ? tTrust("verifiedNamed", {
+                  name: trust.legalName,
+                  country: trust.countryCode ? visitorCountryDisplayName(trust.countryCode, locale) : "",
+                })
+              : tTrust("verified")}
+          </li>
+        ) : null}
+        <li className="inline-flex items-center gap-1.5">
+          <RotateCcw className="size-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+          {tTrust("returns")}
+        </li>
+        <li className="inline-flex items-center gap-1.5">
+          <ShieldCheck className="size-3.5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
+          {tTrust("payment")}
+        </li>
+      </ul>
     </div>
   )
 }

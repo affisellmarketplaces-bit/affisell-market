@@ -1,3 +1,4 @@
+import { shouldShowBuyerSalesCount } from "@/lib/listing-sales-count"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { listingDisplayTitle, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import {
@@ -107,7 +108,7 @@ function mapRow(
     customSlug: row.customSlug,
     nicheLabel: inferNicheLabel(store.description, store.name),
     categories: p.categories ?? [],
-    isBestSeller: p.isBestSeller,
+    isBestSeller: p.isBestSeller && shouldShowBuyerSalesCount(soldCount),
   }
 }
 

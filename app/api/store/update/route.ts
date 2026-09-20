@@ -1,3 +1,4 @@
+import { assessStoreName } from "@/lib/store-name-quality"
 import { revalidatePath, revalidateTag } from "next/cache"
 
 import { auth } from "@/auth"
@@ -62,6 +63,13 @@ export async function POST(req: Request) {
   const name = typeof nameIn === "string" ? nameIn.trim().slice(0, 40) : ""
   if (!name) {
     return Response.json({ error: "Store name is required" }, { status: 400 })
+  }
+  // Only judge a name that is being changed: legacy names must not block saving the rest of the settings.
+  if (name !== store.name) {
+    const quality = assessStoreName(name)
+    if (!quality.ok) {
+      return Response.json({ error: "Store name looks like a link, handle or generic word — use your brand name", code: quality.problem }, { status: 400 })
+    }
   }
 
   const descriptionIn = fd.get("description")

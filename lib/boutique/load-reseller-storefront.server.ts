@@ -1,3 +1,5 @@
+import { shouldShowBuyerSalesCount } from "@/lib/listing-sales-count"
+import { loadListingSalesStats } from "@/lib/listing-sales-stats"
 import { listingDisplayTitle, listingGalleryUrls, listingPrimaryImageUrl } from "@/lib/affiliate-listing-display"
 import type { AffiliateVariantPricingMap } from "@/lib/affiliate-variant-pricing"
 import { buyerRewardBadgeText, normalizeBuyerRewardKind } from "@/lib/affiliate-buyer-reward"
@@ -420,10 +422,14 @@ export async function loadResellerStorefrontList(args: {
     orderBy: { updatedAt: "desc" },
   })
 
+  // "Best seller" = top confirmed sellers (paid, not cancelled/refunded) with enough sales to mean something —
+  // never the inflated `conversions` counter nor the manual featured flag.
+  const confirmedSales = await loadListingSalesStats(listings.map((row) => row.id))
   const bestSellerIds = new Set(
     [...listings]
-      .filter((row) => row.conversions > 0)
-      .sort((a, b) => b.conversions - a.conversions)
+      .map((row) => ({ id: row.id, units: confirmedSales.get(row.id)?.units ?? 0 }))
+      .filter((row) => shouldShowBuyerSalesCount(row.units))
+      .sort((a, b) => b.units - a.units)
       .slice(0, 3)
       .map((row) => row.id)
   )
@@ -477,7 +483,7 @@ export async function loadResellerStorefrontList(args: {
         image: listingPrimaryImageUrl(listing.customImages, listing.product.images) || "/placeholder.png",
         isOutOfStock: commerce.availableStock <= 0,
         soldCount: listing.conversions,
-        isBestSeller: listing.isFeatured || bestSellerIds.has(listing.id),
+        isBestSeller: bestSellerIds.has(listing.id),
         buyerRewardBadge: buyerRewardBadgeText(
           normalizeBuyerRewardKind(listing.buyerRewardKind),
           listing.buyerRewardPercent

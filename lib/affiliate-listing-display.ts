@@ -1,3 +1,4 @@
+import { cleanListingTitle } from "@/lib/listing-quality"
 import { isUsableProductImageUrl } from "@/lib/product-image-url"
 
 /** Lightweight buyer placeholder — never use 1MB placeholder-product.jpg on grids. */
@@ -65,7 +66,11 @@ export function listingDisplayTitle(
   productName: string
 ): string {
   const t = customTitle?.trim()
-  return t || productName
+  // A reseller's own wording is theirs (only visual noise is stripped: emoji, symbols, tags, SHOUTING).
+  // A raw supplier/marketplace title is fully cleaned for buyers (also cut at a natural boundary).
+  // The stored names are never modified here.
+  if (t) return cleanListingTitle(t, { light: true }) || t
+  return cleanListingTitle(productName) || productName
 }
 
 export function listingDisplayDescription(

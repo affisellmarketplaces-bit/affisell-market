@@ -7761,5 +7761,28 @@
     "verified": "Zweryfikowany sprzedawca",
     "products": "{count, plural, one {# produkt} few {# produkty} many {# produktów} other {# produktu}}",
     "sold": "{count} sprzedanych"
+  },
+  "pdpTrust": {
+    "aria": "Gwarancje zaufania",
+    "verified": "Zweryfikowany sprzedawca",
+    "verifiedNamed": "Zweryfikowany sprzedawca — {name} · {country}",
+    "returns": "Zwrot w 14 dni",
+    "payment": "Chroniona płatność"
+  },
+  "homeSelection": {
+    "title": "Wybór Affisell",
+    "sub": "Wybrane na podstawie weryfikowalnych faktów: zweryfikowani sprzedawcy, czas dostawy podany przez dostawcę, prawdziwe opinie.",
+    "verified": "Zweryfikowany"
+  },
+  "supplierQuality": {
+    "titleHeading": "Ten tytuł wygląda na skopiowany feed marketplace",
+    "apply": "Zastosuj oczyszczony tytuł",
+    "title": {
+      "too_short": "Za krótki — dodaj markę i typ produktu",
+      "too_long": "Za długi — kupujący czyta tytuł w jednej linii",
+      "shouting": "WIELKIE LITERY wyglądają jak spam",
+      "decorations": "Usuń emoji, symbole i [tagi] — wyglądają na wklejone ogłoszenie",
+      "keyword_stuffing": "Wygląda na upchnięty słowami kluczowymi — zostaw markę, model i typ; resztę do opisu"
+    }
   }
 }

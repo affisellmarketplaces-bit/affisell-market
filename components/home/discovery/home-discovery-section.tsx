@@ -1,12 +1,13 @@
 "use client"
 
-import { ArrowRight, BadgeCheck, ChevronDown, Store, Zap } from "lucide-react"
+import { ArrowRight, BadgeCheck, ChevronDown, ShieldCheck, Star, Store, Zap } from "lucide-react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 
 import { FastLink } from "@/components/navigation/fast-link"
 import { ScrollFadeRow } from "@/components/ui/scroll-fade-row"
 import type { FlashDeal, HomeShop } from "@/lib/home-flash-shops.server"
+import type { SelectionItem } from "@/lib/home-selection.server"
 import { bucketSalesCount, shouldShowBuyerSalesCount } from "@/lib/listing-sales-count"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { catalogFilterHref } from "@/lib/marketplace-catalog-nav.client"
@@ -247,6 +248,57 @@ function FlashRail({ deals }: { deals: FlashDeal[] }) {
   )
 }
 
+/* ── Affisell selection: ranked by verifiable trust signals ─────────────────────────────────────── */
+function SelectionRail({ items }: { items: SelectionItem[] }) {
+  const t = useTranslations("homeSelection")
+  const tShip = useTranslations("shipping")
+  if (items.length === 0) return null
+  return (
+    <section aria-labelledby="home-selection-heading" className="min-w-0">
+      <div className="mb-4">
+        <h2 id="home-selection-heading" className="flex items-center gap-2 text-2xl font-bold tracking-tight text-[color:var(--glass-text)]">
+          <ShieldCheck className="size-6 text-emerald-600" aria-hidden />
+          {t("title")}
+        </h2>
+        <p className="mt-1 text-[15px] text-[color:var(--glass-muted)]">{t("sub")}</p>
+      </div>
+      <ul className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
+        {items.map((it) => (
+          <li key={it.id} className="min-w-0">
+            <FastLink
+              href={it.href}
+              prefetch={false}
+              className={cn(PANEL, "group block h-full p-3 outline-none transition hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-[#6D45E0]/70 motion-reduce:transform-none")}
+            >
+              <span className="relative block aspect-square overflow-hidden rounded-xl bg-[var(--glass-tile)] ring-1 ring-white/70">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={it.image} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-contain p-2 transition-transform duration-300 group-hover:scale-105" />
+              </span>
+              <span className="mt-2 block line-clamp-2 min-h-[2.4rem] text-[13px] font-semibold leading-snug text-[color:var(--glass-text)]">{it.title}</span>
+              <span className="mt-0.5 block text-[15px] font-bold tabular-nums text-[color:var(--glass-accent)]">{formatStoreCurrencyFromCents(it.priceCents)}</span>
+              <span className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-[color:var(--glass-muted)]">
+                {it.verified ? (
+                  <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400">
+                    <BadgeCheck className="size-3.5" aria-hidden />
+                    {t("verified")}
+                  </span>
+                ) : null}
+                {it.delivery ? <span>{tShip("deliveryDays", { min: it.delivery.min, max: it.delivery.max })}</span> : null}
+                {it.rating ? (
+                  <span className="inline-flex items-center gap-0.5 tabular-nums">
+                    {it.rating.toFixed(1)}
+                    <Star className="size-3 fill-current" aria-hidden />({it.reviews})
+                  </span>
+                ) : null}
+              </span>
+            </FastLink>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 /* ── Shops to discover ─────────────────────────────────────────────────────────────────────────── */
 function ShopCard({ shop }: { shop: HomeShop }) {
   const t = useTranslations("homeShops")
@@ -317,19 +369,22 @@ export function HomeDiscoverySection({
   directory,
   flash = [],
   shops = [],
+  selection = [],
 }: {
   collections: HomeCollection[]
   directory: DiscoveryGroup[]
   flash?: FlashDeal[]
   shops?: HomeShop[]
+  selection?: SelectionItem[]
 }) {
   const t = useTranslations("homeDiscovery")
-  if (collections.length === 0 && directory.length === 0 && flash.length === 0 && shops.length === 0) return null
+  if (collections.length === 0 && directory.length === 0 && flash.length === 0 && shops.length === 0 && selection.length === 0) return null
   // Only claim "by department" when department mosaics actually exist; otherwise this is the budget section.
   const hasDepartments = collections.some((c) => c.kind === "category")
   return (
     <div className="min-w-0 space-y-8">
       <FlashRail deals={flash} />
+      <SelectionRail items={selection} />
       {collections.length > 0 ? (
         <section aria-labelledby="home-collections-heading" className="min-w-0">
           <div className="mb-4">

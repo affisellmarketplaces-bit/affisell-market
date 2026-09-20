@@ -28,7 +28,7 @@ export function homeCatalogFallbackProducts(count = 8): HomeListing[] {
     averageRating: 0,
     reviewCount: 0,
     store: "Affisell",
-    isBestSeller: index === 0,
+    isBestSeller: false, // a placeholder catalog must never claim "Best seller"
     storeSlug: null,
     customSlug: null,
     buyerRewardBadge: null,

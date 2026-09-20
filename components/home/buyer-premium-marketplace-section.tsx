@@ -10,6 +10,7 @@ import { resolveAppLocale } from "@/lib/i18n-locale"
 import { loadHomeMarketplaceShellSafe } from "@/lib/home-marketplace-shell"
 import { loadHomeDiscoverySafe } from "@/lib/home-discovery.server"
 import { loadHomeFlashDealsSafe, loadHomeShopsSafe } from "@/lib/home-flash-shops.server"
+import { loadHomeSelectionSafe } from "@/lib/home-selection.server"
 import { loadHomeBestSellers7dSafe } from "@/lib/public-home-data"
 import { resolveBuyerCardImageHref } from "@/lib/listing-card-image-shared"
 import { loadBrowseDepartmentsCached } from "@/lib/taxonomy/resolve-browse-departments.server"
@@ -19,10 +20,11 @@ import { loadBrowseDepartmentsCached } from "@/lib/taxonomy/resolve-browse-depar
  * critical path (or the 12s budget) of the catalog shell — if they are slow or fail, they simply do not appear.
  */
 async function HomeDiscoveryStream({ locale }: { locale: ReturnType<typeof resolveAppLocale> }) {
-  const [discovery, flash, shops] = await Promise.all([
+  const [discovery, flash, shops, selection] = await Promise.all([
     loadHomeDiscoverySafe(locale),
     loadHomeFlashDealsSafe(),
     loadHomeShopsSafe(6),
+    loadHomeSelectionSafe(),
   ])
   return (
     <HomeDiscoverySection
@@ -30,6 +32,7 @@ async function HomeDiscoveryStream({ locale }: { locale: ReturnType<typeof resol
       directory={discovery.directory}
       flash={flash}
       shops={shops}
+      selection={selection}
     />
   )
 }

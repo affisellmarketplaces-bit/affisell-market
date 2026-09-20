@@ -10,6 +10,7 @@ import { DEMO_LAB_EMAIL_BY_PERSONA } from "@/lib/demo/demo-accounts-shared"
 import { resolveListingCardImageHref } from "@/lib/listing-card-image-shared"
 import { buyerListedAffiliateProductWhere } from "@/lib/marketplace-buyer-product-filter"
 import { prisma, withPrismaReconnect } from "@/lib/prisma"
+import { isPresentableStoreName } from "@/lib/store-name-quality"
 import { parseStorefrontTheme } from "@/lib/storefront-theme-shared"
 
 /* ───────────────────────────── Flash sales (live Pulse-battle winners) ───────────────────────────── */
@@ -173,7 +174,7 @@ async function loadShops(limit: number): Promise<HomeShop[]> {
 
   return stores
     // A storefront whose "name" is a pasted URL or @handle is unfinished — never showcase it on the home.
-    .filter((s) => s.name.trim().length >= 2 && !/^(https?:\/\/|www\.)|@/i.test(s.name.trim()))
+    .filter((s) => isPresentableStoreName(s.name))
     .map((s): HomeShop => ({
       slug: s.slug,
       name: s.name,

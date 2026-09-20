@@ -10,8 +10,12 @@ export function slugFromStoreName(name: string): string {
 }
 
 /** Readable default store title from optional user.name or email local part */
+
+import { isPresentableStoreName } from "@/lib/store-name-quality"
+
 export function defaultStoreNameFromSignup(email: string, userName: string | null | undefined): string {
-  const fromUser = userName?.trim()
+  // A display name that is a link / @handle / e-mail is not a brand: fall through to the e-mail based default.
+  const fromUser = isPresentableStoreName(userName) ? userName?.trim() : ""
   if (fromUser) {
     const withStore = /\bstore\b/i.test(fromUser) ? fromUser : `${fromUser} Store`
     return withStore.slice(0, 40)
