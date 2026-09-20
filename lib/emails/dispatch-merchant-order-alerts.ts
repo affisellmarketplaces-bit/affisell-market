@@ -1,3 +1,4 @@
+import { reconcileMarketplaceOrderPartnerAmounts } from "@/lib/marketplace-order-settlement-reconcile"
 import { render } from "@react-email/render"
 
 import { AffiliateNewSaleAlertEmail } from "@/emails/affiliate-new-sale-alert"
@@ -35,6 +36,18 @@ function affiliateNetEarningsCents(order: {
 
 /** Idempotent Resend alerts for supplier + affiliate after marketplace checkout paid. */
 export async function dispatchMerchantOrderAlerts(orderId: string): Promise<void> {
+  // Partner amounts of a fresh order are completed by the reconcile step: run it BEFORE reading them, otherwise the
+  // reseller alert can go out with "Your earnings €0.00". Idempotent (no-op once the amounts are complete).
+  try {
+    await reconcileMarketplaceOrderPartnerAmounts(orderId)
+  } catch (error) {
+    console.error("[merchant-order-alerts]", {
+      orderId,
+      result: "reconcile_before_alert_failed",
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
+
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     select: {

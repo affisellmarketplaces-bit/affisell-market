@@ -1,3 +1,4 @@
+import { runAfterResponse } from "@/lib/after-response"
 import {
   FulfillmentGroupStatus,
   FulfillmentStatus,
@@ -311,12 +312,9 @@ export class FulfillmentOrchestrator {
         (group.status === FulfillmentGroupStatus.PENDING ||
           group.status === FulfillmentGroupStatus.FAILED)
       ) {
-        void this.autoBuy(group.id).catch((e) => {
-          console.error("[fulfillment-orchestrator] auto_buy_async_failed", {
-            groupId: group.id,
-            error: e instanceof Error ? e.message : String(e),
-          })
-        })
+        // Kept alive after the response (a floating promise is frozen with the function and resumes minutes later —
+        // that is how a 10s database transaction ended up "expired after 93s"). Errors are contained and logged.
+        void runAfterResponse("fulfillment_auto_buy", () => this.autoBuy(group.id))
       }
     }
 

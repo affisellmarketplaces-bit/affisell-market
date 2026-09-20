@@ -1,3 +1,4 @@
+import { ensureCheckoutFulfilledBeforeSettle } from "@/lib/marketplace-checkout-fulfill-before-settle"
 import type { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
 
@@ -140,6 +141,16 @@ export async function settleMarketplaceOrdersFromCheckoutSession(
   const orderIds = await findOrderIdsForCheckoutSession(session.id)
   if (orderIds.length === 0) {
     return { processedOrderIds: [], errors: ["orders_not_found"] }
+  }
+
+  // Never settle (which marks the order PAID) before the checkout has been fulfilled with the buyer's details.
+  try {
+    await ensureCheckoutFulfilledBeforeSettle(session)
+  } catch (error) {
+    console.error("[settle-before-fulfil]", {
+      sessionId: session.id,
+      error: error instanceof Error ? error.message : String(error),
+    })
   }
 
   const processedOrderIds: string[] = []

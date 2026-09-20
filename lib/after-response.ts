@@ -1,5 +1,3 @@
-import "server-only"
-
 import { after } from "next/server"
 
 /**
