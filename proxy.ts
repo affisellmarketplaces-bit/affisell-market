@@ -33,6 +33,7 @@ import {
 } from "@/lib/legion/username"
 import { isPublicStaticAssetPath } from "@/lib/public-static-asset-path"
 import { staticAppRewriteTarget, isStaticAppPathname } from "@/lib/reserved-locale-segments"
+import { AFFISELL_PERMISSIONS_POLICY } from "@/lib/security-headers"
 import {
   HumanoidShield,
   type ShieldAnalyzeResult,
@@ -66,7 +67,7 @@ function applyHumanoidShieldHeaders(
   res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
   res.headers.set(
     "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+    AFFISELL_PERMISSIONS_POLICY
   )
   res.headers.set("x-shield-score", String(result.score))
   res.headers.set("x-shield-action", result.action)

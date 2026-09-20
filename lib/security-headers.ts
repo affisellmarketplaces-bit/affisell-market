@@ -24,6 +24,9 @@ export const AFFISELL_CSP_REPORT_ONLY = [
   "report-uri /api/csp-report",
 ].join("; ")
 
+export const AFFISELL_PERMISSIONS_POLICY =
+  "camera=(), microphone=(self), geolocation=(), payment=(self), usb=(), interest-cohort=()"
+
 export const AFFISELL_SECURITY_HEADERS: ReadonlyArray<{ key: string; value: string }> = [
   { key: "Content-Security-Policy", value: AFFISELL_CSP_ENFORCE },
   { key: "Content-Security-Policy-Report-Only", value: AFFISELL_CSP_REPORT_ONLY },
@@ -32,7 +35,7 @@ export const AFFISELL_SECURITY_HEADERS: ReadonlyArray<{ key: string; value: stri
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), payment=(self), usb=(), interest-cohort=()",
+    value: AFFISELL_PERMISSIONS_POLICY,
   },
   { key: "X-DNS-Prefetch-Control", value: "on" },
   /** Allow Stripe Checkout / OAuth popups while isolating opener. */
