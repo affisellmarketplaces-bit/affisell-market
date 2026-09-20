@@ -5,9 +5,10 @@ import { DefaultChatTransport, type UIMessage } from "ai"
 import { AnimatePresence, motion } from "framer-motion"
 import { Send, X } from "lucide-react"
 import { usePathname } from "next/navigation"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { useAppLocale } from "@/hooks/use-app-locale"
+import { useDonaVoice } from "@/hooks/use-dona-voice"
 
 import {
   donaCaptainGenericError,
@@ -17,6 +18,8 @@ import {
 } from "@/components/dona/dona-chat-ui"
 import { DonaAvatarImage } from "@/components/dona/dona-avatar-image"
 import { DonaFabOrb } from "@/components/dona/dona-fab-orb"
+import { DonaVoiceControls } from "@/components/dona/dona-voice-controls"
+import { resolveDonaSpeakTarget } from "@/lib/dona/dona-speak-target"
 import { tMessage } from "@/lib/i18n-pick-message"
 
 type CaptainMeta = {
@@ -109,11 +112,48 @@ export function DonaCaptainWidget() {
   const openFabAria = tMessage(locale, "donaWidget.captain.openFabAria")
   const fabBadge = tMessage(locale, "donaWidget.captain.fabBadge")
   const trustFooter = tMessage(locale, "donaWidget.captain.trustFooter")
+  const voiceLabels = useMemo(
+    () => ({
+      micAria: tMessage(locale, "donaWidget.voice.micAria"),
+      micStopAria: tMessage(locale, "donaWidget.voice.micStopAria"),
+      duplexOn: tMessage(locale, "donaWidget.voice.duplexOn"),
+      duplexOff: tMessage(locale, "donaWidget.voice.duplexOff"),
+      listening: tMessage(locale, "donaWidget.voice.listening"),
+      speaking: tMessage(locale, "donaWidget.voice.speaking"),
+      unsupported: tMessage(locale, "donaWidget.voice.unsupported"),
+      duplexLabelOn: tMessage(locale, "donaWidget.voice.duplexLabelOn"),
+      duplexLabelOff: tMessage(locale, "donaWidget.voice.duplexLabelOff"),
+    }),
+    [locale]
+  )
 
   const renderableMessages = useMemo(
     () => messages.filter(assistantHasVisibleParts),
     [messages]
   )
+  const speakTarget = useMemo(
+    () => (busy ? null : resolveDonaSpeakTarget(messages)),
+    [busy, messages]
+  )
+
+  const sendText = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim()
+      if (!trimmed || busy) return
+      setInput("")
+      clearError()
+      await sendMessage({ text: trimmed })
+    },
+    [busy, clearError, sendMessage]
+  )
+
+  const voice = useDonaVoice({
+    locale,
+    active: isOpen && visible,
+    busy,
+    onFinalTranscript: sendText,
+    speakTarget,
+  })
 
   useEffect(() => {
     if (!visible || !isOpen) return
@@ -134,12 +174,9 @@ export function DonaCaptainWidget() {
 
   if (!visible) return null
 
-  async function sendText(text: string) {
-    const trimmed = text.trim()
-    if (!trimmed || busy) return
-    setInput("")
-    clearError()
-    await sendMessage({ text: trimmed })
+  function closePanel() {
+    voice.stopAll()
+    setIsOpen(false)
   }
 
   const envLabel = meta?.label ?? "STAGING"
@@ -194,7 +231,7 @@ export function DonaCaptainWidget() {
               </div>
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={closePanel}
                 className="rounded-lg p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white"
                 aria-label={closeAria}
               >
@@ -302,6 +339,18 @@ export function DonaCaptainWidget() {
                   <Send className="size-4" />
                 </button>
               </div>
+              <DonaVoiceControls
+                sttSupported={voice.support.stt}
+                ttsSupported={voice.support.tts}
+                listening={voice.listening}
+                speaking={voice.speaking}
+                duplex={voice.duplex}
+                busy={busy}
+                interim={voice.interim}
+                labels={voiceLabels}
+                onToggleListen={voice.toggleListen}
+                onToggleDuplex={() => voice.setDuplex(!voice.duplex)}
+              />
               <p className="mt-2 text-center text-[10px] text-white/35">{trustFooter}</p>
             </form>
           </motion.div>

@@ -5,9 +5,10 @@ import { DefaultChatTransport } from "ai"
 import { AnimatePresence, motion } from "framer-motion"
 import { Send, X } from "lucide-react"
 import { usePathname } from "next/navigation"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { useAppLocale } from "@/hooks/use-app-locale"
+import { useDonaVoice } from "@/hooks/use-dona-voice"
 
 import {
   DonaAssistantMessage,
@@ -21,12 +22,14 @@ import {
 } from "@/components/dona/dona-chat-ui"
 import { DonaAvatarImage } from "@/components/dona/dona-avatar-image"
 import { DonaFabOrb } from "@/components/dona/dona-fab-orb"
+import { DonaVoiceControls } from "@/components/dona/dona-voice-controls"
 import {
   donaPublicBadge,
   donaPublicPlaceholder,
   donaPublicWelcome,
   resolveDonaPublicAudience,
 } from "@/lib/dona/dona-audience"
+import { resolveDonaSpeakTarget } from "@/lib/dona/dona-speak-target"
 import { tMessage } from "@/lib/i18n-pick-message"
 
 function shouldHideWidget(pathname: string): boolean {
@@ -67,6 +70,29 @@ export function DonaPublicWidget() {
   const badge = useMemo(() => donaPublicBadge(audience, locale), [audience, locale])
   const visibleMessages = useMemo(() => filterRenderableMessages(messages), [messages])
   const errorText = donaResolvedError(error, locale, donaGenericError(locale))
+  const speakTarget = useMemo(
+    () => (busy ? null : resolveDonaSpeakTarget(messages)),
+    [busy, messages]
+  )
+
+  const sendText = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim()
+      if (!trimmed || busy) return
+      setInput("")
+      clearError()
+      await sendMessage({ text: trimmed })
+    },
+    [busy, clearError, sendMessage]
+  )
+
+  const voice = useDonaVoice({
+    locale,
+    active: isOpen,
+    busy,
+    onFinalTranscript: sendText,
+    speakTarget,
+  })
 
   const copy = useMemo(
     () => ({
@@ -78,6 +104,17 @@ export function DonaPublicWidget() {
       openFabAria: tMessage(locale, "donaWidget.public.openFabAria"),
       trustFooter: tMessage(locale, "donaWidget.public.trustFooter"),
       localeBadge: tMessage(locale, "donaWidget.public.localeBadge"),
+      voice: {
+        micAria: tMessage(locale, "donaWidget.voice.micAria"),
+        micStopAria: tMessage(locale, "donaWidget.voice.micStopAria"),
+        duplexOn: tMessage(locale, "donaWidget.voice.duplexOn"),
+        duplexOff: tMessage(locale, "donaWidget.voice.duplexOff"),
+        listening: tMessage(locale, "donaWidget.voice.listening"),
+        speaking: tMessage(locale, "donaWidget.voice.speaking"),
+        unsupported: tMessage(locale, "donaWidget.voice.unsupported"),
+        duplexLabelOn: tMessage(locale, "donaWidget.voice.duplexLabelOn"),
+        duplexLabelOff: tMessage(locale, "donaWidget.voice.duplexLabelOff"),
+      },
     }),
     [locale]
   )
@@ -85,18 +122,15 @@ export function DonaPublicWidget() {
   useEffect(() => {
     if (!isOpen) return
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
-  }, [messages, status, isOpen, busy, error])
+  }, [messages, status, isOpen, busy, error, voice.interim])
 
   if (shouldHideWidget(pathname)) {
     return null
   }
 
-  async function sendText(text: string) {
-    const trimmed = text.trim()
-    if (!trimmed || busy) return
-    setInput("")
-    clearError()
-    await sendMessage({ text: trimmed })
+  function closePanel() {
+    voice.stopAll()
+    setIsOpen(false)
   }
 
   return (
@@ -125,12 +159,13 @@ export function DonaPublicWidget() {
                   <p className="text-sm font-semibold text-white">{copy.headerTitle}</p>
                   <span className="mt-0.5 inline-block rounded-full border border-violet-400/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-violet-200">
                     {badge} · {copy.localeBadge}
+                    {voice.duplex ? ` · ${tMessage(locale, "donaWidget.voice.liveBadge")}` : ""}
                   </span>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={closePanel}
                 className="rounded-lg p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white"
                 aria-label={copy.closeAria}
               >
@@ -192,6 +227,18 @@ export function DonaPublicWidget() {
                   <Send className="size-4" />
                 </button>
               </div>
+              <DonaVoiceControls
+                sttSupported={voice.support.stt}
+                ttsSupported={voice.support.tts}
+                listening={voice.listening}
+                speaking={voice.speaking}
+                duplex={voice.duplex}
+                busy={busy}
+                interim={voice.interim}
+                labels={copy.voice}
+                onToggleListen={voice.toggleListen}
+                onToggleDuplex={() => voice.setDuplex(!voice.duplex)}
+              />
               <p className="mt-2 text-center text-[10px] text-white/40">{copy.trustFooter}</p>
             </form>
           </motion.div>

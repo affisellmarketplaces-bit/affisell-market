@@ -6875,6 +6875,18 @@
     "errors": {
       "genericPublic": "Dona：反应堆出了点小故障。请重试 —— 或者像个负责任的大人一样去 /sell。💜",
       "genericCaptain": "Dona 船长：访问被拒或反应堆冷却中。请留在 /dashboard/supplier。💜"
+    },
+    "voice": {
+      "micAria": "与 Dona 对话",
+      "micStopAria": "停止聆听",
+      "duplexOn": "免提语音对话已开启 — 点按关闭",
+      "duplexOff": "开启免提语音对话",
+      "listening": "正在聆听",
+      "speaking": "Dona 正在说话",
+      "unsupported": "此浏览器不支持语音 — 请改用文字输入",
+      "liveBadge": "实时语音",
+      "duplexLabelOn": "Live",
+      "duplexLabelOff": "语音"
     }
   },
   "globalError": {
