@@ -1513,7 +1513,32 @@
       "checklistCategory": "Kategoria",
       "checklistSpecs": "Specyfikacje",
       "checklistPhotos": "Zdjęcia",
-      "checklistPrice": "Cena"
+      "checklistPrice": "Cena",
+      "trustTitle": "Jakość zaufania",
+      "trustSub": "Co sprawia, że sklep wygląda prawdziwie dla kupującego — i dla rankingu marketplace.",
+      "tier": {
+        "excellent": "Doskonała",
+        "good": "Dobra",
+        "needsWork": "Do poprawy"
+      },
+      "check": {
+        "title": "Czysty, rzeczowy tytuł",
+        "description": "Prawdziwy opis (120+ znaków)",
+        "photos": "Co najmniej 3 zdjęcia",
+        "brand": "Marka",
+        "warranty": "Gwarancja",
+        "origin": "Kraj wysyłki",
+        "delivery": "Dostawa zadeklarowana dla sklepu"
+      },
+      "hint": {
+        "title": "Marka, model i typ — bez emoji i list słów kluczowych.",
+        "description": "Opisz materiały, rozmiar i zawartość pudełka. Kupujący czyta to, zanim zaufa.",
+        "photos": "Kilka ujęć i zdjęcie użycia budują zaufanie.",
+        "brand": "Dodaj markę w specyfikacji — produkty bez marki sprzedają się gorzej.",
+        "warranty": "Dodaj okres gwarancji w tabeli SKU.",
+        "origin": "Podaj, skąd wychodzi paczka — kupujący to widzą.",
+        "delivery": "Wybierz przewoźników i terminy w ustawieniach wysyłki — do tego czasu kupujący nic nie widzą."
+      }
     },
     "expressTaxonomy": {
       "badge": "Sugerowane kategorie",

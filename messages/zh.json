@@ -1513,7 +1513,32 @@
       "checklistCategory": "类目",
       "checklistSpecs": "规格",
       "checklistPhotos": "图片",
-      "checklistPrice": "价格"
+      "checklistPrice": "价格",
+      "trustTitle": "信任质量",
+      "trustSub": "让买家（以及市场排名）觉得店铺真实可信的要素。",
+      "tier": {
+        "excellent": "优秀",
+        "good": "良好",
+        "needsWork": "待改进"
+      },
+      "check": {
+        "title": "清晰、客观的标题",
+        "description": "真实的描述（120 字以上）",
+        "photos": "至少 3 张图片",
+        "brand": "品牌",
+        "warranty": "保修",
+        "origin": "发货国家",
+        "delivery": "已为店铺声明配送"
+      },
+      "hint": {
+        "title": "品牌、型号和类型——不要表情符号和关键词堆砌。",
+        "description": "说明材质、尺寸和包装内容。买家会先阅读再决定是否信任。",
+        "photos": "多角度和使用场景图片能建立信任。",
+        "brand": "在规格中添加品牌——无品牌商品转化率较低。",
+        "warranty": "在 SKU 表中添加保修时长。",
+        "origin": "说明包裹从哪里发出——买家可见。",
+        "delivery": "在配送设置中选择承运商和时效——在此之前买家看不到任何内容。"
+      }
     },
     "expressTaxonomy": {
       "badge": "推荐类目",

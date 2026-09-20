@@ -1513,7 +1513,32 @@
       "checklistCategory": "Categorie",
       "checklistSpecs": "Specificaties",
       "checklistPhotos": "Foto's",
-      "checklistPrice": "Prijs"
+      "checklistPrice": "Prijs",
+      "trustTitle": "Vertrouwenskwaliteit",
+      "trustSub": "Wat een shop echt laat lijken voor kopers — en voor de ranking van de marktplaats.",
+      "tier": {
+        "excellent": "Uitstekend",
+        "good": "Goed",
+        "needsWork": "Kan beter"
+      },
+      "check": {
+        "title": "Schone, feitelijke titel",
+        "description": "Echte beschrijving (120+ tekens)",
+        "photos": "Minstens 3 foto's",
+        "brand": "Merk",
+        "warranty": "Garantie",
+        "origin": "Verzendland",
+        "delivery": "Levering opgegeven voor je shop"
+      },
+      "hint": {
+        "title": "Merk, model en type — geen emoji, geen zoekwoordenlijsten.",
+        "description": "Leg materiaal, formaat en inhoud van de doos uit. Kopers lezen het voordat ze vertrouwen.",
+        "photos": "Meerdere hoeken en een gebruiksfoto wekken vertrouwen.",
+        "brand": "Voeg het merk toe aan de specificaties — producten zonder merk converteren minder.",
+        "warranty": "Voeg een garantieduur toe in de SKU-tabel.",
+        "origin": "Geef aan waar het pakket vandaan komt — kopers zien het.",
+        "delivery": "Kies je vervoerders en levertijden in de verzendinstellingen — kopers zien niets totdat je dat doet."
+      }
     },
     "expressTaxonomy": {
       "badge": "Voorgestelde categorieën",

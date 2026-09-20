@@ -80,6 +80,7 @@ import {
   type CategoryPickOrigin,
 } from "@/components/supplier/supplier-category-picker"
 import { SupplierDeliveryCountriesPicker } from "@/components/supplier/supplier-delivery-countries-picker"
+import { SupplierTrustQualityBlock } from "@/components/supplier/supplier-trust-quality-block"
 import { SupplierPhotoQualityHint } from "@/components/supplier/supplier-photo-quality-hint"
 import { SupplierTitleQualityHint } from "@/components/supplier/supplier-title-quality-hint"
 import { SupplierShippingCarriersPicker } from "@/components/supplier/supplier-shipping-carriers-picker"
@@ -2965,7 +2966,19 @@ export function SupplierAddProductForm({
           onSaveDraft={listingAutosaveEnabled ? () => void handleSaveDraftClick() : undefined}
           savingDraft={draftSync === "saving" || saving}
           onBack={onBackToMethods}
-          qualityPanel={<SupplierWizardQualityPanel items={wizardQualityItems} />}
+          qualityPanel={
+            <div className="space-y-4">
+              <SupplierWizardQualityPanel items={wizardQualityItems} />
+              <SupplierTrustQualityBlock
+                title={name}
+                description={description}
+                imageCount={images.length}
+                brand={Object.entries(specValues).find(([k, v]) => /^(brand|marque)$/i.test(k) && v?.trim())?.[1] ?? ""}
+                hasWarranty={advancedSkuRows.some((r) => (r.warrantyMonths ?? 0) > 0)}
+                shipsFromCountry={shippingCountry}
+              />
+            </div>
+          }
         >
           <div className="space-y-10">
 

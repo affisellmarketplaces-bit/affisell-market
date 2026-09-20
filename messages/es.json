@@ -1513,7 +1513,32 @@
       "checklistCategory": "Categoría",
       "checklistSpecs": "Especificaciones",
       "checklistPhotos": "Fotos",
-      "checklistPrice": "Precio"
+      "checklistPrice": "Precio",
+      "trustTitle": "Calidad de confianza",
+      "trustSub": "Lo que hace que una tienda parezca real para un comprador — y para el ranking del marketplace.",
+      "tier": {
+        "excellent": "Excelente",
+        "good": "Bien",
+        "needsWork": "Mejorable"
+      },
+      "check": {
+        "title": "Título limpio y factual",
+        "description": "Descripción real (120+ caracteres)",
+        "photos": "Al menos 3 fotos",
+        "brand": "Marca",
+        "warranty": "Garantía",
+        "origin": "País de envío",
+        "delivery": "Entrega declarada para tu tienda"
+      },
+      "hint": {
+        "title": "Marca, modelo y tipo — sin emojis ni listas de palabras clave.",
+        "description": "Explica materiales, tamaño y contenido de la caja. El comprador la lee antes de confiar.",
+        "photos": "Varios ángulos y una foto de uso generan confianza.",
+        "brand": "Añade la marca en las especificaciones — los productos sin marca convierten menos.",
+        "warranty": "Añade una duración de garantía en la tabla de SKU.",
+        "origin": "Indica desde dónde sale el paquete — se muestra a los compradores.",
+        "delivery": "Elige transportistas y plazos en los ajustes de envío — no se muestra nada al comprador hasta que lo hagas."
+      }
     },
     "expressTaxonomy": {
       "badge": "Categorías sugeridas",

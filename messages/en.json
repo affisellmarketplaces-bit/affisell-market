@@ -1513,7 +1513,32 @@
       "checklistCategory": "Category",
       "checklistSpecs": "Specs",
       "checklistPhotos": "Photos",
-      "checklistPrice": "Price"
+      "checklistPrice": "Price",
+      "trustTitle": "Trust quality",
+      "trustSub": "What makes a shop look real to a buyer — and to the marketplace ranking.",
+      "tier": {
+        "excellent": "Excellent",
+        "good": "Good",
+        "needsWork": "Needs work"
+      },
+      "check": {
+        "title": "Clean, factual title",
+        "description": "Real description (120+ characters)",
+        "photos": "At least 3 photos",
+        "brand": "Brand",
+        "warranty": "Warranty",
+        "origin": "Ships-from country",
+        "delivery": "Delivery declared for your shop"
+      },
+      "hint": {
+        "title": "Brand, model and type — no emoji, no keyword lists.",
+        "description": "Explain materials, size, what's in the box. Buyers read it before trusting.",
+        "photos": "Several angles and a use-case photo build confidence.",
+        "brand": "Add the brand in the specifications — unbranded items convert less.",
+        "warranty": "Add a warranty duration in the SKU table.",
+        "origin": "Say where the parcel leaves from — it is shown to buyers.",
+        "delivery": "Choose your carriers and delivery windows in Shipping settings — nothing is shown to buyers until you do."
+      }
     },
     "expressTaxonomy": {
       "badge": "Suggested categories",

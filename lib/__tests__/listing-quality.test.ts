@@ -89,3 +89,22 @@ describe("cleanListingTitle — light mode (reseller's own wording)", () => {
     expect(cleanListingTitle("🔥 Trottinette BMERY ✔", { light: true })).toBe("Trottinette BMERY")
   })
 })
+
+describe("assessListingQuality — without a buyer price (supplier wholesale form)", () => {
+  it("skips the price check and renormalises to 0–100", () => {
+    const r = assessListingQuality({
+      title: "Casque Sony WH-1000XM5",
+      description: "x".repeat(200),
+      imageCount: 5,
+      brand: "Sony",
+      hasWarranty: true,
+      shipsFromCountry: "FR",
+      hasDeliveryProfile: true,
+    })
+    expect(r.checks.some((c) => c.id === "price")).toBe(false)
+    expect(r.score).toBe(100)
+    const half = assessListingQuality({ title: "Casque Sony WH-1000XM5", description: "x".repeat(200), imageCount: 5 })
+    expect(half.score).toBeGreaterThan(0)
+    expect(half.score).toBeLessThan(100)
+  })
+})

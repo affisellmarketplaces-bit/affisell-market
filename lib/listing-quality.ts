@@ -169,7 +169,10 @@ export type ListingQualityInput = {
   hasDeliveryProfile?: boolean
 }
 
-/** 0–100. Weights sum to 100; "excellent" ≥ 80, "good" ≥ 55, otherwise "needs_work". */
+/**
+ * 0–100 (weights are renormalised over the checks that apply — the price check is skipped when no buyer price
+ * is known, e.g. on the supplier's wholesale form). "excellent" ≥ 80, "good" ≥ 55, otherwise "needs_work".
+ */
 export function assessListingQuality(input: ListingQualityInput): {
   score: number
   tier: "excellent" | "good" | "needs_work"
@@ -181,12 +184,15 @@ export function assessListingQuality(input: ListingQualityInput): {
     { id: "title", ok: titleOk, weight: 20 },
     { id: "description", ok: descLen >= 120, weight: 15 },
     { id: "photos", ok: input.imageCount >= 3, weight: 20 },
-    { id: "price", ok: input.priceCents == null || !isFormulaResiduePrice(input.priceCents), weight: 8 },
+    ...(input.priceCents != null
+      ? [{ id: "price" as const, ok: !isFormulaResiduePrice(input.priceCents), weight: 8 }]
+      : []),
     { id: "brand", ok: Boolean(input.brand?.trim()), weight: 10 },
     { id: "warranty", ok: input.hasWarranty === true, weight: 9 },
     { id: "origin", ok: Boolean(input.shipsFromCountry?.trim()), weight: 8 },
     { id: "delivery", ok: input.hasDeliveryProfile === true, weight: 10 },
   ]
-  const score = checks.reduce((n, c) => n + (c.ok ? c.weight : 0), 0)
+  const total = checks.reduce((n, c) => n + c.weight, 0)
+  const score = Math.round((checks.reduce((n, c) => n + (c.ok ? c.weight : 0), 0) / total) * 100)
   return { score, tier: score >= 80 ? "excellent" : score >= 55 ? "good" : "needs_work", checks }
 }
