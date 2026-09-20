@@ -7784,5 +7784,34 @@
       "decorations": "移除表情、符号和 [标签]——它们像粘贴的商品信息",
       "keyword_stuffing": "像堆砌关键词——保留品牌、型号和类型，其余放入描述"
     }
+  },
+  "supplierPhotos": {
+    "heading": "您的图片还可以更专业",
+    "checking": "正在检查图片…",
+    "allGood": "您的图片看起来很棒",
+    "error": "暂时无法检查——仍可发布。",
+    "inline": "{count} 张图片尚未上传——上传后检查。",
+    "photoN": "图片 {n}",
+    "useOriginal": "使用原始分辨率图片",
+    "tier": {
+      "excellent": "优秀",
+      "good": "良好",
+      "needsWork": "待改进"
+    },
+    "gallery": {
+      "too_few": "至少添加 3 张图片——买家希望从多个角度查看商品。",
+      "mixed_sizes": "图片尺寸差异较大——请使用相近分辨率以保持图库整洁。",
+      "duplicates": "部分图片几乎相同——请替换为新的角度。"
+    },
+    "issue": {
+      "unreadable": "无法读取此图片。",
+      "too_small": "太小（低于 600 像素）——会显得模糊。",
+      "low_res": "分辨率较低（低于 1000 像素）——放大会模糊。",
+      "extreme_ratio": "比例不常见——方形或 4:5 的图片显示效果最佳。",
+      "over_compressed": "压缩过度——有明显瑕疵，请上传更高质量的文件。",
+      "dark_background": "背景较暗——主图在明亮、纯色背景上效果最佳。",
+      "busy_background": "背景杂乱——主图在纯色背景上效果最佳。",
+      "duplicate": "与之前的图片几乎相同。"
+    }
   }
 }

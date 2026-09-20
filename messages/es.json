@@ -7784,5 +7784,34 @@
       "decorations": "Quita emojis, símbolos y [etiquetas] — parecen un anuncio pegado",
       "keyword_stuffing": "Parece lleno de palabras clave — deja marca, modelo y tipo; el resto a la descripción"
     }
+  },
+  "supplierPhotos": {
+    "heading": "Tus fotos podrían verse más profesionales",
+    "checking": "Comprobando tus fotos…",
+    "allGood": "Tus fotos se ven muy bien",
+    "error": "Comprobación no disponible ahora — aun así puedes publicar.",
+    "inline": "{count, plural, one {# foto aún no está subida} other {# fotos aún no están subidas}} — se comprobará al subirla.",
+    "photoN": "Foto {n}",
+    "useOriginal": "Usar la imagen en resolución original",
+    "tier": {
+      "excellent": "Excelente",
+      "good": "Bien",
+      "needsWork": "Mejorable"
+    },
+    "gallery": {
+      "too_few": "Añade al menos 3 fotos — el comprador quiere ver el producto desde varios ángulos.",
+      "mixed_sizes": "Los tamaños varían mucho — usa resoluciones similares para una galería limpia.",
+      "duplicates": "Algunas fotos son casi idénticas — sustitúyelas por nuevos ángulos."
+    },
+    "issue": {
+      "unreadable": "No se pudo leer esta imagen.",
+      "too_small": "Demasiado pequeña (menos de 600 px) — se verá borrosa.",
+      "low_res": "Resolución baja (menos de 1000 px) — el zoom será borroso.",
+      "extreme_ratio": "Formato inusual — una foto cuadrada o 4:5 se ve mejor.",
+      "over_compressed": "Muy comprimida — artefactos visibles. Sube un archivo de mayor calidad.",
+      "dark_background": "Fondo oscuro — la foto principal funciona mejor sobre fondo claro y liso.",
+      "busy_background": "Fondo cargado — la foto principal funciona mejor sobre fondo liso.",
+      "duplicate": "Casi idéntica a una foto anterior."
+    }
   }
 }

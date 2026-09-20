@@ -7784,5 +7784,34 @@
       "decorations": "Emoji, Symbole und [Tags] entfernen — sie wirken wie eingefügte Anzeigen",
       "keyword_stuffing": "Wirkt mit Schlagwörtern überladen — Marke, Modell und Typ behalten, Rest in die Beschreibung"
     }
+  },
+  "supplierPhotos": {
+    "heading": "Ihre Fotos könnten professioneller wirken",
+    "checking": "Fotos werden geprüft…",
+    "allGood": "Ihre Fotos sehen sehr gut aus",
+    "error": "Prüfung derzeit nicht verfügbar — Sie können trotzdem veröffentlichen.",
+    "inline": "{count, plural, one {# Foto ist} other {# Fotos sind}} noch nicht hochgeladen — Prüfung nach dem Upload.",
+    "photoN": "Foto {n}",
+    "useOriginal": "Bild in Originalauflösung verwenden",
+    "tier": {
+      "excellent": "Ausgezeichnet",
+      "good": "Gut",
+      "needsWork": "Verbesserungswürdig"
+    },
+    "gallery": {
+      "too_few": "Fügen Sie mindestens 3 Fotos hinzu — Käufer möchten das Produkt aus mehreren Blickwinkeln sehen.",
+      "mixed_sizes": "Die Größen weichen stark ab — nutzen Sie ähnliche Auflösungen für eine saubere Galerie.",
+      "duplicates": "Einige Fotos sind nahezu identisch — ersetzen Sie sie durch neue Blickwinkel."
+    },
+    "issue": {
+      "unreadable": "Dieses Bild konnte nicht gelesen werden.",
+      "too_small": "Zu klein (unter 600 px) — wirkt unscharf.",
+      "low_res": "Niedrige Auflösung (unter 1000 px) — Zoom wird weich.",
+      "extreme_ratio": "Ungewöhnliches Format — quadratisch oder 4:5 wirkt am besten.",
+      "over_compressed": "Stark komprimiert — sichtbare Artefakte. Laden Sie eine hochwertigere Datei hoch.",
+      "dark_background": "Dunkler Hintergrund — das Hauptfoto wirkt auf hellem, einfarbigem Grund am besten.",
+      "busy_background": "Unruhiger Hintergrund — das Hauptfoto wirkt auf einfarbigem Grund am besten.",
+      "duplicate": "Nahezu identisch mit einem früheren Foto."
+    }
   }
 }

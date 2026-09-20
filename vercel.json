@@ -35,6 +35,9 @@
     },
     "app/api/stripe/webhook/route.ts": {
       "maxDuration": 60
+    },
+    "app/api/supplier/photo-check/route.ts": {
+      "maxDuration": 30
     }
   },
   "crons": [

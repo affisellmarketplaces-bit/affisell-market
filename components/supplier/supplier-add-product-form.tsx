@@ -80,6 +80,7 @@ import {
   type CategoryPickOrigin,
 } from "@/components/supplier/supplier-category-picker"
 import { SupplierDeliveryCountriesPicker } from "@/components/supplier/supplier-delivery-countries-picker"
+import { SupplierPhotoQualityHint } from "@/components/supplier/supplier-photo-quality-hint"
 import { SupplierTitleQualityHint } from "@/components/supplier/supplier-title-quality-hint"
 import { SupplierShippingCarriersPicker } from "@/components/supplier/supplier-shipping-carriers-picker"
 import { shippingMethodsFromCarrierIds } from "@/lib/shipping/supplier-carrier-offers-shared"
@@ -3127,6 +3128,12 @@ export function SupplierAddProductForm({
                             onBusyChange={setGalleryBusy}
                             onImagesChange={handleGalleryImagesChange}
                             onPersisted={handleGalleryPersisted}
+                          />
+                          <SupplierPhotoQualityHint
+                            images={images}
+                            onReplace={(from, to) =>
+                              setImages((prev) => prev.map((u) => (u === from ? to : u)))
+                            }
                           />
                         </div>
                       </div>

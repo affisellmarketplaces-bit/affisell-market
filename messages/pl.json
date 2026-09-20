@@ -7784,5 +7784,34 @@
       "decorations": "Usuń emoji, symbole i [tagi] — wyglądają na wklejone ogłoszenie",
       "keyword_stuffing": "Wygląda na upchnięty słowami kluczowymi — zostaw markę, model i typ; resztę do opisu"
     }
+  },
+  "supplierPhotos": {
+    "heading": "Twoje zdjęcia mogą wyglądać bardziej profesjonalnie",
+    "checking": "Sprawdzanie zdjęć…",
+    "allGood": "Twoje zdjęcia wyglądają świetnie",
+    "error": "Sprawdzanie chwilowo niedostępne — nadal możesz opublikować.",
+    "inline": "{count, plural, one {# zdjęcie nie jest} few {# zdjęcia nie są} many {# zdjęć nie jest} other {# zdjęcia nie jest}} jeszcze przesłane — sprawdzenie po przesłaniu.",
+    "photoN": "Zdjęcie {n}",
+    "useOriginal": "Użyj obrazu w oryginalnej rozdzielczości",
+    "tier": {
+      "excellent": "Doskonałe",
+      "good": "Dobre",
+      "needsWork": "Do poprawy"
+    },
+    "gallery": {
+      "too_few": "Dodaj co najmniej 3 zdjęcia — kupujący chcą zobaczyć produkt z kilku stron.",
+      "mixed_sizes": "Rozmiary bardzo się różnią — użyj podobnych rozdzielczości dla spójnej galerii.",
+      "duplicates": "Niektóre zdjęcia są prawie identyczne — zastąp je nowymi ujęciami."
+    },
+    "issue": {
+      "unreadable": "Nie udało się odczytać tego obrazu.",
+      "too_small": "Za małe (poniżej 600 px) — będzie rozmyte.",
+      "low_res": "Niska rozdzielczość (poniżej 1000 px) — powiększenie będzie miękkie.",
+      "extreme_ratio": "Nietypowy kształt — najlepiej wygląda zdjęcie kwadratowe lub 4:5.",
+      "over_compressed": "Mocno skompresowane — widoczne artefakty. Prześlij plik lepszej jakości.",
+      "dark_background": "Ciemne tło — zdjęcie główne najlepiej wygląda na jasnym, jednolitym tle.",
+      "busy_background": "Nieuporządkowane tło — zdjęcie główne najlepiej wygląda na jednolitym tle.",
+      "duplicate": "Prawie identyczne z wcześniejszym zdjęciem."
+    }
   }
 }

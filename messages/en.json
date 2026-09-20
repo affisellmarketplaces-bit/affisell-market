@@ -7784,5 +7784,34 @@
       "decorations": "Remove emoji, symbols and [tags] — they look like a pasted listing",
       "keyword_stuffing": "Looks stuffed with keywords — keep brand, model and type; put the rest in the description"
     }
+  },
+  "supplierPhotos": {
+    "heading": "Your photos could look more professional",
+    "checking": "Checking your photos…",
+    "allGood": "Your photos look great",
+    "error": "Photo check unavailable right now — you can still publish.",
+    "inline": "{count, plural, one {# photo is} other {# photos are}} not uploaded yet — checked once uploaded.",
+    "photoN": "Photo {n}",
+    "useOriginal": "Use the original-resolution image",
+    "tier": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "needsWork": "Needs work"
+    },
+    "gallery": {
+      "too_few": "Add at least 3 photos — buyers want to see the product from several angles.",
+      "mixed_sizes": "Photo sizes vary a lot — use similar resolutions for a clean gallery.",
+      "duplicates": "Some photos are near-duplicates — replace them with new angles."
+    },
+    "issue": {
+      "unreadable": "This image could not be read.",
+      "too_small": "Too small (under 600 px) — it will look blurry.",
+      "low_res": "Low resolution (under 1000 px) — zoom will be soft.",
+      "extreme_ratio": "Unusual shape — a near-square or 4:5 photo displays best.",
+      "over_compressed": "Heavily compressed — visible artefacts. Upload a higher-quality file.",
+      "dark_background": "Dark background — the main photo works best on a bright, plain background.",
+      "busy_background": "Busy background — the main photo works best on a plain background.",
+      "duplicate": "Near-duplicate of an earlier photo."
+    }
   }
 }

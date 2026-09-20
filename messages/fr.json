@@ -7784,5 +7784,34 @@
       "decorations": "Retirez emoji, symboles et [balises] — ils trahissent une annonce collée",
       "keyword_stuffing": "Semble bourré de mots-clés — gardez marque, modèle et type ; le reste va dans la description"
     }
+  },
+  "supplierPhotos": {
+    "heading": "Vos photos pourraient être plus professionnelles",
+    "checking": "Vérification de vos photos…",
+    "allGood": "Vos photos sont très bien",
+    "error": "Vérification indisponible pour l'instant — vous pouvez quand même publier.",
+    "inline": "{count, plural, one {# photo n'est pas encore envoyée} other {# photos ne sont pas encore envoyées}} — vérifiée après l'envoi.",
+    "photoN": "Photo {n}",
+    "useOriginal": "Utiliser l'image en résolution d'origine",
+    "tier": {
+      "excellent": "Excellent",
+      "good": "Bien",
+      "needsWork": "À améliorer"
+    },
+    "gallery": {
+      "too_few": "Ajoutez au moins 3 photos — l'acheteur veut voir le produit sous plusieurs angles.",
+      "mixed_sizes": "Les tailles varient beaucoup — gardez des résolutions proches pour une galerie propre.",
+      "duplicates": "Certaines photos sont quasi identiques — remplacez-les par de nouveaux angles."
+    },
+    "issue": {
+      "unreadable": "Cette image n'a pas pu être lue.",
+      "too_small": "Trop petite (moins de 600 px) — elle sera floue.",
+      "low_res": "Résolution faible (moins de 1000 px) — le zoom sera flou.",
+      "extreme_ratio": "Format inhabituel — une photo carrée ou 4:5 s'affiche mieux.",
+      "over_compressed": "Très compressée — artefacts visibles. Envoyez un fichier de meilleure qualité.",
+      "dark_background": "Fond sombre — la photo principale rend mieux sur fond clair et uni.",
+      "busy_background": "Fond chargé — la photo principale rend mieux sur fond uni.",
+      "duplicate": "Quasi identique à une photo précédente."
+    }
   }
 }

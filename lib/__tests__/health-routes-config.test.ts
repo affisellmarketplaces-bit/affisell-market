@@ -7,7 +7,7 @@ describe("health & cold-start safeguards (static)", () => {
   it("health/migrations casts regclass to text (Prisma cannot deserialize regclass)", () => {
     const src = read("app/api/health/migrations/route.ts")
     const calls = src.match(/to_regclass\([^)]*\)[^`]*/g) ?? []
-    expect(calls.length).toBe(2)
+    expect(calls.length).toBe(3) // PulseBattle, StockCheckLog, SupplierShippingProfile
     for (const c of calls) expect(c).toContain("::text")
   })
 

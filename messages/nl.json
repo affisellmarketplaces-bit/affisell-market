@@ -7784,5 +7784,34 @@
       "decorations": "Verwijder emoji, symbolen en [tags] — ze lijken op een geplakte advertentie",
       "keyword_stuffing": "Lijkt volgepropt met zoekwoorden — houd merk, model en type; de rest in de beschrijving"
     }
+  },
+  "supplierPhotos": {
+    "heading": "Je foto's kunnen professioneler ogen",
+    "checking": "Foto's controleren…",
+    "allGood": "Je foto's zien er goed uit",
+    "error": "Controle nu niet beschikbaar — je kunt nog steeds publiceren.",
+    "inline": "{count, plural, one {# foto is} other {# foto's zijn}} nog niet geüpload — gecontroleerd na upload.",
+    "photoN": "Foto {n}",
+    "useOriginal": "Gebruik de afbeelding in originele resolutie",
+    "tier": {
+      "excellent": "Uitstekend",
+      "good": "Goed",
+      "needsWork": "Kan beter"
+    },
+    "gallery": {
+      "too_few": "Voeg minstens 3 foto's toe — kopers willen het product vanuit meerdere hoeken zien.",
+      "mixed_sizes": "De formaten lopen sterk uiteen — gebruik vergelijkbare resoluties voor een nette galerij.",
+      "duplicates": "Sommige foto's zijn bijna identiek — vervang ze door nieuwe hoeken."
+    },
+    "issue": {
+      "unreadable": "Deze afbeelding kon niet worden gelezen.",
+      "too_small": "Te klein (onder 600 px) — ziet er wazig uit.",
+      "low_res": "Lage resolutie (onder 1000 px) — zoomen wordt zacht.",
+      "extreme_ratio": "Ongewone vorm — een vierkante of 4:5-foto oogt het best.",
+      "over_compressed": "Sterk gecomprimeerd — zichtbare artefacten. Upload een bestand van hogere kwaliteit.",
+      "dark_background": "Donkere achtergrond — de hoofdfoto werkt het best op een lichte, effen achtergrond.",
+      "busy_background": "Drukke achtergrond — de hoofdfoto werkt het best op een effen achtergrond.",
+      "duplicate": "Bijna identiek aan een eerdere foto."
+    }
   }
 }
