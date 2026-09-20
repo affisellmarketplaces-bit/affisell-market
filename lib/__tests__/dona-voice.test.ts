@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest"
 
+import { GET as getVoiceStatus } from "@/app/api/dona/voice/status/route"
+import { POST as postTranscribe } from "@/app/api/dona/voice/transcribe/route"
+import { POST as postSpeak } from "@/app/api/dona/voice/speak/route"
 import { DONA_VOICE_MODE_PROMPT } from "@/lib/dona/voice-prompt"
 import {
   DONA_VOICE_MAX_AUDIO_BYTES,
@@ -65,5 +68,37 @@ describe("dona voice prompt", () => {
   it("asks for short spoken replies without urls", () => {
     expect(DONA_VOICE_MODE_PROMPT.toLowerCase()).toContain("vocale")
     expect(DONA_VOICE_MODE_PROMPT.toLowerCase()).toContain("url")
+  })
+})
+
+describe("dona voice routes", () => {
+  it("GET status reports enabled neural flags without throwing", async () => {
+    const res = await getVoiceStatus()
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { enabled: boolean; neuralStt: boolean; neuralTts: boolean }
+    expect(body.enabled).toBe(true)
+    expect(typeof body.neuralStt).toBe("boolean")
+    expect(typeof body.neuralTts).toBe("boolean")
+  })
+
+  it("POST transcribe rejects missing audio", async () => {
+    const res = await postTranscribe(
+      new Request("http://localhost/api/dona/voice/transcribe", {
+        method: "POST",
+        body: new FormData(),
+      })
+    )
+    expect([400, 503]).toContain(res.status)
+  })
+
+  it("POST speak rejects empty text when neural TTS is on, else 204", async () => {
+    const res = await postSpeak(
+      new Request("http://localhost/api/dona/voice/speak", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: "   ", locale: "fr" }),
+      })
+    )
+    expect([400, 204, 503]).toContain(res.status)
   })
 })
