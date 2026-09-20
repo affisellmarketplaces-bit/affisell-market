@@ -17,6 +17,8 @@ import {
 } from "@/components/dona/dona-chat-ui"
 import { DonaAvatarImage } from "@/components/dona/dona-avatar-image"
 import { DonaFabOrb } from "@/components/dona/dona-fab-orb"
+import { DonaVoiceControls, DonaVoiceLiveStage } from "@/components/dona/dona-voice-live"
+import { useDonaVoiceSession } from "@/components/dona/use-dona-voice"
 import { tMessage } from "@/lib/i18n-pick-message"
 
 type CaptainMeta = {
@@ -74,6 +76,7 @@ export function DonaCaptainWidget() {
   const [meta, setMeta] = useState<CaptainMeta | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [input, setInput] = useState("")
+  const voiceModeRef = useRef(false)
 
   const { messages, sendMessage, status, error, clearError } = useChat({
     transport: new DefaultChatTransport({
@@ -86,6 +89,7 @@ export function DonaCaptainWidget() {
           trigger,
           messageId,
           locale,
+          voiceMode: voiceModeRef.current,
         },
       }),
     }),
@@ -115,6 +119,35 @@ export function DonaCaptainWidget() {
     [messages]
   )
 
+  const lastAssistant = useMemo(() => {
+    const last = [...renderableMessages].reverse().find((m) => m.role === "assistant")
+    return { id: last?.id ?? null, text: last ? donaMessageText(last) : "" }
+  }, [renderableMessages])
+
+  async function sendText(text: string, viaVoice = false) {
+    const trimmed = text.trim()
+    if (!trimmed || busy) return
+    setInput("")
+    clearError()
+    voiceModeRef.current = viaVoice
+    await sendMessage({ text: trimmed })
+  }
+
+  const voice = useDonaVoiceSession({
+    locale,
+    open: isOpen,
+    busy,
+    lastAssistantId: lastAssistant.id,
+    lastAssistantText: lastAssistant.text,
+    welcomeText: welcome,
+    hasUserTurn: renderableMessages.some((m) => m.role === "user"),
+    onSend: (text) => sendText(text, true),
+  })
+
+  useEffect(() => {
+    if (voice.live) voiceModeRef.current = true
+  }, [voice.live])
+
   useEffect(() => {
     if (!visible || !isOpen) return
     void fetch("/api/dona/captain-meta", { credentials: "same-origin" })
@@ -133,14 +166,6 @@ export function DonaCaptainWidget() {
   }, [messages, status, isOpen, busy, error])
 
   if (!visible) return null
-
-  async function sendText(text: string) {
-    const trimmed = text.trim()
-    if (!trimmed || busy) return
-    setInput("")
-    clearError()
-    await sendMessage({ text: trimmed })
-  }
 
   const envLabel = meta?.label ?? "STAGING"
   const envHost = meta?.dbHost ?? "…"
@@ -194,7 +219,10 @@ export function DonaCaptainWidget() {
               </div>
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  voice.stopAll()
+                  setIsOpen(false)
+                }}
                 className="rounded-lg p-1.5 text-white/70 transition hover:bg-white/10 hover:text-white"
                 aria-label={closeAria}
               >
@@ -282,27 +310,76 @@ export function DonaCaptainWidget() {
               className="shrink-0 border-t border-violet-500/20 p-3"
               onSubmit={(e) => {
                 e.preventDefault()
-                void sendText(input)
+                void sendText(input, voice.live)
               }}
             >
+              {voice.live ? (
+                <DonaVoiceLiveStage
+                  phase={voice.phase}
+                  level={voice.level}
+                  interim={voice.interim}
+                  onHangup={voice.stopAll}
+                  copy={{
+                    listening: tMessage(locale, "donaWidget.voice.listening"),
+                    transcribing: tMessage(locale, "donaWidget.voice.transcribing"),
+                    speaking: tMessage(locale, "donaWidget.voice.speaking"),
+                    liveOn: tMessage(locale, "donaWidget.voice.liveOn"),
+                    hangupAria: tMessage(locale, "donaWidget.voice.hangupAria"),
+                  }}
+                />
+              ) : null}
+              {voice.errorKey === "permission" ? (
+                <p className="mb-2 text-center text-[11px] text-amber-200">
+                  {tMessage(locale, "donaWidget.voice.permissionDenied")}
+                </p>
+              ) : null}
+              {voice.errorKey === "unsupported" ? (
+                <p className="mb-2 text-center text-[11px] text-amber-200">
+                  {tMessage(locale, "donaWidget.voice.unsupported")}
+                </p>
+              ) : null}
+              {voice.errorKey === "empty" ? (
+                <p className="mb-2 text-center text-[11px] text-amber-200">
+                  {tMessage(locale, "donaWidget.voice.empty")}
+                </p>
+              ) : null}
+              {voice.errorKey === "transcribe" ? (
+                <p className="mb-2 text-center text-[11px] text-amber-200">
+                  {tMessage(locale, "donaWidget.voice.transcribeError")}
+                </p>
+              ) : null}
               <div className="flex gap-2">
+                <DonaVoiceControls
+                  live={voice.live}
+                  phase={voice.phase}
+                  supported={voice.supported}
+                  busy={busy}
+                  micAria={tMessage(locale, "donaWidget.voice.micAria")}
+                  liveAria={tMessage(locale, "donaWidget.voice.liveAria")}
+                  stopAria={tMessage(locale, "donaWidget.voice.stopAria")}
+                  onMicDown={voice.startHold}
+                  onMicUp={voice.stopHold}
+                  onToggleLive={voice.toggleLive}
+                />
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder={placeholder}
-                  disabled={busy}
+                  disabled={busy || voice.live}
                   className="min-w-0 flex-1 rounded-full border border-white/10 bg-[#1A1A3D] px-4 py-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-violet-500/50"
                 />
                 <button
                   type="submit"
-                  disabled={busy || !input.trim()}
+                  disabled={busy || voice.live || !input.trim()}
                   className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#7C3AED] text-white disabled:opacity-40"
                   aria-label={sendAria}
                 >
                   <Send className="size-4" />
                 </button>
               </div>
-              <p className="mt-2 text-center text-[10px] text-white/35">{trustFooter}</p>
+              <p className="mt-2 text-center text-[10px] text-white/35">
+                {voice.supported ? tMessage(locale, "donaWidget.voice.hint") : trustFooter}
+              </p>
             </form>
           </motion.div>
         ) : null}

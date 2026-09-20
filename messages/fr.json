@@ -6875,6 +6875,21 @@
     "errors": {
       "genericPublic": "Dona : le réacteur tousse. Réessaie — ou va voir /sell comme un adulte responsable. 💜",
       "genericCaptain": "Dona Capitaine : accès refusé ou réacteur froid. Reste sur /dashboard/supplier. 💜"
+    },
+    "voice": {
+      "micAria": "Maintenir pour parler à Dona",
+      "liveAria": "Lancer un appel vocal live avec Dona",
+      "stopAria": "Couper l'appel vocal",
+      "hangupAria": "Raccrocher",
+      "listening": "J'écoute…",
+      "transcribing": "Je transcris…",
+      "speaking": "Dona parle…",
+      "liveOn": "Live · duplex neural",
+      "hint": "Maintiens le micro · ou tape les ondes pour un appel live · Stripe · RGPD",
+      "permissionDenied": "Micro bloqué — autorise-le dans le navigateur, puis réessaie.",
+      "unsupported": "La voix demande HTTPS et un micro. Tu peux encore écrire.",
+      "empty": "Je n'ai rien saisi — réessaie, Capitaine.",
+      "transcribeError": "Le réacteur vocal tousse — réessaie ou tape. 💜"
     }
   },
   "globalError": {
