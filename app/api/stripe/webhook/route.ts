@@ -16,6 +16,8 @@ import { enqueueProcessTransfersJob } from "@/lib/transfers/enqueue-job"
 import { getStripeClient } from "@/lib/stripe"
 
 export const runtime = "nodejs"
+/** Function budget (s): the platform default of 10s cut long webhook/analysis work mid-flight. */
+export const maxDuration = 60
 export const dynamic = "force-dynamic"
 
 const ROUTE = "stripe/webhook"
