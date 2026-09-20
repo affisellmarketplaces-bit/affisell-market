@@ -2519,6 +2519,12 @@ model Order {
   fulfillmentErrors                Json?
   paidAt                           DateTime?
   /**
+   * Customer invoice number (continuous per issuer and year) — assigned once, on the first invoice issued.
+   * Format `YYYY-ISSUER-000001`. See lib/invoices/invoice-number.server.ts.
+   */
+  customerInvoiceNumber            String?                      @unique
+  customerInvoicedAt               DateTime?
+  /**
    * Ship Pulse deadline (paidAt + 10d, or extended after buyer accepts a delay request).
    */
   shipDeadlineAt                   DateTime?
@@ -4408,4 +4414,17 @@ model AffiliatePayoutMethod {
 
   @@index([affiliateId, isDefault])
   @@index([affiliateId, status])
+}
+
+/**
+ * Gapless invoice counter per issuing seller and year (French rule: continuous, chronological numbering).
+ * Incremented inside the same transaction that stamps the order, so a rollback never burns a number.
+ */
+model InvoiceSequence {
+  issuerKey  String
+  year       Int
+  lastNumber Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  @@id([issuerKey, year])
 }

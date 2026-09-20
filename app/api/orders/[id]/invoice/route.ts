@@ -7,6 +7,7 @@ import {
   resolveSupplierSellerName,
 } from "@/lib/legal/affiliate-commissionnaire.server"
 import { affiliateSaleAmountsFromOrder } from "@/lib/legal/affiliate-commissionnaire-shared"
+import { ensureCustomerInvoiceNumber } from "@/lib/invoices/invoice-number.server"
 import { listingDisplayTitle } from "@/lib/affiliate-listing-display"
 import { invoiceAddressLines, resolveInvoiceLocale } from "@/lib/invoices/invoice-labels"
 import { resolveOrderAccessRole } from "@/lib/order-access"
@@ -116,7 +117,24 @@ export async function GET(req: Request, { params }: Params) {
       : {}),
   }
 
-  const pdf = await renderOrderInvoicePdf(type, pdfInput)
+  // Continuous invoice number for the customer document. Never blocks the download: without it (e.g. migration not
+  // yet applied) the invoice still renders with the order reference.
+  let invoiceNumber: string | null = null
+  let issuedAt: string | null = null
+  if (type === "CUSTOMER") {
+    try {
+      const stamp = await ensureCustomerInvoiceNumber(order.id)
+      invoiceNumber = stamp.number
+      issuedAt = stamp.issuedAt.toISOString().slice(0, 10)
+    } catch (error) {
+      console.error("[invoice-number]", { orderId: order.id, error: error instanceof Error ? error.message : String(error) })
+    }
+  }
+
+  const pdf = await renderOrderInvoicePdf(type, {
+    ...pdfInput,
+    ...(type === "CUSTOMER" ? { currency: order.currency, invoiceNumber, issuedAt } : {}),
+  })
 
   return new NextResponse(new Uint8Array(pdf), {
     headers: {

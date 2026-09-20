@@ -7,7 +7,7 @@ import {
 } from "@/lib/legal/affiliate-commissionnaire-shared"
 import { isAffisellVatFranchise, readCompanyLegal } from "@/lib/legal/company-env"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
-import { invoiceLabels, type InvoiceLocale } from "@/lib/invoices/invoice-labels"
+import { formatInvoiceDate, formatInvoiceMoney, invoiceLabels, type InvoiceLocale } from "@/lib/invoices/invoice-labels"
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: "Helvetica" },
@@ -57,10 +57,18 @@ type OrderInvoiceData = {
   paidAt?: string | null
   buyerAddressLines?: string[]
   taxRatePercent?: number | null
+  /** Order currency (ISO 4217). Missing → EUR. */
+  currency?: string | null
+  /** Continuous customer invoice number, e.g. `2026-KIP3QC-000001`. */
+  invoiceNumber?: string | null
+  /** Date the invoice was issued (first issue). */
+  issuedAt?: string | null
 }
 
-function money(cents: number) {
-  return formatStoreCurrencyFromCents(cents)
+function makeMoney(order: { currency?: string | null; locale?: InvoiceLocale }, useOrderCurrency: boolean) {
+  // Customer invoices show the amounts in the currency actually charged; internal documents keep the store format.
+  return (cents: number) =>
+    useOrderCurrency ? formatInvoiceMoney(cents, order.currency, order.locale ?? "fr") : formatStoreCurrencyFromCents(cents)
 }
 
 function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoiceData }) {
@@ -68,6 +76,7 @@ function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoi
   const franchise = isAffisellVatFranchise(company)
   const locale = order.locale ?? "fr"
   const L = invoiceLabels(locale)
+  const money = makeMoney(order, type === "CUSTOMER")
   const commissionnaireFooter =
     locale === "fr" ? INVOICE_COMMISSIONNAIRE_FOOTER_FR : INVOICE_COMMISSIONNAIRE_FOOTER_EN
 
@@ -150,9 +159,17 @@ function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoi
           <>
             <Text style={styles.meta}>{issuerLine}</Text>
             <View style={styles.block}>
+              {order.invoiceNumber ? (
+                <Text style={{ fontWeight: "bold" }}>
+                  {L.invoiceNo} {order.invoiceNumber}
+                </Text>
+              ) : null}
               <Text>
-                {L.orderRef} : {order.orderId} · {L.issuedOn} : {order.createdAt}
-                {order.paidAt ? ` · ${L.paidOn} : ${order.paidAt}` : ""}
+                {L.issuedOn} : {formatInvoiceDate(order.issuedAt ?? order.createdAt, locale)}
+                {order.paidAt ? ` · ${L.paidOn} : ${formatInvoiceDate(order.paidAt, locale)}` : ""}
+              </Text>
+              <Text>
+                {L.orderRef} : {order.orderId}
               </Text>
             </View>
             <View style={styles.block}>
@@ -162,11 +179,6 @@ function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoi
               ))}
               <Text>{order.customerEmail}</Text>
             </View>
-            {order.supplierSellerName ? (
-              <Text style={styles.meta}>
-                {L.deliveredBy} : {order.supplierSellerName}
-              </Text>
-            ) : null}
             {order.quantity != null && order.unitPriceCents != null ? (
               <View style={styles.table}>
                 <View style={styles.th}>
@@ -208,14 +220,6 @@ function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoi
           ))}
         </View>
 
-        {type === "CUSTOMER" && order.pricingFreedom ? (
-          <Text style={styles.legalNote}>
-            {locale === "fr"
-              ? "Liberté de prix attestée — base HT de revente enregistrée au checkout (anti-requalification L134-1)."
-              : "Pricing freedom attested — resale HT basis recorded at checkout (anti L134-1 reclassification)."}
-          </Text>
-        ) : null}
-
         <View style={styles.total}>
           <View style={styles.row}>
             <Text style={{ fontWeight: "bold" }}>
@@ -233,7 +237,7 @@ function InvoiceDocument({ type, order }: { type: InvoiceType; order: OrderInvoi
 
         {type === "CUSTOMER" && order.paidAt ? (
           <Text style={styles.legalNote}>
-            {L.paymentCard} — {order.paidAt}
+            {L.paymentCard} — {formatInvoiceDate(order.paidAt, locale)}
           </Text>
         ) : null}
 

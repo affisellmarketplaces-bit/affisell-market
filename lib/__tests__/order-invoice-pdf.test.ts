@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { invoiceAddressLines, invoiceLabels, resolveInvoiceLocale } from "@/lib/invoices/invoice-labels"
+import { formatInvoiceDate, formatInvoiceMoney, invoiceAddressLines, invoiceLabels, resolveInvoiceLocale } from "@/lib/invoices/invoice-labels"
 import { renderOrderInvoicePdf, type OrderInvoiceData } from "@/lib/invoices/order-invoice-pdf"
 
 const base: OrderInvoiceData = {
@@ -18,6 +18,9 @@ const base: OrderInvoiceData = {
   paidAt: "2026-09-20",
   buyerAddressLines: ["Jane Doe", "20 Rue de Cuques", "13100 Aix-en-Provence", "FR"],
   taxRatePercent: 20,
+  currency: "EUR",
+  invoiceNumber: "2026-KIP3QC-000001",
+  issuedAt: "2026-09-20",
 }
 
 describe("customer invoice", () => {
@@ -32,6 +35,15 @@ describe("customer invoice", () => {
       const labels = invoiceLabels(l)
       expect(Object.values(labels).every((v) => v.trim().length > 0)).toBe(true)
     }
+  })
+
+  it("formats amounts in the order currency and dates in the invoice language", () => {
+    expect(formatInvoiceMoney(28186, "EUR", "fr").replace(/\s/g, " ")).toBe("281,86 €")
+    expect(formatInvoiceMoney(28186, "USD", "en")).toBe("US$281.86")
+    expect(formatInvoiceMoney(1000, "not-a-currency", "en")).toBe("€10.00") // safe fallback
+    expect(formatInvoiceDate("2026-09-20", "fr")).toBe("20 septembre 2026")
+    expect(formatInvoiceDate("2026-09-20", "en")).toBe("20 September 2026")
+    expect(formatInvoiceDate(null, "en")).toBe("")
   })
 
   it("builds the address block without empty lines", () => {
