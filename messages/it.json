@@ -2742,6 +2742,7 @@
     "listingBuilder": {
       "referencePriceLabel": "Prezzo di riferimento (SKU base)",
       "referencePriceHint": "Utilizzato come modello di margine predefinito. I prezzi per variante vengono impostati nel blocco sopra.",
+      "priceSuggestion": "Gli acquirenti si fidano di prezzi come {price}. Tocca per usarlo.",
       "topVariantSettlement": "Variante premium «{variant}» a {price}",
       "marginReviewTitle": "Il prezzo del fornitore è aumentato — controlla i tuoi margini",
       "marginReviewBody": "Le varianti evidenziate potrebbero vendere in perdita o con margine ridotto. Correggi con un tocco o modifica manualmente.",

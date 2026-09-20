@@ -2742,6 +2742,7 @@
     "listingBuilder": {
       "referencePriceLabel": "Cena referencyjna (podstawowe SKU)",
       "referencePriceHint": "Używane jako domyślny szablon marży. Ceny klienta dla poszczególnych wariantów ustala się w bloku powyżej.",
+      "priceSuggestion": "Kupujący ufają cenom takim jak {price}. Dotknij, aby użyć.",
       "topVariantSettlement": "Wariant premium „{variant}” w cenie {price}",
       "marginReviewTitle": "Cena dostawcy wzrosła — sprawdź swoje marże",
       "marginReviewBody": "Wyróżnione warianty mogą być sprzedawane ze stratą lub obniżoną marżą. Popraw jednym dotknięciem lub dostosuj ręcznie.",

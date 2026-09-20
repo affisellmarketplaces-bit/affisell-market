@@ -2742,6 +2742,7 @@
     "listingBuilder": {
       "referencePriceLabel": "Referenzpreis (Basis-SKU)",
       "referencePriceHint": "Wird als Standard-Margenvorlage verwendet. Kundenpreise pro Variante werden im obigen Block festgelegt.",
+      "priceSuggestion": "Käufer vertrauen Preisen wie {price}. Tippen zum Übernehmen.",
       "topVariantSettlement": "Premium-Variante „{variant}“ zu {price}",
       "marginReviewTitle": "Lieferantenpreis erhöht — überprüfe deine Margen",
       "marginReviewBody": "Hervorgehobene Varianten könnten mit Verlust oder reduzierter Marge verkauft werden. Mit einem Tap korrigieren oder manuell anpassen.",

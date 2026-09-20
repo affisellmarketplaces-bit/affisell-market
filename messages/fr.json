@@ -2742,6 +2742,7 @@
     "listingBuilder": {
       "referencePriceLabel": "Prix de référence (SKU de base)",
       "referencePriceHint": "Sert de modèle de marge par défaut. Les prix client par variante se règlent dans le bloc ci-dessus.",
+      "priceSuggestion": "Les acheteurs font confiance à des prix comme {price}. Touchez pour l’utiliser.",
       "topVariantSettlement": "Variante premium « {variant} » à {price}",
       "marginReviewTitle": "Prix fournisseur en hausse — revoyez vos marges",
       "marginReviewBody": "Les variantes surlignées peuvent être vendues à perte ou avec une marge réduite. Corrigez en 1 clic ou ajustez manuellement.",

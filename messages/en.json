@@ -2742,6 +2742,7 @@
     "listingBuilder": {
       "referencePriceLabel": "Reference price (base SKU)",
       "referencePriceHint": "Used as the default margin template. Per-variant client prices are set in the block above.",
+      "priceSuggestion": "Buyers trust prices like {price}. Tap to use it.",
       "topVariantSettlement": "Premium variant « {variant} » at {price}",
       "marginReviewTitle": "Supplier price increased — review your margins",
       "marginReviewBody": "Highlighted variants may sell at a loss or with reduced margin. Fix in one tap or adjust manually.",

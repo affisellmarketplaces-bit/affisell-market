@@ -50,6 +50,7 @@ import {
 import { computeMarketplaceOrderSettlement } from "@/lib/marketplace-order-settlement"
 import { formatStoreCurrencyFromCents } from "@/lib/market-config"
 import { formatWarrantyBadgeLabel, resolveProductWarrantyMonths } from "@/lib/product-warranty"
+import { isFormulaResiduePrice, psychologicalPriceCents } from "@/lib/listing-quality"
 import { cn } from "@/lib/utils"
 
 type CatalogProduct = {
@@ -358,6 +359,15 @@ function ListingBuilderModalBody({
   )
 
   const tListingBuilder = useTranslations("affiliateDashboard.listingBuilder")
+  // Suggestion only: a believable retail price (…,90 / …,99). Never applied without a tap; never below supplier cost.
+  const priceSuggestion = useMemo(() => {
+    const euro = Number(String(form.priceEUR).replace(",", "."))
+    if (!Number.isFinite(euro) || euro <= 0) return null
+    const cents = Math.round(euro * 100)
+    if (!isFormulaResiduePrice(cents)) return null
+    const next = psychologicalPriceCents(cents)
+    return next !== cents && next > product.basePriceCents ? next : null
+  }, [form.priceEUR, product.basePriceCents])
   const multiVariantSelectedKeys = useMemo(
     () => promotedVariantKeysFromPick(variantOptions, form.promotedVariantPick),
     [form.promotedVariantPick, variantOptions]
@@ -1128,6 +1138,17 @@ function ListingBuilderModalBody({
                       ) : null}
                     </span>
                   </p>
+
+                  {priceSuggestion ? (
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, priceEUR: (priceSuggestion / 100).toFixed(2) }))}
+                      className="inline-flex flex-wrap items-center gap-x-1 rounded-lg bg-amber-50 px-3 py-1.5 text-left text-xs font-medium text-amber-900 ring-1 ring-amber-200 hover:bg-amber-100"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" aria-hidden />
+                      {tListingBuilder("priceSuggestion", { price: formatStoreCurrencyFromCents(priceSuggestion) })}
+                    </button>
+                  ) : null}
 
                   {settlementPreview ? (
                     <p className="rounded-lg border border-violet-100 bg-violet-50/80 px-3 py-2 text-xs leading-relaxed text-violet-950">

@@ -2742,6 +2742,7 @@
     "listingBuilder": {
       "referencePriceLabel": "Referentieprijs (basis-SKU)",
       "referencePriceHint": "Wordt gebruikt als standaard margesjabloon. Klantprijzen per variant worden ingesteld in het blok hierboven.",
+      "priceSuggestion": "Kopers vertrouwen prijzen zoals {price}. Tik om te gebruiken.",
       "topVariantSettlement": "Premiumvariant '{variant}' voor {price}",
       "marginReviewTitle": "Leveranciersprijs verhoogd — controleer je marges",
       "marginReviewBody": "Gemarkeerde varianten kunnen met verlies of verlaagde marge worden verkocht. Herstel met één tik of pas handmatig aan.",

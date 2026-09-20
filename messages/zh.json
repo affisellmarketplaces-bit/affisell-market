@@ -2742,6 +2742,7 @@
     "listingBuilder": {
       "referencePriceLabel": "参考价格（基础 SKU）",
       "referencePriceHint": "作为默认利润模板使用。各款式的客户价格在上方区块中设置。",
+      "priceSuggestion": "买家更信任 {price} 这样的价格。点击采用。",
       "topVariantSettlement": "高端款式「{variant}」，价格 {price}",
       "marginReviewTitle": "供应商价格上涨 —— 请检查你的利润设置",
       "marginReviewBody": "高亮显示的款式可能会亏本销售或利润过低。轻点一键修复，或手动调整。",
