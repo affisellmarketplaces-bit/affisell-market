@@ -29,6 +29,12 @@
     },
     "app/api/auth/**/*": {
       "maxDuration": 30
+    },
+    "app/api/webhooks/stripe/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/stripe/webhook/route.ts": {
+      "maxDuration": 60
     }
   },
   "crons": [
