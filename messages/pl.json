@@ -6875,6 +6875,18 @@
     "errors": {
       "genericPublic": "Dona: zacięcie reaktora. Spróbuj ponownie — albo wejdź na /sell jak odpowiedzialny dorosły. 💜",
       "genericCaptain": "Dona Kapitan: odmowa dostępu lub zimny reaktor. Zostań na /dashboard/supplier. 💜"
+    },
+    "voice": {
+      "micAria": "Mów do Dony",
+      "micStopAria": "Zatrzymaj słuchanie",
+      "duplexOn": "Rozmowa głosowa hands-free włączona — dotknij, by wyłączyć",
+      "duplexOff": "Włącz rozmowę głosową hands-free",
+      "listening": "Słucham",
+      "speaking": "Dona mówi",
+      "unsupported": "Głos nieobsługiwany w tej przeglądarce — napisz zamiast tego",
+      "liveBadge": "Głos na żywo",
+      "duplexLabelOn": "Live",
+      "duplexLabelOff": "Głos"
     }
   },
   "globalError": {

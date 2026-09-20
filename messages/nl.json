@@ -6875,6 +6875,18 @@
     "errors": {
       "genericPublic": "Dona: reactorhapering. Probeer opnieuw — of ga naar /sell als een verantwoordelijke volwassene. 💜",
       "genericCaptain": "Dona Kapitein: toegang geweigerd of koude reactor. Blijf op /dashboard/supplier. 💜"
+    },
+    "voice": {
+      "micAria": "Praat met Dona",
+      "micStopAria": "Stop met luisteren",
+      "duplexOn": "Handsfree spraakgesprek aan — tik om uit te zetten",
+      "duplexOff": "Handsfree spraakgesprek inschakelen",
+      "listening": "Ik luister",
+      "speaking": "Dona spreekt",
+      "unsupported": "Spraak niet ondersteund in deze browser — typ in plaats daarvan",
+      "liveBadge": "Live stem",
+      "duplexLabelOn": "Live",
+      "duplexLabelOff": "Stem"
     }
   },
   "globalError": {

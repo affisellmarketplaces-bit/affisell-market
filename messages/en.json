@@ -6875,6 +6875,18 @@
     "errors": {
       "genericPublic": "Dona: reactor hiccup. Retry — or hit /sell like a responsible adult. 💜",
       "genericCaptain": "Dona Captain: access denied or cold reactor. Stay on /dashboard/supplier. 💜"
+    },
+    "voice": {
+      "micAria": "Talk to Dona",
+      "micStopAria": "Stop listening",
+      "duplexOn": "Hands-free voice conversation on — tap to disable",
+      "duplexOff": "Enable hands-free voice conversation",
+      "listening": "Listening",
+      "speaking": "Dona is speaking",
+      "unsupported": "Voice not supported in this browser — type instead",
+      "liveBadge": "Live voice",
+      "duplexLabelOn": "Live",
+      "duplexLabelOff": "Voice"
     }
   },
   "globalError": {

@@ -6875,6 +6875,18 @@
     "errors": {
       "genericPublic": "Dona: fallo del reactor. Reinténtalo — o ve a /sell como un adulto responsable. 💜",
       "genericCaptain": "Dona Capitán: acceso denegado o reactor frío. Quédate en /dashboard/supplier. 💜"
+    },
+    "voice": {
+      "micAria": "Hablar con Dona",
+      "micStopAria": "Dejar de escuchar",
+      "duplexOn": "Conversación de voz manos libres activada — toca para desactivar",
+      "duplexOff": "Activar conversación de voz manos libres",
+      "listening": "Escuchando",
+      "speaking": "Dona está hablando",
+      "unsupported": "Voz no compatible en este navegador — escribe en su lugar",
+      "liveBadge": "Voz en vivo",
+      "duplexLabelOn": "Live",
+      "duplexLabelOff": "Voz"
     }
   },
   "globalError": {

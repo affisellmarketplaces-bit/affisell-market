@@ -6875,6 +6875,18 @@
     "errors": {
       "genericPublic": "Dona: Reaktor-Aussetzer. Versuch's erneut — oder geh wie ein verantwortungsbewusster Erwachsener zu /sell. 💜",
       "genericCaptain": "Dona Captain: Zugriff verweigert oder kalter Reaktor. Bleib auf /dashboard/supplier. 💜"
+    },
+    "voice": {
+      "micAria": "Mit Dona sprechen",
+      "micStopAria": "Zuhören beenden",
+      "duplexOn": "Freisprech-Sprachmodus an — tippen zum Ausschalten",
+      "duplexOff": "Freisprech-Sprachmodus aktivieren",
+      "listening": "Ich höre zu",
+      "speaking": "Dona spricht",
+      "unsupported": "Sprache in diesem Browser nicht unterstützt — bitte tippen",
+      "liveBadge": "Live-Sprache",
+      "duplexLabelOn": "Live",
+      "duplexLabelOff": "Stimme"
     }
   },
   "globalError": {

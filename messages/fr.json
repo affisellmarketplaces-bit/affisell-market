@@ -6875,6 +6875,18 @@
     "errors": {
       "genericPublic": "Dona : le réacteur tousse. Réessaie — ou va voir /sell comme un adulte responsable. 💜",
       "genericCaptain": "Dona Capitaine : accès refusé ou réacteur froid. Reste sur /dashboard/supplier. 💜"
+    },
+    "voice": {
+      "micAria": "Parler à Dona",
+      "micStopAria": "Arrêter l'écoute",
+      "duplexOn": "Conversation vocale mains libres activée — toucher pour couper",
+      "duplexOff": "Activer la conversation vocale mains libres",
+      "listening": "J'écoute",
+      "speaking": "Dona parle",
+      "unsupported": "Voix non supportée sur ce navigateur — tapez plutôt",
+      "liveBadge": "Voix live",
+      "duplexLabelOn": "Live",
+      "duplexLabelOff": "Voix"
     }
   },
   "globalError": {

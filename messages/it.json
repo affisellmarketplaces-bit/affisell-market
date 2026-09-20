@@ -6875,6 +6875,18 @@
     "errors": {
       "genericPublic": "Dona: intoppo al reattore. Riprova — oppure vai su /sell come un adulto responsabile. 💜",
       "genericCaptain": "Dona Capitano: accesso negato o reattore freddo. Resta su /dashboard/supplier. 💜"
+    },
+    "voice": {
+      "micAria": "Parla con Dona",
+      "micStopAria": "Interrompi ascolto",
+      "duplexOn": "Conversazione vocale hands-free attiva — tocca per disattivare",
+      "duplexOff": "Attiva conversazione vocale hands-free",
+      "listening": "Sto ascoltando",
+      "speaking": "Dona sta parlando",
+      "unsupported": "Voce non supportata in questo browser — digita invece",
+      "liveBadge": "Voce live",
+      "duplexLabelOn": "Live",
+      "duplexLabelOff": "Voce"
     }
   },
   "globalError": {
