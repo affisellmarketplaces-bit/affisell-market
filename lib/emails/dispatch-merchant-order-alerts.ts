@@ -49,11 +49,34 @@ export type DispatchMerchantOrderAlertsOptions = {
   forceAffiliate?: boolean
 }
 
+export type MerchantAlertDispatchStatus =
+  | "sent"
+  | "already_sent"
+  | "failed"
+  | "skipped"
+  | "skipped_unpaid"
+  | "skipped_no_resend"
+  | "skipped_no_address"
+
+export type DispatchMerchantOrderAlertsResult = {
+  supplier: MerchantAlertDispatchStatus
+  affiliate: MerchantAlertDispatchStatus
+  supplierResendId?: string
+  affiliateResendId?: string
+  supplierError?: string
+  affiliateError?: string
+}
+
 /** Idempotent Resend alerts for supplier + affiliate after marketplace checkout paid. */
 export async function dispatchMerchantOrderAlerts(
   orderId: string,
   options: DispatchMerchantOrderAlertsOptions = {}
-): Promise<void> {
+): Promise<DispatchMerchantOrderAlertsResult> {
+  const result: DispatchMerchantOrderAlertsResult = {
+    supplier: "skipped",
+    affiliate: "skipped",
+  }
+
   // Partner amounts of a fresh order are completed by the reconcile step: run it BEFORE reading them, otherwise the
   // reseller alert can go out with "Your earnings €0.00". Idempotent (no-op once the amounts are complete).
   try {
@@ -94,7 +117,11 @@ export async function dispatchMerchantOrderAlerts(
     },
   })
 
-  if (!order || order.status !== "paid") return
+  if (!order || order.status !== "paid") {
+    result.supplier = "skipped_unpaid"
+    result.affiliate = "skipped_unpaid"
+    return result
+  }
 
   // Force-clear only after paid check — never wipe flags on unpaid/missing rows.
   if (options.forceSupplier) {
@@ -115,7 +142,9 @@ export async function dispatchMerchantOrderAlerts(
   const config = readResendDeliveryConfig()
   if (!config) {
     console.log("[merchant-order-alerts]", { orderId, result: "email_skipped_no_resend" })
-    return
+    result.supplier = "skipped_no_resend"
+    result.affiliate = "skipped_no_resend"
+    return result
   }
 
   const orderRef = shortMerchantOrderRef(order.id)
@@ -136,6 +165,7 @@ export async function dispatchMerchantOrderAlerts(
         orderId,
         result: "supplier_email_skipped_no_address",
       })
+      result.supplier = "skipped_no_address"
     } else {
       const copy = copyForMerchantNewOrderAlert(emailLocale)
       try {
@@ -152,17 +182,35 @@ export async function dispatchMerchantOrderAlerts(
             copy,
           })
         )
+        const text = [
+          copy.heading,
+          copy.intro,
+          `${productName}${variantLabel?.trim() ? ` · ${variantLabel.trim()}` : ""}`,
+          `${copy.orderLabel}: #${orderRef}`,
+          `${copy.qtyLabel}: ×${quantity}`,
+          `${copy.buyerLabel}: ${buyerMasked}`,
+          partnerListingCode ? `${copy.partnerLabel}: ${partnerListingCode}` : null,
+          `${copy.payoutLabel}: ${payoutLabel}`,
+          supplierOrdersUrl(),
+          copy.footer,
+        ]
+          .filter(Boolean)
+          .join("\n")
+
         const sendResult = await sendResendEmail({
           context: "merchant-new-order-alert",
           config,
           intendedTo: supplierEmail,
           subject: copy.subject(productName),
           html,
+          text,
           replyTo,
           tags: merchantAlertTags("supplier", orderId),
         })
 
         if (!sendResult.ok) {
+          result.supplier = "failed"
+          result.supplierError = sendResult.error
           console.error("[merchant-order-alerts]", {
             orderId,
             role: "SUPPLIER",
@@ -177,6 +225,8 @@ export async function dispatchMerchantOrderAlerts(
           })
 
           if (claimed.count > 0) {
+            result.supplier = "sent"
+            result.supplierResendId = sendResult.resendId
             console.log("[merchant-order-alerts]", {
               orderId,
               role: "SUPPLIER",
@@ -185,17 +235,23 @@ export async function dispatchMerchantOrderAlerts(
               intendedTo: maskEmailForLog(supplierEmail),
               forced: Boolean(options.forceSupplier),
             })
+          } else {
+            result.supplier = "already_sent"
           }
         }
       } catch (error) {
+        result.supplier = "failed"
+        result.supplierError = error instanceof Error ? error.message : String(error)
         console.error("[merchant-order-alerts]", {
           orderId,
           role: "SUPPLIER",
           result: "email_failed",
-          error: error instanceof Error ? error.message : String(error),
+          error: result.supplierError,
         })
       }
     }
+  } else {
+    result.supplier = "already_sent"
   }
 
   if (!order.merchantAffiliateEmailSentAt) {
@@ -205,6 +261,7 @@ export async function dispatchMerchantOrderAlerts(
         orderId,
         result: "affiliate_email_skipped_no_address",
       })
+      result.affiliate = "skipped_no_address"
     } else {
       const copy = copyForAffiliateNewSaleAlert(emailLocale)
       try {
@@ -219,17 +276,31 @@ export async function dispatchMerchantOrderAlerts(
             copy,
           })
         )
+        const text = [
+          copy.heading,
+          copy.intro,
+          `${productName}${variantLabel?.trim() ? ` · ${variantLabel.trim()}` : ""}`,
+          `${copy.orderLabel}: #${orderRef}`,
+          `${copy.qtyLabel}: ×${quantity}`,
+          `${copy.earningsLabel}: ${earningsLabel}`,
+          affiliateEarningsUrl(),
+          copy.footer,
+        ].join("\n")
+
         const sendResult = await sendResendEmail({
           context: "affiliate-new-sale-alert",
           config,
           intendedTo: affiliateEmail,
           subject: copy.subject(productName),
           html,
+          text,
           replyTo,
           tags: merchantAlertTags("affiliate", orderId),
         })
 
         if (!sendResult.ok) {
+          result.affiliate = "failed"
+          result.affiliateError = sendResult.error
           console.error("[merchant-order-alerts]", {
             orderId,
             role: "AFFILIATE",
@@ -244,6 +315,8 @@ export async function dispatchMerchantOrderAlerts(
           })
 
           if (claimed.count > 0) {
+            result.affiliate = "sent"
+            result.affiliateResendId = sendResult.resendId
             console.log("[merchant-order-alerts]", {
               orderId,
               role: "AFFILIATE",
@@ -252,16 +325,24 @@ export async function dispatchMerchantOrderAlerts(
               intendedTo: maskEmailForLog(affiliateEmail),
               forced: Boolean(options.forceAffiliate),
             })
+          } else {
+            result.affiliate = "already_sent"
           }
         }
       } catch (error) {
+        result.affiliate = "failed"
+        result.affiliateError = error instanceof Error ? error.message : String(error)
         console.error("[merchant-order-alerts]", {
           orderId,
           role: "AFFILIATE",
           result: "email_failed",
-          error: error instanceof Error ? error.message : String(error),
+          error: result.affiliateError,
         })
       }
     }
+  } else {
+    result.affiliate = "already_sent"
   }
+
+  return result
 }

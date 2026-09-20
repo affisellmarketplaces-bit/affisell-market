@@ -71,6 +71,8 @@ export async function loadAdminOrderDetail(orderId: string): Promise<AdminOrderD
     productName: order.product.name,
     variantLabel: order.variantLabel,
     supplierName: order.supplier.name ?? order.supplier.email,
+    supplierEmail: order.supplier.email,
+    merchantSupplierEmailSentAt: order.merchantSupplierEmailSentAt?.toISOString() ?? null,
     affiliateName: order.affiliate.name,
     stripeSessionId: order.stripeSessionId,
     batchId: order.autoFulfillmentBatchId,
