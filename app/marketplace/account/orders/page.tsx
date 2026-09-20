@@ -22,7 +22,7 @@ export default async function MarketplaceBuyerOrdersPage() {
   let payload: Awaited<ReturnType<typeof buildBuyerOrdersPayloadForEmail>> = []
   let loadFailed = false
   try {
-    payload = await buildBuyerOrdersPayloadForEmail(session.user.email)
+    payload = await buildBuyerOrdersPayloadForEmail(session.user.email, session.user.id)
   } catch (error) {
     loadFailed = true
     console.error("[marketplace-account-orders]", {

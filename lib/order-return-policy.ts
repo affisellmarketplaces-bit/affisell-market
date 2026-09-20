@@ -43,9 +43,12 @@ export function isWithinBuyerReturnWindow(
 }
 
 export function buyerOwnsOrder(
-  order: Pick<Order, "customerEmail">,
-  sessionEmail: string | null | undefined
+  order: Pick<Order, "customerEmail"> & { buyerUserId?: string | null },
+  sessionEmail: string | null | undefined,
+  sessionUserId?: string | null
 ): boolean {
+  // Placed while signed in to this account (checkout e-mail may differ from the account e-mail).
+  if (sessionUserId && order.buyerUserId && order.buyerUserId === sessionUserId) return true
   if (!sessionEmail) return false
   return normalizeOrderEmail(order.customerEmail) === normalizeOrderEmail(sessionEmail)
 }

@@ -8,6 +8,8 @@ import {
   type PaymentSuccessPayload,
 } from "@/components/checkout/payment-success-screen"
 import { notifyBuyerPersonalizationRefresh } from "@/lib/buyer-personalization-refresh.client"
+import { dispatchCartUpdated } from "@/lib/buyer-cart-count-client"
+import { removeGuestCartListings } from "@/lib/guest-cart"
 
 const VERIFY_POLL_MS = 1200
 const VERIFY_MAX_ATTEMPTS = 10
@@ -79,6 +81,21 @@ export function SuccessClient({ sessionId, initialPayload }: Props) {
     buyerSessionAttempted.current = true
     void ensureBuyerSessionAfterCheckout(sessionId)
   }, [sessionId, payload?.fulfilled, session?.user?.role, sessionStatus])
+
+  // A paid checkout empties what it bought: guest (local) cart here, server cart in the webhook — then refresh the badge.
+  const cartCleared = useRef(false)
+  useEffect(() => {
+    if (!payload?.paid || !payload.fulfilled || cartCleared.current) return
+    cartCleared.current = true
+    try {
+      removeGuestCartListings(payload.purchasedListingIds ?? [])
+    } catch {
+      /* storage unavailable — the server cart is cleared by the webhook */
+    }
+    dispatchCartUpdated()
+    // The webhook may finish a moment after the page: re-sync the badge once more shortly after.
+    window.setTimeout(dispatchCartUpdated, 2500)
+  }, [payload?.paid, payload?.fulfilled, payload?.purchasedListingIds])
 
   useEffect(() => {
     if (!payload?.paid) return

@@ -129,6 +129,16 @@ export function removeGuestCartItem(productId: string, variantSignature: string 
   return next
 }
 
+/** Drop every line of the given listings (all variants) — used once they have been paid for. Returns lines removed. */
+export function removeGuestCartListings(productIds: readonly string[]): number {
+  if (productIds.length === 0) return 0
+  const ids = new Set(productIds)
+  const current = readGuestCart()
+  const next = current.filter((item) => !ids.has(item.productId))
+  if (next.length !== current.length) writeGuestCart(next)
+  return current.length - next.length
+}
+
 /** Persist per-variant hero image (e.g. after resolving color-specific URL) so reloads skip wrong thumbnail flash. */
 export function patchGuestCartItemImageUrl(productId: string, variantSignature: string, imageUrl: string) {
   const url = typeof imageUrl === "string" ? imageUrl.trim() : ""

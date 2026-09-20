@@ -10,6 +10,6 @@ export async function GET() {
     return Response.json({ error: "Not authenticated" }, { status: 401 })
   }
 
-  const payload = await buildBuyerOrdersPayloadForEmail(session.user.email)
+  const payload = await buildBuyerOrdersPayloadForEmail(session.user.email, session.user.id)
   return Response.json(payload)
 }

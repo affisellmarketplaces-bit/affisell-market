@@ -53,7 +53,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ orderId: strin
     return Response.json({ error: "Order not found" }, { status: 404 })
   }
 
-  if (!buyerOwnsOrder(order, session.user.email)) {
+  if (!buyerOwnsOrder(order, session.user.email, session.user.id)) {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 

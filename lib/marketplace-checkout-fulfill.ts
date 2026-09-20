@@ -3,6 +3,7 @@ import type Stripe from "stripe"
 import { SPONSOR_FLOW_METADATA } from "@/lib/sponsor/sponsor-constants"
 import { extractMarketplaceCheckoutCustomer } from "@/lib/marketplace-checkout-session"
 import { ghostReverifyBeforeFulfill } from "@/lib/ghost/post-pay-reverify"
+import { clearPurchasedCartItems } from "@/lib/marketplace-checkout-cart-clear.server"
 import { prisma } from "@/lib/prisma"
 import { fulfillMarketplaceStripeSession } from "@/lib/stripe-marketplace-fulfill"
 import { findOrderIdsForCheckoutSession } from "@/lib/stripe-marketplace-commission-split"
@@ -49,6 +50,19 @@ export async function ensureMarketplaceCheckoutFulfilled(
   const { customerEmail, shippingAddress } = extractMarketplaceCheckoutCustomer(session)
 
   await fulfillMarketplaceStripeSession(session, shippingAddress, customerEmail)
+
+  try {
+    const cleared = await clearPurchasedCartItems(session)
+    if (cleared > 0) {
+      logStripeWebhookInfo({ metric: "checkout_cart_cleared", sessionId: session.id, items: cleared })
+    }
+  } catch (error) {
+    logStripeWebhookInfo({
+      metric: "checkout_cart_clear_skipped",
+      sessionId: session.id,
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
 
   try {
     const { updatedOrderIds } = await syncOrderVatFromCheckoutSession(session.id)

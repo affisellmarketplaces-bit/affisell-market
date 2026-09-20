@@ -108,14 +108,27 @@ function blindReturnWindowEnds(createdAt: Date): Date {
   return d
 }
 
-export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Promise<BuyerOrderRow[]> {
+/**
+ * Orders of a buyer: those paid with the account e-mail AND those placed while signed in to the account
+ * (`buyerUserId`) — the checkout e-mail can differ from the account e-mail (Stripe Link prefill, other address).
+ */
+export function buyerOrdersOwnerFilter(normalizedEmail: string, buyerUserId?: string | null) {
+  const byEmail = { customerEmail: { equals: normalizedEmail, mode: "insensitive" as const } }
+  const id = buyerUserId?.trim()
+  return id ? { OR: [byEmail, { buyerUserId: id }] } : byEmail
+}
+
+export async function buildBuyerOrdersPayloadForEmail(
+  customerEmail: string,
+  buyerUserId?: string | null
+): Promise<BuyerOrderRow[]> {
   const normalized = customerEmail.trim().toLowerCase()
   const now = new Date()
 
   const [marketplaceOrders, blindOrders] = await Promise.all([
     prisma.order.findMany({
       where: {
-        customerEmail: { equals: normalized, mode: "insensitive" },
+        ...buyerOrdersOwnerFilter(normalized, buyerUserId),
         ...buyerVisibleMarketplaceOrderWhere,
       },
       orderBy: { createdAt: "desc" },
@@ -128,7 +141,7 @@ export async function buildBuyerOrdersPayloadForEmail(customerEmail: string): Pr
     }),
     prisma.blindDropshipOrder.findMany({
       where: {
-        customerEmail: { equals: normalized, mode: "insensitive" },
+        ...buyerOrdersOwnerFilter(normalized, buyerUserId),
         status: { notIn: ["pending_payment", "failed"] },
       },
       orderBy: { createdAt: "desc" },

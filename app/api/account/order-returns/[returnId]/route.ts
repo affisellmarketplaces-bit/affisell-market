@@ -38,7 +38,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ returnId: str
     return Response.json({ error: "Return not found" }, { status: 404 })
   }
 
-  if (!buyerOwnsOrder(ret.order, session.user.email)) {
+  if (!buyerOwnsOrder(ret.order, session.user.email, session.user.id)) {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 

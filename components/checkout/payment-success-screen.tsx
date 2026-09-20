@@ -39,6 +39,7 @@ export type PaymentSuccessPayload = {
   orderId?: string | null
   orderIds?: string[]
   affiliateProductId?: string | null
+  purchasedListingIds?: string[]
   amountTotal?: number | null
   currency?: string | null
   productName?: string | null

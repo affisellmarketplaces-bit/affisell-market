@@ -14,7 +14,7 @@ export async function loadBuyerAccountOverview(
   const normalizedEmail = email.trim().toLowerCase()
 
   const [orders, user, cart] = await Promise.all([
-    buildBuyerOrdersPayloadForEmail(normalizedEmail),
+    buildBuyerOrdersPayloadForEmail(normalizedEmail, userId),
     prisma.user.findUnique({
       where: { id: userId },
       select: { buyerRewardBalanceCents: true },

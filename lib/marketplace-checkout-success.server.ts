@@ -17,6 +17,8 @@ export type PaidCheckoutSessionResult = {
   orderId: string | null
   orderIds: string[]
   affiliateProductId: string | null
+  /** Listings bought in this checkout — lets the browser empty them from a guest (local) cart. */
+  purchasedListingIds: string[]
   amountTotal: number | null
   currency: string
   productName: string | null
@@ -103,6 +105,7 @@ export async function fulfillPaidCheckoutSession(
     orderId: orderIds[0] ?? session.metadata?.orderId ?? null,
     orderIds,
     affiliateProductId: orderRows[0]?.affiliateProductId ?? null,
+    purchasedListingIds: [...new Set(orderRows.map((o) => o.affiliateProductId))],
     amountTotal: display.amountTotal,
     currency: display.currency,
     productName: display.productName,
