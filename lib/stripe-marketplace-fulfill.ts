@@ -848,6 +848,60 @@ export async function fulfillMarketplaceStripeSession(
     existing = await prisma.order.findUnique({ where: { id: metaOrderId } })
   }
   if (existing?.status === "paid") {
+    // Heal settle-before-fulfill race: order marked paid with empty buyer email.
+    const missingBuyer = !(existing.customerEmail ?? "").trim()
+    if (missingBuyer && customerEmail.trim()) {
+      try {
+        await prisma.order.update({
+          where: { id: existing.id },
+          data: {
+            customerEmail: customerEmail.trim(),
+            shippingAddress,
+            ...(buyerUserId ? { buyerUserId } : {}),
+            ...(buyerLocale ? { buyerLocale } : {}),
+          },
+        })
+        console.log("[marketplace-fulfill]", {
+          sessionId,
+          orderId: existing.id,
+          result: "healed_paid_without_buyer_details",
+        })
+        try {
+          const product = await prisma.product.findUnique({
+            where: { id: existing.productId },
+            select: { name: true, images: true },
+          })
+          await sendOrderConfirmationEmail({
+            orderId: existing.id,
+            productName: product?.name ?? "Produit",
+            productImageUrl: resolveOrderConfirmationImageUrl({
+              productImages: product?.images,
+              customImages: null,
+              variantImageUrl: existing.variantImageUrl,
+            }),
+            quantity: existing.quantity,
+            total: ((existing.totalCents ?? existing.sellingPriceCents ?? 0) / 100).toFixed(2),
+            currency: existing.currency,
+            customerEmail: customerEmail.trim(),
+            locale: buyerLocale,
+          })
+        } catch (e) {
+          logStripeWebhookError({
+            metric: "order_confirmation_email_failed",
+            orderId: existing.id,
+            error: e instanceof Error ? e.message : String(e),
+          })
+        }
+      } catch (healErr) {
+        console.error("[marketplace-fulfill]", {
+          sessionId,
+          orderId: existing.id,
+          stage: "heal_paid_without_buyer",
+          error: healErr instanceof Error ? healErr.message : String(healErr),
+        })
+      }
+    }
+
     try {
       const { reconcileMarketplaceOrderPartnerAmounts } = await import(
         "@/lib/marketplace-order-settlement-reconcile"

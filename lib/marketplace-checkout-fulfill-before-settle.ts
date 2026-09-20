@@ -25,5 +25,5 @@ export async function ensureCheckoutFulfilledBeforeSettle(session: Stripe.Checko
 /** True when the order is paid but was never completed with the buyer's details (the race above already happened). */
 export async function orderPaidWithoutBuyerDetails(orderId: string): Promise<boolean> {
   const o = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true, customerEmail: true } })
-  return Boolean(o && o.status === "paid" && !o.customerEmail.trim())
+  return Boolean(o && o.status === "paid" && !(o.customerEmail ?? "").trim())
 }

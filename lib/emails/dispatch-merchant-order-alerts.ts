@@ -127,25 +127,34 @@ export async function dispatchMerchantOrderAlerts(orderId: string): Promise<void
         )
         const { Resend } = await import("resend")
         const resend = new Resend(config.apiKey)
-        const { data } = await resend.emails.send({
+        const { data, error } = await resend.emails.send({
           from: config.from,
           to,
           subject: copy.subject(productName),
           html,
         })
 
-        const claimed = await prisma.order.updateMany({
-          where: { id: orderId, merchantSupplierEmailSentAt: null },
-          data: { merchantSupplierEmailSentAt: new Date() },
-        })
-
-        if (claimed.count > 0) {
-          console.log("[merchant-order-alerts]", {
+        if (error || !data?.id) {
+          console.error("[merchant-order-alerts]", {
             orderId,
             role: "SUPPLIER",
-            result: "email_sent",
-            resendId: data?.id,
+            result: "email_failed",
+            error: error?.message ?? "no_resend_id",
           })
+        } else {
+          const claimed = await prisma.order.updateMany({
+            where: { id: orderId, merchantSupplierEmailSentAt: null },
+            data: { merchantSupplierEmailSentAt: new Date() },
+          })
+
+          if (claimed.count > 0) {
+            console.log("[merchant-order-alerts]", {
+              orderId,
+              role: "SUPPLIER",
+              result: "email_sent",
+              resendId: data.id,
+            })
+          }
         }
       } catch (error) {
         console.error("[merchant-order-alerts]", {
@@ -188,25 +197,34 @@ export async function dispatchMerchantOrderAlerts(orderId: string): Promise<void
         )
         const { Resend } = await import("resend")
         const resend = new Resend(config.apiKey)
-        const { data } = await resend.emails.send({
+        const { data, error } = await resend.emails.send({
           from: config.from,
           to,
           subject: copy.subject(productName),
           html,
         })
 
-        const claimed = await prisma.order.updateMany({
-          where: { id: orderId, merchantAffiliateEmailSentAt: null },
-          data: { merchantAffiliateEmailSentAt: new Date() },
-        })
-
-        if (claimed.count > 0) {
-          console.log("[merchant-order-alerts]", {
+        if (error || !data?.id) {
+          console.error("[merchant-order-alerts]", {
             orderId,
             role: "AFFILIATE",
-            result: "email_sent",
-            resendId: data?.id,
+            result: "email_failed",
+            error: error?.message ?? "no_resend_id",
           })
+        } else {
+          const claimed = await prisma.order.updateMany({
+            where: { id: orderId, merchantAffiliateEmailSentAt: null },
+            data: { merchantAffiliateEmailSentAt: new Date() },
+          })
+
+          if (claimed.count > 0) {
+            console.log("[merchant-order-alerts]", {
+              orderId,
+              role: "AFFILIATE",
+              result: "email_sent",
+              resendId: data.id,
+            })
+          }
         }
       } catch (error) {
         console.error("[merchant-order-alerts]", {

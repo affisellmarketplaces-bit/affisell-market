@@ -34,4 +34,10 @@ describe("ensureCheckoutFulfilledBeforeSettle", () => {
     expect(await ensureCheckoutFulfilledBeforeSettle({ id: "x", mode: "subscription", payment_status: "paid" } as never)).toBe(false)
     expect(needs).not.toHaveBeenCalled()
   })
+
+  it("propagates fulfill failures so settle can abort", async () => {
+    needs.mockResolvedValue(true)
+    ensure.mockRejectedValueOnce(new Error("boom"))
+    await expect(ensureCheckoutFulfilledBeforeSettle(paid)).rejects.toThrow("boom")
+  })
 })
