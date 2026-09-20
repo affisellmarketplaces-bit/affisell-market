@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
 import type { AppLocale } from "@/lib/i18n-locale"
+import {
+  donaBrowserPitch,
+  localeToBcp47,
+  pickDonaBrowserVoice,
+} from "@/lib/dona/voice-identity"
 import { toDonaSpeakableText } from "@/lib/dona/voice-speakable"
 
 export type DonaVoicePhase = "idle" | "listening" | "transcribing" | "speaking"
@@ -37,27 +42,22 @@ function preferredRecorderMime(): string {
   return candidates.find((c) => MediaRecorder.isTypeSupported(c)) ?? ""
 }
 
-function localeToBcp47(locale: AppLocale): string {
-  if (locale === "zh") return "zh-CN"
-  if (locale === "en") return "en-US"
-  return locale
-}
-
-function pickBrowserVoice(locale: AppLocale): SpeechSynthesisVoice | null {
-  if (typeof window === "undefined" || !window.speechSynthesis) return null
-  const voices = window.speechSynthesis.getVoices()
-  const prefix = localeToBcp47(locale).slice(0, 2).toLowerCase()
-  const pool = voices.filter((v) => v.lang.toLowerCase().startsWith(prefix))
-  const scored = (pool.length ? pool : voices).map((v) => {
-    const n = v.name.toLowerCase()
-    let score = 0
-    if (/neural|premium|enhanced|natural/.test(n)) score += 4
-    if (/samantha|amélie|amelie|thomas|google|siri|aria|jenny|nova|female|woman/.test(n)) score += 3
-    if (v.localService) score += 1
-    return { v, score }
+async function ensureBrowserVoices(): Promise<SpeechSynthesisVoice[]> {
+  if (typeof window === "undefined" || !window.speechSynthesis) return []
+  const immediate = window.speechSynthesis.getVoices()
+  if (immediate.length > 0) return immediate
+  await new Promise<void>((resolve) => {
+    const timer = window.setTimeout(() => resolve(), 500)
+    window.speechSynthesis.addEventListener(
+      "voiceschanged",
+      () => {
+        window.clearTimeout(timer)
+        resolve()
+      },
+      { once: true }
+    )
   })
-  scored.sort((a, b) => b.score - a.score)
-  return scored[0]?.v ?? null
+  return window.speechSynthesis.getVoices()
 }
 
 function rmsFromAnalyser(analyser: AnalyserNode, buffer: Uint8Array): number {
@@ -203,12 +203,13 @@ export function useDonaVoiceSession(opts: Opts): DonaVoiceSession {
   const speakBrowser = useCallback(async (text: string) => {
     const speakable = toDonaSpeakableText(text)
     if (!speakable || typeof window === "undefined" || !window.speechSynthesis) return
+    const voices = await ensureBrowserVoices()
+    const voice = pickDonaBrowserVoice(voices, optsRef.current.locale)
     await new Promise<void>((resolve) => {
       const utter = new SpeechSynthesisUtterance(speakable)
       utter.lang = localeToBcp47(optsRef.current.locale)
-      utter.rate = 1.04
-      utter.pitch = 1.04
-      const voice = pickBrowserVoice(optsRef.current.locale)
+      utter.rate = 0.98
+      utter.pitch = donaBrowserPitch(voice)
       if (voice) utter.voice = voice
       utter.onend = () => resolve()
       utter.onerror = () => resolve()

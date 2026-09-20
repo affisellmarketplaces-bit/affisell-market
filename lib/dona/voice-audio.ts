@@ -6,13 +6,16 @@ import { createGroqClient, getGroqApiKey } from "@/lib/ai/groq-client"
 import { logBusiness } from "@/lib/business-log"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { isDonaVoiceKillSwitched, whisperLanguageFromLocale } from "@/lib/dona/voice-limits"
+import {
+  DONA_TTS_INSTRUCTIONS,
+  donaTtsModelChain,
+  resolveDonaGroqVoice,
+  resolveDonaOpenAiVoice,
+} from "@/lib/dona/voice-identity"
 import { toDonaSpeakableText } from "@/lib/dona/voice-speakable"
 
 const GROQ_WHISPER_MODEL = process.env.DONA_WHISPER_MODEL?.trim() || "whisper-large-v3-turbo"
 const GROQ_TTS_MODEL = process.env.DONA_GROQ_TTS_MODEL?.trim() || "playai-tts"
-const GROQ_TTS_VOICE = process.env.DONA_GROQ_TTS_VOICE?.trim() || "Arista-PlayAI"
-const OPENAI_TTS_MODEL = process.env.DONA_TTS_MODEL?.trim() || "tts-1"
-const OPENAI_TTS_VOICE = process.env.DONA_TTS_VOICE?.trim() || "nova"
 
 export type DonaVoiceCapabilities = {
   enabled: boolean
@@ -92,33 +95,42 @@ export async function speakDonaText(
 
   const openai = openaiClient()
   if (openai) {
-    try {
-      const speech = await openai.audio.speech.create({
-        model: OPENAI_TTS_MODEL,
-        voice: OPENAI_TTS_VOICE,
-        input: text,
-        response_format: "mp3",
-        speed: 1.04,
-      })
-      const bytes = new Uint8Array(await speech.arrayBuffer())
-      logBusiness("dona-voice", {
-        result: "speak",
-        provider: "openai",
-        chars: text.length,
-        locale,
-        bytes: bytes.byteLength,
-      })
-      return { bytes, contentType: "audio/mpeg", provider: "openai" }
-    } catch (error) {
-      console.error("[dona-voice]", {
-        result: "speak_openai_fail",
-        error: error instanceof Error ? error.message : String(error),
-      })
+    const voice = resolveDonaOpenAiVoice(process.env.DONA_TTS_VOICE)
+    const models = donaTtsModelChain(process.env.DONA_TTS_MODEL)
+    for (const model of models) {
+      try {
+        const speech = await openai.audio.speech.create({
+          model,
+          voice,
+          input: text,
+          response_format: "mp3",
+          speed: 0.98,
+          ...(model.includes("gpt-4o-mini-tts") ? { instructions: DONA_TTS_INSTRUCTIONS } : {}),
+        })
+        const bytes = new Uint8Array(await speech.arrayBuffer())
+        logBusiness("dona-voice", {
+          result: "speak",
+          provider: "openai",
+          voice,
+          model,
+          chars: text.length,
+          locale,
+          bytes: bytes.byteLength,
+        })
+        return { bytes, contentType: "audio/mpeg", provider: "openai" }
+      } catch (error) {
+        console.error("[dona-voice]", {
+          result: "speak_openai_fail",
+          model,
+          voice,
+          error: error instanceof Error ? error.message : String(error),
+        })
+      }
     }
   }
 
-  // PlayAI on Groq is English-quality; skip for non-EN if OpenAI already failed.
   const groqKey = getGroqApiKey()
+  const groqVoice = resolveDonaGroqVoice(process.env.DONA_GROQ_TTS_VOICE)
   if (groqKey && (locale === "en" || !openai)) {
     try {
       const res = await fetch("https://api.groq.com/openai/v1/audio/speech", {
@@ -129,7 +141,7 @@ export async function speakDonaText(
         },
         body: JSON.stringify({
           model: GROQ_TTS_MODEL,
-          voice: GROQ_TTS_VOICE,
+          voice: groqVoice,
           input: text,
           response_format: "mp3",
         }),
@@ -142,6 +154,7 @@ export async function speakDonaText(
       logBusiness("dona-voice", {
         result: "speak",
         provider: "groq",
+        voice: groqVoice,
         chars: text.length,
         locale,
         bytes: bytes.byteLength,

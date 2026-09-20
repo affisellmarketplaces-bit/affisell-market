@@ -10,6 +10,15 @@ import {
   isDonaVoiceKillSwitched,
   whisperLanguageFromLocale,
 } from "@/lib/dona/voice-limits"
+import {
+  DONA_OPENAI_DEFAULT_VOICE,
+  donaBrowserPitch,
+  donaTtsModelChain,
+  isFeminineBrowserVoice,
+  pickDonaBrowserVoice,
+  resolveDonaGroqVoice,
+  resolveDonaOpenAiVoice,
+} from "@/lib/dona/voice-identity"
 import { isDonaVoiceModeFlag, toDonaSpeakableText } from "@/lib/dona/voice-speakable"
 
 describe("dona voice speakable", () => {
@@ -61,6 +70,52 @@ describe("dona voice limits", () => {
 
   it("kill switch is off by default", () => {
     expect(isDonaVoiceKillSwitched()).toBe(false)
+  })
+})
+
+describe("dona feminine voice identity", () => {
+  it("remaps male OpenAI voices to coral", () => {
+    expect(resolveDonaOpenAiVoice("onyx")).toBe(DONA_OPENAI_DEFAULT_VOICE)
+    expect(resolveDonaOpenAiVoice("echo")).toBe("coral")
+    expect(resolveDonaOpenAiVoice("alloy")).toBe("coral")
+    expect(resolveDonaOpenAiVoice("nova")).toBe("nova")
+    expect(resolveDonaOpenAiVoice("CORAL")).toBe("coral")
+  })
+
+  it("keeps Groq on Arista, never Thunder", () => {
+    expect(resolveDonaGroqVoice("Thunder-PlayAI")).toBe("Arista-PlayAI")
+    expect(resolveDonaGroqVoice("Celeste-PlayAI")).toBe("Celeste-PlayAI")
+  })
+
+  it("prefers Amélie over Thomas in French", () => {
+    const picked = pickDonaBrowserVoice(
+      [
+        { name: "Thomas", lang: "fr-FR" },
+        { name: "Amélie", lang: "fr-FR" },
+        { name: "Google US English", lang: "en-US" },
+      ],
+      "fr"
+    )
+    expect(picked?.name).toBe("Amélie")
+    expect(isFeminineBrowserVoice({ name: "Thomas", lang: "fr-FR" })).toBe(false)
+    expect(donaBrowserPitch({ name: "Thomas", lang: "fr-FR" })).toBeGreaterThan(
+      donaBrowserPitch({ name: "Amélie", lang: "fr-FR" })
+    )
+  })
+
+  it("picks a feminine English voice rather than a French man", () => {
+    const picked = pickDonaBrowserVoice(
+      [
+        { name: "Thomas", lang: "fr-FR" },
+        { name: "Samantha", lang: "en-US" },
+      ],
+      "fr"
+    )
+    expect(picked?.name).toBe("Samantha")
+  })
+
+  it("tries gpt-4o-mini-tts first so Dona can be directed as a woman", () => {
+    expect(donaTtsModelChain(undefined)[0]).toBe("gpt-4o-mini-tts")
   })
 })
 
