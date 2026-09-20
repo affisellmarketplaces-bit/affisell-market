@@ -90,6 +90,7 @@ export function useDonaVoice(args: UseDonaVoiceArgs): UseDonaVoiceResult {
   const spokenIdsRef = useRef<Set<string>>(new Set())
   const onFinalRef = useRef(onFinalTranscript)
   const localeRef = useRef(locale)
+  const startListeningRef = useRef<() => void>(() => undefined)
 
   useEffect(() => {
     onFinalRef.current = onFinalTranscript
@@ -193,7 +194,7 @@ export function useDonaVoice(args: UseDonaVoiceArgs): UseDonaVoiceResult {
       recognitionRef.current = null
       setListening(false)
       setInterim("")
-      // Duplex: if we still want to listen and aren't busy, restart once
+      // Duplex: if we still want to listen and aren't busy, restart once via ref (no self-TDZ).
       if (
         wantListenRef.current &&
         duplexRef.current &&
@@ -207,7 +208,7 @@ export function useDonaVoice(args: UseDonaVoiceArgs): UseDonaVoiceResult {
             activeRef.current &&
             !busyRef.current
           ) {
-            startListening()
+            startListeningRef.current()
           }
         }, 280)
       }
@@ -227,6 +228,10 @@ export function useDonaVoice(args: UseDonaVoiceArgs): UseDonaVoiceResult {
       setListening(false)
     }
   }, [cancelSpeech, stopRecognition])
+
+  useEffect(() => {
+    startListeningRef.current = startListening
+  }, [startListening])
 
   const toggleListen = useCallback(() => {
     if (listening) {
@@ -289,7 +294,7 @@ export function useDonaVoice(args: UseDonaVoiceArgs): UseDonaVoiceResult {
     utter.onend = () => {
       setSpeaking(false)
       if (duplexRef.current && activeRef.current && !busyRef.current) {
-        startListening()
+        startListeningRef.current()
       }
     }
     utter.onerror = () => setSpeaking(false)
@@ -304,7 +309,7 @@ export function useDonaVoice(args: UseDonaVoiceArgs): UseDonaVoiceResult {
         error: error instanceof Error ? error.message : String(error),
       })
     }
-  }, [active, busy, cancelSpeech, locale, speakTarget, startListening, support.tts])
+  }, [active, busy, cancelSpeech, locale, speakTarget, support.tts])
 
   // Tear down when panel closes
   useEffect(() => {
