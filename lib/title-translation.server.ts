@@ -182,3 +182,26 @@ export async function translateTitles(titles: readonly string[], locale: AppLoca
   if (missing.length > 0) void schedule(() => translateAndStoreTitles(missing, locale))
   return titles.map((t, i) => byTitle.get(cleaned[i]!) ?? t)
 }
+
+/** Same as `translateTitles` for objects carrying a `title` and/or `name` (both replaced). Never throws. */
+export async function translateItemTitles<T extends object>(items: readonly T[], locale: AppLocale): Promise<T[]> {
+  try {
+    const src = items.map((it) => {
+      const o = it as { title?: unknown; name?: unknown }
+      return typeof o.title === "string" ? o.title : typeof o.name === "string" ? o.name : ""
+    })
+    const out = await translateTitles(src, locale)
+    return items.map((it, i) => {
+      const tr = out[i]
+      if (!tr || tr === src[i]) return it
+      const o = it as { title?: unknown; name?: unknown }
+      return {
+        ...it,
+        ...(typeof o.title === "string" ? { title: tr } : {}),
+        ...(typeof o.name === "string" ? { name: tr } : {}),
+      }
+    })
+  } catch {
+    return [...items]
+  }
+}

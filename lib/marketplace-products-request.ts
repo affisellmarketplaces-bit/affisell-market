@@ -14,7 +14,7 @@ export function resolveMarketplaceProductsFetchOptions(
 ): MarketplaceProductsFetchOptions {
   const q = (searchParams.get("q") ?? "").trim()
   const liteRequested = searchParams.get("lite") === "1"
-  const hasFilters = [...searchParams.keys()].some((key) => key !== "lite")
+  const hasFilters = [...searchParams.keys()].some((key) => key !== "lite" && key !== "locale")
   const lite = liteRequested || q.length >= 2
   const take =
     q.length >= 2 ? SEARCH_RESULTS_TAKE : lite ? HOME_MARKETPLACE_LISTINGS_TAKE : 120

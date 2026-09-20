@@ -1,3 +1,4 @@
+import { translateItemTitles } from "@/lib/title-translation.server"
 import { Suspense } from "react"
 import { getLocale } from "next-intl/server"
 
@@ -26,13 +27,20 @@ async function HomeDiscoveryStream({ locale }: { locale: ReturnType<typeof resol
     loadHomeShopsSafe(6),
     loadHomeSelectionSafe(),
   ])
+  const [flashT, selectionT, collectionsT] = await Promise.all([
+    translateItemTitles(flash, locale),
+    translateItemTitles(selection, locale),
+    Promise.all(
+      discovery.collections.map(async (c) => ({ ...c, tiles: await translateItemTitles(c.tiles, locale) }))
+    ),
+  ])
   return (
     <HomeDiscoverySection
-      collections={discovery.collections}
+      collections={collectionsT}
       directory={discovery.directory}
-      flash={flash}
+      flash={flashT}
       shops={shops}
-      selection={selection}
+      selection={selectionT}
     />
   )
 }

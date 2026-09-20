@@ -170,11 +170,9 @@ export function MarketplaceView({
   const productsApiUrl = useMemo(() => {
     const params = new URLSearchParams(searchParams.toString())
     if (embedded && isCustomerBrowse) params.set("lite", "1")
-    const qs = params.toString()
-    if (qs) return `/api/marketplace/products?${qs}`
-    if (embedded && isCustomerBrowse) return "/api/marketplace/products?lite=1"
-    return "/api/marketplace/products"
-  }, [searchParams, embedded, isCustomerBrowse])
+    params.set("locale", locale)
+    return `/api/marketplace/products?${params.toString()}`
+  }, [searchParams, embedded, isCustomerBrowse, locale])
 
   const useInitialFallback = Boolean(
     initialBrowse && embedded && isCustomerBrowse && searchParams.toString() === ""
@@ -255,10 +253,11 @@ export function MarketplaceView({
       }
       const productParams = new URLSearchParams(params)
       if (embedded && isCustomerBrowse) productParams.set("lite", "1")
+      productParams.set("locale", locale)
       const productsUrl = `/api/marketplace/products?${productParams.toString()}`
       void preload(productsUrl, catalogFetcher)
     },
-    [router, searchParams, basePath, embedded, isCustomerBrowse]
+    [router, searchParams, basePath, embedded, isCustomerBrowse, locale]
   )
 
   const offerFilter = searchParams.get(MARKETPLACE_OFFER_FACET_KEY)
