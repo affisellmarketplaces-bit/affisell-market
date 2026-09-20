@@ -93,6 +93,14 @@ function orderFulfillmentTag(status: string, locale: AppLocale) {
   return ""
 }
 
+const SORT_LABEL_KEY: Record<BuyerOrdersSort, string> = {
+  action_needed: "actionNeeded",
+  date_desc: "dateDesc",
+  date_asc: "dateAsc",
+  amount_desc: "amountDesc",
+  amount_asc: "amountAsc",
+}
+
 export function AccountOrdersClient({
   initialOrders,
   className,
@@ -102,6 +110,7 @@ export function AccountOrdersClient({
 }) {
   const locale = useLocale() as AppLocale
   const [orders, setOrders] = useState(initialOrders)
+  const [nowMs] = useState(() => Date.now())
   const [sortBy, setSortBy] = useState<BuyerOrdersSort>(() => defaultBuyerOrdersSort())
   const [busyId, setBusyId] = useState<string | null>(null)
   const [bookingCancelBusyId, setBookingCancelBusyId] = useState<string | null>(null)
@@ -162,7 +171,8 @@ export function AccountOrdersClient({
           <span className="text-xs font-medium text-gray-500 dark:text-zinc-400">{sortLabel("label")}</span>
           <Select value={sortBy} onValueChange={(value) => setSortBy(value as BuyerOrdersSort)}>
             <SelectTrigger className="h-9 w-[min(100%,240px)] rounded-full border-zinc-200 bg-white text-sm dark:border-zinc-700 dark:bg-zinc-900">
-              <SelectValue />
+              {/* Show the translated label, never the raw value ("date_desc"). */}
+              <SelectValue>{sortLabel(SORT_LABEL_KEY[sortBy])}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="action_needed">{sortLabel("actionNeeded")}</SelectItem>
@@ -435,12 +445,19 @@ export function AccountOrdersClient({
                     .replace("{date}", new Date(o.lastReturn.createdAt).toLocaleDateString())}
                 </p>
               ) : !o.returnEligible ? (
-                <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">
-                  {tMessage(locale, "accountOrders.return.windowEnded").replace(
-                    "{date}",
-                    new Date(o.returnWindowEndsAt).toLocaleDateString()
-                  )}
-                </p>
+                // "Ended" only when the window is really over; before delivery the return simply is not open yet.
+                new Date(o.returnWindowEndsAt).getTime() < nowMs ? (
+                  <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">
+                    {tMessage(locale, "accountOrders.return.windowEnded").replace(
+                      "{date}",
+                      new Date(o.returnWindowEndsAt).toLocaleDateString()
+                    )}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                    {tMessage(locale, "accountOrders.return.opensAfterDelivery")}
+                  </p>
+                )
               ) : null}
             </div>
           </div>

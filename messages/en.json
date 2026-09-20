@@ -5685,6 +5685,7 @@
       "cancelError": "Could not cancel",
       "lastReturn": "Last return: {status} · {date}",
       "windowEnded": "Return window ended on {date}.",
+      "opensAfterDelivery": "You can request a return once your order has been delivered.",
       "form": {
         "reasonLabel": "Reason",
         "detailsPlaceholder": "Details (optional)",

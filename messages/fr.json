@@ -5685,6 +5685,7 @@
       "cancelError": "Annulation impossible",
       "lastReturn": "Dernier retour : {status} · {date}",
       "windowEnded": "Délai de retour terminé le {date}.",
+      "opensAfterDelivery": "Vous pourrez demander un retour une fois la commande livrée.",
       "form": {
         "reasonLabel": "Motif",
         "detailsPlaceholder": "Détails (optionnel)",

@@ -5685,6 +5685,7 @@
       "cancelError": "无法取消",
       "lastReturn": "最近退货：{status} · {date}",
       "windowEnded": "退货窗口已于 {date} 结束。",
+      "opensAfterDelivery": "订单送达后即可申请退货。",
       "form": {
         "reasonLabel": "原因",
         "detailsPlaceholder": "详情（选填）",

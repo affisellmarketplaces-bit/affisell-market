@@ -5685,6 +5685,7 @@
       "cancelError": "Nie udało się anulować",
       "lastReturn": "Ostatni zwrot: {status} · {date}",
       "windowEnded": "Okno zwrotu zakończyło się {date}.",
+      "opensAfterDelivery": "Zwrot będzie można zgłosić po dostarczeniu zamówienia.",
       "form": {
         "reasonLabel": "Powód",
         "detailsPlaceholder": "Szczegóły (opcjonalnie)",

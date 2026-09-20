@@ -5685,6 +5685,7 @@
       "cancelError": "Konnte nicht abbrechen",
       "lastReturn": "Letzte Rückgabe: {status} · {date}",
       "windowEnded": "Rückgabefenster endete am {date}.",
+      "opensAfterDelivery": "Sie können eine Rücksendung anfordern, sobald Ihre Bestellung geliefert wurde.",
       "form": {
         "reasonLabel": "Grund",
         "detailsPlaceholder": "Details (optional)",

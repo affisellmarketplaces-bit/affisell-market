@@ -5685,6 +5685,7 @@
       "cancelError": "No se pudo cancelar",
       "lastReturn": "Última devolución: {status} · {date}",
       "windowEnded": "El plazo de devolución finalizó el {date}.",
+      "opensAfterDelivery": "Podrás solicitar una devolución cuando tu pedido haya sido entregado.",
       "form": {
         "reasonLabel": "Motivo",
         "detailsPlaceholder": "Detalles (opcional)",

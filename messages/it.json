@@ -5685,6 +5685,7 @@
       "cancelError": "Impossibile annullare",
       "lastReturn": "Ultimo reso: {status} · {date}",
       "windowEnded": "La finestra di reso è scaduta il {date}.",
+      "opensAfterDelivery": "Potrai richiedere un reso dopo la consegna dell’ordine.",
       "form": {
         "reasonLabel": "Motivo",
         "detailsPlaceholder": "Dettagli (facoltativo)",

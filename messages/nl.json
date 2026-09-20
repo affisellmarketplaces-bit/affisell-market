@@ -5685,6 +5685,7 @@
       "cancelError": "Kon niet annuleren",
       "lastReturn": "Laatste retour: {status} · {date}",
       "windowEnded": "Retourvenster eindigde op {date}.",
+      "opensAfterDelivery": "Je kunt een retour aanvragen zodra je bestelling is bezorgd.",
       "form": {
         "reasonLabel": "Reden",
         "detailsPlaceholder": "Details (optioneel)",
