@@ -1,5 +1,6 @@
 import { cache } from "react"
 
+import { translateTitles } from "@/lib/title-translation.server"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { getCachedHomeProducts } from "@/lib/cache/home-products"
 import { FLAGS } from "@/lib/flags"
@@ -40,6 +41,25 @@ const loadHomeOfferRailCounts = cache(() => loadOfferModeRailCounts())
  * Home `#explorer` SSR payload.
  * Uses React `cache()` only; page `revalidate = 60` covers cross-request freshness.
  */
+/** Cache-only buyer-language titles (never waits for the model, never throws). */
+async function translateShellProducts<T>(products: T[], locale: AppLocale): Promise<T[]> {
+  try {
+    const titles = products.map((p) => {
+      const o = p as Record<string, unknown>
+      return typeof o.title === "string" ? o.title : typeof o.name === "string" ? o.name : ""
+    })
+    const out = await translateTitles(titles, locale)
+    return products.map((p, i) => {
+      const o = p as Record<string, unknown>
+      const tr = out[i]
+      if (!tr || tr === titles[i]) return p
+      return { ...o, ...(typeof o.title === "string" ? { title: tr } : {}), ...(typeof o.name === "string" ? { name: tr } : {}) } as T
+    })
+  } catch {
+    return products
+  }
+}
+
 async function loadHomeMarketplaceShellUncached(
   locale: AppLocale
 ): Promise<Omit<HomeMarketplaceShell, "personalizedPicks">> {
@@ -59,7 +79,7 @@ async function loadHomeMarketplaceShellUncached(
   return withHomeCatalogFallback({
     categories: tree.categories,
     catalogTotal: tree.catalogTotal,
-    products,
+    products: await translateShellProducts(products, locale),
     offerRailCounts,
   })
 }

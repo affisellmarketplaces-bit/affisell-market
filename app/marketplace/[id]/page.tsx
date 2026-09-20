@@ -57,6 +57,7 @@ import { buildProductOfferJsonLd } from "@/lib/product-listing-seo"
 import { appendCrossSocialProofJsonLd } from "@/lib/product-social-proof-seo"
 import { resolveTryOnFeatureEnabled } from "@/lib/flags/try-on"
 import { resolveGalleryListingVideoUrl } from "@/lib/product-playable-video"
+import { translateTitles } from "@/lib/title-translation.server"
 import type { AppLocale } from "@/lib/i18n-locale"
 import { appMessagesForLocale } from "@/lib/i18n-app-messages"
 import { offerModeBadge, parseProductOfferMode } from "@/lib/product-offer-mode"
@@ -475,7 +476,8 @@ export default async function MarketplaceListingPage({
       .filter((row) => row.label.length > 0 && row.value.length > 0),
   ]
 
-  const displayName = listingDisplayTitle(listing.customTitle, listing.product.name)
+  const sourceName = listingDisplayTitle(listing.customTitle, listing.product.name)
+  const displayName = (await translateTitles([sourceName], locale as AppLocale))[0] ?? sourceName
   const seoImage = listingPrimaryImageUrl(listing.customImages, listing.product.images) || null
   const tryOnFeatureEnabled = resolveTryOnFeatureEnabled(
     new URLSearchParams(
