@@ -12,7 +12,8 @@ import {
 } from "@/lib/emails/merchant-order-alert-copy"
 import { resolveAppUrl } from "@/lib/emails/send-order-confirmation"
 import { resolveEmailLocale } from "@/lib/emails/resolve-email-locale"
-import { readResendDeliveryConfig, resolveResendDeliveryRecipient } from "@/lib/emails/resend-delivery"
+import { readResendDeliveryConfig, sendResendEmail } from "@/lib/emails/resend-delivery"
+import { resolveSupportEmail } from "@/lib/legal/company-env"
 import { prisma } from "@/lib/prisma"
 
 function supplierOrdersUrl(): string {
@@ -34,8 +35,48 @@ function affiliateNetEarningsCents(order: {
   return Math.max(0, gross - Math.max(0, order.affiliateFeeCents))
 }
 
+function merchantAlertTags(role: "supplier" | "affiliate", orderId: string) {
+  return [
+    { name: "merchant-alert", value: role },
+    { name: "order-id", value: orderId.slice(0, 48) },
+  ]
+}
+
+export type DispatchMerchantOrderAlertsOptions = {
+  /** Clear supplier sent flag then send again (ops heal when inbox never arrived). */
+  forceSupplier?: boolean
+  /** Clear affiliate sent flag then send again. */
+  forceAffiliate?: boolean
+}
+
+export type MerchantAlertDispatchStatus =
+  | "sent"
+  | "already_sent"
+  | "failed"
+  | "skipped"
+  | "skipped_unpaid"
+  | "skipped_no_resend"
+  | "skipped_no_address"
+
+export type DispatchMerchantOrderAlertsResult = {
+  supplier: MerchantAlertDispatchStatus
+  affiliate: MerchantAlertDispatchStatus
+  supplierResendId?: string
+  affiliateResendId?: string
+  supplierError?: string
+  affiliateError?: string
+}
+
 /** Idempotent Resend alerts for supplier + affiliate after marketplace checkout paid. */
-export async function dispatchMerchantOrderAlerts(orderId: string): Promise<void> {
+export async function dispatchMerchantOrderAlerts(
+  orderId: string,
+  options: DispatchMerchantOrderAlertsOptions = {}
+): Promise<DispatchMerchantOrderAlertsResult> {
+  const result: DispatchMerchantOrderAlertsResult = {
+    supplier: "skipped",
+    affiliate: "skipped",
+  }
+
   // Partner amounts of a fresh order are completed by the reconcile step: run it BEFORE reading them, otherwise the
   // reseller alert can go out with "Your earnings €0.00". Idempotent (no-op once the amounts are complete).
   try {
@@ -76,12 +117,34 @@ export async function dispatchMerchantOrderAlerts(orderId: string): Promise<void
     },
   })
 
-  if (!order || order.status !== "paid") return
+  if (!order || order.status !== "paid") {
+    result.supplier = "skipped_unpaid"
+    result.affiliate = "skipped_unpaid"
+    return result
+  }
+
+  // Force-clear only after paid check — never wipe flags on unpaid/missing rows.
+  if (options.forceSupplier) {
+    await prisma.order.updateMany({
+      where: { id: orderId, status: "paid" },
+      data: { merchantSupplierEmailSentAt: null },
+    })
+    order.merchantSupplierEmailSentAt = null
+  }
+  if (options.forceAffiliate) {
+    await prisma.order.updateMany({
+      where: { id: orderId, status: "paid" },
+      data: { merchantAffiliateEmailSentAt: null },
+    })
+    order.merchantAffiliateEmailSentAt = null
+  }
 
   const config = readResendDeliveryConfig()
   if (!config) {
     console.log("[merchant-order-alerts]", { orderId, result: "email_skipped_no_resend" })
-    return
+    result.supplier = "skipped_no_resend"
+    result.affiliate = "skipped_no_resend"
+    return result
   }
 
   const orderRef = shortMerchantOrderRef(order.id)
@@ -92,8 +155,8 @@ export async function dispatchMerchantOrderAlerts(orderId: string): Promise<void
   const partnerListingCode = order.affiliate.store?.partnerListingCode?.trim() || null
   const payoutLabel = formatMerchantAlertMoney(order.supplierPayoutCents)
   const earningsLabel = formatMerchantAlertMoney(affiliateNetEarningsCents(order))
-
   const emailLocale = resolveEmailLocale(order.buyerLocale)
+  const replyTo = resolveSupportEmail()
 
   if (!order.merchantSupplierEmailSentAt) {
     const supplierEmail = order.supplier.email.trim()
@@ -102,15 +165,9 @@ export async function dispatchMerchantOrderAlerts(orderId: string): Promise<void
         orderId,
         result: "supplier_email_skipped_no_address",
       })
+      result.supplier = "skipped_no_address"
     } else {
-      const locale = emailLocale
-      const copy = copyForMerchantNewOrderAlert(locale)
-      const { to } = resolveResendDeliveryRecipient(
-        "merchant-new-order-alert",
-        supplierEmail,
-        config
-      )
-
+      const copy = copyForMerchantNewOrderAlert(emailLocale)
       try {
         const html = await render(
           MerchantNewOrderAlertEmail({
@@ -125,37 +182,76 @@ export async function dispatchMerchantOrderAlerts(orderId: string): Promise<void
             copy,
           })
         )
-        const { Resend } = await import("resend")
-        const resend = new Resend(config.apiKey)
-        const { data } = await resend.emails.send({
-          from: config.from,
-          to,
+        const text = [
+          copy.heading,
+          copy.intro,
+          `${productName}${variantLabel?.trim() ? ` · ${variantLabel.trim()}` : ""}`,
+          `${copy.orderLabel}: #${orderRef}`,
+          `${copy.qtyLabel}: ×${quantity}`,
+          `${copy.buyerLabel}: ${buyerMasked}`,
+          partnerListingCode ? `${copy.partnerLabel}: ${partnerListingCode}` : null,
+          `${copy.payoutLabel}: ${payoutLabel}`,
+          supplierOrdersUrl(),
+          copy.footer,
+        ]
+          .filter(Boolean)
+          .join("\n")
+
+        const sendResult = await sendResendEmail({
+          context: "merchant-new-order-alert",
+          config,
+          intendedTo: supplierEmail,
           subject: copy.subject(productName),
           html,
+          text,
+          replyTo,
+          tags: merchantAlertTags("supplier", orderId),
         })
 
-        const claimed = await prisma.order.updateMany({
-          where: { id: orderId, merchantSupplierEmailSentAt: null },
-          data: { merchantSupplierEmailSentAt: new Date() },
-        })
-
-        if (claimed.count > 0) {
-          console.log("[merchant-order-alerts]", {
+        if (!sendResult.ok) {
+          result.supplier = "failed"
+          result.supplierError = sendResult.error
+          console.error("[merchant-order-alerts]", {
             orderId,
             role: "SUPPLIER",
-            result: "email_sent",
-            resendId: data?.id,
+            result: "email_failed",
+            error: sendResult.error,
+            intendedTo: maskEmailForLog(supplierEmail),
           })
+        } else {
+          const claimed = await prisma.order.updateMany({
+            where: { id: orderId, merchantSupplierEmailSentAt: null },
+            data: { merchantSupplierEmailSentAt: new Date() },
+          })
+
+          if (claimed.count > 0) {
+            result.supplier = "sent"
+            result.supplierResendId = sendResult.resendId
+            console.log("[merchant-order-alerts]", {
+              orderId,
+              role: "SUPPLIER",
+              result: "email_sent",
+              resendId: sendResult.resendId,
+              intendedTo: maskEmailForLog(supplierEmail),
+              forced: Boolean(options.forceSupplier),
+            })
+          } else {
+            result.supplier = "already_sent"
+          }
         }
       } catch (error) {
+        result.supplier = "failed"
+        result.supplierError = error instanceof Error ? error.message : String(error)
         console.error("[merchant-order-alerts]", {
           orderId,
           role: "SUPPLIER",
           result: "email_failed",
-          error: error instanceof Error ? error.message : String(error),
+          error: result.supplierError,
         })
       }
     }
+  } else {
+    result.supplier = "already_sent"
   }
 
   if (!order.merchantAffiliateEmailSentAt) {
@@ -165,15 +261,9 @@ export async function dispatchMerchantOrderAlerts(orderId: string): Promise<void
         orderId,
         result: "affiliate_email_skipped_no_address",
       })
+      result.affiliate = "skipped_no_address"
     } else {
-      const locale = emailLocale
-      const copy = copyForAffiliateNewSaleAlert(locale)
-      const { to } = resolveResendDeliveryRecipient(
-        "affiliate-new-sale-alert",
-        affiliateEmail,
-        config
-      )
-
+      const copy = copyForAffiliateNewSaleAlert(emailLocale)
       try {
         const html = await render(
           AffiliateNewSaleAlertEmail({
@@ -186,36 +276,73 @@ export async function dispatchMerchantOrderAlerts(orderId: string): Promise<void
             copy,
           })
         )
-        const { Resend } = await import("resend")
-        const resend = new Resend(config.apiKey)
-        const { data } = await resend.emails.send({
-          from: config.from,
-          to,
+        const text = [
+          copy.heading,
+          copy.intro,
+          `${productName}${variantLabel?.trim() ? ` · ${variantLabel.trim()}` : ""}`,
+          `${copy.orderLabel}: #${orderRef}`,
+          `${copy.qtyLabel}: ×${quantity}`,
+          `${copy.earningsLabel}: ${earningsLabel}`,
+          affiliateEarningsUrl(),
+          copy.footer,
+        ].join("\n")
+
+        const sendResult = await sendResendEmail({
+          context: "affiliate-new-sale-alert",
+          config,
+          intendedTo: affiliateEmail,
           subject: copy.subject(productName),
           html,
+          text,
+          replyTo,
+          tags: merchantAlertTags("affiliate", orderId),
         })
 
-        const claimed = await prisma.order.updateMany({
-          where: { id: orderId, merchantAffiliateEmailSentAt: null },
-          data: { merchantAffiliateEmailSentAt: new Date() },
-        })
-
-        if (claimed.count > 0) {
-          console.log("[merchant-order-alerts]", {
+        if (!sendResult.ok) {
+          result.affiliate = "failed"
+          result.affiliateError = sendResult.error
+          console.error("[merchant-order-alerts]", {
             orderId,
             role: "AFFILIATE",
-            result: "email_sent",
-            resendId: data?.id,
+            result: "email_failed",
+            error: sendResult.error,
+            intendedTo: maskEmailForLog(affiliateEmail),
           })
+        } else {
+          const claimed = await prisma.order.updateMany({
+            where: { id: orderId, merchantAffiliateEmailSentAt: null },
+            data: { merchantAffiliateEmailSentAt: new Date() },
+          })
+
+          if (claimed.count > 0) {
+            result.affiliate = "sent"
+            result.affiliateResendId = sendResult.resendId
+            console.log("[merchant-order-alerts]", {
+              orderId,
+              role: "AFFILIATE",
+              result: "email_sent",
+              resendId: sendResult.resendId,
+              intendedTo: maskEmailForLog(affiliateEmail),
+              forced: Boolean(options.forceAffiliate),
+            })
+          } else {
+            result.affiliate = "already_sent"
+          }
         }
       } catch (error) {
+        result.affiliate = "failed"
+        result.affiliateError = error instanceof Error ? error.message : String(error)
         console.error("[merchant-order-alerts]", {
           orderId,
           role: "AFFILIATE",
           result: "email_failed",
-          error: error instanceof Error ? error.message : String(error),
+          error: result.affiliateError,
         })
       }
     }
+  } else {
+    result.affiliate = "already_sent"
   }
+
+  return result
 }

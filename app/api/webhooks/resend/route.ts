@@ -4,6 +4,7 @@ import { Webhook } from "svix"
 import { processExpansionResendDeliveredEvent } from "@/lib/resend-webhook/expansion-email-delivered"
 import { processExpansionResendDeliveryEvent } from "@/lib/resend-webhook/expansion-email-delivery"
 import type { ResendWebhookEmailData } from "@/lib/resend-webhook/expansion-email-delivery"
+import { clearMerchantAlertSentFlagOnBounce } from "@/lib/resend-webhook/merchant-alert-bounce"
 import { recordExpansionBounceEvent } from "@/lib/resend-webhook/record-expansion-bounce-event"
 import { recordExpansionComplaintEvent } from "@/lib/resend-webhook/record-expansion-complaint-event"
 import { prisma } from "@/lib/prisma"
@@ -69,6 +70,7 @@ export async function POST(req: NextRequest) {
 
   await recordExpansionBounceEvent(event.type, emailData, emailId)
   await recordExpansionComplaintEvent(event.type, emailData, emailId)
+  const merchantBounce = await clearMerchantAlertSentFlagOnBounce(event.type, emailData)
 
   await prisma.processedWebhook.create({
     data: {
@@ -90,5 +92,6 @@ export async function POST(req: NextRequest) {
     type: event.type,
     expansion: expansionResult,
     delivered: deliveredResult,
+    merchantBounce,
   })
 }

@@ -4,6 +4,7 @@ import {
   Container,
   Head,
   Heading,
+  Hr,
   Html,
   Preview,
   Section,
@@ -24,6 +25,7 @@ export type MerchantNewOrderAlertEmailProps = {
   copy: MerchantNewOrderAlertCopy
 }
 
+/** Light transactional layout (same family as buyer order-confirmation) for Gmail deliverability. */
 export function MerchantNewOrderAlertEmail({
   productName,
   variantLabel,
@@ -43,7 +45,7 @@ export function MerchantNewOrderAlertEmail({
       <Preview>{copy.preview}</Preview>
       <Body style={main}>
         <Container style={container}>
-          <Text style={badge}>◷ Affisell Merchant</Text>
+          <Text style={brand}>Affisell · Fournisseur</Text>
           <Heading style={h1}>{copy.heading}</Heading>
           <Text style={text}>{copy.intro}</Text>
           <Text style={product}>{productLine}</Text>
@@ -68,6 +70,7 @@ export function MerchantNewOrderAlertEmail({
               {copy.cta}
             </Button>
           </Section>
+          <Hr style={hr} />
           <Text style={footer}>{copy.footer}</Text>
         </Container>
       </Body>
@@ -75,40 +78,48 @@ export function MerchantNewOrderAlertEmail({
   )
 }
 
-const main = { backgroundColor: "#0f172a", fontFamily: "system-ui, sans-serif" }
-const container = { margin: "0 auto", padding: "32px 20px", maxWidth: "520px" }
-const badge = {
-  color: "#6ee7b7",
-  fontSize: "11px",
-  fontWeight: 700,
-  letterSpacing: "0.2em",
-  textTransform: "uppercase" as const,
+const main = { backgroundColor: "#f6f9fc", fontFamily: "Arial, sans-serif" }
+const container = {
+  backgroundColor: "#ffffff",
+  margin: "0 auto",
+  padding: "32px 24px",
+  maxWidth: "520px",
 }
-const h1 = { color: "#f8fafc", fontSize: "24px", fontWeight: 700, margin: "12px 0" }
-const text = { color: "#cbd5e1", fontSize: "15px", lineHeight: "24px" }
-const product = { color: "#e2e8f0", fontSize: "16px", fontWeight: 600, margin: "16px 0" }
+const brand = {
+  color: "#5469d4",
+  fontSize: "12px",
+  fontWeight: 700,
+  letterSpacing: "0.04em",
+  textTransform: "uppercase" as const,
+  margin: "0 0 8px",
+}
+const h1 = { color: "#111827", fontSize: "22px", fontWeight: 700, margin: "0 0 12px" }
+const text = { color: "#4b5563", fontSize: "15px", lineHeight: "24px", margin: "0 0 12px" }
+const product = { color: "#111827", fontSize: "16px", fontWeight: 600, margin: "16px 0" }
 const box = {
-  backgroundColor: "#1e293b",
-  borderRadius: "12px",
+  backgroundColor: "#f9fafb",
+  border: "1px solid #e5e7eb",
+  borderRadius: "8px",
   padding: "16px 20px",
   margin: "20px 0",
 }
 const label = {
-  color: "#94a3b8",
+  color: "#6b7280",
   fontSize: "11px",
   fontWeight: 700,
-  letterSpacing: "0.08em",
+  letterSpacing: "0.06em",
   textTransform: "uppercase" as const,
   margin: "12px 0 4px",
 }
-const value = { color: "#f1f5f9", fontSize: "15px", margin: "0 0 4px" }
+const value = { color: "#111827", fontSize: "15px", margin: "0 0 4px" }
 const button = {
-  backgroundColor: "#7c3aed",
-  borderRadius: "10px",
+  backgroundColor: "#5469d4",
+  borderRadius: "6px",
   color: "#fff",
   fontSize: "15px",
   fontWeight: 700,
   padding: "12px 24px",
   textDecoration: "none",
 }
-const footer = { color: "#64748b", fontSize: "12px", lineHeight: "20px", marginTop: "24px" }
+const hr = { borderColor: "#e6ebf1", margin: "24px 0" }
+const footer = { color: "#8898aa", fontSize: "12px", lineHeight: "18px", margin: 0 }

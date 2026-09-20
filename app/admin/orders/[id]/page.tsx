@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation"
 import { AutodsFulfillmentPanel } from "@/components/admin/autods-fulfillment-panel"
 import { CancelOrderDialog } from "@/components/admin/cancel-order-dialog"
 import { OrderHeader } from "@/components/admin/order-header"
+import { ResendSupplierAlertButton } from "@/components/admin/resend-supplier-alert-button"
 import { SupplierTimeline } from "@/components/admin/supplier-timeline"
 import { TrackingAuditPanel } from "@/components/admin/tracking-audit-panel"
 import { auth } from "@/auth"
@@ -35,6 +36,11 @@ export default async function AdminOrderPage({ params }: Props) {
           order={order}
           actions={
             <>
+              <ResendSupplierAlertButton
+                orderId={order.id}
+                supplierEmail={order.supplierEmail}
+                supplierEmailSentAt={order.merchantSupplierEmailSentAt}
+              />
               <Link
                 href="/admin/providers"
                 className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
