@@ -1,3 +1,5 @@
+import { resolveSupportEmail } from "@/lib/legal/company-env"
+
 export type WebPushVapidConfig = {
   publicKey: string
   privateKey: string
@@ -10,7 +12,7 @@ export function readWebPushVapidConfig(): WebPushVapidConfig | null {
   const subject =
     process.env.VAPID_SUBJECT?.trim() ||
     process.env.RESEND_FROM_EMAIL?.trim() ||
-    "mailto:support@affisell.com"
+    `mailto:${resolveSupportEmail()}`
 
   if (!publicKey || !privateKey) return null
   return { publicKey, privateKey, subject }

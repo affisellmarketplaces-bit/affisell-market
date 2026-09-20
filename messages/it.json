@@ -2624,7 +2624,7 @@
     "blockedOrdersBody": "Gli account commerciante con cronologia ordini devono essere gestiti dall'assistenza per motivi legali e di registrazione dei pagamenti.",
     "blockedOpenOrdersTitle": "Eliminazione bloccata — ordini in corso",
     "blockedOpenOrdersBody": "Completa o annulla gli ordini in corso prima di eliminare il tuo account acquirente.",
-    "contactSupport": "Contatta support@affisell.com",
+    "contactSupport": "Contatta {email}",
     "reasons": {
       "too_complex": "Troppo complesso da usare",
       "missing_features": "Mancano funzionalità di cui ho bisogno",

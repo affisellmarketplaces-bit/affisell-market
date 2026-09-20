@@ -2624,7 +2624,7 @@
     "blockedOrdersBody": "Konta sprzedawców z historią zamówień muszą być obsługiwane przez wsparcie ze względu na wymogi prawne i rozliczeniowe.",
     "blockedOpenOrdersTitle": "Usunięcie zablokowane — trwające zamówienia",
     "blockedOpenOrdersBody": "Zakończ lub anuluj trwające zamówienia przed usunięciem konta kupującego.",
-    "contactSupport": "Skontaktuj się z support@affisell.com",
+    "contactSupport": "Skontaktuj się z {email}",
     "reasons": {
       "too_complex": "Zbyt skomplikowane w użyciu",
       "missing_features": "Brakujące funkcje, których potrzebuję",

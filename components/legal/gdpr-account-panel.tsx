@@ -8,7 +8,7 @@ import { AccountDeletionFlow } from "@/components/account/account-deletion-flow"
 import { BentoCard } from "@/components/affisell/bento-ui"
 import type { CookieConsentPrefs } from "@/lib/legal/consent"
 
-export function GdprAccountPanel() {
+export function GdprAccountPanel({ supportEmail }: { supportEmail?: string } = {}) {
   const t = useTranslations("gdprAccount")
   const [consent, setConsent] = useState<CookieConsentPrefs | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -119,7 +119,7 @@ export function GdprAccountPanel() {
       <BentoCard className="space-y-4 border-red-200 p-6 dark:border-red-900/50">
         <h2 className="text-lg font-semibold text-red-800 dark:text-red-200">{t("deleteTitle")}</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">{t("deleteBody")}</p>
-        <AccountDeletionFlow variant="gdpr" triggerStyle="destructive" />
+        <AccountDeletionFlow variant="gdpr" triggerStyle="destructive" supportEmail={supportEmail} />
       </BentoCard>
 
       <p className="text-xs text-zinc-500">

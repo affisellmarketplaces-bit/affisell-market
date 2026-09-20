@@ -33,6 +33,8 @@ type Props = {
   triggerClassName?: string
   triggerLabel?: string
   triggerStyle?: "button" | "destructive"
+  /** Configured support address (server-resolved from SUPPORT_EMAIL). */
+  supportEmail?: string
 }
 
 type Step = "impact" | "reason" | "confirm"
@@ -44,6 +46,7 @@ export function AccountDeletionFlow({
   triggerClassName,
   triggerLabel,
   triggerStyle = "button",
+  supportEmail = "support@affisell.com",
 }: Props) {
   const t = useTranslations("accountDeletion")
   const locale = useLocale()
@@ -305,10 +308,10 @@ export function AccountDeletionFlow({
                                 : t("blockedOrdersBody")}
                             </p>
                             <a
-                              href="mailto:support@affisell.com"
+                              href={`mailto:${supportEmail}`}
                               className="inline-flex font-medium text-amber-900 underline underline-offset-2 dark:text-amber-100"
                             >
-                              {t("contactSupport")}
+                              {t("contactSupport", { email: supportEmail })}
                             </a>
                           </div>
                         </div>

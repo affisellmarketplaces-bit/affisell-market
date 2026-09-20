@@ -2624,7 +2624,7 @@
     "blockedOrdersBody": "Händlerkonten mit Bestellhistorie müssen aus rechtlichen Gründen und wegen Auszahlungsunterlagen vom Support bearbeitet werden.",
     "blockedOpenOrdersTitle": "Löschung blockiert — laufende Bestellungen",
     "blockedOpenOrdersBody": "Schließe laufende Bestellungen ab oder storniere sie, bevor du dein Käuferkonto löschst.",
-    "contactSupport": "Kontakt: support@affisell.com",
+    "contactSupport": "Kontakt: {email}",
     "reasons": {
       "too_complex": "Zu kompliziert in der Nutzung",
       "missing_features": "Fehlende Funktionen, die ich brauche",

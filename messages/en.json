@@ -2624,7 +2624,7 @@
     "blockedOrdersBody": "Merchant accounts with order history must be handled by support for legal and payout records.",
     "blockedOpenOrdersTitle": "Deletion blocked — orders in progress",
     "blockedOpenOrdersBody": "Finish or cancel in-progress orders before deleting your buyer account.",
-    "contactSupport": "Contact support@affisell.com",
+    "contactSupport": "Contact {email}",
     "reasons": {
       "too_complex": "Too complex to use",
       "missing_features": "Missing features I need",

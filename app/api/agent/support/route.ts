@@ -1,3 +1,4 @@
+import { resolveSupportEmail } from "@/lib/legal/company-env"
 import { groq } from "@ai-sdk/groq"
 import { convertToModelMessages, streamText, type UIMessage } from "ai"
 
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
   logBusiness("support-agent", { result: "request", queryPreview })
 
   const baseUrl = resolveCheckoutBaseUrl(req)
-  const system = `${SUPPORT_AGENT_SYSTEM_PROMPT}\n\nOrigine publique du site (référence interne uniquement — ne jamais l'afficher si un chemin relatif suffit): ${baseUrl}`
+  const system = `${SUPPORT_AGENT_SYSTEM_PROMPT.replaceAll("{{SUPPORT_EMAIL}}", resolveSupportEmail())}\n\nOrigine publique du site (référence interne uniquement — ne jamais l'afficher si un chemin relatif suffit): ${baseUrl}`
 
   const result = streamText({
     model: groq("llama-3.3-70b-versatile"),

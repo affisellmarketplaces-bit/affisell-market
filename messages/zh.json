@@ -2624,7 +2624,7 @@
     "blockedOrdersBody": "有订单记录的商家账户须由客服处理，以符合法律及收款记录要求。",
     "blockedOpenOrdersTitle": "删除被阻止 —— 存在进行中的订单",
     "blockedOpenOrdersBody": "请先完成或取消进行中的订单，再删除你的买家账户。",
-    "contactSupport": "联系 support@affisell.com",
+    "contactSupport": "联系 {email}",
     "reasons": {
       "too_complex": "使用过于复杂",
       "missing_features": "缺少我需要的功能",

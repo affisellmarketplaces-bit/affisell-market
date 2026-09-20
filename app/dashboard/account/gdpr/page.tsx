@@ -2,6 +2,7 @@ import Link from "next/link"
 import { requireMerchantSession } from "@/lib/dashboard-session"
 
 import { BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
+import { resolveSupportEmail } from "@/lib/legal/company-env"
 import { GdprAccountPanel } from "@/components/legal/gdpr-account-panel"
 
 export const metadata = {
@@ -25,7 +26,7 @@ export default async function GdprAccountPage() {
           title="Mes données personnelles"
           description="Export, suppression de compte et gestion des consentements."
         />
-        <GdprAccountPanel />
+        <GdprAccountPanel supportEmail={resolveSupportEmail()} />
       </BentoContainer>
     </BentoShell>
   )

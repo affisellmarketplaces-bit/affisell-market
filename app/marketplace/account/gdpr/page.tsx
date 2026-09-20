@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { BentoContainer, BentoPageHeading } from "@/components/affisell/bento-ui"
+import { resolveSupportEmail } from "@/lib/legal/company-env"
 import { GdprAccountPanel } from "@/components/legal/gdpr-account-panel"
 import { auth } from "@/auth"
 
@@ -21,7 +22,7 @@ export default async function MarketplaceBuyerGdprPage() {
         title="Mes données personnelles"
         description="Export, suppression de compte et gestion des consentements (cookies, analytics)."
       />
-      <GdprAccountPanel />
+      <GdprAccountPanel supportEmail={resolveSupportEmail()} />
     </BentoContainer>
   )
 }

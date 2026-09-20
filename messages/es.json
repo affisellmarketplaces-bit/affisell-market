@@ -2624,7 +2624,7 @@
     "blockedOrdersBody": "Las cuentas de comerciante con historial de pedidos deben ser gestionadas por soporte por motivos legales y de registros de pago.",
     "blockedOpenOrdersTitle": "Eliminación bloqueada — pedidos en curso",
     "blockedOpenOrdersBody": "Finaliza o cancela los pedidos en curso antes de eliminar tu cuenta de comprador.",
-    "contactSupport": "Contacta con support@affisell.com",
+    "contactSupport": "Contacta con {email}",
     "reasons": {
       "too_complex": "Demasiado complejo de usar",
       "missing_features": "Faltan funciones que necesito",

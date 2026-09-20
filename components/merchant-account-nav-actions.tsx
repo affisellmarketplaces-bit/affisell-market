@@ -15,12 +15,14 @@ type Props = {
   showAccountLink?: boolean
   /** Delete account is only shown in account settings, not in the header. */
   showDeleteAccount?: boolean
+  supportEmail?: string
 }
 
 export function MerchantAccountNavActions({
   className,
   showAccountLink = true,
   showDeleteAccount = false,
+  supportEmail,
 }: Props) {
   const t = useTranslations("merchantAccount")
 
@@ -50,7 +52,7 @@ export function MerchantAccountNavActions({
         {t("signOut")}
       </button>
       {showDeleteAccount ? (
-        <AccountDeletionFlow variant="merchant" triggerLabel={t("deleteAccount")} />
+        <AccountDeletionFlow variant="merchant" triggerLabel={t("deleteAccount")} supportEmail={supportEmail} />
       ) : null}
     </div>
   )

@@ -2624,7 +2624,7 @@
     "blockedOrdersBody": "Les comptes marchands avec historique de commandes doivent passer par le support (obligations légales et paiements).",
     "blockedOpenOrdersTitle": "Suppression bloquée — commandes en cours",
     "blockedOpenOrdersBody": "Finalisez ou annulez les commandes en cours avant de supprimer votre compte acheteur.",
-    "contactSupport": "Contacter support@affisell.com",
+    "contactSupport": "Contacter {email}",
     "reasons": {
       "too_complex": "Trop complexe à utiliser",
       "missing_features": "Fonctionnalités manquantes",

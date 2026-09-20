@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 
 import { BentoCard, BentoContainer, BentoPageHeading, BentoShell } from "@/components/affisell/bento-ui"
 import { ConnectedAccountsPanel } from "@/components/connected-accounts-panel"
+import { resolveSupportEmail } from "@/lib/legal/company-env"
 import { MerchantAccountNavActions } from "@/components/merchant-account-nav-actions"
 import { prisma } from "@/lib/prisma"
 
@@ -111,7 +112,7 @@ export default async function AccountSettingsPage() {
                 permanent and is blocked if you already have marketplace orders in this role.
               </p>
             </div>
-            <MerchantAccountNavActions showAccountLink={false} showDeleteAccount />
+            <MerchantAccountNavActions showAccountLink={false} showDeleteAccount supportEmail={resolveSupportEmail()} />
           </BentoCard>
         ) : null}
       </BentoContainer>

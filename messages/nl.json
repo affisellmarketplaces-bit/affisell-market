@@ -2624,7 +2624,7 @@
     "blockedOrdersBody": "Handelaarsaccounts met bestelgeschiedenis moeten door support worden afgehandeld vanwege juridische en uitbetalingsregistraties.",
     "blockedOpenOrdersTitle": "Verwijdering geblokkeerd — lopende bestellingen",
     "blockedOpenOrdersBody": "Rond lopende bestellingen af of annuleer ze voordat je je koperaccount verwijdert.",
-    "contactSupport": "Neem contact op met support@affisell.com",
+    "contactSupport": "Neem contact op met {email}",
     "reasons": {
       "too_complex": "Te complex in gebruik",
       "missing_features": "Ontbrekende functies die ik nodig heb",
